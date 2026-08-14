@@ -206,22 +206,29 @@ resource	herbs	resource_homestead_herbs	Raw Assets/Homestead/Resources/herbs.png
 resource	hide	resource_homestead_hide	Raw Assets/Homestead/Resources/hide.png	0.50	0.50
 resource	crystal	resource_homestead_crystal	Raw Assets/Homestead/Resources/crystal.png	0.50	0.50
 resource	gold	resource_homestead_gold	Raw Assets/Homestead/Resources/gold.png	0.50	0.50
-encounter	mystery-amethyst-geode	encounter_mystery_amethyst_geode	Raw Assets/Mystery Events/Amethyst Geode.jpeg	0.50	0.50
-encounter	mystery-bioluminescent-mushrooms	encounter_mystery_bioluminescent_mushrooms	Raw Assets/Mystery Events/Bioluminescent Mushrooms.jpeg	0.50	0.50
-encounter	mystery-circle-of-glowing-mushrooms	encounter_mystery_circle_of_glowing_mushrooms	Raw Assets/Mystery Events/Circle of Glowing Mushrooms.jpeg	0.50	0.50
-encounter	mystery-dusty-shelves-in-tower	encounter_mystery_dusty_shelves_in_tower	Raw Assets/Mystery Events/Dusty Shelves in Tower.jpeg	0.50	0.50
-encounter	mystery-field-of-glowing-mana-berries	encounter_mystery_field_of_glowing_mana_berries	Raw Assets/Mystery Events/Field of Glowing Mana Berries.jpeg	0.50	0.50
-encounter	mystery-gold-coins-among-bones	encounter_mystery_gold_coins_among_bones	Raw Assets/Mystery Events/Gold Coins among Bones.jpeg	0.50	0.50
-encounter	mystery-leather-book-floats	encounter_mystery_leather_book_floats	Raw Assets/Mystery Events/Leather Book Floats.jpeg	0.50	0.50
-encounter	mystery-leather-bundle-between-roots	encounter_mystery_leather_bundle_between_roots	Raw Assets/Mystery Events/Leather Bundle Between Roots.jpeg	0.50	0.50
-encounter	mystery-narrow-pass-through-peaks	encounter_mystery_narrow_pass_through_peaks	Raw Assets/Mystery Events/Narrow Pass Through Peaks.jpeg	0.50	0.50
-encounter	mystery-oak-tree-with-face	encounter_mystery_oak_tree_with_face	Raw Assets/Mystery Events/Oak Tree with Face.jpeg	0.50	0.50
-encounter	mystery-pond-reflects-gnarled-trees	encounter_mystery_pond_reflects_gnarled_trees	Raw Assets/Mystery Events/Pond Reflects Gnarled Trees.jpeg	0.50	0.50
-encounter	mystery-pool-of-water-steams	encounter_mystery_pool_of_water_steams	Raw Assets/Mystery Events/Pool of Water Steams.jpeg	0.50	0.50
-encounter	mystery-smoldering-crater	encounter_mystery_smoldering_crater	Raw Assets/Mystery Events/Smoldering Crater.jpeg	0.50	0.50
-encounter	mystery-sunlight-breaks-canopy	encounter_mystery_sunlight_breaks_canopy	Raw Assets/Mystery Events/Sunlight Breaks Canopy.jpeg	0.50	0.50
-encounter	mystery-vines-carpet-mosaic-floors	encounter_mystery_vines_carpet_mosaic_floors	Raw Assets/Mystery Events/Vines Carpet Mosaic Floors.jpeg	0.50	0.50
-encounter	mystery-weathered-stone-altar	encounter_mystery_weathered_stone_altar	Raw Assets/Mystery Events/Weathered Stone Altar.jpeg	0.50	0.50
+encounter	mystery-abandoned-study	encounter_mystery_abandoned_study	Raw Assets/Mystery Events/Abandoned Study.jpeg	0.50	0.50
+encounter	mystery-ancient-altar	encounter_mystery_ancient_altar	Raw Assets/Mystery Events/Ancient Altar.jpeg	0.50	0.50
+encounter	mystery-crystal-garden	encounter_mystery_crystal_garden	Raw Assets/Mystery Events/Crystal Garden.jpeg	0.50	0.50
+encounter	mystery-crystal-geode	encounter_mystery_crystal_geode	Raw Assets/Mystery Events/Crystal Geode.jpeg	0.50	0.50
+encounter	mystery-enchanted-spring	encounter_mystery_enchanted_spring	Raw Assets/Mystery Events/Enchanted Spring.jpeg	0.50	0.50
+encounter	mystery-fairy-ring	encounter_mystery_fairy_ring	Raw Assets/Mystery Events/Fairy Ring.jpeg	0.50	0.50
+encounter	mystery-forgotten-hoard	encounter_mystery_forgotten_hoard	Raw Assets/Mystery Events/Forgotten Hoard.jpeg	0.50	0.50
+encounter	mystery-fungal-grotto	encounter_mystery_fungal_grotto	Raw Assets/Mystery Events/Fungal Grotto.jpeg	0.50	0.50
+encounter	mystery-hidden-cache	encounter_mystery_hidden_cache	Raw Assets/Mystery Events/Hidden Cache.jpeg	0.50	0.50
+encounter	mystery-hunters-lodge	encounter_mystery_hunters_lodge	Raw Assets/Mystery Events/Hunter's Lodge.jpeg	0.50	0.50
+encounter	mystery-mana-berries	encounter_mystery_mana_berries	Raw Assets/Mystery Events/Mana Berries.jpeg	0.50	0.50
+encounter	mystery-medicinal-herb-garden	encounter_mystery_medicinal_herb_garden	Raw Assets/Mystery Events/Medicinal Herb Garden.jpeg	0.50	0.50
+encounter	mystery-meteorite-crash	encounter_mystery_meteorite_crash	Raw Assets/Mystery Events/Meteorite Crash.jpeg	0.50	0.50
+encounter	mystery-mountain-pass	encounter_mystery_mountain_pass	Raw Assets/Mystery Events/Mountain Pass.jpeg	0.50	0.50
+encounter	mystery-murky-pond	encounter_mystery_murky_pond	Raw Assets/Mystery Events/Murky Pond.jpeg	0.50	0.50
+encounter	mystery-mysterious-tome	encounter_mystery_mysterious_tome	Raw Assets/Mystery Events/Mysterious Tome.jpeg	0.50	0.50
+encounter	mystery-overgrown-temple	encounter_mystery_overgrown_temple	Raw Assets/Mystery Events/Overgrown Temple.jpeg	0.50	0.50
+encounter	mystery-roadside-censer	encounter_mystery_roadside_censer	Raw Assets/Mystery Events/Roadside Censer.jpeg	0.50	0.50
+encounter	mystery-sacred-grove	encounter_mystery_sacred_grove	Raw Assets/Mystery Events/Sacred Grove.jpeg	0.50	0.50
+encounter	mystery-the-necromancers-offer	encounter_mystery_the_necromancers_offer	Raw Assets/Mystery Events/The Necromancer's Offer.jpeg	0.50	0.50
+encounter	mystery-the-phoenix	encounter_mystery_the_phoenix	Raw Assets/Mystery Events/The Phoenix.jpeg	0.50	0.50
+encounter	mystery-the-wolf	encounter_mystery_the_wolf	Raw Assets/Mystery Events/The Wolf.jpeg	0.50	0.50
+encounter	mystery-wisdom-tree	encounter_mystery_wisdom_tree	Raw Assets/Mystery Events/Wisdom Tree.jpeg	0.50	0.50
 encounter	mystery-recruit-companions	encounter_mystery_recruit_companions	Raw Assets/Mystery Events/Mystery Recruit Companions.png	0.50	0.50
 encounter	mystery-recruit-heroes	encounter_mystery_recruit_heroes	Raw Assets/Mystery Events/Mystery Recruit Heroes.png	0.50	0.50
 encounter	destination-merchant-shop	encounter_destination_merchant_shop	Raw Assets/Destinations/Merchant's Shop.jpeg	0.50	0.50

@@ -30,7 +30,7 @@ enum MysteryEventPool {
             id: "mana-berries",
             title: "Mana Berries",
             narrative: "You stumble upon a lush field of glowing Mana Berries. Their faint blue radiance pulses gently, promising restored mana.",
-            artID: "mystery-field-of-glowing-mana-berries",
+            artID: "mystery-mana-berries",
             choices: [
                 ("harvest", "Harvest", [
                     .gainMaterial(.herbs),
@@ -43,7 +43,7 @@ enum MysteryEventPool {
             id: "enchanted-spring",
             title: "Enchanted Spring",
             narrative: "A pool of iridescent water steams gently in the cool air. Its surface shimmers with an inviting warmth, promising restoration.",
-            artID: "mystery-pool-of-water-steams",
+            artID: "mystery-enchanted-spring",
             choices: [
                 ("bathe", "Bathe", [.gainExperience, .gainMaterial(.herbs)]),
                 ("bottle", "Bottle the Essence", [.gainMaterial(.crystal), .gainMaterial(.herbs)]),
@@ -53,7 +53,7 @@ enum MysteryEventPool {
             id: "fungal-grotto",
             title: "Fungal Grotto",
             narrative: "Bioluminescent mushrooms pulse in the dark, their spores hanging thick in the air. The cave walls glitter with an otherworldly light.",
-            artID: "mystery-bioluminescent-mushrooms",
+            artID: "mystery-fungal-grotto",
             choices: [
                 ("harvest-caps", "Harvest Caps", [
                     .gainMaterial(.herbs),
@@ -66,7 +66,7 @@ enum MysteryEventPool {
             id: "wisdom-tree",
             title: "Wisdom Tree",
             narrative: "An immense oak with a weathered face carved into its bark speaks in rustling leaves. Ancient wisdom emanates from its gnarled branches.",
-            artID: "mystery-oak-tree-with-face",
+            artID: "mystery-wisdom-tree",
             choices: [
                 ("ask-knowledge", "Ask for Knowledge", [.gainExperience]),
                 ("rest-shade", "Rest in its Shade", [.gainExperience, .gainMaterial(.herbs)]),
@@ -76,7 +76,7 @@ enum MysteryEventPool {
             id: "fairy-ring",
             title: "Fairy Ring",
             narrative: "A circle of glowing mushrooms hums with fey energy in a moonlit clearing. The air feels thick with mischief and ancient magic.",
-            artID: "mystery-circle-of-glowing-mushrooms",
+            artID: "mystery-fairy-ring",
             choices: [
                 ("step-inside", "Step Inside", [.gainGold(25)]),
                 ("pluck-cap", "Pluck a Cap", [.gainMaterial(.crystal)]),
@@ -86,7 +86,7 @@ enum MysteryEventPool {
             id: "ancient-altar",
             title: "Ancient Altar",
             narrative: "A weathered stone altar stands beneath a shaft of light piercing the canopy. A rusted offering bowl rests before it, etched with forgotten symbols.",
-            artID: "mystery-weathered-stone-altar",
+            artID: "mystery-ancient-altar",
             choices: [
                 ("pray", "Pray", [.gainExperience]),
                 ("take-relic", "Take the Relic", [generatedItem("topaz_amulet")]),
@@ -96,7 +96,7 @@ enum MysteryEventPool {
             id: "hidden-cache",
             title: "Hidden Cache",
             narrative: "A leather-wrapped bundle tucked between exposed roots catches your eye. Whatever is inside has been hidden here for a long time.",
-            artID: "mystery-leather-bundle-between-roots",
+            artID: "mystery-hidden-cache",
             choices: [
                 ("take-coinpurse", "Take the Coinpurse", [.gainGold(20), .gainMaterial(.hide)]),
                 ("claim-blade", "Claim the Blade", [generatedItem("dagger"), .gainMaterial(.hide)]),
@@ -106,7 +106,7 @@ enum MysteryEventPool {
             id: "overgrown-temple",
             title: "Overgrown Temple",
             narrative: "Vines carpet ancient mosaic floors. A faint glow pulses from a cracked sarcophagus in the chamber beyond, hinting at preserved treasures.",
-            artID: "mystery-vines-carpet-mosaic-floors",
+            artID: "mystery-overgrown-temple",
             choices: [
                 ("loot-crypt", "Loot the Crypt", [.gainRandomItem]),
                 ("read-inscriptions", "Read the Inscriptions", [.gainExperience, .gainMaterial(.crystal)]),
@@ -116,7 +116,7 @@ enum MysteryEventPool {
             id: "abandoned-study",
             title: "Abandoned Study",
             narrative: "Dusty shelves line a circular tower room. A half-written thesis lies open on the desk, quill dried beside it centuries ago.",
-            artID: "mystery-dusty-shelves-in-tower",
+            artID: "mystery-abandoned-study",
             choices: [
                 ("search-scrolls", "Search the Scrolls", [generatedItem("spellbook")]),
                 ("catalog-library", "Catalog the Library", [.gainExperience, .gainMaterial(.crystal)]),
@@ -126,7 +126,7 @@ enum MysteryEventPool {
             id: "mysterious-tome",
             title: "Mysterious Tome",
             narrative: "A leather-bound book floats above a pedestal, pages turning on their own. Arcane energy crackles around it as if it has been waiting for a reader.",
-            artID: "mystery-leather-book-floats",
+            artID: "mystery-mysterious-tome",
             choices: [
                 ("read", "Read Carefully", [.gainExperience]),
                 ("bind-pages", "Bind the Torn Pages", [generatedItem("spellbook")]),
@@ -136,7 +136,7 @@ enum MysteryEventPool {
             id: "crystal-geode",
             title: "Crystal Geode",
             narrative: "A massive amethyst geode splits the cave floor, its resonant hum filling the chamber with a deep, soothing vibration.",
-            artID: "mystery-amethyst-geode",
+            artID: "mystery-crystal-geode",
             choices: [
                 ("chip-gems", "Chip Out Gems", [
                     .gainMaterial(.crystal),
@@ -149,7 +149,7 @@ enum MysteryEventPool {
             id: "meteorite-crash",
             title: "Meteorite Crash",
             narrative: "A smoldering crater scars the forest floor. A strange metallic rock from beyond the sky sits at its center, radiating unfamiliar energy.",
-            artID: "mystery-smoldering-crater",
+            artID: "mystery-meteorite-crash",
             choices: [
                 ("pocket-fragment", "Pocket a Fragment", [
                     .gainMaterial(.iron),
@@ -162,7 +162,7 @@ enum MysteryEventPool {
             id: "forgotten-hoard",
             title: "Forgotten Hoard",
             narrative: "Gold coins glitter among scattered bones beside a massive, ancient skeleton. The remains of a once-great beast guard its treasure even in death.",
-            artID: "mystery-gold-coins-among-bones",
+            artID: "mystery-forgotten-hoard",
             choices: [
                 ("scoop-coins", "Scoop the Coins", [.gainGold(30), .gainMaterial(.iron)]),
                 ("fashion-bone-guard", "Fashion a Bone Guard", [generatedItem("kite_shield")]),
@@ -172,7 +172,7 @@ enum MysteryEventPool {
             id: "sacred-grove",
             title: "Sacred Grove",
             narrative: "Sunlight breaks through the canopy in golden rays. The air is thick with peace, and the ground hums with quiet vitality.",
-            artID: "mystery-sunlight-breaks-canopy",
+            artID: "mystery-sacred-grove",
             choices: [
                 ("bask", "Bask", [.gainExperience, .gainMaterial(.herbs)]),
                 ("forage", "Forage the Undergrowth", [
@@ -186,7 +186,7 @@ enum MysteryEventPool {
             id: "mountain-pass",
             title: "Mountain Pass",
             narrative: "A narrow pass winds through jagged peaks. The wind howls and loose rocks scatter the path, but valuable minerals glint in the sunlight.",
-            artID: "mystery-narrow-pass-through-peaks",
+            artID: "mystery-mountain-pass",
             choices: [
                 ("mine-cliffside", "Mine the Cliffside", [
                     .gainMaterial(.iron),
@@ -199,7 +199,7 @@ enum MysteryEventPool {
             id: "murky-pond",
             title: "Murky Pond",
             narrative: "A still pond reflects the gnarled trees surrounding it. Bubbles rise from its murky depths, hinting at secrets beneath the surface.",
-            artID: "mystery-pond-reflects-gnarled-trees",
+            artID: "mystery-murky-pond",
             choices: [
                 ("fish", "Fish the Depths", [.gainMaterial(.food)]),
                 ("pull-reeds", "Pull Medicinal Reeds", [
@@ -213,7 +213,7 @@ enum MysteryEventPool {
             id: "necromancers-offer",
             title: "The Necromancer's Offer",
             narrative: "A robed figure tends a circle of salt and bone. Without looking up, they extend a skeletal hand, offering forbidden power.",
-            artID: nil,
+            artID: "mystery-the-necromancers-offer",
             choices: [
                 ("accept-rite", "Accept the Rite", [.gainExperience, generatedItem("staff")]),
                 ("steal-salts", "Steal the Salts", [
@@ -226,7 +226,7 @@ enum MysteryEventPool {
             id: "medicinal-herb-garden",
             title: "Medicinal Herb Garden",
             narrative: "Cultivated beds have run wild as medicinal herbs grow through cracked paving, rich with scent and curative promise.",
-            artID: nil,
+            artID: "mystery-medicinal-herb-garden",
             choices: [
                 ("harvest-remedies", "Harvest Remedies", [.gainMaterial(.herbs), .gainExperience]),
                 ("copy-notes", "Copy the Herbalist's Notes", [
@@ -239,7 +239,7 @@ enum MysteryEventPool {
             id: "crystal-garden",
             title: "Crystal Garden",
             narrative: "Faceted crystalline blooms catch stray light, chiming softly when the wind passes by. Each shard thrums with latent power.",
-            artID: nil,
+            artID: "mystery-crystal-garden",
             choices: [
                 ("harvest-shards", "Harvest Shards", [
                     .gainMaterial(.crystal),
@@ -252,7 +252,7 @@ enum MysteryEventPool {
             id: "hunters-lodge",
             title: "Hunter's Lodge",
             narrative: "A deserted lodge still smells of smoke, wood, and leather. A hunter's bow and hatchet hang near the door, preserved and waiting.",
-            artID: nil,
+            artID: "mystery-hunters-lodge",
             choices: [
                 ("take-bow", "Take the Bow", [generatedItem("shortbow"), .gainMaterial(.hide)]),
                 ("take-hatchet", "Take the Hatchet", [generatedItem("hatchet"), .gainMaterial(.hide)]),
@@ -262,7 +262,7 @@ enum MysteryEventPool {
             id: "roadside-censer",
             title: "Roadside Censer",
             narrative: "Incense smoke coils from a hanging brass censer at a fork in the path. The air tastes of sanctified ash and old vows.",
-            artID: nil,
+            artID: "mystery-roadside-censer",
             choices: [
                 ("breathe-smoke", "Breathe the Smoke", [.gainExperience]),
                 ("claim-censer", "Claim the Censer", [generatedItem("topaz_amulet")]),
@@ -272,7 +272,7 @@ enum MysteryEventPool {
             id: "the-phoenix",
             title: "The Phoenix",
             narrative: "A single feather glows with warm radiance, asking to be reborn. Embers swirl around it as if the flame that created it still burns nearby.",
-            artID: nil,
+            artID: "mystery-the-phoenix",
             choices: [
                 ("claim-feather", "Claim the Feather", [generatedItem("ruby_amulet")]),
                 ("fan-embers", "Fan the Embers", [generatedItem("staff")]),
@@ -282,7 +282,7 @@ enum MysteryEventPool {
             id: "the-wolf",
             title: "The Wolf",
             narrative: "A grey wolf steps from the treeline, watching you with amber eyes. It does not flee — only waits, as if deciding whether you are worth knowing.",
-            artID: nil,
+            artID: "mystery-the-wolf",
             choices: [
                 ("study-pack", "Study the Pack", [.gainExperience]),
                 ("follow-cache", "Follow to its Cache", [generatedItem("recurve_bow")]),

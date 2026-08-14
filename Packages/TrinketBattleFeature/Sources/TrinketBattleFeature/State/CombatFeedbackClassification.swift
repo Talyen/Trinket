@@ -15,10 +15,7 @@ enum CombatFeedbackClassification {
         }
     }
 
-    static func classify(
-        _ event: ActionEvent,
-        display: ActionEventDisplay
-    ) -> CombatFeedbackClass {
+    static func classify(_ event: ActionEvent) -> CombatFeedbackClass {
         switch event.kind {
         case .status:
             return .dot
@@ -30,25 +27,23 @@ enum CombatFeedbackClassification {
             break
         }
 
-        switch display.emphasis {
-        case .heal:
-            return .heal
-        case .resourceGain:
-            return .resource
+        return switch event.effectKind {
+        case .instantHeal, .leechHeal:
+            .heal
+        case .resourceGain, .manaShieldTriggered, .cardsDrawn:
+            .resource
         case .shieldAbsorbed:
-            return .block
-        case .dodge:
-            return .dodge
-        case .control:
-            return .control
-        case .deathsDoor:
-            return .deathsDoor
-        case .status:
-            return .dot
-        case .damage:
-            return .directDamage
-        case .buff, .cleanse, .purge, .generic:
-            return .buff
+            .block
+        case .dodgeApplied:
+            .dodge
+        case .controlActionSkipped, .controlApplied, .controlTriggered:
+            .control
+        case .deathsDoorTriggered, .deathsDoorExpired:
+            .deathsDoor
+        case .thornsTriggered, .markedConsumed:
+            .directDamage
+        default:
+            .buff
         }
     }
 

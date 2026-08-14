@@ -303,6 +303,29 @@ final class PlayerSaveStoreTests {
         try #expect(store.lastPersistenceError == .writeFailed)
     }
 
+    @Test func ensureRequiredGraphRollsBackWhenSaveFails() throws {
+        let storeURL = context.storeURL()
+        let store = try PlayerSaveStore(
+            storeURL: storeURL,
+            disableCloudSync: true,
+            persistSaveImmediately: true
+        )
+        store.grantGold(10)
+        let snapshot = store.currentSave
+        store.dropInventoryGraphForTesting()
+        store.forcesNextSaveFailure = true
+
+        store.reapplyRequiredGraphForTesting()
+
+        try #expect(store.currentSave == snapshot)
+        try #expect(store.lastPersistenceError == .writeFailed)
+        try #expect(!store.isPersistenceDegraded)
+
+        let reloaded = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
+        try #expect(reloaded.roster.gold == 10)
+        try #expect(!reloaded.isPersistenceDegraded)
+    }
+
     @Test func resetGameplayProgressRollsBackWhenSaveFails() throws {
         let storeURL = context.storeURL()
         let store = try PlayerSaveStore(

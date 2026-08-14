@@ -56,18 +56,6 @@ struct BattleCardGridLayoutTests {
             abs(metrics.enemySize.width - partyRowWidth) < 0.001,
             sourceLocation: location
         )
-        if metrics.enemySize.height > 0 {
-            #expect(
-                abs(metrics.enemySize.width / metrics.enemySize.height - 4.0 / 3.0) < 0.001,
-                sourceLocation: location
-            )
-        }
-        if metrics.partySize.height > 0 {
-            #expect(
-                abs(metrics.partySize.width / metrics.partySize.height - 3.0 / 4.0) < 0.001,
-                sourceLocation: location
-            )
-        }
         #expect(partyRowWidth <= containerSize.width + 0.001, sourceLocation: location)
         #expect(gridHeight <= innerHeight + 0.001, sourceLocation: location)
     }

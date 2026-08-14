@@ -65,6 +65,13 @@ enum BattleStateTestFactory {
         enemyMaxHealth: Int = 100,
         heroMaxMana: Int = 0,
         heroMana: Int? = nil,
+        companionMaxMana: Int = 0,
+        companionMana: Int? = nil,
+        initialGold: Int = 0,
+        heroModifiers: CombatModifierProfile = .zero,
+        companionModifiers: CombatModifierProfile = .zero,
+        rngSeed: UInt64 = BattleTestFixtures.deterministicNonCriticalSeed,
+        tracksLog: Bool = false,
         dealOpeningHand: Bool = true
     ) -> BattleState {
         let hero = Combatant(
@@ -80,6 +87,7 @@ enum BattleStateTestFactory {
             name: "Companion",
             role: .companion,
             maxHealth: companionMaxHealth,
+            maxMana: companionMaxMana,
             abilities: companionAbilities
         )
         let enemy = Combatant(
@@ -93,11 +101,21 @@ enum BattleStateTestFactory {
             hero: hero,
             companion: companion,
             enemy: enemy,
+            initialGold: initialGold,
+            heroModifiers: heroModifiers,
+            companionModifiers: companionModifiers,
+            rngSeed: rngSeed,
+            tracksLog: tracksLog,
             dealOpeningHand: dealOpeningHand
         )
         if let heroMana {
             battle.withEngineContext { context in
                 context.roster.mutateRuntime(for: hero) { $0.currentMana = heroMana }
+            }
+        }
+        if let companionMana {
+            battle.withEngineContext { context in
+                context.roster.mutateRuntime(for: companion) { $0.currentMana = companionMana }
             }
         }
         return battle

@@ -11,45 +11,23 @@ struct TrinketEffectTests {
         companionAbilities: [Ability] = [.bash, .fangs, .bloodthorn],
         enemyHealth: Int = 100,
         heroMana: Int = 0,
+        initialGold: Int = 0,
         seed: UInt64 = BattleTestFixtures.deterministicNonCriticalSeed
     ) -> BattleState {
-        let hero = Combatant(
-            id: "hero",
-            name: "Hero",
-            role: .hero,
-            maxHealth: 50,
-            maxMana: 12,
-            abilities: heroAbilities
-        )
-        let companion = Combatant(
-            id: "companion",
-            name: "Companion",
-            role: .companion,
-            maxHealth: 50,
-            maxMana: 12,
-            abilities: companionAbilities
-        )
-        let enemy = Combatant(
-            id: "enemy",
-            name: "Enemy",
-            role: .enemy,
-            maxHealth: enemyHealth,
-            abilities: []
-        )
-        var battle = BattleState(
-            hero: hero,
-            companion: companion,
-            enemy: enemy,
+        BattleStateTestFactory.makeBattleWithAbilities(
+            heroAbilities: heroAbilities,
+            companionAbilities: companionAbilities,
+            enemyMaxHealth: enemyHealth,
+            heroMaxMana: 12,
+            heroMana: heroMana,
+            companionMaxMana: 12,
+            initialGold: initialGold,
             heroModifiers: CombatModifierProfile(triggers: heroTriggers),
             companionModifiers: CombatModifierProfile(triggers: companionTriggers),
             rngSeed: seed,
             tracksLog: false,
             dealOpeningHand: false
         )
-        battle.withEngineContext { context in
-            context.roster.mutateRuntime(for: hero) { $0.currentMana = heroMana }
-        }
-        return battle
     }
 
     @Test func meteoriteRepeatsNativeManaEmpowerment() throws {
@@ -266,6 +244,55 @@ struct TrinketEffectTests {
 
         try #expect(battle.earnedGold == 4)
         try #expect(events.contains { $0.abilityName == "Smuggler's Map" && $0.amount == 4 })
+    }
+
+    @Test func wishingWellCoinMissDeductsGold() throws {
+        var foundMiss = false
+        for seed in UInt64(0) ..< 256 {
+            var battle = makeBattle(
+                heroTriggers: CombatTraitTriggers(victoryGoldCoin: true),
+                initialGold: 5,
+                seed: seed
+            )
+            let events = battle.withEngineContext { context in
+                CombatTriggerEngine.afterVictory(in: &context)
+            }
+            guard let loss = events.first(where: {
+                $0.abilityName == "Wishing Well Coin" && $0.amount == -3
+            }) else {
+                continue
+            }
+            try #expect(battle.gold == 2)
+            try #expect(battle.earnedGold == -3)
+            foundMiss = true
+            break
+        }
+        try #expect(foundMiss)
+    }
+
+    @Test func wishingWellCoinMissClampsToAvailableGold() throws {
+        var foundMiss = false
+        for seed in UInt64(0) ..< 256 {
+            var battle = makeBattle(
+                heroTriggers: CombatTraitTriggers(victoryGoldCoin: true),
+                initialGold: 1,
+                seed: seed
+            )
+            let events = battle.withEngineContext { context in
+                CombatTriggerEngine.afterVictory(in: &context)
+            }
+            guard let loss = events.first(where: {
+                $0.abilityName == "Wishing Well Coin" && $0.amount < 0
+            }) else {
+                continue
+            }
+            try #expect(loss.amount == -1)
+            try #expect(battle.gold == 0)
+            try #expect(battle.earnedGold == -1)
+            foundMiss = true
+            break
+        }
+        try #expect(foundMiss)
     }
 
     @Test func sinEatersLanternHealsTheWearerWhenCleansingAnAlly() throws {

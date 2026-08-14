@@ -113,8 +113,8 @@ extension BattleSession {
     }
 
     func presentationSnapshot() -> BattlePresentationSnapshot? {
-        guard let engineState, let activeBattle else { return nil }
-        return BattlePresentationSnapshot(configurationID: activeBattle.id, state: engineState)
+        guard let activeBattle else { return nil }
+        return engineState?.battlePresentationSnapshot(configurationID: activeBattle.id)
     }
 
     func openingHandArtworkNames(for preparedRun: PreparedBattleRun) -> [String] {

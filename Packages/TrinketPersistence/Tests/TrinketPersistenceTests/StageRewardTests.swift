@@ -124,6 +124,41 @@ struct StageRewardTests {
         try #expect(save.inventory.items.count == itemCountAfterFirst)
     }
 
+    @Test func claimedStageReplayStillBanksBattleEarnedGold() throws {
+        var save = SaveTestSupport.makeSave()
+        let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
+        let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
+        let loot = BattleLoot.resolveJourney(
+            stage: firstStage,
+            encounterLevel: EncounterLevelResolver.journeyEnemyLevel(for: firstStage, in: chapter),
+            enemyIsBoss: false
+        )
+
+        StageCompletion.complete(
+            firstStage,
+            hero: hero,
+            companion: companion,
+            battleEarnedGold: 4,
+            loot: loot,
+            in: GameContent.chapters,
+            save: &save
+        )
+        let goldAfterFirst = save.roster.gold
+
+        StageCompletion.complete(
+            firstStage,
+            hero: hero,
+            companion: companion,
+            battleEarnedGold: 2,
+            loot: loot,
+            in: GameContent.chapters,
+            save: &save
+        )
+
+        try #expect(save.roster.gold == goldAfterFirst + 2)
+        try #expect(save.inventory.items.count(where: { $0.id == loot.item.id }) == 1)
+    }
+
     @Test func completingStageAdvancesJourney() throws {
         var save = SaveTestSupport.makeSave(inventory: .initial)
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })

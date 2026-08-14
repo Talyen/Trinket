@@ -9,29 +9,29 @@ struct EnemyCatalogTests {
         "the_iron_bear",
     ]
 
-    @Test(arguments: GameContent.enemies)
-    func enemyCatalogInvariants(enemy: Enemy) throws {
-        if Self.bossIDs.contains(enemy.id) {
-            try #expect(enemy.isBoss, "\(enemy.name) should be a boss")
-        } else {
-            try #expect(!enemy.isBoss, "\(enemy.name) should not be a boss")
-        }
-        try #expect(enemy.maxHealth >= 11, "\(enemy.name) should have normal base HP")
-        try #expect(enemy.maxHealth <= 15, "\(enemy.name) should have normal base HP")
-        try #expect(!enemy.combatant.growthArchetype.rawValue.isEmpty)
-        try #expect(!enemy.combatant.hasMana, "\(enemy.name) should not have Mana")
-        let loadout = enemy.combatant.abilityLoadout
-        try #require(loadout.basic != nil, "\(enemy.name) should have a basic ability")
-        try #require(loadout.skill != nil, "\(enemy.name) should have a skill ability")
-        try #require(loadout.ultimate != nil, "\(enemy.name) should have an ultimate ability")
+    @Test func enemyCatalogInvariants() throws {
+        for enemy in GameContent.enemies {
+            if Self.bossIDs.contains(enemy.id) {
+                try #expect(enemy.isBoss, "\(enemy.name) should be a boss")
+            } else {
+                try #expect(!enemy.isBoss, "\(enemy.name) should not be a boss")
+            }
+            try #expect(enemy.maxHealth >= 11, "\(enemy.name) should have normal base HP")
+            try #expect(enemy.maxHealth <= 15, "\(enemy.name) should have normal base HP")
+            try #expect(!enemy.combatant.growthArchetype.rawValue.isEmpty)
+            try #expect(!enemy.combatant.hasMana, "\(enemy.name) should not have Mana")
+            let loadout = enemy.combatant.abilityLoadout
+            try #require(loadout.basic != nil, "\(enemy.name) should have a basic ability")
+            try #require(loadout.skill != nil, "\(enemy.name) should have a skill ability")
+            try #require(loadout.ultimate != nil, "\(enemy.name) should have an ultimate ability")
 
-        let stats = enemy.combatant.primaryStats
-        let total = stats.strength + stats.agility + stats.toughness + stats.intellect + stats.wisdom
-        let expected = 50
-        try #expect(
-            total == expected,
-            "\(enemy.name) primary stats should sum to \(expected), got \(total)"
-        )
+            let stats = enemy.combatant.primaryStats
+            let total = stats.strength + stats.agility + stats.toughness + stats.intellect + stats.wisdom
+            try #expect(
+                total == 50,
+                "\(enemy.name) primary stats should sum to 50, got \(total)"
+            )
+        }
     }
 
     @Test func specialEnemyLoadoutsMatchTheirArchetypes() throws {

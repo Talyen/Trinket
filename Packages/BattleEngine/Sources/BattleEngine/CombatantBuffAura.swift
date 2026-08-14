@@ -1,5 +1,3 @@
-import Foundation
-import TrinketContent
 import TrinketCore
 
 /// Persistent buff aura painted on a combatant card while qualifying effects remain.
@@ -19,42 +17,19 @@ public enum CombatantBuffAuraKind: String, Sendable, Equatable, Hashable, CaseIt
 public enum CombatantBuffAura: Sendable {
     /// Highest-priority buff aura among `effects`, or `nil` when none qualify.
     public static func kind(from effects: [ActiveEffect]) -> CombatantBuffAuraKind? {
-        let hasShadowstep = effects.contains { active in
-            switch active.effect.kind {
-            case .nextStrikeDouble, .evadeNextHit:
-                true
-            default:
-                false
-            }
-        }
-        if hasShadowstep {
-            return .shadowstep
-        }
-
-        let hasAvatar = effects.contains { active in
+        var hasAvatar = false
+        for active in effects {
             switch active.effect {
-            case .avatar:
-                true
-            case .nextHolyStrike:
-                true
-            case let .damageKeywordOverride(keyword, _, _):
-                keyword == .holy
+            case .nextStrikeDouble, .evadeNextHit:
+                return .shadowstep
+            case .avatar, .nextHolyStrike:
+                hasAvatar = true
+            case let .damageKeywordOverride(keyword, _, _) where keyword == .holy:
+                hasAvatar = true
             default:
-                false
+                break
             }
         }
-        if hasAvatar {
-            return .avatar
-        }
-
-        return nil
-    }
-
-    /// Buff aura for `combatant`'s own active effects.
-    public static func kind(
-        for combatant: Combatant,
-        in state: BattleState
-    ) -> CombatantBuffAuraKind? {
-        kind(from: state.activeEffects(of: combatant))
+        return hasAvatar ? .avatar : nil
     }
 }

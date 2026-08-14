@@ -60,6 +60,7 @@ public enum EffectTurnEngine {
 
         var merged = context.roster.activeEffects(for: target)
         if !turnOutcomes.isEmpty {
+            let originalByID = Dictionary(uniqueKeysWithValues: effects.map { ($0.id, $0) })
             merged = merged.compactMap { activeEffect in
                 guard let outcome = turnOutcomes[activeEffect.id] else { return activeEffect }
                 if outcome.removeAfter {
@@ -70,7 +71,7 @@ public enum EffectTurnEngine {
                     preserved.remainingTurns = updated.remainingTurns
                     preserved.sourceActorID = updated.sourceActorID
                     if activeEffect.effect.kind == updated.effect.kind,
-                       activeEffect.effect == effects.first(where: { $0.id == activeEffect.id })?.effect {
+                       activeEffect.effect == originalByID[activeEffect.id]?.effect {
                         preserved.effect = updated.effect
                     }
                     return preserved

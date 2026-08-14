@@ -190,8 +190,8 @@ struct AbilityEffectIntegrationTests {
             }
             return false
         })
-        #expect(CombatantBuffAura.kind(for: battle.hero, in: battle) == .avatar)
-        #expect(CombatantBuffAura.kind(for: battle.enemy, in: battle) == nil)
+        #expect(CombatantBuffAura.kind(from: battle.activeEffects(of: battle.hero)) == .avatar)
+        #expect(CombatantBuffAura.kind(from: battle.activeEffects(of: battle.enemy)) == nil)
 
         // First pulse on cast: Holy damage to the enemy plus Block for the caster.
         let healthAfterCast = battle.health(of: battle.enemy)

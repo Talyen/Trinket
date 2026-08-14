@@ -53,7 +53,7 @@ enum CombatFeedbackPresenter {
                     keyword: prepared.keyword,
                     visualRole: prepared.visualRole,
                     label: prepared.label,
-                    secondaryText: prepared.secondaryText,
+                    secondaryText: nil,
                     lifetime: TrinketMotion.Battle.chipDisplayDuration,
                     availableAt: availableAt,
                     expiresAt: expiresAt,
@@ -92,7 +92,6 @@ enum CombatFeedbackPresenter {
         let keyword: Keyword
         let visualRole: CombatFeedbackVisualRole
         let label: CombatFeedbackChipLabel
-        let secondaryText: String?
         let reactionKind: CombatantHitReactionKind
     }
 
@@ -107,6 +106,7 @@ enum CombatFeedbackPresenter {
         let keyword: Keyword
         let family: Family
         let isCritical: Bool
+        let isNegative: Bool
     }
 
     private static func filterDisplayable(_ events: [ActionEvent]) -> [ActionEvent] {
@@ -170,7 +170,8 @@ enum CombatFeedbackPresenter {
             targetID: event.targetID,
             keyword: event.keyword,
             family: family,
-            isCritical: event.isCritical
+            isCritical: event.isCritical,
+            isNegative: event.amount < 0
         )
     }
 
@@ -191,14 +192,12 @@ enum CombatFeedbackPresenter {
 
     private static func prepare(_ source: PreparedSource) -> PreparedEvent? {
         let event = source.event
-        let display = ActionEventFormatter.display(for: event)
         let feedbackClass = event.isCritical
             ? .critical
-            : CombatFeedbackClassification.classify(event, display: display)
-        let statusPresentation = statusPresentation(for: event)
-        let label = statusPresentation.map { CombatFeedbackChipLabel.word(.status($0.label)) }
-            ?? CombatFeedbackChipLabel.fromDisplayText(Self.floatingText(from: display))
-        guard let label, !label.isZeroNumeric else { return nil }
+            : CombatFeedbackClassification.classify(event)
+        guard let label = CombatFeedbackChipLabel.from(event: event), !label.isZeroNumeric else {
+            return nil
+        }
         return PreparedEvent(
             id: event.id,
             sourceEventIDs: source.sourceEventIDs,
@@ -206,53 +205,26 @@ enum CombatFeedbackPresenter {
             actionID: event.actionID,
             targetID: event.targetID,
             feedbackClass: feedbackClass,
-            keyword: display.keyword,
-            visualRole: statusPresentation?.role ?? .keyword,
+            keyword: event.keyword,
+            visualRole: visualRole(for: event, label: label),
             label: label,
-            secondaryText: display.secondaryText,
             reactionKind: CombatFeedbackClassification.reactionKind(for: feedbackClass)
         )
     }
 
-    private struct StatusPresentation {
-        let label: CombatFeedbackStatusLabel
-        let role: CombatFeedbackVisualRole
-    }
-
-    private static func statusPresentation(for event: ActionEvent) -> StatusPresentation? {
-        guard let effectKind = event.effectKind else { return nil }
-        return switch effectKind {
-        case .thornsApplied:
-            StatusPresentation(label: .thorns, role: .beneficialStatus)
-        case .criticalChanceApplied:
-            StatusPresentation(label: .criticalUp, role: .beneficialStatus)
-        case .manaShieldApplied:
-            StatusPresentation(label: .manaShield, role: .beneficialStatus)
-        case .damageKeywordOverrideApplied:
-            StatusPresentation(label: .consecrated, role: .beneficialStatus)
-        case .nextHolyStrikeApplied:
-            StatusPresentation(label: .nextHolyStrike, role: .beneficialStatus)
-        case .nextStrikeDoubleApplied:
-            StatusPresentation(label: .nextStrikeDouble, role: .beneficialStatus)
-        case .evadeNextHitApplied:
-            StatusPresentation(label: .evadeNextHit, role: .beneficialStatus)
-        case .markedApplied:
-            StatusPresentation(label: .marked, role: .negativeStatus)
-        case .shieldHalved:
-            StatusPresentation(label: .blockDown, role: .negativeStatus)
+    private static func visualRole(
+        for event: ActionEvent,
+        label: CombatFeedbackChipLabel
+    ) -> CombatFeedbackVisualRole {
+        switch event.effectKind {
+        case .thornsApplied, .criticalChanceApplied, .manaShieldApplied,
+             .damageKeywordOverrideApplied, .nextHolyStrikeApplied, .nextStrikeDoubleApplied,
+             .evadeNextHitApplied, .leechApplied:
+            .beneficialStatus
+        case .markedApplied, .shieldHalved:
+            .negativeStatus
         default:
-            nil
+            label.isNegativeNumeric ? .negativeStatus : .keyword
         }
-    }
-
-    /// Numeric effects use the icon for their keyword identity, so the float only
-    /// needs the amount magnitude (and any attached numeric unit such as `%`).
-    /// Text-only effects retain their descriptive label, such as "Dodge".
-    private static func floatingText(from display: ActionEventDisplay) -> String {
-        guard let firstToken = display.text.split(separator: " ").first,
-              firstToken.contains(where: \.isNumber) else {
-            return display.text
-        }
-        return String(firstToken)
     }
 }

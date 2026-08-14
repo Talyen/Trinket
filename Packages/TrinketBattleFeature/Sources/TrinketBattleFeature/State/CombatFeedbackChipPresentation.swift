@@ -111,6 +111,8 @@ struct CombatFeedbackChipPresentation {
             return dualAction(leading: beneficial, trailing: Keyword.mana.visualStyle)
         case .criticalUp, .thorns:
             return dualAction(leading: beneficial, trailing: Keyword.physical.visualStyle)
+        case .leech:
+            return dualAction(leading: beneficial, trailing: Keyword.leech.visualStyle)
         case .blockDown:
             return dualAction(leading: negative, trailing: Keyword.block.visualStyle)
         case .marked:

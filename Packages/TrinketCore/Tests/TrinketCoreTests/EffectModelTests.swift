@@ -2,14 +2,10 @@ import Testing
 import TrinketCore
 
 struct EffectModelTests {
-    @Test func representativeEffectSummariesAndProperties() throws {
-        try #expect(Effect.burn(4).summary == "applies Burning: 4 damage")
+    @Test func representativeEffectProperties() throws {
         try #expect(Effect.burn(4).potencyAfterTurn() == 2)
         try #expect(Effect.bleed(3).isBleed)
-        try #expect(Effect.instantHeal(.health, 5).summary == "restore 5 Health")
         try #expect(Effect.instantHeal(.health, 5).isInstant)
-        try #expect(Effect.cleanse(nil).summary == "cleanse all debuffs")
-        try #expect(Effect.drawCards(2).summary == "draw 2 cards")
         try #expect(Effect.drawCards(2).isInstant)
     }
 

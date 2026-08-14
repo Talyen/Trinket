@@ -15,6 +15,7 @@ struct HomesteadView: View {
     @State private var depositEvent: HomesteadDepositEvent?
     @State private var isDepositLaunching = false
     @State private var isIconAttentionRaised = false
+    @State private var depositDismissTask: Task<Void, Never>?
 
     private var homestead: PlayerHomesteadState {
         playerSave.homestead
@@ -53,6 +54,10 @@ struct HomesteadView: View {
             HomesteadCategoryView(category: category)
         }
         .accessibilityIdentifier(AccessibilityID.Screen.homestead)
+        .onDisappear {
+            depositDismissTask?.cancel()
+            depositDismissTask = nil
+        }
         .homesteadCollectionErrorAlert(collection: $collection)
         .trinketSensoryFeedback(
             .success,
@@ -76,7 +81,7 @@ struct HomesteadView: View {
                             collectResourceIcons(pending, drawsAttention: true)
                         }
                         Button {
-                            collectProduction(pending, at: context.date)
+                            collectProduction(at: context.date)
                         } label: {
                             collectLabel
                         }
@@ -181,34 +186,30 @@ struct HomesteadView: View {
         }
     }
 
-    private func collectProduction(_ amounts: [ResourceAmount], at date: Date) {
+    private func collectProduction(at date: Date) {
         guard depositEvent == nil else { return }
-        let event = HomesteadDepositEvent(amounts: amounts)
+        var granted: [ResourceAmount] = []
+        collection.perform(saveStore: playerSave, at: date) { amounts in
+            granted = amounts
+        }
+        guard !granted.isEmpty else { return }
+
+        let event = HomesteadDepositEvent(amounts: granted)
         depositEvent = event
         isDepositLaunching = false
-
-        Task { @MainActor in
-            await Task.yield()
-
-            var didCollect = false
-            collection.perform(saveStore: playerSave, at: date) { _ in
-                didCollect = true
-            }
-            guard didCollect else {
-                depositEvent = nil
-                return
-            }
-
+        depositDismissTask?.cancel()
+        depositDismissTask = Task { @MainActor in
             await Task.yield()
             withAnimation(TrinketMotion.Homestead.tierCompletion) {
                 isDepositLaunching = true
             }
             try? await Task.sleep(for: .seconds(0.5))
-            guard depositEvent?.id == event.id else { return }
+            guard !Task.isCancelled, depositEvent?.id == event.id else { return }
             withAnimation(TrinketMotion.Content.fade) {
                 depositEvent = nil
             }
             isDepositLaunching = false
+            depositDismissTask = nil
         }
     }
 

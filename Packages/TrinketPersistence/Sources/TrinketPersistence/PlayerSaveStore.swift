@@ -58,6 +58,17 @@ public final class PlayerSaveStore {
 
     #if DEBUG
     public var forcesNextSaveFailure = false
+
+    public func dropInventoryGraphForTesting() {
+        if let inventory = root.inventory {
+            context.delete(inventory)
+        }
+        root.inventory = nil
+    }
+
+    public func reapplyRequiredGraphForTesting() {
+        ensureRequiredGraph()
+    }
     #endif
 
     public var journey: JourneyProgressState {
@@ -345,11 +356,14 @@ public final class PlayerSaveStore {
         let repairSlices = root.repairSlices(for: save)
         guard !repairSlices.isEmpty else { return }
 
+        let snapshot = currentSave
         root.apply(save, slices: repairSlices, context: context)
         installObservedSave(save, slices: repairSlices)
         do {
-            try context.save()
+            try saveGraph()
         } catch {
+            root.apply(snapshot, slices: repairSlices, context: context)
+            installObservedSave(snapshot, slices: repairSlices)
             lastPersistenceError = .writeFailed
             logger.error(
                 "Failed to persist sanitized player graph: \(error.localizedDescription, privacy: .public)"

@@ -14,46 +14,16 @@ struct ManaEmpowermentTests {
         companionMana: Int? = nil,
         heroModifiers: CombatModifierProfile = .zero
     ) -> BattleState {
-        let hero = Combatant(
-            id: "hero",
-            name: "Hero",
-            role: .hero,
-            maxHealth: 50,
-            maxMana: heroMaxMana,
-            abilities: heroAbilities
-        )
-        let companion = Combatant(
-            id: "companion",
-            name: "Companion",
-            role: .companion,
-            maxHealth: 50,
-            maxMana: companionMaxMana,
-            abilities: companionAbilities
-        )
-        let enemy = Combatant(
-            id: "enemy",
-            name: "Enemy",
-            role: .enemy,
-            maxHealth: 100,
-            abilities: enemyAbilities
-        )
-        var battle = BattleStateTestFactory.makeBattle(
-            hero: hero,
-            companion: companion,
-            enemy: enemy,
+        BattleStateTestFactory.makeBattleWithAbilities(
+            heroAbilities: heroAbilities,
+            companionAbilities: companionAbilities,
+            enemyAbilities: enemyAbilities,
+            heroMaxMana: heroMaxMana,
+            heroMana: heroMana,
+            companionMaxMana: companionMaxMana,
+            companionMana: companionMana,
             heroModifiers: heroModifiers
         )
-        if let heroMana {
-            battle.withEngineContext { context in
-                context.roster.mutateRuntime(for: hero) { $0.currentMana = heroMana }
-            }
-        }
-        if let companionMana {
-            battle.withEngineContext { context in
-                context.roster.mutateRuntime(for: companion) { $0.currentMana = companionMana }
-            }
-        }
-        return battle
     }
 
     private func burnStackPotency(on battle: BattleState) -> Int? {

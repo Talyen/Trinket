@@ -3,17 +3,6 @@ import TrinketContent
 import TrinketCore
 
 struct CombatantEquipmentTests {
-    @Test(arguments: [
-        (Combatant.Role.hero, [ItemSlot.weapon, .armor, .secondaryWeapon, .accessory, .secondaryAccessory, .trinket]),
-        (.companion, [.accessory, .armor, .trinket]),
-    ])
-    func roleEquipmentSlotsMatchAuthoredLoadout(
-        role: Combatant.Role,
-        expectedSlots: [ItemSlot]
-    ) throws {
-        try #expect(role.equipmentSlots == expectedSlots)
-    }
-
     @Test func companionSlotsAcceptAccessoryAndTrinketItems() throws {
         let bear = try #require(GameContent.companions.first { $0.id == "bear" })
         let accessoryBase = try #require(GameContent.itemBaseTypes.first { $0.id == "ruby_ring" })

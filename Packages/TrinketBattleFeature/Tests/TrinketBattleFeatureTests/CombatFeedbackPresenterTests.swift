@@ -368,27 +368,6 @@ extension CombatFeedbackPresenterTests {
         #expect(Set(distinctKinds.map(\.feedbackClass)) == [.directDamage, .dot])
     }
 
-    @Test func chipLabelClassifiesAmountPercentAndWord() {
-        #expect(CombatFeedbackChipLabel.fromDisplayText("-12") == .amount(-12))
-        #expect(CombatFeedbackChipLabel.fromDisplayText("+8") == .amount(8))
-        #expect(CombatFeedbackChipLabel.fromDisplayText("+25%") == .percent(25))
-        #expect(CombatFeedbackChipLabel.fromDisplayText("-12")?.displayString == "12")
-        #expect(CombatFeedbackChipLabel.fromDisplayText("+8")?.displayString == "8")
-        #expect(CombatFeedbackChipLabel.fromDisplayText("+25%")?.displayString == "25%")
-        #expect(CombatFeedbackChipLabel.fromDisplayText("Dodge") == .word(.dodge))
-        #expect(CombatFeedbackChipLabel.fromDisplayText("Critical") == .word(.critical))
-        #expect(CombatFeedbackChipLabel.fromDisplayText("Stunned!") == .word(.triggered(.stun)))
-        #expect(CombatFeedbackChipLabel.fromDisplayText("Stunned!")?.displayString == "Stun")
-        #expect(CombatFeedbackChipLabel.fromDisplayText("+Block") == .word(.applied(.block)))
-        #expect(CombatFeedbackChipLabel.fromDisplayText("+Block")?.displayString == "Block")
-        #expect(CombatFeedbackChipLabel.fromDisplayText("Cleanse Bleeding") == .word(.cleanse(.bleed)))
-        #expect(CombatFeedbackChipLabel.fromDisplayText("Cleanse Bleeding")?.displayString.isEmpty == true)
-        #expect(CombatFeedbackChipLabel.fromDisplayText("Purge Block") == .word(.purge(.block)))
-        #expect(CombatFeedbackChipLabel.fromDisplayText("Halve Block") == .word(.halve(.block)))
-        #expect(CombatFeedbackChipLabel.fromDisplayText("Death's Door") == .word(.plain(.deathsDoor)))
-        #expect(CombatFeedbackChipLabel.fromDisplayText("Death's Door")?.displayString.isEmpty == true)
-    }
-
     @Test func suppressesCardsControlBuildupAndNumericZeroesButNamesZeroValueStatuses() {
         let items = CombatFeedbackPresenter.makeItems(
             from: [
@@ -418,6 +397,8 @@ extension CombatFeedbackPresenterTests {
             makeEvent(id: 6, kind: .effect, effectKind: .criticalChanceApplied, amount: 15, keyword: .physical),
             makeEvent(id: 7, kind: .effect, effectKind: .markedApplied, amount: 3, keyword: .physical),
             makeEvent(id: 8, kind: .effect, effectKind: .shieldHalved, amount: 0, keyword: .block),
+            makeEvent(id: 9, kind: .effect, effectKind: .leechApplied, amount: 10, keyword: .physical),
+            makeEvent(id: 10, kind: .effect, effectKind: .resourceGain, amount: -3, keyword: .gold),
         ].flatMap { CombatFeedbackPresenter.makeItems(from: [$0], at: now) }
 
         let byID = Dictionary(uniqueKeysWithValues: items.map { ($0.id, $0) })
@@ -445,5 +426,37 @@ extension CombatFeedbackPresenterTests {
         #expect(try #require(byID[8]).label == .word(.status(.blockDown)))
         #expect(blockDown.leadingSymbolName == "arrowshape.down.fill")
         #expect(blockDown.trailingSymbolName == "shield.fill")
+
+        let leech = try #require(byID[9])
+        #expect(leech.label == .word(.status(.leech)))
+        #expect(leech.visualRole == .beneficialStatus)
+        #expect(leech.chipPresentation.leadingSymbolName == "arrowshape.up.fill")
+        #expect(leech.chipPresentation.trailingSymbolName == "drop")
+        #expect(leech.chipPresentation.text == nil)
+
+        let goldLoss = try #require(byID[10])
+        #expect(goldLoss.label == .amount(-3))
+        #expect(goldLoss.visualRole == .negativeStatus)
+        #expect(goldLoss.chipPresentation.trailingSymbolName == "arrowshape.down.fill")
+        #expect(goldLoss.chipPresentation.text == "3")
+    }
+
+    @Test func keepsSameSignGoldTogetherAndSplitsGainsFromLosses() throws {
+        let items = CombatFeedbackPresenter.makeItems(
+            from: [
+                makeEvent(id: 1, kind: .effect, effectKind: .resourceGain, amount: 4, keyword: .gold),
+                makeEvent(id: 2, kind: .effect, effectKind: .resourceGain, amount: 3, keyword: .gold),
+                makeEvent(id: 3, kind: .effect, effectKind: .resourceGain, amount: -3, keyword: .gold),
+            ],
+            at: .now
+        )
+
+        try #expect(items.count == 2)
+        let gain = try #require(items.first { $0.label == .amount(7) })
+        let loss = try #require(items.first { $0.label == .amount(-3) })
+        #expect(gain.visualRole == .keyword)
+        #expect(loss.visualRole == .negativeStatus)
+        #expect(gain.chipPresentation.text == "7")
+        #expect(loss.chipPresentation.text == "3")
     }
 }

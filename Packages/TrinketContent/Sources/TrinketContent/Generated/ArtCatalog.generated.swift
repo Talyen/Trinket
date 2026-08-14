@@ -977,69 +977,97 @@ public enum ArtCatalog {
 
     public static let encounterArtByID: [String: EncounterArtReference] = {
         var dict = [String: EncounterArtReference]()
-        dict["mystery-amethyst-geode"] = EncounterArtReference(
-            imageName: "encounter_mystery_amethyst_geode",
-            thumbnailImageName: "encounter_mystery_amethyst_geode_thumb"
+        dict["mystery-abandoned-study"] = EncounterArtReference(
+            imageName: "encounter_mystery_abandoned_study",
+            thumbnailImageName: "encounter_mystery_abandoned_study_thumb"
         )
-        dict["mystery-bioluminescent-mushrooms"] = EncounterArtReference(
-            imageName: "encounter_mystery_bioluminescent_mushrooms",
-            thumbnailImageName: "encounter_mystery_bioluminescent_mushrooms_thumb"
+        dict["mystery-ancient-altar"] = EncounterArtReference(
+            imageName: "encounter_mystery_ancient_altar",
+            thumbnailImageName: "encounter_mystery_ancient_altar_thumb"
         )
-        dict["mystery-circle-of-glowing-mushrooms"] = EncounterArtReference(
-            imageName: "encounter_mystery_circle_of_glowing_mushrooms",
-            thumbnailImageName: "encounter_mystery_circle_of_glowing_mushrooms_thumb"
+        dict["mystery-crystal-garden"] = EncounterArtReference(
+            imageName: "encounter_mystery_crystal_garden",
+            thumbnailImageName: "encounter_mystery_crystal_garden_thumb"
         )
-        dict["mystery-dusty-shelves-in-tower"] = EncounterArtReference(
-            imageName: "encounter_mystery_dusty_shelves_in_tower",
-            thumbnailImageName: "encounter_mystery_dusty_shelves_in_tower_thumb"
+        dict["mystery-crystal-geode"] = EncounterArtReference(
+            imageName: "encounter_mystery_crystal_geode",
+            thumbnailImageName: "encounter_mystery_crystal_geode_thumb"
         )
-        dict["mystery-field-of-glowing-mana-berries"] = EncounterArtReference(
-            imageName: "encounter_mystery_field_of_glowing_mana_berries",
-            thumbnailImageName: "encounter_mystery_field_of_glowing_mana_berries_thumb"
+        dict["mystery-enchanted-spring"] = EncounterArtReference(
+            imageName: "encounter_mystery_enchanted_spring",
+            thumbnailImageName: "encounter_mystery_enchanted_spring_thumb"
         )
-        dict["mystery-gold-coins-among-bones"] = EncounterArtReference(
-            imageName: "encounter_mystery_gold_coins_among_bones",
-            thumbnailImageName: "encounter_mystery_gold_coins_among_bones_thumb"
+        dict["mystery-fairy-ring"] = EncounterArtReference(
+            imageName: "encounter_mystery_fairy_ring",
+            thumbnailImageName: "encounter_mystery_fairy_ring_thumb"
         )
-        dict["mystery-leather-book-floats"] = EncounterArtReference(
-            imageName: "encounter_mystery_leather_book_floats",
-            thumbnailImageName: "encounter_mystery_leather_book_floats_thumb"
+        dict["mystery-forgotten-hoard"] = EncounterArtReference(
+            imageName: "encounter_mystery_forgotten_hoard",
+            thumbnailImageName: "encounter_mystery_forgotten_hoard_thumb"
         )
-        dict["mystery-leather-bundle-between-roots"] = EncounterArtReference(
-            imageName: "encounter_mystery_leather_bundle_between_roots",
-            thumbnailImageName: "encounter_mystery_leather_bundle_between_roots_thumb"
+        dict["mystery-fungal-grotto"] = EncounterArtReference(
+            imageName: "encounter_mystery_fungal_grotto",
+            thumbnailImageName: "encounter_mystery_fungal_grotto_thumb"
         )
-        dict["mystery-narrow-pass-through-peaks"] = EncounterArtReference(
-            imageName: "encounter_mystery_narrow_pass_through_peaks",
-            thumbnailImageName: "encounter_mystery_narrow_pass_through_peaks_thumb"
+        dict["mystery-hidden-cache"] = EncounterArtReference(
+            imageName: "encounter_mystery_hidden_cache",
+            thumbnailImageName: "encounter_mystery_hidden_cache_thumb"
         )
-        dict["mystery-oak-tree-with-face"] = EncounterArtReference(
-            imageName: "encounter_mystery_oak_tree_with_face",
-            thumbnailImageName: "encounter_mystery_oak_tree_with_face_thumb"
+        dict["mystery-hunters-lodge"] = EncounterArtReference(
+            imageName: "encounter_mystery_hunters_lodge",
+            thumbnailImageName: "encounter_mystery_hunters_lodge_thumb"
         )
-        dict["mystery-pond-reflects-gnarled-trees"] = EncounterArtReference(
-            imageName: "encounter_mystery_pond_reflects_gnarled_trees",
-            thumbnailImageName: "encounter_mystery_pond_reflects_gnarled_trees_thumb"
+        dict["mystery-mana-berries"] = EncounterArtReference(
+            imageName: "encounter_mystery_mana_berries",
+            thumbnailImageName: "encounter_mystery_mana_berries_thumb"
         )
-        dict["mystery-pool-of-water-steams"] = EncounterArtReference(
-            imageName: "encounter_mystery_pool_of_water_steams",
-            thumbnailImageName: "encounter_mystery_pool_of_water_steams_thumb"
+        dict["mystery-medicinal-herb-garden"] = EncounterArtReference(
+            imageName: "encounter_mystery_medicinal_herb_garden",
+            thumbnailImageName: "encounter_mystery_medicinal_herb_garden_thumb"
         )
-        dict["mystery-smoldering-crater"] = EncounterArtReference(
-            imageName: "encounter_mystery_smoldering_crater",
-            thumbnailImageName: "encounter_mystery_smoldering_crater_thumb"
+        dict["mystery-meteorite-crash"] = EncounterArtReference(
+            imageName: "encounter_mystery_meteorite_crash",
+            thumbnailImageName: "encounter_mystery_meteorite_crash_thumb"
         )
-        dict["mystery-sunlight-breaks-canopy"] = EncounterArtReference(
-            imageName: "encounter_mystery_sunlight_breaks_canopy",
-            thumbnailImageName: "encounter_mystery_sunlight_breaks_canopy_thumb"
+        dict["mystery-mountain-pass"] = EncounterArtReference(
+            imageName: "encounter_mystery_mountain_pass",
+            thumbnailImageName: "encounter_mystery_mountain_pass_thumb"
         )
-        dict["mystery-vines-carpet-mosaic-floors"] = EncounterArtReference(
-            imageName: "encounter_mystery_vines_carpet_mosaic_floors",
-            thumbnailImageName: "encounter_mystery_vines_carpet_mosaic_floors_thumb"
+        dict["mystery-murky-pond"] = EncounterArtReference(
+            imageName: "encounter_mystery_murky_pond",
+            thumbnailImageName: "encounter_mystery_murky_pond_thumb"
         )
-        dict["mystery-weathered-stone-altar"] = EncounterArtReference(
-            imageName: "encounter_mystery_weathered_stone_altar",
-            thumbnailImageName: "encounter_mystery_weathered_stone_altar_thumb"
+        dict["mystery-mysterious-tome"] = EncounterArtReference(
+            imageName: "encounter_mystery_mysterious_tome",
+            thumbnailImageName: "encounter_mystery_mysterious_tome_thumb"
+        )
+        dict["mystery-overgrown-temple"] = EncounterArtReference(
+            imageName: "encounter_mystery_overgrown_temple",
+            thumbnailImageName: "encounter_mystery_overgrown_temple_thumb"
+        )
+        dict["mystery-roadside-censer"] = EncounterArtReference(
+            imageName: "encounter_mystery_roadside_censer",
+            thumbnailImageName: "encounter_mystery_roadside_censer_thumb"
+        )
+        dict["mystery-sacred-grove"] = EncounterArtReference(
+            imageName: "encounter_mystery_sacred_grove",
+            thumbnailImageName: "encounter_mystery_sacred_grove_thumb"
+        )
+        dict["mystery-the-necromancers-offer"] = EncounterArtReference(
+            imageName: "encounter_mystery_the_necromancers_offer",
+            thumbnailImageName: "encounter_mystery_the_necromancers_offer_thumb"
+        )
+        dict["mystery-the-phoenix"] = EncounterArtReference(
+            imageName: "encounter_mystery_the_phoenix",
+            thumbnailImageName: "encounter_mystery_the_phoenix_thumb"
+        )
+        dict["mystery-the-wolf"] = EncounterArtReference(
+            imageName: "encounter_mystery_the_wolf",
+            thumbnailImageName: "encounter_mystery_the_wolf_thumb"
+        )
+        dict["mystery-wisdom-tree"] = EncounterArtReference(
+            imageName: "encounter_mystery_wisdom_tree",
+            thumbnailImageName: "encounter_mystery_wisdom_tree_thumb"
         )
         dict["mystery-recruit-companions"] = EncounterArtReference(
             imageName: "encounter_mystery_recruit_companions",

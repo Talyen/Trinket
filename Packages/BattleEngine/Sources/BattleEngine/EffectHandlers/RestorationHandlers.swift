@@ -151,15 +151,13 @@ struct DrawAndPlayCardsHandler: BattleEffectHandler {
     private func collectDrawnCards(targetCount: Int, in context: inout BattleState) -> [BattleCard] {
         var drawnCards: [BattleCard] = []
 
-        if context.roster.hero.isAlive, !context.heroDeck.isEmpty,
-           BattleCardCombatEngine.drawCards(count: 1, for: .hero, context: &context) > 0,
-           let card = context.hand.cards.last ?? context.handBuffer.cards.last {
+        if canDrawAndPlay(.hero, in: context),
+           let card = BattleCardCombatEngine.drawOneCard(for: .hero, context: &context) {
             drawnCards.append(card)
         }
 
-        if context.roster.companion.isAlive, !context.companionDeck.isEmpty, drawnCards.count < targetCount,
-           BattleCardCombatEngine.drawCards(count: 1, for: .companion, context: &context) > 0,
-           let card = context.hand.cards.last ?? context.handBuffer.cards.last {
+        if drawnCards.count < targetCount, canDrawAndPlay(.companion, in: context),
+           let card = BattleCardCombatEngine.drawOneCard(for: .companion, context: &context) {
             drawnCards.append(card)
         }
 
@@ -181,16 +179,20 @@ struct DrawAndPlayCardsHandler: BattleEffectHandler {
         var drewAny = false
         for owner in [BattleParticipant.hero, .companion] {
             guard drawnCards.count < targetCount else { break }
-            guard context.roster[owner].isAlive else { continue }
-            let deckCount = owner == .hero ? context.heroDeck.count : context.companionDeck.count
-            guard deckCount > 0 else { continue }
-            if BattleCardCombatEngine.drawCards(count: 1, for: owner, context: &context) > 0,
-               let card = context.hand.cards.last ?? context.handBuffer.cards.last {
+            guard canDrawAndPlay(owner, in: context) else { continue }
+            if let card = BattleCardCombatEngine.drawOneCard(for: owner, context: &context) {
                 drawnCards.append(card)
                 drewAny = true
             }
         }
         return drewAny
+    }
+
+    private func canDrawAndPlay(_ owner: BattleParticipant, in context: BattleState) -> Bool {
+        guard context.roster[owner].isAlive else { return false }
+        guard !context.ownersSkippingThisPlayerTurn.contains(owner) else { return false }
+        let deckCount = owner == .hero ? context.heroDeck.count : context.companionDeck.count
+        return deckCount > 0
     }
 
     private func autoPlayDrawnCards(
@@ -199,11 +201,9 @@ struct DrawAndPlayCardsHandler: BattleEffectHandler {
     ) -> [ActionEvent] {
         var events: [ActionEvent] = []
         for card in drawnCards {
-            guard context.hand.card(id: card.id) != nil,
-                  BattleCardCombatEngine.isCardPlayable(card, in: context)
-            else { continue }
+            guard BattleCardCombatEngine.isCardPlayable(card, in: context) else { continue }
             do {
-                let played = try BattleCardCombatEngine.playCard(cardID: card.id, context: &context)
+                let played = try BattleCardCombatEngine.playDrawnCard(card, context: &context)
                 events.append(contentsOf: played)
             } catch {
                 // Card play failed due to state mutation or turn constraints

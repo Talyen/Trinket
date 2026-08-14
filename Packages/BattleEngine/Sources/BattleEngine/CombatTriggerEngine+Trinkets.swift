@@ -181,14 +181,16 @@ package extension CombatTriggerEngine {
                 if Bool.random(using: &context.rng) {
                     events.append(contentsOf: context.grantGoldEvent(7, to: actor, abilityName: "Wishing Well Coin"))
                 } else {
-                    context.gold -= 3
+                    let loss = min(3, max(0, context.gold))
+                    guard loss > 0 else { continue }
+                    context.gold -= loss
                     events.append(context.nextEvent(
                         kind: .effect,
                         effectKind: .resourceGain,
                         actorName: actor.name,
                         abilityName: "Wishing Well Coin",
                         target: actor,
-                        amount: -3,
+                        amount: -loss,
                         keyword: .gold
                     ))
                 }

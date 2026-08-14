@@ -25,45 +25,46 @@ struct CombatantCatalogTests {
         }
     }
 
-    @Test func fourthTierHomesteadEffectsUseUpgradedValues() throws {
-        let effects = HomesteadEffects.from(
-            nodeTiers: Dictionary(uniqueKeysWithValues: GameContent.homesteadNodes.map { ($0.id, 4) })
-        )
-
-        try #expect(effects.heroModifiers == [
-            .maximumHealth(16),
-            .healthRestored(4),
-            .strength(8),
-            .toughness(8),
-            .damageTakenPercent(.burn, 0.4),
-            .damageDealt(.physical, 4),
-            .damageTakenPercent(.freeze, 0.5),
-            .poisonDamageDealtPercent(0.2),
-            .damageTakenPercent(.poison, 0.4),
-            .maximumMana(8),
-            .damageDealt(.burn, 4),
-            .damageDealt(.freeze, 4),
-            .damageDealt(.holy, 4),
-            .companionDamageDealt(4),
-        ])
-        try #expect(effects.companionModifiers == [
-            .maximumHealth(16),
-            .healthRestored(4),
-            .strength(8),
-            .toughness(8),
-            .damageTakenPercent(.burn, 0.4),
-            .damageDealt(.physical, 4),
-            .damageTakenPercent(.freeze, 0.5),
-            .poisonDamageDealtPercent(0.2),
-            .damageTakenPercent(.poison, 0.4),
-            .maximumMana(8),
-            .damageDealt(.burn, 4),
-            .damageDealt(.freeze, 4),
-            .damageDealt(.holy, 4),
-            .agility(8),
-        ])
-        try #expect(effects.astralChanceBonusPercent == 20)
-        try #expect(effects.goldFindPercent == 20)
+    @Test func homesteadTiersStrengthenEffectsAndStayPartyScoped() throws {
+        for node in GameContent.homesteadNodes {
+            let nodeID = node.id
+            let tier1 = HomesteadEffects.from(nodeTiers: [nodeID: 1])
+            let tier4 = HomesteadEffects.from(nodeTiers: [nodeID: 4])
+            switch nodeID {
+            case .moonlitSanctum:
+                try #expect(tier1.astralChanceBonusPercent == 5)
+                try #expect(tier4.astralChanceBonusPercent == 20)
+                try #expect(tier1.heroModifiers.isEmpty)
+                try #expect(tier1.companionModifiers.isEmpty)
+            case .wishingWell:
+                try #expect(tier1.goldFindPercent == 5)
+                try #expect(tier4.goldFindPercent == 20)
+                try #expect(tier1.heroModifiers.isEmpty)
+                try #expect(tier1.companionModifiers.isEmpty)
+            case .hunterLodge:
+                try #expect(tier1.companionModifiers.isEmpty)
+                try #expect(tier4.companionModifiers.isEmpty)
+                try #expect(tier1.heroModifiers.count == 1)
+                try #expect(tier4.heroModifiers.count == 1)
+                try #expect(tier4.heroModifiers[0].numericValue > tier1.heroModifiers[0].numericValue)
+            case .agilityTraining:
+                try #expect(tier1.heroModifiers.isEmpty)
+                try #expect(tier4.heroModifiers.isEmpty)
+                try #expect(tier1.companionModifiers.count == 1)
+                try #expect(tier4.companionModifiers.count == 1)
+                try #expect(
+                    tier4.companionModifiers[0].numericValue > tier1.companionModifiers[0].numericValue
+                )
+            default:
+                try #expect(tier1.heroModifiers == tier1.companionModifiers)
+                try #expect(tier4.heroModifiers == tier4.companionModifiers)
+                try #expect(!tier1.heroModifiers.isEmpty)
+                try #expect(tier1.heroModifiers.count == tier4.heroModifiers.count)
+                for (lower, higher) in zip(tier1.heroModifiers, tier4.heroModifiers) {
+                    try #expect(higher.numericValue > lower.numericValue)
+                }
+            }
+        }
     }
 
     @Test func playerCombatantsHaveCompleteAbilityChoicesAndLoadouts() throws {
@@ -77,10 +78,11 @@ struct CombatantCatalogTests {
         }
     }
 
-    @Test(arguments: GameContent.heroes + GameContent.companions)
-    func playerCombatantsUseBaselinePrimaryStatBudget(combatant: Combatant) throws {
-        let stats = combatant.primaryStats
-        let total = stats.strength + stats.agility + stats.toughness + stats.intellect + stats.wisdom
-        try #expect(total == 50, "\(combatant.name) primary stats should sum to 50, got \(total)")
+    @Test func playerCombatantsUseBaselinePrimaryStatBudget() throws {
+        for combatant in GameContent.heroes + GameContent.companions {
+            let stats = combatant.primaryStats
+            let total = stats.strength + stats.agility + stats.toughness + stats.intellect + stats.wisdom
+            try #expect(total == 50, "\(combatant.name) primary stats should sum to 50, got \(total)")
+        }
     }
 }

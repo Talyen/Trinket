@@ -219,10 +219,11 @@ public enum ActionEventFormatter {
         event: ActionEvent,
         prefix: String
     ) -> ActionEventDisplay {
-        ActionEventDisplay(
+        let sign = event.amount < 0 ? "-" : prefix
+        return ActionEventDisplay(
             emphasis: emphasis,
             keyword: event.keyword,
-            text: "\(prefix)\(event.amount) \(event.keyword.rawValue)",
+            text: "\(sign)\(abs(event.amount)) \(event.keyword.rawValue)",
             secondaryText: nil
         )
     }

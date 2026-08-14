@@ -32,24 +32,28 @@ struct BattlePresentationSnapshot: Equatable {
     let ownerControlSkipKeywords: [BattleParticipant: Keyword]
     let isBattleOver: Bool
 
-    init(configurationID: UUID, state: BattleState) {
+    init(configurationID: UUID, state: borrowing BattleState) {
         self.configurationID = configurationID
-        hero = Self.combatant(state.hero, in: state)
-        companion = Self.combatant(state.companion, in: state)
-        enemy = Self.combatant(state.enemy, in: state)
+        let heroEffects = state.activeEffects(of: state.hero)
+        let companionEffects = state.activeEffects(of: state.companion)
+        hero = Self.combatant(state.hero, effects: heroEffects, in: state)
+        companion = Self.combatant(state.companion, effects: companionEffects, in: state)
+        enemy = Self.combatant(state.enemy, effects: state.activeEffects(of: state.enemy), in: state)
         hand = state.hand.cards
         playableCardIDs = Set(hand.filter { state.isCardPlayable($0) }.map(\.id))
-        ownerControlSkipKeywords = Self.ownerControlSkipKeywords(in: state)
+        ownerControlSkipKeywords = Self.ownerControlSkipKeywords(
+            heroEffects: heroEffects,
+            companionEffects: companionEffects
+        )
         isBattleOver = state.isBattleOver
     }
 
     private static func combatant(
         _ combatant: Combatant,
-        in state: BattleState
+        effects: [ActiveEffect],
+        in state: borrowing BattleState
     ) -> BattleCombatantPresentation {
-        let isParty = combatant.role != .enemy
-        let effects = state.activeEffects(of: combatant)
-        return BattleCombatantPresentation(
+        BattleCombatantPresentation(
             combatant: combatant,
             health: state.health(of: combatant),
             maxHealth: state.maxHealth(of: combatant),
@@ -57,22 +61,22 @@ struct BattlePresentationSnapshot: Equatable {
             maxMana: state.maxMana(of: combatant),
             borderAccentKeyword: CombatantBorderAccent.keyword(
                 from: effects,
-                controlAccentRequiresPendingSkip: isParty
+                controlAccentRequiresPendingSkip: combatant.role != .enemy
             ),
-            buffAuraKind: CombatantBuffAura.kind(for: combatant, in: state)
+            buffAuraKind: CombatantBuffAura.kind(from: effects)
         )
     }
 
     private static func ownerControlSkipKeywords(
-        in state: BattleState
+        heroEffects: [ActiveEffect],
+        companionEffects: [ActiveEffect]
     ) -> [BattleParticipant: Keyword] {
         var keywords: [BattleParticipant: Keyword] = [:]
-        for owner in [BattleParticipant.hero, .companion] {
-            let combatant = state.roster[owner].combatant
-            if let control = state.activeEffects(of: combatant)
-                .first(where: \.isAwaitingActionSkip) {
-                keywords[owner] = control.keyword
-            }
+        if let control = heroEffects.first(where: \.isAwaitingActionSkip) {
+            keywords[.hero] = control.keyword
+        }
+        if let control = companionEffects.first(where: \.isAwaitingActionSkip) {
+            keywords[.companion] = control.keyword
         }
         return keywords
     }
@@ -133,5 +137,11 @@ final class BattlePresentationState {
         playableCardIDs = []
         ownerControlSkipKeywords = [:]
         isBattleOver = false
+    }
+}
+
+extension BattleState {
+    borrowing func battlePresentationSnapshot(configurationID: UUID) -> BattlePresentationSnapshot {
+        BattlePresentationSnapshot(configurationID: configurationID, state: self)
     }
 }

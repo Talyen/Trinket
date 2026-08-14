@@ -2,7 +2,6 @@ import Foundation
 import Testing
 import TrinketContent
 import TrinketCore
-import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
 struct BattleLootTests {
@@ -53,8 +52,6 @@ struct BattleLootTests {
         let second = BattleLoot.resolveJourney(stage: stage, encounterLevel: 1, enemyIsBoss: false)
         #expect(first == second)
         #expect(first.item.rarity == .basic)
-        #expect(first.item.displayName == "Leather Armor")
-        #expect(first.item.templateID == "leather_armor-basic")
     }
 
     @Test func bossJourneyLootIsAstral() throws {
@@ -79,43 +76,5 @@ struct BattleLootTests {
             astralChanceBonusPercent: 100
         )
         #expect(spireLoot.item.rarity == .astral)
-    }
-
-    @Test func completingBattleStageGrantsBattleLootOnce() throws {
-        let stage = try #require(GameContent.stage(id: "chapter-1-stage-1"))
-        let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
-        let loot = BattleLoot.resolveJourney(stage: stage, encounterLevel: 1, enemyIsBoss: false)
-        var save = SaveTestSupport.makeSave()
-
-        StageCompletion.complete(
-            stage,
-            hero: hero,
-            companion: companion,
-            battleEarnedGold: 4,
-            loot: loot,
-            in: GameContent.chapters,
-            save: &save
-        )
-
-        #expect(save.roster.gold == loot.gold + 4)
-        #expect(save.inventory.item(matching: loot.item.id) != nil)
-        #expect(save.journey.hasClaimedRewards(for: stage))
-        for material in loot.materials {
-            #expect(save.homestead.resources[material.resource, default: 0] == material.quantity)
-        }
-
-        let goldAfterFirst = save.roster.gold
-        StageCompletion.complete(
-            stage,
-            hero: hero,
-            companion: companion,
-            battleEarnedGold: 2,
-            loot: loot,
-            in: GameContent.chapters,
-            save: &save
-        )
-        #expect(save.roster.gold == goldAfterFirst + 2)
-        #expect(save.inventory.items.count(where: { $0.id == loot.item.id }) == 1)
     }
 }

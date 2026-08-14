@@ -47,6 +47,20 @@ struct ActionEventFormatterTests {
         try #expect(display.secondaryText == nil)
     }
 
+    @Test func negativeResourceGainFormatsWithMinusPrefix() throws {
+        let display = ActionEventFormatter.display(
+            for: event(
+                kind: .effect,
+                effectKind: .resourceGain,
+                amount: -3,
+                keyword: .gold
+            )
+        )
+        try #expect(display.text == "-3 Gold")
+        try #expect(display.emphasis == .resourceGain)
+        try #expect(display.keyword == .gold)
+    }
+
     @Test func controlTriggeredUsesStatusAlias() throws {
         let display = ActionEventFormatter.display(
             for: event(kind: .effect, effectKind: .controlTriggered, keyword: .stun)

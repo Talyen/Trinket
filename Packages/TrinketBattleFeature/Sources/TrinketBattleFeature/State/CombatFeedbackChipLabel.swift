@@ -8,9 +8,9 @@ import TrinketFeatureSupport
 enum CombatFeedbackChipLabel: Hashable {
     static let numericAtlasFragments = ["+", "%"] + (0 ... 9).map(String.init)
 
-    /// Numeric chip sourced from a signed formatter token and displayed as a magnitude.
+    /// Numeric chip displayed as a magnitude.
     case amount(Int)
-    /// Percent chip sourced from a signed formatter token and displayed as a magnitude.
+    /// Percent chip displayed as a magnitude.
     case percent(Int)
     /// Non-numeric chip such as dodge, cleanse, or a short keyword word.
     case word(CombatFeedbackChipWord)
@@ -53,37 +53,85 @@ enum CombatFeedbackChipLabel: Hashable {
         "\(formatAmount(value))%"
     }
 
-    /// Builds a label from an `ActionEventDisplay` using the same first-token rule as
-    /// the previous floating-text path (numeric token → amount/percent; else full word).
-    static func fromDisplayText(_ text: String) -> Self? {
-        guard !text.isEmpty else { return nil }
-        guard let firstToken = text.split(separator: " ").first else { return nil }
-        let token = String(firstToken)
-        if token.contains(where: \.isNumber) {
-            if token.hasSuffix("%"), let value = parseSignedInt(String(token.dropLast())) {
-                return .percent(value)
-            }
-            if let value = parseSignedInt(token) {
-                return .amount(value)
-            }
-            assertionFailure("Numeric floating token was not a closed amount/percent: \(token)")
-            return nil
+    /// Chip vocabulary from the engine event — never from formatted log text.
+    static func from(event: ActionEvent) -> Self? {
+        if let status = statusLabel(for: event) {
+            return .word(.status(status))
         }
-        guard let word = CombatFeedbackChipWord.parse(text) else {
-            assertionFailure("Unmapped combat chip word: \(text)")
+        switch event.kind {
+        case .abilityDamage, .status:
+            return .amount(-event.amount)
+        case .ability, .milestone:
             return nil
+        case .effect:
+            guard let effectKind = event.effectKind else {
+                return .word(.plain(event.keyword))
+            }
+            return from(effectKind: effectKind, event: event)
         }
-        return .word(word)
     }
 
-    private static func parseSignedInt(_ raw: String) -> Int? {
-        Int(raw)
+    private static func statusLabel(for event: ActionEvent) -> CombatFeedbackStatusLabel? {
+        guard let effectKind = event.effectKind else { return nil }
+        return switch effectKind {
+        case .thornsApplied: .thorns
+        case .criticalChanceApplied: .criticalUp
+        case .manaShieldApplied: .manaShield
+        case .damageKeywordOverrideApplied: .consecrated
+        case .nextHolyStrikeApplied: .nextHolyStrike
+        case .nextStrikeDoubleApplied: .nextStrikeDouble
+        case .evadeNextHitApplied: .evadeNextHit
+        case .markedApplied: .marked
+        case .leechApplied: .leech
+        case .shieldHalved: .blockDown
+        default: nil
+        }
+    }
+
+    private static func from(
+        effectKind: ActionEvent.EffectKind,
+        event: ActionEvent
+    ) -> Self? {
+        switch effectKind {
+        case .instantHeal, .leechHeal, .resourceGain, .shieldApplied, .manaShieldTriggered,
+             .cardsDrawn:
+            .amount(event.amount)
+        case .shieldAbsorbed, .thornsTriggered, .markedConsumed:
+            .amount(-event.amount)
+        case .dodgeApplied:
+            .word(.dodge)
+        case .cleanseApplied:
+            .word(.cleanse(event.keyword))
+        case .purgeApplied:
+            .word(.purge(event.keyword))
+        case .deathsDoorTriggered, .deathsDoorExpired:
+            .word(.plain(.deathsDoor))
+        case .controlActionSkipped:
+            .word(.plain(event.keyword))
+        case .controlTriggered:
+            .word(.triggered(event.keyword))
+        case .controlApplied:
+            .word(.applied(event.keyword))
+        case .thornsApplied, .criticalChanceApplied, .manaShieldApplied,
+             .damageKeywordOverrideApplied, .nextHolyStrikeApplied, .nextStrikeDoubleApplied,
+             .evadeNextHitApplied, .markedApplied, .leechApplied, .shieldHalved:
+            nil
+        }
     }
 
     var isZeroNumeric: Bool {
         switch self {
         case let .amount(value), let .percent(value):
             value == 0
+        case .word:
+            false
+        }
+    }
+
+    var isNegativeNumeric: Bool {
+        switch self {
+        case let .amount(value), let .percent(value):
+            value < 0
         case .word:
             false
         }
@@ -100,6 +148,7 @@ enum CombatFeedbackStatusLabel: String, CaseIterable, Hashable {
     case evadeNextHit = "Evade"
     case marked = "Marked"
     case blockDown = "Block Down"
+    case leech = "Leech"
 }
 
 /// Closed set of non-numeric chip phrases produced by battle presentation.
@@ -139,58 +188,5 @@ enum CombatFeedbackChipWord: Hashable {
             words.append(.triggered(keyword))
         }
         return words
-    }
-
-    static func parse(_ text: String) -> Self? {
-        switch text {
-        case "Dodge":
-            return .dodge
-        case "Critical":
-            return .critical
-        default:
-            break
-        }
-
-        if text.hasPrefix("Cleanse ") {
-            let rest = String(text.dropFirst("Cleanse ".count))
-            if let keyword = keywordMatching(rest) {
-                return .cleanse(keyword)
-            }
-        }
-        if text.hasPrefix("Purge ") {
-            let rest = String(text.dropFirst("Purge ".count))
-            if let keyword = Keyword(rawValue: rest) {
-                return .purge(keyword)
-            }
-        }
-        if text.hasPrefix("Halve ") {
-            let rest = String(text.dropFirst("Halve ".count))
-            if let keyword = Keyword(rawValue: rest) {
-                return .halve(keyword)
-            }
-        }
-        if let label = CombatFeedbackStatusLabel(rawValue: text) {
-            return .status(label)
-        }
-        if text.hasPrefix("+"), let keyword = Keyword(rawValue: String(text.dropFirst())) {
-            return .applied(keyword)
-        }
-        if text.hasSuffix("!") {
-            let stem = String(text.dropLast())
-            if let keyword = keywordMatching(stem) {
-                return .triggered(keyword)
-            }
-        }
-        if let keyword = Keyword(rawValue: text) {
-            return .plain(keyword)
-        }
-        return nil
-    }
-
-    private static func keywordMatching(_ label: String) -> Keyword? {
-        if let keyword = Keyword(rawValue: label) {
-            return keyword
-        }
-        return Keyword.allCases.first { $0.statusAlias == label }
     }
 }

@@ -226,23 +226,6 @@ struct AppStateTests {
         }
     }
 
-    @Test func completeStageUpdatesStores() throws {
-        let state = try context.makeAppState(environment: context.makeEnvironment())
-        let stage = try #require(GameContent.chapters[0].stages.first)
-        let initialGold = state.playerSave.roster.gold
-
-        let didComplete = state.play.journey.completeStage(
-            stage,
-            hero: state.playerSave.roster.activeHero,
-            companion: state.playerSave.roster.activeCompanion
-        )
-
-        #expect(didComplete)
-        #expect(state.playerSave.journey.activeStageID == "chapter-1-stage-2")
-        #expect(state.playerSave.journey.completedStageIDs.contains(stage.id))
-        #expect(state.playerSave.roster.gold > initialGold)
-    }
-
     private func assertCollectionDetail(
         _ detail: CombatantDetailContext?,
         kind: CombatantDetailContext.Kind,

@@ -114,6 +114,11 @@ public struct BattleHandBuffer: Hashable, Sendable {
         guard !cards.isEmpty else { return nil }
         return cards.removeFirst()
     }
+
+    public mutating func remove(id: Int) -> BattleCard? {
+        guard let index = cards.firstIndex(where: { $0.id == id }) else { return nil }
+        return cards.remove(at: index)
+    }
 }
 
 public enum BattlePlayError: Error, Equatable, Sendable {
