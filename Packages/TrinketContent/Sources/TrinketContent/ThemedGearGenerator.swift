@@ -20,7 +20,7 @@ public struct ThemedGearGenerator: Sendable {
         baseTypes: [ItemBaseType] = GameContent.itemBaseTypes
     ) {
         self.itemGenerator = itemGenerator
-        self.baseTypes = baseTypes
+        self.baseTypes = baseTypes.filter { $0.slot != .trinket }
     }
 
     public func generate(

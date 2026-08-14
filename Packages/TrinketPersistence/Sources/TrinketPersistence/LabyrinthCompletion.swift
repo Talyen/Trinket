@@ -49,6 +49,7 @@ public enum LabyrinthCompletion {
         for node: LabyrinthNode,
         effects: LabyrinthModifierEffects,
         worldSeed: UInt64,
+        ownedTrinketIDs: Set<String> = [],
         astralChanceBonusPercent: Int = 0
     ) -> BattleLootPackage? {
         guard node.type.isCombat else { return nil }
@@ -60,6 +61,7 @@ public enum LabyrinthCompletion {
             enemyIsBoss: enemyIsBoss,
             effects: effects,
             worldSeed: worldSeed,
+            ownedTrinketIDs: ownedTrinketIDs,
             astralChanceBonusPercent: astralChanceBonusPercent
         )
     }
@@ -79,6 +81,7 @@ public enum LabyrinthCompletion {
         )?.item
     }
 
+    // swiftlint:disable:next function_body_length
     public static func complete(
         nodeID: String,
         hero: Combatant,
@@ -101,11 +104,16 @@ public enum LabyrinthCompletion {
                 for: node,
                 effects: effects,
                 worldSeed: save.labyrinth.worldSeed,
+                ownedTrinketIDs: save.inventory.ownedTrinketIDs,
                 astralChanceBonusPercent: save.homestead.effects.astralChanceBonusPercent
             )
             let stageGold = resolvedLoot?.gold ?? 0
-            save.grantGold(
-                save.homestead.effects.adjustedGold(stageGold + battleEarnedGold)
+            save.applyGoldDelta(
+                StageCompletion.resolvedGoldReward(
+                    stageGold: stageGold,
+                    battleEarnedGold: battleEarnedGold,
+                    homestead: save.homestead
+                )
             )
             StageCompletion.grantBattleExperience(
                 enemyLevel: encounterLevel,
@@ -130,8 +138,12 @@ public enum LabyrinthCompletion {
             }
         } else {
             let stipend = nonCombatGoldStipend(for: node, effects: effects)
-            save.grantGold(
-                save.homestead.effects.adjustedGold(stipend + battleEarnedGold)
+            save.applyGoldDelta(
+                StageCompletion.resolvedGoldReward(
+                    stageGold: stipend,
+                    battleEarnedGold: battleEarnedGold,
+                    homestead: save.homestead
+                )
             )
             if let materialRewards {
                 save.grantMaterials(materialRewards)
@@ -187,6 +199,7 @@ public enum LabyrinthCompletion {
             nodeID: nodeID,
             effects: effects,
             worldSeed: save.labyrinth.worldSeed,
+            ownedTrinketIDs: save.inventory.ownedTrinketIDs,
             astralChanceBonusPercent: save.homestead.effects.astralChanceBonusPercent
         ) else { return }
         appendUniqueRewardItem(item, save: &save)
@@ -196,31 +209,30 @@ public enum LabyrinthCompletion {
         nodeID: String,
         effects: LabyrinthModifierEffects,
         worldSeed: UInt64,
+        ownedTrinketIDs: Set<String>,
         astralChanceBonusPercent: Int
     ) -> InventoryItem? {
-        let bases = GameContent.itemBaseTypes
+        let bases = GameContent.itemBaseTypes.filter { $0.slot != .trinket }
         guard !bases.isEmpty else { return nil }
         var rng = SeededRandomNumberGenerator(
             seed: worldSeed &+ GameContent.stableSeed(for: "labyrinth-item-\(nodeID)")
         )
-        let baseType = bases.randomElement(using: &rng) ?? bases[0]
         let rarity = ItemRarityRoll.roll(
             baseAstralChancePercent: 15,
             astralChanceBonusPercent: effects.astralChanceBonusPercent + astralChanceBonusPercent,
             using: &rng
         )
-        return ItemGenerator().generate(
+        return ItemRewardGenerator.generate(
             id: rewardItemID(forNodeID: nodeID),
-            templateID: "\(baseType.id)-\(rarity.rawValue)",
-            baseType: baseType,
             rarity: rarity,
+            ownedTrinketIDs: ownedTrinketIDs,
             keywordBias: effects.keywordBiases,
+            baseTypes: bases,
             using: &rng
         )
     }
 
     private static func appendUniqueRewardItem(_ item: InventoryItem, save: inout PlayerSave) {
-        guard !save.inventory.items.contains(where: { $0.id == item.id }) else { return }
-        save.inventory.items.append(item)
+        save.inventory.appendUniqueItem(item)
     }
 }

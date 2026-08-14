@@ -48,7 +48,7 @@ public enum ItemCorruption {
     public static let upgradeRarityChancePercent = 25
 
     public static func isEligibleTarget(_ item: InventoryItem) -> Bool {
-        !item.isCorrupted && !item.affixes.isEmpty
+        !item.isTrinket && !item.isCorrupted && !item.affixes.isEmpty
     }
 
     public static func eligibleTargets(in inventory: PlayerInventoryState) -> [InventoryItem] {

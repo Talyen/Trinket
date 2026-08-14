@@ -53,7 +53,7 @@ public struct ItemBaseType: Identifiable, Equatable, Hashable, Sendable {
 public extension ItemBaseType {
     /// Neutral base-item preview used before a generated reward's rarity is rolled.
     var previewArtReference: ItemArtReference? {
-        ArtCatalog.itemArtByID["\(id)-basic"]
+        ArtCatalog.itemArtByID["\(id)-basic"] ?? ArtCatalog.itemArtByID[id]
     }
 }
 
@@ -167,6 +167,7 @@ private extension CombatTraitTriggers {
         record: (Double, Double, Bool) -> Void
     ) -> Self {
         var scaled = self
+        scaled.scale(\.cleanseSelfHeal, by: multiplier, record: record)
         scaled.scale(\.gainGoldBonusHealSelf, by: multiplier, record: record)
         scaled.scale(\.thornsPercent, by: multiplier, record: record)
         scaled.scale(\.onBleedApplyPoison, by: multiplier, record: record)
@@ -193,6 +194,7 @@ private extension CombatTraitTriggers {
         scaled.scale(\.holyDamagePurgeCount, by: multiplier, record: record)
         scaled.scale(\.enemyStunnedPurgeCount, by: multiplier, record: record)
         scaled.scale(\.criticalPurgeCount, by: multiplier, record: record)
+        scaled.scale(\.criticalActionGoldFlat, by: multiplier, record: record)
         scaled.scale(\.leechRestoreManaFlat, by: multiplier, record: record)
         scaled.scale(\.gainManaBlockFlat, by: multiplier, record: record)
         scaled.scale(\.defeatEnemyGoldFlat, by: multiplier, record: record)
@@ -201,6 +203,23 @@ private extension CombatTraitTriggers {
         scaled.scale(\.dodgeChanceBelowHealthPercentBonus, by: multiplier, record: record)
         scaled.scale(\.dodgeDealStunFlat, by: multiplier, record: record)
         scaled.scale(\.dodgeChanceBonus, by: multiplier, record: record)
+        scaled.scale(\.holyDamagePoisonFlat, by: multiplier, record: record)
+        scaled.scale(\.drawEveryOtherTurn, by: multiplier, record: record)
+        scaled.scale(\.drawOnHealthLoss, by: multiplier, record: record)
+        scaled.scale(\.physicalStunBuildupPercent, by: multiplier, record: record)
+        scaled.scale(\.blockGainThornsPercent, by: multiplier, record: record)
+        scaled.scale(\.drawOnSpendMana, by: multiplier, record: record)
+        scaled.scale(\.physicalDamageBlockPercent, by: multiplier, record: record)
+        scaled.scale(\.bleedDamageGoldFlat, by: multiplier, record: record)
+        scaled.scale(\.goldPerTurn, by: multiplier, record: record)
+        scaled.scale(\.healthRestoredPoisonPercent, by: multiplier, record: record)
+        scaled.scale(\.sunderingBlockMultiplier, by: multiplier, record: record)
+        scaled.scale(\.cardsPlayedManaFlat, by: multiplier, record: record)
+        scaled.scale(\.victoryGoldFlat, by: multiplier, record: record)
+        scaled.scale(\.healthPerTurn, by: multiplier, record: record)
+        scaled.scale(\.companionCardsPerTurn, by: multiplier, record: record)
+        scaled.scale(\.freezeExtraActionSkips, by: multiplier, record: record)
+        scaled.scale(\.criticalChanceBonus, by: multiplier, record: record)
         return scaled
     }
 }

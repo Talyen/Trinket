@@ -59,6 +59,11 @@ struct ItemAffixCatalogTests {
         for definition in GameContent.itemAffixDefinitions {
             try #expect(!definition.basic.description.isEmpty, "\(definition.id)) basic description")
             try #expect(!definition.astral.description.isEmpty, "\(definition.id)) astral description")
+            if definition.slot == .trinket {
+                try #expect(definition.basic == definition.astral)
+                try #expect(definition.basic.triggers != CombatTraitTriggers() || !definition.basic.modifiers.isEmpty)
+                continue
+            }
             try #expect(
                 !definition.basic.modifiers.isEmpty || definition.basic.triggers != CombatTraitTriggers(),
                 "\(definition.id)) basic power"

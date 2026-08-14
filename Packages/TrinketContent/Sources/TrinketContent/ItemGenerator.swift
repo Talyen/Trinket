@@ -113,3 +113,54 @@ public struct ItemGenerator: Sendable {
         return baseWeight * (2 + overlap)
     }
 }
+
+public enum ItemRewardGenerator {
+    public static func generate(
+        id: String,
+        rarity: Rarity,
+        ownedTrinketIDs: Set<String>,
+        reservedTrinketIDs: Set<String> = [],
+        keywordBias: Set<Keyword> = [],
+        eligibleTrinketIDs: Set<String>? = nil,
+        fallbackBaseType: ItemBaseType? = nil,
+        guaranteedAffixIDs: [String] = [],
+        baseTypes: [ItemBaseType] = GameContent.itemBaseTypes,
+        itemGenerator: ItemGenerator = ItemGenerator(),
+        using randomNumberGenerator: inout some RandomNumberGenerator
+    ) -> InventoryItem {
+        if rarity == .astral {
+            var trinkets = GameContent.trinketItems.filter {
+                !ownedTrinketIDs.contains($0.templateID)
+                    && !reservedTrinketIDs.contains($0.templateID)
+            }
+            if let eligibleTrinketIDs {
+                trinkets = trinkets.filter { eligibleTrinketIDs.contains($0.templateID) }
+            }
+            if !keywordBias.isEmpty {
+                trinkets = trinkets.filter { !$0.keywords.isDisjoint(with: keywordBias) }
+            }
+            if !trinkets.isEmpty,
+               Bool.random(using: &randomNumberGenerator),
+               let trinket = trinkets.randomElement(using: &randomNumberGenerator) {
+                return trinket
+            }
+        }
+
+        let normalBases = fallbackBaseType.map { [$0] } ?? baseTypes.filter { $0.slot != .trinket }
+        precondition(!normalBases.isEmpty, "Item rewards require at least one non-Trinket base type.")
+        let biasedBases = keywordBias.isEmpty
+            ? normalBases
+            : normalBases.filter { !$0.keywordAffinities.isDisjoint(with: keywordBias) }
+        let pool = biasedBases.isEmpty ? normalBases : biasedBases
+        let baseType = pool.randomElement(using: &randomNumberGenerator) ?? pool[0]
+        return itemGenerator.generate(
+            id: id,
+            templateID: "\(baseType.id)-\(rarity.rawValue)",
+            baseType: baseType,
+            rarity: rarity,
+            keywordBias: keywordBias,
+            guaranteedAffixIDs: guaranteedAffixIDs,
+            using: &randomNumberGenerator
+        )
+    }
+}

@@ -334,6 +334,7 @@ extension LabyrinthPlayMode {
             for: node,
             effects: labyrinth.effects(for: node.id),
             worldSeed: labyrinth.worldSeed,
+            ownedTrinketIDs: playerSave.inventory.ownedTrinketIDs,
             astralChanceBonusPercent: playerSave.homestead.effects.astralChanceBonusPercent
         )
     }
@@ -342,12 +343,14 @@ extension LabyrinthPlayMode {
         for node: LabyrinthNode,
         effects: LabyrinthModifierEffects,
         worldSeed: UInt64,
+        ownedTrinketIDs: Set<String> = [],
         astralChanceBonusPercent: Int = 0
     ) -> BattleLootPackage? {
         LabyrinthCompletion.resolveCombatLoot(
             for: node,
             effects: effects,
             worldSeed: worldSeed,
+            ownedTrinketIDs: ownedTrinketIDs,
             astralChanceBonusPercent: astralChanceBonusPercent
         )
     }

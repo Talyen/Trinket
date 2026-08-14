@@ -128,6 +128,10 @@ public enum MysteryEffectApplier {
         let itemGenerator: ItemGenerator
         let baseTypes: [ItemBaseType]
         let astralChanceBonusPercent: Int
+
+        var eligibleTrinketIDs: Set<String> {
+            GameContent.themedTrinketIDs(forMysteryChoiceID: choiceID) ?? []
+        }
     }
 
     private struct ApplyState {
@@ -179,15 +183,18 @@ public enum MysteryEffectApplier {
                 guaranteedAffixIDs: guaranteedAffixIDs,
                 ordinal: state.itemOrdinal,
                 context: itemContext,
+                ownedTrinketIDs: save.inventory.ownedTrinketIDs,
+                eligibleTrinketIDs: itemContext.eligibleTrinketIDs,
                 using: &randomNumberGenerator
             ) else {
                 return
             }
-            state.itemOrdinal += 1
-            appendItem(item, to: &save, result: &state.result)
+            appendGeneratedItem(item, to: &save, state: &state)
 
         case .gainRandomItem:
-            guard let baseType = itemContext.baseTypes.randomElement(using: &randomNumberGenerator) else {
+            guard let baseType = itemContext.baseTypes
+                .filter({ $0.slot != .trinket })
+                .randomElement(using: &randomNumberGenerator) else {
                 return
             }
             guard let item = makeGeneratedItem(
@@ -195,12 +202,13 @@ public enum MysteryEffectApplier {
                 guaranteedAffixIDs: [],
                 ordinal: state.itemOrdinal,
                 context: itemContext,
+                ownedTrinketIDs: save.inventory.ownedTrinketIDs,
+                eligibleTrinketIDs: itemContext.eligibleTrinketIDs,
                 using: &randomNumberGenerator
             ) else {
                 return
             }
-            state.itemOrdinal += 1
-            appendItem(item, to: &save, result: &state.result)
+            appendGeneratedItem(item, to: &save, state: &state)
 
         case let .unlockCombatant(combatantID):
             applyUnlock(combatantID, save: &save, result: &state.result)
@@ -232,9 +240,19 @@ public enum MysteryEffectApplier {
         to save: inout PlayerSave,
         result: inout MysteryEffectApplyResult
     ) {
-        guard !save.inventory.items.contains(where: { $0.id == item.id }) else { return }
-        save.inventory.items.append(item)
+        let priorCount = save.inventory.items.count
+        save.inventory.appendUniqueItem(item)
+        guard save.inventory.items.count > priorCount else { return }
         result.grantedItems.append(item)
+    }
+
+    private static func appendGeneratedItem(
+        _ item: InventoryItem,
+        to save: inout PlayerSave,
+        state: inout ApplyState
+    ) {
+        state.itemOrdinal += 1
+        appendItem(item, to: &save, result: &state.result)
     }
 
     private static func makeGeneratedItem(
@@ -242,6 +260,8 @@ public enum MysteryEffectApplier {
         guaranteedAffixIDs: [String],
         ordinal: Int,
         context: GeneratedItemContext,
+        ownedTrinketIDs: Set<String>,
+        eligibleTrinketIDs: Set<String>?,
         using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> InventoryItem? {
         guard let baseType = context.baseTypes.first(where: { $0.id == baseTypeID }) else {
@@ -253,12 +273,15 @@ public enum MysteryEffectApplier {
         )
         let itemID =
             "\(context.stageID)-\(context.choiceID)-\(ordinal)-\(baseTypeID)-\(rarity.rawValue)"
-        return context.itemGenerator.generate(
+        return ItemRewardGenerator.generate(
             id: itemID,
-            templateID: "\(baseTypeID)-\(rarity.rawValue)",
-            baseType: baseType,
             rarity: rarity,
+            ownedTrinketIDs: ownedTrinketIDs,
+            eligibleTrinketIDs: eligibleTrinketIDs,
+            fallbackBaseType: baseType,
             guaranteedAffixIDs: guaranteedAffixIDs,
+            baseTypes: context.baseTypes,
+            itemGenerator: context.itemGenerator,
             using: &randomNumberGenerator
         )
     }

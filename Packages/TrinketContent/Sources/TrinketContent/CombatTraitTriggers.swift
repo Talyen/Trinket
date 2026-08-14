@@ -4,6 +4,7 @@ import TrinketCore
 /// Trait and affix trigger knobs authored for combat builds.
 public struct CombatTraitTriggers: Codable, Sendable, Equatable, Hashable {
     public var cleanseBonusDraw: Int
+    public var cleanseSelfHeal: Int
     public var cleanseBonusHeal: Int
     public var gainGoldBonusHealSelf: Int
     public var controlResistancePercent: Double
@@ -67,6 +68,7 @@ public struct CombatTraitTriggers: Codable, Sendable, Equatable, Hashable {
     public var criticalPurgeCount: Int
     public var criticalPurgeAll: Bool
     public var criticalGoldFlat: Int
+    public var criticalActionGoldFlat: Int
     public var leechRestoreManaFlat: Int
     public var gainManaBlockFlat: Int
     public var defeatEnemyGoldFlat: Int
@@ -75,10 +77,34 @@ public struct CombatTraitTriggers: Codable, Sendable, Equatable, Hashable {
     public var dodgeChanceBelowHealthPercentThreshold: Double
     public var dodgeChanceBelowHealthPercentBonus: Double
     public var dodgeDealStunFlat: Int
+    public var holyDamagePoisonFlat: Int
+    public var drawEveryOtherTurn: Int
+    public var repeatManaEmpowerment: Bool
+    public var drawOnHealthLoss: Int
+    public var physicalStunBuildupPercent: Double
+    public var freezeDamageLeech: Bool
+    public var blockGainThornsPercent: Double
+    public var drawOnSpendMana: Int
+    public var physicalDamageBlockPercent: Double
+    public var poisonDamageLeech: Bool
+    public var bleedDamageGoldFlat: Int
+    public var goldPerTurn: Int
+    public var healthRestoredPoisonPercent: Double
+    public var sunderingBlockMultiplier: Double
+    public var cardsPlayedManaThreshold: Int
+    public var cardsPlayedManaFlat: Int
+    public var victoryGoldFlat: Int
+    public var healthPerTurn: Int
+    public var companionCardsPerTurn: Int
+    public var freezeExtraActionSkips: Int
+    public var stunnedDamageMultiplier: Double
+    public var criticalChanceBonus: Double
+    public var victoryGoldCoin: Bool
 
     // swiftlint:disable:next function_body_length
     public init(
         cleanseBonusDraw: Int = 0,
+        cleanseSelfHeal: Int = 0,
         cleanseBonusHeal: Int = 0,
         gainGoldBonusHealSelf: Int = 0,
         controlResistancePercent: Double = 0,
@@ -142,6 +168,7 @@ public struct CombatTraitTriggers: Codable, Sendable, Equatable, Hashable {
         criticalPurgeCount: Int = 0,
         criticalPurgeAll: Bool = false,
         criticalGoldFlat: Int = 0,
+        criticalActionGoldFlat: Int = 0,
         leechRestoreManaFlat: Int = 0,
         gainManaBlockFlat: Int = 0,
         defeatEnemyGoldFlat: Int = 0,
@@ -149,9 +176,33 @@ public struct CombatTraitTriggers: Codable, Sendable, Equatable, Hashable {
         dodgeHealFlat: Int = 0,
         dodgeChanceBelowHealthPercentThreshold: Double = 0,
         dodgeChanceBelowHealthPercentBonus: Double = 0,
-        dodgeDealStunFlat: Int = 0
+        dodgeDealStunFlat: Int = 0,
+        holyDamagePoisonFlat: Int = 0,
+        drawEveryOtherTurn: Int = 0,
+        repeatManaEmpowerment: Bool = false,
+        drawOnHealthLoss: Int = 0,
+        physicalStunBuildupPercent: Double = 0,
+        freezeDamageLeech: Bool = false,
+        blockGainThornsPercent: Double = 0,
+        drawOnSpendMana: Int = 0,
+        physicalDamageBlockPercent: Double = 0,
+        poisonDamageLeech: Bool = false,
+        bleedDamageGoldFlat: Int = 0,
+        goldPerTurn: Int = 0,
+        healthRestoredPoisonPercent: Double = 0,
+        sunderingBlockMultiplier: Double = 0,
+        cardsPlayedManaThreshold: Int = 0,
+        cardsPlayedManaFlat: Int = 0,
+        victoryGoldFlat: Int = 0,
+        healthPerTurn: Int = 0,
+        companionCardsPerTurn: Int = 0,
+        freezeExtraActionSkips: Int = 0,
+        stunnedDamageMultiplier: Double = 1,
+        criticalChanceBonus: Double = 0,
+        victoryGoldCoin: Bool = false
     ) {
         self.cleanseBonusDraw = cleanseBonusDraw
+        self.cleanseSelfHeal = cleanseSelfHeal
         self.cleanseBonusHeal = cleanseBonusHeal
         self.gainGoldBonusHealSelf = gainGoldBonusHealSelf
         self.controlResistancePercent = controlResistancePercent
@@ -215,6 +266,7 @@ public struct CombatTraitTriggers: Codable, Sendable, Equatable, Hashable {
         self.criticalPurgeCount = criticalPurgeCount
         self.criticalPurgeAll = criticalPurgeAll
         self.criticalGoldFlat = criticalGoldFlat
+        self.criticalActionGoldFlat = criticalActionGoldFlat
         self.leechRestoreManaFlat = leechRestoreManaFlat
         self.gainManaBlockFlat = gainManaBlockFlat
         self.defeatEnemyGoldFlat = defeatEnemyGoldFlat
@@ -223,5 +275,28 @@ public struct CombatTraitTriggers: Codable, Sendable, Equatable, Hashable {
         self.dodgeChanceBelowHealthPercentThreshold = dodgeChanceBelowHealthPercentThreshold
         self.dodgeChanceBelowHealthPercentBonus = dodgeChanceBelowHealthPercentBonus
         self.dodgeDealStunFlat = dodgeDealStunFlat
+        self.holyDamagePoisonFlat = holyDamagePoisonFlat
+        self.drawEveryOtherTurn = drawEveryOtherTurn
+        self.repeatManaEmpowerment = repeatManaEmpowerment
+        self.drawOnHealthLoss = drawOnHealthLoss
+        self.physicalStunBuildupPercent = physicalStunBuildupPercent
+        self.freezeDamageLeech = freezeDamageLeech
+        self.blockGainThornsPercent = blockGainThornsPercent
+        self.drawOnSpendMana = drawOnSpendMana
+        self.physicalDamageBlockPercent = physicalDamageBlockPercent
+        self.poisonDamageLeech = poisonDamageLeech
+        self.bleedDamageGoldFlat = bleedDamageGoldFlat
+        self.goldPerTurn = goldPerTurn
+        self.healthRestoredPoisonPercent = healthRestoredPoisonPercent
+        self.sunderingBlockMultiplier = sunderingBlockMultiplier
+        self.cardsPlayedManaThreshold = cardsPlayedManaThreshold
+        self.cardsPlayedManaFlat = cardsPlayedManaFlat
+        self.victoryGoldFlat = victoryGoldFlat
+        self.healthPerTurn = healthPerTurn
+        self.companionCardsPerTurn = companionCardsPerTurn
+        self.freezeExtraActionSkips = freezeExtraActionSkips
+        self.stunnedDamageMultiplier = stunnedDamageMultiplier
+        self.criticalChanceBonus = criticalChanceBonus
+        self.victoryGoldCoin = victoryGoldCoin
     }
 }

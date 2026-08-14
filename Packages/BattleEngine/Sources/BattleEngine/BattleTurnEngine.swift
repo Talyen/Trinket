@@ -26,7 +26,13 @@ public enum BattleTurnEngine {
 
         var effect = currentEffects[index]
         let keyword = effect.keyword
-        effect.remainingTurns = BattleTiming.controlStatusLingerTurns
+        let extraSkips = context.additionalControlSkipsByCombatantID[actor.id, default: 0]
+        if extraSkips > 0 {
+            context.additionalControlSkipsByCombatantID[actor.id] = extraSkips - 1
+            effect.remainingTurns = 0
+        } else {
+            effect.remainingTurns = BattleTiming.controlStatusLingerTurns
+        }
         currentEffects[index] = effect
         context.roster.setActiveEffects(currentEffects, for: actor)
 

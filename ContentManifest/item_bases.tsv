@@ -18,11 +18,35 @@ staff	Staff	weapon	two_handed	burn,freeze,holy,block,mana
 wand	Wand	weapon	one_handed	burn,freeze,holy,poison,mana
 leather_armor	Leather Armor	armor		physical,block,health,poison,leech,bleed,gold
 plate_armor	Plate Armor	armor		block,health,holy,stun
-emerald_amulet	Emerald Amulet	trinket		poison,health
-emerald_ring	Emerald Ring	trinket		poison,health
-ruby_amulet	Ruby Amulet	trinket		burn,health,leech,bleed
-ruby_ring	Ruby Ring	trinket		burn,health,leech,bleed
-sapphire_amulet	Sapphire Amulet	trinket		freeze,block,mana
-sapphire_ring	Sapphire Ring	trinket		freeze,block,mana
-topaz_amulet	Topaz Amulet	trinket		holy,gold,stun,block
-topaz_ring	Topaz Ring	trinket		holy,gold,stun,block
+emerald_amulet	Emerald Amulet	accessory		poison,health
+emerald_ring	Emerald Ring	accessory		poison,health
+ruby_amulet	Ruby Amulet	accessory		burn,health,leech,bleed
+ruby_ring	Ruby Ring	accessory		burn,health,leech,bleed
+sapphire_amulet	Sapphire Amulet	accessory		freeze,block,mana
+sapphire_ring	Sapphire Ring	accessory		freeze,block,mana
+topaz_amulet	Topaz Amulet	accessory		holy,gold,stun,block
+topaz_ring	Topaz Ring	accessory		holy,gold,stun,block
+bone_charm	Bone Charm	trinket		health
+brass_censer	Brass Censer	trinket		holy,poison
+companions_collar	Companion's Collar	trinket		mana
+cutpurse_knife	Cutpurse Knife	trinket		bleed,gold
+frozen_pocketwatch	Frozen Pocketwatch	trinket		freeze
+groves_favor	Grove's Favor	trinket		health
+icy_heart	Icy Heart	trinket		freeze,leech
+ironwood_buckler	Ironwood Buckler	trinket		block,physical
+lucky_clover	Lucky Clover	trinket		gold
+merchants_favor	Merchant's Favor	trinket		gold
+meteorite	Meteorite	trinket		burn,mana
+mortar_and_pestle	Mortar and Pestle	trinket		health,poison
+obsidian_hammer	Obsidian Hammer	trinket		physical,stun
+parasitic_bloom	Parasitic Bloom	trinket		poison,leech
+plague_doctors_mask	Plague Doctor's Mask	trinket		poison,health
+resonant_chimes	Resonant Chimes	trinket		mana
+runic_quill	Runic Quill	trinket		mana
+sin_eaters_lantern	Sin-Eater's Lantern	trinket		holy,health
+smugglers_map	Smuggler's Map	trinket		gold
+sundering_charm	Sundering Charm	trinket		physical,block
+tattered_pages	Tattered Pages	trinket		mana
+thunderstone	Thunderstone	trinket		physical,stun
+vanguards_crest	Vanguard's Crest	trinket		physical,block
+wishing_well_coin	Wishing Well Coin	trinket		gold

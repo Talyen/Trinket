@@ -704,6 +704,102 @@ public enum ArtCatalog {
             imageName: "item_wand_basic",
             thumbnailImageName: "item_wand_basic_thumb"
         )
+        dict["bone_charm"] = ItemArtReference(
+            imageName: "item_bone_charm",
+            thumbnailImageName: "item_bone_charm_thumb"
+        )
+        dict["brass_censer"] = ItemArtReference(
+            imageName: "item_brass_censer",
+            thumbnailImageName: "item_brass_censer_thumb"
+        )
+        dict["companions_collar"] = ItemArtReference(
+            imageName: "item_companions_collar",
+            thumbnailImageName: "item_companions_collar_thumb"
+        )
+        dict["cutpurse_knife"] = ItemArtReference(
+            imageName: "item_cutpurse_knife",
+            thumbnailImageName: "item_cutpurse_knife_thumb"
+        )
+        dict["frozen_pocketwatch"] = ItemArtReference(
+            imageName: "item_frozen_pocketwatch",
+            thumbnailImageName: "item_frozen_pocketwatch_thumb"
+        )
+        dict["groves_favor"] = ItemArtReference(
+            imageName: "item_groves_favor",
+            thumbnailImageName: "item_groves_favor_thumb"
+        )
+        dict["icy_heart"] = ItemArtReference(
+            imageName: "item_icy_heart",
+            thumbnailImageName: "item_icy_heart_thumb"
+        )
+        dict["ironwood_buckler"] = ItemArtReference(
+            imageName: "item_ironwood_buckler",
+            thumbnailImageName: "item_ironwood_buckler_thumb"
+        )
+        dict["lucky_clover"] = ItemArtReference(
+            imageName: "item_lucky_clover",
+            thumbnailImageName: "item_lucky_clover_thumb"
+        )
+        dict["merchants_favor"] = ItemArtReference(
+            imageName: "item_merchants_favor",
+            thumbnailImageName: "item_merchants_favor_thumb"
+        )
+        dict["meteorite"] = ItemArtReference(
+            imageName: "item_meteorite",
+            thumbnailImageName: "item_meteorite_thumb"
+        )
+        dict["mortar_and_pestle"] = ItemArtReference(
+            imageName: "item_mortar_and_pestle",
+            thumbnailImageName: "item_mortar_and_pestle_thumb"
+        )
+        dict["obsidian_hammer"] = ItemArtReference(
+            imageName: "item_obsidian_hammer",
+            thumbnailImageName: "item_obsidian_hammer_thumb"
+        )
+        dict["parasitic_bloom"] = ItemArtReference(
+            imageName: "item_parasitic_bloom",
+            thumbnailImageName: "item_parasitic_bloom_thumb"
+        )
+        dict["plague_doctors_mask"] = ItemArtReference(
+            imageName: "item_plague_doctors_mask",
+            thumbnailImageName: "item_plague_doctors_mask_thumb"
+        )
+        dict["resonant_chimes"] = ItemArtReference(
+            imageName: "item_resonant_chimes",
+            thumbnailImageName: "item_resonant_chimes_thumb"
+        )
+        dict["runic_quill"] = ItemArtReference(
+            imageName: "item_runic_quill",
+            thumbnailImageName: "item_runic_quill_thumb"
+        )
+        dict["sin_eaters_lantern"] = ItemArtReference(
+            imageName: "item_sin_eaters_lantern",
+            thumbnailImageName: "item_sin_eaters_lantern_thumb"
+        )
+        dict["smugglers_map"] = ItemArtReference(
+            imageName: "item_smugglers_map",
+            thumbnailImageName: "item_smugglers_map_thumb"
+        )
+        dict["sundering_charm"] = ItemArtReference(
+            imageName: "item_sundering_charm",
+            thumbnailImageName: "item_sundering_charm_thumb"
+        )
+        dict["tattered_pages"] = ItemArtReference(
+            imageName: "item_tattered_pages",
+            thumbnailImageName: "item_tattered_pages_thumb"
+        )
+        dict["thunderstone"] = ItemArtReference(
+            imageName: "item_thunderstone",
+            thumbnailImageName: "item_thunderstone_thumb"
+        )
+        dict["vanguards_crest"] = ItemArtReference(
+            imageName: "item_vanguards_crest",
+            thumbnailImageName: "item_vanguards_crest_thumb"
+        )
+        dict["wishing_well_coin"] = ItemArtReference(
+            imageName: "item_wishing_well_coin",
+            thumbnailImageName: "item_wishing_well_coin_thumb"
+        )
         return dict
     }()
 
@@ -711,6 +807,9 @@ public enum ArtCatalog {
         var dict = [ItemSlot: SlotBackgroundArtReference]()
         dict[.armor] = SlotBackgroundArtReference(
             imageName: "slot_armor"
+        )
+        dict[.accessory] = SlotBackgroundArtReference(
+            imageName: "slot_accessory"
         )
         dict[.trinket] = SlotBackgroundArtReference(
             imageName: "slot_trinket"
@@ -1017,6 +1116,7 @@ extension InventoryItem {
         // Catalog keys are template ids (e.g. crossbow-basic), not per-instance ids.
         ArtCatalog.itemArtByID[templateID]
             ?? ArtCatalog.itemArtByID["\(baseType.id)-\(rarity.rawValue)"]
+            ?? ArtCatalog.itemArtByID[baseType.id]
     }
 }
 

@@ -8,17 +8,20 @@ public struct DetailTraitRow: View {
     let description: String
     var descriptionAccessibilityID: String?
     var leadingIconKeyword: Keyword?
+    var titleKeywords: Set<Keyword>
 
     public init(
         title: String? = nil,
         description: String,
         descriptionAccessibilityID: String? = nil,
-        leadingIconKeyword: Keyword? = nil
+        leadingIconKeyword: Keyword? = nil,
+        titleKeywords: Set<Keyword> = []
     ) {
         self.title = title
         self.description = description
         self.descriptionAccessibilityID = descriptionAccessibilityID
         self.leadingIconKeyword = leadingIconKeyword
+        self.titleKeywords = titleKeywords
     }
 
     public var body: some View {
@@ -34,6 +37,7 @@ public struct DetailTraitRow: View {
                     Text(title)
                         .trinketTypography(.cardTitle)
                         .foregroundStyle(.primary)
+                        .keywordShine(titleKeywords)
                 }
             }
 

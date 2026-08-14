@@ -112,4 +112,19 @@ struct ShopOfferGeneratorTests {
         #expect(basicOffers.count == 3)
         #expect(astralOffers.count == 1)
     }
+
+    @Test func shopShelfReservesUniqueUnownedTrinkets() throws {
+        let owned = try #require(GameContent.trinketItems.first).templateID
+        var randomNumberGenerator = SeededRandomNumberGenerator(seed: 4)
+        let offers = ShopOfferGenerator.generateOffers(
+            stageID: "chapter-4-stage-8",
+            count: 100,
+            ownedTrinketIDs: [owned],
+            using: &randomNumberGenerator
+        )
+        let trinketIDs = offers.map(\.item).filter(\.isTrinket).map(\.templateID)
+
+        try #expect(!trinketIDs.contains(owned))
+        try #expect(Set(trinketIDs).count == trinketIDs.count)
+    }
 }

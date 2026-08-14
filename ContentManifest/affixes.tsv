@@ -1,34 +1,34 @@
 id	title	slot	keywords	weight	basic_description	astral_description	basic_modifiers	astral_modifiers	basic_triggers	astral_triggers
-keen	Keen	weapon	physical	12	Increase Physical damage by 1.	Increase Physical damage by 3.	damage_dealt:physical:1	damage_dealt:physical:3		
-serrated	Serrated	weapon	bleed	10	Increase Bleed damage by 1.	Increase Bleed damage by 2.	damage_dealt:bleed:1	damage_dealt:bleed:2		
-envenomed	Envenomed	weapon	poison	10	Increase Poison damage by 1.	Increase Poison damage by 2.	damage_dealt:poison:1	damage_dealt:poison:2		
-smoldering	Smoldering	weapon	burn	10	Increase Burn damage by 1.	Increase Burn damage by 2.	damage_dealt:burn:1	damage_dealt:burn:2		
-consecrated	Consecrated	weapon	holy	8	Increase Holy damage by 1.	Increase Holy damage by 3.	damage_dealt:holy:1	damage_dealt:holy:3		
-glacial	Glacial	weapon	freeze	8	Increase Freeze damage by 1.	Increase Freeze damage by 2.	damage_dealt:freeze:1	damage_dealt:freeze:2		
-concussive	Concussive	weapon	stun	8	Increase Stun damage by 1.	Increase Stun damage by 2.	damage_dealt:stun:1	damage_dealt:stun:2		
-lingering	Lingering	weapon	bleed	8	Bleed lasts 1 additional turn.	Bleed lasts 2 additional turns.	bleed_duration:1	bleed_duration:2		
-sentinel	Sentinel	weapon	block	8	Gain 1 additional Block.	Gain 3 additional Block.	block_gained:1	block_gained:3		
-fortified	Fortified	weapon	block	8	Gain 1 additional Block.	Gain 2 additional Block.	block_gained:1	block_gained:2		
-defenders	Defender's	weapon	block	8	Gain 2 additional Block.	Gain 4 additional Block.	block_gained:2	block_gained:4		
-leeching	Leeching	weapon	leech	8	Leech restores 5% more.	Leech restores 10% more.	leech_gained_percent:0.05	leech_gained_percent:0.10		
-bulwark	Bulwark	armor	block	12	Gain 2 additional Block.	Gain 5 additional Block.	block_gained:2	block_gained:5		
-vital	Vital	armor	health	10	Restore 1 additional Health.	Restore 3 additional Health.	health_restored:1	health_restored:3		
-emberguard	Emberguard	armor	burn,block	8	Take 10% less Burn damage.	Take 25% less Burn damage.	damage_taken_percent:burn:0.10	damage_taken_percent:burn:0.25		
-antidotal	Antidotal	armor	poison,health	8	Take 20% less Poison damage.	Take 30% less Poison damage.	damage_taken_percent:poison:0.20	damage_taken_percent:poison:0.30		
-thick-skinned	Thick-Skinned	armor	bleed	8	Take 10% less Bleed damage.	Take 25% less Bleed damage.	damage_taken_percent:bleed:0.10	damage_taken_percent:bleed:0.25		
-lifeweave	Lifeweave	armor	leech,health	8	Restore 1 additional Health when you Leech.	Restore 3 additional Health when you Leech.	leech_healing:1	leech_healing:3		
-rimed	Rimed	armor	freeze,block	8	Take 10% less Freeze damage.	Take 25% less Freeze damage.	damage_taken_percent:freeze:0.10	damage_taken_percent:freeze:0.25		
-insulated	Insulated	armor	stun,block	8	Take 10% less Stun damage.	Take 25% less Stun damage.	damage_taken_percent:stun:0.10	damage_taken_percent:stun:0.25		
-bloodbound	Bloodbound	armor	leech,bleed	8	Restore 1 additional Health when you Leech.	Restore 2 additional Health when you Leech.	leech_healing:1	leech_healing:2		
-hale	Hale	trinket	health	10	Increase Maximum Health by 6.	Increase Maximum Health by 12.	maximum_health:6	maximum_health:12		
-lucky	Lucky	trinket	gold	10	Gain 1 additional Gold.	Gain 2 additional Gold.	gold_gained:1	gold_gained:2		
-vampiric	Vampiric	trinket	leech	8	Leech restores 10% more Health.	Leech restores 20% more Health.	leech_gained_percent:0.10	leech_gained_percent:0.20		
-bloodstone	Bloodstone	trinket	leech,health	8	Leech restores 1 additional Health.	Leech restores 2 additional Health.	leech_healing:1	leech_healing:2		
-rime	Rime	trinket	freeze	8	Increase Freeze damage by 1.	Increase Freeze damage by 2.	damage_dealt:freeze:1	damage_dealt:freeze:2		
-stunning	Stunning	trinket	stun	8	Increase Stun damage by 1.	Increase Stun damage by 2.	damage_dealt:stun:1	damage_dealt:stun:2		
-manabound	Manabound	trinket	mana,burn,freeze	8	Increase Maximum Mana by 4.	Increase Maximum Mana by 8.	maximum_mana:4	maximum_mana:8		
-beastbond	Beastbond	trinket	health	8	Your Companion deals 1 additional damage.	Your Companion deals 2 additional damage.	companion_damage_dealt:1	companion_damage_dealt:2		
-biting	Biting	trinket	bleed,leech	8	Bleed lasts 1 additional turn.	Bleed lasts 2 additional turns.	bleed_duration:1	bleed_duration:2		
+keen	Keen	weapon	physical	12	Increase Physical damage by 1.	Increase Physical damage by 3.	damage_dealt:physical:1	damage_dealt:physical:3
+serrated	Serrated	weapon	bleed	10	Increase Bleed damage by 1.	Increase Bleed damage by 2.	damage_dealt:bleed:1	damage_dealt:bleed:2
+envenomed	Envenomed	weapon	poison	10	Increase Poison damage by 1.	Increase Poison damage by 2.	damage_dealt:poison:1	damage_dealt:poison:2
+smoldering	Smoldering	weapon	burn	10	Increase Burn damage by 1.	Increase Burn damage by 2.	damage_dealt:burn:1	damage_dealt:burn:2
+consecrated	Consecrated	weapon	holy	8	Increase Holy damage by 1.	Increase Holy damage by 3.	damage_dealt:holy:1	damage_dealt:holy:3
+glacial	Glacial	weapon	freeze	8	Increase Freeze damage by 1.	Increase Freeze damage by 2.	damage_dealt:freeze:1	damage_dealt:freeze:2
+concussive	Concussive	weapon	stun	8	Increase Stun damage by 1.	Increase Stun damage by 2.	damage_dealt:stun:1	damage_dealt:stun:2
+lingering	Lingering	weapon	bleed	8	Bleed lasts 1 additional turn.	Bleed lasts 2 additional turns.	bleed_duration:1	bleed_duration:2
+sentinel	Sentinel	weapon	block	8	Gain 1 additional Block.	Gain 3 additional Block.	block_gained:1	block_gained:3
+fortified	Fortified	weapon	block	8	Gain 1 additional Block.	Gain 2 additional Block.	block_gained:1	block_gained:2
+defenders	Defender's	weapon	block	8	Gain 2 additional Block.	Gain 4 additional Block.	block_gained:2	block_gained:4
+leeching	Leeching	weapon	leech	8	Leech restores 5% more.	Leech restores 10% more.	leech_gained_percent:0.05	leech_gained_percent:0.10
+bulwark	Bulwark	armor	block	12	Gain 2 additional Block.	Gain 5 additional Block.	block_gained:2	block_gained:5
+vital	Vital	armor	health	10	Restore 1 additional Health.	Restore 3 additional Health.	health_restored:1	health_restored:3
+emberguard	Emberguard	armor	burn,block	8	Take 10% less Burn damage.	Take 25% less Burn damage.	damage_taken_percent:burn:0.10	damage_taken_percent:burn:0.25
+antidotal	Antidotal	armor	poison,health	8	Take 20% less Poison damage.	Take 30% less Poison damage.	damage_taken_percent:poison:0.20	damage_taken_percent:poison:0.30
+thick-skinned	Thick-Skinned	armor	bleed	8	Take 10% less Bleed damage.	Take 25% less Bleed damage.	damage_taken_percent:bleed:0.10	damage_taken_percent:bleed:0.25
+lifeweave	Lifeweave	armor	leech,health	8	Restore 1 additional Health when you Leech.	Restore 3 additional Health when you Leech.	leech_healing:1	leech_healing:3
+rimed	Rimed	armor	freeze,block	8	Take 10% less Freeze damage.	Take 25% less Freeze damage.	damage_taken_percent:freeze:0.10	damage_taken_percent:freeze:0.25
+insulated	Insulated	armor	stun,block	8	Take 10% less Stun damage.	Take 25% less Stun damage.	damage_taken_percent:stun:0.10	damage_taken_percent:stun:0.25
+bloodbound	Bloodbound	armor	leech,bleed	8	Restore 1 additional Health when you Leech.	Restore 2 additional Health when you Leech.	leech_healing:1	leech_healing:2
+hale	Hale	accessory	health	10	Increase Maximum Health by 6.	Increase Maximum Health by 12.	maximum_health:6	maximum_health:12
+lucky	Lucky	accessory	gold	10	Gain 1 additional Gold.	Gain 2 additional Gold.	gold_gained:1	gold_gained:2
+vampiric	Vampiric	accessory	leech	8	Leech restores 10% more Health.	Leech restores 20% more Health.	leech_gained_percent:0.10	leech_gained_percent:0.20
+bloodstone	Bloodstone	accessory	leech,health	8	Leech restores 1 additional Health.	Leech restores 2 additional Health.	leech_healing:1	leech_healing:2
+rime	Rime	accessory	freeze	8	Increase Freeze damage by 1.	Increase Freeze damage by 2.	damage_dealt:freeze:1	damage_dealt:freeze:2
+stunning	Stunning	accessory	stun	8	Increase Stun damage by 1.	Increase Stun damage by 2.	damage_dealt:stun:1	damage_dealt:stun:2
+manabound	Manabound	accessory	mana,burn,freeze	8	Increase Maximum Mana by 4.	Increase Maximum Mana by 8.	maximum_mana:4	maximum_mana:8
+beastbond	Beastbond	accessory	health	8	Your Companion deals 1 additional damage.	Your Companion deals 2 additional damage.	companion_damage_dealt:1	companion_damage_dealt:2
+biting	Biting	accessory	bleed,leech	8	Bleed lasts 1 additional turn.	Bleed lasts 2 additional turns.	bleed_duration:1	bleed_duration:2
 infected	Infected	weapon	bleed,poison	8	Apply 1 Poison when you apply Bleed.	Apply 2 Poison when you apply Bleed.			on_bleed_apply_poison:1	on_bleed_apply_poison:2
 ashen_wake	Ashen Wake	weapon	burn,poison	8	Apply 1 Poison when you apply Burn.	Apply 2 Poison when you apply Burn.			on_burn_apply_poison:1	on_burn_apply_poison:2
 cauterize	Cauterize	weapon	bleed,burn	8	Deal 1 Burn damage when you apply Bleed.	Deal 2 Burn damage when you apply Bleed.			on_bleed_deal_burn_damage:1	on_bleed_deal_burn_damage:2
@@ -37,33 +37,57 @@ shatter	Shatter	weapon	freeze	8	Deal 2 additional damage while the enemy is Froz
 executioners	Executioner's	weapon	physical	8	Deal 3 additional damage if the enemy is below 30% Health.	Deal 6 additional damage if the enemy is below 30% Health.			damage_below_health_percent:0.30:3	damage_below_health_percent:0.30:6
 riposte	Riposte	armor	physical,dodge	8	Deal 3 additional damage on your next attack after Dodging.	Deal 6 additional damage on your next attack after Dodging.			damage_after_dodge:3	damage_after_dodge:6
 cascading	Cascading	armor	block	8	Gain 1 Block when your Block is broken.	Gain 2 Block when your Block is broken.			on_block_broken_block:1	on_block_broken_block:2
-symbiosis	Symbiosis	trinket	leech,health	8	Companions gain 50% of your Leech.	Companions gain 100% of your Leech.			companion_leech_share_percent:0.50	companion_leech_share_percent:1.00
+symbiosis	Symbiosis	accessory	leech,health	8	Companions gain 50% of your Leech.	Companions gain 100% of your Leech.			companion_leech_share_percent:0.50	companion_leech_share_percent:1.00
 second_wind	Second Wind	armor	health	8	Restore 8 Health the first time you fall below 25% Health.	Restore 16 Health the first time you fall below 25% Health.			once_below_health_percent_heal:0.25:8	once_below_health_percent_heal:0.25:16
-deathgrip	Deathgrip	trinket	block,health	8	Gain 8 Block when on Death's Door.	Gain 16 Block when on Death's Door.			block_on_deaths_door:8	block_on_deaths_door:16
-frostburn	Frostburn	trinket	burn,freeze	8	Increase Freeze damage by 2 against Burning enemies.	Increase Freeze damage by 4 against Burning enemies.			freeze_damage_while_burning:2	freeze_damage_while_burning:4
-aetherward	Aetherward	trinket	mana	8	Gain 1 Block when you spend Mana.	Gain 2 Block when you spend Mana.			on_spend_mana_block:1	on_spend_mana_block:2
-martyrs	Martyr's	armor	holy	10	Take 10% less Holy damage.	Take 25% less Holy damage.	damage_taken_percent:holy:0.10	damage_taken_percent:holy:0.25		
+deathgrip	Deathgrip	accessory	block,health	8	Gain 8 Block when on Death's Door.	Gain 16 Block when on Death's Door.			block_on_deaths_door:8	block_on_deaths_door:16
+frostburn	Frostburn	accessory	burn,freeze	8	Increase Freeze damage by 2 against Burning enemies.	Increase Freeze damage by 4 against Burning enemies.			freeze_damage_while_burning:2	freeze_damage_while_burning:4
+aetherward	Aetherward	accessory	mana	8	Gain 1 Block when you spend Mana.	Gain 2 Block when you spend Mana.			on_spend_mana_block:1	on_spend_mana_block:2
+martyrs	Martyr's	armor	holy	10	Take 10% less Holy damage.	Take 25% less Holy damage.	damage_taken_percent:holy:0.10	damage_taken_percent:holy:0.25
 sanctum	Sanctum	armor	holy,block	8	Gain 1 Block when you deal Holy damage.	Gain 2 Block when you deal Holy damage.			on_holy_damage_block:1	on_holy_damage_block:2
-absolving	Absolving	trinket	holy	8	Cleanse 1 status effect when you deal Holy damage.	Cleanse 1 status effect when you deal Holy damage.			on_holy_damage_cleanse:1	on_holy_damage_cleanse:1
-beacon	Beacon	trinket	holy,health	8	Restore 1 Health when you deal Holy damage.	Restore 3 Health when you deal Holy damage.			on_holy_damage_heal:1	on_holy_damage_heal:3
-windfall	Windfall	trinket	gold	8	Restore 1 Health when you gain Gold.	Restore 2 Health when you gain Gold.			on_gain_gold_heal:1	on_gain_gold_heal:2
-payday	Payday	trinket	gold,dodge	8	Gain 1 Gold when you Dodge.	Gain 2 Gold when you Dodge.			on_dodge_gold:1	on_dodge_gold:2
-hardened	Hardened	armor	physical	10	Take 10% less Physical damage.	Take 25% less Physical damage.	damage_taken_percent:physical:0.10	damage_taken_percent:physical:0.25		
+absolving	Absolving	accessory	holy	8	Cleanse 1 status effect when you deal Holy damage.	Cleanse 1 status effect when you deal Holy damage.			on_holy_damage_cleanse:1	on_holy_damage_cleanse:1
+beacon	Beacon	accessory	holy,health	8	Restore 1 Health when you deal Holy damage.	Restore 3 Health when you deal Holy damage.			on_holy_damage_heal:1	on_holy_damage_heal:3
+windfall	Windfall	accessory	gold	8	Restore 1 Health when you gain Gold.	Restore 2 Health when you gain Gold.			on_gain_gold_heal:1	on_gain_gold_heal:2
+payday	Payday	accessory	gold,dodge	8	Gain 1 Gold when you Dodge.	Gain 2 Gold when you Dodge.			on_dodge_gold:1	on_dodge_gold:2
+hardened	Hardened	armor	physical	10	Take 10% less Physical damage.	Take 25% less Physical damage.	damage_taken_percent:physical:0.10	damage_taken_percent:physical:0.25
 retaliatory	Retaliatory	armor	physical	8	Reflect 10% of damage taken.	Reflect 20% of damage taken.			thorns_percent:0.10	thorns_percent:0.20
-shredding	Shredding	trinket	physical	8	Ignore 10% of enemy mitigation.	Ignore 25% of enemy mitigation.			ignore_enemy_mitigation_percent:0.10	ignore_enemy_mitigation_percent:0.25
-knockout	Knockout	trinket	stun	8	Deal 3 Physical damage when you Stun the enemy.	Deal 5 Physical damage when you Stun the enemy.			on_stun_deal_physical:3	on_stun_deal_physical:5
+shredding	Shredding	accessory	physical	8	Ignore 10% of enemy mitigation.	Ignore 25% of enemy mitigation.			ignore_enemy_mitigation_percent:0.10	ignore_enemy_mitigation_percent:0.25
+knockout	Knockout	accessory	stun	8	Deal 3 Physical damage when you Stun the enemy.	Deal 5 Physical damage when you Stun the enemy.			on_stun_deal_physical:3	on_stun_deal_physical:5
 dazed	Dazed	weapon	stun	8	Deal 2 additional damage while the enemy is Stunned.	Deal 4 additional damage while the enemy is Stunned.			damage_while_target_stunned:2	damage_while_target_stunned:4
-branding	Branding	trinket	stun	8	Mark the enemy when they are Stunned.	Mark the enemy when they are Stunned.			on_enemy_stunned_apply_marked:true	on_enemy_stunned_apply_marked:true
-elusive	Elusive	trinket	dodge	8	Gain 5% Dodge chance.	Gain 12% Dodge chance.			dodge_chance_bonus:0.05	dodge_chance_bonus:0.12
+branding	Branding	accessory	stun	8	Mark the enemy when they are Stunned.	Mark the enemy when they are Stunned.			on_enemy_stunned_apply_marked:true	on_enemy_stunned_apply_marked:true
+elusive	Elusive	accessory	dodge	8	Gain 5% Dodge chance.	Gain 12% Dodge chance.			dodge_chance_bonus:0.05	dodge_chance_bonus:0.12
 untouchable	Untouchable	armor	dodge,block	8	Gain 2 Block when you Dodge.	Gain 4 Block when you Dodge.			on_dodge_block:2	on_dodge_block:4
 nullifying	Nullifying	weapon	purge,holy	8	Purge 1 status effect when you deal Holy damage.	Purge 1 status effect when you deal Holy damage.			on_holy_damage_purge:1	on_holy_damage_purge:1
 disrupting	Disrupting	weapon	purge,stun	8	Purge 1 status effect when you Stun the enemy.	Purge all status effects when you Stun the enemy.			on_enemy_stunned_purge:1	on_enemy_stunned_purge_all:true
 unmaking	Unmaking	weapon	purge,physical	8	Purge 1 status effect from the enemy when you Critically Hit.	Purge all status effects from the enemy when you Critically Hit.			on_critical_purge:1	on_critical_purge_all:true
-siphoning	Siphoning	trinket	mana,leech	8	Restore 1 Mana when you Leech.	Restore 2 Mana when you Leech.			on_leech_restore_mana:1	on_leech_restore_mana:2
+siphoning	Siphoning	accessory	mana,leech	8	Restore 1 Mana when you Leech.	Restore 2 Mana when you Leech.			on_leech_restore_mana:1	on_leech_restore_mana:2
 arcane_ward	Arcane Ward	armor	mana,block	8	Gain 2 Block when you gain Mana.	Gain 4 Block when you gain Mana.			on_gain_mana_block:2	on_gain_mana_block:4
-gilded	Gilded	trinket	gold	8	Increase Gold gained by 10%.	Increase Gold gained by 20%.	gold_gained_percent:0.10	gold_gained_percent:0.20		
-bounty	Bounty	trinket	gold	8	Gain 4 Gold when you defeat an enemy.	Gain 8 Gold when you defeat an enemy.			on_defeat_enemy_gold:4	on_defeat_enemy_gold:8
-blood_price	Blood Price	trinket	gold,leech	8	Gain 1 Gold when you Leech.	Gain 2 Gold when you Leech.			on_leech_gold:1	on_leech_gold:2
+gilded	Gilded	accessory	gold	8	Increase Gold gained by 10%.	Increase Gold gained by 20%.	gold_gained_percent:0.10	gold_gained_percent:0.20
+bounty	Bounty	accessory	gold	8	Gain 4 Gold when you defeat an enemy.	Gain 8 Gold when you defeat an enemy.			on_defeat_enemy_gold:4	on_defeat_enemy_gold:8
+blood_price	Blood Price	accessory	gold,leech	8	Gain 1 Gold when you Leech.	Gain 2 Gold when you Leech.			on_leech_gold:1	on_leech_gold:2
 sidestep	Sidestep	armor	dodge,health	8	Restore 1 Health when you Dodge.	Restore 3 Health when you Dodge.			on_dodge_heal:1	on_dodge_heal:3
-blur	Blur	trinket	dodge,health	8	Gain 15% Dodge chance while below 50% Health.	Gain 30% Dodge chance while below 50% Health.			dodge_chance_below_health_percent:0.50:0.15	dodge_chance_below_health_percent:0.50:0.30
+blur	Blur	accessory	dodge,health	8	Gain 15% Dodge chance while below 50% Health.	Gain 30% Dodge chance while below 50% Health.			dodge_chance_below_health_percent:0.50:0.15	dodge_chance_below_health_percent:0.50:0.30
+bone_charm	Blood Omen	trinket	health	1	Draw a card the first time you lose Health each turn.	Draw a card the first time you lose Health each turn.			draw_on_health_loss:1	draw_on_health_loss:1
+brass_censer	Toxic Incense	trinket	holy,poison	1	Deal 1 Poison damage when you deal Holy damage.	Deal 1 Poison damage when you deal Holy damage.			on_holy_damage_poison:1	on_holy_damage_poison:1
+companions_collar	Loyal Companion	trinket	mana	1	Draw an additional Companion card each turn.	Draw an additional Companion card each turn.			companion_cards_per_turn:1	companion_cards_per_turn:1
+cutpurse_knife	Blood Money	trinket	bleed,gold	1	Gain 1 Gold when you deal Bleed damage.	Gain 1 Gold when you deal Bleed damage.			on_bleed_damage_gold:1	on_bleed_damage_gold:1
+frozen_pocketwatch	Deep Freeze	trinket	freeze	1	Frozen enemies lose an additional action.	Frozen enemies lose an additional action.			freeze_extra_action_skips:1	freeze_extra_action_skips:1
+groves_favor	Verdant Renewal	trinket	health	1	Restore 2 Health each turn.	Restore 2 Health each turn.			health_per_turn:2	health_per_turn:2
+icy_heart	Cold Hunger	trinket	freeze,leech	1	Freeze damage gains Leech.	Freeze damage gains Leech.			freeze_damage_leech:true	freeze_damage_leech:true
+ironwood_buckler	Living Bulwark	trinket	block,physical	1	Gain Thorns equal to half the Block you gain.	Gain Thorns equal to half the Block you gain.			block_gain_thorns_percent:0.50	block_gain_thorns_percent:0.50
+lucky_clover	Fortunate Strike	trinket	gold	1	Gain 10% Critical chance. Gain 1 Gold on Critical Hit.	Gain 10% Critical chance. Gain 1 Gold on Critical Hit.			critical_chance_bonus:0.10|on_critical_action_gold:1	critical_chance_bonus:0.10|on_critical_action_gold:1
+merchants_favor	Passive Income	trinket	gold	1	Gain 1 Gold each turn.	Gain 1 Gold each turn.			gold_per_turn:1	gold_per_turn:1
+meteorite	Falling Star	trinket	burn,mana	1	Burn cards can spend additional Mana to deal more damage.	Burn cards can spend additional Mana to deal more damage.			repeat_mana_empowerment:true	repeat_mana_empowerment:true
+mortar_and_pestle	Toxic Remedy	trinket	health,poison	1	Deal Poison damage equal to half your Health restored.	Deal Poison damage equal to half your Health restored.			health_restored_poison_percent:0.50	health_restored_poison_percent:0.50
+obsidian_hammer	Concussive Force	trinket	physical,stun	1	Physical damage builds an equal amount of Stun.	Physical damage builds an equal amount of Stun.			physical_stun_buildup_percent:1.00	physical_stun_buildup_percent:1.00
+parasitic_bloom	Symbiotic Venom	trinket	poison,leech	1	Poison damage gains Leech.	Poison damage gains Leech.			poison_damage_leech:true	poison_damage_leech:true
+plague_doctors_mask	Plagueward	trinket	poison,health	1	Take 50% less Poison damage.	Take 50% less Poison damage.	damage_taken_percent:poison:0.50	damage_taken_percent:poison:0.50
+resonant_chimes	Resonance	trinket	mana	1	Gain 1 Mana when you play your second card each turn.	Gain 1 Mana when you play your second card each turn.			cards_played_mana:2:1	cards_played_mana:2:1
+runic_quill	Arcane Script	trinket	mana	1	Draw a card the first time you spend Mana each turn.	Draw a card the first time you spend Mana each turn.			draw_on_spend_mana:1	draw_on_spend_mana:1
+sin_eaters_lantern	Absolution	trinket	holy,health	1	Restore 6 Health when you remove a harmful status effect.	Restore 6 Health when you remove a harmful status effect.			on_cleanse_self_heal:6	on_cleanse_self_heal:6
+smugglers_map	Hidden Cache	trinket	gold	1	Gain 4 additional Gold on victory.	Gain 4 additional Gold on victory.			victory_gold_flat:4	victory_gold_flat:4
+sundering_charm	Shatterguard	trinket	physical,block	1	Physical and Stun damage remove twice as much Block.	Physical and Stun damage remove twice as much Block.			sundering_block_multiplier:1.00	sundering_block_multiplier:1.00
+tattered_pages	Forbidden Knowledge	trinket	mana	1	Draw an additional card every other turn.	Draw an additional card every other turn.			draw_every_other_turn:1	draw_every_other_turn:1
+thunderstone	Stormbreak	trinket	physical,stun	1	Deal double damage to Stunned enemies.	Deal double damage to Stunned enemies.			stunned_damage_multiplier:2.00	stunned_damage_multiplier:2.00
+vanguards_crest	Martial Guard	trinket	physical,block	1	Gain Block equal to half your Physical damage.	Gain Block equal to half your Physical damage.			physical_damage_block_percent:0.50	physical_damage_block_percent:0.50
+wishing_well_coin	Fickle Fortune	trinket	gold	1	On victory, gain 7 Gold or lose 3 Gold.	On victory, gain 7 Gold or lose 3 Gold.			victory_gold_coin:true	victory_gold_coin:true
 whiplash	Whiplash	weapon	dodge,stun	8	Deal 3 Stun damage when you Dodge.	Deal 5 Stun damage when you Dodge.			on_dodge_deal_stun:3	on_dodge_deal_stun:5

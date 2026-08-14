@@ -55,6 +55,28 @@ struct HealingEngineTests {
         try #expect(outcome.events.first?.amount == outcome.healthRestored)
     }
 
+    @Test func keywordDamageLeechDoesNotReplaceStrongerLeechBuff() throws {
+        let leech = ActiveEffect(id: 1, effect: .leech(.leech, 1.0, 3), remainingTurns: 3)
+        var context = BattleTestFixtures.makePipelineContext(
+            heroModifiers: CombatModifierProfile(
+                triggers: CombatTraitTriggers(poisonDamageLeech: true)
+            ),
+            seed: BattleTestFixtures.deterministicNonCriticalSeed
+        )
+        context.roster.mutateRuntime(for: context.roster.hero.combatant) { $0.currentHealth = 20 }
+        context.roster.setActiveEffects([leech], for: context.roster.hero.combatant)
+
+        let outcome = HealingEngine.leechFromDamage(
+            10,
+            sourceActorID: "source",
+            damageKeyword: .poison,
+            in: &context
+        )
+
+        try #expect(outcome.healthRestored == 10)
+        try #expect(context.roster.hero.currentHealth == 30)
+    }
+
     @Test func abilityLeechHealsHalfOfDamageDealt() throws {
         var context = makeContext(seed: BattleTestFixtures.deterministicNonCriticalSeed)
         context.roster.mutateRuntime(for: context.roster.hero.combatant) { $0.currentHealth = 30 }

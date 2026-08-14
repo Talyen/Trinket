@@ -108,12 +108,13 @@ package extension CombatTriggerEngine {
         in context: inout BattleState
     ) -> [ActionEvent] {
         let profile = context.modifiers(for: target.id)
+        var events = drawAfterHealthLoss(by: target, in: &context)
         guard profile.triggers.onceBelowHealthPercentThreshold > 0,
               profile.triggers.onceBelowHealthPercentHeal > 0,
               context.roster.maxHealth(for: target) > 0,
               let runtime = context.roster.runtime(for: target),
               !runtime.hasTriggeredSecondWind
-        else { return [] }
+        else { return events }
 
         // Death's Door owns lethal hits; Second Wind must not preempt it.
         let deathsDoorOwnsLethalHit = DeathsDoorEngine.applies(to: target)
@@ -121,13 +122,13 @@ package extension CombatTriggerEngine {
             && (!context.roster.hasConsumedDeathsDoor(for: target)
                 || DeathsDoorEngine.hasLethalProtection(for: target, in: context))
         if deathsDoorOwnsLethalHit {
-            return []
+            return events
         }
 
         let percent = Double(context.roster.health(for: target)) / Double(context.roster.maxHealth(for: target))
-        guard percent < profile.triggers.onceBelowHealthPercentThreshold else { return [] }
+        guard percent < profile.triggers.onceBelowHealthPercentThreshold else { return events }
         context.roster.mutateRuntime(for: target) { $0.hasTriggeredSecondWind = true }
-        return HealingEngine.resolveHeal(
+        events.append(contentsOf: HealingEngine.resolveHeal(
             HealRequest(
                 amount: profile.triggers.onceBelowHealthPercentHeal,
                 target: target,
@@ -140,7 +141,8 @@ package extension CombatTriggerEngine {
                 )
             ),
             in: &context
-        ).events
+        ).events)
+        return events
     }
 
     static func applyPurge(

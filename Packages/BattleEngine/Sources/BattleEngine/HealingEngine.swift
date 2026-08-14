@@ -44,14 +44,23 @@ package enum HealingEngine {
                 )
             )
         }
+        if restored > 0 {
+            events.append(contentsOf: CombatTriggerEngine.afterHealthRestored(
+                restored,
+                to: request.target,
+                in: &context
+            ))
+        }
 
         return CombatOutcome(healthDelta: restored, events: events, flags: flags)
     }
 
+    // swiftlint:disable:next function_body_length
     static func leechFromDamage(
         _ damage: Int,
         sourceActorID: String,
         abilityHasLeech: Bool = false,
+        damageKeyword: Keyword? = nil,
         in context: inout BattleState
     ) -> CombatOutcome {
         guard damage > 0,
@@ -72,11 +81,17 @@ package enum HealingEngine {
         }
         leechPct = max(leechPct, buffPct)
         let profile = context.modifiers(for: sourceActorID)
+        let keywordGrantsLeech = damageKeyword == .freeze && profile.triggers.freezeDamageLeech
+            || damageKeyword == .poison && profile.triggers.poisonDamageLeech
+        if leechPct == 0, keywordGrantsLeech {
+            leechPct = Effect.abilityLeechPercent
+        }
         if leechPct == 0,
            BattleChance.succeeds(probability: profile.triggers.leechChancePercent, using: &context.rng) {
             leechPct = Effect.abilityLeechPercent
         }
         guard leechPct > 0 else { return .empty }
+        leechPct += profile.leechGainedBonus
 
         var restored = CombatRounding.scaled(damage, multiplier: leechPct)
         restored = CombatRounding.scaled(restored, multiplier: profile.triggers.leechHealingMultiplier)
@@ -145,6 +160,7 @@ package enum HealingEngine {
             for: critKeyword,
             againstDefenderToughness: request.target.primaryStats.toughness
         )
+        chance += context.modifiers(for: sourceActorID).triggers.criticalChanceBonus
         for active in context.roster.activeEffects(for: actor.combatant) {
             if case let .criticalChanceBonus(bonus, _) = active.effect {
                 chance += bonus

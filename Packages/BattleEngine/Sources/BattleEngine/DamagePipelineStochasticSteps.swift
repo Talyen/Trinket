@@ -104,6 +104,7 @@ package extension DamagePipeline {
             againstDefenderToughness: state.combatant.primaryStats.toughness
         )
         chance += state.abilityCriticalChanceBonus
+        chance += context.modifiers(for: sourceActorID).triggers.criticalChanceBonus
 
         let sourceEffects = context.roster.activeEffects(for: actor.combatant)
         for active in sourceEffects {

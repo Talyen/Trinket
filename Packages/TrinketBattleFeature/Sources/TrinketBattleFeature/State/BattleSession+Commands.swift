@@ -98,9 +98,10 @@ extension BattleSession {
         else { return }
 
         if openingHandDrawStagger <= 0 {
-            _ = drawOpeningHand()
+            let events = drawOpeningHand()
             installSimulationPresentation()
             presentationEnvironment.playSFX([SFXID.abilityDraw])
+            presentResolvedEvents(events, at: .now)
             scheduleAutoEndIfNeeded()
             return
         }
@@ -150,8 +151,9 @@ extension BattleSession {
                   hasActiveSimulation
             else { return }
 
-            finalizeOpeningHand()
+            let events = finalizeOpeningHand()
             installSimulationPresentation()
+            presentResolvedEvents(events, at: .now)
             scheduleAutoEndIfNeeded()
         }
     }

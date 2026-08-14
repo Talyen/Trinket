@@ -158,6 +158,26 @@ struct MysteryEventCatalogTests {
         }
     }
 
+    @Test func onlyStrongMysteryChoiceTiesCanAwardTrinkets() throws {
+        let expected: [String: Set<String>] = [
+            "take-relic": ["brass_censer", "sin_eaters_lantern"],
+            "claim-blade": ["cutpurse_knife"],
+            "loot-crypt": ["bone_charm", "sin_eaters_lantern"],
+            "search-scrolls": ["runic_quill", "tattered_pages"],
+            "bind-pages": ["tattered_pages"],
+            "pocket-fragment": ["meteorite"],
+            "accept-rite": ["bone_charm", "sin_eaters_lantern"],
+            "copy-notes": ["runic_quill", "tattered_pages"],
+            "claim-censer": ["brass_censer"],
+        ]
+
+        for (choiceID, trinketIDs) in expected {
+            try #expect(GameContent.themedTrinketIDs(forMysteryChoiceID: choiceID) == trinketIDs)
+        }
+        try #expect(GameContent.themedTrinketIDs(forMysteryChoiceID: "harvest-berries") == nil)
+        try #expect(GameContent.themedTrinketIDs(forMysteryChoiceID: "forgotten-hoard") == nil)
+    }
+
     @Test func mysteryEffectsNeverSpendResources() throws {
         for event in GameContent.mysteryEvents + GameContent.recruitEvents {
             for choice in event.choices {

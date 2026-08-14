@@ -47,12 +47,17 @@ public struct BattleVictorySummary: Equatable {
         let heroAfter = configuration.hero.progression.addingExperience(heroXP)
         let companionAfter = configuration.companion.progression.addingExperience(companionXP)
         let rawBattleEarnedGold = earnedGold
-        let totalGold = HomesteadEffects(
+        let effects = HomesteadEffects(
             heroModifiers: [],
             companionModifiers: [],
             astralChanceBonusPercent: 0,
             goldFindPercent: presentation.goldFindPercent
-        ).adjustedGold(stageReward.gold + rawBattleEarnedGold)
+        )
+        let totalGold = max(
+            0,
+            effects.adjustedGold(stageReward.gold + max(0, rawBattleEarnedGold))
+                + min(0, rawBattleEarnedGold)
+        )
         let stageGold = min(stageReward.gold, totalGold)
         let battleGold = max(0, totalGold - stageGold)
 

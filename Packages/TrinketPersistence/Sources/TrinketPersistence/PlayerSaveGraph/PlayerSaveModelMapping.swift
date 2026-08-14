@@ -9,7 +9,7 @@ private let labyrinthMapLogger = Logger(
     category: "LabyrinthMapPayload"
 )
 
-private let inventoryMappingLogger = Logger(
+let inventoryMappingLogger = Logger(
     subsystem: PlayerSaveDefaults.loggingSubsystem,
     category: "InventoryMapping"
 )
@@ -182,7 +182,10 @@ extension RosterModel {
 }
 
 extension RosterModel {
-    func toPlayerRosterState(inventory: PlayerInventoryState) -> PlayerRosterState {
+    func toPlayerRosterState(
+        inventory: PlayerInventoryState,
+        schemaVersion: Int = PlayerSave.currentSchemaVersion
+    ) -> PlayerRosterState {
         let unlocked = unlockedCombatants ?? []
         let heroIDs = Set(unlocked.filter { $0.role == "hero" }.map(\.combatantID))
         let companionIDs = Set(unlocked.filter { $0.role == "companion" }.map(\.combatantID))
@@ -193,11 +196,17 @@ extension RosterModel {
         let abilityIDValues = Dictionary(lastWins: (abilityLoadouts ?? []).map {
             ($0.combatantID, RosterHydration.AbilityLoadoutIDs(basicID: $0.basicID, skillID: $0.skillID, ultimateID: $0.ultimateID))
         })
-        let equipmentValues = Dictionary(lastWins: (equipmentLoadouts ?? []).map {
-            (
-                $0.combatantID,
-                EquipmentLoadout(itemIDsBySlot: Dictionary(lastWins: ($0.slots ?? []).compactMap { slot in
-                    ItemSlot(rawValue: slot.slotID).map { ($0, slot.itemID) }
+        let equipmentValues = Dictionary(lastWins: (equipmentLoadouts ?? []).map { loadoutModel in
+            let isHero = GameContent.heroes.contains { $0.id == loadoutModel.combatantID }
+            return (
+                loadoutModel.combatantID,
+                EquipmentLoadout(itemIDsBySlot: Dictionary(lastWins: (loadoutModel.slots ?? []).compactMap { slot in
+                    let resolvedSlot = RosterHydration.resolveEquipmentSlot(
+                        slot.slotID,
+                        schemaVersion: schemaVersion,
+                        isHero: isHero
+                    )
+                    return resolvedSlot.map { ($0, slot.itemID) }
                 }))
             )
         })
@@ -227,65 +236,6 @@ extension RosterModel {
 }
 
 extension InventoryModel {
-    private static let itemBaseTypesByID = Dictionary(
-        uniqueKeysWithValues: GameContent.itemBaseTypes.map { ($0.id, $0) }
-    )
-
-    func toPlayerInventoryState() -> PlayerInventoryState {
-        PlayerInventoryState(items: (items ?? [])
-            .sorted { lhs, rhs in
-                if lhs.sortIndex == rhs.sortIndex {
-                    return lhs.id < rhs.id
-                }
-                return lhs.sortIndex < rhs.sortIndex
-            }
-            .compactMap { item in
-                guard let baseType = Self.itemBaseTypesByID[item.baseTypeID] else {
-                    inventoryMappingLogger.error(
-                        "Dropping inventory item \(item.id, privacy: .public) with unknown base type \(item.baseTypeID, privacy: .public)"
-                    )
-                    return nil
-                }
-                let affixes = (item.affixes ?? [])
-                    .sorted { lhs, rhs in
-                        if lhs.sortIndex == rhs.sortIndex {
-                            return lhs.id < rhs.id
-                        }
-                        return lhs.sortIndex < rhs.sortIndex
-                    }
-                    .compactMap { affix in
-                        let keywords = Set(affix.keywordRawValues.compactMap { Keyword(rawValue: $0) })
-                        return ItemAffix(
-                            id: affix.id,
-                            title: affix.title,
-                            description: affix.affixDescription,
-                            keywords: keywords
-                        )
-                    }
-                let affixPowers: [ItemAffixPower]? = {
-                    guard let data = item.affixPowersJSON else { return nil }
-                    do {
-                        return try ItemAffixPowerCoding.decode(data)
-                    } catch {
-                        inventoryMappingLogger.error(
-                            "Failed to decode affix powers for inventory item \(item.id, privacy: .public): \(error.localizedDescription, privacy: .public)"
-                        )
-                        return nil
-                    }
-                }()
-                return InventoryItem(
-                    id: item.id,
-                    templateID: item.templateID,
-                    baseType: baseType,
-                    rarity: Rarity(rawValue: item.rarityID) ?? .basic,
-                    displayName: item.displayName,
-                    affixes: affixes,
-                    isCorrupted: item.isCorrupted,
-                    affixPowers: affixPowers
-                )
-            })
-    }
-
     func update(from inventory: PlayerInventoryState, context: ModelContext?) {
         let values = inventory.items.enumerated().map { (index: $0.offset, item: $0.element) }
         items = reconcileModels(
@@ -461,8 +411,6 @@ extension LabyrinthProgressModel {
             clusters: state.clusters,
             nodes: Array(state.nodes.values).sorted { $0.id < $1.id }
         )
-        // Keep the prior blob when encode fails so a transient encoder error cannot wipe
-        // topology while scalar labyrinth fields still save successfully.
         do {
             mapPayload = try JSONEncoder().encode(payload)
         } catch {
@@ -533,7 +481,6 @@ func reconcileModels<Model: PersistentModel, Value, Key: Hashable>(
 }
 
 extension Dictionary {
-    /// Builds a dictionary without trapping on duplicate keys (corrupt / synced rows).
     init(lastWins pairs: [(Key, Value)]) {
         self.init(minimumCapacity: pairs.count)
         for (key, value) in pairs {

@@ -36,6 +36,7 @@ package enum DamagePipeline {
         applyMarkedConsume(to: &state, in: &context)
         applyDeathsDoor(to: &state, in: &context)
         applyLeech(to: &state, in: &context)
+        applyTrinketDamageReactions(to: &state, in: &context)
 
         // Retaliation / DoT-style hits must not nest further reaction pipelines
         // (Whiplash stun → ControlMeter → afterEnemyStunned → Knockout → …).

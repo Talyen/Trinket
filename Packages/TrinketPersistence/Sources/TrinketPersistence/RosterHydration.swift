@@ -7,6 +7,20 @@ enum RosterHydration {
         uniqueKeysWithValues: (GameContent.heroes + GameContent.companions).map { ($0.id, $0) }
     )
 
+    static func resolveEquipmentSlot(
+        _ rawValue: String,
+        schemaVersion: Int,
+        isHero: Bool
+    ) -> ItemSlot? {
+        guard schemaVersion < 14 else { return ItemSlot(rawValue: rawValue) }
+        return switch rawValue {
+        case "Trinket": .accessory
+        case "Secondary Trinket": isHero ? .secondaryAccessory : nil
+        case "Tertiary Trinket": nil
+        default: ItemSlot(rawValue: rawValue)
+        }
+    }
+
     static func resolveActiveSelection(
         activeHeroID: String,
         activeCompanionID: String,

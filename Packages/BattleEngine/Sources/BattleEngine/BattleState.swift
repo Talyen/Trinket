@@ -45,6 +45,12 @@ public struct BattleState {
     public var nextCardID: Int
     /// Party owners whose cards are unplayable this player turn due to control skip.
     public var ownersSkippingThisPlayerTurn: Set<BattleParticipant>
+    public var cardsPlayedThisTurn: [BattleParticipant: Int]
+    public var spendManaDrawOwnersThisTurn: Set<BattleParticipant>
+    public var healthLossDrawOwnersThisTurn: Set<BattleParticipant>
+    public var additionalControlSkipsByCombatantID: [String: Int]
+    public var isResolvingTrinketReaction: Bool
+    public var criticalGoldActionByActorID: [String: Int]
 
     private var logProjection: BattleLogProjection?
 
@@ -72,6 +78,12 @@ public struct BattleState {
         companionDeck: CombatDeck = CombatDeck(),
         nextCardID: Int = 0,
         ownersSkippingThisPlayerTurn: Set<BattleParticipant> = [],
+        cardsPlayedThisTurn: [BattleParticipant: Int] = [:],
+        spendManaDrawOwnersThisTurn: Set<BattleParticipant> = [],
+        healthLossDrawOwnersThisTurn: Set<BattleParticipant> = [],
+        additionalControlSkipsByCombatantID: [String: Int] = [:],
+        isResolvingTrinketReaction: Bool = false,
+        criticalGoldActionByActorID: [String: Int] = [:],
         tracksLog: Bool = false,
         tracksEvents: Bool = true
     ) {
@@ -99,8 +111,15 @@ public struct BattleState {
         self.companionDeck = companionDeck
         self.nextCardID = nextCardID
         self.ownersSkippingThisPlayerTurn = ownersSkippingThisPlayerTurn
+        self.cardsPlayedThisTurn = cardsPlayedThisTurn
+        self.spendManaDrawOwnersThisTurn = spendManaDrawOwnersThisTurn
+        self.healthLossDrawOwnersThisTurn = healthLossDrawOwnersThisTurn
+        self.additionalControlSkipsByCombatantID = additionalControlSkipsByCombatantID
+        self.isResolvingTrinketReaction = isResolvingTrinketReaction
+        self.criticalGoldActionByActorID = criticalGoldActionByActorID
     }
 
+    // swiftlint:disable:next function_body_length
     public init(
         hero: Combatant,
         companion: Combatant,
@@ -163,6 +182,12 @@ public struct BattleState {
         companionDeck = CombatDeck()
         nextCardID = 0
         ownersSkippingThisPlayerTurn = []
+        cardsPlayedThisTurn = [:]
+        spendManaDrawOwnersThisTurn = []
+        healthLossDrawOwnersThisTurn = []
+        additionalControlSkipsByCombatantID = [:]
+        isResolvingTrinketReaction = false
+        criticalGoldActionByActorID = [:]
 
         _ = appendMilestone(.battleStarted(heroName: hero.name, companionName: companion.name))
 
@@ -223,9 +248,11 @@ public struct BattleState {
 
     /// Fills the opening hand in one step (tests / headless). Prefer paced
     /// `drawNextOpeningHandCard` when the UI should animate each draw.
-    public mutating func drawOpeningHand(rebuildLog: Bool = true) {
-        BattleCardCombatEngine.drawOpeningHand(context: &self)
+    @discardableResult
+    public mutating func drawOpeningHand(rebuildLog: Bool = true) -> [ActionEvent] {
+        let events = BattleCardCombatEngine.drawOpeningHand(context: &self)
         finishMutation(rebuildLog: rebuildLog)
+        return events
     }
 
     /// Draws a single opening-hand card. Returns `false` when no further draw is possible.
@@ -239,8 +266,11 @@ public struct BattleState {
     }
 
     /// Recomputes which party owners skip card play this turn (call after paced opening deal).
-    public mutating func finalizeOpeningHand() {
-        BattleCardCombatEngine.finalizeOpeningHand(context: &self)
+    @discardableResult
+    public mutating func finalizeOpeningHand(rebuildLog: Bool = true) -> [ActionEvent] {
+        let events = BattleCardCombatEngine.finalizeOpeningHand(context: &self)
+        finishMutation(rebuildLog: rebuildLog)
+        return events
     }
 
     public func isCardPlayable(_ card: BattleCard) -> Bool {

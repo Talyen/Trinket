@@ -38,6 +38,7 @@ public enum BattleLoot {
         enemyIsBoss: Bool,
         itemID: String,
         keywordBias: Set<Keyword> = [],
+        ownedTrinketIDs: Set<String> = [],
         goldPercent: Int = 0,
         astralChanceBonusPercent: Int = 0,
         using randomNumberGenerator: inout some RandomNumberGenerator
@@ -68,28 +69,10 @@ public enum BattleLoot {
         } else {
             .basic
         }
-        let bases = GameContent.itemBaseTypes
-        let baseType: ItemBaseType
-        if keywordBias.isEmpty {
-            guard let chosen = bases.randomElement(using: &randomNumberGenerator) else {
-                preconditionFailure("Loot cannot resolve with an empty item base-type catalog.")
-            }
-            baseType = chosen
-        } else {
-            let biased = bases.filter { !$0.keywordAffinities.isDisjoint(with: keywordBias) }
-            guard let chosen = biased.randomElement(using: &randomNumberGenerator)
-                ?? bases.randomElement(using: &randomNumberGenerator)
-            else {
-                preconditionFailure("Loot cannot resolve with an empty item base-type catalog.")
-            }
-            baseType = chosen
-        }
-
-        let item = ItemGenerator().generate(
+        let item = ItemRewardGenerator.generate(
             id: itemID,
-            templateID: "\(baseType.id)-\(rarity.rawValue)",
-            baseType: baseType,
             rarity: rarity,
+            ownedTrinketIDs: ownedTrinketIDs,
             keywordBias: keywordBias,
             using: &randomNumberGenerator
         )
@@ -102,6 +85,7 @@ public enum BattleLoot {
         stage: Stage,
         encounterLevel: Int,
         enemyIsBoss: Bool,
+        ownedTrinketIDs: Set<String> = [],
         astralChanceBonusPercent: Int = 0
     ) -> BattleLootPackage {
         var rng = SeededRandomNumberGenerator(
@@ -111,6 +95,7 @@ public enum BattleLoot {
             encounterLevel: encounterLevel,
             enemyIsBoss: enemyIsBoss,
             itemID: "\(stage.id)-loot",
+            ownedTrinketIDs: ownedTrinketIDs,
             astralChanceBonusPercent: astralChanceBonusPercent,
             using: &rng
         )
@@ -122,6 +107,7 @@ public enum BattleLoot {
         encounterLevel: Int,
         enemyIsBoss: Bool,
         keywordBias: Set<Keyword> = [],
+        ownedTrinketIDs: Set<String> = [],
         astralChanceBonusPercent: Int = 0
     ) -> BattleLootPackage {
         var rng = SeededRandomNumberGenerator(
@@ -134,6 +120,7 @@ public enum BattleLoot {
             enemyIsBoss: enemyIsBoss,
             itemID: "spire-\(floor.spireID.rawValue)-floor-\(floor.floor)-loot",
             keywordBias: keywordBias,
+            ownedTrinketIDs: ownedTrinketIDs,
             astralChanceBonusPercent: astralChanceBonusPercent,
             using: &rng
         )
@@ -146,6 +133,7 @@ public enum BattleLoot {
         enemyIsBoss: Bool,
         effects: LabyrinthModifierEffects,
         worldSeed: UInt64,
+        ownedTrinketIDs: Set<String> = [],
         astralChanceBonusPercent: Int = 0
     ) -> BattleLootPackage {
         var rng = SeededRandomNumberGenerator(
@@ -156,6 +144,7 @@ public enum BattleLoot {
             enemyIsBoss: enemyIsBoss,
             itemID: "labyrinth-\(node.id)",
             keywordBias: effects.keywordBiases,
+            ownedTrinketIDs: ownedTrinketIDs,
             goldPercent: effects.goldPercent,
             astralChanceBonusPercent: effects.astralChanceBonusPercent + astralChanceBonusPercent,
             using: &rng

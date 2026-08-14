@@ -228,6 +228,23 @@ struct StageRewardTests {
         try #expect(save.journey.hasClaimedRewards(for: firstStage))
     }
 
+    @Test func resolvedGoldRewardDoesNotGoNegative() {
+        #expect(
+            StageCompletion.resolvedGoldReward(
+                stageGold: 0,
+                battleEarnedGold: -3,
+                goldFindPercent: 0
+            ) == 0
+        )
+        #expect(
+            StageCompletion.resolvedGoldReward(
+                stageGold: 10,
+                battleEarnedGold: -3,
+                goldFindPercent: 0
+            ) == 7
+        )
+    }
+
     @Test func claimRewardsUsesPrecomputedMaterialRewards() throws {
         var save = SaveTestSupport.makeSave()
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })

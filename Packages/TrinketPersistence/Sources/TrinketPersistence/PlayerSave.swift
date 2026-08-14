@@ -2,7 +2,7 @@ import Foundation
 import TrinketCore
 
 public struct PlayerSave: Equatable, Sendable {
-    public static let currentSchemaVersion = 13
+    public static let currentSchemaVersion = 14
     public static let corruptionAltarCooldownAfterEncounter = 6
 
     public var schemaVersion: Int
@@ -100,6 +100,17 @@ public struct PlayerSave: Equatable, Sendable {
         let reserved = Int(ceil(homestead.pendingProduction[.gold, default: 0]))
         let available = max(0, PlayerRosterState.maxGoldBalance - roster.gold - reserved)
         roster.grantGold(min(amount, available))
+        return roster.gold - balanceBefore
+    }
+
+    @discardableResult
+    public mutating func applyGoldDelta(_ amount: Int, at date: Date = Date()) -> Int {
+        if amount >= 0 {
+            return grantGold(amount, at: date)
+        }
+        homestead.settleProduction(at: date, roster: roster)
+        let balanceBefore = roster.gold
+        _ = roster.spendGold(min(-amount, roster.gold))
         return roster.gold - balanceBefore
     }
 

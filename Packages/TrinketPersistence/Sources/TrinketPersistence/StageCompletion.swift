@@ -61,12 +61,17 @@ public enum StageCompletion {
         battleEarnedGold: Int,
         goldFindPercent: Int
     ) -> Int {
-        HomesteadEffects(
+        let effects = HomesteadEffects(
             heroModifiers: [],
             companionModifiers: [],
             astralChanceBonusPercent: 0,
             goldFindPercent: goldFindPercent
-        ).adjustedGold(stageGold + battleEarnedGold)
+        )
+        return max(
+            0,
+            effects.adjustedGold(stageGold + max(0, battleEarnedGold))
+                + min(0, battleEarnedGold)
+        )
     }
 
     public static func resolvedGoldReward(
@@ -156,8 +161,8 @@ public enum StageCompletion {
         // Stage rewards claim once. Mid-battle gold still banks on claimed-stage
         // replays / auto-complete so resourceGain loot is not silently dropped.
         guard !save.journey.hasClaimedRewards(for: stage) else {
-            if battleEarnedGold > 0 {
-                save.grantGold(
+            if battleEarnedGold != 0 {
+                save.applyGoldDelta(
                     resolvedGoldReward(
                         stageGold: 0,
                         battleEarnedGold: battleEarnedGold,
@@ -186,12 +191,13 @@ public enum StageCompletion {
                 stage: stage,
                 encounterLevel: encounterLevel,
                 enemyIsBoss: enemyIsBoss,
+                ownedTrinketIDs: save.inventory.ownedTrinketIDs,
                 astralChanceBonusPercent: save.homestead.effects.astralChanceBonusPercent
             )
         }()
 
         let stageGold = resolvedLoot?.gold ?? stage.rewards.gold
-        save.grantGold(
+        save.applyGoldDelta(
             resolvedGoldReward(
                 stageGold: stageGold,
                 battleEarnedGold: battleEarnedGold,
@@ -213,12 +219,33 @@ public enum StageCompletion {
         } else if let resolvedLoot {
             save.inventory.appendUniqueItem(resolvedLoot.item)
         } else {
-            for templateID in stage.rewards.itemTemplateIDs {
-                guard let template = GameContent.itemTemplate(matching: templateID) else { continue }
-                save.inventory.addRewardItem(from: template, for: stage)
-            }
+            grantAuthoredItems(for: stage, inventory: &save.inventory)
         }
 
         save.journey.markRewardsClaimed(for: stage)
+    }
+
+    private static func grantAuthoredItems(
+        for stage: Stage,
+        inventory: inout PlayerInventoryState
+    ) {
+        for templateID in stage.rewards.itemTemplateIDs {
+            guard let template = GameContent.itemTemplate(matching: templateID) else { continue }
+            if template.rarity == .astral {
+                var randomNumberGenerator = SeededRandomNumberGenerator(
+                    seed: GameContent.stableSeed(for: "authored-stage-item-\(stage.id)-\(templateID)")
+                )
+                let eligibleTrinkets = GameContent.trinketItems.filter {
+                    !inventory.ownedTrinketIDs.contains($0.templateID)
+                }
+                if !eligibleTrinkets.isEmpty,
+                   Bool.random(using: &randomNumberGenerator),
+                   let trinket = eligibleTrinkets.randomElement(using: &randomNumberGenerator) {
+                    inventory.appendUniqueItem(trinket)
+                    continue
+                }
+            }
+            inventory.addRewardItem(from: template, for: stage)
+        }
     }
 }

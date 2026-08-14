@@ -327,9 +327,9 @@ SWIFT
 SWIFT
   elif [[ "$kind" == "slot_background" ]]; then
     case "$id" in
-      weapon|armor|trinket) ;;
+      weapon|armor|accessory|trinket) ;;
       *)
-        echo "Slot background id '$id' must be one of: weapon, armor, trinket." >&2
+        echo "Slot background id '$id' must be one of: weapon, armor, accessory, trinket." >&2
         exit 1
         ;;
     esac
@@ -487,6 +487,7 @@ extension InventoryItem {
         // Catalog keys are template ids (e.g. crossbow-basic), not per-instance ids.
         ArtCatalog.itemArtByID[templateID]
             ?? ArtCatalog.itemArtByID["\(baseType.id)-\(rarity.rawValue)"]
+            ?? ArtCatalog.itemArtByID[baseType.id]
     }
 }
 

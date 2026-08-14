@@ -10,6 +10,7 @@ public extension CombatTraitTriggers {
 
     private mutating func mergeBaseTriggers(_ other: CombatTraitTriggers) {
         cleanseBonusDraw += other.cleanseBonusDraw
+        cleanseSelfHeal += other.cleanseSelfHeal
         cleanseBonusHeal += other.cleanseBonusHeal
         gainGoldBonusHealSelf += other.gainGoldBonusHealSelf
         controlResistancePercent += other.controlResistancePercent
@@ -91,6 +92,7 @@ public extension CombatTraitTriggers {
         criticalPurgeCount += other.criticalPurgeCount
         criticalPurgeAll = criticalPurgeAll || other.criticalPurgeAll
         criticalGoldFlat += other.criticalGoldFlat
+        criticalActionGoldFlat += other.criticalActionGoldFlat
         leechRestoreManaFlat += other.leechRestoreManaFlat
         gainManaBlockFlat += other.gainManaBlockFlat
         defeatEnemyGoldFlat += other.defeatEnemyGoldFlat
@@ -102,5 +104,28 @@ public extension CombatTraitTriggers {
         )
         dodgeChanceBelowHealthPercentBonus += other.dodgeChanceBelowHealthPercentBonus
         dodgeDealStunFlat += other.dodgeDealStunFlat
+        holyDamagePoisonFlat += other.holyDamagePoisonFlat
+        drawEveryOtherTurn += other.drawEveryOtherTurn
+        repeatManaEmpowerment = repeatManaEmpowerment || other.repeatManaEmpowerment
+        drawOnHealthLoss += other.drawOnHealthLoss
+        physicalStunBuildupPercent += other.physicalStunBuildupPercent
+        freezeDamageLeech = freezeDamageLeech || other.freezeDamageLeech
+        blockGainThornsPercent += other.blockGainThornsPercent
+        drawOnSpendMana += other.drawOnSpendMana
+        physicalDamageBlockPercent += other.physicalDamageBlockPercent
+        poisonDamageLeech = poisonDamageLeech || other.poisonDamageLeech
+        bleedDamageGoldFlat += other.bleedDamageGoldFlat
+        goldPerTurn += other.goldPerTurn
+        healthRestoredPoisonPercent += other.healthRestoredPoisonPercent
+        sunderingBlockMultiplier += other.sunderingBlockMultiplier
+        cardsPlayedManaThreshold = max(cardsPlayedManaThreshold, other.cardsPlayedManaThreshold)
+        cardsPlayedManaFlat += other.cardsPlayedManaFlat
+        victoryGoldFlat += other.victoryGoldFlat
+        healthPerTurn += other.healthPerTurn
+        companionCardsPerTurn += other.companionCardsPerTurn
+        freezeExtraActionSkips += other.freezeExtraActionSkips
+        stunnedDamageMultiplier *= other.stunnedDamageMultiplier
+        criticalChanceBonus += other.criticalChanceBonus
+        victoryGoldCoin = victoryGoldCoin || other.victoryGoldCoin
     }
 }

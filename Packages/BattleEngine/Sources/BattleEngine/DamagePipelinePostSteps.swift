@@ -17,6 +17,7 @@ package extension DamagePipeline {
             state.healthLost,
             sourceActorID: sourceActorID,
             abilityHasLeech: state.abilityHasLeech,
+            damageKeyword: state.damageKeyword,
             in: &context
         )
         state.damageEvents.append(contentsOf: leechOutcome.events)
@@ -54,6 +55,57 @@ package extension DamagePipeline {
             ))
         default:
             break
+        }
+    }
+
+    static func applyTrinketDamageReactions(
+        to state: inout DamageResolutionState,
+        in context: inout BattleState
+    ) {
+        guard let sourceActorID = state.sourceActorID,
+              let sourceRuntime = context.roster.combatant(for: sourceActorID),
+              sourceRuntime.role != .enemy,
+              let keyword = state.damageKeyword
+        else { return }
+        let source = sourceRuntime.combatant
+        let triggers = context.modifiers(for: sourceActorID).triggers
+
+        if keyword == .bleed, state.healthLost > 0, triggers.bleedDamageGoldFlat > 0 {
+            state.damageEvents.append(contentsOf: context.grantGoldEvent(
+                triggers.bleedDamageGoldFlat,
+                to: source,
+                abilityName: "Cutpurse Knife"
+            ))
+        }
+
+        guard state.isAttackHit else { return }
+        if keyword == .physical, state.buildupDamage > 0, triggers.physicalStunBuildupPercent > 0 {
+            let buildup = CombatRounding.scaled(
+                state.buildupDamage,
+                multiplier: triggers.physicalStunBuildupPercent
+            )
+            state.damageEvents.append(contentsOf: ControlMeterEngine.applyMeterCharge(
+                buildup,
+                keyword: .stun,
+                to: state.combatant,
+                sourceActorID: sourceActorID,
+                applyFightPacing: false,
+                in: &context
+            ))
+        }
+        if keyword == .physical, state.buildupDamage > 0, triggers.physicalDamageBlockPercent > 0 {
+            let block = CombatRounding.scaled(
+                state.buildupDamage,
+                multiplier: triggers.physicalDamageBlockPercent
+            )
+            if block > 0 {
+                state.damageEvents.append(contentsOf: context.applyBlock(
+                    block,
+                    to: source,
+                    source: source,
+                    abilityName: "Vanguard's Crest"
+                ))
+            }
         }
     }
 

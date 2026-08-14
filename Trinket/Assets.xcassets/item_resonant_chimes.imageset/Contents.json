@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "item_resonant_chimes.heic",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

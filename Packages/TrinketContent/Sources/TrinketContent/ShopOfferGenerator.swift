@@ -25,6 +25,7 @@ public enum ShopOfferGenerator {
         count: Int = offerCount,
         baseTypes: [ItemBaseType] = GameContent.itemBaseTypes,
         itemGenerator: ItemGenerator = ItemGenerator(),
+        ownedTrinketIDs: Set<String> = [],
         astralChanceBonusPercent: Int = 0,
         using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> [ShopOffer] {
@@ -32,8 +33,9 @@ public enum ShopOfferGenerator {
 
         let isChapter1 = stageID.hasPrefix("chapter-1")
 
-        return (0 ..< count).map { index in
-            let baseType = baseTypes.randomElement(using: &randomNumberGenerator) ?? baseTypes[0]
+        var reservedTrinketIDs = Set<String>()
+        var offers: [ShopOffer] = []
+        for index in 0 ..< count {
             let rarity: Rarity = if isChapter1 {
                 index == count - 1 ? .astral : .basic
             } else {
@@ -45,15 +47,21 @@ public enum ShopOfferGenerator {
             let basePrice = Int.random(in: basePriceRange, using: &randomNumberGenerator)
             let price = rarity == .astral ? basePrice * astralPriceMultiplier : basePrice
             let offerID = "\(stageID)-offer-\(index)"
-            let item = itemGenerator.generate(
+            let item = ItemRewardGenerator.generate(
                 id: offerID,
-                templateID: "\(baseType.id)-\(rarity.rawValue)",
-                baseType: baseType,
                 rarity: rarity,
+                ownedTrinketIDs: ownedTrinketIDs,
+                reservedTrinketIDs: reservedTrinketIDs,
+                baseTypes: baseTypes,
+                itemGenerator: itemGenerator,
                 using: &randomNumberGenerator
             )
-            return ShopOffer(id: offerID, item: item, price: price)
+            if item.isTrinket {
+                reservedTrinketIDs.insert(item.templateID)
+            }
+            offers.append(ShopOffer(id: offerID, item: item, price: price))
         }
+        return offers
     }
 
     /// Deterministic seed derived from the stage id so a visit shelf is stable for that stage.

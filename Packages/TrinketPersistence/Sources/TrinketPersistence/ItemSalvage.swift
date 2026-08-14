@@ -5,6 +5,7 @@ import TrinketCore
 public enum ItemSalvageResult: Equatable, Sendable {
     case success(yields: [ResourceAmount])
     case itemNotFound
+    case ineligible
 }
 
 /// Deterministic material yields for salvaging inventory gear.
@@ -24,8 +25,10 @@ public enum ItemSalvage {
             (.iron, .wood)
         case .armor:
             (.hide, .stone)
-        case .trinket, .secondaryTrinket, .tertiaryTrinket:
+        case .accessory, .secondaryAccessory:
             (.herbs, .crystal)
+        case .trinket:
+            preconditionFailure("Trinkets cannot be salvaged.")
         }
     }
 
@@ -45,6 +48,7 @@ public enum ItemSalvageApplier {
         guard let item = save.inventory.items.first(where: { $0.id == itemID }) else {
             return .itemNotFound
         }
+        guard item.baseType.slot != .trinket else { return .ineligible }
 
         let yields = ItemSalvage.yields(for: item)
         unequip(itemID: itemID, from: &save.roster)

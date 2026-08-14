@@ -15,7 +15,7 @@ GENERATED_DIR = ROOT / "Packages" / "TrinketContent" / "Sources" / "TrinketConte
 CONTENT_DIR = ROOT / "Packages" / "TrinketContent" / "Sources" / "TrinketContent" / "Content"
 TRINKET_CONTENT_PACKAGE = ROOT / "Packages" / "TrinketContent"
 
-VALID_SLOTS = frozenset({"weapon", "armor", "trinket"})
+VALID_SLOTS = frozenset({"weapon", "armor", "accessory", "trinket"})
 VALID_TIERS = frozenset({"basic", "skill", "ultimate"})
 VALID_ENCOUNTERS = frozenset(
     {"battle", "event", "shop", "rest", "mystery", "recruit", "random_battle"}
@@ -197,7 +197,11 @@ def parse_affix_rows() -> list[AffixRow]:
     ]
     if header != expected:
         raise ValueError(f"{path} header mismatch: {header}")
-    return [AffixRow(*row) for row in lines[1:]]
+    rows: list[AffixRow] = []
+    for raw in lines[1:]:
+        padded = raw + [""] * (len(expected) - len(raw))
+        rows.append(AffixRow(*padded[: len(expected)]))
+    return rows
 
 
 def parse_trait_rows() -> list[TraitRow]:
@@ -403,6 +407,8 @@ def triggers_swift(raw: str) -> str:
     for token in parse_trigger_tokens(raw):
         if token.startswith("on_cleanse_draw:"):
             values["cleanseBonusDraw"] = token.split(":", 1)[1]
+        elif token.startswith("on_cleanse_self_heal:"):
+            values["cleanseSelfHeal"] = token.split(":", 1)[1]
         elif token.startswith("on_cleanse_heal:"):
             values["cleanseBonusHeal"] = token.split(":", 1)[1]
         elif token.startswith("on_gain_gold_heal:"):
@@ -521,6 +527,8 @@ def triggers_swift(raw: str) -> str:
             values["criticalPurgeCount"] = token.split(":", 1)[1]
         elif token.startswith("on_critical_gold:"):
             values["criticalGoldFlat"] = token.split(":", 1)[1]
+        elif token.startswith("on_critical_action_gold:"):
+            values["criticalActionGoldFlat"] = token.split(":", 1)[1]
         elif token.startswith("on_leech_restore_mana:"):
             values["leechRestoreManaFlat"] = token.split(":", 1)[1]
         elif token.startswith("on_gain_mana_block:"):
@@ -549,10 +557,57 @@ def triggers_swift(raw: str) -> str:
             values["turnFreezeDamageAllEnemies"] = token.split(":", 1)[1]
         elif token.startswith("damage_increases_every_other_turn:"):
             values["damageIncreasesEveryOtherTurn"] = "true"
+        elif token.startswith("on_holy_damage_poison:"):
+            values["holyDamagePoisonFlat"] = token.split(":", 1)[1]
+        elif token.startswith("draw_every_other_turn:"):
+            values["drawEveryOtherTurn"] = token.split(":", 1)[1]
+        elif token.startswith("repeat_mana_empowerment:"):
+            values["repeatManaEmpowerment"] = "true"
+        elif token.startswith("draw_on_health_loss:"):
+            values["drawOnHealthLoss"] = token.split(":", 1)[1]
+        elif token.startswith("physical_stun_buildup_percent:"):
+            values["physicalStunBuildupPercent"] = token.split(":", 1)[1]
+        elif token.startswith("freeze_damage_leech:"):
+            values["freezeDamageLeech"] = "true"
+        elif token.startswith("block_gain_thorns_percent:"):
+            values["blockGainThornsPercent"] = token.split(":", 1)[1]
+        elif token.startswith("draw_on_spend_mana:"):
+            values["drawOnSpendMana"] = token.split(":", 1)[1]
+        elif token.startswith("physical_damage_block_percent:"):
+            values["physicalDamageBlockPercent"] = token.split(":", 1)[1]
+        elif token.startswith("poison_damage_leech:"):
+            values["poisonDamageLeech"] = "true"
+        elif token.startswith("on_bleed_damage_gold:"):
+            values["bleedDamageGoldFlat"] = token.split(":", 1)[1]
+        elif token.startswith("gold_per_turn:"):
+            values["goldPerTurn"] = token.split(":", 1)[1]
+        elif token.startswith("health_restored_poison_percent:"):
+            values["healthRestoredPoisonPercent"] = token.split(":", 1)[1]
+        elif token.startswith("sundering_block_multiplier:"):
+            values["sunderingBlockMultiplier"] = token.split(":", 1)[1]
+        elif token.startswith("cards_played_mana:"):
+            _, threshold, amount = token.split(":", 2)
+            values["cardsPlayedManaThreshold"] = threshold
+            values["cardsPlayedManaFlat"] = amount
+        elif token.startswith("victory_gold_flat:"):
+            values["victoryGoldFlat"] = token.split(":", 1)[1]
+        elif token.startswith("health_per_turn:"):
+            values["healthPerTurn"] = token.split(":", 1)[1]
+        elif token.startswith("companion_cards_per_turn:"):
+            values["companionCardsPerTurn"] = token.split(":", 1)[1]
+        elif token.startswith("freeze_extra_action_skips:"):
+            values["freezeExtraActionSkips"] = token.split(":", 1)[1]
+        elif token.startswith("stunned_damage_multiplier:"):
+            values["stunnedDamageMultiplier"] = token.split(":", 1)[1]
+        elif token.startswith("critical_chance_bonus:"):
+            values["criticalChanceBonus"] = token.split(":", 1)[1]
+        elif token.startswith("victory_gold_coin:"):
+            values["victoryGoldCoin"] = "true"
         else:
             raise ValueError(f"Unknown trigger token: {token}")
     order = [
         "cleanseBonusDraw",
+        "cleanseSelfHeal",
         "cleanseBonusHeal",
         "gainGoldBonusHealSelf",
         "controlResistancePercent",
@@ -616,6 +671,7 @@ def triggers_swift(raw: str) -> str:
         "criticalPurgeCount",
         "criticalPurgeAll",
         "criticalGoldFlat",
+        "criticalActionGoldFlat",
         "leechRestoreManaFlat",
         "gainManaBlockFlat",
         "defeatEnemyGoldFlat",
@@ -624,6 +680,29 @@ def triggers_swift(raw: str) -> str:
         "dodgeChanceBelowHealthPercentThreshold",
         "dodgeChanceBelowHealthPercentBonus",
         "dodgeDealStunFlat",
+        "holyDamagePoisonFlat",
+        "drawEveryOtherTurn",
+        "repeatManaEmpowerment",
+        "drawOnHealthLoss",
+        "physicalStunBuildupPercent",
+        "freezeDamageLeech",
+        "blockGainThornsPercent",
+        "drawOnSpendMana",
+        "physicalDamageBlockPercent",
+        "poisonDamageLeech",
+        "bleedDamageGoldFlat",
+        "goldPerTurn",
+        "healthRestoredPoisonPercent",
+        "sunderingBlockMultiplier",
+        "cardsPlayedManaThreshold",
+        "cardsPlayedManaFlat",
+        "victoryGoldFlat",
+        "healthPerTurn",
+        "companionCardsPerTurn",
+        "freezeExtraActionSkips",
+        "stunnedDamageMultiplier",
+        "criticalChanceBonus",
+        "victoryGoldCoin",
     ]
     parts = [f"{label}: {values[label]}" for label in order if label in values]
     if not parts:
@@ -744,18 +823,32 @@ def generate_affix_catalog(rows: list[AffixRow]) -> None:
         )
 
     capacity = len(entries)
-    appends = "\n".join(
-        f"        list.append({entry.strip()})"
-        for entry in entries
+    chunk_size = 16
+    chunks = [entries[index:index + chunk_size] for index in range(0, capacity, chunk_size)]
+    chunk_appends = "\n".join(
+        f"        list.append(contentsOf: chunk{index}())"
+        for index in range(len(chunks))
+    )
+    chunk_functions = "\n\n".join(
+        "    private static func chunk"
+        f"{index}() -> [ItemAffixDefinition] {{\n"
+        "        [\n"
+        + ",\n".join(entry for entry in chunk)
+        + "\n        ]\n"
+        "    }"
+        for index, chunk in enumerate(chunks)
     )
     body = (
         "enum ItemAffixCatalogGenerated {\n"
         "    static let definitions: [ItemAffixDefinition] = {\n"
         f"        var list = [ItemAffixDefinition]()\n"
         f"        list.reserveCapacity({capacity})\n"
-        + appends
+        + chunk_appends
         + "\n        return list\n"
         "    }()\n"
+        "\n"
+        + chunk_functions
+        + "\n"
         "}\n"
     )
     write_generated_file(GENERATED_DIR / "ItemAffixCatalog.generated.swift", body)

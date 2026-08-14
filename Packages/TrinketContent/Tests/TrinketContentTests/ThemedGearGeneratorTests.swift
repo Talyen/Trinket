@@ -18,7 +18,7 @@ struct ThemedGearGeneratorTests {
 
         let primaryID = try #require(build.loadout.itemID(for: .weapon))
         let primary = try #require(build.inventory.first { $0.id == primaryID })
-        let expectedCount = knight.role.equipmentSlots.count
+        let expectedCount = knight.role.equipmentSlots.count(where: { $0 != .trinket })
             - (primary.baseType.weaponKind == .twoHanded ? 1 : 0)
 
         try #expect(build.inventory.count == expectedCount)

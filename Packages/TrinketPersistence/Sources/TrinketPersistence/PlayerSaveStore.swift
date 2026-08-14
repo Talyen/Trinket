@@ -340,7 +340,8 @@ public final class PlayerSaveStore {
     }
 
     private func ensureRequiredGraph() {
-        let save = PlayerSaveSanitizer.sanitize(currentSave)
+        var save = PlayerSaveSanitizer.sanitize(currentSave)
+        save.schemaVersion = PlayerSave.currentSchemaVersion
         let repairSlices = root.repairSlices(for: save)
         guard !repairSlices.isEmpty else { return }
 

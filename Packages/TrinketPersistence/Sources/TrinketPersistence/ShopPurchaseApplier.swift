@@ -50,17 +50,23 @@ public enum ShopPurchaseApplier {
         guard !save.inventory.items.contains(where: { $0.id == instanceID }) else {
             return .alreadyOwned
         }
+        if offer.item.isTrinket,
+           save.inventory.items.contains(where: { $0.isTrinket && $0.templateID == offer.item.templateID }) {
+            return .alreadyOwned
+        }
         guard save.roster.spendGold(offer.price) else {
             return .insufficientGold
         }
 
         let purchased = InventoryItem(
-            id: instanceID,
+            id: offer.item.isTrinket ? offer.item.id : instanceID,
             templateID: offer.item.templateID,
             baseType: offer.item.baseType,
             rarity: offer.item.rarity,
             displayName: offer.item.displayName,
-            affixes: offer.item.affixes
+            affixes: offer.item.affixes,
+            isCorrupted: offer.item.isCorrupted,
+            affixPowers: offer.item.affixPowers
         )
         save.inventory.items.append(purchased)
         return .success(purchased)

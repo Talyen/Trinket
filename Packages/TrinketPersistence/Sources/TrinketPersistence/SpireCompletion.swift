@@ -9,6 +9,7 @@ public enum SpireCompletion {
 
     public static func resolveLoot(
         for floor: SpireFloor,
+        ownedTrinketIDs: Set<String> = [],
         astralChanceBonusPercent: Int = 0
     ) -> BattleLootPackage {
         let encounterLevel = enemyLevel(for: floor)
@@ -22,6 +23,7 @@ public enum SpireCompletion {
             encounterLevel: encounterLevel,
             enemyIsBoss: enemyIsBoss,
             keywordBias: keywordBias,
+            ownedTrinketIDs: ownedTrinketIDs,
             astralChanceBonusPercent: astralChanceBonusPercent
         )
     }
@@ -54,10 +56,15 @@ public enum SpireCompletion {
         let encounterLevel = enemyLevel(for: floor)
         let resolvedLoot = loot ?? resolveLoot(
             for: floor,
+            ownedTrinketIDs: save.inventory.ownedTrinketIDs,
             astralChanceBonusPercent: save.homestead.effects.astralChanceBonusPercent
         )
-        save.grantGold(
-            save.homestead.effects.adjustedGold(resolvedLoot.gold + battleEarnedGold)
+        save.applyGoldDelta(
+            StageCompletion.resolvedGoldReward(
+                stageGold: resolvedLoot.gold,
+                battleEarnedGold: battleEarnedGold,
+                homestead: save.homestead
+            )
         )
         StageCompletion.grantBattleExperience(enemyLevel: encounterLevel, to: hero, roster: &save.roster)
         StageCompletion.grantBattleExperience(enemyLevel: encounterLevel, to: companion, roster: &save.roster)

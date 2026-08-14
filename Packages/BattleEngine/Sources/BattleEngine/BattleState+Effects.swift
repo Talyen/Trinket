@@ -18,7 +18,7 @@ package extension BattleState {
         case let .leech(keyword, percent, durationTurns):
             return .leech(
                 keyword,
-                percent + profile.leechGainedBonus,
+                percent,
                 durationTurns + profile.leechDurationBonus
             )
         default:
@@ -42,7 +42,7 @@ package extension BattleState {
             sourceActorID: source.id,
             in: &self
         )
-        return [nextEvent(
+        var events = [nextEvent(
             kind: .effect,
             effectKind: .shieldApplied,
             actorName: source.name,
@@ -51,6 +51,12 @@ package extension BattleState {
             amount: applied,
             keyword: keyword
         )]
+        events.append(contentsOf: CombatTriggerEngine.afterBlockGained(
+            applied,
+            by: target,
+            in: &self
+        ))
+        return events
     }
 
     mutating func appendEffect(

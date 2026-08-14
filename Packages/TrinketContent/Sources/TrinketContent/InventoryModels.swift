@@ -34,7 +34,10 @@ public struct InventoryItem: Identifiable, Equatable, Hashable, Sendable {
     }
 
     public func rewardInstance(for stageID: String) -> Self {
-        Self(
+        if isTrinket {
+            return self
+        }
+        return Self(
             id: "\(stageID)-\(templateID)",
             templateID: templateID,
             baseType: baseType,
@@ -72,6 +75,14 @@ public struct InventoryItem: Identifiable, Equatable, Hashable, Sendable {
                 keywords: affix.keywords
             )
         }
+    }
+
+    public var isTrinket: Bool {
+        baseType.slot == .trinket
+    }
+
+    public var keywords: Set<Keyword> {
+        affixes.reduce(into: Set<Keyword>()) { $0.formUnion($1.keywords) }
     }
 }
 

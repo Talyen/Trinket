@@ -121,6 +121,35 @@ struct ShopPurchaseApplierTests {
         #expect(save.inventory.items.count == 2)
     }
 
+    @Test func trinketCannotBePurchasedMoreThanOnce() throws {
+        let trinket = try #require(GameContent.trinketItems.first)
+        var save = SaveTestSupport.makeSave(modifiedAt: .now, gold: 200)
+        let firstOffer = ShopOffer(id: "trinket-offer-a", item: trinket, price: 20)
+        let secondOffer = ShopOffer(id: "trinket-offer-b", item: trinket, price: 20)
+
+        let first = ShopPurchaseApplier.purchase(
+            offer: firstOffer,
+            visitToken: "visit-a",
+            stageID: "chapter-2-stage-8",
+            save: &save
+        )
+        let second = ShopPurchaseApplier.purchase(
+            offer: secondOffer,
+            visitToken: "visit-b",
+            stageID: "chapter-2-stage-8",
+            save: &save
+        )
+
+        guard case let .success(purchased) = first else {
+            Issue.record("Expected first Trinket purchase to succeed")
+            return
+        }
+        #expect(purchased == trinket)
+        #expect(second == .alreadyOwned)
+        #expect(save.roster.gold == 180)
+        #expect(save.inventory.items == [trinket])
+    }
+
     private func makeOffer(price: Int) throws -> ShopOffer {
         let baseType = try #require(GameContent.itemBaseTypes.first { $0.id == "longsword" })
         var randomNumberGenerator = SeededRandomNumberGenerator(seed: 7)

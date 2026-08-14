@@ -11,6 +11,7 @@ enum InventoryFilter: String, CaseIterable, Identifiable {
     case all = "All"
     case weapon = "Weapon"
     case armor = "Armor"
+    case accessory = "Accessory"
     case trinket = "Trinket"
 
     var id: String {
@@ -25,6 +26,8 @@ enum InventoryFilter: String, CaseIterable, Identifiable {
             .weapon
         case .armor:
             .armor
+        case .accessory:
+            .accessory
         case .trinket:
             .trinket
         }
@@ -138,6 +141,9 @@ extension ItemDetailView {
         guard isOwned else {
             return Self(item: item)
         }
+        guard !item.isTrinket else {
+            return Self(item: item)
+        }
         let yields = ItemSalvage.yields(for: item)
         return Self(
             item: item,
@@ -151,6 +157,8 @@ extension ItemDetailView {
                 case let .success(yields):
                     return .success(yields: yields)
                 case .itemNotFound:
+                    return .itemNotFound
+                case .ineligible:
                     return .itemNotFound
                 case nil:
                     return .persistenceFailure

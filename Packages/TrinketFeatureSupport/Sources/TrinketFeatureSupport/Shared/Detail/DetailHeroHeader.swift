@@ -1,10 +1,12 @@
 import SwiftUI
+import TrinketCore
 import TrinketDesignSystem
 
 /// Shared full-bleed detail hero: art, on-art eyebrow/title, optional footer.
 public struct DetailHeroHeader<Art: View, Footer: View>: View {
     let eyebrow: String?
     let title: String
+    var titleKeywords: Set<Keyword>
     var titleAccessibilityIdentifier: String?
     let baseHeight: CGFloat
     let overscroll: CGFloat
@@ -17,6 +19,7 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
     public init(
         eyebrow: String? = nil,
         title: String,
+        titleKeywords: Set<Keyword> = [],
         titleAccessibilityIdentifier: String? = nil,
         baseHeight: CGFloat,
         overscroll: CGFloat,
@@ -27,6 +30,7 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
     ) {
         self.eyebrow = eyebrow
         self.title = title
+        self.titleKeywords = titleKeywords
         self.titleAccessibilityIdentifier = titleAccessibilityIdentifier
         self.baseHeight = baseHeight
         self.overscroll = overscroll
@@ -74,6 +78,7 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
         let label = Text(title)
             .trinketTypography(.screenDisplay)
             .trinketOnArtText(.title)
+            .keywordShine(titleKeywords)
             .lineLimit(2)
             .minimumScaleFactor(0.75)
 
@@ -89,6 +94,7 @@ public extension DetailHeroHeader where Footer == EmptyView {
     init(
         eyebrow: String? = nil,
         title: String,
+        titleKeywords: Set<Keyword> = [],
         titleAccessibilityIdentifier: String? = nil,
         baseHeight: CGFloat,
         overscroll: CGFloat,
@@ -98,6 +104,7 @@ public extension DetailHeroHeader where Footer == EmptyView {
     ) {
         self.eyebrow = eyebrow
         self.title = title
+        self.titleKeywords = titleKeywords
         self.titleAccessibilityIdentifier = titleAccessibilityIdentifier
         self.baseHeight = baseHeight
         self.overscroll = overscroll

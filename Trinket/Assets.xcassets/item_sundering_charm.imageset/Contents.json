@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "item_sundering_charm.heic",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

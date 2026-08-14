@@ -30,6 +30,10 @@ public struct PlayerInventoryState: Equatable, Hashable, Sendable {
         let catalogSlot = slot.baseItemSlot
         return items.filter { $0.baseType.slot == catalogSlot }
     }
+
+    public var ownedTrinketIDs: Set<String> {
+        Set(items.filter(\.isTrinket).map(\.templateID))
+    }
 }
 
 public struct PlayerRosterState: Equatable, Sendable {
@@ -136,7 +140,7 @@ public struct PlayerRosterState: Equatable, Sendable {
                 ]),
                 "wizard": EquipmentLoadout(itemIDsBySlot: [
                     .weapon: "wand-basic",
-                    .trinket: "ruby_ring-basic",
+                    .accessory: "ruby_ring-basic",
                 ]),
                 "wolf": EquipmentLoadout(itemIDsBySlot: [
                     .armor: "leather_armor-basic",

@@ -57,7 +57,10 @@ public extension PlayerSaveRoot {
             modifiedAt: modifiedAt,
             sessionGeneration: sessionGeneration,
             journey: journey?.toJourneyProgressState() ?? .initial,
-            roster: roster?.toPlayerRosterState(inventory: inventoryState) ?? .freshStart,
+            roster: roster?.toPlayerRosterState(
+                inventory: inventoryState,
+                schemaVersion: schemaVersion
+            ) ?? .freshStart,
             inventory: inventoryState,
             homestead: homestead?.toPlayerHomesteadState() ?? .freshStart,
             spires: spires?.toPlayerSpiresState() ?? .freshStart,

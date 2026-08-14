@@ -4,8 +4,8 @@ import TrinketCore
 
 struct CombatantEquipmentTests {
     @Test(arguments: [
-        (Combatant.Role.hero, [ItemSlot.weapon, .secondaryWeapon, .armor, .trinket, .secondaryTrinket, .tertiaryTrinket]),
-        (.companion, [.trinket, .armor, .secondaryTrinket]),
+        (Combatant.Role.hero, [ItemSlot.weapon, .armor, .secondaryWeapon, .accessory, .secondaryAccessory, .trinket]),
+        (.companion, [.accessory, .armor, .trinket]),
     ])
     func roleEquipmentSlotsMatchAuthoredLoadout(
         role: Combatant.Role,
@@ -14,78 +14,79 @@ struct CombatantEquipmentTests {
         try #expect(role.equipmentSlots == expectedSlots)
     }
 
-    @Test func secondaryTrinketSlotAcceptsTrinketItems() throws {
+    @Test func companionSlotsAcceptAccessoryAndTrinketItems() throws {
         let bear = try #require(GameContent.companions.first { $0.id == "bear" })
+        let accessoryBase = try #require(GameContent.itemBaseTypes.first { $0.id == "ruby_ring" })
         let trinketBase = try #require(GameContent.itemBaseTypes.first { $0.slot == .trinket })
-        let trinket = InventoryItem(
+        let ring = InventoryItem(
             id: "ring-a",
-            baseType: trinketBase,
+            baseType: accessoryBase,
             rarity: .basic,
             displayName: "Ruby Ring",
             affixes: []
         )
-        let other = InventoryItem(
-            id: "ring-b",
+        let trinket = InventoryItem(
+            id: trinketBase.id,
             baseType: trinketBase,
-            rarity: .basic,
-            displayName: "Sapphire Ring",
+            rarity: .astral,
+            displayName: trinketBase.name,
             affixes: []
         )
         let loadout = EquipmentLoadout(itemIDsBySlot: [
-            .trinket: "ring-a",
-            .secondaryTrinket: "ring-b",
+            .accessory: ring.id,
+            .trinket: trinket.id,
         ])
 
-        let sanitized = loadout.sanitized(for: bear, inventory: [trinket, other])
+        let sanitized = loadout.sanitized(for: bear, inventory: [ring, trinket])
 
-        try #expect(sanitized.itemID(for: .trinket) == "ring-a")
-        try #expect(sanitized.itemID(for: .secondaryTrinket) == "ring-b")
+        try #expect(sanitized.itemID(for: .accessory) == ring.id)
+        try #expect(sanitized.itemID(for: .trinket) == trinket.id)
         try #expect(sanitized.itemID(for: .weapon) == nil)
     }
 
-    @Test func sanitizedDropsDuplicateItemAcrossTrinketSlots() throws {
-        let bear = try #require(GameContent.companions.first { $0.id == "bear" })
-        let trinketBase = try #require(GameContent.itemBaseTypes.first { $0.slot == .trinket })
-        let trinket = InventoryItem(
+    @Test func sanitizedDropsDuplicateItemAcrossAccessorySlots() throws {
+        let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
+        let accessoryBase = try #require(GameContent.itemBaseTypes.first { $0.id == "ruby_ring" })
+        let ring = InventoryItem(
             id: "ring-a",
-            baseType: trinketBase,
+            baseType: accessoryBase,
             rarity: .basic,
             displayName: "Ruby Ring",
             affixes: []
         )
         let loadout = EquipmentLoadout(itemIDsBySlot: [
-            .trinket: "ring-a",
-            .secondaryTrinket: "ring-a",
+            .accessory: ring.id,
+            .secondaryAccessory: ring.id,
         ])
 
-        let sanitized = loadout.sanitized(for: bear, inventory: [trinket])
+        let sanitized = loadout.sanitized(for: knight, inventory: [ring])
 
-        try #expect(sanitized.itemID(for: .trinket) == "ring-a")
-        try #expect(sanitized.itemID(for: .secondaryTrinket) == nil)
+        try #expect(sanitized.itemID(for: .accessory) == ring.id)
+        try #expect(sanitized.itemID(for: .secondaryAccessory) == nil)
     }
 
-    @Test func equipMovesItemBetweenCompanionTrinketSlots() throws {
-        let trinketBase = try #require(GameContent.itemBaseTypes.first { $0.slot == .trinket })
-        let trinket = InventoryItem(
+    @Test func equipMovesItemBetweenHeroAccessorySlots() throws {
+        let accessoryBase = try #require(GameContent.itemBaseTypes.first { $0.id == "ruby_ring" })
+        let ring = InventoryItem(
             id: "ring-a",
-            baseType: trinketBase,
+            baseType: accessoryBase,
             rarity: .basic,
             displayName: "Ruby Ring",
             affixes: []
         )
         var loadout = EquipmentLoadout()
-        loadout.equip(trinket, in: .trinket, inventory: [trinket])
-        loadout.equip(trinket, in: .secondaryTrinket, inventory: [trinket])
+        loadout.equip(ring, in: .accessory, inventory: [ring])
+        loadout.equip(ring, in: .secondaryAccessory, inventory: [ring])
 
-        try #expect(loadout.itemID(for: .trinket) == nil)
-        try #expect(loadout.itemID(for: .secondaryTrinket) == "ring-a")
+        try #expect(loadout.itemID(for: .accessory) == nil)
+        try #expect(loadout.itemID(for: .secondaryAccessory) == ring.id)
     }
 
     @Test func heroSecondarySlotsAcceptFamilyItems() throws {
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         let swordBase = try #require(GameContent.itemBaseTypes.first { $0.id == "longsword" })
         let shieldBase = try #require(GameContent.itemBaseTypes.first { $0.id == "kite_shield" })
-        let trinketBase = try #require(GameContent.itemBaseTypes.first { $0.slot == .trinket })
+        let accessoryBase = try #require(GameContent.itemBaseTypes.first { $0.id == "ruby_ring" })
         let sword = InventoryItem(
             id: "sword-a",
             baseType: swordBase,
@@ -102,7 +103,7 @@ struct CombatantEquipmentTests {
         )
         let ring = InventoryItem(
             id: "ring-a",
-            baseType: trinketBase,
+            baseType: accessoryBase,
             rarity: .basic,
             displayName: "Ruby Ring",
             affixes: []
@@ -111,12 +112,12 @@ struct CombatantEquipmentTests {
         let sanitized = EquipmentLoadout(itemIDsBySlot: [
             .weapon: "sword-a",
             .secondaryWeapon: "shield-a",
-            .tertiaryTrinket: "ring-a",
+            .secondaryAccessory: "ring-a",
         ]).sanitized(for: knight, inventory: [sword, shield, ring])
 
         try #expect(sanitized.itemID(for: .weapon) == "sword-a")
         try #expect(sanitized.itemID(for: .secondaryWeapon) == "shield-a")
-        try #expect(sanitized.itemID(for: .tertiaryTrinket) == "ring-a")
+        try #expect(sanitized.itemID(for: .secondaryAccessory) == "ring-a")
     }
 
     @Test func offHandsOnlyEquipInSecondaryWeaponSlot() throws {
@@ -218,12 +219,16 @@ struct CombatantEquipmentTests {
             .weapon: "sword-a",
             .secondaryWeapon: "shield-a",
             .armor: "plate-a",
-            .trinket: "ring-a",
+            .accessory: "ring-a",
+            .secondaryAccessory: "amulet-a",
+            .trinket: "charm-a",
         ])
 
         try #expect(loadout.itemIDs(inFamilyOf: .weapon) == ["sword-a", "shield-a"])
         try #expect(loadout.itemIDs(inFamilyOf: .secondaryWeapon) == ["sword-a", "shield-a"])
         try #expect(loadout.itemIDs(inFamilyOf: .armor) == ["plate-a"])
-        try #expect(loadout.itemIDs(inFamilyOf: .trinket) == ["ring-a"])
+        try #expect(loadout.itemIDs(inFamilyOf: .accessory) == ["ring-a", "amulet-a"])
+        try #expect(loadout.itemIDs(inFamilyOf: .secondaryAccessory) == ["ring-a", "amulet-a"])
+        try #expect(loadout.itemIDs(inFamilyOf: .trinket) == ["charm-a"])
     }
 }

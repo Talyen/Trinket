@@ -44,6 +44,7 @@ public final class EncounterPlayMode {
 
         switch ShopEncounterSession.open(
             origin: origin,
+            ownedTrinketIDs: playerSave.inventory.ownedTrinketIDs,
             astralChanceBonusPercent: playerSave.homestead.effects.astralChanceBonusPercent
         ) {
         case let .opened(shopSession):

@@ -134,7 +134,32 @@ item	topaz_ring-astral	item_topaz_ring_astral	Raw Assets/Gear/Topaz Ring - Astra
 item	topaz_ring-basic	item_topaz_ring_basic	Raw Assets/Gear/Topaz Ring - Basic.jpeg	0.50	0.50
 item	wand-astral	item_wand_astral	Raw Assets/Gear/Wand - Astral.jpeg	0.50	0.50
 item	wand-basic	item_wand_basic	Raw Assets/Gear/Wand - Basic.jpeg	0.50	0.50
+item	bone_charm	item_bone_charm	Raw Assets/Trinkets/Bone Charm.jpeg	0.50	0.50
+item	brass_censer	item_brass_censer	Raw Assets/Trinkets/Brass Censer.jpeg	0.50	0.50
+item	companions_collar	item_companions_collar	Raw Assets/Trinkets/Companion's Collar.jpeg	0.50	0.50
+item	cutpurse_knife	item_cutpurse_knife	Raw Assets/Trinkets/Cutpurse Knife.jpeg	0.50	0.50
+item	frozen_pocketwatch	item_frozen_pocketwatch	Raw Assets/Trinkets/Frozen Pocketwatch.jpeg	0.50	0.50
+item	groves_favor	item_groves_favor	Raw Assets/Trinkets/Grove's Favor.jpeg	0.50	0.50
+item	icy_heart	item_icy_heart	Raw Assets/Trinkets/Icy Heart.jpeg	0.50	0.50
+item	ironwood_buckler	item_ironwood_buckler	Raw Assets/Trinkets/Ironwood Buckler.jpeg	0.50	0.50
+item	lucky_clover	item_lucky_clover	Raw Assets/Trinkets/Lucky Clover.jpeg	0.50	0.50
+item	merchants_favor	item_merchants_favor	Raw Assets/Trinkets/Merchant's Favor.jpeg	0.50	0.50
+item	meteorite	item_meteorite	Raw Assets/Trinkets/Meteorite.jpeg	0.50	0.50
+item	mortar_and_pestle	item_mortar_and_pestle	Raw Assets/Trinkets/Mortar and Pestle.jpeg	0.50	0.50
+item	obsidian_hammer	item_obsidian_hammer	Raw Assets/Trinkets/Obsidian Hammer.jpeg	0.50	0.50
+item	parasitic_bloom	item_parasitic_bloom	Raw Assets/Trinkets/Parasitic Bloom.jpeg	0.50	0.50
+item	plague_doctors_mask	item_plague_doctors_mask	Raw Assets/Trinkets/Plague Doctor's Mask.jpeg	0.50	0.50
+item	resonant_chimes	item_resonant_chimes	Raw Assets/Trinkets/Resonant Chimes.jpeg	0.50	0.50
+item	runic_quill	item_runic_quill	Raw Assets/Trinkets/Runic Quill.jpeg	0.50	0.50
+item	sin_eaters_lantern	item_sin_eaters_lantern	Raw Assets/Trinkets/Sin-Eater's Lantern.jpeg	0.50	0.50
+item	smugglers_map	item_smugglers_map	Raw Assets/Trinkets/Smuggler's Map.jpeg	0.50	0.50
+item	sundering_charm	item_sundering_charm	Raw Assets/Trinkets/Sundering Charm.jpeg	0.50	0.50
+item	tattered_pages	item_tattered_pages	Raw Assets/Trinkets/Tattered Pages.jpeg	0.50	0.50
+item	thunderstone	item_thunderstone	Raw Assets/Trinkets/Thunderstone.jpeg	0.50	0.50
+item	vanguards_crest	item_vanguards_crest	Raw Assets/Trinkets/Vanguard's Crest.jpeg	0.50	0.50
+item	wishing_well_coin	item_wishing_well_coin	Raw Assets/Trinkets/Wishing Well Coin.jpeg	0.50	0.50
 slot_background	armor	slot_armor	Raw Assets/Gear/Gear Slot Backgrounds/Body Slot.jpeg	0.50	0.50
+slot_background	accessory	slot_accessory	Raw Assets/Gear/Gear Slot Backgrounds/Accessory Slot.jpeg	0.50	0.50
 slot_background	trinket	slot_trinket	Raw Assets/Gear/Gear Slot Backgrounds/Trinket Slot.jpeg	0.50	0.50
 slot_background	weapon	slot_weapon	Raw Assets/Gear/Gear Slot Backgrounds/Weapon Slot.jpeg	0.50	0.50
 combatant	living_armor	enemy_living_armor_card	Raw Assets/Enemies/Living Armor.jpeg	0.50	0.50

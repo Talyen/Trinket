@@ -243,6 +243,7 @@ extension JourneyPlayMode {
             stage: stage,
             encounterLevel: encounter.level,
             enemyIsBoss: GameContent.enemy(matching: encounter.combatant.id)?.isBoss == true,
+            ownedTrinketIDs: playerSave.inventory.ownedTrinketIDs,
             astralChanceBonusPercent: playerSave.homestead.effects.astralChanceBonusPercent
         )
     }
@@ -251,6 +252,7 @@ extension JourneyPlayMode {
         stage: Stage,
         encounterLevel: Int,
         enemyIsBoss: Bool,
+        ownedTrinketIDs: Set<String> = [],
         astralChanceBonusPercent: Int = 0
     ) -> BattleLootPackage? {
         guard stage.encounter.isCombat else { return nil }
@@ -258,6 +260,7 @@ extension JourneyPlayMode {
             stage: stage,
             encounterLevel: encounterLevel,
             enemyIsBoss: enemyIsBoss,
+            ownedTrinketIDs: ownedTrinketIDs,
             astralChanceBonusPercent: astralChanceBonusPercent
         )
     }

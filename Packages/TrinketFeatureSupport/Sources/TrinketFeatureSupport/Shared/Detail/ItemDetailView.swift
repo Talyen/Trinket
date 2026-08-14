@@ -73,7 +73,8 @@ public struct ItemDetailView: View {
     }
 
     private var showsSalvageAction: Bool {
-        onSalvage != nil
+        !item.isTrinket
+            && onSalvage != nil
             && primaryActionTitle == nil
             && purchasePrice == nil
     }
@@ -87,6 +88,7 @@ public struct ItemDetailView: View {
                         ? "\(item.rarity.label.uppercased()) · CORRUPTED"
                         : item.rarity.label.uppercased(),
                     title: item.displayName,
+                    titleKeywords: item.isTrinket ? item.keywords : [],
                     baseHeight: $0,
                     overscroll: $1
                 ) {
@@ -98,7 +100,11 @@ public struct ItemDetailView: View {
                 DetailSection("Traits") {
                     VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
                         ForEach(item.displayedAffixes) { affix in
-                            DetailTraitRow(description: affix.description)
+                            DetailTraitRow(
+                                title: affix.title,
+                                description: affix.description,
+                                titleKeywords: affix.keywords
+                            )
                         }
                     }
                 }

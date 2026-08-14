@@ -146,6 +146,7 @@ package extension CombatTriggerEngine {
         ).events
     }
 
+    // swiftlint:disable:next function_body_length
     static func afterHolyDamageDealt(
         to enemy: Combatant,
         source: Combatant,
@@ -210,6 +211,23 @@ package extension CombatTriggerEngine {
             ))
         }
 
+        if profile.triggers.holyDamagePoisonFlat > 0, context.roster.health(for: enemy) > 0 {
+            events.append(contentsOf: context.resolveDamage(
+                DamageRequest(
+                    amount: profile.triggers.holyDamagePoisonFlat,
+                    target: enemy,
+                    keyword: .poison,
+                    sourceActorID: source.id,
+                    options: DamageOptions(
+                        applyStatBonus: false,
+                        applyItemBonus: false,
+                        applyDodge: false,
+                        isRetaliation: true
+                    )
+                )
+            ).events)
+        }
+
         return events
     }
 
@@ -235,6 +253,16 @@ package extension CombatTriggerEngine {
                 to: source,
                 abilityName: traitName(for: source, fallback: .cutpurse, in: context)
             ))
+        }
+
+        if profile.triggers.criticalActionGoldFlat > 0,
+           context.criticalGoldActionByActorID[source.id] != context.actionCount {
+            events.append(contentsOf: context.grantGoldEvent(
+                profile.triggers.criticalActionGoldFlat,
+                to: source,
+                abilityName: "Lucky Clover"
+            ))
+            context.criticalGoldActionByActorID[source.id] = context.actionCount
         }
 
         return events

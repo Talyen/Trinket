@@ -53,6 +53,14 @@ package extension DamagePipeline {
             state.itemBonus += percentBonus
             state.remaining += percentBonus
         }
+        if state.isAttackHit,
+           let sourceActorID = state.sourceActorID,
+           context.roster.hasControlStatus(for: state.combatant, keyword: .stun) {
+            let multiplier = context.modifiers(for: sourceActorID).triggers.stunnedDamageMultiplier
+            if multiplier > 1 {
+                state.remaining = CombatRounding.scaled(state.remaining, multiplier: multiplier)
+            }
+        }
         state.dealt = state.remaining
     }
 
@@ -125,7 +133,7 @@ package extension DamagePipeline {
         if flatReduction > 0 {
             state.remaining = max(0, state.remaining - flatReduction)
         }
-        let reduction = profile.damageTakenReduction(for: damageKeyword)
+        let reduction = min(1, profile.damageTakenReduction(for: damageKeyword))
         if reduction > 0 {
             state.remaining = CombatRounding.scaled(state.remaining, multiplier: 1 - reduction)
         }
@@ -207,6 +215,11 @@ package extension DamagePipeline {
 
         let absorbed = min(state.remaining, buffer)
         state.remaining -= absorbed
+        let sourceTriggers = state.sourceActorID.map { context.modifiers(for: $0).triggers }
+        let canSunder = state.damageKeyword == .physical || state.damageKeyword == .stun
+        let extraRemoved = canSunder
+            ? min(buffer - absorbed, CombatRounding.scaled(absorbed, multiplier: sourceTriggers?.sunderingBlockMultiplier ?? 0))
+            : 0
         state.damageEvents.append(context.nextEvent(
             kind: .effect,
             effectKind: .shieldAbsorbed,
@@ -219,7 +232,7 @@ package extension DamagePipeline {
             milestone: nil
         ))
 
-        let newBuffer = buffer - absorbed
+        let newBuffer = buffer - absorbed - extraRemoved
         var blockBroken = false
         if newBuffer <= 0 {
             effects.remove(at: index)

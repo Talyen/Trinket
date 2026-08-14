@@ -124,6 +124,12 @@ package enum ControlMeterEngine {
             currentEffects: &currentEffects,
             in: &context
         )
+        if keyword == .freeze,
+           let sourceActorID,
+           context.modifiers(for: sourceActorID).triggers.freezeExtraActionSkips > 0 {
+            context.additionalControlSkipsByCombatantID[combatant.id, default: 0] +=
+                context.modifiers(for: sourceActorID).triggers.freezeExtraActionSkips
+        }
 
         let actorName: String = if let sourceActorID, let source = context.roster.combatant(for: sourceActorID) {
             source.name

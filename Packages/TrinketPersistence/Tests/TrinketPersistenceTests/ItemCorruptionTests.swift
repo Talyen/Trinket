@@ -50,6 +50,18 @@ struct ItemCorruptionTests {
         #expect(result == .alreadyCorrupted)
     }
 
+    @Test func trinketsCannotBeCorrupted() throws {
+        let trinket = try #require(GameContent.trinketItems.first)
+        var save = PlayerSave.fresh
+        save.inventory.items = [trinket]
+        var rng = SeededRandomNumberGenerator(seed: 1)
+
+        let result = ItemCorruptionApplier.corrupt(itemID: trinket.id, save: &save, using: &rng)
+
+        #expect(result == .ineligible)
+        #expect(save.inventory.items == [trinket])
+    }
+
     @Test func corruptionPersistsAcrossReload() throws {
         let context = try PersistenceTestContext()
         let store = try context.makeSaveStore()

@@ -42,7 +42,7 @@ struct PlayBattleCompletion {
         let persisted = if let route {
             route.complete(configuration, presentation, battleEarnedGold, materialRewards)
         } else {
-            battleEarnedGold > 0 ? grantBattleEarnedGold(battleEarnedGold) : true
+            battleEarnedGold != 0 ? grantBattleEarnedGold(battleEarnedGold) : true
         }
         if persisted {
             queueReturnToOrigin(origin)
@@ -53,9 +53,8 @@ struct PlayBattleCompletion {
 
     @discardableResult
     func grantBattleEarnedGold(_ amount: Int) -> Bool {
-        guard amount > 0 else { return true }
-        return playerSave.persistBatch(logging: "Failed to persist battle gold") { save in
-            save.grantGold(amount)
+        playerSave.persistBatch(logging: "Failed to persist battle gold") { save in
+            save.applyGoldDelta(amount)
         }
     }
 }

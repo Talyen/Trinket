@@ -89,6 +89,18 @@ struct ItemSalvageApplierTests {
         #expect(save == before)
     }
 
+    @Test func trinketsCannotBeSalvaged() throws {
+        let trinket = try #require(GameContent.trinketItems.first)
+        var save = SaveTestSupport.makeSave(modifiedAt: .now)
+        save.inventory.items = [trinket]
+        let before = save
+
+        let result = ItemSalvageApplier.salvage(itemID: trinket.id, save: &save)
+
+        #expect(result == .ineligible)
+        #expect(save == before)
+    }
+
     @Test func salvageGrantsFullYieldBeyondLegacyMaterialCap() throws {
         var save = SaveTestSupport.makeSave(modifiedAt: .now)
         let item = try makeItem(baseID: "longsword", rarity: .basic, id: "cap-sword")

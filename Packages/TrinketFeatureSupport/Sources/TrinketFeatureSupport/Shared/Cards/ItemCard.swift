@@ -1,5 +1,6 @@
 import SwiftUI
 import TrinketContent
+import TrinketCore
 import TrinketDesignSystem
 
 public struct ItemCard<Art: View>: View {
@@ -59,6 +60,7 @@ public struct ItemCard<Art: View>: View {
                     Text(item.displayName)
                         .trinketTypography(.cardLabel)
                         .foregroundStyle(.primary)
+                        .keywordShine(item.isTrinket ? item.keywords : [])
                         .lineLimit(2)
                         .multilineTextAlignment(.center)
 

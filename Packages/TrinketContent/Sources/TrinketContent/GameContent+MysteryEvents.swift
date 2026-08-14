@@ -2,6 +2,21 @@ import Foundation
 import TrinketCore
 
 public extension GameContent {
+    static func themedTrinketIDs(forMysteryChoiceID choiceID: String) -> Set<String>? {
+        let mapping: [String: Set<String>] = [
+            "take-relic": ["brass_censer", "sin_eaters_lantern"],
+            "claim-blade": ["cutpurse_knife"],
+            "loot-crypt": ["bone_charm", "sin_eaters_lantern"],
+            "search-scrolls": ["runic_quill", "tattered_pages"],
+            "bind-pages": ["tattered_pages"],
+            "pocket-fragment": ["meteorite"],
+            "accept-rite": ["bone_charm", "sin_eaters_lantern"],
+            "copy-notes": ["runic_quill", "tattered_pages"],
+            "claim-censer": ["brass_censer"],
+        ]
+        return mapping[choiceID]
+    }
+
     static var mysteryEvents: [MysteryEvent] {
         MysteryEventPool.all
     }

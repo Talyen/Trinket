@@ -5,6 +5,7 @@ package extension CombatTriggerEngine {
     static func afterSpendMana(by actor: Combatant, in context: inout BattleState) -> [ActionEvent] {
         let profile = context.modifiers(for: actor.id)
         var events: [ActionEvent] = []
+        events.append(contentsOf: drawAfterSpendMana(by: actor, in: &context))
 
         if profile.triggers.spendManaBlockFlat > 0 {
             events.append(contentsOf: context.applyBlock(
@@ -149,6 +150,18 @@ package extension CombatTriggerEngine {
             amount: context.modifiers(for: source.id).triggers.cleanseBonusHeal,
             source: source,
             target: target,
+            in: &context
+        )
+    }
+
+    static func healWearerAfterCleanse(
+        source: Combatant,
+        in context: inout BattleState
+    ) -> CombatOutcome {
+        resolveBonusHeal(
+            amount: context.modifiers(for: source.id).triggers.cleanseSelfHeal,
+            source: source,
+            target: source,
             in: &context
         )
     }

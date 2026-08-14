@@ -150,8 +150,12 @@ public enum PlayerSaveSanitizer {
 
     public static func sanitizeInventory(_ inventory: PlayerInventoryState) -> PlayerInventoryState {
         var seenIDs = Set<String>()
+        var seenTrinketIDs = Set<String>()
         let uniqueItems = inventory.items.filter { item in
             guard !seenIDs.contains(item.id) else { return false }
+            if item.isTrinket {
+                guard seenTrinketIDs.insert(item.templateID).inserted else { return false }
+            }
             seenIDs.insert(item.id)
             return true
         }

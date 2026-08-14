@@ -211,6 +211,13 @@ public struct Ability: Identifiable, Hashable, Sendable {
             || targetedEffects.contains(where: \.effect.isManaEmpowerableBurnOrFreezeDamage)
     }
 
+    public var hasManaEmpowerableBurnDamage: Bool {
+        damageComponents.contains { $0.keyword == .burn && $0.isManaEmpowerableBurnOrFreezeDamage }
+            || targetedEffects.contains {
+                $0.effect.keyword == .burn && $0.effect.isManaEmpowerableBurnOrFreezeDamage
+            }
+    }
+
     /// Snapshot with every Burn/Freeze damage number raised by `amount` (default 1).
     public func empoweredByMana(amount: Int = 1) -> Self {
         guard amount > 0, hasManaEmpowerableBurnOrFreezeDamage else { return self }

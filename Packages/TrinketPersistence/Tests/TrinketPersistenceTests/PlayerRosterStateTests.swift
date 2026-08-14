@@ -90,6 +90,16 @@ struct PlayerRosterStateTests {
         #expect(roster.gold == 10)
     }
 
+    @Test func signedGoldDeltaCannotReduceBalanceBelowZero() {
+        var save = PlayerSave.fresh
+        save.roster.gold = 2
+
+        let applied = save.applyGoldDelta(-3)
+
+        #expect(applied == -2)
+        #expect(save.roster.gold == 0)
+    }
+
     @Test func equippedItemResolvesFromInventoryAndLoadout() throws {
         let roster = PlayerRosterState.initial
         let inventory = PlayerInventoryState.initial
@@ -112,6 +122,43 @@ struct PlayerRosterStateTests {
         try #expect(loadout.itemID(for: .weapon) == nil)
     }
 
+    @Test func legacyTrinketSlotsMigrateToAccessorySlotsAndUnequipRemovedSlots() throws {
+        let accessoryBase = try #require(GameContent.itemBaseTypes.first { $0.id == "ruby_ring" })
+        let items = [
+            InventoryItem(id: "hero-primary", baseType: accessoryBase, rarity: .basic, displayName: "Ruby Ring", affixes: []),
+            InventoryItem(id: "hero-secondary", baseType: accessoryBase, rarity: .basic, displayName: "Ruby Ring", affixes: []),
+            InventoryItem(id: "hero-tertiary", baseType: accessoryBase, rarity: .basic, displayName: "Ruby Ring", affixes: []),
+            InventoryItem(id: "companion-primary", baseType: accessoryBase, rarity: .basic, displayName: "Ruby Ring", affixes: []),
+            InventoryItem(id: "companion-secondary", baseType: accessoryBase, rarity: .basic, displayName: "Ruby Ring", affixes: []),
+        ]
+        let heroLoadout = EquipmentLoadoutModel(combatantID: "knight")
+        heroLoadout.slots = [
+            EquipmentSlotModel(slotID: "Trinket", itemID: "hero-primary"),
+            EquipmentSlotModel(slotID: "Secondary Trinket", itemID: "hero-secondary"),
+            EquipmentSlotModel(slotID: "Tertiary Trinket", itemID: "hero-tertiary"),
+        ]
+        let companionLoadout = EquipmentLoadoutModel(combatantID: "bear")
+        companionLoadout.slots = [
+            EquipmentSlotModel(slotID: "Trinket", itemID: "companion-primary"),
+            EquipmentSlotModel(slotID: "Secondary Trinket", itemID: "companion-secondary"),
+        ]
+        let model = RosterModel()
+        model.equipmentLoadouts = [heroLoadout, companionLoadout]
+
+        let roster = model.toPlayerRosterState(
+            inventory: PlayerInventoryState(items: items),
+            schemaVersion: 13
+        )
+        let hero = try #require(roster.equipmentLoadouts["knight"])
+        let companion = try #require(roster.equipmentLoadouts["bear"])
+
+        try #expect(hero.itemID(for: .accessory) == "hero-primary")
+        try #expect(hero.itemID(for: .secondaryAccessory) == "hero-secondary")
+        try #expect(!hero.itemIDsBySlot.values.contains("hero-tertiary"))
+        try #expect(companion.itemID(for: .accessory) == "companion-primary")
+        try #expect(!companion.itemIDsBySlot.values.contains("companion-secondary"))
+    }
+
     @Test func setEquipmentLoadoutEnforcesUniqueItemOwnership() throws {
         var roster = PlayerRosterState.initial
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
@@ -131,13 +178,13 @@ struct PlayerRosterStateTests {
 
         let bear = try #require(GameContent.companions.first { $0.id == "bear" })
         let duplicateLoadout = EquipmentLoadout(itemIDsBySlot: [
+            .accessory: "ring-a",
             .trinket: "ring-a",
-            .secondaryTrinket: "ring-a",
         ])
         roster.setEquipmentLoadout(duplicateLoadout, for: bear)
         let stored = roster.equipmentLoadout(for: bear)
-        try #expect(stored.itemID(for: .trinket) == "ring-a")
-        try #expect(stored.itemID(for: .secondaryTrinket) == nil)
+        try #expect(stored.itemID(for: .accessory) == "ring-a")
+        try #expect(stored.itemID(for: .trinket) == nil)
     }
 
     @Test func highestLevelsFilterByRoleAndDefaultToOne() throws {

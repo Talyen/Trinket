@@ -53,13 +53,78 @@ struct ItemGeneratorTests {
     }
 
     @Test func everyBaseTypeHasEnoughEligibleAffixesForAstralMaximum() throws {
-        for baseType in GameContent.itemBaseTypes {
+        for baseType in GameContent.itemBaseTypes where baseType.slot != .trinket {
             let eligibleAffixes = GameContent.itemAffixDefinitions.filter { definition in
                 definition.slot == baseType.slot &&
                     !definition.keywords.isDisjoint(with: baseType.keywordAffinities)
             }
 
             try #expect(eligibleAffixes.count >= 4, "\(baseType.id)")
+        }
+    }
+
+    @Test func trinketsAreAuthoredAstralSingletons() throws {
+        let trinkets = GameContent.trinketItems
+
+        try #expect(trinkets.count == 24)
+        for item in trinkets {
+            try #expect(item.isTrinket)
+            try #expect(item.rarity == .astral)
+            try #expect(item.id == item.baseType.id)
+            try #expect(item.templateID == item.baseType.id)
+            try #expect(item.affixes.count == 1)
+            try #expect(item.affixes[0].id == item.baseType.id)
+            try #expect(item.affixes[0].title != "Dormant Resonance")
+            try #expect(!item.affixes[0].description.isEmpty)
+            try #expect((1 ... 2).contains(item.keywords.count))
+            try #expect(item.keywords == item.baseType.keywordAffinities)
+        }
+        try #expect(!trinkets.contains { $0.displayName == "Arcane Quill" })
+    }
+
+    @Test func astralRewardsSplitBetweenRemainingTrinketsAndNormalItems() throws {
+        let rewards = (1 ... 200).map { seed in
+            var randomNumberGenerator = SeededRandomNumberGenerator(seed: UInt64(seed))
+            return ItemRewardGenerator.generate(
+                id: "reward-\(seed)",
+                rarity: .astral,
+                ownedTrinketIDs: [],
+                using: &randomNumberGenerator
+            )
+        }
+        let trinketCount = rewards.count(where: \.isTrinket)
+
+        try #expect((70 ... 130).contains(trinketCount))
+        try #expect(rewards.allSatisfy { !$0.isTrinket || GameContent.trinketItems.contains($0) })
+    }
+
+    @Test func astralRewardsExcludeOwnedAndKeywordIneligibleTrinkets() throws {
+        let poisonTrinketIDs = Set(GameContent.trinketItems.filter {
+            $0.keywords.contains(.poison)
+        }.map(\.templateID))
+
+        for seed in UInt64(1) ... 100 {
+            var biasedRandomNumberGenerator = SeededRandomNumberGenerator(seed: seed)
+            let biasedReward = ItemRewardGenerator.generate(
+                id: "poison-\(seed)",
+                rarity: .astral,
+                ownedTrinketIDs: [],
+                keywordBias: [.poison],
+                using: &biasedRandomNumberGenerator
+            )
+            if biasedReward.isTrinket {
+                try #expect(poisonTrinketIDs.contains(biasedReward.templateID))
+            }
+
+            var exhaustedRandomNumberGenerator = SeededRandomNumberGenerator(seed: seed)
+            let exhaustedReward = ItemRewardGenerator.generate(
+                id: "exhausted-\(seed)",
+                rarity: .astral,
+                ownedTrinketIDs: poisonTrinketIDs,
+                keywordBias: [.poison],
+                using: &exhaustedRandomNumberGenerator
+            )
+            try #expect(!exhaustedReward.isTrinket)
         }
     }
 
@@ -86,6 +151,9 @@ struct ItemGeneratorTests {
 
     @Test func astralAffixesResolveStrongerThanBasicAffixes() throws {
         for definition in GameContent.itemAffixDefinitions {
+            if definition.slot == .trinket {
+                continue
+            }
             // Trigger-only affixes may share identical basic/astral power tables.
             let isTriggerOnly = definition.basic.modifiers.isEmpty && definition.astral.modifiers.isEmpty
             if isTriggerOnly {

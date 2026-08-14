@@ -27,9 +27,10 @@ public enum BattleCardCombatEngine {
     }
 
     /// Draws the full opening hand (up to `BattleHand.maxSize`) and refreshes skip owners.
-    public static func drawOpeningHand(context: inout BattleState) {
+    @discardableResult
+    public static func drawOpeningHand(context: inout BattleState) -> [ActionEvent] {
         while drawNextOpeningHandCard(context: &context) {}
-        finalizeOpeningHand(context: &context)
+        return finalizeOpeningHand(context: &context)
     }
 
     /// Draws one opening-hand card using the same owner-pick rules as bulk opening draw.
@@ -45,8 +46,10 @@ public enum BattleCardCombatEngine {
     }
 
     /// Call after a paced opening deal finishes so skip owners match a bulk draw.
-    public static func finalizeOpeningHand(context: inout BattleState) {
+    @discardableResult
+    public static func finalizeOpeningHand(context: inout BattleState) -> [ActionEvent] {
         context.ownersSkippingThisPlayerTurn = skippingOwners(in: context)
+        return CombatTriggerEngine.atPlayerTurnStart(in: &context)
     }
 
     @discardableResult
@@ -75,6 +78,7 @@ public enum BattleCardCombatEngine {
             abilityTarget: abilityTarget,
             context: &context
         )
+        events.append(contentsOf: CombatTriggerEngine.afterCardPlayed(by: actor, in: &context))
         discardDefeatedOwnerCards(context: &context)
         promoteFromBuffer(context: &context)
         events.append(contentsOf: context.appendDefeatMilestonesIfNeeded())
@@ -143,6 +147,7 @@ public enum BattleCardCombatEngine {
         promoteFromBuffer(context: &context)
         context.ownersSkippingThisPlayerTurn = skippingOwners(in: context)
         events.append(contentsOf: restoreManaAtPlayerTurnStart(context: &context))
+        events.append(contentsOf: CombatTriggerEngine.atPlayerTurnStart(in: &context))
         // Party members act this turn: drop any post-skip control linger so a
         // recovered hero/companion no longer shows Stunned/Frozen while acting.
         for owner in [BattleParticipant.hero, .companion] {

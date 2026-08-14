@@ -132,11 +132,11 @@ extension BattleSession {
     }
 
     @discardableResult
-    func drawOpeningHand() -> Bool {
-        guard var engineState else { return false }
-        engineState.drawOpeningHand(rebuildLog: false)
+    func drawOpeningHand() -> [ActionEvent] {
+        guard var engineState else { return [] }
+        let events = engineState.drawOpeningHand(rebuildLog: false)
         self.engineState = engineState
-        return true
+        return events
     }
 
     @discardableResult
@@ -147,10 +147,12 @@ extension BattleSession {
         return didDraw
     }
 
-    func finalizeOpeningHand() {
-        guard var engineState else { return }
-        engineState.finalizeOpeningHand()
+    @discardableResult
+    func finalizeOpeningHand() -> [ActionEvent] {
+        guard var engineState else { return [] }
+        let events = engineState.finalizeOpeningHand()
         self.engineState = engineState
+        return events
     }
 
     @discardableResult

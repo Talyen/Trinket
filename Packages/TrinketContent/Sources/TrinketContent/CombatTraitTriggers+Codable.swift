@@ -80,6 +80,7 @@ public extension CombatTraitTriggers {
             "criticalGoldFlat",
             default: legacyAffix?.decode(Int.self, "criticalGoldFlat", default: 0) ?? 0
         )
+        let criticalActionGoldFlat = try values.decode(Int.self, "criticalActionGoldFlat", default: 0)
         let leechRestoreManaFlat = try values.decode(
             Int.self,
             "leechRestoreManaFlat",
@@ -123,6 +124,7 @@ public extension CombatTraitTriggers {
 
         try self.init(
             cleanseBonusDraw: values.decode(Int.self, "cleanseBonusDraw", default: 0),
+            cleanseSelfHeal: values.decode(Int.self, "cleanseSelfHeal", default: 0),
             cleanseBonusHeal: values.decode(Int.self, "cleanseBonusHeal", default: 0),
             gainGoldBonusHealSelf: values.decode(Int.self, "gainGoldBonusHealSelf", default: 0),
             controlResistancePercent: values.decode(Double.self, "controlResistancePercent", default: 0),
@@ -210,6 +212,7 @@ public extension CombatTraitTriggers {
             criticalPurgeCount: criticalPurgeCount,
             criticalPurgeAll: criticalPurgeAll,
             criticalGoldFlat: criticalGoldFlat,
+            criticalActionGoldFlat: criticalActionGoldFlat,
             leechRestoreManaFlat: leechRestoreManaFlat,
             gainManaBlockFlat: gainManaBlockFlat,
             defeatEnemyGoldFlat: defeatEnemyGoldFlat,
@@ -217,7 +220,30 @@ public extension CombatTraitTriggers {
             dodgeHealFlat: dodgeHealFlat,
             dodgeChanceBelowHealthPercentThreshold: dodgeChanceBelowHealthPercentThreshold,
             dodgeChanceBelowHealthPercentBonus: dodgeChanceBelowHealthPercentBonus,
-            dodgeDealStunFlat: dodgeDealStunFlat
+            dodgeDealStunFlat: dodgeDealStunFlat,
+            holyDamagePoisonFlat: values.decode(Int.self, "holyDamagePoisonFlat", default: 0),
+            drawEveryOtherTurn: values.decode(Int.self, "drawEveryOtherTurn", default: 0),
+            repeatManaEmpowerment: values.decode(Bool.self, "repeatManaEmpowerment", default: false),
+            drawOnHealthLoss: values.decode(Int.self, "drawOnHealthLoss", default: 0),
+            physicalStunBuildupPercent: values.decode(Double.self, "physicalStunBuildupPercent", default: 0),
+            freezeDamageLeech: values.decode(Bool.self, "freezeDamageLeech", default: false),
+            blockGainThornsPercent: values.decode(Double.self, "blockGainThornsPercent", default: 0),
+            drawOnSpendMana: values.decode(Int.self, "drawOnSpendMana", default: 0),
+            physicalDamageBlockPercent: values.decode(Double.self, "physicalDamageBlockPercent", default: 0),
+            poisonDamageLeech: values.decode(Bool.self, "poisonDamageLeech", default: false),
+            bleedDamageGoldFlat: values.decode(Int.self, "bleedDamageGoldFlat", default: 0),
+            goldPerTurn: values.decode(Int.self, "goldPerTurn", default: 0),
+            healthRestoredPoisonPercent: values.decode(Double.self, "healthRestoredPoisonPercent", default: 0),
+            sunderingBlockMultiplier: values.decode(Double.self, "sunderingBlockMultiplier", default: 0),
+            cardsPlayedManaThreshold: values.decode(Int.self, "cardsPlayedManaThreshold", default: 0),
+            cardsPlayedManaFlat: values.decode(Int.self, "cardsPlayedManaFlat", default: 0),
+            victoryGoldFlat: values.decode(Int.self, "victoryGoldFlat", default: 0),
+            healthPerTurn: values.decode(Int.self, "healthPerTurn", default: 0),
+            companionCardsPerTurn: values.decode(Int.self, "companionCardsPerTurn", default: 0),
+            freezeExtraActionSkips: values.decode(Int.self, "freezeExtraActionSkips", default: 0),
+            stunnedDamageMultiplier: values.decode(Double.self, "stunnedDamageMultiplier", default: 1),
+            criticalChanceBonus: values.decode(Double.self, "criticalChanceBonus", default: 0),
+            victoryGoldCoin: values.decode(Bool.self, "victoryGoldCoin", default: false)
         )
     }
 }

@@ -69,13 +69,21 @@ public extension BattleTurnEngine {
         context: inout BattleState
     ) -> [ActionEvent] {
         guard ability.hasManaEmpowerableBurnOrFreezeDamage else { return [] }
-        guard let runtime = context.roster.runtime(for: actor),
-              runtime.maxMana > 0,
-              runtime.currentMana >= manaEmpowermentCost
-        else { return [] }
-        let spent = context.spendMana(manaEmpowermentCost, for: actor)
-        guard spent >= manaEmpowermentCost else { return [] }
-        ability = ability.empoweredByMana(amount: manaEmpowermentBonus)
-        return CombatTriggerEngine.afterSpendMana(by: actor, in: &context)
+        let repeats = ability.hasManaEmpowerableBurnDamage
+            && context.modifiers(for: actor.id).triggers.repeatManaEmpowerment
+        var events: [ActionEvent] = []
+        var purchases = 0
+        while purchases == 0 || repeats {
+            guard let runtime = context.roster.runtime(for: actor),
+                  runtime.maxMana > 0,
+                  runtime.currentMana >= manaEmpowermentCost
+            else { break }
+            let spent = context.spendMana(manaEmpowermentCost, for: actor)
+            guard spent >= manaEmpowermentCost else { break }
+            purchases += 1
+            ability = ability.empoweredByMana(amount: manaEmpowermentBonus)
+            events.append(contentsOf: CombatTriggerEngine.afterSpendMana(by: actor, in: &context))
+        }
+        return events
     }
 }

@@ -178,6 +178,39 @@ struct MysteryEffectApplierTests {
         try #expect(save.inventory.items.count == 1)
     }
 
+    @Test func mysteryTrinketsRespectStrongChoiceMappings() throws {
+        var mappedTrinketIDs = Set<String>()
+        for seed in UInt64(1) ... 300 {
+            var save = SaveTestSupport.makeSave()
+            var randomNumberGenerator = SeededRandomNumberGenerator(seed: seed)
+            let result = MysteryEffectApplier.apply(
+                [.gainRandomItem],
+                stageID: "chapter-2-stage-2",
+                choiceID: "loot-crypt",
+                encounterLevel: 6,
+                save: &save,
+                using: &randomNumberGenerator
+            )
+            mappedTrinketIDs.formUnion(result.grantedItems.filter(\.isTrinket).map(\.templateID))
+        }
+        try #expect(!mappedTrinketIDs.isEmpty)
+        try #expect(mappedTrinketIDs.isSubset(of: ["bone_charm", "sin_eaters_lantern"]))
+
+        for seed in UInt64(1) ... 300 {
+            var save = SaveTestSupport.makeSave()
+            var randomNumberGenerator = SeededRandomNumberGenerator(seed: seed)
+            let result = MysteryEffectApplier.apply(
+                [.gainRandomItem],
+                stageID: "chapter-2-stage-2",
+                choiceID: "unmapped-choice",
+                encounterLevel: 6,
+                save: &save,
+                using: &randomNumberGenerator
+            )
+            try #expect(!result.grantedItems.contains(where: \.isTrinket))
+        }
+    }
+
     @Test func manaBerryHarvestChoiceAppliesExpectedRewards() throws {
         var save = SaveTestSupport.makeSave()
         let event = try #require(GameContent.mysteryEvent(matching: "mana-berries"))
