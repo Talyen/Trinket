@@ -77,7 +77,16 @@ struct CombatFeedbackGlyphAtlasTests {
                 displayScale: 3
             )
         }
-        await Task.yield()
+        var spins = 0
+        while !atlas.hasPendingBattlePresentationPreparation,
+              !atlas.isBattlePresentationPrepared(
+                  dynamicTypeSize: .accessibility5,
+                  displayScale: 3
+              ),
+              spins < 10000 {
+            await Task.yield()
+            spins += 1
+        }
 
         atlas.removeAll()
         await warmup.value

@@ -187,6 +187,10 @@ final class CombatFeedbackGlyphAtlas {
         ))
     }
 
+    var hasPendingBattlePresentationPreparation: Bool {
+        pendingPrewarm != nil
+    }
+
     /// Builds immutable atlas entries away from the main actor. UIKit/Core Graphics
     /// image renderers are safe for background bitmap construction; only the final
     /// dictionary publication returns to the actor that owns the battle-scoped cache.

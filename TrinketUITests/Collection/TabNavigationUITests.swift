@@ -7,7 +7,10 @@ final class TabNavigationUITests: TrinketUITestCase {
         launchApp(arguments: TestLaunchArg.allForTab("collection"))
         collection.assertLoaded()
 
-        assertSalvageRemovesCrossbowImmediately()
+        assertSalvageRemovesItemImmediately(
+            itemID: "crossbow-basic",
+            remainingItemID: "crossbow-astral"
+        )
     }
 
     func testSalvageRemovesInventoryGridItemImmediately() {
@@ -15,7 +18,10 @@ final class TabNavigationUITests: TrinketUITestCase {
         collection.assertLoaded()
         tapButton(AccessibilityID.Collection.inventoryCategory)
 
-        assertSalvageRemovesCrossbowImmediately()
+        assertSalvageRemovesItemImmediately(
+            itemID: "mace-basic",
+            remainingItemID: "mace-astral"
+        )
     }
 
     func testHeroDetailAbilityPickerSelectsAndDismisses() {
@@ -45,14 +51,19 @@ final class TabNavigationUITests: TrinketUITestCase {
         homestead.assertNodeDetail(named: "Wheat Field")
     }
 
-    private func assertSalvageRemovesCrossbowImmediately(
+    private func assertSalvageRemovesItemImmediately(
+        itemID: String,
+        remainingItemID: String,
         file: StaticString = #file,
         line: UInt = #line
     ) {
-        let salvagedItemID = AccessibilityID.Collection.itemCard(itemID: "crossbow-basic")
-        let remainingItemID = AccessibilityID.Collection.itemCard(itemID: "crossbow-astral")
+        let salvagedItemID = AccessibilityID.Collection.itemCard(itemID: itemID)
+        let remainingCardID = AccessibilityID.Collection.itemCard(itemID: remainingItemID)
         let salvagedItem = app.buttons[salvagedItemID]
-        scrollUntilVisible(salvagedItem, swipingUp: true, requireHittable: true)
+        scrollUntilVisible(salvagedItem, swipingUp: false, requireHittable: true)
+        if !salvagedItem.exists || !salvagedItem.isHittable {
+            scrollUntilVisible(salvagedItem, swipingUp: true, requireHittable: true)
+        }
 
         salvagedItem.tap()
         scrollUntilVisible(button(AccessibilityID.Collection.salvageButton), swipingUp: true)
@@ -60,6 +71,6 @@ final class TabNavigationUITests: TrinketUITestCase {
         app.alerts.buttons["Salvage"].firstMatch.tap()
 
         assertDoesNotExist(salvagedItemID, timeout: 5, file: file, line: line)
-        assertExistsAfterScroll(remainingItemID, file: file, line: line)
+        assertExistsAfterScroll(remainingCardID, file: file, line: line)
     }
 }
