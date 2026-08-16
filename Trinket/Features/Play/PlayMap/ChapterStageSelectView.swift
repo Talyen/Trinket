@@ -92,7 +92,8 @@ struct ChapterStageSelectView: View {
     private var stageRows: [StageSelectRowPresentation<Stage>] {
         StageSelectRowPresentation.stageRows(
             for: chapter,
-            progress: playerSave.journey
+            progress: playerSave.journey,
+            worldSeed: playerSave.worldSeed
         )
     }
 
@@ -132,6 +133,7 @@ struct ChapterStageSelectView: View {
                             EncounterArtwork(
                                 stage: stage,
                                 resolvedMysteryEvent: resolvedMysteryEvent(for: stage),
+                                worldSeed: playerSave.worldSeed,
                                 prefersThumbnail: !isActive
                             )
                         },
@@ -173,6 +175,7 @@ struct ChapterStageSelectView: View {
                 tint: chapter.theme.tint,
                 accessibilityIdentifier: AccessibilityID.Play.campaignCompletionBack
             )
+            .trinketCenteredPrimaryAction()
         }
         .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
         .padding(.vertical, TrinketDesign.Metrics.largeSpacing)
@@ -199,6 +202,7 @@ struct ChapterStageSelectView: View {
         )
         return GameContent.resolveJourneyMysteryEvent(
             stage: stage,
+            worldSeed: playerSave.worldSeed,
             pinnedEventID: playerSave.journey.pinnedMysteryEventIDs[stage.id],
             context: pickContext
         )

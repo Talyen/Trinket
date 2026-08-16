@@ -51,6 +51,12 @@ public enum TrinketMotion: Sendable {
         }
     }
 
+    /// Traveling keyword-affinity text gradient.
+    public enum Shine: Sendable {
+        /// One full loop of the keyword shine gradient.
+        public static let keywordAffinityPeriod: TimeInterval = 4.8
+    }
+
     /// Mystery recruit unveil and seal. Keep `Reward` snappy for loot.
     public enum Mystery: Sendable {
         public static let veilHold: TimeInterval = 0.35
@@ -58,18 +64,16 @@ public enum TrinketMotion: Sendable {
         public static let chromeAfterUnmask: TimeInterval = 0.12
         public static let chromeStagger: TimeInterval = 0.10
         public static let recruitButtonDelay: TimeInterval = 0.16
-        public static let sealResponse: TimeInterval = 0.38
-        public static let sealHoldBeforeDismiss: TimeInterval = 0.55
+        public static let sealResponse: TimeInterval = 0.32
+        public static let sealHoldBeforeDismiss: TimeInterval = 0.22
+        public static let sealArtPeakDelay: TimeInterval = 0.12
         public static let bloomPeakOpacity: Double = 0.40
         public static let bloomPeakFraction: Double = 0.40
         public static let veiledBrightness: Double = -0.18
         public static let veiledOverlayOpacity: Double = 0.55
         public static let veiledArtScale: CGFloat = 0.97
-        public static let ringStartScale: CGFloat = 0.96
-        public static let ringOvershootScale: CGFloat = 1.045
-        public static let sealArtScale: CGFloat = 0.985
-        public static let sealBadgeStartScale: CGFloat = 0.72
-        public static let sealBloomOpacity: Double = 0.28
+        public static let sealBadgeStartScale: CGFloat = 0.78
+        public static let sealArtPeakScale: CGFloat = 1.04
 
         public static var unmask: Animation {
             .spring(response: unmaskResponse, dampingFraction: 0.92)
@@ -80,7 +84,7 @@ public enum TrinketMotion: Sendable {
         }
 
         public static var seal: Animation {
-            .spring(response: sealResponse, dampingFraction: 0.88)
+            .spring(response: sealResponse, dampingFraction: 0.82)
         }
 
         public static var bloomIn: Animation {
@@ -176,19 +180,8 @@ public enum TrinketMotion: Sendable {
         public static let cardHeldShadowY: CGFloat = 16
         public static let cardMaximumTiltDegrees = 20.0
 
-        /// Soft-hold after a Skill cast so caster art is readable.
-        public static let skillSoftHold: TimeInterval = 0.5
-
         /// Hard ceiling for video Ultimate cinematics when end/failure notifications never fire.
         public static let ultimateVideoWatchdog: TimeInterval = 12.0
-
-        public static let skillCalloutIn: TimeInterval = 0.12
-        public static let skillCalloutHold: TimeInterval = 0.25
-        public static let skillCalloutOut: TimeInterval = 0.18
-
-        public static var skillCalloutTotal: TimeInterval {
-            skillCalloutIn + skillCalloutHold + skillCalloutOut
-        }
 
         public static let scrimFade: TimeInterval = 0.2
 

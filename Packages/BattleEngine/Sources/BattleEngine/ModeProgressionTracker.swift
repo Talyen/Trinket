@@ -61,7 +61,7 @@ public struct CampaignProgressionTracker: Sendable {
         for chapter in chapters {
             let battleStages = chapter.stages.filter(\.encounter.isCombat)
             for stage in battleStages {
-                guard let enemyID = stage.resolvedBattleEnemyID,
+                guard let enemyID = stage.resolvedBattleEnemyID(worldSeed: 1),
                       let enemy = GameContent.enemy(matching: enemyID)
                 else { continue }
 

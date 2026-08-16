@@ -80,16 +80,17 @@ public enum BattleLoot {
         return BattleLootPackage(item: item, gold: gold, materials: materials)
     }
 
-    /// Journey combat loot; seed is stable per stage so victory chrome matches claim.
+    /// Journey combat loot; seed is stable per save + stage so victory chrome matches claim.
     public static func resolveJourney(
         stage: Stage,
         encounterLevel: Int,
         enemyIsBoss: Bool,
+        worldSeed: UInt64,
         ownedTrinketIDs: Set<String> = [],
         astralChanceBonusPercent: Int = 0
     ) -> BattleLootPackage {
         var rng = SeededRandomNumberGenerator(
-            seed: GameContent.stableSeed(for: "battle-loot-journey-\(stage.id)")
+            seed: GameContent.encounterSeed(worldSeed, salt: "battle-loot-journey-\(stage.id)")
         )
         return resolve(
             encounterLevel: encounterLevel,
@@ -106,13 +107,15 @@ public enum BattleLoot {
         floor: SpireFloor,
         encounterLevel: Int,
         enemyIsBoss: Bool,
+        worldSeed: UInt64,
         keywordBias: Set<Keyword> = [],
         ownedTrinketIDs: Set<String> = [],
         astralChanceBonusPercent: Int = 0
     ) -> BattleLootPackage {
         var rng = SeededRandomNumberGenerator(
-            seed: GameContent.stableSeed(
-                for: "battle-loot-spire-\(floor.spireID.rawValue)-\(floor.floor)"
+            seed: GameContent.encounterSeed(
+                worldSeed,
+                salt: "battle-loot-spire-\(floor.spireID.rawValue)-\(floor.floor)"
             )
         )
         return resolve(
@@ -137,7 +140,7 @@ public enum BattleLoot {
         astralChanceBonusPercent: Int = 0
     ) -> BattleLootPackage {
         var rng = SeededRandomNumberGenerator(
-            seed: worldSeed &+ GameContent.stableSeed(for: "battle-loot-labyrinth-\(node.id)")
+            seed: GameContent.encounterSeed(worldSeed, salt: "battle-loot-labyrinth-\(node.id)")
         )
         return resolve(
             encounterLevel: encounterLevel,

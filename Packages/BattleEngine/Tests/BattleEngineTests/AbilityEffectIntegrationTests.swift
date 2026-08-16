@@ -196,9 +196,8 @@ struct AbilityEffectIntegrationTests {
         // First pulse on cast: Holy damage to the enemy plus Block for the caster.
         let healthAfterCast = battle.health(of: battle.enemy)
         try #expect(healthAfterCast < 100)
-        let blockAfterCast = DefensePoolEngine.points(
-            in: battle.activeEffects(of: battle.hero),
-            pool: .block
+        let blockAfterCast = DefensePoolEngine.blockPoints(
+            in: battle.activeEffects(of: battle.hero)
         )
         try #expect(blockAfterCast == 4)
 

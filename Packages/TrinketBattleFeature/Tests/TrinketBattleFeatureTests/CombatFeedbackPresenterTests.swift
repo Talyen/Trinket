@@ -48,6 +48,16 @@ struct CombatFeedbackPresenterTests {
         )
         #expect(abilityItems.count == 1)
         #expect(abilityItems[0].text == "6")
+        #expect(abilityItems[0].visualRole == .keyword)
+        #expect(abilityItems[0].chipPresentation.trailingSymbolName == "burst.fill")
+
+        let burnItems = CombatFeedbackPresenter.makeItems(
+            from: [makeEvent(id: 3, kind: .abilityDamage, amount: 5, keyword: .burn)],
+            at: .now
+        )
+        #expect(burnItems.count == 1)
+        #expect(burnItems[0].visualRole == .keyword)
+        #expect(burnItems[0].chipPresentation.trailingSymbolName == "flame.fill")
     }
 
     @Test func consolidatesMatchingShieldEffects() {
@@ -398,7 +408,6 @@ extension CombatFeedbackPresenterTests {
             makeEvent(id: 7, kind: .effect, effectKind: .markedApplied, amount: 3, keyword: .physical),
             makeEvent(id: 8, kind: .effect, effectKind: .shieldHalved, amount: 0, keyword: .block),
             makeEvent(id: 9, kind: .effect, effectKind: .leechApplied, amount: 10, keyword: .physical),
-            makeEvent(id: 10, kind: .effect, effectKind: .resourceGain, amount: -3, keyword: .gold),
         ].flatMap { CombatFeedbackPresenter.makeItems(from: [$0], at: now) }
 
         let byID = Dictionary(uniqueKeysWithValues: items.map { ($0.id, $0) })
@@ -433,15 +442,9 @@ extension CombatFeedbackPresenterTests {
         #expect(leech.chipPresentation.leadingSymbolName == "arrowshape.up.fill")
         #expect(leech.chipPresentation.trailingSymbolName == "drop")
         #expect(leech.chipPresentation.text == nil)
-
-        let goldLoss = try #require(byID[10])
-        #expect(goldLoss.label == .amount(-3))
-        #expect(goldLoss.visualRole == .negativeStatus)
-        #expect(goldLoss.chipPresentation.trailingSymbolName == "arrowshape.down.fill")
-        #expect(goldLoss.chipPresentation.text == "3")
     }
 
-    @Test func keepsSameSignGoldTogetherAndSplitsGainsFromLosses() throws {
+    @Test func mergesGoldGainsAndSuppressesGoldLossChips() throws {
         let items = CombatFeedbackPresenter.makeItems(
             from: [
                 makeEvent(id: 1, kind: .effect, effectKind: .resourceGain, amount: 4, keyword: .gold),
@@ -451,12 +454,11 @@ extension CombatFeedbackPresenterTests {
             at: .now
         )
 
-        try #expect(items.count == 2)
-        let gain = try #require(items.first { $0.label == .amount(7) })
-        let loss = try #require(items.first { $0.label == .amount(-3) })
+        try #expect(items.count == 1)
+        let gain = try #require(items.first)
+        #expect(gain.label == .amount(7))
         #expect(gain.visualRole == .keyword)
-        #expect(loss.visualRole == .negativeStatus)
         #expect(gain.chipPresentation.text == "7")
-        #expect(loss.chipPresentation.text == "3")
+        #expect(gain.chipPresentation.trailingSymbolName == "circle.circle.fill")
     }
 }

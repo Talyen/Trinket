@@ -56,7 +56,7 @@ fi
 
 if [[ "$#" -ge 4 && "$1" == "simctl" && "$2" == "list" && "$3" == "devices" ]]; then
   cat <<'JSON'
-{"devices":{"com.apple.CoreSimulator.SimRuntime.iOS-26-5":[{"name":"Trinket Agent 1","udid":"agent-1","state":"Booted"},{"name":"Trinket CI","udid":"ci-1","state":"Shutdown"}],"com.apple.CoreSimulator.SimRuntime.iOS-27-0":[{"name":"Trinket Agent 2","udid":"agent-2","state":"Booted"},{"name":"Trinket Agent 3","udid":"agent-3","state":"Shutdown"},{"name":"iPhone 17 Pro","udid":"personal-device","state":"Booted"}]}}
+{"devices":{"com.apple.CoreSimulator.SimRuntime.iOS-26-5":[{"name":"Trinket Agent 1","udid":"agent-1","state":"Booted"},{"name":"Trinket Run","udid":"ci-1","state":"Shutdown"}],"com.apple.CoreSimulator.SimRuntime.iOS-27-0":[{"name":"Trinket Agent 2","udid":"agent-2","state":"Booted"},{"name":"Trinket Agent 3","udid":"agent-3","state":"Shutdown"},{"name":"iPhone 17 Pro","udid":"personal-device","state":"Booted"}]}}
 JSON
   exit 0
 fi
@@ -115,7 +115,7 @@ bash -c '
   trinket_run_env_init
   [[ "$DERIVED_DATA_PATH" == "$PWD/.DerivedData" ]]
   [[ "$RESULTS_DIR" == "$PWD/.DerivedData/TestResults" ]]
-  [[ "$TRINKET_SIMULATOR_NAME" == "Trinket CI" ]]
+  [[ "$TRINKET_SIMULATOR_NAME" == "Trinket Run" ]]
   [[ "${TRINKET_ISOLATE:-}" != "1" ]]
   [[ -z "${TRINKET_AGENT_SLOT:-}" ]]
 ' _ "$REPO"
@@ -533,7 +533,7 @@ bash -c '
   ! grep -q "personal-device" "$FAKE_ERASE_LOG"
 ' _ "$REPO" "$FAKE_BIN" "$FAKE_PREVIEW_LOG" "$FAKE_SHUTDOWN_LOG" "$FAKE_ERASE_LOG"
 
-# --- non-isolate: keep CI Booted, shut down excess Agents; never erase ---
+# --- non-isolate: keep Run Booted, shut down excess Agents; never erase ---
 : > "$FAKE_PREVIEW_LOG"
 : > "$FAKE_SHUTDOWN_LOG"
 : > "$FAKE_ERASE_LOG"
@@ -551,10 +551,10 @@ bash -c '
   export TRINKET_CLEANUP_IDLE_POOL=0
   source Scripts/run-env.sh
   trinket_run_env_init
-  [[ "$TRINKET_SIMULATOR_NAME" == "Trinket CI" ]]
+  [[ "$TRINKET_SIMULATOR_NAME" == "Trinket Run" ]]
   trinket_run_env_claim_self_clean_owner
   trinket_run_env_release_slots
-  # Fake list has CI Shutdown + Agents Booted — keep target CI is not Booted, so
+  # Fake list has Run Shutdown + Agents Booted — keep target Run is not Booted, so
   # first Booted managed (agent-1) is kept and agent-2 is shut down.
   grep -Fx "agent-2" "$FAKE_SHUTDOWN_LOG"
   ! grep -q "agent-1" "$FAKE_SHUTDOWN_LOG"

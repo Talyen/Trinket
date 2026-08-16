@@ -36,7 +36,6 @@ package extension BattleState {
         guard case let .shield(keyword, buffer) = adjusted else { return [] }
         let applied = DefensePoolEngine.add(
             buffer,
-            pool: .block,
             to: target,
             keyword: keyword,
             sourceActorID: source.id,

@@ -20,6 +20,7 @@ slot_background_dimension="${ART_SLOT_BACKGROUND_DIMENSION:-${max_dimension_over
 background_dimension="${ART_BACKGROUND_DIMENSION:-${max_dimension_override:-1600}}"
 encounter_dimension="${ART_ENCOUNTER_DIMENSION:-${max_dimension_override:-1320}}"
 resource_dimension="${ART_RESOURCE_DIMENSION:-${max_dimension_override:-256}}"
+talent_dimension="${ART_TALENT_DIMENSION:-${max_dimension_override:-960}}"
 
 if [[ ! -f "$manifest" ]]; then
   echo "Missing manifest: $manifest" >&2
@@ -64,13 +65,14 @@ slot_backgrounds_temp=$(mktemp)
 backgrounds_temp=$(mktemp)
 encounters_temp=$(mktemp)
 resources_temp=$(mktemp)
+talents_temp=$(mktemp)
 active_assets_temp=$(mktemp)
 seen_ids_temp=$(mktemp)
 seen_assets_temp=$(mktemp)
 generated_temp=$(mktemp)
 cleanup() {
   rm -f "$previous_hashes_file" "$source_hashes_temp" "$contents_json_temp" "$combatants_temp" "$abilities_temp" "$items_temp" \
-    "$slot_backgrounds_temp" "$backgrounds_temp" "$encounters_temp" "$resources_temp" "$active_assets_temp" \
+    "$slot_backgrounds_temp" "$backgrounds_temp" "$encounters_temp" "$resources_temp" "$talents_temp" "$active_assets_temp" \
     "$seen_ids_temp" "$seen_assets_temp" "$generated_temp"
   for backup in "$asset_catalog"/*.imageset.old.$$; do
     [[ -d "$backup" ]] || continue
@@ -163,13 +165,14 @@ full_dimension_for_kind() {
     background) printf '%s\n' "$background_dimension" ;;
     encounter) printf '%s\n' "$encounter_dimension" ;;
     resource) printf '%s\n' "$resource_dimension" ;;
+    talent) printf '%s\n' "$talent_dimension" ;;
   esac
 }
 
 while IFS=$'\t' read -r kind id asset_name source_path focal_x focal_y || [[ -n "${kind:-}" ]]; do
   [[ -z "${kind:-}" || "$kind" == \#* ]] && continue
 
-  if [[ "$kind" != "combatant" && "$kind" != "ability" && "$kind" != "item" && "$kind" != "slot_background" && "$kind" != "background" && "$kind" != "encounter" && "$kind" != "resource" ]]; then
+  if [[ "$kind" != "combatant" && "$kind" != "ability" && "$kind" != "item" && "$kind" != "slot_background" && "$kind" != "background" && "$kind" != "encounter" && "$kind" != "resource" && "$kind" != "talent" ]]; then
     echo "Unsupported art kind '$kind' for id '$id'." >&2
     exit 1
   fi
@@ -179,11 +182,11 @@ while IFS=$'\t' read -r kind id asset_name source_path focal_x focal_y || [[ -n 
     exit 1
   fi
 
-  if grep -Fqx "$id" "$seen_ids_temp"; then
-    echo "Duplicate art id '$id'." >&2
+  if grep -Fqx "$kind:$id" "$seen_ids_temp"; then
+    echo "Duplicate art id '$id' for kind '$kind'." >&2
     exit 1
   fi
-  printf '%s\n' "$id" >> "$seen_ids_temp"
+  printf '%s\n' "$kind:$id" >> "$seen_ids_temp"
 
   if [[ ! "$asset_name" =~ ^[A-Za-z0-9_]+$ ]]; then
     echo "Asset name '$asset_name' should use only letters, numbers, and underscores." >&2
@@ -226,6 +229,15 @@ while IFS=$'\t' read -r kind id asset_name source_path focal_x focal_y || [[ -n 
         echo "Item art id '$id' has no generated item base '$base_id'." >&2
         exit 1
       }
+      ;;
+    talent)
+      case "$id" in
+        physical|burn|stun|block|health|gold|holy|poison|bleed|leech|freeze|dodge|purge|cleanse|mana|deathsDoor) ;;
+        *)
+          echo "Talent art id '$id' is not a valid Keyword case." >&2
+          exit 1
+          ;;
+      esac
       ;;
   esac
 
@@ -359,6 +371,13 @@ SWIFT
             thumbnailImageName: "$escaped_thumb"
         )
 SWIFT
+  elif [[ "$kind" == "talent" ]]; then
+    cat >> "$talents_temp" <<SWIFT
+        dict[.$id] = TalentArtReference(
+            imageName: "$escaped_asset",
+            thumbnailImageName: "$escaped_thumb"
+        )
+SWIFT
   fi
 
   processed_count=$((processed_count + 1))
@@ -420,6 +439,11 @@ public struct EncounterArtReference: Hashable, Sendable {
     public let thumbnailImageName: String?
 }
 
+public struct TalentArtReference: Hashable, Sendable {
+    public let imageName: String
+    public let thumbnailImageName: String?
+}
+
 
 public enum ArtCatalog {
     public static let combatantArtByID: [String: CombatantArtReference] = {
@@ -464,6 +488,12 @@ $(cat "$resources_temp")
         return dict
     }()
 
+    public static let talentArtByID: [Keyword: TalentArtReference] = {
+        var dict = [Keyword: TalentArtReference]()
+$(cat "$talents_temp")
+        return dict
+    }()
+
 }
 
 extension Combatant {
@@ -475,6 +505,12 @@ extension Combatant {
 extension Ability {
     public var artReference: AbilityArtReference? {
         ArtCatalog.abilityArtByID[id]
+    }
+}
+
+extension Keyword {
+    public var artReference: TalentArtReference? {
+        ArtCatalog.talentArtByID[self]
     }
 }
 
@@ -524,7 +560,7 @@ for dir in "$asset_catalog"/*/*.imageset "$asset_catalog"/*.imageset; do
   name="${foldername%.imageset}"
 
   case "$name" in
-    hero_*|companion_*|enemy_*|ability_*|item_*|slot_*|bg_*|encounter_*|resource_*)
+    hero_*|companion_*|enemy_*|ability_*|item_*|slot_*|bg_*|encounter_*|resource_*|talent_*)
       if ! grep -qx "$name" "$active_assets_temp"; then
         echo "Pruning orphaned asset: $foldername"
         rm -rf "$dir"

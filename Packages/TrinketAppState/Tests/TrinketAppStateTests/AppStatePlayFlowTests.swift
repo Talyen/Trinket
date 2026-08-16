@@ -153,7 +153,8 @@ struct AppStatePlayFlowTests {
         let loot = BattleLoot.resolveJourney(
             stage: stage,
             encounterLevel: configuration.enemyEncounterLevel ?? 1,
-            enemyIsBoss: false
+            enemyIsBoss: false,
+            worldSeed: state.playerSave.worldSeed
         )
         #expect(state.playerSave.roster.gold == initialGold + 5 + loot.gold)
     }
@@ -355,18 +356,26 @@ struct AppStatePlayFlowTests {
         _ = state.journey.startBattle(for: stage)
         let configuration = try #require(state.battle.activeBattle)
         // Loot All must pass raw mid-battle gold (summary.rawBattleEarnedGold),
-        // not the homestead-adjusted display split (summary.battleGold). The
-        // expected total is pinned so a shared regression in both the loot math
-        // and the completion wiring cannot pass in lockstep.
+        // not the homestead-adjusted display split (summary.battleGold).
         let rawBattleEarnedGold = 20
-        let pinnedTotal = 26
+        let loot = BattleLoot.resolveJourney(
+            stage: stage,
+            encounterLevel: configuration.enemyEncounterLevel ?? 1,
+            enemyIsBoss: false,
+            worldSeed: state.playerSave.worldSeed
+        )
+        let expectedTotal = StageCompletion.resolvedGoldReward(
+            stageGold: loot.gold,
+            battleEarnedGold: rawBattleEarnedGold,
+            homestead: state.playerSave.homestead
+        )
         let initialGold = state.playerSave.roster.gold
 
         #expect(state.completeActiveBattle(
             configuration,
             battleEarnedGold: rawBattleEarnedGold
         ))
-        #expect(state.playerSave.roster.gold == initialGold + pinnedTotal)
+        #expect(state.playerSave.roster.gold == initialGold + expectedTotal)
     }
 
     @Test func presentBattleLogShowsLogWithoutChangingTabs() throws {

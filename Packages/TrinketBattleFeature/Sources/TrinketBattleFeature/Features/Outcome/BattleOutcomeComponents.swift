@@ -53,6 +53,7 @@ struct BattleOutcomeShell<Content: View>: View {
                         .frame(maxWidth: .infinity)
                 }
                 .trinketPrimaryActionButton()
+                .trinketCenteredPrimaryAction()
                 .tint(primaryButtonTint)
                 .disabled(isCompleting)
                 .accessibilityIdentifier(primaryButtonAccessibilityIdentifier)

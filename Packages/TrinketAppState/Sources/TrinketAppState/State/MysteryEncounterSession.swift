@@ -96,6 +96,7 @@ public final class MysteryEncounterSession: Identifiable {
     static func open(
         origin: PlayEncounterOrigin,
         forcedEventID: String?,
+        worldSeed: UInt64,
         pickContext: MysteryEventPickContext = .excludingCorruptionAltar,
         pinnedLabyrinthEventID: String? = nil,
         pinnedJourneyEventID: String? = nil
@@ -104,6 +105,7 @@ public final class MysteryEncounterSession: Identifiable {
         case let .labyrinth(nodeID):
             GameContent.resolveLabyrinthMysteryEvent(
                 nodeID: nodeID,
+                worldSeed: worldSeed,
                 forcedEventID: forcedEventID,
                 pinnedEventID: pinnedLabyrinthEventID,
                 context: pickContext
@@ -111,6 +113,7 @@ public final class MysteryEncounterSession: Identifiable {
         case let .journey(stage):
             GameContent.resolveJourneyMysteryEvent(
                 stage: stage,
+                worldSeed: worldSeed,
                 forcedEventID: forcedEventID,
                 pinnedEventID: pinnedJourneyEventID,
                 context: pickContext

@@ -19,6 +19,7 @@ struct PlayerSaveSlice: OptionSet {
         if snapshot.schemaVersion != candidate.schemaVersion
             || snapshot.modifiedAt != candidate.modifiedAt
             || snapshot.sessionGeneration != candidate.sessionGeneration
+            || snapshot.worldSeed != candidate.worldSeed
             || snapshot.corruptionAltarCooldownRemaining != candidate.corruptionAltarCooldownRemaining {
             slices.insert(.root)
         }
@@ -56,6 +57,7 @@ public extension PlayerSaveRoot {
             schemaVersion: schemaVersion,
             modifiedAt: modifiedAt,
             sessionGeneration: sessionGeneration,
+            worldSeed: worldSeed,
             journey: journey?.toJourneyProgressState() ?? .initial,
             roster: roster?.toPlayerRosterState(
                 inventory: inventoryState,
@@ -104,6 +106,10 @@ extension PlayerSaveRoot {
             || (roster.equipmentLoadouts ?? []).contains {
                 hasDuplicateKeys($0.slots ?? [], key: \.slotID)
             }
+            || hasDuplicateKeys(roster.talentLoadouts ?? [], key: \.combatantID)
+            || (roster.talentLoadouts ?? []).contains {
+                hasDuplicateKeys($0.unlockedNodes ?? [], key: \.nodeID)
+            }
     }
 
     private var inventoryHasDuplicateChildren: Bool {
@@ -130,6 +136,7 @@ extension PlayerSaveRoot {
             schemaVersion = save.schemaVersion
             modifiedAt = save.modifiedAt
             sessionGeneration = save.sessionGeneration
+            worldSeed = save.worldSeed
             corruptionAltarCooldownRemaining = save.corruptionAltarCooldownRemaining
         }
 

@@ -88,7 +88,7 @@ public struct ItemDetailView: View {
                         ? "\(item.rarity.label.uppercased()) · CORRUPTED"
                         : item.rarity.label.uppercased(),
                     title: item.displayName,
-                    titleKeywords: item.isTrinket ? item.keywords : [],
+                    titleKeywords: item.rarity == .astral ? item.baseType.keywordAffinities : [],
                     baseHeight: $0,
                     overscroll: $1
                 ) {
@@ -99,11 +99,11 @@ public struct ItemDetailView: View {
             bodyContent: {
                 DetailSection("Traits") {
                     VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
-                        ForEach(item.displayedAffixes) { affix in
+                        ForEach(Array(item.displayedAffixes.enumerated()), id: \.element.id) { index, affix in
                             DetailTraitRow(
                                 title: affix.title,
                                 description: affix.description,
-                                titleKeywords: affix.keywords
+                                titleKeywords: item.isPerfectAffix(at: index) ? affix.keywords : []
                             )
                         }
                     }
@@ -134,6 +134,7 @@ public struct ItemDetailView: View {
                 .trinketPrimaryActionButton(
                     accessibilityIdentifier: primaryActionAccessibilityID ?? primaryActionTitle
                 )
+                .trinketCenteredPrimaryAction()
                 .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
                 .padding(.vertical, TrinketDesign.Metrics.mediumSpacing)
             } else if purchasePrice != nil, let onPurchase {
@@ -144,9 +145,9 @@ public struct ItemDetailView: View {
                         .frame(maxWidth: .infinity)
                 }
                 .trinketPrimaryActionButton(
-                    tint: canAfford && !isPurchaseDisabled ? Keyword.gold.visualStyle.color : .secondary,
                     accessibilityIdentifier: AccessibilityID.Shop.detailBuyButton
                 )
+                .trinketCenteredPrimaryAction()
                 .disabled(!canAfford || isPurchaseDisabled)
                 .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
                 .padding(.vertical, TrinketDesign.Metrics.mediumSpacing)

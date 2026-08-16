@@ -93,6 +93,7 @@ Route recurring chrome through these modifiers — do not call raw SwiftUI styli
 | `TrinketDesign.Metrics.collectionGridItems` / `.partyPickerGridItems` / `.hubGridItems(for:)` | Shared collection, party-picker, and size-class hub grids |
 | `TrinketDesign.Metrics.collectionShelfPreviewLimit` | Peek-shelf card count for Collection / party shelves |
 | `.trinketPrimaryActionButton()` | Primary CTAs (`.glassProminent`) |
+| `.trinketCenteredPrimaryAction()` | Half-width, centered layout for a lone screen primary action |
 | `.trinketQuietTapButtonStyle()` | Tap without press dimming — prefer over `.plain` for artwork in scroll views |
 | `.trinketStatusBadge()` / `.trinketWalletPill()` | Glass capsule chips via shared `TrinketGlassBackgroundModifier` |
 | `.trinketOnArtText(_:)` | Paper foreground + ink shadows on hero art |

@@ -4,66 +4,12 @@ import TrinketCore
 
 /// Shared helpers for the pooled Block model and Toughness-based inherent DR.
 package enum DefensePoolEngine {
-    /// Player-facing pool identity. Maps to `Effect.shield`.
-    package enum Pool: Sendable {
-        case block
-
-        var effectKind: EffectKind {
-            switch self {
-            case .block: .shield
-            }
-        }
-
-        var appliedEffectKind: ActionEvent.EffectKind {
-            switch self {
-            case .block: .shieldApplied
-            }
-        }
-
-        fileprivate var defaultKeyword: Keyword {
-            switch self {
-            case .block: .block
-            }
-        }
-
-        fileprivate func matches(_ effect: Effect) -> Bool {
-            switch (self, effect) {
-            case (.block, .shield): true
-            default: false
-            }
-        }
-
-        fileprivate func points(in effect: Effect) -> Int? {
-            switch (self, effect) {
-            case let (.block, .shield(_, buffer)): buffer
-            default: nil
-            }
-        }
-
-        func decodeGain(_ effect: Effect) -> (keyword: Keyword, amount: Int)? {
-            switch (self, effect) {
-            case let (.block, .shield(keyword, amount)): (keyword, amount)
-            default: nil
-            }
-        }
-
-        fileprivate func makeEffect(keyword: Keyword, amount: Int) -> Effect {
-            switch self {
-            case .block: .shield(keyword, amount)
-            }
-        }
-
-        fileprivate func withAmount(_ effect: Effect, amount: Int) -> Effect? {
-            switch (self, effect) {
-            case let (.block, .shield(keyword, _)): .shield(keyword, amount)
-            default: nil
-            }
-        }
-    }
-
-    package static func points(in effects: [ActiveEffect], pool: Pool) -> Int {
+    package static func blockPoints(in effects: [ActiveEffect]) -> Int {
         effects.reduce(0) { sum, active in
-            sum + (pool.points(in: active.effect) ?? 0)
+            if case let .shield(_, buffer) = active.effect {
+                return sum + buffer
+            }
+            return sum
         }
     }
 
@@ -87,27 +33,27 @@ package enum DefensePoolEngine {
         return max(0.0, min(1.0, percent))
     }
 
-    /// Adds fight-paced pool points. Returns the paced amount actually applied (0 when skipped).
+    /// Adds fight-paced Block points. Returns the paced amount actually applied (0 when skipped).
     @discardableResult
     package static func add(
         _ amount: Int,
-        pool: Pool,
         to target: Combatant,
-        keyword: Keyword? = nil,
+        keyword: Keyword = .block,
         sourceActorID: String? = nil,
         in context: inout BattleState
     ) -> Int {
         let pacedAmount = sourceActorID.map { context.paced(amount, sourceActorID: $0) } ?? amount
         guard pacedAmount > 0 else { return 0 }
         var effects = context.roster.activeEffects(for: target)
-        if let index = effects.firstIndex(where: { pool.matches($0.effect) }),
-           let updated = pool.withAmount(
-               effects[index].effect,
-               amount: (pool.points(in: effects[index].effect) ?? 0) + pacedAmount
-           ) {
+        if let index = effects.firstIndex(where: {
+            if case .shield = $0.effect {
+                return true
+            }
+            return false
+        }), case let .shield(existingKeyword, existingBuffer) = effects[index].effect {
             effects[index] = ActiveEffect(
                 id: effects[index].id,
-                effect: updated,
+                effect: .shield(existingKeyword, existingBuffer + pacedAmount),
                 remainingTurns: 0,
                 sourceActorID: effects[index].sourceActorID
             )
@@ -115,7 +61,7 @@ package enum DefensePoolEngine {
             return pacedAmount
         }
         context.appendEffect(
-            pool.makeEffect(keyword: keyword ?? pool.defaultKeyword, amount: pacedAmount),
+            .shield(keyword, pacedAmount),
             to: target,
             sourceID: sourceActorID ?? target.id,
             remainingTurns: 0
@@ -125,16 +71,20 @@ package enum DefensePoolEngine {
 
     package static func set(
         _ amount: Int,
-        pool: Pool,
         on target: Combatant,
         in context: inout BattleState
     ) {
         var effects = context.roster.activeEffects(for: target)
-        effects.removeAll { pool.matches($0.effect) }
+        effects.removeAll {
+            if case .shield = $0.effect {
+                return true
+            }
+            return false
+        }
         context.roster.setActiveEffects(effects, for: target)
         if amount > 0 {
             context.appendEffect(
-                pool.makeEffect(keyword: pool.defaultKeyword, amount: amount),
+                .shield(.block, amount),
                 to: target,
                 sourceID: target.id,
                 remainingTurns: 0
@@ -147,9 +97,9 @@ package enum DefensePoolEngine {
         on target: Combatant,
         in context: inout BattleState
     ) {
-        let current = points(in: context.roster.activeEffects(for: target), pool: .block)
+        let current = blockPoints(in: context.roster.activeEffects(for: target))
         guard current > 0 else { return }
-        set(current / 2, pool: .block, on: target, in: &context)
+        set(current / 2, on: target, in: &context)
     }
 
     /// Halves pooled Block (floor). Used by `Effect.halveShield`.
@@ -157,9 +107,9 @@ package enum DefensePoolEngine {
         on target: Combatant,
         in context: inout BattleState
     ) -> Bool {
-        let current = points(in: context.roster.activeEffects(for: target), pool: .block)
+        let current = blockPoints(in: context.roster.activeEffects(for: target))
         guard current > 0 else { return false }
-        set(current / 2, pool: .block, on: target, in: &context)
+        set(current / 2, on: target, in: &context)
         return true
     }
 }

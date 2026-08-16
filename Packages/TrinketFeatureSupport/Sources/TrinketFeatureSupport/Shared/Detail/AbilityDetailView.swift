@@ -51,6 +51,7 @@ public struct AbilityDetailView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .trinketPrimaryActionButton()
+                .trinketCenteredPrimaryAction()
                 .accessibilityIdentifier(primaryActionAccessibilityID ?? primaryActionTitle)
                 .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
                 .padding(.vertical, TrinketDesign.Metrics.mediumSpacing)

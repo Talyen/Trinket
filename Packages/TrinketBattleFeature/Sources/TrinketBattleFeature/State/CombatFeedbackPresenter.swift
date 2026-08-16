@@ -121,6 +121,9 @@ enum CombatFeedbackPresenter {
             if event.effectKind == .cardsDrawn || event.effectKind == .controlApplied {
                 return false
             }
+            if event.effectKind == .resourceGain, event.amount < 0 {
+                return false
+            }
             return true
         }
     }
@@ -206,16 +209,13 @@ enum CombatFeedbackPresenter {
             targetID: event.targetID,
             feedbackClass: feedbackClass,
             keyword: event.keyword,
-            visualRole: visualRole(for: event, label: label),
+            visualRole: visualRole(for: event),
             label: label,
             reactionKind: CombatFeedbackClassification.reactionKind(for: feedbackClass)
         )
     }
 
-    private static func visualRole(
-        for event: ActionEvent,
-        label: CombatFeedbackChipLabel
-    ) -> CombatFeedbackVisualRole {
+    private static func visualRole(for event: ActionEvent) -> CombatFeedbackVisualRole {
         switch event.effectKind {
         case .thornsApplied, .criticalChanceApplied, .manaShieldApplied,
              .damageKeywordOverrideApplied, .nextHolyStrikeApplied, .nextStrikeDoubleApplied,
@@ -224,7 +224,7 @@ enum CombatFeedbackPresenter {
         case .markedApplied, .shieldHalved:
             .negativeStatus
         default:
-            label.isNegativeNumeric ? .negativeStatus : .keyword
+            .keyword
         }
     }
 }

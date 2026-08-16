@@ -10,37 +10,6 @@ import TrinketTestSupport
 
 @MainActor
 struct BattleSpectacleSessionTests {
-    @Test func playingSkillCardShowsCallout() throws {
-        let hero = CombatantFixtures.combatant(
-            id: "hero",
-            role: .hero,
-            abilities: [.slash, .fireball]
-        )
-        let session = try BattleSessionTestSupport.makeConfiguredSession(
-            hero: hero,
-            companion: CombatantFixtures.combatant(id: "companion", role: .companion, abilities: []),
-            enemy: CombatantFixtures.combatant(
-                id: "enemy",
-                role: .enemy,
-                maxHealth: 200,
-                abilities: []
-            )
-        )
-
-        let now = Date()
-        _ = BattleSessionTestSupport.playAbility(
-            Ability.fireball.id,
-            on: session,
-            at: now
-        )
-
-        let callout = try #require(session.spectacle.activeSkillCallout)
-        #expect(callout.actorID == "hero")
-        #expect(callout.abilityID == Ability.fireball.id)
-        #expect(callout.abilityName == Ability.fireball.name)
-        #expect(callout.expiresAt > now)
-    }
-
     @Test(arguments: [false, true])
     func unmappedUltimateKillingBlowPresentsVictoryWithoutCinematic(
         alreadyClaimed: Bool
@@ -263,7 +232,7 @@ struct BattleSpectacleSessionTests {
         #expect(session.feedback.activeItems.count > feedbackBefore)
     }
 
-    @Test func enemyUltimateUsesSkillCalloutNotCinematic() throws {
+    @Test func enemyUltimateDoesNotPresentCinematic() throws {
         let enemy = CombatantFixtures.combatant(
             id: "enemy",
             role: .enemy,
@@ -292,9 +261,6 @@ struct BattleSpectacleSessionTests {
         }
 
         #expect(session.spectacle.activeCinematic == nil)
-        let callout = try #require(session.spectacle.activeSkillCallout)
-        #expect(callout.actorID == "enemy")
-        #expect(callout.abilityTierMatchesUltimateOrSkill)
     }
 
     @Test func beginCinematicCollapseIgnoresStaleExpectedID() throws {
@@ -351,11 +317,5 @@ struct BattleSpectacleSessionTests {
 
         #expect(session.spectacle.pendingPartyCelebrateTask == nil)
         #expect(session.spectacle.pendingOutcomePresentationTask == nil)
-    }
-}
-
-private extension SkillCalloutPresentation {
-    var abilityTierMatchesUltimateOrSkill: Bool {
-        abilityID == Ability.bloodthorn.id || abilityID == Ability.fireball.id
     }
 }

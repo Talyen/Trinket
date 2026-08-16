@@ -31,6 +31,8 @@ final class PlayerSaveStoreTests {
         try #expect(secondStore.homestead.resources[.crystal] == 2)
         _ = try #require(secondStore.inventory.item(matching: "chapter-1-stage-1-shortsword-basic"))
         try #expect(secondStore.journey.activeStageID == "chapter-1-stage-2")
+        try #expect(secondStore.worldSeed == firstStore.worldSeed)
+        try #expect(secondStore.worldSeed != 0)
     }
 
     @Test func materialBalancesAboveLegacyCapSurviveReload() throws {
@@ -171,7 +173,8 @@ final class PlayerSaveStoreTests {
         try #expect(store.journey.activeChapterID == "chapter-2")
         try #expect(store.journey.activeStageID == "chapter-2-stage-1")
         try #expect(store.spires == .freshStart)
-        try #expect(store.labyrinth == .freshStart)
+        try #expect(!store.labyrinth.hasMap)
+        try #expect(store.labyrinth.worldSeed == store.worldSeed)
         try #expect(store.inventory == .testSeed)
         for resource in HomesteadResource.allCases where resource != .gold {
             try #expect(store.homestead.resources[resource] == 900)

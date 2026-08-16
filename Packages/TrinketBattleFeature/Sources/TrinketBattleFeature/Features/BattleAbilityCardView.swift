@@ -211,10 +211,7 @@ struct BattleAbilityCardView: View {
             didExceedTapSlop = true
             cancelInspection()
             interactionResolution = .dragging
-            if !didAnnounceWindUp, isPlayable {
-                didAnnounceWindUp = true
-                onAttackWindUp?()
-            }
+            announceWindUpIfNeeded()
         }
         dragTranslation = BattleHandLayout.presentationTranslation(
             value.translation,
@@ -334,10 +331,7 @@ struct BattleAbilityCardView: View {
     }
 
     private func resetVisualState() {
-        if didAnnounceWindUp {
-            didAnnounceWindUp = false
-            onAttackCancel?()
-        }
+        cancelAnnouncedWindUp()
         withAnimation(configuration.cardReturn) {
             dragTranslation = .zero
             predictedEndTranslation = .zero
@@ -388,6 +382,7 @@ struct BattleAbilityCardView: View {
 private extension BattleAbilityCardView {
     func beginTapPlay() {
         guard tapLiftTask == nil else { return }
+        announceWindUpIfNeeded()
         withAnimation(configuration.tapLift) {
             isTapLifting = true
         }
@@ -405,6 +400,11 @@ private extension BattleAbilityCardView {
         if shouldLift {
             // Cancel a manual tap-lift task so Auto and tap cannot double-play.
             cancelTapLift()
+            announceWindUpIfNeeded()
+        } else {
+            // Lift-down is visual. AutoPlayLane cancels the telegraph when play
+            // does not commit; cancelling here would yank a committed swing.
+            didAnnounceWindUp = false
         }
         withAnimation(configuration.tapLift) {
             isTapLifting = shouldLift
@@ -431,6 +431,18 @@ private extension BattleAbilityCardView {
     func cancelTapLift() {
         tapLiftTask?.cancel()
         tapLiftTask = nil
+    }
+
+    func announceWindUpIfNeeded() {
+        guard !didAnnounceWindUp, isPlayable else { return }
+        didAnnounceWindUp = true
+        onAttackWindUp?()
+    }
+
+    func cancelAnnouncedWindUp() {
+        guard didAnnounceWindUp else { return }
+        didAnnounceWindUp = false
+        onAttackCancel?()
     }
 }
 

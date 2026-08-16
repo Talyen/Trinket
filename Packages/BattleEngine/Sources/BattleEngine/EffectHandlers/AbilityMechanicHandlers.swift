@@ -81,7 +81,6 @@ struct ShieldFromResourceHandler: BattleEffectHandler {
 
         let applied = DefensePoolEngine.add(
             block,
-            pool: .block,
             to: target,
             keyword: .block,
             sourceActorID: source.id,
@@ -383,7 +382,6 @@ struct AvatarHandler: BattleEffectHandler {
         ).events
         let applied = DefensePoolEngine.add(
             blockPerTurn,
-            pool: .block,
             to: caster,
             keyword: .block,
             sourceActorID: caster.id,

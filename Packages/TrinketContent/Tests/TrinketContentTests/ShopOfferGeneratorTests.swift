@@ -49,13 +49,29 @@ struct ShopOfferGeneratorTests {
     }
 
     @Test func sameSeedProducesIdenticalOffers() {
-        var first = SeededRandomNumberGenerator(seed: ShopOfferGenerator.seed(forStageID: "chapter-2-stage-8"))
-        var second = SeededRandomNumberGenerator(seed: ShopOfferGenerator.seed(forStageID: "chapter-2-stage-8"))
+        var first = SeededRandomNumberGenerator(
+            seed: ShopOfferGenerator.seed(worldSeed: 7, forStageID: "chapter-2-stage-8")
+        )
+        var second = SeededRandomNumberGenerator(
+            seed: ShopOfferGenerator.seed(worldSeed: 7, forStageID: "chapter-2-stage-8")
+        )
 
         let firstOffers = ShopOfferGenerator.generateOffers(stageID: "chapter-2-stage-8", using: &first)
         let secondOffers = ShopOfferGenerator.generateOffers(stageID: "chapter-2-stage-8", using: &second)
 
         #expect(firstOffers == secondOffers)
+    }
+
+    @Test func differentWorldSeedsProduceDifferentShelves() {
+        var first = SeededRandomNumberGenerator(
+            seed: ShopOfferGenerator.seed(worldSeed: 7, forStageID: "chapter-2-stage-8")
+        )
+        var second = SeededRandomNumberGenerator(
+            seed: ShopOfferGenerator.seed(worldSeed: 9, forStageID: "chapter-2-stage-8")
+        )
+        let firstOffers = ShopOfferGenerator.generateOffers(stageID: "chapter-2-stage-8", using: &first)
+        let secondOffers = ShopOfferGenerator.generateOffers(stageID: "chapter-2-stage-8", using: &second)
+        #expect(firstOffers != secondOffers)
     }
 
     @Test func emptyBaseTypesYieldNoOffers() {
@@ -97,20 +113,25 @@ struct ShopOfferGeneratorTests {
         }
     }
 
-    @Test func chapter1ShopOffersHaveAllBasicExceptOneAstral() {
+    @Test func starterShopOffersAreAllBasicAtHalfPrice() {
         var randomNumberGenerator = SeededRandomNumberGenerator(seed: 42)
         let offers = ShopOfferGenerator.generateOffers(
-            stageID: "chapter-1-stage-8",
+            stageID: ShopOfferGenerator.starterShopStageID,
             count: 4,
             using: &randomNumberGenerator
         )
 
-        let basicOffers = offers.filter { $0.item.rarity == .basic }
-        let astralOffers = offers.filter { $0.item.rarity == .astral }
-
+        let discountedMin = max(
+            1,
+            (ShopOfferGenerator.basePriceRange.lowerBound * ShopOfferGenerator.starterShopPriceDiscountPercent) / 100
+        )
+        let discountedMax =
+            (ShopOfferGenerator.basePriceRange.upperBound * ShopOfferGenerator.starterShopPriceDiscountPercent) / 100
         #expect(offers.count == 4)
-        #expect(basicOffers.count == 3)
-        #expect(astralOffers.count == 1)
+        for offer in offers {
+            #expect(offer.item.rarity == .basic)
+            #expect((discountedMin ... discountedMax).contains(offer.price))
+        }
     }
 
     @Test func shopShelfReservesUniqueUnownedTrinkets() throws {

@@ -76,20 +76,27 @@ struct CorruptionAltarPickTests {
         let stageID = "chapter-1-stage-5"
         let first = GameContent.resolveJourneyMysteryEvent(
             stageID: stageID,
+            worldSeed: 11,
             authored: nil,
             context: context
         )
         let second = GameContent.resolveJourneyMysteryEvent(
             stageID: stageID,
+            worldSeed: 11,
             authored: nil,
             context: context
         )
         #expect(first.id == second.id)
         #expect(first.id != GameContent.corruptionAltarEventID)
+        #expect(
+            GameContent.encounterSeed(11, salt: "journey-mystery-\(stageID)")
+                != GameContent.encounterSeed(12, salt: "journey-mystery-\(stageID)")
+        )
 
         let authored = try #require(GameContent.mysteryEvent(matching: "mana-berries"))
         let forced = GameContent.resolveJourneyMysteryEvent(
             stageID: stageID,
+            worldSeed: 11,
             authored: authored,
             context: context
         )
@@ -97,6 +104,7 @@ struct CorruptionAltarPickTests {
 
         let pinned = GameContent.resolveJourneyMysteryEvent(
             stageID: stageID,
+            worldSeed: 11,
             authored: nil,
             pinnedEventID: "mana-berries",
             context: context

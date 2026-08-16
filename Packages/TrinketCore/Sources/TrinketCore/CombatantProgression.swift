@@ -56,4 +56,14 @@ public struct CombatantProgression: Equatable, Hashable, Codable, Sendable {
             requiredXP: nextRequiredXP
         )
     }
+
+    /// Total talent points earned based on level (1 point per level-up beyond level 1).
+    public var totalTalentPoints: Int {
+        max(level - 1, 0)
+    }
+
+    /// Remaining talent points given the number of already unlocked talents.
+    public func availableTalentPoints(unlockedCount: Int) -> Int {
+        max(totalTalentPoints - unlockedCount, 0)
+    }
 }

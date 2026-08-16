@@ -13,7 +13,6 @@ extension BattleSession {
     ) -> BattleCardPlayResolution {
         cancelPendingAutoEnd()
         feedback.pruneExpired(at: date, notifyPresentation: false)
-        pruneExpiredSkillCallout(at: date)
         guard spectacle.activeCinematic == nil,
               !spectacle.isShowingVictory,
               !spectacle.isShowingDefeat,
@@ -63,7 +62,6 @@ extension BattleSession {
     func endTurn(at date: Date = .now) {
         cancelPendingAutoEnd()
         feedback.pruneExpired(at: date, notifyPresentation: false)
-        pruneExpiredSkillCallout(at: date)
         guard canEndTurn, hasActiveSimulation else {
             feedback.noteItemsChanged()
             return

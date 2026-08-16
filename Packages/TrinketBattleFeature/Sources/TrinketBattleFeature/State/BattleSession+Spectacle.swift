@@ -328,7 +328,6 @@ extension BattleSession {
         }
 
         feedback.record(nonMilestone, at: date, environment: presentationEnvironment)
-        presentCallouts(from: nonMilestone, heroID: heroID, companionID: companionID, at: date)
     }
 
     func beginCinematic(from event: ActionEvent, at date: Date) {
@@ -346,33 +345,6 @@ extension BattleSession {
         BattleCinematicPlayer.shared.warm(actorID: event.actorID, abilityID: event.abilityID)
     }
 
-    func presentCallouts(
-        from events: [ActionEvent],
-        heroID: String,
-        companionID: String,
-        at date: Date
-    ) {
-        let calloutEvent = events.first {
-            BattleSpectaclePolicy.shouldPresentSkillCallout(for: $0)
-                || BattleSpectaclePolicy.shouldPresentEnemyUltimateAsCallout(
-                    for: $0,
-                    heroID: heroID,
-                    companionID: companionID
-                )
-        }
-        guard let calloutEvent else { return }
-        spectacle.nextID += 1
-        let hold = TrinketMotion.Battle.skillSoftHold
-        spectacle.activeSkillCallout = SkillCalloutPresentation(
-            id: spectacle.nextID,
-            actorID: calloutEvent.actorID,
-            abilityID: calloutEvent.abilityID,
-            abilityName: calloutEvent.abilityName,
-            keyword: calloutEvent.keyword,
-            expiresAt: date.addingTimeInterval(max(hold, TrinketMotion.Battle.skillCalloutTotal))
-        )
-    }
-
     func clearAllPresentation() {
         clearOutcomePresentation()
         overlayCombatantDetail = nil
@@ -385,9 +357,6 @@ extension BattleSession {
     func clearSpectacle(releaseCinematicPlayers: Bool = true) {
         spectacle.pendingPartyCelebrateTask?.cancel()
         spectacle.pendingPartyCelebrateTask = nil
-        if spectacle.activeSkillCallout != nil {
-            spectacle.activeSkillCallout = nil
-        }
         if spectacle.activeCinematic != nil {
             spectacle.activeCinematic = nil
         }
@@ -398,12 +367,6 @@ extension BattleSession {
         if releaseCinematicPlayers {
             BattleCinematicPlayer.shared.releaseAll()
         }
-    }
-
-    func pruneExpiredSkillCallout(at date: Date) {
-        guard let activeSkillCallout = spectacle.activeSkillCallout,
-              date >= activeSkillCallout.expiresAt else { return }
-        spectacle.activeSkillCallout = nil
     }
 
     func resetRun(from configuration: BattleRunConfiguration) {

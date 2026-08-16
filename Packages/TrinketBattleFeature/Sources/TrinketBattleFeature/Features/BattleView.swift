@@ -233,15 +233,6 @@ private struct BattleFieldLane: View {
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
 
-                BattlefieldSkillCalloutOverlay(
-                    layout: layout,
-                    anchors: anchors,
-                    enemyID: configuration.enemy?.id,
-                    heroID: configuration.hero.combatant.id,
-                    companionID: configuration.companion.combatant.id
-                )
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-
                 BattleHandProjectionLane(
                     presentation: presentation,
                     hapticsEnabled: hapticsEnabled,

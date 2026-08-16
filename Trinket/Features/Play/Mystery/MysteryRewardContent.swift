@@ -51,8 +51,7 @@ struct MysteryRewardContent: View {
             onPrimaryAction: completeLootAll,
             contentTopPadding: TrinketDesign.Metrics.contentTopPadding + TrinketDesign.Metrics.mediumSpacing,
             contentStackSpacing: TrinketDesign.Metrics.sectionSpacing,
-            pinsPrimaryActionToBottom: false,
-            primaryActionWidthFraction: 0.5
+            pinsPrimaryActionToBottom: false
         )
         .sheet(item: $selectedRewardItem) { item in
             NavigationStack {

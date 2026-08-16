@@ -36,6 +36,7 @@ struct LabyrinthRestView: View {
                         .frame(maxWidth: .infinity)
                 }
                 .trinketPrimaryActionButton()
+                .trinketCenteredPrimaryAction()
                 .accessibilityIdentifier(AccessibilityID.Play.labyrinthRestConfirm)
             }
         )

@@ -49,12 +49,12 @@ public struct Stage: Identifiable, Hashable, Sendable {
     }
 
     /// Authored battle enemy, or the seeded pick for `randomBattle` stages.
-    public var resolvedBattleEnemyID: String? {
+    public func resolvedBattleEnemyID(worldSeed: UInt64) -> String? {
         if let enemyID = encounter.battleEnemyID {
             return enemyID
         }
         guard case .randomBattle = encounter else { return nil }
-        return GameContent.pickRandomNonBossEnemyID(forStageID: id)
+        return GameContent.pickRandomNonBossEnemyID(forStageID: id, worldSeed: worldSeed)
     }
 }
 

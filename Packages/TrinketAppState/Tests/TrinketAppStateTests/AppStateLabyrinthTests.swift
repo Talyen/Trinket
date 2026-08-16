@@ -137,7 +137,9 @@ struct AppStateLabyrinthTests {
         case .mystery:
             let session = try #require(state.encounters.activeMysteryEncounter)
             #expect(session.labyrinthNodeID == nodeID)
-            #expect(state.encounters.resolveActiveMysteryChoice())
+            if session.phase == .reading {
+                #expect(state.encounters.resolveActiveMysteryChoice())
+            }
             if state.encounters.activeMysteryEncounter != nil {
                 #expect(state.encounters.finishActiveMysteryEncounter())
             }

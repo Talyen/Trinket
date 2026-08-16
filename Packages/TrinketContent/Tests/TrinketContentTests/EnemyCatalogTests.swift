@@ -75,4 +75,14 @@ struct EnemyCatalogTests {
         try #expect(heroAverage > enemyAverage)
         try #expect(companionAverage > enemyAverage)
     }
+
+    @Test func enemyMatchingLookupReturnsExpectedEnemy() throws {
+        for enemy in GameContent.enemies {
+            let found = try #require(GameContent.enemy(matching: enemy.id))
+            try #expect(found.id == enemy.id)
+            try #expect(found.name == enemy.name)
+            try #expect(found.isBoss == enemy.isBoss)
+        }
+        try #expect(GameContent.enemy(matching: "non_existent_enemy") == nil)
+    }
 }

@@ -133,7 +133,7 @@ struct MysteryChoiceCard: View {
 
         case .gainExperience:
             rewardSummary(
-                title: "Combat XP",
+                title: "\(previewExperienceAward) XP",
                 value: nil,
                 systemIcon: "star.fill",
                 tint: TrinketDesign.Colors.warning
@@ -200,7 +200,7 @@ struct MysteryChoiceCard: View {
                     )
             } else if let systemIcon {
                 Image(systemName: systemIcon)
-                    .font(.largeTitle.weight(.semibold))
+                    .font(.title2.weight(.semibold))
                     .foregroundStyle(tint)
                     .frame(
                         width: TrinketDesign.Metrics.mysteryRewardArtworkSize,
@@ -232,6 +232,14 @@ struct MysteryChoiceCard: View {
             maxWidth: .infinity,
             minHeight: TrinketDesign.Metrics.mysteryRewardRowMinHeight,
             alignment: .leading
+        )
+    }
+
+    private var previewExperienceAward: Int {
+        let hero = playerSave.roster.activeHero
+        return MysteryEffectApplier.experienceAward(
+            for: playerSave.roster.progression(for: hero),
+            highestLevel: playerSave.roster.highestHeroLevel
         )
     }
 

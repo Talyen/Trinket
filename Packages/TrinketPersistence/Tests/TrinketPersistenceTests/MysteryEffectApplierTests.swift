@@ -14,9 +14,9 @@ struct MysteryEffectApplierTests {
         let companionProgressionBefore = save.roster.progression(for: companion)
         // Pinned for the seeded fresh roster (knight/wolf at level 2, hero
         // highest level 3): equal-level award 155/1.5=103 with hero catch-up
-        // round(103*1.5903)=164; both below the 3x-requiredXP cap.
-        let expectedHeroXP = 164
-        let expectedCompanionXP = 103
+        // round(103*1.5903)=164, then nearest 5 → 165 / 105.
+        let expectedHeroXP = 165
+        let expectedCompanionXP = 105
         var randomNumberGenerator = SeededRandomNumberGenerator(seed: 1)
 
         let result = MysteryEffectApplier.apply(
@@ -69,10 +69,10 @@ struct MysteryEffectApplierTests {
         save.roster.progressions[companion.id] = .at(level: 5)
         let heroBefore = save.roster.progression(for: hero)
         let companionBefore = save.roster.progression(for: companion)
-        // Pinned: level-20 equal award 2855 / 2.5 = 1142; level-5 award
-        // 380 / 1.5 = 253. Both stay below the 3x-requiredXP cap.
-        let expectedHeroXP = 1142
-        let expectedCompanionXP = 253
+        // Pinned: level-20 equal award 2855 / 2.5 = 1142 → 1140;
+        // level-5 award 380 / 1.5 = 253 → 255.
+        let expectedHeroXP = 1140
+        let expectedCompanionXP = 255
         var randomNumberGenerator = SeededRandomNumberGenerator(seed: 1)
 
         let result = MysteryEffectApplier.apply(
@@ -89,6 +89,10 @@ struct MysteryEffectApplierTests {
         try #expect(expectedHeroXP != expectedCompanionXP)
         try #expect(result.heroProgressionAfter == heroBefore.addingExperience(expectedHeroXP))
         try #expect(result.companionProgressionAfter == companionBefore.addingExperience(expectedCompanionXP))
+        try #expect(result.heroGrantedExperience.isMultiple(of: MysteryEffectApplier.experienceAwardStep))
+        try #expect(
+            result.companionGrantedExperience.isMultiple(of: MysteryEffectApplier.experienceAwardStep)
+        )
     }
 
     @Test func grantExperienceCapsAtThreeTimesRequiredXP() throws {
@@ -186,7 +190,7 @@ struct MysteryEffectApplierTests {
             let result = MysteryEffectApplier.apply(
                 [.gainRandomItem],
                 stageID: "chapter-2-stage-2",
-                choiceID: "loot-crypt",
+                choiceID: "search-the-crypt",
                 encounterLevel: 6,
                 save: &save,
                 using: &randomNumberGenerator
@@ -214,7 +218,7 @@ struct MysteryEffectApplierTests {
     @Test func manaBerryHarvestChoiceAppliesExpectedRewards() throws {
         var save = SaveTestSupport.makeSave()
         let event = try #require(GameContent.mysteryEvent(matching: "mana-berries"))
-        let harvest = try #require(event.choices.first { $0.id == "harvest" })
+        let harvest = try #require(event.choices.first { $0.id == "harvest-berries" })
         var randomNumberGenerator = SeededRandomNumberGenerator(seed: 3)
 
         let result = MysteryEffectApplier.apply(
@@ -233,6 +237,25 @@ struct MysteryEffectApplierTests {
         let ring = try #require(result.grantedItems.first)
         try #expect(ring.baseType.id == "sapphire_ring")
         try #expect(ring.affixes.contains { $0.id == "manabound" })
+    }
+
+    @Test func generatedTrinketBaseGrantsCatalogSingleton() throws {
+        var save = SaveTestSupport.makeSave()
+        var randomNumberGenerator = SeededRandomNumberGenerator(seed: 1)
+        let catalog = try #require(GameContent.trinketItems.first { $0.templateID == "icy_heart" })
+
+        let result = MysteryEffectApplier.apply(
+            [.gainGeneratedItem(baseTypeID: "icy_heart")],
+            stageID: "chapter-1-stage-2",
+            choiceID: "take-the-charm",
+            encounterLevel: 1,
+            save: &save,
+            using: &randomNumberGenerator
+        )
+
+        let item = try #require(result.grantedItems.first)
+        try #expect(item == catalog)
+        try #expect(save.inventory.items.contains(catalog))
     }
 
     @Test func unlockCombatantEffectsHandleHeroAndCompanionIdempotently() throws {

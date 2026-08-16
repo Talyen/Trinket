@@ -38,11 +38,24 @@ struct BattleAutoPlayLane: View {
         }
 
         try? await Task.sleep(for: .seconds(configuration.tapLiftPlayDelay))
-        guard !Task.isCancelled, battleSession.isAutoBattleEnabled else { return false }
-        guard let request = activationRequest(for: card, configuration: configuration) else {
+        guard !Task.isCancelled, battleSession.isAutoBattleEnabled else {
+            cancelAttack(for: card)
             return false
         }
-        return onPlay(card, request)
+        guard let request = activationRequest(for: card, configuration: configuration) else {
+            cancelAttack(for: card)
+            return false
+        }
+        let didPlay = onPlay(card, request)
+        if !didPlay {
+            cancelAttack(for: card)
+        }
+        return didPlay
+    }
+
+    private func cancelAttack(for card: BattleCard) {
+        guard let combatantID = battleSession.combatantID(for: card.owner) else { return }
+        battleSession.cancelAttack(for: combatantID)
     }
 
     private func activationRequest(

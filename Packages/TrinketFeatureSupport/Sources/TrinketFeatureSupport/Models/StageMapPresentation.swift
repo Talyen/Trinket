@@ -86,7 +86,11 @@ public extension Stage {
     }
 
     var encounterCombatantArtReference: CombatantArtReference? {
-        guard let enemyID = resolvedBattleEnemyID else { return nil }
+        encounterCombatantArtReference(worldSeed: 0)
+    }
+
+    func encounterCombatantArtReference(worldSeed: UInt64) -> CombatantArtReference? {
+        guard let enemyID = resolvedBattleEnemyID(worldSeed: worldSeed) else { return nil }
         return GameContent.enemy(matching: enemyID)?.combatant.artReference
     }
 
@@ -109,11 +113,15 @@ public extension Stage {
     }
 
     var encounterSubjectName: String {
+        encounterSubjectName(worldSeed: 0)
+    }
+
+    func encounterSubjectName(worldSeed: UInt64) -> String {
         switch encounter {
         case let .battle(enemyID):
             GameContent.enemy(matching: enemyID)?.name ?? "Unknown Enemy"
         case .randomBattle:
-            resolvedBattleEnemyID.flatMap { GameContent.enemy(matching: $0)?.name } ?? "Battle"
+            resolvedBattleEnemyID(worldSeed: worldSeed).flatMap { GameContent.enemy(matching: $0)?.name } ?? "Battle"
         case .event:
             GameContent.encounterArtTitle(for: self) ?? "Mystery"
         case .shop:

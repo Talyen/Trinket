@@ -84,6 +84,18 @@ public struct InventoryItem: Identifiable, Equatable, Hashable, Sendable {
     public var keywords: Set<Keyword> {
         affixes.reduce(into: Set<Keyword>()) { $0.formUnion($1.keywords) }
     }
+
+    /// Unscaled stored power is at the high end of this rarity's catalog roll range.
+    public func isPerfectAffix(at index: Int) -> Bool {
+        guard affixes.indices.contains(index),
+              let storedPowers = affixPowers,
+              storedPowers.indices.contains(index),
+              let definition = GameContent.itemAffixDefinition(matching: affixes[index].id)
+        else {
+            return false
+        }
+        return storedPowers[index].isAtOrAboveRollMax(of: definition.power(for: rarity))
+    }
 }
 
 public struct EquipmentLoadout: Equatable, Hashable, Sendable {

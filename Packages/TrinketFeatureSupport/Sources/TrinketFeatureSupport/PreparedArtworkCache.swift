@@ -387,6 +387,12 @@ public final class PreparedArtworkCache {
         for reference in ArtCatalog.resourceArtByID.values {
             names.insert(reference.imageName)
         }
+        for reference in ArtCatalog.talentArtByID.values {
+            names.insert(reference.imageName)
+            if let thumbnailImageName = reference.thumbnailImageName {
+                names.insert(thumbnailImageName)
+            }
+        }
 
         return names.sorted()
     }
@@ -482,6 +488,12 @@ extension SlotBackgroundArtReference: PreparedArtworkReference {
 extension ResourceArtReference: PreparedArtworkReference {
     public var preparedThumbnailImageName: String? {
         nil
+    }
+}
+
+extension TalentArtReference: PreparedArtworkReference {
+    public var preparedThumbnailImageName: String? {
+        thumbnailImageName
     }
 }
 

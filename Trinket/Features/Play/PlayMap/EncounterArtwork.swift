@@ -8,6 +8,7 @@ struct EncounterArtwork: View {
     let stage: Stage
     /// Seeded/pinned non-recruit mystery for unpinned journey stages.
     var resolvedMysteryEvent: MysteryEvent?
+    var worldSeed: UInt64 = 0
     var prefersThumbnail = false
 
     @ScaledMetric(relativeTo: .largeTitle) private var placeholderIconSize: CGFloat = 42
@@ -22,7 +23,7 @@ struct EncounterArtwork: View {
 
     var body: some View {
         ZStack {
-            if let combatantArt = stage.encounterCombatantArtReference {
+            if let combatantArt = stage.encounterCombatantArtReference(worldSeed: worldSeed) {
                 Image.preparedAsset(
                     combatantArt,
                     displaySize: prefersThumbnail ? .compact : .full

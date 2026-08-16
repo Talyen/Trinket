@@ -11,7 +11,7 @@ public enum EffectHandlers {
         .poison: DecayingDoTHandler(keyword: .poison),
         .bleed: BleedHandler(),
         .controlMeter: ControlMeterHandler(),
-        .shield: DefensePoolBuffHandler(pool: .block),
+        .shield: BlockBuffHandler(),
         .instantHeal: InstantHealHandler(),
         .leech: LeechHandler(),
         .resourceGain: ResourceGainHandler(),

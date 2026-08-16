@@ -36,6 +36,7 @@ public enum SaveTestSupport {
         var save = PlayerSave(
             schemaVersion: PlayerSave.currentSchemaVersion,
             modifiedAt: modifiedAt,
+            worldSeed: PlayerSave.testWorldSeed,
             journey: .initial,
             roster: .freshStart,
             inventory: .freshStart
@@ -56,6 +57,7 @@ public enum SaveTestSupport {
             schemaVersion: PlayerSave.currentSchemaVersion,
             modifiedAt: Date(),
             sessionGeneration: 0,
+            worldSeed: PlayerSave.testWorldSeed,
             journey: journey,
             roster: roster,
             inventory: inventory,

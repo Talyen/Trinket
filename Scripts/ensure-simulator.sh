@@ -7,7 +7,7 @@ set -euo pipefail
 #   SIMULATOR_UDID
 #   SIMULATOR_DESTINATION   e.g. platform=iOS Simulator,id=...
 
-SIMULATOR_NAME="${TRINKET_SIMULATOR_NAME:-Trinket CI}"
+SIMULATOR_NAME="${TRINKET_SIMULATOR_NAME:-Trinket Run}"
 SIMULATOR_BOOT_TIMEOUT_SECONDS="${TRINKET_SIMULATOR_BOOT_TIMEOUT_SECONDS:-150}"
 
 # Prefer shared helper from run-env.sh (callers source run-env before this file).
@@ -22,8 +22,8 @@ shutdown_and_wait_simulator() {
   xcrun simctl shutdown "$target_udid" 2>/dev/null || true
 }
 
-resolve_or_create_simulator() {
-  SIMULATOR_UDID="$(xcrun simctl list devices available -j 2>/dev/null | python3 -c '
+simulator_udid_for_name() {
+  xcrun simctl list devices available -j 2>/dev/null | python3 -c '
 import json, sys
 payload = json.load(sys.stdin)
 for devices in payload.get("devices", {}).values():
@@ -32,7 +32,29 @@ for devices in payload.get("devices", {}).values():
             print(device.get("udid"))
             sys.exit(0)
 sys.exit(1)
-' "$SIMULATOR_NAME" 2>/dev/null || true)"
+' "$1" 2>/dev/null || true
+}
+
+rename_legacy_shared_simulator_if_needed() {
+  [[ "$SIMULATOR_NAME" == "Trinket Run" ]] || return 0
+  local existing_udid legacy_udid
+  existing_udid="$(simulator_udid_for_name "Trinket Run")"
+  [[ -z "$existing_udid" ]] || return 0
+  legacy_udid="$(simulator_udid_for_name "Trinket CI")"
+  [[ -n "$legacy_udid" ]] || return 0
+  echo "Renaming simulator 'Trinket CI' → 'Trinket Run' (human run / local tests; not GitHub CI)."
+  xcrun simctl rename "$legacy_udid" "Trinket Run" || true
+}
+
+resolve_or_create_simulator() {
+  rename_legacy_shared_simulator_if_needed
+  SIMULATOR_UDID="$(simulator_udid_for_name "$SIMULATOR_NAME")"
+  if [[ -z "${SIMULATOR_UDID:-}" && "$SIMULATOR_NAME" == "Trinket Run" ]]; then
+    SIMULATOR_UDID="$(simulator_udid_for_name "Trinket CI")"
+    if [[ -n "${SIMULATOR_UDID:-}" ]]; then
+      echo "Using legacy simulator name 'Trinket CI' as Trinket Run ($SIMULATOR_UDID)."
+    fi
+  fi
 
   if [[ -n "${SIMULATOR_UDID:-}" ]]; then
     echo "Using existing simulator: $SIMULATOR_NAME ($SIMULATOR_UDID)"
@@ -179,7 +201,7 @@ ensure_test_simulator() {
   local force="${1:-}"
   local attempt=1
   local max_attempts=2
-  local owned_name="${TRINKET_SIMULATOR_NAME:-Trinket CI}"
+  local owned_name="${TRINKET_SIMULATOR_NAME:-Trinket Run}"
 
   # Never shut down or delete a device that does not belong to this run's
   # name. Resolve the actual UDID metadata instead of trusting a caller's

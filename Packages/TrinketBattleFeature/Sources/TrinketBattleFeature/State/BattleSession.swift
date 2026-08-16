@@ -303,7 +303,6 @@ public final class BattleSession: BattleRuntime {
     func trimPresentationMemory() {
         let date = Date.now
         feedback.pruneExpired(at: date)
-        pruneExpiredSkillCallout(at: date)
         resetFeedbackRasterMemory()
     }
 

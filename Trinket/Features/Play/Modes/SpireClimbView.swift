@@ -136,6 +136,7 @@ struct SpireClimbView: View {
                 tint: spire.keyword.visualStyle.color,
                 accessibilityIdentifier: AccessibilityID.Play.spireCompletionBack(spire.id.rawValue)
             )
+            .trinketCenteredPrimaryAction()
         }
         .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
         .padding(.vertical, TrinketDesign.Metrics.largeSpacing)

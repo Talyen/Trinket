@@ -53,10 +53,32 @@ public struct MysteryEffectApplyResult: Equatable, Sendable {
 }
 
 public enum MysteryEffectApplier {
+    /// Mystery XP grants snap to this step so choice copy never shows odd remainders.
+    public static let experienceAwardStep = 5
+
     /// Fixed, deterministic material grant per level (L1 4 → L50 18).
     public static func materialQuantity(forLevel level: Int) -> Int {
         let clamped = max(1, level)
         return 4 + (clamped * 14) / 49
+    }
+
+    /// Equal-level mystery XP after catch-up, the grant cap, and rounding to `experienceAwardStep`.
+    public static func experienceAward(
+        for progression: CombatantProgression,
+        highestLevel: Int
+    ) -> Int {
+        let raw = ExperienceScaling.equalBattleAward(
+            playerLevel: progression.level,
+            highestLevel: highestLevel
+        )
+        let capped = ExperienceScaling.cappedAward(raw, for: progression)
+        guard capped > 0 else { return 0 }
+        let rounded = Int((Double(capped) / Double(experienceAwardStep)).rounded()) * experienceAwardStep
+        let ceiling = progression.requiredXP * ExperienceScaling.maxGrantLevelsEquivalent
+        if rounded > ceiling {
+            return (ceiling / experienceAwardStep) * experienceAwardStep
+        }
+        return max(experienceAwardStep, rounded)
     }
 
     /// Mystery reward level: chapter base level for journey stages, Labyrinth node depth otherwise.
@@ -163,12 +185,12 @@ public enum MysteryEffectApplier {
         case .gainExperience:
             let heroProgression = save.roster.progression(for: hero)
             let companionProgression = save.roster.progression(for: companion)
-            let heroAward = ExperienceScaling.equalBattleAward(
-                playerLevel: heroProgression.level,
+            let heroAward = experienceAward(
+                for: heroProgression,
                 highestLevel: save.roster.highestHeroLevel
             )
-            let companionAward = ExperienceScaling.equalBattleAward(
-                playerLevel: companionProgression.level,
+            let companionAward = experienceAward(
+                for: companionProgression,
                 highestLevel: save.roster.highestCompanionLevel
             )
             state.result.heroGrantedExperience += save.roster.grantExperience(heroAward, to: hero)
@@ -266,6 +288,9 @@ public enum MysteryEffectApplier {
     ) -> InventoryItem? {
         guard let baseType = context.baseTypes.first(where: { $0.id == baseTypeID }) else {
             return nil
+        }
+        if baseType.slot == .trinket {
+            return GameContent.trinketItems.first { $0.templateID == baseTypeID }
         }
         let rarity = MysteryItemRarity.roll(
             astralChanceBonusPercent: context.astralChanceBonusPercent,

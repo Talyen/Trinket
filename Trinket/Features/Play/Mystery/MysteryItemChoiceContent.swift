@@ -81,6 +81,7 @@ struct MysteryCorruptItemChoiceContent: View {
                 .trinketPrimaryActionButton(
                     accessibilityIdentifier: AccessibilityID.Mystery.corruptCancelButton
                 )
+                .trinketCenteredPrimaryAction()
                 .disabled(session.isResolvingChoice)
             }
         )

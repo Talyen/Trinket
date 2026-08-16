@@ -23,7 +23,8 @@ struct StageRewardTests {
         let loot = BattleLoot.resolveJourney(
             stage: firstStage,
             encounterLevel: encounterLevel,
-            enemyIsBoss: false
+            enemyIsBoss: false,
+            worldSeed: PlayerSave.testWorldSeed
         )
 
         StageCompletion.complete(
@@ -79,7 +80,8 @@ struct StageRewardTests {
         let loot = BattleLoot.resolveJourney(
             stage: firstStage,
             encounterLevel: encounterLevel,
-            enemyIsBoss: false
+            enemyIsBoss: false,
+            worldSeed: PlayerSave.testWorldSeed
         )
 
         StageCompletion.claimRewardsIfNeeded(
@@ -131,7 +133,8 @@ struct StageRewardTests {
         let loot = BattleLoot.resolveJourney(
             stage: firstStage,
             encounterLevel: EncounterLevelResolver.journeyEnemyLevel(for: firstStage, in: chapter),
-            enemyIsBoss: false
+            enemyIsBoss: false,
+            worldSeed: PlayerSave.testWorldSeed
         )
 
         StageCompletion.complete(

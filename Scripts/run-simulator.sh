@@ -25,24 +25,28 @@ prepare_generated_inputs "$RESULTS_DIR"
 # shellcheck source=ensure-simulator.sh
 source ./Scripts/ensure-simulator.sh
 trinket_sim_slot_ensure
-ensure_test_simulator
 
 # shellcheck source=xcode-runner.sh
 source ./Scripts/xcode-runner.sh
-# Quiet build into a per-run log (see xcode-runner.sh); failures still print a
-# terse summarized block. Parallelize the multi-package graph and skip SwiftPM
-# re-resolution so warm rebuilds are faster.
+# Compile against a generic destination so xcodebuild does not boot/show a
+# concrete simulator. Quiet logs go under TestResults/raw/; print a heartbeat
+# so a warm rebuild is not mistaken for a hang.
+echo "Building Trinket (quiet; log in $RESULTS_DIR/raw/)..."
 xcode_runner_run --label "run-simulator" --quiet -- \
   xcodebuild build \
   -project Trinket.xcodeproj \
   -scheme Trinket \
-  -destination "$SIMULATOR_DESTINATION" \
+  -sdk iphonesimulator \
+  -destination 'generic/platform=iOS Simulator' \
   -derivedDataPath "$DERIVED_DATA_PATH" \
   -parallelizeTargets \
   -disableAutomaticPackageResolution \
   COMPILER_INDEX_STORE_ENABLE=NO \
   CODE_SIGNING_ALLOWED=NO \
   CODE_SIGNING_REQUIRED=NO
+
+echo "Build succeeded. Preparing Trinket Run..."
+ensure_test_simulator
 
 # Prefer simctl ui appearance (no SpringBoard restart). Fall back to defaults write
 # only if appearance is unsupported; avoid killall SpringBoard on the warm path.
@@ -53,10 +57,57 @@ if [[ "$current_appearance" != "dark" ]]; then
   fi
 fi
 
-open -a Simulator --args -CurrentDeviceUDID "$SIMULATOR_UDID"
+echo "Installing $BUNDLE_ID..."
+xcrun simctl terminate "$SIMULATOR_UDID" "$BUNDLE_ID" 2>/dev/null || true
 # Let install replace an existing app; forced uninstall rewrites ~100MB+ every Run.
 xcrun simctl install "$SIMULATOR_UDID" "$APP_PATH"
 # Installing a normal app bundle replaces the XCTest-installed app container, so
 # invalidate test-without-building stamps that depend on that simulator state.
 rm -f "$DERIVED_DATA_PATH"/TestResults/.last-build-*.stamp 2>/dev/null || true
-xcrun simctl launch "$SIMULATOR_UDID" "$BUNDLE_ID" -- -appearance dark
+
+place_bundle_on_first_home_screen() {
+  local data_home plist attempt status="missing"
+  data_home="$(xcrun simctl getenv "$SIMULATOR_UDID" HOME 2>/dev/null || true)"
+  [[ -n "$data_home" ]] || return 0
+  plist="$data_home/Library/SpringBoard/IconState.plist"
+
+  for attempt in $(seq 1 15); do
+    if [[ -f "$plist" ]]; then
+      status="$(python3 ./Scripts/place-home-screen-icon.py --plist "$plist" --bundle-id "$BUNDLE_ID" --check)"
+      if [[ "$status" != "missing" ]]; then
+        break
+      fi
+    fi
+    sleep 0.2
+  done
+
+  status="$(python3 ./Scripts/place-home-screen-icon.py --plist "$plist" --bundle-id "$BUNDLE_ID" --insert-if-missing)"
+  printf '%s' "$status"
+}
+
+ICON_PLACE_STATUS="$(place_bundle_on_first_home_screen)"
+echo "Home screen icon: ${ICON_PLACE_STATUS:-skipped}"
+if [[ "$ICON_PLACE_STATUS" == "moved" ]]; then
+  # SIGKILL so SpringBoard cannot flush the previous page layout on the way down.
+  xcrun simctl spawn "$SIMULATOR_UDID" killall -9 SpringBoard 2>/dev/null || true
+fi
+
+echo "Opening Simulator and launching $BUNDLE_ID..."
+open -a Simulator --args -CurrentDeviceUDID "$SIMULATOR_UDID"
+# Install and a SpringBoard reload can reject the first launch; keep retrying
+# until simctl accepts it, then launch once more after SpringBoard settles.
+LAUNCH_DEADLINE=$((SECONDS + 20))
+until xcrun simctl launch --terminate-running-process \
+  "$SIMULATOR_UDID" "$BUNDLE_ID" -- -appearance dark
+do
+  if (( SECONDS >= LAUNCH_DEADLINE )); then
+    echo "error: simctl launch failed for $BUNDLE_ID" >&2
+    exit 1
+  fi
+  sleep 0.4
+done
+if [[ "$ICON_PLACE_STATUS" == "moved" ]]; then
+  sleep 1
+  xcrun simctl launch --terminate-running-process \
+    "$SIMULATOR_UDID" "$BUNDLE_ID" -- -appearance dark
+fi

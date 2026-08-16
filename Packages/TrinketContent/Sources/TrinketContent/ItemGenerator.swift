@@ -52,7 +52,12 @@ public struct ItemGenerator: Sendable {
             baseType: baseType,
             rarity: rarity,
             displayName: baseType.name,
-            affixes: selectedDefinitions.map { $0.resolved(for: rarity) }
+            affixes: selectedDefinitions.map { $0.resolved(for: rarity) },
+            affixPowers: selectedDefinitions.map { definition in
+                let catalog = definition.power(for: rarity)
+                guard definition.basic != definition.astral else { return catalog }
+                return catalog.rolled(using: &randomNumberGenerator)
+            }
         )
     }
 

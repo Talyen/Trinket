@@ -62,7 +62,7 @@ public final class JourneyPlayMode {
     }
 
     public func resolvedEncounter(for stage: Stage) -> (combatant: Combatant, level: Int)? {
-        Self.resolvedEncounter(for: stage)
+        Self.resolvedEncounter(for: stage, worldSeed: playerSave.worldSeed)
     }
 
     @discardableResult
@@ -168,6 +168,7 @@ public final class JourneyPlayMode {
         let roster = playerSave.roster
         return GameContent.resolveRecruitStage(
             stage,
+            worldSeed: playerSave.worldSeed,
             unlockedHeroIDs: roster.unlockedHeroIDs,
             unlockedCompanionIDs: roster.unlockedCompanionIDs
         )
@@ -224,9 +225,10 @@ public final class JourneyPlayMode {
 
 extension JourneyPlayMode {
     static func resolvedEncounter(
-        for stage: Stage
+        for stage: Stage,
+        worldSeed: UInt64
     ) -> (combatant: Combatant, level: Int)? {
-        guard let enemyID = stage.resolvedBattleEnemyID,
+        guard let enemyID = stage.resolvedBattleEnemyID(worldSeed: worldSeed),
               let catalogEnemy = GameContent.enemy(matching: enemyID),
               let chapter = GameContent.chapters.first(where: { $0.id == stage.chapterID })
         else { return nil }
@@ -243,6 +245,7 @@ extension JourneyPlayMode {
             stage: stage,
             encounterLevel: encounter.level,
             enemyIsBoss: GameContent.enemy(matching: encounter.combatant.id)?.isBoss == true,
+            worldSeed: playerSave.worldSeed,
             ownedTrinketIDs: playerSave.inventory.ownedTrinketIDs,
             astralChanceBonusPercent: playerSave.homestead.effects.astralChanceBonusPercent
         )
@@ -252,6 +255,7 @@ extension JourneyPlayMode {
         stage: Stage,
         encounterLevel: Int,
         enemyIsBoss: Bool,
+        worldSeed: UInt64,
         ownedTrinketIDs: Set<String> = [],
         astralChanceBonusPercent: Int = 0
     ) -> BattleLootPackage? {
@@ -260,6 +264,7 @@ extension JourneyPlayMode {
             stage: stage,
             encounterLevel: encounterLevel,
             enemyIsBoss: enemyIsBoss,
+            worldSeed: worldSeed,
             ownedTrinketIDs: ownedTrinketIDs,
             astralChanceBonusPercent: astralChanceBonusPercent
         )

@@ -18,7 +18,7 @@ Trinket keeps raw art and app-ready art separate.
 kind	id	asset_name	source_path	focal_x	focal_y
 ```
 
-- `kind`: `combatant`, `ability`, `item`, `slot_background`, `background`, `encounter`, or `resource`.
+- `kind`: `combatant`, `ability`, `item`, `slot_background`, `background`, `encounter`, `resource`, or `talent`.
 - `id`: game model ID, such as `knight` or `fire_elemental`.
 - `asset_name`: stable asset catalog name used by SwiftUI `Image`.
 - `source_path`: path to the raw source file from the repo root.
@@ -39,6 +39,7 @@ The pipeline writes **HEIC** (HEVC-based) images per manifest row. Which variant
 |------|-----------------------|------------------------------|
 | `combatant` | yes (default `1320`) | yes (`thumb_dimension`, default `480`) |
 | `ability`, `item` | yes (default `960`) | yes (`thumb_dimension`, default `480`) |
+| `talent` | yes (default `960`) | yes (`thumb_dimension`, default `480`) |
 | `encounter` | yes (default `1320`) | yes (`thumb_dimension`, default `480`) |
 | `background` | yes (default `1600`) | yes (`thumb_dimension`, default `480`) |
 | `resource` | yes (default `256`) | no |

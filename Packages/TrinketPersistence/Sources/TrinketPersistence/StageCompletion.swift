@@ -191,6 +191,7 @@ public enum StageCompletion {
                 stage: stage,
                 encounterLevel: encounterLevel,
                 enemyIsBoss: enemyIsBoss,
+                worldSeed: save.worldSeed,
                 ownedTrinketIDs: save.inventory.ownedTrinketIDs,
                 astralChanceBonusPercent: save.homestead.effects.astralChanceBonusPercent
             )
@@ -219,7 +220,7 @@ public enum StageCompletion {
         } else if let resolvedLoot {
             save.inventory.appendUniqueItem(resolvedLoot.item)
         } else {
-            grantAuthoredItems(for: stage, inventory: &save.inventory)
+            grantAuthoredItems(for: stage, worldSeed: save.worldSeed, inventory: &save.inventory)
         }
 
         save.journey.markRewardsClaimed(for: stage)
@@ -227,13 +228,17 @@ public enum StageCompletion {
 
     private static func grantAuthoredItems(
         for stage: Stage,
+        worldSeed: UInt64,
         inventory: inout PlayerInventoryState
     ) {
         for templateID in stage.rewards.itemTemplateIDs {
             guard let template = GameContent.itemTemplate(matching: templateID) else { continue }
             if template.rarity == .astral {
                 var randomNumberGenerator = SeededRandomNumberGenerator(
-                    seed: GameContent.stableSeed(for: "authored-stage-item-\(stage.id)-\(templateID)")
+                    seed: GameContent.encounterSeed(
+                        worldSeed,
+                        salt: "authored-stage-item-\(stage.id)-\(templateID)"
+                    )
                 )
                 let eligibleTrinkets = GameContent.trinketItems.filter {
                     !inventory.ownedTrinketIDs.contains($0.templateID)

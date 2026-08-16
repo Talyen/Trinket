@@ -18,8 +18,33 @@ public final class RosterModel {
     public var abilityLoadouts: [AbilityLoadoutModel]?
     @Relationship(deleteRule: .cascade, inverse: \EquipmentLoadoutModel.roster)
     public var equipmentLoadouts: [EquipmentLoadoutModel]?
+    @Relationship(deleteRule: .cascade, inverse: \TalentLoadoutModel.roster)
+    public var talentLoadouts: [TalentLoadoutModel]?
 
     public init() {}
+}
+
+@Model
+public final class TalentLoadoutModel {
+    public var combatantID: String = ""
+    public var roster: RosterModel?
+
+    @Relationship(deleteRule: .cascade, inverse: \TalentNodeUnlockModel.loadout)
+    public var unlockedNodes: [TalentNodeUnlockModel]?
+
+    public init(combatantID: String = "") {
+        self.combatantID = combatantID
+    }
+}
+
+@Model
+public final class TalentNodeUnlockModel {
+    public var nodeID: String = ""
+    public var loadout: TalentLoadoutModel?
+
+    public init(nodeID: String = "") {
+        self.nodeID = nodeID
+    }
 }
 
 @Model

@@ -21,7 +21,6 @@ public struct RewardRevealShell<Content: View>: View {
     var contentTopPadding = TrinketDesign.Metrics.contentTopPadding
     var contentStackSpacing = TrinketDesign.Metrics.sectionSpacing
     var pinsPrimaryActionToBottom = true
-    var primaryActionWidthFraction = 1.0
     var primaryActionOpacity: Double = 1
 
     public init(
@@ -44,7 +43,6 @@ public struct RewardRevealShell<Content: View>: View {
         contentTopPadding: CGFloat = TrinketDesign.Metrics.contentTopPadding,
         contentStackSpacing: CGFloat = TrinketDesign.Metrics.sectionSpacing,
         pinsPrimaryActionToBottom: Bool = true,
-        primaryActionWidthFraction: Double = 1,
         primaryActionOpacity: Double = 1
     ) {
         self.eyebrow = eyebrow
@@ -66,7 +64,6 @@ public struct RewardRevealShell<Content: View>: View {
         self.contentTopPadding = contentTopPadding
         self.contentStackSpacing = contentStackSpacing
         self.pinsPrimaryActionToBottom = pinsPrimaryActionToBottom
-        self.primaryActionWidthFraction = primaryActionWidthFraction
         self.primaryActionOpacity = primaryActionOpacity
     }
 
@@ -112,9 +109,6 @@ public struct RewardRevealShell<Content: View>: View {
 
                 if !pinsPrimaryActionToBottom {
                     primaryAction
-                        .containerRelativeFrame(.horizontal) { width, _ in
-                            width * primaryActionWidthFraction
-                        }
                 }
             }
             .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
@@ -156,6 +150,7 @@ public struct RewardRevealShell<Content: View>: View {
                     .frame(maxWidth: .infinity)
             }
             .trinketPrimaryActionButton()
+            .trinketCenteredPrimaryAction()
             .disabled(isPrimaryActionDisabled)
             .opacity(primaryActionOpacity)
             .offset(y: (1 - primaryActionOpacity) * TrinketDesign.Metrics.smallSpacing)

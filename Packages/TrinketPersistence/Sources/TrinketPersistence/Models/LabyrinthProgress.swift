@@ -122,11 +122,12 @@ public struct PlayerLabyrinthState: Equatable, Sendable {
     ) {
         guard !isMapPayloadUnreadable, !hasMap else { return }
         let resolvedSeed = seed ?? worldSeed
+        guard resolvedSeed != 0 else { return }
         let generated = LabyrinthGenerator.makeInitialMap(
-            seed: resolvedSeed == 0 ? LabyrinthGenerator.fallbackWorldSeed : resolvedSeed,
+            seed: resolvedSeed,
             eligibleRecruitEventIDs: eligibleRecruitEventIDs
         )
-        worldSeed = resolvedSeed == 0 ? LabyrinthGenerator.fallbackWorldSeed : resolvedSeed
+        worldSeed = resolvedSeed
         clusters = generated.clusters
         nodes = generated.nodes
         mapVersion = LabyrinthGenerator.currentMapVersion

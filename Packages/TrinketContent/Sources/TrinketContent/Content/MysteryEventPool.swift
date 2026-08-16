@@ -29,73 +29,82 @@ enum MysteryEventPool {
         ev(
             id: "mana-berries",
             title: "Mana Berries",
-            narrative: "You stumble upon a lush field of glowing Mana Berries. Their faint blue radiance pulses gently, promising restored mana.",
+            narrative: "You stumble upon a lush field of glowing Mana Berries. Crystal has formed along the stems, and a sapphire ring lies half-buried in the tangle, pulsing with the same blue light.",
             artID: "mystery-mana-berries",
             choices: [
-                ("harvest", "Harvest", [
+                ("harvest-berries", "Harvest Berries", [
                     .gainMaterial(.herbs),
                     generatedItem("sapphire_ring", guaranteedAffixIDs: ["manabound"]),
                 ]),
-                ("study-glow", "Study the Glow", [.gainExperience]),
+                ("gather-crystals", "Gather Crystals", [.gainExperience, .gainMaterial(.crystal)]),
             ]
         ),
         ev(
             id: "enchanted-spring",
             title: "Enchanted Spring",
-            narrative: "A pool of iridescent water steams gently in the cool air. Its surface shimmers with an inviting warmth, promising restoration.",
+            narrative: "A pool of iridescent water steams gently in the cool air. Moss carpets the bank, and a charm of icy crystal rests just below the surface.",
             artID: "mystery-enchanted-spring",
             choices: [
-                ("bathe", "Bathe", [.gainExperience, .gainMaterial(.herbs)]),
-                ("bottle", "Bottle the Essence", [.gainMaterial(.crystal), .gainMaterial(.herbs)]),
+                ("gather-the-moss", "Gather the Moss", [.gainExperience, .gainMaterial(.herbs)]),
+                ("take-the-charm", "Take the Charm", [
+                    generatedItem("icy_heart"),
+                    .gainMaterial(.crystal),
+                ]),
             ]
         ),
         ev(
             id: "fungal-grotto",
             title: "Fungal Grotto",
-            narrative: "Bioluminescent mushrooms pulse in the dark, their spores hanging thick in the air. The cave walls glitter with an otherworldly light.",
+            narrative: "Bioluminescent mushrooms pulse in the dark, their spores hanging thick in the air. Crystals glitter on the cave walls, and an emerald ring sits among the caps.",
             artID: "mystery-fungal-grotto",
             choices: [
-                ("harvest-caps", "Harvest Caps", [
+                ("harvest-mushrooms", "Harvest Mushrooms", [
                     .gainMaterial(.herbs),
                     generatedItem("emerald_ring"),
                 ]),
-                ("breathe-spores", "Breathe the Spores", [.gainExperience]),
+                ("collect-crystals", "Collect Crystals", [.gainExperience, .gainMaterial(.crystal)]),
             ]
         ),
         ev(
             id: "wisdom-tree",
             title: "Wisdom Tree",
-            narrative: "An immense oak with a weathered face carved into its bark speaks in rustling leaves. Ancient wisdom emanates from its gnarled branches.",
+            narrative: "An immense oak with a weathered face carved into its bark speaks in rustling leaves. Fallen branches litter the ground, and herbs crowd the roots.",
             artID: "mystery-wisdom-tree",
             choices: [
-                ("ask-knowledge", "Ask for Knowledge", [.gainExperience]),
-                ("rest-shade", "Rest in its Shade", [.gainExperience, .gainMaterial(.herbs)]),
+                ("collect-branches", "Collect Branches", [.gainExperience, .gainMaterial(.wood)]),
+                ("forage-herbs", "Forage Herbs", [.gainExperience, .gainMaterial(.herbs)]),
             ]
         ),
         ev(
             id: "fairy-ring",
             title: "Fairy Ring",
-            narrative: "A circle of glowing mushrooms hums with fey energy in a moonlit clearing. The air feels thick with mischief and ancient magic.",
+            narrative: "A circle of glowing mushrooms hums with fey energy in a moonlit clearing. Gold coins and a lucky clover rest in the grass as if left for you.",
             artID: "mystery-fairy-ring",
             choices: [
-                ("step-inside", "Step Inside", [.gainGold(25)]),
-                ("pluck-cap", "Pluck a Cap", [.gainMaterial(.crystal)]),
+                ("take-the-gold", "Take the Gold", [.gainGold(25), generatedItem("lucky_clover")]),
+                ("pick-mushrooms", "Pick Mushrooms", [
+                    generatedItem("parasitic_bloom"),
+                    .gainMaterial(.herbs),
+                ]),
             ]
         ),
         ev(
             id: "ancient-altar",
             title: "Ancient Altar",
-            narrative: "A weathered stone altar stands beneath a shaft of light piercing the canopy. A rusted offering bowl rests before it, etched with forgotten symbols.",
+            narrative: "A weathered stone altar stands beneath a shaft of light piercing the canopy. Gold fills a rusted offering bowl, and a topaz relic set with crystal rests beside it.",
             artID: "mystery-ancient-altar",
             choices: [
-                ("pray", "Pray", [.gainExperience]),
-                ("take-relic", "Take the Relic", [generatedItem("topaz_amulet")]),
+                ("take-the-offering", "Take the Offering", [.gainExperience, .gainGold(20)]),
+                ("claim-the-relic", "Claim the Relic", [
+                    generatedItem("topaz_amulet"),
+                    .gainMaterial(.crystal),
+                ]),
             ]
         ),
         ev(
             id: "hidden-cache",
             title: "Hidden Cache",
-            narrative: "A leather-wrapped bundle tucked between exposed roots catches your eye. Whatever is inside has been hidden here for a long time.",
+            narrative: "A leather-wrapped bundle tucked between exposed roots catches your eye. Inside wait a coinpurse and a blade, hidden here for a long time.",
             artID: "mystery-hidden-cache",
             choices: [
                 ("take-coinpurse", "Take the Coinpurse", [.gainGold(20), .gainMaterial(.hide)]),
@@ -105,147 +114,160 @@ enum MysteryEventPool {
         ev(
             id: "overgrown-temple",
             title: "Overgrown Temple",
-            narrative: "Vines carpet ancient mosaic floors. A faint glow pulses from a cracked sarcophagus in the chamber beyond, hinting at preserved treasures.",
+            narrative: "Vines carpet ancient mosaic tiles. A faint glow pulses from a cracked sarcophagus in the crypt beyond, hinting at gold and preserved treasures.",
             artID: "mystery-overgrown-temple",
             choices: [
-                ("loot-crypt", "Loot the Crypt", [.gainRandomItem]),
-                ("read-inscriptions", "Read the Inscriptions", [.gainExperience, .gainMaterial(.crystal)]),
+                ("search-the-crypt", "Search the Crypt", [.gainRandomItem, .gainGold(20)]),
+                ("take-a-tile", "Take a Tile", [.gainExperience, .gainMaterial(.stone)]),
             ]
         ),
         ev(
             id: "abandoned-study",
             title: "Abandoned Study",
-            narrative: "Dusty shelves line a circular tower room. A half-written thesis lies open on the desk, quill dried beside it centuries ago.",
+            narrative: "Dusty wooden shelves of scrolls line a circular tower room. A spellbook lies open on the desk, a quill dried beside it centuries ago.",
             artID: "mystery-abandoned-study",
             choices: [
-                ("search-scrolls", "Search the Scrolls", [generatedItem("spellbook")]),
-                ("catalog-library", "Catalog the Library", [.gainExperience, .gainMaterial(.crystal)]),
+                ("search-scrolls", "Search the Scrolls", [
+                    generatedItem("spellbook"),
+                    .gainMaterial(.wood),
+                ]),
+                ("take-the-quill", "Take the Quill", [.gainExperience, generatedItem("runic_quill")]),
             ]
         ),
         ev(
             id: "mysterious-tome",
             title: "Mysterious Tome",
-            narrative: "A leather-bound book floats above a pedestal, pages turning on their own. Arcane energy crackles around it as if it has been waiting for a reader.",
+            narrative: "A leather-bound book floats above a pedestal, loose pages turning on their own. Its binding is splitting, as if it has been waiting to be read — or repaired.",
             artID: "mystery-mysterious-tome",
             choices: [
-                ("read", "Read Carefully", [.gainExperience]),
-                ("bind-pages", "Bind the Torn Pages", [generatedItem("spellbook")]),
+                ("take-the-pages", "Take the Pages", [
+                    .gainExperience,
+                    generatedItem("tattered_pages"),
+                ]),
+                ("repair-the-binding", "Repair the Binding", [
+                    .gainExperience,
+                    generatedItem("spellbook"),
+                ]),
             ]
         ),
         ev(
             id: "crystal-geode",
             title: "Crystal Geode",
-            narrative: "A massive amethyst geode splits the cave floor, its resonant hum filling the chamber with a deep, soothing vibration.",
+            narrative: "A massive amethyst geode splits the cave floor, gems crowding its hollow. A sapphire ring has formed among the crystal, and the stone shell has broken open beside it.",
             artID: "mystery-crystal-geode",
             choices: [
-                ("chip-gems", "Chip Out Gems", [
+                ("collect-gems", "Collect Gems", [
                     .gainMaterial(.crystal),
                     generatedItem("sapphire_ring", guaranteedAffixIDs: ["manabound"]),
                 ]),
-                ("meditate", "Meditate in the Resonance", [.gainExperience]),
+                ("take-the-shell", "Take the Shell", [.gainExperience, .gainMaterial(.stone)]),
             ]
         ),
         ev(
             id: "meteorite-crash",
             title: "Meteorite Crash",
-            narrative: "A smoldering crater scars the forest floor. A strange metallic rock from beyond the sky sits at its center, radiating unfamiliar energy.",
+            narrative: "A smoldering crater scars the forest floor. A metallic meteorite from beyond the sky sits at its center, iron fragments in the stone where the pit was torn open.",
             artID: "mystery-meteorite-crash",
             choices: [
-                ("pocket-fragment", "Pocket a Fragment", [
+                ("take-a-fragment", "Take a Fragment", [
+                    generatedItem("meteorite"),
                     .gainMaterial(.iron),
-                    generatedItem("ruby_amulet"),
                 ]),
-                ("study-impact", "Study the Impact", [.gainExperience]),
+                ("search-the-crater", "Search the Crater", [.gainExperience, .gainMaterial(.stone)]),
             ]
         ),
         ev(
             id: "forgotten-hoard",
             title: "Forgotten Hoard",
-            narrative: "Gold coins glitter among scattered bones beside a massive, ancient skeleton. The remains of a once-great beast guard its treasure even in death.",
+            narrative: "Scattered bones and a bone charm lie beside a massive, ancient skeleton. Iron scraps rest among the remains, and gold coins spill around a shield the beast still guards.",
             artID: "mystery-forgotten-hoard",
             choices: [
-                ("scoop-coins", "Scoop the Coins", [.gainGold(30), .gainMaterial(.iron)]),
-                ("fashion-bone-guard", "Fashion a Bone Guard", [generatedItem("kite_shield")]),
+                ("collect-the-bones", "Collect the Bones", [
+                    generatedItem("bone_charm"),
+                    .gainMaterial(.iron),
+                ]),
+                ("claim-the-shield", "Claim the Shield", [generatedItem("kite_shield"), .gainGold(30)]),
             ]
         ),
         ev(
             id: "sacred-grove",
             title: "Sacred Grove",
-            narrative: "Sunlight breaks through the canopy in golden rays. The air is thick with peace, and the ground hums with quiet vitality.",
+            narrative: "Sunlight breaks through the canopy in golden rays, falling on wild blooms and herbs. An emerald ring hangs in the roots of a fallen wooden bough.",
             artID: "mystery-sacred-grove",
             choices: [
-                ("bask", "Bask", [.gainExperience, .gainMaterial(.herbs)]),
-                ("forage", "Forage the Undergrowth", [
-                    .gainMaterial(.herbs),
-                    .gainMaterial(.wood),
+                ("pick-the-blooms", "Pick the Blooms", [.gainExperience, .gainMaterial(.herbs)]),
+                ("take-the-ring", "Take the Ring", [
                     generatedItem("emerald_ring"),
+                    .gainMaterial(.wood),
                 ]),
             ]
         ),
         ev(
             id: "mountain-pass",
             title: "Mountain Pass",
-            narrative: "A narrow pass winds through jagged peaks. The wind howls and loose rocks scatter the path, but valuable minerals glint in the sunlight.",
+            narrative: "A narrow pass winds through jagged peaks. Iron and a thunderstone glint in the cliffside, and alpine herbs cling to the rocks where the wind howls.",
             artID: "mystery-mountain-pass",
             choices: [
-                ("mine-cliffside", "Mine the Cliffside", [
+                ("mine-the-cliffside", "Mine the Cliffside", [
+                    generatedItem("thunderstone"),
                     .gainMaterial(.iron),
-                    .gainMaterial(.crystal),
                 ]),
-                ("gather-herbs", "Gather Alpine Herbs", [.gainExperience, .gainMaterial(.herbs)]),
+                ("gather-herbs", "Gather Herbs", [.gainExperience, .gainMaterial(.herbs)]),
             ]
         ),
         ev(
             id: "murky-pond",
             title: "Murky Pond",
-            narrative: "A still pond reflects the gnarled trees surrounding it. Bubbles rise from its murky depths, hinting at secrets beneath the surface.",
+            narrative: "A still pond reflects the gnarled trees surrounding it. Fish drift in the murky depths, and medicinal reeds crowd the bank as bubbles rise from below.",
             artID: "mystery-murky-pond",
             choices: [
-                ("fish", "Fish the Depths", [.gainMaterial(.food)]),
-                ("pull-reeds", "Pull Medicinal Reeds", [
-                    .gainMaterial(.herbs),
-                    .gainMaterial(.wood),
-                    .gainExperience,
-                ]),
+                ("catch-fish", "Catch Fish", [.gainExperience, .gainMaterial(.food)]),
+                ("pull-the-reeds", "Pull the Reeds", [.gainExperience, .gainMaterial(.herbs)]),
             ]
         ),
         ev(
             id: "necromancers-offer",
             title: "The Necromancer's Offer",
-            narrative: "A robed figure tends a circle of salt and bone. Without looking up, they extend a skeletal hand, offering forbidden power.",
+            narrative: "A robed figure tends a circle of crystal salts and bone. Without looking up, they extend a staff in a skeletal hand, offering a forbidden rite.",
             artID: "mystery-the-necromancers-offer",
             choices: [
                 ("accept-rite", "Accept the Rite", [.gainExperience, generatedItem("staff")]),
-                ("steal-salts", "Steal the Salts", [
+                ("take-the-salts", "Take the Salts", [
+                    generatedItem("bone_charm"),
                     .gainMaterial(.crystal),
-                    generatedItem("ruby_ring"),
                 ]),
             ]
         ),
         ev(
             id: "medicinal-herb-garden",
             title: "Medicinal Herb Garden",
-            narrative: "Cultivated beds have run wild as medicinal herbs grow through cracked paving, rich with scent and curative promise.",
+            narrative: "Cultivated beds have run wild as medicinal herbs grow through cracked paving. A mortar and pestle sit beside a sheaf of notes, rich with scent and curative promise.",
             artID: "mystery-medicinal-herb-garden",
             choices: [
-                ("harvest-remedies", "Harvest Remedies", [.gainMaterial(.herbs), .gainExperience]),
-                ("copy-notes", "Copy the Herbalist's Notes", [
+                ("harvest-remedies", "Harvest Remedies", [
+                    .gainMaterial(.herbs),
+                    generatedItem("mortar_and_pestle"),
+                ]),
+                ("take-the-notes", "Take the Notes", [
                     .gainExperience,
-                    generatedItem("emerald_amulet"),
+                    generatedItem("tattered_pages"),
                 ]),
             ]
         ),
         ev(
             id: "crystal-garden",
             title: "Crystal Garden",
-            narrative: "Faceted crystalline blooms catch stray light, chiming softly when the wind passes by. Each shard thrums with latent power.",
+            narrative: "Faceted crystalline blooms catch stray light, and chimes hang among the shards. A sapphire amulet rests in the bed, each shard thrumming with latent power.",
             artID: "mystery-crystal-garden",
             choices: [
                 ("harvest-shards", "Harvest Shards", [
                     .gainMaterial(.crystal),
                     generatedItem("sapphire_amulet", guaranteedAffixIDs: ["manabound"]),
                 ]),
-                ("attune", "Attune to the Chime", [.gainExperience]),
+                ("take-the-chimes", "Take the Chimes", [
+                    .gainExperience,
+                    generatedItem("resonant_chimes"),
+                ]),
             ]
         ),
         ev(
@@ -254,38 +276,47 @@ enum MysteryEventPool {
             narrative: "A deserted lodge still smells of smoke, wood, and leather. A hunter's bow and hatchet hang near the door, preserved and waiting.",
             artID: "mystery-hunters-lodge",
             choices: [
-                ("take-bow", "Take the Bow", [generatedItem("shortbow"), .gainMaterial(.hide)]),
-                ("take-hatchet", "Take the Hatchet", [generatedItem("hatchet"), .gainMaterial(.hide)]),
+                ("claim-the-bow", "Claim the Bow", [generatedItem("shortbow"), .gainMaterial(.hide)]),
+                ("take-the-hatchet", "Take the Hatchet", [
+                    generatedItem("hatchet"),
+                    .gainMaterial(.hide),
+                ]),
             ]
         ),
         ev(
             id: "roadside-censer",
             title: "Roadside Censer",
-            narrative: "Incense smoke coils from a hanging brass censer at a fork in the path. The air tastes of sanctified ash and old vows.",
+            narrative: "Incense smoke coils from a hanging brass censer at a fork in the path. Gold coins lie at its base, and the air tastes of sanctified ash and old vows.",
             artID: "mystery-roadside-censer",
             choices: [
-                ("breathe-smoke", "Breathe the Smoke", [.gainExperience]),
-                ("claim-censer", "Claim the Censer", [generatedItem("topaz_amulet")]),
+                ("gather-incense", "Gather Incense", [.gainExperience, .gainMaterial(.herbs)]),
+                ("claim-censer", "Claim the Censer", [generatedItem("brass_censer"), .gainGold(20)]),
             ]
         ),
         ev(
             id: "the-phoenix",
             title: "The Phoenix",
-            narrative: "A single feather glows with warm radiance, asking to be reborn. Embers swirl around it as if the flame that created it still burns nearby.",
+            narrative: "A single feather glows with warm radiance on a nest of charred wood, a ruby gleam caught in the down. A burning brand leans in the embers as if the flame that created it still burns nearby.",
             artID: "mystery-the-phoenix",
             choices: [
-                ("claim-feather", "Claim the Feather", [generatedItem("ruby_amulet")]),
-                ("fan-embers", "Fan the Embers", [generatedItem("staff")]),
+                ("claim-the-feather", "Claim the Feather", [
+                    generatedItem("ruby_amulet"),
+                    .gainMaterial(.hide),
+                ]),
+                ("take-the-brand", "Take the Brand", [generatedItem("staff"), .gainMaterial(.wood)]),
             ]
         ),
         ev(
             id: "the-wolf",
             title: "The Wolf",
-            narrative: "A grey wolf steps from the treeline, watching you with amber eyes. It does not flee — only waits, as if deciding whether you are worth knowing.",
+            narrative: "A grey wolf steps from the treeline, watching you with amber eyes. It does not flee — only waits, then leads you toward a den of hides and a hunter's cache of food and a bow.",
             artID: "mystery-the-wolf",
             choices: [
-                ("study-pack", "Study the Pack", [.gainExperience]),
-                ("follow-cache", "Follow to its Cache", [generatedItem("recurve_bow")]),
+                ("search-the-den", "Search the Den", [.gainExperience, .gainMaterial(.hide)]),
+                ("open-the-cache", "Open the Cache", [
+                    generatedItem("recurve_bow"),
+                    .gainMaterial(.food),
+                ]),
             ]
         ),
         ev(

@@ -40,6 +40,7 @@ public final class SpiresPlayMode {
     private func battleLoot(for floor: SpireFloor) -> BattleLootPackage? {
         Self.resolveBattleLoot(
             for: floor,
+            worldSeed: playerSave.worldSeed,
             ownedTrinketIDs: playerSave.inventory.ownedTrinketIDs,
             astralChanceBonusPercent: playerSave.homestead.effects.astralChanceBonusPercent
         )
@@ -47,11 +48,13 @@ public final class SpiresPlayMode {
 
     static func resolveBattleLoot(
         for floor: SpireFloor,
+        worldSeed: UInt64,
         ownedTrinketIDs: Set<String> = [],
         astralChanceBonusPercent: Int = 0
     ) -> BattleLootPackage? {
         SpireCompletion.resolveLoot(
             for: floor,
+            worldSeed: worldSeed,
             ownedTrinketIDs: ownedTrinketIDs,
             astralChanceBonusPercent: astralChanceBonusPercent
         )

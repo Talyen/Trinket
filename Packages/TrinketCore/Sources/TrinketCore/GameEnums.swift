@@ -14,6 +14,7 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Codable, Send
     case freeze = "Freeze"
     case dodge = "Dodge"
     case purge = "Purge"
+    case cleanse = "Cleanse"
     case mana = "Mana"
     case deathsDoor = "Death's Door"
 
@@ -32,7 +33,7 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Codable, Send
         switch self {
         case .physical, .burn, .poison, .bleed, .holy, .freeze, .stun: .damageType
         case .block, .dodge, .purge: .mitigation
-        case .health, .leech, .deathsDoor: .restoration
+        case .health, .leech, .deathsDoor, .cleanse: .restoration
         case .gold, .mana: .resource
         }
     }
@@ -48,7 +49,7 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Codable, Send
         switch self {
         case .physical, .burn, .poison, .bleed, .holy, .freeze, .stun, .health, .leech:
             true
-        case .block, .dodge, .purge, .gold, .mana, .deathsDoor:
+        case .block, .dodge, .purge, .cleanse, .gold, .mana, .deathsDoor:
             false
         }
     }
@@ -104,6 +105,8 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Codable, Send
             "Dodge avoids an attack completely"
         case .purge:
             "Purge removes a beneficial effect"
+        case .cleanse:
+            "Cleanse removes a negative effect from an ally"
         case .mana:
             "Mana regenerates +1 each turn; spend 3 Mana to add +1 Burn or Freeze damage on a card"
         case .deathsDoor:

@@ -38,6 +38,7 @@ struct LabyrinthCraftView: View {
                         .frame(maxWidth: .infinity)
                 }
                 .trinketPrimaryActionButton()
+                .trinketCenteredPrimaryAction()
                 .disabled(playerSave.roster.gold < session.goldAmount)
                 .accessibilityIdentifier(AccessibilityID.Play.labyrinthCraftForge)
 

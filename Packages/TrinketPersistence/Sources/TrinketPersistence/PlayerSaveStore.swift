@@ -44,6 +44,7 @@ public final class PlayerSaveStore {
     private var observedSchemaVersion = PlayerSave.currentSchemaVersion
     private var observedModifiedAt = Date.distantPast
     private var observedSessionGeneration: UInt64 = 0
+    private var observedWorldSeed: UInt64 = 0
     private var observedCorruptionAltarCooldownRemaining = 0
     private let logger = Logger(
         subsystem: PlayerSaveDefaults.loggingSubsystem,
@@ -104,6 +105,10 @@ public final class PlayerSaveStore {
     /// Root-level Corruption Altar cooldown — prefer this over `currentSave` for reads.
     public var corruptionAltarCooldownRemaining: Int {
         observedCorruptionAltarCooldownRemaining
+    }
+
+    public var worldSeed: UInt64 {
+        observedWorldSeed
     }
 
     public var currentSave: PlayerSave {
@@ -466,6 +471,7 @@ private extension PlayerSaveStore {
             schemaVersion: observedSchemaVersion,
             modifiedAt: observedModifiedAt,
             sessionGeneration: observedSessionGeneration,
+            worldSeed: observedWorldSeed,
             journey: observedJourney,
             roster: observedRoster,
             inventory: observedInventory,
@@ -481,6 +487,7 @@ private extension PlayerSaveStore {
             observedSchemaVersion = save.schemaVersion
             observedModifiedAt = save.modifiedAt
             observedSessionGeneration = save.sessionGeneration
+            observedWorldSeed = save.worldSeed
             observedCorruptionAltarCooldownRemaining = save.corruptionAltarCooldownRemaining
         }
         if slices.contains(.journey) {

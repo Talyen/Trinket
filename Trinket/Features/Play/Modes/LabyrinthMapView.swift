@@ -134,7 +134,9 @@ struct LabyrinthMapView: View {
                     viewedFloor = max(1, state.currentFloorNumber)
                 }
             }
+            .frame(maxWidth: .infinity)
             .trinketPrimaryActionButton()
+            .trinketCenteredPrimaryAction()
             .accessibilityIdentifier(AccessibilityID.Play.labyrinthEnter)
         }
     }

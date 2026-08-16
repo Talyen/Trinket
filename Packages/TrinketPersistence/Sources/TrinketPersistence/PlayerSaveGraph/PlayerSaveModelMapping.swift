@@ -100,6 +100,7 @@ extension RosterModel {
         updateUnlockedCombatants(from: roster, context: context)
         updateProgressions(from: roster, context: context)
         updateAbilityLoadouts(from: roster, context: context)
+        updateTalentLoadouts(from: roster, context: context)
         updateEquipmentLoadouts(from: roster, context: context)
     }
 
@@ -162,6 +163,44 @@ extension RosterModel {
         abilityLoadouts?.linkEach(to: self, parent: \.roster)
     }
 
+    private func updateTalentLoadouts(from roster: PlayerRosterState, context: ModelContext?) {
+        let talentValues = roster.unlockedTalents
+            .map { (combatantID: $0.key, nodeIDs: Array($0.value).sorted()) }
+            .sorted { $0.combatantID < $1.combatantID }
+        talentLoadouts = reconcileModels(
+            existing: talentLoadouts ?? [],
+            values: talentValues,
+            existingKey: \.combatantID,
+            valueKey: { $0.combatantID },
+            make: { TalentLoadoutModel(combatantID: $0.combatantID) },
+            update: { model, value in
+                self.updateTalentLoadout(model, from: value, context: context)
+            },
+            context: context
+        )
+        talentLoadouts?.linkEach(to: self, parent: \.roster)
+    }
+
+    private func updateTalentLoadout(
+        _ model: TalentLoadoutModel,
+        from value: (combatantID: String, nodeIDs: [String]),
+        context: ModelContext?
+    ) {
+        model.combatantID = value.combatantID
+        model.unlockedNodes = reconcileModels(
+            existing: model.unlockedNodes ?? [],
+            values: value.nodeIDs,
+            existingKey: \.nodeID,
+            valueKey: { $0 },
+            make: { TalentNodeUnlockModel(nodeID: $0) },
+            update: { unlockModel, nodeID in
+                unlockModel.nodeID = nodeID
+            },
+            context: context
+        )
+        model.unlockedNodes?.linkEach(to: model, parent: \.loadout)
+    }
+
     private func updateEquipmentLoadouts(from roster: PlayerRosterState, context: ModelContext?) {
         let equipmentValues = roster.equipmentLoadouts
             .map { EquipmentLoadoutValue(combatantID: $0.key, loadout: $0.value) }
@@ -210,6 +249,9 @@ extension RosterModel {
                 }))
             )
         })
+        let talentValues = Dictionary(lastWins: (talentLoadouts ?? []).map { loadoutModel in
+            (loadoutModel.combatantID, Set((loadoutModel.unlockedNodes ?? []).map(\.nodeID)))
+        })
         let inventoryItemIDs = Set(inventory.items.map(\.id))
         let (resolvedHeroID, resolvedCompanionID) = RosterHydration.resolveActiveSelection(
             activeHeroID: activeHeroID,
@@ -230,6 +272,7 @@ extension RosterModel {
                 inventoryItemIDs: inventoryItemIDs,
                 inventoryItems: inventory.items
             ),
+            unlockedTalents: talentValues,
             gold: gold
         )
     }

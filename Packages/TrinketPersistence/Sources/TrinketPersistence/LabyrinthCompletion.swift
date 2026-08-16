@@ -10,6 +10,7 @@ public enum LabyrinthCompletion {
     /// Ensures a Labyrinth map exists for the current save (eligible recruits applied).
     public static func enter(save: inout PlayerSave) {
         save.labyrinth.ensureMap(
+            seed: save.worldSeed,
             eligibleRecruitEventIDs: save.roster.eligibleRecruitEventIDs
         )
     }
@@ -93,7 +94,10 @@ public enum LabyrinthCompletion {
         save: inout PlayerSave
     ) {
         let eligibleRecruitEventIDs = save.roster.eligibleRecruitEventIDs
-        save.labyrinth.ensureMap(eligibleRecruitEventIDs: eligibleRecruitEventIDs)
+        save.labyrinth.ensureMap(
+            seed: save.worldSeed,
+            eligibleRecruitEventIDs: eligibleRecruitEventIDs
+        )
         guard let node = save.labyrinth.node(id: nodeID), !node.isCleared else { return }
 
         let effects = save.labyrinth.effects(for: nodeID)
@@ -103,7 +107,7 @@ public enum LabyrinthCompletion {
             let resolvedLoot = loot ?? resolveCombatLoot(
                 for: node,
                 effects: effects,
-                worldSeed: save.labyrinth.worldSeed,
+                worldSeed: save.worldSeed,
                 ownedTrinketIDs: save.inventory.ownedTrinketIDs,
                 astralChanceBonusPercent: save.homestead.effects.astralChanceBonusPercent
             )
@@ -170,7 +174,10 @@ public enum LabyrinthCompletion {
         save: inout PlayerSave
     ) -> Bool {
         let eligibleRecruitEventIDs = save.roster.eligibleRecruitEventIDs
-        save.labyrinth.ensureMap(eligibleRecruitEventIDs: eligibleRecruitEventIDs)
+        save.labyrinth.ensureMap(
+            seed: save.worldSeed,
+            eligibleRecruitEventIDs: eligibleRecruitEventIDs
+        )
         guard let node = save.labyrinth.node(id: nodeID),
               node.type.canonical == .craft,
               !node.isCleared
@@ -198,7 +205,7 @@ public enum LabyrinthCompletion {
         guard let item = makeGeneratedItem(
             nodeID: nodeID,
             effects: effects,
-            worldSeed: save.labyrinth.worldSeed,
+            worldSeed: save.worldSeed,
             ownedTrinketIDs: save.inventory.ownedTrinketIDs,
             astralChanceBonusPercent: save.homestead.effects.astralChanceBonusPercent
         ) else { return }
@@ -215,7 +222,7 @@ public enum LabyrinthCompletion {
         let bases = GameContent.itemBaseTypes.filter { $0.slot != .trinket }
         guard !bases.isEmpty else { return nil }
         var rng = SeededRandomNumberGenerator(
-            seed: worldSeed &+ GameContent.stableSeed(for: "labyrinth-item-\(nodeID)")
+            seed: GameContent.encounterSeed(worldSeed, salt: "labyrinth-item-\(nodeID)")
         )
         let rarity = ItemRarityRoll.roll(
             baseAstralChancePercent: 15,

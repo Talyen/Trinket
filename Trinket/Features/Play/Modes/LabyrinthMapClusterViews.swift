@@ -53,6 +53,7 @@ struct LabyrinthFloorMap: View {
                 visualState: visualState,
                 type: LabyrinthMapPresentation.effectiveType(
                     for: node,
+                    worldSeed: playerSave.worldSeed,
                     unlockedHeroIDs: roster.unlockedHeroIDs,
                     unlockedCompanionIDs: roster.unlockedCompanionIDs
                 ),
@@ -308,6 +309,7 @@ struct LabyrinthNodeInspector: View {
     private var type: LabyrinthNodeType {
         LabyrinthMapPresentation.effectiveType(
             for: node,
+            worldSeed: playerSave.worldSeed,
             unlockedHeroIDs: playerSave.roster.unlockedHeroIDs,
             unlockedCompanionIDs: playerSave.roster.unlockedCompanionIDs
         )
@@ -437,6 +439,8 @@ private struct LabyrinthNodeArtwork: View {
         case hexSeal
     }
 
+    @Environment(PlayerSaveStore.self) private var playerSave
+
     let node: LabyrinthNode
     let type: LabyrinthNodeType
     let pickContext: MysteryEventPickContext
@@ -454,6 +458,7 @@ private struct LabyrinthNodeArtwork: View {
         case .mystery, .event:
             GameContent.resolveLabyrinthMysteryEvent(
                 nodeID: node.id,
+                worldSeed: playerSave.worldSeed,
                 forcedEventID: nil,
                 pinnedEventID: node.mysteryEventID,
                 context: pickContext

@@ -20,7 +20,11 @@ struct StageMapPresentationTests {
         var progress = JourneyProgressState.initial
         progress.complete(chapter.stages[0], in: GameContent.chapters)
 
-        let rows = StageSelectRowPresentation<Stage>.stageRows(for: chapter, progress: progress)
+        let rows = StageSelectRowPresentation<Stage>.stageRows(
+            for: chapter,
+            progress: progress,
+            worldSeed: 1
+        )
 
         #expect(!(rows.map(\.item.id).contains(chapter.stages[0].id)))
         #expect(rows.contains { $0.item.id == progress.activeStageID && $0.isActive })
@@ -78,6 +82,7 @@ struct StageMapPresentationTests {
 
         let event = GameContent.resolveJourneyMysteryEvent(
             stage: stage,
+            worldSeed: 1,
             context: .excludingCorruptionAltar
         )
         #expect(!event.isRecruit)

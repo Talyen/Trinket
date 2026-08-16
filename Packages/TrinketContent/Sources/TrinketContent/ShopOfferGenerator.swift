@@ -19,6 +19,8 @@ public enum ShopOfferGenerator {
     public static let offerCount = 4
     public static let basePriceRange = 20 ... 40
     public static let astralPriceMultiplier = 2
+    public static let starterShopStageID = "chapter-1-stage-8"
+    public static let starterShopPriceDiscountPercent = 50
 
     public static func generateOffers(
         stageID: String,
@@ -31,13 +33,13 @@ public enum ShopOfferGenerator {
     ) -> [ShopOffer] {
         guard count > 0, !baseTypes.isEmpty else { return [] }
 
-        let isChapter1 = stageID.hasPrefix("chapter-1")
+        let isStarterShop = stageID == starterShopStageID
 
         var reservedTrinketIDs = Set<String>()
         var offers: [ShopOffer] = []
         for index in 0 ..< count {
-            let rarity: Rarity = if isChapter1 {
-                index == count - 1 ? .astral : .basic
+            let rarity: Rarity = if isStarterShop {
+                .basic
             } else {
                 MysteryItemRarity.roll(
                     astralChanceBonusPercent: astralChanceBonusPercent,
@@ -45,7 +47,10 @@ public enum ShopOfferGenerator {
                 )
             }
             let basePrice = Int.random(in: basePriceRange, using: &randomNumberGenerator)
-            let price = rarity == .astral ? basePrice * astralPriceMultiplier : basePrice
+            var price = rarity == .astral ? basePrice * astralPriceMultiplier : basePrice
+            if isStarterShop {
+                price = max(1, (price * starterShopPriceDiscountPercent) / 100)
+            }
             let offerID = "\(stageID)-offer-\(index)"
             let item = ItemRewardGenerator.generate(
                 id: offerID,
@@ -64,8 +69,8 @@ public enum ShopOfferGenerator {
         return offers
     }
 
-    /// Deterministic seed derived from the stage id so a visit shelf is stable for that stage.
-    public static func seed(forStageID stageID: String) -> UInt64 {
-        GameContent.stableSeed(for: "shop-\(stageID)")
+    /// Deterministic seed so a visit shelf is stable for that save + stage.
+    public static func seed(worldSeed: UInt64, forStageID stageID: String) -> UInt64 {
+        GameContent.encounterSeed(worldSeed, salt: "shop-\(stageID)")
     }
 }

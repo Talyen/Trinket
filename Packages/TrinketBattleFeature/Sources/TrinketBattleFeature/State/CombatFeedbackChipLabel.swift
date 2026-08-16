@@ -127,15 +127,6 @@ enum CombatFeedbackChipLabel: Hashable {
             false
         }
     }
-
-    var isNegativeNumeric: Bool {
-        switch self {
-        case let .amount(value), let .percent(value):
-            value < 0
-        case .word:
-            false
-        }
-    }
 }
 
 enum CombatFeedbackStatusLabel: String, CaseIterable, Hashable {

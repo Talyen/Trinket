@@ -208,6 +208,14 @@ public extension View {
         ))
     }
 
+    /// Half-width, horizontally centered layout for a lone screen primary action.
+    func trinketCenteredPrimaryAction() -> some View {
+        containerRelativeFrame(.horizontal) { width, _ in
+            width * TrinketDesign.Metrics.singlePrimaryActionWidthFraction
+        }
+        .frame(maxWidth: .infinity)
+    }
+
     /// Quieter glass chrome for secondary actions (not the screen's primary CTA).
     func trinketSecondaryActionButton(
         controlSize: ControlSize = .large,

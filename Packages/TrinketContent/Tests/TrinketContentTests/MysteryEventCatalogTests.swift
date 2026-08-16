@@ -98,6 +98,7 @@ struct MysteryEventCatalogTests {
         let configuredPick = GameContent.resolveRecruitEncounter(
             configuredEventID: configured.id,
             encounterID: "campaign-stage",
+            worldSeed: 3,
             unlockedHeroIDs: [PlayerRosterStarterIDs.hero],
             unlockedCompanionIDs: [PlayerRosterStarterIDs.companion]
         )
@@ -106,12 +107,14 @@ struct MysteryEventCatalogTests {
         let fallbackA = GameContent.resolveRecruitEncounter(
             configuredEventID: configured.id,
             encounterID: "campaign-stage",
+            worldSeed: 3,
             unlockedHeroIDs: [PlayerRosterStarterIDs.hero],
             unlockedCompanionIDs: [PlayerRosterStarterIDs.companion, "bear"]
         )
         let fallbackB = GameContent.resolveRecruitEncounter(
             configuredEventID: configured.id,
             encounterID: "campaign-stage",
+            worldSeed: 3,
             unlockedHeroIDs: [PlayerRosterStarterIDs.hero],
             unlockedCompanionIDs: [PlayerRosterStarterIDs.companion, "bear"]
         )
@@ -124,6 +127,7 @@ struct MysteryEventCatalogTests {
         let resolution = GameContent.resolveRecruitEncounter(
             configuredEventID: "recruit-bear",
             encounterID: "completed-roster-stage",
+            worldSeed: 3,
             unlockedHeroIDs: Set(GameContent.heroes.map(\.id)),
             unlockedCompanionIDs: Set(GameContent.companions.map(\.id))
         )
@@ -133,6 +137,32 @@ struct MysteryEventCatalogTests {
         }
         try #expect(!event.isRecruit)
         try #expect(GameContent.mysteryEvents.contains(event))
+    }
+
+    @Test func randomBattleEnemyPickIsStablePerWorldAndDivergesAcrossWorlds() throws {
+        let stage = try #require(
+            GameContent.chapters.flatMap(\.stages).first { $0.encounter == .randomBattle }
+        )
+        let first = try #require(stage.resolvedBattleEnemyID(worldSeed: 8))
+        #expect(first == stage.resolvedBattleEnemyID(worldSeed: 8))
+        let other = try #require(stage.resolvedBattleEnemyID(worldSeed: 9))
+        #expect(first != other)
+    }
+
+    @Test func ordinaryMysteryChoicesGrantTwoLootEffects() throws {
+        for event in GameContent.mysteryEvents where event.id != GameContent.corruptionAltarEventID {
+            for choice in event.choices {
+                try #expect(
+                    choice.effects.count == 2,
+                    "\(event.id)/\(choice.id) should grant exactly two effects"
+                )
+                let kinds = choice.effects.map(lootKind(for:))
+                try #expect(
+                    Self.validTwoLootKindPairs.contains(Set(kinds)),
+                    "\(event.id)/\(choice.id) has invalid loot pairing \(kinds)"
+                )
+            }
+        }
     }
 
     @Test func generatedItemEffectsReferenceKnownBaseTypes() throws {
@@ -160,18 +190,26 @@ struct MysteryEventCatalogTests {
 
     @Test func onlyStrongMysteryChoiceTiesCanAwardTrinkets() throws {
         let expected: [String: Set<String>] = [
-            "take-relic": ["brass_censer", "sin_eaters_lantern"],
+            "take-the-charm": ["icy_heart"],
+            "take-the-gold": ["lucky_clover"],
+            "pick-mushrooms": ["parasitic_bloom"],
             "claim-blade": ["cutpurse_knife"],
-            "loot-crypt": ["bone_charm", "sin_eaters_lantern"],
-            "search-scrolls": ["runic_quill", "tattered_pages"],
-            "bind-pages": ["tattered_pages"],
-            "pocket-fragment": ["meteorite"],
-            "accept-rite": ["bone_charm", "sin_eaters_lantern"],
-            "copy-notes": ["runic_quill", "tattered_pages"],
+            "search-the-crypt": ["bone_charm", "sin_eaters_lantern"],
+            "take-the-quill": ["runic_quill"],
+            "take-the-pages": ["tattered_pages"],
+            "take-a-fragment": ["meteorite"],
+            "collect-the-bones": ["bone_charm"],
+            "mine-the-cliffside": ["thunderstone"],
+            "take-the-salts": ["bone_charm"],
+            "harvest-remedies": ["mortar_and_pestle"],
+            "take-the-notes": ["tattered_pages"],
+            "take-the-chimes": ["resonant_chimes"],
             "claim-censer": ["brass_censer"],
         ]
 
+        let choiceIDs = Set(GameContent.mysteryEvents.flatMap { $0.choices.map(\.id) })
         for (choiceID, trinketIDs) in expected {
+            try #expect(choiceIDs.contains(choiceID), "Mapped choice \(choiceID) is missing from the pool")
             try #expect(GameContent.themedTrinketIDs(forMysteryChoiceID: choiceID) == trinketIDs)
         }
         try #expect(GameContent.themedTrinketIDs(forMysteryChoiceID: "harvest-berries") == nil)
@@ -217,6 +255,35 @@ struct MysteryEventCatalogTests {
 
         #expect(LabyrinthNodeType.recruit.symbolName == "person.2.fill")
     }
+}
+
+private enum MysteryLootKind: Hashable {
+    case experience
+    case gold
+    case material
+    case item
+}
+
+private func lootKind(for effect: MysteryEffect) -> MysteryLootKind {
+    switch effect {
+    case .gainExperience: .experience
+    case .gainGold: .gold
+    case .gainMaterial: .material
+    case .gainGeneratedItem, .gainRandomItem: .item
+    case .unlockCombatant, .corruptItem, .leave:
+        preconditionFailure("Unexpected mystery effect \(effect) in loot pairing test")
+    }
+}
+
+private extension MysteryEventCatalogTests {
+    static let validTwoLootKindPairs: Set<Set<MysteryLootKind>> = [
+        [.item, .material],
+        [.item, .gold],
+        [.experience, .material],
+        [.experience, .gold],
+        [.experience, .item],
+        [.gold, .material],
+    ]
 }
 
 /// Starter IDs mirrored from persistence without importing that package into content tests.

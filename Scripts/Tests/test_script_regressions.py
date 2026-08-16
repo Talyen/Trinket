@@ -492,15 +492,16 @@ class ScriptRegressionTests(unittest.TestCase):
             "trinket_simulator_cleanup_excess", 1
         )[0]
         self.assertIn('TRINKET_CLEANUP_SINGLE_WARMED:-1', single)
+        self.assertIn("Trinket Run", single)
         self.assertIn("Trinket CI", single)
         self.assertIn(r"Trinket Agent \d+", single)
         idle = text.split("trinket_simulator_cleanup_idle_pool()", 1)[1].split(
             "trinket_simulator_enforce_single_warm_booted", 1
         )[0]
         self.assertIn(r"Trinket Agent \d+", idle)
-        self.assertIn("Trinket CI stays warm", idle)
+        self.assertIn("Trinket Run stays warm", idle)
         self.assertIn('TRINKET_CLEANUP_IDLE_POOL:-0', idle)
-        self.assertNotIn('name == "Trinket CI"', idle)
+        self.assertNotIn('name == "Trinket Run"', idle)
         self.assertIn('TRINKET_MAX_AGENT_SIMS:-1', text)
         self.assertFalse((ROOT / "Scripts" / "clean-dev-artifacts.sh").exists())
 

@@ -3,14 +3,11 @@ import TrinketContent
 import TrinketCore
 
 /// Handler for Block pool gains.
-struct DefensePoolBuffHandler: BattleEffectHandler {
-    let pool: DefensePoolEngine.Pool
-    var kind: EffectKind {
-        pool.effectKind
-    }
+struct BlockBuffHandler: BattleEffectHandler {
+    let kind: EffectKind = .shield
 
     func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
-        let total = DefensePoolEngine.points(in: stacks, pool: pool)
+        let total = DefensePoolEngine.blockPoints(in: stacks)
         guard total > 0 else { return nil }
         return EffectSummary(keyword: keyword, text: "\(keyword.rawValue): \(total).")
     }
@@ -24,27 +21,26 @@ struct DefensePoolBuffHandler: BattleEffectHandler {
         in context: inout BattleState
     ) -> EffectApplyOutcome {
         let adjusted = context.adjustedOutgoingEffect(effect, sourceID: source.id)
-        guard let gain = pool.decodeGain(adjusted) else {
+        guard case let .shield(keyword, amount) = adjusted else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
 
         let applied = DefensePoolEngine.add(
-            gain.amount,
-            pool: pool,
+            amount,
             to: target,
-            keyword: gain.keyword,
+            keyword: keyword,
             sourceActorID: source.id,
             in: &context
         )
 
         let event = context.nextEvent(
             kind: .effect,
-            effectKind: pool.appliedEffectKind,
+            effectKind: .shieldApplied,
             actorName: source.name,
             abilityName: ability.name,
             target: target,
             amount: applied,
-            keyword: gain.keyword
+            keyword: keyword
         )
         return EffectApplyOutcome(events: [event], didApply: true)
     }

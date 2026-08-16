@@ -58,6 +58,7 @@ struct MysteryCorruptionRevealContent: View {
                 .trinketPrimaryActionButton(
                     accessibilityIdentifier: AccessibilityID.Mystery.corruptionContinueButton
                 )
+                .trinketCenteredPrimaryAction()
             }
             .padding(TrinketDesign.Metrics.extraLargeSpacing)
         }

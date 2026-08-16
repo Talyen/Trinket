@@ -83,9 +83,29 @@ private struct CombatantBuffAuraStroke: View, Animatable {
             // Purge keyword purple is the Shadowstep shimmer palette.
             let style = Keyword.purge.visualStyle
             return (style.color, TrinketDesign.Colors.Overlay.paper.opacity(0.92))
+        case .predatorsFocus:
+            // Physical keyword amber/orange is the Predator's Focus shimmer palette.
+            let style = Keyword.physical.visualStyle
+            return (style.color, TrinketDesign.Colors.Overlay.paper.opacity(0.95))
+        case .glacialWard:
+            // Freeze keyword cyan is the Glacial Ward shimmer palette.
+            let style = Keyword.freeze.visualStyle
+            return (style.color, TrinketDesign.Colors.Overlay.paper.opacity(0.95))
+        case .thorns:
+            // Poison keyword emerald green is the Thorns shimmer palette.
+            let style = Keyword.poison.visualStyle
+            return (style.color, TrinketDesign.Colors.Overlay.paper.opacity(0.92))
         case .avatar:
             // Gold keyword gold is the Avatar shimmer palette.
             let style = Keyword.gold.visualStyle
+            return (style.color, TrinketDesign.Colors.Overlay.paper.opacity(0.95))
+        case .marked:
+            // Death's door crimson amber is the Marked vulnerability shimmer palette.
+            let style = Keyword.deathsDoor.visualStyle
+            return (style.color, TrinketDesign.Colors.Overlay.paper.opacity(0.95))
+        case .blizzard:
+            // Freeze keyword ice cyan is the Blizzard shimmer palette.
+            let style = Keyword.freeze.visualStyle
             return (style.color, TrinketDesign.Colors.Overlay.paper.opacity(0.95))
         }
     }

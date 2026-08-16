@@ -246,3 +246,19 @@ background	spire-sanguineCourt	bg_spire_scar_gallery	Raw Assets/Game Modes/Spire
 background	spire-aureateChoir	bg_spire_aureate_choir	Raw Assets/Game Modes/Spires/Holy Spire.jpeg	0.50	0.50
 background	spire-rimeVault	bg_spire_rime_vault	Raw Assets/Game Modes/Spires/Freeze Spire.jpeg	0.50	0.50
 background	spire-resonanceHall	bg_spire_storm_anvil	Raw Assets/Game Modes/Spires/Stun Spire.jpeg	0.50	0.50
+talent	physical	talent_physical	Raw Assets/Talents/Physical.jpeg	0.50	0.50
+talent	burn	talent_burn	Raw Assets/Talents/Burn.jpeg	0.50	0.50
+talent	stun	talent_stun	Raw Assets/Talents/Stun.jpeg	0.50	0.50
+talent	block	talent_block	Raw Assets/Talents/Block.jpeg	0.50	0.50
+talent	health	talent_health	Raw Assets/Talents/Health.jpeg	0.50	0.50
+talent	gold	talent_gold	Raw Assets/Talents/Gold.jpeg	0.50	0.50
+talent	holy	talent_holy	Raw Assets/Talents/Holy.jpeg	0.50	0.50
+talent	poison	talent_poison	Raw Assets/Talents/Poison.jpeg	0.50	0.50
+talent	bleed	talent_bleed	Raw Assets/Talents/Bleed.jpeg	0.50	0.50
+talent	leech	talent_leech	Raw Assets/Talents/Leech.jpeg	0.50	0.50
+talent	freeze	talent_freeze	Raw Assets/Talents/Freeze.jpeg	0.50	0.50
+talent	dodge	talent_dodge	Raw Assets/Talents/Dodge.jpeg	0.50	0.50
+talent	purge	talent_purge	Raw Assets/Talents/Purge.jpeg	0.50	0.50
+talent	cleanse	talent_cleanse	Raw Assets/Talents/Cleanse.jpeg	0.50	0.50
+talent	mana	talent_mana	Raw Assets/Talents/Mana.jpeg	0.50	0.50
+talent	deathsDoor	talent_deaths_door	Raw Assets/Talents/Death's Door.jpeg	0.50	0.50

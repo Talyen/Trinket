@@ -13,7 +13,8 @@ public extension StageSelectRowPresentation where Item == Stage {
     /// resolving it here would change card artwork as roster state settles during navigation.
     static func stageRows(
         for chapter: Chapter,
-        progress: JourneyProgressState
+        progress: JourneyProgressState,
+        worldSeed: UInt64
     ) -> [Self] {
         chapter.stages
             .filter { !progress.isCompleted($0) }
@@ -23,7 +24,7 @@ public extension StageSelectRowPresentation where Item == Stage {
                     isActive: progress.isActive(stage),
                     activeEyebrow: stage.mapLabel,
                     mapLabel: stage.mapLabel,
-                    title: stage.encounterSubjectName,
+                    title: stage.encounterSubjectName(worldSeed: worldSeed),
                     encounterTypeTitle: stage.encounterTypeTitle,
                     symbolName: stage.encounter.symbolName,
                     tint: stage.encounter.mapTint,

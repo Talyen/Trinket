@@ -24,6 +24,7 @@ public extension EncounterPlayMode {
         let opened = MysteryEncounterSession.open(
             origin: origin,
             forcedEventID: forcedEventID,
+            worldSeed: playerSave.worldSeed,
             pickContext: pickContext,
             pinnedLabyrinthEventID: pinnedLabyrinthEventID,
             pinnedJourneyEventID: pinnedJourneyEventID

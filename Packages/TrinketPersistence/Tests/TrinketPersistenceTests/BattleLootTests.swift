@@ -48,15 +48,38 @@ struct BattleLootTests {
 
     @Test func journeyLootIsSeedStable() throws {
         let stage = try #require(GameContent.stage(id: "chapter-1-stage-1"))
-        let first = BattleLoot.resolveJourney(stage: stage, encounterLevel: 1, enemyIsBoss: false)
-        let second = BattleLoot.resolveJourney(stage: stage, encounterLevel: 1, enemyIsBoss: false)
+        let first = BattleLoot.resolveJourney(
+            stage: stage,
+            encounterLevel: 1,
+            enemyIsBoss: false,
+            worldSeed: 8
+        )
+        let second = BattleLoot.resolveJourney(
+            stage: stage,
+            encounterLevel: 1,
+            enemyIsBoss: false,
+            worldSeed: 8
+        )
         #expect(first == second)
         #expect(first.item.rarity == .basic)
+
+        let otherWorld = BattleLoot.resolveJourney(
+            stage: stage,
+            encounterLevel: 1,
+            enemyIsBoss: false,
+            worldSeed: 9
+        )
+        #expect(first != otherWorld)
     }
 
     @Test func bossJourneyLootIsAstral() throws {
         let stage = try #require(GameContent.stage(id: "chapter-1-stage-10"))
-        let package = BattleLoot.resolveJourney(stage: stage, encounterLevel: 5, enemyIsBoss: true)
+        let package = BattleLoot.resolveJourney(
+            stage: stage,
+            encounterLevel: 5,
+            enemyIsBoss: true,
+            worldSeed: 8
+        )
         #expect(package.item.rarity == .astral)
     }
 
@@ -66,6 +89,7 @@ struct BattleLootTests {
             stage: stage,
             encounterLevel: 1,
             enemyIsBoss: false,
+            worldSeed: 8,
             astralChanceBonusPercent: 100
         )
         #expect(journeyLoot.item.rarity == .astral)
@@ -73,6 +97,7 @@ struct BattleLootTests {
         let floor = try #require(GameContent.spireFloor(spireID: .ironVein, floor: 1))
         let spireLoot = SpireCompletion.resolveLoot(
             for: floor,
+            worldSeed: 8,
             astralChanceBonusPercent: 100
         )
         #expect(spireLoot.item.rarity == .astral)

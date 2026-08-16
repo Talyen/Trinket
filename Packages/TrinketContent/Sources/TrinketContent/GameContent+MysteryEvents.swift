@@ -4,14 +4,20 @@ import TrinketCore
 public extension GameContent {
     static func themedTrinketIDs(forMysteryChoiceID choiceID: String) -> Set<String>? {
         let mapping: [String: Set<String>] = [
-            "take-relic": ["brass_censer", "sin_eaters_lantern"],
+            "take-the-charm": ["icy_heart"],
+            "take-the-gold": ["lucky_clover"],
+            "pick-mushrooms": ["parasitic_bloom"],
             "claim-blade": ["cutpurse_knife"],
-            "loot-crypt": ["bone_charm", "sin_eaters_lantern"],
-            "search-scrolls": ["runic_quill", "tattered_pages"],
-            "bind-pages": ["tattered_pages"],
-            "pocket-fragment": ["meteorite"],
-            "accept-rite": ["bone_charm", "sin_eaters_lantern"],
-            "copy-notes": ["runic_quill", "tattered_pages"],
+            "search-the-crypt": ["bone_charm", "sin_eaters_lantern"],
+            "take-the-quill": ["runic_quill"],
+            "take-the-pages": ["tattered_pages"],
+            "take-a-fragment": ["meteorite"],
+            "collect-the-bones": ["bone_charm"],
+            "mine-the-cliffside": ["thunderstone"],
+            "take-the-salts": ["bone_charm"],
+            "harvest-remedies": ["mortar_and_pestle"],
+            "take-the-notes": ["tattered_pages"],
+            "take-the-chimes": ["resonant_chimes"],
             "claim-censer": ["brass_censer"],
         ]
         return mapping[choiceID]
@@ -65,10 +71,11 @@ public extension GameContent {
         } ?? stage.mysteryEvent
     }
 
-    /// Seeded journey mystery pick (stable per stage so map art matches the encounter).
+    /// Seeded journey mystery pick (stable per save + stage so map art matches the encounter).
     /// Prefer an authored / forced event, then a save-pinned id, then the seeded pool.
     static func resolveJourneyMysteryEvent(
         stageID: String,
+        worldSeed: UInt64,
         authored: MysteryEvent?,
         pinnedEventID: String? = nil,
         context: MysteryEventPickContext = .excludingCorruptionAltar
@@ -81,7 +88,7 @@ public extension GameContent {
             return pinned
         }
         var randomNumberGenerator = SeededRandomNumberGenerator(
-            seed: stableSeed(for: "journey-mystery-\(stageID)")
+            seed: encounterSeed(worldSeed, salt: "journey-mystery-\(stageID)")
         )
         return resolveMysteryEncounterEvent(
             authored: nil,
@@ -93,22 +100,25 @@ public extension GameContent {
     /// Shared journey resolve used by map art and encounter open.
     static func resolveJourneyMysteryEvent(
         stage: Stage,
+        worldSeed: UInt64,
         forcedEventID: String? = nil,
         pinnedEventID: String? = nil,
         context: MysteryEventPickContext = .excludingCorruptionAltar
     ) -> MysteryEvent {
         resolveJourneyMysteryEvent(
             stageID: stage.id,
+            worldSeed: worldSeed,
             authored: authoredMysteryOrRecruitEvent(forcedEventID: forcedEventID, stage: stage),
             pinnedEventID: pinnedEventID,
             context: context
         )
     }
 
-    /// Seeded Labyrinth mystery pick (stable per node so reopen does not re-roll).
+    /// Seeded Labyrinth mystery pick (stable per save + node so reopen does not re-roll).
     /// Prefer a pinned `mysteryEventID` on the node when present.
     static func resolveLabyrinthMysteryEvent(
         nodeID: String,
+        worldSeed: UInt64,
         forcedEventID: String?,
         pinnedEventID: String? = nil,
         context: MysteryEventPickContext = .excludingCorruptionAltar
@@ -122,7 +132,7 @@ public extension GameContent {
             return pinned
         }
         var randomNumberGenerator = SeededRandomNumberGenerator(
-            seed: stableSeed(for: "labyrinth-mystery-\(nodeID)")
+            seed: encounterSeed(worldSeed, salt: "labyrinth-mystery-\(nodeID)")
         )
         return resolveMysteryEncounterEvent(
             authored: nil,
@@ -151,9 +161,9 @@ public extension GameContent {
         enemies.filter { !$0.isBoss }
     }
 
-    static func pickRandomNonBossEnemyID(forStageID stageID: String) -> String? {
+    static func pickRandomNonBossEnemyID(forStageID stageID: String, worldSeed: UInt64) -> String? {
         var randomNumberGenerator = SeededRandomNumberGenerator(
-            seed: stableSeed(for: "random-battle-\(stageID)")
+            seed: encounterSeed(worldSeed, salt: "random-battle-\(stageID)")
         )
         return nonBossEnemies
             .map(\.id)
@@ -163,6 +173,7 @@ public extension GameContent {
     static func resolveRecruitEncounter(
         configuredEventID: String?,
         encounterID: String,
+        worldSeed: UInt64,
         unlockedHeroIDs: Set<String>,
         unlockedCompanionIDs: Set<String>
     ) -> RecruitEncounterResolution {
@@ -184,7 +195,7 @@ public extension GameContent {
         }
 
         var randomNumberGenerator = SeededRandomNumberGenerator(
-            seed: stableSeed(for: "recruit-resolution-\(encounterID)")
+            seed: encounterSeed(worldSeed, salt: "recruit-resolution-\(encounterID)")
         )
         if let recruit = eligible.randomElement(using: &randomNumberGenerator) {
             return .recruit(recruit)
@@ -194,6 +205,7 @@ public extension GameContent {
 
     static func resolveRecruitStage(
         _ stage: Stage,
+        worldSeed: UInt64,
         unlockedHeroIDs: Set<String>,
         unlockedCompanionIDs: Set<String>
     ) -> Stage {
@@ -201,6 +213,7 @@ public extension GameContent {
         let resolution = resolveRecruitEncounter(
             configuredEventID: stage.encounter.recruitEventID,
             encounterID: stage.id,
+            worldSeed: worldSeed,
             unlockedHeroIDs: unlockedHeroIDs,
             unlockedCompanionIDs: unlockedCompanionIDs
         )

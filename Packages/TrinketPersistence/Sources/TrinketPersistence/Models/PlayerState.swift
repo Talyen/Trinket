@@ -47,6 +47,7 @@ public struct PlayerRosterState: Equatable, Sendable {
     public var abilityLoadouts: [String: AbilityLoadout]
     public var progressions: [String: CombatantProgression]
     public var equipmentLoadouts: [String: EquipmentLoadout]
+    public var unlockedTalents: [String: Set<String>]
 
     /// The highest level among unlocked heroes. Returns 1 if no progression data exists.
     public var highestHeroLevel: Int {
@@ -86,6 +87,7 @@ public struct PlayerRosterState: Equatable, Sendable {
         abilityLoadouts: [String: AbilityLoadout],
         progressions: [String: CombatantProgression],
         equipmentLoadouts: [String: EquipmentLoadout],
+        unlockedTalents: [String: Set<String>] = [:],
         gold: Int = 0
     ) {
         self.activeHeroID = activeHeroID
@@ -95,6 +97,7 @@ public struct PlayerRosterState: Equatable, Sendable {
         self.abilityLoadouts = abilityLoadouts
         self.progressions = progressions
         self.equipmentLoadouts = equipmentLoadouts
+        self.unlockedTalents = unlockedTalents
         self.gold = Self.clampedGoldBalance(gold)
     }
 
@@ -109,7 +112,8 @@ public struct PlayerRosterState: Equatable, Sendable {
                 starterHeroID: .initial,
                 starterCompanionID: .initial,
             ],
-            equipmentLoadouts: [:]
+            equipmentLoadouts: [:],
+            unlockedTalents: [:]
         )
     }
 

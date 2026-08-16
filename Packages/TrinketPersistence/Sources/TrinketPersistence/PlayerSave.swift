@@ -1,13 +1,18 @@
 import Foundation
+import TrinketContent
 import TrinketCore
 
 public struct PlayerSave: Equatable, Sendable {
-    public static let currentSchemaVersion = 14
+    public static let currentSchemaVersion = 15
     public static let corruptionAltarCooldownAfterEncounter = 6
+    /// Fixed seed for `testSeed` fixtures so Persistence tests stay deterministic.
+    public static let testWorldSeed: UInt64 = 0x5445_5354
 
     public var schemaVersion: Int
     public var modifiedAt: Date
     public var sessionGeneration: UInt64
+    /// Save-scoped entropy mixed into generated shops, loot, mysteries, and maps.
+    public var worldSeed: UInt64
     public var journey: JourneyProgressState
     public var roster: PlayerRosterState
     public var inventory: PlayerInventoryState
@@ -22,6 +27,7 @@ public struct PlayerSave: Equatable, Sendable {
             schemaVersion: currentSchemaVersion,
             modifiedAt: Date(),
             sessionGeneration: 0,
+            worldSeed: makeWorldSeed(),
             journey: .initial,
             roster: .freshStart,
             inventory: .freshStart,
@@ -36,6 +42,7 @@ public struct PlayerSave: Equatable, Sendable {
             schemaVersion: currentSchemaVersion,
             modifiedAt: Date(),
             sessionGeneration: 0,
+            worldSeed: testWorldSeed,
             journey: .testSeed,
             roster: .testSeed,
             inventory: .testSeed,
@@ -59,6 +66,7 @@ public struct PlayerSave: Equatable, Sendable {
             schemaVersion: currentSchemaVersion,
             modifiedAt: Date(),
             sessionGeneration: 0,
+            worldSeed: makeWorldSeed(),
             journey: journey,
             roster: roster,
             inventory: .testSeed,
@@ -72,6 +80,7 @@ public struct PlayerSave: Equatable, Sendable {
         schemaVersion: Int,
         modifiedAt: Date,
         sessionGeneration: UInt64 = 0,
+        worldSeed: UInt64 = 0,
         journey: JourneyProgressState,
         roster: PlayerRosterState,
         inventory: PlayerInventoryState,
@@ -83,6 +92,7 @@ public struct PlayerSave: Equatable, Sendable {
         self.schemaVersion = schemaVersion
         self.modifiedAt = modifiedAt
         self.sessionGeneration = sessionGeneration
+        self.worldSeed = worldSeed
         self.journey = journey
         self.roster = roster
         self.inventory = inventory
@@ -90,6 +100,14 @@ public struct PlayerSave: Equatable, Sendable {
         self.spires = spires
         self.labyrinth = labyrinth
         self.corruptionAltarCooldownRemaining = max(0, corruptionAltarCooldownRemaining)
+    }
+
+    public static func makeWorldSeed() -> UInt64 {
+        var seed: UInt64
+        repeat {
+            seed = UInt64.random(in: .min ... .max)
+        } while seed == 0 || seed == LabyrinthGenerator.fallbackWorldSeed
+        return seed
     }
 
     @discardableResult

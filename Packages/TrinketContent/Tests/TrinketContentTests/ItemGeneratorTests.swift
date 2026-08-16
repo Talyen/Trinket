@@ -179,6 +179,44 @@ struct ItemGeneratorTests {
         try #expect(item.affixes.count >= 1)
     }
 
+    @Test func generatedItemsPersistRolledAffixPowersInRarityRange() throws {
+        let baseType = try #require(GameContent.itemBaseTypes.first { $0.id == "longsword" })
+        for seed in UInt64(1) ... 40 {
+            var rng = SeededRandomNumberGenerator(seed: seed)
+            let item = ItemGenerator().generate(
+                id: "rolled-\(seed)",
+                baseType: baseType,
+                rarity: .basic,
+                using: &rng
+            )
+            let powers = try #require(item.affixPowers)
+            try #expect(powers.count == item.affixes.count)
+            for (index, affix) in item.affixes.enumerated() {
+                let definition = try #require(GameContent.itemAffixDefinition(matching: affix.id))
+                let catalog = definition.power(for: .basic)
+                let stored = powers[index]
+                if definition.basic == definition.astral {
+                    try #expect(stored == catalog)
+                    try #expect(!item.isPerfectAffix(at: index))
+                    continue
+                }
+                for (catalogModifier, storedModifier) in zip(catalog.modifiers, stored.modifiers) {
+                    if catalogModifier.isPercent {
+                        let allowed = ItemAffixMagnitudeRoll.percentValues(around: catalogModifier.numericValue)
+                        try #expect(allowed.contains { abs($0 - storedModifier.numericValue) < 1e-9 })
+                    } else {
+                        let range = ItemAffixMagnitudeRoll.integerRange(
+                            around: Int(catalogModifier.numericValue.rounded())
+                        )
+                        try #expect(range.contains(Int(storedModifier.numericValue.rounded())))
+                    }
+                }
+                let isPerfect = item.isPerfectAffix(at: index)
+                try #expect(isPerfect == stored.isAtOrAboveRollMax(of: catalog))
+            }
+        }
+    }
+
     @Test func mysteryItemRarityRollsBasicEightyPercent() throws {
         var basicCount = 0
         for seed in UInt64(1) ... 200 {

@@ -34,7 +34,7 @@ struct BattleHandView: View {
     var autoLiftCardID: Int?
     /// Fires when any hand card press/drag begins or ends (including long-press detail).
     var onCardInteractionChanged: ((Bool) -> Void)?
-    /// Drag exceeded tap slop — start party attack wind-up for this card's owner.
+    /// Drag exceeded tap slop or tap-lift began — start party attack wind-up.
     var onAttackWindUp: ((BattleCard) -> Void)?
     /// Card returned to hand without casting — cancel wind-up for this card's owner.
     var onAttackCancel: ((BattleCard) -> Void)?

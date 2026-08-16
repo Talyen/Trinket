@@ -9,6 +9,7 @@ public enum SpireCompletion {
 
     public static func resolveLoot(
         for floor: SpireFloor,
+        worldSeed: UInt64,
         ownedTrinketIDs: Set<String> = [],
         astralChanceBonusPercent: Int = 0
     ) -> BattleLootPackage {
@@ -22,6 +23,7 @@ public enum SpireCompletion {
             floor: floor,
             encounterLevel: encounterLevel,
             enemyIsBoss: enemyIsBoss,
+            worldSeed: worldSeed,
             keywordBias: keywordBias,
             ownedTrinketIDs: ownedTrinketIDs,
             astralChanceBonusPercent: astralChanceBonusPercent
@@ -56,6 +58,7 @@ public enum SpireCompletion {
         let encounterLevel = enemyLevel(for: floor)
         let resolvedLoot = loot ?? resolveLoot(
             for: floor,
+            worldSeed: save.worldSeed,
             ownedTrinketIDs: save.inventory.ownedTrinketIDs,
             astralChanceBonusPercent: save.homestead.effects.astralChanceBonusPercent
         )
@@ -84,10 +87,12 @@ public enum SpireCompletion {
     /// Generates a Spire floor item (same seed path as `resolveLoot`).
     public static func makeSpireFloorItem(
         for floor: SpireFloor,
+        worldSeed: UInt64,
         astralChanceBonusPercent: Int = 0
     ) -> InventoryItem {
         resolveLoot(
             for: floor,
+            worldSeed: worldSeed,
             astralChanceBonusPercent: astralChanceBonusPercent
         ).item
     }

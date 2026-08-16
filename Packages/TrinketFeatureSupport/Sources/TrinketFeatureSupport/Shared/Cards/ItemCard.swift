@@ -60,7 +60,7 @@ public struct ItemCard<Art: View>: View {
                     Text(item.displayName)
                         .trinketTypography(.cardLabel)
                         .foregroundStyle(.primary)
-                        .keywordShine(item.isTrinket ? item.keywords : [])
+                        .keywordShine(item.rarity == .astral ? item.baseType.keywordAffinities : [])
                         .lineLimit(2)
                         .multilineTextAlignment(.center)
 

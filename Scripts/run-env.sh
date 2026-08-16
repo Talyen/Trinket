@@ -2,13 +2,14 @@
 # Shared run-tenant setup for build/test wrappers.
 #
 # Source this file, then call trinket_run_env_init once near script start.
-# Default (no isolate): $PWD/.DerivedData + simulator "Trinket CI".
+# Default (no isolate): $PWD/.DerivedData + simulator "Trinket Run"
+# (human `run` alias and local tests — not GitHub Actions).
 # Isolated (TRINKET_ISOLATE=1): acquires a reusable agent simulator slot
 # (Trinket Agent N) with DerivedData under .DerivedData/runs/agent-N/.
 #
 # On self-clean start + EXIT (top-level owner only): reclaim Preview sims when
 # the Preview device set is non-empty, enforce exactly one Booted managed sim
-# (Agent or CI), and age-prune bulky artifacts. The keep-target stays Booted
+# (Agent or Run), and age-prune bulky artifacts. The keep-target stays Booted
 # (no routine erase — avoids CrashReporter sheets from guest apps). Nested
 # children release leases only. xcode-runner wall/idle watchdogs kill host
 # xcodebuild trees only; they never call simctl.
@@ -30,9 +31,15 @@ trinket_run_env_shared_root() {
   printf '%s/.DerivedData' "$(trinket_run_env_repo_root)"
 }
 
+trinket_simulator_is_shared_name() {
+  local name="$1"
+  # "Trinket CI" is the pre-rename shared human simulator.
+  [[ "$name" == "Trinket Run" || "$name" == "Trinket CI" ]]
+}
+
 trinket_simulator_is_managed_name() {
   local name="$1"
-  [[ "$name" == "Trinket CI" || "$name" =~ ^Trinket\ Agent\ [0-9]+$ ]]
+  trinket_simulator_is_shared_name "$name" || [[ "$name" =~ ^Trinket\ Agent\ [0-9]+$ ]]
 }
 
 trinket_simulator_is_active_agent_name() {
@@ -287,7 +294,7 @@ trinket_sim_cleanup_lock_release() {
 # Opt-in escape hatch only (TRINKET_CLEANUP_IDLE_POOL=1): when isolate + no agent
 # sim slots held, shut down Booted Trinket Agent N devices, then erase Agent
 # device data (keeps entries). Default off — normal hygiene never erases. Never
-# touches shared Trinket CI. Peers with held slots are untouched.
+# touches shared Trinket Run. Peers with held slots are untouched.
 trinket_simulator_cleanup_idle_pool() {
   [[ "${TRINKET_CLEANUP_IDLE_POOL:-0}" == "1" ]] || return 0
   # Shared warm-cache path must not reclaim agents; only isolate tenants do.
@@ -316,7 +323,7 @@ records = []
 for runtime_identifier, devices in payload.get("devices", {}).items():
     for device in devices:
         name = device.get("name", "")
-        # Agents only — shared Trinket CI stays warm for non-isolate humans/CI.
+        # Agents only — shared Trinket Run stays warm for human `run` / local tests.
         if re.fullmatch(r"Trinket Agent \d+", name):
             udid = device.get("udid", "")
             state = device.get("state", "")
@@ -361,7 +368,7 @@ for name, udid, state, runtime_identifier in records:
   trinket_sim_cleanup_lock_release "$shared_root"
 }
 
-# Keep exactly one Booted managed sim (Trinket CI / Trinket Agent N). Quietly
+# Keep exactly one Booted managed sim (Trinket Run / Trinket Agent N). Quietly
 # shut down the rest; never erase. Default on for self-clean start + EXIT.
 trinket_simulator_enforce_single_warm_booted() {
   [[ "${TRINKET_CLEANUP_SINGLE_WARMED:-1}" == "1" ]] || return 0
@@ -384,7 +391,7 @@ for runtime_identifier, devices in payload.get("devices", {}).items():
         name = device.get("name", "")
         if device.get("state") != "Booted":
             continue
-        if name == "Trinket CI" or re.fullmatch(r"Trinket Agent \d+", name):
+        if name in ("Trinket Run", "Trinket CI") or re.fullmatch(r"Trinket Agent \d+", name):
             udid = device.get("udid", "")
             if udid:
                 records.append((name, udid, runtime_identifier))
@@ -411,7 +418,7 @@ for name, udid, runtime_identifier in records:
     return 0
   fi
 
-  # Prefer: held agent slot → TRINKET_SIMULATOR_NAME → Trinket CI → first.
+  # Prefer: held agent slot → TRINKET_SIMULATOR_NAME → Trinket Run → first.
   local keep_index=-1
   local index
   for index in "${!managed_names[@]}"; do
@@ -430,7 +437,7 @@ for name, udid, runtime_identifier in records:
   fi
   if (( keep_index < 0 )); then
     for index in "${!managed_names[@]}"; do
-      if [[ "${managed_names[$index]}" == "Trinket CI" ]]; then
+      if trinket_simulator_is_shared_name "${managed_names[$index]}"; then
         keep_index="$index"
         break
       fi
@@ -666,7 +673,7 @@ trinket_run_env_init() {
       DERIVED_DATA_PATH="$shared"
     fi
     if [[ -z "${TRINKET_SIMULATOR_NAME:-}" ]]; then
-      TRINKET_SIMULATOR_NAME="Trinket CI"
+      TRINKET_SIMULATOR_NAME="Trinket Run"
     fi
     TRINKET_DIAGNOSTICS_SESSION_ID="${TRINKET_DIAGNOSTICS_SESSION_ID:-}"
   fi
@@ -698,13 +705,16 @@ trinket_run_env_print() {
   local slot_label="none"
   [[ "${TRINKET_ISOLATE:-}" == "1" ]] && isolate_label="isolated"
   [[ -n "${TRINKET_AGENT_SLOT:-}" ]] && slot_label="$TRINKET_AGENT_SLOT"
-  printf 'run-env mode=%s run_id=%s agent_slot=%s derived=%s results=%s sim=%s\n' \
+  local sim_role="human run / local tests"
+  [[ "${TRINKET_ISOLATE:-}" == "1" ]] && sim_role="Cursor agent isolate"
+  printf 'run-env mode=%s run_id=%s agent_slot=%s derived=%s results=%s sim=%s (%s)\n' \
     "$isolate_label" \
     "${TRINKET_RUN_ID:-none}" \
     "$slot_label" \
     "${DERIVED_DATA_PATH:-unset}" \
     "${RESULTS_DIR:-unset}" \
-    "${TRINKET_SIMULATOR_NAME:-unset}"
+    "${TRINKET_SIMULATOR_NAME:-unset}" \
+    "$sim_role"
 }
 
 trinket_ui_slot_reap() {

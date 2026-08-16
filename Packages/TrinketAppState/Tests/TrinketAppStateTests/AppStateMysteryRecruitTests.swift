@@ -96,6 +96,7 @@ struct AppStateMysteryRecruitTests {
         )
         let expected = GameContent.resolveJourneyMysteryEvent(
             stage: stage,
+            worldSeed: state.playerSave.worldSeed,
             context: pickContext
         )
 
@@ -106,10 +107,9 @@ struct AppStateMysteryRecruitTests {
         #expect(state.playerSave.journey.pinnedMysteryEventIDs[stage.id] == expected.id)
 
         // Pin wins over a different pick context on later resolve.
-
-        // Pin wins over a different pick context on later resolve.
         let pinned = GameContent.resolveJourneyMysteryEvent(
             stage: stage,
+            worldSeed: state.playerSave.worldSeed,
             pinnedEventID: expected.id,
             context: .journey(
                 chapterNumber: 2,

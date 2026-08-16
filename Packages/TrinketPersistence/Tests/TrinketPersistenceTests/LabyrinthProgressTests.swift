@@ -22,6 +22,13 @@ struct LabyrinthProgressTests {
         return save
     }
 
+    @Test func ensureMapWithoutSeedDoesNotUseFallback() {
+        var state = PlayerLabyrinthState.freshStart
+        state.ensureMap()
+        #expect(!state.hasMap)
+        #expect(state.worldSeed == 0)
+    }
+
     @Test func ensureMapCreatesReachableNodes() {
         var state = PlayerLabyrinthState.freshStart
         state.ensureMap(seed: 99)

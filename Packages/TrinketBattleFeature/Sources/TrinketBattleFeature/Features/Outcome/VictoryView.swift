@@ -46,8 +46,7 @@ struct VictoryView: View {
             onPrimaryAction: completeVictory,
             contentTopPadding: TrinketDesign.Metrics.smallSpacing,
             contentStackSpacing: TrinketDesign.Metrics.largeSpacing,
-            pinsPrimaryActionToBottom: false,
-            primaryActionWidthFraction: 0.5
+            pinsPrimaryActionToBottom: false
         )
         .sheet(item: $selectedRewardItem) { item in
             NavigationStack {

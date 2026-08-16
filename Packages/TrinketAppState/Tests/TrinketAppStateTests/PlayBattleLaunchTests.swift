@@ -23,7 +23,7 @@ struct PlayBattleLaunchTests {
         let chapter = try #require(GameContent.chapters.first)
         let battleStages = chapter.stages.filter(\.encounter.isCombat)
         let stage = try #require(battleStages.last)
-        let encounter = try #require(JourneyPlayMode.resolvedEncounter(for: stage))
+        let encounter = try #require(JourneyPlayMode.resolvedEncounter(for: stage, worldSeed: 0))
         let expectedLevel = EncounterLevelResolver.journeyEnemyLevel(for: stage, in: chapter)
         #expect(encounter.level == expectedLevel)
         #expect(encounter.level > 1)
@@ -41,8 +41,8 @@ struct PlayBattleLaunchTests {
                     return false
                 }
         )
-        let encounter = try #require(JourneyPlayMode.resolvedEncounter(for: stage))
-        let expectedEnemyID = try #require(stage.resolvedBattleEnemyID)
+        let encounter = try #require(JourneyPlayMode.resolvedEncounter(for: stage, worldSeed: 0))
+        let expectedEnemyID = try #require(stage.resolvedBattleEnemyID(worldSeed: 0))
 
         #expect(encounter.combatant.id == expectedEnemyID)
         #expect(GameContent.enemy(matching: expectedEnemyID)?.isBoss == false)
@@ -51,7 +51,7 @@ struct PlayBattleLaunchTests {
         #expect(stage.encounterCombatantArtReference != nil)
         #expect(stage.encounterSubjectName == (GameContent.enemy(matching: expectedEnemyID)?.name ?? "Battle"))
 
-        let again = try #require(JourneyPlayMode.resolvedEncounter(for: stage))
+        let again = try #require(JourneyPlayMode.resolvedEncounter(for: stage, worldSeed: 0))
         #expect(again.combatant.id == encounter.combatant.id)
     }
 
@@ -159,7 +159,7 @@ struct PlayBattleLaunchTests {
         let expectedLevel = EncounterLevelResolver.journeyEnemyLevel(for: stage, in: chapter)
         #expect(expectedLevel > 1)
 
-        let enemyID = try #require(stage.resolvedBattleEnemyID)
+        let enemyID = try #require(stage.resolvedBattleEnemyID(worldSeed: 0))
         let catalogEnemy = try #require(GameContent.enemy(matching: enemyID))
         let scaledEnemy = CombatantLevelScaler.scale(enemy: catalogEnemy, level: expectedLevel)
 

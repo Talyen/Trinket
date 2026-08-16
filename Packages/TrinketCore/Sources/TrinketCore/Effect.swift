@@ -155,7 +155,7 @@ public enum Effect: Hashable, Sendable {
         case let .resourceGain(k, _): k
         case .drawCards, .drawAndPlayCards: .physical
         case let .cleanse(k?): k
-        case .cleanse(nil), .cleanseRandom: .health
+        case .cleanse(nil), .cleanseRandom: .cleanse
         case let .purge(k?): k
         case .purge(nil), .purgeRandom: .purge
         case let .halveShield(k): k

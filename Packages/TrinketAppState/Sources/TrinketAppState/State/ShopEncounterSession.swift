@@ -51,6 +51,7 @@ public final class ShopEncounterSession: Identifiable {
     /// Builds a shop session for a journey stage or Labyrinth shop node.
     static func open(
         origin: PlayEncounterOrigin,
+        worldSeed: UInt64,
         ownedTrinketIDs: Set<String>,
         astralChanceBonusPercent: Int
     ) -> ShopEncounterOpenResult {
@@ -60,7 +61,7 @@ public final class ShopEncounterSession: Identifiable {
         let resolvedStage = origin.resolvedStage(labyrinthEncounter: .shop)
 
         var randomNumberGenerator = SeededRandomNumberGenerator(
-            seed: ShopOfferGenerator.seed(forStageID: resolvedStage.id)
+            seed: ShopOfferGenerator.seed(worldSeed: worldSeed, forStageID: resolvedStage.id)
         )
         let offers = ShopOfferGenerator.generateOffers(
             stageID: resolvedStage.id,

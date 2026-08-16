@@ -43,7 +43,6 @@ package enum EnemyTraitEngine {
 
         let applied = DefensePoolEngine.add(
             profile.triggers.blockPerTurn,
-            pool: .block,
             to: combatant,
             keyword: .block,
             sourceActorID: combatant.id,
@@ -51,7 +50,7 @@ package enum EnemyTraitEngine {
         )
         return [context.nextEvent(
             kind: .effect,
-            effectKind: DefensePoolEngine.Pool.block.appliedEffectKind,
+            effectKind: .shieldApplied,
             actorName: combatant.name,
             abilityName: traitName(for: combatant, in: context),
             target: combatant,

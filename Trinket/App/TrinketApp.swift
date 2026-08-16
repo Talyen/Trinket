@@ -91,7 +91,7 @@ struct TrinketApp: App {
             }
         let activeEnemy = appState.playerSave.journey.activeStageID
             .flatMap(GameContent.stage(id:))?
-            .encounterCombatantArtReference
+            .encounterCombatantArtReference(worldSeed: appState.playerSave.worldSeed)
         let enemyNames = activeEnemy.map { reference in
             [reference.imageName, reference.thumbnailImageName].compactMap(\.self)
         } ?? []
@@ -127,7 +127,9 @@ struct TrinketApp: App {
                 ?? ArtCatalog.backgroundArtByID["chapter-1"]
         )?.imageName
         let campaignRows = chapter.stages.compactMap { stage -> String? in
-            if let combatant = stage.encounterCombatantArtReference {
+            if let combatant = stage.encounterCombatantArtReference(
+                worldSeed: appState.playerSave.worldSeed
+            ) {
                 return combatant.thumbnailImageName
             }
             return stage.encounterArtReference?.thumbnailImageName

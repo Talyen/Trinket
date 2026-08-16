@@ -158,6 +158,7 @@ struct MysteryEncounterView: View {
         .trinketPrimaryActionButton(
             accessibilityIdentifier: AccessibilityID.Mystery.confirmChoiceButton
         )
+        .trinketCenteredPrimaryAction()
         .disabled(selectedChoiceID == nil || session.isResolvingChoice)
         .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
         .padding(.vertical, TrinketDesign.Metrics.mediumSpacing)

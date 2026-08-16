@@ -63,10 +63,28 @@ public struct RosterCombatantDetailView: View {
                         appState.inventory = updated
                     }
                 ),
+                unlockedTalents: Binding(
+                    get: { appState.roster.unlockedTalents(for: combatant) },
+                    set: { newTalents in
+                        var updated = appState.roster
+                        updated.setUnlockedTalents(newTalents, for: combatant)
+                        appState.roster = updated
+                    }
+                ),
                 allowsEditing: appState.roster.isUnlocked(combatant),
                 hapticsEnabled: hapticsEnabled,
                 effectsVolume: effectsVolume,
-                hidesNavigationBar: hidesNavigationBar
+                hidesNavigationBar: hidesNavigationBar,
+                onUnlockTalent: { node, tree in
+                    var updated = appState.roster
+                    _ = updated.unlockTalent(node: node, inTree: tree, for: combatant.id)
+                    appState.roster = updated
+                },
+                onResetTalents: {
+                    var updated = appState.roster
+                    updated.resetTalents(for: combatant.id)
+                    appState.roster = updated
+                }
             )
             .onAppear {
                 if resolvedCombatant == nil {

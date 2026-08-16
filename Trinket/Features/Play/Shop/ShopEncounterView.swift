@@ -71,6 +71,7 @@ struct ShopEncounterView: View {
                             .frame(maxWidth: .infinity)
                     }
                     .trinketPrimaryActionButton()
+                    .trinketCenteredPrimaryAction()
                     .tint(TrinketDesign.Colors.encounterShop)
                     .accessibilityIdentifier(AccessibilityID.Shop.leaveButton)
                     .padding(.top, TrinketDesign.Metrics.extraSmallSpacing)

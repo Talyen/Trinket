@@ -8,7 +8,7 @@ Battle lifecycle, presentation, and SwiftUI for Trinket.
   and presentation coordination for one battle
 - `BattlePresentationState`: observable combat projection
 - `BattleFeedbackLane`: feedback scheduling and bounded raster publication
-- `BattleSpectacleState`: skill callouts, cinematics, and outcome timing
+- `BattleSpectacleState`: cinematics and outcome timing
 - Battle views, layout, effects, and outcome presentation
 - Ability cards stay **3:4** full-bleed art with no face text. Party portraits stay **3:4**; enemy viewport is **4:3**. Health anchors to the bottom of each combatant’s art. Show mana only when live `maxMana > 0`. No pause control, global crystals, or other top chrome.
 

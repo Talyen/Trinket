@@ -14,6 +14,11 @@ public enum PlayerSaveSanitizer {
     /// sanitized roster for recruit eligibility.
     static func sanitize(_ save: PlayerSave, changedSlices: PlayerSaveSlice) -> PlayerSave {
         var sanitized = save
+        sanitized.worldSeed = resolvedWorldSeed(save)
+        let labyrinthNeedsWorldSeed = !sanitized.labyrinth.hasMap || sanitized.labyrinth.worldSeed == 0
+        if !sanitized.labyrinth.isMapPayloadUnreadable, labyrinthNeedsWorldSeed {
+            sanitized.labyrinth.worldSeed = sanitized.worldSeed
+        }
         if changedSlices.contains(.inventory) {
             sanitized.inventory = sanitizeInventory(save.inventory)
         }
@@ -31,11 +36,22 @@ public enum PlayerSaveSanitizer {
         }
         if changedSlices.contains(.labyrinth) {
             sanitized.labyrinth = sanitizeLabyrinth(
-                save.labyrinth,
+                sanitized.labyrinth,
                 eligibleRecruitEventIDs: sanitized.roster.eligibleRecruitEventIDs
             )
         }
         return sanitized
+    }
+
+    static func resolvedWorldSeed(_ save: PlayerSave) -> UInt64 {
+        if save.worldSeed != 0 {
+            return save.worldSeed
+        }
+        if save.labyrinth.hasMap {
+            let existing = save.labyrinth.worldSeed
+            return existing == 0 ? LabyrinthGenerator.fallbackWorldSeed : existing
+        }
+        return PlayerSave.makeWorldSeed()
     }
 
     public static func validate(_ save: PlayerSave) throws {
@@ -203,6 +219,28 @@ public enum PlayerSaveSanitizer {
             from: roster.abilityLoadouts
         )
 
+        sanitized.unlockedTalents = sanitizeUnlockedTalents(
+            roster.unlockedTalents,
+            validCombatantIDs: validHeroIDs.union(validCompanionIDs)
+        )
+
+        return sanitized
+    }
+
+    public static func sanitizeUnlockedTalents(
+        _ talents: [String: Set<String>],
+        validCombatantIDs: Set<String>
+    ) -> [String: Set<String>] {
+        var sanitized: [String: Set<String>] = [:]
+        for (combatantID, nodeIDs) in talents {
+            guard validCombatantIDs.contains(combatantID) else { continue }
+            let config = CombatantTalentCatalog.config(for: combatantID)
+            let validNodeIDs = Set(config.trees.flatMap(\.nodes).map(\.id))
+            let filtered = nodeIDs.filter { validNodeIDs.contains($0) }
+            if !filtered.isEmpty {
+                sanitized[combatantID] = filtered
+            }
+        }
         return sanitized
     }
 
@@ -268,7 +306,8 @@ public extension PlayerSaveSanitizer {
                 node,
                 existingNodes: existingNodes,
                 cluster: sanitized.cluster(id: node.clusterID),
-                modifiers: modifiers
+                modifiers: modifiers,
+                worldSeed: sanitized.worldSeed
             )
         }
 
@@ -354,7 +393,8 @@ private extension PlayerSaveSanitizer {
         _ node: LabyrinthNode,
         existingNodes: [String: LabyrinthNode],
         cluster: LabyrinthCluster?,
-        modifiers: [LabyrinthModifierDefinition]
+        modifiers: [LabyrinthModifierDefinition],
+        worldSeed: UInt64
     ) -> LabyrinthNode {
         let depth = max(0, node.depth)
         let type: LabyrinthNodeType = if node.type == .entrance || node.type.rawValue == "gate", depth > 0 {
@@ -372,7 +412,12 @@ private extension PlayerSaveSanitizer {
             depth: depth,
             clusterID: node.clusterID,
             gridPosition: node.gridPosition ?? legacyGridPosition(for: node, in: cluster),
-            modifierIDs: normalizedModifierIDs(for: node, type: type, modifiers: modifiers),
+            modifierIDs: normalizedModifierIDs(
+                for: node,
+                type: type,
+                modifiers: modifiers,
+                worldSeed: worldSeed
+            ),
             recruitEventID: node.recruitEventID,
             mysteryEventID: node.mysteryEventID,
             outgoingIDs: node.outgoingIDs.filter { existingNodes[$0] != nil },
@@ -384,7 +429,8 @@ private extension PlayerSaveSanitizer {
     static func normalizedModifierIDs(
         for node: LabyrinthNode,
         type: LabyrinthNodeType,
-        modifiers: [LabyrinthModifierDefinition]
+        modifiers: [LabyrinthModifierDefinition],
+        worldSeed: UInt64
     ) -> [LabyrinthModifierID] {
         let applicable = modifiers.filter { $0.applies(to: type) }
         if let existing = node.modifierIDs.compactMap({ id in
@@ -394,7 +440,9 @@ private extension PlayerSaveSanitizer {
         }
         guard !applicable.isEmpty else { return [] }
         if type == .battle || type == .boss {
-            let index = Int(GameContent.stableSeed(for: node.id) % UInt64(applicable.count))
+            let index = Int(
+                GameContent.encounterSeed(worldSeed, salt: node.id) % UInt64(applicable.count)
+            )
             return [applicable[index].id]
         }
         return [applicable[0].id]

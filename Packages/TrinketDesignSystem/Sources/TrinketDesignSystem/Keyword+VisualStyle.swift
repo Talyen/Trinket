@@ -77,6 +77,10 @@ public extension Keyword {
         )
         public static let purge = Self(
             color: DesignAssetColors.named("KeywordPurge"),
+            symbolName: "shield.slash.fill"
+        )
+        public static let cleanse = Self(
+            color: DesignAssetColors.named("KeywordCleanse"),
             symbolName: "sparkles"
         )
         public static let mana = Self(
@@ -112,6 +116,7 @@ public extension Keyword {
         case .freeze: .freeze
         case .dodge: .dodge
         case .purge: .purge
+        case .cleanse: .cleanse
         case .mana: .mana
         case .deathsDoor: .deathsDoor
         }

@@ -49,6 +49,11 @@ public struct EncounterArtReference: Hashable, Sendable {
     public let thumbnailImageName: String?
 }
 
+public struct TalentArtReference: Hashable, Sendable {
+    public let imageName: String
+    public let thumbnailImageName: String?
+}
+
 
 public enum ArtCatalog {
     public static let combatantArtByID: [String: CombatantArtReference] = {
@@ -1125,6 +1130,75 @@ public enum ArtCatalog {
         return dict
     }()
 
+    public static let talentArtByID: [Keyword: TalentArtReference] = {
+        var dict = [Keyword: TalentArtReference]()
+        dict[.physical] = TalentArtReference(
+            imageName: "talent_physical",
+            thumbnailImageName: "talent_physical_thumb"
+        )
+        dict[.burn] = TalentArtReference(
+            imageName: "talent_burn",
+            thumbnailImageName: "talent_burn_thumb"
+        )
+        dict[.stun] = TalentArtReference(
+            imageName: "talent_stun",
+            thumbnailImageName: "talent_stun_thumb"
+        )
+        dict[.block] = TalentArtReference(
+            imageName: "talent_block",
+            thumbnailImageName: "talent_block_thumb"
+        )
+        dict[.health] = TalentArtReference(
+            imageName: "talent_health",
+            thumbnailImageName: "talent_health_thumb"
+        )
+        dict[.gold] = TalentArtReference(
+            imageName: "talent_gold",
+            thumbnailImageName: "talent_gold_thumb"
+        )
+        dict[.holy] = TalentArtReference(
+            imageName: "talent_holy",
+            thumbnailImageName: "talent_holy_thumb"
+        )
+        dict[.poison] = TalentArtReference(
+            imageName: "talent_poison",
+            thumbnailImageName: "talent_poison_thumb"
+        )
+        dict[.bleed] = TalentArtReference(
+            imageName: "talent_bleed",
+            thumbnailImageName: "talent_bleed_thumb"
+        )
+        dict[.leech] = TalentArtReference(
+            imageName: "talent_leech",
+            thumbnailImageName: "talent_leech_thumb"
+        )
+        dict[.freeze] = TalentArtReference(
+            imageName: "talent_freeze",
+            thumbnailImageName: "talent_freeze_thumb"
+        )
+        dict[.dodge] = TalentArtReference(
+            imageName: "talent_dodge",
+            thumbnailImageName: "talent_dodge_thumb"
+        )
+        dict[.purge] = TalentArtReference(
+            imageName: "talent_purge",
+            thumbnailImageName: "talent_purge_thumb"
+        )
+        dict[.cleanse] = TalentArtReference(
+            imageName: "talent_cleanse",
+            thumbnailImageName: "talent_cleanse_thumb"
+        )
+        dict[.mana] = TalentArtReference(
+            imageName: "talent_mana",
+            thumbnailImageName: "talent_mana_thumb"
+        )
+        dict[.deathsDoor] = TalentArtReference(
+            imageName: "talent_deaths_door",
+            thumbnailImageName: "talent_deaths_door_thumb"
+        )
+        return dict
+    }()
+
 }
 
 extension Combatant {
@@ -1136,6 +1210,12 @@ extension Combatant {
 extension Ability {
     public var artReference: AbilityArtReference? {
         ArtCatalog.abilityArtByID[id]
+    }
+}
+
+extension Keyword {
+    public var artReference: TalentArtReference? {
+        ArtCatalog.talentArtByID[self]
     }
 }
 

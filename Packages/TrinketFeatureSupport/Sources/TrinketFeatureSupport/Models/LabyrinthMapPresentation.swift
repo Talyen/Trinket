@@ -11,6 +11,7 @@ public enum LabyrinthMapNodeState: Equatable {
 public enum LabyrinthMapPresentation {
     public static func effectiveType(
         for node: LabyrinthNode,
+        worldSeed: UInt64,
         unlockedHeroIDs: Set<String>,
         unlockedCompanionIDs: Set<String>
     ) -> LabyrinthNodeType {
@@ -18,6 +19,7 @@ public enum LabyrinthMapPresentation {
         let resolution = GameContent.resolveRecruitEncounter(
             configuredEventID: node.recruitEventID,
             encounterID: node.id,
+            worldSeed: worldSeed,
             unlockedHeroIDs: unlockedHeroIDs,
             unlockedCompanionIDs: unlockedCompanionIDs
         )

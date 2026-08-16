@@ -97,6 +97,7 @@ public final class LabyrinthPlayMode {
             let resolution = GameContent.resolveRecruitEncounter(
                 configuredEventID: node.recruitEventID,
                 encounterID: node.id,
+                worldSeed: playerSave.worldSeed,
                 unlockedHeroIDs: roster.unlockedHeroIDs,
                 unlockedCompanionIDs: roster.unlockedCompanionIDs
             )
@@ -333,7 +334,7 @@ extension LabyrinthPlayMode {
         Self.resolveBattleLoot(
             for: node,
             effects: labyrinth.effects(for: node.id),
-            worldSeed: labyrinth.worldSeed,
+            worldSeed: playerSave.worldSeed,
             ownedTrinketIDs: playerSave.inventory.ownedTrinketIDs,
             astralChanceBonusPercent: playerSave.homestead.effects.astralChanceBonusPercent
         )
