@@ -32,33 +32,6 @@ package enum EnemyTraitEngine {
         return outcome.events
     }
 
-    package static func turnBlock(
-        for combatant: Combatant,
-        context: inout BattleState
-    ) -> [ActionEvent] {
-        let profile = context.modifiers(for: combatant.id)
-        guard profile.triggers.blockPerTurn > 0,
-              context.roster.health(for: combatant) > 0
-        else { return [] }
-
-        let applied = DefensePoolEngine.add(
-            profile.triggers.blockPerTurn,
-            to: combatant,
-            keyword: .block,
-            sourceActorID: combatant.id,
-            in: &context
-        )
-        return [context.nextEvent(
-            kind: .effect,
-            effectKind: .shieldApplied,
-            actorName: combatant.name,
-            abilityName: traitName(for: combatant, in: context),
-            target: combatant,
-            amount: applied,
-            keyword: .block
-        )]
-    }
-
     package static func turnFreeze(
         for combatant: Combatant,
         context: inout BattleState

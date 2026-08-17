@@ -11,6 +11,7 @@ public struct CombatantTalentsView: View {
     let tree: TalentTree
     let progression: CombatantProgression
     @Binding var unlockedTalents: Set<String>
+    let allowsEditing: Bool
     let onUnlockTalent: (TalentNode, TalentTree) -> Void
     let onResetTalents: () -> Void
 
@@ -21,6 +22,7 @@ public struct CombatantTalentsView: View {
         tree: TalentTree,
         progression: CombatantProgression,
         unlockedTalents: Binding<Set<String>>,
+        allowsEditing: Bool = true,
         onUnlockTalent: @escaping (TalentNode, TalentTree) -> Void,
         onResetTalents: @escaping () -> Void
     ) {
@@ -28,6 +30,7 @@ public struct CombatantTalentsView: View {
         self.tree = tree
         self.progression = progression
         _unlockedTalents = unlockedTalents
+        self.allowsEditing = allowsEditing
         self.onUnlockTalent = onUnlockTalent
         self.onResetTalents = onResetTalents
         _selectedNodeID = State(initialValue: tree.nodes.first?.id)
@@ -45,22 +48,34 @@ public struct CombatantTalentsView: View {
     }
 
     public var body: some View {
-        VStack(spacing: 0) {
-            talentGrid
-                .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-                .padding(.top, TrinketDesign.Metrics.smallSpacing)
-                .padding(.bottom, TrinketDesign.Metrics.mediumSpacing)
+        DetailHeroScrollShell(title: tree.name) { baseHeight, overscroll in
+            DetailHeroHeader(
+                eyebrow: "TALENTS",
+                title: tree.name,
+                baseHeight: baseHeight,
+                overscroll: overscroll
+            ) {
+                talentArtwork
+            }
+        } bodyContent: {
+            VStack(spacing: TrinketDesign.Metrics.mediumSpacing) {
+                talentGrid
+                    .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+                    .padding(.top, TrinketDesign.Metrics.mediumSpacing)
 
-            Spacer(minLength: 0)
+                Text("A round is your plays, then the enemy acts. The party is your Hero and Companion.")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
 
-            inspectorFooter
+                inspectorContent
+            }
+            .padding(.bottom, TrinketDesign.Metrics.largeSpacing)
         }
-        .background(TrinketDesign.Colors.canvas.ignoresSafeArea())
-        .navigationTitle(tree.keyword.rawValue)
-        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                if hasTreeUnlocks {
+                if allowsEditing, hasTreeUnlocks {
                     Button("Reset") {
                         onResetTalents()
                     }
@@ -76,25 +91,47 @@ public struct CombatantTalentsView: View {
         tree.nodes.contains { unlockedTalents.contains($0.id) }
     }
 
+    @ViewBuilder
+    private var talentArtwork: some View {
+        if let artReference = tree.keyword.artReference {
+            Image.preparedAsset(artReference, displaySize: .full)
+                .resizable()
+                .interpolation(.medium)
+                .aspectRatio(contentMode: .fill)
+                .clipped()
+                .decorativePreparedArtwork()
+        } else {
+            let style = tree.keyword.visualStyle
+            ZStack {
+                style.color.opacity(0.18)
+
+                Image(systemName: style.symbolName)
+                    .font(.system(size: 64, weight: .semibold))
+                    .foregroundStyle(style.color)
+                    .symbolRenderingMode(.hierarchical)
+            }
+        }
+    }
+
     // MARK: - 2x3 Talent Grid
 
     private var talentGrid: some View {
         VStack(spacing: TrinketDesign.Metrics.mediumSpacing) {
-            ForEach(1 ... 3, id: \.self) { tier in
-                let tierNodes = tree.nodes(forTier: tier)
-                let isTierLocked = (tier == 2 && !tree.isTierComplete(1, unlockedNodeIDs: unlockedTalents))
-                    || (tier == 3 && !tree.isTierComplete(2, unlockedNodeIDs: unlockedTalents))
+            ForEach(1 ... 3, id: \.self) { row in
+                let rowNodes = tree.nodes(forRow: row)
+                let isRowLocked = (row == 2 && !tree.isRowComplete(1, unlockedNodeIDs: unlockedTalents))
+                    || (row == 3 && !tree.isRowComplete(2, unlockedNodeIDs: unlockedTalents))
 
                 HStack(spacing: TrinketDesign.Metrics.mediumSpacing) {
-                    ForEach(tierNodes) { node in
-                        talentNodeCard(node: node, isTierLocked: isTierLocked)
+                    ForEach(rowNodes) { node in
+                        talentNodeCard(node: node, isRowLocked: isRowLocked)
                     }
                 }
             }
         }
     }
 
-    private func talentNodeCard(node: TalentNode, isTierLocked: Bool) -> some View {
+    private func talentNodeCard(node: TalentNode, isRowLocked: Bool) -> some View {
         let isUnlocked = unlockedTalents.contains(node.id)
         let isSelected = selectedNodeID == node.id
         let style = node.keyword.visualStyle
@@ -107,7 +144,7 @@ public struct CombatantTalentsView: View {
                     Image(systemName: node.symbolName)
                         .font(.system(size: 32, weight: .bold))
                         .foregroundStyle(style.color)
-                } else if isTierLocked {
+                } else if isRowLocked {
                     Image(systemName: "lock.fill")
                         .font(.system(size: 26, weight: .medium))
                         .foregroundStyle(.tertiary)
@@ -119,7 +156,7 @@ public struct CombatantTalentsView: View {
 
                 Text(node.name)
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(isUnlocked ? .primary : (isTierLocked ? .tertiary : .secondary))
+                    .foregroundStyle(isUnlocked ? .primary : (isRowLocked ? .tertiary : .secondary))
                     .lineLimit(1)
                     .minimumScaleFactor(0.75)
             }
@@ -132,37 +169,64 @@ public struct CombatantTalentsView: View {
             .overlay(
                 RoundedRectangle(cornerRadius: 14, style: .continuous)
                     .stroke(
-                        isSelected ? style.color : (isUnlocked ? style.color.opacity(0.4) : .clear),
-                        lineWidth: isSelected ? 2 : 1
+                        isSelected ? .clear : (isUnlocked ? style.color.opacity(0.4) : .clear),
+                        lineWidth: 1
                     )
+            )
+            .keywordShineBorder(
+                keywords: isSelected ? referencedKeywords(for: node) : nil,
+                cornerRadius: 14,
+                lineWidth: 2
             )
             .shadow(
                 color: isSelected ? style.glowColor.opacity(0.4) : .clear,
                 radius: 8
             )
+            .saturation(isRowLocked ? 0.35 : 1.0)
+            .opacity(isRowLocked ? 0.65 : 1.0)
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier(AccessibilityID.CombatantDetail.talentsNode(id: node.id))
     }
 
-    // MARK: - Inspector Footer
+    private func referencedKeywords(for node: TalentNode) -> [Keyword] {
+        var keywords = [node.keyword]
+        for referenced in Keyword.referenced(in: node.description) where !keywords.contains(referenced) {
+            keywords.append(referenced)
+        }
+        return keywords
+    }
 
-    private var inspectorFooter: some View {
+    // MARK: - Inspector Content
+
+    private var inspectorContent: some View {
         VStack(alignment: .leading, spacing: TrinketDesign.Metrics.mediumSpacing) {
             if let selectedNode {
                 let isUnlocked = unlockedTalents.contains(selectedNode.id)
-                let canUnlock = tree.canUnlock(
+                let canUnlock = allowsEditing && tree.canUnlock(
                     node: selectedNode,
                     unlockedNodeIDs: unlockedTalents,
                     availablePoints: availablePoints
                 )
                 let style = selectedNode.keyword.visualStyle
 
-                Text(selectedNode.name)
-                    .font(.headline.weight(.bold))
-                    .foregroundStyle(style.color)
+                HStack(spacing: TrinketDesign.Metrics.smallSpacing) {
+                    Text(selectedNode.name)
+                        .font(.headline.weight(.bold))
+                        .foregroundStyle(style.color)
 
-                Text(selectedNode.description)
+                    if combatant.role == .companion {
+                        Text("PARTY PASSIVE")
+                            .font(.caption2.weight(.bold))
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(style.color.opacity(0.15))
+                            .foregroundStyle(style.color)
+                            .clipShape(Capsule())
+                    }
+                }
+
+                KeywordDescriptionText(text: selectedNode.description)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -188,32 +252,37 @@ public struct CombatantTalentsView: View {
         }
         .padding(TrinketDesign.Metrics.contentMargin)
         .background(
-            Rectangle()
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .fill(TrinketDesign.Colors.panel)
-                .ignoresSafeArea(edges: .bottom)
         )
-        .overlay(
-            Divider()
-                .background(TrinketDesign.Colors.subtleStroke),
-            alignment: .top
-        )
+        .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+        .onChange(of: tree.id) { _, _ in
+            if let firstNodeID = tree.nodes.first?.id {
+                selectedNodeID = firstNodeID
+            }
+        }
     }
 
     private func buttonLabel(for node: TalentNode, isUnlocked: Bool, canUnlock: Bool) -> String {
         if isUnlocked {
             return "Unlocked"
         }
+        if !allowsEditing {
+            return "Locked"
+        }
         if canUnlock {
             return "Unlock Talent"
         }
-        if availablePoints == 0 {
-            return "No Points Available"
-        }
-        if node.tier == 2 {
+        let row1Complete = tree.nodes.filter { $0.tier == 1 }.allSatisfy { unlockedTalents.contains($0.id) }
+        if node.tier == 2, !row1Complete {
             return "Complete Row 1 to Unlock"
         }
-        if node.tier == 3 {
+        let row2Complete = tree.nodes.filter { $0.tier == 2 }.allSatisfy { unlockedTalents.contains($0.id) }
+        if node.tier == 3, !row2Complete {
             return "Complete Row 2 to Unlock"
+        }
+        if availablePoints == 0 {
+            return "No Points Available"
         }
         return "Locked"
     }

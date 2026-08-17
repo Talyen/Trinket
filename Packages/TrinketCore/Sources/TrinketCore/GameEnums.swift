@@ -77,41 +77,69 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Codable, Send
         return terms.sorted { $0.0.count > $1.0.count }
     }()
 
+    /// Returns all keywords mentioned in the provided text in appearance order without duplicates.
+    public static func referenced(in text: String) -> [Self] {
+        var result: [Self] = []
+        for (term, keyword) in styledTerms {
+            if text.localizedStandardContains(term) || text.localizedCaseInsensitiveContains(term) {
+                if !result.contains(keyword) {
+                    result.append(keyword)
+                }
+            }
+        }
+        return result
+    }
+
     public var rulesText: String {
         switch self {
         case .physical:
-            "Physical direct damage type"
+            "Physical is a direct damage type"
         case .burn:
-            "Burn deals damage each turn and fades quickly"
+            "Burn deals damage each round and fades quickly"
         case .stun:
-            "Stun damage builds up and eventually causes the loss of a turn"
+            "Stun builds a meter; filling it makes the enemy lose an action"
         case .block:
-            "Prevents Health damage and fades quickly"
+            "Block prevents Health damage and halves at the end of each round"
         case .health:
             "Health keeps you alive"
         case .gold:
             "Gold is currency for shops and upgrades"
         case .holy:
-            "Holy direct damage type"
+            "Holy is a direct damage type"
         case .poison:
-            "Poison deals damage each turn and fades slowly"
+            "Poison deals damage each round and fades slowly"
         case .bleed:
-            "Bleed deals damage each turn for 3 turns"
+            "Bleed deals damage each round for 3 rounds"
         case .leech:
             "Leech damage heals the attacker"
         case .freeze:
-            "Freeze damage builds up and eventually causes the loss of a turn"
+            "Freeze builds a meter; filling it makes the enemy lose an action"
         case .dodge:
             "Dodge avoids an attack completely"
         case .purge:
-            "Purge removes a beneficial effect"
+            "Purge removes a helpful effect from an enemy"
         case .cleanse:
-            "Cleanse removes a negative effect from an ally"
+            "Cleanse removes a negative effect from a party member"
         case .mana:
-            "Mana regenerates +1 each turn; spend 3 Mana to add +1 Burn or Freeze damage on a card"
+            "Mana regenerates +1 each round. Spend 3 Mana to add +1 Burn or Freeze on a card"
         case .deathsDoor:
-            "Death's Door survives a fatal blow at 1 HP — heal before it ends or the next fatal hit kills"
+            "Death's Door survives a fatal blow at 1 Health — heal before it ends or the next fatal hit kills"
         }
+    }
+}
+
+/// Affinity grouping for authored enemies. Used by talent conditions such as
+/// Bane of Evil (double Holy damage vs Undead/Corrupted).
+public enum EnemyFaction: String, CaseIterable, Identifiable, Hashable, Sendable {
+    case mortal
+    case beast
+    case elemental
+    case construct
+    case undead
+    case corrupted
+
+    public var id: String {
+        rawValue
     }
 }
 

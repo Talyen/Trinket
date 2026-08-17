@@ -8,7 +8,11 @@ struct AffixUnderrepresentedReactionTests {
     @Test func disruptingPurgesWhenEnemyIsStunned() throws {
         var context = BattleTestFixtures.makePipelineContext(
             heroModifiers: CombatModifierProfile(
-                triggers: CombatTraitTriggers(enemyStunnedPurgeCount: 1)
+                triggers: CombatTraitTriggers(
+                    control: ControlTriggers(
+                        enemyStunnedPurgeCount: 1
+                    )
+                )
             )
         )
         let enemy = context.roster.enemy.combatant
@@ -26,7 +30,11 @@ struct AffixUnderrepresentedReactionTests {
     @Test func unmakingPurgesOnCriticalHit() throws {
         var context = BattleTestFixtures.makePipelineContext(
             heroModifiers: CombatModifierProfile(
-                triggers: CombatTraitTriggers(criticalPurgeCount: 1)
+                triggers: CombatTraitTriggers(
+                    attack: AttackTriggers(
+                        criticalPurgeCount: 1
+                    )
+                )
             )
         )
         let hero = context.roster.hero.combatant
@@ -45,7 +53,11 @@ struct AffixUnderrepresentedReactionTests {
     @Test func arcaneWardGrantsBlockWhenGainingMana() throws {
         var context = BattleTestFixtures.makePipelineContext(
             heroModifiers: CombatModifierProfile(
-                triggers: CombatTraitTriggers(gainManaBlockFlat: 2)
+                triggers: CombatTraitTriggers(
+                    mana: ManaTriggers(
+                        gainManaBlockFlat: 2
+                    )
+                )
             )
         )
         let hero = context.roster.hero.combatant
@@ -79,14 +91,21 @@ struct AffixUnderrepresentedReactionTests {
             gold: 0,
             initialGold: 0,
             heroModifiers: CombatModifierProfile(
-                triggers: CombatTraitTriggers(leechRestoreManaFlat: 2, leechGoldFlat: 1)
+                triggers: CombatTraitTriggers(
+                    mana: ManaTriggers(
+                        leechRestoreManaFlat: 2
+                    ),
+                    gold: GoldTriggers(
+                        leechGoldFlat: 1
+                    )
+                )
             ),
             companionModifiers: .zero,
             enemyModifiers: .zero
         )
         let hero = context.roster.hero.combatant
 
-        let events = CombatTriggerEngine.afterLeech(by: hero, in: &context)
+        let events = CombatTriggerEngine.afterLeech(by: hero, target: context.roster.enemy.combatant, in: &context)
 
         try #expect(events.contains { $0.abilityName == "Siphoning" && $0.amount == 2 })
         try #expect(events.contains { $0.abilityName == "Blood Price" && $0.amount == 1 })
@@ -97,7 +116,11 @@ struct AffixUnderrepresentedReactionTests {
     @Test func bountyGrantsGoldWhenEnemyIsDefeated() throws {
         var context = BattleTestFixtures.makePipelineContext(
             heroModifiers: CombatModifierProfile(
-                triggers: CombatTraitTriggers(defeatEnemyGoldFlat: 4)
+                triggers: CombatTraitTriggers(
+                    gold: GoldTriggers(
+                        defeatEnemyGoldFlat: 4
+                    )
+                )
             )
         )
 
@@ -120,7 +143,11 @@ struct AffixUnderrepresentedReactionTests {
             initialGold: context.initialGold,
             heroModifiers: .zero,
             companionModifiers: CombatModifierProfile(
-                triggers: CombatTraitTriggers(defeatEnemyGoldFlat: 3)
+                triggers: CombatTraitTriggers(
+                    gold: GoldTriggers(
+                        defeatEnemyGoldFlat: 3
+                    )
+                )
             ),
             enemyModifiers: .zero
         )
@@ -147,10 +174,18 @@ struct AffixUnderrepresentedReactionTests {
             gold: context.gold,
             initialGold: context.initialGold,
             heroModifiers: CombatModifierProfile(
-                triggers: CombatTraitTriggers(defeatEnemyGoldFlat: 4)
+                triggers: CombatTraitTriggers(
+                    gold: GoldTriggers(
+                        defeatEnemyGoldFlat: 4
+                    )
+                )
             ),
             companionModifiers: CombatModifierProfile(
-                triggers: CombatTraitTriggers(defeatEnemyGoldFlat: 3)
+                triggers: CombatTraitTriggers(
+                    gold: GoldTriggers(
+                        defeatEnemyGoldFlat: 3
+                    )
+                )
             ),
             enemyModifiers: .zero
         )
@@ -179,7 +214,14 @@ struct AffixUnderrepresentedReactionTests {
         var context = BattleTestFixtures.makePipelineContext(
             targetMaxHealth: 20,
             heroModifiers: CombatModifierProfile(
-                triggers: CombatTraitTriggers(dodgeHealFlat: 3, dodgeDealStunFlat: 3)
+                triggers: CombatTraitTriggers(
+                    control: ControlTriggers(
+                        dodgeDealStunFlat: 3
+                    ),
+                    dodge: DodgeTriggers(
+                        dodgeHealFlat: 3
+                    )
+                )
             )
         )
         let hero = context.roster.hero.combatant
@@ -187,7 +229,7 @@ struct AffixUnderrepresentedReactionTests {
         context.roster.mutateRuntime(for: hero) { $0.currentHealth = 5 }
 
         let expectedHeal = context.paced(3, sourceActorID: hero.id)
-        let events = CombatTriggerEngine.afterDodge(by: hero, in: &context)
+        let events = CombatTriggerEngine.afterDodge(by: hero, attackerID: context.roster.enemy.id, in: &context)
 
         try #expect(context.roster.health(for: hero) == 5 + expectedHeal)
         try #expect(events.contains { $0.abilityName == "Sidestep" && $0.amount == expectedHeal })
@@ -199,8 +241,10 @@ struct AffixUnderrepresentedReactionTests {
         var context = BattleTestFixtures.makePipelineContext(
             heroModifiers: CombatModifierProfile(
                 triggers: CombatTraitTriggers(
-                    dodgeChanceBelowHealthPercentThreshold: 0.50,
-                    dodgeChanceBelowHealthPercentBonus: 0.15
+                    dodge: DodgeTriggers(
+                        dodgeChanceBelowHealthPercentThreshold: 0.50,
+                        dodgeChanceBelowHealthPercentBonus: 0.15
+                    )
                 )
             )
         )
@@ -235,13 +279,20 @@ struct AffixUnderrepresentedReactionTests {
     @Test func windfallHealsWhenPaydayGrantsGold() throws {
         var context = BattleTestFixtures.makePipelineContext(
             heroModifiers: CombatModifierProfile(
-                triggers: CombatTraitTriggers(gainGoldBonusHealSelf: 3, dodgeGoldFlat: 2)
+                triggers: CombatTraitTriggers(
+                    dodge: DodgeTriggers(
+                        dodgeGoldFlat: 2
+                    ),
+                    gold: GoldTriggers(
+                        gainGoldBonusHealSelf: 3
+                    )
+                )
             )
         )
         let hero = context.roster.hero.combatant
         context.roster.mutateRuntime(for: hero) { $0.currentHealth = 5 }
 
-        let events = CombatTriggerEngine.afterDodge(by: hero, in: &context)
+        let events = CombatTriggerEngine.afterDodge(by: hero, attackerID: context.roster.enemy.id, in: &context)
 
         try #expect(context.gold == 2)
         try #expect(context.roster.health(for: hero) == 5 + context.paced(3, sourceActorID: hero.id))
@@ -254,7 +305,12 @@ struct AffixUnderrepresentedReactionTests {
     @Test func cauterizeDealsBurnDamageWithoutApplyingBurn() throws {
         var context = BattleTestFixtures.makePipelineContext(
             heroModifiers: CombatModifierProfile(
-                triggers: CombatTraitTriggers(onBurnApplyPoison: 1, onBleedDealBurnDamage: 1)
+                triggers: CombatTraitTriggers(
+                    dot: DotTriggers(
+                        onBurnApplyPoison: 1,
+                        onBleedDealBurnDamage: 1
+                    )
+                )
             )
         )
         let hero = context.roster.hero.combatant
@@ -276,7 +332,11 @@ struct AffixUnderrepresentedReactionTests {
     @Test func ashenWakeAppliesPoisonWhenBurnIsApplied() throws {
         var context = BattleTestFixtures.makePipelineContext(
             heroModifiers: CombatModifierProfile(
-                triggers: CombatTraitTriggers(onBurnApplyPoison: 1)
+                triggers: CombatTraitTriggers(
+                    dot: DotTriggers(
+                        onBurnApplyPoison: 1
+                    )
+                )
             )
         )
         let hero = context.roster.hero.combatant

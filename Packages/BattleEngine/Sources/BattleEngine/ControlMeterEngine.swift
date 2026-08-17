@@ -6,7 +6,7 @@ import TrinketCore
 package enum ControlMeterEngine {
     /// - Parameter applyFightPacing: When `true` (default), scales `amount` via fight pacing.
     ///   Damage-pipeline callers pass `false` because `buildupDamage` is already paced.
-    public static func applyMeterCharge(
+    public static func applyMeterCharge( // swiftlint:disable:this function_body_length
         _ amount: Int,
         keyword: Keyword,
         to combatant: Combatant,
@@ -35,9 +35,32 @@ package enum ControlMeterEngine {
                 multiplier: 1 + profile.triggers.freezeControlVulnerabilityPercent
             )
         }
+        // Steadfast / Lichbone: control-buildup resistance.
+        if keyword == .stun || keyword == .freeze {
+            let targetTriggers = context.modifiers(for: combatant.id).triggers
+            let steadfastResistance = targetTriggers.blockedControlBurnResistance > 0
+                && DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: combatant)) > 0
+                ? targetTriggers.blockedControlBurnResistance
+                : 0
+            let lichboneResistance = keyword == .stun ? targetTriggers.afflictionResistance : 0
+            let controlResistance = max(steadfastResistance, lichboneResistance)
+            if controlResistance > 0 {
+                adjustedAmount = CombatRounding.scaled(adjustedAmount, multiplier: 1 - min(1, controlResistance))
+            }
+        }
         guard adjustedAmount > 0 else { return [] }
 
         let threshold = threshold(for: combatant, in: context)
+        // Seismic Impact: enemies require less Stun buildup to become Stunned.
+        let effectiveThreshold: Int = if keyword == .stun, combatant.role == .enemy, let sourceActorID,
+                                         context.modifiers(for: sourceActorID).triggers.enemyStunThresholdReductionPercent > 0 {
+            CombatRounding.scaled(
+                threshold,
+                multiplier: 1 - min(1, context.modifiers(for: sourceActorID).triggers.enemyStunThresholdReductionPercent)
+            )
+        } else {
+            threshold
+        }
         var currentEffects = context.roster.activeEffects(for: combatant)
         let existingIndex = currentEffects.firstIndex { activeEffect in
             if case let .controlMeter(k, _, _) = activeEffect.effect, k == keyword {
@@ -46,17 +69,17 @@ package enum ControlMeterEngine {
             return false
         }
         let existingAmount = existingMeterAmount(at: existingIndex, in: currentEffects)
-        guard existingAmount < threshold else { return [] }
-        let newAmount = min(existingAmount + adjustedAmount, threshold)
+        guard existingAmount < effectiveThreshold else { return [] }
+        let newAmount = min(existingAmount + adjustedAmount, effectiveThreshold)
 
-        if newAmount >= threshold {
+        if newAmount >= effectiveThreshold {
             return applyThresholdReached(
                 ControlMeterThresholdContext(
                     keyword: keyword,
                     combatant: combatant,
                     sourceActorID: sourceActorID,
                     existingIndex: existingIndex,
-                    threshold: threshold
+                    threshold: effectiveThreshold
                 ),
                 currentEffects: &currentEffects,
                 in: &context
@@ -84,6 +107,41 @@ package enum ControlMeterEngine {
         )
     }
 
+    /// End-of-round Freeze-buildup decay (25% of current buildup, floor). Skipped when the
+    /// buildup's source carries `freezeBuildupDoesNotDecay` (Persistent Frost / Glacial Grip).
+    /// Full meters (Frozen status) are left intact for the control-lock handler.
+    package static func decayFreezeBuildup(
+        on combatant: Combatant,
+        in context: inout BattleState
+    ) {
+        var effects = context.roster.activeEffects(for: combatant)
+        var changed = false
+        for index in effects.indices {
+            guard case let .controlMeter(kw, amount, threshold) = effects[index].effect,
+                  kw == .freeze,
+                  amount > 0,
+                  amount < threshold
+            else { continue }
+            if let sourceID = effects[index].sourceActorID,
+               context.modifiers(for: sourceID).triggers.freezeBuildupDoesNotDecay {
+                continue
+            }
+            let decayed = max(0, amount - amount * 25 / 100)
+            if decayed != amount {
+                effects[index] = ActiveEffect(
+                    id: effects[index].id,
+                    effect: .controlMeter(.freeze, decayed, threshold),
+                    remainingTurns: effects[index].remainingTurns,
+                    sourceActorID: effects[index].sourceActorID
+                )
+                changed = true
+            }
+        }
+        if changed {
+            context.roster.setActiveEffects(effects, for: combatant)
+        }
+    }
+
     private static func existingMeterAmount(
         at existingIndex: Int?,
         in currentEffects: [ActiveEffect]
@@ -102,6 +160,7 @@ package enum ControlMeterEngine {
         let threshold: Int
     }
 
+    // swiftlint:disable:next function_body_length
     private static func applyThresholdReached(
         _ thresholdContext: ControlMeterThresholdContext,
         currentEffects: inout [ActiveEffect],
@@ -130,6 +189,13 @@ package enum ControlMeterEngine {
             context.additionalControlSkipsByCombatantID[combatant.id, default: 0] +=
                 context.modifiers(for: sourceActorID).triggers.freezeExtraActionSkips
         }
+        if keyword == .stun,
+           let sourceActorID,
+           context.modifiers(for: sourceActorID).triggers.enemyStunExtraActionSkips > 0 {
+            let extra = min(1, context.modifiers(for: sourceActorID).triggers.enemyStunExtraActionSkips)
+            let current = context.additionalControlSkipsByCombatantID[combatant.id, default: 0]
+            context.additionalControlSkipsByCombatantID[combatant.id] = min(1, current + extra)
+        }
 
         let actorName: String = if let sourceActorID, let source = context.roster.combatant(for: sourceActorID) {
             source.name
@@ -152,6 +218,34 @@ package enum ControlMeterEngine {
         ]
         if keyword == .stun, combatant.id == context.roster.enemy.id {
             events.append(contentsOf: CombatTriggerEngine.afterEnemyStunned(in: &context))
+        }
+        // Glacial Barrier: gain Block whenever the enemy becomes Frozen.
+        if keyword == .freeze,
+           combatant.role == .enemy,
+           let sourceActorID,
+           let source = context.roster.combatant(for: sourceActorID),
+           context.modifiers(for: sourceActorID).triggers.onEnemyFrozenGainBlock > 0 {
+            events.append(contentsOf: context.applyBlock(
+                context.modifiers(for: sourceActorID).triggers.onEnemyFrozenGainBlock,
+                to: source.combatant,
+                source: source.combatant,
+                abilityName: "Glacial Barrier"
+            ))
+        }
+        // Volcanic Stun: Stunning the enemy also inflicts Burn.
+        if keyword == .stun,
+           combatant.role == .enemy,
+           let sourceActorID,
+           context.modifiers(for: sourceActorID).triggers.onStunEnemyApplyBurn > 0,
+           context.roster.health(for: combatant) > 0 {
+            events.append(contentsOf: context.applyDecayingDoT(
+                keyword: .burn,
+                potency: context.modifiers(for: sourceActorID).triggers.onStunEnemyApplyBurn,
+                to: combatant,
+                sourceActorID: sourceActorID,
+                dealImmediateDamage: false,
+                suppressAffixReactions: true
+            ))
         }
         return events
     }

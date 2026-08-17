@@ -40,6 +40,9 @@ public enum EffectKind: Hashable, CaseIterable, Sendable {
     case recurringDamage
     case avatar
     case revive
+    case damageReductionPercent
+    case damageReductionFlat
+    case strengthReduction
 }
 
 public extension Effect {
@@ -83,6 +86,9 @@ public extension Effect {
         case .recurringDamage: .recurringDamage
         case .avatar: .avatar
         case .revive: .revive
+        case .damageReductionPercent: .damageReductionPercent
+        case .damageReductionFlat: .damageReductionFlat
+        case .strengthReduction: .strengthReduction
         }
     }
 
@@ -90,7 +96,8 @@ public extension Effect {
     /// strip from allies.
     var isRemovableDebuff: Bool {
         switch self {
-        case .burn, .poison, .bleed, .controlMeter, .marked, .recurringDamage:
+        case .burn, .poison, .bleed, .controlMeter, .marked, .recurringDamage,
+             .damageReductionPercent, .damageReductionFlat, .strengthReduction:
             true
         default:
             false
@@ -117,7 +124,7 @@ public extension Effect {
         case .burn, .poison, .bleed, .controlMeter,
              .leech, .deathsDoor,
              .marked, .criticalChanceBonus, .restoreManaOnHit, .damageKeywordOverride,
-             .recurringDamage, .avatar:
+             .recurringDamage, .avatar, .damageReductionPercent, .damageReductionFlat, .strengthReduction:
             true
         default:
             false

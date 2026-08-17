@@ -3,30 +3,6 @@ import Foundation
 import TrinketCore
 
 enum GameContentRosterGenerated {
-    static let combatantTraitIDs: [String: String] = {
-        var dict = [String: String]()
-        dict.reserveCapacity(18)
-        dict["knight"] = "oathbound"
-        dict["rogue"] = "cutpurse"
-        dict["wizard"] = "arcane_focus"
-        dict["ranger"] = "pack_leader"
-        dict["warlock"] = "soul_siphon"
-        dict["bear"] = "thick_hide"
-        dict["frost_whelp"] = "permafrost"
-        dict["lizard_scout"] = "cold_blood"
-        dict["panther"] = "razor_claws"
-        dict["phoenix"] = "immortal_ember"
-        dict["wolf"] = "pack_ferocity"
-        dict["golden_retriever"] = "gold_retriever"
-        dict["library_owl"] = "purifying_wisdom"
-        dict["risen_skeleton"] = "unliving_frame"
-        dict["mana_moth"] = "arcane_reservoir"
-        dict["pixie"] = "fae_fortune"
-        dict["shield_scarab"] = "iron_carapace"
-        dict["fox"] = "sly_trickery"
-        return dict
-    }()
-
     static let heroes: [Combatant] = {
         var list = [Combatant]()
         list.reserveCapacity(5)

@@ -38,7 +38,7 @@ public struct EffectSummary: Identifiable, Equatable, Hashable, Sendable {
         self.text = text
     }
 
-    public var id: Keyword {
-        keyword
+    public var id: String {
+        "\(keyword.rawValue):\(text)"
     }
 }

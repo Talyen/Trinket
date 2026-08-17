@@ -3,15 +3,15 @@ import Testing
 
 struct TalentModelsTests {
     private func makeSampleTree(keyword: Keyword = .poison) -> TalentTree {
-        let nodes = (1 ... 3).flatMap { tier in
+        let nodes: [TalentNode] = (1 ... 3).flatMap { row -> [TalentNode] in
             (1 ... 2).map { index in
                 TalentNode(
-                    id: "\(keyword.rawValue.lowercased())_t\(tier)_\(index)",
-                    name: "Talent \(tier).\(index)",
+                    id: "\(keyword.rawValue.lowercased())_r\(row)_\(index)",
+                    name: "Talent \(row).\(index)",
                     keyword: keyword,
                     symbolName: "drop.fill",
-                    tier: tier,
-                    description: "Placeholder description for tier \(tier) node \(index)."
+                    row: row,
+                    description: "Placeholder description for row \(row) node \(index)."
                 )
             }
         }

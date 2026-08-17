@@ -76,6 +76,17 @@ struct EnemyCatalogTests {
         try #expect(companionAverage > enemyAverage)
     }
 
+    @Test func authoredFactionsMatchEncounterFantasy() throws {
+        let skeleton = try #require(GameContent.enemy(matching: "skeleton"))
+        let necromancer = try #require(GameContent.enemy(matching: "necromancer"))
+        let treant = try #require(GameContent.enemy(matching: "the_blight_treant"))
+        let golem = try #require(GameContent.enemy(matching: "the_forge_golem"))
+        try #expect(skeleton.faction == .undead)
+        try #expect(necromancer.faction == .undead)
+        try #expect(treant.faction == .corrupted)
+        try #expect(golem.faction == .construct)
+    }
+
     @Test func enemyMatchingLookupReturnsExpectedEnemy() throws {
         for enemy in GameContent.enemies {
             let found = try #require(GameContent.enemy(matching: enemy.id))

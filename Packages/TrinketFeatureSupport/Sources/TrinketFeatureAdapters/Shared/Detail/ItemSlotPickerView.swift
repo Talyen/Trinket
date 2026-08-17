@@ -28,10 +28,16 @@ struct ItemSlotPickerView: View {
                         AccessibilityID.LoadoutPicker.itemCandidate(item.id)
                     },
                     card: { item, isSelected in
+                        let equippedKeywords = item.keywords.isEmpty ? Array(item.baseType.keywordAffinities) : Array(item.keywords)
+                        let astralKeywords = item.keywords.isEmpty ? Array(item.baseType.keywordAffinities) : Array(item.keywords)
+                        let shineKeywords: [Keyword]? = isSelected ? equippedKeywords : (item.rarity == .astral ? astralKeywords : nil)
+
                         ItemCard(
                             item: item,
                             showsAffixCount: false,
-                            isSelected: isSelected
+                            isSelected: isSelected,
+                            customShineKeywords: shineKeywords,
+                            shineLineWidth: isSelected ? 3 : 1.5
                         )
                         .overlay(alignment: .topTrailing) {
                             if equippedInSiblingSlotIDs.contains(item.id) {

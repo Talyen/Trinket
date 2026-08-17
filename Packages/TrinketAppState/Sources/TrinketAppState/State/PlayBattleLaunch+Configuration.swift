@@ -92,7 +92,8 @@ extension PlayBattleLaunch {
             companion: companionMember,
             enemy: enemyBuild.combatant,
             enemyEncounterLevel: input.enemyEncounterLevel,
-            enemyModifiers: enemyModifiers
+            enemyModifiers: enemyModifiers,
+            enemyFaction: GameContent.enemy(matching: input.enemy?.id ?? "")?.faction ?? .mortal
         )
         let presentation = BattlePresentationContext(
             inventoryItems: inventoryState.items,
@@ -160,6 +161,7 @@ extension PlayBattleLaunch {
     ) -> BattleRunConfiguration.PartyMember {
         let progression = rosterState.progression(for: combatant)
         let equipmentLoadout = rosterState.equipmentLoadout(for: combatant)
+        let unlockedTalents = rosterState.unlockedTalents(for: combatant)
         let build = CombatBuildResolver.build(
             combatant: CombatantLevelScaler.scale(
                 combatant: combatant,
@@ -167,13 +169,15 @@ extension PlayBattleLaunch {
             ),
             equipmentLoadout: equipmentLoadout,
             inventory: inventoryState.items,
+            unlockedTalents: unlockedTalents,
             additionalModifiers: additionalModifiers
         )
         return BattleRunConfiguration.PartyMember(
             combatant: build.combatant,
             progression: progression,
             equipmentLoadout: equipmentLoadout,
-            modifiers: build.modifiers
+            modifiers: build.modifiers,
+            unlockedTalents: unlockedTalents
         )
     }
 

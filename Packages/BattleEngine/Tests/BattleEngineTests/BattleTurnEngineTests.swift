@@ -86,7 +86,11 @@ struct BattleTurnEngineTests {
             events: [],
             gold: 0,
             initialGold: 0,
-            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(blockOnDeathsDoor: 8)),
+            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
+                healing: HealingTriggers(
+                    blockOnDeathsDoor: 8
+                )
+            )),
             companionModifiers: .zero,
             enemyModifiers: .zero
         )

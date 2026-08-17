@@ -312,6 +312,7 @@ private struct BattleFieldLane: View {
                 progression: partyMember?.progression ?? .initial,
                 equipmentLoadout: partyMember?.equipmentLoadout ?? EquipmentLoadout(),
                 inventoryItems: presentationContext.inventoryItems,
+                unlockedTalents: partyMember?.unlockedTalents ?? [],
                 health: combatantReadModel.health,
                 mana: combatantReadModel.mana,
                 activeEffectSummaries: combatantReadModel.activeEffectSummaries,

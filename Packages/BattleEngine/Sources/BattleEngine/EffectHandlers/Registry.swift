@@ -73,6 +73,9 @@ public enum EffectHandlers {
         .recurringDamage: RecurringDamageHandler(),
         .avatar: AvatarHandler(),
         .revive: ReviveHandler(),
+        .damageReductionPercent: TimedDebuffHandler(kind: .damageReductionPercent),
+        .damageReductionFlat: TimedDebuffHandler(kind: .damageReductionFlat),
+        .strengthReduction: TimedDebuffHandler(kind: .strengthReduction),
     ]
 
     public static func handler(for kind: EffectKind) -> (any BattleEffectHandler)? {

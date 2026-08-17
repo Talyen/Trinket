@@ -68,17 +68,26 @@ struct CombatBuildResolverTests {
         try #expect(build.effectiveMaxHealth == knight.maxHealth + 6)
     }
 
-    @Test func traitModifiersMergeIntoBuildProfile() throws {
+    @Test func unlockedTalentsMergeIntoBuildProfile() throws {
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         let build = CombatBuildResolver.build(
             combatant: knight,
             equipmentLoadout: EquipmentLoadout(),
-            inventory: []
+            inventory: [],
+            unlockedTalents: ["knight_holy_t1_1"]
         )
 
-        try #expect(build.modifiers.triggers.holyDamageBlockFlat == 1)
-        try #expect(build.modifiers.triggers.stunDamageBlockFlat == 1)
-        try #expect(build.modifiers.traitDisplayName == "Oathbound")
+        try #expect(build.modifiers.triggers.holyDamageBlockFlat == 2)
+        try #expect(build.modifiers.triggers.stunDamageBlockFlat == 2)
+    }
+
+    @Test func enemyTraitsMergeIntoEnemyBuildProfile() throws {
+        let livingArmor = try #require(GameContent.enemies.first { $0.id == "living_armor" })
+        let build = CombatBuildResolver.build(enemy: livingArmor)
+
+        try #expect(build.modifiers.damageTakenReduction[.bleed] == 0.30)
+        try #expect(build.modifiers.triggers.blockPerTurn == 1)
+        try #expect(build.modifiers.traitDisplayName == "Living Armor")
     }
 
     @Test func corruptedInstancePowersOverrideCatalogValues() throws {

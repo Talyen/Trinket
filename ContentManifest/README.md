@@ -84,7 +84,7 @@ Roster catalogs are manifest-driven via `combatants.tsv` and `enemies.tsv`. Hand
 Tab-separated columns:
 
 ```text
-id	name	role	max_health	max_mana	growth_archetype	basics	skills	ultimates	strength	agility	toughness	intellect	wisdom	trait_id
+id	name	role	max_health	max_mana	growth_archetype	basics	skills	ultimates	strength	agility	toughness	intellect	wisdom
 ```
 
 - `role`: `hero` or `companion`.
@@ -98,11 +98,12 @@ id	name	role	max_health	max_mana	growth_archetype	basics	skills	ultimates	streng
 Tab-separated columns:
 
 ```text
-id	name	max_health	is_boss	growth_archetype	abilities	strength	agility	toughness	intellect	wisdom	positive_trait_id	negative_trait_id
+id	name	max_health	is_boss	growth_archetype	abilities	strength	agility	toughness	intellect	wisdom	trait_id	faction
 ```
 
 - `max_health`: `default` uses `Enemy.defaultMaxHealth`, or an explicit integer.
 - `is_boss`: `true` or `false`.
+- `faction`: `mortal`, `beast`, `elemental`, `construct`, `undead`, or `corrupted`.
 - `abilities`: comma-separated ability symbols (basic, skill, ultimate — exactly three).
 - Primary-stat budget: `strength + agility + toughness + intellect + wisdom` must equal **50** for all combatants.
 - Boss difficulty comes from `is_boss` plus `EnemyPowerCurve` at encounter level, not separate HP/stat bands.

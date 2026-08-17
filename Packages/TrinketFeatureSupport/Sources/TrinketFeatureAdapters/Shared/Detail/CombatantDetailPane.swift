@@ -48,12 +48,9 @@ public struct CombatantDetailPane: View {
         CombatBuildResolver.build(
             combatant: combatant,
             equipmentLoadout: equipmentLoadout,
-            inventory: inventoryItems
+            inventory: inventoryItems,
+            unlockedTalents: unlockedTalents
         )
-    }
-
-    private var heroOrCompanionTrait: CombatantTraitDefinition? {
-        GameContent.trait(forCombatantID: combatant.id)
     }
 
     private var enemyTraits: [CombatantTraitDefinition] {
@@ -124,6 +121,7 @@ public struct CombatantDetailPane: View {
                 tree: tree,
                 progression: progression,
                 unlockedTalents: $unlockedTalents,
+                allowsEditing: allowsEditing,
                 onUnlockTalent: { node, tree in
                     onUnlockTalent?(node, tree)
                 },
@@ -143,14 +141,6 @@ public struct CombatantDetailPane: View {
     private func combatantDetailBody(combatBuild: CombatBuild) -> some View {
         statsSection(combatBuild: combatBuild)
 
-        if let heroOrCompanionTrait {
-            traitSection(
-                traits: [heroOrCompanionTrait],
-                sectionID: AccessibilityID.CombatantDetail.traitSection,
-                descriptionID: AccessibilityID.CombatantDetail.traitDescription
-            )
-        }
-
         if !enemyTraits.isEmpty {
             traitSection(
                 traits: enemyTraits,
@@ -165,6 +155,10 @@ public struct CombatantDetailPane: View {
 
         if !activeEffectSummaries.isEmpty {
             activeEffectsSection
+        }
+
+        if !activeModifierSummaries.isEmpty {
+            activeModifiersSection
         }
 
         if combatant.role != .enemy {
@@ -193,6 +187,18 @@ public struct CombatantDetailPane: View {
                 )
                 .padding(.vertical, TrinketDesign.Metrics.extraSmallSpacing)
             }
+        }
+    }
+
+    private var activeModifierSummaries: [EffectSummary] {
+        guard combatant.role != .enemy else { return [] }
+        let config = CombatantTalentCatalog.config(for: combatant.id)
+        let allNodes = config.trees.flatMap(\.nodes)
+        let nodeMap = Dictionary(uniqueKeysWithValues: allNodes.map { ($0.id, $0) })
+        return unlockedTalents.sorted().compactMap { nodeID in
+            guard let effect = CombatantTalentCatalog.effect(for: nodeID) else { return nil }
+            let keyword = nodeMap[nodeID]?.keyword ?? .physical
+            return EffectSummary(keyword: keyword, text: "\(effect.name): \(effect.description)")
         }
     }
 
@@ -228,6 +234,21 @@ public struct CombatantDetailPane: View {
         DetailSection("Active Effects") {
             VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
                 ForEach(activeEffectSummaries) { summary in
+                    let parts = activeEffectCardParts(for: summary)
+                    DetailTraitRow(
+                        title: parts.title,
+                        description: parts.description,
+                        leadingIconKeyword: summary.keyword
+                    )
+                }
+            }
+        }
+    }
+
+    private var activeModifiersSection: some View {
+        DetailSection("Active Talents") {
+            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
+                ForEach(activeModifierSummaries) { summary in
                     let parts = activeEffectCardParts(for: summary)
                     DetailTraitRow(
                         title: parts.title,
@@ -356,93 +377,51 @@ private extension CombatantDetailPane {
 
     func talentTreeCard(tree: TalentTree, availablePoints: Int) -> some View {
         let style = tree.keyword.visualStyle
-        let treeUnlocks = tree.nodes.count(where: { unlockedTalents.contains($0.id) })
         let artReference = tree.keyword.artReference
+        let hasUnallocatedPoints = availablePoints > 0
+        let unlockedCount = tree.nodes.count(where: { unlockedTalents.contains($0.id) })
 
         return Button {
             selectedTalentTree = tree
         } label: {
-            ZStack(alignment: .topTrailing) {
-                talentTreeCardBackground(artReference: artReference)
-                talentTreeCardContent(tree: tree, style: style, treeUnlocks: treeUnlocks, hasArt: artReference != nil)
-
-                if availablePoints > 0 {
-                    // UIStyleCheck: allow - Unspent points badge uses compact circular indicator framing.
-                    Text("\(availablePoints)")
-                        .font(.caption2.weight(.bold))
-                        .frame(minWidth: 18, minHeight: 18)
-                        .background(Circle().fill(TrinketDesign.Colors.accent))
-                        .foregroundStyle(TrinketDesign.Colors.Overlay.ink)
-                        .padding(6)
+            ProductCardShell(
+                isSelected: false,
+                showsLabel: true,
+                reservesLabelSpace: true,
+                shineKeywords: hasUnallocatedPoints ? [tree.keyword] : nil,
+                shineLineWidth: 2,
+                art: {
+                    if let artReference {
+                        Image.preparedAsset(artReference, displaySize: .compact)
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .decorativePreparedArtwork()
+                    } else {
+                        ZStack {
+                            TrinketDesign.cardShape
+                                .fill(style.color.opacity(0.18))
+                            Image(systemName: style.symbolName)
+                                .font(.system(size: TrinketDesign.Metrics.cardPlaceholderIconPointSize, weight: .semibold))
+                                .foregroundStyle(style.color)
+                        }
+                    }
+                },
+                label: {
+                    VStack(spacing: 2) {
+                        Text(tree.name)
+                            .trinketTypography(.cardLabel)
+                            .foregroundStyle(.primary)
+                            .lineLimit(2)
+                            .multilineTextAlignment(.center)
+                        Text("\(unlockedCount)/\(tree.nodes.count)")
+                            .font(.caption2.weight(.semibold))
+                            .foregroundStyle(.tertiary)
+                    }
                 }
-            }
-            .frame(maxWidth: .infinity)
-            .aspectRatio(3 / 4, contentMode: .fit)
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-            .background(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(TrinketDesign.Colors.surface)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .stroke(style.color.opacity(0.35), lineWidth: 1)
             )
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier(AccessibilityID.CombatantDetail.talentsNode(id: tree.keyword.rawValue))
-    }
-
-    @ViewBuilder
-    func talentTreeCardBackground(artReference: TalentArtReference?) -> some View {
-        if let artReference {
-            Image.preparedAsset(artReference, displaySize: .compact)
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-                .decorativePreparedArtwork()
-                .overlay(
-                    LinearGradient(
-                        colors: [
-                            TrinketDesign.Colors.panel.opacity(0.0),
-                            TrinketDesign.Colors.panel.opacity(0.85),
-                        ],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
-        }
-    }
-
-    func talentTreeCardContent(
-        tree: TalentTree,
-        style: Keyword.VisualStyle,
-        treeUnlocks: Int,
-        hasArt: Bool
-    ) -> some View {
-        VStack(spacing: 0) {
-            if !hasArt {
-                Image(systemName: style.symbolName)
-                    .font(.system(size: 30, weight: .bold))
-                    .foregroundStyle(style.color)
-                    .padding(.top, TrinketDesign.Metrics.smallSpacing)
-            }
-
-            Spacer()
-
-            VStack(spacing: TrinketDesign.Metrics.tightSpacing) {
-                Text(tree.keyword.rawValue)
-                    .font(.caption.weight(.bold))
-                    .foregroundStyle(hasArt ? .primary : style.color)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.8)
-
-                Text("\(treeUnlocks)/\(tree.nodes.count)")
-                    .font(.caption2.weight(.medium))
-                    .foregroundStyle(.secondary)
-            }
-            .padding(.bottom, TrinketDesign.Metrics.extraSmallSpacing)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding(TrinketDesign.Metrics.extraSmallSpacing)
     }
 }
 
@@ -457,7 +436,7 @@ public extension CombatantDetailPane {
             loadout: .constant(snapshot.combatant.abilityLoadout),
             equipmentLoadout: .constant(snapshot.equipmentLoadout),
             inventoryItems: .constant(snapshot.inventoryItems),
-            unlockedTalents: .constant([]),
+            unlockedTalents: .constant(snapshot.unlockedTalents),
             allowsEditing: false,
             hapticsEnabled: false,
             effectsVolume: 0,

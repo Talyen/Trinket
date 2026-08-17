@@ -1,0 +1,198 @@
+import TrinketContent
+import TrinketCore
+
+package extension CombatTriggerEngine {
+    // swiftlint:disable:next function_body_length cyclomatic_complexity
+    static func afterHolyDamageDealt(
+        to enemy: Combatant,
+        source: Combatant,
+        isAttackHit: Bool = true,
+        in context: inout BattleState
+    ) -> [ActionEvent] {
+        let profile = context.modifiers(for: source.id)
+        var events: [ActionEvent] = []
+
+        if profile.triggers.holyDamageBlockFlat > 0 {
+            events.append(contentsOf: context.applyBlock(
+                profile.triggers.holyDamageBlockFlat,
+                to: source,
+                source: source,
+                abilityName: affixName(.sanctum)
+            ))
+        }
+
+        if profile.triggers.holyDamageCleanseCount > 0 {
+            var effects = context.roster.activeEffects(for: source)
+            for _ in 0 ..< profile.triggers.holyDamageCleanseCount {
+                guard let removedKeyword = EffectRemoval.removeRandomDebuff(from: &effects, using: &context.rng) else {
+                    break
+                }
+                events.append(context.nextEvent(
+                    kind: .effect,
+                    effectKind: .cleanseApplied,
+                    actorName: source.name,
+                    abilityName: affixName(.absolving),
+                    target: source,
+                    amount: 0,
+                    keyword: removedKeyword
+                ))
+            }
+            context.roster.setActiveEffects(effects, for: source)
+        }
+
+        if profile.triggers.holyDamageHealFlat > 0 {
+            events.append(contentsOf: HealingEngine.resolveHeal(
+                HealRequest(
+                    amount: profile.triggers.holyDamageHealFlat,
+                    target: source,
+                    sourceActorID: source.id,
+                    logAs: .instantHeal(
+                        actorName: source.name,
+                        abilityName: affixName(.beacon),
+                        keyword: .health,
+                        displayAmount: profile.triggers.holyDamageHealFlat
+                    )
+                ),
+                in: &context
+            ).events)
+        }
+
+        // Divine Blessing / Sunlight Spark: heal the lowest-Health ally.
+        if profile.triggers.holyDamageHealLowestAllyFlat > 0 {
+            let lowest = BattleConditionEvaluator.lowestHealthAlly(
+                hero: context.roster.hero.combatant,
+                companion: context.roster.companion.combatant,
+                context: context
+            )
+            events.append(contentsOf: HealingEngine.resolveHeal(
+                HealRequest(
+                    amount: profile.triggers.holyDamageHealLowestAllyFlat,
+                    target: lowest,
+                    sourceActorID: source.id,
+                    logAs: .instantHeal(
+                        actorName: source.name,
+                        abilityName: "Divine Blessing",
+                        keyword: .health,
+                        displayAmount: profile.triggers.holyDamageHealLowestAllyFlat
+                    )
+                ),
+                in: &context
+            ).events)
+        }
+        // Sun Glyph: Holy damage dealt by the Companion heals the Hero.
+        if profile.triggers.holyDamageHealHeroFlat > 0, context.roster.hero.isAlive {
+            events.append(contentsOf: HealingEngine.resolveHeal(
+                HealRequest(
+                    amount: profile.triggers.holyDamageHealHeroFlat,
+                    target: context.roster.hero.combatant,
+                    sourceActorID: source.id,
+                    logAs: .instantHeal(
+                        actorName: source.name,
+                        abilityName: "Sun Glyph",
+                        keyword: .health,
+                        displayAmount: profile.triggers.holyDamageHealHeroFlat
+                    )
+                ),
+                in: &context
+            ).events)
+        }
+
+        // Radiant Wisdom: Holy damage restores 1 Mana.
+        if profile.triggers.onHolyDamageRestoreMana > 0 {
+            let restored = context.restoreMana(profile.triggers.onHolyDamageRestoreMana, to: source)
+            if restored > 0 {
+                events.append(context.nextEvent(
+                    kind: .effect,
+                    effectKind: .resourceGain,
+                    actorName: source.name,
+                    abilityName: "Radiant Wisdom",
+                    target: source,
+                    amount: restored,
+                    keyword: .mana
+                ))
+                events.append(contentsOf: Self.afterGainMana(by: source, in: &context))
+            }
+        }
+        // Revealed Flaw: Holy damage arms the owner's next hit with bonus damage.
+        if profile.triggers.holyDamageNextHitBonus > 0 {
+            context.roster.mutateRuntime(for: source) {
+                $0.pendingNextHitBonus += profile.triggers.holyDamageNextHitBonus
+            }
+        }
+        // Holy Infusion: Holy damage empowers the owner's next attack with Holy.
+        if profile.triggers.holyDamageNextAttackHolyBonus > 0 {
+            context.roster.mutateRuntime(for: source) {
+                $0.pendingNextAttackHolyBonus += profile.triggers.holyDamageNextAttackHolyBonus
+            }
+        }
+        // Blinding Light: Holy attack hits make the target miss its next attack (defender evades next hit).
+        if profile.triggers.holyDamageTargetMissNextAttack,
+           isAttackHit,
+           context.roster.health(for: enemy) > 0 {
+            context.prependEffect(.evadeNextHit, to: source, remainingTurns: 0)
+        }
+        // Dazzle: Holy damage reduces the target's outgoing damage on its next turn.
+        if profile.triggers.holyDamageReduceTargetDamage > 0, context.roster.health(for: enemy) > 0 {
+            context.appendEffect(
+                .damageReductionFlat(profile.triggers.holyDamageReduceTargetDamage, 1),
+                to: enemy,
+                sourceID: source.id,
+                remainingTurns: 1
+            )
+        }
+        // Purifying Light: Holy attacks remove all positive buffs from the target.
+        if profile.triggers.holyDamagePurgeAll, context.roster.health(for: enemy) > 0 {
+            events.append(contentsOf: applyPurge(
+                to: enemy,
+                source: source,
+                abilityName: "Purifying Light",
+                count: 0,
+                purgeAll: true,
+                in: &context
+            ))
+        }
+        // Radiant Barrier: dealing Holy damage grants the party 2 Block.
+        if profile.triggers.onHolyDamagePartyBlock > 0 {
+            for owner in [BattleParticipant.hero, .companion] {
+                let member = context.roster[owner]
+                guard member.isAlive else { continue }
+                events.append(contentsOf: context.applyBlock(
+                    profile.triggers.onHolyDamagePartyBlock,
+                    to: member.combatant,
+                    source: source,
+                    abilityName: "Radiant Barrier"
+                ))
+            }
+        }
+
+        if profile.triggers.holyDamagePurgeCount > 0 {
+            events.append(contentsOf: applyPurge(
+                to: enemy,
+                source: source,
+                abilityName: affixName(.nullifying),
+                count: profile.triggers.holyDamagePurgeCount,
+                purgeAll: false,
+                in: &context
+            ))
+        }
+
+        if profile.triggers.holyDamagePoisonFlat > 0, context.roster.health(for: enemy) > 0 {
+            events.append(contentsOf: context.resolveDamage(
+                DamageRequest(
+                    amount: profile.triggers.holyDamagePoisonFlat,
+                    target: enemy,
+                    keyword: .poison,
+                    sourceActorID: source.id,
+                    options: DamageOptions(
+                        applyStatBonus: false,
+                        applyItemBonus: false,
+                        applyDodge: false,
+                        isRetaliation: true
+                    )
+                )
+            ).events)
+        }
+
+        return events
+    }
+}

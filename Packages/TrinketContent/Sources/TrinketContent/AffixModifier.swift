@@ -23,6 +23,7 @@ public enum AffixModifier: Equatable, Hashable, Codable, Sendable {
     case damageTakenFlat(Keyword, Int)
     case damageTakenVulnerability(Keyword, Double)
     case companionDamageDealt(Int)
+    case companionBleedDamageDealt(Int)
 }
 
 public extension AffixModifier {
@@ -56,7 +57,8 @@ public extension AffixModifier {
              let .leechDuration(v),
              let .bleedDuration(v),
              let .damageTakenFlat(_, v),
-             let .companionDamageDealt(v):
+             let .companionDamageDealt(v),
+             let .companionBleedDamageDealt(v):
             Double(v)
         case let .poisonDamageDealtPercent(v),
              let .leechGainedPercent(v),
@@ -86,6 +88,7 @@ public extension AffixModifier {
         case let .bleedDuration(v): .bleedDuration(transform(v))
         case let .damageTakenFlat(kw, v): .damageTakenFlat(kw, transform(v))
         case let .companionDamageDealt(v): .companionDamageDealt(transform(v))
+        case let .companionBleedDamageDealt(v): .companionBleedDamageDealt(transform(v))
         default: self
         }
     }

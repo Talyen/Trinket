@@ -74,7 +74,27 @@ public struct ItemAffix: Identifiable, Equatable, Hashable, Sendable {
 public struct ItemAffixPower: Codable, Equatable, Hashable, Sendable {
     public let description: String
     public let modifiers: [AffixModifier]
-    public let triggers: CombatTraitTriggers
+    /// Held indirectly (copy-on-write box) so the ~470-field trigger struct does
+    /// not bloat every affix power built through the bulk-generated affix catalog.
+    public var triggers: CombatTraitTriggers {
+        get { triggerBox.value }
+        set {
+            if isKnownUniquelyReferenced(&triggerBox) {
+                triggerBox.value = newValue
+            } else {
+                triggerBox = TriggerBox(newValue)
+            }
+        }
+    }
+
+    private final class TriggerBox: @unchecked Sendable {
+        var value: CombatTraitTriggers
+        init(_ value: CombatTraitTriggers) {
+            self.value = value
+        }
+    }
+
+    private var triggerBox: TriggerBox
 
     public init(
         description: String,
@@ -83,7 +103,39 @@ public struct ItemAffixPower: Codable, Equatable, Hashable, Sendable {
     ) {
         self.description = description
         self.modifiers = modifiers
-        self.triggers = triggers
+        triggerBox = TriggerBox(triggers)
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case description
+        case modifiers
+        case triggers
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        description = try container.decode(String.self, forKey: .description)
+        modifiers = try container.decode([AffixModifier].self, forKey: .modifiers)
+        triggerBox = try TriggerBox(container.decode(CombatTraitTriggers.self, forKey: .triggers))
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(description, forKey: .description)
+        try container.encode(modifiers, forKey: .modifiers)
+        try container.encode(triggers, forKey: .triggers)
+    }
+
+    public static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.description == rhs.description
+            && lhs.modifiers == rhs.modifiers
+            && lhs.triggerBox.value == rhs.triggerBox.value
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(description)
+        hasher.combine(modifiers)
+        hasher.combine(triggerBox.value)
     }
 
     public func scaled(by multiplier: Int) -> Self {

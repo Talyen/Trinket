@@ -34,8 +34,21 @@ public extension GameContent {
             }
         }
 
+    static let itemTemplatesByID: [String: InventoryItem] = {
+        var templates: [String: InventoryItem] = [:]
+        for item in sampleInventoryItems {
+            templates[item.id] = item
+            templates[item.templateID] = item
+        }
+        for item in trinketItems {
+            templates[item.id] = item
+            templates[item.templateID] = item
+        }
+        return templates
+    }()
+
     static func itemTemplate(matching id: String) -> InventoryItem? {
-        (sampleInventoryItems + trinketItems).first { $0.id == id || $0.templateID == id }
+        itemTemplatesByID[id]
     }
 
     static func stableSeed(for text: String) -> UInt64 {

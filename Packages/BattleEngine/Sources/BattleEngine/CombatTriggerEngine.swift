@@ -29,6 +29,12 @@ package enum CombatTriggerEngine {
         case bloodfire = "Bloodfire"
         case cutpurse = "Cutpurse"
         case oathbound = "Oathbound"
+        case healingFlames = "Healing Flames"
+        case flameShield = "Flame Shield"
+        case emberShield = "Ember Shield"
+        case luckyClover = "Lucky Clover"
+        case payoff = "Payoff"
+        case confoundingLoot = "Confounding Loot"
         case generic = "Trait"
     }
 
@@ -42,5 +48,33 @@ package enum CombatTriggerEngine {
         in context: BattleState
     ) -> String {
         context.modifiers(for: combatant.id).traitDisplayName ?? fallback.rawValue
+    }
+
+    static func frozenTargetCannotBlockOrHeal(_ target: Combatant, in context: BattleState) -> Bool {
+        guard context.roster.hasControlStatus(for: target, keyword: .freeze) else { return false }
+        return context.heroModifiers.triggers.frozenEnemyCannotBlockOrHeal
+            || context.companionModifiers.triggers.frozenEnemyCannotBlockOrHeal
+    }
+
+    static func incomingHealMultiplier(for target: Combatant, in context: BattleState) -> Double {
+        let isBurning = context.roster.activeEffects(for: target).contains { $0.effect.keyword == .burn }
+        guard isBurning else { return 1 }
+        let reduction = max(
+            context.heroModifiers.triggers.burnReducesEnemyHealingAndLeechPercent,
+            context.companionModifiers.triggers.burnReducesEnemyHealingAndLeechPercent
+        )
+        return max(0, 1 - min(1, reduction))
+    }
+
+    /// True when any living ally has Purifying Aura.
+    static func partyDebuffsExpireFaster(in context: BattleState) -> Bool {
+        for owner in [BattleParticipant.hero, .companion] {
+            let member = context.roster[owner]
+            guard member.isAlive else { continue }
+            if context.modifiers(for: member.id).triggers.partyDebuffDurationHalved {
+                return true
+            }
+        }
+        return false
     }
 }

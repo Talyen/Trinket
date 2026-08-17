@@ -21,8 +21,16 @@ package extension DamagePipeline {
             }
             return false
         }
+        let profile = context.modifiers(for: state.combatant.id)
+        let autoDodge = profile.triggers.autoDodgeAfterFirstHitPerTurn
+            && (context.roster.runtime(for: state.combatant)?.hasTakenAttackHitThisTurn ?? false)
+        if let damageKeyword = state.damageKeyword, damageKeyword == .holy,
+           let sourceActorID = state.sourceActorID,
+           context.modifiers(for: sourceActorID).triggers.holyIgnoresBlockAndDodge {
+            return
+        }
         let dodged: Bool
-        if hasEvadeNextHit {
+        if hasEvadeNextHit || autoDodge {
             dodged = true
         } else {
             let chance = dodgeChance(for: state, in: context)
@@ -53,7 +61,14 @@ package extension DamagePipeline {
             milestone: nil
         ))
         state.isDodged = true
-        state.damageEvents.append(contentsOf: CombatTriggerEngine.afterDodge(by: state.combatant, in: &context))
+        // Evasive Pack auto-dodges do not trigger on-Dodge punish talents (Riposte).
+        if !autoDodge {
+            state.damageEvents.append(contentsOf: CombatTriggerEngine.afterDodge(
+                by: state.combatant,
+                attackerID: state.sourceActorID,
+                in: &context
+            ))
+        }
     }
 
     static func dodgeChance(
@@ -76,6 +91,17 @@ package extension DamagePipeline {
         var chance = baseChance
         let profile = context.modifiers(for: state.combatant.id)
         chance += profile.triggers.dodgeChanceBonus
+        chance += context.roster.runtime(for: state.combatant)?.bonusDodgeUntilNextTurn ?? 0
+        // Ashen Ward: +50% Dodge chance while on Death's Door.
+        if context.roster.isDeathsDoorActive(for: state.combatant),
+           profile.triggers.deathsDoorDodgeAndDebuffImmunity {
+            chance += 0.5
+        }
+        if let attackerID = state.sourceActorID,
+           let attacker = context.roster.combatant(for: attackerID),
+           context.roster.activeEffects(for: attacker.combatant).contains(where: { $0.effect.keyword == .bleed }) {
+            chance += profile.triggers.dodgeChanceVsBleedingEnemiesBonus
+        }
         if profile.triggers.dodgeChanceBelowHealthPercentThreshold > 0,
            profile.triggers.dodgeChanceBelowHealthPercentBonus > 0,
            context.roster.maxHealth(for: state.combatant) > 0 {
@@ -99,12 +125,20 @@ package extension DamagePipeline {
               let actor = context.roster.combatant(for: sourceActorID)
         else { return }
 
+        if resolveGuaranteedCrit(to: &state, actor: actor, in: &context) {
+            return
+        }
+
         var chance = actor.primaryStats.contestedCriticalChance(
             for: damageKeyword,
             againstDefenderToughness: state.combatant.primaryStats.toughness
         )
         chance += state.abilityCriticalChanceBonus
         chance += context.modifiers(for: sourceActorID).triggers.criticalChanceBonus
+        chance += partyCritChanceBonus(actor: actor, in: context)
+        if context.roster.activeEffects(for: state.combatant).contains(where: { $0.effect.keyword == .bleed }) {
+            chance += context.modifiers(for: sourceActorID).triggers.critChancePerBleedingEnemy
+        }
 
         let sourceEffects = context.roster.activeEffects(for: actor.combatant)
         for active in sourceEffects {
@@ -113,21 +147,85 @@ package extension DamagePipeline {
             }
         }
 
-        // Guaranteed crits bypass the soft cap and the RNG roll so
-        // "always Criticals if the enemy has a buff" / next-strike critical are actually always.
+        chance = min(criticalChanceCap(for: actor.combatant), max(0, chance))
+        guard BattleChance.succeeds(probability: chance, using: &context.rng) else { return }
+        applyCritical(to: &state)
+    }
+
+    /// Party-wide crit chance bonuses (Pack Bloodlust, Man's Best Friend, Treasure Hoard).
+    private static func partyCritChanceBonus(
+        actor: CombatantRuntime,
+        in context: BattleState
+    ) -> Double {
+        guard actor.role != .enemy, context.roster.companion.isAlive else { return 0 }
+        let companionTriggers = context.companionModifiers.triggers
+        var bonus: Double = 0
+        if companionTriggers.partyCritChanceWhileCompanionAboveHealthThreshold > 0,
+           context.roster.maxHealth(for: context.roster.companion.combatant) > 0,
+           Double(context.roster.health(for: context.roster.companion.combatant))
+           / Double(context.roster.maxHealth(for: context.roster.companion.combatant))
+           >= companionTriggers.partyCritChanceWhileCompanionAboveHealthThreshold {
+            bonus += companionTriggers.partyCritChanceWhileCompanionAboveHealthBonus
+        }
+        if actor.role == .hero, companionTriggers.heroCritChanceWhileCompanionAlive > 0 {
+            bonus += companionTriggers.heroCritChanceWhileCompanionAlive
+        }
+        // Treasure Hoard: while the Retriever carries enough Gold, the party
+        // gains bonus Critical Hit chance.
+        if companionTriggers.partyCritChanceWhileGoldAbove > 0,
+           context.gold >= companionTriggers.partyCritChanceWhileGoldAbove {
+            bonus += companionTriggers.partyCritChanceWhileGoldAboveBonus
+        }
+        return bonus
+    }
+
+    /// Guaranteed-crit paths that bypass the soft cap and the RNG roll.
+    private static func resolveGuaranteedCrit(
+        to state: inout DamageResolutionState,
+        actor: CombatantRuntime,
+        in context: inout BattleState
+    ) -> Bool {
+        guard let sourceActorID = state.sourceActorID else { return false }
+        // "Always Criticals if the enemy has a buff" / next-strike critical are actually always.
         if state.guaranteedCritical {
             applyCritical(to: &state)
-            return
+            return true
         }
         if state.guaranteedCriticalIfEnemyBuffed,
            context.roster.activeEffects(for: state.combatant).contains(where: \.effect.isRemovableBuff) {
             applyCritical(to: &state)
-            return
+            return true
         }
-
-        chance = min(criticalChanceCap(for: actor.combatant), max(0, chance))
-        guard BattleChance.succeeds(probability: chance, using: &context.rng) else { return }
-        applyCritical(to: &state)
+        // Surprise Strike: this combatant's first attack in battle is a guaranteed critical.
+        if state.isAttackHit,
+           context.modifiers(for: sourceActorID).triggers.firstAttackGuaranteedCritical,
+           let runtime = context.roster.runtime(for: actor.combatant),
+           !runtime.hasTriggeredSurpriseStrike {
+            context.roster.mutateRuntime(for: actor.combatant) { $0.hasTriggeredSurpriseStrike = true }
+            applyCritical(to: &state)
+            return true
+        }
+        // Flanking Position: a dodge-empowered next party hit is a guaranteed critical.
+        if state.isAttackHit,
+           context.roster.runtime(for: actor.combatant)?.pendingGuaranteedCriticalAfterDodge == true {
+            context.roster.mutateRuntime(for: actor.combatant) { $0.pendingGuaranteedCriticalAfterDodge = false }
+            applyCritical(to: &state)
+            return true
+        }
+        // Taste for Blood: this combatant's next basic attack is a guaranteed critical.
+        if state.isAttackHit, state.isBasicAttackHit,
+           context.roster.runtime(for: actor.combatant)?.pendingBasicGuaranteedCrit == true {
+            context.roster.mutateRuntime(for: actor.combatant) { $0.pendingBasicGuaranteedCrit = false }
+            applyCritical(to: &state)
+            return true
+        }
+        // Deathly Wrath: guaranteed criticals while on Death's Door.
+        if context.roster.isDeathsDoorActive(for: actor.combatant),
+           context.modifiers(for: sourceActorID).triggers.guaranteedCritWhileOnDeathsDoor {
+            applyCritical(to: &state)
+            return true
+        }
+        return false
     }
 
     /// Dodge soft cap for the defending combatant (enemy archetype vs player 75%).

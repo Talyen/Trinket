@@ -82,4 +82,21 @@ public extension BattleState {
         }
         return .zero
     }
+
+    /// Enemy target selection adjusted by Companion talents: Shadow Camouflage forces
+    /// the Hero as target; High Altitude makes the Whelp untargetable above the threshold.
+    var talentAdjustedEnemyTarget: Combatant {
+        let base = roster.enemyAttackTarget
+        if roster.hero.isAlive, companionModifiers.triggers.redirectSingleTargetAttacksToHero {
+            return roster.hero.combatant
+        }
+        if base.id == roster.companion.id, roster.hero.isAlive,
+           companionModifiers.triggers.untargetableAboveHealthPercent > 0,
+           roster.maxHealth(for: roster.companion.combatant) > 0,
+           Double(roster.health(for: roster.companion.combatant)) / Double(roster.maxHealth(for: roster.companion.combatant))
+           >= companionModifiers.triggers.untargetableAboveHealthPercent {
+            return roster.hero.combatant
+        }
+        return base
+    }
 }

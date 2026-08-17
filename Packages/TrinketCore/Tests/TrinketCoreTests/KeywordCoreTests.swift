@@ -41,4 +41,13 @@ struct KeywordCoreTests {
         try #expect(rawValues.count == Set(rawValues).count)
         try #expect(rawValues.allSatisfy { !$0.isEmpty })
     }
+
+    @Test func referencedKeywordsExtraction() throws {
+        let text = "Gain 1 Block when you deal Stun or Holy damage."
+        let keywords = Keyword.referenced(in: text)
+        try #expect(keywords.contains(.block))
+        try #expect(keywords.contains(.stun))
+        try #expect(keywords.contains(.holy))
+        try #expect(!keywords.contains(.burn))
+    }
 }

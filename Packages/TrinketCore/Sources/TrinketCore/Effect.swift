@@ -121,6 +121,12 @@ public enum Effect: Hashable, Sendable {
     case avatar(holyDamage: Int, blockPerTurn: Int, turns: Int)
     /// Revive a defeated ally to the given Health.
     case revive(Int)
+    /// Bearer deals `percent` less outgoing damage for `turns` (Blinding Carapace).
+    case damageReductionPercent(Double, Int)
+    /// Bearer deals `amount` less outgoing damage for `turns` (Dazzle).
+    case damageReductionFlat(Int, Int)
+    /// Bearer's Strength is reduced by `amount` for `turns` (Weaken Soul).
+    case strengthReduction(Int, Int)
 
     public static let bleedDoTTurnCount = 2
     /// Fraction of health lost healed when an ability with the Leech keyword deals damage.
@@ -177,6 +183,9 @@ public enum Effect: Hashable, Sendable {
         case let .recurringDamage(k, _, _): k
         case .avatar: .holy
         case .revive: .health
+        case .damageReductionPercent: .physical
+        case .damageReductionFlat: .physical
+        case .strengthReduction: .physical
         }
     }
 
@@ -226,6 +235,7 @@ public enum Effect: Hashable, Sendable {
         case let .damageKeywordOverride(_, _, d): d
         case let .recurringDamage(_, _, d): d
         case let .avatar(_, _, d): d
+        case let .damageReductionPercent(_, d), let .damageReductionFlat(_, d), let .strengthReduction(_, d): d
         case .burn, .poison, .instantHeal, .resourceGain, .drawCards, .drawAndPlayCards, .cleanse, .cleanseRandom,
              .purge, .purgeRandom, .halveShield, .controlMeter, .deathsDoor,
              .shield, .thorns, .nextHolyStrike, .nextStrikeDouble, .evadeNextHit,
@@ -267,7 +277,8 @@ public enum Effect: Hashable, Sendable {
              .deathsDoor, .thorns, .criticalChanceBonus, .restoreManaOnHit,
              .damageKeywordOverride, .nextHolyStrike, .nextStrikeDouble, .evadeNextHit,
              .convertManaToBlock, .shieldFromMana, .shieldFromHalfMana, .shieldFromGold, .maximumManaBonus,
-             .nextStrikeCritical, .freezeNextAttacker, .freezeOnHit, .avatar:
+             .nextStrikeCritical, .freezeNextAttacker, .freezeOnHit, .avatar,
+             .damageReductionPercent, .damageReductionFlat, .strengthReduction:
             .actor
         }
     }

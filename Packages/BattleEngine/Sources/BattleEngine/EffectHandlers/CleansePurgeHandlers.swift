@@ -48,6 +48,7 @@ struct CleansePurgeHandler: BattleEffectHandler {
         in context: inout BattleState
     ) -> EffectApplyOutcome {
         var currentEffects = context.roster.activeEffects(for: target)
+        let beforeCount = currentEffects.count
         let removedKeyword: Keyword?
         switch mode {
         case .cleanse:
@@ -88,20 +89,45 @@ struct CleansePurgeHandler: BattleEffectHandler {
         )
         var events = [event]
         if mode.healsAfterRemoval {
-            events.append(contentsOf: CombatTriggerEngine.healAfterCleanse(
+            events.append(contentsOf: appendCleanseFollowUps(
                 source: source,
                 target: target,
-                in: &context
-            ).events)
-            events.append(contentsOf: CombatTriggerEngine.healWearerAfterCleanse(
-                source: source,
-                in: &context
-            ).events)
-            events.append(contentsOf: CombatTriggerEngine.drawAfterCleanse(
-                source: source,
+                removedKeyword: removedKeyword,
+                removedCount: beforeCount - currentEffects.count,
                 in: &context
             ))
         }
         return EffectApplyOutcome(events: events, didApply: true)
+    }
+
+    private func appendCleanseFollowUps(
+        source: Combatant,
+        target: Combatant,
+        removedKeyword: Keyword,
+        removedCount: Int,
+        in context: inout BattleState
+    ) -> [ActionEvent] {
+        var events: [ActionEvent] = []
+        events.append(contentsOf: CombatTriggerEngine.healAfterCleanse(
+            source: source,
+            target: target,
+            in: &context
+        ).events)
+        events.append(contentsOf: CombatTriggerEngine.healWearerAfterCleanse(
+            source: source,
+            in: &context
+        ).events)
+        events.append(contentsOf: CombatTriggerEngine.drawAfterCleanse(
+            source: source,
+            in: &context
+        ))
+        events.append(contentsOf: CombatTriggerEngine.afterCleansePerformed(
+            source: source,
+            target: target,
+            removedKeyword: removedKeyword,
+            removedCount: removedCount,
+            in: &context
+        ))
+        return events
     }
 }

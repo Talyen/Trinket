@@ -25,6 +25,7 @@ package enum DamagePipeline {
             return
         }
         applyCriticalGate(to: &state, in: &context)
+        applyCriticalBlockSteal(to: &state, in: &context)
         applyDamageBonus(to: &state, in: &context)
         applyFightPacing(to: &state, in: &context)
         applyMarkedBonus(to: &state, in: &context)
@@ -40,6 +41,9 @@ package enum DamagePipeline {
 
         // Retaliation / DoT-style hits must not nest further reaction pipelines
         // (Whiplash stun → ControlMeter → afterEnemyStunned → Knockout → …).
+        // Keyword reactions skip retaliation so Moonfire Holy pings cannot arm
+        // Blinding Light / Radiant Barrier / mana restore. Blinding Light itself
+        // also requires a direct attack hit.
         if !state.isRetaliation {
             applyControlMeter(to: &state, in: &context)
             applyReactiveOnHit(to: &state, in: &context)

@@ -71,6 +71,9 @@ KEBAB_IDENTIFIER = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 SNAKE_IDENTIFIER = re.compile(r"^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$")
 VALID_ROLES = frozenset({"hero", "companion"})
 VALID_GROWTH_ARCHETYPES = frozenset({"tank", "assassin", "mage", "support", "bruiser"})
+VALID_ENEMY_FACTIONS = frozenset(
+    {"mortal", "beast", "elemental", "construct", "undead", "corrupted"}
+)
 
 
 @dataclass
@@ -135,7 +138,6 @@ class CombatantRow:
     toughness: str
     intellect: str
     wisdom: str
-    trait_id: str
 
 
 @dataclass
@@ -152,6 +154,7 @@ class EnemyRow:
     intellect: str
     wisdom: str
     trait_id: str
+    faction: str
 
 
 @dataclass
@@ -198,7 +201,9 @@ def parse_affix_rows() -> list[AffixRow]:
     if header != expected:
         raise ValueError(f"{path} header mismatch: {header}")
     rows: list[AffixRow] = []
-    for raw in lines[1:]:
+    for idx, raw in enumerate(lines[1:], start=2):
+        if len(raw) < 9:
+            raise ValueError(f"{path}:{idx} missing required columns: expected at least 9, got {len(raw)}")
         padded = raw + [""] * (len(expected) - len(raw))
         rows.append(AffixRow(*padded[: len(expected)]))
     return rows
@@ -267,7 +272,6 @@ def parse_combatant_rows() -> list[CombatantRow]:
         "toughness",
         "intellect",
         "wisdom",
-        "trait_id",
     ]
     if header != expected:
         raise ValueError(f"{path} header mismatch: {header}")
@@ -295,6 +299,7 @@ def parse_enemy_rows() -> list[EnemyRow]:
         "intellect",
         "wisdom",
         "trait_id",
+        "faction",
     ]
     if header != expected:
         raise ValueError(f"{path} header mismatch: {header}")
@@ -605,106 +610,226 @@ def triggers_swift(raw: str) -> str:
             values["victoryGoldCoin"] = "true"
         else:
             raise ValueError(f"Unknown trigger token: {token}")
-    order = [
-        "cleanseBonusDraw",
-        "cleanseSelfHeal",
-        "cleanseBonusHeal",
-        "gainGoldBonusHealSelf",
-        "controlResistancePercent",
-        "dodgeChanceBonus",
-        "ambushBonusDamage",
-        "regenerationAmount",
-        "regenerationIntervalTurns",
-        "passiveMitigationFlat",
-        "thornsPercent",
-        "cannotBeHealed",
-        "burnDecaySlowPercent",
-        "shieldErosionKeyword",
-        "shieldErosionTicks",
-        "mitigationShredKeyword",
-        "mitigationShredMultiplier",
-        "mitigationShredDurationTurns",
-        "freezeControlVulnerabilityPercent",
-        "mitigationEffectivenessPenaltyPercent",
-        "leechHealingMultiplier",
-        "hemorrhageBleedBonus",
-        "onBleedApplyPoison",
-        "onBurnApplyPoison",
-        "onBleedDealBurnDamage",
-        "poisonDecayIncreaseChance",
-        "freezeDamageWhileBurningBonus",
-        "damageWhileTargetFrozenBonus",
-        "damageBelowHealthPercentThreshold",
-        "damageBelowHealthPercentKeyword",
-        "damageBelowHealthPercentBonus",
-        "damageAfterDodgeBonus",
-        "blockBrokenBlockFlat",
-        "companionLeechSharePercent",
-        "onceBelowHealthPercentThreshold",
-        "onceBelowHealthPercentHeal",
-        "blockOnDeathsDoor",
-        "spendManaBlockFlat",
-        "spendManaRandomDoTFlat",
-        "holyDamageBlockFlat",
-        "stunDamageBlockFlat",
-        "holyDamageCleanseCount",
-        "holyDamageHealFlat",
-        "burnDamageHealFlat",
-        "dodgeGoldFlat",
-        "ignoreEnemyMitigationPercent",
-        "stunDealPhysicalFlat",
-        "damageWhileTargetStunnedBonus",
-        "enemyStunnedApplyMarked",
-        "dodgeBlockFlat",
-        "dodgeApplyPoison",
-        "holyDamagePurgeCount",
-        "onceDeathReviveHealth",
-        "onceDeathReviveBlock",
-        "blockPerTurn",
-        "firstHitDoubleDamage",
-        "leechChancePercent",
-        "onHitAttackerBurn",
-        "turnFreezeDamageAllEnemies",
-        "damageIncreasesEveryOtherTurn",
-        "enemyStunnedPurgeCount",
-        "enemyStunnedPurgeAll",
-        "criticalPurgeCount",
-        "criticalPurgeAll",
-        "criticalGoldFlat",
-        "criticalActionGoldFlat",
-        "leechRestoreManaFlat",
-        "gainManaBlockFlat",
-        "defeatEnemyGoldFlat",
-        "leechGoldFlat",
-        "dodgeHealFlat",
-        "dodgeChanceBelowHealthPercentThreshold",
-        "dodgeChanceBelowHealthPercentBonus",
-        "dodgeDealStunFlat",
-        "holyDamagePoisonFlat",
-        "drawEveryOtherTurn",
-        "repeatManaEmpowerment",
-        "drawOnHealthLoss",
-        "physicalStunBuildupPercent",
-        "freezeDamageLeech",
-        "blockGainThornsPercent",
-        "drawOnSpendMana",
-        "physicalDamageBlockPercent",
-        "poisonDamageLeech",
-        "bleedDamageGoldFlat",
-        "goldPerTurn",
-        "healthRestoredPoisonPercent",
-        "sunderingBlockMultiplier",
-        "cardsPlayedManaThreshold",
-        "cardsPlayedManaFlat",
-        "victoryGoldFlat",
-        "healthPerTurn",
-        "companionCardsPerTurn",
-        "freezeExtraActionSkips",
-        "stunnedDamageMultiplier",
-        "criticalChanceBonus",
-        "victoryGoldCoin",
+    GROUP_ORDER = [
+        "damage", "attack", "block", "mitigation", "dot", "control", "dodge",
+        "mana", "gold", "healing", "revival", "cleanse", "enemyTurn", "onHit",
     ]
-    parts = [f"{label}: {values[label]}" for label in order if label in values]
+    # field -> group map for the compositional trigger model.
+    FIELD_GROUP = {
+        "ambushBonusDamage": "damage", "damageBelowHealthPercentThreshold": "damage",
+        "damageBelowHealthPercentKeyword": "damage", "damageBelowHealthPercentBonus": "damage",
+        "damageAfterDodgeBonus": "damage", "damageWhileTargetFrozenBonus": "damage",
+        "damageWhileTargetStunnedBonus": "damage", "ignoreEnemyMitigationPercent": "damage",
+        "leechIgnoresMitigation": "damage",
+        "firstHitDoubleDamage": "damage", "damageIncreasesEveryOtherTurn": "damage",
+        "holyDamagePoisonFlat": "damage", "stunnedDamageMultiplier": "damage",
+        "criticalChanceBonus": "damage", "damageVsBleedingBonus": "damage",
+        "damageVsPoisonedMultiplier": "damage", "damageVsBurningMultiplier": "damage",
+        "damageVsFrozenMultiplier": "damage", "holyDamageVsStunnedOrBurningMultiplier": "damage",
+        "holyDamageVsPoisonedOrBleedingMultiplier": "damage", "holyDamageVsStunnedBonus": "damage",
+        "holyDamageVsUndeadOrCorruptedMultiplier": "damage", "frostDamageVsFrozenBonus": "damage",
+        "burnDamageVsFrozenBonusPhysical": "damage", "burnDamageVsNoBlockMultiplier": "damage",
+        "physicalDamageVsBleedingMultiplier": "damage", "damageVsBleedingFlat": "damage",
+        "damagePerMissingHealthEvery": "damage", "damagePerCarriedGoldEvery": "damage",
+        "goldReservesDamageEvery": "damage", "damageVsLowerHealthEnemyBonus": "damage",
+        "companionDamageVsPoisonedBonus": "damage", "companionDamageVsBurningBonus": "damage",
+        "heroDamageVsStunnedMultiplier": "damage", "poisonDamageBelowHealthThreshold": "damage",
+        "poisonDamageBelowHealthMultiplier": "damage", "bleedTickCritChancePercent": "damage",
+        "burnDamageDoubleChancePercent": "damage", "burnDamageVsNoManaBonus": "damage",
+        "partyCritChanceWhileCompanionAboveHealthThreshold": "damage",
+        "partyCritChanceWhileCompanionAboveHealthBonus": "damage",
+        "heroCritChanceWhileCompanionAlive": "damage", "critChancePerBleedingEnemy": "damage",
+        "partyCritChanceWhileGoldAbove": "damage", "partyCritChanceWhileGoldAboveBonus": "damage",
+        "partyAllStatsBonusBelowHealthThreshold": "damage", "partyAllStatsBonusBelowHealthAmount": "damage",
+        "attacksApplyPoison": "attack", "physicalAttackApplyBleed": "attack",
+        "physicalAttackApplyBleedAndStun": "attack", "physicalAttackFlatStunBuildup": "attack",
+        "basicAttackApplyBleed": "attack", "basicAttackFreezeBuildup": "attack",
+        "criticalApplyPoison": "attack", "criticalApplyBurn": "attack",
+        "criticalApplyStunBuildup": "attack", "criticalBlockFlat": "attack",
+        "holyAttackApplyBurnAndStunBuildup": "attack", "onAttackStealGold": "attack",
+        "basicAttackStealGold": "attack", "onAttackFrozenEnemyGainMana": "attack",
+        "onAttackFrozenEnemyGainBlock": "attack", "onAttackStunnedEnemyGold": "attack",
+        "onAttackStunnedEnemyBlock": "attack", "holyDamageNextHitBonus": "attack",
+        "holyDamageNextAttackHolyBonus": "attack", "onBleedDamageNextBasicGuaranteedCrit": "attack",
+        "nextAttackBonusOnFullHealth": "attack", "leechOverhealDamageBonus": "attack",
+        "onHeroSpendManaCompanionNextAttackBonus": "attack", "partyBasicAttackHolyBonus": "attack",
+        "partyHolyDamageBonusWhileCompanionFullHealth": "attack",
+        "partyDamageBonusWhileCompanionFullHealth": "attack",
+        "partyPhysicalDamageBonusFirstTurns": "attack", "partyPhysicalDamageBonusFirstTurnCount": "attack",
+        "attackBurstChancePercent": "attack", "attackBurstDamage": "attack", "attackBurstBlock": "attack",
+        "directHitBleedChancePercent": "attack",
+        "attackApplyBleed": "attack", "onHeroAttackPoisonedEnemyApplyPoison": "attack",
+        "onPhysicalDamageGainBlock": "attack", "critStealEnemyBlock": "attack",
+        "criticalPurgeCount": "attack", "criticalPurgeAll": "attack", "onDefeatEnemyPartyStrengthBonus": "attack",
+        "blockBrokenBlockFlat": "block", "holyDamageBlockFlat": "block", "stunDamageBlockFlat": "block",
+        "blockPerTurn": "block", "blockGainThornsPercent": "block", "sunderingBlockMultiplier": "block",
+        "blockDoesNotDecay": "block", "blockAbsorbsCompanionDamage": "block",
+        "onEnemyBlockBrokenDealPhysical": "block", "postBlockOverflowDamageMultiplier": "block",
+        "maxDamagePerHitCap": "block", "blockGainedMaxHealthEvery": "block",
+        "shieldDamageBonusWhileBlocked": "block", "physicalBlockBreakMultiplier": "block",
+        "physicalBlockIgnorePercent": "block", "physicalIgnoresBlockVsStunnedOrFrozen": "block",
+        "stunnedEnemyLoseAllBlock": "block", "holyIgnoresBlock": "block",
+        "holyIgnoresBlockAndDodge": "block", "burnIgnoresBlockAndMitigation": "block",
+        "poisonStripsBlockBeforeHealth": "block", "bleedStripsBlockPerTurn": "block",
+        "spellDamageTakenReductionWhileBlocked": "block", "companionBlockSharesToHeroPercent": "block",
+        "onBlockHitDealHoly": "block", "onBlockReduceAttackerAccuracyPercent": "block",
+        "onBlockReduceAttackerAccuracyTurns": "block", "companionBlockProtectsHeroPercent": "block",
+        "onAnyHealthLossGainBlock": "block", "onSelfHealthLossGainBlock": "block",
+        "companionFatalDamageRedirectBlock": "block",
+        "onEnemyFrozenGainBlock": "block", "onCompanionTakeDamageGrantHeroBlock": "block",
+        "onDefeatEnemyGainBlock": "block", "startBattleBlock": "block",
+        "blockPerGoldEarnedEvery": "block", "blockPerGoldCollectedEvery": "block",
+        "onBurnDamageGainBlock": "block", "onAllyBurnDamageGainBlock": "block",
+        "onHolyDamagePartyBlock": "block", "physicalDamageBlockPercent": "block",
+        "passiveMitigationFlat": "mitigation", "thornsPercent": "mitigation",
+        "cannotBeHealed": "mitigation", "controlResistancePercent": "mitigation",
+        "mitigationEffectivenessPenaltyPercent": "mitigation", "bleedResistance": "mitigation",
+        "absorbHeroDamageFlat": "mitigation", "frozenEnemyDamageReductionFlat": "mitigation",
+        "bleedingEnemyDamageReductionFlat": "mitigation",
+        "stunnedEnemyNextTurnDamageMultiplier": "mitigation",
+        "enemyBleedStacksDamageReductionStacks": "mitigation",
+        "enemyBleedStacksDamageReductionPercent": "mitigation",
+        "poisonedEnemyAccuracyPenaltyPercent": "mitigation", "poisonedEnemyMissChancePercent": "mitigation",
+        "frozenEnemyMissChanceVsCompanionPercent": "mitigation", "holyDamageTargetMissNextAttack": "mitigation",
+        "holyDamageReduceTargetDamage": "mitigation", "bleedingEnemyAttackDealDamage": "mitigation",
+        "onAllyDamageHeal": "mitigation", "damageReductionPerUnspentManaEvery": "mitigation",
+        "toughnessOnHit": "mitigation", "toughnessOnHitCap": "mitigation",
+        "blockedControlBurnResistance": "mitigation", "afflictionResistance": "mitigation",
+        "burnDecaySlowPercent": "dot", "poisonDecaySlowPercent": "dot",
+        "poisonDecayIncreaseChance": "dot", "onBleedApplyPoison": "dot",
+        "onBurnApplyPoison": "dot", "onBleedDealBurnDamage": "dot", "hemorrhageBleedBonus": "dot",
+        "freezeDamageWhileBurningBonus": "dot", "onBleedDamagePoisonTick": "dot",
+        "onBleedAppliedToBleedingExtendTurns": "dot", "onBleedAppliedToBleedingDealDamage": "dot",
+        "bleedsIgnoreMitigation": "dot", "onBleedDamageHealSelf": "dot",
+        "onBurnTickHolyDamage": "dot", "burnTicksTwicePerTurn": "dot",
+        "damagePerBurnPotencyPercent": "dot", "burnIncreaseChancePercent": "dot",
+        "poisonThresholdStunAmount": "dot", "poisonDamageLeechPercent": "dot",
+        "onCritDoubleBleedDuration": "dot", "criticalOnBleedingDetonateBleed": "dot",
+        "onBurnDamageDetonateBleed": "dot", "freezeDamageLeech": "dot", "poisonDamageLeech": "dot",
+        "onBurnDamageHealLowestAllyFlat": "healing", "bleedDamageGoldFlat": "dot",
+        "burnDamageManaRestoreThreshold": "dot", "onBurnDamageRestoreManaFlat": "mana",
+        "onBurnDamageRestoreManaPerTurnCap": "dot",
+        "freezeControlVulnerabilityPercent": "control", "freezeExtraActionSkips": "control",
+        "physicalStunBuildupPercent": "control", "freezeBuildupDoesNotDecay": "control",
+        "frozenEnemyCannotBlockOrHeal": "control", "enemyStunExtraActionSkips": "control",
+        "onEnemyStunRecoverDrawCard": "control", "onEnemyStunRecoverApplyAfflictions": "control",
+        "enemyStunThresholdReductionPercent": "control", "onStunEnemyApplyBurn": "control",
+        "onceBelowHealthPercentStunAllEnemies": "control", "freezeCardsPlayedThisTurnFreezeAll": "control",
+        "spendManaFreezeThreshold": "control", "everyNTurnsFreezeAllEnemiesInterval": "control",
+        "everyNTurnsFreezeAllEnemiesAmount": "control", "everyNTurnsStunBuildupInterval": "control",
+        "everyNTurnsStunBuildupAmount": "control", "everyNTurnsTeamBlockAmount": "control",
+        "enemyStunnedApplyMarked": "control", "enemyStunnedPurgeCount": "control",
+        "enemyStunnedPurgeAll": "control", "stunDealPhysicalFlat": "control",
+        "dodgeDealStunFlat": "control", "onDodgeAttackerStunBuildup": "control",
+        "onceBelowHealthPercentThreshold": "control", "turnFreezeDamageAllEnemies": "control",
+        "dodgeChanceBonus": "dodge", "dodgeBlockFlat": "dodge", "dodgeApplyPoison": "dodge",
+        "dodgeGoldFlat": "dodge", "dodgeHealFlat": "dodge",
+        "dodgeChanceBelowHealthPercentThreshold": "dodge", "dodgeChanceBelowHealthPercentBonus": "dodge",
+        "onDodgeDrawCardForHero": "dodge", "nextAttackDoubleAfterDodge": "dodge",
+        "onDodgeDelayAttackerTurn": "dodge", "onDodgeGrantHeroBlock": "dodge",
+        "onDodgePartyBlock": "dodge", "onDodgePartyMana": "dodge", "onDodgeCounterDamage": "dodge",
+        "onDodgeCounterBasicAttack": "dodge", "critMultiplierPerDodge": "dodge",
+        "onDodgeNextPartyHitGuaranteedCritical": "dodge",
+        "onCompanionDodgeGrantHeroDodgePercent": "dodge", "autoDodgeAfterFirstHitPerTurn": "dodge",
+        "nextAttackBleedAfterDodge": "dodge", "onDodgeApplyPoisonOrBleed": "dodge",
+        "onDodgePartyNextCardDamageBonus": "dodge", "onDodgeStealMana": "dodge",
+        "onApplyBurnDodgeChanceUntilNextTurn": "dodge", "dodgeChanceVsBleedingEnemiesBonus": "dodge",
+        "firstAttackGuaranteedCritical": "dodge", "swapAndDodgeForHeroChance": "dodge",
+        "redirectSingleTargetAttacksToHero": "dodge", "untargetableAboveHealthPercent": "dodge",
+        "spendManaBlockFlat": "mana", "spendManaRandomDoTFlat": "mana", "gainManaBlockFlat": "mana",
+        "leechRestoreManaFlat": "mana", "drawOnSpendMana": "mana", "repeatManaEmpowerment": "mana",
+        "unspentManaConvertsToBlock": "mana", "spendManaGrantsEqualBlock": "mana",
+        "spendManaThresholdCleanseCount": "mana", "spendManaEmpowerNextCardThreshold": "mana",
+        "nextCardEmpowerPercent": "mana", "startTurnFullManaDrawCards": "mana",
+        "firstSkillCardPlaysTwicePerBattle": "mana", "onReachZeroManaRestoreMana": "mana",
+        "firstTurnBonusDraw": "mana", "spendManaChaosRiftThreshold": "mana",
+        "spendManaChaosRiftDamage": "mana", "onGainManaHealFlat": "mana",
+        "startBattleBonusMana": "mana", "spendManaDamageBonusPerMana": "mana",
+        "onHeroSpendManaGainBlock": "mana", "spendManaRefundChancePercent": "mana",
+        "empowermentCostReduction": "mana", "healingEmpowermentCostReduction": "mana",
+        "bonusManaOnTurns": "mana", "spendManaThresholdBlockThreshold": "mana",
+        "spendManaThresholdBlockBlock": "mana", "spendManaThresholdBlockHealth": "mana",
+        "manaGainDoubleChancePercent": "mana", "spendManaThresholdAutoPlayCard": "mana",
+        "onSpendManaBurnBurningEnemies": "mana", "onHeroSpendManaApplyRandomAffliction": "mana",
+        "cardsPlayedManaThreshold": "mana", "cardsPlayedManaFlat": "mana",
+        "drawEveryOtherTurn": "mana", "drawOnHealthLoss": "mana", "companionCardsPerTurn": "mana",
+        "gainGoldBonusHealSelf": "gold", "defeatEnemyGoldFlat": "gold", "leechGoldFlat": "gold",
+        "goldPerTurn": "gold", "victoryGoldFlat": "gold", "victoryGoldCoin": "gold",
+        "criticalGoldFlat": "gold", "criticalActionGoldFlat": "gold", "startBattleBonusGold": "gold",
+        "onGainGoldDrawCardOncePerTurn": "gold", "onGainGoldHealParty": "gold",
+        "goldEveryNTurnsInterval": "gold", "goldEveryNTurnsAmount": "gold",
+        "onEnemyAbilityDrawAndGoldDraw": "gold", "onEnemyAbilityGold": "gold",
+        "criticalVsStunnedEnemyGold": "gold", "critOnDefeatGold": "gold",
+        "critOnDefeatGoldAndDrawDraw": "gold", "partyGoldGainedPercent": "gold",
+        "goldAbsorbsDamage": "gold", "goldDoubledWhileFullHealth": "gold",
+        "onGainGoldDoubleStatusEffectsNextCard": "gold",
+        "cleanseSelfHeal": "healing", "cleanseBonusHeal": "healing", "regenerationAmount": "healing",
+        "regenerationIntervalTurns": "healing", "onceBelowHealthPercentHeal": "healing",
+        "blockOnDeathsDoor": "healing", "holyDamageHealFlat": "healing", "burnDamageHealFlat": "healing",
+        "healthRestoredPoisonPercent": "healing", "healthPerTurn": "healing",
+        "overhealConvertsToBlock": "healing", "overhealConvertsToMaxHealth": "healing",
+        "overhealConvertsToMaxHealthCap": "healing", "overhealConvertsToMaxHealthPerEvent": "healing",
+        "overhealShieldCap": "healing", "leechOverhealTransfersToCompanion": "healing",
+        "leechSharesToHeroPercent": "healing", "onCompanionLeechRestoreHeroMana": "healing",
+        "leechHealingVsAfflictedMultiplier": "healing", "leechPercentVsLowHealthEnemies": "healing",
+        "leechBonusHealVsLowHealthEnemies": "healing",
+        "leechHealingMultiplier": "healing", "leechChancePercent": "healing",
+        "healingBelowHealthPercentThreshold": "healing", "healingBelowHealthPercentMultiplier": "healing",
+        "healOverTimeOnHealTurns": "healing", "healOverTimeOnHealAmount": "healing",
+        "onHealGrantBlock": "healing", "onHealRestoreCasterMana": "healing",
+        "holyDamageHealLowestAllyFlat": "healing", "holyDamageHealHeroFlat": "healing",
+        "endTurnWithBlockHealFlat": "healing", "endOfTurnHealLowestAlly": "healing",
+        "cardsPlayedHealPartyThreshold": "healing", "cardsPlayedHealPartyAmount": "healing",
+        "healthRegenFirstTurnsAmount": "healing", "healthRegenFirstTurnsDuration": "healing",
+        "healthRegenAboveHalfHealth": "healing", "companionLeechSharePercent": "healing",
+        "onLeechDrainMana": "healing", "onLeechApplyPoison": "healing", "onLeechApplyBleed": "healing",
+        "onLeechReduceEnemyStrength": "healing", "onLeechReduceEnemyStrengthTurns": "healing",
+        "companionDamageLeechesToHeroPercent": "healing", "leechOnBlockDamage": "healing",
+        "partyRegenPerRound": "healing",
+        "onceDeathReviveHealth": "revival", "onceDeathReviveBlock": "revival",
+        "deathsDoorDurationBonusTurns": "revival", "reviveDealBurnDamage": "revival",
+        "onSurviveDeathsDoorDamageBonusPercent": "revival", "deathsDoorDodgeAndDebuffImmunity": "revival",
+        "deathsDoorExtraLethalProtection": "revival", "onDeathDealPhysicalDamageAllEnemies": "revival",
+        "guaranteedCritWhileOnDeathsDoor": "revival", "onEnemyDefeatReviveSelfHealth": "revival",
+        "onHeroFatalHealPercentMaxHealth": "revival", "onAllyDeathsDoorHealAndCleanse": "revival",
+        "surviveDeathsDoorPartyHealPercent": "revival",
+        "onEnemyDefeatRestoreHealthAndBlockHealth": "revival",
+        "onEnemyDefeatRestoreHealthAndBlockBlock": "revival",
+        "cleanseBonusDraw": "cleanse", "holyDamageCleanseCount": "cleanse",
+        "holyDamagePurgeCount": "cleanse", "holyDamagePurgeAll": "cleanse",
+        "cleanseBlockPerStack": "cleanse", "cleanseAffectsBothHeroAndCompanion": "cleanse",
+        "cleanseReflectDebuffToEnemy": "cleanse", "autoCleanseTeamPerTurn": "cleanse",
+        "cleanseAlsoPurgesEnemyBuffs": "cleanse", "cleanseDodgeChanceBonus": "cleanse",
+        "cleanseDodgeChanceBonusTurns": "cleanse", "cleansePartyBlock": "cleanse",
+        "blockFirstDebuffPerTurn": "cleanse", "partyDebuffDurationHalved": "cleanse",
+        "onCleansePoisonDealDamagePerStack": "cleanse",
+        "negateFirstEnemyAttack": "enemyTurn", "negateFirstEnemyAttackPerRound": "enemyTurn",
+        "negateFirstEnemyAttackChance": "enemyTurn",
+        "attackDelayEnemyTurnChancePercent": "enemyTurn",
+        "bleedingEnemyActionSkipChancePercent": "enemyTurn", "extraCardDrawWhileEnemyBleeding": "enemyTurn",
+        "onDefeatEnemyExtraAction": "enemyTurn", "extraCardDrawBelowEnemyHealthPercent": "enemyTurn",
+        "onDefeatBleedingEnemyResetActionTimer": "enemyTurn", "ultimateAppliesBurnPotency": "enemyTurn",
+        "onHeroHolyAbilityCompanionHolyDamage": "enemyTurn", "onHolyDamageRestoreMana": "enemyTurn",
+        "burnReducesEnemyHealingAndLeechPercent": "enemyTurn",
+        "onHitAttackerBurn": "onHit", "onHitAttackerFreezeBuildup": "onHit",
+        "onHitAttackerPoison": "onHit", "onHitAttackerBleedPotency": "onHit",
+        "onHitAttackerBleedTurns": "onHit", "onHitAttackerHoly": "onHit",
+        "shieldErosionKeyword": "onHit", "shieldErosionTicks": "onHit",
+        "mitigationShredKeyword": "onHit", "mitigationShredMultiplier": "onHit",
+        "mitigationShredDurationTurns": "onHit",
+    }
+    grouped: dict[str, list[str]] = {g: [] for g in GROUP_ORDER}
+    for label in values:
+        g = FIELD_GROUP.get(label, "damage")
+        grouped[g].append(label)
+    parts = []
+    for g in GROUP_ORDER:
+        fields = grouped[g]
+        if not fields:
+            continue
+        gtype = "".join(p.capitalize() for p in re.findall(r"[A-Z]?[a-z]+|[A-Z]+(?![a-z])|[0-9]+", g)) + "Triggers"
+        inner = ", ".join(f"{label}: {values[label]}" for label in fields)
+        parts.append(f"{g}: {gtype}({inner})")
     if not parts:
         return "CombatTraitTriggers()"
     return "CombatTraitTriggers(" + ", ".join(parts) + ")"
@@ -928,7 +1053,7 @@ def validate_trait_rows(rows: list[TraitRow]) -> None:
 
 
 def validate_combatant_rows(
-    rows: list[CombatantRow], ability_symbols: set[str], trait_ids: set[str]
+    rows: list[CombatantRow], ability_symbols: set[str]
 ) -> None:
     seen: set[str] = set()
     for row in rows:
@@ -953,9 +1078,6 @@ def validate_combatant_rows(
         _validate_ability_symbols(row.basics, row.id, ability_symbols, expected_count=2)
         _validate_ability_symbols(row.skills, row.id, ability_symbols, expected_count=2)
         _validate_ability_symbols(row.ultimates, row.id, ability_symbols, expected_count=2)
-        _require_non_empty("trait_id", row.trait_id, row.id)
-        if row.trait_id not in trait_ids:
-            raise ValueError(f"Unknown trait_id '{row.trait_id}' for combatant {row.id}")
         render_party_combatant(row)
 
 
@@ -988,6 +1110,8 @@ def validate_enemy_rows(
         _require_non_empty("trait_id", row.trait_id, row.id)
         if row.trait_id not in trait_ids:
             raise ValueError(f"Unknown trait_id '{row.trait_id}' for enemy {row.id}")
+        if row.faction not in VALID_ENEMY_FACTIONS:
+            raise ValueError(f"Invalid faction '{row.faction}' for enemy {row.id}")
         render_enemy(row)
 
 
@@ -1014,9 +1138,9 @@ def render_enemy(row: EnemyRow) -> str:
     flags: list[str] = []
     if row.is_boss == "true":
         flags.append("isBoss: true")
-    flag_clause = ""
-    if flags:
-        flag_clause = ", " + ", ".join(flags)
+    faction = row.faction.strip() or "mortal"
+    flags.append(f"faction: .{faction}")
+    flag_clause = ", " + ", ".join(flags)
     return (
         f"        Enemy(combatant: Combatant(id: \"{swift_escape(row.id)}\", "
         f"name: \"{swift_escape(row.name)}\", role: .enemy, maxHealth: {row.max_health}, "
@@ -1071,15 +1195,6 @@ def generate_roster_catalog(rows: list[CombatantRow]) -> None:
     )
     body = (
         "enum GameContentRosterGenerated {\n"
-        "    static let combatantTraitIDs: [String: String] = {\n"
-        f"        var dict = [String: String]()\n"
-        f"        dict.reserveCapacity({len(rows)})\n"
-        + "\n".join(
-            f'        dict["{swift_escape(row.id)}"] = "{swift_escape(row.trait_id)}"'
-            for row in rows
-        )
-        + "\n        return dict\n"
-        "    }()\n\n"
         "    static let heroes: [Combatant] = {\n"
         f"        var list = [Combatant]()\n"
         f"        list.reserveCapacity({len(heroes)})\n"
@@ -1674,7 +1789,7 @@ def validate_manifests() -> tuple[
 
     validate_affix_rows(affix_rows)
     validate_trait_rows(trait_rows)
-    validate_combatant_rows(combatant_rows, ability_symbols, {row.id for row in trait_rows})
+    validate_combatant_rows(combatant_rows, ability_symbols)
     validate_enemy_rows(
         enemy_rows,
         ability_symbols,

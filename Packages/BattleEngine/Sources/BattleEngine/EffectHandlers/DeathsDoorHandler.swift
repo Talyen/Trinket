@@ -45,7 +45,9 @@ struct DeathsDoorHandler: BattleEffectHandler {
                 amount: 0,
                 keyword: .deathsDoor
             )
-            return EffectTurnOutcome(events: [event], removeAfter: true)
+            var events = [event]
+            events.append(contentsOf: DeathsDoorEngine.afterDeathsDoorExpired(on: target, in: &context))
+            return EffectTurnOutcome(events: events, removeAfter: true)
         }
         return EffectTurnOutcome(updatedStack: updated)
     }

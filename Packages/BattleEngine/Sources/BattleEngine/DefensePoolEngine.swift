@@ -92,13 +92,19 @@ package enum DefensePoolEngine {
         }
     }
 
-    /// Halves pooled Block at end of round (floor).
+    /// Halves pooled Block at end of round (floor). Skipped for combatants whose
+    /// Block does not decay (Bastion Stance / Enduring Shell).
     package static func decayBlockAtEndOfRound(
         on target: Combatant,
         in context: inout BattleState
     ) {
         let current = blockPoints(in: context.roster.activeEffects(for: target))
         guard current > 0 else { return }
+        if context.modifiers(for: target.id).triggers.blockDoesNotDecay {
+            let retained = min(30, (current * 3) / 4)
+            set(retained, on: target, in: &context)
+            return
+        }
         set(current / 2, on: target, in: &context)
     }
 

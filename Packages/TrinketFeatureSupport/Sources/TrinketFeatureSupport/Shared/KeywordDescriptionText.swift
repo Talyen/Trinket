@@ -2,10 +2,14 @@ import SwiftUI
 import TrinketCore
 import TrinketDesignSystem
 
-struct KeywordDescriptionText: View {
-    let text: String
+public struct KeywordDescriptionText: View {
+    public let text: String
 
-    var body: some View {
+    public init(text: String) {
+        self.text = text
+    }
+
+    public var body: some View {
         Text(attributedText)
     }
 
@@ -14,7 +18,7 @@ struct KeywordDescriptionText: View {
         for (term, keyword) in Keyword.styledTerms {
             var searchStart = text.startIndex
             while searchStart < text.endIndex,
-                  let range = text.range(of: term, range: searchStart ..< text.endIndex) {
+                  let range = text.range(of: term, options: .caseInsensitive, range: searchStart ..< text.endIndex) {
                 if let startIdx = AttributedString.Index(range.lowerBound, within: attr),
                    let endIdx = AttributedString.Index(range.upperBound, within: attr) {
                     let styledRange = startIdx ..< endIdx

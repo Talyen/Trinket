@@ -203,9 +203,24 @@ enum ParallelMap {
     static func map<Input: Sendable, Output: Sendable>(
         _ inputs: [Input],
         jobs: Int,
-        transform: @Sendable (Input) -> Output
+        transform: @escaping @Sendable (Input) -> Output
     ) -> [Output] {
         guard !inputs.isEmpty else { return [] }
+        #if DEBUG
+        // Debug builds use `-Onone`, whose large pipeline/harness frames overflow the
+        // 512 KB GCD worker stacks used by `concurrentPerform`. Run the sweep on a
+        // dedicated large-stack thread so balance diagnostics stay green in debug.
+        var results: [Output] = []
+        let done = DispatchSemaphore(value: 0)
+        let worker = Thread {
+            results = inputs.map(transform)
+            done.signal()
+        }
+        worker.stackSize = 16 * 1024 * 1024
+        worker.start()
+        done.wait()
+        return results
+        #else
         if jobs <= 1 || inputs.count == 1 {
             return inputs.map(transform)
         }
@@ -222,6 +237,7 @@ enum ParallelMap {
             }
         }
         return buffer.values
+        #endif
     }
 }
 

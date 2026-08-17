@@ -2,8 +2,10 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
+// swiftlint:disable file_length
+
 /// Orchestrates player card plays, the enemy turn, and end-of-round effect ticks.
-public enum BattleCardCombatEngine {
+public enum BattleCardCombatEngine { // swiftlint:disable:this type_body_length
     /// Shuffles loadout decks and clears hand state. Does not draw the opening hand.
     public static func bootstrapDecks(context: inout BattleState) {
         context.heroDeck = CombatDeck.shuffled(
@@ -79,6 +81,7 @@ public enum BattleCardCombatEngine {
         return resolvePlayedCard(card, ownerRuntime: ownerRuntime, context: &context)
     }
 
+    // swiftlint:disable:next function_body_length
     private static func resolvePlayedCard(
         _ card: BattleCard,
         ownerRuntime: CombatantRuntime,
@@ -94,7 +97,71 @@ public enum BattleCardCombatEngine {
             abilityTarget: abilityTarget,
             context: &context
         )
+        // Spell Echo: this combatant's first Skill card each battle plays twice.
+        if card.ability.tier == .skill {
+            let skillCount = context.skillCardsPlayedThisTurn[card.owner, default: 0] + 1
+            context.skillCardsPlayedThisTurn[card.owner] = skillCount
+            if skillCount == 1, context.modifiers(for: actor.id).triggers.firstSkillCardPlaysTwicePerBattle,
+               !context.skillEchoOwnersThisBattle.contains(actor.id) {
+                context.skillEchoOwnersThisBattle.insert(actor.id)
+                events.append(contentsOf: BattleTurnEngine.performAction(
+                    ability: card.ability,
+                    actor: actor,
+                    abilityTarget: abilityTarget,
+                    context: &context
+                ))
+            }
+        }
         events.append(contentsOf: CombatTriggerEngine.afterCardPlayed(by: actor, in: &context))
+        // Scholarly Smite: when the Hero uses a Holy ability, the Owl deals Holy damage.
+        if actor.role == .hero, card.ability.keywords.contains(.holy),
+           context.roster.companion.isAlive,
+           context.companionModifiers.triggers.onHeroHolyAbilityCompanionHolyDamage > 0,
+           context.roster.enemy.isAlive {
+            events.append(contentsOf: context.resolveDamage(
+                DamageRequest(
+                    amount: context.companionModifiers.triggers.onHeroHolyAbilityCompanionHolyDamage,
+                    target: context.roster.enemy.combatant,
+                    keyword: .holy,
+                    sourceActorID: context.roster.companion.id,
+                    options: DamageOptions(
+                        applyStatBonus: false,
+                        applyItemBonus: true,
+                        applyDodge: false
+                    )
+                )
+            ).events)
+        }
+        // Inferno Barrage: the Ultimate card applies Burn equal to the authored potency.
+        if card.ability.tier == .ultimate,
+           context.modifiers(for: actor.id).triggers.ultimateAppliesBurnPotency > 0,
+           context.roster.enemy.isAlive {
+            events.append(contentsOf: context.applyDecayingDoT(
+                keyword: .burn,
+                potency: context.modifiers(for: actor.id).triggers.ultimateAppliesBurnPotency,
+                to: context.roster.enemy.combatant,
+                sourceActorID: actor.id,
+                dealImmediateDamage: false,
+                suppressAffixReactions: true
+            ))
+        }
+        // Blizzard: playing 3 Freeze cards in one turn Freezes the enemy.
+        if card.ability.keywords.contains(.freeze) {
+            let freezeCount = context.freezeCardsPlayedThisTurn[card.owner, default: 0] + 1
+            context.freezeCardsPlayedThisTurn[card.owner] = freezeCount
+            let threshold = context.modifiers(for: actor.id).triggers.freezeCardsPlayedThisTurnFreezeAll
+            if threshold > 0, freezeCount >= threshold, context.roster.enemy.isAlive {
+                let enemyThreshold = ControlMeterEngine.threshold(for: context.roster.enemy.combatant, in: context)
+                events.append(contentsOf: ControlMeterEngine.applyMeterCharge(
+                    enemyThreshold,
+                    keyword: .freeze,
+                    to: context.roster.enemy.combatant,
+                    sourceActorID: actor.id,
+                    applyFightPacing: false,
+                    in: &context
+                ))
+            }
+        }
         discardDefeatedOwnerCards(context: &context)
         promoteFromBuffer(context: &context)
         events.append(contentsOf: context.appendDefeatMilestonesIfNeeded())
@@ -139,6 +206,9 @@ public enum BattleCardCombatEngine {
             context.phase = .ended
             return events
         }
+
+        // End of turn triggers fire before round clock advances and block decays
+        events.append(contentsOf: CombatTriggerEngine.atPlayerEndTurn(in: &context))
 
         // End of round: advance round clock, tick effects once.
         for participant in BattleParticipant.allCases {
@@ -228,29 +298,192 @@ public enum BattleCardCombatEngine {
         return drawn
     }
 
+    // swiftlint:disable:next cyclomatic_complexity function_body_length
     private static func resolveEnemyTurn(
         context: inout BattleState
     ) -> [ActionEvent] {
         let enemy = context.enemy
         guard context.roster.enemy.isAlive else { return [] }
 
+        // Pinning Strike: a Bleeding enemy takes damage whenever it attacks.
+        var leadingEvents: [ActionEvent] = []
+        let enemyIsBleeding = context.roster.activeEffects(for: enemy).contains { $0.effect.keyword == .bleed }
+        if enemyIsBleeding {
+            let pin = max(
+                context.heroModifiers.triggers.bleedingEnemyAttackDealDamage,
+                context.companionModifiers.triggers.bleedingEnemyAttackDealDamage
+            )
+            if pin > 0 {
+                leadingEvents = context.resolveDamage(
+                    DamageRequest(
+                        amount: pin,
+                        target: enemy,
+                        keyword: .physical,
+                        sourceActorID: context.roster.hero.id,
+                        options: DamageOptions(
+                            applyStatBonus: false,
+                            applyItemBonus: false,
+                            applyDodge: false,
+                            isRetaliation: true
+                        )
+                    )
+                ).events
+                guard context.roster.enemy.isAlive else { return leadingEvents }
+            }
+            // Hamstring Shot: a Bleeding enemy has a chance to skip its action this round.
+            let skipChance = max(
+                context.heroModifiers.triggers.bleedingEnemyActionSkipChancePercent,
+                context.companionModifiers.triggers.bleedingEnemyActionSkipChancePercent
+            )
+            if skipChance > 0,
+               BattleChance.succeeds(probability: skipChance, using: &context.rng) {
+                leadingEvents.append(context.nextEvent(
+                    kind: .effect,
+                    effectKind: .controlActionSkipped,
+                    actorName: context.roster.enemy.name,
+                    abilityName: "Hamstring Shot",
+                    target: enemy,
+                    amount: 0,
+                    keyword: .bleed
+                ))
+                return leadingEvents
+            }
+        }
+
         if context.roster.hasPendingActionSkip(for: enemy) {
-            return BattleTurnEngine.consumeActionSkip(for: enemy, context: &context)
+            return leadingEvents + BattleTurnEngine.consumeActionSkip(for: enemy, context: &context)
         }
 
         // Drop post-skip linger so the enemy does not look CC'd while attacking.
         context.roster.clearControlStatusLinger(for: enemy)
 
+        // Companion negation talents: Warning Bark (once per combat) and Shadow Shift (once per round).
+        let companion = context.roster.companion
+        if companion.isAlive {
+            let companionTriggers = context.companionModifiers.triggers
+            if companionTriggers.negateFirstEnemyAttack || companionTriggers.negateFirstEnemyAttackChance > 0,
+               !companion.hasNegatedFirstEnemyAttack {
+                context.roster.mutateRuntime(for: companion.combatant) { $0.hasNegatedFirstEnemyAttack = true }
+                let negated = companionTriggers.negateFirstEnemyAttack
+                    || BattleChance.succeeds(
+                        probability: companionTriggers.negateFirstEnemyAttackChance,
+                        using: &context.rng
+                    )
+                if negated {
+                    leadingEvents.append(context.nextEvent(
+                        kind: .effect,
+                        effectKind: .dodgeApplied,
+                        actorName: companion.name,
+                        abilityName: companionTriggers.negateFirstEnemyAttack ? "Warning Bark" : "Shadow Shift",
+                        target: context.roster.enemy.combatant,
+                        amount: 0,
+                        keyword: .dodge
+                    ))
+                    return leadingEvents
+                }
+            }
+            if companionTriggers.negateFirstEnemyAttackPerRound, !companion.hasNegatedEnemyAttackThisRound {
+                context.roster.mutateRuntime(for: companion.combatant) { $0.hasNegatedEnemyAttackThisRound = true }
+                leadingEvents.append(context.nextEvent(
+                    kind: .effect,
+                    effectKind: .dodgeApplied,
+                    actorName: companion.name,
+                    abilityName: "Shadow Shift",
+                    target: context.roster.enemy.combatant,
+                    amount: 0,
+                    keyword: .dodge
+                ))
+                return leadingEvents
+            }
+        }
+
+        let abilityTarget = context.talentAdjustedEnemyTarget
+        // Miss-chance talents (reuse the Dodge pipeline): Paralytic Poison and Subzero Mist.
+        if context.roster.activeEffects(for: enemy).contains(where: { $0.effect.keyword == .poison }) {
+            let missChance = max(
+                context.heroModifiers.triggers.poisonedEnemyMissChancePercent,
+                context.companionModifiers.triggers.poisonedEnemyMissChancePercent
+            )
+            if missChance > 0, BattleChance.succeeds(probability: missChance, using: &context.rng) {
+                leadingEvents.append(context.nextEvent(
+                    kind: .effect,
+                    effectKind: .dodgeApplied,
+                    actorName: context.roster.enemy.name,
+                    abilityName: "Paralytic Poison",
+                    target: abilityTarget,
+                    amount: 0,
+                    keyword: .dodge
+                ))
+                return leadingEvents
+            }
+        }
+        if context.roster.hasControlStatus(for: enemy, keyword: .freeze),
+           abilityTarget.id == context.roster.companion.id,
+           context.roster.companion.isAlive,
+           context.companionModifiers.triggers.frozenEnemyMissChanceVsCompanionPercent > 0,
+           BattleChance.succeeds(
+               probability: context.companionModifiers.triggers.frozenEnemyMissChanceVsCompanionPercent,
+               using: &context.rng
+           ) {
+            leadingEvents.append(context.nextEvent(
+                kind: .effect,
+                effectKind: .dodgeApplied,
+                actorName: context.roster.enemy.name,
+                abilityName: "Subzero Mist",
+                target: abilityTarget,
+                amount: 0,
+                keyword: .dodge
+            ))
+            return leadingEvents
+        }
+        // Decoy Swap: the Fox swaps with the Hero and Dodges on their behalf.
+        if abilityTarget.id == context.roster.hero.id,
+           context.roster.companion.isAlive,
+           context.companionModifiers.triggers.swapAndDodgeForHeroChance > 0,
+           BattleChance.succeeds(probability: context.companionModifiers.triggers.swapAndDodgeForHeroChance, using: &context.rng) {
+            context.prependEffect(.evadeNextHit, to: context.roster.hero.combatant, remainingTurns: 0)
+        }
+
         let turnNumber = context.roster.enemy.actionCount + 1
         guard let ability = BattleTurnEngine.selectedEnemyAbility(for: enemy, turnNumber: turnNumber) else {
-            return []
+            return leadingEvents
         }
-        return BattleTurnEngine.performAction(
+        var events = BattleTurnEngine.performAction(
             ability: ability,
             actor: enemy,
-            abilityTarget: context.roster.enemyAttackTarget,
+            abilityTarget: abilityTarget,
             context: &context
         )
+        // Fetch!: the Retriever draws a card and gains Gold when the enemy plays an ability.
+        if context.roster.companion.isAlive {
+            let retrieverTriggers = context.companionModifiers.triggers
+            if retrieverTriggers.onEnemyAbilityGold > 0 {
+                events.append(contentsOf: context.grantGoldEvent(
+                    retrieverTriggers.onEnemyAbilityGold,
+                    to: context.roster.companion.combatant,
+                    abilityName: "Fetch!"
+                ))
+            }
+            if retrieverTriggers.onEnemyAbilityDrawAndGoldDraw > 0 {
+                let drawn = Self.drawCards(
+                    count: retrieverTriggers.onEnemyAbilityDrawAndGoldDraw,
+                    for: .companion,
+                    context: &context
+                )
+                if drawn > 0 {
+                    events.append(context.nextEvent(
+                        kind: .effect,
+                        effectKind: .cardsDrawn,
+                        actorName: context.roster.companion.name,
+                        abilityName: "Fetch!",
+                        target: context.roster.companion.combatant,
+                        amount: drawn,
+                        keyword: .physical
+                    ))
+                }
+            }
+        }
+        return leadingEvents + events
     }
 
     private static func skippingOwners(in context: BattleState) -> Set<BattleParticipant> {

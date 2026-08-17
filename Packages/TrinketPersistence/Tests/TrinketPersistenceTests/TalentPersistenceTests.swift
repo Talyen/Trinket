@@ -2,8 +2,8 @@ import Foundation
 import Testing
 import TrinketContent
 import TrinketCore
-@testable import TrinketPersistence
 import TrinketPersistenceTestSupport
+@testable import TrinketPersistence
 
 @MainActor
 struct TalentPersistenceTests {
@@ -64,8 +64,8 @@ struct TalentPersistenceTests {
         let context = try PersistenceTestContext()
         let storeURL = context.storeURL()
         let firstStore = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true, persistSaveImmediately: true)
-        let knightTalents: Set<String> = ["knight_block_t1_1", "knight_holy_t1_1"]
-        let rogueTalents: Set<String> = ["rogue_poison_t1_1", "rogue_poison_t1_2"]
+        let knightTalents: Set = ["knight_block_t1_1", "knight_holy_t1_1"]
+        let rogueTalents: Set = ["rogue_poison_t1_1", "rogue_poison_t1_2"]
 
         _ = firstStore.persistBatch(logging: "Persist talents") { save in
             save.roster.unlockedTalents["knight"] = knightTalents
@@ -85,4 +85,3 @@ struct TalentPersistenceTests {
         #expect(secondStore.currentSave.roster.unlockedTalents["rogue"] == rogueTalents)
     }
 }
-

@@ -48,6 +48,7 @@ struct ShieldFromResourceHandler: BattleEffectHandler {
         }
 
         let block: Int
+        var spentAmount = 0
         switch mode {
         case .convertManaToBlock:
             let mana = context.mana(of: target)
@@ -55,6 +56,7 @@ struct ShieldFromResourceHandler: BattleEffectHandler {
                 return EffectApplyOutcome(events: [], didApply: false)
             }
             _ = context.spendMana(mana, for: target)
+            spentAmount = mana
             block = mana
         case .shieldFromMana:
             let mana = context.mana(of: target)
@@ -79,27 +81,22 @@ struct ShieldFromResourceHandler: BattleEffectHandler {
             block = fromGold
         }
 
-        let applied = DefensePoolEngine.add(
+        let applied = context.applyBlock(
             block,
             to: target,
-            keyword: .block,
-            sourceActorID: source.id,
-            in: &context
+            source: source,
+            abilityName: ability.name
         )
         var events: [ActionEvent] = []
         if mode.spendsMana {
-            events = CombatTriggerEngine.afterSpendMana(by: target, in: &context)
+            events = CombatTriggerEngine.afterSpendMana(
+                by: target,
+                amountSpent: spentAmount,
+                in: &context
+            )
         }
-        events.append(context.nextEvent(
-            kind: .effect,
-            effectKind: .shieldApplied,
-            actorName: source.name,
-            abilityName: ability.name,
-            target: target,
-            amount: applied,
-            keyword: .block
-        ))
-        return EffectApplyOutcome(events: events, didApply: true)
+        events.append(contentsOf: applied)
+        return EffectApplyOutcome(events: events, didApply: !applied.isEmpty)
     }
 }
 

@@ -6,8 +6,12 @@ public struct TalentNode: Identifiable, Hashable, Codable, Sendable {
     public let name: String
     public let keyword: Keyword
     public let symbolName: String
-    /// 1-indexed row/tier index: 1 (Foundation), 2 (Synergy), 3 (Mastery).
-    public let tier: Int
+    /// 1-indexed visual unlock row index: 1, 2, or 3 (UI progression gating only; power is flat across rows).
+    public let row: Int
+    public var tier: Int {
+        row
+    }
+
     public let description: String
 
     public init(
@@ -15,34 +19,42 @@ public struct TalentNode: Identifiable, Hashable, Codable, Sendable {
         name: String,
         keyword: Keyword,
         symbolName: String,
-        tier: Int,
+        tier: Int? = nil,
+        row: Int? = nil,
         description: String
     ) {
         self.id = id
         self.name = name
         self.keyword = keyword
         self.symbolName = symbolName
-        self.tier = tier
+        let effectiveRow = row ?? tier ?? 1
+        self.row = effectiveRow
         self.description = description
     }
 }
 
-/// A keyword affinity talent tree consisting of 6 nodes organized in 3 tiers (2 nodes per tier).
+/// A named keyword affinity talent tree consisting of 6 nodes organized in 3 visual unlock rows (2 nodes per row).
 public struct TalentTree: Identifiable, Hashable, Codable, Sendable {
     public var id: String {
-        keyword.rawValue
+        "\(name)_\(keyword.rawValue)"
     }
 
+    public let name: String
     public let keyword: Keyword
     public let nodes: [TalentNode]
 
-    public init(keyword: Keyword, nodes: [TalentNode]) {
+    public init(name: String? = nil, keyword: Keyword, nodes: [TalentNode]) {
+        self.name = name ?? keyword.rawValue
         self.keyword = keyword
         self.nodes = nodes
     }
 
+    public func nodes(forRow row: Int) -> [TalentNode] {
+        nodes.filter { $0.row == row }
+    }
+
     public func nodes(forTier tier: Int) -> [TalentNode] {
-        nodes.filter { $0.tier == tier }
+        nodes(forRow: tier)
     }
 
     /// Evaluates whether a given node in this tree can be unlocked based on row-gated progression and available points.
@@ -50,27 +62,31 @@ public struct TalentTree: Identifiable, Hashable, Codable, Sendable {
         guard availablePoints > 0 else { return false }
         guard !unlockedNodeIDs.contains(node.id) else { return false }
 
-        switch node.tier {
+        switch node.row {
         case 1:
             return true
         case 2:
-            // Row 2 requires all Tier 1 nodes in this tree to be unlocked.
-            let tier1Nodes = nodes(forTier: 1)
-            return tier1Nodes.allSatisfy { unlockedNodeIDs.contains($0.id) }
+            // Row 2 requires all Row 1 nodes in this tree to be unlocked.
+            let row1Nodes = nodes(forRow: 1)
+            return row1Nodes.allSatisfy { unlockedNodeIDs.contains($0.id) }
         case 3:
-            // Row 3 requires all Tier 2 nodes in this tree to be unlocked.
-            let tier2Nodes = nodes(forTier: 2)
-            return tier2Nodes.allSatisfy { unlockedNodeIDs.contains($0.id) }
+            // Row 3 requires all Row 2 nodes in this tree to be unlocked.
+            let row2Nodes = nodes(forRow: 2)
+            return row2Nodes.allSatisfy { unlockedNodeIDs.contains($0.id) }
         default:
             return false
         }
     }
 
-    /// Whether all nodes in the specified tier are unlocked.
+    /// Whether all nodes in the specified unlock row are unlocked.
+    public func isRowComplete(_ row: Int, unlockedNodeIDs: Set<String>) -> Bool {
+        let rowNodes = nodes(forRow: row)
+        guard !rowNodes.isEmpty else { return false }
+        return rowNodes.allSatisfy { unlockedNodeIDs.contains($0.id) }
+    }
+
     public func isTierComplete(_ tier: Int, unlockedNodeIDs: Set<String>) -> Bool {
-        let tierNodes = nodes(forTier: tier)
-        guard !tierNodes.isEmpty else { return false }
-        return tierNodes.allSatisfy { unlockedNodeIDs.contains($0.id) }
+        isRowComplete(tier, unlockedNodeIDs: unlockedNodeIDs)
     }
 }
 

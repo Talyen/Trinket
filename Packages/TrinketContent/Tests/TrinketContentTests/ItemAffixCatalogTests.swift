@@ -61,15 +61,18 @@ struct ItemAffixCatalogTests {
             try #expect(!definition.astral.description.isEmpty, "\(definition.id)) astral description")
             if definition.slot == .trinket {
                 try #expect(definition.basic == definition.astral)
-                try #expect(definition.basic.triggers != CombatTraitTriggers() || !definition.basic.modifiers.isEmpty)
+                try #expect(definition.basic.triggers != CombatTraitTriggers(
+                ) || !definition.basic.modifiers.isEmpty)
                 continue
             }
             try #expect(
-                !definition.basic.modifiers.isEmpty || definition.basic.triggers != CombatTraitTriggers(),
+                !definition.basic.modifiers.isEmpty || definition.basic.triggers != CombatTraitTriggers(
+                ),
                 "\(definition.id)) basic power"
             )
             try #expect(
-                !definition.astral.modifiers.isEmpty || definition.astral.triggers != CombatTraitTriggers(),
+                !definition.astral.modifiers.isEmpty || definition.astral.triggers != CombatTraitTriggers(
+                ),
                 "\(definition.id)) astral power"
             )
         }

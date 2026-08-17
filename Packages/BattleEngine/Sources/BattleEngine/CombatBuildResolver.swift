@@ -7,21 +7,21 @@ public enum CombatBuildResolver {
         combatant: Combatant,
         equipmentLoadout: EquipmentLoadout,
         inventory: [InventoryItem],
+        unlockedTalents: Set<String> = [],
         additionalModifiers: [AffixModifier] = []
     ) -> CombatBuild {
-        let itemsByID = Dictionary(inventory.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+        let inventoryByID = Dictionary(inventory.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
         let equippedItems = combatant.role.equipmentSlots.compactMap { slot -> InventoryItem? in
             guard let itemID = equipmentLoadout.itemID(for: slot) else { return nil }
-            return itemsByID[itemID]
+            return inventoryByID[itemID]
         }
 
         var profile = CombatModifierProfile.zero
         for item in equippedItems {
             profile.merge(affixProfile(for: item))
         }
-        if let trait = GameContent.trait(forCombatantID: combatant.id) {
-            trait.apply(to: &profile)
-            profile.traitDisplayName = trait.name
+        if !unlockedTalents.isEmpty {
+            profile.merge(CombatantTalentCatalog.profile(for: unlockedTalents))
         }
         profile.merge(additionalModifiers)
 

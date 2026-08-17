@@ -16,5 +16,6 @@ Stable product decisions that guide implementation. Keep entries concise and upd
 | PD-010 | No iCloud on device means full local play. | Progress stays on device; never block on identity or sync errors. |
 | PD-011 | Sign in with Apple, Google, and hosted accounts are out of scope. | Do not add account rows, OAuth, or a user directory. See [Identity.md](Identity.md). |
 | PD-012 | Homestead build/upgrade is immediate. | No confirmation dialog; keep the persistent footer action. See [Homestead.md](Homestead.md). |
+| PD-013 | Talent tree rows represent UI visual unlock progression only. | All talent nodes share an equivalent flat power budget; do not scale talent magnitude by row or tier. |
 
 These are product constraints, not a backlog. For source ownership and tests, read the relevant `Docs/AgentContext/` card.

@@ -162,7 +162,11 @@ struct ControlMeterIntegrationTests {
                     remainingTurns: BattleTiming.controlStatusLingerTurns
                 ),
             ],
-            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(damageWhileTargetFrozenBonus: 2))
+            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
+                damage: DamageTriggers(
+                    damageWhileTargetFrozenBonus: 2
+                )
+            ))
         )
         try #expect(!(frozenBattle.roster.hasPendingActionSkip(for: frozenBattle.enemy, keyword: .freeze)))
         try #expect(frozenBattle.roster.hasControlStatus(for: frozenBattle.enemy, keyword: .freeze))
@@ -180,7 +184,11 @@ struct ControlMeterIntegrationTests {
                     remainingTurns: BattleTiming.controlStatusLingerTurns
                 ),
             ],
-            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(damageWhileTargetStunnedBonus: 1))
+            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
+                damage: DamageTriggers(
+                    damageWhileTargetStunnedBonus: 1
+                )
+            ))
         )
         try #expect(!(stunnedBattle.roster.hasPendingActionSkip(for: stunnedBattle.enemy, keyword: .stun)))
         try #expect(stunnedBattle.roster.hasControlStatus(for: stunnedBattle.enemy, keyword: .stun))

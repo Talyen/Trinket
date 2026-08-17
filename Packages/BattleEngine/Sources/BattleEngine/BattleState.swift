@@ -35,6 +35,8 @@ public struct BattleState {
     public var actionCount: Int
     public var hasLoggedDefeat: Bool
     public var hasLoggedPartyDefeat: Bool
+    /// Set when the enemy reaches 0 Health so defeat talents can require a critical killing blow.
+    public var lastEnemyDefeatWasCritical: Bool
 
     public var phase: BattlePhase
     public var hand: BattleHand
@@ -46,11 +48,34 @@ public struct BattleState {
     /// Party owners whose cards are unplayable this player turn due to control skip.
     public var ownersSkippingThisPlayerTurn: Set<BattleParticipant>
     public var cardsPlayedThisTurn: [BattleParticipant: Int]
+    public var skillCardsPlayedThisTurn: [BattleParticipant: Int]
+    public var freezeCardsPlayedThisTurn: [BattleParticipant: Int]
+    public var burnManaRestoredThisTurn: [String: Int]
     public var spendManaDrawOwnersThisTurn: Set<BattleParticipant>
     public var healthLossDrawOwnersThisTurn: Set<BattleParticipant>
+    public var goldDrawOwnersThisTurn: Set<BattleParticipant>
     public var additionalControlSkipsByCombatantID: [String: Int]
     public var isResolvingTrinketReaction: Bool
+    public var isResolvingDoTDetonation: Bool
+    public var isResolvingThornsReaction: Bool
     public var criticalGoldActionByActorID: [String: Int]
+    /// Once-per-action guards for combatant talent thresholds (Mana Cocoon, Overcharge, Chaos Rift).
+    public var talentActionGuardByActorID: [String: Int]
+    /// Spell Echo: combatants who already echoed their first Skill this battle.
+    public var skillEchoOwnersThisBattle: Set<String>
+    /// Nested damage/heal reaction depth. Values above 1 skip extra talent reactions.
+    public var talentReactionDepth: Int
+    /// Nested DoT application depth to prevent infinite cascading trigger loops.
+    public var dotRecursionDepth: Int
+    /// True while Arcane Burst is auto-playing a card (blocks re-entry).
+    public var isResolvingAutoPlayCard: Bool
+    /// Authored faction of the enemy in this battle (talent conditions such as Bane of Evil).
+    public let enemyFaction: EnemyFaction
+
+    /// Unified party-wide triggers combining hero and companion active traits.
+    public var partyTriggers: CombatTraitTriggers {
+        heroModifiers.triggers.merged(with: companionModifiers.triggers)
+    }
 
     private var logProjection: BattleLogProjection?
 
@@ -71,6 +96,7 @@ public struct BattleState {
         actionCount: Int = 0,
         hasLoggedDefeat: Bool = false,
         hasLoggedPartyDefeat: Bool = false,
+        lastEnemyDefeatWasCritical: Bool = false,
         phase: BattlePhase = .playerTurn,
         hand: BattleHand = BattleHand(),
         handBuffer: BattleHandBuffer = BattleHandBuffer(),
@@ -79,11 +105,23 @@ public struct BattleState {
         nextCardID: Int = 0,
         ownersSkippingThisPlayerTurn: Set<BattleParticipant> = [],
         cardsPlayedThisTurn: [BattleParticipant: Int] = [:],
+        skillCardsPlayedThisTurn: [BattleParticipant: Int] = [:],
+        freezeCardsPlayedThisTurn: [BattleParticipant: Int] = [:],
+        burnManaRestoredThisTurn: [String: Int] = [:],
         spendManaDrawOwnersThisTurn: Set<BattleParticipant> = [],
         healthLossDrawOwnersThisTurn: Set<BattleParticipant> = [],
+        goldDrawOwnersThisTurn: Set<BattleParticipant> = [],
         additionalControlSkipsByCombatantID: [String: Int] = [:],
         isResolvingTrinketReaction: Bool = false,
+        isResolvingDoTDetonation: Bool = false,
+        isResolvingThornsReaction: Bool = false,
         criticalGoldActionByActorID: [String: Int] = [:],
+        talentActionGuardByActorID: [String: Int] = [:],
+        skillEchoOwnersThisBattle: Set<String> = [],
+        talentReactionDepth: Int = 0,
+        dotRecursionDepth: Int = 0,
+        isResolvingAutoPlayCard: Bool = false,
+        enemyFaction: EnemyFaction = .mortal,
         tracksLog: Bool = false,
         tracksEvents: Bool = true
     ) {
@@ -104,6 +142,7 @@ public struct BattleState {
         self.actionCount = actionCount
         self.hasLoggedDefeat = hasLoggedDefeat
         self.hasLoggedPartyDefeat = hasLoggedPartyDefeat
+        self.lastEnemyDefeatWasCritical = lastEnemyDefeatWasCritical
         self.phase = phase
         self.hand = hand
         self.handBuffer = handBuffer
@@ -112,11 +151,24 @@ public struct BattleState {
         self.nextCardID = nextCardID
         self.ownersSkippingThisPlayerTurn = ownersSkippingThisPlayerTurn
         self.cardsPlayedThisTurn = cardsPlayedThisTurn
+        self.skillCardsPlayedThisTurn = skillCardsPlayedThisTurn
+        self.freezeCardsPlayedThisTurn = freezeCardsPlayedThisTurn
+        self.burnManaRestoredThisTurn = burnManaRestoredThisTurn
         self.spendManaDrawOwnersThisTurn = spendManaDrawOwnersThisTurn
         self.healthLossDrawOwnersThisTurn = healthLossDrawOwnersThisTurn
+        self.goldDrawOwnersThisTurn = goldDrawOwnersThisTurn
         self.additionalControlSkipsByCombatantID = additionalControlSkipsByCombatantID
         self.isResolvingTrinketReaction = isResolvingTrinketReaction
+        self.isResolvingDoTDetonation = isResolvingDoTDetonation
+        self.isResolvingThornsReaction = isResolvingThornsReaction
         self.criticalGoldActionByActorID = criticalGoldActionByActorID
+        self.talentActionGuardByActorID = talentActionGuardByActorID
+        self.skillEchoOwnersThisBattle = skillEchoOwnersThisBattle
+        self.talentReactionDepth = talentReactionDepth
+        self.dotRecursionDepth = dotRecursionDepth
+        self.isResolvingAutoPlayCard = isResolvingAutoPlayCard
+
+        self.enemyFaction = enemyFaction
     }
 
     // swiftlint:disable:next function_body_length
@@ -131,6 +183,7 @@ public struct BattleState {
         heroModifiers: CombatModifierProfile = .zero,
         companionModifiers: CombatModifierProfile = .zero,
         enemyModifiers: CombatModifierProfile = .zero,
+        enemyFaction: EnemyFaction = .mortal,
         rngSeed: UInt64? = nil,
         tracksLog: Bool = true,
         tracksEvents: Bool = true,
@@ -175,6 +228,7 @@ public struct BattleState {
         actionCount = 0
         hasLoggedDefeat = false
         hasLoggedPartyDefeat = false
+        lastEnemyDefeatWasCritical = false
         phase = .playerTurn
         hand = BattleHand()
         handBuffer = BattleHandBuffer()
@@ -183,11 +237,24 @@ public struct BattleState {
         nextCardID = 0
         ownersSkippingThisPlayerTurn = []
         cardsPlayedThisTurn = [:]
+        skillCardsPlayedThisTurn = [:]
+        freezeCardsPlayedThisTurn = [:]
+        burnManaRestoredThisTurn = [:]
         spendManaDrawOwnersThisTurn = []
         healthLossDrawOwnersThisTurn = []
+        goldDrawOwnersThisTurn = []
         additionalControlSkipsByCombatantID = [:]
         isResolvingTrinketReaction = false
         criticalGoldActionByActorID = [:]
+        talentActionGuardByActorID = [:]
+        skillEchoOwnersThisBattle = []
+        talentReactionDepth = 0
+        dotRecursionDepth = 0
+        isResolvingAutoPlayCard = false
+
+        isResolvingDoTDetonation = false
+        isResolvingThornsReaction = false
+        self.enemyFaction = enemyFaction
 
         _ = appendMilestone(.battleStarted(heroName: hero.name, companionName: companion.name))
 

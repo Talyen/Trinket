@@ -25,7 +25,8 @@ fi
 INSTALLED_VERSION="$(swiftformat --version)"
 if [[ "$INSTALLED_VERSION" != "$EXPECTED_VERSION" ]]; then
   echo "SwiftFormat version mismatch: expected $EXPECTED_VERSION, found $INSTALLED_VERSION"
-  echo "Install the expected version via: ./Scripts/ensure-ci-tools.sh"
+  echo "Install the pinned version via: ./Scripts/ensure-ci-tools.sh"
+  echo "Or bump the pin to the latest release via: ./Scripts/update-tools.sh --apply"
   exit 1
 fi
 

@@ -138,8 +138,10 @@ struct ItemCorruptionTests {
 
         #expect(title == executioners.title)
         #expect(powers[0].triggers == CombatTraitTriggers(
-            damageBelowHealthPercentThreshold: 0.30,
-            damageBelowHealthPercentBonus: 4
+            damage: DamageTriggers(
+                damageBelowHealthPercentThreshold: 0.30,
+                damageBelowHealthPercentBonus: 4
+            )
         ))
         #expect(powers[0].description == "Deal 4 additional damage if the enemy is below 30% Health.")
     }
@@ -213,7 +215,11 @@ struct ItemCorruptionTests {
             ItemAffixPower(
                 description: "Apply 2 Poison when target Bleeds.",
                 modifiers: [],
-                triggers: CombatTraitTriggers(onBleedApplyPoison: 2)
+                triggers: CombatTraitTriggers(
+                    dot: DotTriggers(
+                        onBleedApplyPoison: 2
+                    )
+                )
             ),
         ]
         var rng = SeededRandomNumberGenerator(seed: 0)

@@ -106,8 +106,12 @@ struct DeathsDoorEngineTests {
         var context = makeContext(
             heroHP: 5,
             heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
-                onceBelowHealthPercentThreshold: 0.25,
-                onceBelowHealthPercentHeal: 3
+                control: ControlTriggers(
+                    onceBelowHealthPercentThreshold: 0.25
+                ),
+                healing: HealingTriggers(
+                    onceBelowHealthPercentHeal: 3
+                )
             ))
         )
         let hero = context.roster.hero.combatant

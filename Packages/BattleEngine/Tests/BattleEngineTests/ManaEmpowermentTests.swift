@@ -216,7 +216,11 @@ struct ManaEmpowermentTests {
             heroAbilities: [.frostbolt],
             heroMaxMana: 3,
             heroMana: 3,
-            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(spendManaBlockFlat: 2))
+            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
+                mana: ManaTriggers(
+                    spendManaBlockFlat: 2
+                )
+            ))
         )
         let card = try #require(battle.hand.cards.first { $0.ability.id == Ability.frostbolt.id })
         let events = try battle.playCard(cardID: card.id)

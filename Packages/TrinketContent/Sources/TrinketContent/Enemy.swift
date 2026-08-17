@@ -7,15 +7,18 @@ public struct Enemy: Identifiable, Hashable, Sendable {
     public let combatant: Combatant
     public let traitID: String
     public let isBoss: Bool
+    public let faction: EnemyFaction
 
     public init(
         combatant: Combatant,
         traitID: String,
-        isBoss: Bool = false
+        isBoss: Bool = false,
+        faction: EnemyFaction = .mortal
     ) {
         self.combatant = combatant
         self.traitID = traitID
         self.isBoss = isBoss
+        self.faction = faction
     }
 
     public var id: String {

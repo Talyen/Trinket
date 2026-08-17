@@ -1,5 +1,6 @@
 import SwiftUI
 import TrinketContent
+import TrinketCore
 import TrinketDesignSystem
 
 struct AbilityChoiceCard: View {
@@ -7,6 +8,8 @@ struct AbilityChoiceCard: View {
     var showsName: Bool = true
     var reservesLabelSpace: Bool = true
     var isSelected = false
+    var shineKeywords: [Keyword]?
+    var shineLineWidth: CGFloat = 2
 
     @ScaledMetric(relativeTo: .title) private var placeholderIconSize =
         TrinketDesign.Metrics.cardPlaceholderIconPointSize
@@ -16,6 +19,8 @@ struct AbilityChoiceCard: View {
             isSelected: isSelected,
             showsLabel: showsName,
             reservesLabelSpace: reservesLabelSpace,
+            shineKeywords: shineKeywords,
+            shineLineWidth: shineLineWidth,
             art: {
                 if let artRef = ability.artReference {
                     Image.preparedAsset(artRef, displaySize: .compact)

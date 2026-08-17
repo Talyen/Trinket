@@ -58,6 +58,18 @@ public enum BattleLogReducer {
             "\(event.targetName) is on Death's Door."
         case .deathsDoorExpired:
             "\(event.targetName)'s Death's Door fades."
+        case .shieldApplied where event.amount > 0 && !event.abilityName.isEmpty:
+            "\(event.targetName) gains \(event.amount) Block (\(event.abilityName))."
+        case .instantHeal where event.amount > 0 && !event.abilityName.isEmpty:
+            "\(event.targetName) restores \(event.amount) Health (\(event.abilityName))."
+        case .thornsTriggered where event.amount > 0 && !event.abilityName.isEmpty:
+            "\(event.actorName) deals \(event.amount) \(event.keyword.rawValue) damage to \(event.targetName) (\(event.abilityName))."
+        case .thornsTriggered where event.amount > 0:
+            "\(event.actorName) reflects \(event.amount) \(event.keyword.rawValue) damage to \(event.targetName)."
+        case .cleanseApplied where !event.abilityName.isEmpty:
+            "\(event.targetName) Cleanses \(event.keyword.rawValue) (\(event.abilityName))."
+        case .purgeApplied where !event.abilityName.isEmpty:
+            "\(event.targetName)'s \(event.keyword.rawValue) is Purged (\(event.abilityName))."
         default:
             nil
         }

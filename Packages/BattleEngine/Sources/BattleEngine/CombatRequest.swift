@@ -21,6 +21,8 @@ public struct DamageOptions: Equatable, Hashable, Sendable {
     /// When true, this is a direct attack hit (ability/enemy strike) — not DoT, retaliation, or costs.
     /// On-hit wards (thorns, freeze-next-attacker) only fire for attack hits.
     public var isAttackHit: Bool
+    /// When true, this is a direct basic-ability attack hit (basic card played).
+    public var isBasicAttackHit: Bool
     /// When true, heal the attacker for `Effect.abilityLeechPercent` of health lost.
     public var abilityHasLeech: Bool
     /// When true, treat as a fixed "Lose N Health" cost — exact HP, no attack pipeline.
@@ -37,6 +39,7 @@ public struct DamageOptions: Equatable, Hashable, Sendable {
         applyControlMeter: Bool = false,
         qualifiesForAmbush: Bool = false,
         isAttackHit: Bool = false,
+        isBasicAttackHit: Bool = false,
         abilityHasLeech: Bool = false,
         isHealthCost: Bool = false
     ) {
@@ -50,6 +53,7 @@ public struct DamageOptions: Equatable, Hashable, Sendable {
         self.applyControlMeter = applyControlMeter
         self.qualifiesForAmbush = qualifiesForAmbush
         self.isAttackHit = isAttackHit
+        self.isBasicAttackHit = isBasicAttackHit
         self.abilityHasLeech = abilityHasLeech
         self.isHealthCost = isHealthCost
     }
@@ -143,6 +147,9 @@ public struct HealRequest: Equatable, Hashable, Sendable {
     public var target: Combatant
     public var sourceActorID: String?
     var logAs: HealLogPolicy
+    /// When true, HealingEngine may restore a combatant at 0 Health (Phoenix Gift).
+    var revivesIfDead: Bool
+    var skipFightPacing: Bool
 
     public init(
         amount: Int,
@@ -161,11 +168,22 @@ public struct HealRequest: Equatable, Hashable, Sendable {
         amount: Int,
         target: Combatant,
         sourceActorID: String? = nil,
-        logAs: HealLogPolicy
+        logAs: HealLogPolicy,
+        revivesIfDead: Bool = false,
+        skipFightPacing: Bool = false
     ) {
         self.amount = amount
         self.target = target
         self.sourceActorID = sourceActorID
         self.logAs = logAs
+        self.revivesIfDead = revivesIfDead
+        self.skipFightPacing = skipFightPacing
+    }
+
+    var isLingeringBlessingTick: Bool {
+        if case let .instantHeal(_, abilityName, _, _) = logAs {
+            return abilityName == "Lingering Blessing"
+        }
+        return false
     }
 }

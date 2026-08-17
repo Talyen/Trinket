@@ -59,7 +59,11 @@ struct HealingEngineTests {
         let leech = ActiveEffect(id: 1, effect: .leech(.leech, 1.0, 3), remainingTurns: 3)
         var context = BattleTestFixtures.makePipelineContext(
             heroModifiers: CombatModifierProfile(
-                triggers: CombatTraitTriggers(poisonDamageLeech: true)
+                triggers: CombatTraitTriggers(
+                    dot: DotTriggers(
+                        poisonDamageLeech: true
+                    )
+                )
             ),
             seed: BattleTestFixtures.deterministicNonCriticalSeed
         )

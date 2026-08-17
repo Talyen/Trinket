@@ -13,17 +13,20 @@ public struct BattleRunConfiguration: Identifiable {
         public let progression: CombatantProgression
         public let equipmentLoadout: EquipmentLoadout
         public let modifiers: CombatModifierProfile
+        public let unlockedTalents: Set<String>
 
         public init(
             combatant: Combatant,
             progression: CombatantProgression,
             equipmentLoadout: EquipmentLoadout,
-            modifiers: CombatModifierProfile
+            modifiers: CombatModifierProfile,
+            unlockedTalents: Set<String> = []
         ) {
             self.combatant = combatant
             self.progression = progression
             self.equipmentLoadout = equipmentLoadout
             self.modifiers = modifiers
+            self.unlockedTalents = unlockedTalents
         }
     }
 
@@ -35,6 +38,7 @@ public struct BattleRunConfiguration: Identifiable {
     public let enemy: Combatant?
     public let enemyEncounterLevel: Int?
     public let enemyModifiers: CombatModifierProfile
+    public let enemyFaction: EnemyFaction
 
     public init(
         runKey: BattleRunKey? = nil,
@@ -43,7 +47,8 @@ public struct BattleRunConfiguration: Identifiable {
         companion: PartyMember,
         enemy: Combatant? = nil,
         enemyEncounterLevel: Int? = nil,
-        enemyModifiers: CombatModifierProfile
+        enemyModifiers: CombatModifierProfile,
+        enemyFaction: EnemyFaction = .mortal
     ) {
         self.runKey = runKey
         self.rngSeed = rngSeed
@@ -52,6 +57,7 @@ public struct BattleRunConfiguration: Identifiable {
         self.enemy = enemy
         self.enemyEncounterLevel = enemyEncounterLevel
         self.enemyModifiers = enemyModifiers
+        self.enemyFaction = enemyFaction
     }
 
     public func partyMember(for combatantID: String) -> PartyMember? {

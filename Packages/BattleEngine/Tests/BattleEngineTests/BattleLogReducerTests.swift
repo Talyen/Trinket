@@ -135,6 +135,60 @@ struct BattleLogReducerTests {
         try #expect(BattleLogReducer.line(for: expired) == "Hero's Death's Door fades.")
     }
 
+    @Test func passiveTalentAttributionLogLines() throws {
+        let blockEvent = ActionEvent(
+            id: 1,
+            kind: .effect,
+            effectKind: .shieldApplied,
+            actorName: "Knight",
+            abilityName: "Oathbound",
+            targetID: "hero",
+            targetName: "Knight",
+            amount: 2,
+            keyword: .holy
+        )
+        try #expect(BattleLogReducer.line(for: blockEvent) == "Knight gains 2 Block (Oathbound).")
+
+        let healEvent = ActionEvent(
+            id: 2,
+            kind: .effect,
+            effectKind: .instantHeal,
+            actorName: "Warlock",
+            abilityName: "Bloodfire",
+            targetID: "hero",
+            targetName: "Warlock",
+            amount: 2,
+            keyword: .burn
+        )
+        try #expect(BattleLogReducer.line(for: healEvent) == "Warlock restores 2 Health (Bloodfire).")
+
+        let thornsEvent = ActionEvent(
+            id: 3,
+            kind: .effect,
+            effectKind: .thornsTriggered,
+            actorName: "Shield Scarab",
+            abilityName: "Spiked Shell",
+            targetID: "enemy",
+            targetName: "Goblin",
+            amount: 3,
+            keyword: .physical
+        )
+        try #expect(BattleLogReducer.line(for: thornsEvent) == "Shield Scarab deals 3 Physical damage to Goblin (Spiked Shell).")
+
+        let cleanseEvent = ActionEvent(
+            id: 4,
+            kind: .effect,
+            effectKind: .cleanseApplied,
+            actorName: "Library Owl",
+            abilityName: "Purifying Wisdom",
+            targetID: "hero",
+            targetName: "Hero",
+            amount: 0,
+            keyword: .poison
+        )
+        try #expect(BattleLogReducer.line(for: cleanseEvent) == "Hero Cleanses Poison (Purifying Wisdom).")
+    }
+
     private func sampleEvents(includeDefeat: Bool) -> [ActionEvent] {
         let enemyID = "enemy"
         var events: [ActionEvent] = [

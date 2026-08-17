@@ -13,6 +13,9 @@ public struct ItemCard<Art: View>: View {
     var isSelected = false
     /// Fades the label out over the battle dissolve window (salvage removal).
     var fadesLabel = false
+    var customShineKeywords: [Keyword]?
+    var shineLineWidth: CGFloat = 2
+    var enablesAstralShine: Bool = true
     @ViewBuilder private var art: () -> Art
 
     @State private var labelOpacity = 1.0
@@ -25,6 +28,9 @@ public struct ItemCard<Art: View>: View {
         appliesCardSurface: Bool = true,
         isSelected: Bool = false,
         fadesLabel: Bool = false,
+        customShineKeywords: [Keyword]? = nil,
+        shineLineWidth: CGFloat = 2,
+        enablesAstralShine: Bool = true,
         @ViewBuilder art: @escaping () -> Art
     ) {
         self.item = item
@@ -34,7 +40,20 @@ public struct ItemCard<Art: View>: View {
         self.appliesCardSurface = appliesCardSurface
         self.isSelected = isSelected
         self.fadesLabel = fadesLabel
+        self.customShineKeywords = customShineKeywords
+        self.shineLineWidth = shineLineWidth
+        self.enablesAstralShine = enablesAstralShine
         self.art = art
+    }
+
+    private var effectiveShineKeywords: [Keyword]? {
+        if let customShineKeywords {
+            return customShineKeywords
+        }
+        if enablesAstralShine, item.rarity == .astral {
+            return item.keywords.isEmpty ? Array(item.baseType.keywordAffinities) : Array(item.keywords)
+        }
+        return nil
     }
 
     public var body: some View {
@@ -43,6 +62,8 @@ public struct ItemCard<Art: View>: View {
             appliesCardSurface: appliesCardSurface,
             showsLabel: showsName,
             reservesLabelSpace: reservesLabelSpace,
+            shineKeywords: effectiveShineKeywords,
+            shineLineWidth: shineLineWidth,
             art: art,
             label: {
                 VStack(spacing: TrinketDesign.Metrics.tightSpacing) {
@@ -91,7 +112,10 @@ public extension ItemCard where Art == ItemArtwork {
         reservesLabelSpace: Bool = true,
         appliesCardSurface: Bool = true,
         isSelected: Bool = false,
-        fadesLabel: Bool = false
+        fadesLabel: Bool = false,
+        customShineKeywords: [Keyword]? = nil,
+        shineLineWidth: CGFloat = 2,
+        enablesAstralShine: Bool = true
     ) {
         self.init(
             item: item,
@@ -100,7 +124,10 @@ public extension ItemCard where Art == ItemArtwork {
             reservesLabelSpace: reservesLabelSpace,
             appliesCardSurface: appliesCardSurface,
             isSelected: isSelected,
-            fadesLabel: fadesLabel
+            fadesLabel: fadesLabel,
+            customShineKeywords: customShineKeywords,
+            shineLineWidth: shineLineWidth,
+            enablesAstralShine: enablesAstralShine
         ) {
             ItemArtwork(item: item, variant: .thumbnail)
         }

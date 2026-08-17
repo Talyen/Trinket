@@ -26,12 +26,16 @@ package extension BattleState {
         }
     }
 
+    // swiftlint:disable:next function_body_length
     mutating func applyBlock(
         _ amount: Int,
         to target: Combatant,
         source: Combatant,
         abilityName: String
     ) -> [ActionEvent] {
+        if CombatTriggerEngine.frozenTargetCannotBlockOrHeal(target, in: self) {
+            return []
+        }
         let adjusted = adjustedOutgoingEffect(.shield(.block, amount), sourceID: source.id)
         guard case let .shield(keyword, buffer) = adjusted else { return [] }
         let applied = DefensePoolEngine.add(
@@ -55,6 +59,43 @@ package extension BattleState {
             by: target,
             in: &self
         ))
+
+        // Vital Armor: gain 1 Max Health for every N Block gained this battle (up to +10 Max Health).
+        if applied > 0 {
+            let triggers = modifiers(for: target.id).triggers
+            if triggers.blockGainedMaxHealthEvery > 0 {
+                roster.mutateRuntime(for: target) { runtime in
+                    let prevBlock = runtime.totalBlockGainedThisCombat
+                    let newBlock = prevBlock + applied
+                    runtime.totalBlockGainedThisCombat = newBlock
+                    let prevBonus = prevBlock / triggers.blockGainedMaxHealthEvery
+                    let newBonus = min(10, newBlock / triggers.blockGainedMaxHealthEvery)
+                    let gained = newBonus - min(10, prevBonus)
+                    if gained > 0 {
+                        runtime.talentMaxHealthBonus += gained
+                        runtime.currentHealth = min(runtime.maxHealth, runtime.currentHealth + gained)
+                    }
+                }
+            }
+            // Shield Bond: whenever the Companion gains Block, the Hero gains equal Block.
+            if target.role == .companion,
+               triggers.companionBlockSharesToHeroPercent > 0,
+               roster.hero.isAlive {
+                let share = CombatRounding.scaled(
+                    applied,
+                    multiplier: min(1, max(0, triggers.companionBlockSharesToHeroPercent))
+                )
+                if share > 0 {
+                    DefensePoolEngine.add(
+                        share,
+                        to: roster.hero.combatant,
+                        keyword: .block,
+                        sourceActorID: target.id,
+                        in: &self
+                    )
+                }
+            }
+        }
         return events
     }
 
@@ -64,6 +105,13 @@ package extension BattleState {
         sourceID: String,
         remainingTurns: Int
     ) {
+        // Fae Ward: block the first debuff applied to the owner each turn.
+        if isDebuff(effect),
+           modifiers(for: target.id).triggers.blockFirstDebuffPerTurn,
+           roster.runtime(for: target)?.faeWardBlockedThisTurn != true {
+            roster.mutateRuntime(for: target) { $0.faeWardBlockedThisTurn = true }
+            return
+        }
         let effectID = consumeNextEffectID()
         roster.mutateRuntime(for: target) { runtime in
             runtime.activeEffects.append(
@@ -74,6 +122,16 @@ package extension BattleState {
                     sourceActorID: sourceID
                 )
             )
+        }
+    }
+
+    private func isDebuff(_ effect: Effect) -> Bool {
+        switch effect {
+        case .burn, .poison, .bleed, .controlMeter, .deathsDoor,
+             .damageReductionPercent, .damageReductionFlat, .strengthReduction:
+            true
+        default:
+            false
         }
     }
 

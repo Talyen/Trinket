@@ -140,6 +140,12 @@ struct AppStateLabyrinthTests {
             if session.phase == .reading {
                 #expect(state.encounters.resolveActiveMysteryChoice())
             }
+            if session.showsCorruptItemChoice, let itemID = session.corruptibleItems.first?.id {
+                #expect(state.encounters.corruptActiveMysteryItem(itemID: itemID))
+            }
+            if session.showsCorruptionReveal {
+                #expect(state.encounters.finishActiveMysteryCorruptionReveal())
+            }
             if state.encounters.activeMysteryEncounter != nil {
                 #expect(state.encounters.finishActiveMysteryEncounter())
             }
@@ -280,7 +286,7 @@ struct AppStateLabyrinthTests {
             playerSave.forcesNextSaveFailure = true
             #expect(!state.labyrinth.leaveActiveCraftWithoutForging())
             #expect(state.labyrinth.activeNodeSession != nil)
-            #expect(session.failureMessage != nil)
+            #expect(state.labyrinth.activeNodeSession?.failureMessage != nil)
             #expect(state.playerSave.labyrinth.nodes[craftNodeID]?.isCleared == false)
 
             #expect(state.labyrinth.leaveActiveCraftWithoutForging())
@@ -296,18 +302,31 @@ struct AppStateLabyrinthTests {
         let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
         let state = try context.makePlaySession(arguments: ["-reset-state"], playerSave: playerSave)
         _ = state.labyrinth.enter()
-        let mysteryNodeID = try #require(LabyrinthTestSupport.firstReachableNodeID(of: .mystery, in: state))
+        let event = try #require(GameContent.recruitEvents.first(where: { event in
+            guard let combatantID = event.unlockCombatantID else { return false }
+            return !state.playerSave.roster.unlockedHeroIDs.contains(combatantID)
+                && !state.playerSave.roster.unlockedCompanionIDs.contains(combatantID)
+        }))
+        let mysteryNodeID = try #require(state.playerSave.labyrinth.reachableNodeIDs().first)
+        let node = try #require(state.playerSave.labyrinth.nodes[mysteryNodeID])
+        var labyrinth = state.playerSave.labyrinth
+        labyrinth.nodes[mysteryNodeID] = LabyrinthNode(
+            id: node.id,
+            type: .recruit,
+            depth: node.depth,
+            clusterID: node.clusterID,
+            gridPosition: node.gridPosition,
+            modifierIDs: node.modifierIDs,
+            recruitEventID: event.id,
+            outgoingIDs: node.outgoingIDs,
+            isRevealed: true
+        )
+        state.playerSave.labyrinth = labyrinth
 
         #expect(state.labyrinth.handleNodeAction(nodeID: mysteryNodeID) == nil)
         let session = try #require(state.encounters.activeMysteryEncounter)
         #expect(session.labyrinthNodeID == mysteryNodeID)
-        let event = session.event
-        guard let unlockID = event.unlockCombatantID else {
-            // Non-recruit mystery: resolve still completes in-transaction; skip double-grant probe.
-            #expect(state.encounters.resolveActiveMysteryChoice())
-            #expect(state.playerSave.labyrinth.nodes[mysteryNodeID]?.isCleared == true)
-            return
-        }
+        let unlockID = try #require(session.event.unlockCombatantID)
 
         #expect(state.playerSave.roster.isCombatantUnlocked(id: unlockID))
         #expect(state.encounters.activeMysteryEncounter?.phase == .revealing)

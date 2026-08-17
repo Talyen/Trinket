@@ -51,3 +51,6 @@ Enemy scaling uses `EnemyPowerCurve` (smoothstep stat anchors at L1/L20/L40) app
 Hidden fight pacing (`FightPacing`) band-scales authored combat magnitudes (damage, heals, block, DoT, control, ability mana) via comeback (losing side) and a progress-based clock (both sides). Passive turn-start mana drip is excluded.
 
 Percentage multipliers on combat integers (damage, healing, control buildup, mana/gold bonuses) round via `CombatRounding` in `TrinketCore` (nearest integer, ties to even). Integer division semantics (half Block, gold-per-Block, half mana) stay as truncating division.
+
+Talent trees organize 6 nodes across 3 visual unlock rows (2 per row). Power is flat across all rows — do not scale talent magnitude or impact by row level (`PD-013`). All talent nodes must be balanced equally as build side-grades.
+

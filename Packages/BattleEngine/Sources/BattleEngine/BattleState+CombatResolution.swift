@@ -5,23 +5,31 @@ package extension BattleState {
     mutating func resolveDamage(_ request: DamageRequest) -> CombatOutcome {
         guard request.amount > 0 else { return .empty }
 
+        talentReactionDepth += 1
+        defer { talentReactionDepth -= 1 }
+        var resolved = request
+        if talentReactionDepth > 2 {
+            resolved.options.isRetaliation = true
+        }
+
         var state = DamageResolutionState(
-            amount: request.amount,
-            combatant: request.target,
-            sourceActorID: request.sourceActorID,
-            damageKeyword: request.keyword,
-            applyStatBonus: request.options.applyStatBonus,
-            applyItemBonus: request.options.applyItemBonus,
-            applyDodge: request.options.applyDodge,
-            abilityCriticalChanceBonus: request.options.abilityCriticalChanceBonus,
-            guaranteedCriticalIfEnemyBuffed: request.options.guaranteedCriticalIfEnemyBuffed,
-            guaranteedCritical: request.options.guaranteedCritical,
-            isRetaliation: request.options.isRetaliation,
-            applyControlMeter: request.options.applyControlMeter,
-            qualifiesForAmbush: request.options.qualifiesForAmbush,
-            isAttackHit: request.options.isAttackHit,
-            abilityHasLeech: request.options.abilityHasLeech,
-            isHealthCost: request.options.isHealthCost
+            amount: resolved.amount,
+            combatant: resolved.target,
+            sourceActorID: resolved.sourceActorID,
+            damageKeyword: resolved.keyword,
+            applyStatBonus: resolved.options.applyStatBonus,
+            applyItemBonus: resolved.options.applyItemBonus,
+            applyDodge: resolved.options.applyDodge,
+            abilityCriticalChanceBonus: resolved.options.abilityCriticalChanceBonus,
+            guaranteedCriticalIfEnemyBuffed: resolved.options.guaranteedCriticalIfEnemyBuffed,
+            guaranteedCritical: resolved.options.guaranteedCritical,
+            isRetaliation: resolved.options.isRetaliation,
+            applyControlMeter: resolved.options.applyControlMeter,
+            qualifiesForAmbush: resolved.options.qualifiesForAmbush,
+            isAttackHit: resolved.options.isAttackHit,
+            isBasicAttackHit: resolved.options.isBasicAttackHit,
+            abilityHasLeech: resolved.options.abilityHasLeech,
+            isHealthCost: resolved.options.isHealthCost
         )
         state.activeEffects = roster.activeEffects(for: request.target)
 
@@ -39,7 +47,8 @@ package extension BattleState {
         sourceActorID: String,
         abilityHasLeech: Bool = false
     ) -> [ActionEvent] {
-        HealingEngine.leechFromDamage(
+        guard talentReactionDepth <= 2 else { return [] }
+        return HealingEngine.leechFromDamage(
             damage,
             sourceActorID: sourceActorID,
             abilityHasLeech: abilityHasLeech,

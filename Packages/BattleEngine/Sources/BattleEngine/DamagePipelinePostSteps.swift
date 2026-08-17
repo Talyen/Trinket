@@ -5,6 +5,30 @@ import TrinketCore
 package extension DamagePipeline {
     // MARK: - Post steps
 
+    /// Master Thief: a Critical Hit from the Fox steals the enemy's Block before
+    /// the hit resolves (so the stolen Block protects the Fox, not the enemy).
+    static func applyCriticalBlockSteal(
+        to state: inout DamageResolutionState,
+        in context: inout BattleState
+    ) {
+        guard state.isCritical,
+              state.combatant.role == .enemy,
+              let sourceActorID = state.sourceActorID,
+              let source = context.roster.combatant(for: sourceActorID),
+              source.role != .enemy,
+              context.modifiers(for: sourceActorID).triggers.critStealEnemyBlock
+        else { return }
+        let enemyBlock = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: state.combatant))
+        guard enemyBlock > 0 else { return }
+        DefensePoolEngine.set(0, on: state.combatant, in: &context)
+        state.damageEvents.append(contentsOf: context.applyBlock(
+            enemyBlock,
+            to: source.combatant,
+            source: source.combatant,
+            abilityName: "Master Thief"
+        ))
+    }
+
     static func applyLeech(
         to state: inout DamageResolutionState,
         in context: inout BattleState
@@ -16,6 +40,8 @@ package extension DamagePipeline {
         let leechOutcome = HealingEngine.leechFromDamage(
             state.healthLost,
             sourceActorID: sourceActorID,
+            target: state.combatant,
+            blockedAmount: state.blockedAmount,
             abilityHasLeech: state.abilityHasLeech,
             damageKeyword: state.damageKeyword,
             in: &context
@@ -39,6 +65,7 @@ package extension DamagePipeline {
             state.damageEvents.append(contentsOf: CombatTriggerEngine.afterHolyDamageDealt(
                 to: state.combatant,
                 source: source.combatant,
+                isAttackHit: state.isAttackHit,
                 in: &context
             ))
         case .stun:
@@ -79,6 +106,34 @@ package extension DamagePipeline {
         }
 
         guard state.isAttackHit else { return }
+        applyPhysicalAttackReactions(
+            to: &state,
+            source: source,
+            sourceActorID: sourceActorID,
+            triggers: triggers,
+            keyword: keyword,
+            in: &context
+        )
+        applyTalentAttackApplications(
+            to: &state,
+            source: source,
+            sourceRuntime: sourceRuntime,
+            sourceActorID: sourceActorID,
+            triggers: triggers,
+            keyword: keyword,
+            in: &context
+        )
+    }
+
+    /// Physical-attack reactions: Stun buildup and Block from damage dealt.
+    private static func applyPhysicalAttackReactions(
+        to state: inout DamageResolutionState,
+        source: Combatant,
+        sourceActorID: String,
+        triggers: CombatTraitTriggers,
+        keyword: Keyword,
+        in context: inout BattleState
+    ) {
         if keyword == .physical, state.buildupDamage > 0, triggers.physicalStunBuildupPercent > 0 {
             let buildup = CombatRounding.scaled(
                 state.buildupDamage,
@@ -104,6 +159,339 @@ package extension DamagePipeline {
                     to: source,
                     source: source,
                     abilityName: "Vanguard's Crest"
+                ))
+            }
+        }
+    }
+
+    /// Combatant Talent System — on-attack-hit applications.
+    private static func applyTalentAttackApplications(
+        to state: inout DamageResolutionState,
+        source: Combatant,
+        sourceRuntime: CombatantRuntime,
+        sourceActorID: String,
+        triggers: CombatTraitTriggers,
+        keyword: Keyword,
+        in context: inout BattleState
+    ) {
+        let target = state.combatant
+        let targetAlive = context.roster.health(for: target) > 0
+
+        applyKeywordAfflictionApplications(
+            to: &state,
+            source: source,
+            sourceActorID: sourceActorID,
+            triggers: triggers,
+            keyword: keyword,
+            in: &context
+        )
+        applyBasicAttackApplications(to: &state, source: source, sourceActorID: sourceActorID, triggers: triggers, in: &context)
+        applyTargetStateReactions(
+            to: &state,
+            source: source,
+            sourceRuntime: sourceRuntime,
+            sourceActorID: sourceActorID,
+            triggers: triggers,
+            in: &context
+        )
+        applyRandomOnHitApplications(
+            to: &state,
+            source: source,
+            sourceActorID: sourceActorID,
+            triggers: triggers,
+            target: target,
+            targetAlive: targetAlive,
+            in: &context
+        )
+    }
+
+    /// On-hit applications driven by the damage keyword (ranged/physical/holy).
+    private static func applyKeywordAfflictionApplications(
+        to state: inout DamageResolutionState,
+        source: Combatant,
+        sourceActorID: String,
+        triggers: CombatTraitTriggers,
+        keyword: Keyword,
+        in context: inout BattleState
+    ) {
+        let target = state.combatant
+        let targetAlive = context.roster.health(for: target) > 0
+        applyRangedAndPhysicalAfflictions(
+            to: &state,
+            source: source,
+            sourceActorID: sourceActorID,
+            triggers: triggers,
+            keyword: keyword,
+            in: &context
+        )
+        applyHolyAfflictions(to: &state, sourceActorID: sourceActorID, triggers: triggers, keyword: keyword, in: &context)
+    }
+
+    /// Ranged/Physical on-hit affliction applications.
+    private static func applyRangedAndPhysicalAfflictions(
+        to state: inout DamageResolutionState,
+        source: Combatant,
+        sourceActorID: String,
+        triggers: CombatTraitTriggers,
+        keyword: Keyword,
+        in context: inout BattleState
+    ) {
+        let target = state.combatant
+        let targetAlive = context.roster.health(for: target) > 0
+        if triggers.attacksApplyPoison > 0, state.isBasicAttackHit, targetAlive {
+            state.damageEvents.append(contentsOf: context.applyDecayingDoT(
+                keyword: .poison,
+                potency: triggers.attacksApplyPoison,
+                to: target,
+                sourceActorID: sourceActorID,
+                dealImmediateDamage: false,
+                suppressAffixReactions: true
+            ))
+        }
+        if triggers.physicalAttackApplyBleed > 0, keyword == .physical, targetAlive {
+            state.damageEvents.append(contentsOf: DoTApplicator.applyBleed(
+                potency: triggers.physicalAttackApplyBleed,
+                to: target,
+                sourceActorID: sourceActorID,
+                dealImmediateDamage: false,
+                suppressAffixReactions: true,
+                in: &context
+            ))
+        }
+        if triggers.physicalAttackApplyBleedAndStun > 0, keyword == .physical, targetAlive {
+            state.damageEvents.append(contentsOf: DoTApplicator.applyBleed(
+                potency: triggers.physicalAttackApplyBleedAndStun,
+                to: target,
+                sourceActorID: sourceActorID,
+                dealImmediateDamage: false,
+                suppressAffixReactions: true,
+                in: &context
+            ))
+            state.damageEvents.append(contentsOf: ControlMeterEngine.applyMeterCharge(
+                triggers.physicalAttackApplyBleedAndStun,
+                keyword: .stun,
+                to: target,
+                sourceActorID: sourceActorID,
+                applyFightPacing: false,
+                in: &context
+            ))
+        }
+        if triggers.physicalAttackFlatStunBuildup > 0, keyword == .physical, targetAlive {
+            state.damageEvents.append(contentsOf: ControlMeterEngine.applyMeterCharge(
+                triggers.physicalAttackFlatStunBuildup,
+                keyword: .stun,
+                to: target,
+                sourceActorID: sourceActorID,
+                applyFightPacing: false,
+                in: &context
+            ))
+        }
+        if triggers.onPhysicalDamageGainBlock > 0, keyword == .physical {
+            state.damageEvents.append(contentsOf: context.applyBlock(
+                triggers.onPhysicalDamageGainBlock,
+                to: source,
+                source: source,
+                abilityName: "Bone Shield"
+            ))
+        }
+    }
+
+    /// Holy on-hit affliction applications.
+    private static func applyHolyAfflictions(
+        to state: inout DamageResolutionState,
+        sourceActorID: String,
+        triggers: CombatTraitTriggers,
+        keyword: Keyword,
+        in context: inout BattleState
+    ) {
+        let target = state.combatant
+        guard keyword == .holy, context.roster.health(for: target) > 0, triggers.holyAttackApplyBurnAndStunBuildup > 0 else { return }
+        state.damageEvents.append(contentsOf: context.applyDecayingDoT(
+            keyword: .burn,
+            potency: triggers.holyAttackApplyBurnAndStunBuildup,
+            to: target,
+            sourceActorID: sourceActorID,
+            dealImmediateDamage: false,
+            suppressAffixReactions: true
+        ))
+        state.damageEvents.append(contentsOf: ControlMeterEngine.applyMeterCharge(
+            triggers.holyAttackApplyBurnAndStunBuildup,
+            keyword: .stun,
+            to: target,
+            sourceActorID: sourceActorID,
+            applyFightPacing: false,
+            in: &context
+        ))
+    }
+
+    /// Basic-attack applications (Bleed, Freeze buildup, Steal Gold).
+    private static func applyBasicAttackApplications(
+        to state: inout DamageResolutionState,
+        source: Combatant,
+        sourceActorID: String,
+        triggers: CombatTraitTriggers,
+        in context: inout BattleState
+    ) {
+        guard state.isBasicAttackHit, context.roster.health(for: state.combatant) > 0 else { return }
+        let target = state.combatant
+        if triggers.basicAttackApplyBleed > 0 {
+            state.damageEvents.append(contentsOf: DoTApplicator.applyBleed(
+                potency: triggers.basicAttackApplyBleed,
+                to: target,
+                sourceActorID: sourceActorID,
+                dealImmediateDamage: false,
+                suppressAffixReactions: true,
+                in: &context
+            ))
+        }
+        if triggers.basicAttackFreezeBuildup > 0 {
+            state.damageEvents.append(contentsOf: ControlMeterEngine.applyMeterCharge(
+                triggers.basicAttackFreezeBuildup,
+                keyword: .freeze,
+                to: target,
+                sourceActorID: sourceActorID,
+                applyFightPacing: false,
+                in: &context
+            ))
+        }
+        if triggers.basicAttackStealGold > 0 {
+            state.damageEvents.append(contentsOf: context.grantGoldEvent(
+                triggers.basicAttackStealGold,
+                to: source,
+                abilityName: "Snatch"
+            ))
+        }
+    }
+
+    /// On-hit reactions driven by the target's status (Frozen/Stunned/Poisoned).
+    private static func applyTargetStateReactions(
+        to state: inout DamageResolutionState,
+        source: Combatant,
+        sourceRuntime: CombatantRuntime,
+        sourceActorID: String,
+        triggers: CombatTraitTriggers,
+        in context: inout BattleState
+    ) {
+        let target = state.combatant
+        let targetAlive = context.roster.health(for: target) > 0
+        let targetIsFrozen = context.roster.hasControlStatus(for: target, keyword: .freeze)
+        let targetIsStunned = context.roster.hasControlStatus(for: target, keyword: .stun)
+        let targetIsPoisoned = context.roster.activeEffects(for: target).contains { $0.effect.keyword == .poison }
+        if triggers.onAttackStealGold > 0 {
+            state.damageEvents.append(contentsOf: context.grantGoldEvent(
+                triggers.onAttackStealGold,
+                to: source,
+                abilityName: "Pickpocket"
+            ))
+        }
+        if triggers.onAttackFrozenEnemyGainMana > 0, targetIsFrozen {
+            let restored = context.restoreMana(triggers.onAttackFrozenEnemyGainMana, to: source)
+            if restored > 0 {
+                state.damageEvents.append(context.nextEvent(
+                    kind: .effect,
+                    effectKind: .resourceGain,
+                    actorName: source.name,
+                    abilityName: "Frost Siphon",
+                    target: source,
+                    amount: restored,
+                    keyword: .mana
+                ))
+                state.damageEvents.append(contentsOf: CombatTriggerEngine.afterGainMana(by: source, in: &context))
+            }
+        }
+        if triggers.onAttackFrozenEnemyGainBlock > 0, targetIsFrozen {
+            state.damageEvents.append(contentsOf: context.applyBlock(
+                triggers.onAttackFrozenEnemyGainBlock,
+                to: source,
+                source: source,
+                abilityName: "Frost Guard"
+            ))
+        }
+        if triggers.onAttackStunnedEnemyGold > 0, targetIsStunned {
+            state.damageEvents.append(contentsOf: context.grantGoldEvent(
+                triggers.onAttackStunnedEnemyGold,
+                to: source,
+                abilityName: "Disorienting Strike"
+            ))
+        }
+        if triggers.onAttackStunnedEnemyBlock > 0, targetIsStunned {
+            state.damageEvents.append(contentsOf: context.applyBlock(
+                triggers.onAttackStunnedEnemyBlock,
+                to: source,
+                source: source,
+                abilityName: "Disorienting Strike"
+            ))
+        }
+        if triggers.onHeroAttackPoisonedEnemyApplyPoison > 0, sourceRuntime.role == .hero, targetIsPoisoned, targetAlive {
+            state.damageEvents.append(contentsOf: context.applyDecayingDoT(
+                keyword: .poison,
+                potency: triggers.onHeroAttackPoisonedEnemyApplyPoison,
+                to: target,
+                sourceActorID: sourceActorID,
+                dealImmediateDamage: false,
+                suppressAffixReactions: true
+            ))
+        }
+    }
+
+    /// Chance-based on-hit applications (Direct Hit Bleed, Ambush Bleed, Raise Minion).
+    private static func applyRandomOnHitApplications(
+        to state: inout DamageResolutionState,
+        source: Combatant,
+        sourceActorID: String,
+        triggers: CombatTraitTriggers,
+        target: Combatant,
+        targetAlive: Bool,
+        in context: inout BattleState
+    ) {
+        if triggers.directHitBleedChancePercent > 0, targetAlive,
+           BattleChance.succeeds(probability: triggers.directHitBleedChancePercent, using: &context.rng) {
+            state.damageEvents.append(contentsOf: DoTApplicator.applyBleed(
+                potency: 1,
+                to: target,
+                sourceActorID: sourceActorID,
+                dealImmediateDamage: false,
+                suppressAffixReactions: true,
+                in: &context
+            ))
+        }
+        if triggers.attackApplyBleed > 0, state.qualifiesForAmbush, targetAlive {
+            state.damageEvents.append(contentsOf: DoTApplicator.applyBleed(
+                potency: triggers.attackApplyBleed,
+                to: target,
+                sourceActorID: sourceActorID,
+                dealImmediateDamage: false,
+                suppressAffixReactions: true,
+                in: &context
+            ))
+        }
+        // Bone Burst: chance to deal extra Physical damage and gain Block.
+        if triggers.attackBurstChancePercent > 0, targetAlive,
+           BattleChance.succeeds(probability: triggers.attackBurstChancePercent, using: &context.rng) {
+            let burstDamage = max(0, triggers.attackBurstDamage)
+            if burstDamage > 0 {
+                state.damageEvents.append(contentsOf: context.resolveDamage(
+                    DamageRequest(
+                        amount: burstDamage,
+                        target: target,
+                        keyword: .physical,
+                        sourceActorID: sourceActorID,
+                        options: DamageOptions(
+                            applyStatBonus: false,
+                            applyItemBonus: false,
+                            applyDodge: false,
+                            isRetaliation: true
+                        )
+                    )
+                ).events)
+            }
+            let burstBlock = max(0, triggers.attackBurstBlock)
+            if burstBlock > 0 {
+                state.damageEvents.append(contentsOf: context.applyBlock(
+                    burstBlock,
+                    to: source,
+                    source: source,
+                    abilityName: "Bone Burst"
                 ))
             }
         }
@@ -148,202 +536,5 @@ package extension DamagePipeline {
             applyFightPacing: false,
             in: &context
         ))
-    }
-
-    static func applyReactiveOnHit(
-        to state: inout DamageResolutionState,
-        in context: inout BattleState
-    ) {
-        // Retaliation damage must never re-enter wards (mutual thorns ping-pong).
-        guard !state.isDodged, !state.isRetaliation, let sourceActorID = state.sourceActorID else { return }
-        guard let attacker = context.roster.combatant(for: sourceActorID) else { return }
-
-        if state.healthLost > 0, let damageKeyword = state.damageKeyword {
-            EnemyTraitEngine.applyShieldErosion(
-                keyword: damageKeyword,
-                to: state.combatant,
-                context: &context
-            )
-            EnemyTraitEngine.applyMitigationShred(
-                keyword: damageKeyword,
-                to: state.combatant,
-                context: &context
-            )
-            state.damageEvents.append(contentsOf: EnemyTraitEngine.traitThornsDamage(
-                damageTaken: state.healthLost,
-                defender: state.combatant,
-                attackerID: sourceActorID,
-                in: &context
-            ))
-            state.damageEvents.append(contentsOf: EnemyTraitEngine.traitAttackerBurn(
-                defender: state.combatant,
-                attackerID: sourceActorID,
-                in: &context
-            ))
-        }
-
-        if state.healthLost > 0 {
-            applyManaShieldOnHit(to: &state, in: &context)
-        }
-
-        // Thorns and freeze-next-attacker fire for direct attack hits (including fully blocked).
-        if state.isAttackHit {
-            applyOnHitWards(to: &state, attacker: attacker, in: &context)
-        }
-    }
-
-    private static func applyManaShieldOnHit(
-        to state: inout DamageResolutionState,
-        in context: inout BattleState
-    ) {
-        let activeEffects = context.roster.activeEffects(for: state.combatant)
-        for active in activeEffects {
-            guard case let .restoreManaOnHit(amount, _) = active.effect else { continue }
-            let pacedAmount = context.paced(amount, sourceActorID: state.combatant.id)
-            let restored = context.restoreMana(pacedAmount, to: state.combatant)
-            guard restored > 0 else { continue }
-            state.damageEvents.append(context.nextEvent(
-                kind: .effect,
-                effectKind: .manaShieldTriggered,
-                actorName: state.combatant.name,
-                abilityName: "Mana Shield",
-                target: state.combatant,
-                amount: restored,
-                keyword: .mana
-            ))
-            state.damageEvents.append(contentsOf: CombatTriggerEngine.afterGainMana(
-                by: state.combatant,
-                in: &context
-            ))
-        }
-    }
-
-    private struct OnHitWardTotals {
-        var thornsStacks = 0
-        var freezeOnHitAmount = 0
-        var shouldFreezeAttacker = false
-    }
-
-    private static func onHitWardTotals(from effects: [ActiveEffect]) -> OnHitWardTotals {
-        var totals = OnHitWardTotals()
-        for active in effects {
-            switch active.effect {
-            case let .thorns(amount):
-                totals.thornsStacks += amount
-            case let .freezeOnHit(amount):
-                totals.freezeOnHitAmount += amount
-            case .freezeNextAttacker:
-                totals.shouldFreezeAttacker = true
-            default:
-                continue
-            }
-        }
-        return totals
-    }
-
-    private static func applyOnHitWards(
-        to state: inout DamageResolutionState,
-        attacker: CombatantRuntime,
-        in context: inout BattleState
-    ) {
-        let wards = onHitWardTotals(from: context.roster.activeEffects(for: state.combatant))
-
-        // Consume wards before nested resolveDamage so mutual thorns cannot recurse
-        // even if a retaliation path forgets `isRetaliation`.
-        if wards.thornsStacks > 0 {
-            ActiveEffectMutation.removeMatching(from: state.combatant, in: &context) {
-                if case .thorns = $0 {
-                    return true
-                }
-                return false
-            }
-            appendRetaliationDamage(
-                amount: wards.thornsStacks,
-                keyword: .physical,
-                abilityName: "Thorns",
-                attacker: attacker,
-                to: &state,
-                in: &context
-            )
-        }
-
-        if wards.freezeOnHitAmount > 0 {
-            ActiveEffectMutation.removeMatching(from: state.combatant, in: &context) {
-                if case .freezeOnHit = $0 {
-                    return true
-                }
-                return false
-            }
-            appendRetaliationDamage(
-                amount: wards.freezeOnHitAmount,
-                keyword: .freeze,
-                abilityName: "Glacial Ward",
-                attacker: attacker,
-                to: &state,
-                in: &context
-            )
-        }
-
-        guard wards.shouldFreezeAttacker else { return }
-        ActiveEffectMutation.removeMatching(from: state.combatant, in: &context) {
-            if case .freezeNextAttacker = $0 {
-                return true
-            }
-            return false
-        }
-        let threshold = ControlMeterEngine.threshold(for: attacker.combatant, in: context)
-        state.damageEvents.append(contentsOf: ControlMeterEngine.applyMeterCharge(
-            threshold,
-            keyword: .freeze,
-            to: attacker.combatant,
-            sourceActorID: state.combatant.id,
-            in: &context
-        ))
-    }
-
-    private static func appendRetaliationDamage(
-        amount: Int,
-        keyword: Keyword,
-        abilityName: String,
-        attacker: CombatantRuntime,
-        to state: inout DamageResolutionState,
-        in context: inout BattleState
-    ) {
-        guard amount > 0 else { return }
-        let outcome = context.resolveDamage(
-            DamageRequest(
-                amount: amount,
-                target: attacker.combatant,
-                keyword: keyword,
-                sourceActorID: state.combatant.id,
-                options: DamageOptions(
-                    applyStatBonus: false,
-                    applyItemBonus: false,
-                    applyDodge: false,
-                    isRetaliation: true
-                )
-            )
-        )
-        var retaliationEvents = outcome.events
-        if let lastIndex = retaliationEvents.indices.last {
-            let event = retaliationEvents[lastIndex]
-            retaliationEvents[lastIndex] = event.with(
-                effectKind: .thornsTriggered,
-                actorID: state.combatant.id,
-                actorName: state.combatant.name,
-                abilityName: abilityName
-            )
-        } else if outcome.healthLost > 0 {
-            retaliationEvents.append(context.nextEvent(
-                kind: .effect,
-                effectKind: .thornsTriggered,
-                actorName: state.combatant.name,
-                abilityName: abilityName,
-                target: attacker.combatant,
-                amount: outcome.healthLost,
-                keyword: keyword
-            ))
-        }
-        state.damageEvents.append(contentsOf: retaliationEvents)
     }
 }

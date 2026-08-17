@@ -12,7 +12,8 @@ struct CompanionTraitReworkTests {
         let pixieBuild = CombatBuildResolver.build(
             combatant: pixie,
             equipmentLoadout: EquipmentLoadout(),
-            inventory: []
+            inventory: [],
+            unlockedTalents: ["pixie_cleanse_t1_1"]
         )
         var context = HeroCompanionTraitTestSupport.makeContext(
             hero: hero,
@@ -20,6 +21,7 @@ struct CompanionTraitReworkTests {
             enemy: enemy,
             companionModifiers: pixieBuild.modifiers
         )
+        context.roster.mutateRuntime(for: pixieBuild.combatant) { $0.currentHealth = 10 }
         context.roster.mutateRuntime(for: hero) { $0.currentHealth = 10 }
         context.roster.setActiveEffects(
             [ActiveEffect(id: 1, effect: .poison(2), remainingTurns: 6, sourceActorID: enemy.id)],
@@ -34,7 +36,8 @@ struct CompanionTraitReworkTests {
             in: &context
         )
 
-        try #expect(context.roster.health(for: hero) == 11)
+        try #expect(context.roster.health(for: pixieBuild.combatant) == 12)
+        try #expect(context.roster.health(for: hero) == 10)
         try #expect(HeroCompanionTraitTestSupport.poisonPotency(on: hero, in: context) == 0)
     }
 
@@ -45,7 +48,8 @@ struct CompanionTraitReworkTests {
         let owlBuild = CombatBuildResolver.build(
             combatant: owl,
             equipmentLoadout: EquipmentLoadout(),
-            inventory: []
+            inventory: [],
+            unlockedTalents: ["library_owl_cleanse_t1_1"]
         )
         var context = HeroCompanionTraitTestSupport.makeContext(
             hero: hero,
@@ -86,7 +90,11 @@ struct CompanionTraitReworkTests {
             companion: companion,
             enemy: enemy,
             companionModifiers: CombatModifierProfile(
-                triggers: CombatTraitTriggers(passiveMitigationFlat: 1)
+                triggers: CombatTraitTriggers(
+                    mitigation: MitigationTriggers(
+                        passiveMitigationFlat: 1
+                    )
+                )
             )
         )
         context.roster.mutateRuntime(for: companion) { $0.currentHealth = 15 }
@@ -110,7 +118,8 @@ struct CompanionTraitReworkTests {
         let build = CombatBuildResolver.build(
             combatant: lizard,
             equipmentLoadout: EquipmentLoadout(),
-            inventory: []
+            inventory: [],
+            unlockedTalents: ["lizard_scout_poison_t1_1"]
         )
         var context = HeroCompanionTraitTestSupport.makeContext(
             hero: hero,
@@ -119,7 +128,7 @@ struct CompanionTraitReworkTests {
             companionModifiers: build.modifiers
         )
 
-        _ = CombatTriggerEngine.afterDodge(by: build.combatant, in: &context)
+        _ = CombatTriggerEngine.afterDodge(by: build.combatant, attackerID: enemy.id, in: &context)
 
         try #expect(HeroCompanionTraitTestSupport.poisonPotency(on: enemy, in: context) == 2)
     }
@@ -131,7 +140,8 @@ struct CompanionTraitReworkTests {
         let build = CombatBuildResolver.build(
             combatant: phoenix,
             equipmentLoadout: EquipmentLoadout(),
-            inventory: []
+            inventory: [],
+            unlockedTalents: ["phoenix_deathsdoor_t1_1"]
         )
         var context = HeroCompanionTraitTestSupport.makeContext(
             hero: hero,
@@ -175,7 +185,8 @@ struct CompanionTraitReworkTests {
         let build = CombatBuildResolver.build(
             combatant: skeleton,
             equipmentLoadout: EquipmentLoadout(),
-            inventory: []
+            inventory: [],
+            unlockedTalents: ["risen_skeleton_deathsdoor_t1_1"]
         )
         var context = HeroCompanionTraitTestSupport.makeContext(
             hero: hero,
@@ -221,7 +232,8 @@ struct CompanionTraitReworkTests {
         let build = CombatBuildResolver.build(
             combatant: moth,
             equipmentLoadout: EquipmentLoadout(),
-            inventory: []
+            inventory: [],
+            unlockedTalents: ["mana_moth_mana_t1_1"]
         )
         var context = HeroCompanionTraitTestSupport.makeContext(
             hero: hero,
@@ -230,9 +242,9 @@ struct CompanionTraitReworkTests {
             companionModifiers: build.modifiers
         )
 
-        _ = CombatTriggerEngine.afterSpendMana(by: build.combatant, in: &context)
+        _ = CombatTriggerEngine.afterSpendMana(by: build.combatant, amountSpent: 3, in: &context)
 
-        try #expect(HeroCompanionTraitTestSupport.shieldPoints(for: build.combatant, in: context) == 1)
+        try #expect(HeroCompanionTraitTestSupport.shieldPoints(for: build.combatant, in: context) == 2)
     }
 
     @Test func carapaceGrantsBlockEachTurn() throws {
@@ -242,7 +254,8 @@ struct CompanionTraitReworkTests {
         let build = CombatBuildResolver.build(
             combatant: scarab,
             equipmentLoadout: EquipmentLoadout(),
-            inventory: []
+            inventory: [],
+            unlockedTalents: ["shield_scarab_block_t1_1"]
         )
         var context = HeroCompanionTraitTestSupport.makeContext(
             hero: hero,
@@ -252,6 +265,6 @@ struct CompanionTraitReworkTests {
         )
         _ = EffectTurnEngine.advanceAll(context: &context)
 
-        try #expect(HeroCompanionTraitTestSupport.shieldPoints(for: build.combatant, in: context) == 1)
+        try #expect(HeroCompanionTraitTestSupport.shieldPoints(for: build.combatant, in: context) == 2)
     }
 }

@@ -21,6 +21,7 @@ package struct DamageResolutionState {
     public let applyControlMeter: Bool
     public let qualifiesForAmbush: Bool
     public let isAttackHit: Bool
+    public let isBasicAttackHit: Bool
     public let abilityHasLeech: Bool
     /// Fixed ability health cost — pipeline runs TakeDamage + DeathsDoor only.
     public let isHealthCost: Bool
@@ -51,6 +52,9 @@ package struct DamageResolutionState {
     /// Accumulated events emitted by the dodge, shield, and control-meter steps.
     public var damageEvents: [ActionEvent] = []
 
+    /// Block absorbed by shields during this hit (Vampiric Touch leech base).
+    public var blockedAmount: Int = 0
+
     /// Set to `true` by the dodge gate when the incoming attack is dodged;
     /// the orchestrator then short-circuits and returns `(0, damageEvents)`.
     public var isDodged: Bool = false
@@ -76,6 +80,7 @@ package struct DamageResolutionState {
         applyControlMeter: Bool = false,
         qualifiesForAmbush: Bool = false,
         isAttackHit: Bool = false,
+        isBasicAttackHit: Bool = false,
         abilityHasLeech: Bool = false,
         isHealthCost: Bool = false
     ) {
@@ -93,6 +98,7 @@ package struct DamageResolutionState {
         self.applyControlMeter = applyControlMeter
         self.qualifiesForAmbush = qualifiesForAmbush
         self.isAttackHit = isAttackHit
+        self.isBasicAttackHit = isBasicAttackHit
         self.abilityHasLeech = abilityHasLeech
         self.isHealthCost = isHealthCost
     }

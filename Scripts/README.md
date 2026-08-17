@@ -58,6 +58,7 @@ Read these focused guides:
 | `./Scripts/ci-diagnostics.sh [RESULTS_DIR]` | Aggregate current structured diagnostics |
 | `./Scripts/change-budget.sh --paths …` | Advisory authored-surface report against HEAD |
 | `./Scripts/ensure-ci-tools.sh` | Install pinned XcodeGen, SwiftFormat, SwiftLint, ripgrep, and xcbeautify |
+| `./Scripts/update-tools.sh [--apply]` | Report newer SwiftFormat/SwiftLint releases; with `--apply`, bump the pins in `tool-versions.env` (checksummed) and re-install |
 | `./Scripts/run-simulator.sh` | Build and launch on a managed simulator |
 | `./Scripts/prune-derived-data-cache.sh` | Prune safe, old local build artifacts |
 | `./Scripts/balance-sweep.sh` | Run the headless battle balance sweep |

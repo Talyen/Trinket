@@ -26,8 +26,19 @@ public enum EffectTurnEngine {
             context.roster.setActiveEffects(result.updated, for: combatant)
             events.append(contentsOf: result.events)
             events.append(contentsOf: EnemyTraitEngine.turnRegeneration(for: combatant, context: &context))
-            events.append(contentsOf: EnemyTraitEngine.turnBlock(for: combatant, context: &context))
+            events.append(contentsOf: CombatTriggerEngine.turnBlock(for: combatant, in: &context))
             events.append(contentsOf: EnemyTraitEngine.turnFreeze(for: combatant, context: &context))
+            // Purifying Aura: party debuffs expire twice as fast (extra duration or DoT decay, not a second tick).
+            if participant != .enemy,
+               context.roster[participant].isAlive,
+               CombatTriggerEngine.partyDebuffsExpireFaster(in: context) {
+                context.roster.setActiveEffects(
+                    accelerateDebuffExpiration(context.roster.activeEffects(for: combatant)),
+                    for: combatant
+                )
+            }
+            // Talent Freeze-buildup decay (suppressed by Persistent Frost / Glacial Grip).
+            ControlMeterEngine.decayFreezeBuildup(on: combatant, in: &context)
         }
 
         return events
@@ -81,5 +92,29 @@ public enum EffectTurnEngine {
         }
 
         return (events, merged)
+    }
+
+    /// Extra duration/potency decay for Purifying Aura. Does not deal a second tick.
+    private static func accelerateDebuffExpiration(_ effects: [ActiveEffect]) -> [ActiveEffect] {
+        effects.compactMap { active in
+            guard active.effect.isRemovableDebuff else { return active }
+            var updated = active
+            if updated.effect.isDecayingDoT {
+                let nextPotency = updated.effect.potencyAfterTurn()
+                guard nextPotency > 0 else { return nil }
+                switch updated.effect.keyword {
+                case .burn:
+                    updated.effect = .burn(nextPotency)
+                case .poison:
+                    updated.effect = .poison(nextPotency)
+                default:
+                    break
+                }
+                return updated
+            }
+            guard updated.remainingTurns > 0 else { return updated }
+            updated.remainingTurns -= 1
+            return updated.remainingTurns > 0 ? updated : nil
+        }
     }
 }

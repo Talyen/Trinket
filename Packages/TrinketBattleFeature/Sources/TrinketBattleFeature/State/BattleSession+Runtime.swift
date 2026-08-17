@@ -307,6 +307,7 @@ extension BattleSession {
             heroModifiers: configuration.hero.modifiers,
             companionModifiers: configuration.companion.modifiers,
             enemyModifiers: configuration.enemyModifiers,
+            enemyFaction: configuration.enemyFaction,
             rngSeed: configuration.rngSeed,
             tracksLog: false,
             dealOpeningHand: false

@@ -1,16 +1,16 @@
-id	name	max_health	is_boss	growth_archetype	abilities	strength	agility	toughness	intellect	wisdom	trait_id
-living_armor	Living Armor	15	false	tank	slash,sunder,thornMail	11	8	13	7	11	living_armor_trait
-mimic	Mimic	14	false	assassin	fangs,acidPotion,hemorrhage	10	12	9	8	11	mimic_trait
-mud_elemental	Mud Elemental	15	false	tank	bash,sunder,thornMail	9	8	14	8	11	mud_elemental_trait
-necromancer	Necromancer	14	false	mage	rendingSlash,bloodOffering,hemorrhage	7	9	8	14	12	necromancer_trait
-plague_doctor	Plague Doctor	13	false	support	causticJab,poisonDagger,bloodthorn	8	10	9	9	14	plague_doctor_trait
-skeleton	Skeleton	14	false	bruiser	slash,sunder,hemorrhage	12	10	11	8	9	skeleton_trait
-the_blight_treant	The Blight Treant	15	true	tank	causticJab,briarShield,bloodthorn	9	7	14	8	12	the_blight_treant_trait
-the_forge_golem	The Forge Golem	15	true	tank	bash,sunder,moltenBulwark	13	7	14	9	7	the_forge_golem_trait
-the_frostwarden	The Frostwarden	14	true	mage	rayOfFrost,glacialWard,blizzard	7	7	13	15	8	the_frostwarden_trait
-the_iron_bear	The Iron Bear	15	true	bruiser	bash,sunder,thornMail	14	8	13	7	8	the_iron_bear_trait
-goblin	Goblin	13	false	assassin	stab,serratedEdge,astralArrow	9	13	9	8	11	goblin_trait
-fire_elemental	Fire Elemental	13	false	mage	kindling,fireball,combustion	7	10	9	14	10	fire_elemental_trait
-frost_elemental	Frost Elemental	14	false	mage	rayOfFrost,glacialWard,blizzard	8	9	11	13	9	frost_elemental_trait
-slime	Slime	15	false	tank	causticJab,acidPotion,panaceaPotion	9	8	15	7	11	slime_trait
-will_o_wisp	Will-o-Wisp	13	false	mage	iceShot,frostbolt,blizzard	7	12	9	13	9	will_o_wisp_trait
+id	name	max_health	is_boss	growth_archetype	abilities	strength	agility	toughness	intellect	wisdom	trait_id	faction
+living_armor	Living Armor	15	false	tank	slash,sunder,thornMail	11	8	13	7	11	living_armor_trait	construct
+mimic	Mimic	14	false	assassin	fangs,acidPotion,hemorrhage	10	12	9	8	11	mimic_trait	beast
+mud_elemental	Mud Elemental	15	false	tank	bash,sunder,thornMail	9	8	14	8	11	mud_elemental_trait	elemental
+necromancer	Necromancer	14	false	mage	rendingSlash,bloodOffering,hemorrhage	7	9	8	14	12	necromancer_trait	undead
+plague_doctor	Plague Doctor	13	false	support	causticJab,poisonDagger,bloodthorn	8	10	9	9	14	plague_doctor_trait	mortal
+skeleton	Skeleton	14	false	bruiser	slash,sunder,hemorrhage	12	10	11	8	9	skeleton_trait	undead
+the_blight_treant	The Blight Treant	15	true	tank	causticJab,briarShield,bloodthorn	9	7	14	8	12	the_blight_treant_trait	corrupted
+the_forge_golem	The Forge Golem	15	true	tank	bash,sunder,moltenBulwark	13	7	14	9	7	the_forge_golem_trait	construct
+the_frostwarden	The Frostwarden	14	true	mage	rayOfFrost,glacialWard,blizzard	7	7	13	15	8	the_frostwarden_trait	elemental
+the_iron_bear	The Iron Bear	15	true	bruiser	bash,sunder,thornMail	14	8	13	7	8	the_iron_bear_trait	beast
+goblin	Goblin	13	false	assassin	stab,serratedEdge,astralArrow	9	13	9	8	11	goblin_trait	mortal
+fire_elemental	Fire Elemental	13	false	mage	kindling,fireball,combustion	7	10	9	14	10	fire_elemental_trait	elemental
+frost_elemental	Frost Elemental	14	false	mage	rayOfFrost,glacialWard,blizzard	8	9	11	13	9	frost_elemental_trait	elemental
+slime	Slime	15	false	tank	causticJab,acidPotion,panaceaPotion	9	8	15	7	11	slime_trait	beast
+will_o_wisp	Will-o-Wisp	13	false	mage	iceShot,frostbolt,blizzard	7	12	9	13	9	will_o_wisp_trait	elemental

@@ -5,146 +5,20 @@ import TrinketCore
 enum GameContentTraitsGenerated {
     static let definitions: [CombatantTraitDefinition] = {
         var list = [CombatantTraitDefinition]()
-        list.reserveCapacity(33)
-        list.append(CombatantTraitDefinition(
-            id: "oathbound",
-            name: "Oathbound",
-            description: "Gain 1 Block when you deal Stun or Holy damage.",
-            modifiers: [],
-            triggers: CombatTraitTriggers(holyDamageBlockFlat: 1, stunDamageBlockFlat: 1)
-        ))
-        list.append(CombatantTraitDefinition(
-            id: "cutpurse",
-            name: "Cutpurse",
-            description: "Gain 1 Gold when you Critically Hit.",
-            modifiers: [],
-            triggers: CombatTraitTriggers(criticalGoldFlat: 1)
-        ))
-        list.append(CombatantTraitDefinition(
-            id: "arcane_focus",
-            name: "Arcane Focus",
-            description: "Deal 1 Burn or Freeze when you use Mana.",
-            modifiers: [],
-            triggers: CombatTraitTriggers(spendManaRandomDoTFlat: 1)
-        ))
-        list.append(CombatantTraitDefinition(
-            id: "pack_leader",
-            name: "Pack Leader",
-            description: "Increase Companion damage dealt by 1.",
-            modifiers: [.companionDamageDealt(1)],
-            triggers: CombatTraitTriggers()
-        ))
-        list.append(CombatantTraitDefinition(
-            id: "soul_siphon",
-            name: "Bloodfire",
-            description: "When you deal Burn damage, restore 1 Health.",
-            modifiers: [],
-            triggers: CombatTraitTriggers(burnDamageHealFlat: 1)
-        ))
-        list.append(CombatantTraitDefinition(
-            id: "thick_hide",
-            name: "Thick Hide",
-            description: "Reduces damage taken by 1.",
-            modifiers: [],
-            triggers: CombatTraitTriggers(passiveMitigationFlat: 1)
-        ))
-        list.append(CombatantTraitDefinition(
-            id: "permafrost",
-            name: "Permafrost",
-            description: "Increase Freeze damage dealt by 1.",
-            modifiers: [.damageDealt(.freeze, 1)],
-            triggers: CombatTraitTriggers()
-        ))
-        list.append(CombatantTraitDefinition(
-            id: "cold_blood",
-            name: "Cold Blood",
-            description: "Deal 2 Poison when you Dodge.",
-            modifiers: [],
-            triggers: CombatTraitTriggers(dodgeApplyPoison: 2)
-        ))
-        list.append(CombatantTraitDefinition(
-            id: "razor_claws",
-            name: "Razor Claws",
-            description: "Increase Bleed damage dealt by 1.",
-            modifiers: [.damageDealt(.bleed, 1)],
-            triggers: CombatTraitTriggers()
-        ))
-        list.append(CombatantTraitDefinition(
-            id: "immortal_ember",
-            name: "Rebirth",
-            description: "Revives and restores 10 Health the first time it dies each battle.",
-            modifiers: [],
-            triggers: CombatTraitTriggers(onceDeathReviveHealth: 10)
-        ))
-        list.append(CombatantTraitDefinition(
-            id: "pack_ferocity",
-            name: "Pack Ferocity",
-            description: "Increase Bleed duration by 1.",
-            modifiers: [.bleedDuration(1)],
-            triggers: CombatTraitTriggers()
-        ))
-        list.append(CombatantTraitDefinition(
-            id: "gold_retriever",
-            name: "Bounty",
-            description: "Gain 3 Gold when you defeat an enemy.",
-            modifiers: [],
-            triggers: CombatTraitTriggers(defeatEnemyGoldFlat: 3)
-        ))
-        list.append(CombatantTraitDefinition(
-            id: "sly_trickery",
-            name: "Sly Trickery",
-            description: "Gain 1 Gold when you Dodge.",
-            modifiers: [],
-            triggers: CombatTraitTriggers(dodgeGoldFlat: 1)
-        ))
-        list.append(CombatantTraitDefinition(
-            id: "purifying_wisdom",
-            name: "Purifying Wisdom",
-            description: "Draw a Card when you Cleanse.",
-            modifiers: [],
-            triggers: CombatTraitTriggers(cleanseBonusDraw: 1)
-        ))
-        list.append(CombatantTraitDefinition(
-            id: "unliving_frame",
-            name: "Deathrattle",
-            description: "Revives and restores 10 Block the first time it dies each battle.",
-            modifiers: [],
-            triggers: CombatTraitTriggers(onceDeathReviveHealth: 1, onceDeathReviveBlock: 10)
-        ))
-        list.append(CombatantTraitDefinition(
-            id: "arcane_reservoir",
-            name: "Arcane Reservoir",
-            description: "Gain 1 Block when you spend Mana.",
-            modifiers: [],
-            triggers: CombatTraitTriggers(spendManaBlockFlat: 1)
-        ))
-        list.append(CombatantTraitDefinition(
-            id: "fae_fortune",
-            name: "Fae Fortune",
-            description: "Restore 1 Health when you Cleanse.",
-            modifiers: [],
-            triggers: CombatTraitTriggers(cleanseBonusHeal: 1)
-        ))
-        list.append(CombatantTraitDefinition(
-            id: "iron_carapace",
-            name: "Carapace",
-            description: "Gain 1 Block each turn.",
-            modifiers: [],
-            triggers: CombatTraitTriggers(blockPerTurn: 1)
-        ))
+        list.reserveCapacity(15)
         list.append(CombatantTraitDefinition(
             id: "living_armor_trait",
             name: "Living Armor",
             description: "Gains 1 Block each turn. Reduce Bleed damage taken by 30%.",
             modifiers: [.damageTakenPercent(.bleed, 0.30)],
-            triggers: CombatTraitTriggers(blockPerTurn: 1)
+            triggers: CombatTraitTriggers(block: BlockTriggers(blockPerTurn: 1))
         ))
         list.append(CombatantTraitDefinition(
             id: "mimic_trait",
             name: "Mimic",
             description: "Deals double damage on the first attack.",
             modifiers: [],
-            triggers: CombatTraitTriggers(firstHitDoubleDamage: true)
+            triggers: CombatTraitTriggers(damage: DamageTriggers(firstHitDoubleDamage: true))
         ))
         list.append(CombatantTraitDefinition(
             id: "mud_elemental_trait",
@@ -158,7 +32,7 @@ enum GameContentTraitsGenerated {
             name: "Necromancer",
             description: "20% chance to Leech. Holy damage taken increased by 30%.",
             modifiers: [.damageTakenVulnerability(.holy, 0.30)],
-            triggers: CombatTraitTriggers(leechChancePercent: 0.20)
+            triggers: CombatTraitTriggers(healing: HealingTriggers(leechChancePercent: 0.20))
         ))
         list.append(CombatantTraitDefinition(
             id: "plague_doctor_trait",
@@ -179,28 +53,28 @@ enum GameContentTraitsGenerated {
             name: "The Blight Treant",
             description: "Poison and Bleed damage taken reduced by 20%. Holy damage taken increased by 30%. Damage increases by 1 every other turn.",
             modifiers: [.damageTakenPercent(.poison, 0.20), .damageTakenPercent(.bleed, 0.20), .damageTakenVulnerability(.holy, 0.30)],
-            triggers: CombatTraitTriggers(damageIncreasesEveryOtherTurn: true)
+            triggers: CombatTraitTriggers(damage: DamageTriggers(damageIncreasesEveryOtherTurn: true))
         ))
         list.append(CombatantTraitDefinition(
             id: "the_forge_golem_trait",
             name: "The Forge Golem",
             description: "Damage increases by 1 every other turn.",
             modifiers: [],
-            triggers: CombatTraitTriggers(damageIncreasesEveryOtherTurn: true)
+            triggers: CombatTraitTriggers(damage: DamageTriggers(damageIncreasesEveryOtherTurn: true))
         ))
         list.append(CombatantTraitDefinition(
             id: "the_frostwarden_trait",
             name: "The Frostwarden",
             description: "Deals 1 Freeze damage per turn to all enemies. Burn damage taken is increased by 20%. Damage increases by 1 every other turn.",
             modifiers: [.damageTakenVulnerability(.burn, 0.20)],
-            triggers: CombatTraitTriggers(turnFreezeDamageAllEnemies: 1, damageIncreasesEveryOtherTurn: true)
+            triggers: CombatTraitTriggers(damage: DamageTriggers(damageIncreasesEveryOtherTurn: true), control: ControlTriggers(turnFreezeDamageAllEnemies: 1))
         ))
         list.append(CombatantTraitDefinition(
             id: "the_iron_bear_trait",
             name: "The Iron Bear",
             description: "Physical damage taken reduced by 25%. Damage increases by 1 every other turn.",
             modifiers: [.damageTakenPercent(.physical, 0.25)],
-            triggers: CombatTraitTriggers(damageIncreasesEveryOtherTurn: true)
+            triggers: CombatTraitTriggers(damage: DamageTriggers(damageIncreasesEveryOtherTurn: true))
         ))
         list.append(CombatantTraitDefinition(
             id: "goblin_trait",
@@ -214,7 +88,7 @@ enum GameContentTraitsGenerated {
             name: "Fire Elemental",
             description: "Burns attackers for 1 damage when hit. Freeze damage taken increased by 30%.",
             modifiers: [.damageTakenVulnerability(.freeze, 0.30)],
-            triggers: CombatTraitTriggers(onHitAttackerBurn: 1)
+            triggers: CombatTraitTriggers(onHit: OnHitTriggers(onHitAttackerBurn: 1))
         ))
         list.append(CombatantTraitDefinition(
             id: "frost_elemental_trait",

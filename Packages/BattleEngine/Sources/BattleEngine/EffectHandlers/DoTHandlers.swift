@@ -18,24 +18,123 @@ struct DecayingDoTHandler: BattleEffectHandler {
         }
     }
 
+    // swiftlint:disable:next function_body_length cyclomatic_complexity
     func advanceTurn(_ active: ActiveEffect, on target: Combatant, in context: inout BattleState) -> EffectTurnOutcome {
         guard matches(active.effect) else { return EffectTurnOutcome() }
+        let sourceTriggers = active.sourceActorID.map { context.modifiers(for: $0).triggers }
         let slowPercent = context.modifiers(for: target.id).triggers.burnDecaySlowPercent
-        let nextPotency: Int = if keyword == .burn {
-            active.effect.potencyAfterTurn(burnDecaySlowPercent: slowPercent)
+        let nextPotency: Int
+        if keyword == .burn {
+            let decayed = active.effect.potencyAfterTurn(burnDecaySlowPercent: slowPercent)
+            // Ignition Spark: Burn has a chance to increase instead of decrease.
+            if let sourceTriggers, sourceTriggers.burnIncreaseChancePercent > 0,
+               BattleChance.succeeds(probability: sourceTriggers.burnIncreaseChancePercent, using: &context.rng),
+               let potency = active.effect.potency {
+                nextPotency = potency + 1
+            } else {
+                nextPotency = decayed
+            }
         } else if keyword == .poison {
-            poisonPotencyAfterTurn(active, in: &context)
+            nextPotency = poisonPotencyAfterTurn(active, sourceTriggers: sourceTriggers, in: &context)
         } else {
-            active.effect.potencyAfterTurn()
+            nextPotency = active.effect.potencyAfterTurn()
         }
         if nextPotency > 0 {
-            let events = DoTDamage.resolveTurnDamage(
-                basePotency: nextPotency,
-                keyword: keyword,
-                target: target,
-                sourceActorID: active.sourceActorID,
-                in: &context
-            ).events
+            var tickPotency = nextPotency
+            if keyword == .burn, sourceTriggers?.burnDamageDoubleChancePercent ?? 0 > 0,
+               BattleChance.succeeds(probability: sourceTriggers?.burnDamageDoubleChancePercent ?? 0, using: &context.rng) {
+                tickPotency *= 2
+            }
+            let tickCount = (keyword == .burn && sourceTriggers?.burnTicksTwicePerTurn == true) ? 2 : 1
+            var events: [ActionEvent] = []
+            for _ in 0 ..< tickCount {
+                let outcome = DoTDamage.resolveTurnDamage(
+                    basePotency: tickPotency,
+                    keyword: keyword,
+                    target: target,
+                    sourceActorID: active.sourceActorID,
+                    in: &context
+                )
+                events.append(contentsOf: outcome.events)
+                if keyword == .burn, let sourceActorID = active.sourceActorID, let sourceTriggers {
+                    if sourceTriggers.onBurnTickHolyDamage > 0 {
+                        events.append(contentsOf: context.resolveDamage(
+                            DamageRequest(
+                                amount: sourceTriggers.onBurnTickHolyDamage,
+                                target: target,
+                                keyword: .holy,
+                                sourceActorID: sourceActorID,
+                                options: DamageOptions(
+                                    applyStatBonus: false,
+                                    applyItemBonus: false,
+                                    applyDodge: false,
+                                    isRetaliation: true
+                                )
+                            )
+                        ).events)
+                    }
+                    if sourceTriggers.onBurnDamageDetonateBleed, outcome.healthLost > 0 {
+                        events.append(contentsOf: CombatTriggerEngine.detonateBleed(
+                            on: target,
+                            sourceActorID: sourceActorID,
+                            in: &context
+                        ))
+                    }
+                    if sourceTriggers.onBurnDamageRestoreManaFlat > 0,
+                       outcome.healthLost >= sourceTriggers.burnDamageManaRestoreThreshold {
+                        let already = context.burnManaRestoredThisTurn[sourceActorID, default: 0]
+                        let cap = sourceTriggers.onBurnDamageRestoreManaPerTurnCap
+                        if cap <= 0 || already < cap,
+                           let caster = context.roster.combatant(for: sourceActorID) {
+                            let toRestore = min(
+                                sourceTriggers.onBurnDamageRestoreManaFlat,
+                                cap > 0 ? cap - already : sourceTriggers.onBurnDamageRestoreManaFlat
+                            )
+                            let restored = context.restoreMana(toRestore, to: caster.combatant)
+                            if restored > 0 {
+                                context.burnManaRestoredThisTurn[sourceActorID, default: 0] += restored
+                                events.append(context.nextEvent(
+                                    kind: .effect,
+                                    effectKind: .resourceGain,
+                                    actorName: caster.name,
+                                    abilityName: "Pyromancer's Spark",
+                                    target: caster.combatant,
+                                    amount: restored,
+                                    keyword: .mana
+                                ))
+                                events.append(contentsOf: CombatTriggerEngine.afterGainMana(by: caster.combatant, in: &context))
+                            }
+                        }
+                    }
+                }
+                if keyword == .poison, let sourceActorID = active.sourceActorID,
+                   let sourceTriggers, sourceTriggers.poisonDamageLeechPercent > 0,
+                   outcome.healthLost > 0,
+                   let caster = context.roster.combatant(for: sourceActorID) {
+                    let leech = CombatRounding.scaled(outcome.healthLost, multiplier: sourceTriggers.poisonDamageLeechPercent)
+                    if leech > 0 {
+                        events.append(contentsOf: HealingEngine.resolveHeal(
+                            HealRequest(amount: leech, target: caster.combatant, sourceActorID: sourceActorID),
+                            in: &context
+                        ).events)
+                    }
+                }
+            }
+            // Paralysis: enemies with enough Poison become Stunned.
+            if keyword == .poison,
+               let sourceTriggers, sourceTriggers.poisonThresholdStunAmount > 0,
+               nextPotency >= sourceTriggers.poisonThresholdStunAmount,
+               target.role == .enemy,
+               context.roster.health(for: target) > 0 {
+                events.append(contentsOf: ControlMeterEngine.applyMeterCharge(
+                    ControlMeterEngine.threshold(for: target, in: context),
+                    keyword: .stun,
+                    to: target,
+                    sourceActorID: active.sourceActorID,
+                    applyFightPacing: false,
+                    in: &context
+                ))
+            }
             var updated = active
             updated.effect = effectCase(potency: nextPotency)
             return EffectTurnOutcome(events: events, updatedStack: updated)
@@ -93,6 +192,7 @@ struct DecayingDoTHandler: BattleEffectHandler {
 
     private func poisonPotencyAfterTurn(
         _ active: ActiveEffect,
+        sourceTriggers: CombatTraitTriggers?,
         in context: inout BattleState
     ) -> Int {
         guard case let .poison(potency) = active.effect else {
@@ -106,6 +206,13 @@ struct DecayingDoTHandler: BattleEffectHandler {
         if BattleChance.succeeds(probability: chance, using: &context.rng) {
             return potency + 1
         }
+        // Lingering Toxin: Poison lasts longer by slowing its decay.
+        let slowPercent = sourceTriggers?.poisonDecaySlowPercent ?? 0
+        if slowPercent > 0 {
+            let decrease = max(1, potency * 25 / 100)
+            let adjustedDecrease = CombatRounding.scaled(decrease, multiplier: 1 - min(1, slowPercent))
+            return max(0, potency - adjustedDecrease)
+        }
         return active.effect.potencyAfterTurn()
     }
 }
@@ -113,17 +220,85 @@ struct DecayingDoTHandler: BattleEffectHandler {
 struct BleedHandler: BattleEffectHandler {
     let kind: EffectKind = .bleed
 
+    // swiftlint:disable:next function_body_length
     func advanceTurn(_ active: ActiveEffect, on target: Combatant, in context: inout BattleState) -> EffectTurnOutcome {
         guard case let .bleed(potency) = active.effect, active.remainingTurns > 0 else {
             return EffectTurnOutcome()
         }
-        let events = DoTDamage.resolveTurnDamage(
-            basePotency: potency,
+        let sourceTriggers = active.sourceActorID.map { context.modifiers(for: $0).triggers }
+        var tickPotency = potency
+        if let sourceTriggers, sourceTriggers.bleedTickCritChancePercent > 0,
+           BattleChance.succeeds(probability: sourceTriggers.bleedTickCritChancePercent, using: &context.rng) {
+            tickPotency *= 2
+        }
+        var events = DoTDamage.resolveTurnDamage(
+            basePotency: tickPotency,
             keyword: .bleed,
             target: target,
             sourceActorID: active.sourceActorID,
             in: &context
         ).events
+
+        // Taste for Blood: dealing Bleed damage arms the owner's next basic attack as a guaranteed critical.
+        if let sourceTriggers, sourceTriggers.onBleedDamageNextBasicGuaranteedCrit,
+           let attackerID = active.sourceActorID,
+           let caster = context.roster.combatant(for: attackerID) {
+            context.roster.mutateRuntime(for: caster.combatant) { $0.pendingBasicGuaranteedCrit = true }
+        }
+
+        if let sourceTriggers, let attackerID = active.sourceActorID {
+            // Armor Shred: Bleed strips Block from the target each turn.
+            if sourceTriggers.bleedStripsBlockPerTurn > 0 {
+                var effects = context.roster.activeEffects(for: target)
+                if let shieldIndex = effects.firstIndex(where: {
+                    if case .shield = $0.effect {
+                        return true
+                    }
+                    return false
+                }),
+                    case let .shield(shieldKeyword, buffer) = effects[shieldIndex].effect {
+                    let stripped = min(buffer, sourceTriggers.bleedStripsBlockPerTurn)
+                    if buffer - stripped <= 0 {
+                        effects.remove(at: shieldIndex)
+                    } else {
+                        effects[shieldIndex] = ActiveEffect(
+                            id: effects[shieldIndex].id,
+                            effect: .shield(shieldKeyword, buffer - stripped),
+                            remainingTurns: 0,
+                            sourceActorID: effects[shieldIndex].sourceActorID
+                        )
+                    }
+                    context.roster.setActiveEffects(effects, for: target)
+                }
+            }
+            // Carnivore: heal the source when Bleed deals damage.
+            if sourceTriggers.onBleedDamageHealSelf > 0,
+               let caster = context.roster.combatant(for: attackerID) {
+                events.append(contentsOf: HealingEngine.resolveHeal(
+                    HealRequest(amount: sourceTriggers.onBleedDamageHealSelf, target: caster.combatant, sourceActorID: attackerID),
+                    in: &context
+                ).events)
+            }
+            // Noxious Reaction: Bleed damage triggers an immediate Poison tick using the target's active Poison potency.
+            if sourceTriggers.onBleedDamagePoisonTick > 0 {
+                let poisonPotency = context.roster.activeEffects(for: target).reduce(0) { sum, active in
+                    if case let .poison(potency) = active.effect, active.remainingTurns > 0 {
+                        return sum + potency
+                    }
+                    return sum
+                }
+                if poisonPotency > 0 {
+                    events.append(contentsOf: DoTDamage.resolveTurnDamage(
+                        basePotency: poisonPotency,
+                        keyword: .poison,
+                        target: target,
+                        sourceActorID: attackerID,
+                        in: &context
+                    ).events)
+                }
+            }
+        }
+
         var updated = active
         updated.remainingTurns -= 1
         return EffectTurnOutcome(

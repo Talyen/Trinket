@@ -20,6 +20,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
     public var damageTakenFlat: [Keyword: Int]
     public var damageTakenVulnerability: [Keyword: Double]
     public var companionDamageDealtBonus: Int
+    public var companionBleedDamageDealtBonus: Int
     /// Trait/affix trigger knobs authored as `CombatTraitTriggers` — single schema, not duplicated fields.
     public var triggers: CombatTraitTriggers
     public var traitDisplayName: String?
@@ -44,7 +45,9 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         damageTakenFlat: [Keyword: Int] = [:],
         damageTakenVulnerability: [Keyword: Double] = [:],
         companionDamageDealtBonus: Int = 0,
-        triggers: CombatTraitTriggers = CombatTraitTriggers(),
+        companionBleedDamageDealtBonus: Int = 0,
+        triggers: CombatTraitTriggers = CombatTraitTriggers(
+        ),
         traitDisplayName: String? = nil
     ) {
         self.statBonuses = statBonuses
@@ -64,6 +67,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         self.damageTakenFlat = damageTakenFlat
         self.damageTakenVulnerability = damageTakenVulnerability
         self.companionDamageDealtBonus = companionDamageDealtBonus
+        self.companionBleedDamageDealtBonus = companionBleedDamageDealtBonus
         self.triggers = triggers
         self.traitDisplayName = traitDisplayName
     }
@@ -105,6 +109,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
             damageTakenVulnerability[keyword, default: 0] += amount
         }
         companionDamageDealtBonus += other.companionDamageDealtBonus
+        companionBleedDamageDealtBonus += other.companionBleedDamageDealtBonus
         triggers.merge(other.triggers)
         if traitDisplayName == nil {
             traitDisplayName = other.traitDisplayName
@@ -183,5 +188,22 @@ public extension CombatantTraitDefinition {
             profile.merge(modifier)
         }
         triggers.apply(to: &profile)
+    }
+}
+
+public extension CombatantTalentEffect {
+    func apply(to profile: inout CombatModifierProfile) {
+        profile.merge(modifiers)
+        triggers.apply(to: &profile)
+    }
+}
+
+public extension CombatantTalentCatalog {
+    static func profile(for unlockedNodeIDs: Set<String>) -> CombatModifierProfile {
+        var profile = CombatModifierProfile.zero
+        for nodeID in unlockedNodeIDs.sorted() {
+            signatureTalents[nodeID]?.apply(to: &profile)
+        }
+        return profile
     }
 }
