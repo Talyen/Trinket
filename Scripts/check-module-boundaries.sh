@@ -134,9 +134,11 @@ while IFS= read -r file; do
     Trinket/Features/Collection/SalvageDissolvePresentation.swift|\
     Trinket/Features/Options/OptionsView.swift|\
     Trinket/Features/Play/PlayView.swift|\
+    Trinket/Features/Play/PlayBrowsingStack.swift|\
     Trinket/Features/Play/PlayMap/ChapterStageSelectView.swift|\
     Trinket/Features/Play/PlayMap/CurrentStageCard.swift|\
     Trinket/Features/Play/Modes/LabyrinthMapClusterViews.swift|\
+    Trinket/Features/Play/Modes/LabyrinthNodeInspector.swift|\
     Trinket/Features/Play/Modes/SpireClimbView.swift)
       ;;
     *)
