@@ -3,7 +3,7 @@ import Observation
 import TrinketContent
 import TrinketCore
 
-public enum ShopEncounterOpenResult {
+enum ShopEncounterOpenResult {
     case opened(ShopEncounterSession)
     /// Shelf empty — caller should auto-complete the stage/node.
     case autoCompleted

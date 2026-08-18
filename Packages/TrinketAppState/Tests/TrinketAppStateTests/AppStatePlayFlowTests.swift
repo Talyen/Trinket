@@ -68,6 +68,26 @@ struct AppStatePlayFlowTests {
         #expect(state.battlePresentation(for: runKey)?.stageRewardsAlreadyClaimed == true)
     }
 
+    @Test func changingCompanionRePreparesJourneyBattle() throws {
+        let state = try context.makePlaySession()
+        let stage = try #require(GameContent.chapters[0].stages.first)
+        let battle = try #require(context.lastBattle)
+        let otherCompanion = try #require(
+            GameContent.companions.first { $0.id != state.playerSave.roster.activeCompanionID }
+        )
+
+        state.journey.prepareBattle(for: stage)
+        let preparedRevision = battle.preparedBattlePresentationRevision
+
+        var roster = state.playerSave.roster
+        _ = roster.unlock(otherCompanion)
+        roster.setActiveCompanion(otherCompanion)
+        state.playerSave.roster = roster
+        state.journey.prepareBattle(for: stage)
+
+        #expect(battle.preparedBattlePresentationRevision == preparedRevision + 1)
+    }
+
     @Test func freshJourneyBattleActivationSelectsPlayTab() throws {
         let state = try context.makePlaySession()
         let stage = try #require(GameContent.chapters[0].stages.first)
@@ -80,7 +100,7 @@ struct AppStatePlayFlowTests {
     }
 
     @Test(arguments: ["journey", "spire", "labyrinth"] as [String])
-    func battleActivationFailureReturnsRetryableMessage(mode: String) throws {
+    func battleActivationFailureShowsUnavailableMessage(mode: String) throws {
         let runtime = RejectingBattleRuntime()
         let arguments = mode == "labyrinth" ? ["-reset-state"] : []
         let state = try context.makePlaySession(
@@ -105,8 +125,8 @@ struct AppStatePlayFlowTests {
             return
         }
 
-        #expect(message?.title == "Battle Unavailable")
-        #expect(message?.message == "Could not start this battle. Try again.")
+        let shown = try #require(message)
+        #expect(shown.title == PlayBattleLaunch.activationFailureMessage.title)
         #expect(state.battle.activeBattle == nil)
     }
 
@@ -119,7 +139,8 @@ struct AppStatePlayFlowTests {
         state.journey.prepareBattle(for: stage)
         #expect(runtime.prepareCount == 1)
         #expect(state.battlePresentation(for: runKey) != nil)
-        #expect(state.journey.startBattle(for: stage)?.title == "Battle Unavailable")
+        #expect(state.journey.startBattle(for: stage)?.title == PlayBattleLaunch.activationFailureMessage.title)
+        #expect(state.battle.activeBattle == nil)
         #expect(state.battlePresentation(for: runKey) != nil)
 
         runtime.shouldRejectActivation = false
@@ -420,6 +441,12 @@ private class RejectingBattleRuntime: BattleRuntime {
     var isSuspendedForScenePhase = false
 
     func prepareBattleRun(_: BattleRunConfiguration) -> Bool {
+        false
+    }
+
+    func keepPreparedRuns(_: Set<BattleRunKey>) {}
+
+    func hasPreparedRun(_: BattleRunKey) -> Bool {
         false
     }
 

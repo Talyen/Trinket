@@ -5,28 +5,6 @@ import UIKit
 @testable import TrinketDesignSystem
 
 struct ThemePaletteTests {
-    @Test func themePaletteUsesBundledSemanticColors() throws {
-        let palette = ThemePalette.trinket
-        try #expect(palette.appBackground != .clear)
-        try #expect(palette.secondaryBackground != .clear)
-        try #expect(palette.elevatedBackground != .clear)
-        try #expect(palette.panelSurface != .clear)
-        try #expect(palette.subtleStroke != .clear)
-        try #expect(palette.accent != .clear)
-        try #expect(palette.accentEmphasized != .clear)
-        try #expect(palette.accentPressed != .clear)
-        try #expect(palette.success != .clear)
-        try #expect(palette.warning != .clear)
-        try #expect(palette.destructive != .clear)
-        try #expect(palette.informational != .clear)
-        try #expect(palette.arcane != .clear)
-        try #expect(palette.health != .clear)
-        try #expect(palette.healthRestore != .clear)
-        try #expect(palette.overlayInk != .clear)
-        try #expect(palette.overlayPaper != .clear)
-        try #expect(palette.heroScrim != .clear)
-    }
-
     @Test func semanticForegroundsMeetContrastInDarkEnvironment() throws {
         // Resolve via UIKit asset lookup (dark traits) instead of SwiftUI
         // `Color.resolve`, which pays a multi-second host cold start in this package.

@@ -281,7 +281,6 @@ extension ChipChromeRole {
         switch self {
         case .standard: TrinketDesign.Metrics.chipPaddingHorizontal
         case .emphasis: TrinketDesign.Metrics.chipEmphasisPaddingHorizontal
-        case .utility: TrinketDesign.Metrics.chipUtilityPaddingHorizontal
         }
     }
 
@@ -289,7 +288,6 @@ extension ChipChromeRole {
         switch self {
         case .standard: TrinketDesign.Metrics.chipPaddingVertical
         case .emphasis: TrinketDesign.Metrics.chipEmphasisPaddingVertical
-        case .utility: TrinketDesign.Metrics.chipUtilityPaddingVertical
         }
     }
 }

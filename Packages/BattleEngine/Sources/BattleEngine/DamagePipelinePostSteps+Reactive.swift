@@ -18,12 +18,10 @@ package extension DamagePipeline {
 
         applyNimbleFang(to: &state, attacker: attacker, sourceActorID: sourceActorID, in: &context)
 
-        if state.healthLost > 0, let damageKeyword = state.damageKeyword {
+        if state.healthLost > 0 {
             applyEnemyTraitReactions(
                 to: &state,
-                attacker: attacker,
                 sourceActorID: sourceActorID,
-                damageKeyword: damageKeyword,
                 in: &context
             )
             applyOnHitAttackerWards(to: &state, attacker: attacker, in: &context)
@@ -59,25 +57,12 @@ package extension DamagePipeline {
         ))
     }
 
-    /// Enemy-trait reactions on health loss: shield erosion, mitigation shred,
-    /// thorns, and attacker Burn.
+    /// Enemy-trait reactions on health loss: thorns and attacker Burn.
     private static func applyEnemyTraitReactions(
         to state: inout DamageResolutionState,
-        attacker: CombatantRuntime,
         sourceActorID: String,
-        damageKeyword: Keyword,
         in context: inout BattleState
     ) {
-        EnemyTraitEngine.applyShieldErosion(
-            keyword: damageKeyword,
-            to: state.combatant,
-            context: &context
-        )
-        EnemyTraitEngine.applyMitigationShred(
-            keyword: damageKeyword,
-            to: state.combatant,
-            context: &context
-        )
         state.damageEvents.append(contentsOf: EnemyTraitEngine.traitThornsDamage(
             damageTaken: state.healthLost,
             defender: state.combatant,
@@ -89,7 +74,6 @@ package extension DamagePipeline {
             attackerID: sourceActorID,
             in: &context
         ))
-        _ = attacker
     }
 
     /// Combatant Talent on-hit wards: the defender afflicts the attacker.

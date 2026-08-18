@@ -1,0 +1,142 @@
+import SwiftUI
+import TrinketAppState
+import TrinketBattleFeature
+import TrinketContent
+import TrinketDesignSystem
+import TrinketFeatureAdapters
+import TrinketFeatureContracts
+import TrinketFeatureSupport
+import TrinketPersistence
+
+struct LabyrinthNodeInspector: View {
+    @Environment(LabyrinthPlayMode.self) private var labyrinth
+    @Environment(BattleSession.self) private var battle
+    @Environment(PlayerSaveStore.self) private var playerSave
+
+    let node: LabyrinthNode
+    let state: PlayerLabyrinthState
+    let onMessage: (StageMapMessage) -> Void
+
+    private var type: LabyrinthNodeType {
+        LabyrinthMapPresentation.effectiveType(
+            for: node,
+            worldSeed: playerSave.worldSeed,
+            unlockedHeroIDs: playerSave.roster.unlockedHeroIDs,
+            unlockedCompanionIDs: playerSave.roster.unlockedCompanionIDs
+        )
+    }
+
+    private var presentation: StageSelectRowPresentation<LabyrinthNode> {
+        StageSelectRowPresentation.labyrinthRow(
+            for: node,
+            type: type,
+            title: subjectTitle,
+            isArtworkInteractive: enemyDetail != nil
+        )
+    }
+
+    var body: some View {
+        StageSelectActiveCard(
+            presentation: presentation,
+            isPrimaryActionDisabled: battle.lifecyclePhase == .active,
+            onArtworkTap: {
+                if let enemyDetail {
+                    battle.presentCombatantDetail(enemyDetail)
+                }
+            },
+            onPrimaryAction: {
+                if let message = labyrinth.handleNodeAction(nodeID: node.id) {
+                    onMessage(message)
+                }
+            },
+            artwork: {
+                LabyrinthNodeArtwork(
+                    node: node,
+                    type: type,
+                    resolvedMysteryEvent: labyrinth.previewMysteryEvent(for: node),
+                    style: .inspector
+                )
+            },
+            partyPickerSheet: {
+                StageBattlePartyPickerSheet()
+            },
+            artworkAccessory: {
+                modifierArtworkCaption
+            }
+        )
+        .accessibilityIdentifier(AccessibilityID.Play.labyrinthNodeInspector)
+    }
+
+    private var subjectTitle: String {
+        guard type.isCombat,
+              let enemyID = node.enemyID,
+              let enemy = GameContent.enemy(matching: enemyID)
+        else { return type.title }
+        return enemy.combatant.name
+    }
+
+    private var enemyDetail: CombatantCardDetail? {
+        guard let encounter = labyrinth.resolvedEncounter(for: node) else {
+            return nil
+        }
+        return CombatantCardDetail(
+            combatant: encounter.combatant,
+            labyrinthModifiers: LabyrinthCatalog.modifiers(ids: node.modifierIDs)
+        )
+    }
+
+    private var modifiers: [LabyrinthModifierDefinition] {
+        LabyrinthCatalog.modifiers(ids: node.modifierIDs)
+    }
+
+    @ViewBuilder
+    private var modifierArtworkCaption: some View {
+        if !modifiers.isEmpty {
+            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
+                ForEach(modifiers) { modifier in
+                    VStack(alignment: .leading, spacing: TrinketDesign.Metrics.tightSpacing) {
+                        HStack(spacing: TrinketDesign.Metrics.denseSpacing) {
+                            Image(systemName: modifierSymbolName(for: modifier))
+                                .symbolRenderingMode(.hierarchical)
+                            Text(modifier.title.uppercased())
+                        }
+                        .trinketTypography(.eyebrow)
+                        .trinketOnArtText(.title)
+
+                        Text(modifier.effect.description)
+                            .trinketTypography(.footnote)
+                            .trinketOnArtText(.eyebrow)
+                            .lineLimit(2)
+                    }
+                }
+            }
+            .padding(.horizontal, TrinketDesign.Metrics.mediumSpacing)
+            .padding(.top, TrinketDesign.Metrics.extraLargeSpacing)
+            .padding(.bottom, TrinketDesign.Metrics.mediumSpacing)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background {
+                LinearGradient(
+                    colors: [
+                        .clear,
+                        TrinketDesign.Colors.Overlay.ink.opacity(0.82),
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            }
+            .allowsHitTesting(false)
+        }
+    }
+
+    private func modifierSymbolName(for modifier: LabyrinthModifierDefinition) -> String {
+        switch modifier.id.rawValue {
+        case "ironPressure": "burst.fill"
+        case "ashTithe": "flame.fill"
+        case "bloodMarket", "serpentBloom": "drop.fill"
+        case "rimeTax": "snowflake"
+        case "gildedWhisper": "circle.circle.fill"
+        case "astralSeam": "sparkles"
+        default: "sparkles"
+        }
+    }
+}

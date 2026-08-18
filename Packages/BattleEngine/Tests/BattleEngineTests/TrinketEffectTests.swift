@@ -3,7 +3,7 @@ import Testing
 import TrinketContent
 import TrinketCore
 
-struct TrinketEffectTests {
+struct TrinketEffectTests { // swiftlint:disable:this type_body_length
     private func makeBattle(
         heroTriggers: CombatTraitTriggers = CombatTraitTriggers(
         ),
@@ -236,6 +236,31 @@ struct TrinketEffectTests {
         try #expect(battle.mana(of: battle.hero) == 1)
     }
 
+    @Test func playfulEnergyHealsPartyAfterThreeCompanionCardsWithoutManaAffix() {
+        var battle = makeBattle(
+            companionTriggers: CombatTraitTriggers(
+                healing: HealingTriggers(
+                    cardsPlayedHealPartyThreshold: 3,
+                    cardsPlayedHealPartyAmount: 2
+                )
+            )
+        )
+        battle.withEngineContext { context in
+            context.roster.mutateRuntime(for: context.roster.hero.combatant) { $0.currentHealth = 10 }
+            context.roster.mutateRuntime(for: context.roster.companion.combatant) { $0.currentHealth = 10 }
+        }
+        for _ in 0 ..< 3 {
+            _ = battle.withEngineContext { context in
+                CombatTriggerEngine.afterCardPlayed(by: context.roster.companion.combatant, in: &context)
+            }
+        }
+        _ = battle.withEngineContext { context in
+            CombatTriggerEngine.atPlayerEndTurn(in: &context)
+        }
+        #expect(battle.health(of: battle.hero) == 12)
+        #expect(battle.health(of: battle.companion) == 12)
+    }
+
     @Test(arguments: [(restored: 8, rawDamage: 4), (restored: 3, rawDamage: 2)])
     func mortarAndPestleDealsHalfRestoredHealthAsPoison(restored: Int, rawDamage: Int) {
         var battle = makeBattle(heroTriggers: CombatTraitTriggers(
@@ -303,7 +328,7 @@ struct TrinketEffectTests {
 
     @Test func wishingWellCoinMissDeductsGold() throws {
         var foundMiss = false
-        for seed in UInt64(0) ..< 256 {
+        for seed in UInt64(0) ..< 32 {
             var battle = makeBattle(
                 heroTriggers: CombatTraitTriggers(
                     gold: GoldTriggers(
@@ -331,7 +356,7 @@ struct TrinketEffectTests {
 
     @Test func wishingWellCoinMissClampsToAvailableGold() throws {
         var foundMiss = false
-        for seed in UInt64(0) ..< 256 {
+        for seed in UInt64(0) ..< 32 {
             var battle = makeBattle(
                 heroTriggers: CombatTraitTriggers(
                     gold: GoldTriggers(

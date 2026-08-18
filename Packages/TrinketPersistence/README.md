@@ -4,7 +4,7 @@ Player save model and SwiftData stores. Graph and hub details: [persistence.md](
 
 ## Conventions
 
-- Writes go through `PlayerSaveStore.performBatchMutation` / slice setters
+- Writes go through `PlayerSaveStore.persistBatch` (Bool-returning) or `performBatchMutation` (throwing), and slice stores such as `PlayerRosterStore` / `PlayerHomesteadStore`
 - Mutations diff `PlayerSaveSlice` values, reconcile only changed slices, and roll back only touched slices; preserve stable child-row identities
 - Cross-slice homestead actions live on `PlayerHomesteadStore`, not new hub methods
 - Write-through tests: mutate → reload from disk → assert

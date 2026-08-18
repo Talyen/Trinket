@@ -106,8 +106,11 @@ public final class JourneyPlayMode {
             homestead: playerSave.homestead,
             stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed
         )
-        guard inputs != preparedInputs else { return }
         let origin = PlayBattleOrigin.journey(stageID: stage.id)
+        guard inputs != preparedInputs
+            || battle.lifecyclePhase == .idle
+            || !battle.hasPreparedRun(origin.runKey)
+        else { return }
         if battleLaunch.prepareCombat(
             origin: origin,
             encounter: encounter,
@@ -146,21 +149,30 @@ public final class JourneyPlayMode {
         case .shop:
             switch encounters.beginShopEncounter(origin: .journey(stage: resolvedStage)) {
             case .autoCompleted:
-                appStateLogger.error(
-                    "Shop stage \(resolvedStage.id, privacy: .public) produced no offers; completing stage."
-                )
                 if let failure = completeStageOrPersistFailure(resolvedStage) {
                     return failure
                 }
-                return StageMapMessage(
-                    title: "Shop Closed",
-                    message: "The merchant has nothing left to sell. You continue on."
-                )
+                return encounters.emptyShopClosedMessage(identifier: resolvedStage.id)
             case .opened, .unavailable:
                 return nil
             }
         case .event, .rest:
             return completeStageOrPersistFailure(resolvedStage)
+        }
+    }
+
+    public func previewMysteryEvent(for stage: Stage) -> MysteryEvent? {
+        let resolved = resolvedCampaignStage(stage)
+        switch resolved.encounter {
+        case .mysteryEvent:
+            return encounters.previewMysteryEvent(origin: .journey(stage: resolved))
+        case .recruit:
+            return encounters.previewMysteryEvent(
+                origin: .journey(stage: resolved),
+                forcedEventID: resolved.encounter.recruitEventID
+            )
+        default:
+            return nil
         }
     }
 

@@ -63,6 +63,37 @@ struct BattleSessionPreparationTests {
         #expect(session.preparedBattlePresentationRevision == initialRevision + 1)
     }
 
+    @Test func keepPreparedRunsDropsStalePreparedBattles() {
+        let party = BattlePartyFixtures.quickWinParty()
+        let session = BattleSession(openingHandDrawStagger: 0)
+        let keptKey = BattleRunKey("test|keep")
+        let droppedKey = BattleRunKey("test|drop")
+        let (kept, _) = BattleRunConfigurationTestSupport.make(
+            runKey: keptKey,
+            hero: party.hero,
+            companion: party.companion,
+            enemy: party.enemy
+        )
+        let (dropped, _) = BattleRunConfigurationTestSupport.make(
+            runKey: droppedKey,
+            rngSeed: 1,
+            hero: party.hero,
+            companion: party.companion,
+            enemy: party.enemy
+        )
+
+        #expect(session.prepareBattleRun(kept))
+        #expect(session.prepareBattleRun(dropped))
+        #expect(session.preparedBattleRuns.count == 2)
+
+        session.keepPreparedRuns([keptKey])
+
+        #expect(session.preparedBattleRuns.count == 1)
+        #expect(session.preparedBattleRun(for: keptKey) != nil)
+        #expect(session.preparedBattleRun(for: droppedKey) == nil)
+        #expect(session.lifecyclePhase == .prepared)
+    }
+
     @Test func replacementOpeningHandDealRetainsTaskOwnershipAfterCancellation() async throws {
         let party = BattlePartyFixtures.quickWinParty(heroAbilities: [.slash, .heal, .smite])
         let expectedOpeningHandCount = min(

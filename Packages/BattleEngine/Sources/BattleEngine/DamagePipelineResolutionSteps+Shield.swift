@@ -255,6 +255,10 @@ package extension DamagePipeline {
         if damageKeyword == .physical, let sourceTriggers, sourceTriggers.physicalBlockBreakMultiplier > 0 {
             extraRemoved += CombatRounding.scaled(absorbed, multiplier: sourceTriggers.physicalBlockBreakMultiplier - 1)
         }
+        // Pure Radiance: Holy damage deals bonus damage against enemy Block.
+        if damageKeyword == .holy, let sourceTriggers, sourceTriggers.holyBlockBreakMultiplier > 0 {
+            extraRemoved += CombatRounding.scaled(absorbed, multiplier: sourceTriggers.holyBlockBreakMultiplier - 1)
+        }
         // Corrosive Venom: Poison strips Block before damaging Health.
         if damageKeyword == .poison, let sourceTriggers, sourceTriggers.poisonStripsBlockBeforeHealth > 0 {
             extraRemoved += sourceTriggers.poisonStripsBlockBeforeHealth

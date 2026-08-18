@@ -51,7 +51,8 @@ public final class PlaySession {
         let runCallbacks = LaunchRunCallbacks(
             registerRun: { [registry] reg in registry.register(reg) },
             removeRun: { [registry] key in registry.remove(key) },
-            removePreparedRunsExcept: { [registry] key in registry.removeExcept(key) }
+            removePreparedRunsExcept: { [registry] key in registry.removeExcept(key) },
+            keepPreparedRuns: { [registry] keys in registry.keep(keys) }
         )
         let graph = PlayModeGraph.assemble(
             playerSave: playerSave,
@@ -153,6 +154,10 @@ final class PlayBattleRunRegistry {
         battleRuns = battleRuns.filter { $0.key == runKey }
     }
 
+    func keep(_ keys: Set<BattleRunKey>) {
+        battleRuns = battleRuns.filter { keys.contains($0.key) }
+    }
+
     func route(for runKey: BattleRunKey?) -> PlayBattleRoute? {
         guard let runKey else { return nil }
         return battleRuns[runKey]?.route
@@ -177,6 +182,7 @@ struct LaunchRunCallbacks {
     let registerRun: @MainActor @Sendable (PlayBattleRunRegistration) -> Void
     let removeRun: @MainActor @Sendable (BattleRunKey) -> Void
     let removePreparedRunsExcept: @MainActor @Sendable (BattleRunKey) -> Void
+    let keepPreparedRuns: @MainActor @Sendable (Set<BattleRunKey>) -> Void
 }
 
 /// Assembles a fully wired Play mode graph in one place — no deferred bind steps.
@@ -205,7 +211,8 @@ enum PlayModeGraph {
             battle: battle,
             registerRun: runCallbacks.registerRun,
             removeRun: runCallbacks.removeRun,
-            removePreparedRunsExcept: runCallbacks.removePreparedRunsExcept
+            removePreparedRunsExcept: runCallbacks.removePreparedRunsExcept,
+            keepPreparedRunRegistrations: runCallbacks.keepPreparedRuns
         )
         let encounters = EncounterPlayMode(
             playerSave: playerSave,

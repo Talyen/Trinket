@@ -208,6 +208,22 @@ extension BattleSession {
         return true
     }
 
+    public func keepPreparedRuns(_ keys: Set<BattleRunKey>) {
+        guard activeBattle == nil else { return }
+        let before = preparedBattleRunsByKey.count
+        preparedBattleRunsByKey = preparedBattleRunsByKey.filter { keys.contains($0.key) }
+        if preparedBattleRunsByKey.count != before {
+            preparedBattlePresentationRevision += 1
+        }
+        if preparedBattleRunsByKey.isEmpty {
+            lifecyclePhase = .idle
+        }
+    }
+
+    public func hasPreparedRun(_ runKey: BattleRunKey) -> Bool {
+        preparedBattleRunsByKey[runKey] != nil
+    }
+
     public func activatePreparedBattle(
         runKey: BattleRunKey,
         heroID: String,

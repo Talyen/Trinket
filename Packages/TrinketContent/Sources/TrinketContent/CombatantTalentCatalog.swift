@@ -137,55 +137,9 @@ public enum CombatantTalentCatalog {
         combatantTreeAffinities.mapValues { $0.map(\.keyword) }
     }
 
-    // Signature talent definitions migrated from the legacy trait system.
-    // Split into per-combatant groups: a single literal of all 324 nodes
-    // generates a one-time initializer too large for the GCD worker thread stack.
-
-    public static let signatureTalents: [String: CombatantTalentEffect] = {
-        var combined: [String: CombatantTalentEffect] = [:]
-        combined.reserveCapacity(324)
-        for group in [
-            knightTalents, rogueTalents, wizardTalents, rangerTalents, warlockTalents,
-            bearTalents, frostWhelpTalents, lizardScoutTalents, pantherTalents, phoenixTalents,
-            wolfTalents, goldenRetrieverTalents, libraryOwlTalents, risenSkeletonTalents,
-            manaMothTalents, pixieTalents, shieldScarabTalents, foxTalents,
-        ] {
-            for (key, value) in group {
-                combined[key] = value
-            }
-        }
-        return combined
-    }()
-
-    private static let keywordSymbolNames: [Keyword: String] = [
-        .physical: "burst.fill",
-        .burn: "flame.fill",
-        .stun: "bolt.fill",
-        .block: "shield.fill",
-        .health: "heart.fill",
-        .gold: "circle.circle.fill",
-        .holy: "sun.max.fill",
-        .poison: "drop.fill",
-        .bleed: "drop.fill",
-        .leech: "drop",
-        .freeze: "snowflake",
-        .dodge: "figure.run",
-        .purge: "shield.slash.fill",
-        .cleanse: "sparkles",
-        .mana: "moon.stars.fill",
-        .deathsDoor: "hourglass.bottomhalf.filled",
-    ]
-
-    /// Default SF Symbol name for a keyword.
-    public static func defaultSymbolName(for keyword: Keyword) -> String {
-        keywordSymbolNames[keyword] ?? "sparkles"
-    }
-
-    private static let fallbackAffinities: [TreeAffinity] = [
-        TreeAffinity(name: "Physical", keyword: .physical),
-        TreeAffinity(name: "Block", keyword: .block),
-        TreeAffinity(name: "Health", keyword: .health),
-    ]
+    // Signature talent definitions are generated from ContentManifest/talents.tsv
+    // (`CombatantTalentCatalog.generated.swift`). Per-combatant dictionaries keep
+    // each literal off the GCD worker-thread stack.
 
     public static let allConfigs: [String: CombatantTalentConfig] = {
         var configs: [String: CombatantTalentConfig] = [:]
@@ -208,21 +162,15 @@ public enum CombatantTalentCatalog {
 
     /// Resolves the valid talent node IDs for a combatant in O(1).
     public static func validNodeIDs(for combatantID: String) -> Set<String> {
-        if let nodeIDs = validNodeIDsByCombatantID[combatantID] {
-            return nodeIDs
-        }
-        let dynamicConfig = config(for: combatantID)
-        return Set(dynamicConfig.trees.flatMap(\.nodes).map(\.id))
+        validNodeIDsByCombatantID[combatantID] ?? []
     }
 
     /// Resolves the 3-tree talent configuration for a combatant.
     public static func config(for combatantID: String) -> CombatantTalentConfig {
-        if let cached = allConfigs[combatantID] {
-            return cached
+        guard let cached = allConfigs[combatantID] else {
+            preconditionFailure("Missing talent config for \(combatantID)")
         }
-        let affinities = combatantTreeAffinities[combatantID] ?? fallbackAffinities
-        let trees = affinities.map { makeTree(combatantID: combatantID, name: $0.name, keyword: $0.keyword) }
-        return CombatantTalentConfig(combatantID: combatantID, trees: trees)
+        return cached
     }
 
     /// Resolves the signature talent effect for a specific node ID, if authored.
@@ -230,70 +178,27 @@ public enum CombatantTalentCatalog {
         signatureTalents[nodeID]
     }
 
-    /// Resolves modifiers for a set of unlocked talent nodes.
-    public static func modifiers(for unlockedNodeIDs: Set<String>) -> [AffixModifier] {
-        guard !unlockedNodeIDs.isEmpty else { return [] }
-        return unlockedNodeIDs.flatMap { signatureTalents[$0]?.modifiers ?? [] }
-    }
-
-    /// Resolves triggers for a set of unlocked talent nodes.
-    public static func triggers(for unlockedNodeIDs: Set<String>) -> CombatTraitTriggers {
-        guard !unlockedNodeIDs.isEmpty else { return CombatTraitTriggers() }
-        if unlockedNodeIDs.count == 1,
-           let firstID = unlockedNodeIDs.first,
-           let effect = signatureTalents[firstID] {
-            return effect.triggers
-        }
-        var combined = CombatTraitTriggers()
-        for nodeID in unlockedNodeIDs.sorted() {
-            if let effect = signatureTalents[nodeID] {
-                combined.merge(effect.triggers)
-            }
-        }
-        return combined
-    }
-
-    /// Generates a standardized 2x3 tree for a keyword affinity (6 nodes total), inserting signature talents when defined.
+    /// Generates a standardized 2x3 tree for a keyword affinity (6 nodes total).
     private static func makeTree(combatantID: String, name: String, keyword: Keyword) -> TalentTree {
-        let symbol = defaultSymbolName(for: keyword)
-        let kwName = keyword.rawValue
         var nodes = [TalentNode]()
         nodes.reserveCapacity(6)
 
         let kwSlug = keyword.rawValue.lowercased().filter { $0.isLetter || $0.isNumber }
         for row in 1 ... 3 {
             for col in 1 ... 2 {
-                let nodeID = "\(combatantID)_\(kwSlug)_r\(row)_\(col)"
-                let legacyID = "\(combatantID)_\(kwSlug)_t\(row)_\(col)"
-                let signature = signatureTalents[nodeID] ?? signatureTalents[legacyID]
-                let effectiveID = signatureTalents[nodeID] != nil ? nodeID : (signatureTalents[legacyID] != nil ? legacyID : nodeID)
-
-                if let signature {
-                    nodes.append(
-                        TalentNode(
-                            id: effectiveID,
-                            name: signature.name,
-                            keyword: keyword,
-                            symbolName: symbol,
-                            row: row,
-                            description: signature.description
-                        )
-                    )
-                } else {
-                    let rowName = row == 1 ? "Foundation" : (row == 2 ? "Focus" : "Specialization")
-                    let nodeName = "\(name) \(rowName) \(col)"
-                    let description = "Row \(row) \(name) (\(kwName)) synergy node \(col). Augments \(kwName.lowercased()) effects in combat."
-                    nodes.append(
-                        TalentNode(
-                            id: effectiveID,
-                            name: nodeName,
-                            keyword: keyword,
-                            symbolName: symbol,
-                            row: row,
-                            description: description
-                        )
-                    )
+                let nodeID = "\(combatantID)_\(kwSlug)_t\(row)_\(col)"
+                guard let signature = signatureTalents[nodeID] else {
+                    preconditionFailure("Missing authored talent \(nodeID)")
                 }
+                nodes.append(
+                    TalentNode(
+                        id: nodeID,
+                        name: signature.name,
+                        keyword: keyword,
+                        row: row,
+                        description: signature.description
+                    )
+                )
             }
         }
 

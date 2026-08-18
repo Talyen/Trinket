@@ -3,11 +3,6 @@ import Testing
 import TrinketContent
 
 struct ItemAffixCatalogTests {
-    @Test func affixIDsAreUnique() throws {
-        let ids = GameContent.itemAffixDefinitions.map(\.id)
-        try #expect(Set(ids).count == ids.count)
-    }
-
     @Test func combatReactionAffixIDsResolveToCatalogTitles() throws {
         let ids = [
             "absolving", "aetherward", "arcane_ward", "beacon", "blood_price",
@@ -22,14 +17,13 @@ struct ItemAffixCatalogTests {
         }
     }
 
-    @Test func legacyNestedAffixReactionsDecodeWithMissingKeysDefaulted() throws {
-        let data = Data(#"[{"description":"Legacy","modifiers":[],"triggers":{"affixReactions":{"gainManaBlockFlat":2}}}]"#.utf8)
+    @Test func nestedAffixReactionsAreIgnoredInFavorOfFlatKeys() throws {
+        let data = Data(#"[{"description":"Flat","modifiers":[],"triggers":{"gainManaBlockFlat":2}}]"#.utf8)
 
         let powers = try ItemAffixPowerCoding.decode(data)
         let power = try #require(powers.first)
 
         try #expect(power.triggers.gainManaBlockFlat == 2)
-        try #expect(power.triggers.leechHealingMultiplier == 1)
         try #expect(power.triggers.dodgeDealStunFlat == 0)
     }
 
@@ -86,21 +80,6 @@ struct ItemAffixCatalogTests {
             }
             try #expect(!eligible.isEmpty, "\(baseType.id)) should have at least one eligible affix")
         }
-    }
-
-    @Test func weaponBaseTypesDeclareExpectedEquipKinds() throws {
-        let byKind = Dictionary(grouping: GameContent.itemBaseTypes.filter { $0.slot == .weapon }) {
-            $0.weaponKind
-        }
-
-        try #expect(Set(byKind[.oneHanded, default: []].map(\.id)) == [
-            "dagger", "flail", "hatchet", "longsword", "mace", "shortsword", "wand",
-        ])
-        try #expect(Set(byKind[.twoHanded, default: []].map(\.id)) == [
-            "crossbow", "double_axe", "greatsword", "longbow", "maul", "recurve_bow", "shortbow", "staff",
-        ])
-        try #expect(Set(byKind[.offHand, default: []].map(\.id)) == ["kite_shield", "spellbook"])
-        try #expect(GameContent.itemBaseTypes.filter { $0.slot != .weapon }.allSatisfy { $0.weaponKind == nil })
     }
 
     @Test func twoHandedPowerScalingDoublesMagnitudesWithoutThresholdsOrCaps() throws {

@@ -2,11 +2,6 @@ import CoreGraphics
 import Foundation
 import SwiftUI
 
-/// Floating combat-text motion recipe. Production uses Alchemy Pop.
-public enum CombatFeedbackFloatRecipe: String, CaseIterable, Sendable, Equatable {
-    case alchemyPop
-}
-
 /// Shared motion presets. Battle spectacle (R-008 / R-011) is the first consumer;
 /// combat feedback chips extend the same vocabulary (R-001 / R-006).
 public enum TrinketMotion: Sendable {
@@ -353,16 +348,6 @@ public enum TrinketMotion: Sendable {
         private static func lerp(_ start: Double, _ end: Double, _ progress: Double) -> Double {
             let p = min(max(progress, 0), 1)
             return start + (end - start) * p
-        }
-
-        /// Party lunges toward the enemy; enemies lunge toward the party.
-        public static func attackAim(isPartyMember: Bool) -> CombatantAttackAim {
-            CombatantAttackAim.aim(isPartyMember: isPartyMember)
-        }
-
-        /// Party combatants recoil toward the hand; enemies recoil upward.
-        public static func partyRecoilDirection(isPartyMember: Bool) -> CombatantHitRecoilDirection {
-            isPartyMember ? .down : .up
         }
     }
 

@@ -37,13 +37,14 @@ package enum DamagePipeline {
         applyMarkedConsume(to: &state, in: &context)
         applyDeathsDoor(to: &state, in: &context)
         applyLeech(to: &state, in: &context)
-        applyTrinketDamageReactions(to: &state, in: &context)
+        applyTalentDamageApplications(to: &state, in: &context)
 
         // Retaliation / DoT-style hits must not nest further reaction pipelines
         // (Whiplash stun → ControlMeter → afterEnemyStunned → Knockout → …).
         // Keyword reactions skip retaliation so Moonfire Holy pings cannot arm
         // Blinding Light / Radiant Barrier / mana restore. Blinding Light itself
-        // also requires a direct attack hit.
+        // also requires a direct attack hit. Dodge-caused hits still charge stun
+        // when `applyControlMeter` is set; they do not re-enter `afterDodge`.
         if !state.isRetaliation {
             applyControlMeter(to: &state, in: &context)
             applyReactiveOnHit(to: &state, in: &context)

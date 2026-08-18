@@ -8,13 +8,6 @@ import TrinketFeatureSupport
 import TrinketPersistence
 
 struct LabyrinthMapView: View {
-    private struct BattlePreparationTrigger: Equatable {
-        let labyrinth: PlayerLabyrinthState
-        let roster: PlayerRosterState
-        let inventory: PlayerInventoryState
-        let homestead: PlayerHomesteadState
-    }
-
     /// Bottom inset so the floor map clears the selected-node inspector overlay.
     private static let inspectorScrollClearance: CGFloat = 360
 
@@ -39,15 +32,6 @@ struct LabyrinthMapView: View {
 
     private var selectedNode: LabyrinthNode? {
         selectedNodeID.flatMap { state.node(id: $0) }
-    }
-
-    private var battlePreparationTrigger: BattlePreparationTrigger {
-        BattlePreparationTrigger(
-            labyrinth: playerSave.labyrinth,
-            roster: playerSave.roster,
-            inventory: playerSave.inventory,
-            homestead: playerSave.homestead
-        )
     }
 
     var body: some View {
@@ -89,7 +73,7 @@ struct LabyrinthMapView: View {
                 self.selectedNodeID = nil
             }
         }
-        .onChange(of: battlePreparationTrigger) { _, _ in
+        .onChange(of: StageSelectPrepareDependency.labyrinth(playerSave: playerSave)) { _, _ in
             labyrinth.prepareReachableBattles()
         }
         .alert(item: $nodeMessage) { message in

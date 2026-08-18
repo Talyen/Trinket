@@ -38,5 +38,5 @@ Do not rewrite the host for purity unless Instruments shows SwiftUI can match hi
 ./Scripts/test.sh smoke SmokeBattleTests
 ```
 
-Internal feedback, raster, recipe, and timing tests stay in this package rather than
-making those implementation types public.
+Do not unit-test layout, glyph atlas, dissolve, or recipe chrome. Semantic
+feedback classification lives in `CombatFeedbackPresenterTests`.

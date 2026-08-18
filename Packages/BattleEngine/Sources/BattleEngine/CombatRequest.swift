@@ -27,6 +27,9 @@ public struct DamageOptions: Equatable, Hashable, Sendable {
     public var abilityHasLeech: Bool
     /// When true, treat as a fixed "Lose N Health" cost — exact HP, no attack pipeline.
     public var isHealthCost: Bool
+    /// When true, this hit was spawned from an on-dodge reaction. A dodge of this
+    /// hit still applies, but does not run `afterDodge` again.
+    public var causedByDodge: Bool
 
     public init(
         applyStatBonus: Bool = true,
@@ -41,7 +44,8 @@ public struct DamageOptions: Equatable, Hashable, Sendable {
         isAttackHit: Bool = false,
         isBasicAttackHit: Bool = false,
         abilityHasLeech: Bool = false,
-        isHealthCost: Bool = false
+        isHealthCost: Bool = false,
+        causedByDodge: Bool = false
     ) {
         self.applyStatBonus = applyStatBonus
         self.applyItemBonus = applyItemBonus
@@ -56,6 +60,7 @@ public struct DamageOptions: Equatable, Hashable, Sendable {
         self.isBasicAttackHit = isBasicAttackHit
         self.abilityHasLeech = abilityHasLeech
         self.isHealthCost = isHealthCost
+        self.causedByDodge = causedByDodge
     }
 
     /// Direct ability hit: full bonuses and dodge checks. Qualifies for ambush trait bonus.

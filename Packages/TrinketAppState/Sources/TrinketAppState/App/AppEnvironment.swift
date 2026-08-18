@@ -117,24 +117,7 @@ public struct AppEnvironment: Sendable {
         guard let idx = arguments.firstIndex(of: "-launch-screen"),
               arguments.indices.contains(idx + 1)
         else { return nil }
-        let val = arguments[idx + 1]
-        // split omits empty subsequences, so "" / ":" yield no parts — never index [0].
-        let parts = val.split(separator: ":", maxSplits: 1).map(String.init)
-        guard let kind = parts.first?.lowercased() else { return nil }
-        let id = parts.count == 2 ? parts[1] : ""
-        switch kind {
-        case "hero" where !id.isEmpty: return .heroDetail(id)
-        case "companion" where !id.isEmpty: return .companionDetail(id)
-        case "item" where !id.isEmpty: return .itemDetail(id)
-        case "options": return .options
-        case "battle": return .battle
-        case "battle-victory": return .battleVictory
-        case "shop": return .shop
-        case "mystery": return .mystery
-        case "labyrinth": return .labyrinth
-        case "labyrinth-map": return .labyrinthMap
-        default: return nil
-        }
+        return LaunchScreen.parse(arguments[idx + 1])
     }
 
     private static func completedStageIDs(from arguments: [String]) -> [String] {

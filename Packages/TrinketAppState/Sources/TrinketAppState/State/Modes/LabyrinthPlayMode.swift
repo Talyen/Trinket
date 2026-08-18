@@ -11,8 +11,15 @@ import TrinketPersistence
 @MainActor
 @Observable
 public final class LabyrinthPlayMode {
+    private struct CombatPrepNode: Equatable {
+        let nodeID: String
+        let combatantID: String
+        let encounterLevel: Int
+        let modifierIDs: [LabyrinthModifierID]
+    }
+
     private struct PreparationInputs: Equatable {
-        let labyrinth: PlayerLabyrinthState
+        let combatNodes: [CombatPrepNode]
         let roster: PlayerRosterState
         let inventory: PlayerInventoryState
         let homestead: PlayerHomesteadState
@@ -87,7 +94,10 @@ public final class LabyrinthPlayMode {
         case .shop:
             switch encounters.beginShopEncounter(origin: .labyrinth(nodeID: nodeID)) {
             case .autoCompleted:
-                return completeNodeOrPersistFailure(nodeID: nodeID)
+                if let failure = completeNodeOrPersistFailure(nodeID: nodeID) {
+                    return failure
+                }
+                return encounters.emptyShopClosedMessage(identifier: nodeID)
             case .opened, .unavailable:
                 return nil
             }
@@ -230,27 +240,54 @@ public final class LabyrinthPlayMode {
         return activated ? nil : PlayBattleLaunch.activationFailureMessage
     }
 
+    public func previewMysteryEvent(for node: LabyrinthNode) -> MysteryEvent? {
+        switch node.type.canonical {
+        case .mystery, .event:
+            encounters.previewMysteryEvent(origin: .labyrinth(nodeID: node.id))
+        default:
+            nil
+        }
+    }
+
     public func prepareReachableBattles() {
         guard battle.lifecyclePhase != .active else { return }
         let labyrinth = playerSave.labyrinth
-        let inputs = PreparationInputs(
-            labyrinth: labyrinth,
-            roster: playerSave.roster,
-            inventory: playerSave.inventory,
-            homestead: playerSave.homestead
-        )
+        let inputs = preparationInputs(labyrinth: labyrinth)
         guard inputs != preparedInputs || battle.lifecyclePhase == .idle else { return }
 
         var preparedAll = true
+        var preparedKeys: Set<BattleRunKey> = []
         for nodeID in labyrinth.reachableNodeIDs() {
             guard let node = labyrinth.node(id: nodeID), node.type.isCombat else { continue }
+            preparedKeys.insert(PlayBattleOrigin.labyrinth(nodeID: nodeID).runKey)
             if !prepareBattle(node: node, labyrinth: labyrinth) {
                 preparedAll = false
             }
         }
+        battleLaunch.keepPreparedRuns(preparedKeys)
         if preparedAll {
             preparedInputs = inputs
         }
+    }
+
+    private func preparationInputs(labyrinth: PlayerLabyrinthState) -> PreparationInputs {
+        let combatNodes = labyrinth.reachableNodeIDs().compactMap { nodeID -> CombatPrepNode? in
+            guard let node = labyrinth.node(id: nodeID), node.type.isCombat,
+                  let encounter = resolvedEncounter(for: node)
+            else { return nil }
+            return CombatPrepNode(
+                nodeID: nodeID,
+                combatantID: encounter.combatant.id,
+                encounterLevel: encounter.level,
+                modifierIDs: node.modifierIDs
+            )
+        }
+        return PreparationInputs(
+            combatNodes: combatNodes,
+            roster: playerSave.roster,
+            inventory: playerSave.inventory,
+            homestead: playerSave.homestead
+        )
     }
 
     private func prepareBattle(
@@ -315,7 +352,7 @@ extension LabyrinthPlayMode {
         guard let enemyID = node.enemyID,
               let catalogEnemy = GameContent.enemy(matching: enemyID)
         else { return nil }
-        let level = LabyrinthCompletion.enemyLevel(for: node)
+        let level = EncounterLevelResolver.labyrinthEnemyLevel(for: node)
         return (CombatantLevelScaler.scale(enemy: catalogEnemy, level: level), level)
     }
 

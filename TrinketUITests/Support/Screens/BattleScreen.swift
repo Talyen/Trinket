@@ -30,6 +30,10 @@ struct BattleScreen {
         app.buttons[AccessibilityID.Battle.retreat]
     }
 
+    var retreatConfirmAction: XCUIElement {
+        app.buttons[AccessibilityID.Battle.retreatConfirm].firstMatch
+    }
+
     func assertPresented(
         timeout: TimeInterval = TrinketUITestCase.defaultTimeout,
         file: StaticString = #file,

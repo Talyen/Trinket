@@ -24,6 +24,8 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
     /// Trait/affix trigger knobs authored as `CombatTraitTriggers` — single schema, not duplicated fields.
     public var triggers: CombatTraitTriggers
     public var traitDisplayName: String?
+    /// Combat-log names for shared event-emitting trigger fields (first writer wins on merge).
+    public var triggerAbilityNames: [String: String]
 
     public static let zero = Self()
 
@@ -48,7 +50,8 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         companionBleedDamageDealtBonus: Int = 0,
         triggers: CombatTraitTriggers = CombatTraitTriggers(
         ),
-        traitDisplayName: String? = nil
+        traitDisplayName: String? = nil,
+        triggerAbilityNames: [String: String] = [:]
     ) {
         self.statBonuses = statBonuses
         self.maximumHealthBonus = maximumHealthBonus
@@ -70,6 +73,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         self.companionBleedDamageDealtBonus = companionBleedDamageDealtBonus
         self.triggers = triggers
         self.traitDisplayName = traitDisplayName
+        self.triggerAbilityNames = triggerAbilityNames
     }
 
     public init(modifiers: [AffixModifier]) {
@@ -113,6 +117,19 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         triggers.merge(other.triggers)
         if traitDisplayName == nil {
             traitDisplayName = other.traitDisplayName
+        }
+        for (key, name) in other.triggerAbilityNames where triggerAbilityNames[key] == nil {
+            triggerAbilityNames[key] = name
+        }
+    }
+
+    public func triggerAbilityName(_ key: String, fallback: String) -> String {
+        triggerAbilityNames[key] ?? fallback
+    }
+
+    public mutating func setTriggerAbilityName(_ key: String, _ name: String) {
+        if triggerAbilityNames[key] == nil {
+            triggerAbilityNames[key] = name
         }
     }
 
@@ -195,6 +212,9 @@ public extension CombatantTalentEffect {
     func apply(to profile: inout CombatModifierProfile) {
         profile.merge(modifiers)
         triggers.apply(to: &profile)
+        for key in triggers.populatedFieldNames {
+            profile.setTriggerAbilityName(key, name)
+        }
     }
 }
 

@@ -20,7 +20,7 @@ journeys use UI smoke/deploy only when the keep/drop rubric below applies.
 | Battle rules / handlers / golden paths | `Packages/BattleEngine/Tests/` (see that package’s README) |
 | Battle lifecycle contract / fallback runtime | `Packages/TrinketBattleRuntime/Tests/` |
 | Shared presentation models / caches / frame analysis | `Packages/TrinketFeatureSupport/Tests/` |
-| Battle session / feedback / spectacle / layout | `Packages/TrinketBattleFeature/Tests/` |
+| Battle session / feedback / spectacle | `Packages/TrinketBattleFeature/Tests/` |
 | AppState / Play and encounter sessions / options / audio routing | `Packages/TrinketAppState/Tests/` |
 | Catalogs / content invariants | `TrinketContentTests` |
 | Stores / persistence write-through | `TrinketPersistenceTests` |
@@ -50,7 +50,7 @@ Persistence-free. App suites use `AppTestContext`; Persistence uses
 - **Stores:** mutate → reload from disk → `#expect`.
 - **Async/debounce:** inject short intervals in production inits; poll in tests — never `Task.sleep` for multi-second production delays.
 - **Events:** pin outcome counters; assert event *semantics*, not full log fingerprints.
-- **Do not unit-test:** log prose (except a few representative formatter cases), `TrinketDesign` styling, AVFoundation playback, real CloudKit I/O.
+- **Do not unit-test:** log prose (except a few representative formatter cases), `TrinketDesign` styling, AVFoundation playback, real CloudKit I/O, BattleFeature layout/glyph/dissolve/recipe chrome.
 
 ## Coverage decision (new and changed behavior)
 

@@ -13,6 +13,7 @@ public struct BattleView: View {
     /// Blocks combatant detail Buttons while a hand card is held, and briefly after
     /// release so the same finger-up cannot open details.
     @State private var interactionState = BattleInteractionState()
+    @State private var isConfirmingRetreat = false
 
     private let configuration: BattleRunConfiguration
     private let presentationContext: BattlePresentationContext
@@ -72,6 +73,18 @@ public struct BattleView: View {
             .onChange(of: configuration.id) { _, _ in
                 castPresentation.reset()
             }
+            .confirmationDialog(
+                "Retreat from this battle?",
+                isPresented: $isConfirmingRetreat,
+                titleVisibility: .visible
+            ) {
+                Button("Retreat", role: .destructive) {
+                    battleSession.playPresentationSFX(SFXID.uiCancel)
+                    retreat()
+                }
+                .accessibilityIdentifier(AccessibilityID.Battle.retreatConfirm)
+                Button("Cancel", role: .cancel) {}
+            }
     }
 
     private func battleActionsMenu(canRetreat: Bool) -> some View {
@@ -94,8 +107,7 @@ public struct BattleView: View {
 
             if canRetreat {
                 Button(role: .destructive) {
-                    battleSession.playPresentationSFX(SFXID.uiCancel)
-                    retreat()
+                    isConfirmingRetreat = true
                 } label: {
                     Label("Retreat", systemImage: "figure.run")
                 }

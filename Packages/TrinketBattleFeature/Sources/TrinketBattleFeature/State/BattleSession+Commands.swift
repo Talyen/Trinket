@@ -1,11 +1,17 @@
 import BattleEngine
 import Foundation
+import os
 import SwiftUI
 import TrinketContent
 import TrinketDesignSystem
 import TrinketFeatureSupport
 
 extension BattleSession {
+    private static let commandLogger = Logger(
+        subsystem: "com.trinket.battle",
+        category: "BattleSession"
+    )
+
     @discardableResult
     func playCard(
         cardID: Int,
@@ -18,7 +24,8 @@ extension BattleSession {
               !spectacle.isShowingDefeat,
               !isDealingOpeningHand,
               hasActiveSimulation,
-              !isBattleOver
+              !isBattleOver,
+              !isSuspendedForScenePhase
         else {
             feedback.noteItemsChanged()
             return .rejected
@@ -48,12 +55,13 @@ extension BattleSession {
             scheduleAutoEndIfNeeded()
             return .committed
         } catch {
-            #if DEBUG
+            Self.commandLogger.error(
+                "playCard failed for card \(cardID, privacy: .public): \(error.localizedDescription, privacy: .public)"
+            )
             BattleFramePacingSignposts.event(
                 BattleFramePacingSignposts.Name.playCardRejected,
                 detail: "cardID=\(cardID)"
             )
-            #endif
             feedback.noteItemsChanged()
             return .rejected
         }
@@ -62,7 +70,7 @@ extension BattleSession {
     func endTurn(at date: Date = .now) {
         cancelPendingAutoEnd()
         feedback.pruneExpired(at: date, notifyPresentation: false)
-        guard canEndTurn, hasActiveSimulation else {
+        guard canEndTurn, hasActiveSimulation, !isSuspendedForScenePhase else {
             feedback.noteItemsChanged()
             return
         }

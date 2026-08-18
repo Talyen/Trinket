@@ -5,12 +5,8 @@ public struct TalentNode: Identifiable, Hashable, Codable, Sendable {
     public let id: String
     public let name: String
     public let keyword: Keyword
-    public let symbolName: String
     /// 1-indexed visual unlock row index: 1, 2, or 3 (UI progression gating only; power is flat across rows).
     public let row: Int
-    public var tier: Int {
-        row
-    }
 
     public let description: String
 
@@ -18,17 +14,13 @@ public struct TalentNode: Identifiable, Hashable, Codable, Sendable {
         id: String,
         name: String,
         keyword: Keyword,
-        symbolName: String,
-        tier: Int? = nil,
-        row: Int? = nil,
+        row: Int = 1,
         description: String
     ) {
         self.id = id
         self.name = name
         self.keyword = keyword
-        self.symbolName = symbolName
-        let effectiveRow = row ?? tier ?? 1
-        self.row = effectiveRow
+        self.row = row
         self.description = description
     }
 }
@@ -51,10 +43,6 @@ public struct TalentTree: Identifiable, Hashable, Codable, Sendable {
 
     public func nodes(forRow row: Int) -> [TalentNode] {
         nodes.filter { $0.row == row }
-    }
-
-    public func nodes(forTier tier: Int) -> [TalentNode] {
-        nodes(forRow: tier)
     }
 
     /// Evaluates whether a given node in this tree can be unlocked based on row-gated progression and available points.
@@ -83,10 +71,6 @@ public struct TalentTree: Identifiable, Hashable, Codable, Sendable {
         let rowNodes = nodes(forRow: row)
         guard !rowNodes.isEmpty else { return false }
         return rowNodes.allSatisfy { unlockedNodeIDs.contains($0.id) }
-    }
-
-    public func isTierComplete(_ tier: Int, unlockedNodeIDs: Set<String>) -> Bool {
-        isRowComplete(tier, unlockedNodeIDs: unlockedNodeIDs)
     }
 }
 

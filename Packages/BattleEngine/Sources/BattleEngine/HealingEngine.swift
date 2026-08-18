@@ -10,8 +10,7 @@ package enum HealingEngine {
         in context: inout BattleState
     ) -> CombatOutcome {
         guard context.roster.health(for: request.target) > 0 || request.revivesIfDead else { return .empty }
-        if context.modifiers(for: request.target.id).triggers.cannotBeHealed
-            || CombatTriggerEngine.frozenTargetCannotBlockOrHeal(request.target, in: context) {
+        if CombatTriggerEngine.frozenTargetCannotBlockOrHeal(request.target, in: context) {
             return .empty
         }
         let sourceTriggers = request.sourceActorID.map { context.modifiers(for: $0).triggers }
@@ -74,11 +73,14 @@ package enum HealingEngine {
 
         // Warded Roost / Protective Bloom: healing an ally grants them Block.
         if let sourceTriggers, sourceTriggers.onHealGrantBlock > 0, restored > 0 {
+            let abilityName = request.sourceActorID.map {
+                context.modifiers(for: $0).triggerAbilityName("onHealGrantBlock", fallback: "Warded Roost")
+            } ?? "Warded Roost"
             events.append(contentsOf: context.applyBlock(
                 sourceTriggers.onHealGrantBlock,
                 to: request.target,
                 source: request.target,
-                abilityName: "Warded Roost"
+                abilityName: abilityName
             ))
         }
         // Lingering Blessing: successful heals apply a short heal-over-time.

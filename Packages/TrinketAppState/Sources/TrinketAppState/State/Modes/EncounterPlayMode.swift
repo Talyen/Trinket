@@ -3,6 +3,7 @@ import Observation
 import TrinketBattleRuntime
 import TrinketContent
 import TrinketCore
+import TrinketFeatureContracts
 import TrinketPersistence
 
 /// Shared shop and mystery encounter flow for journey stages and labyrinth nodes.
@@ -126,5 +127,18 @@ public final class EncounterPlayMode {
         }
         clearActiveShopEncounter()
         return true
+    }
+
+    /// Shared empty-shop UX after auto-complete (journey stage or labyrinth node).
+    static let emptyShopClosedMessage = StageMapMessage(
+        title: "Shop Closed",
+        message: "The merchant has nothing left to sell. You continue on."
+    )
+
+    func emptyShopClosedMessage(identifier: String) -> StageMapMessage {
+        appStateLogger.error(
+            "Shop \(identifier, privacy: .public) produced no offers; completing encounter."
+        )
+        return Self.emptyShopClosedMessage
     }
 }

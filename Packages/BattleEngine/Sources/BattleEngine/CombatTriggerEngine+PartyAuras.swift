@@ -13,42 +13,35 @@ package extension CombatTriggerEngine {
     ) -> Int {
         var bonus = 0
         bonus += enrageAuraBonus(in: context)
+        let living = livingAllyModifiers(in: context)
         if source.role == .companion {
             if targetIsPoisoned {
-                bonus += context.heroModifiers.triggers.companionDamageVsPoisonedBonus
-                bonus += context.companionModifiers.triggers.companionDamageVsPoisonedBonus
+                bonus += living.reduce(0) { $0 + $1.triggers.companionDamageVsPoisonedBonus }
             }
             if targetIsBurning {
-                bonus += context.heroModifiers.triggers.companionDamageVsBurningBonus
-                bonus += context.companionModifiers.triggers.companionDamageVsBurningBonus
+                bonus += living.reduce(0) { $0 + $1.triggers.companionDamageVsBurningBonus }
             }
         }
         if source.role != .enemy, damageKeyword == .physical {
-            let heroTriggers = context.heroModifiers.triggers
-            if heroTriggers.partyPhysicalDamageBonusFirstTurns > 0,
-               context.turnCount < heroTriggers.partyPhysicalDamageBonusFirstTurnCount {
-                bonus += heroTriggers.partyPhysicalDamageBonusFirstTurns
-            }
-            let compTriggers = context.companionModifiers.triggers
-            if compTriggers.partyPhysicalDamageBonusFirstTurns > 0,
-               context.turnCount < compTriggers.partyPhysicalDamageBonusFirstTurnCount {
-                bonus += compTriggers.partyPhysicalDamageBonusFirstTurns
+            for profile in living {
+                let triggers = profile.triggers
+                if triggers.partyPhysicalDamageBonusFirstTurns > 0,
+                   context.turnCount < triggers.partyPhysicalDamageBonusFirstTurnCount {
+                    bonus += triggers.partyPhysicalDamageBonusFirstTurns
+                }
             }
         }
         if source.role != .enemy, context.roster.companion.isAlive,
            context.roster.maxHealth(for: context.roster.companion.combatant) > 0,
            context.roster.health(for: context.roster.companion.combatant) == context.roster
            .maxHealth(for: context.roster.companion.combatant) {
-            bonus += context.heroModifiers.triggers.partyDamageBonusWhileCompanionFullHealth
-            bonus += context.companionModifiers.triggers.partyDamageBonusWhileCompanionFullHealth
+            bonus += living.reduce(0) { $0 + $1.triggers.partyDamageBonusWhileCompanionFullHealth }
             if damageKeyword == .holy {
-                bonus += context.heroModifiers.triggers.partyHolyDamageBonusWhileCompanionFullHealth
-                bonus += context.companionModifiers.triggers.partyHolyDamageBonusWhileCompanionFullHealth
+                bonus += living.reduce(0) { $0 + $1.triggers.partyHolyDamageBonusWhileCompanionFullHealth }
             }
         }
         if state.isBasicAttackHit, source.role != .enemy, damageKeyword == .holy {
-            bonus += context.heroModifiers.triggers.partyBasicAttackHolyBonus
-            bonus += context.companionModifiers.triggers.partyBasicAttackHolyBonus
+            bonus += living.reduce(0) { $0 + $1.triggers.partyBasicAttackHolyBonus }
         }
         return bonus
     }
@@ -73,25 +66,61 @@ package extension CombatTriggerEngine {
         return bonus
     }
 
-    /// Deadly Dose / Damnation / Intense Heat: party-wide, strongest aura wins.
+    /// Deadly Dose / Damnation / Intense Heat: living auras add their extra percents.
     static func partyAfflictedDamageMultiplier(
         targetIsPoisoned: Bool,
         targetIsBurning: Bool,
         in context: BattleState
     ) -> Double {
-        var multiplier = 1.0
-        if targetIsPoisoned {
-            multiplier *= max(
-                context.heroModifiers.triggers.damageVsPoisonedMultiplier,
-                context.companionModifiers.triggers.damageVsPoisonedMultiplier
-            )
+        partyAfflictedDamageAuras(
+            targetIsPoisoned: targetIsPoisoned,
+            targetIsBurning: targetIsBurning,
+            in: context
+        ).multiplier
+    }
+
+    static func partyAfflictedDamageAuras(
+        targetIsPoisoned: Bool,
+        targetIsBurning: Bool,
+        in context: BattleState
+    ) -> (multiplier: Double, abilityNames: [String]) {
+        var excess = 0.0
+        var names: [String] = []
+        for profile in livingAllyModifiers(in: context) {
+            if targetIsPoisoned {
+                accumulateAfflictedAura(
+                    multiplier: profile.triggers.damageVsPoisonedMultiplier,
+                    key: "damageVsPoisonedMultiplier",
+                    profile: profile,
+                    excess: &excess,
+                    names: &names
+                )
+            }
+            if targetIsBurning {
+                accumulateAfflictedAura(
+                    multiplier: profile.triggers.damageVsBurningMultiplier,
+                    key: "damageVsBurningMultiplier",
+                    profile: profile,
+                    excess: &excess,
+                    names: &names
+                )
+            }
         }
-        if targetIsBurning {
-            multiplier *= max(
-                context.heroModifiers.triggers.damageVsBurningMultiplier,
-                context.companionModifiers.triggers.damageVsBurningMultiplier
-            )
+        return (1 + excess, names)
+    }
+
+    private static func accumulateAfflictedAura(
+        multiplier: Double,
+        key: String,
+        profile: CombatModifierProfile,
+        excess: inout Double,
+        names: inout [String]
+    ) {
+        guard multiplier > 1 else { return }
+        excess += multiplier - 1
+        let name = profile.triggerAbilityName(key, fallback: "")
+        if !name.isEmpty {
+            names.append(name)
         }
-        return multiplier
     }
 }

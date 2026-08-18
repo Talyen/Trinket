@@ -40,6 +40,17 @@ struct AppStateMysteryRecruitTests {
         #expect(!state.encounters.finishActiveMysteryEncounter())
     }
 
+    @Test func recruitStagePreviewMatchesOpenedEncounter() throws {
+        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        let stage = try #require(GameContent.stage(id: "chapter-1-stage-2"))
+        let preview = try #require(state.journey.previewMysteryEvent(for: stage))
+        #expect(preview.isRecruit)
+        #expect(preview.id == "recruit-bear")
+        #expect(state.journey.handleStagePrimaryAction(for: stage) == nil)
+        let session = try #require(state.encounters.activeMysteryEncounter)
+        #expect(session.event.id == preview.id)
+    }
+
     @Test func finishRevealWithoutDismissKeepsSessionForSeal() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         let stage = try #require(GameContent.stage(id: "chapter-1-stage-2"))

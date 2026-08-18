@@ -27,6 +27,19 @@ struct AppStateSpiresTests {
         #expect(state.battlePresentation(for: state.battle.activeBattle?.runKey)?.pendingRewardItem != nil)
     }
 
+    @Test func unchangedSpireInputsReusePreparedBattle() throws {
+        let state = try context.makePlaySession()
+        let floor = try #require(GameContent.spireFloor(spireID: .ironVein, floor: 1))
+        let battle = try #require(context.lastBattle)
+        state.spires.prepareBattle(for: floor)
+        let preparedRevision = battle.preparedBattlePresentationRevision
+
+        state.spires.prepareBattle(for: floor)
+
+        #expect(battle.preparedBattlePresentationRevision == preparedRevision)
+        #expect(battle.lifecyclePhase == .prepared)
+    }
+
     @Test func startSpireBattleRequiresAttunement() throws {
         let state = try context.makePlaySession()
         let rogue = try #require(GameContent.heroes.first { $0.id == "rogue" })

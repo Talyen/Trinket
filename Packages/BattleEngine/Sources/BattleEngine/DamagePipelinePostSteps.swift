@@ -85,7 +85,7 @@ package extension DamagePipeline {
         }
     }
 
-    static func applyTrinketDamageReactions(
+    static func applyTalentDamageApplications(
         to state: inout DamageResolutionState,
         in context: inout BattleState
     ) {
@@ -117,7 +117,6 @@ package extension DamagePipeline {
         applyTalentAttackApplications(
             to: &state,
             source: source,
-            sourceRuntime: sourceRuntime,
             sourceActorID: sourceActorID,
             triggers: triggers,
             keyword: keyword,
@@ -168,7 +167,6 @@ package extension DamagePipeline {
     private static func applyTalentAttackApplications(
         to state: inout DamageResolutionState,
         source: Combatant,
-        sourceRuntime: CombatantRuntime,
         sourceActorID: String,
         triggers: CombatTraitTriggers,
         keyword: Keyword,
@@ -189,7 +187,6 @@ package extension DamagePipeline {
         applyTargetStateReactions(
             to: &state,
             source: source,
-            sourceRuntime: sourceRuntime,
             sourceActorID: sourceActorID,
             triggers: triggers,
             in: &context
@@ -367,8 +364,7 @@ package extension DamagePipeline {
     private static func applyTargetStateReactions(
         to state: inout DamageResolutionState,
         source: Combatant,
-        sourceRuntime: CombatantRuntime,
-        sourceActorID: String,
+        sourceActorID _: String,
         triggers: CombatTraitTriggers,
         in context: inout BattleState
     ) {
@@ -422,16 +418,29 @@ package extension DamagePipeline {
                 abilityName: "Disorienting Strike"
             ))
         }
-        if triggers.onHeroAttackPoisonedEnemyApplyPoison > 0, sourceRuntime.role == .hero, targetIsPoisoned, targetAlive {
-            state.damageEvents.append(contentsOf: context.applyDecayingDoT(
-                keyword: .poison,
-                potency: triggers.onHeroAttackPoisonedEnemyApplyPoison,
+        if source.role == .hero, targetIsPoisoned, targetAlive {
+            state.damageEvents.append(contentsOf: applyCompanionSpitPoison(
                 to: target,
-                sourceActorID: sourceActorID,
-                dealImmediateDamage: false,
-                suppressAffixReactions: true
+                in: &context
             ))
         }
+    }
+
+    private static func applyCompanionSpitPoison(
+        to target: Combatant,
+        in context: inout BattleState
+    ) -> [ActionEvent] {
+        guard let companionTriggers = CombatTriggerEngine.companionReactingToHeroTriggers(in: context),
+              companionTriggers.onHeroAttackPoisonedEnemyApplyPoison > 0
+        else { return [] }
+        return context.applyDecayingDoT(
+            keyword: .poison,
+            potency: companionTriggers.onHeroAttackPoisonedEnemyApplyPoison,
+            to: target,
+            sourceActorID: context.roster.companion.id,
+            dealImmediateDamage: false,
+            suppressAffixReactions: true
+        )
     }
 
     /// Chance-based on-hit applications (Direct Hit Bleed, Ambush Bleed, Raise Minion).

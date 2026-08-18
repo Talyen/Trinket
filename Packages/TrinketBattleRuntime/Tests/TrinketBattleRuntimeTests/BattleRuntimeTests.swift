@@ -76,6 +76,39 @@ struct BattleRuntimeTests {
         #expect(runtime.lifecyclePhase == .idle)
     }
 
+    @Test("keepPreparedRuns drops stale prepared configurations")
+    func keepPreparedRunsDropsStaleConfigurations() {
+        let runtime = BattleRuntimeStore()
+        let kept = makeConfiguration(runKey: BattleRunKey("labyrinth:keep"))
+        let dropped = makeConfiguration(runKey: BattleRunKey("labyrinth:drop"))
+
+        #expect(runtime.prepareBattleRun(kept))
+        #expect(runtime.prepareBattleRun(dropped))
+
+        runtime.keepPreparedRuns([BattleRunKey("labyrinth:keep")])
+
+        #expect(runtime.hasPreparedRun(BattleRunKey("labyrinth:keep")))
+        #expect(!runtime.hasPreparedRun(BattleRunKey("labyrinth:drop")))
+
+        #expect(
+            !runtime.activatePreparedBattle(
+                runKey: BattleRunKey("labyrinth:drop"),
+                heroID: "hero",
+                companionID: "companion",
+                enemyID: "enemy"
+            )
+        )
+        #expect(
+            runtime.activatePreparedBattle(
+                runKey: BattleRunKey("labyrinth:keep"),
+                heroID: "hero",
+                companionID: "companion",
+                enemyID: "enemy"
+            )
+        )
+        #expect(runtime.activeBattle?.id == kept.id)
+    }
+
     private func makeConfiguration(runKey: BattleRunKey) -> BattleRunConfiguration {
         BattleRunConfiguration(
             runKey: runKey,

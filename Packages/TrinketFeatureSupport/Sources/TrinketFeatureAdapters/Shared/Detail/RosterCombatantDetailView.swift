@@ -8,7 +8,7 @@ import TrinketPersistence
 /// Editable roster combatant detail wired from the player save.
 /// Lives in Shared so `State/` does not construct feature/shared views.
 public struct RosterCombatantDetailView: View {
-    @Environment(PlayerSaveStore.self) private var appState
+    @Environment(PlayerSaveStore.self) private var playerSave
 
     let kind: CombatantDetailContext.Kind
     let combatantID: String
@@ -38,52 +38,50 @@ public struct RosterCombatantDetailView: View {
         if let combatant {
             CombatantDetailPane(
                 combatant: combatant,
-                progression: appState.roster.progression(for: combatant),
+                progression: playerSave.roster.progression(for: combatant),
                 loadout: Binding(
-                    get: { appState.roster.loadout(for: combatant) },
+                    get: { playerSave.roster.loadout(for: combatant) },
                     set: { newValue in
-                        var updated = appState.roster
-                        updated.setLoadout(newValue, for: combatant)
-                        appState.roster = updated
+                        persistRoster {
+                            $0.setLoadout(newValue, for: combatant)
+                        }
                     }
                 ),
                 equipmentLoadout: Binding(
-                    get: { appState.roster.equipmentLoadout(for: combatant) },
+                    get: { playerSave.roster.equipmentLoadout(for: combatant) },
                     set: { newValue in
-                        var updated = appState.roster
-                        updated.setEquipmentLoadout(newValue, for: combatant)
-                        appState.roster = updated
+                        persistRoster {
+                            $0.setEquipmentLoadout(newValue, for: combatant)
+                        }
                     }
                 ),
                 inventoryItems: Binding(
-                    get: { appState.inventory.items },
+                    get: { playerSave.inventory.items },
                     set: { newItems in
-                        var updated = appState.inventory
-                        updated.items = newItems
-                        appState.inventory = updated
+                        _ = playerSave.rosterStore.setInventoryItems(newItems)
                     }
                 ),
                 unlockedTalents: Binding(
-                    get: { appState.roster.unlockedTalents(for: combatant) },
+                    get: { playerSave.roster.unlockedTalents(for: combatant) },
                     set: { newTalents in
-                        var updated = appState.roster
-                        updated.setUnlockedTalents(newTalents, for: combatant)
-                        appState.roster = updated
+                        persistRoster {
+                            $0.setUnlockedTalents(newTalents, for: combatant)
+                        }
                     }
                 ),
-                allowsEditing: appState.roster.isUnlocked(combatant),
+                allowsEditing: playerSave.roster.isUnlocked(combatant),
                 hapticsEnabled: hapticsEnabled,
                 effectsVolume: effectsVolume,
                 hidesNavigationBar: hidesNavigationBar,
                 onUnlockTalent: { node, tree in
-                    var updated = appState.roster
-                    _ = updated.unlockTalent(node: node, inTree: tree, for: combatant.id)
-                    appState.roster = updated
+                    persistRoster {
+                        _ = $0.unlockTalent(node: node, inTree: tree, for: combatant.id)
+                    }
                 },
                 onResetTalents: {
-                    var updated = appState.roster
-                    updated.resetTalents(for: combatant.id)
-                    appState.roster = updated
+                    persistRoster {
+                        $0.resetTalents(for: combatant.id)
+                    }
                 }
             )
             .onAppear {
@@ -100,6 +98,10 @@ public struct RosterCombatantDetailView: View {
         }
     }
 
+    private func persistRoster(_ update: (inout PlayerRosterState) -> Void) {
+        _ = playerSave.rosterStore.mutateRoster(update)
+    }
+
     private func resolveCombatant() -> Combatant? {
         let catalog: [Combatant] = switch kind {
         case .hero:
@@ -107,7 +109,7 @@ public struct RosterCombatantDetailView: View {
         case .companion:
             GameContent.companions
         }
-        return appState.roster
+        return playerSave.roster
             .configuredCombatants(catalog)
             .first(where: { $0.id == combatantID })
     }

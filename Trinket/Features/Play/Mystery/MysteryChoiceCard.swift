@@ -13,6 +13,7 @@ struct MysteryChoiceCard: View {
     let isSelected: Bool
     let isDisabled: Bool
     let materialQuantity: Int
+    let experienceAward: Int
     let onSelect: () -> Void
 
     var body: some View {
@@ -236,11 +237,7 @@ struct MysteryChoiceCard: View {
     }
 
     private var previewExperienceAward: Int {
-        let hero = playerSave.roster.activeHero
-        return MysteryEffectApplier.experienceAward(
-            for: playerSave.roster.progression(for: hero),
-            highestLevel: playerSave.roster.highestHeroLevel
-        )
+        experienceAward
     }
 
     private func generatedItemRewardText(

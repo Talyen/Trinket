@@ -102,8 +102,6 @@ public enum TrinketDesign {
         public static let chipPaddingVertical: CGFloat = denseSpacing
         public static let chipEmphasisPaddingHorizontal: CGFloat = snugSpacing
         public static let chipEmphasisPaddingVertical: CGFloat = 9
-        public static let chipUtilityPaddingHorizontal: CGFloat = denseSpacing
-        public static let chipUtilityPaddingVertical: CGFloat = 3
 
         public static let collectionGridMinimum: CGFloat = 150
         public static let collectionGridMaximum: CGFloat = 190

@@ -321,7 +321,7 @@ struct BleedHandler: BattleEffectHandler {
 
     func apply(
         _ effect: Effect,
-        ability: Ability,
+        ability _: Ability,
         source: Combatant,
         target: Combatant,
         action: ActionApplyContext,
@@ -331,11 +331,9 @@ struct BleedHandler: BattleEffectHandler {
         guard context.roster.health(for: target) > 0 else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
-        let bonus = EnemyTraitEngine.bonusBleedPotency(ability: ability, sourceID: source.id, in: context)
-        let adjustedPotency = potency + bonus
         let skipImmediate = action.shouldSkipImmediateDoT(keyword: .bleed)
         let events = DoTApplicator.applyBleed(
-            potency: adjustedPotency,
+            potency: potency,
             to: target,
             sourceActorID: source.id,
             dealImmediateDamage: !skipImmediate,

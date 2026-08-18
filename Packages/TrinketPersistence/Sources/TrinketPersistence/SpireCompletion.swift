@@ -3,17 +3,13 @@ import TrinketContent
 import TrinketCore
 
 public enum SpireCompletion {
-    public static func enemyLevel(for floor: SpireFloor) -> Int {
-        EncounterLevelResolver.spireEnemyLevel(for: floor)
-    }
-
     public static func resolveLoot(
         for floor: SpireFloor,
         worldSeed: UInt64,
         ownedTrinketIDs: Set<String> = [],
         astralChanceBonusPercent: Int = 0
     ) -> BattleLootPackage {
-        let encounterLevel = enemyLevel(for: floor)
+        let encounterLevel = EncounterLevelResolver.spireEnemyLevel(for: floor)
         let enemyIsBoss = GameContent.enemy(matching: floor.enemyID)?.isBoss == true
         let keywordBias: Set<Keyword> = {
             guard let spire = GameContent.spire(id: floor.spireID) else { return [] }
@@ -55,7 +51,7 @@ public enum SpireCompletion {
             return
         }
 
-        let encounterLevel = enemyLevel(for: floor)
+        let encounterLevel = EncounterLevelResolver.spireEnemyLevel(for: floor)
         let resolvedLoot = loot ?? resolveLoot(
             for: floor,
             worldSeed: save.worldSeed,
@@ -82,18 +78,5 @@ public enum SpireCompletion {
         }
 
         save.spires.markFloorCleared(floor.floor, spireID: spireID)
-    }
-
-    /// Generates a Spire floor item (same seed path as `resolveLoot`).
-    public static func makeSpireFloorItem(
-        for floor: SpireFloor,
-        worldSeed: UInt64,
-        astralChanceBonusPercent: Int = 0
-    ) -> InventoryItem {
-        resolveLoot(
-            for: floor,
-            worldSeed: worldSeed,
-            astralChanceBonusPercent: astralChanceBonusPercent
-        ).item
     }
 }

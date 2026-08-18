@@ -34,7 +34,6 @@ struct CombatFeedbackPresenterTests {
         )
         #expect(critical.count == 1)
         #expect(critical[0].feedbackClass == .critical)
-        #expect(critical[0].text.contains("12"))
         #expect(critical[0].secondaryText == nil)
         #expect(critical[0].reactionKind == .critical)
         #expect(critical[0].sourceEventIDs == [10])
@@ -49,15 +48,46 @@ struct CombatFeedbackPresenterTests {
         #expect(abilityItems.count == 1)
         #expect(abilityItems[0].text == "6")
         #expect(abilityItems[0].visualRole == .keyword)
-        #expect(abilityItems[0].chipPresentation.trailingSymbolName == "burst.fill")
 
-        let burnItems = CombatFeedbackPresenter.makeItems(
-            from: [makeEvent(id: 3, kind: .abilityDamage, amount: 5, keyword: .burn)],
+        let sameKind = CombatFeedbackPresenter.makeItems(
+            from: [
+                makeEvent(id: 20, kind: .status, amount: 2, keyword: .bleed),
+                makeEvent(id: 21, kind: .status, amount: 3, keyword: .bleed),
+            ],
             at: .now
         )
-        #expect(burnItems.count == 1)
-        #expect(burnItems[0].visualRole == .keyword)
-        #expect(burnItems[0].chipPresentation.trailingSymbolName == "flame.fill")
+        #expect(sameKind.count == 1)
+        #expect(sameKind[0].label == .amount(-5))
+        #expect(sameKind[0].sourceEventIDs == [20, 21])
+
+        let distinctKinds = CombatFeedbackPresenter.makeItems(
+            from: [
+                makeEvent(id: 30, kind: .abilityDamage, amount: 8, keyword: .physical),
+                makeEvent(id: 31, kind: .status, amount: 3, keyword: .burn),
+            ],
+            at: .now
+        )
+        #expect(distinctKinds.count == 2)
+        #expect(Set(distinctKinds.map(\.feedbackClass)) == [.directDamage, .dot])
+    }
+
+    @Test func afflictedAuraNameEventsDoNotProduceChips() {
+        let items = CombatFeedbackPresenter.makeItems(
+            from: [
+                makeEvent(id: 1, kind: .abilityDamage, amount: 8, keyword: .physical),
+                makeEvent(
+                    id: 2,
+                    kind: .ability,
+                    amount: 0,
+                    keyword: .physical,
+                    abilityName: "Intense Heat"
+                ),
+            ],
+            at: Date(timeIntervalSince1970: 100)
+        )
+        #expect(items.count == 1)
+        #expect(items[0].id == 1)
+        #expect(items[0].feedbackClass == .directDamage)
     }
 
     @Test func consolidatesMatchingShieldEffects() {
@@ -139,8 +169,6 @@ struct CombatFeedbackPresenterTests {
         #expect(items[1].reactionKind == .dodge)
         #expect(items.count == 2)
         #expect(items[1].label == .word(.dodge))
-        #expect(items[1].chipPresentation.text == nil)
-        #expect(items[1].chipPresentation.trailingSymbolName == "figure.run")
     }
 
     @Test func presenterLeavesVisualQueueTimingToBattleSession() {
@@ -355,29 +383,6 @@ extension CombatFeedbackPresenterTests {
         #expect(canvasItems.allSatisfy { !$0.text.contains("Effect") })
     }
 
-    @Test func sameKindAmountsConsolidateWhileDistinctKindsStaySeparate() {
-        let sameKind = CombatFeedbackPresenter.makeItems(
-            from: [
-                makeEvent(id: 1, kind: .status, amount: 2, keyword: .bleed),
-                makeEvent(id: 2, kind: .status, amount: 3, keyword: .bleed),
-            ],
-            at: .now
-        )
-        #expect(sameKind.count == 1)
-        #expect(sameKind[0].label == .amount(-5))
-        #expect(sameKind[0].sourceEventIDs == [1, 2])
-
-        let distinctKinds = CombatFeedbackPresenter.makeItems(
-            from: [
-                makeEvent(id: 1, kind: .abilityDamage, amount: 8, keyword: .physical),
-                makeEvent(id: 2, kind: .status, amount: 3, keyword: .burn),
-            ],
-            at: .now
-        )
-        #expect(distinctKinds.count == 2)
-        #expect(Set(distinctKinds.map(\.feedbackClass)) == [.directDamage, .dot])
-    }
-
     @Test func suppressesCardsControlBuildupAndNumericZeroesButNamesZeroValueStatuses() {
         let items = CombatFeedbackPresenter.makeItems(
             from: [
@@ -392,9 +397,6 @@ extension CombatFeedbackPresenterTests {
         #expect(items.count == 1)
         #expect(items[0].label == .word(.status(.nextHolyStrike)))
         #expect(items[0].visualRole == .beneficialStatus)
-        #expect(items[0].chipPresentation.leadingSymbolName == "arrowshape.up.fill")
-        #expect(items[0].chipPresentation.trailingSymbolName == "sun.max.fill")
-        #expect(items[0].chipPresentation.text == nil)
     }
 
     @Test @MainActor func routesResourceAndNamedStatusVisuals() throws {
@@ -411,37 +413,14 @@ extension CombatFeedbackPresenterTests {
         ].flatMap { CombatFeedbackPresenter.makeItems(from: [$0], at: now) }
 
         let byID = Dictionary(uniqueKeysWithValues: items.map { ($0.id, $0) })
-        #expect(try #require(byID[1]).chipPresentation.trailingTint.symbolName == "circle.circle.fill")
-        #expect(try #require(byID[2]).chipPresentation.trailingTint.symbolName == "moon.stars.fill")
-        #expect(try #require(byID[3]).chipPresentation.trailingTint.symbolName == "moon.stars.fill")
-
-        let thorns = try #require(byID[4]).chipPresentation
         #expect(try #require(byID[4]).label == .word(.status(.thorns)))
-        #expect(thorns.leadingSymbolName == "arrowshape.up.fill")
-        #expect(thorns.trailingSymbolName == "burst.fill")
-        #expect(thorns.text == nil)
-
-        let criticalUp = try #require(byID[6]).chipPresentation
         #expect(try #require(byID[6]).label == .word(.status(.criticalUp)))
-        #expect(criticalUp.leadingSymbolName == "arrowshape.up.fill")
-        #expect(criticalUp.trailingSymbolName == "burst.fill")
-
-        let marked = try #require(byID[7]).chipPresentation
         #expect(try #require(byID[7]).label == .word(.status(.marked)))
-        #expect(marked.leadingSymbolName == nil)
-        #expect(marked.trailingSymbolName == "arrowshape.down.fill")
-
-        let blockDown = try #require(byID[8]).chipPresentation
         #expect(try #require(byID[8]).label == .word(.status(.blockDown)))
-        #expect(blockDown.leadingSymbolName == "arrowshape.down.fill")
-        #expect(blockDown.trailingSymbolName == "shield.fill")
 
         let leech = try #require(byID[9])
         #expect(leech.label == .word(.status(.leech)))
         #expect(leech.visualRole == .beneficialStatus)
-        #expect(leech.chipPresentation.leadingSymbolName == "arrowshape.up.fill")
-        #expect(leech.chipPresentation.trailingSymbolName == "drop")
-        #expect(leech.chipPresentation.text == nil)
     }
 
     @Test func mergesGoldGainsAndSuppressesGoldLossChips() throws {
@@ -458,7 +437,5 @@ extension CombatFeedbackPresenterTests {
         let gain = try #require(items.first)
         #expect(gain.label == .amount(7))
         #expect(gain.visualRole == .keyword)
-        #expect(gain.chipPresentation.text == "7")
-        #expect(gain.chipPresentation.trailingSymbolName == "circle.circle.fill")
     }
 }

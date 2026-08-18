@@ -310,13 +310,12 @@ package enum DeathsDoorEngine {
         on combatant: Combatant,
         in context: inout BattleState
     ) -> [ActionEvent] {
-        guard let runtime = context.roster.runtime(for: combatant),
-              !runtime.hasTriggeredEndlessLegion,
+        guard context.talentActionGuardByActorID[TalentActionGuardKey(kind: .endlessLegion, actorID: combatant.id)] == nil,
               context.roster.health(for: combatant) > 0
         else { return [] }
-        let amount = context.modifiers(for: combatant.id).triggers.onEnemyDefeatReviveSelfHealth
+        let amount = context.modifiers(for: combatant.id).triggers.deathsDoorExpiredHealFlat
         guard amount > 0 else { return [] }
-        context.roster.mutateRuntime(for: combatant) { $0.hasTriggeredEndlessLegion = true }
+        context.talentActionGuardByActorID[TalentActionGuardKey(kind: .endlessLegion, actorID: combatant.id)] = 1
         var restored = 0
         context.roster.mutateRuntime(for: combatant) { runtime in
             let before = runtime.currentHealth

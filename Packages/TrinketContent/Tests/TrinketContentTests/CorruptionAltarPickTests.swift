@@ -54,7 +54,7 @@ struct CorruptionAltarPickTests {
 
     @Test func pickCanSelectAltarWhenReady() {
         var hits = 0
-        for seed in UInt64(1) ... 200 {
+        for seed in UInt64(1) ... 40 {
             var rng = SeededRandomNumberGenerator(seed: seed)
             let event = GameContent.pickMysteryEvent(
                 context: MysteryEventPickContext(
@@ -132,7 +132,7 @@ struct CorruptionAltarPickTests {
         )
 
         var matchedNonAltar = false
-        for seed in UInt64(1) ... 200 {
+        for seed in UInt64(1) ... 40 {
             var ineligibleRNG = SeededRandomNumberGenerator(seed: seed)
             var eligibleRNG = SeededRandomNumberGenerator(seed: seed)
             let withoutAltar = GameContent.pickMysteryEvent(

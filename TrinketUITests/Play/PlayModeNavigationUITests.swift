@@ -30,35 +30,22 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
         launchApp(arguments: TestLaunchArg.allForScreen("labyrinth-map"))
 
         assertExists(AccessibilityID.Play.labyrinthMap)
-        let entryNode = labyrinthFloorNode(index: 0)
+        let entryNode = app.buttons[AccessibilityID.Play.labyrinthFloor1EntryNode]
         assertExists(entryNode)
         tapWhenReady(entryNode)
         assertExists(AccessibilityID.Play.labyrinthNodeInspector)
-        assertExists(AccessibilityID.Play.labyrinthInspectorAction(labyrinthNodeID(from: entryNode)))
+        assertExists(
+            app.buttons.matching(
+                NSPredicate(
+                    format: "identifier BEGINSWITH %@",
+                    AccessibilityID.Play.labyrinthInspectorAction("")
+                )
+            ).firstMatch
+        )
 
-        let lockedNode = labyrinthFloorNode(index: 2)
+        let lockedNode = app.buttons[AccessibilityID.Play.labyrinthFloor1LockedNode]
         assertExists(lockedNode)
         tapWhenReady(lockedNode)
         assertDoesNotExist(AccessibilityID.Play.labyrinthNodeInspector)
-    }
-
-    /// Floor-1 node IDs include the generated biome (`labyrinth-cluster-1-<biome>-nN`).
-    private func labyrinthFloorNode(index: Int) -> XCUIElement {
-        app.buttons.matching(
-            NSPredicate(
-                format: "identifier BEGINSWITH %@ AND identifier ENDSWITH %@",
-                AccessibilityID.Play.labyrinthNode("labyrinth-cluster-1-"),
-                "-n\(index)"
-            )
-        ).firstMatch
-    }
-
-    private func labyrinthNodeID(from node: XCUIElement) -> String {
-        let prefix = AccessibilityID.Play.labyrinthNode("")
-        let identifier = node.identifier
-        if identifier.hasPrefix(prefix) {
-            return String(identifier.dropFirst(prefix.count))
-        }
-        return identifier
     }
 }

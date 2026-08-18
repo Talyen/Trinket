@@ -14,7 +14,7 @@ public enum BattleTurnEngine {
     /// The control meter stays at threshold with a linger duration so Stunned /
     /// Frozen status remains through the following player turn without skipping
     /// a second action.
-    public static func consumeActionSkip( // swiftlint:disable:this function_body_length
+    public static func consumeActionSkip(
         for actor: Combatant,
         context: inout BattleState
     ) -> [ActionEvent] {
@@ -47,59 +47,8 @@ public enum BattleTurnEngine {
         )
         var events = [event]
 
-        // Combatant Talent System: when the enemy recovers from Stun, party talents react
-        // (Second Wind draws a card; Affliction Burst applies Bleed/Poison/Burn).
         if actor.role == .enemy, keyword == .stun {
-            for owner in [BattleParticipant.hero, .companion] {
-                let member = context.roster[owner]
-                guard member.isAlive else { continue }
-                let triggers = context.modifiers(for: member.id).triggers
-                if triggers.onEnemyStunRecoverDrawCard > 0 {
-                    let drawn = BattleCardCombatEngine.drawCards(
-                        count: triggers.onEnemyStunRecoverDrawCard,
-                        for: owner,
-                        context: &context
-                    )
-                    if drawn > 0 {
-                        events.append(context.nextEvent(
-                            kind: .effect,
-                            effectKind: .cardsDrawn,
-                            actorName: member.name,
-                            abilityName: "Second Wind",
-                            target: member.combatant,
-                            amount: drawn,
-                            keyword: .physical
-                        ))
-                    }
-                }
-                if triggers.onEnemyStunRecoverApplyAfflictions > 0, context.roster.health(for: actor) > 0 {
-                    let potency = triggers.onEnemyStunRecoverApplyAfflictions
-                    events.append(contentsOf: context.applyDecayingDoT(
-                        keyword: .poison,
-                        potency: potency,
-                        to: actor,
-                        sourceActorID: member.id,
-                        dealImmediateDamage: false,
-                        suppressAffixReactions: true
-                    ))
-                    events.append(contentsOf: context.applyDecayingDoT(
-                        keyword: .burn,
-                        potency: potency,
-                        to: actor,
-                        sourceActorID: member.id,
-                        dealImmediateDamage: false,
-                        suppressAffixReactions: true
-                    ))
-                    events.append(contentsOf: DoTApplicator.applyBleed(
-                        potency: potency,
-                        to: actor,
-                        sourceActorID: member.id,
-                        dealImmediateDamage: false,
-                        suppressAffixReactions: true,
-                        in: &context
-                    ))
-                }
-            }
+            events.append(contentsOf: CombatTriggerEngine.afterEnemyStunRecover(in: &context))
         }
 
         recordAction(for: actor, context: &context)
@@ -318,15 +267,7 @@ extension BattleTurnEngine {
 
             // Pairing feeds on-hit DoT effects; self HP costs are not attack damage.
             if amount > 0, !isSelfHealthCost {
-                var pairedAmount = amount
-                if damageKeyword == .bleed {
-                    pairedAmount += EnemyTraitEngine.bonusBleedPotency(
-                        ability: ability,
-                        sourceID: actor.id,
-                        in: context
-                    )
-                }
-                pairedDirectDamage.append((damageKeyword, pairedAmount))
+                pairedDirectDamage.append((damageKeyword, amount))
             }
         }
 

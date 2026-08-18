@@ -6,6 +6,25 @@ import TrinketFeatureContracts
 import TrinketPersistence
 
 public extension EncounterPlayMode {
+    /// Map/inspector preview; uses the same pins and pick context as `beginMysteryEncounter`.
+    func previewMysteryEvent(
+        origin: PlayEncounterOrigin,
+        forcedEventID: String? = nil
+    ) -> MysteryEvent {
+        MysteryEncounterSession.resolveEvent(
+            origin: origin,
+            forcedEventID: forcedEventID,
+            worldSeed: playerSave.worldSeed,
+            pickContext: mysteryEventPickContext(origin: origin),
+            pinnedLabyrinthEventID: origin.labyrinthNodeID.flatMap {
+                playerSave.labyrinth.nodes[$0]?.mysteryEventID
+            },
+            pinnedJourneyEventID: origin.stage.flatMap {
+                playerSave.journey.pinnedMysteryEventIDs[$0.id]
+            }
+        )
+    }
+
     @discardableResult
     func beginMysteryEncounter(
         origin: PlayEncounterOrigin,
@@ -40,6 +59,7 @@ public extension EncounterPlayMode {
             return pinFailure
         }
 
+        opened.session.installPreviews(save: playerSave.currentSave)
         activeMysteryEncounter = opened.session
         sfxPlayer.play(SFXID.mysteryEvent, volume: options.effectsVolume)
         if opened.session.event.isRecruit {
@@ -152,7 +172,6 @@ public extension EncounterPlayMode {
         mysterySession.clearPersistFailure()
         if mysterySession.showsReward {
             // Progress was already completed inside resolveChoice.
-            // Dismiss only — never re-grant.
             sfxPlayer.play(SFXID.victory, volume: options.effectsVolume)
             if dismiss {
                 activeMysteryEncounter = nil
@@ -161,6 +180,14 @@ public extension EncounterPlayMode {
         }
         guard mysterySession.showsReveal else {
             return false
+        }
+        if mysterySession.labyrinthNodeID != nil {
+            // Labyrinth recruit already completed the node inside resolveChoice.
+            sfxPlayer.play(SFXID.victory, volume: options.effectsVolume)
+            if dismiss {
+                activeMysteryEncounter = nil
+            }
+            return true
         }
         guard playerSave.persistBatch(logging: "Failed to finish mystery encounter", { save in
             Self.completeMysteryProgress(mysterySession, save: &save)
@@ -182,7 +209,7 @@ public extension EncounterPlayMode {
     }
 
     @discardableResult
-    func applyMysteryOutcome(
+    internal func applyMysteryOutcome(
         _ outcome: MysteryChoiceOutcome,
         session mysterySession: MysteryEncounterSession
     ) -> Bool {
@@ -211,21 +238,29 @@ public extension EncounterPlayMode {
         guard !isRecruit else { return nil }
 
         if let labyrinthNodeID = origin.labyrinthNodeID, pinnedLabyrinthEventID == nil {
-            let didPin = playerSave.persistBatch(logging: "Failed to pin labyrinth mystery event") { save in
-                guard var node = save.labyrinth.nodes[labyrinthNodeID] else { return }
-                node.mysteryEventID = resolvedEventID
-                save.labyrinth.nodes[labyrinthNodeID] = node
+            var didPinEvent = false
+            let didPersist = playerSave.persistBatch(logging: "Failed to pin labyrinth mystery event") { save in
+                didPinEvent = MysteryEventPinApplier.pinLabyrinthEvent(
+                    nodeID: labyrinthNodeID,
+                    eventID: resolvedEventID,
+                    save: &save
+                )
             }
-            if !didPin {
+            if !didPersist || !didPinEvent {
                 return Self.mysteryPinFailureMessage
             }
         }
 
         if let stage = origin.stage, pinnedJourneyEventID == nil, stage.mysteryEvent == nil {
-            let didPin = playerSave.persistBatch(logging: "Failed to pin journey mystery event") { save in
-                save.journey.pinnedMysteryEventIDs[stage.id] = resolvedEventID
+            var didPinEvent = false
+            let didPersist = playerSave.persistBatch(logging: "Failed to pin journey mystery event") { save in
+                didPinEvent = MysteryEventPinApplier.pinJourneyEvent(
+                    stageID: stage.id,
+                    eventID: resolvedEventID,
+                    save: &save
+                )
             }
-            if !didPin {
+            if !didPersist || !didPinEvent {
                 return Self.mysteryPinFailureMessage
             }
         }

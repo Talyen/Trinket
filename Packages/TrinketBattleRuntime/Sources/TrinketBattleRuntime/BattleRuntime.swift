@@ -21,6 +21,8 @@ public protocol BattleRuntime: AnyObject {
 
     @discardableResult
     func prepareBattleRun(_ configuration: BattleRunConfiguration) -> Bool
+    func keepPreparedRuns(_ keys: Set<BattleRunKey>)
+    func hasPreparedRun(_ runKey: BattleRunKey) -> Bool
     func activatePreparedBattle(
         runKey: BattleRunKey,
         heroID: String,
@@ -56,6 +58,18 @@ public final class BattleRuntimeStore: BattleRuntime {
         preparedConfigurations[runKey] = configuration
         lifecyclePhase = .prepared
         return true
+    }
+
+    public func keepPreparedRuns(_ keys: Set<BattleRunKey>) {
+        guard activeBattle == nil else { return }
+        preparedConfigurations = preparedConfigurations.filter { keys.contains($0.key) }
+        if preparedConfigurations.isEmpty {
+            lifecyclePhase = .idle
+        }
+    }
+
+    public func hasPreparedRun(_ runKey: BattleRunKey) -> Bool {
+        preparedConfigurations[runKey] != nil
     }
 
     public func activatePreparedBattle(

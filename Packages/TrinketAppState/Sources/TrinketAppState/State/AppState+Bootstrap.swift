@@ -38,13 +38,7 @@ extension AppState {
             persistSaveImmediately: environment.persistSaveImmediately
         )
         if environment.seedTestProgress {
-            do {
-                try resolvedPlayerSave.applyTestSeed()
-            } catch {
-                appStateLogger.error(
-                    "Failed to apply test seed: \(error.localizedDescription, privacy: .public)"
-                )
-            }
+            try resolvedPlayerSave.applyTestSeed()
         }
         if let startingGold = environment.startingGold, startingGold > 0 {
             resolvedPlayerSave.persistBatch(logging: "Failed to grant starting gold") { save in

@@ -1,0 +1,2282 @@
+[
+  {
+    "file_stem": "DamageTriggers",
+    "family": "damage",
+    "fields": [
+      {
+        "name": "damageBelowHealthPercentThreshold",
+        "type": "Double",
+        "default": "0",
+        "merge": "max"
+      },
+      {
+        "name": "damageBelowHealthPercentKeyword",
+        "type": "Keyword?",
+        "default": "nil",
+        "merge": "coalesce"
+      },
+      {
+        "name": "damageBelowHealthPercentBonus",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "damageAfterDodgeBonus",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "damageWhileTargetFrozenBonus",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "damageWhileTargetStunnedBonus",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "ignoreEnemyMitigationPercent",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "leechIgnoresMitigation",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "firstHitDoubleDamage",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "damageIncreasesEveryOtherTurn",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "holyDamagePoisonFlat",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "stunnedDamageMultiplier",
+        "type": "Double",
+        "default": "1",
+        "merge": "mul"
+      },
+      {
+        "name": "criticalChanceBonus",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "damageVsBleedingBonus",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "damageVsPoisonedMultiplier",
+        "type": "Double",
+        "default": "1",
+        "merge": "add_excess"
+      },
+      {
+        "name": "damageVsBurningMultiplier",
+        "type": "Double",
+        "default": "1",
+        "merge": "add_excess"
+      },
+      {
+        "name": "damageVsFrozenMultiplier",
+        "type": "Double",
+        "default": "1",
+        "merge": "mul"
+      },
+      {
+        "name": "holyDamageVsStunnedOrBurningMultiplier",
+        "type": "Double",
+        "default": "1",
+        "merge": "mul"
+      },
+      {
+        "name": "holyDamageVsPoisonedOrBleedingMultiplier",
+        "type": "Double",
+        "default": "1",
+        "merge": "mul"
+      },
+      {
+        "name": "holyDamageVsStunnedBonus",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "holyDamageVsUndeadOrCorruptedMultiplier",
+        "type": "Double",
+        "default": "1",
+        "merge": "mul"
+      },
+      {
+        "name": "frostDamageVsFrozenBonus",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "burnDamageVsFrozenBonusPhysical",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "burnDamageVsNoBlockMultiplier",
+        "type": "Double",
+        "default": "1",
+        "merge": "mul"
+      },
+      {
+        "name": "physicalDamageVsBleedingMultiplier",
+        "type": "Double",
+        "default": "1",
+        "merge": "mul"
+      },
+      {
+        "name": "damagePerMissingHealthEvery",
+        "type": "Int",
+        "default": "0",
+        "merge": "max"
+      },
+      {
+        "name": "damagePerCarriedGoldEvery",
+        "type": "Int",
+        "default": "0",
+        "merge": "max"
+      },
+      {
+        "name": "goldReservesDamageEvery",
+        "type": "Int",
+        "default": "0",
+        "merge": "max"
+      },
+      {
+        "name": "goldReservesDamageCap",
+        "type": "Int",
+        "default": "0",
+        "merge": "max"
+      },
+      {
+        "name": "damageVsLowerHealthEnemyBonus",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "companionDamageVsPoisonedBonus",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "companionDamageVsBurningBonus",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "heroDamageVsStunnedMultiplier",
+        "type": "Double",
+        "default": "1",
+        "merge": "mul"
+      },
+      {
+        "name": "poisonDamageBelowHealthThreshold",
+        "type": "Double",
+        "default": "0",
+        "merge": "max"
+      },
+      {
+        "name": "poisonDamageBelowHealthMultiplier",
+        "type": "Double",
+        "default": "1",
+        "merge": "mul"
+      },
+      {
+        "name": "bleedTickCritChancePercent",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "burnDamageDoubleChancePercent",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "partyCritChanceWhileCompanionAboveHealthThreshold",
+        "type": "Double",
+        "default": "0",
+        "merge": "max"
+      },
+      {
+        "name": "partyCritChanceWhileCompanionAboveHealthBonus",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "heroCritChanceWhileCompanionAlive",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "critChancePerBleedingEnemy",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "partyCritChanceWhileGoldAbove",
+        "type": "Int",
+        "default": "0",
+        "merge": "max"
+      },
+      {
+        "name": "partyCritChanceWhileGoldAboveBonus",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "partyAllStatsBonusBelowHealthThreshold",
+        "type": "Double",
+        "default": "0",
+        "merge": "max"
+      },
+      {
+        "name": "partyAllStatsBonusBelowHealthAmount",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      }
+    ]
+  },
+  {
+    "file_stem": "AttackTriggers",
+    "family": "attack",
+    "fields": [
+      {
+        "name": "attacksApplyPoison",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "physicalAttackApplyBleed",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "physicalAttackApplyBleedAndStun",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "physicalAttackFlatStunBuildup",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "basicAttackApplyBleed",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "basicAttackFreezeBuildup",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "criticalApplyPoison",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "criticalApplyBurn",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "criticalApplyStunBuildup",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "holyAttackApplyBurnAndStunBuildup",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onAttackStealGold",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "basicAttackStealGold",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onAttackFrozenEnemyGainMana",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onAttackFrozenEnemyGainBlock",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onAttackStunnedEnemyGold",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onAttackStunnedEnemyBlock",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "holyDamageNextHitBonus",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "holyDamageNextAttackHolyBonus",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onBleedDamageNextBasicGuaranteedCrit",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "nextAttackBonusOnFullHealth",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "leechOverhealDamageBonus",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onHeroSpendManaCompanionNextAttackBonus",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "partyBasicAttackHolyBonus",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "partyHolyDamageBonusWhileCompanionFullHealth",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "partyDamageBonusWhileCompanionFullHealth",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "partyPhysicalDamageBonusFirstTurns",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "partyPhysicalDamageBonusFirstTurnCount",
+        "type": "Int",
+        "default": "0",
+        "merge": "max"
+      },
+      {
+        "name": "attackBurstChancePercent",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "attackBurstDamage",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "attackBurstBlock",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "directHitBleedChancePercent",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "attackApplyBleed",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onHeroAttackPoisonedEnemyApplyPoison",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onPhysicalDamageGainBlock",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "critStealEnemyBlock",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "criticalPurgeCount",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "criticalPurgeAll",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      }
+    ]
+  },
+  {
+    "file_stem": "BlockTriggers",
+    "family": "block",
+    "fields": [
+      {
+        "name": "blockBrokenBlockFlat",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "holyDamageBlockFlat",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "stunDamageBlockFlat",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "blockPerTurn",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "blockGainThornsPercent",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "sunderingBlockMultiplier",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "blockRetainsThreeQuarters",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "blockAbsorbsCompanionDamage",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "onEnemyBlockBrokenDealPhysical",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "postBlockOverflowDamageMultiplier",
+        "type": "Double",
+        "default": "1",
+        "merge": "mul"
+      },
+      {
+        "name": "maxDamagePerHitCap",
+        "type": "Int",
+        "default": "0",
+        "merge": "max"
+      },
+      {
+        "name": "blockGainedMaxHealthEvery",
+        "type": "Int",
+        "default": "0",
+        "merge": "max"
+      },
+      {
+        "name": "shieldDamageBonusWhileBlocked",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "physicalBlockBreakMultiplier",
+        "type": "Double",
+        "default": "1",
+        "merge": "mul"
+      },
+      {
+        "name": "holyBlockBreakMultiplier",
+        "type": "Double",
+        "default": "1",
+        "merge": "mul"
+      },
+      {
+        "name": "physicalBlockIgnorePercent",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "physicalIgnoresBlockVsStunnedOrFrozen",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "stunnedEnemyLoseAllBlock",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "holyIgnoresBlock",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "holyIgnoresBlockAndDodge",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "burnIgnoresBlockAndMitigation",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "poisonStripsBlockBeforeHealth",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "bleedStripsBlockPerTurn",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "spellDamageTakenReductionWhileBlocked",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "companionBlockSharesToHeroPercent",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onBlockHitDealHoly",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onBlockReduceAttackerAccuracyPercent",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onBlockReduceAttackerAccuracyTurns",
+        "type": "Int",
+        "default": "0",
+        "merge": "max"
+      },
+      {
+        "name": "companionBlockProtectsHeroPercent",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onAnyHealthLossGainBlock",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onSelfHealthLossGainBlock",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "companionFatalDamageRedirectBlock",
+        "type": "Int",
+        "default": "0",
+        "merge": "max"
+      },
+      {
+        "name": "onEnemyFrozenGainBlock",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onCompanionTakeDamageGrantHeroBlock",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "startBattleBlock",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "blockPerGoldEarnedEvery",
+        "type": "Int",
+        "default": "0",
+        "merge": "max"
+      },
+      {
+        "name": "blockPerGoldCollectedEvery",
+        "type": "Int",
+        "default": "0",
+        "merge": "max"
+      },
+      {
+        "name": "onBurnDamageGainBlock",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onAllyBurnDamageGainBlock",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onHolyDamagePartyBlock",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "physicalDamageBlockPercent",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      }
+    ]
+  },
+  {
+    "file_stem": "MitigationTriggers",
+    "family": "mitigation",
+    "fields": [
+      {
+        "name": "passiveMitigationFlat",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "thornsPercent",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "bleedResistance",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "absorbHeroDamageFlat",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "frozenEnemyDamageReductionFlat",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "bleedingEnemyDamageReductionFlat",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "stunnedEnemyNextTurnDamageMultiplier",
+        "type": "Double",
+        "default": "1",
+        "merge": "mul"
+      },
+      {
+        "name": "enemyBleedStacksDamageReductionStacks",
+        "type": "Int",
+        "default": "0",
+        "merge": "max"
+      },
+      {
+        "name": "enemyBleedStacksDamageReductionPercent",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "poisonedEnemyAccuracyPenaltyPercent",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "poisonedEnemyMissChancePercent",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "frozenEnemyMissChanceVsCompanionPercent",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "holyDamageTargetMissNextAttack",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "holyDamageReduceTargetDamage",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "bleedingEnemyAttackDealDamage",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onAllyDamageHeal",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "damageReductionPerUnspentManaEvery",
+        "type": "Int",
+        "default": "0",
+        "merge": "max"
+      },
+      {
+        "name": "toughnessOnHit",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "toughnessOnHitCap",
+        "type": "Int",
+        "default": "0",
+        "merge": "max"
+      },
+      {
+        "name": "blockedControlBurnResistance",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "afflictionResistance",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      }
+    ]
+  },
+  {
+    "file_stem": "DotTriggers",
+    "family": "dot",
+    "fields": [
+      {
+        "name": "burnDecaySlowPercent",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "poisonDecaySlowPercent",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "poisonDecayIncreaseChance",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onBleedApplyPoison",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onBurnApplyPoison",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onBleedDealBurnDamage",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "freezeDamageWhileBurningBonus",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onBleedDamagePoisonTick",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onBleedAppliedToBleedingExtendTurns",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onBleedAppliedToBleedingDealDamage",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "bleedsIgnoreMitigation",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "onBleedDamageHealSelf",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onBurnTickHolyDamage",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "burnTicksTwicePerTurn",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "damagePerBurnPotencyPercent",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "burnIncreaseChancePercent",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "poisonThresholdStunAmount",
+        "type": "Int",
+        "default": "0",
+        "merge": "max"
+      },
+      {
+        "name": "poisonDamageLeechPercent",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onCritDoubleBleedDuration",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "criticalOnBleedingDetonateBleed",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "onBurnDamageDetonateBleed",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "freezeDamageLeech",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "poisonDamageLeech",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "bleedDamageGoldFlat",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "burnDamageManaRestoreThreshold",
+        "type": "Int",
+        "default": "0",
+        "merge": "max"
+      },
+      {
+        "name": "onBurnDamageRestoreManaPerTurnCap",
+        "type": "Int",
+        "default": "0",
+        "merge": "max"
+      }
+    ]
+  },
+  {
+    "file_stem": "ControlTriggers",
+    "family": "control",
+    "fields": [
+      {
+        "name": "freezeExtraActionSkips",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "physicalStunBuildupPercent",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "freezeBuildupDoesNotDecay",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "frozenEnemyCannotBlockOrHeal",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "enemyStunExtraActionSkips",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onEnemyStunRecoverDrawCard",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onEnemyStunRecoverApplyAfflictions",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "enemyStunThresholdReductionPercent",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onStunEnemyApplyBurn",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onceBelowHealthPercentStunAllEnemies",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "freezeCardsPlayedThisTurnFreezeAll",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "spendManaFreezeThreshold",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "everyNTurnsFreezeAllEnemiesInterval",
+        "type": "Int",
+        "default": "0",
+        "merge": "max"
+      },
+      {
+        "name": "everyNTurnsFreezeAllEnemiesAmount",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "everyNTurnsStunBuildupInterval",
+        "type": "Int",
+        "default": "0",
+        "merge": "max"
+      },
+      {
+        "name": "everyNTurnsStunBuildupAmount",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "everyNTurnsTeamBlockAmount",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "enemyStunnedApplyMarked",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "enemyStunnedPurgeCount",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "enemyStunnedPurgeAll",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "stunDealPhysicalFlat",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "dodgeDealStunFlat",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onDodgeAttackerStunBuildup",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onceBelowHealthPercentThreshold",
+        "type": "Double",
+        "default": "0",
+        "merge": "max"
+      },
+      {
+        "name": "turnFreezeDamageAllEnemies",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      }
+    ]
+  },
+  {
+    "file_stem": "DodgeTriggers",
+    "family": "dodge",
+    "fields": [
+      {
+        "name": "dodgeChanceBonus",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "dodgeBlockFlat",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "dodgeApplyPoison",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "dodgeGoldFlat",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "dodgeHealFlat",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "dodgeChanceBelowHealthPercentThreshold",
+        "type": "Double",
+        "default": "0",
+        "merge": "max"
+      },
+      {
+        "name": "dodgeChanceBelowHealthPercentBonus",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onDodgeDrawCardForHero",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "nextAttackDoubleAfterDodge",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "onDodgeDelayAttackerTurn",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "onDodgeGrantHeroBlock",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onDodgePartyMana",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onDodgeCounterDamage",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onDodgeCounterBasicAttack",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "critMultiplierPerDodge",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onDodgeNextPartyHitGuaranteedCritical",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "onCompanionDodgeGrantHeroDodgePercent",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "autoDodgeAfterFirstHitPerTurn",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "nextAttackBleedAfterDodge",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onDodgeApplyPoisonOrBleed",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onDodgePartyNextCardDamageBonus",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onApplyBurnDodgeChanceUntilNextTurn",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "dodgeChanceVsBleedingEnemiesBonus",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "firstAttackGuaranteedCritical",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "swapAndDodgeForHeroChance",
+        "type": "Double",
+        "default": "0",
+        "merge": "max"
+      },
+      {
+        "name": "redirectSingleTargetAttacksToHero",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "untargetableAboveHealthPercent",
+        "type": "Double",
+        "default": "0",
+        "merge": "max"
+      }
+    ]
+  },
+  {
+    "file_stem": "ManaTriggers",
+    "family": "mana",
+    "fields": [
+      {
+        "name": "spendManaBlockFlat",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "spendManaRandomDoTFlat",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "gainManaBlockFlat",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "leechRestoreManaFlat",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "drawOnSpendMana",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "repeatManaEmpowerment",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "unspentManaConvertsToBlock",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "spendManaThresholdCleanseCount",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "spendManaEmpowerNextCardThreshold",
+        "type": "Int",
+        "default": "0",
+        "merge": "max"
+      },
+      {
+        "name": "nextCardEmpowerPercent",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "startTurnFullManaDrawCards",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "firstSkillCardPlaysTwicePerBattle",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "onReachZeroManaRestoreMana",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "spendManaChaosRiftThreshold",
+        "type": "Int",
+        "default": "0",
+        "merge": "max"
+      },
+      {
+        "name": "spendManaChaosRiftDamage",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onGainManaHealFlat",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "startBattleBonusMana",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "spendManaDamageBonusPerMana",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onHeroSpendManaGainBlock",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "spendManaRefundChancePercent",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "empowermentCostReduction",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "healingEmpowermentCostReduction",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "bonusManaOnTurns",
+        "type": "[Int]",
+        "default": "[]",
+        "merge": "union"
+      },
+      {
+        "name": "spendManaThresholdBlockThreshold",
+        "type": "Int",
+        "default": "0",
+        "merge": "max"
+      },
+      {
+        "name": "spendManaThresholdBlockBlock",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "spendManaThresholdBlockHealth",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "manaGainDoubleChancePercent",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "spendManaThresholdAutoPlayCard",
+        "type": "Int",
+        "default": "0",
+        "merge": "max"
+      },
+      {
+        "name": "onSpendManaBurnBurningEnemies",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onHeroSpendManaApplyRandomAffliction",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "cardsPlayedManaThreshold",
+        "type": "Int",
+        "default": "0",
+        "merge": "max"
+      },
+      {
+        "name": "cardsPlayedManaFlat",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onBurnDamageRestoreManaFlat",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "drawEveryOtherTurn",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "drawOnHealthLoss",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "companionCardsPerTurn",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      }
+    ]
+  },
+  {
+    "file_stem": "GoldTriggers",
+    "family": "gold",
+    "fields": [
+      {
+        "name": "gainGoldBonusHealSelf",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "defeatEnemyGoldFlat",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "leechGoldFlat",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "goldPerTurn",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "victoryGoldFlat",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "victoryGoldCoin",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "criticalGoldFlat",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "criticalActionGoldFlat",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "startBattleBonusGold",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onGainGoldDrawCardOncePerTurn",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "onGainGoldHealParty",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "goldEveryNTurnsInterval",
+        "type": "Int",
+        "default": "0",
+        "merge": "max"
+      },
+      {
+        "name": "goldEveryNTurnsAmount",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onEnemyAbilityGold",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "criticalVsStunnedEnemyGold",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "critOnDefeatGold",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "partyGoldGainedPercent",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "goldAbsorbsDamage",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "goldDoubledWhileFullHealth",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "onGainGoldDoubleStatusEffectsNextCard",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      }
+    ]
+  },
+  {
+    "file_stem": "HealingTriggers",
+    "family": "healing",
+    "fields": [
+      {
+        "name": "cleanseSelfHeal",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "cleanseBonusHeal",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onceBelowHealthPercentHeal",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "blockOnDeathsDoor",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "holyDamageHealFlat",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "burnDamageHealFlat",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "healthRestoredPoisonPercent",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "healthPerTurn",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "overhealConvertsToBlock",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "overhealConvertsToMaxHealth",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "overhealConvertsToMaxHealthCap",
+        "type": "Int",
+        "default": "0",
+        "merge": "max"
+      },
+      {
+        "name": "overhealConvertsToMaxHealthPerEvent",
+        "type": "Int",
+        "default": "0",
+        "merge": "max"
+      },
+      {
+        "name": "overhealShieldCap",
+        "type": "Int",
+        "default": "0",
+        "merge": "max"
+      },
+      {
+        "name": "leechOverhealTransfersToCompanion",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "leechSharesToHeroPercent",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onCompanionLeechRestoreHeroMana",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "leechHealingVsAfflictedMultiplier",
+        "type": "Double",
+        "default": "1",
+        "merge": "mul"
+      },
+      {
+        "name": "leechPercentVsLowHealthEnemies",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "leechBonusHealVsLowHealthEnemies",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "leechChancePercent",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "healingBelowHealthPercentThreshold",
+        "type": "Double",
+        "default": "0",
+        "merge": "max"
+      },
+      {
+        "name": "healingBelowHealthPercentMultiplier",
+        "type": "Double",
+        "default": "1",
+        "merge": "mul"
+      },
+      {
+        "name": "healOverTimeOnHealTurns",
+        "type": "Int",
+        "default": "0",
+        "merge": "max"
+      },
+      {
+        "name": "healOverTimeOnHealAmount",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onHealGrantBlock",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onHealRestoreCasterMana",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "holyDamageHealLowestAllyFlat",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "holyDamageHealHeroFlat",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "endTurnWithBlockHealFlat",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "endOfTurnHealLowestAlly",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "cardsPlayedHealPartyThreshold",
+        "type": "Int",
+        "default": "0",
+        "merge": "max"
+      },
+      {
+        "name": "cardsPlayedHealPartyAmount",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "healthRegenFirstTurnsAmount",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "healthRegenFirstTurnsDuration",
+        "type": "Int",
+        "default": "0",
+        "merge": "max"
+      },
+      {
+        "name": "healthRegenAboveHalfHealth",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onBurnDamageHealLowestAllyFlat",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "companionLeechSharePercent",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onLeechApplyPoison",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onLeechApplyBleed",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onLeechReduceEnemyStrength",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onLeechReduceEnemyStrengthTurns",
+        "type": "Int",
+        "default": "0",
+        "merge": "max"
+      },
+      {
+        "name": "companionDamageLeechesToHeroPercent",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "leechOnBlockDamage",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "partyRegenPerRound",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      }
+    ]
+  },
+  {
+    "file_stem": "RevivalTriggers",
+    "family": "revival",
+    "fields": [
+      {
+        "name": "onceDeathReviveHealth",
+        "type": "Int",
+        "default": "0",
+        "merge": "max"
+      },
+      {
+        "name": "onceDeathReviveBlock",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "deathsDoorDurationBonusTurns",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "reviveDealBurnDamage",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onSurviveDeathsDoorDamageBonusPercent",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "deathsDoorDodgeAndDebuffImmunity",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "deathsDoorExtraLethalProtection",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "onDeathDealPhysicalDamageAllEnemies",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "guaranteedCritWhileOnDeathsDoor",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "deathsDoorExpiredHealFlat",
+        "type": "Int",
+        "default": "0",
+        "merge": "max"
+      },
+      {
+        "name": "onHeroFatalHealPercentMaxHealth",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onAllyDeathsDoorHealAndCleanse",
+        "type": "Int",
+        "default": "0",
+        "merge": "max"
+      },
+      {
+        "name": "surviveDeathsDoorPartyHealPercent",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      }
+    ]
+  },
+  {
+    "file_stem": "CleanseTriggers",
+    "family": "cleanse",
+    "fields": [
+      {
+        "name": "cleanseBonusDraw",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "holyDamageCleanseCount",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "holyDamagePurgeCount",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "holyDamagePurgeAll",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "cleanseBlockPerStack",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "cleanseAffectsBothHeroAndCompanion",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "cleanseReflectDebuffToEnemy",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "autoCleanseTeamPerTurn",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "cleanseAlsoPurgesEnemyBuffs",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "cleanseDodgeChanceBonus",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "cleanseDodgeChanceBonusTurns",
+        "type": "Int",
+        "default": "0",
+        "merge": "max"
+      },
+      {
+        "name": "cleansePartyBlock",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "blockFirstDebuffPerTurn",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "partyDebuffDurationHalved",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "onCleansePoisonDealDamagePerStack",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      }
+    ]
+  },
+  {
+    "file_stem": "EnemyTurnTriggers",
+    "family": "enemyTurn",
+    "fields": [
+      {
+        "name": "negateFirstEnemyAttack",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "negateFirstEnemyAttackChance",
+        "type": "Double",
+        "default": "0",
+        "merge": "max"
+      },
+      {
+        "name": "attackDelayEnemyTurnChancePercent",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "bleedingEnemyActionSkipChancePercent",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "extraCardDrawWhileEnemyBleeding",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "extraCardDrawBelowEnemyHealthPercent",
+        "type": "Double",
+        "default": "0",
+        "merge": "max"
+      },
+      {
+        "name": "ultimateAppliesBurnPotency",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onHeroHolyAbilityCompanionHolyDamage",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onHolyDamageRestoreMana",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "burnReducesEnemyHealingAndLeechPercent",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      }
+    ]
+  },
+  {
+    "file_stem": "OnHitTriggers",
+    "family": "onHit",
+    "fields": [
+      {
+        "name": "onHitAttackerBurn",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onHitAttackerFreezeBuildup",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onHitAttackerPoison",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onHitAttackerBleedPotency",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onHitAttackerBleedTurns",
+        "type": "Int",
+        "default": "0",
+        "merge": "max"
+      },
+      {
+        "name": "onHitAttackerHoly",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      }
+    ]
+  }
+]

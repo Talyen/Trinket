@@ -10,75 +10,34 @@ struct VictoryView: View {
     let primaryActionTitle: String
     let onPrimaryAction: () -> Bool
 
-    @State private var isCompleting = false
-    @State private var revealSequence = RewardRevealSequenceState()
-    @State private var selectedRewardItem: InventoryItem?
-
     var body: some View {
-        RewardRevealShell(
+        RewardRevealExperienceScreen(
             eyebrow: nil,
-            eyebrowAccessibilityIdentifier: nil,
             title: "Victory",
-            subtitle: nil,
             titleAccessibilityIdentifier: AccessibilityID.Battle.victory,
-            titleColor: TrinketDesign.Colors.accent,
-            content: {
-                VStack(spacing: TrinketDesign.Metrics.largeSpacing) {
-                    experiencePanel
-                    RewardRevealLootSection(
-                        items: summary.rewardItems,
-                        gold: summary.totalGold,
-                        materials: summary.materialRewards,
-                        showsIncreasePrefix: true,
-                        emptyMessage: "No additional rewards.",
-                        itemAccessibilityID: AccessibilityID.Battle.rewardItem,
-                        areItemsVisible: revealSequence.areItemsVisible,
-                        visibleWalletRewardCount: revealSequence.visibleWalletRewardCount,
-                        walletColumnCount: walletRewardCount,
-                        onSelectItem: { selectedRewardItem = $0 }
-                    )
-                    .accessibilityIdentifier(AccessibilityID.Battle.rewards)
-                }
-            },
-            primaryActionTitle: revealSequence.isSequenceComplete ? primaryActionTitle : nil,
+            hasExperienceAwards: summary.hasExperienceAwards,
+            loot: .init(
+                items: summary.rewardItems,
+                gold: summary.totalGold,
+                materials: summary.materialRewards,
+                showsIncreasePrefix: true,
+                emptyMessage: "No additional rewards.",
+                itemAccessibilityID: AccessibilityID.Battle.rewardItem,
+                lootAccessibilityIdentifier: AccessibilityID.Battle.rewards
+            ),
+            primaryActionTitle: primaryActionTitle,
             primaryActionAccessibilityIdentifier: primaryActionAccessibilityIdentifier,
-            isPrimaryActionDisabled: isCompleting,
-            onPrimaryAction: completeVictory,
+            onPrimaryAction: onPrimaryAction,
             contentTopPadding: TrinketDesign.Metrics.smallSpacing,
-            contentStackSpacing: TrinketDesign.Metrics.largeSpacing,
-            pinsPrimaryActionToBottom: false
-        )
-        .sheet(item: $selectedRewardItem) { item in
-            NavigationStack {
-                ItemDetailView(item: item)
-            }
-            .trinketDetailSheet()
-        }
-        .onAppear {
-            if !summary.hasExperienceAwards {
-                revealSequence.start(
-                    itemCount: summary.rewardItems.count,
-                    walletCount: walletRewardCount
-                )
-            }
-        }
-        .onDisappear {
-            // Cancel without completion left Loot All / Continue locked when
-            // @State survived (same class as ExperienceBar onDisappear snap).
-            revealSequence.cancel(walletCount: walletRewardCount)
+            contentStackSpacing: TrinketDesign.Metrics.largeSpacing
+        ) { onExperienceBarCompleted in
+            experiencePanel(onExperienceBarCompleted: onExperienceBarCompleted)
         }
     }
 
     @ViewBuilder
-    private var experiencePanel: some View {
+    private func experiencePanel(onExperienceBarCompleted: @escaping () -> Void) -> some View {
         if summary.hasExperienceAwards {
-            let onExperienceBarCompleted = {
-                revealSequence.experienceBarCompleted(
-                    requiredCount: 2,
-                    itemCount: summary.rewardItems.count,
-                    walletCount: walletRewardCount
-                )
-            }
             VStack(alignment: .leading, spacing: TrinketDesign.Metrics.mediumSpacing) {
                 ExperienceBar(
                     combatantName: summary.heroName,
@@ -116,15 +75,6 @@ struct VictoryView: View {
             .trinketSurface(.secondary)
             .accessibilityIdentifier(AccessibilityID.Battle.experience)
         }
-    }
-
-    private func completeVictory() {
-        guard revealSequence.isSequenceComplete, !isCompleting else { return }
-        isCompleting = onPrimaryAction()
-    }
-
-    private var walletRewardCount: Int {
-        (summary.totalGold > 0 ? 1 : 0) + summary.materialRewards.count(where: { $0.quantity > 0 })
     }
 
     private var primaryActionAccessibilityIdentifier: String {

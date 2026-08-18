@@ -24,17 +24,7 @@ package enum ControlMeterEngine {
             : amount
         guard pacedAmount > 0 else { return [] }
 
-        let profile = context.modifiers(for: combatant.id)
         var adjustedAmount = pacedAmount
-        if profile.triggers.controlResistancePercent > 0 {
-            adjustedAmount = CombatRounding.scaled(adjustedAmount, multiplier: 1 - min(1, profile.triggers.controlResistancePercent))
-        }
-        if keyword == .freeze, profile.triggers.freezeControlVulnerabilityPercent > 0 {
-            adjustedAmount = CombatRounding.scaled(
-                adjustedAmount,
-                multiplier: 1 + profile.triggers.freezeControlVulnerabilityPercent
-            )
-        }
         // Steadfast / Lichbone: control-buildup resistance.
         if keyword == .stun || keyword == .freeze {
             let targetTriggers = context.modifiers(for: combatant.id).triggers

@@ -7,6 +7,9 @@ public struct AbilityDetailView: View {
     var primaryActionTitle: String?
     var primaryActionAccessibilityID: String?
     var onPrimaryAction: (() -> Void)?
+    var showsDoneButton = false
+
+    @Environment(\.dismiss) private var dismiss
 
     @ScaledMetric(relativeTo: .title) private var placeholderIconSize =
         TrinketDesign.Metrics.cardPlaceholderIconPointSize
@@ -15,35 +18,43 @@ public struct AbilityDetailView: View {
         ability: Ability,
         primaryActionTitle: String? = nil,
         primaryActionAccessibilityID: String? = nil,
-        onPrimaryAction: (() -> Void)? = nil
+        onPrimaryAction: (() -> Void)? = nil,
+        showsDoneButton: Bool = false
     ) {
         self.ability = ability
         self.primaryActionTitle = primaryActionTitle
         self.primaryActionAccessibilityID = primaryActionAccessibilityID
         self.onPrimaryAction = onPrimaryAction
+        self.showsDoneButton = showsDoneButton
     }
 
     public var body: some View {
-        DetailHeroScrollShell(title: ability.name) { baseHeight, overscroll in
-            DetailHeroHeader(
-                eyebrow: ability.tier.rawValue.uppercased(),
-                title: ability.name,
-                baseHeight: baseHeight,
-                overscroll: overscroll
-            ) {
-                abilityArtwork
-            }
-            .accessibilityIdentifier(AccessibilityID.LoadoutPicker.abilityDetail(ability.id))
-        } bodyContent: {
-            DetailSection(
-                "Traits",
-                sectionID: AccessibilityID.Battle.abilityDetailEffect
-            ) {
-                VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
-                    DetailTraitRow(description: ability.summary)
+        DetailHeroScrollShell(
+            title: ability.name,
+            showsDoneButton: showsDoneButton,
+            onDone: { dismiss() },
+            header: { baseHeight, overscroll in
+                DetailHeroHeader(
+                    eyebrow: ability.tier.rawValue.uppercased(),
+                    title: ability.name,
+                    baseHeight: baseHeight,
+                    overscroll: overscroll
+                ) {
+                    abilityArtwork
+                }
+                .accessibilityIdentifier(AccessibilityID.LoadoutPicker.abilityDetail(ability.id))
+            },
+            bodyContent: {
+                DetailSection(
+                    "Traits",
+                    sectionID: AccessibilityID.Battle.abilityDetailEffect
+                ) {
+                    VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
+                        DetailTraitRow(description: ability.summary)
+                    }
                 }
             }
-        }
+        )
         .safeAreaInset(edge: .bottom) {
             if let primaryActionTitle, let onPrimaryAction {
                 Button(primaryActionTitle) {

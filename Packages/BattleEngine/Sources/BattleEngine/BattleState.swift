@@ -2,6 +2,30 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
+/// Once-per-action or once-per-battle talent gate keyed by actor.
+public struct TalentActionGuardKey: Hashable, Sendable {
+    public enum Kind: Hashable, Sendable {
+        case spendCocoon
+        case spendOvercharge
+        case spendCleanse
+        case spendChaosRift
+        case spendFreeze
+        case darkRecovery
+        case arcaneBurst
+        case surpriseStrike
+        case seismicRoar
+        case endlessLegion
+    }
+
+    public var kind: Kind
+    public var actorID: String
+
+    public init(kind: Kind, actorID: String) {
+        self.kind = kind
+        self.actorID = actorID
+    }
+}
+
 /// Top-level battle facade: UI calls `playCard` / `endTurn`; rule engines mutate
 /// via `package` APIs in `BattleState+*.swift`. Put effect rules in
 /// `EffectHandlers/`, shared math in existing engines, and never add
@@ -55,12 +79,11 @@ public struct BattleState {
     public var healthLossDrawOwnersThisTurn: Set<BattleParticipant>
     public var goldDrawOwnersThisTurn: Set<BattleParticipant>
     public var additionalControlSkipsByCombatantID: [String: Int]
-    public var isResolvingTrinketReaction: Bool
+    public var isResolvingTalentReaction: Bool
     public var isResolvingDoTDetonation: Bool
-    public var isResolvingThornsReaction: Bool
     public var criticalGoldActionByActorID: [String: Int]
     /// Once-per-action guards for combatant talent thresholds (Mana Cocoon, Overcharge, Chaos Rift).
-    public var talentActionGuardByActorID: [String: Int]
+    public var talentActionGuardByActorID: [TalentActionGuardKey: Int]
     /// Spell Echo: combatants who already echoed their first Skill this battle.
     public var skillEchoOwnersThisBattle: Set<String>
     /// Nested damage/heal reaction depth. Values above 1 skip extra talent reactions.
@@ -72,9 +95,9 @@ public struct BattleState {
     /// Authored faction of the enemy in this battle (talent conditions such as Bane of Evil).
     public let enemyFaction: EnemyFaction
 
-    /// Unified party-wide triggers combining hero and companion active traits.
+    /// Party-wide triggers from living allies. Dead companions do not keep auras.
     public var partyTriggers: CombatTraitTriggers {
-        heroModifiers.triggers.merged(with: companionModifiers.triggers)
+        CombatTriggerEngine.livingPartyTriggers(in: self)
     }
 
     private var logProjection: BattleLogProjection?
@@ -112,11 +135,10 @@ public struct BattleState {
         healthLossDrawOwnersThisTurn: Set<BattleParticipant> = [],
         goldDrawOwnersThisTurn: Set<BattleParticipant> = [],
         additionalControlSkipsByCombatantID: [String: Int] = [:],
-        isResolvingTrinketReaction: Bool = false,
+        isResolvingTalentReaction: Bool = false,
         isResolvingDoTDetonation: Bool = false,
-        isResolvingThornsReaction: Bool = false,
         criticalGoldActionByActorID: [String: Int] = [:],
-        talentActionGuardByActorID: [String: Int] = [:],
+        talentActionGuardByActorID: [TalentActionGuardKey: Int] = [:],
         skillEchoOwnersThisBattle: Set<String> = [],
         talentReactionDepth: Int = 0,
         dotRecursionDepth: Int = 0,
@@ -158,9 +180,8 @@ public struct BattleState {
         self.healthLossDrawOwnersThisTurn = healthLossDrawOwnersThisTurn
         self.goldDrawOwnersThisTurn = goldDrawOwnersThisTurn
         self.additionalControlSkipsByCombatantID = additionalControlSkipsByCombatantID
-        self.isResolvingTrinketReaction = isResolvingTrinketReaction
+        self.isResolvingTalentReaction = isResolvingTalentReaction
         self.isResolvingDoTDetonation = isResolvingDoTDetonation
-        self.isResolvingThornsReaction = isResolvingThornsReaction
         self.criticalGoldActionByActorID = criticalGoldActionByActorID
         self.talentActionGuardByActorID = talentActionGuardByActorID
         self.skillEchoOwnersThisBattle = skillEchoOwnersThisBattle
@@ -244,7 +265,7 @@ public struct BattleState {
         healthLossDrawOwnersThisTurn = []
         goldDrawOwnersThisTurn = []
         additionalControlSkipsByCombatantID = [:]
-        isResolvingTrinketReaction = false
+        isResolvingTalentReaction = false
         criticalGoldActionByActorID = [:]
         talentActionGuardByActorID = [:]
         skillEchoOwnersThisBattle = []
@@ -253,7 +274,6 @@ public struct BattleState {
         isResolvingAutoPlayCard = false
 
         isResolvingDoTDetonation = false
-        isResolvingThornsReaction = false
         self.enemyFaction = enemyFaction
 
         _ = appendMilestone(.battleStarted(heroName: hero.name, companionName: companion.name))

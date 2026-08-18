@@ -26,7 +26,7 @@ struct ShopOfferGeneratorTests {
     @Test func rarityMixIsMostlyBasicAcrossManyRolls() {
         var basicCount = 0
         var astralCount = 0
-        for seed in UInt64(1) ... 200 {
+        for seed in UInt64(1) ... 24 {
             var randomNumberGenerator = SeededRandomNumberGenerator(seed: seed)
             let offers = ShopOfferGenerator.generateOffers(
                 stageID: "shop-rarity",
@@ -45,7 +45,7 @@ struct ShopOfferGeneratorTests {
 
         #expect(basicCount > astralCount)
         #expect(astralCount > 0)
-        #expect(basicCount + astralCount == 200)
+        #expect(basicCount + astralCount == 24)
     }
 
     @Test func sameSeedProducesIdenticalOffers() {

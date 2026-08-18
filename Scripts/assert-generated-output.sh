@@ -25,6 +25,21 @@ trinket_set_generated_tracked_paths() {
     "Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentItemBases.generated.swift"
     "Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentTraits.generated.swift"
     "Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentEncounterArt.generated.swift"
+    "Packages/TrinketContent/Sources/TrinketContent/Generated/DamageTriggers.generated.swift"
+    "Packages/TrinketContent/Sources/TrinketContent/Generated/AttackTriggers.generated.swift"
+    "Packages/TrinketContent/Sources/TrinketContent/Generated/BlockTriggers.generated.swift"
+    "Packages/TrinketContent/Sources/TrinketContent/Generated/MitigationTriggers.generated.swift"
+    "Packages/TrinketContent/Sources/TrinketContent/Generated/DotTriggers.generated.swift"
+    "Packages/TrinketContent/Sources/TrinketContent/Generated/ControlTriggers.generated.swift"
+    "Packages/TrinketContent/Sources/TrinketContent/Generated/DodgeTriggers.generated.swift"
+    "Packages/TrinketContent/Sources/TrinketContent/Generated/ManaTriggers.generated.swift"
+    "Packages/TrinketContent/Sources/TrinketContent/Generated/GoldTriggers.generated.swift"
+    "Packages/TrinketContent/Sources/TrinketContent/Generated/HealingTriggers.generated.swift"
+    "Packages/TrinketContent/Sources/TrinketContent/Generated/RevivalTriggers.generated.swift"
+    "Packages/TrinketContent/Sources/TrinketContent/Generated/CleanseTriggers.generated.swift"
+    "Packages/TrinketContent/Sources/TrinketContent/Generated/EnemyTurnTriggers.generated.swift"
+    "Packages/TrinketContent/Sources/TrinketContent/Generated/OnHitTriggers.generated.swift"
+    "Packages/TrinketContent/Sources/TrinketContent/Generated/CombatantTalentCatalog.generated.swift"
   )
 
   if [[ "$include_assets" == true ]]; then

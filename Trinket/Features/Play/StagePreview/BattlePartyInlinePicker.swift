@@ -158,10 +158,8 @@ struct StageBattlePartyPickerSheet: View {
     }
 
     private func select(_ combatant: Combatant, for slot: BattlePartySlot) {
-        var roster = playerSave.roster
-        slot.select(combatant, in: &roster)
-        let didPersist = playerSave.persistBatch(logging: "Failed to persist party selection") {
-            $0.roster = roster
+        let didPersist = playerSave.rosterStore.mutateRoster(logging: "Failed to persist party selection") {
+            slot.select(combatant, in: &$0)
         }
         guard didPersist else {
             persistError = "Your party change was not saved. Try again."
@@ -231,10 +229,8 @@ private struct BattlePartySlotGridView: View {
 
     private func select(_ combatant: Combatant) {
         guard combatant.id != slot.selectedID(in: playerSave.roster) else { return }
-        var roster = playerSave.roster
-        slot.select(combatant, in: &roster)
-        let didPersist = playerSave.persistBatch(logging: "Failed to persist party selection") {
-            $0.roster = roster
+        let didPersist = playerSave.rosterStore.mutateRoster(logging: "Failed to persist party selection") {
+            slot.select(combatant, in: &$0)
         }
         guard didPersist else {
             persistError = "Your party change was not saved. Try again."

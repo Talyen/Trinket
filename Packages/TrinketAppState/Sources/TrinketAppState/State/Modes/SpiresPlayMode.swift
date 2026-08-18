@@ -11,9 +11,18 @@ import TrinketPersistence
 @MainActor
 @Observable
 public final class SpiresPlayMode {
+    private struct PreparationInputs: Equatable {
+        let spireID: SpireID
+        let floor: Int
+        let roster: PlayerRosterState
+        let inventory: PlayerInventoryState
+        let homestead: PlayerHomesteadState
+    }
+
     public let playerSave: PlayerSaveStore
     public let battle: any BattleRuntime
     private let battleLaunch: PlayBattleLaunch
+    private var preparedInputs: PreparationInputs?
 
     init(
         playerSave: PlayerSaveStore,
@@ -33,7 +42,7 @@ public final class SpiresPlayMode {
         for floor: SpireFloor
     ) -> (combatant: Combatant, level: Int)? {
         guard let catalogEnemy = GameContent.enemy(matching: floor.enemyID) else { return nil }
-        let level = SpireCompletion.enemyLevel(for: floor)
+        let level = EncounterLevelResolver.spireEnemyLevel(for: floor)
         return (CombatantLevelScaler.scale(enemy: catalogEnemy, level: level), level)
     }
 
@@ -121,6 +130,9 @@ public final class SpiresPlayMode {
             route: battleRoute(spireID: floor.spireID, floor: floor.floor),
             loot: battleLoot(for: floor)
         )
+        if activated {
+            preparedInputs = nil
+        }
         return activated ? nil : PlayBattleLaunch.activationFailureMessage
     }
 
@@ -138,13 +150,26 @@ public final class SpiresPlayMode {
               let encounter = resolvedEncounter(for: floor)
         else { return }
 
+        let inputs = PreparationInputs(
+            spireID: floor.spireID,
+            floor: floor.floor,
+            roster: playerSave.roster,
+            inventory: playerSave.inventory,
+            homestead: playerSave.homestead
+        )
         let origin = PlayBattleOrigin.spire(spireID: floor.spireID, floor: floor.floor)
-        battleLaunch.prepareCombat(
+        guard inputs != preparedInputs
+            || battle.lifecyclePhase == .idle
+            || !battle.hasPreparedRun(origin.runKey)
+        else { return }
+        if battleLaunch.prepareCombat(
             origin: origin,
             encounter: encounter,
             route: battleRoute(spireID: floor.spireID, floor: floor.floor),
             loot: battleLoot(for: floor)
-        )
+        ) {
+            preparedInputs = inputs
+        }
     }
 
     @discardableResult

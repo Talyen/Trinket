@@ -9,7 +9,6 @@ struct TalentModelsTests {
                     id: "\(keyword.rawValue.lowercased())_r\(row)_\(index)",
                     name: "Talent \(row).\(index)",
                     keyword: keyword,
-                    symbolName: "drop.fill",
                     row: row,
                     description: "Placeholder description for row \(row) node \(index)."
                 )
@@ -35,7 +34,7 @@ struct TalentModelsTests {
 
     @Test func tier1NodesCanBeUnlockedWithPoints() {
         let tree = makeSampleTree()
-        let t1Node = tree.nodes(forTier: 1)[0]
+        let t1Node = tree.nodes(forRow: 1)[0]
 
         #expect(tree.canUnlock(node: t1Node, unlockedNodeIDs: [], availablePoints: 1))
         #expect(!tree.canUnlock(node: t1Node, unlockedNodeIDs: [], availablePoints: 0))
@@ -44,8 +43,8 @@ struct TalentModelsTests {
 
     @Test func tier2NodesRequireAllTier1Nodes() {
         let tree = makeSampleTree()
-        let t1Nodes = tree.nodes(forTier: 1)
-        let t2Node = tree.nodes(forTier: 2)[0]
+        let t1Nodes = tree.nodes(forRow: 1)
+        let t2Node = tree.nodes(forRow: 2)[0]
 
         // Partial Tier 1 (1/2) -> cannot unlock Tier 2
         let partialT1 = Set([t1Nodes[0].id])
@@ -53,22 +52,22 @@ struct TalentModelsTests {
 
         // Full Tier 1 (2/2) -> can unlock Tier 2
         let fullT1 = Set(t1Nodes.map(\.id))
-        #expect(tree.isTierComplete(1, unlockedNodeIDs: fullT1))
+        #expect(tree.isRowComplete(1, unlockedNodeIDs: fullT1))
         #expect(tree.canUnlock(node: t2Node, unlockedNodeIDs: fullT1, availablePoints: 1))
     }
 
     @Test func tier3NodesRequireAllTier2Nodes() {
         let tree = makeSampleTree()
-        let t1Nodes = tree.nodes(forTier: 1)
-        let t2Nodes = tree.nodes(forTier: 2)
-        let t3Node = tree.nodes(forTier: 3)[0]
+        let t1Nodes = tree.nodes(forRow: 1)
+        let t2Nodes = tree.nodes(forRow: 2)
+        let t3Node = tree.nodes(forRow: 3)[0]
 
         let fullT1 = Set(t1Nodes.map(\.id))
         let partialT2 = fullT1.union([t2Nodes[0].id])
         #expect(!tree.canUnlock(node: t3Node, unlockedNodeIDs: partialT2, availablePoints: 2))
 
         let fullT1AndT2 = fullT1.union(t2Nodes.map(\.id))
-        #expect(tree.isTierComplete(2, unlockedNodeIDs: fullT1AndT2))
+        #expect(tree.isRowComplete(2, unlockedNodeIDs: fullT1AndT2))
         #expect(tree.canUnlock(node: t3Node, unlockedNodeIDs: fullT1AndT2, availablePoints: 1))
     }
 

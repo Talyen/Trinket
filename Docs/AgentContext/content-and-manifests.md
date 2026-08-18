@@ -7,6 +7,7 @@ Use for abilities, item bases, stages, art, music, SFX, cinematics, and project 
 | Input | Run | Review |
 |---|---|---|
 | `ContentManifest/` or custom source in `TrinketContent/Content/` | `./Scripts/generate.sh` | Expected catalog diff |
+| `Scripts/trigger_family_schema.json` | `./Scripts/generate.sh` | `Generated/*Triggers.generated.swift` (`CombatTraitTriggers` box stays authored) |
 | `ArtManifest/`, `MusicManifest/`, `SoundManifest/`, `CinematicManifest/`, or matching raw inputs | `./Scripts/generate.sh --assets` | Generated catalog plus expected processed files |
 | `project.yml` | `./Scripts/generate.sh` | Regenerated project diff |
 
@@ -14,6 +15,10 @@ After content edits, stage `Packages/TrinketContent/Sources/TrinketContent/Gener
 
 **Abilities:** author only in `Packages/TrinketContent/Sources/TrinketContent/Content/AbilityCatalog{Basic,Skill,Ultimate}.swift`. To list or understand all abilities, read `Generated/AbilityInventory.generated.tsv` (`id`, `name`, `tier`, `summary` from `Ability.summary`) or use `AbilityCatalog.all` — there is no authored abilities TSV.
 
-Edit authored inputs (manifests or ability Swift). Do not hand-edit generated Swift, generated inventory TSV, processed assets/resources, or the Xcode project. After generation, `./Scripts/handoff.sh` uses `assert-generated-output.sh --idempotent` (regenerate must be a no-op). Before push/CI, the default assert checks generated paths match HEAD — stage only outputs caused by the changed input.
+**Talents:** author in `ContentManifest/talents.tsv` using the affix trigger/modifier DSL. Keep lookup/config in `CombatantTalentCatalog.swift`. Tree names stay in `combatantTreeAffinities`. Generated dictionaries: `Generated/CombatantTalentCatalog.generated.swift` (gated in `assert-generated-output.sh`). See `ContentManifest/README.md`.
+
+**Enemy traits:** author in `ContentManifest/traits.tsv` (same DSL). Generates `GameContentTraits.generated.swift`.
+
+Edit authored inputs (manifests, ability Swift, `ContentManifest/talents.tsv`, or `Scripts/trigger_family_schema.json`). Do not hand-edit generated Swift, generated inventory TSV, processed assets/resources, or the Xcode project. After generation, `./Scripts/handoff.sh` uses `assert-generated-output.sh --idempotent` (regenerate must be a no-op). Before push/CI, the default assert checks generated paths match HEAD — stage only outputs caused by the changed input.
 
 For content invariants, use `TrinketContentTests` and run `./Scripts/test.sh style` plus `./Scripts/test-package.sh TrinketContent`. Pipeline formats live in each manifest directory's README; open only the one you are changing.

@@ -22,6 +22,7 @@ generation_paths_newer_than() {
 content_generation_inputs=(
   ContentManifest
   Scripts/content_codegen.py
+  Scripts/trigger_family_schema.json
 )
 
 asset_generation_inputs=(

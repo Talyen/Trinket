@@ -17,27 +17,18 @@ package extension CombatTriggerEngine {
                 profile.triggers.holyDamageBlockFlat,
                 to: source,
                 source: source,
-                abilityName: affixName(.sanctum)
+                abilityName: triggerAbilityName("holyDamageBlockFlat", for: source, fallback: affixName(.sanctum), in: context)
             ))
         }
 
         if profile.triggers.holyDamageCleanseCount > 0 {
-            var effects = context.roster.activeEffects(for: source)
-            for _ in 0 ..< profile.triggers.holyDamageCleanseCount {
-                guard let removedKeyword = EffectRemoval.removeRandomDebuff(from: &effects, using: &context.rng) else {
-                    break
-                }
-                events.append(context.nextEvent(
-                    kind: .effect,
-                    effectKind: .cleanseApplied,
-                    actorName: source.name,
-                    abilityName: affixName(.absolving),
-                    target: source,
-                    amount: 0,
-                    keyword: removedKeyword
-                ))
-            }
-            context.roster.setActiveEffects(effects, for: source)
+            events.append(contentsOf: performRandomCleanses(
+                source: source,
+                target: source,
+                count: profile.triggers.holyDamageCleanseCount,
+                abilityName: triggerAbilityName("holyDamageCleanseCount", for: source, fallback: affixName(.absolving), in: context),
+                in: &context
+            ))
         }
 
         if profile.triggers.holyDamageHealFlat > 0 {
@@ -48,7 +39,7 @@ package extension CombatTriggerEngine {
                     sourceActorID: source.id,
                     logAs: .instantHeal(
                         actorName: source.name,
-                        abilityName: affixName(.beacon),
+                        abilityName: triggerAbilityName("holyDamageHealFlat", for: source, fallback: affixName(.beacon), in: context),
                         keyword: .health,
                         displayAmount: profile.triggers.holyDamageHealFlat
                     )
@@ -64,6 +55,12 @@ package extension CombatTriggerEngine {
                 companion: context.roster.companion.combatant,
                 context: context
             )
+            let blessingName = triggerAbilityName(
+                "holyDamageHealLowestAllyFlat",
+                for: source,
+                fallback: "Divine Blessing",
+                in: context
+            )
             events.append(contentsOf: HealingEngine.resolveHeal(
                 HealRequest(
                     amount: profile.triggers.holyDamageHealLowestAllyFlat,
@@ -71,7 +68,7 @@ package extension CombatTriggerEngine {
                     sourceActorID: source.id,
                     logAs: .instantHeal(
                         actorName: source.name,
-                        abilityName: "Divine Blessing",
+                        abilityName: blessingName,
                         keyword: .health,
                         displayAmount: profile.triggers.holyDamageHealLowestAllyFlat
                     )
@@ -129,7 +126,7 @@ package extension CombatTriggerEngine {
         if profile.triggers.holyDamageTargetMissNextAttack,
            isAttackHit,
            context.roster.health(for: enemy) > 0 {
-            context.prependEffect(.evadeNextHit, to: source, remainingTurns: 0)
+            context.prependEffect(.evadeNextHit, to: enemy, remainingTurns: 0)
         }
         // Dazzle: Holy damage reduces the target's outgoing damage on its next turn.
         if profile.triggers.holyDamageReduceTargetDamage > 0, context.roster.health(for: enemy) > 0 {

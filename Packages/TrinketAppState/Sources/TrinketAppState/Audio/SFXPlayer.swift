@@ -88,7 +88,24 @@ public final class SFXPlayer {
     }
 
     public func warmAllCatalog(concurrentPlayerCount: Int = 2) {
-        warm(SFXCatalog.clips.map(\.id), concurrentPlayerCount: concurrentPlayerCount)
+        guard !isDisabled else { return }
+        let ids = SFXCatalog.clips.map(\.id)
+        let clips = SFXCatalog.clips
+        Task.detached(priority: .utility) {
+            var decoded: [String: AVAudioPCMBuffer] = [:]
+            for clip in clips {
+                guard let url = Self.resourceURL(for: clip),
+                      let buffer = Self.decodePCMBuffer(at: url)
+                else { continue }
+                decoded[clip.id] = buffer
+            }
+            await MainActor.run {
+                for (id, buffer) in decoded {
+                    self.buffersByID[id] = buffer
+                }
+                self.warm(ids, concurrentPlayerCount: concurrentPlayerCount)
+            }
+        }
     }
 
     public func stopAll() {
@@ -138,12 +155,25 @@ public final class SFXPlayer {
         if let buffer = buffersByID[clip.id] {
             return buffer
         }
-        guard let url = resourceURL(for: clip) else {
+        guard let url = Self.resourceURL(for: clip) else {
             logger.warning(
                 "Missing SFX resource: \(clip.resourceName, privacy: .public).\(clip.fileExtension, privacy: .public)"
             )
             return nil
         }
+        guard let buffer = Self.decodePCMBuffer(at: url) else { return nil }
+        buffersByID[clip.id] = buffer
+        return buffer
+    }
+
+    // swiftformat:disable:next modifierOrder
+    nonisolated private static let decodeLogger = Logger(
+        subsystem: AudioLogging.subsystem,
+        category: "Audio"
+    )
+
+    // swiftformat:disable:next modifierOrder
+    nonisolated private static func decodePCMBuffer(at url: URL) -> AVAudioPCMBuffer? {
         do {
             let file = try AVAudioFile(forReading: url)
             guard file.length > 0,
@@ -151,19 +181,20 @@ public final class SFXPlayer {
                   let buffer = AVAudioPCMBuffer(
                       pcmFormat: file.processingFormat,
                       frameCapacity: AVAudioFrameCount(file.length)
-                  ) else { return nil }
+                  )
+            else { return nil }
             try file.read(into: buffer)
-            buffersByID[clip.id] = buffer
             return buffer
         } catch {
-            logger.error(
+            decodeLogger.error(
                 "Unable to decode SFX resource \(url.lastPathComponent, privacy: .public): \(error.localizedDescription, privacy: .public)"
             )
             return nil
         }
     }
 
-    private func resourceURL(for clip: SFXClip) -> URL? {
+    // swiftformat:disable:next modifierOrder
+    nonisolated private static func resourceURL(for clip: SFXClip) -> URL? {
         Bundle.main.url(forResource: clip.resourceName, withExtension: clip.fileExtension) ??
             Bundle.main.url(forResource: clip.resourceName, withExtension: clip.fileExtension, subdirectory: "SFX") ??
             Bundle.main.url(

@@ -25,7 +25,7 @@ struct BattleCombatantPane: View {
         Button(action: onCombatantTap) {
             CombatantAttackLane(
                 combatantID: combatant.id,
-                aim: TrinketMotion.Battle.attackAim(isPartyMember: recoilDirection == .down)
+                aim: CombatantAttackAim.aim(isPartyMember: recoilDirection == .down)
             ) {
                 CombatantHitReactionLane(
                     combatantID: combatant.id,

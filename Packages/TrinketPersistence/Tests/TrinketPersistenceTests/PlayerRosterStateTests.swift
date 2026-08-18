@@ -282,4 +282,39 @@ struct PlayerRosterStateTests {
         try #expect(inventory.items.count == 1)
         try #expect(inventory.items.first?.id == "chapter-1-stage-1-shortsword-basic")
     }
+
+    @Test func unlockTalentRespectsPointsAndRowGates() throws {
+        var roster = PlayerRosterState.freshStart
+        let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
+        let tree = try #require(CombatantTalentCatalog.config(for: knight.id).trees.first)
+        let row1A = try #require(tree.nodes(forRow: 1).first)
+        let row1B = try #require(tree.nodes(forRow: 1).last)
+        let row2 = try #require(tree.nodes(forRow: 2).first)
+
+        #expect(roster.availableTalentPoints(for: knight.id) == 0)
+        let refusedAtLevel1 = roster.unlockTalent(node: row1A, inTree: tree, for: knight.id)
+        #expect(!refusedAtLevel1)
+
+        roster.progressions[knight.id] = .at(level: 2)
+        #expect(roster.availableTalentPoints(for: knight.id) == 1)
+        let unlockedRow1A = roster.unlockTalent(node: row1A, inTree: tree, for: knight.id)
+        #expect(unlockedRow1A)
+        #expect(roster.unlockedTalents(for: knight.id) == Set([row1A.id]))
+        #expect(roster.availableTalentPoints(for: knight.id) == 0)
+        let refusedDuplicate = roster.unlockTalent(node: row1A, inTree: tree, for: knight.id)
+        let refusedRow2Early = roster.unlockTalent(node: row2, inTree: tree, for: knight.id)
+        #expect(!refusedDuplicate)
+        #expect(!refusedRow2Early)
+
+        roster.progressions[knight.id] = .at(level: 4)
+        #expect(roster.availableTalentPoints(for: knight.id) == 2)
+        let refusedRow2UntilRow1Complete = roster.unlockTalent(node: row2, inTree: tree, for: knight.id)
+        #expect(!refusedRow2UntilRow1Complete)
+        let unlockedRow1B = roster.unlockTalent(node: row1B, inTree: tree, for: knight.id)
+        let unlockedRow2 = roster.unlockTalent(node: row2, inTree: tree, for: knight.id)
+        #expect(unlockedRow1B)
+        #expect(unlockedRow2)
+        #expect(roster.unlockedTalents(for: knight.id) == Set([row1A.id, row1B.id, row2.id]))
+        #expect(roster.availableTalentPoints(for: knight.id) == 0)
+    }
 }

@@ -28,4 +28,9 @@ public enum EncounterLevelResolver {
     public static func spireEnemyLevel(for floor: SpireFloor) -> Int {
         max(1, floor.floor * 2)
     }
+
+    /// Labyrinth: enemy level is the node's depth.
+    public static func labyrinthEnemyLevel(for node: LabyrinthNode) -> Int {
+        max(1, node.depth)
+    }
 }

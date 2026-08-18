@@ -60,6 +60,7 @@ struct MysteryCorruptItemChoiceContent: View {
     @Bindable var session: MysteryEncounterSession
     let onCorruptItem: (String) -> Bool
     let onCancelCorruptSelection: () -> Void
+    @State private var pendingCorruptItemID: String?
 
     var body: some View {
         MysteryItemChoiceScaffold(
@@ -71,7 +72,7 @@ struct MysteryCorruptItemChoiceContent: View {
             isDisabled: session.isResolvingChoice,
             itemAccessibilityID: AccessibilityID.Mystery.corruptItemCard(itemID:),
             onSelectItem: { itemID in
-                _ = onCorruptItem(itemID)
+                pendingCorruptItemID = itemID
             },
             footer: {
                 Button("Back") {
@@ -85,5 +86,27 @@ struct MysteryCorruptItemChoiceContent: View {
                 .disabled(session.isResolvingChoice)
             }
         )
+        .confirmationDialog(
+            "Corrupt this item forever?",
+            isPresented: Binding(
+                get: { pendingCorruptItemID != nil },
+                set: { isPresented in
+                    if !isPresented {
+                        pendingCorruptItemID = nil
+                    }
+                }
+            ),
+            titleVisibility: .visible
+        ) {
+            Button("Corrupt", role: .destructive) {
+                if let itemID = pendingCorruptItemID {
+                    _ = onCorruptItem(itemID)
+                }
+                pendingCorruptItemID = nil
+            }
+            Button("Cancel", role: .cancel) {
+                pendingCorruptItemID = nil
+            }
+        }
     }
 }

@@ -28,4 +28,11 @@ struct EncounterLevelResolverTests {
         let first = SpireFloor(spireID: .ironVein, floor: 1, enemyID: "goblin")
         #expect(EncounterLevelResolver.spireEnemyLevel(for: first) == 2)
     }
+
+    @Test func labyrinthEnemyLevelUsesNodeDepth() {
+        let node = LabyrinthNode(id: "n1", type: .battle, depth: 7, clusterID: "c1")
+        #expect(EncounterLevelResolver.labyrinthEnemyLevel(for: node) == 7)
+        let floor = LabyrinthNode(id: "n0", type: .entrance, depth: 0, clusterID: "c1")
+        #expect(EncounterLevelResolver.labyrinthEnemyLevel(for: floor) == 1)
+    }
 }

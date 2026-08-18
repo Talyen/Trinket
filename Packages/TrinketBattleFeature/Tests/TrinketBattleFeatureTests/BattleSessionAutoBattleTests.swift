@@ -61,6 +61,8 @@ struct BattleSessionAutoBattleTests {
     }
 
     @Test func autoBattleResetsOffOnNewBattleWhenRememberIsOff() throws {
+        // Concurrency-Safety: `@unchecked Sendable` — test probe is mutated only
+        // from the MainActor test body; never shared across isolation domains.
         final class AutoBattleProbe: @unchecked Sendable {
             var remember = false
             var stored = false
@@ -101,6 +103,8 @@ struct BattleSessionAutoBattleTests {
     }
 
     @Test func autoBattleRestoresAndPersistsWhenRememberIsOn() throws {
+        // Concurrency-Safety: `@unchecked Sendable` — test probe is mutated only
+        // from the MainActor test body; never shared across isolation domains.
         final class AutoBattleProbe: @unchecked Sendable {
             var remember = true
             var stored = true

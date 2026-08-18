@@ -34,6 +34,7 @@ public struct CombatantDetailPane: View {
     @State private var viewingItem: InventoryItem?
     @State private var selectedTalentTree: TalentTree?
     @State private var selectionFeedbackTrigger = 0
+    @State private var cachedCombatBuild: CombatBuild?
 
     /// Distinct from `Ability` so view-only and loadout destinations do not collide.
     private struct ViewOnlyAbility: Hashable, Identifiable {
@@ -44,7 +45,25 @@ public struct CombatantDetailPane: View {
         }
     }
 
-    private var resolvedCombatBuild: CombatBuild {
+    private struct CombatBuildInputs: Equatable {
+        let combatantID: String
+        let loadout: AbilityLoadout
+        let equipmentLoadout: EquipmentLoadout
+        let inventoryItems: [InventoryItem]
+        let unlockedTalents: Set<String>
+    }
+
+    private var combatBuildInputs: CombatBuildInputs {
+        CombatBuildInputs(
+            combatantID: combatant.id,
+            loadout: loadout,
+            equipmentLoadout: equipmentLoadout,
+            inventoryItems: inventoryItems,
+            unlockedTalents: unlockedTalents
+        )
+    }
+
+    private func makeCombatBuild() -> CombatBuild {
         CombatBuildResolver.build(
             combatant: combatant,
             equipmentLoadout: equipmentLoadout,
@@ -57,11 +76,11 @@ public struct CombatantDetailPane: View {
         guard combatant.role == .enemy,
               let enemy = GameContent.enemy(matching: combatant.id)
         else { return [] }
-        return GameContent.traits(for: enemy)
+        return GameContent.trait(for: enemy).map { [$0] } ?? []
     }
 
     public var body: some View {
-        let combatBuild = resolvedCombatBuild
+        let combatBuild = cachedCombatBuild ?? makeCombatBuild()
 
         DetailHeroScrollShell(
             title: combatant.name,
@@ -117,7 +136,6 @@ public struct CombatantDetailPane: View {
         }
         .navigationDestination(item: $selectedTalentTree) { tree in
             CombatantTalentsView(
-                combatant: combatant,
                 tree: tree,
                 progression: progression,
                 unlockedTalents: $unlockedTalents,
@@ -135,6 +153,14 @@ public struct CombatantDetailPane: View {
             trigger: selectionFeedbackTrigger,
             enabled: hapticsEnabled
         )
+        .onAppear {
+            if cachedCombatBuild == nil {
+                cachedCombatBuild = makeCombatBuild()
+            }
+        }
+        .onChange(of: combatBuildInputs) {
+            cachedCombatBuild = makeCombatBuild()
+        }
     }
 
     @ViewBuilder

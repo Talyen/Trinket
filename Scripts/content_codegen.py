@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import json
 import re
 import subprocess
 import sys
@@ -14,6 +15,7 @@ MANIFEST_DIR = ROOT / "ContentManifest"
 GENERATED_DIR = ROOT / "Packages" / "TrinketContent" / "Sources" / "TrinketContent" / "Generated"
 CONTENT_DIR = ROOT / "Packages" / "TrinketContent" / "Sources" / "TrinketContent" / "Content"
 TRINKET_CONTENT_PACKAGE = ROOT / "Packages" / "TrinketContent"
+TRIGGER_FAMILY_SCHEMA = ROOT / "Scripts" / "trigger_family_schema.json"
 
 VALID_SLOTS = frozenset({"weapon", "armor", "accessory", "trinket"})
 VALID_TIERS = frozenset({"basic", "skill", "ultimate"})
@@ -396,6 +398,8 @@ def modifier_token_to_swift(token: str) -> str:
         return f".maximumMana({token.split(':', 1)[1]})"
     if token.startswith("leech_duration:"):
         return f".leechDuration({token.split(':', 1)[1]})"
+    if token.startswith("companion_bleed_damage_dealt:"):
+        return f".companionBleedDamageDealt({token.split(':', 1)[1]})"
     if token.startswith("poison_damage_dealt_percent:"):
         return f".poisonDamageDealtPercent({token.split(':', 1)[1]})"
     raise ValueError(f"Unknown modifier token: {token}")
@@ -408,6 +412,13 @@ def parse_trigger_tokens(raw: str) -> list[str]:
 
 
 def triggers_swift(raw: str) -> str:
+    families = json.loads(TRIGGER_FAMILY_SCHEMA.read_text(encoding="utf-8"))
+    field_group = {
+        field["name"]: family["family"]
+        for family in families
+        for field in family["fields"]
+    }
+    known_fields = set(field_group)
     values: dict[str, str] = {}
     for token in parse_trigger_tokens(raw):
         if token.startswith("on_cleanse_draw:"):
@@ -418,41 +429,14 @@ def triggers_swift(raw: str) -> str:
             values["cleanseBonusHeal"] = token.split(":", 1)[1]
         elif token.startswith("on_gain_gold_heal:"):
             values["gainGoldBonusHealSelf"] = token.split(":", 1)[1]
-        elif token.startswith("control_resistance:"):
-            values["controlResistancePercent"] = token.split(":", 1)[1]
         elif token.startswith("dodge_chance_bonus:"):
             values["dodgeChanceBonus"] = token.split(":", 1)[1]
-        elif token.startswith("ambush_bonus:"):
-            values["ambushBonusDamage"] = token.split(":", 1)[1]
-        elif token.startswith("regeneration:"):
-            _, amount, interval = token.split(":", 2)
-            values["regenerationAmount"] = amount
-            values["regenerationIntervalTurns"] = interval
         elif token.startswith("passive_mitigation:"):
             values["passiveMitigationFlat"] = token.split(":", 1)[1]
         elif token.startswith("thorns_percent:"):
             values["thornsPercent"] = token.split(":", 1)[1]
-        elif token.startswith("cannot_be_healed:"):
-            values["cannotBeHealed"] = "true"
         elif token.startswith("burn_decay_slow:"):
             values["burnDecaySlowPercent"] = token.split(":", 1)[1]
-        elif token.startswith("shield_erosion_on:"):
-            _, keyword, ticks = token.split(":", 2)
-            values["shieldErosionKeyword"] = f".{keyword}"
-            values["shieldErosionTicks"] = ticks
-        elif token.startswith("mitigation_shred_on:"):
-            _, keyword, multiplier, duration = token.split(":", 3)
-            values["mitigationShredKeyword"] = f".{keyword}"
-            values["mitigationShredMultiplier"] = multiplier
-            values["mitigationShredDurationTurns"] = duration
-        elif token.startswith("freeze_control_vulnerability:"):
-            values["freezeControlVulnerabilityPercent"] = token.split(":", 1)[1]
-        elif token.startswith("mitigation_effectiveness_penalty:"):
-            values["mitigationEffectivenessPenaltyPercent"] = token.split(":", 1)[1]
-        elif token.startswith("leech_healing_multiplier:"):
-            values["leechHealingMultiplier"] = token.split(":", 1)[1]
-        elif token.startswith("hemorrhage_bleed_bonus:"):
-            values["hemorrhageBleedBonus"] = token.split(":", 1)[1]
         elif token.startswith("on_bleed_apply_poison:"):
             values["onBleedApplyPoison"] = token.split(":", 1)[1]
         elif token.startswith("on_burn_apply_poison:"):
@@ -609,221 +593,28 @@ def triggers_swift(raw: str) -> str:
         elif token.startswith("victory_gold_coin:"):
             values["victoryGoldCoin"] = "true"
         else:
-            raise ValueError(f"Unknown trigger token: {token}")
-    GROUP_ORDER = [
-        "damage", "attack", "block", "mitigation", "dot", "control", "dodge",
-        "mana", "gold", "healing", "revival", "cleanse", "enemyTurn", "onHit",
-    ]
-    # field -> group map for the compositional trigger model.
-    FIELD_GROUP = {
-        "ambushBonusDamage": "damage", "damageBelowHealthPercentThreshold": "damage",
-        "damageBelowHealthPercentKeyword": "damage", "damageBelowHealthPercentBonus": "damage",
-        "damageAfterDodgeBonus": "damage", "damageWhileTargetFrozenBonus": "damage",
-        "damageWhileTargetStunnedBonus": "damage", "ignoreEnemyMitigationPercent": "damage",
-        "leechIgnoresMitigation": "damage",
-        "firstHitDoubleDamage": "damage", "damageIncreasesEveryOtherTurn": "damage",
-        "holyDamagePoisonFlat": "damage", "stunnedDamageMultiplier": "damage",
-        "criticalChanceBonus": "damage", "damageVsBleedingBonus": "damage",
-        "damageVsPoisonedMultiplier": "damage", "damageVsBurningMultiplier": "damage",
-        "damageVsFrozenMultiplier": "damage", "holyDamageVsStunnedOrBurningMultiplier": "damage",
-        "holyDamageVsPoisonedOrBleedingMultiplier": "damage", "holyDamageVsStunnedBonus": "damage",
-        "holyDamageVsUndeadOrCorruptedMultiplier": "damage", "frostDamageVsFrozenBonus": "damage",
-        "burnDamageVsFrozenBonusPhysical": "damage", "burnDamageVsNoBlockMultiplier": "damage",
-        "physicalDamageVsBleedingMultiplier": "damage", "damageVsBleedingFlat": "damage",
-        "damagePerMissingHealthEvery": "damage", "damagePerCarriedGoldEvery": "damage",
-        "goldReservesDamageEvery": "damage", "damageVsLowerHealthEnemyBonus": "damage",
-        "companionDamageVsPoisonedBonus": "damage", "companionDamageVsBurningBonus": "damage",
-        "heroDamageVsStunnedMultiplier": "damage", "poisonDamageBelowHealthThreshold": "damage",
-        "poisonDamageBelowHealthMultiplier": "damage", "bleedTickCritChancePercent": "damage",
-        "burnDamageDoubleChancePercent": "damage", "burnDamageVsNoManaBonus": "damage",
-        "partyCritChanceWhileCompanionAboveHealthThreshold": "damage",
-        "partyCritChanceWhileCompanionAboveHealthBonus": "damage",
-        "heroCritChanceWhileCompanionAlive": "damage", "critChancePerBleedingEnemy": "damage",
-        "partyCritChanceWhileGoldAbove": "damage", "partyCritChanceWhileGoldAboveBonus": "damage",
-        "partyAllStatsBonusBelowHealthThreshold": "damage", "partyAllStatsBonusBelowHealthAmount": "damage",
-        "attacksApplyPoison": "attack", "physicalAttackApplyBleed": "attack",
-        "physicalAttackApplyBleedAndStun": "attack", "physicalAttackFlatStunBuildup": "attack",
-        "basicAttackApplyBleed": "attack", "basicAttackFreezeBuildup": "attack",
-        "criticalApplyPoison": "attack", "criticalApplyBurn": "attack",
-        "criticalApplyStunBuildup": "attack", "criticalBlockFlat": "attack",
-        "holyAttackApplyBurnAndStunBuildup": "attack", "onAttackStealGold": "attack",
-        "basicAttackStealGold": "attack", "onAttackFrozenEnemyGainMana": "attack",
-        "onAttackFrozenEnemyGainBlock": "attack", "onAttackStunnedEnemyGold": "attack",
-        "onAttackStunnedEnemyBlock": "attack", "holyDamageNextHitBonus": "attack",
-        "holyDamageNextAttackHolyBonus": "attack", "onBleedDamageNextBasicGuaranteedCrit": "attack",
-        "nextAttackBonusOnFullHealth": "attack", "leechOverhealDamageBonus": "attack",
-        "onHeroSpendManaCompanionNextAttackBonus": "attack", "partyBasicAttackHolyBonus": "attack",
-        "partyHolyDamageBonusWhileCompanionFullHealth": "attack",
-        "partyDamageBonusWhileCompanionFullHealth": "attack",
-        "partyPhysicalDamageBonusFirstTurns": "attack", "partyPhysicalDamageBonusFirstTurnCount": "attack",
-        "attackBurstChancePercent": "attack", "attackBurstDamage": "attack", "attackBurstBlock": "attack",
-        "directHitBleedChancePercent": "attack",
-        "attackApplyBleed": "attack", "onHeroAttackPoisonedEnemyApplyPoison": "attack",
-        "onPhysicalDamageGainBlock": "attack", "critStealEnemyBlock": "attack",
-        "criticalPurgeCount": "attack", "criticalPurgeAll": "attack", "onDefeatEnemyPartyStrengthBonus": "attack",
-        "blockBrokenBlockFlat": "block", "holyDamageBlockFlat": "block", "stunDamageBlockFlat": "block",
-        "blockPerTurn": "block", "blockGainThornsPercent": "block", "sunderingBlockMultiplier": "block",
-        "blockDoesNotDecay": "block", "blockAbsorbsCompanionDamage": "block",
-        "onEnemyBlockBrokenDealPhysical": "block", "postBlockOverflowDamageMultiplier": "block",
-        "maxDamagePerHitCap": "block", "blockGainedMaxHealthEvery": "block",
-        "shieldDamageBonusWhileBlocked": "block", "physicalBlockBreakMultiplier": "block",
-        "physicalBlockIgnorePercent": "block", "physicalIgnoresBlockVsStunnedOrFrozen": "block",
-        "stunnedEnemyLoseAllBlock": "block", "holyIgnoresBlock": "block",
-        "holyIgnoresBlockAndDodge": "block", "burnIgnoresBlockAndMitigation": "block",
-        "poisonStripsBlockBeforeHealth": "block", "bleedStripsBlockPerTurn": "block",
-        "spellDamageTakenReductionWhileBlocked": "block", "companionBlockSharesToHeroPercent": "block",
-        "onBlockHitDealHoly": "block", "onBlockReduceAttackerAccuracyPercent": "block",
-        "onBlockReduceAttackerAccuracyTurns": "block", "companionBlockProtectsHeroPercent": "block",
-        "onAnyHealthLossGainBlock": "block", "onSelfHealthLossGainBlock": "block",
-        "companionFatalDamageRedirectBlock": "block",
-        "onEnemyFrozenGainBlock": "block", "onCompanionTakeDamageGrantHeroBlock": "block",
-        "onDefeatEnemyGainBlock": "block", "startBattleBlock": "block",
-        "blockPerGoldEarnedEvery": "block", "blockPerGoldCollectedEvery": "block",
-        "onBurnDamageGainBlock": "block", "onAllyBurnDamageGainBlock": "block",
-        "onHolyDamagePartyBlock": "block", "physicalDamageBlockPercent": "block",
-        "passiveMitigationFlat": "mitigation", "thornsPercent": "mitigation",
-        "cannotBeHealed": "mitigation", "controlResistancePercent": "mitigation",
-        "mitigationEffectivenessPenaltyPercent": "mitigation", "bleedResistance": "mitigation",
-        "absorbHeroDamageFlat": "mitigation", "frozenEnemyDamageReductionFlat": "mitigation",
-        "bleedingEnemyDamageReductionFlat": "mitigation",
-        "stunnedEnemyNextTurnDamageMultiplier": "mitigation",
-        "enemyBleedStacksDamageReductionStacks": "mitigation",
-        "enemyBleedStacksDamageReductionPercent": "mitigation",
-        "poisonedEnemyAccuracyPenaltyPercent": "mitigation", "poisonedEnemyMissChancePercent": "mitigation",
-        "frozenEnemyMissChanceVsCompanionPercent": "mitigation", "holyDamageTargetMissNextAttack": "mitigation",
-        "holyDamageReduceTargetDamage": "mitigation", "bleedingEnemyAttackDealDamage": "mitigation",
-        "onAllyDamageHeal": "mitigation", "damageReductionPerUnspentManaEvery": "mitigation",
-        "toughnessOnHit": "mitigation", "toughnessOnHitCap": "mitigation",
-        "blockedControlBurnResistance": "mitigation", "afflictionResistance": "mitigation",
-        "burnDecaySlowPercent": "dot", "poisonDecaySlowPercent": "dot",
-        "poisonDecayIncreaseChance": "dot", "onBleedApplyPoison": "dot",
-        "onBurnApplyPoison": "dot", "onBleedDealBurnDamage": "dot", "hemorrhageBleedBonus": "dot",
-        "freezeDamageWhileBurningBonus": "dot", "onBleedDamagePoisonTick": "dot",
-        "onBleedAppliedToBleedingExtendTurns": "dot", "onBleedAppliedToBleedingDealDamage": "dot",
-        "bleedsIgnoreMitigation": "dot", "onBleedDamageHealSelf": "dot",
-        "onBurnTickHolyDamage": "dot", "burnTicksTwicePerTurn": "dot",
-        "damagePerBurnPotencyPercent": "dot", "burnIncreaseChancePercent": "dot",
-        "poisonThresholdStunAmount": "dot", "poisonDamageLeechPercent": "dot",
-        "onCritDoubleBleedDuration": "dot", "criticalOnBleedingDetonateBleed": "dot",
-        "onBurnDamageDetonateBleed": "dot", "freezeDamageLeech": "dot", "poisonDamageLeech": "dot",
-        "onBurnDamageHealLowestAllyFlat": "healing", "bleedDamageGoldFlat": "dot",
-        "burnDamageManaRestoreThreshold": "dot", "onBurnDamageRestoreManaFlat": "mana",
-        "onBurnDamageRestoreManaPerTurnCap": "dot",
-        "freezeControlVulnerabilityPercent": "control", "freezeExtraActionSkips": "control",
-        "physicalStunBuildupPercent": "control", "freezeBuildupDoesNotDecay": "control",
-        "frozenEnemyCannotBlockOrHeal": "control", "enemyStunExtraActionSkips": "control",
-        "onEnemyStunRecoverDrawCard": "control", "onEnemyStunRecoverApplyAfflictions": "control",
-        "enemyStunThresholdReductionPercent": "control", "onStunEnemyApplyBurn": "control",
-        "onceBelowHealthPercentStunAllEnemies": "control", "freezeCardsPlayedThisTurnFreezeAll": "control",
-        "spendManaFreezeThreshold": "control", "everyNTurnsFreezeAllEnemiesInterval": "control",
-        "everyNTurnsFreezeAllEnemiesAmount": "control", "everyNTurnsStunBuildupInterval": "control",
-        "everyNTurnsStunBuildupAmount": "control", "everyNTurnsTeamBlockAmount": "control",
-        "enemyStunnedApplyMarked": "control", "enemyStunnedPurgeCount": "control",
-        "enemyStunnedPurgeAll": "control", "stunDealPhysicalFlat": "control",
-        "dodgeDealStunFlat": "control", "onDodgeAttackerStunBuildup": "control",
-        "onceBelowHealthPercentThreshold": "control", "turnFreezeDamageAllEnemies": "control",
-        "dodgeChanceBonus": "dodge", "dodgeBlockFlat": "dodge", "dodgeApplyPoison": "dodge",
-        "dodgeGoldFlat": "dodge", "dodgeHealFlat": "dodge",
-        "dodgeChanceBelowHealthPercentThreshold": "dodge", "dodgeChanceBelowHealthPercentBonus": "dodge",
-        "onDodgeDrawCardForHero": "dodge", "nextAttackDoubleAfterDodge": "dodge",
-        "onDodgeDelayAttackerTurn": "dodge", "onDodgeGrantHeroBlock": "dodge",
-        "onDodgePartyBlock": "dodge", "onDodgePartyMana": "dodge", "onDodgeCounterDamage": "dodge",
-        "onDodgeCounterBasicAttack": "dodge", "critMultiplierPerDodge": "dodge",
-        "onDodgeNextPartyHitGuaranteedCritical": "dodge",
-        "onCompanionDodgeGrantHeroDodgePercent": "dodge", "autoDodgeAfterFirstHitPerTurn": "dodge",
-        "nextAttackBleedAfterDodge": "dodge", "onDodgeApplyPoisonOrBleed": "dodge",
-        "onDodgePartyNextCardDamageBonus": "dodge", "onDodgeStealMana": "dodge",
-        "onApplyBurnDodgeChanceUntilNextTurn": "dodge", "dodgeChanceVsBleedingEnemiesBonus": "dodge",
-        "firstAttackGuaranteedCritical": "dodge", "swapAndDodgeForHeroChance": "dodge",
-        "redirectSingleTargetAttacksToHero": "dodge", "untargetableAboveHealthPercent": "dodge",
-        "spendManaBlockFlat": "mana", "spendManaRandomDoTFlat": "mana", "gainManaBlockFlat": "mana",
-        "leechRestoreManaFlat": "mana", "drawOnSpendMana": "mana", "repeatManaEmpowerment": "mana",
-        "unspentManaConvertsToBlock": "mana", "spendManaGrantsEqualBlock": "mana",
-        "spendManaThresholdCleanseCount": "mana", "spendManaEmpowerNextCardThreshold": "mana",
-        "nextCardEmpowerPercent": "mana", "startTurnFullManaDrawCards": "mana",
-        "firstSkillCardPlaysTwicePerBattle": "mana", "onReachZeroManaRestoreMana": "mana",
-        "firstTurnBonusDraw": "mana", "spendManaChaosRiftThreshold": "mana",
-        "spendManaChaosRiftDamage": "mana", "onGainManaHealFlat": "mana",
-        "startBattleBonusMana": "mana", "spendManaDamageBonusPerMana": "mana",
-        "onHeroSpendManaGainBlock": "mana", "spendManaRefundChancePercent": "mana",
-        "empowermentCostReduction": "mana", "healingEmpowermentCostReduction": "mana",
-        "bonusManaOnTurns": "mana", "spendManaThresholdBlockThreshold": "mana",
-        "spendManaThresholdBlockBlock": "mana", "spendManaThresholdBlockHealth": "mana",
-        "manaGainDoubleChancePercent": "mana", "spendManaThresholdAutoPlayCard": "mana",
-        "onSpendManaBurnBurningEnemies": "mana", "onHeroSpendManaApplyRandomAffliction": "mana",
-        "cardsPlayedManaThreshold": "mana", "cardsPlayedManaFlat": "mana",
-        "drawEveryOtherTurn": "mana", "drawOnHealthLoss": "mana", "companionCardsPerTurn": "mana",
-        "gainGoldBonusHealSelf": "gold", "defeatEnemyGoldFlat": "gold", "leechGoldFlat": "gold",
-        "goldPerTurn": "gold", "victoryGoldFlat": "gold", "victoryGoldCoin": "gold",
-        "criticalGoldFlat": "gold", "criticalActionGoldFlat": "gold", "startBattleBonusGold": "gold",
-        "onGainGoldDrawCardOncePerTurn": "gold", "onGainGoldHealParty": "gold",
-        "goldEveryNTurnsInterval": "gold", "goldEveryNTurnsAmount": "gold",
-        "onEnemyAbilityDrawAndGoldDraw": "gold", "onEnemyAbilityGold": "gold",
-        "criticalVsStunnedEnemyGold": "gold", "critOnDefeatGold": "gold",
-        "critOnDefeatGoldAndDrawDraw": "gold", "partyGoldGainedPercent": "gold",
-        "goldAbsorbsDamage": "gold", "goldDoubledWhileFullHealth": "gold",
-        "onGainGoldDoubleStatusEffectsNextCard": "gold",
-        "cleanseSelfHeal": "healing", "cleanseBonusHeal": "healing", "regenerationAmount": "healing",
-        "regenerationIntervalTurns": "healing", "onceBelowHealthPercentHeal": "healing",
-        "blockOnDeathsDoor": "healing", "holyDamageHealFlat": "healing", "burnDamageHealFlat": "healing",
-        "healthRestoredPoisonPercent": "healing", "healthPerTurn": "healing",
-        "overhealConvertsToBlock": "healing", "overhealConvertsToMaxHealth": "healing",
-        "overhealConvertsToMaxHealthCap": "healing", "overhealConvertsToMaxHealthPerEvent": "healing",
-        "overhealShieldCap": "healing", "leechOverhealTransfersToCompanion": "healing",
-        "leechSharesToHeroPercent": "healing", "onCompanionLeechRestoreHeroMana": "healing",
-        "leechHealingVsAfflictedMultiplier": "healing", "leechPercentVsLowHealthEnemies": "healing",
-        "leechBonusHealVsLowHealthEnemies": "healing",
-        "leechHealingMultiplier": "healing", "leechChancePercent": "healing",
-        "healingBelowHealthPercentThreshold": "healing", "healingBelowHealthPercentMultiplier": "healing",
-        "healOverTimeOnHealTurns": "healing", "healOverTimeOnHealAmount": "healing",
-        "onHealGrantBlock": "healing", "onHealRestoreCasterMana": "healing",
-        "holyDamageHealLowestAllyFlat": "healing", "holyDamageHealHeroFlat": "healing",
-        "endTurnWithBlockHealFlat": "healing", "endOfTurnHealLowestAlly": "healing",
-        "cardsPlayedHealPartyThreshold": "healing", "cardsPlayedHealPartyAmount": "healing",
-        "healthRegenFirstTurnsAmount": "healing", "healthRegenFirstTurnsDuration": "healing",
-        "healthRegenAboveHalfHealth": "healing", "companionLeechSharePercent": "healing",
-        "onLeechDrainMana": "healing", "onLeechApplyPoison": "healing", "onLeechApplyBleed": "healing",
-        "onLeechReduceEnemyStrength": "healing", "onLeechReduceEnemyStrengthTurns": "healing",
-        "companionDamageLeechesToHeroPercent": "healing", "leechOnBlockDamage": "healing",
-        "partyRegenPerRound": "healing",
-        "onceDeathReviveHealth": "revival", "onceDeathReviveBlock": "revival",
-        "deathsDoorDurationBonusTurns": "revival", "reviveDealBurnDamage": "revival",
-        "onSurviveDeathsDoorDamageBonusPercent": "revival", "deathsDoorDodgeAndDebuffImmunity": "revival",
-        "deathsDoorExtraLethalProtection": "revival", "onDeathDealPhysicalDamageAllEnemies": "revival",
-        "guaranteedCritWhileOnDeathsDoor": "revival", "onEnemyDefeatReviveSelfHealth": "revival",
-        "onHeroFatalHealPercentMaxHealth": "revival", "onAllyDeathsDoorHealAndCleanse": "revival",
-        "surviveDeathsDoorPartyHealPercent": "revival",
-        "onEnemyDefeatRestoreHealthAndBlockHealth": "revival",
-        "onEnemyDefeatRestoreHealthAndBlockBlock": "revival",
-        "cleanseBonusDraw": "cleanse", "holyDamageCleanseCount": "cleanse",
-        "holyDamagePurgeCount": "cleanse", "holyDamagePurgeAll": "cleanse",
-        "cleanseBlockPerStack": "cleanse", "cleanseAffectsBothHeroAndCompanion": "cleanse",
-        "cleanseReflectDebuffToEnemy": "cleanse", "autoCleanseTeamPerTurn": "cleanse",
-        "cleanseAlsoPurgesEnemyBuffs": "cleanse", "cleanseDodgeChanceBonus": "cleanse",
-        "cleanseDodgeChanceBonusTurns": "cleanse", "cleansePartyBlock": "cleanse",
-        "blockFirstDebuffPerTurn": "cleanse", "partyDebuffDurationHalved": "cleanse",
-        "onCleansePoisonDealDamagePerStack": "cleanse",
-        "negateFirstEnemyAttack": "enemyTurn", "negateFirstEnemyAttackPerRound": "enemyTurn",
-        "negateFirstEnemyAttackChance": "enemyTurn",
-        "attackDelayEnemyTurnChancePercent": "enemyTurn",
-        "bleedingEnemyActionSkipChancePercent": "enemyTurn", "extraCardDrawWhileEnemyBleeding": "enemyTurn",
-        "onDefeatEnemyExtraAction": "enemyTurn", "extraCardDrawBelowEnemyHealthPercent": "enemyTurn",
-        "onDefeatBleedingEnemyResetActionTimer": "enemyTurn", "ultimateAppliesBurnPotency": "enemyTurn",
-        "onHeroHolyAbilityCompanionHolyDamage": "enemyTurn", "onHolyDamageRestoreMana": "enemyTurn",
-        "burnReducesEnemyHealingAndLeechPercent": "enemyTurn",
-        "onHitAttackerBurn": "onHit", "onHitAttackerFreezeBuildup": "onHit",
-        "onHitAttackerPoison": "onHit", "onHitAttackerBleedPotency": "onHit",
-        "onHitAttackerBleedTurns": "onHit", "onHitAttackerHoly": "onHit",
-        "shieldErosionKeyword": "onHit", "shieldErosionTicks": "onHit",
-        "mitigationShredKeyword": "onHit", "mitigationShredMultiplier": "onHit",
-        "mitigationShredDurationTurns": "onHit",
-    }
-    grouped: dict[str, list[str]] = {g: [] for g in GROUP_ORDER}
+            field, separator, value = token.partition(":")
+            if not separator:
+                raise ValueError(f"Unknown trigger token: {token}")
+            if "_" in field:
+                parts = field.split("_")
+                field = parts[0] + "".join(part.title() for part in parts[1:])
+            if field not in known_fields:
+                raise ValueError(f"Unknown trigger token: {token}")
+            if re.search(r",[A-Za-z_][A-Za-z0-9_]*:", value):
+                raise ValueError(
+                    f"Glued trigger token {token!r}; separate fields with |"
+                )
+            values[field] = value
+    group_order = [family["family"] for family in families]
+    grouped: dict[str, list[str]] = {g: [] for g in group_order}
     for label in values:
-        g = FIELD_GROUP.get(label, "damage")
-        grouped[g].append(label)
+        try:
+            grouped[field_group[label]].append(label)
+        except KeyError as error:
+            raise ValueError(f"Unknown trigger field: {label}") from error
     parts = []
-    for g in GROUP_ORDER:
+    for g in group_order:
         fields = grouped[g]
         if not fields:
             continue
@@ -1463,6 +1254,83 @@ def generate_stages_index() -> None:
     write_generated_file(GENERATED_DIR / "GameContentStagesIndex.generated.swift", body)
 
 
+def generate_trigger_families() -> None:
+    families = json.loads(TRIGGER_FAMILY_SCHEMA.read_text(encoding="utf-8"))
+    merge_lines = {
+        "add": lambda n: f"        {n} += other.{n}",
+        "mul": lambda n: f"        {n} *= other.{n}",
+        "add_excess": lambda n: f"        {n} = 1 + ({n} - 1) + (other.{n} - 1)",
+        "or": lambda n: f"        {n} = {n} || other.{n}",
+        "max": lambda n: f"        {n} = max({n}, other.{n})",
+        "coalesce": lambda n: f"        {n} = other.{n} ?? {n}",
+        "union": lambda n: (
+            f"        {n} = Array(Set({n}).union(other.{n})).sorted()"
+        ),
+    }
+    for family in families:
+        type_name = family["file_stem"]
+        family_id = family["family"]
+        fields = family["fields"]
+        props = "\n".join(
+            f"    public var {f['name']}: {f['type']} = {f['default']}" for f in fields
+        )
+        init_params = ",\n".join(
+            f"        {f['name']}: {f['type']} = {f['default']}" for f in fields
+        )
+        init_assigns = "\n".join(
+            f"        self.{f['name']} = {f['name']}" for f in fields
+        )
+        merges = "\n".join(merge_lines[f["merge"]](f["name"]) for f in fields)
+        decode_args = ",\n".join(
+            "            {name}: values.decode({typ}.self, \"{name}\", default: {default})".format(
+                name=f["name"], typ=f["type"], default=f["default"]
+            )
+            for f in fields
+        )
+        encodes = "\n".join(
+            f'        try container.encodeNonDefault({f["name"]}, "{f["name"]}", default: {f["default"]})'
+            for f in fields
+        )
+        text = f"""// Generated by Scripts/content_codegen.py — do not edit.
+import Foundation
+import TrinketCore
+
+/// The `{family_id}` trigger family of `CombatTraitTriggers`.
+public struct {type_name}: Equatable, Hashable, Sendable {{
+{props}
+
+    public init(
+{init_params}
+    ) {{
+{init_assigns}
+    }}
+}}
+
+extension {type_name} {{
+    mutating func merge(_ other: Self) {{
+{merges}
+    }}
+}}
+
+extension {type_name} {{
+    /// Decodes this family's flat trigger keys.
+    init(from values: DefaultingTriggerDecoder) throws {{
+        try self.init(
+{decode_args}
+        )
+    }}
+
+    func encode(to container: inout KeyedEncodingContainer<TriggerCodingKey>) throws {{
+{encodes}
+    }}
+}}
+"""
+        out = GENERATED_DIR / f"{type_name}.generated.swift"
+        if out.exists() and out.read_text(encoding="utf-8") == text:
+            continue
+        out.write_text(text, encoding="utf-8")
+
+
 def generate_ability_index() -> None:
     body = (
         "enum AbilityCatalogIndexGenerated {\n"
@@ -1769,6 +1637,84 @@ def generate_encounter_art_catalog(rows: list[StageRow]) -> None:
     write_generated_file(GENERATED_DIR / "GameContentEncounterArt.generated.swift", body)
 
 
+@dataclass
+class TalentRow:
+    id: str
+    name: str
+    description: str
+    modifiers: str
+    triggers: str
+
+
+def parse_talent_rows() -> list[TalentRow]:
+    path = MANIFEST_DIR / "talents.tsv"
+    lines = read_tsv(path)
+    header = lines[0]
+    expected = ["id", "name", "description", "modifiers", "triggers"]
+    if header != expected:
+        raise ValueError(f"{path} header mismatch: {header}")
+    return [TalentRow(*row) for row in lines[1:]]
+
+
+def combatant_id_for_talent(talent_id: str, combatant_ids: list[str]) -> str:
+    for combatant_id in sorted(combatant_ids, key=len, reverse=True):
+        if talent_id.startswith(f"{combatant_id}_"):
+            return combatant_id
+    raise ValueError(f"Talent {talent_id} does not match a combatant id")
+
+
+def generate_talent_catalog(rows: list[TalentRow], combatant_ids: list[str]) -> None:
+    grouped: dict[str, list[TalentRow]] = {combatant_id: [] for combatant_id in combatant_ids}
+    for row in rows:
+        grouped[combatant_id_for_talent(row.id, combatant_ids)].append(row)
+
+    def render_entry(row: TalentRow) -> str:
+        return (
+            f'            "{swift_escape(row.id)}": CombatantTalentEffect(\n'
+            f'                name: "{swift_escape(row.name)}",\n'
+            f'                description: "{swift_escape(row.description)}",\n'
+            f"                modifiers: {modifiers_swift(row.modifiers)},\n"
+            f"                triggers: {triggers_swift(row.triggers)}\n"
+            "            )"
+        )
+
+    group_lets: list[str] = []
+    group_names: list[str] = []
+    for combatant_id in combatant_ids:
+        talent_rows = grouped[combatant_id]
+        if not talent_rows:
+            continue
+        swift_name = "".join(part.title() for part in combatant_id.split("_"))
+        group_name = f"{swift_name[:1].lower() + swift_name[1:]}Talents"
+        group_names.append(group_name)
+        entries = ",\n".join(render_entry(row) for row in talent_rows)
+        group_lets.append(
+            f"    static let {group_name}: [String: CombatantTalentEffect] = [\n"
+            f"{entries}\n"
+            "    ]"
+        )
+
+    merge = ",\n            ".join(group_names)
+    body = (
+        "extension CombatantTalentCatalog {\n"
+        + "\n\n".join(group_lets)
+        + "\n\n    static let signatureTalents: [String: CombatantTalentEffect] = {\n"
+        "        var combined: [String: CombatantTalentEffect] = [:]\n"
+        f"        combined.reserveCapacity({len(rows)})\n"
+        "        for group in [\n"
+        f"            {merge}\n"
+        "        ] {\n"
+        "            for (key, value) in group {\n"
+        "                combined[key] = value\n"
+        "            }\n"
+        "        }\n"
+        "        return combined\n"
+        "    }()\n"
+        "}\n"
+    )
+    write_generated_file(GENERATED_DIR / "CombatantTalentCatalog.generated.swift", body)
+
+
 def validate_manifests() -> tuple[
     list[AffixRow],
     list[TraitRow],
@@ -1982,10 +1928,14 @@ def main() -> int:
     generate_homestead_catalog(homestead_rows)
     generate_item_bases_catalog(item_base_rows)
     generate_encounter_art_catalog(stage_rows)
+    generate_trigger_families()
+    talent_rows = parse_talent_rows()
+    generate_talent_catalog(talent_rows, [row.id for row in combatant_rows])
     generate_ability_shorthand()
     generate_ability_inventory()
     generate_ability_index()
     ability_count = len(collect_ability_symbols())
+    trigger_family_count = len(json.loads(TRIGGER_FAMILY_SCHEMA.read_text(encoding="utf-8")))
     print(
         f"Generated {len(affix_rows)} affixes, "
         f"{len(trait_rows)} traits, "
@@ -1993,8 +1943,10 @@ def main() -> int:
         f"{len(stage_rows)} stages, "
         f"{len(combatant_rows)} combatants, "
         f"{len(enemy_rows)} enemies, "
-        f"{len(homestead_rows)} homestead tiers, and "
-        f"{len(item_base_rows)} item bases"
+        f"{len(homestead_rows)} homestead tiers, "
+        f"{len(item_base_rows)} item bases, "
+        f"{len(talent_rows)} talents, and "
+        f"{trigger_family_count} trigger families"
     )
     return 0
 

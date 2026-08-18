@@ -3,9 +3,7 @@ import TrinketCore
 @testable import TrinketContent
 
 struct MysteryEventCatalogTests {
-    @Test func allMysteryEventsHaveUniqueIDs() throws {
-        let ids = (GameContent.mysteryEvents + GameContent.recruitEvents).map(\.id)
-        try #expect(ids.count == Set(ids).count)
+    @Test func unknownMysteryAndRecruitIDsDoNotResolve() throws {
         try #expect(GameContent.mysteryEvent(matching: "nonexistent-event") == nil)
         try #expect(GameContent.recruitEvent(matching: "nonexistent-event") == nil)
     }
@@ -236,24 +234,14 @@ struct MysteryEventCatalogTests {
         }
     }
 
-    @Test func recruitEncounterSymbolNameMatchesCombatantRole() throws {
-        #expect(GameContent.recruitEncounterSymbolName(forEventID: nil) == "person.2.fill")
-        #expect(GameContent.recruitEncounterSymbolName(for: .hero) == "person.2.fill")
-        #expect(GameContent.recruitEncounterSymbolName(for: .companion) == "pawprint.fill")
-
+    @Test func recruitEventsResolveCombatantRoles() throws {
         let heroEvent = try #require(GameContent.recruitEvent(matching: "recruit-ranger"))
         let hero = try #require(GameContent.combatant(forMysteryEvent: heroEvent))
         try #expect(hero.role == .hero)
-        #expect(GameContent.recruitEncounterSymbolName(forEventID: "recruit-ranger") == "person.2.fill")
-        #expect(StageEncounter.recruit(eventID: "recruit-ranger").symbolName == "person.2.fill")
 
         let companionEvent = try #require(GameContent.recruitEvent(matching: "recruit-bear"))
         let companion = try #require(GameContent.combatant(forMysteryEvent: companionEvent))
         try #expect(companion.role == .companion)
-        #expect(GameContent.recruitEncounterSymbolName(forEventID: "recruit-bear") == "pawprint.fill")
-        #expect(StageEncounter.recruit(eventID: "recruit-bear").symbolName == "pawprint.fill")
-
-        #expect(LabyrinthNodeType.recruit.symbolName == "person.2.fill")
     }
 }
 

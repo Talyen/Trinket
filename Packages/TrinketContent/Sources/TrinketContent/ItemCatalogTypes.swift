@@ -87,6 +87,8 @@ public struct ItemAffixPower: Codable, Equatable, Hashable, Sendable {
         }
     }
 
+    // Concurrency-Safety: `@unchecked Sendable` — COW box is mutated only while
+    // uniquely referenced; copies clone `CombatTraitTriggers`.
     private final class TriggerBox: @unchecked Sendable {
         var value: CombatTraitTriggers
         init(_ value: CombatTraitTriggers) {

@@ -1,16 +1,17 @@
 import Foundation
 import Testing
-import TrinketBattleFeature
+import TrinketBattleRuntime
 import TrinketContent
 import TrinketCore
 import TrinketFeatureSupport
 import TrinketPersistenceTestSupport
 import TrinketTestSupport
 @testable import TrinketAppState
+@testable import TrinketBattleFeature
 @testable import TrinketPersistence
 
 @MainActor
-struct AppStateLabyrinthTests {
+struct AppStateLabyrinthTests { // swiftlint:disable:this type_body_length
     let context: AppTestContext
 
     init() throws {
@@ -90,6 +91,51 @@ struct AppStateLabyrinthTests {
 
         #expect(battle.lifecyclePhase == .prepared)
         #expect(battle.preparedBattlePresentationRevision > preparedRevision)
+    }
+
+    @Test func labyrinthPrepareDropsUnreachableCombatRuns() throws {
+        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        _ = state.labyrinth.enter()
+        let combatNodeID = try #require(LabyrinthTestSupport.firstReachableCombatNodeID(in: state))
+        let battle = try #require(context.lastBattle)
+        state.labyrinth.prepareReachableBattles()
+        let clearedKey = PlayBattleOrigin.labyrinth(nodeID: combatNodeID).runKey
+        #expect(battle.preparedBattleRun(for: clearedKey) != nil)
+
+        #expect(state.labyrinth.completeNode(nodeID: combatNodeID))
+        state.labyrinth.prepareReachableBattles()
+
+        #expect(battle.preparedBattleRun(for: clearedKey) == nil)
+        let remainingKeys = Set(battle.preparedBattleRuns.compactMap(\.configuration.runKey))
+        let reachableCombatKeys = Set(
+            state.playerSave.labyrinth.reachableNodeIDs().compactMap { nodeID -> BattleRunKey? in
+                guard let node = state.playerSave.labyrinth.node(id: nodeID), node.type.isCombat else {
+                    return nil
+                }
+                return PlayBattleOrigin.labyrinth(nodeID: nodeID).runKey
+            }
+        )
+        #expect(remainingKeys == reachableCombatKeys)
+    }
+
+    @Test func labyrinthPrepareRebuildsWipedJourneyRun() throws {
+        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        let stage = try #require(GameContent.chapters[0].stages.first)
+        let journeyKey = PlayBattleOrigin.journey(stageID: stage.id).runKey
+        let battle = try #require(context.lastBattle)
+
+        state.journey.prepareBattle(for: stage)
+        #expect(battle.hasPreparedRun(journeyKey))
+        #expect(state.battlePresentation(for: journeyKey) != nil)
+
+        _ = state.labyrinth.enter()
+        state.labyrinth.prepareReachableBattles()
+        #expect(!battle.hasPreparedRun(journeyKey))
+        #expect(state.battlePresentation(for: journeyKey) == nil)
+
+        state.journey.prepareBattle(for: stage)
+        #expect(battle.hasPreparedRun(journeyKey))
+        #expect(state.battlePresentation(for: journeyKey) != nil)
     }
 
     @Test func startLabyrinthBattleSetsConfigurationAndInMemoryOrigin() throws {
@@ -406,5 +452,15 @@ struct AppStateLabyrinthTests {
 
         #expect(state.labyrinth.handleNodeAction(nodeID: reachableID) == nil)
         #expect(state.encounters.activeMysteryEncounter?.labyrinthNodeID == reachableID)
+    }
+
+    @Test func missingLabyrinthNodePinFailsClosed() throws {
+        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        _ = state.labyrinth.enter()
+        let message = try #require(
+            state.encounters.beginMysteryEncounter(origin: .labyrinth(nodeID: "missing-node"))
+        )
+        #expect(message.title == "Couldn't Save Progress")
+        #expect(state.encounters.activeMysteryEncounter == nil)
     }
 }

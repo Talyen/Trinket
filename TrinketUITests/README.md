@@ -8,7 +8,7 @@ UI test conventions for Trinket. Agent workflow: `AGENTS.md`. Unit/UI overview: 
 |------|------|------|
 | Smoke | `Smoke/`, `Smoke.xctestplan` | Local `test.sh smoke` and CI `smoke-full` (same three classes) |
 | Exhaustive | `Play/`, `Collection/`, `Battle/` | Main CI (sharded); local only for targeted debugging |
-| Integration | `Integration.xctestplan` (all non-performance UI classes) | Local `test.sh all`; explicit selection so new classes never silently run here |
+| Integration | `Integration.xctestplan` (FullUI journey classes; smoke excluded) | Local `test.sh all`; explicit selection so new classes never silently run here |
 | Performance | `Performance/`, `BattlePerformance.xctestplan` | Ad hoc `performance.sh` / `test.sh performance` when investigating performance; not CI or smoke |
 | Support | `Support/Screens/` | Page objects (`PlayScreen`, `BattleScreen`, `TabBar`, …) |
 

@@ -36,19 +36,6 @@ package extension DamagePipeline {
                     in: context
                 )
                 : 0
-            if state.qualifiesForAmbush,
-               var runtime = context.roster.runtime(for: actor.combatant) {
-                let profile = context.modifiers(for: sourceActorID)
-                var didUpdateRuntime = false
-                if !runtime.hasTriggeredAmbush, profile.triggers.ambushBonusDamage > 0 {
-                    state.itemBonus += profile.triggers.ambushBonusDamage
-                    runtime.hasTriggeredAmbush = true
-                    didUpdateRuntime = true
-                }
-                if didUpdateRuntime {
-                    context.roster.update(runtime)
-                }
-            }
             if state.isAttackHit,
                var runtime = context.roster.runtime(for: actor.combatant) {
                 let profile = context.modifiers(for: sourceActorID)
@@ -137,7 +124,35 @@ package extension DamagePipeline {
             let talentMultiplier = CombatTriggerEngine.damageMultiplier(for: state, in: context)
             if talentMultiplier != 1 {
                 state.remaining = CombatRounding.scaled(state.remaining, multiplier: talentMultiplier)
+                appendAfflictedAuraLogEvents(to: &state, in: &context)
             }
+        }
+    }
+
+    private static func appendAfflictedAuraLogEvents(
+        to state: inout DamageResolutionState,
+        in context: inout BattleState
+    ) {
+        guard let sourceActorID = state.sourceActorID,
+              let source = context.roster.combatant(for: sourceActorID),
+              source.role != .enemy
+        else { return }
+        let target = state.combatant
+        let names = CombatTriggerEngine.partyAfflictedDamageAuras(
+            targetIsPoisoned: context.roster.activeEffects(for: target).contains { $0.effect.keyword == .poison },
+            targetIsBurning: context.roster.activeEffects(for: target).contains { $0.effect.keyword == .burn },
+            in: context
+        ).abilityNames
+        for name in names {
+            // `.ability` is combat-log only; chips already drop that kind.
+            state.damageEvents.append(context.nextEvent(
+                kind: .ability,
+                actorName: source.name,
+                abilityName: name,
+                target: target,
+                amount: 0,
+                keyword: state.damageKeyword ?? .physical
+            ))
         }
     }
 

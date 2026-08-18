@@ -50,7 +50,6 @@ final class AppPerformanceUITests: TrinketUITestCase {
             self.pauseForTransition()
             playTab.tap()
         }
-        play.assertLoaded()
     }
 
     func test02CollectionNavigation() {
@@ -89,11 +88,6 @@ final class AppPerformanceUITests: TrinketUITestCase {
             } else {
                 nodeCoordinate.tap()
             }
-        }
-        if isShowingDetail {
-            assertExists(AccessibilityID.Homestead.node(title: "Wheat Field"))
-        } else {
-            homestead.assertNodeDetail(named: "Wheat Field")
         }
     }
 

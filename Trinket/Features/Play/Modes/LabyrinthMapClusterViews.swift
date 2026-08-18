@@ -9,6 +9,7 @@ import TrinketFeatureSupport
 import TrinketPersistence
 
 struct LabyrinthFloorMap: View {
+    @Environment(LabyrinthPlayMode.self) private var labyrinth
     @Environment(PlayerSaveStore.self) private var playerSave
 
     let cluster: LabyrinthCluster
@@ -26,14 +27,6 @@ struct LabyrinthFloorMap: View {
 
     private var nodes: [LabyrinthNode] {
         LabyrinthMapPresentation.floorNodes(for: cluster, in: state)
-    }
-
-    /// Built once for the floor so seals do not rematerialize inventory / save.
-    private var pickContext: MysteryEventPickContext {
-        MysteryEventPickContext.labyrinth(
-            inventory: playerSave.inventory,
-            corruptionAltarCooldownRemaining: playerSave.corruptionAltarCooldownRemaining
-        )
     }
 
     var body: some View {
@@ -69,10 +62,14 @@ struct LabyrinthFloorMap: View {
         }
 
         ZStack {
-            Rectangle()
-                .fill(.clear)
-                .contentShape(Rectangle())
-                .onTapGesture(perform: onDismissSelection)
+            Button(action: onDismissSelection) {
+                Rectangle()
+                    .fill(.clear)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .trinketQuietTapButtonStyle()
+            .accessibilityLabel("Dismiss selection")
 
             ForEach(displayNodes) { presentation in
                 LabyrinthMapNodeSeal(
@@ -81,7 +78,8 @@ struct LabyrinthFloorMap: View {
                     type: presentation.type,
                     isSelected: selectedNodeID == presentation.id,
                     metrics: metrics,
-                    pickContext: pickContext,
+                    resolvedMysteryEvent: labyrinth.previewMysteryEvent(for: presentation.node),
+                    floorDepthBand: cluster.depthBand,
                     onActivate: {
                         if presentation.visualState == .reachable {
                             onSelectNode(presentation.id)
@@ -141,7 +139,8 @@ private struct LabyrinthMapNodeSeal: View {
     let type: LabyrinthNodeType
     let isSelected: Bool
     let metrics: LabyrinthHexMetrics
-    let pickContext: MysteryEventPickContext
+    let resolvedMysteryEvent: MysteryEvent?
+    let floorDepthBand: Int
     let onActivate: () -> Void
     @State private var reachablePulseOpacity: Double = 0
     @State private var reachablePulseTask: Task<Void, Never>?
@@ -160,7 +159,7 @@ private struct LabyrinthMapNodeSeal: View {
                 LabyrinthNodeArtwork(
                     node: node,
                     type: type,
-                    pickContext: pickContext,
+                    resolvedMysteryEvent: resolvedMysteryEvent,
                     style: .hexSeal
                 )
                 .opacity(visualState == .locked ? 0.42 : 1)
@@ -220,7 +219,20 @@ private struct LabyrinthMapNodeSeal: View {
         .onDisappear {
             reachablePulseTask?.cancel()
         }
-        .accessibilityIdentifier(AccessibilityID.Play.labyrinthNode(node.id))
+        .accessibilityIdentifier(labyrinthAccessibilityIdentifier)
+    }
+
+    private var labyrinthAccessibilityIdentifier: String {
+        guard floorDepthBand == 1 else {
+            return AccessibilityID.Play.labyrinthNode(node.id)
+        }
+        if node.id.hasSuffix("-n0") {
+            return AccessibilityID.Play.labyrinthFloor1EntryNode
+        }
+        if node.id.hasSuffix("-n2") {
+            return AccessibilityID.Play.labyrinthFloor1LockedNode
+        }
+        return AccessibilityID.Play.labyrinthNode(node.id)
     }
 
     private var checkmarkTransition: AnyTransition {
@@ -297,153 +309,15 @@ private struct LabyrinthNodeButtonStyle: ButtonStyle {
     }
 }
 
-struct LabyrinthNodeInspector: View {
-    @Environment(LabyrinthPlayMode.self) private var labyrinth
-    @Environment(BattleSession.self) private var battle
-    @Environment(PlayerSaveStore.self) private var playerSave
-
-    let node: LabyrinthNode
-    let state: PlayerLabyrinthState
-    let onMessage: (StageMapMessage) -> Void
-
-    private var type: LabyrinthNodeType {
-        LabyrinthMapPresentation.effectiveType(
-            for: node,
-            worldSeed: playerSave.worldSeed,
-            unlockedHeroIDs: playerSave.roster.unlockedHeroIDs,
-            unlockedCompanionIDs: playerSave.roster.unlockedCompanionIDs
-        )
-    }
-
-    private var presentation: StageSelectRowPresentation<LabyrinthNode> {
-        StageSelectRowPresentation.labyrinthRow(
-            for: node,
-            type: type,
-            title: subjectTitle,
-            isArtworkInteractive: enemyDetail != nil
-        )
-    }
-
-    var body: some View {
-        StageSelectActiveCard(
-            presentation: presentation,
-            isPrimaryActionDisabled: battle.lifecyclePhase == .active,
-            onArtworkTap: {
-                if let enemyDetail {
-                    battle.presentCombatantDetail(enemyDetail)
-                }
-            },
-            onPrimaryAction: {
-                if let message = labyrinth.handleNodeAction(nodeID: node.id) {
-                    onMessage(message)
-                }
-            },
-            artwork: {
-                LabyrinthNodeArtwork(
-                    node: node,
-                    type: type,
-                    pickContext: MysteryEventPickContext.labyrinth(
-                        inventory: playerSave.inventory,
-                        corruptionAltarCooldownRemaining: playerSave.corruptionAltarCooldownRemaining
-                    ),
-                    style: .inspector
-                )
-            },
-            partyPickerSheet: {
-                StageBattlePartyPickerSheet()
-            },
-            artworkAccessory: {
-                modifierArtworkCaption
-            }
-        )
-        .accessibilityIdentifier(AccessibilityID.Play.labyrinthNodeInspector)
-    }
-
-    private var subjectTitle: String {
-        guard type.isCombat,
-              let enemyID = node.enemyID,
-              let enemy = GameContent.enemy(matching: enemyID)
-        else { return type.title }
-        return enemy.combatant.name
-    }
-
-    private var enemyDetail: CombatantCardDetail? {
-        guard let encounter = labyrinth.resolvedEncounter(for: node) else {
-            return nil
-        }
-        return CombatantCardDetail(
-            combatant: encounter.combatant,
-            labyrinthModifiers: LabyrinthCatalog.modifiers(ids: node.modifierIDs)
-        )
-    }
-
-    private var modifiers: [LabyrinthModifierDefinition] {
-        LabyrinthCatalog.modifiers(ids: node.modifierIDs)
-    }
-
-    @ViewBuilder
-    private var modifierArtworkCaption: some View {
-        if !modifiers.isEmpty {
-            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
-                ForEach(modifiers) { modifier in
-                    VStack(alignment: .leading, spacing: TrinketDesign.Metrics.tightSpacing) {
-                        HStack(spacing: TrinketDesign.Metrics.denseSpacing) {
-                            Image(systemName: modifierSymbolName(for: modifier))
-                                .symbolRenderingMode(.hierarchical)
-                            Text(modifier.title.uppercased())
-                        }
-                        .trinketTypography(.eyebrow)
-                        .trinketOnArtText(.title)
-
-                        Text(modifier.effect.description)
-                            .trinketTypography(.footnote)
-                            .trinketOnArtText(.eyebrow)
-                            .lineLimit(2)
-                    }
-                }
-            }
-            .padding(.horizontal, TrinketDesign.Metrics.mediumSpacing)
-            .padding(.top, TrinketDesign.Metrics.extraLargeSpacing)
-            .padding(.bottom, TrinketDesign.Metrics.mediumSpacing)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background {
-                LinearGradient(
-                    colors: [
-                        .clear,
-                        TrinketDesign.Colors.Overlay.ink.opacity(0.82),
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-            }
-            .allowsHitTesting(false)
-        }
-    }
-
-    private func modifierSymbolName(for modifier: LabyrinthModifierDefinition) -> String {
-        switch modifier.id.rawValue {
-        case "ironPressure": "burst.fill"
-        case "ashTithe": "flame.fill"
-        case "bloodMarket", "serpentBloom": "drop.fill"
-        case "rimeTax": "snowflake"
-        case "gildedWhisper": "circle.circle.fill"
-        case "astralSeam": "sparkles"
-        default: "sparkles"
-        }
-    }
-}
-
-private struct LabyrinthNodeArtwork: View {
+struct LabyrinthNodeArtwork: View {
     enum Style {
         case inspector
         case hexSeal
     }
 
-    @Environment(PlayerSaveStore.self) private var playerSave
-
     let node: LabyrinthNode
     let type: LabyrinthNodeType
-    let pickContext: MysteryEventPickContext
+    let resolvedMysteryEvent: MysteryEvent?
     var style: Style = .inspector
 
     private var symbolName: String {
@@ -451,21 +325,6 @@ private struct LabyrinthNodeArtwork: View {
             for: type,
             recruitEventID: node.recruitEventID
         )
-    }
-
-    private var resolvedMysteryEvent: MysteryEvent? {
-        switch type.canonical {
-        case .mystery, .event:
-            GameContent.resolveLabyrinthMysteryEvent(
-                nodeID: node.id,
-                worldSeed: playerSave.worldSeed,
-                forcedEventID: nil,
-                pinnedEventID: node.mysteryEventID,
-                context: pickContext
-            )
-        default:
-            nil
-        }
     }
 
     var body: some View {

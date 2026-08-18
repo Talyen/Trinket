@@ -25,7 +25,6 @@ public enum EffectTurnEngine {
             )
             context.roster.setActiveEffects(result.updated, for: combatant)
             events.append(contentsOf: result.events)
-            events.append(contentsOf: EnemyTraitEngine.turnRegeneration(for: combatant, context: &context))
             events.append(contentsOf: CombatTriggerEngine.turnBlock(for: combatant, in: &context))
             events.append(contentsOf: EnemyTraitEngine.turnFreeze(for: combatant, context: &context))
             // Purifying Aura: party debuffs expire twice as fast (extra duration or DoT decay, not a second tick).

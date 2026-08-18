@@ -15,7 +15,7 @@ struct EnemyTraitBattleTests {
         companion: Combatant,
         enemyBuild: CombatBuild
     ) -> BattleState {
-        HeroCompanionTraitTestSupport.makeContext(
+        BattleTestFixtures.makeContext(
             hero: hero,
             companion: companion,
             enemy: enemyBuild.combatant,
@@ -94,13 +94,13 @@ struct EnemyTraitBattleTests {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 20)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30)
-        var reducedContext = HeroCompanionTraitTestSupport.makeContext(
+        var reducedContext = BattleTestFixtures.makeContext(
             hero: hero,
             companion: companion,
             enemy: enemy,
             enemyModifiers: CombatModifierProfile(damageTakenReduction: [.bleed: 0.3])
         )
-        var baselineContext = HeroCompanionTraitTestSupport.makeContext(
+        var baselineContext = BattleTestFixtures.makeContext(
             hero: hero,
             companion: companion,
             enemy: enemy

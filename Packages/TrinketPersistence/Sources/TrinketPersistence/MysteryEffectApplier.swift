@@ -88,7 +88,7 @@ public enum MysteryEffectApplier {
         save: PlayerSave
     ) -> Int {
         if let labyrinthNodeID, let node = save.labyrinth.nodes[labyrinthNodeID] {
-            return LabyrinthCompletion.enemyLevel(for: node)
+            return EncounterLevelResolver.labyrinthEnemyLevel(for: node)
         }
         return StageCompletion.resolvedEncounterLevel(for: stage, in: GameContent.chapters)
     }

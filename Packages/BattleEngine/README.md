@@ -19,6 +19,7 @@ Products from `Package.swift`:
 | `BattleCardCombatEngine` | BattleEngine | Opening draw, play resolution, enemy turn, end-of-round effect tick |
 | `BattleEffectHandler` | BattleEngine | Protocol for effect application/tick logic |
 | `EffectHandlers` | BattleEngine | Registry of all handlers, keyed by `EffectKind` |
+| `CombatTriggerEngine` | BattleEngine | Talent and affix combat hooks (`+Damage`, `+Defense`, `+Mana`, `+CardPlay`, `+EnemyTurn`, `+TurnStart`, `+TurnEnd`, `+Cleanse`, `+Resources`, `+Holy`, `+Leech`, `+PartyAuras`) |
 | `CombatantRuntime` | BattleEngine | Per-combatant runtime state (HP, mana, active effects) |
 | `GreedyHeuristicPolicy` | BattleEngine | Greedy-v1 card scoring for Auto Battle and sweeps |
 | `BattleSimulator` | BattleBalanceTools | Headless autoplay loop for balance sweeps |

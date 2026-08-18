@@ -14,7 +14,7 @@ not fit a row below, add a row rather than stuffing it into an unrelated file.
 | DoT math | `DoTDamageTests`, `DoTMechanicsTests` | burn decay |
 | Card combat driver | `BattleCardCombatTests` | opening hand, end turn, enemy cadence |
 | Control / Death's Door | `ControlMeter*`, `DeathsDoorEngineTests` | skip next act |
-| Build / traits / affixes | `CombatBuildResolverTests`, `HeroTraitReworkTests`, `CompanionTraitReworkTests`, `TalentCatalogRoundTripTests`, `TalentReviewFixTests`, `EnemyTraitBattleTests`, `AffixReactionBattleTests`, `AffixUnderrepresentedReactionTests` | item triggers |
+| Build / traits / affixes / talents | `CombatBuildResolverTests`, `CombatTriggerTalentTests` (injected trigger math, party-scope), `TalentCatalogRoundTripTests` (catalog node → battle hook), `TrinketEffectTests` (card-play and trinket-slot trigger flows), `EnemyTraitBattleTests`, `AffixReactionBattleTests`, `ItemModifierBattleTests` | item and talent triggers |
 | Catalog ability combos | `AbilityEffectIntegrationTests` | Bloodthorn, Prayer |
 | Outcome / log | `BattleOutcomeResolverTests`, `BattleLogReducerTests` | victory rules |
 | Greedy card policy | `GreedyHeuristicPolicyTests` | lethal card outranks weaker leftmost |

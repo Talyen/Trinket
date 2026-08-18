@@ -57,7 +57,6 @@ package extension HealingEngine {
         }
 
         var restored = CombatRounding.scaled(baseDamage, multiplier: leechPct)
-        restored = CombatRounding.scaled(restored, multiplier: profile.triggers.leechHealingMultiplier)
         restored += profile.leechHealingBonus
         restored = CombatRounding.scaled(
             restored,

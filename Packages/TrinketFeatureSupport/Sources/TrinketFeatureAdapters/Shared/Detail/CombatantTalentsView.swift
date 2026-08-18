@@ -7,7 +7,6 @@ import TrinketPersistence
 
 /// Direct talent tree view for a specific keyword affinity of a hero or companion.
 public struct CombatantTalentsView: View {
-    let combatant: Combatant
     let tree: TalentTree
     let progression: CombatantProgression
     @Binding var unlockedTalents: Set<String>
@@ -18,7 +17,6 @@ public struct CombatantTalentsView: View {
     @State private var selectedNodeID: String?
 
     public init(
-        combatant: Combatant,
         tree: TalentTree,
         progression: CombatantProgression,
         unlockedTalents: Binding<Set<String>>,
@@ -26,7 +24,6 @@ public struct CombatantTalentsView: View {
         onUnlockTalent: @escaping (TalentNode, TalentTree) -> Void,
         onResetTalents: @escaping () -> Void
     ) {
-        self.combatant = combatant
         self.tree = tree
         self.progression = progression
         _unlockedTalents = unlockedTalents
@@ -141,7 +138,7 @@ public struct CombatantTalentsView: View {
         } label: {
             VStack(spacing: TrinketDesign.Metrics.smallSpacing) {
                 if isUnlocked {
-                    Image(systemName: node.symbolName)
+                    Image(systemName: style.symbolName)
                         .font(.system(size: 32, weight: .bold))
                         .foregroundStyle(style.color)
                 } else if isRowLocked {
@@ -149,7 +146,7 @@ public struct CombatantTalentsView: View {
                         .font(.system(size: 26, weight: .medium))
                         .foregroundStyle(.tertiary)
                 } else {
-                    Image(systemName: node.symbolName)
+                    Image(systemName: style.symbolName)
                         .font(.system(size: 32, weight: .semibold))
                         .foregroundStyle(style.color.opacity(0.75))
                 }
@@ -210,21 +207,9 @@ public struct CombatantTalentsView: View {
                 )
                 let style = selectedNode.keyword.visualStyle
 
-                HStack(spacing: TrinketDesign.Metrics.smallSpacing) {
-                    Text(selectedNode.name)
-                        .font(.headline.weight(.bold))
-                        .foregroundStyle(style.color)
-
-                    if combatant.role == .companion {
-                        Text("PARTY PASSIVE")
-                            .font(.caption2.weight(.bold))
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(style.color.opacity(0.15))
-                            .foregroundStyle(style.color)
-                            .clipShape(Capsule())
-                    }
-                }
+                Text(selectedNode.name)
+                    .font(.headline.weight(.bold))
+                    .foregroundStyle(style.color)
 
                 KeywordDescriptionText(text: selectedNode.description)
                     .font(.subheadline)
@@ -273,12 +258,10 @@ public struct CombatantTalentsView: View {
         if canUnlock {
             return "Unlock Talent"
         }
-        let row1Complete = tree.nodes.filter { $0.tier == 1 }.allSatisfy { unlockedTalents.contains($0.id) }
-        if node.tier == 2, !row1Complete {
+        if node.row == 2, !tree.isRowComplete(1, unlockedNodeIDs: unlockedTalents) {
             return "Complete Row 1 to Unlock"
         }
-        let row2Complete = tree.nodes.filter { $0.tier == 2 }.allSatisfy { unlockedTalents.contains($0.id) }
-        if node.tier == 3, !row2Complete {
+        if node.row == 3, !tree.isRowComplete(2, unlockedNodeIDs: unlockedTalents) {
             return "Complete Row 2 to Unlock"
         }
         if availablePoints == 0 {

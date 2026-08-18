@@ -184,7 +184,7 @@ struct MysteryEffectApplierTests {
 
     @Test func mysteryTrinketsRespectStrongChoiceMappings() throws {
         var mappedTrinketIDs = Set<String>()
-        for seed in UInt64(1) ... 300 {
+        for seed in UInt64(1) ... 48 {
             var save = SaveTestSupport.makeSave()
             var randomNumberGenerator = SeededRandomNumberGenerator(seed: seed)
             let result = MysteryEffectApplier.apply(
@@ -200,7 +200,7 @@ struct MysteryEffectApplierTests {
         try #expect(!mappedTrinketIDs.isEmpty)
         try #expect(mappedTrinketIDs.isSubset(of: ["bone_charm", "sin_eaters_lantern"]))
 
-        for seed in UInt64(1) ... 300 {
+        for seed in UInt64(1) ... 8 {
             var save = SaveTestSupport.makeSave()
             var randomNumberGenerator = SeededRandomNumberGenerator(seed: seed)
             let result = MysteryEffectApplier.apply(

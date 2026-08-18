@@ -32,6 +32,8 @@ public struct CombatTraitTriggers: Codable, Sendable, Equatable, Hashable {
         var onHit: OnHitTriggers
     }
 
+    // Concurrency-Safety: `@unchecked Sendable` — COW box is mutated only through
+    // `ensureUnique()` while uniquely referenced; copies clone `Fields`.
     final class Storage: @unchecked Sendable {
         var fields: Fields
         init(_ fields: Fields) {
@@ -415,6 +417,33 @@ public struct CombatTraitTriggers: Codable, Sendable, Equatable, Hashable {
         set {
             ensureUnique()
             storage.fields.onHit[keyPath: keyPath] = newValue
+        }
+    }
+}
+
+extension CombatTraitTriggers {
+    /// Trigger field names whose values differ from family defaults.
+    public var populatedFieldNames: [String] {
+        Self.populatedNames(storage.fields.damage, defaults: DamageTriggers())
+            + Self.populatedNames(storage.fields.attack, defaults: AttackTriggers())
+            + Self.populatedNames(storage.fields.block, defaults: BlockTriggers())
+            + Self.populatedNames(storage.fields.mitigation, defaults: MitigationTriggers())
+            + Self.populatedNames(storage.fields.dot, defaults: DotTriggers())
+            + Self.populatedNames(storage.fields.control, defaults: ControlTriggers())
+            + Self.populatedNames(storage.fields.dodge, defaults: DodgeTriggers())
+            + Self.populatedNames(storage.fields.mana, defaults: ManaTriggers())
+            + Self.populatedNames(storage.fields.gold, defaults: GoldTriggers())
+            + Self.populatedNames(storage.fields.healing, defaults: HealingTriggers())
+            + Self.populatedNames(storage.fields.revival, defaults: RevivalTriggers())
+            + Self.populatedNames(storage.fields.cleanse, defaults: CleanseTriggers())
+            + Self.populatedNames(storage.fields.enemyTurn, defaults: EnemyTurnTriggers())
+            + Self.populatedNames(storage.fields.onHit, defaults: OnHitTriggers())
+    }
+
+    private static func populatedNames<Family>(_ value: Family, defaults: Family) -> [String] {
+        zip(Mirror(reflecting: value).children, Mirror(reflecting: defaults).children).compactMap { child, defaultChild in
+            guard let label = child.label else { return nil }
+            return String(describing: child.value) == String(describing: defaultChild.value) ? nil : label
         }
     }
 }

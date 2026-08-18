@@ -6,11 +6,9 @@ import TrinketDesignSystem
 import TrinketFeatureAdapters
 import TrinketFeatureContracts
 import TrinketFeatureSupport
-import TrinketPersistence
 
 struct MysteryEncounterView: View {
     @Environment(OptionsStore.self) private var options
-    @Environment(PlayerSaveStore.self) private var playerSave
     @Bindable var session: MysteryEncounterSession
     let onResolveChoice: (String?) -> Bool
     let onCorruptItem: (String) -> Bool
@@ -76,32 +74,25 @@ struct MysteryEncounterView: View {
     }
 
     private var readingContent: some View {
-        DetailHeroScrollShell(
-            title: session.event.title,
-            heroHeightPolicy: .cinematicLandscape,
-            hidesNavigationBar: true
-        ) { baseHeight, overscroll in
-            DetailHeroHeader(
-                eyebrow: "MYSTERY",
-                title: session.event.title,
-                titleAccessibilityIdentifier: AccessibilityID.Mystery.encounterTitle,
-                baseHeight: baseHeight,
-                overscroll: overscroll,
-                horizontalPadding: TrinketDesign.Metrics.contentMargin,
-                bottomPadding: TrinketDesign.Metrics.largeSpacing
-            ) {
-                heroArtwork
-            }
-        } bodyContent: {
-            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.contentMargin) {
-                narrativeCard
-                mysteryPersistFailureBanner(session.persistFailureMessage)
+        EncounterReadingShell(
+            artVisible: artAppeared,
+            copyVisible: narrativeAppeared,
+            artwork: { heroArtwork },
+            copy: {
+                VStack(alignment: .leading, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
+                    Text(session.event.title)
+                        .trinketTypography(.screenTitle)
+                        .accessibilityIdentifier(AccessibilityID.Mystery.encounterTitle)
+
+                    narrativeCard
+                    mysteryPersistFailureBanner(session.persistFailureMessage)
+                }
+            },
+            content: {
                 mysteryChoices
+                    .padding(.bottom, TrinketDesign.Metrics.compactTabBarContentClearance)
             }
-            .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-            .padding(.top, TrinketDesign.Metrics.largeSpacing)
-            .padding(.bottom, TrinketDesign.Metrics.compactTabBarContentClearance)
-        }
+        )
         .safeAreaInset(edge: .bottom, spacing: 0) {
             mysteryConfirmAction
         }
@@ -132,7 +123,8 @@ struct MysteryEncounterView: View {
                     choice: choice,
                     isSelected: selectedChoiceID == choice.id,
                     isDisabled: session.isResolvingChoice,
-                    materialQuantity: materialQuantity
+                    materialQuantity: session.previewMaterialQuantity,
+                    experienceAward: session.previewExperienceAward
                 ) {
                     guard selectedChoiceID != choice.id else { return }
                     selectedChoiceID = choice.id
@@ -177,16 +169,6 @@ struct MysteryEncounterView: View {
             .offset(y: -28)
             .allowsHitTesting(false)
         }
-    }
-
-    private var materialQuantity: Int {
-        MysteryEffectApplier.materialQuantity(
-            forLevel: MysteryEffectApplier.resolvedEncounterLevel(
-                stage: session.stage,
-                labyrinthNodeID: session.labyrinthNodeID,
-                save: playerSave.currentSave
-            )
-        )
     }
 
     private var heroArtwork: some View {

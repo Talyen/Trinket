@@ -17,6 +17,10 @@ public struct RewardRevealLootSection: View {
     var spacing: CGFloat = TrinketDesign.Metrics.largeSpacing
     let onSelectItem: (InventoryItem) -> Void
 
+    public static func walletRewardCount(gold: Int, materials: [ResourceAmount]) -> Int {
+        (gold > 0 ? 1 : 0) + materials.count { $0.quantity > 0 }
+    }
+
     public init(
         items: [InventoryItem],
         gold: Int,

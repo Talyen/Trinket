@@ -5,6 +5,12 @@ Trinket keeps editable game content manifests separate from generated Swift cata
 ## Folders
 
 - `ContentManifest/affixes.tsv`: source of truth for item affix definitions.
+- `ContentManifest/talents.tsv`: source of truth for hero and companion talent node effects.
+- `ContentManifest/traits.tsv`: source of truth for enemy trait definitions.
+- `Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentTraits.generated.swift`: generated enemy trait catalog.
+- `Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentStagesIndex.generated.swift`: generated stage index from `stages.tsv`.
+- `Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityCatalogIndex.generated.swift`: generated ability id index.
+- `Packages/TrinketContent/Sources/TrinketContent/Generated/CombatantTalentCatalog.generated.swift`: generated talent node dictionaries.
 - `ContentManifest/stages.tsv`: manifest-driven chapter stages, encounters, and rewards.
 - `ContentManifest/combatants.tsv`: manifest-driven heroes and companions (ability choices + stats).
 - `ContentManifest/enemies.tsv`: manifest-driven enemies (loadout + boss flags).
@@ -35,6 +41,28 @@ id	title	slot	keywords	weight	basic_description	astral_description	basic_modifie
 - `*_modifiers`: pipe-separated DSL tokens (e.g. `strength:1|damage_dealt:physical:1`). Empty when the affix is trigger-only.
 - `*_triggers`: pipe-separated combat trigger tokens (e.g. `on_bleed_apply_poison:1`, `refresh_bleed_on_reapply:true`). Empty for flat modifier affixes.
 
+### Talents (`ContentManifest/talents.tsv`)
+
+Tab-separated columns:
+
+```text
+id	name	description	modifiers	triggers
+```
+
+- `id`: `{combatantID}_{keyword}_t{row}_{slot}` matching `CombatantTalentCatalog` tree nodes.
+- `modifiers` / `triggers`: same pipe-separated DSL as affixes (`damage_dealt:physical:1`, `blockPerTurn:2`). CamelCase schema field names are accepted as trigger tokens.
+
+### Enemy traits (`ContentManifest/traits.tsv`)
+
+Tab-separated columns:
+
+```text
+id	name	description	modifiers	triggers
+```
+
+- One row per enemy trait. `modifiers` / `triggers` use the same pipe-separated DSL as affixes.
+- Generates `GameContentTraits.generated.swift`.
+
 ### Abilities (Swift catalogs)
 
 Abilities are authored only in:
@@ -50,6 +78,8 @@ Packages/TrinketContent/Sources/TrinketContent/Content/AbilityCatalogUltimate.sw
 - **List / understand all abilities:** read `Generated/AbilityInventory.generated.tsv` (`id`, `name`, `tier`, `summary`) or `AbilityCatalog.all` — not a ContentManifest TSV.
 
 Combatant and enemy manifests still reference abilities by Swift symbol (e.g. `slash`, `fireball`).
+
+Talent trees are authored in `ContentManifest/talents.tsv` using the same trigger/modifier DSL as affixes. Lookup/config API: `CombatantTalentCatalog.swift`. Generated dictionaries: `Packages/TrinketContent/Sources/TrinketContent/Generated/CombatantTalentCatalog.generated.swift`.
 
 ### Stages (`ContentManifest/stages.tsv`)
 

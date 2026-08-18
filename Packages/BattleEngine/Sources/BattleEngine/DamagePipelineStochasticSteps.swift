@@ -62,7 +62,8 @@ package extension DamagePipeline {
         ))
         state.isDodged = true
         // Evasive Pack auto-dodges do not trigger on-Dodge punish talents (Riposte).
-        if !autoDodge {
+        // Hits caused by a dodge must not re-enter afterDodge (Whiplash loops).
+        if !autoDodge, !state.causedByDodge {
             state.damageEvents.append(contentsOf: CombatTriggerEngine.afterDodge(
                 by: state.combatant,
                 attackerID: state.sourceActorID,
@@ -199,9 +200,8 @@ package extension DamagePipeline {
         // Surprise Strike: this combatant's first attack in battle is a guaranteed critical.
         if state.isAttackHit,
            context.modifiers(for: sourceActorID).triggers.firstAttackGuaranteedCritical,
-           let runtime = context.roster.runtime(for: actor.combatant),
-           !runtime.hasTriggeredSurpriseStrike {
-            context.roster.mutateRuntime(for: actor.combatant) { $0.hasTriggeredSurpriseStrike = true }
+           context.talentActionGuardByActorID[TalentActionGuardKey(kind: .surpriseStrike, actorID: actor.combatant.id)] == nil {
+            context.talentActionGuardByActorID[TalentActionGuardKey(kind: .surpriseStrike, actorID: actor.combatant.id)] = 1
             applyCritical(to: &state)
             return true
         }

@@ -36,6 +36,7 @@ enum TestLaunchArg {
         return args
     }
 
+    /// Screen tokens must match `LaunchScreen.parse` in AppTypes.
     static func allForScreen(_ screen: String, reset: Bool = true) -> [String] {
         var args = reset ? testLaunchArgs : []
         args.append(contentsOf: self.screen(screen))

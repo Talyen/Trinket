@@ -3,10 +3,6 @@ import TrinketContent
 import TrinketCore
 
 public enum LabyrinthCompletion {
-    public static func enemyLevel(for node: LabyrinthNode) -> Int {
-        max(1, node.depth)
-    }
-
     /// Ensures a Labyrinth map exists for the current save (eligible recruits applied).
     public static func enter(save: inout PlayerSave) {
         save.labyrinth.ensureMap(
@@ -54,7 +50,7 @@ public enum LabyrinthCompletion {
         astralChanceBonusPercent: Int = 0
     ) -> BattleLootPackage? {
         guard node.type.isCombat else { return nil }
-        let encounterLevel = enemyLevel(for: node)
+        let encounterLevel = EncounterLevelResolver.labyrinthEnemyLevel(for: node)
         let enemyIsBoss = node.enemyID.flatMap(GameContent.enemy(matching:))?.isBoss == true
         return BattleLoot.resolveLabyrinth(
             node: node,
@@ -65,21 +61,6 @@ public enum LabyrinthCompletion {
             ownedTrinketIDs: ownedTrinketIDs,
             astralChanceBonusPercent: astralChanceBonusPercent
         )
-    }
-
-    /// Pre-rolls combat loot using the same seeds as `complete`, for victory chrome.
-    public static func pendingCombatRewardItem(
-        for node: LabyrinthNode,
-        effects: LabyrinthModifierEffects,
-        worldSeed: UInt64,
-        astralChanceBonusPercent: Int = 0
-    ) -> InventoryItem? {
-        resolveCombatLoot(
-            for: node,
-            effects: effects,
-            worldSeed: worldSeed,
-            astralChanceBonusPercent: astralChanceBonusPercent
-        )?.item
     }
 
     // swiftlint:disable:next function_body_length
@@ -101,7 +82,7 @@ public enum LabyrinthCompletion {
         guard let node = save.labyrinth.node(id: nodeID), !node.isCleared else { return }
 
         let effects = save.labyrinth.effects(for: nodeID)
-        let encounterLevel = enemyLevel(for: node)
+        let encounterLevel = EncounterLevelResolver.labyrinthEnemyLevel(for: node)
 
         if node.type.isCombat {
             let resolvedLoot = loot ?? resolveCombatLoot(

@@ -18,6 +18,7 @@ struct PlayBattleLaunch {
     let registerRun: @MainActor @Sendable (PlayBattleRunRegistration) -> Void
     let removeRun: @MainActor @Sendable (BattleRunKey) -> Void
     let removePreparedRunsExcept: @MainActor @Sendable (BattleRunKey) -> Void
+    let keepPreparedRunRegistrations: @MainActor @Sendable (Set<BattleRunKey>) -> Void
 
     static let activationFailureMessage = StageMapMessage(
         title: "Battle Unavailable",
@@ -93,6 +94,11 @@ struct PlayBattleLaunch {
             removeRun(runKey)
         }
         return prepared
+    }
+
+    func keepPreparedRuns(_ keys: Set<BattleRunKey>) {
+        battle.keepPreparedRuns(keys)
+        keepPreparedRunRegistrations(keys)
     }
 
     /// Installs a fresh battle configuration and syncs the tick loop.

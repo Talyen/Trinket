@@ -13,6 +13,8 @@
 # diffs fall back to the app-compile gap-fill (trinket_build_verification_plan).
 
 TRINKET_CHANGE_CLASSIFICATION_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib/smoke-classes.sh
+source "$TRINKET_CHANGE_CLASSIFICATION_DIR/lib/smoke-classes.sh"
 
 TRINKET_CHANGED_PATHS=()
 TRINKET_AUTHORED_PATHS=()
@@ -140,24 +142,25 @@ trinket_reset_classification() {
 # Deterministic smoke-owner mapping: which feature/UI path owns a targeted
 # smoke canary. No heuristics, no demotions — a path either has an owner or it
 # does not (in which case the app-compile gap-fill covers the diff).
+# Class names come from Scripts/lib/smoke-classes.sh.
 trinket_add_smoke_target_for_path() {
   local path="$1"
 
   case "$path" in
     Packages/TrinketBattleFeature/Sources/*|TrinketUITests/Battle/*)
-      trinket_add_smoke_target SmokeBattleTests
+      trinket_add_smoke_target "$TRINKET_SMOKE_CLASS_BATTLE"
       ;;
     Trinket/Features/Collection/*|Trinket/Features/Homestead/*|Trinket/Features/Options/*|TrinketUITests/Collection/*|TrinketUITests/Homestead/*|TrinketUITests/Support/*)
-      trinket_add_smoke_target SmokeShellTests
+      trinket_add_smoke_target "$TRINKET_SMOKE_CLASS_SHELL"
       ;;
-    Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Shared/AccessibilityID.swift|Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/PreparedArtworkCache.swift)
-      trinket_add_smoke_target SmokeShellTests
+    Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Shared/AccessibilityID.swift|Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/PreparedArtworkCache.swift|Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/PreparedArtwork.swift)
+      trinket_add_smoke_target "$TRINKET_SMOKE_CLASS_SHELL"
       ;;
     Trinket/Features/Play/Shop/*|TrinketUITests/Play/ShopFlowUITests.swift)
-      trinket_add_smoke_target SmokeShopTests
+      trinket_add_smoke_target "$TRINKET_SMOKE_CLASS_SHOP"
       ;;
     Trinket/Features/Play/*|TrinketUITests/Play/*)
-      trinket_add_smoke_target SmokeShellTests
+      trinket_add_smoke_target "$TRINKET_SMOKE_CLASS_SHELL"
       ;;
     TrinketUITests/Smoke/*.swift)
       local target="${path##*/}"

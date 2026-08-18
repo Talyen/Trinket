@@ -106,6 +106,16 @@ def structural_checks(files: list[Path]) -> list[str]:
         for target in plan["testTargets"]
         for test in target.get("selectedTests", [])
     }
+    registry = {
+        line.strip()
+        for line in (ROOT / "Scripts" / "config" / "smoke-classes.txt").read_text(encoding="utf-8").splitlines()
+        if line.strip() and not line.strip().startswith("#")
+    }
+    if selected != registry:
+        failures.append(
+            "Smoke.xctestplan selectedTests must match Scripts/config/smoke-classes.txt "
+            f"(plan={sorted(selected)}, registry={sorted(registry)})"
+        )
     ui_source = "\n".join(
         path.read_text(encoding="utf-8")
         for path in sorted((ROOT / "TrinketUITests").rglob("*.swift"))

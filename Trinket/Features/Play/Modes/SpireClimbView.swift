@@ -121,25 +121,14 @@ struct SpireClimbView: View {
     }
 
     private func completionState(for spire: SpireDefinition) -> some View {
-        VStack(spacing: TrinketDesign.Metrics.largeSpacing) {
-            ContentUnavailableView(
-                "Spire Cleared",
-                systemImage: "checkmark.seal.fill",
-                description: Text("All \(spire.floorCount) floors are complete.")
-            )
-
-            Button("Back to The Spires") {
-                dismiss()
-            }
-            .frame(maxWidth: .infinity)
-            .trinketPrimaryActionButton(
-                tint: spire.keyword.visualStyle.color,
-                accessibilityIdentifier: AccessibilityID.Play.spireCompletionBack(spire.id.rawValue)
-            )
-            .trinketCenteredPrimaryAction()
-        }
-        .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-        .padding(.vertical, TrinketDesign.Metrics.largeSpacing)
+        StageSelectCompletionPanel(
+            title: "Spire Cleared",
+            description: "All \(spire.floorCount) floors are complete.",
+            buttonTitle: "Back to The Spires",
+            tint: spire.keyword.visualStyle.color,
+            accessibilityIdentifier: AccessibilityID.Play.spireCompletionBack(spire.id.rawValue),
+            onBack: { dismiss() }
+        )
     }
 
     private func isPartyAttuned(to spire: SpireDefinition) -> Bool {

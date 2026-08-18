@@ -25,6 +25,8 @@ package struct DamageResolutionState {
     public let abilityHasLeech: Bool
     /// Fixed ability health cost — pipeline runs TakeDamage + DeathsDoor only.
     public let isHealthCost: Bool
+    /// Dodge of this hit must not re-enter `afterDodge`.
+    public let causedByDodge: Bool
 
     /// Damage remaining after each step. `BonusStep` initializes this to
     /// `amount + statBonus + itemBonus`; each subsequent step decrements it.
@@ -82,7 +84,8 @@ package struct DamageResolutionState {
         isAttackHit: Bool = false,
         isBasicAttackHit: Bool = false,
         abilityHasLeech: Bool = false,
-        isHealthCost: Bool = false
+        isHealthCost: Bool = false,
+        causedByDodge: Bool = false
     ) {
         self.amount = amount
         self.combatant = combatant
@@ -101,5 +104,6 @@ package struct DamageResolutionState {
         self.isBasicAttackHit = isBasicAttackHit
         self.abilityHasLeech = abilityHasLeech
         self.isHealthCost = isHealthCost
+        self.causedByDodge = causedByDodge
     }
 }

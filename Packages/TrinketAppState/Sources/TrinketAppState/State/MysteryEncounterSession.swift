@@ -4,7 +4,7 @@ import TrinketContent
 import TrinketCore
 import TrinketPersistence
 
-public enum MysteryEncounterPhase: Equatable {
+enum MysteryEncounterPhase: Equatable {
     case reading
     case revealing
     case selectingCorruptItem
@@ -12,7 +12,7 @@ public enum MysteryEncounterPhase: Equatable {
     case reward
 }
 
-public enum MysteryChoiceOutcome: Equatable {
+enum MysteryChoiceOutcome: Equatable {
     case reveal(unlockedCombatantID: String)
     case selectCorruptItem
     case corruptionReveal(ItemCorruptionResult)
@@ -43,13 +43,15 @@ public final class MysteryEncounterSession: Identifiable {
 
     public let event: MysteryEvent
     public let combatant: Combatant?
-    public private(set) var phase: MysteryEncounterPhase = .reading
+    private(set) var phase: MysteryEncounterPhase = .reading
     public private(set) var unlockedCombatantID: String?
     public private(set) var corruptibleItems: [InventoryItem] = []
     public private(set) var corruptionResult: ItemCorruptionResult?
     public private(set) var applyResult: MysteryEffectApplyResult?
     public private(set) var isResolvingChoice = false
     public private(set) var persistFailureMessage: String?
+    public private(set) var previewMaterialQuantity = 0
+    public private(set) var previewExperienceAward = 0
 
     public var showsReveal: Bool {
         phase == .revealing && unlockedCombatantID != nil
@@ -92,16 +94,16 @@ public final class MysteryEncounterSession: Identifiable {
         self.combatant = combatant
     }
 
-    /// Assembles a mystery/recruit session for a journey stage or Labyrinth node.
-    static func open(
+    /// Same resolver used by map preview and encounter open so art matches the session.
+    static func resolveEvent(
         origin: PlayEncounterOrigin,
         forcedEventID: String?,
         worldSeed: UInt64,
         pickContext: MysteryEventPickContext = .excludingCorruptionAltar,
         pinnedLabyrinthEventID: String? = nil,
         pinnedJourneyEventID: String? = nil
-    ) -> (session: MysteryEncounterSession, resolvedEventID: String) {
-        let event = switch origin {
+    ) -> MysteryEvent {
+        switch origin {
         case let .labyrinth(nodeID):
             GameContent.resolveLabyrinthMysteryEvent(
                 nodeID: nodeID,
@@ -119,13 +121,44 @@ public final class MysteryEncounterSession: Identifiable {
                 context: pickContext
             )
         }
+    }
 
+    /// Assembles a mystery/recruit session for a journey stage or Labyrinth node.
+    static func open(
+        origin: PlayEncounterOrigin,
+        forcedEventID: String?,
+        worldSeed: UInt64,
+        pickContext: MysteryEventPickContext = .excludingCorruptionAltar,
+        pinnedLabyrinthEventID: String? = nil,
+        pinnedJourneyEventID: String? = nil
+    ) -> (session: MysteryEncounterSession, resolvedEventID: String) {
+        let event = resolveEvent(
+            origin: origin,
+            forcedEventID: forcedEventID,
+            worldSeed: worldSeed,
+            pickContext: pickContext,
+            pinnedLabyrinthEventID: pinnedLabyrinthEventID,
+            pinnedJourneyEventID: pinnedJourneyEventID
+        )
         let session = MysteryEncounterSession(
             origin: origin,
             event: event,
             combatant: GameContent.combatant(forMysteryEvent: event)
         )
         return (session, event.id)
+    }
+
+    func installPreviews(save: PlayerSave) {
+        let level = MysteryEffectApplier.resolvedEncounterLevel(
+            stage: stage,
+            labyrinthNodeID: labyrinthNodeID,
+            save: save
+        )
+        previewMaterialQuantity = MysteryEffectApplier.materialQuantity(forLevel: level)
+        previewExperienceAward = MysteryEffectApplier.experienceAward(
+            for: save.roster.progression(for: save.roster.activeHero),
+            highestLevel: save.roster.highestHeroLevel
+        )
     }
 }
 

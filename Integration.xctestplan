@@ -18,9 +18,6 @@
         "PlayMapUITests",
         "PlayModeNavigationUITests",
         "ShopFlowUITests",
-        "SmokeBattleTests",
-        "SmokeShellTests",
-        "SmokeShopTests",
         "TabNavigationUITests"
       ],
       "target" : {

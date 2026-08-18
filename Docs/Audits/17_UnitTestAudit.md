@@ -31,9 +31,9 @@ Inventory P0–P3 test portfolio defects in Swift Testing and XCTest unit target
 | Helper | Location |
 |--------|----------|
 | `AppTestContext` | `Packages/TrinketAppState/Tests/TrinketAppStateTests/Support/` |
-| `PersistenceTestContext` | `TrinketPersistenceTests/Support/` |
+| `PersistenceTestContext` | `Packages/TrinketPersistence/Tests/TrinketPersistenceTests/Support/` |
 | `CombatantFixtures`, battle parties | `Packages/TrinketTestSupport/` |
-| `SaveTestSupport` | PersistenceTests + TrinketAppStateTests support (not TrinketTestSupport) |
+| `SaveTestSupport` | `Packages/TrinketPersistence/Sources/TrinketPersistenceTestSupport/` |
 | `BattleStateTestFactory`, `BattleTestFixtures` | `Packages/BattleEngine/Tests/` |
 
 **Quality:** assert semantics (events, HP deltas, reload-from-disk), not log fingerprints; no empty tests; no `try?` that hides failures (`#expect(throws:)` / `#require`).

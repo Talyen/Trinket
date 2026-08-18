@@ -35,4 +35,24 @@ public enum LaunchScreen: Equatable, Sendable {
     case mystery
     case labyrinth
     case labyrinthMap
+
+    /// Parses `-launch-screen` values. Keep `TestLaunchArg` screen strings in sync.
+    public static func parse(_ raw: String) -> Self? {
+        let parts = raw.split(separator: ":", maxSplits: 1).map(String.init)
+        guard let kind = parts.first?.lowercased() else { return nil }
+        let id = parts.count == 2 ? parts[1] : ""
+        switch kind {
+        case "hero" where !id.isEmpty: return .heroDetail(id)
+        case "companion" where !id.isEmpty: return .companionDetail(id)
+        case "item" where !id.isEmpty: return .itemDetail(id)
+        case "options": return .options
+        case "battle": return .battle
+        case "battle-victory": return .battleVictory
+        case "shop": return .shop
+        case "mystery": return .mystery
+        case "labyrinth": return .labyrinth
+        case "labyrinth-map": return .labyrinthMap
+        default: return nil
+        }
+    }
 }

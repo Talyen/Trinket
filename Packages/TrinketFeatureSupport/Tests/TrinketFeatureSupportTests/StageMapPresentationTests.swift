@@ -1,4 +1,3 @@
-import CoreGraphics
 import Testing
 import TrinketContent
 import TrinketFeatureAdapters
@@ -10,8 +9,6 @@ struct StageMapPresentationTests {
         let chapter = GameContent.chapters[0]
         let stage = try #require(chapter.stages.first)
 
-        #expect(stage.mapLabel == "Stage \(stage.chapterNumber)-\(stage.stageNumber)")
-        #expect(stage.mapMetaLabel == "\(stage.mapLabel) · \(stage.encounterTypeTitle)")
         #expect(StageMapID.stageAction(for: stage) == "Stage \(stage.chapterNumber)-\(stage.stageNumber) Action")
     }
 
@@ -165,12 +162,7 @@ struct StageMapPresentationTests {
         #expect(LabyrinthMapPresentation.state(for: clearedTarget, in: state) == .cleared)
     }
 
-    @Test func labyrinthHexRadiusFillsThreeColumnsAcrossAvailableWidth() {
-        let availableWidth: CGFloat = 350
-        let radius = LabyrinthMapPresentation.hexRadius(forAvailableWidth: availableWidth)
-        let hexWidth = radius * CGFloat(3).squareRoot()
-        let outerSpan = hexWidth * CGFloat(LabyrinthMapLayout.fullColumnsAcross)
-        #expect(abs(outerSpan - availableWidth) < 0.001)
+    @Test func labyrinthDestinationEncounterArtIDsMatchCatalog() {
         #expect(LabyrinthMapPresentation.destinationEncounterArtID(for: .shop) == "destination-merchant-shop")
         #expect(LabyrinthMapPresentation.destinationEncounterArtID(for: .rest) == "destination-campfire")
         #expect(LabyrinthMapPresentation.destinationEncounterArtID(for: .craft) == nil)

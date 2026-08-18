@@ -2,7 +2,7 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-public enum CorruptionEffectKind: String, CaseIterable, Equatable, Sendable {
+enum CorruptionEffectKind: String, CaseIterable, Equatable, Sendable {
     case addAffix
     case removeAffix
     case replaceAffix

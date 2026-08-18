@@ -59,17 +59,6 @@ public final class PlayerSaveStore {
 
     #if DEBUG
     public var forcesNextSaveFailure = false
-
-    public func dropInventoryGraphForTesting() {
-        if let inventory = root.inventory {
-            context.delete(inventory)
-        }
-        root.inventory = nil
-    }
-
-    public func reapplyRequiredGraphForTesting() {
-        ensureRequiredGraph()
-    }
     #endif
 
     public var journey: JourneyProgressState {
@@ -118,6 +107,11 @@ public final class PlayerSaveStore {
     /// Cross-slice homestead actions — prefer over growing this hub.
     public var homesteadStore: PlayerHomesteadStore {
         PlayerHomesteadStore(save: self)
+    }
+
+    /// Roster and inventory edits — prefer over growing this hub.
+    public var rosterStore: PlayerRosterStore {
+        PlayerRosterStore(save: self)
     }
 
     private let persistSaveImmediately: Bool
@@ -431,6 +425,21 @@ public final class PlayerSaveStore {
         return try operation()
     }
 }
+
+#if DEBUG
+public extension PlayerSaveStore {
+    func dropInventoryGraphForTesting() {
+        if let inventory = root.inventory {
+            context.delete(inventory)
+        }
+        root.inventory = nil
+    }
+
+    func reapplyRequiredGraphForTesting() {
+        ensureRequiredGraph()
+    }
+}
+#endif
 
 private extension PlayerSaveStore {
     func scheduleDeferredSave() {

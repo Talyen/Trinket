@@ -16,7 +16,9 @@ Give a view the narrowest owner it needs: a Play mode coordinator
 (`JourneyPlayMode`, `LabyrinthPlayMode`, `SpiresPlayMode`, `EncounterPlayMode`),
 `PlaySession` only for shell navigation/victory routing (including battle activation
 via `play.battle`), a specific encounter session, `BattleSession`, or a Battle read
-lane. Play screens take mode owners for orchestration and `PlayerSaveStore` for save
+lane. Play's campaign/explore stack (`PlayBrowsingStack`) must not observe
+`BattleSession`; the battle overlay (`PlayBattleOverlay`) is a separate observation
+scope so map chrome does not rebuild on combat ticks. Play screens take mode owners for orchestration and `PlayerSaveStore` for save
 slices — name that binding `playerSave`, not `appState`. Do not reintroduce slice
 facades on `PlaySession`. Do not pass `AppState` through a feature tree when explicit
 values and actions suffice. Shell battle routing observes `PlaySession.battle`, not a

@@ -25,14 +25,20 @@ package extension CombatTriggerEngine {
             if triggers.nextAttackBleedAfterDodge > 0 {
                 runtime.pendingBleedAfterDodge = triggers.nextAttackBleedAfterDodge
             }
-            if triggers.onDodgePartyNextCardDamageBonus > 0 {
-                runtime.pendingCardDamageBonus += triggers.onDodgePartyNextCardDamageBonus
-            }
             if triggers.critMultiplierPerDodge > 0 {
                 runtime.talentCritMultiplierBonus = min(
                     1.0,
                     runtime.talentCritMultiplierBonus + triggers.critMultiplierPerDodge
                 )
+            }
+        }
+        if triggers.onDodgePartyNextCardDamageBonus > 0 {
+            for owner in [BattleParticipant.hero, .companion] {
+                let member = context.roster[owner]
+                guard member.isAlive else { continue }
+                context.roster.mutateRuntime(for: member.combatant) {
+                    $0.pendingCardDamageBonus += triggers.onDodgePartyNextCardDamageBonus
+                }
             }
         }
         if triggers.onCompanionDodgeGrantHeroDodgePercent > 0,
@@ -69,32 +75,22 @@ package extension CombatTriggerEngine {
             ))
         }
 
-        if triggers.onDodgePartyBlock > 0 || triggers.onDodgePartyMana > 0 {
+        if triggers.onDodgePartyMana > 0 {
             for owner in [BattleParticipant.hero, .companion] {
                 let member = context.roster[owner]
                 guard member.isAlive else { continue }
-                if triggers.onDodgePartyBlock > 0 {
-                    events.append(contentsOf: context.applyBlock(
-                        triggers.onDodgePartyBlock,
-                        to: member.combatant,
-                        source: combatant,
-                        abilityName: "Dodge"
+                let restored = context.restoreMana(triggers.onDodgePartyMana, to: member.combatant)
+                if restored > 0 {
+                    events.append(context.nextEvent(
+                        kind: .effect,
+                        effectKind: .resourceGain,
+                        actorName: member.name,
+                        abilityName: "Dodge",
+                        target: member.combatant,
+                        amount: restored,
+                        keyword: .mana
                     ))
-                }
-                if triggers.onDodgePartyMana > 0 {
-                    let restored = context.restoreMana(triggers.onDodgePartyMana, to: member.combatant)
-                    if restored > 0 {
-                        events.append(context.nextEvent(
-                            kind: .effect,
-                            effectKind: .resourceGain,
-                            actorName: member.name,
-                            abilityName: "Dodge",
-                            target: member.combatant,
-                            amount: restored,
-                            keyword: .mana
-                        ))
-                        events.append(contentsOf: Self.afterGainMana(by: member.combatant, in: &context))
-                    }
+                    events.append(contentsOf: Self.afterGainMana(by: member.combatant, in: &context))
                 }
             }
         }
@@ -152,7 +148,8 @@ package extension CombatTriggerEngine {
                             applyStatBonus: false,
                             applyItemBonus: false,
                             applyDodge: false,
-                            isRetaliation: true
+                            isRetaliation: true,
+                            causedByDodge: true
                         )
                     )
                 ).events)
@@ -170,7 +167,8 @@ package extension CombatTriggerEngine {
                                 applyStatBonus: false,
                                 applyItemBonus: false,
                                 applyDodge: false,
-                                isRetaliation: true
+                                isRetaliation: true,
+                                causedByDodge: true
                             )
                         )
                     ).events)
@@ -207,52 +205,8 @@ package extension CombatTriggerEngine {
                     in: &context
                 ))
             }
-            events.append(contentsOf: stealManaOnDodge(
-                triggers: triggers,
-                combatant: combatant,
-                target: target,
-                in: &context
-            ))
         }
 
-        return events
-    }
-
-    /// Steal Mana from the attacker and grant it to the dodger.
-    private static func stealManaOnDodge(
-        triggers: CombatTraitTriggers,
-        combatant: Combatant,
-        target: Combatant,
-        in context: inout BattleState
-    ) -> [ActionEvent] {
-        guard triggers.onDodgeStealMana > 0, (context.roster.runtime(for: target)?.maxMana ?? 0) > 0 else {
-            return []
-        }
-        let stolen = context.spendMana(triggers.onDodgeStealMana, for: target)
-        guard stolen > 0 else { return [] }
-        var events = [
-            context.nextEvent(
-                kind: .effect,
-                effectKind: .resourceGain,
-                actorName: combatant.name,
-                abilityName: "Dodge",
-                target: target,
-                amount: -stolen,
-                keyword: .mana
-            ),
-        ]
-        let gained = context.restoreMana(stolen, to: combatant)
-        if gained > 0 {
-            events.append(context.nextEvent(
-                kind: .effect,
-                effectKind: .resourceGain,
-                actorName: combatant.name,
-                abilityName: "Dodge",
-                target: combatant,
-                amount: gained,
-                keyword: .mana
-            ))
-        }
         return events
     }
 
@@ -272,30 +226,47 @@ package extension CombatTriggerEngine {
     }
 
     static func afterEnemyStunned(in context: inout BattleState) -> [ActionEvent] {
-        let profile = context.heroModifiers
-        let shouldReact = profile.triggers.stunDealPhysicalFlat > 0
-            || profile.triggers.enemyStunnedApplyMarked
-            || profile.triggers.enemyStunnedPurgeCount > 0
-            || profile.triggers.enemyStunnedPurgeAll
-        guard shouldReact, context.roster.hero.isAlive else { return [] }
+        var events: [ActionEvent] = []
+        for owner in [BattleParticipant.hero, .companion] {
+            events.append(contentsOf: afterEnemyStunnedReactions(for: owner, in: &context))
+        }
+        return events
+    }
 
-        let hero = context.roster.hero.combatant
+    private static func afterEnemyStunnedReactions(
+        for owner: BattleParticipant,
+        in context: inout BattleState
+    ) -> [ActionEvent] {
+        let runtime = context.roster[owner]
+        guard runtime.isAlive else { return [] }
+        let profile = context.modifiers(for: runtime.id)
+        let triggers = profile.triggers
+        let shouldReact = triggers.stunDealPhysicalFlat > 0
+            || triggers.enemyStunnedApplyMarked
+            || triggers.enemyStunnedPurgeCount > 0
+            || triggers.enemyStunnedPurgeAll
+        guard shouldReact else { return [] }
+
+        let actor = runtime.combatant
         let enemy = context.roster.enemy.combatant
         guard context.roster.health(for: enemy) > 0 else { return [] }
 
-        var events = DoTDamage.resolveTurnDamage(
-            basePotency: profile.triggers.stunDealPhysicalFlat,
-            keyword: .physical,
-            target: enemy,
-            sourceActorID: hero.id,
-            in: &context
-        ).events
+        var events: [ActionEvent] = []
+        if triggers.stunDealPhysicalFlat > 0 {
+            events.append(contentsOf: DoTDamage.resolveTurnDamage(
+                basePotency: triggers.stunDealPhysicalFlat,
+                keyword: .physical,
+                target: enemy,
+                sourceActorID: actor.id,
+                in: &context
+            ).events)
+        }
 
-        if profile.triggers.enemyStunnedApplyMarked, context.roster.health(for: enemy) > 0 {
+        if triggers.enemyStunnedApplyMarked, context.roster.health(for: enemy) > 0 {
             events.append(contentsOf: applyMarked(
                 to: enemy,
-                sourceActorID: hero.id,
-                actorName: hero.name,
+                sourceActorID: actor.id,
+                actorName: actor.name,
                 abilityName: affixName(.branding),
                 in: &context
             ))
@@ -304,10 +275,10 @@ package extension CombatTriggerEngine {
         if context.roster.health(for: enemy) > 0 {
             events.append(contentsOf: applyPurge(
                 to: enemy,
-                source: hero,
+                source: actor,
                 abilityName: affixName(.disrupting),
-                count: profile.triggers.enemyStunnedPurgeCount,
-                purgeAll: profile.triggers.enemyStunnedPurgeAll,
+                count: triggers.enemyStunnedPurgeCount,
+                purgeAll: triggers.enemyStunnedPurgeAll,
                 in: &context
             ))
         }
@@ -324,12 +295,12 @@ package extension CombatTriggerEngine {
         if profile.triggers.onceBelowHealthPercentStunAllEnemies,
            profile.triggers.onceBelowHealthPercentThreshold > 0,
            context.roster.maxHealth(for: target) > 0,
-           context.roster.runtime(for: target)?.hasTriggeredSeismicRoar != true,
+           context.talentActionGuardByActorID[TalentActionGuardKey(kind: .seismicRoar, actorID: target.id)] == nil,
            context.roster.enemy.isAlive {
             let percent = Double(context.roster.health(for: target)) /
                 Double(context.roster.maxHealth(for: target))
             if percent < profile.triggers.onceBelowHealthPercentThreshold {
-                context.roster.mutateRuntime(for: target) { $0.hasTriggeredSeismicRoar = true }
+                context.talentActionGuardByActorID[TalentActionGuardKey(kind: .seismicRoar, actorID: target.id)] = 1
                 let threshold = ControlMeterEngine.threshold(for: context.roster.enemy.combatant, in: context)
                 events.append(contentsOf: ControlMeterEngine.applyMeterCharge(
                     threshold,
@@ -470,25 +441,36 @@ package extension CombatTriggerEngine {
         in context: inout BattleState
     ) -> [ActionEvent] {
         guard profile.triggers.dodgeDealStunFlat > 0, context.roster.enemy.isAlive else { return [] }
-        // Avoid nesting a full damage pipeline inside DodgeGate (stack overflow in
-        // long balance sims). Apply authored Stun damage as a direct health hit.
         let enemy = context.roster.enemy.combatant
         let amount = profile.triggers.dodgeDealStunFlat
-        let lost = context.roster.runtime(for: enemy).map { runtime -> Int in
-            var copy = runtime
-            let dealt = copy.takeRawDamage(amount)
-            context.roster.update(copy)
-            return dealt
-        } ?? 0
-        guard lost > 0 else { return [] }
-        return [context.nextEvent(
-            kind: .effect,
-            effectKind: nil,
-            actorName: combatant.name,
-            abilityName: affixName(.whiplash),
-            target: enemy,
-            amount: lost,
-            keyword: .stun
-        )]
+        let name = affixName(.whiplash)
+        let outcome = context.resolveDamage(
+            DamageRequest(
+                amount: amount,
+                target: enemy,
+                keyword: .stun,
+                sourceActorID: combatant.id,
+                options: DamageOptions(
+                    applyDodge: true,
+                    isRetaliation: true,
+                    applyControlMeter: true,
+                    causedByDodge: true
+                )
+            )
+        )
+        var events = outcome.events.map { event in
+            event.keyword == .stun ? event.with(abilityName: name) : event
+        }
+        if outcome.healthLost > 0, !events.contains(where: { $0.abilityName == name }) {
+            events.append(context.nextEvent(
+                kind: .effect,
+                actorName: combatant.name,
+                abilityName: name,
+                target: enemy,
+                amount: outcome.healthLost,
+                keyword: .stun
+            ))
+        }
+        return events
     }
 }

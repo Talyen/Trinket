@@ -23,7 +23,12 @@ package extension CombatTriggerEngine {
             kind: .effect,
             effectKind: .shieldApplied,
             actorName: combatant.name,
-            abilityName: traitName(for: combatant, in: context),
+            abilityName: triggerAbilityName(
+                "blockPerTurn",
+                for: combatant,
+                fallback: traitName(for: combatant, in: context),
+                in: context
+            ),
             target: combatant,
             amount: applied,
             keyword: .block
@@ -32,9 +37,7 @@ package extension CombatTriggerEngine {
 
     static func atPlayerTurnStart(in context: inout BattleState) -> [ActionEvent] {
         resetTurnCadenceState(in: &context)
-        cleanseTeamIfNeeded(in: &context)
-
-        var events: [ActionEvent] = []
+        var events = cleanseTeamIfNeeded(in: &context)
         for owner in [BattleParticipant.hero, .companion] {
             let runtime = context.roster[owner]
             guard runtime.isAlive else { continue }
@@ -57,38 +60,43 @@ package extension CombatTriggerEngine {
         // each round; pending one-shot dodge effects are consumed on the next hit.
         for owner in [BattleParticipant.hero, .companion] {
             context.roster.mutateRuntime(for: context.roster[owner].combatant) { runtime in
-                if runtime.bonusDodgeExpiresAtTurn > 0, context.turnCount < runtime.bonusDodgeExpiresAtTurn {
-                    // Timed Dodge bonus still active.
-                } else {
+                if runtime.bonusDodgeExpiresAtTurn == 0 || context.turnCount >= runtime.bonusDodgeExpiresAtTurn {
                     runtime.bonusDodgeUntilNextTurn = 0
                     runtime.bonusDodgeExpiresAtTurn = 0
                 }
                 runtime.hasTakenAttackHitThisTurn = false
                 runtime.faeWardBlockedThisTurn = false
-                runtime.hasNegatedEnemyAttackThisRound = false
             }
         }
     }
 
-    /// Sanctified Scroll: the Owl cleanses N debuffs from each ally each round.
-    private static func cleanseTeamIfNeeded(in context: inout BattleState) {
-        guard context.roster.companion.isAlive else { return }
-        let count = context.companionModifiers.triggers.autoCleanseTeamPerTurn
-            + context.heroModifiers.triggers.autoCleanseTeamPerTurn
-        guard count > 0 else { return }
+    /// Sanctified Scroll: each living owner cleanses N debuffs from each living ally.
+    private static func cleanseTeamIfNeeded(in context: inout BattleState) -> [ActionEvent] {
+        var events: [ActionEvent] = []
         for owner in [BattleParticipant.hero, .companion] {
-            let member = context.roster[owner]
-            guard member.isAlive else { continue }
-            var effects = context.roster.activeEffects(for: member.combatant)
-            var removed = 0
-            while removed < count,
-                  EffectRemoval.removeRandomDebuff(from: &effects, using: &context.rng) != nil {
-                removed += 1
-            }
-            if removed > 0 {
-                context.roster.setActiveEffects(effects, for: member.combatant)
+            let sourceRuntime = context.roster[owner]
+            guard sourceRuntime.isAlive else { continue }
+            let count = context.modifiers(for: sourceRuntime.id).triggers.autoCleanseTeamPerTurn
+            guard count > 0 else { continue }
+            let abilityName = triggerAbilityName(
+                "autoCleanseTeamPerTurn",
+                for: sourceRuntime.combatant,
+                fallback: traitName(for: sourceRuntime.combatant, in: context),
+                in: context
+            )
+            for targetOwner in [BattleParticipant.hero, .companion] {
+                let target = context.roster[targetOwner]
+                guard target.isAlive else { continue }
+                events.append(contentsOf: performRandomCleanses(
+                    source: sourceRuntime.combatant,
+                    target: target.combatant,
+                    count: count,
+                    abilityName: abilityName,
+                    in: &context
+                ))
             }
         }
+        return events
     }
 
     /// Per-owner start-of-turn cadence and battle-start bonuses.
@@ -385,7 +393,7 @@ package extension CombatTriggerEngine {
 
     /// Turn-0 bonuses: extra Mana, start-of-battle Block and Gold, first-turn draw.
     private static func turnZeroBonuses(
-        for owner: BattleParticipant,
+        for _: BattleParticipant,
         actor: Combatant,
         triggers: CombatTraitTriggers,
         in context: inout BattleState
@@ -421,24 +429,6 @@ package extension CombatTriggerEngine {
                 to: actor,
                 abilityName: "Deep Pockets"
             ))
-        }
-        if triggers.firstTurnBonusDraw > 0 {
-            let drawn = BattleCardCombatEngine.drawCards(
-                count: triggers.firstTurnBonusDraw,
-                for: owner,
-                context: &context
-            )
-            if drawn > 0 {
-                events.append(context.nextEvent(
-                    kind: .effect,
-                    effectKind: .cardsDrawn,
-                    actorName: actor.name,
-                    abilityName: "Forbidden Lore",
-                    target: actor,
-                    amount: drawn,
-                    keyword: .physical
-                ))
-            }
         }
         return events
     }

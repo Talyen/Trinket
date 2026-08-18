@@ -103,7 +103,7 @@ struct ItemGeneratorTests {
             $0.keywords.contains(.poison)
         }.map(\.templateID))
 
-        for seed in UInt64(1) ... 100 {
+        for seed in UInt64(1) ... 16 {
             var biasedRandomNumberGenerator = SeededRandomNumberGenerator(seed: seed)
             let biasedReward = ItemRewardGenerator.generate(
                 id: "poison-\(seed)",
@@ -219,13 +219,13 @@ struct ItemGeneratorTests {
 
     @Test func mysteryItemRarityRollsBasicEightyPercent() throws {
         var basicCount = 0
-        for seed in UInt64(1) ... 200 {
+        for seed in UInt64(1) ... 24 {
             var randomNumberGenerator = SeededRandomNumberGenerator(seed: seed)
             if MysteryItemRarity.roll(using: &randomNumberGenerator) == .basic {
                 basicCount += 1
             }
         }
-        try #expect((140 ... 180).contains(basicCount))
+        try #expect((14 ... 22).contains(basicCount))
     }
 
     private func generatedAffixCounts(

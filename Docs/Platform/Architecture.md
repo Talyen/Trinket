@@ -42,7 +42,7 @@ Scripts/                    generate, build, test, CI helpers
 | Concern | Owner | Notes |
 |---------|-------|-------|
 | Effects, keywords, stats, progression | [TrinketCore](../../Packages/TrinketCore/README.md) | `CombatantProgression`, `Effect`, `Keyword`, `PrimaryStats` |
-| Heroes, companions, enemies, abilities, affixes, stages, item bases | [TrinketContent](../../Packages/TrinketContent/README.md) | Manifest-generated catalogs + art/music/SFX runtime metadata |
+| Heroes, companions, enemies, abilities, affixes, stages, item bases, talent trees | [TrinketContent](../../Packages/TrinketContent/README.md) | Manifest-generated catalogs (TSV) plus authored Swift for abilities (`Content/AbilityCatalog*.swift`); talent trees from `ContentManifest/talents.tsv`; art/music/SFX runtime metadata |
 | Combat rules and card combat | [BattleEngine](../../Packages/BattleEngine/README.md) | `BattleState`, effect handlers, decks/hand, `playCard` / `endTurn` |
 | Player save, stores, CloudKit sync, domain write policies | [TrinketPersistence](../../Packages/TrinketPersistence/README.md) | `PlayerSaveStore`, `Player*Store`; campaign reward/completion appliers mutate the save graph — app sessions decide *when*, Persistence owns *what write* |
 | Shared UI chrome | [TrinketDesignSystem](../../Packages/TrinketDesignSystem/README.md) | Backgrounds, surfaces, typography, Keyword and Homestead resource visuals, `ExperienceBar`, motion primitives |

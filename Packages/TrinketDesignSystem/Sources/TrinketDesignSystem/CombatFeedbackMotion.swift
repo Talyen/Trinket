@@ -20,7 +20,6 @@ public enum CombatFeedbackClass: String, CaseIterable, Sendable, Equatable {
 public enum ChipChromeRole: String, CaseIterable, Sendable, Equatable {
     case standard
     case emphasis
-    case utility
 }
 
 /// Visual hierarchy inside one synchronized combat-feedback action group.
@@ -66,26 +65,6 @@ public struct CombatFeedbackChipStyle: Sendable, Equatable {
         self.textStyle = textStyle
         self.bouncesSymbol = bouncesSymbol
         self.showsSecondaryCaption = showsSecondaryCaption
-    }
-
-    public func font(for role: CombatFeedbackPresentationRole) -> Font {
-        let style: Font.TextStyle
-        let weight: Font.Weight
-        switch role {
-        case .headline:
-            style = textStyle
-            weight = fontWeight
-        case .secondary:
-            style = .title2
-            weight = .bold
-        }
-        return .system(style, design: .rounded)
-            .weight(weight)
-            .monospacedDigit()
-    }
-
-    public var font: Font {
-        font(for: .headline)
     }
 }
 

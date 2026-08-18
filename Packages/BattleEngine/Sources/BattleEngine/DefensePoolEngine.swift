@@ -13,24 +13,15 @@ package enum DefensePoolEngine {
         }
     }
 
-    /// Inherent Toughness-based damage reduction percent: `toughnessMitigationPercent`,
-    /// shredded and reduced by effectiveness penalties.
+    /// Inherent Toughness-based damage reduction percent.
     /// No pool points — Toughness DR is never consumed or decayed.
     package static func effectiveToughnessMitigationPercent(
         for combatant: Combatant,
         effects _: [ActiveEffect],
-        profile: CombatModifierProfile,
-        in context: BattleState
+        profile _: CombatModifierProfile,
+        in _: BattleState
     ) -> Double {
-        var percent = combatant.primaryStats.toughnessMitigationPercent
-        if let runtime = context.roster.runtime(for: combatant),
-           runtime.mitigationShredUntilTurn > context.turnCount {
-            percent *= runtime.mitigationShredMultiplier
-        }
-        if profile.triggers.mitigationEffectivenessPenaltyPercent > 0 {
-            percent *= max(0, 1 - profile.triggers.mitigationEffectivenessPenaltyPercent)
-        }
-        return max(0.0, min(1.0, percent))
+        max(0.0, min(1.0, combatant.primaryStats.toughnessMitigationPercent))
     }
 
     /// Adds fight-paced Block points. Returns the paced amount actually applied (0 when skipped).
@@ -92,15 +83,15 @@ package enum DefensePoolEngine {
         }
     }
 
-    /// Halves pooled Block at end of round (floor). Skipped for combatants whose
-    /// Block does not decay (Bastion Stance / Enduring Shell).
+    /// Halves pooled Block at end of round (floor). Combatants with
+    /// `blockRetainsThreeQuarters` retain 75% instead, capped at 30 (Unbreakable / Enduring Shell).
     package static func decayBlockAtEndOfRound(
         on target: Combatant,
         in context: inout BattleState
     ) {
         let current = blockPoints(in: context.roster.activeEffects(for: target))
         guard current > 0 else { return }
-        if context.modifiers(for: target.id).triggers.blockDoesNotDecay {
+        if context.modifiers(for: target.id).triggers.blockRetainsThreeQuarters {
             let retained = min(30, (current * 3) / 4)
             set(retained, on: target, in: &context)
             return

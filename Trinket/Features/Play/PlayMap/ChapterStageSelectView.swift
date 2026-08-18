@@ -1,6 +1,5 @@
 import SwiftUI
 import TrinketAppState
-import TrinketBattleFeature
 import TrinketContent
 import TrinketDesignSystem
 import TrinketFeatureAdapters
@@ -44,6 +43,36 @@ struct StageSelectScreen<HeroArt: View, Content: View>: View {
     }
 }
 
+/// Empty completion panel shared by campaign chapter select and spire climb.
+struct StageSelectCompletionPanel: View {
+    let title: String
+    let description: String
+    let buttonTitle: String
+    let tint: Color
+    let accessibilityIdentifier: String
+    let onBack: () -> Void
+
+    var body: some View {
+        VStack(spacing: TrinketDesign.Metrics.largeSpacing) {
+            ContentUnavailableView(
+                title,
+                systemImage: "checkmark.seal.fill",
+                description: Text(description)
+            )
+
+            Button(buttonTitle, action: onBack)
+                .frame(maxWidth: .infinity)
+                .trinketPrimaryActionButton(
+                    tint: tint,
+                    accessibilityIdentifier: accessibilityIdentifier
+                )
+                .trinketCenteredPrimaryAction()
+        }
+        .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+        .padding(.vertical, TrinketDesign.Metrics.largeSpacing)
+    }
+}
+
 /// Invalidates prepared Stage Select / Spire battles when party, gear, or homestead effects change.
 ///
 /// `PlayBattleLaunch` snapshots roster, inventory, and homestead into the prepared run;
@@ -67,6 +96,17 @@ struct StageSelectPrepareDependency: Equatable {
         Self(runKey: "\(spireID.rawValue)|\(floor)", playerSave: playerSave)
     }
 
+    static func labyrinth(playerSave: PlayerSaveStore) -> Self {
+        let labyrinth = playerSave.labyrinth
+        let runKey = labyrinth.reachableNodeIDs().compactMap { nodeID -> String? in
+            guard let node = labyrinth.node(id: nodeID), node.type.isCombat else { return nil }
+            return "\(nodeID)|\(node.modifierIDs.map(\.rawValue).joined(separator: ","))"
+        }
+        .sorted()
+        .joined(separator: ";")
+        return Self(runKey: runKey, playerSave: playerSave)
+    }
+
     private init(runKey: String, playerSave: PlayerSaveStore) {
         self.runKey = runKey
         roster = playerSave.roster
@@ -78,7 +118,6 @@ struct StageSelectPrepareDependency: Equatable {
 /// Cinematic Campaign chapter overview with five stable, inline stage rows.
 struct ChapterStageSelectView: View {
     @Environment(JourneyPlayMode.self) private var journey
-    @Environment(BattleSession.self) private var battle
     @Environment(PlayerSaveStore.self) private var playerSave
     @Environment(\.dismiss) private var dismiss
 
@@ -132,7 +171,7 @@ struct ChapterStageSelectView: View {
                         artwork: { stage, isActive in
                             EncounterArtwork(
                                 stage: stage,
-                                resolvedMysteryEvent: resolvedMysteryEvent(for: stage),
+                                resolvedMysteryEvent: journey.previewMysteryEvent(for: stage),
                                 worldSeed: playerSave.worldSeed,
                                 prefersThumbnail: !isActive
                             )
@@ -160,25 +199,14 @@ struct ChapterStageSelectView: View {
     }
 
     private var campaignCompletionState: some View {
-        VStack(spacing: TrinketDesign.Metrics.largeSpacing) {
-            ContentUnavailableView(
-                "Campaign Complete",
-                systemImage: "checkmark.seal.fill",
-                description: Text("Every chapter stage is complete.")
-            )
-
-            Button("Back to Play") {
-                dismiss()
-            }
-            .frame(maxWidth: .infinity)
-            .trinketPrimaryActionButton(
-                tint: chapter.theme.tint,
-                accessibilityIdentifier: AccessibilityID.Play.campaignCompletionBack
-            )
-            .trinketCenteredPrimaryAction()
-        }
-        .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-        .padding(.vertical, TrinketDesign.Metrics.largeSpacing)
+        StageSelectCompletionPanel(
+            title: "Campaign Complete",
+            description: "Every chapter stage is complete.",
+            buttonTitle: "Back to Play",
+            tint: chapter.theme.tint,
+            accessibilityIdentifier: AccessibilityID.Play.campaignCompletionBack,
+            onBack: { dismiss() }
+        )
     }
 
     private func prepareActiveBattleRun() {
@@ -191,20 +219,5 @@ struct ChapterStageSelectView: View {
     private func handlePrimaryAction(_ stage: Stage) {
         guard playerSave.journey.isActive(stage) else { return }
         onStageTap(stage)
-    }
-
-    private func resolvedMysteryEvent(for stage: Stage) -> MysteryEvent? {
-        guard case .mysteryEvent = stage.encounter else { return nil }
-        let pickContext = MysteryEventPickContext.journey(
-            chapterNumber: stage.chapterNumber,
-            inventory: playerSave.inventory,
-            corruptionAltarCooldownRemaining: playerSave.currentSave.corruptionAltarCooldownRemaining
-        )
-        return GameContent.resolveJourneyMysteryEvent(
-            stage: stage,
-            worldSeed: playerSave.worldSeed,
-            pinnedEventID: playerSave.journey.pinnedMysteryEventIDs[stage.id],
-            context: pickContext
-        )
     }
 }

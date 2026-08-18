@@ -7,6 +7,17 @@ struct GameContentCatalogInvariantTests {
         try #expect(ids.count == Set(ids).count)
     }
 
+    @Test func catalogIDsAreUnique() throws {
+        let catalogs: [[String]] = [
+            GameContent.itemAffixDefinitions.map(\.id),
+            GameContent.traits.map(\.id),
+            (GameContent.mysteryEvents + GameContent.recruitEvents).map(\.id),
+        ]
+        for ids in catalogs {
+            try #expect(ids.count == Set(ids).count)
+        }
+    }
+
     @Test func everyStageReferencesKnownEncounterContent() throws {
         let enemyIDs = Set(GameContent.enemies.map(\.id))
         for stage in GameContent.chapters.flatMap(\.stages) {

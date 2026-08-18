@@ -292,11 +292,11 @@ struct LabyrinthProgressTests {
 
         let effects = save.labyrinth.effects(for: bossID)
         let pending = try #require(
-            LabyrinthCompletion.pendingCombatRewardItem(
+            LabyrinthCompletion.resolveCombatLoot(
                 for: boss,
                 effects: effects,
                 worldSeed: save.labyrinth.worldSeed
-            )
+            )?.item
         )
         #expect(pending.id == LabyrinthCompletion.rewardItemID(forNodeID: bossID))
         #expect(pending.rarity == .astral)

@@ -16,7 +16,7 @@ Routine passes inventory candidates from changes since this commit (see README r
 
 | Baseline commit | Set after |
 |-----------------|-----------|
-| `d9eeb924` | Dual-path and inelegant-slop baseline after the residual proposal and ghost cleanup pass |
+| `29641de8` | Full Docs/Audits suite (working-tree findings; advance to the landing commit when this pass is committed) |
 
 ## Open proposals
 
@@ -40,12 +40,13 @@ Candidates confirmed as intentional or not worth fixing. Skip them during triage
 
 | Owning audit | Candidate | Why accepted | Decided |
 |--------------|-----------|--------------|---------|
-| 08 / 11 | `BattleRuntime` / `BattleCommandCoordinator` / `PlayBattleLaunch` | Intentional presentation/runtime and launch seams | 2026-08-05 |
+| 08 / 11 | `BattleRuntime` / `PlayBattleLaunch` | Intentional presentation/runtime and launch seams | 2026-08-05 |
 | 08 | Options vs `PlayerSave`; catalog authored vs generated | Architecture hard-stop dual seams | 2026-08-05 |
 | 08 / 11 | `TrinketFeatureAdapters` module split | Enforced package DAG boundary | 2026-08-05 |
 | 08 | `PlayerSaveSanitizer` / labyrinth regeneration | Live save migration; consumer window open | 2026-08-05 |
-| 11 | `PlayModeProtocol` marker (without `performModeMutation`) | Thin mode marker; not used as `any PlayModeProtocol` but kept | 2026-08-05 |
 | 11 | `StageSelectRowPresentation` stage/spire/labyrinth builders | Mode-specific field sources; shared config object would add ceremony | 2026-08-05 |
 | 08 | `PlayerSave` / wire aspects decode, ability-ID remaps | Live save consumer window still open; propose only after sunset | 2026-08-05 |
 | 11 | `PlayModeGraph` / `LaunchRunCallbacks` | Documented Play assembly owner; not deferred-bind theater | 2026-08-05 |
 | 11 | `check-build-cache-paths.sh` divergent path lists | Intentional CI vs local freshness differences; documented | 2026-08-05 |
+| 08 | `KeywordShineBorder` vs `CombatantBuffAuraBorder` | Parallel shimmer, but buff aura uses `TrinketDesign.cardShape` (battle 3:4 identity) vs rounded keyword shine | 2026-08-17 |
+| 01 | Stage-select placeholder SF Symbols using `Font.system(size:)` | Already `@ScaledMetric`; audit allowlist for decorative symbols | 2026-08-17 |

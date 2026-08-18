@@ -9,71 +9,39 @@ import TrinketPersistence
 
 struct MysteryRewardContent: View {
     @Environment(PlayerSaveStore.self) private var playerSave
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     @Bindable var session: MysteryEncounterSession
     let result: MysteryEffectApplyResult
     let onFinish: () -> Bool
 
-    @State private var isCompleting = false
-    @State private var revealSequence = RewardRevealSequenceState()
-    @State private var selectedRewardItem: InventoryItem?
-
     var body: some View {
-        RewardRevealShell(
+        RewardRevealExperienceScreen(
             eyebrow: "MYSTERY",
-            eyebrowAccessibilityIdentifier: nil,
             title: "Reward",
-            subtitle: nil,
             titleAccessibilityIdentifier: AccessibilityID.Mystery.rewardTitle,
-            titleColor: TrinketDesign.Colors.accent,
-            content: {
-                VStack(spacing: TrinketDesign.Metrics.sectionSpacing) {
-                    experiencePanel
-                    RewardRevealLootSection(
-                        items: result.grantedItems,
-                        gold: result.grantedGold,
-                        materials: result.grantedMaterials,
-                        showsIncreasePrefix: false,
-                        emptyMessage: nil,
-                        itemAccessibilityID: AccessibilityID.Battle.rewardItem,
-                        areItemsVisible: revealSequence.areItemsVisible,
-                        visibleWalletRewardCount: revealSequence.visibleWalletRewardCount,
-                        walletColumnCount: walletColumnCount,
-                        spacing: TrinketDesign.Metrics.sectionSpacing,
-                        onSelectItem: { selectedRewardItem = $0 }
-                    )
-                }
-            },
-            primaryActionTitle: revealSequence.isSequenceComplete ? "Loot All" : nil,
+            hasExperienceAwards: result.hasGrantedExperience,
+            loot: .init(
+                items: result.grantedItems,
+                gold: result.grantedGold,
+                materials: result.grantedMaterials,
+                showsIncreasePrefix: false,
+                emptyMessage: nil,
+                itemAccessibilityID: AccessibilityID.Battle.rewardItem,
+                lootSpacing: TrinketDesign.Metrics.sectionSpacing,
+                collapsesWalletToSingleColumnForAccessibility: true
+            ),
+            primaryActionTitle: "Loot All",
             primaryActionAccessibilityIdentifier: AccessibilityID.Battle.continueButton,
-            isPrimaryActionDisabled: isCompleting,
-            onPrimaryAction: completeLootAll,
+            onPrimaryAction: onFinish,
             contentTopPadding: TrinketDesign.Metrics.contentTopPadding + TrinketDesign.Metrics.mediumSpacing,
-            contentStackSpacing: TrinketDesign.Metrics.sectionSpacing,
-            pinsPrimaryActionToBottom: false
-        )
-        .sheet(item: $selectedRewardItem) { item in
-            NavigationStack {
-                ItemDetailView(item: item)
-            }
-            .trinketDetailSheet()
-        }
-        .onAppear {
-            if !result.hasGrantedExperience {
-                revealSequence.start(
-                    itemCount: result.grantedItems.count,
-                    walletCount: walletRewardCount
-                )
-            }
-        }
-        .onDisappear {
-            revealSequence.cancel(walletCount: walletRewardCount)
+            contentStackSpacing: TrinketDesign.Metrics.sectionSpacing
+        ) { onExperienceBarCompleted in
+            experiencePanel(onExperienceBarCompleted: onExperienceBarCompleted)
         }
     }
 
     @ViewBuilder
-    private var experiencePanel: some View {
+    private func experiencePanel(onExperienceBarCompleted: @escaping () -> Void) -> some View {
         if result.hasGrantedExperience {
             let hero = playerSave.roster.activeHero
             let companion = playerSave.roster.activeCompanion
@@ -81,13 +49,6 @@ struct MysteryRewardContent: View {
                let heroProgressionAfter = result.heroProgressionAfter,
                let companionProgressionBefore = result.companionProgressionBefore,
                let companionProgressionAfter = result.companionProgressionAfter {
-                let onExperienceBarCompleted = {
-                    revealSequence.experienceBarCompleted(
-                        requiredCount: 2,
-                        itemCount: result.grantedItems.count,
-                        walletCount: walletRewardCount
-                    )
-                }
                 VStack(alignment: .leading, spacing: TrinketDesign.Metrics.largeSpacing) {
                     ExperienceBar(
                         combatantName: hero.name,
@@ -114,18 +75,5 @@ struct MysteryRewardContent: View {
                 .trinketSurface(.secondary)
             }
         }
-    }
-
-    private func completeLootAll() {
-        guard revealSequence.isSequenceComplete, !isCompleting else { return }
-        isCompleting = onFinish()
-    }
-
-    private var walletRewardCount: Int {
-        (result.grantedGold > 0 ? 1 : 0) + result.grantedMaterials.count(where: { $0.quantity > 0 })
-    }
-
-    private var walletColumnCount: Int {
-        dynamicTypeSize.isAccessibilitySize ? 1 : walletRewardCount
     }
 }

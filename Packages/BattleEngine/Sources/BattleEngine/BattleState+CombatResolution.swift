@@ -29,7 +29,8 @@ package extension BattleState {
             isAttackHit: resolved.options.isAttackHit,
             isBasicAttackHit: resolved.options.isBasicAttackHit,
             abilityHasLeech: resolved.options.abilityHasLeech,
-            isHealthCost: resolved.options.isHealthCost
+            isHealthCost: resolved.options.isHealthCost,
+            causedByDodge: resolved.options.causedByDodge
         )
         state.activeEffects = roster.activeEffects(for: request.target)
 

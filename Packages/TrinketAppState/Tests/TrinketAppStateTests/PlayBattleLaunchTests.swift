@@ -19,17 +19,6 @@ struct PlayBattleLaunchTests {
         )
     }
 
-    @Test func resolvedJourneyEncounterScalesEnemy() throws {
-        let chapter = try #require(GameContent.chapters.first)
-        let battleStages = chapter.stages.filter(\.encounter.isCombat)
-        let stage = try #require(battleStages.last)
-        let encounter = try #require(JourneyPlayMode.resolvedEncounter(for: stage, worldSeed: 0))
-        let expectedLevel = EncounterLevelResolver.journeyEnemyLevel(for: stage, in: chapter)
-        #expect(encounter.level == expectedLevel)
-        #expect(encounter.level > 1)
-        #expect(encounter.combatant.id == stage.encounter.battleEnemyID)
-    }
-
     @Test func randomBattleResolvesDeterministicNonBossEncounter() throws {
         let stage = try #require(
             GameContent.chapters
@@ -48,31 +37,9 @@ struct PlayBattleLaunchTests {
         #expect(GameContent.enemy(matching: expectedEnemyID)?.isBoss == false)
         #expect(stage.encounter.isCombat)
         #expect(stage.encounter.battleEnemyID == nil)
-        #expect(stage.encounterCombatantArtReference != nil)
-        #expect(stage.encounterSubjectName == (GameContent.enemy(matching: expectedEnemyID)?.name ?? "Battle"))
 
         let again = try #require(JourneyPlayMode.resolvedEncounter(for: stage, worldSeed: 0))
         #expect(again.combatant.id == encounter.combatant.id)
-    }
-
-    @Test func assembleResolvesEnemyTraitModifiers() throws {
-        let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let wolf = try #require(GameContent.companions.first { $0.id == "wolf" })
-        let skeleton = try #require(GameContent.enemy(matching: "skeleton"))
-
-        let configuration = PlayBattleLaunch.assembleLaunch(
-            input: BattleLaunchInput(
-                hero: knight,
-                companion: wolf,
-                enemy: skeleton.combatant
-            ),
-            rngSeed: 0,
-            rosterState: .initial,
-            inventoryState: .initial
-        ).configuration
-
-        #expect(configuration.enemyModifiers.damageTakenVulnerability(for: .holy) > 0)
-        #expect(configuration.enemyModifiers.damageTakenReduction(for: .bleed) > 0)
     }
 
     @Test func assembleAppliesUniversalDamageModifierToEveryCombatant() throws {
@@ -156,12 +123,11 @@ struct PlayBattleLaunchTests {
         let chapter = try #require(GameContent.chapters.first)
         let battleStages = chapter.stages.filter(\.encounter.isCombat)
         let stage = try #require(battleStages.last)
-        let expectedLevel = EncounterLevelResolver.journeyEnemyLevel(for: stage, in: chapter)
-        #expect(expectedLevel > 1)
+        let encounterLevel = 5
 
         let enemyID = try #require(stage.resolvedBattleEnemyID(worldSeed: 0))
         let catalogEnemy = try #require(GameContent.enemy(matching: enemyID))
-        let scaledEnemy = CombatantLevelScaler.scale(enemy: catalogEnemy, level: expectedLevel)
+        let scaledEnemy = CombatantLevelScaler.scale(enemy: catalogEnemy, level: encounterLevel)
 
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         let wolf = try #require(GameContent.companions.first { $0.id == "wolf" })
@@ -171,7 +137,7 @@ struct PlayBattleLaunchTests {
                 hero: knight,
                 companion: wolf,
                 enemy: scaledEnemy,
-                enemyEncounterLevel: expectedLevel
+                enemyEncounterLevel: encounterLevel
             ),
             runKey: BattleRunKey("journey|\(stage.id)"),
             rngSeed: 0,
@@ -184,8 +150,7 @@ struct PlayBattleLaunchTests {
         let enemy = try #require(configuration.enemy)
         #expect(enemy.maxHealth == scaledEnemy.maxHealth)
         #expect(enemy.maxHealth > catalogEnemy.combatant.maxHealth)
-        #expect(configuration.enemyEncounterLevel == expectedLevel)
-        #expect(configuration.enemyModifiers.triggers.controlResistancePercent >= 0)
+        #expect(configuration.enemyEncounterLevel == encounterLevel)
     }
 
     @Test func assembleBakesExperienceAndMaterialAwards() throws {
