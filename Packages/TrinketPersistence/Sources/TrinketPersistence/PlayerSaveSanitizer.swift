@@ -221,7 +221,8 @@ public enum PlayerSaveSanitizer {
 
         sanitized.unlockedTalents = sanitizeUnlockedTalents(
             roster.unlockedTalents,
-            validCombatantIDs: validHeroIDs.union(validCompanionIDs)
+            validCombatantIDs: validHeroIDs.union(validCompanionIDs),
+            progressions: sanitized.progressions
         )
 
         return sanitized
@@ -229,14 +230,19 @@ public enum PlayerSaveSanitizer {
 
     public static func sanitizeUnlockedTalents(
         _ talents: [String: Set<String>],
-        validCombatantIDs: Set<String>
+        validCombatantIDs: Set<String>,
+        progressions: [String: CombatantProgression] = [:]
     ) -> [String: Set<String>] {
         var sanitized: [String: Set<String>] = [:]
         for (combatantID, nodeIDs) in talents {
             guard validCombatantIDs.contains(combatantID) else { continue }
             let validNodeIDs = CombatantTalentCatalog.validNodeIDs(for: combatantID)
             let remapped = Set(nodeIDs.map { remappedTalentNodeID($0) })
-            let filtered = remapped.intersection(validNodeIDs)
+            var filtered = remapped.intersection(validNodeIDs)
+            if let budget = progressions[combatantID]?.totalTalentPoints {
+                filtered = CombatantTalentCatalog.config(for: combatantID)
+                    .cappedUnlocks(filtered, budget: budget)
+            }
             if !filtered.isEmpty {
                 sanitized[combatantID] = filtered
             }

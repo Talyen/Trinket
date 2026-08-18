@@ -218,24 +218,39 @@ public final class AppState {
     public func refreshMusic(scenePhase: ScenePhase, volumeOverride: Double? = nil) {
         let volume = volumeOverride ?? options.musicVolume
         musicPlayer.update(
-            route: MusicRoute.resolve(
-                selectedTab: selectedTab,
-                activeBattle: play.battle.activeBattle,
-                battleStageID: play.battlePresentation(for: play.battle.activeBattle?.runKey)?.musicStageID,
-                sceneIsActive: scenePhase == .active,
-                musicVolume: volume
-            ),
+            route: musicRoute(scenePhase: scenePhase, musicVolume: volume),
             volume: volume
         )
+        prepareMutedMusicIfNeeded(scenePhase: scenePhase)
     }
 
     /// Options slider scrubbing: preview gain without persisting or mute-fading until commit.
     public func applyMusicVolumeLive(_ volume: Double, scenePhase: ScenePhase) {
-        if musicPlayer.hasActivePlayback {
+        if musicPlayer.canPreviewVolume {
             musicPlayer.setVolume(volume)
         } else if volume > 0 {
             refreshMusic(scenePhase: scenePhase, volumeOverride: volume)
         }
+    }
+
+    private func prepareMutedMusicIfNeeded(scenePhase: ScenePhase) {
+        guard scenePhase == .active, options.musicVolume <= 0, selectedTab == .options else {
+            return
+        }
+
+        if case let .track(request) = musicRoute(scenePhase: scenePhase, musicVolume: 1) {
+            musicPlayer.prepare(request)
+        }
+    }
+
+    private func musicRoute(scenePhase: ScenePhase, musicVolume: Double) -> MusicRoute {
+        MusicRoute.resolve(
+            selectedTab: selectedTab,
+            activeBattle: play.battle.activeBattle,
+            battleStageID: play.battlePresentation(for: play.battle.activeBattle?.runKey)?.musicStageID,
+            sceneIsActive: scenePhase == .active,
+            musicVolume: musicVolume
+        )
     }
 
     private func handleScenePhaseSideEffects(_ phase: ScenePhase) {

@@ -19,7 +19,7 @@ public enum ShopOfferGenerator {
     public static let offerCount = 4
     public static let basePriceRange = 20 ... 40
     public static let astralPriceMultiplier = 2
-    public static let starterShopStageID = "chapter-1-stage-8"
+    public static let starterShopStageID = "chapter-1-stage-9"
     public static let starterShopPriceDiscountPercent = 50
 
     public static func generateOffers(

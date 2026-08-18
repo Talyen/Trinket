@@ -73,7 +73,7 @@ struct StageMapPresentationTests {
     }
 
     @Test func seededJourneyMysteryProvidesEncounterArtForUnpinnedStages() throws {
-        let stage = try #require(GameContent.stage(id: "chapter-1-stage-5"))
+        let stage = try #require(GameContent.stage(id: "chapter-1-stage-4"))
         #expect(stage.encounter.mysteryEventID == nil)
         #expect(stage.encounterArtReference == nil)
 

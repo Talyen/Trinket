@@ -42,6 +42,7 @@ public struct AbilityTierPickerSheet: View {
                 ability.id == selectedAbilityID
             },
             onSelect: { selectedAbility = $0 },
+            onLongPress: { selectedAbility = $0 },
             accessibilityIdentifier: { ability in
                 AccessibilityID.LoadoutPicker.abilityCandidate(ability.id)
             },

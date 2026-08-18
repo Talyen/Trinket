@@ -197,7 +197,8 @@ public struct CombatantDetailPane: View {
                 loadout: $loadout,
                 allowsEditing: allowsEditing,
                 onSelectTier: allowsEditing ? { selectedAbilityTier = $0 } : nil,
-                onViewAbility: allowsEditing ? nil : { viewingAbility = ViewOnlyAbility(ability: $0) }
+                onViewAbility: allowsEditing ? nil : { viewingAbility = ViewOnlyAbility(ability: $0) },
+                onInspectAbility: { viewingAbility = ViewOnlyAbility(ability: $0) }
             )
             .padding(.vertical, TrinketDesign.Metrics.extraSmallSpacing)
         }

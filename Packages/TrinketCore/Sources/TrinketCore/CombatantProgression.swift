@@ -57,9 +57,9 @@ public struct CombatantProgression: Equatable, Hashable, Codable, Sendable {
         )
     }
 
-    /// Total talent points earned based on level (1 point per level-up beyond level 1).
+    /// Total talent points earned based on level (1 point at each even level: 2, 4, 6, …).
     public var totalTalentPoints: Int {
-        max(level - 1, 0)
+        max(level, 0) / 2
     }
 
     /// Remaining talent points given the number of already unlocked talents.

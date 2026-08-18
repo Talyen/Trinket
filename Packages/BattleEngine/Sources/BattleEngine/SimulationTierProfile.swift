@@ -53,6 +53,8 @@ public struct SimulationBuildContext: Equatable, Hashable, Sendable {
     public let seed: UInt64
     public let heroAffixIDs: [String]
     public let companionAffixIDs: [String]
+    public let heroTalentIDs: [String]
+    public let companionTalentIDs: [String]
 
     public init(
         tier: SimulationPowerTier,
@@ -61,7 +63,9 @@ public struct SimulationBuildContext: Equatable, Hashable, Sendable {
         loadoutSampleIndex: Int,
         seed: UInt64,
         heroAffixIDs: [String] = [],
-        companionAffixIDs: [String] = []
+        companionAffixIDs: [String] = [],
+        heroTalentIDs: [String] = [],
+        companionTalentIDs: [String] = []
     ) {
         self.tier = tier
         self.heroLoadout = heroLoadout
@@ -70,6 +74,8 @@ public struct SimulationBuildContext: Equatable, Hashable, Sendable {
         self.seed = seed
         self.heroAffixIDs = heroAffixIDs
         self.companionAffixIDs = companionAffixIDs
+        self.heroTalentIDs = heroTalentIDs
+        self.companionTalentIDs = companionTalentIDs
     }
 }
 

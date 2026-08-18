@@ -61,44 +61,116 @@ enum BalanceContrastSupport {
             buckets[key] = bucket
         }
 
-        // Deterministic total order: flagged first, then |lift|, then a stable
-        // key, so the report never depends on hashed Dictionary iteration order.
         return buckets.values.map { bucket in
             let focus = foci[bucket.meta]
-            let entityRate = bucket.pairs == 0 ? 0 : Double(bucket.entity) / Double(bucket.pairs)
-            let baselineRate = bucket.pairs == 0 ? 0 : Double(bucket.baseline) / Double(bucket.pairs)
-            let lift = entityRate - baselineRate
-            let flagged = abs(lift) >= threshold && bucket.pairs >= 8
-            return PairedContrastSummary(
-                entityID: focus.entityID,
-                baselineID: focus.baselineID,
-                ownerID: focus.ownerID,
-                tier: bucket.tier,
-                pairs: bucket.pairs,
-                winsWithEntity: bucket.entity,
-                winsWithBaseline: bucket.baseline,
-                lift: lift,
-                flagged: flagged,
-                flagReason: flagged ? (lift > 0 ? "HIGH" : "LOW") : nil
+            return makeSummary(
+                SummaryAcc(
+                    entityID: focus.entityID,
+                    baselineID: focus.baselineID,
+                    ownerID: focus.ownerID,
+                    tier: bucket.tier,
+                    pairs: bucket.pairs,
+                    winsWithEntity: bucket.entity,
+                    winsWithBaseline: bucket.baseline
+                ),
+                threshold: threshold
             )
         }
-        .sorted { lhs, rhs in
-            (
-                lhs.flagged ? 0 : 1,
-                -abs(lhs.lift),
-                lhs.tier.rawValue,
-                lhs.entityID,
-                lhs.baselineID,
-                lhs.ownerID
-            ) < (
-                rhs.flagged ? 0 : 1,
-                -abs(rhs.lift),
-                rhs.tier.rawValue,
-                rhs.entityID,
-                rhs.baselineID,
-                rhs.ownerID
+        .sorted(by: summarySort)
+    }
+
+    static func mergeSummaries(
+        _ summaries: [PairedContrastSummary],
+        threshold: Double
+    ) -> [PairedContrastSummary] {
+        var buckets: [String: (
+            entityID: String,
+            baselineID: String,
+            ownerID: String,
+            tier: SimulationPowerTier,
+            pairs: Int,
+            entity: Int,
+            baseline: Int
+        )] = [:]
+        for row in summaries {
+            let key = "\(row.tier.rawValue)|\(row.entityID)|\(row.baselineID)|\(row.ownerID)"
+            var bucket = buckets[key] ?? (
+                row.entityID,
+                row.baselineID,
+                row.ownerID,
+                row.tier,
+                0,
+                0,
+                0
+            )
+            bucket.pairs += row.pairs
+            bucket.entity += row.winsWithEntity
+            bucket.baseline += row.winsWithBaseline
+            buckets[key] = bucket
+        }
+
+        return buckets.values.map { bucket in
+            makeSummary(
+                SummaryAcc(
+                    entityID: bucket.entityID,
+                    baselineID: bucket.baselineID,
+                    ownerID: bucket.ownerID,
+                    tier: bucket.tier,
+                    pairs: bucket.pairs,
+                    winsWithEntity: bucket.entity,
+                    winsWithBaseline: bucket.baseline
+                ),
+                threshold: threshold
             )
         }
+        .sorted(by: summarySort)
+    }
+
+    private struct SummaryAcc {
+        var entityID: String
+        var baselineID: String
+        var ownerID: String
+        var tier: SimulationPowerTier
+        var pairs: Int
+        var winsWithEntity: Int
+        var winsWithBaseline: Int
+    }
+
+    private static func makeSummary(_ acc: SummaryAcc, threshold: Double) -> PairedContrastSummary {
+        let entityRate = acc.pairs == 0 ? 0 : Double(acc.winsWithEntity) / Double(acc.pairs)
+        let baselineRate = acc.pairs == 0 ? 0 : Double(acc.winsWithBaseline) / Double(acc.pairs)
+        let lift = entityRate - baselineRate
+        let flagged = abs(lift) >= threshold && acc.pairs >= 8
+        return PairedContrastSummary(
+            entityID: acc.entityID,
+            baselineID: acc.baselineID,
+            ownerID: acc.ownerID,
+            tier: acc.tier,
+            pairs: acc.pairs,
+            winsWithEntity: acc.winsWithEntity,
+            winsWithBaseline: acc.winsWithBaseline,
+            lift: lift,
+            flagged: flagged,
+            flagReason: flagged ? (lift > 0 ? "HIGH" : "LOW") : nil
+        )
+    }
+
+    private static func summarySort(_ lhs: PairedContrastSummary, _ rhs: PairedContrastSummary) -> Bool {
+        (
+            lhs.flagged ? 0 : 1,
+            -abs(lhs.lift),
+            lhs.tier.rawValue,
+            lhs.entityID,
+            lhs.baselineID,
+            lhs.ownerID
+        ) < (
+            rhs.flagged ? 0 : 1,
+            -abs(rhs.lift),
+            rhs.tier.rawValue,
+            rhs.entityID,
+            rhs.baselineID,
+            rhs.ownerID
+        )
     }
 
     static func stableHash64(_ string: String) -> UInt64 {
@@ -121,25 +193,38 @@ enum BalanceContrastSupport {
         return partner
     }
 
-    static func assignRoles(
-        owner: Combatant,
-        partner: Combatant,
-        ownerLoadout: AbilityLoadout,
-        partnerLoadout: AbilityLoadout,
-        ownerGear: SimulationMatchupBuilder.GearOverride?,
-        partnerGear: SimulationMatchupBuilder.GearOverride?
-    ) -> (
+    static func assignRoles(_ parts: MatchupParts) -> (
         hero: Combatant,
         companion: Combatant,
         heroLoadout: AbilityLoadout,
         companionLoadout: AbilityLoadout,
         heroGear: SimulationMatchupBuilder.GearOverride?,
-        companionGear: SimulationMatchupBuilder.GearOverride?
+        companionGear: SimulationMatchupBuilder.GearOverride?,
+        heroTalents: Set<String>,
+        companionTalents: Set<String>
     ) {
-        if owner.role == .hero {
-            return (owner, partner, ownerLoadout, partnerLoadout, ownerGear, partnerGear)
+        if parts.owner.role == .hero {
+            return (
+                parts.owner,
+                parts.partner,
+                parts.ownerLoadout,
+                parts.partnerLoadout,
+                parts.ownerGear,
+                parts.partnerGear,
+                parts.ownerTalents,
+                parts.partnerTalents
+            )
         }
-        return (partner, owner, partnerLoadout, ownerLoadout, partnerGear, ownerGear)
+        return (
+            parts.partner,
+            parts.owner,
+            parts.partnerLoadout,
+            parts.ownerLoadout,
+            parts.partnerGear,
+            parts.ownerGear,
+            parts.partnerTalents,
+            parts.ownerTalents
+        )
     }
 
     struct MatchupParts {
@@ -149,20 +234,15 @@ enum BalanceContrastSupport {
         var partnerLoadout: AbilityLoadout
         var ownerGear: SimulationMatchupBuilder.GearOverride?
         var partnerGear: SimulationMatchupBuilder.GearOverride?
+        var ownerTalents: Set<String> = []
+        var partnerTalents: Set<String> = []
         var enemy: Enemy
         var tier: SimulationPowerTier
         var seed: UInt64
     }
 
     static func buildMatchup(_ parts: MatchupParts) -> ConfiguredSimulationMatchup {
-        let roles = assignRoles(
-            owner: parts.owner,
-            partner: parts.partner,
-            ownerLoadout: parts.ownerLoadout,
-            partnerLoadout: parts.partnerLoadout,
-            ownerGear: parts.ownerGear,
-            partnerGear: parts.partnerGear
-        )
+        let roles = assignRoles(parts)
         return SimulationMatchupBuilder.build(
             hero: roles.hero,
             companion: roles.companion,
@@ -172,7 +252,9 @@ enum BalanceContrastSupport {
             companionLoadout: roles.companionLoadout,
             seed: parts.seed,
             heroGear: roles.heroGear,
-            companionGear: roles.companionGear
+            companionGear: roles.companionGear,
+            heroTalents: roles.heroTalents,
+            companionTalents: roles.companionTalents
         )
     }
 
@@ -185,6 +267,18 @@ enum BalanceContrastSupport {
         withEntity.ownerGear = entityOwnerGear
         var withBaseline = base
         withBaseline.ownerGear = baselineOwnerGear
+        return (buildMatchup(withEntity), buildMatchup(withBaseline))
+    }
+
+    static func buildOwnerTalentPair(
+        base: MatchupParts,
+        entityOwnerTalents: Set<String>,
+        baselineOwnerTalents: Set<String>
+    ) -> (withEntity: ConfiguredSimulationMatchup, withBaseline: ConfiguredSimulationMatchup) {
+        var withEntity = base
+        withEntity.ownerTalents = entityOwnerTalents
+        var withBaseline = base
+        withBaseline.ownerTalents = baselineOwnerTalents
         return (buildMatchup(withEntity), buildMatchup(withBaseline))
     }
 
@@ -226,10 +320,12 @@ enum BalanceContrastSupport {
         guard !foci.isEmpty, !tiers.isEmpty else { return [] }
         let config = context.config
 
-        let work = workItems(
-            fociCount: foci.count,
-            tiers: tiers,
-            battlesPerTier: config.battlesPerTier
+        let work = config.sliceWork(
+            workItems(
+                fociCount: foci.count,
+                tiers: tiers,
+                battlesPerTier: config.battlesPerTier
+            )
         )
         let pairResults = ParallelMap.map(work, jobs: config.resolvedJobs) { item -> (Int, SimulationPowerTier, Bool, Bool)? in
             let focus = foci[item.focusIndex]

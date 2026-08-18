@@ -39,7 +39,6 @@ struct InventoryGridView: View {
     @Environment(OptionsStore.self) private var options
     @State private var selectedFilter: InventoryFilter = .all
     @State private var salvageDetail = SalvageItemDetailController()
-    @Namespace private var zoomNamespace
 
     var body: some View {
         @Bindable var salvageDetail = salvageDetail
@@ -49,10 +48,9 @@ struct InventoryGridView: View {
         CollectionGridShell(items: items) { item in
             SalvageItemButton(
                 item: item,
-                showsName: true,
-                zoomNamespace: zoomNamespace
-            ) { sourceFrame in
-                salvageDetail.select(item, sourceFrame: sourceFrame)
+                showsName: true
+            ) {
+                salvageDetail.select(item)
             }
         } emptyView: {
             inventoryEmptyState(inventoryState: inventoryState)
@@ -80,16 +78,12 @@ struct InventoryGridView: View {
         .sheet(item: $salvageDetail.selectedItem) { item in
             SalvageItemDetailSheet(
                 controller: salvageDetail,
-                item: item,
-                zoomNamespace: zoomNamespace
+                item: item
             )
         }
         .overlay {
             if let event = salvageDetail.transmutationEvent {
-                SalvageTransmutationLayer(
-                    event: event,
-                    zoomNamespace: zoomNamespace
-                ) {
+                SalvageTransmutationLayer(event: event) {
                     salvageDetail.finishTransmutation(id: event.id)
                 }
             }

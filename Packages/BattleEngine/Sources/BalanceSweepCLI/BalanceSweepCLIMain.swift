@@ -12,17 +12,31 @@ enum BalanceSweepCLI {
                 print(usageText)
                 return
             }
-            let config = try parseConfig(arguments)
+            let parsed = try parseInvocation(arguments)
+            if parsed.isWorker {
+                try runWorker(parsed)
+                return
+            }
+
             FileHandle.standardError.write(Data(
                 """
-                Running balance sweep mode=\(config.mode.rawValue) \
-                \(config.battlesPerTier)/tier seed=\(config.seed) jobs=\(config.resolvedJobs) …
+                Running balance sweep mode=\(parsed.config.mode.rawValue) \
+                \(parsed.config.battlesPerTier)/tier seed=\(parsed.config.seed) \
+                jobs=\(parsed.config.resolvedJobs) …
                 """.utf8
             ))
 
-            let report = BalanceSweepRunner.run(config: config)
+            let report: BalanceSweepReport
+            #if os(macOS)
+            report = try BalanceSweepProcessOrchestrator.run(
+                config: parsed.config,
+                executablePath: CommandLine.arguments[0]
+            )
+            #else
+            report = BalanceSweepRunner.run(config: parsed.config)
+            #endif
             let markdown = BalanceMarkdownReporter.render(report)
-            let url = try writeReport(markdown, report: report, toDirectory: config.outputDirectory)
+            let url = try writeReport(markdown, report: report, toDirectory: parsed.config.outputDirectory)
 
             print(markdown)
             FileHandle.standardError.write(Data("Wrote \(url.path)\n".utf8))
@@ -31,6 +45,15 @@ enum BalanceSweepCLI {
             FileHandle.standardError.write(Data(usageText.utf8))
             exit(1)
         }
+    }
+
+    private static func runWorker(_ parsed: ParsedInvocation) throws {
+        guard let outputFile = parsed.outputFile else {
+            throw CLIError.missingValue("--output-file")
+        }
+        let report = BalanceSweepRunner.run(config: parsed.config)
+        let data = try JSONEncoder().encode(report)
+        try data.write(to: URL(fileURLWithPath: outputFile), options: .atomic)
     }
 
     /// Disk I/O stays in the CLI entrypoint so the BattleEngine library remains pure.
@@ -58,20 +81,29 @@ enum BalanceSweepCLI {
         """
         Usage: BalanceSweepCLI [options]
 
-          --mode <name>            identity | ability-contrast | affix-contrast | mode-progression | all
-                                   (default: identity)
+          --mode <name>            identity | ability-contrast | affix-contrast | talent-contrast |
+                                   mode-progression | all (default: identity)
           --battles-per-tier <n>   Battles/pairs per power tier (default: 100)
           --seed <n>               Sweep seed (default: 1)
           --tiers <list>           Comma list: early,middle,lateGame (default: all)
-          --jobs <n>               Parallel workers (default: CPU count; 1 = sequential)
+          --jobs <n>               Concurrent worker processes (default: CPU count)
           --output-dir <path>      Markdown output directory (default: BalanceSweepReports)
           --max-rounds <n>         Stall cap rounds (default: 100)
           --max-actions <n>        Stall cap actions (default: 500)
           --help                   Show this help
+
+        Combat runs in child processes of this binary (never on GCD). Each child
+        writes a JSON slice; the parent merges and renders markdown.
         """
     }
 
-    private static func parseConfig(_ arguments: [String]) throws -> BalanceSweepConfig {
+    private struct ParsedInvocation {
+        var config: BalanceSweepConfig
+        var isWorker: Bool
+        var outputFile: String?
+    }
+
+    private struct FlagState {
         var mode: BalanceSweepMode = .identity
         var battlesPerTier = BalanceSweepConfig.defaultBattlesPerTier
         var seed: UInt64 = 1
@@ -80,10 +112,21 @@ enum BalanceSweepCLI {
         var maxRounds = BattleSimulator.defaultMaxRounds
         var maxActions = BattleSimulator.defaultMaxActions
         var jobs = 0
+        var workOffset = 0
+        var workLimit: Int?
+        var isWorker = false
+        var outputFile: String?
 
-        var index = 0
-        while index < arguments.count {
+        mutating func consume(_ arguments: [String], index: inout Int) throws {
             let arg = arguments[index]
+            if arg == "--worker" {
+                isWorker = true
+                return
+            }
+            try consumeValued(arg, arguments: arguments, index: &index)
+        }
+
+        mutating func consumeValued(_ arg: String, arguments: [String], index: inout Int) throws {
             switch arg {
             case "--mode":
                 let raw = try stringValue(after: arg, in: arguments, index: &index)
@@ -106,22 +149,48 @@ enum BalanceSweepCLI {
                 maxRounds = try intValue(after: arg, in: arguments, index: &index)
             case "--max-actions":
                 maxActions = try intValue(after: arg, in: arguments, index: &index)
+            case "--work-offset":
+                workOffset = try nonNegativeIntValue(after: arg, in: arguments, index: &index)
+            case "--work-limit":
+                workLimit = try intValue(after: arg, in: arguments, index: &index)
+            case "--output-file":
+                outputFile = try stringValue(after: arg, in: arguments, index: &index)
             default:
                 throw CLIError.unknownArgument(arg)
             }
-            index += 1
         }
 
-        return BalanceSweepConfig(
-            mode: mode,
-            battlesPerTier: battlesPerTier,
-            seed: seed,
-            tiers: tiers,
-            maxRounds: maxRounds,
-            maxActions: maxActions,
-            outputDirectory: outputDirectory,
-            jobs: jobs
-        )
+        func makeInvocation() throws -> ParsedInvocation {
+            if isWorker, mode == .all {
+                throw CLIError.invalidMode("all")
+            }
+            return ParsedInvocation(
+                config: BalanceSweepConfig(
+                    mode: mode,
+                    battlesPerTier: battlesPerTier,
+                    seed: seed,
+                    tiers: tiers,
+                    maxRounds: maxRounds,
+                    maxActions: maxActions,
+                    outputDirectory: outputDirectory,
+                    jobs: jobs,
+                    workOffset: workOffset,
+                    workLimit: workLimit
+                ),
+                isWorker: isWorker,
+                outputFile: outputFile
+            )
+        }
+    }
+
+    private static func parseInvocation(_ arguments: [String]) throws -> ParsedInvocation {
+        var flags = FlagState()
+        var index = 0
+        while index < arguments.count {
+            try flags.consume(arguments, index: &index)
+            index += 1
+        }
+        return try flags.makeInvocation()
     }
 
     private static func parseTiers(_ raw: String) throws -> [SimulationPowerTier] {
@@ -163,6 +232,16 @@ enum BalanceSweepCLI {
     ) throws -> Int {
         let raw = try stringValue(after: flag, in: arguments, index: &index)
         guard let value = Int(raw), value > 0 else { throw CLIError.invalidInt(flag, raw) }
+        return value
+    }
+
+    private static func nonNegativeIntValue(
+        after flag: String,
+        in arguments: [String],
+        index: inout Int
+    ) throws -> Int {
+        let raw = try stringValue(after: flag, in: arguments, index: &index)
+        guard let value = Int(raw), value >= 0 else { throw CLIError.invalidInt(flag, raw) }
         return value
     }
 

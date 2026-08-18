@@ -34,6 +34,8 @@ public enum SimulationMatchupBuilder {
         loadoutSampleIndex: Int = 0,
         heroGear: GearOverride? = nil,
         companionGear: GearOverride? = nil,
+        heroTalents: Set<String> = [],
+        companionTalents: Set<String> = [],
         gearKeywordBias: Set<Keyword>? = nil,
         gearGenerator: ThemedGearGenerator = ThemedGearGenerator()
     ) -> ConfiguredSimulationMatchup {
@@ -47,6 +49,7 @@ public enum SimulationMatchupBuilder {
             tier: tier,
             idPrefix: "sim-hero",
             gearOverride: heroGear,
+            unlockedTalents: heroTalents,
             gearKeywordBias: gearKeywordBias,
             gearGenerator: gearGenerator
         )
@@ -55,6 +58,7 @@ public enum SimulationMatchupBuilder {
             tier: tier,
             idPrefix: "sim-companion",
             gearOverride: companionGear,
+            unlockedTalents: companionTalents,
             gearKeywordBias: gearKeywordBias,
             gearGenerator: gearGenerator
         )
@@ -82,7 +86,9 @@ public enum SimulationMatchupBuilder {
             loadoutSampleIndex: loadoutSampleIndex,
             seed: seed,
             heroAffixIDs: heroPrepared.affixIDs,
-            companionAffixIDs: companionPrepared.affixIDs
+            companionAffixIDs: companionPrepared.affixIDs,
+            heroTalentIDs: heroTalents.sorted(),
+            companionTalentIDs: companionTalents.sorted()
         )
 
         return ConfiguredSimulationMatchup(
@@ -136,6 +142,39 @@ public enum SimulationMatchupBuilder {
         return GearOverride(gear)
     }
 
+    /// Spends available talent points on a legal row-gated kit.
+    /// Full catalog when points cover every node; otherwise a random legal walk.
+    public static func legalTalentKit(
+        for combatantID: String,
+        level: Int,
+        using randomNumberGenerator: inout some RandomNumberGenerator
+    ) -> Set<String> {
+        let nodes = CombatantTalentCatalog.validNodeIDs(for: combatantID)
+        let points = CombatantProgression.at(level: level).totalTalentPoints
+        guard points > 0, !nodes.isEmpty else { return [] }
+        if points >= nodes.count {
+            return nodes
+        }
+
+        let config = CombatantTalentCatalog.config(for: combatantID)
+        var unlocked = Set<String>()
+        for _ in 0 ..< points {
+            let candidates = config.trees.flatMap { tree in
+                tree.nodes.filter {
+                    tree.canUnlock(node: $0, unlockedNodeIDs: unlocked, availablePoints: 1)
+                }
+            }
+            guard let pick = candidates.randomElement(using: &randomNumberGenerator) else { break }
+            unlocked.insert(pick.id)
+        }
+        return unlocked
+    }
+
+    /// Both nodes in rows strictly below `row` in `tree` (row-gate prefix for sibling contrast).
+    public static func minimalPrefix(for tree: TalentTree, throughRow row: Int) -> Set<String> {
+        Set(tree.nodes.filter { $0.row < row }.map(\.id))
+    }
+
     public static func progression(level: Int) -> CombatantProgression {
         CombatantProgression(
             level: level,
@@ -149,6 +188,7 @@ public enum SimulationMatchupBuilder {
         var tier: SimulationPowerTier
         var idPrefix: String = ""
         var gearOverride: GearOverride?
+        var unlockedTalents: Set<String> = []
         var gearKeywordBias: Set<Keyword>?
         var gearGenerator: ThemedGearGenerator
 
@@ -180,7 +220,8 @@ public enum SimulationMatchupBuilder {
             let build = CombatBuildResolver.build(
                 combatant: scaled,
                 equipmentLoadout: sanitized,
-                inventory: gearOverride.inventory
+                inventory: gearOverride.inventory,
+                unlockedTalents: request.unlockedTalents
             )
             let affixIDs = gearOverride.inventory.flatMap { $0.affixes.map(\.id) }
             return PreparedPartyMember(build: build, loadout: loadout, affixIDs: affixIDs)
@@ -193,7 +234,8 @@ public enum SimulationMatchupBuilder {
             let build = CombatBuildResolver.build(
                 combatant: scaled,
                 equipmentLoadout: EquipmentLoadout(),
-                inventory: []
+                inventory: [],
+                unlockedTalents: request.unlockedTalents
             )
             return PreparedPartyMember(build: build, loadout: loadout, affixIDs: [])
         }
@@ -212,7 +254,8 @@ public enum SimulationMatchupBuilder {
         let build = CombatBuildResolver.build(
             combatant: scaled,
             equipmentLoadout: sanitized,
-            inventory: gear.inventory
+            inventory: gear.inventory,
+            unlockedTalents: request.unlockedTalents
         )
         let affixIDs = gear.inventory.flatMap { $0.affixes.map(\.id) }
         return PreparedPartyMember(build: build, loadout: loadout, affixIDs: affixIDs)

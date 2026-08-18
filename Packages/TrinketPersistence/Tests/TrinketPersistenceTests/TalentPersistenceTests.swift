@@ -9,6 +9,7 @@ import TrinketPersistenceTestSupport
 struct TalentPersistenceTests {
     @Test func saveSanitizerFiltersInvalidCombatantsAndTalents() {
         var roster = PlayerRosterState.freshStart
+        roster.progressions["knight"] = .at(level: 2)
         roster.unlockedTalents["knight"] = ["knight_block_t1_1", "invalid_node_id"]
         roster.unlockedTalents["invalid_combatant"] = ["some_node"]
 
@@ -25,6 +26,8 @@ struct TalentPersistenceTests {
         let rogueTalents: Set = ["rogue_poison_t1_1", "rogue_poison_t1_2"]
 
         _ = firstStore.persistBatch(logging: "Persist talents") { save in
+            save.roster.progressions["knight"] = .at(level: 4)
+            save.roster.progressions["rogue"] = .at(level: 4)
             save.roster.unlockedTalents["knight"] = knightTalents
             save.roster.unlockedTalents["rogue"] = rogueTalents
         }

@@ -7,9 +7,6 @@ public struct AbilityDetailView: View {
     var primaryActionTitle: String?
     var primaryActionAccessibilityID: String?
     var onPrimaryAction: (() -> Void)?
-    var showsDoneButton = false
-
-    @Environment(\.dismiss) private var dismiss
 
     @ScaledMetric(relativeTo: .title) private var placeholderIconSize =
         TrinketDesign.Metrics.cardPlaceholderIconPointSize
@@ -18,21 +15,17 @@ public struct AbilityDetailView: View {
         ability: Ability,
         primaryActionTitle: String? = nil,
         primaryActionAccessibilityID: String? = nil,
-        onPrimaryAction: (() -> Void)? = nil,
-        showsDoneButton: Bool = false
+        onPrimaryAction: (() -> Void)? = nil
     ) {
         self.ability = ability
         self.primaryActionTitle = primaryActionTitle
         self.primaryActionAccessibilityID = primaryActionAccessibilityID
         self.onPrimaryAction = onPrimaryAction
-        self.showsDoneButton = showsDoneButton
     }
 
     public var body: some View {
         DetailHeroScrollShell(
             title: ability.name,
-            showsDoneButton: showsDoneButton,
-            onDone: { dismiss() },
             header: { baseHeight, overscroll in
                 DetailHeroHeader(
                     eyebrow: ability.tier.rawValue.uppercased(),

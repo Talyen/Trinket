@@ -73,10 +73,9 @@ public struct BattleView: View {
             .onChange(of: configuration.id) { _, _ in
                 castPresentation.reset()
             }
-            .confirmationDialog(
+            .alert(
                 "Retreat from this battle?",
-                isPresented: $isConfirmingRetreat,
-                titleVisibility: .visible
+                isPresented: $isConfirmingRetreat
             ) {
                 Button("Retreat", role: .destructive) {
                     battleSession.playPresentationSFX(SFXID.uiCancel)

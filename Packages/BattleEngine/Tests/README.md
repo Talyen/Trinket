@@ -18,7 +18,7 @@ not fit a row below, add a row rather than stuffing it into an unrelated file.
 | Catalog ability combos | `AbilityEffectIntegrationTests` | Bloodthorn, Prayer |
 | Outcome / log | `BattleOutcomeResolverTests`, `BattleLogReducerTests` | victory rules |
 | Greedy card policy | `GreedyHeuristicPolicyTests` | lethal card outranks weaker leftmost |
-| Balance simulator | `BattleSimulatorTests` | one-off greedy autoplay, parallel parity, ability/affix contrasts |
+| Balance simulator | `BattleSimulatorTests`, `BalanceSweepOrchestrationTests` | greedy autoplay, sequential jobs parity, work-slice merge, ability/affix/talent contrasts |
 
 ## Integration through card turns
 

@@ -9,7 +9,13 @@ final class MusicPlayer {
     private let fadeDuration: TimeInterval
     private var currentPlayer: AVAudioPlayer?
     private var currentRequest: MusicPlaybackRequest?
+    private var preparedPlayer: AVAudioPlayer?
+    private var preparedRequest: MusicPlaybackRequest?
     private var fadeTask: Task<Void, Never>?
+    private var loadTask: Task<Void, Never>?
+    private var loadGeneration = 0
+    private var inFlightRequest: MusicPlaybackRequest?
+    private var pendingStartVolume: Float?
     private var resumePositions: [MusicResumeKey: TimeInterval] = [:]
     private var hasConfiguredSession = false
     private let logger = Logger(
@@ -26,10 +32,11 @@ final class MusicPlayer {
     // fade Task does not touch MainActor-isolated state from a nonisolated deinit.
     isolated deinit {
         fadeTask?.cancel()
+        loadTask?.cancel()
     }
 
-    var hasActivePlayback: Bool {
-        currentPlayer != nil
+    var canPreviewVolume: Bool {
+        currentPlayer != nil || preparedPlayer != nil || inFlightRequest != nil
     }
 
     func update(route: MusicRoute, volume: Double) {
@@ -45,17 +52,50 @@ final class MusicPlayer {
         }
     }
 
-    /// Live slider scrubbing: adjust gain only. Does not start, stop, or fade tracks.
+    /// Decode and `prepareToPlay` the current route without starting playback.
+    func prepare(_ request: MusicPlaybackRequest) {
+        guard !isDisabled else { return }
+        if currentRequest?.resumeKey == request.resumeKey {
+            return
+        }
+        if preparedRequest?.resumeKey == request.resumeKey {
+            return
+        }
+        if inFlightRequest?.resumeKey == request.resumeKey {
+            return
+        }
+        enqueueLoad(request, startVolume: nil)
+    }
+
+    /// Live slider scrubbing: adjust gain only when a player is already current.
+    /// Starts a prepared or in-flight unmute without a track-change fade.
     func setVolume(_ volume: Double) {
-        guard !isDisabled, let currentPlayer, let currentRequest else { return }
+        guard !isDisabled else { return }
         let resolvedVolume = Float(max(0, min(volume, 1)))
-        currentPlayer.volume = targetVolume(for: currentRequest, appVolume: resolvedVolume)
-        // Stop any in-flight crossfade/fade-out ramp from overwriting the scrubbed
-        // gain on its next step.
-        cancelActiveFades()
+
+        if let currentPlayer, let currentRequest {
+            currentPlayer.volume = targetVolume(for: currentRequest, appVolume: resolvedVolume)
+            // Stop any in-flight crossfade/fade-out ramp from overwriting the scrubbed
+            // gain on its next step.
+            cancelActiveFades()
+            return
+        }
+
+        pendingStartVolume = resolvedVolume
+        if resolvedVolume > 0, let preparedPlayer, let preparedRequest {
+            startLoadedPlayer(
+                preparedPlayer,
+                request: preparedRequest,
+                volume: resolvedVolume,
+                shouldCrossfade: false
+            )
+            clearPrepared()
+        }
     }
 
     func stop() {
+        cancelPendingLoad()
+        clearPrepared()
         cancelActiveFades()
         saveCurrentPosition()
         currentPlayer?.stop()
@@ -75,8 +115,6 @@ final class MusicPlayer {
     }
 
     private func play(_ request: MusicPlaybackRequest, volume: Float) {
-        configureSessionIfNeeded()
-
         if let currentPlayer,
            currentRequest?.resumeKey == request.resumeKey {
             currentPlayer.numberOfLoops = request.track.isLooping ? -1 : 0
@@ -87,20 +125,134 @@ final class MusicPlayer {
             return
         }
 
+        if let preparedPlayer,
+           preparedRequest?.resumeKey == request.resumeKey {
+            startLoadedPlayer(
+                preparedPlayer,
+                request: request,
+                volume: volume,
+                shouldCrossfade: false
+            )
+            clearPrepared()
+            return
+        }
+
+        if inFlightRequest?.resumeKey == request.resumeKey {
+            pendingStartVolume = volume
+            return
+        }
+
         saveCurrentPosition()
+        enqueueLoad(request, startVolume: volume)
+    }
 
-        guard let newPlayer = makePlayer(for: request) else { return }
-        newPlayer.numberOfLoops = request.track.isLooping ? -1 : 0
-        newPlayer.currentTime = request.shouldResume ? resumePositions[request.resumeKey, default: 0] : 0
-        newPlayer.volume = 0
-        newPlayer.prepareToPlay()
-        newPlayer.play()
+    private func enqueueLoad(_ request: MusicPlaybackRequest, startVolume: Float?) {
+        guard let url = resourceURL(for: request.track) else {
+            logger.warning(
+                "Missing music resource: \(request.track.resourceName, privacy: .public).\(request.track.fileExtension, privacy: .public)"
+            )
+            return
+        }
 
-        crossfade(to: newPlayer, request: request, targetVolume: targetVolume(for: request, appVolume: volume))
+        cancelPendingLoad()
+        if preparedRequest?.resumeKey != request.resumeKey {
+            clearPrepared()
+        }
+
+        loadGeneration += 1
+        let generation = loadGeneration
+        inFlightRequest = request
+        pendingStartVolume = startVolume
+
+        loadTask = Task { @MainActor [weak self] in
+            let loaded = await Self.loadPlayer(url: url)
+            self?.attachLoadedPlayer(loaded, request: request, generation: generation)
+        }
+    }
+
+    private func attachLoadedPlayer(
+        _ loaded: LoadedMusicPlayer?,
+        request: MusicPlaybackRequest,
+        generation: Int
+    ) {
+        guard generation == loadGeneration else {
+            loaded?.player.stop()
+            return
+        }
+
+        loadTask = nil
+        inFlightRequest = nil
+        let startVolume = pendingStartVolume
+        pendingStartVolume = nil
+
+        guard let loaded else {
+            logger.error(
+                "Unable to load music resource \(request.track.resourceName, privacy: .public).\(request.track.fileExtension, privacy: .public)"
+            )
+            return
+        }
+
+        if currentRequest?.resumeKey == request.resumeKey, currentPlayer != nil {
+            loaded.player.stop()
+            if let startVolume, let currentPlayer, let currentRequest {
+                currentPlayer.volume = targetVolume(for: currentRequest, appVolume: startVolume)
+            }
+            return
+        }
+
+        if let startVolume, startVolume > 0 {
+            startLoadedPlayer(
+                loaded.player,
+                request: request,
+                volume: startVolume,
+                shouldCrossfade: currentPlayer != nil
+            )
+            return
+        }
+
+        if currentPlayer != nil {
+            loaded.player.stop()
+            return
+        }
+
+        applyResumePosition(loaded.player, request: request)
+        loaded.player.numberOfLoops = request.track.isLooping ? -1 : 0
+        loaded.player.volume = 0
+        preparedPlayer = loaded.player
+        preparedRequest = request
+    }
+
+    private func startLoadedPlayer(
+        _ player: AVAudioPlayer,
+        request: MusicPlaybackRequest,
+        volume: Float,
+        shouldCrossfade: Bool
+    ) {
+        configureSessionIfNeeded()
+        applyResumePosition(player, request: request)
+        player.numberOfLoops = request.track.isLooping ? -1 : 0
+        let target = targetVolume(for: request, appVolume: volume)
+
+        if shouldCrossfade, currentPlayer != nil {
+            player.volume = 0
+            player.play()
+            crossfade(to: player, request: request, targetVolume: target)
+            return
+        }
+
+        player.volume = target
+        player.play()
+        cancelActiveFades()
+        currentPlayer = player
+        currentRequest = request
     }
 
     private func fadeOutCurrent(preservingPosition: Bool) {
+        // Already silent: keep a muted Options preload so refreshMusic does not
+        // cancel the in-flight prepare on every reconcile.
         guard currentPlayer != nil else { return }
+        cancelPendingLoad()
+        clearPrepared()
 
         if preservingPosition {
             saveCurrentPosition()
@@ -162,22 +314,36 @@ final class MusicPlayer {
         newPlayer?.volume = targetVolume
     }
 
-    private func makePlayer(for request: MusicPlaybackRequest) -> AVAudioPlayer? {
-        guard let url = resourceURL(for: request.track) else {
-            logger.warning(
-                "Missing music resource: \(request.track.resourceName, privacy: .public).\(request.track.fileExtension, privacy: .public)"
-            )
-            return nil
-        }
+    private func cancelPendingLoad() {
+        loadGeneration += 1
+        loadTask?.cancel()
+        loadTask = nil
+        inFlightRequest = nil
+        pendingStartVolume = nil
+    }
 
-        do {
-            return try AVAudioPlayer(contentsOf: url)
-        } catch {
-            logger.error(
-                "Unable to load music resource \(url.lastPathComponent, privacy: .public): \(error.localizedDescription, privacy: .public)"
-            )
-            return nil
+    private func clearPrepared() {
+        if preparedPlayer !== currentPlayer {
+            preparedPlayer?.stop()
         }
+        preparedPlayer = nil
+        preparedRequest = nil
+    }
+
+    private func applyResumePosition(_ player: AVAudioPlayer, request: MusicPlaybackRequest) {
+        player.currentTime = request.shouldResume ? resumePositions[request.resumeKey, default: 0] : 0
+    }
+
+    private static func loadPlayer(url: URL) async -> LoadedMusicPlayer? {
+        await Task.detached(priority: .utility) {
+            do {
+                let player = try AVAudioPlayer(contentsOf: url)
+                player.prepareToPlay()
+                return LoadedMusicPlayer(player: player)
+            } catch {
+                return nil
+            }
+        }.value
     }
 
     private func resourceURL(for track: TrinketContent.MusicTrack) -> URL? {
@@ -197,5 +363,15 @@ final class MusicPlayer {
 
     private func configureSessionIfNeeded() {
         AmbientAudioSession.configureIfNeeded(configured: &hasConfiguredSession, logger: logger)
+    }
+}
+
+/// `AVAudioPlayer` is not Sendable; this box is only used to hop a prepared
+/// instance from a detached load onto the MainActor.
+private final class LoadedMusicPlayer: @unchecked Sendable {
+    let player: AVAudioPlayer
+
+    init(player: AVAudioPlayer) {
+        self.player = player
     }
 }

@@ -351,4 +351,36 @@ struct BattleCardCombatTests {
         try #expect(battle.mana(of: battle.hero) == 0)
         try #expect(100 - battle.health(of: battle.enemy) >= 5 || battle.health(of: battle.enemy) < 100)
     }
+
+    @Test func playedCardReturnsToDeckAfterEffectsSoDrawCannotFetchIt() throws {
+        var battle = BattleStateTestFactory.makeBattle(
+            hero: Combatant(
+                id: "hero",
+                name: "Hero",
+                role: .hero,
+                maxHealth: 50,
+                abilities: [.packTactics]
+            ),
+            companion: Combatant(
+                id: "companion",
+                name: "Companion",
+                role: .companion,
+                maxHealth: 50,
+                abilities: [.slash]
+            ),
+            dealOpeningHand: false
+        )
+        battle.heroDeck = CombatDeck()
+        battle.companionDeck = CombatDeck(abilities: [.slash])
+        battle.nextCardID += 1
+        battle.hand.append(BattleCard(id: battle.nextCardID, ability: .packTactics, owner: .hero))
+
+        let packTacticsID = try #require(battle.hand.cards.first?.id)
+        let events = try battle.playCard(cardID: packTacticsID)
+
+        try #expect(battle.heroDeck.abilities.last?.id == Ability.packTactics.id)
+        try #expect(events.contains { $0.kind == .abilityDamage && $0.abilityName == Ability.slash.name })
+        try #expect(events.count(where: { $0.kind == .ability && $0.abilityID == Ability.packTactics.id }) == 1)
+        try #expect(battle.drawAndPlayDepth == 0)
+    }
 }

@@ -11,7 +11,10 @@ let balanceToolSources = [
     "BalanceProgressionRunner.swift",
     "BalanceStatsAggregator.swift",
     "BalanceSweepConfig.swift",
+    "BalanceSweepReportMerge.swift",
     "BalanceSweepRunner.swift",
+    "BalanceSweepWorkPlan.swift",
+    "BalanceTalentContrastRunner.swift",
     "BattleSimulator.swift",
     "HotspotAnalyzer.swift",
     "InterleavingPlayerController.swift",
@@ -21,6 +24,7 @@ let balanceToolSources = [
 ]
 
 let balanceToolTestSources = [
+    "BalanceSweepOrchestrationTests.swift",
     "BattleSimulatorTests.swift",
 ]
 

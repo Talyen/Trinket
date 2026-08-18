@@ -33,7 +33,9 @@ struct JourneyCatalogTests {
 
             let bossEnemyID = try #require(stages.last?.encounter.battleEnemyID)
             try #expect(GameContent.enemy(matching: bossEnemyID)?.isBoss == true)
-            try #expect(stages[7].encounter == .shop)
+            let shopIndex = try #require(stages.firstIndex { $0.encounter == .shop })
+            try #expect(shopIndex >= 7)
+            try #expect(shopIndex < stages.count - 1)
         }
     }
 }

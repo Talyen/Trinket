@@ -38,8 +38,7 @@ struct CollectionView: View {
             .sheet(item: $salvageDetail.selectedItem) { item in
                 SalvageItemDetailSheet(
                     controller: salvageDetail,
-                    item: item,
-                    zoomNamespace: zoomNamespace
+                    item: item
                 )
             }
             .sheet(item: $selectedCombatant) { context in
@@ -71,10 +70,7 @@ struct CollectionView: View {
             )
             .overlay {
                 if let event = salvageDetail.transmutationEvent {
-                    SalvageTransmutationLayer(
-                        event: event,
-                        zoomNamespace: zoomNamespace
-                    ) {
+                    SalvageTransmutationLayer(event: event) {
                         salvageDetail.finishTransmutation(id: event.id)
                     }
                 }
@@ -121,14 +117,9 @@ struct CollectionView: View {
                         ForEach(shelfItems) { item in
                             SalvageItemButton(
                                 item: item,
-                                showsName: false,
-                                zoomNamespace: zoomNamespace
-                            ) { sourceFrame in
-                                salvageDetail.select(
-                                    item,
-                                    sourceFrame: sourceFrame,
-                                    showsName: false
-                                )
+                                showsName: false
+                            ) {
+                                salvageDetail.select(item)
                             }
                             .collectionShelfCardWidth()
                         }

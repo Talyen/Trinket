@@ -45,7 +45,7 @@ public struct CombatantTalentsView: View {
     }
 
     public var body: some View {
-        DetailHeroScrollShell(title: tree.name) { baseHeight, overscroll in
+        DetailHeroScrollShell(title: tree.name, heroHeightPolicy: .cinematicLandscape) { baseHeight, overscroll in
             DetailHeroHeader(
                 eyebrow: "TALENTS",
                 title: tree.name,
@@ -55,20 +55,23 @@ public struct CombatantTalentsView: View {
                 talentArtwork
             }
         } bodyContent: {
-            VStack(spacing: TrinketDesign.Metrics.mediumSpacing) {
-                talentGrid
-                    .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-                    .padding(.top, TrinketDesign.Metrics.mediumSpacing)
-
-                Text("A round is your plays, then the enemy acts. The party is your Hero and Companion.")
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-
-                inspectorContent
+            talentGrid
+                .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+                .padding(.top, TrinketDesign.Metrics.mediumSpacing)
+                .padding(.bottom, TrinketDesign.Metrics.largeSpacing)
+        }
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            inspectorContent
+                .padding(TrinketDesign.Metrics.contentMargin)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .trinketMaterial(.bottomBar)
+                .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+                .padding(.bottom, TrinketDesign.Metrics.mediumSpacing)
+        }
+        .onChange(of: tree.id) { _, _ in
+            if let firstNodeID = tree.nodes.first?.id {
+                selectedNodeID = firstNodeID
             }
-            .padding(.bottom, TrinketDesign.Metrics.largeSpacing)
         }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -208,43 +211,41 @@ public struct CombatantTalentsView: View {
                 let style = selectedNode.keyword.visualStyle
 
                 Text(selectedNode.name)
-                    .font(.headline.weight(.bold))
+                    .trinketTypography(.cardTitle)
                     .foregroundStyle(style.color)
 
                 KeywordDescriptionText(text: selectedNode.description)
-                    .font(.subheadline)
+                    .trinketTypography(.body)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
 
-                Button {
-                    if canUnlock {
-                        onUnlockTalent(selectedNode, tree)
-                    }
-                } label: {
-                    Text(buttonLabel(for: selectedNode, isUnlocked: isUnlocked, canUnlock: canUnlock))
-                        .font(.headline.weight(.bold))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, TrinketDesign.Metrics.mediumSpacing)
-                        .background(
-                            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                .fill(canUnlock ? TrinketDesign.Colors.accent : TrinketDesign.Colors.surface)
-                        )
-                        .foregroundStyle(canUnlock ? TrinketDesign.Colors.Overlay.ink : .secondary)
-                }
-                .disabled(!canUnlock)
-                .accessibilityIdentifier(AccessibilityID.CombatantDetail.talentsUnlockButton)
+                unlockButton(
+                    for: selectedNode,
+                    isUnlocked: isUnlocked,
+                    canUnlock: canUnlock
+                )
             }
         }
-        .padding(TrinketDesign.Metrics.contentMargin)
-        .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(TrinketDesign.Colors.panel)
-        )
-        .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-        .onChange(of: tree.id) { _, _ in
-            if let firstNodeID = tree.nodes.first?.id {
-                selectedNodeID = firstNodeID
+    }
+
+    @ViewBuilder
+    private func unlockButton(for node: TalentNode, isUnlocked: Bool, canUnlock: Bool) -> some View {
+        let title = buttonLabel(for: node, isUnlocked: isUnlocked, canUnlock: canUnlock)
+        if canUnlock {
+            Button(title) {
+                onUnlockTalent(node, tree)
             }
+            .frame(maxWidth: .infinity)
+            .trinketPrimaryActionButton(
+                accessibilityIdentifier: AccessibilityID.CombatantDetail.talentsUnlockButton
+            )
+        } else {
+            Button(title) {}
+                .frame(maxWidth: .infinity)
+                .trinketSecondaryActionButton(
+                    accessibilityIdentifier: AccessibilityID.CombatantDetail.talentsUnlockButton
+                )
+                .disabled(true)
         }
     }
 

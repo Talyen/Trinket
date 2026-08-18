@@ -41,7 +41,7 @@ enum GameContentChaptersGenerated {
                     chapterID: "chapter-1",
                     chapterNumber: 1,
                     stageNumber: 4,
-                    encounter: .recruit(eventID: "recruit-ranger"),
+                    encounter: .mysteryEvent(eventID: ""),
                     rewards: .empty
                 ),
                 Stage(
@@ -49,7 +49,7 @@ enum GameContentChaptersGenerated {
                     chapterID: "chapter-1",
                     chapterNumber: 1,
                     stageNumber: 5,
-                    encounter: .mysteryEvent(eventID: ""),
+                    encounter: .recruit(eventID: "recruit-ranger"),
                     rewards: .empty
                 ),
                 Stage(
@@ -73,7 +73,7 @@ enum GameContentChaptersGenerated {
                     chapterID: "chapter-1",
                     chapterNumber: 1,
                     stageNumber: 8,
-                    encounter: .shop,
+                    encounter: .battle(enemyID: "will_o_wisp"),
                     rewards: .empty
                 ),
                 Stage(
@@ -81,7 +81,7 @@ enum GameContentChaptersGenerated {
                     chapterID: "chapter-1",
                     chapterNumber: 1,
                     stageNumber: 9,
-                    encounter: .battle(enemyID: "will_o_wisp"),
+                    encounter: .shop,
                     rewards: .empty
                 ),
                 Stage(

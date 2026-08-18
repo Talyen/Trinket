@@ -12,19 +12,23 @@ public struct AbilitySummaryGrid: View {
     var onSelectTier: ((AbilityTier) -> Void)?
     /// Called when viewing (not editing) and the user taps a filled ability slot.
     var onViewAbility: ((Ability) -> Void)?
+    /// Called on a filled slot long-press (editing or viewing).
+    var onInspectAbility: ((Ability) -> Void)?
 
     public init(
         combatant: Combatant,
         loadout: Binding<AbilityLoadout>,
         allowsEditing: Bool,
         onSelectTier: ((AbilityTier) -> Void)? = nil,
-        onViewAbility: ((Ability) -> Void)? = nil
+        onViewAbility: ((Ability) -> Void)? = nil,
+        onInspectAbility: ((Ability) -> Void)? = nil
     ) {
         self.combatant = combatant
         _loadout = loadout
         self.allowsEditing = allowsEditing
         self.onSelectTier = onSelectTier
         self.onViewAbility = onViewAbility
+        self.onInspectAbility = onInspectAbility
     }
 
     public var body: some View {
@@ -38,6 +42,11 @@ public struct AbilitySummaryGrid: View {
                     onViewAbility?(ability)
                 }
             } : nil,
+            onLongPress: onInspectAbility == nil ? nil : { tier in
+                if let ability = selectedAbility(for: tier) {
+                    onInspectAbility?(ability)
+                }
+            },
             accessibilityIdentifier: { "\($0.rawValue) ability slot" },
             card: { tier in
                 if let ability = selectedAbility(for: tier) {

@@ -1,4 +1,4 @@
-public enum BattleSimulationOutcome: Equatable, Sendable {
+public enum BattleSimulationOutcome: Equatable, Codable, Sendable {
     case victory
     case defeat
 

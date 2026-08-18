@@ -13,17 +13,9 @@ final class SalvageItemDetailController {
     var selectedItem: InventoryItem?
     var transmutationEvent: SalvageTransmutationEvent?
     var salvageSuccessCount = 0
-    private var selectedSourceFrame: CGRect?
-    private var selectedShowsName = true
 
-    func select(
-        _ item: InventoryItem,
-        sourceFrame: CGRect? = nil,
-        showsName: Bool = true
-    ) {
+    func select(_ item: InventoryItem) {
         selectedItem = item
-        selectedSourceFrame = sourceFrame
-        selectedShowsName = showsName
     }
 
     func salvageFinished(
@@ -33,15 +25,15 @@ final class SalvageItemDetailController {
         if case let .success(yields) = result {
             transmutationEvent = SalvageTransmutationEvent(
                 item: item,
-                yields: yields,
-                sourceFrame: selectedSourceFrame,
-                showsName: selectedShowsName
+                yields: yields
             )
             salvageSuccessCount += 1
         }
-        selectedItem = nil
-        selectedSourceFrame = nil
-        selectedShowsName = true
+        var dismiss = Transaction()
+        dismiss.disablesAnimations = true
+        withTransaction(dismiss) {
+            selectedItem = nil
+        }
     }
 
     func finishTransmutation(id: UUID) {
@@ -56,7 +48,6 @@ struct SalvageItemDetailSheet: View {
     @Environment(PlayerSaveStore.self) private var playerSave
     let controller: SalvageItemDetailController
     let item: InventoryItem
-    let zoomNamespace: Namespace.ID
 
     var body: some View {
         NavigationStack {
@@ -67,7 +58,6 @@ struct SalvageItemDetailSheet: View {
                 )
             }
         }
-        .navigationTransition(.zoom(sourceID: item.id, in: zoomNamespace))
         .trinketDetailSheet()
         .appFramePacingSignpost(
             AppFramePacingSignposts.Name.sheetPresent,

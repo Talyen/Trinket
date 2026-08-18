@@ -16,7 +16,7 @@ public enum SimulationGameMode: String, CaseIterable, Codable, Sendable {
     }
 }
 
-public struct ModeProgressionStep: Identifiable, Equatable, Hashable, Sendable {
+public struct ModeProgressionStep: Identifiable, Equatable, Hashable, Codable, Sendable {
     public var id: String
     public var mode: SimulationGameMode
     public var containerID: String

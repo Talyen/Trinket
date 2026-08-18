@@ -127,6 +127,9 @@ struct DrawAndPlayCardsHandler: BattleEffectHandler {
         guard case let .drawAndPlayCards(count) = effect, count > 0 else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
+        guard context.drawAndPlayDepth < BattleState.maxDrawAndPlayDepth else {
+            return EffectApplyOutcome(events: [], didApply: false)
+        }
 
         let drawnCards = collectDrawnCards(targetCount: count, in: &context)
         guard !drawnCards.isEmpty else {
@@ -199,6 +202,10 @@ struct DrawAndPlayCardsHandler: BattleEffectHandler {
         _ drawnCards: [BattleCard],
         in context: inout BattleState
     ) -> [ActionEvent] {
+        context.drawAndPlayDepth += 1
+        defer { context.drawAndPlayDepth -= 1 }
+        guard context.drawAndPlayDepth <= BattleState.maxDrawAndPlayDepth else { return [] }
+
         var events: [ActionEvent] = []
         for card in drawnCards {
             guard BattleCardCombatEngine.isCardPlayable(card, in: context) else { continue }

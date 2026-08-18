@@ -3,7 +3,7 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-public struct ProgressionBattleRecord: Equatable, Sendable {
+public struct ProgressionBattleRecord: Equatable, Codable, Sendable {
     public var step: ModeProgressionStep
     public var playerLevel: Int
     public var enemyLevel: Int
@@ -41,7 +41,7 @@ public enum HotspotStatus: String, CaseIterable, Codable, Sendable {
     }
 }
 
-public struct NodeHotspotSummary: Equatable, Sendable {
+public struct NodeHotspotSummary: Equatable, Codable, Sendable {
     public var step: ModeProgressionStep
     public var battles: Int
     public var wins: Int

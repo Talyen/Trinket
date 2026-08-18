@@ -86,7 +86,7 @@ struct AppStateMysteryRecruitTests {
         roster.unlockedHeroIDs = [PlayerRosterState.starterHeroID, "ranger"]
         state.playerSave.roster = roster
 
-        let stage = try #require(GameContent.stage(id: "chapter-1-stage-4"))
+        let stage = try #require(GameContent.stage(id: "chapter-1-stage-5"))
         #expect(state.journey.handleStagePrimaryAction(for: stage) == nil)
         let session = try #require(state.encounters.activeMysteryEncounter)
         #expect(session.event.isRecruit)
@@ -96,7 +96,7 @@ struct AppStateMysteryRecruitTests {
 
     @Test func journeyMysteryOpenMatchesSeededMapResolve() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
-        let stage = try #require(GameContent.stage(id: "chapter-1-stage-5"))
+        let stage = try #require(GameContent.stage(id: "chapter-1-stage-4"))
         #expect(stage.encounter.mysteryEventID == nil)
 
         let pickContext = MysteryEventPickContext.journey(
@@ -135,7 +135,7 @@ struct AppStateMysteryRecruitTests {
     @Test func journeyMysteryPinFailureDoesNotOpenEncounter() throws {
         let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
         let state = try context.makePlaySession(playerSave: playerSave)
-        let stage = try #require(GameContent.stage(id: "chapter-1-stage-5"))
+        let stage = try #require(GameContent.stage(id: "chapter-1-stage-4"))
         playerSave.forcesNextSaveFailure = true
 
         let message = state.journey.beginMysteryEncounter(for: stage)

@@ -253,6 +253,83 @@ struct EffectHandlersApplyTests {
         try #expect(battle.heroDeck.count == heroDeckCount)
     }
 
+    @Test func drawAndPlayCardsDoesNotReplayNestedDrawAndPlayForever() throws {
+        let packTactics = Ability(
+            id: "pack-tactics",
+            name: "Pack Tactics",
+            tier: .ultimate,
+            targetedEffects: [TargetedEffect(.drawAndPlayCards(2))]
+        )
+        var battle = EffectHandlersTestSupport.makeBattle(
+            hero: CombatantFixtures.combatant(
+                id: "hero",
+                role: .hero,
+                maxHealth: 50,
+                abilities: [packTactics]
+            ),
+            companion: CombatantFixtures.combatant(
+                id: "companion",
+                role: .companion,
+                maxHealth: 50,
+                abilities: [packTactics]
+            )
+        )
+        while battle.hand.count > 1 {
+            _ = battle.hand.remove(id: battle.hand.cards[0].id)
+        }
+        battle.heroDeck = CombatDeck(abilities: [packTactics, packTactics, packTactics])
+        battle.companionDeck = CombatDeck(abilities: [packTactics, packTactics, packTactics])
+
+        let outcome = EffectHandlersTestSupport.dispatch(
+            .drawAndPlayCards(2),
+            ability: packTactics,
+            source: battle.hero,
+            target: battle.hero,
+            battle: &battle
+        )
+
+        try #expect(outcome.didApply)
+        try #expect(battle.drawAndPlayDepth == 0)
+    }
+
+    @Test func drawAndPlayDepthCapDoesNotLeaveUnplayedDrawnCards() throws {
+        let packTactics = Ability(
+            id: "pack-tactics",
+            name: "Pack Tactics",
+            tier: .ultimate,
+            targetedEffects: [TargetedEffect(.drawAndPlayCards(2))]
+        )
+        var battle = EffectHandlersTestSupport.makeBattle(
+            hero: CombatantFixtures.combatant(
+                id: "hero",
+                role: .hero,
+                maxHealth: 50,
+                abilities: [packTactics]
+            )
+        )
+        while !battle.hand.isEmpty {
+            _ = battle.hand.remove(id: battle.hand.cards[0].id)
+        }
+        battle.heroDeck = CombatDeck(abilities: [packTactics, packTactics])
+        battle.drawAndPlayDepth = BattleState.maxDrawAndPlayDepth
+        let idsBefore = Set(battle.hand.cards.map(\.id)).union(battle.handBuffer.cards.map(\.id))
+        let heroDeckCount = battle.heroDeck.count
+
+        let outcome = EffectHandlersTestSupport.dispatch(
+            .drawAndPlayCards(2),
+            ability: packTactics,
+            source: battle.hero,
+            target: battle.hero,
+            battle: &battle
+        )
+
+        let idsAfter = Set(battle.hand.cards.map(\.id)).union(battle.handBuffer.cards.map(\.id))
+        try #expect(!outcome.didApply)
+        try #expect(idsAfter == idsBefore)
+        try #expect(battle.heroDeck.count == heroDeckCount)
+        try #expect(battle.drawAndPlayDepth == BattleState.maxDrawAndPlayDepth)
+    }
+
     @Test func drawCardsHandlerOverflowGoesToBuffer() throws {
         var battle = EffectHandlersTestSupport.makeBattle(
             hero: CombatantFixtures.combatant(

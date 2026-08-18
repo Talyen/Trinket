@@ -2,7 +2,7 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-public struct PlayerProgressionState: Equatable, Sendable {
+public struct PlayerProgressionState: Equatable, Codable, Sendable {
     public var heroLevel: Int
     public var heroXP: Int
     public var companionLevel: Int

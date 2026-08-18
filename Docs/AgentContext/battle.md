@@ -58,7 +58,7 @@ For a new effect kind, update registry parity and `EffectHandlersApplyTests`; us
 
 Handoff routes `BattleEngine` vs `TrinketBattleFeature` vs `SmokeBattleTests`. Bare `./Scripts/test.sh smoke` runs the three-class smoke plan (tab shells, Battle, Shop).
 
-Headless balance sweeps: `Packages/BattleEngine/README.md` and `./Scripts/balance-sweep.sh`. Engine hand size: that README. Presentation layout: `Packages/TrinketBattleFeature/README.md`.
+Headless balance sweeps: `Packages/BattleEngine/README.md` and `./Scripts/balance-sweep.sh` (release CLI; combat in worker processes). Engine hand size and post-resolve deck recycle: that README. Presentation layout: `Packages/TrinketBattleFeature/README.md`.
 
 Enemy scaling uses `EnemyPowerCurve` (smoothstep stat anchors at L1/L20/L40) applied after archetype growth. The same multiplier scales enemy HP and stats. Tune encounter level first, then curve anchors, then per-enemy stat shape. Progression hotspot reports include average enemy power rating.
 
@@ -66,7 +66,7 @@ Hidden fight pacing (`FightPacing`) band-scales authored combat magnitudes (dama
 
 Percentage multipliers on combat integers (damage, healing, control buildup, mana/gold bonuses) round via `CombatRounding` in `TrinketCore` (nearest integer, ties to even). Integer division semantics (half Block, gold-per-Block, half mana) stay as truncating division.
 
-Talent trees organize 6 nodes across 3 visual unlock rows (2 per row). Power is flat across all rows — do not scale talent magnitude or impact by row level (`PD-013`). All talent nodes must be balanced equally as build side-grades. Combat-log names for talent triggers come from `CombatModifierProfile.triggerAbilityNames` (first writer wins when a node applies). Talent UI symbols use `Keyword.visualStyle`, not a field on `TalentNode`. Holy / turn-start / mana cleanses go through `CombatTriggerEngine.performRandomCleanses` so `afterCleansePerformed` always runs.
+Talent trees organize 6 nodes across 3 visual unlock rows (2 per row). Combatants earn 1 talent point at each even level (2, 4, 6, …). Power is flat across all rows — do not scale talent magnitude or impact by row level (`PD-013`). All talent nodes must be balanced equally as build side-grades. Combat-log names for talent triggers come from `CombatModifierProfile.triggerAbilityNames` (first writer wins when a node applies). Talent UI symbols use `Keyword.visualStyle`, not a field on `TalentNode`. Holy / turn-start / mana cleanses go through `CombatTriggerEngine.performRandomCleanses` so `afterCleansePerformed` always runs.
 
 Party “additional damage vs poisoned/burning” auras **add their extra percents** across living allies (two +25% auras → +50%), and each contributor is logged by talent name. Hits spawned from a dodge (`DamageOptions.causedByDodge`) can themselves be dodged, but they do not run `afterDodge` again. Stun/Burn/Freeze damage uses the real type pipeline (control meter, stacks, build-up) — do not label a raw Health hit as Stun.
 

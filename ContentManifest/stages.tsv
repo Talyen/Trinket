@@ -2,12 +2,12 @@ chapter_id	chapter_number	chapter_title	theme	stage_number	encounter	enemy_id	en
 chapter-1	1	Forest	forest	1	battle	slime		
 chapter-1	1	Forest	forest	2	recruit	recruit-bear		
 chapter-1	1	Forest	forest	3	battle	mud_elemental		
-chapter-1	1	Forest	forest	4	recruit	recruit-ranger		
-chapter-1	1	Forest	forest	5	mystery			
+chapter-1	1	Forest	forest	4	mystery			
+chapter-1	1	Forest	forest	5	recruit	recruit-ranger		
 chapter-1	1	Forest	forest	6	battle	goblin		
 chapter-1	1	Forest	forest	7	mystery			
-chapter-1	1	Forest	forest	8	shop		destination-merchant-shop	Merchant's Shop
-chapter-1	1	Forest	forest	9	battle	will_o_wisp		
+chapter-1	1	Forest	forest	8	battle	will_o_wisp		
+chapter-1	1	Forest	forest	9	shop		destination-merchant-shop	Merchant's Shop
 chapter-1	1	Forest	forest	10	battle	the_blight_treant		
 chapter-2	2	Dungeon	dungeon	1	battle	skeleton		
 chapter-2	2	Dungeon	dungeon	2	recruit	recruit-rogue		

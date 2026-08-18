@@ -2,16 +2,19 @@ import Foundation
 
 /// Level-based power multiplier for enemies. Replaces gear-compensation step bands.
 public enum EnemyPowerCurve {
+    /// L1 is a no-talent identity; anchors are raised so early fights last longer
+    /// and can be lost. L20 is a partial talent spend (~10 of 18 nodes). L40 is
+    /// full-kit scale. Keep L1 below L20 so the ramp still grows.
     private static let normalStatAnchors: [(level: Int, power: Double)] = [
-        (1, 2.10),
-        (20, 2.65),
-        (40, 3.10),
+        (1, 4.20),
+        (20, 5.59),
+        (40, 9.30),
     ]
 
     private static let bossStatAnchors: [(level: Int, power: Double)] = [
-        (1, 3.22),
-        (20, 5.10),
-        (40, 6.30),
+        (1, 6.44),
+        (20, 10.77),
+        (40, 18.90),
     ]
 
     /// Stat threat multiplier after archetype growth.

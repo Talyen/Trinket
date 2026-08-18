@@ -3,7 +3,7 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-public struct BattleSimResult: Equatable, Sendable {
+public struct BattleSimResult: Equatable, Codable, Sendable {
     public var outcome: BattleSimulationOutcome
     public var rounds: Int
     public var actions: Int

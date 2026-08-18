@@ -7,11 +7,12 @@ public enum BalanceSweepMode: String, CaseIterable, Codable, Sendable {
     case identity
     case abilityContrast = "ability-contrast"
     case affixContrast = "affix-contrast"
+    case talentContrast = "talent-contrast"
     case modeProgression = "mode-progression"
     case all
 }
 
-public struct BalanceSweepConfig: Equatable, Sendable {
+public struct BalanceSweepConfig: Equatable, Codable, Sendable {
     public var mode: BalanceSweepMode
     public var battlesPerTier: Int
     public var seed: UInt64
@@ -20,8 +21,13 @@ public struct BalanceSweepConfig: Equatable, Sendable {
     public var maxActions: Int
     public var peerDeltaFlagThreshold: Double
     public var outputDirectory: String
-    /// Concurrent battle workers. `1` = sequential; `0` = use active processor count.
+    /// CLI process-pool size. `1` = one worker process; `0` = use active processor count.
+    /// In-process `BalanceSweepRunner` always maps work sequentially.
     public var jobs: Int
+    /// Inclusive start into flattened identity/contrast/progression work. CLI workers only.
+    public var workOffset: Int
+    /// Max work items from `workOffset`. `nil` runs the remainder.
+    public var workLimit: Int?
 
     public static let defaultBattlesPerTier = 100
     public static let defaultOutputDirectory = "BalanceSweepReports"
@@ -35,7 +41,9 @@ public struct BalanceSweepConfig: Equatable, Sendable {
         maxActions: Int = BattleSimulator.defaultMaxActions,
         peerDeltaFlagThreshold: Double = 0.10,
         outputDirectory: String = defaultOutputDirectory,
-        jobs: Int = 0
+        jobs: Int = 0,
+        workOffset: Int = 0,
+        workLimit: Int? = nil
     ) {
         self.mode = mode
         self.battlesPerTier = max(1, battlesPerTier)
@@ -46,6 +54,15 @@ public struct BalanceSweepConfig: Equatable, Sendable {
         self.peerDeltaFlagThreshold = peerDeltaFlagThreshold
         self.outputDirectory = outputDirectory
         self.jobs = max(0, jobs)
+        self.workOffset = max(0, workOffset)
+        self.workLimit = workLimit.map { max(0, $0) }
+    }
+
+    public func sliceWork<Item>(_ items: [Item]) -> [Item] {
+        let offset = min(workOffset, items.count)
+        let remainder = items.dropFirst(offset)
+        guard let workLimit else { return Array(remainder) }
+        return Array(remainder.prefix(workLimit))
     }
 
     public var resolvedJobs: Int {
@@ -56,7 +73,7 @@ public struct BalanceSweepConfig: Equatable, Sendable {
     }
 }
 
-public struct BalanceBattleRecord: Equatable, Sendable {
+public struct BalanceBattleRecord: Equatable, Codable, Sendable {
     public var tier: SimulationPowerTier
     public var heroID: String
     public var companionID: String
@@ -67,11 +84,13 @@ public struct BalanceBattleRecord: Equatable, Sendable {
     public var enemyAbilityIDs: [String]
     public var enemyTraitID: String
     public var affixIDs: [String]
+    public var heroTalentIDs: [String]
+    public var companionTalentIDs: [String]
     public var seed: UInt64
     public var result: BattleSimResult
 }
 
-public struct PairedContrastSummary: Equatable, Sendable {
+public struct PairedContrastSummary: Equatable, Codable, Sendable {
     public var entityID: String
     public var baselineID: String
     public var ownerID: String
@@ -90,14 +109,40 @@ public struct PairedContrastSummary: Equatable, Sendable {
     public var baselineWinRate: Double {
         pairs == 0 ? 0 : Double(winsWithBaseline) / Double(pairs)
     }
+
+    public init(
+        entityID: String,
+        baselineID: String,
+        ownerID: String,
+        tier: SimulationPowerTier,
+        pairs: Int,
+        winsWithEntity: Int,
+        winsWithBaseline: Int,
+        lift: Double,
+        flagged: Bool,
+        flagReason: String? = nil
+    ) {
+        self.entityID = entityID
+        self.baselineID = baselineID
+        self.ownerID = ownerID
+        self.tier = tier
+        self.pairs = pairs
+        self.winsWithEntity = winsWithEntity
+        self.winsWithBaseline = winsWithBaseline
+        self.lift = lift
+        self.flagged = flagged
+        self.flagReason = flagReason
+    }
 }
 
-public struct BalanceSweepReport: Sendable {
+public struct BalanceSweepReport: Codable, Sendable {
     public var config: BalanceSweepConfig
     public var policyID: String
     public var records: [BalanceBattleRecord]
     public var abilityContrasts: [PairedContrastSummary]
     public var affixContrasts: [PairedContrastSummary]
+    public var talentContrasts: [PairedContrastSummary]
+    public var talentKitContrasts: [PairedContrastSummary]
     public var progressionHotspots: [NodeHotspotSummary]
     public var progressionRecords: [ProgressionBattleRecord]
     public var progressionPlayerStates: [PlayerProgressionState]
@@ -110,6 +155,8 @@ public struct BalanceSweepReport: Sendable {
         records: [BalanceBattleRecord] = [],
         abilityContrasts: [PairedContrastSummary] = [],
         affixContrasts: [PairedContrastSummary] = [],
+        talentContrasts: [PairedContrastSummary] = [],
+        talentKitContrasts: [PairedContrastSummary] = [],
         progressionHotspots: [NodeHotspotSummary] = [],
         progressionRecords: [ProgressionBattleRecord] = [],
         progressionPlayerStates: [PlayerProgressionState] = [],
@@ -121,6 +168,8 @@ public struct BalanceSweepReport: Sendable {
         self.records = records
         self.abilityContrasts = abilityContrasts
         self.affixContrasts = affixContrasts
+        self.talentContrasts = talentContrasts
+        self.talentKitContrasts = talentKitContrasts
         self.progressionHotspots = progressionHotspots
         self.progressionRecords = progressionRecords
         self.progressionPlayerStates = progressionPlayerStates

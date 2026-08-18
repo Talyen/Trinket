@@ -6,9 +6,7 @@ import TrinketDesignSystem
 public struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
     let title: String
     let heroHeightPolicy: HeroHeaderLayout.HeightPolicy
-    var showsDoneButton = false
     var hidesNavigationBar = false
-    var onDone: (() -> Void)?
     @ViewBuilder let header: (_ baseHeight: CGFloat, _ overscroll: CGFloat) -> Header
     @ViewBuilder let bodyContent: () -> BodyContent
 
@@ -18,17 +16,13 @@ public struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
     public init(
         title: String,
         heroHeightPolicy: HeroHeaderLayout.HeightPolicy = .portrait,
-        showsDoneButton: Bool = false,
         hidesNavigationBar: Bool = false,
-        onDone: (() -> Void)? = nil,
         @ViewBuilder header: @escaping (_ baseHeight: CGFloat, _ overscroll: CGFloat) -> Header,
         @ViewBuilder bodyContent: @escaping () -> BodyContent
     ) {
         self.title = title
         self.heroHeightPolicy = heroHeightPolicy
-        self.showsDoneButton = showsDoneButton
         self.hidesNavigationBar = hidesNavigationBar
-        self.onDone = onDone
         self.header = header
         self.bodyContent = bodyContent
     }
@@ -91,13 +85,6 @@ public struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
                 .toolbarBackground(.clear, for: .navigationBar)
                 .toolbarBackgroundVisibility(.hidden, for: .navigationBar)
                 .toolbar {
-                    if showsDoneButton {
-                        ToolbarItem(placement: .cancellationAction) {
-                            Button("Done") {
-                                onDone?()
-                            }
-                        }
-                    }
                     ToolbarItem(placement: .principal) {
                         DetailScrollNavigationTitle(
                             title: title,

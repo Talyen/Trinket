@@ -1,6 +1,5 @@
 import BattleEngine
 import Foundation
-import Synchronization
 import TrinketContent
 import TrinketCore
 
@@ -40,6 +39,8 @@ public enum BalanceSweepRunner {
             records: records,
             abilityContrasts: contrasts.ability,
             affixContrasts: contrasts.affix,
+            talentContrasts: contrasts.talent,
+            talentKitContrasts: contrasts.talentKit,
             progressionHotspots: progression.hotspots,
             progressionRecords: progression.records,
             progressionPlayerStates: progression.playerStates,
@@ -55,10 +56,16 @@ public enum BalanceSweepRunner {
         heroes: [Combatant],
         companions: [Combatant],
         enemies: [Enemy]
-    ) -> (ability: [PairedContrastSummary], affix: [PairedContrastSummary]) {
+    ) -> (
+        ability: [PairedContrastSummary],
+        affix: [PairedContrastSummary],
+        talent: [PairedContrastSummary],
+        talentKit: [PairedContrastSummary]
+    ) {
         let runAbility = config.mode == .abilityContrast || config.mode == .all
         let runAffix = config.mode == .affixContrast || config.mode == .all
-        guard runAbility || runAffix else { return ([], []) }
+        let runTalent = config.mode == .talentContrast || config.mode == .all
+        guard runAbility || runAffix || runTalent else { return ([], [], [], []) }
 
         let contrastContext = BalanceContrastContext(
             config: config,
@@ -72,7 +79,10 @@ public enum BalanceSweepRunner {
         let affix = runAffix
             ? BalanceAffixContrastRunner.run(context: contrastContext, policy: policy)
             : []
-        return (ability, affix)
+        let talent = runTalent
+            ? BalanceTalentContrastRunner.run(context: contrastContext, policy: policy)
+            : (sibling: [], kit: [])
+        return (ability, affix, talent.sibling, talent.kit)
     }
 
     private static func runProgressionIfNeeded(
@@ -97,9 +107,11 @@ public enum BalanceSweepRunner {
         companions: [Combatant],
         enemies: [Enemy]
     ) -> [BalanceBattleRecord] {
-        let work: [(SimulationPowerTier, Int)] = config.tiers.flatMap { tier in
-            (0 ..< config.battlesPerTier).map { (tier, $0) }
-        }
+        let work: [(SimulationPowerTier, Int)] = config.sliceWork(
+            config.tiers.flatMap { tier in
+                (0 ..< config.battlesPerTier).map { (tier, $0) }
+            }
+        )
         return ParallelMap.map(work, jobs: config.resolvedJobs) { entry in
             simulateIdentityBattle(
                 config: config,
@@ -134,16 +146,8 @@ public enum BalanceSweepRunner {
             battleIndex: battleIndex,
             using: &rng
         )
-
-        let heroLoadout = SimulationMatchupBuilder.sampleLoadout(
-            for: hero,
-            using: &rng
-        )
-        let companionLoadout = SimulationMatchupBuilder.sampleLoadout(
-            for: companion,
-            using: &rng
-        )
-
+        let heroLoadout = SimulationMatchupBuilder.sampleLoadout(for: hero, using: &rng)
+        let companionLoadout = SimulationMatchupBuilder.sampleLoadout(for: companion, using: &rng)
         let matchup = SimulationMatchupBuilder.build(
             hero: hero,
             companion: companion,
@@ -152,7 +156,17 @@ public enum BalanceSweepRunner {
             heroLoadout: heroLoadout,
             companionLoadout: companionLoadout,
             seed: battleSeed,
-            loadoutSampleIndex: battleIndex
+            loadoutSampleIndex: battleIndex,
+            heroTalents: SimulationMatchupBuilder.legalTalentKit(
+                for: hero.id,
+                level: tier.level,
+                using: &rng
+            ),
+            companionTalents: SimulationMatchupBuilder.legalTalentKit(
+                for: companion.id,
+                level: tier.level,
+                using: &rng
+            )
         )
 
         let result = BattleSimulator.run(
@@ -173,6 +187,8 @@ public enum BalanceSweepRunner {
             enemyAbilityIDs: matchup.enemy.abilities.map(\.id),
             enemyTraitID: enemy.traitID,
             affixIDs: matchup.context.heroAffixIDs + matchup.context.companionAffixIDs,
+            heroTalentIDs: matchup.context.heroTalentIDs,
+            companionTalentIDs: matchup.context.companionTalentIDs,
             seed: battleSeed,
             result: result
         )
@@ -202,66 +218,18 @@ enum BalanceSampling {
 enum ParallelMap {
     static func map<Input: Sendable, Output: Sendable>(
         _ inputs: [Input],
-        jobs: Int,
+        jobs _: Int,
         transform: @escaping @Sendable (Input) -> Output
     ) -> [Output] {
         guard !inputs.isEmpty else { return [] }
-        #if DEBUG
-        // Debug builds use `-Onone`, whose large pipeline/harness frames overflow the
-        // 512 KB GCD worker stacks used by `concurrentPerform`. Run the sweep on a
-        // dedicated large-stack thread so balance diagnostics stay green in debug.
+        // Sequential on the caller thread. Never hop to GCD/`Thread` pools:
+        // those stacks are 512 KB and Debug combat frames overflow them.
+        // Bulk CLI work uses process-isolated chunks instead.
         var results: [Output] = []
-        let done = DispatchSemaphore(value: 0)
-        let worker = Thread {
-            results = inputs.map(transform)
-            done.signal()
+        results.reserveCapacity(inputs.count)
+        for input in inputs {
+            results.append(transform(input))
         }
-        worker.stackSize = 16 * 1024 * 1024
-        worker.start()
-        done.wait()
         return results
-        #else
-        if jobs <= 1 || inputs.count == 1 {
-            return inputs.map(transform)
-        }
-
-        let buffer = ResultBuffer<Output>(count: inputs.count)
-        let workerCount = min(jobs, inputs.count)
-        // Concurrency-Safety: concurrentPerform is intentional for CLI parallelism;
-        // slots are written via Mutex-backed ResultBuffer.
-        DispatchQueue.concurrentPerform(iterations: workerCount) { worker in
-            var index = worker
-            while index < inputs.count {
-                buffer.set(transform(inputs[index]), at: index)
-                index += workerCount
-            }
-        }
-        return buffer.values
-        #endif
-    }
-}
-
-private final class ResultBuffer<Value: Sendable>: Sendable {
-    private let storage: Mutex<[Value?]>
-
-    init(count: Int) {
-        storage = Mutex(Array(repeating: nil, count: count))
-    }
-
-    func set(_ value: Value, at index: Int) {
-        storage.withLock { array in
-            array[index] = value
-        }
-    }
-
-    var values: [Value] {
-        storage.withLock { array in
-            array.map { value in
-                guard let value else {
-                    preconditionFailure("ParallelMap left a nil slot")
-                }
-                return value
-            }
-        }
     }
 }

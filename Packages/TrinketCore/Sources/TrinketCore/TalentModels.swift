@@ -100,4 +100,26 @@ public struct CombatantTalentConfig: Identifiable, Hashable, Codable, Sendable {
         }
         return nil
     }
+
+    /// Keeps a row-legal prefix of `nodeIDs` that fits `budget`.
+    public func cappedUnlocks(_ nodeIDs: Set<String>, budget: Int) -> Set<String> {
+        guard nodeIDs.count > budget else { return nodeIDs }
+        guard budget > 0 else { return [] }
+        var kept: Set<String> = []
+        for row in 1 ... 3 {
+            for tree in trees {
+                for node in tree.nodes(forRow: row) {
+                    guard nodeIDs.contains(node.id), kept.count < budget else { continue }
+                    let remaining = budget - kept.count
+                    guard tree.canUnlock(
+                        node: node,
+                        unlockedNodeIDs: kept,
+                        availablePoints: remaining
+                    ) else { continue }
+                    kept.insert(node.id)
+                }
+            }
+        }
+        return kept
+    }
 }

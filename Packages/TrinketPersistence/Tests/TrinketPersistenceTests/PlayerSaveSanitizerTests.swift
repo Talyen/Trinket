@@ -464,4 +464,26 @@ struct PlayerSaveSanitizerTalentIDTests {
         #expect(sanitized["frost_whelp"]?.contains("frost_whelp_dodge_t2_1") == true)
         #expect(sanitized["knight"] == ["knight_block_t1_1"])
     }
+
+    @Test func sanitizeUnlockedTalentsCapsOverBudgetUnlocksToLevelPoints() {
+        var roster = PlayerRosterState.freshStart
+        roster.progressions["knight"] = .at(level: 2)
+        roster.unlockedTalents["knight"] = [
+            "knight_block_t1_1",
+            "knight_holy_t1_1",
+            "knight_stun_t1_1",
+        ]
+
+        let sanitized = PlayerSaveSanitizer.sanitizeRoster(roster, inventory: .freshStart)
+        #expect(sanitized.unlockedTalents["knight"] == ["knight_block_t1_1"])
+    }
+
+    @Test func sanitizeUnlockedTalentsDropsUnlocksWhenBudgetIsZero() {
+        var roster = PlayerRosterState.freshStart
+        roster.progressions["knight"] = .at(level: 1)
+        roster.unlockedTalents["knight"] = ["knight_block_t1_1", "knight_holy_t1_1"]
+
+        let sanitized = PlayerSaveSanitizer.sanitizeRoster(roster, inventory: .freshStart)
+        #expect(sanitized.unlockedTalents["knight"] == nil)
+    }
 }

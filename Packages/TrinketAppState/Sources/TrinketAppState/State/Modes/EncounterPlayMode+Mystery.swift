@@ -172,7 +172,6 @@ public extension EncounterPlayMode {
         mysterySession.clearPersistFailure()
         if mysterySession.showsReward {
             // Progress was already completed inside resolveChoice.
-            sfxPlayer.play(SFXID.victory, volume: options.effectsVolume)
             if dismiss {
                 activeMysteryEncounter = nil
             }
@@ -219,7 +218,11 @@ public extension EncounterPlayMode {
         case .dismiss:
             activeMysteryEncounter = nil
             return true
-        case .reward, .reveal, .corruptionReveal:
+        case .reward:
+            mysterySession.applyOutcome(outcome)
+            sfxPlayer.play(SFXID.victory, volume: options.effectsVolume)
+            return true
+        case .reveal, .corruptionReveal:
             mysterySession.applyOutcome(outcome)
             return true
         case .selectCorruptItem:

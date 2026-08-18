@@ -17,7 +17,7 @@ public enum BalanceProgressionRunner {
         truncatedRuns: Int
     ) {
         let totalRuns = max(1, config.battlesPerTier)
-        let work = Array(0 ..< totalRuns)
+        let work = config.sliceWork(Array(0 ..< totalRuns))
 
         let results = ParallelMap.map(work, jobs: config.resolvedJobs) { runIndex in
             simulateRun(config: config, policy: policy, runIndex: runIndex)

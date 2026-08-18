@@ -18,8 +18,6 @@ struct MysteryEncounterView: View {
     let onFinishCorruptionReveal: () -> Bool
 
     @State private var selectedDetail: CombatantDetailContext?
-    @State private var artAppeared = false
-    @State private var narrativeAppeared = false
     @State private var selectedChoiceID: String?
     @State private var choiceFeedbackTrigger = 0
 
@@ -65,36 +63,38 @@ struct MysteryEncounterView: View {
             }
             .trinketDetailSheet()
         }
-        .onAppear {
-            EncounterReadingEntrance.present(
-                artAppeared: $artAppeared,
-                copyAppeared: $narrativeAppeared
-            )
-        }
     }
 
     private var readingContent: some View {
-        EncounterReadingShell(
-            artVisible: artAppeared,
-            copyVisible: narrativeAppeared,
-            artwork: { heroArtwork },
-            copy: {
-                VStack(alignment: .leading, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
-                    Text(session.event.title)
-                        .trinketTypography(.screenTitle)
-                        .accessibilityIdentifier(AccessibilityID.Mystery.encounterTitle)
-
-                    narrativeCard
-                    mysteryPersistFailureBanner(session.persistFailureMessage)
-                }
-            },
-            content: {
-                mysteryChoices
-                    .padding(.bottom, TrinketDesign.Metrics.compactTabBarContentClearance)
+        DetailHeroScrollShell(
+            title: session.event.title,
+            heroHeightPolicy: .cinematicLandscape,
+            hidesNavigationBar: true
+        ) { baseHeight, overscroll in
+            DetailHeroHeader(
+                eyebrow: "MYSTERY",
+                title: session.event.title,
+                titleAccessibilityIdentifier: AccessibilityID.Mystery.encounterTitle,
+                baseHeight: baseHeight,
+                overscroll: overscroll,
+                horizontalPadding: TrinketDesign.Metrics.contentMargin,
+                bottomPadding: TrinketDesign.Metrics.largeSpacing
+            ) {
+                heroArtwork
             }
-        )
-        .safeAreaInset(edge: .bottom, spacing: 0) {
+        } bodyContent: {
+            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.contentMargin) {
+                narrativeCard
+                mysteryPersistFailureBanner(session.persistFailureMessage)
+                mysteryChoices
+            }
+            .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+            .padding(.vertical, TrinketDesign.Metrics.largeSpacing)
+        }
+        .safeAreaInset(edge: .bottom) {
             mysteryConfirmAction
+                .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+                .padding(.vertical, TrinketDesign.Metrics.mediumSpacing)
         }
     }
 
@@ -152,23 +152,7 @@ struct MysteryEncounterView: View {
         )
         .trinketCenteredPrimaryAction()
         .disabled(selectedChoiceID == nil || session.isResolvingChoice)
-        .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-        .padding(.vertical, TrinketDesign.Metrics.mediumSpacing)
-        .frame(maxWidth: .infinity)
-        .trinketMaterial(.bottomBar, cornerRadius: 0)
-        .background(alignment: .top) {
-            LinearGradient(
-                colors: [
-                    TrinketDesign.Colors.canvas.opacity(0),
-                    TrinketDesign.Colors.canvas.opacity(0.88),
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .frame(height: 28)
-            .offset(y: -28)
-            .allowsHitTesting(false)
-        }
+        .padding(.top, TrinketDesign.Metrics.smallSpacing)
     }
 
     private var heroArtwork: some View {

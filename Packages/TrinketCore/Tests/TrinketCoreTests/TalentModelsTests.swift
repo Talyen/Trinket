@@ -27,9 +27,15 @@ struct TalentModelsTests {
         #expect(level2.availableTalentPoints(unlockedCount: 0) == 1)
         #expect(level2.availableTalentPoints(unlockedCount: 1) == 0)
 
+        let level3 = CombatantProgression.at(level: 3)
+        #expect(level3.totalTalentPoints == 1)
+
         let level10 = CombatantProgression.at(level: 10)
-        #expect(level10.totalTalentPoints == 9)
-        #expect(level10.availableTalentPoints(unlockedCount: 3) == 6)
+        #expect(level10.totalTalentPoints == 5)
+        #expect(level10.availableTalentPoints(unlockedCount: 3) == 2)
+
+        #expect(CombatantProgression.at(level: 20).totalTalentPoints == 10)
+        #expect(CombatantProgression.at(level: 40).totalTalentPoints == 20)
     }
 
     @Test func tier1NodesCanBeUnlockedWithPoints() {
@@ -83,5 +89,16 @@ struct TalentModelsTests {
         let targetNodeID = tree1.nodes[0].id
         #expect(config.node(matching: targetNodeID)?.name == tree1.nodes[0].name)
         #expect(config.node(matching: "non_existent") == nil)
+    }
+
+    @Test func configCapsOverBudgetUnlocksToRowLegalPrefix() {
+        let poison = makeSampleTree(keyword: .poison)
+        let bleed = makeSampleTree(keyword: .bleed)
+        let config = CombatantTalentConfig(combatantID: "rogue", trees: [poison, bleed])
+        let overBudget = Set(poison.nodes.map(\.id) + bleed.nodes.map(\.id))
+
+        #expect(config.cappedUnlocks(overBudget, budget: 0).isEmpty)
+        #expect(config.cappedUnlocks(overBudget, budget: 1) == [poison.nodes[0].id])
+        #expect(config.cappedUnlocks(Set([poison.nodes[0].id]), budget: 1) == [poison.nodes[0].id])
     }
 }

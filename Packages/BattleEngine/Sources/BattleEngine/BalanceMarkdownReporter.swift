@@ -43,6 +43,22 @@ public enum BalanceMarkdownReporter {
             )
         }
 
+        if !report.talentContrasts.isEmpty {
+            appendContrasts(
+                title: "Talent Contrasts (paired lift vs sibling in the same row)",
+                summaries: report.talentContrasts,
+                into: &lines
+            )
+        }
+
+        if !report.talentKitContrasts.isEmpty {
+            appendContrasts(
+                title: "Talent Kit Contrasts (full kit vs none)",
+                summaries: report.talentKitContrasts,
+                into: &lines
+            )
+        }
+
         appendReportNotes(policyID: report.policyID, into: &lines)
         return lines.joined(separator: "\n")
     }
@@ -59,6 +75,8 @@ public enum BalanceMarkdownReporter {
         lines.append("- Identity battles: `\(report.records.count)`")
         lines.append("- Ability contrast rows: `\(report.abilityContrasts.count)`")
         lines.append("- Affix contrast rows: `\(report.affixContrasts.count)`")
+        lines.append("- Talent contrast rows: `\(report.talentContrasts.count)`")
+        lines.append("- Talent kit contrast rows: `\(report.talentKitContrasts.count)`")
         lines.append(String(format: "- Elapsed: `%.2fs`", report.elapsedSeconds))
         if report.elapsedSeconds > 0, !report.records.isEmpty {
             lines.append(String(
@@ -79,9 +97,20 @@ public enum BalanceMarkdownReporter {
         lines.append("- Win rates are under `\(policyID)` autoplay, not human play.")
         lines.append("- Identity party ability/affix rows are presence margins (entity appeared in loadout/gear).")
         lines.append(
+            "- Identity spends available talent points (1 per even level) on a legal kit: "
+                + "early none, middle a partial spend, late the full 18-node kit. "
+                + "The early→middle cliff includes level, gear, and talents."
+        )
+        lines.append(
             "- Enemy ability/trait rows are presence margins (opposing kit); ⚠ EASY / ⚠ HARD are player win rate vs tier peer."
         )
-        lines.append("- Contrast lifts hold partner/enemy/gear fixed and swap only the focus entity.")
+        lines.append("- Contrast lifts hold partner/enemy/gear/loadout fixed and swap only the focus entity.")
+        lines.append("- Ability and affix contrasts keep talents empty so those lifts stay isolated.")
+        lines.append(
+            "- Talent sibling contrasts swap one row choice (minimal legal prefix in that tree). "
+                + "Kit contrasts swap the full 18-node kit vs none."
+        )
+        lines.append("- Gold and other economy talents do not move combat win rate in this sweep.")
         lines.append("- Enemy power uses `EnemyPowerCurve` stat anchors (L1/L20/L40); the same multiplier scales enemy HP and stats.")
         lines.append("- Sweeps include hidden `FightPacing` comeback/clock scaling on authored combat magnitudes.")
         lines.append(

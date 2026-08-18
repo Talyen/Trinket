@@ -273,7 +273,7 @@ private struct PlayBattleOverlaySheetsModifier: ViewModifier {
             })
             .sheet(item: $battle.overlayAbilityDetail, content: { ability in
                 NavigationStack {
-                    AbilityDetailView(ability: ability, showsDoneButton: true)
+                    AbilityDetailView(ability: ability)
                         .accessibilityIdentifier(AccessibilityID.Battle.abilityDetail)
                 }
                 .trinketDetailSheet()

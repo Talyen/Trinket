@@ -84,6 +84,110 @@ struct BattleSimulatorTests {
         #expect(loadout.skill != nil)
     }
 
+    @Test func matchupBuilderAppliesUnlockedTalentsToCombatBuild() throws {
+        let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
+        let companion = try #require(GameContent.companions.first)
+        let enemy = try #require(GameContent.enemies.first)
+        let withTalent = SimulationMatchupBuilder.build(
+            hero: hero,
+            companion: companion,
+            enemy: enemy,
+            tier: .early,
+            heroLoadout: hero.abilityLoadout,
+            companionLoadout: companion.abilityLoadout,
+            seed: 7,
+            heroTalents: ["knight_block_t1_1"]
+        )
+        let withoutTalent = SimulationMatchupBuilder.build(
+            hero: hero,
+            companion: companion,
+            enemy: enemy,
+            tier: .early,
+            heroLoadout: hero.abilityLoadout,
+            companionLoadout: companion.abilityLoadout,
+            seed: 7
+        )
+        #expect(withTalent.heroModifiers.triggers.blockPerTurn == 2)
+        #expect(withoutTalent.heroModifiers.triggers.blockPerTurn == 0)
+        #expect(withTalent.context.heroTalentIDs == ["knight_block_t1_1"])
+        #expect(withoutTalent.context.heroTalentIDs.isEmpty)
+    }
+
+    @Test func identityEarlyHasNoTalentsMidSpendsPartialKitLateUnlocksFullKits() {
+        let early = BalanceSweepRunner.run(
+            config: BalanceSweepConfig(
+                mode: .identity,
+                battlesPerTier: 2,
+                seed: 4,
+                tiers: [.early],
+                jobs: 1
+            )
+        )
+        #expect(early.records.allSatisfy { $0.heroTalentIDs.isEmpty && $0.companionTalentIDs.isEmpty })
+
+        let middle = BalanceSweepRunner.run(
+            config: BalanceSweepConfig(
+                mode: .identity,
+                battlesPerTier: 1,
+                seed: 5,
+                tiers: [.middle],
+                jobs: 1
+            )
+        )
+        #expect(middle.records.count == 1)
+        let middleRecord = middle.records[0]
+        let middleBudget = CombatantProgression.at(level: SimulationPowerTier.middle.level).totalTalentPoints
+        #expect(middleRecord.heroTalentIDs.count == middleBudget)
+        #expect(middleRecord.companionTalentIDs.count == middleBudget)
+        expectLegalTalentSpend(Set(middleRecord.heroTalentIDs), combatantID: middleRecord.heroID)
+        expectLegalTalentSpend(Set(middleRecord.companionTalentIDs), combatantID: middleRecord.companionID)
+
+        let late = BalanceSweepRunner.run(
+            config: BalanceSweepConfig(
+                mode: .identity,
+                battlesPerTier: 1,
+                seed: 6,
+                tiers: [.lateGame],
+                jobs: 1
+            )
+        )
+        #expect(late.records.count == 1)
+        let lateRecord = late.records[0]
+        #expect(lateRecord.heroTalentIDs.count == 18)
+        #expect(lateRecord.companionTalentIDs.count == 18)
+        #expect(Set(lateRecord.heroTalentIDs) == CombatantTalentCatalog.validNodeIDs(for: lateRecord.heroID))
+        #expect(Set(lateRecord.companionTalentIDs) == CombatantTalentCatalog.validNodeIDs(for: lateRecord.companionID))
+    }
+
+    private func expectLegalTalentSpend(_ ids: Set<String>, combatantID: String) {
+        let config = CombatantTalentCatalog.config(for: combatantID)
+        #expect(ids.isSubset(of: CombatantTalentCatalog.validNodeIDs(for: combatantID)))
+        for tree in config.trees {
+            let unlocked = Set(tree.nodes.map(\.id)).intersection(ids)
+            for node in tree.nodes where unlocked.contains(node.id) && node.row >= 2 {
+                #expect(tree.isRowComplete(node.row - 1, unlockedNodeIDs: unlocked))
+            }
+        }
+    }
+
+    @Test func talentContrastProducesSiblingAndKitLiftRows() {
+        let report = BalanceSweepRunner.run(
+            config: BalanceSweepConfig(
+                mode: .talentContrast,
+                battlesPerTier: 8,
+                seed: 23,
+                tiers: [.early],
+                jobs: 1
+            )
+        )
+        #expect(report.records.isEmpty)
+        #expect(!(report.talentContrasts.isEmpty))
+        #expect(!(report.talentKitContrasts.isEmpty))
+        let markdown = BalanceMarkdownReporter.render(report)
+        #expect(markdown.contains("Talent Contrasts (paired lift vs sibling in the same row)"))
+        #expect(markdown.contains("Talent Kit Contrasts (full kit vs none)"))
+    }
+
     @Test func identitySweepProducesMarkdownWithSecondaryMetrics() {
         let report = BalanceSweepRunner.run(
             config: BalanceSweepConfig(

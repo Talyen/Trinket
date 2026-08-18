@@ -84,8 +84,6 @@ public enum BattleCardCombatEngine {
         ownerRuntime: CombatantRuntime,
         context: inout BattleState
     ) -> [ActionEvent] {
-        putAbilityOnBottom(card.ability, owner: card.owner, context: &context)
-
         let actor = ownerRuntime.combatant
         let abilityTarget = actor.role == .enemy ? context.roster.enemyAttackTarget : context.enemy
         var events = BattleTurnEngine.performAction(
@@ -100,6 +98,9 @@ public enum BattleCardCombatEngine {
             abilityTarget: abilityTarget,
             in: &context
         ))
+        // Recycle after the card's effects (and on-play triggers) so a draw
+        // cannot fetch the card still resolving — empty personal decks stay empty.
+        putAbilityOnBottom(card.ability, owner: card.owner, context: &context)
         discardDefeatedOwnerCards(context: &context)
         promoteFromBuffer(context: &context)
         events.append(contentsOf: context.appendDefeatMilestonesIfNeeded())

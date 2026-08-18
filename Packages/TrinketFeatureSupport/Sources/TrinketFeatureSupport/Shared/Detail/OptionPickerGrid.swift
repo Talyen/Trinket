@@ -7,6 +7,7 @@ public struct OptionPickerGrid<Item: Identifiable, CardView: View>: View {
     let isSelected: (Item) -> Bool
     let isEligible: (Item) -> Bool
     let onSelect: (Item) -> Void
+    let onLongPress: ((Item) -> Void)?
     let accessibilityIdentifier: (Item) -> String
     let accessibilityValue: ((Item) -> String)?
     var zoomNamespace: Namespace.ID?
@@ -17,6 +18,7 @@ public struct OptionPickerGrid<Item: Identifiable, CardView: View>: View {
         isSelected: @escaping (Item) -> Bool,
         isEligible: @escaping (Item) -> Bool = { _ in true },
         onSelect: @escaping (Item) -> Void,
+        onLongPress: ((Item) -> Void)? = nil,
         accessibilityIdentifier: @escaping (Item) -> String,
         accessibilityValue: ((Item) -> String)? = nil,
         zoomNamespace: Namespace.ID? = nil,
@@ -26,6 +28,7 @@ public struct OptionPickerGrid<Item: Identifiable, CardView: View>: View {
         self.isSelected = isSelected
         self.isEligible = isEligible
         self.onSelect = onSelect
+        self.onLongPress = onLongPress
         self.accessibilityIdentifier = accessibilityIdentifier
         self.accessibilityValue = accessibilityValue
         self.zoomNamespace = zoomNamespace
@@ -42,15 +45,19 @@ public struct OptionPickerGrid<Item: Identifiable, CardView: View>: View {
                     let eligible = isEligible(item)
                     let selected = isSelected(item)
 
-                    Button {
-                        guard eligible else { return }
-                        onSelect(item)
-                    } label: {
-                        card(item, selected)
-                            .opacity(eligible ? 1.0 : 0.4)
-                    }
+                    InspectableTapButton(
+                        action: {
+                            guard eligible else { return }
+                            onSelect(item)
+                        },
+                        longPress: inspectAction(for: item, eligible: eligible),
+                        isDisabled: !eligible,
+                        label: {
+                            card(item, selected)
+                                .opacity(eligible ? 1.0 : 0.4)
+                        }
+                    )
                     .trinketSelectionCardButtonStyle()
-                    .disabled(!eligible)
                     .optionalMatchedTransitionSource(id: item.id, in: zoomNamespace)
                     .accessibilityIdentifier(accessibilityIdentifier(item))
                     .trinketAccessibilityValue(accessibilityValue?(item))
@@ -59,6 +66,11 @@ public struct OptionPickerGrid<Item: Identifiable, CardView: View>: View {
             .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
             .padding(.vertical, TrinketDesign.Metrics.mediumSpacing)
         }
+    }
+
+    private func inspectAction(for item: Item, eligible: Bool) -> (() -> Void)? {
+        guard eligible, let onLongPress else { return nil }
+        return { onLongPress(item) }
     }
 }
 

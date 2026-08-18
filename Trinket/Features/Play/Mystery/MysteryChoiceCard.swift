@@ -7,7 +7,6 @@ import TrinketPersistence
 
 struct MysteryChoiceCard: View {
     @Environment(PlayerSaveStore.self) private var playerSave
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     let choice: MysteryChoice
     let isSelected: Bool
@@ -26,7 +25,6 @@ struct MysteryChoiceCard: View {
                     .foregroundStyle(.primary)
                     .multilineTextAlignment(.leading)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.trailing, TrinketDesign.Metrics.extraLargeSpacing)
 
                 rewards
             }
@@ -45,20 +43,6 @@ struct MysteryChoiceCard: View {
                         lineWidth: isSelected ? 1.5 : 1
                     )
             }
-            .overlay(alignment: .topTrailing) {
-                if isSelected {
-                    Image(systemName: "checkmark.circle.fill")
-                        .trinketTypography(.rowTitle)
-                        .symbolRenderingMode(.palette)
-                        .foregroundStyle(
-                            TrinketDesign.Colors.canvas,
-                            TrinketDesign.Colors.accent
-                        )
-                        .padding(TrinketDesign.Metrics.mediumSpacing)
-                        .transition(selectionTransition)
-                        .accessibilityHidden(true)
-                }
-            }
             .shadow(
                 color: isSelected ? TrinketDesign.Colors.accent.opacity(0.2) : .clear,
                 radius: 10,
@@ -70,10 +54,6 @@ struct MysteryChoiceCard: View {
         .accessibilityIdentifier(AccessibilityID.Mystery.choiceButton(choiceID: choice.id))
         .accessibilityValue(isSelected ? "Selected" : "Available")
         .disabled(isDisabled)
-    }
-
-    private var selectionTransition: AnyTransition {
-        reduceMotion ? .opacity : .scale(scale: 0.85).combined(with: .opacity)
     }
 
     private var rewards: some View {
@@ -113,7 +93,6 @@ struct MysteryChoiceCard: View {
     }
 
     @ViewBuilder
-    // swiftlint:disable:next function_body_length
     private func reward(for effect: MysteryEffect) -> some View {
         switch effect {
         case let .gainGold(amount):
@@ -141,15 +120,7 @@ struct MysteryChoiceCard: View {
             )
 
         case let .gainGeneratedItem(baseTypeID, guaranteedAffixIDs):
-            rewardSummary(
-                title: generatedItemRewardText(
-                    baseTypeID: baseTypeID,
-                    guaranteedAffixIDs: guaranteedAffixIDs
-                ),
-                value: nil,
-                systemIcon: "gift.fill",
-                tint: HomesteadResource.gold.tint
-            )
+            generatedItemReward(baseTypeID: baseTypeID, affixIDs: guaranteedAffixIDs)
 
         case .gainRandomItem:
             rewardSummary(
@@ -236,6 +207,15 @@ struct MysteryChoiceCard: View {
         )
     }
 
+    private func generatedItemReward(baseTypeID: String, affixIDs: [String]) -> some View {
+        rewardSummary(
+            title: generatedItemRewardText(baseTypeID: baseTypeID, guaranteedAffixIDs: affixIDs),
+            value: nil,
+            systemIcon: "gift.fill",
+            tint: HomesteadResource.gold.tint
+        )
+    }
+
     private var previewExperienceAward: Int {
         experienceAward
     }
@@ -244,12 +224,12 @@ struct MysteryChoiceCard: View {
         baseTypeID: String,
         guaranteedAffixIDs: [String]
     ) -> String {
-        let itemName = GameContent.itemBaseTypes.first { $0.id == baseTypeID }?.name ?? "Item"
-        let guaranteedAffixes = guaranteedAffixIDs.compactMap {
-            GameContent.itemAffixDefinition(matching: $0)?.title
+        let baseName = GameContent.itemBaseTypes.first { $0.id == baseTypeID }?.name ?? "Item"
+        let affixTitles = guaranteedAffixIDs.compactMap { id in
+            GameContent.itemAffixDefinition(matching: id)?.title
         }
-        let affixText = guaranteedAffixes.map { "\($0) guaranteed" }
-        return ([itemName] + affixText).joined(separator: " • ")
+        guard !affixTitles.isEmpty else { return baseName }
+        return "\(baseName) (\(affixTitles.joined(separator: ", ")))"
     }
 
     private func combatantName(id: String) -> String {

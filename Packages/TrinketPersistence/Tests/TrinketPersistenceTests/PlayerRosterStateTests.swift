@@ -306,7 +306,7 @@ struct PlayerRosterStateTests {
         #expect(!refusedDuplicate)
         #expect(!refusedRow2Early)
 
-        roster.progressions[knight.id] = .at(level: 4)
+        roster.progressions[knight.id] = .at(level: 6)
         #expect(roster.availableTalentPoints(for: knight.id) == 2)
         let refusedRow2UntilRow1Complete = roster.unlockTalent(node: row2, inTree: tree, for: knight.id)
         #expect(!refusedRow2UntilRow1Complete)
