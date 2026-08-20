@@ -8,18 +8,45 @@ import TrinketFeatureSupport
 @Observable
 final class BattleCastPresentationState {
     private(set) var request: CardActivationRequest?
+    /// Test seam. Production uses the cast animation plus stuck slack.
+    var stuckResetDelayOverride: TimeInterval?
+
+    @ObservationIgnored
+    private var pendingStuckResetTask: Task<Void, Never>?
 
     func append(_ request: CardActivationRequest) {
         self.request = request
+        scheduleStuckReset(for: request.id)
     }
 
     func remove(id: UUID) {
         guard request?.id == id else { return }
         request = nil
+        cancelStuckReset()
     }
 
     func reset() {
         request = nil
+        cancelStuckReset()
+    }
+
+    private func scheduleStuckReset(for requestID: UUID) {
+        cancelStuckReset()
+        let delay = stuckResetDelayOverride
+            ?? TrinketMotion.Battle.cardActivationDuration
+            + TrinketMotion.Battle.cardActivationStuckSlack
+        pendingStuckResetTask = Task { @MainActor [weak self] in
+            if delay > 0 {
+                try? await Task.sleep(for: .seconds(delay))
+            }
+            guard let self, !Task.isCancelled else { return }
+            remove(id: requestID)
+        }
+    }
+
+    private func cancelStuckReset() {
+        pendingStuckResetTask?.cancel()
+        pendingStuckResetTask = nil
     }
 }
 
@@ -159,6 +186,11 @@ struct CardCastEffectsLayer: View {
             try? await Task.sleep(for: .seconds(remaining))
             guard !Task.isCancelled else { return }
             onFinished(request.id)
+        }
+        .onDisappear {
+            if let request {
+                onFinished(request.id)
+            }
         }
         .allowsHitTesting(false)
         .battleFramePacingSignpost(

@@ -9,7 +9,7 @@ public enum BalanceProgressionRunner {
 
     public static func run(
         config: BalanceSweepConfig,
-        policy: GreedyHeuristicPolicy = GreedyHeuristicPolicy()
+        policy: any SimulationPlayPolicy
     ) -> (
         records: [ProgressionBattleRecord],
         hotspots: [NodeHotspotSummary],
@@ -33,11 +33,14 @@ public enum BalanceProgressionRunner {
 
     private static func simulateRun(
         config: BalanceSweepConfig,
-        policy: GreedyHeuristicPolicy,
+        policy: any SimulationPlayPolicy,
         runIndex: Int
     ) -> (records: [ProgressionBattleRecord], endState: PlayerProgressionState, didTruncate: Bool) {
         let runSeed = config.seed &+ UInt64(runIndex) &* 1000003
-        let controller = InterleavingPlayerController()
+        let roster = config.resolvedRoster
+        let hero = roster.heroes[runIndex % roster.heroes.count]
+        let companion = roster.companions[(runIndex / max(roster.heroes.count, 1)) % roster.companions.count]
+        let controller = InterleavingPlayerController(hero: hero, companion: companion)
         var records: [ProgressionBattleRecord] = []
         var stepCounter = 0
 
@@ -52,12 +55,19 @@ public enum BalanceProgressionRunner {
                 matchup: matchup,
                 policy: policy,
                 maxRounds: config.maxRounds,
-                maxActions: config.maxActions
+                maxActions: config.maxActions,
+                appliesFightPacing: config.appliesFightPacing
             )
 
+            let recordedPlayerLevel = Int(
+                ((
+                    Double(controller.simulatedHeroLevel(for: step))
+                        + Double(controller.simulatedCompanionLevel(for: step))
+                ) / 2.0).rounded()
+            )
             let record = ProgressionBattleRecord(
                 step: step,
-                playerLevel: Int(controller.state.averageLevel.rounded()),
+                playerLevel: recordedPlayerLevel,
                 enemyLevel: step.enemyLevel,
                 seed: battleSeed,
                 result: result

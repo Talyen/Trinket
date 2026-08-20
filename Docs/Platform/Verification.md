@@ -20,8 +20,10 @@ Choose the cheapest route that answers the question at hand.
 | Local integration / performance | `test.sh all` / `performance.sh` | Ad hoc; not part of any GitHub workflow |
 
 Run `./Scripts/agent-context.sh --agent --paths <files...>` after touched paths
-are known. It discovers nested guides and prints the applicable handoff route.
-Rerun it when scope crosses into another area.
+are known. It discovers nested guides, automated skills attached by
+`change-classification.sh`, and prints the applicable handoff route.
+Rerun it when scope crosses into another area. Mid-task package tests still
+use `./Scripts/test-package.sh` as in the table above.
 
 ## Test tiers
 

@@ -2,15 +2,15 @@ id	name	description	modifiers	triggers
 living_armor_trait	Living Armor	Gains 1 Block each turn. Reduce Bleed damage taken by 30%.	damage_taken_percent:bleed:0.30	block_per_turn:1
 mimic_trait	Mimic	Deals double damage on the first attack.		first_hit_double_damage:1
 mud_elemental_trait	Mud Elemental	Physical and Poison damage taken reduced by 20%.	damage_taken_percent:physical:0.20|damage_taken_percent:poison:0.20	
-necromancer_trait	Necromancer	20% chance to Leech. Holy damage taken increased by 30%.	damage_taken_vulnerability:holy:0.30	leech_chance:0.20
+necromancer_trait	Necromancer	10% chance to Leech. Holy damage taken increased by 30%.	damage_taken_vulnerability:holy:0.30	leech_chance:0.10
 plague_doctor_trait	Plague Doctor	Poison damage taken reduced by 30%.	damage_taken_percent:poison:0.30	
 skeleton_trait	Skeleton	Holy damage taken increased by 30%. Bleed damage taken reduced by 30%.	damage_taken_vulnerability:holy:0.30|damage_taken_percent:bleed:0.30	
-the_blight_treant_trait	The Blight Treant	Poison and Bleed damage taken reduced by 20%. Holy damage taken increased by 30%. Damage increases by 1 every other turn.	damage_taken_percent:poison:0.20|damage_taken_percent:bleed:0.20|damage_taken_vulnerability:holy:0.30	damage_increases_every_other_turn:1
-the_forge_golem_trait	The Forge Golem	Damage increases by 1 every other turn.		damage_increases_every_other_turn:1
-the_frostwarden_trait	The Frostwarden	Deals 1 Freeze damage per turn to all enemies. Burn damage taken is increased by 20%. Damage increases by 1 every other turn.	damage_taken_vulnerability:burn:0.20	turn_freeze_all_enemies:1|damage_increases_every_other_turn:1
-the_iron_bear_trait	The Iron Bear	Physical damage taken reduced by 25%. Damage increases by 1 every other turn.	damage_taken_percent:physical:0.25	damage_increases_every_other_turn:1
+the_blight_treant_trait	The Blight Treant	Holy damage taken increased by 30%. Gains Poison or Bleed damage each turn.	damage_taken_vulnerability:holy:0.30	random_damage_ramp_per_turn:poison:bleed:1
+the_forge_golem_trait	The Forge Golem	Gains Stun or Burn damage each turn.		random_damage_ramp_per_turn:stun:burn:1
+the_frostwarden_trait	The Frostwarden	Deals 1 Freeze damage every other turn to all enemies. Burn damage taken increased by 30%. Gains Freeze damage every other turn.	damage_taken_vulnerability:burn:0.30	turn_freeze_all_enemies:1|damage_increases_every_other_turn:freeze:1
+the_iron_bear_trait	The Iron Bear	Gains Physical or Stun damage each turn.		random_damage_ramp_per_turn:physical:stun:1
 goblin_trait	Goblin	Burn damage taken increased by 30%.	damage_taken_vulnerability:burn:0.30	
 fire_elemental_trait	Fire Elemental	Burns attackers for 1 damage when hit. Freeze damage taken increased by 30%.	damage_taken_vulnerability:freeze:0.30	on_hit_attacker_burn:1
 frost_elemental_trait	Frost Elemental	Freeze damage is increased by 1. Burn damage taken increased by 30%.	damage_dealt:freeze:1|damage_taken_vulnerability:burn:0.30	
-slime_trait	Slime	Physical and Poison damage taken reduced by 20%.	damage_taken_percent:physical:0.20|damage_taken_percent:poison:0.20	
+slime_trait	Slime	Physical and Poison damage taken reduced by 10%.	damage_taken_percent:physical:0.10|damage_taken_percent:poison:0.10	
 will_o_wisp_trait	Will-o'-Wisp	Physical and Freeze damage taken reduced by 30%.	damage_taken_percent:physical:0.30|damage_taken_percent:freeze:0.30	

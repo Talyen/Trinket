@@ -221,7 +221,7 @@ extension BattleSession {
     }
 
     public func hasPreparedRun(_ runKey: BattleRunKey) -> Bool {
-        preparedBattleRunsByKey[runKey] != nil
+        preparedBattleRunsByKey.index(forKey: runKey) != nil
     }
 
     public func activatePreparedBattle(

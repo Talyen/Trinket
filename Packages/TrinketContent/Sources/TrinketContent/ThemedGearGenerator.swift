@@ -43,13 +43,9 @@ public struct ThemedGearGenerator: Sendable {
                 keywordBias: resolvedBias,
                 requireBuildAlignment: requireBuildAlignment,
                 using: &randomNumberGenerator
-            ) else {
-                continue
-            }
-
-            let itemID = "\(idPrefix)-\(combatant.id)-\(slot.rawValue)"
+            ) else { continue }
             let item = itemGenerator.generate(
-                id: itemID,
+                id: "\(idPrefix)-\(combatant.id)-\(slot.rawValue)",
                 baseType: baseType,
                 rarity: rarity,
                 fixedAffixCount: fixedAffixCount,
@@ -62,6 +58,43 @@ public struct ThemedGearGenerator: Sendable {
         }
 
         return ThemedGearBuild(inventory: inventory, loadout: loadout)
+    }
+
+    /// One keyword-aligned piece (not a full slot fill). Used for early identity / early progression.
+    public func generateSinglePiece(
+        for combatant: Combatant,
+        rarity: Rarity,
+        fixedAffixCount: Int,
+        idPrefix: String,
+        keywordBias: Set<Keyword>? = nil,
+        requireBuildAlignment: Bool = false,
+        using randomNumberGenerator: inout some RandomNumberGenerator
+    ) -> ThemedGearBuild {
+        let resolvedBias = keywordBias ?? combatant.keywordProfile
+        var remaining = combatant.role.equipmentSlots
+        remaining.shuffle(using: &randomNumberGenerator)
+        var loadout = EquipmentLoadout()
+        for slot in remaining {
+            guard loadout.isAvailable(slot, inventory: []) else { continue }
+            guard let baseType = bestBaseType(
+                for: slot,
+                keywordBias: resolvedBias,
+                requireBuildAlignment: requireBuildAlignment,
+                using: &randomNumberGenerator
+            ) else { continue }
+            let item = itemGenerator.generate(
+                id: "\(idPrefix)-\(combatant.id)-\(slot.rawValue)",
+                baseType: baseType,
+                rarity: rarity,
+                fixedAffixCount: fixedAffixCount,
+                keywordBias: resolvedBias,
+                requireBuildAlignment: requireBuildAlignment,
+                using: &randomNumberGenerator
+            )
+            loadout.equip(item, in: slot, inventory: [item])
+            return ThemedGearBuild(inventory: [item], loadout: loadout)
+        }
+        return ThemedGearBuild(inventory: [], loadout: loadout)
     }
 
     private func bestBaseType(

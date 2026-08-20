@@ -46,6 +46,33 @@ struct EnemyTraitBattleTests {
         try #expect(holy.healthLost > physical.healthLost)
     }
 
+    @Test func frostwardenFreezeAuraSkipsOddRounds() throws {
+        let frostwarden = try enemyBuild(id: "the_frostwarden")
+        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
+        let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 20)
+        var context = makeContext(hero: hero, companion: companion, enemyBuild: frostwarden)
+
+        context.turnCount += 1
+        _ = EffectTurnEngine.advanceAll(context: &context)
+        let oddMeter = context.roster.activeEffects(for: hero).contains {
+            if case .controlMeter(.freeze, _, _) = $0.effect {
+                return true
+            }
+            return false
+        }
+        try #expect(!oddMeter)
+
+        context.turnCount += 1
+        _ = EffectTurnEngine.advanceAll(context: &context)
+        let evenMeter = context.roster.activeEffects(for: hero).contains {
+            if case .controlMeter(.freeze, _, _) = $0.effect {
+                return true
+            }
+            return false
+        }
+        try #expect(evenMeter)
+    }
+
     @Test func frostwardenFreezeDamageChargesControlMeterAndTriggersSkip() throws {
         let frostwarden = try enemyBuild(id: "the_frostwarden")
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
@@ -55,7 +82,9 @@ struct EnemyTraitBattleTests {
         try #expect(threshold > 0)
 
         var events: [ActionEvent] = []
-        for _ in 0 ..< threshold {
+        // Aura fires on even rounds only (`endTurn` increments `turnCount` first).
+        for _ in 0 ..< (threshold * 2) {
+            context.turnCount += 1
             events.append(contentsOf: EffectTurnEngine.advanceAll(context: &context))
         }
 
@@ -128,5 +157,138 @@ struct EnemyTraitBattleTests {
         try #expect(reduced.healthLost == CombatRounding.scaled(10, multiplier: 0.7))
         try #expect(baseline.healthLost == 10)
         try #expect(reduced.healthLost < baseline.healthLost)
+    }
+
+    @Test func forgeGolemRampsStunOrBurnEachEnemyTurn() throws {
+        let golem = try enemyBuild(id: "the_forge_golem")
+        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 99)
+        let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 99)
+        var context = makeContext(hero: hero, companion: companion, enemyBuild: golem)
+
+        _ = BattleTestFixtures.endTurns(2, on: &context)
+
+        let ramp = context.roster.enemy.keywordDamageRamp
+        try #expect(ramp[.physical, default: 0] == 0)
+        try #expect(ramp[.stun, default: 0] + ramp[.burn, default: 0] == 2)
+
+        let stunBonus = DamagePipeline.outgoingDamageBonus(
+            for: golem.combatant.id,
+            keyword: .stun,
+            in: context
+        )
+        let burnBonus = DamagePipeline.outgoingDamageBonus(
+            for: golem.combatant.id,
+            keyword: .burn,
+            in: context
+        )
+        let physicalBonus = DamagePipeline.outgoingDamageBonus(
+            for: golem.combatant.id,
+            keyword: .physical,
+            in: context
+        )
+        try #expect(stunBonus + burnBonus == 2)
+        try #expect(physicalBonus == 0)
+        try #expect(!golem.modifiers.triggers.damageIncreasesEveryOtherTurn)
+    }
+
+    @Test func ironBearRampsPhysicalOrStunEachEnemyTurn() throws {
+        let bear = try enemyBuild(id: "the_iron_bear")
+        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 99)
+        let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 99)
+        var context = makeContext(hero: hero, companion: companion, enemyBuild: bear)
+
+        _ = BattleTestFixtures.endTurns(2, on: &context)
+
+        let ramp = context.roster.enemy.keywordDamageRamp
+        try #expect(ramp[.burn, default: 0] == 0)
+        try #expect(ramp[.physical, default: 0] + ramp[.stun, default: 0] == 2)
+
+        let physicalBonus = DamagePipeline.outgoingDamageBonus(
+            for: bear.combatant.id,
+            keyword: .physical,
+            in: context
+        )
+        let stunBonus = DamagePipeline.outgoingDamageBonus(
+            for: bear.combatant.id,
+            keyword: .stun,
+            in: context
+        )
+        let burnBonus = DamagePipeline.outgoingDamageBonus(
+            for: bear.combatant.id,
+            keyword: .burn,
+            in: context
+        )
+        try #expect(physicalBonus + stunBonus == 2)
+        try #expect(burnBonus == 0)
+        try #expect(!bear.modifiers.triggers.damageIncreasesEveryOtherTurn)
+    }
+
+    @Test func blightTreantRampsPoisonOrBleedEachEnemyTurn() throws {
+        let treant = try enemyBuild(id: "the_blight_treant")
+        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 99)
+        let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 99)
+        var context = makeContext(hero: hero, companion: companion, enemyBuild: treant)
+
+        _ = BattleTestFixtures.endTurns(2, on: &context)
+
+        let ramp = context.roster.enemy.keywordDamageRamp
+        try #expect(ramp[.physical, default: 0] == 0)
+        try #expect(ramp[.poison, default: 0] + ramp[.bleed, default: 0] == 2)
+
+        let poisonBonus = DamagePipeline.outgoingDamageBonus(
+            for: treant.combatant.id,
+            keyword: .poison,
+            in: context
+        )
+        let bleedBonus = DamagePipeline.outgoingDamageBonus(
+            for: treant.combatant.id,
+            keyword: .bleed,
+            in: context
+        )
+        let physicalBonus = DamagePipeline.outgoingDamageBonus(
+            for: treant.combatant.id,
+            keyword: .physical,
+            in: context
+        )
+        try #expect(poisonBonus + bleedBonus == 2)
+        try #expect(physicalBonus == 0)
+        try #expect(!treant.modifiers.triggers.damageIncreasesEveryOtherTurn)
+    }
+
+    @Test func frostwardenRampsFreezeEveryOtherTurnOnly() throws {
+        let frostwarden = try enemyBuild(id: "the_frostwarden")
+        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 99)
+        let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 99)
+        var context = makeContext(hero: hero, companion: companion, enemyBuild: frostwarden)
+
+        _ = BattleTestFixtures.endTurns(1, on: &context)
+        try #expect(
+            DamagePipeline.outgoingDamageBonus(
+                for: frostwarden.combatant.id,
+                keyword: .freeze,
+                in: context
+            ) == 0
+        )
+
+        _ = BattleTestFixtures.endTurns(1, on: &context)
+        let freezeBonus = DamagePipeline.outgoingDamageBonus(
+            for: frostwarden.combatant.id,
+            keyword: .freeze,
+            in: context
+        )
+        let burnBonus = DamagePipeline.outgoingDamageBonus(
+            for: frostwarden.combatant.id,
+            keyword: .burn,
+            in: context
+        )
+        let physicalBonus = DamagePipeline.outgoingDamageBonus(
+            for: frostwarden.combatant.id,
+            keyword: .physical,
+            in: context
+        )
+        try #expect(freezeBonus == 1)
+        try #expect(burnBonus == 0)
+        try #expect(physicalBonus == 0)
+        try #expect(frostwarden.modifiers.triggers.damageIncreasesEveryOtherTurnKeyword == .freeze)
     }
 }

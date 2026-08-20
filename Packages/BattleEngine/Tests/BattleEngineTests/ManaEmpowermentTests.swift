@@ -61,8 +61,8 @@ struct ManaEmpowermentTests {
 
         try #expect(battle.mana(of: battle.hero) == 2)
         let abilityEvent = try #require(events.first { $0.kind == .ability && $0.abilityID == Ability.fireball.id })
-        try #expect(abilityEvent.amount == 3)
-        try #expect(burnStackPotency(on: battle) == 3)
+        try #expect(abilityEvent.amount == 4)
+        try #expect(burnStackPotency(on: battle) == 4)
     }
 
     @Test func burnEmpowermentDoesNotScaleWithMaxMana() throws {
@@ -76,8 +76,8 @@ struct ManaEmpowermentTests {
 
         try #expect(battle.mana(of: battle.hero) == 17)
         let abilityEvent = try #require(events.first { $0.kind == .ability && $0.abilityID == Ability.fireball.id })
-        try #expect(abilityEvent.amount == 3)
-        try #expect(burnStackPotency(on: battle) == 3)
+        try #expect(abilityEvent.amount == 4)
+        try #expect(burnStackPotency(on: battle) == 4)
     }
 
     @Test func burnAbilityWithoutEnoughManaPlaysWithoutBonus() throws {
@@ -91,8 +91,8 @@ struct ManaEmpowermentTests {
 
         try #expect(battle.mana(of: battle.hero) == 2)
         let abilityEvent = try #require(events.first { $0.kind == .ability && $0.abilityID == Ability.fireball.id })
-        try #expect(abilityEvent.amount == 2)
-        try #expect(burnStackPotency(on: battle) == 2)
+        try #expect(abilityEvent.amount == 3)
+        try #expect(burnStackPotency(on: battle) == 3)
     }
 
     @Test func burnAbilityAtZeroManaPlaysWithoutBonus() throws {
@@ -106,8 +106,8 @@ struct ManaEmpowermentTests {
 
         try #expect(battle.mana(of: battle.hero) == 0)
         let abilityEvent = try #require(events.first { $0.kind == .ability && $0.abilityID == Ability.fireball.id })
-        try #expect(abilityEvent.amount == 2)
-        try #expect(burnStackPotency(on: battle) == 2)
+        try #expect(abilityEvent.amount == 3)
+        try #expect(burnStackPotency(on: battle) == 3)
     }
 
     @Test func freezeAbilitySpendsThreeManaForBonusDamage() throws {
@@ -134,7 +134,7 @@ struct ManaEmpowermentTests {
         _ = try battle.playCard(cardID: card.id)
 
         try #expect(battle.mana(of: battle.hero) == 0)
-        try #expect(recurringFreezePotency(on: battle) == 4)
+        try #expect(recurringFreezePotency(on: battle) == 5)
     }
 
     @Test func burnBranchSpendsManaPoisonBranchDoesNot() throws {
@@ -176,8 +176,7 @@ struct ManaEmpowermentTests {
         try #expect(battle.mana(of: battle.hero) == 1)
         let abilityEvent = try #require(events.first { $0.kind == .ability && $0.abilityID == Ability.fireArrow.id })
         try #expect(abilityEvent.amount == 2)
-        // Empowered burn(2) plus conditional burn(2) after the enemy is burning.
-        try #expect(burnStackPotency(on: battle) == 4)
+        try #expect(burnStackPotency(on: battle) == 2)
     }
 
     @Test func manaRegeneratesAtStartOfPlayerTurnForManaUsers() throws {

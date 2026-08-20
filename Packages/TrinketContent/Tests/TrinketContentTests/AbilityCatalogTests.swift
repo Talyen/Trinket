@@ -73,14 +73,14 @@ struct AbilityCatalogTests {
         try #expect(Ability.fireArrow.hasManaEmpowerableBurnOrFreezeDamage)
         try #expect(empowered.damageComponents == [DamageComponent(2, keyword: .burn)])
         try #expect(empowered.targetedEffects == [
-            TargetedEffect(.burn(2)),
             TargetedEffect(.burn(2), condition: .enemyBurning),
+            TargetedEffect(.burn(2)),
         ])
         try #expect(!Ability.slash.hasManaEmpowerableBurnOrFreezeDamage)
         try #expect(Ability.slash.empoweredByMana() == Ability.slash)
         try #expect(
             Ability.blizzard.empoweredByMana().targetedEffects
-                == [TargetedEffect(.recurringDamage(.freeze, 4, 2))]
+                == [TargetedEffect(.recurringDamage(.freeze, 5, 2))]
         )
     }
 
@@ -114,10 +114,10 @@ struct AbilityCatalogTests {
     }
 
     @Test func representativeAbilitySummariesPreserveProductContracts() throws {
-        try #expect(Ability.hemorrhage.summary == "Deal 5 Bleed damage.")
+        try #expect(Ability.hemorrhage.summary == "Deal 4 Bleed damage. The next time the enemy attacks, they take 4 Bleed damage.")
         try #expect(!Ability.hemorrhage.hasLeech)
         try #expect(Ability.hemorrhage.criticalChanceBonus == 0)
-        try #expect(Ability.serratedEdge.summary == "Deal 2 Bleed damage.")
+        try #expect(Ability.serratedEdge.summary == "Deal 2 Bleed damage. Reduces enemy Health gain by 50% for 2 turns.")
         try #expect(Ability.serratedEdge.criticalChanceBonus == 0)
         try #expect(Ability.stab.summary == "Deal 2 Physical damage.")
         try #expect(Ability.stab.directDamage == 2)
@@ -126,7 +126,7 @@ struct AbilityCatalogTests {
         try #expect(!Ability.bloodOffering.hasLeech)
         try #expect(!Ability.darkPact.hasLeech)
         try #expect(AbilityCatalog.all.contains { $0.id == "grave-pact" } == false)
-        try #expect(Ability.heal.summary == "Restore 5 Health.")
+        try #expect(Ability.heal.summary == "Restore 6 Health.")
         try #expect(Ability.heal.directDamage == 0)
         try #expect(Ability.fangs.hasLeech)
         try #expect(Ability.rendingSlash.name == "Rend")
@@ -136,7 +136,7 @@ struct AbilityCatalogTests {
         try #expect(Ability.glacialWard.tier == .skill)
         try #expect(
             Ability.glacialWard.summary
-                == "Gain 2 Block and Deal 2 Freeze damage next time you're hit."
+                == "Gain 2 Block. Deal 2 Freeze damage next time you're hit."
         )
     }
 
@@ -145,9 +145,9 @@ struct AbilityCatalogTests {
         let branches = try #require(ability.outcomeBranches)
         try #expect(branches.count == 3)
         try #expect(branches.map(\.damageComponents) == [
-            [DamageComponent(6, keyword: .stun)],
-            [DamageComponent(6, keyword: .freeze)],
-            [DamageComponent(6, keyword: .burn)],
+            [DamageComponent(7, keyword: .stun)],
+            [DamageComponent(7, keyword: .freeze)],
+            [DamageComponent(7, keyword: .burn)],
         ])
         try #expect(AbilityCatalog.ability(id: "concussive-shot") == nil)
         let ranger = try #require(GameContent.heroes.first { $0.id == "ranger" })
@@ -161,5 +161,30 @@ struct AbilityCatalogTests {
                 "\(ability.id) should not carry a manual description override"
             )
         }
+    }
+
+    @Test func dealsCombatDamageCountsOpponentHitsNotHealsOrBlock() throws {
+        try #expect(Ability.bash.dealsCombatDamage)
+        try #expect(Ability.blizzard.dealsCombatDamage)
+        try #expect(Ability.sunburst.dealsCombatDamage)
+        try #expect(Ability.bloodOffering.dealsCombatDamage)
+        try #expect(!Ability.apple.dealsCombatDamage)
+        try #expect(!Ability.block.dealsCombatDamage)
+        try #expect(!Ability.heal.dealsCombatDamage)
+        try #expect(!Ability.briarShield.dealsCombatDamage)
+        try #expect(!Ability.packTactics.dealsCombatDamage)
+    }
+
+    @Test func validatorRejectsDamageConditionWithoutBonusAmount() throws {
+        let ability = Ability(
+            id: "bad-pounce",
+            name: "Bad Pounce",
+            tier: .skill,
+            damageComponents: [
+                DamageComponent(3, keyword: .stun, condition: .firstTurn),
+            ]
+        )
+        let issues = AbilityValidator.validate(ability)
+        try #expect(issues.contains { $0.message.contains("bonusAmount") })
     }
 }

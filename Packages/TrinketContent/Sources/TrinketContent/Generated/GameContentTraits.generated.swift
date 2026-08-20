@@ -30,9 +30,9 @@ enum GameContentTraitsGenerated {
         list.append(CombatantTraitDefinition(
             id: "necromancer_trait",
             name: "Necromancer",
-            description: "20% chance to Leech. Holy damage taken increased by 30%.",
+            description: "10% chance to Leech. Holy damage taken increased by 30%.",
             modifiers: [.damageTakenVulnerability(.holy, 0.30)],
-            triggers: CombatTraitTriggers(healing: HealingTriggers(leechChancePercent: 0.20))
+            triggers: CombatTraitTriggers(healing: HealingTriggers(leechChancePercent: 0.10))
         ))
         list.append(CombatantTraitDefinition(
             id: "plague_doctor_trait",
@@ -51,30 +51,30 @@ enum GameContentTraitsGenerated {
         list.append(CombatantTraitDefinition(
             id: "the_blight_treant_trait",
             name: "The Blight Treant",
-            description: "Poison and Bleed damage taken reduced by 20%. Holy damage taken increased by 30%. Damage increases by 1 every other turn.",
-            modifiers: [.damageTakenPercent(.poison, 0.20), .damageTakenPercent(.bleed, 0.20), .damageTakenVulnerability(.holy, 0.30)],
-            triggers: CombatTraitTriggers(damage: DamageTriggers(damageIncreasesEveryOtherTurn: true))
+            description: "Holy damage taken increased by 30%. Gains Poison or Bleed damage each turn.",
+            modifiers: [.damageTakenVulnerability(.holy, 0.30)],
+            triggers: CombatTraitTriggers(damage: DamageTriggers(randomDamageRampKeywordA: .poison, randomDamageRampKeywordB: .bleed, randomDamageRampPerTurn: 1))
         ))
         list.append(CombatantTraitDefinition(
             id: "the_forge_golem_trait",
             name: "The Forge Golem",
-            description: "Damage increases by 1 every other turn.",
+            description: "Gains Stun or Burn damage each turn.",
             modifiers: [],
-            triggers: CombatTraitTriggers(damage: DamageTriggers(damageIncreasesEveryOtherTurn: true))
+            triggers: CombatTraitTriggers(damage: DamageTriggers(randomDamageRampKeywordA: .stun, randomDamageRampKeywordB: .burn, randomDamageRampPerTurn: 1))
         ))
         list.append(CombatantTraitDefinition(
             id: "the_frostwarden_trait",
             name: "The Frostwarden",
-            description: "Deals 1 Freeze damage per turn to all enemies. Burn damage taken is increased by 20%. Damage increases by 1 every other turn.",
-            modifiers: [.damageTakenVulnerability(.burn, 0.20)],
-            triggers: CombatTraitTriggers(damage: DamageTriggers(damageIncreasesEveryOtherTurn: true), control: ControlTriggers(turnFreezeDamageAllEnemies: 1))
+            description: "Deals 1 Freeze damage every other turn to all enemies. Burn damage taken increased by 30%. Gains Freeze damage every other turn.",
+            modifiers: [.damageTakenVulnerability(.burn, 0.30)],
+            triggers: CombatTraitTriggers(damage: DamageTriggers(damageIncreasesEveryOtherTurn: true, damageIncreasesEveryOtherTurnKeyword: .freeze), control: ControlTriggers(turnFreezeDamageAllEnemies: 1))
         ))
         list.append(CombatantTraitDefinition(
             id: "the_iron_bear_trait",
             name: "The Iron Bear",
-            description: "Physical damage taken reduced by 25%. Damage increases by 1 every other turn.",
-            modifiers: [.damageTakenPercent(.physical, 0.25)],
-            triggers: CombatTraitTriggers(damage: DamageTriggers(damageIncreasesEveryOtherTurn: true))
+            description: "Gains Physical or Stun damage each turn.",
+            modifiers: [],
+            triggers: CombatTraitTriggers(damage: DamageTriggers(randomDamageRampKeywordA: .physical, randomDamageRampKeywordB: .stun, randomDamageRampPerTurn: 1))
         ))
         list.append(CombatantTraitDefinition(
             id: "goblin_trait",
@@ -100,8 +100,8 @@ enum GameContentTraitsGenerated {
         list.append(CombatantTraitDefinition(
             id: "slime_trait",
             name: "Slime",
-            description: "Physical and Poison damage taken reduced by 20%.",
-            modifiers: [.damageTakenPercent(.physical, 0.20), .damageTakenPercent(.poison, 0.20)],
+            description: "Physical and Poison damage taken reduced by 10%.",
+            modifiers: [.damageTakenPercent(.physical, 0.10), .damageTakenPercent(.poison, 0.10)],
             triggers: CombatTraitTriggers()
         ))
         list.append(CombatantTraitDefinition(

@@ -93,13 +93,18 @@ public enum PlayerSaveSanitizer {
         }
     }
 
+    public static let defaultHeroIDs: Set<String> = Set(GameContent.heroes.map(\.id))
+    public static let defaultCompanionIDs: Set<String> = Set(GameContent.companions.map(\.id))
+    public static let defaultChapterIDs: Set<String> = Set(GameContent.chapters.map(\.id))
+    public static let defaultStageIDs: Set<String> = Set(GameContent.chapters.flatMap(\.stages).map(\.id))
+
     public static func sanitizeJourney(
         _ journey: JourneyProgressState,
         chapters: [Chapter] = GameContent.chapters
     ) -> JourneyProgressState {
-        let validChapterIDs = Set(chapters.map(\.id))
+        let validChapterIDs = chapters == GameContent.chapters ? defaultChapterIDs : Set(chapters.map(\.id))
         let allStages = chapters.flatMap(\.stages)
-        let validStageIDs = Set(allStages.map(\.id))
+        let validStageIDs = chapters == GameContent.chapters ? defaultStageIDs : Set(allStages.map(\.id))
 
         var sanitized = journey
         sanitized.completedStageIDs = journey.completedStageIDs.filter { validStageIDs.contains($0) }
@@ -181,8 +186,8 @@ public enum PlayerSaveSanitizer {
     public static func sanitizeRoster(
         _ roster: PlayerRosterState,
         inventory: PlayerInventoryState,
-        heroIDs: Set<String> = Set(GameContent.heroes.map(\.id)),
-        companionIDs: Set<String> = Set(GameContent.companions.map(\.id))
+        heroIDs: Set<String> = Self.defaultHeroIDs,
+        companionIDs: Set<String> = Self.defaultCompanionIDs
     ) -> PlayerRosterState {
         let inventoryItemIDs = Set(inventory.items.map(\.id))
         let validHeroIDs = heroIDs

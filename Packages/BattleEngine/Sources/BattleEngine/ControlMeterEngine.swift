@@ -4,8 +4,7 @@ import TrinketCore
 
 /// Stun/freeze control meter: tracks charge toward the next action skip.
 package enum ControlMeterEngine {
-    /// - Parameter applyFightPacing: When `true` (default), scales `amount` via fight pacing.
-    ///   Damage-pipeline callers pass `false` because `buildupDamage` is already paced.
+    /// Applies meter charge towards stun or freeze control effects.
     public static func applyMeterCharge( // swiftlint:disable:this function_body_length
         _ amount: Int,
         keyword: Keyword,

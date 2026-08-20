@@ -256,7 +256,13 @@ package extension DamagePipeline {
             }
         }
         if profile.triggers.damageIncreasesEveryOtherTurn {
-            bonus += context.turnCount / 2
+            let rampKeyword = profile.triggers.damageIncreasesEveryOtherTurnKeyword
+            if rampKeyword == nil || rampKeyword == keyword {
+                bonus += context.turnCount / 2
+            }
+        }
+        if let source = context.roster.combatant(for: sourceActorID) {
+            bonus += context.roster.runtime(for: source.combatant)?.keywordDamageRamp[keyword, default: 0] ?? 0
         }
         return bonus
     }

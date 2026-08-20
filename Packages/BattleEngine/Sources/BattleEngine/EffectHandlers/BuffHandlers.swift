@@ -59,18 +59,19 @@ struct ThornsHandler: BattleEffectHandler {
     }
 }
 
-struct FreezeOnHitHandler: BattleEffectHandler {
-    let kind: EffectKind = .freezeOnHit
+struct OnHitDamageHandler: BattleEffectHandler {
+    let kind: EffectKind = .onHitDamage
 
     func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         let amount = stacks.reduce(0) { maxAmount, active in
-            if case let .freezeOnHit(value) = active.effect {
+            if case let .onHitDamage(_, value) = active.effect {
                 return max(maxAmount, value)
             }
             return maxAmount
         }
         guard amount > 0 else { return nil }
-        return EffectSummary(keyword: keyword, text: "Glacial Ward: \(amount) Freeze (until next hit).")
+        let label = keyword == .freeze ? "Glacial Ward" : "\(keyword.rawValue) Ward"
+        return EffectSummary(keyword: keyword, text: "\(label): \(amount) \(keyword.rawValue) (until next hit).")
     }
 
     func apply(
@@ -81,16 +82,16 @@ struct FreezeOnHitHandler: BattleEffectHandler {
         action _: ActionApplyContext,
         in context: inout BattleState
     ) -> EffectApplyOutcome {
-        guard case let .freezeOnHit(amount) = effect, amount > 0 else {
+        guard case let .onHitDamage(keyword, amount) = effect, amount > 0 else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
         ActiveEffectMutation.removeMatching(from: target, in: &context) {
-            if case .freezeOnHit = $0 {
-                return true
+            if case let .onHitDamage(existingKeyword, _) = $0 {
+                return existingKeyword == keyword
             }
             return false
         }
-        context.appendEffect(.freezeOnHit(amount), to: target, sourceID: source.id, remainingTurns: 0)
+        context.appendEffect(.onHitDamage(keyword, amount), to: target, sourceID: source.id, remainingTurns: 0)
         let event = context.nextEvent(
             kind: .effect,
             effectKind: .controlApplied,
@@ -98,7 +99,7 @@ struct FreezeOnHitHandler: BattleEffectHandler {
             abilityName: ability.name,
             target: target,
             amount: amount,
-            keyword: .freeze
+            keyword: keyword
         )
         return EffectApplyOutcome(events: [event], didApply: true)
     }

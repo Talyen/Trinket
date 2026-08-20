@@ -44,7 +44,7 @@ public struct DamageComponent: Hashable, Sendable {
             self.amount + amount,
             keyword: keyword,
             target: target,
-            bonusAmount: bonusAmount,
+            bonusAmount: bonusAmount > 0 ? bonusAmount + amount : 0,
             condition: condition
         )
     }
@@ -110,8 +110,10 @@ public enum Effect: Hashable, Sendable {
     case nextStrikeCritical
     /// Next enemy attack that hits you applies Frozen once, then consumes (fires even if Block absorbs).
     case freezeNextAttacker
-    /// Deal Freeze damage to the next attacker, then consumes (fires even if Block absorbs).
-    case freezeOnHit(Int)
+    /// Deal `keyword` damage to the next attacker, then consumes (fires even if Block absorbs).
+    case onHitDamage(Keyword, Int)
+    /// Cleanse all removable debuffs, then restore `healPerRemoved` Health per debuff removed.
+    case cleanseHealPerDebuff(Int)
     /// Multiply an existing DoT stack's potency (e.g. double Burn).
     case multiplyDoT(Keyword, Int)
     /// Immediate typed damage plus end-of-round pulses for `remainingTurns` after apply.
@@ -161,7 +163,7 @@ public enum Effect: Hashable, Sendable {
         case let .resourceGain(k, _): k
         case .drawCards, .drawAndPlayCards: .physical
         case let .cleanse(k?): k
-        case .cleanse(nil), .cleanseRandom: .cleanse
+        case .cleanse(nil), .cleanseRandom, .cleanseHealPerDebuff: .cleanse
         case let .purge(k?): k
         case .purge(nil), .purgeRandom: .purge
         case let .halveShield(k): k
@@ -178,7 +180,7 @@ public enum Effect: Hashable, Sendable {
         case .maximumManaBonus: .mana
         case .nextStrikeCritical: .physical
         case .freezeNextAttacker: .freeze
-        case .freezeOnHit: .freeze
+        case let .onHitDamage(k, _): k
         case let .multiplyDoT(k, _): k
         case let .recurringDamage(k, _, _): k
         case .avatar: .holy
@@ -193,7 +195,7 @@ public enum Effect: Hashable, Sendable {
         switch self {
         case let .burn(p), let .poison(p), let .bleed(p): p
         case let .thorns(p): p
-        case let .freezeOnHit(p): p
+        case let .onHitDamage(_, p): p
         case let .recurringDamage(_, p, _): p
         case let .avatar(holyDamage, _, _): holyDamage
         default: nil
@@ -240,7 +242,8 @@ public enum Effect: Hashable, Sendable {
              .purge, .purgeRandom, .halveShield, .controlMeter, .deathsDoor,
              .shield, .thorns, .nextHolyStrike, .nextStrikeDouble, .evadeNextHit,
              .convertManaToBlock, .shieldFromMana, .shieldFromHalfMana, .shieldFromGold, .maximumManaBonus,
-             .nextStrikeCritical, .freezeNextAttacker, .freezeOnHit, .multiplyDoT, .revive:
+             .nextStrikeCritical, .freezeNextAttacker, .onHitDamage, .multiplyDoT, .revive,
+             .cleanseHealPerDebuff:
             0
         }
     }
@@ -274,10 +277,11 @@ public enum Effect: Hashable, Sendable {
         case .revive:
             .defeatedAlly
         case .shield, .leech, .resourceGain, .drawCards, .drawAndPlayCards, .cleanse, .cleanseRandom,
+             .cleanseHealPerDebuff,
              .deathsDoor, .thorns, .criticalChanceBonus, .restoreManaOnHit,
              .damageKeywordOverride, .nextHolyStrike, .nextStrikeDouble, .evadeNextHit,
              .convertManaToBlock, .shieldFromMana, .shieldFromHalfMana, .shieldFromGold, .maximumManaBonus,
-             .nextStrikeCritical, .freezeNextAttacker, .freezeOnHit, .avatar,
+             .nextStrikeCritical, .freezeNextAttacker, .onHitDamage, .avatar,
              .damageReductionPercent, .damageReductionFlat, .strengthReduction:
             .actor
         }

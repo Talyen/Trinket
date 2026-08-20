@@ -84,11 +84,12 @@ struct LeechHandler: BattleEffectHandler {
         guard case let .leech(adjustedKeyword, adjustedPercent, adjustedDuration) = adjusted else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
-        ActiveEffectMutation.removeMatching(from: target, in: &context) {
-            if case .leech = $0 {
-                return true
+        ActiveEffectMutation.removeMatching(from: target, in: &context) { active in
+            if case .leech = active {
+                true
+            } else {
+                false
             }
-            return false
         }
         context.appendEffect(
             .leech(adjustedKeyword, adjustedPercent, adjustedDuration),

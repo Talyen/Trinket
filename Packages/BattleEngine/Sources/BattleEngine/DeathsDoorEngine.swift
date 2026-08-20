@@ -12,7 +12,8 @@ package enum DeathsDoorEngine {
         context.roster.isDeathsDoorActive(for: combatant)
     }
 
-    /// Lethal protection while Death's Door is active, or for the remainder of the tick it expired.
+    /// Lethal protection while Death's Door is active, or during the
+    /// end-of-round effect pass that removed it.
     public static func hasLethalProtection(
         for combatant: Combatant,
         in context: BattleState

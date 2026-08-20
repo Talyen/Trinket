@@ -32,7 +32,6 @@ public struct Ability: Identifiable, Hashable, Sendable {
     public let descriptionOverride: String?
     public let targetedEffects: [TargetedEffect]
     public let outcomeBranches: [AbilityOutcomeBranch]?
-    public let manaCost: Int
     public let criticalChanceBonus: Double
     public let guaranteedCriticalIfEnemyBuffed: Bool
     /// When true, damage from this ability heals the attacker for `Effect.abilityLeechPercent`
@@ -52,7 +51,6 @@ public struct Ability: Identifiable, Hashable, Sendable {
         effects: [Effect] = [],
         targetedEffects: [TargetedEffect]? = nil,
         outcomeBranches: [AbilityOutcomeBranch]? = nil,
-        manaCost: Int = 0,
         criticalChanceBonus: Double = 0,
         guaranteedCriticalIfEnemyBuffed: Bool = false,
         hasLeech: Bool = false
@@ -63,7 +61,6 @@ public struct Ability: Identifiable, Hashable, Sendable {
         self.damageComponents = damageComponents
         descriptionOverride = description
         self.outcomeBranches = outcomeBranches
-        self.manaCost = manaCost
         self.criticalChanceBonus = criticalChanceBonus
         self.guaranteedCriticalIfEnemyBuffed = guaranteedCriticalIfEnemyBuffed
         self.hasLeech = hasLeech
@@ -84,7 +81,6 @@ public struct Ability: Identifiable, Hashable, Sendable {
         effects: [Effect] = [],
         targetedEffects: [TargetedEffect]? = nil,
         outcomeBranches: [AbilityOutcomeBranch]? = nil,
-        manaCost: Int = 0,
         criticalChanceBonus: Double = 0,
         guaranteedCriticalIfEnemyBuffed: Bool = false,
         hasLeech: Bool = false
@@ -101,7 +97,6 @@ public struct Ability: Identifiable, Hashable, Sendable {
             effects: effects,
             targetedEffects: targetedEffects,
             outcomeBranches: outcomeBranches,
-            manaCost: manaCost,
             criticalChanceBonus: criticalChanceBonus,
             guaranteedCriticalIfEnemyBuffed: guaranteedCriticalIfEnemyBuffed,
             hasLeech: hasLeech
@@ -198,7 +193,6 @@ public struct Ability: Identifiable, Hashable, Sendable {
             damageComponents: components,
             targetedEffects: effects,
             outcomeBranches: nil,
-            manaCost: manaCost,
             criticalChanceBonus: criticalChanceBonus,
             guaranteedCriticalIfEnemyBuffed: guaranteedCriticalIfEnemyBuffed,
             hasLeech: hasLeech
@@ -235,10 +229,54 @@ public struct Ability: Identifiable, Hashable, Sendable {
                 )
             },
             outcomeBranches: nil,
-            manaCost: manaCost,
             criticalChanceBonus: criticalChanceBonus,
             guaranteedCriticalIfEnemyBuffed: guaranteedCriticalIfEnemyBuffed,
             hasLeech: hasLeech
         )
+    }
+}
+
+private extension DamageComponent {
+    var isOffensiveCombatDamage: Bool {
+        amount > 0
+            && (target == .abilityTarget || target == .enemy)
+            && keyword.category == .damageType
+    }
+}
+
+private extension TargetedEffect {
+    var dealsCombatDamage: Bool {
+        switch target {
+        case .actor, .hero, .companion, .lowestHealthAlly, .defeatedAlly:
+            return false
+        case .abilityTarget, .enemy:
+            break
+        }
+        switch effect {
+        case .burn, .poison, .bleed, .recurringDamage, .avatar, .multiplyDoT:
+            return true
+        default:
+            return false
+        }
+    }
+}
+
+public extension Ability {
+    /// True when playing this card can deal HP or DoT damage to the opponent.
+    /// Self-damage, heals, Block, Thorns, and draw are not combat damage.
+    var dealsCombatDamage: Bool {
+        if damageComponents.contains(where: \.isOffensiveCombatDamage) {
+            return true
+        }
+        if targetedEffects.contains(where: \.dealsCombatDamage) {
+            return true
+        }
+        guard let branches = outcomeBranches else {
+            return false
+        }
+        return branches.contains { branch in
+            branch.damageComponents.contains(where: \.isOffensiveCombatDamage)
+                || branch.targetedEffects.contains(where: \.dealsCombatDamage)
+        }
     }
 }

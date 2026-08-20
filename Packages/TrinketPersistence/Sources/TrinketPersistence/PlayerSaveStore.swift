@@ -9,15 +9,15 @@ import TrinketContent
 /// **Owns:** `ModelContainer` / `ModelContext`, deferred save + rollback,
 /// reset/seed, and slice property setters that sanitize then persist.
 ///
-/// **Does not own:** cross-slice player actions — use `PlayerHomesteadStore`
-/// (`homesteadStore.buildOrUpgradeNode`). Pure rules stay on value types
+/// **Does not own:** pure domain rules, which stay on value types
 /// (`PlayerHomesteadState`, `PlayerRosterState`, …). Prefer slice properties
 /// (`journey` / `roster` / `inventory` / `homestead`) for single-slice reads
-/// and writes; do not add empty pass-through facades.
+/// and writes, or domain extensions on `PlayerSaveStore` (`buildOrUpgradeNode`,
+/// `salvageItem`).
 ///
 /// **Where to put new persistence code:**
 /// 1. Pure domain rules → value types under `Models/`
-/// 2. Cross-slice player actions → `PlayerHomesteadStore` (or a real action type)
+/// 2. Cross-slice player actions → domain extensions on `PlayerSaveStore`
 /// 3. Container open / URL / CloudKit config → `PlayerSaveStoreConfiguration`
 /// 4. Only add methods here when they are hub infrastructure (save, rollback, reset)
 @MainActor
@@ -102,16 +102,6 @@ public final class PlayerSaveStore {
 
     public var currentSave: PlayerSave {
         assembledSave()
-    }
-
-    /// Cross-slice homestead actions — prefer over growing this hub.
-    public var homesteadStore: PlayerHomesteadStore {
-        PlayerHomesteadStore(save: self)
-    }
-
-    /// Roster and inventory edits — prefer over growing this hub.
-    public var rosterStore: PlayerRosterStore {
-        PlayerRosterStore(save: self)
     }
 
     private let persistSaveImmediately: Bool

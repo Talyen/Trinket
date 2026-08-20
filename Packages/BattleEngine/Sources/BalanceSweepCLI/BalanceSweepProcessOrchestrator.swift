@@ -95,33 +95,44 @@ enum BalanceSweepProcessOrchestrator {
         job: BalanceSweepWorkerJob,
         outputFile: String
     ) -> [String] {
-        [
+        var args = [
             "--worker",
             "--mode", job.mode.rawValue,
-            "--battles-per-tier", "\(parent.battlesPerTier)",
+            "--samples", "\(parent.battlesPerTier)",
             "--seed", "\(parent.seed)",
             "--tiers", parent.tiers.map(\.rawValue).joined(separator: ","),
             "--jobs", "1",
             "--max-rounds", "\(parent.maxRounds)",
             "--max-actions", "\(parent.maxActions)",
+            "--pacing", parent.appliesFightPacing ? "on" : "off",
+            "--policy", parent.policyID,
             "--work-offset", "\(job.offset)",
             "--work-limit", "\(job.limit)",
             "--output-file", outputFile,
         ]
+        if parent.comparePolicies {
+            args.append("--policy-compare")
+        }
+        if !parent.heroIDs.isEmpty {
+            args += ["--hero", parent.heroIDs.joined(separator: ",")]
+        }
+        if !parent.companionIDs.isEmpty {
+            args += ["--companion", parent.companionIDs.joined(separator: ",")]
+        }
+        if !parent.enemyIDs.isEmpty {
+            args += ["--enemy", parent.enemyIDs.joined(separator: ",")]
+        }
+        if !parent.focusIDs.isEmpty {
+            args += ["--focus", parent.focusIDs.joined(separator: ",")]
+        }
+        return args
     }
 
     private static func unsliced(_ config: BalanceSweepConfig) -> BalanceSweepConfig {
-        BalanceSweepConfig(
-            mode: config.mode,
-            battlesPerTier: config.battlesPerTier,
-            seed: config.seed,
-            tiers: config.tiers,
-            maxRounds: config.maxRounds,
-            maxActions: config.maxActions,
-            peerDeltaFlagThreshold: config.peerDeltaFlagThreshold,
-            outputDirectory: config.outputDirectory,
-            jobs: config.jobs
-        )
+        var copy = config
+        copy.workOffset = 0
+        copy.workLimit = nil
+        return copy
     }
 }
 

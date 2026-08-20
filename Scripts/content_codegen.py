@@ -150,11 +150,6 @@ class EnemyRow:
     is_boss: str
     growth_archetype: str
     abilities: str
-    strength: str
-    agility: str
-    toughness: str
-    intellect: str
-    wisdom: str
     trait_id: str
     faction: str
 
@@ -295,11 +290,6 @@ def parse_enemy_rows() -> list[EnemyRow]:
         "is_boss",
         "growth_archetype",
         "abilities",
-        "strength",
-        "agility",
-        "toughness",
-        "intellect",
-        "wisdom",
         "trait_id",
         "faction",
     ]
@@ -545,7 +535,20 @@ def triggers_swift(raw: str) -> str:
         elif token.startswith("turn_freeze_all_enemies:"):
             values["turnFreezeDamageAllEnemies"] = token.split(":", 1)[1]
         elif token.startswith("damage_increases_every_other_turn:"):
+            parts = token.split(":")
             values["damageIncreasesEveryOtherTurn"] = "true"
+            if len(parts) >= 3:
+                values["damageIncreasesEveryOtherTurnKeyword"] = f".{parts[1]}"
+        elif token.startswith("random_damage_ramp_per_turn:"):
+            parts = token.split(":")
+            if len(parts) != 4:
+                raise ValueError(
+                    f"random_damage_ramp_per_turn expects keyword:keyword:amount, got {token!r}"
+                )
+            _, keyword_a, keyword_b, amount = parts
+            values["randomDamageRampKeywordA"] = f".{keyword_a}"
+            values["randomDamageRampKeywordB"] = f".{keyword_b}"
+            values["randomDamageRampPerTurn"] = amount
         elif token.startswith("on_holy_damage_poison:"):
             values["holyDamagePoisonFlat"] = token.split(":", 1)[1]
         elif token.startswith("draw_every_other_turn:"):
@@ -796,7 +799,7 @@ def ability_symbols_swift(raw: str) -> str:
     return "[" + ", ".join(f".{symbol}" for symbol in symbols) + "]"
 
 
-def primary_stats_swift(row: CombatantRow | EnemyRow) -> str:
+def primary_stats_swift(row: CombatantRow) -> str:
     return (
         f"PrimaryStats(strength: {row.strength}, agility: {row.agility}, "
         f"toughness: {row.toughness}, intellect: {row.intellect}, wisdom: {row.wisdom})"
@@ -894,8 +897,6 @@ def validate_enemy_rows(
             raise ValueError(f"max_health for {row.id} must be an integer")
         if int(row.max_health) < 1:
             raise ValueError(f"max_health for {row.id} must be positive")
-        for stat in ("strength", "agility", "toughness", "intellect", "wisdom"):
-            _validate_positive_int(stat, getattr(row, stat), row.id)
 
         _validate_ability_symbols(row.abilities, row.id, ability_symbols, expected_count=3)
         _require_non_empty("trait_id", row.trait_id, row.id)
@@ -936,7 +937,7 @@ def render_enemy(row: EnemyRow) -> str:
         f"        Enemy(combatant: Combatant(id: \"{swift_escape(row.id)}\", "
         f"name: \"{swift_escape(row.name)}\", role: .enemy, maxHealth: {row.max_health}, "
         f"abilities: {ability_symbols_swift(row.abilities)}, "
-        f"primaryStats: {primary_stats_swift(row)}, "
+        f"primaryStats: GrowthArchetype.{row.growth_archetype}.identityPrimaryStats, "
         f"growthArchetype: .{row.growth_archetype}), "
         f"traitID: \"{swift_escape(row.trait_id)}\"{flag_clause})"
     )

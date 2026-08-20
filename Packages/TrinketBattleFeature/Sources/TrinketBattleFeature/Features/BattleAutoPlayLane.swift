@@ -18,9 +18,13 @@ struct BattleAutoPlayLane: View {
     var body: some View {
         EmptyView()
             .task(id: taskID) {
+                // New driver (new battle or Auto toggled on): drop a leftover
+                // tap-suppress flag from a cancelled gesture. A live drag after
+                // this point sets the flag again via the hand.
+                interactionState.suppressCombatantTaps = false
                 await battleSession.driveAutoBattle(
                     isCardCastActive: { castPresentation.request != nil },
-                    isManualInteractionActive: { interactionState.suppressCombatantTaps },
+                    isManualInteractionActive: { interactionState.blocksCombatantTaps },
                     playCard: { card in
                         await playCardWithTapLift(card)
                     }
@@ -30,6 +34,7 @@ struct BattleAutoPlayLane: View {
 
     private func playCardWithTapLift(_ card: BattleCard) async -> Bool {
         let configuration = BattleHandMotionConfiguration()
+        interactionState.suppressCombatantTaps = false
         interactionState.autoLiftCardID = card.id
         defer {
             if interactionState.autoLiftCardID == card.id {

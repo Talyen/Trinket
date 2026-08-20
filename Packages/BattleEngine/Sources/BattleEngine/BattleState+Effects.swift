@@ -37,7 +37,11 @@ package extension BattleState {
             return []
         }
         let adjusted = adjustedOutgoingEffect(.shield(.block, amount), sourceID: source.id)
-        guard case let .shield(keyword, buffer) = adjusted else { return [] }
+        let (keyword, buffer): (Keyword, Int) = if case let .shield(kw, buf) = adjusted {
+            (kw, buf)
+        } else {
+            (.block, amount)
+        }
         let applied = DefensePoolEngine.add(
             buffer,
             to: target,

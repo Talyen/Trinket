@@ -67,6 +67,7 @@ public struct CombatantTalentsView: View {
                 .trinketMaterial(.bottomBar)
                 .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
                 .padding(.bottom, TrinketDesign.Metrics.mediumSpacing)
+                .trinketSheetChromeIgnoresDismissDrag()
         }
         .onChange(of: tree.id) { _, _ in
             if let firstNodeID = tree.nodes.first?.id {

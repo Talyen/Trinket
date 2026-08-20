@@ -5,20 +5,17 @@ import TrinketDesignSystem
 import TrinketFeatureSupport
 import TrinketPersistence
 
-/// Single owner for the inventory salvage-detail state machine shared by the
-/// Collection shelf and the full Inventory grid.
-@MainActor
-@Observable
-final class SalvageItemDetailController {
+/// State container for the inventory salvage detail sheet and transmutation animation.
+struct SalvageDetailState {
     var selectedItem: InventoryItem?
     var transmutationEvent: SalvageTransmutationEvent?
     var salvageSuccessCount = 0
 
-    func select(_ item: InventoryItem) {
+    mutating func select(_ item: InventoryItem) {
         selectedItem = item
     }
 
-    func salvageFinished(
+    mutating func salvageFinished(
         result: ItemSalvageActionResult,
         item: InventoryItem
     ) {
@@ -36,7 +33,7 @@ final class SalvageItemDetailController {
         }
     }
 
-    func finishTransmutation(id: UUID) {
+    mutating func finishTransmutation(id: UUID) {
         guard transmutationEvent?.id == id else { return }
         transmutationEvent = nil
     }
@@ -46,16 +43,13 @@ final class SalvageItemDetailController {
 /// to presentation state while inventory data remains the grid's sole source.
 struct SalvageItemDetailSheet: View {
     @Environment(PlayerSaveStore.self) private var playerSave
-    let controller: SalvageItemDetailController
     let item: InventoryItem
+    let onFinished: (ItemSalvageActionResult) -> Void
 
     var body: some View {
         NavigationStack {
             ItemDetailView.inventorySalvageDetail(item: item, saveStore: playerSave) { result in
-                controller.salvageFinished(
-                    result: result,
-                    item: item
-                )
+                onFinished(result)
             }
         }
         .trinketDetailSheet()

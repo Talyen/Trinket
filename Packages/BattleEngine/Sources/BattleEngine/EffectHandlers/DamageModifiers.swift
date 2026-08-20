@@ -61,7 +61,7 @@ struct ControlMeterHandler: BattleEffectHandler {
     ) -> EffectTurnOutcome {
         _ = target
         _ = context
-        // Awaiting skip: do not tick. Post-consume linger: decrement and remove at 0.
+        // Awaiting skip: do not advance. Post-consume linger: decrement and remove at 0.
         guard active.remainingTurns > 0 else { return EffectTurnOutcome() }
         var updated = active
         updated.remainingTurns -= 1

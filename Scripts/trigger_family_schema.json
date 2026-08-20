@@ -64,6 +64,30 @@
         "merge": "or"
       },
       {
+        "name": "damageIncreasesEveryOtherTurnKeyword",
+        "type": "Keyword?",
+        "default": "nil",
+        "merge": "coalesce"
+      },
+      {
+        "name": "randomDamageRampKeywordA",
+        "type": "Keyword?",
+        "default": "nil",
+        "merge": "coalesce"
+      },
+      {
+        "name": "randomDamageRampKeywordB",
+        "type": "Keyword?",
+        "default": "nil",
+        "merge": "coalesce"
+      },
+      {
+        "name": "randomDamageRampPerTurn",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
         "name": "holyDamagePoisonFlat",
         "type": "Int",
         "default": "0",

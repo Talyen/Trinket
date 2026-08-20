@@ -4,7 +4,7 @@ import TrinketCore
 enum AbilityCatalogBasic {
     static let apple = Ability(
         id: "apple", name: "Apple", tier: .basic,
-        targetedEffects: [TargetedEffect(.instantHeal(.health, 2))]
+        targetedEffects: [TargetedEffect(.instantHeal(.health, 3))]
     )
 
     static let bash = AbilityBuilder.directHit(
@@ -42,8 +42,8 @@ enum AbilityCatalogBasic {
         description: "Deal 1 Burn damage. If the enemy is Burning, deal 1 extra Burn damage.",
         damageComponents: [DamageComponent(1, keyword: .burn)],
         targetedEffects: [
-            TargetedEffect(.burn(1)),
             TargetedEffect(.burn(1), condition: .enemyBurning),
+            TargetedEffect(.burn(1)),
         ]
     )
 
@@ -117,7 +117,7 @@ enum AbilityCatalogBasic {
 
     static let venomArrow = AbilityBuilder.directHit(
         id: "venom-arrow", name: "Venom Arrow", tier: .basic,
-        amount: 1, keyword: .poison
+        amount: 2, keyword: .poison
     )
 
     static let all: [Ability] = [

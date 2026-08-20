@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Headless balance sweep. Writes markdown under BalanceSweepReports/ (gitignored).
+# Headless balance sweep. Writes findings markdown under BalanceSweepReports/ (gitignored).
 # Requires Swift toolchain (Xcode 26+ / Swift 6.2) with macOS package support.
 # Builds release by default so combat runs in optimized worker processes.
 #
 # Examples:
 #   ./Scripts/balance-sweep.sh
-#   ./Scripts/balance-sweep.sh --battles-per-tier 100 --seed 42 --jobs 8
-#   ./Scripts/balance-sweep.sh --mode ability-contrast --battles-per-tier 200 --tiers early
-#   ./Scripts/balance-sweep.sh --mode talent-contrast --battles-per-tier 8 --tiers early
-#   ./Scripts/balance-sweep.sh --mode all --battles-per-tier 1000
+#   ./Scripts/balance-sweep.sh --samples 32 --seed 42 --jobs 8
+#   ./Scripts/balance-sweep.sh --mode ability-contrast --samples 200 --tiers early
+#   ./Scripts/balance-sweep.sh --mode talent-contrast --samples 8 --tiers early
+#   ./Scripts/balance-sweep.sh --mode all --samples 1000
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"

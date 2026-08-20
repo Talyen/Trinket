@@ -2,7 +2,7 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-/// Passive enemy trait hooks that run during battle ticks and damage resolution.
+/// Passive enemy trait hooks that run during the end-of-round effect pass and damage resolution.
 package enum EnemyTraitEngine {
     package static func turnFreeze(
         for combatant: Combatant,
@@ -10,7 +10,9 @@ package enum EnemyTraitEngine {
     ) -> [ActionEvent] {
         let profile = context.modifiers(for: combatant.id)
         guard profile.triggers.turnFreezeDamageAllEnemies > 0,
-              context.roster.health(for: combatant) > 0
+              context.roster.health(for: combatant) > 0,
+              context.turnCount > 0,
+              context.turnCount.isMultiple(of: 2)
         else { return [] }
 
         var events: [ActionEvent] = []
@@ -34,6 +36,24 @@ package enum EnemyTraitEngine {
             events.append(contentsOf: outcome.events)
         }
         return events
+    }
+
+    /// Picks one of two authored keywords at random and adds that type's damage bonus.
+    package static func randomKeywordDamageRamp(
+        for combatant: Combatant,
+        context: inout BattleState
+    ) {
+        let triggers = context.modifiers(for: combatant.id).triggers
+        guard triggers.randomDamageRampPerTurn > 0,
+              let first = triggers.randomDamageRampKeywordA,
+              let second = triggers.randomDamageRampKeywordB,
+              context.roster.health(for: combatant) > 0
+        else { return }
+
+        let chosen = Bool.random(using: &context.rng) ? first : second
+        context.roster.mutateRuntime(for: combatant) { runtime in
+            runtime.keywordDamageRamp[chosen, default: 0] += triggers.randomDamageRampPerTurn
+        }
     }
 
     package static func traitAttackerBurn(

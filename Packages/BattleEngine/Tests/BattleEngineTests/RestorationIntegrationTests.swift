@@ -92,7 +92,7 @@ struct RestorationIntegrationTests {
             ]
         )
 
-        // Enemy acts during endTurn (before effect tick). Burn is still at full potency
+        // Enemy acts during endTurn (before the effect pass). Burn is still at full potency
         // for the apply-on-seed path; damage from burn happens at end-of-round after enemy heal.
         // Seed damage manually so enemy is below max when it heals.
         battle.withEngineContext { context in

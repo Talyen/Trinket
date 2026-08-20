@@ -51,7 +51,7 @@ struct TrinketEffectTests { // swiftlint:disable:this type_body_length
         let events = try battle.playCard(cardID: card.id)
 
         try #expect(battle.mana(of: battle.hero) == 2)
-        try #expect(events.contains { $0.kind == .ability && $0.amount == 4 })
+        try #expect(events.contains { $0.kind == .ability && $0.amount == 5 })
     }
 
     @Test func physicalTrinketsBuildStunAndGrantBlock() throws {

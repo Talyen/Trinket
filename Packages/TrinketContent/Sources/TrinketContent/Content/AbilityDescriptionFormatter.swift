@@ -93,6 +93,7 @@ enum AbilityDescriptionFormatter {
         case .enemyLowerHealthThanActor: "the enemy has less Health than you"
         case .allyBelowHalfHealth: "your Hero or Companion is below half Health"
         case .enemyHasBuff: "the enemy has a buff"
+        case .firstTurn: "played on the first turn"
         }
     }
 

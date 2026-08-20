@@ -24,11 +24,12 @@ struct CombatantLevelScalerTests {
         try #expect(scaledEnemy.maxHealth > skeleton.combatant.maxHealth)
     }
 
-    @Test func enemyScalerAppliesUniformPowerMultiplier() throws {
+    @Test func enemyScalerAppliesSplitHealthAndStatMultipliers() throws {
         let boss = try #require(GameContent.enemy(matching: "the_forge_golem"))
         let level = 20
         let scaled = CombatantLevelScaler.scale(enemy: boss, level: level)
-        let power = EnemyPowerCurve.power(level: level, isBoss: true)
+        let health = EnemyPowerCurve.health(level: level, isBoss: true)
+        let stats = EnemyPowerCurve.stats(level: level, isBoss: true)
 
         let levelsAbove = StatGrowth.levelsAboveIdentity(level)
         let growth = StatGrowth.enemyGrowth(
@@ -45,12 +46,22 @@ struct CombatantLevelScalerTests {
             maxHealth: grown.maxHealth,
             maxMana: grown.maxMana,
             primaryStats: grown.primaryStats,
-            healthMultiplier: power,
-            statsMultiplier: power
+            healthMultiplier: health,
+            statsMultiplier: stats
+        )
+        let uniformStats = StatGrowth.applyPowerMultiplier(
+            maxHealth: grown.maxHealth,
+            maxMana: grown.maxMana,
+            primaryStats: grown.primaryStats,
+            healthMultiplier: stats,
+            statsMultiplier: stats
         )
 
+        try #expect(health < stats)
         try #expect(scaled.primaryStats == expected.primaryStats)
         try #expect(scaled.maxHealth == expected.maxHealth)
+        try #expect(scaled.maxHealth < uniformStats.maxHealth)
+        try #expect(scaled.primaryStats == uniformStats.primaryStats)
     }
 
     @Test func enemyScalerAppliesPowerCurve() throws {
@@ -73,8 +84,8 @@ struct CombatantLevelScalerTests {
             maxHealth: grown.maxHealth,
             maxMana: grown.maxMana,
             primaryStats: grown.primaryStats,
-            healthMultiplier: EnemyPowerCurve.power(level: level, isBoss: true),
-            statsMultiplier: EnemyPowerCurve.power(level: level, isBoss: true)
+            healthMultiplier: EnemyPowerCurve.health(level: level, isBoss: true),
+            statsMultiplier: EnemyPowerCurve.stats(level: level, isBoss: true)
         )
 
         try #expect(scaled.maxHealth == expected.maxHealth)

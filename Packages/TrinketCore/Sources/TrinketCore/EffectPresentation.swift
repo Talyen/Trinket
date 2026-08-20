@@ -104,8 +104,10 @@ public enum EffectPresentation {
         switch effect {
         case .freezeNextAttacker:
             "Glacial Ward"
-        case let .freezeOnHit(amount):
+        case let .onHitDamage(.freeze, amount):
             amount == 1 ? "Glacial Ward" : "Glacial Ward (\(amount))"
+        case let .onHitDamage(keyword, amount):
+            amount == 1 ? "\(keyword.rawValue) Ward" : "\(keyword.rawValue) Ward (\(amount))"
         case .maximumManaBonus:
             "Max Mana"
         case let .recurringDamage(keyword, potency, _):
@@ -142,8 +144,8 @@ public enum EffectPresentation {
             "builds toward \(keyword.statusAlias ?? keyword.rawValue)"
         case .freezeNextAttacker:
             "Freeze the next attacker"
-        case let .freezeOnHit(amount):
-            "deal \(amount) Freeze damage next time you're hit"
+        case let .onHitDamage(keyword, amount):
+            "deal \(amount) \(keyword.rawValue) damage next time you're hit"
         default:
             nil
         }
@@ -205,6 +207,8 @@ public enum EffectPresentation {
             "cleanse \(keyword.statusAlias ?? keyword.rawValue)"
         case .cleanse(nil):
             "cleanse all debuffs"
+        case let .cleanseHealPerDebuff(healPerRemoved):
+            "cleanse all debuffs and restore \(healPerRemoved) Health for each debuff cleansed"
         case .cleanseRandom:
             "cleanse a status effect"
         case let .purge(keyword?):

@@ -43,6 +43,12 @@ struct FightPacingTests {
         try #expect(FightPacing.clockMultiplier(isBoss: isBoss, in: context) == 1.0)
     }
 
+    @Test func pacedReturnsAuthoredAmountWhenFightPacingDisabled() {
+        var context = makeContext(heroHP: 15, companionHP: 15, enemyHP: 45, turnCount: 8)
+        context.appliesFightPacing = false
+        #expect(context.paced(10, sourceActorID: context.hero.id) == 10)
+    }
+
     @Test func partyBehindGrantsPartyComebackAtLeastTenPercent() throws {
         let context = makeContext(heroHP: 15, companionHP: 15, enemyHP: 45, turnCount: 4)
         let isBoss = FightPacing.isBossEnemy(in: context)

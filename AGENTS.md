@@ -4,6 +4,15 @@ Portrait-first iOS fantasy turn-based card combat. SwiftUI app plus local SPM pa
 
 Fast iteration loop: `./Scripts/test.sh unit` or `./Scripts/test-package.sh <Package>`. After a green isolate-slot rebuild, re-run smoke with `--no-build` during mid-task iteration; handoff still uses full `./Scripts/handoff.sh --isolate --paths …`. Verification tiers, gate composition, and script routing live in `Docs/Platform/Verification.md`.
 
+## Communication
+
+Write as if explaining the work to a collaborator who knows Trinket as a game, not the file tree. They did not see your tool calls or this document.
+
+- **Lead with meaning.** First sentence: what is true now, or what you did, in game or workflow terms. Then files, commands, and type names if the reader needs them to act.
+- **Name things once.** On first use, say what a term is (`BattleSession` is the object that runs a live fight). After that, the short name is fine. Do not invent extra nicknames.
+- **Match the question.** If they asked why a fight feels long, answer in pacing and numbers. If they asked which function, use the symbol. Do not default to architecture-review voice.
+- **Do not echo this file into chat.** Keep isolate slots, path-scoped gates, and change-budget for doing the work. When talking about the work, do not dump tables of internals unless they asked.
+
 ## Guardrails
 
 - These rules apply repository-wide. A nested `AGENTS.md` may add or tighten path-specific rules, but it may not relax this root Guardrails section.
@@ -26,7 +35,7 @@ Fast iteration loop: `./Scripts/test.sh unit` or `./Scripts/test-package.sh <Pac
 
 ## Task routing
 
-Touched areas must respect their nested guides and AgentContext cards. Run `./Scripts/agent-context.sh --agent --paths <file...>` once the task's touched paths are known — it is the catalog for discovering path-specific guidance, skills, and verification plans, not a prerequisite ritual before thinking. Rerun it when the task crosses into another area.
+Touched areas must respect their nested guides and AgentContext cards. Run `./Scripts/agent-context.sh --agent --paths <file...>` once the task's touched paths are known — it is the catalog for discovering path-specific guidance, skills, and verification plans, not a prerequisite ritual before thinking. Rerun it when the task crosses into another area. Use automated skills (`architect` for type/boundary specs, `blast-radius` for cross-package impact, `unslop` for change discipline, `doc-budget` for comment pruning, `why` for intent recovery, `qa-verifier` for mid-task test routing, `handoff-verifier` for pre-handoff checks) as appropriate when their triggers match touched paths.
 
 ## Test and verification discipline
 
@@ -34,7 +43,7 @@ Touched areas must respect their nested guides and AgentContext cards. Run `./Sc
 - Extend the closest existing semantic owner before adding a declaration, file, or class. Do not test plumbing, stored-property round trips, display copy, layout constants, framework behavior, or trivial delegation.
 - UI tests are exceptional: keep one owner for a shipping shell/entry, state-changing journey, or safety invariant that lower tiers cannot prove. Never duplicate it across smoke and exhaustive UI. See `Docs/Platform/Testing.md`.
 - Before handoff, changed paths must pass path-scoped verification with `--isolate`. `./Scripts/handoff.sh --isolate --paths <file...>` is the canonical gate. Never kill foreign Xcode or Simulator processes; concurrency, worktree, lock, and diagnostics details live in `Docs/AgentContext/ci-and-project-generation.md` and `Docs/AgentContext/ci-diagnostics.md`.
-- At handoff, summarize the behavior changed, verification status (what ran, pass/fail, skips), and any change-budget justification.
+- At handoff, report what changed, what verification ran, and anything intentionally left untouched. Write that in the same voice as Communication: readable without opening the diff. Example: “Enemies now pick a new target if the current one dies mid-turn. That logic lives in `BattleTurnEngine.swift`. Ran the BattleEngine tests.” Not: “Refactored `BattleTurnEngine` targeting resolution.” Include pass/fail, skips, and any change-budget justification.
 
 ## Commit and push
 

@@ -38,7 +38,7 @@ public enum ExperienceScaling {
         guard gap > 0 else { return 1 }
 
         let normalized = 1.0 - (Double(gap) / Double(underlevelCutoff))
-        return progressionSmoothstep(normalized)
+        return EnemyPowerCurve.progressionSmoothstep(normalized)
     }
 
     public static func baseBattleAward(forPlayerLevel level: Int) -> Int {
@@ -100,10 +100,6 @@ public enum ExperienceScaling {
 
     /// Catch-up XP multiplier. Returns 1.0 when the combatant is at or above
     /// `highestLevel`, smoothly approaching `maxMultiplier` as the level gap grows.
-    /// - Parameters:
-    ///   - combatantLevel: The level of the combatant receiving XP.
-    ///   - highestLevel: The highest level among same-role combatants.
-    ///   - maxMultiplier: The maximum multiplier to approach (default 2.5).
     public static func catchUpMultiplier(
         for combatantLevel: Int,
         highestLevel: Int,

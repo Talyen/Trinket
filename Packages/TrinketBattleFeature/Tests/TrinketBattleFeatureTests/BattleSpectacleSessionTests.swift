@@ -144,6 +144,41 @@ struct BattleSpectacleSessionTests {
         }
     }
 
+    @Test func cinematicSessionWatchdogClearsStuckUltimateOverlay() async throws {
+        let hero = CombatantFixtures.combatant(
+            id: "knight",
+            role: .hero,
+            abilities: [.slash, .fireball, .avatarOfJustice]
+        )
+        let session = try BattleSessionTestSupport.makeConfiguredSession(
+            hero: hero,
+            companion: CombatantFixtures.combatant(id: "companion", role: .companion, abilities: []),
+            enemy: CombatantFixtures.combatant(
+                id: "enemy",
+                role: .enemy,
+                maxHealth: 500,
+                abilities: []
+            )
+        )
+        session.cinematicSessionWatchdogOverride = 0.05
+        let now = Date()
+        let ultimate = try #require(
+            BattleSessionTestSupport.drawUntilPlayable(
+                Ability.avatarOfJustice.id,
+                on: session,
+                at: now
+            )
+        )
+        _ = session.playCard(cardID: ultimate.id, at: now)
+        #expect(session.spectacle.activeCinematic != nil)
+        #expect(
+            try await BattleSessionTestSupport.waitUntil {
+                session.spectacle.activeCinematic == nil
+            }
+        )
+        #expect(session.canEndTurn)
+    }
+
     @Test func alwaysPolicyAutoSkipsUltimateCinematic() throws {
         let hero = CombatantFixtures.combatant(
             id: "knight",

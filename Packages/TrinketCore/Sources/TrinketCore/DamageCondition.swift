@@ -13,4 +13,5 @@ public enum DamageCondition: Hashable, Sendable {
     case enemyLowerHealthThanActor
     case allyBelowHalfHealth
     case enemyHasBuff
+    case firstTurn
 }

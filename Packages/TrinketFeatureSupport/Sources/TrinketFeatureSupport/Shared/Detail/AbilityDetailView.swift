@@ -59,6 +59,7 @@ public struct AbilityDetailView: View {
                 .accessibilityIdentifier(primaryActionAccessibilityID ?? primaryActionTitle)
                 .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
                 .padding(.vertical, TrinketDesign.Metrics.mediumSpacing)
+                .trinketSheetChromeIgnoresDismissDrag()
             }
         }
     }

@@ -42,8 +42,10 @@ public enum CombatantBuffAura: Sendable {
             .shadowstep
         case .nextStrikeCritical:
             .predatorsFocus
-        case .freezeOnHit, .freezeNextAttacker:
+        case .freezeNextAttacker, .onHitDamage(.freeze, _):
             .glacialWard
+        case .onHitDamage(.holy, _):
+            .avatar
         case let .thorns(stacks) where stacks > 0:
             .thorns
         case .avatar, .nextHolyStrike:

@@ -19,13 +19,12 @@ public enum CombatantLevelScaler {
             levelsAbove: levelsAbove
         )
         let scaled = scaledCombatant(enemy.combatant, growth: growth)
-        let power = EnemyPowerCurve.power(level: level, isBoss: enemy.isBoss)
         let powered = StatGrowth.applyPowerMultiplier(
             maxHealth: scaled.maxHealth,
             maxMana: scaled.maxMana,
             primaryStats: scaled.primaryStats,
-            healthMultiplier: power,
-            statsMultiplier: power
+            healthMultiplier: EnemyPowerCurve.health(level: level, isBoss: enemy.isBoss),
+            statsMultiplier: EnemyPowerCurve.stats(level: level, isBoss: enemy.isBoss)
         )
         return Combatant(
             id: scaled.id,
@@ -46,7 +45,7 @@ public enum CombatantLevelScaler {
             maxHealth: scaled.maxHealth,
             primaryStats: scaled.primaryStats,
             level: level,
-            powerMultiplier: EnemyPowerCurve.power(level: level, isBoss: enemy.isBoss)
+            powerMultiplier: EnemyPowerCurve.stats(level: level, isBoss: enemy.isBoss)
         )
     }
 

@@ -25,6 +25,9 @@ struct CleanseIntegrationTests {
                 ActiveEffect(id: 3, effect: .shield(.block, 10), remainingTurns: 6),
             ]
         )
+        battle.withEngineContext { context in
+            context.roster.mutateRuntime(for: hero) { $0.currentHealth = 10 }
+        }
 
         _ = try BattleTestFixtures.playUntilAbility("Panacea Potion", on: &battle)
 
@@ -34,6 +37,7 @@ struct CleanseIntegrationTests {
                 return true
             }; return false
         })
+        try #expect(battle.health(of: battle.hero) == 12)
     }
 
     @Test func cleanseSpecificKeywordRemovesMatchingDebuffsOnUse() throws {

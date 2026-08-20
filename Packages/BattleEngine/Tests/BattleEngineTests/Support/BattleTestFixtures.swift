@@ -238,7 +238,7 @@ enum BattleTestFixtures {
         battle.endTurn()
     }
 
-    /// Ends `count` player turns (each runs enemy phase + end-of-round effect tick + draw).
+    /// Ends `count` player turns (each runs enemy phase + end-of-round effect pass + draw).
     @discardableResult
     static func endTurns(_ count: Int, on battle: inout BattleState) -> [ActionEvent] {
         var allEvents: [ActionEvent] = []

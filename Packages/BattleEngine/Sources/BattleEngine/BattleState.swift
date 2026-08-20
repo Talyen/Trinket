@@ -44,9 +44,13 @@ public struct BattleState {
     /// Use for bulk simulation to avoid unbounded allocation.
     public let tracksEvents: Bool
 
+    /// When `false`, authored combat magnitudes skip hidden `FightPacing` scaling.
+    /// Shipping battles leave this `true`.
+    public var appliesFightPacing: Bool
+
     public var roster: BattleRoster
     public var rng: SeededRandomNumberGenerator
-    /// Round index. Advances once per full round (player turn + enemy turn + effect tick).
+    /// Round index. Advances once per full round (player turn + enemy turn + effect pass).
     public var turnCount: Int
     public var nextEffectID: Int
     public var nextEventID: Int
@@ -149,11 +153,13 @@ public struct BattleState {
         isResolvingAutoPlayCard: Bool = false,
         enemyFaction: EnemyFaction = .mortal,
         tracksLog: Bool = false,
-        tracksEvents: Bool = true
+        tracksEvents: Bool = true,
+        appliesFightPacing: Bool = true
     ) {
         rngSeed = rng.seed
         self.tracksLog = tracksLog
         self.tracksEvents = tracksEvents
+        self.appliesFightPacing = appliesFightPacing
         self.roster = roster
         self.rng = rng
         self.turnCount = turnCount
@@ -212,11 +218,13 @@ public struct BattleState {
         rngSeed: UInt64? = nil,
         tracksLog: Bool = true,
         tracksEvents: Bool = true,
-        dealOpeningHand: Bool = true
+        dealOpeningHand: Bool = true,
+        appliesFightPacing: Bool = true
     ) {
         let resolvedEnemy = enemy ?? Enemy.fallbackCombatant
         self.tracksLog = tracksLog
         self.tracksEvents = tracksEvents
+        self.appliesFightPacing = appliesFightPacing
         let seed = rngSeed ?? Self.defaultRNGSeed
         self.rngSeed = seed
 

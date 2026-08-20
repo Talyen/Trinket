@@ -24,7 +24,7 @@ final class PlayerHomesteadStoreTests {
         roster.gold = 4
         firstStore.roster = roster
 
-        let result = firstStore.homesteadStore.buildOrUpgradeNode(definition)
+        let result = firstStore.buildOrUpgradeNode(definition)
         try #expect(result == .success)
         try #expect(firstStore.homestead.tier(for: .wheatField) == 1)
         try #expect(firstStore.homestead.resources[.wood] == 15)
@@ -40,7 +40,7 @@ final class PlayerHomesteadStoreTests {
         let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
         store.homestead = PlayerHomesteadState(resources: [:], nodeTiers: [:])
 
-        let result = store.homesteadStore.buildOrUpgradeNode(definition)
+        let result = store.buildOrUpgradeNode(definition)
         try #expect(result == .insufficientResources)
         try #expect(store.homestead.tier(for: .wheatField) == 0)
     }
@@ -54,7 +54,7 @@ final class PlayerHomesteadStoreTests {
             nodeTiers: [.wheatField: maxTier]
         )
 
-        let result = store.homesteadStore.buildOrUpgradeNode(definition)
+        let result = store.buildOrUpgradeNode(definition)
         try #expect(result == .notAvailable)
         try #expect(store.homestead.tier(for: .wheatField) == maxTier)
     }
@@ -73,7 +73,7 @@ final class PlayerHomesteadStoreTests {
         roster.gold = 900
         firstStore.roster = roster
 
-        let result = firstStore.homesteadStore.collectProduction(at: collectionDate)
+        let result = firstStore.collectProduction(at: collectionDate)
         try #expect(result == .success([
             ResourceAmount(.food, 1),
             ResourceAmount(.gold, 1),
@@ -97,7 +97,7 @@ final class PlayerHomesteadStoreTests {
             lastProductionAt: start
         )
 
-        let result = store.homesteadStore.buildOrUpgradeNode(definition, at: upgradeDate)
+        let result = store.buildOrUpgradeNode(definition, at: upgradeDate)
         try #expect(result == .success)
         try #expect(store.homestead.tier(for: .wheatField) == 2)
         try #expect(store.homestead.pendingProduction[.food] == 1)

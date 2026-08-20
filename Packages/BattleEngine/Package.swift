@@ -5,8 +5,14 @@ import PackageDescription
 let balanceToolSources = [
     "BalanceAbilityContrastRunner.swift",
     "BalanceAffixContrastRunner.swift",
+    "BalanceContrastFlags.swift",
     "BalanceContrastSupport.swift",
+    "BalanceDurationAggregation.swift",
+    "BalanceFindingsReporter.swift",
+    "BalanceIdentityMargins.swift",
+    "BalanceIdentityTables.swift",
     "BalanceMarkdownReporter.swift",
+    "BalanceMarkdownTables.swift",
     "BalanceProgressionReportFormatter.swift",
     "BalanceProgressionRunner.swift",
     "BalanceStatsAggregator.swift",
@@ -24,7 +30,9 @@ let balanceToolSources = [
 ]
 
 let balanceToolTestSources = [
+    "BalanceFindingsReporterTests.swift",
     "BalanceSweepOrchestrationTests.swift",
+    "BattleSimulatorSweepReportTests.swift",
     "BattleSimulatorTests.swift",
 ]
 

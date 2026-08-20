@@ -16,7 +16,7 @@ struct HomesteadBuildControl {
         saveStore: PlayerSaveStore,
         onSuccess: (HomesteadNodeID) -> Void = { _ in }
     ) {
-        switch saveStore.homesteadStore.buildOrUpgradeNode(definition) {
+        switch saveStore.buildOrUpgradeNode(definition) {
         case .success:
             upgradeEventCount += 1
             onSuccess(definition.id)
@@ -40,7 +40,7 @@ struct HomesteadCollectionControl {
         at date: Date,
         onSuccess: ([ResourceAmount]) -> Void = { _ in }
     ) {
-        switch saveStore.homesteadStore.collectProduction(at: date) {
+        switch saveStore.collectProduction(at: date) {
         case let .success(amounts):
             collectionEventCount += 1
             onSuccess(amounts)

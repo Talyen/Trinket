@@ -63,8 +63,8 @@ struct AbilityEffectIntegrationTests {
             "Expected Bloodthorn to resolve in battle"
         )
 
-        // One randomly chosen typed hit (4 Bleed or 3 Poison) plus paired DoT.
-        try #expect((96 ... 97).contains(battle.health(of: battle.enemy)))
+        // One randomly chosen typed hit (4 Bleed or 4 Poison) plus paired DoT.
+        try #expect(battle.health(of: battle.enemy) == 95)
         let hasBleed = battle.hasEnemyEffect {
             if case .bleed = $0 {
                 return true
@@ -78,7 +78,7 @@ struct AbilityEffectIntegrationTests {
             return false
         }
         try #expect(hasBleed != hasPoison)
-        try #expect(battle.health(of: battle.hero) == 10)
+        try #expect(battle.health(of: battle.hero) == 13)
     }
 
     @Test func cleanseRandomRemovesOneDebuffAndHeals() throws {
@@ -213,5 +213,64 @@ struct AbilityEffectIntegrationTests {
             }
             return false
         })
+    }
+
+    @Test func pounceDoublesStunOnlyOnTheOpeningTurn() throws {
+        let hero = Combatant(
+            id: "hero",
+            name: "Hero",
+            role: .hero,
+            maxHealth: 20,
+            abilities: [.pounce]
+        )
+        let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion)
+        let enemy = BattleTestFixtures.silentEnemy(maxHealth: 100)
+        var battle = BattleTestFixtures.standardParty(hero: hero, companion: companion, enemy: enemy)
+        try #expect(battle.turnCount == 0)
+
+        let firstEvents = try BattleTestFixtures.playCardNamed("Pounce", owner: .hero, on: &battle)
+        let firstHit = try #require(firstEvents.first { $0.kind == .ability && $0.abilityName == "Pounce" }?.amount)
+        try #expect(firstHit == 6)
+
+        _ = BattleTestFixtures.endTurn(on: &battle)
+        try #expect(battle.turnCount == 1)
+        let secondEvents = try #require(try BattleTestFixtures.playUntilAbility("Pounce", on: &battle))
+        let secondHit = try #require(secondEvents.first { $0.kind == .ability && $0.abilityName == "Pounce" }?.amount)
+        try #expect(secondHit == 3)
+    }
+
+    @Test func combustionDoublesOnlyWhenEnemyAlreadyBurning() throws {
+        let hero = Combatant(
+            id: "hero",
+            name: "Hero",
+            role: .hero,
+            maxHealth: 20,
+            abilities: [.combustion]
+        )
+        let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion)
+        let enemy = BattleTestFixtures.silentEnemy(maxHealth: 100)
+
+        var fresh = BattleTestFixtures.standardParty(hero: hero, companion: companion, enemy: enemy)
+        let freshEvents = try BattleTestFixtures.playCardNamed("Combustion", owner: .hero, on: &fresh)
+        let freshHit = try #require(freshEvents.first { $0.kind == .ability && $0.abilityName == "Combustion" }?.amount)
+        try #expect(freshHit == 4)
+        try #expect(burnPotency(on: fresh) == 4)
+
+        var burning = BattleTestFixtures.standardParty(
+            hero: hero,
+            companion: companion,
+            enemy: enemy,
+            activeEnemyEffects: [ActiveEffect(id: 1, effect: .burn(2), remainingTurns: 0)]
+        )
+        let burningEvents = try BattleTestFixtures.playCardNamed("Combustion", owner: .hero, on: &burning)
+        let burningHit = try #require(burningEvents.first { $0.kind == .ability && $0.abilityName == "Combustion" }?.amount)
+        try #expect(burningHit == 8)
+        try #expect(burnPotency(on: burning) == 10)
+    }
+
+    private func burnPotency(on battle: BattleState) -> Int? {
+        battle.activeEffects(of: battle.enemy).first {
+            $0.effect.isDecayingDoT && $0.keyword == .burn
+        }?.effect.potency
     }
 }

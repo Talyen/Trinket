@@ -18,7 +18,7 @@ package enum FightPacing {
         var gapFullScale: Double
         var clockMin: Double
         var clockMax: Double
-        var targetDuration: Double
+        var targetRounds: Double
         var maxRounds: Int
         var burnFractionAtTarget: Double
         var backstopSpan: Double
@@ -32,7 +32,7 @@ package enum FightPacing {
             gapFullScale: 0.10,
             clockMin: 0.10,
             clockMax: 0.20,
-            targetDuration: 7.5,
+            targetRounds: 7.5,
             maxRounds: 10,
             burnFractionAtTarget: 0.50,
             backstopSpan: 4
@@ -47,7 +47,7 @@ package enum FightPacing {
             gapFullScale: 0.10,
             clockMin: 0.10,
             clockMax: 0.20,
-            targetDuration: 15.0,
+            targetRounds: 15.0,
             maxRounds: 20,
             burnFractionAtTarget: 0.50,
             backstopSpan: 4
@@ -160,7 +160,7 @@ package enum FightPacing {
 
     package static func scheduleClockBonus(metrics: PoolMetrics, turn: Int, config: Config) -> Double {
         let normalizedTurn = turn > 0
-            ? min(1, Double(turn) / config.targetDuration)
+            ? min(1, Double(turn) / config.targetRounds)
             : 0
         let expectedBurn = config.burnFractionAtTarget * smoothstep(normalizedTurn)
         let scheduleGap = expectedBurn - metrics.actualBurnFraction

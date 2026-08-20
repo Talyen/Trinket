@@ -13,8 +13,7 @@ enum BattleCardPlayResolution: Equatable, Sendable {
     case committed
 
     var didCommit: Bool {
-        guard case .committed = self else { return false }
-        return true
+        self == .committed
     }
 }
 
@@ -66,6 +65,9 @@ public final class BattleSession: BattleRuntime {
 
     /// Auto-battle poll interval while blocked. Unit tests set `.zero`.
     var autoBattleRetryDelay: Duration = .milliseconds(50)
+    /// Test seam for the Ultimate overlay wall-clock ceiling. Production uses motion.
+    @ObservationIgnored
+    var cinematicSessionWatchdogOverride: TimeInterval?
 
     let autoEndTurnDelay: TimeInterval
     let enemyAttackImpactDelayOverride: TimeInterval?

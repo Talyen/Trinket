@@ -9,7 +9,7 @@ not fit a row below, add a row rather than stuffing it into an unrelated file.
 
 | Concern | Suite | Example |
 |---------|-------|---------|
-| Handler apply/tick | `EffectHandlers*Tests` | cleanse removes meter |
+| Handler apply / turn advance | `EffectHandlers*Tests` | cleanse removes meter |
 | Damage pipeline steps | `DamagePipelineTests`, `CombatPipelineTests` | dodge short-circuit |
 | DoT math | `DoTDamageTests`, `DoTMechanicsTests` | burn decay |
 | Card combat driver | `BattleCardCombatTests` | opening hand, end turn, enemy cadence |
@@ -17,8 +17,8 @@ not fit a row below, add a row rather than stuffing it into an unrelated file.
 | Build / traits / affixes / talents | `CombatBuildResolverTests`, `CombatTriggerTalentTests` (injected trigger math, party-scope), `TalentCatalogRoundTripTests` (catalog node → battle hook), `TrinketEffectTests` (card-play and trinket-slot trigger flows), `EnemyTraitBattleTests`, `AffixReactionBattleTests`, `ItemModifierBattleTests` | item and talent triggers |
 | Catalog ability combos | `AbilityEffectIntegrationTests` | Bloodthorn, Prayer |
 | Outcome / log | `BattleOutcomeResolverTests`, `BattleLogReducerTests` | victory rules |
-| Greedy card policy | `GreedyHeuristicPolicyTests` | lethal card outranks weaker leftmost |
-| Balance simulator | `BattleSimulatorTests`, `BalanceSweepOrchestrationTests` | greedy autoplay, sequential jobs parity, work-slice merge, ability/affix/talent contrasts |
+| Greedy card policy | `GreedyHeuristicPolicyTests` | lethal card outranks weaker leftmost; setup-v1 prefers missing DoT |
+| Balance simulator | `BattleSimulatorTests`, `BalanceSweepOrchestrationTests`, `BalanceFindingsReporterTests` | greedy autoplay, quotas, timeout excluded from WR, findings brief lists flagged presence rows |
 
 ## Integration through card turns
 

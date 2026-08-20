@@ -170,7 +170,7 @@ struct DamagePipelineTests {
         let attacker = context.roster.hero.combatant
         context.roster.setActiveEffects(
             [
-                ActiveEffect(id: 1, effect: .freezeOnHit(2), remainingTurns: 0),
+                ActiveEffect(id: 1, effect: .onHitDamage(.freeze, 2), remainingTurns: 0),
                 ActiveEffect(id: 2, effect: .shield(.block, 50), remainingTurns: 0),
             ],
             for: defender
@@ -189,7 +189,61 @@ struct DamagePipelineTests {
         try #expect(context.roster.health(for: defender) == healthBefore)
         try #expect(context.roster.health(for: attacker) == attackerHealthBefore - 2)
         try #expect(!(context.roster.activeEffects(for: defender).contains {
-            if case .freezeOnHit = $0.effect {
+            if case .onHitDamage = $0.effect {
+                return true
+            }
+            return false
+        }))
+    }
+
+    @Test func onHitDamageRetaliatesWithTheWardKeyword() throws {
+        var context = makeContext(seed: 2)
+        let defender = context.roster.enemy.combatant
+        let attacker = context.roster.hero.combatant
+        context.roster.setActiveEffects(
+            [
+                ActiveEffect(id: 1, effect: .onHitDamage(.holy, 6), remainingTurns: 0),
+                ActiveEffect(id: 2, effect: .shield(.block, 50), remainingTurns: 0),
+            ],
+            for: defender
+        )
+
+        let attackerHealthBefore = context.roster.health(for: attacker)
+        _ = context.resolveDamage(
+            .directAbilityHit(
+                amount: 10,
+                target: defender,
+                keyword: .physical,
+                sourceActorID: attacker.id
+            )
+        )
+        try #expect(context.roster.health(for: attacker) == attackerHealthBefore - 6)
+    }
+
+    @Test func stackedOnHitWardsBothConsumeAndCanKill() throws {
+        var context = makeContext(seed: 2)
+        let defender = context.roster.enemy.combatant
+        let attacker = context.roster.hero.combatant
+        context.roster.setActiveEffects(
+            [
+                ActiveEffect(id: 1, effect: .onHitDamage(.holy, 20), remainingTurns: 0),
+                ActiveEffect(id: 2, effect: .onHitDamage(.bleed, 4), remainingTurns: 0),
+                ActiveEffect(id: 3, effect: .shield(.block, 50), remainingTurns: 0),
+            ],
+            for: defender
+        )
+        let attackerHealthBefore = context.roster.health(for: attacker)
+        _ = context.resolveDamage(
+            .directAbilityHit(
+                amount: 10,
+                target: defender,
+                keyword: .physical,
+                sourceActorID: attacker.id
+            )
+        )
+        try #expect(context.roster.health(for: attacker) == attackerHealthBefore - 24)
+        try #expect(!(context.roster.activeEffects(for: defender).contains {
+            if case .onHitDamage = $0.effect {
                 return true
             }
             return false

@@ -216,19 +216,19 @@ extension BattleSession {
         playCard: @escaping @MainActor (BattleCard) async -> Bool
     ) async {
         while !Task.isCancelled, isAutoBattleEnabled {
-            guard activeBattle != nil,
-                  outcome == nil
-            else { return }
+            guard activeBattle != nil, outcome == nil else { return }
 
-            if isSuspendedForScenePhase
-                || isDealingOpeningHand
-                || !canEndTurn
-                || isShowingBattleLog
-                || overlayCombatantDetail != nil
-                || overlayAbilityDetail != nil
-                || isManualInteractionActive()
-                || isCardCastActive() {
+            if isAutoBattlePresentationBlocked {
                 await waitForAutoBattleRetry()
+                continue
+            }
+
+            await waitWhileAutoBattleBlocked(isBlocked: isManualInteractionActive)
+            await waitWhileAutoBattleBlocked(isBlocked: isCardCastActive)
+            guard !Task.isCancelled, isAutoBattleEnabled, activeBattle != nil, outcome == nil else {
+                return
+            }
+            if isAutoBattlePresentationBlocked {
                 continue
             }
 
@@ -248,9 +248,24 @@ extension BattleSession {
             }
             guard !Task.isCancelled, isAutoBattleEnabled, outcome == nil else { return }
 
-            while !Task.isCancelled, isAutoBattleEnabled, isCardCastActive() {
-                await waitForAutoBattleRetry()
-            }
+            await waitWhileAutoBattleBlocked(isBlocked: isCardCastActive)
+        }
+    }
+
+    private var isAutoBattlePresentationBlocked: Bool {
+        isSuspendedForScenePhase
+            || isDealingOpeningHand
+            || !canEndTurn
+            || isShowingBattleLog
+            || overlayCombatantDetail != nil
+            || overlayAbilityDetail != nil
+    }
+
+    private func waitWhileAutoBattleBlocked(
+        isBlocked: @MainActor () -> Bool
+    ) async {
+        while !Task.isCancelled, isAutoBattleEnabled, isBlocked() {
+            await waitForAutoBattleRetry()
         }
     }
 

@@ -12,12 +12,31 @@ enum AbilityValidator {
     }
 
     static let descriptionOverrideIDs: Set<String> = [
+        "astral-arrow",
         "avatar-of-justice",
+        "blessed-aegis",
+        "bounty-shot",
         "cold-snap",
         "combustion",
         "dark-pact",
+        "earthquake",
+        "faustian-bargain",
         "fire-arrow",
+        "glacial-ward",
+        "golden-plate",
+        "hemorrhage",
+        "meteor",
+        "molten-bulwark",
+        "panacea-potion",
+        "phoenix-feather",
+        "pounce",
+        "predators-focus",
+        "sap-arrow",
+        "serrated-edge",
         "shadowstep",
+        "smite",
+        "sunburst",
+        "thorn-mail",
     ]
 
     static func validate(_ ability: Ability) -> [Issue] {
@@ -25,6 +44,7 @@ enum AbilityValidator {
         issues.append(contentsOf: validatePairedDoTComponents(for: ability))
         issues.append(contentsOf: validateTierDamage(for: ability))
         issues.append(contentsOf: validateDescription(for: ability))
+        issues.append(contentsOf: validateConditionalDamage(for: ability))
         return issues
     }
 
@@ -39,7 +59,7 @@ enum AbilityValidator {
 
         for targetedEffect in ability.targetedEffects {
             switch targetedEffect.effect {
-            case .cleanse, .cleanseRandom:
+            case .cleanse, .cleanseRandom, .cleanseHealPerDebuff:
                 if !allyTargets.contains(targetedEffect.target) {
                     issues.append(Issue(
                         abilityID: ability.id,
@@ -83,15 +103,17 @@ enum AbilityValidator {
     }
 
     private static func validateTierDamage(for ability: Ability) -> [Issue] {
-        let enemyDamageTotal = ability.damageComponents
-            .filter { $0.target == .abilityTarget }
-            .reduce(0) { $0 + $1.amount }
-
-        guard enemyDamageTotal > 0,
-              let issue = tierDamageIssue(tier: ability.tier, total: enemyDamageTotal, abilityID: ability.id)
-        else { return [] }
-
-        return [issue]
+        var componentSets = [ability.damageComponents]
+        if let branches = ability.outcomeBranches {
+            componentSets.append(contentsOf: branches.map(\.damageComponents))
+        }
+        return componentSets.compactMap { components in
+            let enemyDamageTotal = components
+                .filter { $0.target == .abilityTarget }
+                .reduce(0) { $0 + $1.amount }
+            guard enemyDamageTotal > 0 else { return nil }
+            return tierDamageIssue(tier: ability.tier, total: enemyDamageTotal, abilityID: ability.id)
+        }
     }
 
     private static func validateDescription(for ability: Ability) -> [Issue] {
@@ -113,9 +135,9 @@ enum AbilityValidator {
         case .basic:
             [1, 2]
         case .skill:
-            [2, 3]
+            [2, 3, 4]
         case .ultimate:
-            [2, 3, 5, 6]
+            [2, 3, 4, 5, 6, 7, 8]
         }
 
         if allowed.contains(total) || allowsMultiComponentTotal(abilityID: abilityID, total: total) {
@@ -133,13 +155,25 @@ enum AbilityValidator {
         case "blood-offering":
             total == 4
         case "smite":
-            total == 5
-        case "molten-bulwark":
             total == 4
         case "ice-shot":
             total == 2
         default:
             false
+        }
+    }
+
+    private static func validateConditionalDamage(for ability: Ability) -> [Issue] {
+        var components = ability.damageComponents
+        if let branches = ability.outcomeBranches {
+            components.append(contentsOf: branches.flatMap(\.damageComponents))
+        }
+        return components.compactMap { component in
+            guard component.condition != nil, component.bonusAmount == 0 else { return nil }
+            return Issue(
+                abilityID: ability.id,
+                message: "damage condition requires bonusAmount > 0 (amount always applies)"
+            )
         }
     }
 }

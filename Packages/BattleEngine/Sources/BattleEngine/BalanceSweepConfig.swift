@@ -12,8 +12,17 @@ public enum BalanceSweepMode: String, CaseIterable, Codable, Sendable {
     case all
 }
 
+public enum ContrastBaselineKind: String, Codable, Sendable {
+    case sibling
+    case emptySlot = "empty-slot"
+    case replacementAffix = "replacement-affix"
+    case none
+    case fullKit = "full-kit"
+}
+
 public struct BalanceSweepConfig: Equatable, Codable, Sendable {
     public var mode: BalanceSweepMode
+    /// Observations per identity enemy and pairs per contrast focus, per selected tier.
     public var battlesPerTier: Int
     public var seed: UInt64
     public var tiers: [SimulationPowerTier]
@@ -28,22 +37,51 @@ public struct BalanceSweepConfig: Equatable, Codable, Sendable {
     public var workOffset: Int
     /// Max work items from `workOffset`. `nil` runs the remainder.
     public var workLimit: Int?
+    public var appliesFightPacing: Bool
+    public var policyID: String
+    public var comparePolicies: Bool
+    public var heroIDs: [String]
+    public var companionIDs: [String]
+    public var enemyIDs: [String]
+    public var focusIDs: [String]
+    public var durationFlagRate: Double
+    public var comfortHPThreshold: Double
+    public var comfortRoundThreshold: Double
 
-    public static let defaultBattlesPerTier = 100
+    public static let defaultBattlesPerTier = 32
     public static let defaultOutputDirectory = "BalanceSweepReports"
+    public static let contrastFlagMinPairs = 8
+    public static let identityFlagMinBattles = 8
+    public static let durationFlagRateDefault = 0.15
+    public static let comfortHPThresholdDefault = 0.10
+    public static let comfortRoundThresholdDefault = 2.0
+
+    public var samples: Int {
+        battlesPerTier
+    }
 
     public init(
         mode: BalanceSweepMode = .identity,
-        battlesPerTier: Int = defaultBattlesPerTier,
+        battlesPerTier: Int = Self.defaultBattlesPerTier,
         seed: UInt64 = 1,
         tiers: [SimulationPowerTier] = SimulationPowerTier.allCases,
         maxRounds: Int = BattleSimulator.defaultMaxRounds,
         maxActions: Int = BattleSimulator.defaultMaxActions,
         peerDeltaFlagThreshold: Double = 0.10,
-        outputDirectory: String = defaultOutputDirectory,
+        outputDirectory: String = Self.defaultOutputDirectory,
         jobs: Int = 0,
         workOffset: Int = 0,
-        workLimit: Int? = nil
+        workLimit: Int? = nil,
+        appliesFightPacing: Bool = true,
+        policyID: String = SimulationPolicies.greedyID,
+        comparePolicies: Bool = false,
+        heroIDs: [String] = [],
+        companionIDs: [String] = [],
+        enemyIDs: [String] = [],
+        focusIDs: [String] = [],
+        durationFlagRate: Double = Self.durationFlagRateDefault,
+        comfortHPThreshold: Double = Self.comfortHPThresholdDefault,
+        comfortRoundThreshold: Double = Self.comfortRoundThresholdDefault
     ) {
         self.mode = mode
         self.battlesPerTier = max(1, battlesPerTier)
@@ -56,6 +94,16 @@ public struct BalanceSweepConfig: Equatable, Codable, Sendable {
         self.jobs = max(0, jobs)
         self.workOffset = max(0, workOffset)
         self.workLimit = workLimit.map { max(0, $0) }
+        self.appliesFightPacing = appliesFightPacing
+        self.policyID = policyID
+        self.comparePolicies = comparePolicies
+        self.heroIDs = heroIDs
+        self.companionIDs = companionIDs
+        self.enemyIDs = enemyIDs
+        self.focusIDs = focusIDs
+        self.durationFlagRate = durationFlagRate
+        self.comfortHPThreshold = comfortHPThreshold
+        self.comfortRoundThreshold = comfortRoundThreshold
     }
 
     public func sliceWork<Item>(_ items: [Item]) -> [Item] {
@@ -65,11 +113,70 @@ public struct BalanceSweepConfig: Equatable, Codable, Sendable {
         return Array(remainder.prefix(workLimit))
     }
 
+    /// Maps a global worker slice onto a contiguous region of concatenated work.
+    public func localSlice(regionStart: Int, regionCount: Int) -> (offset: Int, limit: Int)? {
+        guard regionCount > 0 else { return nil }
+        let globalStart = workOffset
+        let globalEnd = workLimit.map { globalStart + $0 } ?? Int.max
+        let regionEnd = regionStart + regionCount
+        let start = max(globalStart, regionStart)
+        let end = min(globalEnd, regionEnd)
+        guard start < end else { return nil }
+        return (start - regionStart, end - start)
+    }
+
+    public func withLocalSlice(regionStart: Int, regionCount: Int) -> Self? {
+        guard let local = localSlice(regionStart: regionStart, regionCount: regionCount) else {
+            return nil
+        }
+        var copy = self
+        copy.workOffset = local.offset
+        copy.workLimit = local.limit
+        return copy
+    }
+
     public var resolvedJobs: Int {
         if jobs <= 0 {
             return max(1, ProcessInfo.processInfo.activeProcessorCount)
         }
         return jobs
+    }
+
+    public var resolvedRoster: BalanceSweepRoster {
+        BalanceSweepRoster.resolve(config: self)
+    }
+
+    public var policy: any SimulationPlayPolicy {
+        SimulationPolicies.make(id: policyID) ?? GreedyHeuristicPolicy()
+    }
+
+    public var comparePolicy: any SimulationPlayPolicy {
+        policyID == SimulationPolicies.setupID
+            ? GreedyHeuristicPolicy()
+            : SetupAwareHeuristicPolicy()
+    }
+}
+
+public struct BalanceSweepRoster: Equatable, Sendable {
+    public var heroes: [Combatant]
+    public var companions: [Combatant]
+    public var enemies: [Enemy]
+
+    public static func resolve(config: BalanceSweepConfig) -> Self {
+        let heroes = filterCombatants(GameContent.heroes, ids: config.heroIDs)
+        let companions = filterCombatants(GameContent.companions, ids: config.companionIDs)
+        let enemies: [Enemy] = if config.enemyIDs.isEmpty {
+            GameContent.enemies
+        } else {
+            GameContent.enemies.filter { Set(config.enemyIDs).contains($0.id) }
+        }
+        return Self(heroes: heroes, companions: companions, enemies: enemies)
+    }
+
+    private static func filterCombatants(_ all: [Combatant], ids: [String]) -> [Combatant] {
+        guard !ids.isEmpty else { return all }
+        let wanted = Set(ids)
+        return all.filter { wanted.contains($0.id) }
     }
 }
 
@@ -84,10 +191,51 @@ public struct BalanceBattleRecord: Equatable, Codable, Sendable {
     public var enemyAbilityIDs: [String]
     public var enemyTraitID: String
     public var affixIDs: [String]
+    public var heroAffixIDs: [String]
+    public var companionAffixIDs: [String]
     public var heroTalentIDs: [String]
     public var companionTalentIDs: [String]
     public var seed: UInt64
+    public var policyID: String
     public var result: BattleSimResult
+
+    public init(
+        tier: SimulationPowerTier,
+        heroID: String,
+        companionID: String,
+        enemyID: String,
+        isBoss: Bool,
+        heroAbilityIDs: [String],
+        companionAbilityIDs: [String],
+        enemyAbilityIDs: [String],
+        enemyTraitID: String,
+        affixIDs: [String],
+        heroAffixIDs: [String] = [],
+        companionAffixIDs: [String] = [],
+        heroTalentIDs: [String],
+        companionTalentIDs: [String],
+        seed: UInt64,
+        policyID: String,
+        result: BattleSimResult
+    ) {
+        self.tier = tier
+        self.heroID = heroID
+        self.companionID = companionID
+        self.enemyID = enemyID
+        self.isBoss = isBoss
+        self.heroAbilityIDs = heroAbilityIDs
+        self.companionAbilityIDs = companionAbilityIDs
+        self.enemyAbilityIDs = enemyAbilityIDs
+        self.enemyTraitID = enemyTraitID
+        self.affixIDs = affixIDs
+        self.heroAffixIDs = heroAffixIDs
+        self.companionAffixIDs = companionAffixIDs
+        self.heroTalentIDs = heroTalentIDs
+        self.companionTalentIDs = companionTalentIDs
+        self.seed = seed
+        self.policyID = policyID
+        self.result = result
+    }
 }
 
 public struct PairedContrastSummary: Equatable, Codable, Sendable {
@@ -95,19 +243,29 @@ public struct PairedContrastSummary: Equatable, Codable, Sendable {
     public var baselineID: String
     public var ownerID: String
     public var tier: SimulationPowerTier
+    public var baselineKind: ContrastBaselineKind
     public var pairs: Int
+    public var decidedPairs: Int
     public var winsWithEntity: Int
     public var winsWithBaseline: Int
+    public var entityOnlyWins: Int
+    public var baselineOnlyWins: Int
+    public var entityTimeouts: Int
+    public var baselineTimeouts: Int
     public var lift: Double
+    public var meanDeltaPartyHP: Double
+    public var meanDeltaEnemyHP: Double
+    public var meanDeltaRounds: Double
     public var flagged: Bool
     public var flagReason: String?
+    public var nonCombat: Bool
 
     public var entityWinRate: Double {
-        pairs == 0 ? 0 : Double(winsWithEntity) / Double(pairs)
+        decidedPairs == 0 ? 0 : Double(winsWithEntity) / Double(decidedPairs)
     }
 
     public var baselineWinRate: Double {
-        pairs == 0 ? 0 : Double(winsWithBaseline) / Double(pairs)
+        decidedPairs == 0 ? 0 : Double(winsWithBaseline) / Double(decidedPairs)
     }
 
     public init(
@@ -115,23 +273,43 @@ public struct PairedContrastSummary: Equatable, Codable, Sendable {
         baselineID: String,
         ownerID: String,
         tier: SimulationPowerTier,
+        baselineKind: ContrastBaselineKind = .sibling,
         pairs: Int,
+        decidedPairs: Int,
         winsWithEntity: Int,
         winsWithBaseline: Int,
+        entityOnlyWins: Int = 0,
+        baselineOnlyWins: Int = 0,
+        entityTimeouts: Int = 0,
+        baselineTimeouts: Int = 0,
         lift: Double,
+        meanDeltaPartyHP: Double = 0,
+        meanDeltaEnemyHP: Double = 0,
+        meanDeltaRounds: Double = 0,
         flagged: Bool,
-        flagReason: String? = nil
+        flagReason: String? = nil,
+        nonCombat: Bool = false
     ) {
         self.entityID = entityID
         self.baselineID = baselineID
         self.ownerID = ownerID
         self.tier = tier
+        self.baselineKind = baselineKind
         self.pairs = pairs
+        self.decidedPairs = decidedPairs
         self.winsWithEntity = winsWithEntity
         self.winsWithBaseline = winsWithBaseline
+        self.entityOnlyWins = entityOnlyWins
+        self.baselineOnlyWins = baselineOnlyWins
+        self.entityTimeouts = entityTimeouts
+        self.baselineTimeouts = baselineTimeouts
         self.lift = lift
+        self.meanDeltaPartyHP = meanDeltaPartyHP
+        self.meanDeltaEnemyHP = meanDeltaEnemyHP
+        self.meanDeltaRounds = meanDeltaRounds
         self.flagged = flagged
         self.flagReason = flagReason
+        self.nonCombat = nonCombat
     }
 }
 
@@ -139,6 +317,8 @@ public struct BalanceSweepReport: Codable, Sendable {
     public var config: BalanceSweepConfig
     public var policyID: String
     public var records: [BalanceBattleRecord]
+    public var comparedPolicyID: String?
+    public var comparedRecords: [BalanceBattleRecord]
     public var abilityContrasts: [PairedContrastSummary]
     public var affixContrasts: [PairedContrastSummary]
     public var talentContrasts: [PairedContrastSummary]
@@ -153,6 +333,8 @@ public struct BalanceSweepReport: Codable, Sendable {
         config: BalanceSweepConfig,
         policyID: String,
         records: [BalanceBattleRecord] = [],
+        comparedPolicyID: String? = nil,
+        comparedRecords: [BalanceBattleRecord] = [],
         abilityContrasts: [PairedContrastSummary] = [],
         affixContrasts: [PairedContrastSummary] = [],
         talentContrasts: [PairedContrastSummary] = [],
@@ -166,6 +348,8 @@ public struct BalanceSweepReport: Codable, Sendable {
         self.config = config
         self.policyID = policyID
         self.records = records
+        self.comparedPolicyID = comparedPolicyID
+        self.comparedRecords = comparedRecords
         self.abilityContrasts = abilityContrasts
         self.affixContrasts = affixContrasts
         self.talentContrasts = talentContrasts

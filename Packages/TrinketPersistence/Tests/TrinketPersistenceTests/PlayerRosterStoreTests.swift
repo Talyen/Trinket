@@ -19,7 +19,7 @@ final class PlayerRosterStoreTests {
             disableCloudSync: true,
             persistSaveImmediately: true
         )
-        let persisted = firstStore.rosterStore.mutateRoster {
+        let persisted = firstStore.mutateRoster {
             $0.gold = 17
         }
         try #expect(persisted)

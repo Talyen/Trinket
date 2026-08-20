@@ -10,6 +10,12 @@ materials, typography, feedback, performance, or accessibility. It distills Appl
 design guidance into SwiftUI and TrinketDesignSystem practices. Read this checklist,
 then each focused reference that matches the work.
 
+## Trigger Scenarios
+
+- **Activate when**: Authoring, polishing, or redesigning player-facing SwiftUI views, gesture pipelines, or design system components.
+- **Do NOT activate when**: Performing localized SwiftUI bug fixes, logic or state refactoring, or non-visual changes.
+- **Change Discipline Priority**: Deliver the smallest change that satisfies the request (`AGENTS.md`). Do not add unrequested animations, materials, or visual polish during routine maintenance or bug fixes. Minimal diff discipline overrides design polish when in conflict.
+
 ## Route by work
 
 | Work | Required reference |

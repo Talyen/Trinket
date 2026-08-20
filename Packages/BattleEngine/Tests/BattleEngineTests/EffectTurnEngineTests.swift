@@ -67,7 +67,7 @@ struct EffectTurnEngineTests {
         try #expect(context.roster.isDeathsDoorActive(for: hero))
         try #expect(
             context.roster.activeEffects(for: hero).contains { $0.effect.kind == .deathsDoor },
-            "Death's Door inserted during DoT damage should survive effect-tick write-back"
+            "Death's Door inserted during DoT damage should survive effect-pass write-back"
         )
     }
 }

@@ -1,10 +1,13 @@
 import Foundation
 
-/// Level-based power multiplier for enemies. Replaces gear-compensation step bands.
+/// Level-based power multipliers for enemies after archetype growth.
 public enum EnemyPowerCurve {
-    /// L1 is a no-talent identity; anchors are raised so early fights last longer
-    /// and can be lost. L20 is a partial talent spend (~10 of 18 nodes). L40 is
-    /// full-kit scale. Keep L1 below L20 so the ramp still grows.
+    /// Boss HP vs normal HP at the same level (50% above trash so bosses last longer).
+    public static let bossHealthMultiplier = 1.50
+
+    /// L1 is the authored floor (journey opener, labyrinth depth 1). Identity early
+    /// is even L4 with a 1-point talent spend. L20 is a partial kit (~10 of 18).
+    /// L40 is full-kit scale. Keep L1 below L20 so the ramp still grows.
     private static let normalStatAnchors: [(level: Int, power: Double)] = [
         (1, 4.20),
         (20, 5.59),
@@ -12,14 +15,21 @@ public enum EnemyPowerCurve {
     ]
 
     private static let bossStatAnchors: [(level: Int, power: Double)] = [
-        (1, 6.44),
+        (1, 5.20),
         (20, 10.77),
         (40, 18.90),
     ]
 
-    /// Stat threat multiplier after archetype growth.
-    public static func power(level: Int, isBoss: Bool) -> Double {
+    /// Primary-stat threat multiplier after archetype growth.
+    public static func stats(level: Int, isBoss: Bool) -> Double {
         interpolate(max(1, level), anchors: isBoss ? bossStatAnchors : normalStatAnchors)
+    }
+
+    /// Max-health multiplier after archetype growth.
+    /// Normal uses the trash stat anchors; bosses multiply that by `bossHealthMultiplier`.
+    public static func health(level: Int, isBoss: Bool) -> Double {
+        let base = interpolate(max(1, level), anchors: normalStatAnchors)
+        return isBoss ? base * bossHealthMultiplier : base
     }
 
     private static func interpolate(_ level: Int, anchors: [(level: Int, power: Double)]) -> Double {
@@ -45,10 +55,10 @@ public enum EnemyPowerCurve {
 
         return last.power
     }
-}
 
-/// Hermite smoothstep on `0...1` (clamped).
-func progressionSmoothstep(_ value: Double) -> Double {
-    let clamped = min(max(value, 0), 1)
-    return clamped * clamped * (3 - (2 * clamped))
+    /// Hermite smoothstep on `0...1` (clamped).
+    package static func progressionSmoothstep(_ value: Double) -> Double {
+        let clamped = min(max(value, 0), 1)
+        return clamped * clamped * (3 - (2 * clamped))
+    }
 }

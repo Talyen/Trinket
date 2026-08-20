@@ -19,4 +19,6 @@ public final class BattleSpectacleState {
     var pendingOutcomePresentationTask: Task<Void, Never>?
     @ObservationIgnored
     var pendingPartyCelebrateTask: Task<Void, Never>?
+    @ObservationIgnored
+    var pendingCinematicWatchdogTask: Task<Void, Never>?
 }

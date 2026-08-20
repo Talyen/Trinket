@@ -57,4 +57,18 @@ struct StatGrowthTests {
         try #expect(applied.maxMana == 9)
         try #expect(applied.primaryStats.intellect == 12)
     }
+
+    @Test func identityPrimaryStatsUseASharedBudgetAndEmphasizeTheArchetype() throws {
+        for archetype in GrowthArchetype.allCases {
+            let stats = archetype.identityPrimaryStats
+            let total = stats.strength + stats.agility + stats.toughness + stats.intellect + stats.wisdom
+            try #expect(total == 50, "\(archetype.rawValue) identity stats should sum to 50")
+        }
+
+        try #expect(GrowthArchetype.tank.identityPrimaryStats.toughness == 13)
+        try #expect(GrowthArchetype.bruiser.identityPrimaryStats.strength == 13)
+        try #expect(GrowthArchetype.assassin.identityPrimaryStats.agility == 13)
+        try #expect(GrowthArchetype.mage.identityPrimaryStats.intellect == 13)
+        try #expect(GrowthArchetype.support.identityPrimaryStats.wisdom == 13)
+    }
 }

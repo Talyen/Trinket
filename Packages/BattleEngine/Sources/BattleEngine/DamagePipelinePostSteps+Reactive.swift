@@ -162,7 +162,7 @@ package extension DamagePipeline {
 
     private struct OnHitWardTotals {
         var thornsStacks = 0
-        var freezeOnHitAmount = 0
+        var onHitDamage: [Keyword: Int] = [:]
         var shouldFreezeAttacker = false
     }
 
@@ -172,8 +172,8 @@ package extension DamagePipeline {
             switch active.effect {
             case let .thorns(amount):
                 totals.thornsStacks += amount
-            case let .freezeOnHit(amount):
-                totals.freezeOnHitAmount += amount
+            case let .onHitDamage(keyword, amount):
+                totals.onHitDamage[keyword, default: 0] += amount
             case .freezeNextAttacker:
                 totals.shouldFreezeAttacker = true
             default:
@@ -209,17 +209,17 @@ package extension DamagePipeline {
             )
         }
 
-        if wards.freezeOnHitAmount > 0 {
+        for (keyword, amount) in wards.onHitDamage.sorted(by: { $0.key.rawValue < $1.key.rawValue }) where amount > 0 {
             ActiveEffectMutation.removeMatching(from: state.combatant, in: &context) {
-                if case .freezeOnHit = $0 {
-                    return true
+                if case let .onHitDamage(existingKeyword, _) = $0 {
+                    return existingKeyword == keyword
                 }
                 return false
             }
             appendRetaliationDamage(
-                amount: wards.freezeOnHitAmount,
-                keyword: .freeze,
-                abilityName: "Glacial Ward",
+                amount: amount,
+                keyword: keyword,
+                abilityName: keyword == .freeze ? "Glacial Ward" : "\(keyword.rawValue) Ward",
                 attacker: attacker,
                 to: &state,
                 in: &context

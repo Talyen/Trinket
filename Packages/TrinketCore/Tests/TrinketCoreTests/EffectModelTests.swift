@@ -46,6 +46,14 @@ struct EffectModelTests {
         try #expect(Effect.poison(2).withManaEmpowerment() == .poison(2))
         try #expect(DamageComponent(2, keyword: .burn).withManaEmpowerment().amount == 3)
         try #expect(DamageComponent(2, keyword: .physical).withManaEmpowerment().amount == 2)
+        let empoweredBonus = DamageComponent(
+            4,
+            keyword: .burn,
+            bonusAmount: 4,
+            condition: .enemyBurning
+        ).withManaEmpowerment()
+        try #expect(empoweredBonus.amount == 5)
+        try #expect(empoweredBonus.bonusAmount == 5)
     }
 
     @Test func effectClassificationFlagsMatchDefinitions() throws {

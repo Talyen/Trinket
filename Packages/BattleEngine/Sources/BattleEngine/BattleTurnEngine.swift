@@ -18,23 +18,26 @@ public enum BattleTurnEngine {
         for actor: Combatant,
         context: inout BattleState
     ) -> [ActionEvent] {
-        var currentEffects = context.roster.activeEffects(for: actor)
-        guard let index = currentEffects.firstIndex(where: \.isAwaitingActionSkip) else {
+        var keyword: Keyword?
+
+        context.roster.mutateRuntime(for: actor) { runtime in
+            guard let index = runtime.activeEffects.firstIndex(where: \.isAwaitingActionSkip) else { return }
+            var effect = runtime.activeEffects[index]
+            keyword = effect.keyword
+            let extraSkips = context.additionalControlSkipsByCombatantID[actor.id, default: 0]
+            if extraSkips > 0 {
+                context.additionalControlSkipsByCombatantID[actor.id] = extraSkips - 1
+                effect.remainingTurns = 0
+            } else {
+                effect.remainingTurns = BattleTiming.controlStatusLingerTurns
+            }
+            runtime.activeEffects[index] = effect
+        }
+
+        guard let keyword else {
             recordAction(for: actor, context: &context)
             return []
         }
-
-        var effect = currentEffects[index]
-        let keyword = effect.keyword
-        let extraSkips = context.additionalControlSkipsByCombatantID[actor.id, default: 0]
-        if extraSkips > 0 {
-            context.additionalControlSkipsByCombatantID[actor.id] = extraSkips - 1
-            effect.remainingTurns = 0
-        } else {
-            effect.remainingTurns = BattleTiming.controlStatusLingerTurns
-        }
-        currentEffects[index] = effect
-        context.roster.setActiveEffects(currentEffects, for: actor)
 
         let event = context.nextEvent(
             kind: .effect,
@@ -107,7 +110,7 @@ public enum BattleTurnEngine {
         return events
     }
 
-    /// Enemy ability selection by action cadence (Basic / Skill@3 / Ultimate@6). Mana is ignored.
+    /// Enemy ability selection by action cadence (Basic / Skill@3 / Ultimate@6).
     public static func selectedEnemyAbility(for actor: Combatant, turnNumber: Int) -> Ability? {
         let tier = preferredTier(for: turnNumber)
         return actor.abilityLoadout.ability(for: tier)
@@ -138,7 +141,7 @@ extension BattleTurnEngine {
     private struct DamageComponentOutcome {
         let events: [ActionEvent]
         let resolvedComponents: [ResolvedDamageComponent]
-        let pairedDirectDamage: [(Keyword, Int)]
+        let pairedDirectDamage: [PairedDamage]
         let logDamageKeyword: Keyword?
 
         var totalDealt: Int {
@@ -155,7 +158,7 @@ extension BattleTurnEngine {
     ) -> DamageComponentOutcome {
         var events: [ActionEvent] = []
         var resolvedComponents: [ResolvedDamageComponent] = []
-        var pairedDirectDamage: [(Keyword, Int)] = []
+        var pairedDirectDamage: [PairedDamage] = []
         var logDamageKeyword: Keyword?
         let keywordOverride = activeDamageKeywordOverride(for: actor, in: context)
 
@@ -267,7 +270,7 @@ extension BattleTurnEngine {
 
             // Pairing feeds on-hit DoT effects; self HP costs are not attack damage.
             if amount > 0, !isSelfHealthCost {
-                pairedDirectDamage.append((damageKeyword, amount))
+                pairedDirectDamage.append(PairedDamage(keyword: damageKeyword, amount: amount))
             }
         }
 
@@ -311,7 +314,7 @@ extension BattleTurnEngine {
         ability: Ability,
         actor: Combatant,
         abilityTarget: Combatant,
-        pairedDirectDamage: [(Keyword, Int)],
+        pairedDirectDamage: [PairedDamage],
         context: inout BattleState,
         events: inout [ActionEvent]
     ) -> [String] {
@@ -370,16 +373,7 @@ extension BattleTurnEngine {
         context: BattleState
     ) -> Bool {
         guard context.roster.health(for: target) <= 0 else { return false }
-        if case .resourceGain(.gold, _) = effect {
-            return false
-        }
-        if case .drawCards = effect {
-            return false
-        }
-        if case .revive = effect {
-            return false
-        }
-        return true
+        return !effect.canApplyToDefeatedTarget
     }
 
     private static func recordAction(
@@ -387,9 +381,9 @@ extension BattleTurnEngine {
         context: inout BattleState
     ) {
         context.actionCount += 1
-        guard var runtime = context.roster.runtime(for: actor) else { return }
-        runtime.markActed()
-        context.roster.update(runtime)
+        context.roster.mutateRuntime(for: actor) { runtime in
+            runtime.markActed()
+        }
     }
 
     private static func resolveEffectTarget(

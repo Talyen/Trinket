@@ -77,6 +77,11 @@ extension BattleSession {
         if let expectedID, cinematic.id != expectedID {
             return
         }
+        cancelCinematicWatchdog()
+        BattleCinematicPlayer.shared.pause(
+            actorID: cinematic.actorID,
+            abilityID: cinematic.abilityID
+        )
         spectacle.actorsWhoPresentedUltimateThisBattle.insert(cinematic.actorID)
         spectacle.activeCinematic = nil
         let deferred = spectacle.deferredFeedbackEvents
@@ -332,8 +337,9 @@ extension BattleSession {
 
     func beginCinematic(from event: ActionEvent, at date: Date) {
         spectacle.nextID += 1
+        let cinematicID = spectacle.nextID
         spectacle.activeCinematic = BattleCinematicPresentation(
-            id: spectacle.nextID,
+            id: cinematicID,
             actorID: event.actorID,
             actorName: event.actorName,
             abilityID: event.abilityID,
@@ -343,6 +349,25 @@ extension BattleSession {
             startedAt: date
         )
         BattleCinematicPlayer.shared.warm(actorID: event.actorID, abilityID: event.abilityID)
+        scheduleCinematicWatchdog(expectedID: cinematicID)
+    }
+
+    func scheduleCinematicWatchdog(expectedID: Int) {
+        cancelCinematicWatchdog()
+        let hold = cinematicSessionWatchdogOverride
+            ?? TrinketMotion.Battle.ultimateCinematicSessionWatchdog
+        spectacle.pendingCinematicWatchdogTask = Task { @MainActor [weak self] in
+            if hold > 0 {
+                try? await Task.sleep(for: .seconds(hold))
+            }
+            guard let self, !Task.isCancelled else { return }
+            completeCinematicCollapse(expectedID: expectedID)
+        }
+    }
+
+    func cancelCinematicWatchdog() {
+        spectacle.pendingCinematicWatchdogTask?.cancel()
+        spectacle.pendingCinematicWatchdogTask = nil
     }
 
     func clearAllPresentation() {
@@ -357,6 +382,7 @@ extension BattleSession {
     func clearSpectacle(releaseCinematicPlayers: Bool = true) {
         spectacle.pendingPartyCelebrateTask?.cancel()
         spectacle.pendingPartyCelebrateTask = nil
+        cancelCinematicWatchdog()
         if spectacle.activeCinematic != nil {
             spectacle.activeCinematic = nil
         }

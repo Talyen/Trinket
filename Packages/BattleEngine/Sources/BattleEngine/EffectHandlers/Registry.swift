@@ -68,7 +68,7 @@ public enum EffectHandlers {
             keyword: .freeze,
             summaryText: "Freeze the next attacker."
         ),
-        .freezeOnHit: FreezeOnHitHandler(),
+        .onHitDamage: OnHitDamageHandler(),
         .multiplyDoT: MultiplyDoTHandler(),
         .recurringDamage: RecurringDamageHandler(),
         .avatar: AvatarHandler(),

@@ -2,7 +2,7 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-/// Orchestrates player card plays, the enemy turn, and end-of-round effect ticks.
+/// Orchestrates player card plays, the enemy turn, and the end-of-round effect pass.
 public enum BattleCardCombatEngine {
     /// Shuffles loadout decks and clears hand state. Does not draw the opening hand.
     public static func bootstrapDecks(context: inout BattleState) {
@@ -138,7 +138,6 @@ public enum BattleCardCombatEngine {
             return events
         }
 
-        // Enemy phase
         events.append(contentsOf: resolveEnemyTurn(context: &context))
         events.append(contentsOf: context.appendDefeatMilestonesIfNeeded())
         if context.isBattleOver {
@@ -149,24 +148,26 @@ public enum BattleCardCombatEngine {
         // End of turn triggers fire before round clock advances and block decays
         events.append(contentsOf: CombatTriggerEngine.atPlayerEndTurn(in: &context))
 
-        // End of round: advance round clock, tick effects once.
-        for participant in BattleParticipant.allCases {
-            context.roster.mutateRuntime(for: context.roster[participant].combatant) {
-                $0.deathsDoorExpiredAtTurn = nil
-            }
-        }
+        // End of round: advance round clock, then one effect pass.
         context.turnCount += 1
         events.append(contentsOf: EffectTurnEngine.advanceAll(context: &context))
         for combatant in [context.roster.hero.combatant, context.roster.companion.combatant, context.roster.enemy.combatant] {
             DefensePoolEngine.decayBlockAtEndOfRound(on: combatant, in: &context)
         }
         events.append(contentsOf: context.appendDefeatMilestonesIfNeeded())
+        // Death's Door expiry grace covers this round's effect pass so a DoT
+        // cannot kill in the same moment the effect falls off. Clear it before
+        // the next player turn.
+        for participant in BattleParticipant.allCases {
+            context.roster.mutateRuntime(for: context.roster[participant].combatant) {
+                $0.deathsDoorExpiredAtTurn = nil
+            }
+        }
         if context.isBattleOver {
             context.phase = .ended
             return events
         }
 
-        // Draw for next player turn
         discardDefeatedOwnerCards(context: &context)
         drawCardsBalanced(heroCount: 1, companionCount: 1, context: &context)
         promoteFromBuffer(context: &context)
@@ -242,6 +243,8 @@ public enum BattleCardCombatEngine {
     ) -> [ActionEvent] {
         let enemy = context.enemy
         guard context.roster.enemy.isAlive else { return [] }
+
+        EnemyTraitEngine.randomKeywordDamageRamp(for: enemy, context: &context)
 
         let bleed = CombatTriggerEngine.beforeEnemyActBleedReactions(in: &context)
         var leadingEvents = bleed.events

@@ -116,6 +116,44 @@ public enum SimulationMatchupBuilder {
         return AbilityLoadout(basic: basic, skill: skill, ultimate: ultimate)
     }
 
+    /// Identity and mode-progression floor: the party must bring this many
+    /// opponent-damaging cards so support-only draws are not the duration sample.
+    public static let minimumPartyDamagingAbilities = 3
+
+    public static func damagingAbilityCount(hero: AbilityLoadout, companion: AbilityLoadout) -> Int {
+        (hero.abilities + companion.abilities).filter(\.dealsCombatDamage).count
+    }
+
+    /// Resamples both loadouts until the party has at least
+    /// `minimumPartyDamagingAbilities` damaging cards, or the best of 64 draws.
+    public static func samplePartyLoadouts(
+        hero: Combatant,
+        companion: Combatant,
+        minimumDamagingAbilities: Int = minimumPartyDamagingAbilities,
+        using randomNumberGenerator: inout some RandomNumberGenerator
+    ) -> (hero: AbilityLoadout, companion: AbilityLoadout) {
+        var bestHero = sampleLoadout(for: hero, using: &randomNumberGenerator)
+        var bestCompanion = sampleLoadout(for: companion, using: &randomNumberGenerator)
+        var bestCount = damagingAbilityCount(hero: bestHero, companion: bestCompanion)
+        if bestCount >= minimumDamagingAbilities {
+            return (bestHero, bestCompanion)
+        }
+        for _ in 0 ..< 63 {
+            let nextHero = sampleLoadout(for: hero, using: &randomNumberGenerator)
+            let nextCompanion = sampleLoadout(for: companion, using: &randomNumberGenerator)
+            let count = damagingAbilityCount(hero: nextHero, companion: nextCompanion)
+            if count > bestCount {
+                bestHero = nextHero
+                bestCompanion = nextCompanion
+                bestCount = count
+            }
+            if bestCount >= minimumDamagingAbilities {
+                break
+            }
+        }
+        return (bestHero, bestCompanion)
+    }
+
     public static func generateAlignedGear(
         for combatant: Combatant,
         tier: SimulationPowerTier,
@@ -142,15 +180,66 @@ public enum SimulationMatchupBuilder {
         return GearOverride(gear)
     }
 
+    /// One basic 1-affix keyword-aligned item. Returns nil when no legal piece exists.
+    public static func generateStarterGear(
+        for combatant: Combatant,
+        loadout: AbilityLoadout,
+        level: Int,
+        idPrefix: String,
+        gearKeywordBias: Set<Keyword>? = nil,
+        gearGenerator: ThemedGearGenerator = ThemedGearGenerator(),
+        using randomNumberGenerator: inout some RandomNumberGenerator
+    ) -> GearOverride? {
+        let withLoadout = combatant.withAbilityLoadoutPreservingEmptyTiers(loadout)
+        let scaled = CombatantLevelScaler.scale(combatant: withLoadout, level: level)
+        let bias = gearKeywordBias ?? Set(scaled.abilities.flatMap(\.keywords))
+        let build = gearGenerator.generateSinglePiece(
+            for: scaled,
+            rarity: .basic,
+            fixedAffixCount: 1,
+            idPrefix: idPrefix,
+            keywordBias: bias,
+            requireBuildAlignment: true,
+            using: &randomNumberGenerator
+        )
+        guard !build.inventory.isEmpty else { return nil }
+        return GearOverride(build)
+    }
+
+    public static func generateStarterGearIfNeeded(
+        for combatant: Combatant,
+        loadout: AbilityLoadout,
+        tier: SimulationPowerTier,
+        level: Int? = nil,
+        idPrefix: String,
+        gearKeywordBias: Set<Keyword>? = nil,
+        gearGenerator: ThemedGearGenerator = ThemedGearGenerator(),
+        using randomNumberGenerator: inout some RandomNumberGenerator
+    ) -> GearOverride? {
+        guard tier.usesStarterGear else { return nil }
+        return generateStarterGear(
+            for: combatant,
+            loadout: loadout,
+            level: level ?? tier.level,
+            idPrefix: idPrefix,
+            gearKeywordBias: gearKeywordBias,
+            gearGenerator: gearGenerator,
+            using: &randomNumberGenerator
+        )
+    }
+
     /// Spends available talent points on a legal row-gated kit.
     /// Full catalog when points cover every node; otherwise a random legal walk.
+    /// `pointCap` limits identity early to a starter node without changing earned points.
     public static func legalTalentKit(
         for combatantID: String,
         level: Int,
+        pointCap: Int? = nil,
         using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> Set<String> {
         let nodes = CombatantTalentCatalog.validNodeIDs(for: combatantID)
-        let points = CombatantProgression.at(level: level).totalTalentPoints
+        let earned = CombatantProgression.at(level: level).totalTalentPoints
+        let points = pointCap.map { min(earned, max(0, $0)) } ?? earned
         guard points > 0, !nodes.isEmpty else { return [] }
         if points >= nodes.count {
             return nodes

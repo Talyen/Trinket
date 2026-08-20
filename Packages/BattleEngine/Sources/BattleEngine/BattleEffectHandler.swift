@@ -58,7 +58,7 @@ public protocol BattleEffectHandler: Sendable {
 }
 
 public extension BattleEffectHandler {
-    /// Default: decrement `remainingTurns` for tickable buffs and debuffs that
+    /// Default: decrement `remainingTurns` for timed buffs and debuffs that
     /// do not override `advanceTurn`. Burn, Poison, Bleed, and ControlMeter
     /// provide their own turn behavior.
     func advanceTurn(

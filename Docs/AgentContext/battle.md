@@ -58,9 +58,9 @@ For a new effect kind, update registry parity and `EffectHandlersApplyTests`; us
 
 Handoff routes `BattleEngine` vs `TrinketBattleFeature` vs `SmokeBattleTests`. Bare `./Scripts/test.sh smoke` runs the three-class smoke plan (tab shells, Battle, Shop).
 
-Headless balance sweeps: `Packages/BattleEngine/README.md` and `./Scripts/balance-sweep.sh` (release CLI; combat in worker processes). Engine hand size and post-resolve deck recycle: that README. Presentation layout: `Packages/TrinketBattleFeature/README.md`.
+Headless balance sweeps: `Packages/BattleEngine/README.md` and `./Scripts/balance-sweep.sh` (release CLI; combat in worker processes). Default stdout and `.md` are a findings brief; read that, not the JSON dump. `--full-markdown` writes the old table report. `--samples` is n per identity enemy and pairs per contrast focus. `--pacing off` disables hidden FightPacing for the sweep only. Identity early is even L4 with 1 talent and one basic aligned item per combatant (not a full kit). Identity and mode-progression resample party kits until they have at least 3 opponent-damaging cards; ability/affix/talent contrast still samples independently. Mode-progression Spires are on-level; Journey and Labyrinth use earned XP. Engine hand size and post-resolve deck recycle: that README. Presentation layout: `Packages/TrinketBattleFeature/README.md`.
 
-Enemy scaling uses `EnemyPowerCurve` (smoothstep stat anchors at L1/L20/L40) applied after archetype growth. The same multiplier scales enemy HP and stats. Tune encounter level first, then curve anchors, then per-enemy stat shape. Progression hotspot reports include average enemy power rating.
+Enemy scaling uses `EnemyPowerCurve` (smoothstep anchors at L1/L20/L40) applied after archetype growth. Trash uses one curve for HP and stats. Boss HP is 50% above trash at every level. Boss stats start at 5.2 (L1) and keep 10.77 / 18.90 at L20 / L40. Tune encounter level first, then curve anchors, then per-enemy stat shape. Progression hotspot reports include average enemy power rating.
 
 Hidden fight pacing (`FightPacing`) band-scales authored combat magnitudes (damage, heals, block, DoT, control, ability mana) via comeback (losing side) and a progress-based clock (both sides). Passive turn-start mana drip is excluded.
 

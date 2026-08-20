@@ -5,7 +5,7 @@ import TrinketCore
 
 struct ConditionalDoTDedupTests {
     @Test func shouldSkipImmediateDoTWhenKeywordMatchesRegardlessOfPotency() throws {
-        let action = ActionApplyContext(pairedDirectDamage: [(.burn, 9)])
+        let action = ActionApplyContext(pairedDirectDamage: [PairedDamage(keyword: .burn, amount: 9)])
         try #expect(action.shouldSkipImmediateDoT(keyword: .burn))
     }
 
@@ -13,7 +13,7 @@ struct ConditionalDoTDedupTests {
         var battle = EffectHandlersTestSupport.makeBattle()
         let enemy = battle.enemy
         let hero = battle.hero
-        let action = ActionApplyContext(pairedDirectDamage: [(.burn, 9)])
+        let action = ActionApplyContext(pairedDirectDamage: [PairedDamage(keyword: .burn, amount: 9)])
         let outcome: EffectApplyOutcome = try battle.withEngineContext { context in
             try #require(EffectHandlers.all[.burn]?.apply(
                 .burn(6),
@@ -32,7 +32,7 @@ struct ConditionalDoTDedupTests {
         var battle = EffectHandlersTestSupport.makeBattle()
         let enemy = battle.enemy
         let hero = battle.hero
-        let action = ActionApplyContext(pairedDirectDamage: [(.poison, 4)])
+        let action = ActionApplyContext(pairedDirectDamage: [PairedDamage(keyword: .poison, amount: 4)])
         let outcome: EffectApplyOutcome = try battle.withEngineContext { context in
             try #require(EffectHandlers.all[.poison]?.apply(
                 .poison(3),

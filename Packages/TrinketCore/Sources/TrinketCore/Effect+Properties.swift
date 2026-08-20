@@ -35,7 +35,7 @@ public enum EffectKind: Hashable, CaseIterable, Sendable {
     case maximumManaBonus
     case nextStrikeCritical
     case freezeNextAttacker
-    case freezeOnHit
+    case onHitDamage
     case multiplyDoT
     case recurringDamage
     case avatar
@@ -60,7 +60,7 @@ public extension Effect {
         case .resourceGain: .resourceGain
         case .drawCards: .drawCards
         case .drawAndPlayCards: .drawAndPlayCards
-        case .cleanse: .cleanse
+        case .cleanse, .cleanseHealPerDebuff: .cleanse
         case .cleanseRandom: .cleanseRandom
         case .purge: .purge
         case .purgeRandom: .purgeRandom
@@ -81,7 +81,7 @@ public extension Effect {
         case .maximumManaBonus: .maximumManaBonus
         case .nextStrikeCritical: .nextStrikeCritical
         case .freezeNextAttacker: .freezeNextAttacker
-        case .freezeOnHit: .freezeOnHit
+        case .onHitDamage: .onHitDamage
         case .multiplyDoT: .multiplyDoT
         case .recurringDamage: .recurringDamage
         case .avatar: .avatar
@@ -110,7 +110,7 @@ public extension Effect {
         switch self {
         case .shield, .leech, .thorns, .criticalChanceBonus, .restoreManaOnHit,
              .damageKeywordOverride, .nextHolyStrike, .nextStrikeDouble, .evadeNextHit,
-             .maximumManaBonus, .nextStrikeCritical, .freezeNextAttacker, .freezeOnHit, .avatar:
+             .maximumManaBonus, .nextStrikeCritical, .freezeNextAttacker, .onHitDamage, .avatar:
             true
         default:
             false
@@ -136,6 +136,7 @@ public extension Effect {
     var isInstant: Bool {
         switch self {
         case .instantHeal, .resourceGain, .drawCards, .drawAndPlayCards, .cleanse, .cleanseRandom,
+             .cleanseHealPerDebuff,
              .purge, .purgeRandom, .halveShield, .convertManaToBlock, .shieldFromMana,
              .shieldFromGold, .shieldFromHalfMana, .multiplyDoT, .revive:
             true
@@ -177,5 +178,15 @@ public extension Effect {
     var isActionSkipPending: Bool {
         guard let values = controlMeterValues else { return false }
         return values.threshold > 0 && values.amount >= values.threshold
+    }
+
+    /// True when the effect can target and apply to a defeated (0 HP) combatant.
+    var canApplyToDefeatedTarget: Bool {
+        switch self {
+        case .resourceGain(.gold, _), .drawCards, .revive:
+            true
+        default:
+            false
+        }
     }
 }

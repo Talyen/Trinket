@@ -137,6 +137,7 @@ public struct ItemDetailView: View {
                 .trinketCenteredPrimaryAction()
                 .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
                 .padding(.vertical, TrinketDesign.Metrics.mediumSpacing)
+                .trinketSheetChromeIgnoresDismissDrag()
             } else if purchasePrice != nil, let onPurchase {
                 Button {
                     onPurchase()
@@ -151,6 +152,7 @@ public struct ItemDetailView: View {
                 .disabled(!canAfford || isPurchaseDisabled)
                 .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
                 .padding(.vertical, TrinketDesign.Metrics.mediumSpacing)
+                .trinketSheetChromeIgnoresDismissDrag()
             }
         }
         .alert(

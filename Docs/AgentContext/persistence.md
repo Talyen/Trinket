@@ -2,7 +2,7 @@
 
 Use for player progression, roster, inventory, homestead, SwiftData, or CloudKit work.
 
-`TrinketPersistence` owns the SwiftData model graph and write-through stores. `PlayerSaveRoot` owns the graph; `PlayerSaveStore` opens/configures persistence and remains a thin facade. Prefer a matching `Player*Store` slice for one concern, `PlayerHomesteadStore` for cross-slice homestead work, and value types for rules/calculations.
+`TrinketPersistence` owns the SwiftData model graph and write-through stores. `PlayerSaveRoot` owns the graph; `PlayerSaveStore` opens/configures persistence and provides write-through slice properties and domain extensions (`PlayerSaveStore+Homestead.swift`, `PlayerSaveStore+Roster.swift`). Prefer value types for rules/calculations.
 
 Campaign reward and completion **domain write policies** also live here (`BattleLoot`, `StageCompletion`, `LabyrinthCompletion`, `SpireCompletion`, `ShopPurchaseApplier`, `MysteryEffectApplier`, `MysteryEventPinApplier`): app sessions decide when to apply them; Persistence owns the save mutation. Save-store test harnesses live in `Packages/TrinketPersistence/Sources/TrinketPersistenceTestSupport/` (`SaveTestSupport`) — not in `TrinketTestSupport` — so the package graph stays acyclic.
 

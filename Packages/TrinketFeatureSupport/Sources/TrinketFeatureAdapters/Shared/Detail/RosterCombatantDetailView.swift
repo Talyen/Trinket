@@ -58,7 +58,7 @@ public struct RosterCombatantDetailView: View {
                 inventoryItems: Binding(
                     get: { playerSave.inventory.items },
                     set: { newItems in
-                        _ = playerSave.rosterStore.setInventoryItems(newItems)
+                        playerSave.inventory = PlayerInventoryState(items: newItems)
                     }
                 ),
                 unlockedTalents: Binding(
@@ -99,7 +99,9 @@ public struct RosterCombatantDetailView: View {
     }
 
     private func persistRoster(_ update: (inout PlayerRosterState) -> Void) {
-        _ = playerSave.rosterStore.mutateRoster(update)
+        var copy = playerSave.roster
+        update(&copy)
+        playerSave.roster = copy
     }
 
     private func resolveCombatant() -> Combatant? {

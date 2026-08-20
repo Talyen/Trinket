@@ -15,4 +15,4 @@ and testing; nested `AGENTS.md` files own local hard stops.
 | [ci-and-project-generation.md](ci-and-project-generation.md) | `Scripts/`, `.github/`, `project.yml` |
 | [ci-diagnostics.md](ci-diagnostics.md) | **Lazy:** load only after a test/CI failure |
 
-Apple design procedure: [apple-design skill](../Skills/apple-design/SKILL.md) (also attached for DesignSystem and feature UI). Cursor glob rule `.cursor/rules/design-system-colors.mdc` enforces color routing independently of this catalog.
+Apple design procedure: [apple-design skill](../Skills/apple-design/SKILL.md) (also attached for DesignSystem and feature UI). Cursor glob rule `.cursor/rules/design-system-colors.mdc` enforces color routing independently of this catalog. Automated intent recovery (`why` skill) searches these cards alongside `Docs/Product/Decisions.md` and package unit tests before modifying core domain rules.

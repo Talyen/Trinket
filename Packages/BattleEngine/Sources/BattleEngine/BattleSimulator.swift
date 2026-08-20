@@ -10,6 +10,8 @@ public struct BattleSimResult: Equatable, Codable, Sendable {
     public var timedOut: Bool
     public var partyHPRemainingFraction: Double
     public var enemyHPRemainingFraction: Double
+    public var heroHPRemainingFraction: Double
+    public var companionHPRemainingFraction: Double
 
     public init(
         outcome: BattleSimulationOutcome,
@@ -17,7 +19,9 @@ public struct BattleSimResult: Equatable, Codable, Sendable {
         actions: Int,
         timedOut: Bool,
         partyHPRemainingFraction: Double,
-        enemyHPRemainingFraction: Double
+        enemyHPRemainingFraction: Double,
+        heroHPRemainingFraction: Double = 0,
+        companionHPRemainingFraction: Double = 0
     ) {
         self.outcome = outcome
         self.rounds = rounds
@@ -25,10 +29,16 @@ public struct BattleSimResult: Equatable, Codable, Sendable {
         self.timedOut = timedOut
         self.partyHPRemainingFraction = partyHPRemainingFraction
         self.enemyHPRemainingFraction = enemyHPRemainingFraction
+        self.heroHPRemainingFraction = heroHPRemainingFraction
+        self.companionHPRemainingFraction = companionHPRemainingFraction
     }
 
     public var isVictory: Bool {
-        outcome == .victory
+        !timedOut && outcome == .victory
+    }
+
+    public var isDecided: Bool {
+        !timedOut
     }
 }
 
@@ -39,9 +49,10 @@ public enum BattleSimulator {
 
     public static func run(
         matchup: ConfiguredSimulationMatchup,
-        policy: GreedyHeuristicPolicy,
+        policy: some SimulationPlayPolicy,
         maxRounds: Int = defaultMaxRounds,
-        maxActions: Int = defaultMaxActions
+        maxActions: Int = defaultMaxActions,
+        appliesFightPacing: Bool = true
     ) -> BattleSimResult {
         var battle = BattleState(
             hero: matchup.hero,
@@ -52,14 +63,15 @@ public enum BattleSimulator {
             enemyModifiers: matchup.enemyModifiers,
             rngSeed: matchup.context.seed,
             tracksLog: false,
-            tracksEvents: false
+            tracksEvents: false,
+            appliesFightPacing: appliesFightPacing
         )
         return run(battle: &battle, policy: policy, maxRounds: maxRounds, maxActions: maxActions)
     }
 
     public static func run(
         battle: inout BattleState,
-        policy: GreedyHeuristicPolicy,
+        policy: some SimulationPlayPolicy,
         maxRounds: Int = defaultMaxRounds,
         maxActions: Int = defaultMaxActions
     ) -> BattleSimResult {
@@ -77,7 +89,6 @@ public enum BattleSimulator {
                 do {
                     _ = try battle.playCard(cardID: cardID, rebuildLog: false)
                 } catch {
-                    // Illegal choice — end turn to make progress rather than spin.
                     _ = battle.endTurn(rebuildLog: false)
                 }
             case .endTurn:
@@ -97,7 +108,9 @@ public enum BattleSimulator {
             actions: actions,
             timedOut: timedOut,
             partyHPRemainingFraction: partyHPFraction(in: battle),
-            enemyHPRemainingFraction: enemyHPFraction(in: battle)
+            enemyHPRemainingFraction: enemyHPFraction(in: battle),
+            heroHPRemainingFraction: combatantHPFraction(battle.hero, in: battle),
+            companionHPRemainingFraction: combatantHPFraction(battle.companion, in: battle)
         )
     }
 
@@ -110,7 +123,11 @@ public enum BattleSimulator {
     }
 
     private static func enemyHPFraction(in battle: BattleState) -> Double {
-        let maxHP = Double(max(battle.maxHealth(of: battle.enemy), 1))
-        return Double(max(battle.health(of: battle.enemy), 0)) / maxHP
+        combatantHPFraction(battle.enemy, in: battle)
+    }
+
+    private static func combatantHPFraction(_ combatant: Combatant, in battle: BattleState) -> Double {
+        let maxHP = Double(max(battle.maxHealth(of: combatant), 1))
+        return Double(max(battle.health(of: combatant), 0)) / maxHP
     }
 }

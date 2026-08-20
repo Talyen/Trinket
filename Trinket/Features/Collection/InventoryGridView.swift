@@ -38,10 +38,9 @@ struct InventoryGridView: View {
     @Environment(PlayerSaveStore.self) private var playerSave
     @Environment(OptionsStore.self) private var options
     @State private var selectedFilter: InventoryFilter = .all
-    @State private var salvageDetail = SalvageItemDetailController()
+    @State private var salvageDetail = SalvageDetailState()
 
     var body: some View {
-        @Bindable var salvageDetail = salvageDetail
         let inventoryState = playerSave.inventory
         let items = filteredItems(from: inventoryState)
 
@@ -76,10 +75,12 @@ struct InventoryGridView: View {
             }
         }
         .sheet(item: $salvageDetail.selectedItem) { item in
-            SalvageItemDetailSheet(
-                controller: salvageDetail,
-                item: item
-            )
+            SalvageItemDetailSheet(item: item) { result in
+                salvageDetail.salvageFinished(
+                    result: result,
+                    item: item
+                )
+            }
         }
         .overlay {
             if let event = salvageDetail.transmutationEvent {

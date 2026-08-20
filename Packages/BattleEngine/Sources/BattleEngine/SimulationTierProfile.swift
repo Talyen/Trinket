@@ -8,12 +8,38 @@ public enum SimulationPowerTier: String, CaseIterable, Codable, Sendable {
     case middle
     case lateGame
 
+    /// Even-level snapshot for identity and contrasts.
+    /// Early is L4 with a 1-node talent spend and one basic aligned item (not a full kit).
     public var level: Int {
         switch self {
-        case .early: 1
+        case .early: 4
         case .middle: 20
         case .lateGame: 40
         }
+    }
+
+    /// Identity talent spend. `nil` spends every point earned at `level`.
+    public var identityTalentPointCap: Int? {
+        switch self {
+        case .early: 1
+        case .middle, .lateGame: nil
+        }
+    }
+
+    /// One basic 1-affix piece per combatant. Do not fold this into `includesGear`
+    /// (that fills every slot and turns on affix contrast).
+    public var usesStarterGear: Bool {
+        self == .early
+    }
+
+    public static func band(forLevel level: Int) -> Self {
+        if level < 15 {
+            return .early
+        }
+        if level < 35 {
+            return .middle
+        }
+        return .lateGame
     }
 
     public var displayName: String {

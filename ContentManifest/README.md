@@ -62,6 +62,7 @@ id	name	description	modifiers	triggers
 
 - One row per enemy trait. `modifiers` / `triggers` use the same pipe-separated DSL as affixes.
 - Generates `GameContentTraits.generated.swift`.
+- Typed ramps: `random_damage_ramp_per_turn:keywordA:keywordB:amount` adds `amount` of one of the two keywords each enemy turn. `damage_increases_every_other_turn` is untyped; `damage_increases_every_other_turn:keyword` limits the `turnCount / 2` bonus to that keyword (a trailing `:1` amount is ignored).
 
 ### Abilities (Swift catalogs)
 
@@ -128,15 +129,15 @@ id	name	role	max_health	max_mana	growth_archetype	basics	skills	ultimates	streng
 Tab-separated columns:
 
 ```text
-id	name	max_health	is_boss	growth_archetype	abilities	strength	agility	toughness	intellect	wisdom	trait_id	faction
+id	name	max_health	is_boss	growth_archetype	abilities	trait_id	faction
 ```
 
 - `max_health`: `default` uses `Enemy.defaultMaxHealth`, or an explicit integer.
 - `is_boss`: `true` or `false`.
 - `faction`: `mortal`, `beast`, `elemental`, `construct`, `undead`, or `corrupted`.
 - `abilities`: comma-separated ability symbols (basic, skill, ultimate — exactly three).
-- Primary-stat budget: `strength + agility + toughness + intellect + wisdom` must equal **50** for all combatants.
-- Boss difficulty comes from `is_boss` plus `EnemyPowerCurve` at encounter level, not separate HP/stat bands.
+- Enemy primary stats come from `GrowthArchetype.identityPrimaryStats` (budget 50). Do not author per-enemy Strength/Agility/Toughness/Intellect/Wisdom.
+- Boss difficulty comes from `is_boss` plus `EnemyPowerCurve` at encounter level (HP 50% above trash; L1 boss stats 5.2, L20/L40 10.77/18.90).
 
 ### Homestead nodes (`ContentManifest/homestead_nodes.tsv`)
 

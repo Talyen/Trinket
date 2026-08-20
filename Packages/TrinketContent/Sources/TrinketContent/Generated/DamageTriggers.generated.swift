@@ -14,6 +14,10 @@ public struct DamageTriggers: Equatable, Hashable, Sendable {
     public var leechIgnoresMitigation: Bool = false
     public var firstHitDoubleDamage: Bool = false
     public var damageIncreasesEveryOtherTurn: Bool = false
+    public var damageIncreasesEveryOtherTurnKeyword: Keyword? = nil
+    public var randomDamageRampKeywordA: Keyword? = nil
+    public var randomDamageRampKeywordB: Keyword? = nil
+    public var randomDamageRampPerTurn: Int = 0
     public var holyDamagePoisonFlat: Int = 0
     public var stunnedDamageMultiplier: Double = 1
     public var criticalChanceBonus: Double = 0
@@ -61,6 +65,10 @@ public struct DamageTriggers: Equatable, Hashable, Sendable {
         leechIgnoresMitigation: Bool = false,
         firstHitDoubleDamage: Bool = false,
         damageIncreasesEveryOtherTurn: Bool = false,
+        damageIncreasesEveryOtherTurnKeyword: Keyword? = nil,
+        randomDamageRampKeywordA: Keyword? = nil,
+        randomDamageRampKeywordB: Keyword? = nil,
+        randomDamageRampPerTurn: Int = 0,
         holyDamagePoisonFlat: Int = 0,
         stunnedDamageMultiplier: Double = 1,
         criticalChanceBonus: Double = 0,
@@ -107,6 +115,10 @@ public struct DamageTriggers: Equatable, Hashable, Sendable {
         self.leechIgnoresMitigation = leechIgnoresMitigation
         self.firstHitDoubleDamage = firstHitDoubleDamage
         self.damageIncreasesEveryOtherTurn = damageIncreasesEveryOtherTurn
+        self.damageIncreasesEveryOtherTurnKeyword = damageIncreasesEveryOtherTurnKeyword
+        self.randomDamageRampKeywordA = randomDamageRampKeywordA
+        self.randomDamageRampKeywordB = randomDamageRampKeywordB
+        self.randomDamageRampPerTurn = randomDamageRampPerTurn
         self.holyDamagePoisonFlat = holyDamagePoisonFlat
         self.stunnedDamageMultiplier = stunnedDamageMultiplier
         self.criticalChanceBonus = criticalChanceBonus
@@ -157,6 +169,10 @@ extension DamageTriggers {
         leechIgnoresMitigation = leechIgnoresMitigation || other.leechIgnoresMitigation
         firstHitDoubleDamage = firstHitDoubleDamage || other.firstHitDoubleDamage
         damageIncreasesEveryOtherTurn = damageIncreasesEveryOtherTurn || other.damageIncreasesEveryOtherTurn
+        damageIncreasesEveryOtherTurnKeyword = other.damageIncreasesEveryOtherTurnKeyword ?? damageIncreasesEveryOtherTurnKeyword
+        randomDamageRampKeywordA = other.randomDamageRampKeywordA ?? randomDamageRampKeywordA
+        randomDamageRampKeywordB = other.randomDamageRampKeywordB ?? randomDamageRampKeywordB
+        randomDamageRampPerTurn += other.randomDamageRampPerTurn
         holyDamagePoisonFlat += other.holyDamagePoisonFlat
         stunnedDamageMultiplier *= other.stunnedDamageMultiplier
         criticalChanceBonus += other.criticalChanceBonus
@@ -209,6 +225,10 @@ extension DamageTriggers {
             leechIgnoresMitigation: values.decode(Bool.self, "leechIgnoresMitigation", default: false),
             firstHitDoubleDamage: values.decode(Bool.self, "firstHitDoubleDamage", default: false),
             damageIncreasesEveryOtherTurn: values.decode(Bool.self, "damageIncreasesEveryOtherTurn", default: false),
+            damageIncreasesEveryOtherTurnKeyword: values.decode(Keyword?.self, "damageIncreasesEveryOtherTurnKeyword", default: nil),
+            randomDamageRampKeywordA: values.decode(Keyword?.self, "randomDamageRampKeywordA", default: nil),
+            randomDamageRampKeywordB: values.decode(Keyword?.self, "randomDamageRampKeywordB", default: nil),
+            randomDamageRampPerTurn: values.decode(Int.self, "randomDamageRampPerTurn", default: 0),
             holyDamagePoisonFlat: values.decode(Int.self, "holyDamagePoisonFlat", default: 0),
             stunnedDamageMultiplier: values.decode(Double.self, "stunnedDamageMultiplier", default: 1),
             criticalChanceBonus: values.decode(Double.self, "criticalChanceBonus", default: 0),
@@ -258,6 +278,10 @@ extension DamageTriggers {
         try container.encodeNonDefault(leechIgnoresMitigation, "leechIgnoresMitigation", default: false)
         try container.encodeNonDefault(firstHitDoubleDamage, "firstHitDoubleDamage", default: false)
         try container.encodeNonDefault(damageIncreasesEveryOtherTurn, "damageIncreasesEveryOtherTurn", default: false)
+        try container.encodeNonDefault(damageIncreasesEveryOtherTurnKeyword, "damageIncreasesEveryOtherTurnKeyword", default: nil)
+        try container.encodeNonDefault(randomDamageRampKeywordA, "randomDamageRampKeywordA", default: nil)
+        try container.encodeNonDefault(randomDamageRampKeywordB, "randomDamageRampKeywordB", default: nil)
+        try container.encodeNonDefault(randomDamageRampPerTurn, "randomDamageRampPerTurn", default: 0)
         try container.encodeNonDefault(holyDamagePoisonFlat, "holyDamagePoisonFlat", default: 0)
         try container.encodeNonDefault(stunnedDamageMultiplier, "stunnedDamageMultiplier", default: 1)
         try container.encodeNonDefault(criticalChanceBonus, "criticalChanceBonus", default: 0)

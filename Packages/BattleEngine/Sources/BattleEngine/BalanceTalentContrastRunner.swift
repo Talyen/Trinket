@@ -9,6 +9,7 @@ enum BalanceTalentContrastRunner {
         var focusID: String
         var siblingID: String
         var prefix: Set<String>
+        var treeKeyword: Keyword
     }
 
     struct KitFocus {
@@ -16,9 +17,90 @@ enum BalanceTalentContrastRunner {
         var kit: Set<String>
     }
 
+    static func siblingFoci(heroes: [Combatant], companions: [Combatant], focusIDs: [String]) -> [SiblingFocus] {
+        let wanted = Set(focusIDs)
+        return (heroes + companions).flatMap { owner -> [SiblingFocus] in
+            CombatantTalentCatalog.config(for: owner.id).trees.flatMap { tree -> [SiblingFocus] in
+                (1 ... 3).compactMap { row -> SiblingFocus? in
+                    let nodes = tree.nodes(forRow: row).sorted { $0.id < $1.id }
+                    guard nodes.count >= 2 else { return nil }
+                    guard wanted.isEmpty
+                        || wanted.contains(nodes[0].id)
+                        || wanted.contains(nodes[1].id)
+                    else {
+                        return nil
+                    }
+                    return SiblingFocus(
+                        owner: owner,
+                        focusID: nodes[0].id,
+                        siblingID: nodes[1].id,
+                        prefix: SimulationMatchupBuilder.minimalPrefix(for: tree, throughRow: row),
+                        treeKeyword: tree.keyword
+                    )
+                }
+            }
+        }
+    }
+
+    static func kitFoci(heroes: [Combatant], companions: [Combatant], focusIDs: [String]) -> [KitFocus] {
+        let wanted = Set(focusIDs)
+        return (heroes + companions).compactMap { owner -> KitFocus? in
+            if !wanted.isEmpty, !wanted.contains(owner.id), !wanted.contains("full-kit") {
+                return nil
+            }
+            let kit = CombatantTalentCatalog.validNodeIDs(for: owner.id)
+            guard !kit.isEmpty else { return nil }
+            return KitFocus(owner: owner, kit: kit)
+        }
+    }
+
+    static func isSiblingLegal(focus: SiblingFocus, tier: SimulationPowerTier) -> Bool {
+        let points = CombatantProgression.at(level: tier.level).totalTalentPoints
+        let needed = focus.prefix.count + 1
+        return points >= needed
+    }
+
+    static func isKitLegal(focus: KitFocus, tier: SimulationPowerTier) -> Bool {
+        CombatantProgression.at(level: tier.level).totalTalentPoints >= focus.kit.count
+    }
+
+    static func workCount(config: BalanceSweepConfig) -> Int {
+        siblingWorkCount(config: config) + kitWorkCount(config: config)
+    }
+
+    static func siblingWorkCount(config: BalanceSweepConfig) -> Int {
+        let roster = config.resolvedRoster
+        return fociCount(
+            siblingFoci(
+                heroes: roster.heroes,
+                companions: roster.companions,
+                focusIDs: config.focusIDs
+            ).count,
+            tiers: config.tiers.count,
+            samples: config.battlesPerTier
+        )
+    }
+
+    static func kitWorkCount(config: BalanceSweepConfig) -> Int {
+        let roster = config.resolvedRoster
+        return fociCount(
+            kitFoci(
+                heroes: roster.heroes,
+                companions: roster.companions,
+                focusIDs: config.focusIDs
+            ).count,
+            tiers: config.tiers.count,
+            samples: config.battlesPerTier
+        )
+    }
+
+    private static func fociCount(_ foci: Int, tiers: Int, samples: Int) -> Int {
+        foci * tiers * samples
+    }
+
     static func run(
         context: BalanceContrastContext,
-        policy: GreedyHeuristicPolicy
+        policy: some SimulationPlayPolicy
     ) -> (sibling: [PairedContrastSummary], kit: [PairedContrastSummary]) {
         guard !context.heroes.isEmpty,
               !context.companions.isEmpty,
@@ -33,19 +115,37 @@ enum BalanceTalentContrastRunner {
 
     private static func runSiblingSweep(
         context: BalanceContrastContext,
-        policy: GreedyHeuristicPolicy
+        policy: some SimulationPlayPolicy
     ) -> [PairedContrastSummary] {
-        let foci = makeSiblingFoci(heroes: context.heroes, companions: context.companions)
+        let foci = siblingFoci(
+            heroes: context.heroes,
+            companions: context.companions,
+            focusIDs: context.config.focusIDs
+        )
         guard !foci.isEmpty else { return [] }
-
+        guard let sliced = context.config.withLocalSlice(
+            regionStart: 0,
+            regionCount: siblingWorkCount(config: context.config)
+        ) else { return [] }
+        var slicedContext = context
+        slicedContext.config = sliced
         return BalanceContrastSupport.runSweep(
-            context: context,
+            context: slicedContext,
             foci: foci,
             tiers: context.config.tiers,
-            summarize: { (entityID: $0.focusID, baselineID: $0.siblingID, ownerID: $0.owner.id) },
+            summarize: {
+                (
+                    entityID: $0.focusID,
+                    baselineID: $0.siblingID,
+                    ownerID: $0.owner.id,
+                    baselineKind: .sibling,
+                    nonCombat: $0.treeKeyword == .gold
+                )
+            },
             primes: (tier: 700031, pair: 173),
             makePair: { focus, tier, pairIndex, seed in
-                makeTalentPair(
+                guard isSiblingLegal(focus: focus, tier: tier) else { return nil }
+                return makeTalentPair(
                     owner: focus.owner,
                     entityTalents: focus.prefix.union([focus.focusID]),
                     baselineTalents: focus.prefix.union([focus.siblingID]),
@@ -61,19 +161,37 @@ enum BalanceTalentContrastRunner {
 
     private static func runKitSweep(
         context: BalanceContrastContext,
-        policy: GreedyHeuristicPolicy
+        policy: some SimulationPlayPolicy
     ) -> [PairedContrastSummary] {
-        let foci = makeKitFoci(heroes: context.heroes, companions: context.companions)
+        let foci = kitFoci(
+            heroes: context.heroes,
+            companions: context.companions,
+            focusIDs: context.config.focusIDs
+        )
         guard !foci.isEmpty else { return [] }
-
+        guard let sliced = context.config.withLocalSlice(
+            regionStart: siblingWorkCount(config: context.config),
+            regionCount: kitWorkCount(config: context.config)
+        ) else { return [] }
+        var slicedContext = context
+        slicedContext.config = sliced
         return BalanceContrastSupport.runSweep(
-            context: context,
+            context: slicedContext,
             foci: foci,
             tiers: context.config.tiers,
-            summarize: { (entityID: "full-kit", baselineID: "none", ownerID: $0.owner.id) },
+            summarize: {
+                (
+                    entityID: "full-kit",
+                    baselineID: "none",
+                    ownerID: $0.owner.id,
+                    baselineKind: .fullKit,
+                    nonCombat: false
+                )
+            },
             primes: (tier: 700041, pair: 179),
             makePair: { focus, tier, pairIndex, seed in
-                makeTalentPair(
+                guard isKitLegal(focus: focus, tier: tier) else { return nil }
+                return makeTalentPair(
                     owner: focus.owner,
                     entityTalents: focus.kit,
                     baselineTalents: [],
@@ -85,31 +203,6 @@ enum BalanceTalentContrastRunner {
             },
             policy: policy
         )
-    }
-
-    private static func makeSiblingFoci(heroes: [Combatant], companions: [Combatant]) -> [SiblingFocus] {
-        (heroes + companions).flatMap { owner -> [SiblingFocus] in
-            CombatantTalentCatalog.config(for: owner.id).trees.flatMap { tree -> [SiblingFocus] in
-                (1 ... 3).compactMap { row -> SiblingFocus? in
-                    let nodes = tree.nodes(forRow: row).sorted { $0.id < $1.id }
-                    guard nodes.count >= 2 else { return nil }
-                    return SiblingFocus(
-                        owner: owner,
-                        focusID: nodes[0].id,
-                        siblingID: nodes[1].id,
-                        prefix: SimulationMatchupBuilder.minimalPrefix(for: tree, throughRow: row)
-                    )
-                }
-            }
-        }
-    }
-
-    private static func makeKitFoci(heroes: [Combatant], companions: [Combatant]) -> [KitFocus] {
-        (heroes + companions).compactMap { owner -> KitFocus? in
-            let kit = CombatantTalentCatalog.validNodeIDs(for: owner.id)
-            guard !kit.isEmpty else { return nil }
-            return KitFocus(owner: owner, kit: kit)
-        }
     }
 
     private static func makeTalentPair(
@@ -127,10 +220,9 @@ enum BalanceTalentContrastRunner {
             from: context,
             using: &rng
         )
-        let enemy = BalanceSampling.stratifiedEnemy(
+        let enemy = BalanceContrastSupport.roundRobinEnemy(
             enemies: context.enemies,
-            battleIndex: pairIndex,
-            using: &rng
+            pairIndex: pairIndex
         )
         let ownerLoadout = SimulationMatchupBuilder.sampleLoadout(
             for: owner,

@@ -33,7 +33,6 @@ public struct ActionEventDisplay: Equatable {
 /// used to live on `ActionEvent.floatingText` so the model stays
 /// presentation-free and the formatting can grow independently.
 public enum ActionEventFormatter {
-    /// Returns the display model for `event`. Pure function.
     public static func display(for event: ActionEvent) -> ActionEventDisplay {
         switch event.kind {
         case .ability, .abilityDamage:

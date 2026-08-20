@@ -28,6 +28,23 @@ struct ThemedGearGeneratorTests {
             == (primary.baseType.weaponKind != .twoHanded))
     }
 
+    @Test func generatesSingleAlignedPiece() throws {
+        let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
+        var rng = SeededRandomNumberGenerator(seed: 44)
+        let build = ThemedGearGenerator().generateSinglePiece(
+            for: knight,
+            rarity: .basic,
+            fixedAffixCount: 1,
+            idPrefix: "starter",
+            keywordBias: Set(knight.abilities.flatMap(\.keywords)),
+            requireBuildAlignment: true,
+            using: &rng
+        )
+        try #expect(build.inventory.count == 1)
+        try #expect(build.inventory[0].affixes.count == 1)
+        try #expect(build.loadout.itemIDsBySlot.count == 1)
+    }
+
     @Test func keywordProfileIncludesAbilityKeywords() throws {
         let wizard = try #require(GameContent.heroes.first { $0.id == "wizard" })
         try #expect(wizard.keywordProfile.contains(.burn))

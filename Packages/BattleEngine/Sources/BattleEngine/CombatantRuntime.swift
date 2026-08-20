@@ -23,6 +23,7 @@ public struct CombatantRuntime: Hashable {
         var pendingBasicGuaranteedCrit: Bool = false
         var pendingAttackBonusOnFullHealth: Int = 0
         var permanentDamageBonus: Int = 0
+        var keywordDamageRamp: [Keyword: Int] = [:]
         var talentLeechOverhealDamageBonus: Int = 0
         var totalBlockGainedThisCombat: Int = 0
         var pendingDoubleStatusNextCard: Bool = false
@@ -88,7 +89,8 @@ public struct CombatantRuntime: Hashable {
     /// True after this combatant has triggered Death's Door once this battle.
     public var hasConsumedDeathsDoor: Bool
 
-    /// Round when Death's Door expired; lethal protection lasts through that round.
+    /// Round when Death's Door expired; lethal protection lasts through that
+    /// round's remaining effect pass, then clears before the next player turn.
     public var deathsDoorExpiredAtTurn: Int?
 
     /// True after this combatant's first-hit double-damage trait has fired once.

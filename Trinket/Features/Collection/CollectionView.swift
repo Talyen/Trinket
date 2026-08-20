@@ -10,7 +10,7 @@ import TrinketPersistence
 struct CollectionView: View {
     @Environment(PlayerSaveStore.self) private var playerSave
     @Environment(OptionsStore.self) private var options
-    @State private var salvageDetail = SalvageItemDetailController()
+    @State private var salvageDetail = SalvageDetailState()
     @State private var selectedCombatant: CombatantDetailContext?
     @State private var showMissingItem = false
     @Namespace private var zoomNamespace
@@ -22,7 +22,6 @@ struct CollectionView: View {
     }
 
     var body: some View {
-        @Bindable var salvageDetail = salvageDetail
         collectionBrowseContent
             .trinketScreenBackground()
             .scrollEdgeEffectStyle(.soft, for: .top)
@@ -36,10 +35,12 @@ struct CollectionView: View {
                 Text("That item isn't in your collection.")
             }
             .sheet(item: $salvageDetail.selectedItem) { item in
-                SalvageItemDetailSheet(
-                    controller: salvageDetail,
-                    item: item
-                )
+                SalvageItemDetailSheet(item: item) { result in
+                    salvageDetail.salvageFinished(
+                        result: result,
+                        item: item
+                    )
+                }
             }
             .sheet(item: $selectedCombatant) { context in
                 NavigationStack {

@@ -13,7 +13,19 @@ public enum BalanceMarkdownReporter {
                 elapsedSeconds: report.elapsedSeconds
             )
         }
-        return renderIdentityOrContrast(report)
+        var body = renderIdentityOrContrast(report)
+        if report.config.mode == .all, !report.progressionPlayerStates.isEmpty {
+            body += "\n"
+            body += BalanceProgressionReportFormatter.render(
+                config: report.config,
+                hotspots: report.progressionHotspots,
+                records: report.progressionRecords,
+                playerStates: report.progressionPlayerStates,
+                truncatedRuns: report.progressionTruncatedRuns,
+                elapsedSeconds: report.elapsedSeconds
+            )
+        }
+        return body
     }
 
     private static func renderIdentityOrContrast(_ report: BalanceSweepReport) -> String {
@@ -23,12 +35,16 @@ public enum BalanceMarkdownReporter {
 
         if !report.records.isEmpty {
             for tierStats in tiers where tierStats.battles > 0 {
-                appendIdentityTier(tierStats, into: &lines)
+                BalanceMarkdownTables.appendIdentityTier(
+                    tierStats,
+                    compared: comparedStats(report, tier: tierStats.tier),
+                    into: &lines
+                )
             }
         }
 
         if !report.abilityContrasts.isEmpty {
-            appendContrasts(
+            BalanceMarkdownTables.appendContrasts(
                 title: "Ability Contrasts (paired lift vs sibling choice)",
                 summaries: report.abilityContrasts,
                 into: &lines
@@ -36,15 +52,15 @@ public enum BalanceMarkdownReporter {
         }
 
         if !report.affixContrasts.isEmpty {
-            appendContrasts(
-                title: "Affix Contrasts (paired lift vs same slot without affix)",
+            BalanceMarkdownTables.appendContrasts(
+                title: "Affix Contrasts (empty-slot and replacement-affix baselines)",
                 summaries: report.affixContrasts,
                 into: &lines
             )
         }
 
         if !report.talentContrasts.isEmpty {
-            appendContrasts(
+            BalanceMarkdownTables.appendContrasts(
                 title: "Talent Contrasts (paired lift vs sibling in the same row)",
                 summaries: report.talentContrasts,
                 into: &lines
@@ -52,27 +68,50 @@ public enum BalanceMarkdownReporter {
         }
 
         if !report.talentKitContrasts.isEmpty {
-            appendContrasts(
-                title: "Talent Kit Contrasts (full kit vs none)",
+            BalanceMarkdownTables.appendContrasts(
+                title: "Talent Kit Contrasts (full kit vs none, legal point budget only)",
                 summaries: report.talentKitContrasts,
                 into: &lines
             )
         }
 
-        appendReportNotes(policyID: report.policyID, into: &lines)
+        BalanceMarkdownTables.appendUnderNAppendix(tiers: tiers, report: report, into: &lines)
+        appendReportNotes(report: report, into: &lines)
         return lines.joined(separator: "\n")
     }
 
+    private static func comparedStats(_ report: BalanceSweepReport, tier: SimulationPowerTier) -> BalanceTierStats? {
+        guard !report.comparedRecords.isEmpty else { return nil }
+        return BalanceStatsAggregator.summarize(report: report, records: report.comparedRecords)
+            .first { $0.tier == tier }
+    }
+
     private static func appendReportHeader(_ report: BalanceSweepReport, into lines: inout [String]) {
+        let roster = report.config.resolvedRoster
+        let samples = report.config.battlesPerTier
+        let expectedEnemyN = samples
+        let expectedHeroN = roster.enemies.isEmpty || roster.heroes.isEmpty
+            ? 0
+            : samples * roster.enemies.count / roster.heroes.count
+        let expectedCompanionN = roster.enemies.isEmpty || roster.companions.isEmpty
+            ? 0
+            : samples * roster.enemies.count / roster.companions.count
         lines.append("# Balance Sweep Report")
         lines.append("")
         lines.append("- Mode: `\(report.config.mode.rawValue)`")
         lines.append("- Policy: `\(report.policyID)`")
+        if let compared = report.comparedPolicyID {
+            lines.append("- Compared policy: `\(compared)`")
+        }
         lines.append("- Seed: `\(report.config.seed)`")
-        lines.append("- Battles per tier: `\(report.config.battlesPerTier)`")
+        lines.append("- Samples per unit: `\(samples)`")
         lines.append("- Jobs: `\(report.config.resolvedJobs)`")
         lines.append("- Tiers: \(report.config.tiers.map(\.rawValue).joined(separator: ", "))")
+        lines.append("- Fight pacing: `\(report.config.appliesFightPacing ? "on" : "off")`")
         lines.append("- Identity battles: `\(report.records.count)`")
+        lines.append(
+            "- Expected n/tier: enemies `\(expectedEnemyN)`, heroes ~`\(expectedHeroN)`, companions ~`\(expectedCompanionN)`, contrast pairs/focus `\(samples)`"
+        )
         lines.append("- Ability contrast rows: `\(report.abilityContrasts.count)`")
         lines.append("- Affix contrast rows: `\(report.affixContrasts.count)`")
         lines.append("- Talent contrast rows: `\(report.talentContrasts.count)`")
@@ -86,19 +125,24 @@ public enum BalanceMarkdownReporter {
         }
         lines.append("- Peer Δ / lift flag threshold: `\(Int(report.config.peerDeltaFlagThreshold * 100)) pp`")
         lines.append(
-            "- Duration goal bands: trash `\(BalanceDurationThresholds.trashGoalBand)` rounds, boss `\(BalanceDurationThresholds.bossGoalBand)` rounds (sim `turnCount` = player phase + enemy phase)."
+            "- Duration goal bands: trash `\(BalanceDurationThresholds.trashGoalBand)` rounds, boss `\(BalanceDurationThresholds.bossGoalBand)` rounds; flag when SHORT% or LONG% ≥ \(Int(report.config.durationFlagRate * 100))%."
         )
+        if samples < BalanceSweepConfig.contrastFlagMinPairs {
+            lines.append(
+                "- Warning: samples < \(BalanceSweepConfig.contrastFlagMinPairs); contrast flags are disabled."
+            )
+        }
         lines.append("")
     }
 
-    private static func appendReportNotes(policyID: String, into lines: inout [String]) {
+    private static func appendReportNotes(report: BalanceSweepReport, into lines: inout [String]) {
         lines.append("## Notes")
         lines.append("")
-        lines.append("- Win rates are under `\(policyID)` autoplay, not human play.")
-        lines.append("- Identity party ability/affix rows are presence margins (entity appeared in loadout/gear).")
+        lines.append("- Win rates are under `\(report.policyID)` autoplay, not human play. Timeouts are excluded from win rate.")
+        lines.append("- Identity party ability/affix/talent rows are within-owner presence margins; contrasts isolate a sibling swap.")
         lines.append(
             "- Identity spends available talent points (1 per even level) on a legal kit: "
-                + "early none, middle a partial spend, late the full 18-node kit. "
+                + "early a 1-node spend at L4 plus one basic aligned item, middle a partial spend, late the full 18-node kit. "
                 + "The early→middle cliff includes level, gear, and talents."
         )
         lines.append(
@@ -107,154 +151,19 @@ public enum BalanceMarkdownReporter {
         lines.append("- Contrast lifts hold partner/enemy/gear/loadout fixed and swap only the focus entity.")
         lines.append("- Ability and affix contrasts keep talents empty so those lifts stay isolated.")
         lines.append(
-            "- Talent sibling contrasts swap one row choice (minimal legal prefix in that tree). "
-                + "Kit contrasts swap the full 18-node kit vs none."
+            "- Talent sibling contrasts swap one row choice (minimal legal prefix in that tree) only when the tier's talent points cover the prefix. "
+                + "Kit contrasts run only when points cover the full catalog (late)."
         )
-        lines.append("- Gold and other economy talents do not move combat win rate in this sweep.")
-        lines.append("- Enemy power uses `EnemyPowerCurve` stat anchors (L1/L20/L40); the same multiplier scales enemy HP and stats.")
-        lines.append("- Sweeps include hidden `FightPacing` comeback/clock scaling on authored combat magnitudes.")
+        lines.append("- Affix contrasts report empty-slot and replacement-affix baselines separately.")
+        lines.append("- Gold and other economy talents are marked NONCOMBAT and never flagged LOW.")
         lines.append(
-            "- Duration ⚠ SHORT / ⚠ LONG flag fights outside goal bands (trash \(BalanceDurationThresholds.trashGoalBand), boss \(BalanceDurationThresholds.bossGoalBand) rounds)."
-        )
-        lines.append("")
-    }
-
-    private static func appendIdentityTier(_ tierStats: BalanceTierStats, into lines: inout [String]) {
-        lines.append("## \(tierStats.tier.displayName)")
-        lines.append("")
-        let winPct = tierStats.battles == 0
-            ? 0
-            : 100.0 * Double(tierStats.wins) / Double(tierStats.battles)
-        lines.append(String(
-            format: "Battles: %d · Wins: %d (%.1f%%) · Timeouts: %d · Avg rounds: %.1f · Avg party HP on win: %.0f%% · Avg enemy HP on loss: %.0f%%",
-            tierStats.battles,
-            tierStats.wins,
-            winPct,
-            tierStats.timeouts,
-            tierStats.averageRounds,
-            tierStats.averagePartyHPOnWin * 100,
-            tierStats.averageEnemyHPOnLoss * 100
-        ))
-        lines.append("")
-        appendDurationSection(tierStats, into: &lines)
-        appendSection(title: "Heroes", summaries: tierStats.heroes, into: &lines)
-        appendSection(title: "Companions", summaries: tierStats.companions, into: &lines)
-        appendSection(title: "Enemies", summaries: tierStats.enemies, into: &lines)
-        appendSection(title: "Party Abilities", summaries: tierStats.abilities, into: &lines, limit: 25)
-        appendSection(title: "Enemy Abilities", summaries: tierStats.enemyAbilities, into: &lines, limit: 25)
-        appendSection(title: "Enemy Traits", summaries: tierStats.enemyTraits, into: &lines)
-        if tierStats.tier.includesGear {
-            appendSection(title: "Item Affixes", summaries: tierStats.affixes, into: &lines, limit: 25)
-        }
-    }
-
-    private static func appendDurationSection(_ tierStats: BalanceTierStats, into lines: inout [String]) {
-        lines.append("### Duration")
-        lines.append("")
-        lines.append(
-            "| Bucket | Goal | n | SHORT% | LONG% | Avg rounds | "
-                + "Avg when SHORT | Avg when LONG | Max rounds | Worst enemy | Flag |"
+            "- Enemy power uses `EnemyPowerCurve` (L1/L20/L40): trash shares HP/stat multipliers; "
+                + "boss HP is 50% above trash; L1 boss stats are 5.2 (L20/L40 10.77/18.90)."
         )
         lines.append(
-            "|---|---:|---:|---:|---:|---:|---:|---:|---:|---|---|"
+            "- Fight pacing is \(report.config.appliesFightPacing ? "ON" : "OFF") "
+                + "for this sweep (`--pacing off` measures raw kit power)."
         )
-        appendDurationRow(
-            label: "trash",
-            goalBand: BalanceDurationThresholds.trashGoalBand,
-            stats: tierStats.trashDuration,
-            into: &lines
-        )
-        appendDurationRow(
-            label: "boss",
-            goalBand: BalanceDurationThresholds.bossGoalBand,
-            stats: tierStats.bossDuration,
-            into: &lines
-        )
-        lines.append("")
-    }
-
-    private static func appendDurationRow(
-        label: String,
-        goalBand: String,
-        stats: BalanceDurationBucketStats,
-        into lines: inout [String]
-    ) {
-        var flags: [String] = []
-        if stats.shortBattles > 0 {
-            flags.append("⚠ SHORT")
-        }
-        if stats.longBattles > 0 {
-            flags.append("⚠ LONG")
-        }
-        let flag = flags.joined(separator: " ")
-        let worst = stats.worstEnemyID.map { "`\($0)`" } ?? "—"
-        lines.append(String(
-            format: "| %@ | %@ | %d | %.1f%% | %.1f%% | %.1f | %.1f | %.1f | %d | %@ | %@ |",
-            label,
-            goalBand,
-            stats.battles,
-            stats.shortRate * 100,
-            stats.longRate * 100,
-            stats.averageRounds,
-            stats.averageRoundsWhenShort,
-            stats.averageRoundsWhenLong,
-            stats.maxRounds,
-            worst,
-            flag
-        ))
-    }
-
-    private static func appendContrasts(
-        title: String,
-        summaries: [PairedContrastSummary],
-        into lines: inout [String]
-    ) {
-        lines.append("## \(title)")
-        lines.append("")
-        lines.append("| Entity | Baseline | Owner | Tier | Entity% | Baseline% | Lift | n | Flag |")
-        lines.append("|---|---|---|---|---:|---:|---:|---:|---|")
-        for row in summaries.prefix(40) {
-            let flag = row.flagged ? "⚠ \(row.flagReason ?? "")" : ""
-            lines.append(String(
-                format: "| `%@` | `%@` | `%@` | %@ | %.1f%% | %.1f%% | %+.1f pp | %d | %@ |",
-                row.entityID,
-                row.baselineID,
-                row.ownerID,
-                row.tier.displayName,
-                row.entityWinRate * 100,
-                row.baselineWinRate * 100,
-                row.lift * 100,
-                row.pairs,
-                flag
-            ))
-        }
-        lines.append("")
-    }
-
-    private static func appendSection(
-        title: String,
-        summaries: [WinRateSummary],
-        into lines: inout [String],
-        limit: Int? = nil
-    ) {
-        lines.append("### \(title)")
-        lines.append("")
-        lines.append("| ID | Win% | Wilson 95% | n | Δ peer | Flag |")
-        lines.append("|---|---:|---|---:|---:|---|")
-        let rows = limit.map { Array(summaries.prefix($0)) } ?? summaries
-        for row in rows {
-            let flag = row.flagged ? "⚠ \(row.flagReason ?? "")" : ""
-            lines.append(String(
-                format: "| `%@` | %.1f%% | [%.1f–%.1f] | %d | %+.1f pp | %@ |",
-                row.id,
-                row.winRate * 100,
-                row.wilsonLow * 100,
-                row.wilsonHigh * 100,
-                row.battles,
-                row.deltaVsPeer * 100,
-                flag
-            ))
-        }
         lines.append("")
     }
 }

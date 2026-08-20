@@ -110,8 +110,11 @@ public enum HotspotAnalyzer {
 
             let status: HotspotStatus
             let reason: String?
+            let minBattles = BalanceSweepConfig.identityFlagMinBattles
+            let ciExcludesLow = wilson.high < targetLowerBound
+            let ciExcludesHigh = wilson.low > targetUpperBound
 
-            if winRate < targetLowerBound {
+            if total >= minBattles, winRate < targetLowerBound, ciExcludesLow {
                 if levelGap >= 3.0 {
                     status = .levelGapWall
                     reason = String(format: "Level Gap (+%.1f levels)", levelGap)
@@ -119,7 +122,7 @@ public enum HotspotAnalyzer {
                     status = .overtuned
                     reason = String(format: "Win rate %.1f%% below 80%%", winRate * 100)
                 }
-            } else if winRate > targetUpperBound {
+            } else if total >= minBattles, winRate > targetUpperBound, ciExcludesHigh {
                 status = .undertuned
                 reason = String(format: "Win rate %.1f%% above 95%%", winRate * 100)
             } else {

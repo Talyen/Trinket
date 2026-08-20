@@ -8,18 +8,67 @@ enum BalanceAffixContrastRunner {
         var definition: ItemAffixDefinition
         var owner: Combatant
         var baseType: ItemBaseType
+        var baselineKind: ContrastBaselineKind
+    }
+
+    static func foci(heroes: [Combatant], companions: [Combatant], focusIDs: [String]) -> [Focus] {
+        let owners = heroes + companions
+        let wanted = Set(focusIDs)
+        return GameContent.itemAffixDefinitions.flatMap { definition -> [Focus] in
+            if !wanted.isEmpty, !wanted.contains(definition.id) {
+                return []
+            }
+            return owners.compactMap { owner -> [Focus]? in
+                guard definition.isAligned(withBuildKeywords: owner.keywordProfile),
+                      owner.role.equipmentSlots.contains(where: { $0.baseItemSlot == definition.slot })
+                else { return nil }
+                let slot = owner.role.equipmentSlots.first {
+                    $0.baseItemSlot == definition.slot
+                } ?? definition.slot
+                guard let baseType = GameContent.itemBaseTypes.first(where: {
+                    $0.slot == definition.slot
+                        && $0.canEquip(in: slot)
+                        && !definition.keywords.isDisjoint(with: $0.keywordAffinities)
+                }) else { return nil }
+                return [
+                    Focus(definition: definition, owner: owner, baseType: baseType, baselineKind: .emptySlot),
+                    Focus(
+                        definition: definition,
+                        owner: owner,
+                        baseType: baseType,
+                        baselineKind: .replacementAffix
+                    ),
+                ]
+            }
+            .flatMap(\.self)
+        }
+    }
+
+    static func workCount(config: BalanceSweepConfig) -> Int {
+        let roster = config.resolvedRoster
+        let fociCount = foci(
+            heroes: roster.heroes,
+            companions: roster.companions,
+            focusIDs: config.focusIDs
+        ).count
+        let tiers = config.tiers.filter(\.includesGear)
+        return fociCount * tiers.count * config.battlesPerTier
     }
 
     static func run(
         context: BalanceContrastContext,
-        policy: GreedyHeuristicPolicy
+        policy: some SimulationPlayPolicy
     ) -> [PairedContrastSummary] {
         guard !context.heroes.isEmpty,
               !context.companions.isEmpty,
               !context.enemies.isEmpty
         else { return [] }
 
-        let foci = makeFoci(heroes: context.heroes, companions: context.companions)
+        let foci = foci(
+            heroes: context.heroes,
+            companions: context.companions,
+            focusIDs: context.config.focusIDs
+        )
         guard !foci.isEmpty else { return [] }
 
         return BalanceContrastSupport.runSweep(
@@ -27,7 +76,16 @@ enum BalanceAffixContrastRunner {
             foci: foci,
             tiers: context.config.tiers.filter(\.includesGear),
             summarize: {
-                (entityID: $0.definition.id, baselineID: "no-\($0.definition.id)", ownerID: $0.owner.id)
+                let baselineID = $0.baselineKind == .emptySlot
+                    ? "empty-slot"
+                    : "replacement-\($0.definition.id)"
+                return (
+                    entityID: $0.definition.id,
+                    baselineID: baselineID,
+                    ownerID: $0.owner.id,
+                    baselineKind: $0.baselineKind,
+                    nonCombat: false
+                )
             },
             primes: (tier: 800021, pair: 151),
             makePair: { focus, tier, pairIndex, seed in
@@ -43,28 +101,6 @@ enum BalanceAffixContrastRunner {
         )
     }
 
-    private static func makeFoci(heroes: [Combatant], companions: [Combatant]) -> [Focus] {
-        let owners = heroes + companions
-        return GameContent.itemAffixDefinitions.compactMap { definition in
-            let owner = owners.first { candidate in
-                definition.isAligned(withBuildKeywords: candidate.keywordProfile)
-                    && candidate.role.equipmentSlots.contains {
-                        $0.baseItemSlot == definition.slot
-                    }
-            }
-            guard let owner else { return nil }
-            let slot = owner.role.equipmentSlots.first {
-                $0.baseItemSlot == definition.slot
-            } ?? definition.slot
-            guard let baseType = GameContent.itemBaseTypes.first(where: {
-                $0.slot == definition.slot
-                    && $0.canEquip(in: slot)
-                    && !definition.keywords.isDisjoint(with: $0.keywordAffinities)
-            }) else { return nil }
-            return Focus(definition: definition, owner: owner, baseType: baseType)
-        }
-    }
-
     private static func makePairSetup(
         focus: Focus,
         tier: SimulationPowerTier,
@@ -78,10 +114,9 @@ enum BalanceAffixContrastRunner {
             from: context,
             using: &rng
         )
-        let enemy = BalanceSampling.stratifiedEnemy(
+        let enemy = BalanceContrastSupport.roundRobinEnemy(
             enemies: context.enemies,
-            battleIndex: pairIndex,
-            using: &rng
+            pairIndex: pairIndex
         )
         let ownerLoadout = SimulationMatchupBuilder.sampleLoadout(
             for: focus.owner,
@@ -118,7 +153,7 @@ enum BalanceAffixContrastRunner {
                 seed: pairSeed
             ),
             entityOwnerGear: gears.withAffix,
-            baselineOwnerGear: gears.withoutAffix
+            baselineOwnerGear: gears.baseline
         )
     }
 
@@ -127,7 +162,7 @@ enum BalanceAffixContrastRunner {
         tier: SimulationPowerTier,
         ownerLoadout: AbilityLoadout,
         pairSeed: UInt64
-    ) -> (withAffix: SimulationMatchupBuilder.GearOverride, withoutAffix: SimulationMatchupBuilder.GearOverride) {
+    ) -> (withAffix: SimulationMatchupBuilder.GearOverride, baseline: SimulationMatchupBuilder.GearOverride) {
         let rarity = tier.rarity ?? .basic
         let affixCount = max(1, tier.fixedAffixCount ?? 1)
         let bias = focus.owner.keywordProfile
@@ -142,15 +177,11 @@ enum BalanceAffixContrastRunner {
             guaranteedAffixIDs: [focus.definition.id],
             using: &itemRNG
         )
-        let withoutAffixItem = ItemGenerator(
-            affixDefinitions: GameContent.itemAffixDefinitions.filter { $0.id != focus.definition.id }
-        ).generate(
-            id: "contrast-baseline-\(focus.definition.id)",
-            baseType: focus.baseType,
+        let baselineItem = generateBaselineItem(
+            focus: focus,
             rarity: rarity,
-            fixedAffixCount: affixCount,
-            keywordBias: bias,
-            requireBuildAlignment: true,
+            affixCount: affixCount,
+            bias: bias,
             using: &itemRNG
         )
         let slot = focus.owner.role.equipmentSlots.first {
@@ -158,11 +189,11 @@ enum BalanceAffixContrastRunner {
         } ?? focus.definition.slot
         var withLoadout = EquipmentLoadout()
         withLoadout.equip(withAffixItem, in: slot, inventory: [withAffixItem])
-        var withoutLoadout = EquipmentLoadout()
-        withoutLoadout.equip(withoutAffixItem, in: slot, inventory: [withoutAffixItem])
+        var baselineLoadout = EquipmentLoadout()
+        baselineLoadout.equip(baselineItem, in: slot, inventory: [baselineItem])
         precondition(
             withLoadout.itemID(for: slot) == withAffixItem.id
-                && withoutLoadout.itemID(for: slot) == withoutAffixItem.id,
+                && baselineLoadout.itemID(for: slot) == baselineItem.id,
             "Affix contrast items must equip in their protected slot"
         )
         var fillRNG = SeededRandomNumberGenerator(seed: pairSeed &+ 41)
@@ -180,10 +211,41 @@ enum BalanceAffixContrastRunner {
                 protectedSlot: slot
             ),
             mergeGear(
-                primary: .init(inventory: [withoutAffixItem], loadout: withoutLoadout),
+                primary: .init(inventory: [baselineItem], loadout: baselineLoadout),
                 filler: filler,
                 protectedSlot: slot
             )
+        )
+    }
+
+    private static func generateBaselineItem(
+        focus: Focus,
+        rarity: Rarity,
+        affixCount: Int,
+        bias: Set<Keyword>,
+        using itemRNG: inout SeededRandomNumberGenerator
+    ) -> InventoryItem {
+        if focus.baselineKind == .emptySlot {
+            return ItemGenerator().generate(
+                id: "contrast-empty-\(focus.definition.id)",
+                baseType: focus.baseType,
+                rarity: rarity,
+                fixedAffixCount: 0,
+                keywordBias: bias,
+                requireBuildAlignment: true,
+                using: &itemRNG
+            )
+        }
+        return ItemGenerator(
+            affixDefinitions: GameContent.itemAffixDefinitions.filter { $0.id != focus.definition.id }
+        ).generate(
+            id: "contrast-baseline-\(focus.definition.id)",
+            baseType: focus.baseType,
+            rarity: rarity,
+            fixedAffixCount: affixCount,
+            keywordBias: bias,
+            requireBuildAlignment: true,
+            using: &itemRNG
         )
     }
 

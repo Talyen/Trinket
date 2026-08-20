@@ -21,7 +21,7 @@ struct CombatantBuffAuraTests {
         (Effect.nextStrikeDouble, CombatantBuffAuraKind.shadowstep),
         (.evadeNextHit, .shadowstep),
         (.nextStrikeCritical, .predatorsFocus),
-        (.freezeOnHit(2), .glacialWard),
+        (.onHitDamage(.freeze, 2), .glacialWard),
         (.freezeNextAttacker, .glacialWard),
         (.thorns(3), .thorns),
         (.nextHolyStrike, .avatar),
@@ -66,7 +66,7 @@ struct CombatantBuffAuraTests {
             ActiveEffect(id: 2, effect: .marked(3, 6), remainingTurns: 6),
             ActiveEffect(id: 3, effect: .avatar(holyDamage: 6, blockPerTurn: 4, turns: 1), remainingTurns: 1),
             ActiveEffect(id: 4, effect: .thorns(2), remainingTurns: 0),
-            ActiveEffect(id: 5, effect: .freezeOnHit(2), remainingTurns: 0),
+            ActiveEffect(id: 5, effect: .onHitDamage(.freeze, 2), remainingTurns: 0),
             ActiveEffect(id: 6, effect: .nextStrikeCritical, remainingTurns: 0),
             ActiveEffect(id: 7, effect: .nextStrikeDouble, remainingTurns: 0),
         ]

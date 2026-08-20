@@ -261,7 +261,7 @@ struct BattleCardCombatTests {
 
     @Test(arguments: [(0, BattleParticipant.companion), (1, BattleParticipant.hero)])
     func automaticOpenSlotAlternatesTiedOwnerByRound(
-        startingTick: Int,
+        startingRound: Int,
         expectedOwner: BattleParticipant
     ) throws {
         var battle = makeBattle(
@@ -269,7 +269,7 @@ struct BattleCardCombatTests {
             companionAbilities: [.bash, .fangs, .bloodthorn],
             enemyMaxHealth: 500
         )
-        battle.turnCount = startingTick
+        battle.turnCount = startingRound
         // One open slot, tied owner counts (1 hero + 1 companion) → tie-break picks the open-slot owner.
         battle.hand = BattleHand()
         battle.handBuffer = BattleHandBuffer()
@@ -287,7 +287,7 @@ struct BattleCardCombatTests {
         try #expect(battle.handBuffer.count == 1)
     }
 
-    @Test func endOfRoundTicksEffectsOnce() throws {
+    @Test func endOfRoundAdvancesEffectsOnce() throws {
         var battle = makeBattle(
             heroAbilities: [],
             companionAbilities: [],
@@ -325,31 +325,6 @@ struct BattleCardCombatTests {
         // Companion cards remain playable.
         let companionCard = try #require(battle.hand.cards.first { $0.owner == .companion })
         try #expect(battle.isCardPlayable(companionCard))
-    }
-
-    @Test func manaCostIgnoredWhenPlayingCards() throws {
-        let expensive = Ability(
-            id: "expensive-skill",
-            name: "Expensive Skill",
-            tier: .skill,
-            directDamage: 5,
-            description: "Costs mana but card play ignores it.",
-            manaCost: 9
-        )
-        var battle = makeBattle(
-            heroAbilities: [expensive],
-            companionAbilities: [.bash],
-            heroMaxMana: 0,
-            heroMana: 0
-        )
-        try #expect(battle.mana(of: battle.hero) == 0)
-
-        let card = try #require(battle.hand.cards.first { $0.ability.id == expensive.id })
-        let events = try battle.playCard(cardID: card.id)
-
-        try #expect(events.contains { $0.kind == .ability && $0.abilityID == expensive.id })
-        try #expect(battle.mana(of: battle.hero) == 0)
-        try #expect(100 - battle.health(of: battle.enemy) >= 5 || battle.health(of: battle.enemy) < 100)
     }
 
     @Test func playedCardReturnsToDeckAfterEffectsSoDrawCannotFetchIt() throws {

@@ -72,34 +72,41 @@ struct DeathsDoorEngineTests {
         try #expect(context.roster.isDeathsDoorActive(for: hero))
     }
 
-    @Test(arguments: [true, false])
-    func expiryGraceClampsSameTickThenKillsOnLaterTick(advanceTickBeforeSecondHit: Bool) throws {
+    @Test func expiryRoundDoTDoesNotKill() throws {
         var context = makeContext(heroHP: 5)
         let hero = context.roster.hero.combatant
         _ = context.applyTestDamage(5, to: hero, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
-
         var effects = context.roster.activeEffects(for: hero)
-        for _ in 0 ..< BattleTiming.deathsDoorDurationTurns {
-            let result = EffectTurnEngine.advanceEffects(effects, target: hero, context: &context)
-            effects = result.updated
-        }
+        let burnID = (effects.map(\.id).max() ?? 0) + 1
+        effects.append(ActiveEffect(id: burnID, effect: .burn(8), remainingTurns: 0, sourceActorID: context.enemy.id))
         context.roster.setActiveEffects(effects, for: hero)
 
-        if advanceTickBeforeSecondHit {
-            // Expiry grace only lasts through the tick that removed Death's Door.
-            context.turnCount += 1
-            context.roster.mutateRuntime(for: hero) { $0.deathsDoorExpiredAtTurn = nil }
-            try #expect(!(context.roster.isDeathsDoorActive(for: hero)))
-            _ = context.applyTestDamage(5, to: hero, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
-            try #expect(context.roster.health(for: hero) == 0)
-            try #expect(!(context.roster.hero.isAlive))
-        } else {
-            try #expect(!(context.roster.isDeathsDoorActive(for: hero)))
-            try #expect(context.roster.runtime(for: hero)?.deathsDoorExpiredAtTurn == context.turnCount)
-            _ = context.applyTestDamage(5, to: hero, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
-            try #expect(context.roster.health(for: hero) == 1)
-            try #expect(context.roster.hero.isAlive)
+        for _ in 0 ..< BattleTiming.deathsDoorDurationTurns {
+            _ = context.endTurn()
         }
+
+        try #expect(context.roster.health(for: hero) == 1)
+        try #expect(context.roster.hero.isAlive)
+        try #expect(!(context.roster.isDeathsDoorActive(for: hero)))
+        try #expect(context.roster.runtime(for: hero)?.deathsDoorExpiredAtTurn == nil)
+    }
+
+    @Test func doTKillsOnTheRoundAfterDeathsDoorExpires() throws {
+        var context = makeContext(heroHP: 5)
+        let hero = context.roster.hero.combatant
+        _ = context.applyTestDamage(5, to: hero, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
+        var effects = context.roster.activeEffects(for: hero)
+        let burnID = (effects.map(\.id).max() ?? 0) + 1
+        effects.append(ActiveEffect(id: burnID, effect: .burn(8), remainingTurns: 0, sourceActorID: context.enemy.id))
+        context.roster.setActiveEffects(effects, for: hero)
+
+        for _ in 0 ..< BattleTiming.deathsDoorDurationTurns {
+            _ = context.endTurn()
+        }
+        _ = context.endTurn()
+
+        try #expect(context.roster.health(for: hero) == 0)
+        try #expect(!(context.roster.hero.isAlive))
     }
 
     @Test func secondWindDoesNotPreemptDeathsDoorOnLethalHit() throws {

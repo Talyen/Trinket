@@ -39,6 +39,8 @@ public enum BattleConditionEvaluator {
             return (heroHealth > 0 && heroHealth * 2 < heroMax) || (companionHealth > 0 && companionHealth * 2 < companionMax)
         case .enemyHasBuff:
             return context.roster.activeEffects(for: enemy).contains(where: \.effect.isRemovableBuff)
+        case .firstTurn:
+            return context.turnCount == 0
         }
     }
 
@@ -95,9 +97,10 @@ public enum BattleConditionEvaluator {
     private static func hasMarked(on combatant: Combatant, in context: BattleState) -> Bool {
         context.roster.activeEffects(for: combatant).contains { active in
             if case .marked = active.effect {
-                return true
+                true
+            } else {
+                false
             }
-            return false
         }
     }
 }

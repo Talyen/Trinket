@@ -1,5 +1,6 @@
 import Testing
 import TrinketContent
+import TrinketCore
 
 struct EnemyCatalogTests {
     private static let bossIDs: Set<String> = [
@@ -24,12 +25,9 @@ struct EnemyCatalogTests {
             try #require(loadout.basic != nil, "\(enemy.name) should have a basic ability")
             try #require(loadout.skill != nil, "\(enemy.name) should have a skill ability")
             try #require(loadout.ultimate != nil, "\(enemy.name) should have an ultimate ability")
-
-            let stats = enemy.combatant.primaryStats
-            let total = stats.strength + stats.agility + stats.toughness + stats.intellect + stats.wisdom
             try #expect(
-                total == 50,
-                "\(enemy.name) primary stats should sum to 50, got \(total)"
+                enemy.combatant.primaryStats == enemy.combatant.growthArchetype.identityPrimaryStats,
+                "\(enemy.name) should use its archetype identity stats"
             )
         }
     }

@@ -156,8 +156,9 @@ public extension BattleTurnEngine {
         context: inout BattleState
     ) -> [ActionEvent] {
         guard ability.hasManaEmpowerableBurnOrFreezeDamage else { return [] }
-        let repeats = ability.hasManaEmpowerableBurnDamage
-            && context.modifiers(for: actor.id).triggers.repeatManaEmpowerment
+        let repeats = ability.id == "meteor"
+            || (ability.hasManaEmpowerableBurnDamage
+                && context.modifiers(for: actor.id).triggers.repeatManaEmpowerment)
         // Spell Channeling / Efficient Care: talent Mana-empowerment cost reductions.
         let triggers = context.modifiers(for: actor.id).triggers
         let isHealingCard = ability.keywords.contains(.health)

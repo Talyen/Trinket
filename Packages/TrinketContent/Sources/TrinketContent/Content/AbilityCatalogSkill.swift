@@ -2,9 +2,13 @@ import Foundation
 import TrinketCore
 
 enum AbilityCatalogSkill {
-    static let acidPotion = AbilityBuilder.directHit(
+    static let acidPotion = Ability(
         id: "acid-potion", name: "Acid Potion", tier: .skill,
-        amount: 3, keyword: .poison
+        damageComponents: [DamageComponent(3, keyword: .poison)],
+        targetedEffects: [
+            TargetedEffect(.poison(3)),
+            TargetedEffect(.halveShield(.block), target: .enemy),
+        ]
     )
 
     static let bloodOffering = Ability(
@@ -18,9 +22,18 @@ enum AbilityCatalogSkill {
 
     static let bountyShot = Ability(
         id: "bounty-shot", name: "Bounty Shot", tier: .skill,
+        description: "Deal 3 Physical damage or steal 3 Gold. If the enemy is Marked, gain both.",
         outcomeBranches: [
-            AbilityOutcomeBranch(damageComponents: [DamageComponent(3, keyword: .physical)]),
-            AbilityOutcomeBranch(effects: [.resourceGain(.gold, 3)]),
+            AbilityOutcomeBranch(
+                damageComponents: [DamageComponent(3, keyword: .physical)],
+                targetedEffects: [TargetedEffect(.resourceGain(.gold, 3), condition: .enemyMarked)]
+            ),
+            AbilityOutcomeBranch(
+                damageComponents: [
+                    DamageComponent(0, keyword: .physical, bonusAmount: 3, condition: .enemyMarked),
+                ],
+                targetedEffects: [TargetedEffect(.resourceGain(.gold, 3))]
+            ),
         ]
     )
 
@@ -66,7 +79,7 @@ enum AbilityCatalogSkill {
 
     static let fireball = AbilityBuilder.directHit(
         id: "fireball", name: "Fireball", tier: .skill,
-        amount: 2, keyword: .burn
+        amount: 3, keyword: .burn
     )
 
     static let frostbolt = AbilityBuilder.directHit(
@@ -76,15 +89,16 @@ enum AbilityCatalogSkill {
 
     static let glacialWard = Ability(
         id: "glacial-ward", name: "Glacial Ward", tier: .skill,
+        description: "Gain 2 Block. Deal 2 Freeze damage next time you're hit.",
         targetedEffects: [
             TargetedEffect(.shield(.block, 2)),
-            TargetedEffect(.freezeOnHit(2)),
+            TargetedEffect(.onHitDamage(.freeze, 2)),
         ]
     )
 
     static let heal = Ability(
         id: "heal", name: "Heal", tier: .skill,
-        targetedEffects: [TargetedEffect(.instantHeal(.health, 5))]
+        targetedEffects: [TargetedEffect(.instantHeal(.health, 6))]
     )
 
     static let manaPotion = Ability(
@@ -97,34 +111,52 @@ enum AbilityCatalogSkill {
         targetedEffects: [TargetedEffect(.convertManaToBlock)]
     )
 
-    static let poisonDagger = AbilityBuilder.directHit(
+    static let poisonDagger = Ability(
         id: "poison-dagger", name: "Poison Dagger", tier: .skill,
-        amount: 3, keyword: .poison
+        damageComponents: [DamageComponent(2, keyword: .poison)],
+        targetedEffects: [
+            TargetedEffect(.poison(2)),
+        ]
     )
 
-    static let pounce = AbilityBuilder.directHit(
+    static let pounce = Ability(
         id: "pounce", name: "Pounce", tier: .skill,
-        amount: 3, keyword: .stun
+        description: "Deal 3 Stun damage. Doubled if played on the first turn.",
+        damageComponents: [
+            DamageComponent(3, keyword: .stun, bonusAmount: 3, condition: .firstTurn),
+        ]
     )
 
     static let predatorsFocus = Ability(
         id: "predators-focus", name: "Predator's Focus", tier: .skill,
-        targetedEffects: [TargetedEffect(.nextStrikeCritical)]
+        description: "Mark the enemy. Your next attack is a guaranteed Critical Hit.",
+        targetedEffects: [
+            TargetedEffect(.marked(Effect.standardMarkedBonus, Effect.standardMarkedDuration), target: .enemy),
+            TargetedEffect(.nextStrikeCritical, target: .actor),
+        ]
     )
 
     static let sapArrow = AbilityBuilder.directHit(
         id: "sap-arrow", name: "Sap Arrow", tier: .skill,
-        amount: 3, keyword: .stun
+        amount: 3, keyword: .stun,
+        extras: [TargetedEffect(.resourceGain(.mana, 1), target: .actor)]
     )
 
-    static let serratedEdge = AbilityBuilder.directHit(
+    static let serratedEdge = Ability(
         id: "serrated-edge", name: "Serrated Edge", tier: .skill,
-        amount: 2, keyword: .bleed
+        description: "Deal 2 Bleed damage. Reduces enemy Health gain by 50% for 2 turns.",
+        damageComponents: [DamageComponent(2, keyword: .bleed)],
+        targetedEffects: [
+            TargetedEffect(.bleed(2)),
+            TargetedEffect(.damageReductionPercent(0.50, 2), target: .enemy),
+        ]
     )
 
     static let smite = Ability(
         id: "smite", name: "Smite", tier: .skill,
-        damageComponents: [DamageComponent(5, keyword: .holy)]
+        description: "Deal 4 Holy damage and Purge a positive status effect from the enemy.",
+        damageComponents: [DamageComponent(4, keyword: .holy)],
+        targetedEffects: [TargetedEffect(.purgeRandom, target: .enemy)]
     )
 
     static let spikedShield = Ability(

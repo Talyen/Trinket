@@ -16,6 +16,24 @@ public enum GrowthArchetype: String, Codable, Hashable, Sendable, CaseIterable {
         case .bruiser: "Bruiser"
         }
     }
+
+    /// Level-1 primary stats for enemies of this archetype. Budget is 50.
+    /// Offsets are ±2–3 from an even 10/10/10/10/10 split. Heroes and companions
+    /// keep authored identity stats.
+    public var identityPrimaryStats: PrimaryStats {
+        switch self {
+        case .tank:
+            PrimaryStats(strength: 11, agility: 8, toughness: 13, intellect: 8, wisdom: 10)
+        case .bruiser:
+            PrimaryStats(strength: 13, agility: 8, toughness: 11, intellect: 8, wisdom: 10)
+        case .assassin:
+            PrimaryStats(strength: 9, agility: 13, toughness: 9, intellect: 8, wisdom: 11)
+        case .mage:
+            PrimaryStats(strength: 8, agility: 9, toughness: 9, intellect: 13, wisdom: 11)
+        case .support:
+            PrimaryStats(strength: 8, agility: 10, toughness: 9, intellect: 10, wisdom: 13)
+        }
+    }
 }
 
 public struct StatGrowthDelta: Equatable, Hashable, Sendable {

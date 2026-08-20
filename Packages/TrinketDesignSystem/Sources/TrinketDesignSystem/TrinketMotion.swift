@@ -141,6 +141,9 @@ public enum TrinketMotion: Sendable {
         /// Particle activation of a played card.
         public static let cardActivationDuration: TimeInterval = 1.0
 
+        /// Extra hold after the cast animation before a stuck overlay request is cleared.
+        public static let cardActivationStuckSlack: TimeInterval = 0.35
+
         /// Enemy combatant Slice death clip length (cut → split → half dissolve).
         public static let combatantSliceDuration: TimeInterval = 1.25
 
@@ -177,6 +180,9 @@ public enum TrinketMotion: Sendable {
 
         /// Hard ceiling for video Ultimate cinematics when end/failure notifications never fire.
         public static let ultimateVideoWatchdog: TimeInterval = 12.0
+
+        /// Session-level ceiling if the Ultimate overlay never finishes (ready wait + video watchdog).
+        public static let ultimateCinematicSessionWatchdog: TimeInterval = 20.0
 
         public static let scrimFade: TimeInterval = 0.2
 
@@ -262,17 +268,45 @@ public enum TrinketMotion: Sendable {
         /// One full lap of a traveling buff-aura border shimmer (Shadowstep, etc.).
         public static let buffAuraShimmerPeriod: TimeInterval = 1.6
 
+        /// Parked until hold ends, then cubic ease-in rise.
         public static func chipMotionProgress(elapsed: TimeInterval) -> Double {
-            alchemyPopMotionProgress(elapsed: elapsed)
+            guard elapsed > alchemyHoldEndTime else { return 0 }
+            let riseProg = (elapsed - alchemyHoldEndTime) / alchemyPopRiseDuration
+            let clamped = min(max(riseProg, 0), 1)
+            return clamped * clamped * clamped
         }
 
-        /// Scale envelope for the Alchemy Pop float recipe.
+        /// Scale envelope for the Alchemy Pop float recipe. Pop overshoot -> hold -> shrink to 1.0 during rise.
         public static func chipScale(elapsed: TimeInterval) -> CGFloat {
-            alchemyPopScale(elapsed: elapsed)
+            let t = elapsed
+            if t <= 0 {
+                return alchemyPopStartScale
+            }
+            if t <= alchemyPopPeakTime {
+                let u = t / alchemyPopPeakTime
+                return lerp(alchemyPopStartScale, alchemyPopOvershootScale, u)
+            }
+            if t <= alchemyPopEndTime {
+                let u = (t - alchemyPopPeakTime) / (alchemyPopEndTime - alchemyPopPeakTime)
+                return lerp(alchemyPopOvershootScale, alchemyPopHoldScale, u)
+            }
+            if t <= alchemyHoldEndTime {
+                return alchemyPopHoldScale
+            }
+            let shrinkProg = min(1, (t - alchemyHoldEndTime) / alchemyPopShrinkDuration)
+            return lerp(alchemyPopHoldScale, alchemyPopEndScale, shrinkProg)
         }
 
         public static func chipOpacity(elapsed: TimeInterval) -> Double {
-            alchemyPopOpacity(elapsed: elapsed)
+            if elapsed <= alchemyFadeStartTime {
+                return 1
+            }
+            if elapsed >= alchemyPopDisplayDuration {
+                return 0
+            }
+            let fadeProg = (elapsed - alchemyFadeStartTime)
+                / (alchemyPopDisplayDuration - alchemyFadeStartTime)
+            return lerp(1, 0, fadeProg)
         }
 
         public static func chipTravelDistance(cardHeight: CGFloat, chipHeight: CGFloat) -> CGFloat {
@@ -297,47 +331,6 @@ public enum TrinketMotion: Sendable {
 
         private static var alchemyFadeStartTime: TimeInterval {
             max(alchemyHoldEndTime, alchemyPopDisplayDuration - alchemyPopFadeDuration)
-        }
-
-        /// Parked until hold ends, then cubic ease-in rise.
-        private static func alchemyPopMotionProgress(elapsed: TimeInterval) -> Double {
-            guard elapsed > alchemyHoldEndTime else { return 0 }
-            let riseProg = (elapsed - alchemyHoldEndTime) / alchemyPopRiseDuration
-            let clamped = min(max(riseProg, 0), 1)
-            return clamped * clamped * clamped
-        }
-
-        /// Pop overshoot → hold → shrink to 1.0 during rise.
-        private static func alchemyPopScale(elapsed: TimeInterval) -> CGFloat {
-            let t = elapsed
-            if t <= 0 {
-                return alchemyPopStartScale
-            }
-            if t <= alchemyPopPeakTime {
-                let u = t / alchemyPopPeakTime
-                return lerp(alchemyPopStartScale, alchemyPopOvershootScale, u)
-            }
-            if t <= alchemyPopEndTime {
-                let u = (t - alchemyPopPeakTime) / (alchemyPopEndTime - alchemyPopPeakTime)
-                return lerp(alchemyPopOvershootScale, alchemyPopHoldScale, u)
-            }
-            if t <= alchemyHoldEndTime {
-                return alchemyPopHoldScale
-            }
-            let shrinkProg = min(1, (t - alchemyHoldEndTime) / alchemyPopShrinkDuration)
-            return lerp(alchemyPopHoldScale, alchemyPopEndScale, shrinkProg)
-        }
-
-        private static func alchemyPopOpacity(elapsed: TimeInterval) -> Double {
-            if elapsed <= alchemyFadeStartTime {
-                return 1
-            }
-            if elapsed >= alchemyPopDisplayDuration {
-                return 0
-            }
-            let fadeProg = (elapsed - alchemyFadeStartTime)
-                / (alchemyPopDisplayDuration - alchemyFadeStartTime)
-            return lerp(1, 0, fadeProg)
         }
 
         private static func lerp(_ start: CGFloat, _ end: CGFloat, _ progress: Double) -> CGFloat {

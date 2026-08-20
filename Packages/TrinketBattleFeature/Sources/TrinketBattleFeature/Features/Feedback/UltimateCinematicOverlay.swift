@@ -52,13 +52,11 @@ struct UltimateCinematicOverlay: View {
             }
         }
         .onDisappear {
-            let shouldFlushCollapse = didFinish
             let collapseID = cinematic.id
             cancelPendingOverlayTasks()
-            // Teardown can cancel the sleep task; flush collapse so deferred feedback still publishes.
-            if shouldFlushCollapse {
-                onCollapseFinished(collapseID)
-            }
+            // Overlay teardown (including a cancelled sleep) must not leave Auto Battle
+            // blocked on `activeCinematic`.
+            onCollapseFinished(collapseID)
         }
     }
 

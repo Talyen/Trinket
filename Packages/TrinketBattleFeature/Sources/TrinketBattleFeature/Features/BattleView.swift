@@ -248,7 +248,6 @@ private struct BattleFieldLane: View {
                     presentation: presentation,
                     hapticsEnabled: hapticsEnabled,
                     battleSize: geometry.size,
-                    castPresentation: castPresentation,
                     interactionState: interactionState,
                     onPlay: playCard(_:request:),
                     onInteractionChanged: updateCombatantTapSuppression(_:),
@@ -258,6 +257,14 @@ private struct BattleFieldLane: View {
                 .frame(height: BattleCardGridLayout.handReservedHeight)
                 .offset(y: -BattleHandLayout.bottomRise)
                 .zIndex(1)
+
+                BattleAutoPlayLane(
+                    battleSession: battleSession,
+                    battleSize: geometry.size,
+                    castPresentation: castPresentation,
+                    interactionState: interactionState,
+                    onPlay: playCard(_:request:)
+                )
 
                 CardCastPresentationLane(presentation: castPresentation)
                     .zIndex(3)
@@ -347,7 +354,6 @@ private struct BattleHandProjectionLane: View {
     let presentation: BattlePresentationState
     let hapticsEnabled: Bool
     let battleSize: CGSize
-    let castPresentation: BattleCastPresentationState
     let interactionState: BattleInteractionState
     let onPlay: (BattleCard, CardActivationRequest) -> Bool
     let onInteractionChanged: (Bool) -> Void
@@ -387,15 +393,6 @@ private struct BattleHandProjectionLane: View {
             trigger: cardPlayFeedbackToken,
             enabled: hapticsEnabled
         )
-        .overlay {
-            BattleAutoPlayLane(
-                battleSession: battleSession,
-                battleSize: battleSize,
-                castPresentation: castPresentation,
-                interactionState: interactionState,
-                onPlay: onPlay
-            )
-        }
     }
 }
 

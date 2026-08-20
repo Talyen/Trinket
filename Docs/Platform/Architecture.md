@@ -134,7 +134,7 @@ save-backed adapters. Views take the narrowest owner. Launch/DTO details:
 ## Persistence overview
 
 - Canonical save is the SwiftData graph in `TrinketPersistence` (`PlayerSaveRoot` and slice stores). Value types such as `PlayerSave` are calculation snapshots.
-- `PlayerSaveStore` is a thin hub: open/config, write-through, deferred save/rollback, reset/seed. Cross-slice homestead actions live on `PlayerHomesteadStore`.
+- `PlayerSaveStore` is a thin hub: open/config, write-through, deferred save/rollback, reset/seed. Cross-slice player actions live in domain extensions on `PlayerSaveStore` (`PlayerSaveStore+Homestead.swift`, `PlayerSaveStore+Roster.swift`).
 - Options/haptics are `TrinketAppState.OptionsStore` on local `UserDefaults`, not `PlayerSave` / CloudKit. Shell tab selection is in-session only; cold launch lands on Play.
 - Sync is CloudKit-ready (`iCloud.com.ryanmcintire.Trinket`) but local-only until [CloudKitPreShipChecklist.md](CloudKitPreShipChecklist.md). Identity: [Identity.md](../Product/Identity.md).
 - Audio playback lives in `TrinketAppState` (ambient `AVAudioPlayer` by design).
@@ -146,7 +146,7 @@ Keep `BattleState` and `PlayerSaveStore` as thin facades. Keep `AppState` as com
 | Hub | Put new code here | Not here |
 |-----|-------------------|----------|
 | `BattleState` | `EffectHandlers/`, `*Engine`, `DamagePipeline`, or `BattleState+*.swift` for shared mutation plumbing | Catalog-specific branches; app/feature call sites for engine mutations |
-| `PlayerSaveStore` | Value-type rules in `Models/`; cross-slice actions on `PlayerHomesteadStore`; open/config in `PlayerSaveStoreConfiguration` | Feature-specific methods on the hub class; empty pass-through facades |
+| `PlayerSaveStore` | Value-type rules in `Models/`; cross-slice actions in `PlayerSaveStore+Homestead.swift` / `PlayerSaveStore+Roster.swift`; open/config in `PlayerSaveStoreConfiguration` | Feature-specific methods on the hub class; empty pass-through facades |
 | `AppState` / `PlaySession` | Bootstrap/wiring; shell navigation via `play.battle`; `PlayModeGraph` assembly; forwarders to `PlayBattleLaunch` / `PlayBattleCompletion` | Mode-specific prepare/start/complete bodies on `PlaySession`; Persistence write policy; a parallel `AppState.battle` handle |
 | Combat triggers | Authored `CombatTraitTriggers` (Content + codegen); nested on `CombatModifierProfile.triggers` | Parallel flat fields on `CombatModifierProfile` |
 

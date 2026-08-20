@@ -1,8 +1,8 @@
-import BattleBalanceTools
 import BattleEngine
 import Testing
 import TrinketContent
 import TrinketCore
+@testable import BattleBalanceTools
 
 struct BattleSimulatorTests {
     @Test func greedyPolicyReachesOutcomeDeterministically() throws {
@@ -84,6 +84,33 @@ struct BattleSimulatorTests {
         #expect(loadout.skill != nil)
     }
 
+    @Test func samplePartyLoadoutsMeetDamagingFloor() throws {
+        for hero in GameContent.heroes {
+            for companion in GameContent.companions {
+                var rng = SeededRandomNumberGenerator(seed: 11)
+                let pair = SimulationMatchupBuilder.samplePartyLoadouts(
+                    hero: hero,
+                    companion: companion,
+                    using: &rng
+                )
+                let count = SimulationMatchupBuilder.damagingAbilityCount(
+                    hero: pair.hero,
+                    companion: pair.companion
+                )
+                try #expect(
+                    count >= SimulationMatchupBuilder.minimumPartyDamagingAbilities,
+                    "\(hero.id)+\(companion.id) damaging count \(count)"
+                )
+            }
+        }
+
+        let supportHeavy = SimulationMatchupBuilder.damagingAbilityCount(
+            hero: AbilityLoadout(basic: .block, skill: .smite, ultimate: .moltenBulwark),
+            companion: AbilityLoadout(basic: .apple, skill: .heal, ultimate: .panaceaPotion)
+        )
+        try #expect(supportHeavy < SimulationMatchupBuilder.minimumPartyDamagingAbilities)
+    }
+
     @Test func matchupBuilderAppliesUnlockedTalentsToCombatBuild() throws {
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let companion = try #require(GameContent.companions.first)
@@ -113,17 +140,27 @@ struct BattleSimulatorTests {
         #expect(withoutTalent.context.heroTalentIDs.isEmpty)
     }
 
-    @Test func identityEarlyHasNoTalentsMidSpendsPartialKitLateUnlocksFullKits() {
+    @Test func identityEarlySpendsOneTalentAndOneStarterItem() {
         let early = BalanceSweepRunner.run(
             config: BalanceSweepConfig(
                 mode: .identity,
                 battlesPerTier: 2,
                 seed: 4,
                 tiers: [.early],
-                jobs: 1
+                jobs: 1,
+                enemyIDs: ["living_armor"]
             )
         )
-        #expect(early.records.allSatisfy { $0.heroTalentIDs.isEmpty && $0.companionTalentIDs.isEmpty })
+        #expect(early.records.count == 2)
+        #expect(SimulationPowerTier.early.identityTalentPointCap == 1)
+        for record in early.records {
+            #expect(record.heroTalentIDs.count == 1)
+            #expect(record.companionTalentIDs.count == 1)
+            #expect(record.heroAffixIDs.count == 1)
+            #expect(record.companionAffixIDs.count == 1)
+            expectLegalTalentSpend(Set(record.heroTalentIDs), combatantID: record.heroID)
+            expectLegalTalentSpend(Set(record.companionTalentIDs), combatantID: record.companionID)
+        }
 
         let middle = BalanceSweepRunner.run(
             config: BalanceSweepConfig(
@@ -131,7 +168,8 @@ struct BattleSimulatorTests {
                 battlesPerTier: 1,
                 seed: 5,
                 tiers: [.middle],
-                jobs: 1
+                jobs: 1,
+                enemyIDs: ["living_armor"]
             )
         )
         #expect(middle.records.count == 1)
@@ -148,7 +186,8 @@ struct BattleSimulatorTests {
                 battlesPerTier: 1,
                 seed: 6,
                 tiers: [.lateGame],
-                jobs: 1
+                jobs: 1,
+                enemyIDs: ["living_armor"]
             )
         )
         #expect(late.records.count == 1)
@@ -174,18 +213,50 @@ struct BattleSimulatorTests {
         let report = BalanceSweepRunner.run(
             config: BalanceSweepConfig(
                 mode: .talentContrast,
-                battlesPerTier: 8,
+                battlesPerTier: 1,
                 seed: 23,
-                tiers: [.early],
-                jobs: 1
+                tiers: [.middle],
+                jobs: 1,
+                heroIDs: ["knight"],
+                companionIDs: ["bear"],
+                enemyIDs: ["living_armor"],
+                focusIDs: ["knight_block_t1_1"]
             )
         )
         #expect(report.records.isEmpty)
         #expect(!(report.talentContrasts.isEmpty))
-        #expect(!(report.talentKitContrasts.isEmpty))
+        #expect(report.talentKitContrasts.isEmpty)
         let markdown = BalanceMarkdownReporter.render(report)
         #expect(markdown.contains("Talent Contrasts (paired lift vs sibling in the same row)"))
-        #expect(markdown.contains("Talent Kit Contrasts (full kit vs none)"))
+    }
+
+    @Test func talentKitContrastIsLegalOnlyWhenPointsCoverCatalog() throws {
+        let owner = try #require(GameContent.heroes.first { $0.id == "knight" })
+        let focus = BalanceTalentContrastRunner.KitFocus(
+            owner: owner,
+            kit: CombatantTalentCatalog.validNodeIDs(for: owner.id)
+        )
+        #expect(!BalanceTalentContrastRunner.isKitLegal(focus: focus, tier: .early))
+        #expect(!BalanceTalentContrastRunner.isKitLegal(focus: focus, tier: .middle))
+        #expect(BalanceTalentContrastRunner.isKitLegal(focus: focus, tier: .lateGame))
+    }
+
+    @Test func talentContrastRunsRowOneAtEarlyAndSkipsFullKit() {
+        let report = BalanceSweepRunner.run(
+            config: BalanceSweepConfig(
+                mode: .talentContrast,
+                battlesPerTier: 2,
+                seed: 23,
+                tiers: [.early],
+                jobs: 1,
+                heroIDs: ["knight"],
+                companionIDs: ["bear"],
+                enemyIDs: ["living_armor"]
+            )
+        )
+        #expect(!(report.talentContrasts.isEmpty))
+        #expect(report.talentContrasts.allSatisfy { $0.tier == .early })
+        #expect(report.talentKitContrasts.isEmpty)
     }
 
     @Test func identitySweepProducesMarkdownWithSecondaryMetrics() {
@@ -195,7 +266,8 @@ struct BattleSimulatorTests {
                 battlesPerTier: 4,
                 seed: 3,
                 tiers: [.early],
-                jobs: 1
+                jobs: 1,
+                enemyIDs: ["living_armor"]
             )
         )
         #expect(report.records.count == 4)
@@ -210,161 +282,5 @@ struct BattleSimulatorTests {
         #expect(markdown.contains("Avg rounds"))
         #expect(report.records.allSatisfy { !$0.enemyAbilityIDs.isEmpty })
         #expect(report.records.allSatisfy { !$0.enemyTraitID.isEmpty })
-    }
-
-    @Test func parallelIdentityMatchesSequentialOutcomes() {
-        let sequential = BalanceSweepRunner.run(
-            config: BalanceSweepConfig(
-                mode: .identity,
-                battlesPerTier: 6,
-                seed: 11,
-                tiers: [.early],
-                jobs: 1
-            )
-        )
-        let parallel = BalanceSweepRunner.run(
-            config: BalanceSweepConfig(
-                mode: .identity,
-                battlesPerTier: 6,
-                seed: 11,
-                tiers: [.early],
-                jobs: 4
-            )
-        )
-        #expect(sequential.records.map(\.result) == parallel.records.map(\.result))
-        #expect(sequential.records.map(\.seed) == parallel.records.map(\.seed))
-    }
-
-    @Test func abilityContrastProducesLiftRows() {
-        let report = BalanceSweepRunner.run(
-            config: BalanceSweepConfig(
-                mode: .abilityContrast,
-                battlesPerTier: 8,
-                seed: 21,
-                tiers: [.early],
-                jobs: 1
-            )
-        )
-        #expect(report.records.isEmpty)
-        #expect(!(report.abilityContrasts.isEmpty))
-        let markdown = BalanceMarkdownReporter.render(report)
-        #expect(markdown.contains("Ability Contrasts"))
-    }
-
-    @Test func affixContrastProducesLiftRowsOnMidTier() {
-        let report = BalanceSweepRunner.run(
-            config: BalanceSweepConfig(
-                mode: .affixContrast,
-                battlesPerTier: 6,
-                seed: 22,
-                tiers: [.middle],
-                jobs: 1
-            )
-        )
-        #expect(!(report.affixContrasts.isEmpty))
-        let markdown = BalanceMarkdownReporter.render(report)
-        #expect(markdown.contains("Affix Contrasts"))
-    }
-
-    @Test func wilsonIntervalContainsPointEstimate() {
-        let ci = BalanceStatsAggregator.wilson(wins: 80, battles: 100)
-        #expect(ci.low <= 0.80)
-        #expect(ci.high >= 0.80)
-        #expect(ci.low < ci.high)
-    }
-
-    @Test func modeProgressionTrackersBuildNonEmptySteps() {
-        let campaign = CampaignProgressionTracker()
-        let spire = SpireProgressionTracker()
-        let labyrinth = LabyrinthProgressionTracker()
-
-        #expect(!(campaign.steps.isEmpty))
-        #expect(!(spire.steps.isEmpty))
-        #expect(!(labyrinth.steps.isEmpty))
-        let expectedSpireSteps = GameContent.spires.reduce(0) { total, spireDefinition in
-            total + GameContent.spireFloors(for: spireDefinition.id).count
-        }
-        #expect(spire.steps.count == expectedSpireSteps)
-        #expect(Set(spire.steps.map(\.id)).count == spire.steps.count)
-    }
-
-    @Test func interleavingPlayerControllerGainsXPAndLevelsUp() {
-        let controller = InterleavingPlayerController()
-        let initialLevel = controller.state.heroLevel
-
-        let step = ModeProgressionStep(
-            id: "test-step",
-            mode: .campaign,
-            containerID: "chapter-1",
-            containerTitle: "Chapter 1",
-            stepIndex: 1,
-            displayTitle: "Stage 1-1",
-            enemyID: "goblin",
-            enemyLevel: 5,
-            isBoss: false
-        )
-
-        // Record wins until level increases
-        for _ in 0 ..< 10 {
-            controller.recordOutcome(step: step, won: true)
-        }
-
-        #expect(controller.state.heroLevel > initialLevel)
-        #expect(controller.state.totalBattles == 10)
-        #expect(controller.state.battlesWon == 10)
-    }
-
-    @Test func hotspotAnalyzerClassifiesEnvelopes() throws {
-        let step = ModeProgressionStep(
-            id: "step-1",
-            mode: .campaign,
-            containerID: "c1",
-            containerTitle: "Chapter 1",
-            stepIndex: 1,
-            displayTitle: "Stage 1",
-            enemyID: "goblin",
-            enemyLevel: 5,
-            isBoss: false
-        )
-
-        let overtunedRecord = ProgressionBattleRecord(
-            step: step,
-            playerLevel: 5,
-            enemyLevel: 5,
-            seed: 1,
-            result: BattleSimResult(
-                outcome: .defeat,
-                rounds: 10,
-                actions: 20,
-                timedOut: false,
-                partyHPRemainingFraction: 0,
-                enemyHPRemainingFraction: 0.8
-            )
-        )
-
-        let summaries = HotspotAnalyzer.analyze(records: [overtunedRecord])
-        let summary = try #require(summaries.first)
-        #expect(summary.status == .overtuned)
-        #expect(summary.isFlagged == true)
-    }
-
-    @Test func modeProgressionSweepProducesReport() {
-        let report = BalanceSweepRunner.run(
-            config: BalanceSweepConfig(
-                mode: .modeProgression,
-                battlesPerTier: 2,
-                seed: 42,
-                jobs: 1
-            )
-        )
-        #expect(report.config.mode == .modeProgression)
-        #expect(report.progressionPlayerStates.count == 2)
-        #expect(!(report.progressionRecords.isEmpty))
-        #expect(!(report.progressionHotspots.isEmpty))
-        let markdown = BalanceMarkdownReporter.render(report)
-        #expect(markdown.contains("# Multi-Mode Progression & Hotspot Balance Report"))
-        #expect(markdown.contains("Progression Summary"))
-        #expect(markdown.contains("**Simulated Runs**: 2"))
-        #expect(markdown.contains("**Total Battles Simulated**: \(report.progressionRecords.count)"))
     }
 }

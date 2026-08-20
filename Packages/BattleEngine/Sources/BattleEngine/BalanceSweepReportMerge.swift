@@ -12,21 +12,23 @@ public extension BalanceSweepReport {
             config: config,
             policyID: policyID,
             records: slices.flatMap(\.records),
+            comparedPolicyID: slices.first(where: { $0.comparedPolicyID != nil })?.comparedPolicyID,
+            comparedRecords: slices.flatMap(\.comparedRecords),
             abilityContrasts: BalanceContrastSupport.mergeSummaries(
                 slices.flatMap(\.abilityContrasts),
-                threshold: config.peerDeltaFlagThreshold
+                config: config
             ),
             affixContrasts: BalanceContrastSupport.mergeSummaries(
                 slices.flatMap(\.affixContrasts),
-                threshold: config.peerDeltaFlagThreshold
+                config: config
             ),
             talentContrasts: BalanceContrastSupport.mergeSummaries(
                 slices.flatMap(\.talentContrasts),
-                threshold: config.peerDeltaFlagThreshold
+                config: config
             ),
             talentKitContrasts: BalanceContrastSupport.mergeSummaries(
                 slices.flatMap(\.talentKitContrasts),
-                threshold: config.peerDeltaFlagThreshold
+                config: config
             ),
             progressionHotspots: HotspotAnalyzer.analyze(records: progressionRecords),
             progressionRecords: progressionRecords,

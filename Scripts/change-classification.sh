@@ -408,6 +408,12 @@ trinket_classify_paths() {
     done
   fi
 
+  if [[ "$TRINKET_HAS_SWIFT" == true ]]; then
+    trinket_add_skill .agents/skills/doc-budget/SKILL.md
+    trinket_add_skill .agents/skills/architect/SKILL.md
+  fi
+  trinket_add_skill .agents/skills/handoff-verifier/SKILL.md
+
   if [[ ${#TRINKET_CHANGED_PATHS[@]+x} ]] && (( ${#TRINKET_CHANGED_PATHS[@]} > 0 )); then
     for path in ${TRINKET_CHANGED_PATHS[@]+"${TRINKET_CHANGED_PATHS[@]}"}; do
       trinket_add_agent_guides_for_path "$path"

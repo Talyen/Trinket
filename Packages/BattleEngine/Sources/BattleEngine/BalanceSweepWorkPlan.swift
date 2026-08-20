@@ -1,4 +1,5 @@
 import Foundation
+import TrinketContent
 
 public struct BalanceSweepWorkerJob: Equatable, Sendable {
     public var mode: BalanceSweepMode
@@ -38,10 +39,14 @@ public enum BalanceSweepWorkPlan {
 
     public static func workCount(for mode: BalanceSweepMode, config: BalanceSweepConfig) -> Int {
         switch mode {
-        case .identity, .abilityContrast, .talentContrast:
-            config.tiers.count * config.battlesPerTier
+        case .identity:
+            config.tiers.count * config.resolvedRoster.enemies.count * config.battlesPerTier
+        case .abilityContrast:
+            BalanceAbilityContrastRunner.workCount(config: config)
         case .affixContrast:
-            config.tiers.filter(\.includesGear).count * config.battlesPerTier
+            BalanceAffixContrastRunner.workCount(config: config)
+        case .talentContrast:
+            BalanceTalentContrastRunner.workCount(config: config)
         case .modeProgression:
             max(1, config.battlesPerTier)
         case .all:

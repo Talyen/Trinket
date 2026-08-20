@@ -114,15 +114,17 @@ public final class InterleavingPlayerController {
             consecutiveLosses[step.mode] = 0
 
             let highestLevel = max(state.heroLevel, state.companionLevel)
+            let heroXPEnemyLevel = step.mode == .spire ? state.heroLevel : step.enemyLevel
+            let companionXPEnemyLevel = step.mode == .spire ? state.companionLevel : step.enemyLevel
 
             let heroAward = ExperienceScaling.battleAwardWithCatchUp(
                 playerLevel: state.heroLevel,
-                enemyLevel: step.enemyLevel,
+                enemyLevel: heroXPEnemyLevel,
                 highestLevel: highestLevel
             )
             let companionAward = ExperienceScaling.battleAwardWithCatchUp(
                 playerLevel: state.companionLevel,
-                enemyLevel: step.enemyLevel,
+                enemyLevel: companionXPEnemyLevel,
                 highestLevel: highestLevel
             )
 
@@ -165,37 +167,73 @@ public final class InterleavingPlayerController {
 
         let enemy = GameContent.enemy(matching: step.enemyID) ?? GameContent.enemies[0]
 
-        let heroLoadout = SimulationMatchupBuilder.sampleLoadout(
-            for: hero,
+        let partyLoadouts = SimulationMatchupBuilder.samplePartyLoadouts(
+            hero: hero,
+            companion: companion,
             using: &rng
         )
-        let companionLoadout = SimulationMatchupBuilder.sampleLoadout(
-            for: companion,
-            using: &rng
-        )
+        let heroLoadout = partyLoadouts.hero
+        let companionLoadout = partyLoadouts.companion
 
-        let powerTier: SimulationPowerTier = if state.heroLevel < 15 {
-            .early
-        } else if state.heroLevel < 35 {
-            .middle
-        } else {
-            .lateGame
-        }
+        let heroLevel = simulatedHeroLevel(for: step)
+        let companionLevel = simulatedCompanionLevel(for: step)
+        let powerTier = SimulationPowerTier.band(forLevel: heroLevel)
 
         let keywordBias = step.keywordBias.map { Set([$0]) }
+        let heroTalents = SimulationMatchupBuilder.legalTalentKit(
+            for: hero.id,
+            level: heroLevel,
+            using: &rng
+        )
+        let companionTalents = SimulationMatchupBuilder.legalTalentKit(
+            for: companion.id,
+            level: companionLevel,
+            using: &rng
+        )
+        let heroGear = SimulationMatchupBuilder.generateStarterGearIfNeeded(
+            for: hero,
+            loadout: heroLoadout,
+            tier: powerTier,
+            level: heroLevel,
+            idPrefix: "prog-hero",
+            gearKeywordBias: keywordBias,
+            using: &rng
+        )
+        let companionGear = SimulationMatchupBuilder.generateStarterGearIfNeeded(
+            for: companion,
+            loadout: companionLoadout,
+            tier: powerTier,
+            level: companionLevel,
+            idPrefix: "prog-companion",
+            gearKeywordBias: keywordBias,
+            using: &rng
+        )
 
         return SimulationMatchupBuilder.build(
             hero: hero,
             companion: companion,
             enemy: enemy,
             tier: powerTier,
-            heroLevel: state.heroLevel,
-            companionLevel: state.companionLevel,
+            heroLevel: heroLevel,
+            companionLevel: companionLevel,
             enemyLevel: step.enemyLevel,
             heroLoadout: heroLoadout,
             companionLoadout: companionLoadout,
             seed: seed,
+            heroGear: heroGear,
+            companionGear: companionGear,
+            heroTalents: heroTalents,
+            companionTalents: companionTalents,
             gearKeywordBias: keywordBias
         )
+    }
+
+    /// Spires are on-level: players can leave, farm, and return. Journey and Labyrinth use earned XP.
+    public func simulatedHeroLevel(for step: ModeProgressionStep) -> Int {
+        step.mode == .spire ? step.enemyLevel : state.heroLevel
+    }
+
+    public func simulatedCompanionLevel(for step: ModeProgressionStep) -> Int {
+        step.mode == .spire ? step.enemyLevel : state.companionLevel
     }
 }
