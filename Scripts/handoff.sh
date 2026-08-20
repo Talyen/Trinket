@@ -20,7 +20,9 @@ source Scripts/swift-source-dirs.env
 DRY_RUN=false
 ISOLATE=false
 QUIET=false
-PATH_MODE="working-tree"
+FINAL=false
+KEEP_PLAN=false
+PATH_MODE="unset"
 declare -a requested_paths=()
 
 # check_run <kind> <argument>
@@ -102,9 +104,12 @@ while [[ $# -gt 0 ]]; do
       TRINKET_ISOLATE=1
       export TRINKET_ISOLATE
       ;;
+    --final) FINAL=true ;;
+    --keep-plan) KEEP_PLAN=true ;;
+    --working-tree) PATH_MODE="working-tree" ;;
     --help|-h)
       cat <<'USAGE'
-Usage: ./Scripts/handoff.sh [--dry-run] [--quiet] [--isolate] [--paths <file> ...]
+Usage: ./Scripts/handoff.sh [--dry-run] [--quiet] [--isolate] [--final] [--keep-plan] [--paths <file> ...]
 
 Classifies task-scoped changes when --paths is supplied, otherwise all
 working-tree changes. It runs generation, style, touched-package tests, an
@@ -114,6 +119,9 @@ sequentially, with no demotions or warm-cache reuse.
 --isolate forwards to the simulator-slot environment (test/test-package) so a
 task-scoped run does not collide with another agent on the same Mac. Agents
 should always pass --isolate.
+--final applies final documentation and active-plan checks.
+--keep-plan permits an intentionally unfinished active plan with --final.
+Use --working-tree to opt into whole-tree classification; --paths is preferred.
 USAGE
       exit 0
       ;;
@@ -135,7 +143,18 @@ USAGE
   shift
 done
 
+if [[ "$PATH_MODE" == "unset" ]]; then
+  echo "handoff requires --paths <file...>; use --working-tree to classify the whole tree intentionally" >&2
+  exit 2
+fi
+
 trinket_collect_paths "$PATH_MODE" "${requested_paths[@]-}"
+
+if [[ "$FINAL" == true ]]; then
+  docs_args=("--final")
+  [[ "$KEEP_PLAN" == true ]] && docs_args+=("--keep-plan")
+  python3 ./Scripts/check-docs.py "${docs_args[@]}"
+fi
 
 if [[ ${#TRINKET_CHANGED_PATHS[@]} -eq 0 ]]; then
   echo "No working-tree changes to verify."

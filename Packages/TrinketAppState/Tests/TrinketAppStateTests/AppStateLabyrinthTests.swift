@@ -287,6 +287,31 @@ struct AppStateLabyrinthTests { // swiftlint:disable:this type_body_length
         #expect(state.encounters.activeMysteryEncounter?.event.isRecruit == false)
     }
 
+    @Test func recruitNodePreviewFallsBackToMysteryEventWhenPoolIsExhausted() throws {
+        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        _ = state.labyrinth.enter()
+        let nodeID = try #require(state.playerSave.labyrinth.reachableNodeIDs().first)
+        let node = try #require(state.playerSave.labyrinth.nodes[nodeID])
+        var labyrinth = state.playerSave.labyrinth
+        labyrinth.nodes[nodeID] = LabyrinthNode(
+            id: node.id,
+            type: .recruit,
+            depth: node.depth,
+            clusterID: node.clusterID,
+            gridPosition: node.gridPosition,
+            modifierIDs: node.modifierIDs,
+            recruitEventID: "recruit-bear",
+            outgoingIDs: node.outgoingIDs,
+            isRevealed: true
+        )
+        state.playerSave.labyrinth = labyrinth
+        state.playerSave.roster = .testSeed
+
+        let recruitNode = try #require(state.playerSave.labyrinth.nodes[nodeID])
+        let preview = try #require(state.labyrinth.previewMysteryEvent(for: recruitNode))
+        #expect(!preview.isRecruit)
+    }
+
     #if DEBUG
     @Test(arguments: ["shop", "rest", "craft"] as [String])
     func labyrinthEncounterFinishKeepsSessionOpenWhenPersistFails(kind: String) throws {

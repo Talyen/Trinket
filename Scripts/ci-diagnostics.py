@@ -9,12 +9,18 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-if len(sys.argv) < 3:
-    print("Usage: ci-diagnostics.py <RESULTS_DIR> <OUTPUT_PATH>", file=sys.stderr)
+FULL_REPORT = False
+argv = sys.argv[1:]
+if argv and argv[0] == "--full":
+    FULL_REPORT = True
+    argv = argv[1:]
+
+if len(argv) < 2:
+    print("Usage: ci-diagnostics.py [--full] <RESULTS_DIR> <OUTPUT_PATH>", file=sys.stderr)
     sys.exit(1)
 
-results_dir = Path(sys.argv[1]).resolve()
-output_path = Path(sys.argv[2]).resolve()
+results_dir = Path(argv[0]).resolve()
+output_path = Path(argv[1]).resolve()
 
 # The order is deliberately stable. It keeps the aggregate category useful
 # when a build emits more than one failed invocation (for example unit and UI).
@@ -27,6 +33,10 @@ CLASSIFICATION_PRECEDENCE = (
     "unknown",
 )
 KNOWN_CLASSIFICATIONS = set(CLASSIFICATION_PRECEDENCE)
+MAX_AGGREGATE_ISSUES = 20
+MAX_DETAIL_LINES = 20
+MAX_DETAIL_CHARS = 4000
+MAX_LINE_CHARS = 400
 
 
 def iso_now() -> str:
@@ -88,15 +98,32 @@ def normalized_issue(issue: object) -> dict:
     attachments = issue.get("attachments")
     if not isinstance(attachments, list):
         attachments = []
+    details = str(issue.get("details", ""))
+    detail_lines = details.splitlines()[:MAX_DETAIL_LINES]
+    details_truncated = len(details.splitlines()) > MAX_DETAIL_LINES
+    bounded_lines: list[str] = []
+    for detail in detail_lines:
+        if len(detail) > MAX_LINE_CHARS:
+            detail = f"{detail[:MAX_LINE_CHARS - 1]}…"
+            details_truncated = True
+        bounded_lines.append(detail)
+    bounded_details = "\n".join(bounded_lines)
+    if len(bounded_details) > MAX_DETAIL_CHARS:
+        bounded_details = f"{bounded_details[:MAX_DETAIL_CHARS - 1]}…"
+        details_truncated = True
+    message = str(issue.get("message", ""))
+    if len(message) > 1200:
+        message = f"{message[:1199]}…"
     return {
         "id": str(issue.get("id", "unknown")),
         "kind": str(issue.get("kind", "unknown")),
         "title": str(issue.get("title", "Diagnostic")),
-        "message": str(issue.get("message", "")),
+        "message": message,
         "file": str(issue.get("file", "")),
         "line": line,
         "test": str(issue.get("test", "")),
-        "details": str(issue.get("details", "")),
+        "details": bounded_details,
+        "details_truncated": details_truncated or issue.get("details_truncated") is True,
         "attachments": [str(item) for item in attachments],
     }
 
@@ -174,7 +201,10 @@ def normalise_report(
     raw_issues = payload.get("issues", [])
     if not isinstance(raw_issues, list):
         raw_issues = []
-    issues = [normalized_issue(issue) for issue in raw_issues]
+    if FULL_REPORT:
+        issues = [dict(issue) if isinstance(issue, dict) else normalized_issue(issue) for issue in raw_issues]
+    else:
+        issues = [normalized_issue(issue) for issue in raw_issues]
     if issues:
         # Reports are failure diagnostics; even an unknown issue must prevent
         # a manifest marked passed from becoming a false green aggregate.
@@ -339,10 +369,44 @@ else:
         "escalate with the raw CI logs."
     )
 
+def compact_invocation(report: dict) -> dict:
+    """Keep the default aggregate useful without embedding full reports."""
+    issues = report.get("issues", [])
+    return {
+        "label": report.get("label", ""),
+        "classification": report.get("classification", "unknown"),
+        "exit_code": report.get("exit_code", 1),
+        "status": report.get("status", "unknown"),
+        "failed": report.get("failed", True),
+        "result_bundle_exists": report.get("result_bundle_exists", False),
+        "result_bundle_complete": report.get("result_bundle_complete", False),
+        "diagnostics_exists": report.get("diagnostics_exists", False),
+        "diagnostic_path": report.get("diagnostic_path", ""),
+        "invocation_manifest": report.get("invocation_manifest", ""),
+        "issue_count": len(issues) if isinstance(issues, list) else 0,
+    }
+
+
 aggregate_issues = []
+seen_issues: set[tuple[str, str, str]] = set()
 for report in reports:
     for issue in report.get("issues", []):
-        aggregate_issues.append({"label": report["label"], **issue})
+        if FULL_REPORT:
+            aggregate_issues.append({"label": report["label"], **issue})
+            continue
+        key = (
+            report["label"],
+            str(issue.get("id", "unknown")),
+            str(issue.get("message", "")),
+        )
+        if key in seen_issues:
+            continue
+        seen_issues.add(key)
+        aggregate_issues.append({"label": report["label"], **normalized_issue(issue)})
+
+aggregate_issues_total = len(aggregate_issues)
+if not FULL_REPORT:
+    aggregate_issues = aggregate_issues[:MAX_AGGREGATE_ISSUES]
 
 generated_at = iso_now()
 aggregate = {
@@ -366,8 +430,10 @@ aggregate = {
         "missing_diagnostics": missing_diagnostics_invocations,
         "by_classification": by_classification,
     },
-    "invocations": reports,
+    "invocations": reports if FULL_REPORT else [compact_invocation(report) for report in reports],
     "issues": aggregate_issues,
+    "issues_total": aggregate_issues_total,
+    "issues_truncated": aggregate_issues_total > MAX_AGGREGATE_ISSUES,
 }
 
 output_path.parent.mkdir(parents=True, exist_ok=True)

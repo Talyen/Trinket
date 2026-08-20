@@ -7,24 +7,30 @@ cd "$(dirname "$0")/.."
 source Scripts/change-classification.sh
 
 OUTPUT="agent"
-PATH_MODE="working-tree"
+PATH_MODE="unset"
+FULL=false
 declare -a requested_paths=()
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --json) OUTPUT="json" ;;
     --agent) OUTPUT="agent" ;;
+    --full) FULL=true ;;
     --help|-h)
       cat <<'USAGE'
-Usage: ./Scripts/agent-context.sh [--agent|--json] [--paths <file> ...]
+Usage: ./Scripts/agent-context.sh [--agent|--json] [--full] [--paths <file> ...]
 
 Prints a compact task briefing: applicable AGENTS.md guides, context cards and
 skills, architecture/generated-output warnings, and the focused sequential
 verification plan. Agents should run the recommended handoff --isolate
 command. Paths are repository-relative; --paths consumes all remaining
-arguments. Without --paths, the working tree is classified.
+arguments. Use --working-tree explicitly when the whole tree is intentional.
+The default briefing is concise; --full prints complete command details.
 USAGE
       exit 0
+      ;;
+    --working-tree)
+      PATH_MODE="working-tree"
       ;;
     --paths)
       PATH_MODE="explicit"
@@ -43,6 +49,11 @@ USAGE
   esac
   shift
 done
+
+if [[ "$PATH_MODE" == "unset" ]]; then
+  echo "agent-context requires --paths <file...>; use --working-tree to classify the whole tree intentionally" >&2
+  exit 2
+fi
 
 trinket_collect_paths "$PATH_MODE" "${requested_paths[@]-}"
 trinket_classify_paths
@@ -80,17 +91,26 @@ json_bool() {
 
 print_json() {
   printf '{'
-  printf '"version":1,'
+  printf '"version":2,'
   printf '"path_mode":'; json_escape "$PATH_MODE"; printf ','
-  printf '"paths":'; json_array TRINKET_CHANGED_PATHS; printf ','
-  printf '"authored_paths":'; json_array TRINKET_AUTHORED_PATHS; printf ','
-  printf '"generated_paths":'; json_array TRINKET_GENERATED_PATHS; printf ','
+  if [[ "$FULL" == true ]]; then
+    printf '"paths":'; json_array TRINKET_CHANGED_PATHS; printf ','
+    printf '"authored_paths":'; json_array TRINKET_AUTHORED_PATHS; printf ','
+    printf '"generated_paths":'; json_array TRINKET_GENERATED_PATHS; printf ','
+  else
+    printf '"path_counts":{"paths":%d,"authored":%d,"generated":%d},' \
+      "${#TRINKET_CHANGED_PATHS[@]}" "${#TRINKET_AUTHORED_PATHS[@]}" "${#TRINKET_GENERATED_PATHS[@]}"
+  fi
   printf '"agent_guides":{"root":"AGENTS.md","nested":'; json_array TRINKET_AGENT_GUIDES; printf '},'
   printf '"context_cards":'; json_array TRINKET_CONTEXT_CARDS; printf ','
   printf '"skills":'; json_array TRINKET_SKILLS; printf ','
   printf '"boundary_warnings":'; json_array TRINKET_BOUNDARY_WARNINGS; printf ','
   printf '"generated_warnings":'; json_array TRINKET_GENERATED_WARNINGS; printf ','
-  printf '"verification_commands":'; json_array TRINKET_VERIFICATION_COMMANDS; printf ','
+  if [[ "$FULL" == true ]]; then
+    printf '"verification_commands":'; json_array TRINKET_VERIFICATION_COMMANDS; printf ','
+  else
+    printf '"verification_kinds":'; json_array TRINKET_VERIFICATION_KINDS; printf ','
+  fi
   printf '"smoke_targets":'; json_array TRINKET_SMOKE_TARGETS; printf ','
   printf '"flags":{'
   printf '"content":'; json_bool "$TRINKET_HAS_CONTENT"; printf ','
@@ -181,12 +201,16 @@ print_agent() {
       printf '  ./Scripts/handoff.sh --isolate --paths <same %d explicit paths>\n' "${#TRINKET_CHANGED_PATHS[@]}"
     fi
   else
-    printf '  ./Scripts/handoff.sh --isolate\n'
+    printf '  ./Scripts/handoff.sh --isolate --working-tree\n'
   fi
   printf 'Plan detail (sequential under that tenant):\n'
   if (( ${#TRINKET_VERIFICATION_COMMANDS[@]} > 0 )); then
     local cmd
     for cmd in "${TRINKET_VERIFICATION_COMMANDS[@]}"; do
+      if [[ "$FULL" != true && ${#cmd} -gt 240 ]]; then
+        printf '  %s… (use --full or --json for complete command)\n' "${cmd:0:220}"
+        continue
+      fi
       if [[ "$cmd" == *"./Scripts/test.sh"* \
          || "$cmd" == *"./Scripts/test-package.sh"* \
          || "$cmd" == *"./Scripts/build.sh"* ]]; then

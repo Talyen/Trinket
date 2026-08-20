@@ -43,7 +43,7 @@ public struct VolumeOptionRow: View {
         VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
             HStack {
                 Label {
-                    Text(title)
+                    Text(balanced: title)
                         .trinketTypography(.body)
                 } icon: {
                     Image(systemName: dynamicIconName)

@@ -8,6 +8,7 @@ final class MysteryRecruitUITests: TrinketUITestCase {
         launchApp(arguments: [
             TestLaunchArg.resetState,
             TestLaunchArg.disableCloudSync,
+            TestLaunchArg.skipStarterSelection,
             "-disable-audio",
             "-persist-save-immediately",
             "-battle-tick-interval",

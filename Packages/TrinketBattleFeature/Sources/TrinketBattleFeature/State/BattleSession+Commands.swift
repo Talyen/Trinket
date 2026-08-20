@@ -215,6 +215,7 @@ extension BattleSession {
         isManualInteractionActive: @escaping @MainActor () -> Bool,
         playCard: @escaping @MainActor (BattleCard) async -> Bool
     ) async {
+        let autoBattlePolicy = GreedyHeuristicPolicy()
         while !Task.isCancelled, isAutoBattleEnabled {
             guard activeBattle != nil, outcome == nil else { return }
 
@@ -233,7 +234,7 @@ extension BattleSession {
             }
 
             guard let engineState,
-                  let card = GreedyHeuristicPolicy().preferredPlayableCard(in: engineState)
+                  let card = autoBattlePolicy.preferredPlayableCard(in: engineState)
             else {
                 if !hasPendingAutoEnd {
                     scheduleAutoEndIfNeeded()

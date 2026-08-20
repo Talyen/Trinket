@@ -129,20 +129,82 @@ final class BattleFeedbackLane {
 
         let prepared = CombatFeedbackPresenter.makeItems(from: events, at: date)
         guard !prepared.isEmpty else { return }
-        var items: [CombatFeedbackItem] = []
-        items.reserveCapacity(prepared.count)
+        var newScheduledItems: [CombatFeedbackItem] = []
+        var updatedItems: [CombatFeedbackItem] = []
         var latestExpiry = date
+
         for item in prepared {
+            if let updated = tryAbsorb(item, at: date) {
+                latestExpiry = max(latestExpiry, updated.expiresAt)
+                updatedItems.append(updated)
+                continue
+            }
+
             let scheduled = schedule(item, at: date)
-            items.append(scheduled)
-            presentedEventIDs.insert(scheduled.id)
+            newScheduledItems.append(scheduled)
+            for id in scheduled.sourceEventIDs {
+                presentedEventIDs.insert(id)
+            }
             latestExpiry = max(latestExpiry, scheduled.expiresAt)
         }
 
-        activeItems.append(contentsOf: items)
-        publish(.insert(items))
-        applyMultimodalPresentation(for: items, environment: environment)
+        if !newScheduledItems.isEmpty {
+            activeItems.append(contentsOf: newScheduledItems)
+        }
+
+        if !updatedItems.isEmpty {
+            publish(.update(updatedItems))
+        }
+        if !newScheduledItems.isEmpty {
+            publish(.insert(newScheduledItems))
+        }
+        applyMultimodalPresentation(for: prepared, environment: environment)
         updatePruneDate(with: latestExpiry)
+    }
+
+    private func tryAbsorb(_ item: CombatFeedbackItem, at date: Date) -> CombatFeedbackItem? {
+        guard let matchIndex = activeItems.lastIndex(where: { existing in
+            existing.targetID == item.targetID
+                && existing.keyword == item.keyword
+                && existing.feedbackClass == item.feedbackClass
+                && existing.reactionKind == item.reactionKind
+                && existing.visualRole == item.visualRole
+                && date >= existing.availableAt
+                && date < existing.expiresAt
+                && date.timeIntervalSince(existing.firstScheduledAt) < TrinketMotion.Battle.maxContinuousChipLifetime
+                && existing.label.merging(with: item.label) != nil
+        }) else { return nil }
+
+        let existing = activeItems[matchIndex]
+        guard let mergedLabel = existing.label.merging(with: item.label) else { return nil }
+
+        let newAvailableAt = date
+        let newExpiresAt = date.addingTimeInterval(TrinketMotion.Battle.chipDisplayDuration)
+        let updated = CombatFeedbackItem(
+            id: existing.id,
+            sourceEventIDs: existing.sourceEventIDs + item.sourceEventIDs,
+            actionGroupID: existing.actionGroupID,
+            presentationIndex: existing.presentationIndex,
+            groupResultCount: existing.groupResultCount,
+            presentationRole: existing.presentationRole,
+            targetID: existing.targetID,
+            feedbackClass: existing.feedbackClass,
+            keyword: existing.keyword,
+            visualRole: existing.visualRole,
+            label: mergedLabel,
+            secondaryText: existing.secondaryText,
+            lifetime: TrinketMotion.Battle.chipDisplayDuration,
+            availableAt: newAvailableAt,
+            expiresAt: newExpiresAt,
+            reactionKind: existing.reactionKind,
+            firstScheduledAt: existing.firstScheduledAt,
+            pulseToken: existing.pulseToken + 1
+        )
+        activeItems[matchIndex] = updated
+        for id in item.sourceEventIDs {
+            presentedEventIDs.insert(id)
+        }
+        return updated
     }
 
     func prepareScheduler() {
@@ -152,7 +214,9 @@ final class BattleFeedbackLane {
     func removeEvent(_ id: Int, noteChange: Bool = true) {
         if let item = activeItems.first(where: { $0.sourceEventIDs.contains(id) }) {
             let sourceEventIDs = Set(item.sourceEventIDs)
-            let clearedReaction = hitReactionsByTargetID[item.targetID]?.id == item.id
+            let clearedReaction = hitReactionsByTargetID[item.targetID].map { reaction in
+                item.sourceEventIDs.contains(reaction.id)
+            } ?? false
             if clearedReaction {
                 hitReactionsByTargetID.removeValue(forKey: item.targetID)
             }

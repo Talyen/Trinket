@@ -53,4 +53,23 @@ struct FramePacingAnalyzerTests {
         #expect(report.missedDeadlineCount == 0)
         #expect(report.estimatedMissedFrameCount == 0)
     }
+
+    @Test func accessibilityValueRoundTripsTheCurrentSchema() {
+        let report = FramePacingReport(
+            sampleCount: 120,
+            expectedFPS: 60,
+            averageFPS: 59.5,
+            p95FrameMs: 18.2,
+            p99FrameMs: 21.4,
+            onePercentLowFPS: 48.1,
+            maxFrameMs: 33.3,
+            missedDeadlineCount: 2,
+            estimatedMissedFrameCount: 3,
+            severeStallCount: 1,
+            missedDeadlineRatio: 0.01667
+        )
+        let parsed = FramePacingReport.parseAccessibilityValue(report.accessibilityValue)
+        #expect(parsed?.accessibilityValue == report.accessibilityValue)
+        #expect(FramePacingReport.parseAccessibilityValue("schema=3;samples=1") == nil)
+    }
 }

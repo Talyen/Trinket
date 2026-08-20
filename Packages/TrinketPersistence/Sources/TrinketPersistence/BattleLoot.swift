@@ -146,7 +146,7 @@ public enum BattleLoot {
             encounterLevel: encounterLevel,
             enemyIsBoss: enemyIsBoss,
             itemID: "labyrinth-\(node.id)",
-            keywordBias: effects.keywordBiases,
+            keywordBias: [],
             ownedTrinketIDs: ownedTrinketIDs,
             goldPercent: effects.goldPercent,
             astralChanceBonusPercent: effects.astralChanceBonusPercent + astralChanceBonusPercent,

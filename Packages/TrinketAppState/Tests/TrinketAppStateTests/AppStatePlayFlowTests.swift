@@ -151,6 +151,30 @@ struct AppStatePlayFlowTests {
         #expect(state.battlePresentation(for: runKey) != nil)
     }
 
+    @Test func mismatchedPreparedJourneyActivationDoesNotStartAFreshBattle() throws {
+        let state = try context.makePlaySession()
+        let stage = try #require(GameContent.chapters[0].stages.first)
+        let runKey = PlayBattleOrigin.journey(stageID: stage.id).runKey
+        let battle = try #require(context.lastBattle)
+        let otherCompanion = try #require(
+            GameContent.companions.first { $0.id != state.playerSave.roster.activeCompanionID }
+        )
+
+        state.journey.prepareBattle(for: stage)
+        #expect(battle.hasPreparedRun(runKey))
+
+        var roster = state.playerSave.roster
+        _ = roster.unlock(otherCompanion)
+        roster.setActiveCompanion(otherCompanion)
+        state.playerSave.roster = roster
+
+        let message = state.journey.startBattle(for: stage)
+        #expect(message?.title == PlayBattleLaunch.activationFailureMessage.title)
+        #expect(state.battle.activeBattle == nil)
+        #expect(battle.hasPreparedRun(runKey))
+        #expect(state.battlePresentation(for: runKey) != nil)
+    }
+
     @Test func completeActiveBattleWithStageCompletesJourneyIdempotently() throws {
         let state = try context.makePlaySession()
         let stage = try #require(GameContent.chapters[0].stages.first)
@@ -183,7 +207,7 @@ struct AppStatePlayFlowTests {
     @Test func completeActiveBattleWithoutStageGrantsGoldOnly() throws {
         let state = try context.makePlaySession()
         let enemy = try #require(GameContent.enemies.first?.combatant)
-        let configuration = try BattleRunConfigurationTestSupport.make(
+        let configuration = try PlayBattleLaunchTestSupport.make(
             rngSeed: 0,
             hero: state.playerSave.roster.activeHero,
             companion: state.playerSave.roster.activeCompanion,
@@ -208,7 +232,7 @@ struct AppStatePlayFlowTests {
         try state.playerSave.performBatchMutation { $0 = save }
 
         let enemy = try #require(GameContent.enemies.first?.combatant)
-        let configuration = try BattleRunConfigurationTestSupport.make(
+        let configuration = try PlayBattleLaunchTestSupport.make(
             rngSeed: 0,
             hero: state.playerSave.roster.activeHero,
             companion: state.playerSave.roster.activeCompanion,
@@ -225,7 +249,7 @@ struct AppStatePlayFlowTests {
     @Test func unknownBattleRouteFailsClosedWithoutGrantingGold() throws {
         let state = try context.makePlaySession()
         let enemy = try #require(GameContent.enemies.first?.combatant)
-        let configuration = try BattleRunConfigurationTestSupport.make(
+        let configuration = try PlayBattleLaunchTestSupport.make(
             runKey: BattleRunKey("future-mode|run-1"),
             rngSeed: 0,
             hero: state.playerSave.roster.activeHero,
@@ -262,7 +286,7 @@ struct AppStatePlayFlowTests {
         case "missing-stage":
             let state = try context.makePlaySession()
             let enemy = try #require(GameContent.enemies.first?.combatant)
-            let configuration = try BattleRunConfigurationTestSupport.make(
+            let configuration = try PlayBattleLaunchTestSupport.make(
                 origin: .journey(stageID: "missing-stage-bug-hunt-audit"),
                 rngSeed: 0,
                 hero: state.playerSave.roster.activeHero,
@@ -280,7 +304,7 @@ struct AppStatePlayFlowTests {
         case "missing-spire":
             let state = try context.makePlaySession()
             let enemy = try #require(GameContent.enemies.first?.combatant)
-            let configuration = try BattleRunConfigurationTestSupport.make(
+            let configuration = try PlayBattleLaunchTestSupport.make(
                 origin: .spire(spireID: .ironVein, floor: 9999),
                 rngSeed: 0,
                 hero: state.playerSave.roster.activeHero,
@@ -325,7 +349,7 @@ struct AppStatePlayFlowTests {
             #expect(state.shellSession.selectedTab == .play)
             #expect(state.consumePendingDestination() == .campaign)
         case "spire":
-            let state = try makeProgressedStateForReturnTests()
+            let state = try makeProgressedStateForReturnTests(context)
             try attunePhysicalPartyForReturnTests(on: state)
 
             let floor = try #require(GameContent.spireFloor(spireID: .ironVein, floor: 1))
@@ -355,7 +379,7 @@ struct AppStatePlayFlowTests {
     }
 
     @Test func completeActiveBattleQueuesSpireReturnDestination() throws {
-        let state = try makeProgressedStateForReturnTests()
+        let state = try makeProgressedStateForReturnTests(context)
         try attunePhysicalPartyForReturnTests(on: state)
 
         let floor = try #require(GameContent.spireFloor(spireID: .ironVein, floor: 1))
@@ -412,26 +436,28 @@ struct AppStatePlayFlowTests {
         #expect(battle.isShowingBattleLog)
         #expect(state.battle.activeBattle != nil)
     }
+}
 
-    private func makeProgressedStateForReturnTests() throws -> PlaySession {
-        try context.makePlaySession(arguments: [
-            "-reset-state",
-            "-seed-test-progress",
-            "-completed-stages",
-            "chapter-1-stage-1,chapter-1-stage-2,chapter-1-stage-3,chapter-1-stage-4,chapter-1-stage-5",
-        ])
-    }
+@MainActor
+private func makeProgressedStateForReturnTests(_ context: AppTestContext) throws -> PlaySession {
+    try context.makePlaySession(arguments: [
+        "-reset-state",
+        "-seed-test-progress",
+        "-completed-stages",
+        "chapter-1-stage-1,chapter-1-stage-2,chapter-1-stage-3,chapter-1-stage-4,chapter-1-stage-5",
+    ])
+}
 
-    private func attunePhysicalPartyForReturnTests(on state: PlaySession) throws {
-        var roster = state.playerSave.roster
-        let rogue = try #require(GameContent.heroes.first { $0.id == "rogue" })
-        let lizard = try #require(GameContent.companions.first { $0.id == "lizard_scout" })
-        roster.unlock(rogue)
-        roster.unlock(lizard)
-        roster.setActiveHero(rogue)
-        roster.setActiveCompanion(lizard)
-        state.playerSave.roster = roster
-    }
+@MainActor
+private func attunePhysicalPartyForReturnTests(on state: PlaySession) throws {
+    var roster = state.playerSave.roster
+    let rogue = try #require(GameContent.heroes.first { $0.id == "rogue" })
+    let lizard = try #require(GameContent.companions.first { $0.id == "lizard_scout" })
+    roster.unlock(rogue)
+    roster.unlock(lizard)
+    roster.setActiveHero(rogue)
+    roster.setActiveCompanion(lizard)
+    state.playerSave.roster = roster
 }
 
 @MainActor
@@ -482,6 +508,10 @@ private final class PreparedThenRejectingBattleRuntime: RejectingBattleRuntime {
     var shouldRejectActivation = true
     private var preparedConfiguration: BattleRunConfiguration?
 
+    override func hasPreparedRun(_ runKey: BattleRunKey) -> Bool {
+        preparedConfiguration?.runKey == runKey && activeBattle == nil
+    }
+
     override func prepareBattleRun(_ configuration: BattleRunConfiguration) -> Bool {
         prepareCount += 1
         preparedConfiguration = configuration
@@ -496,6 +526,7 @@ private final class PreparedThenRejectingBattleRuntime: RejectingBattleRuntime {
         enemyID _: String?
     ) -> Bool {
         guard !shouldRejectActivation, let preparedConfiguration else { return false }
+        self.preparedConfiguration = nil
         activeBattle = preparedConfiguration
         lifecyclePhase = .active
         return true

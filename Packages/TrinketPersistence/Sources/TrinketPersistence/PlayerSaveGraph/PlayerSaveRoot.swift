@@ -9,6 +9,8 @@ public final class PlayerSaveRoot {
     public var modifiedAt: Date = Date()
     public var sessionGeneration: UInt64 = 0
     public var worldSeed: UInt64 = 0
+    public var starterSelectionPhaseRawValue: String = StarterSelectionPhase.complete.rawValue
+    public var starterHeroID: String?
     public var corruptionAltarCooldownRemaining: Int = 0
 
     @Relationship(deleteRule: .cascade, inverse: \JourneyProgressModel.root)

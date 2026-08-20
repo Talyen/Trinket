@@ -56,13 +56,10 @@ public struct AbilitySummaryGrid: View {
                 }
             }
         )
+        .id(combatant.id)
     }
 
     private func selectedAbility(for tier: AbilityTier) -> Ability? {
-        if let selected = loadout.ability(for: tier) {
-            return selected
-        }
-
-        return combatant.abilityChoices.abilities(for: tier).first
+        loadout.ability(for: tier)
     }
 }

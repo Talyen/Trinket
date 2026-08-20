@@ -23,6 +23,8 @@ public protocol BattleRuntime: AnyObject {
     func prepareBattleRun(_ configuration: BattleRunConfiguration) -> Bool
     func keepPreparedRuns(_ keys: Set<BattleRunKey>)
     func hasPreparedRun(_ runKey: BattleRunKey) -> Bool
+    /// Consumes only the matching prepared key. Returns false when a battle is
+    /// already active or the party/enemy IDs do not match; sibling prepares stay.
     func activatePreparedBattle(
         runKey: BattleRunKey,
         heroID: String,
@@ -55,6 +57,9 @@ public final class BattleRuntimeStore: BattleRuntime {
     @discardableResult
     public func prepareBattleRun(_ configuration: BattleRunConfiguration) -> Bool {
         guard activeBattle == nil, let runKey = configuration.runKey else { return false }
+        if preparedConfigurations[runKey]?.id == configuration.id {
+            return true
+        }
         preparedConfigurations[runKey] = configuration
         lifecyclePhase = .prepared
         return true
@@ -78,19 +83,22 @@ public final class BattleRuntimeStore: BattleRuntime {
         companionID: String,
         enemyID: String?
     ) -> Bool {
-        guard let configuration = preparedConfigurations[runKey],
+        guard activeBattle == nil,
+              let configuration = preparedConfigurations[runKey],
               configuration.hero.combatant.id == heroID,
               configuration.companion.combatant.id == companionID,
               configuration.enemy?.id == enemyID
         else { return false }
         preparedConfigurations.removeValue(forKey: runKey)
-        installActiveBattle(configuration)
+        activeBattle = configuration
+        lifecyclePhase = .active
         return true
     }
 
     @discardableResult
     public func activate(_ configuration: BattleRunConfiguration) -> Bool {
         guard activeBattle == nil else { return false }
+        preparedConfigurations.removeAll(keepingCapacity: true)
         installActiveBattle(configuration)
         return true
     }
@@ -98,6 +106,7 @@ public final class BattleRuntimeStore: BattleRuntime {
     @discardableResult
     public func restart(_ configuration: BattleRunConfiguration) -> Bool {
         guard activeBattle != nil else { return false }
+        preparedConfigurations.removeAll(keepingCapacity: true)
         installActiveBattle(configuration)
         return true
     }
@@ -115,7 +124,6 @@ public final class BattleRuntimeStore: BattleRuntime {
     public func trimMemoryFootprint(releaseBattleLog _: Bool) {}
 
     private func installActiveBattle(_ configuration: BattleRunConfiguration) {
-        preparedConfigurations.removeAll(keepingCapacity: true)
         activeBattle = configuration
         lifecyclePhase = .active
     }

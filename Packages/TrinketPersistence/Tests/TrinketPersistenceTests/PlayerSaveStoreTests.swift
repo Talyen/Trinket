@@ -3,6 +3,7 @@ import SwiftData
 import Testing
 import TrinketContent
 import TrinketCore
+import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
 @MainActor
@@ -119,11 +120,7 @@ final class PlayerSaveStoreTests {
         let template = try #require(GameContent.itemTemplate(matching: "shortsword-basic"))
         store.appendInventoryItem(template.rewardInstance(for: "chapter-1-stage-1"))
 
-        let container = try ModelContainer(
-            for: PlayerSaveGraph.schema,
-            configurations: ModelConfiguration(schema: PlayerSaveGraph.schema, url: storeURL, cloudKitDatabase: .none)
-        )
-        let modelContext = ModelContext(container)
+        let modelContext = try SaveTestSupport.makeSideContext(storeURL: storeURL)
 
         try #expect(try modelContext.fetch(FetchDescriptor<RosterModel>()).first?.gold == 5)
         try #expect(try modelContext.fetch(FetchDescriptor<JourneyStageProgressModel>()).contains {
@@ -150,6 +147,7 @@ final class PlayerSaveStoreTests {
         try #expect(store.inventory == .freshStart)
         try #expect(store.homestead == .freshStart)
         try #expect(store.journey == .initial)
+        try #expect(store.starterSelection == .fresh)
         try #expect(store.currentSave.sessionGeneration == 1)
     }
 

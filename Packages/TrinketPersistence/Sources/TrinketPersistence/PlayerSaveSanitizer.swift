@@ -293,15 +293,12 @@ public enum PlayerSaveSanitizer {
 public extension PlayerSaveSanitizer {
     static func sanitizeLabyrinth(
         _ labyrinth: PlayerLabyrinthState,
-        biomes: [LabyrinthBiomeDefinition] = GameContent.labyrinthBiomes,
-        modifiers: [LabyrinthModifierDefinition] = GameContent.labyrinthModifiers,
         eligibleRecruitEventIDs: [String] = []
     ) -> PlayerLabyrinthState {
         if labyrinth.isMapPayloadUnreadable {
             return labyrinth
         }
 
-        let validBiomeIDs = Set(biomes.map(\.id.rawValue))
         var sanitized = labyrinth
 
         if sanitized.hasEntered,
@@ -313,13 +310,10 @@ public extension PlayerSaveSanitizer {
             )
         }
 
-        sanitized.clusters = sanitized.clusters.compactMap { cluster in
-            guard validBiomeIDs.contains(cluster.biomeID.rawValue) else { return nil }
-            return LabyrinthCluster(
+        sanitized.clusters = sanitized.clusters.map { cluster in
+            LabyrinthCluster(
                 id: cluster.id,
-                biomeID: cluster.biomeID,
                 depthBand: max(0, cluster.depthBand),
-                modifierIDs: [],
                 nodeIDs: cluster.nodeIDs
             )
         }
@@ -329,21 +323,17 @@ public extension PlayerSaveSanitizer {
             validClusterIDs.contains(node.clusterID) || node.id == LabyrinthGenerator.entranceNodeID
         }
 
-        // Drop dangling edges and migrate legacy cluster maps to visible node-level floors.
         let existingNodes = sanitized.nodes
         for (id, node) in existingNodes {
             sanitized.nodes[id] = sanitizedLabyrinthNode(
                 node,
                 existingNodes: existingNodes,
                 cluster: sanitized.cluster(id: node.clusterID),
-                modifiers: modifiers,
                 worldSeed: sanitized.worldSeed
             )
         }
 
-        // If map is empty after sanitize but player had entered, rebuild from seed.
-        // Skip when the on-disk blob was unreadable so a decode error cannot
-        // regenerate topology over the preserved payload.
+        // Rebuild empty entered maps unless the on-disk blob was unreadable.
         if sanitized.hasEntered, sanitized.nodes.isEmpty, !sanitized.isMapPayloadUnreadable {
             sanitized.ensureMap(
                 seed: sanitized.worldSeed == 0 ? nil : sanitized.worldSeed,
@@ -368,6 +358,7 @@ private extension PlayerSaveSanitizer {
             eligibleRecruitEventIDs: eligibleRecruitEventIDs
         )
         var nodes = generated.nodes
+        migrateLegacyFloorProgress(from: legacy, clusters: generated.clusters, nodes: &nodes)
         for (id, legacyNode) in legacy.nodes {
             guard let generatedNode = nodes[id] else { continue }
             nodes[id] = LabyrinthNode(
@@ -393,6 +384,37 @@ private extension PlayerSaveSanitizer {
             clusters: generated.clusters,
             nodes: nodes
         )
+    }
+
+    static func migrateLegacyFloorProgress(
+        from legacy: PlayerLabyrinthState, clusters: [LabyrinthCluster], nodes: inout [String: LabyrinthNode]
+    ) {
+        for cluster in clusters where cluster.depthBand > 0 {
+            guard let legacyCluster = legacy.clusters.first(where: { $0.depthBand == cluster.depthBand }),
+                  Set(legacyCluster.nodeIDs).isDisjoint(with: cluster.nodeIDs)
+            else { continue }
+            let legacyFloorNodes = legacyCluster.nodeIDs.compactMap { legacy.nodes[$0] }
+            let clearedNonBossCount = legacyFloorNodes.count { $0.isCleared && $0.type.canonical != .boss }
+            guard let entryID = cluster.nodeIDs.first else { continue }
+            var migrationOrder: [String] = []
+            for targetID in cluster.nodeIDs where nodes[targetID]?.type.canonical != .boss {
+                let path = adjacentPath(from: entryID, to: targetID, nodeIDs: cluster.nodeIDs, nodes: nodes)
+                for nodeID in path where nodes[nodeID]?.type.canonical != .boss && !migrationOrder.contains(nodeID) {
+                    migrationOrder.append(nodeID)
+                }
+            }
+            for nodeID in migrationOrder.prefix(clearedNonBossCount) {
+                guard var node = nodes[nodeID] else { continue }
+                node.isCleared = true
+                nodes[nodeID] = node
+            }
+            guard legacyFloorNodes.contains(where: { $0.isCleared && $0.type.canonical == .boss }),
+                  let bossID = cluster.nodeIDs.first(where: { nodes[$0]?.type.canonical == .boss }),
+                  var boss = nodes[bossID]
+            else { continue }
+            boss.isCleared = true
+            nodes[bossID] = boss
+        }
     }
 
     static func ensureHistoricalFloorAccess(
@@ -423,7 +445,6 @@ private extension PlayerSaveSanitizer {
         _ node: LabyrinthNode,
         existingNodes: [String: LabyrinthNode],
         cluster: LabyrinthCluster?,
-        modifiers: [LabyrinthModifierDefinition],
         worldSeed: UInt64
     ) -> LabyrinthNode {
         let depth = max(0, node.depth)
@@ -432,9 +453,11 @@ private extension PlayerSaveSanitizer {
         } else {
             node.type.canonical
         }
-        let enemyID = type == .boss && node.enemyID == nil
-            ? cluster.flatMap { LabyrinthCatalog.biome(id: $0.biomeID)?.bossEnemyID }
-            : node.enemyID
+        let enemyID: String? = if type == .boss, node.enemyID == nil {
+            LabyrinthCatalog.fallbackBossEnemyID(worldSeed: worldSeed, nodeID: node.id)
+        } else {
+            node.enemyID
+        }
         return LabyrinthNode(
             id: node.id,
             type: type,
@@ -442,11 +465,12 @@ private extension PlayerSaveSanitizer {
             depth: depth,
             clusterID: node.clusterID,
             gridPosition: node.gridPosition ?? legacyGridPosition(for: node, in: cluster),
-            modifierIDs: normalizedModifierIDs(
-                for: node,
-                type: type,
-                modifiers: modifiers,
-                worldSeed: worldSeed
+            modifierIDs: LabyrinthCatalog.resolvedModifierIDs(
+                for: type,
+                enemyID: enemyID,
+                existingModifierIDs: node.modifierIDs,
+                worldSeed: worldSeed,
+                nodeID: node.id
             ),
             recruitEventID: node.recruitEventID,
             mysteryEventID: node.mysteryEventID,
@@ -454,28 +478,6 @@ private extension PlayerSaveSanitizer {
             isCleared: node.isCleared,
             isRevealed: depth > 0 || node.isRevealed
         )
-    }
-
-    static func normalizedModifierIDs(
-        for node: LabyrinthNode,
-        type: LabyrinthNodeType,
-        modifiers: [LabyrinthModifierDefinition],
-        worldSeed: UInt64
-    ) -> [LabyrinthModifierID] {
-        let applicable = modifiers.filter { $0.applies(to: type) }
-        if let existing = node.modifierIDs.compactMap({ id in
-            applicable.first { $0.id == id }
-        }).first {
-            return [existing.id]
-        }
-        guard !applicable.isEmpty else { return [] }
-        if type == .battle || type == .boss {
-            let index = Int(
-                GameContent.encounterSeed(worldSeed, salt: node.id) % UInt64(applicable.count)
-            )
-            return [applicable[index].id]
-        }
-        return [applicable[0].id]
     }
 
     static func legacyGridPosition(
@@ -501,8 +503,6 @@ private extension PlayerSaveSanitizer {
         var nextIndex = 0
         var predecessor: [String: String] = [:]
         var visited: Set<String> = [sourceID]
-        // Loop-invariant ordering: the frontier order decides first-wins predecessor
-        // claims, so it is materialized once instead of per popped node.
         let candidateNodes: [(id: String, node: LabyrinthNode)] = nodeIDs.sorted().compactMap { id in
             nodes[id].map { (id, $0) }
         }

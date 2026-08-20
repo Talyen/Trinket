@@ -72,7 +72,7 @@ public struct RewardRevealShell<Content: View>: View {
             VStack(spacing: contentStackSpacing) {
                 VStack(spacing: TrinketDesign.Metrics.smallSpacing) {
                     if let eyebrow {
-                        Text(eyebrow)
+                        Text(balanced: eyebrow)
                             .trinketTypography(.eyebrow)
                             .foregroundStyle(TrinketDesign.Colors.accent)
                             .textCase(.uppercase)
@@ -83,7 +83,7 @@ public struct RewardRevealShell<Content: View>: View {
                     }
 
                     if let title {
-                        Text(title)
+                        Text(balanced: title)
                             .trinketTypography(.screenDisplay)
                             .foregroundStyle(titleColor)
                             .multilineTextAlignment(.center)
@@ -94,7 +94,7 @@ public struct RewardRevealShell<Content: View>: View {
                     }
 
                     if let subtitle {
-                        Text(subtitle)
+                        Text(balanced: subtitle)
                             .trinketTypography(.secondaryBody)
                             .foregroundStyle(subtitleColor)
                             .multilineTextAlignment(.center)

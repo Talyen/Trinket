@@ -6,6 +6,7 @@ from __future__ import annotations
 import json
 import re
 import sys
+from datetime import date, timedelta
 from pathlib import Path
 from urllib.parse import unquote
 
@@ -14,6 +15,9 @@ SKIP_PARTS = {".git", ".DerivedData", ".tools", ".build", "Generated"}
 LINK = re.compile(r"\[[^\]]*\]\(([^)]+)\)")
 HEADING = re.compile(r"^(#{1,6})\s+(.+?)(?:\s+#*)?\s*$")
 FENCE = re.compile(r"^(`{3,}|~{3,})")
+PLAN_STATUSES = {"active", "blocked", "complete", "cancelled"}
+PLAN_WARNING_DAYS = 3
+DOC_WARNINGS: list[str] = []
 
 
 def markdown_files() -> list[Path]:
@@ -91,7 +95,52 @@ def broken_links(files: list[Path]) -> list[str]:
     return failures
 
 
-def structural_checks(files: list[Path]) -> list[str]:
+def plan_metadata(path: Path) -> tuple[dict[str, str], list[str]]:
+    """Parse the deliberately small plan front matter without a YAML dependency."""
+    lines = path.read_text(encoding="utf-8").splitlines()
+    errors: list[str] = []
+    if not lines or lines[0].strip() != "---":
+        return {}, ["missing front matter"]
+    try:
+        end = lines.index("---", 1)
+    except ValueError:
+        return {}, ["front matter is not closed"]
+    metadata: dict[str, str] = {}
+    for line in lines[1:end]:
+        if not line.strip():
+            continue
+        match = re.fullmatch(r"([A-Za-z][A-Za-z0-9_-]*):[ \t]*(.+)", line)
+        if match is None:
+            errors.append(f"invalid metadata line {line!r}")
+            continue
+        metadata[match.group(1)] = match.group(2).strip()
+    for key in ("type", "status", "created", "updated", "expires"):
+        if not metadata.get(key):
+            errors.append(f"missing {key}")
+    if metadata.get("type") and metadata["type"] != "execution-plan":
+        errors.append("type must be execution-plan")
+    status = metadata.get("status", "")
+    if status and status not in PLAN_STATUSES:
+        errors.append(f"status must be one of {', '.join(sorted(PLAN_STATUSES))}")
+    if status == "blocked" and not metadata.get("reason"):
+        errors.append("blocked plans require reason")
+    parsed_dates: dict[str, date] = {}
+    for key in ("created", "updated", "expires"):
+        value = metadata.get(key, "")
+        if not value:
+            continue
+        try:
+            parsed_dates[key] = date.fromisoformat(value)
+        except ValueError:
+            errors.append(f"{key} must be an ISO date")
+    if parsed_dates.get("created") and parsed_dates.get("updated") and parsed_dates["updated"] < parsed_dates["created"]:
+        errors.append("updated must not precede created")
+    if parsed_dates.get("updated") and parsed_dates.get("expires") and parsed_dates["expires"] <= parsed_dates["updated"]:
+        errors.append("expires must be later than updated")
+    return metadata, errors
+
+
+def structural_checks(files: list[Path], *, final: bool = False, keep_plan: bool = False) -> list[str]:
     failures: list[str] = []
     relative = {path.relative_to(ROOT) for path in files}
 
@@ -142,28 +191,65 @@ def structural_checks(files: list[Path]) -> list[str]:
                 failures.append(f"{source.relative_to(ROOT)}: stale phrase {phrase!r} ({explanation})")
 
     plans_dir = ROOT / "Docs" / "Plans"
-    extra_plans = sorted(
-        path.name
-        for path in plans_dir.glob("*.md")
-        if path.name != "README.md"
-    )
-    if extra_plans:
-        failures.append(
-            "Docs/Plans/: extra markdown besides README.md "
-            f"({', '.join(extra_plans)}); finished plans must be deleted"
-        )
+    active_plans = 0
+    for plan_path in sorted(plans_dir.glob("*.md")):
+        if plan_path.name == "README.md":
+            continue
+        metadata, errors = plan_metadata(plan_path)
+        relative_plan = plan_path.relative_to(ROOT)
+        if errors:
+            failures.append(f"{relative_plan}: " + "; ".join(errors))
+            continue
+        status = metadata["status"]
+        if status in {"complete", "cancelled"}:
+            failures.append(f"{relative_plan}: {status} plans must be deleted")
+            continue
+        try:
+            expires = date.fromisoformat(metadata["expires"])
+        except ValueError:
+            continue
+        today = date.today()
+        if expires <= today:
+            failures.append(
+                f"{relative_plan}: {status} plan expired on {expires}; update the plan or delete it"
+            )
+        elif expires <= today + timedelta(days=PLAN_WARNING_DAYS):
+            DOC_WARNINGS.append(
+                f"{relative_plan}: {status} plan expires on {expires}; renew or close it"
+            )
+        if status == "active":
+            active_plans += 1
+            if final and not keep_plan:
+                failures.append(
+                    f"{relative_plan}: active plan remains at final handoff; mark complete and delete it, or pass --keep-plan"
+                )
+    if active_plans > 3:
+        DOC_WARNINGS.append(f"Docs/Plans/: {active_plans} active plans are present")
     return failures
 
 
 def main() -> int:
+    final = False
+    keep_plan = False
+    for argument in sys.argv[1:]:
+        if argument == "--final":
+            final = True
+        elif argument == "--keep-plan":
+            keep_plan = True
+        else:
+            print(f"Usage: {Path(sys.argv[0]).name} [--final] [--keep-plan]", file=sys.stderr)
+            return 2
     files = markdown_files()
-    failures = broken_links(files) + structural_checks(files)
+    DOC_WARNINGS.clear()
+    failures = broken_links(files) + structural_checks(files, final=final, keep_plan=keep_plan)
     if failures:
         print("Documentation checks failed:", file=sys.stderr)
         for failure in failures:
             print(f"- {failure}", file=sys.stderr)
         return 1
     print(f"Documentation checks passed ({len(files)} Markdown files).")
+    for warning in DOC_WARNINGS:
+        print(f"Warning: {warning}", file=sys.stderr)
     return 0
 
 

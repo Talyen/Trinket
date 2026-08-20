@@ -211,7 +211,7 @@ public struct CombatantTalentsView: View {
                 )
                 let style = selectedNode.keyword.visualStyle
 
-                Text(selectedNode.name)
+                Text(balanced: selectedNode.name)
                     .trinketTypography(.cardTitle)
                     .foregroundStyle(style.color)
 

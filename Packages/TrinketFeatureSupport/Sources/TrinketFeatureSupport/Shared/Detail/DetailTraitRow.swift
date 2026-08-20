@@ -34,7 +34,7 @@ public struct DetailTraitRow: View {
                             .foregroundStyle(leadingIconKeyword.visualStyle.color)
                             .accessibilityHidden(true)
                     }
-                    Text(title)
+                    Text(balanced: title)
                         .trinketTypography(.cardTitle)
                         .foregroundStyle(.primary)
                         .keywordShine(titleKeywords)

@@ -5,16 +5,7 @@ import TrinketCore
 
 @Suite("LabyrinthCatalog")
 struct LabyrinthCatalogTests {
-    @Test func biomesAndModifiersAreAuthoredWithPlayerFacingContent() {
-        #expect(!GameContent.labyrinthBiomes.isEmpty)
-        for biome in GameContent.labyrinthBiomes {
-            #expect(!biome.enemyPool.isEmpty)
-            for enemyID in biome.enemyPool {
-                #expect(GameContent.enemy(matching: enemyID) != nil)
-            }
-            #expect(GameContent.enemy(matching: biome.bossEnemyID) != nil)
-        }
-
+    @Test func modifiersAreAuthoredWithPlayerFacingContent() {
         #expect(!GameContent.labyrinthModifiers.isEmpty)
         for modifier in GameContent.labyrinthModifiers {
             #expect(!modifier.title.isEmpty)
@@ -61,12 +52,42 @@ struct LabyrinthCatalogTests {
         #expect(!(nodes[boss.id]?.outgoingIDs.isEmpty ?? true))
     }
 
-    @Test func modifierEffectsCombineDamageAndBiomeLootBias() throws {
+    @Test func modifierEffectsCombineDamageAndRewardBonuses() throws {
         let iron = try #require(GameContent.labyrinthModifier(id: LabyrinthModifierID("ironPressure")))
-        let effects = LabyrinthModifierEffects.combining([iron], biomeBias: .physical)
+        let effects = LabyrinthModifierEffects.combining([iron])
         #expect(effects.damageDealtBonus == [.physical: 1])
         #expect(effects.goldPercent == 0)
-        #expect(effects.keywordBiases.contains(.physical))
+    }
+
+    @Test func combatModifiersMatchEnemyAbilityKeywords() {
+        for enemy in GameContent.enemies {
+            for nodeType in [LabyrinthNodeType.battle, LabyrinthNodeType.boss] {
+                let pool = LabyrinthCatalog.combatModifiers(for: enemy.id, nodeType: nodeType)
+                let enemyKeywords = LabyrinthCatalog.enemyDamageKeywords(for: enemy.id)
+                for modifier in pool {
+                    #expect(modifier.damageDealtKeyword.map(enemyKeywords.contains) == true)
+                }
+            }
+        }
+    }
+
+    @Test func generatedCombatModifiersAlignWithNodeEnemies() {
+        for seed in 0 ..< 20 {
+            let generated = LabyrinthGenerator.makeInitialMap(seed: UInt64(seed))
+            for node in generated.nodes.values where node.type.isCombat {
+                guard let enemyID = node.enemyID else { continue }
+                let modifiers = LabyrinthCatalog.modifiers(ids: node.modifierIDs)
+                if modifiers.isEmpty {
+                    #expect(LabyrinthCatalog.combatModifiers(for: enemyID, nodeType: node.type).isEmpty)
+                    continue
+                }
+                #expect(modifiers.count == 1)
+                let enemyKeywords = LabyrinthCatalog.enemyDamageKeywords(for: enemyID)
+                for modifier in modifiers {
+                    #expect(modifier.damageDealtKeyword.map(enemyKeywords.contains) == true)
+                }
+            }
+        }
     }
 
     @Test func generatorDoesNotEmitEventNodes() {
@@ -142,15 +163,20 @@ struct LabyrinthCatalogTests {
                 #expect(nodes.last?.type == .boss)
                 #expect(!nodes.contains { !$0.isRevealed })
                 #expect(nodes.allSatisfy { $0.modifierIDs.count <= 1 })
-                #expect(nodes.last?.modifierIDs.count == 1)
                 #expect(nodes.count(where: { !$0.type.isCombat }) >= 2)
 
                 let geometry = validateGeometry(of: nodes)
                 for node in nodes {
                     let modifiers = LabyrinthCatalog.modifiers(ids: node.modifierIDs)
                     #expect(modifiers.allSatisfy { $0.applies(to: node.type) })
-                    let expectsModifier = node.type.isCombat || node.type == .shop || node.type == .craft
-                    #expect(node.modifierIDs.count == (expectsModifier ? 1 : 0))
+                    let expectsModifier = node.type == .shop || node.type == .craft
+                    #expect(node.modifierIDs.count == (expectsModifier ? 1 : 0) || node.type.isCombat)
+                    if node.type.isCombat, let enemyID = node.enemyID, !node.modifierIDs.isEmpty {
+                        let enemyKeywords = LabyrinthCatalog.enemyDamageKeywords(for: enemyID)
+                        for modifier in modifiers {
+                            #expect(modifier.damageDealtKeyword.map(enemyKeywords.contains) == true)
+                        }
+                    }
                     #expect(node.outgoingIDs.isEmpty)
                 }
                 observedCycleCounts.insert(geometry.cycleCount)

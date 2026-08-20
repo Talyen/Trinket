@@ -192,7 +192,7 @@ public struct BattleView: View {
 /// Isolated battlefield observation scope. `BattleView` must not read live
 /// combatant projections here — helper methods on the parent would fuse HP/hand
 /// writes into toolbar and outcome observation.
-private struct BattleFieldLane: View {
+struct BattleFieldLane: View {
     let configuration: BattleRunConfiguration
     let presentationContext: BattlePresentationContext
     let battleSession: BattleSession
@@ -258,14 +258,6 @@ private struct BattleFieldLane: View {
                 .offset(y: -BattleHandLayout.bottomRise)
                 .zIndex(1)
 
-                BattleAutoPlayLane(
-                    battleSession: battleSession,
-                    battleSize: geometry.size,
-                    castPresentation: castPresentation,
-                    interactionState: interactionState,
-                    onPlay: playCard(_:request:)
-                )
-
                 CardCastPresentationLane(presentation: castPresentation)
                     .zIndex(3)
 
@@ -292,31 +284,23 @@ private struct BattleFieldLane: View {
                 #endif
             }
             .coordinateSpace(.named(BattleCoordinateSpace.field))
+            .task(id: autoBattleTaskID) {
+                interactionState.suppressCombatantTaps = false
+                await battleSession.driveAutoBattle(
+                    isCardCastActive: { castPresentation.request != nil },
+                    isManualInteractionActive: { interactionState.blocksCombatantTaps },
+                    playCard: { card in
+                        await playCardWithTapLift(card, battleSize: geometry.size)
+                    }
+                )
+            }
         }
         .ignoresSafeArea(.container, edges: .bottom)
-    }
-
-    private func playCard(_ card: BattleCard, request: CardActivationRequest) -> Bool {
-        let outcome = battleSession.playCard(
-            cardID: card.id
-        )
-        guard case .committed = outcome else { return false }
-        let actorID = battleSession.combatantID(for: card.owner)
-        if let actorID {
-            battleSession.commitAttackSwing(for: actorID)
-        }
-        castPresentation.append(request)
-        return true
     }
 
     private func beginPartyAttackWindUp(for card: BattleCard) {
         guard let combatantID = battleSession.combatantID(for: card.owner) else { return }
         battleSession.beginAttackWindUp(for: combatantID)
-    }
-
-    private func cancelPartyAttack(for card: BattleCard) {
-        guard let combatantID = battleSession.combatantID(for: card.owner) else { return }
-        battleSession.cancelAttack(for: combatantID)
     }
 
     private func showDetails(for combatant: Combatant) {

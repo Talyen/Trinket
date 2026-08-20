@@ -94,6 +94,89 @@ struct BattleSessionPreparationTests {
         #expect(session.lifecyclePhase == .prepared)
     }
 
+    @Test func activatePreparedBattleInstallsThePreparedEngineSnapshot() {
+        let party = BattlePartyFixtures.quickWinParty()
+        let session = BattleSession(openingHandDrawStagger: 0)
+        let runKey = BattleRunKey("test|prepared-activate")
+        let (configuration, _) = BattleRunConfigurationTestSupport.make(
+            runKey: runKey,
+            rngSeed: 17,
+            hero: party.hero,
+            companion: party.companion,
+            enemy: party.enemy
+        )
+
+        #expect(session.prepareBattleRun(configuration))
+        #expect(
+            session.activatePreparedBattle(
+                runKey: runKey,
+                heroID: party.hero.id,
+                companionID: party.companion.id,
+                enemyID: party.enemy.id
+            )
+        )
+        #expect(session.activeBattle?.id == configuration.id)
+        #expect(session.activeBattle?.rngSeed == 17)
+        #expect(session.hasActiveSimulation)
+        #expect(!session.hasPreparedRun(runKey))
+        #expect(session.lifecyclePhase == .active)
+    }
+
+    @Test func activatePreparedBattleRejectsIDMismatchAndKeepsSiblings() {
+        let party = BattlePartyFixtures.quickWinParty()
+        let session = BattleSession(openingHandDrawStagger: 0)
+        let matchKey = BattleRunKey("test|match")
+        let siblingKey = BattleRunKey("test|sibling")
+        let (match, _) = BattleRunConfigurationTestSupport.make(
+            runKey: matchKey,
+            hero: party.hero,
+            companion: party.companion,
+            enemy: party.enemy
+        )
+        let (sibling, _) = BattleRunConfigurationTestSupport.make(
+            runKey: siblingKey,
+            rngSeed: 1,
+            hero: party.hero,
+            companion: party.companion,
+            enemy: party.enemy
+        )
+
+        #expect(session.prepareBattleRun(match))
+        #expect(session.prepareBattleRun(sibling))
+        #expect(
+            !session.activatePreparedBattle(
+                runKey: matchKey,
+                heroID: "other-hero",
+                companionID: party.companion.id,
+                enemyID: party.enemy.id
+            )
+        )
+        #expect(session.activeBattle == nil)
+        #expect(session.hasPreparedRun(matchKey))
+        #expect(session.hasPreparedRun(siblingKey))
+
+        #expect(
+            session.activatePreparedBattle(
+                runKey: matchKey,
+                heroID: party.hero.id,
+                companionID: party.companion.id,
+                enemyID: party.enemy.id
+            )
+        )
+        #expect(session.activeBattle?.id == match.id)
+        #expect(!session.hasPreparedRun(matchKey))
+        #expect(session.hasPreparedRun(siblingKey))
+        #expect(
+            !session.activatePreparedBattle(
+                runKey: siblingKey,
+                heroID: party.hero.id,
+                companionID: party.companion.id,
+                enemyID: party.enemy.id
+            )
+        )
+        #expect(session.hasPreparedRun(siblingKey))
+    }
+
     @Test func replacementOpeningHandDealRetainsTaskOwnershipAfterCancellation() async throws {
         let party = BattlePartyFixtures.quickWinParty(heroAbilities: [.slash, .heal, .smite])
         let expectedOpeningHandCount = min(

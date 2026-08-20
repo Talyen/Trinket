@@ -90,8 +90,8 @@ struct BattleSessionAppIntegrationTests {
         let originalUniversalModifiers = appState.battleUniversalModifiers(for: original.runKey)
         #expect(originalUniversalModifiers.count == 1)
         for (keyword, amount) in effects.damageDealtBonus {
-            #expect(original.hero.modifiers.damageDealtBonus(for: keyword) == amount)
-            #expect(original.companion.modifiers.damageDealtBonus(for: keyword) == amount)
+            #expect(original.hero.modifiers.damageDealtBonus(for: keyword) == 0)
+            #expect(original.companion.modifiers.damageDealtBonus(for: keyword) == 0)
             #expect(original.enemyModifiers.damageDealtBonus(for: keyword) == amount)
         }
 
@@ -124,7 +124,7 @@ struct BattleSessionAppIntegrationTests {
         #expect(appState.battle.activeBattle == nil)
     }
 
-    @Test func activatingPreparedBattleDropsRoutesForDiscardedPreparedRuns() throws {
+    @Test func activatingPreparedBattleKeepsSiblingPreparedRuns() throws {
         let appState = try context.makePlaySession()
         let combatStages = GameContent.chapters
             .flatMap(\.stages)
@@ -136,6 +136,7 @@ struct BattleSessionAppIntegrationTests {
         let firstRunKey = PlayBattleOrigin.journey(stageID: firstStage.id).runKey
         appState.journey.prepareBattle(for: secondStage)
         let secondRunKey = PlayBattleOrigin.journey(stageID: secondStage.id).runKey
+        let battle = try #require(context.lastBattle)
 
         #expect(appState.battlePresentation(for: firstRunKey) != nil)
         #expect(appState.battlePresentation(for: secondRunKey) != nil)
@@ -143,8 +144,10 @@ struct BattleSessionAppIntegrationTests {
         _ = appState.journey.startBattle(for: secondStage)
 
         #expect(appState.battle.activeBattle?.runKey == secondRunKey)
-        #expect(appState.battlePresentation(for: firstRunKey) == nil)
+        #expect(appState.battlePresentation(for: firstRunKey) != nil)
         #expect(appState.battlePresentation(for: secondRunKey) != nil)
+        #expect(battle.hasPreparedRun(firstRunKey))
+        #expect(!battle.hasPreparedRun(secondRunKey))
     }
 
     #if DEBUG

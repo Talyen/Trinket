@@ -15,6 +15,22 @@ enum CombatFeedbackChipLabel: Hashable {
     /// Non-numeric chip such as dodge, cleanse, or a short keyword word.
     case word(CombatFeedbackChipWord)
 
+    /// Merges two chip labels of the same shape and sign, returning nil if incompatible.
+    func merging(with other: Self) -> Self? {
+        switch (self, other) {
+        case let (.amount(lhs), .amount(rhs)):
+            guard (lhs >= 0) == (rhs >= 0) else { return nil }
+            return .amount(lhs + rhs)
+        case let (.percent(lhs), .percent(rhs)):
+            guard (lhs >= 0) == (rhs >= 0) else { return nil }
+            return .percent(lhs + rhs)
+        case let (.word(lhsWord), .word(rhsWord)):
+            return lhsWord == rhsWord ? .word(lhsWord) : nil
+        default:
+            return nil
+        }
+    }
+
     /// Visible chip text for numeric chips and short keyword words. Icon-only /
     /// dual-icon chips return an empty string (see `CombatFeedbackChipPresentation`).
     var displayString: String {

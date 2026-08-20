@@ -1,92 +1,8 @@
 import Foundation
 import TrinketCore
 
-/// Hand-authored The Labyrinth biomes and named node modifiers.
+/// Hand-authored named node modifiers for The Labyrinth.
 public enum LabyrinthCatalog {
-    public static let biomes: [LabyrinthBiomeDefinition] = [
-        LabyrinthBiomeDefinition(
-            id: .ironGalleries,
-            title: "Iron Galleries",
-            epithet: "Struck stone, brute foes",
-            keywordBias: .physical,
-            enemyPool: ["goblin", "skeleton", "slime", "living_armor"],
-            bossEnemyID: "the_iron_bear"
-        ),
-        LabyrinthBiomeDefinition(
-            id: .cinderGalleries,
-            title: "Cinder Galleries",
-            epithet: "Heat that refuses to die",
-            keywordBias: .burn,
-            enemyPool: ["will_o_wisp", "fire_elemental", "skeleton"],
-            bossEnemyID: "the_forge_golem"
-        ),
-        LabyrinthBiomeDefinition(
-            id: .serpentSump,
-            title: "Serpent Sump",
-            epithet: "Slow certainty",
-            keywordBias: .poison,
-            enemyPool: ["plague_doctor", "slime", "goblin"],
-            bossEnemyID: "the_blight_treant"
-        ),
-        LabyrinthBiomeDefinition(
-            id: .scarCatacombs,
-            title: "Scar Catacombs",
-            epithet: "Every cut remembers",
-            keywordBias: .bleed,
-            enemyPool: ["mimic", "necromancer", "skeleton"],
-            bossEnemyID: "the_blight_treant"
-        ),
-        LabyrinthBiomeDefinition(
-            id: .aureateCrypt,
-            title: "Aureate Crypt",
-            epithet: "Light that judges",
-            keywordBias: .holy,
-            enemyPool: ["skeleton", "living_armor", "goblin"],
-            bossEnemyID: "the_iron_bear"
-        ),
-        LabyrinthBiomeDefinition(
-            id: .rimeDescent,
-            title: "Rime Descent",
-            epithet: "Stillness that binds",
-            keywordBias: .freeze,
-            enemyPool: ["frost_elemental", "skeleton", "slime"],
-            bossEnemyID: "the_frostwarden"
-        ),
-        LabyrinthBiomeDefinition(
-            id: .stormCulvert,
-            title: "Storm Culvert",
-            epithet: "Sudden violence",
-            keywordBias: .stun,
-            enemyPool: ["goblin", "living_armor", "mimic"],
-            bossEnemyID: "the_forge_golem"
-        ),
-        LabyrinthBiomeDefinition(
-            id: .gildedFault,
-            title: "Gilded Fault",
-            epithet: "Fortune in the dark",
-            keywordBias: .gold,
-            enemyPool: ["goblin", "mimic", "skeleton"],
-            bossEnemyID: "the_iron_bear"
-        ),
-        LabyrinthBiomeDefinition(
-            id: .heartwellGrotto,
-            title: "Heartwell Grotto",
-            epithet: "Mend and stand",
-            keywordBias: .health,
-            enemyPool: ["slime", "mud_elemental", "skeleton"],
-            bossEnemyID: "the_blight_treant"
-        ),
-    ]
-
-    public static let biomesByID: [LabyrinthBiomeID: LabyrinthBiomeDefinition] =
-        Dictionary(uniqueKeysWithValues: biomes.map { ($0.id, $0) })
-
-    public static func biome(id: LabyrinthBiomeID) -> LabyrinthBiomeDefinition? {
-        biomesByID[id]
-    }
-
-    // MARK: - Modifiers
-
     public static let modifiers: [LabyrinthModifierDefinition] = [
         LabyrinthModifierDefinition(
             id: LabyrinthModifierID("ironPressure"),
@@ -135,6 +51,14 @@ public enum LabyrinthCatalog {
     public static let modifiersByID: [LabyrinthModifierID: LabyrinthModifierDefinition] =
         Dictionary(uniqueKeysWithValues: modifiers.map { ($0.id, $0) })
 
+    public static var trashEnemyIDs: [String] {
+        GameContent.enemies.filter { !$0.isBoss }.map(\.id)
+    }
+
+    public static var bossEnemyIDs: [String] {
+        GameContent.enemies.filter(\.isBoss).map(\.id)
+    }
+
     public static func modifier(id: LabyrinthModifierID) -> LabyrinthModifierDefinition? {
         modifiersByID[id]
     }
@@ -142,17 +66,102 @@ public enum LabyrinthCatalog {
     public static func modifiers(ids: [LabyrinthModifierID]) -> [LabyrinthModifierDefinition] {
         ids.compactMap { modifiersByID[$0] }
     }
+
+    public static func enemyDamageKeywords(for enemyID: String) -> Set<Keyword> {
+        guard let enemy = GameContent.enemy(matching: enemyID) else { return [] }
+        return Set(enemy.combatant.abilities.flatMap(\.keywords))
+    }
+
+    public static func combatModifiers(
+        for enemyID: String,
+        nodeType: LabyrinthNodeType
+    ) -> [LabyrinthModifierDefinition] {
+        guard nodeType.isCombat else { return [] }
+        let keywords = enemyDamageKeywords(for: enemyID)
+        return modifiers.filter { modifier in
+            guard modifier.applies(to: nodeType),
+                  let keyword = modifier.damageDealtKeyword
+            else { return false }
+            return keywords.contains(keyword)
+        }
+    }
+
+    public static func modifierIDs(
+        for type: LabyrinthNodeType,
+        enemyID: String?,
+        worldSeed: UInt64,
+        nodeID: String
+    ) -> [LabyrinthModifierID] {
+        switch type.canonical {
+        case .battle, .boss:
+            guard let enemyID else { return [] }
+            let pool = combatModifiers(for: enemyID, nodeType: type)
+            guard !pool.isEmpty else { return [] }
+            let index = Int(
+                GameContent.encounterSeed(worldSeed, salt: "labyrinth-modifier-\(nodeID)")
+                    % UInt64(pool.count)
+            )
+            return [pool[index].id]
+        case .shop:
+            return [LabyrinthModifierID("gildedWhisper")]
+        case .craft:
+            return [LabyrinthModifierID("astralSeam")]
+        case .rest, .mystery, .event, .recruit, .entrance:
+            return []
+        }
+    }
+
+    public static func pickBossEnemyID(
+        excluding previousBossID: String?,
+        using rng: inout some RandomNumberGenerator
+    ) -> String {
+        let pool = bossEnemyIDs.filter { $0 != previousBossID }
+        let choices = pool.isEmpty ? bossEnemyIDs : pool
+        return choices.randomElement(using: &rng) ?? bossEnemyIDs[0]
+    }
+
+    public static func pickTrashEnemyID(using rng: inout some RandomNumberGenerator) -> String {
+        trashEnemyIDs.randomElement(using: &rng) ?? trashEnemyIDs[0]
+    }
+
+    public static func resolvedModifierIDs(
+        for type: LabyrinthNodeType,
+        enemyID: String?,
+        existingModifierIDs: [LabyrinthModifierID],
+        worldSeed: UInt64,
+        nodeID: String
+    ) -> [LabyrinthModifierID] {
+        let applicable: [LabyrinthModifierDefinition] = switch type.canonical {
+        case .battle, .boss:
+            if let enemyID {
+                combatModifiers(for: enemyID, nodeType: type)
+            } else {
+                []
+            }
+        case .shop, .craft:
+            modifiers.filter { $0.applies(to: type) }
+        default:
+            []
+        }
+        if let existing = existingModifierIDs.compactMap({ id in
+            applicable.first { $0.id == id }
+        }).first {
+            return [existing.id]
+        }
+        guard !applicable.isEmpty else { return [] }
+        return modifierIDs(for: type, enemyID: enemyID, worldSeed: worldSeed, nodeID: nodeID)
+    }
+
+    public static func fallbackBossEnemyID(worldSeed: UInt64, nodeID: String) -> String {
+        let pool = bossEnemyIDs
+        let index = Int(
+            GameContent.encounterSeed(worldSeed, salt: "labyrinth-boss-\(nodeID)") % UInt64(pool.count)
+        )
+        return pool[index]
+    }
 }
 
 public extension GameContent {
-    static var labyrinthBiomes: [LabyrinthBiomeDefinition] {
-        LabyrinthCatalog.biomes
-    }
-
-    static func labyrinthBiome(id: LabyrinthBiomeID) -> LabyrinthBiomeDefinition? {
-        LabyrinthCatalog.biome(id: id)
-    }
-
     static var labyrinthModifiers: [LabyrinthModifierDefinition] {
         LabyrinthCatalog.modifiers
     }

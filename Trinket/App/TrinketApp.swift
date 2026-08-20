@@ -89,13 +89,17 @@ struct TrinketApp: App {
             .flatMap { reference in
                 [reference.imageName, reference.thumbnailImageName].compactMap(\.self)
             }
+        let starterChoices = (GameContent.starterHeroes + GameContent.starterCompanions)
+            .compactMap { $0.artReference?.thumbnailImageName }
         let activeEnemy = appState.playerSave.journey.activeStageID
             .flatMap(GameContent.stage(id:))?
             .encounterCombatantArtReference(worldSeed: appState.playerSave.worldSeed)
         let enemyNames = activeEnemy.map { reference in
             [reference.imageName, reference.thumbnailImageName].compactMap(\.self)
         } ?? []
-        return Array(Set(activeParty + enemyNames + rootTabImageNames(for: appState))).sorted()
+        return Array(
+            Set(activeParty + starterChoices + enemyNames + rootTabImageNames(for: appState))
+        ).sorted()
     }
 
     /// One centralized strong working set for the first interactive surfaces.

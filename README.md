@@ -41,16 +41,9 @@ For content, art, music, SFX, or cinematic edits:
 
 ## Common Commands
 
-```sh
-./Scripts/generate.sh
-./Scripts/generate.sh --assets
-./Scripts/test-package.sh BattleEngine
-./Scripts/test.sh unit
-./Scripts/handoff.sh --isolate --paths <changed-files>
-```
-
-Full command index: [Scripts/README.md](Scripts/README.md). Agent workflow:
-[AGENTS.md](AGENTS.md). Test conventions: [Testing.md](Docs/Platform/Testing.md).
+The complete command index and agent path-scoping rules live in
+[Scripts/README.md](Scripts/README.md). Agent guardrails are in [AGENTS.md](AGENTS.md),
+and test semantics are in [Testing.md](Docs/Platform/Testing.md).
 
 ## Docs
 

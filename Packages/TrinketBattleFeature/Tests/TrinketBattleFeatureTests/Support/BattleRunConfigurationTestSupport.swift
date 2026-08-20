@@ -4,6 +4,7 @@ import TrinketBattleRuntime
 import TrinketContent
 import TrinketCore
 import TrinketFeatureContracts
+import TrinketTestSupport
 @testable import TrinketBattleFeature
 
 /// Direct fixture for the launch-baked battle run DTO.
@@ -15,7 +16,7 @@ import TrinketFeatureContracts
 enum BattleRunConfigurationTestSupport {
     static func make(
         runKey: BattleRunKey? = nil,
-        rngSeed: UInt64 = 0,
+        rngSeed: UInt64 = CombatantFixtures.deterministicBattleSeed,
         hero: Combatant,
         companion: Combatant,
         enemy: Combatant? = nil,

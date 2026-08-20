@@ -14,11 +14,11 @@ enum PlayerSaveStoreConfiguration {
     }
 
     static func cleanStoreFiles(at url: URL) {
-        let shmURL = url.deletingPathExtension().appendingPathExtension("store-shm")
-        let walURL = url.deletingPathExtension().appendingPathExtension("store-wal")
-        try? FileManager.default.removeItem(at: url)
-        try? FileManager.default.removeItem(at: shmURL)
-        try? FileManager.default.removeItem(at: walURL)
+        let logger = Logger(
+            subsystem: PlayerSaveDefaults.loggingSubsystem,
+            category: "StoreCleanup"
+        )
+        ModelContainerBootstrap.deleteStoreFiles(at: url, logger: logger, logLabel: "player save")
     }
 
     static func resolveConfiguration(
@@ -50,9 +50,12 @@ enum PlayerSaveStoreConfiguration {
     }
 
     static func fetchRoot(in context: ModelContext, logger: Logger) throws -> PlayerSaveRoot? {
-        let descriptor = FetchDescriptor<PlayerSaveRoot>()
+        let descriptor = FetchDescriptor<PlayerSaveRoot>(
+            predicate: #Predicate { $0.id == "primary" }
+        )
+        let primaries: [PlayerSaveRoot]
         do {
-            return try context.fetch(descriptor).first { $0.id == "primary" }
+            primaries = try context.fetch(descriptor)
         } catch {
             logger.error(
                 "Failed to fetch player save root: \(error.localizedDescription, privacy: .public)"
@@ -63,6 +66,36 @@ enum PlayerSaveStoreConfiguration {
                 "Couldn't read saved progress from this device."
             )
         }
+        guard let keeper = primaries.max(by: Self.isOlderPrimary(_:than:)) else {
+            return nil
+        }
+        let extras = primaries.filter { $0 !== keeper }
+        guard !extras.isEmpty else { return keeper }
+        logger.notice(
+            "Dropped \(extras.count, privacy: .public) duplicate player save roots; kept the newest primary."
+        )
+        for extra in extras {
+            context.delete(extra)
+        }
+        do {
+            try context.save()
+        } catch {
+            logger.error(
+                "Failed to drop duplicate player save roots: \(error.localizedDescription, privacy: .public)"
+            )
+            throw PlayerSavePersistenceError.writeFailed
+        }
+        return keeper
+    }
+
+    private static func isOlderPrimary(_ lhs: PlayerSaveRoot, than rhs: PlayerSaveRoot) -> Bool {
+        if lhs.modifiedAt != rhs.modifiedAt {
+            return lhs.modifiedAt < rhs.modifiedAt
+        }
+        if lhs.sessionGeneration != rhs.sessionGeneration {
+            return lhs.sessionGeneration < rhs.sessionGeneration
+        }
+        return String(describing: lhs.persistentModelID) < String(describing: rhs.persistentModelID)
     }
 
     static func clearSaveRoot(in context: ModelContext, logger: Logger) throws {

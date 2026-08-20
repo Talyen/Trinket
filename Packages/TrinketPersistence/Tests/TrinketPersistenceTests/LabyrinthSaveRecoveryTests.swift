@@ -39,15 +39,7 @@ struct LabyrinthSaveRecoveryTests {
         }
 
         do {
-            let container = try ModelContainer(
-                for: PlayerSaveGraph.schema,
-                configurations: ModelConfiguration(
-                    schema: PlayerSaveGraph.schema,
-                    url: storeURL,
-                    cloudKitDatabase: .none
-                )
-            )
-            let context = ModelContext(container)
+            let context = try SaveTestSupport.makeSideContext(storeURL: storeURL)
             let model = try #require(context.fetch(FetchDescriptor<LabyrinthProgressModel>()).first)
             model.worldSeed = 55
             model.hasEntered = true

@@ -132,7 +132,13 @@ xcode_runner_call_reporter() {
     echo "=== xcode-runner: raw log excerpt ($log_file) ===" >&2
     # Prefer actionable lines; fall back to the end of the quiet log so CI is
     # not blind when diagnostics misclassify benign setup noise.
-    if ! grep -n -E -i 'error:|fatal error:|exception|actool|ibtoold|nil object|BUILD FAILED|\*\* BUILD|\*\* TEST FAILED' "$log_file" >&2; then
+    matches="$(grep -n -E -i 'error:|fatal error:|exception|actool|ibtoold|nil object|BUILD FAILED|\*\* BUILD|\*\* TEST FAILED' "$log_file" | head -n 80 || true)"
+    if [[ -n "$matches" ]]; then
+      printf '%s\n' "$matches" | awk '{ if (length($0) > 400) print substr($0, 1, 399) "…"; else print }' >&2
+      if [[ "$(printf '%s\n' "$matches" | wc -l | tr -d ' ')" -ge 80 ]]; then
+        echo "… additional matching log lines omitted by xcode-runner" >&2
+      fi
+    else
       tail -n 80 "$log_file" >&2 || true
     fi
     echo "=== end raw log excerpt ===" >&2

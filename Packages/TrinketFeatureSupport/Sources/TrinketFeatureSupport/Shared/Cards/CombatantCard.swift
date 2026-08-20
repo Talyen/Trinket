@@ -30,7 +30,7 @@ public struct CombatantCard: View {
                 CombatantArtwork(combatant: combatant, variant: .card)
             },
             label: {
-                Text(combatant.name)
+                Text(balanced: combatant.name)
                     .trinketTypography(.cardLabel)
                     .foregroundStyle(isLocked ? .secondary : .primary)
                     .lineLimit(2)

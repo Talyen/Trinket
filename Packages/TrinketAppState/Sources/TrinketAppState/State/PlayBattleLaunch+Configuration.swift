@@ -142,13 +142,13 @@ extension PlayBattleLaunch {
                 combatant: input.hero,
                 rosterState: rosterState,
                 inventoryState: inventoryState,
-                additionalModifiers: homesteadEffects.heroModifiers + input.universalModifiers
+                additionalModifiers: homesteadEffects.heroModifiers
             ),
             partyMember(
                 combatant: input.companion,
                 rosterState: rosterState,
                 inventoryState: inventoryState,
-                additionalModifiers: homesteadEffects.companionModifiers + input.universalModifiers
+                additionalModifiers: homesteadEffects.companionModifiers
             )
         )
     }

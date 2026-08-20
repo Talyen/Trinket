@@ -8,6 +8,7 @@ enum TestLaunchArg {
 
     static let resetState = "-reset-state"
     static let seedTestProgress = "-seed-test-progress"
+    static let skipStarterSelection = "-skip-starter-selection"
     static let disableCloudSync = "-disable-cloud-sync"
     static let testLaunchArgs = [
         resetState,
@@ -81,6 +82,7 @@ enum TestLaunchArg {
             args += [
                 resetState,
                 disableCloudSync,
+                skipStarterSelection,
                 "-persist-save-immediately",
                 "-battle-tick-interval",
                 "1.0",

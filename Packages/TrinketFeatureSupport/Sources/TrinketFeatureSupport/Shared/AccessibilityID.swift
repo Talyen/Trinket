@@ -2,6 +2,23 @@ import Foundation
 import TrinketContent
 
 public enum AccessibilityID {
+    public enum Onboarding {
+        public static let heroScreen = "Starter Hero Choice Screen"
+        public static let companionScreen = "Starter Companion Choice Screen"
+
+        public static func option(role: String, combatantID: String) -> String {
+            "Starter \(role) Option \(combatantID)"
+        }
+
+        public static func confirm(role: String) -> String {
+            "Confirm Starter \(role)"
+        }
+
+        public static func detail(combatantID: String) -> String {
+            "Starter Combatant Detail \(combatantID)"
+        }
+    }
+
     public enum Screen {
         public static let play = "Play Screen"
         public static let homestead = "Homestead Screen"
@@ -136,6 +153,18 @@ public enum AccessibilityID {
 
         public static func labyrinthNodeArtwork(_ nodeID: String) -> String {
             "Labyrinth Node \(nodeID) Artwork"
+        }
+
+        public static func labyrinthPartyControl(nodeID: String) -> String {
+            "Labyrinth Node \(nodeID) Party Control"
+        }
+
+        public static func mysteryArt(chapter: Int, stage: Int) -> String {
+            "Stage \(chapter)-\(stage) Mystery Art"
+        }
+
+        public static func encounterArt(chapter: Int, stage: Int) -> String {
+            "Stage \(chapter)-\(stage) Encounter Art"
         }
 
         public static func labyrinthInspectorAction(_ nodeID: String) -> String {

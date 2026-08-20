@@ -1,3 +1,4 @@
 SmokeBattleTests
 SmokeShellTests
 SmokeShopTests
+StarterOnboardingSmokeTests

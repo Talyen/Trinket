@@ -17,7 +17,6 @@ struct PlayBattleLaunch {
     let battle: any BattleRuntime
     let registerRun: @MainActor @Sendable (PlayBattleRunRegistration) -> Void
     let removeRun: @MainActor @Sendable (BattleRunKey) -> Void
-    let removePreparedRunsExcept: @MainActor @Sendable (BattleRunKey) -> Void
     let keepPreparedRunRegistrations: @MainActor @Sendable (Set<BattleRunKey>) -> Void
 
     static let activationFailureMessage = StageMapMessage(
@@ -38,16 +37,11 @@ struct PlayBattleLaunch {
         universalModifiers: [AffixModifier] = [],
         labyrinthModifiers: [LabyrinthModifierDefinition] = []
     ) -> Bool {
-        let roster = playerSave.roster
-        return activateBattle(
-            BattleLaunchInput(
+        activateBattle(
+            makeLaunchInput(
                 origin: origin,
-                hero: roster.activeHero,
-                companion: roster.activeCompanion,
-                enemy: encounter.combatant,
-                enemyEncounterLevel: encounter.level,
-                stageReward: loot?.asStageReward ?? .empty,
-                pendingRewardItem: loot?.item,
+                encounter: encounter,
+                loot: loot,
                 stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
                 universalModifiers: universalModifiers,
                 labyrinthModifiers: labyrinthModifiers
@@ -67,16 +61,11 @@ struct PlayBattleLaunch {
         universalModifiers: [AffixModifier] = [],
         labyrinthModifiers: [LabyrinthModifierDefinition] = []
     ) -> Bool {
-        let roster = playerSave.roster
         let launch = makeBattleLaunch(
-            BattleLaunchInput(
+            makeLaunchInput(
                 origin: origin,
-                hero: roster.activeHero,
-                companion: roster.activeCompanion,
-                enemy: encounter.combatant,
-                enemyEncounterLevel: encounter.level,
-                stageReward: loot?.asStageReward ?? .empty,
-                pendingRewardItem: loot?.item,
+                encounter: encounter,
+                loot: loot,
                 stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
                 universalModifiers: universalModifiers,
                 labyrinthModifiers: labyrinthModifiers
@@ -112,27 +101,54 @@ struct PlayBattleLaunch {
             runKey: input.origin?.runKey,
             missingLog: "Missing route for battle activation"
         ) else { return false }
-        let hadPreparedBattle = battle.lifecyclePhase == .prepared
-        if let origin = input.origin,
-           battle.activatePreparedBattle(
-               runKey: origin.runKey,
-               heroID: input.hero.id,
-               companionID: input.companion.id,
-               enemyID: input.enemy?.id
-           ) {
-            removePreparedRunsExcept(origin.runKey)
-            shellSession.selectedTab = .play
-            return true
+        if let origin = input.origin {
+            if battle.activatePreparedBattle(
+                runKey: origin.runKey,
+                heroID: input.hero.id,
+                companionID: input.companion.id,
+                enemyID: input.enemy?.id
+            ) {
+                shellSession.selectedTab = .play
+                return true
+            }
+            if battle.hasPreparedRun(origin.runKey) {
+                return false
+            }
         }
         let launch = makeBattleLaunch(input)
         let activated = battle.activate(launch.configuration)
         if activated {
             registerRunIfNeeded(launch, route: route)
             shellSession.selectedTab = .play
-        } else if !hadPreparedBattle, let runKey = launch.configuration.runKey {
+        } else if let runKey = launch.configuration.runKey,
+                  !battle.hasPreparedRun(runKey),
+                  battle.activeBattle == nil {
             removeRun(runKey)
         }
         return activated
+    }
+
+    private func makeLaunchInput(
+        origin: PlayBattleOrigin,
+        encounter: (combatant: Combatant, level: Int),
+        loot: BattleLootPackage?,
+        stageRewardsAlreadyClaimed: Bool,
+        universalModifiers: [AffixModifier],
+        labyrinthModifiers: [LabyrinthModifierDefinition]
+    ) -> BattleLaunchInput {
+        let roster = playerSave.roster
+        return BattleLaunchInput(
+            origin: origin,
+            hero: roster.activeHero,
+            companion: roster.activeCompanion,
+            enemy: encounter.combatant,
+            enemyEncounterLevel: encounter.level,
+            stageReward: loot?.asStageReward ?? .empty,
+            pendingRewardItem: loot?.item,
+            stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
+            universalModifiers: universalModifiers,
+            labyrinthModifiers: labyrinthModifiers
+        )
     }
 
     func makeBattleLaunch(_ input: BattleLaunchInput) -> BattleLaunchAssembly {

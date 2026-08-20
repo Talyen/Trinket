@@ -51,7 +51,6 @@ public final class PlaySession {
         let runCallbacks = LaunchRunCallbacks(
             registerRun: { [registry] reg in registry.register(reg) },
             removeRun: { [registry] key in registry.remove(key) },
-            removePreparedRunsExcept: { [registry] key in registry.removeExcept(key) },
             keepPreparedRuns: { [registry] keys in registry.keep(keys) }
         )
         let graph = PlayModeGraph.assemble(
@@ -73,6 +72,10 @@ public final class PlaySession {
     public func consumePendingDestination() -> PlayLaunchDestination? {
         defer { pendingDestination = nil }
         return pendingDestination
+    }
+
+    func queueDestination(_ destination: PlayLaunchDestination) {
+        pendingDestination = destination
     }
 
     func queueReturnToBattleOrigin(from origin: PlayBattleOrigin?) {
@@ -150,10 +153,6 @@ final class PlayBattleRunRegistry {
         battleRuns.removeValue(forKey: runKey)
     }
 
-    func removeExcept(_ runKey: BattleRunKey) {
-        battleRuns = battleRuns.filter { $0.key == runKey }
-    }
-
     func keep(_ keys: Set<BattleRunKey>) {
         battleRuns = battleRuns.filter { keys.contains($0.key) }
     }
@@ -181,7 +180,6 @@ final class PlayBattleRunRegistry {
 struct LaunchRunCallbacks {
     let registerRun: @MainActor @Sendable (PlayBattleRunRegistration) -> Void
     let removeRun: @MainActor @Sendable (BattleRunKey) -> Void
-    let removePreparedRunsExcept: @MainActor @Sendable (BattleRunKey) -> Void
     let keepPreparedRuns: @MainActor @Sendable (Set<BattleRunKey>) -> Void
 }
 
@@ -211,7 +209,6 @@ enum PlayModeGraph {
             battle: battle,
             registerRun: runCallbacks.registerRun,
             removeRun: runCallbacks.removeRun,
-            removePreparedRunsExcept: runCallbacks.removePreparedRunsExcept,
             keepPreparedRunRegistrations: runCallbacks.keepPreparedRuns
         )
         let encounters = EncounterPlayMode(

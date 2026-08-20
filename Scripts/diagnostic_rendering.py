@@ -8,9 +8,9 @@ import sys
 from pathlib import Path
 
 try:
-    from diagnostic_model import DiagnosticIssue, DiagnosticReport, MAX_ISSUES, MAX_LINES
+    from diagnostic_model import DiagnosticIssue, DiagnosticReport, MAX_ISSUES, MAX_LINES, bounded_text
 except ModuleNotFoundError:
-    from Scripts.diagnostic_model import DiagnosticIssue, DiagnosticReport, MAX_ISSUES, MAX_LINES
+    from Scripts.diagnostic_model import DiagnosticIssue, DiagnosticReport, MAX_ISSUES, MAX_LINES, bounded_text
 
 
 def _escape_annotation(value: str) -> str:
@@ -53,9 +53,12 @@ def render_markdown(report: DiagnosticReport) -> str:
             location = f"{location}:{issue.line}" if location else f"line {issue.line}"
         suffix = f" — `{location}`" if location else ""
         test = f" ({issue.test})" if issue.test else ""
-        lines.append(f"{index}. **{issue.title}**{test}{suffix}: {issue.message}")
-        for detail in issue.details.splitlines()[:3]:
+        lines.append(f"{index}. **{issue.title}**{test}{suffix}: {issue.message[:1200]}")
+        detail_preview, detail_truncated = bounded_text(issue.details, line_limit=3)
+        for detail in detail_preview.splitlines():
             lines.append(f"   - {detail}")
+        if detail_truncated:
+            lines.append("   - … additional detail is available in the raw log/result bundle")
         for attachment in issue.attachments:
             lines.append(f"   - Attachment: `{attachment}`")
     if len(report.issues) > MAX_ISSUES:
@@ -82,7 +85,7 @@ def render_terminal(report: DiagnosticReport) -> list[str]:
         location_suffix = f" [{location}]" if location else ""
         test_suffix = f" ({issue.test})" if issue.test else ""
         lines.append(f"{index}. {issue.kind}: {issue.title}{test_suffix}{location_suffix}")
-        lines.append(f"   {issue.message}")
+        lines.append(f"   {issue.message[:1200]}")
         if issue.attachments:
             lines.append(f"   Attachments: {', '.join(issue.attachments)}")
     if len(report.issues) > MAX_ISSUES:
@@ -116,7 +119,8 @@ def write_report(report: DiagnosticReport, output_prefix: str) -> tuple[Path, Pa
     annotation_lines = [render_annotation(issue) for issue in report.issues[:MAX_ISSUES]]
     _write_text(annotations_path, "\n".join(annotation_lines) + ("\n" if annotation_lines else ""))
     summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
-    if summary_path:
+    per_invocation_summary = os.environ.get("TRINKET_DIAGNOSTICS_PER_INVOCATION_SUMMARY", "").lower() == "true"
+    if summary_path and per_invocation_summary:
         try:
             with Path(summary_path).open("a", encoding="utf-8") as stream:
                 stream.write("\n" + render_markdown(report))

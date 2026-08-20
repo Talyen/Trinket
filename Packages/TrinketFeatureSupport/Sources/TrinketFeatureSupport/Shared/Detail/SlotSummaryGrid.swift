@@ -39,30 +39,11 @@ public struct SlotSummaryGrid<Slot: Identifiable, CardView: View>: View {
         HStack(alignment: .top, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
             ForEach(slots) { slot in
                 let locked = isLocked(slot)
+                let filled = hasItem(slot)
                 if let onSelect {
-                    InspectableTapButton(
-                        action: { onSelect(slot) },
-                        longPress: inspectAction(for: slot, locked: locked, filled: hasItem(slot)),
-                        isDisabled: locked,
-                        label: { card(slot) }
-                    )
-                    .trinketQuietTapButtonStyle()
-                    .frame(maxWidth: .infinity, alignment: .top)
-                    .trinketAccessibilityCombine(combinesAccessibilityChildren)
-                    .accessibilityIdentifier(accessibilityIdentifier(slot))
-
-                } else if let onView, hasItem(slot) {
-                    InspectableTapButton(
-                        action: { onView(slot) },
-                        longPress: inspectAction(for: slot, locked: locked, filled: true),
-                        isDisabled: locked,
-                        label: { card(slot) }
-                    )
-                    .trinketQuietTapButtonStyle()
-                    .frame(maxWidth: .infinity, alignment: .top)
-                    .trinketAccessibilityCombine(combinesAccessibilityChildren)
-                    .accessibilityIdentifier(accessibilityIdentifier(slot))
-
+                    interactiveSlot(slot, locked: locked, action: { onSelect(slot) }, inspectFilled: filled)
+                } else if let onView, filled {
+                    interactiveSlot(slot, locked: locked, action: { onView(slot) }, inspectFilled: true)
                 } else {
                     card(slot)
                         .frame(maxWidth: .infinity, alignment: .top)
@@ -72,55 +53,27 @@ public struct SlotSummaryGrid<Slot: Identifiable, CardView: View>: View {
         }
     }
 
+    private func interactiveSlot(
+        _ slot: Slot,
+        locked: Bool,
+        action: @escaping () -> Void,
+        inspectFilled: Bool
+    ) -> some View {
+        InspectableTapButton(
+            action: action,
+            longPress: inspectAction(for: slot, locked: locked, filled: inspectFilled),
+            isDisabled: locked,
+            label: { card(slot) }
+        )
+        .trinketQuietTapButtonStyle()
+        .frame(maxWidth: .infinity, alignment: .top)
+        .trinketAccessibilityCombine(combinesAccessibilityChildren)
+        .accessibilityIdentifier(accessibilityIdentifier(slot))
+    }
+
     private func inspectAction(for slot: Slot, locked: Bool, filled: Bool) -> (() -> Void)? {
         guard !locked, filled, let onLongPress else { return nil }
         return { onLongPress(slot) }
-    }
-}
-
-/// Tap and long-press share one control. `Button` swallows `onLongPressGesture`;
-/// a simultaneous long-press plus a skipped follow-up tap keeps both actions distinct.
-struct InspectableTapButton<Label: View>: View {
-    let action: () -> Void
-    var longPress: (() -> Void)?
-    var isDisabled = false
-    @ViewBuilder var label: () -> Label
-
-    @State private var ignoreTap = false
-
-    var body: some View {
-        Button {
-            if ignoreTap {
-                ignoreTap = false
-                return
-            }
-            action()
-        } label: {
-            label()
-        }
-        .disabled(isDisabled)
-        .modifier(InspectLongPressModifier(longPress: isDisabled ? nil : longPress, ignoreTap: $ignoreTap))
-    }
-}
-
-private struct InspectLongPressModifier: ViewModifier {
-    let longPress: (() -> Void)?
-    @Binding var ignoreTap: Bool
-
-    func body(content: Content) -> some View {
-        if let longPress {
-            content
-                .simultaneousGesture(
-                    LongPressGesture(minimumDuration: 0.5)
-                        .onEnded { _ in
-                            ignoreTap = true
-                            longPress()
-                        }
-                )
-                .accessibilityAction(named: "Show Details", longPress)
-        } else {
-            content
-        }
     }
 }
 

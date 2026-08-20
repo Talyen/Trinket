@@ -61,17 +61,7 @@ extension InventoryItemModel {
         rarityID = item.rarity.rawValue
         displayName = item.displayName
         isCorrupted = item.isCorrupted
-        if let powers = item.affixPowers {
-            do {
-                affixPowersJSON = try ItemAffixPowerCoding.encode(powers)
-            } catch {
-                inventoryMappingLogger.error(
-                    "Failed to encode affix powers for inventory item \(item.id, privacy: .public): \(error.localizedDescription, privacy: .public)"
-                )
-            }
-        } else {
-            affixPowersJSON = nil
-        }
+        applyAffixPowers(from: item)
         let values = item.affixes.enumerated().map { (index: $0.offset, affix: $0.element) }
         affixes = reconcileModels(
             existing: affixes ?? [],

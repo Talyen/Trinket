@@ -40,6 +40,12 @@ extension AppState {
         if environment.seedTestProgress {
             try resolvedPlayerSave.applyTestSeed()
         }
+        if environment.skipStarterSelection,
+           resolvedPlayerSave.starterSelection.phase != .complete {
+            try resolvedPlayerSave.performBatchMutation { save in
+                save.starterSelection = .complete
+            }
+        }
         if let startingGold = environment.startingGold, startingGold > 0 {
             resolvedPlayerSave.persistBatch(logging: "Failed to grant starting gold") { save in
                 save.roster.grantGold(startingGold)
@@ -71,6 +77,10 @@ extension AppState {
 
     func finishBootstrap(environment: AppEnvironment) {
         play.seedJourneyProgress(completedStageIDs: environment.completedStageIDs, resetState: environment.resetState)
+        guard playerSave.starterSelection.phase == .complete else {
+            installMemoryPressureHandling()
+            return
+        }
         switch environment.launchScreen {
         case .battle:
             play.startLaunchBattle()

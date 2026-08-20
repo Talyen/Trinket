@@ -33,7 +33,7 @@ struct RewardItemRevealCard: View {
             VStack(spacing: TrinketDesign.Metrics.extraSmallSpacing) {
                 TrinketRarityLabel(rarity: item.rarity)
 
-                Text(item.displayName)
+                Text(balanced: item.displayName)
                     .trinketTypography(.sectionDisplay)
                     .multilineTextAlignment(.center)
             }

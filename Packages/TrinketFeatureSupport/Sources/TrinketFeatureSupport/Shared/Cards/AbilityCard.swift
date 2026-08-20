@@ -44,7 +44,7 @@ struct AbilityChoiceCard: View {
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
 
-                    Text(ability.name)
+                    Text(balanced: ability.name)
                         .trinketTypography(.cardLabel)
                         .foregroundStyle(.primary)
                         .lineLimit(2)

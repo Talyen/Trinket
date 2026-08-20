@@ -2,6 +2,7 @@ import SwiftUI
 import TrinketAppState
 import TrinketContent
 import TrinketDesignSystem
+import TrinketFeatureAdapters
 import TrinketFeatureSupport
 import TrinketPersistence
 
@@ -13,7 +14,7 @@ struct SpiresHubView: View {
             title: "The Spires",
             accessibilityIdentifier: AccessibilityID.Play.spiresHub
         ) {
-            ForEach(GameContent.spires) { spire in
+            ForEach(orderedSpires) { spire in
                 spireCard(spire)
             }
         }
@@ -38,6 +39,10 @@ struct SpiresHubView: View {
         .disabled(isLocked)
         .trinketArtworkCardButtonStyle()
         .accessibilityIdentifier(AccessibilityID.Play.spireRow(spire.id.rawValue))
+    }
+
+    private var orderedSpires: [SpireDefinition] {
+        GameContent.spires.orderedForSpiresHub(progress: playerSave.spires, isUnlocked: isSpireUnlocked)
     }
 
     private func isSpireUnlocked(_ spire: SpireDefinition) -> Bool {

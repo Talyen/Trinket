@@ -240,6 +240,9 @@ public enum TrinketMotion: Sendable {
         public static let alchemyPopRiseDuration: TimeInterval = 0.35
         public static let alchemyPopFadeDuration: TimeInterval = 0.28
 
+        /// Maximum continuous accumulation lifetime for an active floating chip.
+        public static let maxContinuousChipLifetime: TimeInterval = 1.2
+
         /// Lifetime buffer for delayed raw-event cleanup.
         public static var maxChipLifetime: TimeInterval {
             chipDisplayDuration + 0.05

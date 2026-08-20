@@ -42,7 +42,7 @@ struct PlayBattleLaunchTests {
         #expect(again.combatant.id == encounter.combatant.id)
     }
 
-    @Test func assembleAppliesUniversalDamageModifierToEveryCombatant() throws {
+    @Test func assembleAppliesUniversalDamageModifierToEnemyOnly() throws {
         let hero = try #require(GameContent.heroes.first)
         let companion = try #require(GameContent.companions.first)
         let enemy = try #require(GameContent.enemies.first?.combatant)
@@ -62,8 +62,8 @@ struct PlayBattleLaunchTests {
 
         let configuration = launch.configuration
         #expect(launch.universalModifiers == [modifier])
-        #expect(configuration.hero.modifiers.damageDealtBonus(for: .burn) == 1)
-        #expect(configuration.companion.modifiers.damageDealtBonus(for: .burn) == 1)
+        #expect(configuration.hero.modifiers.damageDealtBonus(for: .burn) == 0)
+        #expect(configuration.companion.modifiers.damageDealtBonus(for: .burn) == 0)
         #expect(configuration.enemyModifiers.damageDealtBonus(for: .burn) == 1)
     }
 

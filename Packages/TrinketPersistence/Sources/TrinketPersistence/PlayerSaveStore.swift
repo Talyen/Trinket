@@ -45,6 +45,7 @@ public final class PlayerSaveStore {
     private var observedModifiedAt = Date.distantPast
     private var observedSessionGeneration: UInt64 = 0
     private var observedWorldSeed: UInt64 = 0
+    private var observedStarterSelection = StarterSelectionState.complete
     private var observedCorruptionAltarCooldownRemaining = 0
     private let logger = Logger(
         subsystem: PlayerSaveDefaults.loggingSubsystem,
@@ -98,6 +99,10 @@ public final class PlayerSaveStore {
 
     public var worldSeed: UInt64 {
         observedWorldSeed
+    }
+
+    public var starterSelection: StarterSelectionState {
+        observedStarterSelection
     }
 
     public var currentSave: PlayerSave {
@@ -471,6 +476,7 @@ private extension PlayerSaveStore {
             modifiedAt: observedModifiedAt,
             sessionGeneration: observedSessionGeneration,
             worldSeed: observedWorldSeed,
+            starterSelection: observedStarterSelection,
             journey: observedJourney,
             roster: observedRoster,
             inventory: observedInventory,
@@ -487,6 +493,7 @@ private extension PlayerSaveStore {
             observedModifiedAt = save.modifiedAt
             observedSessionGeneration = save.sessionGeneration
             observedWorldSeed = save.worldSeed
+            observedStarterSelection = save.starterSelection
             observedCorruptionAltarCooldownRemaining = save.corruptionAltarCooldownRemaining
         }
         if slices.contains(.journey) {

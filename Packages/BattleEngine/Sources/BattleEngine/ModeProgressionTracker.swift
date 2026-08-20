@@ -116,27 +116,29 @@ public struct SpireProgressionTracker: Sendable {
 public struct LabyrinthProgressionTracker: Sendable {
     public let steps: [ModeProgressionStep]
 
-    public init(biomes: [LabyrinthBiomeDefinition] = GameContent.labyrinthBiomes, maxDepth: Int = 10) {
+    public init(maxDepth: Int = 10) {
         var result: [ModeProgressionStep] = []
-        for biome in biomes {
-            for depth in 1 ... maxDepth {
-                let isBoss = depth == maxDepth
-                let enemyID = isBoss ? biome.bossEnemyID : (biome.enemyPool.first ?? "goblin")
-                let enemyLevel = max(1, depth)
-                let step = ModeProgressionStep(
-                    id: "labyrinth-\(biome.id.rawValue)-depth\(depth)",
-                    mode: .labyrinth,
-                    containerID: biome.id.rawValue,
-                    containerTitle: biome.title,
-                    stepIndex: depth,
-                    displayTitle: "\(biome.title) Depth \(depth)",
-                    enemyID: enemyID,
-                    enemyLevel: enemyLevel,
-                    isBoss: isBoss,
-                    keywordBias: biome.keywordBias
-                )
-                result.append(step)
-            }
+        let trashPool = LabyrinthCatalog.trashEnemyIDs
+        let bossPool = LabyrinthCatalog.bossEnemyIDs
+        guard !trashPool.isEmpty, !bossPool.isEmpty else {
+            steps = []
+            return
+        }
+        for depth in 1 ... maxDepth {
+            let isBoss = depth == maxDepth
+            let enemyID = isBoss ? bossPool[0] : trashPool[0]
+            let step = ModeProgressionStep(
+                id: "labyrinth-depth-\(depth)",
+                mode: .labyrinth,
+                containerID: "labyrinth",
+                containerTitle: "The Labyrinth",
+                stepIndex: depth,
+                displayTitle: "Depth \(depth)",
+                enemyID: enemyID,
+                enemyLevel: max(1, depth),
+                isBoss: isBoss
+            )
+            result.append(step)
         }
         steps = result
     }

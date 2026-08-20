@@ -214,7 +214,7 @@ public enum LabyrinthCompletion {
             id: rewardItemID(forNodeID: nodeID),
             rarity: rarity,
             ownedTrinketIDs: ownedTrinketIDs,
-            keywordBias: effects.keywordBiases,
+            keywordBias: [],
             baseTypes: bases,
             using: &rng
         )

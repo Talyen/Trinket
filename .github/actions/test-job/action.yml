@@ -78,9 +78,14 @@ runs:
       shell: bash
       run: ./Scripts/ci-diagnostics.sh .DerivedData/TestResults
 
+    - name: Stage bounded test diagnostics artifact
+      if: always()
+      shell: bash
+      run: ./Scripts/ci-diagnostics.sh --stage-artifacts .DerivedData/TestResults .DerivedData/TestResults-artifact
+
     - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
       if: always()
       with:
         name: ${{ inputs.artifact-name }}-${{ github.run_id }}
-        path: .DerivedData/TestResults/
+        path: .DerivedData/TestResults-artifact/
         if-no-files-found: ignore

@@ -64,7 +64,7 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
     private var titleBlock: some View {
         VStack(alignment: .leading, spacing: TrinketDesign.Metrics.extraSmallSpacing) {
             if let eyebrow {
-                Text(eyebrow)
+                Text(balanced: eyebrow)
                     .trinketTypography(.eyebrow)
                     .trinketOnArtText(.eyebrow)
             }
@@ -75,7 +75,7 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
 
     @ViewBuilder
     private var titleText: some View {
-        let label = Text(title)
+        let label = Text(balanced: title)
             .trinketTypography(.screenDisplay)
             .trinketOnArtText(.title)
             .keywordShine(titleKeywords)

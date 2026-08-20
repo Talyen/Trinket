@@ -315,6 +315,8 @@ struct LabyrinthNodeArtwork: View {
         case hexSeal
     }
 
+    @Environment(PlayerSaveStore.self) private var playerSave
+
     let node: LabyrinthNode
     let type: LabyrinthNodeType
     let resolvedMysteryEvent: MysteryEvent?
@@ -356,6 +358,20 @@ struct LabyrinthNodeArtwork: View {
                 combatant: enemy.combatant,
                 variant: prefersThumbnail ? .card : .battle
             )
+        } else if type.canonical == .recruit,
+                  let art = LabyrinthMapPresentation.recruitEncounterArtReference(
+                      for: node,
+                      worldSeed: playerSave.worldSeed,
+                      unlockedHeroIDs: playerSave.roster.unlockedHeroIDs,
+                      unlockedCompanionIDs: playerSave.roster.unlockedCompanionIDs
+                  ) {
+            Image.preparedAsset(
+                art,
+                displaySize: prefersThumbnail ? .compact : .full
+            )
+            .resizable()
+            .scaledToFill()
+            .decorativePreparedArtwork()
         } else if let event = resolvedMysteryEvent, !event.isRecruit {
             MysteryEventHeroArtwork(
                 event: event,

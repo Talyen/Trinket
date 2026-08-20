@@ -119,6 +119,21 @@ public final class AppState {
         return pendingCollectionPresentation
     }
 
+    @discardableResult
+    public func confirmStarterHero(_ heroID: String) -> Bool {
+        playerSave.confirmStarterHero(heroID)
+    }
+
+    @discardableResult
+    public func completeStarterSelection(companionID: String) -> Bool {
+        guard playerSave.completeStarterSelection(companionID: companionID) else {
+            return false
+        }
+        shellSession.selectedTab = .play
+        play.queueDestination(.campaign)
+        return true
+    }
+
     public var persistenceStatusMessage: String? {
         switch playerSave.lastPersistenceError {
         case .writeFailed:

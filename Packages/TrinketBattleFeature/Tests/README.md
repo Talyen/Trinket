@@ -7,17 +7,18 @@ dissolve, or recipe unit tests — presentation chrome is not a unit-test owner.
 
 | Concern | Suite |
 |---------|-------|
-| Session lifecycle, auto-battle, prepare/restart | `BattleSession*` |
+| Session lifecycle, auto-battle, prepare/restart | `BattleSession*` (`BattleSessionPreparationTests` owns Session `activatePreparedBattle`) |
+| Runtime lifecycle contract (Store only) | `TrinketBattleRuntimeTests` — guards and sibling-prepare rules; Session must re-prove engine snapshot reuse |
 | Combat feedback scheduling / presenter | `CombatFeedbackPresenterTests` |
 | Card activation keyword normalize | `CardActivationTests` |
 | Victory summary / claimed victory | `BattleVictorySummaryTests`, `BattleClaimedVictoryTests` |
 
-## Two `BattleRunConfigurationTestSupport` enums
+## AppState launch helper vs BattleFeature DTO packer
 
 Keep both. They are not duplicates:
 
-- `TrinketAppStateTests` wraps `PlayBattleLaunch.assembleLaunch` (Persistence + AppState).
-- `TrinketBattleFeatureTests` packages explicit launch DTOs and must stay Persistence- and AppState-free.
+- `PlayBattleLaunchTestSupport` in `TrinketAppStateTests` wraps `PlayBattleLaunch.assembleLaunch` (Persistence + AppState).
+- `BattleRunConfigurationTestSupport` in `TrinketBattleFeatureTests` packages explicit launch DTOs and must stay Persistence- and AppState-free.
 
 ```sh
 ./Scripts/test-package.sh TrinketBattleFeature

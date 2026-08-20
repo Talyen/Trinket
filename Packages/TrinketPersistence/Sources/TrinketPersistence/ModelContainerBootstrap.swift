@@ -66,7 +66,7 @@ enum ModelContainerBootstrap {
         }
     }
 
-    private static func deleteStoreFiles(at url: URL, logger: Logger, logLabel: String) {
+    static func deleteStoreFiles(at url: URL, logger: Logger, logLabel: String) {
         let base = url.deletingPathExtension()
         let candidates = [
             url,

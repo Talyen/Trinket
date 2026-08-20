@@ -32,7 +32,7 @@ substitutes for player-facing semantics: preserve native control labels and add 
 concise accessibility label/value when a custom control is otherwise ambiguous.
 Handle reduced motion/transparency and contrast through shared DesignSystem or motion
 components instead of per-screen branches. Feature views use UI coverage only when
-the rubric passes; a view change alone does not require a test. Verify with path-scoped
-`./Scripts/handoff.sh --isolate --paths …`. Policy and path-scoped tiers:
-`Docs/Platform/Testing.md` and `Docs/AgentContext/ci-and-project-generation.md`. Read
+the rubric passes; a view change alone does not require a test. Verification routing
+and path-scoped tiers live in `Docs/Platform/Verification.md` and
+`Docs/Platform/Testing.md`. Read
 `TrinketUITests/README.md` only for launch args, screen helpers, or test speed.

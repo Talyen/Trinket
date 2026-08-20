@@ -5,11 +5,13 @@ import TrinketContent
 import TrinketDesignSystem
 import TrinketFeatureContracts
 import TrinketFeatureSupport
+import TrinketPersistence
 
 struct ContentView: View {
     @Environment(AppState.self) private var appState
     @Environment(ShellSession.self) private var shellSession
     @Environment(BattleSession.self) private var battle
+    @Environment(PlayerSaveStore.self) private var playerSave
     @Environment(\.scenePhase) private var scenePhase
     @State private var didAcknowledgePersistenceRecovery = false
 
@@ -18,7 +20,14 @@ struct ContentView: View {
 
         // Bare PlayView during battle removes the tab bar from the hierarchy.
         Group {
-            if battle.lifecyclePhase == .active {
+            if playerSave.starterSelection.phase != .complete {
+                StarterSelectionFlow(
+                    initialSelection: playerSave.starterSelection,
+                    confirmHero: appState.confirmStarterHero,
+                    confirmCompanion: appState.completeStarterSelection
+                )
+                .transition(.opacity)
+            } else if battle.lifecyclePhase == .active {
                 PlayView()
                     .transition(.opacity)
             } else {
@@ -27,6 +36,11 @@ struct ContentView: View {
             }
         }
         .animation(TrinketMotion.Screen.crossfade, value: battle.activeBattle?.id)
+        .trinketSensoryFeedback(
+            .success,
+            trigger: playerSave.starterSelection.phase == .complete,
+            enabled: appState.options.hapticsEnabled
+        )
         .tint(TrinketDesign.Colors.accent)
         .preferredColorScheme(.dark)
         .alert(

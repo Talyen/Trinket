@@ -232,6 +232,16 @@ public extension GameContent {
         return heroes.first { $0.id == combatantID } ?? companions.first { $0.id == combatantID }
     }
 
+    static func recruitEncounterArtReference(for role: Combatant.Role) -> EncounterArtReference? {
+        let artID = role == .companion ? "mystery-recruit-companions" : "mystery-recruit-heroes"
+        return ArtCatalog.encounterArtByID[artID]
+    }
+
+    static func recruitEncounterArtReference(for event: MysteryEvent) -> EncounterArtReference? {
+        guard event.isRecruit, let combatant = combatant(forMysteryEvent: event) else { return nil }
+        return recruitEncounterArtReference(for: combatant.role)
+    }
+
     /// Map glyph for a configured recruit event. Uses the authored combatant role;
     /// does not run recruit resolution.
     static func recruitEncounterSymbolName(forEventID eventID: String?) -> String {

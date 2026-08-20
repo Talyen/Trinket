@@ -3,7 +3,7 @@ import TrinketCore
 
 /// Deterministic expanding floor generator for The Labyrinth.
 public enum LabyrinthGenerator {
-    public static let currentMapVersion = 4
+    public static let currentMapVersion = 5
     public static let entranceNodeID = "labyrinth-entrance"
     public static let entranceClusterID = "labyrinth-cluster-0"
 
@@ -17,10 +17,12 @@ public enum LabyrinthGenerator {
         clusters: [LabyrinthCluster],
         nodes: [String: LabyrinthNode]
     ) {
-        var rng = SeededRandomNumberGenerator(seed: seed == 0 ? fallbackWorldSeed : seed)
+        let resolvedSeed = seed == 0 ? fallbackWorldSeed : seed
+        var rng = SeededRandomNumberGenerator(seed: resolvedSeed)
         let first = generateFloor(
             number: 1,
-            previousBiomeID: nil,
+            previousBossEnemyID: nil,
+            worldSeed: resolvedSeed,
             eligibleRecruitEventIDs: eligibleRecruitEventIDs,
             using: &rng
         )
@@ -40,9 +42,7 @@ public enum LabyrinthGenerator {
             [
                 LabyrinthCluster(
                     id: entranceClusterID,
-                    biomeID: first.cluster.biomeID,
                     depthBand: 0,
-                    modifierIDs: [],
                     nodeIDs: [entrance.id]
                 ),
                 first.cluster,
@@ -100,13 +100,15 @@ public enum LabyrinthGenerator {
         guard boss.outgoingIDs.isEmpty else { return }
 
         let nextFloor = boss.depth + 1
-        let previousBiome = clusters.first(where: { $0.depthBand == boss.depth })?.biomeID
+        let previousBossEnemyID = boss.enemyID
+        let resolvedSeed = seed == 0 ? fallbackWorldSeed : seed
         var rng = SeededRandomNumberGenerator(
-            seed: seed &+ UInt64(nextFloor) &* 1000003 &+ GameContent.stableSeed(for: bossNodeID)
+            seed: resolvedSeed &+ UInt64(nextFloor) &* 1000003 &+ GameContent.stableSeed(for: bossNodeID)
         )
         let generated = generateFloor(
             number: nextFloor,
-            previousBiomeID: previousBiome,
+            previousBossEnemyID: previousBossEnemyID,
+            worldSeed: resolvedSeed,
             eligibleRecruitEventIDs: eligibleRecruitEventIDs,
             using: &rng
         )
@@ -173,12 +175,12 @@ public enum LabyrinthGenerator {
 
     private static func generateFloor(
         number: Int,
-        previousBiomeID: LabyrinthBiomeID?,
+        previousBossEnemyID: String?,
+        worldSeed: UInt64,
         eligibleRecruitEventIDs: [String],
         using rng: inout some RandomNumberGenerator
     ) -> GeneratedFloor {
-        let biome = pickBiome(excluding: previousBiomeID, using: &rng)
-        let clusterID = "labyrinth-cluster-\(number)-\(biome.id.rawValue)"
+        let clusterID = "labyrinth-cluster-\(number)"
         let count = Int.random(in: 7 ... 9, using: &rng)
         let types = plannedTypes(
             count: count,
@@ -186,24 +188,37 @@ public enum LabyrinthGenerator {
             using: &rng
         )
         var remainingRecruitIDs = eligibleRecruitEventIDs.shuffled(using: &rng)
-        let payloads = types.map { type in
+        let bossEnemyID = LabyrinthCatalog.pickBossEnemyID(
+            excluding: previousBossEnemyID,
+            using: &rng
+        )
+        let payloads = types.enumerated().map { index, type in
+            let nodeID = "\(clusterID)-n\(index)"
             let enemyID: String? = if type.isCombat {
-                type == .boss ? biome.bossEnemyID : pickEnemy(from: biome, using: &rng)
+                type == .boss
+                    ? bossEnemyID
+                    : LabyrinthCatalog.pickTrashEnemyID(using: &rng)
             } else {
                 nil
             }
             let recruitEventID = type == .recruit ? remainingRecruitIDs.popLast() : nil
             return (
                 type: type,
+                nodeID: nodeID,
                 enemyID: enemyID,
-                modifierIDs: modifierIDs(for: type, using: &rng),
+                modifierIDs: LabyrinthCatalog.modifierIDs(
+                    for: type,
+                    enemyID: enemyID,
+                    worldSeed: worldSeed,
+                    nodeID: nodeID
+                ),
                 recruitEventID: recruitEventID
             )
         }
         let positions = gridPositions(nodeCount: count, using: &rng)
         let nodes = payloads.enumerated().map { index, payload in
             LabyrinthNode(
-                id: "\(clusterID)-n\(index)",
+                id: payload.nodeID,
                 type: payload.type,
                 enemyID: payload.enemyID,
                 depth: number,
@@ -216,9 +231,7 @@ public enum LabyrinthGenerator {
         }
         let cluster = LabyrinthCluster(
             id: clusterID,
-            biomeID: biome.id,
             depthBand: number,
-            modifierIDs: [],
             nodeIDs: nodes.map(\.id)
         )
         return GeneratedFloor(cluster: cluster, nodes: nodes, entryNodeIDs: [nodes[0].id])
@@ -331,42 +344,5 @@ public enum LabyrinthGenerator {
         }
         middle.shuffle(using: &rng)
         return [.battle] + middle + [.boss]
-    }
-
-    private static func modifierIDs(
-        for type: LabyrinthNodeType,
-        using rng: inout some RandomNumberGenerator
-    ) -> [LabyrinthModifierID] {
-        let ids: [String] = switch type.canonical {
-        case .battle, .boss:
-            Array(
-                ["ironPressure", "ashTithe", "bloodMarket", "serpentBloom", "rimeTax"]
-                    .shuffled(using: &rng)
-                    .prefix(1)
-            )
-        case .shop:
-            ["gildedWhisper"]
-        case .craft:
-            ["astralSeam"]
-        case .rest, .mystery, .event, .recruit, .entrance:
-            []
-        }
-        return ids.map { LabyrinthModifierID($0) }
-    }
-
-    private static func pickBiome(
-        excluding previous: LabyrinthBiomeID?,
-        using rng: inout some RandomNumberGenerator
-    ) -> LabyrinthBiomeDefinition {
-        let pool = LabyrinthCatalog.biomes.filter { $0.id != previous }
-        let choices = pool.isEmpty ? LabyrinthCatalog.biomes : pool
-        return choices.randomElement(using: &rng) ?? LabyrinthCatalog.biomes[0]
-    }
-
-    private static func pickEnemy(
-        from biome: LabyrinthBiomeDefinition,
-        using rng: inout some RandomNumberGenerator
-    ) -> String {
-        biome.enemyPool.randomElement(using: &rng) ?? biome.bossEnemyID
     }
 }

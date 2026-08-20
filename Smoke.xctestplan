@@ -15,7 +15,8 @@
       "selectedTests" : [
         "SmokeBattleTests",
         "SmokeShellTests",
-        "SmokeShopTests"
+        "SmokeShopTests",
+        "StarterOnboardingSmokeTests"
       ],
       "target" : {
         "containerPath" : "container:Trinket.xcodeproj",

@@ -20,6 +20,7 @@ journeys use UI smoke/deploy only when the keep/drop rubric below applies.
 | Battle rules / handlers / golden paths | `Packages/BattleEngine/Tests/` (see that package’s README) |
 | Battle lifecycle contract / fallback runtime | `Packages/TrinketBattleRuntime/Tests/` |
 | Shared presentation models / caches / frame analysis | `Packages/TrinketFeatureSupport/Tests/` |
+| Design tokens / motion / reusable chrome | `Packages/TrinketDesignSystem/Tests/` |
 | Battle session / feedback / spectacle | `Packages/TrinketBattleFeature/Tests/` |
 | AppState / Play and encounter sessions / options / audio routing | `Packages/TrinketAppState/Tests/` |
 | Catalogs / content invariants | `TrinketContentTests` |
@@ -31,7 +32,9 @@ Prefer `TrinketTestSupport` (`CombatantFixtures`, battle parties). Save harnesse
 in `TrinketPersistence`'s `TrinketPersistenceTestSupport` target—not in `TrinketTestSupport`—so TestSupport stays
 Persistence-free. App suites use `AppTestContext`; Persistence uses
 `PersistenceTestContext`. Battle RNG: always
-`BattleStateTestFactory.makeBattle(...)` with `rngSeed: 0`; dispatch via
+`BattleStateTestFactory.makeBattle(...)` with the factory default seed
+(`CombatantFixtures.deterministicBattleSeed`, currently `1772`). Seed `0` can
+invalidate dodge-sensitive assertions. Dispatch via
 `EffectHandlers.all`.
 
 ## Unit conventions
@@ -75,8 +78,8 @@ Renaming or rewiring `AccessibilityID`, a view `accessibilityIdentifier`, or Hom
 1. Run path-scoped `./Scripts/handoff.sh --isolate --paths …` and complete every routed unit/smoke step (do not stop after style).
 2. `Packages/TrinketFeatureSupport/.../AccessibilityID.swift` routes through the
    shared-support package check plus `SmokeShellTests` locally; CI `smoke-full`
-   runs the same three-class smoke plan (`SmokeShellTests`, `SmokeBattleTests`,
-   `SmokeShopTests`).
+   runs the same four-class smoke plan (`StarterOnboardingSmokeTests`,
+   `SmokeShellTests`, `SmokeBattleTests`, `SmokeShopTests`).
 3. Homestead presentation models route through `TrinketFeatureSupportTests`.
 4. `./Scripts/test.sh style` (or the handoff style step) must pass locally — the pre-push hook enforces SwiftFormat/SwiftLint, but agents should not discover format failures only at push time.
 
@@ -107,12 +110,10 @@ Smoke = short shell canaries (local `test.sh smoke` and CI `smoke-full` share `S
 
 ## UI tests (summary)
 
-Bare `./Scripts/test.sh smoke` runs the three-class smoke plan (`Smoke.xctestplan`:
-`SmokeShellTests`, `SmokeBattleTests`, `SmokeShopTests`). That is the local and
-CI smoke suite. Agents use `TRINKET_ISOLATE=1 ./Scripts/test.sh smoke <SmokeClass>`
-(or `handoff --isolate`) for the affected feature. Exhaustive journeys are
-CI-owned; use `test.sh ui <Class>` locally only when debugging a specific
-journey, or `test-deploy.sh` for an explicit full local confidence run.
+Command selection and isolation are owned by [Verification.md](Verification.md).
+This section keeps only the UI semantics: the shared smoke plan is the shell
+canary, while exhaustive journeys are CI-owned and should be run locally only
+when debugging a specific journey or requesting full deploy confidence.
 
 Frame pacing and app-journey metrics are not part of smoke or hosted CI. Run the exclusive single-report matrix (app journeys + battle scenarios) with `./Scripts/performance.sh` when investigating performance. Focused harness iteration: `TRINKET_ISOLATE=1 ./Scripts/test.sh performance AppPerformanceUITests/<method>` or `BattlePerformanceUITests/<method>`. The dedicated plan records refresh-normalized display-link diagnostics plus native cold-launch; use Instruments Animation Hitches and Time Profiler for render-pipeline investigation. Launch arg `-enable-frame-metrics` is measurement-only and must not simplify Battle rendering or audio. Investigation loop and baseline policy: `Docs/Platform/PerformanceInvestigationPlaybook.md`.
 

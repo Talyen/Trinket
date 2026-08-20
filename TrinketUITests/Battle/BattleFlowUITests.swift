@@ -3,9 +3,9 @@ import XCTest
 
 /// Mid-battle interactions share one entry via `allForMidBattle` (60s ticks),
 /// so the opening hand stays put and never races into live-tick resolution.
-/// Card play, hand-drag safety, and retreat share this single UI owner.
+/// Card play, Auto Battle, hand-drag safety, and retreat share this single UI owner.
 final class BattleFlowUITests: TrinketUITestCase {
-    func testCardPlayHandDragSafetyAndRetreatRestoresPlay() {
+    func testCardPlayAutoBattleHandDragSafetyAndRetreatRestoresPlay() {
         launchApp(arguments: TestLaunchArg.allForMidBattle())
         play.openCampaign()
         play.startBattle(chapter: 1, stage: 1)
@@ -28,6 +28,14 @@ final class BattleFlowUITests: TrinketUITestCase {
             waitForCardCount(cards, droppingFrom: dragCountBefore),
             "A successful drag play must remove one card"
         )
+
+        let autoCountBefore = cards.count
+        battle.autoBattleToggle.tap()
+        XCTAssertTrue(
+            waitForCardCountBelow(cards, autoCountBefore),
+            "Auto Battle must reduce the hand"
+        )
+        battle.autoBattleToggle.tap()
 
         let hero = app.buttons[AccessibilityID.CombatantDetail.battleCard(name: "Knight")]
         assertExists(hero)
@@ -61,6 +69,12 @@ final class BattleFlowUITests: TrinketUITestCase {
 
     private func waitForCardCount(_ cards: XCUIElementQuery, droppingFrom initial: Int) -> Bool {
         let predicate = NSPredicate(format: "count == %d", initial - 1)
+        let expectation = XCTNSPredicateExpectation(predicate: predicate, object: cards)
+        return XCTWaiter().wait(for: [expectation], timeout: Self.defaultTimeout) == .completed
+    }
+
+    private func waitForCardCountBelow(_ cards: XCUIElementQuery, _ initial: Int) -> Bool {
+        let predicate = NSPredicate(format: "count < %d", initial)
         let expectation = XCTNSPredicateExpectation(predicate: predicate, object: cards)
         return XCTWaiter().wait(for: [expectation], timeout: Self.defaultTimeout) == .completed
     }

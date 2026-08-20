@@ -19,6 +19,6 @@ After content edits, stage `Packages/TrinketContent/Sources/TrinketContent/Gener
 
 **Enemy traits:** author in `ContentManifest/traits.tsv` (same DSL). Generates `GameContentTraits.generated.swift`.
 
-Edit authored inputs (manifests, ability Swift, `ContentManifest/talents.tsv`, or `Scripts/trigger_family_schema.json`). Do not hand-edit generated Swift, generated inventory TSV, processed assets/resources, or the Xcode project. After generation, `./Scripts/handoff.sh` uses `assert-generated-output.sh --idempotent` (regenerate must be a no-op). Before push/CI, the default assert checks generated paths match HEAD — stage only outputs caused by the changed input.
+Edit authored inputs (manifests, ability Swift, `ContentManifest/talents.tsv`, or `Scripts/trigger_family_schema.json`). Do not hand-edit generated Swift, generated inventory TSV, processed assets/resources, or the Xcode project. The verification router owns generation and idempotence; regenerate must be a no-op, and before push/CI the default assert checks generated paths match HEAD. Stage only outputs caused by the changed input.
 
-For content invariants, use `TrinketContentTests` and run `./Scripts/test.sh style` plus `./Scripts/test-package.sh TrinketContent`. Pipeline formats live in each manifest directory's README; open only the one you are changing.
+Verification is conditional: manifest-only changes require generation plus idempotence; semantic catalog/content changes use `TrinketContentTests`; Swift source changes add the routed style check. Pipeline formats live in each manifest directory's README; open only the one you are changing.

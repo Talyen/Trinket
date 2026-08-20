@@ -75,7 +75,7 @@ struct BattleHandMotionConfiguration: Equatable {
     var cardReturnResponse: Double = 0.38
     var cardReturnDamping: Double = 0.82
     /// How far a tap-play card pops up as a fraction of card height before dissolving.
-    var tapLiftHeight: CGFloat = 0.16
+    var tapLiftHeight: CGFloat = 0.20
     var tapLiftResponse: Double = 0.30
     var tapLiftDamping: Double = 0.68
     /// Pause after the pop before the tap-play dissolve begins (so the lift reads).

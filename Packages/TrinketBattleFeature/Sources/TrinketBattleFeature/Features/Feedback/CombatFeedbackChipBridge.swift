@@ -70,6 +70,11 @@ enum CombatFeedbackChipBridge {
                 itemsByTarget[item.targetID, default: [:]][item.id] = item
                 affectedTargets.insert(item.targetID)
             }
+        case let .update(items):
+            for item in items where itemsByTarget[item.targetID]?[item.id] != nil {
+                itemsByTarget[item.targetID]?[item.id] = item
+                affectedTargets.insert(item.targetID)
+            }
         case let .remove(ids):
             for targetID in Array(itemsByTarget.keys) {
                 let removed = ids.filter { itemsByTarget[targetID]?.removeValue(forKey: $0) != nil }

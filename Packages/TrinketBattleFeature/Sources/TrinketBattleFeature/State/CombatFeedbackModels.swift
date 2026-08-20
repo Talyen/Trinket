@@ -36,6 +36,48 @@ struct CombatFeedbackItem: Identifiable, Equatable {
     let availableAt: Date
     let expiresAt: Date
     let reactionKind: CombatantHitReactionKind
+    let firstScheduledAt: Date
+    let pulseToken: Int
+
+    init(
+        id: Int,
+        sourceEventIDs: [Int],
+        actionGroupID: Int,
+        presentationIndex: Int,
+        groupResultCount: Int,
+        presentationRole: CombatFeedbackPresentationRole,
+        targetID: String,
+        feedbackClass: CombatFeedbackClass,
+        keyword: Keyword,
+        visualRole: CombatFeedbackVisualRole,
+        label: CombatFeedbackChipLabel,
+        secondaryText: String?,
+        lifetime: TimeInterval,
+        availableAt: Date,
+        expiresAt: Date,
+        reactionKind: CombatantHitReactionKind,
+        firstScheduledAt: Date? = nil,
+        pulseToken: Int = 0
+    ) {
+        self.id = id
+        self.sourceEventIDs = sourceEventIDs
+        self.actionGroupID = actionGroupID
+        self.presentationIndex = presentationIndex
+        self.groupResultCount = groupResultCount
+        self.presentationRole = presentationRole
+        self.targetID = targetID
+        self.feedbackClass = feedbackClass
+        self.keyword = keyword
+        self.visualRole = visualRole
+        self.label = label
+        self.secondaryText = secondaryText
+        self.lifetime = lifetime
+        self.availableAt = availableAt
+        self.expiresAt = expiresAt
+        self.reactionKind = reactionKind
+        self.firstScheduledAt = firstScheduledAt ?? availableAt
+        self.pulseToken = pulseToken
+    }
 
     /// Derived display string for tests, accessibility, and debug tooling.
     var text: String {
@@ -59,7 +101,9 @@ struct CombatFeedbackItem: Identifiable, Equatable {
             lifetime: TrinketMotion.Battle.chipDisplayDuration,
             availableAt: date,
             expiresAt: date.addingTimeInterval(TrinketMotion.Battle.chipDisplayDuration),
-            reactionKind: reactionKind
+            reactionKind: reactionKind,
+            firstScheduledAt: firstScheduledAt,
+            pulseToken: pulseToken
         )
     }
 }
@@ -68,6 +112,7 @@ struct CombatFeedbackItem: Identifiable, Equatable {
 /// replace is reserved for diagnostics that directly seed presentation state.
 enum CombatFeedbackUpdate {
     case insert([CombatFeedbackItem])
+    case update([CombatFeedbackItem])
     case remove(Set<Int>)
     case replace([CombatFeedbackItem])
     case reset

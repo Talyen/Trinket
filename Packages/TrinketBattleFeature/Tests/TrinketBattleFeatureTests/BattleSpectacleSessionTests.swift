@@ -250,7 +250,7 @@ struct BattleSpectacleSessionTests {
         session.beginCinematicCollapse()
         session.completeCinematicCollapse(at: firstUltimateAt.addingTimeInterval(1))
 
-        let secondUltimateAt = Date()
+        let secondUltimateAt = firstUltimateAt.addingTimeInterval(10)
         let secondUltimate = try #require(
             BattleSessionTestSupport.drawUntilPlayable(
                 Ability.avatarOfJustice.id,
@@ -258,10 +258,12 @@ struct BattleSpectacleSessionTests {
                 at: secondUltimateAt
             )
         )
+        let playAt = secondUltimateAt.addingTimeInterval(5)
+        session.feedback.pruneExpired(at: playAt, notifyPresentation: false)
         let feedbackBefore = session.feedback.activeItems.count
         _ = session.playCard(
             cardID: secondUltimate.id,
-            at: secondUltimateAt
+            at: playAt
         )
         #expect(session.spectacle.activeCinematic == nil)
         #expect(session.feedback.activeItems.count > feedbackBefore)

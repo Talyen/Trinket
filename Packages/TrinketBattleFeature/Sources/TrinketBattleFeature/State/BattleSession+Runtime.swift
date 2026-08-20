@@ -230,14 +230,15 @@ extension BattleSession {
         companionID: String,
         enemyID: String?
     ) -> Bool {
-        guard let preparedBattleRun = preparedBattleRunsByKey[runKey],
+        guard activeBattle == nil,
+              let preparedBattleRun = preparedBattleRunsByKey[runKey],
               preparedBattleRun.configuration.hero.combatant.id == heroID,
               preparedBattleRun.configuration.companion.combatant.id == companionID,
               preparedBattleRun.configuration.enemy?.id == enemyID
         else { return false }
 
-        preparedBattleRunsByKey.removeAll(keepingCapacity: true)
-        releasePreparedArtworkPins()
+        preparedBattleRunsByKey.removeValue(forKey: runKey)
+        preparedBattlePresentationRevision += 1
         engineState = preparedBattleRun.state
         activatePresentation(for: preparedBattleRun.configuration)
         return true

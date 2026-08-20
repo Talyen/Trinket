@@ -132,15 +132,7 @@ final class JourneyProgressTests {
             _ = try SaveTestSupport.makeSaveStore(directoryURL: directoryURL)
         }
         do {
-            let container = try ModelContainer(
-                for: PlayerSaveGraph.schema,
-                configurations: ModelConfiguration(
-                    schema: PlayerSaveGraph.schema,
-                    url: storeURL,
-                    cloudKitDatabase: .none
-                )
-            )
-            let context = ModelContext(container)
+            let context = try SaveTestSupport.makeSideContext(storeURL: storeURL)
             let journey = try #require(context.fetch(FetchDescriptor<JourneyProgressModel>()).first)
             let completed = JourneyStageProgressModel(
                 stageID: stageID,
@@ -165,15 +157,7 @@ final class JourneyProgressTests {
         try #expect(repairedStore.journey.claimedRewardStageIDs.contains(stageID))
         try #expect(repairedStore.journey.pinnedMysteryEventIDs[stageID] == eventID)
 
-        let container = try ModelContainer(
-            for: PlayerSaveGraph.schema,
-            configurations: ModelConfiguration(
-                schema: PlayerSaveGraph.schema,
-                url: storeURL,
-                cloudKitDatabase: .none
-            )
-        )
-        let context = ModelContext(container)
+        let context = try SaveTestSupport.makeSideContext(storeURL: storeURL)
         let stageRows = try context.fetch(FetchDescriptor<JourneyStageProgressModel>())
         try #expect(stageRows.count(where: { $0.stageID == stageID }) == 1)
     }

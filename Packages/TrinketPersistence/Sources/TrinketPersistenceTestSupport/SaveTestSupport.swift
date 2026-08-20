@@ -1,4 +1,5 @@
 import Foundation
+import SwiftData
 import TrinketPersistence
 
 /// Shared temp-directory save-store harness for Persistence and AppState tests.
@@ -21,6 +22,19 @@ public enum SaveTestSupport {
 
     public static func makeStoreURL(directoryURL: URL) -> URL {
         directoryURL.appendingPathComponent("PlayerSave.sqlite")
+    }
+
+    public static func makeSideContext(storeURL: URL) throws -> ModelContext {
+        let schema = PlayerSaveGraph.schema
+        let container = try ModelContainer(
+            for: schema,
+            configurations: ModelConfiguration(
+                schema: schema,
+                url: storeURL,
+                cloudKitDatabase: .none
+            )
+        )
+        return ModelContext(container)
     }
 
     @MainActor

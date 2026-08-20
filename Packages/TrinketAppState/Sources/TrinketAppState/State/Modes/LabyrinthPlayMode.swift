@@ -243,9 +243,22 @@ public final class LabyrinthPlayMode {
     public func previewMysteryEvent(for node: LabyrinthNode) -> MysteryEvent? {
         switch node.type.canonical {
         case .mystery, .event:
-            encounters.previewMysteryEvent(origin: .labyrinth(nodeID: node.id))
+            return encounters.previewMysteryEvent(origin: .labyrinth(nodeID: node.id))
+        case .recruit:
+            let roster = playerSave.roster
+            let resolution = GameContent.resolveRecruitEncounter(
+                configuredEventID: node.recruitEventID,
+                encounterID: node.id,
+                worldSeed: playerSave.worldSeed,
+                unlockedHeroIDs: roster.unlockedHeroIDs,
+                unlockedCompanionIDs: roster.unlockedCompanionIDs
+            )
+            if case let .mystery(event) = resolution {
+                return event
+            }
+            return nil
         default:
-            nil
+            return nil
         }
     }
 

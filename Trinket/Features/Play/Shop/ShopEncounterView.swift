@@ -32,7 +32,7 @@ struct ShopEncounterView: View {
                 artwork: { merchantArtwork },
                 copy: {
                     VStack(alignment: .leading, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
-                        Text(session.stage.encounterSubjectName)
+                        Text(session.stage.encounterSubjectName(worldSeed: playerSave.worldSeed))
                             .trinketTypography(.screenTitle)
                             .accessibilityIdentifier(AccessibilityID.Shop.encounterTitle)
 

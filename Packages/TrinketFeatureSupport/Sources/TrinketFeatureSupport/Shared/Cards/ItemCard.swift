@@ -78,7 +78,7 @@ public struct ItemCard<Art: View>: View {
                         }
                     }
 
-                    Text(item.displayName)
+                    Text(balanced: item.displayName)
                         .trinketTypography(.cardLabel)
                         .foregroundStyle(.primary)
                         .keywordShine(item.rarity == .astral ? item.baseType.keywordAffinities : [])

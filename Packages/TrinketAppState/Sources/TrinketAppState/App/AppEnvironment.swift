@@ -8,6 +8,7 @@ public struct AppEnvironment: Sendable {
     public let launchScreen: LaunchScreen?
     public let resetState: Bool
     public let seedTestProgress: Bool
+    public let skipStarterSelection: Bool
     public let disableCloudSync: Bool
     public let disableAudio: Bool
     public let persistSaveImmediately: Bool
@@ -29,6 +30,7 @@ public struct AppEnvironment: Sendable {
         launchScreen: LaunchScreen?,
         resetState: Bool,
         seedTestProgress: Bool,
+        skipStarterSelection: Bool,
         disableCloudSync: Bool,
         disableAudio: Bool,
         persistSaveImmediately: Bool,
@@ -44,6 +46,7 @@ public struct AppEnvironment: Sendable {
         self.launchScreen = launchScreen
         self.resetState = resetState
         self.seedTestProgress = seedTestProgress
+        self.skipStarterSelection = skipStarterSelection
         self.disableCloudSync = disableCloudSync
         self.disableAudio = disableAudio
         self.persistSaveImmediately = persistSaveImmediately
@@ -85,6 +88,7 @@ public struct AppEnvironment: Sendable {
             launchScreen: launchScreen(from: arguments),
             resetState: arguments.contains("-reset-state"),
             seedTestProgress: arguments.contains("-seed-test-progress"),
+            skipStarterSelection: arguments.contains("-skip-starter-selection"),
             disableCloudSync: disableCloudSync,
             disableAudio: arguments.contains("-disable-audio"),
             persistSaveImmediately: arguments.contains("-persist-save-immediately"),

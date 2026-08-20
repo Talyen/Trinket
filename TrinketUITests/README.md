@@ -6,13 +6,13 @@ UI test conventions for Trinket. Agent workflow: `AGENTS.md`. Unit/UI overview: 
 
 | Area | Path | When |
 |------|------|------|
-| Smoke | `Smoke/`, `Smoke.xctestplan` | Local `test.sh smoke` and CI `smoke-full` (same three classes) |
+| Smoke | `Smoke/`, `Smoke.xctestplan` | Local `test.sh smoke` and CI `smoke-full` (same four classes) |
 | Exhaustive | `Play/`, `Collection/`, `Battle/` | Main CI (sharded); local only for targeted debugging |
 | Integration | `Integration.xctestplan` (FullUI journey classes; smoke excluded) | Local `test.sh all`; explicit selection so new classes never silently run here |
 | Performance | `Performance/`, `BattlePerformance.xctestplan` | Ad hoc `performance.sh` / `test.sh performance` when investigating performance; not CI or smoke |
 | Support | `Support/Screens/` | Page objects (`PlayScreen`, `BattleScreen`, `TabBar`, …) |
 
-Smoke is three launches: `SmokeShellTests` (one launch + tab bar for Play, Collection, Homestead, Options), `SmokeBattleTests` (battle chrome), `SmokeShopTests` (merchant controls). Bare `test.sh smoke` and `test.sh smoke-full` run the same plan; `test.sh smoke <Class>` filters it.
+Smoke is four launches: `StarterOnboardingSmokeTests` (starter choices enter the campaign), `SmokeShellTests` (one launch + tab bar for Play, Collection, Homestead, Options), `SmokeBattleTests` (battle chrome), `SmokeShopTests` (merchant controls). Bare `test.sh smoke` and `test.sh smoke-full` run the same plan; `test.sh smoke <Class>` filters it.
 
 ## Keep / drop
 

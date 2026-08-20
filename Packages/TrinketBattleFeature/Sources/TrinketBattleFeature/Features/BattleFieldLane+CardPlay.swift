@@ -1,38 +1,12 @@
 import BattleEngine
 import SwiftUI
-import TrinketFeatureSupport
 
-/// Runs the Auto Battle task at the presentation boundary, where it can create
-/// the same card-cast request the hand uses without moving geometry into state.
-struct BattleAutoPlayLane: View {
-    let battleSession: BattleSession
-    let battleSize: CGSize
-    let castPresentation: BattleCastPresentationState
-    let interactionState: BattleInteractionState
-    let onPlay: (BattleCard, CardActivationRequest) -> Bool
-
-    private var taskID: String {
+extension BattleFieldLane {
+    var autoBattleTaskID: String {
         "\(battleSession.isAutoBattleEnabled)-\(battleSession.activeBattle?.id.uuidString ?? "none")"
     }
 
-    var body: some View {
-        EmptyView()
-            .task(id: taskID) {
-                // New driver (new battle or Auto toggled on): drop a leftover
-                // tap-suppress flag from a cancelled gesture. A live drag after
-                // this point sets the flag again via the hand.
-                interactionState.suppressCombatantTaps = false
-                await battleSession.driveAutoBattle(
-                    isCardCastActive: { castPresentation.request != nil },
-                    isManualInteractionActive: { interactionState.blocksCombatantTaps },
-                    playCard: { card in
-                        await playCardWithTapLift(card)
-                    }
-                )
-            }
-    }
-
-    private func playCardWithTapLift(_ card: BattleCard) async -> Bool {
+    func playCardWithTapLift(_ card: BattleCard, battleSize: CGSize) async -> Bool {
         let configuration = BattleHandMotionConfiguration()
         interactionState.suppressCombatantTaps = false
         interactionState.autoLiftCardID = card.id
@@ -44,27 +18,42 @@ struct BattleAutoPlayLane: View {
 
         try? await Task.sleep(for: .seconds(configuration.tapLiftPlayDelay))
         guard !Task.isCancelled, battleSession.isAutoBattleEnabled else {
-            cancelAttack(for: card)
+            cancelPartyAttack(for: card)
             return false
         }
-        guard let request = activationRequest(for: card, configuration: configuration) else {
-            cancelAttack(for: card)
+        guard let request = activationRequest(
+            for: card,
+            battleSize: battleSize,
+            configuration: configuration
+        ) else {
+            cancelPartyAttack(for: card)
             return false
         }
-        let didPlay = onPlay(card, request)
+        let didPlay = playCard(card, request: request)
         if !didPlay {
-            cancelAttack(for: card)
+            cancelPartyAttack(for: card)
         }
         return didPlay
     }
 
-    private func cancelAttack(for card: BattleCard) {
+    func playCard(_ card: BattleCard, request: CardActivationRequest) -> Bool {
+        let outcome = battleSession.playCard(cardID: card.id)
+        guard case .committed = outcome else { return false }
+        if let actorID = battleSession.combatantID(for: card.owner) {
+            battleSession.commitAttackSwing(for: actorID)
+        }
+        castPresentation.append(request)
+        return true
+    }
+
+    func cancelPartyAttack(for card: BattleCard) {
         guard let combatantID = battleSession.combatantID(for: card.owner) else { return }
         battleSession.cancelAttack(for: combatantID)
     }
 
     private func activationRequest(
         for card: BattleCard,
+        battleSize: CGSize,
         configuration: BattleHandMotionConfiguration
     ) -> CardActivationRequest? {
         let hand = battleSession.hand

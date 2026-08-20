@@ -93,6 +93,26 @@ def _output_stem(value: str) -> Path:
     return stem
 
 
+def _issue_priority(issue: DiagnosticIssue) -> tuple[int, int, int, int]:
+    """Rank actionable source failures before generic/tooling noise."""
+    kind_rank = (
+        CLASSIFICATION_PRECEDENCE.index(issue.kind)
+        if issue.kind in CLASSIFICATION_PRECEDENCE
+        else len(CLASSIFICATION_PRECEDENCE)
+    )
+    return (
+        0 if issue.file else 1,
+        0 if not issue.generic else 1,
+        kind_rank,
+        0 if issue.test else 1,
+    )
+
+
+def _prioritize_issues(issues: list[DiagnosticIssue]) -> list[DiagnosticIssue]:
+    """Keep the structured report bounded while preserving likely root causes."""
+    return sorted(issues, key=_issue_priority)[:MAX_ISSUES]
+
+
 def _classify_text(text: str, default: str) -> str:
     lowered = text.lower()
     if any(
@@ -460,6 +480,7 @@ def build_report(args: argparse.Namespace) -> DiagnosticReport:
         issues = fallback.finalize()
     if not issues and args.exit_code != 0:
         issues = [DiagnosticIssue.from_observation(IssueObservation("unknown", "Xcode invocation", f"Xcode exited with code {args.exit_code}"))]
+    issues = _prioritize_issues(issues)
 
     issue_kinds = {issue.kind for issue in issues}
     classification = next((kind for kind in CLASSIFICATION_PRECEDENCE if kind in issue_kinds), "unknown")

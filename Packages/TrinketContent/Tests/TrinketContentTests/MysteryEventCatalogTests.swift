@@ -23,49 +23,24 @@ struct MysteryEventCatalogTests {
             )
             let combatantID = try #require(event.unlockCombatantID)
             try #expect(event.choices[0].effects == [.unlockCombatant(combatantID)])
-            try #expect(
-                combatantID != PlayerRosterStarterIDs.hero
-                    && combatantID != PlayerRosterStarterIDs.companion,
-                "Recruit event \(event.id) should not unlock starters"
-            )
         }
     }
 
-    @Test func recruitEventsCoverEveryNonStarterCombatantExactlyOnce() throws {
+    @Test func recruitEventsCoverEveryCombatantExactlyOnce() throws {
         let unlockIDs = GameContent.recruitEvents.compactMap(\.unlockCombatantID)
         try #expect(unlockIDs.count == Set(unlockIDs).count)
 
-        let expectedHeroes = Set(GameContent.heroes.map(\.id)).subtracting([PlayerRosterStarterIDs.hero])
-        let expectedCompanions = Set(GameContent.companions.map(\.id)).subtracting([PlayerRosterStarterIDs.companion])
+        let expectedHeroes = Set(GameContent.heroes.map(\.id))
+        let expectedCompanions = Set(GameContent.companions.map(\.id))
         try #expect(Set(unlockIDs.filter { expectedHeroes.contains($0) }) == expectedHeroes)
         try #expect(Set(unlockIDs.filter { expectedCompanions.contains($0) }) == expectedCompanions)
     }
 
-    @Test func chapterRecruitCopyKeepsCombatantIdentityMysterious() throws {
-        for stage in GameContent.chapters.flatMap(\.stages) {
-            guard let eventID = stage.encounter.recruitEventID,
-                  !eventID.isEmpty,
-                  eventID != StageEncounter.randomCompanionRecruitID,
-                  let event = RecruitEventPool.event(matching: eventID),
-                  let combatant = GameContent.combatant(forMysteryEvent: event) else {
-                continue
-            }
-
-            let copy = [event.title, event.narrative]
-                .joined(separator: " ")
-                .lowercased()
-            let identityWords = combatant.name
-                .lowercased()
-                .split(separator: " ")
-                .filter { $0.count > 3 }
-
-            for identityWord in identityWords {
-                try #expect(
-                    !copy.contains(identityWord),
-                    "Chapter recruit event \(event.id) gives away \(combatant.name)"
-                )
-            }
-        }
+    @Test func starterOptionsExistInTheirAuthoredOrderAndRole() throws {
+        try #expect(GameContent.starterHeroes.map(\.id) == GameContent.starterHeroIDs)
+        try #expect(GameContent.starterCompanions.map(\.id) == GameContent.starterCompanionIDs)
+        try #expect(GameContent.starterHeroes.allSatisfy { $0.role == .hero })
+        try #expect(GameContent.starterCompanions.allSatisfy { $0.role == .companion })
     }
 
     @Test func allMysteryEventChoicesHaveUniqueIDsAndAtLeastOneEffect() throws {
@@ -135,6 +110,26 @@ struct MysteryEventCatalogTests {
         }
         try #expect(!event.isRecruit)
         try #expect(GameContent.mysteryEvents.contains(event))
+    }
+
+    @Test func unchosenLegacyStartersRemainEligibleRecruits() throws {
+        let knight = GameContent.resolveRecruitEncounter(
+            configuredEventID: "recruit-knight",
+            encounterID: "knight-recruit",
+            worldSeed: 3,
+            unlockedHeroIDs: ["rogue"],
+            unlockedCompanionIDs: ["panther"]
+        )
+        let wolf = GameContent.resolveRecruitEncounter(
+            configuredEventID: StageEncounter.randomCompanionRecruitID,
+            encounterID: "wolf-recruit",
+            worldSeed: 3,
+            unlockedHeroIDs: Set(GameContent.heroes.map(\.id)),
+            unlockedCompanionIDs: Set(GameContent.companions.map(\.id)).subtracting(["wolf"])
+        )
+
+        try #expect(knight.event.unlockCombatantID == "knight")
+        try #expect(wolf.event.unlockCombatantID == "wolf")
     }
 
     @Test func randomBattleEnemyPickIsStablePerWorldAndDivergesAcrossWorlds() throws {
@@ -274,7 +269,6 @@ private extension MysteryEventCatalogTests {
     ]
 }
 
-/// Starter IDs mirrored from persistence without importing that package into content tests.
 private enum PlayerRosterStarterIDs {
     static let hero = "knight"
     static let companion = "wolf"

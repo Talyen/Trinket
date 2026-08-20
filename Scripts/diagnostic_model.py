@@ -26,7 +26,29 @@ CLASSIFICATION_PRECEDENCE = (
 )
 MAX_ISSUES = 20
 MAX_LINES = 120
+MAX_DETAIL_LINES = 20
+MAX_DETAIL_CHARS = 4000
+MAX_MESSAGE_CHARS = 1200
+MAX_LINE_CHARS = 400
 GENERIC_MESSAGES = {"Test reported Failed", "No failure details"}
+
+
+def bounded_text(value: str, *, line_limit: int = MAX_DETAIL_LINES, char_limit: int = MAX_DETAIL_CHARS) -> tuple[str, bool]:
+    """Return a compact preview and whether the source text was truncated."""
+    lines = str(value or "").strip().splitlines()
+    clipped = len(lines) > line_limit
+    lines = lines[:line_limit]
+    normalized: list[str] = []
+    for line in lines:
+        if len(line) > MAX_LINE_CHARS:
+            line = f"{line[:MAX_LINE_CHARS - 1]}…"
+            clipped = True
+        normalized.append(line)
+    preview = "\n".join(normalized)
+    if len(preview) > char_limit:
+        preview = f"{preview[:char_limit - 1]}…"
+        clipped = True
+    return preview, clipped
 
 
 def identifier_aliases(*values: str) -> frozenset[str]:
@@ -122,15 +144,17 @@ class DiagnosticIssue:
         identity = "\x1f".join(
             (self.kind, self.title, self.test, self.file, str(self.line or ""), self.message)
         )
+        details, details_truncated = bounded_text(self.details)
         return {
             "id": hashlib.sha1(identity.encode("utf-8")).hexdigest()[:16],
             "kind": self.kind,
             "title": self.title,
-            "message": self.message,
+            "message": self.message[:MAX_MESSAGE_CHARS],
             "file": self.file,
             "line": self.line,
             "test": self.test,
-            "details": self.details,
+            "details": details,
+            "details_truncated": details_truncated,
             "attachments": list(self.attachments),
         }
 
@@ -209,7 +233,7 @@ class SourceStatus:
             "tests": self.tests,
             "test_details": self.test_details,
             "attachments": self.attachments,
-            "errors": list(self.errors),
+            "errors": [bounded_text(error, line_limit=4, char_limit=1000)[0] for error in self.errors],
         }
 
 

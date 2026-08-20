@@ -229,7 +229,15 @@ class ReporterTests(unittest.TestCase):
             step_summary = root / "step-summary.md"
             stdout = io.StringIO()
             stderr = io.StringIO()
-            with patch.dict(os.environ, {"GITHUB_ACTIONS": "true", "GITHUB_STEP_SUMMARY": str(step_summary)}, clear=False):
+            with patch.dict(
+                os.environ,
+                {
+                    "GITHUB_ACTIONS": "true",
+                    "GITHUB_STEP_SUMMARY": str(step_summary),
+                    "TRINKET_DIAGNOSTICS_PER_INVOCATION_SUMMARY": "true",
+                },
+                clear=False,
+            ):
                 with redirect_stdout(stdout), redirect_stderr(stderr):
                     self.assertEqual(
                         REPORTER.main(
@@ -252,6 +260,94 @@ class ReporterTests(unittest.TestCase):
             self.assertIn("Sources/App.swift", stdout.getvalue())
             self.assertIn("Failure diagnostics: github", step_summary.read_text(encoding="utf-8"))
             self.assertIn("::error", (root / "diagnostics.annotations").read_text(encoding="utf-8"))
+
+    def test_per_invocation_summary_is_opt_in(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            step_summary = root / "step-summary.md"
+            prefix = root / "diagnostics"
+            with patch.dict(
+                os.environ,
+                {
+                    "GITHUB_STEP_SUMMARY": str(step_summary),
+                    "TRINKET_DIAGNOSTICS_PER_INVOCATION_SUMMARY": "",
+                },
+                clear=False,
+            ):
+                report = REPORTER.DiagnosticReport(
+                    label="quiet-summary",
+                    result_bundle="",
+                    log="",
+                    exit_code=1,
+                    classification="unknown",
+                    issues=[],
+                    sources=REPORTER.SourceStatus(),
+                    generated_at="fixture",
+                )
+                REPORTER.write_report(report, str(prefix))
+            self.assertFalse(step_summary.exists())
+
+    def test_structured_issue_details_are_bounded(self) -> None:
+        issue = REPORTER.DiagnosticIssue(
+            "test-failure",
+            "Large detail",
+            "Expectation failed",
+            details="\n".join("x" * 800 for _ in range(40)),
+        )
+        payload = issue.to_dict()
+        self.assertTrue(payload["details_truncated"])
+        self.assertLessEqual(len(payload["details"]), 4000)
+        self.assertLessEqual(len(payload["details"].splitlines()), 20)
+
+    def test_default_aggregate_is_compact_and_full_mode_keeps_invocation_payload(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            diagnostics = root / "failure-diagnostics.json"
+            diagnostics.write_text(
+                json.dumps(
+                    {
+                        "schema_version": 1,
+                        "label": "failure",
+                        "exit_code": 1,
+                        "classification": "test-failure",
+                        "issues": [
+                            {
+                                "id": "failure-1",
+                                "kind": "test-failure",
+                                "title": "Failure",
+                                "message": "Expectation failed",
+                                "details": "large detail" * 1000,
+                                "attachments": [],
+                            }
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            compact_path = root / "compact.json"
+            full_path = root / "full.json"
+            for arguments, output in (
+                ([], compact_path),
+                (["--full"], full_path),
+            ):
+                completed = subprocess.run(
+                    [
+                        sys.executable,
+                        str(ROOT / "Scripts" / "ci-diagnostics.py"),
+                        *arguments,
+                        str(root),
+                        str(output),
+                    ],
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                )
+                self.assertEqual(completed.returncode, 0, completed.stderr)
+            compact = json.loads(compact_path.read_text(encoding="utf-8"))
+            full = json.loads(full_path.read_text(encoding="utf-8"))
+            self.assertNotIn("issues", compact["invocations"][0])
+            self.assertIn("issues", full["invocations"][0])
+            self.assertTrue(compact["issues"][0]["details_truncated"])
 
     def test_executable_cli_invokes_main_guard_and_writes_artifacts(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

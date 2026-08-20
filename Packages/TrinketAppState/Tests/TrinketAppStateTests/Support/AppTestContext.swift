@@ -21,6 +21,7 @@ final class AppTestContext {
     private static let defaultTestArguments = [
         "-disable-cloud-sync",
         "-disable-audio",
+        "-skip-starter-selection",
     ]
 
     init() throws {
@@ -41,6 +42,14 @@ final class AppTestContext {
     @MainActor
     func makeEnvironment(arguments: [String] = []) -> AppEnvironment {
         AppEnvironment.parse(arguments: Self.defaultTestArguments + arguments, environment: [:])
+    }
+
+    @MainActor
+    func makeOnboardingEnvironment() -> AppEnvironment {
+        AppEnvironment.parse(
+            arguments: ["-disable-cloud-sync", "-disable-audio"],
+            environment: [:]
+        )
     }
 
     @MainActor

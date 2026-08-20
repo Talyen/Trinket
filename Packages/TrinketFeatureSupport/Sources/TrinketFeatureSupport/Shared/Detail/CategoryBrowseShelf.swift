@@ -55,7 +55,7 @@ public struct CategoryBrowseShelf<Destination: View, Content: View>: View {
 
     private var categoryHeader: some View {
         HStack(spacing: TrinketDesign.Metrics.denseSpacing) {
-            Text(title)
+            Text(balanced: title)
                 .trinketTypography(.sectionTitle)
                 .foregroundStyle(.primary)
             Image(systemName: "chevron.right")

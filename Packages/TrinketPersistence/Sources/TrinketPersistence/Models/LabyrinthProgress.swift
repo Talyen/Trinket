@@ -156,13 +156,8 @@ public struct PlayerLabyrinthState: Equatable, Sendable {
     }
 
     public func effects(for nodeID: String) -> LabyrinthModifierEffects {
-        guard let cluster = cluster(for: nodeID),
-              let biome = LabyrinthCatalog.biome(id: cluster.biomeID)
-        else {
-            return .zero
-        }
         guard let node = node(id: nodeID) else { return .zero }
         let modifiers = LabyrinthCatalog.modifiers(ids: node.modifierIDs)
-        return LabyrinthModifierEffects.combining(modifiers, biomeBias: biome.keywordBias)
+        return LabyrinthModifierEffects.combining(modifiers)
     }
 }

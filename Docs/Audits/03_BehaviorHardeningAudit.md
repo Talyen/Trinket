@@ -32,7 +32,7 @@ Prioritize P0–P1 among confirmed findings.
 - Load, migration, sync, background/foreground, termination, and retry paths must not reorder writes, partially apply a transition, or hide a meaningful recovery state.
 - Suspect silent `try?` on save, sync, battle outcome, or state transitions. **Allowlist:** non-fatal audio (`Packages/TrinketAppState/.../Audio/`).
 - Store load failure → default/in-memory recovery + log, not crash.
-- Prefer existing coverage. Add a regression only when the test-addition gate passes; battle edges use `rngSeed: 0`, and store edges use the existing empty/partial/corrupt recovery owners.
+- Prefer existing coverage. Add a regression only when the test-addition gate passes; battle tests use the deterministic fixture default seed, with explicit seeds reserved for RNG edge cases, and store edges use the existing empty/partial/corrupt recovery owners.
 
 ## Evidence bar
 

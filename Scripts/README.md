@@ -12,6 +12,7 @@ the linked guides explain routing and operating policy.
 ./Scripts/test.sh unit
 ./Scripts/agent-context.sh --agent --paths <changed-paths...>
 ./Scripts/handoff.sh --isolate --paths <changed-paths...>
+./Scripts/new-plan.sh <PlanName>
 ```
 
 Agents always use an isolated path-scoped handoff. Humans may omit `--isolate`
@@ -41,21 +42,24 @@ Read these focused guides:
 | `./Scripts/build.sh` | Build the app with the routed local toolchain |
 | `./Scripts/test-package.sh <Package>` | Run one package's tests |
 | `./Scripts/test.sh unit` | Run all package unit suites |
-| `./Scripts/test.sh smoke` | Run the three-class smoke plan (tab shells, Battle, Shop) |
+| `./Scripts/test.sh smoke` | Run the four-class smoke plan (onboarding, tab shells, Battle, Shop) |
 | `./Scripts/test.sh smoke <Class...>` | Run targeted smoke classes |
 | `./Scripts/test.sh smoke-full` | Same plan as `test.sh smoke` (CI alias) |
 | `./Scripts/test.sh ui [Class]` | Run exhaustive UI tests, optionally filtered |
 | `./Scripts/test.sh all` | Run the integration suite |
 | `./Scripts/performance.sh` | Ad hoc app + battle performance matrix (not CI) |
 | `./Scripts/test-iterate.sh <Class>` | Re-run a focused test against a warm build |
-| `./Scripts/agent-context.sh --agent --paths …` | Print applicable guidance and verification routing |
-| `./Scripts/handoff.sh --isolate --paths …` | Canonical path-scoped source gate |
+| `./Scripts/agent-context.sh --agent --paths …` | Print concise guidance and verification routing; use `--full` for full commands and `--working-tree` only intentionally |
+| `./Scripts/handoff.sh --isolate --paths …` | Canonical path-scoped source gate; use `--working-tree` only intentionally |
+| `./Scripts/new-plan.sh <PlanName>` | Scaffold an expiring active execution plan under `Docs/Plans/` |
 | `./Scripts/ci-gate.sh` | Generation, style, boundaries, script regressions, and release-note validation |
 | `./Scripts/ci-assets-gate.sh` | Asset generation, idempotence, and locale-stability gate |
-| `./Scripts/check-docs.py` | Check local Markdown links, heading anchors, package guide coverage, smoke classes, and known stale terms |
+| `./Scripts/check-docs.py [--final] [--keep-plan]` | Check links, structure, smoke classes, stale terms, and execution-plan lifecycle |
 | `./Scripts/test-deploy.sh [--mode smoke]` | Full local deploy confidence or smoke canary |
 | `./Scripts/agent-push-gate.sh` | Post-commit generation completeness check |
-| `./Scripts/ci-diagnostics.sh [RESULTS_DIR]` | Aggregate current structured diagnostics |
+| `./Scripts/ci-diagnostics.sh [RESULTS_DIR]` | Aggregate bounded structured diagnostics |
+| `./Scripts/ci-diagnostics.sh --stage-artifacts <RESULTS_DIR> <ARTIFACT_DIR>` | Stage structured artifacts, adding raw failure evidence only when needed |
+| `./Scripts/ci-diagnostics.sh --prune-successes <RESULTS_DIR>` | Explicitly prune raw artifacts from passed invocations |
 | `./Scripts/change-budget.sh --paths …` | Advisory authored-surface report against HEAD |
 | `./Scripts/ensure-ci-tools.sh` | Install pinned XcodeGen, SwiftFormat, SwiftLint, ripgrep, and xcbeautify |
 | `./Scripts/update-tools.sh [--apply]` | Report newer SwiftFormat/SwiftLint releases; with `--apply`, bump the pins in `tool-versions.env` (checksummed) and re-install |

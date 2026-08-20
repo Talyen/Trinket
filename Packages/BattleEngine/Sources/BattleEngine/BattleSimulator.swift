@@ -12,6 +12,7 @@ public struct BattleSimResult: Equatable, Codable, Sendable {
     public var enemyHPRemainingFraction: Double
     public var heroHPRemainingFraction: Double
     public var companionHPRemainingFraction: Double
+    public var peakActionEvents: Int
 
     public init(
         outcome: BattleSimulationOutcome,
@@ -21,7 +22,8 @@ public struct BattleSimResult: Equatable, Codable, Sendable {
         partyHPRemainingFraction: Double,
         enemyHPRemainingFraction: Double,
         heroHPRemainingFraction: Double = 0,
-        companionHPRemainingFraction: Double = 0
+        companionHPRemainingFraction: Double = 0,
+        peakActionEvents: Int = 0
     ) {
         self.outcome = outcome
         self.rounds = rounds
@@ -31,6 +33,7 @@ public struct BattleSimResult: Equatable, Codable, Sendable {
         self.enemyHPRemainingFraction = enemyHPRemainingFraction
         self.heroHPRemainingFraction = heroHPRemainingFraction
         self.companionHPRemainingFraction = companionHPRemainingFraction
+        self.peakActionEvents = peakActionEvents
     }
 
     public var isVictory: Bool {
@@ -52,7 +55,8 @@ public enum BattleSimulator {
         policy: some SimulationPlayPolicy,
         maxRounds: Int = defaultMaxRounds,
         maxActions: Int = defaultMaxActions,
-        appliesFightPacing: Bool = true
+        appliesFightPacing: Bool = true,
+        tracksEvents: Bool = false
     ) -> BattleSimResult {
         var battle = BattleState(
             hero: matchup.hero,
@@ -63,7 +67,7 @@ public enum BattleSimulator {
             enemyModifiers: matchup.enemyModifiers,
             rngSeed: matchup.context.seed,
             tracksLog: false,
-            tracksEvents: false,
+            tracksEvents: tracksEvents,
             appliesFightPacing: appliesFightPacing
         )
         return run(battle: &battle, policy: policy, maxRounds: maxRounds, maxActions: maxActions)
@@ -77,6 +81,7 @@ public enum BattleSimulator {
     ) -> BattleSimResult {
         var actions = 0
         var timedOut = false
+        var peakActionEvents = 0
 
         while !battle.isBattleOver {
             if battle.turnCount >= maxRounds || actions >= maxActions {
@@ -87,13 +92,16 @@ public enum BattleSimulator {
             switch policy.nextAction(in: battle) {
             case let .playCard(cardID):
                 do {
-                    _ = try battle.playCard(cardID: cardID, rebuildLog: false)
+                    let events = try battle.playCard(cardID: cardID, rebuildLog: false)
+                    peakActionEvents = max(peakActionEvents, events.count)
                 } catch {
-                    _ = battle.endTurn(rebuildLog: false)
+                    let events = battle.endTurn(rebuildLog: false)
+                    peakActionEvents = max(peakActionEvents, events.count)
                 }
             case .endTurn:
                 guard battle.phase == .playerTurn else { break }
-                _ = battle.endTurn(rebuildLog: false)
+                let events = battle.endTurn(rebuildLog: false)
+                peakActionEvents = max(peakActionEvents, events.count)
             }
         }
 
@@ -110,7 +118,8 @@ public enum BattleSimulator {
             partyHPRemainingFraction: partyHPFraction(in: battle),
             enemyHPRemainingFraction: enemyHPFraction(in: battle),
             heroHPRemainingFraction: combatantHPFraction(battle.hero, in: battle),
-            companionHPRemainingFraction: combatantHPFraction(battle.companion, in: battle)
+            companionHPRemainingFraction: combatantHPFraction(battle.companion, in: battle),
+            peakActionEvents: peakActionEvents
         )
     }
 

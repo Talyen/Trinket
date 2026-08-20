@@ -1,33 +1,6 @@
 import Foundation
 import TrinketCore
 
-/// Stable biome identifier for The Labyrinth clusters.
-public struct LabyrinthBiomeID: RawRepresentable, Hashable, Codable, Sendable, Identifiable {
-    public let rawValue: String
-
-    public var id: String {
-        rawValue
-    }
-
-    public init(rawValue: String) {
-        self.rawValue = rawValue
-    }
-
-    public init(_ rawValue: String) {
-        self.rawValue = rawValue
-    }
-
-    public static let ironGalleries = Self("ironGalleries")
-    public static let cinderGalleries = Self("cinderGalleries")
-    public static let serpentSump = Self("serpentSump")
-    public static let scarCatacombs = Self("scarCatacombs")
-    public static let aureateCrypt = Self("aureateCrypt")
-    public static let rimeDescent = Self("rimeDescent")
-    public static let stormCulvert = Self("stormCulvert")
-    public static let gildedFault = Self("gildedFault")
-    public static let heartwellGrotto = Self("heartwellGrotto")
-}
-
 /// Catalog modifier shown by title only in player UI (no umbrella noun).
 public struct LabyrinthModifierID: RawRepresentable, Hashable, Codable, Sendable, Identifiable {
     public let rawValue: String
@@ -42,31 +15,6 @@ public struct LabyrinthModifierID: RawRepresentable, Hashable, Codable, Sendable
 
     public init(_ rawValue: String) {
         self.rawValue = rawValue
-    }
-}
-
-public struct LabyrinthBiomeDefinition: Identifiable, Hashable, Sendable {
-    public let id: LabyrinthBiomeID
-    public let title: String
-    public let epithet: String
-    public let keywordBias: Keyword
-    public let enemyPool: [String]
-    public let bossEnemyID: String
-
-    public init(
-        id: LabyrinthBiomeID,
-        title: String,
-        epithet: String,
-        keywordBias: Keyword,
-        enemyPool: [String],
-        bossEnemyID: String
-    ) {
-        self.id = id
-        self.title = title
-        self.epithet = epithet
-        self.keywordBias = keywordBias
-        self.enemyPool = enemyPool
-        self.bossEnemyID = bossEnemyID
     }
 }
 
@@ -107,6 +55,13 @@ public struct LabyrinthModifierDefinition: Identifiable, Hashable, Sendable {
 
     public func applies(to type: LabyrinthNodeType) -> Bool {
         nodeTypes.contains(type.canonical)
+    }
+
+    public var damageDealtKeyword: Keyword? {
+        if case let .damageDealt(keyword, _) = effect {
+            return keyword
+        }
+        return nil
     }
 }
 
@@ -323,22 +278,16 @@ public struct LabyrinthNode: Identifiable, Hashable, Codable, Sendable {
 
 public struct LabyrinthCluster: Identifiable, Hashable, Codable, Sendable {
     public let id: String
-    public let biomeID: LabyrinthBiomeID
     public let depthBand: Int
-    public let modifierIDs: [LabyrinthModifierID]
     public var nodeIDs: [String]
 
     public init(
         id: String,
-        biomeID: LabyrinthBiomeID,
         depthBand: Int,
-        modifierIDs: [LabyrinthModifierID],
         nodeIDs: [String]
     ) {
         self.id = id
-        self.biomeID = biomeID
         self.depthBand = depthBand
-        self.modifierIDs = modifierIDs
         self.nodeIDs = nodeIDs
     }
 }
@@ -348,33 +297,25 @@ public struct LabyrinthModifierEffects: Equatable, Sendable {
     public var damageDealtBonus: [Keyword: Int]
     public var goldPercent: Int
     public var astralChanceBonusPercent: Int
-    public var keywordBiases: Set<Keyword>
 
     public static let zero = Self(
         damageDealtBonus: [:],
         goldPercent: 0,
-        astralChanceBonusPercent: 0,
-        keywordBiases: []
+        astralChanceBonusPercent: 0
     )
 
     public init(
         damageDealtBonus: [Keyword: Int],
         goldPercent: Int,
-        astralChanceBonusPercent: Int,
-        keywordBiases: Set<Keyword>
+        astralChanceBonusPercent: Int
     ) {
         self.damageDealtBonus = damageDealtBonus
         self.goldPercent = goldPercent
         self.astralChanceBonusPercent = astralChanceBonusPercent
-        self.keywordBiases = keywordBiases
     }
 
-    public static func combining(
-        _ modifiers: [LabyrinthModifierDefinition],
-        biomeBias: Keyword
-    ) -> Self {
+    public static func combining(_ modifiers: [LabyrinthModifierDefinition]) -> Self {
         var effects = Self.zero
-        effects.keywordBiases.insert(biomeBias)
         for modifier in modifiers {
             switch modifier.effect {
             case let .damageDealt(keyword, amount):

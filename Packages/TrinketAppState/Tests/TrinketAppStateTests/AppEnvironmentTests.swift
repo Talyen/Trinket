@@ -56,6 +56,7 @@ struct AppEnvironmentTests {
         let env = Self.parse(arguments: [
             "-reset-state",
             "-seed-test-progress",
+            "-skip-starter-selection",
             "-disable-audio",
             "-persist-save-immediately",
             "-completed-stages", "chapter-1-stage-1,,chapter-1-stage-2,",
@@ -67,6 +68,7 @@ struct AppEnvironmentTests {
         ])
         #expect(env.resetState)
         #expect(env.seedTestProgress)
+        #expect(env.skipStarterSelection)
         #expect(env.disableCloudSync)
         #expect(env.disableAudio)
         #expect(env.persistSaveImmediately)
@@ -92,6 +94,7 @@ struct AppEnvironmentTests {
         #expect(env.launchScreen == nil)
         #expect(!env.resetState)
         #expect(!env.seedTestProgress)
+        #expect(!env.skipStarterSelection)
         #expect(env.disableCloudSync)
         #expect(!env.disableAudio)
         #expect(env.completedStageIDs.isEmpty)

@@ -24,6 +24,22 @@ struct AppStateTests {
         #expect(state.playerSave.roster.activeHeroID == "knight")
         #expect(state.playerSave.roster.activeCompanionID == "wolf")
         #expect(state.playerSave.inventory == .freshStart)
+        #expect(state.playerSave.starterSelection == .complete)
+    }
+
+    @Test func starterSelectionCompletesWithChosenPartyAndQueuesCampaign() throws {
+        let state = try context.makeAppState(environment: context.makeOnboardingEnvironment())
+
+        #expect(state.confirmStarterHero("wizard"))
+        #expect(state.completeStarterSelection(companionID: "frost_whelp"))
+
+        #expect(state.playerSave.starterSelection == .complete)
+        #expect(state.playerSave.roster.activeHeroID == "wizard")
+        #expect(state.playerSave.roster.activeCompanionID == "frost_whelp")
+        #expect(state.playerSave.roster.unlockedHeroIDs == ["wizard"])
+        #expect(state.playerSave.roster.unlockedCompanionIDs == ["frost_whelp"])
+        #expect(state.selectedTab == .play)
+        #expect(state.play.consumePendingDestination() == .campaign)
     }
 
     @Test func playSessionUsesTheCompositionRuntimeInstance() throws {

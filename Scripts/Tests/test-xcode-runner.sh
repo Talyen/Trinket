@@ -81,6 +81,20 @@ chmod +x "$TMP_DIR/fake-xcodebuild" "$TMP_DIR/fake-reporter" \
   "$TMP_DIR/fake-hang-success" "$TMP_DIR/fake-hang-selected-suite" \
   "$TMP_DIR/fake-hang-fail" "$TMP_DIR/fake-hang-silent" "$TMP_DIR/fake-hang-zero-tests"
 
+bounded_log="$TMP_DIR/bounded.log"
+for _ in $(seq 1 100); do
+  printf 'Sources/VeryLong.swift:17: error: %s\n' "$(printf 'x%.0s' $(seq 1 500))" >> "$bounded_log"
+done
+bounded_terminal="$TMP_DIR/bounded-terminal"
+bash -c '
+  set -euo pipefail
+  source "$1"
+  xcode_runner_call_reporter "$2/missing.xcresult" "$3" 1 bounded "$2/report" true
+' _ "$RUNNER" "$TMP_DIR" "$bounded_log" >"$bounded_terminal" 2>&1
+bounded_matches="$(grep -c 'Sources/VeryLong.swift' "$bounded_terminal" || true)"
+[[ "$bounded_matches" -le 81 ]]
+awk 'length($0) <= 430' "$bounded_terminal" >/dev/null
+
 failure_results="$TMP_DIR/failure-results"
 failure_state="$TMP_DIR/failure-state"
 failure_args="$TMP_DIR/failure-args"

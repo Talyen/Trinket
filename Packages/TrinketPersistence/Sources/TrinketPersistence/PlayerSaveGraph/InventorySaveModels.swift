@@ -1,13 +1,7 @@
 import Foundation
-import os
 import SwiftData
 import TrinketContent
 import TrinketCore
-
-private let inventorySaveModelsLogger = Logger(
-    subsystem: PlayerSaveDefaults.loggingSubsystem,
-    category: "InventoryMapping"
-)
 
 @Model
 public final class InventoryModel {
@@ -43,21 +37,26 @@ public final class InventoryItemModel {
         rarityID = item.rarity.rawValue
         displayName = item.displayName
         isCorrupted = item.isCorrupted
-        if let powers = item.affixPowers {
-            do {
-                affixPowersJSON = try ItemAffixPowerCoding.encode(powers)
-            } catch {
-                inventorySaveModelsLogger.error(
-                    "Failed to encode affix powers for inventory item \(item.id, privacy: .public): \(error.localizedDescription, privacy: .public)"
-                )
-            }
-        } else {
-            affixPowersJSON = nil
-        }
+        applyAffixPowers(from: item)
         affixes = item.affixes.enumerated().map { index, affix in
             let model = ItemAffixModel(affix: affix)
             model.sortIndex = index
             return model
+        }
+    }
+
+    func applyAffixPowers(from item: InventoryItem) {
+        if let powers = item.affixPowers {
+            do {
+                affixPowersJSON = try ItemAffixPowerCoding.encode(powers)
+            } catch {
+                inventoryMappingLogger.error(
+                    "Failed to encode affix powers for inventory item \(item.id, privacy: .public): \(error.localizedDescription, privacy: .public)"
+                )
+                affixPowersJSON = nil
+            }
+        } else {
+            affixPowersJSON = nil
         }
     }
 }

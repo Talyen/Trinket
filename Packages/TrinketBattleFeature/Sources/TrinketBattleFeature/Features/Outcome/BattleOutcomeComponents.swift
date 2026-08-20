@@ -33,11 +33,11 @@ struct BattleOutcomeShell<Content: View>: View {
                 }
 
                 VStack(spacing: TrinketDesign.Metrics.smallSpacing) {
-                    Text(title)
+                    Text(balanced: title)
                         .trinketTypography(.screenTitle)
                         .accessibilityIdentifier(titleAccessibilityIdentifier)
 
-                    Text(subtitle)
+                    Text(balanced: subtitle)
                         .trinketTypography(.cardTitle)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
@@ -72,7 +72,7 @@ struct BattleOutcomeRewardRow: View {
 
     var body: some View {
         Label {
-            Text(text)
+            Text(balanced: text)
                 .trinketTypography(.secondaryBody)
         } icon: {
             Image(systemName: symbolName)

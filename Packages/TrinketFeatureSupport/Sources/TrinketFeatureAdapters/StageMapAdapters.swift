@@ -36,7 +36,10 @@ public extension StageSelectRowPresentation where Item == Stage {
                         stage: stage.stageNumber
                     ),
                     artworkAccessibilityID: artworkAccessibilityID(for: stage),
-                    actionAccessibilityID: StageMapID.stageAction(for: stage),
+                    actionAccessibilityID: AccessibilityID.Play.stageAction(
+                        chapter: stage.chapterNumber,
+                        stage: stage.stageNumber
+                    ),
                     activeDetailAccessibilityID: AccessibilityID.Play.activeStageDetail,
                     partyControlAccessibilityID: AccessibilityID.Play.stagePartyControl
                 )
@@ -45,15 +48,27 @@ public extension StageSelectRowPresentation where Item == Stage {
 
     private static func artworkAccessibilityID(for stage: Stage) -> String {
         if stage.encounter.isCombat {
-            return "\(stage.mapLabel) Enemy Art"
+            return AccessibilityID.Play.enemyArt(
+                chapter: stage.chapterNumber,
+                stage: stage.stageNumber
+            )
         }
         if case .mysteryEvent = stage.encounter {
-            return "\(stage.mapLabel) Mystery Art"
+            return AccessibilityID.Play.mysteryArt(
+                chapter: stage.chapterNumber,
+                stage: stage.stageNumber
+            )
         }
         if stage.encounter.eventID != nil {
-            return "\(stage.mapLabel) Mystery Art"
+            return AccessibilityID.Play.mysteryArt(
+                chapter: stage.chapterNumber,
+                stage: stage.stageNumber
+            )
         }
-        return "\(stage.mapLabel) Encounter Art"
+        return AccessibilityID.Play.encounterArt(
+            chapter: stage.chapterNumber,
+            stage: stage.stageNumber
+        )
     }
 }
 
@@ -114,6 +129,37 @@ public extension StageSelectRowPresentation where Item == SpireFloor {
     }
 }
 
+public extension [SpireDefinition] {
+    func orderedForSpiresHub(
+        progress: PlayerSpiresState,
+        isUnlocked: (SpireDefinition) -> Bool
+    ) -> [SpireDefinition] {
+        enumerated()
+            .sorted { left, right in
+                let leftCleared = Swift.min(
+                    progress.highestClearedFloor(for: left.element.id.rawValue),
+                    left.element.floorCount
+                )
+                let rightCleared = Swift.min(
+                    progress.highestClearedFloor(for: right.element.id.rawValue),
+                    right.element.floorCount
+                )
+                if leftCleared != rightCleared {
+                    return leftCleared > rightCleared
+                }
+
+                let leftUnlocked = isUnlocked(left.element)
+                let rightUnlocked = isUnlocked(right.element)
+                if leftUnlocked != rightUnlocked {
+                    return leftUnlocked
+                }
+
+                return left.offset < right.offset
+            }
+            .map(\.element)
+    }
+}
+
 public extension StageSelectRowPresentation where Item == LabyrinthNode {
     static func labyrinthRow(
         for node: LabyrinthNode,
@@ -141,31 +187,7 @@ public extension StageSelectRowPresentation where Item == LabyrinthNode {
             artworkAccessibilityID: AccessibilityID.Play.labyrinthNodeArtwork(node.id),
             actionAccessibilityID: AccessibilityID.Play.labyrinthInspectorAction(node.id),
             activeDetailAccessibilityID: AccessibilityID.Play.labyrinthNodeInspector,
-            partyControlAccessibilityID: "Labyrinth Node \(node.id) Party Control"
+            partyControlAccessibilityID: AccessibilityID.Play.labyrinthPartyControl(nodeID: node.id)
         )
-    }
-}
-
-public extension LabyrinthMapPresentation {
-    static func floorNodes(
-        for cluster: LabyrinthCluster,
-        in state: PlayerLabyrinthState
-    ) -> [LabyrinthNode] {
-        cluster.nodeIDs.compactMap { state.nodes[$0] }.sorted {
-            LabyrinthGridPosition.isOrderedBefore(
-                $0.gridPosition ?? LabyrinthGridPosition(row: 0, column: 1),
-                $1.gridPosition ?? LabyrinthGridPosition(row: 0, column: 1)
-            )
-        }
-    }
-
-    static func state(
-        for node: LabyrinthNode,
-        in labyrinth: PlayerLabyrinthState
-    ) -> LabyrinthMapNodeState {
-        if node.isCleared {
-            return .cleared
-        }
-        return labyrinth.isNodeReachable(node.id) ? .reachable : .locked
     }
 }

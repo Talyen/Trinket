@@ -114,7 +114,7 @@ public struct RewardRevealLootSection: View {
             }
             .opacity(visibleWalletRewardCount > 0 ? 1 : 0)
         } else if items.isEmpty, let emptyMessage {
-            Text(emptyMessage)
+            Text(balanced: emptyMessage)
                 .trinketTypography(.secondaryBody)
                 .foregroundStyle(.secondary)
                 .opacity(areItemsVisible ? 1 : 0)

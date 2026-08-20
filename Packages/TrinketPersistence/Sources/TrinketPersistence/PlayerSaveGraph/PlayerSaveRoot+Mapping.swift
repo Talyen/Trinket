@@ -20,6 +20,7 @@ struct PlayerSaveSlice: OptionSet {
             || snapshot.modifiedAt != candidate.modifiedAt
             || snapshot.sessionGeneration != candidate.sessionGeneration
             || snapshot.worldSeed != candidate.worldSeed
+            || snapshot.starterSelection != candidate.starterSelection
             || snapshot.corruptionAltarCooldownRemaining != candidate.corruptionAltarCooldownRemaining {
             slices.insert(.root)
         }
@@ -58,6 +59,7 @@ public extension PlayerSaveRoot {
             modifiedAt: modifiedAt,
             sessionGeneration: sessionGeneration,
             worldSeed: worldSeed,
+            starterSelection: mappedStarterSelection,
             journey: journey?.toJourneyProgressState() ?? .initial,
             roster: roster?.toPlayerRosterState(
                 inventory: inventoryState,
@@ -137,6 +139,8 @@ extension PlayerSaveRoot {
             modifiedAt = save.modifiedAt
             sessionGeneration = save.sessionGeneration
             worldSeed = save.worldSeed
+            starterSelectionPhaseRawValue = save.starterSelection.phase.rawValue
+            starterHeroID = save.starterSelection.heroID
             corruptionAltarCooldownRemaining = save.corruptionAltarCooldownRemaining
         }
 
@@ -181,6 +185,16 @@ extension PlayerSaveRoot {
             labyrinth = model
             model.root = self
         }
+    }
+}
+
+private extension PlayerSaveRoot {
+    var mappedStarterSelection: StarterSelectionState {
+        guard schemaVersion >= 16 else { return .complete }
+        guard let phase = StarterSelectionPhase(rawValue: starterSelectionPhaseRawValue) else {
+            return .fresh
+        }
+        return StarterSelectionState(phase: phase, heroID: starterHeroID)
     }
 }
 

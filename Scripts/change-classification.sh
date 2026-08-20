@@ -38,6 +38,7 @@ TRINKET_HAS_APP_STATE=false
 TRINKET_HAS_FEATURE=false
 TRINKET_HAS_AUDIO=false
 TRINKET_HAS_DOCS_OR_TOOLS=false
+TRINKET_HAS_VISUAL_UI=false
 
 TRINKET_NEEDS_CONTENT_GENERATION=false
 TRINKET_NEEDS_ASSET_GENERATION=false
@@ -127,6 +128,7 @@ trinket_reset_classification() {
   TRINKET_HAS_FEATURE=false
   TRINKET_HAS_AUDIO=false
   TRINKET_HAS_DOCS_OR_TOOLS=false
+  TRINKET_HAS_VISUAL_UI=false
 
   TRINKET_NEEDS_CONTENT_GENERATION=false
   TRINKET_NEEDS_ASSET_GENERATION=false
@@ -159,15 +161,83 @@ trinket_add_smoke_target_for_path() {
     Trinket/Features/Play/Shop/*|TrinketUITests/Play/ShopFlowUITests.swift)
       trinket_add_smoke_target "$TRINKET_SMOKE_CLASS_SHOP"
       ;;
+    Trinket/Features/Onboarding/*)
+      trinket_add_smoke_target "$TRINKET_SMOKE_CLASS_ONBOARDING"
+      ;;
     Trinket/Features/Play/*|TrinketUITests/Play/*)
       trinket_add_smoke_target "$TRINKET_SMOKE_CLASS_SHELL"
       ;;
     TrinketUITests/Smoke/*.swift)
       local target="${path##*/}"
       trinket_add_smoke_target "${target%.swift}"
+      if [[ "$path" == "TrinketUITests/Smoke/SmokeShellTests.swift" ]]; then
+        trinket_add_smoke_target "$TRINKET_SMOKE_CLASS_ONBOARDING"
+      fi
       ;;
     *)
       TRINKET_SMOKE_TARGET_UNRESOLVED=true
+      ;;
+  esac
+}
+
+trinket_path_is_new() {
+  local path="$1"
+  ! git ls-files --error-unmatch -- "$path" >/dev/null 2>&1
+}
+
+trinket_path_has_diff_pattern() {
+  local path="$1"
+  local pattern="$2"
+  local diff_text=""
+  if trinket_path_is_new "$path"; then
+    [[ -f "$path" ]] && diff_text="$(sed -n '1,240p' "$path")"
+  else
+    diff_text="$(git diff --no-ext-diff --unified=0 -- "$path" || true)"
+  fi
+  printf '%s\n' "$diff_text" | grep -Eq "$pattern"
+}
+
+trinket_path_needs_doc_budget() {
+  trinket_path_has_diff_pattern "$1" '(^|[^:])(/\*|\*/|///|//[^/])'
+}
+
+trinket_path_needs_architect() {
+  local path="$1"
+  trinket_path_is_new "$path" || trinket_path_has_diff_pattern "$path" '^\+[^+].*(public[[:space:]]+(actor|class|enum|struct|protocol|typealias)|(^|[[:space:]])protocol[[:space:]])'
+}
+
+trinket_path_is_visual_ui() {
+  case "$1" in
+    Trinket/Features/*|TrinketUITests/*|Packages/TrinketDesignSystem/*|\
+    Packages/TrinketBattleFeature/Sources/*/Features/*|Packages/TrinketBattleFeature/Sources/*/Views/*|\
+    Packages/TrinketFeatureSupport/Sources/*/Features/*|Packages/TrinketFeatureSupport/Sources/*/FeatureAdapters/*|\
+    Packages/TrinketFeatureSupport/Sources/*/Shared/Cards/*|Packages/TrinketFeatureSupport/Sources/*/Shared/Detail/*|\
+    Packages/TrinketFeatureSupport/Sources/*/Shared/Forms/*)
+      return 0
+      ;;
+    *) return 1 ;;
+  esac
+}
+
+trinket_add_battle_subcard_for_path() {
+  case "$1" in
+    Packages/BattleEngine/*)
+      trinket_add_context_card Docs/AgentContext/battle-engine.md
+      ;;
+    Packages/TrinketBattleRuntime/*|Packages/TrinketAppState/*)
+      trinket_add_context_card Docs/AgentContext/battle-runtime.md
+      ;;
+    Packages/TrinketBattleFeature/*)
+      case "$1" in
+        */State/*Runtime*|*/State/*Commands*|*/State/*Launch*)
+          trinket_add_context_card Docs/AgentContext/battle-runtime.md
+          ;;
+        *)
+          trinket_add_context_card Docs/AgentContext/battle-presentation.md
+          ;;
+      esac
+      ;;
+    *)
       ;;
   esac
 }
@@ -378,19 +448,11 @@ trinket_classify_paths() {
         TrinketPersistence) trinket_add_context_card Docs/AgentContext/persistence.md ;;
         TrinketBattleFeature) trinket_add_context_card Docs/AgentContext/battle.md ;;
         TrinketAppState) trinket_add_context_card Docs/AgentContext/battle.md ;;
-        TrinketDesignSystem)
-          trinket_add_skill Docs/Skills/apple-design/SKILL.md
-          ;;
-        TrinketFeatureSupport)
-          trinket_add_context_card Docs/AgentContext/swiftui-features.md
-          trinket_add_skill Docs/Skills/apple-design/SKILL.md
-          ;;
+        TrinketBattleRuntime) trinket_add_context_card Docs/AgentContext/battle.md ;;
+        TrinketFeatureSupport) ;;
+        TrinketDesignSystem) ;;
       esac
     done
-  fi
-  if [[ "$TRINKET_HAS_FEATURE" == true ]]; then
-    trinket_add_context_card Docs/AgentContext/swiftui-features.md
-    trinket_add_skill Docs/Skills/apple-design/SKILL.md
   fi
   if [[ "$TRINKET_HAS_AUDIO" == true ]]; then
     trinket_add_context_card Docs/AgentContext/audio.md
@@ -408,17 +470,29 @@ trinket_classify_paths() {
     done
   fi
 
-  if [[ "$TRINKET_HAS_SWIFT" == true ]]; then
-    trinket_add_skill .agents/skills/doc-budget/SKILL.md
-    trinket_add_skill .agents/skills/architect/SKILL.md
-  fi
-  trinket_add_skill .agents/skills/handoff-verifier/SKILL.md
-
   if [[ ${#TRINKET_CHANGED_PATHS[@]+x} ]] && (( ${#TRINKET_CHANGED_PATHS[@]} > 0 )); then
     for path in ${TRINKET_CHANGED_PATHS[@]+"${TRINKET_CHANGED_PATHS[@]}"}; do
+      if [[ "$path" == *.swift ]]; then
+        if trinket_path_needs_doc_budget "$path"; then
+          trinket_add_skill .agents/skills/doc-budget/SKILL.md
+        fi
+        if trinket_path_needs_architect "$path"; then
+          trinket_add_skill .agents/skills/architect/SKILL.md
+        fi
+      fi
+      if trinket_path_is_visual_ui "$path"; then
+        TRINKET_HAS_VISUAL_UI=true
+      fi
+      trinket_add_battle_subcard_for_path "$path"
       trinket_add_agent_guides_for_path "$path"
     done
   fi
+
+  if [[ "$TRINKET_HAS_VISUAL_UI" == true ]]; then
+    trinket_add_skill Docs/Skills/apple-design/SKILL.md
+    trinket_add_context_card Docs/AgentContext/swiftui-features.md
+  fi
+
 }
 
 trinket_add_agent_guides_for_path() {

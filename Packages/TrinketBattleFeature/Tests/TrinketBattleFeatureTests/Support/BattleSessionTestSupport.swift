@@ -1,4 +1,5 @@
 import Foundation
+import Testing
 import TrinketBattleRuntime
 import TrinketContent
 import TrinketCore
@@ -171,5 +172,30 @@ enum BattleSessionTestSupport {
             at: date
         )
         return session.outcome == .victory ? session.readModel?.earnedGold : nil
+    }
+
+    static func greedyPlaySequence(from session: BattleSession) throws -> [Int] {
+        var preview = try #require(session.engineState)
+        let policy = GreedyHeuristicPolicy()
+        var ids: [Int] = []
+        while let card = policy.preferredPlayableCard(in: preview) {
+            ids.append(card.id)
+            _ = try preview.playCard(cardID: card.id, rebuildLog: false)
+        }
+        return ids
+    }
+
+    static func driveAutoBattleUntilStopped(
+        session: BattleSession,
+        isCardCastActive: @escaping @MainActor () -> Bool = { false },
+        isManualInteractionActive: @escaping @MainActor () -> Bool = { false },
+        playCard: @escaping @MainActor (BattleCard) async -> Bool
+    ) async {
+        session.isAutoBattleEnabled = true
+        await session.driveAutoBattle(
+            isCardCastActive: isCardCastActive,
+            isManualInteractionActive: isManualInteractionActive,
+            playCard: playCard
+        )
     }
 }

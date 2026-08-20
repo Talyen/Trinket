@@ -20,7 +20,8 @@ Choose the cheapest route that answers the question at hand.
 | Local integration / performance | `test.sh all` / `performance.sh` | Ad hoc; not part of any GitHub workflow |
 
 Run `./Scripts/agent-context.sh --agent --paths <files...>` after touched paths
-are known. It discovers nested guides, automated skills attached by
+are known. Use `--working-tree` only when whole-tree classification is
+intentional. It discovers nested guides, automated skills attached by
 `change-classification.sh`, and prints the applicable handoff route.
 Rerun it when scope crosses into another area. Mid-task package tests still
 use `./Scripts/test-package.sh` as in the table above.
@@ -29,11 +30,11 @@ use `./Scripts/test-package.sh` as in the table above.
 
 | Tier | Command | Notes |
 |---|---|---|
-| Package unit | `test-package.sh <Package>` | Cheapest package-owned behavior check |
+| Package unit | `test-package.sh <Package>` | Cheapest package-owned behavior check. `BattleEngine` skips `BattleBalanceToolsTests` unless you pass `--include-balance-sweep-tests` or set `INCLUDE_BALANCE_SWEEP_TESTS=true`. |
 | All unit | `test.sh unit` | All package schemes; app test target has no app-level unit cases |
 | App-only build | `test.sh unit --app-only` | App compile coverage for app-level Swift changes |
 | Targeted smoke | `test.sh smoke <Class...>` | One invocation using `Smoke.xctestplan` filters |
-| Smoke | `test.sh smoke` | Three-class plan: tab shells, Battle load, Shop load |
+| Smoke | `test.sh smoke` | Four-class plan: starter onboarding, tab shells, Battle load, Shop load |
 | Full smoke | `test.sh smoke-full` | Same plan as `test.sh smoke`; CI alias |
 | Targeted UI | `test.sh ui <Class>` | Focused exhaustive UI iteration |
 | Full UI | `test.sh ui` | Explicit local confidence and CI sharding |
@@ -45,7 +46,8 @@ reruns in the same slot. Final handoff still uses the full isolated route.
 
 `handoff.sh` formats only touched Swift files, tests touched packages, selects a
 targeted smoke owner when one exists, and otherwise fills compile coverage with
-an app build. It then verifies generated output is idempotent. Metrics, copy,
+an app build. Pass `--paths` for task scope or `--working-tree` explicitly for a
+whole-tree gate. Final plan cleanup is checked with `--final`. It then verifies generated output is idempotent. Metrics, copy,
 layout, and symbol changes are not automatically demoted.
 
 ## Gate composition

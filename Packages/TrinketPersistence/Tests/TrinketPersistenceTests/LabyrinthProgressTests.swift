@@ -95,11 +95,8 @@ struct LabyrinthProgressTests {
         #expect(sanitized.mapVersion == LabyrinthGenerator.currentMapVersion)
         #expect(migrated.isCleared)
         #expect(migrated.gridPosition != LabyrinthGridPosition(row: 99, column: 99))
-        #expect(migrated.modifierIDs.count == 1)
+        #expect(migrated.modifierIDs.count <= 1)
         #expect(migrated.modifierIDs.first?.rawValue != "bossMark")
-        let clusterModifierIDs = sanitized.clusters.map(\.modifierIDs)
-        let hasNoLegacyClusterModifiers = clusterModifierIDs.allSatisfy(\.isEmpty)
-        #expect(hasNoLegacyClusterModifiers)
         for floor in 1 ... 2 {
             let cluster = try #require(sanitized.clusters.first { $0.depthBand == floor })
             let entryID = try #require(cluster.nodeIDs.first)
@@ -279,8 +276,7 @@ struct LabyrinthProgressTests {
             modifierIDs: [LabyrinthModifierID("gildedWhisper")]
         )
         let effects = LabyrinthModifierEffects.combining(
-            LabyrinthCatalog.modifiers(ids: node.modifierIDs),
-            biomeBias: .gold
+            LabyrinthCatalog.modifiers(ids: node.modifierIDs)
         )
         #expect(LabyrinthCompletion.nonCombatGoldStipend(for: node, effects: effects) == 3)
     }
@@ -454,9 +450,7 @@ extension LabyrinthProgressTests {
         )
         let cluster = LabyrinthCluster(
             id: node.clusterID,
-            biomeID: .scarCatacombs,
             depthBand: 5,
-            modifierIDs: [],
             nodeIDs: [node.id]
         )
         var save = PlayerSave.fresh

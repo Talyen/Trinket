@@ -4,14 +4,15 @@ import TrinketContent
 import TrinketCore
 import TrinketFeatureSupport
 import TrinketPersistence
+import TrinketTestSupport
 @testable import TrinketAppState
 
 @MainActor
-enum BattleRunConfigurationTestSupport {
+enum PlayBattleLaunchTestSupport {
     static func make(
         origin: PlayBattleOrigin? = nil,
         runKey: BattleRunKey? = nil,
-        rngSeed: UInt64 = 0,
+        rngSeed: UInt64 = CombatantFixtures.deterministicBattleSeed,
         hero: Combatant,
         companion: Combatant,
         enemy: Combatant? = nil,

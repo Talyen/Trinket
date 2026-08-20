@@ -3,6 +3,7 @@ import SwiftData
 import Testing
 import TrinketContent
 import TrinketCore
+import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
 @MainActor
@@ -87,15 +88,7 @@ final class PlayerSaveGraphIdentityTests {
     }
 
     private func graphInspectionContext(at storeURL: URL) throws -> ModelContext {
-        let container = try ModelContainer(
-            for: PlayerSaveGraph.schema,
-            configurations: ModelConfiguration(
-                schema: PlayerSaveGraph.schema,
-                url: storeURL,
-                cloudKitDatabase: .none
-            )
-        )
-        return ModelContext(container)
+        try SaveTestSupport.makeSideContext(storeURL: storeURL)
     }
 
     private func graphIdentity(in modelContext: ModelContext) throws -> GraphIdentity {

@@ -3,12 +3,6 @@ import SwiftUI
 import TrinketContent
 import TrinketDesignSystem
 
-public enum StageMapID {
-    public static func stageAction(for stage: Stage) -> String {
-        "Stage \(stage.chapterNumber)-\(stage.stageNumber) Action"
-    }
-}
-
 /// View-only data shared by linear Play surfaces such as Campaign stages and Spire floors.
 public struct StageSelectRowPresentation<Item: Identifiable>: Identifiable {
     public let item: Item
@@ -85,10 +79,6 @@ public extension Stage {
         return GameContent.combatant(forMysteryEvent: event)
     }
 
-    var encounterCombatantArtReference: CombatantArtReference? {
-        encounterCombatantArtReference(worldSeed: 0)
-    }
-
     func encounterCombatantArtReference(worldSeed: UInt64) -> CombatantArtReference? {
         guard let enemyID = resolvedBattleEnemyID(worldSeed: worldSeed) else { return nil }
         return GameContent.enemy(matching: enemyID)?.combatant.artReference
@@ -100,20 +90,13 @@ public extension Stage {
         }
         if encounter.eventID != nil {
             if let recruit = recruitCombatant {
-                let artID = recruit.role == .companion
-                    ? "mystery-recruit-companions"
-                    : "mystery-recruit-heroes"
-                return ArtCatalog.encounterArtByID[artID]
+                return GameContent.recruitEncounterArtReference(for: recruit.role)
             }
             guard let artID = mysteryEvent?.artID else { return nil }
             return ArtCatalog.encounterArtByID[artID]
         }
         guard let artID = GameContent.encounterArtID(for: self) else { return nil }
         return ArtCatalog.encounterArtByID[artID]
-    }
-
-    var encounterSubjectName: String {
-        encounterSubjectName(worldSeed: 0)
     }
 
     func encounterSubjectName(worldSeed: UInt64) -> String {

@@ -65,6 +65,24 @@ public enum LabyrinthMapPresentation {
         return type.symbolName
     }
 
+    /// Seeded recruit scene art for map seals and inspectors; nil when the node falls back to mystery.
+    public static func recruitEncounterArtReference(
+        for node: LabyrinthNode,
+        worldSeed: UInt64,
+        unlockedHeroIDs: Set<String>,
+        unlockedCompanionIDs: Set<String>
+    ) -> EncounterArtReference? {
+        let resolution = GameContent.resolveRecruitEncounter(
+            configuredEventID: node.recruitEventID,
+            encounterID: node.id,
+            worldSeed: worldSeed,
+            unlockedHeroIDs: unlockedHeroIDs,
+            unlockedCompanionIDs: unlockedCompanionIDs
+        )
+        guard case let .recruit(event) = resolution else { return nil }
+        return GameContent.recruitEncounterArtReference(for: event)
+    }
+
     /// Shared destination encounter art for Labyrinth map seals and inspectors.
     public static func destinationEncounterArtID(for type: LabyrinthNodeType) -> String? {
         switch type.canonical {

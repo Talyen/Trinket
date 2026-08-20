@@ -9,7 +9,12 @@ struct StageMapPresentationTests {
         let chapter = GameContent.chapters[0]
         let stage = try #require(chapter.stages.first)
 
-        #expect(StageMapID.stageAction(for: stage) == "Stage \(stage.chapterNumber)-\(stage.stageNumber) Action")
+        #expect(
+            AccessibilityID.Play.stageAction(
+                chapter: stage.chapterNumber,
+                stage: stage.stageNumber
+            ) == "Stage \(stage.chapterNumber)-\(stage.stageNumber) Action"
+        )
     }
 
     @Test func stageSelectRowsOmitCompletedStages() {
@@ -32,9 +37,9 @@ struct StageMapPresentationTests {
         let recruit = chapter.stages[1]
         let bosses = chapter.stages.filter(\.isBossEncounter)
 
-        #expect(recruit.encounterSubjectName == "Mystery")
+        #expect(recruit.encounterSubjectName(worldSeed: 0) == "Mystery")
         #expect(recruit.encounterTypeTitle == "Recruit")
-        #expect(recruit.encounterCombatantArtReference == nil)
+        #expect(recruit.encounterCombatantArtReference(worldSeed: 0) == nil)
         #expect(recruit.encounterArtReference != nil)
         #expect(abs(recruit.encounter.artAspectRatio - (4.0 / 3.0)) < 0.000_1)
         #expect(bosses.count == 1)
@@ -46,8 +51,17 @@ struct StageMapPresentationTests {
 
         #expect(GameContent.encounterArtID(for: stage) == nil)
         #expect(stage.encounterArtReference == nil)
-        _ = try #require(stage.encounterCombatantArtReference)
-        #expect(stage.encounterSubjectName == "Slime")
+        _ = try #require(stage.encounterCombatantArtReference(worldSeed: 0))
+        #expect(stage.encounterSubjectName(worldSeed: 0) == "Slime")
+    }
+
+    @Test func randomBattleSubjectNameDependsOnWorldSeed() throws {
+        let stage = try #require(
+            GameContent.chapters.flatMap(\.stages).first { $0.encounter == .randomBattle }
+        )
+        let names = (1 ... 16).map { stage.encounterSubjectName(worldSeed: UInt64($0)) }
+        #expect(Set(names).count > 1)
+        #expect(!names.contains("Battle"))
     }
 
     @Test func shopStagesFallBackToMerchantSubjectName() {
@@ -61,7 +75,7 @@ struct StageMapPresentationTests {
         )
 
         #expect(GameContent.encounterArtID(for: stage) == nil)
-        #expect(stage.encounterSubjectName == "Merchant")
+        #expect(stage.encounterSubjectName(worldSeed: 0) == "Merchant")
     }
 
     @Test func mappedEventStagesResolveEncounterArtWithoutPinningCatalogIDs() throws {
@@ -69,7 +83,7 @@ struct StageMapPresentationTests {
 
         #expect(GameContent.encounterArtID(for: stage) != nil)
         _ = try #require(stage.encounterArtReference)
-        #expect(!(stage.encounterSubjectName.isEmpty))
+        #expect(!(stage.encounterSubjectName(worldSeed: 0).isEmpty))
     }
 
     @Test func seededJourneyMysteryProvidesEncounterArtForUnpinnedStages() throws {
@@ -121,6 +135,29 @@ struct StageMapPresentationTests {
         #expect(completedRows.isEmpty)
     }
 
+    @Test func spiresHubOrdersByClearedFloorsThenUnlockThenCatalog() {
+        let progress = PlayerSpiresState(highestClearedFloorBySpireID: [
+            SpireID.ironVein.rawValue: 3,
+            SpireID.cinderSpire.rawValue: 3,
+            SpireID.serpentHollow.rawValue: 10,
+            SpireID.aureateChoir.rawValue: 10,
+        ])
+        let unlocked: Set<SpireID> = [.cinderSpire, .sanguineCourt, .aureateChoir]
+        let ordered = GameContent.spires.orderedForSpiresHub(progress: progress) {
+            unlocked.contains($0.id)
+        }
+
+        #expect(ordered.map(\.id) == [
+            .aureateChoir,
+            .serpentHollow,
+            .cinderSpire,
+            .ironVein,
+            .sanguineCourt,
+            .rimeVault,
+            .resonanceHall,
+        ])
+    }
+
     @Test func labyrinthNodeStatesFollowReachabilityAndCompletion() {
         let source = LabyrinthNode(
             id: "source",
@@ -168,5 +205,125 @@ struct StageMapPresentationTests {
         #expect(LabyrinthMapPresentation.destinationEncounterArtID(for: .craft) == nil)
         #expect(ArtCatalog.encounterArtByID["destination-merchant-shop"] != nil)
         #expect(ArtCatalog.encounterArtByID["destination-campfire"] != nil)
+    }
+
+    @Test func labyrinthEffectiveTypeKeepsNonRecruitNodes() {
+        let node = LabyrinthNode(id: "battle", type: .battle, depth: 1, clusterID: "floor")
+        #expect(
+            LabyrinthMapPresentation.effectiveType(
+                for: node,
+                worldSeed: 1,
+                unlockedHeroIDs: [],
+                unlockedCompanionIDs: []
+            ) == .battle
+        )
+    }
+
+    @Test func labyrinthEffectiveTypeFallsBackToMysteryWhenNoRecruitsRemain() {
+        let node = LabyrinthNode(id: "recruit", type: .recruit, depth: 1, clusterID: "floor")
+        #expect(
+            LabyrinthMapPresentation.effectiveType(
+                for: node,
+                worldSeed: 1,
+                unlockedHeroIDs: Set(GameContent.heroes.map(\.id)),
+                unlockedCompanionIDs: Set(GameContent.companions.map(\.id))
+            ) == .mystery
+        )
+    }
+
+    @Test func labyrinthEffectiveTypeKeepsAConfiguredEligibleRecruit() throws {
+        let event = GameContent.recruitEvents.first { $0.unlockCombatantID != nil }
+        let recruitEvent = try #require(event)
+        let node = LabyrinthNode(
+            id: "recruit-configured",
+            type: .recruit,
+            depth: 1,
+            clusterID: "floor",
+            recruitEventID: recruitEvent.id
+        )
+        let lockedID = recruitEvent.unlockCombatantID
+        let unlockedHeroIDs = Set(GameContent.heroes.map(\.id)).subtracting(lockedID.map { [$0] } ?? [])
+        let unlockedCompanionIDs = Set(GameContent.companions.map(\.id)).subtracting(
+            lockedID.map { [$0] } ?? []
+        )
+        #expect(
+            LabyrinthMapPresentation.effectiveType(
+                for: node,
+                worldSeed: 1,
+                unlockedHeroIDs: unlockedHeroIDs,
+                unlockedCompanionIDs: unlockedCompanionIDs
+            ) == .recruit
+        )
+    }
+
+    @Test func labyrinthRecruitEncounterArtUsesSeededHeroOrCompanionScene() throws {
+        let heroEvent = try #require(
+            GameContent.recruitEvents.first { event in
+                guard let combatant = GameContent.combatant(forMysteryEvent: event) else { return false }
+                return combatant.role == .hero
+            }
+        )
+        let companionEvent = try #require(
+            GameContent.recruitEvents.first { event in
+                guard let combatant = GameContent.combatant(forMysteryEvent: event) else { return false }
+                return combatant.role == .companion
+            }
+        )
+        let heroNode = LabyrinthNode(
+            id: "recruit-hero",
+            type: .recruit,
+            depth: 1,
+            clusterID: "floor",
+            recruitEventID: heroEvent.id
+        )
+        let companionNode = LabyrinthNode(
+            id: "recruit-companion",
+            type: .recruit,
+            depth: 1,
+            clusterID: "floor",
+            recruitEventID: companionEvent.id
+        )
+        let lockedHeroID = heroEvent.unlockCombatantID
+        let lockedCompanionID = companionEvent.unlockCombatantID
+        let heroUnlocks = (
+            Set(GameContent.heroes.map(\.id)).subtracting(lockedHeroID.map { [$0] } ?? []),
+            Set(GameContent.companions.map(\.id))
+        )
+        let companionUnlocks = (
+            Set(GameContent.heroes.map(\.id)),
+            Set(GameContent.companions.map(\.id)).subtracting(lockedCompanionID.map { [$0] } ?? [])
+        )
+
+        let heroArt = try #require(
+            LabyrinthMapPresentation.recruitEncounterArtReference(
+                for: heroNode,
+                worldSeed: 1,
+                unlockedHeroIDs: heroUnlocks.0,
+                unlockedCompanionIDs: heroUnlocks.1
+            )
+        )
+        let companionArt = try #require(
+            LabyrinthMapPresentation.recruitEncounterArtReference(
+                for: companionNode,
+                worldSeed: 1,
+                unlockedHeroIDs: companionUnlocks.0,
+                unlockedCompanionIDs: companionUnlocks.1
+            )
+        )
+
+        #expect(heroArt.imageName == "encounter_mystery_recruit_heroes")
+        #expect(companionArt.imageName == "encounter_mystery_recruit_companions")
+    }
+
+    @Test func labyrinthRecruitEncounterArtIsNilWhenPoolFallsBackToMystery() {
+        let node = LabyrinthNode(id: "recruit", type: .recruit, depth: 1, clusterID: "floor")
+        #expect(
+            LabyrinthMapPresentation.recruitEncounterArtReference(
+                for: node,
+                worldSeed: 1,
+                unlockedHeroIDs: Set(GameContent.heroes.map(\.id)),
+                unlockedCompanionIDs: Set(GameContent.companions.map(\.id))
+            ) == nil
+        )
     }
 }

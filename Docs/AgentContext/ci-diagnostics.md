@@ -47,10 +47,11 @@ start without deleting raw logs or xcresult bundles:
 ./Scripts/ci-diagnostics.sh --reset .DerivedData/TestResults
 # or the isolated RESULTS_DIR for an agent run
 ```
-Coding agents should inspect the aggregate, then the referenced per-invocation JSON,
-Markdown, annotations, and attachments for the failure category, issue, source
-location, and suggested action. Inspect raw xcodebuild logs only when the aggregate
-category is `unknown` (or a report explicitly escalates to raw-log inspection).
+Coding agents should inspect the aggregate first, then the referenced per-invocation
+Markdown for the failure category, issue, source location, and suggested action.
+Open per-invocation JSON, annotations, or attachments only when the Markdown points
+to missing detail. Inspect raw xcodebuild logs only when the aggregate category is
+`unknown` (or a report explicitly escalates to raw-log inspection).
 
 For GitHub Actions failures, prefer check-run annotations (SwiftLint / compiler)
 and a short `--log-failed` tail over scraping the full log when the excerpt only
@@ -61,3 +62,9 @@ prints those when used manually.
 The test and package command scopes are unchanged: diagnostics describe the existing
 `test.sh`, `test-package.sh`, and wrapper invocations rather than replacing focused
 verification or the pre-push gates.
+
+CI uploads a structured-first artifact. The test job always retains manifests,
+bounded reports, the aggregate, and timing data; raw logs, `.xcresult` bundles, and
+attachments are staged only when the aggregate category is failed or unknown. Use
+`./Scripts/ci-diagnostics.py --full <RESULTS_DIR> <OUTPUT_PATH>` when an investigation
+needs the uncompressed aggregate invocation payload.

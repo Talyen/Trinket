@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import subprocess
 import sys
 import tempfile
@@ -27,6 +28,7 @@ class ScriptRegressionTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.codegen = load_script("content_codegen", "content_codegen.py")
+        cls.check_docs = load_script("check_docs", "check-docs.py")
 
     def test_publicize_ignores_braces_in_string_literals(self) -> None:
         source = 'struct Thing {\n    let brace = "}"\n    let value = 1\n}\n'
@@ -49,6 +51,29 @@ class ScriptRegressionTests(unittest.TestCase):
         )
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("Unknown command", result.stderr)
+
+    def test_plan_metadata_requires_lifecycle_fields_and_blocked_reason(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            valid = root / "valid.md"
+            valid.write_text(
+                "---\n"
+                "type: execution-plan\n"
+                "status: active\n"
+                "created: 2026-08-20\n"
+                "updated: 2026-08-20\n"
+                "expires: 2026-09-03\n"
+                "---\n\n# Plan\n",
+                encoding="utf-8",
+            )
+            metadata, errors = self.check_docs.plan_metadata(valid)
+            self.assertEqual(errors, [])
+            self.assertEqual(metadata["status"], "active")
+
+            blocked = root / "blocked.md"
+            blocked.write_text(valid.read_text(encoding="utf-8").replace("status: active", "status: blocked"), encoding="utf-8")
+            _, errors = self.check_docs.plan_metadata(blocked)
+            self.assertIn("blocked plans require reason", errors)
 
     def test_ui_style_requires_explicit_catalog_artwork_display_size(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -225,6 +250,101 @@ class ScriptRegressionTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("./Scripts/test-scripts.sh", result.stdout)
 
+    def test_ci_diagnostics_stages_structured_artifacts_and_failure_forensics(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            results = Path(directory) / "TestResults"
+            results.mkdir()
+            raw = results / "raw"
+            raw.mkdir(exist_ok=True)
+            (raw / "pass.log").write_text("pass\n", encoding="utf-8")
+            (results / "pass.xcresult").mkdir()
+            (results / "pass-invocation.json").write_text(
+                json.dumps(
+                    {
+                        "status": "passed",
+                        "exit_code": 0,
+                        "result_bundle": str(results / "pass.xcresult"),
+                    }
+                ),
+                encoding="utf-8",
+            )
+            (results / "ci-diagnostics.json").write_text(
+                json.dumps({"category": "passed"}), encoding="utf-8"
+            )
+            passed_stage = Path(directory) / "passed-artifact"
+            staged = subprocess.run(
+                [
+                    str(ROOT / "Scripts" / "ci-diagnostics.sh"),
+                    "--stage-artifacts",
+                    str(results),
+                    str(passed_stage),
+                ],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(staged.returncode, 0, staged.stderr)
+            self.assertFalse((passed_stage / "raw").exists())
+            self.assertTrue((passed_stage / "ci-diagnostics.json").exists())
+
+            pruned = subprocess.run(
+                [
+                    str(ROOT / "Scripts" / "ci-diagnostics.sh"),
+                    "--prune-successes",
+                    str(results),
+                ],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(pruned.returncode, 0, pruned.stderr)
+            self.assertFalse((results / "pass.xcresult").exists())
+            self.assertFalse((raw / "pass.log").exists())
+
+            raw.mkdir(exist_ok=True)
+            (raw / "pass.log").write_text("failure evidence\n", encoding="utf-8")
+            (results / "pass.xcresult").mkdir()
+            (results / "ci-diagnostics.json").write_text(
+                json.dumps({"category": "test-failure"}), encoding="utf-8"
+            )
+            failed_stage = Path(directory) / "failed-artifact"
+            staged = subprocess.run(
+                [
+                    str(ROOT / "Scripts" / "ci-diagnostics.sh"),
+                    "--stage-artifacts",
+                    str(results),
+                    str(failed_stage),
+                ],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(staged.returncode, 0, staged.stderr)
+            self.assertTrue((failed_stage / "raw" / "pass.log").exists())
+
+    def test_new_plan_scaffold_creates_lifecycle_metadata(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            plan_name = f"TokenEfficiencyFixture{Path(directory).name}"
+            plan_path = ROOT / "Docs" / "Plans" / f"{plan_name}.md"
+            try:
+                created = subprocess.run(
+                    [str(ROOT / "Scripts" / "new-plan.sh"), plan_name],
+                    cwd=ROOT,
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                )
+                self.assertEqual(created.returncode, 0, created.stderr)
+                text = plan_path.read_text(encoding="utf-8")
+                self.assertIn("type: execution-plan", text)
+                self.assertIn("status: active", text)
+                self.assertIn("expires:", text)
+            finally:
+                plan_path.unlink(missing_ok=True)
+
     def test_agent_context_shell_quotes_paths_with_spaces(self) -> None:
         result = subprocess.run(
             [
@@ -241,6 +361,53 @@ class ScriptRegressionTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn(r"Raw\ Assets/Art/example.png", result.stdout)
 
+    def test_agent_context_requires_explicit_scope(self) -> None:
+        result = subprocess.run(
+            [str(ROOT / "Scripts" / "agent-context.sh"), "--agent"],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("requires --paths", result.stderr)
+
+    def test_agent_context_json_is_compact_until_full_is_requested(self) -> None:
+        command = [
+            str(ROOT / "Scripts" / "agent-context.sh"),
+            "--json",
+            "--paths",
+            "Packages/BattleEngine/Sources/BattleEngine/BattleState.swift",
+        ]
+        compact = subprocess.run(command, cwd=ROOT, capture_output=True, text=True, check=False)
+        self.assertEqual(compact.returncode, 0, compact.stderr)
+        compact_payload = json.loads(compact.stdout)
+        self.assertIn("path_counts", compact_payload)
+        self.assertNotIn("paths", compact_payload)
+
+        full = subprocess.run(command[:2] + ["--full"] + command[2:], cwd=ROOT, capture_output=True, text=True, check=False)
+        self.assertEqual(full.returncode, 0, full.stderr)
+        self.assertIn("paths", json.loads(full.stdout))
+
+    def test_handoff_requires_explicit_scope_and_supports_working_tree_override(self) -> None:
+        missing = subprocess.run(
+            [str(ROOT / "Scripts" / "handoff.sh"), "--dry-run"],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertNotEqual(missing.returncode, 0)
+        self.assertIn("requires --paths", missing.stderr)
+        explicit = subprocess.run(
+            [str(ROOT / "Scripts" / "handoff.sh"), "--dry-run", "--working-tree"],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(explicit.returncode, 0, explicit.stderr)
+
     def test_agent_context_routes_app_state_to_battle_card(self) -> None:
         result = subprocess.run(
             [
@@ -256,6 +423,39 @@ class ScriptRegressionTests(unittest.TestCase):
         )
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("Docs/AgentContext/battle.md", result.stdout)
+
+    def test_agent_context_routes_battle_state_to_focused_card_without_design_skill(self) -> None:
+        result = subprocess.run(
+            [
+                str(ROOT / "Scripts" / "agent-context.sh"),
+                "--agent",
+                "--paths",
+                "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/State/BattleFeedbackLane.swift",
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("Docs/AgentContext/battle-presentation.md", result.stdout)
+        self.assertNotIn("apple-design/SKILL.md", result.stdout)
+
+    def test_agent_context_routes_engine_to_engine_card(self) -> None:
+        result = subprocess.run(
+            [
+                str(ROOT / "Scripts" / "agent-context.sh"),
+                "--agent",
+                "--paths",
+                "Packages/BattleEngine/Sources/BattleEngine/BattleState.swift",
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("Docs/AgentContext/battle-engine.md", result.stdout)
 
     def test_agent_context_routes_design_system_to_apple_design(self) -> None:
         result = subprocess.run(

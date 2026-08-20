@@ -24,7 +24,10 @@ Propose-and-stop items awaiting user approval per the README right-size policy.
 
 | Owning audit | Proposal | Evidence pointer | Implementation boundary | Proposed |
 |--------------|----------|------------------|-------------------------|----------|
-| _none_ | | | | |
+| 04 / 08 | CloudKit `recoveryURL: nil` → in-memory fallback, no delete/recreate | `PlayerSaveStoreConfiguration.resolveConfiguration` CloudKit branch | Live CloudKit still gated by CloudKitPreShipChecklist; needs a recoverable local URL plus a non-network test | 2026-08-19 |
+| 04 / 08 | `deleteStoreOnFailure: true` wipes progress on any open failure | `PlayerSaveStore.openContainer` | Availability-over-durability product policy; needs SchemaMigrationPlan + backup-before-delete | 2026-08-19 |
+| 13 | Full `PlayerSave` snapshot on every `performBatchMutation` | `PlayerSaveStore.performBatchMutation` `SnapshotProjection` | High-risk rewrite; measure Instruments first | 2026-08-19 |
+| 17 | Campaign appliers lack store round-trip tests | `StageRewardTests`, `MysteryEffectApplierTests`, `ShopPurchaseApplierTests`, `BattleLootTests` | Follow-on coverage; mutate→reload per Persistence AGENTS.md | 2026-08-19 |
 
 ## Rejected proposals
 
