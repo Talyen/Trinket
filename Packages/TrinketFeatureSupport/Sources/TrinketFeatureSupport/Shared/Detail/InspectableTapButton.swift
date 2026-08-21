@@ -1,14 +1,13 @@
 import SwiftUI
 
-/// Tap and long-press share one control. `Button` swallows `onLongPressGesture`;
-/// a simultaneous long-press plus a skipped follow-up tap keeps both actions distinct.
+/// Tap and long-press share one control. Quick releases never complete the
+/// long-press, and every inspection presents modally, which cancels the
+/// pending lift-tap — so the actions stay distinct without tap bookkeeping.
 public struct InspectableTapButton<Label: View>: View {
     let action: () -> Void
     var longPress: (() -> Void)?
     var isDisabled = false
     @ViewBuilder var label: () -> Label
-
-    @State private var ignoreTap = false
 
     public init(
         action: @escaping () -> Void,
@@ -23,33 +22,23 @@ public struct InspectableTapButton<Label: View>: View {
     }
 
     public var body: some View {
-        Button {
-            if ignoreTap {
-                ignoreTap = false
-                return
-            }
-            action()
-        } label: {
+        Button(action: action) {
             label()
         }
         .disabled(isDisabled)
-        .modifier(InspectLongPressModifier(longPress: isDisabled ? nil : longPress, ignoreTap: $ignoreTap))
+        .modifier(InspectLongPressModifier(longPress: isDisabled ? nil : longPress))
     }
 }
 
 private struct InspectLongPressModifier: ViewModifier {
     let longPress: (() -> Void)?
-    @Binding var ignoreTap: Bool
 
     func body(content: Content) -> some View {
         if let longPress {
             content
                 .simultaneousGesture(
                     LongPressGesture(minimumDuration: 0.5)
-                        .onEnded { _ in
-                            ignoreTap = true
-                            longPress()
-                        }
+                        .onEnded { _ in longPress() }
                 )
                 .accessibilityAction(named: "Show Details", longPress)
         } else {
