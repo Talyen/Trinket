@@ -65,7 +65,10 @@ final class CombatFeedbackRasterPool {
 
     private let capacity: Int
     private var rasters: [CombatFeedbackRasterKey: CombatFeedbackRaster] = [:]
-    private var recency: [CombatFeedbackRasterKey] = []
+    /// Epoch-stamped recency: O(1) touch on the display-link hit path; eviction
+    /// scans stamps only on the miss path it already accompanies.
+    private var lastUseEpoch: [CombatFeedbackRasterKey: Int] = [:]
+    private var nextEpoch = 0
     private var hitCount = 0
     private var missCount = 0
     private var buildCount = 0
@@ -246,7 +249,7 @@ final class CombatFeedbackRasterPool {
         pendingCatalogWarmup?.task.cancel()
         pendingCatalogWarmup = nil
         rasters.removeAll(keepingCapacity: true)
-        recency.removeAll(keepingCapacity: true)
+        lastUseEpoch.removeAll(keepingCapacity: true)
         preparedCatalogKey = nil
     }
 
@@ -313,62 +316,17 @@ final class CombatFeedbackRasterPool {
     }
 
     private func insert(_ raster: CombatFeedbackRaster, for key: CombatFeedbackRasterKey) {
-        if rasters.count >= capacity, let leastRecent = recency.first {
+        if rasters.count >= capacity, let leastRecent = lastUseEpoch.min(by: { $0.value < $1.value })?.key {
             rasters.removeValue(forKey: leastRecent)
-            recency.removeFirst()
+            lastUseEpoch.removeValue(forKey: leastRecent)
             evictionCount += 1
         }
         rasters[key] = raster
-        recency.append(key)
+        markMostRecent(key)
     }
 
     private func markMostRecent(_ key: CombatFeedbackRasterKey) {
-        guard recency.last != key else { return }
-        if let index = recency.firstIndex(of: key) {
-            recency.remove(at: index)
-        }
-        recency.append(key)
+        nextEpoch += 1
+        lastUseEpoch[key] = nextEpoch
     }
 }
-
-#if DEBUG
-extension CombatFeedbackRasterPool {
-    /// Seeds a raster without composing. Pool LRU/accounting tests use this so they
-    /// do not pay UIKit chip bake cost. DEBUG-only: the production API surface is
-    /// exactly the atlas-backed `prepare` path, so warm-path accounting cannot be
-    /// masked by test seeding in release.
-    @discardableResult
-    func seedForTesting(
-        for canvasItem: CombatFeedbackCanvasItem,
-        dynamicTypeSize: DynamicTypeSize,
-        layoutDirection: LayoutDirection = .leftToRight,
-        displayScale: CGFloat,
-        image: CGImage,
-        pointSize: CGSize = CGSize(width: 1, height: 1)
-    ) -> CombatFeedbackRaster {
-        let scale = max(1, displayScale)
-        let key = makeKey(
-            for: canvasItem,
-            dynamicTypeSize: dynamicTypeSize,
-            layoutDirection: layoutDirection,
-            displayScale: scale
-        )
-        if let existing = rasters[key] {
-            hitCount += 1
-            markMostRecent(key)
-            return existing
-        }
-        missCount += 1
-        buildCount += 1
-        rasterAllocationCount += 1
-        let raster = CombatFeedbackRaster(
-            key: key,
-            image: image,
-            pointSize: pointSize,
-            displayScale: scale
-        )
-        insert(raster, for: key)
-        return raster
-    }
-}
-#endif

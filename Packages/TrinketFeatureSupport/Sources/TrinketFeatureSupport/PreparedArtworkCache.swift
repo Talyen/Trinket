@@ -218,17 +218,23 @@ public final class PreparedArtworkCache {
 
         await withTaskGroup(of: PreparedArtwork.self) { group in
             var iterator = namesToDecode.makeIterator()
+            // Decode tasks are shared across batches by name; only this batch's
+            // tasks may be cancelled when this batch is cancelled.
+            var batchTasks: [Task<PreparedArtwork, Never>] = []
 
             for _ in 0 ..< maximumConcurrency {
                 guard let name = iterator.next() else { break }
                 let task = decodeTask(for: name)
+                batchTasks.append(task)
                 group.addTask { await task.value }
             }
 
             while let prepared = await group.next() {
                 guard !Task.isCancelled else {
                     group.cancelAll()
-                    cancelInFlightDecodeTasks()
+                    for task in batchTasks {
+                        task.cancel()
+                    }
                     return
                 }
                 if let image = prepared.image {
@@ -250,6 +256,7 @@ public final class PreparedArtworkCache {
 
                 if let name = iterator.next() {
                     let task = decodeTask(for: name)
+                    batchTasks.append(task)
                     group.addTask { await task.value }
                 }
                 await Task.yield()
@@ -265,12 +272,6 @@ public final class PreparedArtworkCache {
         let task = Task { await decode(name) }
         decodeTasksByName[name] = task
         return task
-    }
-
-    private func cancelInFlightDecodeTasks() {
-        for task in decodeTasksByName.values {
-            task.cancel()
-        }
     }
 
     public func launchWarmupSnapshot() -> PreparedArtworkCacheSnapshot {
