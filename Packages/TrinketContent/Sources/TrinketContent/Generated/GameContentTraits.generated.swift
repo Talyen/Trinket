@@ -51,30 +51,30 @@ enum GameContentTraitsGenerated {
         list.append(CombatantTraitDefinition(
             id: "the_blight_treant_trait",
             name: "The Blight Treant",
-            description: "Holy damage taken increased by 30%. Gains Poison or Bleed damage each turn.",
+            description: "Holy damage taken increased by 30%. Deals 1 Poison or Bleed damage each turn to all enemies.",
             modifiers: [.damageTakenVulnerability(.holy, 0.30)],
-            triggers: CombatTraitTriggers(damage: DamageTriggers(randomDamageRampKeywordA: .poison, randomDamageRampKeywordB: .bleed, randomDamageRampPerTurn: 1))
+            triggers: CombatTraitTriggers(damage: DamageTriggers(turnRandomDamageAllEnemiesKeywordA: .poison, turnRandomDamageAllEnemiesKeywordB: .bleed, turnRandomDamageAllEnemiesAmount: 1))
         ))
         list.append(CombatantTraitDefinition(
             id: "the_forge_golem_trait",
             name: "The Forge Golem",
-            description: "Gains Stun or Burn damage each turn.",
+            description: "Deals 1 Stun or Burn damage each turn to all enemies.",
             modifiers: [],
-            triggers: CombatTraitTriggers(damage: DamageTriggers(randomDamageRampKeywordA: .stun, randomDamageRampKeywordB: .burn, randomDamageRampPerTurn: 1))
+            triggers: CombatTraitTriggers(damage: DamageTriggers(turnRandomDamageAllEnemiesKeywordA: .stun, turnRandomDamageAllEnemiesKeywordB: .burn, turnRandomDamageAllEnemiesAmount: 1))
         ))
         list.append(CombatantTraitDefinition(
             id: "the_frostwarden_trait",
             name: "The Frostwarden",
-            description: "Deals 1 Freeze damage every other turn to all enemies. Burn damage taken increased by 30%. Gains Freeze damage every other turn.",
+            description: "Deals 1 Freeze damage every other turn to all enemies. Burn damage taken increased by 30%.",
             modifiers: [.damageTakenVulnerability(.burn, 0.30)],
-            triggers: CombatTraitTriggers(damage: DamageTriggers(damageIncreasesEveryOtherTurn: true, damageIncreasesEveryOtherTurnKeyword: .freeze), control: ControlTriggers(turnFreezeDamageAllEnemies: 1))
+            triggers: CombatTraitTriggers(control: ControlTriggers(turnFreezeDamageAllEnemies: 1))
         ))
         list.append(CombatantTraitDefinition(
             id: "the_iron_bear_trait",
             name: "The Iron Bear",
-            description: "Gains Physical or Stun damage each turn.",
+            description: "Deals 1 Physical or Stun damage each turn to all enemies.",
             modifiers: [],
-            triggers: CombatTraitTriggers(damage: DamageTriggers(randomDamageRampKeywordA: .physical, randomDamageRampKeywordB: .stun, randomDamageRampPerTurn: 1))
+            triggers: CombatTraitTriggers(damage: DamageTriggers(turnRandomDamageAllEnemiesKeywordA: .physical, turnRandomDamageAllEnemiesKeywordB: .stun, turnRandomDamageAllEnemiesAmount: 1))
         ))
         list.append(CombatantTraitDefinition(
             id: "goblin_trait",

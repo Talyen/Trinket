@@ -21,6 +21,8 @@ if ! command -v swift >/dev/null 2>&1; then
 fi
 
 OUTPUT_DIR="${BALANCE_SWEEP_OUTPUT_DIR:-BalanceSweepReports}"
+EXPLICIT_OUTPUT=false
+[[ -n "${BALANCE_SWEEP_OUTPUT_DIR:-}" ]] && EXPLICIT_OUTPUT=true
 ARGS=()
 HAS_OUTPUT=0
 for arg in "$@"; do
@@ -35,6 +37,15 @@ if [[ "$HAS_OUTPUT" -eq 0 ]]; then
 fi
 
 mkdir -p "$OUTPUT_DIR"
+
+cleanup() {
+  local status=$?
+  if [[ "$status" -eq 0 && "$EXPLICIT_OUTPUT" != true && "${TRINKET_KEEP_REPORTS:-0}" != "1" ]]; then
+    rm -rf "$OUTPUT_DIR"
+  fi
+  return "$status"
+}
+trap cleanup EXIT INT TERM
 
 CONFIGURATION="${BALANCE_SWEEP_CONFIGURATION:-release}"
 echo "BalanceSweepCLI via Packages/BattleEngine ($CONFIGURATION) …" >&2

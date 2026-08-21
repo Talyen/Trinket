@@ -39,7 +39,7 @@ Touched areas must respect their nested guides and AgentContext cards. Run `./Sc
 
 ## Test and verification discipline
 
-- Verification does not imply authoring a test. Add or expand coverage only for a distinct consequential behavior or invariant that is not already covered, would fail before the change (except genuinely new behavior), and belongs in the cheapest suitable tier.
+- Verification does not imply authoring a test. Add or expand coverage only for a distinct consequential behavior or invariant that is not already covered, would fail before the change (except genuinely new behavior), and belongs in the cheapest suitable tier. For persistence, “round trip” means mutate, close/reopen or reload from disk, then assert durable survival; in-memory accessor/setter checks are not persistence proof.
 - Extend the closest existing semantic owner before adding a declaration, file, or class. Do not test plumbing, stored-property round trips, display copy, layout constants, framework behavior, or trivial delegation.
 - UI tests are exceptional: keep one owner for a shipping shell/entry, state-changing journey, or safety invariant that lower tiers cannot prove. Never duplicate it across smoke and exhaustive UI. See `Docs/Platform/Testing.md`.
 - Before handoff, changed paths must pass path-scoped verification with `--isolate`. `./Scripts/handoff.sh --isolate --paths <file...>` is the canonical gate. Never kill foreign Xcode or Simulator processes; concurrency, worktree, lock, and diagnostics details live in `Docs/AgentContext/ci-and-project-generation.md` and `Docs/AgentContext/ci-diagnostics.md`.

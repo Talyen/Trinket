@@ -6,6 +6,8 @@ cd "$(dirname "$0")/.."
 LOCK_DIR=".DerivedData/.performance.lock"
 TIMESTAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 OUTPUT_DIR="${TRINKET_PERFORMANCE_OUTPUT_DIR:-.DerivedData/PerformanceResults/$TIMESTAMP}"
+EXPLICIT_OUTPUT=false
+[[ -n "${TRINKET_PERFORMANCE_OUTPUT_DIR:-}" ]] && EXPLICIT_OUTPUT=true
 # Default one measured report per scenario. Use five repetitions for formal comparison:
 #   TRINKET_PERFORMANCE_REPETITIONS=5 ./Scripts/performance.sh
 REPETITIONS="${TRINKET_PERFORMANCE_REPETITIONS:-1}"
@@ -28,7 +30,12 @@ if ! mkdir "$LOCK_DIR" 2>/dev/null; then
 fi
 printf '%s\n' "$$" > "$LOCK_DIR/pid"
 cleanup() {
+  local status=$?
   rm -rf "$LOCK_DIR"
+  if [[ "$status" -eq 0 && "$EXPLICIT_OUTPUT" != true && "${TRINKET_KEEP_PERFORMANCE_REPORTS:-0}" != "1" ]]; then
+    rm -rf "$OUTPUT_DIR"
+  fi
+  return "$status"
 }
 trap cleanup EXIT INT TERM
 
@@ -65,6 +72,7 @@ echo "Running exclusive full-fidelity app performance matrix (${REPETITIONS} mea
 TRINKET_ISOLATE=1 \
 TRINKET_MAX_CONCURRENT_UI=1 \
 TRINKET_PERFORMANCE_REPETITIONS="$REPETITIONS" \
+TRINKET_CLEANUP_TEST_ARTIFACTS=0 \
 RESULTS_DIR="$OUTPUT_DIR/TestResults" \
 ./Scripts/test.sh performance
 

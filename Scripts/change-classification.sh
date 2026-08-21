@@ -21,6 +21,7 @@ TRINKET_AUTHORED_PATHS=()
 TRINKET_GENERATED_PATHS=()
 TRINKET_PACKAGES=()
 TRINKET_CONTEXT_CARDS=()
+TRINKET_ROUTE_CARDS=()
 TRINKET_SKILLS=()
 TRINKET_AGENT_GUIDES=()
 TRINKET_BOUNDARY_WARNINGS=()
@@ -67,6 +68,7 @@ trinket_add_unique() {
 
 trinket_add_package() { trinket_add_unique TRINKET_PACKAGES "$1"; }
 trinket_add_context_card() { trinket_add_unique TRINKET_CONTEXT_CARDS "$1"; }
+trinket_add_route_card() { trinket_add_unique TRINKET_ROUTE_CARDS "$1"; }
 trinket_add_skill() { trinket_add_unique TRINKET_SKILLS "$1"; }
 trinket_add_agent_guide() { trinket_add_unique TRINKET_AGENT_GUIDES "$1"; }
 trinket_add_boundary_warning() { trinket_add_unique TRINKET_BOUNDARY_WARNINGS "$1"; }
@@ -111,6 +113,7 @@ trinket_reset_classification() {
   TRINKET_GENERATED_PATHS=()
   TRINKET_PACKAGES=()
   TRINKET_CONTEXT_CARDS=()
+  TRINKET_ROUTE_CARDS=()
   TRINKET_SKILLS=()
   TRINKET_AGENT_GUIDES=()
   TRINKET_BOUNDARY_WARNINGS=()
@@ -203,12 +206,21 @@ trinket_path_needs_doc_budget() {
 
 trinket_path_needs_architect() {
   local path="$1"
-  trinket_path_is_new "$path" || trinket_path_has_diff_pattern "$path" '^\+[^+].*(public[[:space:]]+(actor|class|enum|struct|protocol|typealias)|(^|[[:space:]])protocol[[:space:]])'
+  local pattern='(public[[:space:]]+(actor|class|enum|struct|protocol|typealias)|(^|[[:space:]])protocol[[:space:]]|@Model|[A-Za-z0-9_]+Schema|@attached)'
+  local changed_pattern='^\+[^+].*'
+  # A new implementation/helper file is not automatically an API-boundary
+  # change. Route architecture review only when the diff declares a public or
+  # schema/boundary symbol; this avoids an architect/doc-budget loop for tests.
+  if trinket_path_is_new "$path"; then
+    trinket_path_has_diff_pattern "$path" "$pattern"
+  else
+    trinket_path_has_diff_pattern "$path" "$changed_pattern$pattern"
+  fi
 }
 
 trinket_path_is_visual_ui() {
   case "$1" in
-    Trinket/Features/*|TrinketUITests/*|Packages/TrinketDesignSystem/*|\
+    Trinket/Features/*|\
     Packages/TrinketBattleFeature/Sources/*/Features/*|Packages/TrinketBattleFeature/Sources/*/Views/*|\
     Packages/TrinketFeatureSupport/Sources/*/Features/*|Packages/TrinketFeatureSupport/Sources/*/FeatureAdapters/*|\
     Packages/TrinketFeatureSupport/Sources/*/Shared/Cards/*|Packages/TrinketFeatureSupport/Sources/*/Shared/Detail/*|\
@@ -222,12 +234,24 @@ trinket_path_is_visual_ui() {
 trinket_add_battle_subcard_for_path() {
   case "$1" in
     Packages/BattleEngine/*)
+      trinket_add_route_card Docs/AgentContext/battle.md
       trinket_add_context_card Docs/AgentContext/battle-engine.md
       ;;
-    Packages/TrinketBattleRuntime/*|Packages/TrinketAppState/*)
+    Packages/TrinketBattleRuntime/*)
+      trinket_add_route_card Docs/AgentContext/battle.md
       trinket_add_context_card Docs/AgentContext/battle-runtime.md
       ;;
+    Packages/TrinketAppState/*)
+      case "$1" in
+        */Audio/*) ;;
+        *Battle*|*/Encounter*|*/Play/*)
+          trinket_add_route_card Docs/AgentContext/battle.md
+          trinket_add_context_card Docs/AgentContext/battle-runtime.md
+          ;;
+      esac
+      ;;
     Packages/TrinketBattleFeature/*)
+      trinket_add_route_card Docs/AgentContext/battle.md
       case "$1" in
         */State/*Runtime*|*/State/*Commands*|*/State/*Launch*)
           trinket_add_context_card Docs/AgentContext/battle-runtime.md
@@ -322,6 +346,7 @@ trinket_classify_path() {
       TRINKET_HAS_SWIFT=true
       TRINKET_NEEDS_STYLE=true
       trinket_add_package TrinketDesignSystem
+      trinket_add_skill Docs/Skills/apple-design/SKILL.md
       TRINKET_AUTHORED_PATHS+=("$path")
       ;;
     Packages/TrinketFeatureSupport/*.swift)
@@ -444,11 +469,7 @@ trinket_classify_paths() {
   if [[ ${#TRINKET_PACKAGES[@]+x} ]] && (( ${#TRINKET_PACKAGES[@]} > 0 )); then
     for package in ${TRINKET_PACKAGES[@]+"${TRINKET_PACKAGES[@]}"}; do
       case "$package" in
-        BattleEngine) trinket_add_context_card Docs/AgentContext/battle.md ;;
         TrinketPersistence) trinket_add_context_card Docs/AgentContext/persistence.md ;;
-        TrinketBattleFeature) trinket_add_context_card Docs/AgentContext/battle.md ;;
-        TrinketAppState) trinket_add_context_card Docs/AgentContext/battle.md ;;
-        TrinketBattleRuntime) trinket_add_context_card Docs/AgentContext/battle.md ;;
         TrinketFeatureSupport) ;;
         TrinketDesignSystem) ;;
       esac

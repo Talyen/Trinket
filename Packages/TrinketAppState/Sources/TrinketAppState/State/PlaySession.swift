@@ -29,6 +29,11 @@ public final class PlaySession {
     let battleCompletion: PlayBattleCompletion
 
     public private(set) var pendingDestination: PlayLaunchDestination?
+    private var postBattleTalentCombatantIDs: [String] = []
+
+    public var currentPostBattleTalentCombatantID: String? {
+        postBattleTalentCombatantIDs.first
+    }
 
     init(
         playerSave: PlayerSaveStore,
@@ -103,12 +108,24 @@ public final class PlaySession {
         battleEarnedGold: Int,
         materialRewards: [ResourceAmount]? = nil
     ) -> Bool {
+        let combatants = [configuration.hero.combatant, configuration.companion.combatant]
+        let progressionsBefore = Dictionary(
+            uniqueKeysWithValues: combatants.map { combatant in
+                (combatant.id, playerSave.roster.progression(for: combatant))
+            }
+        )
         let persisted = battleCompletion.completeActiveBattle(
             configuration,
             battleEarnedGold: battleEarnedGold,
             materialRewards: materialRewards,
             route: route(for: configuration.runKey),
             presentation: battlePresentation(for: configuration.runKey),
+            onPersisted: { [weak self] in
+                self?.queuePostBattleTalentChoices(
+                    for: combatants,
+                    progressionsBefore: progressionsBefore
+                )
+            },
             queueReturnToOrigin: { [weak self] origin in
                 self?.queueReturnToBattleOrigin(from: origin)
             }
@@ -119,9 +136,29 @@ public final class PlaySession {
         return persisted
     }
 
+    public func choosePostBattleTalent(nodeID: String, treeID: String) -> TalentUnlockResult {
+        guard let combatantID = postBattleTalentCombatantIDs.first else {
+            return .unavailable
+        }
+        let result = playerSave.unlockTalent(
+            nodeID: nodeID,
+            treeID: treeID,
+            for: combatantID
+        )
+        if result == .unlocked {
+            postBattleTalentCombatantIDs.removeFirst()
+        }
+        return result
+    }
+
+    public func dismissPostBattleTalentChoice() {
+        postBattleTalentCombatantIDs.removeAll(keepingCapacity: true)
+    }
+
     func clearTransientState() {
         battle.endBattle()
         battleRunRegistry.removeAll()
+        dismissPostBattleTalentChoice()
         encounters.activeMysteryEncounter = nil
         encounters.activeShopEncounter = nil
         labyrinth.activeNodeSession = nil
@@ -138,6 +175,21 @@ public final class PlaySession {
 
     func battleUniversalModifiers(for runKey: BattleRunKey?) -> [AffixModifier] {
         battleRunRegistry.universalModifiers(for: runKey)
+    }
+
+    private func queuePostBattleTalentChoices(
+        for combatants: [Combatant],
+        progressionsBefore: [String: CombatantProgression]
+    ) {
+        postBattleTalentCombatantIDs = combatants.compactMap { combatant in
+            guard let before = progressionsBefore[combatant.id] else { return nil }
+            let roster = playerSave.roster
+            let after = roster.progression(for: combatant)
+            guard after.totalTalentPoints > before.totalTalentPoints,
+                  roster.availableTalentPoints(for: combatant.id) > 0
+            else { return nil }
+            return combatant.id
+        }
     }
 }
 

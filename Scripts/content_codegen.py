@@ -534,21 +534,17 @@ def triggers_swift(raw: str) -> str:
             values["onHitAttackerBurn"] = token.split(":", 1)[1]
         elif token.startswith("turn_freeze_all_enemies:"):
             values["turnFreezeDamageAllEnemies"] = token.split(":", 1)[1]
-        elif token.startswith("damage_increases_every_other_turn:"):
-            parts = token.split(":")
-            values["damageIncreasesEveryOtherTurn"] = "true"
-            if len(parts) >= 3:
-                values["damageIncreasesEveryOtherTurnKeyword"] = f".{parts[1]}"
-        elif token.startswith("random_damage_ramp_per_turn:"):
+        elif token.startswith("turn_random_damage_all_enemies:"):
             parts = token.split(":")
             if len(parts) != 4:
                 raise ValueError(
-                    f"random_damage_ramp_per_turn expects keyword:keyword:amount, got {token!r}"
+                    "turn_random_damage_all_enemies expects keyword:keyword:amount, "
+                    f"got {token!r}"
                 )
             _, keyword_a, keyword_b, amount = parts
-            values["randomDamageRampKeywordA"] = f".{keyword_a}"
-            values["randomDamageRampKeywordB"] = f".{keyword_b}"
-            values["randomDamageRampPerTurn"] = amount
+            values["turnRandomDamageAllEnemiesKeywordA"] = f".{keyword_a}"
+            values["turnRandomDamageAllEnemiesKeywordB"] = f".{keyword_b}"
+            values["turnRandomDamageAllEnemiesAmount"] = amount
         elif token.startswith("on_holy_damage_poison:"):
             values["holyDamagePoisonFlat"] = token.split(":", 1)[1]
         elif token.startswith("draw_every_other_turn:"):

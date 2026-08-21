@@ -2,8 +2,8 @@ import Foundation
 
 /// Level-based power multipliers for enemies after archetype growth.
 public enum EnemyPowerCurve {
-    /// Boss HP vs normal HP at the same level (50% above trash so bosses last longer).
-    public static let bossHealthMultiplier = 1.50
+    /// Boss HP vs normal HP at the same level (double trash HP so bosses last longer).
+    public static let bossHealthMultiplier = 2.00
 
     /// L1 is the authored floor (journey opener, labyrinth depth 1). Identity early
     /// is even L4 with a 1-point talent spend. L20 is a partial kit (~10 of 18).

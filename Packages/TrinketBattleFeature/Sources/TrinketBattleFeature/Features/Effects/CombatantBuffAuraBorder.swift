@@ -9,54 +9,27 @@ struct CombatantBuffAuraBorder: View {
     var isMotionActive: Bool = true
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var shimmerAngle = 0.0
 
     private var motionEnabled: Bool {
         isMotionActive && !reduceMotion
     }
 
     var body: some View {
-        CombatantBuffAuraStroke(kind: kind, angle: shimmerAngle)
-            .onAppear {
-                startShimmerIfNeeded()
-            }
-            .onChange(of: motionEnabled) { _, active in
-                if active {
-                    startShimmerIfNeeded()
-                } else {
-                    var freeze = Transaction()
-                    freeze.disablesAnimations = true
-                    withTransaction(freeze) {
-                        shimmerAngle = shimmerAngle.truncatingRemainder(dividingBy: 360)
-                    }
-                }
-            }
-            .allowsHitTesting(false)
-    }
-
-    private func startShimmerIfNeeded() {
-        guard motionEnabled else { return }
-        var reset = Transaction()
-        reset.disablesAnimations = true
-        withTransaction(reset) {
-            shimmerAngle = 0
+        TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: !motionEnabled)) { context in
+            CombatantBuffAuraStroke(
+                kind: kind,
+                angle: motionEnabled
+                    ? TrinketMotion.Shine.phase(at: context.date.timeIntervalSinceReferenceDate) * 360
+                    : 0
+            )
         }
-        withAnimation(
-            .linear(duration: TrinketMotion.Battle.buffAuraShimmerPeriod).repeatForever(autoreverses: false)
-        ) {
-            shimmerAngle = 360
-        }
+        .allowsHitTesting(false)
     }
 }
 
-private struct CombatantBuffAuraStroke: View, Animatable {
+private struct CombatantBuffAuraStroke: View {
     let kind: CombatantBuffAuraKind
-    var angle: Double
-
-    nonisolated var animatableData: Double {
-        get { angle }
-        set { angle = newValue }
-    }
+    let angle: Double
 
     var body: some View {
         let style = palette(for: kind)

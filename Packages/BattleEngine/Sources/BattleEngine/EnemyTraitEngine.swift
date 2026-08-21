@@ -15,45 +15,60 @@ package enum EnemyTraitEngine {
               context.turnCount.isMultiple(of: 2)
         else { return [] }
 
+        return turnDamageAllEnemies(
+            amount: profile.triggers.turnFreezeDamageAllEnemies,
+            keyword: .freeze,
+            source: combatant,
+            context: &context
+        )
+    }
+
+    package static func turnRandomDamageAllEnemies(
+        for combatant: Combatant,
+        context: inout BattleState
+    ) -> [ActionEvent] {
+        let triggers = context.modifiers(for: combatant.id).triggers
+        guard triggers.turnRandomDamageAllEnemiesAmount > 0,
+              let first = triggers.turnRandomDamageAllEnemiesKeywordA,
+              let second = triggers.turnRandomDamageAllEnemiesKeywordB,
+              context.roster.health(for: combatant) > 0
+        else { return [] }
+
+        let chosen = Bool.random(using: &context.rng) ? first : second
+        return turnDamageAllEnemies(
+            amount: triggers.turnRandomDamageAllEnemiesAmount,
+            keyword: chosen,
+            source: combatant,
+            context: &context
+        )
+    }
+
+    private static func turnDamageAllEnemies(
+        amount: Int,
+        keyword: Keyword,
+        source: Combatant,
+        context: inout BattleState
+    ) -> [ActionEvent] {
         var events: [ActionEvent] = []
-        let party = [context.roster.hero, context.roster.companion]
-        for targetRuntime in party where targetRuntime.isAlive {
+        for targetRuntime in [context.roster.hero, context.roster.companion] where targetRuntime.isAlive {
             let outcome = context.resolveDamage(
                 DamageRequest(
-                    amount: profile.triggers.turnFreezeDamageAllEnemies,
+                    amount: amount,
                     target: targetRuntime.combatant,
-                    keyword: .freeze,
-                    sourceActorID: combatant.id,
+                    keyword: keyword,
+                    sourceActorID: source.id,
                     options: DamageOptions(
                         applyStatBonus: false,
                         applyItemBonus: false,
                         applyDodge: false,
                         isRetaliation: true,
-                        applyControlMeter: true
+                        applyControlMeter: keyword == .stun || keyword == .freeze
                     )
                 )
             )
             events.append(contentsOf: outcome.events)
         }
         return events
-    }
-
-    /// Picks one of two authored keywords at random and adds that type's damage bonus.
-    package static func randomKeywordDamageRamp(
-        for combatant: Combatant,
-        context: inout BattleState
-    ) {
-        let triggers = context.modifiers(for: combatant.id).triggers
-        guard triggers.randomDamageRampPerTurn > 0,
-              let first = triggers.randomDamageRampKeywordA,
-              let second = triggers.randomDamageRampKeywordB,
-              context.roster.health(for: combatant) > 0
-        else { return }
-
-        let chosen = Bool.random(using: &context.rng) ? first : second
-        context.roster.mutateRuntime(for: combatant) { runtime in
-            runtime.keywordDamageRamp[chosen, default: 0] += triggers.randomDamageRampPerTurn
-        }
     }
 
     package static func traitAttackerBurn(

@@ -501,11 +501,11 @@ def build_report(args: argparse.Namespace) -> DiagnosticReport:
 
     raw_log_path = ""
     if classification == "unknown" and log_path and args.exit_code != 0:
-        raw_log_path = _normalise_path(str(log_path))
+        raw_log_path = _display_path(str(log_path))
     return DiagnosticReport(
         label=args.label,
-        result_bundle=_normalise_path(str(result_bundle)),
-        log=_normalise_path(str(log_path)) if log_path else "",
+        result_bundle=_display_path(str(result_bundle)),
+        log=_display_path(str(log_path)) if log_path else "",
         exit_code=args.exit_code,
         classification=classification,
         issues=issues,

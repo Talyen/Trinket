@@ -23,6 +23,7 @@ struct BattleAbilityCardView: View {
     var autoLiftCardID: Int?
     let onInspect: () -> Void
     let onPlay: (CardActivationRequest) -> Bool
+    let onPlayDenied: () -> Void
     let onInteractionChanged: (Bool) -> Void
     var onAttackWindUp: (() -> Void)?
     var onAttackCancel: (() -> Void)?
@@ -38,6 +39,7 @@ struct BattleAbilityCardView: View {
     @State private var inspectFeedbackToken = 0
     @State private var denyFeedbackToken = 0
     @State private var didAnnounceDeny = false
+    @State private var didReportPlayDenied = false
     @State private var isTapLifting = false
     @State private var tapLiftTask: Task<Void, Never>?
 
@@ -72,7 +74,7 @@ struct BattleAbilityCardView: View {
     }
 
     var body: some View {
-        CombatantStatusEffectPresentation(keyword: controlSkipKeyword, intro: .immediate) {
+        CombatantStatusEffectPresentation(keyword: controlSkipKeyword) {
             BattleAbilityCardFace(artworkName: card.ability.artReference?.imageName)
                 .equatable()
                 .frame(width: width, height: height)
@@ -248,6 +250,7 @@ struct BattleAbilityCardView: View {
             if crossedDenyThreshold, !didAnnounceDeny {
                 didAnnounceDeny = true
                 denyFeedbackToken &+= 1
+                reportControlledPlayDeniedIfNeeded()
             } else if !crossedDenyThreshold {
                 didAnnounceDeny = false
             }
@@ -272,6 +275,7 @@ struct BattleAbilityCardView: View {
             if isPlayable {
                 beginTapPlay()
             } else {
+                reportControlledPlayDeniedIfNeeded()
                 returnDrag()
             }
             return
@@ -339,6 +343,7 @@ struct BattleAbilityCardView: View {
             didExceedTapSlop = false
             isTapLifting = false
         }
+        didReportPlayDenied = false
         cancelTapLift()
     }
 
@@ -443,6 +448,12 @@ private extension BattleAbilityCardView {
         guard didAnnounceWindUp else { return }
         didAnnounceWindUp = false
         onAttackCancel?()
+    }
+
+    func reportControlledPlayDeniedIfNeeded() {
+        guard showsControlSkipEffect, !didReportPlayDenied else { return }
+        didReportPlayDenied = true
+        onPlayDenied()
     }
 }
 

@@ -19,6 +19,16 @@ Agents always use an isolated path-scoped handoff. Humans may omit `--isolate`
 to reuse the shared warm build tree. Do not regenerate assets during ordinary
 Swift iteration unless an asset manifest or source changed.
 
+Run artifacts are ephemeral by default: passed manifests, reports, xcresults, raw
+logs, and timing history are cleaned at wrapper exit. Set
+`TRINKET_KEEP_DIAGNOSTICS=1` (or `TRINKET_CLEANUP_TEST_ARTIFACTS=0`) when an
+investigation needs to inspect a successful run; failed evidence remains until the
+next explicit cleanup or age-prune.
+Performance and balance reports follow the same rule on successful default runs;
+set `TRINKET_KEEP_PERFORMANCE_REPORTS=1` or `TRINKET_KEEP_REPORTS=1` when a report
+is the subject of an investigation. Timing keeps only the latest entry unless
+`TRINKET_KEEP_TIMING_HISTORY=1` is set.
+
 Read these focused guides:
 
 - [Documentation map](../Docs/README.md) — source-of-truth owners.
@@ -49,7 +59,7 @@ Read these focused guides:
 | `./Scripts/test.sh all` | Run the integration suite |
 | `./Scripts/performance.sh` | Ad hoc app + battle performance matrix (not CI) |
 | `./Scripts/test-iterate.sh <Class>` | Re-run a focused test against a warm build |
-| `./Scripts/agent-context.sh --agent --paths …` | Print concise guidance and verification routing; use `--full` for full commands and `--working-tree` only intentionally |
+| `./Scripts/agent-context.sh --agent --paths …` | Print concise guidance and verification routing; use `--full` for full commands and `--working-tree --allow-broad-scope` only intentionally |
 | `./Scripts/handoff.sh --isolate --paths …` | Canonical path-scoped source gate; use `--working-tree` only intentionally |
 | `./Scripts/new-plan.sh <PlanName>` | Scaffold an expiring active execution plan under `Docs/Plans/` |
 | `./Scripts/ci-gate.sh` | Generation, style, boundaries, script regressions, and release-note validation |
@@ -57,9 +67,10 @@ Read these focused guides:
 | `./Scripts/check-docs.py [--final] [--keep-plan]` | Check links, structure, smoke classes, stale terms, and execution-plan lifecycle |
 | `./Scripts/test-deploy.sh [--mode smoke]` | Full local deploy confidence or smoke canary |
 | `./Scripts/agent-push-gate.sh` | Post-commit generation completeness check |
-| `./Scripts/ci-diagnostics.sh [RESULTS_DIR]` | Aggregate bounded structured diagnostics |
+| `./Scripts/ci-diagnostics.sh [RESULTS_DIR]` | Aggregate the current diagnostics session |
 | `./Scripts/ci-diagnostics.sh --stage-artifacts <RESULTS_DIR> <ARTIFACT_DIR>` | Stage structured artifacts, adding raw failure evidence only when needed |
 | `./Scripts/ci-diagnostics.sh --prune-successes <RESULTS_DIR>` | Explicitly prune raw artifacts from passed invocations |
+| `./Scripts/ci-diagnostics.sh --cleanup [--keep] <RESULTS_DIR>` | Delete passed result/report history after staging; retain failures for current triage unless `--keep` |
 | `./Scripts/change-budget.sh --paths …` | Advisory authored-surface report against HEAD |
 | `./Scripts/ensure-ci-tools.sh` | Install pinned XcodeGen, SwiftFormat, SwiftLint, ripgrep, and xcbeautify |
 | `./Scripts/update-tools.sh [--apply]` | Report newer SwiftFormat/SwiftLint releases; with `--apply`, bump the pins in `tool-versions.env` (checksummed) and re-install |

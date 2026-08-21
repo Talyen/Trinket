@@ -62,7 +62,7 @@ id	name	description	modifiers	triggers
 
 - One row per enemy trait. `modifiers` / `triggers` use the same pipe-separated DSL as affixes.
 - Generates `GameContentTraits.generated.swift`.
-- Typed ramps: `random_damage_ramp_per_turn:keywordA:keywordB:amount` adds `amount` of one of the two keywords each enemy turn. `damage_increases_every_other_turn` is untyped; `damage_increases_every_other_turn:keyword` limits the `turnCount / 2` bonus to that keyword (a trailing `:1` amount is ignored).
+- Enemy turn auras: `turn_random_damage_all_enemies:keywordA:keywordB:amount` rolls one keyword each turn and deals `amount` of that type to each living party member. `turn_freeze_all_enemies:amount` deals fixed Freeze damage every other turn.
 
 ### Abilities (Swift catalogs)
 
@@ -137,7 +137,7 @@ id	name	max_health	is_boss	growth_archetype	abilities	trait_id	faction
 - `faction`: `mortal`, `beast`, `elemental`, `construct`, `undead`, or `corrupted`.
 - `abilities`: comma-separated ability symbols (basic, skill, ultimate — exactly three).
 - Enemy primary stats come from `GrowthArchetype.identityPrimaryStats` (budget 50). Do not author per-enemy Strength/Agility/Toughness/Intellect/Wisdom.
-- Boss difficulty comes from `is_boss` plus `EnemyPowerCurve` at encounter level (HP 50% above trash; L1 boss stats 5.2, L20/L40 10.77/18.90).
+- Boss difficulty comes from `is_boss` plus `EnemyPowerCurve` at encounter level (HP 2x trash; L1 boss stats 5.2, L20/L40 10.77/18.90).
 
 ### Homestead nodes (`ContentManifest/homestead_nodes.tsv`)
 

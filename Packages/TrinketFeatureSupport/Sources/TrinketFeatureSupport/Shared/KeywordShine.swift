@@ -15,11 +15,9 @@ private struct KeywordShineModifier: ViewModifier {
             let band = colors + [TrinketDesign.Colors.Overlay.paper]
             let looped = band + band
             TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: reduceMotion)) { context in
-                let period = TrinketMotion.Shine.keywordAffinityPeriod
-                let elapsed = context.date.timeIntervalSinceReferenceDate
                 let phase = reduceMotion
                     ? 0
-                    : elapsed.truncatingRemainder(dividingBy: period) / period
+                    : TrinketMotion.Shine.phase(at: context.date.timeIntervalSinceReferenceDate)
                 content
                     .foregroundStyle(
                         LinearGradient(

@@ -1,0 +1,210 @@
+import SwiftUI
+import TrinketAppState
+import TrinketContent
+import TrinketCore
+import TrinketDesignSystem
+import TrinketFeatureAdapters
+import TrinketFeatureSupport
+import TrinketPersistence
+
+struct PostBattleTalentChoiceView: View {
+    @Environment(PlaySession.self) private var play
+    @Environment(PlayerSaveStore.self) private var playerSave
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    @State private var navigationPath: [String] = []
+    @State private var showsSaveFailure = false
+
+    var body: some View {
+        NavigationStack(path: $navigationPath) {
+            if let combatant, let config {
+                treeSelection(combatant: combatant, config: config)
+                    .navigationDestination(for: String.self) { treeID in
+                        if let tree = config.trees.first(where: { $0.id == treeID }) {
+                            talentSelection(combatant: combatant, tree: tree)
+                        }
+                    }
+            } else {
+                Color.clear
+                    .onAppear(perform: play.dismissPostBattleTalentChoice)
+            }
+        }
+        .onChange(of: play.currentPostBattleTalentCombatantID) { _, _ in
+            navigationPath.removeAll()
+        }
+        .alert("Couldn't Save Talent", isPresented: $showsSaveFailure) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("Your Talent choice was not saved. Please try again.")
+        }
+    }
+
+    private var combatant: Combatant? {
+        guard let combatantID = play.currentPostBattleTalentCombatantID else { return nil }
+        return GameContent.heroes.first(where: { $0.id == combatantID })
+            ?? GameContent.companions.first(where: { $0.id == combatantID })
+    }
+
+    private var config: CombatantTalentConfig? {
+        guard let combatantID = play.currentPostBattleTalentCombatantID else { return nil }
+        return CombatantTalentCatalog.allConfigs[combatantID]
+    }
+
+    private func treeSelection(
+        combatant: Combatant,
+        config: CombatantTalentConfig
+    ) -> some View {
+        DetailHeroScrollShell(title: combatant.name) { baseHeight, overscroll in
+            DetailHeroHeader(
+                eyebrow: "CHOOSE A TALENT",
+                title: combatant.name,
+                baseHeight: baseHeight,
+                overscroll: overscroll
+            ) {
+                CombatantArtwork(combatant: combatant)
+            } footer: {
+                Text("TALENT POINT EARNED")
+                    .trinketTypography(.eyebrow)
+                    .trinketOnArtText(.eyebrow)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        } bodyContent: {
+            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.mediumSpacing) {
+                Text(balanced: "Choose a Talent Tree")
+                    .trinketTypography(.sectionTitle)
+
+                Text("You can choose one Talent now or come back to it later from Combatant Detail.")
+                    .trinketTypography(.body)
+                    .foregroundStyle(.secondary)
+
+                LazyVGrid(columns: treeColumns, spacing: TrinketDesign.Metrics.smallSpacing) {
+                    ForEach(config.trees) { tree in
+                        talentTreeButton(tree, combatantID: combatant.id)
+                    }
+                }
+            }
+            .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+            .padding(.top, TrinketDesign.Metrics.mediumSpacing)
+            .padding(.bottom, TrinketDesign.Metrics.largeSpacing)
+        }
+        .toolbar {
+            closeToolbarItem
+        }
+        .accessibilityIdentifier(AccessibilityID.TalentChoice.screen)
+    }
+
+    private func talentSelection(combatant: Combatant, tree: TalentTree) -> some View {
+        CombatantTalentsView(
+            tree: tree,
+            progression: playerSave.roster.progression(for: combatant),
+            unlockedTalents: Binding(
+                get: { playerSave.roster.unlockedTalents(for: combatant.id) },
+                set: { _ in }
+            ),
+            visibleNodeIDs: Set(legalNodes(in: tree, combatantID: combatant.id).map(\.id)),
+            showsReset: false,
+            nodeAccessibilityIdentifier: AccessibilityID.TalentChoice.node,
+            unlockAccessibilityIdentifier: AccessibilityID.TalentChoice.unlockButton,
+            onUnlockTalent: { node, tree in
+                choose(node: node, tree: tree)
+            },
+            onResetTalents: {}
+        )
+        .toolbar {
+            closeToolbarItem
+        }
+    }
+
+    private func talentTreeButton(_ tree: TalentTree, combatantID: String) -> some View {
+        let nodes = legalNodes(in: tree, combatantID: combatantID)
+        let style = tree.keyword.visualStyle
+
+        return Button {
+            navigationPath.append(tree.id)
+        } label: {
+            ProductCardShell(
+                isLocked: nodes.isEmpty,
+                lockedText: "Complete",
+                shineKeywords: nodes.isEmpty ? nil : [tree.keyword],
+                accessibilityID: AccessibilityID.TalentChoice.tree(id: tree.id),
+                art: {
+                    if let artReference = tree.keyword.artReference {
+                        Image.preparedAsset(artReference, displaySize: .compact)
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .decorativePreparedArtwork()
+                    } else {
+                        ZStack {
+                            TrinketDesign.cardShape.fill(style.color.opacity(0.18))
+                            Image(systemName: style.symbolName)
+                                .font(.system(
+                                    size: TrinketDesign.Metrics.cardPlaceholderIconPointSize,
+                                    weight: .semibold
+                                ))
+                                .foregroundStyle(style.color)
+                        }
+                    }
+                },
+                label: {
+                    VStack(spacing: 2) {
+                        Text(tree.name)
+                            .trinketTypography(.cardLabel)
+                            .foregroundStyle(.primary)
+                            .lineLimit(2)
+                            .multilineTextAlignment(.center)
+                        Text(choiceCountLabel(nodes.count))
+                            .font(.caption2.weight(.semibold))
+                            .foregroundStyle(.tertiary)
+                    }
+                }
+            )
+        }
+        .buttonStyle(.plain)
+        .disabled(nodes.isEmpty)
+        .accessibilityLabel("\(tree.name), \(choiceCountLabel(nodes.count))")
+    }
+
+    private func legalNodes(in tree: TalentTree, combatantID: String) -> [TalentNode] {
+        let roster = playerSave.roster
+        let unlocked = roster.unlockedTalents(for: combatantID)
+        let points = roster.availableTalentPoints(for: combatantID)
+        return tree.nodes.filter {
+            tree.canUnlock(
+                node: $0,
+                unlockedNodeIDs: unlocked,
+                availablePoints: points
+            )
+        }
+    }
+
+    private func choose(node: TalentNode, tree: TalentTree) {
+        switch play.choosePostBattleTalent(nodeID: node.id, treeID: tree.id) {
+        case .unlocked:
+            break
+        case .unavailable:
+            navigationPath.removeAll()
+        case .persistenceFailed:
+            showsSaveFailure = true
+        }
+    }
+
+    private var treeColumns: [GridItem] {
+        let count = dynamicTypeSize.isAccessibilitySize ? 1 : 3
+        return Array(
+            repeating: GridItem(.flexible(), spacing: TrinketDesign.Metrics.smallSpacing),
+            count: count
+        )
+    }
+
+    @ToolbarContentBuilder
+    private var closeToolbarItem: some ToolbarContent {
+        ToolbarItem(placement: .topBarTrailing) {
+            Button("Close", action: play.dismissPostBattleTalentChoice)
+                .accessibilityIdentifier(AccessibilityID.TalentChoice.closeButton)
+        }
+    }
+
+    private func choiceCountLabel(_ count: Int) -> String {
+        count == 1 ? "1 choice" : "\(count) choices"
+    }
+}

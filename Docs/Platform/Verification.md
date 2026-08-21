@@ -21,8 +21,9 @@ Choose the cheapest route that answers the question at hand.
 
 Run `./Scripts/agent-context.sh --agent --paths <files...>` after touched paths
 are known. Use `--working-tree` only when whole-tree classification is
-intentional. It discovers nested guides, automated skills attached by
-`change-classification.sh`, and prints the applicable handoff route.
+intentional; it is capped unless `--allow-broad-scope` is explicit. The briefing
+prints a required/optional read contract and discovers nested guides, automated
+skills attached by `change-classification.sh`, and the applicable handoff route.
 Rerun it when scope crosses into another area. Mid-task package tests still
 use `./Scripts/test-package.sh` as in the table above.
 
@@ -85,7 +86,7 @@ Read structured invocation reports before raw build logs. Use
 [CI diagnostics](../AgentContext/ci-diagnostics.md) for classification and
 escalation. Never kill foreign Xcode or Simulator processes.
 
-Every completed handoff and push gate prints an advisory change-budget report.
+Every completed handoff and push gate may print an advisory change-budget report.
 Warnings do not fail the task, but unusual production/test surface growth needs
 a necessity statement and the simpler alternative that was rejected. Timing
 logs are diagnostic data, not a routine optimization mandate.

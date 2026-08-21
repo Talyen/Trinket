@@ -27,6 +27,7 @@ struct BattleHandView: View {
     var ownerControlSkipKeywords: [BattleParticipant: Keyword] = [:]
     let onInspect: (BattleCard) -> Void
     let onPlay: (BattleCard, CardActivationRequest) -> Bool
+    let onPlayDenied: () -> Void
     let hapticsEnabled: Bool
     let battleFrame: CGRect
     var configuration: BattleHandMotionConfiguration = .init()
@@ -56,13 +57,14 @@ struct BattleHandView: View {
             ZStack(alignment: .bottom) {
                 ForEach(Array(cards.enumerated()), id: \.element.id) { index, card in
                     let liveSnapshot = liveSnapshots[index]
+                    let controlSkipKeyword = ownerControlSkipKeywords[card.owner]
                     let isHeld = heldInteraction?.cardID == card.id
                     let snapshot = isHeld ? (heldInteraction?.layout ?? liveSnapshot) : liveSnapshot
 
                     BattleAbilityCardView(
                         card: card,
                         isPlayable: isPlayable(card),
-                        controlSkipKeyword: ownerControlSkipKeywords[card.owner],
+                        controlSkipKeyword: controlSkipKeyword,
                         width: snapshot.width,
                         height: snapshot.height,
                         restingRotation: snapshot.restingRotation,
@@ -73,11 +75,13 @@ struct BattleHandView: View {
                         autoLiftCardID: autoLiftCardID,
                         onInspect: { onInspect(card) },
                         onPlay: { command in onPlay(card, command) },
+                        onPlayDenied: onPlayDenied,
                         onInteractionChanged: { isActive in
                             if isActive {
                                 // Freeze the pose from the interaction start frame so later
                                 // draws / reflow cannot rewrite the held card's fan.
-                                if heldInteraction?.cardID != card.id {
+                                if controlSkipKeyword == nil,
+                                   heldInteraction?.cardID != card.id {
                                     heldInteraction = HeldCardInteraction(
                                         cardID: card.id,
                                         layout: liveSnapshot
@@ -86,6 +90,8 @@ struct BattleHandView: View {
                                 onCardInteractionChanged?(true)
                             } else if heldInteraction?.cardID == card.id {
                                 heldInteraction = nil
+                                onCardInteractionChanged?(false)
+                            } else if controlSkipKeyword != nil {
                                 onCardInteractionChanged?(false)
                             }
                         },
@@ -127,6 +133,7 @@ struct BattleHandView: View {
         ownerControlSkipKeywords: [BattleParticipant: Keyword] = [:],
         onInspect: @escaping (BattleCard) -> Void,
         onPlay: @escaping (BattleCard, CardActivationRequest) -> Bool,
+        onPlayDenied: @escaping () -> Void,
         hapticsEnabled: Bool,
         battleFrame: CGRect,
         autoLiftCardID: Int? = nil,
@@ -140,6 +147,7 @@ struct BattleHandView: View {
             ownerControlSkipKeywords: ownerControlSkipKeywords,
             onInspect: onInspect,
             onPlay: onPlay,
+            onPlayDenied: onPlayDenied,
             hapticsEnabled: hapticsEnabled,
             battleFrame: battleFrame,
             configuration: .init(),
@@ -156,6 +164,7 @@ struct BattleHandView: View {
         ownerControlSkipKeywords: [BattleParticipant: Keyword] = [:],
         onInspect: @escaping (BattleCard) -> Void,
         onPlay: @escaping (BattleCard, CardActivationRequest) -> Bool,
+        onPlayDenied: @escaping () -> Void,
         hapticsEnabled: Bool,
         battleFrame: CGRect,
         configuration: BattleHandMotionConfiguration,
@@ -169,6 +178,7 @@ struct BattleHandView: View {
         self.ownerControlSkipKeywords = ownerControlSkipKeywords
         self.onInspect = onInspect
         self.onPlay = onPlay
+        self.onPlayDenied = onPlayDenied
         self.hapticsEnabled = hapticsEnabled
         self.battleFrame = battleFrame
         self.configuration = configuration

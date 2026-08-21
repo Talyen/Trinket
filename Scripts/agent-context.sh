@@ -9,6 +9,9 @@ source Scripts/change-classification.sh
 OUTPUT="agent"
 PATH_MODE="unset"
 FULL=false
+ALLOW_BROAD_SCOPE=false
+MAX_WORKING_TREE_PATHS="${TRINKET_MAX_WORKING_TREE_PATHS:-40}"
+[[ "$MAX_WORKING_TREE_PATHS" =~ ^[0-9]+$ ]] || MAX_WORKING_TREE_PATHS=40
 declare -a requested_paths=()
 
 while [[ $# -gt 0 ]]; do
@@ -16,16 +19,19 @@ while [[ $# -gt 0 ]]; do
     --json) OUTPUT="json" ;;
     --agent) OUTPUT="agent" ;;
     --full) FULL=true ;;
+    --allow-broad-scope) ALLOW_BROAD_SCOPE=true ;;
     --help|-h)
       cat <<'USAGE'
-Usage: ./Scripts/agent-context.sh [--agent|--json] [--full] [--paths <file> ...]
+Usage: ./Scripts/agent-context.sh [--agent|--json] [--full] [--allow-broad-scope] [--paths <file> ...]
 
 Prints a compact task briefing: applicable AGENTS.md guides, context cards and
 skills, architecture/generated-output warnings, and the focused sequential
 verification plan. Agents should run the recommended handoff --isolate
 command. Paths are repository-relative; --paths consumes all remaining
 arguments. Use --working-tree explicitly when the whole tree is intentional.
-The default briefing is concise; --full prints complete command details.
+The default briefing is concise; --full prints complete command details. Whole-tree
+classification is capped at ${MAX_WORKING_TREE_PATHS} paths unless explicitly
+overridden with --allow-broad-scope.
 USAGE
       exit 0
       ;;
@@ -56,6 +62,11 @@ if [[ "$PATH_MODE" == "unset" ]]; then
 fi
 
 trinket_collect_paths "$PATH_MODE" "${requested_paths[@]-}"
+if [[ "$PATH_MODE" == working-tree && "$ALLOW_BROAD_SCOPE" != true \
+  && ${#TRINKET_CHANGED_PATHS[@]} -gt "$MAX_WORKING_TREE_PATHS" ]]; then
+  echo "working-tree scope has ${#TRINKET_CHANGED_PATHS[@]} paths; use explicit --paths or --allow-broad-scope" >&2
+  exit 3
+fi
 trinket_classify_paths
 trinket_build_verification_plan
 
@@ -89,6 +100,15 @@ json_bool() {
   if [[ "$1" == true ]]; then printf true; else printf false; fi
 }
 
+context_bytes() {
+  local total=0 item
+  for item in "$@"; do
+    [[ -f "$item" ]] || continue
+    total=$((total + $(wc -c < "$item" | tr -d '[:space:]')))
+  done
+  printf '%s' "$total"
+}
+
 print_json() {
   printf '{'
   printf '"version":2,'
@@ -103,6 +123,11 @@ print_json() {
   fi
   printf '"agent_guides":{"root":"AGENTS.md","nested":'; json_array TRINKET_AGENT_GUIDES; printf '},'
   printf '"context_cards":'; json_array TRINKET_CONTEXT_CARDS; printf ','
+  printf '"context_read_contract":{"required":'; json_array TRINKET_CONTEXT_CARDS
+  printf ',"optional":'; json_array TRINKET_SKILLS
+  printf ',"lookup_only":'; json_array TRINKET_ROUTE_CARDS; printf '},'
+  printf '"context_estimate":{"required_card_bytes":%s,"skill_bytes":%s},' \
+    "$(context_bytes "${TRINKET_CONTEXT_CARDS[@]-}")" "$(context_bytes "${TRINKET_SKILLS[@]-}")"
   printf '"skills":'; json_array TRINKET_SKILLS; printf ','
   printf '"boundary_warnings":'; json_array TRINKET_BOUNDARY_WARNINGS; printf ','
   printf '"generated_warnings":'; json_array TRINKET_GENERATED_WARNINGS; printf ','
@@ -145,12 +170,16 @@ print_agent() {
   else
     printf '  (none)\n'
   fi
+  if (( ${#TRINKET_ROUTE_CARDS[@]} > 0 )); then
+    printf 'Route metadata (lookup only; do not read unless ownership is unclear):\n  %s\n' "${TRINKET_ROUTE_CARDS[@]}"
+  fi
   printf 'Skills:\n'
   if (( ${#TRINKET_SKILLS[@]} > 0 )); then
     printf '  %s\n' "${TRINKET_SKILLS[@]}"
   else
     printf '  (none)\n'
   fi
+  printf 'Read contract: required cards/guides above; skills are optional lookups. Use rg and bounded ranges before opening linked material.\n'
 
   print_path_summary() {
     local label="$1"

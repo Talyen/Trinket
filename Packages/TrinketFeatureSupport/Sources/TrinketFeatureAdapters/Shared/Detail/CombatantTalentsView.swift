@@ -11,6 +11,10 @@ public struct CombatantTalentsView: View {
     let progression: CombatantProgression
     @Binding var unlockedTalents: Set<String>
     let allowsEditing: Bool
+    let visibleNodeIDs: Set<String>?
+    let showsReset: Bool
+    let nodeAccessibilityIdentifier: (String) -> String
+    let unlockAccessibilityIdentifier: String
     let onUnlockTalent: (TalentNode, TalentTree) -> Void
     let onResetTalents: () -> Void
 
@@ -21,6 +25,10 @@ public struct CombatantTalentsView: View {
         progression: CombatantProgression,
         unlockedTalents: Binding<Set<String>>,
         allowsEditing: Bool = true,
+        visibleNodeIDs: Set<String>? = nil,
+        showsReset: Bool = true,
+        nodeAccessibilityIdentifier: @escaping (String) -> String = AccessibilityID.CombatantDetail.talentsNode,
+        unlockAccessibilityIdentifier: String = AccessibilityID.CombatantDetail.talentsUnlockButton,
         onUnlockTalent: @escaping (TalentNode, TalentTree) -> Void,
         onResetTalents: @escaping () -> Void
     ) {
@@ -28,9 +36,15 @@ public struct CombatantTalentsView: View {
         self.progression = progression
         _unlockedTalents = unlockedTalents
         self.allowsEditing = allowsEditing
+        self.visibleNodeIDs = visibleNodeIDs
+        self.showsReset = showsReset
+        self.nodeAccessibilityIdentifier = nodeAccessibilityIdentifier
+        self.unlockAccessibilityIdentifier = unlockAccessibilityIdentifier
         self.onUnlockTalent = onUnlockTalent
         self.onResetTalents = onResetTalents
-        _selectedNodeID = State(initialValue: tree.nodes.first?.id)
+        _selectedNodeID = State(
+            initialValue: tree.nodes.first(where: { visibleNodeIDs?.contains($0.id) ?? true })?.id
+        )
     }
 
     private var availablePoints: Int {
@@ -38,10 +52,14 @@ public struct CombatantTalentsView: View {
     }
 
     private var selectedNode: TalentNode? {
-        if let selectedNodeID, let node = tree.nodes.first(where: { $0.id == selectedNodeID }) {
+        if let selectedNodeID, let node = displayedNodes.first(where: { $0.id == selectedNodeID }) {
             return node
         }
-        return tree.nodes.first
+        return displayedNodes.first
+    }
+
+    private var displayedNodes: [TalentNode] {
+        tree.nodes.filter { visibleNodeIDs?.contains($0.id) ?? true }
     }
 
     public var body: some View {
@@ -70,13 +88,16 @@ public struct CombatantTalentsView: View {
                 .trinketSheetChromeIgnoresDismissDrag()
         }
         .onChange(of: tree.id) { _, _ in
-            if let firstNodeID = tree.nodes.first?.id {
-                selectedNodeID = firstNodeID
+            selectedNodeID = displayedNodes.first?.id
+        }
+        .onChange(of: visibleNodeIDs) { _, _ in
+            if !displayedNodes.contains(where: { $0.id == selectedNodeID }) {
+                selectedNodeID = displayedNodes.first?.id
             }
         }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                if allowsEditing, hasTreeUnlocks {
+                if showsReset, allowsEditing, hasTreeUnlocks {
                     Button("Reset") {
                         onResetTalents()
                     }
@@ -119,13 +140,15 @@ public struct CombatantTalentsView: View {
     private var talentGrid: some View {
         VStack(spacing: TrinketDesign.Metrics.mediumSpacing) {
             ForEach(1 ... 3, id: \.self) { row in
-                let rowNodes = tree.nodes(forRow: row)
-                let isRowLocked = (row == 2 && !tree.isRowComplete(1, unlockedNodeIDs: unlockedTalents))
-                    || (row == 3 && !tree.isRowComplete(2, unlockedNodeIDs: unlockedTalents))
+                let rowNodes = displayedNodes.filter { $0.row == row }
+                if !rowNodes.isEmpty {
+                    let isRowLocked = (row == 2 && !tree.isRowComplete(1, unlockedNodeIDs: unlockedTalents))
+                        || (row == 3 && !tree.isRowComplete(2, unlockedNodeIDs: unlockedTalents))
 
-                HStack(spacing: TrinketDesign.Metrics.mediumSpacing) {
-                    ForEach(rowNodes) { node in
-                        talentNodeCard(node: node, isRowLocked: isRowLocked)
+                    HStack(spacing: TrinketDesign.Metrics.mediumSpacing) {
+                        ForEach(rowNodes) { node in
+                            talentNodeCard(node: node, isRowLocked: isRowLocked)
+                        }
                     }
                 }
             }
@@ -187,7 +210,7 @@ public struct CombatantTalentsView: View {
             .opacity(isRowLocked ? 0.65 : 1.0)
         }
         .buttonStyle(.plain)
-        .accessibilityIdentifier(AccessibilityID.CombatantDetail.talentsNode(id: node.id))
+        .accessibilityIdentifier(nodeAccessibilityIdentifier(node.id))
     }
 
     private func referencedKeywords(for node: TalentNode) -> [Keyword] {
@@ -238,13 +261,13 @@ public struct CombatantTalentsView: View {
             }
             .frame(maxWidth: .infinity)
             .trinketPrimaryActionButton(
-                accessibilityIdentifier: AccessibilityID.CombatantDetail.talentsUnlockButton
+                accessibilityIdentifier: unlockAccessibilityIdentifier
             )
         } else {
             Button(title) {}
                 .frame(maxWidth: .infinity)
                 .trinketSecondaryActionButton(
-                    accessibilityIdentifier: AccessibilityID.CombatantDetail.talentsUnlockButton
+                    accessibilityIdentifier: unlockAccessibilityIdentifier
                 )
                 .disabled(true)
         }

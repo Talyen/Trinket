@@ -9,7 +9,8 @@
 #
 # On self-clean start + EXIT (top-level owner only): reclaim Preview sims when
 # the Preview device set is non-empty, enforce exactly one Booted managed sim
-# (Agent or Run), and age-prune bulky artifacts. The keep-target stays Booted
+# (Agent or Run), age-prune bulky artifacts, and remove passed test diagnostics.
+# The keep-target stays Booted
 # (no routine erase — avoids CrashReporter sheets from guest apps). Nested
 # children release leases only. xcode-runner wall/idle watchdogs kill host
 # xcodebuild trees only; they never call simctl.
@@ -240,6 +241,10 @@ trinket_derived_data_age_prune() {
 
   # Package-local SPM / Xcode package caches (gitignored).
   local package_dir
+  if [[ -d "$repo_root/BalanceSweepReports" ]]; then
+    find "$repo_root/BalanceSweepReports" -mindepth 1 -maxdepth 1 -mtime "+${artifact_age_days}" \
+      -exec rm -rf {} + 2>/dev/null || true
+  fi
   if [[ -d "$repo_root/Packages" ]]; then
     # Shared Packages/.DerivedData is a parallel-build lock hazard (SPM package
     # schemes used to race one build.db here). Always remove it; package builds
@@ -473,6 +478,13 @@ trinket_run_env_self_clean_hygiene() {
   trinket_simulator_cleanup_excess
 }
 
+trinket_run_env_cleanup_test_artifacts() {
+  [[ "${TRINKET_CLEANUP_TEST_ARTIFACTS:-1}" == "1" ]] || return 0
+  [[ "${TRINKET_KEEP_DIAGNOSTICS:-0}" == "1" ]] && return 0
+  [[ -n "${RESULTS_DIR:-}" && "$(basename "$RESULTS_DIR")" == "TestResults" ]] || return 0
+  "$(trinket_run_env_repo_root)/Scripts/ci-diagnostics.sh" --cleanup "$RESULTS_DIR" >/dev/null 2>&1 || true
+}
+
 # Claim once per process tree. Nested children inherit the parent token and must
 # not overwrite it — otherwise every child EXIT would wipe Previews mid-plan.
 trinket_run_env_claim_self_clean_owner() {
@@ -491,6 +503,7 @@ trinket_run_env_release_slots() {
   local current_owner="${BASHPID:-$$}:${BASH_SUBSHELL:-0}"
   if [[ "${TRINKET_SELF_CLEAN_OWNER:-}" == "$current_owner" ]]; then
     trinket_run_env_self_clean_hygiene
+    trinket_run_env_cleanup_test_artifacts
   fi
 }
 

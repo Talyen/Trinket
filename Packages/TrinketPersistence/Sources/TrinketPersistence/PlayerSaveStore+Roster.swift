@@ -2,6 +2,12 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
+public enum TalentUnlockResult: Equatable, Sendable {
+    case unlocked
+    case unavailable
+    case persistenceFailed
+}
+
 @MainActor
 public extension PlayerSaveStore {
     @discardableResult
@@ -52,6 +58,34 @@ public extension PlayerSaveStore {
             update(&roster)
             save.roster = roster
         }
+    }
+
+    func unlockTalent(
+        nodeID: String,
+        treeID: String,
+        for combatantID: String
+    ) -> TalentUnlockResult {
+        guard let config = CombatantTalentCatalog.allConfigs[combatantID],
+              let tree = config.trees.first(where: { $0.id == treeID }),
+              let node = tree.nodes.first(where: { $0.id == nodeID })
+        else { return .unavailable }
+
+        let unlocked = roster.unlockedTalents(for: combatantID)
+        let points = roster.availableTalentPoints(for: combatantID)
+        guard tree.canUnlock(
+            node: node,
+            unlockedNodeIDs: unlocked,
+            availablePoints: points
+        ) else { return .unavailable }
+
+        let persisted = mutateRoster(logging: "Failed to unlock talent") { roster in
+            _ = roster.unlockTalent(
+                node: node,
+                inTree: tree,
+                for: combatantID
+            )
+        }
+        return persisted ? .unlocked : .persistenceFailed
     }
 
     @discardableResult

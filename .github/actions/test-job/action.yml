@@ -23,6 +23,10 @@ inputs:
     description: Wall-clock budget for assert-budget when timing-mode is set
     required: false
     default: '0'
+  keep-diagnostics:
+    description: Keep local test diagnostics after artifact staging (for investigations)
+    required: false
+    default: 'false'
 
 runs:
   using: composite
@@ -55,6 +59,7 @@ runs:
       env:
         SKIP_GENERATE: 1
         CI: true
+        TRINKET_CLEANUP_TEST_ARTIFACTS: 0
       run: ${{ inputs.command }}
 
     - name: Report timing budget
@@ -83,8 +88,20 @@ runs:
       shell: bash
       run: ./Scripts/ci-diagnostics.sh --stage-artifacts .DerivedData/TestResults .DerivedData/TestResults-artifact
 
-    - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+    - name: Clean ephemeral test diagnostics
       if: always()
+      shell: bash
+      run: |
+        if [ "${{ inputs.keep-diagnostics }}" = "true" ]; then
+          ./Scripts/ci-diagnostics.sh --cleanup --keep .DerivedData/TestResults
+        else
+          ./Scripts/ci-diagnostics.sh --cleanup .DerivedData/TestResults
+        fi
+
+    - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      # Passing runs are intentionally ephemeral. Keep forensic artifacts for a
+      # failed job or when a caller explicitly opts in.
+      if: always() && (failure() || inputs.keep-diagnostics == 'true')
       with:
         name: ${{ inputs.artifact-name }}-${{ github.run_id }}
         path: .DerivedData/TestResults-artifact/

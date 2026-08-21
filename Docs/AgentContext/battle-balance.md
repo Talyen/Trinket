@@ -4,7 +4,7 @@ Load only for balance numbers, encounter scaling, pacing, rounding, talents, aur
 
 Headless balance sweeps: `Packages/BattleEngine/README.md` and `./Scripts/balance-sweep.sh`. Default stdout and `.md` are a findings brief; read that, not the JSON dump. `--full-markdown` writes the old table report. `--samples` is n per identity enemy and pairs per contrast focus.
 
-Enemy scaling uses `EnemyPowerCurve` (smoothstep anchors at L1/L20/L40) after archetype growth. Trash uses one curve for HP and stats. Boss HP is 50% above trash at every level. Tune encounter level first, then curve anchors, then per-enemy stat shape.
+Enemy scaling uses `EnemyPowerCurve` (smoothstep anchors at L1/L20/L40) after archetype growth. Trash uses one curve for HP and stats. Boss HP is 2x trash at every level. Tune encounter level first, then curve anchors, then per-enemy stat shape.
 
 Hidden fight pacing (`FightPacing`) band-scales authored combat magnitudes via comeback and a progress-based clock. Passive turn-start mana drip is excluded. Percentage multipliers on combat integers round via `CombatRounding` (nearest integer, ties to even); integer division semantics remain truncating division.
 

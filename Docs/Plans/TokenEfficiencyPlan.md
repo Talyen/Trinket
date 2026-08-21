@@ -31,8 +31,8 @@ as a permanent quota or claim about every future run.
 - The CI job's pass/fail status and step summary remain required operational
   records; this policy removes attached diagnostic payloads, not the status that
   tells the team whether the job passed.
-- Historical retention is opt-in (`--keep-artifacts`, an equivalent environment
-  flag, or an explicit output directory). A retained run must print its path and
+- Historical retention is opt-in (`ci-diagnostics.sh --keep`, `TRINKET_KEEP_DIAGNOSTICS=1`,
+  an equivalent keep environment flag, or an explicit output directory). A retained run must print its path and
   remain inspectable without making retention the normal agent workflow.
 - Do not remove authored source or warm build caches as part of report cleanup.
   Cleanup must never run while a producer is active; interrupted-run cleanup is
@@ -239,7 +239,8 @@ Evidence:
   Markdown, JSON, and stderr/stdout artifacts. It is not hidden, so broad
   `find`, shell globbing, or an AI file browser can enumerate it even though
   ripgrep normally honors `.gitignore`.
-- `.DerivedData/TestResults` is **4.4 GB** and `.DerivedData/runs` is **9.1 GB**;
+- `.DerivedData/TestResults` is **4.4 GB** and `.DerivedData/runs` is about
+  **10 GB**;
   raw local test logs alone total about **501 MB**. The shared timing log is
   **5.7 MB**. These are useful forensic data, but not normal source context.
 - `.gitignore` excludes the directories, yet `Docs/AgentContext/README.md` only
@@ -433,6 +434,161 @@ audit routing documentation.
   than relying on the live dirty worktree.
 - Agree byte/count budgets for terminal output, Markdown previews, aggregate
   stdout, and required context-card counts.
+- Keep one read-only baseline probe recipe (or test fixture) that emits these
+  metrics to stdout/temporary files only; do not turn the comparison itself into
+  another retained artifact stream.
+- Identify the agent runner's usage-telemetry source and add a thin capture
+  adapter (or model-matched tokenizer fallback) that summarizes one run before
+  deleting its temporary per-turn record.
+- Freeze the benchmark prompts, disposable-worktree fixture, model settings,
+  repetition count, and success rubric before collecting the before sample.
+
+#### Agent-task token benchmark — baseline captured for one routine task
+
+The earlier file-size inventory is useful supporting evidence, but it is not an
+agent-token baseline. Exact token counts must come from the agent runner's usage
+telemetry (input, output, and reasoning tokens per model turn). If the runner does
+not expose those fields, use a tokenizer matched to the selected model and label
+the result as an estimate; do not present file bytes as token counts.
+
+Run the same fixed prompts in disposable worktrees before and after the changes:
+
+1. **Routine feature task:** add a small behavior in an existing semantic owner,
+   update its closest tests, and run the cheapest required verification.
+2. **Documentation/tooling task:** correct one routing or diagnostics rule and
+   add its script/documentation regression.
+3. **Failure-triage task:** start from a seeded, bounded test failure and make the
+   smallest fix, exercising the structured-diagnostics path.
+
+Use three independent repetitions per task (or more if variance is high), the
+same model/version, system/developer instructions, task wording, tool policy,
+working-tree starting point, and verification command. Do not let the agent see
+the after-plan changes during the before run. Record only a compact summary; do
+not retain full transcripts, raw logs, or generated artifacts.
+
+Record these primary measures for every run:
+
+- provider-reported input, output, reasoning, and total tokens;
+- tool-call count and tool-result tokens, separated by command/tool;
+- model turns, wall time, retries, failed commands, broad-search calls, and files
+  opened or returned;
+- task outcome, verification outcome, and whether the agent needed an explicit
+  recovery or human intervention.
+
+Compare medians and success rates, not one lucky run. The primary KPI is
+provider-reported total usage per successful task when the runner supplies it;
+otherwise report input/context, output, and reasoning fields separately rather
+than inventing a sum. Secondary KPIs are tool-result tokens, turns, retries, and
+time. Correctness and verification must be non-inferior. Store only the
+task-level before/after summary and deltas in this plan (or a small temporary
+benchmark result), then discard the run transcripts and artifacts.
+
+The first feasibility baseline used the routine feature task three times in
+fresh worktrees from commit `3e73696`, with Codex CLI `0.148.0-alpha.15`, the
+configured `gpt-5.6-sol` model, medium reasoning, identical prompt/tool policy,
+and no plan implementation changes. Provider usage was:
+
+| Measure | Before median | Range across 3 runs |
+| --- | ---: | ---: |
+| Input/context tokens (including cached) | 1,172,059 | 774,921–1,997,280 |
+| Cached input tokens | 1,096,192 | 721,152–1,895,936 |
+| Uncached input tokens | 75,867 | 53,769–101,344 |
+| Output tokens | 10,229 | 9,437–10,606 |
+| Reasoning output tokens | 5,326 | 5,230–5,748 |
+| Agent turns | 1 | 1–1 |
+| Command/tool calls | 18 | 17–22 |
+| Command failures | 6 | 6–6 |
+
+Codex CLI emits usage at the turn level rather than a separate token count for
+each tool result. The input/context figures above therefore include tool output;
+per-tool attribution is a secondary follow-up that requires model-matched event
+tokenization or deeper runner instrumentation.
+
+All three runs implemented the requested feature and tests. Two obtained
+behavioral test confirmation; the third was behaviorally unverified because the
+local simulator/SwiftPM sandbox was blocked. The repeated command failures were
+environment/toolchain friction (CoreSimulator, sandboxed SwiftPM, and the pinned
+SwiftFormat mismatch), not a failed feature assertion. This distinction is part
+of the benchmark: token reduction is not a win if correctness or verification
+falls.
+
+#### Reproducible runner recipe
+
+Use the same disposable worktree and prompt for every repetition. From the
+repository root, create a worktree at a temporary path from the chosen before or
+after revision, then run:
+
+```sh
+/Applications/ChatGPT.app/Contents/Resources/codex \
+  -a never exec --ephemeral --sandbox workspace-write --json \
+  -C "$BENCHMARK_WORKTREE" "$BENCHMARK_PROMPT" >"$BENCHMARK_WORKTREE/events.jsonl"
+```
+
+`BENCHMARK_PROMPT` for the routine sample is exactly:
+
+> Benchmark task. Work only in this disposable worktree. Implement a small, fully tested feature in Packages/TrinketCore: add public CombatRounding.scaledClamped(_:multiplier:lowerBound:upperBound:) that first uses the existing scaled rounding semantics and then clamps the result inclusively to the supplied bounds. Treat lowerBound <= upperBound as the API contract. Add focused CombatRoundingTests covering an in-range result, lower and upper clamping, and preservation of existing rounding/non-positive behavior. Use repository conventions and run narrowest appropriate TrinketCore test command. Do not modify documentation or generated files. Do not commit or push. Stop after verification and summarize changed files, tests, outcome.
+
+Run it three times in fresh worktrees with an explicitly pinned model and reasoning
+effort, no approvals, and no network/tool policy changes. Do not rely on the
+operator's global config, because it can change between runs. For example, pin the
+settings in the invocation itself:
+
+```sh
+/Applications/ChatGPT.app/Contents/Resources/codex \
+  -m gpt-5.6-sol -c model_reasoning_effort=medium \
+  exec --ephemeral --sandbox workspace-write --json \
+  -C "$BENCHMARK_WORKTREE" "$BENCHMARK_PROMPT" >"$BENCHMARK_WORKTREE/events.jsonl"
+```
+
+Record the CLI version and effective model/reasoning settings alongside each run
+before deleting its temporary JSONL stream. Extract the final `turn.completed` JSON
+object and record `usage.input_tokens`, `usage.cached_input_tokens`,
+`usage.output_tokens`, `usage.reasoning_output_tokens`, plus counts of
+`item.started` command/tool events, failed command results, and completed turns.
+Report medians and min–max ranges; delete each worktree and JSONL stream after
+extraction. Codex CLI exposes usage at turn level, so tool-result tokens are not
+separately attributed unless a future model-matched tokenizer adapter is added.
+
+Use this compact result shape for the full before/after comparison:
+
+| Task | Repetitions | Before median input/context tokens | After median input/context tokens | Input delta | Before/after success |
+| --- | ---: | ---: | ---: | ---: | --- |
+| Routine feature + tests | 3 | 1,172,059 | 1,435,382 | +263,323 (+22.5%) | before: 3/3 implementation; 2/3 behavioral verification; after: 3/3 implementation and 3/3 behavioral verification |
+| Documentation/tooling | 3+ | pending | pending | pending | pending |
+| Failure triage | 3+ | pending | pending | pending | pending |
+
+The corrected routine-task after sample used clean temporary commits containing
+the process changes, with the same prompt and runner settings as recorded at the
+time. Its detailed medians/ranges were:
+
+| Measure | After median | Range across 3 runs | Change vs. before median |
+| --- | ---: | ---: | ---: |
+| Input/context tokens (including cached) | 1,435,382 | 1,025,319–3,274,865 | +263,323 (+22.5%) |
+| Cached input tokens | 1,350,912 | 945,152–3,133,952 | +254,720 (+23.2%) |
+| Uncached input tokens | 84,470 | 80,167–140,913 | +8,603 (+11.3%) |
+| Output tokens | 13,008 | 10,117–18,077 | +2,779 (+27.2%) |
+| Reasoning output tokens | 6,182 | 5,011–7,602 | +856 (+16.1%) |
+| Agent turns | 1 | 1–1 | unchanged |
+| Command/tool calls | 25 | 20–41 | +7 (+38.9%) |
+| Command failures | 8 | 5–14 | +2 (+33.3%) |
+
+All three clean after runs implemented the feature and obtained behavioral test
+confirmation. Two preliminary after attempts were discarded: one had the process
+patch uncommitted in the fixture, and one accidentally included unrelated user
+balance edits. The final sample started from HEAD plus only the 23 intended
+process/documentation paths in a temporary commit. However, an audit of the
+retained recipe found that it described `gpt-5.6-sol`/medium while the current
+global config is `gpt-5.6-luna`/`xhigh`; the deleted ephemeral streams do not let us
+verify whether the benchmark invocation overrode that config. Therefore the
+reported +22.5% input delta is exploratory and **not a controlled model-matched
+regression**. The defensible conclusion is “no improvement observed in a noisy
+three-run sample”; correctness confirmation improved (3/3 versus 2/3), but the
+token result is inconclusive. Re-run the comparison with explicit model/effort
+pinning, contemporaneous interleaved before/after repetitions (at least 5–10 per
+condition), and a compact per-run metadata record before making a go/no-go decision.
+The documentation/tooling and failure-triage samples remain pending, and the
+existing byte/file measurements remain supporting proxies rather than
+token-efficiency results.
 
 ### Phase 1 — Stop misleading or oversized failure context
 
@@ -490,5 +646,7 @@ audit routing documentation.
   budgets, retention/cleanup timing, active-process protection, and keep-mode
 - `python3 ./Scripts/check-docs.py`
 - `./Scripts/handoff.sh --isolate --paths <integrated authored paths>`
-- Re-run the representative routing/output inventory and record before/after
-  proxies plus unchanged correctness signals in the handoff.
+- Re-run the exact benchmark prompts and record before/after token medians,
+  success rates, tool-result tokens, turns, retries, and unchanged correctness
+  signals in the handoff. Keep the existing routing/output inventory as a
+  supporting proxy, not as the token-efficiency result.

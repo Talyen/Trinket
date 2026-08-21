@@ -183,10 +183,6 @@ public struct CombatantDetailPane: View {
             activeEffectsSection
         }
 
-        if !activeModifierSummaries.isEmpty {
-            activeModifiersSection
-        }
-
         if combatant.role != .enemy {
             talentsSection
         }
@@ -214,18 +210,6 @@ public struct CombatantDetailPane: View {
                 )
                 .padding(.vertical, TrinketDesign.Metrics.extraSmallSpacing)
             }
-        }
-    }
-
-    private var activeModifierSummaries: [EffectSummary] {
-        guard combatant.role != .enemy else { return [] }
-        let config = CombatantTalentCatalog.config(for: combatant.id)
-        let allNodes = config.trees.flatMap(\.nodes)
-        let nodeMap = Dictionary(uniqueKeysWithValues: allNodes.map { ($0.id, $0) })
-        return unlockedTalents.sorted().compactMap { nodeID in
-            guard let effect = CombatantTalentCatalog.effect(for: nodeID) else { return nil }
-            let keyword = nodeMap[nodeID]?.keyword ?? .physical
-            return EffectSummary(keyword: keyword, text: "\(effect.name): \(effect.description)")
         }
     }
 
@@ -261,21 +245,6 @@ public struct CombatantDetailPane: View {
         DetailSection("Active Effects") {
             VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
                 ForEach(activeEffectSummaries) { summary in
-                    let parts = activeEffectCardParts(for: summary)
-                    DetailTraitRow(
-                        title: parts.title,
-                        description: parts.description,
-                        leadingIconKeyword: summary.keyword
-                    )
-                }
-            }
-        }
-    }
-
-    private var activeModifiersSection: some View {
-        DetailSection("Active Talents") {
-            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
-                ForEach(activeModifierSummaries) { summary in
                     let parts = activeEffectCardParts(for: summary)
                     DetailTraitRow(
                         title: parts.title,

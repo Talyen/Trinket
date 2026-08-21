@@ -31,9 +31,9 @@ public struct PairCellSummary: Equatable, Sendable {
 /// Gameplay duration goal bands on sim `rounds` (`turnCount` = player phase + enemy phase).
 public enum BalanceDurationThresholds {
     public static let trashMinRounds = 5
-    public static let trashMaxRounds = 10
-    public static let bossMinRounds = 10
-    public static let bossMaxRounds = 20
+    public static let trashMaxRounds = 15
+    public static let bossMinRounds = 15
+    public static let bossMaxRounds = 30
     public static let flagRate = BalanceSweepConfig.durationFlagRateDefault
 
     public static var trashGoalBand: String {

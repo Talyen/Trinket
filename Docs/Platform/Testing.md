@@ -50,7 +50,7 @@ invalidate dodge-sensitive assertions. Dispatch via
     `Hashable` / `Equatable`). Nested types like `Keyword.Category` need the same
     conformances even when the parent type already has them.
 - **Lifecycle:** Prefer `@Suite` on package tests. Use `@MainActor` when UI/layout/store isolation requires it. Use `final class` + `init() throws` only for teardown ownership (`AppTestContext` / `PersistenceTestContext`).
-- **Stores:** mutate → reload from disk → `#expect`.
+- **Stores:** mutate → close/reload from disk → `#expect`; an in-memory accessor/setter round trip is not persistence coverage.
 - **Async/debounce:** inject short intervals in production inits; poll in tests — never `Task.sleep` for multi-second production delays.
 - **Events:** pin outcome counters; assert event *semantics*, not full log fingerprints.
 - **Do not unit-test:** log prose (except a few representative formatter cases), `TrinketDesign` styling, AVFoundation playback, real CloudKit I/O, BattleFeature layout/glyph/dissolve/recipe chrome.
@@ -65,7 +65,7 @@ Verification does not imply authoring new tests. Add or expand coverage only whe
 4. The cheapest suitable tier can express it without duplicating a stronger owner.
 5. An existing semantic matrix, journey, method, or file cannot absorb it more cheaply.
 
-Prefer extending an existing owner over adding a declaration, and a declaration over a new file or class. Remove or merge coverage made redundant by the change. Do not test plumbing, stored-property round trips, display copy, layout constants, framework behavior, or trivial delegation.
+Prefer extending an existing owner over adding a declaration, and a declaration over a new file or class. Remove or merge coverage made redundant by the change. Do not test plumbing, in-memory stored-property round trips, display copy, layout constants, framework behavior, or trivial delegation.
 
 **Likely owners when the gate passes:** rules/models → owning package; persistence semantics → existing store/sanitizer journey; catalog content → invariant matrix, not exact-count snapshots; novel `EffectKind` behavior → existing registry/handler matrix; consequential app transitions that packages cannot own → `TrinketAppStateTests`.
 
@@ -106,14 +106,12 @@ Do **not** UI-test (delete or never add): marketing/copy strings, nav titles, un
 
 **Brittleness:** assert `AccessibilityID` plus one visible outcome (exists / dismissed / tab returned). Never pin display names, rarity labels, or scroll geometry unless that string is the product contract.
 
-Smoke = short shell canaries (local `test.sh smoke` and CI `smoke-full` share `Smoke.xctestplan`: tab shells, Battle load, Shop load). Exhaustive FullUI = state-changing journeys only. Mid-battle card play, hand-drag safety, and retreat live in FullUI; agents still route BattleHandView changes to `SmokeBattleTests` load canary.
+Smoke/full-UI class membership and launch details belong to
+[`TrinketUITests/README.md`](../../TrinketUITests/README.md); this document owns
+only the semantic keep/drop rubric above. Command selection and isolation belong
+to [Verification.md](Verification.md).
 
-## UI tests (summary)
-
-Command selection and isolation are owned by [Verification.md](Verification.md).
-This section keeps only the UI semantics: the shared smoke plan is the shell
-canary, while exhaustive journeys are CI-owned and should be run locally only
-when debugging a specific journey or requesting full deploy confidence.
+## UI execution notes
 
 Frame pacing and app-journey metrics are not part of smoke or hosted CI. Run the exclusive single-report matrix (app journeys + battle scenarios) with `./Scripts/performance.sh` when investigating performance. Focused harness iteration: `TRINKET_ISOLATE=1 ./Scripts/test.sh performance AppPerformanceUITests/<method>` or `BattlePerformanceUITests/<method>`. The dedicated plan records refresh-normalized display-link diagnostics plus native cold-launch; use Instruments Animation Hitches and Time Profiler for render-pipeline investigation. Launch arg `-enable-frame-metrics` is measurement-only and must not simplify Battle rendering or audio. Investigation loop and baseline policy: `Docs/Platform/PerformanceInvestigationPlaybook.md`.
 

@@ -5,6 +5,11 @@ Path-routed domain guides. `./Scripts/agent-context.sh` attaches them from
 cross-package exceptions, not restated root policy. Platform docs own architecture
 and testing; nested `AGENTS.md` files own local hard stops.
 
+The router prints a read contract. Read the root and nested `AGENTS.md` files plus
+the listed focused card(s) first. Skills are optional lookups: open one only when
+the trigger applies. A route card such as `battle.md` is lookup-only metadata; use
+the focused subcard named beside it and do not read the router card by default.
+
 | Card | Typical trigger |
 |------|-----------------|
 | [battle.md](battle.md) | Battle ownership router; load one focused battle subcard |
@@ -25,3 +30,10 @@ Reading budget: locate the symbol with `rg`, read a bounded line range, and open
 linked guide only when the task crosses that guide's concern. Generated catalogs and
 schemas are lookup outputs; inspect the targeted entry rather than loading the whole
 file. Do not recursively follow every link in a card.
+If a command emits a long log, consume its structured summary or a bounded tail
+before opening the raw file.
+
+Search fence: default searches are tracked/authored paths or the explicit owner
+directory. Do not use whole-tree `find`, `--hidden`, or recursive file browsing over
+`.DerivedData/`, `BalanceSweepReports/`, build products, or raw logs unless the
+task is specifically an artifact investigation.

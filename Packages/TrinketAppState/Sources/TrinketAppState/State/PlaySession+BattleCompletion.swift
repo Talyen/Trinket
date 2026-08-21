@@ -21,6 +21,7 @@ struct PlayBattleCompletion {
         materialRewards: [ResourceAmount]? = nil,
         route: PlayBattleRoute?,
         presentation: BattlePresentationContext?,
+        onPersisted: () -> Void,
         queueReturnToOrigin: (PlayBattleOrigin?) -> Void
     ) -> Bool {
         guard battle.lifecyclePhase == .active else { return false }
@@ -45,6 +46,7 @@ struct PlayBattleCompletion {
             battleEarnedGold != 0 ? grantBattleEarnedGold(battleEarnedGold) : true
         }
         if persisted {
+            onPersisted()
             queueReturnToOrigin(origin)
             battle.endBattle()
         }

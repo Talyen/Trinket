@@ -10,7 +10,6 @@ public struct KeywordShineBorder: View {
     public var isMotionActive: Bool = true
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var shimmerAngle = 0.0
 
     private var motionEnabled: Bool {
         isMotionActive && !reduceMotion
@@ -29,56 +28,27 @@ public struct KeywordShineBorder: View {
     }
 
     public var body: some View {
-        KeywordShineBorderStroke(
-            keywords: keywords,
-            cornerRadius: cornerRadius,
-            lineWidth: lineWidth,
-            angle: shimmerAngle,
-            motionEnabled: motionEnabled
-        )
-        .onAppear {
-            startShimmerIfNeeded()
-        }
-        .onChange(of: motionEnabled) { _, active in
-            if active {
-                startShimmerIfNeeded()
-            } else {
-                var freeze = Transaction()
-                freeze.disablesAnimations = true
-                withTransaction(freeze) {
-                    shimmerAngle = shimmerAngle.truncatingRemainder(dividingBy: 360)
-                }
-            }
+        TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: !motionEnabled)) { context in
+            KeywordShineBorderStroke(
+                keywords: keywords,
+                cornerRadius: cornerRadius,
+                lineWidth: lineWidth,
+                angle: motionEnabled
+                    ? TrinketMotion.Shine.phase(at: context.date.timeIntervalSinceReferenceDate) * 360
+                    : 0,
+                motionEnabled: motionEnabled
+            )
         }
         .allowsHitTesting(false)
     }
-
-    private func startShimmerIfNeeded() {
-        guard motionEnabled else { return }
-        var reset = Transaction()
-        reset.disablesAnimations = true
-        withTransaction(reset) {
-            shimmerAngle = 0
-        }
-        withAnimation(
-            .linear(duration: TrinketMotion.Battle.buffAuraShimmerPeriod).repeatForever(autoreverses: false)
-        ) {
-            shimmerAngle = 360
-        }
-    }
 }
 
-private struct KeywordShineBorderStroke: View, Animatable {
+private struct KeywordShineBorderStroke: View {
     let keywords: [Keyword]
     let cornerRadius: CGFloat
     let lineWidth: CGFloat
-    var angle: Double
-    var motionEnabled: Bool = true
-
-    nonisolated var animatableData: Double {
-        get { angle }
-        set { angle = newValue }
-    }
+    let angle: Double
+    let motionEnabled: Bool
 
     var body: some View {
         let stops = gradientStops(for: keywords)

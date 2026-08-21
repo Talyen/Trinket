@@ -119,7 +119,8 @@ package extension DamagePipeline {
         to state: inout DamageResolutionState,
         in context: inout BattleState
     ) {
-        guard state.amount > 0,
+        guard !state.isRetaliation || state.isAttackHit,
+              state.amount > 0,
               let sourceActorID = state.sourceActorID,
               let damageKeyword = state.damageKeyword,
               damageKeyword.allowsCriticalHits,

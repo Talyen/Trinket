@@ -364,6 +364,9 @@ private struct BattleHandProjectionLane: View {
                 }
                 return didPlay
             },
+            onPlayDenied: {
+                battleSession.playPresentationSFX(SFXID.uiDeny)
+            },
             hapticsEnabled: hapticsEnabled,
             battleFrame: CGRect(origin: .zero, size: battleSize),
             configuration: .init(),

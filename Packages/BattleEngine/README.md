@@ -44,7 +44,7 @@ Manual CLI only — **no CI gates** or scheduled automations.
 ./Scripts/balance-sweep.sh --full-markdown
 ```
 
-Writes a **findings** markdown brief and a JSON sidecar under `BalanceSweepReports/` (gitignored). Stdout is the findings brief. Open the JSON (or pass `--full-markdown` for `*-full.md` tables) only when drilling into a named finding. Requires a local Swift toolchain (Xcode 26+).
+Writes a **findings** markdown brief and a JSON sidecar under `BalanceSweepReports/` (gitignored). Stdout is the findings brief. Successful default runs remove the generated directory after the brief; set `TRINKET_KEEP_REPORTS=1` or `BALANCE_SWEEP_OUTPUT_DIR` when the files must remain. Open the JSON (or pass `--full-markdown` for `*-full.md` tables) only when drilling into a named finding. Requires a local Swift toolchain (Xcode 26+).
 Modes: `identity` (default), `ability-contrast`, `affix-contrast`, `talent-contrast`, `mode-progression`, `all`.
 
 `--samples` (default 32) is observations **per identity enemy** and **pairs per contrast focus**, per selected tier. `--battles-per-tier` is a deprecated alias. The CLI never simulates combat in the parent process. It splits work into small chunks (16 identity battles, 8 ability/affix pairs, 4 talent-contrast pair indices, 1 progression run) and runs each chunk in a child process of the same binary. `--jobs` is the process-pool size (default: CPU count). In-process `BalanceSweepRunner` (package tests) still maps work sequentially on the caller thread so it never hops to GCD’s 512 KB stacks. `./Scripts/balance-sweep.sh` builds **release** (`-O`); override with `BALANCE_SWEEP_CONFIGURATION=debug` only for debugging the CLI itself.

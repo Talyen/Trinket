@@ -158,7 +158,7 @@ public enum BalanceMarkdownReporter {
         lines.append("- Gold and other economy talents are marked NONCOMBAT and never flagged LOW.")
         lines.append(
             "- Enemy power uses `EnemyPowerCurve` (L1/L20/L40): trash shares HP/stat multipliers; "
-                + "boss HP is 50% above trash; L1 boss stats are 5.2 (L20/L40 10.77/18.90)."
+                + "boss HP is 2x trash; L1 boss stats are 5.2 (L20/L40 10.77/18.90)."
         )
         lines.append(
             "- Fight pacing is \(report.config.appliesFightPacing ? "ON" : "OFF") "

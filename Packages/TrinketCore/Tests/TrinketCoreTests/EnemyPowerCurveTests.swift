@@ -11,8 +11,8 @@ struct EnemyPowerCurveTests {
         try #expect(abs(EnemyPowerCurve.stats(level: 40, isBoss: true) - 18.90) < 0.001)
     }
 
-    @Test func bossHealthStaysFiftyPercentAboveNormalAtEveryLevel() throws {
-        try #expect(abs(EnemyPowerCurve.bossHealthMultiplier - 1.50) < 0.001)
+    @Test func bossHealthStaysDoubleNormalAtEveryLevel() throws {
+        try #expect(abs(EnemyPowerCurve.bossHealthMultiplier - 2.00) < 0.001)
         for level in 1 ... 40 {
             let normal = EnemyPowerCurve.health(level: level, isBoss: false)
             let boss = EnemyPowerCurve.health(level: level, isBoss: true)

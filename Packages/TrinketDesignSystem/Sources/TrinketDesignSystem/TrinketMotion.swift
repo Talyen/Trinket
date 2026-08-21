@@ -46,10 +46,15 @@ public enum TrinketMotion: Sendable {
         }
     }
 
-    /// Traveling keyword-affinity text gradient.
+    /// Traveling keyword-affinity shine.
     public enum Shine: Sendable {
-        /// One full loop of the keyword shine gradient.
-        public static let keywordAffinityPeriod: TimeInterval = 4.8
+        /// One full loop shared by text and border shine.
+        public static let loopPeriod: TimeInterval = 4.8
+
+        /// Normalized position within the shared loop for a nonnegative clock value.
+        public static func phase(at elapsed: TimeInterval) -> Double {
+            elapsed.truncatingRemainder(dividingBy: loopPeriod) / loopPeriod
+        }
     }
 
     /// Mystery recruit unveil and seal. Keep `Reward` snappy for loot.
@@ -267,9 +272,6 @@ public enum TrinketMotion: Sendable {
 
         /// Dim end of the status border pulse (full keyword color is `1`).
         public static let statusBorderPulseDimOpacity = 0.45
-
-        /// One full lap of a traveling buff-aura border shimmer (Shadowstep, etc.).
-        public static let buffAuraShimmerPeriod: TimeInterval = 1.6
 
         /// Parked until hold ends, then cubic ease-in rise.
         public static func chipMotionProgress(elapsed: TimeInterval) -> Double {

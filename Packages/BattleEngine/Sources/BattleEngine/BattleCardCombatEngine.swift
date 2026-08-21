@@ -244,8 +244,6 @@ public enum BattleCardCombatEngine {
         let enemy = context.enemy
         guard context.roster.enemy.isAlive else { return [] }
 
-        EnemyTraitEngine.randomKeywordDamageRamp(for: enemy, context: &context)
-
         let bleed = CombatTriggerEngine.beforeEnemyActBleedReactions(in: &context)
         var leadingEvents = bleed.events
         if bleed.cancelled {

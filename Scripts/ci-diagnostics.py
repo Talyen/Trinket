@@ -5,18 +5,38 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
 FULL_REPORT = False
 argv = sys.argv[1:]
-if argv and argv[0] == "--full":
-    FULL_REPORT = True
-    argv = argv[1:]
+SESSION_ID = ""
+INCLUDE_ALL = False
+while argv and argv[0].startswith("--"):
+    option = argv.pop(0)
+    if option == "--full":
+        FULL_REPORT = True
+    elif option == "--all":
+        INCLUDE_ALL = True
+    elif option == "--session":
+        if not argv:
+            print("--session requires a session id", file=sys.stderr)
+            sys.exit(1)
+        SESSION_ID = argv.pop(0).strip()
+    else:
+        print(f"Unknown option: {option}", file=sys.stderr)
+        sys.exit(1)
+
+if not SESSION_ID and not INCLUDE_ALL:
+    SESSION_ID = os.environ.get("TRINKET_DIAGNOSTICS_SESSION_ID", "").strip()
 
 if len(argv) < 2:
-    print("Usage: ci-diagnostics.py [--full] <RESULTS_DIR> <OUTPUT_PATH>", file=sys.stderr)
+    print(
+        "Usage: ci-diagnostics.py [--full] [--session ID|--all] <RESULTS_DIR> <OUTPUT_PATH>",
+        file=sys.stderr,
+    )
     sys.exit(1)
 
 results_dir = Path(argv[0]).resolve()
@@ -34,9 +54,25 @@ CLASSIFICATION_PRECEDENCE = (
 )
 KNOWN_CLASSIFICATIONS = set(CLASSIFICATION_PRECEDENCE)
 MAX_AGGREGATE_ISSUES = 20
-MAX_DETAIL_LINES = 20
-MAX_DETAIL_CHARS = 4000
-MAX_LINE_CHARS = 400
+MAX_DETAIL_LINES = 8
+MAX_DETAIL_CHARS = 2400
+MAX_LINE_CHARS = 240
+MAX_MESSAGE_CHARS = 800
+MAX_LABELS_IN_DETAIL = 3
+
+
+def compact_text(value: object, *, limit: int | None = None) -> str:
+    """Normalize repeated machine paths and whitespace before exposing text to agents."""
+    text = re.sub(r"\s+", " ", str(value or "").strip())
+    for prefix, replacement in (
+        (str(Path.cwd()), "<repo>"),
+        (str(Path.home()), "<home>"),
+    ):
+        text = text.replace(prefix, replacement)
+    text = re.sub(r"/private/tmp/[^/ ]+", "<tmp>", text)
+    if limit is not None and len(text) > limit:
+        text = f"{text[:limit - 1]}…"
+    return text
 
 
 def iso_now() -> str:
@@ -84,7 +120,7 @@ def normalized_issue(issue: object) -> dict:
             "id": "unknown",
             "kind": "unknown",
             "title": "Unstructured diagnostic",
-            "message": str(issue),
+            "message": compact_text(issue, limit=MAX_MESSAGE_CHARS),
             "file": "",
             "line": None,
             "test": "",
@@ -103,6 +139,7 @@ def normalized_issue(issue: object) -> dict:
     details_truncated = len(details.splitlines()) > MAX_DETAIL_LINES
     bounded_lines: list[str] = []
     for detail in detail_lines:
+        detail = compact_text(detail)
         if len(detail) > MAX_LINE_CHARS:
             detail = f"{detail[:MAX_LINE_CHARS - 1]}…"
             details_truncated = True
@@ -111,9 +148,7 @@ def normalized_issue(issue: object) -> dict:
     if len(bounded_details) > MAX_DETAIL_CHARS:
         bounded_details = f"{bounded_details[:MAX_DETAIL_CHARS - 1]}…"
         details_truncated = True
-    message = str(issue.get("message", ""))
-    if len(message) > 1200:
-        message = f"{message[:1199]}…"
+    message = compact_text(issue.get("message", ""), limit=MAX_MESSAGE_CHARS)
     return {
         "id": str(issue.get("id", "unknown")),
         "kind": str(issue.get("kind", "unknown")),
@@ -239,9 +274,30 @@ def normalise_report(
     return invocation
 
 
-def load_reports() -> tuple[list[dict], int, bool, int]:
+def load_reports() -> tuple[list[dict], int, bool, int, str]:
     """Load current invocation manifests, falling back to reports for legacy callers."""
     manifests = sorted(results_dir.glob("*-invocation.json"))
+    selected_session = SESSION_ID
+    if manifests and not INCLUDE_ALL and not selected_session:
+        session_candidates: list[tuple[str, str]] = []
+        for candidate in manifests:
+            payload, valid = read_json(candidate)
+            if not valid or payload is None:
+                continue
+            session = str(payload.get("session_id", "")).strip()
+            if session:
+                session_candidates.append(
+                    (str(payload.get("generated_at", "")), session)
+                )
+        if session_candidates:
+            selected_session = max(session_candidates)[1]
+    if selected_session and not INCLUDE_ALL:
+        filtered: list[Path] = []
+        for candidate in manifests:
+            payload, valid = read_json(candidate)
+            if valid and payload and str(payload.get("session_id", "")).strip() == selected_session:
+                filtered.append(candidate)
+        manifests = filtered
     reports: list[dict] = []
     parse_errors = 0
     missing_diagnostics = 0
@@ -290,7 +346,7 @@ def load_reports() -> tuple[list[dict], int, bool, int]:
                     manifest=manifest,
                 )
             )
-        return reports, parse_errors, True, missing_diagnostics
+        return reports, parse_errors, True, missing_diagnostics, selected_session
 
     # Compatibility for local/older producers that only emitted diagnostics.
     # Without a status manifest a successful outcome is not considered proven;
@@ -303,10 +359,10 @@ def load_reports() -> tuple[list[dict], int, bool, int]:
             parse_errors += 1
             continue
         reports.append(normalise_report(path, payload))
-    return reports, parse_errors, False, 0
+    return reports, parse_errors, False, 0, selected_session
 
 
-reports, parse_errors, manifests_present, missing_diagnostics_invocations = load_reports()
+reports, parse_errors, manifests_present, missing_diagnostics_invocations, selected_session = load_reports()
 recorded_invocations = len(reports)
 failed_reports = [report for report in reports if report["failed"]]
 missing_result_invocations = sum(1 for report in reports if not report["result_bundle_exists"])
@@ -344,10 +400,13 @@ if category == "passed":
             "because Xcode did not finalize the xcresult bundle."
         )
 elif failed_reports:
-    labels = ", ".join(report["label"] for report in failed_reports)
+    labels = [compact_text(report["label"], limit=80) for report in failed_reports]
+    label_preview = ", ".join(labels[:MAX_LABELS_IN_DETAIL])
+    if len(labels) > MAX_LABELS_IN_DETAIL:
+        label_preview += f", +{len(labels) - MAX_LABELS_IN_DETAIL} more"
     detail = (
         f"{len(failed_reports)} of {recorded_invocations} recorded invocation(s) "
-        f"failed ({labels})."
+        f"failed ({label_preview})."
     )
     if missing_result_invocations:
         detail += f" {missing_result_invocations} invocation(s) had no xcresult bundle."
@@ -400,9 +459,17 @@ for report in reports:
             str(issue.get("message", "")),
         )
         if key in seen_issues:
+            for existing in aggregate_issues:
+                if (
+                    existing.get("label"),
+                    str(existing.get("id", "unknown")),
+                    str(existing.get("message", "")),
+                ) == key:
+                    existing["occurrences"] = int(existing.get("occurrences", 1)) + 1
+                    break
             continue
         seen_issues.add(key)
-        aggregate_issues.append({"label": report["label"], **normalized_issue(issue)})
+        aggregate_issues.append({"label": report["label"], "occurrences": 1, **normalized_issue(issue)})
 
 aggregate_issues_total = len(aggregate_issues)
 if not FULL_REPORT:
@@ -422,6 +489,8 @@ aggregate = {
     "incomplete_result_invocations": incomplete_result_invocations,
     "missing_diagnostics_invocations": missing_diagnostics_invocations,
     "status_manifests_present": manifests_present,
+    "session_id": selected_session,
+    "session_filter": "all" if INCLUDE_ALL else (selected_session or "unscoped"),
     "counts": {
         "total": recorded_invocations,
         "failed": len(failed_reports),

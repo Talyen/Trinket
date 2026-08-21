@@ -234,12 +234,25 @@ struct PlayBattleOverlay: View {
 /// Battle/session sheets and covers — isolated `@Bindable` so overlay writes stay here.
 struct PlaySessionPresentationModifier: ViewModifier {
     @Environment(BattleSession.self) private var battle
+    @Environment(PlaySession.self) private var play
     @Binding var stageMessage: StageMapMessage?
 
     func body(content: Content) -> some View {
         content
             .modifier(PlayBattleOverlaySheetsModifier(battle: battle))
             .modifier(PlayEncounterCoversModifier())
+            .fullScreenCover(
+                isPresented: Binding(
+                    get: { play.currentPostBattleTalentCombatantID != nil },
+                    set: { isPresented in
+                        if !isPresented {
+                            play.dismissPostBattleTalentChoice()
+                        }
+                    }
+                )
+            ) {
+                PostBattleTalentChoiceView()
+            }
             .alert(item: $stageMessage) { message in
                 Alert(
                     title: Text(message.title),

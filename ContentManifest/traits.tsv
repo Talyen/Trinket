@@ -5,10 +5,10 @@ mud_elemental_trait	Mud Elemental	Physical and Poison damage taken reduced by 20
 necromancer_trait	Necromancer	10% chance to Leech. Holy damage taken increased by 30%.	damage_taken_vulnerability:holy:0.30	leech_chance:0.10
 plague_doctor_trait	Plague Doctor	Poison damage taken reduced by 30%.	damage_taken_percent:poison:0.30	
 skeleton_trait	Skeleton	Holy damage taken increased by 30%. Bleed damage taken reduced by 30%.	damage_taken_vulnerability:holy:0.30|damage_taken_percent:bleed:0.30	
-the_blight_treant_trait	The Blight Treant	Holy damage taken increased by 30%. Gains Poison or Bleed damage each turn.	damage_taken_vulnerability:holy:0.30	random_damage_ramp_per_turn:poison:bleed:1
-the_forge_golem_trait	The Forge Golem	Gains Stun or Burn damage each turn.		random_damage_ramp_per_turn:stun:burn:1
-the_frostwarden_trait	The Frostwarden	Deals 1 Freeze damage every other turn to all enemies. Burn damage taken increased by 30%. Gains Freeze damage every other turn.	damage_taken_vulnerability:burn:0.30	turn_freeze_all_enemies:1|damage_increases_every_other_turn:freeze:1
-the_iron_bear_trait	The Iron Bear	Gains Physical or Stun damage each turn.		random_damage_ramp_per_turn:physical:stun:1
+the_blight_treant_trait	The Blight Treant	Holy damage taken increased by 30%. Deals 1 Poison or Bleed damage each turn to all enemies.	damage_taken_vulnerability:holy:0.30	turn_random_damage_all_enemies:poison:bleed:1
+the_forge_golem_trait	The Forge Golem	Deals 1 Stun or Burn damage each turn to all enemies.		turn_random_damage_all_enemies:stun:burn:1
+the_frostwarden_trait	The Frostwarden	Deals 1 Freeze damage every other turn to all enemies. Burn damage taken increased by 30%.	damage_taken_vulnerability:burn:0.30	turn_freeze_all_enemies:1
+the_iron_bear_trait	The Iron Bear	Deals 1 Physical or Stun damage each turn to all enemies.		turn_random_damage_all_enemies:physical:stun:1
 goblin_trait	Goblin	Burn damage taken increased by 30%.	damage_taken_vulnerability:burn:0.30	
 fire_elemental_trait	Fire Elemental	Burns attackers for 1 damage when hit. Freeze damage taken increased by 30%.	damage_taken_vulnerability:freeze:0.30	on_hit_attacker_burn:1
 frost_elemental_trait	Frost Elemental	Freeze damage is increased by 1. Burn damage taken increased by 30%.	damage_dealt:freeze:1|damage_taken_vulnerability:burn:0.30	

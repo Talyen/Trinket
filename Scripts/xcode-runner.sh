@@ -128,18 +128,22 @@ xcode_runner_call_reporter() {
 
   # Diagnostics are advisory. Never replace the Xcode status with a reporter
   # process status, even if a local toolchain cannot parse an xcresult.
-  if [[ "$exit_code" -ne 0 && -f "$log_file" ]]; then
+  if [[ "$exit_code" -ne 0 && -f "$log_file" && "$defer_terminal_output" != "true" ]]; then
     echo "=== xcode-runner: raw log excerpt ($log_file) ===" >&2
     # Prefer actionable lines; fall back to the end of the quiet log so CI is
     # not blind when diagnostics misclassify benign setup noise.
-    matches="$(grep -n -E -i 'error:|fatal error:|exception|actool|ibtoold|nil object|BUILD FAILED|\*\* BUILD|\*\* TEST FAILED' "$log_file" | head -n 80 || true)"
+    local excerpt_lines="${TRINKET_XCODE_FAILURE_LOG_LINES:-8}"
+    local excerpt_chars="${TRINKET_XCODE_FAILURE_LOG_LINE_CHARS:-240}"
+    [[ "$excerpt_lines" =~ ^[0-9]+$ ]] || excerpt_lines=8
+    [[ "$excerpt_chars" =~ ^[0-9]+$ ]] || excerpt_chars=240
+    matches="$(grep -n -E -i 'error:|fatal error:|exception|actool|ibtoold|nil object|BUILD FAILED|\*\* BUILD|\*\* TEST FAILED' "$log_file" | head -n "$excerpt_lines" || true)"
     if [[ -n "$matches" ]]; then
-      printf '%s\n' "$matches" | awk '{ if (length($0) > 400) print substr($0, 1, 399) "…"; else print }' >&2
-      if [[ "$(printf '%s\n' "$matches" | wc -l | tr -d ' ')" -ge 80 ]]; then
+      printf '%s\n' "$matches" | awk -v limit="$excerpt_chars" '{ if (length($0) > limit) print substr($0, 1, limit - 1) "…"; else print }' >&2
+      if [[ "$(printf '%s\n' "$matches" | wc -l | tr -d ' ')" -ge "$excerpt_lines" ]]; then
         echo "… additional matching log lines omitted by xcode-runner" >&2
       fi
     else
-      tail -n 80 "$log_file" >&2 || true
+      tail -n "$excerpt_lines" "$log_file" | awk -v limit="$excerpt_chars" '{ if (length($0) > limit) print substr($0, 1, limit - 1) "…"; else print }' >&2 || true
     fi
     echo "=== end raw log excerpt ===" >&2
   fi

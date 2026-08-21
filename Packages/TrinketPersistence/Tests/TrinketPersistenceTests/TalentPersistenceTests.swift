@@ -44,4 +44,78 @@ struct TalentPersistenceTests {
         #expect(secondStore.currentSave.roster.unlockedTalents["knight"] == knightTalents)
         #expect(secondStore.currentSave.roster.unlockedTalents["rogue"] == rogueTalents)
     }
+
+    @Test func unlockingTalentThroughStoreSurvivesReload() throws {
+        let context = try PersistenceTestContext()
+        let storeURL = context.storeURL()
+        let store = try PlayerSaveStore(
+            storeURL: storeURL,
+            disableCloudSync: true,
+            persistSaveImmediately: true
+        )
+        try store.performBatchMutation { save in
+            save.roster.progressions["knight"] = .at(level: 2)
+        }
+        let tree = try #require(CombatantTalentCatalog.allConfigs["knight"]?.trees.first)
+        let node = try #require(tree.nodes.first)
+
+        #expect(store.unlockTalent(nodeID: node.id, treeID: tree.id, for: "knight") == .unlocked)
+
+        let reloaded = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
+        #expect(reloaded.roster.unlockedTalents(for: "knight") == [node.id])
+    }
+
+    @Test func storeRejectsUnavailableTalentWithoutMutation() throws {
+        let context = try PersistenceTestContext()
+        let store = try PlayerSaveStore(
+            storeURL: context.storeURL(),
+            disableCloudSync: true,
+            persistSaveImmediately: true
+        )
+        let knightTree = try #require(CombatantTalentCatalog.allConfigs["knight"]?.trees.first)
+        let knightNode = try #require(knightTree.nodes.first)
+        let rogueTree = try #require(CombatantTalentCatalog.allConfigs["rogue"]?.trees.first)
+
+        #expect(
+            store.unlockTalent(
+                nodeID: knightNode.id,
+                treeID: knightTree.id,
+                for: "knight"
+            ) == .unavailable
+        )
+        #expect(
+            store.unlockTalent(
+                nodeID: knightNode.id,
+                treeID: rogueTree.id,
+                for: "knight"
+            ) == .unavailable
+        )
+        #expect(store.roster.unlockedTalents(for: "knight").isEmpty)
+    }
+
+    #if DEBUG
+    @Test func failedTalentSaveRollsBackUnlock() throws {
+        let context = try PersistenceTestContext()
+        let store = try PlayerSaveStore(
+            storeURL: context.storeURL(),
+            disableCloudSync: true,
+            persistSaveImmediately: true
+        )
+        try store.performBatchMutation { save in
+            save.roster.progressions["knight"] = .at(level: 2)
+        }
+        let tree = try #require(CombatantTalentCatalog.allConfigs["knight"]?.trees.first)
+        let node = try #require(tree.nodes.first)
+        store.forcesNextSaveFailure = true
+
+        #expect(
+            store.unlockTalent(
+                nodeID: node.id,
+                treeID: tree.id,
+                for: "knight"
+            ) == .persistenceFailed
+        )
+        #expect(store.roster.unlockedTalents(for: "knight").isEmpty)
+    }
+    #endif
 }

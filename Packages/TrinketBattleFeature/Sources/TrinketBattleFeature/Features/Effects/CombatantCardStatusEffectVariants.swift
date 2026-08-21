@@ -295,18 +295,9 @@ struct CombatantStatusCardTransform: ViewModifier {
     }
 }
 
-/// How stun/freeze overlays play in on a card face.
-enum CombatantStatusEffectIntro {
-    /// Timed TimelineView intro, then a paused saturated overlay (combatant panes).
-    case animated
-    /// Saturated overlay with no clock or wobble (hand cards).
-    case immediate
-}
-
 /// Continuous stun/freeze overlay while a status accent is active.
 struct CombatantStatusEffectPresentation<Content: View>: View {
     let keyword: Keyword?
-    let intro: CombatantStatusEffectIntro
     let content: Content
 
     @State private var startDate = Date()
@@ -316,11 +307,9 @@ struct CombatantStatusEffectPresentation<Content: View>: View {
 
     init(
         keyword: Keyword?,
-        intro: CombatantStatusEffectIntro = .animated,
         @ViewBuilder content: () -> Content
     ) {
         self.keyword = keyword
-        self.intro = intro
         self.content = content()
     }
 
@@ -328,29 +317,10 @@ struct CombatantStatusEffectPresentation<Content: View>: View {
         if let keyword,
            let kind = CombatantStatusEffectKind(statusKeyword: keyword) {
             let config = CombatantStatusEffectConfig.defaults(for: kind)
-            switch intro {
-            case .immediate:
-                saturatedOverlay(kind: kind, config: config)
-            case .animated:
-                animatedOverlay(kind: kind, config: config)
-            }
+            animatedOverlay(kind: kind, config: config)
         } else {
             content
         }
-    }
-
-    private func saturatedOverlay(
-        kind: CombatantStatusEffectKind,
-        config: CombatantStatusEffectConfig
-    ) -> some View {
-        content
-            .overlay {
-                CombatantStatusEffectOverlay(
-                    kind: kind,
-                    config: config,
-                    progress: 1
-                )
-            }
     }
 
     private func animatedOverlay(

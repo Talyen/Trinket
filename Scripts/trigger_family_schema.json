@@ -58,31 +58,19 @@
         "merge": "or"
       },
       {
-        "name": "damageIncreasesEveryOtherTurn",
-        "type": "Bool",
-        "default": "false",
-        "merge": "or"
-      },
-      {
-        "name": "damageIncreasesEveryOtherTurnKeyword",
+        "name": "turnRandomDamageAllEnemiesKeywordA",
         "type": "Keyword?",
         "default": "nil",
         "merge": "coalesce"
       },
       {
-        "name": "randomDamageRampKeywordA",
+        "name": "turnRandomDamageAllEnemiesKeywordB",
         "type": "Keyword?",
         "default": "nil",
         "merge": "coalesce"
       },
       {
-        "name": "randomDamageRampKeywordB",
-        "type": "Keyword?",
-        "default": "nil",
-        "merge": "coalesce"
-      },
-      {
-        "name": "randomDamageRampPerTurn",
+        "name": "turnRandomDamageAllEnemiesAmount",
         "type": "Int",
         "default": "0",
         "merge": "add"

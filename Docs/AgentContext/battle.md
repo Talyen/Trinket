@@ -1,5 +1,8 @@
 # Battle context
 
+Route metadata only: do not read this card by default when `agent-context.sh`
+provides a focused subcard. Use it to resolve ownership when the path is unclear.
+
 Use for card rules, effects, decks/hands, turn flow, battle lifecycle, and battle presentation. This is the routing card; load one focused subcard for the changed owner:
 
 - [Engine rules](battle-engine.md) — `BattleEngine`, effect handlers, damage and trigger cadence.

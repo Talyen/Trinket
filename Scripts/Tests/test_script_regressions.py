@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -325,6 +326,102 @@ class ScriptRegressionTests(unittest.TestCase):
             self.assertEqual(staged.returncode, 0, staged.stderr)
             self.assertTrue((failed_stage / "raw" / "pass.log").exists())
 
+    def test_ci_diagnostics_selects_session_and_cleans_passed_history(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            results = Path(directory) / "TestResults"
+            results.mkdir()
+            for label, session, status, exit_code in (
+                ("old", "session-old", "passed", 0),
+                ("current", "session-current", "failed", 65),
+            ):
+                (results / f"{label}-invocation.json").write_text(
+                    json.dumps(
+                        {
+                            "label": label,
+                            "session_id": session,
+                            "status": status,
+                            "exit_code": exit_code,
+                            "result_bundle": str(results / f"{label}.xcresult"),
+                            "generated_at": f"2026-08-20T00:00:0{len(label)}Z",
+                        }
+                    ),
+                    encoding="utf-8",
+                )
+            aggregate = results / "current.json"
+            selected = subprocess.run(
+                [sys.executable, str(ROOT / "Scripts" / "ci-diagnostics.py"), str(results), str(aggregate)],
+                cwd=ROOT,
+                env={**os.environ, "TRINKET_DIAGNOSTICS_SESSION_ID": "session-current"},
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(selected.returncode, 0, selected.stderr)
+            payload = json.loads(aggregate.read_text(encoding="utf-8"))
+            self.assertEqual(payload["recorded_invocations"], 1)
+            self.assertEqual(payload["session_id"], "session-current")
+
+            passed_bundle = results / "passed.xcresult"
+            passed_bundle.mkdir()
+            raw = results / "raw"
+            raw.mkdir()
+            (raw / "passed.log").write_text("pass\n", encoding="utf-8")
+            (results / "passed-invocation.json").write_text(
+                json.dumps(
+                    {
+                        "status": "passed",
+                        "exit_code": 0,
+                        "result_bundle": str(passed_bundle),
+                    }
+                ),
+                encoding="utf-8",
+            )
+            cleaned = subprocess.run(
+                [str(ROOT / "Scripts" / "ci-diagnostics.sh"), "--cleanup", str(results)],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(cleaned.returncode, 0, cleaned.stderr)
+            self.assertFalse(passed_bundle.exists())
+            self.assertFalse((raw / "passed.log").exists())
+            self.assertTrue((results / "current-invocation.json").exists())
+
+            kept_bundle = results / "kept.xcresult"
+            kept_bundle.mkdir()
+            (results / "kept-invocation.json").write_text(
+                json.dumps(
+                    {
+                        "status": "passed",
+                        "exit_code": 0,
+                        "result_bundle": str(kept_bundle),
+                    }
+                ),
+                encoding="utf-8",
+            )
+            kept = subprocess.run(
+                [str(ROOT / "Scripts" / "ci-diagnostics.sh"), "--cleanup", "--keep", str(results)],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(kept.returncode, 0, kept.stderr)
+            self.assertTrue(kept_bundle.exists())
+
+    def test_artifact_consumers_defer_run_env_cleanup(self) -> None:
+        performance = (ROOT / "Scripts" / "performance.sh").read_text(encoding="utf-8")
+        self.assertIn(
+            'TRINKET_CLEANUP_TEST_ARTIFACTS=0 \\\nRESULTS_DIR="$OUTPUT_DIR/TestResults"',
+            performance,
+        )
+
+        test_job = (ROOT / ".github" / "actions" / "test-job" / "action.yml").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("TRINKET_CLEANUP_TEST_ARTIFACTS: 0", test_job)
+
     def test_new_plan_scaffold_creates_lifecycle_metadata(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             plan_name = f"TokenEfficiencyFixture{Path(directory).name}"
@@ -384,6 +481,8 @@ class ScriptRegressionTests(unittest.TestCase):
         compact_payload = json.loads(compact.stdout)
         self.assertIn("path_counts", compact_payload)
         self.assertNotIn("paths", compact_payload)
+        self.assertIn("context_read_contract", compact_payload)
+        self.assertIn("context_estimate", compact_payload)
 
         full = subprocess.run(command[:2] + ["--full"] + command[2:], cwd=ROOT, capture_output=True, text=True, check=False)
         self.assertEqual(full.returncode, 0, full.stderr)
@@ -408,6 +507,18 @@ class ScriptRegressionTests(unittest.TestCase):
         )
         self.assertEqual(explicit.returncode, 0, explicit.stderr)
 
+    def test_agent_context_caps_accidental_working_tree_scope(self) -> None:
+        result = subprocess.run(
+            [str(ROOT / "Scripts" / "agent-context.sh"), "--agent", "--working-tree"],
+            cwd=ROOT,
+            env={**os.environ, "TRINKET_MAX_WORKING_TREE_PATHS": "0"},
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 3)
+        self.assertIn("use explicit --paths or --allow-broad-scope", result.stderr)
+
     def test_agent_context_routes_app_state_to_battle_card(self) -> None:
         result = subprocess.run(
             [
@@ -422,7 +533,8 @@ class ScriptRegressionTests(unittest.TestCase):
             check=False,
         )
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("Docs/AgentContext/battle.md", result.stdout)
+        self.assertIn("Docs/AgentContext/battle-runtime.md", result.stdout)
+        self.assertIn("lookup only", result.stdout)
 
     def test_agent_context_routes_battle_state_to_focused_card_without_design_skill(self) -> None:
         result = subprocess.run(
@@ -472,6 +584,40 @@ class ScriptRegressionTests(unittest.TestCase):
         )
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("Docs/Skills/apple-design/SKILL.md", result.stdout)
+        self.assertNotIn("Docs/AgentContext/swiftui-features.md", result.stdout)
+
+    def test_agent_context_routes_audio_without_battle_context(self) -> None:
+        result = subprocess.run(
+            [
+                str(ROOT / "Scripts" / "agent-context.sh"),
+                "--agent",
+                "--paths",
+                "Packages/TrinketAppState/Sources/TrinketAppState/Audio/MusicPlayer.swift",
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("Docs/AgentContext/audio.md", result.stdout)
+        self.assertNotIn("Docs/AgentContext/battle", result.stdout)
+
+    def test_agent_context_does_not_attach_design_skill_to_ui_tests(self) -> None:
+        result = subprocess.run(
+            [
+                str(ROOT / "Scripts" / "agent-context.sh"),
+                "--agent",
+                "--paths",
+                "TrinketUITests/Smoke/SmokeShellTests.swift",
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertNotIn("apple-design/SKILL.md", result.stdout)
 
     def test_mystery_subflow_runs_play_smoke(self) -> None:
         # Deterministic routing: any Play diff runs SmokeShellTests; no demotion

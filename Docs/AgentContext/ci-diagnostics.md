@@ -19,6 +19,12 @@ Failed invocations also produce bounded sibling reports:
 - `*-diagnostics.annotations` with GitHub Actions annotations.
 - `*-diagnostics.attachments/` when a bounded attachment is needed.
 
+Default narrative budgets are intentionally small: xcode-runner prints at most 8
+matching (or tail) lines at 240 characters each, while structured reports show at
+most 12 issues, 800-character messages, 8 detail lines, and 2,400 detail characters.
+Use an explicit retained path or `--full` for forensic payloads; do not paste the
+raw log into the agent prompt.
+
 Classifications are `test-failure`, `build-failure`, `simulator-infrastructure`,
 `configuration`, `tooling`, or `unknown`. Test-owned attachments stay on their
 matching issue; runner-level or otherwise unmatched attachments are listed once at
@@ -27,7 +33,8 @@ when the underlying result bundle is incomplete.
 
 ## Aggregate and triage order
 
-Run:
+Run (the current diagnostics session is selected automatically; use `--all` only
+for an intentional historical investigation):
 
 ```sh
 # Shared tenant (humans / CI):
@@ -37,7 +44,7 @@ Run:
 ./Scripts/ci-diagnostics.sh .DerivedData/runs/<TRINKET_RUN_ID>/TestResults
 ```
 
-The command aggregates completion manifests and failure reports into
+The command aggregates only the current session's completion manifests and failure reports into
 `<RESULTS_DIR>/ci-diagnostics.json`; in CI it also writes the actionable
 summary to `GITHUB_STEP_SUMMARY`. It consumes the structured reports and does not
 reparse xcresult bundles. Cached status/diagnostic artifacts can be cleared at job
@@ -53,6 +60,12 @@ Open per-invocation JSON, annotations, or attachments only when the Markdown poi
 to missing detail. Inspect raw xcodebuild logs only when the aggregate category is
 `unknown` (or a report explicitly escalates to raw-log inspection).
 
+After the aggregate has been staged, successful invocation artifacts are ephemeral
+by default. `ci-diagnostics.sh --cleanup` removes passed bundles, reports, manifests,
+raw logs, and timing history while retaining failed evidence for current triage.
+Pass `--keep` for a deliberate investigation or set the CI action's
+`keep-diagnostics: true`.
+
 For GitHub Actions failures, prefer check-run annotations (SwiftLint / compiler)
 and a short `--log-failed` tail over scraping the full log when the excerpt only
 shows “Found N violation(s)” without a path — style findings often live in
@@ -63,8 +76,9 @@ The test and package command scopes are unchanged: diagnostics describe the exis
 `test.sh`, `test-package.sh`, and wrapper invocations rather than replacing focused
 verification or the pre-push gates.
 
-CI uploads a structured-first artifact. The test job always retains manifests,
+CI uploads a structured-first artifact. The test job stages manifests,
 bounded reports, the aggregate, and timing data; raw logs, `.xcresult` bundles, and
 attachments are staged only when the aggregate category is failed or unknown. Use
 `./Scripts/ci-diagnostics.py --full <RESULTS_DIR> <OUTPUT_PATH>` when an investigation
-needs the uncompressed aggregate invocation payload.
+needs the uncompressed aggregate invocation payload, and `--all` only for an explicit
+cross-session comparison.

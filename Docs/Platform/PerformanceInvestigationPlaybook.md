@@ -31,6 +31,11 @@ Artifacts are written under `.DerivedData/PerformanceResults/<UTC timestamp>/`:
 - `summary.md`: individual gate results and frame-time diagnostics;
 - `aggregate.json` and `aggregate.md`: every repetition plus median and spread.
 
+Successful default runs remove that timestamped directory after comparison. Set
+`TRINKET_KEEP_PERFORMANCE_REPORTS=1` or provide `TRINKET_PERFORMANCE_OUTPUT_DIR`
+when a capture must remain available for investigation; failed runs retain their
+evidence for current triage.
+
 The current runtime does not reliably export `XCTHitchMetric`; the broken exporter is intentionally absent. Do not substitute a custom `CADisplayLink` sample for an authoritative render-pipeline hitch metric. Capture Instruments Animation Hitches and Time Profiler traces when diagnosing a failure.
 
 ## Coverage inventory

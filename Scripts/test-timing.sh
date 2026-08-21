@@ -33,6 +33,7 @@ run_python() {
   python3 - "$@" <<'PY'
 import json
 import math
+import os
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -198,7 +199,7 @@ def append_entry(entry: dict) -> None:
         handle.write(json.dumps(entry, separators=(",", ":")))
         handle.write("\n")
 
-    max_entries = 250
+    max_entries = 250 if os.environ.get("TRINKET_KEEP_TIMING_HISTORY", "0") == "1" else 1
     lines = log_path.read_text(encoding="utf-8").splitlines()
     if len(lines) > max_entries:
         log_path.write_text("\n".join(lines[-max_entries:]) + "\n", encoding="utf-8")
