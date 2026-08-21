@@ -1527,9 +1527,9 @@ public extension CombatantTalentCatalog {
             ),
             "risen_skeleton_deathsdoor_t1_2": CombatantTalentEffect(
                 name: "Tenacious Spirit",
-                description: "Survive 1 additional lethal blow while on Death's Door.",
+                description: "Death's Door lasts 1 additional turn.",
                 modifiers: [],
-                triggers: CombatTraitTriggers(revival: RevivalTriggers(deathsDoorExtraLethalProtection: true))
+                triggers: CombatTraitTriggers(revival: RevivalTriggers(deathsDoorDurationBonusTurns: 1))
             ),
             "risen_skeleton_deathsdoor_t2_1": CombatantTalentEffect(
                 name: "Corpse Explosion",

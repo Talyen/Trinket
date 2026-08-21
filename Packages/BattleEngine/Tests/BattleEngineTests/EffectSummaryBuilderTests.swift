@@ -51,7 +51,7 @@ struct EffectSummaryBuilderTests {
                     remainingTurns: BattleTiming.deathsDoorDurationTurns
                 ),
             ]
-            expectedText = "Death's Door: heal soon or the next fatal blow will end them."
+            expectedText = "Death's Door: immune to fatal blows while it lasts."
             expectedKeyword = .deathsDoor
         }
 

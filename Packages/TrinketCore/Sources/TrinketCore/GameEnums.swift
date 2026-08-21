@@ -123,7 +123,7 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Codable, Send
         case .mana:
             "Mana regenerates +1 each round. Spend 3 Mana to add +1 Burn or Freeze on a card"
         case .deathsDoor:
-            "Death's Door survives a fatal blow at 1 Health — heal before it ends or the next fatal hit kills"
+            "Death's Door survives a fatal blow at 1 Health — immune to fatal blows while it lasts"
         }
     }
 }

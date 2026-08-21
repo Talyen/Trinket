@@ -331,3 +331,79 @@ struct DamagePipelineTests {
         try #expect(outcome.healthLost == 14)
     }
 }
+
+struct EnemyOutgoingReductionDamageTests {
+    @Test func frozenEnemyDealsReducedDamage() throws {
+        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 50)
+        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 50)
+        var context = BattleStateTestFactory.makeBattle(
+            hero: hero,
+            companion: CombatantFixtures.combatant(id: "companion", role: .companion),
+            enemy: enemy,
+            activeEnemyEffects: [
+                ActiveEffect(
+                    id: 1,
+                    effect: .controlMeter(.freeze, 1, 1),
+                    remainingTurns: BattleTiming.controlStatusLingerTurns
+                ),
+            ],
+            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
+                mitigation: MitigationTriggers(frozenEnemyDamageReductionFlat: 3)
+            )),
+            dealOpeningHand: false
+        )
+
+        let outcome = context.resolveDamage(
+            DamageRequest(amount: 10, target: hero, keyword: .physical, sourceActorID: "enemy")
+        )
+
+        try #expect(outcome.healthLost == 7)
+    }
+
+    @Test func debuffedAttackingEnemyHasDamageReduced() throws {
+        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 50)
+        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 50)
+        var context = BattleStateTestFactory.makeBattle(
+            hero: hero,
+            companion: CombatantFixtures.combatant(id: "companion", role: .companion),
+            enemy: enemy,
+            activeEnemyEffects: [
+                ActiveEffect(id: 1, effect: .damageReductionPercent(0.25, 2), remainingTurns: 2),
+            ],
+            dealOpeningHand: false
+        )
+
+        let outcome = context.resolveDamage(
+            DamageRequest(amount: 10, target: hero, keyword: .physical, sourceActorID: "enemy")
+        )
+
+        try #expect(outcome.healthLost == 8)
+    }
+
+    @Test func frozenHeroDoesNotReduceIncomingEnemyDamage() throws {
+        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 50)
+        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 50)
+        var context = BattleStateTestFactory.makeBattle(
+            hero: hero,
+            companion: CombatantFixtures.combatant(id: "companion", role: .companion),
+            enemy: enemy,
+            activeHeroEffects: [
+                ActiveEffect(
+                    id: 1,
+                    effect: .controlMeter(.freeze, 1, 1),
+                    remainingTurns: BattleTiming.controlStatusLingerTurns
+                ),
+            ],
+            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
+                mitigation: MitigationTriggers(frozenEnemyDamageReductionFlat: 3)
+            )),
+            dealOpeningHand: false
+        )
+
+        let outcome = context.resolveDamage(
+            DamageRequest(amount: 10, target: hero, keyword: .physical, sourceActorID: "enemy")
+        )
+
+        try #expect(outcome.healthLost == 10)
+    }
+}

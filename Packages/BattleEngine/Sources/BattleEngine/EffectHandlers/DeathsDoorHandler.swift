@@ -9,7 +9,7 @@ struct DeathsDoorHandler: BattleEffectHandler {
         guard !stacks.isEmpty else { return nil }
         return EffectSummary(
             keyword: keyword,
-            text: "Death's Door: heal soon or the next fatal blow will end them."
+            text: "Death's Door: immune to fatal blows while it lasts."
         )
     }
 

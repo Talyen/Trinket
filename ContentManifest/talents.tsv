@@ -246,7 +246,7 @@ risen_skeleton_leech_t2_2	Soul Sharing	Convert half of Skeleton's damage into Le
 risen_skeleton_leech_t3_1	Affliction Siphon	Leech heals for double amount against Poisoned or Bleeding targets.		leechHealingVsAfflictedMultiplier:2
 risen_skeleton_leech_t3_2	Necrotic Bleed	Leeching Health applies 2 Bleed to the target.		onLeechApplyBleed:2
 risen_skeleton_deathsdoor_t1_1	Deathrattle	Revive at 1 Health with 10 Block the first time you die each battle.		onceDeathReviveHealth:1|onceDeathReviveBlock:10
-risen_skeleton_deathsdoor_t1_2	Tenacious Spirit	Survive 1 additional lethal blow while on Death's Door.		deathsDoorExtraLethalProtection:true
+risen_skeleton_deathsdoor_t1_2	Tenacious Spirit	Death's Door lasts 1 additional turn.		deathsDoorDurationBonusTurns:1
 risen_skeleton_deathsdoor_t2_1	Corpse Explosion	Deal 8 Physical damage to the enemy when you die.		onDeathDealPhysicalDamageAllEnemies:8
 risen_skeleton_deathsdoor_t2_2	Deathly Wrath	Attacks are guaranteed Critical Hits while on Death's Door.		guaranteedCritWhileOnDeathsDoor:true
 risen_skeleton_deathsdoor_t3_1	Endless Legion	If Death's Door ends while Skeleton is still alive, restore Health to 6 once.		deathsDoorExpiredHealFlat:6

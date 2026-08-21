@@ -192,7 +192,9 @@ package extension DamagePipeline {
         in context: inout BattleState
     ) {
         guard state.sourceActorID == context.roster.enemy.id else { return }
-        let enemy = state.combatant
+        // The attacker is guaranteed to be the enemy here; `state.combatant`
+        // is always the defender in this pipeline.
+        let enemy = context.roster.enemy.combatant
         let enemyIsFrozen = context.roster.hasControlStatus(for: enemy, keyword: .freeze)
         let enemyIsStunned = context.roster.hasControlStatus(for: enemy, keyword: .stun)
         let enemyIsPoisoned = context.roster.activeEffects(for: enemy).contains { $0.effect.keyword == .poison }

@@ -70,12 +70,16 @@ package enum CombatTriggerEngine {
         }
     }
 
+    /// Deep Freeze: frozen enemies cannot gain Block or receive healing.
     static func frozenTargetCannotBlockOrHeal(_ target: Combatant, in context: BattleState) -> Bool {
+        guard target.role == .enemy else { return false }
         guard context.roster.hasControlStatus(for: target, keyword: .freeze) else { return false }
         return context.partyTriggers.frozenEnemyCannotBlockOrHeal
     }
 
+    /// Withering Flame: burn halves enemy healing and Leech.
     static func incomingHealMultiplier(for target: Combatant, in context: BattleState) -> Double {
+        guard target.role == .enemy else { return 1 }
         let isBurning = context.roster.activeEffects(for: target).contains { $0.effect.keyword == .burn }
         guard isBurning else { return 1 }
         let reduction = livingAllyModifiers(in: context)

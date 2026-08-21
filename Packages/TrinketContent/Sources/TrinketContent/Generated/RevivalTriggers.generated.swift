@@ -10,7 +10,6 @@ public struct RevivalTriggers: Equatable, Hashable, Sendable {
     public var reviveDealBurnDamage: Int = 0
     public var onSurviveDeathsDoorDamageBonusPercent: Double = 0
     public var deathsDoorDodgeAndDebuffImmunity: Bool = false
-    public var deathsDoorExtraLethalProtection: Bool = false
     public var onDeathDealPhysicalDamageAllEnemies: Int = 0
     public var guaranteedCritWhileOnDeathsDoor: Bool = false
     public var deathsDoorExpiredHealFlat: Int = 0
@@ -25,7 +24,6 @@ public struct RevivalTriggers: Equatable, Hashable, Sendable {
         reviveDealBurnDamage: Int = 0,
         onSurviveDeathsDoorDamageBonusPercent: Double = 0,
         deathsDoorDodgeAndDebuffImmunity: Bool = false,
-        deathsDoorExtraLethalProtection: Bool = false,
         onDeathDealPhysicalDamageAllEnemies: Int = 0,
         guaranteedCritWhileOnDeathsDoor: Bool = false,
         deathsDoorExpiredHealFlat: Int = 0,
@@ -39,7 +37,6 @@ public struct RevivalTriggers: Equatable, Hashable, Sendable {
         self.reviveDealBurnDamage = reviveDealBurnDamage
         self.onSurviveDeathsDoorDamageBonusPercent = onSurviveDeathsDoorDamageBonusPercent
         self.deathsDoorDodgeAndDebuffImmunity = deathsDoorDodgeAndDebuffImmunity
-        self.deathsDoorExtraLethalProtection = deathsDoorExtraLethalProtection
         self.onDeathDealPhysicalDamageAllEnemies = onDeathDealPhysicalDamageAllEnemies
         self.guaranteedCritWhileOnDeathsDoor = guaranteedCritWhileOnDeathsDoor
         self.deathsDoorExpiredHealFlat = deathsDoorExpiredHealFlat
@@ -57,7 +54,6 @@ extension RevivalTriggers {
         reviveDealBurnDamage += other.reviveDealBurnDamage
         onSurviveDeathsDoorDamageBonusPercent += other.onSurviveDeathsDoorDamageBonusPercent
         deathsDoorDodgeAndDebuffImmunity = deathsDoorDodgeAndDebuffImmunity || other.deathsDoorDodgeAndDebuffImmunity
-        deathsDoorExtraLethalProtection = deathsDoorExtraLethalProtection || other.deathsDoorExtraLethalProtection
         onDeathDealPhysicalDamageAllEnemies += other.onDeathDealPhysicalDamageAllEnemies
         guaranteedCritWhileOnDeathsDoor = guaranteedCritWhileOnDeathsDoor || other.guaranteedCritWhileOnDeathsDoor
         deathsDoorExpiredHealFlat = max(deathsDoorExpiredHealFlat, other.deathsDoorExpiredHealFlat)
@@ -77,7 +73,6 @@ extension RevivalTriggers {
             reviveDealBurnDamage: values.decode(Int.self, "reviveDealBurnDamage", default: 0),
             onSurviveDeathsDoorDamageBonusPercent: values.decode(Double.self, "onSurviveDeathsDoorDamageBonusPercent", default: 0),
             deathsDoorDodgeAndDebuffImmunity: values.decode(Bool.self, "deathsDoorDodgeAndDebuffImmunity", default: false),
-            deathsDoorExtraLethalProtection: values.decode(Bool.self, "deathsDoorExtraLethalProtection", default: false),
             onDeathDealPhysicalDamageAllEnemies: values.decode(Int.self, "onDeathDealPhysicalDamageAllEnemies", default: 0),
             guaranteedCritWhileOnDeathsDoor: values.decode(Bool.self, "guaranteedCritWhileOnDeathsDoor", default: false),
             deathsDoorExpiredHealFlat: values.decode(Int.self, "deathsDoorExpiredHealFlat", default: 0),
@@ -94,7 +89,6 @@ extension RevivalTriggers {
         try container.encodeNonDefault(reviveDealBurnDamage, "reviveDealBurnDamage", default: 0)
         try container.encodeNonDefault(onSurviveDeathsDoorDamageBonusPercent, "onSurviveDeathsDoorDamageBonusPercent", default: 0)
         try container.encodeNonDefault(deathsDoorDodgeAndDebuffImmunity, "deathsDoorDodgeAndDebuffImmunity", default: false)
-        try container.encodeNonDefault(deathsDoorExtraLethalProtection, "deathsDoorExtraLethalProtection", default: false)
         try container.encodeNonDefault(onDeathDealPhysicalDamageAllEnemies, "onDeathDealPhysicalDamageAllEnemies", default: 0)
         try container.encodeNonDefault(guaranteedCritWhileOnDeathsDoor, "guaranteedCritWhileOnDeathsDoor", default: false)
         try container.encodeNonDefault(deathsDoorExpiredHealFlat, "deathsDoorExpiredHealFlat", default: 0)

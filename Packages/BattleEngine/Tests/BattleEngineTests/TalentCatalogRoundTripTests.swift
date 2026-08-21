@@ -183,6 +183,55 @@ struct TalentCatalogRoundTripTests { // swiftlint:disable:this type_body_length
         #expect(battle.roster.health(for: battle.roster.enemy.combatant) == 10)
     }
 
+    @Test func deepFreezeDoesNotDenyFrozenHeroBlockOrHeal() throws {
+        let build = try BattleTestFixtures.catalogBuild(combatantID: "wizard", talents: "wizard_freeze_t3_1")
+        var battle = BattleTestFixtures.makeContext(
+            hero: build.combatant,
+            companion: CombatantFixtures.combatant(id: "companion", role: .companion),
+            enemy: CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 40),
+            heroModifiers: build.modifiers
+        )
+        BattleStateTestFactory.seedActiveEffects(
+            [ActiveEffect(id: 1, effect: .controlMeter(.freeze, 10, 10), remainingTurns: 0)],
+            for: battle.roster.hero.combatant,
+            on: &battle
+        )
+        let blockEvents = battle.applyBlock(
+            5,
+            to: battle.roster.hero.combatant,
+            source: battle.roster.hero.combatant,
+            abilityName: "Test"
+        )
+        #expect(!(blockEvents.isEmpty))
+        battle.roster.mutateRuntime(for: battle.roster.hero.combatant) { $0.currentHealth = 10 }
+        let maxHealth = battle.roster.maxHealth(for: battle.roster.hero.combatant)
+        let heal = battle.resolveHeal(
+            HealRequest(amount: 5, target: battle.roster.hero.combatant, sourceActorID: "enemy")
+        )
+        #expect(battle.roster.health(for: battle.roster.hero.combatant) == min(15, maxHealth))
+    }
+
+    @Test func witheringFlameDoesNotHalveBurningHeroHeals() throws {
+        let build = try BattleTestFixtures.catalogBuild(combatantID: "warlock", talents: "warlock_burn_t2_1")
+        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 40)
+        var battle = BattleTestFixtures.makeContext(
+            hero: hero,
+            companion: build.combatant,
+            enemy: CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 40),
+            companionModifiers: build.modifiers
+        )
+        BattleStateTestFactory.seedActiveEffects(
+            [ActiveEffect(id: 1, effect: .burn(3), remainingTurns: 3)],
+            for: hero,
+            on: &battle
+        )
+        battle.roster.mutateRuntime(for: hero) { $0.currentHealth = 10 }
+        let heal = battle.resolveHeal(
+            HealRequest(amount: 5, target: hero, sourceActorID: "companion")
+        )
+        #expect(heal.healthRestored == 5)
+    }
+
     @Test func phoenixGiftHealsHeroFromFatalDamage() throws {
         let build = try BattleTestFixtures.catalogBuild(combatantID: "phoenix", talents: "phoenix_health_t3_1")
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)

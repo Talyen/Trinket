@@ -40,10 +40,6 @@ package enum HealingEngine {
 
         let preHealth = context.roster.health(for: request.target)
         let maxHealth = context.roster.maxHealth(for: request.target)
-        var effectiveHeal = amount
-        if let runtime = context.roster.runtime(for: request.target) {
-            effectiveHeal += runtime.primaryStats.wisdom / 5
-        }
         var restored = 0
         context.roster.mutateRuntime(for: request.target) { restored = $0.heal(amount) }
 
@@ -62,7 +58,7 @@ package enum HealingEngine {
         // Talent overheal routing: prefer the healer's conversion talents so
         // companion overheal (Vital Infusion / Ashen Vitality / Barrier Blessing) applies
         // to the ally they healed.
-        let overflow = max(0, effectiveHeal - max(0, maxHealth - preHealth))
+        let overflow = max(0, amount - max(0, maxHealth - preHealth))
         events.append(contentsOf: applyOverhealConversion(
             overflow: overflow,
             request: request,

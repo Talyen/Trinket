@@ -49,12 +49,6 @@ package enum DeathsDoorEngine {
             if !context.roster.hasConsumedDeathsDoor(for: combatant) {
                 return trigger(on: combatant, in: &context)
             }
-            // Tenacious Spirit: survive one additional lethal blow while on Death's Door.
-            if context.roster.isDeathsDoorActive(for: combatant),
-               context.modifiers(for: combatant.id).triggers.deathsDoorExtraLethalProtection {
-                clampToMinimumHP(on: combatant, in: &context)
-                return []
-            }
             if hasLethalProtection(for: combatant, in: context) {
                 clampToMinimumHP(on: combatant, in: &context)
             }

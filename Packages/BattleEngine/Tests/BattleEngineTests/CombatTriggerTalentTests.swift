@@ -89,6 +89,29 @@ struct CombatTriggerTalentTests { // swiftlint:disable:this type_body_length
         #expect(block == 5)
     }
 
+    @Test func overhealConversionIgnoresTargetWisdom() {
+        let wiseHero = CombatantFixtures.combatant(
+            id: "hero",
+            role: .hero,
+            maxHealth: 20,
+            primaryStats: PrimaryStats(wisdom: 25)
+        )
+        var battle = BattleStateTestFactory.makeBattle(
+            hero: wiseHero,
+            companion: BattleTestFixtures.passiveCompanion(),
+            enemy: BattleTestFixtures.silentEnemy(maxHealth: 100),
+            heroModifiers: .init(triggers: CombatTraitTriggers(
+                healing: HealingTriggers(overhealConvertsToBlock: true)
+            )),
+            dealOpeningHand: false
+        )
+        let healed = battle.roster.hero.combatant
+        let outcome = battle.resolveHeal(HealRequest(amount: 3, target: healed, sourceActorID: healed.id))
+        #expect(outcome.healthRestored == 0)
+        let block = DefensePoolEngine.blockPoints(in: battle.roster.activeEffects(for: healed))
+        #expect(block == 3)
+    }
+
     @Test func freezeBuildupDoesNotDecayWhenSourceSuppresses() {
         var battle = BattleTestFixtures.makePipelineContext(
             heroModifiers: .init(triggers: CombatTraitTriggers(

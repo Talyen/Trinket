@@ -2044,12 +2044,6 @@
         "merge": "or"
       },
       {
-        "name": "deathsDoorExtraLethalProtection",
-        "type": "Bool",
-        "default": "false",
-        "merge": "or"
-      },
-      {
         "name": "onDeathDealPhysicalDamageAllEnemies",
         "type": "Int",
         "default": "0",
