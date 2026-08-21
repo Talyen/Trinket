@@ -13,6 +13,9 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
+# shellcheck source=run-env.sh
+source ./Scripts/run-env.sh
+
 CI_MODE=false
 if [[ "${CI:-}" == "true" ]]; then
   CI_MODE=true
@@ -53,6 +56,8 @@ done
 DERIVED_DATA_PATH="${ARGS[0]:-$PWD/.DerivedData}"
 RUN_MAX_AGE_DAYS="${TRINKET_RUN_MAX_AGE_DAYS:-3}"
 SHARED_ROOT="$PWD/.DerivedData"
+TRINKET_SHARED_DERIVED_DATA="$SHARED_ROOT"
+export TRINKET_SHARED_DERIVED_DATA
 
 if [[ ! -d "$DERIVED_DATA_PATH" ]]; then
   echo "No DerivedData at $DERIVED_DATA_PATH; nothing to prune."
@@ -100,11 +105,6 @@ else
   echo "=== Skipping Intermediate/compilation-cache wipe (pass --ci or set CI=true) ==="
 fi
 
-# shellcheck source=run-env.sh
-source ./Scripts/run-env.sh
-TRINKET_SHARED_DERIVED_DATA="$SHARED_ROOT"
-TRINKET_RUN_MAX_AGE_DAYS="$RUN_MAX_AGE_DAYS"
-export TRINKET_SHARED_DERIVED_DATA TRINKET_RUN_MAX_AGE_DAYS
 echo "=== Age-pruning bulky DerivedData artifacts (max age ${RUN_MAX_AGE_DAYS}d) ==="
 trinket_derived_data_age_prune
 
