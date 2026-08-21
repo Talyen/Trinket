@@ -2,6 +2,7 @@ import BattleEngine
 import Testing
 import TrinketContent
 import TrinketCore
+import TrinketTestSupport
 
 /// Control-meter wiring through card combat endTurn / enemy skip.
 ///
@@ -59,7 +60,12 @@ struct ControlMeterIntegrationTests {
     }
 
     @Test func stunDamageBuildsMeterTriggersAndSkipsNextAction() throws {
-        let hero = BattleTestFixtures.stunAbilityHero(damage: 1)
+        let hero = CombatantFixtures.combatant(
+            id: "hero",
+            role: .hero,
+            actionIntervalTurns: 1,
+            abilities: [CombatantFixtures.ability(id: "test-stun", name: "Test Stun", directDamage: 1, damageKeyword: .stun)]
+        )
         let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion)
         let enemy = BattleTestFixtures.attackingEnemy(abilities: [.slash], maxHealth: 5)
         var battle = BattleTestFixtures.standardParty(hero: hero, companion: companion, enemy: enemy)

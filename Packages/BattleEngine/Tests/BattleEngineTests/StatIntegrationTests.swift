@@ -92,8 +92,7 @@ struct StatIntegrationTests {
             maxHealth: 100
         )
         let enemy = BattleTestFixtures.attackingEnemy(
-            abilities: [.slash],
-            id: "enemy"
+            abilities: [.slash]
         )
         let enemyWithStats = Combatant(
             id: enemy.id,

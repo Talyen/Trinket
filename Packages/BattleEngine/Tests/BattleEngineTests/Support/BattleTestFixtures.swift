@@ -68,78 +68,32 @@ enum BattleTestFixtures {
     }
 
     static func passiveHero(maxHealth: Int = 20) -> Combatant {
-        passiveCombatant(id: "hero", name: "Hero", role: .hero, maxHealth: maxHealth)
+        CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: maxHealth, actionIntervalTurns: 100)
     }
 
     static func passiveCompanion(maxHealth: Int = 20) -> Combatant {
-        passiveCombatant(id: "companion", name: "Companion", role: .companion, maxHealth: maxHealth)
+        CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: maxHealth, actionIntervalTurns: 100)
     }
 
     static func passiveEnemy(maxHealth: Int = 100) -> Combatant {
-        passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: maxHealth)
+        CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: maxHealth, actionIntervalTurns: 100)
     }
 
-    static func silentEnemy(maxHealth: Int, id: String = "enemy") -> Combatant {
-        passiveCombatant(
-            id: id,
-            name: "Enemy",
-            role: .enemy,
-            maxHealth: maxHealth,
-            actionIntervalTurns: 100
-        )
+    static func silentEnemy(maxHealth: Int) -> Combatant {
+        passiveEnemy(maxHealth: maxHealth)
     }
 
     static func attackingEnemy(
         abilities: [Ability],
         maxHealth: Int = 100,
-        actionIntervalTurns: Int? = nil,
-        id: String = "enemy"
+        actionIntervalTurns: Int? = nil
     ) -> Combatant {
-        Combatant(
-            id: id,
-            name: "Enemy",
+        CombatantFixtures.combatant(
+            id: "enemy",
             role: .enemy,
             maxHealth: maxHealth,
             actionIntervalTurns: actionIntervalTurns,
             abilities: abilities
-        )
-    }
-
-    static func keywordDamageAbility(
-        id: String,
-        name: String,
-        keyword: Keyword,
-        damage: Int
-    ) -> Ability {
-        Ability(
-            id: id,
-            name: name,
-            tier: .basic,
-            directDamage: damage,
-            damageKeyword: keyword,
-            description: "Deal \(damage) \(keyword.rawValue) damage."
-        )
-    }
-
-    static func stunAbilityHero(id: String = "hero", damage: Int = 1) -> Combatant {
-        Combatant(
-            id: id,
-            name: "Hero",
-            role: .hero,
-            maxHealth: 50,
-            actionIntervalTurns: 1,
-            abilities: [keywordDamageAbility(id: "test-stun", name: "Test Stun", keyword: .stun, damage: damage)]
-        )
-    }
-
-    static func freezeAbilityHero(id: String = "hero", damage: Int = 1) -> Combatant {
-        Combatant(
-            id: id,
-            name: "Hero",
-            role: .hero,
-            maxHealth: 50,
-            actionIntervalTurns: 1,
-            abilities: [keywordDamageAbility(id: "test-freeze", name: "Test Freeze", keyword: .freeze, damage: damage)]
         )
     }
 
@@ -293,9 +247,8 @@ enum BattleTestFixtures {
         maxHealth: Int = 20,
         actionIntervalTurns: Int = 2
     ) -> Combatant {
-        Combatant(
+        CombatantFixtures.combatant(
             id: id,
-            name: id.capitalized,
             role: .hero,
             maxHealth: maxHealth,
             actionIntervalTurns: actionIntervalTurns,
