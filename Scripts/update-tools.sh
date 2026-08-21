@@ -2,6 +2,10 @@
 # Bump the pinned SwiftFormat / SwiftLint versions in tool-versions.env to the
 # latest GitHub releases and install the local .tools binary. Dry-run by default;
 # pass --apply to write the new pins and re-install.
+#
+# Only SwiftFormat and SwiftLint are automated. The remaining pins (XcodeGen,
+# xcbeautify, ripgrep, git-cliff) are bumped manually in tool-versions.env with
+# hand-fetched checksums — see ensure-ci-tools.sh for their install recipes.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"

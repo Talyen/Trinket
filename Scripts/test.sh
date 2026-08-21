@@ -326,7 +326,7 @@ PY
 if [[ "$NO_BUILD" == "true" ]]; then
   if [[ "$RUN_PACKAGES_ONLY" == "true" ]]; then
     # Package stamp freshness is validated inside test-package.sh --no-build.
-    ACTION="test-without-building"
+    :
   elif assert_no_build_is_fresh; then
     :
   else
@@ -437,7 +437,7 @@ else
   fi
 fi
 
-if [[ "$MODE" == "unit" && ${#TARGETS[@]} -eq 0 && "$APP_ONLY" == false ]]; then
+if [[ "$RUN_PACKAGES_ONLY" == "true" ]]; then
   echo "Running package tests..."
   run_package_tests "$ACTION" || exit 1
 fi
