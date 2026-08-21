@@ -53,18 +53,13 @@ public final class PlaySession {
         let registry = PlayBattleRunRegistry()
         battleRunRegistry = registry
 
-        let runCallbacks = LaunchRunCallbacks(
-            registerRun: { [registry] reg in registry.register(reg) },
-            removeRun: { [registry] key in registry.remove(key) },
-            keepPreparedRuns: { [registry] keys in registry.keep(keys) }
-        )
         let graph = PlayModeGraph.assemble(
             playerSave: playerSave,
             shellSession: shellSession,
             battle: battle,
             options: options,
             sfxPlayer: sfxPlayer,
-            runCallbacks: runCallbacks
+            runRegistry: registry
         )
         battleLaunch = graph.battleLaunch
         journey = graph.journey
@@ -229,12 +224,6 @@ final class PlayBattleRunRegistry {
     }
 }
 
-struct LaunchRunCallbacks {
-    let registerRun: @MainActor @Sendable (PlayBattleRunRegistration) -> Void
-    let removeRun: @MainActor @Sendable (BattleRunKey) -> Void
-    let keepPreparedRuns: @MainActor @Sendable (Set<BattleRunKey>) -> Void
-}
-
 /// Assembles a fully wired Play mode graph in one place — no deferred bind steps.
 @MainActor
 enum PlayModeGraph {
@@ -253,15 +242,13 @@ enum PlayModeGraph {
         battle: any BattleRuntime,
         options: OptionsStore,
         sfxPlayer: SFXPlayer,
-        runCallbacks: LaunchRunCallbacks
+        runRegistry: PlayBattleRunRegistry
     ) -> Assembled {
         let battleLaunch = PlayBattleLaunch(
             playerSave: playerSave,
             shellSession: shellSession,
             battle: battle,
-            registerRun: runCallbacks.registerRun,
-            removeRun: runCallbacks.removeRun,
-            keepPreparedRunRegistrations: runCallbacks.keepPreparedRuns
+            runRegistry: runRegistry
         )
         let encounters = EncounterPlayMode(
             playerSave: playerSave,

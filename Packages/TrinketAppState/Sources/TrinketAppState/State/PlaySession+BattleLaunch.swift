@@ -15,9 +15,7 @@ struct PlayBattleLaunch {
     let playerSave: PlayerSaveStore
     let shellSession: ShellSession
     let battle: any BattleRuntime
-    let registerRun: @MainActor @Sendable (PlayBattleRunRegistration) -> Void
-    let removeRun: @MainActor @Sendable (BattleRunKey) -> Void
-    let keepPreparedRunRegistrations: @MainActor @Sendable (Set<BattleRunKey>) -> Void
+    let runRegistry: PlayBattleRunRegistry
 
     static let activationFailureMessage = StageMapMessage(
         title: "Battle Unavailable",
@@ -80,14 +78,14 @@ struct PlayBattleLaunch {
         if prepared {
             registerRunIfNeeded(launch, route: route)
         } else if let runKey = launch.configuration.runKey {
-            removeRun(runKey)
+            runRegistry.remove(runKey)
         }
         return prepared
     }
 
     func keepPreparedRuns(_ keys: Set<BattleRunKey>) {
         battle.keepPreparedRuns(keys)
-        keepPreparedRunRegistrations(keys)
+        runRegistry.keep(keys)
     }
 
     /// Installs a fresh battle configuration and syncs the tick loop.
@@ -123,7 +121,7 @@ struct PlayBattleLaunch {
         } else if let runKey = launch.configuration.runKey,
                   !battle.hasPreparedRun(runKey),
                   battle.activeBattle == nil {
-            removeRun(runKey)
+            runRegistry.remove(runKey)
         }
         return activated
     }
@@ -173,7 +171,7 @@ struct PlayBattleLaunch {
         route: PlayBattleRoute?
     ) {
         guard launch.configuration.runKey != nil, let route else { return }
-        registerRun(
+        runRegistry.register(
             PlayBattleRunRegistration(
                 route: route,
                 presentation: launch.presentation,
@@ -211,7 +209,7 @@ struct PlayBattleLaunch {
         guard battle.restart(launch.configuration) else { return }
         shellSession.selectedTab = .play
         if let route {
-            registerRun(
+            runRegistry.register(
                 PlayBattleRunRegistration(
                     route: route,
                     presentation: launch.presentation,

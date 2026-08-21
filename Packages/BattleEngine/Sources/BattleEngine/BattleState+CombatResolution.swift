@@ -43,20 +43,6 @@ package extension BattleState {
         HealingEngine.resolveHeal(request, in: &self)
     }
 
-    mutating func applyLeechFromDamage(
-        _ damage: Int,
-        sourceActorID: String,
-        abilityHasLeech: Bool = false
-    ) -> [ActionEvent] {
-        guard talentReactionDepth <= 2 else { return [] }
-        return HealingEngine.leechFromDamage(
-            damage,
-            sourceActorID: sourceActorID,
-            abilityHasLeech: abilityHasLeech,
-            in: &self
-        ).events
-    }
-
     mutating func applyControlMeter(
         _ amount: Int,
         keyword: Keyword,

@@ -9,9 +9,8 @@ import TrinketCore
 ///
 /// The trigger surface is grouped into thematic sub-structs (`DamageTriggers`,
 /// `BlockTriggers`, …) so each family has a small memberwise init and its own merge.
-/// Family accessors (`blockFamily`, `damageFamily`, …) are the canonical surface;
-/// `@dynamicMemberLookup` forwards those fields so existing engine reads stay
-/// `triggers.holyIgnoresBlock` without a 300-site rewrite.
+/// `@dynamicMemberLookup` forwards those families' fields so engine reads stay
+/// `triggers.holyIgnoresBlock` without naming the family.
 @dynamicMemberLookup
 public struct CombatTraitTriggers: Codable, Sendable, Equatable, Hashable {
     /// The COW-boxed payload: one sub-struct per trigger family.
@@ -43,7 +42,7 @@ public struct CombatTraitTriggers: Codable, Sendable, Equatable, Hashable {
 
     var storage: Storage
 
-    public mutating func ensureUnique() {
+    mutating func ensureUnique() {
         if !isKnownUniquelyReferenced(&storage) {
             storage = Storage(storage.fields)
         }
@@ -108,120 +107,6 @@ public struct CombatTraitTriggers: Codable, Sendable, Equatable, Hashable {
 
     public func hash(into hasher: inout Hasher) {
         hasher.combine(storage.fields)
-    }
-
-    // MARK: - Direct Family Accessors
-
-    public var damageFamily: DamageTriggers {
-        get { storage.fields.damage }
-        set {
-            ensureUnique()
-            storage.fields.damage = newValue
-        }
-    }
-
-    public var attackFamily: AttackTriggers {
-        get { storage.fields.attack }
-        set {
-            ensureUnique()
-            storage.fields.attack = newValue
-        }
-    }
-
-    public var blockFamily: BlockTriggers {
-        get { storage.fields.block }
-        set {
-            ensureUnique()
-            storage.fields.block = newValue
-        }
-    }
-
-    public var mitigationFamily: MitigationTriggers {
-        get { storage.fields.mitigation }
-        set {
-            ensureUnique()
-            storage.fields.mitigation = newValue
-        }
-    }
-
-    public var dotFamily: DotTriggers {
-        get { storage.fields.dot }
-        set {
-            ensureUnique()
-            storage.fields.dot = newValue
-        }
-    }
-
-    public var controlFamily: ControlTriggers {
-        get { storage.fields.control }
-        set {
-            ensureUnique()
-            storage.fields.control = newValue
-        }
-    }
-
-    public var dodgeFamily: DodgeTriggers {
-        get { storage.fields.dodge }
-        set {
-            ensureUnique()
-            storage.fields.dodge = newValue
-        }
-    }
-
-    public var manaFamily: ManaTriggers {
-        get { storage.fields.mana }
-        set {
-            ensureUnique()
-            storage.fields.mana = newValue
-        }
-    }
-
-    public var goldFamily: GoldTriggers {
-        get { storage.fields.gold }
-        set {
-            ensureUnique()
-            storage.fields.gold = newValue
-        }
-    }
-
-    public var healingFamily: HealingTriggers {
-        get { storage.fields.healing }
-        set {
-            ensureUnique()
-            storage.fields.healing = newValue
-        }
-    }
-
-    public var revivalFamily: RevivalTriggers {
-        get { storage.fields.revival }
-        set {
-            ensureUnique()
-            storage.fields.revival = newValue
-        }
-    }
-
-    public var cleanseFamily: CleanseTriggers {
-        get { storage.fields.cleanse }
-        set {
-            ensureUnique()
-            storage.fields.cleanse = newValue
-        }
-    }
-
-    public var enemyTurnFamily: EnemyTurnTriggers {
-        get { storage.fields.enemyTurn }
-        set {
-            ensureUnique()
-            storage.fields.enemyTurn = newValue
-        }
-    }
-
-    public var onHitFamily: OnHitTriggers {
-        get { storage.fields.onHit }
-        set {
-            ensureUnique()
-            storage.fields.onHit = newValue
-        }
     }
 
     // MARK: - Dynamic Member Lookup: Damage

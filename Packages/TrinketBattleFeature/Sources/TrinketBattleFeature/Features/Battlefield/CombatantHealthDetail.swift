@@ -1,8 +1,8 @@
 import SwiftUI
 import TrinketDesignSystem
 
-public struct CombatHealthBar: View {
-    public enum Style {
+struct CombatHealthBar: View {
+    enum Style {
         /// Capsule bar used for general combatant detail chrome.
         case standard
         /// Full-bleed rectangular strip for battle card bottom-edge chrome.
@@ -20,7 +20,7 @@ public struct CombatHealthBar: View {
     @State private var restoreHealth: Double
     @State private var restoreOpacity = 0.0
 
-    public init(
+    init(
         health: Int,
         maxHealth: Int,
         fillColor: Color,
@@ -38,7 +38,7 @@ public struct CombatHealthBar: View {
         _restoreHealth = State(initialValue: initialHealth)
     }
 
-    public var body: some View {
+    var body: some View {
         Group {
             switch style {
             case .standard:

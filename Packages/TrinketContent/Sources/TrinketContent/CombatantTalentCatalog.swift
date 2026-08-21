@@ -132,11 +132,6 @@ public enum CombatantTalentCatalog {
         ],
     ]
 
-    /// The 3 canonical keyword affinities for each Hero and Companion.
-    public static var combatantKeywordAffinities: [String: [Keyword]] {
-        combatantTreeAffinities.mapValues { $0.map(\.keyword) }
-    }
-
     // Signature talent definitions are generated from ContentManifest/talents.tsv
     // (`CombatantTalentCatalog.generated.swift`). Per-combatant dictionaries keep
     // each literal off the GCD worker-thread stack.

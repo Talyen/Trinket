@@ -75,43 +75,47 @@ public final class AppState {
         factory: ((BattleRuntimeDependencies) -> any BattleRuntime)?,
         dependencies: BootstrapDependencies
     ) -> any BattleRuntime {
-        explicit
-            ?? factory?(BattleRuntimeDependencies(
-                playSFX: { ids in
-                    dependencies.sfxPlayer.playAll(
-                        ids,
-                        volume: dependencies.options.effectsVolume
-                    )
-                },
-                warmSFX: { ids, concurrentPlayerCount in
-                    dependencies.sfxPlayer.warm(
-                        ids,
-                        concurrentPlayerCount: concurrentPlayerCount
-                    )
-                },
-                hapticsEnabled: {
-                    dependencies.options.hapticsEnabled
-                },
-                effectsVolume: {
-                    dependencies.options.effectsVolume
-                },
-                rememberAutoBattlePreference: {
-                    dependencies.options.rememberAutoBattlePreference
-                },
-                autoBattleEnabled: {
-                    dependencies.options.autoBattleEnabled
-                },
-                setAutoBattleEnabled: { enabled in
-                    dependencies.options.autoBattleEnabled = enabled
-                },
-                shouldAutoSkipUltimateCinematic: { actorID, presentedActors in
-                    dependencies.options.shouldAutoSkipUltimateCinematic(
-                        actorID: actorID,
-                        actorsWhoPresentedThisBattle: presentedActors
-                    )
-                }
-            ))
-            ?? BattleRuntimeStore()
+        // The app always supplies a factory; tests inject a silent BattleSession.
+        guard let resolved = explicit ?? factory?(BattleRuntimeDependencies(
+            playSFX: { ids in
+                dependencies.sfxPlayer.playAll(
+                    ids,
+                    volume: dependencies.options.effectsVolume
+                )
+            },
+            warmSFX: { ids, concurrentPlayerCount in
+                dependencies.sfxPlayer.warm(
+                    ids,
+                    concurrentPlayerCount: concurrentPlayerCount
+                )
+            },
+            hapticsEnabled: {
+                dependencies.options.hapticsEnabled
+            },
+            effectsVolume: {
+                dependencies.options.effectsVolume
+            },
+            rememberAutoBattlePreference: {
+                dependencies.options.rememberAutoBattlePreference
+            },
+            autoBattleEnabled: {
+                dependencies.options.autoBattleEnabled
+            },
+            setAutoBattleEnabled: { enabled in
+                dependencies.options.autoBattleEnabled = enabled
+            },
+            shouldAutoSkipUltimateCinematic: { actorID, presentedActors in
+                dependencies.options.shouldAutoSkipUltimateCinematic(
+                    actorID: actorID,
+                    actorsWhoPresentedThisBattle: presentedActors
+                )
+            }
+        )) else {
+            preconditionFailure(
+                "AppState requires a battle runtime. Pass `battleRuntime` or `makeBattleRuntime`."
+            )
+        }
+        return resolved
     }
 
     public func consumePendingCollectionPresentation() -> LaunchPresentation? {

@@ -8,7 +8,6 @@ Battle feature.
 | Type | Role |
 |---|---|
 | `BattleRuntime` | Lifecycle and command boundary used by `TrinketAppState` |
-| `BattleRuntimeStore` | Presentation-free fallback/test implementation of that contract |
 | `BattleRunConfiguration` | Immutable, launch-baked simulation inputs |
 | `BattleRunKey` | Stable identity for prepared and active runs |
 | `BattleRuntimeDependencies` | Closure-only options, audio, and feedback capabilities |
@@ -21,8 +20,5 @@ Persistence, or the app module.
 
 ## Testing
 
-```sh
-./Scripts/test-package.sh TrinketBattleRuntime
-```
-
-Keep lifecycle transition and contract tests in `TrinketBattleRuntimeTests`.
+This package is a contracts-only library; its behavior is exercised through the
+`BattleSession` tests in TrinketBattleFeature and the AppState integration tests.

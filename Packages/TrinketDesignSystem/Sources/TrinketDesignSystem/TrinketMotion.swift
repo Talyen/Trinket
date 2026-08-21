@@ -253,9 +253,6 @@ public enum TrinketMotion: Sendable {
             chipDisplayDuration + 0.05
         }
 
-        /// Max simultaneous card cast dissolve overlays on the battlefield.
-        public static let maxConcurrentCardCasts = 1
-
         /// Default particle count for a played-card activation burst.
         public static let cardCastParticleCount = 8
 

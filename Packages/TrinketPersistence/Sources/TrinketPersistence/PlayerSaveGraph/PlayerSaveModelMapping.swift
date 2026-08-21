@@ -288,26 +288,24 @@ extension InventoryModel {
 }
 
 extension HomesteadModel {
+    /// Decodes stored rows into typed state. Value normalization (dropping gold,
+    /// negative quantities, out-of-range tiers) is owned by `PlayerSaveSanitizer`,
+    /// which runs over every decoded save.
     func toPlayerHomesteadState() -> PlayerHomesteadState {
         var resolvedResources: [HomesteadResource: Int] = [:]
         for balance in resources ?? [] {
             guard let resource = HomesteadResource(rawValue: balance.resourceID), resource != .gold else { continue }
-            resolvedResources[resource] = max(0, balance.quantity)
+            resolvedResources[resource] = balance.quantity
         }
         var resolvedPendingProduction: [HomesteadResource: Double] = [:]
         for pending in pendingProduction ?? [] {
-            guard let resource = HomesteadResource(rawValue: pending.resourceID),
-                  pending.quantity.isFinite,
-                  pending.quantity > 0
-            else { continue }
+            guard let resource = HomesteadResource(rawValue: pending.resourceID) else { continue }
             resolvedPendingProduction[resource] = pending.quantity
         }
         var resolvedNodeTiers: [HomesteadNodeID: Int] = [:]
         for tierModel in nodeTiers ?? [] {
-            guard let nodeID = HomesteadNodeID(rawValue: tierModel.nodeID),
-                  let maxTier = HomesteadNodeCatalog.maxTierByNodeID[nodeID]
-            else { continue }
-            resolvedNodeTiers[nodeID] = min(max(tierModel.tier, 0), maxTier)
+            guard let nodeID = HomesteadNodeID(rawValue: tierModel.nodeID) else { continue }
+            resolvedNodeTiers[nodeID] = tierModel.tier
         }
         return PlayerHomesteadState(
             resources: resolvedResources,
@@ -379,7 +377,7 @@ extension SpiresProgressModel {
         let rows = floors ?? []
         var map: [String: Int] = [:]
         for row in rows where !row.spireID.isEmpty {
-            map[row.spireID] = max(0, row.highestClearedFloor)
+            map[row.spireID] = row.highestClearedFloor
         }
         return PlayerSpiresState(highestClearedFloorBySpireID: map)
     }

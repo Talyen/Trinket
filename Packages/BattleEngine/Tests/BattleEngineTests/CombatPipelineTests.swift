@@ -115,34 +115,6 @@ struct CombatPipelineTests {
         try #expect(lost == 15)
     }
 
-    // MARK: - Leech
-
-    @Test func applyLeechFromDamageRequiresLeechSource() throws {
-        var withoutLeech = makeContext(seed: BattleTestFixtures.deterministicNonCriticalSeed)
-        _ = withoutLeech.applyTestDamage(10, to: withoutLeech.roster.enemy.combatant, sourceActorID: "source")
-        try #expect(withoutLeech.applyLeechFromDamage(10, sourceActorID: "source").isEmpty)
-
-        var withAbilityLeech = makeContext()
-        withAbilityLeech.roster.mutateRuntime(for: withAbilityLeech.roster.hero.combatant) { $0.currentHealth = 30 }
-        let beforeAbility = withAbilityLeech.roster.hero.currentHealth
-        let abilityEvents = withAbilityLeech.applyLeechFromDamage(
-            10,
-            sourceActorID: "source",
-            abilityHasLeech: true
-        )
-        try #expect(!(abilityEvents.isEmpty))
-        try #expect(withAbilityLeech.roster.hero.currentHealth == beforeAbility + 5)
-
-        let leech = ActiveEffect(id: 1, effect: .leech(.leech, 0.20, 3), remainingTurns: 3)
-        var withEffect = makeContext()
-        withEffect.roster.mutateRuntime(for: withEffect.roster.hero.combatant) { $0.currentHealth = 30 }
-        withEffect.roster.setActiveEffects([leech], for: withEffect.roster.hero.combatant)
-        let beforeEffect = withEffect.roster.hero.currentHealth
-        let effectEvents = withEffect.applyLeechFromDamage(10, sourceActorID: "source")
-        try #expect(!(effectEvents.isEmpty))
-        try #expect(withEffect.roster.hero.currentHealth > beforeEffect)
-    }
-
     // MARK: - Prevention buildup
 
     @Test func stunAndFreezeBuildupTrackedSeparatelyFromDamage() throws {

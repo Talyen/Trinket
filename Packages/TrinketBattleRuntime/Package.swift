@@ -25,9 +25,5 @@ let package = Package(
                 "BattleEngine",
             ]
         ),
-        .testTarget(
-            name: "TrinketBattleRuntimeTests",
-            dependencies: ["TrinketBattleRuntime"]
-        ),
     ]
 )
