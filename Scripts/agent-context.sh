@@ -16,13 +16,12 @@ declare -a requested_paths=()
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --json) OUTPUT="json" ;;
     --agent) OUTPUT="agent" ;;
     --full) FULL=true ;;
     --allow-broad-scope) ALLOW_BROAD_SCOPE=true ;;
     --help|-h)
       cat <<'USAGE'
-Usage: ./Scripts/agent-context.sh [--agent|--json] [--full] [--allow-broad-scope] [--paths <file> ...]
+Usage: ./Scripts/agent-context.sh [--agent] [--full] [--allow-broad-scope] [--paths <file> ...]
 
 Prints a compact task briefing: applicable AGENTS.md guides, context cards and
 skills, architecture/generated-output warnings, and the focused sequential
@@ -69,88 +68,6 @@ if [[ "$PATH_MODE" == working-tree && "$ALLOW_BROAD_SCOPE" != true \
 fi
 trinket_classify_paths
 trinket_build_verification_plan
-
-json_escape() {
-  local value="$1"
-  value=${value//\\/\\\\}
-  value=${value//\"/\\\"}
-  value=${value//$'\n'/\\n}
-  value=${value//$'\r'/\\r}
-  value=${value//$'\t'/\\t}
-  printf '"%s"' "$value"
-}
-
-json_array() {
-  local array_name="$1"
-  local item
-  local first=true
-  local count
-  printf '['
-  eval "count=\${#$array_name[@]}"
-  if (( count > 0 )); then
-    eval "for item in \"\${${array_name}[@]}\"; do
-      if [[ \"\$first\" == true ]]; then first=false; else printf ','; fi
-      json_escape \"\$item\"
-    done"
-  fi
-  printf ']'
-}
-
-json_bool() {
-  if [[ "$1" == true ]]; then printf true; else printf false; fi
-}
-
-context_bytes() {
-  local total=0 item
-  for item in "$@"; do
-    [[ -f "$item" ]] || continue
-    total=$((total + $(wc -c < "$item" | tr -d '[:space:]')))
-  done
-  printf '%s' "$total"
-}
-
-print_json() {
-  printf '{'
-  printf '"version":2,'
-  printf '"path_mode":'; json_escape "$PATH_MODE"; printf ','
-  if [[ "$FULL" == true ]]; then
-    printf '"paths":'; json_array TRINKET_CHANGED_PATHS; printf ','
-    printf '"authored_paths":'; json_array TRINKET_AUTHORED_PATHS; printf ','
-    printf '"generated_paths":'; json_array TRINKET_GENERATED_PATHS; printf ','
-  else
-    printf '"path_counts":{"paths":%d,"authored":%d,"generated":%d},' \
-      "${#TRINKET_CHANGED_PATHS[@]}" "${#TRINKET_AUTHORED_PATHS[@]}" "${#TRINKET_GENERATED_PATHS[@]}"
-  fi
-  printf '"agent_guides":{"root":"AGENTS.md","nested":'; json_array TRINKET_AGENT_GUIDES; printf '},'
-  printf '"context_cards":'; json_array TRINKET_CONTEXT_CARDS; printf ','
-  printf '"context_read_contract":{"required":'; json_array TRINKET_CONTEXT_CARDS
-  printf ',"optional":'; json_array TRINKET_SKILLS
-  printf ',"lookup_only":'; json_array TRINKET_ROUTE_CARDS; printf '},'
-  printf '"context_estimate":{"required_card_bytes":%s,"skill_bytes":%s},' \
-    "$(context_bytes "${TRINKET_CONTEXT_CARDS[@]-}")" "$(context_bytes "${TRINKET_SKILLS[@]-}")"
-  printf '"skills":'; json_array TRINKET_SKILLS; printf ','
-  printf '"boundary_warnings":'; json_array TRINKET_BOUNDARY_WARNINGS; printf ','
-  printf '"generated_warnings":'; json_array TRINKET_GENERATED_WARNINGS; printf ','
-  if [[ "$FULL" == true ]]; then
-    printf '"verification_commands":'; json_array TRINKET_VERIFICATION_COMMANDS; printf ','
-  else
-    printf '"verification_kinds":'; json_array TRINKET_VERIFICATION_KINDS; printf ','
-  fi
-  printf '"smoke_targets":'; json_array TRINKET_SMOKE_TARGETS; printf ','
-  printf '"flags":{'
-  printf '"content":'; json_bool "$TRINKET_HAS_CONTENT"; printf ','
-  printf '"assets":'; json_bool "$TRINKET_HAS_ASSETS"; printf ','
-  printf '"project":'; json_bool "$TRINKET_HAS_PROJECT"; printf ','
-  printf '"swift":'; json_bool "$TRINKET_HAS_SWIFT"; printf ','
-  printf '"app_state":'; json_bool "$TRINKET_HAS_APP_STATE"; printf ','
-  printf '"feature":'; json_bool "$TRINKET_HAS_FEATURE"; printf ','
-  printf '"audio":'; json_bool "$TRINKET_HAS_AUDIO"; printf ','
-  printf '"docs_or_tools":'; json_bool "$TRINKET_HAS_DOCS_OR_TOOLS"; printf ','
-  printf '"smoke_target_unresolved":'; json_bool "$TRINKET_SMOKE_TARGET_UNRESOLVED"
-  printf '}'
-  printf '}'
-  printf '\n'
-}
 
 print_agent() {
   if [[ "$PATH_MODE" == explicit ]]; then
@@ -199,7 +116,6 @@ print_agent() {
       }
       END { for (key in counts) printf "  %s: %d path(s)\n", key, counts[key] }
     ' | sort
-    printf '  (use --json for the complete path list)\n'
   }
 
   if (( ${#TRINKET_AUTHORED_PATHS[@]} > 0 )); then
@@ -237,7 +153,7 @@ print_agent() {
     local cmd
     for cmd in "${TRINKET_VERIFICATION_COMMANDS[@]}"; do
       if [[ "$FULL" != true && ${#cmd} -gt 240 ]]; then
-        printf '  %s… (use --full or --json for complete command)\n' "${cmd:0:220}"
+        printf '  %s… (use --full for the complete command)\n' "${cmd:0:220}"
         continue
       fi
       if [[ "$cmd" == *"./Scripts/test.sh"* \
@@ -259,8 +175,4 @@ print_agent() {
   fi
 }
 
-if [[ "$OUTPUT" == json ]]; then
-  print_json
-else
-  print_agent
-fi
+print_agent

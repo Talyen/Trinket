@@ -450,14 +450,7 @@ private func makeProgressedStateForReturnTests(_ context: AppTestContext) throws
 
 @MainActor
 private func attunePhysicalPartyForReturnTests(on state: PlaySession) throws {
-    var roster = state.playerSave.roster
-    let rogue = try #require(GameContent.heroes.first { $0.id == "rogue" })
-    let lizard = try #require(GameContent.companions.first { $0.id == "lizard_scout" })
-    roster.unlock(rogue)
-    roster.unlock(lizard)
-    roster.setActiveHero(rogue)
-    roster.setActiveCompanion(lizard)
-    state.playerSave.roster = roster
+    try PlayBattleLaunchTestSupport.setActiveParty(heroID: "rogue", companionID: "lizard_scout", in: state)
 }
 
 @MainActor

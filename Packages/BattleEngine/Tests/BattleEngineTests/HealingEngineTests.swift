@@ -159,22 +159,12 @@ struct HealingEngineTests {
             primaryStats: PrimaryStats(wisdom: 20)
         )
         let target = CombatantFixtures.combatant(id: "target", role: .enemy, maxHealth: 50)
-        let roster = BattleRoster(
-            hero: CombatantRuntime(combatant: source, initialActiveEffects: []),
-            companion: CombatantRuntime(combatant: CombatantFixtures.combatant(id: "companion", role: .companion)),
-            enemy: CombatantRuntime(combatant: target, initialActiveEffects: [])
-        )
-        var context = BattleState(
-            roster: roster,
-            rng: SeededRandomNumberGenerator(seed: BattleTestFixtures.deterministicNonCriticalSeed),
+        var context = BattleTestFixtures.makeContext(
+            hero: source,
+            companion: CombatantFixtures.combatant(id: "companion", role: .companion),
+            enemy: target,
             nextEffectID: 0,
-            nextEventID: 0,
-            events: [],
-            gold: 0,
-            initialGold: 0,
-            heroModifiers: .zero,
-            companionModifiers: .zero,
-            enemyModifiers: .zero
+            nextEventID: 0
         )
         context.roster.mutateRuntime(for: target) { $0.currentHealth = 10 }
 

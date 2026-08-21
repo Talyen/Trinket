@@ -60,28 +60,17 @@ struct ItemAffixMagnitudeRollTests {
 
     @Test func catalogCenterIsNotAPerfectRoll() throws {
         let keen = try #require(GameContent.itemAffixDefinition(matching: "keen"))
-        let longsword = try #require(GameContent.itemBaseTypes.first { $0.id == "longsword" })
         let affix = keen.resolved(for: .basic)
-        let centerItem = InventoryItem(
+        let centerItem = try ItemFixtures.makeItem(
+            "longsword",
             id: "center",
-            baseType: longsword,
-            rarity: .basic,
-            displayName: longsword.name,
             affixes: [affix],
             affixPowers: [keen.basic]
         )
-        let missingRollItem = InventoryItem(
-            id: "legacy",
-            baseType: longsword,
-            rarity: .basic,
-            displayName: longsword.name,
-            affixes: [affix]
-        )
-        let perfectItem = InventoryItem(
+        let missingRollItem = try ItemFixtures.makeItem("longsword", id: "legacy", affixes: [affix])
+        let perfectItem = try ItemFixtures.makeItem(
+            "longsword",
             id: "perfect",
-            baseType: longsword,
-            rarity: .basic,
-            displayName: longsword.name,
             affixes: [affix],
             affixPowers: [
                 ItemAffixPower(
@@ -99,13 +88,10 @@ struct ItemAffixMagnitudeRollTests {
 
     @Test func corruptionBumpToRangeMaxBecomesPerfect() throws {
         let defenders = try #require(GameContent.itemAffixDefinition(matching: "defenders"))
-        let kite = try #require(GameContent.itemBaseTypes.first { $0.id == "kite_shield" })
         let affix = defenders.resolved(for: .basic)
-        let bumped = InventoryItem(
+        let bumped = try ItemFixtures.makeItem(
+            "kite_shield",
             id: "bumped",
-            baseType: kite,
-            rarity: .basic,
-            displayName: kite.name,
             affixes: [affix],
             affixPowers: [
                 ItemAffixPower(

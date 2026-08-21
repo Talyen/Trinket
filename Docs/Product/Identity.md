@@ -2,30 +2,7 @@
 
 Canonical product + engineering guidance for Trinket identity, cross-device progress, and account/data deletion.
 
-Locked decisions also appear as PD-008–PD-011 in [Decisions.md](Decisions.md). Live CloudKit remains stubbed until Apple Developer Program enrollment — execute [CloudKitPreShipChecklist.md](../Platform/CloudKitPreShipChecklist.md) to enable sync. Persistence overview: [Architecture.md](../Platform/Architecture.md).
-
----
-
-## Decisions (locked)
-
-| # | Question | Decision |
-|---|----------|----------|
-| 1 | What must identity unlock? | **Cross-device progress only** |
-| 2 | Google Sign-In? | **Skip** (not required) |
-| 3 | No iCloud on device? | **Fully playable local-only** |
-| 4 | Account / data deletion? | Follow Apple guidance — see [Deletion](#deletion-apple-guidance) |
-| 5 | Multi-device conflicts? | Verify an explicit per-domain conflict policy before launch; passive Homestead production remains gated until its idempotent claim authority is verified |
-| 6 | Developer Program timing? | **Not imminent** — keep seams stubbed; do not enable live sync early |
-| 7 | Non-Apple platforms? | **None planned** — CloudKit-private is sufficient |
-
-**Out of scope (explicit):**
-
-- Login / splash / title gate
-- Sign in with Apple (not needed for iCloud private sync)
-- Sign in with Google / email-password / other social logins
-- Game Center
-- Soft “Save progress to iCloud?” prompts
-- Hosted backend, Firebase, custom user directory
+Locked decisions are PD-008–PD-011 in [Decisions.md](Decisions.md). Live CloudKit remains stubbed until Apple Developer Program enrollment; use [CloudKitPreShipChecklist.md](../Platform/CloudKitPreShipChecklist.md) as the enablement and release gate. Persistence ownership is summarized in [Architecture.md](../Platform/Architecture.md).
 
 ---
 
@@ -111,41 +88,11 @@ Because progress is **local + optional iCloud container data**, not a developer-
 
 ---
 
-## Engineering notes
+## Engineering and verification seams
 
-Keep seams lightweight until Developer Program enrollment:
+Keep the implementation lightweight until Developer Program enrollment: local play is unconditional, CloudKit is an explicit configuration gate, and tests never require an Apple ID. Launch arguments, persistence mechanics, and UI-test defaults belong to their owning [testing](../Platform/Testing.md), [persistence](../AgentContext/persistence.md), and [UI-test](../../TrinketUITests/README.md) guides rather than being copied here.
 
-| Seam | Purpose |
-|------|---------|
-| Cloud sync status (optional value type) | Derive local-only vs iCloud-available from launch args / entitlements readiness — no Auth UI |
-| `PlayerSaveStore` / config | Keep `cloudKitDatabase: .none` vs `.private(...)` gate; identity = system iCloud |
-| Launch args | `-disable-cloud-sync`, `-enable-cloud-sync` (Simulator), `-reset-state`; tests never require an Apple ID |
-| Options copy helpers | Single place for “this device” vs “iCloud” reset strings gated on “cloud sync configured” |
-
-**Do not** ship Account / Sign-In rows in Options. **Do not** add SIWA / Google capabilities.
-
-When enabling live CloudKit, run [CloudKitPreShipChecklist.md](../Platform/CloudKitPreShipChecklist.md) end-to-end. Explicitly deferred forever unless product goals change: SIWA, Google, Game Center, player-facing conflict UI, hosted backend, non-Apple platforms. Passive Homestead production remains disabled in cloud mode until its claim authority is verified.
-
----
-
-## Simulator vs tests vs live
-
-| Audience | Behavior |
-|----------|----------|
-| **Live (sync on)** | Local play always; silent iCloud sync when signed into iCloud; reset wipes progress including cloud |
-| **Live (sync off / stub)** | Local-only; reset is this-device only; no sync claims in UI |
-| **Dev Simulator** | CloudKit off unless `-enable-cloud-sync`; no identity UI |
-| **UI tests** | Default `-reset-state`, `-seed-test-progress`, `-disable-cloud-sync`; unique `-store-name`; never hit real iCloud login |
-| **Unit tests** | Persistence tests stay cloud-off; assert local reset/seed only until a sync harness exists |
-
----
-
-## Privacy & App Review notes (draft for sync enablement)
-
-- **Data collected for sync:** game progress in the app’s iCloud container (declare in privacy questionnaire when sync lands).  
-- **Tracking:** none.  
-- **Login:** none required.  
-- **Review notes sketch:** “Trinket is playable without an account. Progress syncs across the player’s devices via iCloud when they are signed into iCloud. Players can reset progress in Options. There is no Sign in with Apple / Google login.”
+Do not ship Account / Sign-In rows, SIWA, Google, Game Center, or a hosted identity store. When sync is ready, run [CloudKitPreShipChecklist.md](../Platform/CloudKitPreShipChecklist.md) end-to-end; it owns the entitlement, schema, reset, conflict, privacy, and review checks.
 
 ---
 

@@ -97,4 +97,12 @@ struct CombatantTalentCatalogTests {
             )
         }
     }
+
+    @Test func boolTalentFlagsSurviveMergeIntoEmptyProfile() {
+        var merged = CombatTraitTriggers()
+        merged.merge(CombatTraitTriggers(gold: GoldTriggers(goldDoubledWhileFullHealth: true)))
+        merged.merge(CombatTraitTriggers(attack: AttackTriggers(criticalPurgeAll: true)))
+        #expect(merged.goldDoubledWhileFullHealth)
+        #expect(merged.criticalPurgeAll)
+    }
 }

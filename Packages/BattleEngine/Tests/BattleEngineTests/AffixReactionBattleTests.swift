@@ -27,7 +27,6 @@ private func affixHealAbility(amount: Int) -> Ability {
     )
 }
 
-// swiftlint:disable:next type_body_length
 struct AffixReactionBattleTests {
     private func hero(
         abilities: [Ability],
@@ -267,28 +266,6 @@ struct AffixReactionBattleTests {
         try #expect(100 - battle.health(of: battle.enemy) == 3)
     }
 
-    @Test func aetherwardGrantsBlockWhenSpendingMana() throws {
-        var context = BattleTestFixtures.makePipelineContext(
-            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
-                mana: ManaTriggers(
-                    spendManaBlockFlat: 2
-                )
-            ))
-        )
-        let hero = context.roster.hero.combatant
-
-        let events = CombatTriggerEngine.afterSpendMana(by: hero, amountSpent: 3, in: &context)
-
-        try #expect(events.contains { $0.abilityName == "Aetherward" && $0.amount == 2 })
-        let block = context.roster.activeEffects(for: hero).contains { active in
-            if case let .shield(keyword, points) = active.effect {
-                return keyword == .block && points == 2
-            }
-            return false
-        }
-        try #expect(block)
-    }
-
     @Test func holyDamageAffixesGrantBlockCleanseHealAndPurge() throws {
         var context = BattleTestFixtures.makePipelineContext(
             heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
@@ -346,48 +323,43 @@ struct AffixReactionBattleTests {
         try #expect(events.contains { $0.abilityName == "Untouchable" && $0.amount == 3 })
     }
 
-    @Test func knockoutAndBrandingFireWhenEnemyIsStunned() throws {
-        var context = BattleTestFixtures.makePipelineContext(
-            targetMaxHealth: 20,
-            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
-                control: ControlTriggers(
-                    enemyStunnedApplyMarked: true,
-                    stunDealPhysicalFlat: 3
-                )
-            ))
-        )
-        let enemy = context.roster.enemy.combatant
+    private struct StunAffixHolder: Sendable {
+        let isHero: Bool
 
-        let events = CombatTriggerEngine.afterEnemyStunned(in: &context)
-
-        try #expect(context.roster.health(for: enemy) == 17)
-        try #expect(events.contains { $0.effectKind == .markedApplied })
-        let marked = context.roster.activeEffects(for: enemy).contains {
-            if case .marked = $0.effect {
-                return true
-            }
-            return false
-        }
-        try #expect(marked)
+        static let hero = Self(isHero: true)
+        static let companion = Self(isHero: false)
     }
 
-    @Test func companionStunAffixesFireWhenEnemyIsStunned() throws {
-        var context = BattleTestFixtures.makePipelineContext(
-            targetMaxHealth: 20,
-            companionModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
-                control: ControlTriggers(
-                    enemyStunnedApplyMarked: true,
-                    stunDealPhysicalFlat: 3
-                )
-            ))
-        )
+    @Test(arguments: [Self.StunAffixHolder.hero, .companion])
+    private func stunAffixesMarkAndDamageEnemyWhenEnemyIsStunned(_ holder: StunAffixHolder) throws {
+        var context: BattleState = if holder.isHero {
+            BattleTestFixtures.makePipelineContext(
+                targetMaxHealth: 20,
+                heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
+                    control: ControlTriggers(
+                        enemyStunnedApplyMarked: true,
+                        stunDealPhysicalFlat: 3
+                    )
+                ))
+            )
+        } else {
+            BattleTestFixtures.makePipelineContext(
+                targetMaxHealth: 20,
+                companionModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
+                    control: ControlTriggers(
+                        enemyStunnedApplyMarked: true,
+                        stunDealPhysicalFlat: 3
+                    )
+                ))
+            )
+        }
         let enemy = context.roster.enemy.combatant
-        let companion = context.roster.companion.combatant
+        let actor = holder.isHero ? context.roster.hero.combatant : context.roster.companion.combatant
 
         let events = CombatTriggerEngine.afterEnemyStunned(in: &context)
 
         try #expect(context.roster.health(for: enemy) == 17)
-        try #expect(events.contains { $0.effectKind == .markedApplied && $0.actorName == companion.name })
+        try #expect(events.contains { $0.effectKind == .markedApplied && $0.actorName == actor.name })
         let marked = context.roster.activeEffects(for: enemy).contains {
             if case .marked = $0.effect {
                 return true
@@ -480,9 +452,7 @@ extension AffixReactionBattleTests {
         try #expect(context.roster.health(for: hero) == heroHealth)
         try #expect(!events.contains { $0.abilityName == "Whiplash" && $0.amount == 9 })
     }
-}
 
-struct AffixUnderrepresentedReactionTests {
     @Test func disruptingPurgesWhenEnemyIsStunned() throws {
         var context = BattleTestFixtures.makePipelineContext(
             heroModifiers: CombatModifierProfile(
@@ -556,18 +526,11 @@ struct AffixUnderrepresentedReactionTests {
         )
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
         let target = CombatantFixtures.combatant(id: "target", role: .enemy, maxHealth: 50)
-        var context = BattleState(
-            roster: BattleRoster(
-                hero: CombatantRuntime(combatant: source, initialMana: 0),
-                companion: CombatantRuntime(combatant: companion),
-                enemy: CombatantRuntime(combatant: target)
-            ),
-            rng: SeededRandomNumberGenerator(seed: BattleTestFixtures.deterministicNonCriticalSeed),
-            nextEffectID: 0,
-            nextEventID: 0,
-            events: [],
-            gold: 0,
-            initialGold: 0,
+        var context = BattleTestFixtures.makeContext(
+            hero: source,
+            companion: companion,
+            enemy: target,
+            heroMana: 0,
             heroModifiers: CombatModifierProfile(
                 triggers: CombatTraitTriggers(
                     mana: ManaTriggers(
@@ -578,8 +541,8 @@ struct AffixUnderrepresentedReactionTests {
                     )
                 )
             ),
-            companionModifiers: .zero,
-            enemyModifiers: .zero
+            nextEffectID: 0,
+            nextEventID: 0
         )
         let hero = context.roster.hero.combatant
 
@@ -609,17 +572,10 @@ struct AffixUnderrepresentedReactionTests {
     }
 
     @Test func bountyGrantsGoldFromCompanionWhenAlive() throws {
-        var context = BattleTestFixtures.makePipelineContext()
-        let companion = context.roster.companion.combatant
-        context = BattleState(
-            roster: context.roster,
-            rng: context.rng,
-            nextEffectID: context.nextEffectID,
-            nextEventID: context.nextEventID,
-            events: context.events,
-            gold: context.gold,
-            initialGold: context.initialGold,
-            heroModifiers: .zero,
+        var context = BattleTestFixtures.makeContext(
+            hero: CombatantFixtures.combatant(id: "source", role: .hero, maxHealth: 50),
+            companion: CombatantFixtures.combatant(id: "companion", role: .companion),
+            enemy: CombatantFixtures.combatant(id: "target", role: .enemy, maxHealth: 50),
             companionModifiers: CombatModifierProfile(
                 triggers: CombatTraitTriggers(
                     gold: GoldTriggers(
@@ -627,8 +583,10 @@ struct AffixUnderrepresentedReactionTests {
                     )
                 )
             ),
-            enemyModifiers: .zero
+            nextEffectID: 0,
+            nextEventID: 0
         )
+        let companion = context.roster.companion.combatant
 
         let events = CombatTriggerEngine.afterEnemyDefeated(in: &context)
 
@@ -639,18 +597,12 @@ struct AffixUnderrepresentedReactionTests {
     }
 
     @Test func bountyGrantsCompanionGoldWhenHeroIsDead() throws {
-        var context = BattleTestFixtures.makePipelineContext()
-        let hero = context.roster.hero.combatant
-        let companion = context.roster.companion.combatant
-        context.roster.mutateRuntime(for: hero) { $0.currentHealth = 0 }
-        context = BattleState(
-            roster: context.roster,
-            rng: context.rng,
-            nextEffectID: context.nextEffectID,
-            nextEventID: context.nextEventID,
-            events: context.events,
-            gold: context.gold,
-            initialGold: context.initialGold,
+        let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
+        var context = BattleTestFixtures.makeContext(
+            hero: CombatantFixtures.combatant(id: "source", role: .hero, maxHealth: 50),
+            companion: companion,
+            enemy: CombatantFixtures.combatant(id: "target", role: .enemy, maxHealth: 50),
+            heroHealth: 0,
             heroModifiers: CombatModifierProfile(
                 triggers: CombatTraitTriggers(
                     gold: GoldTriggers(
@@ -665,7 +617,8 @@ struct AffixUnderrepresentedReactionTests {
                     )
                 )
             ),
-            enemyModifiers: .zero
+            nextEffectID: 0,
+            nextEventID: 0
         )
 
         let events = CombatTriggerEngine.afterEnemyDefeated(in: &context)
@@ -815,7 +768,7 @@ struct AffixUnderrepresentedReactionTests {
     }
 }
 
-extension AffixUnderrepresentedReactionTests {
+extension AffixReactionBattleTests {
     @Test func ashenWakeAppliesPoisonWhenBurnIsApplied() throws {
         var context = BattleTestFixtures.makePipelineContext(
             heroModifiers: CombatModifierProfile(

@@ -4,8 +4,13 @@ from __future__ import annotations
 
 import hashlib
 import re
+import sys
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from diagnostic_limits import MAX_DETAIL_CHARS, MAX_DETAIL_LINES, MAX_ISSUES, MAX_LINE_CHARS, MAX_LINES, MAX_MESSAGE_CHARS
 
 
 CLASSIFICATIONS = (
@@ -24,12 +29,6 @@ CLASSIFICATION_PRECEDENCE = (
     "simulator-infrastructure",
     "unknown",
 )
-MAX_ISSUES = 12
-MAX_LINES = 60
-MAX_DETAIL_LINES = 8
-MAX_DETAIL_CHARS = 2400
-MAX_MESSAGE_CHARS = 800
-MAX_LINE_CHARS = 240
 GENERIC_MESSAGES = {"Test reported Failed", "No failure details"}
 
 

@@ -11,9 +11,5 @@ player intentionally uses ambient `AVAudioPlayer`. Battle feedback mappings live
 Keep audio ownership layered: catalog metadata in `TrinketContent`, player
 state/preferences and routing/playback in `TrinketAppState`, and battle event
 interpretation in `TrinketBattleFeature`. Do not unit-test AVFoundation playback or
-real device audio output; test deterministic routing/mapping logic instead.
-
-Policy and path-scoped tiers live in `Docs/Platform/Verification.md` and
-`Docs/Platform/Testing.md`. Smoke only when a player-flow view
-also changes. Current playback behavior is documented in
-`Packages/TrinketAppState/README.md`.
+real device audio output; test deterministic routing/mapping logic instead. Current
+playback behavior is documented in `Packages/TrinketAppState/README.md`.

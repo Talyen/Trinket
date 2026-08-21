@@ -2,6 +2,9 @@
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
+# shellcheck source=lib/tools.sh
+source Scripts/lib/tools.sh
+trinket_prepend_pinned_tools
 
 # shellcheck source=tool-versions.env
 source Scripts/tool-versions.env
@@ -9,11 +12,6 @@ source Scripts/tool-versions.env
 source Scripts/swift-source-dirs.env
 EXPECTED_VERSION="$SWIFTLINT_VERSION"
 SOURCE_DIRS=("${SWIFT_SOURCE_DIRS[@]}")
-
-# Prefer pinned .tools binary when present.
-if [[ -x .tools/swiftlint ]]; then
-  export PATH="$PWD/.tools:$PATH"
-fi
 
 if ! command -v swiftlint &>/dev/null; then
   echo "SwiftLint is not installed."

@@ -4,27 +4,14 @@ Trinket keeps editable game content manifests separate from generated Swift cata
 
 ## Folders
 
-- `ContentManifest/affixes.tsv`: source of truth for item affix definitions.
-- `ContentManifest/talents.tsv`: source of truth for hero and companion talent node effects.
-- `ContentManifest/traits.tsv`: source of truth for enemy trait definitions.
-- `Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentTraits.generated.swift`: generated enemy trait catalog.
-- `Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentStagesIndex.generated.swift`: generated stage index from `stages.tsv`.
-- `Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityCatalogIndex.generated.swift`: generated ability id index.
-- `Packages/TrinketContent/Sources/TrinketContent/Generated/CombatantTalentCatalog.generated.swift`: generated talent node dictionaries.
-- `ContentManifest/stages.tsv`: manifest-driven chapter stages, encounters, and rewards.
-- `ContentManifest/combatants.tsv`: manifest-driven heroes and companions (ability choices + stats).
-- `ContentManifest/enemies.tsv`: manifest-driven enemies (loadout + boss flags).
-- `ContentManifest/item_bases.tsv`: manifest-driven weapon, armor, and trinket base types.
-- `Packages/TrinketContent/Sources/TrinketContent/Generated/ItemAffixCatalog.generated.swift`: generated affix catalog.
-- `Packages/TrinketContent/Sources/TrinketContent/Content/AbilityCatalog{Basic,Skill,Ultimate}.swift`: authored abilities (all tiers).
-- `Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityShorthand.generated.swift`: generated `extension Ability` shorthand.
-- `Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityInventory.generated.tsv`: generated full ability list (`id`, `name`, `tier`, `summary`) for humans/agents. `summary` is `Ability.summary` (player-facing effect text).
-- `Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentChapters.generated.swift`: generated journey chapters from `stages.tsv`.
-- `Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentRoster.generated.swift`: generated heroes and companions from `combatants.tsv`.
-- `Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentEnemies.generated.swift`: generated enemies from `enemies.tsv`.
-- `ContentManifest/homestead_nodes.tsv`: manifest-driven homestead nodes (one row per tier).
-- `Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentItemBases.generated.swift`: generated item base catalog.
-- `Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentEncounterArt.generated.swift`: generated stage encounter art overrides from `stages.tsv`.
+Authored inputs (edit these):
+
+- `ContentManifest/*.tsv`: affixes, talents, traits, stages, combatants, enemies, item bases, and homestead nodes — the editable source of truth for game content.
+- `Packages/TrinketContent/Sources/TrinketContent/Content/`: authored ability catalogs.
+
+Generated outputs (never hand-edit) live in
+`Packages/TrinketContent/Sources/TrinketContent/Generated/`; `./Scripts/generate.sh`
+regenerates them from the manifests.
 
 ## Manifest Formats
 
@@ -164,12 +151,6 @@ Homestead catalogs are manifest-driven via `homestead_nodes.tsv`. Hand-written h
 ```
 
 This validates manifests, regenerates content catalogs and ability shorthand, and runs XcodeGen.
-
-Validate manifests only:
-
-```sh
-./Scripts/validate-manifests.sh
-```
 
 Regenerate and verify committed output matches HEAD (CI / pre-push):
 

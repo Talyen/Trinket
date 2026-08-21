@@ -1,3 +1,4 @@
+import Testing
 import TrinketBattleFeature
 import TrinketBattleRuntime
 import TrinketContent
@@ -9,6 +10,21 @@ import TrinketTestSupport
 
 @MainActor
 enum PlayBattleLaunchTestSupport {
+    static func setActiveParty(
+        heroID: String,
+        companionID: String,
+        in state: PlaySession
+    ) throws {
+        var roster = state.playerSave.roster
+        let hero = try #require(GameContent.heroes.first { $0.id == heroID })
+        let companion = try #require(GameContent.companions.first { $0.id == companionID })
+        roster.unlock(hero)
+        roster.unlock(companion)
+        roster.setActiveHero(hero)
+        roster.setActiveCompanion(companion)
+        state.playerSave.roster = roster
+    }
+
     static func make(
         origin: PlayBattleOrigin? = nil,
         runKey: BattleRunKey? = nil,

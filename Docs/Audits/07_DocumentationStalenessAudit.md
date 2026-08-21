@@ -12,13 +12,9 @@ Find P1/P2 contradictions, omissions, and drift between docs and their sources o
 - Do not treat dated “Last execution” / Done tables inside audits as source of truth — **delete** those tracker sections when found.
 - Do not rewrite design prose for style-only preferences or turn this into an unbounded prose cleanup. Cohesive terminology or workflow corrections may span documents when inconsistency would otherwise remain.
 
-## Severity
-
-| Sev | Criteria |
-|-----|----------|
-| P1 | Wrong API/path, broken link, stale architecture assumption, wrong version constraint |
-| P2 | Wrong count, “in progress” for finished work, inconsistent operational terminology, omitted required setup/release/verification step, example that no longer compiles or runs |
-| P3 | Typo, formatting, missing code-fence language |
+Severity follows the [shared audit scale](README.md#severity-scale). Prioritize
+wrong paths/APIs, broken links, stale architecture or version claims, and omitted
+required workflow steps; leave cosmetic typos for an already-touched surface.
 
 ## Domain rules
 

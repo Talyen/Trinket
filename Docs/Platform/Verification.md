@@ -1,9 +1,10 @@
 # Verification and CI
 
-This guide owns task-to-script routing, gate composition, test tiers, and style
-ownership. Test authoring conventions live in [Testing.md](Testing.md).
-`Scripts/README.md` is the command index; checked-in scripts are the source of
-truth when flags change. Isolation and IDE setup: [SimulatorOperations.md](SimulatorOperations.md).
+This guide owns when to choose a verification route, gate composition, test
+tiers, and style ownership. Exact commands and flags live in
+[`Scripts/README.md`](../../Scripts/README.md) and each script's `--help`.
+Test authoring conventions live in [Testing.md](Testing.md). Isolation and IDE
+setup: [SimulatorOperations.md](SimulatorOperations.md).
 
 ## Confidence ladder
 
@@ -11,45 +12,38 @@ Choose the cheapest route that answers the question at hand.
 
 | Level | Command | Use |
 |---|---|---|
-| Focused iteration | `test-package.sh <Package>` or `test.sh <mode> <Class>` | Fast feedback on the current owner |
-| Task handoff | `handoff.sh --isolate --paths …` | Required path-scoped agent gate |
+| Focused iteration | Package/test script | Fast feedback on the current owner |
+| Task handoff | `handoff.sh` | Required path-scoped agent gate |
 | Gate only | `ci-gate.sh` | Generation, style, boundaries, scripts, and release metadata; no unit/UI |
 | Local canary | `test-deploy.sh --mode smoke` | Gate, unit, and smoke |
 | Deploy confidence | `test-deploy.sh` | Gate, unit, and full UI |
 | Main CI | Shared `tests.yml` workflow | Post-push on `main` (no pull-request workflow): gate, build once, unit, full smoke, and sharded exhaustive UI |
-| Local integration / performance | `test.sh all` / `performance.sh` | Ad hoc; not part of any GitHub workflow |
+| Local integration / performance | `test.sh ui` / `performance.sh` | Ad hoc; not part of any GitHub workflow |
 
 Run `./Scripts/agent-context.sh --agent --paths <files...>` after touched paths
-are known. Use `--working-tree` only when whole-tree classification is
-intentional; it is capped unless `--allow-broad-scope` is explicit. The briefing
-prints a required/optional read contract and discovers nested guides, automated
-skills attached by `change-classification.sh`, and the applicable handoff route.
-Rerun it when scope crosses into another area. Mid-task package tests still
-use `./Scripts/test-package.sh` as in the table above.
+are known. Use `--working-tree` only for an intentional whole-tree scope. The
+briefing prints the required/optional read contract and applicable handoff
+route; rerun it when scope crosses into another owner.
 
 ## Test tiers
 
 | Tier | Command | Notes |
 |---|---|---|
-| Package unit | `test-package.sh <Package>` | Cheapest package-owned behavior check. `BattleEngine` skips `BattleBalanceToolsTests` unless you pass `--include-balance-sweep-tests` or set `INCLUDE_BALANCE_SWEEP_TESTS=true`. |
-| All unit | `test.sh unit` | All package schemes; app test target has no app-level unit cases |
-| App-only build | `test.sh unit --app-only` | App compile coverage for app-level Swift changes |
-| Targeted smoke | `test.sh smoke <Class...>` | One invocation using `Smoke.xctestplan` filters |
-| Smoke | `test.sh smoke` | Four-class plan: starter onboarding, tab shells, Battle load, Shop load |
-| Full smoke | `test.sh smoke-full` | Same plan as `test.sh smoke`; CI alias |
-| Targeted UI | `test.sh ui <Class>` | Focused exhaustive UI iteration |
-| Full UI | `test.sh ui` | Explicit local confidence and CI sharding |
-| Integration | `test.sh all` | Local/manual |
-| Performance | `performance.sh` | Ad hoc matrix when investigating performance; not a CI job |
+| Package unit | `test-package.sh` | Cheapest package-owned behavior check |
+| All unit | `test.sh unit` | All package schemes; no app-level unit target |
+| App-only build | `test.sh unit --app-only` | Compile coverage for app-level Swift changes |
+| Targeted smoke | `test.sh smoke` with a class filter | One smoke-plan invocation |
+| Smoke | `test.sh smoke` | The checked-in smoke plan; CI runs the same registry |
+| Targeted / full UI | `test.sh ui` | Focused iteration or explicit full confidence |
+| Performance | `performance.sh` | Ad hoc investigation; not a CI job |
 
 After a green isolated rebuild, `--no-build` is appropriate for mid-task smoke
 reruns in the same slot. Final handoff still uses the full isolated route.
 
-`handoff.sh` formats only touched Swift files, tests touched packages, selects a
-targeted smoke owner when one exists, and otherwise fills compile coverage with
-an app build. Pass `--paths` for task scope or `--working-tree` explicitly for a
-whole-tree gate. Final plan cleanup is checked with `--final`. It then verifies generated output is idempotent. Metrics, copy,
-layout, and symbol changes are not automatically demoted.
+`handoff.sh` is the canonical path-scoped route. It composes generation,
+style, package, compile, smoke, and idempotence checks from the changed paths;
+the script's help and `agent-context.sh` output show the exact route. Final
+plan cleanup is checked with `--final`.
 
 ## Gate composition
 
@@ -86,10 +80,10 @@ Read structured invocation reports before raw build logs. Use
 [CI diagnostics](../AgentContext/ci-diagnostics.md) for classification and
 escalation. Never kill foreign Xcode or Simulator processes.
 
-Every completed handoff and push gate may print an advisory change-budget report.
-Warnings do not fail the task, but unusual production/test surface growth needs
-a necessity statement and the simpler alternative that was rejected. Timing
-logs are diagnostic data, not a routine optimization mandate.
+The push gate may print an advisory change-budget report. Warnings do not fail
+the task, but unusual production/test surface growth needs a necessity statement
+and the simpler alternative that was rejected. Timing logs are diagnostic data,
+not a routine optimization mandate.
 
 Before a requested push, run `agent-push-gate.sh` after committing. It checks
 generation completeness only; the path-scoped handoff remains the pre-CI source

@@ -39,6 +39,12 @@ enum AbilityValidator {
         "thorn-mail",
     ]
 
+    static let doTPairingExemptIDs: Set<String> = [
+        "mana-berries",
+        "pixie-dust",
+        "faustian-bargain",
+    ]
+
     static func validate(_ ability: Ability) -> [Issue] {
         var issues = validateEffectTargets(for: ability)
         issues.append(contentsOf: validatePairedDoTComponents(for: ability))

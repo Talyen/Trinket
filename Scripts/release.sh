@@ -107,31 +107,14 @@ latest_tag() {
 }
 
 suggest_version() {
-  local current="$1"
-  local since="${2:-}"
-
-  if [[ -n "$since" ]] && ./Scripts/release-notes.sh bump 2>/dev/null | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
-    ./Scripts/release-notes.sh bump
-    return
+  local suggested
+  suggested="$(./Scripts/release-notes.sh bump)"
+  if [[ "$suggested" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    printf '%s\n' "$suggested"
+    return 0
   fi
-
-  local major minor patch
-  IFS='.' read -r major minor patch <<<"$current"
-
-  local log
-  if [[ -n "$since" ]]; then
-    log="$(git log "${since}..HEAD" --pretty=%s --no-merges 2>/dev/null || true)"
-  else
-    log="$(git log HEAD --pretty=%s --no-merges 2>/dev/null || true)"
-  fi
-
-  if grep -qiE 'BREAKING CHANGE|^[^ ]+!:' <<<"$log"; then
-    echo "$((major + 1)).0.0"
-  elif grep -qE '^(feat|content)(\(|:)|^(Add|Introduce|Implement|Complete|Enable|Extend)' <<<"$log"; then
-    echo "${major}.$((minor + 1)).0"
-  else
-    echo "${major}.${minor}.$((patch + 1))"
-  fi
+  echo "release-notes.sh bump returned an invalid version: $suggested" >&2
+  return 1
 }
 
 read_project_version
@@ -144,7 +127,7 @@ if [[ -z "$VERSION" ]]; then
   if [[ -z "$SINCE_TAG" ]]; then
     VERSION="0.1.0"
   else
-    VERSION="$(suggest_version "$MARKETING_VERSION" "$SINCE_TAG")"
+    VERSION="$(suggest_version)"
   fi
 fi
 

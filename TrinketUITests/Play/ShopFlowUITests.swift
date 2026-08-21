@@ -3,6 +3,10 @@ import XCTest
 
 /// Exhaustive merchant shop journey via deep link (kept out of smoke).
 final class ShopFlowUITests: TrinketUITestCase {
+    private var shop: ShopScreen {
+        ShopScreen(app: app)
+    }
+
     func testMerchantShopPurchaseFromDetailAndLeaveReturnsToPlay() {
         launchApp(arguments: TestLaunchArg.allForShop()
             + TestLaunchArg.completedStages([
@@ -16,22 +20,17 @@ final class ShopFlowUITests: TrinketUITestCase {
             ])
             + ["-starting-gold", "200"])
 
-        let offerCards = app.buttons.matching(
-            NSPredicate(format: "identifier ENDSWITH %@", " shop offer")
-        )
-        let firstOfferCard = offerCards.firstMatch
+        let firstOfferCard = shop.offerCards.firstMatch
         assertExists(firstOfferCard)
         tapWhenReady(firstOfferCard)
 
-        let detailBuy = button(AccessibilityID.Shop.detailBuyButton)
-        assertExists(detailBuy)
-        XCTAssertTrue(detailBuy.isEnabled, "Expected shop detail buy control to be enabled")
-        tapWhenReady(detailBuy)
+        assertExists(shop.detailBuy)
+        XCTAssertTrue(shop.detailBuy.isEnabled, "Expected shop detail buy control to be enabled")
+        tapWhenReady(shop.detailBuy)
         assertDoesNotExist(AccessibilityID.Shop.detailBuyButton, timeout: 5)
 
-        let leaveButton = button(AccessibilityID.Shop.leaveButton)
-        scrollUntilVisible(leaveButton, swipingUp: true, requireHittable: true)
-        tapButton(AccessibilityID.Shop.leaveButton)
+        scrollUntilVisible(shop.leaveButton, swipingUp: true, requireHittable: true)
+        shop.leaveButton.tap()
         play.openCampaign()
         play.assertCampaignLoaded(number: 2)
     }

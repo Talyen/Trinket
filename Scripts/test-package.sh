@@ -127,7 +127,7 @@ if [[ "$ACTION" != "build-for-testing" ]]; then
     DID_ENSURE_SIMULATOR=true
   fi
   if [[ "$DID_ENSURE_SIMULATOR" == "true" ]]; then
-    trinket_run_env_install_test_simulator_cleanup
+    trinket_run_env_install_self_clean
   fi
 fi
 

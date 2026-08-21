@@ -40,33 +40,7 @@ cleanup() {
 trap cleanup EXIT INT TERM
 
 mkdir -p "$OUTPUT_DIR/TestResults"
-python3 - "$OUTPUT_DIR/environment.json" "$REPETITIONS" <<'PY'
-import json
-import platform
-import subprocess
-import sys
-from datetime import datetime, timezone
-from pathlib import Path
-
-output = Path(sys.argv[1])
-repetitions = int(sys.argv[2])
-
-def command(*args: str) -> str:
-    try:
-        return subprocess.check_output(args, text=True, stderr=subprocess.DEVNULL).strip()
-    except (OSError, subprocess.CalledProcessError):
-        return "unknown"
-
-payload = {
-    "capturedAt": datetime.now(timezone.utc).isoformat(),
-    "host": platform.platform(),
-    "xcode": command("xcodebuild", "-version"),
-    "gitCommit": command("git", "rev-parse", "HEAD"),
-    "gitDirty": bool(command("git", "status", "--porcelain")),
-    "repetitionsPerScenario": repetitions,
-}
-output.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
-PY
+python3 Scripts/performance_environment.py "$OUTPUT_DIR/environment.json" "$REPETITIONS"
 
 echo "Running exclusive full-fidelity app performance matrix (${REPETITIONS} measured run(s)/scenario)..."
 TRINKET_ISOLATE=1 \

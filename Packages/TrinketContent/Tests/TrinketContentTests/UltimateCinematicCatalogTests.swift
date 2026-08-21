@@ -3,39 +3,41 @@ import Testing
 @testable import TrinketContent
 
 struct UltimateCinematicCatalogTests {
-    @Test func shadowstepResolvesOnlyForRogueActor() throws {
-        let rogue = UltimateCinematicCatalog.reference(
-            for: "rogue",
-            abilityID: "shadowstep"
-        )
-        try #expect(rogue.videoName == "cinematic_rogue_shadowstep")
-        try #expect(rogue.actorID == "rogue")
-        try #expect(rogue.abilityID == "shadowstep")
+    private struct CinematicCase: Sendable {
+        let actorID: String
+        let abilityID: String
+        let expectedVideoName: String?
 
-        let panther = UltimateCinematicCatalog.reference(
-            for: "panther",
-            abilityID: "shadowstep"
+        static let rogueShadowstep = Self(
+            actorID: "rogue",
+            abilityID: "shadowstep",
+            expectedVideoName: "cinematic_rogue_shadowstep"
         )
-        try #expect(panther.videoName == nil)
-        try #expect(panther.actorID == "panther")
-        try #expect(panther.abilityID == "shadowstep")
-
-        let fox = UltimateCinematicCatalog.reference(for: "fox", abilityID: "shadowstep")
-        try #expect(fox.videoName == nil)
+        static let pantherShadowstep = Self(actorID: "panther", abilityID: "shadowstep", expectedVideoName: nil)
+        static let foxShadowstep = Self(actorID: "fox", abilityID: "shadowstep", expectedVideoName: nil)
+        static let knightAvatar = Self(
+            actorID: "knight",
+            abilityID: "avatar-of-justice",
+            expectedVideoName: "cinematic_avatar_of_justice"
+        )
+        static let wizardAvatar = Self(actorID: "wizard", abilityID: "avatar-of-justice", expectedVideoName: nil)
     }
 
-    @Test func avatarOfJusticeResolvesOnlyForKnightActor() throws {
-        let knight = UltimateCinematicCatalog.reference(
-            for: "knight",
-            abilityID: "avatar-of-justice"
+    @Test(arguments: [
+        Self.CinematicCase.rogueShadowstep,
+        .pantherShadowstep,
+        .foxShadowstep,
+        .knightAvatar,
+        .wizardAvatar,
+    ])
+    private func cinematicResolvesOnlyForTheOwningActor(_ testCase: CinematicCase) throws {
+        let reference = UltimateCinematicCatalog.reference(
+            for: testCase.actorID,
+            abilityID: testCase.abilityID
         )
-        try #expect(knight.videoName == "cinematic_avatar_of_justice")
-
-        let wizard = UltimateCinematicCatalog.reference(
-            for: "wizard",
-            abilityID: "avatar-of-justice"
-        )
-        try #expect(wizard.videoName == nil)
+        try #expect(reference.videoName == testCase.expectedVideoName)
+        try #expect(reference.actorID == testCase.actorID)
+        try #expect(reference.abilityID == testCase.abilityID)
     }
 
     @Test func unknownCastFallsBackWithNoVideo() throws {

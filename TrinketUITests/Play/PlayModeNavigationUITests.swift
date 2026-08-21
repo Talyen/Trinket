@@ -4,13 +4,7 @@ import XCTest
 final class PlayModeNavigationUITests: TrinketUITestCase {
     /// Explore hub opens Spires; locked spires stay inert.
     func testExploreHubOpensSpiresWithLockedSpireInert() {
-        launchApp(arguments: [
-            TestLaunchArg.resetState,
-            TestLaunchArg.disableCloudSync,
-            TestLaunchArg.skipStarterSelection,
-            "-disable-audio",
-            "-persist-save-immediately",
-        ])
+        launchApp(arguments: TestLaunchArg.allUnseeded())
 
         play.assertLoaded()
         play.openExplore()

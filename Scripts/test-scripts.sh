@@ -9,7 +9,7 @@ trap 'rm -rf "$TEST_LOG_DIR"' EXIT
 echo "=== Script syntax ==="
 while IFS= read -r script; do
   bash -n "$script"
-done < <(find Scripts -type f -name '*.sh' -print | LC_ALL=C sort)
+done < <(rg --files Scripts -g '*.sh' | LC_ALL=C sort)
 
 echo "=== Python script regressions ==="
 python_log="$TEST_LOG_DIR/python.log"
@@ -30,7 +30,7 @@ while IFS= read -r test_script; do
     cat "$test_log" >&2
     exit 1
   fi
-done < <(find Scripts/Tests -maxdepth 1 -type f -name 'test-*.sh' -print | LC_ALL=C sort)
+done < <(rg --files Scripts/Tests -g 'test-*.sh' | LC_ALL=C sort)
 
 echo "=== Build input / cache-key path alignment ==="
 ./Scripts/check-build-cache-paths.sh

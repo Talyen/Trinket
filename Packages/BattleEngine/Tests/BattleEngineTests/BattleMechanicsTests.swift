@@ -91,24 +91,13 @@ struct BattleMechanicsTests {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [ability])
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 100)
-        var context = BattleState(
-            roster: BattleRoster(
-                hero: CombatantRuntime(
-                    combatant: hero,
-                    initialActiveEffects: [ActiveEffect(id: 1, effect: .nextStrikeCritical, remainingTurns: 0)]
-                ),
-                companion: CombatantRuntime(combatant: companion),
-                enemy: CombatantRuntime(combatant: enemy)
-            ),
-            rng: SeededRandomNumberGenerator(seed: BattleTestFixtures.deterministicNonCriticalSeed),
+        var context = BattleTestFixtures.makeContext(
+            hero: hero,
+            companion: companion,
+            enemy: enemy,
+            heroEffects: [ActiveEffect(id: 1, effect: .nextStrikeCritical, remainingTurns: 0)],
             nextEffectID: 2,
-            nextEventID: 0,
-            events: [],
-            gold: 0,
-            initialGold: 0,
-            heroModifiers: .zero,
-            companionModifiers: .zero,
-            enemyModifiers: .zero
+            nextEventID: 0
         )
         let events = BattleTurnEngine.performAction(
             ability: ability,
@@ -125,5 +114,34 @@ struct BattleMechanicsTests {
             }
             return false
         }))
+    }
+
+    @Test func markedConsumedWhenFullyShielded() throws {
+        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
+        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30)
+        let shield = ActiveEffect(id: 1, effect: .shield(.block, 50), remainingTurns: 6, sourceActorID: hero.id)
+        let mark = ActiveEffect(id: 2, effect: .marked(5, 6), remainingTurns: 6, sourceActorID: hero.id)
+
+        var context = BattleTestFixtures.makeContext(
+            hero: hero,
+            companion: CombatantFixtures.combatant(id: "companion", role: .companion),
+            enemy: enemy,
+            enemyEffects: [shield, mark],
+            nextEffectID: 3
+        )
+
+        let outcome = context.resolveDamage(
+            DamageRequest.directAbilityHit(amount: 3, target: enemy, keyword: .physical, sourceActorID: hero.id)
+        )
+
+        try #expect(outcome.healthLost == 0)
+        try #expect(
+            !context.roster.activeEffects(for: enemy).contains {
+                if case .marked = $0.effect {
+                    return true
+                }; return false
+            }
+        )
+        try #expect(outcome.events.contains { $0.effectKind == .markedConsumed })
     }
 }

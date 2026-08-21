@@ -52,20 +52,6 @@ Look for PQ, HLG, or HDR in the profile/codecs — those need an SDR re-export f
 
 ## Generate Cinematic Assets
 
-Run:
-
-```sh
-./Scripts/prepare-cinematic-assets.sh
-```
-
-Or via the full asset pipeline:
-
-```sh
-./Scripts/generate.sh --assets
-```
-
-After changing `CinematicManifest/cinematics.tsv`, verify with path-scoped handoff
-(`./Scripts/handoff.sh --isolate --paths CinematicManifest/cinematics.tsv`). Agent workflow:
-[content-and-manifests.md](../Docs/AgentContext/content-and-manifests.md).
+Entry point and verification routing: [content-and-manifests.md](../Docs/AgentContext/content-and-manifests.md).
 
 Battle presentation fills the screen with aspect-fill (crop, no stretch); missing rows fall back to ability art.

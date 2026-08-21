@@ -8,7 +8,6 @@ fileGroups:
   - Smoke.xctestplan
   - BattlePerformance.xctestplan
   - FullUI.xctestplan
-  - Integration.xctestplan
 packages:
   TrinketCore:
     path: Packages/TrinketCore
@@ -118,7 +117,6 @@ schemes:
           defaultPlan: true
         - path: BattlePerformance.xctestplan
         - path: FullUI.xctestplan
-        - path: Integration.xctestplan
       targets:
         - TrinketUITests
     run:

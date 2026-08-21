@@ -242,21 +242,7 @@ struct AppStateLabyrinthTests { // swiftlint:disable:this type_body_length
             return !state.playerSave.roster.unlockedHeroIDs.contains(combatantID)
                 && !state.playerSave.roster.unlockedCompanionIDs.contains(combatantID)
         }))
-        let nodeID = try #require(state.playerSave.labyrinth.reachableNodeIDs().first)
-        let node = try #require(state.playerSave.labyrinth.nodes[nodeID])
-        var labyrinth = state.playerSave.labyrinth
-        labyrinth.nodes[nodeID] = LabyrinthNode(
-            id: node.id,
-            type: .recruit,
-            depth: node.depth,
-            clusterID: node.clusterID,
-            gridPosition: node.gridPosition,
-            modifierIDs: node.modifierIDs,
-            recruitEventID: event.id,
-            outgoingIDs: node.outgoingIDs,
-            isRevealed: true
-        )
-        state.playerSave.labyrinth = labyrinth
+        let nodeID = try #require(LabyrinthTestSupport.installRecruitNode(eventID: event.id, in: state))
 
         #expect(state.labyrinth.handleNodeAction(nodeID: nodeID) == nil)
         #expect(state.encounters.activeMysteryEncounter?.event.id == event.id)
@@ -266,21 +252,7 @@ struct AppStateLabyrinthTests { // swiftlint:disable:this type_body_length
     @Test func recruitNodeFallsBackToMysteryOnlyForCompletedRoster() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         _ = state.labyrinth.enter()
-        let nodeID = try #require(state.playerSave.labyrinth.reachableNodeIDs().first)
-        let node = try #require(state.playerSave.labyrinth.nodes[nodeID])
-        var labyrinth = state.playerSave.labyrinth
-        labyrinth.nodes[nodeID] = LabyrinthNode(
-            id: node.id,
-            type: .recruit,
-            depth: node.depth,
-            clusterID: node.clusterID,
-            gridPosition: node.gridPosition,
-            modifierIDs: node.modifierIDs,
-            recruitEventID: "recruit-bear",
-            outgoingIDs: node.outgoingIDs,
-            isRevealed: true
-        )
-        state.playerSave.labyrinth = labyrinth
+        let nodeID = try #require(LabyrinthTestSupport.installRecruitNode(eventID: "recruit-bear", in: state))
         state.playerSave.roster = .testSeed
 
         #expect(state.labyrinth.handleNodeAction(nodeID: nodeID) == nil)
@@ -290,21 +262,7 @@ struct AppStateLabyrinthTests { // swiftlint:disable:this type_body_length
     @Test func recruitNodePreviewFallsBackToMysteryEventWhenPoolIsExhausted() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         _ = state.labyrinth.enter()
-        let nodeID = try #require(state.playerSave.labyrinth.reachableNodeIDs().first)
-        let node = try #require(state.playerSave.labyrinth.nodes[nodeID])
-        var labyrinth = state.playerSave.labyrinth
-        labyrinth.nodes[nodeID] = LabyrinthNode(
-            id: node.id,
-            type: .recruit,
-            depth: node.depth,
-            clusterID: node.clusterID,
-            gridPosition: node.gridPosition,
-            modifierIDs: node.modifierIDs,
-            recruitEventID: "recruit-bear",
-            outgoingIDs: node.outgoingIDs,
-            isRevealed: true
-        )
-        state.playerSave.labyrinth = labyrinth
+        let nodeID = try #require(LabyrinthTestSupport.installRecruitNode(eventID: "recruit-bear", in: state))
         state.playerSave.roster = .testSeed
 
         let recruitNode = try #require(state.playerSave.labyrinth.nodes[nodeID])
@@ -378,21 +336,7 @@ struct AppStateLabyrinthTests { // swiftlint:disable:this type_body_length
             return !state.playerSave.roster.unlockedHeroIDs.contains(combatantID)
                 && !state.playerSave.roster.unlockedCompanionIDs.contains(combatantID)
         }))
-        let mysteryNodeID = try #require(state.playerSave.labyrinth.reachableNodeIDs().first)
-        let node = try #require(state.playerSave.labyrinth.nodes[mysteryNodeID])
-        var labyrinth = state.playerSave.labyrinth
-        labyrinth.nodes[mysteryNodeID] = LabyrinthNode(
-            id: node.id,
-            type: .recruit,
-            depth: node.depth,
-            clusterID: node.clusterID,
-            gridPosition: node.gridPosition,
-            modifierIDs: node.modifierIDs,
-            recruitEventID: event.id,
-            outgoingIDs: node.outgoingIDs,
-            isRevealed: true
-        )
-        state.playerSave.labyrinth = labyrinth
+        let mysteryNodeID = try #require(LabyrinthTestSupport.installRecruitNode(eventID: event.id, in: state))
 
         #expect(state.labyrinth.handleNodeAction(nodeID: mysteryNodeID) == nil)
         let session = try #require(state.encounters.activeMysteryEncounter)

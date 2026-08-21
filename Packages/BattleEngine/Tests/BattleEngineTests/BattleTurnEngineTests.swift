@@ -74,25 +74,18 @@ struct BattleTurnEngineTests {
         )
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy)
-        var context = BattleState(
-            roster: BattleRoster(
-                hero: CombatantRuntime(combatant: hero, initialHealth: 5),
-                companion: CombatantRuntime(combatant: companion),
-                enemy: CombatantRuntime(combatant: enemy)
-            ),
-            rng: SeededRandomNumberGenerator(seed: 0),
-            nextEffectID: 1,
-            nextEventID: 0,
-            events: [],
-            gold: 0,
-            initialGold: 0,
+        var context = BattleTestFixtures.makeContext(
+            hero: hero,
+            companion: companion,
+            enemy: enemy,
+            heroHealth: 5,
             heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
                 healing: HealingTriggers(
                     blockOnDeathsDoor: 8
                 )
             )),
-            companionModifiers: .zero,
-            enemyModifiers: .zero
+            seed: 0,
+            nextEventID: 0
         )
 
         let (_, events) = context.applyTestDamage(
@@ -146,24 +139,14 @@ struct BattleTurnEngineTests {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [ability])
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 100)
-        var context = BattleState(
-            roster: BattleRoster(
-                hero: CombatantRuntime(
-                    combatant: hero,
-                    initialActiveEffects: [ActiveEffect(id: 1, effect: .nextStrikeDouble, remainingTurns: 0)]
-                ),
-                companion: CombatantRuntime(combatant: companion),
-                enemy: CombatantRuntime(combatant: enemy)
-            ),
-            rng: SeededRandomNumberGenerator(seed: BattleTestFixtures.deterministicNonCriticalSeed),
+        var context = BattleTestFixtures.makeContext(
+            hero: hero,
+            companion: companion,
+            enemy: enemy,
+            heroEffects: [ActiveEffect(id: 1, effect: .nextStrikeDouble, remainingTurns: 0)],
+            seed: BattleTestFixtures.deterministicNonCriticalSeed,
             nextEffectID: 2,
-            nextEventID: 0,
-            events: [],
-            gold: 0,
-            initialGold: 0,
-            heroModifiers: .zero,
-            companionModifiers: .zero,
-            enemyModifiers: .zero
+            nextEventID: 0
         )
         let healthBefore = context.roster.health(for: enemy)
 
@@ -198,21 +181,12 @@ struct BattleTurnEngineTests {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [ability])
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 100)
-        var context = BattleState(
-            roster: BattleRoster(
-                hero: CombatantRuntime(combatant: hero),
-                companion: CombatantRuntime(combatant: companion),
-                enemy: CombatantRuntime(combatant: enemy)
-            ),
-            rng: SeededRandomNumberGenerator(seed: BattleTestFixtures.deterministicNonCriticalSeed),
-            nextEffectID: 1,
-            nextEventID: 0,
-            events: [],
-            gold: 0,
-            initialGold: 0,
-            heroModifiers: .zero,
-            companionModifiers: .zero,
-            enemyModifiers: .zero
+        var context = BattleTestFixtures.makeContext(
+            hero: hero,
+            companion: companion,
+            enemy: enemy,
+            seed: BattleTestFixtures.deterministicNonCriticalSeed,
+            nextEventID: 0
         )
         let events = BattleTurnEngine.performAction(
             ability: ability,
@@ -241,26 +215,15 @@ struct BattleTurnEngineTests {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [ability])
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 100)
-        var context = BattleState(
-            roster: BattleRoster(
-                hero: CombatantRuntime(combatant: hero),
-                companion: CombatantRuntime(combatant: companion),
-                enemy: CombatantRuntime(
-                    combatant: enemy,
-                    initialActiveEffects: [
-                        ActiveEffect(id: 1, effect: .shield(.block, 1), remainingTurns: 2),
-                    ]
-                )
-            ),
-            rng: SeededRandomNumberGenerator(seed: BattleTestFixtures.deterministicNonCriticalSeed),
-            nextEffectID: 1,
-            nextEventID: 0,
-            events: [],
-            gold: 0,
-            initialGold: 0,
-            heroModifiers: .zero,
-            companionModifiers: .zero,
-            enemyModifiers: .zero
+        var context = BattleTestFixtures.makeContext(
+            hero: hero,
+            companion: companion,
+            enemy: enemy,
+            enemyEffects: [
+                ActiveEffect(id: 1, effect: .shield(.block, 1), remainingTurns: 2),
+            ],
+            seed: BattleTestFixtures.deterministicNonCriticalSeed,
+            nextEventID: 0
         )
         let events = BattleTurnEngine.performAction(
             ability: ability,
@@ -295,21 +258,12 @@ struct BattleTurnEngineTests {
             role: .enemy,
             maxHealth: 5
         )
-        var context = BattleState(
-            roster: BattleRoster(
-                hero: CombatantRuntime(combatant: hero),
-                companion: CombatantRuntime(combatant: companion),
-                enemy: CombatantRuntime(combatant: enemy)
-            ),
-            rng: SeededRandomNumberGenerator(seed: 0),
-            nextEffectID: 1,
-            nextEventID: 0,
-            events: [],
-            gold: 0,
-            initialGold: 0,
-            heroModifiers: .zero,
-            companionModifiers: .zero,
-            enemyModifiers: .zero
+        var context = BattleTestFixtures.makeContext(
+            hero: hero,
+            companion: companion,
+            enemy: enemy,
+            seed: 0,
+            nextEventID: 0
         )
         let events = BattleTurnEngine.performAction(
             ability: ability,
@@ -371,24 +325,14 @@ struct BattleTurnEngineComponentTests {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [ability])
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 200)
-        var context = BattleState(
-            roster: BattleRoster(
-                hero: CombatantRuntime(
-                    combatant: hero,
-                    initialActiveEffects: [ActiveEffect(id: 1, effect: .nextHolyStrike, remainingTurns: 0)]
-                ),
-                companion: CombatantRuntime(combatant: companion),
-                enemy: CombatantRuntime(combatant: enemy)
-            ),
-            rng: SeededRandomNumberGenerator(seed: BattleTestFixtures.deterministicNonCriticalSeed),
+        var context = BattleTestFixtures.makeContext(
+            hero: hero,
+            companion: companion,
+            enemy: enemy,
+            heroEffects: [ActiveEffect(id: 1, effect: .nextHolyStrike, remainingTurns: 0)],
+            seed: BattleTestFixtures.deterministicNonCriticalSeed,
             nextEffectID: 2,
-            nextEventID: 0,
-            events: [],
-            gold: 0,
-            initialGold: 0,
-            heroModifiers: .zero,
-            companionModifiers: .zero,
-            enemyModifiers: .zero
+            nextEventID: 0
         )
         let healthBefore = context.roster.health(for: enemy)
 
@@ -421,21 +365,12 @@ struct BattleTurnEngineComponentTests {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [ability])
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 100)
-        var context = BattleState(
-            roster: BattleRoster(
-                hero: CombatantRuntime(combatant: hero),
-                companion: CombatantRuntime(combatant: companion),
-                enemy: CombatantRuntime(combatant: enemy)
-            ),
-            rng: SeededRandomNumberGenerator(seed: BattleTestFixtures.deterministicNonCriticalSeed),
-            nextEffectID: 1,
-            nextEventID: 0,
-            events: [],
-            gold: 0,
-            initialGold: 0,
-            heroModifiers: .zero,
-            companionModifiers: .zero,
-            enemyModifiers: .zero
+        var context = BattleTestFixtures.makeContext(
+            hero: hero,
+            companion: companion,
+            enemy: enemy,
+            seed: BattleTestFixtures.deterministicNonCriticalSeed,
+            nextEventID: 0
         )
 
         let events = BattleTurnEngine.performAction(

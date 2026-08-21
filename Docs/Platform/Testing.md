@@ -33,8 +33,8 @@ in `TrinketPersistence`'s `TrinketPersistenceTestSupport` target—not in `Trink
 Persistence-free. App suites use `AppTestContext`; Persistence uses
 `PersistenceTestContext`. Battle RNG: always
 `BattleStateTestFactory.makeBattle(...)` with the factory default seed
-(`CombatantFixtures.deterministicBattleSeed`, currently `1772`). Seed `0` can
-invalidate dodge-sensitive assertions. Dispatch via
+(`CombatantFixtures.deterministicBattleSeed`). Use explicit seeds only for RNG
+edge cases; seed `0` can invalidate dodge-sensitive assertions. Dispatch via
 `EffectHandlers.all`.
 
 ## Unit conventions
@@ -73,23 +73,12 @@ New user flows still need a stable `AccessibilityID` selector (or an existing ap
 
 ### Presentation / accessibility-ID changes (before push)
 
-Renaming or rewiring `AccessibilityID`, a view `accessibilityIdentifier`, or Homestead/Play presentation contracts is not a style-only change:
-
-1. Run path-scoped `./Scripts/handoff.sh --isolate --paths …` and complete every routed unit/smoke step (do not stop after style).
-2. `Packages/TrinketFeatureSupport/.../AccessibilityID.swift` routes through the
-   shared-support package check plus `SmokeShellTests` locally; CI `smoke-full`
-   runs the same four-class smoke plan (`StarterOnboardingSmokeTests`,
-   `SmokeShellTests`, `SmokeBattleTests`, `SmokeShopTests`).
-3. Homestead presentation models route through `TrinketFeatureSupportTests`.
-4. `./Scripts/test.sh style` (or the handoff style step) must pass locally — the pre-push hook enforces SwiftFormat/SwiftLint, but agents should not discover format failures only at push time.
-
-Handoff routing is deterministic and does not skip tests. Metrics/layout constants,
-SwiftUI chrome modifiers, SF Symbol swaps, and `Text("…")` copy-only diffs run the
-same routed package tests / smoke as any other Swift change (they see `--build-only`
-nowhere). A feature or UI path without a smoke owner falls back to the app-compile
-gap-fill (`./Scripts/build.sh`) rather than being inferred away. `SmokeShellTests`
-covers the tab shells for Play/Collection/Homestead/Options diffs; CI `smoke-full`
-(same plan as local `test.sh smoke`) and exhaustive UI stay the broad net.
+Renaming or rewiring `AccessibilityID`, a view `accessibilityIdentifier`, or a
+Homestead/Play presentation contract is not style-only. Run the path-scoped
+handoff and complete every routed package, compile, and smoke step. The
+classifier owns the exact route; do not stop after style. Stable identifiers
+must be applied at the modifier that remains visible to XCUITest (for example,
+the shared glass CTA modifier).
 
 Command routing, isolate slots, and mid-task `--no-build` live in
 [Verification.md](Verification.md). Agents always use `--isolate`.
@@ -113,12 +102,7 @@ to [Verification.md](Verification.md).
 
 ## UI execution notes
 
-Frame pacing and app-journey metrics are not part of smoke or hosted CI. Run the exclusive single-report matrix (app journeys + battle scenarios) with `./Scripts/performance.sh` when investigating performance. Focused harness iteration: `TRINKET_ISOLATE=1 ./Scripts/test.sh performance AppPerformanceUITests/<method>` or `BattlePerformanceUITests/<method>`. The dedicated plan records refresh-normalized display-link diagnostics plus native cold-launch; use Instruments Animation Hitches and Time Profiler for render-pipeline investigation. Launch arg `-enable-frame-metrics` is measurement-only and must not simplify Battle rendering or audio. Investigation loop and baseline policy: `Docs/Platform/PerformanceInvestigationPlaybook.md`.
-
-Default smoke args: `-reset-state`, `-seed-test-progress`, `-disable-cloud-sync`. Prefer `-launch-screen` / `-selectedTab` deep links; prefer `-completed-stages` over Stage Select scroll loops. Assert with `assertExists` on ids from `AccessibilityID`, then verify visible text or interaction outcomes where behavior matters. UI tests tap tab **labels** (`"Homestead"`, `"Collection"`), not `AppTab` raw values. Focused Accessibility Inspector review belongs to product verification; do not multiply the UI test matrix across accessibility settings unless one setting owns a distinct regression. The Frame Metrics node is an explicit machine bridge used only by the performance plan.
-
-Glass primary CTAs (`trinketPrimaryActionButton`) must receive their `AccessibilityID` via the
-modifier’s `accessibilityIdentifier:` parameter. Identifiers applied before `.glassProminent`
-are dropped from the XCUITest tree; label fallbacks are a last resort only.
-
-Full layout, launch-arg catalog, speed rules, and mid-battle guidance: **`TrinketUITests/README.md`**.
+Frame pacing and app-journey metrics are not part of smoke or hosted CI. Use the
+performance playbook for the exclusive matrix, focused harness iteration, and
+Instruments evidence. Full layout, launch-arg catalog, speed rules, and
+mid-battle guidance live in [`TrinketUITests/README.md`](../../TrinketUITests/README.md).

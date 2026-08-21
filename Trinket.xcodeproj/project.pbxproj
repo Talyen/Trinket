@@ -40,7 +40,6 @@
 		1CDE25AF095036F687FA72F9 /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = wrapper.icon; path = AppIcon.icon; sourceTree = "<group>"; };
 		2038380B9FA35C2B4DB4B598 /* TrinketCore */ = {isa = PBXFileReference; lastKnownFileType = folder; name = TrinketCore; path = Packages/TrinketCore; sourceTree = SOURCE_ROOT; };
 		3301AA31D98CDD220CFDF5FF /* TrinketDesignSystem */ = {isa = PBXFileReference; lastKnownFileType = folder; name = TrinketDesignSystem; path = Packages/TrinketDesignSystem; sourceTree = SOURCE_ROOT; };
-		4058BC1CE8ECD030168E8758 /* Integration.xctestplan */ = {isa = PBXFileReference; path = Integration.xctestplan; sourceTree = "<group>"; };
 		61DAE383D9127ED4E5EE169F /* TrinketFeatureSupport */ = {isa = PBXFileReference; lastKnownFileType = folder; name = TrinketFeatureSupport; path = Packages/TrinketFeatureSupport; sourceTree = SOURCE_ROOT; };
 		8241DDA3B7612A6E5B8B9EDF /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		8D80BAE3DD95D195DC723862 /* TrinketPersistence */ = {isa = PBXFileReference; lastKnownFileType = folder; name = TrinketPersistence; path = Packages/TrinketPersistence; sourceTree = SOURCE_ROOT; };
@@ -160,7 +159,6 @@
 			children = (
 				FCEFEE1788152B3F8E259A13 /* BattlePerformance.xctestplan */,
 				E89691B00998EAF137303F2E /* FullUI.xctestplan */,
-				4058BC1CE8ECD030168E8758 /* Integration.xctestplan */,
 				ADA42E5A1490B3683FC93B52 /* Media */,
 				D77B1B572840FE4B65134F04 /* Smoke.xctestplan */,
 				2844A738FB32D14BF53C79FF /* Packages */,

@@ -9,7 +9,7 @@ Identify repeated high-friction clusters and simplify them through existing sour
 ## What counts as locality or context friction
 
 - **Focus:** Co-touch patterns across 3+ files for routine changes, duplicated script logic, bloated guidance cards, and test-suite setup tax.
-- **Not this audit:** import legality → the enforced module-boundary gate; live authored mass without locality/routing friction → `02_AuthoredMassGrowthAudit.md`; dual live paths → `08_DualPathRetentionAudit.md`. Full routing: [README.md](README.md) confusable pairs.
+- **Not this audit:** import legality → the enforced module-boundary gate; live authored mass without locality/routing friction → `02_AuthoredMassGrowthAudit.md`; dual live paths → `08_DualPathRetentionAudit.md`.
 
 ## Hard stops
 

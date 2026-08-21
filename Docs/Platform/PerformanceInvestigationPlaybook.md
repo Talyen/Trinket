@@ -7,7 +7,11 @@ energy investigation are summarized separately in
 
 ## Frame-pacing contract
 
-The 60 Hz Simulator goals require every maintained scenario to average at least 59 FPS, maintain a 1% low of at least 59 FPS, and record no severe stalls. `./Scripts/performance.sh` is ad hoc tooling for performance investigation, not a GitHub workflow. It currently runs `Performance/Baselines/simulator-60.json` in `observe` mode (report findings, non-blocking); promote to `enforce` only after Simulator runs consistently clear those goals. Battle card play and drag handling have stricter five-repetition requirements: every repetition must maintain a 1% low of at least 59 FPS, record zero missed deadlines and severe stalls, and keep maximum frame duration at or below 20 ms.
+`Performance/Baselines/simulator-60.json` owns the maintained scenario list,
+thresholds, refresh target, and observe/enforce mode. `./Scripts/performance.sh`
+interprets that baseline for ad hoc investigation, not CI; promote the baseline to
+enforce only after Simulator runs consistently clear it. Battle card play and drag
+handling use the same baseline on every formal repetition.
 
 `-enable-frame-metrics` is measurement-only. It must never remove, defer, shorten, reduce, or mute production work. The production `real-card-play` and `hand-drag-cancel` scenarios use normal XCUI gestures against the seeded hand; production views contain no forced-drag or scenario branch.
 
@@ -17,40 +21,28 @@ Run the exclusive matrix:
 ./Scripts/performance.sh
 ```
 
-The runner takes the repository performance lock and uses isolated Simulator and DerivedData state. A formal Battle capture uses five repetitions:
+The runner takes the repository performance lock and uses isolated Simulator and
+DerivedData state. A formal Battle capture uses the repetition count selected by
+the investigation (the script documents its current default):
 
 ```sh
-TRINKET_PERFORMANCE_REPETITIONS=5 ./Scripts/performance.sh
+TRINKET_PERFORMANCE_REPETITIONS=<count> ./Scripts/performance.sh
 ```
 
-Artifacts are written under `.DerivedData/PerformanceResults/<UTC timestamp>/`:
-
-- `TestResults/`: xcresult, logs, and JSON attachments;
-- `reports.json`: raw display-link frame reports and scenario metadata;
-- `environment.json`: Xcode, host, git state, Simulator/runtime, seed, and repetition metadata;
-- `summary.md`: individual gate results and frame-time diagnostics;
-- `aggregate.json` and `aggregate.md`: every repetition plus median and spread.
-
-Successful default runs remove that timestamped directory after comparison. Set
-`TRINKET_KEEP_PERFORMANCE_REPORTS=1` or provide `TRINKET_PERFORMANCE_OUTPUT_DIR`
-when a capture must remain available for investigation; failed runs retain their
-evidence for current triage.
+The runner writes session-scoped results under `.DerivedData/PerformanceResults/`
+and removes successful default output after comparison. Use the script's help
+output for retention and output-directory switches; failed runs retain evidence
+for current triage.
 
 The current runtime does not reliably export `XCTHitchMetric`; the broken exporter is intentionally absent. Do not substitute a custom `CADisplayLink` sample for an authoritative render-pipeline hitch metric. Capture Instruments Animation Hitches and Time Profiler traces when diagnosing a failure.
 
 ## Coverage inventory
 
-| Product area | Automated performance coverage |
-|---|---|
-| App startup | Native `XCTApplicationLaunchMetric` from terminated state to responsive Play UI |
-| Global navigation | Repeated Play → Collection → Homestead → Options → Play transitions |
-| Collection | Combatant-detail sheet presentation/dismissal |
-| Homestead | Seeded project-detail push/pop |
-| Campaign | Stage Select navigation, enemy detail, and real Battle entry/retreat |
-| Battle | Six scenarios covering real play, drag return, engine/hand, feedback, turn transition, and combined work |
-| Victory / mystery | Deterministic reveal-settle scenarios |
-
-The local matrix does not model CloudKit/network variability, persistence recovery, long-session memory or thermal behavior, or production population trends. Add those as separate deterministic scenarios instead of changing an existing scenario's production behavior.
+The checked-in baseline owns the complete scenario list. The local matrix does not
+model CloudKit/network variability, persistence recovery, long-session memory,
+thermal behavior, or production population trends; add those as separate
+deterministic scenarios instead of changing an existing scenario's production
+behavior.
 
 ## Battle scenario matrix
 

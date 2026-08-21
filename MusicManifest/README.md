@@ -29,24 +29,13 @@ Boss rows are validated against `GameContent.enemies` and must point at an enemy
 
 ## Generate Music Assets
 
-Run:
-
-```sh
-./Scripts/prepare-music-assets.sh
-```
+Entry point and verification routing: [content-and-manifests.md](../Docs/AgentContext/content-and-manifests.md); `prepare-music-assets.sh` is the focused debugging entry point.
 
 The script validates manifest rows, converts source files with macOS `afconvert`, writes AAC `.m4a` files, and regenerates the Swift catalog. The default AAC bitrate is `96000`; override with:
 
 ```sh
 MUSIC_AAC_BITRATE=128000 ./Scripts/prepare-music-assets.sh
 ```
-
-`./Scripts/generate.sh --assets` runs the art, music, SFX, and cinematic pipelines so
-all app assets can be refreshed together.
-
-After changing `MusicManifest/music.tsv`, verify with path-scoped handoff
-(`./Scripts/handoff.sh --isolate --paths MusicManifest/music.tsv`). Agent workflow:
-[content-and-manifests.md](../Docs/AgentContext/content-and-manifests.md).
 
 ## Runtime Routing
 

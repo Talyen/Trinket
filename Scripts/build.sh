@@ -2,11 +2,9 @@
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
-
-# Make pinned .tools binaries (e.g. xcbeautify) discoverable for verbose output.
-if [[ -d "$PWD/.tools" ]]; then
-  export PATH="$PWD/.tools:$PATH"
-fi
+# shellcheck source=lib/tools.sh
+source Scripts/lib/tools.sh
+trinket_prepend_pinned_tools
 
 # shellcheck source=run-env.sh
 source ./Scripts/run-env.sh
@@ -19,17 +17,13 @@ prepare_generated_inputs "$RESULTS_DIR"
 
 # shellcheck source=xcode-runner.sh
 source ./Scripts/xcode-runner.sh
+# shellcheck source=lib/app-build.sh
+source ./Scripts/lib/app-build.sh
+trinket_set_app_xcodebuild_args "$DERIVED_DATA_PATH"
 
 # Compile-only: generic simulator destination avoids booting a concrete sim.
 xcode_runner_run --label "app-compile" -- \
-  xcodebuild \
-  -project Trinket.xcodeproj \
-  -scheme Trinket \
-  -sdk iphonesimulator \
-  -destination 'generic/platform=iOS Simulator' \
-  -derivedDataPath "$DERIVED_DATA_PATH" \
-  -parallelizeTargets \
-  -disableAutomaticPackageResolution \
+  xcodebuild "${TRINKET_APP_XCODEBUILD_ARGS[@]}" \
   COMPILER_INDEX_STORE_ENABLE=NO \
   CODE_SIGNING_ALLOWED=NO \
   CODE_SIGNING_REQUIRED=NO \

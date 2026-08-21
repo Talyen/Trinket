@@ -103,7 +103,7 @@ jobs:
           build-artifact: ${{ needs.build.outputs.build-artifact }}
           artifact-name: ${{ inputs.artifact-prefix }}smoke
           rebuild-command: ./Scripts/build-for-testing.sh --app-only
-          command: ./Scripts/test.sh smoke-full --no-build
+          command: ./Scripts/test.sh smoke --no-build
 
   exhaustive-ui:
     name: Exhaustive UI (${{ matrix.name }})

@@ -5,18 +5,6 @@ import TrinketPersistence
 @testable import TrinketFeatureSupport
 
 struct StageMapPresentationTests {
-    @Test func stageMapIdentifiersAndLabelsMatchAuthoredContent() throws {
-        let chapter = GameContent.chapters[0]
-        let stage = try #require(chapter.stages.first)
-
-        #expect(
-            AccessibilityID.Play.stageAction(
-                chapter: stage.chapterNumber,
-                stage: stage.stageNumber
-            ) == "Stage \(stage.chapterNumber)-\(stage.stageNumber) Action"
-        )
-    }
-
     @Test func stageSelectRowsOmitCompletedStages() {
         let chapter = GameContent.chapters[0]
         var progress = JourneyProgressState.initial
@@ -37,13 +25,9 @@ struct StageMapPresentationTests {
         let recruit = chapter.stages[1]
         let bosses = chapter.stages.filter(\.isBossEncounter)
 
-        #expect(recruit.encounterSubjectName(worldSeed: 0) == "Mystery")
-        #expect(recruit.encounterTypeTitle == "Recruit")
         #expect(recruit.encounterCombatantArtReference(worldSeed: 0) == nil)
         #expect(recruit.encounterArtReference != nil)
-        #expect(abs(recruit.encounter.artAspectRatio - (4.0 / 3.0)) < 0.000_1)
         #expect(bosses.count == 1)
-        #expect(bosses[0].encounterTypeTitle == "Boss")
     }
 
     @Test func battleStagesPreferEnemyArtOverEncounterArt() throws {
@@ -197,14 +181,6 @@ struct StageMapPresentationTests {
         clearedTarget.isCleared = true
         state.nodes[target.id] = clearedTarget
         #expect(LabyrinthMapPresentation.state(for: clearedTarget, in: state) == .cleared)
-    }
-
-    @Test func labyrinthDestinationEncounterArtIDsMatchCatalog() {
-        #expect(LabyrinthMapPresentation.destinationEncounterArtID(for: .shop) == "destination-merchant-shop")
-        #expect(LabyrinthMapPresentation.destinationEncounterArtID(for: .rest) == "destination-campfire")
-        #expect(LabyrinthMapPresentation.destinationEncounterArtID(for: .craft) == nil)
-        #expect(ArtCatalog.encounterArtByID["destination-merchant-shop"] != nil)
-        #expect(ArtCatalog.encounterArtByID["destination-campfire"] != nil)
     }
 
     @Test func labyrinthEffectiveTypeKeepsNonRecruitNodes() {

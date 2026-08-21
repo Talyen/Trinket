@@ -2,11 +2,12 @@ import Testing
 import TrinketCore
 
 struct CombatantProgressionTests {
-    @Test func requiredXPFollowsQuadraticCurve() throws {
-        try #expect(CombatantProgression.requiredXP(forLevel: 1) == 100)
-        try #expect(CombatantProgression.requiredXP(forLevel: 2) == 155)
-        try #expect(CombatantProgression.requiredXP(forLevel: 3) == 220)
-        try #expect(CombatantProgression.requiredXP(forLevel: 6) == 475)
+    @Test(arguments: [(1, 100), (2, 155), (3, 220), (6, 475)])
+    private func requiredXPFollowsQuadraticCurve(level: Int, expectedXP: Int) throws {
+        try #expect(CombatantProgression.requiredXP(forLevel: level) == expectedXP)
+    }
+
+    @Test func requiredXPDefaultsToTheLevelOneCurve() throws {
         try #expect(CombatantProgression.requiredXP(forLevel: 0) == 100)
         try #expect(CombatantProgression.initial.requiredXP == 100)
     }

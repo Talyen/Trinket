@@ -2,6 +2,7 @@
 import Testing
 import TrinketContent
 import TrinketCore
+import TrinketTestSupport
 @testable import BattleEngine
 
 /// Injected-trigger talent mechanics (catalog round-trips live in `TalentCatalogRoundTripTests`).
@@ -1606,5 +1607,37 @@ struct CombatTriggerTalentTests { // swiftlint:disable:this type_body_length
         )
         #expect(DefensePoolEngine.blockPoints(in: battle.roster.activeEffects(for: battle.roster.enemy.combatant)) == 0)
         #expect(DefensePoolEngine.blockPoints(in: battle.roster.activeEffects(for: companion)) == 5)
+    }
+
+    @Test func thickHideReducesDamageTaken() throws {
+        // Verify passiveMitigationFlat reduces damage by 1 using a zero-toughness
+        // companion so toughness DR doesn't interfere with the expected value.
+        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
+        let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 20)
+        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30)
+        var context = BattleTestFixtures.makeContext(
+            hero: hero,
+            companion: companion,
+            enemy: enemy,
+            companionModifiers: CombatModifierProfile(
+                triggers: CombatTraitTriggers(
+                    mitigation: MitigationTriggers(
+                        passiveMitigationFlat: 1
+                    )
+                )
+            )
+        )
+        context.roster.mutateRuntime(for: companion) { $0.currentHealth = 15 }
+        _ = context.resolveDamage(
+            DamageRequest(
+                amount: 5,
+                target: companion,
+                keyword: .physical,
+                sourceActorID: enemy.id,
+                options: DamageOptions(applyStatBonus: false, applyItemBonus: false, applyDodge: false)
+            )
+        )
+
+        try #expect(context.roster.health(for: companion) == 11)
     }
 }

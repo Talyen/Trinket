@@ -64,51 +64,47 @@ struct BattleSessionAutoBattleTests {
         #expect(playedCardIDs == expectedCardIDs)
     }
 
-    @Test func autoBattleResumesAfterManualInteractionClears() async throws {
-        let session = try BattleSessionTestSupport.makeConfiguredSession()
-        var remainingBlocks = 3
-        var playedCardIDs: [Int] = []
-
-        await BattleSessionTestSupport.driveAutoBattleUntilStopped(
-            session: session,
-            isManualInteractionActive: {
-                guard remainingBlocks > 0 else { return false }
-                remainingBlocks -= 1
-                return true
-            },
-            playCard: { card in
-                let resolution = session.playCard(cardID: card.id)
-                guard resolution.didCommit else { return false }
-                playedCardIDs.append(card.id)
-                session.isAutoBattleEnabled = false
-                return true
-            }
-        )
-
-        #expect(!playedCardIDs.isEmpty)
-        #expect(remainingBlocks == 0)
+    private enum ResumeGate: Sendable {
+        case manualInteraction
+        case cardCast
     }
 
-    @Test func autoBattleResumesAfterCardCastClears() async throws {
+    @Test(arguments: [ResumeGate.manualInteraction, .cardCast])
+    private func autoBattleResumesAfterGateClears(gate: ResumeGate) async throws {
         let session = try BattleSessionTestSupport.makeConfiguredSession()
         var remainingBlocks = 3
         var playedCardIDs: [Int] = []
 
-        await BattleSessionTestSupport.driveAutoBattleUntilStopped(
-            session: session,
-            isCardCastActive: {
-                guard remainingBlocks > 0 else { return false }
-                remainingBlocks -= 1
-                return true
-            },
-            playCard: { card in
-                let resolution = session.playCard(cardID: card.id)
-                guard resolution.didCommit else { return false }
-                playedCardIDs.append(card.id)
-                session.isAutoBattleEnabled = false
-                return true
-            }
-        )
+        let playCard: @MainActor (BattleCard) async -> Bool = { card in
+            let resolution = session.playCard(cardID: card.id)
+            guard resolution.didCommit else { return false }
+            playedCardIDs.append(card.id)
+            session.isAutoBattleEnabled = false
+            return true
+        }
+
+        switch gate {
+        case .manualInteraction:
+            await BattleSessionTestSupport.driveAutoBattleUntilStopped(
+                session: session,
+                isManualInteractionActive: {
+                    guard remainingBlocks > 0 else { return false }
+                    remainingBlocks -= 1
+                    return true
+                },
+                playCard: playCard
+            )
+        case .cardCast:
+            await BattleSessionTestSupport.driveAutoBattleUntilStopped(
+                session: session,
+                isCardCastActive: {
+                    guard remainingBlocks > 0 else { return false }
+                    remainingBlocks -= 1
+                    return true
+                },
+                playCard: playCard
+            )
+        }
 
         #expect(!playedCardIDs.isEmpty)
         #expect(remainingBlocks == 0)

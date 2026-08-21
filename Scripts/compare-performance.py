@@ -6,45 +6,12 @@ from __future__ import annotations
 import argparse
 import json
 import math
+import sys
 from pathlib import Path
 from typing import Any
 
-
-REQUIRED_NUMERIC_FIELDS = (
-    "averageFPS",
-    "onePercentLowFPS",
-    "p95FrameMs",
-    "p99FrameMs",
-    "maxFrameMs",
-    "missedDeadlineCount",
-    "missedDeadlineRatio",
-    "severeStallCount",
-)
-REMOVED_FIELDS = ("p999FrameMs", "pointOnePercentLowFPS")
-
-
-def finite_number(report: dict[str, Any], key: str) -> float:
-    value = report.get(key)
-    if isinstance(value, bool) or not isinstance(value, (int, float)):
-        raise ValueError(f"{key} is missing or non-numeric")
-    result = float(value)
-    if not math.isfinite(result):
-        raise ValueError(f"{key} is not finite")
-    return result
-
-
-def validate_metric_domains(values: dict[str, float], scenario: str) -> list[str]:
-    failures: list[str] = []
-    for key in ("averageFPS", "onePercentLowFPS", "p95FrameMs", "p99FrameMs", "maxFrameMs"):
-        if values[key] < 0:
-            failures.append(f"{scenario}: {key} must be non-negative")
-    for key in ("missedDeadlineCount", "severeStallCount"):
-        if not values[key].is_integer() or values[key] < 0:
-            failures.append(f"{scenario}: {key} must be a non-negative integer")
-    ratio = values["missedDeadlineRatio"]
-    if ratio < 0 or ratio > 1:
-        failures.append(f"{scenario}: missedDeadlineRatio must be between 0 and 1")
-    return failures
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from performance_model import REMOVED_FIELDS, REQUIRED_NUMERIC_FIELDS, REQUIRED_SCHEMA_VERSION, finite_number, load_baseline, validate_metric_domains
 
 
 def main() -> int:
@@ -54,13 +21,13 @@ def main() -> int:
     parser.add_argument("--summary", required=True, type=Path)
     args = parser.parse_args()
 
-    baseline = json.loads(args.baseline.read_text())
     payload = json.loads(args.results.read_text())
     reports = payload.get("reports")
     if not isinstance(reports, list):
         raise SystemExit("results payload must contain a reports array")
 
-    scenarios = [str(value) for value in baseline["scenarios"]]
+    baseline = json.loads(args.baseline.read_text())
+    scenarios, mode, minimum_average, minimum_low, maximum_severe = load_baseline(baseline)
     expected = set(scenarios)
     grouped: dict[str, list[dict[str, Any]]] = {scenario: [] for scenario in scenarios}
     failures: list[str] = []
@@ -75,21 +42,9 @@ def main() -> int:
             continue
         grouped[scenario].append(raw_report)
 
-    mode = str(baseline.get("mode", "observe"))
     if mode not in ("observe", "enforce"):
         raise SystemExit(f"baseline mode must be 'observe' or 'enforce', found {mode!r}")
 
-    goals = baseline["goals"]
-    try:
-        minimum_average = float(goals["minimumAverageFPS"])
-        minimum_low = float(goals["minimumOnePercentLowFPS"])
-        maximum_severe = float(goals["maximumSevereStallCount"])
-    except (KeyError, TypeError, ValueError) as error:
-        raise SystemExit(f"baseline goals are invalid: {error}") from error
-    if not all(math.isfinite(value) for value in (minimum_average, minimum_low, maximum_severe)):
-        raise SystemExit("baseline goals must be finite")
-    if minimum_average < 0 or minimum_low < 0 or maximum_severe < 0:
-        raise SystemExit("baseline goals must be non-negative")
     severe_limit_text = "zero" if maximum_severe == 0 else f"{maximum_severe:g}"
     rows: list[str] = []
     for scenario in scenarios:

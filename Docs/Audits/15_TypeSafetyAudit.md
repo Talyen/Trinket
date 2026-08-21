@@ -4,7 +4,7 @@
 
 ## Intent
 
-Remove unsafe escapes and confirmed invariant loss. Prefer one validation boundary or an impossible-state model over repeated call-site guards and fallbacks, and migrate the affected callers/decoders/tests as one bounded fix. A clean pass is valid; new public contracts or wire-format changes follow [README.md](README.md).
+Remove unsafe escapes and confirmed invariant loss. Prefer one validation boundary or an impossible-state model over repeated call-site guards and fallbacks, and migrate the affected callers/decoders/tests as one bounded fix.
 
 ## Hard stops
 

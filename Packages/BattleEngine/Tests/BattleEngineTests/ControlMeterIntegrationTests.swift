@@ -10,18 +10,17 @@ import TrinketCore
 /// Effect summaries: `EffectSummaryBuilderTests`.
 /// Turn consumption primitives: `BattleTurnEngineTests`.
 struct ControlMeterIntegrationTests {
-    @Test func actionSkipPreventsDamage() throws {
-        for keyword in [Keyword.stun, Keyword.freeze] {
-            var battle = BattleTestFixtures.partyWithPendingActionSkip(keyword: keyword)
-            let hero = battle.hero
-            let events = BattleTestFixtures.endTurn(on: &battle)
+    @Test(arguments: [Keyword.stun, Keyword.freeze])
+    func actionSkipPreventsDamage(keyword: Keyword) throws {
+        var battle = BattleTestFixtures.partyWithPendingActionSkip(keyword: keyword)
+        let hero = battle.hero
+        let events = BattleTestFixtures.endTurn(on: &battle)
 
-            try #expect(battle.health(of: hero) == hero.maxHealth, "keyword=\(keyword)")
-            try #expect(
-                events.contains(effectKind: .controlActionSkipped, keyword: keyword),
-                "keyword=\(keyword)"
-            )
-        }
+        try #expect(battle.health(of: hero) == hero.maxHealth, "keyword=\(keyword)")
+        try #expect(
+            events.contains(effectKind: .controlActionSkipped, keyword: keyword),
+            "keyword=\(keyword)"
+        )
     }
 
     @Test func actionSkipConsumesOnEnemyTurn() throws {

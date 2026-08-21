@@ -1,5 +1,3 @@
 # TrinketTestSupport-local guide
 
-This package owns reusable combat/content test fixtures only (`CombatantFixtures`, battle parties). Keep fixtures deterministic and independent of app-feature UI and persistence. Do not put product rules or save-store harnesses here — those live in `Packages/TrinketPersistence/Sources/TrinketPersistenceTestSupport/` (`SaveTestSupport`).
-
-Fixture changes must be validated in consuming packages’ tests before handoff. Shared conventions: `Docs/Platform/Testing.md`.
+Do not put product rules or save-store harnesses here — save harnesses live in `TrinketPersistence`'s `TrinketPersistenceTestSupport` target. Fixture ownership and validation: [README.md](README.md).

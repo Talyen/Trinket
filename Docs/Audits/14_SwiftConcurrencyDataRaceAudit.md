@@ -4,7 +4,7 @@
 
 ## Intent
 
-Fix confirmed concurrency violations and source-proven lifetime/isolation hazards. Do not add actors, async APIs, cancellation machinery, or concurrency tests without a compiler diagnostic, runtime reproduction, or a concrete source proof under the evidence bar below. Bounded isolation/cancellation corrections may follow the affected call chain; public lifetime or ownership changes follow [README.md](README.md).
+Fix confirmed concurrency violations and source-proven lifetime/isolation hazards. Do not add actors, async APIs, cancellation machinery, or concurrency tests without a compiler diagnostic, runtime reproduction, or a concrete source proof under the evidence bar below. Bounded isolation/cancellation corrections may follow the affected call chain.
 
 ## Hard stops
 

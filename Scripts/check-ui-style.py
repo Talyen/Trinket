@@ -33,10 +33,13 @@ RGB_ALLOWED = {
 
 ALLOW_RE = re.compile(r"^\s*//\s*UIStyleCheck:\s*allow\s*-\s*\S", re.MULTILINE)
 
-SYSTEM_COLORS = (
-    "white|black|red|green|blue|orange|yellow|pink|purple|mint|teal|"
-    "indigo|brown|cyan|gray|grey|accentColor"
+SYSTEM_COLORS = "|".join(
+    line.strip()
+    for line in (ROOT / "Scripts/config/system-colors.txt").read_text().splitlines()
+    if line.strip() and not line.lstrip().startswith("#")
 )
+if not SYSTEM_COLORS:
+    raise SystemExit("Scripts/config/system-colors.txt must list at least one color")
 
 # Ordered: first matching pattern wins (matches legacy bash case order).
 PATTERNS: list[tuple[str, re.Pattern[str]]] = [
@@ -89,22 +92,11 @@ PATTERNS: list[tuple[str, re.Pattern[str]]] = [
 FRAME_RE = re.compile(r"\.frame\((width|height|minWidth|minHeight):")
 BUTTON_RE = re.compile(r"Button")
 
-# Broad ripgrep net — Python still classifies and allowlists precisely.
-RG_PATTERN = (
-    r"\.accentColor\(|\.buttonStyle\(\.glass|\.glassEffect\(|\.buttonStyle\(\.bordered|"
-    r"\.toggleStyle\(\.button|\.background\(\.(regular|thin|ultraThin)Material|"
-    r"\.fill\(\.(regular|thin|ultraThin)Material|AnyView\(|Color\s*\(\s*red\s*:|"
-    r"Color\s*\(\s*white\s*:|UIColor\s*\(|#colorLiteral\(|"
-    r"\.(foregroundStyle|tint|fill|stroke|background)\(\.(white|black|red|green|blue|"
-    r"orange|yellow|pink|purple|mint|teal|indigo|brown|cyan|gray|grey|accentColor)|"
-    r"Color\.(white|black|red|green|blue|orange|yellow|pink|purple|mint|teal|indigo|"
-    r"brown|cyan|gray|grey|accentColor)|"
-    r"\.(white|black|red|green|blue|orange|yellow|pink|purple|mint|teal|indigo|brown|"
-    r"cyan|gray|grey|accentColor)\.opacity\(|"
-    r'Color\s*\(\s*"[^"]+"|'
-    r"Image\.preparedAsset\(\s*named:|^\s*named:\s*[A-Za-z_][A-Za-z0-9_]*\.|"
-    r"\.frame\((width|height|minWidth|minHeight):"
-)
+# Broad ripgrep net — derive it from the same patterns the classifier uses so
+# a new guard cannot be added to Python without also being candidate-searchable.
+RG_PATTERN = "|".join(
+    f"(?:{regex.pattern})" for _, regex in PATTERNS
+) + f"|(?:{FRAME_RE.pattern})"
 
 
 def resolve_scan_paths(explicit: list[str] | None) -> list[str]:

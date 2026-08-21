@@ -16,6 +16,9 @@ source "$SCRIPT_DIR/build-stamp.sh"
 source "$SCRIPT_DIR/build-inputs.sh"
 # shellcheck source=xcode-runner.sh
 source "$SCRIPT_DIR/xcode-runner.sh"
+# shellcheck source=lib/app-build.sh
+source "$SCRIPT_DIR/lib/app-build.sh"
+trinket_set_app_xcodebuild_args "$DERIVED_DATA_PATH"
 
 QUIET=true
 APP_ONLY=false
@@ -64,13 +67,7 @@ fi
 # Build-only invocations do not write a result bundle; logs + manifests carry
 # the outcome and test runs produce their own xcresults.
 xcode_runner_run "${app_runner_args[@]}" -- xcodebuild build-for-testing \
-  -project Trinket.xcodeproj \
-  -scheme Trinket \
-  -sdk iphonesimulator \
-  -destination 'generic/platform=iOS Simulator' \
-  -derivedDataPath "$DERIVED_DATA_PATH" \
-  -parallelizeTargets \
-  -disableAutomaticPackageResolution
+  "${TRINKET_APP_XCODEBUILD_ARGS[@]}"
 
 if [[ "$APP_ONLY" == "true" ]]; then
   echo "=== build-for-testing: skipping package schemes (--app-only) ==="

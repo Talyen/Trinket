@@ -4,7 +4,7 @@
 
 ## Intent
 
-Fix confirmed persistence, synchronization, lifecycle, or transition issues across the complete transaction path. A clean pass is valid; do not add guards, logs, seams, or tests solely to create work. Reuse the existing owner. A bounded architecture-consistent boundary may ship when it is required to make one consequential transaction correct and replaces the unsafe path; new ownership or product policy follows the proposal bar in [README.md](README.md).
+Fix confirmed persistence, synchronization, lifecycle, or transition issues across the complete transaction path. Do not add guards, logs, seams, or tests solely to create work; reuse the existing owner.
 
 ## Hard stops
 

@@ -2,14 +2,9 @@
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
-
-# Make pinned .tools binaries (e.g. xcbeautify) discoverable for verbose output.
-if [[ -d "$PWD/.tools" ]]; then
-  export PATH="$PWD/.tools:$PATH"
-fi
-
-# Must match PRODUCT_BUNDLE_IDENTIFIER in project.yml.
-BUNDLE_ID="com.ryanmcintire.Trinket"
+# shellcheck source=lib/tools.sh
+source Scripts/lib/tools.sh
+trinket_prepend_pinned_tools
 
 # shellcheck source=run-env.sh
 source ./Scripts/run-env.sh
@@ -28,25 +23,35 @@ trinket_sim_slot_ensure
 
 # shellcheck source=xcode-runner.sh
 source ./Scripts/xcode-runner.sh
+# shellcheck source=lib/app-build.sh
+source ./Scripts/lib/app-build.sh
+trinket_set_app_xcodebuild_args "$DERIVED_DATA_PATH"
 # Compile against a generic destination so xcodebuild does not boot/show a
 # concrete simulator. Quiet logs go under TestResults/raw/; print a heartbeat
 # so a warm rebuild is not mistaken for a hang.
 echo "Building Trinket (quiet; log in $RESULTS_DIR/raw/)..."
 xcode_runner_run --label "run-simulator" --quiet -- \
-  xcodebuild build \
-  -project Trinket.xcodeproj \
-  -scheme Trinket \
-  -sdk iphonesimulator \
-  -destination 'generic/platform=iOS Simulator' \
-  -derivedDataPath "$DERIVED_DATA_PATH" \
-  -parallelizeTargets \
-  -disableAutomaticPackageResolution \
+  xcodebuild build "${TRINKET_APP_XCODEBUILD_ARGS[@]}" \
   COMPILER_INDEX_STORE_ENABLE=NO \
   CODE_SIGNING_ALLOWED=NO \
   CODE_SIGNING_REQUIRED=NO
 
 echo "Build succeeded. Preparing Trinket Run..."
 ensure_test_simulator
+
+# Read the identifier from the product that was just built so project.yml and
+# this launcher cannot silently drift apart.
+BUNDLE_ID="$(python3 - "$APP_PATH/Info.plist" <<'PY'
+import plistlib
+import sys
+
+with open(sys.argv[1], "rb") as handle:
+    value = plistlib.load(handle).get("CFBundleIdentifier")
+if not isinstance(value, str) or not value:
+    raise SystemExit("built app Info.plist has no CFBundleIdentifier")
+print(value)
+PY
+)"
 
 # Prefer simctl ui appearance (no SpringBoard restart). Fall back to defaults write
 # only if appearance is unsupported; avoid killall SpringBoard on the warm path.

@@ -1,3 +1,4 @@
+import CoreGraphics
 import Foundation
 import Testing
 import TrinketCore
@@ -6,6 +7,20 @@ import TrinketTestSupport
 @testable import TrinketBattleFeature
 
 struct BattlePresentationControlSkipTests {
+    @Test func cardActivationRequestNormalizesKeywords() {
+        let request = CardActivationRequest(
+            artworkName: nil,
+            center: .zero,
+            size: CGSize(width: 100, height: 140),
+            rotation: 0,
+            verticalTilt: 0,
+            scale: 1,
+            keywords: [.burn, .burn, .physical]
+        )
+
+        #expect(request.keywords == [.burn, .physical])
+    }
+
     @Test func projectsTriggeredStunAndFreezeForPartyOwners() {
         let state = BattleState(
             hero: CombatantFixtures.combatant(id: "hero", role: .hero),

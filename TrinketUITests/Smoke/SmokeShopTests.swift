@@ -16,9 +16,7 @@ final class SmokeShopTests: SeededSmokeUITestCase {
         assertExists(AccessibilityID.Shop.goldBalance)
         assertExists(AccessibilityID.Shop.leaveButton)
 
-        let offerCards = app.buttons.matching(
-            NSPredicate(format: "identifier ENDSWITH %@", " shop offer")
-        )
-        XCTAssertGreaterThan(offerCards.count, 0, "Expected shop offer cards")
+        let shop = ShopScreen(app: app)
+        XCTAssertGreaterThan(shop.offerCards.count, 0, "Expected shop offer cards")
     }
 }

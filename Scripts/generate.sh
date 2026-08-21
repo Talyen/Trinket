@@ -7,6 +7,8 @@ export LC_ALL=C
 export LANG=C
 
 cd "$(dirname "$0")/.."
+# shellcheck source=lib/tools.sh
+source Scripts/lib/tools.sh
 
 # Prefer Xcode's macOS SDK for SPM/`swift run` (AbilityInventoryDump). Newer macOS /
 # CLT betas can leave a CommandLineTools SDK that mismatches Xcode's swiftc.
@@ -108,9 +110,7 @@ acquire_generation_lock() {
 
 ensure_pinned_xcodegen_path() {
   # Prefer pinned .tools XcodeGen so local/agent output matches CI.
-  if [[ -x "$PWD/.tools/xcodegen" ]]; then
-    export PATH="$PWD/.tools:$PATH"
-  fi
+  trinket_prepend_pinned_tools
 
   if [[ "${TRINKET_REQUIRE_PINNED_TOOLS:-0}" == "1" ]]; then
     if [[ ! -x "$PWD/.tools/xcodegen" ]]; then
@@ -193,20 +193,19 @@ echo "=== Generating content catalogs ==="
 python3 Scripts/content_codegen.py
 
 if [[ "$INCLUDE_ASSETS" == true ]]; then
-  echo "=== Preparing art assets ==="
-  ./Scripts/prepare-art-assets.sh
-
-  echo "=== Preparing music assets ==="
-  ./Scripts/prepare-music-assets.sh
-
-  echo "=== Preparing SFX catalog ==="
-  ./Scripts/prepare-sfx-assets.sh
-
-  echo "=== Preparing cinematic assets ==="
-  ./Scripts/prepare-cinematic-assets.sh
-
-  echo "=== Preparing app icon ==="
-  ./Scripts/prepare-app-icon.sh
+  asset_pipelines=(
+    prepare-art-assets.sh
+    prepare-music-assets.sh
+    prepare-sfx-assets.sh
+    prepare-cinematic-assets.sh
+    prepare-app-icon.sh
+  )
+  for pipeline in "${asset_pipelines[@]}"; do
+    label="${pipeline#prepare-}"
+    label="${label%.sh}"
+    echo "=== Preparing $label ==="
+    "./Scripts/$pipeline"
+  done
 fi
 
 if [[ "$SKIP_XCODEGEN" == false ]]; then

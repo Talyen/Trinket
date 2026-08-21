@@ -16,9 +16,9 @@ struct EnemyCatalogTests {
                 try #expect(enemy.isBoss, "\(enemy.name) should be a boss")
             } else {
                 try #expect(!enemy.isBoss, "\(enemy.name) should not be a boss")
+                try #expect(enemy.maxHealth >= 11, "\(enemy.name) should have normal base HP")
+                try #expect(enemy.maxHealth <= 15, "\(enemy.name) should have normal base HP")
             }
-            try #expect(enemy.maxHealth >= 11, "\(enemy.name) should have normal base HP")
-            try #expect(enemy.maxHealth <= 15, "\(enemy.name) should have normal base HP")
             try #expect(!enemy.combatant.growthArchetype.rawValue.isEmpty)
             try #expect(!enemy.combatant.hasMana, "\(enemy.name) should not have Mana")
             let loadout = enemy.combatant.abilityLoadout

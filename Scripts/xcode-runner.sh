@@ -9,6 +9,10 @@
 #   TRINKET_XCODE_WALL_TIMEOUT_SECONDS (default 1200; 0 disables)
 #   TRINKET_XCODE_IDLE_TIMEOUT_SECONDS (default 45 after terminal marker; 0 disables)
 
+XCODE_RUNNER_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=config/diagnostic-limits.env
+source "$XCODE_RUNNER_SCRIPT_DIR/config/diagnostic-limits.env"
+
 xcode_runner_sanitize_label() {
   local value="${1:-run}"
   value="${value//[^A-Za-z0-9_.-]/_}"
@@ -132,10 +136,10 @@ xcode_runner_call_reporter() {
     echo "=== xcode-runner: raw log excerpt ($log_file) ===" >&2
     # Prefer actionable lines; fall back to the end of the quiet log so CI is
     # not blind when diagnostics misclassify benign setup noise.
-    local excerpt_lines="${TRINKET_XCODE_FAILURE_LOG_LINES:-8}"
-    local excerpt_chars="${TRINKET_XCODE_FAILURE_LOG_LINE_CHARS:-240}"
-    [[ "$excerpt_lines" =~ ^[0-9]+$ ]] || excerpt_lines=8
-    [[ "$excerpt_chars" =~ ^[0-9]+$ ]] || excerpt_chars=240
+    local excerpt_lines="${TRINKET_XCODE_FAILURE_LOG_LINES:-$TRINKET_XCODE_FAILURE_LOG_LINES_DEFAULT}"
+    local excerpt_chars="${TRINKET_XCODE_FAILURE_LOG_LINE_CHARS:-$TRINKET_XCODE_FAILURE_LOG_LINE_CHARS_DEFAULT}"
+    [[ "$excerpt_lines" =~ ^[0-9]+$ ]] || excerpt_lines="$TRINKET_XCODE_FAILURE_LOG_LINES_DEFAULT"
+    [[ "$excerpt_chars" =~ ^[0-9]+$ ]] || excerpt_chars="$TRINKET_XCODE_FAILURE_LOG_LINE_CHARS_DEFAULT"
     matches="$(grep -n -E -i 'error:|fatal error:|exception|actool|ibtoold|nil object|BUILD FAILED|\*\* BUILD|\*\* TEST FAILED' "$log_file" | head -n "$excerpt_lines" || true)"
     if [[ -n "$matches" ]]; then
       printf '%s\n' "$matches" | awk -v limit="$excerpt_chars" '{ if (length($0) > limit) print substr($0, 1, limit - 1) "…"; else print }' >&2
@@ -421,9 +425,6 @@ xcode_runner_run() {
         ;;
       --retry-callback)
         retry_callback="$2"; max_attempts=2; shift 2
-        ;;
-      --max-attempts)
-        max_attempts="$2"; shift 2
         ;;
       --working-directory)
         working_directory="$2"; shift 2

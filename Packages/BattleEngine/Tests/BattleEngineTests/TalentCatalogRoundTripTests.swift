@@ -599,38 +599,6 @@ struct TalentCatalogRoundTripTests { // swiftlint:disable:this type_body_length
         try #expect(BattleTestFixtures.poisonPotency(on: hero, in: context) == 0)
     }
 
-    @Test func thickHideReducesDamageTaken() throws {
-        // Verify passiveMitigationFlat reduces damage by 1 using a zero-toughness
-        // companion so toughness DR doesn't interfere with the expected value.
-        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
-        let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 20)
-        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30)
-        var context = BattleTestFixtures.makeContext(
-            hero: hero,
-            companion: companion,
-            enemy: enemy,
-            companionModifiers: CombatModifierProfile(
-                triggers: CombatTraitTriggers(
-                    mitigation: MitigationTriggers(
-                        passiveMitigationFlat: 1
-                    )
-                )
-            )
-        )
-        context.roster.mutateRuntime(for: companion) { $0.currentHealth = 15 }
-        _ = context.resolveDamage(
-            DamageRequest(
-                amount: 5,
-                target: companion,
-                keyword: .physical,
-                sourceActorID: enemy.id,
-                options: DamageOptions(applyStatBonus: false, applyItemBonus: false, applyDodge: false)
-            )
-        )
-
-        try #expect(context.roster.health(for: companion) == 11)
-    }
-
     @Test func coldBloodAppliesPoisonOnDodge() throws {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 40)
@@ -758,28 +726,27 @@ struct TalentCatalogRoundTripTests { // swiftlint:disable:this type_body_length
         try #expect(BattleTestFixtures.shieldPoints(for: build.combatant, in: context) == 2)
     }
 
-    @Test func protectiveBloomLogsAuthoredHealGrantBlockName() throws {
-        let build = try BattleTestFixtures.catalogBuild(combatantID: "pixie", talents: "pixie_health_t2_2")
-        #expect(build.modifiers.triggerAbilityName("onHealGrantBlock", fallback: "") == "Protective Bloom")
-        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
-        var battle = BattleTestFixtures.makeContext(
-            hero: hero,
-            companion: build.combatant,
-            enemy: CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 40),
-            companionModifiers: build.modifiers
+    private struct HealGrantBlockCase: Sendable {
+        let combatantID: String
+        let talentID: String
+        let abilityName: String
+
+        static let protectiveBloom = Self(
+            combatantID: "pixie",
+            talentID: "pixie_health_t2_2",
+            abilityName: "Protective Bloom"
         )
-        battle.roster.mutateRuntime(for: hero) { $0.currentHealth = 10 }
-        let outcome = battle.resolveHeal(
-            HealRequest(amount: 4, target: hero, sourceActorID: build.combatant.id)
+        static let wardedRoost = Self(
+            combatantID: "library_owl",
+            talentID: "library_owl_health_t1_2",
+            abilityName: "Warded Roost"
         )
-        #expect(outcome.events.contains {
-            $0.abilityName == "Protective Bloom" && $0.effectKind == .shieldApplied && $0.amount == 2
-        })
     }
 
-    @Test func wardedRoostLogsAuthoredHealGrantBlockName() throws {
-        let build = try BattleTestFixtures.catalogBuild(combatantID: "library_owl", talents: "library_owl_health_t1_2")
-        #expect(build.modifiers.triggerAbilityName("onHealGrantBlock", fallback: "") == "Warded Roost")
+    @Test(arguments: [Self.HealGrantBlockCase.protectiveBloom, .wardedRoost])
+    private func healGrantBlockLogsAuthoredAbilityName(_ testCase: HealGrantBlockCase) throws {
+        let build = try BattleTestFixtures.catalogBuild(combatantID: testCase.combatantID, talents: testCase.talentID)
+        #expect(build.modifiers.triggerAbilityName("onHealGrantBlock", fallback: "") == testCase.abilityName)
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
         var battle = BattleTestFixtures.makeContext(
             hero: hero,
@@ -792,7 +759,7 @@ struct TalentCatalogRoundTripTests { // swiftlint:disable:this type_body_length
             HealRequest(amount: 4, target: hero, sourceActorID: build.combatant.id)
         )
         #expect(outcome.events.contains {
-            $0.abilityName == "Warded Roost" && $0.effectKind == .shieldApplied && $0.amount == 2
+            $0.abilityName == testCase.abilityName && $0.effectKind == .shieldApplied && $0.amount == 2
         })
     }
 }

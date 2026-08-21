@@ -10,6 +10,12 @@ struct BattleScreen {
             .firstMatch
     }
 
+    var handCards: XCUIElementQuery {
+        app.descendants(matching: .any).matching(
+            NSPredicate(format: "identifier BEGINSWITH %@", "Battle Hand Card ")
+        )
+    }
+
     var victory: XCUIElement {
         app.descendants(matching: .any)[AccessibilityID.Battle.victory]
     }

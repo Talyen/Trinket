@@ -41,20 +41,20 @@ Scripts/                    generate, build, test, CI helpers
 
 | Concern | Owner | Notes |
 |---------|-------|-------|
-| Effects, keywords, stats, progression | [TrinketCore](../../Packages/TrinketCore/README.md) | `CombatantProgression`, `Effect`, `Keyword`, `PrimaryStats` |
-| Heroes, companions, enemies, abilities, affixes, stages, item bases, talent trees | [TrinketContent](../../Packages/TrinketContent/README.md) | Manifest-generated catalogs (TSV) plus authored Swift for abilities (`Content/AbilityCatalog*.swift`); talent trees from `ContentManifest/talents.tsv`; art/music/SFX runtime metadata |
-| Combat rules and card combat | [BattleEngine](../../Packages/BattleEngine/README.md) | `BattleState`, effect handlers, decks/hand, `playCard` / `endTurn` |
-| Player save, stores, CloudKit sync, domain write policies | [TrinketPersistence](../../Packages/TrinketPersistence/README.md) | `PlayerSaveStore`, `Player*Store`; campaign reward/completion appliers mutate the save graph — app sessions decide *when*, Persistence owns *what write* |
-| Shared UI chrome | [TrinketDesignSystem](../../Packages/TrinketDesignSystem/README.md) | Backgrounds, surfaces, typography, Keyword and Homestead resource visuals, `ExperienceBar`, motion primitives |
-| Shared feature support | [TrinketFeatureSupport](../../Packages/TrinketFeatureSupport/README.md) | Game-specific cards/detail panes, presentation models, `AccessibilityID`, prepared artwork, frame-pacing contracts |
-| Feature contracts | [TrinketFeatureContracts](../../Packages/TrinketFeatureSupport/README.md) | SwiftUI-free `CombatantDetailContext`, `StageMapMessage`, and `BattlePresentationContext`; no save or view adapters |
-| Battle runtime contract | [TrinketBattleRuntime](../../Packages/TrinketBattleRuntime/README.md) | SwiftUI-free `BattleRuntime`, launch DTOs, and performance scenario contracts. Immutable simulation inputs and lifecycle only. |
-| Battle presentation | [TrinketBattleFeature](../../Packages/TrinketBattleFeature/README.md) | `BattleSession` implements the runtime contract and owns lifecycle/simulation plus combat projection, feedback/spectacle lanes, and Battle UI. Must not branch on play-mode identity or assemble from live save slices. |
-| App and Play orchestration | [TrinketAppState](../../Packages/TrinketAppState/README.md) | Composition/wiring, Play shell and mode owners, battle launch/completion, encounter sessions, preferences, and audio routing. |
-| App entry and non-Battle screens | `Trinket` | SwiftUI roots plus Play, Collection, Homestead, and Options views |
-| Processed bundle assets | `Trinket/Assets.xcassets`, `Trinket/Media/` | Binary art/music committed after `--assets` codegen |
+| Effects, keywords, stats, progression | [TrinketCore](../../Packages/TrinketCore/README.md) | Domain primitives; no UI or app dependencies |
+| Catalogs and authored content | [TrinketContent](../../Packages/TrinketContent/README.md) | Manifest/codegen boundary and runtime catalog |
+| Combat rules and card combat | [BattleEngine](../../Packages/BattleEngine/README.md) | Simulation owner |
+| Player save, stores, and sync wiring | [TrinketPersistence](../../Packages/TrinketPersistence/README.md) | Canonical save graph and write policy |
+| Shared UI chrome | [TrinketDesignSystem](../../Packages/TrinketDesignSystem/README.md) | Product colors, materials, typography, and reusable chrome |
+| Shared feature support | [TrinketFeatureSupport](../../Packages/TrinketFeatureSupport/README.md) | Game-specific presentation support and contracts |
+| Feature contracts | [TrinketFeatureContracts](../../Packages/TrinketFeatureSupport/README.md) | SwiftUI-free contract values; no save or view adapters |
+| Battle runtime contract | [TrinketBattleRuntime](../../Packages/TrinketBattleRuntime/README.md) | SwiftUI-free lifecycle and launch inputs |
+| Battle presentation | [TrinketBattleFeature](../../Packages/TrinketBattleFeature/README.md) | Battle lifecycle, projection, feedback, spectacle, and UI |
+| App and Play orchestration | [TrinketAppState](../../Packages/TrinketAppState/README.md) | Composition, shell navigation, mode owners, and audio |
+| App entry and non-Battle screens | `Trinket` | SwiftUI roots and product screens |
+| Processed bundle assets | `Trinket/Assets.xcassets`, `Trinket/Media/` | Generated app resources |
 
-Battle launch/DTO contract: [battle.md](../AgentContext/battle.md). Persistence graph: [TrinketPersistence README](../../Packages/TrinketPersistence/README.md). UIKit feedback island: [TrinketBattleFeature README](../../Packages/TrinketBattleFeature/README.md). SwiftUI standing rules: [swiftui-features.md](../AgentContext/swiftui-features.md) and [TrinketDesignSystem README](../../Packages/TrinketDesignSystem/README.md). Shared fixtures: [TrinketTestSupport README](../../Packages/TrinketTestSupport/README.md).
+Battle launch/DTO contract: [battle-runtime.md](../AgentContext/battle-runtime.md). Persistence graph: [TrinketPersistence README](../../Packages/TrinketPersistence/README.md). UIKit feedback island: [TrinketBattleFeature README](../../Packages/TrinketBattleFeature/README.md). SwiftUI standing rules: [swiftui-features.md](../AgentContext/swiftui-features.md) and [TrinketDesignSystem README](../../Packages/TrinketDesignSystem/README.md). Shared fixtures: [TrinketTestSupport README](../../Packages/TrinketTestSupport/README.md).
 
 ## Product tabs vs code
 
@@ -129,15 +129,15 @@ and package manifests.
 The app target is a composition root. `TrinketAppState` production code depends on
 `TrinketBattleRuntime` and `TrinketFeatureContracts`, never concrete BattleFeature or
 save-backed adapters. Views take the narrowest owner. Launch/DTO details:
-[battle.md](../AgentContext/battle.md).
+[battle-runtime.md](../AgentContext/battle-runtime.md).
 
-## Persistence overview
+## Cross-cutting ownership pointers
 
-- Canonical save is the SwiftData graph in `TrinketPersistence` (`PlayerSaveRoot` and slice stores). Value types such as `PlayerSave` are calculation snapshots.
-- `PlayerSaveStore` is a thin hub: open/config, write-through, deferred save/rollback, reset/seed. Cross-slice player actions live in domain extensions on `PlayerSaveStore` (`PlayerSaveStore+Homestead.swift`, `PlayerSaveStore+Roster.swift`).
-- Options/haptics are `TrinketAppState.OptionsStore` on local `UserDefaults`, not `PlayerSave` / CloudKit. Shell tab selection is in-session only; cold launch lands on Play.
-- Sync is CloudKit-ready (`iCloud.com.ryanmcintire.Trinket`) but local-only until [CloudKitPreShipChecklist.md](CloudKitPreShipChecklist.md). Identity: [Identity.md](../Product/Identity.md).
-- Audio playback lives in `TrinketAppState` (ambient `AVAudioPlayer` by design).
+The canonical persistence graph, local-only CloudKit posture, and options split
+live in [persistence context](../AgentContext/persistence.md) and
+[Identity.md](../Product/Identity.md). Audio ownership is in
+[audio context](../AgentContext/audio.md). Do not copy those mutable details into
+the architecture map.
 
 ## Extension policy (hub containment)
 

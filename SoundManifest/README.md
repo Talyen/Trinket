@@ -26,23 +26,13 @@ Comment lines start with `#`. Generated outputs are always AAC `.m4a`.
 
 ## Generate SFX Assets
 
-Run:
-
-```sh
-./Scripts/prepare-sfx-assets.sh
-```
+Entry point and verification routing: [content-and-manifests.md](../Docs/AgentContext/content-and-manifests.md); `prepare-sfx-assets.sh` is the focused debugging entry point.
 
 The script validates manifest rows, converts source files with macOS `afconvert`, writes AAC `.m4a` files, prunes orphans, and regenerates the Swift catalog. The default AAC bitrate is `64000`; override with:
 
 ```sh
 SFX_AAC_BITRATE=96000 ./Scripts/prepare-sfx-assets.sh
 ```
-
-`./Scripts/generate.sh --assets` runs art, music, SFX, and cinematic pipelines together.
-
-After changing `SoundManifest/sfx.tsv`, verify with path-scoped handoff
-(`./Scripts/handoff.sh --isolate --paths SoundManifest/sfx.tsv`). Agent workflow:
-[content-and-manifests.md](../Docs/AgentContext/content-and-manifests.md).
 
 ## Runtime Routing
 

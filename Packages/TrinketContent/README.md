@@ -12,22 +12,12 @@ in Swift; talent trees are authored in `ContentManifest/talents.tsv`.
 
 ## Manifest sources
 
-| Manifest / source | Generates |
-|----------|-----------|
-| `Content/AbilityCatalog{Basic,Skill,Ultimate}.swift` | `AbilityShorthand.generated.swift`, `AbilityInventory.generated.tsv` (`id`, `name`, `tier`, `summary`), `AbilityCatalogIndex.generated.swift` |
-| `Scripts/trigger_family_schema.json` | `*Triggers.generated.swift` (combat trigger family structs) |
-| `ContentManifest/combatants.tsv` | `GameContentRoster.generated.swift` |
-| `ContentManifest/enemies.tsv` | `GameContentEnemies.generated.swift` |
-| `ContentManifest/stages.tsv` | `GameContentChapters.generated.swift`, `GameContentEncounterArt.generated.swift`, `GameContentStagesIndex.generated.swift` |
-| `ContentManifest/item_bases.tsv` | `GameContentItemBases.generated.swift` |
-| `ContentManifest/talents.tsv` | `CombatantTalentCatalog.generated.swift` |
-| `ContentManifest/traits.tsv` | `GameContentTraits.generated.swift` |
-| `ContentManifest/affixes.tsv` | `ItemAffixCatalog.generated.swift` |
-| `ContentManifest/homestead_nodes.tsv` | `GameContentHomestead.generated.swift` |
-| `ArtManifest/curated-assets.tsv` | `ArtCatalog.generated.swift` |
-| `MusicManifest/music.tsv` | `MusicCatalog.generated.swift` |
-| `SoundManifest/sfx.tsv` | `SFXCatalog.generated.swift` + `Trinket/Media/SFX` |
-| `CinematicManifest/cinematics.tsv` | `UltimateCinematicCatalog.generated.swift` + `Trinket/Media/Cinematics` |
+Schemas and input/output ownership live in
+[`ContentManifest/README.md`](../../ContentManifest/README.md) and the matching
+media-manifest READMEs. `Generated/` is the output of `./Scripts/generate.sh`;
+do not maintain a second generated-file inventory here. Abilities remain
+authored in `Content/AbilityCatalog{Basic,Skill,Ultimate}.swift`; trigger-family
+schema remains in `Scripts/trigger_family_schema.json`.
 
 ## Adding content
 
@@ -37,7 +27,7 @@ in Swift; talent trees are authored in `ContentManifest/talents.tsv`.
 ./Scripts/build.sh
 ```
 
-See `ContentManifest/README.md` for TSV format details. Generated files are committed so the app builds without rerunning the generator.
+Generated files are committed so the app builds without rerunning the generator.
 
 ## Key types
 

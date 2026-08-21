@@ -51,22 +51,16 @@ HEIC is Apple's native image format, ~30–50% smaller than JPEG at the same per
 
 ## Generate Curated Assets
 
-Normal authored workflow:
+Entry point and verification routing: [content-and-manifests.md](../Docs/AgentContext/content-and-manifests.md); `prepare-art-assets.sh` is the focused debugging entry point.
 
-```sh
-./Scripts/generate.sh --assets
-```
-
-The orchestrator validates all manifests and runs the art preparation script, which
-verifies source files, converts selected images through macOS `sips` (HEIC with
-quality 80), writes the kind-appropriate `.imageset` folders, strips unused variants,
-and regenerates the Swift art catalog. Run `./Scripts/prepare-art-assets.sh` directly
-only when debugging the art pipeline. Full-size defaults match their largest shipping
-presentation: backgrounds retain the 1600-pixel cap, full-width combatant/encounter
-heroes use 1320 pixels, card/detail art uses 960 pixels, and small resource/slot
-chrome uses compact dedicated caps. Encoding settings participate in the generated
-digest, so dimension or quality changes automatically regenerate affected assets
-without `FORCE_ASSET_REENCODE`.
+The art preparation script verifies source files, converts selected images through
+macOS `sips` (HEIC with quality 80), writes the kind-appropriate `.imageset` folders,
+strips unused variants, and regenerates the Swift art catalog. Full-size defaults
+match their largest shipping presentation: backgrounds retain the 1600-pixel cap,
+full-width combatant/encounter heroes use 1320 pixels, card/detail art uses 960
+pixels, and small resource/slot chrome uses compact dedicated caps. Encoding settings
+participate in the generated digest, so dimension or quality changes automatically
+regenerate affected assets without `FORCE_ASSET_REENCODE`.
 
 Reconvert is **content-and-output-settings-hash based** (not mtime). Digests live in `Packages/TrinketContent/Sources/TrinketContent/Generated/ArtSourceHashes.generated.tsv`. Exporters that preserve stale timestamps (for example Darkroom) still invalidate when pixel bytes change. Set `FORCE_ASSET_REENCODE=1` to rebuild every curated asset regardless of hash.
 
@@ -79,12 +73,6 @@ Reconvert is **content-and-output-settings-hash based** (not mtime). Digests liv
 | `ART_<KIND>_DIMENSION` | table above | Override one full-image category, such as `ART_ABILITY_DIMENSION` |
 | `ART_THUMB_DIMENSION` | `480` | Thumbnail max dimension |
 | `FORCE_ASSET_REENCODE` | `0` | When `1`, re-encode all curated art even when source hashes match |
-
-After changing `ArtManifest/curated-assets.tsv`, verify the generated result with:
-
-```sh
-./Scripts/handoff.sh --isolate --paths ArtManifest/curated-assets.tsv
-```
 
 ## Decoded Memory Report
 

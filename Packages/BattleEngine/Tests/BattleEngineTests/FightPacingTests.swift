@@ -15,21 +15,16 @@ struct FightPacingTests {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 50)
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 50)
         let enemy = CombatantFixtures.combatant(id: enemyID, role: .enemy, maxHealth: 50)
-        var context = BattleState(
-            roster: BattleRoster(
-                hero: CombatantRuntime(combatant: hero, initialHealth: heroHP),
-                companion: CombatantRuntime(combatant: companion, initialHealth: companionHP),
-                enemy: CombatantRuntime(combatant: enemy, initialHealth: enemyHP)
-            ),
-            rng: SeededRandomNumberGenerator(seed: 0),
+        var context = BattleTestFixtures.makeContext(
+            hero: hero,
+            companion: companion,
+            enemy: enemy,
+            heroHealth: heroHP,
+            companionHealth: companionHP,
+            enemyHealth: enemyHP,
+            seed: 0,
             nextEffectID: 0,
-            nextEventID: 0,
-            events: [],
-            gold: 0,
-            initialGold: 0,
-            heroModifiers: .zero,
-            companionModifiers: .zero,
-            enemyModifiers: .zero
+            nextEventID: 0
         )
         context.turnCount = turnCount
         return context
@@ -102,21 +97,16 @@ struct FightPacingTests {
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 50)
         // High max HP keeps the control threshold above once-paced damage.
         let enemy = CombatantFixtures.combatant(id: "target", role: .enemy, maxHealth: 100)
-        var context = BattleState(
-            roster: BattleRoster(
-                hero: CombatantRuntime(combatant: hero, initialHealth: 10),
-                companion: CombatantRuntime(combatant: companion, initialHealth: 10),
-                enemy: CombatantRuntime(combatant: enemy, initialHealth: 100)
-            ),
-            rng: SeededRandomNumberGenerator(seed: BattleTestFixtures.deterministicNonCriticalSeed),
+        var context = BattleTestFixtures.makeContext(
+            hero: hero,
+            companion: companion,
+            enemy: enemy,
+            heroHealth: 10,
+            companionHealth: 10,
+            enemyHealth: 100,
+            seed: BattleTestFixtures.deterministicNonCriticalSeed,
             nextEffectID: 0,
-            nextEventID: 0,
-            events: [],
-            gold: 0,
-            initialGold: 0,
-            heroModifiers: .zero,
-            companionModifiers: .zero,
-            enemyModifiers: .zero
+            nextEventID: 0
         )
         context.turnCount = 8
 

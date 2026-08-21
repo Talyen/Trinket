@@ -4,7 +4,7 @@
 
 ## Intent
 
-Restore ownership-drift clusters to existing owners. Include callers, mirrored/derived state, persistence or presentation adapters, and tests necessary to complete the move. Move, do not mirror: delete old forwarding APIs, parallel paths, duplicate state, and duplicate tests. New sessions/managers must express a real lifetime boundary and replace more surface than they add. Moves into owners already prescribed by Architecture may ship as bounded phases; new ownership boundaries follow [README.md](README.md).
+Restore ownership-drift clusters to existing owners. Include callers, mirrored/derived state, persistence or presentation adapters, and tests necessary to complete the move. Move, do not mirror: delete old forwarding APIs, parallel paths, duplicate state, and duplicate tests. New sessions/managers must express a real lifetime boundary and replace more surface than they add.
 
 ## What “state gravity” means here
 
@@ -21,12 +21,12 @@ Agentic coding often drops the next method on the nearest large type. Gravity we
 | Mirrored mutable state or duplicated derived state across view/session/store | Competing owners can diverge and make lifecycle or mutation order ambiguous |
 | Callers validate or sequence an invariant that belongs to an engine/store | Ownership is distributed across entry points instead of enforced once |
 
-**Not this audit:** import-gate failures alone → repair directly through `check-module-boundaries.sh`; correct owner with leftover twin / shim → DualPathRetention; verbose ceremony with correct ownership → InelegantSlop. Full routing: [README.md](README.md) confusable pairs.
+**Not this audit:** import-gate failures alone → repair directly through `check-module-boundaries.sh`; correct owner with leftover twin / shim → DualPathRetention; verbose ceremony with correct ownership → InelegantSlop.
 
 ## Hard stops
 
 - Do not relocate battle simulation off `@MainActor` unless Architecture already requires it.
-- Do not collapse intentional seams: battle RNG injection, persistence write coalescing, catalog/codegen boundaries, Options/`UserDefaults` vs `PlayerSave`.
+- Do not collapse seams recorded as accepted non-findings in [Proposals.md](Proposals.md) (battle RNG injection, persistence write coalescing, catalog/codegen boundaries).
 - Do not move presentation into packages that must stay SwiftUI-free of feature views (`BattleEngine`, `TrinketPersistence`, `TrinketCore`).
 - Repair a failing `check-module-boundaries.sh` row directly when it has an obvious one-file fix rather than expanding it into an ownership audit.
 
@@ -42,26 +42,7 @@ When these hold, the remediation envelope includes migrating affected callers an
 
 ## Domain rules
 
-Follow Architecture ownership and app-layer imports:
-
-| Concern | Owner |
-|---------|-------|
-| Effects, stats, progression primitives | `TrinketCore` |
-| Catalogs / generated content | `TrinketContent` |
-| Card combat rules | `BattleEngine` (`EffectHandlers/`, engines, `BattleState+*` plumbing) |
-| Save graph, stores, CloudKit wiring | `TrinketPersistence` |
-| Shared chrome | `TrinketDesignSystem` |
-| Tab shell, sessions, options | `Packages/TrinketAppState` |
-| Product screens | `Trinket/Features` |
-| Active battle configuration DTO / battle outcome | `Packages/TrinketBattleFeature` |
-| Encounter/loot resolve, party/reward bake, play-mode origin | `Packages/TrinketAppState` (`PlayBattleOrigin`, `PlayBattleLaunch`) |
-| Game-specific shared UI | `Packages/TrinketFeatureSupport` |
-
-**Hub containment** (Architecture): keep `BattleState` and `PlayerSaveStore` thin — new work goes to handlers, engines, store slices, or `+` plumbing files, not feature-specific methods on the hub.
-
-**Module layers:** `TrinketFeatureSupport` must stay below `TrinketBattleFeature` and
-`TrinketAppState`; Battle must not import AppState; packages must not import the app
-module.
+Ownership and layering live in [Architecture.md](../Platform/Architecture.md) (module DAG, ownership table, hub containment for `BattleState` / `PlayerSaveStore`, enforced import rules via `check-module-boundaries.sh`).
 
 Prefer restoring rules to engines/stores, keeping tab/session wiring on thin
 `AppState` / `*Session` types, and extracting reusable presentation into

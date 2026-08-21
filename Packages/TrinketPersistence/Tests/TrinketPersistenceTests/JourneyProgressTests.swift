@@ -88,10 +88,7 @@ final class JourneyProgressTests {
     }
 
     @Test func journeyPersistsProgress() throws {
-        let directoryURL = FileManager.default.temporaryDirectory
-            .appendingPathComponent("JourneyProgressTests.\(UUID().uuidString)", isDirectory: true)
-        try FileManager.default.createDirectory(at: directoryURL, withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: directoryURL) }
+        let directoryURL = try SaveTestSupport.makeTempDirectory(prefix: "JourneyProgressTests")
 
         let firstSaveStore = try SaveTestSupport.makeSaveStore(directoryURL: directoryURL)
         try firstSaveStore.performBatchMutation { save in
@@ -104,10 +101,7 @@ final class JourneyProgressTests {
     }
 
     @Test func journeyPersistsPinnedMysteryEventIDs() throws {
-        let directoryURL = FileManager.default.temporaryDirectory
-            .appendingPathComponent("JourneyPinTests.\(UUID().uuidString)", isDirectory: true)
-        try FileManager.default.createDirectory(at: directoryURL, withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: directoryURL) }
+        let directoryURL = try SaveTestSupport.makeTempDirectory(prefix: "JourneyPinTests")
 
         let event = try #require(GameContent.mysteryEvent(matching: "mana-berries"))
         let firstSaveStore = try SaveTestSupport.makeSaveStore(directoryURL: directoryURL)

@@ -8,7 +8,7 @@
 
 ## Intent
 
-Fix confirmed navigation/feedback/accessibility defects across flows. When a shared control or interaction pattern is implicated, inventory adjacent flows using it and fix the confirmed cluster. Reuse existing UI coverage; do not add a test unless the Testing rubric identifies a unique shipping journey or safety invariant. Bounded shared-pattern corrections may ship; new product interaction policy follows [README.md](README.md).
+Fix confirmed navigation/feedback/accessibility defects across flows. When a shared control or interaction pattern is implicated, inventory adjacent flows using it and fix the confirmed cluster. Reuse existing UI coverage; do not add a test unless the Testing rubric identifies a unique shipping journey or safety invariant.
 
 ## Hard stops
 

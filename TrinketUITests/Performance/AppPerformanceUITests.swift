@@ -58,8 +58,8 @@ final class AppPerformanceUITests: TrinketUITestCase {
         let card = app.buttons[AccessibilityID.CombatantDetail.collectionCard(name: "Knight")]
         XCTAssertTrue(card.waitForExistence(timeout: Self.defaultTimeout))
         let cardCoordinate = card.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
-        let dismissStart = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.18))
-        let dismissEnd = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.85))
+        let dismissStart = sheetDismissDragStart
+        let dismissEnd = sheetDismissDragEnd
 
         run(scenario: "collection-navigation") {
             cardCoordinate.tap()
@@ -79,8 +79,8 @@ final class AppPerformanceUITests: TrinketUITestCase {
         let isShowingDetail = detail.exists
         let node = app.descendants(matching: .any)[AccessibilityID.Homestead.node(title: "Wheat Field")]
         let nodeCoordinate = node.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
-        let backStart = app.coordinate(withNormalizedOffset: CGVector(dx: 0.01, dy: 0.45))
-        let backEnd = app.coordinate(withNormalizedOffset: CGVector(dx: 0.75, dy: 0.45))
+        let backStart = edgeBackSwipeStart
+        let backEnd = edgeBackSwipeEnd
 
         run(scenario: "homestead-detail-transition") {
             if isShowingDetail {
@@ -98,8 +98,8 @@ final class AppPerformanceUITests: TrinketUITestCase {
         let isShowingCampaign = campaign.exists
         let campaignButton = app.buttons[AccessibilityID.Play.campaignModeCard]
         let campaignCoordinate = campaignButton.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
-        let backStart = app.coordinate(withNormalizedOffset: CGVector(dx: 0.01, dy: 0.45))
-        let backEnd = app.coordinate(withNormalizedOffset: CGVector(dx: 0.75, dy: 0.45))
+        let backStart = edgeBackSwipeStart
+        let backEnd = edgeBackSwipeEnd
 
         run(scenario: "campaign-stage-select-transition") {
             if isShowingCampaign {
@@ -122,8 +122,8 @@ final class AppPerformanceUITests: TrinketUITestCase {
         let enemy = button(AccessibilityID.Play.enemyArt(chapter: 1, stage: 1))
         XCTAssertTrue(enemy.waitForExistence(timeout: Self.defaultTimeout))
         let enemyCoordinate = enemy.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
-        let dismissStart = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.18))
-        let dismissEnd = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.85))
+        let dismissStart = sheetDismissDragStart
+        let dismissEnd = sheetDismissDragEnd
 
         run(scenario: "stage-enemy-detail-transition") {
             enemyCoordinate.tap()

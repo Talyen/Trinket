@@ -5,25 +5,8 @@ import TrinketCore
 import TrinketTestSupport
 
 struct ControlMeterEngineTests {
-    private func makeContext(
-        targetMaxHealth: Int = 50,
-        targetEffects: [ActiveEffect] = []
-    ) -> BattleState {
-        let target = CombatantFixtures.combatant(
-            id: "target", role: .enemy, maxHealth: targetMaxHealth
-        )
-        let source = CombatantFixtures.combatant(id: "source", role: .hero, maxHealth: 50)
-        let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
-        return BattleStateTestFactory.makeBattle(
-            hero: source,
-            companion: companion,
-            enemy: target,
-            activeEnemyEffects: targetEffects
-        )
-    }
-
     @Test func applyBuildupTriggersControlAtThreshold() throws {
-        var context = makeContext()
+        var context = BattleTestFixtures.makePipelineContext()
         let events = ControlMeterEngine.applyMeterCharge(
             15,
             keyword: .stun,
@@ -35,7 +18,7 @@ struct ControlMeterEngineTests {
     }
 
     @Test func applyBuildupNoDuplicateWhenSameKeywordSkipPending() throws {
-        var context = makeContext(
+        var context = BattleTestFixtures.makePipelineContext(
             targetEffects: [
                 ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTurns: 0),
             ]
@@ -51,7 +34,7 @@ struct ControlMeterEngineTests {
     }
 
     @Test func applyBuildupNoDuplicateDuringControlStatusLinger() throws {
-        var context = makeContext(
+        var context = BattleTestFixtures.makePipelineContext(
             targetEffects: [
                 ActiveEffect(
                     id: 1,
@@ -75,7 +58,7 @@ struct ControlMeterEngineTests {
     }
 
     @Test func applyBuildupAccumulatesOtherKeywordWhileSkipPending() throws {
-        var context = makeContext(
+        var context = BattleTestFixtures.makePipelineContext(
             targetEffects: [
                 ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTurns: 0),
             ]
@@ -101,7 +84,7 @@ struct ControlMeterEngineTests {
     }
 
     @Test func stunAndFreezeMetersCoexistOnSameTarget() throws {
-        let context = makeContext(
+        let context = BattleTestFixtures.makePipelineContext(
             targetEffects: [
                 ActiveEffect(id: 1, effect: .controlMeter(.stun, 4, 10), remainingTurns: 0),
                 ActiveEffect(id: 2, effect: .controlMeter(.freeze, 7, 10), remainingTurns: 0),
@@ -113,7 +96,7 @@ struct ControlMeterEngineTests {
     }
 
     @Test func overflowChargeIsConsumedOnTrigger() throws {
-        var context = makeContext(targetMaxHealth: 100)
+        var context = BattleTestFixtures.makePipelineContext(targetMaxHealth: 100)
         let target = context.roster.enemy.combatant
 
         let events = ControlMeterEngine.applyMeterCharge(

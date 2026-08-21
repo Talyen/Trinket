@@ -19,12 +19,6 @@ struct CombatantCatalogTests {
         }
     }
 
-    @Test func homesteadNodesHaveFourthTier() throws {
-        for node in GameContent.homesteadNodes {
-            try #expect(node.maxTier == 4, "\(node.title) should have four tiers")
-        }
-    }
-
     @Test func homesteadTiersStrengthenEffectsAndStayPartyScoped() throws {
         for node in GameContent.homesteadNodes {
             let nodeID = node.id

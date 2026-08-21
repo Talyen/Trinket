@@ -7,32 +7,12 @@ import argparse
 import json
 import math
 import statistics
+import sys
 from pathlib import Path
 from typing import Any
 
-
-METRICS = (
-    "averageFPS",
-    "onePercentLowFPS",
-    "p95FrameMs",
-    "p99FrameMs",
-    "maxFrameMs",
-    "missedDeadlineCount",
-    "missedDeadlineRatio",
-    "severeStallCount",
-)
-
-COUNT_METRICS = {"missedDeadlineCount", "severeStallCount"}
-NON_NEGATIVE_METRICS = {
-    "averageFPS",
-    "onePercentLowFPS",
-    "p95FrameMs",
-    "p99FrameMs",
-    "maxFrameMs",
-    "missedDeadlineCount",
-    "severeStallCount",
-}
-REQUIRED_SCHEMA_VERSION = 4
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from performance_model import COUNT_METRICS, METRICS, NON_NEGATIVE_METRICS, REQUIRED_SCHEMA_VERSION, load_baseline
 
 
 def aggregate(values: list[float]) -> dict[str, float]:
@@ -96,24 +76,10 @@ def main() -> int:
     reports = payload.get("reports", [])
     if not isinstance(reports, list):
         raise SystemExit("results payload must contain a reports array")
-    baseline = json.loads(args.baseline.read_text())
-    scenarios_value = baseline.get("scenarios")
-    if not isinstance(scenarios_value, list) or not scenarios_value or any(
-        not isinstance(value, str) or not value for value in scenarios_value
-    ):
-        raise SystemExit("baseline must contain a non-empty scenarios array")
+    scenarios_value, _, minimum_average, minimum_low, maximum_severe = load_baseline(
+        json.loads(args.baseline.read_text())
+    )
     expected_scenarios = set(scenarios_value)
-    if len(expected_scenarios) != len(scenarios_value):
-        raise SystemExit("baseline scenarios must be unique")
-    try:
-        goals = baseline["goals"]
-        minimum_average = float(goals["minimumAverageFPS"])
-        minimum_low = float(goals["minimumOnePercentLowFPS"])
-        maximum_severe = float(goals["maximumSevereStallCount"])
-    except (KeyError, TypeError, ValueError) as error:
-        raise SystemExit(f"baseline goals are invalid: {error}") from error
-    if not all(math.isfinite(value) and value >= 0 for value in (minimum_average, minimum_low, maximum_severe)):
-        raise SystemExit("baseline goals must be finite and non-negative")
 
     grouped: dict[str, list[dict[str, Any]]] = {scenario: [] for scenario in scenarios_value}
 

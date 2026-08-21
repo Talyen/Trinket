@@ -1,6 +1,8 @@
 import BattleEngine
 import Foundation
 import Testing
+import TrinketContent
+import TrinketCore
 @testable import BattleBalanceTools
 
 struct BalanceSweepOrchestrationTests {
@@ -19,52 +21,6 @@ struct BalanceSweepOrchestrationTests {
         #expect(jobs.count == 4)
         #expect(jobs.allSatisfy { $0.mode == .identity })
         #expect(jobs.map(\.limit).reduce(0, +) == 60)
-    }
-
-    @Test func identityWorkSlicesConcatenateToFullSweep() {
-        let config = BalanceSweepConfig(
-            mode: .identity,
-            battlesPerTier: 8,
-            seed: 11,
-            tiers: [.early],
-            jobs: 1,
-            enemyIDs: ["living_armor"]
-        )
-        let full = BalanceSweepRunner.run(config: config)
-        let first = BalanceSweepRunner.run(
-            config: BalanceSweepConfig(
-                mode: .identity,
-                battlesPerTier: 8,
-                seed: 11,
-                tiers: [.early],
-                jobs: 1,
-                workOffset: 0,
-                workLimit: 4,
-                enemyIDs: ["living_armor"]
-            )
-        )
-        let second = BalanceSweepRunner.run(
-            config: BalanceSweepConfig(
-                mode: .identity,
-                battlesPerTier: 8,
-                seed: 11,
-                tiers: [.early],
-                jobs: 1,
-                workOffset: 4,
-                workLimit: 4,
-                enemyIDs: ["living_armor"]
-            )
-        )
-        let merged = BalanceSweepReport.merged(
-            [first, second],
-            config: config,
-            policyID: full.policyID,
-            elapsedSeconds: 0
-        )
-        #expect(first.records.count == 4)
-        #expect(second.records.count == 4)
-        #expect(merged.records.map(\.result) == full.records.map(\.result))
-        #expect(merged.records.map(\.seed) == full.records.map(\.seed))
     }
 
     @Test func contrastSliceMergeRecomputesLiftAndFlags() {
@@ -226,5 +182,63 @@ struct BalanceSweepOrchestrationTests {
             )
         )
         #expect(earlyOnly.isEmpty)
+    }
+
+    @Test func identityWinRateExcludesTimeouts() {
+        let timeout = BattleSimResult(
+            outcome: .defeat,
+            rounds: 100,
+            actions: 500,
+            timedOut: true,
+            partyHPRemainingFraction: 0.5,
+            enemyHPRemainingFraction: 0.5
+        )
+        let win = BattleSimResult(
+            outcome: .victory,
+            rounds: 6,
+            actions: 10,
+            timedOut: false,
+            partyHPRemainingFraction: 0.8,
+            enemyHPRemainingFraction: 0
+        )
+        func record(_ result: BattleSimResult, seed: UInt64) -> BalanceBattleRecord {
+            BalanceBattleRecord(
+                tier: .early,
+                heroID: "knight",
+                companionID: "bear",
+                enemyID: "living_armor",
+                isBoss: false,
+                heroAbilityIDs: ["bash"],
+                companionAbilityIDs: ["swipe"],
+                enemyAbilityIDs: ["slash"],
+                enemyTraitID: "living_armor_trait",
+                affixIDs: [],
+                heroAffixIDs: [],
+                companionAffixIDs: [],
+                heroTalentIDs: [],
+                companionTalentIDs: [],
+                seed: seed,
+                policyID: "greedy-v1",
+                result: result
+            )
+        }
+        let report = BalanceSweepReport(
+            config: BalanceSweepConfig(mode: .identity, battlesPerTier: 2, tiers: [.early], jobs: 1),
+            policyID: "greedy-v1",
+            records: [record(timeout, seed: 1), record(win, seed: 2)],
+            elapsedSeconds: 0
+        )
+        let stats = BalanceStatsAggregator.summarize(report: report)[0]
+        #expect(stats.timeouts == 1)
+        #expect(stats.decidedBattles == 1)
+        #expect(stats.wins == 1)
+        #expect(stats.heroes.first?.winRate == 1)
+    }
+
+    @Test func wilsonIntervalContainsPointEstimate() {
+        let ci = BalanceStatsAggregator.wilson(wins: 80, battles: 100)
+        #expect(ci.low <= 0.80)
+        #expect(ci.high >= 0.80)
+        #expect(ci.low < ci.high)
     }
 }

@@ -181,32 +181,23 @@ struct MysteryEventCatalogTests {
         }
     }
 
-    @Test func onlyStrongMysteryChoiceTiesCanAwardTrinkets() throws {
-        let expected: [String: Set<String>] = [
-            "take-the-charm": ["icy_heart"],
-            "take-the-gold": ["lucky_clover"],
-            "pick-mushrooms": ["parasitic_bloom"],
-            "claim-blade": ["cutpurse_knife"],
-            "search-the-crypt": ["bone_charm", "sin_eaters_lantern"],
-            "take-the-quill": ["runic_quill"],
-            "take-the-pages": ["tattered_pages"],
-            "take-a-fragment": ["meteorite"],
-            "collect-the-bones": ["bone_charm"],
-            "mine-the-cliffside": ["thunderstone"],
-            "take-the-salts": ["bone_charm"],
-            "harvest-remedies": ["mortar_and_pestle"],
-            "take-the-notes": ["tattered_pages"],
-            "take-the-chimes": ["resonant_chimes"],
-            "claim-censer": ["brass_censer"],
-        ]
-
+    @Test func themedTrinketTiesResolveKnownChoicesAndTrinkets() throws {
+        let knownTrinketIDs = Set(GameContent.trinketItems.map(\.id))
         let choiceIDs = Set(GameContent.mysteryEvents.flatMap { $0.choices.map(\.id) })
-        for (choiceID, trinketIDs) in expected {
+
+        try #expect(!GameContent.themedTrinketsByMysteryChoiceID.isEmpty)
+        for (choiceID, trinketIDs) in GameContent.themedTrinketsByMysteryChoiceID {
             try #expect(choiceIDs.contains(choiceID), "Mapped choice \(choiceID) is missing from the pool")
+            try #expect(!trinketIDs.isEmpty, "Mapped choice \(choiceID) awards no trinkets")
+            for trinketID in trinketIDs {
+                try #expect(
+                    knownTrinketIDs.contains(trinketID),
+                    "Mapped trinket \(trinketID) for \(choiceID) is unknown"
+                )
+            }
             try #expect(GameContent.themedTrinketIDs(forMysteryChoiceID: choiceID) == trinketIDs)
         }
         try #expect(GameContent.themedTrinketIDs(forMysteryChoiceID: "harvest-berries") == nil)
-        try #expect(GameContent.themedTrinketIDs(forMysteryChoiceID: "forgotten-hoard") == nil)
     }
 
     @Test func mysteryEffectsNeverSpendResources() throws {

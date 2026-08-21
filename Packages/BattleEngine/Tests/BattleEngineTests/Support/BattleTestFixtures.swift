@@ -325,20 +325,46 @@ enum BattleTestFixtures {
         hero: Combatant,
         companion: Combatant,
         enemy: Combatant,
+        heroEffects: [ActiveEffect] = [],
+        companionEffects: [ActiveEffect] = [],
+        enemyEffects: [ActiveEffect] = [],
+        heroHealth: Int? = nil,
+        companionHealth: Int? = nil,
+        enemyHealth: Int? = nil,
+        heroMana: Int? = nil,
+        companionMana: Int? = nil,
+        enemyMana: Int? = nil,
         heroModifiers: CombatModifierProfile = .zero,
         companionModifiers: CombatModifierProfile = .zero,
         enemyModifiers: CombatModifierProfile = .zero,
-        seed: UInt64 = Self.deterministicNonCriticalSeed
+        seed: UInt64 = Self.deterministicNonCriticalSeed,
+        nextEffectID: Int = 1,
+        nextEventID: Int = 1
     ) -> BattleState {
         BattleState(
             roster: BattleRoster(
-                hero: CombatantRuntime(combatant: hero),
-                companion: CombatantRuntime(combatant: companion),
-                enemy: CombatantRuntime(combatant: enemy)
+                hero: CombatantRuntime(
+                    combatant: hero,
+                    initialHealth: heroHealth,
+                    initialMana: heroMana,
+                    initialActiveEffects: heroEffects
+                ),
+                companion: CombatantRuntime(
+                    combatant: companion,
+                    initialHealth: companionHealth,
+                    initialMana: companionMana,
+                    initialActiveEffects: companionEffects
+                ),
+                enemy: CombatantRuntime(
+                    combatant: enemy,
+                    initialHealth: enemyHealth,
+                    initialMana: enemyMana,
+                    initialActiveEffects: enemyEffects
+                )
             ),
             rng: SeededRandomNumberGenerator(seed: seed),
-            nextEffectID: 1,
-            nextEventID: 1,
+            nextEffectID: nextEffectID,
+            nextEventID: nextEventID,
             events: [],
             gold: 0,
             initialGold: 0,
@@ -410,6 +436,10 @@ extension BattleTestFixtures {
             }
             return sum
         }
+    }
+
+    static func burnPotency(on battle: BattleState) -> Int? {
+        battle.activeEffects(of: battle.enemy).first { $0.effect.isDecayingDoT && $0.keyword == .burn }?.effect.potency
     }
 }
 

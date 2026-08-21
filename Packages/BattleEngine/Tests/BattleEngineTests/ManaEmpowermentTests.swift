@@ -26,12 +26,6 @@ struct ManaEmpowermentTests {
         )
     }
 
-    private func burnStackPotency(on battle: BattleState) -> Int? {
-        battle.activeEffects(of: battle.enemy).first {
-            $0.effect.isDecayingDoT && $0.keyword == .burn
-        }?.effect.potency
-    }
-
     private func recurringFreezePotency(on battle: BattleState) -> Int? {
         battle.activeEffects(of: battle.enemy).first {
             if case let .recurringDamage(keyword, _, _) = $0.effect {
@@ -41,73 +35,32 @@ struct ManaEmpowermentTests {
         }?.effect.potency
     }
 
-    private func blockPoints(on battle: BattleState, for combatant: Combatant) -> Int {
-        battle.activeEffects(of: combatant).reduce(0) { sum, active in
-            if case let .shield(.block, points) = active.effect {
-                return sum + points
-            }
-            return sum
-        }
+    private struct FireballCase: Sendable {
+        let heroMaxMana: Int
+        let heroMana: Int
+        let expectedManaAfter: Int
+        let expectedDamage: Int
+
+        static let fullPool = Self(heroMaxMana: 5, heroMana: 5, expectedManaAfter: 2, expectedDamage: 4)
+        static let largePool = Self(heroMaxMana: 20, heroMana: 20, expectedManaAfter: 17, expectedDamage: 4)
+        static let partialPool = Self(heroMaxMana: 5, heroMana: 2, expectedManaAfter: 2, expectedDamage: 3)
+        static let emptyPool = Self(heroMaxMana: 5, heroMana: 0, expectedManaAfter: 0, expectedDamage: 3)
     }
 
-    @Test func burnAbilitySpendsThreeManaAndRaisesDamageNumbers() throws {
+    @Test(arguments: [Self.FireballCase.fullPool, .largePool, .partialPool, .emptyPool])
+    private func fireballEmpowersOnlyWhenThreeManaIsSpent(_ testCase: FireballCase) throws {
         var battle = makeBattle(
             heroAbilities: [.fireball],
-            heroMaxMana: 5,
-            heroMana: 5
+            heroMaxMana: testCase.heroMaxMana,
+            heroMana: testCase.heroMana
         )
         let card = try #require(battle.hand.cards.first { $0.ability.id == Ability.fireball.id })
         let events = try battle.playCard(cardID: card.id)
 
-        try #expect(battle.mana(of: battle.hero) == 2)
+        try #expect(battle.mana(of: battle.hero) == testCase.expectedManaAfter)
         let abilityEvent = try #require(events.first { $0.kind == .ability && $0.abilityID == Ability.fireball.id })
-        try #expect(abilityEvent.amount == 4)
-        try #expect(burnStackPotency(on: battle) == 4)
-    }
-
-    @Test func burnEmpowermentDoesNotScaleWithMaxMana() throws {
-        var battle = makeBattle(
-            heroAbilities: [.fireball],
-            heroMaxMana: 20,
-            heroMana: 20
-        )
-        let card = try #require(battle.hand.cards.first { $0.ability.id == Ability.fireball.id })
-        let events = try battle.playCard(cardID: card.id)
-
-        try #expect(battle.mana(of: battle.hero) == 17)
-        let abilityEvent = try #require(events.first { $0.kind == .ability && $0.abilityID == Ability.fireball.id })
-        try #expect(abilityEvent.amount == 4)
-        try #expect(burnStackPotency(on: battle) == 4)
-    }
-
-    @Test func burnAbilityWithoutEnoughManaPlaysWithoutBonus() throws {
-        var battle = makeBattle(
-            heroAbilities: [.fireball],
-            heroMaxMana: 5,
-            heroMana: 2
-        )
-        let card = try #require(battle.hand.cards.first { $0.ability.id == Ability.fireball.id })
-        let events = try battle.playCard(cardID: card.id)
-
-        try #expect(battle.mana(of: battle.hero) == 2)
-        let abilityEvent = try #require(events.first { $0.kind == .ability && $0.abilityID == Ability.fireball.id })
-        try #expect(abilityEvent.amount == 3)
-        try #expect(burnStackPotency(on: battle) == 3)
-    }
-
-    @Test func burnAbilityAtZeroManaPlaysWithoutBonus() throws {
-        var battle = makeBattle(
-            heroAbilities: [.fireball],
-            heroMaxMana: 5,
-            heroMana: 0
-        )
-        let card = try #require(battle.hand.cards.first { $0.ability.id == Ability.fireball.id })
-        let events = try battle.playCard(cardID: card.id)
-
-        try #expect(battle.mana(of: battle.hero) == 0)
-        let abilityEvent = try #require(events.first { $0.kind == .ability && $0.abilityID == Ability.fireball.id })
-        try #expect(abilityEvent.amount == 3)
-        try #expect(burnStackPotency(on: battle) == 3)
+        try #expect(abilityEvent.amount == testCase.expectedDamage)
+        try #expect(BattleTestFixtures.burnPotency(on: battle) == testCase.expectedDamage)
     }
 
     @Test func freezeAbilitySpendsThreeManaForBonusDamage() throws {
@@ -176,7 +129,7 @@ struct ManaEmpowermentTests {
         try #expect(battle.mana(of: battle.hero) == 1)
         let abilityEvent = try #require(events.first { $0.kind == .ability && $0.abilityID == Ability.fireArrow.id })
         try #expect(abilityEvent.amount == 2)
-        try #expect(burnStackPotency(on: battle) == 2)
+        try #expect(BattleTestFixtures.burnPotency(on: battle) == 2)
     }
 
     @Test func manaRegeneratesAtStartOfPlayerTurnForManaUsers() throws {
@@ -225,7 +178,7 @@ struct ManaEmpowermentTests {
         let events = try battle.playCard(cardID: card.id)
 
         try #expect(events.contains { $0.abilityName == "Aetherward" && $0.amount == 2 })
-        try #expect(blockPoints(on: battle, for: battle.hero) == 2)
+        try #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 2)
     }
 
     @Test func manaShieldSpendsRemainingManaAfterEmpower() throws {
@@ -249,6 +202,6 @@ struct ManaEmpowermentTests {
         try #expect(events.contains {
             $0.effectKind == .shieldApplied && $0.abilityName == Ability.manaShield.name && $0.amount == manaBeforeShield
         })
-        try #expect(blockPoints(on: battle, for: battle.hero) == manaBeforeShield)
+        try #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == manaBeforeShield)
     }
 }

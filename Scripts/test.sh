@@ -30,10 +30,6 @@ while [[ $# -gt 0 ]]; do
       MODE="ui"
       shift
       ;;
-    all|--all)
-      MODE="all"
-      shift
-      ;;
     style|--style)
       MODE="style"
       shift
@@ -44,10 +40,6 @@ while [[ $# -gt 0 ]]; do
       ;;
     smoke|--smoke)
       MODE="smoke"
-      shift
-      ;;
-    smoke-full|--smoke-full)
-      MODE="smoke-full"
       shift
       ;;
     performance|--performance)
@@ -75,7 +67,7 @@ while [[ $# -gt 0 ]]; do
     *)
       if [[ "$1" == -* ]]; then
         echo "Unknown option: $1" >&2
-        echo "Usage: $0 [unit | ui | all | style | smoke | smoke-full | performance] [--no-build] [--app-only] [TestClass[/testMethod]|SwiftPath ...]" >&2
+        echo "Usage: $0 [unit | ui | style | smoke | performance] [--no-build] [--app-only] [TestClass[/testMethod]|SwiftPath ...]" >&2
         exit 1
       fi
       TARGETS+=("$1")
@@ -136,6 +128,17 @@ if [[ "$APP_ONLY" == true ]]; then
   exec ./Scripts/build.sh
 fi
 
+append_ui_target_filters() {
+  local target
+  for target in "${TARGETS[@]}"; do
+    if [[ "$target" == TrinketUITests* ]]; then
+      TEST_TARGET_FLAG+=("-only-testing:$target")
+    else
+      TEST_TARGET_FLAG+=("-only-testing:TrinketUITests/$target")
+    fi
+  done
+}
+
 mkdir -p "$RESULTS_DIR"
 if [[ "$NO_BUILD" == "false" ]]; then
   prepare_generated_inputs "$RESULTS_DIR"
@@ -148,17 +151,18 @@ trinket_sim_slot_ensure
 # shellcheck source=lib/xcodebuild-infra.sh
 source "$SCRIPT_DIR/lib/xcodebuild-infra.sh"
 
-retryable_xcodebuild_infrastructure_failure() {
-  local exit_code="$1"
-  local log_file="$2"
-  trinket_xcodebuild_log_is_infrastructure_failure "$exit_code" "$log_file"
-}
-
 # Determine xcodebuild test target constraints using arrays to prevent zsh argument splitting issues
 TEST_TARGET_FLAG=()
 PARALLEL_FLAGS=()
+
+# UI/smoke/performance tiers run serially against the managed test simulator.
+prepare_serial_test_sim() {
+  ensure_test_simulator_logged
+  PARALLEL_FLAGS=(-parallel-testing-enabled NO)
+}
+
 case "$MODE" in
-  smoke|smoke-full|performance|ui|all)
+  smoke|performance|ui)
     trinket_ui_slot_acquire
     ;;
 esac
@@ -171,45 +175,21 @@ if [[ "$MODE" == "unit" ]]; then
     echo "Run package-scoped tests with ./Scripts/test-package.sh <Package>." >&2
     exit 1
   fi
-  ensure_test_simulator_logged
-  PARALLEL_FLAGS=(-parallel-testing-enabled NO)
+  prepare_serial_test_sim
 elif [[ "$MODE" == "smoke" ]]; then
   # Local and CI smoke share Smoke.xctestplan (shell + battle + shop).
   TEST_TARGET_FLAG=(-testPlan Smoke)
   if [[ ${#TARGETS[@]} -gt 0 ]]; then
     echo "Running targeted UI smoke tests via Smoke test plan..."
-    for target in "${TARGETS[@]}"; do
-      if [[ "$target" == TrinketUITests* ]]; then
-        TEST_TARGET_FLAG+=("-only-testing:$target")
-      else
-        TEST_TARGET_FLAG+=("-only-testing:TrinketUITests/$target")
-      fi
-    done
+    append_ui_target_filters
   else
     echo "Running UI smoke suite via Smoke test plan..."
   fi
-  ensure_test_simulator_logged
-  PARALLEL_FLAGS=(-parallel-testing-enabled NO)
-elif [[ "$MODE" == "smoke-full" ]]; then
-  if [[ ${#TARGETS[@]} -gt 0 ]]; then
-    echo "Target filters are not supported for smoke-full mode; use smoke <Class> instead."
-    echo "Usage: $0 [unit | ui | all | style | smoke | smoke-full | performance] [--no-build] [TestClass[/testMethod] ...]"
-    exit 1
-  fi
-  TEST_TARGET_FLAG=(-testPlan Smoke)
-  echo "Running UI smoke suite via Smoke test plan..."
-  ensure_test_simulator_logged
-  PARALLEL_FLAGS=(-parallel-testing-enabled NO)
+  prepare_serial_test_sim
 elif [[ "$MODE" == "performance" ]]; then
   TEST_TARGET_FLAG=(-testPlan BattlePerformance)
   if [[ ${#TARGETS[@]} -gt 0 ]]; then
-    for target in "${TARGETS[@]}"; do
-      if [[ "$target" == TrinketUITests* ]]; then
-        TEST_TARGET_FLAG+=("-only-testing:$target")
-      else
-        TEST_TARGET_FLAG+=("-only-testing:TrinketUITests/$target")
-      fi
-    done
+    append_ui_target_filters
   fi
   # Xcode only forwards TEST_RUNNER_* into the XCTest process (prefix stripped).
   if [[ -n "${TRINKET_PERFORMANCE_QUICK:-}" ]]; then
@@ -223,38 +203,20 @@ elif [[ "$MODE" == "performance" ]]; then
   else
     echo "Running the dedicated app performance scenario matrix..."
   fi
-  ensure_test_simulator_logged
-  PARALLEL_FLAGS=(-parallel-testing-enabled NO)
+  prepare_serial_test_sim
 elif [[ "$MODE" == "ui" ]]; then
   TEST_TARGET_FLAG=(-testPlan FullUI)
   if [[ ${#TARGETS[@]} -gt 0 ]]; then
     echo "Running targeted UI tests..."
-    for target in "${TARGETS[@]}"; do
-      if [[ "$target" == TrinketUITests* ]]; then
-        TEST_TARGET_FLAG+=("-only-testing:$target")
-      else
-        TEST_TARGET_FLAG+=("-only-testing:TrinketUITests/$target")
-      fi
-    done
+    append_ui_target_filters
   else
     echo "Running only UI tests (TrinketUITests)..."
     TEST_TARGET_FLAG=(-testPlan FullUI -only-testing:TrinketUITests)
   fi
-  ensure_test_simulator_logged
-  PARALLEL_FLAGS=(-parallel-testing-enabled NO)
-else
-  if [[ ${#TARGETS[@]} -gt 0 ]]; then
-    echo "Target filters are only supported for unit, ui, or smoke mode."
-    echo "Usage: $0 [unit | ui | all | style | smoke | smoke-full | performance] [--no-build] [TestClass[/testMethod] ...]"
-    exit 1
-  fi
-  echo "Running all tests via Xcode Test Plan..."
-  TEST_TARGET_FLAG=(-testPlan Integration)
-  ensure_test_simulator_logged
-  PARALLEL_FLAGS=(-parallel-testing-enabled NO)
+  prepare_serial_test_sim
 fi
 
-trinket_run_env_install_test_simulator_cleanup
+trinket_run_env_install_self_clean
 
 mkdir -p "$RESULTS_DIR"
 ACTION="test"
@@ -448,7 +410,7 @@ else
     --result-bundle "$RESULT_BUNDLE_PATH"
     --log "$XCODEBUILD_LOG_PATH"
     --report-prefix "$XCODEBUILD_REPORT_PREFIX"
-    --retry-callback retryable_xcodebuild_infrastructure_failure
+    --retry-callback trinket_xcodebuild_log_is_infrastructure_failure
   )
   if [[ "$QUIET" == "true" ]]; then
     runner_args+=(--quiet)

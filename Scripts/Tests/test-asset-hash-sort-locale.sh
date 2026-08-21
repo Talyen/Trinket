@@ -51,18 +51,15 @@ sort_hash_tsv "$TMP_DIR/stable-en.tsv" "$TMP_DIR/stable-second.tsv"
 cmp -s "$TMP_DIR/stable-en.tsv" "$TMP_DIR/stable-second.tsv"
 
 # Prepare scripts must use header-preserving C sort (not whole-file locale sort).
-for script in \
-  prepare-app-icon.sh \
-  prepare-music-assets.sh \
-  prepare-sfx-assets.sh \
-  prepare-cinematic-assets.sh \
-  prepare-art-assets.sh
-do
-  path="$ROOT_DIR/Scripts/$script"
-  grep -q 'LC_ALL=C sort' "$path"
-  grep -Eq "head -n 2|tail -n \+3|grep -v '\^#'" "$path"
-  grep -q 'cmp -s' "$path"
-done
+while IFS= read -r path; do
+  sort_owner="$path"
+  if grep -q 'source "Scripts/lib/media-assets.sh"' "$path"; then
+    sort_owner="$ROOT_DIR/Scripts/lib/media-assets.sh"
+  fi
+  grep -q 'LC_ALL=C sort' "$sort_owner"
+  grep -Eq "head -n 2|tail -n \+3|grep -v '\^#'" "$sort_owner"
+  grep -q 'cmp -s' "$sort_owner"
+done < <(rg --files "$ROOT_DIR/Scripts" -g 'prepare-*.sh' | LC_ALL=C sort)
 
 # Infra retry matcher covers XCUITest launch flakes even when exit is 65.
 launch_log="$TMP_DIR/launch.log"

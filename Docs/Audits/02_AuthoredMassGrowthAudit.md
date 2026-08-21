@@ -18,7 +18,8 @@ Confirm authored hotspots whose size or mixed jobs cost more to read, edit, or v
 | Over-expanded test matrices or support harnesses dwarfing unique assertions | Maintenance cost sits in harness mass, not semantic coverage — prefer UnitTest when the hit is primarily portfolio ownership |
 | Large scripts, configuration, or guidance surfaces mixing unrelated workflows | Routine changes and verification require reading or editing policy that does not belong to the behavior |
 
-**Not this audit:** single-path ceremony with correct ownership → InelegantSlop; unused symbols → DeadCode; per-change advisory growth → `change-budget.sh` only. Full routing: [README.md](README.md) confusable pairs.
+**Not this audit:** single-path ceremony with correct ownership → InelegantSlop;
+unused symbols → DeadCode; per-change advisory growth → `change-budget.sh` only.
 
 ## Hard stops
 

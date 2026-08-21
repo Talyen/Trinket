@@ -17,6 +17,8 @@ cd "$ROOT"
 
 BUILD_INPUTS="$ROOT/Scripts/build-inputs.sh"
 CACHE_KEY_ACTION="$ROOT/.github/actions/build-cache-key/action.yml"
+# shellcheck source=build-inputs.sh
+source "$BUILD_INPUTS"
 
 die() {
   echo "check-build-cache-paths: $*" >&2
@@ -69,56 +71,34 @@ require_cache_glob() {
   fi
 }
 
-require_cache_glob 'Trinket/**'
-require_cache_glob 'TrinketUITests/**'
-require_cache_glob 'ContentManifest/**'
-require_cache_glob 'ArtManifest/**'
-require_cache_glob 'MusicManifest/**'
-require_cache_glob 'SoundManifest/**'
-require_cache_glob 'CinematicManifest/**'
-require_cache_glob 'Raw Assets/**'
-require_cache_glob 'Scripts/**'
-require_cache_glob 'project.yml'
-require_cache_glob 'Packages/**'
-require_cache_glob '*.xctestplan'
+for required_glob in "${TRINKET_CACHE_REQUIRED_ROOTS[@]}"; do
+  require_cache_glob "$required_glob"
+done
 
-# Whole-line path tokens in build-inputs.sh arrays (quoted or bare).
-require_build_inputs_line() {
+# Shared build-input ownership is loaded from build-inputs.sh above.
+build_inputs_contain() {
   local token="$1"
-  if grep -Eq "^[[:space:]]*${token}[[:space:]]*$" "$BUILD_INPUTS"; then
-    return 0
-  fi
-  if grep -Eq "^[[:space:]]*\"${token}\"[[:space:]]*$" "$BUILD_INPUTS"; then
-    return 0
-  fi
-  echo "Missing whole-line token in Scripts/build-inputs.sh: $token" >&2
-  missing=1
+  local input
+  for input in "${build_input_paths[@]}"; do
+    [[ "$input" == "$token" ]] && return 0
+  done
+  return 1
 }
 
-require_build_inputs_line 'Trinket'
-require_build_inputs_line 'TrinketUITests'
-require_build_inputs_line 'ContentManifest'
-require_build_inputs_line 'ArtManifest'
-require_build_inputs_line 'MusicManifest'
-require_build_inputs_line 'SoundManifest'
-require_build_inputs_line 'CinematicManifest'
-require_build_inputs_line 'Raw Assets'
-require_build_inputs_line 'Scripts'
-require_build_inputs_line 'project.yml'
-require_build_inputs_line 'Packages/TrinketTestSupport'
-require_build_inputs_line 'Smoke.xctestplan'
-require_build_inputs_line 'FullUI.xctestplan'
-require_build_inputs_line 'Integration.xctestplan'
-require_build_inputs_line 'BattlePerformance.xctestplan'
-
-# Package tenants come from TRINKET_TEST_PACKAGES; require the Packages/ prefix loop.
-if ! grep -Fq 'Packages/$_trinket_test_package' "$BUILD_INPUTS" \
-  && ! grep -Fq 'Packages/${_trinket_test_package}' "$BUILD_INPUTS"; then
-  if ! grep -Fq 'build_input_paths+=("Packages/' "$BUILD_INPUTS"; then
-    echo "Missing Packages/ tenant wiring in Scripts/build-inputs.sh" >&2
+for required_input in "${TRINKET_BUILD_ROOTS[@]}" "${TRINKET_PROJECT_INPUTS[@]}"; do
+  if ! build_inputs_contain "$required_input"; then
+    echo "Missing shared build input: $required_input" >&2
     missing=1
   fi
-fi
+done
+
+# Package tenants come from TRINKET_TEST_PACKAGES; require the Packages/ prefix loop.
+for package in "${TRINKET_TEST_PACKAGES[@]}"; do
+  if ! build_inputs_contain "Packages/$package"; then
+    echo "Missing package tenant in shared build inputs: Packages/$package" >&2
+    missing=1
+  fi
+done
 
 # full hashFiles must include app + package sources (not only nonsource).
 full_line="$(grep 'full=' "$CACHE_KEY_ACTION" | head -1 || true)"

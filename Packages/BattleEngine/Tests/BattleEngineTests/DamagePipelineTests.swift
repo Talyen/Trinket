@@ -1,8 +1,8 @@
-import BattleEngine
 import Testing
 import TrinketContent
 import TrinketCore
 import TrinketTestSupport
+@testable import BattleEngine
 
 struct DamagePipelineTests {
     private func makeContext(seed: UInt64 = BattleTestFixtures.deterministicNonCriticalSeed) -> BattleState {
@@ -248,5 +248,86 @@ struct DamagePipelineTests {
             }
             return false
         }))
+    }
+
+    @Test func damageAfterDodgeSurvivesDoTTickAndAppliesOnDirectHit() throws {
+        let heroCombatant = Combatant(
+            id: "hero",
+            name: "Hero",
+            role: .hero,
+            maxHealth: 50,
+            abilities: [
+                Ability(
+                    id: "strike",
+                    name: "Strike",
+                    tier: .basic,
+                    directDamage: 1,
+                    damageKeyword: .physical
+                ),
+            ]
+        )
+        let enemyCombatant = BattleTestFixtures.passiveEnemy(maxHealth: 100)
+        var context = BattleTestFixtures.makeContext(
+            hero: heroCombatant,
+            companion: BattleTestFixtures.passiveCompanion(),
+            enemy: enemyCombatant,
+            seed: 2
+        )
+        context.roster.mutateRuntime(for: heroCombatant) { $0.pendingDamageAfterDodge = 3 }
+
+        let dotLost = DoTDamage.resolveTurnDamage(
+            basePotency: 1,
+            keyword: .burn,
+            target: enemyCombatant,
+            sourceActorID: heroCombatant.id,
+            in: &context
+        ).healthLost
+        try #expect(dotLost == 1)
+        try #expect(context.roster.runtime(for: heroCombatant)?.pendingDamageAfterDodge == 3)
+
+        let directLost = context.resolveDamage(
+            DamageRequest(
+                amount: 1,
+                target: enemyCombatant,
+                keyword: .physical,
+                sourceActorID: heroCombatant.id,
+                options: DamageOptions(
+                    applyStatBonus: false,
+                    applyItemBonus: true,
+                    applyDodge: false,
+                    qualifiesForAmbush: true,
+                    isAttackHit: true
+                )
+            )
+        ).healthLost
+        try #expect(directLost == 4)
+        try #expect(context.roster.runtime(for: heroCombatant)?.pendingDamageAfterDodge == 0)
+    }
+
+    @Test func poisonDamagePercentScalesDamageAfterFlatBonuses() throws {
+        let hero = CombatantFixtures.combatant(id: "hero", role: .hero)
+        let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
+        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy)
+        var context = BattleTestFixtures.makeContext(
+            hero: hero,
+            companion: companion,
+            enemy: enemy,
+            heroModifiers: CombatModifierProfile(modifiers: [
+                .damageDealt(.poison, 2),
+                .poisonDamageDealtPercent(0.2),
+            ]),
+            seed: 0,
+            nextEffectID: 0,
+            nextEventID: 0
+        )
+
+        let outcome = context.resolveDamage(.doTTick(
+            amount: 10,
+            target: enemy,
+            keyword: .poison,
+            sourceActorID: hero.id
+        ))
+
+        try #expect(outcome.healthLost == 14)
     }
 }

@@ -176,108 +176,83 @@ struct EffectHandlersApplyBuffDebuffTests {
         })
     }
 
-    @Test func timedBuffHandlersApplyStackAndEmitEvent() throws {
-        do {
-            var battle = EffectHandlersTestSupport.makeBattle()
-            let outcome = EffectHandlersTestSupport.dispatch(
-                .criticalChanceBonus(0.15, 6),
-                ability: CombatantFixtures.ability(),
-                source: battle.hero,
-                target: battle.hero,
-                battle: &battle
-            )
-            try #expect(outcome.didApply)
-            try #expect(battle.activeEffects(of: battle.hero).contains { active in
-                if case let .criticalChanceBonus(percent, duration) = active.effect {
-                    return percent == 0.15 && duration == 6 && active.remainingTurns == 6
-                }
-                return false
-            })
-            try #expect(outcome.events.contains {
-                $0.effectKind == .criticalChanceApplied && $0.amount == 15
-            })
-        }
-
-        do {
-            var battle = EffectHandlersTestSupport.makeBattle()
-            let outcome = EffectHandlersTestSupport.dispatch(
-                .restoreManaOnHit(3, 6),
-                ability: CombatantFixtures.ability(),
-                source: battle.hero,
-                target: battle.hero,
-                battle: &battle
-            )
-            try #expect(outcome.didApply)
-            try #expect(battle.activeEffects(of: battle.hero).contains { active in
-                if case let .restoreManaOnHit(amount, duration) = active.effect {
-                    return amount == 3 && duration == 6 && active.remainingTurns == 6
-                }
-                return false
-            })
-            try #expect(outcome.events.contains {
-                $0.effectKind == .manaShieldApplied && $0.amount == 3 && $0.keyword == .mana
-            })
-        }
-
-        do {
-            var battle = EffectHandlersTestSupport.makeBattle()
-            let outcome = EffectHandlersTestSupport.dispatch(
-                .damageKeywordOverride(.holy, 3, 6),
-                ability: CombatantFixtures.ability(),
-                source: battle.hero,
-                target: battle.hero,
-                battle: &battle
-            )
-            try #expect(outcome.didApply)
-            try #expect(battle.activeEffects(of: battle.hero).contains { active in
-                if case let .damageKeywordOverride(keyword, bonus, duration) = active.effect {
-                    return keyword == .holy && bonus == 3 && duration == 6 && active.remainingTurns == 6
-                }
-                return false
-            })
-            try #expect(outcome.events.contains {
-                $0.effectKind == .damageKeywordOverrideApplied && $0.amount == 3 && $0.keyword == .holy
-            })
-        }
+    @Test func restoreManaOnHitHandlerAppliesStackAndEmitsEvent() throws {
+        var battle = EffectHandlersTestSupport.makeBattle()
+        let outcome = EffectHandlersTestSupport.dispatch(
+            .restoreManaOnHit(3, 6),
+            ability: CombatantFixtures.ability(),
+            source: battle.hero,
+            target: battle.hero,
+            battle: &battle
+        )
+        try #expect(outcome.didApply)
+        try #expect(battle.activeEffects(of: battle.hero).contains { active in
+            if case let .restoreManaOnHit(amount, duration) = active.effect {
+                return amount == 3 && duration == 6 && active.remainingTurns == 6
+            }
+            return false
+        })
+        try #expect(outcome.events.contains {
+            $0.effectKind == .manaShieldApplied && $0.amount == 3 && $0.keyword == .mana
+        })
     }
 
-    @Test func nextStrikeDoubleAndEvadeNextHitHandlersApply() throws {
-        do {
-            var battle = EffectHandlersTestSupport.makeBattle()
-            let outcome = EffectHandlersTestSupport.dispatch(
-                .nextStrikeDouble,
-                ability: CombatantFixtures.ability(),
-                source: battle.hero,
-                target: battle.hero,
-                battle: &battle
-            )
-            try #expect(outcome.didApply)
-            try #expect(battle.activeEffects(of: battle.hero).contains { active in
-                if case .nextStrikeDouble = active.effect {
-                    return true
-                }
-                return false
-            })
-            try #expect(outcome.events.contains { $0.effectKind == .nextStrikeDoubleApplied })
-        }
+    @Test func damageKeywordOverrideHandlerAppliesStackAndEmitsEvent() throws {
+        var battle = EffectHandlersTestSupport.makeBattle()
+        let outcome = EffectHandlersTestSupport.dispatch(
+            .damageKeywordOverride(.holy, 3, 6),
+            ability: CombatantFixtures.ability(),
+            source: battle.hero,
+            target: battle.hero,
+            battle: &battle
+        )
+        try #expect(outcome.didApply)
+        try #expect(battle.activeEffects(of: battle.hero).contains { active in
+            if case let .damageKeywordOverride(keyword, bonus, duration) = active.effect {
+                return keyword == .holy && bonus == 3 && duration == 6 && active.remainingTurns == 6
+            }
+            return false
+        })
+        try #expect(outcome.events.contains {
+            $0.effectKind == .damageKeywordOverrideApplied && $0.amount == 3 && $0.keyword == .holy
+        })
+    }
 
-        do {
-            var battle = EffectHandlersTestSupport.makeBattle()
-            let outcome = EffectHandlersTestSupport.dispatch(
-                .evadeNextHit,
-                ability: CombatantFixtures.ability(),
-                source: battle.hero,
-                target: battle.hero,
-                battle: &battle
-            )
-            try #expect(outcome.didApply)
-            try #expect(battle.activeEffects(of: battle.hero).contains { active in
-                if case .evadeNextHit = active.effect {
-                    return true
-                }
-                return false
-            })
-            try #expect(outcome.events.contains { $0.effectKind == .evadeNextHitApplied })
-        }
+    @Test func nextStrikeDoubleHandlerAppliesAndEmitsEvent() throws {
+        var battle = EffectHandlersTestSupport.makeBattle()
+        let outcome = EffectHandlersTestSupport.dispatch(
+            .nextStrikeDouble,
+            ability: CombatantFixtures.ability(),
+            source: battle.hero,
+            target: battle.hero,
+            battle: &battle
+        )
+        try #expect(outcome.didApply)
+        try #expect(battle.activeEffects(of: battle.hero).contains { active in
+            if case .nextStrikeDouble = active.effect {
+                return true
+            }
+            return false
+        })
+        try #expect(outcome.events.contains { $0.effectKind == .nextStrikeDoubleApplied })
+    }
+
+    @Test func evadeNextHitHandlerAppliesAndEmitsEvent() throws {
+        var battle = EffectHandlersTestSupport.makeBattle()
+        let outcome = EffectHandlersTestSupport.dispatch(
+            .evadeNextHit,
+            ability: CombatantFixtures.ability(),
+            source: battle.hero,
+            target: battle.hero,
+            battle: &battle
+        )
+        try #expect(outcome.didApply)
+        try #expect(battle.activeEffects(of: battle.hero).contains { active in
+            if case .evadeNextHit = active.effect {
+                return true
+            }
+            return false
+        })
+        try #expect(outcome.events.contains { $0.effectKind == .evadeNextHitApplied })
     }
 }

@@ -27,6 +27,10 @@ SKIP_PREFIXES = (
     "Revert ",
 )
 
+USER_FACING_PREFIXES = ("add ", "fix ", "implement ", "introduce ", "complete ", "restore ", "pause ", "guard ")
+USER_FACING_TYPES = ("feat", "content", "perf")
+TECHNICAL_TYPES = ("refactor", "style", "chore", "ci", "docs", "build", "test")
+
 TECHNICAL_TERMS = (
     "SwiftFormat",
     "SwiftLint",
@@ -86,13 +90,13 @@ def is_user_facing(subject: str, body: str) -> bool:
     lowered = subject.lower()
     if lowered.startswith(("fix(ci)", "fix(content)", "style", "chore(release)")):
         return False
-    if lowered.startswith(("add ", "fix ", "implement ", "introduce ", "complete ", "restore ", "pause ", "guard ")):
+    if lowered.startswith(USER_FACING_PREFIXES):
         return True
-    if lowered.startswith(("feat", "content", "perf")):
+    if lowered.startswith(USER_FACING_TYPES):
         return True
     if "test" in lowered and lowered.startswith(("add ", "fix ")):
         return False
-    return not lowered.startswith(("refactor", "style", "chore", "ci", "docs", "build", "test"))
+    return not lowered.startswith(TECHNICAL_TYPES)
 
 
 def simplify_line(line: str) -> str:

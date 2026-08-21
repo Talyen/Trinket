@@ -84,6 +84,11 @@ Each audit should include only:
 
 Optional **Example signals** may list non-exhaustive defect *classes* (not search recipes, named-file checklists, or required tool sequences). Do not require Probe hints, numbered confirm-before-fixing workflows, or “run script X first” as audit steps. Shared planning and remedy-sizing policy lives here; do not restate it in every Intent.
 
+Numbered guides should link back here for severity, evidence-cone breadth,
+proposal sizing, code/test budgets, verification, and cross-audit routing. Keep
+those guides domain-specific; repeated shared contract text is documentation
+drift, not extra safety.
+
 ### Code and test budgets
 
 - Simplification, duplication, dead-code, and test-reduction fixes should reduce authored LOC, declarations, indirection, or executed cases. Moving code without removing the old path is not a reduction.

@@ -33,25 +33,19 @@ Presentation layout (3:4 art, no top chrome, health anchors): [TrinketBattleFeat
 
 ## Balance sweep
 
-Manual CLI only — **no CI gates** or scheduled automations.
+Manual CLI only — **no CI gates** or scheduled automations. Use the script's
+`--help` output for current modes, defaults, and tuning flags.
 
 ```sh
-./Scripts/balance-sweep.sh --seed 1
-./Scripts/balance-sweep.sh --mode ability-contrast --samples 32
-./Scripts/balance-sweep.sh --mode affix-contrast --tiers middle,lateGame
-./Scripts/balance-sweep.sh --mode talent-contrast --samples 32 --tiers middle,lateGame
-./Scripts/balance-sweep.sh --pacing off --policy setup-v1 --policy-compare
-./Scripts/balance-sweep.sh --full-markdown
+./Scripts/balance-sweep.sh --help
+./Scripts/balance-sweep.sh --mode ability-contrast
 ```
 
-Writes a **findings** markdown brief and a JSON sidecar under `BalanceSweepReports/` (gitignored). Stdout is the findings brief. Successful default runs remove the generated directory after the brief; set `TRINKET_KEEP_REPORTS=1` or `BALANCE_SWEEP_OUTPUT_DIR` when the files must remain. Open the JSON (or pass `--full-markdown` for `*-full.md` tables) only when drilling into a named finding. Requires a local Swift toolchain (Xcode 26+).
-Modes: `identity` (default), `ability-contrast`, `affix-contrast`, `talent-contrast`, `mode-progression`, `all`.
-
-`--samples` (default 32) is observations **per identity enemy** and **pairs per contrast focus**, per selected tier. `--battles-per-tier` is a deprecated alias. The CLI never simulates combat in the parent process. It splits work into small chunks (16 identity battles, 8 ability/affix pairs, 4 talent-contrast pair indices, 1 progression run) and runs each chunk in a child process of the same binary. `--jobs` is the process-pool size (default: CPU count). In-process `BalanceSweepRunner` (package tests) still maps work sequentially on the caller thread so it never hops to GCD’s 512 KB stacks. `./Scripts/balance-sweep.sh` builds **release** (`-O`); override with `BALANCE_SWEEP_CONFIGURATION=debug` only for debugging the CLI itself.
-
-Identity spends available talent points (1 per even level) on a legal kit: early a 1-node spend at L4 plus one keyword-aligned basic 1-affix item per combatant (not a full slot fill), middle a partial spend (~10 of 18 nodes at L20) with a full basic kit, late the full 18-node kit. Identity and mode-progression resample party kits until they have at least 3 opponent-damaging cards (or the best of 64 draws); contrast modes still sample independently. Mode-progression Spires are on-level (`floor × 2`); Journey and Labyrinth use earned XP. Spire wins grant equal-level XP at the save level. Ability and affix contrasts keep talents empty. Talent sibling contrasts require a legal point budget for that tier; kit vs none runs only at late. Affix contrasts report empty-slot and replacement-affix baselines for every legal owner. Identity ability/affix/talent tables are within-owner presence margins; use contrasts for causal lifts. Timeouts are excluded from win rate. Progression mode cycles the roster and spends legal talent kits as levels rise.
-
-Locked tooling choices: greedy-v1 Auto Battle and default sweep policy (`setup-v1` is sweep-only); `--pacing on` (default) includes hidden FightPacing; keyword-aligned gear; catalog identities + scaled level (not journey graph); reproducible seeds.
+The CLI writes a findings brief and JSON sidecar under the gitignored
+`BalanceSweepReports/` directory; successful default runs clean them up. Keep
+reports only for an active investigation. The runner owns process isolation,
+sampling, pacing, policy, and report schemas; this README should not mirror those
+defaults. Requires Xcode 26+.
 
 ## Adding a new effect
 

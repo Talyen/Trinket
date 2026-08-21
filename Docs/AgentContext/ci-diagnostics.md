@@ -19,10 +19,10 @@ Failed invocations also produce bounded sibling reports:
 - `*-diagnostics.annotations` with GitHub Actions annotations.
 - `*-diagnostics.attachments/` when a bounded attachment is needed.
 
-Default narrative budgets are intentionally small: xcode-runner prints at most 8
-matching (or tail) lines at 240 characters each, while structured reports show at
-most 12 issues, 800-character messages, 8 detail lines, and 2,400 detail characters.
-Use an explicit retained path or `--full` for forensic payloads; do not paste the
+Narrative budgets are intentionally small and live in
+`Scripts/config/diagnostic-limits.env` — read that file (or the report header)
+for the current caps on printed lines, issue counts, and message sizes. Use an
+explicit retained path or `--full` for forensic payloads; do not paste the
 raw log into the agent prompt.
 
 Classifications are `test-failure`, `build-failure`, `simulator-infrastructure`,
@@ -33,8 +33,7 @@ when the underlying result bundle is incomplete.
 
 ## Aggregate and triage order
 
-Run (the current diagnostics session is selected automatically; use `--all` only
-for an intentional historical investigation):
+Run (the current diagnostics session is selected automatically):
 
 ```sh
 # Shared tenant (humans / CI):
@@ -63,14 +62,14 @@ to missing detail. Inspect raw xcodebuild logs only when the aggregate category 
 After the aggregate has been staged, successful invocation artifacts are ephemeral
 by default. `ci-diagnostics.sh --cleanup` removes passed bundles, reports, manifests,
 raw logs, and timing history while retaining failed evidence for current triage.
-Pass `--keep` for a deliberate investigation or set the CI action's
+Pass `--keep` for a deliberate investigation or set the CI test job's
 `keep-diagnostics: true`.
 
 For GitHub Actions failures, prefer check-run annotations (SwiftLint / compiler)
 and a short `--log-failed` tail over scraping the full log when the excerpt only
-shows “Found N violation(s)” without a path — style findings often live in
-annotations when `github-actions-logging` is enabled. `./Scripts/agent-watch-ci.sh`
-prints those when used manually.
+shows “Found N violation(s)” without a path — style findings reach annotations
+through SwiftLint's `github-actions-logging` reporter in `Scripts/lint.sh`.
+`./Scripts/agent-watch-ci.sh` prints those when used manually.
 
 The test and package command scopes are unchanged: diagnostics describe the existing
 `test.sh`, `test-package.sh`, and wrapper invocations rather than replacing focused
@@ -80,5 +79,4 @@ CI uploads a structured-first artifact. The test job stages manifests,
 bounded reports, the aggregate, and timing data; raw logs, `.xcresult` bundles, and
 attachments are staged only when the aggregate category is failed or unknown. Use
 `./Scripts/ci-diagnostics.py --full <RESULTS_DIR> <OUTPUT_PATH>` when an investigation
-needs the uncompressed aggregate invocation payload, and `--all` only for an explicit
-cross-session comparison.
+needs the uncompressed aggregate invocation payload.

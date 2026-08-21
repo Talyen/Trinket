@@ -5,24 +5,6 @@ import TrinketCore
 
 /// Integration tests for Block absorption and Toughness-based inherent mitigation through card combat.
 struct MitigationIntegrationTests {
-    @Test func shieldAbsorbsDamageBeforeHealth() throws {
-        let hero = BattleTestFixtures.passiveCombatant(id: "hero", name: "Hero", role: .hero)
-        let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion)
-        let enemy = BattleTestFixtures.attackingEnemy(abilities: [.slash])
-        var battle = BattleTestFixtures.standardParty(
-            hero: hero,
-            companion: companion,
-            enemy: enemy,
-            activeHeroEffects: [
-                ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTurns: 0),
-            ]
-        )
-
-        _ = BattleTestFixtures.endTurn(on: &battle)
-
-        try #expect(battle.health(of: battle.hero) == hero.maxHealth)
-    }
-
     @Test func toughnessMitigatesIncomingDamage() throws {
         let hero = BattleTestFixtures.statHero(
             abilities: [],

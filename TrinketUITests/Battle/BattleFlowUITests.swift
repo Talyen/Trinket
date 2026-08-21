@@ -13,9 +13,7 @@ final class BattleFlowUITests: TrinketUITestCase {
         battle.assertActive()
         assertExists(battle.hand)
 
-        let cards = app.descendants(matching: .any).matching(
-            NSPredicate(format: "identifier BEGINSWITH %@", "Battle Hand Card ")
-        )
+        let cards = battle.handCards
         let dragCard = cards.firstMatch
         XCTAssertTrue(dragCard.waitForExistence(timeout: Self.defaultTimeout))
         let dragCountBefore = cards.count

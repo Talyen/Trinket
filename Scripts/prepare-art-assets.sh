@@ -141,14 +141,9 @@ JSON
 }
 
 # Catalog usage drives which variants we ship:
+# - every kind emits a full-size image
 # - resource / slot_background: full only
 # - combatant / ability / item / encounter / background: full + thumb
-emit_full_for_kind() {
-  case "$1" in
-    *) return 0 ;;
-  esac
-}
-
 emit_thumb_for_kind() {
   case "$1" in
     resource|slot_background) return 1 ;;
@@ -241,11 +236,8 @@ while IFS=$'\t' read -r kind id asset_name source_path focal_x focal_y || [[ -n 
       ;;
   esac
 
-  want_full=false
+  want_full=true
   want_thumb=false
-  if emit_full_for_kind "$kind"; then
-    want_full=true
-  fi
   if emit_thumb_for_kind "$kind"; then
     want_thumb=true
   fi

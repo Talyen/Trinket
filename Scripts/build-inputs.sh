@@ -19,48 +19,9 @@ generation_paths_newer_than() {
   find "${paths[@]}" -type f -newer "$stamp" 2>/dev/null
 }
 
-content_generation_inputs=(
-  ContentManifest
-  Scripts/content_codegen.py
-  Scripts/trigger_family_schema.json
-)
-
-asset_generation_inputs=(
-  ArtManifest
-  MusicManifest
-  SoundManifest
-  CinematicManifest
-  "Raw Assets"
-  Scripts/prepare-app-icon.sh
-  Scripts/prepare-art-assets.sh
-  Scripts/prepare-cinematic-assets.sh
-  Scripts/prepare-music-assets.sh
-  Scripts/prepare-sfx-assets.sh
-)
-
-build_input_paths=(
-  Trinket
-  TrinketUITests
-)
-for _trinket_test_package in "${TRINKET_TEST_PACKAGES[@]}"; do
-  build_input_paths+=("Packages/$_trinket_test_package")
-done
-unset _trinket_test_package
-build_input_paths+=(
-  Packages/TrinketTestSupport
-  ContentManifest
-  ArtManifest
-  MusicManifest
-  SoundManifest
-  CinematicManifest
-  "Raw Assets"
-  Scripts
-  project.yml
-  BattlePerformance.xctestplan
-  FullUI.xctestplan
-  Integration.xctestplan
-  Smoke.xctestplan
-)
+content_generation_inputs=("${TRINKET_CONTENT_GENERATION_INPUTS[@]}")
+asset_generation_inputs=("${TRINKET_ASSET_GENERATION_INPUTS[@]}")
+build_input_paths=("${TRINKET_BUILD_ROOTS[@]}" "${TRINKET_PROJECT_INPUTS[@]}")
 
 generation_inputs_are_dirty() {
   local paths=("$@")

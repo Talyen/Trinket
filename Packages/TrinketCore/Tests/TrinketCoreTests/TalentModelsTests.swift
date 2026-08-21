@@ -47,34 +47,20 @@ struct TalentModelsTests {
         #expect(!tree.canUnlock(node: t1Node, unlockedNodeIDs: [t1Node.id], availablePoints: 1))
     }
 
-    @Test func tier2NodesRequireAllTier1Nodes() {
+    @Test(arguments: [1, 2])
+    func rowNPlusOneRequiresAllRowNNodesUnlocked(row: Int) {
         let tree = makeSampleTree()
-        let t1Nodes = tree.nodes(forRow: 1)
-        let t2Node = tree.nodes(forRow: 2)[0]
+        let previousNodes = tree.nodes(forRow: row)
+        let gatedNode = tree.nodes(forRow: row + 1)[0]
+        let fullPrevious = Set(previousNodes.map(\.id))
 
-        // Partial Tier 1 (1/2) -> cannot unlock Tier 2
-        let partialT1 = Set([t1Nodes[0].id])
-        #expect(!tree.canUnlock(node: t2Node, unlockedNodeIDs: partialT1, availablePoints: 2))
+        // Partial previous row -> cannot unlock the next row.
+        let partialPrevious = fullPrevious.subtracting([previousNodes[0].id])
+        #expect(!tree.canUnlock(node: gatedNode, unlockedNodeIDs: partialPrevious, availablePoints: 2))
 
-        // Full Tier 1 (2/2) -> can unlock Tier 2
-        let fullT1 = Set(t1Nodes.map(\.id))
-        #expect(tree.isRowComplete(1, unlockedNodeIDs: fullT1))
-        #expect(tree.canUnlock(node: t2Node, unlockedNodeIDs: fullT1, availablePoints: 1))
-    }
-
-    @Test func tier3NodesRequireAllTier2Nodes() {
-        let tree = makeSampleTree()
-        let t1Nodes = tree.nodes(forRow: 1)
-        let t2Nodes = tree.nodes(forRow: 2)
-        let t3Node = tree.nodes(forRow: 3)[0]
-
-        let fullT1 = Set(t1Nodes.map(\.id))
-        let partialT2 = fullT1.union([t2Nodes[0].id])
-        #expect(!tree.canUnlock(node: t3Node, unlockedNodeIDs: partialT2, availablePoints: 2))
-
-        let fullT1AndT2 = fullT1.union(t2Nodes.map(\.id))
-        #expect(tree.isRowComplete(2, unlockedNodeIDs: fullT1AndT2))
-        #expect(tree.canUnlock(node: t3Node, unlockedNodeIDs: fullT1AndT2, availablePoints: 1))
+        // Full previous row -> can unlock the next row.
+        #expect(tree.isRowComplete(row, unlockedNodeIDs: fullPrevious))
+        #expect(tree.canUnlock(node: gatedNode, unlockedNodeIDs: fullPrevious, availablePoints: 1))
     }
 
     @Test func combatantConfigLooksUpNodesAndTrees() {

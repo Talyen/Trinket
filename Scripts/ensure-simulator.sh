@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SIMCTL_JSON="$SCRIPT_DIR/simctl_json.py"
+
 # Creates, boots, and verifies an iOS Simulator for xcodebuild test runs.
 # When sourced, sets:
 #   SIMULATOR_NAME
@@ -22,17 +25,17 @@ shutdown_and_wait_simulator() {
   xcrun simctl shutdown "$target_udid" 2>/dev/null || true
 }
 
+discard_simulator() {
+  local target_udid="${1:-${SIMULATOR_UDID:-}}"
+  [[ -n "$target_udid" ]] || return 0
+  shutdown_and_wait_simulator "$target_udid"
+  xcrun simctl delete "$target_udid" 2>/dev/null || true
+  SIMULATOR_UDID=""
+}
+
 simulator_udid_for_name() {
-  xcrun simctl list devices available -j 2>/dev/null | python3 -c '
-import json, sys
-payload = json.load(sys.stdin)
-for devices in payload.get("devices", {}).values():
-    for device in devices:
-        if device.get("name") == sys.argv[1]:
-            print(device.get("udid"))
-            sys.exit(0)
-sys.exit(1)
-' "$1" 2>/dev/null || true
+  xcrun simctl list devices available -j 2>/dev/null \
+    | python3 "$SIMCTL_JSON" udid-for-name "$1" 2>/dev/null || true
 }
 
 rename_legacy_shared_simulator_if_needed() {
@@ -140,16 +143,8 @@ PY
 
 boot_simulator() {
   local state
-  state="$(xcrun simctl list devices "$SIMULATOR_UDID" -j 2>/dev/null | python3 -c '
-import json, sys
-payload = json.load(sys.stdin)
-for devices in payload.get("devices", {}).values():
-    for device in devices:
-        if device.get("udid") == sys.argv[1]:
-            print(device.get("state"))
-            sys.exit(0)
-sys.exit(1)
-' "$SIMULATOR_UDID" 2>/dev/null || echo "Unknown")"
+  state="$(xcrun simctl list devices "$SIMULATOR_UDID" -j 2>/dev/null \
+    | python3 "$SIMCTL_JSON" state-for-udid "$SIMULATOR_UDID" 2>/dev/null || echo "Unknown")"
 
   if [[ "$state" == "Booted" ]]; then
     echo "$SIMULATOR_NAME ($SIMULATOR_UDID) is already booted."
@@ -184,16 +179,8 @@ simulator_matches_name() {
   local udid="$1"
   local expected_name="$2"
   local actual_name
-  actual_name="$(xcrun simctl list devices "$udid" -j 2>/dev/null | python3 -c '
-import json, sys
-payload = json.load(sys.stdin)
-for devices in payload.get("devices", {}).values():
-    for device in devices:
-        if device.get("udid") == sys.argv[1]:
-            print(device.get("name", ""))
-            sys.exit(0)
-sys.exit(1)
-' "$udid" 2>/dev/null || true)"
+  actual_name="$(xcrun simctl list devices "$udid" -j 2>/dev/null \
+    | python3 "$SIMCTL_JSON" name-for-udid "$udid" 2>/dev/null || true)"
   [[ -n "$actual_name" && "$actual_name" == "$expected_name" ]]
 }
 
@@ -230,9 +217,7 @@ ensure_test_simulator() {
       fi
     fi
     echo "Erase/reboot failed; deleting simulator and recreating..." >&2
-    shutdown_and_wait_simulator "$SIMULATOR_UDID"
-    xcrun simctl delete "$SIMULATOR_UDID" 2>/dev/null || true
-    SIMULATOR_UDID=""
+    discard_simulator
   fi
 
   while (( attempt <= max_attempts )); do
@@ -254,9 +239,7 @@ ensure_test_simulator() {
           echo "Simulator ready after erase retry: $SIMULATOR_DESTINATION"
           return 0
         fi
-        shutdown_and_wait_simulator "$SIMULATOR_UDID"
-        xcrun simctl delete "$SIMULATOR_UDID" 2>/dev/null || true
-        SIMULATOR_UDID=""
+        discard_simulator
       fi
     fi
     ((attempt++))

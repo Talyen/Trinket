@@ -16,13 +16,9 @@ Reduce unjustified custom layout/typography and confirmed non-adaptive UI while 
 - Do not replace intentional game juice: combat float keyframe recipes, 3:4 card identity (`TrinketDesign.cardShape`).
 - Do not hand-roll materials / glass / primary buttons — use DesignSystem (`check-ui-style.sh`).
 
-## Severity
-
-| Sev | Cluster | Typical signal |
-|-----|---------|----------------|
-| P1 | Broken adaptation / native behavior | Confirmed clipping, unreachable controls, unsafe-area or keyboard obstruction, or layout failure under supported Dynamic Type/localization |
-| P2 | Typography / scale / container gaps | Point-sized fonts; non-scaling text bands; fixed frames or scale-down that fail supported content; avoidable custom control behavior |
-| P3 | Token / spacing consistency | Raw spacing next to existing Metrics; duplicated constants; manual insets before surface modifiers when the visible result remains correct |
+Severity follows the [shared audit scale](README.md#severity-scale): prioritize
+broken adaptation or native behavior, then confirmed typography/container gaps,
+then cosmetic token consistency.
 
 ## Domain rules & allowlists
 

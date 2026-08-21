@@ -71,6 +71,10 @@ trinket_add_context_card() { trinket_add_unique TRINKET_CONTEXT_CARDS "$1"; }
 trinket_add_route_card() { trinket_add_unique TRINKET_ROUTE_CARDS "$1"; }
 trinket_add_skill() { trinket_add_unique TRINKET_SKILLS "$1"; }
 trinket_add_agent_guide() { trinket_add_unique TRINKET_AGENT_GUIDES "$1"; }
+
+# Every card in Docs/AgentContext/ must be emitted above or declared here as
+# lookup-only; Scripts/check-docs.py enforces this. Lazy cards load on demand:
+# lookup-only: Docs/AgentContext/ci-diagnostics.md
 trinket_add_boundary_warning() { trinket_add_unique TRINKET_BOUNDARY_WARNINGS "$1"; }
 trinket_add_generated_warning() { trinket_add_unique TRINKET_GENERATED_WARNINGS "$1"; }
 trinket_add_verification() {
@@ -88,6 +92,52 @@ trinket_add_verification() {
   TRINKET_VERIFICATION_ARGS+=("$argument")
 }
 trinket_add_smoke_target() { trinket_add_unique TRINKET_SMOKE_TARGETS "$1"; }
+
+trinket_classify_package_swift_path() {
+  local path="$1"
+  local package="${path#Packages/}"
+  package="${package%%/*}"
+
+  case "$package" in
+    TrinketCore|TrinketContent|BattleEngine|TrinketBattleRuntime|TrinketPersistence|TrinketDesignSystem|TrinketFeatureSupport|TrinketBattleFeature|TrinketAppState|TrinketTestSupport)
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+
+  TRINKET_HAS_SWIFT=true
+  TRINKET_NEEDS_STYLE=true
+  TRINKET_AUTHORED_PATHS+=("$path")
+
+  case "$package" in
+    TrinketTestSupport)
+      TRINKET_NEEDS_APP_BUILD=true
+      ;;
+    TrinketDesignSystem)
+      if [[ "$path" == Packages/TrinketDesignSystem/Sources/* ]]; then
+        trinket_add_skill Docs/Skills/apple-design/SKILL.md
+      fi
+      ;;
+    TrinketFeatureSupport)
+      if [[ "$path" == Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Shared/AccessibilityID.swift \
+         || "$path" == Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/PreparedArtworkCache.swift ]]; then
+        TRINKET_NEEDS_SMOKE=true
+        trinket_add_smoke_target_for_path "$path"
+      fi
+      ;;
+    TrinketBattleFeature)
+      TRINKET_NEEDS_SMOKE=true
+      TRINKET_HAS_FEATURE=true
+      trinket_add_smoke_target_for_path "$path"
+      ;;
+    TrinketAppState)
+      if [[ "$path" == Packages/TrinketAppState/Sources/TrinketAppState/Audio/* ]]; then
+        TRINKET_HAS_AUDIO=true
+      fi
+      ;;
+  esac
+}
 
 trinket_collect_paths() {
   local path_mode="${1:-working-tree}"
@@ -252,14 +302,7 @@ trinket_add_battle_subcard_for_path() {
       ;;
     Packages/TrinketBattleFeature/*)
       trinket_add_route_card Docs/AgentContext/battle.md
-      case "$1" in
-        */State/*Runtime*|*/State/*Commands*|*/State/*Launch*)
-          trinket_add_context_card Docs/AgentContext/battle-runtime.md
-          ;;
-        *)
-          trinket_add_context_card Docs/AgentContext/battle-presentation.md
-          ;;
-      esac
+      trinket_add_context_card Docs/AgentContext/battle-runtime.md
       ;;
     *)
       ;;
@@ -318,78 +361,25 @@ trinket_classify_path() {
       TRINKET_NEEDS_PROJECT_GENERATION=true
       TRINKET_AUTHORED_PATHS+=("$path")
       ;;
-    Packages/BattleEngine/*.swift)
-      TRINKET_HAS_SWIFT=true
-      TRINKET_NEEDS_STYLE=true
-      trinket_add_package BattleEngine
-      TRINKET_AUTHORED_PATHS+=("$path")
-      ;;
     Packages/TrinketContent/*.swift)
       TRINKET_HAS_SWIFT=true
       TRINKET_NEEDS_STYLE=true
       trinket_add_package TrinketContent
       TRINKET_AUTHORED_PATHS+=("$path")
       ;;
-    Packages/TrinketPersistence/*.swift)
-      TRINKET_HAS_SWIFT=true
-      TRINKET_NEEDS_STYLE=true
-      trinket_add_package TrinketPersistence
-      TRINKET_AUTHORED_PATHS+=("$path")
-      ;;
-    Packages/TrinketCore/*.swift)
-      TRINKET_HAS_SWIFT=true
-      TRINKET_NEEDS_STYLE=true
-      trinket_add_package TrinketCore
-      TRINKET_AUTHORED_PATHS+=("$path")
-      ;;
-    Packages/TrinketDesignSystem/*.swift)
-      TRINKET_HAS_SWIFT=true
-      TRINKET_NEEDS_STYLE=true
-      trinket_add_package TrinketDesignSystem
-      trinket_add_skill Docs/Skills/apple-design/SKILL.md
-      TRINKET_AUTHORED_PATHS+=("$path")
-      ;;
-    Packages/TrinketFeatureSupport/*.swift)
-      TRINKET_HAS_SWIFT=true
-      TRINKET_NEEDS_STYLE=true
-      trinket_add_package TrinketFeatureSupport
-      TRINKET_AUTHORED_PATHS+=("$path")
-      if [[ "$path" == Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Shared/AccessibilityID.swift \
-         || "$path" == Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/PreparedArtworkCache.swift ]]; then
-        TRINKET_NEEDS_SMOKE=true
-        trinket_add_smoke_target_for_path "$path"
+    Packages/*/*.swift)
+      if trinket_classify_package_swift_path "$path"; then
+        package="${path#Packages/}"
+        package="${package%%/*}"
+        trinket_add_package "$package"
+        if [[ "$package" == TrinketAppState ]]; then
+          TRINKET_HAS_APP_STATE=true
+        fi
+      else
+        TRINKET_HAS_SWIFT=true
+        TRINKET_NEEDS_STYLE=true
+        TRINKET_AUTHORED_PATHS+=("$path")
       fi
-      ;;
-    Packages/TrinketBattleRuntime/*.swift)
-      TRINKET_HAS_SWIFT=true
-      TRINKET_NEEDS_STYLE=true
-      trinket_add_package TrinketBattleRuntime
-      TRINKET_AUTHORED_PATHS+=("$path")
-      ;;
-    Packages/TrinketBattleFeature/*.swift)
-      TRINKET_HAS_SWIFT=true
-      TRINKET_NEEDS_STYLE=true
-      trinket_add_package TrinketBattleFeature
-      TRINKET_AUTHORED_PATHS+=("$path")
-      TRINKET_NEEDS_SMOKE=true
-      TRINKET_HAS_FEATURE=true
-      trinket_add_smoke_target_for_path "$path"
-      ;;
-    Packages/TrinketAppState/*.swift)
-      TRINKET_HAS_SWIFT=true
-      TRINKET_NEEDS_STYLE=true
-      TRINKET_HAS_APP_STATE=true
-      trinket_add_package TrinketAppState
-      TRINKET_AUTHORED_PATHS+=("$path")
-      if [[ "$path" == Packages/TrinketAppState/Sources/TrinketAppState/Audio/* ]]; then
-        TRINKET_HAS_AUDIO=true
-      fi
-      ;;
-    Packages/TrinketTestSupport/*.swift)
-      TRINKET_HAS_SWIFT=true
-      TRINKET_NEEDS_STYLE=true
-      TRINKET_NEEDS_APP_BUILD=true
-      TRINKET_AUTHORED_PATHS+=("$path")
       ;;
     Trinket/App/*)
       TRINKET_HAS_SWIFT=true
@@ -478,6 +468,14 @@ trinket_classify_paths() {
   if [[ "$TRINKET_HAS_AUDIO" == true ]]; then
     trinket_add_context_card Docs/AgentContext/audio.md
   fi
+  for path in ${TRINKET_CHANGED_PATHS[@]+"${TRINKET_CHANGED_PATHS[@]}"}; do
+    case "$path" in
+      Scripts/balance-sweep.sh|Packages/BattleEngine/*Balance*)
+        trinket_add_context_card Docs/AgentContext/battle-balance.md
+        break
+        ;;
+    esac
+  done
   if [[ "$TRINKET_HAS_PROJECT" == true ]]; then
     trinket_add_context_card Docs/AgentContext/ci-and-project-generation.md
   else

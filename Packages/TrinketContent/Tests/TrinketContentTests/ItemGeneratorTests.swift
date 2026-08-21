@@ -21,7 +21,7 @@ struct ItemGeneratorTests {
     }
 
     @Test func generatedItemsDoNotDuplicateAffixes() throws {
-        let baseType = try #require(GameContent.itemBaseTypes.first { $0.id == "plate_armor" })
+        let baseType = try ItemFixtures.baseType("plate_armor")
         var randomNumberGenerator = SeededRandomNumberGenerator(seed: 42)
 
         let item = ItemGenerator().generate(
@@ -35,7 +35,7 @@ struct ItemGeneratorTests {
     }
 
     @Test func generatedAffixesMatchSlotAndAnyKeywordAffinity() throws {
-        let baseType = try #require(GameContent.itemBaseTypes.first { $0.id == "plate_armor" })
+        let baseType = try ItemFixtures.baseType("plate_armor")
         var randomNumberGenerator = SeededRandomNumberGenerator(seed: 99)
 
         let item = ItemGenerator().generate(
@@ -74,12 +74,10 @@ struct ItemGeneratorTests {
             try #expect(item.templateID == item.baseType.id)
             try #expect(item.affixes.count == 1)
             try #expect(item.affixes[0].id == item.baseType.id)
-            try #expect(item.affixes[0].title != "Dormant Resonance")
             try #expect(!item.affixes[0].description.isEmpty)
             try #expect((1 ... 2).contains(item.keywords.count))
             try #expect(item.keywords == item.baseType.keywordAffinities)
         }
-        try #expect(!trinkets.contains { $0.displayName == "Arcane Quill" })
     }
 
     @Test func astralRewardsSplitBetweenRemainingTrinketsAndNormalItems() throws {
@@ -129,7 +127,7 @@ struct ItemGeneratorTests {
     }
 
     @Test func seededGenerationIsReproducible() throws {
-        let baseType = try #require(GameContent.itemBaseTypes.first { $0.id == "emerald_ring" })
+        let baseType = try ItemFixtures.baseType("emerald_ring")
         var firstRandomNumberGenerator = SeededRandomNumberGenerator(seed: 123)
         var secondRandomNumberGenerator = SeededRandomNumberGenerator(seed: 123)
 
@@ -164,7 +162,7 @@ struct ItemGeneratorTests {
     }
 
     @Test func guaranteedAffixIDsAreAlwaysIncluded() throws {
-        let baseType = try #require(GameContent.itemBaseTypes.first { $0.id == "sapphire_ring" })
+        let baseType = try ItemFixtures.baseType("sapphire_ring")
         var randomNumberGenerator = SeededRandomNumberGenerator(seed: 7)
 
         let item = ItemGenerator().generate(
@@ -180,7 +178,7 @@ struct ItemGeneratorTests {
     }
 
     @Test func generatedItemsPersistRolledAffixPowersInRarityRange() throws {
-        let baseType = try #require(GameContent.itemBaseTypes.first { $0.id == "longsword" })
+        let baseType = try ItemFixtures.baseType("longsword")
         for seed in UInt64(1) ... 40 {
             var rng = SeededRandomNumberGenerator(seed: seed)
             let item = ItemGenerator().generate(

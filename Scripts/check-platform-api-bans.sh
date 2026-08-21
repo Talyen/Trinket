@@ -5,6 +5,12 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
+SYSTEM_COLORS="$(awk '!/^#/ && NF { if (count++) printf "|"; printf "%s", $0 }' Scripts/config/system-colors.txt)"
+if [[ -z "$SYSTEM_COLORS" ]]; then
+  echo "check-platform-api-bans: Scripts/config/system-colors.txt must list at least one color" >&2
+  exit 1
+fi
+
 violations=()
 
 # Match whole identifiers / attributes; skip comments by scanning code-ish lines lightly.
@@ -34,8 +40,8 @@ scan_pattern '@StateObject\b' 'Use @Observable + @Environment(Type.self) instead
 scan_pattern '@EnvironmentObject\b' 'Use @Environment(Type.self) instead of @EnvironmentObject'
 scan_pattern '@ObservedObject\b' 'Use @Bindable / @Environment(Type.self) instead of @ObservedObject'
 scan_pattern 'Color\s*\(\s*red\s*:' 'Use TrinketDesign.Colors / DesignColors assets via DesignAssetColors — not Color(red:green:blue:)'
-scan_pattern '(^|[^A-Za-z0-9_])Color\.(red|green|blue|orange|yellow|pink|purple|mint|teal|indigo|brown|cyan|gray|grey|black|white|accentColor)\b' 'Use TrinketDesign.Colors tokens — not SwiftUI system Color.* literals'
-scan_pattern '\.(foregroundStyle|tint|fill|stroke|background)\(\.(white|black|red|green|blue|orange|yellow|pink|purple|mint|teal|indigo|brown|cyan|gray|grey|accentColor)\b' 'Use TrinketDesign.Colors / Overlay tokens instead of .foregroundStyle(.white) / .fill(.red)'
+scan_pattern "(^|[^A-Za-z0-9_])Color\\.(${SYSTEM_COLORS})\\b" 'Use TrinketDesign.Colors tokens — not SwiftUI system Color.* literals'
+scan_pattern "\\.(foregroundStyle|tint|fill|stroke|background)\\(\\.(${SYSTEM_COLORS})\\b" 'Use TrinketDesign.Colors / Overlay tokens instead of .foregroundStyle(.white) / .fill(.red)'
 scan_pattern 'Color\s*\(\s*"[^"]+"\s*,\s*bundle\s*:\s*\.main\b' 'Move named colors into DesignColors.xcassets and expose them via TrinketDesignSystem'
 
 if (( ${#violations[@]} > 0 )); then

@@ -185,6 +185,17 @@ struct BattleSessionAppIntegrationTests {
             }
         }
 
+        driveToVictory(battle)
+
+        #expect(battle.outcome == .victory)
+        #expect(battle.spectacle.isShowingVictory)
+        #expect(battle.spectacle.victorySummary != nil)
+        #expect(state.battle.activeBattle != nil)
+    }
+    #endif
+
+    @MainActor
+    private func driveToVictory(_ battle: BattleSession) {
         var steps = 0
         while battle.outcome == nil, steps < 200 {
             steps += 1
@@ -206,11 +217,5 @@ struct BattleSessionAppIntegrationTests {
             battle.completeCinematicCollapse()
         }
         battle.handleOutcomeIfNeeded(at: .now)
-
-        #expect(battle.outcome == .victory)
-        #expect(battle.spectacle.isShowingVictory)
-        #expect(battle.spectacle.victorySummary != nil)
-        #expect(state.battle.activeBattle != nil)
     }
-    #endif
 }

@@ -30,10 +30,7 @@ let balanceToolSources = [
 ]
 
 let balanceToolTestSources = [
-    "BalanceFindingsReporterTests.swift",
-    "BalanceSweepOrchestrationTests.swift",
     "BattleSimulatorSweepReportTests.swift",
-    "BattleSimulatorTests.swift",
 ]
 
 let package = Package(
@@ -81,6 +78,7 @@ let package = Package(
             name: "BattleEngineTests",
             dependencies: [
                 "BattleEngine",
+                "BattleBalanceTools",
                 "TrinketCore",
                 "TrinketContent",
                 .product(name: "TrinketTestSupport", package: "TrinketTestSupport"),

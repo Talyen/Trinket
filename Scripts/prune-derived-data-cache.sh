@@ -80,31 +80,13 @@ prune_derived_data_bulk() {
   # Keep Build/Products, ModuleCache, and SourcePackages so --no-build stays warm.
   # Intermediates are only needed for incremental compilation and add substantial
   # transfer cost to every fan-out test job.
-  rm -rf \
-    "$target/Build/Intermediates.noindex" \
-    "$target/Build/ProfileData" \
-    "$target/Index.noindex" \
-    "$target/Index" \
-    "$target/SymbolCache" \
-    "$target/SDKStatCaches.noindex" \
-    "$target/CompilationCache.noindex" \
-    "$target/Logs" \
-    2>/dev/null || true
+  trinket_prune_rebuildable_derived_data "$target"
 
   # Per-package DerivedData tenants (parallel package builds).
   if [[ -d "$target/packages" ]]; then
     find "$target/packages" -mindepth 1 -maxdepth 1 -type d -print0 \
       | while IFS= read -r -d '' package_dd; do
-        rm -rf \
-          "$package_dd/Build/Intermediates.noindex" \
-          "$package_dd/Build/ProfileData" \
-          "$package_dd/Index.noindex" \
-          "$package_dd/Index" \
-          "$package_dd/SymbolCache" \
-          "$package_dd/SDKStatCaches.noindex" \
-          "$package_dd/CompilationCache.noindex" \
-          "$package_dd/Logs" \
-          2>/dev/null || true
+        trinket_prune_rebuildable_derived_data "$package_dd"
       done
   fi
 

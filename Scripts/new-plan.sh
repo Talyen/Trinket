@@ -16,8 +16,9 @@ if [[ "$safe_name" != "$name" || -z "$safe_name" ]]; then
 fi
 
 path="Docs/Plans/${safe_name}.md"
-if [[ -e "$path" ]]; then
-  echo "Plan already exists: $path" >&2
+archived_path="Docs/Plans/Archived/${safe_name}.md"
+if [[ -e "$path" || -e "$archived_path" ]]; then
+  echo "Plan already exists: $path or $archived_path" >&2
   exit 1
 fi
 
@@ -51,11 +52,11 @@ Describe the user-visible outcome and the bounded implementation scope.
 - [ ] Implement the smallest complete change.
 - [ ] Add or extend only consequential coverage.
 - [ ] Run path-scoped verification.
-- [ ] Mark the work complete, delete this file, and report verification.
+- [ ] Mark the work complete, move this file to \`Docs/Plans/Archived/\`, and report verification.
 
 ## Notes
 
-Keep durable policy in its canonical documentation owner. Delete this plan when the work is complete.
+Keep durable policy in its canonical documentation owner. When the work is complete, set \`status: complete\` and move this plan to \`Docs/Plans/Archived/\`.
 EOF
 
 echo "Created $path"

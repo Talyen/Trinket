@@ -46,14 +46,23 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     *)
-      if [[ -z "$TAG" && "$COMMAND" == "prepend" || "$COMMAND" == "github-body" ]]; then
-        TAG="$1"
-        shift
-      else
-        echo "Unknown argument: $1" >&2
-        usage >&2
-        exit 1
-      fi
+      case "$COMMAND" in
+        prepend | github-body)
+          if [[ -z "$TAG" ]]; then
+            TAG="$1"
+            shift
+          else
+            echo "Unknown argument: $1" >&2
+            usage >&2
+            exit 1
+          fi
+          ;;
+        *)
+          echo "Unknown argument: $1" >&2
+          usage >&2
+          exit 1
+          ;;
+      esac
       ;;
   esac
 done

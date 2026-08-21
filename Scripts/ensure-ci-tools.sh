@@ -23,20 +23,17 @@ verify_archive() {
   fi
 }
 
-checksum_for_swiftformat() {
-  case "$os-$arch" in
-    darwin-*) printf '%s' "$SWIFTFORMAT_DARWIN_SHA256" ;;
-    linux-x86_64|linux-amd64) printf '%s' "$SWIFTFORMAT_LINUX_X86_64_SHA256" ;;
-    linux-aarch64|linux-arm64) printf '%s' "$SWIFTFORMAT_LINUX_ARM64_SHA256" ;;
-    *) return 1 ;;
-  esac
-}
-
-checksum_for_swiftlint() {
-  case "$os-$arch" in
-    darwin-*) printf '%s' "$SWIFTLINT_DARWIN_SHA256" ;;
-    linux-x86_64|linux-amd64) printf '%s' "$SWIFTLINT_LINUX_X86_64_SHA256" ;;
-    linux-aarch64|linux-arm64) printf '%s' "$SWIFTLINT_LINUX_ARM64_SHA256" ;;
+tool_checksum() { # tool name
+  local tool="$1"
+  case "$tool:$os-$arch" in
+    swiftformat:darwin-*) printf '%s' "$SWIFTFORMAT_DARWIN_SHA256" ;;
+    swiftformat:linux-x86_64|swiftformat:linux-amd64) printf '%s' "$SWIFTFORMAT_LINUX_X86_64_SHA256" ;;
+    swiftformat:linux-aarch64|swiftformat:linux-arm64) printf '%s' "$SWIFTFORMAT_LINUX_ARM64_SHA256" ;;
+    swiftlint:darwin-*) printf '%s' "$SWIFTLINT_DARWIN_SHA256" ;;
+    swiftlint:linux-x86_64|swiftlint:linux-amd64) printf '%s' "$SWIFTLINT_LINUX_X86_64_SHA256" ;;
+    swiftlint:linux-aarch64|swiftlint:linux-arm64) printf '%s' "$SWIFTLINT_LINUX_ARM64_SHA256" ;;
+    xcbeautify:darwin-arm64|xcbeautify:darwin-aarch64) printf '%s' "$XCBEAUTIFY_DARWIN_ARM64_SHA256" ;;
+    xcbeautify:darwin-x86_64|xcbeautify:darwin-amd64) printf '%s' "$XCBEAUTIFY_DARWIN_X86_64_SHA256" ;;
     *) return 1 ;;
   esac
 }
@@ -60,131 +57,95 @@ download_unzip() {
   rm -rf "$tmpdir"
 }
 
-install_swiftformat() {
-  local bin="$TOOLS_DIR/swiftformat"
-  local marker="$TOOLS_DIR/.swiftformat.sha256"
-  local checksum
-  checksum="$(checksum_for_swiftformat)"
-  if [[ -x "$bin" && -f "$marker" ]] \
-    && [[ "$(awk -F= '$1 == "archive" { print $2; exit }' "$marker")" == "$checksum" ]] \
-    && [[ "$(awk -F= '$1 == "binary" { print $2; exit }' "$marker")" == "$(sha256_file "$bin")" ]] \
-    && [[ "$($bin --version 2>/dev/null || true)" == "$SWIFTFORMAT_VERSION" ]]; then
-    return 0
-  fi
-
-  local url extract archive
-  extract="$(mktemp -d)"
-
-  case "$os" in
-    darwin)
-      archive="swiftformat.zip"
-      checksum="$SWIFTFORMAT_DARWIN_SHA256"
-      ;;
-    linux)
-      case "$arch" in
-        x86_64 | amd64) archive="swiftformat_linux.zip"; checksum="$SWIFTFORMAT_LINUX_X86_64_SHA256" ;;
-        aarch64 | arm64) archive="swiftformat_linux_aarch64.zip"; checksum="$SWIFTFORMAT_LINUX_ARM64_SHA256" ;;
-        *)
-          echo "Unsupported architecture for SwiftFormat: $arch" >&2
-          exit 1
-          ;;
-      esac
-      ;;
+# Release-archive name and checksum per platform. Sets ARCHIVE_NAME and
+# ARCHIVE_CHECKSUM; exits on unsupported platforms.
+zip_tool_archive() {
+  local tool="$1"
+  case "$tool:$os-$arch" in
+    swiftformat:darwin-*)
+      ARCHIVE_NAME="swiftformat.zip"; ARCHIVE_CHECKSUM="$SWIFTFORMAT_DARWIN_SHA256" ;;
+    swiftformat:linux-x86_64 | swiftformat:linux-amd64)
+      ARCHIVE_NAME="swiftformat_linux.zip"; ARCHIVE_CHECKSUM="$SWIFTFORMAT_LINUX_X86_64_SHA256" ;;
+    swiftformat:linux-aarch64 | swiftformat:linux-arm64)
+      ARCHIVE_NAME="swiftformat_linux_aarch64.zip"; ARCHIVE_CHECKSUM="$SWIFTFORMAT_LINUX_ARM64_SHA256" ;;
+    swiftlint:darwin-*)
+      ARCHIVE_NAME="portable_swiftlint.zip"; ARCHIVE_CHECKSUM="$SWIFTLINT_DARWIN_SHA256" ;;
+    swiftlint:linux-x86_64 | swiftlint:linux-amd64)
+      ARCHIVE_NAME="swiftlint_linux_amd64.zip"; ARCHIVE_CHECKSUM="$SWIFTLINT_LINUX_X86_64_SHA256" ;;
+    swiftlint:linux-aarch64 | swiftlint:linux-arm64)
+      ARCHIVE_NAME="swiftlint_linux_arm64.zip"; ARCHIVE_CHECKSUM="$SWIFTLINT_LINUX_ARM64_SHA256" ;;
+    xcbeautify:darwin-arm64 | xcbeautify:darwin-aarch64)
+      ARCHIVE_NAME="xcbeautify-${XCBEAUTIFY_VERSION}-arm64-apple-macosx.zip"; ARCHIVE_CHECKSUM="$XCBEAUTIFY_DARWIN_ARM64_SHA256" ;;
+    xcbeautify:darwin-x86_64 | xcbeautify:darwin-amd64)
+      ARCHIVE_NAME="xcbeautify-${XCBEAUTIFY_VERSION}-x86_64-apple-macosx.zip"; ARCHIVE_CHECKSUM="$XCBEAUTIFY_DARWIN_X86_64_SHA256" ;;
     *)
-      echo "Unsupported OS for SwiftFormat install: $os" >&2
+      echo "Unsupported OS/architecture for $tool: $os/$arch" >&2
       exit 1
       ;;
   esac
-
-  url="https://github.com/nicklockwood/SwiftFormat/releases/download/${SWIFTFORMAT_VERSION}/${archive}"
-  echo "Installing SwiftFormat ${SWIFTFORMAT_VERSION} from ${url}..."
-  download_unzip "$url" "$extract" "$checksum"
-
-  if [[ -f "$extract/swiftformat_linux" ]]; then
-    install -m 755 "$extract/swiftformat_linux" "$bin.tmp"
-  elif [[ -f "$extract/swiftformat" ]]; then
-    install -m 755 "$extract/swiftformat" "$bin.tmp"
-  else
-    echo "SwiftFormat binary not found in release archive." >&2
-    rm -rf "$extract"
-    exit 1
-  fi
-  mv -f "$bin.tmp" "$bin"
-  printf 'archive=%s\nbinary=%s\n' "$checksum" "$(sha256_file "$bin")" > "$marker"
-  rm -rf "$extract"
-
-  local actual
-  actual="$("$bin" --version)"
-  if [[ "$actual" != "$SWIFTFORMAT_VERSION" ]]; then
-    echo "SwiftFormat version mismatch after install: expected $SWIFTFORMAT_VERSION, found $actual" >&2
-    exit 1
-  fi
 }
 
-install_swiftlint() {
-  local bin="$TOOLS_DIR/swiftlint"
-  local marker="$TOOLS_DIR/.swiftlint.sha256"
+# Shared installer for checksummed zip releases with a marker file.
+# install_zip_tool <name> <version> <repo-slug> <version-flag> <candidate-binary...>
+install_zip_tool() {
+  local name="$1" version="$2" slug="$3" version_flag="$4"
+  shift 4
+  local -a candidates=("$@")
+  local bin="$TOOLS_DIR/$name"
+  local marker="$TOOLS_DIR/.$name.sha256"
   local checksum
-  checksum="$(checksum_for_swiftlint)"
+  checksum="$(tool_checksum "$name")"
   if [[ -x "$bin" && -f "$marker" ]] \
     && [[ "$(awk -F= '$1 == "archive" { print $2; exit }' "$marker")" == "$checksum" ]] \
     && [[ "$(awk -F= '$1 == "binary" { print $2; exit }' "$marker")" == "$(sha256_file "$bin")" ]] \
-    && [[ "$($bin version 2>/dev/null || true)" == "$SWIFTLINT_VERSION" ]]; then
+    && [[ "$("$bin" $version_flag 2>/dev/null || true)" == "$version" ]]; then
     return 0
   fi
 
-  local url extract archive candidate
+  local url extract archive candidate c
   extract="$(mktemp -d)"
+  zip_tool_archive "$name"
+  archive="$ARCHIVE_NAME"
+  local archive_checksum="$ARCHIVE_CHECKSUM"
 
-  case "$os" in
-    darwin)
-      archive="portable_swiftlint.zip"
-      checksum="$SWIFTLINT_DARWIN_SHA256"
-      ;;
-    linux)
-      case "$arch" in
-        x86_64 | amd64) archive="swiftlint_linux_amd64.zip"; checksum="$SWIFTLINT_LINUX_X86_64_SHA256" ;;
-        aarch64 | arm64) archive="swiftlint_linux_arm64.zip"; checksum="$SWIFTLINT_LINUX_ARM64_SHA256" ;;
-        *)
-          echo "Unsupported architecture for SwiftLint: $arch" >&2
-          exit 1
-          ;;
-      esac
-      ;;
-    *)
-      echo "Unsupported OS for SwiftLint install: $os" >&2
-      exit 1
-      ;;
-  esac
-
-  url="https://github.com/realm/SwiftLint/releases/download/${SWIFTLINT_VERSION}/${archive}"
-  echo "Installing SwiftLint ${SWIFTLINT_VERSION} from ${url}..."
-  download_unzip "$url" "$extract" "$checksum"
+  url="https://github.com/${slug}/releases/download/${version}/${archive}"
+  echo "Installing ${name} ${version} from ${url}..."
+  download_unzip "$url" "$extract" "$archive_checksum"
 
   candidate=""
-  if [[ -f "$extract/swiftlint-static" ]]; then
-    candidate="$extract/swiftlint-static"
-  elif [[ -f "$extract/swiftlint" ]]; then
-    candidate="$extract/swiftlint"
-  else
-    candidate="$(find "$extract" -type f -name swiftlint -print -quit || true)"
+  for c in "${candidates[@]}"; do
+    if [[ -f "$extract/$c" ]]; then
+      candidate="$extract/$c"
+      break
+    fi
+  done
+  if [[ -z "$candidate" ]]; then
+    candidate="$(find "$extract" -type f -name "$name" -print -quit || true)"
   fi
   if [[ -z "$candidate" || ! -f "$candidate" ]]; then
-    echo "SwiftLint binary not found in release archive." >&2
+    echo "${name} binary not found in release archive." >&2
     rm -rf "$extract"
     exit 1
   fi
   install -m 755 "$candidate" "$bin.tmp"
   mv -f "$bin.tmp" "$bin"
-  printf 'archive=%s\nbinary=%s\n' "$checksum" "$(sha256_file "$bin")" > "$marker"
+  printf 'archive=%s\nbinary=%s\n' "$archive_checksum" "$(sha256_file "$bin")" > "$marker"
   rm -rf "$extract"
 
   local actual
-  actual="$("$bin" version)"
-  if [[ "$actual" != "$SWIFTLINT_VERSION" ]]; then
-    echo "SwiftLint version mismatch after install: expected $SWIFTLINT_VERSION, found $actual" >&2
+  actual="$("$bin" $version_flag)"
+  if [[ "$actual" != "$version" ]]; then
+    echo "${name} version mismatch after install: expected $version, found $actual" >&2
     exit 1
   fi
+}
+
+install_swiftformat() {
+  install_zip_tool swiftformat "$SWIFTFORMAT_VERSION" nicklockwood/SwiftFormat --version swiftformat_linux swiftformat
+}
+
+install_swiftlint() {
+  install_zip_tool swiftlint "$SWIFTLINT_VERSION" realm/SwiftLint version swiftlint-static swiftlint
 }
 
 install_xcodegen() {
@@ -295,61 +256,7 @@ install_xcbeautify() {
   # Local/darwin only: CI omits --verbose and uses structured failure reports,
   # so a condensed formatter is only needed on mac for the run/build path.
   [[ "$os" == "darwin" ]] || return 0
-
-  local bin="$TOOLS_DIR/xcbeautify"
-  local marker="$TOOLS_DIR/.xcbeautify.sha256"
-  if [[ -x "$bin" && -f "$marker" ]] \
-    && [[ "$(awk -F= '$1 == "archive" { print $2; exit }' "$marker")" == "$(checksum_for_xcbeautify)" ]] \
-    && [[ "$("$bin" --version 2>/dev/null || true)" == "$XCBEAUTIFY_VERSION" ]]; then
-    return 0
-  fi
-
-  local url extract archive checksum
-  checksum="$(checksum_for_xcbeautify)"
-  case "$arch" in
-    arm64 | aarch64)
-      archive="xcbeautify-${XCBEAUTIFY_VERSION}-arm64-apple-macosx.zip"
-      ;;
-    x86_64 | amd64)
-      archive="xcbeautify-${XCBEAUTIFY_VERSION}-x86_64-apple-macosx.zip"
-      ;;
-    *)
-      echo "Unsupported architecture for xcbeautify: $arch" >&2
-      return 1
-      ;;
-  esac
-
-  url="https://github.com/cpisciotta/xcbeautify/releases/download/${XCBEAUTIFY_VERSION}/${archive}"
-  echo "Installing xcbeautify ${XCBEAUTIFY_VERSION} from ${url}..."
-  extract="$(mktemp -d)"
-  download_unzip "$url" "$extract" "$checksum"
-
-  local candidate
-  candidate="$(find "$extract" -type f -name xcbeautify -print -quit || true)"
-  if [[ -z "$candidate" || ! -f "$candidate" ]]; then
-    echo "xcbeautify binary not found in release archive." >&2
-    rm -rf "$extract"
-    return 1
-  fi
-  install -m 755 "$candidate" "$bin.tmp"
-  mv -f "$bin.tmp" "$bin"
-  printf 'archive=%s\nbinary=%s\n' "$checksum" "$(sha256_file "$bin")" > "$marker"
-  rm -rf "$extract"
-
-  local actual
-  actual="$("$bin" --version)"
-  if [[ "$actual" != "$XCBEAUTIFY_VERSION" ]]; then
-    echo "xcbeautify version mismatch after install: expected $XCBEAUTIFY_VERSION, found $actual" >&2
-    return 1
-  fi
-}
-
-checksum_for_xcbeautify() {
-  case "$os-$arch" in
-    darwin-arm64 | darwin-aarch64) printf '%s' "$XCBEAUTIFY_DARWIN_ARM64_SHA256" ;;
-    darwin-x86_64 | darwin-amd64) printf '%s' "$XCBEAUTIFY_DARWIN_X86_64_SHA256" ;;
-    *) return 1 ;;
-  esac
+  install_zip_tool xcbeautify "$XCBEAUTIFY_VERSION" cpisciotta/xcbeautify --version xcbeautify
 }
 
 install_swiftformat

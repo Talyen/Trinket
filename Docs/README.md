@@ -10,7 +10,7 @@ One fact has one owner. Link instead of copying policy.
 | Agent constitution | [AGENTS.md](../AGENTS.md), nested `AGENTS.md` | Guardrails and local hard stops |
 | Standing policy | [Platform](Platform/README.md), [Product](Product/Decisions.md) | Architecture, verification, player decisions |
 | Path-routed depth | [AgentContext](AgentContext/), package and manifest READMEs, [Skills](Skills/apple-design/SKILL.md) | Domain exceptions and how-to |
-| On demand | [Audits](Audits/README.md), performance/CloudKit playbooks, [Plans](Plans/README.md) | Cited audits, investigation, in-flight plans only |
+| On demand | [Audits](Audits/README.md), performance/CloudKit playbooks, [Plans](Plans/README.md) | Cited audits, investigation, in-flight plans, and archived plan records |
 
 ## Source of truth
 

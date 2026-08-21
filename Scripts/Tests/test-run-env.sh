@@ -12,6 +12,7 @@ trap 'rm -rf "$TMP_DIR"' EXIT
 REPO="$TMP_DIR/repo"
 mkdir -p "$REPO/Scripts"
 cp "$ROOT_DIR/Scripts/run-env.sh" "$REPO/Scripts/run-env.sh"
+cp "$ROOT_DIR/Scripts/simctl_json.py" "$REPO/Scripts/simctl_json.py"
 
 FAKE_BIN="$TMP_DIR/bin"
 FAKE_SHUTDOWN_LOG="$TMP_DIR/shutdown.log"
@@ -212,22 +213,6 @@ bash -c '
   [[ -z "${TRINKET_AGENT_SLOT:-}" ]]
 ' _ "$REPO"
 
-# --- dry-run preview skips locking ---
-bash -c '
-  set -euo pipefail
-  cd "$1"
-  source Scripts/run-env.sh
-  unset DERIVED_DATA_PATH RESULTS_DIR TRINKET_SIMULATOR_NAME TRINKET_AGENT_SLOT
-  export TRINKET_ISOLATE=1
-  export TRINKET_RUN_ID="preview"
-  export TRINKET_SIM_SLOT_SKIP_ACQUIRE=1
-  trinket_run_env_init
-  [[ "$TRINKET_SIMULATOR_NAME" == "Trinket Agent (pool)" ]]
-  [[ "$DERIVED_DATA_PATH" == "$PWD/.DerivedData/runs/agent-preview" ]]
-  [[ -z "${TRINKET_AGENT_SLOT:-}" ]]
-  [[ ! -d "$PWD/.DerivedData/.active-sim" ]] || [[ -z "$(ls -A "$PWD/.DerivedData/.active-sim" 2>/dev/null || true)" ]]
-' _ "$REPO"
-
 # --- agent sim slot fail-fast when pool full ---
 bash -c '
   set -euo pipefail
@@ -296,7 +281,6 @@ bash -c '
   export TRINKET_CLEANUP_PREVIEW_SIMS=1
   export TRINKET_ISOLATE=1 TRINKET_RUN_ID="preview-empty"
   export TRINKET_CLEANUP_SINGLE_WARMED=0
-  export TRINKET_CLEANUP_IDLE_POOL=0
   export TRINKET_CLEANUP_DERIVED_DATA_AGE_PRUNE=0
   unset DERIVED_DATA_PATH RESULTS_DIR TRINKET_SIMULATOR_NAME TRINKET_AGENT_SLOT TRINKET_SIM_SLOT_PATH
   unset TRINKET_SELF_CLEAN_OWNER
@@ -322,7 +306,6 @@ bash -c '
   export TRINKET_CLEANUP_PREVIEW_SIMS=1
   export TRINKET_ISOLATE=1 TRINKET_RUN_ID="preview-shutdown-only"
   export TRINKET_CLEANUP_SINGLE_WARMED=0
-  export TRINKET_CLEANUP_IDLE_POOL=0
   export TRINKET_CLEANUP_DERIVED_DATA_AGE_PRUNE=0
   unset DERIVED_DATA_PATH RESULTS_DIR TRINKET_SIMULATOR_NAME TRINKET_AGENT_SLOT TRINKET_SIM_SLOT_PATH
   unset TRINKET_SELF_CLEAN_OWNER
@@ -350,7 +333,6 @@ bash -c '
   export TRINKET_ISOLATE=1 TRINKET_RUN_ID="preview-reclaim"
   # Isolate Preview reclaim from single-warm / idle-pool side effects.
   export TRINKET_CLEANUP_SINGLE_WARMED=0
-  export TRINKET_CLEANUP_IDLE_POOL=0
   export TRINKET_CLEANUP_DERIVED_DATA_AGE_PRUNE=0
   unset DERIVED_DATA_PATH RESULTS_DIR TRINKET_SIMULATOR_NAME TRINKET_AGENT_SLOT TRINKET_SIM_SLOT_PATH
   unset TRINKET_SELF_CLEAN_OWNER
@@ -377,7 +359,6 @@ bash -c '
   export TRINKET_CLEANUP_PREVIEW_SIMS=1
   export TRINKET_ISOLATE=1 TRINKET_RUN_ID="start-hygiene"
   export TRINKET_CLEANUP_SINGLE_WARMED=0
-  export TRINKET_CLEANUP_IDLE_POOL=0
   export TRINKET_CLEANUP_DERIVED_DATA_AGE_PRUNE=0
   unset DERIVED_DATA_PATH RESULTS_DIR TRINKET_SIMULATOR_NAME TRINKET_AGENT_SLOT TRINKET_SIM_SLOT_PATH
   unset TRINKET_SELF_CLEAN_OWNER
@@ -406,7 +387,6 @@ bash -c '
   export TRINKET_CLEANUP_PREVIEW_SIMS=1
   export TRINKET_ISOLATE=1 TRINKET_RUN_ID="child-no-self-clean"
   export TRINKET_CLEANUP_SINGLE_WARMED=0
-  export TRINKET_CLEANUP_IDLE_POOL=0
   export TRINKET_CLEANUP_DERIVED_DATA_AGE_PRUNE=0
   unset DERIVED_DATA_PATH RESULTS_DIR TRINKET_SIMULATOR_NAME TRINKET_AGENT_SLOT TRINKET_SIM_SLOT_PATH
   # Parent-owned token that does not match this process.
@@ -432,7 +412,6 @@ bash -c '
   export FAKE_SHUTDOWN_LOG="$4"
   export FAKE_ERASE_LOG="$5"
   export TRINKET_ISOLATE=1 TRINKET_RUN_ID="single-warm"
-  export TRINKET_CLEANUP_IDLE_POOL=0
   export TRINKET_CLEANUP_DERIVED_DATA_AGE_PRUNE=0
   unset DERIVED_DATA_PATH RESULTS_DIR TRINKET_SIMULATOR_NAME TRINKET_AGENT_SLOT TRINKET_SIM_SLOT_PATH
   unset TRINKET_SELF_CLEAN_OWNER TRINKET_CLEANUP_SINGLE_WARMED
@@ -447,7 +426,7 @@ bash -c '
   [[ ! -s "$FAKE_ERASE_LOG" ]]
 ' _ "$REPO" "$FAKE_BIN" "$FAKE_PREVIEW_LOG" "$FAKE_SHUTDOWN_LOG" "$FAKE_ERASE_LOG"
 
-# --- held peer slot: keep active Agent 2, shut down Agent 1; idle-pool skips erase ---
+# --- held peer slot: keep active Agent 2, shut down Agent 1 ---
 : > "$FAKE_PREVIEW_LOG"
 : > "$FAKE_SHUTDOWN_LOG"
 : > "$FAKE_ERASE_LOG"
@@ -459,7 +438,6 @@ bash -c '
   export FAKE_SHUTDOWN_LOG="$4"
   export FAKE_ERASE_LOG="$5"
   export TRINKET_ISOLATE=1 TRINKET_RUN_ID="held-peer"
-  export TRINKET_CLEANUP_IDLE_POOL=1
   export TRINKET_CLEANUP_DERIVED_DATA_AGE_PRUNE=0
   unset DERIVED_DATA_PATH RESULTS_DIR TRINKET_SIMULATOR_NAME TRINKET_AGENT_SLOT TRINKET_SIM_SLOT_PATH
   unset TRINKET_SELF_CLEAN_OWNER
@@ -490,7 +468,7 @@ bash -c '
   export TRINKET_CLEANUP_DERIVED_DATA_AGE_PRUNE=0
   export TRINKET_CLEANUP_SINGLE_WARMED=0
   unset DERIVED_DATA_PATH RESULTS_DIR TRINKET_SIMULATOR_NAME TRINKET_AGENT_SLOT TRINKET_SIM_SLOT_PATH
-  unset TRINKET_SELF_CLEAN_OWNER TRINKET_CLEANUP_IDLE_POOL
+  unset TRINKET_SELF_CLEAN_OWNER
   source Scripts/run-env.sh
   trinket_run_env_init
   [[ "$TRINKET_MAX_AGENT_SIMS" == "1" ]]
@@ -498,39 +476,6 @@ bash -c '
   trinket_run_env_release_slots
   [[ ! -s "$FAKE_SHUTDOWN_LOG" ]]
   [[ ! -s "$FAKE_ERASE_LOG" ]]
-' _ "$REPO" "$FAKE_BIN" "$FAKE_PREVIEW_LOG" "$FAKE_SHUTDOWN_LOG" "$FAKE_ERASE_LOG"
-
-# --- opt-in idle-pool: shut down Booted Agents + erase Agents; never touch CI/personal ---
-: > "$FAKE_PREVIEW_LOG"
-: > "$FAKE_SHUTDOWN_LOG"
-: > "$FAKE_ERASE_LOG"
-bash -c '
-  set -euo pipefail
-  cd "$1"
-  export PATH="$2:$PATH"
-  export FAKE_PREVIEW_LOG="$3"
-  export FAKE_SHUTDOWN_LOG="$4"
-  export FAKE_ERASE_LOG="$5"
-  export TRINKET_ISOLATE=1 TRINKET_RUN_ID="idle-pool"
-  export TRINKET_CLEANUP_IDLE_POOL=1
-  export TRINKET_CLEANUP_SINGLE_WARMED=0
-  export TRINKET_CLEANUP_DERIVED_DATA_AGE_PRUNE=0
-  unset DERIVED_DATA_PATH RESULTS_DIR TRINKET_SIMULATOR_NAME TRINKET_AGENT_SLOT TRINKET_SIM_SLOT_PATH
-  unset TRINKET_SELF_CLEAN_OWNER
-  source Scripts/run-env.sh
-  trinket_run_env_init
-  trinket_run_env_claim_self_clean_owner
-  trinket_run_env_release_slots
-  grep -Fx "agent-1" "$FAKE_SHUTDOWN_LOG"
-  grep -Fx "agent-2" "$FAKE_SHUTDOWN_LOG"
-  ! grep -q "agent-3" "$FAKE_SHUTDOWN_LOG"
-  ! grep -q "personal-device" "$FAKE_SHUTDOWN_LOG"
-  ! grep -q "ci-1" "$FAKE_SHUTDOWN_LOG"
-  grep -Fx "agent-1" "$FAKE_ERASE_LOG"
-  grep -Fx "agent-2" "$FAKE_ERASE_LOG"
-  grep -Fx "agent-3" "$FAKE_ERASE_LOG"
-  ! grep -q "ci-1" "$FAKE_ERASE_LOG"
-  ! grep -q "personal-device" "$FAKE_ERASE_LOG"
 ' _ "$REPO" "$FAKE_BIN" "$FAKE_PREVIEW_LOG" "$FAKE_SHUTDOWN_LOG" "$FAKE_ERASE_LOG"
 
 # --- non-isolate: keep Run Booted, shut down excess Agents; never erase ---
@@ -548,7 +493,6 @@ bash -c '
   unset DERIVED_DATA_PATH RESULTS_DIR TRINKET_SIMULATOR_NAME TRINKET_SIM_SLOT_PATH
   unset TRINKET_SELF_CLEAN_OWNER TRINKET_CLEANUP_SINGLE_WARMED
   export TRINKET_CLEANUP_DERIVED_DATA_AGE_PRUNE=0
-  export TRINKET_CLEANUP_IDLE_POOL=0
   source Scripts/run-env.sh
   trinket_run_env_init
   [[ "$TRINKET_SIMULATOR_NAME" == "Trinket Run" ]]

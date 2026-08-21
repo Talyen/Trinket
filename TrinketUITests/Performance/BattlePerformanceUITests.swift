@@ -142,9 +142,7 @@ final class BattlePerformanceUITests: TrinketUITestCase {
     }
 
     private func handCards() -> XCUIElementQuery {
-        app.descendants(matching: .any).matching(
-            NSPredicate(format: "identifier BEGINSWITH %@", "Battle Hand Card ")
-        )
+        BattleScreen(app: app).handCards
     }
 
     private func screenCoordinate(for element: XCUIElement) -> XCUICoordinate {

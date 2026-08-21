@@ -51,7 +51,7 @@ struct ThemedGearGeneratorTests {
     }
 
     @Test func fixedAffixCountOverrideInItemGenerator() throws {
-        let baseType = try #require(GameContent.itemBaseTypes.first { $0.id == "longsword" })
+        let baseType = try ItemFixtures.baseType("longsword")
         var rng = SeededRandomNumberGenerator(seed: 12)
 
         let item = ItemGenerator().generate(

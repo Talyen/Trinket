@@ -3,7 +3,8 @@ import XCTest
 
 /// Tab-reachable surface journeys that smoke does not own: loadout picker and Homestead detail.
 final class TabNavigationUITests: TrinketUITestCase {
-    func testSalvageRemovesCollectionShelfItemImmediately() {
+    /// One launch covers both collection surfaces: shelf salvage, then inventory-grid salvage.
+    func testSalvageRemovesShelfAndInventoryGridItemsImmediately() {
         launchApp(arguments: TestLaunchArg.allForTab("collection"))
         collection.assertLoaded()
 
@@ -11,13 +12,8 @@ final class TabNavigationUITests: TrinketUITestCase {
             itemID: "crossbow-basic",
             remainingItemID: "crossbow-astral"
         )
-    }
 
-    func testSalvageRemovesInventoryGridItemImmediately() {
-        launchApp(arguments: TestLaunchArg.allForTab("collection"))
-        collection.assertLoaded()
         tapButton(AccessibilityID.Collection.inventoryCategory)
-
         assertSalvageRemovesItemImmediately(
             itemID: "mace-basic",
             remainingItemID: "mace-astral"

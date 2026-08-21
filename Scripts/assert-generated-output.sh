@@ -1,65 +1,60 @@
 #!/usr/bin/env bash
 # Generated-output assert helpers. Executable as a gate; sourceable for the
-# shared tracked-path list (agent-push-gate XcodeGen-unavailable fallback).
+# shared tracked-path list and committed-drift check (agent-push-gate fallback).
+
+TRINKET_GENERATED_OUTPUT_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 trinket_set_generated_tracked_paths() {
   local include_assets="${1:-false}"
   local include_pbxproj="${2:-true}"
+  local paths_file="$TRINKET_GENERATED_OUTPUT_SCRIPT_DIR/config/generated-paths.tsv"
 
   TRACKED_PATHS=()
-  if [[ "$include_pbxproj" == true ]]; then
-    TRACKED_PATHS+=(
-      "Trinket.xcodeproj/project.pbxproj"
-    )
-  fi
-  TRACKED_PATHS+=(
-    "Packages/TrinketContent/Sources/TrinketContent/Generated/ItemAffixCatalog.generated.swift"
-    "Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityShorthand.generated.swift"
-    "Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityInventory.generated.tsv"
-    "Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityCatalogIndex.generated.swift"
-    "Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentStagesIndex.generated.swift"
-    "Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentChapters.generated.swift"
-    "Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentRoster.generated.swift"
-    "Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentEnemies.generated.swift"
-    "Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentHomestead.generated.swift"
-    "Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentItemBases.generated.swift"
-    "Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentTraits.generated.swift"
-    "Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentEncounterArt.generated.swift"
-    "Packages/TrinketContent/Sources/TrinketContent/Generated/DamageTriggers.generated.swift"
-    "Packages/TrinketContent/Sources/TrinketContent/Generated/AttackTriggers.generated.swift"
-    "Packages/TrinketContent/Sources/TrinketContent/Generated/BlockTriggers.generated.swift"
-    "Packages/TrinketContent/Sources/TrinketContent/Generated/MitigationTriggers.generated.swift"
-    "Packages/TrinketContent/Sources/TrinketContent/Generated/DotTriggers.generated.swift"
-    "Packages/TrinketContent/Sources/TrinketContent/Generated/ControlTriggers.generated.swift"
-    "Packages/TrinketContent/Sources/TrinketContent/Generated/DodgeTriggers.generated.swift"
-    "Packages/TrinketContent/Sources/TrinketContent/Generated/ManaTriggers.generated.swift"
-    "Packages/TrinketContent/Sources/TrinketContent/Generated/GoldTriggers.generated.swift"
-    "Packages/TrinketContent/Sources/TrinketContent/Generated/HealingTriggers.generated.swift"
-    "Packages/TrinketContent/Sources/TrinketContent/Generated/RevivalTriggers.generated.swift"
-    "Packages/TrinketContent/Sources/TrinketContent/Generated/CleanseTriggers.generated.swift"
-    "Packages/TrinketContent/Sources/TrinketContent/Generated/EnemyTurnTriggers.generated.swift"
-    "Packages/TrinketContent/Sources/TrinketContent/Generated/OnHitTriggers.generated.swift"
-    "Packages/TrinketContent/Sources/TrinketContent/Generated/CombatantTalentCatalog.generated.swift"
-  )
+  while IFS='|' read -r kind path; do
+    [[ -z "$kind" || "$kind" == \#* ]] && continue
+    [[ "$kind" == project && "$include_pbxproj" != true ]] && continue
+    [[ "$kind" == asset && "$include_assets" != true ]] && continue
+    TRACKED_PATHS+=("$path")
+  done < "$paths_file"
+}
 
-  if [[ "$include_assets" == true ]]; then
-    TRACKED_PATHS+=(
-      "Packages/TrinketContent/Sources/TrinketContent/Generated/ArtCatalog.generated.swift"
-      "Packages/TrinketContent/Sources/TrinketContent/Generated/ArtSourceHashes.generated.tsv"
-      "Packages/TrinketContent/Sources/TrinketContent/Generated/MusicCatalog.generated.swift"
-      "Packages/TrinketContent/Sources/TrinketContent/Generated/MusicSourceHashes.generated.tsv"
-      "Packages/TrinketContent/Sources/TrinketContent/Generated/SFXCatalog.generated.swift"
-      "Packages/TrinketContent/Sources/TrinketContent/Generated/SFXSourceHashes.generated.tsv"
-      "Packages/TrinketContent/Sources/TrinketContent/Generated/UltimateCinematicCatalog.generated.swift"
-      "Packages/TrinketContent/Sources/TrinketContent/Generated/UltimateCinematicSourceHashes.generated.tsv"
-      "Packages/TrinketContent/Sources/TrinketContent/Generated/AppIconSourceHashes.generated.tsv"
-      "Trinket/AppIcon.icon"
-      "Trinket/Assets.xcassets"
-      "Trinket/Media/Music"
-      "Trinket/Media/SFX"
-      "Trinket/Media/Cinematics"
-    )
+# Plan target UUIDs must be PBXNativeTarget IDs in the generated project.
+assert_testplan_native_target_ids() {
+  local pbx_ids plan_ids id
+  pbx_ids="$(sed -n '/Begin PBXNativeTarget section/,/End PBXNativeTarget section/s/^[[:space:]]*\([A-F0-9]\{24\}\) \/\*.*/\1/p' Trinket.xcodeproj/project.pbxproj | sort -u)"
+  plan_ids="$(grep -hoE '"identifier"[[:space:]]*:[[:space:]]*"[A-F0-9]{24}"' ./*.xctestplan | grep -oE '[A-F0-9]{24}' | sort -u)"
+  while IFS= read -r id; do
+    [[ -z "$id" ]] && continue
+    if ! grep -qxF "$id" <<<"$pbx_ids"; then
+      echo "ERROR: .xctestplan identifier $id is not a PBXNativeTarget in project.pbxproj" >&2
+      return 1
+    fi
+  done <<<"$plan_ids"
+}
+
+print_tracked_diff_vs_head() {
+  echo "--- Diff summary ---" >&2
+  git status --porcelain=v1 --untracked-files=all -- "${TRACKED_PATHS[@]}" >&2 || true
+  git diff --stat -- "${TRACKED_PATHS[@]}" >&2 || true
+  git diff --cached --stat -- "${TRACKED_PATHS[@]}" >&2 || true
+  echo "--- First 100 lines of diff ---" >&2
+  git diff -- "${TRACKED_PATHS[@]}" | head -n 100 >&2 || true
+  git diff --cached -- "${TRACKED_PATHS[@]}" | head -n 100 >&2 || true
+}
+
+# Committed-mode drift check over TRACKED_PATHS. Fails with triage output when
+# tracked generated paths differ from HEAD.
+trinket_assert_committed_output() {
+  local tracked_status
+  tracked_status="$(git status --porcelain=v1 --untracked-files=all -- "${TRACKED_PATHS[@]}")"
+  if [[ -z "$tracked_status" ]]; then
+    return 0
   fi
+  echo "ERROR: Generated output is stale or uncommitted." >&2
+  echo "If these are intentional task outputs, review them, commit or amend only the task scope, then rerun this gate." >&2
+  echo "Otherwise run ./Scripts/generate.sh and investigate the unexpected drift (including Trinket.xcodeproj when project.yml changed)." >&2
+  print_tracked_diff_vs_head
+  return 1
 }
 
 if [[ "${BASH_SOURCE[0]}" != "$0" ]]; then
@@ -127,20 +122,6 @@ done
 
 trinket_set_generated_tracked_paths "$INCLUDE_ASSETS" true
 
-# Plan target UUIDs must be PBXNativeTarget IDs in the generated project.
-assert_testplan_native_target_ids() {
-  local pbx_ids plan_ids id
-  pbx_ids="$(sed -n '/Begin PBXNativeTarget section/,/End PBXNativeTarget section/s/^[[:space:]]*\([A-F0-9]\{24\}\) \/\*.*/\1/p' Trinket.xcodeproj/project.pbxproj | sort -u)"
-  plan_ids="$(grep -hoE '"identifier"[[:space:]]*:[[:space:]]*"[A-F0-9]{24}"' ./*.xctestplan | grep -oE '[A-F0-9]{24}' | sort -u)"
-  while IFS= read -r id; do
-    [[ -z "$id" ]] && continue
-    if ! grep -qxF "$id" <<<"$pbx_ids"; then
-      echo "ERROR: .xctestplan identifier $id is not a PBXNativeTarget in project.pbxproj" >&2
-      return 1
-    fi
-  done <<<"$plan_ids"
-}
-
 run_generate() {
   if [[ "$INCLUDE_ASSETS" == true ]]; then
     ./Scripts/generate.sh --assets
@@ -164,16 +145,6 @@ snapshot_tracked() {
       printf 'MISSING %s\n' "$path"
     fi
   done
-}
-
-print_tracked_diff_vs_head() {
-  echo "--- Diff summary ---" >&2
-  git status --porcelain=v1 --untracked-files=all -- "${TRACKED_PATHS[@]}" >&2 || true
-  git diff --stat -- "${TRACKED_PATHS[@]}" >&2 || true
-  git diff --cached --stat -- "${TRACKED_PATHS[@]}" >&2 || true
-  echo "--- First 100 lines of diff ---" >&2
-  git diff -- "${TRACKED_PATHS[@]}" | head -n 100 >&2 || true
-  git diff --cached -- "${TRACKED_PATHS[@]}" | head -n 100 >&2 || true
 }
 
 if [[ "$MODE" == "idempotent" ]]; then
@@ -237,18 +208,12 @@ fi
 
 assert_testplan_native_target_ids
 
-tracked_status="$(git status --porcelain=v1 --untracked-files=all -- "${TRACKED_PATHS[@]}")"
-if [[ -z "$tracked_status" ]]; then
+if trinket_assert_committed_output; then
   echo "Generated output matches manifests (committed)."
   exit 0
 fi
 
-echo "ERROR: Generated output is stale or uncommitted." >&2
-echo "If these are intentional task outputs, review them, commit or amend only the task scope, then rerun this gate." >&2
-echo "Otherwise run ./Scripts/generate.sh and investigate the unexpected drift (including Trinket.xcodeproj when project.yml changed)." >&2
 if [[ "$INCLUDE_ASSETS" == true ]]; then
   echo "For art/music manifest edits, use ./Scripts/generate.sh --assets" >&2
 fi
-echo "" >&2
-print_tracked_diff_vs_head
 exit 1

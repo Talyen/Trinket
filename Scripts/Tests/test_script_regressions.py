@@ -76,6 +76,51 @@ class ScriptRegressionTests(unittest.TestCase):
             _, errors = self.check_docs.plan_metadata(blocked)
             self.assertIn("blocked plans require reason", errors)
 
+    def test_completed_plans_are_archived_instead_of_deleted(self) -> None:
+        plan_name = f"ArchiveFixture{os.getpid()}"
+        active_path = ROOT / "Docs" / "Plans" / f"{plan_name}.md"
+        archived_path = ROOT / "Docs" / "Plans" / "Archived" / f"{plan_name}.md"
+        plan = (
+            "---\n"
+            "type: execution-plan\n"
+            "status: complete\n"
+            "created: 2026-08-01\n"
+            "updated: 2026-08-20\n"
+            "expires: 2026-08-19\n"
+            "---\n\n# Archived fixture\n"
+        )
+        try:
+            active_path.write_text(plan, encoding="utf-8")
+            rejected = subprocess.run(
+                [sys.executable, str(ROOT / "Scripts" / "check-docs.py")],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertNotEqual(rejected.returncode, 0)
+            self.assertIn("must be moved to Docs/Plans/Archived/", rejected.stderr)
+
+            active_path.unlink()
+            archived_path.write_text(plan, encoding="utf-8")
+            accepted = subprocess.run(
+                [sys.executable, str(ROOT / "Scripts" / "check-docs.py")],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(accepted.returncode, 0, accepted.stderr)
+        finally:
+            active_path.unlink(missing_ok=True)
+            archived_path.unlink(missing_ok=True)
+
+    def test_markdown_inventory_excludes_ignored_run_reports(self) -> None:
+        paths = self.check_docs.markdown_files()
+        self.assertTrue(paths)
+        self.assertTrue(all(path.suffix == ".md" for path in paths))
+        self.assertFalse(any("BalanceSweepReports" in path.parts for path in paths))
+
     def test_ui_style_requires_explicit_catalog_artwork_display_size(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             fixture = Path(directory) / "ArtworkFixture.swift"
@@ -107,26 +152,27 @@ class ScriptRegressionTests(unittest.TestCase):
             self.assertEqual(accepted.returncode, 0, accepted.stdout + accepted.stderr)
 
     def test_prepare_asset_scripts_use_c_locale_header_preserving_sort(self) -> None:
-        scripts = (
-            "prepare-app-icon.sh",
-            "prepare-music-assets.sh",
-            "prepare-sfx-assets.sh",
-            "prepare-cinematic-assets.sh",
-            "prepare-art-assets.sh",
+        scripts = tuple(
+            path.name
+            for path in sorted((ROOT / "Scripts").glob("prepare-*.sh"))
         )
         for name in scripts:
             text = (ROOT / "Scripts" / name).read_text(encoding="utf-8")
-            self.assertIn("LC_ALL=C sort", text, name)
+            sort_owner = (
+                (ROOT / "Scripts" / "lib" / "media-assets.sh").read_text(encoding="utf-8")
+                if "source \"Scripts/lib/media-assets.sh\"" in text
+                else text
+            )
             self.assertTrue(
-                ("head -n 2" in text and "tail -n +3" in text)
-                or ("grep -v '^#'" in text and "# asset_name" in text),
+                "LC_ALL=C sort" in sort_owner,
+                name,
+            )
+            self.assertTrue(
+                ("head -n 2" in sort_owner and "tail -n +3" in sort_owner)
+                or ("grep -v '^#'" in sort_owner and "# asset_name" in sort_owner),
                 f"{name} should preserve hash TSV headers before sorting",
             )
-            self.assertIn(
-                "cmp -s",
-                text,
-                f"{name} should skip rewriting unchanged hash/catalog stamps",
-            )
+            self.assertIn("cmp -s", sort_owner, f"{name} should skip rewriting unchanged hash/catalog stamps")
 
     def test_prepare_art_skips_unchanged_catalog_contents_json(self) -> None:
         text = (ROOT / "Scripts" / "prepare-art-assets.sh").read_text(encoding="utf-8")
@@ -170,13 +216,14 @@ class ScriptRegressionTests(unittest.TestCase):
 
     def test_build_inputs_include_xctestplans(self) -> None:
         text = (ROOT / "Scripts" / "build-inputs.sh").read_text(encoding="utf-8")
+        owner = (ROOT / "Scripts" / "swift-source-dirs.env").read_text(encoding="utf-8")
         for plan in (
             "Smoke.xctestplan",
             "FullUI.xctestplan",
-            "Integration.xctestplan",
             "BattlePerformance.xctestplan",
         ):
-            self.assertIn(plan, text)
+            self.assertIn(plan, owner)
+        self.assertIn('build_input_paths=("${TRINKET_BUILD_ROOTS[@]}" "${TRINKET_PROJECT_INPUTS[@]}")', text)
         self.assertNotIn("Package.resolved", text)
 
     def test_build_cache_paths_aligned(self) -> None:
@@ -289,24 +336,9 @@ class ScriptRegressionTests(unittest.TestCase):
             self.assertFalse((passed_stage / "raw").exists())
             self.assertTrue((passed_stage / "ci-diagnostics.json").exists())
 
-            pruned = subprocess.run(
-                [
-                    str(ROOT / "Scripts" / "ci-diagnostics.sh"),
-                    "--prune-successes",
-                    str(results),
-                ],
-                cwd=ROOT,
-                capture_output=True,
-                text=True,
-                check=False,
-            )
-            self.assertEqual(pruned.returncode, 0, pruned.stderr)
-            self.assertFalse((results / "pass.xcresult").exists())
-            self.assertFalse((raw / "pass.log").exists())
-
             raw.mkdir(exist_ok=True)
             (raw / "pass.log").write_text("failure evidence\n", encoding="utf-8")
-            (results / "pass.xcresult").mkdir()
+            (results / "pass.xcresult").mkdir(exist_ok=True)
             (results / "ci-diagnostics.json").write_text(
                 json.dumps({"category": "test-failure"}), encoding="utf-8"
             )
@@ -439,6 +471,7 @@ class ScriptRegressionTests(unittest.TestCase):
                 self.assertIn("type: execution-plan", text)
                 self.assertIn("status: active", text)
                 self.assertIn("expires:", text)
+                self.assertIn("Docs/Plans/Archived/", text)
             finally:
                 plan_path.unlink(missing_ok=True)
 
@@ -468,25 +501,6 @@ class ScriptRegressionTests(unittest.TestCase):
         )
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("requires --paths", result.stderr)
-
-    def test_agent_context_json_is_compact_until_full_is_requested(self) -> None:
-        command = [
-            str(ROOT / "Scripts" / "agent-context.sh"),
-            "--json",
-            "--paths",
-            "Packages/BattleEngine/Sources/BattleEngine/BattleState.swift",
-        ]
-        compact = subprocess.run(command, cwd=ROOT, capture_output=True, text=True, check=False)
-        self.assertEqual(compact.returncode, 0, compact.stderr)
-        compact_payload = json.loads(compact.stdout)
-        self.assertIn("path_counts", compact_payload)
-        self.assertNotIn("paths", compact_payload)
-        self.assertIn("context_read_contract", compact_payload)
-        self.assertIn("context_estimate", compact_payload)
-
-        full = subprocess.run(command[:2] + ["--full"] + command[2:], cwd=ROOT, capture_output=True, text=True, check=False)
-        self.assertEqual(full.returncode, 0, full.stderr)
-        self.assertIn("paths", json.loads(full.stdout))
 
     def test_handoff_requires_explicit_scope_and_supports_working_tree_override(self) -> None:
         missing = subprocess.run(
@@ -550,7 +564,7 @@ class ScriptRegressionTests(unittest.TestCase):
             check=False,
         )
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("Docs/AgentContext/battle-presentation.md", result.stdout)
+        self.assertIn("Docs/AgentContext/battle-runtime.md", result.stdout)
         self.assertNotIn("apple-design/SKILL.md", result.stdout)
 
     def test_agent_context_routes_engine_to_engine_card(self) -> None:
@@ -586,6 +600,22 @@ class ScriptRegressionTests(unittest.TestCase):
         self.assertIn("Docs/Skills/apple-design/SKILL.md", result.stdout)
         self.assertNotIn("Docs/AgentContext/swiftui-features.md", result.stdout)
 
+    def test_agent_context_keeps_design_skill_off_design_system_tests(self) -> None:
+        result = subprocess.run(
+            [
+                str(ROOT / "Scripts" / "agent-context.sh"),
+                "--agent",
+                "--paths",
+                "Packages/TrinketDesignSystem/Tests/TrinketDesignSystemTests/DesignSystemTests.swift",
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertNotIn("apple-design/SKILL.md", result.stdout)
+
     def test_agent_context_routes_audio_without_battle_context(self) -> None:
         result = subprocess.run(
             [
@@ -602,6 +632,42 @@ class ScriptRegressionTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("Docs/AgentContext/audio.md", result.stdout)
         self.assertNotIn("Docs/AgentContext/battle", result.stdout)
+
+    def test_agent_context_routes_each_semantic_owner_to_one_required_card(self) -> None:
+        cases = (
+            (
+                "Packages/TrinketPersistence/Sources/TrinketPersistence/PlayerSaveStore.swift",
+                "Docs/AgentContext/persistence.md",
+            ),
+            (
+                "ContentManifest/abilities.tsv",
+                "Docs/AgentContext/content-and-manifests.md",
+            ),
+            (
+                "Scripts/check-docs.py",
+                "Docs/AgentContext/ci-and-project-generation.md",
+            ),
+        )
+        for path, expected_card in cases:
+            with self.subTest(path=path):
+                result = subprocess.run(
+                    [
+                        str(ROOT / "Scripts" / "agent-context.sh"),
+                        "--agent",
+                        "--paths",
+                        path,
+                    ],
+                    cwd=ROOT,
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                )
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertIn(expected_card, result.stdout)
+                for _, other_card in cases:
+                    if other_card != expected_card:
+                        self.assertNotIn(other_card, result.stdout)
+                self.assertNotIn("Route metadata", result.stdout)
 
     def test_agent_context_does_not_attach_design_skill_to_ui_tests(self) -> None:
         result = subprocess.run(
@@ -826,28 +892,29 @@ class ScriptRegressionTests(unittest.TestCase):
         self.assertIn("trinket_simulator_enforce_single_warm_booted", hygiene)
         self.assertIn("trinket_derived_data_age_prune", hygiene)
         install = text.split("trinket_run_env_install_self_clean()", 1)[1].split(
-            "trinket_run_env_install_test_simulator_cleanup", 1
+            "trinket_bind_agent_slot", 1
         )[0]
         self.assertIn("trinket_run_env_self_clean_hygiene", install)
+        self.assertNotIn("trinket_run_env_install_test_simulator_cleanup", text)
         release = text.split("trinket_run_env_release_slots()", 1)[1].split(
             "trinket_run_env_install_release_trap", 1
         )[0]
         self.assertIn("TRINKET_SELF_CLEAN_OWNER", release)
         self.assertIn("trinket_run_env_self_clean_hygiene", release)
         single = text.split("trinket_simulator_enforce_single_warm_booted()", 1)[1].split(
-            "trinket_simulator_cleanup_excess", 1
+            "trinket_run_env_cleanup_test_artifacts", 1
         )[0]
         self.assertIn('TRINKET_CLEANUP_SINGLE_WARMED:-1', single)
-        self.assertIn("Trinket Run", single)
-        self.assertIn("Trinket CI", single)
-        self.assertIn(r"Trinket Agent \d+", single)
-        idle = text.split("trinket_simulator_cleanup_idle_pool()", 1)[1].split(
-            "trinket_simulator_enforce_single_warm_booted", 1
-        )[0]
-        self.assertIn(r"Trinket Agent \d+", idle)
-        self.assertIn("Trinket Run stays warm", idle)
-        self.assertIn('TRINKET_CLEANUP_IDLE_POOL:-0', idle)
-        self.assertNotIn('name == "Trinket Run"', idle)
+        self.assertIn("trinket_simulator_is_shared_name", single)
+        self.assertIn("trinket_simulator_is_active_agent_name", single)
+        self.assertIn("trinket_simulator_is_shared_name", text)
+        self.assertIn("Trinket CI", text)
+        self.assertIn("trinket_simulator_is_managed_name", text)
+        self.assertNotIn("TRINKET_CLEANUP_IDLE_POOL", text)
+        self.assertNotIn("TRINKET_CLEANUP_EXCESS_SIMULATORS", text)
+        self.assertNotIn("TRINKET_KEEP_DIAGNOSTICS", text)
+        self.assertNotIn("TRINKET_SIM_SLOT_SKIP_ACQUIRE", text)
+        self.assertNotIn("TRINKET_ARTIFACT_MAX_AGE_DAYS", text)
         self.assertIn('TRINKET_MAX_AGENT_SIMS:-1', text)
         self.assertFalse((ROOT / "Scripts" / "clean-dev-artifacts.sh").exists())
 

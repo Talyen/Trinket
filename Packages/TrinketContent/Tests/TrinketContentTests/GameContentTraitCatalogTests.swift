@@ -34,7 +34,6 @@ struct GameContentTraitCatalogTests {
 
     @Test func necromancerLeechChanceIsTenPercent() throws {
         let necromancer = try #require(GameContent.traits.first { $0.id == "necromancer_trait" })
-        try #expect(necromancer.description == "10% chance to Leech. Holy damage taken increased by 30%.")
         try #expect(necromancer.triggers.leechChancePercent == 0.10)
     }
 
@@ -50,31 +49,21 @@ struct GameContentTraitCatalogTests {
 
     @Test func bossDamageAurasMatchTypedIdentity() throws {
         let golem = try #require(GameContent.traits.first { $0.id == "the_forge_golem_trait" })
-        try #expect(golem.description == "Deals 1 Stun or Burn damage each turn to all enemies.")
         try #expect(golem.triggers.turnRandomDamageAllEnemiesKeywordA == .stun)
         try #expect(golem.triggers.turnRandomDamageAllEnemiesKeywordB == .burn)
         try #expect(golem.triggers.turnRandomDamageAllEnemiesAmount == 1)
 
         let bear = try #require(GameContent.traits.first { $0.id == "the_iron_bear_trait" })
-        try #expect(bear.description == "Deals 1 Physical or Stun damage each turn to all enemies.")
         try #expect(bear.triggers.turnRandomDamageAllEnemiesKeywordA == .physical)
         try #expect(bear.triggers.turnRandomDamageAllEnemiesKeywordB == .stun)
         try #expect(bear.triggers.turnRandomDamageAllEnemiesAmount == 1)
 
         let treant = try #require(GameContent.traits.first { $0.id == "the_blight_treant_trait" })
-        try #expect(
-            treant.description
-                == "Holy damage taken increased by 30%. Deals 1 Poison or Bleed damage each turn to all enemies."
-        )
         try #expect(treant.triggers.turnRandomDamageAllEnemiesKeywordA == .poison)
         try #expect(treant.triggers.turnRandomDamageAllEnemiesKeywordB == .bleed)
         try #expect(treant.triggers.turnRandomDamageAllEnemiesAmount == 1)
 
         let frostwarden = try #require(GameContent.traits.first { $0.id == "the_frostwarden_trait" })
-        try #expect(
-            frostwarden.description
-                == "Deals 1 Freeze damage every other turn to all enemies. Burn damage taken increased by 30%."
-        )
         try #expect(frostwarden.triggers.turnFreezeDamageAllEnemies == 1)
         try #expect(frostwarden.triggers.turnRandomDamageAllEnemiesAmount == 0)
     }

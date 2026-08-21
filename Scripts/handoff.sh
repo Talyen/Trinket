@@ -7,7 +7,7 @@ set -euo pipefail
 # builds a deterministic sequential verification plan, and runs it in order.
 # No demotions, no heuristics, no parallel scheduling, no warm-cache prefetch:
 # the plan is whatever the touched paths actually require, executed top to
-# bottom. Remote/full confidence is owned by CI (smoke-full / exhaustive UI).
+# bottom. Remote/full confidence is owned by CI (smoke / exhaustive UI).
 
 cd "$(dirname "$0")/.."
 
@@ -39,8 +39,6 @@ run_check() {
       ;;
     assert)
       case "$argument" in
-        committed) ./Scripts/assert-generated-output.sh ;;
-        assets) ./Scripts/assert-generated-output.sh --assets ;;
         idempotent) ./Scripts/assert-generated-output.sh --idempotent ;;
         idempotent-assets) ./Scripts/assert-generated-output.sh --idempotent --assets ;;
         *) echo "Unknown assert check: $argument" >&2; return 2 ;;
@@ -195,7 +193,7 @@ if (( ${#TRINKET_VERIFICATION_COMMANDS[@]} > 0 )); then
 else
   echo "No source verification selected for the current changes."
   if [[ "$TRINKET_SMOKE_TARGET_UNRESOLVED" == true ]]; then
-    echo "UI note: no smoke owner was inferred for the changed feature path. CI smoke-full / exhaustive UI remain the broad net."
+    echo "UI note: no smoke owner was inferred for the changed feature path. CI smoke / exhaustive UI remain the broad net."
   fi
 fi
 

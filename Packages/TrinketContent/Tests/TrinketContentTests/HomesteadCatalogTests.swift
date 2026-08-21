@@ -4,6 +4,10 @@ import TrinketCore
 
 struct HomesteadCatalogTests {
     @Test func productionNodesHaveFourTiersOfOneIncreasingResource() throws {
+        for node in GameContent.homesteadNodes {
+            try #expect(node.maxTier == 4, "\(node.title) should have four tiers")
+        }
+
         let productionNodes = GameContent.homesteadNodes.filter { definition in
             definition.tiers.contains { $0.production != nil }
         }

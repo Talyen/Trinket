@@ -3,7 +3,7 @@ import Testing
 import TrinketContent
 import TrinketCore
 
-struct TrinketEffectTests { // swiftlint:disable:this type_body_length
+struct TrinketEffectTests {
     private func makeBattle(
         heroTriggers: CombatTraitTriggers = CombatTraitTriggers(
         ),
@@ -326,35 +326,16 @@ struct TrinketEffectTests { // swiftlint:disable:this type_body_length
         try #expect(events.contains { $0.abilityName == "Smuggler's Map" && $0.amount == 4 })
     }
 
-    @Test func wishingWellCoinMissDeductsGold() throws {
-        var foundMiss = false
-        for seed in UInt64(0) ..< 32 {
-            var battle = makeBattle(
-                heroTriggers: CombatTraitTriggers(
-                    gold: GoldTriggers(
-                        victoryGoldCoin: true
-                    )
-                ),
-                initialGold: 5,
-                seed: seed
-            )
-            let events = battle.withEngineContext { context in
-                CombatTriggerEngine.afterVictory(in: &context)
-            }
-            guard let loss = events.first(where: {
-                $0.abilityName == "Wishing Well Coin" && $0.amount == -3
-            }) else {
-                continue
-            }
-            try #expect(battle.gold == 2)
-            try #expect(battle.earnedGold == -3)
-            foundMiss = true
-            break
-        }
-        try #expect(foundMiss)
+    private struct WishingWellCase: Sendable {
+        let initialGold: Int
+        let expectedLoss: Int
+
+        static let deductsFullPenalty = Self(initialGold: 5, expectedLoss: -3)
+        static let clampsToAvailableGold = Self(initialGold: 1, expectedLoss: -1)
     }
 
-    @Test func wishingWellCoinMissClampsToAvailableGold() throws {
+    @Test(arguments: [Self.WishingWellCase.deductsFullPenalty, .clampsToAvailableGold])
+    private func wishingWellCoinMissDeductsGold(_ testCase: WishingWellCase) throws {
         var foundMiss = false
         for seed in UInt64(0) ..< 32 {
             var battle = makeBattle(
@@ -363,7 +344,7 @@ struct TrinketEffectTests { // swiftlint:disable:this type_body_length
                         victoryGoldCoin: true
                     )
                 ),
-                initialGold: 1,
+                initialGold: testCase.initialGold,
                 seed: seed
             )
             let events = battle.withEngineContext { context in
@@ -374,9 +355,9 @@ struct TrinketEffectTests { // swiftlint:disable:this type_body_length
             }) else {
                 continue
             }
-            try #expect(loss.amount == -1)
-            try #expect(battle.gold == 0)
-            try #expect(battle.earnedGold == -1)
+            try #expect(loss.amount == testCase.expectedLoss)
+            try #expect(battle.gold == testCase.initialGold + testCase.expectedLoss)
+            try #expect(battle.earnedGold == testCase.expectedLoss)
             foundMiss = true
             break
         }

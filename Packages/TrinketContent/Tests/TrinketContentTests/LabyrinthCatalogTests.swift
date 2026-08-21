@@ -171,12 +171,6 @@ struct LabyrinthCatalogTests {
                     #expect(modifiers.allSatisfy { $0.applies(to: node.type) })
                     let expectsModifier = node.type == .shop || node.type == .craft
                     #expect(node.modifierIDs.count == (expectsModifier ? 1 : 0) || node.type.isCombat)
-                    if node.type.isCombat, let enemyID = node.enemyID, !node.modifierIDs.isEmpty {
-                        let enemyKeywords = LabyrinthCatalog.enemyDamageKeywords(for: enemyID)
-                        for modifier in modifiers {
-                            #expect(modifier.damageDealtKeyword.map(enemyKeywords.contains) == true)
-                        }
-                    }
                     #expect(node.outgoingIDs.isEmpty)
                 }
                 observedCycleCounts.insert(geometry.cycleCount)

@@ -62,6 +62,9 @@ struct AppStateTests {
         state.reconcileShellState(.scenePhaseChanged, scenePhase: .background)
         state.reconcileShellState(.scenePhaseChanged, scenePhase: .active)
         #expect(state.selectedTab == .collection)
+
+        // A fresh shell session instance is not durable tab storage.
+        #expect(try context.makeAppState().selectedTab == .play)
     }
 
     @Test func scenePhaseSuspendsAndResumesBattleAutoEnd() throws {

@@ -5,22 +5,69 @@ from __future__ import annotations
 
 import json
 import re
+import subprocess
 import sys
 from datetime import date, timedelta
 from pathlib import Path
 from urllib.parse import unquote
 
 ROOT = Path(__file__).resolve().parent.parent
-SKIP_PARTS = {".git", ".DerivedData", ".tools", ".build", "Generated"}
+SKIP_PARTS = {".git", ".DerivedData", ".tools", ".build", "Generated", "BalanceSweepReports"}
 LINK = re.compile(r"\[[^\]]*\]\(([^)]+)\)")
 HEADING = re.compile(r"^(#{1,6})\s+(.+?)(?:\s+#*)?\s*$")
 FENCE = re.compile(r"^(`{3,}|~{3,})")
 PLAN_STATUSES = {"active", "blocked", "complete", "cancelled"}
+ARCHIVED_PLAN_STATUSES = {"complete", "cancelled"}
 PLAN_WARNING_DAYS = 3
 DOC_WARNINGS: list[str] = []
 
 
 def markdown_files() -> list[Path]:
+    """Return tracked Markdown plus explicitly authored, untracked execution plans."""
+    result = subprocess.run(
+        [
+            "git",
+            "-C",
+            str(ROOT),
+            "ls-files",
+            "--cached",
+            "--",
+            "*.md",
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if result.returncode == 0:
+        authored = set(result.stdout.splitlines())
+        plans = subprocess.run(
+            [
+                "git",
+                "-C",
+                str(ROOT),
+                "ls-files",
+                "--others",
+                "--exclude-standard",
+                "--",
+                "Docs/Plans/*.md",
+                "Docs/Plans/Archived/*.md",
+            ],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if plans.returncode == 0:
+            authored.update(plans.stdout.splitlines())
+        return sorted(
+            ROOT / line
+            for line in authored
+            if line
+            and not SKIP_PARTS.intersection(Path(line).parts)
+            and (ROOT / line).is_file()
+        )
+
+    # Keep the checker usable from a source export without a Git metadata
+    # directory. The normal repository path above is deliberately narrower.
     return sorted(
         path
         for path in ROOT.rglob("*.md")
@@ -135,7 +182,12 @@ def plan_metadata(path: Path) -> tuple[dict[str, str], list[str]]:
             errors.append(f"{key} must be an ISO date")
     if parsed_dates.get("created") and parsed_dates.get("updated") and parsed_dates["updated"] < parsed_dates["created"]:
         errors.append("updated must not precede created")
-    if parsed_dates.get("updated") and parsed_dates.get("expires") and parsed_dates["expires"] <= parsed_dates["updated"]:
+    if (
+        status not in ARCHIVED_PLAN_STATUSES
+        and parsed_dates.get("updated")
+        and parsed_dates.get("expires")
+        and parsed_dates["expires"] <= parsed_dates["updated"]
+    ):
         errors.append("expires must be later than updated")
     return metadata, errors
 
@@ -183,6 +235,8 @@ def structural_checks(files: list[Path], *, final: bool = False, keep_plan: bool
         "art.json": "art manifest is ArtManifest/curated-assets.tsv",
         "TrinketBattleEngine": "package scheme is BattleEngine",
         "Task→Command Router": "command routing lives in Docs/Platform/Verification.md",
+        "follows the proposal bar": "audit right-size policy lives only in Docs/Audits/README.md",
+        "A clean pass is valid": "zero-findings-is-success lives only in Docs/Audits/README.md",
     }
     for source in files:
         text = source.read_text(encoding="utf-8")
@@ -190,9 +244,40 @@ def structural_checks(files: list[Path], *, final: bool = False, keep_plan: bool
             if phrase in text:
                 failures.append(f"{source.relative_to(ROOT)}: stale phrase {phrase!r} ({explanation})")
 
+    classifier = ROOT / "Scripts" / "change-classification.sh"
+    routed_cards = set(re.findall(r"Docs/AgentContext/[A-Za-z0-9_-]+\.md", classifier.read_text(encoding="utf-8")))
+    for card in sorted((ROOT / "Docs" / "AgentContext").glob("*.md")):
+        if card.name == "README.md":
+            continue
+        relative_card = f"Docs/AgentContext/{card.name}"
+        if relative_card not in routed_cards:
+            failures.append(
+                f"{relative_card}: context card is not emitted by Scripts/change-classification.sh; "
+                "add a route or declare it in a 'lookup-only:' comment there"
+            )
+
+    readme_path = ROOT / "Docs" / "AgentContext" / "README.md"
+    table_cards: set[str] = set()
+    for line in readme_path.read_text(encoding="utf-8").splitlines():
+        if not line.lstrip().startswith("|"):
+            continue
+        for raw in LINK.findall(line):
+            target = raw.strip().split(maxsplit=1)[0].strip("<>")
+            if re.fullmatch(r"[A-Za-z0-9_-]+\.md", target):
+                table_cards.add(f"Docs/AgentContext/{target}")
+    unrouted_rows = sorted(table_cards - routed_cards)
+    if unrouted_rows:
+        failures.append(
+            f"{readme_path.relative_to(ROOT)}: trigger-table rows reference cards with no route in "
+            f"Scripts/change-classification.sh: {', '.join(unrouted_rows)}"
+        )
+
     plans_dir = ROOT / "Docs" / "Plans"
+    archived_dir = plans_dir / "Archived"
     active_plans = 0
-    for plan_path in sorted(plans_dir.glob("*.md")):
+    plan_paths = [(path, False) for path in sorted(plans_dir.glob("*.md"))]
+    plan_paths.extend((path, True) for path in sorted(archived_dir.rglob("*.md")))
+    for plan_path, archived in plan_paths:
         if plan_path.name == "README.md":
             continue
         metadata, errors = plan_metadata(plan_path)
@@ -201,8 +286,16 @@ def structural_checks(files: list[Path], *, final: bool = False, keep_plan: bool
             failures.append(f"{relative_plan}: " + "; ".join(errors))
             continue
         status = metadata["status"]
-        if status in {"complete", "cancelled"}:
-            failures.append(f"{relative_plan}: {status} plans must be deleted")
+        if archived:
+            if status not in ARCHIVED_PLAN_STATUSES:
+                failures.append(
+                    f"{relative_plan}: archived plans must be complete or cancelled"
+                )
+            continue
+        if status in ARCHIVED_PLAN_STATUSES:
+            failures.append(
+                f"{relative_plan}: {status} plans must be moved to Docs/Plans/Archived/"
+            )
             continue
         try:
             expires = date.fromisoformat(metadata["expires"])
@@ -211,7 +304,7 @@ def structural_checks(files: list[Path], *, final: bool = False, keep_plan: bool
         today = date.today()
         if expires <= today:
             failures.append(
-                f"{relative_plan}: {status} plan expired on {expires}; update the plan or delete it"
+                f"{relative_plan}: {status} plan expired on {expires}; update or renew it, or complete and move it to Docs/Plans/Archived/"
             )
         elif expires <= today + timedelta(days=PLAN_WARNING_DAYS):
             DOC_WARNINGS.append(
@@ -221,7 +314,7 @@ def structural_checks(files: list[Path], *, final: bool = False, keep_plan: bool
             active_plans += 1
             if final and not keep_plan:
                 failures.append(
-                    f"{relative_plan}: active plan remains at final handoff; mark complete and delete it, or pass --keep-plan"
+                    f"{relative_plan}: active plan remains at final handoff; mark complete and move it to Docs/Plans/Archived/, or pass --keep-plan"
                 )
     if active_plans > 3:
         DOC_WARNINGS.append(f"Docs/Plans/: {active_plans} active plans are present")

@@ -12,27 +12,13 @@ Use current SwiftUI: `NavigationStack`, modern `Tab`, sheets, `ToolbarItem`, ada
 
 Prefer the narrowest environment owner for a subtree (`BattleSession`, encounter sessions) over whole `AppState` when the view only needs that slice. Chrome, colors, glass, and typography: [TrinketDesignSystem README](../../Packages/TrinketDesignSystem/README.md). Feature views must not call raw `.glassEffect` / `.buttonStyle(.glass*)` or invent one-off colors. Use `TrinketMotion` for reusable fluid motion. File-level `@ViewBuilder` helpers that touch DesignSystem modifiers must be `@MainActor` (or methods on a `View`).
 
-Give a view the narrowest owner it needs: a Play mode coordinator
-(`JourneyPlayMode`, `LabyrinthPlayMode`, `SpiresPlayMode`, `EncounterPlayMode`),
-`PlaySession` only for shell navigation/victory routing (including battle activation
-via `play.battle`), a specific encounter session, `BattleSession`, or a Battle read
-lane. Play's campaign/explore stack (`PlayBrowsingStack`) must not observe
-`BattleSession`; the battle overlay (`PlayBattleOverlay`) is a separate observation
-scope so map chrome does not rebuild on combat ticks. Play screens take mode owners for orchestration and `PlayerSaveStore` for save
-slices — name that binding `playerSave`, not `appState`. Do not reintroduce slice
-facades on `PlaySession`. Do not pass `AppState` through a feature tree when explicit
-values and actions suffice. Shell battle routing observes `PlaySession.battle`, not a
-parallel `AppState.battle` handle.
+Give a view the narrowest owner it needs: a Play mode coordinator, `PlaySession` only for shell navigation/victory routing (including battle activation via `play.battle`), a specific encounter session, `BattleSession`, or a Battle read lane. Play's campaign/explore stack (`PlayBrowsingStack`) must not observe `BattleSession`; the battle overlay (`PlayBattleOverlay`) is a separate observation scope so map chrome does not rebuild on combat ticks. Shell battle routing observes `PlaySession.battle`; do not reintroduce parallel handles or slice facades (see [battle-runtime.md](battle-runtime.md)). Do not pass `AppState` through a feature tree when explicit values and actions suffice.
 
 New player flows need a stable `AccessibilityID` from `TrinketFeatureSupport` (or an
-existing appropriate one) for UI automation. Add or extend a smoke/exhaustive UI test
-only when the keep/drop rubric in `Docs/Platform/Testing.md` applies (shell/entry,
-state-changing journey, or one-owner safety invariant). IDs are test selectors, not
-substitutes for player-facing semantics: preserve native control labels and add a
-concise accessibility label/value when a custom control is otherwise ambiguous.
-Handle reduced motion/transparency and contrast through shared DesignSystem or motion
-components instead of per-screen branches. Feature views use UI coverage only when
-the rubric passes; a view change alone does not require a test. Verification routing
-and path-scoped tiers live in `Docs/Platform/Verification.md` and
-`Docs/Platform/Testing.md`. Read
-`TrinketUITests/README.md` only for launch args, screen helpers, or test speed.
+existing appropriate one). Add UI coverage only when the keep/drop rubric in
+`Docs/Platform/Testing.md` identifies a shipping outcome that lower tiers cannot own;
+a view change alone does not require a test. IDs are selectors, not substitutes for
+player-facing semantics: preserve native labels and add a concise label/value when a
+custom control is ambiguous. Handle reduced motion, transparency, and contrast in
+shared DesignSystem or motion components. Use `TrinketUITests/README.md` only for
+launch args, screen helpers, and speed rules.

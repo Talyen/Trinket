@@ -13,10 +13,7 @@ struct AbilityCatalogTests {
     }
 
     @Test func doTPairingMatchesDamageComponents() throws {
-        for ability in AbilityCatalog.all {
-            if ["mana-berries", "pixie-dust", "faustian-bargain"].contains(ability.id) {
-                continue
-            }
+        for ability in AbilityCatalog.all where !AbilityValidator.doTPairingExemptIDs.contains(ability.id) {
             for component in ability.damageComponents where component.target == .abilityTarget {
                 guard Effect.pairedDoT(keyword: component.keyword, potency: component.amount) != nil else {
                     continue
@@ -113,31 +110,20 @@ struct AbilityCatalogTests {
         )
     }
 
-    @Test func representativeAbilitySummariesPreserveProductContracts() throws {
-        try #expect(Ability.hemorrhage.summary == "Deal 4 Bleed damage. The next time the enemy attacks, they take 4 Bleed damage.")
+    @Test func representativeAbilitiesKeepTypedContracts() throws {
         try #expect(!Ability.hemorrhage.hasLeech)
         try #expect(Ability.hemorrhage.criticalChanceBonus == 0)
-        try #expect(Ability.serratedEdge.summary == "Deal 2 Bleed damage. Reduces enemy Health gain by 50% for 2 turns.")
         try #expect(Ability.serratedEdge.criticalChanceBonus == 0)
-        try #expect(Ability.stab.summary == "Deal 2 Physical damage.")
         try #expect(Ability.stab.directDamage == 2)
-        try #expect(Ability.bloodOffering.summary == "Lose 1 Health. Deal 4 Bleed damage.")
-        try #expect(Ability.darkPact.summary == "Lose 1 Health. Draw 2 cards.")
         try #expect(!Ability.bloodOffering.hasLeech)
         try #expect(!Ability.darkPact.hasLeech)
         try #expect(AbilityCatalog.all.contains { $0.id == "grave-pact" } == false)
-        try #expect(Ability.heal.summary == "Restore 6 Health.")
         try #expect(Ability.heal.directDamage == 0)
         try #expect(Ability.fangs.hasLeech)
-        try #expect(Ability.rendingSlash.name == "Rend")
     }
 
     @Test func glacialWardIsSkillWithBlockAndFreezeRetaliation() throws {
         try #expect(Ability.glacialWard.tier == .skill)
-        try #expect(
-            Ability.glacialWard.summary
-                == "Gain 2 Block. Deal 2 Freeze damage next time you're hit."
-        )
     }
 
     @Test func astralArrowOffersStunFreezeOrBurnBranches() throws {

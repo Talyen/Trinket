@@ -23,6 +23,17 @@ enum TestLaunchArg {
         ["-launch-screen", screen]
     }
 
+    /// Fresh-save base for journeys where seeded progress would skip content.
+    static func allUnseeded() -> [String] {
+        [
+            resetState,
+            disableCloudSync,
+            skipStarterSelection,
+            "-disable-audio",
+            "-persist-save-immediately",
+        ]
+    }
+
     static func completedStages(_ stageIDs: [String]) -> [String] {
         ["-completed-stages", stageIDs.joined(separator: ",")]
     }
@@ -356,11 +367,25 @@ class TrinketUITestCase: XCTestCase {
             closeButton.tap()
             _ = closeButton.waitForNonExistence(timeout: 3)
         } else {
-            let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.18))
-            let end = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.85))
-            start.press(forDuration: 0.1, thenDragTo: end)
+            sheetDismissDragStart.press(forDuration: 0.1, thenDragTo: sheetDismissDragEnd)
             _ = closeButton.waitForNonExistence(timeout: 3)
         }
+    }
+
+    var sheetDismissDragStart: XCUICoordinate {
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.18))
+    }
+
+    var sheetDismissDragEnd: XCUICoordinate {
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.85))
+    }
+
+    var edgeBackSwipeStart: XCUICoordinate {
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.01, dy: 0.45))
+    }
+
+    var edgeBackSwipeEnd: XCUICoordinate {
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.75, dy: 0.45))
     }
 
     func clearAndEnterText(_ element: XCUIElement, _ text: String) {

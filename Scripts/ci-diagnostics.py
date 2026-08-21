@@ -10,31 +10,23 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from diagnostic_limits import MAX_AGGREGATE_ISSUES, MAX_DETAIL_CHARS, MAX_DETAIL_LINES, MAX_LABELS_IN_DETAIL, MAX_LINE_CHARS, MAX_MESSAGE_CHARS
+
 FULL_REPORT = False
 argv = sys.argv[1:]
-SESSION_ID = ""
-INCLUDE_ALL = False
+SESSION_ID = os.environ.get("TRINKET_DIAGNOSTICS_SESSION_ID", "").strip()
 while argv and argv[0].startswith("--"):
     option = argv.pop(0)
     if option == "--full":
         FULL_REPORT = True
-    elif option == "--all":
-        INCLUDE_ALL = True
-    elif option == "--session":
-        if not argv:
-            print("--session requires a session id", file=sys.stderr)
-            sys.exit(1)
-        SESSION_ID = argv.pop(0).strip()
     else:
         print(f"Unknown option: {option}", file=sys.stderr)
         sys.exit(1)
 
-if not SESSION_ID and not INCLUDE_ALL:
-    SESSION_ID = os.environ.get("TRINKET_DIAGNOSTICS_SESSION_ID", "").strip()
-
 if len(argv) < 2:
     print(
-        "Usage: ci-diagnostics.py [--full] [--session ID|--all] <RESULTS_DIR> <OUTPUT_PATH>",
+        "Usage: ci-diagnostics.py [--full] <RESULTS_DIR> <OUTPUT_PATH>",
         file=sys.stderr,
     )
     sys.exit(1)
@@ -53,12 +45,6 @@ CLASSIFICATION_PRECEDENCE = (
     "unknown",
 )
 KNOWN_CLASSIFICATIONS = set(CLASSIFICATION_PRECEDENCE)
-MAX_AGGREGATE_ISSUES = 20
-MAX_DETAIL_LINES = 8
-MAX_DETAIL_CHARS = 2400
-MAX_LINE_CHARS = 240
-MAX_MESSAGE_CHARS = 800
-MAX_LABELS_IN_DETAIL = 3
 
 
 def compact_text(value: object, *, limit: int | None = None) -> str:
@@ -278,7 +264,7 @@ def load_reports() -> tuple[list[dict], int, bool, int, str]:
     """Load current invocation manifests, falling back to reports for legacy callers."""
     manifests = sorted(results_dir.glob("*-invocation.json"))
     selected_session = SESSION_ID
-    if manifests and not INCLUDE_ALL and not selected_session:
+    if manifests and not selected_session:
         session_candidates: list[tuple[str, str]] = []
         for candidate in manifests:
             payload, valid = read_json(candidate)
@@ -291,7 +277,7 @@ def load_reports() -> tuple[list[dict], int, bool, int, str]:
                 )
         if session_candidates:
             selected_session = max(session_candidates)[1]
-    if selected_session and not INCLUDE_ALL:
+    if selected_session:
         filtered: list[Path] = []
         for candidate in manifests:
             payload, valid = read_json(candidate)
@@ -490,7 +476,7 @@ aggregate = {
     "missing_diagnostics_invocations": missing_diagnostics_invocations,
     "status_manifests_present": manifests_present,
     "session_id": selected_session,
-    "session_filter": "all" if INCLUDE_ALL else (selected_session or "unscoped"),
+    "session_filter": selected_session or "unscoped",
     "counts": {
         "total": recorded_invocations,
         "failed": len(failed_reports),

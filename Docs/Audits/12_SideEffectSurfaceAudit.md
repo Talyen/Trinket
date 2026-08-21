@@ -4,7 +4,7 @@
 
 ## Intent
 
-Confirm unexpected effect ownership or lifecycle and fix violations using existing seams. A clean pass is valid. A bounded architecture-consistent seam may ship for one consequential enforced boundary when it replaces the violating path and includes its callers; a generic abstraction still requires at least three current uses, while new ownership follows [README.md](README.md).
+Confirm unexpected effect ownership or lifecycle and fix violations using existing seams.
 
 ## Hard stops
 

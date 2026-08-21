@@ -9,42 +9,72 @@ import TrinketCore
 /// Runtime health and heal math live in `CombatantRuntimeTests`.
 /// Control-meter threshold wiring lives in `ControlMeterIntegrationTests`.
 struct StatIntegrationTests {
-    private struct DirectDamageCase {
+    private struct DirectDamageCase: Sendable {
         let ability: Ability
         let stats: PrimaryStats
         let expectedAmount: Int
         let keyword: Keyword
+
+        static let strengthPhysical = Self(
+            ability: .slash,
+            stats: PrimaryStats(strength: 80),
+            expectedAmount: 3,
+            keyword: .physical
+        )
+        static let strengthStun = Self(ability: .bash, stats: PrimaryStats(strength: 80), expectedAmount: 3, keyword: .stun)
+        static let zeroStrengthPhysical = Self(
+            ability: .slash,
+            stats: PrimaryStats(strength: 0),
+            expectedAmount: 2,
+            keyword: .physical
+        )
+        static let intellectBurn = Self(
+            ability: .fireball,
+            stats: PrimaryStats(intellect: 80),
+            expectedAmount: 5,
+            keyword: .burn
+        )
+        static let intellectFreeze = Self(
+            ability: .frostbolt,
+            stats: PrimaryStats(intellect: 80),
+            expectedAmount: 5,
+            keyword: .freeze
+        )
+        static let wisdomPoison = Self(
+            ability: .poisonDagger,
+            stats: PrimaryStats(wisdom: 80),
+            expectedAmount: 3,
+            keyword: .poison
+        )
+        static let wisdomHoly = Self(ability: .smite, stats: PrimaryStats(wisdom: 80), expectedAmount: 6, keyword: .holy)
     }
 
     // MARK: - Keyword damage
 
-    @Test func statBonusAppliedToDirectDamageKeywords() throws {
-        let cases: [DirectDamageCase] = [
-            DirectDamageCase(ability: .slash, stats: PrimaryStats(strength: 80), expectedAmount: 3, keyword: .physical),
-            DirectDamageCase(ability: .bash, stats: PrimaryStats(strength: 80), expectedAmount: 3, keyword: .stun),
-            DirectDamageCase(ability: .slash, stats: PrimaryStats(strength: 0), expectedAmount: 2, keyword: .physical),
-            DirectDamageCase(ability: .fireball, stats: PrimaryStats(intellect: 80), expectedAmount: 5, keyword: .burn),
-            DirectDamageCase(ability: .frostbolt, stats: PrimaryStats(intellect: 80), expectedAmount: 5, keyword: .freeze),
-            DirectDamageCase(ability: .poisonDagger, stats: PrimaryStats(wisdom: 80), expectedAmount: 3, keyword: .poison),
-            DirectDamageCase(ability: .smite, stats: PrimaryStats(wisdom: 80), expectedAmount: 6, keyword: .holy),
-        ]
+    @Test(arguments: [
+        Self.DirectDamageCase.strengthPhysical,
+        .strengthStun,
+        .zeroStrengthPhysical,
+        .intellectBurn,
+        .intellectFreeze,
+        .wisdomPoison,
+        .wisdomHoly,
+    ])
+    private func statBonusAppliedToDirectDamageKeywords(_ testCase: DirectDamageCase) throws {
+        let hero = BattleTestFixtures.statHero(abilities: [testCase.ability], stats: testCase.stats)
+        var battle = BattleTestFixtures.statBattle(hero: hero)
 
-        for testCase in cases {
-            let hero = BattleTestFixtures.statHero(abilities: [testCase.ability], stats: testCase.stats)
-            var battle = BattleTestFixtures.statBattle(hero: hero)
+        let events = try #require(
+            try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle),
+            "Expected ability event for \(testCase.ability.name)"
+        )
+        let event = try #require(
+            BattleTestFixtures.firstAbilityEvent(in: events),
+            "Expected ability event for \(testCase.ability.name)"
+        )
 
-            let events = try #require(
-                try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle),
-                "Expected ability event for \(testCase.ability.name)"
-            )
-            let event = try #require(
-                BattleTestFixtures.firstAbilityEvent(in: events),
-                "Expected ability event for \(testCase.ability.name)"
-            )
-
-            try #expect(event.amount == testCase.expectedAmount, "Wrong damage for \(testCase.ability.name): got \(event.amount)")
-            try #expect(event.keyword == testCase.keyword, "Wrong keyword for \(testCase.ability.name)")
-        }
+        try #expect(event.amount == testCase.expectedAmount, "Wrong damage for \(testCase.ability.name): got \(event.amount)")
+        try #expect(event.keyword == testCase.keyword, "Wrong keyword for \(testCase.ability.name)")
     }
 
     // MARK: - Wisdom

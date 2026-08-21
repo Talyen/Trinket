@@ -2,28 +2,25 @@ import Testing
 @testable import TrinketDesignSystem
 
 struct TextBalanceTests {
-    @Test func singleWordReturnsUnchanged() {
-        let input = "Victory"
-        #expect(input.trinketBalanced() == "Victory")
+    private struct BalanceCase: Sendable {
+        let input: String
+        let expected: String
+
+        static let singleWord = Self(input: "Victory", expected: "Victory")
+        static let twoWords = Self(input: "Defeat King", expected: "Defeat\u{00A0}King")
+        static let multiWord = Self(input: "Defeat the Skeleton King", expected: "Defeat the Skeleton\u{00A0}King")
+        static let empty = Self(input: "", expected: "")
+        static let tabWhitespace = Self(input: "Hello\tWorld", expected: "Hello\u{00A0}World")
     }
 
-    @Test func twoWordsBindsWithNonBreakingSpace() {
-        let input = "Defeat King"
-        #expect(input.trinketBalanced() == "Defeat\u{00A0}King")
-    }
-
-    @Test func multiWordBindsOnlyLastSpace() {
-        let input = "Defeat the Skeleton King"
-        #expect(input.trinketBalanced() == "Defeat the Skeleton\u{00A0}King")
-    }
-
-    @Test func emptyStringReturnsUnchanged() {
-        let input = ""
-        #expect(input.trinketBalanced().isEmpty)
-    }
-
-    @Test func tabWhitespaceReplaced() {
-        let input = "Hello\tWorld"
-        #expect(input.trinketBalanced() == "Hello\u{00A0}World")
+    @Test(arguments: [
+        Self.BalanceCase.singleWord,
+        .twoWords,
+        .multiWord,
+        .empty,
+        .tabWhitespace,
+    ])
+    private func trinketBalancedBindsOnlyTheLastSpace(_ testCase: BalanceCase) {
+        #expect(testCase.input.trinketBalanced() == testCase.expected)
     }
 }

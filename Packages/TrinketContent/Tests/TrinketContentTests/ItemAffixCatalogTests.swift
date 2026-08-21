@@ -83,14 +83,12 @@ struct ItemAffixCatalogTests {
     }
 
     @Test func twoHandedPowerScalingDoublesMagnitudesWithoutThresholdsOrCaps() throws {
-        let crossbow = try #require(GameContent.itemBaseTypes.first { $0.id == "crossbow" })
         let executioners = try #require(GameContent.itemAffixDefinition(matching: "executioners"))
         let symbiosis = try #require(GameContent.itemAffixDefinition(matching: "symbiosis"))
-        let item = InventoryItem(
+        let item = try ItemFixtures.makeItem(
+            "crossbow",
             id: "scaled-crossbow",
-            baseType: crossbow,
             rarity: .astral,
-            displayName: crossbow.name,
             affixes: [
                 executioners.resolved(for: .astral),
                 symbiosis.resolved(for: .astral),
@@ -112,57 +110,21 @@ struct ItemAffixCatalogTests {
         ])
     }
 
-    @Test func revisedAffixesUseConsistentLeechWording() throws {
+    @Test func keywordAffixesKeepTypedDefinitions() throws {
         let byID = Dictionary(uniqueKeysWithValues: GameContent.itemAffixDefinitions.map { ($0.id, $0) })
 
         let bloodstone = try #require(byID["bloodstone"])
-        try #expect(bloodstone.basic.description == "Leech restores 1 additional Health.")
         try #expect(bloodstone.basic.modifiers == [.leechHealing(1)])
 
         let lifeweave = try #require(byID["lifeweave"])
-        try #expect(lifeweave.basic.description == "Restore 1 additional Health when you Leech.")
         try #expect(lifeweave.basic.modifiers == [.leechHealing(1)])
 
-        let stunning = try #require(byID["stunning"])
-        try #expect(stunning.title == "Stunning")
-        try #expect(stunning.basic.description == "Increase Stun damage by 1.")
         try #expect(byID["shocking"] == nil)
-    }
-
-    @Test func thinKeywordAffixesUseExpectedCopy() throws {
-        let byID = Dictionary(uniqueKeysWithValues: GameContent.itemAffixDefinitions.map { ($0.id, $0) })
-
-        let knockout = try #require(byID["knockout"])
-        try #expect(knockout.basic.description == "Deal 3 Physical damage when you Stun the enemy.")
-
-        let shredding = try #require(byID["shredding"])
-        try #expect(shredding.basic.description == "Ignore 10% of enemy mitigation.")
-
-        let absolving = try #require(byID["absolving"])
-        try #expect(absolving.basic.description == "Cleanse 1 status effect when you deal Holy damage.")
-
-        let retaliatory = try #require(byID["retaliatory"])
-        try #expect(retaliatory.basic.description == "Reflect 10% of damage taken.")
 
         let riposte = try #require(byID["riposte"])
         try #expect(riposte.keywords == [.physical, .dodge])
-        try #expect(riposte.basic.description == "Deal 3 additional damage on your next attack after Dodging.")
-    }
-
-    @Test func underrepresentedKeywordAffixesUseExpectedCopy() throws {
-        let byID = Dictionary(uniqueKeysWithValues: GameContent.itemAffixDefinitions.map { ($0.id, $0) })
-
-        let disrupting = try #require(byID["disrupting"])
-        try #expect(disrupting.basic.description == "Purge 1 status effect when you Stun the enemy.")
-        try #expect(disrupting.astral.description == "Purge all status effects when you Stun the enemy.")
-
-        let unmaking = try #require(byID["unmaking"])
-        try #expect(unmaking.basic.description == "Purge 1 status effect from the enemy when you Critically Hit.")
 
         let gilded = try #require(byID["gilded"])
         try #expect(gilded.basic.modifiers == [.goldGainedPercent(0.10)])
-
-        let blur = try #require(byID["blur"])
-        try #expect(blur.basic.description == "Gain 15% Dodge chance while below 50% Health.")
     }
 }

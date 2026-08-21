@@ -3,6 +3,8 @@
 # Sourced by Scripts/test.sh; covered by Scripts/Tests/test-asset-hash-sort-locale.sh.
 #
 # shellcheck shell=bash
+# shellcheck source=infrastructure-patterns.sh
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/infrastructure-patterns.sh"
 
 trinket_xcodebuild_log_is_infrastructure_failure() {
   local exit_code="$1"
@@ -13,7 +15,5 @@ trinket_xcodebuild_log_is_infrastructure_failure() {
 
   # Match CoreSimulator / destination failures and XCUITest launch flakes that often
   # still produce an xcresult (so callers must not gate on missing result bundles).
-  rg -qi \
-    'Unable to boot|CoreSimulator|DTServiceHub|destination.*not available|no matching destination|launchd_sim|Simulator.*failed|Timed out while launching|Failed to launch|background assertion|Failed to get background assertion|Launch session|could not boot|device is not available|no devices are booted' \
-    "$log_file"
+  rg -qi "$(trinket_infrastructure_failure_pattern)" "$log_file"
 }

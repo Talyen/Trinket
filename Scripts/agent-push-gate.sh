@@ -5,6 +5,8 @@
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
+# shellcheck source=lib/tools.sh
+source Scripts/lib/tools.sh
 
 # shellcheck source=Scripts/change-classification.sh
 source Scripts/change-classification.sh
@@ -65,9 +67,7 @@ if [[ "${SKIP_TRINKET_PUSH_GATE:-}" == "1" ]]; then
 fi
 
 echo "=== Agent push gate: pinned tools ==="
-./Scripts/ensure-ci-tools.sh
-export PATH="$PWD/.tools:$PATH"
-export TRINKET_REQUIRE_PINNED_TOOLS=1
+trinket_require_pinned_tools
 
 trinket_collect_committed_paths() {
   local path
@@ -141,20 +141,11 @@ if ! command -v xcodegen >/dev/null 2>&1; then
   source Scripts/assert-generated-output.sh
   # Omit pbxproj: XcodeGen is unavailable, so project assert is deferred to CI.
   trinket_set_generated_tracked_paths "$INCLUDE_ASSETS" false
-  TRACKED=("${TRACKED_PATHS[@]}")
-  tracked_status="$(git status --porcelain=v1 --untracked-files=all -- "${TRACKED[@]}")"
-  if [[ -z "$tracked_status" ]]; then
-    :
+  if trinket_assert_committed_output; then
+    echo "Content catalogs match manifests (pbxproj assert deferred to CI/XcodeGen)."
   else
-    echo "ERROR: Generated content catalogs drifted. Commit the Generated/*.swift updates." >&2
-    echo "--- Diff summary ---" >&2
-    printf '%s\n' "$tracked_status" >&2
-    git diff --stat -- "${TRACKED[@]}" >&2 || true
-    echo "--- First 100 lines of diff ---" >&2
-    git diff -- "${TRACKED[@]}" | head -n 100 >&2 || true
     exit 1
   fi
-  echo "Content catalogs match manifests (pbxproj assert deferred to CI/XcodeGen)."
   report_change_budget
   echo "=== Agent push gate passed ==="
   echo "Note: push-gate is generate/assert completeness only — not style or compile."

@@ -2,6 +2,8 @@
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
+# shellcheck source=lib/media-assets.sh
+source "Scripts/lib/media-assets.sh"
 
 manifest="SoundManifest/sfx.tsv"
 resources_dir="Trinket/Media/SFX"
@@ -42,18 +44,6 @@ cleanup() {
 }
 trap cleanup EXIT
 
-escape_swift_string() {
-  printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g'
-}
-
-validate_identifier() {
-  local label="$1" value="$2"
-  if [[ ! "$value" =~ ^[A-Za-z0-9_][A-Za-z0-9_-]*$ ]]; then
-    echo "$label '$value' should use letters, numbers, hyphens, or underscores, and start with a letter, number, or underscore." >&2
-    exit 1
-  fi
-}
-
 while IFS=$'\t' read -r id asset_name source_path volume_gain || [[ -n "${id:-}" ]]; do
   [[ -z "${id:-}" || "$id" == \#* ]] && continue
 
@@ -62,8 +52,8 @@ while IFS=$'\t' read -r id asset_name source_path volume_gain || [[ -n "${id:-}"
     exit 1
   fi
 
-  validate_identifier "SFX id" "$id"
-  validate_identifier "Asset name" "$asset_name"
+  trinket_asset_validate_identifier "SFX id" "$id"
+  trinket_asset_validate_identifier "Asset name" "$asset_name"
 
   if grep -qx "$id" "$seen_ids_temp"; then
     echo "Duplicate SFX id '$id'." >&2
@@ -94,30 +84,22 @@ while IFS=$'\t' read -r id asset_name source_path volume_gain || [[ -n "${id:-}"
   source_hash="$(shasum -a 256 "$source_path" | awk '{print $1}')"
   recorded_hash="$(awk -F$'\t' -v name="$asset_name" '$1 == name { print $2; exit }' "$state_file" 2>/dev/null || true)"
   needs_convert=false
-  if [[ "${FORCE_ASSET_REENCODE:-0}" == "1" ]] \
-    || [[ "$state_was_present" == false && ! -f "$output_file" ]] \
-    || [[ "$state_was_present" == true && "$recorded_hash" != "$source_hash" ]] \
-    || [[ ! -f "$output_file" && "$state_was_present" == true ]]; then
+  if trinket_asset_needs_reencode "$state_was_present" "$recorded_hash" "$source_hash" "$output_file"; then
     needs_convert=true
   fi
 
   if $needs_convert; then
     tmp_output="$resources_dir/.${asset_name}.tmp.$$.m4a"
     rm -f "$tmp_output"
-    if ! afconvert "$source_path" "$tmp_output" -f m4af -d aac -b "$bitrate" --soundcheck-generate >/dev/null \
-      || [[ ! -s "$tmp_output" ]]; then
-      rm -f "$tmp_output"
-      echo "Failed to produce a valid SFX asset for '$id'." >&2
-      exit 1
-    fi
+    trinket_asset_convert_aac "$source_path" "$tmp_output" "$bitrate" "SFX '$id'"
     mv -f "$tmp_output" "$output_file"
   fi
   awk -F$'\t' -v name="$asset_name" '$1 != name { print }' "$state_temp" > "$state_temp.next"
   printf '%s\t%s\n' "$asset_name" "$source_hash" >> "$state_temp.next"
   mv -f "$state_temp.next" "$state_temp"
 
-  escaped_id="$(escape_swift_string "$id")"
-  escaped_asset="$(escape_swift_string "$asset_name")"
+  escaped_id="$(trinket_asset_escape_swift_string "$id")"
+  escaped_asset="$(trinket_asset_escape_swift_string "$asset_name")"
 
   cat >> "$clips_temp" <<SWIFT
         SFXClip(
@@ -161,28 +143,8 @@ else
   mv "$generated_temp" "$generated_swift"
 fi
 
-# Prune orphaned SFX assets
-shopt -s nullglob
-for file in "$resources_dir"/*.m4a; do
-  [[ -f "$file" ]] || continue
-  filename=$(basename "$file")
-  if ! grep -qx "$filename" "$active_clips_temp"; then
-    echo "Pruning orphaned SFX clip: $filename"
-    rm -f "$file"
-  fi
-done
-shopt -u nullglob
-
-{
-  head -n 2 "$state_temp"
-  tail -n +3 "$state_temp" | LC_ALL=C sort -t$'\t' -k1,1
-} > "$state_temp.sorted"
-if [[ -f "$state_file" ]] && cmp -s "$state_temp.sorted" "$state_file"; then
-  rm -f "$state_temp.sorted" "$state_temp"
-else
-  mv -f "$state_temp.sorted" "$state_file"
-  rm -f "$state_temp"
-fi
+trinket_asset_prune_orphans "$resources_dir" "$active_clips_temp" "SFX clip"
+trinket_asset_sort_state "$state_temp" "$state_file"
 rm -f "$clips_temp" "$seen_ids_temp" "$seen_assets_temp" "$active_clips_temp"
 
 echo "Prepared $processed_count SFX assets in $resources_dir and regenerated $generated_swift."

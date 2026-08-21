@@ -298,6 +298,21 @@ watch_run() {
   fi
 }
 
+watch_with_infra_retry() {
+  local run_id="$1"
+  if watch_run "$run_id"; then
+    return 0
+  fi
+  if [[ "$INFRA_RERUN" != true ]] || ! failure_looks_like_simulator_infrastructure "$run_id"; then
+    return 1
+  fi
+
+  echo "Failed jobs look like simulator/XCUITest launch infrastructure; rerunning failed jobs once..."
+  gh run rerun "$run_id" --failed
+  sleep "$POLL_SECONDS"
+  watch_run "$run_id"
+}
+
 echo "=== Agent CI watch: ref=$REF sha=${SHA:0:12} ==="
 
 echo "Waiting for Actions run for $SHA ..."
@@ -315,17 +330,8 @@ if ! RUN_ID="$(wait_for_run_id "$SHA")"; then
   fi
 fi
 
-if ! watch_run "$RUN_ID"; then
-  if [[ "$INFRA_RERUN" == true ]] && failure_looks_like_simulator_infrastructure "$RUN_ID"; then
-    echo "Failed jobs look like simulator/XCUITest launch infrastructure; rerunning failed jobs once..."
-    gh run rerun "$RUN_ID" --failed
-    sleep "$POLL_SECONDS"
-    if ! watch_run "$RUN_ID"; then
-      exit 1
-    fi
-  else
-    exit 1
-  fi
+if ! watch_with_infra_retry "$RUN_ID"; then
+  exit 1
 fi
 
 if [[ "$DISPATCH_IF_FILTERED" == true ]] && run_is_path_filtered_only "$RUN_ID"; then
@@ -355,17 +361,8 @@ if [[ "$DISPATCH_IF_FILTERED" == true ]] && run_is_path_filtered_only "$RUN_ID";
     echo "Could not find workflow_dispatch run after trigger." >&2
     exit 1
   fi
-  if ! watch_run "$DISPATCH_ID"; then
-    if [[ "$INFRA_RERUN" == true ]] && failure_looks_like_simulator_infrastructure "$DISPATCH_ID"; then
-      echo "Failed jobs look like simulator/XCUITest launch infrastructure; rerunning failed jobs once..."
-      gh run rerun "$DISPATCH_ID" --failed
-      sleep "$POLL_SECONDS"
-      if ! watch_run "$DISPATCH_ID"; then
-        exit 1
-      fi
-    else
-      exit 1
-    fi
+  if ! watch_with_infra_retry "$DISPATCH_ID"; then
+    exit 1
   fi
 fi
 

@@ -5,22 +5,9 @@ import TrinketCore
 struct CombatantEquipmentTests {
     @Test func companionSlotsAcceptAccessoryAndTrinketItems() throws {
         let bear = try #require(GameContent.companions.first { $0.id == "bear" })
-        let accessoryBase = try #require(GameContent.itemBaseTypes.first { $0.id == "ruby_ring" })
+        let ring = try ItemFixtures.makeItem("ruby_ring", id: "ring-a")
         let trinketBase = try #require(GameContent.itemBaseTypes.first { $0.slot == .trinket })
-        let ring = InventoryItem(
-            id: "ring-a",
-            baseType: accessoryBase,
-            rarity: .basic,
-            displayName: "Ruby Ring",
-            affixes: []
-        )
-        let trinket = InventoryItem(
-            id: trinketBase.id,
-            baseType: trinketBase,
-            rarity: .astral,
-            displayName: trinketBase.name,
-            affixes: []
-        )
+        let trinket = try ItemFixtures.makeItem(trinketBase.id, rarity: .astral)
         let loadout = EquipmentLoadout(itemIDsBySlot: [
             .accessory: ring.id,
             .trinket: trinket.id,
@@ -35,14 +22,7 @@ struct CombatantEquipmentTests {
 
     @Test func sanitizedDropsDuplicateItemAcrossAccessorySlots() throws {
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let accessoryBase = try #require(GameContent.itemBaseTypes.first { $0.id == "ruby_ring" })
-        let ring = InventoryItem(
-            id: "ring-a",
-            baseType: accessoryBase,
-            rarity: .basic,
-            displayName: "Ruby Ring",
-            affixes: []
-        )
+        let ring = try ItemFixtures.makeItem("ruby_ring", id: "ring-a", rarity: .basic)
         let loadout = EquipmentLoadout(itemIDsBySlot: [
             .accessory: ring.id,
             .secondaryAccessory: ring.id,
@@ -55,14 +35,7 @@ struct CombatantEquipmentTests {
     }
 
     @Test func equipMovesItemBetweenHeroAccessorySlots() throws {
-        let accessoryBase = try #require(GameContent.itemBaseTypes.first { $0.id == "ruby_ring" })
-        let ring = InventoryItem(
-            id: "ring-a",
-            baseType: accessoryBase,
-            rarity: .basic,
-            displayName: "Ruby Ring",
-            affixes: []
-        )
+        let ring = try ItemFixtures.makeItem("ruby_ring", id: "ring-a", rarity: .basic)
         var loadout = EquipmentLoadout()
         loadout.equip(ring, in: .accessory, inventory: [ring])
         loadout.equip(ring, in: .secondaryAccessory, inventory: [ring])
@@ -73,30 +46,9 @@ struct CombatantEquipmentTests {
 
     @Test func heroSecondarySlotsAcceptFamilyItems() throws {
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let swordBase = try #require(GameContent.itemBaseTypes.first { $0.id == "longsword" })
-        let shieldBase = try #require(GameContent.itemBaseTypes.first { $0.id == "kite_shield" })
-        let accessoryBase = try #require(GameContent.itemBaseTypes.first { $0.id == "ruby_ring" })
-        let sword = InventoryItem(
-            id: "sword-a",
-            baseType: swordBase,
-            rarity: .basic,
-            displayName: "Longsword",
-            affixes: []
-        )
-        let shield = InventoryItem(
-            id: "shield-a",
-            baseType: shieldBase,
-            rarity: .basic,
-            displayName: "Kite Shield",
-            affixes: []
-        )
-        let ring = InventoryItem(
-            id: "ring-a",
-            baseType: accessoryBase,
-            rarity: .basic,
-            displayName: "Ruby Ring",
-            affixes: []
-        )
+        let sword = try ItemFixtures.makeItem("longsword", id: "sword-a")
+        let shield = try ItemFixtures.makeItem("kite_shield", id: "shield-a")
+        let ring = try ItemFixtures.makeItem("ruby_ring", id: "ring-a")
 
         let sanitized = EquipmentLoadout(itemIDsBySlot: [
             .weapon: "sword-a",
@@ -111,21 +63,8 @@ struct CombatantEquipmentTests {
 
     @Test func offHandsOnlyEquipInSecondaryWeaponSlot() throws {
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let shieldBase = try #require(GameContent.itemBaseTypes.first { $0.id == "kite_shield" })
-        let shieldA = InventoryItem(
-            id: "shield-a",
-            baseType: shieldBase,
-            rarity: .basic,
-            displayName: "Kite Shield",
-            affixes: []
-        )
-        let shieldB = InventoryItem(
-            id: "shield-b",
-            baseType: shieldBase,
-            rarity: .basic,
-            displayName: "Kite Shield",
-            affixes: []
-        )
+        let shieldA = try ItemFixtures.makeItem("kite_shield", id: "shield-a", rarity: .basic)
+        let shieldB = try ItemFixtures.makeItem("kite_shield", id: "shield-b")
 
         let sanitized = EquipmentLoadout(itemIDsBySlot: [
             .weapon: "shield-a",
@@ -138,22 +77,8 @@ struct CombatantEquipmentTests {
 
     @Test func twoHandedWeaponUnequipsAndDisablesSecondaryWeaponSlot() throws {
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let crossbowBase = try #require(GameContent.itemBaseTypes.first { $0.id == "crossbow" })
-        let swordBase = try #require(GameContent.itemBaseTypes.first { $0.id == "longsword" })
-        let crossbow = InventoryItem(
-            id: "crossbow-a",
-            baseType: crossbowBase,
-            rarity: .basic,
-            displayName: "Crossbow",
-            affixes: []
-        )
-        let sword = InventoryItem(
-            id: "sword-a",
-            baseType: swordBase,
-            rarity: .basic,
-            displayName: "Longsword",
-            affixes: []
-        )
+        let crossbow = try ItemFixtures.makeItem("crossbow", id: "crossbow-a")
+        let sword = try ItemFixtures.makeItem("longsword", id: "sword-a")
         let inventory = [crossbow, sword]
         var loadout = EquipmentLoadout()
         loadout.equip(sword, in: .secondaryWeapon, inventory: inventory)
@@ -174,21 +99,8 @@ struct CombatantEquipmentTests {
     }
 
     @Test func oneHandedItemsMoveOrDualWieldAcrossWeaponSlots() throws {
-        let swordBase = try #require(GameContent.itemBaseTypes.first { $0.id == "longsword" })
-        let swordA = InventoryItem(
-            id: "sword-a",
-            baseType: swordBase,
-            rarity: .basic,
-            displayName: "Longsword",
-            affixes: []
-        )
-        let swordB = InventoryItem(
-            id: "sword-b",
-            baseType: swordBase,
-            rarity: .basic,
-            displayName: "Longsword",
-            affixes: []
-        )
+        let swordA = try ItemFixtures.makeItem("longsword", id: "sword-a", rarity: .basic)
+        let swordB = try ItemFixtures.makeItem("longsword", id: "sword-b")
         let inventory = [swordA, swordB]
         var loadout = EquipmentLoadout()
         loadout.equip(swordA, in: .weapon, inventory: inventory)

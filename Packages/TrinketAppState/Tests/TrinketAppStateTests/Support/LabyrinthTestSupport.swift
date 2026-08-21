@@ -10,6 +10,26 @@ enum LabyrinthTestSupport {
         firstReachableNodeID(where: { $0.type.isCombat }, in: state)
     }
 
+    static func installRecruitNode(eventID: String?, in state: PlaySession) -> String? {
+        guard let nodeID = state.playerSave.labyrinth.reachableNodeIDs().first,
+              let node = state.playerSave.labyrinth.nodes[nodeID]
+        else { return nil }
+        var labyrinth = state.playerSave.labyrinth
+        labyrinth.nodes[nodeID] = LabyrinthNode(
+            id: node.id,
+            type: .recruit,
+            depth: node.depth,
+            clusterID: node.clusterID,
+            gridPosition: node.gridPosition,
+            modifierIDs: node.modifierIDs,
+            recruitEventID: eventID,
+            outgoingIDs: node.outgoingIDs,
+            isRevealed: true
+        )
+        state.playerSave.labyrinth = labyrinth
+        return nodeID
+    }
+
     static func firstReachableNodeID(
         of type: LabyrinthNodeType,
         in state: PlaySession

@@ -3,11 +3,11 @@
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
+# shellcheck source=lib/tools.sh
+source Scripts/lib/tools.sh
 
 echo "=== Ensure pinned tools ==="
-./Scripts/ensure-ci-tools.sh
-export PATH="$PWD/.tools:$PATH"
-export TRINKET_REQUIRE_PINNED_TOOLS=1
+trinket_require_pinned_tools
 
 echo "=== Generating Xcode project / catalogs ==="
 ./Scripts/generate.sh --force-xcodegen

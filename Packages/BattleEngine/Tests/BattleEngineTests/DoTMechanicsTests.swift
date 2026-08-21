@@ -45,28 +45,24 @@ struct DoTMechanicsTests {
             .map(\.amount)
     }
 
-    private func burnPotency(on battle: BattleState) -> Int? {
-        battle.activeEffects(of: battle.enemy).first { $0.effect.isDecayingDoT && $0.keyword == .burn }?.effect.potency
-    }
-
     @Test func burnFourDealsFourThenTwoThenOne() throws {
         var battle = isolatedBattle(heroAbilities: [burnAbility(potency: 4)])
 
         let applyEvents = try #require(try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle))
         try #expect(statusAmounts(from: applyEvents, keyword: .burn) == [4])
-        try #expect(burnPotency(on: battle) == 4)
+        try #expect(BattleTestFixtures.burnPotency(on: battle) == 4)
 
         let tickOne = BattleTestFixtures.endTurn(on: &battle)
         try #expect(statusAmounts(from: tickOne, keyword: .burn) == [2])
-        try #expect(burnPotency(on: battle) == 2)
+        try #expect(BattleTestFixtures.burnPotency(on: battle) == 2)
 
         let tickTwo = BattleTestFixtures.endTurn(on: &battle)
         try #expect(statusAmounts(from: tickTwo, keyword: .burn) == [1])
-        try #expect(burnPotency(on: battle) == 1)
+        try #expect(BattleTestFixtures.burnPotency(on: battle) == 1)
 
         let tickThree = BattleTestFixtures.endTurn(on: &battle)
         try #expect(statusAmounts(from: tickThree, keyword: .burn).isEmpty)
-        try #expect(burnPotency(on: battle) == nil)
+        try #expect(BattleTestFixtures.burnPotency(on: battle) == nil)
     }
 
     @Test func burnStacksMergeAndDecayTogether() throws {
@@ -77,15 +73,15 @@ struct DoTMechanicsTests {
 
         // End of round: burn 4 → 2.
         _ = BattleTestFixtures.endTurn(on: &battle)
-        try #expect(burnPotency(on: battle) == 2)
+        try #expect(BattleTestFixtures.burnPotency(on: battle) == 2)
 
         // Play merges +2 onto the remaining stack → 4.
         _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
-        try #expect(burnPotency(on: battle) == 4)
+        try #expect(BattleTestFixtures.burnPotency(on: battle) == 4)
 
         // Next end of round: burn 4 → 2.
         _ = BattleTestFixtures.endTurn(on: &battle)
-        try #expect(burnPotency(on: battle) == 2)
+        try #expect(BattleTestFixtures.burnPotency(on: battle) == 2)
     }
 
     @Test func poisonEightDecaysToZero() throws {

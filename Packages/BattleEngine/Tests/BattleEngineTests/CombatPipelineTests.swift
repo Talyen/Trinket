@@ -38,21 +38,13 @@ struct CombatPipelineTests {
         )
         let source = CombatantFixtures.combatant(id: "source", role: .enemy, maxHealth: 50)
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
-        var context = BattleState(
-            roster: BattleRoster(
-                hero: CombatantRuntime(combatant: target, initialActiveEffects: []),
-                companion: CombatantRuntime(combatant: companion),
-                enemy: CombatantRuntime(combatant: source, initialActiveEffects: [])
-            ),
-            rng: SeededRandomNumberGenerator(seed: BattleTestFixtures.deterministicNonCriticalSeed),
+        var context = BattleTestFixtures.makeContext(
+            hero: target,
+            companion: companion,
+            enemy: source,
+            seed: BattleTestFixtures.deterministicNonCriticalSeed,
             nextEffectID: 0,
-            nextEventID: 0,
-            events: [],
-            gold: 0,
-            initialGold: 0,
-            heroModifiers: .zero,
-            companionModifiers: .zero,
-            enemyModifiers: .zero
+            nextEventID: 0
         )
         let (lost, events) = context.applyTestDamage(10, to: target, sourceActorID: "source")
         try #expect(lost == 0)
@@ -311,23 +303,22 @@ struct CombatPipelineTests {
         try #expect(remainingBuffer == 10, "5 damage crit to 10 should consume 10 shield")
     }
 
-    @Test func nonCrittableKeywordsNeverCriticalEvenWithAbilityBonus() throws {
-        for keyword: Keyword in [.block, .dodge, .purge, .gold, .mana] {
-            var context = makeContext(seed: BattleTestFixtures.deterministicNonCriticalSeed)
-            let before = context.roster.enemy.currentHealth
-            let outcome = context.resolveDamage(
-                DamageRequest(
-                    amount: 5,
-                    target: context.roster.enemy.combatant,
-                    keyword: keyword,
-                    sourceActorID: "source",
-                    options: DamageOptions(applyDodge: false, abilityCriticalChanceBonus: 1.0)
-                )
+    @Test(arguments: [Keyword.block, .dodge, .purge, .gold, .mana])
+    func nonCrittableKeywordsNeverCriticalEvenWithAbilityBonus(keyword: Keyword) throws {
+        var context = makeContext(seed: BattleTestFixtures.deterministicNonCriticalSeed)
+        let before = context.roster.enemy.currentHealth
+        let outcome = context.resolveDamage(
+            DamageRequest(
+                amount: 5,
+                target: context.roster.enemy.combatant,
+                keyword: keyword,
+                sourceActorID: "source",
+                options: DamageOptions(applyDodge: false, abilityCriticalChanceBonus: 1.0)
             )
-            try #expect(!outcome.isCritical, "\(keyword.rawValue)")
-            try #expect(outcome.healthLost == 5, "\(keyword.rawValue)")
-            try #expect(context.roster.enemy.currentHealth == before - 5, "\(keyword.rawValue)")
-        }
+        )
+        try #expect(!outcome.isCritical, "\(keyword.rawValue)")
+        try #expect(outcome.healthLost == 5, "\(keyword.rawValue)")
+        try #expect(context.roster.enemy.currentHealth == before - 5, "\(keyword.rawValue)")
     }
 
     @Test func guaranteedCriticalIfEnemyBuffedBypassesSoftCap() throws {

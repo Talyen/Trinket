@@ -1,38 +1,43 @@
 # TrinketUITests
 
-UI test conventions for Trinket. Agent workflow: `AGENTS.md`. Unit/UI overview: `Docs/Platform/Testing.md`. UI test selector constants: `Packages/TrinketFeatureSupport/.../AccessibilityID.swift`.
+UI test mechanics for Trinket. Agent workflow: `AGENTS.md`. Semantic test
+ownership and keep/drop rules: [`Docs/Platform/Testing.md`](../Docs/Platform/Testing.md).
+UI selector constants live in `Packages/TrinketFeatureSupport`.
 
 ## Layout
 
 | Area | Path | When |
 |------|------|------|
-| Smoke | `Smoke/`, `Smoke.xctestplan` | Local `test.sh smoke` and CI `smoke-full` (same four classes) |
+| Smoke | `Smoke/`, `Smoke.xctestplan` | Local and CI `test.sh smoke` (registry-defined classes) |
 | Exhaustive | `Play/`, `Collection/`, `Battle/` | Main CI (sharded); local only for targeted debugging |
-| Integration | `Integration.xctestplan` (FullUI journey classes; smoke excluded) | Local `test.sh all`; explicit selection so new classes never silently run here |
 | Performance | `Performance/`, `BattlePerformance.xctestplan` | Ad hoc `performance.sh` / `test.sh performance` when investigating performance; not CI or smoke |
 | Support | `Support/Screens/` | Page objects (`PlayScreen`, `BattleScreen`, `TabBar`, …) |
 
-Smoke is four launches: `StarterOnboardingSmokeTests` (starter choices enter the campaign), `SmokeShellTests` (one launch + tab bar for Play, Collection, Homestead, Options), `SmokeBattleTests` (battle chrome), `SmokeShopTests` (merchant controls). Bare `test.sh smoke` and `test.sh smoke-full` run the same plan; `test.sh smoke <Class>` filters it.
+Smoke membership is defined by `Smoke.xctestplan` and
+`Scripts/config/smoke-classes.txt`; the test plan is the source of truth when
+classes change. The smoke command can filter the plan for focused iteration.
 
 ## Keep / drop
 
-Keep/drop rubric: [Testing.md](../Docs/Platform/Testing.md). Prefer extending an existing keep method over a new class. Push rules/persistence to unit tests; UI proves the control path once.
+Prefer extending an existing kept method over a new class. Push rules and
+persistence to package tests; UI proves the shipping control path once.
 
 ## Launch args
 
-Defined as `TestLaunchArg` in `Support/TrinketUITestCase.swift`; parsed by `AppEnvironment` (`LaunchScreen` in `Packages/TrinketAppState/Sources/TrinketAppState/App/AppTypes.swift`). Helpers: `allForScreen`, `allForTab`, `allForBattle`, `allForBattleVictory`, `allForMidBattle`, `allForShop`, `allForMystery`, `completedStages`.
+Defined as `TestLaunchArg` in `Support/TrinketUITestCase.swift` and parsed by
+`AppEnvironment`. Helpers include `allForScreen`, `allForTab`, `allForBattle`,
+`allForBattleVictory`, `allForMidBattle`, `allForShop`, `allForMystery`, and
+`completedStages`. Use the source type for the complete, current catalog.
 
 **Default smoke args:** `-reset-state`, `-seed-test-progress`, `-disable-cloud-sync`.
 
-**Additional:**
+Common screen-entry arguments are `-launch-screen` and `-selectedTab`; state
+seeding uses `-completed-stages`, `-starting-gold`, and the reset/cloud-sync
+flags. Performance-only frame metrics are opt-in and never belong to smoke.
 
-- `-launch-screen` (`hero:`, `companion:`, `item:`, `options`, `battle` → stage 1-1, `battle-victory` → stage 1-1 victory chrome without live ticks, `shop` → stage 2-4 merchant, `mystery` → stage 1-2 mystery, `labyrinth` / `labyrinth-map` → The Labyrinth map)
-- `-selectedTab` (`play`, `collection`, `homestead`, `options`; `heroes`/`companions`/`inventory`/`search` → `.collection`)
-- `-completed-stages`, `-battle-tick-interval`, `-starting-gold`
-- `-disable-audio` (see `AppEnvironment.parse`)
-- `-enable-frame-metrics` — DEBUG frame-pacing sampler plus `AccessibilityID.Debug.frameMetrics` and reset probes for the performance test matrix (not smoke)
-
-Keep default launch args unless testing persistence. Prefer ids from `AccessibilityID` (e.g. `AccessibilityID.Play.stageNode(chapter:stage:)`, `AccessibilityID.Battle.hand`); assert with `assertExists`. UI tests tap tab **labels** (`"Homestead"`, `"Collection"`), not `AppTab` raw values.
+Keep default launch args unless testing persistence. Prefer `AccessibilityID`
+selectors and assert with `assertExists`; use visible text only when it is the
+product contract. UI tests tap tab labels, not `AppTab` raw values.
 
 ## Speed
 
@@ -42,8 +47,11 @@ Keep default launch args unless testing persistence. Prefer ids from `Accessibil
 - Prefer `-completed-stages` over scrolling Stage Select lists when seeding progress.
 - Filter inventory/search with `replaceText` instead of grid scroll loops.
 - Prefer `AccessibilityID` selectors over visible labels for primary CTAs (Aspect Begin Floor, Labyrinth node actions).
-- Mid-battle exhaustive tests: enter via Play map (`play.openCampaign()` + `play.startBattle`) with `TestLaunchArg.allForMidBattle()` (60s ticks via `-battle-tick-interval`), not `-launch-screen battle` (ticks start at launch and race setup). Smoke battle is load-only deep-link; card play, hand-drag safety, and retreat live in `BattleFlowUITests` only. If Stage 1-1 already resolved, mid-battle methods `XCTSkip` instead of silently passing.
-- `-launch-screen battle-victory` / `allForBattleVictory()` remain for the performance plan; exhaustive UI does not own victory chrome.
-- Default assertion timeout is `TrinketUITestCase.defaultTimeout` (3s) for deep-linked screens.
+- Mid-battle exhaustive tests enter through the Play map with
+  `TestLaunchArg.allForMidBattle()`; do not deep-link into a live battle when
+  setup timing matters. Keep victory/performance ownership in the dedicated
+  performance plan.
+- Use the timeout and tick defaults from `TrinketUITestCase` and its helpers;
+  do not copy their numeric values into this guide.
 - Accessibility audits are intentionally not part of the test suite. Keep UI assertions focused on stable test selectors and interaction outcomes — not display names, rarity labels, or scroll geometry unless that string is the product contract.
 - UI tests run serially on a single simulator by default. Hotspots: `./Scripts/test-timing.sh report --top 30`.

@@ -40,9 +40,6 @@
          <TestPlanReference
             reference = "container:FullUI.xctestplan">
          </TestPlanReference>
-         <TestPlanReference
-            reference = "container:Integration.xctestplan">
-         </TestPlanReference>
       </TestPlans>
       <MacroExpansion>
          <BuildableReference

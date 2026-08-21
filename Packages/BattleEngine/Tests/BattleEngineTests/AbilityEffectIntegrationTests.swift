@@ -254,7 +254,7 @@ struct AbilityEffectIntegrationTests {
         let freshEvents = try BattleTestFixtures.playCardNamed("Combustion", owner: .hero, on: &fresh)
         let freshHit = try #require(freshEvents.first { $0.kind == .ability && $0.abilityName == "Combustion" }?.amount)
         try #expect(freshHit == 4)
-        try #expect(burnPotency(on: fresh) == 4)
+        try #expect(BattleTestFixtures.burnPotency(on: fresh) == 4)
 
         var burning = BattleTestFixtures.standardParty(
             hero: hero,
@@ -265,12 +265,6 @@ struct AbilityEffectIntegrationTests {
         let burningEvents = try BattleTestFixtures.playCardNamed("Combustion", owner: .hero, on: &burning)
         let burningHit = try #require(burningEvents.first { $0.kind == .ability && $0.abilityName == "Combustion" }?.amount)
         try #expect(burningHit == 8)
-        try #expect(burnPotency(on: burning) == 10)
-    }
-
-    private func burnPotency(on battle: BattleState) -> Int? {
-        battle.activeEffects(of: battle.enemy).first {
-            $0.effect.isDecayingDoT && $0.keyword == .burn
-        }?.effect.potency
+        try #expect(BattleTestFixtures.burnPotency(on: burning) == 10)
     }
 }

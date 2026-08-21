@@ -68,7 +68,6 @@ package_shared_precomps_dir() {
 # shellcheck disable=SC2034
 TRINKET_BUILD_FINGERPRINTS_APP=(
   smoke
-  smoke-full
   ui
 )
 

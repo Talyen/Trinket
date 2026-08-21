@@ -7,6 +7,8 @@
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
+# shellcheck source=lib/infrastructure-patterns.sh
+source ./Scripts/lib/infrastructure-patterns.sh
 
 RUN_ID=""
 DO_RERUN=false
@@ -73,7 +75,9 @@ failure_jobs_are_ui_or_simulator() {
 failure_evidence_looks_like_infrastructure() {
   local run_id="$1"
   local repo evidence
+  local pattern
   repo="$(repo_slug)"
+  pattern="$(trinket_infrastructure_failure_pattern)"
   evidence="$(
     {
       gh api "repos/${repo}/actions/runs/${run_id}/jobs" --paginate \
@@ -88,14 +92,7 @@ failure_evidence_looks_like_infrastructure() {
     } | tr '\n' ' '
   )"
 
-  [[ "$evidence" =~ [Tt]imed\ out\ while\ launching \
-    || "$evidence" =~ [Ff]ailed\ to\ launch \
-    || "$evidence" =~ [Bb]ackground\ assertion \
-    || "$evidence" =~ [Cc]oreSimulator \
-    || "$evidence" =~ [Uu]nable\ to\ boot \
-    || "$evidence" =~ [Cc]old\ boot\ failed \
-    || "$evidence" =~ [Dd]estination\ or\ simulator\ service\ failed \
-    || "$evidence" =~ simulator-infrastructure ]]
+  printf '%s\n' "$evidence" | grep -iqE "$pattern"
 }
 
 failure_looks_like_simulator_infrastructure() {

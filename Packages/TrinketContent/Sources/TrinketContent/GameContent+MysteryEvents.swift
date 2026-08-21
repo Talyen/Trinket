@@ -2,25 +2,26 @@ import Foundation
 import TrinketCore
 
 public extension GameContent {
+    static let themedTrinketsByMysteryChoiceID: [String: Set<String>] = [
+        "take-the-charm": ["icy_heart"],
+        "take-the-gold": ["lucky_clover"],
+        "pick-mushrooms": ["parasitic_bloom"],
+        "claim-blade": ["cutpurse_knife"],
+        "search-the-crypt": ["bone_charm", "sin_eaters_lantern"],
+        "take-the-quill": ["runic_quill"],
+        "take-the-pages": ["tattered_pages"],
+        "take-a-fragment": ["meteorite"],
+        "collect-the-bones": ["bone_charm"],
+        "mine-the-cliffside": ["thunderstone"],
+        "take-the-salts": ["bone_charm"],
+        "harvest-remedies": ["mortar_and_pestle"],
+        "take-the-notes": ["tattered_pages"],
+        "take-the-chimes": ["resonant_chimes"],
+        "claim-censer": ["brass_censer"],
+    ]
+
     static func themedTrinketIDs(forMysteryChoiceID choiceID: String) -> Set<String>? {
-        let mapping: [String: Set<String>] = [
-            "take-the-charm": ["icy_heart"],
-            "take-the-gold": ["lucky_clover"],
-            "pick-mushrooms": ["parasitic_bloom"],
-            "claim-blade": ["cutpurse_knife"],
-            "search-the-crypt": ["bone_charm", "sin_eaters_lantern"],
-            "take-the-quill": ["runic_quill"],
-            "take-the-pages": ["tattered_pages"],
-            "take-a-fragment": ["meteorite"],
-            "collect-the-bones": ["bone_charm"],
-            "mine-the-cliffside": ["thunderstone"],
-            "take-the-salts": ["bone_charm"],
-            "harvest-remedies": ["mortar_and_pestle"],
-            "take-the-notes": ["tattered_pages"],
-            "take-the-chimes": ["resonant_chimes"],
-            "claim-censer": ["brass_censer"],
-        ]
-        return mapping[choiceID]
+        themedTrinketsByMysteryChoiceID[choiceID]
     }
 
     static var mysteryEvents: [MysteryEvent] {
