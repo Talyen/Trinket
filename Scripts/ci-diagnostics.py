@@ -12,6 +12,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from diagnostic_limits import MAX_AGGREGATE_ISSUES, MAX_DETAIL_CHARS, MAX_DETAIL_LINES, MAX_LABELS_IN_DETAIL, MAX_LINE_CHARS, MAX_MESSAGE_CHARS
+from diagnostic_model import CLASSIFICATION_PRECEDENCE
 
 FULL_REPORT = False
 argv = sys.argv[1:]
@@ -34,16 +35,9 @@ if len(argv) < 2:
 results_dir = Path(argv[0]).resolve()
 output_path = Path(argv[1]).resolve()
 
-# The order is deliberately stable. It keeps the aggregate category useful
-# when a build emits more than one failed invocation (for example unit and UI).
-CLASSIFICATION_PRECEDENCE = (
-    "test-failure",
-    "build-failure",
-    "configuration",
-    "tooling",
-    "simulator-infrastructure",
-    "unknown",
-)
+# Classification precedence is owned by diagnostic_model (single source); the
+# order keeps the aggregate category useful when a build emits more than one
+# failed invocation (for example unit and UI).
 KNOWN_CLASSIFICATIONS = set(CLASSIFICATION_PRECEDENCE)
 
 

@@ -35,6 +35,26 @@ except ModuleNotFoundError:
 MAX_TEST_DETAIL_FETCHES = 5
 
 
+def _load_infrastructure_pattern() -> str:
+    """Read the canonical infrastructure vocabulary shared with the bash matchers."""
+    config = Path(__file__).resolve().parent / "config" / "infrastructure-patterns.env"
+    try:
+        for line in config.read_text(encoding="utf-8").splitlines():
+            stripped = line.strip()
+            if stripped.startswith("TRINKET_INFRASTRUCTURE_FAILURE_PATTERN="):
+                value = stripped.split("=", 1)[1].strip().strip("'\"")
+                if value:
+                    return value
+    except OSError:
+        pass
+    # Minimal fallback keeps simulator classification working if the config file
+    # is missing; the bash retry matcher fails closed on its own source error.
+    return "unable to boot|coresimulator"
+
+
+INFRASTRUCTURE_FAILURE_PATTERN = _load_infrastructure_pattern()
+
+
 def _value(value: Any, default: Any = "") -> Any:
     if isinstance(value, dict) and "_value" in value:
         return value.get("_value", default)
@@ -117,33 +137,38 @@ def _prioritize_issues(issues: list[DiagnosticIssue]) -> list[DiagnosticIssue]:
     return sorted(issues, key=_issue_priority)[:MAX_ISSUES]
 
 
+_CONFIGURATION_PATTERNS = (
+    r"scheme .{0,80}not found",
+    r"workspace .{0,40}does not contain",
+    r"test plan",
+    r"invalid destination",
+    r"unable to find a destination",
+    r"destination .* unavailable",
+    r"requires a provisioning profile",
+    r"requires a development team",
+    r"no such module",
+    r"code signing",
+)
+
+_TOOLING_PATTERNS = (
+    r"command not found",
+    r"unable to find utility",
+    r"xcode-select",
+    r"developer directory",
+    r"toolchain",
+    r"swiftlint",
+)
+
+
 def _classify_text(text: str, default: str) -> str:
     lowered = text.lower()
-    if any(
-        token in lowered
-        for token in (
-            "simulator", "simctl", "unable to boot", "could not boot",
-            "device is not available", "no devices are booted", "launch session",
-            "connection to the service", "launchd", "timed out while launching",
-            "failed to launch", "background assertion", "failed to get background assertion",
-        )
-    ):
+    # Canonical vocabulary shared with the bash retry/rerun matchers; see
+    # Scripts/config/infrastructure-patterns.env.
+    if re.search(INFRASTRUCTURE_FAILURE_PATTERN, lowered):
         return "simulator-infrastructure"
-    if any(
-        token in lowered
-        for token in (
-            "scheme", "test plan", "destination", "configuration",
-            "workspace does not contain", "requires a development team", "no such module", "signing",
-        )
-    ):
+    if any(re.search(pattern, lowered) for pattern in _CONFIGURATION_PATTERNS):
         return "configuration"
-    if any(
-        token in lowered
-        for token in (
-            "command not found", "xcresulttool", "xcodebuild: error",
-            "unable to find utility", "developer directory", "toolchain", "swiftlint",
-        )
-    ):
+    if any(re.search(pattern, lowered) for pattern in _TOOLING_PATTERNS):
         return "tooling"
     return default if default in CLASSIFICATIONS else "unknown"
 
@@ -339,11 +364,13 @@ def parse_build_results(build: dict[str, Any]) -> list[IssueObservation]:
 
 LOG_PATTERNS: tuple[tuple[str, str, str], ...] = (
     (r"(?:undefined symbols for architecture|symbol\(s\) not found|duplicate symbol|linker command failed|ld: .*error|framework .* not found|library .* not found)", "build-failure", "Linker failure"),
+    # Canonical simulator vocabulary first so a crash/timeout line that also
+    # names the simulator classifies as infrastructure, not test failure.
+    (INFRASTRUCTURE_FAILURE_PATTERN, "simulator-infrastructure", "Simulator infrastructure"),
     (r"(?:test (?:runner|process) (?:crashed|crash|exited)|test .*terminated unexpectedly|testing failed|failed to (?:build|test)|terminated due to signal|killed by signal|(?:test .*|^|\s)timed? out|timeout|hang detected|(?:failed to launch test|test .*failed to launch)|test execution interrupted|exc_crash|abort trap|signal [0-9]+)", "test-failure", "Test process failure"),
-    (r"(?:timed out while launching|failed to launch(?! test)|background assertion|failed to get background assertion)", "simulator-infrastructure", "Simulator infrastructure"),
-    (r"(?:scheme|test plan|no test plan|invalid destination|unable to find a destination|destination .* unavailable|requires a provisioning profile|code signing|workspace .* does not contain)", "configuration", "Configuration failure"),
-    (r"(?:command not found|unable to find utility|xcode-select|developer directory|toolchain|swiftlint|xcresulttool)", "tooling", "Tooling failure"),
-    (r"(?:xcodebuild: error|simulator|simctl|unable to boot|could not boot|coresimulator|launchd_sim|device .* unavailable|no devices are booted)", "unknown", "Xcode invocation"),
+    (r"(?:scheme .{0,80}not found|workspace .{0,40}does not contain|no test plan|invalid destination|unable to find a destination|destination .* unavailable|requires a provisioning profile|code signing|requires a development team|no such module)", "configuration", "Configuration failure"),
+    (r"(?:command not found|unable to find utility|xcode-select|developer directory|toolchain|swiftlint)", "tooling", "Tooling failure"),
+    (r"xcodebuild: error", "unknown", "Xcode invocation"),
 )
 
 
@@ -491,6 +518,10 @@ def build_report(args: argparse.Namespace) -> DiagnosticReport:
 
     issue_kinds = {issue.kind for issue in issues}
     classification = next((kind for kind in CLASSIFICATION_PRECEDENCE if kind in issue_kinds), "unknown")
+    # xcodebuild exits 70 only for simulator-service failures; mirror the bash
+    # retry matcher's unconditional treatment so report and retry agree.
+    if args.exit_code == 70:
+        classification = "simulator-infrastructure"
     unmatched_attachments: list[str] = []
     output_stem = _output_stem(args.output_prefix)
     attachment_dir = Path(str(output_stem) + ".attachments")

@@ -592,4 +592,54 @@ bash -c '
   TRINKET_SIMULATOR_SHUTDOWN_TIMEOUT_SECONDS=0 trinket_sim_shutdown_wait agent-1 >/dev/null
 ' _ "$REPO" "$FAKE_BIN"
 
+# --- leases are reaped when stale by age, even with a live pid (pid reuse) ---
+bash -c '
+  set -euo pipefail
+  cd "$1"
+  source Scripts/run-env.sh
+  export TRINKET_ISOLATE=1 TRINKET_RUN_ID="stale-age"
+  unset DERIVED_DATA_PATH RESULTS_DIR TRINKET_SIMULATOR_NAME TRINKET_AGENT_SLOT TRINKET_SIM_SLOT_PATH
+  trinket_run_env_init
+  printf "%s old %s\n" "$$" "2020-01-01T00:00:00Z" > "$TRINKET_SIM_ACTIVE_DIR/stale.slot"
+  trinket_sim_slot_reap
+  [[ ! -e "$TRINKET_SIM_ACTIVE_DIR/stale.slot" ]]
+  printf "%s fresh %s\n" "$$" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$TRINKET_SIM_ACTIVE_DIR/fresh.slot"
+  trinket_sim_slot_reap
+  [[ -e "$TRINKET_SIM_ACTIVE_DIR/fresh.slot" ]]
+  rm -f "$TRINKET_SIM_ACTIVE_DIR/fresh.slot"
+  trinket_sim_slot_release
+' _ "$REPO"
+
+# --- shared-device lease: contention fails fast; release frees the device ---
+bash -c '
+  set -euo pipefail
+  cd "$1"
+  source Scripts/run-env.sh
+  unset TRINKET_ISOLATE TRINKET_RUN_ID DERIVED_DATA_PATH RESULTS_DIR TRINKET_SIMULATOR_NAME TRINKET_AGENT_SLOT TRINKET_SHARED_SIM_SLOT_PATH
+  trinket_run_env_init
+  trinket_shared_sim_lease_acquire
+  [[ -e "$TRINKET_SIM_ACTIVE_DIR/run.slot" ]]
+  if bash -c "
+    set -euo pipefail
+    cd \"\$1\"
+    source Scripts/run-env.sh
+    unset TRINKET_ISOLATE TRINKET_RUN_ID TRINKET_SHARED_SIM_SLOT_PATH DERIVED_DATA_PATH RESULTS_DIR TRINKET_SIMULATOR_NAME
+    trinket_run_env_init >/dev/null
+    trinket_shared_sim_lease_acquire
+  " _ "$1"; then
+    echo "expected shared lease contention failure" >&2
+    exit 1
+  fi
+  # The peer release must not clear our own live lease.
+  [[ -e "$TRINKET_SIM_ACTIVE_DIR/run.slot" ]]
+  trinket_shared_sim_lease_release
+  [[ ! -e "$TRINKET_SIM_ACTIVE_DIR/run.slot" ]]
+  # A stale lease is reclaimed automatically on the next acquire.
+  printf "%s stale %s\n" "$$" "2020-01-01T00:00:00Z" > "$TRINKET_SIM_ACTIVE_DIR/run.slot"
+  trinket_shared_sim_lease_acquire
+  read -r holder _ < "$TRINKET_SIM_ACTIVE_DIR/run.slot"
+  [[ "$holder" == "$$" ]]
+  trinket_shared_sim_lease_release
+' _ "$REPO"
+
 echo "run-env isolation tests passed"

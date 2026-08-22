@@ -21,12 +21,15 @@ CLASSIFICATIONS = (
     "tooling",
     "unknown",
 )
+# Simulator infrastructure outranks configuration/tooling: a genuine crashed
+# simulator must not be masked by one benign config or tooling line, which
+# would suppress the infrastructure retry.
 CLASSIFICATION_PRECEDENCE = (
     "test-failure",
     "build-failure",
+    "simulator-infrastructure",
     "configuration",
     "tooling",
-    "simulator-infrastructure",
     "unknown",
 )
 GENERIC_MESSAGES = {"Test reported Failed", "No failure details"}

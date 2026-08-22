@@ -20,6 +20,9 @@ prepare_generated_inputs "$RESULTS_DIR"
 # shellcheck source=ensure-simulator.sh
 source ./Scripts/ensure-simulator.sh
 trinket_sim_slot_ensure
+if [[ "${TRINKET_ISOLATE:-}" != "1" ]]; then
+  trinket_shared_sim_lease_acquire
+fi
 
 # shellcheck source=xcode-runner.sh
 source ./Scripts/xcode-runner.sh

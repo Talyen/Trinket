@@ -26,7 +26,13 @@ explicit retained path or `--full` for forensic payloads; do not paste the
 raw log into the agent prompt.
 
 Classifications are `test-failure`, `build-failure`, `simulator-infrastructure`,
-`configuration`, `tooling`, or `unknown`. Test-owned attachments stay on their
+`configuration`, `tooling`, or `unknown`. The infrastructure vocabulary is
+owned by `Scripts/config/infrastructure-patterns.env` — the Python reporter,
+the local retry matcher (`Scripts/lib/xcodebuild-infra.sh`), and the CI rerun
+matcher (`Scripts/ci-infra-rerun.sh`) all read that one list, and xcodebuild
+exit code 70 is always `simulator-infrastructure`. Do not add pattern tokens
+anywhere else; extend the config file when a new infrastructure signature
+appears. Test-owned attachments stay on their
 matching issue; runner-level or otherwise unmatched attachments are listed once at
 report level. A failure report may identify source locations and attachments even
 when the underlying result bundle is incomplete.
@@ -78,5 +84,5 @@ verification or the pre-push gates.
 CI uploads a structured-first artifact. The test job stages manifests,
 bounded reports, the aggregate, and timing data; raw logs, `.xcresult` bundles, and
 attachments are staged only when the aggregate category is failed or unknown. Use
-`./Scripts/ci-diagnostics.py --full <RESULTS_DIR> <OUTPUT_PATH>` when an investigation
+`python3 ./Scripts/ci-diagnostics.py --full <RESULTS_DIR> <OUTPUT_PATH>` when an investigation
 needs the uncompressed aggregate invocation payload.

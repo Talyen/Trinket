@@ -147,6 +147,11 @@ fi
 # shellcheck source=ensure-simulator.sh
 source "$SCRIPT_DIR/ensure-simulator.sh"
 trinket_sim_slot_ensure
+# Shared human runs lease Trinket Run so concurrent non-isolated runs fail fast
+# instead of fighting over boot/erase state and DerivedData.
+if [[ "${TRINKET_ISOLATE:-}" != "1" ]]; then
+  trinket_shared_sim_lease_acquire
+fi
 
 # shellcheck source=lib/xcodebuild-infra.sh
 source "$SCRIPT_DIR/lib/xcodebuild-infra.sh"

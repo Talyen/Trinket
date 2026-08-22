@@ -390,6 +390,7 @@ trinket_run_env_claim_self_clean_owner() {
 trinket_run_env_release_slots() {
   trinket_sim_slot_release
   trinket_ui_slot_release
+  trinket_shared_sim_lease_release
   # Self-clean only for the top-level owner (verify/test parent). Children that
   # inherit the trap still release their own leases, but skip Preview / single-
   # warm / age-prune so a mid-plan child EXIT cannot disrupt peers or Xcode Previews.
@@ -429,17 +430,33 @@ trinket_bind_agent_slot() {
   fi
 }
 
+# A slot/lease entry ("pid run-id ISO-timestamp") is stale when its pid is dead
+# OR its timestamp exceeds TRINKET_SLOT_STALE_SECONDS (default 6h). The age cap
+# covers pid reuse: a recycled pid otherwise keeps a dead run's lease alive
+# forever and permanently fail-fails pool acquisition.
+trinket_slot_entry_is_stale() {
+  local slot="$1"
+  local pid="" stamp="" epoch="" now
+  read -r pid _ stamp < "$slot" 2>/dev/null || true
+  if [[ "$pid" =~ ^[0-9]+$ ]] && ! kill -0 "$pid" 2>/dev/null; then
+    return 0
+  fi
+  local cap="${TRINKET_SLOT_STALE_SECONDS:-21600}"
+  [[ "$cap" =~ ^[0-9]+$ ]] && (( cap > 0 )) || return 1
+  [[ -n "$stamp" ]] || return 1
+  epoch="$(date -j -u -f '%Y-%m-%dT%H:%M:%SZ' "$stamp" +%s 2>/dev/null || true)"
+  [[ -n "$epoch" ]] || return 1
+  now="$(date -u +%s)"
+  (( now - epoch >= cap ))
+}
+
 trinket_slot_reap_dir() {
   local active_dir="$1"
   [[ -d "$active_dir" ]] || return 0
-  local slot pid
+  local slot
   for slot in "$active_dir"/*.slot; do
     [[ -e "$slot" ]] || continue
-    pid=""
-    if [[ -f "$slot" ]]; then
-      read -r pid _ < "$slot" || true
-    fi
-    if [[ "$pid" =~ ^[0-9]+$ ]] && ! kill -0 "$pid" 2>/dev/null; then
+    if trinket_slot_entry_is_stale "$slot"; then
       rm -f "$slot"
     fi
   done
@@ -518,6 +535,41 @@ trinket_sim_slot_ensure() {
     return 0
   fi
   trinket_sim_slot_acquire
+}
+
+# Lease the shared human device (Trinket Run) so two non-isolated runs collide
+# with a clear error instead of silently fighting over boot/erase state and
+# DerivedData. Fail-fast, same contract as the agent-slot pool.
+trinket_shared_sim_lease_acquire() {
+  local active_dir="${TRINKET_SIM_ACTIVE_DIR:-$(trinket_run_env_shared_root)/.active-sim}"
+  local path="$active_dir/run.slot"
+  mkdir -p "$active_dir"
+  trinket_sim_slot_reap
+  if [[ -e "$path" ]]; then
+    echo "Trinket Run is busy: shared simulator lease held by another run." >&2
+    echo "Options: wait for the peer to finish, use --isolate for an agent-slot run, or use a git worktree (./Scripts/agent-worktree.sh)." >&2
+    return 1
+  fi
+  if ! trinket_lock_claim_file "$path" "$$ ${TRINKET_RUN_ID:-shared} $(date -u +%Y-%m-%dT%H:%M:%SZ)"; then
+    echo "Trinket Run is busy: another run claimed the shared simulator lease." >&2
+    echo "Options: wait for the peer to finish, use --isolate for an agent-slot run, or use a git worktree (./Scripts/agent-worktree.sh)." >&2
+    return 1
+  fi
+  TRINKET_SHARED_SIM_SLOT_PATH="$path"
+  export TRINKET_SHARED_SIM_SLOT_PATH
+  trinket_run_env_install_release_trap
+}
+
+trinket_shared_sim_lease_release() {
+  if [[ -n "${TRINKET_SHARED_SIM_SLOT_PATH:-}" && -e "${TRINKET_SHARED_SIM_SLOT_PATH}" ]]; then
+    local pid=""
+    read -r pid _ < "${TRINKET_SHARED_SIM_SLOT_PATH}" 2>/dev/null || true
+    # Only our own lease — or a stale one — may be cleared.
+    if [[ "$pid" == "$$" ]] || trinket_slot_entry_is_stale "${TRINKET_SHARED_SIM_SLOT_PATH}"; then
+      rm -f "${TRINKET_SHARED_SIM_SLOT_PATH}"
+    fi
+  fi
+  TRINKET_SHARED_SIM_SLOT_PATH=""
 }
 
 trinket_run_env_init() {
