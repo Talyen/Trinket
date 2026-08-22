@@ -9,6 +9,7 @@ import os
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 from pathlib import Path
 
@@ -441,6 +442,78 @@ class ScriptRegressionTests(unittest.TestCase):
             )
             self.assertEqual(kept.returncode, 0, kept.stderr)
             self.assertTrue(kept_bundle.exists())
+
+    def test_ci_diagnostics_warns_when_sessions_share_a_results_dir(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            results = Path(directory) / "TestResults"
+            results.mkdir()
+            for label, session, seconds in (("older", "session-a", "00"), ("newer", "session-b", "30")):
+                (results / f"{label}-invocation.json").write_text(
+                    json.dumps(
+                        {
+                            "label": label,
+                            "session_id": session,
+                            "status": "passed",
+                            "exit_code": 0,
+                            "result_bundle": "",
+                            "generated_at": f"2026-08-20T00:00:{seconds}Z",
+                        }
+                    ),
+                    encoding="utf-8",
+                )
+            aggregate = results / "current.json"
+            unscoped = subprocess.run(
+                [sys.executable, str(ROOT / "Scripts" / "ci-diagnostics.py"), str(results), str(aggregate)],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(unscoped.returncode, 0, unscoped.stderr)
+            payload = json.loads(aggregate.read_text(encoding="utf-8"))
+            self.assertEqual(payload["distinct_sessions"], 2)
+            self.assertIn("Warning:", payload["detail"])
+            self.assertIn("--reset", payload["session_warning"])
+
+    def test_cleanup_sweeps_orphan_bundles_and_logs_by_age(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            results = Path(directory) / "TestResults"
+            raw = results / "raw"
+            raw.mkdir(parents=True)
+            stale_time = time.time() - 10 * 86400
+
+            orphan_bundle = results / "crashed-run.xcresult"
+            orphan_bundle.mkdir()
+            orphan_log = raw / "crashed-run.log"
+            orphan_log.write_text("partial output\n", encoding="utf-8")
+            fresh_log = raw / "fresh-run.log"
+            fresh_log.write_text("recent\n", encoding="utf-8")
+            claimed_log = raw / "claimed-run.log"
+            claimed_log.write_text("has diagnostics report\n", encoding="utf-8")
+            (results / "claimed-run-diagnostics.json").write_text("{}", encoding="utf-8")
+            # A retained failure keeps invocation manifests present so cleanup
+            # does not remove raw/ wholesale — the mixed-state case the sweep
+            # is written for.
+            (results / "failed-invocation.json").write_text(
+                json.dumps({"status": "failed", "exit_code": 65, "result_bundle": ""}),
+                encoding="utf-8",
+            )
+            for path in (orphan_bundle, orphan_log):
+                os.utime(path, (stale_time, stale_time))
+
+            cleaned = subprocess.run(
+                [str(ROOT / "Scripts" / "ci-diagnostics.sh"), "--cleanup", str(results)],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(cleaned.returncode, 0, cleaned.stderr)
+            self.assertFalse(orphan_bundle.exists())
+            self.assertFalse(orphan_log.exists())
+            # Fresh orphans and evidence with a diagnostics report survive.
+            self.assertTrue(fresh_log.exists())
+            self.assertTrue(claimed_log.exists())
 
     def test_artifact_consumers_defer_run_env_cleanup(self) -> None:
         performance = (ROOT / "Scripts" / "performance.sh").read_text(encoding="utf-8")

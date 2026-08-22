@@ -239,11 +239,18 @@ print_failure_triage() {
 
 watch_run_quiet() {
   local run_id="$1"
-  local url status conclusion summary last_summary=""
+  local url status conclusion summary last_summary="" started_at
+  local max_seconds="${TRINKET_CI_WATCH_MAX_SECONDS:-3600}"
   url="https://github.com/$(repo_slug)/actions/runs/$run_id"
   echo "Polling CI run $run_id ($url) every ${POLL_SECONDS}s (quiet)"
 
+  started_at=$SECONDS
   while true; do
+    if (( max_seconds > 0 && SECONDS - started_at >= max_seconds )); then
+      echo "CI watch gave up after ${max_seconds}s: run $run_id is still not completed." >&2
+      echo "Check it directly: gh run view $run_id" >&2
+      return 124
+    fi
     local run_data
     run_data="$(gh run view "$run_id" --json status,conclusion,jobs 2>/dev/null || echo '{}')"
     status="$(jq -r '.status // "?"' <<<"$run_data")"

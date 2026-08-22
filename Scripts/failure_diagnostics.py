@@ -21,14 +21,14 @@ try:
         DiagnosticIssue, DiagnosticReport, IssueAccumulator, IssueObservation, SourceStatus,
         identifier_aliases,
     )
-    from diagnostic_rendering import render_annotation, render_markdown, render_terminal, write_report
+    from diagnostic_rendering import output_stem, render_annotation, render_markdown, render_terminal, write_report
 except ModuleNotFoundError:
     from Scripts.diagnostic_model import (
         CLASSIFICATIONS, CLASSIFICATION_PRECEDENCE, GENERIC_MESSAGES, MAX_ISSUES, MAX_LINES,
         DiagnosticIssue, DiagnosticReport, IssueAccumulator, IssueObservation, SourceStatus,
         identifier_aliases,
     )
-    from Scripts.diagnostic_rendering import render_annotation, render_markdown, render_terminal, write_report
+    from Scripts.diagnostic_rendering import output_stem, render_annotation, render_markdown, render_terminal, write_report
 
 # Each detail fetch is a separate xcresulttool process; summary/test-node parsing already
 # yields file, line, and message for most failures. Cap enrichment to bound bad-run latency.
@@ -108,13 +108,6 @@ def _display_path(path: str) -> str:
         return relative if not relative.startswith("..") else absolute
     except OSError:
         return absolute
-
-
-def _output_stem(value: str) -> Path:
-    stem = Path(value).expanduser()
-    if stem.suffix in {".json", ".md", ".annotations"}:
-        stem = stem.with_suffix("")
-    return stem
 
 
 def _issue_priority(issue: DiagnosticIssue) -> tuple[int, int, int, int]:
@@ -523,8 +516,8 @@ def build_report(args: argparse.Namespace) -> DiagnosticReport:
     if args.exit_code == 70:
         classification = "simulator-infrastructure"
     unmatched_attachments: list[str] = []
-    output_stem = _output_stem(args.output_prefix)
-    attachment_dir = Path(str(output_stem) + ".attachments")
+    stem = output_stem(args.output_prefix)
+    attachment_dir = Path(str(stem) + ".attachments")
     if result_bundle.is_dir() and (issues or args.exit_code != 0):
         exported, error = xcresult.export_failure_attachments(result_bundle, attachment_dir)
         sources.attachments = exported
@@ -588,5 +581,9 @@ def main(argv: list[str] | None = None) -> int:
             print(f"Report annotations: {annotations_path}", file=sys.stderr)
         return 0
     except Exception as error:
-        print(f"summarize-failures.py: reporter execution failed: {error}", file=sys.stderr)
+        print(f"failure_diagnostics.py: reporter execution failed: {error}", file=sys.stderr)
         return 2
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -97,7 +97,8 @@ def render_terminal(report: DiagnosticReport) -> list[str]:
     return _bounded_lines(lines)
 
 
-def _output_stem(value: str) -> Path:
+def output_stem(value: str) -> Path:
+    """Normalize a report prefix/output path to a shared stem."""
     stem = Path(value).expanduser()
     if stem.suffix in {".json", ".md", ".annotations"}:
         stem = stem.with_suffix("")
@@ -110,7 +111,7 @@ def _write_text(path: Path, content: str) -> None:
 
 
 def write_report(report: DiagnosticReport, output_prefix: str) -> tuple[Path, Path, Path]:
-    stem = _output_stem(output_prefix)
+    stem = output_stem(output_prefix)
     json_path = Path(str(stem) + ".json")
     markdown_path = Path(str(stem) + ".md")
     annotations_path = Path(str(stem) + ".annotations")
@@ -126,6 +127,5 @@ def write_report(report: DiagnosticReport, output_prefix: str) -> tuple[Path, Pa
                 stream.write("\n" + render_markdown(report))
         except OSError as error:
             report.sources.errors.append(f"GitHub step summary: {error}")
-            print(f"summarize-failures.py: could not write GITHUB_STEP_SUMMARY: {error}", file=sys.stderr)
-            _write_text(json_path, json.dumps(report.to_dict(), indent=2, sort_keys=False) + "\n")
+            print(f"failure_diagnostics.py: could not write GITHUB_STEP_SUMMARY: {error}", file=sys.stderr)
     return json_path, markdown_path, annotations_path

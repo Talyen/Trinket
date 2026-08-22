@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import sys
+import time
 from pathlib import Path
 
 
@@ -65,6 +67,47 @@ def stage(root: Path, artifact_dir: Path) -> None:
     print(f"Staged CI artifacts in {artifact_dir} (category={category})")
 
 
+def sweep_orphans(root: Path, removed: list[int]) -> None:
+    """Remove bundles/logs whose completion manifest never appeared (crashed runs).
+
+    Without this sweep a run killed before manifest write leaves its xcresult and
+    raw log behind forever; age-bound deletion keeps failed evidence available for
+    current triage while bounding disk growth.
+    """
+    try:
+        max_age_days = int(os.environ.get("TRINKET_ORPHAN_MAX_AGE_DAYS", "3"))
+    except ValueError:
+        max_age_days = 3
+    if max_age_days < 0:
+        return
+    cutoff = time.time() - max_age_days * 86400
+    manifests = {path.name.removesuffix("-invocation.json") for path in root.glob("*-invocation.json")}
+    for bundle in root.glob("*.xcresult"):
+        if bundle.name.removesuffix(".xcresult") in manifests:
+            continue
+        try:
+            if bundle.stat().st_mtime <= cutoff:
+                shutil.rmtree(bundle, ignore_errors=True)
+                removed[0] += 1
+        except OSError:
+            continue
+    raw_dir = root / "raw"
+    if not raw_dir.is_dir():
+        return
+    for log in raw_dir.glob("*.log"):
+        stem = log.name.removesuffix(".log")
+        # Failed-run evidence with a diagnostics report stays until cleanup --keep
+        # policy says otherwise; only unclaimed logs are orphan candidates.
+        if stem in manifests or (root / f"{stem}-diagnostics.json").exists():
+            continue
+        try:
+            if log.stat().st_mtime <= cutoff:
+                log.unlink()
+                removed[0] += 1
+        except OSError:
+            continue
+
+
 def cleanup(root: Path, keep: bool) -> None:
     if keep:
         print(f"Keeping diagnostic artifacts in {root} (--keep)")
@@ -107,6 +150,7 @@ def cleanup(root: Path, keep: bool) -> None:
         remove(root / "ci-diagnostics.json", removed)
         remove(root / "timing-log.jsonl", removed)
         remove(root / "raw", removed)
+    sweep_orphans(root, removed)
     print(f"Cleaned {removed[0]} successful diagnostic artifact(s) from {root}")
 
 

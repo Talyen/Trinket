@@ -122,7 +122,7 @@ xcode_runner_call_reporter() {
   local label="$4"
   local report_prefix="$5"
   local defer_terminal_output="${6:-false}"
-  local reporter="${XCODE_RUNNER_REPORTER:-$PWD/Scripts/summarize-failures.py}"
+  local reporter="${XCODE_RUNNER_REPORTER:-$PWD/Scripts/failure_diagnostics.py}"
   local reporter_status=0
   local restore_errexit=false
   local reporter_args=(
@@ -264,15 +264,23 @@ xcode_runner_log_byte_size() {
 
 xcode_runner_log_has_terminal_marker() {
   local log_file="$1"
+  xcode_runner_scan_terminal_marker_from "$log_file" 0
+}
+
+# Scan log bytes from `offset` (0-based) onward for a terminal result marker.
+# The supervision loop feeds growing offsets so a multi-hundred-MB UI-test log
+# is not re-grepped from the start every second.
+xcode_runner_scan_terminal_marker_from() {
+  local log_file="$1"
+  local offset="$2"
   [[ -f "$log_file" ]] || return 1
   # Prefer XCTest outer-suite completion over `** TEST SUCCEEDED **`:
   # Xcode often hangs ~600s collecting simulator diagnostics *after* suites
   # finish and only then prints the classic banner. Idle watchdogs must arm
   # on the earlier marker or smoke wall-clock burns the full diagnostics wait.
   # Also match Swift Testing run summaries and classic build/test banners.
-  grep -Eq \
-    "Test Suite '(Selected tests|All tests)' (passed|failed)|\\*\\* (TEST|BUILD) (SUCCEEDED|FAILED) \\*\\*|Testing started completed|✘ Test run with |✔ Test run with " \
-    "$log_file"
+  tail -c +"$((offset + 1))" "$log_file" 2>/dev/null | grep -Eq \
+    "Test Suite '(Selected tests|All tests)' (passed|failed)|\\*\\* (TEST|BUILD) (SUCCEEDED|FAILED) \\*\\*|Testing started completed|✘ Test run with |✔ Test run with "
 }
 
 # Infer exit status when we kill a hung post-terminal xcodebuild.
@@ -353,6 +361,7 @@ xcode_runner_execute_watched() {
   started_at=$SECONDS
   last_growth=$SECONDS
   last_size="$(xcode_runner_log_byte_size "$log_file")"
+  local scanned_offset=0
 
   while kill -0 "$cmd_pid" 2>/dev/null; do
     sleep 1
@@ -361,11 +370,18 @@ xcode_runner_execute_watched() {
       last_size=$size
       last_growth=$SECONDS
     fi
-    if [[ "$saw_terminal" == "false" ]] && xcode_runner_log_has_terminal_marker "$log_file"; then
-      saw_terminal=true
-      # Reset idle clock once tests/build report a terminal result so brief
-      # post-result log noise does not immediately trip the watchdog.
-      last_growth=$SECONDS
+    if [[ "$saw_terminal" == "false" ]]; then
+      if (( size < scanned_offset )); then
+        # Log was truncated or replaced; rescan from the start.
+        scanned_offset=0
+      fi
+      if (( size > scanned_offset )) && xcode_runner_scan_terminal_marker_from "$log_file" "$scanned_offset"; then
+        saw_terminal=true
+        # Reset idle clock once tests/build report a terminal result so brief
+        # post-result log noise does not immediately trip the watchdog.
+        last_growth=$SECONDS
+      fi
+      scanned_offset=$size
     fi
     if (( wall > 0 && SECONDS - started_at >= wall )); then
       kill_reason="wall-clock ${wall}s"

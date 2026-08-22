@@ -254,10 +254,15 @@ def normalise_report(
     return invocation
 
 
-def load_reports() -> tuple[list[dict], int, bool, int, str]:
-    """Load current invocation manifests, falling back to reports for legacy callers."""
+def load_reports() -> tuple[list[dict], int, bool, int, str, int]:
+    """Load current invocation manifests, falling back to reports for legacy callers.
+
+    The final value counts the distinct non-empty session ids present in the
+    directory, so shared tenants can warn when stale sessions dilute triage.
+    """
     manifests = sorted(results_dir.glob("*-invocation.json"))
     selected_session = SESSION_ID
+    distinct_sessions: set[str] = set()
     if manifests and not selected_session:
         session_candidates: list[tuple[str, str]] = []
         for candidate in manifests:
@@ -265,10 +270,12 @@ def load_reports() -> tuple[list[dict], int, bool, int, str]:
             if not valid or payload is None:
                 continue
             session = str(payload.get("session_id", "")).strip()
-            if session:
-                session_candidates.append(
-                    (str(payload.get("generated_at", "")), session)
-                )
+            if not session:
+                continue
+            distinct_sessions.add(session)
+            session_candidates.append(
+                (str(payload.get("generated_at", "")), session)
+            )
         if session_candidates:
             selected_session = max(session_candidates)[1]
     if selected_session:
@@ -326,7 +333,7 @@ def load_reports() -> tuple[list[dict], int, bool, int, str]:
                     manifest=manifest,
                 )
             )
-        return reports, parse_errors, True, missing_diagnostics, selected_session
+        return reports, parse_errors, True, missing_diagnostics, selected_session, len(distinct_sessions)
 
     # Compatibility for local/older producers that only emitted diagnostics.
     # Without a status manifest a successful outcome is not considered proven;
@@ -339,10 +346,10 @@ def load_reports() -> tuple[list[dict], int, bool, int, str]:
             parse_errors += 1
             continue
         reports.append(normalise_report(path, payload))
-    return reports, parse_errors, False, 0, selected_session
+    return reports, parse_errors, False, 0, selected_session, len(distinct_sessions)
 
 
-reports, parse_errors, manifests_present, missing_diagnostics_invocations, selected_session = load_reports()
+reports, parse_errors, manifests_present, missing_diagnostics_invocations, selected_session, distinct_session_count = load_reports()
 recorded_invocations = len(reports)
 failed_reports = [report for report in reports if report["failed"]]
 missing_result_invocations = sum(1 for report in reports if not report["result_bundle_exists"])
@@ -408,6 +415,19 @@ else:
         "escalate with the raw CI logs."
     )
 
+# Shared tenants accumulate sessions from crashed or unscoped runs; without a
+# session id the aggregate silently covers only the newest one. Say so instead
+# of letting a green summary hide stale red state (or the reverse).
+session_warning = ""
+if manifests_present and not SESSION_ID and distinct_session_count > 1:
+    session_warning = (
+        f"{distinct_session_count} diagnostics sessions share this results directory; "
+        "this aggregate covers only the newest session. Scope with "
+        "TRINKET_DIAGNOSTICS_SESSION_ID or clear stale state with "
+        "./Scripts/ci-diagnostics.sh --reset."
+    )
+    detail = f"{detail} Warning: {session_warning}"
+
 def compact_invocation(report: dict) -> dict:
     """Keep the default aggregate useful without embedding full reports."""
     issues = report.get("issues", [])
@@ -471,6 +491,8 @@ aggregate = {
     "status_manifests_present": manifests_present,
     "session_id": selected_session,
     "session_filter": selected_session or "unscoped",
+    "distinct_sessions": distinct_session_count,
+    "session_warning": session_warning,
     "counts": {
         "total": recorded_invocations,
         "failed": len(failed_reports),
@@ -497,6 +519,8 @@ if os.environ.get("GITHUB_STEP_SUMMARY"):
         summary.write("## CI diagnostics\n\n")
         summary.write(f"- **Category:** `{category}`\n")
         summary.write(f"- **Detail:** {detail}\n")
+        if session_warning:
+            summary.write(f"- **Sessions:** {session_warning}\n")
         summary.write(
             f"- **Invocations:** {recorded_invocations} recorded, "
             f"{len(failed_reports)} failed, {missing_result_invocations} missing xcresult, "
