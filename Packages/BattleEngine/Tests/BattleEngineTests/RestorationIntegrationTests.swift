@@ -15,7 +15,7 @@ struct RestorationIntegrationTests {
             effects: [.instantHeal(.health, 3)]
         )
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 10, abilities: [heal])
-        let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion)
+        let companion = BattleTestFixtures.passiveCompanion()
         let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy)
         var battle = BattleTestFixtures.standardParty(
             hero: hero,
@@ -45,7 +45,7 @@ struct RestorationIntegrationTests {
             hasLeech: true
         )
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 10, abilities: [leechSlash])
-        let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion)
+        let companion = BattleTestFixtures.passiveCompanion()
         let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy)
         var battle = BattleTestFixtures.standardParty(
             hero: hero,
@@ -78,7 +78,7 @@ struct RestorationIntegrationTests {
             effects: [.instantHeal(.health, 5)]
         )
         let hero = BattleTestFixtures.passiveCombatant(id: "hero", name: "Hero", role: .hero)
-        let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion)
+        let companion = BattleTestFixtures.passiveCompanion()
         let enemy = Combatant(
             id: "enemy", name: "Enemy", role: .enemy, maxHealth: 20,
             abilities: [selfHeal]

@@ -21,4 +21,21 @@ package extension BattleState {
         guard multiplier != 1 else { return amount }
         return CombatRounding.scaled(amount, multiplier: multiplier)
     }
+
+    /// Claims a once-per-action talent guard. Returns `true` only on the first
+    /// claim within the current action (Mana Cocoon, Chaos Rift, …).
+    mutating func claimActionGuard(_ kind: TalentActionGuardKey.Kind, actorID: String) -> Bool {
+        let key = TalentActionGuardKey(kind: kind, actorID: actorID)
+        guard talentActionGuardByActorID[key] != actionCount else { return false }
+        talentActionGuardByActorID[key] = actionCount
+        return true
+    }
+
+    /// Claims a once-per-battle talent guard. Returns `true` only the first time.
+    mutating func claimBattleGuard(_ kind: TalentActionGuardKey.Kind, actorID: String) -> Bool {
+        let key = TalentActionGuardKey(kind: kind, actorID: actorID)
+        guard talentActionGuardByActorID[key] == nil else { return false }
+        talentActionGuardByActorID[key] = 1
+        return true
+    }
 }

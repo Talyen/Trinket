@@ -147,8 +147,7 @@ struct CleansePurgeHandler: BattleEffectHandler {
                     logAs: .instantHeal(
                         actorName: source.name,
                         abilityName: abilityName,
-                        keyword: .health,
-                        displayAmount: amount
+                        keyword: .health
                     )
                 ),
                 in: &context

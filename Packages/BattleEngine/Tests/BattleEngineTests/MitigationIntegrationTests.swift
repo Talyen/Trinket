@@ -12,7 +12,7 @@ struct MitigationIntegrationTests {
             maxHealth: 20,
             actionIntervalTurns: 100
         )
-        let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion)
+        let companion = BattleTestFixtures.passiveCompanion()
         let heavyStrike = Ability(
             id: "heavy-strike",
             name: "Heavy Strike",

@@ -117,4 +117,35 @@ struct ControlMeterEngineTests {
         )
         try #expect(context.roster.hasPendingActionSkip(for: target, keyword: .stun))
     }
+
+    @Test func reducedStunThresholdStillRegistersFullMeterAndSkip() throws {
+        var context = BattleTestFixtures.makePipelineContext(
+            targetMaxHealth: 100,
+            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
+                control: ControlTriggers(enemyStunThresholdReductionPercent: 0.25)
+            ))
+        )
+        let target = context.roster.enemy.combatant
+        let baseThreshold = ControlMeterEngine.threshold(for: target, in: context)
+
+        // Charge well past the reduced threshold; the cap clamps at "full".
+        let events = ControlMeterEngine.applyMeterCharge(
+            baseThreshold,
+            keyword: .stun,
+            to: target,
+            sourceActorID: "source",
+            in: &context
+        )
+
+        try #expect(events.contains { $0.effectKind == .controlTriggered })
+        try #expect(context.roster.hasControlStatus(for: target, keyword: .stun))
+        try #expect(context.roster.hasPendingActionSkip(for: target, keyword: .stun))
+        let meter = try #require(
+            context.roster.activeEffects(for: target)
+                .first { $0.keyword == .stun }?
+                .effect.controlMeterValues
+        )
+        try #expect(meter.threshold == baseThreshold, "stored basis stays canonical (base)")
+        try #expect(meter.amount == baseThreshold, "a full meter reads as full against its stored basis")
+    }
 }

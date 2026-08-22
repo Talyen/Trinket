@@ -96,8 +96,7 @@ package extension CombatTriggerEngine {
                 logAs: .instantHeal(
                     actorName: context.roster.hero.name,
                     abilityName: affixName(.symbiosis),
-                    keyword: .health,
-                    displayAmount: share
+                    keyword: .health
                 )
             ),
             in: &context

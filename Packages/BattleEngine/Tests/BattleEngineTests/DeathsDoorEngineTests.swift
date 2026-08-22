@@ -1,8 +1,8 @@
-import BattleEngine
 import Testing
 import TrinketContent
 import TrinketCore
 import TrinketTestSupport
+@testable import BattleEngine
 
 struct DeathsDoorEngineTests {
     private func makeContext(
@@ -180,5 +180,39 @@ struct DeathsDoorEngineTests {
         try #expect(outcome.healthLost > 0)
         try #expect(context.roster.health(for: hero) == 1)
         try #expect(outcome.events.contains(effectKind: .deathsDoorTriggered, keyword: .deathsDoor))
+    }
+
+    // MARK: - Endless Legion
+
+    private func makeLegionContext(heroHealth: Int) -> BattleState {
+        BattleTestFixtures.makeContext(
+            hero: BattleTestFixtures.passiveHero(maxHealth: 50),
+            companion: BattleTestFixtures.passiveCompanion(),
+            enemy: BattleTestFixtures.passiveEnemy(),
+            heroHealth: heroHealth,
+            heroModifiers: CombatModifierProfile(
+                triggers: CombatTraitTriggers(revival: RevivalTriggers(deathsDoorExpiredHealFlat: 10))
+            )
+        )
+    }
+
+    @Test func endlessLegionRaisesHealthToFloorExactly() throws {
+        var context = makeLegionContext(heroHealth: 3)
+        let hero = context.roster.hero.combatant
+
+        let events = DeathsDoorEngine.afterDeathsDoorExpired(on: hero, in: &context)
+
+        try #expect(context.roster.health(for: hero) == 10)
+        try #expect(events.contains { $0.effectKind == .instantHeal && $0.amount == 7 })
+    }
+
+    @Test func endlessLegionDoesNothingAtOrAboveFloor() throws {
+        var context = makeLegionContext(heroHealth: 12)
+        let hero = context.roster.hero.combatant
+
+        let events = DeathsDoorEngine.afterDeathsDoorExpired(on: hero, in: &context)
+
+        try #expect(events.isEmpty)
+        try #expect(context.roster.health(for: hero) == 12)
     }
 }

@@ -61,8 +61,7 @@ package extension BattleState {
                         logAs: .instantHeal(
                             actorName: combatant.name,
                             abilityName: "Golden Recovery",
-                            keyword: .health,
-                            displayAmount: triggers.onGainGoldHealParty
+                            keyword: .health
                         )
                     ),
                     in: &self

@@ -108,7 +108,7 @@ enum BattleTestFixtures {
     ) -> BattleState {
         BattleStateTestFactory.makeBattle(
             hero: hero,
-            companion: companion ?? passiveCombatant(id: "companion", name: "Companion", role: .companion),
+            companion: companion ?? passiveCompanion(),
             enemy: enemy,
             activeEnemyEffects: activeEnemyEffects,
             activeHeroEffects: activeHeroEffects,
@@ -126,7 +126,7 @@ enum BattleTestFixtures {
         enemy: Combatant? = nil
     ) -> BattleState {
         let resolvedHero = hero ?? passiveCombatant(id: "hero", name: "Hero", role: .hero)
-        let resolvedCompanion = companion ?? passiveCombatant(id: "companion", name: "Companion", role: .companion)
+        let resolvedCompanion = companion ?? passiveCompanion()
         let resolvedEnemy = enemy ?? attackingEnemy(abilities: [.slash])
         return standardParty(
             hero: resolvedHero,
@@ -263,7 +263,7 @@ enum BattleTestFixtures {
     ) -> BattleState {
         standardParty(
             hero: hero,
-            companion: passiveCombatant(id: "companion", name: "Companion", role: .companion),
+            companion: passiveCompanion(),
             enemy: enemy ?? passiveCombatant(
                 id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, actionIntervalTurns: 100
             )

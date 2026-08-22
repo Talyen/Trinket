@@ -75,7 +75,7 @@ package extension CombatTriggerEngine {
                 ))
             }
             if triggers.victoryGoldCoin {
-                if Bool.random(using: &context.rng) {
+                if BattleChance.succeeds(probability: 0.5, using: &context.rng) {
                     events.append(contentsOf: context.grantGoldEvent(7, to: actor, abilityName: "Wishing Well Coin"))
                 } else {
                     let loss = min(3, max(0, context.gold))

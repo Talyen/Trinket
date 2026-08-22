@@ -208,8 +208,7 @@ package extension DamagePipeline {
                 logAs: .instantHeal(
                     actorName: source.name,
                     abilityName: "Soul Sharing",
-                    keyword: .leech,
-                    displayAmount: leechAmount
+                    keyword: .leech
                 )
             ),
             in: &context

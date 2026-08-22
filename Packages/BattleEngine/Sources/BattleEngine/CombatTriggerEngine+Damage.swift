@@ -72,14 +72,6 @@ package extension CombatTriggerEngine {
         return events
     }
 
-    private static func hasAffliction(
-        _ keyword: Keyword,
-        on combatant: Combatant,
-        in context: BattleState
-    ) -> Bool {
-        context.roster.activeEffects(for: combatant).contains { $0.effect.keyword == keyword }
-    }
-
     /// Total potency of all active DoT effects of `keyword` on `combatant`.
     static func totalPotency(
         of keyword: Keyword,
@@ -104,24 +96,23 @@ package extension CombatTriggerEngine {
         let profile = context.modifiers(for: sourceActorID)
         let triggers = profile.triggers
         let target = state.combatant
-        let targetIsFrozen = context.roster.hasControlStatus(for: target, keyword: .freeze)
-        let targetIsStunned = context.roster.hasControlStatus(for: target, keyword: .stun)
-        let targetIsBurning = hasAffliction(.burn, on: target, in: context)
-        let targetIsPoisoned = hasAffliction(.poison, on: target, in: context)
-        let targetIsBleeding = hasAffliction(.bleed, on: target, in: context)
+        let status = state.targetStatus
         let sourceHasBlock = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: source.combatant)) > 0
         var bonus = 0
 
-        if damageKeyword == .freeze, targetIsBurning {
+        if damageKeyword == .freeze, status.isBurning {
             bonus += triggers.freezeDamageWhileBurningBonus
         }
         // Shatter is an aura: the enemy takes extra damage from party hits while Frozen.
-        if source.role != .enemy, targetIsFrozen {
-            bonus += context.partyTriggers.damageWhileTargetFrozenBonus
-        }
         // Dazed is an aura: the enemy takes extra damage from party hits while Stunned.
-        if source.role != .enemy, targetIsStunned {
-            bonus += context.partyTriggers.damageWhileTargetStunnedBonus
+        if source.role != .enemy {
+            let partyTriggers = context.partyTriggers
+            if status.isFrozen {
+                bonus += partyTriggers.damageWhileTargetFrozenBonus
+            }
+            if status.isStunned {
+                bonus += partyTriggers.damageWhileTargetStunnedBonus
+            }
         }
 
         if triggers.damageBelowHealthPercentBonus > 0,
@@ -136,11 +127,11 @@ package extension CombatTriggerEngine {
         }
 
         // Combatant Talent System — target-condition flat damage bonuses.
-        if targetIsBleeding {
+        if status.isBleeding {
             bonus += triggers.damageVsBleedingBonus
         }
         // Combustion: attacks against Burning enemies deal bonus damage per Burn potency.
-        if targetIsBurning, triggers.damagePerBurnPotencyPercent > 0 {
+        if status.isBurning, triggers.damagePerBurnPotencyPercent > 0 {
             bonus += CombatRounding.scaled(
                 totalPotency(of: .burn, on: target, in: context),
                 multiplier: triggers.damagePerBurnPotencyPercent
@@ -150,17 +141,17 @@ package extension CombatTriggerEngine {
             for: state,
             source: source,
             damageKeyword: damageKeyword,
-            targetIsPoisoned: targetIsPoisoned,
-            targetIsBurning: targetIsBurning,
+            targetIsPoisoned: status.isPoisoned,
+            targetIsBurning: status.isBurning,
             in: context
         )
-        if damageKeyword == .holy, targetIsStunned {
+        if damageKeyword == .holy, status.isStunned {
             bonus += triggers.holyDamageVsStunnedBonus
         }
-        if damageKeyword == .burn, targetIsFrozen {
+        if damageKeyword == .burn, status.isFrozen {
             bonus += triggers.burnDamageVsFrozenBonusPhysical
         }
-        if damageKeyword == .freeze, targetIsFrozen {
+        if damageKeyword == .freeze, status.isFrozen {
             bonus += triggers.frostDamageVsFrozenBonus
         }
         if sourceHasBlock {
@@ -202,11 +193,7 @@ package extension CombatTriggerEngine {
         let profile = context.modifiers(for: sourceActorID)
         let triggers = profile.triggers
         let target = state.combatant
-        let targetIsFrozen = context.roster.hasControlStatus(for: target, keyword: .freeze)
-        let targetIsStunned = context.roster.hasControlStatus(for: target, keyword: .stun)
-        let targetIsBurning = hasAffliction(.burn, on: target, in: context)
-        let targetIsPoisoned = hasAffliction(.poison, on: target, in: context)
-        let targetIsBleeding = hasAffliction(.bleed, on: target, in: context)
+        let status = state.targetStatus
         let targetHasBlock = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: target)) > 0
         let targetBelowPoisonThreshold = triggers.poisonDamageBelowHealthThreshold > 0
             && context.roster.maxHealth(for: target) > 0
@@ -216,26 +203,26 @@ package extension CombatTriggerEngine {
         var multiplier = 1.0
         if source.role != .enemy {
             multiplier *= partyAfflictedDamageMultiplier(
-                targetIsPoisoned: targetIsPoisoned,
-                targetIsBurning: targetIsBurning,
+                targetIsPoisoned: status.isPoisoned,
+                targetIsBurning: status.isBurning,
                 in: context
             )
         } else {
-            if targetIsPoisoned {
+            if status.isPoisoned {
                 multiplier *= triggers.damageVsPoisonedMultiplier
             }
-            if targetIsBurning {
+            if status.isBurning {
                 multiplier *= triggers.damageVsBurningMultiplier
             }
         }
-        if targetIsFrozen {
+        if status.isFrozen {
             multiplier *= triggers.damageVsFrozenMultiplier
         }
         if damageKeyword == .holy {
-            if targetIsStunned || targetIsBurning {
+            if status.isStunned || status.isBurning {
                 multiplier *= triggers.holyDamageVsStunnedOrBurningMultiplier
             }
-            if targetIsPoisoned || targetIsBleeding {
+            if status.isPoisoned || status.isBleeding {
                 multiplier *= triggers.holyDamageVsPoisonedOrBleedingMultiplier
             }
             if context.enemyFaction == .undead || context.enemyFaction == .corrupted {
@@ -245,10 +232,10 @@ package extension CombatTriggerEngine {
         if damageKeyword == .burn, !targetHasBlock {
             multiplier *= triggers.burnDamageVsNoBlockMultiplier
         }
-        if damageKeyword == .physical, targetIsBleeding {
+        if damageKeyword == .physical, status.isBleeding {
             multiplier *= triggers.physicalDamageVsBleedingMultiplier
         }
-        if source.role == .hero, targetIsStunned {
+        if source.role == .hero, status.isStunned {
             multiplier *= triggers.heroDamageVsStunnedMultiplier
         }
         if damageKeyword == .poison, targetBelowPoisonThreshold {
@@ -311,8 +298,7 @@ package extension CombatTriggerEngine {
                             fallback: "Bloodfire",
                             in: context
                         ),
-                        keyword: .health,
-                        displayAmount: triggers.burnDamageHealFlat
+                        keyword: .health
                     )
                 ),
                 in: &context
@@ -337,8 +323,7 @@ package extension CombatTriggerEngine {
                             fallback: "Healing Flames",
                             in: context
                         ),
-                        keyword: .health,
-                        displayAmount: triggers.onBurnDamageHealLowestAllyFlat
+                        keyword: .health
                     )
                 ),
                 in: &context
@@ -459,7 +444,7 @@ package extension CombatTriggerEngine {
         return events
     }
 
-    /// Resolves up to 3 remaining Bleed ticks on `target` immediately (Exsanguinate / Cauterize).
+    /// Resolves every remaining Bleed tick on `target` immediately (Exsanguinate / Cauterize).
     static func detonateBleed(
         on target: Combatant,
         sourceActorID: String,
@@ -487,12 +472,9 @@ package extension CombatTriggerEngine {
         }
         context.roster.setActiveEffects(remainingEffects, for: target)
 
-        var totalTicksDetonated = 0
-        let maxTicks = 3
         for (potency, turns) in bleedsToDetonate {
             for _ in 0 ..< turns {
-                guard totalTicksDetonated < maxTicks else { break }
-                totalTicksDetonated += 1
+                guard context.roster.health(for: target) > 0 else { break }
                 events.append(contentsOf: DoTDamage.resolveTurnDamage(
                     basePotency: potency,
                     keyword: .bleed,
@@ -500,9 +482,6 @@ package extension CombatTriggerEngine {
                     sourceActorID: sourceActorID,
                     in: &context
                 ).events)
-            }
-            if totalTicksDetonated >= maxTicks {
-                break
             }
         }
         return events

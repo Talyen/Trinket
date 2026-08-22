@@ -143,7 +143,7 @@ public struct DamageRequest: Equatable, Hashable, Sendable {
 enum HealLogPolicy: Equatable, Hashable, Sendable {
     case silent
     case leech
-    case instantHeal(actorName: String, abilityName: String, keyword: Keyword, displayAmount: Int)
+    case instantHeal(actorName: String, abilityName: String, keyword: Keyword)
 }
 
 /// Describes one heal application.
@@ -186,7 +186,7 @@ public struct HealRequest: Equatable, Hashable, Sendable {
     }
 
     var isLingeringBlessingTick: Bool {
-        if case let .instantHeal(_, abilityName, _, _) = logAs {
+        if case let .instantHeal(_, abilityName, _) = logAs {
             return abilityName == "Lingering Blessing"
         }
         return false

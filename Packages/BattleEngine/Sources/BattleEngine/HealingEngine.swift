@@ -115,7 +115,7 @@ package enum HealingEngine {
         switch request.logAs {
         case .silent, .leech:
             break
-        case let .instantHeal(actorName, abilityName, keyword, _):
+        case let .instantHeal(actorName, abilityName, keyword):
             events.append(
                 context.nextEvent(
                     kind: .effect,
@@ -154,7 +154,7 @@ package enum HealingEngine {
 
         let critKeyword: Keyword
         switch request.logAs {
-        case let .instantHeal(_, _, keyword, _):
+        case let .instantHeal(_, _, keyword):
             critKeyword = keyword
         case .leech:
             critKeyword = .leech
@@ -201,6 +201,9 @@ package enum HealingEngine {
                 gain = min(gain, max(0, cap - already))
             }
             if gain > 0 {
+                // Direct mutation by design: this is a max-health stat gain that
+                // carries current health along with it, not a heal — heal-blocking,
+                // multipliers, and reactions must not re-apply to it.
                 context.roster.mutateRuntime(for: request.target) { runtime in
                     runtime.talentMaxHealthBonus += gain
                     runtime.currentHealth = min(runtime.maxHealth, runtime.currentHealth + gain)

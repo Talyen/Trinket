@@ -40,8 +40,7 @@ package extension CombatTriggerEngine {
                     logAs: .instantHeal(
                         actorName: source.name,
                         abilityName: triggerAbilityName("holyDamageHealFlat", for: source, fallback: affixName(.beacon), in: context),
-                        keyword: .health,
-                        displayAmount: profile.triggers.holyDamageHealFlat
+                        keyword: .health
                     )
                 ),
                 in: &context
@@ -69,8 +68,7 @@ package extension CombatTriggerEngine {
                     logAs: .instantHeal(
                         actorName: source.name,
                         abilityName: blessingName,
-                        keyword: .health,
-                        displayAmount: profile.triggers.holyDamageHealLowestAllyFlat
+                        keyword: .health
                     )
                 ),
                 in: &context
@@ -86,8 +84,7 @@ package extension CombatTriggerEngine {
                     logAs: .instantHeal(
                         actorName: source.name,
                         abilityName: "Sun Glyph",
-                        keyword: .health,
-                        displayAmount: profile.triggers.holyDamageHealHeroFlat
+                        keyword: .health
                     )
                 ),
                 in: &context

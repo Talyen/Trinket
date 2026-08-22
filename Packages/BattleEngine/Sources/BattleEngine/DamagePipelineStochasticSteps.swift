@@ -201,8 +201,7 @@ package extension DamagePipeline {
         // Surprise Strike: this combatant's first attack in battle is a guaranteed critical.
         if state.isAttackHit,
            context.modifiers(for: sourceActorID).triggers.firstAttackGuaranteedCritical,
-           context.talentActionGuardByActorID[TalentActionGuardKey(kind: .surpriseStrike, actorID: actor.combatant.id)] == nil {
-            context.talentActionGuardByActorID[TalentActionGuardKey(kind: .surpriseStrike, actorID: actor.combatant.id)] = 1
+           context.claimBattleGuard(.surpriseStrike, actorID: actor.combatant.id) {
             applyCritical(to: &state)
             return true
         }

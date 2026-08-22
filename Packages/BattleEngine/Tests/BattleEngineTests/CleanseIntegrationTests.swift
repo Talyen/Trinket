@@ -13,7 +13,7 @@ struct CleanseIntegrationTests {
             maxHealth: 20,
             abilities: [.panaceaPotion]
         )
-        let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion)
+        let companion = BattleTestFixtures.passiveCompanion()
         let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
         var battle = BattleTestFixtures.standardParty(
             hero: hero,
@@ -53,7 +53,7 @@ struct CleanseIntegrationTests {
             id: "hero", name: "Hero", role: .hero, maxHealth: 20,
             abilities: [cleansePoison]
         )
-        let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion)
+        let companion = BattleTestFixtures.passiveCompanion()
         let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
         var battle = BattleTestFixtures.standardParty(
             hero: hero,
@@ -96,7 +96,7 @@ struct CleanseIntegrationTests {
             maxHealth: 50,
             abilities: [cleanseAbility]
         )
-        let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion)
+        let companion = BattleTestFixtures.passiveCompanion()
         let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 10)
         var battle = BattleTestFixtures.standardParty(
             hero: hero,

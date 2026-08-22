@@ -16,7 +16,7 @@ struct BattleStateTests {
 
     @Test func combatantAccessorsFollowRosterDefinitions() throws {
         let hero = BattleTestFixtures.passiveCombatant(id: "hero", name: "Hero", role: .hero)
-        let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion)
+        let companion = BattleTestFixtures.passiveCompanion()
         let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy)
         let replacementEnemy = BattleTestFixtures.passiveCombatant(
             id: "replacement-enemy",
@@ -32,7 +32,7 @@ struct BattleStateTests {
 
     @Test func partyNotDefeatedWhenOneMemberOnDeathsDoor() throws {
         let hero = BattleTestFixtures.passiveCombatant(id: "hero", name: "Hero", role: .hero, maxHealth: 5)
-        let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion, maxHealth: 1)
+        let companion = BattleTestFixtures.passiveCompanion(maxHealth: 1)
         let enemy = BattleTestFixtures.attackingEnemy(abilities: [.slash], maxHealth: 100)
         var battle = BattleStateTestFactory.makeBattle(hero: hero, companion: companion, enemy: enemy)
 
@@ -52,7 +52,7 @@ struct BattleStateTests {
 
     @Test func partyDefeatWhenBothDeathsDoorConsumedAndExpired() throws {
         let hero = BattleTestFixtures.passiveCombatant(id: "hero", name: "Hero", role: .hero, maxHealth: 3)
-        let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion, maxHealth: 3)
+        let companion = BattleTestFixtures.passiveCompanion(maxHealth: 3)
         let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
         var battle = BattleStateTestFactory.makeBattle(hero: hero, companion: companion, enemy: enemy)
         let heroID = battle.hero
@@ -82,7 +82,7 @@ struct BattleStateTests {
         let goldHero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [.steal])
         var battle = BattleStateTestFactory.makeBattle(
             hero: goldHero,
-            companion: BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion),
+            companion: BattleTestFixtures.passiveCompanion(),
             enemy: defaultEnemy,
             initialGold: 10
         )
@@ -91,7 +91,7 @@ struct BattleStateTests {
 
         var initialGoldBattle = BattleStateTestFactory.makeBattle(
             hero: goldHero,
-            companion: BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion),
+            companion: BattleTestFixtures.passiveCompanion(),
             enemy: defaultEnemy,
             initialGold: 5
         )

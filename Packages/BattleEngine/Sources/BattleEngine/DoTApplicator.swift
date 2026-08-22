@@ -15,14 +15,7 @@ package enum DoTApplicator {
     ) -> [ActionEvent] {
         guard context.roster.health(for: effectTarget) > 0, potency > 0 else { return [] }
 
-        // Golden Touch: the next card's status effects are doubled.
-        var resolvedPotency = potency
-        if let source = context.roster.combatant(for: sourceActorID),
-           let runtime = context.roster.runtime(for: source.combatant),
-           runtime.pendingDoubleStatusNextCard {
-            resolvedPotency *= 2
-            context.roster.mutateRuntime(for: source.combatant) { $0.pendingDoubleStatusNextCard = false }
-        }
+        let resolvedPotency = goldenTouchPotency(potency, sourceActorID: sourceActorID, in: &context)
 
         var collected: [ActionEvent] = []
         if dealImmediateDamage {
@@ -73,14 +66,7 @@ package enum DoTApplicator {
     ) -> [ActionEvent] {
         guard context.roster.health(for: effectTarget) > 0, potency > 0 else { return [] }
 
-        // Golden Touch: the next card's status effects are doubled.
-        var resolvedPotency = potency
-        if let source = context.roster.combatant(for: sourceActorID),
-           let runtime = context.roster.runtime(for: source.combatant),
-           runtime.pendingDoubleStatusNextCard {
-            resolvedPotency *= 2
-            context.roster.mutateRuntime(for: source.combatant) { $0.pendingDoubleStatusNextCard = false }
-        }
+        let resolvedPotency = goldenTouchPotency(potency, sourceActorID: sourceActorID, in: &context)
 
         var collected: [ActionEvent] = []
         if dealImmediateDamage {
@@ -140,5 +126,19 @@ package enum DoTApplicator {
         case .poison: .poison(potency)
         default: .poison(potency)
         }
+    }
+
+    /// Golden Touch: the next card's status effects are doubled (consumed once).
+    private static func goldenTouchPotency(
+        _ potency: Int,
+        sourceActorID: String,
+        in context: inout BattleState
+    ) -> Int {
+        guard let source = context.roster.combatant(for: sourceActorID),
+              let runtime = context.roster.runtime(for: source.combatant),
+              runtime.pendingDoubleStatusNextCard
+        else { return potency }
+        context.roster.mutateRuntime(for: source.combatant) { $0.pendingDoubleStatusNextCard = false }
+        return potency * 2
     }
 }

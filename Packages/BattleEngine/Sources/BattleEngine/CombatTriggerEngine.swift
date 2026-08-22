@@ -113,8 +113,7 @@ package enum CombatTriggerEngine {
                 logAs: .instantHeal(
                     actorName: source.name,
                     abilityName: traitName(for: source, in: context),
-                    keyword: .health,
-                    displayAmount: amount
+                    keyword: .health
                 )
             ),
             in: &context

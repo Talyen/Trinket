@@ -766,6 +766,31 @@ extension AffixReactionBattleTests {
         try #expect(!context.roster.activeEffects(for: enemy).contains { $0.keyword == Keyword.burn })
         try #expect(!context.roster.activeEffects(for: enemy).contains { $0.keyword == Keyword.poison })
     }
+
+    @Test func bleedDetonationResolvesEveryRemainingTick() throws {
+        var context = BattleTestFixtures.makePipelineContext(targetMaxHealth: 100)
+        let enemy = context.roster.enemy.combatant
+        let source = context.roster.hero.combatant
+        context.roster.setActiveEffects(
+            [
+                ActiveEffect(id: 1, effect: .bleed(2), remainingTurns: 2, sourceActorID: source.id),
+                ActiveEffect(id: 2, effect: .bleed(3), remainingTurns: 2, sourceActorID: source.id),
+            ],
+            for: enemy
+        )
+        let healthBefore = context.roster.health(for: enemy)
+
+        let events = CombatTriggerEngine.detonateBleed(
+            on: enemy,
+            sourceActorID: source.id,
+            in: &context
+        )
+
+        // 2×2 + 3×2 = 10 damage across all four ticks; nothing is dropped.
+        try #expect(healthBefore - context.roster.health(for: enemy) == 10)
+        try #expect(events.count(where: { $0.kind == .status && $0.keyword == Keyword.bleed }) == 4)
+        try #expect(!context.roster.activeEffects(for: enemy).contains { $0.keyword == Keyword.bleed })
+    }
 }
 
 extension AffixReactionBattleTests {

@@ -25,8 +25,7 @@ struct HealingEngineTests {
                     ? .instantHeal(
                         actorName: "Hero",
                         abilityName: "Heal",
-                        keyword: .health,
-                        displayAmount: 3
+                        keyword: .health
                     )
                     : .silent
             ),
@@ -182,8 +181,7 @@ struct HealingEngineTests {
                 logAs: .instantHeal(
                     actorName: "Hero",
                     abilityName: "Heal",
-                    keyword: .health,
-                    displayAmount: 5
+                    keyword: .health
                 )
             ),
             in: &context

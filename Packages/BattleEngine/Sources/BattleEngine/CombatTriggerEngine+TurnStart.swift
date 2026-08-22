@@ -158,8 +158,7 @@ package extension CombatTriggerEngine {
                     logAs: .instantHeal(
                         actorName: actor.name,
                         abilityName: "Grove's Favor",
-                        keyword: .health,
-                        displayAmount: triggers.healthPerTurn
+                        keyword: .health
                     )
                 ),
                 in: &context
@@ -175,8 +174,7 @@ package extension CombatTriggerEngine {
                     logAs: .instantHeal(
                         actorName: actor.name,
                         abilityName: "Lingering Blessing",
-                        keyword: .health,
-                        displayAmount: amount
+                        keyword: .health
                     )
                 ),
                 in: &context
@@ -218,8 +216,7 @@ package extension CombatTriggerEngine {
                     logAs: .instantHeal(
                         actorName: actor.name,
                         abilityName: "Sprite Touch",
-                        keyword: .health,
-                        displayAmount: triggers.healthRegenFirstTurnsAmount
+                        keyword: .health
                     )
                 ),
                 in: &context
@@ -236,8 +233,7 @@ package extension CombatTriggerEngine {
                     logAs: .instantHeal(
                         actorName: actor.name,
                         abilityName: "Safe Perch",
-                        keyword: .health,
-                        displayAmount: triggers.healthRegenAboveHalfHealth
+                        keyword: .health
                     )
                 ),
                 in: &context

@@ -98,114 +98,105 @@ package extension CombatTriggerEngine {
         }
 
         // Once-per-action spend thresholds: Mana Cocoon, Overcharge, Arcane Cleansing, Chaos Rift, Freeze.
-        let cocoonKey = TalentActionGuardKey(kind: .spendCocoon, actorID: actor.id)
-        if context.talentActionGuardByActorID[cocoonKey] != context.actionCount {
-            if triggers.spendManaThresholdBlockThreshold > 0, amountSpent >= triggers.spendManaThresholdBlockThreshold {
-                context.talentActionGuardByActorID[cocoonKey] = context.actionCount
-                if triggers.spendManaThresholdBlockBlock > 0 {
-                    events.append(contentsOf: context.applyBlock(
-                        triggers.spendManaThresholdBlockBlock,
-                        to: actor,
-                        source: actor,
-                        abilityName: triggerAbilityName(
-                            "spendManaThresholdBlockThreshold",
-                            for: actor,
-                            fallback: "Mana Cocoon",
-                            in: context
-                        )
-                    ))
-                }
-                if triggers.spendManaThresholdBlockHealth > 0 {
-                    events.append(contentsOf: HealingEngine.resolveHeal(
-                        HealRequest(
-                            amount: triggers.spendManaThresholdBlockHealth,
-                            target: actor,
-                            sourceActorID: actor.id,
-                            logAs: .instantHeal(
-                                actorName: actor.name,
-                                abilityName: triggerAbilityName(
-                                    "spendManaThresholdBlockThreshold",
-                                    for: actor,
-                                    fallback: "Mana Cocoon",
-                                    in: context
-                                ),
-                                keyword: .health,
-                                displayAmount: triggers.spendManaThresholdBlockHealth
-                            )
-                        ),
-                        in: &context
-                    ).events)
-                }
-            }
-        }
-        let overchargeKey = TalentActionGuardKey(kind: .spendOvercharge, actorID: actor.id)
-        if context.talentActionGuardByActorID[overchargeKey] != context.actionCount {
-            if triggers.spendManaEmpowerNextCardThreshold > 0, amountSpent >= triggers.spendManaEmpowerNextCardThreshold {
-                context.talentActionGuardByActorID[overchargeKey] = context.actionCount
-                if triggers.nextCardEmpowerPercent > 0 {
-                    context.roster.mutateRuntime(for: actor) {
-                        $0.pendingCardDamagePercent += triggers.nextCardEmpowerPercent
-                    }
-                }
-            }
-        }
-        let cleanseKey = TalentActionGuardKey(kind: .spendCleanse, actorID: actor.id)
-        if context.talentActionGuardByActorID[cleanseKey] != context.actionCount {
-            if triggers.spendManaThresholdCleanseCount > 0, amountSpent >= triggers.spendManaThresholdCleanseCount {
-                context.talentActionGuardByActorID[cleanseKey] = context.actionCount
-                events.append(contentsOf: performRandomCleanses(
+        let cocoonMet = triggers.spendManaThresholdBlockThreshold > 0
+            && amountSpent >= triggers.spendManaThresholdBlockThreshold
+        if cocoonMet, context.claimActionGuard(.spendCocoon, actorID: actor.id) {
+            if triggers.spendManaThresholdBlockBlock > 0 {
+                events.append(contentsOf: context.applyBlock(
+                    triggers.spendManaThresholdBlockBlock,
+                    to: actor,
                     source: actor,
-                    target: actor,
-                    count: 1,
                     abilityName: triggerAbilityName(
-                        "spendManaThresholdCleanseCount",
+                        "spendManaThresholdBlockThreshold",
                         for: actor,
-                        fallback: "Arcane Cleansing",
+                        fallback: "Mana Cocoon",
                         in: context
+                    )
+                ))
+            }
+            if triggers.spendManaThresholdBlockHealth > 0 {
+                events.append(contentsOf: HealingEngine.resolveHeal(
+                    HealRequest(
+                        amount: triggers.spendManaThresholdBlockHealth,
+                        target: actor,
+                        sourceActorID: actor.id,
+                        logAs: .instantHeal(
+                            actorName: actor.name,
+                            abilityName: triggerAbilityName(
+                                "spendManaThresholdBlockThreshold",
+                                for: actor,
+                                fallback: "Mana Cocoon",
+                                in: context
+                            ),
+                            keyword: .health
+                        )
                     ),
                     in: &context
-                ))
+                ).events)
             }
         }
-        let chaosRiftKey = TalentActionGuardKey(kind: .spendChaosRift, actorID: actor.id)
-        if context.talentActionGuardByActorID[chaosRiftKey] != context.actionCount {
-            if triggers.spendManaChaosRiftThreshold > 0, amountSpent >= triggers.spendManaChaosRiftThreshold,
-               triggers.spendManaChaosRiftDamage > 0, context.roster.enemy.isAlive {
-                context.talentActionGuardByActorID[chaosRiftKey] = context.actionCount
-                let half = triggers.spendManaChaosRiftDamage / 2
-                let keywords = [Keyword.freeze, .burn, .poison, .holy].shuffled(using: &context.rng)
-                for keyword in keywords.prefix(2) {
-                    events.append(contentsOf: context.resolveDamage(
-                        DamageRequest(
-                            amount: half,
-                            target: context.roster.enemy.combatant,
-                            keyword: keyword,
-                            sourceActorID: actor.id,
-                            options: DamageOptions(
-                                applyStatBonus: false,
-                                applyItemBonus: false,
-                                applyDodge: false,
-                                isRetaliation: true
-                            )
-                        )
-                    ).events)
+        // Overcharge: the guard must only be consumed when the threshold is met.
+        let overchargeMet = triggers.spendManaEmpowerNextCardThreshold > 0
+            && amountSpent >= triggers.spendManaEmpowerNextCardThreshold
+        if overchargeMet, context.claimActionGuard(.spendOvercharge, actorID: actor.id) {
+            if triggers.nextCardEmpowerPercent > 0 {
+                context.roster.mutateRuntime(for: actor) {
+                    $0.pendingCardDamagePercent += triggers.nextCardEmpowerPercent
                 }
             }
         }
-        let freezeKey = TalentActionGuardKey(kind: .spendFreeze, actorID: actor.id)
-        if context.talentActionGuardByActorID[freezeKey] != context.actionCount {
-            if triggers.spendManaFreezeThreshold > 0, amountSpent >= triggers.spendManaFreezeThreshold,
-               context.roster.enemy.isAlive {
-                context.talentActionGuardByActorID[freezeKey] = context.actionCount
-                let freezeAmount = ControlMeterEngine.threshold(for: context.roster.enemy.combatant, in: context)
-                events.append(contentsOf: ControlMeterEngine.applyMeterCharge(
-                    freezeAmount,
-                    keyword: .freeze,
-                    to: context.roster.enemy.combatant,
-                    sourceActorID: actor.id,
-                    in: &context
-                ))
+        let cleanseMet = triggers.spendManaThresholdCleanseCount > 0
+            && amountSpent >= triggers.spendManaThresholdCleanseCount
+        if cleanseMet, context.claimActionGuard(.spendCleanse, actorID: actor.id) {
+            events.append(contentsOf: performRandomCleanses(
+                source: actor,
+                target: actor,
+                count: 1,
+                abilityName: triggerAbilityName(
+                    "spendManaThresholdCleanseCount",
+                    for: actor,
+                    fallback: "Arcane Cleansing",
+                    in: context
+                ),
+                in: &context
+            ))
+        }
+        let chaosRiftMet = triggers.spendManaChaosRiftThreshold > 0
+            && amountSpent >= triggers.spendManaChaosRiftThreshold
+            && triggers.spendManaChaosRiftDamage > 0
+            && context.roster.enemy.isAlive
+        if chaosRiftMet, context.claimActionGuard(.spendChaosRift, actorID: actor.id) {
+            let half = triggers.spendManaChaosRiftDamage / 2
+            let keywords = [Keyword.freeze, .burn, .poison, .holy].shuffled(using: &context.rng)
+            for keyword in keywords.prefix(2) {
+                events.append(contentsOf: context.resolveDamage(
+                    DamageRequest(
+                        amount: half,
+                        target: context.roster.enemy.combatant,
+                        keyword: keyword,
+                        sourceActorID: actor.id,
+                        options: DamageOptions(
+                            applyStatBonus: false,
+                            applyItemBonus: false,
+                            applyDodge: false,
+                            isRetaliation: true
+                        )
+                    )
+                ).events)
             }
+        }
+        let freezeMet = triggers.spendManaFreezeThreshold > 0
+            && amountSpent >= triggers.spendManaFreezeThreshold
+            && context.roster.enemy.isAlive
+        if freezeMet, context.claimActionGuard(.spendFreeze, actorID: actor.id) {
+            let freezeAmount = ControlMeterEngine.threshold(for: context.roster.enemy.combatant, in: context)
+            events.append(contentsOf: ControlMeterEngine.applyMeterCharge(
+                freezeAmount,
+                keyword: .freeze,
+                to: context.roster.enemy.combatant,
+                sourceActorID: actor.id,
+                in: &context
+            ))
         }
 
         // Arcane Breath: Mana spent on empowering a card adds bonus damage per Mana spent.
@@ -219,8 +210,7 @@ package extension CombatTriggerEngine {
         // Dark Recovery: the first time you reach 0 Mana each battle, immediately restore Mana.
         if triggers.onReachZeroManaRestoreMana > 0,
            context.roster.runtime(for: actor)?.currentMana == 0,
-           context.talentActionGuardByActorID[TalentActionGuardKey(kind: .darkRecovery, actorID: actor.id)] == nil {
-            context.talentActionGuardByActorID[TalentActionGuardKey(kind: .darkRecovery, actorID: actor.id)] = 1
+           context.claimBattleGuard(.darkRecovery, actorID: actor.id) {
             let restored = context.restoreMana(triggers.onReachZeroManaRestoreMana, to: actor)
             if restored > 0 {
                 events.append(context.nextEvent(
@@ -243,10 +233,8 @@ package extension CombatTriggerEngine {
 
         // Arcane Burst: spending enough Mana draws and automatically plays a random card.
         if triggers.spendManaThresholdAutoPlayCard > 0, !context.isResolvingAutoPlayCard {
-            let burstKey = TalentActionGuardKey(kind: .arcaneBurst, actorID: actor.id)
-            if context.talentActionGuardByActorID[burstKey] != context.actionCount {
+            if context.claimActionGuard(.arcaneBurst, actorID: actor.id) {
                 context.roster.mutateRuntime(for: actor) { $0.manaSpentThisCardPlay = 0 }
-                context.talentActionGuardByActorID[burstKey] = context.actionCount
             }
             let totalSpent = (context.roster.runtime(for: actor)?.manaSpentThisCardPlay ?? 0) + amountSpent
             context.roster.mutateRuntime(for: actor) { $0.manaSpentThisCardPlay = totalSpent }
@@ -276,7 +264,7 @@ package extension CombatTriggerEngine {
         let randomDoT = triggers.spendManaRandomDoTFlat
         if randomDoT > 0, context.roster.enemy.isAlive {
             let enemy = context.roster.enemy.combatant
-            if Bool.random(using: &context.rng) {
+            if BattleChance.succeeds(probability: 0.5, using: &context.rng) {
                 events.append(contentsOf: context.applyDecayingDoT(
                     keyword: .burn,
                     potency: randomDoT,
@@ -325,8 +313,7 @@ package extension CombatTriggerEngine {
                             fallback: "Life Tap",
                             in: context
                         ),
-                        keyword: .health,
-                        displayAmount: triggers.onGainManaHealFlat
+                        keyword: .health
                     )
                 ),
                 in: &context

@@ -22,8 +22,7 @@ struct InstantHealHandler: BattleEffectHandler {
                 logAs: .instantHeal(
                     actorName: source.name,
                     abilityName: ability.name,
-                    keyword: keyword,
-                    displayAmount: amount
+                    keyword: keyword
                 )
             ),
             in: &context

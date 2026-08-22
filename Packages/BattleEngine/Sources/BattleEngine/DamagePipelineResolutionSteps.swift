@@ -112,7 +112,7 @@ package extension DamagePipeline {
     ) {
         if state.isAttackHit,
            let sourceActorID = state.sourceActorID,
-           context.roster.hasControlStatus(for: state.combatant, keyword: .stun) {
+           state.targetStatus.isStunned {
             let multiplier = context.modifiers(for: sourceActorID).triggers.stunnedDamageMultiplier
             if multiplier > 1 {
                 state.remaining = CombatRounding.scaled(state.remaining, multiplier: multiplier)

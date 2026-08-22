@@ -34,7 +34,7 @@ package enum EnemyTraitEngine {
               context.roster.health(for: combatant) > 0
         else { return [] }
 
-        let chosen = Bool.random(using: &context.rng) ? first : second
+        let chosen = BattleChance.succeeds(probability: 0.5, using: &context.rng) ? first : second
         return turnDamageAllEnemies(
             amount: triggers.turnRandomDamageAllEnemiesAmount,
             keyword: chosen,

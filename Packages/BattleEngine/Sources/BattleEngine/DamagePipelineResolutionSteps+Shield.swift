@@ -27,8 +27,8 @@ package extension DamagePipeline {
 
         let sourceTriggers = state.sourceActorID.map { context.modifiers(for: $0).triggers }
         let defenderTriggers = context.modifiers(for: state.combatant.id).triggers
-        let targetIsStunned = context.roster.hasControlStatus(for: state.combatant, keyword: .stun)
-        let targetIsFrozen = context.roster.hasControlStatus(for: state.combatant, keyword: .freeze)
+        let targetIsStunned = state.targetStatus.isStunned
+        let targetIsFrozen = state.targetStatus.isFrozen
 
         let effectiveBuffer = effectiveBlockBuffer(
             buffer: buffer,
@@ -183,6 +183,7 @@ package extension DamagePipeline {
         else { return }
         let heroAbsorbed = min(state.remaining, heroBuffer)
         state.remaining -= heroAbsorbed
+        state.blockedAmount += heroAbsorbed
         state.damageEvents.append(context.nextEvent(
             kind: .effect,
             effectKind: .shieldAbsorbed,

@@ -24,6 +24,7 @@ package enum DamagePipeline {
         if state.isDodged {
             return
         }
+        state.targetStatus = DamageTargetStatus(for: state.combatant, in: context)
         applyCriticalGate(to: &state, in: &context)
         applyCriticalBlockSteal(to: &state, in: &context)
         applyDamageBonus(to: &state, in: &context)

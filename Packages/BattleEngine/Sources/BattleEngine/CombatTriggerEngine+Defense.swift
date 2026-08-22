@@ -175,7 +175,7 @@ package extension CombatTriggerEngine {
                 }
             }
             if triggers.onDodgeApplyPoisonOrBleed > 0 {
-                if Bool.random(using: &context.rng) {
+                if BattleChance.succeeds(probability: 0.5, using: &context.rng) {
                     events.append(contentsOf: context.applyDecayingDoT(
                         keyword: .poison,
                         potency: triggers.onDodgeApplyPoisonOrBleed,
@@ -292,25 +292,23 @@ package extension CombatTriggerEngine {
         let profile = context.modifiers(for: target.id)
         var events = drawAfterHealthLoss(by: target, in: &context)
         // Seismic Roar: the Companion stuns the enemy once when dropping below half Health.
+        let belowHalfThreshold = profile.triggers.onceBelowHealthPercentThreshold > 0
+            && context.roster.maxHealth(for: target) > 0
+            && Double(context.roster.health(for: target)) / Double(context.roster.maxHealth(for: target))
+            < profile.triggers.onceBelowHealthPercentThreshold
         if profile.triggers.onceBelowHealthPercentStunAllEnemies,
-           profile.triggers.onceBelowHealthPercentThreshold > 0,
-           context.roster.maxHealth(for: target) > 0,
-           context.talentActionGuardByActorID[TalentActionGuardKey(kind: .seismicRoar, actorID: target.id)] == nil,
-           context.roster.enemy.isAlive {
-            let percent = Double(context.roster.health(for: target)) /
-                Double(context.roster.maxHealth(for: target))
-            if percent < profile.triggers.onceBelowHealthPercentThreshold {
-                context.talentActionGuardByActorID[TalentActionGuardKey(kind: .seismicRoar, actorID: target.id)] = 1
-                let threshold = ControlMeterEngine.threshold(for: context.roster.enemy.combatant, in: context)
-                events.append(contentsOf: ControlMeterEngine.applyMeterCharge(
-                    threshold,
-                    keyword: .stun,
-                    to: context.roster.enemy.combatant,
-                    sourceActorID: target.id,
-                    applyFightPacing: false,
-                    in: &context
-                ))
-            }
+           belowHalfThreshold,
+           context.roster.enemy.isAlive,
+           context.claimBattleGuard(.seismicRoar, actorID: target.id) {
+            let threshold = ControlMeterEngine.threshold(for: context.roster.enemy.combatant, in: context)
+            events.append(contentsOf: ControlMeterEngine.applyMeterCharge(
+                threshold,
+                keyword: .stun,
+                to: context.roster.enemy.combatant,
+                sourceActorID: target.id,
+                applyFightPacing: false,
+                in: &context
+            ))
         }
         guard profile.triggers.onceBelowHealthPercentThreshold > 0,
               profile.triggers.onceBelowHealthPercentHeal > 0,
@@ -339,8 +337,7 @@ package extension CombatTriggerEngine {
                 logAs: .instantHeal(
                     actorName: target.name,
                     abilityName: affixName(.secondWind),
-                    keyword: .health,
-                    displayAmount: profile.triggers.onceBelowHealthPercentHeal
+                    keyword: .health
                 )
             ),
             in: &context
@@ -427,8 +424,7 @@ package extension CombatTriggerEngine {
                 logAs: .instantHeal(
                     actorName: combatant.name,
                     abilityName: affixName(.sidestep),
-                    keyword: .health,
-                    displayAmount: profile.triggers.dodgeHealFlat
+                    keyword: .health
                 )
             ),
             in: &context

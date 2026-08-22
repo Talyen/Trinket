@@ -84,8 +84,7 @@ package extension CombatTriggerEngine {
                 logAs: .instantHeal(
                     actorName: actor.name,
                     abilityName: "Hibernation",
-                    keyword: .health,
-                    displayAmount: triggers.endTurnWithBlockHealFlat
+                    keyword: .health
                 )
             ),
             in: &context
@@ -114,8 +113,7 @@ package extension CombatTriggerEngine {
                     logAs: .instantHeal(
                         actorName: actor.name,
                         abilityName: "Playful Energy",
-                        keyword: .health,
-                        displayAmount: triggers.cardsPlayedHealPartyAmount
+                        keyword: .health
                     )
                 ),
                 in: &context
@@ -144,8 +142,7 @@ package extension CombatTriggerEngine {
                 logAs: .instantHeal(
                     actorName: actor.name,
                     abilityName: "Cheer Up",
-                    keyword: .health,
-                    displayAmount: triggers.endOfTurnHealLowestAlly
+                    keyword: .health
                 )
             ),
             in: &context
@@ -171,8 +168,7 @@ package extension CombatTriggerEngine {
                     logAs: .instantHeal(
                         actorName: actor.name,
                         abilityName: "Campfire Comfort",
-                        keyword: .health,
-                        displayAmount: triggers.partyRegenPerRound
+                        keyword: .health
                     )
                 ),
                 in: &context

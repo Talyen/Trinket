@@ -1,34 +1,24 @@
 # BattleEngine Tests
 
-Ownership matrix for combat package tests. Prefer focused unit tests for
-handlers and pipelines; use `BattleCardCombatTests` / integration suites for
-cross-boundary contracts through `BattleState.playCard` / `endTurn`. If a test does
-not fit a row below, add a row rather than stuffing it into an unrelated file.
+Ownership rules for combat package tests. Prefer focused unit tests for
+handlers and pipelines; use `BattleCardCombatTests` / `*IntegrationTests`
+suites for cross-boundary contracts through `BattleState.playCard` / `endTurn`.
+Extend the suite that already owns a concern; add a new suite only for a
+genuinely new concern. The authoritative suite inventory is the
+`Tests/BattleEngineTests/` directory; this guide names stable families.
 
-## Ownership matrix
+## Ownership rules
 
-| Concern | Suite | Example |
-|---------|-------|---------|
-| Handler apply / turn advance | `EffectHandlers*Tests` | cleanse removes meter |
-| Damage pipeline steps | `DamagePipelineTests`, `CombatPipelineTests` | dodge short-circuit |
-| DoT math | `DoTDamageTests`, `DoTMechanicsTests` | burn decay |
-| Card combat driver | `BattleCardCombatTests` | opening hand, end turn, enemy cadence |
-| Control / Death's Door | `ControlMeter*`, `DeathsDoorEngineTests` | skip next act |
-| Build / traits / affixes / talents | `CombatBuildResolverTests`, `CombatTriggerTalentTests` (injected trigger math, party-scope), `TalentCatalogRoundTripTests` (catalog node → battle hook), `TrinketEffectTests` (card-play and trinket-slot trigger flows), `EnemyTraitBattleTests`, `AffixReactionBattleTests`, `ItemModifierBattleTests` | item and talent triggers |
-| Catalog ability combos | `AbilityEffectIntegrationTests` | Bloodthorn, Prayer |
-| Outcome / log | `BattleOutcomeResolverTests`, `BattleLogReducerTests` | victory rules |
-| Greedy card policy | `GreedyHeuristicPolicyTests` | lethal card outranks weaker leftmost; setup-v1 prefers missing DoT |
-| Balance simulator | `BattleSimulatorTests`, `BalanceSweepOrchestrationTests`, `BalanceFindingsReporterTests` | greedy autoplay, quotas, timeout excluded from WR, findings brief lists flagged presence rows |
-
-## Integration through card turns
-
-| Suite | Notes |
-|-------|-------|
-| `ControlMeterIntegrationTests` | Stun/freeze → skip via endTurn / unplayable cards |
-| `CleanseIntegrationTests` | Cleanse abilities via playCard |
-| `MitigationIntegrationTests` | Block/Toughness through rounds |
-| `RestorationIntegrationTests` | Heal/leech via playCard |
-| `StatIntegrationTests` | Stats → damage through playCard |
+| Concern | Suite family |
+|---------|--------------|
+| Handler apply / status / turn advance | `EffectHandlers*Tests`, `EffectTurnEngineTests` |
+| Damage pipeline steps, DoT math | `DamagePipelineTests`, `CombatPipelineTests`, `DoT*Tests` |
+| Engine cadence, fight pacing, control states | `BattleTurnEngineTests`, `FightPacingTests`, `ControlMeter*Tests`, `DeathsDoorEngineTests` |
+| Cross-boundary card combat | `BattleCardCombatTests` plus `*IntegrationTests` |
+| Builds, triggers, talents, traits, affixes, items, trinkets | `CombatBuildResolverTests`, `CombatTriggerTalent*Tests`, `TrinketEffectTests`, `*BattleTests` |
+| Catalog ability combos | `AbilityEffectIntegrationTests` |
+| Outcome, log, event formatting | `BattleOutcomeResolverTests`, `BattleLogReducerTests`, `EffectSummaryBuilderTests` |
+| Balance simulator and sweep tooling | `BattleSimulator*Tests`, `GreedyHeuristicPolicyTests`, `Balance*Tests` |
 
 ## Conventions
 

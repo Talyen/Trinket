@@ -104,8 +104,7 @@ package enum DeathsDoorEngine {
                 logAs: .instantHeal(
                     actorName: context.roster.companion.name,
                     abilityName: "Phoenix Gift",
-                    keyword: .health,
-                    displayAmount: heal
+                    keyword: .health
                 ),
                 revivesIfDead: true,
                 skipFightPacing: true
@@ -129,11 +128,12 @@ package enum DeathsDoorEngine {
         guard reviveHealth > 0 || reviveBlock > 0 else { return nil }
 
         let healthToRestore = max(1, reviveHealth)
-        var revivedHealth = 0
+        // Direct mutation by design: a fixed-contract self-revive. Routing through
+        // HealingEngine would Wisdom/crit-scale the amount and let a debuff gate
+        // suppress death protection.
         context.roster.mutateRuntime(for: combatant) { runtime in
             runtime.hasTriggeredDeathRevive = true
             runtime.currentHealth = min(healthToRestore, runtime.maxHealth)
-            revivedHealth = runtime.currentHealth
         }
 
         let abilityName = reviveHealth >= 10 ? "Rebirth" : "Deathrattle"
@@ -144,7 +144,7 @@ package enum DeathsDoorEngine {
                 actorName: combatant.name,
                 abilityName: abilityName,
                 target: combatant,
-                amount: revivedHealth,
+                amount: min(healthToRestore, context.roster.maxHealth(for: combatant)),
                 keyword: .health
             ),
         ]
@@ -237,8 +237,7 @@ package enum DeathsDoorEngine {
                 logAs: .instantHeal(
                     actorName: context.roster.companion.name,
                     abilityName: "Guardian Archive",
-                    keyword: .health,
-                    displayAmount: companionTriggers.onAllyDeathsDoorHealAndCleanse
+                    keyword: .health
                 )
             ),
             in: &context
@@ -278,24 +277,22 @@ package enum DeathsDoorEngine {
             let member = context.roster[owner]
             guard member.isAlive else { continue }
             let maxHealth = context.roster.maxHealth(for: member.combatant)
+            guard context.roster.health(for: member.combatant) < maxHealth else { continue }
             let heal = max(1, CombatRounding.scaled(maxHealth, multiplier: companionTriggers.surviveDeathsDoorPartyHealPercent))
-            var restored = 0
-            context.roster.mutateRuntime(for: member.combatant) { runtime in
-                let before = runtime.currentHealth
-                runtime.currentHealth = min(runtime.maxHealth, before + heal)
-                restored = runtime.currentHealth - before
-            }
-            if restored > 0 {
-                events.append(context.nextEvent(
-                    kind: .effect,
-                    effectKind: .instantHeal,
-                    actorName: combatant.name,
-                    abilityName: "Afterglow",
+            events.append(contentsOf: HealingEngine.resolveHeal(
+                HealRequest(
+                    amount: heal,
                     target: member.combatant,
-                    amount: restored,
-                    keyword: .health
-                ))
-            }
+                    sourceActorID: context.roster.companion.id,
+                    logAs: .instantHeal(
+                        actorName: combatant.name,
+                        abilityName: "Afterglow",
+                        keyword: .health
+                    ),
+                    skipFightPacing: true
+                ),
+                in: &context
+            ).events)
         }
         return events
     }
@@ -305,28 +302,30 @@ package enum DeathsDoorEngine {
         on combatant: Combatant,
         in context: inout BattleState
     ) -> [ActionEvent] {
-        guard context.talentActionGuardByActorID[TalentActionGuardKey(kind: .endlessLegion, actorID: combatant.id)] == nil,
-              context.roster.health(for: combatant) > 0
-        else { return [] }
         let amount = context.modifiers(for: combatant.id).triggers.deathsDoorExpiredHealFlat
-        guard amount > 0 else { return [] }
-        context.talentActionGuardByActorID[TalentActionGuardKey(kind: .endlessLegion, actorID: combatant.id)] = 1
-        var restored = 0
-        context.roster.mutateRuntime(for: combatant) { runtime in
-            let before = runtime.currentHealth
-            runtime.currentHealth = min(max(runtime.currentHealth, amount), runtime.maxHealth)
-            restored = runtime.currentHealth - before
-        }
-        guard restored > 0 else { return [] }
-        return [context.nextEvent(
-            kind: .effect,
-            effectKind: .instantHeal,
-            actorName: combatant.name,
-            abilityName: "Endless Legion",
-            target: combatant,
-            amount: restored,
-            keyword: .health
-        )]
+        guard amount > 0,
+              context.roster.health(for: combatant) > 0,
+              context.claimBattleGuard(.endlessLegion, actorID: combatant.id)
+        else { return [] }
+        // Floor semantics: raise Health to at least `amount` (never add on top).
+        let maxHealth = context.roster.maxHealth(for: combatant)
+        let currentHealth = context.roster.health(for: combatant)
+        let delta = min(max(currentHealth, amount), maxHealth) - currentHealth
+        guard delta > 0 else { return [] }
+        return HealingEngine.resolveHeal(
+            HealRequest(
+                amount: delta,
+                target: combatant,
+                sourceActorID: combatant.id,
+                logAs: .instantHeal(
+                    actorName: combatant.name,
+                    abilityName: "Endless Legion",
+                    keyword: .health
+                ),
+                skipFightPacing: true
+            ),
+            in: &context
+        ).events
     }
 
     private static func clampToMinimumHP(

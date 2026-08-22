@@ -68,7 +68,7 @@ package enum ControlMeterEngine {
                     combatant: combatant,
                     sourceActorID: sourceActorID,
                     existingIndex: existingIndex,
-                    threshold: effectiveThreshold
+                    baseThreshold: threshold
                 ),
                 currentEffects: &currentEffects,
                 in: &context
@@ -146,7 +146,8 @@ package enum ControlMeterEngine {
         let combatant: Combatant
         let sourceActorID: String?
         let existingIndex: Int?
-        let threshold: Int
+        /// Unreduced threshold; the stored meter basis so decay and displays never see a reduced value.
+        let baseThreshold: Int
     }
 
     // swiftlint:disable:next function_body_length
@@ -158,13 +159,16 @@ package enum ControlMeterEngine {
         let keyword = thresholdContext.keyword
         let combatant = thresholdContext.combatant
         let sourceActorID = thresholdContext.sourceActorID
-        let threshold = thresholdContext.threshold
 
+        // A full meter stores the base threshold as both amount and basis: threshold
+        // reductions decide when it fills, never what "full" reads as. Storing the
+        // reduced value here would leave amount < storedThreshold and the status
+        // would not register (`isActionSkipPending` compares amount >= threshold).
         updateBuildup(
             ControlMeterUpdate(
                 keyword: keyword,
-                newAmount: threshold,
-                threshold: threshold,
+                newAmount: thresholdContext.baseThreshold,
+                threshold: thresholdContext.baseThreshold,
                 combatant: combatant,
                 sourceActorID: sourceActorID,
                 existingIndex: thresholdContext.existingIndex

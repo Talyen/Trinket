@@ -151,6 +151,7 @@ public struct BattleState {
         talentReactionDepth: Int = 0,
         dotRecursionDepth: Int = 0,
         isResolvingAutoPlayCard: Bool = false,
+        drawAndPlayDepth: Int = 0,
         enemyFaction: EnemyFaction = .mortal,
         tracksLog: Bool = false,
         tracksEvents: Bool = true,
@@ -198,11 +199,13 @@ public struct BattleState {
         self.talentReactionDepth = talentReactionDepth
         self.dotRecursionDepth = dotRecursionDepth
         self.isResolvingAutoPlayCard = isResolvingAutoPlayCard
+        self.drawAndPlayDepth = drawAndPlayDepth
 
         self.enemyFaction = enemyFaction
     }
 
-    // swiftlint:disable:next function_body_length
+    /// New-battle convenience init. Builds the roster, then delegates to the
+    /// full-state init so field defaults stay in one place.
     public init(
         hero: Combatant,
         companion: Combatant,
@@ -222,71 +225,42 @@ public struct BattleState {
         appliesFightPacing: Bool = true
     ) {
         let resolvedEnemy = enemy ?? Enemy.fallbackCombatant
-        self.tracksLog = tracksLog
-        self.tracksEvents = tracksEvents
-        self.appliesFightPacing = appliesFightPacing
         let seed = rngSeed ?? Self.defaultRNGSeed
-        self.rngSeed = seed
-
-        roster = BattleRoster(
-            hero: CombatantRuntime(
-                combatant: hero,
-                initialActiveEffects: activeHeroEffects,
-                maximumHealthBonus: heroModifiers.maximumHealthBonus,
-                maximumManaBonus: heroModifiers.maximumManaBonus
-            ),
-            companion: CombatantRuntime(
-                combatant: companion,
-                initialActiveEffects: activeCompanionEffects,
-                maximumHealthBonus: companionModifiers.maximumHealthBonus,
-                maximumManaBonus: companionModifiers.maximumManaBonus
-            ),
-            enemy: CombatantRuntime(combatant: resolvedEnemy, initialActiveEffects: activeEnemyEffects)
-        )
         let maxExistingEffectID = max(
             activeEnemyEffects.map(\.id).max() ?? 0,
             activeHeroEffects.map(\.id).max() ?? 0,
             activeCompanionEffects.map(\.id).max() ?? 0
         )
-        nextEffectID = maxExistingEffectID + 1
-        rng = SeededRandomNumberGenerator(seed: seed)
-        turnCount = 0
-        nextEventID = 0
-        events = []
-        gold = initialGold
-        self.initialGold = initialGold
-        self.heroModifiers = heroModifiers
-        self.companionModifiers = companionModifiers
-        self.enemyModifiers = enemyModifiers
-        actionCount = 0
-        hasLoggedDefeat = false
-        hasLoggedPartyDefeat = false
-        lastEnemyDefeatWasCritical = false
-        phase = .playerTurn
-        hand = BattleHand()
-        handBuffer = BattleHandBuffer()
-        heroDeck = CombatDeck()
-        companionDeck = CombatDeck()
-        nextCardID = 0
-        ownersSkippingThisPlayerTurn = []
-        cardsPlayedThisTurn = [:]
-        skillCardsPlayedThisTurn = [:]
-        freezeCardsPlayedThisTurn = [:]
-        burnManaRestoredThisTurn = [:]
-        spendManaDrawOwnersThisTurn = []
-        healthLossDrawOwnersThisTurn = []
-        goldDrawOwnersThisTurn = []
-        additionalControlSkipsByCombatantID = [:]
-        isResolvingTalentReaction = false
-        criticalGoldActionByActorID = [:]
-        talentActionGuardByActorID = [:]
-        skillEchoOwnersThisBattle = []
-        talentReactionDepth = 0
-        dotRecursionDepth = 0
-        isResolvingAutoPlayCard = false
-
-        isResolvingDoTDetonation = false
-        self.enemyFaction = enemyFaction
+        self.init(
+            roster: BattleRoster(
+                hero: CombatantRuntime(
+                    combatant: hero,
+                    initialActiveEffects: activeHeroEffects,
+                    maximumHealthBonus: heroModifiers.maximumHealthBonus,
+                    maximumManaBonus: heroModifiers.maximumManaBonus
+                ),
+                companion: CombatantRuntime(
+                    combatant: companion,
+                    initialActiveEffects: activeCompanionEffects,
+                    maximumHealthBonus: companionModifiers.maximumHealthBonus,
+                    maximumManaBonus: companionModifiers.maximumManaBonus
+                ),
+                enemy: CombatantRuntime(combatant: resolvedEnemy, initialActiveEffects: activeEnemyEffects)
+            ),
+            rng: SeededRandomNumberGenerator(seed: seed),
+            nextEffectID: maxExistingEffectID + 1,
+            nextEventID: 0,
+            events: [],
+            gold: initialGold,
+            initialGold: initialGold,
+            heroModifiers: heroModifiers,
+            companionModifiers: companionModifiers,
+            enemyModifiers: enemyModifiers,
+            enemyFaction: enemyFaction,
+            tracksLog: tracksLog,
+            tracksEvents: tracksEvents,
+            appliesFightPacing: appliesFightPacing
+        )
 
         _ = appendMilestone(.battleStarted(heroName: hero.name, companionName: companion.name))
 

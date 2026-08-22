@@ -2,6 +2,33 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
+/// Target control/affliction flags captured once per damage resolution so
+/// bonus/multiplier/shield steps share one effect scan instead of rescanning.
+/// Steps that run after on-hit status applications must read live state instead.
+package struct DamageTargetStatus {
+    public var isFrozen = false
+    public var isStunned = false
+    public var isBurning = false
+    public var isPoisoned = false
+    public var isBleeding = false
+
+    /// Empty until `DamagePipeline.run` captures the resolution-time snapshot.
+    init() {}
+
+    init(for combatant: Combatant, in context: BattleState) {
+        for active in context.roster.activeEffects(for: combatant) {
+            switch active.effect.keyword {
+            case .burn: isBurning = true
+            case .poison: isPoisoned = true
+            case .bleed: isBleeding = true
+            case .freeze where active.effect.isActionSkipPending: isFrozen = true
+            case .stun where active.effect.isActionSkipPending: isStunned = true
+            default: break
+            }
+        }
+    }
+}
+
 /// Working state threaded through the named damage-resolution steps in
 /// `BattleState.resolveDamage`. Each step mutates this struct in place; the
 /// orchestrator reads the final `healthLost` and `damageEvents` once the
@@ -56,6 +83,11 @@ package struct DamageResolutionState {
 
     /// Block absorbed by shields during this hit (Vampiric Touch leech base).
     public var blockedAmount: Int = 0
+
+    /// Target status flags captured once before mutation-prone steps run.
+    /// Populated by `DamagePipeline.run`; pre-mutation steps read this instead
+    /// of rescanning active effects.
+    public var targetStatus = DamageTargetStatus()
 
     /// Set to `true` by the dodge gate when the incoming attack is dodged;
     /// the orchestrator then short-circuits and returns `(0, damageEvents)`.

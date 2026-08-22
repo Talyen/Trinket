@@ -66,7 +66,7 @@ struct ControlMeterIntegrationTests {
             actionIntervalTurns: 1,
             abilities: [CombatantFixtures.ability(id: "test-stun", name: "Test Stun", directDamage: 1, damageKeyword: .stun)]
         )
-        let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion)
+        let companion = BattleTestFixtures.passiveCompanion()
         let enemy = BattleTestFixtures.attackingEnemy(abilities: [.slash], maxHealth: 5)
         var battle = BattleTestFixtures.standardParty(hero: hero, companion: companion, enemy: enemy)
 
@@ -97,7 +97,7 @@ struct ControlMeterIntegrationTests {
             maxHealth: 20,
             abilities: [.shieldBash]
         )
-        let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion)
+        let companion = BattleTestFixtures.passiveCompanion()
         let enemy = BattleTestFixtures.attackingEnemy(abilities: [.slash], maxHealth: 5)
         var battle = BattleTestFixtures.standardParty(hero: hero, companion: companion, enemy: enemy)
 
@@ -116,7 +116,7 @@ struct ControlMeterIntegrationTests {
 
     @Test func partyOwnerSkipBlocksCardPlayThenClearsOnEndTurn() throws {
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [.slash])
-        let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion)
+        let companion = BattleTestFixtures.passiveCompanion()
         let enemy = BattleTestFixtures.silentEnemy(maxHealth: 100)
         var battle = BattleTestFixtures.standardParty(
             hero: hero,
@@ -153,7 +153,7 @@ struct ControlMeterIntegrationTests {
     @Test func shatterAndDazedApplyDuringControlStatusLinger() throws {
         let jab = Ability(id: "jab", name: "Jab", tier: .basic, directDamage: 1, damageKeyword: .physical)
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [jab])
-        let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion)
+        let companion = BattleTestFixtures.passiveCompanion()
         let enemy = BattleTestFixtures.silentEnemy(maxHealth: 100)
 
         var frozenBattle = BattleStateTestFactory.makeBattle(

@@ -13,7 +13,7 @@ struct AbilityEffectIntegrationTests {
             maxHealth: 20,
             abilities: [.blackjack]
         )
-        let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion)
+        let companion = BattleTestFixtures.passiveCompanion()
         let enemy = BattleTestFixtures.silentEnemy(maxHealth: 100)
         var battle = BattleTestFixtures.standardParty(hero: hero, companion: companion, enemy: enemy, initialGold: 0)
 
@@ -34,7 +34,7 @@ struct AbilityEffectIntegrationTests {
             targetedEffects: [TargetedEffect(.poison(2))]
         )
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 10, abilities: [poisonAbility])
-        let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion)
+        let companion = BattleTestFixtures.passiveCompanion()
         let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
         var battle = BattleTestFixtures.standardParty(hero: hero, companion: companion, enemy: enemy)
 
@@ -51,7 +51,7 @@ struct AbilityEffectIntegrationTests {
             maxHealth: 20,
             abilities: [.bloodthorn]
         )
-        let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion)
+        let companion = BattleTestFixtures.passiveCompanion()
         let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
         var battle = BattleTestFixtures.standardParty(hero: hero, companion: companion, enemy: enemy)
         battle.withEngineContext { context in
@@ -99,7 +99,7 @@ struct AbilityEffectIntegrationTests {
             maxHealth: 10,
             abilities: [mend]
         )
-        let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion)
+        let companion = BattleTestFixtures.passiveCompanion()
         let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy)
         var battle = BattleTestFixtures.standardParty(
             hero: hero,
@@ -139,7 +139,7 @@ struct AbilityEffectIntegrationTests {
             maxHealth: 20,
             abilities: [strike]
         )
-        let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion)
+        let companion = BattleTestFixtures.passiveCompanion()
         let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
         var battle = BattleTestFixtures.standardParty(
             hero: hero,
@@ -168,7 +168,7 @@ struct AbilityEffectIntegrationTests {
             maxHealth: 20,
             abilities: [.avatarOfJustice]
         )
-        let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion)
+        let companion = BattleTestFixtures.passiveCompanion()
         let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
         var battle = BattleTestFixtures.standardParty(hero: hero, companion: companion, enemy: enemy)
 
@@ -223,7 +223,7 @@ struct AbilityEffectIntegrationTests {
             maxHealth: 20,
             abilities: [.pounce]
         )
-        let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion)
+        let companion = BattleTestFixtures.passiveCompanion()
         let enemy = BattleTestFixtures.silentEnemy(maxHealth: 100)
         var battle = BattleTestFixtures.standardParty(hero: hero, companion: companion, enemy: enemy)
         try #expect(battle.turnCount == 0)
@@ -247,7 +247,7 @@ struct AbilityEffectIntegrationTests {
             maxHealth: 20,
             abilities: [.combustion]
         )
-        let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion)
+        let companion = BattleTestFixtures.passiveCompanion()
         let enemy = BattleTestFixtures.silentEnemy(maxHealth: 100)
 
         var fresh = BattleTestFixtures.standardParty(hero: hero, companion: companion, enemy: enemy)
