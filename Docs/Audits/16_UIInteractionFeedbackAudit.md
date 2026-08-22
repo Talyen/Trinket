@@ -1,18 +1,18 @@
-# 16. UI Interaction & Accessibility Audit
+# 16. UI Interaction Audit
 
-> Trinket follows the practical native accessibility baseline in PD-007. This audit
-> includes focused semantic, Dynamic Type, contrast, motion, and interaction review;
-> it does not require a combinatorial accessibility UI-test matrix.
+> Trinket ships bare-minimum accessibility (PD-007). This audit covers interaction
+> and feedback quality; it does not review accessibility accommodations.
 
-**Goal:** Find confirmed interaction, feedback, and accessibility defects that static types do not catch.
+**Goal:** Find confirmed interaction and feedback defects that static types do not catch.
 
 ## Intent
 
-Fix confirmed navigation/feedback/accessibility defects across flows. When a shared control or interaction pattern is implicated, inventory adjacent flows using it and fix the confirmed cluster. Reuse existing UI coverage; do not add a test unless the Testing rubric identifies a unique shipping journey or safety invariant.
+Fix confirmed navigation/feedback defects across flows. When a shared control or interaction pattern is implicated, inventory adjacent flows using it and fix the confirmed cluster. Reuse existing UI coverage; do not add a test unless the Testing rubric identifies a unique shipping journey or safety invariant.
 
 ## Hard stops
 
 - Do not restyle unrelated chrome or expand into layout/typography/DesignSystem migrations (AppleNativeUI owns those).
+- Do not add accessibility accommodations (Reduce Motion, Dynamic Type re-layout, contrast, VoiceOver labeling) — PD-007 forbids them.
 - iPhone portrait-first; skip iPad-only hover work unless product scope expands.
 - Do not turn one candidate into an untriggered full-tab manual pass. Expand to adjacent flows only when they share the confirmed component, gesture, state machine, or primary-action invariant. Skip unavailable Simulator/device checks without failing the audit.
 - Do not expand into UI test rewrites (E2E owns those).
@@ -27,13 +27,7 @@ Fix confirmed navigation/feedback/accessibility defects across flows. When a sha
 
 **Control states:** primary actions have coherent enabled, disabled, loading, success, error/retry, and cancellation behavior where applicable; focus and keyboard presentation do not hide required actions; interruptions/backgrounding return the flow to a usable state.
 
-**Accessibility baseline:** retain visible labels and native SwiftUI behavior, plus
-stable `accessibilityIdentifier` values for UI tests. Label/value custom controls when
-their native representation is ambiguous; keep reading/navigation text usable at
-larger Dynamic Type sizes; do not convey essential state through color, sound, or
-motion alone; and centralize reduced-motion/transparency handling in shared owners.
-Use Accessibility Inspector on the affected major surface. Add traits, grouping, or
-hints only when they materially clarify the control.
+**Identifiers:** stable `accessibilityIdentifier` values exist for every flow the UI tests drive. Identifiers are test infrastructure, not accessibility — never remove or rename one without the Testing.md presentation-contract checks.
 
 **Edge cases:** rapid-tap debounce on stage start / craft / reward claim; battle pauses on `scenePhase` background; keyboard dismissal where applicable; empty states for empty collection/inventory/homestead.
 

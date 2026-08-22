@@ -22,16 +22,16 @@ Run the exclusive matrix:
 ```
 
 The runner takes the repository performance lock and uses isolated Simulator and
-DerivedData state. A formal Battle capture uses the repetition count selected by
-the investigation (the script documents its current default):
+DerivedData state. Formal comparisons use five measured runs per scenario:
 
 ```sh
-TRINKET_PERFORMANCE_REPETITIONS=<count> ./Scripts/performance.sh
+TRINKET_PERFORMANCE_REPETITIONS=5 ./Scripts/performance.sh
 ```
 
 The runner writes session-scoped results under `.DerivedData/PerformanceResults/`
-and removes successful default output after comparison. Use the script's help
-output for retention and output-directory switches; failed runs retain evidence
+and removes successful default output after comparison. Set
+`TRINKET_KEEP_PERFORMANCE_REPORTS=1` to retain the default location or
+`TRINKET_PERFORMANCE_OUTPUT_DIR=<path>` to choose one; failed runs retain evidence
 for current triage.
 
 The current runtime does not reliably export `XCTHitchMetric`; the broken exporter is intentionally absent. Do not substitute a custom `CADisplayLink` sample for an authoritative render-pipeline hitch metric. Capture Instruments Animation Hitches and Time Profiler traces when diagnosing a failure.

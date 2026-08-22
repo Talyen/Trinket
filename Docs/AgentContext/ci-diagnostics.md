@@ -69,7 +69,10 @@ After the aggregate has been staged, successful invocation artifacts are ephemer
 by default. `ci-diagnostics.sh --cleanup` removes passed bundles, reports, manifests,
 raw logs, and timing history while retaining failed evidence for current triage.
 Pass `--keep` for a deliberate investigation or set the CI test job's
-`keep-diagnostics: true`.
+`keep-diagnostics: true`. The same cleanup sweeps orphaned bundles/logs from runs
+that crashed before writing a completion manifest, age-bounded by
+`TRINKET_ORPHAN_MAX_AGE_DAYS` (default 3 days); failed evidence carrying a
+diagnostics report is retained.
 
 For GitHub Actions failures, prefer check-run annotations (SwiftLint / compiler)
 and a short `--log-failed` tail over scraping the full log when the excerpt only

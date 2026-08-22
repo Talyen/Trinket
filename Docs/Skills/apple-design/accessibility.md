@@ -1,39 +1,16 @@
-# Accessibility and reduced motion
+# Accessibility policy
 
-Use this reference for reduced motion, reduced transparency, increased contrast, vestibular safety, and interaction choices that must work across abilities and contexts. Reduced motion does not mean no feedback; it means a gentler, non-vestibular equivalent.
+Trinket is a visual-heavy game and ships only bare-minimum accessibility (PD-007). Users who depend on accommodations will not have a good experience playing regardless, so accommodation code is pure complexity.
 
-## Independent user preferences
+## What stays
 
-Respond to each signal independently and bake the behavior into components:
+- Whatever native SwiftUI provides for free: standard controls, `@ScaledMetric`, `minimumScaleFactor` where it prevents truncation for everyone.
+- `accessibilityIdentifier` / `AccessibilityID` values. These are UI-test infrastructure, not accessibility; they are required on new player flows per `Docs/Platform/Testing.md`.
 
-- **Reduced motion:** replace slides, springs, parallax, elastic effects, and overshoot with short opacity cross-fades or static transitions. Keep opacity and color changes that aid comprehension.
-- **Reduced transparency:** make translucent surfaces frostier or solid by raising background opacity and dropping blur.
-- **Increased contrast:** use stronger foreground/background separation and a
-  defined border where material edges would otherwise disappear.
+## What never gets added
 
-```swift
-@Environment(\.accessibilityReduceMotion) private var reduceMotion
-@Environment(\.accessibilityReduceTransparency) private var reduceTransparency
-@Environment(\.accessibilityDifferentiateWithoutColor) private var differentiateWithoutColor
-```
+- `accessibilityReduceMotion`, `accessibilityReduceTransparency`, `accessibilityDifferentiateWithoutColor`, or similar environment branches.
+- Dynamic Type re-layout (`isAccessibilitySize` switches, type-size threading through presentation pipelines).
+- Contrast, VoiceOver labeling, or accessibility-setting UI tests beyond what native behavior gives away.
 
-Consume these values in shared DesignSystem and `TrinketMotion` components. Feature
-views should select semantic variants rather than reimplement the same branches.
-
-## Vestibular and visual safety
-
-- Avoid full-viewport moving backgrounds and slow looping oscillations (around `0.2 Hz`, one cycle per five seconds).
-- Avoid abrupt brightness jumps; ease dark↔light theme changes.
-- Make large moving objects semi-transparent while they travel.
-- Fade large surfaces out during a large reposition and back in after settling when that reduces visual strain.
-- Preserve the same status, completion, warning, and error meaning when motion or material is removed.
-
-## Interaction review
-
-- Ensure controls have generous hit areas and cancellation paths, and do not depend on color, motion, sound, or haptics alone.
-- Keep focus/wayfinding and the escape path clear when a panel or modal appears.
-- Test larger text, increased contrast, reduced motion, reduced transparency, light/dark appearances, and real device input.
-
-Apple references: [Accessibility HIG](https://developer.apple.com/design/human-interface-guidelines/accessibility/),
-[`accessibilityReduceMotion`](https://developer.apple.com/documentation/swiftui/environmentvalues/accessibilityreducemotion),
-and [`accessibilityReduceTransparency`](https://developer.apple.com/documentation/swiftui/environmentvalues/accessibilityreducetransparency).
+If Apple's platform forces a decision, take the simplest option and move on.

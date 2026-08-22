@@ -13,6 +13,13 @@ Use for abilities, item bases, stages, art, music, SFX, cinematics, and project 
 
 After content edits, stage `Packages/TrinketContent/Sources/TrinketContent/Generated/`. Pipeline formats live in each manifest directory's README; each `prepare-<media>-assets.sh` is that pipeline's focused debugging entry point.
 
+Shared media-pipeline rules: raw source folders (`Raw Assets/` and per-pipeline
+raw directories) are not in Xcode target membership; processed outputs under
+`Trinket/` are. Generated files are committed so the app builds without rerunning
+the generator, and verification asserts generated output matches HEAD.
+Hash-based media pipelines (art, cinematics) re-encode when source bytes or
+encode settings change; set `FORCE_ASSET_REENCODE=1` to rebuild regardless of hash.
+
 **Abilities:** author only in the authored catalog Swift under `Packages/TrinketContent/Sources/TrinketContent/Content/`. To list or understand abilities, use `AbilityCatalog.all` or the generated inventory; there is no authored abilities TSV.
 
 **Talents:** author in `ContentManifest/talents.tsv` using the affix trigger/modifier DSL. Keep lookup/config in `CombatantTalentCatalog.swift`; generated dictionaries are outputs. See `ContentManifest/README.md`.

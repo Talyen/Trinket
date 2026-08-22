@@ -18,7 +18,7 @@ Confirm two reachable paths for one behavior (or a reachable shim that only forw
 | Permanent feature-flag or build-time switch that still ships both implementations of one behavior | Loser path has no remaining distinct consumer |
 | Parallel behavior expressed through different APIs, configuration keys, or entry points | Shape differences conceal one duplicated shipping outcome and let callers drift |
 
-**Not this audit:** zero live consumers → DeadCode; single surviving name that is pure ceremony (no second reachable path) → InelegantSlop; wrong owner, with or without a twin → StateGravity (move, then delete the old path); intentional seams (RNG injection, persistence coalescing, Options vs PlayerSave, catalog/codegen).
+**Not this audit:** intentional seams recorded as accepted non-findings in [Proposals.md](Proposals.md). Routing for zero-consumer symbols, pure-ceremony names, and wrong-owner hits follows the [confusable-pairs table](README.md#confusable-pairs).
 
 ## Hard stops
 
@@ -42,6 +42,6 @@ DeadCode owns symbols with **zero** live consumers. This audit owns reachable tw
 
 ## Domain rules
 
-Prefer delete the superseded path → retarget callers to the surviving owner → remove flags, configuration, tests, docs, forwarding wrappers, and rename-only typealiases → demote or delete leftover public API. Do not leave a pass-through “for compatibility” after callers move. Correct owner with leftover twin / shim → this audit; wrong owner with leftover twin → StateGravity.
+Prefer delete the superseded path → retarget callers to the surviving owner → remove flags, configuration, tests, docs, forwarding wrappers, and rename-only typealiases → demote or delete leftover public API. Do not leave a pass-through “for compatibility” after callers move.
 
 Successful fixes leave a single owner for the behavior and a net surface reduction.

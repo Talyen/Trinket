@@ -75,20 +75,4 @@ may commit even when the finger has not crossed the midpoint.
 - Detect plausible gestures in parallel from the first move; cancel losing recognizers once intent is clear. Final-state-only swipe events discard the continuous feedback needed for direct manipulation.
 - Minimize disambiguation delays. Double-tap detection delays a single tap, so use it only where a double tap truly exists.
 
-## Motion quick reference
-
-| Need | Technique | Concrete value |
-| --- | --- | --- |
-| Default UI spring | Critically damped, no overshoot | damping `1.0`, response `0.3–0.4` |
-| Momentum/flick spring | Slightly under-damped | damping `~0.8`, response `0.3–0.4` |
-| Gesture → spring | Preserve projected direction/endpoint | `predictedEndTranslation` |
-| Flick landing point | Project momentum | nearest valid target to predicted endpoint |
-| Interrupt cleanly | Start from live presentation value | read the on-screen transform |
-| Avoid reversal brick wall | Carry velocity through retargeting | velocity-aware spring |
-| Reversible transition | Preserve spatial path | compatible spring in both directions |
-| Decide reverse/commit | Use velocity sign | at release |
-| 1:1 drag | Capture input and preserve grab offset | continuous updates |
-| Feedback | Down + continuous | never only at end |
-| Boundary | Rubber-band | progressive resistance |
-
 Apple reference: [Designing Fluid Interfaces](https://developer.apple.com/videos/play/wwdc2018/803/).

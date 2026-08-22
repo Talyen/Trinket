@@ -27,7 +27,7 @@ Elegant code here is usually: small value types, thin stores, handlers/engines f
 
 ## Hard stops
 
-- Do not collapse seams recorded as accepted non-findings in [Proposals.md](Proposals.md) (battle RNG injection, persistence write coalescing, design-system tokens, catalog/codegen boundaries).
+- Do not collapse seams recorded as accepted non-findings in [Proposals.md](Proposals.md).
 - Do not rewrite battle pipeline math “for clarity” without package tests proving equivalence.
 - Do not turn this into a style-only rename sweep, docs rewrite, or mass delete of tests that encode real invariants.
 - Prefer the owning audit when the ceremony has a surviving twin path (DualPathRetention) or the primary cost is absolute size with correct ownership (AuthoredMassGrowth).

@@ -17,7 +17,7 @@ One fact has one owner. Link instead of copying policy.
 | Fact | Owner |
 |------|-------|
 | Toolchain versions, schemes, entitlements | `project.yml`, `Package.swift`, `Scripts/tool-versions.env` |
-| Commands and flags | script `--help` and [Scripts/README.md](../Scripts/README.md) |
+| Commands and flags | script usage/option parsing and [Scripts/README.md](../Scripts/README.md) |
 | When to run which gate | [Platform/Verification.md](Platform/Verification.md) |
 | What a good test is | [Platform/Testing.md](Platform/Testing.md) |
 | Module DAG and hub containment | [Platform/Architecture.md](Platform/Architecture.md) (`check-module-boundaries.sh`) |

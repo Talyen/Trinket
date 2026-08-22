@@ -26,7 +26,7 @@ Agentic coding often drops the next method on the nearest large type. Gravity we
 ## Hard stops
 
 - Do not relocate battle simulation off `@MainActor` unless Architecture already requires it.
-- Do not collapse seams recorded as accepted non-findings in [Proposals.md](Proposals.md) (battle RNG injection, persistence write coalescing, catalog/codegen boundaries).
+- Do not collapse seams recorded as accepted non-findings in [Proposals.md](Proposals.md).
 - Do not move presentation into packages that must stay SwiftUI-free of feature views (`BattleEngine`, `TrinketPersistence`, `TrinketCore`).
 - Repair a failing `check-module-boundaries.sh` row directly when it has an obvious one-file fix rather than expanding it into an ownership audit.
 
@@ -47,5 +47,5 @@ Ownership and layering live in [Architecture.md](../Platform/Architecture.md) (m
 Prefer restoring rules to engines/stores, keeping tab/session wiring on thin
 `AppState` / `*Session` types, and extracting reusable presentation into
 `TrinketFeatureSupport`. Phase a hub split through existing Architecture owners when
-it is bounded and removes the old path; propose only when the remedy needs a new
-owner, lifetime boundary, package direction, or product decision.
+it is bounded and removes the old path; sizing beyond that follows the
+[README right-size policy](README.md).

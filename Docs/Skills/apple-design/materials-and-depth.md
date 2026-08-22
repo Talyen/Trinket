@@ -19,9 +19,10 @@ Use this reference for translucent surfaces, glass, blur, toolbars, sheets, scri
 - Replace a hard divider under sticky floating chrome with a small blur or gradient mask where content meets the surface; use this only where floating UI actually overlaps content.
 - Materialize rather than merely fade. On entry/exit, animate blur radius and scale together so the surface reads as a real material arriving.
 
-Do not introduce one-off materials or product colors in feature views; use
-`TrinketDesignSystem`, `.trinketMaterial`, `.trinketSurface`, and
-`TrinketHeroScrim` as appropriate. Respect the shared reduced-transparency variant.
+Materials, colors, and glass route through `TrinketDesignSystem`
+(`check-ui-style.sh` enforces this); see the
+[TrinketDesignSystem README](../../../Packages/TrinketDesignSystem/README.md)
+for tokens and reduced-transparency handling.
 
 ## Review questions
 

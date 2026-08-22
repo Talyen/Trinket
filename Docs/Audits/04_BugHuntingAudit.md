@@ -25,4 +25,4 @@ Maintainability hits (orphaned state) route to [06_DeadCodeRatioAudit.md](06_Dea
 
 ## Example signals
 
-Bounds/subscript risks, double-trigger on async actions, leaked timers or uncancelled tasks, arithmetic underflow on store values, silent `try?` on orchestration paths (audio allowlisted), orphaned async subtasks, inconsistent state across entry points, stale configuration branches, and error/retry paths that cannot return to a usable state.
+Bounds/subscript risks, double-trigger on async actions, leaked timers or uncancelled tasks, arithmetic underflow on store values, silent `try?` on orchestration paths (audio-seam allowlist lives in [12_SideEffectSurfaceAudit.md](12_SideEffectSurfaceAudit.md)), orphaned async subtasks, inconsistent state across entry points, stale configuration branches, and error/retry paths that cannot return to a usable state.

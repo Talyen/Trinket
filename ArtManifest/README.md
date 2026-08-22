@@ -4,7 +4,7 @@ Trinket keeps raw art and app-ready art separate.
 
 ## Folders
 
-- `Raw Assets/`: unoptimized source library copied from Alchemy. Do not add this folder to Xcode target membership on purpose.
+- `Raw Assets/`: unoptimized source library copied from Alchemy.
 - `ArtManifest/curated-assets.tsv`: source-of-truth manifest for selected art.
 - Art direction: [Docs/Product/ArtworkStyleGuide.md](../Docs/Product/ArtworkStyleGuide.md).
 - `Trinket/Assets.xcassets`: generated app-ready image assets.
@@ -55,14 +55,12 @@ Entry point and verification routing: [content-and-manifests.md](../Docs/AgentCo
 
 The art preparation script verifies source files, converts selected images through
 macOS `sips` (HEIC with quality 80), writes the kind-appropriate `.imageset` folders,
-strips unused variants, and regenerates the Swift art catalog. Full-size defaults
-match their largest shipping presentation: backgrounds retain the 1600-pixel cap,
-full-width combatant/encounter heroes use 1320 pixels, card/detail art uses 960
-pixels, and small resource/slot chrome uses compact dedicated caps. Encoding settings
-participate in the generated digest, so dimension or quality changes automatically
-regenerate affected assets without `FORCE_ASSET_REENCODE`.
+strips unused variants, and regenerates the Swift art catalog using the kind defaults
+from the table above. Encoding settings participate in the generated digest, so
+dimension or quality changes automatically regenerate affected assets without
+`FORCE_ASSET_REENCODE`.
 
-Reconvert is **content-and-output-settings-hash based** (not mtime). Digests live in `Packages/TrinketContent/Sources/TrinketContent/Generated/ArtSourceHashes.generated.tsv`. Exporters that preserve stale timestamps (for example Darkroom) still invalidate when pixel bytes change. Set `FORCE_ASSET_REENCODE=1` to rebuild every curated asset regardless of hash.
+Reconvert is **content-and-output-settings-hash based** (not mtime). Digests live in `Packages/TrinketContent/Sources/TrinketContent/Generated/ArtSourceHashes.generated.tsv`. Exporters that preserve stale timestamps (for example Darkroom) still invalidate when pixel bytes change.
 
 ### Environment Overrides
 
@@ -86,17 +84,12 @@ catalog's estimated RGBA footprint, grouped by art kind and variant, with:
 The default full-catalog ceiling is 1024 MiB. Override it while investigating with
 `ART_CATALOG_DECODED_MEMORY_BUDGET_MIB=<MiB>`. Pass `--enforce` to return a failure
 when the generated catalog exceeds the configured ceiling. This bounds centralized
-launch decode work; runtime diagnostics separately report against the 240 MiB
-resident-artwork and 400 MiB process-memory targets. Threshold rationale and device
-verification: `Docs/Platform/MemoryAndEnergyInvestigation.md`.
+launch decode work; resident/process diagnostic thresholds and device verification:
+[MemoryAndEnergyInvestigation.md](../Docs/Platform/MemoryAndEnergyInvestigation.md).
 
-## Agent Workflow
+## Adding Art
 
-1. Choose a raw asset.
-2. Add one manifest row with a stable `asset_name`.
-3. Pick a starting focal point. For portrait combatant art, `0.50	0.34` is a good first pass.
-4. Run `./Scripts/generate.sh --assets`.
-5. Build and visually inspect the detail page.
-6. Adjust `focal_x`/`focal_y` and regenerate if the crop misses the important subject.
-
-Generated files are committed so the app can build without rerunning the pipeline, but the manifest remains the editable source of truth.
+1. Add one manifest row with a stable `asset_name`.
+2. Pick a starting focal point; for portrait combatant art, `0.50	0.34` is a good first pass.
+3. Run the asset pipeline (`./Scripts/generate.sh --assets`; routing in [content-and-manifests.md](../Docs/AgentContext/content-and-manifests.md)), build, and visually inspect the affected screens.
+4. Adjust `focal_x`/`focal_y` and regenerate if the crop misses the important subject.

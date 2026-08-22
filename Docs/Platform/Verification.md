@@ -2,7 +2,7 @@
 
 This guide owns when to choose a verification route, gate composition, test
 tiers, and style ownership. Exact commands and flags live in
-[`Scripts/README.md`](../../Scripts/README.md) and each script's `--help`.
+[`Scripts/README.md`](../../Scripts/README.md) and each script's usage/option parsing.
 Test authoring conventions live in [Testing.md](Testing.md). Isolation and IDE
 setup: [SimulatorOperations.md](SimulatorOperations.md).
 

@@ -63,7 +63,7 @@ Packages/TrinketContent/Sources/TrinketContent/Content/AbilityCatalogUltimate.sw
 
 - Prefer `AbilityBuilder.directHit` / `buffOnly` / `multiDamage` for repeated shapes; use `Ability(...)` when you need custom targeting, mana, conditionals, or other knobs builders do not cover.
 - After editing, run `./Scripts/generate.sh` to refresh `AbilityShorthand.generated.swift` and `AbilityInventory.generated.tsv`.
-- **List / understand all abilities:** read `Generated/AbilityInventory.generated.tsv` (`id`, `name`, `tier`, `summary`) or `AbilityCatalog.all` — not a ContentManifest TSV.
+- **List / understand all abilities:** read `Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityInventory.generated.tsv` (`id`, `name`, `tier`, `summary`) or `AbilityCatalog.all` — not a ContentManifest TSV.
 
 Combatant and enemy manifests still reference abilities by Swift symbol (e.g. `slash`, `fireball`).
 
@@ -109,7 +109,7 @@ id	name	role	max_health	max_mana	growth_archetype	basics	skills	ultimates	streng
 - `max_mana`: `0` when unused.
 - `basics` / `skills` / `ultimates`: comma-separated ability symbols (two choices per tier).
 - Stats are non-negative integers.
-- Primary-stat budget: `strength + agility + toughness + intellect + wisdom` must equal **50**.
+- Primary-stat budget: `strength + agility + toughness + intellect + wisdom` must equal **50**; `CombatantCatalogTests` fails on any other total.
 
 ### Enemies (`ContentManifest/enemies.tsv`)
 
@@ -124,7 +124,7 @@ id	name	max_health	is_boss	growth_archetype	abilities	trait_id	faction
 - `faction`: `mortal`, `beast`, `elemental`, `construct`, `undead`, or `corrupted`.
 - `abilities`: comma-separated ability symbols (basic, skill, ultimate — exactly three).
 - Enemy primary stats come from `GrowthArchetype.identityPrimaryStats` (budget 50). Do not author per-enemy Strength/Agility/Toughness/Intellect/Wisdom.
-- Boss difficulty comes from `is_boss` plus `EnemyPowerCurve` at encounter level (HP 2x trash; L1 boss stats 5.2, L20/L40 10.77/18.90).
+- Boss difficulty comes from `is_boss` plus `EnemyPowerCurve` anchors at encounter level; curve anchors live in `Packages/TrinketCore/Sources/TrinketCore/EnemyPowerCurve.swift`.
 
 ### Homestead nodes (`ContentManifest/homestead_nodes.tsv`)
 
@@ -144,30 +144,6 @@ Homestead catalogs are manifest-driven via `homestead_nodes.tsv`. Hand-written h
 
 ## Generate Catalogs
 
-**Always use the orchestrator:**
-
-```sh
-./Scripts/generate.sh
-```
-
-This validates manifests, regenerates content catalogs and ability shorthand, and runs XcodeGen.
-
-Regenerate and verify committed output matches HEAD (CI / pre-push):
-
-```sh
-./Scripts/assert-generated-output.sh --regenerate
-```
-
-For mid-task consistency after `./Scripts/generate.sh`, use
-`./Scripts/assert-generated-output.sh --idempotent` (what `handoff.sh` runs).
-
-Content-only regeneration (skip XcodeGen): `./Scripts/generate.sh --skip-xcodegen`.
-
-After changing manifests or custom tier files:
-
-```sh
-./Scripts/generate.sh
-./Scripts/build.sh
-```
-
-Generated files are committed so the app builds without rerunning the generator. CI fails if catalog generated output under `Packages/TrinketContent/` drifts from the manifests.
+Single entry: `./Scripts/generate.sh` (content-only regeneration adds
+`--skip-xcodegen`). Input→command routing, review steps, generation assertions,
+and shared media-pipeline rules: [content-and-manifests.md](../Docs/AgentContext/content-and-manifests.md).

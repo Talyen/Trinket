@@ -18,7 +18,6 @@ journeys use UI smoke/deploy only when the keep/drop rubric below applies.
 | Concern | Owner |
 |---------|-------|
 | Battle rules / handlers / golden paths | `Packages/BattleEngine/Tests/` (see that package’s README) |
-| Battle lifecycle contract / fallback runtime | `Packages/TrinketBattleRuntime/Tests/` |
 | Shared presentation models / caches / frame analysis | `Packages/TrinketFeatureSupport/Tests/` |
 | Design tokens / motion / reusable chrome | `Packages/TrinketDesignSystem/Tests/` |
 | Battle session / feedback / spectacle | `Packages/TrinketBattleFeature/Tests/` |

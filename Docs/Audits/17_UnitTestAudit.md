@@ -6,7 +6,7 @@ Conventions: `Docs/Platform/Testing.md` + `AGENTS.md`.
 
 ## Intent
 
-Inventory P0–P3 test portfolio defects in Swift Testing and XCTest unit targets across app and packages. Prefer delete → merge → simplify harness → move to cheaper tier. Add declarations or files only when extending an existing semantic owner is impossible, or when at least three current test sites become strictly simpler.
+Inventory P0–P3 test portfolio defects in Swift Testing and XCTest unit targets across app and packages. Prefer delete → merge → simplify harness → move to cheaper tier. Add declarations or files only when extending an existing semantic owner is impossible; sizing follows the [README right-size policy](README.md).
 
 ## Hard stops
 
@@ -18,7 +18,7 @@ Inventory P0–P3 test portfolio defects in Swift Testing and XCTest unit target
 
 ## Fix priority
 
-**P1:** same assertion owned twice; weaker app-shell echoes of package owners; exact catalog counts, pixel tables, plain-struct round trips, empty/commented tests, hidden `try?`, multi-second waits, flaky/nondeterministic setup, or a test that passes without exercising its claimed behavior. Also fixture/support harnesses whose LOC dwarfs unique semantic assertions; presentation, layout-constant, glyph, or plumbing cases that [Testing.md](../Platform/Testing.md) already bans; `@Test(arguments:)` (or sibling case fans) whose expanded executions dominate runtime without a distinct invariant per case. A missing invariant is P1 only when failure would be consequential, no existing owner covers it, and the test-addition gate is satisfied.
+**P1:** same assertion owned twice; weaker app-shell echoes of package owners; exact catalog counts, pixel tables, plain-struct round trips, empty/commented tests, hidden `try?`, multi-second waits, flaky/nondeterministic setup, or a test that passes without exercising its claimed behavior. Presentation, layout-constant, glyph, or plumbing cases that [Testing.md](../Platform/Testing.md) already bans; `@Test(arguments:)` (or sibling case fans) whose expanded executions dominate runtime without a distinct invariant per case. A missing invariant is P1 only when failure would be consequential, no existing owner covers it, and the test-addition gate is satisfied.
 
 **P2:** merge sibling cases only when it reduces executed work or setup cost; reuse an existing fixture; inject short intervals; move an assertion to its cheaper semantic owner and delete the weaker copy; trim support helpers that exist only to feed deleted or merged cases; add or strengthen the cheapest owner-level case for a confirmed consequential gap, removing misleading weaker coverage when present.
 
@@ -42,6 +42,6 @@ Inventory P0–P3 test portfolio defects in Swift Testing and XCTest unit target
 
 **Coverage ownership:** Battle rules live in package matrices; persistence in store/sanitizer journeys; catalogs in invariants rather than exact snapshots; app tests only own orchestration packages cannot express. Do not select work because a module has fewer files.
 
-**Fixture / support sprawl:** Prefer shared owners in the table above over package-local copies. A support file or test class that is primarily harness mass (setup, golden tables, presentation matrices) with few unique semantic assertions is a P1 candidate — shrink or delete the harness, do not add more fixtures to “organize” it. Route live production mass without a test-portfolio angle to `02_AuthoredMassGrowthAudit.md`.
+**Fixture / support sprawl:** Prefer shared owners in the table above over package-local copies. A support file or test class that is primarily harness mass (setup, golden tables, presentation matrices) with few unique semantic assertions is a P1 candidate — shrink or delete the harness, do not add more fixtures to “organize” it.
 
 Track authored declarations and expanded executions separately. Inventory hotspots by both metrics and evaluate signal ownership: a change is successful when it reduces duplication/runtime/setup/maintenance, corrects false evidence, or gives a consequential invariant one cheaper semantic owner. Do not judge solely by `@Test` count or net LOC. Report the before/after direction in the handoff: semantic owners, authored declarations, expanded executions, suite runtime, or flaky/false-positive class removed.

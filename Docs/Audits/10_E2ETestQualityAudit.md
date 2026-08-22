@@ -6,7 +6,7 @@ Conventions: `Docs/Platform/Testing.md` + `TrinketUITests/README.md`.
 
 ## Intent
 
-Confirm P0–P2 reliability, signal, tier-fit, isolation, and testability issues across UI tests, launch/reset seams, authored harnesses, and CI routing. Prefer delete → merge → move to a cheaper tier → shorten. Add page-object or harness surface only when at least three current uses become shorter or one enforced test boundary requires it. A minimal production seam may ship when it establishes that boundary and does not expose test-only behavior to players.
+Confirm P0–P2 reliability, signal, tier-fit, isolation, and testability issues across UI tests, launch/reset seams, authored harnesses, and CI routing. Prefer delete → merge → move to a cheaper tier → shorten. Add page-object or harness surface only when the [README right-size policy](README.md) abstraction bar is met. A minimal production seam may ship when it establishes that boundary and does not expose test-only behavior to players.
 
 ## Hard stops
 

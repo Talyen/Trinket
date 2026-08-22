@@ -21,13 +21,13 @@ Visual, sound, and haptic feedback should form one causal event. Use these three
    event and schedule them together. Avoid independent timers that drift.
 3. **Utility:** add feedback only where it earns its place. Reserve sound and haptics for meaningful moments such as success, error, commit, and snap; over-feedback trains people to ignore it.
 
-For Trinket, route sound and haptics through the app’s existing audio and feedback systems. Do not add ad-hoc effects or product colors to a feature view.
+For Trinket, route sound and haptics through the app’s existing audio and
+feedback systems rather than ad-hoc effect calls.
 
 ## Perceived-performance review
 
 - Is press feedback immediate, with no avoidable debounce or timer?
 - Does the interaction remain responsive while a background operation runs?
-- Do reduced-motion users receive an equally clear status and completion signal? See [Accessibility](accessibility.md).
 - Can a user interrupt or cancel expensive motion without waiting for a transition to finish? See [Motion and gestures](motion-and-gestures.md).
 
 Apple references: [Understanding hitches](https://developer.apple.com/documentation/xcode/understanding-hitches-in-your-app)

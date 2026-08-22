@@ -16,6 +16,9 @@
 `.DerivedData/runs/agent-N/` tree. Top-level cleanup preserves one warm managed
 device, reclaims preview devices, and age-prunes bulky artifacts. Nested commands
 release only their own leases. Never kill foreign Xcode or Simulator processes.
+A lease left by a crashed run is reaped when its pid is dead or its age exceeds
+`TRINKET_SLOT_STALE_SECONDS` (default 6h) — the age cap defeats pid reuse, so
+stale leases never block the agent pool permanently.
 
 ## Xcode IDE loop
 
@@ -46,5 +49,5 @@ without recent simulator teardown or accompanies a real boot/test failure.
 The routed runner terminates only its own hung host `xcodebuild` tree; it does
 not shut down simulators as a timeout response. Use the structured results and
 [CI diagnostics](../AgentContext/ci-diagnostics.md) before inspecting raw logs.
-Relevant timeout and pool environment variables are documented by each script's
-`--help` and defaults in the scripts themselves.
+Relevant timeout and pool environment-variable defaults live in `Scripts/run-env.sh`
+and `Scripts/xcode-runner.sh`.

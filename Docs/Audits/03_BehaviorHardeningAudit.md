@@ -27,10 +27,10 @@ Prioritize P0–P1 among confirmed findings.
 - Critical save fields validated; corrupt saves fail cleanly or fall back with logging — not silent invalid game state.
 - `PlayerSaveStore` surfaces write failures (`lastPersistenceError`); silent save failure is data loss.
 - Mutations update `modifiedAt` and sanitize via `PlayerSaveSanitizer` where applicable; debounced writes coalesce without duplicate/stale/out-of-order persistence.
-- Stage completion / reward grant: double “Continue” must not double-grant; `adjustedMaterialRewards` is pure for the same inputs.
+- Stage completion / reward grant: double “Continue” must not double-grant; `StageCompletion.resolvedMaterialRewards(stageReward:)` is pure for the same inputs.
 - Inventory, currency, crafting, encounter, and battle-outcome mutations preserve atomicity/idempotency across validation, in-memory mutation, persistence, retry, and user-visible completion.
 - Load, migration, sync, background/foreground, termination, and retry paths must not reorder writes, partially apply a transition, or hide a meaningful recovery state.
-- Suspect silent `try?` on save, sync, battle outcome, or state transitions. **Allowlist:** non-fatal audio (`Packages/TrinketAppState/.../Audio/`).
+- Suspect silent `try?` on save, sync, battle outcome, or state transitions; the non-fatal-audio allowlist is owned by [12_SideEffectSurfaceAudit.md](12_SideEffectSurfaceAudit.md).
 - Store load failure → default/in-memory recovery + log, not crash.
 - Prefer existing coverage. Add a regression only when the test-addition gate passes; battle tests use the deterministic fixture default seed, with explicit seeds reserved for RNG edge cases, and store edges use the existing empty/partial/corrupt recovery owners.
 
