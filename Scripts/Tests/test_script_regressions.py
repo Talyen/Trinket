@@ -931,6 +931,16 @@ class ScriptRegressionTests(unittest.TestCase):
         self.assertIn("test-package.sh --build-for-testing", test_sh)
         self.assertIn("test-package.sh --no-build", test_sh)
 
+    def test_bare_full_ui_requires_explicit_opt_in(self) -> None:
+        # Full exhaustive UI is CI-owned post-push; bare local runs must opt in.
+        test_sh = (ROOT / "Scripts" / "test.sh").read_text(encoding="utf-8")
+        self.assertIn('TRINKET_ALLOW_FULL_UI:-', test_sh)
+        self.assertIn('GITHUB_ACTIONS:-}', test_sh)
+        self.assertIn("Refusing a bare local full exhaustive UI run", test_sh)
+        deploy = (ROOT / "Scripts" / "test-deploy.sh").read_text(encoding="utf-8")
+        # Release-time deploy verification is the sanctioned bypass.
+        self.assertIn("TRINKET_ALLOW_FULL_UI=1 ./Scripts/test.sh ui", deploy)
+
 
     def test_run_env_removes_shared_packages_derived_data(self) -> None:
         text = (ROOT / "Scripts" / "run-env.sh").read_text(encoding="utf-8")

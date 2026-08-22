@@ -62,7 +62,8 @@ echo "=== Unit tests ==="
 if [[ "$MODE" == "ui" ]]; then
   echo ""
   echo "=== Full UI tests ==="
-  ./Scripts/test.sh ui --no-build
+  # Deliberate release-time full run: opt past test.sh's CI-owned full-suite guard.
+  TRINKET_ALLOW_FULL_UI=1 ./Scripts/test.sh ui --no-build
 else
   echo ""
   echo "=== Unit timing report ==="

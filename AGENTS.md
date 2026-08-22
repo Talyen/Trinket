@@ -42,6 +42,7 @@ Touched areas must respect their nested guides and AgentContext cards. Run `./Sc
 ## Test and verification discipline
 
 - Verification does not imply authoring a test. Follow [`Docs/Platform/Testing.md`](Docs/Platform/Testing.md) to place consequential coverage in the cheapest existing semantic owner; that guide owns persistence reload semantics and the UI keep/drop rubric.
+- Full smoke and exhaustive UI are CI-owned post-push gates. Local simulator work is limited to routed targeted smoke classes or single-target UI debugging; reserve full local UI runs for release-time deploy verification (`test-deploy.sh`).
 - Before handoff, changed paths must pass path-scoped verification with `--isolate`. `./Scripts/handoff.sh --isolate --paths <file...>` is the canonical gate. Never kill foreign Xcode or Simulator processes; concurrency, worktree, lock, and diagnostics details live in `Docs/AgentContext/ci-and-project-generation.md` and `Docs/AgentContext/ci-diagnostics.md`.
 - At handoff, report what changed, what verification ran, and anything intentionally left untouched. Write that in the same voice as Communication: readable without opening the diff. Example: “Enemies now pick a new target if the current one dies mid-turn. That logic lives in `BattleTurnEngine.swift`. Ran the BattleEngine tests.” Not: “Refactored `BattleTurnEngine` targeting resolution.” Include pass/fail, skips, and any change-budget justification.
 

@@ -50,7 +50,7 @@ Read these focused guides:
 | `./Scripts/test-timing.sh report` | Show per-suite wall-time history and hotspots from test runs |
 | `./Scripts/test.sh smoke` | Run the checked-in smoke registry |
 | `./Scripts/test.sh smoke <Class...>` | Run targeted smoke classes |
-| `./Scripts/test.sh ui [Class]` | Run exhaustive UI tests, optionally filtered |
+| `./Scripts/test.sh ui <Target>` | Run one exhaustive UI target; bare full suite requires `TRINKET_ALLOW_FULL_UI=1` (CI-owned otherwise) |
 | `./Scripts/performance.sh` | Ad hoc app + battle performance matrix (not CI) |
 | `./Scripts/agent-context.sh --agent --paths …` | Print concise guidance and verification routing; use `--full` for full commands and `--working-tree --allow-broad-scope` only intentionally |
 | `./Scripts/agent-watch-ci.sh [--sha …]` | Poll a hosted CI run for a commit; prints failed jobs and annotations when red |
@@ -59,7 +59,7 @@ Read these focused guides:
 | `./Scripts/ci-gate.sh` | Generation, style, boundaries, script regressions, and release-note validation |
 | `./Scripts/ci-assets-gate.sh` | Asset generation, idempotence, and locale-stability gate |
 | `python3 ./Scripts/check-docs.py [--final] [--keep-plan]` | Check links, structure, smoke classes, stale terms, and execution-plan lifecycle |
-| `./Scripts/test-deploy.sh [--mode smoke]` | Full local deploy confidence or smoke canary |
+| `./Scripts/test-deploy.sh [--mode smoke]` | Pre-release deploy verification (`release.sh` calls this); `--mode smoke` is an optional canary |
 | `./Scripts/agent-push-gate.sh` | Post-commit generation completeness check |
 | `./Scripts/ci-diagnostics.sh [RESULTS_DIR]` | Aggregate the current diagnostics session |
 | `./Scripts/ci-diagnostics.sh --stage-artifacts <RESULTS_DIR> <ARTIFACT_DIR>` | Stage structured artifacts, adding raw failure evidence only when needed |

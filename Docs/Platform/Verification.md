@@ -15,10 +15,10 @@ Choose the cheapest route that answers the question at hand.
 | Focused iteration | Package/test script | Fast feedback on the current owner |
 | Task handoff | `handoff.sh` | Required path-scoped agent gate |
 | Gate only | `ci-gate.sh` | Generation, style, boundaries, scripts, and release metadata; no unit/UI |
-| Local canary | `test-deploy.sh --mode smoke` | Gate, unit, and smoke |
-| Deploy confidence | `test-deploy.sh` | Gate, unit, and full UI |
+| Local canary | `test-deploy.sh --mode smoke` | Optional human confidence: gate, unit, and smoke |
+| Release confidence | `release.sh` / `test-deploy.sh` | Pre-release only: gate, unit, and full UI (the one sanctioned local full-UI run) |
 | Main CI | Shared `tests.yml` workflow | Post-push on `main` (no pull-request workflow): gate, build once, unit, full smoke, and sharded exhaustive UI |
-| Local integration / performance | `test.sh ui` / `performance.sh` | Ad hoc; not part of any GitHub workflow |
+| Local debugging / performance | `test.sh ui <Target>` / `performance.sh` | Single UI target or ad hoc performance; the full exhaustive suite is CI-owned |
 
 Run `./Scripts/agent-context.sh --agent --paths <files...>` after touched paths
 are known. Use `--working-tree` only for an intentional whole-tree scope. The
@@ -34,8 +34,20 @@ route; rerun it when scope crosses into another owner.
 | App-only build | `test.sh unit --app-only` | Compile coverage for app-level Swift changes |
 | Targeted smoke | `test.sh smoke` with a class filter | One smoke-plan invocation |
 | Smoke | `test.sh smoke` | The checked-in smoke plan; CI runs the same registry |
-| Targeted / full UI | `test.sh ui` | Focused iteration or explicit full confidence |
+| Targeted UI | `test.sh ui <Target>` | Single-target debugging of a CI-owned shard |
+| Full UI | `TRINKET_ALLOW_FULL_UI=1 test.sh ui` or `test-deploy.sh` | Opt-in only; CI owns the suite post-push, releases run it via deploy verification |
 | Performance | `performance.sh` | Ad hoc investigation; not a CI job |
+
+## Local simulator budget
+
+Full smoke and exhaustive UI are CI-owned post-push gates; watch them with
+`agent-watch-ci.sh` instead of pre-running them. Locally:
+
+- Unit tests always; they catch the routine regressions in seconds.
+- During UI iteration, run the routed targeted smoke class (`test.sh smoke <Class>`).
+- Debug at most one exhaustive target (`test.sh ui <Class>`) when touching its feature area.
+- Bare full-suite UI is refused locally unless `TRINKET_ALLOW_FULL_UI=1`; routine development never sets it.
+- The full local UI run belongs to pre-release deploy verification (`release.sh` / `test-deploy.sh`).
 
 After a green isolated rebuild, `--no-build` is appropriate for mid-task smoke
 reruns in the same slot. Final handoff still uses the full isolated route.
@@ -51,7 +63,7 @@ plan cleanup is checked with `--final`.
 |---|---|
 | `ci-gate.sh` | Generate/assert against HEAD, full-tree style, module boundaries, script syntax and regression tests, Swift Testing policy, release-note validation |
 | `ci-assets-gate.sh` | Generate assets, assert, regenerate in a stable locale, assert again |
-| `test-deploy.sh` | `ci-gate.sh`, unit, then full UI or smoke |
+| `test-deploy.sh` | Release-time: `ci-gate.sh`, unit, then full UI, or the optional smoke canary |
 | Main CI | Post-push on `main`: gate, one build-for-testing, parallel unit/full-smoke/exhaustive-UI jobs |
 
 The shared build job produces test products for fan-out. Package unit schemes

@@ -74,6 +74,7 @@ while [[ $# -gt 0 ]]; do
       if [[ "$1" == -* ]]; then
         echo "Unknown option: $1" >&2
         echo "Usage: $0 [unit | ui | style | smoke | performance] [--no-build] [--app-only] [TestClass[/testMethod]|SwiftPath ...]" >&2
+      echo "       bare 'ui' (full suite) locally requires TRINKET_ALLOW_FULL_UI=1; CI and targeted runs do not." >&2
         exit 1
       fi
       TARGETS+=("$1")
@@ -114,6 +115,17 @@ fi
 
 if [[ "$APP_ONLY" == true && "$MODE" != "unit" ]]; then
   echo "--app-only is only supported with unit mode." >&2
+  exit 1
+fi
+
+# Full exhaustive UI is CI-owned (sharded post-push on main). Bare local runs
+# need an explicit opt-in so routine development never pays for that suite;
+# single-target debugging stays unrestricted.
+if [[ "$MODE" == "ui" && ${#TARGETS[@]} -eq 0 \
+  && "${GITHUB_ACTIONS:-}" != "true" && "${TRINKET_ALLOW_FULL_UI:-}" != "1" ]]; then
+  echo "Refusing a bare local full exhaustive UI run: CI owns that suite post-push." >&2
+  echo "Debug one feature shard: ./Scripts/test.sh ui <TestClass>" >&2
+  echo "Deliberate full run (release-time deploy verification): TRINKET_ALLOW_FULL_UI=1 $0 ui" >&2
   exit 1
 fi
 
