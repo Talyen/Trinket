@@ -14,6 +14,8 @@ public struct ItemCard<Art: View>: View {
     /// Fades the label out over the battle dissolve window (salvage removal).
     var fadesLabel = false
     var customShineKeywords: [Keyword]?
+    /// Color-driven shine used when no keyword shine applies.
+    var customShineColors: [Color]?
     var shineLineWidth: CGFloat = 2
     var enablesAstralShine: Bool = true
     @ViewBuilder private var art: () -> Art
@@ -29,6 +31,7 @@ public struct ItemCard<Art: View>: View {
         isSelected: Bool = false,
         fadesLabel: Bool = false,
         customShineKeywords: [Keyword]? = nil,
+        customShineColors: [Color]? = nil,
         shineLineWidth: CGFloat = 2,
         enablesAstralShine: Bool = true,
         @ViewBuilder art: @escaping () -> Art
@@ -41,6 +44,7 @@ public struct ItemCard<Art: View>: View {
         self.isSelected = isSelected
         self.fadesLabel = fadesLabel
         self.customShineKeywords = customShineKeywords
+        self.customShineColors = customShineColors
         self.shineLineWidth = shineLineWidth
         self.enablesAstralShine = enablesAstralShine
         self.art = art
@@ -56,6 +60,10 @@ public struct ItemCard<Art: View>: View {
         return nil
     }
 
+    private var effectiveShineColors: [Color]? {
+        effectiveShineKeywords == nil ? customShineColors : nil
+    }
+
     public var body: some View {
         ProductCardShell(
             isSelected: isSelected,
@@ -63,6 +71,7 @@ public struct ItemCard<Art: View>: View {
             showsLabel: showsName,
             reservesLabelSpace: reservesLabelSpace,
             shineKeywords: effectiveShineKeywords,
+            shineColors: effectiveShineColors,
             shineLineWidth: shineLineWidth,
             art: art,
             label: {
@@ -114,6 +123,7 @@ public extension ItemCard where Art == ItemArtwork {
         isSelected: Bool = false,
         fadesLabel: Bool = false,
         customShineKeywords: [Keyword]? = nil,
+        customShineColors: [Color]? = nil,
         shineLineWidth: CGFloat = 2,
         enablesAstralShine: Bool = true
     ) {
@@ -126,6 +136,7 @@ public extension ItemCard where Art == ItemArtwork {
             isSelected: isSelected,
             fadesLabel: fadesLabel,
             customShineKeywords: customShineKeywords,
+            customShineColors: customShineColors,
             shineLineWidth: shineLineWidth,
             enablesAstralShine: enablesAstralShine
         ) {

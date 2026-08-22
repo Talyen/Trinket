@@ -184,6 +184,7 @@ public enum AccessibilityID {
         public static let persistFailure = "Mystery Persist Failure"
         public static let corruptItemTitle = "Mystery Corrupt Item Title"
         public static let corruptCancelButton = "Mystery Corrupt Cancel Button"
+        public static let corruptConfirmButton = "Mystery Corrupt Confirm Button"
         public static let corruptionRevealTitle = "Mystery Corruption Reveal Title"
         public static let corruptionContinueButton = "Mystery Corruption Continue Button"
 
@@ -197,6 +198,14 @@ public enum AccessibilityID {
 
         public static func corruptItemCard(itemID: String) -> String {
             "Mystery Corrupt Item \(itemID)"
+        }
+
+        public static func corruptionBeforeCard(itemID: String) -> String {
+            "Mystery Corruption Before \(itemID)"
+        }
+
+        public static func corruptionAfterCard(itemID: String) -> String {
+            "Mystery Corruption After \(itemID)"
         }
     }
 
@@ -316,9 +325,12 @@ public enum AccessibilityID {
         public static let retreat = "Retreat"
         public static let retreatConfirm = "Confirm Retreat"
         public static let victory = "Victory"
+        public static let defeat = "Defeat"
         public static let experience = "Experience"
         public static let rewards = "Rewards"
         public static let continueButton = "Continue Button"
+        public static let battleAgainButton = "Battle Again Button"
+        public static let defeatPrimaryButton = "Defeat Primary Button"
         public static let abilityDetail = "Battle Ability Detail"
         public static let abilityDetailEffect = "Battle Ability Detail Effect"
 

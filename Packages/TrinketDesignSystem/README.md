@@ -21,7 +21,7 @@ Shared app chrome — semantic surfaces, typography, keyword visuals, and reusab
 
 ## Color families
 
-All production colors load from `DesignColors.xcassets` through `DesignAssetColors`. Do not invent `Color.green`, raw RGB, or app-bundle `Color("…", bundle: .main)` in feature views.
+All production colors load from `DesignColors.xcassets` through `DesignAssetColors`.
 
 | Family | Public API | Assets |
 |---|---|---|
@@ -36,11 +36,10 @@ All production colors load from `DesignColors.xcassets` through `DesignAssetColo
 
 Hero art overlays use `TrinketHeroScrim.gradient(for:)` and `.trinketOnArtText(_:)`.
 
-**Enforcement:** `./Scripts/check-ui-style.sh` and SwiftLint custom rules fail style/CI on one-off colors. Escape hatch: nearby `UIStyleCheck: allow` with a concrete reason. New colors = new `DesignColors` asset + public design-system API.
+**Enforcement:** `./Scripts/check-ui-style.sh` fails style/CI on one-off colors. Escape hatch: nearby `UIStyleCheck: allow` with a concrete reason. New colors = new `DesignColors` asset + public design-system API.
 
 ```sh
 ./Scripts/test-package.sh TrinketDesignSystem
-./Scripts/check-ui-style.sh
 ```
 
 ## Typography
@@ -101,8 +100,8 @@ Route recurring chrome through these modifiers — do not call raw SwiftUI styli
 | `.trinketArtworkBlend(_:)` | Optional `.perimeter` or `.bottom` blend into a semantic destination surface; defaults to `.none` |
 | `.trinketSensoryFeedback(_:trigger:enabled:)` | Gate `.sensoryFeedback` on Options haptics toggle |
 
-Glass chrome routes through `.glassEffect` in `TrinketDesignSystem` (feature views must not call raw glass APIs). Deployment target is iOS 26.0 only.
+Glass chrome routes through `.glassEffect` inside this package only.
 
 Artwork blends should replace an overlapping edge scrim rather than stack with it. Use `.perimeter(into:)` for bounded thumbnails and cards, `.bottom(into:)` for full-bleed art meeting a lower surface, and `.none` when artwork should retain a crisp edge. Keep text-only contrast treatments such as `.trinketOnArtText(_:)` when they serve a separate readability purpose.
 
-Platform API notes and deprecated patterns: `Docs/Platform/iOS26AppleReference.md`. Fluid motion: `Docs/Skills/apple-design/SKILL.md` (`TrinketMotion`). Dense content stays on solid themed surfaces; glass belongs on chrome and selective overlays. Standing stack rules: `Docs/Platform/Architecture.md`.
+Platform API notes: [iOS26AppleReference.md](../../Docs/Platform/iOS26AppleReference.md). Fluid motion: [apple-design skill](../../Docs/Skills/apple-design/SKILL.md) (`TrinketMotion`). Standing stack rules: [Architecture.md](../../Docs/Platform/Architecture.md).

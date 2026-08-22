@@ -27,8 +27,7 @@ struct MysteryRewardContent: View {
                 showsIncreasePrefix: false,
                 emptyMessage: nil,
                 itemAccessibilityID: AccessibilityID.Battle.rewardItem,
-                lootSpacing: TrinketDesign.Metrics.sectionSpacing,
-                collapsesWalletToSingleColumnForAccessibility: true
+                lootSpacing: TrinketDesign.Metrics.sectionSpacing
             ),
             primaryActionTitle: "Loot All",
             primaryActionAccessibilityIdentifier: AccessibilityID.Battle.continueButton,

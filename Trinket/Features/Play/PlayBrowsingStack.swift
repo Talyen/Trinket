@@ -92,7 +92,6 @@ struct PlayBrowsingStack: View {
 private struct BattlePresentationTaskKey: Equatable {
     let activeBattleID: UUID?
     let preparedRevision: Int
-    let dynamicTypeSize: DynamicTypeSize
     let displayScale: CGFloat
 }
 
@@ -100,7 +99,6 @@ private struct BattlePresentationTaskKey: Equatable {
 struct PlayBattleOverlay: View {
     @Environment(PlaySession.self) private var play
     @Environment(BattleSession.self) private var battle
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.displayScale) private var displayScale
     @Binding var stageMessage: StageMapMessage?
     @State private var claimedVictoryHandlerOwnerID = UUID()
@@ -152,10 +150,7 @@ struct PlayBattleOverlay: View {
             syncPresentationContext()
         }
         .task(id: battlePresentationTaskKey) {
-            await battle.prepareBattlePresentationAssets(
-                dynamicTypeSize: dynamicTypeSize,
-                displayScale: displayScale
-            )
+            await battle.prepareBattlePresentationAssets(displayScale: displayScale)
         }
     }
 
@@ -163,7 +158,6 @@ struct PlayBattleOverlay: View {
         BattlePresentationTaskKey(
             activeBattleID: battle.activeBattle?.id,
             preparedRevision: battle.preparedBattlePresentationRevision,
-            dynamicTypeSize: dynamicTypeSize,
             displayScale: displayScale
         )
     }
@@ -341,12 +335,7 @@ private struct PlayEncounterCoversModifier: ViewModifier {
                 .interactiveDismissDisabled()
             }
             .sheet(item: $labyrinth.activeNodeSession) { session in
-                switch session.kind {
-                case .rest:
-                    LabyrinthRestView(session: session)
-                case .craft:
-                    LabyrinthCraftView(session: session)
-                }
+                LabyrinthRestView(session: session)
             }
     }
 }

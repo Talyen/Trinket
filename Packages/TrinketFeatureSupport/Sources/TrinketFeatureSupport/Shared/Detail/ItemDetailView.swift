@@ -103,7 +103,8 @@ public struct ItemDetailView: View {
                             DetailTraitRow(
                                 title: affix.title,
                                 description: affix.description,
-                                titleKeywords: item.isPerfectAffix(at: index) ? affix.keywords : []
+                                titleKeywords: item.isPerfectAffix(at: index) ? affix.keywords : [],
+                                titleShineColors: affix.isCorrupted ? CorruptionShine.textColors : nil
                             )
                         }
                     }

@@ -16,7 +16,6 @@ struct CombatFeedbackRasterKey: Hashable {
     let leadingSymbolName: String?
     let trailingSymbolName: String
     let label: CombatFeedbackChipLabel
-    let dynamicTypeSize: DynamicTypeSize
     let layoutDirection: LayoutDirection
     let displayScaleHundredths: Int
 }
@@ -92,13 +91,11 @@ final class CombatFeedbackRasterPool {
     /// Lookup-only. The display-link path prefers this before composing.
     func cachedRaster(
         for canvasItem: CombatFeedbackCanvasItem,
-        dynamicTypeSize: DynamicTypeSize,
         layoutDirection: LayoutDirection = .leftToRight,
         displayScale: CGFloat
     ) -> CombatFeedbackRaster? {
         let key = makeKey(
             for: canvasItem,
-            dynamicTypeSize: dynamicTypeSize,
             layoutDirection: layoutDirection,
             displayScale: displayScale
         )
@@ -112,14 +109,12 @@ final class CombatFeedbackRasterPool {
     @discardableResult
     func prepare(
         for canvasItem: CombatFeedbackCanvasItem,
-        dynamicTypeSize: DynamicTypeSize,
         layoutDirection: LayoutDirection = .leftToRight,
         displayScale: CGFloat
     ) -> CombatFeedbackRaster? {
         let scale = max(1, displayScale)
         let key = makeKey(
             for: canvasItem,
-            dynamicTypeSize: dynamicTypeSize,
             layoutDirection: layoutDirection,
             displayScale: scale
         )
@@ -153,7 +148,6 @@ final class CombatFeedbackRasterPool {
             presentation: item.chipPresentation,
             feedbackClass: item.feedbackClass,
             presentationRole: item.presentationRole,
-            dynamicTypeSize: dynamicTypeSize,
             layoutDirection: layoutDirection,
             displayScale: scale
         ) else {
@@ -172,15 +166,9 @@ final class CombatFeedbackRasterPool {
         return raster
     }
 
-    func prewarmInfrastructureAndWait(
-        dynamicTypeSize: DynamicTypeSize,
-        displayScale: CGFloat
-    ) async {
+    func prewarmInfrastructureAndWait(displayScale: CGFloat) async {
         let scale = max(1, displayScale)
-        let key = CombatFeedbackGlyphAtlas.PresentationKey(
-            dynamicTypeSize: dynamicTypeSize,
-            displayScale: scale
-        )
+        let key = CombatFeedbackGlyphAtlas.PresentationKey(displayScale: scale)
         while true {
             if let pendingCatalogWarmup {
                 let completedKey = await pendingCatalogWarmup.task.value
@@ -190,7 +178,6 @@ final class CombatFeedbackRasterPool {
             guard preparedCatalogKey != key else { return }
             let completedKey = await startCatalogWarmup(
                 for: key,
-                dynamicTypeSize: dynamicTypeSize,
                 displayScale: scale
             ).value
             guard !Task.isCancelled, completedKey != nil else { return }
@@ -199,7 +186,6 @@ final class CombatFeedbackRasterPool {
 
     private func startCatalogWarmup(
         for key: CombatFeedbackGlyphAtlas.PresentationKey,
-        dynamicTypeSize: DynamicTypeSize,
         displayScale: CGFloat
     ) -> Task<CombatFeedbackGlyphAtlas.PresentationKey?, Never> {
         catalogWarmupGeneration &+= 1
@@ -212,7 +198,6 @@ final class CombatFeedbackRasterPool {
                 }
             }
             await CombatFeedbackGlyphAtlas.shared.prepareBattlePresentationAndWait(
-                dynamicTypeSize: dynamicTypeSize,
                 displayScale: displayScale
             )
             guard !Task.isCancelled, catalogWarmupGeneration == generation else { return nil }
@@ -226,7 +211,6 @@ final class CombatFeedbackRasterPool {
                 for canvasItem in catalog[index ..< end] {
                     _ = prepare(
                         for: canvasItem,
-                        dynamicTypeSize: dynamicTypeSize,
                         displayScale: displayScale
                     )
                 }
@@ -294,7 +278,6 @@ final class CombatFeedbackRasterPool {
 
     private func makeKey(
         for canvasItem: CombatFeedbackCanvasItem,
-        dynamicTypeSize: DynamicTypeSize,
         layoutDirection: LayoutDirection,
         displayScale: CGFloat
     ) -> CombatFeedbackRasterKey {
@@ -309,7 +292,6 @@ final class CombatFeedbackRasterPool {
             leadingSymbolName: presentation.leadingSymbolName,
             trailingSymbolName: presentation.trailingSymbolName,
             label: canvasItem.label,
-            dynamicTypeSize: dynamicTypeSize,
             layoutDirection: layoutDirection,
             displayScaleHundredths: Int((scale * 100).rounded())
         )

@@ -38,9 +38,8 @@ public enum LabyrinthMapPresentation {
         case .boss: "Challenge Boss"
         case .shop: "Visit Shop"
         case .rest: "Rest at Shrine"
-        case .mystery, .event: "Approach Mystery"
+        case .mystery, .event, .craft: "Approach Mystery"
         case .recruit: "Recruit"
-        case .craft: "Use Crafting Altar"
         case .entrance: "Enter Labyrinth"
         }
     }

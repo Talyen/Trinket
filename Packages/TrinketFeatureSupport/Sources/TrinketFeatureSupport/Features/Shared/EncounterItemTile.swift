@@ -7,6 +7,9 @@ import TrinketDesignSystem
 public struct EncounterItemTile: View {
     let item: InventoryItem
     var showsName: Bool = false
+    var isSelected: Bool = false
+    /// Border shine applied only while selected (e.g. corruption-red in the altar picker).
+    var selectionShineColors: [Color]?
     var isDisabled: Bool = false
     var accessibilityID: String?
     let onSelect: () -> Void
@@ -14,12 +17,16 @@ public struct EncounterItemTile: View {
     public init(
         item: InventoryItem,
         showsName: Bool = false,
+        isSelected: Bool = false,
+        selectionShineColors: [Color]? = nil,
         isDisabled: Bool = false,
         accessibilityID: String? = nil,
         onSelect: @escaping () -> Void
     ) {
         self.item = item
         self.showsName = showsName
+        self.isSelected = isSelected
+        self.selectionShineColors = selectionShineColors
         self.isDisabled = isDisabled
         self.accessibilityID = accessibilityID
         self.onSelect = onSelect
@@ -32,7 +39,9 @@ public struct EncounterItemTile: View {
                     item: item,
                     showsAffixCount: false,
                     showsName: false,
-                    appliesCardSurface: false
+                    appliesCardSurface: false,
+                    isSelected: isSelected,
+                    customShineColors: isSelected ? selectionShineColors : nil
                 )
 
                 if showsName {

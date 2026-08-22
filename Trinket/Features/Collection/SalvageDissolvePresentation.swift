@@ -47,8 +47,6 @@ struct SalvageTransmutationLayer: View {
 }
 
 private struct SalvageTransmutationEffect: View {
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
     let event: SalvageTransmutationEvent
     let onFinished: () -> Void
 
@@ -82,14 +80,12 @@ private struct SalvageTransmutationEffect: View {
                         color: yield.resource.tint.opacity(0.28),
                         radius: TrinketDesign.Metrics.smallSpacing
                     )
-                    .scaleEffect(reduceMotion || showsMaterials ? 1 : 0.55)
+                    .scaleEffect(showsMaterials ? 1 : 0.55)
                     .opacity(showsMaterials && !materialsDeparted ? 1 : 0)
                     .animation(
-                        reduceMotion
-                            ? TrinketMotion.Content.fade
-                            : TrinketMotion.Reward.reveal.delay(
-                                Double(index) * TrinketMotion.Reward.resourceStagger
-                            ),
+                        TrinketMotion.Reward.reveal.delay(
+                            Double(index) * TrinketMotion.Reward.resourceStagger
+                        ),
                         value: showsMaterials
                     )
                     .animation(TrinketMotion.Content.fade, value: materialsDeparted)
@@ -111,9 +107,7 @@ private struct SalvageTransmutationEffect: View {
             .clipShape(TrinketDesign.cardShape)
 
         Group {
-            if reduceMotion {
-                art.opacity(isDissolving ? 0 : 1)
-            } else if isDissolving {
+            if isDissolving {
                 BattleDissolveArtwork(celebratesDefeat: false) {
                     art
                 }
@@ -131,32 +125,24 @@ private struct SalvageTransmutationEffect: View {
 
     @MainActor
     private func play() async {
-        try? await Task.sleep(for: .seconds(reduceMotion ? 0.12 : 0.22))
+        try? await Task.sleep(for: .seconds(0.22))
         guard !Task.isCancelled else { return }
         isDissolving = true
 
-        if reduceMotion {
-            withAnimation(TrinketMotion.Content.fade) {
-                showsMaterials = true
-            }
-            AccessibilityNotification.Announcement(accessibilitySummary).post()
-            try? await Task.sleep(for: .seconds(0.7))
-        } else {
-            try? await Task.sleep(for: .seconds(TrinketMotion.Battle.cardActivationDuration))
-            guard !Task.isCancelled else { return }
-            withAnimation(TrinketMotion.Reward.reveal) {
-                showsMaterials = true
-            }
-            AccessibilityNotification.Announcement(accessibilitySummary).post()
-            try? await Task.sleep(for: .seconds(0.85))
+        try? await Task.sleep(for: .seconds(TrinketMotion.Battle.cardActivationDuration))
+        guard !Task.isCancelled else { return }
+        withAnimation(TrinketMotion.Reward.reveal) {
+            showsMaterials = true
         }
+        AccessibilityNotification.Announcement(accessibilitySummary).post()
+        try? await Task.sleep(for: .seconds(0.85))
 
         guard !Task.isCancelled else { return }
         withAnimation(TrinketMotion.Content.fade) {
             materialsDeparted = true
         }
 
-        try? await Task.sleep(for: .seconds(reduceMotion ? 0.2 : 0.35))
+        try? await Task.sleep(for: .seconds(0.35))
         guard !Task.isCancelled else { return }
         onFinished()
     }

@@ -6,10 +6,7 @@ import TrinketFeatureSupport
 public extension BattleSession {
     /// Warms the prepared launch candidates or active fallback run without exposing
     /// BattleFeature's caches and presentation primitives to app mode screens.
-    func prepareBattlePresentationAssets(
-        dynamicTypeSize: DynamicTypeSize,
-        displayScale: CGFloat
-    ) async {
+    func prepareBattlePresentationAssets(displayScale: CGFloat) async {
         guard lifecyclePhase == .prepared || lifecyclePhase == .active else { return }
         releasePreparedArtworkPins()
 
@@ -24,10 +21,7 @@ public extension BattleSession {
         let activeConfiguration = phase == .active ? activeBattle : nil
         guard !preparedRuns.isEmpty || activeConfiguration != nil else { return }
 
-        await BattlePresentationWarmup.prepareAndWait(
-            dynamicTypeSize: dynamicTypeSize,
-            displayScale: displayScale
-        )
+        await BattlePresentationWarmup.prepareAndWait(displayScale: displayScale)
         guard !Task.isCancelled else { return }
 
         for run in preparedRuns {

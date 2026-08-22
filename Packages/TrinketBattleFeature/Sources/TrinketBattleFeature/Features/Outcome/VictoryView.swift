@@ -5,9 +5,10 @@ import TrinketDesignSystem
 import TrinketFeatureSupport
 
 struct VictoryView: View {
-    let enemyName: String
     let summary: BattleVictorySummary
     let primaryActionTitle: String
+    /// Stable selector for the primary action; never derived from display copy.
+    let primaryActionAccessibilityIdentifier: String
     let onPrimaryAction: () -> Bool
 
     var body: some View {
@@ -75,11 +76,5 @@ struct VictoryView: View {
             .trinketSurface(.secondary)
             .accessibilityIdentifier(AccessibilityID.Battle.experience)
         }
-    }
-
-    private var primaryActionAccessibilityIdentifier: String {
-        primaryActionTitle == "Loot All"
-            ? AccessibilityID.Battle.continueButton
-            : "\(primaryActionTitle) Button"
     }
 }

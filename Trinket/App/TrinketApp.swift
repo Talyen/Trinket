@@ -153,7 +153,6 @@ private struct PreparedAppRoot: View {
     /// Avoid a flash when launch prep finishes before the screen can register.
     private static let minimumLaunchDisplayDuration: Duration = .seconds(1)
 
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.displayScale) private var displayScale
     @State private var artworkCache = PreparedArtworkCache.shared
     @State private var isResourcePreparationComplete = false
@@ -206,10 +205,7 @@ private struct PreparedAppRoot: View {
             // progress fill) so a warm cache cannot dismiss before the bar runs.
             await Task.yield()
             let displayedAt = ContinuousClock.now
-            await BattlePresentationWarmup.prepareAndWait(
-                dynamicTypeSize: dynamicTypeSize,
-                displayScale: displayScale
-            )
+            await BattlePresentationWarmup.prepareAndWait(displayScale: displayScale)
             await artworkCache.prepareAll(priorityImageNames: priorityImageNames)
             guard !Task.isCancelled else { return }
             if let stageID = appState.playerSave.journey.activeStageID,

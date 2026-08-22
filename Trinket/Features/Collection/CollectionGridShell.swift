@@ -5,10 +5,10 @@ import TrinketFeatureSupport
 
 /// Shared scroll container and grid layout shell for Collection browse screens.
 @MainActor
-struct CollectionGridShell<Data: RandomAccessCollection, Content: View, EmptyView: View>: View where Data.Element: Identifiable {
+struct CollectionGridShell<Data: RandomAccessCollection, Content: View, EmptyContent: View>: View where Data.Element: Identifiable {
     let items: Data
     @ViewBuilder let content: (Data.Element) -> Content
-    @ViewBuilder let emptyView: () -> EmptyView
+    @ViewBuilder let emptyView: () -> EmptyContent
 
     private let columns = TrinketDesign.Metrics.collectionGridItems
 

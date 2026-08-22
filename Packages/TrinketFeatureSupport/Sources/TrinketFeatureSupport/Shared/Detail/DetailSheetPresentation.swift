@@ -24,7 +24,6 @@ public extension View {
 private struct TrinketDetailSheetModifier: ViewModifier {
     var dragIndicator: Visibility
 
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var allowsInteractiveDismiss = false
 
     func body(content: Content) -> some View {
@@ -34,10 +33,8 @@ private struct TrinketDetailSheetModifier: ViewModifier {
             .presentationDragIndicator(dragIndicator)
             .interactiveDismissDisabled(!allowsInteractiveDismiss)
             .task {
-                if !reduceMotion {
-                    try? await Task.sleep(for: Self.presentationSettleDuration)
-                    guard !Task.isCancelled else { return }
-                }
+                try? await Task.sleep(for: Self.presentationSettleDuration)
+                guard !Task.isCancelled else { return }
                 allowsInteractiveDismiss = true
             }
     }

@@ -8,10 +8,8 @@ struct CombatantBuffAuraBorder: View {
     let kind: CombatantBuffAuraKind
     var isMotionActive: Bool = true
 
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
     private var motionEnabled: Bool {
-        isMotionActive && !reduceMotion
+        isMotionActive
     }
 
     var body: some View {

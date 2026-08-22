@@ -26,8 +26,6 @@ public struct TrinketWalletGrid<Content: View>: View {
 }
 
 public struct TrinketWalletResourcePill<Artwork: View>: View {
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
     private let title: String
     private let amount: Int
     private let showsIncreasePrefix: Bool
@@ -96,7 +94,7 @@ public struct TrinketWalletResourcePill<Artwork: View>: View {
             SpringKeyframe(1, duration: 0.18, spring: .smooth)
         }
         .onChange(of: amount) { oldAmount, newAmount in
-            guard newAmount > oldAmount, !reduceMotion else { return }
+            guard newAmount > oldAmount else { return }
             increaseAnimationTrigger &+= 1
         }
     }

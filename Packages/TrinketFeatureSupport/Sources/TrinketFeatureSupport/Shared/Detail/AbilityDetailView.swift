@@ -8,9 +8,6 @@ public struct AbilityDetailView: View {
     var primaryActionAccessibilityID: String?
     var onPrimaryAction: (() -> Void)?
 
-    @ScaledMetric(relativeTo: .title) private var placeholderIconSize =
-        TrinketDesign.Metrics.cardPlaceholderIconPointSize
-
     public init(
         ability: Ability,
         primaryActionTitle: String? = nil,
@@ -74,15 +71,7 @@ public struct AbilityDetailView: View {
                 .clipped()
                 .decorativePreparedArtwork()
         } else {
-            let style = TrinketDesign.CardPlaceholderStyle.ability
-            ZStack {
-                style.color.opacity(0.18)
-
-                Image(systemName: style.symbolName)
-                    .font(.system(size: placeholderIconSize, weight: .semibold))
-                    .foregroundStyle(style.color)
-                    .symbolRenderingMode(.hierarchical)
-            }
+            PlaceholderArtwork(.ability)
         }
     }
 }

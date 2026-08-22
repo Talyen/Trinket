@@ -33,7 +33,6 @@ struct BattlefieldView<EnemyPane: View, HeroPane: View, CompanionPane: View>: Vi
 /// is a sibling of combatant panes so attack and hit-reaction transforms do not
 /// move floating combat text.
 struct BattlefieldFeedbackOverlay: View {
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.displayScale) private var displayScale
 
     let layout: BattleCardGridLayout.Metrics
@@ -74,7 +73,6 @@ struct BattlefieldFeedbackOverlay: View {
             CombatFeedbackRasterSlot(
                 combatantID: combatantID,
                 cardHeight: size.height,
-                dynamicTypeSize: dynamicTypeSize,
                 displayScale: displayScale
             )
             .frame(width: size.width, height: size.height)

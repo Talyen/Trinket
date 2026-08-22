@@ -8,19 +8,15 @@ UI selector constants live in `Packages/TrinketFeatureSupport`.
 
 | Area | Path | When |
 |------|------|------|
-| Smoke | `Smoke/`, `Smoke.xctestplan` | Local and CI `test.sh smoke` (registry-defined classes) |
+| Smoke | `Smoke/` sources; `Smoke.xctestplan` at repo root | Local and CI `test.sh smoke` (registry-defined classes) |
 | Exhaustive | `Play/`, `Collection/`, `Battle/` | Main CI (sharded); local only for targeted debugging |
-| Performance | `Performance/`, `BattlePerformance.xctestplan` | Ad hoc `performance.sh` / `test.sh performance` when investigating performance; not CI or smoke |
+| Performance | `Performance/`, `BattlePerformance.xctestplan` (repo root) | Ad hoc `performance.sh` / `test.sh performance` when investigating performance; not CI or smoke |
 | Support | `Support/Screens/` | Page objects (`PlayScreen`, `BattleScreen`, `TabBar`, …) |
 
-Smoke membership is defined by `Smoke.xctestplan` and
-`Scripts/config/smoke-classes.txt`; the test plan is the source of truth when
-classes change. The smoke command can filter the plan for focused iteration.
-
-## Keep / drop
-
-Prefer extending an existing kept method over a new class. Push rules and
-persistence to package tests; UI proves the shipping control path once.
+Smoke membership is defined by the selected tests in `Smoke.xctestplan`,
+mirrored in `Scripts/config/smoke-classes.txt`; `check-docs.py` fails when they
+diverge, so update both together. The smoke command can filter the plan for
+focused iteration.
 
 ## Launch args
 

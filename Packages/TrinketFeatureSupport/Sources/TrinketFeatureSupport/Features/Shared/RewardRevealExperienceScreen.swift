@@ -14,7 +14,6 @@ public struct RewardRevealExperienceScreen<Experience: View>: View {
         public let itemAccessibilityID: (String) -> String
         public let lootAccessibilityIdentifier: String?
         public let lootSpacing: CGFloat
-        public let collapsesWalletToSingleColumnForAccessibility: Bool
 
         public init(
             items: [InventoryItem],
@@ -24,8 +23,7 @@ public struct RewardRevealExperienceScreen<Experience: View>: View {
             emptyMessage: String?,
             itemAccessibilityID: @escaping (String) -> String,
             lootAccessibilityIdentifier: String? = nil,
-            lootSpacing: CGFloat = TrinketDesign.Metrics.largeSpacing,
-            collapsesWalletToSingleColumnForAccessibility: Bool = false
+            lootSpacing: CGFloat = TrinketDesign.Metrics.largeSpacing
         ) {
             self.items = items
             self.gold = gold
@@ -35,11 +33,8 @@ public struct RewardRevealExperienceScreen<Experience: View>: View {
             self.itemAccessibilityID = itemAccessibilityID
             self.lootAccessibilityIdentifier = lootAccessibilityIdentifier
             self.lootSpacing = lootSpacing
-            self.collapsesWalletToSingleColumnForAccessibility = collapsesWalletToSingleColumnForAccessibility
         }
     }
-
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     let eyebrow: String?
     let title: String
@@ -103,7 +98,6 @@ public struct RewardRevealExperienceScreen<Experience: View>: View {
                         itemAccessibilityID: loot.itemAccessibilityID,
                         areItemsVisible: revealSequence.areItemsVisible,
                         visibleWalletRewardCount: revealSequence.visibleWalletRewardCount,
-                        walletColumnCount: walletColumnCount,
                         spacing: loot.lootSpacing,
                         onSelectItem: { selectedRewardItem = $0 }
                     )
@@ -149,12 +143,5 @@ public struct RewardRevealExperienceScreen<Experience: View>: View {
 
     private var walletRewardCount: Int {
         RewardRevealLootSection.walletRewardCount(gold: loot.gold, materials: loot.materials)
-    }
-
-    private var walletColumnCount: Int {
-        if loot.collapsesWalletToSingleColumnForAccessibility, dynamicTypeSize.isAccessibilitySize {
-            return 1
-        }
-        return walletRewardCount
     }
 }

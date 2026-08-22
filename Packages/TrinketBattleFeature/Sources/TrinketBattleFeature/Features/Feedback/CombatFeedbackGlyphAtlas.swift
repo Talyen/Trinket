@@ -37,30 +37,25 @@ final class CombatFeedbackGlyphAtlas {
 
         let typography: Typography
         let presentationRole: CombatFeedbackPresentationRole
-        let dynamicTypeSize: DynamicTypeSize
         let displayScaleHundredths: Int
 
         init(
             feedbackClass: CombatFeedbackClass,
             presentationRole: CombatFeedbackPresentationRole = .headline,
-            dynamicTypeSize: DynamicTypeSize,
             displayScaleHundredths: Int
         ) {
             typography = Typography(feedbackClass: feedbackClass)
             self.presentationRole = presentationRole
-            self.dynamicTypeSize = dynamicTypeSize
             self.displayScaleHundredths = displayScaleHundredths
         }
 
         init(
             typography: Typography,
             presentationRole: CombatFeedbackPresentationRole = .headline,
-            dynamicTypeSize: DynamicTypeSize,
             displayScaleHundredths: Int
         ) {
             self.typography = typography
             self.presentationRole = presentationRole
-            self.dynamicTypeSize = dynamicTypeSize
             self.displayScaleHundredths = displayScaleHundredths
         }
     }
@@ -81,11 +76,9 @@ final class CombatFeedbackGlyphAtlas {
     private var prewarmGeneration = 0
 
     struct PresentationKey: Hashable {
-        let dynamicTypeSize: DynamicTypeSize
         let displayScaleHundredths: Int
 
-        init(dynamicTypeSize: DynamicTypeSize, displayScale: CGFloat) {
-            self.dynamicTypeSize = dynamicTypeSize
+        init(displayScale: CGFloat) {
             displayScaleHundredths = Int((max(1, displayScale) * 100).rounded())
         }
     }
@@ -160,13 +153,9 @@ final class CombatFeedbackGlyphAtlas {
     }
 
     func prepareBattlePresentationAndWait(
-        dynamicTypeSize: DynamicTypeSize,
         displayScale: CGFloat
     ) async {
-        let key = PresentationKey(
-            dynamicTypeSize: dynamicTypeSize,
-            displayScale: displayScale
-        )
+        let key = PresentationKey(displayScale: displayScale)
         while !preparedPresentationKeys.contains(key) {
             let completedKey = if let pendingPrewarm {
                 await pendingPrewarm.task.value
@@ -177,14 +166,8 @@ final class CombatFeedbackGlyphAtlas {
         }
     }
 
-    func isBattlePresentationPrepared(
-        dynamicTypeSize: DynamicTypeSize,
-        displayScale: CGFloat
-    ) -> Bool {
-        preparedPresentationKeys.contains(PresentationKey(
-            dynamicTypeSize: dynamicTypeSize,
-            displayScale: displayScale
-        ))
+    func isBattlePresentationPrepared(displayScale: CGFloat) -> Bool {
+        preparedPresentationKeys.contains(PresentationKey(displayScale: displayScale))
     }
 
     var hasPendingBattlePresentationPreparation: Bool {
@@ -206,10 +189,7 @@ final class CombatFeedbackGlyphAtlas {
                     pendingPrewarm = nil
                 }
             }
-            let requests = prewarmRequests(
-                dynamicTypeSize: key.dynamicTypeSize,
-                displayScaleHundredths: key.displayScaleHundredths
-            )
+            let requests = prewarmRequests(displayScaleHundredths: key.displayScaleHundredths)
             // Concurrency-Safety: detached CPU rasterization must not block
             // MainActor; results are immutable PreparedGlyph values merged here.
             let worker = Task.detached(priority: .utility) {
@@ -237,7 +217,6 @@ final class CombatFeedbackGlyphAtlas {
     }
 
     private func prewarmRequests(
-        dynamicTypeSize: DynamicTypeSize,
         displayScaleHundredths: Int
     ) -> [PrewarmRequest] {
         let symbolNames = Set(Keyword.allCases.map(\.visualStyle.symbolName)).union([
@@ -256,7 +235,6 @@ final class CombatFeedbackGlyphAtlas {
                 let face = Face(
                     typography: typography,
                     presentationRole: role,
-                    dynamicTypeSize: dynamicTypeSize,
                     displayScaleHundredths: displayScaleHundredths
                 )
                 for symbolName in symbolNames {
@@ -330,8 +308,7 @@ final class CombatFeedbackGlyphAtlas {
     ) -> Glyph? {
         let font = CombatFeedbackGlyphMetrics.uiFont(
             recipe: recipe,
-            presentationRole: face.presentationRole,
-            dynamicTypeSize: face.dynamicTypeSize
+            presentationRole: face.presentationRole
         )
         let config = UIImage.SymbolConfiguration(font: font)
         guard let image = UIImage(
@@ -350,8 +327,7 @@ final class CombatFeedbackGlyphAtlas {
     ) -> Glyph? {
         let font = CombatFeedbackGlyphMetrics.uiFont(
             recipe: recipe,
-            presentationRole: face.presentationRole,
-            dynamicTypeSize: face.dynamicTypeSize
+            presentationRole: face.presentationRole
         )
         let attributes: [NSAttributedString.Key: Any] = [
             .font: font,
@@ -399,8 +375,7 @@ final class CombatFeedbackGlyphAtlas {
 enum CombatFeedbackGlyphMetrics {
     static func uiFont(
         recipe: CombatFeedbackChipStyle,
-        presentationRole: CombatFeedbackPresentationRole = .headline,
-        dynamicTypeSize: DynamicTypeSize
+        presentationRole: CombatFeedbackPresentationRole = .headline
     ) -> UIFont {
         let style: Font.TextStyle
         let weight: Font.Weight
@@ -413,8 +388,9 @@ enum CombatFeedbackGlyphMetrics {
             weight = .bold
         }
         let textStyle = uiTextStyle(style)
-        let category = uiContentSizeCategory(dynamicTypeSize)
-        let traits = UITraitCollection(preferredContentSizeCategory: category)
+        // Chips are baked rasters; pin to the standard type size so the atlas
+        // stays a single face per role regardless of user text settings.
+        let traits = UITraitCollection(preferredContentSizeCategory: .large)
         let preferred = UIFont.preferredFont(forTextStyle: textStyle, compatibleWith: traits)
         let resolvedWeight = uiWeight(weight)
         let weighted = UIFont.systemFont(ofSize: preferred.pointSize, weight: resolvedWeight)
@@ -457,24 +433,6 @@ enum CombatFeedbackGlyphMetrics {
         case .heavy: .heavy
         case .black: .black
         default: .bold
-        }
-    }
-
-    private static func uiContentSizeCategory(_ size: DynamicTypeSize) -> UIContentSizeCategory {
-        switch size {
-        case .xSmall: .extraSmall
-        case .small: .small
-        case .medium: .medium
-        case .large: .large
-        case .xLarge: .extraLarge
-        case .xxLarge: .extraExtraLarge
-        case .xxxLarge: .extraExtraExtraLarge
-        case .accessibility1: .accessibilityMedium
-        case .accessibility2: .accessibilityLarge
-        case .accessibility3: .accessibilityExtraLarge
-        case .accessibility4: .accessibilityExtraExtraLarge
-        case .accessibility5: .accessibilityExtraExtraExtraLarge
-        @unknown default: .large
         }
     }
 }

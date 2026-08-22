@@ -311,16 +311,14 @@ private struct CardReactionAnimationState {
 private struct CombatantStatusBorderPulse: View {
     let keyword: Keyword
 
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var pulseAmount = 0.0
 
     var body: some View {
         CombatantStatusBorderPulseStroke(
             keyword: keyword,
-            pulseAmount: reduceMotion ? 0.5 : pulseAmount
+            pulseAmount: pulseAmount
         )
         .onAppear {
-            guard !reduceMotion else { return }
             pulseAmount = 0
             withAnimation(
                 TrinketMotion.Battle.statusBorderPulse.repeatForever(autoreverses: true)
@@ -352,8 +350,6 @@ private struct CombatantStatusBorderPulseStroke: View, Animatable {
 }
 
 struct CombatManaBar: View {
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
     let mana: Int
     let maxMana: Int
     @State private var displayedMana: Int
@@ -384,11 +380,6 @@ struct CombatManaBar: View {
         .frame(height: TrinketDesign.Metrics.battleHealthBarHeight)
         .clipShape(Rectangle())
         .onChange(of: mana) { oldMana, newMana in
-            guard !reduceMotion else {
-                displayedMana = newMana
-                restoreGlowOpacity = 0
-                return
-            }
             if newMana > oldMana {
                 restoreGlowOpacity = 0.36
                 withAnimation(.easeOut(duration: TrinketMotion.Interaction.manaRestoreDuration)) {

@@ -12,6 +12,8 @@ public struct ProductCardShell<Art: View, Label: View>: View {
     var showsLabel: Bool = true
     var reservesLabelSpace: Bool = true
     var shineKeywords: [Keyword]?
+    /// Color-driven shine used when no keyword shine applies.
+    var shineColors: [Color]?
     var shineLineWidth: CGFloat = 2
     var accessibilityID: String?
     @ViewBuilder let art: () -> Art
@@ -25,6 +27,7 @@ public struct ProductCardShell<Art: View, Label: View>: View {
         showsLabel: Bool = true,
         reservesLabelSpace: Bool = true,
         shineKeywords: [Keyword]? = nil,
+        shineColors: [Color]? = nil,
         shineLineWidth: CGFloat = 2,
         accessibilityID: String? = nil,
         @ViewBuilder art: @escaping () -> Art,
@@ -37,6 +40,7 @@ public struct ProductCardShell<Art: View, Label: View>: View {
         self.showsLabel = showsLabel
         self.reservesLabelSpace = reservesLabelSpace
         self.shineKeywords = shineKeywords
+        self.shineColors = shineColors
         self.shineLineWidth = shineLineWidth
         self.accessibilityID = accessibilityID
         self.art = art
@@ -56,6 +60,16 @@ public struct ProductCardShell<Art: View, Label: View>: View {
         .optionalAccessibilityIdentifier(accessibilityID)
     }
 
+    private var borderShineColors: [Color]? {
+        if let shineKeywords, !shineKeywords.isEmpty {
+            return shineKeywords.map(\.visualStyle.color)
+        }
+        if let shineColors, !shineColors.isEmpty {
+            return shineColors
+        }
+        return nil
+    }
+
     @ViewBuilder
     private var artTile: some View {
         let baseTile = TrinketDesign.cardShape
@@ -67,8 +81,6 @@ public struct ProductCardShell<Art: View, Label: View>: View {
             }
             .trinketLockedCardEffect(isLocked: isLocked, text: isLocked ? lockedText : nil)
 
-        let hasShine = shineKeywords != nil && !(shineKeywords?.isEmpty ?? true)
-
         Group {
             if appliesCardSurface {
                 baseTile
@@ -77,8 +89,8 @@ public struct ProductCardShell<Art: View, Label: View>: View {
                         isSelected: isSelected,
                         lineWidth: 1.5
                     )
-                    .keywordShineBorder(
-                        keywords: shineKeywords,
+                    .colorShineBorder(
+                        colors: borderShineColors,
                         cornerRadius: TrinketDesign.Corners.card,
                         lineWidth: shineLineWidth
                     )
@@ -89,8 +101,8 @@ public struct ProductCardShell<Art: View, Label: View>: View {
                         isSelected: isSelected,
                         lineWidth: 1.5
                     )
-                    .keywordShineBorder(
-                        keywords: shineKeywords,
+                    .colorShineBorder(
+                        colors: borderShineColors,
                         cornerRadius: TrinketDesign.Corners.card,
                         lineWidth: shineLineWidth
                     )

@@ -11,9 +11,6 @@ struct AbilityChoiceCard: View {
     var shineKeywords: [Keyword]?
     var shineLineWidth: CGFloat = 2
 
-    @ScaledMetric(relativeTo: .title) private var placeholderIconSize =
-        TrinketDesign.Metrics.cardPlaceholderIconPointSize
-
     var body: some View {
         ProductCardShell(
             isSelected: isSelected,
@@ -28,13 +25,7 @@ struct AbilityChoiceCard: View {
                         .aspectRatio(contentMode: .fill)
                         .decorativePreparedArtwork()
                 } else {
-                    ZStack {
-                        TrinketDesign.cardShape
-                            .fill(TrinketDesign.CardPlaceholderStyle.ability.color.opacity(0.18))
-                        Image(systemName: TrinketDesign.CardPlaceholderStyle.ability.symbolName)
-                            .font(.system(size: placeholderIconSize, weight: .semibold))
-                            .foregroundStyle(TrinketDesign.CardPlaceholderStyle.ability.color)
-                    }
+                    PlaceholderArtwork(.ability)
                 }
             },
             label: {

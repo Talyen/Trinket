@@ -6,21 +6,12 @@ struct EmptyAbilitySlotCard: View {
     let tier: AbilityTier
     var reservesLabelSpace: Bool = true
 
-    @ScaledMetric(relativeTo: .title) private var placeholderIconSize =
-        TrinketDesign.Metrics.cardPlaceholderIconPointSize
-
     var body: some View {
         ProductCardShell(
             showsLabel: true,
             reservesLabelSpace: reservesLabelSpace,
             art: {
-                ZStack {
-                    TrinketDesign.cardShape
-                        .fill(TrinketDesign.CardPlaceholderStyle.ability.color.opacity(0.18))
-                    Image(systemName: TrinketDesign.CardPlaceholderStyle.ability.symbolName)
-                        .font(.system(size: placeholderIconSize, weight: .semibold))
-                        .foregroundStyle(TrinketDesign.CardPlaceholderStyle.ability.color)
-                }
+                PlaceholderArtwork(.ability)
             },
             label: {
                 Text("Empty \(tier.rawValue)")

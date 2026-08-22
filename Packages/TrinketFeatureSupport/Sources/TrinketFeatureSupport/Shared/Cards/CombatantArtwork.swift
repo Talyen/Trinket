@@ -17,10 +17,6 @@ public struct CombatantArtwork: View {
         self.variant = variant
     }
 
-    @ScaledMetric(relativeTo: .title) private var cardHeroIconSize =
-        TrinketDesign.Metrics.cardPlaceholderIconPointSize
-    @ScaledMetric(relativeTo: .largeTitle) private var battleIconSize: CGFloat = 48
-
     public var body: some View {
         Group {
             if let artReference = combatant.artReference {
@@ -50,23 +46,10 @@ public struct CombatantArtwork: View {
         case .companion: .companion
         case .enemy: .enemy
         }
-        return ZStack {
-            style.color.opacity(0.18)
-
-            Image(systemName: style.symbolName)
-                .font(.system(size: placeholderIconSize, weight: .semibold))
-                .foregroundStyle(style.color)
-                .symbolRenderingMode(.hierarchical)
+        guard variant == .battle else {
+            return PlaceholderArtwork(style)
         }
-    }
-
-    private var placeholderIconSize: CGFloat {
-        switch variant {
-        case .card, .hero:
-            cardHeroIconSize
-        case .battle:
-            battleIconSize
-        }
+        return PlaceholderArtwork(style, iconPointSize: 48, relativeTo: .largeTitle)
     }
 }
 

@@ -154,8 +154,10 @@ public struct CombatantDetailPane: View {
             enabled: hapticsEnabled
         )
         .onAppear {
+            // Seed the cache with the value body already resolved; recomputing here
+            // would build the same combat build twice on first render.
             if cachedCombatBuild == nil {
-                cachedCombatBuild = makeCombatBuild()
+                cachedCombatBuild = combatBuild
             }
         }
         .onChange(of: combatBuildInputs) {
@@ -393,13 +395,7 @@ private extension CombatantDetailPane {
                             .aspectRatio(contentMode: .fill)
                             .decorativePreparedArtwork()
                     } else {
-                        ZStack {
-                            TrinketDesign.cardShape
-                                .fill(style.color.opacity(0.18))
-                            Image(systemName: style.symbolName)
-                                .font(.system(size: TrinketDesign.Metrics.cardPlaceholderIconPointSize, weight: .semibold))
-                                .foregroundStyle(style.color)
-                        }
+                        PlaceholderArtwork(style)
                     }
                 },
                 label: {

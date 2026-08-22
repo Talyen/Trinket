@@ -12,9 +12,6 @@ public struct ItemArtwork: View {
     var variant: Variant = .full
     var contentMode: ContentMode = .fill
 
-    @ScaledMetric(relativeTo: .title) private var placeholderIconSize =
-        TrinketDesign.Metrics.cardPlaceholderIconPointSize
-
     public init(
         item: InventoryItem,
         variant: Variant = .full,
@@ -51,14 +48,6 @@ public struct ItemArtwork: View {
     }
 
     private var placeholderArt: some View {
-        let style = TrinketDesign.CardPlaceholderStyle.item
-        return ZStack {
-            style.color.opacity(0.18)
-
-            Image(systemName: style.symbolName)
-                .font(.system(size: placeholderIconSize, weight: .semibold))
-                .foregroundStyle(style.color)
-                .symbolRenderingMode(.hierarchical)
-        }
+        PlaceholderArtwork(.item)
     }
 }

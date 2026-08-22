@@ -12,7 +12,6 @@ struct MysteryUnlockContent: View {
     @Environment(OptionsStore.self) private var options
     @Environment(PlayerSaveStore.self) private var playerSave
     @Environment(\.playSFX) private var playSFX
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Bindable var session: MysteryEncounterSession
     let unlockedID: String
     let onSelectDetail: (CombatantDetailContext) -> Void
@@ -36,7 +35,7 @@ struct MysteryUnlockContent: View {
                         enabled: options.hapticsEnabled
                     )
                     .onAppear {
-                        ceremony.start(reduceMotion: reduceMotion) {
+                        ceremony.start {
                             playSFX(SFXID.uiConfirm, options.effectsVolume)
                         }
                     }
@@ -146,7 +145,7 @@ struct MysteryUnlockContent: View {
     private func confirmRecruit() {
         guard ceremony.isOffered else { return }
         guard onFinish() else { return }
-        ceremony.beginSeal(reduceMotion: reduceMotion, onComplete: onDismiss)
+        ceremony.beginSeal(onComplete: onDismiss)
     }
 
     private func revealCombatant(id: String) -> Combatant? {

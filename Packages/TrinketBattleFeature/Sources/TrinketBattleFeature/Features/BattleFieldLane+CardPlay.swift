@@ -1,5 +1,6 @@
 import BattleEngine
 import SwiftUI
+import TrinketDesignSystem
 
 extension BattleFieldLane {
     var autoBattleTaskID: String {
@@ -7,7 +8,6 @@ extension BattleFieldLane {
     }
 
     func playCardWithTapLift(_ card: BattleCard, battleSize: CGSize) async -> Bool {
-        let configuration = BattleHandMotionConfiguration()
         interactionState.suppressCombatantTaps = false
         interactionState.autoLiftCardID = card.id
         defer {
@@ -16,16 +16,12 @@ extension BattleFieldLane {
             }
         }
 
-        try? await Task.sleep(for: .seconds(configuration.tapLiftPlayDelay))
+        try? await Task.sleep(for: .seconds(TrinketMotion.Battle.tapLiftPlayDelay))
         guard !Task.isCancelled, battleSession.isAutoBattleEnabled else {
             cancelPartyAttack(for: card)
             return false
         }
-        guard let request = activationRequest(
-            for: card,
-            battleSize: battleSize,
-            configuration: configuration
-        ) else {
+        guard let request = activationRequest(for: card, battleSize: battleSize) else {
             cancelPartyAttack(for: card)
             return false
         }
@@ -53,27 +49,24 @@ extension BattleFieldLane {
 
     private func activationRequest(
         for card: BattleCard,
-        battleSize: CGSize,
-        configuration: BattleHandMotionConfiguration
+        battleSize: CGSize
     ) -> CardActivationRequest? {
         let hand = battleSession.hand
         guard let index = hand.firstIndex(where: { $0.id == card.id }) else { return nil }
 
         let metrics = BattleHandLayout.metrics(
             containerWidth: battleSize.width,
-            cardCount: hand.count,
-            configuration: configuration
+            cardCount: hand.count
         )
         let restingCenter = BattleHandLayout.restingCenter(
             index: index,
             metrics: metrics,
             cardCount: hand.count,
-            containerFrame: CGRect(origin: .zero, size: battleSize),
-            configuration: configuration
+            containerFrame: CGRect(origin: .zero, size: battleSize)
         )
         let center = CGPoint(
             x: restingCenter.x,
-            y: restingCenter.y - metrics.cardHeight * configuration.tapLiftHeight
+            y: restingCenter.y - metrics.cardHeight * TrinketMotion.Battle.tapLiftHeightFraction
         )
 
         return CardActivationRequest(
@@ -82,12 +75,11 @@ extension BattleFieldLane {
             size: CGSize(width: metrics.cardWidth, height: metrics.cardHeight),
             rotation: BattleHandLayout.rotation(
                 index: index,
-                cardCount: hand.count,
-                fanAngleStep: configuration.fanAngleStep
+                cardCount: hand.count
             ) * .pi / 180,
             verticalTilt: 0,
             scale: 1,
-            perspective: configuration.perspective,
+            perspective: TrinketMotion.Battle.cardPerspective,
             keywords: card.ability.keywords
         )
     }

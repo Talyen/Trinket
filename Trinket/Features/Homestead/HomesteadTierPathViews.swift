@@ -8,8 +8,6 @@ import TrinketFeatureSupport
 import TrinketPersistence
 
 struct HomesteadTierPath: View {
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
     let definition: HomesteadNodeDefinition
     let status: HomesteadProjectStatus
     var onBuild: (() -> Void)?
@@ -110,12 +108,6 @@ struct HomesteadTierPath: View {
         }
         settlingTier = nil
         settleScale = 1
-
-        if reduceMotion {
-            mutateReveal { $0.formUnion(completedTiers(through: newValue)) }
-            fillingTier = nil
-            return
-        }
 
         let completedTier = newValue
         fillingTier = completedTier

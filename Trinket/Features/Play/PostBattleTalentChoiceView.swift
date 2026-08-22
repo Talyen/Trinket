@@ -10,7 +10,6 @@ import TrinketPersistence
 struct PostBattleTalentChoiceView: View {
     @Environment(PlaySession.self) private var play
     @Environment(PlayerSaveStore.self) private var playerSave
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     @State private var navigationPath: [String] = []
     @State private var showsSaveFailure = false
@@ -134,15 +133,7 @@ struct PostBattleTalentChoiceView: View {
                             .aspectRatio(contentMode: .fill)
                             .decorativePreparedArtwork()
                     } else {
-                        ZStack {
-                            TrinketDesign.cardShape.fill(style.color.opacity(0.18))
-                            Image(systemName: style.symbolName)
-                                .font(.system(
-                                    size: TrinketDesign.Metrics.cardPlaceholderIconPointSize,
-                                    weight: .semibold
-                                ))
-                                .foregroundStyle(style.color)
-                        }
+                        PlaceholderArtwork(style)
                     }
                 },
                 label: {
@@ -189,10 +180,9 @@ struct PostBattleTalentChoiceView: View {
     }
 
     private var treeColumns: [GridItem] {
-        let count = dynamicTypeSize.isAccessibilitySize ? 1 : 3
-        return Array(
+        Array(
             repeating: GridItem(.flexible(), spacing: TrinketDesign.Metrics.smallSpacing),
-            count: count
+            count: 3
         )
     }
 

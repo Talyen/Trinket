@@ -96,6 +96,25 @@ public enum TrinketMotion: Sendable {
         }
     }
 
+    /// Starter picker wheel: first-launch hero/companion onboarding roll.
+    /// Card emphasis at the carousel edges is local to the screen's layout.
+    public enum Onboarding: Sendable {
+        /// Quiet beat before the roll so the resting strip registers first.
+        public static let rollStartDelay: TimeInterval = 0.45
+        /// Full programmatic roll duration; the long ease-out tail is the suspense.
+        public static let rollDuration: TimeInterval = 2.6
+
+        /// Slow start into a long decelerating glide.
+        public static var roll: Animation {
+            .timingCurve(0.28, 0.02, 0.16, 1, duration: rollDuration)
+        }
+
+        /// Name-plate text arrival and swap while browsing.
+        public static var plateSwap: Animation {
+            .spring(response: 0.30, dampingFraction: 0.9)
+        }
+    }
+
     /// Shared fades and staged entrances for ordinary screen content.
     public enum Content: Sendable {
         public static let fadeDuration: TimeInterval = 0.20
@@ -182,6 +201,56 @@ public enum TrinketMotion: Sendable {
         public static let cardHeldShadowRadius: CGFloat = 6
         public static let cardHeldShadowY: CGFloat = 16
         public static let cardMaximumTiltDegrees = 20.0
+        /// Multiplier applied to `cardMaximumTiltDegrees` for horizontal lean while held.
+        public static let cardTiltLeanMultiplier = 0.65
+
+        public static var cardHeldTiltDegrees: Double {
+            cardMaximumTiltDegrees * cardTiltLeanMultiplier
+        }
+
+        /// Vertical drag tilt gain and clamp while a held card is dragged.
+        public static let cardVerticalTiltGain = 4.0
+        public static let cardVerticalTiltClamp = 4.0
+        /// Perspective used by hand-card and cast-overlay 3D rotations.
+        public static let cardPerspective: CGFloat = 0.10
+
+        // MARK: Hand card armed / deal visuals
+
+        /// Extra uniform scale while play-armed.
+        public static let cardArmedScaleBoost: CGFloat = 0.01
+        public static let cardArmedRingOpacity: CGFloat = 0.55
+        public static let cardArmedRingLineWidth: CGFloat = 2
+
+        /// Deal insertion travel (offset in points) and starting scale.
+        public static let dealInsertOffset: CGFloat = 120
+        public static let dealInsertScale: CGFloat = 0.50
+
+        /// Hold duration required to inspect a card without moving it.
+        public static let cardInspectHoldDuration: TimeInterval = 0.5
+        /// How far a tap-play card pops up as a fraction of card height before dissolving.
+        public static let tapLiftHeightFraction: CGFloat = 0.20
+        /// Pause after the pop before the tap-play dissolve begins (so the lift reads).
+        public static let tapLiftPlayDelay: TimeInterval = 0.18
+
+        public static var cardPress: Animation {
+            .spring(response: 0.16, dampingFraction: 1.0)
+        }
+
+        public static var cardLift: Animation {
+            .spring(response: 0.2, dampingFraction: 1.0)
+        }
+
+        public static var cardReturn: Animation {
+            .spring(response: 0.38, dampingFraction: 0.82)
+        }
+
+        public static var tapLift: Animation {
+            .spring(response: 0.30, dampingFraction: 0.68)
+        }
+
+        public static var handReflow: Animation {
+            .spring(response: 0.34, dampingFraction: 0.92)
+        }
 
         /// Hard ceiling for video Ultimate cinematics when end/failure notifications never fire.
         public static let ultimateVideoWatchdog: TimeInterval = 12.0

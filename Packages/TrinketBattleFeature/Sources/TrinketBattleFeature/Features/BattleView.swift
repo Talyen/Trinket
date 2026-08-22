@@ -125,9 +125,11 @@ public struct BattleView: View {
             if battleSession.spectacle.isShowingVictory,
                let victorySummary = battleSession.spectacle.victorySummary {
                 VictoryView(
-                    enemyName: configuration.enemy?.name ?? "Enemy",
                     summary: victorySummary,
                     primaryActionTitle: hasStageProgression ? "Loot All" : "Battle Again",
+                    primaryActionAccessibilityIdentifier: hasStageProgression
+                        ? AccessibilityID.Battle.continueButton
+                        : AccessibilityID.Battle.battleAgainButton,
                     onPrimaryAction: { completeVictoryPrimaryAction(summary: victorySummary) }
                 )
                 .transition(.opacity)
@@ -369,7 +371,6 @@ private struct BattleHandProjectionLane: View {
             },
             hapticsEnabled: hapticsEnabled,
             battleFrame: CGRect(origin: .zero, size: battleSize),
-            configuration: .init(),
             autoLiftCardID: interactionState.autoLiftCardID,
             onCardInteractionChanged: onInteractionChanged,
             onAttackWindUp: onAttackWindUp,

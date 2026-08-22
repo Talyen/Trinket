@@ -10,7 +10,6 @@ import TrinketPersistence
 struct HomesteadNodeDetailView: View {
     @Environment(PlayerSaveStore.self) private var playerSave
     @Environment(OptionsStore.self) private var options
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var build = HomesteadBuildControl()
 
     let definition: HomesteadNodeDefinition
@@ -37,10 +36,7 @@ struct HomesteadNodeDetailView: View {
             HomesteadBuildingArtwork(definition: definition, variant: .full)
                 .saturation(status.isUnlocked ? 1 : 0)
                 .opacity(status.isUnlocked ? 1 : 0.66)
-                .animation(
-                    reduceMotion ? nil : TrinketMotion.Homestead.nodeSettle,
-                    value: status.isUnlocked
-                )
+                .animation(TrinketMotion.Homestead.nodeSettle, value: status.isUnlocked)
         } bodyContent: {
             HomesteadTierPath(
                 definition: definition,

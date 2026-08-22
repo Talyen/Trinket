@@ -11,8 +11,6 @@ struct EncounterArtwork: View {
     var worldSeed: UInt64 = 0
     var prefersThumbnail = false
 
-    @ScaledMetric(relativeTo: .largeTitle) private var placeholderIconSize: CGFloat = 42
-
     private var nonRecruitMysteryEvent: MysteryEvent? {
         if let resolvedMysteryEvent, !resolvedMysteryEvent.isRecruit {
             return resolvedMysteryEvent
@@ -24,36 +22,20 @@ struct EncounterArtwork: View {
     var body: some View {
         ZStack {
             if let combatantArt = stage.encounterCombatantArtReference(worldSeed: worldSeed) {
-                Image.preparedAsset(
-                    combatantArt,
-                    displaySize: prefersThumbnail ? .compact : .full
-                )
-                .resizable()
-                .scaledToFill()
-                .decorativePreparedArtwork()
-
+                MapTileArtwork(art: combatantArt, prefersThumbnail: prefersThumbnail)
             } else if let event = nonRecruitMysteryEvent {
                 MysteryEventHeroArtwork(
                     event: event,
                     chapterID: stage.chapterID,
                     preferThumbnail: prefersThumbnail
                 )
-
             } else if let art = stage.encounterArtReference {
-                Image.preparedAsset(
-                    art,
-                    displaySize: prefersThumbnail ? .compact : .full
-                )
-                .resizable()
-                .scaledToFill()
-                .decorativePreparedArtwork()
-
+                MapTileArtwork(art: art, prefersThumbnail: prefersThumbnail)
             } else {
-                stage.encounter.mapTint.opacity(0.14)
-                Image(systemName: stage.encounter.symbolName)
-                    .font(.system(size: placeholderIconSize, weight: .semibold))
-                    .foregroundStyle(stage.encounter.mapTint)
-                    .symbolRenderingMode(.hierarchical)
+                MapTilePlaceholder(
+                    tint: stage.encounter.mapTint,
+                    symbolName: stage.encounter.symbolName
+                )
             }
         }
         .frame(maxWidth: .infinity)

@@ -123,15 +123,11 @@ public struct CombatantTalentsView: View {
                 .clipped()
                 .decorativePreparedArtwork()
         } else {
-            let style = tree.keyword.visualStyle
-            ZStack {
-                style.color.opacity(0.18)
-
-                Image(systemName: style.symbolName)
-                    .font(.system(size: 64, weight: .semibold))
-                    .foregroundStyle(style.color)
-                    .symbolRenderingMode(.hierarchical)
-            }
+            PlaceholderArtwork(
+                tree.keyword.visualStyle,
+                iconPointSize: 64,
+                relativeTo: .largeTitle
+            )
         }
     }
 

@@ -2,17 +2,15 @@ import SwiftUI
 import TrinketCore
 import TrinketDesignSystem
 
-/// Reusable traveling card-border shine for keywords, Astral items, and loadout selection.
+/// Reusable traveling card-border shine for keywords, Astral items, loadout selection, and corruption marks.
 public struct KeywordShineBorder: View {
-    public let keywords: [Keyword]
+    public var colors: [Color]
     public var cornerRadius: CGFloat = TrinketDesign.Corners.card
     public var lineWidth: CGFloat = 2
     public var isMotionActive: Bool = true
 
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
     private var motionEnabled: Bool {
-        isMotionActive && !reduceMotion
+        isMotionActive
     }
 
     public init(
@@ -21,7 +19,19 @@ public struct KeywordShineBorder: View {
         lineWidth: CGFloat = 2,
         isMotionActive: Bool = true
     ) {
-        self.keywords = keywords
+        colors = keywords.map(\.visualStyle.color)
+        self.cornerRadius = cornerRadius
+        self.lineWidth = lineWidth
+        self.isMotionActive = isMotionActive
+    }
+
+    public init(
+        colors: [Color],
+        cornerRadius: CGFloat = TrinketDesign.Corners.card,
+        lineWidth: CGFloat = 2,
+        isMotionActive: Bool = true
+    ) {
+        self.colors = colors
         self.cornerRadius = cornerRadius
         self.lineWidth = lineWidth
         self.isMotionActive = isMotionActive
@@ -30,7 +40,7 @@ public struct KeywordShineBorder: View {
     public var body: some View {
         TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: !motionEnabled)) { context in
             KeywordShineBorderStroke(
-                keywords: keywords,
+                colors: colors,
                 cornerRadius: cornerRadius,
                 lineWidth: lineWidth,
                 angle: motionEnabled
@@ -44,14 +54,14 @@ public struct KeywordShineBorder: View {
 }
 
 private struct KeywordShineBorderStroke: View {
-    let keywords: [Keyword]
+    let colors: [Color]
     let cornerRadius: CGFloat
     let lineWidth: CGFloat
     let angle: Double
     let motionEnabled: Bool
 
     var body: some View {
-        let stops = gradientStops(for: keywords)
+        let stops = gradientStops(for: colors)
         RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
             .strokeBorder(
                 AngularGradient(
@@ -63,12 +73,12 @@ private struct KeywordShineBorderStroke: View {
             )
     }
 
-    private func gradientStops(for keywords: [Keyword]) -> [Gradient.Stop] {
-        let list = keywords.isEmpty ? [Keyword.physical] : keywords
+    private func gradientStops(for colors: [Color]) -> [Gradient.Stop] {
+        let list = colors.isEmpty ? [Keyword.physical.visualStyle.color] : colors
         let highlight = TrinketDesign.Colors.Overlay.paper.opacity(0.95)
 
         if list.count == 1 {
-            let base = list[0].visualStyle.color
+            let base = list[0]
             if !motionEnabled {
                 return [
                     .init(color: base.opacity(0.7), location: 0),
@@ -86,13 +96,13 @@ private struct KeywordShineBorderStroke: View {
             ]
         }
 
-        var colors = list.map(\.visualStyle.color)
-        colors.append(colors[0])
-        let count = colors.count - 1
+        var looped = list
+        looped.append(looped[0])
+        let count = looped.count - 1
         var stops: [Gradient.Stop] = []
         for i in 0 ... count {
             let loc = Double(i) / Double(count)
-            stops.append(.init(color: colors[i].opacity(0.75), location: loc))
+            stops.append(.init(color: looped[i].opacity(0.75), location: loc))
         }
         stops.append(.init(color: highlight, location: 0.4))
         stops.sort { $0.location < $1.location }
@@ -109,14 +119,12 @@ public extension View {
         isMotionActive: Bool = true
     ) -> some View {
         if let keywords, !keywords.isEmpty {
-            overlay {
-                KeywordShineBorder(
-                    keywords: keywords,
-                    cornerRadius: cornerRadius,
-                    lineWidth: lineWidth,
-                    isMotionActive: isMotionActive
-                )
-            }
+            colorShineBorder(
+                colors: keywords.map(\.visualStyle.color),
+                cornerRadius: cornerRadius,
+                lineWidth: lineWidth,
+                isMotionActive: isMotionActive
+            )
         } else {
             self
         }
@@ -139,5 +147,37 @@ public extension View {
         } else {
             self
         }
+    }
+
+    /// Traveling border shine through arbitrary colors; freezes when `isMotionActive` is false.
+    @ViewBuilder
+    func colorShineBorder(
+        colors: [Color]?,
+        cornerRadius: CGFloat = TrinketDesign.Corners.card,
+        lineWidth: CGFloat = 2,
+        isMotionActive: Bool = true
+    ) -> some View {
+        if let colors, !colors.isEmpty {
+            overlay {
+                KeywordShineBorder(
+                    colors: colors,
+                    cornerRadius: cornerRadius,
+                    lineWidth: lineWidth,
+                    isMotionActive: isMotionActive
+                )
+            }
+        } else {
+            self
+        }
+    }
+
+    /// Corruption-red selection highlight for altar targets and corrupted item cards.
+    func corruptionShineBorder(lineWidth: CGFloat = 2, isMotionActive: Bool = true) -> some View {
+        colorShineBorder(
+            colors: CorruptionShine.borderColors,
+            cornerRadius: TrinketDesign.Corners.card,
+            lineWidth: lineWidth,
+            isMotionActive: isMotionActive
+        )
     }
 }

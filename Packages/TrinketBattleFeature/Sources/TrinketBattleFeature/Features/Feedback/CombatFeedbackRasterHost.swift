@@ -11,14 +11,12 @@ struct CombatFeedbackRasterSlot: View {
 
     let combatantID: String
     let cardHeight: CGFloat
-    let dynamicTypeSize: DynamicTypeSize
     let displayScale: CGFloat
 
     var body: some View {
         CombatFeedbackRasterHost(
             combatantID: combatantID,
             cardHeight: cardHeight,
-            dynamicTypeSize: dynamicTypeSize,
             layoutDirection: layoutDirection,
             displayScale: displayScale
         )
@@ -29,7 +27,6 @@ struct CombatFeedbackRasterSlot: View {
 private struct CombatFeedbackRasterHost: UIViewRepresentable {
     let combatantID: String
     let cardHeight: CGFloat
-    let dynamicTypeSize: DynamicTypeSize
     let layoutDirection: LayoutDirection
     let displayScale: CGFloat
 
@@ -39,7 +36,6 @@ private struct CombatFeedbackRasterHost: UIViewRepresentable {
         CombatFeedbackChipBridge.register(
             view,
             combatantID: combatantID,
-            dynamicTypeSize: dynamicTypeSize,
             layoutDirection: layoutDirection,
             displayScale: displayScale
         )
@@ -51,7 +47,6 @@ private struct CombatFeedbackRasterHost: UIViewRepresentable {
         CombatFeedbackChipBridge.register(
             uiView,
             combatantID: combatantID,
-            dynamicTypeSize: dynamicTypeSize,
             layoutDirection: layoutDirection,
             displayScale: displayScale
         )
@@ -173,14 +168,9 @@ final class CombatFeedbackRasterUIView: UIView {
 
     fileprivate func tickMotion(at date: Date) {
         let states = orderedLayers.map { chipLayer in
-            let item = chipLayer.canvasItem.item
-            let travelDistance = TrinketMotion.Battle.chipTravelDistance(
-                cardHeight: cardHeight,
-                chipHeight: chipLayer.layer.bounds.height
-            )
-            return CombatFeedbackMotionSampler.state(
-                for: item,
-                travelDistance: travelDistance,
+            sampledState(
+                for: chipLayer.canvasItem.item,
+                chipHeight: chipLayer.layer.bounds.height,
                 at: date
             )
         }
@@ -230,19 +220,32 @@ final class CombatFeedbackRasterUIView: UIView {
         return lhsItem.availableAt < rhsItem.availableAt
     }
 
+    /// Shared chip-motion sampling: travel distance from the host's card height
+    /// plus the sampler state at `date`.
+    private func sampledState(
+        for item: CombatFeedbackItem,
+        chipHeight: CGFloat,
+        at date: Date
+    ) -> CombatFeedbackAnimationState {
+        let travelDistance = TrinketMotion.Battle.chipTravelDistance(
+            cardHeight: cardHeight,
+            chipHeight: chipHeight
+        )
+        return CombatFeedbackMotionSampler.state(
+            for: item,
+            travelDistance: travelDistance,
+            at: date
+        )
+    }
+
     private func compositorPose(
         for canvasItem: CombatFeedbackCanvasItem,
         chipSize: CGSize,
         at date: Date
     ) -> (transform: CATransform3D, opacity: Double) {
-        let item = canvasItem.item
-        let travelDistance = TrinketMotion.Battle.chipTravelDistance(
-            cardHeight: cardHeight,
-            chipHeight: chipSize.height
-        )
-        let state = CombatFeedbackMotionSampler.state(
-            for: item,
-            travelDistance: travelDistance,
+        let state = sampledState(
+            for: canvasItem.item,
+            chipHeight: chipSize.height,
             at: date
         )
         let transform = CGAffineTransform.identity

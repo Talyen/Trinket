@@ -8,10 +8,11 @@ dissolve, or recipe unit tests — presentation chrome is not a unit-test owner.
 | Concern | Suite |
 |---------|-------|
 | Session lifecycle, auto-battle, prepare/restart | `BattleSession*` (`BattleSessionPreparationTests` owns Session `activatePreparedBattle`) |
-| Runtime lifecycle contract (Store only) | `TrinketBattleRuntimeTests` — guards and sibling-prepare rules; Session must re-prove engine snapshot reuse |
 | Combat feedback scheduling / presenter | `CombatFeedbackPresenterTests` |
-| Card activation keyword normalize | `CardActivationTests` |
 | Victory summary / claimed victory | `BattleVictorySummaryTests`, `BattleClaimedVictoryTests` |
+
+Runtime-contract behavior is exercised here through `BattleSession` (see
+`Packages/TrinketBattleRuntime/README.md`); there is no separate runtime test target.
 
 ## AppState launch helper vs BattleFeature DTO packer
 

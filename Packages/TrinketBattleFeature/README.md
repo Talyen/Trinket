@@ -14,7 +14,7 @@ Battle lifecycle, presentation, and SwiftUI for Trinket.
 
 Battle simulation rules remain in `BattleEngine`. App options and audio enter through
 the closure-backed `BattleRuntimeDependencies`; this package must not import or
-depend on `TrinketAppState`. Cross-package contract: [battle.md](../../Docs/AgentContext/battle.md).
+depend on `TrinketAppState`. Cross-package contract: [battle-runtime.md](../../Docs/AgentContext/battle-runtime.md).
 
 ## UIKit feedback island
 
@@ -35,8 +35,8 @@ Do not rewrite the host for purity unless Instruments shows SwiftUI can match hi
 
 ```sh
 ./Scripts/test-package.sh TrinketBattleFeature
-./Scripts/test.sh smoke SmokeBattleTests
 ```
 
-Do not unit-test layout, glyph atlas, dissolve, or recipe chrome. Semantic
-feedback classification lives in `CombatFeedbackPresenterTests`.
+Semantic feedback classification lives in `CombatFeedbackPresenterTests`. Test
+exclusions and smoke ownership follow [Testing.md](../../Docs/Platform/Testing.md)
+and the package `Tests/README.md`.

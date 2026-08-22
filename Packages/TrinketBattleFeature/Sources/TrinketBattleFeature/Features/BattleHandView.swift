@@ -30,7 +30,6 @@ struct BattleHandView: View {
     let onPlayDenied: () -> Void
     let hapticsEnabled: Bool
     let battleFrame: CGRect
-    var configuration: BattleHandMotionConfiguration = .init()
     /// When set, the matching hand card mirrors Auto Battle's tap-lift rise.
     var autoLiftCardID: Int?
     /// Fires when any hand card press/drag begins or ends (including long-press detail).
@@ -40,12 +39,41 @@ struct BattleHandView: View {
     /// Card returned to hand without casting — cancel wind-up for this card's owner.
     var onAttackCancel: ((BattleCard) -> Void)?
 
+    @State private var heldInteraction: HeldCardInteraction?
+
+    init(
+        cards: [BattleCard],
+        isPlayable: @escaping (BattleCard) -> Bool,
+        ownerControlSkipKeywords: [BattleParticipant: Keyword] = [:],
+        onInspect: @escaping (BattleCard) -> Void,
+        onPlay: @escaping (BattleCard, CardActivationRequest) -> Bool,
+        onPlayDenied: @escaping () -> Void,
+        hapticsEnabled: Bool,
+        battleFrame: CGRect,
+        autoLiftCardID: Int? = nil,
+        onCardInteractionChanged: ((Bool) -> Void)? = nil,
+        onAttackWindUp: ((BattleCard) -> Void)? = nil,
+        onAttackCancel: ((BattleCard) -> Void)? = nil
+    ) {
+        self.cards = cards
+        self.isPlayable = isPlayable
+        self.ownerControlSkipKeywords = ownerControlSkipKeywords
+        self.onInspect = onInspect
+        self.onPlay = onPlay
+        self.onPlayDenied = onPlayDenied
+        self.hapticsEnabled = hapticsEnabled
+        self.battleFrame = battleFrame
+        self.autoLiftCardID = autoLiftCardID
+        self.onCardInteractionChanged = onCardInteractionChanged
+        self.onAttackWindUp = onAttackWindUp
+        self.onAttackCancel = onAttackCancel
+    }
+
     var body: some View {
         GeometryReader { geometry in
             let layout = BattleHandLayout.metrics(
                 containerWidth: geometry.size.width,
-                cardCount: cards.count,
-                configuration: configuration
+                cardCount: cards.count
             )
             let liveSnapshots = cards.indices.map { index in
                 liveSnapshot(
@@ -69,7 +97,6 @@ struct BattleHandView: View {
                         height: snapshot.height,
                         restingRotation: snapshot.restingRotation,
                         restingOffsetY: snapshot.restingOffsetY,
-                        configuration: configuration,
                         restingCenter: snapshot.restingCenter,
                         hapticsEnabled: hapticsEnabled,
                         autoLiftCardID: autoLiftCardID,
@@ -100,18 +127,18 @@ struct BattleHandView: View {
                     )
                     .offset(x: snapshot.fanOffsetX)
                     .zIndex(isHeld ? 100 : Double(index))
-                    .animation(isHeld ? nil : configuration.handReflow, value: liveSnapshot)
+                    .animation(isHeld ? nil : TrinketMotion.Battle.handReflow, value: liveSnapshot)
                     .transition(
                         .asymmetric(
                             insertion: .offset(
                                 x: card.owner == .hero
-                                    ? -configuration.dealInsertOffsetX
-                                    : configuration.dealInsertOffsetX,
-                                y: configuration.dealInsertOffsetY
+                                    ? -TrinketMotion.Battle.dealInsertOffset
+                                    : TrinketMotion.Battle.dealInsertOffset,
+                                y: TrinketMotion.Battle.dealInsertOffset
                             )
                             .combined(with: .opacity)
-                            .combined(with: .scale(scale: configuration.dealInsertScale))
-                            .animation(configuration.deal),
+                            .combined(with: .scale(scale: TrinketMotion.Battle.dealInsertScale))
+                            .animation(TrinketMotion.Battle.deal),
                             removal: .identity
                         )
                     )
@@ -124,70 +151,6 @@ struct BattleHandView: View {
         .accessibilityIdentifier(AccessibilityID.Battle.hand)
     }
 
-    @State private var heldInteraction: HeldCardInteraction?
-
-    /// Production entry point (default motion configuration).
-    init(
-        cards: [BattleCard],
-        isPlayable: @escaping (BattleCard) -> Bool,
-        ownerControlSkipKeywords: [BattleParticipant: Keyword] = [:],
-        onInspect: @escaping (BattleCard) -> Void,
-        onPlay: @escaping (BattleCard, CardActivationRequest) -> Bool,
-        onPlayDenied: @escaping () -> Void,
-        hapticsEnabled: Bool,
-        battleFrame: CGRect,
-        autoLiftCardID: Int? = nil,
-        onCardInteractionChanged: ((Bool) -> Void)? = nil,
-        onAttackWindUp: ((BattleCard) -> Void)? = nil,
-        onAttackCancel: ((BattleCard) -> Void)? = nil
-    ) {
-        self.init(
-            cards: cards,
-            isPlayable: isPlayable,
-            ownerControlSkipKeywords: ownerControlSkipKeywords,
-            onInspect: onInspect,
-            onPlay: onPlay,
-            onPlayDenied: onPlayDenied,
-            hapticsEnabled: hapticsEnabled,
-            battleFrame: battleFrame,
-            configuration: .init(),
-            autoLiftCardID: autoLiftCardID,
-            onCardInteractionChanged: onCardInteractionChanged,
-            onAttackWindUp: onAttackWindUp,
-            onAttackCancel: onAttackCancel
-        )
-    }
-
-    init(
-        cards: [BattleCard],
-        isPlayable: @escaping (BattleCard) -> Bool,
-        ownerControlSkipKeywords: [BattleParticipant: Keyword] = [:],
-        onInspect: @escaping (BattleCard) -> Void,
-        onPlay: @escaping (BattleCard, CardActivationRequest) -> Bool,
-        onPlayDenied: @escaping () -> Void,
-        hapticsEnabled: Bool,
-        battleFrame: CGRect,
-        configuration: BattleHandMotionConfiguration,
-        autoLiftCardID: Int? = nil,
-        onCardInteractionChanged: ((Bool) -> Void)? = nil,
-        onAttackWindUp: ((BattleCard) -> Void)? = nil,
-        onAttackCancel: ((BattleCard) -> Void)? = nil
-    ) {
-        self.cards = cards
-        self.isPlayable = isPlayable
-        self.ownerControlSkipKeywords = ownerControlSkipKeywords
-        self.onInspect = onInspect
-        self.onPlay = onPlay
-        self.onPlayDenied = onPlayDenied
-        self.hapticsEnabled = hapticsEnabled
-        self.battleFrame = battleFrame
-        self.configuration = configuration
-        self.autoLiftCardID = autoLiftCardID
-        self.onCardInteractionChanged = onCardInteractionChanged
-        self.onAttackWindUp = onAttackWindUp
-        self.onAttackCancel = onAttackCancel
-    }
-
     private func liveSnapshot(
         index: Int,
         layout: BattleHandLayout.Metrics,
@@ -198,20 +161,17 @@ struct BattleHandView: View {
             height: layout.cardHeight,
             restingRotation: BattleHandLayout.rotation(
                 index: index,
-                cardCount: cards.count,
-                fanAngleStep: configuration.fanAngleStep
+                cardCount: cards.count
             ),
             restingOffsetY: BattleHandLayout.restingOffsetY(
                 index: index,
-                cardCount: cards.count,
-                fanLiftStep: configuration.fanLiftStep
+                cardCount: cards.count
             ),
             restingCenter: BattleHandLayout.restingCenter(
                 index: index,
                 metrics: layout,
                 cardCount: cards.count,
-                containerFrame: battleFrame,
-                configuration: configuration
+                containerFrame: battleFrame
             ),
             fanOffsetX: BattleHandLayout.cardOffsetX(
                 index: index,

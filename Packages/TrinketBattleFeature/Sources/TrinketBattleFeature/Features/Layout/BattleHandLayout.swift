@@ -29,6 +29,13 @@ enum BattleHandLayout {
     static let playDragThreshold: CGFloat = 80
     static let dragMinimumDistance: CGFloat = 12
     static let playArmReleaseRatio: CGFloat = 0.72
+    /// While play-armed, horizontal drift is allowed up to this factor of upward distance.
+    private static let armedHorizontalAllowance: CGFloat = 0.72
+    /// Resting vertical tuck as a fraction of card height (`height * fraction`).
+    static let restingYFraction: CGFloat = 0.20
+    /// Deny-resist curve for invalid upward drags.
+    private static let denyOvershootFactor: CGFloat = 1.8
+    private static let denyWidthDamp: CGFloat = 0.72
     struct Metrics: Equatable {
         let cardWidth: CGFloat
         let cardHeight: CGFloat
@@ -38,18 +45,17 @@ enum BattleHandLayout {
 
     static func metrics(
         containerWidth: CGFloat,
-        cardCount: Int,
-        configuration: BattleHandMotionConfiguration = .init()
+        cardCount: Int
     ) -> Metrics {
         let cardWidth = min(
-            configuration.maxCardWidth,
-            max(configuration.minCardWidth, containerWidth * configuration.widthRatio)
+            maxCardWidth,
+            max(minCardWidth, containerWidth * widthRatio)
         )
-        let cardHeight = cardWidth * configuration.aspectRatio
+        let cardHeight = cardWidth * aspectRatio
         let overlap: CGFloat = cardCount > 1
             ? min(
-                cardWidth * configuration.maxOverlapRatio,
-                (containerWidth - cardWidth - configuration.horizontalInset * 2) / CGFloat(cardCount - 1)
+                cardWidth * maxOverlapRatio,
+                (containerWidth - cardWidth - horizontalInset * 2) / CGFloat(cardCount - 1)
             )
             : 0
         let totalWidth = cardWidth + overlap * CGFloat(max(cardCount - 1, 0))
@@ -70,14 +76,12 @@ enum BattleHandLayout {
         index: Int,
         metrics: Metrics,
         cardCount: Int,
-        containerFrame: CGRect,
-        configuration: BattleHandMotionConfiguration = .init()
+        containerFrame: CGRect
     ) -> CGPoint {
-        let baseOffsetY = metrics.cardHeight * configuration.restingYFraction
+        let baseOffsetY = metrics.cardHeight * restingYFraction
             + restingOffsetY(
                 index: index,
-                cardCount: cardCount,
-                fanLiftStep: configuration.fanLiftStep
+                cardCount: cardCount
             )
         return CGPoint(
             x: containerFrame.midX + cardOffsetX(
@@ -85,7 +89,7 @@ enum BattleHandLayout {
                 metrics: metrics,
                 containerWidth: containerFrame.width
             ),
-            y: containerFrame.maxY - configuration.bottomRise - metrics.cardHeight / 2 + baseOffsetY
+            y: containerFrame.maxY - bottomRise - metrics.cardHeight / 2 + baseOffsetY
         )
     }
 
@@ -182,8 +186,6 @@ enum BattleHandLayout {
         translation: CGSize,
         isPlayable: Bool,
         threshold: CGFloat = playDragThreshold,
-        playArmReleaseRatio: CGFloat = Self.playArmReleaseRatio,
-        armedHorizontalAllowance: CGFloat = 0.72,
         currentlyArmed: Bool
     ) -> Bool {
         guard isPlayable else { return false }
@@ -199,9 +201,7 @@ enum BattleHandLayout {
     static func presentationTranslation(
         _ translation: CGSize,
         isPlayable: Bool,
-        threshold: CGFloat = playDragThreshold,
-        denyOvershootFactor: CGFloat = 1.8,
-        denyWidthDamp: CGFloat = 0.72
+        threshold: CGFloat = playDragThreshold
     ) -> CGSize {
         guard !isPlayable, translation.height < 0 else { return translation }
         let upwardDistance = -translation.height

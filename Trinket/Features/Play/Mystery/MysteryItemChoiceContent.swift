@@ -6,13 +6,14 @@ import TrinketDesignSystem
 import TrinketFeatureSupport
 import TrinketPersistence
 
-/// Shared title / narrative / grid scaffolding for mystery item pickers.
+/// Title / narrative / grid scaffolding for the corruption-altar item picker.
 private struct MysteryItemChoiceScaffold<Footer: View>: View {
     let title: String
     let titleAccessibilityIdentifier: String
     let narrative: String
     let persistFailureMessage: String?
     let items: [InventoryItem]
+    let selectedItemID: String?
     let isDisabled: Bool
     let itemAccessibilityID: (String) -> String
     let onSelectItem: (String) -> Void
@@ -42,6 +43,8 @@ private struct MysteryItemChoiceScaffold<Footer: View>: View {
                         EncounterItemTile(
                             item: item,
                             showsName: true,
+                            isSelected: selectedItemID == item.id,
+                            selectionShineColors: CorruptionShine.borderColors,
                             isDisabled: isDisabled,
                             accessibilityID: itemAccessibilityID(item.id),
                             onSelect: { onSelectItem(item.id) }
@@ -57,10 +60,12 @@ private struct MysteryItemChoiceScaffold<Footer: View>: View {
 }
 
 struct MysteryCorruptItemChoiceContent: View {
+    @Environment(OptionsStore.self) private var options
     @Bindable var session: MysteryEncounterSession
     let onCorruptItem: (String) -> Bool
     let onCancelCorruptSelection: () -> Void
-    @State private var pendingCorruptItemID: String?
+    @State private var selectedItemID: String?
+    @State private var selectionFeedbackTrigger = 0
 
     var body: some View {
         MysteryItemChoiceScaffold(
@@ -69,44 +74,45 @@ struct MysteryCorruptItemChoiceContent: View {
             narrative: "Choose gear to corrupt. The altar remakes it once — forever.",
             persistFailureMessage: session.persistFailureMessage,
             items: session.corruptibleItems,
+            selectedItemID: selectedItemID,
             isDisabled: session.isResolvingChoice,
             itemAccessibilityID: AccessibilityID.Mystery.corruptItemCard(itemID:),
             onSelectItem: { itemID in
-                pendingCorruptItemID = itemID
+                guard selectedItemID != itemID else { return }
+                selectedItemID = itemID
+                selectionFeedbackTrigger += 1
             },
             footer: {
-                Button("Back") {
-                    onCancelCorruptSelection()
+                VStack(spacing: TrinketDesign.Metrics.mediumSpacing) {
+                    Button("Corrupt") {
+                        guard let selectedItemID else { return }
+                        _ = onCorruptItem(selectedItemID)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .trinketPrimaryActionButton(
+                        tint: TrinketDesign.Colors.destructive,
+                        accessibilityIdentifier: AccessibilityID.Mystery.corruptConfirmButton
+                    )
+                    .trinketCenteredPrimaryAction()
+                    .disabled(selectedItemID == nil || session.isResolvingChoice)
+
+                    Button("Back") {
+                        onCancelCorruptSelection()
+                    }
+                    .frame(maxWidth: .infinity)
+                    .trinketSecondaryActionButton(
+                        accessibilityIdentifier: AccessibilityID.Mystery.corruptCancelButton
+                    )
+                    .trinketCenteredPrimaryAction()
+                    .disabled(session.isResolvingChoice)
                 }
-                .frame(maxWidth: .infinity)
-                .trinketPrimaryActionButton(
-                    accessibilityIdentifier: AccessibilityID.Mystery.corruptCancelButton
-                )
-                .trinketCenteredPrimaryAction()
-                .disabled(session.isResolvingChoice)
             }
         )
-        .confirmationDialog(
-            "Corrupt this item forever?",
-            isPresented: Binding(
-                get: { pendingCorruptItemID != nil },
-                set: { isPresented in
-                    if !isPresented {
-                        pendingCorruptItemID = nil
-                    }
-                }
-            ),
-            titleVisibility: .visible
-        ) {
-            Button("Corrupt", role: .destructive) {
-                if let itemID = pendingCorruptItemID {
-                    _ = onCorruptItem(itemID)
-                }
-                pendingCorruptItemID = nil
-            }
-            Button("Cancel", role: .cancel) {
-                pendingCorruptItemID = nil
-            }
-        }
+        .trinketSensoryFeedback(
+            .selection,
+            trigger: selectionFeedbackTrigger,
+            enabled: options.hapticsEnabled
+        )
+        .animation(TrinketMotion.Interaction.selection, value: selectedItemID)
     }
 }

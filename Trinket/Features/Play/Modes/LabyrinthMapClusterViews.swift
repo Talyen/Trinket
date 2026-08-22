@@ -132,8 +132,6 @@ private struct LabyrinthMapNodePresentation: Identifiable {
 }
 
 private struct LabyrinthMapNodeSeal: View {
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
     let node: LabyrinthNode
     let visualState: LabyrinthMapNodeState
     let type: LabyrinthNodeType
@@ -202,7 +200,7 @@ private struct LabyrinthMapNodeSeal: View {
         .buttonStyle(LabyrinthNodeButtonStyle(isSelected: isSelected))
         .animation(TrinketMotion.Interaction.selection, value: visualState)
         .onChange(of: visualState) { oldState, newState in
-            guard oldState != .reachable, newState == .reachable, !reduceMotion else { return }
+            guard oldState != .reachable, newState == .reachable else { return }
             reachablePulseTask?.cancel()
             reachablePulseOpacity = 0
             reachablePulseTask = Task { @MainActor in
@@ -236,7 +234,7 @@ private struct LabyrinthMapNodeSeal: View {
     }
 
     private var checkmarkTransition: AnyTransition {
-        reduceMotion ? .opacity : .scale(scale: 0.85).combined(with: .opacity)
+        .scale(scale: 0.85).combined(with: .opacity)
     }
 }
 
@@ -289,16 +287,14 @@ private struct LabyrinthHexagon: InsettableShape {
 }
 
 private struct LabyrinthNodeButtonStyle: ButtonStyle {
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
     let isSelected: Bool
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .scaleEffect(
-                reduceMotion ? 1 : configuration.isPressed ? 0.97 : (isSelected ? 1.035 : 1)
+                configuration.isPressed ? 0.97 : (isSelected ? 1.035 : 1)
             )
-            .offset(y: reduceMotion ? 0 : isSelected && !configuration.isPressed ? -2 : 0)
+            .offset(y: isSelected && !configuration.isPressed ? -2 : 0)
             .shadow(
                 color: TrinketDesign.Colors.Overlay.dragShadow.opacity(isSelected ? 1 : 0),
                 radius: isSelected ? 8 : 0,

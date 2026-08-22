@@ -12,7 +12,8 @@ features.
 | `TrinketFeatureAdapters` | Save-backed map/detail adapters, equipment editing, and combat build resolution | Support/Contracts plus Core, Content, BattleEngine, Persistence, DesignSystem |
 
 None of these products may import `TrinketBattleFeature`, `TrinketAppState`, or the
-app module. Combat lifecycle and mutation stay outside this package.
+app module. Keep app routing, encounter orchestration, combat lifecycle, and save
+mutations outside this package.
 
 ## Testing
 

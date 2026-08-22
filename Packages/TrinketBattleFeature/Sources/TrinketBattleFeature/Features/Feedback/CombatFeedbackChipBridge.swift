@@ -16,7 +16,6 @@ enum CombatFeedbackChipBridge {
     private struct WeakHost {
         weak var view: CombatFeedbackRasterUIView?
         let combatantID: String
-        let dynamicTypeSize: DynamicTypeSize
         let layoutDirection: LayoutDirection
         let displayScale: CGFloat
     }
@@ -24,7 +23,6 @@ enum CombatFeedbackChipBridge {
     static func register(
         _ view: CombatFeedbackRasterUIView,
         combatantID: String,
-        dynamicTypeSize: DynamicTypeSize,
         layoutDirection: LayoutDirection,
         displayScale: CGFloat
     ) {
@@ -33,13 +31,11 @@ enum CombatFeedbackChipBridge {
         let metadataChanged = previous == nil
             || previous?.view !== view
             || previous?.combatantID != combatantID
-            || previous?.dynamicTypeSize != dynamicTypeSize
             || previous?.layoutDirection != layoutDirection
             || previous?.displayScale != displayScale
         hosts[key] = WeakHost(
             view: view,
             combatantID: combatantID,
-            dynamicTypeSize: dynamicTypeSize,
             layoutDirection: layoutDirection,
             displayScale: displayScale
         )
@@ -196,7 +192,6 @@ enum CombatFeedbackChipBridge {
         for canvasItem in canvasItems {
             if let raster = CombatFeedbackRasterPool.shared.cachedRaster(
                 for: canvasItem,
-                dynamicTypeSize: entry.dynamicTypeSize,
                 layoutDirection: entry.layoutDirection,
                 displayScale: entry.displayScale
             ) {
@@ -211,7 +206,6 @@ enum CombatFeedbackChipBridge {
             for canvasItem in misses {
                 if let raster = CombatFeedbackRasterPool.shared.prepare(
                     for: canvasItem,
-                    dynamicTypeSize: entry.dynamicTypeSize,
                     layoutDirection: entry.layoutDirection,
                     displayScale: entry.displayScale
                 ) {

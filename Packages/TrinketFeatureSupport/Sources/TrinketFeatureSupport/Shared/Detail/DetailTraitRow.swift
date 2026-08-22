@@ -9,19 +9,23 @@ public struct DetailTraitRow: View {
     var descriptionAccessibilityID: String?
     var leadingIconKeyword: Keyword?
     var titleKeywords: Set<Keyword>
+    /// When set, shines the title in these colors instead of `titleKeywords`.
+    var titleShineColors: [Color]?
 
     public init(
         title: String? = nil,
         description: String,
         descriptionAccessibilityID: String? = nil,
         leadingIconKeyword: Keyword? = nil,
-        titleKeywords: Set<Keyword> = []
+        titleKeywords: Set<Keyword> = [],
+        titleShineColors: [Color]? = nil
     ) {
         self.title = title
         self.description = description
         self.descriptionAccessibilityID = descriptionAccessibilityID
         self.leadingIconKeyword = leadingIconKeyword
         self.titleKeywords = titleKeywords
+        self.titleShineColors = titleShineColors
     }
 
     public var body: some View {
@@ -34,10 +38,7 @@ public struct DetailTraitRow: View {
                             .foregroundStyle(leadingIconKeyword.visualStyle.color)
                             .accessibilityHidden(true)
                     }
-                    Text(balanced: title)
-                        .trinketTypography(.cardTitle)
-                        .foregroundStyle(.primary)
-                        .keywordShine(titleKeywords)
+                    titleText
                 }
             }
 
@@ -45,6 +46,18 @@ public struct DetailTraitRow: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .trinketSurface(.secondary)
+    }
+
+    @ViewBuilder
+    private var titleText: some View {
+        let base = Text(balanced: title ?? "")
+            .trinketTypography(.cardTitle)
+            .foregroundStyle(.primary)
+        if let titleShineColors, !titleShineColors.isEmpty {
+            base.colorShine(titleShineColors)
+        } else {
+            base.keywordShine(titleKeywords)
+        }
     }
 
     @ViewBuilder

@@ -152,13 +152,11 @@ struct QuietTapButtonStyle: ButtonStyle {
 }
 
 private struct TrinketPressButtonStyle: ButtonStyle {
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
     let pressedScale: CGFloat
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .scaleEffect(configuration.isPressed && !reduceMotion ? pressedScale : 1)
+            .scaleEffect(configuration.isPressed ? pressedScale : 1)
             .animation(TrinketMotion.Interaction.press, value: configuration.isPressed)
     }
 }

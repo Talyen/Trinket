@@ -13,7 +13,6 @@ public struct RewardRevealLootSection: View {
     let itemAccessibilityID: (String) -> String
     let areItemsVisible: Bool
     let visibleWalletRewardCount: Int
-    let walletColumnCount: Int
     var spacing: CGFloat = TrinketDesign.Metrics.largeSpacing
     let onSelectItem: (InventoryItem) -> Void
 
@@ -30,7 +29,6 @@ public struct RewardRevealLootSection: View {
         itemAccessibilityID: @escaping (String) -> String,
         areItemsVisible: Bool,
         visibleWalletRewardCount: Int,
-        walletColumnCount: Int,
         spacing: CGFloat = TrinketDesign.Metrics.largeSpacing,
         onSelectItem: @escaping (InventoryItem) -> Void
     ) {
@@ -42,7 +40,6 @@ public struct RewardRevealLootSection: View {
         self.itemAccessibilityID = itemAccessibilityID
         self.areItemsVisible = areItemsVisible
         self.visibleWalletRewardCount = visibleWalletRewardCount
-        self.walletColumnCount = walletColumnCount
         self.spacing = spacing
         self.onSelectItem = onSelectItem
     }
@@ -88,7 +85,7 @@ public struct RewardRevealLootSection: View {
         if rewardCount > 0 {
             let goldOffset = gold > 0 ? 1 : 0
             TrinketWalletGrid(
-                columnCount: max(1, min(walletColumnCount, rewardCount))
+                columnCount: max(1, rewardCount)
             ) {
                 if gold > 0 {
                     TrinketWalletResourcePill(

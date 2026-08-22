@@ -15,7 +15,6 @@ struct StageSelectActiveCard<
 >: View {
     @Environment(OptionsStore.self) private var options
     @Environment(BattleSession.self) private var battle
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     let presentation: StageSelectRowPresentation<Item>
     let isPrimaryActionDisabled: Bool
@@ -57,12 +56,8 @@ struct StageSelectActiveCard<
         .overlay {
             TrinketDesign.cardShape.strokeBorder(TrinketDesign.Colors.subtleStroke, lineWidth: 1)
         }
-        .scaleEffect(hasSettled || reduceMotion ? 1 : 0.985)
+        .scaleEffect(hasSettled ? 1 : 0.985)
         .onAppear {
-            guard !reduceMotion else {
-                hasSettled = true
-                return
-            }
             withAnimation(TrinketMotion.Interaction.progressArrival) {
                 hasSettled = true
             }

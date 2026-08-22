@@ -2,38 +2,60 @@ import SwiftUI
 import TrinketCore
 import TrinketDesignSystem
 
-private struct KeywordShineModifier: ViewModifier {
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    let keywords: Set<Keyword>
+private struct ShineTextModifier: ViewModifier {
+    let colors: [Color]
 
     func body(content: Content) -> some View {
-        let ordered = Keyword.allCases.filter(keywords.contains)
-        let colors = ordered.flatMap { [$0.visualStyle.color, $0.visualStyle.secondaryColor] }
         if colors.isEmpty {
             content
         } else {
             let band = colors + [TrinketDesign.Colors.Overlay.paper]
             let looped = band + band
-            TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: reduceMotion)) { context in
-                let phase = reduceMotion
-                    ? 0
-                    : TrinketMotion.Shine.phase(at: context.date.timeIntervalSinceReferenceDate)
+            TimelineView(.animation(minimumInterval: 1.0 / 30.0)) { context in
+                let phase = TrinketMotion.Shine.phase(at: context.date.timeIntervalSinceReferenceDate)
                 content
                     .foregroundStyle(
                         LinearGradient(
                             colors: looped,
-                            startPoint: UnitPoint(x: reduceMotion ? 0 : phase - 1, y: 0.5),
-                            endPoint: UnitPoint(x: reduceMotion ? 1 : phase + 1, y: 0.5)
+                            startPoint: UnitPoint(x: phase - 1, y: 0.5),
+                            endPoint: UnitPoint(x: phase + 1, y: 0.5)
                         )
                     )
-                    .shadow(color: ordered[0].visualStyle.glowColor, radius: 5)
+                    .shadow(color: colors[0].opacity(0.62), radius: 5)
             }
         }
     }
 }
 
+/// Red stops shared by corruption text and border shines, derived from the theme's destructive token.
+public enum CorruptionShine {
+    public static let textColors: [Color] = [
+        TrinketDesign.Colors.destructive,
+        TrinketDesign.Colors.destructive.opacity(0.55),
+    ]
+    public static let borderColors: [Color] = [
+        TrinketDesign.Colors.destructive,
+    ]
+}
+
+private func keywordShineColors(_ keywords: Set<Keyword>) -> [Color] {
+    Keyword.allCases
+        .filter(keywords.contains)
+        .flatMap { [$0.visualStyle.color, $0.visualStyle.secondaryColor] }
+}
+
 public extension View {
     func keywordShine(_ keywords: Set<Keyword>) -> some View {
-        modifier(KeywordShineModifier(keywords: keywords))
+        colorShine(keywordShineColors(keywords))
+    }
+
+    /// Animated traveling text shine through arbitrary colors.
+    func colorShine(_ colors: [Color]) -> some View {
+        modifier(ShineTextModifier(colors: colors))
+    }
+
+    /// Corruption-red shimmer for marked affix names.
+    func corruptionShine() -> some View {
+        colorShine(CorruptionShine.textColors)
     }
 }

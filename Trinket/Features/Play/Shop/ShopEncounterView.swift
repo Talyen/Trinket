@@ -11,7 +11,6 @@ struct ShopEncounterView: View {
     @Environment(EncounterPlayMode.self) private var encounters
     @Environment(OptionsStore.self) private var options
     @Environment(PlayerSaveStore.self) private var playerSave
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Bindable var session: ShopEncounterSession
     let onLeave: () -> Void
 
@@ -139,7 +138,7 @@ struct ShopEncounterView: View {
                 .foregroundStyle(Keyword.gold.visualStyle.color)
                 .keyframeAnimator(
                     initialValue: CGFloat(1),
-                    trigger: reduceMotion ? 0 : purchaseFeedbackTrigger
+                    trigger: purchaseFeedbackTrigger
                 ) { content, scale in
                     content.scaleEffect(scale)
                 } keyframes: { _ in

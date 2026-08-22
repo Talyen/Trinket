@@ -22,7 +22,6 @@ enum CombatFeedbackChipComposer {
         presentation: CombatFeedbackChipPresentation,
         feedbackClass: CombatFeedbackClass,
         presentationRole: CombatFeedbackPresentationRole = .headline,
-        dynamicTypeSize: DynamicTypeSize,
         layoutDirection: LayoutDirection = .leftToRight,
         displayScale: CGFloat,
         atlas: CombatFeedbackGlyphAtlas = .shared
@@ -32,7 +31,6 @@ enum CombatFeedbackChipComposer {
         let face = CombatFeedbackGlyphAtlas.Face(
             feedbackClass: feedbackClass,
             presentationRole: presentationRole,
-            dynamicTypeSize: dynamicTypeSize,
             displayScaleHundredths: Int((scale * 100).rounded())
         )
 

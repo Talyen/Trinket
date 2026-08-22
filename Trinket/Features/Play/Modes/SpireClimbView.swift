@@ -162,25 +162,13 @@ private struct SpireFloorArtwork: View {
     let tint: Color
     let prefersThumbnail: Bool
 
-    @ScaledMetric(relativeTo: .largeTitle) private var placeholderIconSize: CGFloat = 42
-
     var body: some View {
         ZStack {
             if let combatant = GameContent.enemy(matching: floor.enemyID)?.combatant,
                let art = combatant.artReference {
-                Image.preparedAsset(
-                    art,
-                    displaySize: prefersThumbnail ? .compact : .full
-                )
-                .resizable()
-                .scaledToFill()
-                .decorativePreparedArtwork()
+                MapTileArtwork(art: art, prefersThumbnail: prefersThumbnail)
             } else {
-                tint.opacity(0.14)
-                Image(systemName: "flag.2.crossed")
-                    .font(.system(size: placeholderIconSize, weight: .semibold))
-                    .foregroundStyle(tint)
-                    .symbolRenderingMode(.hierarchical)
+                MapTilePlaceholder(tint: tint, symbolName: "flag.2.crossed")
             }
         }
         .frame(maxWidth: .infinity)

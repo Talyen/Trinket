@@ -38,17 +38,9 @@ final class MysteryRecruitCeremonyState {
         phase == .offered
     }
 
-    func start(reduceMotion: Bool, onUnmaskPeak: @escaping () -> Void) {
+    func start(onUnmaskPeak: @escaping () -> Void) {
         guard !hasStarted else { return }
         hasStarted = true
-        if reduceMotion {
-            withAnimation(TrinketMotion.Content.fade) {
-                snapToOfferedVisuals()
-            }
-            onUnmaskPeak()
-            unmaskFeedbackTrigger += 1
-            return
-        }
 
         task = Task { @MainActor in
             await runUnmaskSequence(onUnmaskPeak: onUnmaskPeak)
@@ -116,29 +108,12 @@ final class MysteryRecruitCeremonyState {
         phase = .offered
     }
 
-    func beginSeal(reduceMotion: Bool, onComplete: @escaping () -> Void) {
+    func beginSeal(onComplete: @escaping () -> Void) {
         guard phase == .offered else { return }
         phase = .sealing
         pendingSealComplete = onComplete
         task?.cancel()
         sealFeedbackTrigger += 1
-        if reduceMotion {
-            task = Task { @MainActor in
-                let clock = SuspendingClock()
-                withAnimation(TrinketMotion.Content.fade) {
-                    applySealedVisuals()
-                }
-                try? await clock.sleep(
-                    for: .seconds(
-                        TrinketMotion.Content.fadeDuration
-                            + TrinketMotion.Mystery.sealHoldBeforeDismiss
-                    )
-                )
-                guard !Task.isCancelled else { return }
-                finishSeal()
-            }
-            return
-        }
 
         task = Task { @MainActor in
             let clock = SuspendingClock()
@@ -186,13 +161,6 @@ final class MysteryRecruitCeremonyState {
         pendingSealComplete = nil
         task = nil
         complete?()
-    }
-
-    private func applySealedVisuals() {
-        recruitOpacity = 0
-        subtitleOpacity = 0
-        checkOpacity = 1
-        sealBadgeScale = 1
     }
 
     private func snapToOfferedVisuals() {

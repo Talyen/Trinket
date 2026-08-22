@@ -9,6 +9,7 @@ enum TestLaunchArg {
     static let resetState = "-reset-state"
     static let seedTestProgress = "-seed-test-progress"
     static let skipStarterSelection = "-skip-starter-selection"
+    static let skipOnboardingCeremony = "-skip-onboarding-ceremony"
     static let disableCloudSync = "-disable-cloud-sync"
     static let testLaunchArgs = [
         resetState,
@@ -242,6 +243,29 @@ class TrinketUITestCase: XCTestCase {
         } else {
             element.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
         }
+    }
+
+    /// Waits for an element to exist and become enabled (animated ceremonies
+    /// unlock controls after they finish). Fails via XCTFail when it never does.
+    @discardableResult
+    func waitForEnabled(
+        _ element: XCUIElement,
+        timeout: TimeInterval = 10,
+        file: StaticString = #file,
+        line: UInt = #line
+    ) -> Bool {
+        let deadline = Date().addingTimeInterval(timeout)
+        while Date() < deadline {
+            if element.exists, element.isEnabled {
+                return true
+            }
+            RunLoop.current.run(until: Date().addingTimeInterval(0.1))
+        }
+        if element.exists, element.isEnabled {
+            return true
+        }
+        fail("Element never became enabled", file: file, line: line)
+        return false
     }
 
     func assertButtonExists(
