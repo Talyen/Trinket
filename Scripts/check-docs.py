@@ -192,6 +192,25 @@ def plan_metadata(path: Path) -> tuple[dict[str, str], list[str]]:
     return metadata, errors
 
 
+TEST_SUITE_DECL = re.compile(
+    r"\b(?:final\s+)?(?:struct|class|actor|enum)\s+([A-Za-z][A-Za-z0-9_]*Tests)\b"
+)
+
+
+def test_suite_names() -> set[str]:
+    """Index existing test suite files and declared *Tests types."""
+    names: set[str] = set()
+    for swift in (ROOT / "Packages").glob("*/Tests/**/*.swift"):
+        text = swift.read_text(encoding="utf-8", errors="replace")
+        names.update(TEST_SUITE_DECL.findall(text))
+        if swift.stem.endswith("Tests"):
+            names.add(swift.stem)
+    for tests_dir in (ROOT / "Packages").glob("*/Tests/*"):
+        if tests_dir.is_dir():
+            names.add(tests_dir.name)
+    return names
+
+
 def structural_checks(files: list[Path], *, final: bool = False, keep_plan: bool = False) -> list[str]:
     failures: list[str] = []
     relative = {path.relative_to(ROOT) for path in files}
@@ -207,11 +226,15 @@ def structural_checks(files: list[Path], *, final: bool = False, keep_plan: bool
         for target in plan["testTargets"]
         for test in target.get("selectedTests", [])
     }
-    registry = {
-        line.strip()
-        for line in (ROOT / "Scripts" / "config" / "smoke-classes.txt").read_text(encoding="utf-8").splitlines()
-        if line.strip() and not line.strip().startswith("#")
-    }
+    registry = set()
+    for line in (ROOT / "Scripts" / "config" / "smoke-classes.txt").read_text(encoding="utf-8").splitlines():
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        if "=" not in stripped or not stripped.split("=", 1)[1].strip():
+            failures.append(f"Scripts/config/smoke-classes.txt: malformed line (expected KEY=Class): {stripped}")
+            continue
+        registry.add(stripped.split("=", 1)[1])
     if selected != registry:
         failures.append(
             "Smoke.xctestplan selectedTests must match Scripts/config/smoke-classes.txt "
@@ -224,6 +247,42 @@ def structural_checks(files: list[Path], *, final: bool = False, keep_plan: bool
     for test_class in sorted(selected):
         if not re.search(rf"\b(?:final\s+)?class\s+{re.escape(test_class)}\b", ui_source):
             failures.append(f"Smoke.xctestplan: selected class {test_class} is not declared")
+
+    # FullUI coverage guard: every UI test class outside Smoke/ and Performance/
+    # must be selected in FullUI.xctestplan, and every FullUI class must appear
+    # in the exhaustive-ui CI matrix. Plans use `automaticallyIncludesTests:
+    # false`, so a new class is silently skipped everywhere without this check.
+    fullui_plan = json.loads((ROOT / "FullUI.xctestplan").read_text(encoding="utf-8"))
+    fullui_selected = {
+        test
+        for target in fullui_plan["testTargets"]
+        for test in target.get("selectedTests", [])
+    }
+    routable_classes: set[str] = set()
+    for path in sorted((ROOT / "TrinketUITests").rglob("*.swift")):
+        parts = path.relative_to(ROOT).parts
+        if any(part in {"Smoke", "Performance", "Support"} for part in parts):
+            continue
+        routable_classes.update(
+            name
+            for name in re.findall(
+                r"(?:final\s+)?class\s+(\w+)\s*:\s*(?:SeededSmokeUITestCase|TrinketUITestCase)",
+                path.read_text(encoding="utf-8"),
+            )
+            if name.endswith("Tests")
+        )
+    missing_fullui = sorted(routable_classes - fullui_selected)
+    if missing_fullui:
+        failures.append(
+            "FullUI.xctestplan is missing UI test classes "
+            f"{missing_fullui} (add them to the plan or move the files under Smoke/ or Performance/)"
+        )
+    ci_workflow_text = (ROOT / ".github" / "workflows" / "tests.yml").read_text(encoding="utf-8")
+    missing_ci = sorted(name for name in fullui_selected if name not in ci_workflow_text)
+    if missing_ci:
+        failures.append(
+            f".github/workflows/tests.yml exhaustive-ui matrix is missing FullUI classes: {missing_ci}"
+        )
 
     stale = {
         "five-surface selector matrix": "smoke plan is SmokeShellTests, SmokeBattleTests, SmokeShopTests",
@@ -243,6 +302,16 @@ def structural_checks(files: list[Path], *, final: bool = False, keep_plan: bool
         for phrase, explanation in stale.items():
             if phrase in text:
                 failures.append(f"{source.relative_to(ROOT)}: stale phrase {phrase!r} ({explanation})")
+
+    suites = test_suite_names()
+    for tests_readme in sorted((ROOT / "Packages").glob("*/Tests/README.md")):
+        text = tests_readme.read_text(encoding="utf-8")
+        for name in set(re.findall(r"`([A-Za-z][A-Za-z0-9_*]*Tests)`", text)):
+            if "*" not in name and name not in suites:
+                failures.append(
+                    f"{tests_readme.relative_to(ROOT)}: referenced suite {name} does not exist "
+                    "under any Packages/*/Tests directory"
+                )
 
     classifier = ROOT / "Scripts" / "change-classification.sh"
     routed_cards = set(re.findall(r"Docs/AgentContext/[A-Za-z0-9_-]+\.md", classifier.read_text(encoding="utf-8")))

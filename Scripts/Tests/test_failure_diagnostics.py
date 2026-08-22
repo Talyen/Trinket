@@ -22,7 +22,7 @@ from unittest.mock import patch
 
 
 ROOT = Path(__file__).resolve().parents[2]
-CLI_SCRIPT = ROOT / "Scripts" / "summarize-failures.py"
+CLI_SCRIPT = ROOT / "Scripts" / "failure_diagnostics.py"
 FIXTURES = ROOT / "Scripts" / "Tests" / "Fixtures"
 sys.path.insert(0, str(ROOT / "Scripts"))
 import failure_diagnostics as REPORTER  # noqa: E402

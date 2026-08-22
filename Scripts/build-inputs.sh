@@ -25,7 +25,12 @@ build_input_paths=("${TRINKET_BUILD_ROOTS[@]}" "${TRINKET_PROJECT_INPUTS[@]}")
 
 generation_inputs_are_dirty() {
   local paths=("$@")
-  [[ -n "$(git status --porcelain -- "${paths[@]}")" ]]
+  local status
+  status="$(git status --porcelain -- "${paths[@]}" 2>/dev/null)"
+  # Ignore documentation-only changes that don't affect generation.
+  # Generation only cares about data files (tsv/json/yml), not READMEs.
+  status="$(printf '%s\n' "$status" | grep -v "\.md$" || true)"
+  [[ -n "$status" ]]
 }
 
 # All inputs that feed generate.sh (content + project.yml + assets). Used for

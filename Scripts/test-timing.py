@@ -139,7 +139,12 @@ def append_entry(results_dir: Path, log_path: Path, entry: dict) -> None:
     results_dir.mkdir(parents=True, exist_ok=True)
     with log_path.open("a", encoding="utf-8") as handle:
         handle.write(json.dumps(entry, separators=(",", ":")) + "\n")
-    maximum = 250 if os.environ.get("TRINKET_KEEP_TIMING_HISTORY", "0") == "1" else 1
+    raw_maximum = os.environ.get("TRINKET_KEEP_TIMING_HISTORY", "50")
+    try:
+        maximum = int(raw_maximum)
+    except ValueError:
+        raise SystemExit(f"TRINKET_KEEP_TIMING_HISTORY must be an integer, got {raw_maximum!r}")
+    maximum = max(maximum, 1)
     entries = log_path.read_text(encoding="utf-8").splitlines()
     if len(entries) > maximum:
         log_path.write_text("\n".join(entries[-maximum:]) + "\n", encoding="utf-8")
@@ -204,6 +209,15 @@ def record(results_dir: Path, log_path: Path, args: list[str]) -> None:
         parsed = parse_xcresult(path)
         recorded_xcresult = str(path)
     append_entry(results_dir, log_path, {"recorded_at": datetime.now(timezone.utc).isoformat(), "mode": mode, "targets": values["targets"], "no_build": bool(values.get("no_build")), "wall_seconds": wall_seconds, "xcresult": recorded_xcresult, **parsed})
+    # Quiet test runs print nothing on success; this single line is the
+    # terminal-visible proof that tests executed and their outcome.
+    summary = parsed["summary"]
+    if summary.get("result") != "wall-only":
+        wall_note = f" (wall {format_seconds(wall_seconds)})" if wall_seconds is not None else ""
+        print(
+            f"{mode} — {summary.get('passed', 0)} passed, {summary.get('failed', 0)} failed, "
+            f"{summary.get('skipped', 0)} skipped in {format_seconds(summary.get('xcresult_seconds'))}{wall_note}"
+        )
 
 
 def format_seconds(seconds: object) -> str:
@@ -232,7 +246,7 @@ def report(log_path: Path, args: list[str]) -> None:
         entries = [entry for entry in entries if entry.get("mode") == mode]
     if not entries:
         print(f"No timing entries in {log_path}")
-        print("Run ./Scripts/test.sh or ./Scripts/test-timing.sh ingest <mode> to populate the log.")
+        print("Run ./Scripts/test.sh to populate the log.")
         return
     last = values.get("last", 15)
     top = values.get("top", 20)
@@ -296,37 +310,19 @@ def assert_budget(log_path: Path, args: list[str]) -> None:
     print(f"Timing budget OK for '{mode}': {format_seconds(duration)} ({source}) <= {format_seconds(maximum_seconds)}")
 
 
-def ingest(results_dir: Path, log_path: Path, args: list[str]) -> None:
-    if not args:
-        raise SystemExit("ingest requires MODE (unit, smoke, ui, all)")
-    mode = args[0]
-    wall = None
-    if len(args) > 1:
-        if len(args) != 3 or args[1] != "--wall":
-            raise SystemExit(f"unknown option: {args[1]}")
-        wall = finite_nonnegative(args[2], "--wall")
-    path = results_dir / f"{mode}.xcresult"
-    if not path.exists():
-        raise SystemExit(f"xcresult not found: {path}")
-    if not (path / "Info.plist").is_file():
-        raise SystemExit(f"xcresult is incomplete: {path}")
-    parsed = parse_xcresult(path)
-    append_entry(results_dir, log_path, {"recorded_at": datetime.fromtimestamp(path.stat().st_mtime, tz=timezone.utc).isoformat(), "mode": mode, "targets": [], "no_build": False, "wall_seconds": wall if wall is not None else parsed["summary"].get("xcresult_seconds"), "xcresult": str(path), "ingested": True, **parsed})
-
-
 def main(argv: list[str]) -> int:
     results_dir = Path(os.environ.get("RESULTS_DIR", Path.cwd() / ".DerivedData/TestResults"))
     command = argv[0] if argv else "report"
     args = argv[1:] if argv else []
     if command in {"-h", "--help", "help"}:
-        print("Usage: test-timing.sh [report|record|ingest|assert-budget] ...")
+        print("Usage: test-timing.sh [report|record|assert-budget] ...")
         return 0
-    if command not in {"report", "record", "ingest", "assert-budget"}:
+    if command not in {"report", "record", "assert-budget"}:
         args = argv
         command = "report"
     log_path = results_dir / "timing-log.jsonl"
-    handlers = {"report": report, "record": record, "ingest": ingest, "assert-budget": assert_budget}
-    if command in {"record", "ingest"}:
+    handlers = {"report": report, "record": record, "assert-budget": assert_budget}
+    if command == "record":
         handlers[command](results_dir, log_path, args)
     else:
         handlers[command](log_path, args)

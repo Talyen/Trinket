@@ -20,7 +20,7 @@ while [[ $# -gt 0 ]]; do
     --full) FULL=true ;;
     --allow-broad-scope) ALLOW_BROAD_SCOPE=true ;;
     --help|-h)
-      cat <<'USAGE'
+      cat <<USAGE
 Usage: ./Scripts/agent-context.sh [--agent] [--full] [--allow-broad-scope] [--paths <file> ...]
 
 Prints a compact task briefing: applicable AGENTS.md guides, context cards and

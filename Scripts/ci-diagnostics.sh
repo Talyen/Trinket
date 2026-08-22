@@ -10,12 +10,39 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 MODE="aggregate"
-if [[ "${1:-}" == "--reset" ]]; then MODE="reset"; shift; fi
-if [[ "${1:-}" == "--stage-artifacts" ]]; then MODE="stage"; shift; fi
-if [[ "${1:-}" == "--cleanup" ]]; then MODE="cleanup"; shift; fi
 KEEP=false
-if [[ "${1:-}" == "--keep" ]]; then KEEP=true; shift; fi
-export RESULTS_DIR="${1:-$PWD/.DerivedData/TestResults}"
+POSITIONAL=()
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --reset) MODE="reset" ;;
+    --stage-artifacts) MODE="stage" ;;
+    --cleanup) MODE="cleanup" ;;
+    --keep) KEEP=true ;;
+    -*)
+      echo "Unknown option: $1" >&2
+      echo "Usage: ./Scripts/ci-diagnostics.sh [--reset | --stage-artifacts <RESULTS_DIR> <ARTIFACT_DIR> | --cleanup [--keep]] [RESULTS_DIR]" >&2
+      exit 2
+      ;;
+    *) POSITIONAL+=("$1") ;;
+  esac
+  shift
+done
+
+case "$MODE" in
+  stage)
+    if [[ ${#POSITIONAL[@]} -ne 2 ]]; then
+      echo "Usage: ./Scripts/ci-diagnostics.sh --stage-artifacts <RESULTS_DIR> <ARTIFACT_DIR>" >&2
+      exit 2
+    fi
+    ;;
+  *)
+    if [[ ${#POSITIONAL[@]} -gt 1 ]]; then
+      echo "Usage: ./Scripts/ci-diagnostics.sh [--reset | --cleanup [--keep]] [RESULTS_DIR]" >&2
+      exit 2
+    fi
+    ;;
+esac
+export RESULTS_DIR="${POSITIONAL[0]:-$PWD/.DerivedData/TestResults}"
 OUTPUT_PATH="$RESULTS_DIR/ci-diagnostics.json"
 
 mkdir -p "$RESULTS_DIR"
@@ -26,7 +53,7 @@ if [[ "$MODE" == "reset" ]]; then
 fi
 
 if [[ "$MODE" == "stage" ]]; then
-  ARTIFACT_DIR="${2:-}"
+  ARTIFACT_DIR="${POSITIONAL[1]:-}"
   if [[ -z "$ARTIFACT_DIR" || "$ARTIFACT_DIR" == "$RESULTS_DIR" || "$ARTIFACT_DIR" == "/" ]]; then
     echo "Usage: ./Scripts/ci-diagnostics.sh --stage-artifacts <RESULTS_DIR> <ARTIFACT_DIR>" >&2
     exit 2

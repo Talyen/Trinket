@@ -1,4 +1,7 @@
-SmokeBattleTests
-SmokeShellTests
-SmokeShopTests
-StarterOnboardingSmokeTests
+# Canonical smoke XCTest classes: one KEY=Class line per smoke suite.
+# Single registry — sourced by Scripts/lib/smoke-classes.sh and validated
+# against Smoke.xctestplan by check-docs.py.
+BATTLE=SmokeBattleTests
+SHELL=SmokeShellTests
+SHOP=SmokeShopTests
+ONBOARDING=StarterOnboardingSmokeTests

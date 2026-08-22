@@ -19,8 +19,8 @@ Agents always use an isolated path-scoped handoff. Humans may omit `--isolate`
 to reuse the shared warm build tree. Do not regenerate assets during ordinary
 Swift iteration unless an asset manifest or source changed.
 
-Run artifacts are ephemeral by default. Use the owning script's `--help` output
-for keep/cleanup switches when an investigation needs to retain a successful run;
+Run artifacts are ephemeral by default. Use the owning command's documented
+keep/cleanup switches when an investigation needs to retain a successful run;
 failed evidence remains available for triage.
 
 Read these focused guides:
@@ -44,18 +44,21 @@ Read these focused guides:
 | `./Scripts/generate.sh --assets` | Also prepare art, music, SFX, and cinematics |
 | `./Scripts/assert-generated-output.sh --idempotent` | Confirm regeneration produces no diff |
 | `./Scripts/build.sh` | Build the app with the routed local toolchain |
+| `./Scripts/build-for-testing.sh --app-only` | Rebuild the app for `test.sh … --no-build` runs against CI build artifacts |
 | `./Scripts/test-package.sh <Package>` | Run one package's tests |
 | `./Scripts/test.sh unit` | Run all package unit suites |
+| `./Scripts/test-timing.sh report` | Show per-suite wall-time history and hotspots from test runs |
 | `./Scripts/test.sh smoke` | Run the checked-in smoke registry |
 | `./Scripts/test.sh smoke <Class...>` | Run targeted smoke classes |
 | `./Scripts/test.sh ui [Class]` | Run exhaustive UI tests, optionally filtered |
 | `./Scripts/performance.sh` | Ad hoc app + battle performance matrix (not CI) |
 | `./Scripts/agent-context.sh --agent --paths …` | Print concise guidance and verification routing; use `--full` for full commands and `--working-tree --allow-broad-scope` only intentionally |
+| `./Scripts/agent-watch-ci.sh [--sha …]` | Poll a hosted CI run for a commit; prints failed jobs and annotations when red |
 | `./Scripts/handoff.sh --isolate --paths …` | Canonical path-scoped source gate; use `--working-tree` only intentionally |
 | `./Scripts/new-plan.sh <PlanName>` | Scaffold an expiring active execution plan under `Docs/Plans/`; completed plans move to `Docs/Plans/Archived/` |
 | `./Scripts/ci-gate.sh` | Generation, style, boundaries, script regressions, and release-note validation |
 | `./Scripts/ci-assets-gate.sh` | Asset generation, idempotence, and locale-stability gate |
-| `./Scripts/check-docs.py [--final] [--keep-plan]` | Check links, structure, smoke classes, stale terms, and execution-plan lifecycle |
+| `python3 ./Scripts/check-docs.py [--final] [--keep-plan]` | Check links, structure, smoke classes, stale terms, and execution-plan lifecycle |
 | `./Scripts/test-deploy.sh [--mode smoke]` | Full local deploy confidence or smoke canary |
 | `./Scripts/agent-push-gate.sh` | Post-commit generation completeness check |
 | `./Scripts/ci-diagnostics.sh [RESULTS_DIR]` | Aggregate the current diagnostics session |
@@ -69,7 +72,8 @@ Read these focused guides:
 | `./Scripts/balance-sweep.sh` | Run the headless battle balance sweep |
 | `./Scripts/release.sh [--dry-run]` | Preview or execute a release |
 
-Use each command's `--help` for current flags. Pinned tool versions live in
+Use `--help` where a command supports it; this index covers commands without a
+dedicated help mode. Pinned tool versions live in
 `Scripts/tool-versions.env`; package/build/generation roots and test plans live
 in `Scripts/swift-source-dirs.env`; generated-output ownership lives in
 `Scripts/config/generated-paths.tsv`; diagnostic budgets live in

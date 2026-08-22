@@ -67,7 +67,7 @@ def stage(root: Path, artifact_dir: Path) -> None:
     print(f"Staged CI artifacts in {artifact_dir} (category={category})")
 
 
-def sweep_orphans(root: Path, removed: list[int]) -> None:
+def sweep_orphans(root: Path) -> int:
     """Remove bundles/logs whose completion manifest never appeared (crashed runs).
 
     Without this sweep a run killed before manifest write leaves its xcresult and
@@ -79,21 +79,22 @@ def sweep_orphans(root: Path, removed: list[int]) -> None:
     except ValueError:
         max_age_days = 3
     if max_age_days < 0:
-        return
+        return 0
     cutoff = time.time() - max_age_days * 86400
     manifests = {path.name.removesuffix("-invocation.json") for path in root.glob("*-invocation.json")}
+    removed = 0
     for bundle in root.glob("*.xcresult"):
         if bundle.name.removesuffix(".xcresult") in manifests:
             continue
         try:
             if bundle.stat().st_mtime <= cutoff:
                 shutil.rmtree(bundle, ignore_errors=True)
-                removed[0] += 1
+                removed += 1
         except OSError:
             continue
     raw_dir = root / "raw"
     if not raw_dir.is_dir():
-        return
+        return removed
     for log in raw_dir.glob("*.log"):
         stem = log.name.removesuffix(".log")
         # Failed-run evidence with a diagnostics report stays until cleanup --keep
@@ -103,9 +104,10 @@ def sweep_orphans(root: Path, removed: list[int]) -> None:
         try:
             if log.stat().st_mtime <= cutoff:
                 log.unlink()
-                removed[0] += 1
+                removed += 1
         except OSError:
             continue
+    return removed
 
 
 def cleanup(root: Path, keep: bool) -> None:
@@ -150,8 +152,12 @@ def cleanup(root: Path, keep: bool) -> None:
         remove(root / "ci-diagnostics.json", removed)
         remove(root / "timing-log.jsonl", removed)
         remove(root / "raw", removed)
-    sweep_orphans(root, removed)
-    print(f"Cleaned {removed[0]} successful diagnostic artifact(s) from {root}")
+    sweep_orphans_count = sweep_orphans(root)
+    cleaned = removed[0]
+    if sweep_orphans_count:
+        print(f"Cleaned {cleaned} successful diagnostic artifact(s) and {sweep_orphans_count} crashed-run orphan(s) from {root}")
+    else:
+        print(f"Cleaned {cleaned} successful diagnostic artifact(s) from {root}")
 
 
 def main(argv: list[str]) -> int:

@@ -16,6 +16,12 @@ source "$SCRIPT_DIR/build-inputs.sh"
 # shellcheck source=xcode-runner.sh
 source "$SCRIPT_DIR/xcode-runner.sh"
 
+# Local runs: fail fast on post-suite diagnostics hang (45s default is for CI).
+# Keep CI at 45s for full log flush; cut local to 10s so agents get feedback quickly.
+if [[ "${GITHUB_ACTIONS:-}" != "true" && -z "${TRINKET_XCODE_IDLE_TIMEOUT_SECONDS:-}" ]]; then
+  export TRINKET_XCODE_IDLE_TIMEOUT_SECONDS=10
+fi
+
 # Parse arguments
 MODE="unit"
 NO_BUILD=false
@@ -237,6 +243,21 @@ if [[ ! -f "$BUILD_STAMP" && "$RUN_FINGERPRINT" != "$MODE" ]]; then
   # was not stamped (e.g. adding a new smoke/UI class must not break --no-build).
   BUILD_STAMP="$(build_stamp_path "$RESULTS_DIR" "$MODE")"
 fi
+# Automatic build reuse for agents: if inputs are unchanged since the last
+# matching build, run without rebuilding even without an explicit --no-build.
+# This makes the fast path the default; dirty inputs still trigger a rebuild.
+if [[ "$NO_BUILD" == "false" && "$RUN_PACKAGES_ONLY" == "false" ]]; then
+  if [[ -f "$BUILD_STAMP" ]]; then
+    if assert_no_build_inputs_are_fresh "$BUILD_STAMP" "$RUN_FINGERPRINT" >/dev/null 2>&1; then
+      built_app="$DERIVED_DATA_PATH/Build/Products/Debug-iphonesimulator/Trinket.app"
+      if [[ -d "$built_app" ]]; then
+        echo "Build reuse: inputs unchanged since last '$RUN_FINGERPRINT' — running tests without rebuilding."
+        echo "  (No action needed: rebuilds happen automatically when inputs change.)"
+        NO_BUILD=true
+      fi
+    fi
+  fi
+fi
 xcode_runner_prepare "$MODE" "$RESULTS_DIR"
 RESULT_BUNDLE_PATH="$XCODE_RUNNER_RESULT_BUNDLE_PATH"
 XCODEBUILD_LOG_PATH="$XCODE_RUNNER_LOG_PATH"
@@ -444,7 +465,12 @@ fi
 
 if [[ "$RUN_PACKAGES_ONLY" == "true" ]]; then
   echo "Running package tests..."
-  run_package_tests "$ACTION" || exit 1
+  # Mirror the app path: record wall timing before exiting on failure so a
+  # failed package run still contributes a sample to the timing history.
+  if ! run_package_tests "$ACTION"; then
+    record_timing
+    exit 1
+  fi
 fi
 
 if [[ "$NO_BUILD" == "false" && "$RUN_PACKAGES_ONLY" == "false" ]]; then

@@ -205,7 +205,7 @@ trinket_add_smoke_target_for_path() {
     Packages/TrinketBattleFeature/Sources/*|TrinketUITests/Battle/*)
       trinket_add_smoke_target "$TRINKET_SMOKE_CLASS_BATTLE"
       ;;
-    Trinket/Features/Collection/*|Trinket/Features/Homestead/*|Trinket/Features/Options/*|TrinketUITests/Collection/*|TrinketUITests/Homestead/*|TrinketUITests/Support/*)
+    Trinket/Features/Collection/*|Trinket/Features/Homestead/*|Trinket/Features/Options/*|TrinketUITests/Collection/*|TrinketUITests/Support/*)
       trinket_add_smoke_target "$TRINKET_SMOKE_CLASS_SHELL"
       ;;
     Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Shared/AccessibilityID.swift|Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/PreparedArtworkCache.swift|Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/PreparedArtwork.swift)
