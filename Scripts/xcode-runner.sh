@@ -70,12 +70,36 @@ xcode_runner_prepare() {
   export XCODE_RUNNER_LABEL XCODE_RUNNER_RESULT_BUNDLE_PATH XCODE_RUNNER_LOG_PATH XCODE_RUNNER_REPORT_PREFIX
 }
 
+# Run "$@" silently under a wall-clock cap (seconds; macOS has no stock timeout(1)).
+# Returns 124 when the cap fires; otherwise returns the command's exit status.
+xcode_runner_run_bounded() {
+  local cap="$1"
+  shift
+  local remaining=$((cap * 4))
+  "$@" >/dev/null 2>&1 &
+  local pid=$!
+  while (( remaining > 0 )); do
+    kill -0 "$pid" 2>/dev/null || break
+    sleep 0.25
+    remaining=$((remaining - 1))
+  done
+  if kill -0 "$pid" 2>/dev/null; then
+    xcode_runner_kill_tree "$pid"
+    wait "$pid" 2>/dev/null || true
+    return 124
+  fi
+  wait "$pid"
+}
+
 xcode_runner_result_failed() {
   local result_path="${1:-}"
   xcode_runner_result_bundle_complete "$result_path" || return 1
   command -v xcrun >/dev/null 2>&1 || return 1
-  xcrun xcresulttool get test-results summary --path "$result_path" 2>/dev/null \
-    | grep -Eq '"result"[[:space:]]*:[[:space:]]*"Failed"'
+  local summary
+  # A hung xcresulttool must not stall the runner; treat a timeout as "not failed"
+  # and let the failure reporter produce the authoritative verdict.
+  summary="$(xcode_runner_run_bounded 60 xcrun xcresulttool get test-results summary --path "$result_path" 2>/dev/null)" || return 1
+  printf '%s' "$summary" | grep -Eq '"result"[[:space:]]*:[[:space:]]*"Failed"'
 }
 
 xcode_runner_result_bundle_complete() {
@@ -558,7 +582,7 @@ xcode_runner_run() {
       local retryable=$?
       if [[ "$restore_errexit" == "true" ]]; then set -e; else set +e; fi
       if [[ "$retryable" -eq 0 ]]; then
-        echo "xcodebuild infrastructure failure; re-preparing simulator and retrying once..." >&2
+        echo "xcodebuild infrastructure failure; re-preparing simulator (erase + boot ladder) and retrying once..." >&2
         if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
           echo "::warning title=Xcode infrastructure retry::Destination or simulator service failed; retrying once."
         fi

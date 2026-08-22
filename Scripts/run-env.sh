@@ -54,9 +54,12 @@ trinket_simulator_is_active_agent_name() {
 }
 
 # Gracefully stop PosterBoard and wait for simulator process teardown before erase/delete.
+# A real shutdown can take tens of seconds; erase/delete against a device that is still
+# shutting down fails silently and cascades into a full recreate, so wait with headroom.
 trinket_sim_shutdown_wait() {
   local udid="$1"
   local device_set="${2:-}"
+  local timeout_seconds="${TRINKET_SIMULATOR_SHUTDOWN_TIMEOUT_SECONDS:-45}"
 
   if [[ -n "$udid" && "$udid" != "all" ]]; then
     if [[ -n "$device_set" ]]; then
@@ -74,9 +77,11 @@ trinket_sim_shutdown_wait() {
     fi
   fi
 
-  local attempt=0
-  local max_attempts=40
-  while (( attempt < max_attempts )); do
+  [[ "$timeout_seconds" =~ ^[0-9]+$ ]] || timeout_seconds=45
+  (( timeout_seconds > 0 )) || return 0
+
+  local waited=0
+  while (( waited < timeout_seconds )); do
     local state=""
     if [[ -n "$udid" && "$udid" != "all" ]]; then
       local sim_cmd=("xcrun" "simctl")
@@ -84,7 +89,7 @@ trinket_sim_shutdown_wait() {
       sim_cmd+=("list" "devices" "$udid" "-j")
       state="$("${sim_cmd[@]}" 2>/dev/null | trinket_simctl_json state-for-udid "${udid}" 2>/dev/null || true)"
       if [[ "$state" == "Shutdown" || -z "$state" ]]; then
-        break
+        return 0
       fi
     else
       local sim_cmd=("xcrun" "simctl")
@@ -93,12 +98,13 @@ trinket_sim_shutdown_wait() {
       local booted_count=0
       booted_count="$("${sim_cmd[@]}" 2>/dev/null | trinket_simctl_json count-booted 2>/dev/null || echo 0)"
       if (( booted_count == 0 )); then
-        break
+        return 0
       fi
     fi
-    sleep 0.05
-    ((attempt++))
+    sleep 0.25
+    ((waited++))
   done
+  echo "warning: simulator did not reach Shutdown within ${timeout_seconds}s (udid: $udid)" >&2
 }
 
 # Reclaim Xcode Preview simulator devices when the Preview set has entries.

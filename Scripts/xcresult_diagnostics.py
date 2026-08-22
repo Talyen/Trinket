@@ -17,15 +17,26 @@ class ExportedAttachment:
     associated_with_failure: bool
 
 
+# xcresulttool can hang indefinitely on partial or corrupt bundles (common after a
+# watchdog kill); every call is bounded so diagnostics degrade instead of stalling.
+QUERY_TIMEOUT_SECONDS = 120
+ATTACHMENT_EXPORT_TIMEOUT_SECONDS = 300
+
+
 def run_xcresulttool(
     result_bundle: Path,
     arguments: list[str],
+    timeout_seconds: int = QUERY_TIMEOUT_SECONDS,
 ) -> tuple[Any | None, str | None]:
     """Run a supported xcresulttool report API and decode its JSON output."""
 
     command = ["xcrun", "xcresulttool", *arguments, "--path", str(result_bundle), "--compact"]
     try:
-        completed = subprocess.run(command, capture_output=True, text=True, check=False)
+        completed = subprocess.run(
+            command, capture_output=True, text=True, check=False, timeout=timeout_seconds
+        )
+    except subprocess.TimeoutExpired:
+        return None, f"{' '.join(command)} timed out after {timeout_seconds}s"
     except OSError as error:
         return None, f"could not execute {' '.join(command[:3])}: {error}"
     if completed.returncode != 0:
@@ -40,6 +51,7 @@ def run_xcresulttool(
 def export_failure_attachments(
     result_bundle: Path,
     output_dir: Path,
+    timeout_seconds: int = ATTACHMENT_EXPORT_TIMEOUT_SECONDS,
 ) -> tuple[bool, str | None]:
     output_dir.mkdir(parents=True, exist_ok=True)
     manifest = output_dir / "manifest.json"
@@ -59,7 +71,11 @@ def export_failure_attachments(
         "--only-failures",
     ]
     try:
-        completed = subprocess.run(command, capture_output=True, text=True, check=False)
+        completed = subprocess.run(
+            command, capture_output=True, text=True, check=False, timeout=timeout_seconds
+        )
+    except subprocess.TimeoutExpired:
+        return False, f"attachment export timed out after {timeout_seconds}s"
     except OSError as error:
         return False, str(error)
     if completed.returncode != 0:

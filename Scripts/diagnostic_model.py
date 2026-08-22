@@ -222,6 +222,7 @@ class SourceStatus:
     test_summary: bool = False
     tests: bool = False
     test_details: int = 0
+    test_details_skipped: int = 0
     attachments: bool = False
     errors: list[str] = field(default_factory=list)
 
@@ -231,6 +232,7 @@ class SourceStatus:
             "test_summary": self.test_summary,
             "tests": self.tests,
             "test_details": self.test_details,
+            "test_details_skipped": self.test_details_skipped,
             "attachments": self.attachments,
             "errors": [bounded_text(error, line_limit=4, char_limit=1000)[0] for error in self.errors],
         }

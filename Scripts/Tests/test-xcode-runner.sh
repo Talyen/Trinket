@@ -279,4 +279,16 @@ REPORT_CAPTURE="$TMP_DIR/wall-args" \
 grep -F -- "wall-clock" "$wall_terminal"
 grep -F -- "exit 124" "$wall_terminal"
 
+# --- bounded runner: hung helpers die at the cap, fast commands pass through ---
+bounded_run_terminal="$TMP_DIR/bounded-run-terminal"
+bash -c '
+  set -euo pipefail
+  source "$1"
+  xcode_runner_run_bounded 30 true
+  if xcode_runner_run_bounded 1 "$2"; then
+    echo "bounded run unexpectedly succeeded" >&2
+    exit 1
+  fi
+' _ "$RUNNER" "$TMP_DIR/fake-hang-silent" >"$bounded_run_terminal" 2>&1
+
 echo "xcode-runner fake integration tests passed"

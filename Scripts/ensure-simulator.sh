@@ -184,6 +184,19 @@ simulator_matches_name() {
   [[ -n "$actual_name" && "$actual_name" == "$expected_name" ]]
 }
 
+# Ordered recovery for an unhealthy device: graceful shutdown (with real
+# headroom), erase, boot. Erase failures surface loudly instead of being
+# swallowed into a silent recreate cascade.
+erase_and_boot_simulator() {
+  echo "Erasing simulator as recovery: $SIMULATOR_NAME ($SIMULATOR_UDID)"
+  shutdown_and_wait_simulator "$SIMULATOR_UDID"
+  if ! xcrun simctl erase "$SIMULATOR_UDID"; then
+    echo "warning: simctl erase failed for $SIMULATOR_UDID; falling back to recreate" >&2
+    return 1
+  fi
+  boot_simulator
+}
+
 ensure_test_simulator() {
   local force="${1:-}"
   local attempt=1
@@ -199,48 +212,25 @@ ensure_test_simulator() {
   fi
   SIMULATOR_NAME="$owned_name"
 
-  if [[ -n "${SIMULATOR_UDID:-}" && -z "$force" ]]; then
-    if boot_simulator; then
-      SIMULATOR_DESTINATION="platform=iOS Simulator,id=$SIMULATOR_UDID"
-      return 0
-    fi
-  fi
-
-  if [[ -n "${SIMULATOR_UDID:-}" && -n "$force" ]]; then
-    echo "Force-resetting simulator (erase): $SIMULATOR_NAME ($SIMULATOR_UDID)"
-    shutdown_and_wait_simulator "$SIMULATOR_UDID"
-    if xcrun simctl erase "$SIMULATOR_UDID" 2>/dev/null; then
-      if boot_simulator; then
-        SIMULATOR_DESTINATION="platform=iOS Simulator,id=$SIMULATOR_UDID"
-        echo "Simulator ready after erase: $SIMULATOR_DESTINATION"
-        return 0
-      fi
-    fi
-    echo "Erase/reboot failed; deleting simulator and recreating..." >&2
-    discard_simulator
+  if [[ -z "$force" && -n "${SIMULATOR_UDID:-}" ]] && boot_simulator; then
+    SIMULATOR_DESTINATION="platform=iOS Simulator,id=$SIMULATOR_UDID"
+    return 0
   fi
 
   while (( attempt <= max_attempts )); do
+    if [[ -n "${SIMULATOR_UDID:-}" ]] && erase_and_boot_simulator; then
+      SIMULATOR_DESTINATION="platform=iOS Simulator,id=$SIMULATOR_UDID"
+      echo "Simulator ready after erase: $SIMULATOR_DESTINATION"
+      return 0
+    fi
+    if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
+      echo "::warning title=Simulator infrastructure retry::Cold boot failed; retrying after erase/recreate."
+    fi
+    [[ -n "${SIMULATOR_UDID:-}" ]] && discard_simulator
     if resolve_or_create_simulator && boot_simulator; then
       SIMULATOR_DESTINATION="platform=iOS Simulator,id=$SIMULATOR_UDID"
       echo "Simulator ready: $SIMULATOR_DESTINATION"
       return 0
-    fi
-
-    if (( attempt < max_attempts )); then
-      echo "Simulator setup failed; erasing and retrying once..." >&2
-      if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
-        echo "::warning title=Simulator infrastructure retry::Cold boot failed; retrying once after erase (or recreate)."
-      fi
-      if [[ -n "${SIMULATOR_UDID:-}" ]]; then
-        shutdown_and_wait_simulator "$SIMULATOR_UDID"
-        if xcrun simctl erase "$SIMULATOR_UDID" 2>/dev/null && boot_simulator; then
-          SIMULATOR_DESTINATION="platform=iOS Simulator,id=$SIMULATOR_UDID"
-          echo "Simulator ready after erase retry: $SIMULATOR_DESTINATION"
-          return 0
-        fi
-        discard_simulator
-      fi
     fi
     ((attempt++))
   done

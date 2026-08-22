@@ -30,6 +30,10 @@ except ModuleNotFoundError:
     )
     from Scripts.diagnostic_rendering import render_annotation, render_markdown, render_terminal, write_report
 
+# Each detail fetch is a separate xcresulttool process; summary/test-node parsing already
+# yields file, line, and message for most failures. Cap enrichment to bound bad-run latency.
+MAX_TEST_DETAIL_FETCHES = 5
+
 
 def _value(value: Any, default: Any = "") -> Any:
     if isinstance(value, dict) and "_value" in value:
@@ -461,7 +465,10 @@ def build_report(args: argparse.Namespace) -> DiagnosticReport:
         elif error:
             sources.errors.append(error)
 
-        for test_id in failed_test_ids:
+        for index, test_id in enumerate(failed_test_ids):
+            if index >= MAX_TEST_DETAIL_FETCHES:
+                sources.test_details_skipped += len(failed_test_ids) - MAX_TEST_DETAIL_FETCHES
+                break
             detail, error = xcresult.run_xcresulttool(
                 result_bundle,
                 ["get", "test-results", "test-details", "--test-id", test_id],

@@ -56,6 +56,13 @@ if [[ "$#" -ge 3 && "$1" == "simctl" && "$2" == "spawn" ]]; then
 fi
 
 if [[ "$#" -ge 4 && "$1" == "simctl" && "$2" == "list" && "$3" == "devices" ]]; then
+  # With FAKE_SHUTDOWN_COMPLETES=1, a udid recorded in the shutdown log reports
+  # Shutdown — modeling real teardown instead of stalling shutdown waits.
+  if [[ "${FAKE_SHUTDOWN_COMPLETES:-0}" == "1" && -n "${4:-}" && -s "$FAKE_SHUTDOWN_LOG" ]] \
+    && grep -Fxq "$4" "$FAKE_SHUTDOWN_LOG"; then
+    printf '{"devices":{"com.apple.CoreSimulator.SimRuntime.iOS-26-5":[{"name":"%s","udid":"%s","state":"Shutdown"}]}}\n' "$4" "$4"
+    exit 0
+  fi
   cat <<'JSON'
 {"devices":{"com.apple.CoreSimulator.SimRuntime.iOS-26-5":[{"name":"Trinket Agent 1","udid":"agent-1","state":"Booted"},{"name":"Trinket Run","udid":"ci-1","state":"Shutdown"}],"com.apple.CoreSimulator.SimRuntime.iOS-27-0":[{"name":"Trinket Agent 2","udid":"agent-2","state":"Booted"},{"name":"Trinket Agent 3","udid":"agent-3","state":"Shutdown"},{"name":"iPhone 17 Pro","udid":"personal-device","state":"Booted"}]}}
 JSON
@@ -413,6 +420,7 @@ bash -c '
   export FAKE_ERASE_LOG="$5"
   export TRINKET_ISOLATE=1 TRINKET_RUN_ID="single-warm"
   export TRINKET_CLEANUP_DERIVED_DATA_AGE_PRUNE=0
+  export FAKE_SHUTDOWN_COMPLETES=1
   unset DERIVED_DATA_PATH RESULTS_DIR TRINKET_SIMULATOR_NAME TRINKET_AGENT_SLOT TRINKET_SIM_SLOT_PATH
   unset TRINKET_SELF_CLEAN_OWNER TRINKET_CLEANUP_SINGLE_WARMED
   source Scripts/run-env.sh
@@ -439,6 +447,7 @@ bash -c '
   export FAKE_ERASE_LOG="$5"
   export TRINKET_ISOLATE=1 TRINKET_RUN_ID="held-peer"
   export TRINKET_CLEANUP_DERIVED_DATA_AGE_PRUNE=0
+  export FAKE_SHUTDOWN_COMPLETES=1
   unset DERIVED_DATA_PATH RESULTS_DIR TRINKET_SIMULATOR_NAME TRINKET_AGENT_SLOT TRINKET_SIM_SLOT_PATH
   unset TRINKET_SELF_CLEAN_OWNER
   source Scripts/run-env.sh
@@ -493,6 +502,7 @@ bash -c '
   unset DERIVED_DATA_PATH RESULTS_DIR TRINKET_SIMULATOR_NAME TRINKET_SIM_SLOT_PATH
   unset TRINKET_SELF_CLEAN_OWNER TRINKET_CLEANUP_SINGLE_WARMED
   export TRINKET_CLEANUP_DERIVED_DATA_AGE_PRUNE=0
+  export FAKE_SHUTDOWN_COMPLETES=1
   source Scripts/run-env.sh
   trinket_run_env_init
   [[ "$TRINKET_SIMULATOR_NAME" == "Trinket Run" ]]
@@ -563,5 +573,23 @@ bash -c '
   fi
   rm -rf "$TRINKET_GENERATE_LOCK_DIR"
 ' _ "$REPO"
+
+# --- shutdown wait honors TRINKET_SIMULATOR_SHUTDOWN_TIMEOUT_SECONDS ---
+bash -c '
+  set -euo pipefail
+  cd "$1"
+  export PATH="$2:$PATH"
+  export FAKE_SHUTDOWN_COMPLETES=0
+  source Scripts/run-env.sh
+  # Fake device list keeps agent-1 Booted forever, so the wait must hit its cap.
+  started=$SECONDS
+  warning="$(TRINKET_SIMULATOR_SHUTDOWN_TIMEOUT_SECONDS=1 trinket_sim_shutdown_wait agent-1 2>&1)"
+  elapsed=$(( SECONDS - started ))
+  (( elapsed <= 5 ))
+  [[ "$warning" == *"did not reach Shutdown within 1s"* ]]
+  # A device that reports Shutdown (or an unknown udid) returns without waiting.
+  TRINKET_SIMULATOR_SHUTDOWN_TIMEOUT_SECONDS=10 trinket_sim_shutdown_wait ci-1 >/dev/null
+  TRINKET_SIMULATOR_SHUTDOWN_TIMEOUT_SECONDS=0 trinket_sim_shutdown_wait agent-1 >/dev/null
+' _ "$REPO" "$FAKE_BIN"
 
 echo "run-env isolation tests passed"
