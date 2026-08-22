@@ -39,7 +39,8 @@ public enum BattleLoot {
         itemID: String,
         keywordBias: Set<Keyword> = [],
         ownedTrinketIDs: Set<String> = [],
-        goldPercent: Int = 0,
+        goldFoundPercent: Int = 0,
+        materialsFoundPercent: Int = 0,
         astralChanceBonusPercent: Int = 0,
         using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> BattleLootPackage {
@@ -47,16 +48,22 @@ public enum BattleLoot {
         let multiplier = enemyIsBoss ? 2 : 1
 
         var gold = Int.random(in: range, using: &randomNumberGenerator) * multiplier
-        if goldPercent != 0 {
-            gold = max(0, gold + (gold * goldPercent) / 100)
+        if goldFoundPercent != 0 {
+            gold = max(0, gold + (gold * goldFoundPercent) / 100)
         }
 
-        let materials = rollDistinctMaterials(
+        var materials = rollDistinctMaterials(
             count: 2,
             range: range,
             quantityMultiplier: multiplier,
             using: &randomNumberGenerator
         )
+        if materialsFoundPercent != 0 {
+            let factor = max(0, 100 + materialsFoundPercent)
+            materials = materials.map {
+                ResourceAmount($0.resource, max(0, $0.quantity * factor / 100))
+            }
+        }
 
         let rarity: Rarity = if enemyIsBoss {
             .astral
@@ -148,8 +155,9 @@ public enum BattleLoot {
             itemID: "labyrinth-\(node.id)",
             keywordBias: [],
             ownedTrinketIDs: ownedTrinketIDs,
-            goldPercent: effects.goldPercent,
-            astralChanceBonusPercent: effects.astralChanceBonusPercent + astralChanceBonusPercent,
+            goldFoundPercent: effects.goldFoundPercent,
+            materialsFoundPercent: effects.materialsFoundPercent,
+            astralChanceBonusPercent: astralChanceBonusPercent,
             using: &rng
         )
     }

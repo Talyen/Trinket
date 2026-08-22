@@ -21,10 +21,12 @@ public enum CorruptionEffectSummary: Equatable, Sendable {
 }
 
 public struct ItemCorruptionResult: Equatable, Sendable {
+    public var originalItem: InventoryItem
     public var item: InventoryItem
     public var effects: [CorruptionEffectSummary]
 
-    public init(item: InventoryItem, effects: [CorruptionEffectSummary]) {
+    public init(originalItem: InventoryItem, item: InventoryItem, effects: [CorruptionEffectSummary]) {
+        self.originalItem = originalItem
         self.item = item
         self.effects = effects
     }
@@ -48,7 +50,7 @@ public enum ItemCorruption {
     public static let upgradeRarityChancePercent = 25
 
     public static func isEligibleTarget(_ item: InventoryItem) -> Bool {
-        !item.isTrinket && !item.isCorrupted && !item.affixes.isEmpty
+        !item.isTrinket && !(item.isCorrupted || item.hasCorruptedAffix) && !item.affixes.isEmpty
     }
 
     public static func eligibleTargets(in inventory: PlayerInventoryState) -> [InventoryItem] {
@@ -126,11 +128,13 @@ public enum ItemCorruption {
         var affixIDs = item.affixes.map(\.id)
         var summaries: [CorruptionEffectSummary] = []
         var rarity = item.rarity
+        var markCandidates: [(CorruptionMarkPriority, Int)] = []
 
         applyStructuralEffects(
             kinds: kinds,
             affixIDs: &affixIDs,
             summaries: &summaries,
+            markCandidates: &markCandidates,
             using: &randomNumberGenerator
         )
 
@@ -147,16 +151,27 @@ public enum ItemCorruption {
             powers: &powers,
             affixIDs: affixIDs,
             summaries: &summaries,
+            markCandidates: &markCandidates,
             using: &randomNumberGenerator
         )
 
-        let affixes: [ItemAffix] = zip(affixIDs, powers).compactMap { id, power in
-            guard let definition = GameContent.itemAffixDefinition(matching: id) else { return nil }
+        // Exactly one surviving affix carries the corruption mark.
+        let corruptedIndex = corruptedMarkIndex(
+            count: affixIDs.count,
+            candidates: markCandidates,
+            using: &randomNumberGenerator
+        )
+
+        let affixes: [ItemAffix] = zip(affixIDs.indices, affixIDs).compactMap { index, id in
+            guard index < powers.count, let definition = GameContent.itemAffixDefinition(matching: id) else {
+                return nil
+            }
             return ItemAffix(
                 id: definition.id,
                 title: definition.title,
-                description: power.description,
-                keywords: definition.keywords
+                description: powers[index].description,
+                keywords: definition.keywords,
+                isCorrupted: index == corruptedIndex
             )
         }
 
@@ -170,13 +185,39 @@ public enum ItemCorruption {
             isCorrupted: true,
             affixPowers: powers
         )
-        return ItemCorruptionResult(item: mutated, effects: summaries)
+        return ItemCorruptionResult(originalItem: item, item: mutated, effects: summaries)
+    }
+
+    private static func corruptedMarkIndex(
+        count: Int,
+        candidates: [(CorruptionMarkPriority, Int)],
+        using randomNumberGenerator: inout some RandomNumberGenerator
+    ) -> Int? {
+        guard count > 0 else { return nil }
+        let preferred = candidates
+            .filter { $0.1 >= 0 && $0.1 < count }
+            .min { $0.0 < $1.0 }
+        return preferred?.1 ?? Int.random(in: 0 ..< count, using: &randomNumberGenerator)
+    }
+
+    /// Priority order for the item's single corruption mark: newest corruption-made
+    /// affix first, then remade, then power-shifted.
+    private enum CorruptionMarkPriority: Int, Comparable {
+        case added
+        case replaced
+        case empowered
+        case weakened
+
+        static func < (lhs: Self, rhs: Self) -> Bool {
+            lhs.rawValue < rhs.rawValue
+        }
     }
 
     private static func applyStructuralEffects(
         kinds: Set<CorruptionEffectKind>,
         affixIDs: inout [String],
         summaries: inout [CorruptionEffectSummary],
+        markCandidates: inout [(CorruptionMarkPriority, Int)],
         using randomNumberGenerator: inout some RandomNumberGenerator
     ) {
         let catalog = GameContent.itemAffixDefinitions
@@ -195,6 +236,7 @@ public enum ItemCorruption {
             if let replacement = weightedPick(from: pool, using: &randomNumberGenerator) {
                 affixIDs[index] = replacement.id
                 summaries.append(.replacedAffix(from: fromTitle, to: replacement.title))
+                markCandidates.append((.replaced, index))
             }
         }
 
@@ -203,6 +245,7 @@ public enum ItemCorruption {
             if let added = weightedPick(from: pool, using: &randomNumberGenerator) {
                 affixIDs.append(added.id)
                 summaries.append(.addedAffix(title: added.title))
+                markCandidates.append((.added, affixIDs.count - 1))
             }
         }
     }
@@ -212,6 +255,7 @@ public enum ItemCorruption {
         powers: inout [ItemAffixPower],
         affixIDs: [String],
         summaries: inout [CorruptionEffectSummary],
+        markCandidates: inout [(CorruptionMarkPriority, Int)],
         using randomNumberGenerator: inout some RandomNumberGenerator
     ) {
         if kinds.contains(.bumpUp),
@@ -221,7 +265,8 @@ public enum ItemCorruption {
                affixIDs: affixIDs,
                using: &randomNumberGenerator
            ) {
-            summaries.append(.bumpedUp(affixTitle: bump))
+            summaries.append(.bumpedUp(affixTitle: bump.title))
+            markCandidates.append((.empowered, bump.affixIndex))
         }
         if kinds.contains(.bumpDown),
            let bump = AffixPowerBump.apply(
@@ -230,7 +275,8 @@ public enum ItemCorruption {
                affixIDs: affixIDs,
                using: &randomNumberGenerator
            ) {
-            summaries.append(.bumpedDown(affixTitle: bump))
+            summaries.append(.bumpedDown(affixTitle: bump.title))
+            markCandidates.append((.weakened, bump.affixIndex))
         }
     }
 

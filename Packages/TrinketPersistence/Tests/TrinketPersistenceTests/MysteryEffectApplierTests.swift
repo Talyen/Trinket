@@ -61,6 +61,44 @@ struct MysteryEffectApplierTests {
         )
     }
 
+    @Test func mysteryRewardPercentBonusesScaleGrants() throws {
+        let effects: [MysteryEffect] = [.gainGold(20), .gainMaterial(.herbs), .gainExperience]
+
+        var baselineSave = SaveTestSupport.makeSave()
+        var baselineRNG = SeededRandomNumberGenerator(seed: 1)
+        let baseline = MysteryEffectApplier.apply(
+            effects,
+            stageID: "chapter-1-stage-2",
+            choiceID: "harvest",
+            encounterLevel: 1,
+            save: &baselineSave,
+            using: &baselineRNG
+        )
+
+        var save = SaveTestSupport.makeSave()
+        var rng = SeededRandomNumberGenerator(seed: 1)
+        let boosted = MysteryEffectApplier.apply(
+            effects,
+            stageID: "chapter-1-stage-2",
+            choiceID: "harvest",
+            encounterLevel: 1,
+            save: &save,
+            using: &rng,
+            goldFoundPercent: 25,
+            experienceEarnedPercent: 25,
+            materialsFoundPercent: 25
+        )
+
+        #expect(boosted.grantedGold == baseline.grantedGold + (baseline.grantedGold * 25) / 100)
+        let baselineXP = baseline.heroGrantedExperience + baseline.companionGrantedExperience
+        let boostedXP = boosted.heroGrantedExperience + boosted.companionGrantedExperience
+        #expect(boostedXP == baselineXP + (baselineXP * 25) / 100)
+        let baseQuantity = MysteryEffectApplier.materialQuantity(forLevel: 1)
+        try #expect(
+            boosted.grantedMaterials == [ResourceAmount(.herbs, (baseQuantity * 125) / 100)]
+        )
+    }
+
     @Test func gainExperienceScalesPerRecipientLevel() throws {
         var save = SaveTestSupport.makeSave()
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })

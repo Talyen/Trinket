@@ -28,7 +28,7 @@ enum AffixPowerBump {
         to powers: inout [ItemAffixPower],
         affixIDs: [String],
         using randomNumberGenerator: inout some RandomNumberGenerator
-    ) -> String? {
+    ) -> (title: String, affixIndex: Int)? {
         var candidates: [(powerIndex: Int, target: Target)] = []
         for (powerIndex, power) in powers.enumerated() {
             for (index, modifier) in power.modifiers.enumerated()
@@ -43,8 +43,9 @@ enum AffixPowerBump {
             return nil
         }
         powers[pick.powerIndex] = apply(target: pick.target, to: powers[pick.powerIndex], direction: direction)
-        return GameContent.itemAffixDefinition(matching: affixIDs[pick.powerIndex])?.title
+        let title = GameContent.itemAffixDefinition(matching: affixIDs[pick.powerIndex])?.title
             ?? affixIDs[pick.powerIndex]
+        return (title, pick.powerIndex)
     }
 
     private enum TriggerTarget: Sendable {

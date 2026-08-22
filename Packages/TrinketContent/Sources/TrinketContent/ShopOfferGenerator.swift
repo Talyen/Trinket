@@ -29,6 +29,8 @@ public enum ShopOfferGenerator {
         itemGenerator: ItemGenerator = ItemGenerator(),
         ownedTrinketIDs: Set<String> = [],
         astralChanceBonusPercent: Int = 0,
+        allAstral: Bool = false,
+        priceDiscountPercent: Int = 0,
         using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> [ShopOffer] {
         guard count > 0, !baseTypes.isEmpty else { return [] }
@@ -40,6 +42,8 @@ public enum ShopOfferGenerator {
         for index in 0 ..< count {
             let rarity: Rarity = if isStarterShop {
                 .basic
+            } else if allAstral {
+                .astral
             } else {
                 MysteryItemRarity.roll(
                     astralChanceBonusPercent: astralChanceBonusPercent,
@@ -50,6 +54,8 @@ public enum ShopOfferGenerator {
             var price = rarity == .astral ? basePrice * astralPriceMultiplier : basePrice
             if isStarterShop {
                 price = max(1, (price * starterShopPriceDiscountPercent) / 100)
+            } else if priceDiscountPercent > 0 {
+                price = max(1, (price * (100 - min(priceDiscountPercent, 100))) / 100)
             }
             let offerID = "\(stageID)-offer-\(index)"
             let item = ItemRewardGenerator.generate(

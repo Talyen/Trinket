@@ -200,6 +200,7 @@ public enum ItemSlot: String, CaseIterable, Identifiable, Hashable, Sendable {
     case accessory = "Accessory"
     case secondaryAccessory = "Secondary Accessory"
     case trinket = "Trinket"
+    case secondaryTrinket = "Secondary Trinket"
 
     public var id: String {
         rawValue
@@ -212,6 +213,8 @@ public enum ItemSlot: String, CaseIterable, Identifiable, Hashable, Sendable {
             .weapon
         case .secondaryAccessory:
             .accessory
+        case .secondaryTrinket:
+            .trinket
         default:
             self
         }
@@ -223,6 +226,8 @@ public enum ItemSlot: String, CaseIterable, Identifiable, Hashable, Sendable {
             Self.weapon.rawValue
         case .secondaryAccessory:
             Self.accessory.rawValue
+        case .secondaryTrinket:
+            Self.trinket.rawValue
         default:
             rawValue
         }
@@ -238,7 +243,7 @@ public enum ItemSlot: String, CaseIterable, Identifiable, Hashable, Sendable {
             "wand.and.sparkles"
         case .armor:
             "shield.fill"
-        case .accessory, .secondaryAccessory, .trinket:
+        case .accessory, .secondaryAccessory, .trinket, .secondaryTrinket:
             "diamond.fill"
         }
     }

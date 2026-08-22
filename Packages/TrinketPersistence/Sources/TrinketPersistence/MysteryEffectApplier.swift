@@ -101,9 +101,16 @@ public enum MysteryEffectApplier {
         save: inout PlayerSave,
         using randomNumberGenerator: inout some RandomNumberGenerator,
         itemGenerator: ItemGenerator = ItemGenerator(),
-        baseTypes: [ItemBaseType] = GameContent.itemBaseTypes
+        baseTypes: [ItemBaseType] = GameContent.itemBaseTypes,
+        goldFoundPercent: Int = 0,
+        experienceEarnedPercent: Int = 0,
+        materialsFoundPercent: Int = 0
     ) -> MysteryEffectApplyResult {
-        var state = ApplyState(materialQuantity: materialQuantity(forLevel: encounterLevel))
+        var state = ApplyState(
+            materialQuantity: scaledQuantity(materialQuantity(forLevel: encounterLevel), percent: materialsFoundPercent),
+            goldFoundPercent: goldFoundPercent,
+            experienceEarnedPercent: experienceEarnedPercent
+        )
         let hero = save.roster.activeHero
         let companion = save.roster.activeCompanion
         let heroProgressionBefore = save.roster.progression(for: hero)
@@ -127,20 +134,36 @@ public enum MysteryEffectApplier {
                 using: &randomNumberGenerator
             )
         }
+        return finalize(
+            &state,
+            save: &save,
+            hero: hero,
+            companion: companion,
+            heroProgressionBefore: heroProgressionBefore,
+            companionProgressionBefore: companionProgressionBefore
+        )
+    }
 
+    /// Grants accumulated materials and snapshots progression deltas onto the result.
+    private static func finalize(
+        _ state: inout ApplyState,
+        save: inout PlayerSave,
+        hero: Combatant,
+        companion: Combatant,
+        heroProgressionBefore: CombatantProgression,
+        companionProgressionBefore: CombatantProgression
+    ) -> MysteryEffectApplyResult {
         let materials = state.materialTotals.map { ResourceAmount($0.key, $0.value) }
             .sorted { $0.resource.rawValue < $1.resource.rawValue }
         if !materials.isEmpty {
             state.result.grantedMaterials = save.grantMaterials(materials)
         }
-
         if state.result.hasGrantedExperience {
             state.result.heroProgressionBefore = heroProgressionBefore
             state.result.heroProgressionAfter = save.roster.progression(for: hero)
             state.result.companionProgressionBefore = companionProgressionBefore
             state.result.companionProgressionAfter = save.roster.progression(for: companion)
         }
-
         return state.result
     }
 
@@ -161,6 +184,21 @@ public enum MysteryEffectApplier {
         var materialTotals: [HomesteadResource: Int] = [:]
         var itemOrdinal = 0
         let materialQuantity: Int
+        let goldFoundPercent: Int
+        let experienceEarnedPercent: Int
+    }
+
+    private static func scaledQuantity(_ quantity: Int, percent: Int) -> Int {
+        guard percent != 0 else { return quantity }
+        return max(0, (quantity * (100 + percent)) / 100)
+    }
+
+    private static func scaledAward(
+        for progression: CombatantProgression,
+        highestLevel: Int,
+        percent: Int
+    ) -> Int {
+        scaledQuantity(experienceAward(for: progression, highestLevel: highestLevel), percent: percent)
     }
 
     private static func apply(
@@ -175,23 +213,23 @@ public enum MysteryEffectApplier {
         switch effect {
         case let .gainGold(amount):
             guard amount > 0 else { return }
-            let granted = save.grantGold(save.homestead.effects.adjustedGold(amount))
-            state.result.grantedGold += granted
+            let scaled = scaledQuantity(amount, percent: state.goldFoundPercent)
+            state.result.grantedGold += save.grantGold(save.homestead.effects.adjustedGold(scaled))
 
         case let .gainMaterial(resource):
             guard resource != .gold else { return }
             state.materialTotals[resource, default: 0] += state.materialQuantity
 
         case .gainExperience:
-            let heroProgression = save.roster.progression(for: hero)
-            let companionProgression = save.roster.progression(for: companion)
-            let heroAward = experienceAward(
-                for: heroProgression,
-                highestLevel: save.roster.highestHeroLevel
+            let heroAward = scaledAward(
+                for: save.roster.progression(for: hero),
+                highestLevel: save.roster.highestHeroLevel,
+                percent: state.experienceEarnedPercent
             )
-            let companionAward = experienceAward(
-                for: companionProgression,
-                highestLevel: save.roster.highestCompanionLevel
+            let companionAward = scaledAward(
+                for: save.roster.progression(for: companion),
+                highestLevel: save.roster.highestCompanionLevel,
+                percent: state.experienceEarnedPercent
             )
             state.result.heroGrantedExperience += save.roster.grantExperience(heroAward, to: hero)
             state.result.companionGrantedExperience += save.roster.grantExperience(

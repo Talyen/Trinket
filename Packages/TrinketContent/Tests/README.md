@@ -10,7 +10,7 @@ Test ownership for `Packages/TrinketContent/Tests/TrinketContentTests/`.
 | Combatant catalog graph | `CombatantCatalogTests` | ID uniqueness, stage→enemy links, hero/companion loadouts |
 | Homestead node catalog | `HomesteadCatalogTests` | Node IDs, tiers, unlock graph |
 | Combatant talent trees | `CombatantTalentCatalogTests` | 3×6 nodes, affinities, authored IDs, no placeholders |
-| Trigger family codegen | `TriggerFieldGroupParityTests` | Generated `*Triggers` fields ↔ `trigger_family_schema.json` |
+| Trigger family schema | `content_codegen.py` generation-time validation | Generated `*Triggers` fields must match `trigger_family_schema.json`; generation fails on drift |
 | Catalog cross-invariants | `GameContentCatalogInvariantTests` | Cross-catalog ID and wiring checks |
 | Enemy traits | `GameContentTraitCatalogTests` | Enemy→trait ID refs and non-empty trait copy |
 | Enemy balance classification | `EnemyCatalogTests` | Normal/boss bands, kits, HP bands |

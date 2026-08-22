@@ -14,8 +14,8 @@ struct PlayBattleLaunchTests {
         PlayBattleLaunch.assembleLaunch(
             input: input,
             rngSeed: 0,
-            rosterState: .initial,
-            inventoryState: .initial
+            rosterState: .testSeed,
+            inventoryState: .testSeed
         )
     }
 
@@ -56,8 +56,8 @@ struct PlayBattleLaunchTests {
                 universalModifiers: [modifier]
             ),
             rngSeed: 0,
-            rosterState: .initial,
-            inventoryState: .initial
+            rosterState: .testSeed,
+            inventoryState: .testSeed
         )
 
         let configuration = launch.configuration
@@ -83,8 +83,8 @@ struct PlayBattleLaunchTests {
                 labyrinthModifiers: modifiers
             ),
             rngSeed: 0,
-            rosterState: .initial,
-            inventoryState: .initial
+            rosterState: .testSeed,
+            inventoryState: .testSeed
         )
 
         #expect(launch.presentation.labyrinthModifiers == modifiers)
@@ -107,8 +107,8 @@ struct PlayBattleLaunchTests {
             ),
             runKey: BattleRunKey("journey|\(stage.id)"),
             rngSeed: 0,
-            rosterState: .initial,
-            inventoryState: .initial,
+            rosterState: .testSeed,
+            inventoryState: .testSeed,
             homesteadState: homestead,
             hasProgressionRewards: true,
             musicStageID: stage.id
@@ -141,8 +141,8 @@ struct PlayBattleLaunchTests {
             ),
             runKey: BattleRunKey("journey|\(stage.id)"),
             rngSeed: 0,
-            rosterState: .initial,
-            inventoryState: .initial,
+            rosterState: .testSeed,
+            inventoryState: .testSeed,
             hasProgressionRewards: true,
             musicStageID: stage.id
         ).configuration
@@ -170,8 +170,8 @@ struct PlayBattleLaunchTests {
                 stageReward: stageReward
             ),
             rngSeed: 0,
-            rosterState: .initial,
-            inventoryState: .initial,
+            rosterState: .testSeed,
+            inventoryState: .testSeed,
             hasProgressionRewards: true
         )
 

@@ -233,6 +233,12 @@ extension MysteryEncounterSession {
         guard canResolveChoice else { return .failed }
         markChoiceStarted()
 
+        /// Labyrinth economy modifiers (Bounty Mark etc.) boost this node's rewards.
+        func mysteryRewardBonuses(in save: PlayerSave) -> LabyrinthModifierEffects {
+            guard let labyrinthNodeID else { return .zero }
+            return save.labyrinth.effects(for: labyrinthNodeID)
+        }
+
         // A `nil` choiceID is the single-choice auto-resolve path. A stale or
         // mismatched ID must fail rather than silently fall through to the
         // first choice and grant its rewards.
@@ -261,6 +267,7 @@ extension MysteryEncounterSession {
             return .dismiss
         }
 
+        let rewardBonuses = mysteryRewardBonuses(in: save)
         let applyResult = MysteryEffectApplier.apply(
             choice.effects,
             stageID: stage.id,
@@ -271,7 +278,10 @@ extension MysteryEncounterSession {
                 save: save
             ),
             save: &save,
-            using: &randomNumberGenerator
+            using: &randomNumberGenerator,
+            goldFoundPercent: rewardBonuses.goldFoundPercent,
+            experienceEarnedPercent: rewardBonuses.experienceEarnedPercent,
+            materialsFoundPercent: rewardBonuses.materialsFoundPercent
         )
 
         if !applyResult.unlockedCombatantIDs.isEmpty {

@@ -53,7 +53,9 @@ public final class ShopEncounterSession: Identifiable {
         origin: PlayEncounterOrigin,
         worldSeed: UInt64,
         ownedTrinketIDs: Set<String>,
-        astralChanceBonusPercent: Int
+        astralChanceBonusPercent: Int,
+        allAstral: Bool = false,
+        priceDiscountPercent: Int = 0
     ) -> ShopEncounterOpenResult {
         if case let .journey(stage) = origin {
             guard case .shop = stage.encounter else { return .unavailable }
@@ -67,6 +69,8 @@ public final class ShopEncounterSession: Identifiable {
             stageID: resolvedStage.id,
             ownedTrinketIDs: ownedTrinketIDs,
             astralChanceBonusPercent: astralChanceBonusPercent,
+            allAstral: allAstral,
+            priceDiscountPercent: priceDiscountPercent,
             using: &randomNumberGenerator
         )
         guard !offers.isEmpty else {

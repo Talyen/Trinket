@@ -30,19 +30,12 @@ public final class InventoryItemModel {
 
     public init() {}
 
-    public init(item: InventoryItem) {
-        id = item.id
-        templateID = item.templateID
-        baseTypeID = item.baseType.id
-        rarityID = item.rarity.rawValue
-        displayName = item.displayName
-        isCorrupted = item.isCorrupted
-        applyAffixPowers(from: item)
-        affixes = item.affixes.enumerated().map { index, affix in
-            let model = ItemAffixModel(affix: affix)
-            model.sortIndex = index
-            return model
-        }
+    /// Insert path. Delegates to `update(from:context:)` so inserted and updated
+    /// rows copy the same fields — a new `InventoryItem` property cannot be
+    /// persisted one way and silently dropped the other.
+    public convenience init(item: InventoryItem) {
+        self.init()
+        update(from: item, context: nil)
     }
 
     func applyAffixPowers(from item: InventoryItem) {
@@ -67,6 +60,7 @@ public final class ItemAffixModel {
     public var title: String = ""
     public var affixDescription: String = ""
     public var keywordRawValues: [String] = []
+    public var isCorrupted: Bool = false
     public var sortIndex: Int = 0
     public var item: InventoryItemModel?
 
@@ -77,5 +71,6 @@ public final class ItemAffixModel {
         title = affix.title
         affixDescription = affix.description
         keywordRawValues = affix.keywords.map(\.rawValue).sorted()
+        isCorrupted = affix.isCorrupted
     }
 }

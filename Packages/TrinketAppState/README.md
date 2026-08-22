@@ -1,7 +1,7 @@
 # TrinketAppState
 
 Application composition and player-flow orchestration. Launch/DTO contract:
-[battle.md](../../Docs/AgentContext/battle.md). Audio layering: [audio.md](../../Docs/AgentContext/audio.md).
+[battle-runtime.md](../../Docs/AgentContext/battle-runtime.md). Audio layering: [audio.md](../../Docs/AgentContext/audio.md).
 
 ## Ownership
 

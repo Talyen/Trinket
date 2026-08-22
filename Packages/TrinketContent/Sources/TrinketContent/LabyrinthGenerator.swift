@@ -323,20 +323,20 @@ public enum LabyrinthGenerator {
         hasEligibleRecruit: Bool,
         using rng: inout some RandomNumberGenerator
     ) -> [LabyrinthNodeType] {
-        var nonCombat: [LabyrinthNodeType] = [.shop, .rest, .mystery, .craft]
+        var nonCombat: [LabyrinthNodeType] = [.shop, .rest, .mystery]
         if hasEligibleRecruit {
             nonCombat.append(.recruit)
         }
         nonCombat.shuffle(using: &rng)
 
         var middle = Array(nonCombat.prefix(min(3, count - 2)))
-        var weighted: [LabyrinthNodeType] = [.battle, .battle, .battle, .mystery, .rest, .craft, .shop]
+        var weighted: [LabyrinthNodeType] = [.battle, .battle, .battle, .mystery, .rest, .shop]
         if hasEligibleRecruit, !middle.contains(.recruit) {
             weighted.append(.recruit)
         }
         while middle.count < count - 2 {
             let next = weighted.randomElement(using: &rng) ?? .battle
-            if [.shop, .rest, .craft, .recruit].contains(next), middle.contains(next) {
+            if [.shop, .rest, .recruit].contains(next), middle.contains(next) {
                 middle.append(.battle)
             } else {
                 middle.append(next)

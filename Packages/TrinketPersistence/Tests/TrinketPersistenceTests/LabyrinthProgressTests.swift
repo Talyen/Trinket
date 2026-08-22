@@ -219,66 +219,42 @@ struct LabyrinthProgressTests {
         #expect(sanitized.nodes[nodeID]?.type == .mystery)
     }
 
-    @Test(arguments: [true, false])
-    func craftNodeCompletionRespectsForgeChoice(forge: Bool) throws {
-        var save = PlayerSave.fresh
-        save.labyrinth.ensureMap(seed: 19)
-        var craftID: String?
-        for _ in 0 ..< 40 {
-            if let id = save.labyrinth.reachableNodeIDs().first(where: {
-                save.labyrinth.nodes[$0]?.type.canonical == .craft
-            }) {
-                craftID = id
-                break
-            }
-            guard let next = save.labyrinth.reachableNodeIDs().first else { break }
-            LabyrinthCompletion.complete(
-                nodeID: next,
-                hero: save.roster.activeHero,
-                companion: save.roster.activeCompanion,
-                save: &save
-            )
-        }
-        let nodeID = try #require(craftID)
-        let itemsBefore = save.inventory.items.count
-        let goldBefore = save.roster.gold
-
-        if forge {
-            save.roster.grantGold(200)
-            let goldWithBudget = save.roster.gold
-            let forged = LabyrinthCompletion.forgeAtAltar(
-                nodeID: nodeID,
-                save: &save
-            )
-            #expect(forged)
-            #expect(save.labyrinth.nodes[nodeID]?.isCleared == true)
-            #expect(save.roster.gold < goldWithBudget)
-            #expect(save.inventory.items.count == itemsBefore + 1)
-        } else {
-            LabyrinthCompletion.complete(
-                nodeID: nodeID,
-                hero: save.roster.activeHero,
-                companion: save.roster.activeCompanion,
-                save: &save
-            )
-            #expect(save.labyrinth.nodes[nodeID]?.isCleared == true)
-            #expect(save.inventory.items.count == itemsBefore)
-            #expect(save.roster.gold > goldBefore)
-        }
-    }
-
-    @Test func gildedWhisperTruncatesPositiveGoldBonus() {
+    @Test func labyrinthEconomyModifiersScaleCombatLoot() {
         let node = LabyrinthNode(
-            id: "gilded-shop",
-            type: .shop,
-            depth: 1,
-            clusterID: "gilded",
-            modifierIDs: [LabyrinthModifierID("gildedWhisper")]
+            id: "econ-node",
+            type: .battle,
+            enemyID: "goblin_scout",
+            depth: 2,
+            clusterID: "econ"
         )
-        let effects = LabyrinthModifierEffects.combining(
-            LabyrinthCatalog.modifiers(ids: node.modifierIDs)
-        )
-        #expect(LabyrinthCompletion.nonCombatGoldStipend(for: node, effects: effects) == 3)
+        let resolve: (LabyrinthModifierEffects) -> BattleLootPackage = { effects in
+            BattleLoot.resolveLabyrinth(
+                node: node,
+                encounterLevel: 3,
+                enemyIsBoss: false,
+                effects: effects,
+                worldSeed: 5
+            )
+        }
+
+        let base = resolve(.zero)
+        #expect(base.gold > 0)
+        #expect(!base.materials.isEmpty)
+
+        let bounty = resolve(LabyrinthModifierEffects.combining(
+            LabyrinthCatalog.modifiers(ids: [LabyrinthModifierID("bountyMark")])
+        ))
+        #expect(bounty.gold == base.gold + (base.gold * 25) / 100)
+        #expect(bounty.materials == base.materials)
+
+        let scavenger = resolve(LabyrinthModifierEffects.combining(
+            LabyrinthCatalog.modifiers(ids: [LabyrinthModifierID("scavengersLuck")])
+        ))
+        #expect(scavenger.gold == base.gold)
+        for (boosted, original) in zip(scavenger.materials, base.materials) {
+            #expect(boosted.resource == original.resource)
+            #expect(boosted.quantity == (original.quantity * 125) / 100)
+        }
     }
 
     @Test func pendingCombatRewardItemMatchesCompletionGrantForBoss() throws {

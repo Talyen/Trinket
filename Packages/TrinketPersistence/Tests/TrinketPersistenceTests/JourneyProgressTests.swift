@@ -40,7 +40,7 @@ final class JourneyProgressTests {
     }
 
     @Test func itemRewardCreatesUniqueInstance() throws {
-        var inventory = PlayerInventoryState.initial
+        var inventory = PlayerInventoryState.testSeed
         let stage = chapter.stages[0]
         let template = try #require(GameContent.itemTemplate(matching: "shortsword-basic"))
 

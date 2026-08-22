@@ -64,7 +64,9 @@ public final class PlayerSaveStore {
 
     public var journey: JourneyProgressState {
         get { observedJourney }
-        set { mutate { $0.journey = PlayerSaveSanitizer.sanitizeJourney(newValue) } }
+        // Slice setters write raw values; the mutation hub sanitizes every
+        // changed slice exactly once (see performBatchMutation).
+        set { mutate { $0.journey = newValue } }
     }
 
     public var roster: PlayerRosterState {
@@ -84,7 +86,7 @@ public final class PlayerSaveStore {
 
     public var spires: PlayerSpiresState {
         get { observedSpires }
-        set { mutate { $0.spires = PlayerSaveSanitizer.sanitizeSpires(newValue) } }
+        set { mutate { $0.spires = newValue } }
     }
 
     public var labyrinth: PlayerLabyrinthState {

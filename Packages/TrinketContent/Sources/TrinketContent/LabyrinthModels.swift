@@ -20,17 +20,35 @@ public struct LabyrinthModifierID: RawRepresentable, Hashable, Codable, Sendable
 
 public enum LabyrinthModifierEffect: Hashable, Sendable {
     case damageDealt(keyword: Keyword, amount: Int)
-    case goldRewardPercent(Int)
-    case astralChancePercent(Int)
+    case damageTakenReduction(keyword: Keyword, percent: Int)
+    case blockGained(Int)
+    case leechGainedPercent(Int)
+    case goldFoundPercent(Int)
+    case experienceEarnedPercent(Int)
+    case materialsFoundPercent(Int)
+    case shopDiscountPercent(Int)
+    case astralShopOffers
 
     public var description: String {
         switch self {
         case let .damageDealt(keyword, amount):
             "\(keyword.rawValue.capitalized) damage is increased by \(amount)."
-        case let .goldRewardPercent(percent):
-            "Increases Gold rewards by \(percent)%."
-        case let .astralChancePercent(percent):
-            "Increases chance to find Astral items by \(percent)%."
+        case let .damageTakenReduction(keyword, percent):
+            "\(keyword.rawValue.capitalized) damage taken is decreased by \(percent)%."
+        case let .blockGained(amount):
+            "Block gained is increased by \(amount)."
+        case let .leechGainedPercent(percent):
+            "Leech gained is increased by \(percent)%."
+        case let .goldFoundPercent(percent):
+            "Gold found is increased by \(percent)%."
+        case let .experienceEarnedPercent(percent):
+            "XP earned is increased by \(percent)%."
+        case let .materialsFoundPercent(percent):
+            "Materials found are increased by \(percent)%."
+        case let .shopDiscountPercent(percent):
+            "Decreases Shop prices by \(percent)%."
+        case .astralShopOffers:
+            "Shop offers are all Astral items."
         }
     }
 }
@@ -57,11 +75,18 @@ public struct LabyrinthModifierDefinition: Identifiable, Hashable, Sendable {
         nodeTypes.contains(type.canonical)
     }
 
-    public var damageDealtKeyword: Keyword? {
-        if case let .damageDealt(keyword, _) = effect {
-            return keyword
+    /// Keyword tying this modifier to an enemy's own abilities, if any.
+    /// Dealt bonuses boost against enemies using the keyword; reductions guard
+    /// against them. Nil modifiers are eligible for any node of their type.
+    public var relevantKeyword: Keyword? {
+        switch effect {
+        case let .damageDealt(keyword, _):
+            keyword
+        case let .damageTakenReduction(keyword, _):
+            keyword
+        default:
+            nil
         }
-        return nil
     }
 }
 
@@ -74,12 +99,13 @@ public enum LabyrinthNodeType: String, Hashable, Sendable, CaseIterable, Codable
     case recruit
     /// Legacy save value; sanitized to `.mystery`. Do not generate new event nodes.
     case event
+    /// Legacy save value; sanitized to `.mystery`. Do not generate new craft nodes.
     case craft
     case entrance
 
-    /// Canonical type after collapsing legacy `.event` into mystery encounters.
+    /// Canonical type after collapsing legacy `.event`/`.craft` into mystery encounters.
     public var canonical: Self {
-        self == .event ? .mystery : self
+        self == .event || self == .craft ? .mystery : self
     }
 
     public init(from decoder: Decoder) throws {
@@ -113,9 +139,8 @@ public enum LabyrinthNodeType: String, Hashable, Sendable, CaseIterable, Codable
         case .boss: "Boss"
         case .shop: "Merchant's Shop"
         case .rest: "Shrine"
-        case .mystery, .event: "Mystery"
+        case .mystery, .event, .craft: "Mystery"
         case .recruit: "Recruit"
-        case .craft: "Crafting Altar"
         case .entrance: "Labyrinth Entrance"
         }
     }
@@ -126,9 +151,8 @@ public enum LabyrinthNodeType: String, Hashable, Sendable, CaseIterable, Codable
         case .boss: StageTypeSymbol.boss
         case .shop: StageTypeSymbol.shop
         case .rest: StageTypeSymbol.rest
-        case .mystery, .event: StageTypeSymbol.mystery
+        case .mystery, .event, .craft: StageTypeSymbol.mystery
         case .recruit: GameContent.recruitEncounterSymbolName(forEventID: nil)
-        case .craft: StageTypeSymbol.craft
         case .entrance: StageTypeSymbol.entrance
         }
     }
@@ -141,12 +165,10 @@ public enum LabyrinthNodeType: String, Hashable, Sendable, CaseIterable, Codable
             "Visit"
         case .rest:
             "Rest"
-        case .mystery, .event:
+        case .mystery, .event, .craft:
             "Approach"
         case .recruit:
             "Recruit"
-        case .craft:
-            "Forge"
         case .entrance:
             "Enter"
         }
@@ -295,23 +317,47 @@ public struct LabyrinthCluster: Identifiable, Hashable, Codable, Sendable {
 /// Aggregated combat/reward modifiers for one Labyrinth node.
 public struct LabyrinthModifierEffects: Equatable, Sendable {
     public var damageDealtBonus: [Keyword: Int]
-    public var goldPercent: Int
-    public var astralChanceBonusPercent: Int
+    public var damageTakenReduction: [Keyword: Int]
+    public var blockGainedBonus: Int
+    public var leechGainedPercent: Int
+    public var goldFoundPercent: Int
+    public var experienceEarnedPercent: Int
+    public var materialsFoundPercent: Int
+    public var shopDiscountPercent: Int
+    public var astralShopOffers: Bool
 
     public static let zero = Self(
         damageDealtBonus: [:],
-        goldPercent: 0,
-        astralChanceBonusPercent: 0
+        damageTakenReduction: [:],
+        blockGainedBonus: 0,
+        leechGainedPercent: 0,
+        goldFoundPercent: 0,
+        experienceEarnedPercent: 0,
+        materialsFoundPercent: 0,
+        shopDiscountPercent: 0,
+        astralShopOffers: false
     )
 
     public init(
         damageDealtBonus: [Keyword: Int],
-        goldPercent: Int,
-        astralChanceBonusPercent: Int
+        damageTakenReduction: [Keyword: Int] = [:],
+        blockGainedBonus: Int = 0,
+        leechGainedPercent: Int = 0,
+        goldFoundPercent: Int = 0,
+        experienceEarnedPercent: Int = 0,
+        materialsFoundPercent: Int = 0,
+        shopDiscountPercent: Int = 0,
+        astralShopOffers: Bool = false
     ) {
         self.damageDealtBonus = damageDealtBonus
-        self.goldPercent = goldPercent
-        self.astralChanceBonusPercent = astralChanceBonusPercent
+        self.damageTakenReduction = damageTakenReduction
+        self.blockGainedBonus = blockGainedBonus
+        self.leechGainedPercent = leechGainedPercent
+        self.goldFoundPercent = goldFoundPercent
+        self.experienceEarnedPercent = experienceEarnedPercent
+        self.materialsFoundPercent = materialsFoundPercent
+        self.shopDiscountPercent = shopDiscountPercent
+        self.astralShopOffers = astralShopOffers
     }
 
     public static func combining(_ modifiers: [LabyrinthModifierDefinition]) -> Self {
@@ -320,10 +366,22 @@ public struct LabyrinthModifierEffects: Equatable, Sendable {
             switch modifier.effect {
             case let .damageDealt(keyword, amount):
                 effects.damageDealtBonus[keyword, default: 0] += amount
-            case let .goldRewardPercent(percent):
-                effects.goldPercent += percent
-            case let .astralChancePercent(percent):
-                effects.astralChanceBonusPercent += percent
+            case let .damageTakenReduction(keyword, percent):
+                effects.damageTakenReduction[keyword, default: 0] += percent
+            case let .blockGained(amount):
+                effects.blockGainedBonus += amount
+            case let .leechGainedPercent(percent):
+                effects.leechGainedPercent += percent
+            case let .goldFoundPercent(percent):
+                effects.goldFoundPercent += percent
+            case let .experienceEarnedPercent(percent):
+                effects.experienceEarnedPercent += percent
+            case let .materialsFoundPercent(percent):
+                effects.materialsFoundPercent += percent
+            case let .shopDiscountPercent(percent):
+                effects.shopDiscountPercent += percent
+            case .astralShopOffers:
+                effects.astralShopOffers = true
             }
         }
         return effects

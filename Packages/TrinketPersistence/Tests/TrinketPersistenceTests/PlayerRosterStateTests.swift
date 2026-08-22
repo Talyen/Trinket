@@ -5,7 +5,7 @@ import TrinketCore
 
 struct PlayerRosterStateTests {
     @Test func setLoadoutOverridesDefaultAbilityChoices() throws {
-        var roster = PlayerRosterState.initial
+        var roster = PlayerRosterState.testSeed
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         let customLoadout = AbilityLoadout(
             basic: .bash,
@@ -60,7 +60,7 @@ struct PlayerRosterStateTests {
     }
 
     @Test func goldMutationAndSpendRespectBounds() throws {
-        var roster = PlayerRosterState.initial
+        var roster = PlayerRosterState.testSeed
         roster.gold = 25
 
         roster.grantGold(0)
@@ -101,8 +101,8 @@ struct PlayerRosterStateTests {
     }
 
     @Test func equippedItemResolvesFromInventoryAndLoadout() throws {
-        let roster = PlayerRosterState.initial
-        let inventory = PlayerInventoryState.initial
+        let roster = PlayerRosterState.testSeed
+        let inventory = PlayerInventoryState.testSeed
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
 
         let weapon = roster.equippedItem(for: .weapon, combatant: knight, inventory: inventory)
@@ -112,7 +112,7 @@ struct PlayerRosterStateTests {
     }
 
     @Test func equipmentLoadoutEquipAndUnequip() throws {
-        let item = try #require(PlayerInventoryState.initial.item(matching: "wand-basic"))
+        let item = try #require(PlayerInventoryState.testSeed.item(matching: "wand-basic"))
         var loadout = EquipmentLoadout()
 
         loadout.equip(item, inventory: [item])
@@ -160,10 +160,10 @@ struct PlayerRosterStateTests {
     }
 
     @Test func setEquipmentLoadoutEnforcesUniqueItemOwnership() throws {
-        var roster = PlayerRosterState.initial
+        var roster = PlayerRosterState.testSeed
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         let wizard = try #require(GameContent.heroes.first { $0.id == "wizard" })
-        let wand = try #require(PlayerInventoryState.initial.item(matching: "wand-basic"))
+        let wand = try #require(PlayerInventoryState.testSeed.item(matching: "wand-basic"))
 
         var wizardLoadout = roster.equipmentLoadout(for: wizard)
         wizardLoadout.equip(wand, inventory: [wand])
@@ -188,7 +188,7 @@ struct PlayerRosterStateTests {
     }
 
     @Test func highestLevelsFilterByRoleAndDefaultToOne() throws {
-        var roster = PlayerRosterState.initial
+        var roster = PlayerRosterState.testSeed
         roster.progressions["knight"] = CombatantProgression(level: 8, currentXP: 0, requiredXP: 100)
         roster.progressions["wizard"] = CombatantProgression(level: 12, currentXP: 0, requiredXP: 100)
         roster.progressions["bear"] = CombatantProgression(level: 3, currentXP: 0, requiredXP: 100)

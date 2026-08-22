@@ -97,24 +97,11 @@ enum RosterHydration {
         if let match = tierChoices.first(where: { $0.id == id }) {
             return match
         }
-        if let remappedID = remapAbilityID(id),
+        if let remappedID = LegacyIDRemap.remappedAbilityID(id),
            let match = tierChoices.first(where: { $0.id == remappedID }) {
             return match
         }
         return fallback
-    }
-
-    /// Catalog renames / choice swaps that would otherwise fall back to the first
-    /// ability in a tier and silently change the player's selection.
-    private static func remapAbilityID(_ id: String) -> String? {
-        switch id {
-        case "concussive-shot": "astral-arrow"
-        case "crystal-bulwark": "glacial-ward"
-        case "glacial-ward": "blizzard"
-        case "mana-crystals": "pixie-dust"
-        case "wise-frost": "apple"
-        default: nil
-        }
     }
 
     struct AbilityLoadoutIDs {

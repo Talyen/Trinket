@@ -17,10 +17,6 @@ public struct PlayerInventoryState: Equatable, Hashable, Sendable {
         Self(items: GameContent.sampleInventoryItems)
     }
 
-    public static var initial: Self {
-        testSeed
-    }
-
     public func item(matching id: String?) -> InventoryItem? {
         guard let id else { return nil }
         return items.first { $0.id == id }
@@ -147,14 +143,10 @@ public struct PlayerRosterState: Equatable, Sendable {
                     .accessory: "ruby_ring-basic",
                 ]),
                 "wolf": EquipmentLoadout(itemIDsBySlot: [
-                    .armor: "leather_armor-basic",
+                    .accessory: "sapphire_amulet-basic",
                 ]),
             ]
         )
-    }
-
-    public static var initial: Self {
-        testSeed
     }
 
     public func isUnlocked(_ combatant: Combatant) -> Bool {

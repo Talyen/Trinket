@@ -56,7 +56,40 @@ struct LabyrinthCatalogTests {
         let iron = try #require(GameContent.labyrinthModifier(id: LabyrinthModifierID("ironPressure")))
         let effects = LabyrinthModifierEffects.combining([iron])
         #expect(effects.damageDealtBonus == [.physical: 1])
-        #expect(effects.goldPercent == 0)
+        #expect(effects.shopDiscountPercent == 0)
+    }
+
+    @Test func shopNodesResolveOneShopModifier() {
+        let shopPool = LabyrinthCatalog.modifiers.filter { $0.applies(to: .shop) }
+        #expect(Set(shopPool.map(\.id)) == Set([
+            LabyrinthModifierID("shopDiscount"),
+            LabyrinthModifierID("appraisersEye"),
+        ]))
+        for seed in [1, 7, 42, 99, 1001] as [UInt64] {
+            let ids = LabyrinthCatalog.modifierIDs(for: .shop, enemyID: nil, worldSeed: seed, nodeID: "n-\(seed)")
+            #expect(ids.count == 1)
+            #expect(ids.allSatisfy { id in shopPool.contains(where: { $0.id == id }) })
+        }
+        for type in LabyrinthNodeType.allCases
+            where !type.isCombat && type.canonical != .shop && type.canonical != .mystery {
+            let ids = LabyrinthCatalog.modifierIDs(for: type, enemyID: nil, worldSeed: 1, nodeID: "n")
+            #expect(ids.isEmpty)
+        }
+    }
+
+    @Test func mysteryNodesResolveExactlyOneEconomyModifier() {
+        let economyIDs: Set<LabyrinthModifierID> = [
+            LabyrinthModifierID("bountyMark"),
+            LabyrinthModifierID("scholarsToll"),
+            LabyrinthModifierID("scavengersLuck"),
+        ]
+        for seed in [1, 7, 42, 99, 1001] as [UInt64] {
+            let ids = LabyrinthCatalog.modifierIDs(for: .mystery, enemyID: nil, worldSeed: seed, nodeID: "n-\(seed)")
+            #expect(ids.count == 1)
+            #expect(economyIDs.contains(ids[0]))
+        }
+        let pool = LabyrinthCatalog.modifiers.filter { $0.applies(to: .mystery) }
+        #expect(Set(pool.map(\.id)) == economyIDs)
     }
 
     @Test func combatModifiersMatchEnemyAbilityKeywords() {
@@ -65,7 +98,7 @@ struct LabyrinthCatalogTests {
                 let pool = LabyrinthCatalog.combatModifiers(for: enemy.id, nodeType: nodeType)
                 let enemyKeywords = LabyrinthCatalog.enemyDamageKeywords(for: enemy.id)
                 for modifier in pool {
-                    #expect(modifier.damageDealtKeyword.map(enemyKeywords.contains) == true)
+                    #expect(modifier.relevantKeyword.map(enemyKeywords.contains) != false)
                 }
             }
         }
@@ -77,14 +110,10 @@ struct LabyrinthCatalogTests {
             for node in generated.nodes.values where node.type.isCombat {
                 guard let enemyID = node.enemyID else { continue }
                 let modifiers = LabyrinthCatalog.modifiers(ids: node.modifierIDs)
-                if modifiers.isEmpty {
-                    #expect(LabyrinthCatalog.combatModifiers(for: enemyID, nodeType: node.type).isEmpty)
-                    continue
-                }
                 #expect(modifiers.count == 1)
                 let enemyKeywords = LabyrinthCatalog.enemyDamageKeywords(for: enemyID)
                 for modifier in modifiers {
-                    #expect(modifier.damageDealtKeyword.map(enemyKeywords.contains) == true)
+                    #expect(modifier.relevantKeyword.map(enemyKeywords.contains) != false)
                 }
             }
         }
@@ -169,8 +198,15 @@ struct LabyrinthCatalogTests {
                 for node in nodes {
                     let modifiers = LabyrinthCatalog.modifiers(ids: node.modifierIDs)
                     #expect(modifiers.allSatisfy { $0.applies(to: node.type) })
-                    let expectsModifier = node.type == .shop || node.type == .craft
-                    #expect(node.modifierIDs.count == (expectsModifier ? 1 : 0) || node.type.isCombat)
+                    let expectsModifier = switch node.type.canonical {
+                    case .shop, .mystery:
+                        true
+                    case .battle, .boss:
+                        node.enemyID != nil
+                    case .rest, .event, .recruit, .craft, .entrance:
+                        false
+                    }
+                    #expect(node.modifierIDs.count == (expectsModifier ? 1 : 0))
                     #expect(node.outgoingIDs.isEmpty)
                 }
                 observedCycleCounts.insert(geometry.cycleCount)

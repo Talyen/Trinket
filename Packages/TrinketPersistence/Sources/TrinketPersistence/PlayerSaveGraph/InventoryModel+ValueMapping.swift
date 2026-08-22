@@ -39,7 +39,8 @@ extension InventoryModel {
                     id: affix.id,
                     title: affix.title,
                     description: affix.affixDescription,
-                    keywords: keywords
+                    keywords: keywords,
+                    isCorrupted: affix.isCorrupted
                 )
             }
         let affixPowers: [ItemAffixPower]? = {

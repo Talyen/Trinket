@@ -4,7 +4,7 @@ import TrinketContent
 
 struct MysteryEventPickContextSaveTests {
     @Test func journeyGatesCorruptionAltarByChapterNumber() {
-        let inventory = PlayerInventoryState.initial
+        let inventory = PlayerInventoryState.testSeed
         let chapterOne = MysteryEventPickContext.journey(
             chapterNumber: 1,
             inventory: inventory,
@@ -21,7 +21,7 @@ struct MysteryEventPickContextSaveTests {
     }
 
     @Test func labyrinthAlwaysAllowsCorruptionAltar() {
-        let inventory = PlayerInventoryState.initial
+        let inventory = PlayerInventoryState.testSeed
         let context = MysteryEventPickContext.labyrinth(
             inventory: inventory,
             corruptionAltarCooldownRemaining: 3

@@ -61,6 +61,7 @@ struct AppEnvironmentTests {
             "-persist-save-immediately",
             "-completed-stages", "chapter-1-stage-1,,chapter-1-stage-2,",
             "-mystery-recruit-event", "recruit-ranger",
+            "-starter-roulette-seed", "7",
             "-battle-tick-interval", "60",
             "-starting-gold", "200",
             "-enable-frame-metrics",
@@ -74,6 +75,7 @@ struct AppEnvironmentTests {
         #expect(env.persistSaveImmediately)
         #expect(env.completedStageIDs == ["chapter-1-stage-1", "chapter-1-stage-2"])
         #expect(env.mysteryRecruitEventID == "recruit-ranger")
+        #expect(env.starterRouletteSeed == 7)
         #expect(env.battleTickInterval == 60)
         #expect(env.startingGold == 200)
         #expect(env.enableFrameMetrics)
@@ -99,6 +101,7 @@ struct AppEnvironmentTests {
         #expect(!env.disableAudio)
         #expect(env.completedStageIDs.isEmpty)
         #expect(env.mysteryRecruitEventID == nil)
+        #expect(env.starterRouletteSeed == nil)
         #expect(env.battleTickInterval == nil)
         #expect(env.startingGold == nil)
         #expect(!env.persistSaveImmediately)

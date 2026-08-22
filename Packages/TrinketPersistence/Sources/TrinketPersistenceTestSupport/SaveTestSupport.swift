@@ -62,7 +62,7 @@ public enum SaveTestSupport {
     /// Shared `PlayerSave` fixture with the deterministic test-seed defaults used
     /// across Persistence applier tests. Overrides let a test swap a slice.
     public static func makeSave(
-        roster: PlayerRosterState = .initial,
+        roster: PlayerRosterState = .testSeed,
         inventory: PlayerInventoryState = PlayerInventoryState(items: []),
         homestead: PlayerHomesteadState = .freshStart,
         journey: JourneyProgressState = .initial

@@ -11,30 +11,16 @@ public enum LabyrinthCompletion {
         )
     }
 
-    /// Non-combat node gold stipend (rest/shop/mystery/craft leave). Combat uses `BattleLoot`.
-    public static func nonCombatGoldStipend(
-        for node: LabyrinthNode,
-        effects: LabyrinthModifierEffects
-    ) -> Int {
-        let type = node.type.canonical
-        let baseGold = switch type {
-        case .shop, .mystery, .event, .recruit, .craft:
+    /// Non-combat node gold stipend (rest/shop/mystery/recruit leave). Combat uses `BattleLoot`.
+    public static func nonCombatGoldStipend(for node: LabyrinthNode) -> Int {
+        switch node.type.canonical {
+        case .shop, .mystery, .event, .craft, .recruit:
             2 + node.depth
         case .rest:
             1 + node.depth / 2
         case .battle, .boss, .entrance:
             0
         }
-        let percentage = max(0, effects.goldPercent)
-        let bonus = baseGold > 0 && percentage > 0
-            ? (baseGold * percentage) / 100
-            : 0
-        return max(0, baseGold + bonus)
-    }
-
-    /// Gold cost for the thin Crafting Altar forge action.
-    public static func craftAltarCost(for node: LabyrinthNode) -> Int {
-        max(8, 6 + node.depth * 2)
     }
 
     /// Stable inventory id for a node's Labyrinth find (forge or combat roll).
@@ -104,13 +90,13 @@ public enum LabyrinthCompletion {
                 enemyLevel: encounterLevel,
                 to: hero,
                 roster: &save.roster,
-                xpPercent: 0
+                xpPercent: effects.experienceEarnedPercent
             )
             StageCompletion.grantBattleExperience(
                 enemyLevel: encounterLevel,
                 to: companion,
                 roster: &save.roster,
-                xpPercent: 0
+                xpPercent: effects.experienceEarnedPercent
             )
 
             let materials = materialRewards ?? resolvedLoot?.materials ?? []
@@ -122,7 +108,7 @@ public enum LabyrinthCompletion {
                 appendUniqueRewardItem(resolvedLoot.item, save: &save)
             }
         } else {
-            let stipend = nonCombatGoldStipend(for: node, effects: effects)
+            let stipend = nonCombatGoldStipend(for: node)
             save.applyGoldDelta(
                 StageCompletion.resolvedGoldReward(
                     stageGold: stipend,
@@ -133,10 +119,6 @@ public enum LabyrinthCompletion {
             if let materialRewards {
                 save.grantMaterials(materialRewards)
             }
-            if node.type.canonical == .craft {
-                // Leave without forging: gold stipend already granted; bonus material only.
-                save.grantMaterials([ResourceAmount(.wood, 1)])
-            }
             if let rewardItem {
                 appendUniqueRewardItem(rewardItem, save: &save)
             }
@@ -145,78 +127,6 @@ public enum LabyrinthCompletion {
         save.labyrinth.markCleared(
             nodeID: nodeID,
             eligibleRecruitEventIDs: eligibleRecruitEventIDs
-        )
-    }
-
-    /// Spend gold at a Crafting Altar for a guaranteed generated item + clear the node.
-    @discardableResult
-    public static func forgeAtAltar(
-        nodeID: String,
-        save: inout PlayerSave
-    ) -> Bool {
-        let eligibleRecruitEventIDs = save.roster.eligibleRecruitEventIDs
-        save.labyrinth.ensureMap(
-            seed: save.worldSeed,
-            eligibleRecruitEventIDs: eligibleRecruitEventIDs
-        )
-        guard let node = save.labyrinth.node(id: nodeID),
-              node.type.canonical == .craft,
-              !node.isCleared
-        else { return false }
-
-        let cost = craftAltarCost(for: node)
-        guard save.roster.spendGold(cost) else { return false }
-
-        let effects = save.labyrinth.effects(for: nodeID)
-        grantGeneratedItem(nodeID: nodeID, effects: effects, save: &save)
-        save.grantMaterials([ResourceAmount(.wood, 1)])
-        // Craft is non-combat: complete()/forge never grant battle XP here.
-        save.labyrinth.markCleared(
-            nodeID: nodeID,
-            eligibleRecruitEventIDs: eligibleRecruitEventIDs
-        )
-        return true
-    }
-
-    private static func grantGeneratedItem(
-        nodeID: String,
-        effects: LabyrinthModifierEffects,
-        save: inout PlayerSave
-    ) {
-        guard let item = makeGeneratedItem(
-            nodeID: nodeID,
-            effects: effects,
-            worldSeed: save.worldSeed,
-            ownedTrinketIDs: save.inventory.ownedTrinketIDs,
-            astralChanceBonusPercent: save.homestead.effects.astralChanceBonusPercent
-        ) else { return }
-        appendUniqueRewardItem(item, save: &save)
-    }
-
-    private static func makeGeneratedItem(
-        nodeID: String,
-        effects: LabyrinthModifierEffects,
-        worldSeed: UInt64,
-        ownedTrinketIDs: Set<String>,
-        astralChanceBonusPercent: Int
-    ) -> InventoryItem? {
-        let bases = GameContent.itemBaseTypes.filter { $0.slot != .trinket }
-        guard !bases.isEmpty else { return nil }
-        var rng = SeededRandomNumberGenerator(
-            seed: GameContent.encounterSeed(worldSeed, salt: "labyrinth-item-\(nodeID)")
-        )
-        let rarity = ItemRarityRoll.roll(
-            baseAstralChancePercent: 15,
-            astralChanceBonusPercent: effects.astralChanceBonusPercent + astralChanceBonusPercent,
-            using: &rng
-        )
-        return ItemRewardGenerator.generate(
-            id: rewardItemID(forNodeID: nodeID),
-            rarity: rarity,
-            ownedTrinketIDs: ownedTrinketIDs,
-            keywordBias: [],
-            baseTypes: bases,
-            using: &rng
         )
     }
 

@@ -333,8 +333,12 @@ enum MysteryEventPool {
 
     static let corruptionAltarID = "corruption-altar"
 
+    private static let eventsByID: [String: MysteryEvent] = Dictionary(
+        uniqueKeysWithValues: all.map { ($0.id, $0) }
+    )
+
     static func event(matching id: String) -> MysteryEvent? {
-        all.first { $0.id == id }
+        eventsByID[id]
     }
 
     /// Weighted pick: Corruption Altar at 25% when chapter-eligible, inventory-eligible, and off cooldown.

@@ -124,7 +124,7 @@ final class PlayerSaveSanitizerTests {
     }
 
     @Test func sanitizeRosterClampsGoldBalance() throws {
-        var roster = PlayerRosterState.initial
+        var roster = PlayerRosterState.testSeed
         roster.gold = PlayerRosterState.maxGoldBalance + 1
 
         let sanitized = PlayerSaveSanitizer.sanitizeRoster(roster, inventory: .freshStart)
@@ -359,7 +359,7 @@ final class PlayerSaveSanitizerTests {
     @Test func sanitizeRosterStripsDuplicateItemAcrossCombatants() throws {
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         let wizard = try #require(GameContent.heroes.first { $0.id == "wizard" })
-        let wand = try #require(PlayerInventoryState.initial.item(matching: "wand-basic"))
+        let wand = try #require(PlayerInventoryState.testSeed.item(matching: "wand-basic"))
         let roster = PlayerRosterState(
             activeHeroID: PlayerRosterState.starterHeroID,
             activeCompanionID: PlayerRosterState.starterCompanionID,
@@ -374,7 +374,7 @@ final class PlayerSaveSanitizerTests {
             gold: 0
         )
         var save = PlayerSave.fresh
-        save.inventory = PlayerInventoryState.initial
+        save.inventory = PlayerInventoryState.testSeed
         save.roster = roster
 
         let sanitized = PlayerSaveSanitizer.sanitize(save)

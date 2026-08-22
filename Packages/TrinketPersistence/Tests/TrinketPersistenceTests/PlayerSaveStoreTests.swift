@@ -482,6 +482,20 @@ private extension PlayerSaveStore {
     }
 }
 
+/// Stand-in for the removed `PrimaryStatsModel` entity: the migration test below writes a
+/// save whose schema declares this extra entity, then opens it with the current
+/// schema to prove automatic lightweight migration can drop an entity.
+@Model
+final class LegacyPrimaryStatsRow {
+    var combatantID: String = ""
+    var wisdom: Int = 0
+
+    init(combatantID: String = "", wisdom: Int = 0) {
+        self.combatantID = combatantID
+        self.wisdom = wisdom
+    }
+}
+
 /// Guards the round-2 `PrimaryStatsModel` removal: an existing on-disk save whose
 /// schema still declares that entity must open under the current schema via
 /// automatic lightweight migration. The store bootstrapper deletes saves on open
@@ -518,19 +532,5 @@ struct PlayerSaveSchemaMigrationTests {
         try #expect(migratedStore.roster == .testSeed)
         try #expect(migratedStore.inventory == .testSeed)
         try #expect(migratedStore.journey == .testSeed)
-    }
-}
-
-/// Stand-in for the removed `PrimaryStatsModel` entity: the migration test writes a
-/// save whose schema declares this extra entity, then opens it with the current
-/// schema to prove automatic lightweight migration can drop an entity.
-@Model
-final class LegacyPrimaryStatsRow {
-    var combatantID: String = ""
-    var wisdom: Int = 0
-
-    init(combatantID: String = "", wisdom: Int = 0) {
-        self.combatantID = combatantID
-        self.wisdom = wisdom
     }
 }

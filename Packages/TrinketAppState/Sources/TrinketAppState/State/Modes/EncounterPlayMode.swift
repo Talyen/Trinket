@@ -43,11 +43,16 @@ public final class EncounterPlayMode {
     ) -> ShopEncounterOpenResult {
         guard canBeginTransientEncounter else { return .unavailable }
 
+        let nodeEffects = origin.labyrinthNodeID.map {
+            playerSave.labyrinth.effects(for: $0)
+        } ?? .zero
         switch ShopEncounterSession.open(
             origin: origin,
             worldSeed: playerSave.worldSeed,
             ownedTrinketIDs: playerSave.inventory.ownedTrinketIDs,
-            astralChanceBonusPercent: playerSave.homestead.effects.astralChanceBonusPercent
+            astralChanceBonusPercent: playerSave.homestead.effects.astralChanceBonusPercent,
+            allAstral: nodeEffects.astralShopOffers,
+            priceDiscountPercent: nodeEffects.shopDiscountPercent
         ) {
         case let .opened(shopSession):
             activeShopEncounter = shopSession

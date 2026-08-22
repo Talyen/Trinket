@@ -43,6 +43,11 @@ enum PlayerSaveSanitizer {
         return sanitized
     }
 
+    /// Resolves the save's world seed. Assign-once semantics: new games get
+    /// their random seed pinned at construction (`PlayerSave.fresh`); this only
+    /// fills in seeds for saves missing one (adopting the labyrinth map's seed
+    /// first). Both store entry points persist immediately after sanitizing, so
+    /// a seed is never invented twice for the same save.
     static func resolvedWorldSeed(_ save: PlayerSave) -> UInt64 {
         if save.worldSeed != 0 {
             return save.worldSeed
@@ -242,7 +247,7 @@ enum PlayerSaveSanitizer {
         for (combatantID, nodeIDs) in talents {
             guard validCombatantIDs.contains(combatantID) else { continue }
             let validNodeIDs = CombatantTalentCatalog.validNodeIDs(for: combatantID)
-            let remapped = Set(nodeIDs.map { remappedTalentNodeID($0) })
+            let remapped = Set(nodeIDs.map { LegacyIDRemap.remappedTalentNodeID($0) })
             var filtered = remapped.intersection(validNodeIDs)
             if let budget = progressions[combatantID]?.totalTalentPoints {
                 filtered = CombatantTalentCatalog.config(for: combatantID)
@@ -254,25 +259,6 @@ enum PlayerSaveSanitizer {
         }
         return sanitized
     }
-
-    /// Former Dodge/Stun tree node IDs for Rogue and Frost Whelp.
-    static func remappedTalentNodeID(_ nodeID: String) -> String {
-        if let mapped = talentNodeIDAliases[nodeID] {
-            return mapped
-        }
-        return nodeID
-    }
-
-    private static let talentNodeIDAliases: [String: String] = {
-        var aliases: [String: String] = [:]
-        for tier in 1 ... 3 {
-            for col in 1 ... 2 {
-                aliases["rogue_dodge_t\(tier)_\(col)"] = "rogue_gold_t\(tier)_\(col)"
-                aliases["frost_whelp_stun_t\(tier)_\(col)"] = "frost_whelp_dodge_t\(tier)_\(col)"
-            }
-        }
-        return aliases
-    }()
 
     static func sanitizeSpires(
         _ spires: PlayerSpiresState,

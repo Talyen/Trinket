@@ -13,7 +13,71 @@ struct ItemCorruptionTests {
             #expect(!result.item.affixes.isEmpty)
             #expect(result.item.isCorrupted)
             #expect(result.item.affixPowers?.count == result.item.affixes.count)
+            #expect(result.item.affixes.filter(\.isCorrupted).count == 1)
+            #expect(result.originalItem == item)
         }
+    }
+
+    @Test func addedAffixBecomesTheCorruptionMark() throws {
+        let item = try makeItem(baseID: "longsword", rarity: .basic, affixCount: 2)
+        var rng = SeededRandomNumberGenerator(seed: 5)
+
+        let result = ItemCorruption.apply(kinds: [.addAffix], to: item, using: &rng)
+
+        let originalIDs = Set(item.affixes.map(\.id))
+        let marked = result.item.affixes.filter(\.isCorrupted)
+        #expect(result.item.affixes.count == 3)
+        #expect(marked.count == 1)
+        #expect(marked.allSatisfy { !originalIDs.contains($0.id) })
+    }
+
+    @Test func replacedAffixBecomesTheCorruptionMark() throws {
+        let item = try makeItem(baseID: "longsword", rarity: .basic, affixCount: 2)
+        var rng = SeededRandomNumberGenerator(seed: 11)
+
+        let result = ItemCorruption.apply(kinds: [.replaceAffix], to: item, using: &rng)
+
+        let originalIDs = Set(item.affixes.map(\.id))
+        let marked = result.item.affixes.filter(\.isCorrupted)
+        #expect(result.item.affixes.count == 2)
+        #expect(marked.count == 1)
+        #expect(marked.allSatisfy { !originalIDs.contains($0.id) })
+    }
+
+    @Test func powerlessRollStillMarksASurvivor() throws {
+        let item = try makeItem(baseID: "longsword", rarity: .astral, affixCount: 2)
+        var rng = SeededRandomNumberGenerator(seed: 13)
+
+        // Removing one affix leaves no added/replaced/bumped candidate, so a survivor is marked.
+        let result = ItemCorruption.apply(kinds: [.removeAffix], to: item, using: &rng)
+
+        #expect(result.item.affixes.count == 1)
+        #expect(result.item.affixes.filter(\.isCorrupted).count == 1)
+    }
+
+    @Test func altarEligibilityMatrix() throws {
+        let plain = try makeItem(baseID: "longsword", rarity: .basic, affixCount: 2)
+        #expect(ItemCorruption.isEligibleTarget(plain))
+
+        let trinket = try #require(GameContent.trinketItems.first)
+        #expect(!ItemCorruption.isEligibleTarget(trinket))
+
+        // Legacy corrupted items carry the flag without any marked affix and stay blocked.
+        let legacyFlagged = InventoryItem(
+            id: plain.id,
+            baseType: plain.baseType,
+            rarity: plain.rarity,
+            displayName: plain.displayName,
+            affixes: plain.affixes,
+            isCorrupted: true
+        )
+        #expect(!ItemCorruption.isEligibleTarget(legacyFlagged))
+
+        // A marked affix alone blocks re-corruption even before the flag is set.
+        let markedOnly = withMarkedFirstAffix(plain)
+        #expect(markedOnly.hasCorruptedAffix)
+        #expect(!markedOnly.isCorrupted)
+        #expect(!ItemCorruption.isEligibleTarget(markedOnly))
     }
 
     @Test func threeOrMoreAffixesForceAstral() throws {
@@ -85,13 +149,19 @@ struct ItemCorruptionTests {
 
         let result = try #require(applied)
         #expect(result.item.isCorrupted)
+        #expect(result.item.affixes.filter(\.isCorrupted).count == 1)
         #expect(store.currentSave.corruptionAltarCooldownRemaining == 6)
 
         let reloaded = try context.makeSaveStore()
         let reloadedItem = try #require(reloaded.currentSave.inventory.items.first { $0.id == item.id })
         #expect(reloadedItem.isCorrupted)
+        #expect(reloadedItem.hasCorruptedAffix)
+        #expect(reloadedItem.affixes.filter(\.isCorrupted).count == 1)
         #expect(reloadedItem.affixPowers?.count == reloadedItem.affixes.count)
         #expect(reloaded.currentSave.corruptionAltarCooldownRemaining == 6)
+
+        // The marked survivor must be ineligible for a second altar visit.
+        #expect(!ItemCorruption.isEligibleTarget(reloadedItem))
     }
 
     @Test func cooldownDecrementsOnNonAltarMystery() {
@@ -134,7 +204,7 @@ struct ItemCorruptionTests {
             to: &powers,
             affixIDs: [executioners.id],
             using: &rng
-        )
+        )?.title
 
         #expect(title == executioners.title)
         #expect(powers[0].triggers == CombatTraitTriggers(
@@ -159,7 +229,7 @@ struct ItemCorruptionTests {
             to: &powers,
             affixIDs: ["strength", "gold"],
             using: &rng
-        )
+        )?.title
 
         #expect(title == nil)
         #expect(powers == original)
@@ -177,7 +247,7 @@ struct ItemCorruptionTests {
             to: &powers,
             affixIDs: ["strength", "gold"],
             using: &rng
-        )
+        )?.title
         #expect(titleUp != nil)
 
         let titleDown = AffixPowerBump.apply(
@@ -185,7 +255,7 @@ struct ItemCorruptionTests {
             to: &powers,
             affixIDs: ["strength", "gold"],
             using: &rng
-        )
+        )?.title
         #expect(titleDown != nil)
     }
 
@@ -203,7 +273,7 @@ struct ItemCorruptionTests {
             to: &powers,
             affixIDs: ["strength"],
             using: &rng
-        )
+        )?.title
 
         #expect(title != nil)
         #expect(powers[0].modifiers == [.strength(21)])
@@ -229,7 +299,7 @@ struct ItemCorruptionTests {
             to: &powers,
             affixIDs: ["bleed_poison"],
             using: &rng
-        )
+        )?.title
 
         #expect(title == "bleed_poison")
         #expect(powers[0].triggers.onBleedApplyPoison == 3)
@@ -265,5 +335,26 @@ private func makeItem(
         rarity: rarity,
         displayName: base.name,
         affixes: definitions.map { $0.resolved(for: rarity) }
+    )
+}
+
+private func withMarkedFirstAffix(_ item: InventoryItem) -> InventoryItem {
+    InventoryItem(
+        id: item.id,
+        templateID: item.templateID,
+        baseType: item.baseType,
+        rarity: item.rarity,
+        displayName: item.displayName,
+        affixes: item.affixes.enumerated().map { index, affix in
+            ItemAffix(
+                id: affix.id,
+                title: affix.title,
+                description: affix.description,
+                keywords: affix.keywords,
+                isCorrupted: index == 0
+            )
+        },
+        isCorrupted: false,
+        affixPowers: item.affixPowers
     )
 }

@@ -101,7 +101,7 @@ public final class LabyrinthPlayMode {
             case .opened, .unavailable:
                 return nil
             }
-        case .mystery, .event:
+        case .mystery, .event, .craft:
             return beginMysteryEncounter(nodeID: nodeID)
         case .recruit:
             let resolution = GameContent.resolveRecruitEncounter(
@@ -117,8 +117,6 @@ public final class LabyrinthPlayMode {
             )
         case .rest:
             return beginRest(nodeID: nodeID)
-        case .craft:
-            return beginCraft(nodeID: nodeID)
         case .entrance:
             return nil
         }
@@ -133,26 +131,14 @@ public final class LabyrinthPlayMode {
         }
         activeNodeSession = LabyrinthNodeSession.rest(
             node: node,
-            effects: labyrinth.effects(for: nodeID),
             homestead: playerSave.homestead
         )
         return nil
     }
 
     @discardableResult
-    func beginCraft(nodeID: String) -> StageMapMessage? {
-        guard canBeginTransientEncounter else { return nil }
-        let labyrinth = playerSave.labyrinth
-        guard let node = labyrinth.node(id: nodeID), node.type.canonical == .craft else {
-            return StageMapMessage(title: "Altar Missing", message: "This path is not ready yet.")
-        }
-        activeNodeSession = LabyrinthNodeSession.craft(node: node)
-        return nil
-    }
-
-    @discardableResult
     public func finishActiveRest() -> Bool {
-        guard let sessionNode = activeNodeSession, sessionNode.kind == .rest else { return false }
+        guard let sessionNode = activeNodeSession else { return false }
         sessionNode.clearFailure()
         guard playerSave.persistBatch(logging: "Failed to finish Labyrinth rest", { save in
             LabyrinthCompletion.complete(
@@ -163,46 +149,6 @@ public final class LabyrinthPlayMode {
             )
         }) else {
             sessionNode.markFailed("Couldn't save progress. Stay here and try Rest again.")
-            return false
-        }
-        activeNodeSession = nil
-        return true
-    }
-
-    @discardableResult
-    public func forgeActiveCraft() -> Bool {
-        guard let sessionNode = activeNodeSession, sessionNode.kind == .craft else { return false }
-        sessionNode.clearFailure()
-        var forged = false
-        guard playerSave.persistBatch(logging: "Failed to forge at Labyrinth altar", { save in
-            forged = LabyrinthCompletion.forgeAtAltar(
-                nodeID: sessionNode.nodeID,
-                save: &save
-            )
-        }) else {
-            sessionNode.markFailed("The altar stays cold. Try again.")
-            return false
-        }
-        if forged {
-            activeNodeSession = nil
-            return true
-        }
-        sessionNode.markFailed("Not enough Gold.")
-        return false
-    }
-
-    @discardableResult
-    public func leaveActiveCraftWithoutForging() -> Bool {
-        guard let sessionNode = activeNodeSession, sessionNode.kind == .craft else { return false }
-        guard playerSave.persistBatch(logging: "Failed to leave Labyrinth craft", { save in
-            LabyrinthCompletion.complete(
-                nodeID: sessionNode.nodeID,
-                hero: save.roster.activeHero,
-                companion: save.roster.activeCompanion,
-                save: &save
-            )
-        }) else {
-            sessionNode.markFailed("The altar stays cold. Try again.")
             return false
         }
         activeNodeSession = nil
@@ -372,9 +318,19 @@ extension LabyrinthPlayMode {
     private static func combatModifiers(
         from effects: LabyrinthModifierEffects
     ) -> [AffixModifier] {
-        effects.damageDealtBonus
+        var modifiers: [AffixModifier] = effects.damageDealtBonus
             .sorted { $0.key.rawValue < $1.key.rawValue }
             .map { .damageDealt($0.key, $0.value) }
+        modifiers += effects.damageTakenReduction
+            .sorted { $0.key.rawValue < $1.key.rawValue }
+            .map { .damageTakenPercent($0.key, Double($0.value) / 100) }
+        if effects.blockGainedBonus != 0 {
+            modifiers.append(.blockGained(effects.blockGainedBonus))
+        }
+        if effects.leechGainedPercent != 0 {
+            modifiers.append(.leechGainedPercent(Double(effects.leechGainedPercent) / 100))
+        }
+        return modifiers
     }
 
     private func battleLoot(

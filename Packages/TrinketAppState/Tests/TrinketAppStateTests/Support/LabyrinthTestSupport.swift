@@ -7,7 +7,14 @@ enum LabyrinthTestSupport {
     private static let maximumAdvanceCount = 24
 
     static func firstReachableCombatNodeID(in state: PlaySession) -> String? {
-        firstReachableNodeID(where: { $0.type.isCombat }, in: state)
+        firstReachableCombatNodeID(where: { _ in true }, in: state)
+    }
+
+    static func firstReachableCombatNodeID(
+        where matches: (LabyrinthNode) -> Bool,
+        in state: PlaySession
+    ) -> String? {
+        firstReachableNodeID(where: { $0.type.isCombat && matches($0) }, in: state)
     }
 
     static func installRecruitNode(eventID: String?, in state: PlaySession) -> String? {
@@ -48,8 +55,8 @@ enum LabyrinthTestSupport {
         guard let existingNode = state.playerSave.labyrinth.node(id: targetID) else { return nil }
         let enemyID = type.isCombat ? "goblin_scout" : nil
         let modifierIDs: [LabyrinthModifierID] = switch type.canonical {
-        case .shop: [LabyrinthModifierID("gildedWhisper")]
-        case .craft: [LabyrinthModifierID("astralSeam")]
+        case .shop: [LabyrinthModifierID("shopDiscount")]
+        case .mystery: [LabyrinthModifierID("bountyMark")]
         default: []
         }
         let updatedNode = LabyrinthNode(

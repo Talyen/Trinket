@@ -38,20 +38,20 @@ struct StageRewardTests {
         )
 
         try #expect(save.roster.gold == loot.gold + battleEarnedGold)
-        let heroLevel = PlayerRosterState.initial.progression(for: hero).level
-        let companionLevel = PlayerRosterState.initial.progression(for: companion).level
-        let expectedHeroProgression = PlayerRosterState.initial.progression(for: hero).addingExperience(
+        let heroLevel = PlayerRosterState.testSeed.progression(for: hero).level
+        let companionLevel = PlayerRosterState.testSeed.progression(for: companion).level
+        let expectedHeroProgression = PlayerRosterState.testSeed.progression(for: hero).addingExperience(
             StageCompletion.battleExperienceAward(
                 playerLevel: heroLevel,
                 enemyLevel: encounterLevel,
-                highestLevel: PlayerRosterState.initial.highestHeroLevel
+                highestLevel: PlayerRosterState.testSeed.highestHeroLevel
             )
         )
-        let expectedCompanionProgression = PlayerRosterState.initial.progression(for: companion).addingExperience(
+        let expectedCompanionProgression = PlayerRosterState.testSeed.progression(for: companion).addingExperience(
             StageCompletion.battleExperienceAward(
                 playerLevel: companionLevel,
                 enemyLevel: encounterLevel,
-                highestLevel: PlayerRosterState.initial.highestCompanionLevel
+                highestLevel: PlayerRosterState.testSeed.highestCompanionLevel
             )
         )
         try #expect(save.roster.progression(for: hero) == expectedHeroProgression)
@@ -163,7 +163,7 @@ struct StageRewardTests {
     }
 
     @Test func completingStageAdvancesJourney() throws {
-        var save = SaveTestSupport.makeSave(inventory: .initial)
+        var save = SaveTestSupport.makeSave(inventory: .testSeed)
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
 

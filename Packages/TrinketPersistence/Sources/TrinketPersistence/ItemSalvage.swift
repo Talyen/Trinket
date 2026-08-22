@@ -27,7 +27,7 @@ public enum ItemSalvage {
             (.hide, .stone)
         case .accessory, .secondaryAccessory:
             (.herbs, .crystal)
-        case .trinket:
+        case .trinket, .secondaryTrinket:
             preconditionFailure("Trinkets cannot be salvaged.")
         }
     }

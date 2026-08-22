@@ -72,9 +72,14 @@ public struct InventoryItem: Identifiable, Equatable, Hashable, Sendable {
                 id: affix.id,
                 title: affix.title,
                 description: power.description,
-                keywords: affix.keywords
+                keywords: affix.keywords,
+                isCorrupted: affix.isCorrupted
             )
         }
+    }
+
+    public var hasCorruptedAffix: Bool {
+        affixes.contains(where: \.isCorrupted)
     }
 
     public var isTrinket: Bool {
@@ -134,6 +139,7 @@ public struct EquipmentLoadout: Equatable, Hashable, Sendable {
         inventory: [InventoryItem]
     ) -> Bool {
         guard item.baseType.canEquip(in: slot) else { return false }
+        guard trinketBaseIsFree(item, excluding: slot, inventory: inventory) else { return false }
         guard slot == .secondaryWeapon else { return true }
         guard
             let primaryID = itemID(for: .weapon),
@@ -142,6 +148,22 @@ public struct EquipmentLoadout: Equatable, Hashable, Sendable {
             return true
         }
         return primary.baseType.weaponKind != .twoHanded
+    }
+
+    /// Trinkets are unique per combatant: the same base type may be worn in
+    /// only one trinket slot, so a second copy cannot be equipped.
+    private func trinketBaseIsFree(
+        _ item: InventoryItem,
+        excluding destination: ItemSlot,
+        inventory: [InventoryItem]
+    ) -> Bool {
+        guard item.isTrinket else { return true }
+        return itemIDs(inFamilyOf: destination).allSatisfy { siblingID in
+            guard siblingID != item.id,
+                  let worn = inventory.first(where: { $0.id == siblingID })
+            else { return true }
+            return worn.baseType.id != item.baseType.id
+        }
     }
 
     public func isAvailable(_ slot: ItemSlot, inventory: [InventoryItem]) -> Bool {

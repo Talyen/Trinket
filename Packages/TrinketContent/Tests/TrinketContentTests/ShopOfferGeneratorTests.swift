@@ -134,6 +134,30 @@ struct ShopOfferGeneratorTests {
         }
     }
 
+    @Test func priceDiscountPercentReducesNonStarterShopPrices() throws {
+        let stageID = "chapter-2-stage-8"
+        var undiscountedRNG = SeededRandomNumberGenerator(seed: 7)
+        let fullPriceOffers = ShopOfferGenerator.generateOffers(
+            stageID: stageID,
+            count: 4,
+            using: &undiscountedRNG
+        )
+        var discountedRNG = SeededRandomNumberGenerator(seed: 7)
+        let discountedOffers = ShopOfferGenerator.generateOffers(
+            stageID: stageID,
+            count: 4,
+            priceDiscountPercent: 10,
+            using: &discountedRNG
+        )
+
+        #expect(fullPriceOffers.count == discountedOffers.count)
+        for (full, discounted) in zip(fullPriceOffers, discountedOffers) {
+            try #require(full.id == discounted.id)
+            let expected = max(1, (full.price * 90) / 100)
+            #expect(discounted.price == expected)
+        }
+    }
+
     @Test func shopShelfReservesUniqueUnownedTrinkets() throws {
         let owned = try #require(GameContent.trinketItems.first).templateID
         var randomNumberGenerator = SeededRandomNumberGenerator(seed: 4)

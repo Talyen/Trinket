@@ -14,6 +14,12 @@ let inventoryMappingLogger = Logger(
     category: "InventoryMapping"
 )
 private struct UnlockedCombatantValue {
+    /// Persisted role discriminators. Deliberately lowercase historical format —
+    /// do NOT switch to `Combatant.Role.rawValue` ("Hero"/"Companion"); that
+    /// would silently break decoding of every shipped save.
+    static let heroRole = "hero"
+    static let companionRole = "companion"
+
     let combatantID: String
     let role: String
 
@@ -74,6 +80,7 @@ extension InventoryItemModel {
                 model.title = value.affix.title
                 model.affixDescription = value.affix.description
                 model.keywordRawValues = value.affix.keywords.map(\.rawValue).sorted()
+                model.isCorrupted = value.affix.isCorrupted
                 model.sortIndex = value.index
             },
             context: context
@@ -96,9 +103,9 @@ extension RosterModel {
 
     private func updateUnlockedCombatants(from roster: PlayerRosterState, context: ModelContext?) {
         let unlockedValues = roster.unlockedHeroIDs.sorted().map {
-            UnlockedCombatantValue(combatantID: $0, role: "hero")
+            UnlockedCombatantValue(combatantID: $0, role: UnlockedCombatantValue.heroRole)
         } + roster.unlockedCompanionIDs.sorted().map {
-            UnlockedCombatantValue(combatantID: $0, role: "companion")
+            UnlockedCombatantValue(combatantID: $0, role: UnlockedCombatantValue.companionRole)
         }
         unlockedCombatants = reconcileModels(
             existing: unlockedCombatants ?? [],
@@ -216,8 +223,8 @@ extension RosterModel {
         schemaVersion: Int = PlayerSave.currentSchemaVersion
     ) -> PlayerRosterState {
         let unlocked = unlockedCombatants ?? []
-        let heroIDs = Set(unlocked.filter { $0.role == "hero" }.map(\.combatantID))
-        let companionIDs = Set(unlocked.filter { $0.role == "companion" }.map(\.combatantID))
+        let heroIDs = Set(unlocked.filter { $0.role == UnlockedCombatantValue.heroRole }.map(\.combatantID))
+        let companionIDs = Set(unlocked.filter { $0.role == UnlockedCombatantValue.companionRole }.map(\.combatantID))
         // Last-wins folding: duplicate SwiftData child rows must not trap before sanitizer.
         let progressionValues = Dictionary(lastWins: (progressions ?? []).map {
             ($0.combatantID, CombatantProgression(level: $0.level, currentXP: $0.currentXP, requiredXP: $0.requiredXP))
@@ -226,7 +233,7 @@ extension RosterModel {
             ($0.combatantID, RosterHydration.AbilityLoadoutIDs(basicID: $0.basicID, skillID: $0.skillID, ultimateID: $0.ultimateID))
         })
         let equipmentValues = Dictionary(lastWins: (equipmentLoadouts ?? []).map { loadoutModel in
-            let isHero = GameContent.heroes.contains { $0.id == loadoutModel.combatantID }
+            let isHero = RosterHydration.combatantsByID[loadoutModel.combatantID]?.role == .hero
             return (
                 loadoutModel.combatantID,
                 EquipmentLoadout(itemIDsBySlot: Dictionary(lastWins: (loadoutModel.slots ?? []).compactMap { slot in

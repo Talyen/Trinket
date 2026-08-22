@@ -198,7 +198,6 @@ struct AppStateLabyrinthTests { // swiftlint:disable:this type_body_length
             #expect(state.encounters.activeMysteryEncounter == nil)
         case .rest:
             let session = try #require(state.labyrinth.activeNodeSession)
-            #expect(session.kind == .rest)
             #expect(session.nodeID == nodeID)
             #expect(state.labyrinth.finishActiveRest())
             #expect(state.labyrinth.activeNodeSession == nil)
@@ -271,7 +270,7 @@ struct AppStateLabyrinthTests { // swiftlint:disable:this type_body_length
     }
 
     #if DEBUG
-    @Test(arguments: ["shop", "rest", "craft"] as [String])
+    @Test(arguments: ["shop", "rest"] as [String])
     func labyrinthEncounterFinishKeepsSessionOpenWhenPersistFails(kind: String) throws {
         let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
         let state = try context.makePlaySession(arguments: ["-reset-state"], playerSave: playerSave)
@@ -295,7 +294,7 @@ struct AppStateLabyrinthTests { // swiftlint:disable:this type_body_length
         case "rest":
             let restNodeID = try #require(LabyrinthTestSupport.firstReachableNodeID(of: .rest, in: state))
             #expect(state.labyrinth.handleNodeAction(nodeID: restNodeID) == nil)
-            #expect(state.labyrinth.activeNodeSession?.kind == .rest)
+            #expect(state.labyrinth.activeNodeSession != nil)
 
             playerSave.forcesNextSaveFailure = true
             #expect(!state.labyrinth.finishActiveRest())
@@ -306,21 +305,6 @@ struct AppStateLabyrinthTests { // swiftlint:disable:this type_body_length
             #expect(state.labyrinth.finishActiveRest())
             #expect(state.labyrinth.activeNodeSession == nil)
             #expect(state.playerSave.labyrinth.nodes[restNodeID]?.isCleared == true)
-        case "craft":
-            let craftNodeID = try #require(LabyrinthTestSupport.firstReachableNodeID(of: .craft, in: state))
-            #expect(state.labyrinth.handleNodeAction(nodeID: craftNodeID) == nil)
-            let session = try #require(state.labyrinth.activeNodeSession)
-            #expect(session.kind == .craft)
-
-            playerSave.forcesNextSaveFailure = true
-            #expect(!state.labyrinth.leaveActiveCraftWithoutForging())
-            #expect(state.labyrinth.activeNodeSession != nil)
-            #expect(state.labyrinth.activeNodeSession?.failureMessage != nil)
-            #expect(state.playerSave.labyrinth.nodes[craftNodeID]?.isCleared == false)
-
-            #expect(state.labyrinth.leaveActiveCraftWithoutForging())
-            #expect(state.labyrinth.activeNodeSession == nil)
-            #expect(state.playerSave.labyrinth.nodes[craftNodeID]?.isCleared == true)
         default:
             Issue.record("Unexpected encounter kind \(kind)")
         }
@@ -372,32 +356,60 @@ struct AppStateLabyrinthTests { // swiftlint:disable:this type_body_length
         _ = state.labyrinth.enter()
         let restNodeID = try #require(LabyrinthTestSupport.firstReachableNodeID(of: .rest, in: state))
         let node = try #require(state.playerSave.labyrinth.node(id: restNodeID))
-        let rawGold = LabyrinthCompletion.nonCombatGoldStipend(
-            for: node,
-            effects: state.playerSave.labyrinth.effects(for: restNodeID)
-        )
+        let rawGold = LabyrinthCompletion.nonCombatGoldStipend(for: node)
         let expected = state.playerSave.homestead.effects.adjustedGold(rawGold)
 
         #expect(state.labyrinth.handleNodeAction(nodeID: restNodeID) == nil)
         let session = try #require(state.labyrinth.activeNodeSession)
-        #expect(session.kind == .rest)
         #expect(session.goldAmount == expected)
     }
 
-    @Test func labyrinthCraftForgeClearsNodeWhenAffordable() throws {
+    @Test func labyrinthMysteryNodesCarryExactlyOneEconomyModifier() throws {
+        /// A recruit-eligible floor can shuffle mystery out of its guaranteed
+        /// non-combat trio and roll zero of them; re-roll so the invariant below
+        /// is exercised on a real generated node.
+        func hasUnclearedMysteryNode(_ session: PlaySession) -> Bool {
+            session.playerSave.labyrinth.nodes.values.contains {
+                $0.type.canonical == .mystery && !$0.isCleared
+            }
+        }
+
+        var state = try context.makePlaySession(arguments: ["-reset-state"])
+        _ = state.labyrinth.enter()
+        for _ in 0 ..< 8 where !hasUnclearedMysteryNode(state) {
+            state = try context.makePlaySession(arguments: ["-reset-state"])
+            _ = state.labyrinth.enter()
+        }
+        let economyIDs: Set<LabyrinthModifierID> = [
+            LabyrinthModifierID("bountyMark"),
+            LabyrinthModifierID("scholarsToll"),
+            LabyrinthModifierID("scavengersLuck"),
+        ]
+        var checked = 0
+        for node in state.playerSave.labyrinth.nodes.values
+            where node.type.canonical == .mystery && !node.isCleared {
+            let ids = node.modifierIDs
+            #expect(ids.count == 1)
+            #expect(economyIDs.contains(ids[0]))
+            let effects = state.playerSave.labyrinth.effects(for: node.id)
+            #expect(effects.goldFoundPercent + effects.experienceEarnedPercent + effects.materialsFoundPercent > 0)
+            checked += 1
+        }
+        #expect(checked > 0, "Expected at least one mystery node on the map")
+    }
+
+    @Test func labyrinthShopNodesCarryExactlyOneShopModifier() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         _ = state.labyrinth.enter()
-        let craftNodeID = try #require(LabyrinthTestSupport.firstReachableNodeID(of: .craft, in: state))
-
-        var roster = state.playerSave.roster
-        roster.grantGold(200)
-        state.playerSave.roster = roster
-
-        #expect(state.labyrinth.handleNodeAction(nodeID: craftNodeID) == nil)
-        #expect(state.labyrinth.activeNodeSession?.kind == .craft)
-        #expect(state.labyrinth.forgeActiveCraft())
-        #expect(state.labyrinth.activeNodeSession == nil)
-        #expect(state.playerSave.labyrinth.nodes[craftNodeID]?.isCleared == true)
+        let shopIDs: Set<LabyrinthModifierID> = [
+            LabyrinthModifierID("shopDiscount"),
+            LabyrinthModifierID("appraisersEye"),
+        ]
+        for node in state.playerSave.labyrinth.nodes.values where node.type.canonical == .shop {
+            let ids = node.modifierIDs
+            #expect(ids.count == 1)
+            #expect(shopIDs.contains(ids[0]))
+        }
     }
 
     @Test func legacyEventNodeRoutesToMystery() throws {

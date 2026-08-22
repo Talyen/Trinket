@@ -7,7 +7,7 @@ public extension Combatant.Role {
         case .hero:
             [.weapon, .armor, .secondaryWeapon, .accessory, .secondaryAccessory, .trinket]
         case .companion:
-            [.accessory, .armor, .trinket]
+            [.trinket, .accessory, .secondaryTrinket]
         case .enemy:
             []
         }

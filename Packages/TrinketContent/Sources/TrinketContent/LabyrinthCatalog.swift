@@ -23,18 +23,6 @@ public enum LabyrinthCatalog {
             nodeTypes: [.battle, .boss]
         ),
         LabyrinthModifierDefinition(
-            id: LabyrinthModifierID("gildedWhisper"),
-            title: "Gilded Whisper",
-            effect: .goldRewardPercent(10),
-            nodeTypes: [.shop]
-        ),
-        LabyrinthModifierDefinition(
-            id: LabyrinthModifierID("astralSeam"),
-            title: "Astral Seam",
-            effect: .astralChancePercent(25),
-            nodeTypes: [.craft]
-        ),
-        LabyrinthModifierDefinition(
             id: LabyrinthModifierID("serpentBloom"),
             title: "Serpent Bloom",
             effect: .damageDealt(keyword: .poison, amount: 1),
@@ -45,6 +33,72 @@ public enum LabyrinthCatalog {
             title: "Rime Tax",
             effect: .damageDealt(keyword: .freeze, amount: 1),
             nodeTypes: [.battle, .boss]
+        ),
+        LabyrinthModifierDefinition(
+            id: LabyrinthModifierID("sunTithe"),
+            title: "Sun Tithe",
+            effect: .damageDealt(keyword: .holy, amount: 1),
+            nodeTypes: [.battle, .boss]
+        ),
+        LabyrinthModifierDefinition(
+            id: LabyrinthModifierID("concussionToll"),
+            title: "Concussion Toll",
+            effect: .damageDealt(keyword: .stun, amount: 1),
+            nodeTypes: [.battle, .boss]
+        ),
+        LabyrinthModifierDefinition(
+            id: LabyrinthModifierID("bulwarkBargain"),
+            title: "Bulwark Bargain",
+            effect: .blockGained(2),
+            nodeTypes: [.battle, .boss]
+        ),
+        LabyrinthModifierDefinition(
+            id: LabyrinthModifierID("vampiricLedger"),
+            title: "Vampiric Ledger",
+            effect: .leechGainedPercent(5),
+            nodeTypes: [.battle, .boss]
+        ),
+        LabyrinthModifierDefinition(
+            id: LabyrinthModifierID("wardedFlesh"),
+            title: "Warded Flesh",
+            effect: .damageTakenReduction(keyword: .physical, percent: 20),
+            nodeTypes: [.battle, .boss]
+        ),
+        LabyrinthModifierDefinition(
+            id: LabyrinthModifierID("frostboundWard"),
+            title: "Frostbound Ward",
+            effect: .damageTakenReduction(keyword: .freeze, percent: 30),
+            nodeTypes: [.battle, .boss]
+        ),
+        LabyrinthModifierDefinition(
+            id: LabyrinthModifierID("bountyMark"),
+            title: "Bounty Mark",
+            effect: .goldFoundPercent(25),
+            nodeTypes: [.battle, .boss, .mystery]
+        ),
+        LabyrinthModifierDefinition(
+            id: LabyrinthModifierID("scholarsToll"),
+            title: "Scholar's Toll",
+            effect: .experienceEarnedPercent(25),
+            nodeTypes: [.battle, .boss, .mystery]
+        ),
+        LabyrinthModifierDefinition(
+            id: LabyrinthModifierID("scavengersLuck"),
+            title: "Scavenger's Luck",
+            effect: .materialsFoundPercent(25),
+            nodeTypes: [.battle, .boss, .mystery]
+        ),
+        LabyrinthModifierDefinition(
+            id: LabyrinthModifierID("shopDiscount"),
+            title: "Shop Discount",
+            effect: .shopDiscountPercent(10),
+            nodeTypes: [.shop]
+        ),
+        LabyrinthModifierDefinition(
+            id: LabyrinthModifierID("appraisersEye"),
+            title: "Appraiser's Eye",
+            effect: .astralShopOffers,
+            nodeTypes: [.shop]
         ),
     ]
 
@@ -79,9 +133,8 @@ public enum LabyrinthCatalog {
         guard nodeType.isCombat else { return [] }
         let keywords = enemyDamageKeywords(for: enemyID)
         return modifiers.filter { modifier in
-            guard modifier.applies(to: nodeType),
-                  let keyword = modifier.damageDealtKeyword
-            else { return false }
+            guard modifier.applies(to: nodeType) else { return false }
+            guard let keyword = modifier.relevantKeyword else { return true }
             return keywords.contains(keyword)
         }
     }
@@ -92,23 +145,22 @@ public enum LabyrinthCatalog {
         worldSeed: UInt64,
         nodeID: String
     ) -> [LabyrinthModifierID] {
-        switch type.canonical {
+        let pool: [LabyrinthModifierDefinition] = switch type.canonical {
         case .battle, .boss:
-            guard let enemyID else { return [] }
-            let pool = combatModifiers(for: enemyID, nodeType: type)
-            guard !pool.isEmpty else { return [] }
-            let index = Int(
-                GameContent.encounterSeed(worldSeed, salt: "labyrinth-modifier-\(nodeID)")
-                    % UInt64(pool.count)
-            )
-            return [pool[index].id]
+            enemyID.map { combatModifiers(for: $0, nodeType: type) } ?? []
         case .shop:
-            return [LabyrinthModifierID("gildedWhisper")]
-        case .craft:
-            return [LabyrinthModifierID("astralSeam")]
-        case .rest, .mystery, .event, .recruit, .entrance:
-            return []
+            modifiers.filter { $0.applies(to: .shop) }
+        case .mystery:
+            modifiers.filter { $0.applies(to: .mystery) }
+        case .rest, .event, .recruit, .craft, .entrance:
+            []
         }
+        guard !pool.isEmpty else { return [] }
+        let index = Int(
+            GameContent.encounterSeed(worldSeed, salt: "labyrinth-modifier-\(nodeID)")
+                % UInt64(pool.count)
+        )
+        return [pool[index].id]
     }
 
     public static func pickBossEnemyID(
@@ -138,7 +190,7 @@ public enum LabyrinthCatalog {
             } else {
                 []
             }
-        case .shop, .craft:
+        case .shop, .mystery:
             modifiers.filter { $0.applies(to: type) }
         default:
             []
