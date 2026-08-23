@@ -26,6 +26,7 @@ struct SalvageItemButton: View {
             )
         }
         .trinketQuietTapButtonStyle()
+        .accessibilityLabel(item.displayName)
         .accessibilityIdentifier(AccessibilityID.Collection.itemCard(itemID: item.id))
     }
 }

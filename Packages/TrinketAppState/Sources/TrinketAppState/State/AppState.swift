@@ -149,9 +149,10 @@ public final class AppState {
         }
     }
 
-    /// True when the canonical player store could not be opened and persistence is in-memory.
+    /// True when the canonical player store could not be opened normally —
+    /// either persistence fell back to in-memory or a corrupt store was reset.
     public var requiresPersistenceRecoveryAcknowledgement: Bool {
-        playerSave.isPersistenceDegraded
+        playerSave.isPersistenceDegraded || playerSave.recoveredAfterStoreDeletion
     }
 
     @discardableResult

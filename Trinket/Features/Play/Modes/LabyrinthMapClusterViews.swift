@@ -216,7 +216,17 @@ private struct LabyrinthMapNodeSeal: View {
         .onDisappear {
             reachablePulseTask?.cancel()
         }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(nodeAccessibilityLabel)
         .accessibilityIdentifier(labyrinthAccessibilityIdentifier)
+    }
+
+    private var nodeAccessibilityLabel: String {
+        switch visualState {
+        case .cleared: "\(type.title), cleared"
+        case .locked: "\(type.title), locked"
+        case .reachable: type.title
+        }
     }
 
     private var labyrinthAccessibilityIdentifier: String {

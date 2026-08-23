@@ -56,6 +56,10 @@ public final class PlayerSaveStore {
 
     /// `true` when disk store failed and an in-memory fallback container is active.
     public private(set) var isPersistenceDegraded = false
+
+    /// `true` when the previous store was unreadable and recovery deleted it,
+    /// starting this session from a fresh save.
+    public private(set) var recoveredAfterStoreDeletion = false
     public let isCloudSyncEnabled: Bool
 
     #if DEBUG
@@ -159,6 +163,12 @@ public final class PlayerSaveStore {
             isPersistenceDegraded = true
             lastPersistenceError = .storeUnavailable(
                 "Couldn't open on-device save storage. Progress is kept in memory until you restart after freeing space."
+            )
+        }
+        if openResult.recoveredAfterStoreDeletion {
+            recoveredAfterStoreDeletion = true
+            lastPersistenceError = .storeUnavailable(
+                "Saved progress was unreadable and couldn't be repaired, so a fresh start was created."
             )
         }
         context = ModelContext(container)

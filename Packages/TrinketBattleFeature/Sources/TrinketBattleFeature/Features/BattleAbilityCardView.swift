@@ -134,6 +134,8 @@ struct BattleAbilityCardView: View {
             syncAutoLift(liftCardID)
         }
         .accessibilityElement(children: .ignore)
+        .accessibilityLabel(card.ability.name)
+        .accessibilityHint("Double tap to play this card")
         .accessibilityIdentifier(AccessibilityID.Battle.handCard(card.ability.id))
     }
 

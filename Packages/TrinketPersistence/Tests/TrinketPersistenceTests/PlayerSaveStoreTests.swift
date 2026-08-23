@@ -85,13 +85,19 @@ final class PlayerSaveStoreTests {
         let store = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true, persistSaveImmediately: true)
 
         try #expect(!store.isPersistenceDegraded)
-        try #expect(store.lastPersistenceError == nil)
+        try #expect(store.recoveredAfterStoreDeletion)
+        if case let .storeUnavailable(message) = store.lastPersistenceError {
+            #expect(message.contains("fresh start"))
+        } else {
+            Issue.record("Expected store-unavailable error after wipe recovery")
+        }
 
         store.grantGold(42)
 
         let reloaded = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
-        try #expect(!reloaded.isPersistenceDegraded)
         try #expect(reloaded.roster.gold == 42)
+        #expect(!reloaded.isPersistenceDegraded && !reloaded.recoveredAfterStoreDeletion)
+        #expect(reloaded.lastPersistenceError == nil)
     }
 
     @Test func mutateRosterPersistsThroughHub() throws {

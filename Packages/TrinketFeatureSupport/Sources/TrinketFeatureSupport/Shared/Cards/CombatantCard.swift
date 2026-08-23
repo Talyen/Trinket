@@ -82,6 +82,7 @@ public struct CollectionCombatantButton: View {
         }
         .trinketQuietTapButtonStyle()
         .allowsHitTesting(!isLocked)
+        .accessibilityLabel(isLocked ? "\(combatant.name), locked" : combatant.name)
         .accessibilityIdentifier(AccessibilityID.CombatantDetail.collectionCard(name: combatant.name))
     }
 }
