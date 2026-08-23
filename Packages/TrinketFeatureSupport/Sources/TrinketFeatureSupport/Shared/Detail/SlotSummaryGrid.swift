@@ -10,7 +10,6 @@ public struct SlotSummaryGrid<Slot: Identifiable, CardView: View>: View {
     let onView: ((Slot) -> Void)?
     let onLongPress: ((Slot) -> Void)?
     let accessibilityIdentifier: (Slot) -> String
-    let combinesAccessibilityChildren: Bool
     @ViewBuilder let card: (Slot) -> CardView
 
     public init(
@@ -21,7 +20,6 @@ public struct SlotSummaryGrid<Slot: Identifiable, CardView: View>: View {
         onView: ((Slot) -> Void)?,
         onLongPress: ((Slot) -> Void)? = nil,
         accessibilityIdentifier: @escaping (Slot) -> String,
-        combinesAccessibilityChildren: Bool = false,
         @ViewBuilder card: @escaping (Slot) -> CardView
     ) {
         self.slots = slots
@@ -31,7 +29,6 @@ public struct SlotSummaryGrid<Slot: Identifiable, CardView: View>: View {
         self.onView = onView
         self.onLongPress = onLongPress
         self.accessibilityIdentifier = accessibilityIdentifier
-        self.combinesAccessibilityChildren = combinesAccessibilityChildren
         self.card = card
     }
 
@@ -67,23 +64,11 @@ public struct SlotSummaryGrid<Slot: Identifiable, CardView: View>: View {
         )
         .trinketQuietTapButtonStyle()
         .frame(maxWidth: .infinity, alignment: .top)
-        .trinketAccessibilityCombine(combinesAccessibilityChildren)
         .accessibilityIdentifier(accessibilityIdentifier(slot))
     }
 
     private func inspectAction(for slot: Slot, locked: Bool, filled: Bool) -> (() -> Void)? {
         guard !locked, filled, let onLongPress else { return nil }
         return { onLongPress(slot) }
-    }
-}
-
-private extension View {
-    @ViewBuilder
-    func trinketAccessibilityCombine(_ combine: Bool) -> some View {
-        if combine {
-            accessibilityElement(children: .combine)
-        } else {
-            self
-        }
     }
 }

@@ -55,6 +55,12 @@ public struct PlayerRosterState: Equatable, Sendable {
         unlockedCompanionIDs.compactMap { progressions[$0]?.level }.max() ?? 1
     }
 
+    /// Floored midpoint of the active hero and companion levels — the party strength
+    /// reference for bounded downward enemy scaling.
+    public var activePartyAverageLevel: Int {
+        (progression(for: activeHero).level + progression(for: activeCompanion).level) / 2
+    }
+
     /// Recruit event ids whose combatant is not yet unlocked. Single source of truth
     /// for Labyrinth map generation and save sanitizing.
     public var eligibleRecruitEventIDs: [String] {

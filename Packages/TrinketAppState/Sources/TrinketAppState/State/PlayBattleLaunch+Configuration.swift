@@ -31,6 +31,8 @@ struct BattleLaunchInput {
     let stageRewardsAlreadyClaimed: Bool
     let universalModifiers: [AffixModifier]
     let labyrinthModifiers: [LabyrinthModifierDefinition]
+    let heroStartingHealth: Int?
+    let companionStartingHealth: Int?
 
     init(
         origin: PlayBattleOrigin? = nil,
@@ -43,7 +45,9 @@ struct BattleLaunchInput {
         pendingRewardItem: InventoryItem? = nil,
         stageRewardsAlreadyClaimed: Bool = false,
         universalModifiers: [AffixModifier] = [],
-        labyrinthModifiers: [LabyrinthModifierDefinition] = []
+        labyrinthModifiers: [LabyrinthModifierDefinition] = [],
+        heroStartingHealth: Int? = nil,
+        companionStartingHealth: Int? = nil
     ) {
         self.origin = origin
         self.hero = hero
@@ -56,6 +60,8 @@ struct BattleLaunchInput {
         self.stageRewardsAlreadyClaimed = stageRewardsAlreadyClaimed
         self.universalModifiers = universalModifiers
         self.labyrinthModifiers = labyrinthModifiers
+        self.heroStartingHealth = heroStartingHealth
+        self.companionStartingHealth = companionStartingHealth
     }
 }
 
@@ -140,12 +146,14 @@ extension PlayBattleLaunch {
         (
             partyMember(
                 combatant: input.hero,
+                startingHealth: input.heroStartingHealth,
                 rosterState: rosterState,
                 inventoryState: inventoryState,
                 additionalModifiers: homesteadEffects.heroModifiers
             ),
             partyMember(
                 combatant: input.companion,
+                startingHealth: input.companionStartingHealth,
                 rosterState: rosterState,
                 inventoryState: inventoryState,
                 additionalModifiers: homesteadEffects.companionModifiers
@@ -155,6 +163,7 @@ extension PlayBattleLaunch {
 
     private static func partyMember(
         combatant: Combatant,
+        startingHealth: Int?,
         rosterState: PlayerRosterState,
         inventoryState: PlayerInventoryState,
         additionalModifiers: [AffixModifier] = []
@@ -177,7 +186,29 @@ extension PlayBattleLaunch {
             progression: progression,
             equipmentLoadout: equipmentLoadout,
             modifiers: build.modifiers,
-            unlockedTalents: unlockedTalents
+            unlockedTalents: unlockedTalents,
+            startingHealth: startingHealth.map {
+                min(max(1, $0), build.effectiveMaxHealth)
+            }
+        )
+    }
+
+    /// Bakes the active party exactly as a battle launch would, for
+    /// out-of-battle health consumers like the Campfire screen.
+    static func bakedActiveParty(
+        rosterState: PlayerRosterState,
+        inventoryState: PlayerInventoryState,
+        homesteadState: PlayerHomesteadState
+    ) -> (hero: BattleRunConfiguration.PartyMember, companion: BattleRunConfiguration.PartyMember) {
+        let input = BattleLaunchInput(
+            hero: rosterState.activeHero,
+            companion: rosterState.activeCompanion
+        )
+        return makePartyMembers(
+            input: input,
+            homesteadEffects: homesteadState.effects,
+            rosterState: rosterState,
+            inventoryState: inventoryState
         )
     }
 

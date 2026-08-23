@@ -1,24 +1,49 @@
 import Foundation
 import Observation
-import TrinketContent
-import TrinketPersistence
 
-/// Thin Labyrinth shrine-rest encounter (gold crumb grant preview).
+/// One ally's health snapshot on a Campfire rest screen.
+public struct CampfirePartyMember: Equatable, Sendable, Identifiable {
+    public let combatantID: String
+    public let name: String
+    public let currentHealth: Int
+    public let maxHealth: Int
+    /// Health after resting: 30% of max restored, capped at max.
+    public let healedHealth: Int
+
+    public var id: String {
+        combatantID
+    }
+
+    public init(
+        combatantID: String,
+        name: String,
+        currentHealth: Int,
+        maxHealth: Int,
+        healedHealth: Int
+    ) {
+        self.combatantID = combatantID
+        self.name = name
+        self.currentHealth = currentHealth
+        self.maxHealth = maxHealth
+        self.healedHealth = healedHealth
+    }
+}
+
+/// Thin Labyrinth Campfire rest encounter (party heal preview).
 @MainActor
 @Observable
 public final class LabyrinthNodeSession: Identifiable {
     // swiftformat:disable:next modifierOrder -- SwiftLint requires isolation before access.
     nonisolated public let id = UUID()
     public let nodeID: String
-    /// Gold crumb grant preview.
-    public let goldAmount: Int
     public let depth: Int
+    public let party: [CampfirePartyMember]
     public private(set) var failureMessage: String?
 
-    public init(nodeID: String, goldAmount: Int, depth: Int) {
+    public init(nodeID: String, depth: Int, party: [CampfirePartyMember]) {
         self.nodeID = nodeID
-        self.goldAmount = goldAmount
         self.depth = depth
+        self.party = party
     }
 
     func markFailed(_ message: String) {
@@ -29,15 +54,8 @@ public final class LabyrinthNodeSession: Identifiable {
         failureMessage = nil
     }
 
-    static func rest(
-        node: LabyrinthNode,
-        homestead: PlayerHomesteadState
-    ) -> LabyrinthNodeSession {
-        let rewardGold = LabyrinthCompletion.nonCombatGoldStipend(for: node)
-        return LabyrinthNodeSession(
-            nodeID: node.id,
-            goldAmount: homestead.effects.adjustedGold(rewardGold),
-            depth: node.depth
-        )
+    /// Healed health per combatant, ready to persist as run health.
+    var healedRunHealthByCombatantID: [String: Int] {
+        Dictionary(uniqueKeysWithValues: party.map { ($0.combatantID, $0.healedHealth) })
     }
 }

@@ -152,7 +152,6 @@ struct PostBattleTalentChoiceView: View {
         }
         .buttonStyle(.plain)
         .disabled(nodes.isEmpty)
-        .accessibilityLabel("\(tree.name), \(choiceCountLabel(nodes.count))")
     }
 
     private func legalNodes(in tree: TalentTree, combatantID: String) -> [TalentNode] {

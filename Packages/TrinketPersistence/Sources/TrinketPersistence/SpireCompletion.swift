@@ -5,11 +5,12 @@ import TrinketCore
 public enum SpireCompletion {
     public static func resolveLoot(
         for floor: SpireFloor,
+        encounterLevel: Int? = nil,
         worldSeed: UInt64,
         ownedTrinketIDs: Set<String> = [],
         astralChanceBonusPercent: Int = 0
     ) -> BattleLootPackage {
-        let encounterLevel = EncounterLevelResolver.spireEnemyLevel(for: floor)
+        let level = encounterLevel ?? EncounterLevelResolver.spireEnemyLevel(for: floor)
         let enemyIsBoss = GameContent.enemy(matching: floor.enemyID)?.isBoss == true
         let keywordBias: Set<Keyword> = {
             guard let spire = GameContent.spire(id: floor.spireID) else { return [] }
@@ -17,7 +18,7 @@ public enum SpireCompletion {
         }()
         return BattleLoot.resolveSpire(
             floor: floor,
-            encounterLevel: encounterLevel,
+            encounterLevel: level,
             enemyIsBoss: enemyIsBoss,
             worldSeed: worldSeed,
             keywordBias: keywordBias,
@@ -34,6 +35,7 @@ public enum SpireCompletion {
         materialRewards: [ResourceAmount]? = nil,
         rewardItem: InventoryItem? = nil,
         loot: BattleLootPackage? = nil,
+        enemyEncounterLevel: Int? = nil,
         save: inout PlayerSave
     ) {
         let spireID = floor.spireID.rawValue
@@ -51,9 +53,11 @@ public enum SpireCompletion {
             return
         }
 
-        let encounterLevel = EncounterLevelResolver.spireEnemyLevel(for: floor)
+        let encounterLevel = enemyEncounterLevel
+            ?? EncounterLevelResolver.spireEnemyLevel(for: floor)
         let resolvedLoot = loot ?? resolveLoot(
             for: floor,
+            encounterLevel: encounterLevel,
             worldSeed: save.worldSeed,
             ownedTrinketIDs: save.inventory.ownedTrinketIDs,
             astralChanceBonusPercent: save.homestead.effects.astralChanceBonusPercent

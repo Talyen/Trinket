@@ -30,7 +30,9 @@ struct PlayBattleLaunchTests {
                     return false
                 }
         )
-        let encounter = try #require(JourneyPlayMode.resolvedEncounter(for: stage, worldSeed: 0))
+        let encounter = try #require(
+            JourneyPlayMode.resolvedEncounter(for: stage, worldSeed: 0, partyAverageLevel: 9999)
+        )
         let expectedEnemyID = try #require(stage.resolvedBattleEnemyID(worldSeed: 0))
 
         #expect(encounter.combatant.id == expectedEnemyID)
@@ -38,7 +40,9 @@ struct PlayBattleLaunchTests {
         #expect(stage.encounter.isCombat)
         #expect(stage.encounter.battleEnemyID == nil)
 
-        let again = try #require(JourneyPlayMode.resolvedEncounter(for: stage, worldSeed: 0))
+        let again = try #require(
+            JourneyPlayMode.resolvedEncounter(for: stage, worldSeed: 0, partyAverageLevel: 9999)
+        )
         #expect(again.combatant.id == encounter.combatant.id)
     }
 

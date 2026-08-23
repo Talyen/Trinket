@@ -348,20 +348,84 @@ struct AppStateLabyrinthTests { // swiftlint:disable:this type_body_length
         #expect(unlockedCountAfterRelaunch == unlockedCountAfterFirst)
     }
 
-    @Test func labyrinthRestGoldCrumbMatchesHomesteadAdjustedGrant() throws {
+    @Test func labyrinthCampfirePreviewsHealAndFinishingPersistsIt() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
-        var homestead = state.playerSave.homestead
-        homestead.nodeTiers[.wishingWell] = 2
-        state.playerSave.homestead = homestead
         _ = state.labyrinth.enter()
         let restNodeID = try #require(LabyrinthTestSupport.firstReachableNodeID(of: .rest, in: state))
-        let node = try #require(state.playerSave.labyrinth.node(id: restNodeID))
-        let rawGold = LabyrinthCompletion.nonCombatGoldStipend(for: node)
-        let expected = state.playerSave.homestead.effects.adjustedGold(rawGold)
+        let heroID = state.playerSave.roster.activeHeroID
+
+        // Seed mid-run wounds so the campfire has something to restore.
+        var labyrinth = state.playerSave.labyrinth
+        labyrinth.runHealthByCombatantID = [heroID: 3]
+        state.playerSave.labyrinth = labyrinth
 
         #expect(state.labyrinth.handleNodeAction(nodeID: restNodeID) == nil)
         let session = try #require(state.labyrinth.activeNodeSession)
-        #expect(session.goldAmount == expected)
+        #expect(session.nodeID == restNodeID)
+        #expect(session.party.map(\.combatantID) == [heroID, state.playerSave.roster.activeCompanionID])
+
+        let heroMember = try #require(session.party.first { $0.combatantID == heroID })
+        #expect(heroMember.currentHealth == 3)
+        #expect(heroMember.maxHealth > 3)
+        #expect(
+            heroMember.healedHealth
+                == LabyrinthCompletion.campfireRestHealth(current: 3, maxHealth: heroMember.maxHealth)
+        )
+        #expect(heroMember.healedHealth > 3)
+
+        let healed = session.healedRunHealthByCombatantID
+        #expect(state.labyrinth.finishActiveRest())
+        #expect(state.labyrinth.activeNodeSession == nil)
+        #expect(state.playerSave.labyrinth.nodes[restNodeID]?.isCleared == true)
+        #expect(state.playerSave.labyrinth.runHealthByCombatantID == healed)
+    }
+
+    @Test func completingLabyrinthBattleCommitsPartyRunHealth() throws {
+        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        _ = state.labyrinth.enter()
+        let combatNodeID = try #require(LabyrinthTestSupport.firstReachableCombatNodeID(in: state))
+        _ = state.labyrinth.startBattle(nodeID: combatNodeID)
+        let configuration = try #require(state.battle.activeBattle)
+
+        #expect(state.completeActiveBattle(configuration, battleEarnedGold: 3))
+
+        let runHealth = state.playerSave.labyrinth.runHealthByCombatantID
+        #expect(
+            Set(runHealth.keys)
+                == Set([configuration.hero.combatant.id, configuration.companion.combatant.id])
+        )
+        #expect(runHealth.values.allSatisfy { $0 >= 1 })
+    }
+
+    @Test func completeNodeClampsVictoryRunHealthAboveZero() throws {
+        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        _ = state.labyrinth.enter()
+        let combatNodeID = try #require(LabyrinthTestSupport.firstReachableCombatNodeID(in: state))
+
+        #expect(
+            state.labyrinth.completeNode(
+                nodeID: combatNodeID,
+                partyRunHealth: ["knight": 0]
+            )
+        )
+
+        #expect(state.playerSave.labyrinth.runHealthByCombatantID == ["knight": 1])
+    }
+
+    @Test func changedRunHealthReplacesPreparedLabyrinthBattles() throws {
+        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        _ = state.labyrinth.enter()
+        _ = try #require(LabyrinthTestSupport.firstReachableCombatNodeID(in: state))
+        let battle = try #require(context.lastBattle)
+        state.labyrinth.prepareReachableBattles()
+        let preparedRevision = battle.preparedBattlePresentationRevision
+
+        var labyrinth = state.playerSave.labyrinth
+        labyrinth.runHealthByCombatantID = [state.playerSave.roster.activeHeroID: 4]
+        state.playerSave.labyrinth = labyrinth
+        state.labyrinth.prepareReachableBattles()
+
+        #expect(battle.preparedBattlePresentationRevision > preparedRevision)
     }
 
     @Test func labyrinthMysteryNodesCarryExactlyOneEconomyModifier() throws {

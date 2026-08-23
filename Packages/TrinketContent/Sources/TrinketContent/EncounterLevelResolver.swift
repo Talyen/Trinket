@@ -2,6 +2,20 @@ import Foundation
 import TrinketCore
 
 public enum EncounterLevelResolver {
+    /// Bounded downward party scaling: enemies never rise above their authored level,
+    /// and never sit more than this many levels above the active party's average.
+    public static let downwardPartyOffset = 3
+
+    /// Applies bounded downward scaling to an authored enemy level. Overleveled
+    /// parties keep the authored level; underleveled parties pull enemies down to
+    /// `partyAverageLevel + downwardPartyOffset`.
+    public static func partyAdjusted(
+        _ authoredLevel: Int,
+        partyAverageLevel: Int
+    ) -> Int {
+        min(authoredLevel, partyAverageLevel + downwardPartyOffset)
+    }
+
     /// Journey mode: each chapter spans five enemy levels. Combat stages interpolate
     /// from the chapter base through chapter base + 4.
     public static func journeyEnemyLevel(for stage: Stage, in chapter: Chapter) -> Int {

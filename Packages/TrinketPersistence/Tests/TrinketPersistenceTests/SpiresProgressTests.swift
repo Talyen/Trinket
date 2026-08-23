@@ -1,6 +1,7 @@
 import Testing
 import TrinketContent
 import TrinketCore
+import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
 @Suite("SpiresProgress")
@@ -39,5 +40,38 @@ struct SpiresProgressTests {
             #expect(state.highestClearedFloor(for: spire.id.rawValue) == spire.floorCount)
             #expect(state.isFloorCleared(spire.floorCount, spireID: spire.id.rawValue))
         }
+    }
+
+    @Test func completionHonorsOverriddenEncounterLevelForExperience() throws {
+        let spire = try #require(GameContent.spire(id: .ironVein))
+        let topFloor = try #require(GameContent.spireFloor(spireID: .ironVein, floor: spire.floorCount))
+        let authoredLevel = EncounterLevelResolver.spireEnemyLevel(for: topFloor)
+
+        var save = SaveTestSupport.makeSave()
+        for floor in 1 ..< spire.floorCount {
+            _ = save.spires.markFloorCleared(floor, spireID: SpireID.ironVein.rawValue)
+        }
+
+        func grantedHeroXP(enemyEncounterLevel: Int?) -> Int {
+            var attempt = save
+            attempt.roster.progressions[attempt.roster.activeHeroID] = .at(level: authoredLevel)
+            let hero = attempt.roster.activeHero
+            let before = attempt.roster.progression(for: hero)
+            SpireCompletion.complete(
+                floor: topFloor,
+                hero: hero,
+                companion: attempt.roster.activeCompanion,
+                enemyEncounterLevel: enemyEncounterLevel,
+                save: &attempt
+            )
+            return attempt.roster.progression(for: hero).currentXP - before.currentXP
+        }
+
+        let authored = grantedHeroXP(enemyEncounterLevel: nil)
+        let scaled = grantedHeroXP(enemyEncounterLevel: authoredLevel - 7)
+
+        #expect(authored > 0)
+        #expect(scaled > 0)
+        #expect(scaled < authored)
     }
 }

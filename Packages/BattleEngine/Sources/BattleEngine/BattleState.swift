@@ -217,6 +217,8 @@ public struct BattleState {
         heroModifiers: CombatModifierProfile = .zero,
         companionModifiers: CombatModifierProfile = .zero,
         enemyModifiers: CombatModifierProfile = .zero,
+        heroStartingHealth: Int? = nil,
+        companionStartingHealth: Int? = nil,
         enemyFaction: EnemyFaction = .mortal,
         rngSeed: UInt64? = nil,
         tracksLog: Bool = true,
@@ -235,12 +237,14 @@ public struct BattleState {
             roster: BattleRoster(
                 hero: CombatantRuntime(
                     combatant: hero,
+                    initialHealth: heroStartingHealth,
                     initialActiveEffects: activeHeroEffects,
                     maximumHealthBonus: heroModifiers.maximumHealthBonus,
                     maximumManaBonus: heroModifiers.maximumManaBonus
                 ),
                 companion: CombatantRuntime(
                     combatant: companion,
+                    initialHealth: companionStartingHealth,
                     initialActiveEffects: activeCompanionEffects,
                     maximumHealthBonus: companionModifiers.maximumHealthBonus,
                     maximumManaBonus: companionModifiers.maximumManaBonus

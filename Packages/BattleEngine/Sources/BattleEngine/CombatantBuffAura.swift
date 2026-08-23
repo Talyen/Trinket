@@ -8,6 +8,8 @@ public enum CombatantBuffAuraKind: String, Sendable, Equatable, Hashable, CaseIt
     case predatorsFocus
     /// Glacial Ward: freeze on hit and/or freeze next attacker.
     case glacialWard
+    /// Molten Bulwark: reactive burn ward.
+    case moltenBulwark
     /// Thorns: active physical thorns reflection buffer.
     case thorns
     /// Avatar: glowing with holy light — holding the Avatar self-buff, a next
@@ -17,6 +19,8 @@ public enum CombatantBuffAuraKind: String, Sendable, Equatable, Hashable, CaseIt
     case marked
     /// Blizzard: recurring freeze storm on an enemy.
     case blizzard
+    /// Earthquake: recurring stun channel on an enemy.
+    case earthquake
 }
 
 /// Picks a buff aura from active effects for combatant-card presentation.
@@ -29,10 +33,12 @@ public enum CombatantBuffAura: Sendable {
         .shadowstep,
         .predatorsFocus,
         .glacialWard,
+        .moltenBulwark,
         .thorns,
         .avatar,
         .marked,
         .blizzard,
+        .earthquake,
     ]
 
     /// Maps an individual effect to its matching aura kind, if any.
@@ -44,6 +50,8 @@ public enum CombatantBuffAura: Sendable {
             .predatorsFocus
         case .freezeNextAttacker, .onHitDamage(.freeze, _):
             .glacialWard
+        case .onHitDamage(.burn, _):
+            .moltenBulwark
         case .onHitDamage(.holy, _):
             .avatar
         case let .thorns(stacks) where stacks > 0:
@@ -56,6 +64,8 @@ public enum CombatantBuffAura: Sendable {
             .marked
         case let .recurringDamage(keyword, _, _) where keyword == .freeze:
             .blizzard
+        case let .recurringDamage(keyword, _, _) where keyword == .stun:
+            .earthquake
         default:
             nil
         }

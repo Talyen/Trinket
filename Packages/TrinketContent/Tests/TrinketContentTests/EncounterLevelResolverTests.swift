@@ -35,4 +35,16 @@ struct EncounterLevelResolverTests {
         let floor = LabyrinthNode(id: "n0", type: .entrance, depth: 0, clusterID: "c1")
         #expect(EncounterLevelResolver.labyrinthEnemyLevel(for: floor) == 1)
     }
+
+    @Test func partyAdjustedNeverExceedsAuthoredLevel() {
+        #expect(EncounterLevelResolver.partyAdjusted(20, partyAverageLevel: 30) == 20)
+        #expect(EncounterLevelResolver.partyAdjusted(2, partyAverageLevel: 1) == 2)
+    }
+
+    @Test func partyAdjustedCapsUnderleveledPartiesAtAveragePlusOffset() {
+        #expect(EncounterLevelResolver.downwardPartyOffset == 3)
+        #expect(EncounterLevelResolver.partyAdjusted(30, partyAverageLevel: 10) == 13)
+        #expect(EncounterLevelResolver.partyAdjusted(14, partyAverageLevel: 10) == 13)
+        #expect(EncounterLevelResolver.partyAdjusted(13, partyAverageLevel: 10) == 13)
+    }
 }

@@ -9,7 +9,6 @@ public struct OptionPickerGrid<Item: Identifiable, CardView: View>: View {
     let onSelect: (Item) -> Void
     let onLongPress: ((Item) -> Void)?
     let accessibilityIdentifier: (Item) -> String
-    let accessibilityValue: ((Item) -> String)?
     var zoomNamespace: Namespace.ID?
     @ViewBuilder let card: (Item, Bool) -> CardView
 
@@ -20,7 +19,6 @@ public struct OptionPickerGrid<Item: Identifiable, CardView: View>: View {
         onSelect: @escaping (Item) -> Void,
         onLongPress: ((Item) -> Void)? = nil,
         accessibilityIdentifier: @escaping (Item) -> String,
-        accessibilityValue: ((Item) -> String)? = nil,
         zoomNamespace: Namespace.ID? = nil,
         @ViewBuilder card: @escaping (Item, Bool) -> CardView
     ) {
@@ -30,7 +28,6 @@ public struct OptionPickerGrid<Item: Identifiable, CardView: View>: View {
         self.onSelect = onSelect
         self.onLongPress = onLongPress
         self.accessibilityIdentifier = accessibilityIdentifier
-        self.accessibilityValue = accessibilityValue
         self.zoomNamespace = zoomNamespace
         self.card = card
     }
@@ -60,7 +57,6 @@ public struct OptionPickerGrid<Item: Identifiable, CardView: View>: View {
                     .trinketSelectionCardButtonStyle()
                     .optionalMatchedTransitionSource(id: item.id, in: zoomNamespace)
                     .accessibilityIdentifier(accessibilityIdentifier(item))
-                    .trinketAccessibilityValue(accessibilityValue?(item))
                 }
             }
             .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
@@ -71,16 +67,5 @@ public struct OptionPickerGrid<Item: Identifiable, CardView: View>: View {
     private func inspectAction(for item: Item, eligible: Bool) -> (() -> Void)? {
         guard eligible, let onLongPress else { return nil }
         return { onLongPress(item) }
-    }
-}
-
-private extension View {
-    @ViewBuilder
-    func trinketAccessibilityValue(_ value: String?) -> some View {
-        if let value {
-            accessibilityValue(value)
-        } else {
-            self
-        }
     }
 }

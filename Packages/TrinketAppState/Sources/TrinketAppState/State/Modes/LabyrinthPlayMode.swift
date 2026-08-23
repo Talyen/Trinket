@@ -7,7 +7,7 @@ import TrinketCore
 import TrinketFeatureContracts
 import TrinketPersistence
 
-/// Labyrinth map flow: enter, node routing, rest/craft, and node completion writes.
+/// Labyrinth map flow: enter, node routing, Campfire rests, and node completion writes.
 @MainActor
 @Observable
 public final class LabyrinthPlayMode {
@@ -23,6 +23,7 @@ public final class LabyrinthPlayMode {
         let roster: PlayerRosterState
         let inventory: PlayerInventoryState
         let homestead: PlayerHomesteadState
+        let runHealthByCombatantID: [String: Int]
     }
 
     public let playerSave: PlayerSaveStore
@@ -127,13 +128,42 @@ public final class LabyrinthPlayMode {
         guard canBeginTransientEncounter else { return nil }
         let labyrinth = playerSave.labyrinth
         guard let node = labyrinth.node(id: nodeID), node.type.canonical == .rest else {
-            return StageMapMessage(title: "Shrine Missing", message: "This path is not ready yet.")
+            return StageMapMessage(title: "Campfire Missing", message: "This path is not ready yet.")
         }
-        activeNodeSession = LabyrinthNodeSession.rest(
-            node: node,
-            homestead: playerSave.homestead
+        activeNodeSession = LabyrinthNodeSession(
+            nodeID: node.id,
+            depth: node.depth,
+            party: campfireParty()
         )
         return nil
+    }
+
+    /// Bakes the active party as a battle launch would and pairs it with stored
+    /// run health, so the Campfire screen shows the same numbers battles use.
+    private func campfireParty() -> [CampfirePartyMember] {
+        let party = PlayBattleLaunch.bakedActiveParty(
+            rosterState: playerSave.roster,
+            inventoryState: playerSave.inventory,
+            homesteadState: playerSave.homestead
+        )
+        let runHealth = playerSave.labyrinth.runHealthByCombatantID
+
+        func member(_ partyMember: BattleRunConfiguration.PartyMember) -> CampfirePartyMember {
+            let maxHealth = partyMember.baselineMaxHealth
+            let currentHealth = min(maxHealth, runHealth[partyMember.combatant.id] ?? maxHealth)
+            return CampfirePartyMember(
+                combatantID: partyMember.combatant.id,
+                name: partyMember.combatant.name,
+                currentHealth: currentHealth,
+                maxHealth: maxHealth,
+                healedHealth: LabyrinthCompletion.campfireRestHealth(
+                    current: currentHealth,
+                    maxHealth: maxHealth
+                )
+            )
+        }
+
+        return [member(party.hero), member(party.companion)]
     }
 
     @discardableResult
@@ -145,6 +175,7 @@ public final class LabyrinthPlayMode {
                 nodeID: sessionNode.nodeID,
                 hero: save.roster.activeHero,
                 companion: save.roster.activeCompanion,
+                partyRunHealth: sessionNode.healedRunHealthByCombatantID,
                 save: &save
             )
         }) else {
@@ -156,7 +187,10 @@ public final class LabyrinthPlayMode {
     }
 
     public func resolvedEncounter(for node: LabyrinthNode) -> (combatant: Combatant, level: Int)? {
-        Self.resolvedEncounter(for: node)
+        Self.resolvedEncounter(
+            for: node,
+            partyAverageLevel: playerSave.roster.activePartyAverageLevel
+        )
     }
 
     @discardableResult
@@ -176,7 +210,7 @@ public final class LabyrinthPlayMode {
             origin: origin,
             encounter: encounter,
             route: battleRoute(nodeID: nodeID),
-            loot: battleLoot(for: node, labyrinth: labyrinth),
+            loot: battleLoot(for: node, labyrinth: labyrinth, encounterLevel: encounter.level),
             universalModifiers: Self.combatModifiers(from: effects),
             labyrinthModifiers: LabyrinthCatalog.modifiers(ids: node.modifierIDs)
         )
@@ -245,7 +279,8 @@ public final class LabyrinthPlayMode {
             combatNodes: combatNodes,
             roster: playerSave.roster,
             inventory: playerSave.inventory,
-            homestead: playerSave.homestead
+            homestead: playerSave.homestead,
+            runHealthByCombatantID: labyrinth.runHealthByCombatantID
         )
     }
 
@@ -261,7 +296,7 @@ public final class LabyrinthPlayMode {
             origin: origin,
             encounter: encounter,
             route: battleRoute(nodeID: node.id),
-            loot: battleLoot(for: node, labyrinth: labyrinth),
+            loot: battleLoot(for: node, labyrinth: labyrinth, encounterLevel: encounter.level),
             universalModifiers: Self.combatModifiers(from: effects),
             labyrinthModifiers: LabyrinthCatalog.modifiers(ids: node.modifierIDs)
         )
@@ -285,11 +320,17 @@ public final class LabyrinthPlayMode {
         companion: Combatant? = nil,
         battleEarnedGold: Int = 0,
         materialRewards: [ResourceAmount]? = nil,
-        rewardItem: InventoryItem? = nil
+        rewardItem: InventoryItem? = nil,
+        enemyEncounterLevel: Int? = nil,
+        partyRunHealth: [String: Int]? = nil
     ) -> Bool {
         let roster = playerSave.roster
         let resolvedHero = hero ?? roster.activeHero
         let resolvedCompanion = companion ?? roster.activeCompanion
+        // Victory health commits never store a dead party member.
+        let resolvedRunHealth = partyRunHealth.map { healths in
+            Dictionary(uniqueKeysWithValues: healths.map { ($0.key, max(1, $0.value)) })
+        }
         return playerSave.persistBatch(logging: "Failed to persist Labyrinth node") { save in
             LabyrinthCompletion.complete(
                 nodeID: nodeID,
@@ -298,6 +339,8 @@ public final class LabyrinthPlayMode {
                 battleEarnedGold: battleEarnedGold,
                 materialRewards: materialRewards,
                 rewardItem: rewardItem,
+                enemyEncounterLevel: enemyEncounterLevel,
+                partyRunHealth: resolvedRunHealth,
                 save: &save
             )
         }
@@ -306,12 +349,17 @@ public final class LabyrinthPlayMode {
 
 extension LabyrinthPlayMode {
     static func resolvedEncounter(
-        for node: LabyrinthNode
+        for node: LabyrinthNode,
+        partyAverageLevel: Int
     ) -> (combatant: Combatant, level: Int)? {
         guard let enemyID = node.enemyID,
               let catalogEnemy = GameContent.enemy(matching: enemyID)
         else { return nil }
-        let level = EncounterLevelResolver.labyrinthEnemyLevel(for: node)
+        let authoredLevel = EncounterLevelResolver.labyrinthEnemyLevel(for: node)
+        let level = EncounterLevelResolver.partyAdjusted(
+            authoredLevel,
+            partyAverageLevel: partyAverageLevel
+        )
         return (CombatantLevelScaler.scale(enemy: catalogEnemy, level: level), level)
     }
 
@@ -335,11 +383,13 @@ extension LabyrinthPlayMode {
 
     private func battleLoot(
         for node: LabyrinthNode,
-        labyrinth: PlayerLabyrinthState
+        labyrinth: PlayerLabyrinthState,
+        encounterLevel: Int
     ) -> BattleLootPackage? {
         Self.resolveBattleLoot(
             for: node,
             effects: labyrinth.effects(for: node.id),
+            encounterLevel: encounterLevel,
             worldSeed: playerSave.worldSeed,
             ownedTrinketIDs: playerSave.inventory.ownedTrinketIDs,
             astralChanceBonusPercent: playerSave.homestead.effects.astralChanceBonusPercent
@@ -349,6 +399,7 @@ extension LabyrinthPlayMode {
     static func resolveBattleLoot(
         for node: LabyrinthNode,
         effects: LabyrinthModifierEffects,
+        encounterLevel: Int? = nil,
         worldSeed: UInt64,
         ownedTrinketIDs: Set<String> = [],
         astralChanceBonusPercent: Int = 0
@@ -356,6 +407,7 @@ extension LabyrinthPlayMode {
         LabyrinthCompletion.resolveCombatLoot(
             for: node,
             effects: effects,
+            encounterLevel: encounterLevel,
             worldSeed: worldSeed,
             ownedTrinketIDs: ownedTrinketIDs,
             astralChanceBonusPercent: astralChanceBonusPercent
@@ -366,13 +418,27 @@ extension LabyrinthPlayMode {
         let origin = PlayBattleOrigin.labyrinth(nodeID: nodeID)
         return PlayBattleRoute(origin: origin) { [weak self] configuration, presentation, battleEarnedGold, materialRewards in
             guard let self else { return false }
+            // Persist end-of-battle party health so wounds carry to the next fight.
+            // Commits cap at the baseline maximum: in-battle max-health growth is
+            // battle-scoped and must not survive into stored wounds.
+            let runHealth = battle.finalPartyHealthByCombatantID.map { healths in
+                func capped(_ member: BattleRunConfiguration.PartyMember) -> Int? {
+                    healths[member.combatant.id].map { min($0, member.baselineMaxHealth) }
+                }
+                return [
+                    configuration.hero.combatant.id: capped(configuration.hero),
+                    configuration.companion.combatant.id: capped(configuration.companion),
+                ].compactMapValues { $0 }
+            }
             return completeNode(
                 nodeID: nodeID,
                 hero: configuration.hero.combatant,
                 companion: configuration.companion.combatant,
                 battleEarnedGold: battleEarnedGold,
                 materialRewards: materialRewards,
-                rewardItem: presentation?.pendingRewardItem
+                rewardItem: presentation?.pendingRewardItem,
+                enemyEncounterLevel: configuration.enemyEncounterLevel,
+                partyRunHealth: runHealth
             )
         }
     }

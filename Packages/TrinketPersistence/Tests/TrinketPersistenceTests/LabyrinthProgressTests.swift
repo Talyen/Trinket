@@ -415,44 +415,6 @@ extension LabyrinthProgressTests {
 }
 
 extension LabyrinthProgressTests {
-    @Test func depthFiveCompletionGrantsNoMilestoneBonus() {
-        let node = LabyrinthNode(
-            id: "depth-five-rest",
-            type: .rest,
-            depth: 5,
-            clusterID: "depth-five",
-            gridPosition: LabyrinthGridPosition(row: 0, column: 1),
-            isRevealed: true
-        )
-        let cluster = LabyrinthCluster(
-            id: node.clusterID,
-            depthBand: 5,
-            nodeIDs: [node.id]
-        )
-        var save = PlayerSave.fresh
-        save.labyrinth = PlayerLabyrinthState(
-            worldSeed: 5,
-            hasEntered: true,
-            clusters: [cluster],
-            nodes: [node.id: node]
-        )
-        // Depth-5 rest stipend is `1 + depth / 2 = 3`; no gold modifiers apply,
-        // so the value is pinned rather than re-derived from the production function.
-        let expectedGold = 3
-        let goldBefore = save.roster.gold
-
-        LabyrinthCompletion.complete(
-            nodeID: node.id,
-            hero: save.roster.activeHero,
-            companion: save.roster.activeCompanion,
-            save: &save
-        )
-
-        #expect(save.roster.gold == goldBefore + expectedGold)
-    }
-}
-
-extension LabyrinthProgressTests {
     @Test func corruptMapPayloadKeepsBlobAndDoesNotSanitizeRebuild() {
         let model = LabyrinthProgressModel()
         model.worldSeed = 55

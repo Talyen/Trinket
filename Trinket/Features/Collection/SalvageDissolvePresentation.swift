@@ -93,8 +93,6 @@ private struct SalvageTransmutationEffect: View {
             }
             .zIndex(1)
         }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(accessibilitySummary)
         .task(id: event.id) {
             await play()
         }
@@ -118,11 +116,6 @@ private struct SalvageTransmutationEffect: View {
         .aspectRatio(3.0 / 4.0, contentMode: .fit)
     }
 
-    private var accessibilitySummary: String {
-        let amounts = ItemDetailView.formattedYieldList(event.yields)
-        return "Salvaged \(event.item.displayName). Received \(amounts)."
-    }
-
     @MainActor
     private func play() async {
         try? await Task.sleep(for: .seconds(0.22))
@@ -134,7 +127,6 @@ private struct SalvageTransmutationEffect: View {
         withAnimation(TrinketMotion.Reward.reveal) {
             showsMaterials = true
         }
-        AccessibilityNotification.Announcement(accessibilitySummary).post()
         try? await Task.sleep(for: .seconds(0.85))
 
         guard !Task.isCancelled else { return }

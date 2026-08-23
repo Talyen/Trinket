@@ -69,7 +69,6 @@ struct LabyrinthFloorMap: View {
             }
             .buttonStyle(.plain)
             .trinketQuietTapButtonStyle()
-            .accessibilityLabel("Dismiss selection")
 
             ForEach(displayNodes) { presentation in
                 LabyrinthMapNodeSeal(

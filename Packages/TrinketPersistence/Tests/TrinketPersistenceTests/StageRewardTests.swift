@@ -225,6 +225,42 @@ struct StageRewardTests {
         try #expect(save.roster.progression(for: companion).currentXP > 0)
     }
 
+    @Test func stageCompletionPrefersProvidedEnemyLevelOverAuthoredDerivation() throws {
+        let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
+        let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
+        let battleStages = GameContent.chapters.flatMap(\.stages).filter(\.encounter.isCombat)
+        let deepStage = try #require(
+            battleStages.last {
+                StageCompletion.resolvedEncounterLevel(for: $0, in: GameContent.chapters) > 3
+            }
+        )
+
+        var defaulted = SaveTestSupport.makeSave()
+        StageCompletion.complete(
+            deepStage,
+            hero: hero,
+            companion: companion,
+            in: GameContent.chapters,
+            save: &defaulted
+        )
+        let defaultedHeroXP = defaulted.roster.progression(for: hero).currentXP
+
+        var lowered = SaveTestSupport.makeSave()
+        StageCompletion.complete(
+            deepStage,
+            hero: hero,
+            companion: companion,
+            enemyEncounterLevel: 1,
+            in: GameContent.chapters,
+            save: &lowered
+        )
+        let loweredHeroXP = lowered.roster.progression(for: hero).currentXP
+
+        #expect(defaultedHeroXP > 0)
+        #expect(loweredHeroXP > 0)
+        #expect(loweredHeroXP < defaultedHeroXP)
+    }
+
     @Test func claimRewardsBanksBattleGoldWhenStageAlreadyClaimed() throws {
         var save = SaveTestSupport.makeSave(
             homestead: PlayerHomesteadState(

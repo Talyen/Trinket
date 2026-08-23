@@ -18,6 +18,9 @@ public protocol BattleRuntime: AnyObject {
     var activeBattle: BattleRunConfiguration? { get }
     var lifecyclePhase: BattleLifecyclePhase { get }
     var isSuspendedForScenePhase: Bool { get }
+    /// Party healths from the live engine state, by combatant id. Nil when no
+    /// battle state exists; read at victory to persist run-scoped health.
+    var finalPartyHealthByCombatantID: [String: Int]? { get }
 
     @discardableResult
     func prepareBattleRun(_ configuration: BattleRunConfiguration) -> Bool

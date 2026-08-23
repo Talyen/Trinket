@@ -35,20 +35,29 @@ public final class SpiresPlayMode {
     }
 
     public func resolvedEncounter(for floor: SpireFloor) -> (combatant: Combatant, level: Int)? {
-        Self.resolvedEncounter(for: floor)
+        Self.resolvedEncounter(
+            for: floor,
+            partyAverageLevel: playerSave.roster.activePartyAverageLevel
+        )
     }
 
     static func resolvedEncounter(
-        for floor: SpireFloor
+        for floor: SpireFloor,
+        partyAverageLevel: Int
     ) -> (combatant: Combatant, level: Int)? {
         guard let catalogEnemy = GameContent.enemy(matching: floor.enemyID) else { return nil }
-        let level = EncounterLevelResolver.spireEnemyLevel(for: floor)
+        let authoredLevel = EncounterLevelResolver.spireEnemyLevel(for: floor)
+        let level = EncounterLevelResolver.partyAdjusted(
+            authoredLevel,
+            partyAverageLevel: partyAverageLevel
+        )
         return (CombatantLevelScaler.scale(enemy: catalogEnemy, level: level), level)
     }
 
-    private func battleLoot(for floor: SpireFloor) -> BattleLootPackage? {
+    private func battleLoot(for floor: SpireFloor, encounterLevel: Int) -> BattleLootPackage? {
         Self.resolveBattleLoot(
             for: floor,
+            encounterLevel: encounterLevel,
             worldSeed: playerSave.worldSeed,
             ownedTrinketIDs: playerSave.inventory.ownedTrinketIDs,
             astralChanceBonusPercent: playerSave.homestead.effects.astralChanceBonusPercent
@@ -57,12 +66,14 @@ public final class SpiresPlayMode {
 
     static func resolveBattleLoot(
         for floor: SpireFloor,
+        encounterLevel: Int? = nil,
         worldSeed: UInt64,
         ownedTrinketIDs: Set<String> = [],
         astralChanceBonusPercent: Int = 0
     ) -> BattleLootPackage? {
         SpireCompletion.resolveLoot(
             for: floor,
+            encounterLevel: encounterLevel,
             worldSeed: worldSeed,
             ownedTrinketIDs: ownedTrinketIDs,
             astralChanceBonusPercent: astralChanceBonusPercent
@@ -81,7 +92,8 @@ public final class SpiresPlayMode {
                 companion: configuration.companion.combatant,
                 battleEarnedGold: battleEarnedGold,
                 materialRewards: materialRewards,
-                rewardItem: presentation?.pendingRewardItem
+                rewardItem: presentation?.pendingRewardItem,
+                enemyEncounterLevel: configuration.enemyEncounterLevel
             )
         }
     }
@@ -128,7 +140,7 @@ public final class SpiresPlayMode {
             origin: origin,
             encounter: encounter,
             route: battleRoute(spireID: floor.spireID, floor: floor.floor),
-            loot: battleLoot(for: floor)
+            loot: battleLoot(for: floor, encounterLevel: encounter.level)
         )
         if activated {
             preparedInputs = nil
@@ -166,7 +178,7 @@ public final class SpiresPlayMode {
             origin: origin,
             encounter: encounter,
             route: battleRoute(spireID: floor.spireID, floor: floor.floor),
-            loot: battleLoot(for: floor)
+            loot: battleLoot(for: floor, encounterLevel: encounter.level)
         ) {
             preparedInputs = inputs
         }
@@ -179,7 +191,8 @@ public final class SpiresPlayMode {
         companion: Combatant,
         battleEarnedGold: Int = 0,
         materialRewards: [ResourceAmount]? = nil,
-        rewardItem: InventoryItem? = nil
+        rewardItem: InventoryItem? = nil,
+        enemyEncounterLevel: Int? = nil
     ) -> Bool {
         playerSave.persistBatch(logging: "Failed to persist Spire floor") { save in
             SpireCompletion.complete(
@@ -189,6 +202,7 @@ public final class SpiresPlayMode {
                 battleEarnedGold: battleEarnedGold,
                 materialRewards: materialRewards,
                 rewardItem: rewardItem,
+                enemyEncounterLevel: enemyEncounterLevel,
                 save: &save
             )
         }

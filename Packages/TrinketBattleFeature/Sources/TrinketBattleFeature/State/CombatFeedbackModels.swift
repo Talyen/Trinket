@@ -79,7 +79,7 @@ struct CombatFeedbackItem: Identifiable, Equatable {
         self.pulseToken = pulseToken
     }
 
-    /// Derived display string for tests, accessibility, and debug tooling.
+    /// Derived display string for tests and debug tooling.
     var text: String {
         label.displayString
     }

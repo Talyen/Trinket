@@ -333,4 +333,54 @@ struct MysteryEffectApplierTests {
         try #expect(result.unlockedCombatantIDs == ["bear"])
         try #expect(save.roster.isCompanionUnlocked("bear"))
     }
+
+    @Test func resolvedEncounterLevelPullsFarAboveContentDownToPartyCeiling() throws {
+        let lateStage = try #require(GameContent.chapters.last?.stages.first)
+        let authoredLevel = StageCompletion.resolvedEncounterLevel(
+            for: lateStage,
+            in: GameContent.chapters
+        )
+        #expect(authoredLevel > 5)
+
+        var save = SaveTestSupport.makeSave()
+        save.roster.progressions[save.roster.activeHeroID] = .at(level: 3)
+        save.roster.progressions[save.roster.activeCompanionID] = .at(level: 2)
+
+        let clamped = MysteryEffectApplier.resolvedEncounterLevel(
+            stage: lateStage,
+            labyrinthNodeID: nil,
+            save: save
+        )
+        #expect(clamped == 5)
+
+        save.roster.progressions[save.roster.activeHeroID] = .at(level: 99)
+        save.roster.progressions[save.roster.activeCompanionID] = .at(level: 99)
+        let passthrough = MysteryEffectApplier.resolvedEncounterLevel(
+            stage: lateStage,
+            labyrinthNodeID: nil,
+            save: save
+        )
+        #expect(passthrough == authoredLevel)
+    }
+
+    @Test func resolvedEncounterLevelClampsLabyrinthNodeDepth() {
+        var save = SaveTestSupport.makeSave()
+        save.roster.progressions[save.roster.activeHeroID] = .at(level: 3)
+        save.roster.progressions[save.roster.activeCompanionID] = .at(level: 2)
+        let deepID = "mystery-scaling-node"
+        save.labyrinth.nodes[deepID] = LabyrinthNode(
+            id: deepID,
+            type: .mystery,
+            enemyID: nil,
+            depth: 30,
+            clusterID: "mystery-scaling"
+        )
+
+        let clamped = MysteryEffectApplier.resolvedEncounterLevel(
+            stage: GameContent.chapters[0].stages[0],
+            labyrinthNodeID: deepID,
+            save: save
+        )
+        #expect(clamped == 5)
+    }
 }

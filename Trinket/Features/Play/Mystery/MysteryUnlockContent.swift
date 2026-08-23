@@ -111,8 +111,6 @@ struct MysteryUnlockContent: View {
             x: -TrinketDesign.Metrics.mediumSpacing,
             y: -TrinketDesign.Metrics.mediumSpacing
         )
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Recruited")
         .accessibilityHidden(ceremony.checkOpacity < 1)
     }
 

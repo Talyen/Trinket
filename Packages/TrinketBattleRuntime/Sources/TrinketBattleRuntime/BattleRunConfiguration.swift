@@ -14,19 +14,28 @@ public struct BattleRunConfiguration: Identifiable {
         public let equipmentLoadout: EquipmentLoadout
         public let modifiers: CombatModifierProfile
         public let unlockedTalents: Set<String>
+        /// Seed for the runtime's current health; `nil` starts at full.
+        public let startingHealth: Int?
+        /// Maximum health a fresh battle starts from. Excludes in-battle
+        /// max-health growth (e.g. Vital Armor), which is battle-scoped.
+        public var baselineMaxHealth: Int {
+            combatant.maxHealth + modifiers.maximumHealthBonus
+        }
 
         public init(
             combatant: Combatant,
             progression: CombatantProgression,
             equipmentLoadout: EquipmentLoadout,
             modifiers: CombatModifierProfile,
-            unlockedTalents: Set<String> = []
+            unlockedTalents: Set<String> = [],
+            startingHealth: Int? = nil
         ) {
             self.combatant = combatant
             self.progression = progression
             self.equipmentLoadout = equipmentLoadout
             self.modifiers = modifiers
             self.unlockedTalents = unlockedTalents
+            self.startingHealth = startingHealth
         }
     }
 

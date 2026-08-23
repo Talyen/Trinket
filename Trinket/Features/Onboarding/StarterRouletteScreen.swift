@@ -27,7 +27,6 @@ struct StarterRouletteScreen: View {
     private static let rollLaps = 3
 
     @Environment(OptionsStore.self) private var options
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     let roleName: String
     let combatants: [Combatant]
@@ -85,6 +84,8 @@ struct StarterRouletteScreen: View {
         }
         .toolbarVisibility(.hidden, for: .navigationBar)
         .trinketScreenBackground()
+        // One AX container for the screen keeps the screen identifier unique
+        // instead of flooding every descendant element with it.
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(screenAccessibilityID)
         .trinketSensoryFeedback(
@@ -189,13 +190,9 @@ struct StarterRouletteScreen: View {
                 .scaleEffect(1 - distance * RouletteLayout.edgeScaleDrop)
                 .opacity(1 - distance * RouletteLayout.edgeDimming)
         }
-        // One flat AX node per card keeps the snapshot small and stable
-        // across the carousel's continuous transitions.
-        .accessibilityElement(children: .combine)
         .accessibilityIdentifier(
             AccessibilityID.Onboarding.option(role: roleName, combatantID: entry.combatant.id)
         )
-        .accessibilityValue(isCentered ? "Selected" : "Not selected")
     }
 
     // MARK: Name plate
@@ -223,16 +220,10 @@ struct StarterRouletteScreen: View {
     private var confirmAction: some View {
         Button("Confirm", action: confirm)
             .disabled(selectedCombatant == nil || isConfirming)
-            .trinketPrimaryActionButton()
+            .trinketPrimaryActionButton(
+                accessibilityIdentifier: AccessibilityID.Onboarding.confirm(role: roleName)
+            )
             .trinketCenteredPrimaryAction()
-            .accessibilityLabel(confirmAccessibilityLabel)
-            .accessibilityIdentifier(AccessibilityID.Onboarding.confirm(role: roleName))
-            .accessibilityAddTraits(.isButton)
-    }
-
-    private var confirmAccessibilityLabel: String {
-        guard let selectedCombatant else { return "Confirm \(roleName)" }
-        return "Confirm \(selectedCombatant.name)"
     }
 
     // MARK: Ceremony
@@ -241,7 +232,7 @@ struct StarterRouletteScreen: View {
         guard phase == .rolling, let winner = drawWinner() else { return }
         let target = WheelEntry(lap: Self.rollLaps - 1, combatant: winner)
 
-        if reduceMotion || AppEnvironment.shared.skipOnboardingCeremony {
+        if AppEnvironment.shared.skipOnboardingCeremony {
             scrollEntryID = target.id
             settle(on: winner, target: target)
             return

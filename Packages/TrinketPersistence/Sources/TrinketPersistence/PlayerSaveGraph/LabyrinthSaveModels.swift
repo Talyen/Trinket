@@ -16,4 +16,27 @@ public final class LabyrinthProgressModel {
 struct LabyrinthMapPayload: Codable, Equatable {
     var clusters: [LabyrinthCluster]
     var nodes: [LabyrinthNode]
+    /// Current-run party health by combatant id. Older payloads lack the key,
+    /// which decodes as an empty dictionary (full health).
+    var runHealthByCombatantID: [String: Int] = [:]
+
+    init(
+        clusters: [LabyrinthCluster],
+        nodes: [LabyrinthNode],
+        runHealthByCombatantID: [String: Int] = [:]
+    ) {
+        self.clusters = clusters
+        self.nodes = nodes
+        self.runHealthByCombatantID = runHealthByCombatantID
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        clusters = try container.decode([LabyrinthCluster].self, forKey: .clusters)
+        nodes = try container.decode([LabyrinthNode].self, forKey: .nodes)
+        runHealthByCombatantID = try container.decodeIfPresent(
+            [String: Int].self,
+            forKey: .runHealthByCombatantID
+        ) ?? [:]
+    }
 }

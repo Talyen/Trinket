@@ -317,4 +317,21 @@ struct PlayerRosterStateTests {
         #expect(roster.unlockedTalents(for: knight.id) == Set([row1A.id, row1B.id, row2.id]))
         #expect(roster.availableTalentPoints(for: knight.id) == 0)
     }
+
+    @Test func activePartyAverageLevelFloorsTheMidpoint() throws {
+        var roster = PlayerRosterState.freshStart
+        let hero = try #require(GameContent.heroes.first { $0.id == roster.activeHeroID })
+        let companion = try #require(GameContent.companions.first { $0.id == roster.activeCompanionID })
+
+        roster.progressions[hero.id] = .at(level: 10)
+        roster.progressions[companion.id] = .at(level: 5)
+        #expect(roster.activePartyAverageLevel == 7)
+
+        roster.progressions[companion.id] = .at(level: 6)
+        #expect(roster.activePartyAverageLevel == 8)
+
+        roster.progressions[hero.id] = .at(level: 20)
+        roster.progressions[companion.id] = .at(level: 1)
+        #expect(roster.activePartyAverageLevel == 10)
+    }
 }

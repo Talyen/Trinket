@@ -11,16 +11,23 @@ public enum LabyrinthCompletion {
         )
     }
 
-    /// Non-combat node gold stipend (rest/shop/mystery/recruit leave). Combat uses `BattleLoot`.
+    /// Non-combat node gold stipend (shop/mystery/recruit leave). Combat uses `BattleLoot`.
     public static func nonCombatGoldStipend(for node: LabyrinthNode) -> Int {
         switch node.type.canonical {
         case .shop, .mystery, .event, .craft, .recruit:
             2 + node.depth
-        case .rest:
-            1 + node.depth / 2
-        case .battle, .boss, .entrance:
+        case .battle, .boss, .rest, .entrance:
             0
         }
+    }
+
+    /// Fraction of max Health restored by one Campfire rest.
+    private static let campfireRestFraction = 0.3
+
+    /// Campfire rest: restores 30% of max Health (floored), capped at max.
+    public static func campfireRestHealth(current: Int, maxHealth: Int) -> Int {
+        let gain = Int((Double(maxHealth) * campfireRestFraction).rounded(.down))
+        return min(maxHealth, current + gain)
     }
 
     /// Stable inventory id for a node's Labyrinth find (forge or combat roll).
@@ -31,16 +38,17 @@ public enum LabyrinthCompletion {
     public static func resolveCombatLoot(
         for node: LabyrinthNode,
         effects: LabyrinthModifierEffects,
+        encounterLevel: Int? = nil,
         worldSeed: UInt64,
         ownedTrinketIDs: Set<String> = [],
         astralChanceBonusPercent: Int = 0
     ) -> BattleLootPackage? {
         guard node.type.isCombat else { return nil }
-        let encounterLevel = EncounterLevelResolver.labyrinthEnemyLevel(for: node)
+        let level = encounterLevel ?? EncounterLevelResolver.labyrinthEnemyLevel(for: node)
         let enemyIsBoss = node.enemyID.flatMap(GameContent.enemy(matching:))?.isBoss == true
         return BattleLoot.resolveLabyrinth(
             node: node,
-            encounterLevel: encounterLevel,
+            encounterLevel: level,
             enemyIsBoss: enemyIsBoss,
             effects: effects,
             worldSeed: worldSeed,
@@ -58,6 +66,8 @@ public enum LabyrinthCompletion {
         materialRewards: [ResourceAmount]? = nil,
         rewardItem: InventoryItem? = nil,
         loot: BattleLootPackage? = nil,
+        enemyEncounterLevel: Int? = nil,
+        partyRunHealth: [String: Int]? = nil,
         save: inout PlayerSave
     ) {
         let eligibleRecruitEventIDs = save.roster.eligibleRecruitEventIDs
@@ -68,12 +78,14 @@ public enum LabyrinthCompletion {
         guard let node = save.labyrinth.node(id: nodeID), !node.isCleared else { return }
 
         let effects = save.labyrinth.effects(for: nodeID)
-        let encounterLevel = EncounterLevelResolver.labyrinthEnemyLevel(for: node)
+        let encounterLevel = enemyEncounterLevel
+            ?? EncounterLevelResolver.labyrinthEnemyLevel(for: node)
 
         if node.type.isCombat {
             let resolvedLoot = loot ?? resolveCombatLoot(
                 for: node,
                 effects: effects,
+                encounterLevel: encounterLevel,
                 worldSeed: save.worldSeed,
                 ownedTrinketIDs: save.inventory.ownedTrinketIDs,
                 astralChanceBonusPercent: save.homestead.effects.astralChanceBonusPercent
@@ -122,6 +134,10 @@ public enum LabyrinthCompletion {
             if let rewardItem {
                 appendUniqueRewardItem(rewardItem, save: &save)
             }
+        }
+
+        if let partyRunHealth {
+            save.labyrinth.runHealthByCombatantID = partyRunHealth
         }
 
         save.labyrinth.markCleared(

@@ -138,7 +138,7 @@ public enum LabyrinthNodeType: String, Hashable, Sendable, CaseIterable, Codable
         case .battle: "Battle"
         case .boss: "Boss"
         case .shop: "Merchant's Shop"
-        case .rest: "Shrine"
+        case .rest: "Campfire"
         case .mystery, .event, .craft: "Mystery"
         case .recruit: "Recruit"
         case .entrance: "Labyrinth Entrance"

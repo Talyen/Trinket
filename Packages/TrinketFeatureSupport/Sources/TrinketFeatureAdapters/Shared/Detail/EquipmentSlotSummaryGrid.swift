@@ -28,7 +28,6 @@ struct EquipmentSlotSummaryGrid: View {
                         }
                     } : nil,
                     accessibilityIdentifier: { $0.accessibilityIdentifier },
-                    combinesAccessibilityChildren: true,
                     card: { slot in
                         if let item = equippedItem(for: slot) {
                             ItemCard(

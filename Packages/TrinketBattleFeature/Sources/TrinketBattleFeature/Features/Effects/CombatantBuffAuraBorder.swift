@@ -62,6 +62,10 @@ private struct CombatantBuffAuraStroke: View {
             // Freeze keyword cyan is the Glacial Ward shimmer palette.
             let style = Keyword.freeze.visualStyle
             return (style.color, TrinketDesign.Colors.Overlay.paper.opacity(0.95))
+        case .moltenBulwark:
+            // Burn keyword fire orange is the Molten Bulwark shimmer palette.
+            let style = Keyword.burn.visualStyle
+            return (style.color, TrinketDesign.Colors.Overlay.paper.opacity(0.95))
         case .thorns:
             // Poison keyword emerald green is the Thorns shimmer palette.
             let style = Keyword.poison.visualStyle
@@ -77,6 +81,10 @@ private struct CombatantBuffAuraStroke: View {
         case .blizzard:
             // Freeze keyword ice cyan is the Blizzard shimmer palette.
             let style = Keyword.freeze.visualStyle
+            return (style.color, TrinketDesign.Colors.Overlay.paper.opacity(0.95))
+        case .earthquake:
+            // Stun keyword amber is the Earthquake shimmer palette.
+            let style = Keyword.stun.visualStyle
             return (style.color, TrinketDesign.Colors.Overlay.paper.opacity(0.95))
         }
     }

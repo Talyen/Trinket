@@ -14,6 +14,9 @@ public struct PlayerLabyrinthState: Equatable, Sendable {
     public var hasEntered: Bool
     public var clusters: [LabyrinthCluster]
     public var nodes: [String: LabyrinthNode]
+    /// Current-run party health by combatant id. Missing entries mean full health;
+    /// written on battle victory and Campfire rests, cleared when a map is generated.
+    public var runHealthByCombatantID: [String: Int]
     /// In-memory only: the SwiftData map blob existed but could not be decoded.
     /// Sanitizer must not regenerate a map, and graph apply must keep the prior blob.
     public var isMapPayloadUnreadable: Bool
@@ -27,6 +30,7 @@ public struct PlayerLabyrinthState: Equatable, Sendable {
         hasEntered: Bool = false,
         clusters: [LabyrinthCluster] = [],
         nodes: [String: LabyrinthNode] = [:],
+        runHealthByCombatantID: [String: Int] = [:],
         isMapPayloadUnreadable: Bool = false
     ) {
         self.worldSeed = worldSeed
@@ -34,6 +38,7 @@ public struct PlayerLabyrinthState: Equatable, Sendable {
         self.hasEntered = hasEntered
         self.clusters = clusters
         self.nodes = nodes
+        self.runHealthByCombatantID = runHealthByCombatantID
         self.isMapPayloadUnreadable = isMapPayloadUnreadable
     }
 
@@ -130,6 +135,7 @@ public struct PlayerLabyrinthState: Equatable, Sendable {
         worldSeed = resolvedSeed
         clusters = generated.clusters
         nodes = generated.nodes
+        runHealthByCombatantID = [:]
         mapVersion = LabyrinthGenerator.currentMapVersion
         hasEntered = true
         isMapPayloadUnreadable = false

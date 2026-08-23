@@ -75,7 +75,6 @@ public struct TrinketWalletResourcePill<Artwork: View>: View {
                     .minimumScaleFactor(0.7)
                     .allowsTightening(true)
                     .contentTransition(.numericText())
-                    .accessibilityLabel(showsIncreasePrefix ? "Plus \(amount)" : "\(amount)")
             }
         }
         .frame(

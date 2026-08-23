@@ -49,7 +49,8 @@ public final class JourneyPlayMode {
         companion: Combatant,
         battleEarnedGold: Int = 0,
         materialRewards: [ResourceAmount]? = nil,
-        rewardItem: InventoryItem? = nil
+        rewardItem: InventoryItem? = nil,
+        enemyEncounterLevel: Int? = nil
     ) -> Bool {
         persistStageCompletions(
             [stage],
@@ -57,12 +58,17 @@ public final class JourneyPlayMode {
             companion: companion,
             battleEarnedGold: battleEarnedGold,
             materialRewards: materialRewards,
-            rewardItem: rewardItem
+            rewardItem: rewardItem,
+            enemyEncounterLevel: enemyEncounterLevel
         )
     }
 
     public func resolvedEncounter(for stage: Stage) -> (combatant: Combatant, level: Int)? {
-        Self.resolvedEncounter(for: stage, worldSeed: playerSave.worldSeed)
+        Self.resolvedEncounter(
+            for: stage,
+            worldSeed: playerSave.worldSeed,
+            partyAverageLevel: playerSave.roster.activePartyAverageLevel
+        )
     }
 
     @discardableResult
@@ -210,7 +216,8 @@ public final class JourneyPlayMode {
         battleEarnedGold: Int = 0,
         materialRewards: [ResourceAmount]? = nil,
         rewardItem: InventoryItem? = nil,
-        resetJourney: Bool = false
+        resetJourney: Bool = false,
+        enemyEncounterLevel: Int? = nil
     ) -> Bool {
         guard !stages.isEmpty else { return false }
 
@@ -227,6 +234,7 @@ public final class JourneyPlayMode {
                     battleEarnedGold: isLast ? battleEarnedGold : 0,
                     materialRewards: isLast ? materialRewards : nil,
                     rewardItem: isLast ? rewardItem : nil,
+                    enemyEncounterLevel: enemyEncounterLevel,
                     in: GameContent.chapters,
                     save: &save
                 )
@@ -238,14 +246,19 @@ public final class JourneyPlayMode {
 extension JourneyPlayMode {
     static func resolvedEncounter(
         for stage: Stage,
-        worldSeed: UInt64
+        worldSeed: UInt64,
+        partyAverageLevel: Int
     ) -> (combatant: Combatant, level: Int)? {
         guard let enemyID = stage.resolvedBattleEnemyID(worldSeed: worldSeed),
               let catalogEnemy = GameContent.enemy(matching: enemyID),
               let chapter = GameContent.chapters.first(where: { $0.id == stage.chapterID })
         else { return nil }
 
-        let level = EncounterLevelResolver.journeyEnemyLevel(for: stage, in: chapter)
+        let authoredLevel = EncounterLevelResolver.journeyEnemyLevel(for: stage, in: chapter)
+        let level = EncounterLevelResolver.partyAdjusted(
+            authoredLevel,
+            partyAverageLevel: partyAverageLevel
+        )
         return (CombatantLevelScaler.scale(enemy: catalogEnemy, level: level), level)
     }
 
@@ -299,7 +312,8 @@ extension JourneyPlayMode {
                 companion: configuration.companion.combatant,
                 battleEarnedGold: battleEarnedGold,
                 materialRewards: materialRewards,
-                rewardItem: presentation?.pendingRewardItem
+                rewardItem: presentation?.pendingRewardItem,
+                enemyEncounterLevel: configuration.enemyEncounterLevel
             )
         }
     }

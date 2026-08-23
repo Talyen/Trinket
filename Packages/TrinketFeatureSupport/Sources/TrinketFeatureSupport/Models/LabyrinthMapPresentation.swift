@@ -37,7 +37,7 @@ public enum LabyrinthMapPresentation {
         case .battle: "Battle"
         case .boss: "Challenge Boss"
         case .shop: "Visit Shop"
-        case .rest: "Rest at Shrine"
+        case .rest: "Rest at Campfire"
         case .mystery, .event, .craft: "Approach Mystery"
         case .recruit: "Recruit"
         case .entrance: "Enter Labyrinth"
@@ -60,6 +60,10 @@ public enum LabyrinthMapPresentation {
     ) -> String {
         if type.canonical == .recruit {
             return GameContent.recruitEncounterSymbolName(forEventID: recruitEventID)
+        }
+        // The Campfire flame is Labyrinth-only; Journey's rest stage keeps the shared symbol.
+        if type.canonical == .rest {
+            return "flame.fill"
         }
         return type.symbolName
     }

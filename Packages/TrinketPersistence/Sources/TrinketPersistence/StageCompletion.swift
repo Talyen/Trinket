@@ -101,6 +101,7 @@ public enum StageCompletion {
         materialRewards: [ResourceAmount]? = nil,
         rewardItem: InventoryItem? = nil,
         loot: BattleLootPackage? = nil,
+        enemyEncounterLevel: Int? = nil,
         in chapters: [Chapter],
         save: inout PlayerSave
     ) {
@@ -112,7 +113,7 @@ public enum StageCompletion {
             materialRewards: materialRewards,
             rewardItem: rewardItem,
             loot: loot,
-            enemyEncounterLevel: resolvedEncounterLevel(for: stage, in: chapters),
+            enemyEncounterLevel: enemyEncounterLevel,
             save: &save
         )
         if !save.journey.isCompleted(stage) {

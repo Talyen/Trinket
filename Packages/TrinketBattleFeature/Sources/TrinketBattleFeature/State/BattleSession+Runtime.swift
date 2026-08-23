@@ -72,6 +72,14 @@ extension BattleSession {
         engineState?.hand.cards ?? []
     }
 
+    public var finalPartyHealthByCombatantID: [String: Int]? {
+        guard let engineState else { return nil }
+        return [
+            engineState.hero.id: engineState.health(of: engineState.hero),
+            engineState.companion.id: engineState.health(of: engineState.companion),
+        ]
+    }
+
     var isHeroAlive: Bool {
         engineState?.isHeroAlive ?? false
     }
@@ -324,6 +332,8 @@ extension BattleSession {
             heroModifiers: configuration.hero.modifiers,
             companionModifiers: configuration.companion.modifiers,
             enemyModifiers: configuration.enemyModifiers,
+            heroStartingHealth: configuration.hero.startingHealth,
+            companionStartingHealth: configuration.companion.startingHealth,
             enemyFaction: configuration.enemyFaction,
             rngSeed: configuration.rngSeed,
             tracksLog: false,

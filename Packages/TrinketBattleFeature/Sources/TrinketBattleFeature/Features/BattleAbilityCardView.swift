@@ -133,9 +133,7 @@ struct BattleAbilityCardView: View {
         .onChange(of: autoLiftCardID) { _, liftCardID in
             syncAutoLift(liftCardID)
         }
-        .accessibilityElement(children: .ignore)
         .accessibilityIdentifier(AccessibilityID.Battle.handCard(card.ability.id))
-        .accessibilityLabel(card.ability.name)
     }
 
     private var activeOffset: CGSize {

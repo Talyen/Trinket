@@ -135,6 +135,7 @@ struct PlayBattleLaunch {
         labyrinthModifiers: [LabyrinthModifierDefinition]
     ) -> BattleLaunchInput {
         let roster = playerSave.roster
+        let startingHealths = labyrinthStartingHealths(for: origin)
         return BattleLaunchInput(
             origin: origin,
             hero: roster.activeHero,
@@ -145,7 +146,22 @@ struct PlayBattleLaunch {
             pendingRewardItem: loot?.item,
             stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
             universalModifiers: universalModifiers,
-            labyrinthModifiers: labyrinthModifiers
+            labyrinthModifiers: labyrinthModifiers,
+            heroStartingHealth: startingHealths.hero,
+            companionStartingHealth: startingHealths.companion
+        )
+    }
+
+    /// Run-scoped party health seeds battles only for Labyrinth origins.
+    private func labyrinthStartingHealths(
+        for origin: PlayBattleOrigin?
+    ) -> (hero: Int?, companion: Int?) {
+        guard case .labyrinth = origin else { return (nil, nil) }
+        let runHealth = playerSave.labyrinth.runHealthByCombatantID
+        let roster = playerSave.roster
+        return (
+            hero: runHealth[roster.activeHeroID],
+            companion: runHealth[roster.activeCompanionID]
         )
     }
 
@@ -191,6 +207,7 @@ struct PlayBattleLaunch {
             ?? roster.activeHero
         let companion = roster.companions.first(where: { $0.id == activeBattle.companion.combatant.id })
             ?? roster.activeCompanion
+        let startingHealths = labyrinthStartingHealths(for: route?.origin)
         let launch = makeBattleLaunch(
             BattleLaunchInput(
                 origin: route?.origin,
@@ -203,7 +220,9 @@ struct PlayBattleLaunch {
                 pendingRewardItem: presentation?.pendingRewardItem,
                 stageRewardsAlreadyClaimed: presentation?.stageRewardsAlreadyClaimed ?? false,
                 universalModifiers: universalModifiers,
-                labyrinthModifiers: presentation?.labyrinthModifiers ?? []
+                labyrinthModifiers: presentation?.labyrinthModifiers ?? [],
+                heroStartingHealth: startingHealths.hero,
+                companionStartingHealth: startingHealths.companion
             )
         )
         guard battle.restart(launch.configuration) else { return }

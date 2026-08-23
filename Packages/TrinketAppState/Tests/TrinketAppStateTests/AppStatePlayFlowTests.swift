@@ -458,6 +458,7 @@ private class RejectingBattleRuntime: BattleRuntime {
     var activeBattle: BattleRunConfiguration?
     var lifecyclePhase: BattleLifecyclePhase = .idle
     var isSuspendedForScenePhase = false
+    var finalPartyHealthByCombatantID: [String: Int]?
 
     func prepareBattleRun(_: BattleRunConfiguration) -> Bool {
         false

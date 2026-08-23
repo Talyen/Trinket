@@ -40,7 +40,6 @@ private struct InspectLongPressModifier: ViewModifier {
                     LongPressGesture(minimumDuration: 0.5)
                         .onEnded { _ in longPress() }
                 )
-                .accessibilityAction(named: "Show Details", longPress)
         } else {
             content
         }

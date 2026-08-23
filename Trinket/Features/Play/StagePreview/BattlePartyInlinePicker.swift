@@ -98,7 +98,6 @@ struct StageBattlePartyPickerSheet: View {
                 }
             }
         }
-        .accessibilityElement(children: .contain)
         .accessibilityIdentifier(partyPickerAccessibilityID)
         .presentationDetents([.large])
         .presentationDragIndicator(.visible)
@@ -154,7 +153,6 @@ struct StageBattlePartyPickerSheet: View {
                 combatantID: combatant.id
             )
         )
-        .accessibilityValue(selected ? "Selected" : "Available")
     }
 
     private func select(_ combatant: Combatant, for slot: BattlePartySlot) {
@@ -202,9 +200,6 @@ private struct BattlePartySlotGridView: View {
                     for: slot.title,
                     combatantID: combatant.id
                 )
-            },
-            accessibilityValue: { combatant in
-                combatant.id == slot.selectedID(in: playerSave.roster) ? "Selected" : "Available"
             },
             card: { combatant, isSelected in
                 CombatantCard(
