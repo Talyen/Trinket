@@ -116,7 +116,7 @@ public final class EncounterPlayMode {
     public func finishActiveShopEncounter() -> Bool {
         guard let shopSession = activeShopEncounter else { return false }
 
-        shopSession.clearLeaveFailure()
+        shopSession.clearPersistFailure()
         guard playerSave.persistBatch(logging: "Failed to leave shop", { save in
             StageCompletion.completeEncounter(
                 stage: shopSession.stage,
@@ -127,7 +127,7 @@ public final class EncounterPlayMode {
                 save: &save
             )
         }) else {
-            shopSession.markLeaveFailed("Couldn't save progress. Stay here and try Leave Shop again.")
+            shopSession.markPersistFailed("Couldn't save progress. Stay here and try Leave Shop again.")
             return false
         }
         clearActiveShopEncounter()
