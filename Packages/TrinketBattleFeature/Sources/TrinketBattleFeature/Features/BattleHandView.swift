@@ -147,6 +147,7 @@ struct BattleHandView: View {
             .frame(width: geometry.size.width, height: geometry.size.height, alignment: .bottom)
         }
 
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier(AccessibilityID.Battle.hand)
     }
 
