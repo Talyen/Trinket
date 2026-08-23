@@ -106,7 +106,7 @@ struct StageBattlePartyPickerSheet: View {
             trigger: selectionFeedbackTrigger,
             enabled: options.hapticsEnabled
         )
-        .partyPersistErrorAlert(error: $persistError)
+        .trinketFailureAlert("Couldn't Save Progress", message: $persistError)
     }
 
     private func partyShelf(for slot: BattlePartySlot) -> some View {
@@ -215,7 +215,7 @@ private struct BattlePartySlotGridView: View {
             trigger: selectionFeedbackTrigger,
             enabled: options.hapticsEnabled
         )
-        .partyPersistErrorAlert(error: $persistError)
+        .trinketFailureAlert("Couldn't Save Progress", message: $persistError)
     }
 
     private var orderedCombatants: [Combatant] {
@@ -232,25 +232,5 @@ private struct BattlePartySlotGridView: View {
             return
         }
         selectionFeedbackTrigger += 1
-    }
-}
-
-private extension View {
-    func partyPersistErrorAlert(error: Binding<String?>) -> some View {
-        alert(
-            "Couldn't Save Progress",
-            isPresented: Binding(
-                get: { error.wrappedValue != nil },
-                set: { isPresented in
-                    if !isPresented {
-                        error.wrappedValue = nil
-                    }
-                }
-            )
-        ) {
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text(error.wrappedValue ?? "")
-        }
     }
 }

@@ -162,20 +162,20 @@ public struct CombatantTalentsView: View {
             VStack(spacing: TrinketDesign.Metrics.smallSpacing) {
                 if isUnlocked {
                     Image(systemName: style.symbolName)
-                        .font(.system(size: 32, weight: .bold))
+                        .trinketTypography(.screenTitle)
                         .foregroundStyle(style.color)
                 } else if isRowLocked {
                     Image(systemName: "lock.fill")
-                        .font(.system(size: 26, weight: .medium))
+                        .trinketTypography(.sectionTitle)
                         .foregroundStyle(.tertiary)
                 } else {
                     Image(systemName: style.symbolName)
-                        .font(.system(size: 32, weight: .semibold))
+                        .trinketTypography(.screenTitle)
                         .foregroundStyle(style.color.opacity(0.75))
                 }
 
                 Text(node.name)
-                    .font(.subheadline.weight(.semibold))
+                    .trinketTypography(.cardLabel)
                     .foregroundStyle(isUnlocked ? .primary : (isRowLocked ? .tertiary : .secondary))
                     .lineLimit(1)
                     .minimumScaleFactor(0.75)
@@ -183,11 +183,11 @@ public struct CombatantTalentsView: View {
             .frame(maxWidth: .infinity)
             .frame(height: 104)
             .background(
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                RoundedRectangle(cornerRadius: TrinketDesign.Corners.card, style: .continuous)
                     .fill(TrinketDesign.Colors.panel)
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                RoundedRectangle(cornerRadius: TrinketDesign.Corners.card, style: .continuous)
                     .stroke(
                         isSelected ? .clear : (isUnlocked ? style.color.opacity(0.4) : .clear),
                         lineWidth: 1
@@ -195,7 +195,7 @@ public struct CombatantTalentsView: View {
             )
             .keywordShineBorder(
                 keywords: isSelected ? referencedKeywords(for: node) : nil,
-                cornerRadius: 14,
+                cornerRadius: TrinketDesign.Corners.card,
                 lineWidth: 2
             )
             .shadow(
@@ -205,7 +205,7 @@ public struct CombatantTalentsView: View {
             .saturation(isRowLocked ? 0.35 : 1.0)
             .opacity(isRowLocked ? 0.65 : 1.0)
         }
-        .buttonStyle(.plain)
+        .trinketQuietTapButtonStyle()
         .accessibilityIdentifier(nodeAccessibilityIdentifier(node.id))
     }
 

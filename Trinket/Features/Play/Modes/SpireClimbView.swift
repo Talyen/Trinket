@@ -49,13 +49,7 @@ struct SpireClimbView: View {
             }
         }
         .accessibilityIdentifier(AccessibilityID.Play.spireClimb(spireID.rawValue))
-        .alert(item: $floorMessage) { message in
-            Alert(
-                title: Text(message.title),
-                message: Text(message.message),
-                dismissButton: .default(Text("OK"))
-            )
-        }
+        .trinketMessageAlert($floorMessage)
         .task(id: prepareBattleDependency) {
             prepareActiveFloorBattle()
         }

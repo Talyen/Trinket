@@ -247,13 +247,7 @@ struct PlaySessionPresentationModifier: ViewModifier {
             ) {
                 PostBattleTalentChoiceView()
             }
-            .alert(item: $stageMessage) { message in
-                Alert(
-                    title: Text(message.title),
-                    message: Text(message.message),
-                    dismissButton: .default(Text("OK"))
-                )
-            }
+            .trinketMessageAlert($stageMessage)
     }
 }
 
@@ -302,28 +296,8 @@ private struct PlayEncounterCoversModifier: ViewModifier {
 
         content
             .fullScreenCover(item: $encounters.activeMysteryEncounter) { session in
-                MysteryEncounterView(
-                    session: session,
-                    onResolveChoice: { choiceID in
-                        encounters.resolveActiveMysteryChoice(choiceID: choiceID)
-                    },
-                    onCorruptItem: { itemID in
-                        encounters.corruptActiveMysteryItem(itemID: itemID)
-                    },
-                    onCancelCorruptSelection: {
-                        encounters.cancelActiveMysteryCorruptSelection()
-                    },
-                    onFinish: { dismiss in
-                        encounters.finishActiveMysteryEncounter(dismiss: dismiss)
-                    },
-                    onDismiss: {
-                        encounters.dismissActiveMysteryEncounter()
-                    },
-                    onFinishCorruptionReveal: {
-                        encounters.finishActiveMysteryCorruptionReveal()
-                    }
-                )
-                .interactiveDismissDisabled()
+                MysteryEncounterView(session: session)
+                    .interactiveDismissDisabled()
             }
             .fullScreenCover(item: $encounters.activeShopEncounter) { session in
                 ShopEncounterView(

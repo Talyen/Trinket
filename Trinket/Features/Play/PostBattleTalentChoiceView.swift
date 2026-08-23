@@ -116,41 +116,20 @@ struct PostBattleTalentChoiceView: View {
 
     private func talentTreeButton(_ tree: TalentTree, combatantID: String) -> some View {
         let nodes = legalNodes(in: tree, combatantID: combatantID)
-        let style = tree.keyword.visualStyle
 
         return Button {
             navigationPath.append(tree.id)
         } label: {
-            ProductCardShell(
+            TalentTreeCard(
+                tree: tree,
+                caption: choiceCountLabel(nodes.count),
                 isLocked: nodes.isEmpty,
                 lockedText: "Complete",
-                shineKeywords: nodes.isEmpty ? nil : [tree.keyword],
-                accessibilityID: AccessibilityID.TalentChoice.tree(id: tree.id),
-                art: {
-                    if let artReference = tree.keyword.artReference {
-                        Image.preparedAsset(artReference, displaySize: .compact)
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .decorativePreparedArtwork()
-                    } else {
-                        PlaceholderArtwork(style)
-                    }
-                },
-                label: {
-                    VStack(spacing: 2) {
-                        Text(tree.name)
-                            .trinketTypography(.cardLabel)
-                            .foregroundStyle(.primary)
-                            .lineLimit(2)
-                            .multilineTextAlignment(.center)
-                        Text(choiceCountLabel(nodes.count))
-                            .font(.caption2.weight(.semibold))
-                            .foregroundStyle(.tertiary)
-                    }
-                }
+                showsShine: !nodes.isEmpty,
+                accessibilityID: AccessibilityID.TalentChoice.tree(id: tree.id)
             )
         }
-        .buttonStyle(.plain)
+        .trinketQuietTapButtonStyle()
         .disabled(nodes.isEmpty)
     }
 

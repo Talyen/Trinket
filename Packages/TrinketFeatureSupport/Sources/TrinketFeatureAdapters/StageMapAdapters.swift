@@ -2,8 +2,30 @@ import Foundation
 import SwiftUI
 import TrinketContent
 import TrinketDesignSystem
+import TrinketFeatureContracts
 import TrinketFeatureSupport
 import TrinketPersistence
+
+public extension View {
+    /// OK-only alert presenting an optional `StageMapMessage`.
+    func trinketMessageAlert(_ message: Binding<StageMapMessage?>) -> some View {
+        alert(
+            message.wrappedValue?.title ?? "",
+            isPresented: Binding(
+                get: { message.wrappedValue != nil },
+                set: { isPresented in
+                    if !isPresented {
+                        message.wrappedValue = nil
+                    }
+                }
+            )
+        ) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(message.wrappedValue?.message ?? "")
+        }
+    }
+}
 
 public extension StageSelectRowPresentation where Item == Stage {
     /// Campaign Stage Select rows for incomplete stages.

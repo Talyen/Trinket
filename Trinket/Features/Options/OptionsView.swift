@@ -126,20 +126,6 @@ struct OptionsView: View {
         } message: {
             Text("This permanently deletes journey, roster, and inventory progress on this device. Settings are kept.")
         }
-        .alert(
-            "Action Failed",
-            isPresented: Binding(
-                get: { actionErrorMessage != nil },
-                set: {
-                    if !$0 {
-                        actionErrorMessage = nil
-                    }
-                }
-            )
-        ) {
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text(actionErrorMessage ?? "")
-        }
+        .trinketFailureAlert("Action Failed", message: $actionErrorMessage)
     }
 }

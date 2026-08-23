@@ -76,13 +76,7 @@ struct LabyrinthMapView: View {
         .onChange(of: StageSelectPrepareDependency.labyrinth(playerSave: playerSave)) { _, _ in
             labyrinth.prepareReachableBattles()
         }
-        .alert(item: $nodeMessage) { message in
-            Alert(
-                title: Text(message.title),
-                message: Text(message.message),
-                dismissButton: .default(Text("OK"))
-            )
-        }
+        .trinketMessageAlert($nodeMessage)
     }
 
     private var floorMenu: some View {

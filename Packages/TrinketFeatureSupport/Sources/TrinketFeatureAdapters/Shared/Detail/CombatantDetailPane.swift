@@ -374,46 +374,20 @@ private extension CombatantDetailPane {
     }
 
     func talentTreeCard(tree: TalentTree, availablePoints: Int) -> some View {
-        let style = tree.keyword.visualStyle
-        let artReference = tree.keyword.artReference
         let hasUnallocatedPoints = availablePoints > 0
         let unlockedCount = tree.nodes.count(where: { unlockedTalents.contains($0.id) })
 
         return Button {
             selectedTalentTree = tree
         } label: {
-            ProductCardShell(
-                isSelected: false,
-                showsLabel: true,
-                reservesLabelSpace: true,
-                shineKeywords: hasUnallocatedPoints ? [tree.keyword] : nil,
-                shineLineWidth: 2,
-                art: {
-                    if let artReference {
-                        Image.preparedAsset(artReference, displaySize: .compact)
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .decorativePreparedArtwork()
-                    } else {
-                        PlaceholderArtwork(style)
-                    }
-                },
-                label: {
-                    VStack(spacing: 2) {
-                        Text(tree.name)
-                            .trinketTypography(.cardLabel)
-                            .foregroundStyle(.primary)
-                            .lineLimit(2)
-                            .multilineTextAlignment(.center)
-                        Text("\(unlockedCount)/\(tree.nodes.count)")
-                            .font(.caption2.weight(.semibold))
-                            .foregroundStyle(.tertiary)
-                    }
-                }
+            TalentTreeCard(
+                tree: tree,
+                caption: "\(unlockedCount)/\(tree.nodes.count)",
+                showsShine: hasUnallocatedPoints,
+                accessibilityID: AccessibilityID.CombatantDetail.talentsNode(id: tree.keyword.rawValue)
             )
         }
-        .buttonStyle(.plain)
-        .accessibilityIdentifier(AccessibilityID.CombatantDetail.talentsNode(id: tree.keyword.rawValue))
+        .trinketQuietTapButtonStyle()
     }
 }
 

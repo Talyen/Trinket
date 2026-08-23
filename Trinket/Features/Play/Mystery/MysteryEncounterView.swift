@@ -9,13 +9,8 @@ import TrinketFeatureSupport
 
 struct MysteryEncounterView: View {
     @Environment(OptionsStore.self) private var options
+    @Environment(EncounterPlayMode.self) private var encounters
     @Bindable var session: MysteryEncounterSession
-    let onResolveChoice: (String?) -> Bool
-    let onCorruptItem: (String) -> Bool
-    let onCancelCorruptSelection: () -> Void
-    let onFinish: (_ dismiss: Bool) -> Bool
-    let onDismiss: () -> Void
-    let onFinishCorruptionReveal: () -> Bool
 
     @State private var selectedDetail: CombatantDetailContext?
     @State private var selectedChoiceID: String?
@@ -28,22 +23,26 @@ struct MysteryEncounterView: View {
                     session: session,
                     unlockedID: unlockedID,
                     onSelectDetail: { selectedDetail = $0 },
-                    onFinish: { onFinish(false) },
-                    onDismiss: onDismiss
+                    onFinish: { encounters.finishActiveMysteryEncounter(dismiss: false) },
+                    onDismiss: { encounters.dismissActiveMysteryEncounter() }
                 )
             } else if session.showsReward, let result = session.applyResult {
-                MysteryRewardContent(session: session, result: result, onFinish: { onFinish(true) })
+                MysteryRewardContent(
+                    session: session,
+                    result: result,
+                    onFinish: { encounters.finishActiveMysteryEncounter() }
+                )
             } else if session.showsCorruptionReveal, let result = session.corruptionResult {
                 MysteryCorruptionRevealContent(
                     session: session,
                     result: result,
-                    onFinish: onFinishCorruptionReveal
+                    onFinish: { encounters.finishActiveMysteryCorruptionReveal() }
                 )
             } else if session.showsCorruptItemChoice {
                 MysteryCorruptItemChoiceContent(
                     session: session,
-                    onCorruptItem: onCorruptItem,
-                    onCancelCorruptSelection: onCancelCorruptSelection
+                    onCorruptItem: { encounters.corruptActiveMysteryItem(itemID: $0) },
+                    onCancelCorruptSelection: { encounters.cancelActiveMysteryCorruptSelection() }
                 )
             } else {
                 readingContent
@@ -142,7 +141,7 @@ struct MysteryEncounterView: View {
     private var mysteryConfirmAction: some View {
         Button {
             guard let selectedChoiceID else { return }
-            _ = onResolveChoice(selectedChoiceID)
+            _ = encounters.resolveActiveMysteryChoice(choiceID: selectedChoiceID)
         } label: {
             Text("Confirm")
                 .frame(maxWidth: .infinity)
