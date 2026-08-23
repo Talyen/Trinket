@@ -15,6 +15,7 @@ extension BattleSession {
     @discardableResult
     func playCard(
         cardID: Int,
+        branchIndex: Int? = nil,
         at date: Date = .now
     ) -> BattleCardPlayResolution {
         cancelPendingAutoEnd()
@@ -35,7 +36,7 @@ extension BattleSession {
             let events = try measurePlayCardInterval(
                 BattleFramePacingSignposts.Name.playCardEngine
             ) {
-                try playEngineCard(cardID: cardID)
+                try playEngineCard(cardID: cardID, branchIndex: branchIndex)
             }
             guard hasActiveSimulation, activeBattle?.id != nil else {
                 return .rejected

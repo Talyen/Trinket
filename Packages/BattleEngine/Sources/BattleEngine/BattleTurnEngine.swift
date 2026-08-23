@@ -62,10 +62,14 @@ public enum BattleTurnEngine {
         ability: Ability,
         actor: Combatant,
         abilityTarget: Combatant,
-        context: inout BattleState
+        context: inout BattleState,
+        chosenBranchIndex: Int? = nil
     ) -> [ActionEvent] {
         var events: [ActionEvent] = []
-        var resolvedAbility = ability.resolvingOutcomeBranch(using: &context.rng)
+        var resolvedAbility = ability.resolvingOutcomeBranch(
+            preferredIndex: chosenBranchIndex,
+            using: &context.rng
+        )
         events.append(contentsOf: spendManaToEmpowerBurnOrFreezeIfNeeded(
             for: &resolvedAbility,
             actor: actor,

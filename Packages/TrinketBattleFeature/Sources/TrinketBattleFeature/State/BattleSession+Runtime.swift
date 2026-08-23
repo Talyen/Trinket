@@ -164,9 +164,9 @@ extension BattleSession {
     }
 
     @discardableResult
-    func playEngineCard(cardID: Int) throws -> [ActionEvent] {
+    func playEngineCard(cardID: Int, branchIndex: Int? = nil) throws -> [ActionEvent] {
         guard var engineState else { throw BattlePlayError.battleOver }
-        let events = try engineState.playCard(cardID: cardID, rebuildLog: false)
+        let events = try engineState.playCard(cardID: cardID, rebuildLog: false, branchIndex: branchIndex)
         self.engineState = engineState
         return events
     }

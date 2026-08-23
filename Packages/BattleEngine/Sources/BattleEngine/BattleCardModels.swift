@@ -20,6 +20,17 @@ public struct BattleCard: Identifiable, Hashable, Sendable {
     }
 }
 
+/// One guaranteed opening-hand slot: pull `tier` from `owner`'s deck.
+public struct OpeningHandDraw: Hashable, Sendable {
+    public let owner: BattleParticipant
+    public let tier: AbilityTier
+
+    public init(owner: BattleParticipant, tier: AbilityTier) {
+        self.owner = owner
+        self.tier = tier
+    }
+}
+
 public struct CombatDeck: Hashable, Sendable {
     public private(set) var abilities: [Ability]
 
@@ -38,6 +49,13 @@ public struct CombatDeck: Hashable, Sendable {
     public mutating func draw() -> Ability? {
         guard !abilities.isEmpty else { return nil }
         return abilities.removeFirst()
+    }
+
+    /// Removes and returns the first ability matching `predicate`, preserving
+    /// the order of the remaining cards.
+    public mutating func drawFirst(where predicate: (Ability) -> Bool) -> Ability? {
+        guard let index = abilities.firstIndex(where: predicate) else { return nil }
+        return abilities.remove(at: index)
     }
 
     public mutating func putOnBottom(_ ability: Ability) {
@@ -127,4 +145,5 @@ public enum BattlePlayError: Error, Equatable, Sendable {
     case cardNotInHand
     case ownerDefeated
     case ownerSkipping
+    case invalidBranchSelection
 }

@@ -26,6 +26,29 @@ enum AbilityDescriptionFormatter {
         return text.hasSuffix(".") ? String(text.dropLast()) : text
     }
 
+    /// Standalone sentence describing one branch, including the ability's
+    /// shared clauses (Critical bonuses, Leech) that apply to every outcome.
+    static func branchSummary(_ branch: AbilityOutcomeBranch, of ability: Ability) -> String {
+        var sentences = [capitalize(formatBranch(branch))]
+        if let critical = criticalClause(for: ability) {
+            sentences.append(capitalize(critical))
+        }
+        if ability.hasLeech {
+            sentences.append("Leech")
+        }
+        return sentences.joined(separator: ". ") + "."
+    }
+
+    private static func criticalClause(for ability: Ability) -> String? {
+        if ability.guaranteedCriticalIfEnemyBuffed {
+            return "always Criticals if the enemy has a buff"
+        }
+        if ability.criticalChanceBonus > 0 {
+            return "gain +\(Int(ability.criticalChanceBonus * 100))% Critical chance"
+        }
+        return nil
+    }
+
     private static func formatFixed(_ ability: Ability) -> String {
         var clauses: [String] = []
 
@@ -45,10 +68,8 @@ enum AbilityDescriptionFormatter {
             clauses.append(formatTargetedEffect(targetedEffect))
         }
 
-        if ability.guaranteedCriticalIfEnemyBuffed {
-            clauses.append("always Criticals if the enemy has a buff")
-        } else if ability.criticalChanceBonus > 0 {
-            clauses.append("gain +\(Int(ability.criticalChanceBonus * 100))% Critical chance")
+        if let critical = criticalClause(for: ability) {
+            clauses.append(critical)
         }
 
         let body = joinClauses(clauses)

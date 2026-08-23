@@ -173,4 +173,37 @@ struct AbilityCatalogTests {
         let issues = AbilityValidator.validate(ability)
         try #expect(issues.contains { $0.message.contains("bonusAmount") })
     }
+
+    // MARK: - Player-facing outcome choices
+
+    @Test func outcomeChoicesExposePerBranchSummariesAndKeywords() throws {
+        let titheChoices = try #require(Ability.tithe.outcomeChoices)
+        try #expect(titheChoices.count == 2)
+        try #expect(titheChoices[0].summary == "Deal 3 Holy damage.")
+        try #expect(titheChoices[0].keywords == [.holy])
+        try #expect(titheChoices[1].summary == "Steal 3 Gold.")
+        try #expect(titheChoices[1].keywords == [.gold])
+    }
+
+    @Test func threeWayAbilitiesExposeThreeChoices() throws {
+        let arrow = try #require(Ability.astralArrow.outcomeChoices)
+        #expect(arrow.count == 3)
+        #expect(arrow.map(\.keywords.first) == [.stun, .freeze, .burn])
+
+        let potion = try #require(Ability.luckPotion.outcomeChoices)
+        #expect(potion.count == 3)
+        #expect(potion.map(\.keywords.first) == [.mana, .gold, .block])
+    }
+
+    @Test func branchSummariesCarrySharedAbilityClauses() throws {
+        for choice in try #require(Ability.bloodthorn.outcomeChoices) {
+            #expect(choice.summary.hasSuffix("Leech."))
+            #expect(choice.keywords == [.bleed] || choice.keywords == [.poison])
+        }
+    }
+
+    @Test func nonBranchableAbilitiesExposeNoChoices() {
+        #expect(Ability.slash.outcomeChoices == nil)
+        #expect(Ability.block.outcomeChoices == nil)
+    }
 }

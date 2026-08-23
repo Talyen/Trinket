@@ -33,6 +33,10 @@ extension BattleFieldLane {
     }
 
     func playCard(_ card: BattleCard, request: CardActivationRequest) -> Bool {
+        if battleSession.shouldPresentBranchChoice(for: card) {
+            battleSession.presentBranchChoice(for: card, activation: request)
+            return true
+        }
         let outcome = battleSession.playCard(cardID: card.id)
         guard case .committed = outcome else { return false }
         if let actorID = battleSession.combatantID(for: card.owner) {
@@ -40,6 +44,16 @@ extension BattleFieldLane {
         }
         castPresentation.append(request)
         return true
+    }
+
+    func playChosenBranch(_ index: Int, copyRequest: CardActivationRequest) {
+        guard let choice = battleSession.pendingBranchChoice else { return }
+        battleSession.dismissBranchChoice()
+        guard battleSession.playCard(cardID: choice.cardID, branchIndex: index).didCommit,
+              let actorID = battleSession.combatantID(for: choice.owner)
+        else { return }
+        battleSession.commitAttackSwing(for: actorID)
+        castPresentation.append(copyRequest)
     }
 
     func cancelPartyAttack(for card: BattleCard) {

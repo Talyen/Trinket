@@ -1,6 +1,18 @@
 import Foundation
 import TrinketCore
 
+/// One player-selectable outcome of a branchable ability: display-ready text
+/// plus the keywords that drive its visual treatment.
+public struct AbilityBranchChoice: Hashable, Sendable {
+    public let summary: String
+    public let keywords: [Keyword]
+
+    public init(summary: String, keywords: [Keyword]) {
+        self.summary = summary
+        self.keywords = keywords
+    }
+}
+
 /// One randomly chosen outcome for an ability that lists alternatives with "or".
 public struct AbilityOutcomeBranch: Hashable, Sendable {
     public let damageComponents: [DamageComponent]
@@ -159,11 +171,30 @@ public struct Ability: Identifiable, Hashable, Sendable {
     public func resolvingOutcomeBranch(
         using rng: inout some RandomNumberGenerator
     ) -> Self {
+        resolvingOutcomeBranch(preferredIndex: nil, using: &rng)
+    }
+
+    /// Fixed playable snapshot. Uses `preferredIndex` when it names an authored
+    /// branch; otherwise picks one at random.
+    public func resolvingOutcomeBranch(
+        preferredIndex: Int?,
+        using rng: inout some RandomNumberGenerator
+    ) -> Self {
         guard let branches = outcomeBranches, !branches.isEmpty else {
             return self
         }
-        let index = Int.random(in: 0 ..< branches.count, using: &rng)
-        let branch = branches[index]
+        let index = if let preferredIndex, branches.indices.contains(preferredIndex) {
+            preferredIndex
+        } else {
+            Int.random(in: 0 ..< branches.count, using: &rng)
+        }
+        return resolving(branch: branches[index], using: &rng)
+    }
+
+    private func resolving(
+        branch: AbilityOutcomeBranch,
+        using rng: inout some RandomNumberGenerator
+    ) -> Self {
         var components = branch.damageComponents
         if branch.randomizeDamageKeywords {
             let types = Keyword.damageTypes
@@ -197,6 +228,24 @@ public struct Ability: Identifiable, Hashable, Sendable {
             guaranteedCriticalIfEnemyBuffed: guaranteedCriticalIfEnemyBuffed,
             hasLeech: hasLeech
         )
+    }
+
+    /// Player-facing per-branch choices for abilities whose outcomes the player
+    /// may pick. `nil` when the ability has fewer than two branches.
+    public var outcomeChoices: [AbilityBranchChoice]? {
+        guard let branches = outcomeBranches, branches.count > 1 else { return nil }
+        return branches.map { branch in
+            var keywords = branch.damageComponents.map(\.keyword)
+            keywords.append(contentsOf: branch.targetedEffects.map(\.effect.keyword))
+            var uniqueKeywords: [Keyword] = []
+            for keyword in keywords where !uniqueKeywords.contains(keyword) {
+                uniqueKeywords.append(keyword)
+            }
+            return AbilityBranchChoice(
+                summary: AbilityDescriptionFormatter.branchSummary(branch, of: self),
+                keywords: uniqueKeywords
+            )
+        }
     }
 
     /// True when this resolved ability has Burn/Freeze damage numbers Mana can empower.

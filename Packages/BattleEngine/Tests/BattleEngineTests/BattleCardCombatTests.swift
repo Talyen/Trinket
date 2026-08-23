@@ -10,7 +10,8 @@ struct BattleCardCombatTests {
         enemyAbilities: [Ability] = [],
         enemyMaxHealth: Int = 100,
         heroMaxMana: Int = 0,
-        heroMana: Int? = nil
+        heroMana: Int? = nil,
+        rngSeed: UInt64 = BattleTestFixtures.deterministicNonCriticalSeed
     ) -> BattleState {
         BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: heroAbilities,
@@ -18,7 +19,8 @@ struct BattleCardCombatTests {
             enemyAbilities: enemyAbilities,
             enemyMaxHealth: enemyMaxHealth,
             heroMaxMana: heroMaxMana,
-            heroMana: heroMana
+            heroMana: heroMana,
+            rngSeed: rngSeed
         )
     }
 

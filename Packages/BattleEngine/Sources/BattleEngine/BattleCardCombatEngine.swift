@@ -16,6 +16,7 @@ public enum BattleCardCombatEngine {
         )
         context.hand = BattleHand()
         context.handBuffer = BattleHandBuffer()
+        context.openingHandDealPlan = makeOpeningHandDealPlan(in: context)
         context.phase = .playerTurn
         context.ownersSkippingThisPlayerTurn = []
     }
@@ -33,11 +34,21 @@ public enum BattleCardCombatEngine {
         return finalizeOpeningHand(context: &context)
     }
 
-    /// Draws one opening-hand card using the same owner-pick rules as bulk opening draw.
+    /// Draws one opening-hand card. Guaranteed-plan slots (one Basic per party
+    /// member plus one Skill) are dealt first; any remaining slots fall back to
+    /// the legacy random-owner pick.
     /// Returns `false` when the hand is full or no eligible deck remains.
     @discardableResult
     public static func drawNextOpeningHandCard(context: inout BattleState) -> Bool {
         guard context.hand.count < BattleHand.maxSize else { return false }
+
+        while !context.openingHandDealPlan.isEmpty {
+            let slot = context.openingHandDealPlan.removeFirst()
+            if dealCard(matching: slot.tier, owner: slot.owner, context: &context) != nil {
+                return true
+            }
+        }
+
         let eligible = [BattleParticipant.hero, .companion].filter { owner in
             context.roster[owner].isAlive && !deck(for: owner, in: context).isEmpty
         }
@@ -55,15 +66,20 @@ public enum BattleCardCombatEngine {
     @discardableResult
     public static func playCard(
         cardID: Int,
+        branchIndex: Int? = nil,
         context: inout BattleState
     ) throws -> [ActionEvent] {
         guard let card = context.hand.card(id: cardID) else { throw BattlePlayError.cardNotInHand }
-        return try playDrawnCard(card, context: &context)
+        return try playDrawnCard(card, branchIndex: branchIndex, context: &context)
     }
 
     /// Plays a just-drawn card from the hand or overflow buffer. Does not
     /// substitute a different in-hand card when the draw overflowed.
-    static func playDrawnCard(_ card: BattleCard, context: inout BattleState) throws -> [ActionEvent] {
+    static func playDrawnCard(
+        _ card: BattleCard,
+        branchIndex: Int? = nil,
+        context: inout BattleState
+    ) throws -> [ActionEvent] {
         guard !context.isBattleOver else { throw BattlePlayError.battleOver }
         guard context.phase == .playerTurn else { throw BattlePlayError.notPlayerTurn }
         let ownerRuntime = context.roster[card.owner]
@@ -71,16 +87,28 @@ public enum BattleCardCombatEngine {
         guard !context.ownersSkippingThisPlayerTurn.contains(card.owner) else {
             throw BattlePlayError.ownerSkipping
         }
+        try validateBranchSelection(branchIndex, for: card)
         if context.hand.remove(id: card.id) == nil {
             guard context.handBuffer.remove(id: card.id) != nil else {
                 throw BattlePlayError.cardNotInHand
             }
         }
-        return resolvePlayedCard(card, ownerRuntime: ownerRuntime, context: &context)
+        return resolvePlayedCard(card, branchIndex: branchIndex, ownerRuntime: ownerRuntime, context: &context)
+    }
+
+    private static func validateBranchSelection(
+        _ branchIndex: Int?,
+        for card: BattleCard
+    ) throws {
+        guard let branchIndex else { return }
+        guard let branches = card.ability.outcomeBranches,
+              branches.indices.contains(branchIndex)
+        else { throw BattlePlayError.invalidBranchSelection }
     }
 
     private static func resolvePlayedCard(
         _ card: BattleCard,
+        branchIndex: Int?,
         ownerRuntime: CombatantRuntime,
         context: inout BattleState
     ) -> [ActionEvent] {
@@ -90,7 +118,8 @@ public enum BattleCardCombatEngine {
             ability: card.ability,
             actor: actor,
             abilityTarget: abilityTarget,
-            context: &context
+            context: &context,
+            chosenBranchIndex: branchIndex
         )
         events.append(contentsOf: CombatTriggerEngine.afterCardPlayed(
             ability: card.ability,
@@ -329,45 +358,6 @@ public enum BattleCardCombatEngine {
         }
     }
 
-    /// Returns defeated-owner cards from hand/buffer to their decks so dead
-    /// companion/hero cards cannot permanently fill hand slots.
-    private static func discardDefeatedOwnerCards(context: inout BattleState) {
-        guard !context.roster.hero.isAlive || !context.roster.companion.isAlive else { return }
-        var survivingHand: [BattleCard] = []
-        for card in context.hand.cards {
-            if context.roster[card.owner].isAlive {
-                survivingHand.append(card)
-            } else {
-                putAbilityOnBottom(card.ability, owner: card.owner, context: &context)
-            }
-        }
-        context.hand = BattleHand(cards: survivingHand)
-
-        var survivingBuffer = BattleHandBuffer()
-        for card in context.handBuffer.cards {
-            if context.roster[card.owner].isAlive {
-                survivingBuffer.enqueue(card)
-            } else {
-                putAbilityOnBottom(card.ability, owner: card.owner, context: &context)
-            }
-        }
-        context.handBuffer = survivingBuffer
-    }
-
-    /// Moves buffered cards into the hand in FIFO order until the hand is full.
-    /// Skips defeated-owner cards (defensive; callers also purge before promote).
-    private static func promoteFromBuffer(context: inout BattleState) {
-        guard !context.handBuffer.isEmpty else { return }
-        while !context.hand.isFull {
-            guard let card = context.handBuffer.dequeue() else { return }
-            guard context.roster[card.owner].isAlive else {
-                putAbilityOnBottom(card.ability, owner: card.owner, context: &context)
-                continue
-            }
-            context.hand.append(card)
-        }
-    }
-
     /// Draws one card for `owner` into the hand or overflow buffer.
     static func drawOneCard(for owner: BattleParticipant, context: inout BattleState) -> BattleCard? {
         drawOne(owner: owner, context: &context)
@@ -386,18 +376,10 @@ public enum BattleCardCombatEngine {
             nil
         }
         guard let ability else { return nil }
-
-        context.nextCardID += 1
-        let card = BattleCard(id: context.nextCardID, ability: ability, owner: owner)
-        if context.hand.isFull {
-            context.handBuffer.enqueue(card)
-        } else {
-            context.hand.append(card)
-        }
-        return card
+        return deal(ability, owner: owner, context: &context)
     }
 
-    private static func deck(for owner: BattleParticipant, in context: BattleState) -> CombatDeck {
+    static func deck(for owner: BattleParticipant, in context: BattleState) -> CombatDeck {
         switch owner {
         case .hero: context.heroDeck
         case .companion: context.companionDeck
@@ -405,7 +387,7 @@ public enum BattleCardCombatEngine {
         }
     }
 
-    private static func putAbilityOnBottom(
+    static func putAbilityOnBottom(
         _ ability: Ability,
         owner: BattleParticipant,
         context: inout BattleState

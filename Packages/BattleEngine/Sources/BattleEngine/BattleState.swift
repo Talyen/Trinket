@@ -72,6 +72,9 @@ public struct BattleState {
     public var handBuffer: BattleHandBuffer
     public var heroDeck: CombatDeck
     public var companionDeck: CombatDeck
+    /// Guaranteed composition slots for the opening hand, consumed in order by
+    /// `drawNextOpeningHandCard`. Built once in `bootstrapDecks`.
+    public var openingHandDealPlan: [OpeningHandDraw]
     public var nextCardID: Int
     /// Party owners whose cards are unplayable this player turn due to control skip.
     public var ownersSkippingThisPlayerTurn: Set<BattleParticipant>
@@ -135,6 +138,7 @@ public struct BattleState {
         handBuffer: BattleHandBuffer = BattleHandBuffer(),
         heroDeck: CombatDeck = CombatDeck(),
         companionDeck: CombatDeck = CombatDeck(),
+        openingHandDealPlan: [OpeningHandDraw] = [],
         nextCardID: Int = 0,
         ownersSkippingThisPlayerTurn: Set<BattleParticipant> = [],
         cardsPlayedThisTurn: [BattleParticipant: Int] = [:],
@@ -183,6 +187,7 @@ public struct BattleState {
         self.handBuffer = handBuffer
         self.heroDeck = heroDeck
         self.companionDeck = companionDeck
+        self.openingHandDealPlan = openingHandDealPlan
         self.nextCardID = nextCardID
         self.ownersSkippingThisPlayerTurn = ownersSkippingThisPlayerTurn
         self.cardsPlayedThisTurn = cardsPlayedThisTurn
@@ -306,15 +311,32 @@ public struct BattleState {
     // MARK: - Card combat
 
     @discardableResult
-    public mutating func playCard(cardID: Int, rebuildLog: Bool = true) throws -> [ActionEvent] {
+    public mutating func playCard(
+        cardID: Int,
+        rebuildLog: Bool = true,
+        branchIndex: Int? = nil
+    ) throws -> [ActionEvent] {
         guard !isBattleOver else { throw BattlePlayError.battleOver }
         // Events are already appended via `nextEvent` during resolution; return value is the delta.
         let events = try BattleCardCombatEngine.playCard(
             cardID: cardID,
+            branchIndex: branchIndex,
             context: &self
         )
         finishMutation(rebuildLog: rebuildLog)
         return events
+    }
+
+    /// True when playing this card should ask the player to pick an outcome
+    /// branch (two or more branches that still differ under current conditions).
+    public func requiresBranchChoice(cardID: Int) -> Bool {
+        guard let card = hand.card(id: cardID) else { return false }
+        let actor = roster[card.owner].combatant
+        return BattleCardCombatEngine.requiresBranchChoice(
+            ability: card.ability,
+            actor: actor,
+            in: self
+        )
     }
 
     @discardableResult
