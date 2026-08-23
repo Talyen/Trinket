@@ -110,16 +110,6 @@ enum BalanceContrastSupport {
             .sorted(by: BalanceContrastFlags.summarySort)
     }
 
-    static func mergeSummaries(
-        _ summaries: [PairedContrastSummary],
-        threshold: Double
-    ) -> [PairedContrastSummary] {
-        mergeSummaries(
-            summaries,
-            config: BalanceSweepConfig(peerDeltaFlagThreshold: threshold)
-        )
-    }
-
     static func stableHash64(_ string: String) -> UInt64 {
         var hash: UInt64 = 5381
         for byte in string.utf8 {
@@ -279,7 +269,7 @@ enum BalanceContrastSupport {
                 samples: config.battlesPerTier
             )
         )
-        let pairResults = ParallelMap.map(work, jobs: config.resolvedJobs) { item -> ContrastPairOutcome? in
+        let pairResults = ParallelMap.map(work) { item -> ContrastPairOutcome? in
             let focus = foci[item.focusIndex]
             let seed = config.seed
                 &+ UInt64(item.tier.level) &* primes.tier
@@ -311,5 +301,33 @@ enum BalanceContrastSupport {
     static func roundRobinEnemy(enemies: [Enemy], pairIndex: Int) -> Enemy {
         precondition(!enemies.isEmpty, "roundRobinEnemy requires a non-empty enemy list")
         return enemies[pairIndex % enemies.count]
+    }
+
+    static func sharedGear(
+        owner: Combatant,
+        partner: Combatant,
+        ownerLoadout: AbilityLoadout,
+        partnerLoadout: AbilityLoadout,
+        tier: SimulationPowerTier,
+        pairSeed: UInt64
+    ) -> (owner: SimulationMatchupBuilder.GearOverride?, partner: SimulationMatchupBuilder.GearOverride?) {
+        let sharedBias = owner.keywordProfile.union(partner.keywordProfile)
+        var gearRNG = SeededRandomNumberGenerator(seed: pairSeed &+ 17)
+        return (
+            SimulationMatchupBuilder.generateAlignedGear(
+                for: owner.withAbilityLoadoutPreservingEmptyTiers(ownerLoadout),
+                tier: tier,
+                keywordBias: sharedBias,
+                idPrefix: "contrast-owner",
+                using: &gearRNG
+            ),
+            SimulationMatchupBuilder.generateAlignedGear(
+                for: partner.withAbilityLoadoutPreservingEmptyTiers(partnerLoadout),
+                tier: tier,
+                keywordBias: sharedBias,
+                idPrefix: "contrast-partner",
+                using: &gearRNG
+            )
+        )
     }
 }

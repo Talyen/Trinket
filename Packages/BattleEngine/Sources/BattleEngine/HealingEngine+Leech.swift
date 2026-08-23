@@ -89,10 +89,29 @@ package extension HealingEngine {
            context.roster.companion.isAlive,
            profile.triggers.leechOverhealTransfersToCompanion,
            context.roster.health(for: actorCombatant) >= context.roster.maxHealth(for: actorCombatant) {
-            events.append(contentsOf: Self.resolveHeal(
-                HealRequest(amount: restored, target: context.roster.companion.combatant, sourceActorID: sourceActorID),
+            let healOutcome = resolveHeal(
+                HealRequest(
+                    amount: restored,
+                    target: context.roster.companion.combatant,
+                    sourceActorID: sourceActorID,
+                    logAs: .leech
+                ),
                 in: &context
-            ).events)
+            )
+            actualRestored = healOutcome.healthRestored
+            leechFlags = healOutcome.flags
+            events.append(context.nextEvent(
+                kind: .effect,
+                effectKind: .leechHeal,
+                actorName: actorCombatant.name,
+                abilityName: "Leech",
+                target: context.roster.companion.combatant,
+                amount: actualRestored,
+                keyword: .leech,
+                appliedEffectSummaries: [],
+                milestone: nil,
+                isCritical: healOutcome.isCritical
+            ))
         } else {
             let healOutcome = resolveHeal(
                 HealRequest(

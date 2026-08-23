@@ -56,10 +56,6 @@ public struct BalanceSweepConfig: Equatable, Codable, Sendable {
     public static let comfortHPThresholdDefault = 0.10
     public static let comfortRoundThresholdDefault = 2.0
 
-    public var samples: Int {
-        battlesPerTier
-    }
-
     public init(
         mode: BalanceSweepMode = .identity,
         battlesPerTier: Int = Self.defaultBattlesPerTier,

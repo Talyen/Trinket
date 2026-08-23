@@ -9,8 +9,8 @@ package extension BattleState {
               let sourceActorID,
               let side = FightPacing.side(for: sourceActorID, in: self)
         else { return amount }
-        // poolMetrics + boss-ness are computed once and threaded through the
-        // multiplier chain — paced() runs per damage/block/heal/control application.
+        // Recomputed per call; pool metrics are a few adds and boss-ness is a
+        // dictionary lookup, negligible against the damage math it scales.
         let metrics = FightPacing.poolMetrics(in: self)
         let multiplier = FightPacing.multiplier(
             side: side,

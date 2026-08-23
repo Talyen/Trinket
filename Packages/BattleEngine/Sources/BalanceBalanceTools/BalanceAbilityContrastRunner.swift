@@ -113,7 +113,7 @@ enum BalanceAbilityContrastRunner {
         )
         let focusLoadout = ownerBase.selecting(focus.focus)
         let siblingLoadout = ownerBase.selecting(focus.sibling)
-        let gears = sharedGear(
+        let gears = BalanceContrastSupport.sharedGear(
             owner: focus.owner,
             partner: partner,
             ownerLoadout: focusLoadout,
@@ -147,34 +147,6 @@ enum BalanceAbilityContrastRunner {
                     tier: tier,
                     seed: pairSeed
                 )
-            )
-        )
-    }
-
-    private static func sharedGear(
-        owner: Combatant,
-        partner: Combatant,
-        ownerLoadout: AbilityLoadout,
-        partnerLoadout: AbilityLoadout,
-        tier: SimulationPowerTier,
-        pairSeed: UInt64
-    ) -> (owner: SimulationMatchupBuilder.GearOverride?, partner: SimulationMatchupBuilder.GearOverride?) {
-        let sharedBias = owner.keywordProfile.union(partner.keywordProfile)
-        var gearRNG = SeededRandomNumberGenerator(seed: pairSeed &+ 17)
-        return (
-            SimulationMatchupBuilder.generateAlignedGear(
-                for: owner.withAbilityLoadoutPreservingEmptyTiers(ownerLoadout),
-                tier: tier,
-                keywordBias: sharedBias,
-                idPrefix: "contrast-owner",
-                using: &gearRNG
-            ),
-            SimulationMatchupBuilder.generateAlignedGear(
-                for: partner.withAbilityLoadoutPreservingEmptyTiers(partnerLoadout),
-                tier: tier,
-                keywordBias: sharedBias,
-                idPrefix: "contrast-partner",
-                using: &gearRNG
             )
         )
     }

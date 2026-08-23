@@ -2,38 +2,6 @@
 
 import PackageDescription
 
-let balanceToolSources = [
-    "BalanceAbilityContrastRunner.swift",
-    "BalanceAffixContrastRunner.swift",
-    "BalanceContrastFlags.swift",
-    "BalanceContrastSupport.swift",
-    "BalanceDurationAggregation.swift",
-    "BalanceFindingsReporter.swift",
-    "BalanceIdentityMargins.swift",
-    "BalanceIdentityTables.swift",
-    "BalanceMarkdownReporter.swift",
-    "BalanceMarkdownTables.swift",
-    "BalanceProgressionReportFormatter.swift",
-    "BalanceProgressionRunner.swift",
-    "BalanceStatsAggregator.swift",
-    "BalanceSweepConfig.swift",
-    "BalanceSweepReportMerge.swift",
-    "BalanceSweepRunner.swift",
-    "BalanceSweepWorkPlan.swift",
-    "BalanceTalentContrastRunner.swift",
-    "BattleSimulator.swift",
-    "HotspotAnalyzer.swift",
-    "InterleavingPlayerController.swift",
-    "ModeProgressionTracker.swift",
-    "SimulationMatchupBuilder.swift",
-    "SimulationPolicies.swift",
-    "SimulationTierProfile.swift",
-]
-
-let balanceToolTestSources = [
-    "BattleSimulatorSweepReportTests.swift",
-]
-
 let package = Package(
     name: "BattleEngine",
     platforms: [
@@ -62,14 +30,12 @@ let package = Package(
     targets: [
         .target(
             name: "BattleEngine",
-            dependencies: ["TrinketCore", "TrinketContent"],
-            exclude: balanceToolSources
+            dependencies: ["TrinketCore", "TrinketContent"]
         ),
         .target(
             name: "BattleBalanceTools",
             dependencies: ["BattleEngine", "TrinketCore", "TrinketContent"],
-            path: "Sources/BattleEngine",
-            sources: balanceToolSources
+            path: "Sources/BalanceBalanceTools"
         ),
         .executableTarget(
             name: "BalanceSweepCLI",
@@ -83,8 +49,7 @@ let package = Package(
                 "TrinketCore",
                 "TrinketContent",
                 .product(name: "TrinketTestSupport", package: "TrinketTestSupport"),
-            ],
-            exclude: balanceToolTestSources
+            ]
         ),
         .testTarget(
             name: "BattleBalanceToolsTests",
@@ -94,8 +59,7 @@ let package = Package(
                 "TrinketCore",
                 "TrinketContent",
             ],
-            path: "Tests/BattleEngineTests",
-            sources: balanceToolTestSources
+            path: "Tests/BattleBalanceToolsTests"
         ),
     ]
 )

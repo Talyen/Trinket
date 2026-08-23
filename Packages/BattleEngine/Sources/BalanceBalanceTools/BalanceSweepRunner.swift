@@ -139,7 +139,7 @@ public enum BalanceSweepRunner {
                 }
             }
         )
-        return ParallelMap.map(work, jobs: config.resolvedJobs) { entry in
+        return ParallelMap.map(work) { entry in
             simulateIdentityBattle(
                 IdentityBattleWork(
                     config: config,
@@ -315,7 +315,6 @@ public enum BalanceSweepRunner {
 enum ParallelMap {
     static func map<Input: Sendable, Output: Sendable>(
         _ inputs: [Input],
-        jobs _: Int,
         transform: @escaping @Sendable (Input) -> Output
     ) -> [Output] {
         guard !inputs.isEmpty else { return [] }

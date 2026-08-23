@@ -95,6 +95,28 @@ struct HealingEngineTests {
         try #expect(context.roster.hero.currentHealth == before + 5)
     }
 
+    @Test func bloodLinkRoutesOverhealToCompanionAndEmitsLeechEvent() throws {
+        let leech = ActiveEffect(id: 1, effect: .leech(.leech, 1.0, 3), remainingTurns: 3)
+        var context = BattleTestFixtures.makePipelineContext(
+            heroModifiers: CombatModifierProfile(
+                triggers: CombatTraitTriggers(
+                    healing: HealingTriggers(leechOverhealTransfersToCompanion: true)
+                )
+            ),
+            seed: BattleTestFixtures.deterministicNonCriticalSeed
+        )
+        context.roster.setActiveEffects([leech], for: context.roster.hero.combatant)
+        context.roster.mutateRuntime(for: context.roster.companion.combatant) { $0.currentHealth = 10 }
+
+        let outcome = HealingEngine.leechFromDamage(10, sourceActorID: "source", in: &context)
+
+        try #expect(outcome.healthRestored == 10)
+        try #expect(context.roster.companion.currentHealth == 20)
+        let leechEvent = outcome.events.first { $0.effectKind == .leechHeal }
+        try #expect(leechEvent?.targetID == context.roster.companion.id)
+        try #expect(leechEvent?.amount == 10)
+    }
+
     @Test func leechFromDamageDoesNotReviveDefeatedSource() throws {
         let leech = ActiveEffect(id: 1, effect: .leech(.leech, 1.0, 3), remainingTurns: 3)
         var context = makeContext(seed: BattleTestFixtures.deterministicNonCriticalSeed)
