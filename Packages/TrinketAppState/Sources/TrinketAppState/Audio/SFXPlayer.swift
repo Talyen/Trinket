@@ -13,6 +13,7 @@ public final class SFXPlayer {
     private var preparedVoicesByID: [String: [PreparedSFXVoice]] = [:]
     private var buffersByID: [String: AVAudioPCMBuffer] = [:]
     private var nextVoiceIndexByID: [String: Int] = [:]
+    private var catalogWarmTask: Task<Void, Never>?
     private let logger = Logger(
         subsystem: AudioLogging.subsystem,
         category: "Audio"
@@ -91,19 +92,26 @@ public final class SFXPlayer {
         guard !isDisabled else { return }
         let ids = SFXCatalog.clips.map(\.id)
         let clips = SFXCatalog.clips
-        Task.detached(priority: .utility) {
+        catalogWarmTask?.cancel()
+        catalogWarmTask = Task.detached(priority: .utility) { [weak self] in
             var decoded: [String: AVAudioPCMBuffer] = [:]
             for clip in clips {
+                if Task.isCancelled {
+                    return
+                }
                 guard let url = Self.resourceURL(for: clip),
                       let buffer = Self.decodePCMBuffer(at: url)
                 else { continue }
                 decoded[clip.id] = buffer
             }
-            await MainActor.run {
+            await MainActor.run { [weak self] in
+                // releaseResources() may have run while decoding; dropping the
+                // merge keeps released buffers released.
+                guard let self, !Task.isCancelled else { return }
                 for (id, buffer) in decoded {
-                    self.buffersByID[id] = buffer
+                    buffersByID[id] = buffer
                 }
-                self.warm(ids, concurrentPlayerCount: concurrentPlayerCount)
+                warm(ids, concurrentPlayerCount: concurrentPlayerCount)
             }
         }
     }
@@ -124,6 +132,8 @@ public final class SFXPlayer {
     /// Stops playback and releases decoded buffers and attached player nodes.
     /// The next play lazily rebuilds the requested overlap pool.
     public func releaseResources() {
+        catalogWarmTask?.cancel()
+        catalogWarmTask = nil
         stopAll()
         for voices in preparedVoicesByID.values {
             for voice in voices {

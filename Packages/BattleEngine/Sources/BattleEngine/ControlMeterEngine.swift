@@ -51,6 +51,10 @@ package enum ControlMeterEngine {
             threshold
         }
         var currentEffects = context.roster.activeEffects(for: combatant)
+        guard !context.interceptDebuff(
+            .controlMeter(keyword, adjustedAmount, effectiveThreshold),
+            on: combatant
+        ) else { return [] }
         let existingIndex = currentEffects.firstIndex { activeEffect in
             if case let .controlMeter(k, _, _) = activeEffect.effect, k == keyword {
                 return true

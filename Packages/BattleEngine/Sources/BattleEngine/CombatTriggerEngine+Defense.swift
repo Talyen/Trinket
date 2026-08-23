@@ -26,10 +26,7 @@ package extension CombatTriggerEngine {
                 runtime.pendingBleedAfterDodge = triggers.nextAttackBleedAfterDodge
             }
             if triggers.critMultiplierPerDodge > 0 {
-                runtime.talentCritMultiplierBonus = min(
-                    1.0,
-                    runtime.talentCritMultiplierBonus + triggers.critMultiplierPerDodge
-                )
+                runtime.talentCritMultiplierBonus = min(1.0, runtime.talentCritMultiplierBonus + triggers.critMultiplierPerDodge)
             }
         }
         if triggers.onDodgePartyNextCardDamageBonus > 0 {
@@ -435,6 +432,8 @@ package extension CombatTriggerEngine {
         abilityName: String,
         in context: inout BattleState
     ) -> [ActionEvent] {
+        let markedEffect = Effect.marked(Effect.standardMarkedBonus, Effect.standardMarkedDuration)
+        guard !context.interceptDebuff(markedEffect, on: target) else { return [] }
         var effects = context.roster.activeEffects(for: target)
         effects.removeAll {
             if case .marked = $0.effect {
@@ -445,7 +444,7 @@ package extension CombatTriggerEngine {
         effects.append(
             ActiveEffect(
                 id: context.consumeNextEffectID(),
-                effect: .marked(Effect.standardMarkedBonus, Effect.standardMarkedDuration),
+                effect: markedEffect,
                 remainingTurns: Effect.standardMarkedDuration,
                 sourceActorID: sourceActorID
             )

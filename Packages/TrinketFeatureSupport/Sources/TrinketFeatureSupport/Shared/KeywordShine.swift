@@ -4,6 +4,7 @@ import TrinketDesignSystem
 
 private struct ShineTextModifier: ViewModifier {
     let colors: [Color]
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     func body(content: Content) -> some View {
         if colors.isEmpty {
@@ -11,8 +12,10 @@ private struct ShineTextModifier: ViewModifier {
         } else {
             let band = colors + [TrinketDesign.Colors.Overlay.paper]
             let looped = band + band
-            TimelineView(.animation(minimumInterval: 1.0 / 30.0)) { context in
-                let phase = TrinketMotion.Shine.phase(at: context.date.timeIntervalSinceReferenceDate)
+            TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: reduceMotion)) { context in
+                let phase = reduceMotion
+                    ? 0
+                    : TrinketMotion.Shine.phase(at: context.date.timeIntervalSinceReferenceDate)
                 content
                     .foregroundStyle(
                         LinearGradient(

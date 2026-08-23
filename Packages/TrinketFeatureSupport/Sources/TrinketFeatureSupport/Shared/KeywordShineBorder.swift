@@ -9,10 +9,6 @@ public struct KeywordShineBorder: View {
     public var lineWidth: CGFloat = 2
     public var isMotionActive: Bool = true
 
-    private var motionEnabled: Bool {
-        isMotionActive
-    }
-
     public init(
         keywords: [Keyword],
         cornerRadius: CGFloat = TrinketDesign.Corners.card,
@@ -38,15 +34,15 @@ public struct KeywordShineBorder: View {
     }
 
     public var body: some View {
-        TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: !motionEnabled)) { context in
+        TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: !isMotionActive)) { context in
             KeywordShineBorderStroke(
                 colors: colors,
                 cornerRadius: cornerRadius,
                 lineWidth: lineWidth,
-                angle: motionEnabled
+                angle: isMotionActive
                     ? TrinketMotion.Shine.phase(at: context.date.timeIntervalSinceReferenceDate) * 360
                     : 0,
-                motionEnabled: motionEnabled
+                motionEnabled: isMotionActive
             )
         }
         .allowsHitTesting(false)

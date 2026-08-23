@@ -103,19 +103,26 @@ package extension BattleState {
         return events
     }
 
+    /// Fae Ward interception point: "block the first negative effect applied
+    /// each turn". Every removable-debuff application path must call this
+    /// before mutating the target's effects. Returns true when the ward
+    /// consumed the application.
+    mutating func interceptDebuff(_ effect: Effect, on target: Combatant) -> Bool {
+        guard effect.isRemovableDebuff,
+              modifiers(for: target.id).triggers.blockFirstDebuffPerTurn,
+              roster.runtime(for: target)?.faeWardBlockedThisTurn != true
+        else { return false }
+        roster.mutateRuntime(for: target) { $0.faeWardBlockedThisTurn = true }
+        return true
+    }
+
     mutating func appendEffect(
         _ effect: Effect,
         to target: Combatant,
         sourceID: String,
         remainingTurns: Int
     ) {
-        // Fae Ward: block the first debuff applied to the owner each turn.
-        if isDebuff(effect),
-           modifiers(for: target.id).triggers.blockFirstDebuffPerTurn,
-           roster.runtime(for: target)?.faeWardBlockedThisTurn != true {
-            roster.mutateRuntime(for: target) { $0.faeWardBlockedThisTurn = true }
-            return
-        }
+        guard !interceptDebuff(effect, on: target) else { return }
         let effectID = consumeNextEffectID()
         roster.mutateRuntime(for: target) { runtime in
             runtime.activeEffects.append(
@@ -126,16 +133,6 @@ package extension BattleState {
                     sourceActorID: sourceID
                 )
             )
-        }
-    }
-
-    private func isDebuff(_ effect: Effect) -> Bool {
-        switch effect {
-        case .burn, .poison, .bleed, .controlMeter, .deathsDoor,
-             .damageReductionPercent, .damageReductionFlat, .strengthReduction:
-            true
-        default:
-            false
         }
     }
 

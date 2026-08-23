@@ -129,6 +129,29 @@ struct PreparedArtworkCacheTests {
         cache.releasePins(names: ["art"])
         #expect(cache.launchWarmupSnapshot().pinnedCount == 0)
     }
+
+    @Test func releasingPinsDuringDecodeDoesNotLeakAPin() async {
+        let image = UIGraphicsImageRenderer(size: CGSize(width: 4, height: 4)).image { context in
+            UIColor.red.setFill()
+            context.cgContext.fill(CGRect(x: 0, y: 0, width: 4, height: 4))
+        }
+        let gate = DeferredDecodeGate()
+        let started = DecodeStartSignal()
+        let cache = PreparedArtworkCache.makeForTesting(catalogNames: ["art"]) { name in
+            await started.markStarted()
+            await gate.waitUntilOpen()
+            return PreparedArtwork(name: name, image: image)
+        }
+
+        let prepareTask = Task { await cache.prepareAndPin(names: ["art"]) }
+        await started.waitUntilStarted()
+        cache.releasePins(names: ["art"])
+        await gate.open()
+        await prepareTask.value
+
+        #expect(cache.launchWarmupSnapshot().pinnedCount == 0)
+        #expect(cache.image(named: "art") != nil)
+    }
 }
 
 private actor RetryingDecodeSource {
@@ -164,6 +187,29 @@ private actor DeferredDecodeGate {
         waiters.removeAll()
         for waiter in pending {
             waiter.resume()
+        }
+    }
+}
+
+private actor DecodeStartSignal {
+    private var hasStarted = false
+    private var waiters: [CheckedContinuation<Void, Never>] = []
+
+    func markStarted() {
+        hasStarted = true
+        let pending = waiters
+        waiters.removeAll()
+        for waiter in pending {
+            waiter.resume()
+        }
+    }
+
+    func waitUntilStarted() async {
+        if hasStarted {
+            return
+        }
+        await withCheckedContinuation { continuation in
+            waiters.append(continuation)
         }
     }
 }

@@ -133,13 +133,9 @@ public final class PreparedArtworkCache {
                 pinnedImages[name] = image
             }
         }
+        // Decoded results are pinned inside decode() while the pin count is
+        // held; an owner that releases mid-decode must stay released.
         await decode(unique, maximumConcurrency: 2, countsTowardLaunch: false)
-        for name in unique {
-            if pinnedImages[name] == nil,
-               let image = images.object(forKey: name as NSString) {
-                pinnedImages[name] = image
-            }
-        }
     }
 
     /// Releases strong references held for a completed or cancelled preparation.

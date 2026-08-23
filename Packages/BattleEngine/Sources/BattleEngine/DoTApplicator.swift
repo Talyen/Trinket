@@ -29,6 +29,8 @@ package enum DoTApplicator {
         }
 
         var currentEffects = context.roster.activeEffects(for: effectTarget)
+        let appliedEffect = effectCase(for: keyword, potency: resolvedPotency)
+        guard !context.interceptDebuff(appliedEffect, on: effectTarget) else { return collected }
         if let index = currentEffects.firstIndex(where: { $0.effect.keyword == keyword && $0.effect.isDecayingDoT }) {
             let existingPotency = currentEffects[index].effect.potency ?? 0
             currentEffects[index].effect = effectCase(for: keyword, potency: existingPotency + resolvedPotency)
@@ -37,7 +39,7 @@ package enum DoTApplicator {
             currentEffects.append(
                 ActiveEffect(
                     id: context.consumeNextEffectID(),
-                    effect: effectCase(for: keyword, potency: resolvedPotency),
+                    effect: appliedEffect,
                     remainingTurns: 0,
                     sourceActorID: sourceActorID
                 )
