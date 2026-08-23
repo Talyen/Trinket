@@ -35,6 +35,8 @@ jobs:
               - 'CinematicManifest/**'
               - 'Raw Assets/**'
               - 'Scripts/**'
+              # Prose-only script edits do not affect build/test behavior.
+              - '!Scripts/**/*.md'
               - 'project.yml'
               - 'Trinket.xcodeproj/**'
               - '*.xctestplan'

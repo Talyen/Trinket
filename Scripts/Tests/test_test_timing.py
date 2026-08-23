@@ -70,19 +70,6 @@ class TestTimingTests(unittest.TestCase):
             self.assertIn("ExampleTests/testOne", report.stdout)
             self.assertNotIn("Traceback", report.stderr)
 
-            for value in ("NaN", "-1"):
-                budget = self.run_script(
-                    results_dir,
-                    "assert-budget",
-                    "--mode",
-                    "unit",
-                    "--max-wall",
-                    value,
-                )
-                self.assertNotEqual(budget.returncode, 0)
-                self.assertIn("finite non-negative number", budget.stderr)
-                self.assertNotIn("Traceback", budget.stderr)
-
             record = self.run_script(
                 results_dir,
                 "record",
@@ -126,17 +113,6 @@ class TestTimingTests(unittest.TestCase):
             self.assertEqual(report.returncode, 0, report.stderr)
             self.assertIn("Entries: 1 total", report.stdout)
             self.assertIn("12.5s", report.stdout)
-
-            budget = self.run_script(
-                results_dir,
-                "assert-budget",
-                "--mode",
-                "unit",
-                "--max-wall",
-                "20",
-            )
-            self.assertEqual(budget.returncode, 0, budget.stderr)
-            self.assertIn("wall", budget.stdout)
 
             mutually_exclusive = self.run_script(
                 results_dir,

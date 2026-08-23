@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Validate commit message format (advisory; used locally and in CI).
+# Validate commit message format (advisory; local commit-msg hook only).
 set -euo pipefail
 
 MSG_FILE="${1:-}"

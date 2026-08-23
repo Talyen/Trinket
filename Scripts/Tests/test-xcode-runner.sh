@@ -5,6 +5,8 @@ set -euo pipefail
 # not require Xcode, a simulator, or the diagnostics parser.
 
 ROOT_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
+# shellcheck source=../lib/xcodebuild-infra.sh
+source "$ROOT_DIR/Scripts/lib/xcodebuild-infra.sh"
 RUNNER="$ROOT_DIR/Scripts/xcode-runner.sh"
 TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT
@@ -290,5 +292,18 @@ bash -c '
     exit 1
   fi
 ' _ "$RUNNER" "$TMP_DIR/fake-hang-silent" >"$bounded_run_terminal" 2>&1
+
+# Infra retry matcher covers XCUITest launch flakes even when exit is 65.
+launch_log="$TMP_DIR/launch.log"
+cat > "$launch_log" <<'EOF'
+Failed to launch <XCUIApplicationImpl: 0x1 com.ryanmcintire.Trinket> via Xcode: Timed out while launching application via Xcode.
+Failed to get background assertion for target app with pid 18060: No failure details provided
+EOF
+trinket_xcodebuild_log_is_infrastructure_failure 65 "$launch_log"
+! trinket_xcodebuild_log_is_infrastructure_failure 65 "$TMP_DIR/missing.log"
+product_log="$TMP_DIR/product.log"
+echo 'XCTAssertEqual failed: ("1") is not equal to ("2")' > "$product_log"
+! trinket_xcodebuild_log_is_infrastructure_failure 65 "$product_log"
+trinket_xcodebuild_log_is_infrastructure_failure 70 "$product_log"
 
 echo "xcode-runner fake integration tests passed"

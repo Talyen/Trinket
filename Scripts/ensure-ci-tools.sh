@@ -23,21 +23,6 @@ verify_archive() {
   fi
 }
 
-tool_checksum() { # tool name
-  local tool="$1"
-  case "$tool:$os-$arch" in
-    swiftformat:darwin-*) printf '%s' "$SWIFTFORMAT_DARWIN_SHA256" ;;
-    swiftformat:linux-x86_64|swiftformat:linux-amd64) printf '%s' "$SWIFTFORMAT_LINUX_X86_64_SHA256" ;;
-    swiftformat:linux-aarch64|swiftformat:linux-arm64) printf '%s' "$SWIFTFORMAT_LINUX_ARM64_SHA256" ;;
-    swiftlint:darwin-*) printf '%s' "$SWIFTLINT_DARWIN_SHA256" ;;
-    swiftlint:linux-x86_64|swiftlint:linux-amd64) printf '%s' "$SWIFTLINT_LINUX_X86_64_SHA256" ;;
-    swiftlint:linux-aarch64|swiftlint:linux-arm64) printf '%s' "$SWIFTLINT_LINUX_ARM64_SHA256" ;;
-    xcbeautify:darwin-arm64|xcbeautify:darwin-aarch64) printf '%s' "$XCBEAUTIFY_DARWIN_ARM64_SHA256" ;;
-    xcbeautify:darwin-x86_64|xcbeautify:darwin-amd64) printf '%s' "$XCBEAUTIFY_DARWIN_X86_64_SHA256" ;;
-    *) return 1 ;;
-  esac
-}
-
 os="$(uname -s | tr '[:upper:]' '[:lower:]')"
 arch="$(uname -m)"
 
@@ -93,10 +78,12 @@ install_zip_tool() {
   local -a candidates=("$@")
   local bin="$TOOLS_DIR/$name"
   local marker="$TOOLS_DIR/.$name.sha256"
-  local checksum
-  checksum="$(tool_checksum "$name")"
+
+  zip_tool_archive "$name"
+  local archive_checksum="$ARCHIVE_CHECKSUM"
+
   if [[ -x "$bin" && -f "$marker" ]] \
-    && [[ "$(awk -F= '$1 == "archive" { print $2; exit }' "$marker")" == "$checksum" ]] \
+    && [[ "$(awk -F= '$1 == "archive" { print $2; exit }' "$marker")" == "$archive_checksum" ]] \
     && [[ "$(awk -F= '$1 == "binary" { print $2; exit }' "$marker")" == "$(sha256_file "$bin")" ]] \
     && [[ "$("$bin" $version_flag 2>/dev/null || true)" == "$version" ]]; then
     return 0
@@ -104,9 +91,7 @@ install_zip_tool() {
 
   local url extract archive candidate c
   extract="$(mktemp -d)"
-  zip_tool_archive "$name"
   archive="$ARCHIVE_NAME"
-  local archive_checksum="$ARCHIVE_CHECKSUM"
 
   url="https://github.com/${slug}/releases/download/${version}/${archive}"
   echo "Installing ${name} ${version} from ${url}..."
@@ -175,17 +160,12 @@ EOF
     return 0
   fi
 
-  local tmpdir archive actual_sha
+  local tmpdir archive
   tmpdir="$(mktemp -d)"
   archive="$tmpdir/xcodegen.zip"
 
   curl -fsSL "https://github.com/yonaskolb/XcodeGen/releases/download/${XCODEGEN_VERSION}/xcodegen.zip" -o "$archive"
-  actual_sha="$(shasum -a 256 "$archive" | awk '{print $1}')"
-  if [[ "$actual_sha" != "$XCODEGEN_SHA256" ]]; then
-    echo "XcodeGen checksum mismatch: expected $XCODEGEN_SHA256, found $actual_sha" >&2
-    rm -rf "$tmpdir"
-    exit 1
-  fi
+  verify_archive "$archive" "$XCODEGEN_SHA256" "XcodeGen"
 
   rm -rf "$install_dir"
   unzip -qo "$archive" -d "$tmpdir"
@@ -207,7 +187,7 @@ install_ripgrep() {
     return 0
   fi
 
-  local target checksum tmpdir archive actual_sha candidate
+  local target checksum tmpdir archive candidate
   case "$os-$arch" in
     darwin-arm64 | darwin-aarch64)
       target="aarch64-apple-darwin"
@@ -234,12 +214,7 @@ install_ripgrep() {
   tmpdir="$(mktemp -d)"
   archive="$tmpdir/ripgrep.tar.gz"
   curl -fsSL "https://github.com/BurntSushi/ripgrep/releases/download/${RIPGREP_VERSION}/ripgrep-${RIPGREP_VERSION}-${target}.tar.gz" -o "$archive"
-  actual_sha="$(shasum -a 256 "$archive" | awk '{print $1}')"
-  if [[ "$actual_sha" != "$checksum" ]]; then
-    echo "ripgrep checksum mismatch: expected $checksum, found $actual_sha" >&2
-    rm -rf "$tmpdir"
-    exit 1
-  fi
+  verify_archive "$archive" "$checksum" "ripgrep"
 
   tar -xzf "$archive" -C "$tmpdir"
   candidate="$(find "$tmpdir" -type f -name rg -print -quit)"

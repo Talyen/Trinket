@@ -10,22 +10,9 @@ trinket_prepend_pinned_tools
 source Scripts/tool-versions.env
 # shellcheck source=swift-source-dirs.env
 source Scripts/swift-source-dirs.env
-EXPECTED_VERSION="$SWIFTLINT_VERSION"
 SOURCE_DIRS=("${SWIFT_SOURCE_DIRS[@]}")
 
-if ! command -v swiftlint &>/dev/null; then
-  echo "SwiftLint is not installed."
-  echo "Install the pinned version via: ./Scripts/ensure-ci-tools.sh"
-  echo "Or: brew install swiftlint (must be $EXPECTED_VERSION)"
-  exit 1
-fi
-
-INSTALLED_VERSION="$(swiftlint version)"
-if [[ "$INSTALLED_VERSION" != "$EXPECTED_VERSION" ]]; then
-  echo "SwiftLint version mismatch: expected $EXPECTED_VERSION, found $INSTALLED_VERSION"
-  echo "Install the expected version via: ./Scripts/ensure-ci-tools.sh"
-  exit 1
-fi
+trinket_require_pinned_version swiftlint "$SWIFTLINT_VERSION" version
 
 extra_args=()
 if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then

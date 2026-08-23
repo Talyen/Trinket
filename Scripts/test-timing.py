@@ -283,31 +283,6 @@ def report(log_path: Path, args: list[str]) -> None:
             print(f"{format_seconds(sum(seconds)):>8} {format_seconds(median(seconds)):>8} {len(seconds):>5}  {name}")
 
 
-def assert_budget(log_path: Path, args: list[str]) -> None:
-    values = parse_options(args)
-    mode = values.get("mode", "")
-    maximum = values.get("max_wall")
-    if not mode or maximum is None:
-        raise SystemExit("assert-budget requires --mode and --max-wall")
-    maximum_seconds = finite_nonnegative(maximum, "--max-wall")
-    entries = [entry for entry in load_entries(log_path) if entry.get("mode") == mode]
-    if not entries:
-        if values.get("skip_if_missing"):
-            print(f"No timing entries for mode '{mode}'; skipping budget check.")
-            return
-        raise SystemExit(f"No timing entries for mode '{mode}' in {log_path}")
-    latest = entries[-1]
-    duration = latest.get("summary", {}).get("xcresult_seconds")
-    source = "xcresult"
-    if duration is None:
-        duration = latest.get("wall_seconds")
-        source = "wall"
-    if duration is None:
-        raise SystemExit(f"Latest '{mode}' timing entry has no measurable duration")
-    duration = finite_nonnegative(duration, "latest duration")
-    if duration > maximum_seconds:
-        raise SystemExit(f"Timing budget exceeded for '{mode}': {format_seconds(duration)} ({source}) > {format_seconds(maximum_seconds)}")
-    print(f"Timing budget OK for '{mode}': {format_seconds(duration)} ({source}) <= {format_seconds(maximum_seconds)}")
 
 
 def main(argv: list[str]) -> int:
@@ -315,13 +290,13 @@ def main(argv: list[str]) -> int:
     command = argv[0] if argv else "report"
     args = argv[1:] if argv else []
     if command in {"-h", "--help", "help"}:
-        print("Usage: test-timing.sh [report|record|assert-budget] ...")
+        print("Usage: test-timing.sh [report|record] ...")
         return 0
-    if command not in {"report", "record", "assert-budget"}:
+    if command not in {"report", "record"}:
         args = argv
         command = "report"
     log_path = results_dir / "timing-log.jsonl"
-    handlers = {"report": report, "record": record, "assert-budget": assert_budget}
+    handlers = {"report": report, "record": record}
     if command == "record":
         handlers[command](results_dir, log_path, args)
     else:

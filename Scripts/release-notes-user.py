@@ -13,7 +13,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "ReleaseNotes" / "en-US.txt"
 PROMPT = ROOT / "ReleaseNotes" / ".prompt.md"
-FASTLANE = ROOT / "fastlane" / "metadata" / "en-US" / "release_notes.txt"
 
 SKIP_PREFIXES = (
     "style:",
@@ -234,10 +233,7 @@ def main() -> None:
 
     write_prompt(version, summary, bullets, commits)
     OUTPUT.write_text(content, encoding="utf-8")
-    FASTLANE.parent.mkdir(parents=True, exist_ok=True)
-    FASTLANE.write_text(content, encoding="utf-8")
     print(f"Wrote {OUTPUT.relative_to(ROOT)}")
-    print(f"Wrote {FASTLANE.relative_to(ROOT)}")
     print(f"Wrote {PROMPT.relative_to(ROOT)} (optional AI polish prompt)")
 
 

@@ -8,7 +8,6 @@ release boundary. Agents do not edit `CHANGELOG.md` for ordinary commits.
 - `project.yml`: `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION`
 - `cliff.toml`: developer changelog categories
 - `ReleaseNotes/en-US.txt`: generated App Store/TestFlight notes
-- `fastlane/metadata/en-US/release_notes.txt`: Fastlane copy when enabled
 
 Run `generate.sh` after changing a version so the generated Xcode project stays
 in sync.

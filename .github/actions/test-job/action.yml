@@ -15,18 +15,6 @@ inputs:
     description: Shell command to rebuild on artifact miss (default full build-for-testing)
     required: false
     default: './Scripts/build-for-testing.sh'
-  timing-mode:
-    description: Optional test-timing.sh mode for assert-budget (empty to skip)
-    required: false
-    default: ''
-  timing-budget-seconds:
-    description: Wall-clock budget for assert-budget when timing-mode is set
-    required: false
-    default: '0'
-  keep-diagnostics:
-    description: Keep local test diagnostics after artifact staging (for investigations)
-    required: false
-    default: 'false'
 
 runs:
   using: composite
@@ -62,22 +50,6 @@ runs:
         TRINKET_CLEANUP_TEST_ARTIFACTS: 0
       run: ${{ inputs.command }}
 
-    - name: Report timing budget
-      if: inputs.timing-mode != ''
-      shell: bash
-      run: |
-        set +e
-        output="$(./Scripts/test-timing.sh assert-budget \
-          --mode "${{ inputs.timing-mode }}" \
-          --max-wall "${{ inputs.timing-budget-seconds }}" \
-          --skip-if-missing 2>&1)"
-        status=$?
-        set -e
-        echo "$output"
-        if [ "$status" -ne 0 ]; then
-          echo "::warning title=CI timing budget exceeded::$output"
-        fi
-
     - name: Classify CI outcome and report timing
       if: always()
       shell: bash
@@ -91,17 +63,12 @@ runs:
     - name: Clean ephemeral test diagnostics
       if: always()
       shell: bash
-      run: |
-        if [ "${{ inputs.keep-diagnostics }}" = "true" ]; then
-          ./Scripts/ci-diagnostics.sh --cleanup --keep .DerivedData/TestResults
-        else
-          ./Scripts/ci-diagnostics.sh --cleanup .DerivedData/TestResults
-        fi
+      run: ./Scripts/ci-diagnostics.sh --cleanup .DerivedData/TestResults
 
     - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
       # Passing runs are intentionally ephemeral. Keep forensic artifacts for a
       # failed job or when a caller explicitly opts in.
-      if: always() && (failure() || inputs.keep-diagnostics == 'true')
+      if: always() && failure()
       with:
         name: ${{ inputs.artifact-name }}-${{ github.run_id }}
         path: .DerivedData/TestResults-artifact/

@@ -3,7 +3,6 @@ set -euo pipefail
 
 # Regression: asset hash TSV writers must keep headers stable under en_US collation.
 ROOT_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
-source "$ROOT_DIR/Scripts/lib/xcodebuild-infra.sh"
 
 TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT
@@ -61,17 +60,4 @@ while IFS= read -r path; do
   grep -q 'cmp -s' "$sort_owner"
 done < <(rg --files "$ROOT_DIR/Scripts" -g 'prepare-*.sh' | LC_ALL=C sort)
 
-# Infra retry matcher covers XCUITest launch flakes even when exit is 65.
-launch_log="$TMP_DIR/launch.log"
-cat > "$launch_log" <<'EOF'
-Failed to launch <XCUIApplicationImpl: 0x1 com.ryanmcintire.Trinket> via Xcode: Timed out while launching application via Xcode.
-Failed to get background assertion for target app with pid 18060: No failure details provided
-EOF
-trinket_xcodebuild_log_is_infrastructure_failure 65 "$launch_log"
-! trinket_xcodebuild_log_is_infrastructure_failure 65 "$TMP_DIR/missing.log"
-product_log="$TMP_DIR/product.log"
-echo 'XCTAssertEqual failed: ("1") is not equal to ("2")' > "$product_log"
-! trinket_xcodebuild_log_is_infrastructure_failure 65 "$product_log"
-trinket_xcodebuild_log_is_infrastructure_failure 70 "$product_log"
-
-echo "asset-hash locale + xcode infra retry regressions passed."
+echo "asset-hash locale regressions passed."

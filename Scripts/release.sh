@@ -205,7 +205,7 @@ if [[ -n "$SINCE_TAG" ]]; then notes_args+=(--since-tag "$SINCE_TAG"); fi
 
 echo ""
 echo "=== Committing release ==="
-git add project.yml Trinket.xcodeproj/project.pbxproj CHANGELOG.md ReleaseNotes/ fastlane/metadata/
+git add project.yml Trinket.xcodeproj/project.pbxproj CHANGELOG.md ReleaseNotes/
 git commit -m "chore(release): ${TAG} (build ${NEXT_BUILD})
 
 - Bump MARKETING_VERSION to ${VERSION}

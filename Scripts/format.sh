@@ -10,23 +10,9 @@ trinket_prepend_pinned_tools
 source Scripts/tool-versions.env
 # shellcheck source=swift-source-dirs.env
 source Scripts/swift-source-dirs.env
-EXPECTED_VERSION="$SWIFTFORMAT_VERSION"
 SOURCE_DIRS=("${SWIFT_SOURCE_DIRS[@]}")
 
-if ! command -v swiftformat &>/dev/null; then
-  echo "SwiftFormat is not installed."
-  echo "Install the pinned version via: ./Scripts/ensure-ci-tools.sh"
-  echo "Or: brew install swiftformat (must be $EXPECTED_VERSION)"
-  exit 1
-fi
-
-INSTALLED_VERSION="$(swiftformat --version)"
-if [[ "$INSTALLED_VERSION" != "$EXPECTED_VERSION" ]]; then
-  echo "SwiftFormat version mismatch: expected $EXPECTED_VERSION, found $INSTALLED_VERSION"
-  echo "Install the pinned version via: ./Scripts/ensure-ci-tools.sh"
-  echo "Or bump the pin to the latest release via: ./Scripts/update-tools.sh --apply"
-  exit 1
-fi
+trinket_require_pinned_version swiftformat "$SWIFTFORMAT_VERSION" --version
 
 MODE="apply"
 PATHS=()
