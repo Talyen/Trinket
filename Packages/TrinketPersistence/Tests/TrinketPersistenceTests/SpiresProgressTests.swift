@@ -33,15 +33,6 @@ struct SpiresProgressTests {
         #expect(state.highestClearedFloor(for: SpireID.ironVein.rawValue) == 1)
     }
 
-    @Test func unlockAllSetsAllFloorCounts() {
-        var state = PlayerSpiresState.freshStart
-        state.unlockAll()
-        for spire in GameContent.spires {
-            #expect(state.highestClearedFloor(for: spire.id.rawValue) == spire.floorCount)
-            #expect(state.isFloorCleared(spire.floorCount, spireID: spire.id.rawValue))
-        }
-    }
-
     @Test func completionHonorsOverriddenEncounterLevelForExperience() throws {
         let spire = try #require(GameContent.spire(id: .ironVein))
         let topFloor = try #require(GameContent.spireFloor(spireID: .ironVein, floor: spire.floorCount))

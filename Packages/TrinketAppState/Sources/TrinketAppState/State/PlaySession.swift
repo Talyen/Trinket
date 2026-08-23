@@ -41,7 +41,8 @@ public final class PlaySession {
         battle: any BattleRuntime,
         options: OptionsStore,
         sfxPlayer: SFXPlayer,
-        pendingDestination: PlayLaunchDestination?
+        pendingDestination: PlayLaunchDestination?,
+        battlePerformanceScenario: BattlePerformanceScenario? = nil
     ) {
         self.playerSave = playerSave
         self.shellSession = shellSession
@@ -59,7 +60,8 @@ public final class PlaySession {
             battle: battle,
             options: options,
             sfxPlayer: sfxPlayer,
-            runRegistry: registry
+            runRegistry: registry,
+            battlePerformanceScenario: battlePerformanceScenario
         )
         battleLaunch = graph.battleLaunch
         journey = graph.journey
@@ -242,13 +244,15 @@ enum PlayModeGraph {
         battle: any BattleRuntime,
         options: OptionsStore,
         sfxPlayer: SFXPlayer,
-        runRegistry: PlayBattleRunRegistry
+        runRegistry: PlayBattleRunRegistry,
+        battlePerformanceScenario: BattlePerformanceScenario?
     ) -> Assembled {
         let battleLaunch = PlayBattleLaunch(
             playerSave: playerSave,
             shellSession: shellSession,
             battle: battle,
-            runRegistry: runRegistry
+            runRegistry: runRegistry,
+            battlePerformanceScenario: battlePerformanceScenario
         )
         let encounters = EncounterPlayMode(
             playerSave: playerSave,

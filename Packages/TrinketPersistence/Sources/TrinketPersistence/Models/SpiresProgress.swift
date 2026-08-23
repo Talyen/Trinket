@@ -45,11 +45,4 @@ public struct PlayerSpiresState: Equatable, Sendable {
         }
         return false
     }
-
-    /// Clears every Spire climb.
-    public mutating func unlockAll(spires: [SpireDefinition] = GameContent.spires) {
-        highestClearedFloorBySpireID = Dictionary(
-            uniqueKeysWithValues: spires.map { ($0.id.rawValue, $0.floorCount) }
-        )
-    }
 }

@@ -50,16 +50,6 @@ public extension JourneyProgressState {
         }
     }
 
-    /// Marks every catalog stage complete and parks the active pointer past the finale.
-    mutating func completeAllStages(in chapters: [Chapter] = GameContent.chapters) {
-        let allStages = chapters.flatMap(\.stages)
-        guard let lastStage = allStages.last else { return }
-        completedStageIDs = Set(allStages.map(\.id))
-        claimedRewardStageIDs = completedStageIDs
-        activeChapterID = lastStage.chapterID
-        activeStageID = nil
-    }
-
     static func nextStage(after stage: Stage, in chapters: [Chapter]) -> Stage? {
         guard let chapterIndex = chapters.firstIndex(where: { $0.id == stage.chapterID }),
               let stageIndex = chapters[chapterIndex].stages.firstIndex(where: { $0.id == stage.id })

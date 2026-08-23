@@ -75,18 +75,6 @@ final class JourneyProgressTests {
         try #expect(progress.activeChapterID == "chapter-2")
     }
 
-    @Test func completeAllStagesMarksEntireCampaignDone() throws {
-        var progress = JourneyProgressState.initial
-        progress.completeAllStages()
-
-        let allStageIDs = Set(GameContent.chapters.flatMap(\.stages).map(\.id))
-        let lastStage = try #require(GameContent.chapters.flatMap(\.stages).last)
-        try #expect(progress.completedStageIDs == allStageIDs)
-        try #expect(progress.claimedRewardStageIDs == allStageIDs)
-        try #expect(progress.activeStageID == nil)
-        try #expect(progress.activeChapterID == lastStage.chapterID)
-    }
-
     @Test func journeyPersistsProgress() throws {
         let directoryURL = try SaveTestSupport.makeTempDirectory(prefix: "JourneyProgressTests")
 

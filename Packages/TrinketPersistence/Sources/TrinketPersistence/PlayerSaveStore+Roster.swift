@@ -87,13 +87,4 @@ public extension PlayerSaveStore {
         }
         return persisted ? .unlocked : .persistenceFailed
     }
-
-    @discardableResult
-    func setInventoryItems(_ items: [InventoryItem]) -> Bool {
-        persistBatch(logging: "Failed to persist inventory edits") { save in
-            var inventory = save.inventory
-            inventory.items = items
-            save.inventory = inventory
-        }
-    }
 }

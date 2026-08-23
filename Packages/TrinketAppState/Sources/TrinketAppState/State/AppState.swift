@@ -63,7 +63,8 @@ public final class AppState {
             battle: resolvedBattle,
             options: dependencies.options,
             sfxPlayer: dependencies.sfxPlayer,
-            pendingDestination: dependencies.pendingPlayDestination
+            pendingDestination: dependencies.pendingPlayDestination,
+            battlePerformanceScenario: environment.battlePerformanceScenario
         )
         finishBootstrap(environment: environment)
     }

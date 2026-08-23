@@ -13,9 +13,7 @@ import TrinketPersistence
 public final class JourneyPlayMode {
     private struct PreparationInputs: Equatable {
         let stageID: String
-        let roster: PlayerRosterState
-        let inventory: PlayerInventoryState
-        let homestead: PlayerHomesteadState
+        let party: PlayBattlePartySnapshot
         let stageRewardsAlreadyClaimed: Bool
     }
 
@@ -107,9 +105,7 @@ public final class JourneyPlayMode {
         )
         let inputs = PreparationInputs(
             stageID: stage.id,
-            roster: playerSave.roster,
-            inventory: playerSave.inventory,
-            homestead: playerSave.homestead,
+            party: PlayBattlePartySnapshot(playerSave: playerSave),
             stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed
         )
         let origin = PlayBattleOrigin.journey(stageID: stage.id)
@@ -262,7 +258,8 @@ extension JourneyPlayMode {
         for stage: Stage,
         encounter: (combatant: Combatant, level: Int)
     ) -> BattleLootPackage? {
-        Self.resolveBattleLoot(
+        guard stage.encounter.isCombat else { return nil }
+        return BattleLoot.resolveJourney(
             stage: stage,
             encounterLevel: encounter.level,
             enemyIsBoss: GameContent.enemy(matching: encounter.combatant.id)?.isBoss == true,
@@ -270,27 +267,6 @@ extension JourneyPlayMode {
             ownedTrinketIDs: playerSave.inventory.ownedTrinketIDs,
             ownedUniqueIDs: playerSave.inventory.ownedUniqueIDs,
             astralChanceBonusPercent: playerSave.homestead.effects.astralChanceBonusPercent
-        )
-    }
-
-    static func resolveBattleLoot(
-        stage: Stage,
-        encounterLevel: Int,
-        enemyIsBoss: Bool,
-        worldSeed: UInt64,
-        ownedTrinketIDs: Set<String> = [],
-        ownedUniqueIDs: Set<String>,
-        astralChanceBonusPercent: Int = 0
-    ) -> BattleLootPackage? {
-        guard stage.encounter.isCombat else { return nil }
-        return BattleLoot.resolveJourney(
-            stage: stage,
-            encounterLevel: encounterLevel,
-            enemyIsBoss: enemyIsBoss,
-            worldSeed: worldSeed,
-            ownedTrinketIDs: ownedTrinketIDs,
-            ownedUniqueIDs: ownedUniqueIDs,
-            astralChanceBonusPercent: astralChanceBonusPercent
         )
     }
 

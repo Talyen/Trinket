@@ -14,9 +14,7 @@ public final class SpiresPlayMode {
     private struct PreparationInputs: Equatable {
         let spireID: SpireID
         let floor: Int
-        let roster: PlayerRosterState
-        let inventory: PlayerInventoryState
-        let homestead: PlayerHomesteadState
+        let party: PlayBattlePartySnapshot
     }
 
     public let playerSave: PlayerSaveStore
@@ -53,31 +51,13 @@ public final class SpiresPlayMode {
     }
 
     private func battleLoot(for floor: SpireFloor, encounterLevel: Int) -> BattleLootPackage? {
-        Self.resolveBattleLoot(
+        SpireCompletion.resolveLoot(
             for: floor,
             encounterLevel: encounterLevel,
             worldSeed: playerSave.worldSeed,
             ownedTrinketIDs: playerSave.inventory.ownedTrinketIDs,
             ownedUniqueIDs: playerSave.inventory.ownedUniqueIDs,
             astralChanceBonusPercent: playerSave.homestead.effects.astralChanceBonusPercent
-        )
-    }
-
-    static func resolveBattleLoot(
-        for floor: SpireFloor,
-        encounterLevel: Int? = nil,
-        worldSeed: UInt64,
-        ownedTrinketIDs: Set<String> = [],
-        ownedUniqueIDs: Set<String>,
-        astralChanceBonusPercent: Int = 0
-    ) -> BattleLootPackage? {
-        SpireCompletion.resolveLoot(
-            for: floor,
-            encounterLevel: encounterLevel,
-            worldSeed: worldSeed,
-            ownedTrinketIDs: ownedTrinketIDs,
-            ownedUniqueIDs: ownedUniqueIDs,
-            astralChanceBonusPercent: astralChanceBonusPercent
         )
     }
 
@@ -166,9 +146,7 @@ public final class SpiresPlayMode {
         let inputs = PreparationInputs(
             spireID: floor.spireID,
             floor: floor.floor,
-            roster: playerSave.roster,
-            inventory: playerSave.inventory,
-            homestead: playerSave.homestead
+            party: PlayBattlePartySnapshot(playerSave: playerSave)
         )
         let origin = PlayBattleOrigin.spire(spireID: floor.spireID, floor: floor.floor)
         guard inputs != preparedInputs

@@ -20,9 +20,7 @@ public final class LabyrinthPlayMode {
 
     private struct PreparationInputs: Equatable {
         let combatNodes: [CombatPrepNode]
-        let roster: PlayerRosterState
-        let inventory: PlayerInventoryState
-        let homestead: PlayerHomesteadState
+        let party: PlayBattlePartySnapshot
         let runHealthByCombatantID: [String: Int]
     }
 
@@ -277,9 +275,7 @@ public final class LabyrinthPlayMode {
         }
         return PreparationInputs(
             combatNodes: combatNodes,
-            roster: playerSave.roster,
-            inventory: playerSave.inventory,
-            homestead: playerSave.homestead,
+            party: PlayBattlePartySnapshot(playerSave: playerSave),
             runHealthByCombatantID: labyrinth.runHealthByCombatantID
         )
     }
@@ -382,7 +378,7 @@ extension LabyrinthPlayMode {
         labyrinth: PlayerLabyrinthState,
         encounterLevel: Int
     ) -> BattleLootPackage? {
-        Self.resolveBattleLoot(
+        LabyrinthCompletion.resolveCombatLoot(
             for: node,
             effects: labyrinth.effects(for: node.id),
             encounterLevel: encounterLevel,
@@ -390,26 +386,6 @@ extension LabyrinthPlayMode {
             ownedTrinketIDs: playerSave.inventory.ownedTrinketIDs,
             ownedUniqueIDs: playerSave.inventory.ownedUniqueIDs,
             astralChanceBonusPercent: playerSave.homestead.effects.astralChanceBonusPercent
-        )
-    }
-
-    static func resolveBattleLoot(
-        for node: LabyrinthNode,
-        effects: LabyrinthModifierEffects,
-        encounterLevel: Int? = nil,
-        worldSeed: UInt64,
-        ownedTrinketIDs: Set<String> = [],
-        ownedUniqueIDs: Set<String>,
-        astralChanceBonusPercent: Int = 0
-    ) -> BattleLootPackage? {
-        LabyrinthCompletion.resolveCombatLoot(
-            for: node,
-            effects: effects,
-            encounterLevel: encounterLevel,
-            worldSeed: worldSeed,
-            ownedTrinketIDs: ownedTrinketIDs,
-            ownedUniqueIDs: ownedUniqueIDs,
-            astralChanceBonusPercent: astralChanceBonusPercent
         )
     }
 

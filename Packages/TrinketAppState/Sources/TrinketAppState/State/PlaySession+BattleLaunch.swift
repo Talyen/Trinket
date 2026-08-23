@@ -16,6 +16,7 @@ struct PlayBattleLaunch {
     let shellSession: ShellSession
     let battle: any BattleRuntime
     let runRegistry: PlayBattleRunRegistry
+    let battlePerformanceScenario: BattlePerformanceScenario?
 
     static let activationFailureMessage = StageMapMessage(
         title: "Battle Unavailable",
@@ -166,7 +167,7 @@ struct PlayBattleLaunch {
     }
 
     func makeBattleLaunch(_ input: BattleLaunchInput) -> BattleLaunchAssembly {
-        let rngSeed = AppEnvironment.shared.battlePerformanceScenario == nil
+        let rngSeed = battlePerformanceScenario == nil
             ? UInt64.random(in: UInt64.min ... UInt64.max)
             : BattlePerformanceFixture.seed
         return Self.assembleLaunch(

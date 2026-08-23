@@ -14,6 +14,21 @@ struct BattleLaunchAssembly {
     let universalModifiers: [AffixModifier]
 }
 
+/// Save slices that feed battle preparation. Mode owners embed this in their
+/// preparation snapshot and re-prepare whenever the snapshot stops matching.
+struct PlayBattlePartySnapshot: Equatable {
+    let roster: PlayerRosterState
+    let inventory: PlayerInventoryState
+    let homestead: PlayerHomesteadState
+
+    @MainActor
+    init(playerSave: PlayerSaveStore) {
+        roster = playerSave.roster
+        inventory = playerSave.inventory
+        homestead = playerSave.homestead
+    }
+}
+
 /// Play-orchestrated inputs that feed `PlayBattleLaunch.assembleLaunch`.
 ///
 /// Mode owners and the Play shell resolve the encounter, loot, and policy, then pack
