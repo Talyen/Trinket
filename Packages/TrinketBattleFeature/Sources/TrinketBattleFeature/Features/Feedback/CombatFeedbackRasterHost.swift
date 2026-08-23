@@ -60,16 +60,16 @@ private struct CombatFeedbackRasterHost: UIViewRepresentable {
 final class CombatFeedbackRasterUIView: UIView {
     private final class ChipLayer {
         let layer: CALayer
-        var canvasItem: CombatFeedbackCanvasItem
+        var item: CombatFeedbackItem
         let rasterIdentity: ObjectIdentifier
 
         init(
             layer: CALayer,
-            canvasItem: CombatFeedbackCanvasItem,
+            item: CombatFeedbackItem,
             rasterIdentity: ObjectIdentifier
         ) {
             self.layer = layer
-            self.canvasItem = canvasItem
+            self.item = item
             self.rasterIdentity = rasterIdentity
         }
     }
@@ -111,7 +111,7 @@ final class CombatFeedbackRasterUIView: UIView {
     }
 
     @MainActor
-    func apply(chips: [(canvasItem: CombatFeedbackCanvasItem, raster: CombatFeedbackRaster?)]) {
+    func apply(chips: [(item: CombatFeedbackItem, raster: CombatFeedbackRaster?)]) {
         let intervalState = BattleFramePacingSignposts.signposter.beginInterval(
             BattleFramePacingSignposts.Name.chipHostApply
         )
@@ -122,23 +122,23 @@ final class CombatFeedbackRasterUIView: UIView {
             )
         }
 
-        let validChips = chips.compactMap { chip -> (CombatFeedbackCanvasItem, CombatFeedbackRaster)? in
+        let validChips = chips.compactMap { chip -> (CombatFeedbackItem, CombatFeedbackRaster)? in
             guard let raster = chip.raster else { return nil }
-            return (chip.canvasItem, raster)
+            return (chip.item, raster)
         }
         let nextIDs = Set(validChips.map(\.0.id))
         for id in Array(layersByID.keys) where !nextIDs.contains(id) {
             recycleLayer(id: id)
         }
 
-        for (canvasItem, raster) in validChips {
-            if let existing = layersByID[canvasItem.id],
+        for (item, raster) in validChips {
+            if let existing = layersByID[item.id],
                existing.rasterIdentity == ObjectIdentifier(raster) {
-                existing.canvasItem = canvasItem
+                existing.item = item
                 continue
             }
-            recycleLayer(id: canvasItem.id)
-            insert(canvasItem: canvasItem, raster: raster)
+            recycleLayer(id: item.id)
+            insert(item: item, raster: raster)
         }
 
         orderedLayers = layersByID.values.sorted(by: Self.chipLayerOrder)
@@ -169,7 +169,7 @@ final class CombatFeedbackRasterUIView: UIView {
     fileprivate func tickMotion(at date: Date) {
         let states = orderedLayers.map { chipLayer in
             sampledState(
-                for: chipLayer.canvasItem.item,
+                for: chipLayer.item,
                 chipHeight: chipLayer.layer.bounds.height,
                 at: date
             )
@@ -212,8 +212,8 @@ final class CombatFeedbackRasterUIView: UIView {
     }
 
     private static func chipLayerOrder(_ lhs: ChipLayer, _ rhs: ChipLayer) -> Bool {
-        let lhsItem = lhs.canvasItem.item
-        let rhsItem = rhs.canvasItem.item
+        let lhsItem = lhs.item
+        let rhsItem = rhs.item
         if lhsItem.availableAt == rhsItem.availableAt {
             return lhsItem.id < rhsItem.id
         }
@@ -239,12 +239,12 @@ final class CombatFeedbackRasterUIView: UIView {
     }
 
     private func compositorPose(
-        for canvasItem: CombatFeedbackCanvasItem,
+        for item: CombatFeedbackItem,
         chipSize: CGSize,
         at date: Date
     ) -> (transform: CATransform3D, opacity: Double) {
         let state = sampledState(
-            for: canvasItem.item,
+            for: item,
             chipHeight: chipSize.height,
             at: date
         )
@@ -254,21 +254,20 @@ final class CombatFeedbackRasterUIView: UIView {
         return (CATransform3DMakeAffineTransform(transform), state.opacity)
     }
 
-    private func insert(canvasItem: CombatFeedbackCanvasItem, raster: CombatFeedbackRaster) {
+    private func insert(item: CombatFeedbackItem, raster: CombatFeedbackRaster) {
         let chipLayer: CALayer
         if let reusable = reusableLayers.popLast() {
             chipLayer = reusable
         } else {
             chipLayer = makeLayer()
             layer.addSublayer(chipLayer)
-            CombatFeedbackRasterHostDiagnostics.noteWarmPathAllocation()
         }
         let rasterID = ObjectIdentifier(raster)
         let hasMeasuredBounds = !bounds.isEmpty
         // Same recipe sampling as the old CAKeyframe path; driven by the shared
         // display-link clock so publish does not install animation groups.
         let pose = compositorPose(
-            for: canvasItem,
+            for: item,
             chipSize: raster.pointSize,
             at: .now
         )
@@ -288,9 +287,9 @@ final class CombatFeedbackRasterUIView: UIView {
             }
         }
 
-        layersByID[canvasItem.id] = ChipLayer(
+        layersByID[item.id] = ChipLayer(
             layer: chipLayer,
-            canvasItem: canvasItem,
+            item: item,
             rasterIdentity: rasterID
         )
     }
@@ -383,29 +382,6 @@ private enum CombatFeedbackChipMotionClock {
         if hosts.isEmpty {
             displayLink?.isPaused = true
         }
-    }
-}
-
-struct CombatFeedbackHostSnapshot: Equatable, Sendable {
-    let warmPathAllocationCount: Int
-}
-
-@MainActor
-enum CombatFeedbackRasterHostDiagnostics {
-    private static var warmPathAllocationCount = 0
-
-    static func noteWarmPathAllocation() {
-        warmPathAllocationCount += 1
-    }
-
-    static func reset() {
-        warmPathAllocationCount = 0
-    }
-
-    static func snapshot() -> CombatFeedbackHostSnapshot {
-        CombatFeedbackHostSnapshot(
-            warmPathAllocationCount: warmPathAllocationCount
-        )
     }
 }
 

@@ -45,13 +45,11 @@ public final class SpiresPlayMode {
         for floor: SpireFloor,
         partyAverageLevel: Int
     ) -> (combatant: Combatant, level: Int)? {
-        guard let catalogEnemy = GameContent.enemy(matching: floor.enemyID) else { return nil }
-        let authoredLevel = EncounterLevelResolver.spireEnemyLevel(for: floor)
-        let level = EncounterLevelResolver.partyAdjusted(
-            authoredLevel,
+        PlayBattlePreparation.scaledEncounter(
+            enemyID: floor.enemyID,
+            authoredLevel: EncounterLevelResolver.spireEnemyLevel(for: floor),
             partyAverageLevel: partyAverageLevel
         )
-        return (CombatantLevelScaler.scale(enemy: catalogEnemy, level: level), level)
     }
 
     private func battleLoot(for floor: SpireFloor, encounterLevel: Int) -> BattleLootPackage? {
@@ -60,6 +58,7 @@ public final class SpiresPlayMode {
             encounterLevel: encounterLevel,
             worldSeed: playerSave.worldSeed,
             ownedTrinketIDs: playerSave.inventory.ownedTrinketIDs,
+            ownedUniqueIDs: playerSave.inventory.ownedUniqueIDs,
             astralChanceBonusPercent: playerSave.homestead.effects.astralChanceBonusPercent
         )
     }
@@ -69,6 +68,7 @@ public final class SpiresPlayMode {
         encounterLevel: Int? = nil,
         worldSeed: UInt64,
         ownedTrinketIDs: Set<String> = [],
+        ownedUniqueIDs: Set<String>,
         astralChanceBonusPercent: Int = 0
     ) -> BattleLootPackage? {
         SpireCompletion.resolveLoot(
@@ -76,6 +76,7 @@ public final class SpiresPlayMode {
             encounterLevel: encounterLevel,
             worldSeed: worldSeed,
             ownedTrinketIDs: ownedTrinketIDs,
+            ownedUniqueIDs: ownedUniqueIDs,
             astralChanceBonusPercent: astralChanceBonusPercent
         )
     }

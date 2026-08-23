@@ -278,6 +278,23 @@ package extension CombatTriggerEngine {
         return events
     }
 
+    /// Rimeheart: dealing Freeze damage grants Block equal to the amount dealt.
+    static func afterFreezeDamageDealt(
+        to _: Combatant,
+        source: Combatant,
+        amount: Int,
+        in context: inout BattleState
+    ) -> [ActionEvent] {
+        let triggers = context.modifiers(for: source.id).triggers
+        guard triggers.freezeDamageGrantsBlock, amount > 0 else { return [] }
+        return context.applyBlock(
+            amount,
+            to: source,
+            source: source,
+            abilityName: triggerAbilityName("freezeDamageGrantsBlock", for: source, fallback: "Rimeheart", in: context)
+        )
+    }
+
     private static func burnDamageHeals(
         triggers: CombatTraitTriggers,
         source: Combatant,
@@ -485,5 +502,25 @@ package extension CombatTriggerEngine {
             }
         }
         return events
+    }
+}
+
+package extension CombatTriggerEngine {
+    /// Companion reflex: when the Hero hits a Poisoned enemy, the Companion spits extra Poison.
+    static func companionSpitPoison(
+        to target: Combatant,
+        in context: inout BattleState
+    ) -> [ActionEvent] {
+        guard let companionTriggers = companionReactingToHeroTriggers(in: context),
+              companionTriggers.onHeroAttackPoisonedEnemyApplyPoison > 0
+        else { return [] }
+        return context.applyDecayingDoT(
+            keyword: .poison,
+            potency: companionTriggers.onHeroAttackPoisonedEnemyApplyPoison,
+            to: target,
+            sourceActorID: context.roster.companion.id,
+            dealImmediateDamage: false,
+            suppressAffixReactions: true
+        )
     }
 }

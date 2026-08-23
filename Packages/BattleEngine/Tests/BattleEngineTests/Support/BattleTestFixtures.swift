@@ -6,7 +6,7 @@ import TrinketTestSupport
 
 /// Shared combatants, battle setup, and card-combat helpers for battle integration tests.
 /// Handler-level behavior lives in `EffectHandlersTests`.
-/// Presentation strings live in `ActionEventFormatterTests` / `EffectSummaryBuilderTests`.
+/// Presentation strings live in `EffectSummaryBuilderTests`.
 /// See `Packages/BattleEngine/Tests/README.md` for the full test ownership matrix.
 enum BattleTestFixtures {
     /// Matches `BattleStateTestFactory` seed for reproducible dodge/crit rolls.
@@ -422,7 +422,7 @@ extension BattleState {
 }
 
 extension [ActionEvent] {
-    func contains(effectKind: ActionEvent.EffectKind, keyword: Keyword? = nil) -> Bool {
+    func contains(effectKind: ActionEvent.EffectOutcome, keyword: Keyword? = nil) -> Bool {
         contains { event in
             event.effectKind == effectKind && (keyword == nil || event.keyword == keyword)
         }

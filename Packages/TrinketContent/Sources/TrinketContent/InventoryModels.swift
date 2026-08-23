@@ -34,7 +34,8 @@ public struct InventoryItem: Identifiable, Equatable, Hashable, Sendable {
     }
 
     public func rewardInstance(for stageID: String) -> Self {
-        if isTrinket {
+        // Trinkets and Uniques are singleton templates: one stable instance identity.
+        if isTrinket || rarity == .unique {
             return self
         }
         return Self(

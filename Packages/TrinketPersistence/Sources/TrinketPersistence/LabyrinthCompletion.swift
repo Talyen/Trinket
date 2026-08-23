@@ -41,6 +41,7 @@ public enum LabyrinthCompletion {
         encounterLevel: Int? = nil,
         worldSeed: UInt64,
         ownedTrinketIDs: Set<String> = [],
+        ownedUniqueIDs: Set<String>,
         astralChanceBonusPercent: Int = 0
     ) -> BattleLootPackage? {
         guard node.type.isCombat else { return nil }
@@ -53,11 +54,11 @@ public enum LabyrinthCompletion {
             effects: effects,
             worldSeed: worldSeed,
             ownedTrinketIDs: ownedTrinketIDs,
+            ownedUniqueIDs: ownedUniqueIDs,
             astralChanceBonusPercent: astralChanceBonusPercent
         )
     }
 
-    // swiftlint:disable:next function_body_length
     public static func complete(
         nodeID: String,
         hero: Combatant,
@@ -88,52 +89,32 @@ public enum LabyrinthCompletion {
                 encounterLevel: encounterLevel,
                 worldSeed: save.worldSeed,
                 ownedTrinketIDs: save.inventory.ownedTrinketIDs,
+                ownedUniqueIDs: save.inventory.ownedUniqueIDs,
                 astralChanceBonusPercent: save.homestead.effects.astralChanceBonusPercent
             )
-            let stageGold = resolvedLoot?.gold ?? 0
-            save.applyGoldDelta(
-                StageCompletion.resolvedGoldReward(
-                    stageGold: stageGold,
-                    battleEarnedGold: battleEarnedGold,
-                    homestead: save.homestead
-                )
+            StageCompletion.grantVictoryRewards(
+                hero: hero,
+                companion: companion,
+                encounterLevel: encounterLevel,
+                stageGold: resolvedLoot?.gold ?? 0,
+                battleEarnedGold: battleEarnedGold,
+                xpPercent: effects.experienceEarnedPercent,
+                materials: materialRewards ?? resolvedLoot?.materials ?? [],
+                item: rewardItem ?? resolvedLoot?.item,
+                save: &save
             )
-            StageCompletion.grantBattleExperience(
-                enemyLevel: encounterLevel,
-                to: hero,
-                roster: &save.roster,
-                xpPercent: effects.experienceEarnedPercent
-            )
-            StageCompletion.grantBattleExperience(
-                enemyLevel: encounterLevel,
-                to: companion,
-                roster: &save.roster,
-                xpPercent: effects.experienceEarnedPercent
-            )
-
-            let materials = materialRewards ?? resolvedLoot?.materials ?? []
-            save.grantMaterials(materials)
-
-            if let rewardItem {
-                appendUniqueRewardItem(rewardItem, save: &save)
-            } else if let resolvedLoot {
-                appendUniqueRewardItem(resolvedLoot.item, save: &save)
-            }
         } else {
-            let stipend = nonCombatGoldStipend(for: node)
-            save.applyGoldDelta(
-                StageCompletion.resolvedGoldReward(
-                    stageGold: stipend,
-                    battleEarnedGold: battleEarnedGold,
-                    homestead: save.homestead
-                )
+            StageCompletion.grantVictoryRewards(
+                hero: hero,
+                companion: companion,
+                encounterLevel: encounterLevel,
+                stageGold: nonCombatGoldStipend(for: node),
+                battleEarnedGold: battleEarnedGold,
+                grantsCombatExperience: false,
+                materials: materialRewards ?? [],
+                item: rewardItem,
+                save: &save
             )
-            if let materialRewards {
-                save.grantMaterials(materialRewards)
-            }
-            if let rewardItem {
-                appendUniqueRewardItem(rewardItem, save: &save)
-            }
         }
 
         if let partyRunHealth {
@@ -144,9 +125,5 @@ public enum LabyrinthCompletion {
             nodeID: nodeID,
             eligibleRecruitEventIDs: eligibleRecruitEventIDs
         )
-    }
-
-    private static func appendUniqueRewardItem(_ item: InventoryItem, save: inout PlayerSave) {
-        save.inventory.appendUniqueItem(item)
     }
 }

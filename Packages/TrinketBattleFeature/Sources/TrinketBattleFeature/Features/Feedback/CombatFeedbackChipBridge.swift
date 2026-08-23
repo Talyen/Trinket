@@ -180,36 +180,35 @@ enum CombatFeedbackChipBridge {
         let visible = targetItems.values.filter { item in
             now >= item.availableAt && now < item.expiresAt
         }
-        let groups = CombatFeedbackOverlayPolicy.visibleActionGroups(from: visible.sorted {
+        let chipsToDraw = CombatFeedbackOverlayPolicy.orderedChips(from: visible.sorted {
             if $0.availableAt == $1.availableAt {
                 return $0.id < $1.id
             }
             return $0.availableAt < $1.availableAt
         })
-        let canvasItems = CombatFeedbackOverlayPolicy.canvasItems(from: groups)
-        var chips: [(canvasItem: CombatFeedbackCanvasItem, raster: CombatFeedbackRaster?)] = []
-        var misses: [CombatFeedbackCanvasItem] = []
-        for canvasItem in canvasItems {
+        var chips: [(item: CombatFeedbackItem, raster: CombatFeedbackRaster?)] = []
+        var misses: [CombatFeedbackItem] = []
+        for item in chipsToDraw {
             if let raster = CombatFeedbackRasterPool.shared.cachedRaster(
-                for: canvasItem,
+                for: item,
                 layoutDirection: entry.layoutDirection,
                 displayScale: entry.displayScale
             ) {
-                chips.append((canvasItem: canvasItem, raster: raster))
+                chips.append((item: item, raster: raster))
             } else {
-                misses.append(canvasItem)
+                misses.append(item)
             }
         }
         // Compose misses on this flush. Warm glyph-atlas blits stay sub-ms; pacing
         // them behind a park wake was making feedback text late or miss entirely.
         if !misses.isEmpty {
-            for canvasItem in misses {
+            for item in misses {
                 if let raster = CombatFeedbackRasterPool.shared.prepare(
-                    for: canvasItem,
+                    for: item,
                     layoutDirection: entry.layoutDirection,
                     displayScale: entry.displayScale
                 ) {
-                    chips.append((canvasItem: canvasItem, raster: raster))
+                    chips.append((item: item, raster: raster))
                 }
             }
         }

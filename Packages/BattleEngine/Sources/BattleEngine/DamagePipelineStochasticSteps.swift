@@ -9,7 +9,7 @@ package extension DamagePipeline {
         to state: inout DamageResolutionState,
         in context: inout BattleState
     ) {
-        guard state.applyDodge,
+        guard state.options.applyDodge,
               state.amount > 0,
               context.roster.health(for: state.combatant) > 0,
               state.sourceActorID != nil
@@ -63,7 +63,7 @@ package extension DamagePipeline {
         state.isDodged = true
         // Evasive Pack auto-dodges do not trigger on-Dodge punish talents (Riposte).
         // Hits caused by a dodge must not re-enter afterDodge (Whiplash loops).
-        if !autoDodge, !state.causedByDodge {
+        if !autoDodge, !state.options.causedByDodge {
             state.damageEvents.append(contentsOf: CombatTriggerEngine.afterDodge(
                 by: state.combatant,
                 attackerID: state.sourceActorID,
@@ -119,7 +119,7 @@ package extension DamagePipeline {
         to state: inout DamageResolutionState,
         in context: inout BattleState
     ) {
-        guard !state.isRetaliation || state.isAttackHit,
+        guard !state.options.isRetaliation || state.options.isAttackHit,
               state.amount > 0,
               let sourceActorID = state.sourceActorID,
               let damageKeyword = state.damageKeyword,
@@ -135,7 +135,7 @@ package extension DamagePipeline {
             for: damageKeyword,
             againstDefenderToughness: state.combatant.primaryStats.toughness
         )
-        chance += state.abilityCriticalChanceBonus
+        chance += state.options.abilityCriticalChanceBonus
         chance += context.modifiers(for: sourceActorID).triggers.criticalChanceBonus
         chance += partyCritChanceBonus(actor: actor, in: context)
         if context.roster.activeEffects(for: state.combatant).contains(where: { $0.effect.keyword == .bleed }) {
@@ -189,31 +189,31 @@ package extension DamagePipeline {
     ) -> Bool {
         guard let sourceActorID = state.sourceActorID else { return false }
         // "Always Criticals if the enemy has a buff" / next-strike critical are actually always.
-        if state.guaranteedCritical {
+        if state.options.guaranteedCritical {
             applyCritical(to: &state)
             return true
         }
-        if state.guaranteedCriticalIfEnemyBuffed,
+        if state.options.guaranteedCriticalIfEnemyBuffed,
            context.roster.activeEffects(for: state.combatant).contains(where: \.effect.isRemovableBuff) {
             applyCritical(to: &state)
             return true
         }
         // Surprise Strike: this combatant's first attack in battle is a guaranteed critical.
-        if state.isAttackHit,
+        if state.options.isAttackHit,
            context.modifiers(for: sourceActorID).triggers.firstAttackGuaranteedCritical,
            context.claimBattleGuard(.surpriseStrike, actorID: actor.combatant.id) {
             applyCritical(to: &state)
             return true
         }
         // Flanking Position: a dodge-empowered next party hit is a guaranteed critical.
-        if state.isAttackHit,
+        if state.options.isAttackHit,
            context.roster.runtime(for: actor.combatant)?.pendingGuaranteedCriticalAfterDodge == true {
             context.roster.mutateRuntime(for: actor.combatant) { $0.pendingGuaranteedCriticalAfterDodge = false }
             applyCritical(to: &state)
             return true
         }
         // Taste for Blood: this combatant's next basic attack is a guaranteed critical.
-        if state.isAttackHit, state.isBasicAttackHit,
+        if state.options.isAttackHit, state.options.isBasicAttackHit,
            context.roster.runtime(for: actor.combatant)?.pendingBasicGuaranteedCrit == true {
             context.roster.mutateRuntime(for: actor.combatant) { $0.pendingBasicGuaranteedCrit = false }
             applyCritical(to: &state)

@@ -127,7 +127,7 @@ enum BalanceSweepCLI {
         var isWorker = false
         var outputFile: String?
         var appliesFightPacing = true
-        var policyID = SimulationPolicies.greedyID
+        var policyID = GreedyHeuristicPolicy.id
         var comparePolicies = false
         var heroIDs: [String] = []
         var companionIDs: [String] = []

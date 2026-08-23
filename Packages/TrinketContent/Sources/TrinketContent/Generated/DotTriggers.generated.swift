@@ -30,6 +30,10 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
     public var bleedDamageGoldFlat: Int = 0
     public var burnDamageManaRestoreThreshold: Int = 0
     public var onBurnDamageRestoreManaPerTurnCap: Int = 0
+    public var burnProcsBleedChancePercent: Double = 0
+    public var bleedProcsBurnChancePercent: Double = 0
+    public var burnDamageLeech: Bool = false
+    public var bleedDamageLeech: Bool = false
 
     public init(
         burnDecaySlowPercent: Double = 0,
@@ -57,7 +61,11 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
         poisonDamageLeech: Bool = false,
         bleedDamageGoldFlat: Int = 0,
         burnDamageManaRestoreThreshold: Int = 0,
-        onBurnDamageRestoreManaPerTurnCap: Int = 0
+        onBurnDamageRestoreManaPerTurnCap: Int = 0,
+        burnProcsBleedChancePercent: Double = 0,
+        bleedProcsBurnChancePercent: Double = 0,
+        burnDamageLeech: Bool = false,
+        bleedDamageLeech: Bool = false
     ) {
         self.burnDecaySlowPercent = burnDecaySlowPercent
         self.poisonDecaySlowPercent = poisonDecaySlowPercent
@@ -85,6 +93,10 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
         self.bleedDamageGoldFlat = bleedDamageGoldFlat
         self.burnDamageManaRestoreThreshold = burnDamageManaRestoreThreshold
         self.onBurnDamageRestoreManaPerTurnCap = onBurnDamageRestoreManaPerTurnCap
+        self.burnProcsBleedChancePercent = burnProcsBleedChancePercent
+        self.bleedProcsBurnChancePercent = bleedProcsBurnChancePercent
+        self.burnDamageLeech = burnDamageLeech
+        self.bleedDamageLeech = bleedDamageLeech
     }
 }
 
@@ -116,6 +128,10 @@ extension DotTriggers {
         bleedDamageGoldFlat += other.bleedDamageGoldFlat
         burnDamageManaRestoreThreshold = max(burnDamageManaRestoreThreshold, other.burnDamageManaRestoreThreshold)
         onBurnDamageRestoreManaPerTurnCap = max(onBurnDamageRestoreManaPerTurnCap, other.onBurnDamageRestoreManaPerTurnCap)
+        burnProcsBleedChancePercent += other.burnProcsBleedChancePercent
+        bleedProcsBurnChancePercent += other.bleedProcsBurnChancePercent
+        burnDamageLeech = burnDamageLeech || other.burnDamageLeech
+        bleedDamageLeech = bleedDamageLeech || other.bleedDamageLeech
     }
 }
 
@@ -148,7 +164,11 @@ extension DotTriggers {
             poisonDamageLeech: values.decode(Bool.self, "poisonDamageLeech", default: false),
             bleedDamageGoldFlat: values.decode(Int.self, "bleedDamageGoldFlat", default: 0),
             burnDamageManaRestoreThreshold: values.decode(Int.self, "burnDamageManaRestoreThreshold", default: 0),
-            onBurnDamageRestoreManaPerTurnCap: values.decode(Int.self, "onBurnDamageRestoreManaPerTurnCap", default: 0)
+            onBurnDamageRestoreManaPerTurnCap: values.decode(Int.self, "onBurnDamageRestoreManaPerTurnCap", default: 0),
+            burnProcsBleedChancePercent: values.decode(Double.self, "burnProcsBleedChancePercent", default: 0),
+            bleedProcsBurnChancePercent: values.decode(Double.self, "bleedProcsBurnChancePercent", default: 0),
+            burnDamageLeech: values.decode(Bool.self, "burnDamageLeech", default: false),
+            bleedDamageLeech: values.decode(Bool.self, "bleedDamageLeech", default: false)
         )
     }
 
@@ -179,5 +199,9 @@ extension DotTriggers {
         try container.encodeNonDefault(bleedDamageGoldFlat, "bleedDamageGoldFlat", default: 0)
         try container.encodeNonDefault(burnDamageManaRestoreThreshold, "burnDamageManaRestoreThreshold", default: 0)
         try container.encodeNonDefault(onBurnDamageRestoreManaPerTurnCap, "onBurnDamageRestoreManaPerTurnCap", default: 0)
+        try container.encodeNonDefault(burnProcsBleedChancePercent, "burnProcsBleedChancePercent", default: 0)
+        try container.encodeNonDefault(bleedProcsBurnChancePercent, "bleedProcsBurnChancePercent", default: 0)
+        try container.encodeNonDefault(burnDamageLeech, "burnDamageLeech", default: false)
+        try container.encodeNonDefault(bleedDamageLeech, "bleedDamageLeech", default: false)
     }
 }

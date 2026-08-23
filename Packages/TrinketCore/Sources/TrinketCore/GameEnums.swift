@@ -146,6 +146,7 @@ public enum EnemyFaction: String, CaseIterable, Identifiable, Hashable, Sendable
 public enum Rarity: String, CaseIterable, Identifiable, Hashable, Codable, Sendable {
     case basic
     case astral
+    case unique
 
     public var id: String {
         rawValue
@@ -155,6 +156,7 @@ public enum Rarity: String, CaseIterable, Identifiable, Hashable, Codable, Senda
         switch self {
         case .basic: "Basic"
         case .astral: "Astral"
+        case .unique: "Unique"
         }
     }
 }

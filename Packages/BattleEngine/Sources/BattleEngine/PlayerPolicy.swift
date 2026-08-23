@@ -2,60 +2,37 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-package enum SimAction: Equatable, Sendable {
-    case playCard(id: Int)
-    case endTurn
-}
-
 public protocol SimulationPlayPolicy: Sendable {
     var id: String { get }
     func preferredPlayableCard(in battle: BattleState) -> BattleCard?
 }
 
-package extension SimulationPlayPolicy {
-    func nextAction(in battle: BattleState) -> SimAction {
-        guard let best = preferredPlayableCard(in: battle) else {
-            return .endTurn
-        }
-        return .playCard(id: best.id)
-    }
-}
-
-public enum SimulationPolicies {
-    public static let greedyID = "greedy-v1"
-    public static let setupID = "setup-v1"
-
-    public static func make(id: String) -> (any SimulationPlayPolicy)? {
-        switch id {
-        case greedyID:
-            GreedyHeuristicPolicy()
-        case setupID, SetupAwareHeuristicPolicy.id:
-            SetupAwareHeuristicPolicy()
-        default:
-            nil
-        }
-    }
-}
-
 /// Prefer lethal damage, then higher ability tiers, then raw direct damage.
-/// Stable `id` is recorded in balance-sweep reports (e.g. `greedy-v1`).
+/// Stable `id` is recorded in balance-sweep reports.
 public struct GreedyHeuristicPolicy: SimulationPlayPolicy {
-    public let id = SimulationPolicies.greedyID
+    public static let id = "greedy-v1"
 
     public init() {}
+
+    public var id: String {
+        Self.id
+    }
 
     public func preferredPlayableCard(in battle: BattleState) -> BattleCard? {
         HeuristicCardScoring.preferredPlayableCard(in: battle, setupAware: false)
     }
 }
 
-/// Same lethal/suicide guards as greedy-v1, with extra value for applying missing
-/// DoT/control and a smaller bonus for playing into existing DoTs.
+/// Same lethal/suicide guards as `GreedyHeuristicPolicy`, with extra value for
+/// applying missing DoT/control and a smaller bonus for playing into existing DoTs.
 public struct SetupAwareHeuristicPolicy: SimulationPlayPolicy {
-    public static let id = SimulationPolicies.setupID
-    public let id = SimulationPolicies.setupID
+    public static let id = "setup-v1"
 
     public init() {}
+
+    public var id: String {
+        Self.id
+    }
 
     public func preferredPlayableCard(in battle: BattleState) -> BattleCard? {
         HeuristicCardScoring.preferredPlayableCard(in: battle, setupAware: true)

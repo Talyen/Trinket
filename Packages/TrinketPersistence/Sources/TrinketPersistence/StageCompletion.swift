@@ -93,6 +93,38 @@ public enum StageCompletion {
         return EncounterLevelResolver.journeyEnemyLevel(for: stage, in: chapter)
     }
 
+    /// Shared victory-reward sequence: gold with homestead find bonus, combat XP
+    /// for hero + companion, materials, then one unique item. Mode completion
+    /// entry points resolve mode-specific loot/stipend values, then call this.
+    static func grantVictoryRewards(
+        hero: Combatant,
+        companion: Combatant,
+        encounterLevel: Int,
+        stageGold: Int,
+        battleEarnedGold: Int = 0,
+        grantsCombatExperience: Bool = true,
+        xpPercent: Int = 0,
+        materials: [ResourceAmount],
+        item: InventoryItem?,
+        save: inout PlayerSave
+    ) {
+        save.applyGoldDelta(
+            resolvedGoldReward(
+                stageGold: stageGold,
+                battleEarnedGold: battleEarnedGold,
+                homestead: save.homestead
+            )
+        )
+        if grantsCombatExperience {
+            grantBattleExperience(enemyLevel: encounterLevel, to: hero, roster: &save.roster, xpPercent: xpPercent)
+            grantBattleExperience(enemyLevel: encounterLevel, to: companion, roster: &save.roster, xpPercent: xpPercent)
+        }
+        save.grantMaterials(materials)
+        if let item {
+            save.inventory.appendUniqueItem(item)
+        }
+    }
+
     public static func complete(
         _ stage: Stage,
         hero: Combatant,
@@ -194,33 +226,33 @@ public enum StageCompletion {
                 enemyIsBoss: enemyIsBoss,
                 worldSeed: save.worldSeed,
                 ownedTrinketIDs: save.inventory.ownedTrinketIDs,
+                ownedUniqueIDs: save.inventory.ownedUniqueIDs,
                 astralChanceBonusPercent: save.homestead.effects.astralChanceBonusPercent
             )
         }()
 
         let stageGold = resolvedLoot?.gold ?? stage.rewards.gold
-        save.applyGoldDelta(
-            resolvedGoldReward(
-                stageGold: stageGold,
-                battleEarnedGold: battleEarnedGold,
-                homestead: save.homestead
-            )
-        )
-        if stage.encounter.isCombat {
-            grantBattleExperience(enemyLevel: encounterLevel, to: hero, roster: &save.roster)
-            grantBattleExperience(enemyLevel: encounterLevel, to: companion, roster: &save.roster)
-        }
-
-        let resolvedMaterials = materialRewards
-            ?? resolvedLoot?.materials
-            ?? resolvedMaterialRewards(stageReward: stage.rewards)
-        save.grantMaterials(resolvedMaterials)
-
-        if let rewardItem {
-            save.inventory.appendUniqueItem(rewardItem)
+        let item: InventoryItem? = if let rewardItem {
+            rewardItem
         } else if let resolvedLoot {
-            save.inventory.appendUniqueItem(resolvedLoot.item)
+            resolvedLoot.item
         } else {
+            nil
+        }
+        grantVictoryRewards(
+            hero: hero,
+            companion: companion,
+            encounterLevel: encounterLevel,
+            stageGold: stageGold,
+            battleEarnedGold: battleEarnedGold,
+            grantsCombatExperience: stage.encounter.isCombat,
+            materials: materialRewards
+                ?? resolvedLoot?.materials
+                ?? resolvedMaterialRewards(stageReward: stage.rewards),
+            item: item,
+            save: &save
+        )
+        if item == nil {
             grantAuthoredItems(for: stage, worldSeed: save.worldSeed, inventory: &save.inventory)
         }
 

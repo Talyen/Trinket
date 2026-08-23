@@ -19,6 +19,8 @@ struct ShopOfferGeneratorTests {
                 let base = offer.price / ShopOfferGenerator.astralPriceMultiplier
                 #expect(ShopOfferGenerator.basePriceRange.contains(base))
                 #expect(offer.price == base * ShopOfferGenerator.astralPriceMultiplier)
+            case .unique:
+                Issue.record("Shops never offer Uniques")
             }
         }
     }
@@ -38,6 +40,8 @@ struct ShopOfferGeneratorTests {
                 basicCount += 1
             case .astral:
                 astralCount += 1
+            case .unique:
+                Issue.record("Shops never offer Uniques")
             case nil:
                 Issue.record("Expected an offer")
             }

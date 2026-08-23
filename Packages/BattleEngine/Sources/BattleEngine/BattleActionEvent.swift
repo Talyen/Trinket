@@ -20,7 +20,7 @@ public struct ActionEvent: Identifiable, Equatable {
         case partyDefeated
     }
 
-    public enum EffectKind: Equatable, Sendable {
+    public enum EffectOutcome: Equatable, Sendable {
         case instantHeal
         case resourceGain
         case cardsDrawn
@@ -54,7 +54,7 @@ public struct ActionEvent: Identifiable, Equatable {
     /// Stable correlation for every event emitted while resolving one action.
     public let actionID: Int
     public let kind: Kind
-    public let effectKind: EffectKind?
+    public let effectKind: EffectOutcome?
     public let actorID: String
     public let actorName: String
     public let abilityID: String
@@ -73,7 +73,7 @@ public struct ActionEvent: Identifiable, Equatable {
         id: Int,
         actionID: Int = 0,
         kind: Kind,
-        effectKind: EffectKind? = nil,
+        effectKind: EffectOutcome? = nil,
         actorID: String = "",
         actorName: String,
         abilityID: String = "",
@@ -120,7 +120,7 @@ public struct ActionEvent: Identifiable, Equatable {
     /// `effectKind` uses nil-means-unchanged, so this helper cannot reset an
     /// effect event back to `nil`; call sites that need that build a fresh event.
     public func with(
-        effectKind: EffectKind? = nil,
+        effectKind: EffectOutcome? = nil,
         actorID: String? = nil,
         actorName: String? = nil,
         abilityName: String? = nil,

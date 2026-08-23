@@ -5,7 +5,7 @@ package extension BattleState {
     mutating func nextEvent(
         kind: ActionEvent.Kind,
         actionID: Int? = nil,
-        effectKind: ActionEvent.EffectKind? = nil,
+        effectKind: ActionEvent.EffectOutcome? = nil,
         actorID: String = "",
         actorName: String,
         abilityID: String = "",

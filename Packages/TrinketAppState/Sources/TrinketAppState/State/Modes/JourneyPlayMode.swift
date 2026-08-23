@@ -249,17 +249,13 @@ extension JourneyPlayMode {
         worldSeed: UInt64,
         partyAverageLevel: Int
     ) -> (combatant: Combatant, level: Int)? {
-        guard let enemyID = stage.resolvedBattleEnemyID(worldSeed: worldSeed),
-              let catalogEnemy = GameContent.enemy(matching: enemyID),
-              let chapter = GameContent.chapters.first(where: { $0.id == stage.chapterID })
+        guard let chapter = GameContent.chapters.first(where: { $0.id == stage.chapterID })
         else { return nil }
-
-        let authoredLevel = EncounterLevelResolver.journeyEnemyLevel(for: stage, in: chapter)
-        let level = EncounterLevelResolver.partyAdjusted(
-            authoredLevel,
+        return PlayBattlePreparation.scaledEncounter(
+            enemyID: stage.resolvedBattleEnemyID(worldSeed: worldSeed),
+            authoredLevel: EncounterLevelResolver.journeyEnemyLevel(for: stage, in: chapter),
             partyAverageLevel: partyAverageLevel
         )
-        return (CombatantLevelScaler.scale(enemy: catalogEnemy, level: level), level)
     }
 
     private func battleLoot(
@@ -272,6 +268,7 @@ extension JourneyPlayMode {
             enemyIsBoss: GameContent.enemy(matching: encounter.combatant.id)?.isBoss == true,
             worldSeed: playerSave.worldSeed,
             ownedTrinketIDs: playerSave.inventory.ownedTrinketIDs,
+            ownedUniqueIDs: playerSave.inventory.ownedUniqueIDs,
             astralChanceBonusPercent: playerSave.homestead.effects.astralChanceBonusPercent
         )
     }
@@ -282,6 +279,7 @@ extension JourneyPlayMode {
         enemyIsBoss: Bool,
         worldSeed: UInt64,
         ownedTrinketIDs: Set<String> = [],
+        ownedUniqueIDs: Set<String>,
         astralChanceBonusPercent: Int = 0
     ) -> BattleLootPackage? {
         guard stage.encounter.isCombat else { return nil }
@@ -291,6 +289,7 @@ extension JourneyPlayMode {
             enemyIsBoss: enemyIsBoss,
             worldSeed: worldSeed,
             ownedTrinketIDs: ownedTrinketIDs,
+            ownedUniqueIDs: ownedUniqueIDs,
             astralChanceBonusPercent: astralChanceBonusPercent
         )
     }

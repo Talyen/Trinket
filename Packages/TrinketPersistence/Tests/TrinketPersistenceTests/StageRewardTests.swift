@@ -24,7 +24,9 @@ struct StageRewardTests {
             stage: firstStage,
             encounterLevel: encounterLevel,
             enemyIsBoss: false,
-            worldSeed: PlayerSave.testWorldSeed
+            worldSeed: PlayerSave.testWorldSeed,
+            ownedTrinketIDs: [],
+            ownedUniqueIDs: []
         )
 
         StageCompletion.complete(
@@ -81,7 +83,9 @@ struct StageRewardTests {
             stage: firstStage,
             encounterLevel: encounterLevel,
             enemyIsBoss: false,
-            worldSeed: PlayerSave.testWorldSeed
+            worldSeed: PlayerSave.testWorldSeed,
+            ownedTrinketIDs: [],
+            ownedUniqueIDs: []
         )
 
         StageCompletion.claimRewardsIfNeeded(
@@ -134,7 +138,9 @@ struct StageRewardTests {
             stage: firstStage,
             encounterLevel: EncounterLevelResolver.journeyEnemyLevel(for: firstStage, in: chapter),
             enemyIsBoss: false,
-            worldSeed: PlayerSave.testWorldSeed
+            worldSeed: PlayerSave.testWorldSeed,
+            ownedTrinketIDs: [],
+            ownedUniqueIDs: []
         )
 
         StageCompletion.complete(

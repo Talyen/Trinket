@@ -11,7 +11,6 @@ enum ModelContainerBootstrap {
 
     static func open(
         schema: Schema,
-        migrationPlan: (any SchemaMigrationPlan.Type)? = nil,
         primaryConfiguration: ModelConfiguration,
         logger: Logger,
         logLabel: String,
@@ -21,7 +20,6 @@ enum ModelContainerBootstrap {
         do {
             let container = try ModelContainer(
                 for: schema,
-                migrationPlan: migrationPlan,
                 configurations: primaryConfiguration
             )
             return OpenResult(container: container, usedInMemoryFallback: false, recoveredAfterStoreDeletion: false)
@@ -34,7 +32,6 @@ enum ModelContainerBootstrap {
                 deleteStoreFiles(at: storeURL, logger: logger, logLabel: logLabel)
                 if let recovered = try? ModelContainer(
                     for: schema,
-                    migrationPlan: migrationPlan,
                     configurations: primaryConfiguration
                 ) {
                     logger.notice("Recovered \(logLabel, privacy: .public) store after deleting corrupt files.")
@@ -50,7 +47,6 @@ enum ModelContainerBootstrap {
             do {
                 let container = try ModelContainer(
                     for: schema,
-                    migrationPlan: migrationPlan,
                     configurations: fallbackConfig
                 )
                 logger.notice("\(logLabel, privacy: .public) store opened in-memory fallback.")

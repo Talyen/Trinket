@@ -6,6 +6,75 @@ import TrinketFeatureSupport
 
 /// Pure presenter: engine events → classified feedback items.
 enum CombatFeedbackPresenter {
+    /// Sort order for chips stacked on one target (most important floats last).
+    private static func displayPriority(for feedbackClass: CombatFeedbackClass) -> Int {
+        switch feedbackClass {
+        case .critical: 0
+        case .deathsDoor: 1
+        case .directDamage: 2
+        case .heal: 3
+        case .block, .dodge, .control: 4
+        case .dot: 5
+        case .buff, .resource: 6
+        }
+    }
+
+    private static func classify(_ event: ActionEvent) -> CombatFeedbackClass {
+        switch event.kind {
+        case .status:
+            return .dot
+        case .ability, .abilityDamage:
+            return .directDamage
+        case .milestone:
+            return .buff
+        case .effect:
+            break
+        }
+
+        return switch event.effectKind {
+        case .instantHeal, .leechHeal:
+            .heal
+        case .resourceGain, .manaShieldTriggered, .cardsDrawn:
+            .resource
+        case .shieldAbsorbed:
+            .block
+        case .dodgeApplied:
+            .dodge
+        case .controlActionSkipped, .controlApplied, .controlTriggered:
+            .control
+        case .deathsDoorTriggered, .deathsDoorExpired:
+            .deathsDoor
+        case .thornsTriggered, .markedConsumed:
+            .directDamage
+        case nil, .shieldApplied, .shieldHalved, .manaShieldApplied,
+             .cleanseApplied, .purgeApplied, .leechApplied, .thornsApplied,
+             .markedApplied, .criticalChanceApplied, .damageKeywordOverrideApplied,
+             .nextHolyStrikeApplied, .nextStrikeDoubleApplied, .evadeNextHitApplied:
+            // Exhaustive on purpose: a new EffectOutcome must be classified here
+            // explicitly instead of silently rendering as a generic buff chip.
+            .buff
+        }
+    }
+
+    private static func reactionKind(for feedbackClass: CombatFeedbackClass) -> CombatantHitReactionKind {
+        switch feedbackClass {
+        case .directDamage:
+            .damage
+        case .dot:
+            .none
+        case .critical:
+            .critical
+        case .block:
+            .block
+        case .heal:
+            .heal
+        case .dodge:
+            .dodge
+        case .control, .buff, .resource, .deathsDoor:
+            .none
+        }
+    }
+
     static func makeItems(
         from events: [ActionEvent],
         at date: Date
@@ -26,8 +95,8 @@ enum CombatFeedbackPresenter {
 
         return targetOrder.flatMap { targetID -> [CombatFeedbackItem] in
             let sorted = (grouped[targetID] ?? []).sorted { lhs, rhs in
-                let lhsPriority = CombatFeedbackClassification.displayPriority(for: lhs.feedbackClass)
-                let rhsPriority = CombatFeedbackClassification.displayPriority(for: rhs.feedbackClass)
+                let lhsPriority = displayPriority(for: lhs.feedbackClass)
+                let rhsPriority = displayPriority(for: rhs.feedbackClass)
                 if lhsPriority == rhsPriority {
                     return lhs.originalOrder < rhs.originalOrder
                 }
@@ -53,8 +122,6 @@ enum CombatFeedbackPresenter {
                     keyword: prepared.keyword,
                     visualRole: prepared.visualRole,
                     label: prepared.label,
-                    secondaryText: nil,
-                    lifetime: TrinketMotion.Battle.chipDisplayDuration,
                     availableAt: availableAt,
                     expiresAt: expiresAt,
                     reactionKind: prepared.reactionKind
@@ -99,7 +166,7 @@ enum CombatFeedbackPresenter {
         enum Family: Hashable {
             case abilityDamage
             case status
-            case effect(ActionEvent.EffectKind)
+            case effect(ActionEvent.EffectOutcome)
         }
 
         let targetID: String
@@ -178,7 +245,7 @@ enum CombatFeedbackPresenter {
         )
     }
 
-    private static func isAdditive(_ effectKind: ActionEvent.EffectKind) -> Bool {
+    private static func isAdditive(_ effectKind: ActionEvent.EffectOutcome) -> Bool {
         switch effectKind {
         case .instantHeal, .resourceGain, .cardsDrawn, .leechHeal, .shieldApplied,
              .shieldAbsorbed, .thornsTriggered, .markedConsumed,
@@ -197,7 +264,7 @@ enum CombatFeedbackPresenter {
         let event = source.event
         let feedbackClass = event.isCritical
             ? .critical
-            : CombatFeedbackClassification.classify(event)
+            : classify(event)
         guard let label = CombatFeedbackChipLabel.from(event: event), !label.isZeroNumeric else {
             return nil
         }
@@ -211,7 +278,7 @@ enum CombatFeedbackPresenter {
             keyword: event.keyword,
             visualRole: visualRole(for: event),
             label: label,
-            reactionKind: CombatFeedbackClassification.reactionKind(for: feedbackClass)
+            reactionKind: reactionKind(for: feedbackClass)
         )
     }
 
@@ -223,7 +290,11 @@ enum CombatFeedbackPresenter {
             .beneficialStatus
         case .markedApplied, .shieldHalved:
             .negativeStatus
-        default:
+        case nil, .instantHeal, .resourceGain, .cardsDrawn, .leechHeal,
+             .shieldApplied, .shieldAbsorbed, .controlActionSkipped, .controlApplied,
+             .controlTriggered, .cleanseApplied, .purgeApplied, .dodgeApplied,
+             .deathsDoorTriggered, .deathsDoorExpired, .thornsTriggered,
+             .markedConsumed, .manaShieldTriggered:
             .keyword
         }
     }

@@ -199,7 +199,8 @@ struct AppStatePlayFlowTests {
             stage: stage,
             encounterLevel: configuration.enemyEncounterLevel ?? 1,
             enemyIsBoss: false,
-            worldSeed: state.playerSave.worldSeed
+            worldSeed: state.playerSave.worldSeed,
+            ownedUniqueIDs: []
         )
         #expect(state.playerSave.roster.gold == initialGold + 5 + loot.gold)
     }
@@ -407,7 +408,8 @@ struct AppStatePlayFlowTests {
             stage: stage,
             encounterLevel: configuration.enemyEncounterLevel ?? 1,
             enemyIsBoss: false,
-            worldSeed: state.playerSave.worldSeed
+            worldSeed: state.playerSave.worldSeed,
+            ownedUniqueIDs: []
         )
         let expectedTotal = StageCompletion.resolvedGoldReward(
             stageGold: loot.gold,

@@ -26,7 +26,7 @@ enum CombatFeedbackChipComposer {
         displayScale: CGFloat,
         atlas: CombatFeedbackGlyphAtlas = .shared
     ) -> ComposedRaster? {
-        let recipe = CombatFeedbackChipRecipes.chip(for: feedbackClass)
+        let recipe = CombatFeedbackChipStyle.forClass(feedbackClass)
         let scale = max(1, displayScale)
         let face = CombatFeedbackGlyphAtlas.Face(
             feedbackClass: feedbackClass,
@@ -206,7 +206,7 @@ enum CombatFeedbackChipComposer {
         atlas: CombatFeedbackGlyphAtlas
     ) -> [CombatFeedbackGlyphAtlas.Glyph]? {
         // Numeric chips pass digit characters; word chips pass one whole-word fragment.
-        let fragments: [String] = if text.allSatisfy({ $0.isNumber || $0 == "%" || $0 == "+" }) {
+        let fragments: [String] = if text.allSatisfy({ $0.isNumber || $0 == "+" }) {
             text.map(String.init)
         } else {
             [text]

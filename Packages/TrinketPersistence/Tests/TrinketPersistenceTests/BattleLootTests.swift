@@ -18,10 +18,17 @@ struct BattleLootTests {
             encounterLevel: 1,
             enemyIsBoss: false,
             itemID: "test-loot",
+            ownedTrinketIDs: [],
+            ownedUniqueIDs: [],
             using: &rng
         )
-        #expect(package.item.id == "test-loot")
-        #expect(package.item.rarity == .basic)
+        // Generated Basic/Astral loot carries the roll id; Trinket/Unique tiers
+        // keep their stable catalog identity instead.
+        let isCatalogIdentity = package.item.isTrinket || package.item.rarity == .unique
+        #expect(isCatalogIdentity || package.item.id == "test-loot")
+        if !isCatalogIdentity {
+            #expect(package.item.rarity == .basic || package.item.rarity == .astral)
+        }
         #expect((3 ... 4).contains(package.gold))
         #expect(package.materials.count == 2)
         #expect(Set(package.materials.map(\.resource)).count == 2)
@@ -31,19 +38,98 @@ struct BattleLootTests {
         }
     }
 
-    @Test func bossGrantsAstralAndDoublesCurrency() {
+    @Test func bossGrantsSpecialTierAndDoublesCurrency() {
         var rng = SeededRandomNumberGenerator(seed: 99)
         let package = BattleLoot.resolve(
             encounterLevel: 1,
             enemyIsBoss: true,
             itemID: "boss-loot",
+            ownedTrinketIDs: [],
+            ownedUniqueIDs: [],
             using: &rng
         )
-        #expect(package.item.rarity == .astral)
+        // Boss ladder is 30% Unique / 30% Trinket / 40% Astral — never Basic.
+        // Trinket-tier items carry Astral rarity, so only Basic is forbidden.
+        switch package.item.rarity {
+        case .unique, .astral:
+            break
+        case .basic:
+            Issue.record("Boss loot must never be Basic")
+        }
         #expect((6 ... 8).contains(package.gold))
         for material in package.materials {
             #expect((6 ... 8).contains(material.quantity))
         }
+    }
+
+    @Test func normalDropLadderMatchesAuthoredBands() {
+        var uniqueCount = 0
+        var trinketCount = 0
+        var astralCount = 0
+        var basicCount = 0
+        for seed in UInt64(0) ..< 400 {
+            var rng = SeededRandomNumberGenerator(seed: seed)
+            switch ItemRarityRoll.roll(bossContent: false, using: &rng) {
+            case .unique: uniqueCount += 1
+            case .trinket: trinketCount += 1
+            case .astral: astralCount += 1
+            case .basic: basicCount += 1
+            }
+        }
+        // Authored normal-content bands: 5% Unique / 7% Trinket / 8% Astral.
+        #expect((10 ... 30).contains(uniqueCount))
+        #expect((16 ... 40).contains(trinketCount))
+        #expect((20 ... 44).contains(astralCount))
+        #expect(basicCount >= 300)
+    }
+
+    @Test func bossDropLadderMatchesAuthoredBands() {
+        var uniqueCount = 0
+        var trinketCount = 0
+        var astralCount = 0
+        for seed in UInt64(0) ..< 400 {
+            var rng = SeededRandomNumberGenerator(seed: seed)
+            switch ItemRarityRoll.roll(bossContent: true, using: &rng) {
+            case .unique: uniqueCount += 1
+            case .trinket: trinketCount += 1
+            case .astral: astralCount += 1
+            case .basic: Issue.record("Boss ladder never yields Basic")
+            }
+        }
+        // Authored boss bands: 30% Unique / 30% Trinket / 40% Astral.
+        #expect((92 ... 148).contains(uniqueCount))
+        #expect((92 ... 148).contains(trinketCount))
+        #expect((128 ... 192).contains(astralCount))
+    }
+
+    @Test func disallowingUniquesFoldsTheirBandIntoAstral() {
+        var uniqueAllowed = 0
+        var trinketAllowed = 0
+        var astralAllowed = 0
+        var trinketFolded = 0
+        var astralFolded = 0
+        for seed in UInt64(0) ..< 400 {
+            var allowedRng = SeededRandomNumberGenerator(seed: seed)
+            switch ItemRarityRoll.roll(bossContent: false, using: &allowedRng) {
+            case .unique: uniqueAllowed += 1
+            case .trinket: trinketAllowed += 1
+            case .astral: astralAllowed += 1
+            case .basic: break
+            }
+
+            var foldedRng = SeededRandomNumberGenerator(seed: seed)
+            switch ItemRarityRoll.roll(bossContent: false, allowsUnique: false, using: &foldedRng) {
+            case .unique:
+                Issue.record("allowsUnique: false must never yield Unique")
+            case .trinket: trinketFolded += 1
+            case .astral: astralFolded += 1
+            case .basic: break
+            }
+        }
+        // Same draws, so every rolled Unique lands in Astral instead.
+        #expect(trinketFolded == trinketAllowed)
+        #expect(astralFolded == astralAllowed + uniqueAllowed)
+        #expect(uniqueAllowed > 0)
     }
 
     @Test func journeyLootIsSeedStable() throws {
@@ -52,35 +138,48 @@ struct BattleLootTests {
             stage: stage,
             encounterLevel: 1,
             enemyIsBoss: false,
-            worldSeed: 8
+            worldSeed: 8,
+            ownedTrinketIDs: [],
+            ownedUniqueIDs: []
         )
         let second = BattleLoot.resolveJourney(
             stage: stage,
             encounterLevel: 1,
             enemyIsBoss: false,
-            worldSeed: 8
+            worldSeed: 8,
+            ownedTrinketIDs: [],
+            ownedUniqueIDs: []
         )
         #expect(first == second)
-        #expect(first.item.rarity == .basic)
 
         let otherWorld = BattleLoot.resolveJourney(
             stage: stage,
             encounterLevel: 1,
             enemyIsBoss: false,
-            worldSeed: 9
+            worldSeed: 9,
+            ownedTrinketIDs: [],
+            ownedUniqueIDs: []
         )
         #expect(first != otherWorld)
     }
 
-    @Test func bossJourneyLootIsAstral() throws {
+    @Test func bossJourneyLootIsNeverBasic() throws {
         let stage = try #require(GameContent.stage(id: "chapter-1-stage-10"))
         let package = BattleLoot.resolveJourney(
             stage: stage,
             encounterLevel: 5,
             enemyIsBoss: true,
-            worldSeed: 8
+            worldSeed: 8,
+            ownedTrinketIDs: [],
+            ownedUniqueIDs: []
         )
-        #expect(package.item.rarity == .astral)
+        // Trinket-tier items carry Astral rarity; only Basic is forbidden.
+        switch package.item.rarity {
+        case .unique, .astral:
+            break
+        case .basic:
+            Issue.record("Boss loot must never be Basic")
+        }
     }
 
     @Test func homesteadAstralChanceAppliesToJourneyAndSpireBattleLoot() throws {
@@ -90,6 +189,8 @@ struct BattleLootTests {
             encounterLevel: 1,
             enemyIsBoss: false,
             worldSeed: 8,
+            ownedTrinketIDs: [],
+            ownedUniqueIDs: [],
             astralChanceBonusPercent: 100
         )
         #expect(journeyLoot.item.rarity == .astral)
@@ -98,6 +199,8 @@ struct BattleLootTests {
         let spireLoot = SpireCompletion.resolveLoot(
             for: floor,
             worldSeed: 8,
+            ownedTrinketIDs: [],
+            ownedUniqueIDs: [],
             astralChanceBonusPercent: 100
         )
         #expect(spireLoot.item.rarity == .astral)

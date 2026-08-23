@@ -80,20 +80,44 @@ struct ItemGeneratorTests {
         }
     }
 
-    @Test func astralRewardsSplitBetweenRemainingTrinketsAndNormalItems() throws {
-        let rewards = (1 ... 200).map { seed in
+    @Test func trinketTierAlwaysYieldsAnUnownedTrinketWhenPoolRemains() throws {
+        let rewards = (1 ... 40).map { seed in
             var randomNumberGenerator = SeededRandomNumberGenerator(seed: UInt64(seed))
             return ItemRewardGenerator.generate(
                 id: "reward-\(seed)",
-                rarity: .astral,
+                tier: .trinket,
                 ownedTrinketIDs: [],
+                ownedUniqueIDs: [],
                 using: &randomNumberGenerator
             )
         }
-        let trinketCount = rewards.count(where: \.isTrinket)
 
-        try #expect((70 ... 130).contains(trinketCount))
-        try #expect(rewards.allSatisfy { !$0.isTrinket || GameContent.trinketItems.contains($0) })
+        try #expect(rewards.allSatisfy { $0.isTrinket && GameContent.trinketItems.contains($0) })
+    }
+
+    @Test func uniqueTierYieldsCatalogUniquesAndDegradesToTrinketsWhenOwned() throws {
+        let uniques = (1 ... 12).map { seed in
+            var randomNumberGenerator = SeededRandomNumberGenerator(seed: UInt64(seed))
+            return ItemRewardGenerator.generate(
+                id: "unique-\(seed)",
+                tier: .unique,
+                ownedTrinketIDs: [],
+                ownedUniqueIDs: [],
+                using: &randomNumberGenerator
+            )
+        }
+        try #expect(uniques.allSatisfy { GameContent.uniqueItems.contains($0) })
+
+        let allOwned = Set(GameContent.uniqueItems.map(\.templateID))
+        var degradedGenerator = SeededRandomNumberGenerator(seed: 7)
+        let degraded = ItemRewardGenerator.generate(
+            id: "degraded",
+            tier: .unique,
+            ownedTrinketIDs: [],
+            ownedUniqueIDs: allOwned,
+            using: &degradedGenerator
+        )
+        try #expect(degraded.isTrinket)
     }
 
     @Test func astralRewardsExcludeOwnedAndKeywordIneligibleTrinkets() throws {
@@ -105,8 +129,9 @@ struct ItemGeneratorTests {
             var biasedRandomNumberGenerator = SeededRandomNumberGenerator(seed: seed)
             let biasedReward = ItemRewardGenerator.generate(
                 id: "poison-\(seed)",
-                rarity: .astral,
+                tier: .trinket,
                 ownedTrinketIDs: [],
+                ownedUniqueIDs: [],
                 keywordBias: [.poison],
                 using: &biasedRandomNumberGenerator
             )
@@ -117,8 +142,9 @@ struct ItemGeneratorTests {
             var exhaustedRandomNumberGenerator = SeededRandomNumberGenerator(seed: seed)
             let exhaustedReward = ItemRewardGenerator.generate(
                 id: "exhausted-\(seed)",
-                rarity: .astral,
+                tier: .trinket,
                 ownedTrinketIDs: poisonTrinketIDs,
+                ownedUniqueIDs: [],
                 keywordBias: [.poison],
                 using: &exhaustedRandomNumberGenerator
             )
@@ -224,6 +250,16 @@ struct ItemGeneratorTests {
             }
         }
         try #expect((14 ... 22).contains(basicCount))
+    }
+
+    @Test func mysteryItemRarityNeverRollsUniqueTier() {
+        // Mystery rewards promise an authored base type and affixes; the Unique
+        // tier would silently discard both, so its band folds into Astral.
+        for seed in UInt64(1) ... 400 {
+            var randomNumberGenerator = SeededRandomNumberGenerator(seed: seed)
+            let tier = MysteryItemRarity.roll(astralChanceBonusPercent: 50, using: &randomNumberGenerator)
+            #expect(tier != .unique)
+        }
     }
 
     private func generatedAffixCounts(

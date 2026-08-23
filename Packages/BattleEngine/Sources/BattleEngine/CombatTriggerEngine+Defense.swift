@@ -114,6 +114,10 @@ package extension CombatTriggerEngine {
             }
         }
 
+        if triggers.onDodgeDrawAndPlayCardChainOnCrit {
+            events.append(contentsOf: drawPlayCascade(for: combatant, in: &context))
+        }
+
         events.append(contentsOf: applySidestepHeal(for: combatant, profile: profile, in: &context))
         events.append(contentsOf: applyWhiplashStun(for: combatant, profile: profile, in: &context))
 
@@ -245,6 +249,7 @@ package extension CombatTriggerEngine {
             || triggers.enemyStunnedApplyMarked
             || triggers.enemyStunnedPurgeCount > 0
             || triggers.enemyStunnedPurgeAll
+            || triggers.stunPurgeDealHolyPerEffect > 0
         guard shouldReact else { return [] }
 
         let actor = runtime.combatant
@@ -273,14 +278,61 @@ package extension CombatTriggerEngine {
         }
 
         if context.roster.health(for: enemy) > 0 {
-            events.append(contentsOf: applyPurge(
-                to: enemy,
-                source: actor,
-                abilityName: affixName(.disrupting),
-                count: triggers.enemyStunnedPurgeCount,
-                purgeAll: triggers.enemyStunnedPurgeAll,
-                in: &context
-            ))
+            if triggers.stunPurgeDealHolyPerEffect > 0 {
+                events.append(contentsOf: wardbreakerStunPurge(
+                    perEffectHolyDamage: triggers.stunPurgeDealHolyPerEffect,
+                    actor: actor,
+                    enemy: enemy,
+                    in: &context
+                ))
+            } else {
+                events.append(contentsOf: applyPurge(
+                    to: enemy,
+                    source: actor,
+                    abilityName: affixName(.disrupting),
+                    count: triggers.enemyStunnedPurgeCount,
+                    purgeAll: triggers.enemyStunnedPurgeAll,
+                    in: &context
+                ))
+            }
+        }
+        return events
+    }
+
+    /// Wardbreaker purges every beneficial effect and deals Holy damage for each.
+    private static func wardbreakerStunPurge(
+        perEffectHolyDamage: Int,
+        actor: Combatant,
+        enemy: Combatant,
+        in context: inout BattleState
+    ) -> [ActionEvent] {
+        let removableCount = context.roster.activeEffects(for: enemy)
+            .filter(\.effect.isRemovableBuff)
+            .count
+        var events = applyPurge(
+            to: enemy,
+            source: actor,
+            abilityName: affixName(.disrupting),
+            count: 0,
+            purgeAll: true,
+            in: &context
+        )
+        if removableCount > 0, context.roster.health(for: enemy) > 0 {
+            // Trigger-dealt Holy matches its burn-tick sibling: flat, no stat/item scaling.
+            events.append(contentsOf: context.resolveDamage(
+                DamageRequest(
+                    amount: perEffectHolyDamage * removableCount,
+                    target: enemy,
+                    keyword: .holy,
+                    sourceActorID: actor.id,
+                    options: DamageOptions(
+                        applyStatBonus: false,
+                        applyItemBonus: false,
+                        applyDodge: false,
+                        isRetaliation: true
+                    )
+                )
+            ).events)
         }
         return events
     }
@@ -408,6 +460,32 @@ package extension CombatTriggerEngine {
             amount: Effect.standardMarkedBonus,
             keyword: .physical
         )]
+    }
+
+    /// Dance of Blades: Dodging draws and automatically plays a card; a critical
+    /// play repeats the effect, bounded by the shared auto-play depth cap.
+    private static func drawPlayCascade(
+        for combatant: Combatant,
+        in context: inout BattleState
+    ) -> [ActionEvent] {
+        guard context.roster.health(for: combatant) > 0 else { return [] }
+        let cascadeAbility = combatant.abilityLoadout.basic
+            ?? Ability(id: "dance-of-blades", name: "Dance of Blades", tier: .basic, directDamage: 0)
+        var events: [ActionEvent] = []
+        for _ in 0 ..< BattleState.maxDrawAndPlayDepth {
+            let played = DrawAndPlayCardsHandler().apply(
+                .drawAndPlayCards(1),
+                ability: cascadeAbility,
+                source: combatant,
+                target: combatant,
+                action: ActionApplyContext(),
+                in: &context
+            )
+            guard played.didApply else { break }
+            events.append(contentsOf: played.events)
+            guard played.events.contains(where: \.isCritical) else { break }
+        }
+        return events
     }
 
     private static func applySidestepHeal(

@@ -17,8 +17,7 @@ struct CombatSFXMapperTests {
         let item = feedbackItem(
             feedbackClass: .critical,
             keyword: .physical,
-            label: .amount(-10),
-            secondary: "CRIT"
+            label: .amount(-10)
         )
         #expect(CombatSFXMapper.clipID(for: item) == SFXID.hit)
         #expect(
@@ -152,8 +151,7 @@ struct CombatSFXMapperTests {
         feedbackClass: CombatFeedbackClass,
         keyword: Keyword,
         label: CombatFeedbackChipLabel,
-        visualRole: CombatFeedbackVisualRole = .keyword,
-        secondary: String? = nil
+        visualRole: CombatFeedbackVisualRole = .keyword
     ) -> CombatFeedbackItem {
         CombatFeedbackItem(
             id: id,
@@ -167,8 +165,6 @@ struct CombatSFXMapperTests {
             keyword: keyword,
             visualRole: visualRole,
             label: label,
-            secondaryText: secondary,
-            lifetime: TrinketMotion.Battle.chipDisplayDuration,
             availableAt: .now,
             expiresAt: .now.addingTimeInterval(TrinketMotion.Battle.chipDisplayDuration),
             reactionKind: .none

@@ -72,6 +72,8 @@ public struct ItemGenerator: Sendable {
             return roll <= 80 ? 1 : 2
         case .astral:
             return roll <= 75 ? 3 : 4
+        case .unique:
+            preconditionFailure("Unique affix counts are authored in the catalog.")
         }
     }
 
@@ -120,10 +122,20 @@ public struct ItemGenerator: Sendable {
 }
 
 public enum ItemRewardGenerator {
+    /// Generation knobs shared by every tier path.
+    private struct RewardContext {
+        let keywordBias: Set<Keyword>
+        let fallbackBaseType: ItemBaseType?
+        let guaranteedAffixIDs: [String]
+        let baseTypes: [ItemBaseType]
+        let itemGenerator: ItemGenerator
+    }
+
     public static func generate(
         id: String,
-        rarity: Rarity,
+        tier: ItemDropTier,
         ownedTrinketIDs: Set<String>,
+        ownedUniqueIDs: Set<String>,
         reservedTrinketIDs: Set<String> = [],
         keywordBias: Set<Keyword> = [],
         eligibleTrinketIDs: Set<String>? = nil,
@@ -133,38 +145,102 @@ public enum ItemRewardGenerator {
         itemGenerator: ItemGenerator = ItemGenerator(),
         using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> InventoryItem {
-        if rarity == .astral {
-            var trinkets = GameContent.trinketItems.filter {
-                !ownedTrinketIDs.contains($0.templateID)
-                    && !reservedTrinketIDs.contains($0.templateID)
-            }
-            if let eligibleTrinketIDs {
-                trinkets = trinkets.filter { eligibleTrinketIDs.contains($0.templateID) }
+        let context = RewardContext(
+            keywordBias: keywordBias,
+            fallbackBaseType: fallbackBaseType,
+            guaranteedAffixIDs: guaranteedAffixIDs,
+            baseTypes: baseTypes,
+            itemGenerator: itemGenerator
+        )
+        switch tier {
+        case .unique:
+            var uniques = GameContent.uniqueItems.filter {
+                !ownedUniqueIDs.contains($0.templateID)
             }
             if !keywordBias.isEmpty {
-                trinkets = trinkets.filter { !$0.keywords.isDisjoint(with: keywordBias) }
+                uniques = uniques.filter { !$0.keywords.isDisjoint(with: keywordBias) }
             }
-            if !trinkets.isEmpty,
-               Bool.random(using: &randomNumberGenerator),
-               let trinket = trinkets.randomElement(using: &randomNumberGenerator) {
-                return trinket
+            if let unique = uniques.randomElement(using: &randomNumberGenerator) {
+                return unique
             }
+            // Owned-out or filtered-out Uniques degrade to the Trinket band.
+            return trinketOrGenerated(
+                id: id,
+                rarity: .astral,
+                ownedTrinketIDs: ownedTrinketIDs,
+                reservedTrinketIDs: reservedTrinketIDs,
+                eligibleTrinketIDs: eligibleTrinketIDs,
+                context: context,
+                using: &randomNumberGenerator
+            )
+        case .trinket:
+            return trinketOrGenerated(
+                id: id,
+                rarity: .astral,
+                ownedTrinketIDs: ownedTrinketIDs,
+                reservedTrinketIDs: reservedTrinketIDs,
+                eligibleTrinketIDs: eligibleTrinketIDs,
+                context: context,
+                using: &randomNumberGenerator
+            )
+        case .astral, .basic:
+            return generated(
+                id: id,
+                rarity: tier == .astral ? .astral : .basic,
+                context: context,
+                using: &randomNumberGenerator
+            )
         }
+    }
 
-        let normalBases = fallbackBaseType.map { [$0] } ?? baseTypes.filter { $0.slot != .trinket }
+    /// Picks an unowned Trinket honoring pool filters; an empty pool degrades to
+    /// a generated Astral item (the old coin-flip's fall-through path).
+    private static func trinketOrGenerated(
+        id: String,
+        rarity: Rarity,
+        ownedTrinketIDs: Set<String>,
+        reservedTrinketIDs: Set<String>,
+        eligibleTrinketIDs: Set<String>?,
+        context: RewardContext,
+        using randomNumberGenerator: inout some RandomNumberGenerator
+    ) -> InventoryItem {
+        var trinkets = GameContent.trinketItems.filter {
+            !ownedTrinketIDs.contains($0.templateID)
+                && !reservedTrinketIDs.contains($0.templateID)
+        }
+        if let eligibleTrinketIDs {
+            trinkets = trinkets.filter { eligibleTrinketIDs.contains($0.templateID) }
+        }
+        if !context.keywordBias.isEmpty {
+            trinkets = trinkets.filter { !$0.keywords.isDisjoint(with: context.keywordBias) }
+        }
+        if !trinkets.isEmpty, let trinket = trinkets.randomElement(using: &randomNumberGenerator) {
+            return trinket
+        }
+        return generated(id: id, rarity: rarity, context: context, using: &randomNumberGenerator)
+    }
+
+    private static func generated(
+        id: String,
+        rarity: Rarity,
+        context: RewardContext,
+        using randomNumberGenerator: inout some RandomNumberGenerator
+    ) -> InventoryItem {
+        let normalBases = context.fallbackBaseType.map { [$0] }
+            ?? context.baseTypes.filter { $0.slot != .trinket }
         precondition(!normalBases.isEmpty, "Item rewards require at least one non-Trinket base type.")
-        let biasedBases = keywordBias.isEmpty
+        let biasedBases = context.keywordBias.isEmpty
             ? normalBases
-            : normalBases.filter { !$0.keywordAffinities.isDisjoint(with: keywordBias) }
+            : normalBases.filter { !$0.keywordAffinities.isDisjoint(with: context.keywordBias) }
         let pool = biasedBases.isEmpty ? normalBases : biasedBases
         let baseType = pool.randomElement(using: &randomNumberGenerator) ?? pool[0]
-        return itemGenerator.generate(
+        return context.itemGenerator.generate(
             id: id,
             templateID: "\(baseType.id)-\(rarity.rawValue)",
             baseType: baseType,
             rarity: rarity,
-            keywordBias: keywordBias,
-            guaranteedAffixIDs: guaranteedAffixIDs,
+            keywordBias: context.keywordBias,
+            guaranteedAffixIDs: context.guaranteedAffixIDs,
             using: &randomNumberGenerator
         )
     }

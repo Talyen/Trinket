@@ -13,29 +13,7 @@ final class CombatFeedbackGlyphAtlas {
     static let shared = CombatFeedbackGlyphAtlas()
 
     struct Face: Hashable {
-        /// Two faces match the chip typography tiers (emphasis ≈34pt, normal ≈28pt).
-        enum Typography: Hashable, CaseIterable {
-            case emphasis
-            case normal
-
-            init(feedbackClass: CombatFeedbackClass) {
-                switch feedbackClass {
-                case .critical, .deathsDoor:
-                    self = .emphasis
-                case .directDamage, .heal, .dot, .block, .dodge, .control, .buff, .resource:
-                    self = .normal
-                }
-            }
-
-            var representativeClass: CombatFeedbackClass {
-                switch self {
-                case .emphasis: .critical
-                case .normal: .heal
-                }
-            }
-        }
-
-        let typography: Typography
+        let typography: CombatFeedbackTypographyTier
         let presentationRole: CombatFeedbackPresentationRole
         let displayScaleHundredths: Int
 
@@ -44,13 +22,13 @@ final class CombatFeedbackGlyphAtlas {
             presentationRole: CombatFeedbackPresentationRole = .headline,
             displayScaleHundredths: Int
         ) {
-            typography = Typography(feedbackClass: feedbackClass)
+            typography = feedbackClass.typographyTier
             self.presentationRole = presentationRole
             self.displayScaleHundredths = displayScaleHundredths
         }
 
         init(
-            typography: Typography,
+            typography: CombatFeedbackTypographyTier,
             presentationRole: CombatFeedbackPresentationRole = .headline,
             displayScaleHundredths: Int
         ) {
@@ -166,14 +144,6 @@ final class CombatFeedbackGlyphAtlas {
         }
     }
 
-    func isBattlePresentationPrepared(displayScale: CGFloat) -> Bool {
-        preparedPresentationKeys.contains(PresentationKey(displayScale: displayScale))
-    }
-
-    var hasPendingBattlePresentationPreparation: Bool {
-        pendingPrewarm != nil
-    }
-
     /// Builds immutable atlas entries away from the main actor. UIKit/Core Graphics
     /// image renderers are safe for background bitmap construction; only the final
     /// dictionary publication returns to the actor that owns the battle-scoped cache.
@@ -228,9 +198,8 @@ final class CombatFeedbackGlyphAtlas {
         let numericFragments = CombatFeedbackChipLabel.numericAtlasFragments
         var requests: [PrewarmRequest] = []
 
-        for typography in Face.Typography.allCases {
-            let feedbackClass = typography.representativeClass
-            let recipe = CombatFeedbackChipRecipes.chip(for: feedbackClass)
+        for typography in CombatFeedbackTypographyTier.allCases {
+            let recipe = CombatFeedbackChipStyle.forClass(typography.representativeClass)
             for role in CombatFeedbackPresentationRole.allCases {
                 let face = Face(
                     typography: typography,
@@ -267,7 +236,7 @@ final class CombatFeedbackGlyphAtlas {
     /// Icon-only / dual-icon chips (dodge, Death's Door, cleanse, status, …) need
     /// no text fragments. Numerics use `numericAtlasFragments`.
     nonisolated static func wordAtlasCases(
-        for typography: Face.Typography
+        for typography: CombatFeedbackTypographyTier
     ) -> [CombatFeedbackChipWord] {
         switch typography {
         case .emphasis:
@@ -369,6 +338,16 @@ final class CombatFeedbackGlyphAtlas {
         }
         guard let cgImage = rendered.cgImage else { return nil }
         return Glyph(image: cgImage, width: pointSize.width, height: pointSize.height)
+    }
+}
+
+private extension CombatFeedbackTypographyTier {
+    /// Sample class per tier for atlas prewarm requests.
+    var representativeClass: CombatFeedbackClass {
+        switch self {
+        case .emphasis: .critical
+        case .normal: .heal
+        }
     }
 }
 

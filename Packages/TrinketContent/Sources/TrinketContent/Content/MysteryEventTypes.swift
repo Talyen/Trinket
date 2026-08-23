@@ -6,7 +6,8 @@ public enum MysteryEffect: Hashable, Sendable {
     case gainMaterial(HomesteadResource)
     /// Grants ~1 equal-level battle of XP to the active hero and companion.
     case gainExperience
-    /// Procedural item: rarity is rolled 80% basic / 20% astral at grant time.
+    /// Procedural item: rarity rolls on the normal-content ladder (never Unique),
+    /// keeping the authored base type and guaranteed affixes.
     case gainGeneratedItem(baseTypeID: String, guaranteedAffixIDs: [String] = [])
     case gainRandomItem
     /// Unlocks a hero or companion on the player roster (idempotent at apply time).
@@ -60,16 +61,16 @@ public struct MysteryEvent: Identifiable, Hashable, Sendable {
 }
 
 public enum MysteryItemRarity {
-    public static let baseAstralChancePercent = 20
-
-    /// 80% basic / 20% astral by default; homestead Moonlit Sanctum adds to astral chance.
+    /// Normal-content drop ladder with Uniques excluded (their band folds into
+    /// Astral): themed mystery rewards must keep their authored base type and affixes.
     public static func roll(
         astralChanceBonusPercent: Int = 0,
         using randomNumberGenerator: inout some RandomNumberGenerator
-    ) -> Rarity {
+    ) -> ItemDropTier {
         ItemRarityRoll.roll(
-            baseAstralChancePercent: baseAstralChancePercent,
+            bossContent: false,
             astralChanceBonusPercent: astralChanceBonusPercent,
+            allowsUnique: false,
             using: &randomNumberGenerator
         )
     }

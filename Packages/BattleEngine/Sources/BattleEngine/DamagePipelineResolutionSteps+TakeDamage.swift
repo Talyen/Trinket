@@ -11,7 +11,7 @@ package extension DamagePipeline {
         // Ironhide: the defender cannot take more than `maxDamagePerHitCap` from a
         // single enemy attack hit (DoT ticks and retaliation are uncapped).
         let cap = context.modifiers(for: state.combatant.id).triggers.maxDamagePerHitCap
-        if cap > 0, state.isAttackHit, !state.isRetaliation,
+        if cap > 0, state.options.isAttackHit, !state.options.isRetaliation,
            let sourceActorID = state.sourceActorID,
            context.roster.combatant(for: sourceActorID)?.role == .enemy {
             state.remaining = min(state.remaining, cap)
@@ -34,8 +34,8 @@ package extension DamagePipeline {
             ))
             state.damageEvents.append(contentsOf: applyTalentDamageReactions(
                 defender: state.combatant,
-                isRetaliation: state.isRetaliation,
-                isAttackHit: state.isAttackHit,
+                isRetaliation: state.options.isRetaliation,
+                isAttackHit: state.options.isAttackHit,
                 in: &context
             ))
             state.damageEvents.append(contentsOf: applyCompanionLeechToHero(

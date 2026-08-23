@@ -40,6 +40,7 @@ public struct ManaTriggers: Equatable, Hashable, Sendable {
     public var drawEveryOtherTurn: Int = 0
     public var drawOnHealthLoss: Int = 0
     public var companionCardsPerTurn: Int = 0
+    public var onFreezeEnemyGainManaEqualBlock: Bool = false
 
     public init(
         spendManaBlockFlat: Int = 0,
@@ -77,7 +78,8 @@ public struct ManaTriggers: Equatable, Hashable, Sendable {
         onBurnDamageRestoreManaFlat: Int = 0,
         drawEveryOtherTurn: Int = 0,
         drawOnHealthLoss: Int = 0,
-        companionCardsPerTurn: Int = 0
+        companionCardsPerTurn: Int = 0,
+        onFreezeEnemyGainManaEqualBlock: Bool = false
     ) {
         self.spendManaBlockFlat = spendManaBlockFlat
         self.spendManaRandomDoTFlat = spendManaRandomDoTFlat
@@ -115,6 +117,7 @@ public struct ManaTriggers: Equatable, Hashable, Sendable {
         self.drawEveryOtherTurn = drawEveryOtherTurn
         self.drawOnHealthLoss = drawOnHealthLoss
         self.companionCardsPerTurn = companionCardsPerTurn
+        self.onFreezeEnemyGainManaEqualBlock = onFreezeEnemyGainManaEqualBlock
     }
 }
 
@@ -156,6 +159,7 @@ extension ManaTriggers {
         drawEveryOtherTurn += other.drawEveryOtherTurn
         drawOnHealthLoss += other.drawOnHealthLoss
         companionCardsPerTurn += other.companionCardsPerTurn
+        onFreezeEnemyGainManaEqualBlock = onFreezeEnemyGainManaEqualBlock || other.onFreezeEnemyGainManaEqualBlock
     }
 }
 
@@ -198,7 +202,8 @@ extension ManaTriggers {
             onBurnDamageRestoreManaFlat: values.decode(Int.self, "onBurnDamageRestoreManaFlat", default: 0),
             drawEveryOtherTurn: values.decode(Int.self, "drawEveryOtherTurn", default: 0),
             drawOnHealthLoss: values.decode(Int.self, "drawOnHealthLoss", default: 0),
-            companionCardsPerTurn: values.decode(Int.self, "companionCardsPerTurn", default: 0)
+            companionCardsPerTurn: values.decode(Int.self, "companionCardsPerTurn", default: 0),
+            onFreezeEnemyGainManaEqualBlock: values.decode(Bool.self, "onFreezeEnemyGainManaEqualBlock", default: false)
         )
     }
 
@@ -239,5 +244,6 @@ extension ManaTriggers {
         try container.encodeNonDefault(drawEveryOtherTurn, "drawEveryOtherTurn", default: 0)
         try container.encodeNonDefault(drawOnHealthLoss, "drawOnHealthLoss", default: 0)
         try container.encodeNonDefault(companionCardsPerTurn, "companionCardsPerTurn", default: 0)
+        try container.encodeNonDefault(onFreezeEnemyGainManaEqualBlock, "onFreezeEnemyGainManaEqualBlock", default: false)
     }
 }

@@ -41,30 +41,64 @@ public struct CombatFeedbackKeyframeSample: Sendable, Equatable {
     }
 }
 
+/// The two chip typography tiers. Single source for class→font mapping:
+/// emphasis ≈34pt heavy (critical, deaths door), normal ≈28pt bold for the rest.
+public enum CombatFeedbackTypographyTier: Hashable, CaseIterable, Sendable {
+    case emphasis
+    case normal
+
+    public var fontWeight: Font.Weight {
+        switch self {
+        case .emphasis: .heavy
+        case .normal: .bold
+        }
+    }
+
+    public var textStyle: Font.TextStyle {
+        switch self {
+        case .emphasis: .largeTitle
+        case .normal: .title
+        }
+    }
+}
+
+public extension CombatFeedbackClass {
+    /// Which typography tier renders this feedback class.
+    var typographyTier: CombatFeedbackTypographyTier {
+        switch self {
+        case .critical, .deathsDoor:
+            .emphasis
+        case .directDamage, .heal, .dot, .block, .dodge, .control, .buff, .resource:
+            .normal
+        }
+    }
+}
+
 /// Visual styling for a floating combat chip class. All chips share one motion path.
 public struct CombatFeedbackChipStyle: Sendable, Equatable {
     public let feedbackClass: CombatFeedbackClass
-    public let chrome: ChipChromeRole
     public let fontWeight: Font.Weight
     /// Dynamic Type text style for the primary float label (rounded + monospaced digits).
     public let textStyle: Font.TextStyle
-    public let bouncesSymbol: Bool
-    public let showsSecondaryCaption: Bool
 
     public init(
         feedbackClass: CombatFeedbackClass,
-        chrome: ChipChromeRole,
         fontWeight: Font.Weight,
-        textStyle: Font.TextStyle,
-        bouncesSymbol: Bool,
-        showsSecondaryCaption: Bool
+        textStyle: Font.TextStyle
     ) {
         self.feedbackClass = feedbackClass
-        self.chrome = chrome
         self.fontWeight = fontWeight
         self.textStyle = textStyle
-        self.bouncesSymbol = bouncesSymbol
-        self.showsSecondaryCaption = showsSecondaryCaption
+    }
+
+    /// Chip styling derived from the shared typography tier mapping.
+    public static func forClass(_ feedbackClass: CombatFeedbackClass) -> Self {
+        let tier = feedbackClass.typographyTier
+        return Self(
+            feedbackClass: feedbackClass,
+            fontWeight: tier.fontWeight,
+            textStyle: tier.textStyle
+        )
     }
 }
 
@@ -281,14 +315,5 @@ public enum CombatFeedbackLayout: Sendable {
         let mixed = UInt64(bitPattern: Int64(seed)) &* 0x9E37_79B9_7F4A_7C15
         let shifted = mixed ^ (mixed >> 33)
         return CGFloat(shifted % 10000) / 10000
-    }
-
-    public static func particleCount(for feedbackClass: CombatFeedbackClass) -> Int {
-        switch feedbackClass {
-        case .critical: 8
-        case .directDamage, .heal: 5
-        case .dot, .block: 3
-        case .dodge, .control, .buff, .resource, .deathsDoor: 0
-        }
     }
 }

@@ -38,6 +38,17 @@ public enum CorruptionShine {
     ]
 }
 
+/// Ember stops for Unique items — card borders and every affix line.
+public enum UniqueShine {
+    public static let textColors: [Color] = [
+        TrinketDesign.Colors.warning,
+        TrinketDesign.Colors.warning.opacity(0.55),
+    ]
+    public static let borderColors: [Color] = [
+        TrinketDesign.Colors.warning,
+    ]
+}
+
 private func keywordShineColors(_ keywords: Set<Keyword>) -> [Color] {
     Keyword.allCases
         .filter(keywords.contains)
@@ -57,5 +68,15 @@ public extension View {
     /// Corruption-red shimmer for marked affix names.
     func corruptionShine() -> some View {
         colorShine(CorruptionShine.textColors)
+    }
+
+    /// Ember shimmer for Unique names and affixes while `isActive`.
+    @ViewBuilder
+    func uniqueShine(if isActive: Bool) -> some View {
+        if isActive {
+            colorShine(UniqueShine.textColors)
+        } else {
+            self
+        }
     }
 }

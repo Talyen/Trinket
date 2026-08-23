@@ -764,6 +764,12 @@
         "type": "Double",
         "default": "0",
         "merge": "add"
+      },
+      {
+        "name": "freezeDamageGrantsBlock",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
       }
     ]
   },
@@ -1058,6 +1064,30 @@
         "type": "Int",
         "default": "0",
         "merge": "max"
+      },
+      {
+        "name": "burnProcsBleedChancePercent",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "bleedProcsBurnChancePercent",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "burnDamageLeech",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "bleedDamageLeech",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
       }
     ]
   },
@@ -1211,6 +1241,12 @@
       },
       {
         "name": "turnFreezeDamageAllEnemies",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "stunPurgeDealHolyPerEffect",
         "type": "Int",
         "default": "0",
         "merge": "add"
@@ -1382,6 +1418,12 @@
         "type": "Double",
         "default": "0",
         "merge": "max"
+      },
+      {
+        "name": "onDodgeDrawAndPlayCardChainOnCrit",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
       }
     ]
   },
@@ -1604,6 +1646,12 @@
         "type": "Int",
         "default": "0",
         "merge": "add"
+      },
+      {
+        "name": "onFreezeEnemyGainManaEqualBlock",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
       }
     ]
   },

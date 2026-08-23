@@ -19,7 +19,7 @@ struct CleansePurgeHandler: BattleEffectHandler {
             }
         }
 
-        var appliedEffectKind: ActionEvent.EffectKind {
+        var appliedEffectKind: ActionEvent.EffectOutcome {
             switch self {
             case .cleanse, .cleanseRandom: .cleanseApplied
             case .purge, .purgeRandom: .purgeApplied

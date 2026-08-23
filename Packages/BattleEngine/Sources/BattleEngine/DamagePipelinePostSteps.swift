@@ -42,7 +42,7 @@ package extension DamagePipeline {
             sourceActorID: sourceActorID,
             target: state.combatant,
             blockedAmount: state.blockedAmount,
-            abilityHasLeech: state.abilityHasLeech,
+            abilityHasLeech: state.options.abilityHasLeech,
             damageKeyword: state.damageKeyword,
             in: &context
         )
@@ -65,7 +65,7 @@ package extension DamagePipeline {
             state.damageEvents.append(contentsOf: CombatTriggerEngine.afterHolyDamageDealt(
                 to: state.combatant,
                 source: source.combatant,
-                isAttackHit: state.isAttackHit,
+                isAttackHit: state.options.isAttackHit,
                 in: &context
             ))
         case .stun:
@@ -78,6 +78,13 @@ package extension DamagePipeline {
             state.damageEvents.append(contentsOf: CombatTriggerEngine.afterBurnDamageDealt(
                 to: state.combatant,
                 source: source.combatant,
+                in: &context
+            ))
+        case .freeze:
+            state.damageEvents.append(contentsOf: CombatTriggerEngine.afterFreezeDamageDealt(
+                to: state.combatant,
+                source: source.combatant,
+                amount: state.healthLost,
                 in: &context
             ))
         default:
@@ -105,7 +112,7 @@ package extension DamagePipeline {
             ))
         }
 
-        guard state.isAttackHit else { return }
+        guard state.options.isAttackHit else { return }
         applyPhysicalAttackReactions(
             to: &state,
             source: source,
@@ -235,7 +242,7 @@ package extension DamagePipeline {
     ) {
         let target = state.combatant
         let targetAlive = context.roster.health(for: target) > 0
-        if triggers.attacksApplyPoison > 0, state.isBasicAttackHit, targetAlive {
+        if triggers.attacksApplyPoison > 0, state.options.isBasicAttackHit, targetAlive {
             state.damageEvents.append(contentsOf: context.applyDecayingDoT(
                 keyword: .poison,
                 potency: triggers.attacksApplyPoison,
@@ -329,7 +336,7 @@ package extension DamagePipeline {
         triggers: CombatTraitTriggers,
         in context: inout BattleState
     ) {
-        guard state.isBasicAttackHit, context.roster.health(for: state.combatant) > 0 else { return }
+        guard state.options.isBasicAttackHit, context.roster.health(for: state.combatant) > 0 else { return }
         let target = state.combatant
         if triggers.basicAttackApplyBleed > 0 {
             state.damageEvents.append(contentsOf: DoTApplicator.applyBleed(
@@ -419,28 +426,11 @@ package extension DamagePipeline {
             ))
         }
         if source.role == .hero, targetIsPoisoned, targetAlive {
-            state.damageEvents.append(contentsOf: applyCompanionSpitPoison(
+            state.damageEvents.append(contentsOf: CombatTriggerEngine.companionSpitPoison(
                 to: target,
                 in: &context
             ))
         }
-    }
-
-    private static func applyCompanionSpitPoison(
-        to target: Combatant,
-        in context: inout BattleState
-    ) -> [ActionEvent] {
-        guard let companionTriggers = CombatTriggerEngine.companionReactingToHeroTriggers(in: context),
-              companionTriggers.onHeroAttackPoisonedEnemyApplyPoison > 0
-        else { return [] }
-        return context.applyDecayingDoT(
-            keyword: .poison,
-            potency: companionTriggers.onHeroAttackPoisonedEnemyApplyPoison,
-            to: target,
-            sourceActorID: context.roster.companion.id,
-            dealImmediateDamage: false,
-            suppressAffixReactions: true
-        )
     }
 
     /// Chance-based on-hit applications (Direct Hit Bleed, Ambush Bleed, Raise Minion).
@@ -464,7 +454,7 @@ package extension DamagePipeline {
                 in: &context
             ))
         }
-        if triggers.attackApplyBleed > 0, state.qualifiesForAmbush, targetAlive {
+        if triggers.attackApplyBleed > 0, state.options.qualifiesForAmbush, targetAlive {
             state.damageEvents.append(contentsOf: DoTApplicator.applyBleed(
                 potency: triggers.attackApplyBleed,
                 to: target,
@@ -533,7 +523,7 @@ package extension DamagePipeline {
         guard state.buildupDamage > 0,
               let damageKeyword = state.damageKeyword,
               damageKeyword == .stun || damageKeyword == .freeze,
-              !state.isRetaliation || state.applyControlMeter,
+              !state.options.isRetaliation || state.options.applyControlMeter,
               context.roster.health(for: state.combatant) > 0
         else { return }
         // `buildupDamage` is post-mitigation damage already fight-paced in resolution.

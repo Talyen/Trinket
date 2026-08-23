@@ -74,9 +74,18 @@ public struct ItemDetailView: View {
 
     private var showsSalvageAction: Bool {
         !item.isTrinket
+            && item.rarity != .unique
             && onSalvage != nil
             && primaryActionTitle == nil
             && purchasePrice == nil
+    }
+
+    /// Every affix on a Unique carries the ember shine; corruption cannot coexist.
+    private func uniqueAffixShineColors(_ affix: ItemAffix) -> [Color]? {
+        if item.rarity == .unique {
+            return UniqueShine.textColors
+        }
+        return affix.isCorrupted ? CorruptionShine.textColors : nil
     }
 
     public var body: some View {
@@ -89,6 +98,7 @@ public struct ItemDetailView: View {
                         : item.rarity.label.uppercased(),
                     title: item.displayName,
                     titleKeywords: item.rarity == .astral ? item.baseType.keywordAffinities : [],
+                    titleShineColors: item.rarity == .unique ? UniqueShine.textColors : nil,
                     baseHeight: $0,
                     overscroll: $1
                 ) {
@@ -104,7 +114,7 @@ public struct ItemDetailView: View {
                                 title: affix.title,
                                 description: affix.description,
                                 titleKeywords: item.isPerfectAffix(at: index) ? affix.keywords : [],
-                                titleShineColors: affix.isCorrupted ? CorruptionShine.textColors : nil
+                                titleShineColors: uniqueAffixShineColors(affix)
                             )
                         }
                     }

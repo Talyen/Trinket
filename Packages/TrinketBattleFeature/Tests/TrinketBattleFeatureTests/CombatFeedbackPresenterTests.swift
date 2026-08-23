@@ -35,7 +35,6 @@ struct CombatFeedbackPresenterTests {
         )
         #expect(critical.count == 1)
         #expect(critical[0].feedbackClass == .critical)
-        #expect(critical[0].secondaryText == nil)
         #expect(critical[0].reactionKind == .critical)
         #expect(critical[0].sourceEventIDs == [10])
 
@@ -249,9 +248,6 @@ struct CombatFeedbackPresenterTests {
             at: .now
         )
         #expect(directAndStatus.map(\.feedbackClass) == [.directDamage, .dot])
-        #expect(directAndStatus.allSatisfy {
-            $0.lifetime == TrinketMotion.Battle.chipDisplayDuration
-        })
     }
 
     @Test func assignsPriorityAndPresentationRolesDeterministically() {
@@ -316,7 +312,7 @@ struct CombatFeedbackPresenterTests {
     private func makeEvent(
         id: Int,
         kind: ActionEvent.Kind,
-        effectKind: ActionEvent.EffectKind? = nil,
+        effectKind: ActionEvent.EffectOutcome? = nil,
         amount: Int,
         keyword: Keyword,
         targetID: String = "enemy",
@@ -354,10 +350,9 @@ extension CombatFeedbackPresenterTests {
             at: Date(timeIntervalSince1970: 10.65)
         )
 
-        let groups = CombatFeedbackOverlayPolicy.visibleActionGroups(from: first + second)
+        let chips = CombatFeedbackOverlayPolicy.orderedChips(from: first + second)
 
-        #expect(groups.map(\.id) == [1, 2])
-        #expect(groups.flatMap(\.items).map(\.id) == [1, 2])
+        #expect(chips.map(\.id) == [1, 2])
 
         let mixed = CombatFeedbackPresenter.makeItems(
             from: [
@@ -372,16 +367,15 @@ extension CombatFeedbackPresenterTests {
             ],
             at: Date(timeIntervalSince1970: 10)
         )
-        let mixedGroups = CombatFeedbackOverlayPolicy.visibleActionGroups(from: mixed)
-        let canvasItems = CombatFeedbackOverlayPolicy.canvasItems(from: mixedGroups)
+        let mixedChips = CombatFeedbackOverlayPolicy.orderedChips(from: mixed)
 
-        #expect(canvasItems.count == 2)
-        #expect(canvasItems.map(\.label) == [
+        #expect(mixedChips.count == 2)
+        #expect(mixedChips.map(\.label) == [
             .amount(-7),
             .amount(4),
         ])
-        #expect(canvasItems.map(\.item.feedbackClass) == [.directDamage, .buff])
-        #expect(canvasItems.allSatisfy { !$0.text.contains("Effect") })
+        #expect(mixedChips.map(\.feedbackClass) == [.directDamage, .buff])
+        #expect(mixedChips.allSatisfy { !$0.label.displayString.contains("Effect") })
     }
 
     @Test func suppressesCardsControlBuildupAndNumericZeroesButNamesZeroValueStatuses() {
@@ -458,7 +452,6 @@ extension CombatFeedbackPresenterTests {
 
         #expect(lane.activeItems.count == 1)
         #expect(lane.activeItems[0].text == "4")
-        #expect(lane.activeItems[0].pulseToken == 0)
 
         let nextTime = start.addingTimeInterval(0.2)
         let event2 = makeEvent(id: 2, kind: .abilityDamage, amount: 3, keyword: .burn)
@@ -466,7 +459,6 @@ extension CombatFeedbackPresenterTests {
 
         #expect(lane.activeItems.count == 1)
         #expect(lane.activeItems[0].text == "7")
-        #expect(lane.activeItems[0].pulseToken == 1)
         #expect(lane.activeItems[0].availableAt == nextTime)
         #expect(lane.activeItems[0].expiresAt == nextTime.addingTimeInterval(TrinketMotion.Battle.chipDisplayDuration))
         #expect(playedSFX.count == 2)

@@ -1,6 +1,7 @@
 import Testing
 import TrinketContent
 import TrinketCore
+@testable import BattleBalanceTools
 @testable import BattleEngine
 
 struct GreedyHeuristicPolicyTests {
@@ -91,8 +92,8 @@ struct GreedyHeuristicPolicyTests {
     }
 
     @Test func simulationPoliciesMakeRejectsUnknownIDs() {
-        #expect(SimulationPolicies.make(id: SimulationPolicies.greedyID)?.id == SimulationPolicies.greedyID)
-        #expect(SimulationPolicies.make(id: SimulationPolicies.setupID)?.id == SimulationPolicies.setupID)
+        #expect(SimulationPolicies.make(id: GreedyHeuristicPolicy.id)?.id == GreedyHeuristicPolicy.id)
+        #expect(SimulationPolicies.make(id: SetupAwareHeuristicPolicy.id)?.id == SetupAwareHeuristicPolicy.id)
         #expect(SimulationPolicies.make(id: "setup-v2") == nil)
     }
 }

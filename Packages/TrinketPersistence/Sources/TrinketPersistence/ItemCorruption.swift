@@ -4,7 +4,6 @@ import TrinketCore
 
 enum CorruptionEffectKind: String, CaseIterable, Equatable, Sendable {
     case addAffix
-    case removeAffix
     case replaceAffix
     case bumpUp
     case bumpDown
@@ -13,7 +12,6 @@ enum CorruptionEffectKind: String, CaseIterable, Equatable, Sendable {
 
 public enum CorruptionEffectSummary: Equatable, Sendable {
     case addedAffix(title: String)
-    case removedAffix(title: String)
     case replacedAffix(from: String, to: String)
     case bumpedUp(affixTitle: String)
     case bumpedDown(affixTitle: String)
@@ -42,15 +40,17 @@ public enum ItemCorruptionApplyResult: Equatable, Sendable {
 /// Chaos mutation rules for the Corruption Altar mystery event.
 public enum ItemCorruption {
     public static let maxAffixCount = 5
-    public static let addChancePercent = 35
-    public static let removeChancePercent = 35
+    public static let addChancePercent = 50
     public static let replaceChancePercent = 30
     public static let bumpUpChancePercent = 40
-    public static let bumpDownChancePercent = 40
-    public static let upgradeRarityChancePercent = 25
+    public static let bumpDownChancePercent = 20
+    public static let upgradeRarityChancePercent = 50
 
     public static func isEligibleTarget(_ item: InventoryItem) -> Bool {
-        !item.isTrinket && !(item.isCorrupted || item.hasCorruptedAffix) && !item.affixes.isEmpty
+        !item.isTrinket
+            && item.rarity != .unique
+            && !(item.isCorrupted || item.hasCorruptedAffix)
+            && !item.affixes.isEmpty
     }
 
     public static func eligibleTargets(in inventory: PlayerInventoryState) -> [InventoryItem] {
@@ -87,9 +87,6 @@ public enum ItemCorruption {
 
     static func eligibleKinds(for item: InventoryItem) -> Set<CorruptionEffectKind> {
         var kinds: Set<CorruptionEffectKind> = []
-        if item.affixes.count >= 2 {
-            kinds.insert(.removeAffix)
-        }
         if item.affixes.count < maxAffixCount {
             kinds.insert(.addAffix)
         }
@@ -112,7 +109,6 @@ public enum ItemCorruption {
     private static func chancePercent(for kind: CorruptionEffectKind) -> Int {
         switch kind {
         case .addAffix: addChancePercent
-        case .removeAffix: removeChancePercent
         case .replaceAffix: replaceChancePercent
         case .bumpUp: bumpUpChancePercent
         case .bumpDown: bumpDownChancePercent
@@ -221,13 +217,6 @@ public enum ItemCorruption {
         using randomNumberGenerator: inout some RandomNumberGenerator
     ) {
         let catalog = GameContent.itemAffixDefinitions
-        if kinds.contains(.removeAffix), affixIDs.count >= 2 {
-            let index = Int.random(in: 0 ..< affixIDs.count, using: &randomNumberGenerator)
-            let removedID = affixIDs.remove(at: index)
-            let title = GameContent.itemAffixDefinition(matching: removedID)?.title ?? removedID
-            summaries.append(.removedAffix(title: title))
-        }
-
         if kinds.contains(.replaceAffix), !affixIDs.isEmpty {
             let index = Int.random(in: 0 ..< affixIDs.count, using: &randomNumberGenerator)
             let fromID = affixIDs[index]

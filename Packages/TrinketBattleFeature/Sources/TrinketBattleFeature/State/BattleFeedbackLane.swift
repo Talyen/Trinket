@@ -192,13 +192,10 @@ final class BattleFeedbackLane {
             keyword: existing.keyword,
             visualRole: existing.visualRole,
             label: mergedLabel,
-            secondaryText: existing.secondaryText,
-            lifetime: TrinketMotion.Battle.chipDisplayDuration,
             availableAt: newAvailableAt,
             expiresAt: newExpiresAt,
             reactionKind: existing.reactionKind,
-            firstScheduledAt: existing.firstScheduledAt,
-            pulseToken: existing.pulseToken + 1
+            firstScheduledAt: existing.firstScheduledAt
         )
         activeItems[matchIndex] = updated
         for id in item.sourceEventIDs {

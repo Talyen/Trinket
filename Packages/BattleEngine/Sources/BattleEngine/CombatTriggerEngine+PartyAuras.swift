@@ -40,7 +40,7 @@ package extension CombatTriggerEngine {
                 bonus += living.reduce(0) { $0 + $1.triggers.partyHolyDamageBonusWhileCompanionFullHealth }
             }
         }
-        if state.isBasicAttackHit, source.role != .enemy, damageKeyword == .holy {
+        if state.options.isBasicAttackHit, source.role != .enemy, damageKeyword == .holy {
             bonus += living.reduce(0) { $0 + $1.triggers.partyBasicAttackHolyBonus }
         }
         return bonus

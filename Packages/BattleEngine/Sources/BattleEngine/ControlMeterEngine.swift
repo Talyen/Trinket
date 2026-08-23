@@ -225,6 +225,30 @@ package enum ControlMeterEngine {
                 abilityName: "Glacial Barrier"
             ))
         }
+        // Rimeheart: freezing an enemy grants Mana equal to your current Block.
+        if keyword == .freeze,
+           combatant.role == .enemy,
+           let sourceActorID,
+           let source = context.roster.combatant(for: sourceActorID),
+           context.modifiers(for: sourceActorID).triggers.onFreezeEnemyGainManaEqualBlock {
+            let owner = source.combatant
+            let currentBlock = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: owner))
+            if currentBlock > 0 {
+                let restored = context.restoreMana(currentBlock, to: owner)
+                if restored > 0 {
+                    events.append(context.nextEvent(
+                        kind: .effect,
+                        effectKind: .resourceGain,
+                        actorName: owner.name,
+                        abilityName: "Rimeheart",
+                        target: owner,
+                        amount: restored,
+                        keyword: .mana
+                    ))
+                    events.append(contentsOf: CombatTriggerEngine.afterGainMana(by: owner, in: &context))
+                }
+            }
+        }
         // Volcanic Stun: Stunning the enemy also inflicts Burn.
         if keyword == .stun,
            combatant.role == .enemy,

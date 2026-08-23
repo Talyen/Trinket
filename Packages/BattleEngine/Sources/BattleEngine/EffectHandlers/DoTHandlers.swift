@@ -57,6 +57,13 @@ struct DecayingDoTHandler: BattleEffectHandler {
                 )
                 events.append(contentsOf: outcome.events)
                 if keyword == .burn, let sourceActorID = active.sourceActorID, let sourceTriggers {
+                    events.append(contentsOf: DoTMirrorCascade.resolve(
+                        keyword: .burn,
+                        initialHealthLost: outcome.healthLost,
+                        target: target,
+                        sourceActorID: sourceActorID,
+                        in: &context
+                    ))
                     if sourceTriggers.onBurnTickHolyDamage > 0 {
                         events.append(contentsOf: context.resolveDamage(
                             DamageRequest(
@@ -231,13 +238,23 @@ struct BleedHandler: BattleEffectHandler {
            BattleChance.succeeds(probability: sourceTriggers.bleedTickCritChancePercent, using: &context.rng) {
             tickPotency *= 2
         }
-        var events = DoTDamage.resolveTurnDamage(
+        let tickOutcome = DoTDamage.resolveTurnDamage(
             basePotency: tickPotency,
             keyword: .bleed,
             target: target,
             sourceActorID: active.sourceActorID,
             in: &context
-        ).events
+        )
+        var events = tickOutcome.events
+        if let attackerID = active.sourceActorID {
+            events.append(contentsOf: DoTMirrorCascade.resolve(
+                keyword: .bleed,
+                initialHealthLost: tickOutcome.healthLost,
+                target: target,
+                sourceActorID: attackerID,
+                in: &context
+            ))
+        }
 
         // Taste for Blood: dealing Bleed damage arms the owner's next basic attack as a guaranteed critical.
         if let sourceTriggers, sourceTriggers.onBleedDamageNextBasicGuaranteedCrit,
@@ -340,5 +357,45 @@ struct BleedHandler: BattleEffectHandler {
             in: &context
         )
         return EffectApplyOutcome(events: events, didApply: true)
+    }
+}
+
+/// Bloodfire-style mirror procs: a hit of one DoT keyword may immediately deal
+/// the other keyword at the same amount, chaining while successive rolls succeed.
+enum DoTMirrorCascade {
+    static let maxChainDepth = 5
+
+    static func resolve(
+        keyword: Keyword,
+        initialHealthLost: Int,
+        target: Combatant,
+        sourceActorID: String,
+        in context: inout BattleState
+    ) -> [ActionEvent] {
+        var events: [ActionEvent] = []
+        var currentKeyword = keyword
+        var currentAmount = initialHealthLost
+        for _ in 0 ..< maxChainDepth {
+            guard currentAmount > 0, context.roster.health(for: target) > 0 else { break }
+            let triggers = context.modifiers(for: sourceActorID).triggers
+            let chance: Double = switch currentKeyword {
+            case .burn: triggers.burnProcsBleedChancePercent
+            case .bleed: triggers.bleedProcsBurnChancePercent
+            default: 0
+            }
+            guard chance > 0, BattleChance.succeeds(probability: chance, using: &context.rng) else { break }
+            let mirrored: Keyword = currentKeyword == .burn ? .bleed : .burn
+            let outcome = DoTDamage.resolveTurnDamage(
+                basePotency: currentAmount,
+                keyword: mirrored,
+                target: target,
+                sourceActorID: sourceActorID,
+                in: &context
+            )
+            events.append(contentsOf: outcome.events)
+            currentKeyword = mirrored
+            currentAmount = outcome.healthLost
+        }
+        return events
     }
 }

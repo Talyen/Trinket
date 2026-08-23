@@ -73,7 +73,7 @@ public struct BalanceSweepConfig: Equatable, Codable, Sendable {
         workOffset: Int = 0,
         workLimit: Int? = nil,
         appliesFightPacing: Bool = true,
-        policyID: String = SimulationPolicies.greedyID,
+        policyID: String = GreedyHeuristicPolicy.id,
         comparePolicies: Bool = false,
         heroIDs: [String] = [],
         companionIDs: [String] = [],
@@ -151,7 +151,7 @@ public struct BalanceSweepConfig: Equatable, Codable, Sendable {
     }
 
     public var comparePolicy: any SimulationPlayPolicy {
-        policyID == SimulationPolicies.setupID
+        policyID == SetupAwareHeuristicPolicy.id
             ? GreedyHeuristicPolicy()
             : SetupAwareHeuristicPolicy()
     }

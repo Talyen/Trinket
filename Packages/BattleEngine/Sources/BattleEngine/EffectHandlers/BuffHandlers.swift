@@ -33,27 +33,15 @@ struct ThornsHandler: BattleEffectHandler {
             }
             return sum
         }
-        ActiveEffectMutation.removeMatching(from: target, in: &context) {
-            if case .thorns = $0 {
-                return true
-            }
-            return false
-        }
         let total = existing + amount
-        context.appendEffect(
+        let event = ActiveEffectMutation.replaceAndEmit(
             .thorns(total),
             to: target,
-            sourceID: source.id,
-            remainingTurns: 0
-        )
-        let event = context.nextEvent(
-            kind: .effect,
-            effectKind: .thornsApplied,
-            actorName: source.name,
-            abilityName: ability.name,
-            target: target,
-            amount: total,
-            keyword: .physical
+            source: source,
+            ability: ability,
+            in: &context,
+            replacing: { $0.kind == .thorns },
+            event: (.thornsApplied, total, .physical)
         )
         return EffectApplyOutcome(events: [event], didApply: true)
     }
@@ -85,21 +73,19 @@ struct OnHitDamageHandler: BattleEffectHandler {
         guard case let .onHitDamage(keyword, amount) = effect, amount > 0 else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
-        ActiveEffectMutation.removeMatching(from: target, in: &context) {
-            if case let .onHitDamage(existingKeyword, _) = $0 {
-                return existingKeyword == keyword
-            }
-            return false
-        }
-        context.appendEffect(.onHitDamage(keyword, amount), to: target, sourceID: source.id, remainingTurns: 0)
-        let event = context.nextEvent(
-            kind: .effect,
-            effectKind: .controlApplied,
-            actorName: source.name,
-            abilityName: ability.name,
-            target: target,
-            amount: amount,
-            keyword: keyword
+        let event = ActiveEffectMutation.replaceAndEmit(
+            .onHitDamage(keyword, amount),
+            to: target,
+            source: source,
+            ability: ability,
+            in: &context,
+            replacing: {
+                if case let .onHitDamage(existingKeyword, _) = $0 {
+                    return existingKeyword == keyword
+                }
+                return false
+            },
+            event: (.controlApplied, amount, keyword)
         )
         return EffectApplyOutcome(events: [event], didApply: true)
     }
@@ -123,21 +109,14 @@ struct MarkedHandler: BattleEffectHandler {
         guard case let .marked(bonus, durationTurns) = effect else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
-        ActiveEffectMutation.removeMatching(from: target, in: &context) {
-            if case .marked = $0 {
-                return true
-            }
-            return false
-        }
-        context.appendEffect(.marked(bonus, durationTurns), to: target, sourceID: source.id, remainingTurns: durationTurns)
-        let event = context.nextEvent(
-            kind: .effect,
-            effectKind: .markedApplied,
-            actorName: source.name,
-            abilityName: ability.name,
-            target: target,
-            amount: bonus,
-            keyword: .physical
+        let event = ActiveEffectMutation.replaceAndEmit(
+            .marked(bonus, durationTurns),
+            to: target,
+            source: source,
+            ability: ability,
+            in: &context,
+            replacing: { $0.kind == .marked },
+            event: (.markedApplied, bonus, .physical)
         )
         return EffectApplyOutcome(events: [event], didApply: true)
     }
@@ -178,21 +157,14 @@ struct CriticalChanceBonusHandler: BattleEffectHandler {
             return EffectApplyOutcome(events: [], didApply: false)
         }
         // Refresh replaces prior Focused stacks so combat chance matches the summary's max.
-        ActiveEffectMutation.removeMatching(from: target, in: &context) {
-            if case .criticalChanceBonus = $0 {
-                return true
-            }
-            return false
-        }
-        context.appendEffect(.criticalChanceBonus(percent, durationTurns), to: target, sourceID: source.id, remainingTurns: durationTurns)
-        let event = context.nextEvent(
-            kind: .effect,
-            effectKind: .criticalChanceApplied,
-            actorName: source.name,
-            abilityName: ability.name,
-            target: target,
-            amount: Int(percent * 100),
-            keyword: .physical
+        let event = ActiveEffectMutation.replaceAndEmit(
+            .criticalChanceBonus(percent, durationTurns),
+            to: target,
+            source: source,
+            ability: ability,
+            in: &context,
+            replacing: { $0.kind == .criticalChanceBonus },
+            event: (.criticalChanceApplied, Int(percent * 100), .physical)
         )
         return EffectApplyOutcome(events: [event], didApply: true)
     }
@@ -276,26 +248,14 @@ struct DamageKeywordOverrideHandler: BattleEffectHandler {
         guard case let .damageKeywordOverride(keyword, bonus, durationTurns) = effect else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
-        ActiveEffectMutation.removeMatching(from: target, in: &context) {
-            if case .damageKeywordOverride = $0 {
-                return true
-            }
-            return false
-        }
-        context.appendEffect(
+        let event = ActiveEffectMutation.replaceAndEmit(
             .damageKeywordOverride(keyword, bonus, durationTurns),
             to: target,
-            sourceID: source.id,
-            remainingTurns: durationTurns
-        )
-        let event = context.nextEvent(
-            kind: .effect,
-            effectKind: .damageKeywordOverrideApplied,
-            actorName: source.name,
-            abilityName: ability.name,
-            target: target,
-            amount: bonus,
-            keyword: keyword
+            source: source,
+            ability: ability,
+            in: &context,
+            replacing: { $0.kind == .damageKeywordOverride },
+            event: (.damageKeywordOverrideApplied, bonus, keyword)
         )
         return EffectApplyOutcome(events: [event], didApply: true)
     }

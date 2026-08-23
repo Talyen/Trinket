@@ -233,7 +233,9 @@ struct LabyrinthProgressTests {
                 encounterLevel: 3,
                 enemyIsBoss: false,
                 effects: effects,
-                worldSeed: 5
+                worldSeed: 5,
+                ownedTrinketIDs: [],
+                ownedUniqueIDs: []
             )
         }
 
@@ -263,15 +265,25 @@ struct LabyrinthProgressTests {
         let boss = try #require(save.labyrinth.nodes[bossID])
 
         let effects = save.labyrinth.effects(for: bossID)
-        let pending = try #require(
+        let pendingLoot = try #require(
             LabyrinthCompletion.resolveCombatLoot(
                 for: boss,
                 effects: effects,
-                worldSeed: save.labyrinth.worldSeed
-            )?.item
+                worldSeed: save.labyrinth.worldSeed,
+                ownedTrinketIDs: save.inventory.ownedTrinketIDs,
+                ownedUniqueIDs: save.inventory.ownedUniqueIDs
+            )
         )
-        #expect(pending.id == LabyrinthCompletion.rewardItemID(forNodeID: bossID))
-        #expect(pending.rarity == .astral)
+        let pending = pendingLoot.item
+        // Bosses never drop Basic; special tiers keep catalog identity while
+        // generated Astral loot uses the node roll id.
+        #expect(pending.rarity != .basic)
+        if pending.isTrinket || pending.rarity == .unique {
+            #expect(pending.id == pending.templateID)
+        } else {
+            #expect(pending.rarity == .astral)
+            #expect(pending.id == LabyrinthCompletion.rewardItemID(forNodeID: bossID))
+        }
 
         LabyrinthCompletion.complete(
             nodeID: bossID,

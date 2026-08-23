@@ -21,17 +21,19 @@ public extension GameContent {
     static let sampleInventoryItems: [InventoryItem] = itemBaseTypes
         .filter { $0.slot != .trinket }
         .flatMap { base in
-            Rarity.allCases.map { rarity in
-                var randomNumberGenerator = SeededRandomNumberGenerator(
-                    seed: stableSeed(for: "\(base.id)-\(rarity.rawValue)")
-                )
-                return ItemGenerator().generate(
-                    id: "\(base.id)-\(rarity.rawValue)",
-                    baseType: base,
-                    rarity: rarity,
-                    using: &randomNumberGenerator
-                )
-            }
+            Rarity.allCases
+                .filter { $0 != .unique }
+                .map { rarity in
+                    var randomNumberGenerator = SeededRandomNumberGenerator(
+                        seed: stableSeed(for: "\(base.id)-\(rarity.rawValue)")
+                    )
+                    return ItemGenerator().generate(
+                        id: "\(base.id)-\(rarity.rawValue)",
+                        baseType: base,
+                        rarity: rarity,
+                        using: &randomNumberGenerator
+                    )
+                }
         }
 
     static let itemTemplatesByID: [String: InventoryItem] = {

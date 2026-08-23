@@ -12,7 +12,7 @@ package enum DamagePipeline {
         in context: inout BattleState
     ) {
         // Authored "Lose N Health" costs are exact HP — not attacks.
-        if state.isHealthCost {
+        if state.options.isHealthCost {
             state.remaining = state.amount
             state.dealt = state.amount
             applyTakeDamage(to: &state, in: &context)
@@ -46,12 +46,12 @@ package enum DamagePipeline {
         // Blinding Light / Radiant Barrier / mana restore. Blinding Light itself
         // also requires a direct attack hit. Dodge-caused hits still charge stun
         // when `applyControlMeter` is set; they do not re-enter `afterDodge`.
-        if !state.isRetaliation {
+        if !state.options.isRetaliation {
             applyControlMeter(to: &state, in: &context)
             applyReactiveOnHit(to: &state, in: &context)
             applyKeywordReactions(to: &state, in: &context)
             applyCriticalReaction(to: &state, in: &context)
-        } else if state.applyControlMeter {
+        } else if state.options.applyControlMeter {
             // Trait control damage (Frostwarden freeze) charges the meter without
             // re-entering the reaction pipelines.
             applyControlMeter(to: &state, in: &context)

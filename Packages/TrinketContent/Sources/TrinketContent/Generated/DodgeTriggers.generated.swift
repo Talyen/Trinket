@@ -31,6 +31,7 @@ public struct DodgeTriggers: Equatable, Hashable, Sendable {
     public var swapAndDodgeForHeroChance: Double = 0
     public var redirectSingleTargetAttacksToHero: Bool = false
     public var untargetableAboveHealthPercent: Double = 0
+    public var onDodgeDrawAndPlayCardChainOnCrit: Bool = false
 
     public init(
         dodgeChanceBonus: Double = 0,
@@ -59,7 +60,8 @@ public struct DodgeTriggers: Equatable, Hashable, Sendable {
         firstAttackGuaranteedCritical: Bool = false,
         swapAndDodgeForHeroChance: Double = 0,
         redirectSingleTargetAttacksToHero: Bool = false,
-        untargetableAboveHealthPercent: Double = 0
+        untargetableAboveHealthPercent: Double = 0,
+        onDodgeDrawAndPlayCardChainOnCrit: Bool = false
     ) {
         self.dodgeChanceBonus = dodgeChanceBonus
         self.dodgeBlockFlat = dodgeBlockFlat
@@ -88,6 +90,7 @@ public struct DodgeTriggers: Equatable, Hashable, Sendable {
         self.swapAndDodgeForHeroChance = swapAndDodgeForHeroChance
         self.redirectSingleTargetAttacksToHero = redirectSingleTargetAttacksToHero
         self.untargetableAboveHealthPercent = untargetableAboveHealthPercent
+        self.onDodgeDrawAndPlayCardChainOnCrit = onDodgeDrawAndPlayCardChainOnCrit
     }
 }
 
@@ -120,6 +123,7 @@ extension DodgeTriggers {
         swapAndDodgeForHeroChance = max(swapAndDodgeForHeroChance, other.swapAndDodgeForHeroChance)
         redirectSingleTargetAttacksToHero = redirectSingleTargetAttacksToHero || other.redirectSingleTargetAttacksToHero
         untargetableAboveHealthPercent = max(untargetableAboveHealthPercent, other.untargetableAboveHealthPercent)
+        onDodgeDrawAndPlayCardChainOnCrit = onDodgeDrawAndPlayCardChainOnCrit || other.onDodgeDrawAndPlayCardChainOnCrit
     }
 }
 
@@ -153,7 +157,8 @@ extension DodgeTriggers {
             firstAttackGuaranteedCritical: values.decode(Bool.self, "firstAttackGuaranteedCritical", default: false),
             swapAndDodgeForHeroChance: values.decode(Double.self, "swapAndDodgeForHeroChance", default: 0),
             redirectSingleTargetAttacksToHero: values.decode(Bool.self, "redirectSingleTargetAttacksToHero", default: false),
-            untargetableAboveHealthPercent: values.decode(Double.self, "untargetableAboveHealthPercent", default: 0)
+            untargetableAboveHealthPercent: values.decode(Double.self, "untargetableAboveHealthPercent", default: 0),
+            onDodgeDrawAndPlayCardChainOnCrit: values.decode(Bool.self, "onDodgeDrawAndPlayCardChainOnCrit", default: false)
         )
     }
 
@@ -185,5 +190,6 @@ extension DodgeTriggers {
         try container.encodeNonDefault(swapAndDodgeForHeroChance, "swapAndDodgeForHeroChance", default: 0)
         try container.encodeNonDefault(redirectSingleTargetAttacksToHero, "redirectSingleTargetAttacksToHero", default: false)
         try container.encodeNonDefault(untargetableAboveHealthPercent, "untargetableAboveHealthPercent", default: 0)
+        try container.encodeNonDefault(onDodgeDrawAndPlayCardChainOnCrit, "onDodgeDrawAndPlayCardChainOnCrit", default: false)
     }
 }

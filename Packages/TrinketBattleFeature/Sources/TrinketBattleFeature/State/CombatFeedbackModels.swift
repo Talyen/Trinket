@@ -31,13 +31,10 @@ struct CombatFeedbackItem: Identifiable, Equatable {
     let keyword: Keyword
     let visualRole: CombatFeedbackVisualRole
     let label: CombatFeedbackChipLabel
-    let secondaryText: String?
-    let lifetime: TimeInterval
     let availableAt: Date
     let expiresAt: Date
     let reactionKind: CombatantHitReactionKind
     let firstScheduledAt: Date
-    let pulseToken: Int
 
     init(
         id: Int,
@@ -51,13 +48,10 @@ struct CombatFeedbackItem: Identifiable, Equatable {
         keyword: Keyword,
         visualRole: CombatFeedbackVisualRole,
         label: CombatFeedbackChipLabel,
-        secondaryText: String?,
-        lifetime: TimeInterval,
         availableAt: Date,
         expiresAt: Date,
         reactionKind: CombatantHitReactionKind,
-        firstScheduledAt: Date? = nil,
-        pulseToken: Int = 0
+        firstScheduledAt: Date? = nil
     ) {
         self.id = id
         self.sourceEventIDs = sourceEventIDs
@@ -70,13 +64,10 @@ struct CombatFeedbackItem: Identifiable, Equatable {
         self.keyword = keyword
         self.visualRole = visualRole
         self.label = label
-        self.secondaryText = secondaryText
-        self.lifetime = lifetime
         self.availableAt = availableAt
         self.expiresAt = expiresAt
         self.reactionKind = reactionKind
         self.firstScheduledAt = firstScheduledAt ?? availableAt
-        self.pulseToken = pulseToken
     }
 
     /// Derived display string for tests and debug tooling.
@@ -97,13 +88,10 @@ struct CombatFeedbackItem: Identifiable, Equatable {
             keyword: keyword,
             visualRole: visualRole,
             label: label,
-            secondaryText: secondaryText,
-            lifetime: TrinketMotion.Battle.chipDisplayDuration,
             availableAt: date,
             expiresAt: date.addingTimeInterval(TrinketMotion.Battle.chipDisplayDuration),
             reactionKind: reactionKind,
-            firstScheduledAt: firstScheduledAt,
-            pulseToken: pulseToken
+            firstScheduledAt: firstScheduledAt
         )
     }
 }

@@ -155,8 +155,6 @@ private extension CorruptionEffectSummary {
         switch self {
         case let .addedAffix(title):
             "Gained \(title)"
-        case let .removedAffix(title):
-            "Lost \(title)"
         case let .replacedAffix(from, to):
             "Remade \(from) into \(to)"
         case let .bumpedUp(affixTitle):
@@ -171,7 +169,6 @@ private extension CorruptionEffectSummary {
     var symbolName: String {
         switch self {
         case .addedAffix: "plus.circle.fill"
-        case .removedAffix: "minus.circle.fill"
         case .replacedAffix: "arrow.triangle.swap"
         case .bumpedUp: "arrow.up.circle.fill"
         case .bumpedDown: "arrow.down.circle.fill"
@@ -182,7 +179,7 @@ private extension CorruptionEffectSummary {
     var tintColor: Color? {
         switch self {
         case .addedAffix, .bumpedUp, .upgradedRarity: TrinketDesign.Colors.success
-        case .removedAffix, .bumpedDown: TrinketDesign.Colors.destructive
+        case .bumpedDown: TrinketDesign.Colors.destructive
         case .replacedAffix: nil
         }
     }

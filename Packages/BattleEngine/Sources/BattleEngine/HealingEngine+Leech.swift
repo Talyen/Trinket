@@ -39,6 +39,8 @@ package extension HealingEngine {
         leechPct = max(leechPct, buffPct)
         let keywordGrantsLeech = damageKeyword == .freeze && profile.triggers.freezeDamageLeech
             || damageKeyword == .poison && profile.triggers.poisonDamageLeech
+            || damageKeyword == .burn && profile.triggers.burnDamageLeech
+            || damageKeyword == .bleed && profile.triggers.bleedDamageLeech
         if leechPct == 0, keywordGrantsLeech {
             leechPct = Effect.abilityLeechPercent
         }

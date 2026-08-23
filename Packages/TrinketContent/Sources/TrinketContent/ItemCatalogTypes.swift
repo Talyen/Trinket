@@ -181,7 +181,7 @@ public struct ItemAffixDefinition: Identifiable, Equatable, Hashable, Sendable {
         switch rarity {
         case .basic:
             basic
-        case .astral:
+        case .astral, .unique:
             astral
         }
     }

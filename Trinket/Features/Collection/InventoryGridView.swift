@@ -136,7 +136,7 @@ extension ItemDetailView {
         guard isOwned else {
             return Self(item: item)
         }
-        guard !item.isTrinket else {
+        guard ItemSalvage.isEligible(item) else {
             return Self(item: item)
         }
         let yields = ItemSalvage.yields(for: item)

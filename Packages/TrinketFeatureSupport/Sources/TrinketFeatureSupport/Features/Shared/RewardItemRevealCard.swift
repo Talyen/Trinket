@@ -24,6 +24,11 @@ struct RewardItemRevealCard: View {
                 .frame(height: artworkHeight)
                 .clipShape(TrinketDesign.cardShape)
                 .trinketCardSurface()
+                .colorShineBorder(
+                    colors: item.rarity == .unique ? UniqueShine.borderColors : nil,
+                    cornerRadius: TrinketDesign.Corners.card,
+                    lineWidth: 2
+                )
                 .keywordShineBorder(
                     keywords: astralShineKeywords,
                     cornerRadius: TrinketDesign.Corners.card,
@@ -35,6 +40,7 @@ struct RewardItemRevealCard: View {
 
                 Text(balanced: item.displayName)
                     .trinketTypography(.sectionDisplay)
+                    .uniqueShine(if: item.rarity == .unique)
                     .multilineTextAlignment(.center)
             }
         }

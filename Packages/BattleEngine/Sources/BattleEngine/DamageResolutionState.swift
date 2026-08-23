@@ -38,22 +38,8 @@ package struct DamageResolutionState {
     public let combatant: Combatant
     public let sourceActorID: String?
     public let damageKeyword: Keyword?
-    public let applyStatBonus: Bool
-    public let applyItemBonus: Bool
-    public let applyDodge: Bool
-    public let abilityCriticalChanceBonus: Double
-    public let guaranteedCriticalIfEnemyBuffed: Bool
-    public let guaranteedCritical: Bool
-    public let isRetaliation: Bool
-    public let applyControlMeter: Bool
-    public let qualifiesForAmbush: Bool
-    public let isAttackHit: Bool
-    public let isBasicAttackHit: Bool
-    public let abilityHasLeech: Bool
-    /// Fixed ability health cost — pipeline runs TakeDamage + DeathsDoor only.
-    public let isHealthCost: Bool
-    /// Dodge of this hit must not re-enter `afterDodge`.
-    public let causedByDodge: Bool
+    /// Requested hit modifiers (bonuses, crit, dodge, reaction gating).
+    public let options: DamageOptions
 
     /// Damage remaining after each step. `BonusStep` initializes this to
     /// `amount + statBonus + itemBonus`; each subsequent step decrements it.
@@ -104,38 +90,12 @@ package struct DamageResolutionState {
         combatant: Combatant,
         sourceActorID: String?,
         damageKeyword: Keyword?,
-        applyStatBonus: Bool,
-        applyItemBonus: Bool,
-        applyDodge: Bool,
-        abilityCriticalChanceBonus: Double = 0,
-        guaranteedCriticalIfEnemyBuffed: Bool = false,
-        guaranteedCritical: Bool = false,
-        isRetaliation: Bool = false,
-        applyControlMeter: Bool = false,
-        qualifiesForAmbush: Bool = false,
-        isAttackHit: Bool = false,
-        isBasicAttackHit: Bool = false,
-        abilityHasLeech: Bool = false,
-        isHealthCost: Bool = false,
-        causedByDodge: Bool = false
+        options: DamageOptions
     ) {
         self.amount = amount
         self.combatant = combatant
         self.sourceActorID = sourceActorID
         self.damageKeyword = damageKeyword
-        self.applyStatBonus = applyStatBonus
-        self.applyItemBonus = applyItemBonus
-        self.applyDodge = applyDodge
-        self.abilityCriticalChanceBonus = abilityCriticalChanceBonus
-        self.guaranteedCriticalIfEnemyBuffed = guaranteedCriticalIfEnemyBuffed
-        self.guaranteedCritical = guaranteedCritical
-        self.isRetaliation = isRetaliation
-        self.applyControlMeter = applyControlMeter
-        self.qualifiesForAmbush = qualifiesForAmbush
-        self.isAttackHit = isAttackHit
-        self.isBasicAttackHit = isBasicAttackHit
-        self.abilityHasLeech = abilityHasLeech
-        self.isHealthCost = isHealthCost
-        self.causedByDodge = causedByDodge
+        self.options = options
     }
 }

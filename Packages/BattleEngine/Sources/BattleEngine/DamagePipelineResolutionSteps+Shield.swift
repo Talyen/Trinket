@@ -19,7 +19,7 @@ package extension DamagePipeline {
             case let .shield(keyword, buffer) = effects[index].effect,
             buffer > 0,
             state.remaining > 0,
-            !state.isHealthCost
+            !state.options.isHealthCost
         else {
             state.activeEffects = effects
             return

@@ -112,7 +112,9 @@ public struct BattleState {
 
     public static let defaultRNGSeed: UInt64 = 0
 
-    public init(
+    /// Full-state init for engine tests and simulation snapshots; production
+    /// callers use the new-battle convenience init below.
+    package init(
         roster: BattleRoster,
         rng: SeededRandomNumberGenerator,
         turnCount: Int = 0,

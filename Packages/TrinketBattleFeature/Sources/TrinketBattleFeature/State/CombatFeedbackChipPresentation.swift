@@ -20,7 +20,7 @@ struct CombatFeedbackChipPresentation {
         feedbackClass: CombatFeedbackClass
     ) -> Self {
         switch label {
-        case .amount, .percent:
+        case .amount:
             let tint = trailingStyle(
                 keyword: keyword,
                 visualRole: visualRole,

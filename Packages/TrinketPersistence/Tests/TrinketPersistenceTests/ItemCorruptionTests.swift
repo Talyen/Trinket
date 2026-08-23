@@ -11,6 +11,8 @@ struct ItemCorruptionTests {
         for _ in 0 ..< 40 {
             let result = try #require(ItemCorruption.corrupt(item, using: &rng))
             #expect(!result.item.affixes.isEmpty)
+            // Corruption never strips affixes, so every slot stays visibly filled.
+            #expect(result.item.affixes.count >= item.affixes.count)
             #expect(result.item.isCorrupted)
             #expect(result.item.affixPowers?.count == result.item.affixes.count)
             #expect(result.item.affixes.filter(\.isCorrupted).count == 1)
@@ -45,13 +47,14 @@ struct ItemCorruptionTests {
     }
 
     @Test func powerlessRollStillMarksASurvivor() throws {
-        let item = try makeItem(baseID: "longsword", rarity: .astral, affixCount: 2)
+        let item = try makeItem(baseID: "longsword", rarity: .basic, affixCount: 2)
         var rng = SeededRandomNumberGenerator(seed: 13)
 
-        // Removing one affix leaves no added/replaced/bumped candidate, so a survivor is marked.
-        let result = ItemCorruption.apply(kinds: [.removeAffix], to: item, using: &rng)
+        // A rarity-only roll leaves no structural or bump candidate, so a survivor is marked.
+        let result = ItemCorruption.apply(kinds: [.upgradeRarity], to: item, using: &rng)
 
-        #expect(result.item.affixes.count == 1)
+        #expect(result.item.rarity == .astral)
+        #expect(result.item.affixes.count == 2)
         #expect(result.item.affixes.filter(\.isCorrupted).count == 1)
     }
 

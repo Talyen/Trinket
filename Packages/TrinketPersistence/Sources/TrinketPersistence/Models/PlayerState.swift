@@ -30,6 +30,12 @@ public struct PlayerInventoryState: Equatable, Hashable, Sendable {
     public var ownedTrinketIDs: Set<String> {
         Set(items.filter(\.isTrinket).map(\.templateID))
     }
+
+    /// Template IDs of Unique items currently held; Uniques are unsalvageable,
+    /// so this doubles as the ever-obtained exclusion set.
+    public var ownedUniqueIDs: Set<String> {
+        Set(items.filter { $0.rarity == .unique }.map(\.templateID))
+    }
 }
 
 public struct PlayerRosterState: Equatable, Sendable {

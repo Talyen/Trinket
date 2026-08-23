@@ -90,12 +90,12 @@ final class CombatFeedbackRasterPool {
 
     /// Lookup-only. The display-link path prefers this before composing.
     func cachedRaster(
-        for canvasItem: CombatFeedbackCanvasItem,
+        for item: CombatFeedbackItem,
         layoutDirection: LayoutDirection = .leftToRight,
         displayScale: CGFloat
     ) -> CombatFeedbackRaster? {
         let key = makeKey(
-            for: canvasItem,
+            for: item,
             layoutDirection: layoutDirection,
             displayScale: displayScale
         )
@@ -108,13 +108,13 @@ final class CombatFeedbackRasterPool {
     /// Composes and stores a raster when missing. Warm atlas hits stay under 1 ms.
     @discardableResult
     func prepare(
-        for canvasItem: CombatFeedbackCanvasItem,
+        for item: CombatFeedbackItem,
         layoutDirection: LayoutDirection = .leftToRight,
         displayScale: CGFloat
     ) -> CombatFeedbackRaster? {
         let scale = max(1, displayScale)
         let key = makeKey(
-            for: canvasItem,
+            for: item,
             layoutDirection: layoutDirection,
             displayScale: scale
         )
@@ -124,8 +124,8 @@ final class CombatFeedbackRasterPool {
             return raster
         }
         missCount += 1
-        switch canvasItem.label {
-        case .amount, .percent:
+        switch item.label {
+        case .amount:
             numericMissCount += 1
         case .word where preparedCatalogKey != nil:
             unexpectedClosedVocabularyBuildCount += 1
@@ -143,7 +143,6 @@ final class CombatFeedbackRasterPool {
             )
         }
 
-        let item = canvasItem.item
         guard let composed = CombatFeedbackChipComposer.compose(
             presentation: item.chipPresentation,
             feedbackClass: item.feedbackClass,
@@ -201,16 +200,16 @@ final class CombatFeedbackRasterPool {
                 displayScale: displayScale
             )
             guard !Task.isCancelled, catalogWarmupGeneration == generation else { return nil }
-            let catalog = CombatFeedbackRasterCatalog.closedVocabularyCanvasItems()
+            let catalog = CombatFeedbackRasterCatalog.closedVocabularyChips()
             // Yield between small batches so Stage Select / Battle appear stay responsive
             // while still finishing before the typical first card play.
             let batchSize = 8
             var index = 0
             while index < catalog.count {
                 let end = min(index + batchSize, catalog.count)
-                for canvasItem in catalog[index ..< end] {
+                for item in catalog[index ..< end] {
                     _ = prepare(
-                        for: canvasItem,
+                        for: item,
                         displayScale: displayScale
                     )
                 }
@@ -235,11 +234,6 @@ final class CombatFeedbackRasterPool {
         rasters.removeAll(keepingCapacity: true)
         lastUseEpoch.removeAll(keepingCapacity: true)
         preparedCatalogKey = nil
-    }
-
-    func removeAllIncludingAtlas() {
-        removeAll()
-        CombatFeedbackGlyphAtlas.shared.removeAll()
     }
 
     func resetDiagnostics() {
@@ -268,20 +262,11 @@ final class CombatFeedbackRasterPool {
         )
     }
 
-    static func canvasItems(from items: [CombatFeedbackItem]) -> [CombatFeedbackCanvasItem] {
-        // Prepare every action group in the batch — not only the single newest group
-        // the overlay keeps on-screen — so staggered targets are warm before availableAt.
-        CombatFeedbackOverlayPolicy.canvasItems(
-            from: CombatFeedbackOverlayPolicy.visibleActionGroups(from: items)
-        )
-    }
-
     private func makeKey(
-        for canvasItem: CombatFeedbackCanvasItem,
+        for item: CombatFeedbackItem,
         layoutDirection: LayoutDirection,
         displayScale: CGFloat
     ) -> CombatFeedbackRasterKey {
-        let item = canvasItem.item
         let presentation = item.chipPresentation
         let scale = max(1, displayScale)
         return CombatFeedbackRasterKey(
@@ -291,7 +276,7 @@ final class CombatFeedbackRasterPool {
             visualRole: item.visualRole.cacheKey,
             leadingSymbolName: presentation.leadingSymbolName,
             trailingSymbolName: presentation.trailingSymbolName,
-            label: canvasItem.label,
+            label: item.label,
             layoutDirection: layoutDirection,
             displayScaleHundredths: Int((scale * 100).rounded())
         )

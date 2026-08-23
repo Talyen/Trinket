@@ -84,27 +84,14 @@ struct LeechHandler: BattleEffectHandler {
         guard case let .leech(adjustedKeyword, adjustedPercent, adjustedDuration) = adjusted else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
-        ActiveEffectMutation.removeMatching(from: target, in: &context) { active in
-            if case .leech = active {
-                true
-            } else {
-                false
-            }
-        }
-        context.appendEffect(
+        let event = ActiveEffectMutation.replaceAndEmit(
             .leech(adjustedKeyword, adjustedPercent, adjustedDuration),
             to: target,
-            sourceID: source.id,
-            remainingTurns: adjustedDuration
-        )
-        let event = context.nextEvent(
-            kind: .effect,
-            effectKind: .leechApplied,
-            actorName: source.name,
-            abilityName: ability.name,
-            target: target,
-            amount: Int(adjustedPercent * 100),
-            keyword: adjustedKeyword
+            source: source,
+            ability: ability,
+            in: &context,
+            replacing: { $0.kind == .leech },
+            event: (.leechApplied, Int(adjustedPercent * 100), adjustedKeyword)
         )
         return EffectApplyOutcome(events: [event], didApply: true)
     }
@@ -115,7 +102,7 @@ struct LeechHandler: BattleEffectHandler {
 /// single "applied" event is emitted.
 struct FlagEffectHandler: BattleEffectHandler {
     let flag: Effect
-    let appliedEffectKind: ActionEvent.EffectKind
+    let appliedEffectKind: ActionEvent.EffectOutcome
     let amount: Int
     let keyword: Keyword
     let summaryText: String
@@ -140,16 +127,14 @@ struct FlagEffectHandler: BattleEffectHandler {
         guard effect == flag else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
-        ActiveEffectMutation.removeMatching(from: target, in: &context) { $0 == flag }
-        context.appendEffect(flag, to: target, sourceID: source.id, remainingTurns: 0)
-        let event = context.nextEvent(
-            kind: .effect,
-            effectKind: appliedEffectKind,
-            actorName: source.name,
-            abilityName: ability.name,
-            target: target,
-            amount: amount,
-            keyword: keyword
+        let event = ActiveEffectMutation.replaceAndEmit(
+            flag,
+            to: target,
+            source: source,
+            ability: ability,
+            in: &context,
+            replacing: { $0 == flag },
+            event: (appliedEffectKind, amount, keyword)
         )
         return EffectApplyOutcome(events: [event], didApply: true)
     }

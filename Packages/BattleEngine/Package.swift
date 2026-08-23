@@ -26,6 +26,7 @@ let balanceToolSources = [
     "InterleavingPlayerController.swift",
     "ModeProgressionTracker.swift",
     "SimulationMatchupBuilder.swift",
+    "SimulationPolicies.swift",
     "SimulationTierProfile.swift",
 ]
 

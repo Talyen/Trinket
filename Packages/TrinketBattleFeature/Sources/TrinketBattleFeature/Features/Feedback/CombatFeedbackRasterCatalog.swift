@@ -32,8 +32,10 @@ enum CombatFeedbackRasterCatalog {
         return items
     }
 
-    static func closedVocabularyCanvasItems(at date: Date = .now) -> [CombatFeedbackCanvasItem] {
-        CombatFeedbackRasterPool.canvasItems(from: closedVocabularyItems(at: date))
+    static func closedVocabularyChips(at date: Date = .now) -> [CombatFeedbackItem] {
+        // Prepare every action group in the batch — not only the single newest group
+        // the overlay keeps on-screen — so staggered targets are warm before availableAt.
+        CombatFeedbackOverlayPolicy.orderedChips(from: closedVocabularyItems(at: date))
     }
 
     private struct CatalogSource {
@@ -164,8 +166,6 @@ enum CombatFeedbackRasterCatalog {
             keyword: source.keyword,
             visualRole: source.visualRole,
             label: source.label,
-            secondaryText: nil,
-            lifetime: TrinketMotion.Battle.chipDisplayDuration,
             availableAt: availableAt,
             expiresAt: expiresAt,
             reactionKind: source.reactionKind

@@ -75,9 +75,7 @@ struct CombatPipelineTests {
             combatant: context.roster.enemy.combatant,
             sourceActorID: "source",
             damageKeyword: .physical,
-            applyStatBonus: false,
-            applyItemBonus: false,
-            applyDodge: true
+            options: DamageOptions(applyStatBonus: false, applyItemBonus: false, applyDodge: true)
         )
 
         let chance = DamagePipeline.dodgeChance(for: state, in: context)

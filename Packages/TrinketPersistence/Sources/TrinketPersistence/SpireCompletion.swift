@@ -8,6 +8,7 @@ public enum SpireCompletion {
         encounterLevel: Int? = nil,
         worldSeed: UInt64,
         ownedTrinketIDs: Set<String> = [],
+        ownedUniqueIDs: Set<String> = [],
         astralChanceBonusPercent: Int = 0
     ) -> BattleLootPackage {
         let level = encounterLevel ?? EncounterLevelResolver.spireEnemyLevel(for: floor)
@@ -23,6 +24,7 @@ public enum SpireCompletion {
             worldSeed: worldSeed,
             keywordBias: keywordBias,
             ownedTrinketIDs: ownedTrinketIDs,
+            ownedUniqueIDs: ownedUniqueIDs,
             astralChanceBonusPercent: astralChanceBonusPercent
         )
     }
@@ -60,26 +62,19 @@ public enum SpireCompletion {
             encounterLevel: encounterLevel,
             worldSeed: save.worldSeed,
             ownedTrinketIDs: save.inventory.ownedTrinketIDs,
+            ownedUniqueIDs: save.inventory.ownedUniqueIDs,
             astralChanceBonusPercent: save.homestead.effects.astralChanceBonusPercent
         )
-        save.applyGoldDelta(
-            StageCompletion.resolvedGoldReward(
-                stageGold: resolvedLoot.gold,
-                battleEarnedGold: battleEarnedGold,
-                homestead: save.homestead
-            )
+        StageCompletion.grantVictoryRewards(
+            hero: hero,
+            companion: companion,
+            encounterLevel: encounterLevel,
+            stageGold: resolvedLoot.gold,
+            battleEarnedGold: battleEarnedGold,
+            materials: materialRewards ?? resolvedLoot.materials,
+            item: rewardItem ?? resolvedLoot.item,
+            save: &save
         )
-        StageCompletion.grantBattleExperience(enemyLevel: encounterLevel, to: hero, roster: &save.roster)
-        StageCompletion.grantBattleExperience(enemyLevel: encounterLevel, to: companion, roster: &save.roster)
-
-        let resolvedMaterials = materialRewards ?? resolvedLoot.materials
-        save.grantMaterials(resolvedMaterials)
-
-        if let rewardItem {
-            save.inventory.appendUniqueItem(rewardItem)
-        } else {
-            save.inventory.appendUniqueItem(resolvedLoot.item)
-        }
 
         save.spires.markFloorCleared(floor.floor, spireID: spireID)
     }

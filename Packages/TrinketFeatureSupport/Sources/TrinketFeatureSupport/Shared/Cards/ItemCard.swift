@@ -51,9 +51,13 @@ public struct ItemCard<Art: View>: View {
     }
 
     private var effectiveShineKeywords: [Keyword]? {
+        // Deliberate precedence: caller-supplied keywords win even on Uniques —
+        // the equipment slot picker passes equipped affinities so a selected card
+        // shows what it grants. Only keyword-less Uniques get the ember border.
         if let customShineKeywords {
             return customShineKeywords
         }
+        guard item.rarity != .unique else { return nil }
         if enablesAstralShine, item.rarity == .astral {
             return item.keywords.isEmpty ? Array(item.baseType.keywordAffinities) : Array(item.keywords)
         }
@@ -61,7 +65,10 @@ public struct ItemCard<Art: View>: View {
     }
 
     private var effectiveShineColors: [Color]? {
-        effectiveShineKeywords == nil ? customShineColors : nil
+        if item.rarity == .unique {
+            return UniqueShine.borderColors
+        }
+        return effectiveShineKeywords == nil ? customShineColors : nil
     }
 
     public var body: some View {
@@ -91,6 +98,7 @@ public struct ItemCard<Art: View>: View {
                         .trinketTypography(.cardLabel)
                         .foregroundStyle(.primary)
                         .keywordShine(item.rarity == .astral ? item.baseType.keywordAffinities : [])
+                        .uniqueShine(if: item.rarity == .unique)
                         .lineLimit(2)
                         .multilineTextAlignment(.center)
 

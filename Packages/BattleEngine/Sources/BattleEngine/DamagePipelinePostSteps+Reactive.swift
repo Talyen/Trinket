@@ -8,11 +8,11 @@ package extension DamagePipeline {
         in context: inout BattleState
     ) {
         // Retaliation damage must never re-enter wards (mutual thorns ping-pong).
-        guard !state.isDodged, !state.isRetaliation, let sourceActorID = state.sourceActorID else { return }
+        guard !state.isDodged, !state.options.isRetaliation, let sourceActorID = state.sourceActorID else { return }
         guard let attacker = context.roster.combatant(for: sourceActorID) else { return }
 
         // Evasive Pack: this defender has taken an attack hit this turn.
-        if state.isAttackHit {
+        if state.options.isAttackHit {
             context.roster.mutateRuntime(for: state.combatant) { $0.hasTakenAttackHitThisTurn = true }
         }
 
@@ -29,7 +29,7 @@ package extension DamagePipeline {
         }
 
         // Thorns and freeze-next-attacker fire for direct attack hits (including fully blocked).
-        if state.isAttackHit {
+        if state.options.isAttackHit {
             applyOnHitWards(to: &state, attacker: attacker, in: &context)
         }
     }
@@ -41,7 +41,7 @@ package extension DamagePipeline {
         sourceActorID: String,
         in context: inout BattleState
     ) {
-        guard state.isAttackHit,
+        guard state.options.isAttackHit,
               let runtime = context.roster.runtime(for: attacker.combatant),
               runtime.pendingBleedAfterDodge > 0
         else { return }

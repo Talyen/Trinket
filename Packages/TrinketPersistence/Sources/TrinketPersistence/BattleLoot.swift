@@ -39,6 +39,7 @@ public enum BattleLoot {
         itemID: String,
         keywordBias: Set<Keyword> = [],
         ownedTrinketIDs: Set<String> = [],
+        ownedUniqueIDs: Set<String>,
         goldFoundPercent: Int = 0,
         materialsFoundPercent: Int = 0,
         astralChanceBonusPercent: Int = 0,
@@ -65,21 +66,16 @@ public enum BattleLoot {
             }
         }
 
-        let rarity: Rarity = if enemyIsBoss {
-            .astral
-        } else if astralChanceBonusPercent > 0 {
-            ItemRarityRoll.roll(
-                baseAstralChancePercent: 0,
-                astralChanceBonusPercent: astralChanceBonusPercent,
-                using: &randomNumberGenerator
-            )
-        } else {
-            .basic
-        }
+        let tier = ItemRarityRoll.roll(
+            bossContent: enemyIsBoss,
+            astralChanceBonusPercent: astralChanceBonusPercent,
+            using: &randomNumberGenerator
+        )
         let item = ItemRewardGenerator.generate(
             id: itemID,
-            rarity: rarity,
+            tier: tier,
             ownedTrinketIDs: ownedTrinketIDs,
+            ownedUniqueIDs: ownedUniqueIDs,
             keywordBias: keywordBias,
             using: &randomNumberGenerator
         )
@@ -94,6 +90,7 @@ public enum BattleLoot {
         enemyIsBoss: Bool,
         worldSeed: UInt64,
         ownedTrinketIDs: Set<String> = [],
+        ownedUniqueIDs: Set<String>,
         astralChanceBonusPercent: Int = 0
     ) -> BattleLootPackage {
         var rng = SeededRandomNumberGenerator(
@@ -104,6 +101,7 @@ public enum BattleLoot {
             enemyIsBoss: enemyIsBoss,
             itemID: "\(stage.id)-loot",
             ownedTrinketIDs: ownedTrinketIDs,
+            ownedUniqueIDs: ownedUniqueIDs,
             astralChanceBonusPercent: astralChanceBonusPercent,
             using: &rng
         )
@@ -117,6 +115,7 @@ public enum BattleLoot {
         worldSeed: UInt64,
         keywordBias: Set<Keyword> = [],
         ownedTrinketIDs: Set<String> = [],
+        ownedUniqueIDs: Set<String>,
         astralChanceBonusPercent: Int = 0
     ) -> BattleLootPackage {
         var rng = SeededRandomNumberGenerator(
@@ -131,6 +130,7 @@ public enum BattleLoot {
             itemID: "spire-\(floor.spireID.rawValue)-floor-\(floor.floor)-loot",
             keywordBias: keywordBias,
             ownedTrinketIDs: ownedTrinketIDs,
+            ownedUniqueIDs: ownedUniqueIDs,
             astralChanceBonusPercent: astralChanceBonusPercent,
             using: &rng
         )
@@ -144,6 +144,7 @@ public enum BattleLoot {
         effects: LabyrinthModifierEffects,
         worldSeed: UInt64,
         ownedTrinketIDs: Set<String> = [],
+        ownedUniqueIDs: Set<String>,
         astralChanceBonusPercent: Int = 0
     ) -> BattleLootPackage {
         var rng = SeededRandomNumberGenerator(
@@ -155,6 +156,7 @@ public enum BattleLoot {
             itemID: "labyrinth-\(node.id)",
             keywordBias: [],
             ownedTrinketIDs: ownedTrinketIDs,
+            ownedUniqueIDs: ownedUniqueIDs,
             goldFoundPercent: effects.goldFoundPercent,
             materialsFoundPercent: effects.materialsFoundPercent,
             astralChanceBonusPercent: astralChanceBonusPercent,

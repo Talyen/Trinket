@@ -229,26 +229,19 @@ struct RecurringDamageHandler: BattleEffectHandler {
             sourceActorID: source.id,
             in: &context
         ).events
-        ActiveEffectMutation.removeMatching(from: target, in: &context) {
-            if case let .recurringDamage(existingKeyword, _, _) = $0 {
-                return existingKeyword == keyword
-            }
-            return false
-        }
-        context.appendEffect(
+        events.append(ActiveEffectMutation.replaceAndEmit(
             .recurringDamage(keyword, potency, turns),
             to: target,
-            sourceID: source.id,
-            remainingTurns: turns
-        )
-        events.append(context.nextEvent(
-            kind: .effect,
-            effectKind: .controlApplied,
-            actorName: source.name,
-            abilityName: ability.name,
-            target: target,
-            amount: potency,
-            keyword: keyword
+            source: source,
+            ability: ability,
+            in: &context,
+            replacing: {
+                if case let .recurringDamage(existingKeyword, _, _) = $0 {
+                    return existingKeyword == keyword
+                }
+                return false
+            },
+            event: (.controlApplied, potency, keyword)
         ))
         return EffectApplyOutcome(events: events, didApply: true)
     }
@@ -313,26 +306,14 @@ struct AvatarHandler: BattleEffectHandler {
             from: target,
             in: &context
         )
-        ActiveEffectMutation.removeMatching(from: target, in: &context) {
-            if case .avatar = $0 {
-                return true
-            }
-            return false
-        }
-        context.appendEffect(
+        events.append(ActiveEffectMutation.replaceAndEmit(
             .avatar(holyDamage: holyDamage, blockPerTurn: blockPerTurn, turns: turns),
             to: target,
-            sourceID: source.id,
-            remainingTurns: turns
-        )
-        events.append(context.nextEvent(
-            kind: .effect,
-            effectKind: .controlApplied,
-            actorName: source.name,
-            abilityName: ability.name,
-            target: target,
-            amount: holyDamage,
-            keyword: .holy
+            source: source,
+            ability: ability,
+            in: &context,
+            replacing: { $0.kind == .avatar },
+            event: (.controlApplied, holyDamage, .holy)
         ))
         return EffectApplyOutcome(events: events, didApply: true)
     }

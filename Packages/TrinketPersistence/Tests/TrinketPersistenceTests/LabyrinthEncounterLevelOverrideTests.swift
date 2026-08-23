@@ -17,14 +17,22 @@ struct LabyrinthEncounterLevelOverrideTests {
             clusterID: "labyrinth-test"
         )
         let atDepth = try #require(
-            LabyrinthCompletion.resolveCombatLoot(for: node, effects: .zero, worldSeed: 5)
+            LabyrinthCompletion.resolveCombatLoot(
+                for: node,
+                effects: .zero,
+                worldSeed: 5,
+                ownedTrinketIDs: [],
+                ownedUniqueIDs: []
+            )
         )
         let explicit = try #require(
             LabyrinthCompletion.resolveCombatLoot(
                 for: node,
                 effects: .zero,
                 encounterLevel: 2,
-                worldSeed: 5
+                worldSeed: 5,
+                ownedTrinketIDs: [],
+                ownedUniqueIDs: []
             )
         )
         #expect(explicit.gold == atDepth.gold)
@@ -36,7 +44,9 @@ struct LabyrinthEncounterLevelOverrideTests {
                 for: node,
                 effects: .zero,
                 encounterLevel: 40,
-                worldSeed: 5
+                worldSeed: 5,
+                ownedTrinketIDs: [],
+                ownedUniqueIDs: []
             )
         )
         for (boosted, base) in zip(raised.materials, atDepth.materials) {

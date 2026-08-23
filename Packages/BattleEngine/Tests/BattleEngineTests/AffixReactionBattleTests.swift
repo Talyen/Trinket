@@ -693,9 +693,7 @@ extension AffixReactionBattleTests {
             combatant: hero,
             sourceActorID: "enemy",
             damageKeyword: .physical,
-            applyStatBonus: false,
-            applyItemBonus: false,
-            applyDodge: true
+            options: DamageOptions(applyStatBonus: false, applyItemBonus: false, applyDodge: true)
         )
 
         let chance = DamagePipeline.dodgeChance(for: state, in: context)
@@ -707,9 +705,7 @@ extension AffixReactionBattleTests {
             combatant: hero,
             sourceActorID: "enemy",
             damageKeyword: .physical,
-            applyStatBonus: false,
-            applyItemBonus: false,
-            applyDodge: true
+            options: DamageOptions(applyStatBonus: false, applyItemBonus: false, applyDodge: true)
         )
         try #expect(DamagePipeline.dodgeChance(for: state, in: context) == 0)
     }

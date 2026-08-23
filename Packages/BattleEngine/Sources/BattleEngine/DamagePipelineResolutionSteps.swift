@@ -26,17 +26,17 @@ package extension DamagePipeline {
         if let sourceActorID = state.sourceActorID,
            let damageKeyword = state.damageKeyword,
            let actor = context.roster.combatant(for: sourceActorID) {
-            state.statBonus = state.applyStatBonus
+            state.statBonus = state.options.applyStatBonus
                 ? CombatRounding.scaled(state.amount, multiplier: actor.primaryStats.statDamageBonusPercent(keyword: damageKeyword))
                 : 0
-            state.itemBonus = state.applyItemBonus
+            state.itemBonus = state.options.applyItemBonus
                 ? outgoingDamageBonus(
                     for: sourceActorID,
                     keyword: damageKeyword,
                     in: context
                 )
                 : 0
-            if state.isAttackHit,
+            if state.options.isAttackHit,
                var runtime = context.roster.runtime(for: actor.combatant) {
                 let profile = context.modifiers(for: sourceActorID)
                 if !runtime.hasTriggeredFirstHitBonus, profile.triggers.firstHitDoubleDamage {
@@ -45,7 +45,7 @@ package extension DamagePipeline {
                     context.roster.update(runtime)
                 }
             }
-            if state.applyItemBonus {
+            if state.options.applyItemBonus {
                 state.itemBonus += CombatTriggerEngine.damageBonus(for: state, in: &context)
             }
         }
@@ -57,7 +57,7 @@ package extension DamagePipeline {
         to state: inout DamageResolutionState,
         in context: inout BattleState
     ) {
-        guard state.applyItemBonus,
+        guard state.options.applyItemBonus,
               let sourceActorID = state.sourceActorID,
               let damageKeyword = state.damageKeyword
         else { return }
@@ -73,7 +73,7 @@ package extension DamagePipeline {
         to state: inout DamageResolutionState,
         in context: inout BattleState
     ) {
-        guard state.isAttackHit,
+        guard state.options.isAttackHit,
               let sourceActorID = state.sourceActorID,
               let source = context.roster.combatant(for: sourceActorID),
               let runtime = context.roster.runtime(for: source.combatant)
@@ -110,7 +110,7 @@ package extension DamagePipeline {
         to state: inout DamageResolutionState,
         in context: inout BattleState
     ) {
-        if state.isAttackHit,
+        if state.options.isAttackHit,
            let sourceActorID = state.sourceActorID,
            state.targetStatus.isStunned {
             let multiplier = context.modifiers(for: sourceActorID).triggers.stunnedDamageMultiplier
@@ -120,7 +120,7 @@ package extension DamagePipeline {
         }
         // Combatant Talent System target-condition multipliers (poisoned/burning/frozen/
         // bleeding/stunned/holy-vs-faction, no-Block burn, low-health poison).
-        if state.applyItemBonus {
+        if state.options.applyItemBonus {
             let talentMultiplier = CombatTriggerEngine.damageMultiplier(for: state, in: context)
             if talentMultiplier != 1 {
                 state.remaining = CombatRounding.scaled(state.remaining, multiplier: talentMultiplier)
@@ -162,7 +162,7 @@ package extension DamagePipeline {
         to state: inout DamageResolutionState,
         in context: inout BattleState
     ) {
-        guard state.isAttackHit,
+        guard state.options.isAttackHit,
               let sourceActorID = state.sourceActorID,
               let source = context.roster.combatant(for: sourceActorID),
               let runtime = context.roster.runtime(for: source.combatant)

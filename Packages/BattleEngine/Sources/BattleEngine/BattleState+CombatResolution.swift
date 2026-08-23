@@ -17,20 +17,7 @@ package extension BattleState {
             combatant: resolved.target,
             sourceActorID: resolved.sourceActorID,
             damageKeyword: resolved.keyword,
-            applyStatBonus: resolved.options.applyStatBonus,
-            applyItemBonus: resolved.options.applyItemBonus,
-            applyDodge: resolved.options.applyDodge,
-            abilityCriticalChanceBonus: resolved.options.abilityCriticalChanceBonus,
-            guaranteedCriticalIfEnemyBuffed: resolved.options.guaranteedCriticalIfEnemyBuffed,
-            guaranteedCritical: resolved.options.guaranteedCritical,
-            isRetaliation: resolved.options.isRetaliation,
-            applyControlMeter: resolved.options.applyControlMeter,
-            qualifiesForAmbush: resolved.options.qualifiesForAmbush,
-            isAttackHit: resolved.options.isAttackHit,
-            isBasicAttackHit: resolved.options.isBasicAttackHit,
-            abilityHasLeech: resolved.options.abilityHasLeech,
-            isHealthCost: resolved.options.isHealthCost,
-            causedByDodge: resolved.options.causedByDodge
+            options: resolved.options
         )
         state.activeEffects = roster.activeEffects(for: request.target)
 

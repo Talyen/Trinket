@@ -102,22 +102,14 @@ public extension EncounterPlayMode {
         guard let mysterySession = activeMysteryEncounter else { return false }
         guard mysterySession.canResolveChoice else { return false }
 
-        var outcome = MysteryChoiceOutcome.failed
-        guard playerSave.persistBatch(logging: "Failed to apply mystery effects", { save in
-            var randomNumberGenerator = SystemRandomNumberGenerator()
-            outcome = mysterySession.resolveChoice(
+        return persistMysteryResolution(mysterySession, logging: "Failed to apply mystery effects") { save, rng in
+            mysterySession.resolveChoice(
                 choiceID: choiceID,
                 save: &save,
-                using: &randomNumberGenerator,
+                using: &rng,
                 completeProgress: Self.completeMysteryProgress
             )
-        }) else {
-            mysterySession.markPersistFailed("Couldn't save progress. Stay here and try again.")
-            return false
         }
-
-        guard applyMysteryOutcome(outcome, session: mysterySession) else { return false }
-        return true
     }
 
     /// Corrupts the selected inventory item at the Corruption Altar.
@@ -126,15 +118,27 @@ public extension EncounterPlayMode {
         guard let mysterySession = activeMysteryEncounter else { return false }
         guard mysterySession.showsCorruptItemChoice else { return false }
 
-        var outcome = MysteryChoiceOutcome.failed
-        guard playerSave.persistBatch(logging: "Failed to corrupt mystery item", { save in
-            var randomNumberGenerator = SystemRandomNumberGenerator()
-            outcome = mysterySession.corruptSelectedItem(
+        return persistMysteryResolution(mysterySession, logging: "Failed to corrupt mystery item") { save, rng in
+            mysterySession.corruptSelectedItem(
                 itemID: itemID,
                 save: &save,
-                using: &randomNumberGenerator,
+                using: &rng,
                 completeProgress: Self.completeMysteryProgress
             )
+        }
+    }
+
+    /// Runs one mystery save mutation; on persist failure marks the session and
+    /// returns false, otherwise applies and surfaces the outcome.
+    private func persistMysteryResolution(
+        _ mysterySession: MysteryEncounterSession,
+        logging: String,
+        mutate: (inout PlayerSave, inout SystemRandomNumberGenerator) -> MysteryChoiceOutcome
+    ) -> Bool {
+        var outcome = MysteryChoiceOutcome.failed
+        guard playerSave.persistBatch(logging: logging, { save in
+            var randomNumberGenerator = SystemRandomNumberGenerator()
+            outcome = mutate(&save, &randomNumberGenerator)
         }) else {
             mysterySession.markPersistFailed("Couldn't save progress. Stay here and try again.")
             return false
@@ -241,34 +245,39 @@ public extension EncounterPlayMode {
         guard !isRecruit else { return nil }
 
         if let labyrinthNodeID = origin.labyrinthNodeID, pinnedLabyrinthEventID == nil {
-            var didPinEvent = false
-            let didPersist = playerSave.persistBatch(logging: "Failed to pin labyrinth mystery event") { save in
-                didPinEvent = MysteryEventPinApplier.pinLabyrinthEvent(
+            return pinEvent(logging: "Failed to pin labyrinth mystery event") { save in
+                MysteryEventPinApplier.pinLabyrinthEvent(
                     nodeID: labyrinthNodeID,
                     eventID: resolvedEventID,
                     save: &save
                 )
             }
-            if !didPersist || !didPinEvent {
-                return Self.mysteryPinFailureMessage
-            }
         }
 
         if let stage = origin.stage, pinnedJourneyEventID == nil, stage.mysteryEvent == nil {
-            var didPinEvent = false
-            let didPersist = playerSave.persistBatch(logging: "Failed to pin journey mystery event") { save in
-                didPinEvent = MysteryEventPinApplier.pinJourneyEvent(
+            return pinEvent(logging: "Failed to pin journey mystery event") { save in
+                MysteryEventPinApplier.pinJourneyEvent(
                     stageID: stage.id,
                     eventID: resolvedEventID,
                     save: &save
                 )
             }
-            if !didPersist || !didPinEvent {
-                return Self.mysteryPinFailureMessage
-            }
         }
 
         return nil
+    }
+
+    /// Persists one mystery-event pin; returns the shared failure message when
+    /// the write fails or the applier reports no change.
+    private func pinEvent(
+        logging: String,
+        pin: (inout PlayerSave) -> Bool
+    ) -> StageMapMessage? {
+        var didPinEvent = false
+        let didPersist = playerSave.persistBatch(logging: logging) { save in
+            didPinEvent = pin(&save)
+        }
+        return didPersist && didPinEvent ? nil : Self.mysteryPinFailureMessage
     }
 
     private static func completeMysteryProgress(

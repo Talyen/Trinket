@@ -45,6 +45,7 @@ public struct BlockTriggers: Equatable, Hashable, Sendable {
     public var onAllyBurnDamageGainBlock: Int = 0
     public var onHolyDamagePartyBlock: Int = 0
     public var physicalDamageBlockPercent: Double = 0
+    public var freezeDamageGrantsBlock: Bool = false
 
     public init(
         blockBrokenBlockFlat: Int = 0,
@@ -87,7 +88,8 @@ public struct BlockTriggers: Equatable, Hashable, Sendable {
         onBurnDamageGainBlock: Int = 0,
         onAllyBurnDamageGainBlock: Int = 0,
         onHolyDamagePartyBlock: Int = 0,
-        physicalDamageBlockPercent: Double = 0
+        physicalDamageBlockPercent: Double = 0,
+        freezeDamageGrantsBlock: Bool = false
     ) {
         self.blockBrokenBlockFlat = blockBrokenBlockFlat
         self.holyDamageBlockFlat = holyDamageBlockFlat
@@ -130,6 +132,7 @@ public struct BlockTriggers: Equatable, Hashable, Sendable {
         self.onAllyBurnDamageGainBlock = onAllyBurnDamageGainBlock
         self.onHolyDamagePartyBlock = onHolyDamagePartyBlock
         self.physicalDamageBlockPercent = physicalDamageBlockPercent
+        self.freezeDamageGrantsBlock = freezeDamageGrantsBlock
     }
 }
 
@@ -176,6 +179,7 @@ extension BlockTriggers {
         onAllyBurnDamageGainBlock += other.onAllyBurnDamageGainBlock
         onHolyDamagePartyBlock += other.onHolyDamagePartyBlock
         physicalDamageBlockPercent += other.physicalDamageBlockPercent
+        freezeDamageGrantsBlock = freezeDamageGrantsBlock || other.freezeDamageGrantsBlock
     }
 }
 
@@ -223,7 +227,8 @@ extension BlockTriggers {
             onBurnDamageGainBlock: values.decode(Int.self, "onBurnDamageGainBlock", default: 0),
             onAllyBurnDamageGainBlock: values.decode(Int.self, "onAllyBurnDamageGainBlock", default: 0),
             onHolyDamagePartyBlock: values.decode(Int.self, "onHolyDamagePartyBlock", default: 0),
-            physicalDamageBlockPercent: values.decode(Double.self, "physicalDamageBlockPercent", default: 0)
+            physicalDamageBlockPercent: values.decode(Double.self, "physicalDamageBlockPercent", default: 0),
+            freezeDamageGrantsBlock: values.decode(Bool.self, "freezeDamageGrantsBlock", default: false)
         )
     }
 
@@ -269,5 +274,6 @@ extension BlockTriggers {
         try container.encodeNonDefault(onAllyBurnDamageGainBlock, "onAllyBurnDamageGainBlock", default: 0)
         try container.encodeNonDefault(onHolyDamagePartyBlock, "onHolyDamagePartyBlock", default: 0)
         try container.encodeNonDefault(physicalDamageBlockPercent, "physicalDamageBlockPercent", default: 0)
+        try container.encodeNonDefault(freezeDamageGrantsBlock, "freezeDamageGrantsBlock", default: false)
     }
 }

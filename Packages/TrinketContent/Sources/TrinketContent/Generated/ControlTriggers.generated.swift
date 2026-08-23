@@ -29,6 +29,7 @@ public struct ControlTriggers: Equatable, Hashable, Sendable {
     public var onDodgeAttackerStunBuildup: Int = 0
     public var onceBelowHealthPercentThreshold: Double = 0
     public var turnFreezeDamageAllEnemies: Int = 0
+    public var stunPurgeDealHolyPerEffect: Int = 0
 
     public init(
         freezeExtraActionSkips: Int = 0,
@@ -55,7 +56,8 @@ public struct ControlTriggers: Equatable, Hashable, Sendable {
         dodgeDealStunFlat: Int = 0,
         onDodgeAttackerStunBuildup: Int = 0,
         onceBelowHealthPercentThreshold: Double = 0,
-        turnFreezeDamageAllEnemies: Int = 0
+        turnFreezeDamageAllEnemies: Int = 0,
+        stunPurgeDealHolyPerEffect: Int = 0
     ) {
         self.freezeExtraActionSkips = freezeExtraActionSkips
         self.physicalStunBuildupPercent = physicalStunBuildupPercent
@@ -82,6 +84,7 @@ public struct ControlTriggers: Equatable, Hashable, Sendable {
         self.onDodgeAttackerStunBuildup = onDodgeAttackerStunBuildup
         self.onceBelowHealthPercentThreshold = onceBelowHealthPercentThreshold
         self.turnFreezeDamageAllEnemies = turnFreezeDamageAllEnemies
+        self.stunPurgeDealHolyPerEffect = stunPurgeDealHolyPerEffect
     }
 }
 
@@ -112,6 +115,7 @@ extension ControlTriggers {
         onDodgeAttackerStunBuildup += other.onDodgeAttackerStunBuildup
         onceBelowHealthPercentThreshold = max(onceBelowHealthPercentThreshold, other.onceBelowHealthPercentThreshold)
         turnFreezeDamageAllEnemies += other.turnFreezeDamageAllEnemies
+        stunPurgeDealHolyPerEffect += other.stunPurgeDealHolyPerEffect
     }
 }
 
@@ -143,7 +147,8 @@ extension ControlTriggers {
             dodgeDealStunFlat: values.decode(Int.self, "dodgeDealStunFlat", default: 0),
             onDodgeAttackerStunBuildup: values.decode(Int.self, "onDodgeAttackerStunBuildup", default: 0),
             onceBelowHealthPercentThreshold: values.decode(Double.self, "onceBelowHealthPercentThreshold", default: 0),
-            turnFreezeDamageAllEnemies: values.decode(Int.self, "turnFreezeDamageAllEnemies", default: 0)
+            turnFreezeDamageAllEnemies: values.decode(Int.self, "turnFreezeDamageAllEnemies", default: 0),
+            stunPurgeDealHolyPerEffect: values.decode(Int.self, "stunPurgeDealHolyPerEffect", default: 0)
         )
     }
 
@@ -173,5 +178,6 @@ extension ControlTriggers {
         try container.encodeNonDefault(onDodgeAttackerStunBuildup, "onDodgeAttackerStunBuildup", default: 0)
         try container.encodeNonDefault(onceBelowHealthPercentThreshold, "onceBelowHealthPercentThreshold", default: 0)
         try container.encodeNonDefault(turnFreezeDamageAllEnemies, "turnFreezeDamageAllEnemies", default: 0)
+        try container.encodeNonDefault(stunPurgeDealHolyPerEffect, "stunPurgeDealHolyPerEffect", default: 0)
     }
 }

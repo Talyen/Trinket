@@ -7,6 +7,8 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
     let eyebrow: String?
     let title: String
     var titleKeywords: Set<Keyword>
+    /// When set, shines the title in these colors instead of `titleKeywords`.
+    var titleShineColors: [Color]?
     var titleAccessibilityIdentifier: String?
     let baseHeight: CGFloat
     let overscroll: CGFloat
@@ -20,6 +22,7 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
         eyebrow: String? = nil,
         title: String,
         titleKeywords: Set<Keyword> = [],
+        titleShineColors: [Color]? = nil,
         titleAccessibilityIdentifier: String? = nil,
         baseHeight: CGFloat,
         overscroll: CGFloat,
@@ -31,6 +34,7 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
         self.eyebrow = eyebrow
         self.title = title
         self.titleKeywords = titleKeywords
+        self.titleShineColors = titleShineColors
         self.titleAccessibilityIdentifier = titleAccessibilityIdentifier
         self.baseHeight = baseHeight
         self.overscroll = overscroll
@@ -75,12 +79,18 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
 
     @ViewBuilder
     private var titleText: some View {
-        let label = Text(balanced: title)
+        let base = Text(balanced: title)
             .trinketTypography(.screenDisplay)
             .trinketOnArtText(.title)
-            .keywordShine(titleKeywords)
-            .lineLimit(2)
-            .minimumScaleFactor(0.75)
+        let label = Group {
+            if let titleShineColors, !titleShineColors.isEmpty {
+                base.colorShine(titleShineColors)
+            } else {
+                base.keywordShine(titleKeywords)
+            }
+        }
+        .lineLimit(2)
+        .minimumScaleFactor(0.75)
 
         if let titleAccessibilityIdentifier {
             label.accessibilityIdentifier(titleAccessibilityIdentifier)
@@ -95,6 +105,7 @@ public extension DetailHeroHeader where Footer == EmptyView {
         eyebrow: String? = nil,
         title: String,
         titleKeywords: Set<Keyword> = [],
+        titleShineColors: [Color]? = nil,
         titleAccessibilityIdentifier: String? = nil,
         baseHeight: CGFloat,
         overscroll: CGFloat,
@@ -105,6 +116,7 @@ public extension DetailHeroHeader where Footer == EmptyView {
         self.eyebrow = eyebrow
         self.title = title
         self.titleKeywords = titleKeywords
+        self.titleShineColors = titleShineColors
         self.titleAccessibilityIdentifier = titleAccessibilityIdentifier
         self.baseHeight = baseHeight
         self.overscroll = overscroll

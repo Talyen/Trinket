@@ -10,6 +10,12 @@ public enum ItemSalvageResult: Equatable, Sendable {
 
 /// Deterministic material yields for salvaging inventory gear.
 public enum ItemSalvage {
+    /// Single eligibility source for UI affordances and the salvage applier:
+    /// Trinkets and Uniques can never be salvaged.
+    public static func isEligible(_ item: InventoryItem) -> Bool {
+        item.baseType.slot != .trinket && item.rarity != .unique
+    }
+
     public static func yields(for item: InventoryItem) -> [ResourceAmount] {
         let (primary, secondary) = materials(for: item.baseType.slot)
         let (primaryQuantity, secondaryQuantity) = quantities(for: item.rarity)
@@ -38,6 +44,8 @@ public enum ItemSalvage {
             (8, 4)
         case .astral:
             (16, 8)
+        case .unique:
+            preconditionFailure("Uniques cannot be salvaged.")
         }
     }
 }
@@ -48,7 +56,7 @@ public enum ItemSalvageApplier {
         guard let item = save.inventory.items.first(where: { $0.id == itemID }) else {
             return .itemNotFound
         }
-        guard item.baseType.slot != .trinket else { return .ineligible }
+        guard ItemSalvage.isEligible(item) else { return .ineligible }
 
         let yields = ItemSalvage.yields(for: item)
         unequip(itemID: itemID, from: &save.roster)

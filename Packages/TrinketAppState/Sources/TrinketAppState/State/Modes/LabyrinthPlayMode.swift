@@ -352,15 +352,11 @@ extension LabyrinthPlayMode {
         for node: LabyrinthNode,
         partyAverageLevel: Int
     ) -> (combatant: Combatant, level: Int)? {
-        guard let enemyID = node.enemyID,
-              let catalogEnemy = GameContent.enemy(matching: enemyID)
-        else { return nil }
-        let authoredLevel = EncounterLevelResolver.labyrinthEnemyLevel(for: node)
-        let level = EncounterLevelResolver.partyAdjusted(
-            authoredLevel,
+        PlayBattlePreparation.scaledEncounter(
+            enemyID: node.enemyID,
+            authoredLevel: EncounterLevelResolver.labyrinthEnemyLevel(for: node),
             partyAverageLevel: partyAverageLevel
         )
-        return (CombatantLevelScaler.scale(enemy: catalogEnemy, level: level), level)
     }
 
     private static func combatModifiers(
@@ -392,6 +388,7 @@ extension LabyrinthPlayMode {
             encounterLevel: encounterLevel,
             worldSeed: playerSave.worldSeed,
             ownedTrinketIDs: playerSave.inventory.ownedTrinketIDs,
+            ownedUniqueIDs: playerSave.inventory.ownedUniqueIDs,
             astralChanceBonusPercent: playerSave.homestead.effects.astralChanceBonusPercent
         )
     }
@@ -402,6 +399,7 @@ extension LabyrinthPlayMode {
         encounterLevel: Int? = nil,
         worldSeed: UInt64,
         ownedTrinketIDs: Set<String> = [],
+        ownedUniqueIDs: Set<String>,
         astralChanceBonusPercent: Int = 0
     ) -> BattleLootPackage? {
         LabyrinthCompletion.resolveCombatLoot(
@@ -410,6 +408,7 @@ extension LabyrinthPlayMode {
             encounterLevel: encounterLevel,
             worldSeed: worldSeed,
             ownedTrinketIDs: ownedTrinketIDs,
+            ownedUniqueIDs: ownedUniqueIDs,
             astralChanceBonusPercent: astralChanceBonusPercent
         )
     }

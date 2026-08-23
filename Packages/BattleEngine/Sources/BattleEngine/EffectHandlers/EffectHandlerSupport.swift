@@ -92,4 +92,29 @@ enum ActiveEffectMutation {
         effects.removeAll { matches($0.effect) }
         context.roster.setActiveEffects(effects, for: target)
     }
+
+    /// Standard replace-style apply body: drops same-shape stacks on `target`,
+    /// appends `effect` fresh (duration from `Effect.durationTurns`), and emits
+    /// one `.effect` event describing the result.
+    static func replaceAndEmit(
+        _ effect: Effect,
+        to target: Combatant,
+        source: Combatant,
+        ability: Ability,
+        in context: inout BattleState,
+        replacing matches: (Effect) -> Bool,
+        event: (kind: ActionEvent.EffectOutcome, amount: Int, keyword: Keyword)
+    ) -> ActionEvent {
+        removeMatching(from: target, in: &context, where: matches)
+        context.appendEffect(effect, to: target, sourceID: source.id, remainingTurns: effect.durationTurns)
+        return context.nextEvent(
+            kind: .effect,
+            effectKind: event.kind,
+            actorName: source.name,
+            abilityName: ability.name,
+            target: target,
+            amount: event.amount,
+            keyword: event.keyword
+        )
+    }
 }

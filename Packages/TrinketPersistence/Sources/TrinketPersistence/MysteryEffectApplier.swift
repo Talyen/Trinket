@@ -216,6 +216,10 @@ public enum MysteryEffectApplier {
         itemContext: GeneratedItemContext,
         using randomNumberGenerator: inout some RandomNumberGenerator
     ) {
+        let ownership = RewardOwnership(
+            save.inventory,
+            eligibleTrinketIDs: itemContext.eligibleTrinketIDs
+        )
         switch effect {
         case let .gainGold(amount):
             guard amount > 0 else { return }
@@ -244,18 +248,15 @@ public enum MysteryEffectApplier {
             )
 
         case let .gainGeneratedItem(baseTypeID, guaranteedAffixIDs):
-            guard let item = makeGeneratedItem(
+            appendThemedItem(
                 baseTypeID: baseTypeID,
                 guaranteedAffixIDs: guaranteedAffixIDs,
-                ordinal: state.itemOrdinal,
-                context: itemContext,
-                ownedTrinketIDs: save.inventory.ownedTrinketIDs,
-                eligibleTrinketIDs: itemContext.eligibleTrinketIDs,
+                ownership: ownership,
+                state: &state,
+                save: &save,
+                itemContext: itemContext,
                 using: &randomNumberGenerator
-            ) else {
-                return
-            }
-            appendGeneratedItem(item, to: &save, state: &state)
+            )
 
         case .gainRandomItem:
             guard let baseType = itemContext.baseTypes
@@ -263,18 +264,15 @@ public enum MysteryEffectApplier {
                 .randomElement(using: &randomNumberGenerator) else {
                 return
             }
-            guard let item = makeGeneratedItem(
+            appendThemedItem(
                 baseTypeID: baseType.id,
                 guaranteedAffixIDs: [],
-                ordinal: state.itemOrdinal,
-                context: itemContext,
-                ownedTrinketIDs: save.inventory.ownedTrinketIDs,
-                eligibleTrinketIDs: itemContext.eligibleTrinketIDs,
+                ownership: ownership,
+                state: &state,
+                save: &save,
+                itemContext: itemContext,
                 using: &randomNumberGenerator
-            ) else {
-                return
-            }
-            appendGeneratedItem(item, to: &save, state: &state)
+            )
 
         case let .unlockCombatant(combatantID):
             applyUnlock(combatantID, save: &save, result: &state.result)
@@ -282,6 +280,28 @@ public enum MysteryEffectApplier {
         case .corruptItem, .leave:
             break
         }
+    }
+
+    private static func appendThemedItem(
+        baseTypeID: String,
+        guaranteedAffixIDs: [String],
+        ownership: RewardOwnership,
+        state: inout ApplyState,
+        save: inout PlayerSave,
+        itemContext: GeneratedItemContext,
+        using randomNumberGenerator: inout some RandomNumberGenerator
+    ) {
+        guard let item = makeGeneratedItem(
+            baseTypeID: baseTypeID,
+            guaranteedAffixIDs: guaranteedAffixIDs,
+            ordinal: state.itemOrdinal,
+            context: itemContext,
+            ownership: ownership,
+            using: &randomNumberGenerator
+        ) else {
+            return
+        }
+        appendGeneratedItem(item, to: &save, state: &state)
     }
 
     private static func applyUnlock(
@@ -321,13 +341,25 @@ public enum MysteryEffectApplier {
         appendItem(item, to: &save, result: &state.result)
     }
 
+    /// Ownership filters threaded from the save into reward generation.
+    private struct RewardOwnership {
+        let ownedTrinketIDs: Set<String>
+        let ownedUniqueIDs: Set<String>
+        let eligibleTrinketIDs: Set<String>?
+
+        init(_ inventory: PlayerInventoryState, eligibleTrinketIDs: Set<String>?) {
+            ownedTrinketIDs = inventory.ownedTrinketIDs
+            ownedUniqueIDs = inventory.ownedUniqueIDs
+            self.eligibleTrinketIDs = eligibleTrinketIDs
+        }
+    }
+
     private static func makeGeneratedItem(
         baseTypeID: String,
         guaranteedAffixIDs: [String],
         ordinal: Int,
         context: GeneratedItemContext,
-        ownedTrinketIDs: Set<String>,
-        eligibleTrinketIDs: Set<String>?,
+        ownership: RewardOwnership,
         using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> InventoryItem? {
         guard let baseType = context.baseTypes.first(where: { $0.id == baseTypeID }) else {
@@ -336,17 +368,18 @@ public enum MysteryEffectApplier {
         if baseType.slot == .trinket {
             return GameContent.trinketItems.first { $0.templateID == baseTypeID }
         }
-        let rarity = MysteryItemRarity.roll(
+        let tier = MysteryItemRarity.roll(
             astralChanceBonusPercent: context.astralChanceBonusPercent,
             using: &randomNumberGenerator
         )
         let itemID =
-            "\(context.stageID)-\(context.choiceID)-\(ordinal)-\(baseTypeID)-\(rarity.rawValue)"
+            "\(context.stageID)-\(context.choiceID)-\(ordinal)-\(baseTypeID)-\(tier.rawValue)"
         return ItemRewardGenerator.generate(
             id: itemID,
-            rarity: rarity,
-            ownedTrinketIDs: ownedTrinketIDs,
-            eligibleTrinketIDs: eligibleTrinketIDs,
+            tier: tier,
+            ownedTrinketIDs: ownership.ownedTrinketIDs,
+            ownedUniqueIDs: ownership.ownedUniqueIDs,
+            eligibleTrinketIDs: ownership.eligibleTrinketIDs,
             fallbackBaseType: baseType,
             guaranteedAffixIDs: guaranteedAffixIDs,
             baseTypes: context.baseTypes,
