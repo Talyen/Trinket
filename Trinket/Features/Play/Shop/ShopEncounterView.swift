@@ -49,8 +49,8 @@ struct ShopEncounterView: View {
                                 .transition(.opacity)
                         }
 
-                        if let leaveFailure = session.leaveFailureMessage {
-                            Text(leaveFailure)
+                        if let persistFailure = session.persistFailureMessage {
+                            Text(persistFailure)
                                 .trinketTypography(.badge)
                                 .foregroundStyle(TrinketDesign.Colors.warning)
                                 .accessibilityIdentifier(AccessibilityID.Shop.leaveFailure)

@@ -8,14 +8,7 @@ struct DecayingDoTHandler: BattleEffectHandler {
 
     init(keyword: Keyword) {
         self.keyword = keyword
-        switch keyword {
-        case .burn:
-            kind = .burn
-        case .poison:
-            kind = .poison
-        default:
-            kind = .burn
-        }
+        kind = Effect.decayingDoT(keyword: keyword, potency: 0).kind
     }
 
     // swiftlint:disable:next function_body_length cyclomatic_complexity
@@ -143,12 +136,12 @@ struct DecayingDoTHandler: BattleEffectHandler {
                 ))
             }
             var updated = active
-            updated.effect = effectCase(potency: nextPotency)
+            updated.effect = Effect.decayingDoT(keyword: keyword, potency: nextPotency)
             return EffectTurnOutcome(events: events, updatedStack: updated)
         }
 
         var updated = active
-        updated.effect = effectCase(potency: 0)
+        updated.effect = Effect.decayingDoT(keyword: keyword, potency: 0)
         return EffectTurnOutcome(updatedStack: updated, removeAfter: true)
     }
 
@@ -186,14 +179,6 @@ struct DecayingDoTHandler: BattleEffectHandler {
         switch (keyword, effect) {
         case (.burn, .burn), (.poison, .poison): true
         default: false
-        }
-    }
-
-    private func effectCase(potency: Int) -> Effect {
-        switch keyword {
-        case .burn: .burn(potency)
-        case .poison: .poison(potency)
-        default: .burn(potency)
         }
     }
 

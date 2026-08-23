@@ -285,7 +285,7 @@ struct AppStateLabyrinthTests { // swiftlint:disable:this type_body_length
             playerSave.forcesNextSaveFailure = true
             #expect(!state.encounters.finishActiveShopEncounter())
             #expect(state.encounters.activeShopEncounter != nil)
-            #expect(state.encounters.activeShopEncounter?.leaveFailureMessage != nil)
+            #expect(state.encounters.activeShopEncounter?.persistFailureMessage != nil)
             #expect(state.playerSave.labyrinth.nodes[shopNodeID]?.isCleared == false)
 
             #expect(state.encounters.finishActiveShopEncounter())

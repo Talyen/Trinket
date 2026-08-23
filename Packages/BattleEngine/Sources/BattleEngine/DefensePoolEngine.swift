@@ -16,10 +16,7 @@ package enum DefensePoolEngine {
     /// Inherent Toughness-based damage reduction percent.
     /// No pool points — Toughness DR is never consumed or decayed.
     package static func effectiveToughnessMitigationPercent(
-        for combatant: Combatant,
-        effects _: [ActiveEffect],
-        profile _: CombatModifierProfile,
-        in _: BattleState
+        for combatant: Combatant
     ) -> Double {
         max(0.0, min(1.0, combatant.primaryStats.toughnessMitigationPercent))
     }

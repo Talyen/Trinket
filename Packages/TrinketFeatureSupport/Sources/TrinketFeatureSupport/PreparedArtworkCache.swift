@@ -21,21 +21,21 @@ struct LaunchArtworkWarmupPlan: Equatable {
     }
 }
 
-public struct PreparedArtworkCacheSnapshot: Equatable, Sendable {
-    public let requestedCount: Int
-    public let residentCount: Int
-    public let residentByteCount: Int
-    public let pinnedCount: Int
-    public let pinnedByteCount: Int
+struct PreparedArtworkCacheSnapshot: Equatable, Sendable {
+    let requestedCount: Int
+    let residentCount: Int
+    let residentByteCount: Int
+    let pinnedCount: Int
+    let pinnedByteCount: Int
 
-    public var nonresidentCount: Int {
+    var nonresidentCount: Int {
         max(requestedCount - residentCount, 0)
     }
 }
 
-public enum PreparedArtworkMemoryBudget {
-    public static let residentArtworkByteCount = 240 * 1024 * 1024
-    public static let steadyStateProcessByteCount = 400 * 1024 * 1024
+enum PreparedArtworkMemoryBudget {
+    static let residentArtworkByteCount = 240 * 1024 * 1024
+    static let steadyStateProcessByteCount = 400 * 1024 * 1024
 }
 
 /// App-wide artwork preparation. Priority assets decode before launch releases the
@@ -270,7 +270,7 @@ public final class PreparedArtworkCache {
         return task
     }
 
-    public func launchWarmupSnapshot() -> PreparedArtworkCacheSnapshot {
+    func launchWarmupSnapshot() -> PreparedArtworkCacheSnapshot {
         var residentCount = 0
         var residentByteCount = 0
         var pinnedCount = 0

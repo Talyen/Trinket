@@ -285,9 +285,9 @@ extension MysteryEncounterSession {
         )
 
         if !applyResult.unlockedCombatantIDs.isEmpty {
-            if case .labyrinth = origin {
-                completeProgress(self, &save)
-            }
+            // Unlock + progress complete in one mutation for every origin so a
+            // replayed recruit can never double-grant the unlock rewards.
+            completeProgress(self, &save)
             noteMysteryCadence(save: &save)
             return .reveal(unlockedCombatantID: applyResult.unlockedCombatantIDs[0])
         }

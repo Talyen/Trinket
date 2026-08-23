@@ -355,20 +355,16 @@ package extension DamagePipeline {
 
     /// Toughness-based inherent DR: percentage reduction from Toughness (K = 80)
     /// plus flat passive mitigation from traits/affixes.
-    static func applyMitigation( // swiftlint:disable:this function_body_length
+    static func applyMitigation(
         to state: inout DamageResolutionState,
         in context: inout BattleState
     ) {
         guard state.remaining > 0 else { return }
 
-        let effects = context.roster.activeEffects(for: state.combatant)
         let profile = context.modifiers(for: state.combatant.id)
         let defenderTriggers = profile.triggers
         var effectivePercent = DefensePoolEngine.effectiveToughnessMitigationPercent(
-            for: state.combatant,
-            effects: effects,
-            profile: profile,
-            in: context
+            for: state.combatant
         )
         if let sourceActorID = state.sourceActorID {
             let ignorePercent = min(1, context.modifiers(for: sourceActorID).triggers.ignoreEnemyMitigationPercent)

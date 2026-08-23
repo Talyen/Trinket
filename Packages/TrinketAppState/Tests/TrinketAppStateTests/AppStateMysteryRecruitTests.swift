@@ -29,13 +29,12 @@ struct AppStateMysteryRecruitTests {
         #expect(session.phase == .revealing)
         #expect(session.unlockedCombatantID == "bear")
         #expect(state.playerSave.roster.isCompanionUnlocked("bear"))
-        // Opening / resolving a mystery does not advance journey progress.
-        #expect(state.playerSave.journey.activeStageID == "chapter-1-stage-1")
+        // Recruit resolution completes journey progress in the same transaction.
+        #expect(state.playerSave.journey.completedStageIDs.contains("chapter-1-stage-2"))
 
         #expect(state.encounters.finishActiveMysteryEncounter())
 
         #expect(state.encounters.activeMysteryEncounter == nil)
-        #expect(state.playerSave.journey.completedStageIDs.contains("chapter-1-stage-2"))
         #expect(state.playerSave.journey.activeStageID == "chapter-1-stage-3")
         #expect(!state.encounters.finishActiveMysteryEncounter())
     }
@@ -207,24 +206,22 @@ struct AppStateMysteryRecruitTests {
         #expect(state.playerSave.roster.gold == goldBefore + 20)
     }
 
-    @Test func finishActiveMysteryEncounterKeepsSessionOpenWhenPersistFails() throws {
+    @Test func recruitPersistFailureRollsBackUnlockAndProgressTogether() throws {
         let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
         let state = try context.makePlaySession(arguments: ["-reset-state"], playerSave: playerSave)
         let stage = try #require(GameContent.stage(id: "chapter-1-stage-2"))
 
+        playerSave.forcesNextSaveFailure = true
+        #expect(state.journey.handleStagePrimaryAction(for: stage) != nil)
+        #expect(!state.playerSave.roster.isCompanionUnlocked("bear"))
+        #expect(!state.playerSave.journey.completedStageIDs.contains("chapter-1-stage-2"))
+        #expect(state.encounters.activeMysteryEncounter == nil)
+
+        // One successful retry persists unlock + completion atomically.
         #expect(state.journey.handleStagePrimaryAction(for: stage) == nil)
         #expect(state.playerSave.roster.isCompanionUnlocked("bear"))
-        #expect(state.encounters.activeMysteryEncounter?.phase == .revealing)
-
-        playerSave.forcesNextSaveFailure = true
-        #expect(!state.encounters.finishActiveMysteryEncounter())
-        #expect(state.encounters.activeMysteryEncounter != nil)
-        #expect(state.encounters.activeMysteryEncounter?.persistFailureMessage != nil)
-        #expect(!state.playerSave.journey.completedStageIDs.contains("chapter-1-stage-2"))
-
-        #expect(state.encounters.finishActiveMysteryEncounter())
-        #expect(state.encounters.activeMysteryEncounter == nil)
         #expect(state.playerSave.journey.completedStageIDs.contains("chapter-1-stage-2"))
+        #expect(state.encounters.finishActiveMysteryEncounter())
     }
 
     @Test func finishActiveMysteryEncounterIgnoresReadingPhase() throws {

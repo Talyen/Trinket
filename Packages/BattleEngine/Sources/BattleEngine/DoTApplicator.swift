@@ -4,7 +4,7 @@ import TrinketCore
 
 /// Applies Burn, Poison, and Bleed stacks through a mutation context.
 package enum DoTApplicator {
-    public static func applyDecayingDoT(
+    package static func applyDecayingDoT(
         keyword: Keyword,
         potency: Int,
         to effectTarget: Combatant,
@@ -29,11 +29,11 @@ package enum DoTApplicator {
         }
 
         var currentEffects = context.roster.activeEffects(for: effectTarget)
-        let appliedEffect = effectCase(for: keyword, potency: resolvedPotency)
+        let appliedEffect = Effect.decayingDoT(keyword: keyword, potency: resolvedPotency)
         guard !context.interceptDebuff(appliedEffect, on: effectTarget) else { return collected }
         if let index = currentEffects.firstIndex(where: { $0.effect.keyword == keyword && $0.effect.isDecayingDoT }) {
             let existingPotency = currentEffects[index].effect.potency ?? 0
-            currentEffects[index].effect = effectCase(for: keyword, potency: existingPotency + resolvedPotency)
+            currentEffects[index].effect = Effect.decayingDoT(keyword: keyword, potency: existingPotency + resolvedPotency)
             currentEffects[index].sourceActorID = sourceActorID
         } else {
             currentEffects.append(
@@ -57,7 +57,7 @@ package enum DoTApplicator {
         return collected
     }
 
-    public static func applyBleed(
+    package static func applyBleed(
         potency: Int,
         to effectTarget: Combatant,
         sourceActorID: String,
@@ -120,14 +120,6 @@ package enum DoTApplicator {
             ))
         }
         return collected
-    }
-
-    private static func effectCase(for keyword: Keyword, potency: Int) -> Effect {
-        switch keyword {
-        case .burn: .burn(potency)
-        case .poison: .poison(potency)
-        default: .poison(potency)
-        }
     }
 
     /// Golden Touch: the next card's status effects are doubled (consumed once).

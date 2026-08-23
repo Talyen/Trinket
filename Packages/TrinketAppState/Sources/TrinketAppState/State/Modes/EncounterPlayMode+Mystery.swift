@@ -165,9 +165,9 @@ public extension EncounterPlayMode {
         return true
     }
 
-    /// Completes the mystery stage/node only after persistence succeeds so a failed finish
-    /// cannot clear the session while leaving progress uncleared (replay double-grants).
-    /// Pass `dismiss: false` to persist a recruit reveal and keep the session for the seal beat.
+    /// Presents the reward/recruit beat and closes the session. Progress is
+    /// completed inside the choice mutation, so finishing never persists; a
+    /// failed save rolls the whole choice back before any beat plays.
     @discardableResult
     func finishActiveMysteryEncounter(dismiss: Bool = true) -> Bool {
         guard let mysterySession = activeMysteryEncounter else {
@@ -182,22 +182,6 @@ public extension EncounterPlayMode {
             return true
         }
         guard mysterySession.showsReveal else {
-            return false
-        }
-        if mysterySession.labyrinthNodeID != nil {
-            // Labyrinth recruit already completed the node inside resolveChoice.
-            sfxPlayer.play(SFXID.victory, volume: options.effectsVolume)
-            if dismiss {
-                activeMysteryEncounter = nil
-            }
-            return true
-        }
-        guard playerSave.persistBatch(logging: "Failed to finish mystery encounter", { save in
-            Self.completeMysteryProgress(mysterySession, save: &save)
-        }) else {
-            mysterySession.markPersistFailed(
-                "Couldn't save progress. Stay here and try Recruit again."
-            )
             return false
         }
         sfxPlayer.play(SFXID.victory, volume: options.effectsVolume)

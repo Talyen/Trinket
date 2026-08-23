@@ -218,8 +218,6 @@ package extension DamagePipeline {
         keyword: Keyword,
         in context: inout BattleState
     ) {
-        let target = state.combatant
-        let targetAlive = context.roster.health(for: target) > 0
         applyRangedAndPhysicalAfflictions(
             to: &state,
             source: source,

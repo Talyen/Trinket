@@ -5,7 +5,7 @@ import TrinketCore
 /// Stun/freeze control meter: tracks charge toward the next action skip.
 package enum ControlMeterEngine {
     /// Applies meter charge towards stun or freeze control effects.
-    public static func applyMeterCharge( // swiftlint:disable:this function_body_length
+    package static func applyMeterCharge( // swiftlint:disable:this function_body_length
         _ amount: Int,
         keyword: Keyword,
         to combatant: Combatant,
@@ -94,7 +94,7 @@ package enum ControlMeterEngine {
         return []
     }
 
-    public static func threshold(for combatant: Combatant, in context: BattleState) -> Int {
+    package static func threshold(for combatant: Combatant, in context: BattleState) -> Int {
         combatant.primaryStats.controlMeterThreshold(
             baseMaxHealth: context.roster.maxHealth(for: combatant)
         )

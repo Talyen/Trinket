@@ -4,6 +4,18 @@ import TrinketCore
 
 public struct PlayerSave: Equatable, Sendable {
     public static let currentSchemaVersion = 16
+
+    /// Schema milestones referenced by load-time field mappings. When a save
+    /// field changes shape, add the matching milestone here and bump
+    /// `currentSchemaVersion`; the mappings in `PlayerSaveRoot+Mapping` and
+    /// `RosterHydration` read these gates during decode.
+    public enum Schema {
+        /// 13→14 renamed equipment slots ("Trinket" → `.accessory`, etc.).
+        public static let renamedItemSlots = 14
+        /// 15→16 introduced the persisted starter-selection phase.
+        public static let persistedStarterSelection = 16
+    }
+
     public static let corruptionAltarCooldownAfterEncounter = 6
     /// Fixed seed for `testSeed` fixtures so Persistence tests stay deterministic.
     public static let testWorldSeed: UInt64 = 0x5445_5354

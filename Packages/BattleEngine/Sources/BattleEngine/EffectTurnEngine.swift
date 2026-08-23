@@ -3,13 +3,13 @@ import os
 import TrinketContent
 import TrinketCore
 
-public enum EffectTurnEngine {
+package enum EffectTurnEngine {
     private static let logger = Logger(
         subsystem: "com.ryanmcintire.Trinket",
         category: "EffectTurnEngine"
     )
 
-    public static func advanceAll(context: inout BattleState) -> [ActionEvent] {
+    package static func advanceAll(context: inout BattleState) -> [ActionEvent] {
         var events: [ActionEvent] = []
 
         for participant in BattleParticipant.effectTurnOrder {
@@ -44,7 +44,7 @@ public enum EffectTurnEngine {
         return events
     }
 
-    public static func advanceEffects(
+    package static func advanceEffects(
         _ effects: [ActiveEffect],
         target: Combatant,
         context: inout BattleState

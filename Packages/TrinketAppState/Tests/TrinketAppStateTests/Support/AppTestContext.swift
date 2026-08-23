@@ -69,7 +69,7 @@ final class AppTestContext {
             environment: parsed,
             playerSave: resolvedSave,
             userDefaults: userDefaults,
-            battleRuntime: battle
+            makeBattleRuntime: { _ in battle }
         )
         lastBattle = battle as? BattleSession
         // Unit tests expect a full hand before the next statement; skip paced deal.
@@ -84,7 +84,7 @@ final class AppTestContext {
             environment: environment,
             playerSave: sharedPlayerSave(resetState: environment.resetState),
             userDefaults: userDefaults,
-            battleRuntime: battle
+            makeBattleRuntime: { _ in battle }
         )
         lastBattle = battle
         battle.openingHandDrawStagger = 0

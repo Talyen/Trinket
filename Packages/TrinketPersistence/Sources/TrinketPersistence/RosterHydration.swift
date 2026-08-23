@@ -12,7 +12,7 @@ enum RosterHydration {
         schemaVersion: Int,
         isHero: Bool
     ) -> ItemSlot? {
-        guard schemaVersion < 14 else { return ItemSlot(rawValue: rawValue) }
+        guard schemaVersion < PlayerSave.Schema.renamedItemSlots else { return ItemSlot(rawValue: rawValue) }
         return switch rawValue {
         case "Trinket": .accessory
         case "Secondary Trinket": isHero ? .secondaryAccessory : nil

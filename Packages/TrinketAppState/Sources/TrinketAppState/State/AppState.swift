@@ -35,7 +35,6 @@ public final class AppState {
         environment: AppEnvironment = .shared,
         playerSave: PlayerSaveStore? = nil,
         userDefaults: UserDefaults? = nil,
-        battleRuntime: (any BattleRuntime)? = nil,
         makeBattleRuntime: ((BattleRuntimeDependencies) -> any BattleRuntime)? = nil
     ) throws {
         self.environment = environment
@@ -55,7 +54,6 @@ public final class AppState {
         pendingCollectionPresentation = dependencies.pendingCollectionPresentation
 
         let resolvedBattle = Self.resolveBattleRuntime(
-            explicit: battleRuntime,
             factory: makeBattleRuntime,
             dependencies: dependencies
         )
@@ -71,12 +69,12 @@ public final class AppState {
     }
 
     private static func resolveBattleRuntime(
-        explicit: (any BattleRuntime)?,
         factory: ((BattleRuntimeDependencies) -> any BattleRuntime)?,
         dependencies: BootstrapDependencies
     ) -> any BattleRuntime {
-        // The app always supplies a factory; tests inject a silent BattleSession.
-        guard let resolved = explicit ?? factory?(BattleRuntimeDependencies(
+        // The app always supplies a factory; tests wrap their silent BattleSession
+        // in a factory closure.
+        guard let resolved = factory?(BattleRuntimeDependencies(
             playSFX: { ids in
                 dependencies.sfxPlayer.playAll(
                     ids,
@@ -112,7 +110,7 @@ public final class AppState {
             }
         )) else {
             preconditionFailure(
-                "AppState requires a battle runtime. Pass `battleRuntime` or `makeBattleRuntime`."
+                "AppState requires a battle runtime. Pass `makeBattleRuntime`."
             )
         }
         return resolved

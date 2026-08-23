@@ -190,7 +190,7 @@ extension PlayerSaveRoot {
 
 private extension PlayerSaveRoot {
     var mappedStarterSelection: StarterSelectionState {
-        guard schemaVersion >= 16 else { return .complete }
+        guard schemaVersion >= PlayerSave.Schema.persistedStarterSelection else { return .complete }
         guard let phase = StarterSelectionPhase(rawValue: starterSelectionPhaseRawValue) else {
             return .fresh
         }

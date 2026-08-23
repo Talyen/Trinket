@@ -105,7 +105,7 @@ struct AppStateShopEncounterTests {
         playerSave.forcesNextSaveFailure = true
         #expect(!state.encounters.finishActiveShopEncounter())
         #expect(state.encounters.activeShopEncounter != nil)
-        #expect(session.leaveFailureMessage != nil)
+        #expect(session.persistFailureMessage != nil)
 
         #expect(state.encounters.finishActiveShopEncounter())
         #expect(state.encounters.activeShopEncounter == nil)

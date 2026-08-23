@@ -159,16 +159,6 @@ public enum FramePacingAnalyzer {
         )
     }
 
-    public static func report(
-        intervals: [CFTimeInterval],
-        expectedFrameDuration: CFTimeInterval = 1.0 / 60.0
-    ) -> FramePacingReport {
-        report(
-            intervals: intervals,
-            expectedFrameDurations: Array(repeating: expectedFrameDuration, count: intervals.count)
-        )
-    }
-
     private static func percentile(_ sorted: [CFTimeInterval], fraction: Double) -> CFTimeInterval {
         guard !sorted.isEmpty else { return 0 }
         let index = min(sorted.count - 1, max(0, Int((Double(sorted.count - 1) * fraction).rounded(.up))))

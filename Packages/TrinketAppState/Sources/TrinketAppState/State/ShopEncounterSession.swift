@@ -32,7 +32,7 @@ public final class ShopEncounterSession: Identifiable {
     public private(set) var purchasedOfferIDs: Set<String> = []
     public private(set) var purchaseCount = 0
     public private(set) var lastPurchaseError: String?
-    public private(set) var leaveFailureMessage: String?
+    public private(set) var persistFailureMessage: String?
     public private(set) var isPurchasing = false
 
     public init(
@@ -103,11 +103,11 @@ public final class ShopEncounterSession: Identifiable {
         lastPurchaseError = message
     }
 
-    func markLeaveFailed(_ message: String) {
-        leaveFailureMessage = message
+    func markPersistFailed(_ message: String) {
+        persistFailureMessage = message
     }
 
-    func clearLeaveFailure() {
-        leaveFailureMessage = nil
+    func clearPersistFailure() {
+        persistFailureMessage = nil
     }
 }

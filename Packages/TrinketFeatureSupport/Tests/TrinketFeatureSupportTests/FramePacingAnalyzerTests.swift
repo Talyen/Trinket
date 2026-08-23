@@ -4,13 +4,16 @@ import Testing
 
 struct FramePacingAnalyzerTests {
     @Test func emptyIntervalsYieldEmptyReport() {
-        let report = FramePacingAnalyzer.report(intervals: [])
+        let report = FramePacingAnalyzer.report(intervals: [], expectedFrameDurations: [])
         #expect(report == .empty)
     }
 
     @Test func steadySixtyHzHasNoDeadlineMisses() {
         let intervals = Array(repeating: 1.0 / 60.0, count: 1000)
-        let report = FramePacingAnalyzer.report(intervals: intervals)
+        let report = FramePacingAnalyzer.report(
+            intervals: intervals,
+            expectedFrameDurations: Array(repeating: 1.0 / 60.0, count: intervals.count)
+        )
 
         #expect(report.sampleCount == 1000)
         #expect(abs(report.expectedFPS - 60) < 0.01)
@@ -30,7 +33,7 @@ struct FramePacingAnalyzerTests {
 
         let report = FramePacingAnalyzer.report(
             intervals: intervals,
-            expectedFrameDuration: 1.0 / 120.0
+            expectedFrameDurations: Array(repeating: 1.0 / 120.0, count: intervals.count)
         )
 
         #expect(abs(report.expectedFPS - 120) < 0.01)
@@ -47,7 +50,7 @@ struct FramePacingAnalyzerTests {
         let period = 1.0 / 60.0
         let report = FramePacingAnalyzer.report(
             intervals: [period, period * 1.49, period],
-            expectedFrameDuration: period
+            expectedFrameDurations: Array(repeating: period, count: 3)
         )
 
         #expect(report.missedDeadlineCount == 0)

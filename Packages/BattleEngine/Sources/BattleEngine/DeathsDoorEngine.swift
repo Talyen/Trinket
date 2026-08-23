@@ -4,17 +4,17 @@ import TrinketCore
 
 /// Intrinsic battle rule: hero and companion each get one Death's Door proc per battle.
 package enum DeathsDoorEngine {
-    public static func applies(to combatant: Combatant) -> Bool {
+    package static func applies(to combatant: Combatant) -> Bool {
         combatant.role == .hero || combatant.role == .companion
     }
 
-    public static func isActive(for combatant: Combatant, in context: BattleState) -> Bool {
+    package static func isActive(for combatant: Combatant, in context: BattleState) -> Bool {
         context.roster.isDeathsDoorActive(for: combatant)
     }
 
     /// Lethal protection while Death's Door is active, or during the
     /// end-of-round effect pass that removed it.
-    public static func hasLethalProtection(
+    package static func hasLethalProtection(
         for combatant: Combatant,
         in context: BattleState
     ) -> Bool {
@@ -29,7 +29,7 @@ package enum DeathsDoorEngine {
         return true
     }
 
-    public static func resolveAfterDamage(
+    package static func resolveAfterDamage(
         to combatant: Combatant,
         in context: inout BattleState
     ) -> [ActionEvent] {

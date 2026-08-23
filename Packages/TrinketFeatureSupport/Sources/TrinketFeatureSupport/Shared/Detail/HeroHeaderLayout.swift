@@ -21,7 +21,7 @@ public enum HeroHeaderLayout {
     }
 
     /// Minimum full-bleed hero height (also the reference for scrim proportion).
-    public static let minimumHeaderHeight: CGFloat = 300
+    static let minimumHeaderHeight: CGFloat = 300
     /// Portrait aspect for full-bleed combatant/item heroes.
     static let headerAspectRatio: CGFloat = 4.0 / 3.0
     /// Approximate card width used when sizing compact picker-row thumbs.
@@ -43,7 +43,7 @@ public enum HeroHeaderLayout {
         minimumHeaderHeight * (140.0 / 300.0)
     }
 
-    public static func overscroll(contentOffsetY: CGFloat, topInset: CGFloat) -> CGFloat {
+    static func overscroll(contentOffsetY: CGFloat, topInset: CGFloat) -> CGFloat {
         max(-(contentOffsetY + topInset), 0)
     }
 

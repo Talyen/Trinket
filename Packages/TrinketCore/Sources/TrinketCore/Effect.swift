@@ -151,6 +151,16 @@ public enum Effect: Hashable, Sendable {
         }
     }
 
+    /// Burn/Poison stack for the decaying-DoT keywords. Only `.burn` and
+    /// `.poison` decay; other keywords coerce to poison, mirroring the
+    /// registry's decaying-DoT coverage.
+    public static func decayingDoT(keyword: Keyword, potency: Int) -> Self {
+        switch keyword {
+        case .burn: .burn(potency)
+        default: .poison(potency)
+        }
+    }
+
     public var keyword: Keyword {
         switch self {
         case .burn: .burn
