@@ -1,7 +1,7 @@
 import Foundation
 import os
 import SwiftUI
-import TrinketFeatureSupport
+import TrinketFeatureContracts
 
 /// Navigation and shell destination signposts for Instruments Animation Hitches /
 /// Time Profiler. Shares the frame-pacing subsystem with battle effect signposts so

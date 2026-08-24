@@ -1,7 +1,7 @@
 import Foundation
 import os
 import SwiftUI
-import TrinketFeatureSupport
+import TrinketFeatureContracts
 
 /// Signposts intentionally ship in release-like builds so Instruments can profile the
 /// same Battle effect pipeline players run. With no signpost consumer, the system log

@@ -31,7 +31,6 @@ let package = Package(
                 "TrinketBattleRuntime",
                 "TrinketPersistence",
                 .product(name: "TrinketFeatureContracts", package: "TrinketFeatureSupport"),
-                "TrinketFeatureSupport",
             ]
         ),
         .testTarget(
