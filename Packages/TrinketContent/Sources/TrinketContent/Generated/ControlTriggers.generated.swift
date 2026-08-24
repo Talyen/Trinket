@@ -6,6 +6,8 @@ import TrinketCore
 public struct ControlTriggers: Equatable, Hashable, Sendable {
     public var freezeExtraActionSkips: Int = 0
     public var physicalStunBuildupPercent: Double = 0
+    public var holyStunBuildupPercent: Double = 0
+    public var holyTriggeredStunGoldFlat: Int = 0
     public var freezeBuildupDoesNotDecay: Bool = false
     public var frozenEnemyCannotBlockOrHeal: Bool = false
     public var enemyStunExtraActionSkips: Int = 0
@@ -34,6 +36,8 @@ public struct ControlTriggers: Equatable, Hashable, Sendable {
     public init(
         freezeExtraActionSkips: Int = 0,
         physicalStunBuildupPercent: Double = 0,
+        holyStunBuildupPercent: Double = 0,
+        holyTriggeredStunGoldFlat: Int = 0,
         freezeBuildupDoesNotDecay: Bool = false,
         frozenEnemyCannotBlockOrHeal: Bool = false,
         enemyStunExtraActionSkips: Int = 0,
@@ -61,6 +65,8 @@ public struct ControlTriggers: Equatable, Hashable, Sendable {
     ) {
         self.freezeExtraActionSkips = freezeExtraActionSkips
         self.physicalStunBuildupPercent = physicalStunBuildupPercent
+        self.holyStunBuildupPercent = holyStunBuildupPercent
+        self.holyTriggeredStunGoldFlat = holyTriggeredStunGoldFlat
         self.freezeBuildupDoesNotDecay = freezeBuildupDoesNotDecay
         self.frozenEnemyCannotBlockOrHeal = frozenEnemyCannotBlockOrHeal
         self.enemyStunExtraActionSkips = enemyStunExtraActionSkips
@@ -92,6 +98,8 @@ extension ControlTriggers {
     mutating func merge(_ other: Self) {
         freezeExtraActionSkips += other.freezeExtraActionSkips
         physicalStunBuildupPercent += other.physicalStunBuildupPercent
+        holyStunBuildupPercent += other.holyStunBuildupPercent
+        holyTriggeredStunGoldFlat += other.holyTriggeredStunGoldFlat
         freezeBuildupDoesNotDecay = freezeBuildupDoesNotDecay || other.freezeBuildupDoesNotDecay
         frozenEnemyCannotBlockOrHeal = frozenEnemyCannotBlockOrHeal || other.frozenEnemyCannotBlockOrHeal
         enemyStunExtraActionSkips += other.enemyStunExtraActionSkips
@@ -125,6 +133,8 @@ extension ControlTriggers {
         try self.init(
             freezeExtraActionSkips: values.decode(Int.self, "freezeExtraActionSkips", default: 0),
             physicalStunBuildupPercent: values.decode(Double.self, "physicalStunBuildupPercent", default: 0),
+            holyStunBuildupPercent: values.decode(Double.self, "holyStunBuildupPercent", default: 0),
+            holyTriggeredStunGoldFlat: values.decode(Int.self, "holyTriggeredStunGoldFlat", default: 0),
             freezeBuildupDoesNotDecay: values.decode(Bool.self, "freezeBuildupDoesNotDecay", default: false),
             frozenEnemyCannotBlockOrHeal: values.decode(Bool.self, "frozenEnemyCannotBlockOrHeal", default: false),
             enemyStunExtraActionSkips: values.decode(Int.self, "enemyStunExtraActionSkips", default: 0),
@@ -155,6 +165,8 @@ extension ControlTriggers {
     func encode(to container: inout KeyedEncodingContainer<TriggerCodingKey>) throws {
         try container.encodeNonDefault(freezeExtraActionSkips, "freezeExtraActionSkips", default: 0)
         try container.encodeNonDefault(physicalStunBuildupPercent, "physicalStunBuildupPercent", default: 0)
+        try container.encodeNonDefault(holyStunBuildupPercent, "holyStunBuildupPercent", default: 0)
+        try container.encodeNonDefault(holyTriggeredStunGoldFlat, "holyTriggeredStunGoldFlat", default: 0)
         try container.encodeNonDefault(freezeBuildupDoesNotDecay, "freezeBuildupDoesNotDecay", default: false)
         try container.encodeNonDefault(frozenEnemyCannotBlockOrHeal, "frozenEnemyCannotBlockOrHeal", default: false)
         try container.encodeNonDefault(enemyStunExtraActionSkips, "enemyStunExtraActionSkips", default: 0)

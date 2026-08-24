@@ -191,6 +191,7 @@ public extension BattleTurnEngine {
         context: inout BattleState
     ) -> [ActionEvent] {
         guard ability.hasManaEmpowerableBurnOrFreezeDamage else { return [] }
+        let empoweredKeyword = ability.damageComponents.first(where: \.isManaEmpowerableBurnOrFreezeDamage)?.keyword
         let repeats = ability.id == "meteor"
             || (ability.hasManaEmpowerableBurnDamage
                 && context.modifiers(for: actor.id).triggers.repeatManaEmpowerment)
@@ -218,6 +219,13 @@ public extension BattleTurnEngine {
             events.append(contentsOf: CombatTriggerEngine.afterSpendMana(
                 by: actor,
                 amountSpent: spent,
+                in: &context
+            ))
+        }
+        if purchases > 0, let empoweredKeyword {
+            events.append(contentsOf: CombatTriggerEngine.drawOppositeElement(
+                afterEmpowering: empoweredKeyword,
+                by: actor,
                 in: &context
             ))
         }

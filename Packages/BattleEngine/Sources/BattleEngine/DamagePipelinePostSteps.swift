@@ -107,6 +107,16 @@ package extension DamagePipeline {
             ))
         }
 
+        if keyword == .holy {
+            applyHolyStunReactions(
+                to: &state,
+                source: source,
+                sourceActorID: sourceActorID,
+                triggers: triggers,
+                in: &context
+            )
+        }
+
         guard state.options.isAttackHit else { return }
         applyPhysicalAttackReactions(
             to: &state,

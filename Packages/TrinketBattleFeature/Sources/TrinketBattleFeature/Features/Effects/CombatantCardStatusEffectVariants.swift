@@ -22,14 +22,20 @@ enum CombatantStatusEffectKind: String, CaseIterable, Identifiable {
         }
     }
 
-    /// Stun keeps a full-phase orbit; freeze pauses once frost has encroached.
-    var animatedIntroDuration: TimeInterval {
+    var saturationDuration: TimeInterval? {
         switch self {
         case .swirlingStars:
-            TrinketMotion.Battle.combatantStatusEffectPhaseDuration
+            nil
         case .iceCrystals:
             TrinketMotion.Battle.combatantFreezeEncroachDuration
         }
+    }
+
+    func progress(after elapsed: TimeInterval) -> CGFloat {
+        let progress = CGFloat(
+            elapsed / TrinketMotion.Battle.combatantStatusEffectPhaseDuration
+        )
+        return self == .iceCrystals ? min(progress, 1) : progress
     }
 }
 
@@ -301,8 +307,6 @@ struct CombatantStatusEffectPresentation<Content: View>: View {
     let content: Content
 
     @State private var startDate = Date()
-    /// After the intro phase saturates the clock pauses: the per-frame timeline
-    /// is replaced by a single saturated render until the keyword changes.
     @State private var isSaturated = false
 
     init(
@@ -328,13 +332,9 @@ struct CombatantStatusEffectPresentation<Content: View>: View {
         config: CombatantStatusEffectConfig
     ) -> some View {
         TimelineView(.animation(paused: isSaturated)) { timeline in
-            // Absolute phase in lab clip units (progress 1 == full status phase).
-            let progress = min(
-                CGFloat(
-                    timeline.date.timeIntervalSince(startDate)
-                        / TrinketMotion.Battle.combatantStatusEffectPhaseDuration
-                ),
-                1
+            // Stun must keep an absolute, unbounded phase when a sheet obscures the battlefield.
+            let progress = kind.progress(
+                after: timeline.date.timeIntervalSince(startDate)
             )
             content
                 .modifier(
@@ -361,7 +361,8 @@ struct CombatantStatusEffectPresentation<Content: View>: View {
             isSaturated = false
         }
         .task(id: keyword) {
-            try? await Task.sleep(for: .seconds(kind.animatedIntroDuration))
+            guard let saturationDuration = kind.saturationDuration else { return }
+            try? await Task.sleep(for: .seconds(saturationDuration))
             guard !Task.isCancelled else { return }
             isSaturated = true
         }

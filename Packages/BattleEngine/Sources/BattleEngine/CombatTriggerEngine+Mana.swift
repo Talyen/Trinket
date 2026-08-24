@@ -2,6 +2,37 @@ import TrinketContent
 import TrinketCore
 
 package extension CombatTriggerEngine {
+    static func drawOppositeElement(
+        afterEmpowering keyword: Keyword,
+        by actor: Combatant,
+        in context: inout BattleState
+    ) -> [ActionEvent] {
+        guard context.modifiers(for: actor.id).triggers.empoweredElementDrawOpposite,
+              let owner = context.roster.participant(for: actor),
+              owner.isPartyMember
+        else { return [] }
+        let opposite: Keyword = keyword == .burn ? .freeze : .burn
+        guard BattleCardCombatEngine.drawFirstCard(
+            matching: opposite,
+            for: owner,
+            context: &context
+        ) != nil else { return [] }
+        return [context.nextEvent(
+            kind: .effect,
+            effectKind: .cardsDrawn,
+            actorName: actor.name,
+            abilityName: triggerAbilityName(
+                "empoweredElementDrawOpposite",
+                for: actor,
+                fallback: "Twin Casting",
+                in: context
+            ),
+            target: actor,
+            amount: 1,
+            keyword: .physical
+        )]
+    }
+
     // swiftlint:disable:next function_body_length cyclomatic_complexity
     static func afterSpendMana(by actor: Combatant, amountSpent: Int, in context: inout BattleState) -> [ActionEvent] {
         let profile = context.modifiers(for: actor.id)

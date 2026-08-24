@@ -66,8 +66,34 @@ struct UniqueCatalogTests {
 
     @Test func everySignatureHasSupportingAstralMaxAffixes() throws {
         for item in GameContent.uniqueItems {
-            try #expect(item.affixes.count >= 4, Comment(rawValue: item.id))
+            try #expect(item.affixes.count == 4, Comment(rawValue: item.id))
             #expect(item.affixPowers?.count == item.affixes.count)
         }
+    }
+
+    @Test func newUniquePackagesResolveExactly() throws {
+        let expected: [String: (base: String, affixes: [String])] = [
+            "blackfletch": ("crossbow", ["blackfletch", "infected", "lingering", "contagion"]),
+            "twin_casting": ("staff", ["twin_casting", "smoldering", "glacial", "channeled"]),
+            "saintfall_plate": ("plate_armor", ["saintfall", "bulwark", "sanctum", "vital"]),
+            "golden_verdict": ("topaz_ring", ["golden_verdict", "stunning", "lucky", "absolving"]),
+        ]
+
+        for (id, package) in expected {
+            let item = try #require(GameContent.unique(matching: id))
+            #expect(item.baseType.id == package.base)
+            #expect(item.affixes.map(\.id) == package.affixes)
+        }
+    }
+
+    @Test func staffAndChanneledUseManaOnlyElementalAffinity() throws {
+        let staff = try #require(GameContent.itemBaseType(matching: "staff"))
+        #expect(staff.keywordAffinities == [.burn, .freeze, .mana])
+
+        let channeled = try #require(GameContent.itemAffixDefinition(matching: "channeled"))
+        #expect(channeled.slot == .weapon)
+        #expect(channeled.keywords == [.mana])
+        #expect(channeled.basic.modifiers == [.maximumMana(4)])
+        #expect(channeled.astral.modifiers == [.maximumMana(8)])
     }
 }

@@ -425,6 +425,13 @@ package extension CombatTriggerEngine {
         if profile.triggers.criticalOnBleedingDetonateBleed, context.roster.health(for: enemy) > 0 {
             events.append(contentsOf: detonateBleed(on: enemy, sourceActorID: source.id, in: &context))
         }
+        if profile.triggers.criticalDetonateBleedAndPoison, context.roster.health(for: enemy) > 0 {
+            events.append(contentsOf: detonateBleedAndPoison(
+                on: enemy,
+                sourceActorID: source.id,
+                in: &context
+            ))
+        }
         // Rend Flesh: critical hits double the duration of active Bleed effects (capped at 10 turns).
         if profile.triggers.onCritDoubleBleedDuration {
             var effects = context.roster.activeEffects(for: enemy)

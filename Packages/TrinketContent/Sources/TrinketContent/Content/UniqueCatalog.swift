@@ -9,6 +9,10 @@ enum UniqueCatalog {
         danceOfBlades,
         bloodfireSignet,
         rimeheartLocket,
+        blackfletch,
+        twinCasting,
+        saintfallPlate,
+        goldenVerdict,
     ]
 
     // MARK: - Wardbreaker (Flail)
@@ -176,6 +180,148 @@ enum UniqueCatalog {
                     modifiers: [.maximumMana(8)]
                 )
             )),
+        ]
+    )
+
+    // MARK: - Blackfletch (Crossbow)
+
+    private static let blackfletch = UniqueItemDefinition(
+        id: "blackfletch",
+        displayName: "Blackfletch",
+        baseTypeID: "crossbow",
+        affixes: [
+            .bespoke(ItemAffixDefinition(
+                id: "blackfletch",
+                title: "Blackfletch",
+                slot: .weapon,
+                keywords: [.physical, .bleed, .poison],
+                weight: 0,
+                basic: ItemAffixPower(
+                    description: "Critical Hits detonate and consume all remaining Bleed and Poison damage.",
+                    modifiers: [],
+                    triggers: CombatTraitTriggers(
+                        dot: DotTriggers(criticalDetonateBleedAndPoison: true)
+                    )
+                ),
+                astral: ItemAffixPower(
+                    description: "Critical Hits detonate and consume all remaining Bleed and Poison damage.",
+                    modifiers: [],
+                    triggers: CombatTraitTriggers(
+                        dot: DotTriggers(criticalDetonateBleedAndPoison: true)
+                    )
+                )
+            )),
+            .catalog(id: "infected"),
+            .catalog(id: "lingering"),
+            .catalog(id: "contagion"),
+        ]
+    )
+
+    // MARK: - Twin Casting (Staff)
+
+    private static let twinCasting = UniqueItemDefinition(
+        id: "twin_casting",
+        displayName: "Twin Casting",
+        baseTypeID: "staff",
+        affixes: [
+            .bespoke(ItemAffixDefinition(
+                id: "twin_casting",
+                title: "Twin Casting",
+                slot: .weapon,
+                keywords: [.burn, .freeze, .mana],
+                weight: 0,
+                basic: ItemAffixPower(
+                    description: "After you spend Mana to empower a Burn card, draw a Freeze card, and vice versa.",
+                    modifiers: [],
+                    triggers: CombatTraitTriggers(
+                        mana: ManaTriggers(empoweredElementDrawOpposite: true)
+                    )
+                ),
+                astral: ItemAffixPower(
+                    description: "After you spend Mana to empower a Burn card, draw a Freeze card, and vice versa.",
+                    modifiers: [],
+                    triggers: CombatTraitTriggers(
+                        mana: ManaTriggers(empoweredElementDrawOpposite: true)
+                    )
+                )
+            )),
+            .catalog(id: "smoldering"),
+            .catalog(id: "glacial"),
+            .catalog(id: "channeled"),
+        ]
+    )
+
+    // MARK: - Saintfall Plate (Plate Armor)
+
+    private static let saintfallPlate = UniqueItemDefinition(
+        id: "saintfall_plate",
+        displayName: "Saintfall Plate",
+        baseTypeID: "plate_armor",
+        affixes: [
+            .bespoke(ItemAffixDefinition(
+                id: "saintfall",
+                title: "Saintfall",
+                slot: .armor,
+                keywords: [.block, .health, .holy, .stun],
+                weight: 0,
+                basic: ItemAffixPower(
+                    description: "The first time each round your Block is broken, deal 6 Holy and 6 Stun damage to the attacker, then restore 6 Health.",
+                    modifiers: [],
+                    triggers: CombatTraitTriggers(
+                        block: BlockTriggers(blockBrokenSaintfallPower: 6)
+                    )
+                ),
+                astral: ItemAffixPower(
+                    description: "The first time each round your Block is broken, deal 6 Holy and 6 Stun damage to the attacker, then restore 6 Health.",
+                    modifiers: [],
+                    triggers: CombatTraitTriggers(
+                        block: BlockTriggers(blockBrokenSaintfallPower: 6)
+                    )
+                )
+            )),
+            .catalog(id: "bulwark"),
+            .catalog(id: "sanctum"),
+            .catalog(id: "vital"),
+        ]
+    )
+
+    // MARK: - Golden Verdict (Topaz Ring)
+
+    private static let goldenVerdict = UniqueItemDefinition(
+        id: "golden_verdict",
+        displayName: "Golden Verdict",
+        baseTypeID: "topaz_ring",
+        affixes: [
+            .bespoke(ItemAffixDefinition(
+                id: "golden_verdict",
+                title: "Golden Verdict",
+                slot: .accessory,
+                keywords: [.holy, .gold, .stun],
+                weight: 0,
+                basic: ItemAffixPower(
+                    description: "Holy damage builds an equal amount of Stun. When this Stuns an enemy, gain 1 Gold.",
+                    modifiers: [],
+                    triggers: CombatTraitTriggers(
+                        control: ControlTriggers(
+                            holyStunBuildupPercent: 1,
+                            holyTriggeredStunGoldFlat: 1
+                        )
+                    )
+                ),
+                astral: ItemAffixPower(
+                    description: "Holy damage builds an equal amount of Stun. When this Stuns an enemy, gain 1 Gold.",
+                    modifiers: [],
+                    triggers: CombatTraitTriggers(
+                        control: ControlTriggers(
+                            holyStunBuildupPercent: 1,
+                            holyTriggeredStunGoldFlat: 1
+                        )
+                    )
+                )
+            )),
+            .catalog(id: "stunning"),
+            .catalog(id: "lucky"),
+            .catalog(id: "absolving"),
         ]
     )
 }

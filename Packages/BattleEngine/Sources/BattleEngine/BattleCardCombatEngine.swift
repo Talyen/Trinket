@@ -354,6 +354,25 @@ public enum BattleCardCombatEngine {
         drawOne(owner: owner, context: &context)
     }
 
+    /// Draws the first card matching `keyword` from the owner's active draw deck without reshuffling discard.
+    static func drawFirstCard(
+        matching keyword: Keyword,
+        for owner: BattleParticipant,
+        context: inout BattleState
+    ) -> BattleCard? {
+        guard context.roster[owner].isAlive else { return nil }
+        let ability: Ability? = switch owner {
+        case .hero:
+            context.heroDeck.drawFirst(where: { $0.keywords.contains(keyword) })
+        case .companion:
+            context.companionDeck.drawFirst(where: { $0.keywords.contains(keyword) })
+        case .enemy:
+            nil
+        }
+        guard let ability else { return nil }
+        return deal(ability, owner: owner, context: &context)
+    }
+
     @discardableResult
     private static func drawOne(owner: BattleParticipant, context: inout BattleState) -> BattleCard? {
         guard context.roster[owner].isAlive else { return nil }

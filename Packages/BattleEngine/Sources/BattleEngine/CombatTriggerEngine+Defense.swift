@@ -205,17 +205,27 @@ package extension CombatTriggerEngine {
 
     static func afterBlockBroken(
         on target: Combatant,
+        attackerID: String?,
         in context: inout BattleState
     ) -> [ActionEvent] {
         let profile = context.modifiers(for: target.id)
-        guard profile.triggers.blockBrokenBlockFlat > 0 else { return [] }
+        var events: [ActionEvent] = []
+        if profile.triggers.blockBrokenBlockFlat > 0 {
+            events.append(contentsOf: context.applyBlock(
+                profile.triggers.blockBrokenBlockFlat,
+                to: target,
+                source: target,
+                abilityName: affixName(.cascading)
+            ))
+        }
 
-        return context.applyBlock(
-            profile.triggers.blockBrokenBlockFlat,
-            to: target,
-            source: target,
-            abilityName: affixName(.cascading)
-        )
+        events.append(contentsOf: saintfallAfterBlockBroken(
+            on: target,
+            attackerID: attackerID,
+            power: profile.triggers.blockBrokenSaintfallPower,
+            in: &context
+        ))
+        return events
     }
 
     static func afterEnemyStunned(in context: inout BattleState) -> [ActionEvent] {

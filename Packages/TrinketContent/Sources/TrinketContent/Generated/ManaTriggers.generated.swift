@@ -5,6 +5,7 @@ import TrinketCore
 /// The `mana` trigger family of `CombatTraitTriggers`.
 public struct ManaTriggers: Equatable, Hashable, Sendable {
     public var spendManaBlockFlat: Int = 0
+    public var empoweredElementDrawOpposite: Bool = false
     public var spendManaRandomDoTFlat: Int = 0
     public var gainManaBlockFlat: Int = 0
     public var leechRestoreManaFlat: Int = 0
@@ -44,6 +45,7 @@ public struct ManaTriggers: Equatable, Hashable, Sendable {
 
     public init(
         spendManaBlockFlat: Int = 0,
+        empoweredElementDrawOpposite: Bool = false,
         spendManaRandomDoTFlat: Int = 0,
         gainManaBlockFlat: Int = 0,
         leechRestoreManaFlat: Int = 0,
@@ -82,6 +84,7 @@ public struct ManaTriggers: Equatable, Hashable, Sendable {
         onFreezeEnemyGainManaEqualBlock: Bool = false
     ) {
         self.spendManaBlockFlat = spendManaBlockFlat
+        self.empoweredElementDrawOpposite = empoweredElementDrawOpposite
         self.spendManaRandomDoTFlat = spendManaRandomDoTFlat
         self.gainManaBlockFlat = gainManaBlockFlat
         self.leechRestoreManaFlat = leechRestoreManaFlat
@@ -124,6 +127,7 @@ public struct ManaTriggers: Equatable, Hashable, Sendable {
 extension ManaTriggers {
     mutating func merge(_ other: Self) {
         spendManaBlockFlat += other.spendManaBlockFlat
+        empoweredElementDrawOpposite = empoweredElementDrawOpposite || other.empoweredElementDrawOpposite
         spendManaRandomDoTFlat += other.spendManaRandomDoTFlat
         gainManaBlockFlat += other.gainManaBlockFlat
         leechRestoreManaFlat += other.leechRestoreManaFlat
@@ -168,6 +172,7 @@ extension ManaTriggers {
     init(from values: DefaultingTriggerDecoder) throws {
         try self.init(
             spendManaBlockFlat: values.decode(Int.self, "spendManaBlockFlat", default: 0),
+            empoweredElementDrawOpposite: values.decode(Bool.self, "empoweredElementDrawOpposite", default: false),
             spendManaRandomDoTFlat: values.decode(Int.self, "spendManaRandomDoTFlat", default: 0),
             gainManaBlockFlat: values.decode(Int.self, "gainManaBlockFlat", default: 0),
             leechRestoreManaFlat: values.decode(Int.self, "leechRestoreManaFlat", default: 0),
@@ -209,6 +214,7 @@ extension ManaTriggers {
 
     func encode(to container: inout KeyedEncodingContainer<TriggerCodingKey>) throws {
         try container.encodeNonDefault(spendManaBlockFlat, "spendManaBlockFlat", default: 0)
+        try container.encodeNonDefault(empoweredElementDrawOpposite, "empoweredElementDrawOpposite", default: false)
         try container.encodeNonDefault(spendManaRandomDoTFlat, "spendManaRandomDoTFlat", default: 0)
         try container.encodeNonDefault(gainManaBlockFlat, "gainManaBlockFlat", default: 0)
         try container.encodeNonDefault(leechRestoreManaFlat, "leechRestoreManaFlat", default: 0)

@@ -66,6 +66,7 @@ package extension CombatTriggerEngine {
                 }
                 runtime.hasTakenAttackHitThisTurn = false
                 runtime.faeWardBlockedThisTurn = false
+                runtime.hasTriggeredSaintfallThisTurn = false
             }
         }
     }

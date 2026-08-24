@@ -36,6 +36,7 @@ public struct CombatantRuntime: Hashable {
         var hasNegatedFirstEnemyAttack: Bool = false
         var manaSpentThisCardPlay: Int = 0
         var faeWardBlockedThisTurn: Bool = false
+        var hasTriggeredSaintfallThisTurn: Bool = false
         var talentCritMultiplierBonus: Double = 0.0
     }
 

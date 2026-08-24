@@ -24,6 +24,7 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
     public var poisonDamageLeechPercent: Double = 0
     public var onCritDoubleBleedDuration: Bool = false
     public var criticalOnBleedingDetonateBleed: Bool = false
+    public var criticalDetonateBleedAndPoison: Bool = false
     public var onBurnDamageDetonateBleed: Bool = false
     public var freezeDamageLeech: Bool = false
     public var poisonDamageLeech: Bool = false
@@ -56,6 +57,7 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
         poisonDamageLeechPercent: Double = 0,
         onCritDoubleBleedDuration: Bool = false,
         criticalOnBleedingDetonateBleed: Bool = false,
+        criticalDetonateBleedAndPoison: Bool = false,
         onBurnDamageDetonateBleed: Bool = false,
         freezeDamageLeech: Bool = false,
         poisonDamageLeech: Bool = false,
@@ -87,6 +89,7 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
         self.poisonDamageLeechPercent = poisonDamageLeechPercent
         self.onCritDoubleBleedDuration = onCritDoubleBleedDuration
         self.criticalOnBleedingDetonateBleed = criticalOnBleedingDetonateBleed
+        self.criticalDetonateBleedAndPoison = criticalDetonateBleedAndPoison
         self.onBurnDamageDetonateBleed = onBurnDamageDetonateBleed
         self.freezeDamageLeech = freezeDamageLeech
         self.poisonDamageLeech = poisonDamageLeech
@@ -122,6 +125,7 @@ extension DotTriggers {
         poisonDamageLeechPercent += other.poisonDamageLeechPercent
         onCritDoubleBleedDuration = onCritDoubleBleedDuration || other.onCritDoubleBleedDuration
         criticalOnBleedingDetonateBleed = criticalOnBleedingDetonateBleed || other.criticalOnBleedingDetonateBleed
+        criticalDetonateBleedAndPoison = criticalDetonateBleedAndPoison || other.criticalDetonateBleedAndPoison
         onBurnDamageDetonateBleed = onBurnDamageDetonateBleed || other.onBurnDamageDetonateBleed
         freezeDamageLeech = freezeDamageLeech || other.freezeDamageLeech
         poisonDamageLeech = poisonDamageLeech || other.poisonDamageLeech
@@ -159,6 +163,7 @@ extension DotTriggers {
             poisonDamageLeechPercent: values.decode(Double.self, "poisonDamageLeechPercent", default: 0),
             onCritDoubleBleedDuration: values.decode(Bool.self, "onCritDoubleBleedDuration", default: false),
             criticalOnBleedingDetonateBleed: values.decode(Bool.self, "criticalOnBleedingDetonateBleed", default: false),
+            criticalDetonateBleedAndPoison: values.decode(Bool.self, "criticalDetonateBleedAndPoison", default: false),
             onBurnDamageDetonateBleed: values.decode(Bool.self, "onBurnDamageDetonateBleed", default: false),
             freezeDamageLeech: values.decode(Bool.self, "freezeDamageLeech", default: false),
             poisonDamageLeech: values.decode(Bool.self, "poisonDamageLeech", default: false),
@@ -193,6 +198,7 @@ extension DotTriggers {
         try container.encodeNonDefault(poisonDamageLeechPercent, "poisonDamageLeechPercent", default: 0)
         try container.encodeNonDefault(onCritDoubleBleedDuration, "onCritDoubleBleedDuration", default: false)
         try container.encodeNonDefault(criticalOnBleedingDetonateBleed, "criticalOnBleedingDetonateBleed", default: false)
+        try container.encodeNonDefault(criticalDetonateBleedAndPoison, "criticalDetonateBleedAndPoison", default: false)
         try container.encodeNonDefault(onBurnDamageDetonateBleed, "onBurnDamageDetonateBleed", default: false)
         try container.encodeNonDefault(freezeDamageLeech, "freezeDamageLeech", default: false)
         try container.encodeNonDefault(poisonDamageLeech, "poisonDamageLeech", default: false)

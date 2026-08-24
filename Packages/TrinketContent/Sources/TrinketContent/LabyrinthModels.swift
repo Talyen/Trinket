@@ -32,23 +32,23 @@ public enum LabyrinthModifierEffect: Hashable, Sendable {
     public var description: String {
         switch self {
         case let .damageDealt(keyword, amount):
-            "\(keyword.rawValue.capitalized) damage is increased by \(amount)."
+            "\(keyword.rawValue.capitalized) damage is increased by \(amount)"
         case let .damageTakenReduction(keyword, percent):
-            "\(keyword.rawValue.capitalized) damage taken is decreased by \(percent)%."
+            "\(keyword.rawValue.capitalized) damage taken is decreased by \(percent)%"
         case let .blockGained(amount):
-            "Block gained is increased by \(amount)."
+            "Block gained is increased by \(amount)"
         case let .leechGainedPercent(percent):
-            "Leech gained is increased by \(percent)%."
+            "Leech gained is increased by \(percent)%"
         case let .goldFoundPercent(percent):
-            "Gold found is increased by \(percent)%."
+            "Gold found is increased by \(percent)%"
         case let .experienceEarnedPercent(percent):
-            "XP earned is increased by \(percent)%."
+            "XP earned is increased by \(percent)%"
         case let .materialsFoundPercent(percent):
-            "Materials found are increased by \(percent)%."
+            "Materials found are increased by \(percent)%"
         case let .shopDiscountPercent(percent):
-            "Decreases Shop prices by \(percent)%."
+            "Decreases Shop prices by \(percent)%"
         case .astralShopOffers:
-            "Shop offers are all Astral items."
+            "Shop offers are all Astral items"
         }
     }
 }

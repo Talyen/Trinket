@@ -21,7 +21,7 @@ enum GameContentItemBasesGenerated {
         list.append(ItemBaseType(id: "shortbow", name: "Shortbow", slot: .weapon, weaponKind: .twoHanded, keywordAffinities: [.physical, .bleed, .poison]))
         list.append(ItemBaseType(id: "shortsword", name: "Shortsword", slot: .weapon, weaponKind: .oneHanded, keywordAffinities: [.physical, .bleed, .poison, .gold]))
         list.append(ItemBaseType(id: "spellbook", name: "Spellbook", slot: .weapon, weaponKind: .offHand, keywordAffinities: [.burn, .freeze, .holy, .gold, .mana]))
-        list.append(ItemBaseType(id: "staff", name: "Staff", slot: .weapon, weaponKind: .twoHanded, keywordAffinities: [.burn, .freeze, .holy, .block, .mana]))
+        list.append(ItemBaseType(id: "staff", name: "Staff", slot: .weapon, weaponKind: .twoHanded, keywordAffinities: [.burn, .freeze, .mana]))
         list.append(ItemBaseType(id: "wand", name: "Wand", slot: .weapon, weaponKind: .oneHanded, keywordAffinities: [.burn, .freeze, .holy, .poison, .mana]))
         list.append(ItemBaseType(id: "leather_armor", name: "Leather Armor", slot: .armor, weaponKind: nil, keywordAffinities: [.physical, .dodge, .block, .health, .poison, .leech, .bleed, .gold]))
         list.append(ItemBaseType(id: "plate_armor", name: "Plate Armor", slot: .armor, weaponKind: nil, keywordAffinities: [.block, .health, .holy, .stun]))

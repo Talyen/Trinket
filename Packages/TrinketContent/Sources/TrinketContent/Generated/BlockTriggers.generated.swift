@@ -5,6 +5,7 @@ import TrinketCore
 /// The `block` trigger family of `CombatTraitTriggers`.
 public struct BlockTriggers: Equatable, Hashable, Sendable {
     public var blockBrokenBlockFlat: Int = 0
+    public var blockBrokenSaintfallPower: Int = 0
     public var holyDamageBlockFlat: Int = 0
     public var stunDamageBlockFlat: Int = 0
     public var blockPerTurn: Int = 0
@@ -49,6 +50,7 @@ public struct BlockTriggers: Equatable, Hashable, Sendable {
 
     public init(
         blockBrokenBlockFlat: Int = 0,
+        blockBrokenSaintfallPower: Int = 0,
         holyDamageBlockFlat: Int = 0,
         stunDamageBlockFlat: Int = 0,
         blockPerTurn: Int = 0,
@@ -92,6 +94,7 @@ public struct BlockTriggers: Equatable, Hashable, Sendable {
         freezeDamageGrantsBlock: Bool = false
     ) {
         self.blockBrokenBlockFlat = blockBrokenBlockFlat
+        self.blockBrokenSaintfallPower = blockBrokenSaintfallPower
         self.holyDamageBlockFlat = holyDamageBlockFlat
         self.stunDamageBlockFlat = stunDamageBlockFlat
         self.blockPerTurn = blockPerTurn
@@ -139,6 +142,7 @@ public struct BlockTriggers: Equatable, Hashable, Sendable {
 extension BlockTriggers {
     mutating func merge(_ other: Self) {
         blockBrokenBlockFlat += other.blockBrokenBlockFlat
+        blockBrokenSaintfallPower = max(blockBrokenSaintfallPower, other.blockBrokenSaintfallPower)
         holyDamageBlockFlat += other.holyDamageBlockFlat
         stunDamageBlockFlat += other.stunDamageBlockFlat
         blockPerTurn += other.blockPerTurn
@@ -188,6 +192,7 @@ extension BlockTriggers {
     init(from values: DefaultingTriggerDecoder) throws {
         try self.init(
             blockBrokenBlockFlat: values.decode(Int.self, "blockBrokenBlockFlat", default: 0),
+            blockBrokenSaintfallPower: values.decode(Int.self, "blockBrokenSaintfallPower", default: 0),
             holyDamageBlockFlat: values.decode(Int.self, "holyDamageBlockFlat", default: 0),
             stunDamageBlockFlat: values.decode(Int.self, "stunDamageBlockFlat", default: 0),
             blockPerTurn: values.decode(Int.self, "blockPerTurn", default: 0),
@@ -234,6 +239,7 @@ extension BlockTriggers {
 
     func encode(to container: inout KeyedEncodingContainer<TriggerCodingKey>) throws {
         try container.encodeNonDefault(blockBrokenBlockFlat, "blockBrokenBlockFlat", default: 0)
+        try container.encodeNonDefault(blockBrokenSaintfallPower, "blockBrokenSaintfallPower", default: 0)
         try container.encodeNonDefault(holyDamageBlockFlat, "holyDamageBlockFlat", default: 0)
         try container.encodeNonDefault(stunDamageBlockFlat, "stunDamageBlockFlat", default: 0)
         try container.encodeNonDefault(blockPerTurn, "blockPerTurn", default: 0)

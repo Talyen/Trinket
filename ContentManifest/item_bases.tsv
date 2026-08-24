@@ -14,7 +14,7 @@ recurve_bow	Recurve Bow	weapon	two_handed	physical,bleed,poison
 shortbow	Shortbow	weapon	two_handed	physical,bleed,poison
 shortsword	Shortsword	weapon	one_handed	physical,bleed,poison,gold
 spellbook	Spellbook	weapon	off_hand	burn,freeze,holy,gold,mana
-staff	Staff	weapon	two_handed	burn,freeze,holy,block,mana
+staff	Staff	weapon	two_handed	burn,freeze,mana
 wand	Wand	weapon	one_handed	burn,freeze,holy,poison,mana
 leather_armor	Leather Armor	armor		physical,dodge,block,health,poison,leech,bleed,gold
 plate_armor	Plate Armor	armor		block,health,holy,stun

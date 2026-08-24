@@ -5,6 +5,7 @@ envenomed	Envenomed	weapon	poison	10	Increase Poison damage by 1.	Increase Poiso
 smoldering	Smoldering	weapon	burn	10	Increase Burn damage by 1.	Increase Burn damage by 2.	damage_dealt:burn:1	damage_dealt:burn:2
 consecrated	Consecrated	weapon	holy	8	Increase Holy damage by 1.	Increase Holy damage by 3.	damage_dealt:holy:1	damage_dealt:holy:3
 glacial	Glacial	weapon	freeze	8	Increase Freeze damage by 1.	Increase Freeze damage by 2.	damage_dealt:freeze:1	damage_dealt:freeze:2
+channeled	Channeled	weapon	mana	8	Increase Maximum Mana by 4.	Increase Maximum Mana by 8.	maximum_mana:4	maximum_mana:8
 concussive	Concussive	weapon	stun	8	Increase Stun damage by 1.	Increase Stun damage by 2.	damage_dealt:stun:1	damage_dealt:stun:2
 lingering	Lingering	weapon	bleed	8	Bleed lasts 1 additional turn.	Bleed lasts 2 additional turns.	bleed_duration:1	bleed_duration:2
 sentinel	Sentinel	weapon	block	8	Gain 1 additional Block.	Gain 3 additional Block.	block_gained:1	block_gained:3

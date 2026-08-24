@@ -526,6 +526,12 @@
         "merge": "add"
       },
       {
+        "name": "blockBrokenSaintfallPower",
+        "type": "Int",
+        "default": "0",
+        "merge": "max"
+      },
+      {
         "name": "holyDamageBlockFlat",
         "type": "Int",
         "default": "0",
@@ -1030,6 +1036,12 @@
         "merge": "or"
       },
       {
+        "name": "criticalDetonateBleedAndPoison",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
         "name": "onBurnDamageDetonateBleed",
         "type": "Bool",
         "default": "false",
@@ -1104,6 +1116,18 @@
       {
         "name": "physicalStunBuildupPercent",
         "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "holyStunBuildupPercent",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "holyTriggeredStunGoldFlat",
+        "type": "Int",
         "default": "0",
         "merge": "add"
       },
@@ -1436,6 +1460,12 @@
         "type": "Int",
         "default": "0",
         "merge": "add"
+      },
+      {
+        "name": "empoweredElementDrawOpposite",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
       },
       {
         "name": "spendManaRandomDoTFlat",

@@ -91,6 +91,7 @@ package extension DamagePipeline {
         if blockBroken {
             state.damageEvents.append(contentsOf: CombatTriggerEngine.afterBlockBroken(
                 on: state.combatant,
+                attackerID: state.sourceActorID,
                 in: &context
             ))
             state.activeEffects = context.roster.activeEffects(for: state.combatant)
