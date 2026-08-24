@@ -76,19 +76,12 @@ package extension CombatTriggerEngine {
         guard triggers.endTurnWithBlockHealFlat > 0,
               DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: actor)) > 0
         else { return [] }
-        return HealingEngine.resolveHeal(
-            HealRequest(
-                amount: triggers.endTurnWithBlockHealFlat,
-                target: actor,
-                sourceActorID: actor.id,
-                logAs: .instantHeal(
-                    actorName: actor.name,
-                    abilityName: "Hibernation",
-                    keyword: .health
-                )
-            ),
-            in: &context
-        ).events
+        return context.healEmitting(
+            amount: triggers.endTurnWithBlockHealFlat,
+            target: actor,
+            source: actor,
+            abilityName: "Hibernation"
+        )
     }
 
     /// Playful Energy: heal both allies after enough cards were played this turn.
@@ -105,19 +98,12 @@ package extension CombatTriggerEngine {
         for otherOwner in [BattleParticipant.hero, .companion] {
             let member = context.roster[otherOwner]
             guard member.isAlive else { continue }
-            events.append(contentsOf: HealingEngine.resolveHeal(
-                HealRequest(
-                    amount: triggers.cardsPlayedHealPartyAmount,
-                    target: member.combatant,
-                    sourceActorID: actor.id,
-                    logAs: .instantHeal(
-                        actorName: actor.name,
-                        abilityName: "Playful Energy",
-                        keyword: .health
-                    )
-                ),
-                in: &context
-            ).events)
+            events.append(contentsOf: context.healEmitting(
+                amount: triggers.cardsPlayedHealPartyAmount,
+                target: member.combatant,
+                source: actor,
+                abilityName: "Playful Energy"
+            ))
         }
         return events
     }
@@ -134,19 +120,12 @@ package extension CombatTriggerEngine {
             companion: context.roster.companion.combatant,
             context: context
         )
-        return HealingEngine.resolveHeal(
-            HealRequest(
-                amount: triggers.endOfTurnHealLowestAlly,
-                target: lowest,
-                sourceActorID: actor.id,
-                logAs: .instantHeal(
-                    actorName: actor.name,
-                    abilityName: "Cheer Up",
-                    keyword: .health
-                )
-            ),
-            in: &context
-        ).events
+        return context.healEmitting(
+            amount: triggers.endOfTurnHealLowestAlly,
+            target: lowest,
+            source: actor,
+            abilityName: "Cheer Up"
+        )
     }
 
     /// Campfire Comfort: restore Health to both allies at the end of each round.
@@ -160,19 +139,12 @@ package extension CombatTriggerEngine {
         for memberOwner in [BattleParticipant.hero, .companion] {
             let member = context.roster[memberOwner]
             guard member.isAlive else { continue }
-            events.append(contentsOf: HealingEngine.resolveHeal(
-                HealRequest(
-                    amount: triggers.partyRegenPerRound,
-                    target: member.combatant,
-                    sourceActorID: actor.id,
-                    logAs: .instantHeal(
-                        actorName: actor.name,
-                        abilityName: "Campfire Comfort",
-                        keyword: .health
-                    )
-                ),
-                in: &context
-            ).events)
+            events.append(contentsOf: context.healEmitting(
+                amount: triggers.partyRegenPerRound,
+                target: member.combatant,
+                source: actor,
+                abilityName: "Campfire Comfort"
+            ))
         }
         return events
     }

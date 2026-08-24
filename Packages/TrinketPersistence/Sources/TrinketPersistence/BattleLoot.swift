@@ -21,7 +21,7 @@ public struct BattleLootPackage: Hashable, Sendable {
 }
 
 public enum BattleLoot {
-    public static let materialResources: [HomesteadResource] = [
+    static let materialResources: [HomesteadResource] = [
         .wood, .stone, .iron, .food, .herbs, .hide, .crystal,
     ]
 
@@ -49,9 +49,7 @@ public enum BattleLoot {
         let multiplier = enemyIsBoss ? 2 : 1
 
         var gold = Int.random(in: range, using: &randomNumberGenerator) * multiplier
-        if goldFoundPercent != 0 {
-            gold = max(0, gold + (gold * goldFoundPercent) / 100)
-        }
+        gold = CombatRounding.scaled(gold, byPercent: goldFoundPercent)
 
         var materials = rollDistinctMaterials(
             count: 2,
@@ -59,11 +57,8 @@ public enum BattleLoot {
             quantityMultiplier: multiplier,
             using: &randomNumberGenerator
         )
-        if materialsFoundPercent != 0 {
-            let factor = max(0, 100 + materialsFoundPercent)
-            materials = materials.map {
-                ResourceAmount($0.resource, max(0, $0.quantity * factor / 100))
-            }
+        materials = materials.map {
+            ResourceAmount($0.resource, CombatRounding.scaled($0.quantity, byPercent: materialsFoundPercent))
         }
 
         let tier = ItemRarityRoll.roll(
@@ -153,7 +148,7 @@ public enum BattleLoot {
         return resolve(
             encounterLevel: encounterLevel,
             enemyIsBoss: enemyIsBoss,
-            itemID: "labyrinth-\(node.id)",
+            itemID: LabyrinthCompletion.rewardItemID(forNodeID: node.id),
             keywordBias: [],
             ownedTrinketIDs: ownedTrinketIDs,
             ownedUniqueIDs: ownedUniqueIDs,

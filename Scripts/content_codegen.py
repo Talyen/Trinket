@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import functools
 import json
 import re
 import subprocess
@@ -16,6 +17,11 @@ GENERATED_DIR = ROOT / "Packages" / "TrinketContent" / "Sources" / "TrinketConte
 CONTENT_DIR = ROOT / "Packages" / "TrinketContent" / "Sources" / "TrinketContent" / "Content"
 TRINKET_CONTENT_PACKAGE = ROOT / "Packages" / "TrinketContent"
 TRIGGER_FAMILY_SCHEMA = ROOT / "Scripts" / "trigger_family_schema.json"
+
+
+@functools.cache
+def _trigger_families() -> dict:
+    return json.loads(TRIGGER_FAMILY_SCHEMA.read_text(encoding="utf-8"))
 
 VALID_SLOTS = frozenset({"weapon", "armor", "accessory", "trinket"})
 VALID_TIERS = frozenset({"basic", "skill", "ultimate"})
@@ -402,7 +408,7 @@ def parse_trigger_tokens(raw: str) -> list[str]:
 
 
 def triggers_swift(raw: str) -> str:
-    families = json.loads(TRIGGER_FAMILY_SCHEMA.read_text(encoding="utf-8"))
+    families = _trigger_families()
     field_group = {
         field["name"]: family["family"]
         for family in families
@@ -1252,7 +1258,7 @@ def generate_stages_index() -> None:
 
 
 def generate_trigger_families() -> None:
-    families = json.loads(TRIGGER_FAMILY_SCHEMA.read_text(encoding="utf-8"))
+    families = _trigger_families()
     merge_lines = {
         "add": lambda n: f"        {n} += other.{n}",
         "mul": lambda n: f"        {n} *= other.{n}",
@@ -1932,7 +1938,7 @@ def main() -> int:
     generate_ability_inventory()
     generate_ability_index()
     ability_count = len(collect_ability_symbols())
-    trigger_family_count = len(json.loads(TRIGGER_FAMILY_SCHEMA.read_text(encoding="utf-8")))
+    trigger_family_count = len(_trigger_families())
     print(
         f"Generated {len(affix_rows)} affixes, "
         f"{len(trait_rows)} traits, "

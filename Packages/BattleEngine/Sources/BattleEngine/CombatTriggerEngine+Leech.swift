@@ -2,7 +2,6 @@ import TrinketContent
 import TrinketCore
 
 package extension CombatTriggerEngine {
-    // swiftlint:disable:next function_body_length
     static func afterLeech(
         by actor: Combatant,
         target: Combatant?,
@@ -13,22 +12,11 @@ package extension CombatTriggerEngine {
         var events: [ActionEvent] = []
 
         if triggers.leechRestoreManaFlat > 0 {
-            let restored = context.restoreMana(
+            events.append(contentsOf: context.restoreManaEmitting(
                 context.paced(triggers.leechRestoreManaFlat, sourceActorID: actor.id),
-                to: actor
-            )
-            if restored > 0 {
-                events.append(context.nextEvent(
-                    kind: .effect,
-                    effectKind: .resourceGain,
-                    actorName: actor.name,
-                    abilityName: affixName(.siphoning),
-                    target: actor,
-                    amount: restored,
-                    keyword: .mana
-                ))
-                events.append(contentsOf: afterGainMana(by: actor, in: &context))
-            }
+                to: actor,
+                abilityName: affixName(.siphoning)
+            ))
         }
 
         if triggers.leechGoldFlat > 0 {
@@ -88,18 +76,11 @@ package extension CombatTriggerEngine {
               context.roster.companion.isAlive
         else { return [] }
         let share = max(1, CombatRounding.scaled(restored, multiplier: percent))
-        return HealingEngine.resolveHeal(
-            HealRequest(
-                amount: share,
-                target: context.roster.companion.combatant,
-                sourceActorID: context.roster.hero.id,
-                logAs: .instantHeal(
-                    actorName: context.roster.hero.name,
-                    abilityName: affixName(.symbiosis),
-                    keyword: .health
-                )
-            ),
-            in: &context
-        ).events
+        return context.healEmitting(
+            amount: share,
+            target: context.roster.companion.combatant,
+            source: context.roster.hero.combatant,
+            abilityName: affixName(.symbiosis)
+        )
     }
 }

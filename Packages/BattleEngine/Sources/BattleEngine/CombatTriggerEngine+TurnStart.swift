@@ -150,19 +150,12 @@ package extension CombatTriggerEngine {
             ))
         }
         if triggers.healthPerTurn > 0 {
-            events.append(contentsOf: HealingEngine.resolveHeal(
-                HealRequest(
-                    amount: triggers.healthPerTurn,
-                    target: actor,
-                    sourceActorID: actor.id,
-                    logAs: .instantHeal(
-                        actorName: actor.name,
-                        abilityName: "Grove's Favor",
-                        keyword: .health
-                    )
-                ),
-                in: &context
-            ).events)
+            events.append(contentsOf: context.healEmitting(
+                amount: triggers.healthPerTurn,
+                target: actor,
+                source: actor,
+                abilityName: "Grove's Favor"
+            ))
         }
         if runtime.healOverTimeTurnsRemaining > 0, runtime.healOverTimeAmount > 0 {
             let amount = runtime.healOverTimeAmount
@@ -175,7 +168,8 @@ package extension CombatTriggerEngine {
                         actorName: actor.name,
                         abilityName: "Lingering Blessing",
                         keyword: .health
-                    )
+                    ),
+                    isHoTTick: true
                 ),
                 in: &context
             ).events)
@@ -208,36 +202,22 @@ package extension CombatTriggerEngine {
         }
         if triggers.healthRegenFirstTurnsDuration > 0,
            context.turnCount < triggers.healthRegenFirstTurnsDuration {
-            events.append(contentsOf: HealingEngine.resolveHeal(
-                HealRequest(
-                    amount: triggers.healthRegenFirstTurnsAmount,
-                    target: actor,
-                    sourceActorID: actor.id,
-                    logAs: .instantHeal(
-                        actorName: actor.name,
-                        abilityName: "Sprite Touch",
-                        keyword: .health
-                    )
-                ),
-                in: &context
-            ).events)
+            events.append(contentsOf: context.healEmitting(
+                amount: triggers.healthRegenFirstTurnsAmount,
+                target: actor,
+                source: actor,
+                abilityName: "Sprite Touch"
+            ))
         }
         if triggers.healthRegenAboveHalfHealth > 0,
            context.roster.maxHealth(for: actor) > 0,
            context.roster.health(for: actor) * 2 >= context.roster.maxHealth(for: actor) {
-            events.append(contentsOf: HealingEngine.resolveHeal(
-                HealRequest(
-                    amount: triggers.healthRegenAboveHalfHealth,
-                    target: actor,
-                    sourceActorID: actor.id,
-                    logAs: .instantHeal(
-                        actorName: actor.name,
-                        abilityName: "Safe Perch",
-                        keyword: .health
-                    )
-                ),
-                in: &context
-            ).events)
+            events.append(contentsOf: context.healEmitting(
+                amount: triggers.healthRegenAboveHalfHealth,
+                target: actor,
+                source: actor,
+                abilityName: "Safe Perch"
+            ))
         }
         return events
     }
@@ -272,19 +252,11 @@ package extension CombatTriggerEngine {
             }
         }
         if triggers.bonusManaOnTurns.contains(context.turnCount + 1) {
-            let restored = context.restoreMana(1, to: actor)
-            if restored > 0 {
-                events.append(context.nextEvent(
-                    kind: .effect,
-                    effectKind: .resourceGain,
-                    actorName: actor.name,
-                    abilityName: "Aetherial Surge",
-                    target: actor,
-                    amount: restored,
-                    keyword: .mana
-                ))
-                events.append(contentsOf: afterGainMana(by: actor, in: &context))
-            }
+            events.append(contentsOf: context.restoreManaEmitting(
+                1,
+                to: actor,
+                abilityName: "Aetherial Surge"
+            ))
         }
         return events
     }
@@ -397,19 +369,11 @@ package extension CombatTriggerEngine {
         guard context.turnCount == 0 else { return [] }
         var events: [ActionEvent] = []
         if triggers.startBattleBonusMana > 0 {
-            let restored = context.restoreMana(triggers.startBattleBonusMana, to: actor)
-            if restored > 0 {
-                events.append(context.nextEvent(
-                    kind: .effect,
-                    effectKind: .resourceGain,
-                    actorName: actor.name,
-                    abilityName: "Dragon Spark",
-                    target: actor,
-                    amount: restored,
-                    keyword: .mana
-                ))
-                events.append(contentsOf: afterGainMana(by: actor, in: &context))
-            }
+            events.append(contentsOf: context.restoreManaEmitting(
+                triggers.startBattleBonusMana,
+                to: actor,
+                abilityName: "Dragon Spark"
+            ))
         }
         if triggers.startBattleBlock > 0 {
             events.append(contentsOf: context.applyBlock(

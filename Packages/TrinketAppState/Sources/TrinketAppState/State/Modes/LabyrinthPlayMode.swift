@@ -244,7 +244,13 @@ public final class LabyrinthPlayMode {
         guard battle.lifecyclePhase != .active else { return }
         let labyrinth = playerSave.labyrinth
         let inputs = preparationInputs(labyrinth: labyrinth)
-        guard inputs != preparedInputs || battle.lifecyclePhase == .idle else { return }
+        // Same re-prepare contract as Journey/Spires: a consumed or dropped
+        // prepared run must be rebuilt even when inputs are unchanged.
+        let missingPreparedRun = labyrinth.reachableNodeIDs().contains { nodeID in
+            guard let node = labyrinth.node(id: nodeID), node.type.isCombat else { return false }
+            return !battle.hasPreparedRun(PlayBattleOrigin.labyrinth(nodeID: nodeID).runKey)
+        }
+        guard inputs != preparedInputs || battle.lifecyclePhase == .idle || missingPreparedRun else { return }
 
         var preparedAll = true
         var preparedKeys: Set<BattleRunKey> = []

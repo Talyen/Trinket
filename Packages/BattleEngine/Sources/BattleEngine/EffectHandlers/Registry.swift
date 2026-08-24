@@ -7,8 +7,8 @@ import TrinketCore
 /// of a single inline switch.
 public enum EffectHandlers {
     public static let all: [EffectKind: any BattleEffectHandler] = [
-        .burn: DecayingDoTHandler(keyword: .burn),
-        .poison: DecayingDoTHandler(keyword: .poison),
+        .burn: DecayingDoTHandler(keyword: .burn, kind: .burn),
+        .poison: DecayingDoTHandler(keyword: .poison, kind: .poison),
         .bleed: BleedHandler(),
         .controlMeter: ControlMeterHandler(),
         .shield: BlockBuffHandler(),
@@ -17,10 +17,10 @@ public enum EffectHandlers {
         .resourceGain: ResourceGainHandler(),
         .drawCards: DrawCardsHandler(),
         .drawAndPlayCards: DrawAndPlayCardsHandler(),
-        .cleanse: CleansePurgeHandler(mode: .cleanse),
-        .cleanseRandom: CleansePurgeHandler(mode: .cleanseRandom),
-        .purge: CleansePurgeHandler(mode: .purge),
-        .purgeRandom: CleansePurgeHandler(mode: .purgeRandom),
+        .cleanse: CleansePurgeHandler(mode: .cleanse, kind: .cleanse),
+        .cleanseRandom: CleansePurgeHandler(mode: .cleanseRandom, kind: .cleanseRandom),
+        .purge: CleansePurgeHandler(mode: .purge, kind: .purge),
+        .purgeRandom: CleansePurgeHandler(mode: .purgeRandom, kind: .purgeRandom),
         .halveShield: HalveShieldHandler(),
         .deathsDoor: DeathsDoorHandler(),
         .thorns: ThornsHandler(),
@@ -49,10 +49,10 @@ public enum EffectHandlers {
             keyword: .dodge,
             summaryText: "Dodge the next attack."
         ),
-        .convertManaToBlock: ShieldFromResourceHandler(mode: .convertManaToBlock),
-        .shieldFromMana: ShieldFromResourceHandler(mode: .shieldFromMana),
-        .shieldFromHalfMana: ShieldFromResourceHandler(mode: .shieldFromHalfMana),
-        .shieldFromGold: ShieldFromResourceHandler(mode: .shieldFromGold),
+        .convertManaToBlock: ShieldFromResourceHandler(mode: .convertManaToBlock, kind: .convertManaToBlock),
+        .shieldFromMana: ShieldFromResourceHandler(mode: .shieldFromMana, kind: .shieldFromMana),
+        .shieldFromHalfMana: ShieldFromResourceHandler(mode: .shieldFromHalfMana, kind: .shieldFromHalfMana),
+        .shieldFromGold: ShieldFromResourceHandler(mode: .shieldFromGold, kind: .shieldFromGold),
         .maximumManaBonus: MaximumManaBonusHandler(),
         .nextStrikeCritical: FlagEffectHandler(
             flag: .nextStrikeCritical,

@@ -32,19 +32,12 @@ package extension CombatTriggerEngine {
         }
 
         if profile.triggers.holyDamageHealFlat > 0 {
-            events.append(contentsOf: HealingEngine.resolveHeal(
-                HealRequest(
-                    amount: profile.triggers.holyDamageHealFlat,
-                    target: source,
-                    sourceActorID: source.id,
-                    logAs: .instantHeal(
-                        actorName: source.name,
-                        abilityName: triggerAbilityName("holyDamageHealFlat", for: source, fallback: affixName(.beacon), in: context),
-                        keyword: .health
-                    )
-                ),
-                in: &context
-            ).events)
+            events.append(contentsOf: context.healEmitting(
+                amount: profile.triggers.holyDamageHealFlat,
+                target: source,
+                source: source,
+                abilityName: triggerAbilityName("holyDamageHealFlat", for: source, fallback: affixName(.beacon), in: context)
+            ))
         }
 
         // Divine Blessing / Sunlight Spark: heal the lowest-Health ally.
@@ -60,52 +53,30 @@ package extension CombatTriggerEngine {
                 fallback: "Divine Blessing",
                 in: context
             )
-            events.append(contentsOf: HealingEngine.resolveHeal(
-                HealRequest(
-                    amount: profile.triggers.holyDamageHealLowestAllyFlat,
-                    target: lowest,
-                    sourceActorID: source.id,
-                    logAs: .instantHeal(
-                        actorName: source.name,
-                        abilityName: blessingName,
-                        keyword: .health
-                    )
-                ),
-                in: &context
-            ).events)
+            events.append(contentsOf: context.healEmitting(
+                amount: profile.triggers.holyDamageHealLowestAllyFlat,
+                target: lowest,
+                source: source,
+                abilityName: blessingName
+            ))
         }
         // Sun Glyph: Holy damage dealt by the Companion heals the Hero.
         if profile.triggers.holyDamageHealHeroFlat > 0, context.roster.hero.isAlive {
-            events.append(contentsOf: HealingEngine.resolveHeal(
-                HealRequest(
-                    amount: profile.triggers.holyDamageHealHeroFlat,
-                    target: context.roster.hero.combatant,
-                    sourceActorID: source.id,
-                    logAs: .instantHeal(
-                        actorName: source.name,
-                        abilityName: "Sun Glyph",
-                        keyword: .health
-                    )
-                ),
-                in: &context
-            ).events)
+            events.append(contentsOf: context.healEmitting(
+                amount: profile.triggers.holyDamageHealHeroFlat,
+                target: context.roster.hero.combatant,
+                source: source,
+                abilityName: "Sun Glyph"
+            ))
         }
 
         // Radiant Wisdom: Holy damage restores 1 Mana.
         if profile.triggers.onHolyDamageRestoreMana > 0 {
-            let restored = context.restoreMana(profile.triggers.onHolyDamageRestoreMana, to: source)
-            if restored > 0 {
-                events.append(context.nextEvent(
-                    kind: .effect,
-                    effectKind: .resourceGain,
-                    actorName: source.name,
-                    abilityName: "Radiant Wisdom",
-                    target: source,
-                    amount: restored,
-                    keyword: .mana
-                ))
-                events.append(contentsOf: Self.afterGainMana(by: source, in: &context))
-            }
+            events.append(contentsOf: context.restoreManaEmitting(
+                profile.triggers.onHolyDamageRestoreMana,
+                to: source,
+                abilityName: "Radiant Wisdom"
+            ))
         }
         // Revealed Flaw: Holy damage arms the owner's next hit with bonus damage.
         if profile.triggers.holyDamageNextHitBonus > 0 {

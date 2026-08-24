@@ -111,14 +111,3 @@ public struct ProductCardShell<Art: View, Label: View>: View {
         .animation(TrinketMotion.Interaction.selection, value: isSelected)
     }
 }
-
-private extension View {
-    @ViewBuilder
-    func optionalAccessibilityIdentifier(_ id: String?) -> some View {
-        if let id {
-            accessibilityIdentifier(id)
-        } else {
-            self
-        }
-    }
-}

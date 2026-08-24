@@ -311,7 +311,9 @@ public final class PlayerSaveStore {
     }
 
     public func applyTestSeed() throws {
-        try resetRoot(with: .testSeed)
+        var seeded = PlayerSave.testSeed
+        seeded.sessionGeneration = currentSave.sessionGeneration &+ 1
+        try resetRoot(with: seeded)
     }
 
     /// Unlocks all heroes/companions at level 20 and clears Chapter 1 (Modes unlock).

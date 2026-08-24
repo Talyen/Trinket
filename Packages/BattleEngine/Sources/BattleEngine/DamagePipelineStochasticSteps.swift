@@ -131,54 +131,16 @@ package extension DamagePipeline {
             return
         }
 
-        var chance = actor.primaryStats.contestedCriticalChance(
-            for: damageKeyword,
-            againstDefenderToughness: state.combatant.primaryStats.toughness
+        guard CriticalChanceEngine.rollSucceeds(
+            keyword: damageKeyword,
+            actorID: sourceActorID,
+            defender: state.combatant,
+            abilityBonus: state.options.abilityCriticalChanceBonus,
+            countsBleedingDefender: true,
+            in: &context
         )
-        chance += state.options.abilityCriticalChanceBonus
-        chance += context.modifiers(for: sourceActorID).triggers.criticalChanceBonus
-        chance += partyCritChanceBonus(actor: actor, in: context)
-        if context.roster.activeEffects(for: state.combatant).contains(where: { $0.effect.keyword == .bleed }) {
-            chance += context.modifiers(for: sourceActorID).triggers.critChancePerBleedingEnemy
-        }
-
-        let sourceEffects = context.roster.activeEffects(for: actor.combatant)
-        for active in sourceEffects {
-            if case let .criticalChanceBonus(bonus, _) = active.effect {
-                chance += bonus
-            }
-        }
-
-        chance = min(criticalChanceCap(for: actor.combatant), max(0, chance))
-        guard BattleChance.succeeds(probability: chance, using: &context.rng) else { return }
+        else { return }
         applyCritical(to: &state)
-    }
-
-    /// Party-wide crit chance bonuses (Pack Bloodlust, Man's Best Friend, Treasure Hoard).
-    private static func partyCritChanceBonus(
-        actor: CombatantRuntime,
-        in context: BattleState
-    ) -> Double {
-        guard actor.role != .enemy, context.roster.companion.isAlive else { return 0 }
-        let companionTriggers = context.companionModifiers.triggers
-        var bonus: Double = 0
-        if companionTriggers.partyCritChanceWhileCompanionAboveHealthThreshold > 0,
-           context.roster.maxHealth(for: context.roster.companion.combatant) > 0,
-           Double(context.roster.health(for: context.roster.companion.combatant))
-           / Double(context.roster.maxHealth(for: context.roster.companion.combatant))
-           >= companionTriggers.partyCritChanceWhileCompanionAboveHealthThreshold {
-            bonus += companionTriggers.partyCritChanceWhileCompanionAboveHealthBonus
-        }
-        if actor.role == .hero, companionTriggers.heroCritChanceWhileCompanionAlive > 0 {
-            bonus += companionTriggers.heroCritChanceWhileCompanionAlive
-        }
-        // Treasure Hoard: while the Retriever carries enough Gold, the party
-        // gains bonus Critical Hit chance.
-        if companionTriggers.partyCritChanceWhileGoldAbove > 0,
-           context.gold >= companionTriggers.partyCritChanceWhileGoldAbove {
-            bonus += companionTriggers.partyCritChanceWhileGoldAboveBonus
-        }
-        return bonus
     }
 
     /// Guaranteed-crit paths that bypass the soft cap and the RNG roll.

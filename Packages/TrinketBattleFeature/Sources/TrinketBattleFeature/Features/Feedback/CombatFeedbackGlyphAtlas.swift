@@ -249,7 +249,7 @@ final class CombatFeedbackGlyphAtlas {
                     false
                 case .plain, .applied, .triggered:
                     true
-                case .dodge, .cleanse, .purge, .halve, .status:
+                case .dodge, .cleanse, .purge, .status:
                     false
                 }
             }

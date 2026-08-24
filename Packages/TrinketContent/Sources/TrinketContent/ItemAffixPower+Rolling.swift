@@ -142,7 +142,7 @@ public enum ItemAffixMagnitudeRoll: Sendable {
             choices.append(current)
             current += step
         }
-        return Array(Set(choices)).sorted().map { Double($0) / 100 }
+        return choices.sorted().map { Double($0) / 100 }
     }
 }
 

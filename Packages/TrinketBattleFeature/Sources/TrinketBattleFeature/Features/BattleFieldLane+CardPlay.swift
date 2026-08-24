@@ -40,7 +40,7 @@ extension BattleFieldLane {
         let outcome = battleSession.playCard(cardID: card.id)
         guard case .committed = outcome else { return false }
         if let actorID = battleSession.combatantID(for: card.owner) {
-            battleSession.commitAttackSwing(for: actorID)
+            battleSession.publishAttackTelegraph(.swing, for: actorID)
         }
         castPresentation.append(request)
         return true
@@ -52,13 +52,13 @@ extension BattleFieldLane {
         guard battleSession.playCard(cardID: choice.cardID, branchIndex: index).didCommit,
               let actorID = battleSession.combatantID(for: choice.owner)
         else { return }
-        battleSession.commitAttackSwing(for: actorID)
+        battleSession.publishAttackTelegraph(.swing, for: actorID)
         castPresentation.append(copyRequest)
     }
 
     func cancelPartyAttack(for card: BattleCard) {
         guard let combatantID = battleSession.combatantID(for: card.owner) else { return }
-        battleSession.cancelAttack(for: combatantID)
+        battleSession.publishAttackTelegraph(.cancel, for: combatantID)
     }
 
     private func activationRequest(

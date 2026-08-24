@@ -327,7 +327,10 @@ struct AppStateLabyrinthTests { // swiftlint:disable:this type_body_length
         #expect(session.labyrinthNodeID == mysteryNodeID)
         let unlockID = try #require(session.event.unlockCombatantID)
 
-        #expect(state.playerSave.roster.isCombatantUnlocked(id: unlockID))
+        let unlockIsIn = { (roster: PlayerRosterState, id: String) in
+            roster.unlockedHeroIDs.contains(id) || roster.unlockedCompanionIDs.contains(id)
+        }
+        #expect(unlockIsIn(state.playerSave.roster, unlockID))
         #expect(state.encounters.activeMysteryEncounter?.phase == .revealing)
         // Labyrinth recruits clear the node with the unlock so kill/relaunch cannot re-roll.
         #expect(state.playerSave.labyrinth.nodes[mysteryNodeID]?.isCleared == true)
@@ -339,7 +342,7 @@ struct AppStateLabyrinthTests { // swiftlint:disable:this type_body_length
         let relaunched = try context.makePlaySession(playerSave: playerSave)
         #expect(relaunched.encounters.activeMysteryEncounter == nil)
         #expect(relaunched.playerSave.labyrinth.nodes[mysteryNodeID]?.isCleared == true)
-        #expect(relaunched.playerSave.roster.isCombatantUnlocked(id: unlockID))
+        #expect(unlockIsIn(relaunched.playerSave.roster, unlockID))
         let blocked = relaunched.labyrinth.handleNodeAction(nodeID: mysteryNodeID)
         #expect(blocked != nil)
         #expect(relaunched.encounters.activeMysteryEncounter == nil)

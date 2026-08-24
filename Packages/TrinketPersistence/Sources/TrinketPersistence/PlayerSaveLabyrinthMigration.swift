@@ -47,8 +47,9 @@ extension PlayerSaveSanitizer {
             )
         }
 
-        // Rebuild empty entered maps unless the on-disk blob was unreadable.
-        if sanitized.hasEntered, sanitized.nodes.isEmpty, !sanitized.isMapPayloadUnreadable {
+        // Rebuild empty entered maps. Unreadable map blobs return early above:
+        // the sanitizer must never regenerate a map it could not parse.
+        if sanitized.hasEntered, sanitized.nodes.isEmpty {
             sanitized.ensureMap(
                 seed: sanitized.worldSeed == 0 ? nil : sanitized.worldSeed,
                 eligibleRecruitEventIDs: eligibleRecruitEventIDs

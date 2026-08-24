@@ -13,10 +13,8 @@ package extension DamagePipeline {
     ) {
         guard state.isCritical,
               state.combatant.role == .enemy,
-              let sourceActorID = state.sourceActorID,
-              let source = context.roster.combatant(for: sourceActorID),
-              source.role != .enemy,
-              context.modifiers(for: sourceActorID).triggers.critStealEnemyBlock
+              let source = state.partySource(in: context),
+              context.modifiers(for: source.id).triggers.critStealEnemyBlock
         else { return }
         let enemyBlock = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: state.combatant))
         guard enemyBlock > 0 else { return }
@@ -55,9 +53,7 @@ package extension DamagePipeline {
     ) {
         guard state.healthLost > 0,
               let keyword = state.damageKeyword,
-              let sourceActorID = state.sourceActorID,
-              let source = context.roster.combatant(for: sourceActorID),
-              source.role != .enemy
+              let source = state.partySource(in: context)
         else { return }
 
         switch keyword {
@@ -96,11 +92,10 @@ package extension DamagePipeline {
         to state: inout DamageResolutionState,
         in context: inout BattleState
     ) {
-        guard let sourceActorID = state.sourceActorID,
-              let sourceRuntime = context.roster.combatant(for: sourceActorID),
-              sourceRuntime.role != .enemy,
+        guard let sourceRuntime = state.partySource(in: context),
               let keyword = state.damageKeyword
         else { return }
+        let sourceActorID = sourceRuntime.id
         let source = sourceRuntime.combatant
         let triggers = context.modifiers(for: sourceActorID).triggers
 
@@ -377,7 +372,7 @@ package extension DamagePipeline {
         let targetAlive = context.roster.health(for: target) > 0
         let targetIsFrozen = context.roster.hasControlStatus(for: target, keyword: .freeze)
         let targetIsStunned = context.roster.hasControlStatus(for: target, keyword: .stun)
-        let targetIsPoisoned = context.roster.activeEffects(for: target).contains { $0.effect.keyword == .poison }
+        let targetIsPoisoned = context.roster.hasAffliction(.poison, on: target)
         if triggers.onAttackStealGold > 0 {
             state.damageEvents.append(contentsOf: context.grantGoldEvent(
                 triggers.onAttackStealGold,
@@ -386,19 +381,11 @@ package extension DamagePipeline {
             ))
         }
         if triggers.onAttackFrozenEnemyGainMana > 0, targetIsFrozen {
-            let restored = context.restoreMana(triggers.onAttackFrozenEnemyGainMana, to: source)
-            if restored > 0 {
-                state.damageEvents.append(context.nextEvent(
-                    kind: .effect,
-                    effectKind: .resourceGain,
-                    actorName: source.name,
-                    abilityName: "Frost Siphon",
-                    target: source,
-                    amount: restored,
-                    keyword: .mana
-                ))
-                state.damageEvents.append(contentsOf: CombatTriggerEngine.afterGainMana(by: source, in: &context))
-            }
+            state.damageEvents.append(contentsOf: context.restoreManaEmitting(
+                triggers.onAttackFrozenEnemyGainMana,
+                to: source,
+                abilityName: "Frost Siphon"
+            ))
         }
         if triggers.onAttackFrozenEnemyGainBlock > 0, targetIsFrozen {
             state.damageEvents.append(contentsOf: context.applyBlock(
@@ -500,9 +487,7 @@ package extension DamagePipeline {
     ) {
         guard state.isCritical,
               state.healthLost > 0,
-              let sourceActorID = state.sourceActorID,
-              let source = context.roster.combatant(for: sourceActorID),
-              source.role != .enemy,
+              let source = state.partySource(in: context),
               state.combatant.role == .enemy
         else { return }
         state.damageEvents.append(contentsOf: CombatTriggerEngine.afterCriticalHit(

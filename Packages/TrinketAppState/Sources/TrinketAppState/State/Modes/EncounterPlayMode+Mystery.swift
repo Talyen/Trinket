@@ -11,17 +11,14 @@ public extension EncounterPlayMode {
         origin: PlayEncounterOrigin,
         forcedEventID: String? = nil
     ) -> MysteryEvent {
-        MysteryEncounterSession.resolveEvent(
+        let inputs = mysteryPickInputs(origin: origin)
+        return MysteryEncounterSession.resolveEvent(
             origin: origin,
             forcedEventID: forcedEventID,
             worldSeed: playerSave.worldSeed,
-            pickContext: mysteryEventPickContext(origin: origin),
-            pinnedLabyrinthEventID: origin.labyrinthNodeID.flatMap {
-                playerSave.labyrinth.nodes[$0]?.mysteryEventID
-            },
-            pinnedJourneyEventID: origin.stage.flatMap {
-                playerSave.journey.pinnedMysteryEventIDs[$0.id]
-            }
+            pickContext: inputs.pickContext,
+            pinnedLabyrinthEventID: inputs.pinnedLabyrinthEventID,
+            pinnedJourneyEventID: inputs.pinnedJourneyEventID
         )
     }
 
@@ -32,13 +29,10 @@ public extension EncounterPlayMode {
     ) -> StageMapMessage? {
         guard canBeginTransientEncounter else { return nil }
 
-        let pickContext = mysteryEventPickContext(origin: origin)
-        let pinnedLabyrinthEventID = origin.labyrinthNodeID.flatMap {
-            playerSave.labyrinth.nodes[$0]?.mysteryEventID
-        }
-        let pinnedJourneyEventID = origin.stage.flatMap {
-            playerSave.journey.pinnedMysteryEventIDs[$0.id]
-        }
+        let inputs = mysteryPickInputs(origin: origin)
+        let pickContext = inputs.pickContext
+        let pinnedLabyrinthEventID = inputs.pinnedLabyrinthEventID
+        let pinnedJourneyEventID = inputs.pinnedJourneyEventID
 
         let opened = MysteryEncounterSession.open(
             origin: origin,
@@ -93,6 +87,16 @@ public extension EncounterPlayMode {
             chapterNumber: stage.chapterNumber,
             inventory: playerSave.inventory,
             corruptionAltarCooldownRemaining: cooldown
+        )
+    }
+
+    private func mysteryPickInputs(
+        origin: PlayEncounterOrigin
+    ) -> (pickContext: MysteryEventPickContext, pinnedLabyrinthEventID: String?, pinnedJourneyEventID: String?) {
+        (
+            mysteryEventPickContext(origin: origin),
+            origin.labyrinthNodeID.flatMap { playerSave.labyrinth.nodes[$0]?.mysteryEventID },
+            origin.stage.flatMap { playerSave.journey.pinnedMysteryEventIDs[$0.id] }
         )
     }
 

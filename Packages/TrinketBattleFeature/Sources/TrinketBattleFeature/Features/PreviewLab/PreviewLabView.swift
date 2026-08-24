@@ -286,14 +286,14 @@ private struct UltimateTransitionsControls: View {
                 .fontWeight(.semibold)
 
             Picker("Opening", selection: $config.openingStyle) {
-                ForEach(UltimateCinematicEnterStyle.allCases) { style in
+                ForEach(UltimateCinematicCoverStyle.allCases) { style in
                     Text(style.title).tag(style)
                 }
             }
             .pickerStyle(.segmented)
 
             Picker("Closing", selection: $config.closingStyle) {
-                ForEach(UltimateCinematicExitStyle.allCases) { style in
+                ForEach(UltimateCinematicCoverStyle.allCases) { style in
                     Text(style.title).tag(style)
                 }
             }

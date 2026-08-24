@@ -6,16 +6,12 @@ struct DecayingDoTHandler: BattleEffectHandler {
     let keyword: Keyword
     let kind: EffectKind
 
-    init(keyword: Keyword) {
-        self.keyword = keyword
-        kind = Effect.decayingDoT(keyword: keyword, potency: 0).kind
-    }
-
     // swiftlint:disable:next function_body_length cyclomatic_complexity
     func advanceTurn(_ active: ActiveEffect, on target: Combatant, in context: inout BattleState) -> EffectTurnOutcome {
         guard matches(active.effect) else { return EffectTurnOutcome() }
         let sourceTriggers = active.sourceActorID.map { context.modifiers(for: $0).triggers }
-        let slowPercent = context.modifiers(for: target.id).triggers.burnDecaySlowPercent
+        // Ember Persistence / Slow Burn: the applier's Burn fades slower.
+        let slowPercent = sourceTriggers?.burnDecaySlowPercent ?? 0
         let nextPotency: Int
         if keyword == .burn {
             let decayed = active.effect.potencyAfterTurn(burnDecaySlowPercent: slowPercent)
@@ -161,9 +157,7 @@ struct DecayingDoTHandler: BattleEffectHandler {
         guard let potency = effect.potency, matches(effect) else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
-        guard context.roster.health(for: target) > 0 else {
-            return EffectApplyOutcome(events: [], didApply: false)
-        }
+        // Defeated targets are excluded by the turn engine's apply gate.
         let skipImmediate = action.shouldSkipImmediateDoT(keyword: keyword)
         let events = context.applyDecayingDoT(
             keyword: keyword,
@@ -201,7 +195,7 @@ struct DecayingDoTHandler: BattleEffectHandler {
         // Lingering Toxin: Poison lasts longer by slowing its decay.
         let slowPercent = sourceTriggers?.poisonDecaySlowPercent ?? 0
         if slowPercent > 0 {
-            let decrease = max(1, potency * 25 / 100)
+            let decrease = Effect.poisonDecayAmount(for: potency)
             let adjustedDecrease = CombatRounding.scaled(decrease, multiplier: 1 - min(1, slowPercent))
             return max(0, potency - adjustedDecrease)
         }
@@ -250,28 +244,12 @@ struct BleedHandler: BattleEffectHandler {
 
         if let sourceTriggers, let attackerID = active.sourceActorID {
             // Armor Shred: Bleed strips Block from the target each turn.
-            if sourceTriggers.bleedStripsBlockPerTurn > 0 {
-                var effects = context.roster.activeEffects(for: target)
-                if let shieldIndex = effects.firstIndex(where: {
-                    if case .shield = $0.effect {
-                        return true
-                    }
-                    return false
-                }),
-                    case let .shield(shieldKeyword, buffer) = effects[shieldIndex].effect {
-                    let stripped = min(buffer, sourceTriggers.bleedStripsBlockPerTurn)
-                    if buffer - stripped <= 0 {
-                        effects.remove(at: shieldIndex)
-                    } else {
-                        effects[shieldIndex] = ActiveEffect(
-                            id: effects[shieldIndex].id,
-                            effect: .shield(shieldKeyword, buffer - stripped),
-                            remainingTurns: 0,
-                            sourceActorID: effects[shieldIndex].sourceActorID
-                        )
-                    }
-                    context.roster.setActiveEffects(effects, for: target)
-                }
+            if sourceTriggers.bleedStripsBlockPerTurn > 0,
+               let reduced = DefensePoolEngine.reduce(
+                   sourceTriggers.bleedStripsBlockPerTurn,
+                   in: context.roster.activeEffects(for: target)
+               ) {
+                context.roster.setActiveEffects(reduced.effects, for: target)
             }
             // Carnivore: heal the source when Bleed deals damage.
             if sourceTriggers.onBleedDamageHealSelf > 0,
@@ -330,9 +308,8 @@ struct BleedHandler: BattleEffectHandler {
         in context: inout BattleState
     ) -> EffectApplyOutcome {
         guard case let .bleed(potency) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
-        guard context.roster.health(for: target) > 0 else {
-            return EffectApplyOutcome(events: [], didApply: false)
-        }
+        // Defeated targets are excluded by the turn engine's apply gate.
+        let bleedsBefore = context.roster.activeEffects(for: target).count(where: \.effect.isBleed)
         let skipImmediate = action.shouldSkipImmediateDoT(keyword: .bleed)
         let events = DoTApplicator.applyBleed(
             potency: potency,
@@ -341,7 +318,10 @@ struct BleedHandler: BattleEffectHandler {
             dealImmediateDamage: !skipImmediate,
             in: &context
         )
-        return EffectApplyOutcome(events: events, didApply: true)
+        // The stack lands even when immediate damage and reactions emit nothing,
+        // so didApply must track the append, not event emptiness.
+        let didApply = context.roster.activeEffects(for: target).count(where: \.effect.isBleed) > bleedsBefore
+        return EffectApplyOutcome(events: events, didApply: didApply)
     }
 }
 

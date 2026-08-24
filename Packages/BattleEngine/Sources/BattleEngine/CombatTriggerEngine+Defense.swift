@@ -76,19 +76,11 @@ package extension CombatTriggerEngine {
             for owner in [BattleParticipant.hero, .companion] {
                 let member = context.roster[owner]
                 guard member.isAlive else { continue }
-                let restored = context.restoreMana(triggers.onDodgePartyMana, to: member.combatant)
-                if restored > 0 {
-                    events.append(context.nextEvent(
-                        kind: .effect,
-                        effectKind: .resourceGain,
-                        actorName: member.name,
-                        abilityName: "Dodge",
-                        target: member.combatant,
-                        amount: restored,
-                        keyword: .mana
-                    ))
-                    events.append(contentsOf: Self.afterGainMana(by: member.combatant, in: &context))
-                }
+                events.append(contentsOf: context.restoreManaEmitting(
+                    triggers.onDodgePartyMana,
+                    to: member.combatant,
+                    abilityName: "Dodge"
+                ))
             }
         }
 
@@ -378,19 +370,12 @@ package extension CombatTriggerEngine {
         let percent = Double(context.roster.health(for: target)) / Double(context.roster.maxHealth(for: target))
         guard percent < profile.triggers.onceBelowHealthPercentThreshold else { return events }
         context.roster.mutateRuntime(for: target) { $0.hasTriggeredSecondWind = true }
-        events.append(contentsOf: HealingEngine.resolveHeal(
-            HealRequest(
-                amount: profile.triggers.onceBelowHealthPercentHeal,
-                target: target,
-                sourceActorID: target.id,
-                logAs: .instantHeal(
-                    actorName: target.name,
-                    abilityName: affixName(.secondWind),
-                    keyword: .health
-                )
-            ),
-            in: &context
-        ).events)
+        events.append(contentsOf: context.healEmitting(
+            amount: profile.triggers.onceBelowHealthPercentHeal,
+            target: target,
+            source: target,
+            abilityName: affixName(.secondWind)
+        ))
         return events
     }
 
@@ -493,19 +478,12 @@ package extension CombatTriggerEngine {
         in context: inout BattleState
     ) -> [ActionEvent] {
         guard profile.triggers.dodgeHealFlat > 0 else { return [] }
-        return HealingEngine.resolveHeal(
-            HealRequest(
-                amount: profile.triggers.dodgeHealFlat,
-                target: combatant,
-                sourceActorID: combatant.id,
-                logAs: .instantHeal(
-                    actorName: combatant.name,
-                    abilityName: affixName(.sidestep),
-                    keyword: .health
-                )
-            ),
-            in: &context
-        ).events
+        return context.healEmitting(
+            amount: profile.triggers.dodgeHealFlat,
+            target: combatant,
+            source: combatant,
+            abilityName: affixName(.sidestep)
+        )
     }
 
     private static func applyWhiplashStun(

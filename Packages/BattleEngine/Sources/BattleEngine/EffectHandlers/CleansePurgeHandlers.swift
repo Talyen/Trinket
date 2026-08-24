@@ -10,15 +10,6 @@ struct CleansePurgeHandler: BattleEffectHandler {
         case purge
         case purgeRandom
 
-        var kind: EffectKind {
-            switch self {
-            case .cleanse: .cleanse
-            case .cleanseRandom: .cleanseRandom
-            case .purge: .purge
-            case .purgeRandom: .purgeRandom
-            }
-        }
-
         var appliedEffectKind: ActionEvent.EffectOutcome {
             switch self {
             case .cleanse, .cleanseRandom: .cleanseApplied
@@ -35,9 +26,7 @@ struct CleansePurgeHandler: BattleEffectHandler {
     }
 
     let mode: Mode
-    var kind: EffectKind {
-        mode.kind
-    }
+    let kind: EffectKind
 
     func apply(
         _ effect: Effect,
@@ -139,19 +128,12 @@ struct CleansePurgeHandler: BattleEffectHandler {
         var events: [ActionEvent] = []
         if healPerRemoved > 0, removedCount > 0 {
             let amount = healPerRemoved * removedCount
-            events.append(contentsOf: HealingEngine.resolveHeal(
-                HealRequest(
-                    amount: amount,
-                    target: target,
-                    sourceActorID: source.id,
-                    logAs: .instantHeal(
-                        actorName: source.name,
-                        abilityName: abilityName,
-                        keyword: .health
-                    )
-                ),
-                in: &context
-            ).events)
+            events.append(contentsOf: context.healEmitting(
+                amount: amount,
+                target: target,
+                source: source,
+                abilityName: abilityName
+            ))
         }
         events.append(contentsOf: CombatTriggerEngine.healAfterCleanse(
             source: source,

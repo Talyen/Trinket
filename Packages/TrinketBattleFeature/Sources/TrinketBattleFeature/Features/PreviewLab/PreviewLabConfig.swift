@@ -10,8 +10,8 @@ import Observation
 @MainActor
 @Observable
 final class PreviewLabConfig {
-    var openingStyle: UltimateCinematicEnterStyle = .fade
-    var closingStyle: UltimateCinematicExitStyle = .fade
+    var openingStyle: UltimateCinematicCoverStyle = .fade
+    var closingStyle: UltimateCinematicCoverStyle = .fade
 
     init() {}
 }

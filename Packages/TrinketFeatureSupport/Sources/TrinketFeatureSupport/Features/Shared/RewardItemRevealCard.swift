@@ -13,8 +13,7 @@ struct RewardItemRevealCard: View {
     }
 
     private var astralShineKeywords: [Keyword]? {
-        guard item.rarity == .astral else { return nil }
-        return item.keywords.isEmpty ? Array(item.baseType.keywordAffinities) : Array(item.keywords)
+        item.astralShineKeywords
     }
 
     var body: some View {

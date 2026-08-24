@@ -97,7 +97,7 @@ public struct ItemDetailView: View {
                         ? "\(item.rarity.label.uppercased()) · CORRUPTED"
                         : item.rarity.label.uppercased(),
                     title: item.displayName,
-                    titleKeywords: item.rarity == .astral ? item.baseType.keywordAffinities : [],
+                    titleKeywords: Set(item.astralShineKeywords ?? []),
                     titleShineColors: item.rarity == .unique ? UniqueShine.textColors : nil,
                     baseHeight: $0,
                     overscroll: $1

@@ -157,7 +157,7 @@ package extension CombatTriggerEngine {
         in context: inout BattleState
     ) -> (events: [ActionEvent], cancelled: Bool)? {
         let enemy = context.enemy
-        guard context.roster.activeEffects(for: enemy).contains(where: { $0.effect.keyword == .poison }) else {
+        guard context.roster.hasAffliction(.poison, on: enemy) else {
             return nil
         }
         let living = livingAllies(in: context)

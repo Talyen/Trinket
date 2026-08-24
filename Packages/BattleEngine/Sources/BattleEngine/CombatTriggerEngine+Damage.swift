@@ -157,8 +157,7 @@ package extension CombatTriggerEngine {
         if sourceHasBlock {
             bonus += triggers.shieldDamageBonusWhileBlocked
         }
-        if context.roster.maxHealth(for: source.combatant) > 0,
-           context.roster.health(for: target) < context.roster.health(for: source.combatant) {
+        if context.roster.health(for: target) < context.roster.health(for: source.combatant) {
             bonus += triggers.damageVsLowerHealthEnemyBonus
         }
         if triggers.damagePerMissingHealthEvery > 0,
@@ -302,24 +301,17 @@ package extension CombatTriggerEngine {
     ) -> [ActionEvent] {
         var events: [ActionEvent] = []
         if triggers.burnDamageHealFlat > 0 {
-            events.append(contentsOf: HealingEngine.resolveHeal(
-                HealRequest(
-                    amount: triggers.burnDamageHealFlat,
-                    target: source,
-                    sourceActorID: source.id,
-                    logAs: .instantHeal(
-                        actorName: source.name,
-                        abilityName: triggerAbilityName(
-                            "burnDamageHealFlat",
-                            for: source,
-                            fallback: "Bloodfire",
-                            in: context
-                        ),
-                        keyword: .health
-                    )
-                ),
-                in: &context
-            ).events)
+            events.append(contentsOf: context.healEmitting(
+                amount: triggers.burnDamageHealFlat,
+                target: source,
+                source: source,
+                abilityName: triggerAbilityName(
+                    "burnDamageHealFlat",
+                    for: source,
+                    fallback: "Bloodfire",
+                    in: context
+                )
+            ))
         }
         if triggers.onBurnDamageHealLowestAllyFlat > 0 {
             let lowest = BattleConditionEvaluator.lowestHealthAlly(
@@ -327,24 +319,17 @@ package extension CombatTriggerEngine {
                 companion: context.roster.companion.combatant,
                 context: context
             )
-            events.append(contentsOf: HealingEngine.resolveHeal(
-                HealRequest(
-                    amount: triggers.onBurnDamageHealLowestAllyFlat,
-                    target: lowest,
-                    sourceActorID: source.id,
-                    logAs: .instantHeal(
-                        actorName: source.name,
-                        abilityName: triggerAbilityName(
-                            "onBurnDamageHealLowestAllyFlat",
-                            for: source,
-                            fallback: "Healing Flames",
-                            in: context
-                        ),
-                        keyword: .health
-                    )
-                ),
-                in: &context
-            ).events)
+            events.append(contentsOf: context.healEmitting(
+                amount: triggers.onBurnDamageHealLowestAllyFlat,
+                target: lowest,
+                source: source,
+                abilityName: triggerAbilityName(
+                    "onBurnDamageHealLowestAllyFlat",
+                    for: source,
+                    fallback: "Healing Flames",
+                    in: context
+                )
+            ))
         }
         return events
     }

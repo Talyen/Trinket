@@ -98,6 +98,7 @@ package extension HealingEngine {
                 ),
                 in: &context
             )
+            guard healOutcome.healthRestored > 0 else { return .empty }
             actualRestored = healOutcome.healthRestored
             leechFlags = healOutcome.flags
             events.append(context.nextEvent(
@@ -161,19 +162,11 @@ package extension HealingEngine {
             // Vitality Infusion: Companion Leech restores Hero Mana.
             if actorCombatant.role == .companion, context.roster.hero.isAlive,
                profile.triggers.onCompanionLeechRestoreHeroMana > 0 {
-                let restoredMana = context.restoreMana(profile.triggers.onCompanionLeechRestoreHeroMana, to: context.roster.hero.combatant)
-                if restoredMana > 0 {
-                    events.append(context.nextEvent(
-                        kind: .effect,
-                        effectKind: .resourceGain,
-                        actorName: context.roster.hero.name,
-                        abilityName: "Vitality Infusion",
-                        target: context.roster.hero.combatant,
-                        amount: restoredMana,
-                        keyword: .mana
-                    ))
-                    events.append(contentsOf: CombatTriggerEngine.afterGainMana(by: context.roster.hero.combatant, in: &context))
-                }
+                events.append(contentsOf: context.restoreManaEmitting(
+                    profile.triggers.onCompanionLeechRestoreHeroMana,
+                    to: context.roster.hero.combatant,
+                    abilityName: "Vitality Infusion"
+                ))
             }
         }
         events.append(contentsOf: CombatTriggerEngine.afterLeech(by: actorCombatant, target: target, in: &context))

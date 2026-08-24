@@ -39,21 +39,30 @@ struct EffectHandlersApplyBuffDebuffTests {
         }
     }
 
-    @Test func burnHandlerDoesNotApplyToDefeatedTarget() throws {
+    @Test func doTEffectsCannotApplyToDefeatedTargets() {
+        // Defeated-target exclusion is owned by the turn engine's apply gate,
+        // which consults this per-effect contract; handlers rely on it.
+        #expect(!Effect.burn(3).canApplyToDefeatedTarget)
+        #expect(!Effect.poison(3).canApplyToDefeatedTarget)
+        #expect(!Effect.bleed(3).canApplyToDefeatedTarget)
+        #expect(!Effect.controlMeter(.freeze, 1, 1).canApplyToDefeatedTarget)
+    }
+
+    @Test func bleedHandlerReportsAppliedWhenPairedDamageSuppressesEvents() throws {
+        // Paired direct damage skips the immediate hit, so no events fire even
+        // though the bleed stack lands; didApply must track the stack.
         var battle = EffectHandlersTestSupport.makeBattle()
-        let enemy = battle.enemy
-        battle.withEngineContext { context in
-            context.roster.mutateRuntime(for: enemy) { $0.currentHealth = 0 }
-        }
         let outcome = EffectHandlersTestSupport.dispatch(
-            .burn(3),
+            .bleed(4),
             ability: CombatantFixtures.ability(),
             source: battle.hero,
-            target: enemy,
+            target: battle.enemy,
+            action: ActionApplyContext(pairedDirectDamage: [PairedDamage(keyword: .bleed, amount: 6)]),
             battle: &battle
         )
-        try #expect(!(outcome.didApply))
-        try #expect(!(battle.activeEffects(of: battle.enemy).contains(where: \.effect.isDecayingDoT)))
+        try #expect(outcome.didApply)
+        try #expect(outcome.events.isEmpty)
+        try #expect(battle.activeEffects(of: battle.enemy).count(where: { $0.effect.isBleed }) == 1)
     }
 
     @Test func cardCombatNoOpHandlersDoNotApply() throws {
@@ -194,6 +203,40 @@ struct EffectHandlersApplyBuffDebuffTests {
         })
         try #expect(outcome.events.contains {
             $0.effectKind == .manaShieldApplied && $0.amount == 3 && $0.keyword == .mana
+        })
+    }
+
+    @Test func restoreManaOnHitRecastStacksOnTopOfExistingShield() throws {
+        var battle = EffectHandlersTestSupport.makeBattle()
+        let ability = CombatantFixtures.ability()
+        _ = EffectHandlersTestSupport.dispatch(
+            .restoreManaOnHit(3, 6),
+            ability: ability,
+            source: battle.hero,
+            target: battle.hero,
+            battle: &battle
+        )
+        let second = EffectHandlersTestSupport.dispatch(
+            .restoreManaOnHit(5, 4),
+            ability: ability,
+            source: battle.hero,
+            target: battle.hero,
+            battle: &battle
+        )
+        try #expect(second.didApply)
+        let shields = battle.activeEffects(of: battle.hero).filter {
+            if case .restoreManaOnHit = $0.effect {
+                return true
+            }
+            return false
+        }
+        // Recasts stack; each stack restores on hit.
+        try #expect(shields.count == 2)
+        try #expect(shields.contains { active in
+            if case let .restoreManaOnHit(amount, duration) = active.effect {
+                return amount == 5 && duration == 4 && active.remainingTurns == 4
+            }
+            return false
         })
     }
 

@@ -107,9 +107,8 @@ enum CombatFeedbackRasterCatalog {
             sources.append(contentsOf: [
                 source(id: nextID, feedbackClass: .buff, keyword: keyword, label: .word(.cleanse(keyword))),
                 source(id: nextID + 1, feedbackClass: .buff, keyword: keyword, label: .word(.purge(keyword))),
-                source(id: nextID + 2, feedbackClass: .buff, keyword: keyword, label: .word(.halve(keyword))),
             ])
-            nextID += 3
+            nextID += 2
         }
         return sources
     }

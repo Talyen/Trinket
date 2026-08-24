@@ -59,26 +59,21 @@ public protocol BattleEffectHandler: Sendable {
 
 public extension BattleEffectHandler {
     /// Default: decrement `remainingTurns` for timed buffs and debuffs that
-    /// do not override `advanceTurn`. Burn, Poison, Bleed, and ControlMeter
-    /// provide their own turn behavior.
+    /// do not override `advanceTurn`. Handlers with per-turn behavior
+    /// (DoTs, control meters, Death's Door) provide their own.
     func advanceTurn(
         _ active: ActiveEffect,
         on target: Combatant,
         in context: inout BattleState
     ) -> EffectTurnOutcome {
         _ = target; _ = context
-        switch active.effect {
-        case .burn, .poison, .bleed, .controlMeter, .deathsDoor:
-            return EffectTurnOutcome()
-        default:
-            guard active.effect.advancesEachTurn else { return EffectTurnOutcome() }
-            var updated = active
-            updated.remainingTurns -= 1
-            return EffectTurnOutcome(
-                updatedStack: updated,
-                removeAfter: updated.remainingTurns <= 0
-            )
-        }
+        guard active.effect.advancesEachTurn else { return EffectTurnOutcome() }
+        var updated = active
+        updated.remainingTurns -= 1
+        return EffectTurnOutcome(
+            updatedStack: updated,
+            removeAfter: updated.remainingTurns <= 0
+        )
     }
 
     /// Default: this kind has no player-facing summary. Instant effects

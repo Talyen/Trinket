@@ -20,7 +20,7 @@ public struct ActionEvent: Identifiable, Equatable {
         case partyDefeated
     }
 
-    public enum EffectOutcome: Equatable, Sendable {
+    public enum EffectOutcome: Equatable, Sendable, CaseIterable {
         case instantHeal
         case resourceGain
         case cardsDrawn
@@ -48,6 +48,10 @@ public struct ActionEvent: Identifiable, Equatable {
         case nextHolyStrikeApplied
         case nextStrikeDoubleApplied
         case evadeNextHitApplied
+        case wardApplied
+        case dotAmplified
+        case recurringDamageApplied
+        case avatarApplied
     }
 
     public let id: Int

@@ -82,7 +82,8 @@ struct ControlMeterHandler: BattleEffectHandler {
         guard case let .controlMeter(keyword, amount, _) = effect else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
-        guard amount > 0, context.roster.health(for: target) > 0 else {
+        // Defeated targets are excluded by the turn engine's apply gate.
+        guard amount > 0 else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
         let effectsBefore = context.roster.activeEffects(for: target)

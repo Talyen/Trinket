@@ -43,6 +43,28 @@ struct AbilityEffectIntegrationTests {
         try #expect(battle.activeEffects(of: battle.enemy).contains { $0.keyword == .poison })
     }
 
+    @Test func doTComponentDoesNotLandWhenDamageComponentDefeatsTarget() throws {
+        // The turn engine's apply gate must keep DoT effects off combatants the
+        // damage component just defeated.
+        let lethal = Ability(
+            id: "lethal",
+            name: "Lethal Cut",
+            tier: .basic,
+            directDamage: 100,
+            description: "Lethal",
+            targetedEffects: [TargetedEffect(.bleed(3))]
+        )
+        let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [lethal])
+        let companion = BattleTestFixtures.passiveCompanion()
+        let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
+        var battle = BattleTestFixtures.standardParty(hero: hero, companion: companion, enemy: enemy)
+
+        _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
+
+        try #expect(battle.health(of: battle.enemy) <= 0)
+        try #expect(!battle.activeEffects(of: battle.enemy).contains(where: \.effect.isBleed))
+    }
+
     @Test func bloodthornDealsComponentDamageAndAppliesDoTs() throws {
         let hero = Combatant(
             id: "hero",

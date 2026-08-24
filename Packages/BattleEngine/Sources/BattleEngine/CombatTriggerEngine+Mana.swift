@@ -41,24 +41,16 @@ package extension CombatTriggerEngine {
 
         if triggers.spendManaRefundChancePercent > 0,
            BattleChance.succeeds(probability: triggers.spendManaRefundChancePercent, using: &context.rng) {
-            let refunded = context.restoreMana(amountSpent, to: actor)
-            if refunded > 0 {
-                events.append(context.nextEvent(
-                    kind: .effect,
-                    effectKind: .resourceGain,
-                    actorName: actor.name,
-                    abilityName: triggerAbilityName(
-                        "spendManaRefundChancePercent",
-                        for: actor,
-                        fallback: "Mana Flow",
-                        in: context
-                    ),
-                    target: actor,
-                    amount: refunded,
-                    keyword: .mana
-                ))
-                events.append(contentsOf: afterGainMana(by: actor, in: &context))
-            }
+            events.append(contentsOf: context.restoreManaEmitting(
+                amountSpent,
+                to: actor,
+                abilityName: triggerAbilityName(
+                    "spendManaRefundChancePercent",
+                    for: actor,
+                    fallback: "Mana Flow",
+                    in: context
+                )
+            ))
         }
 
         if triggers.onSpendManaBurnBurningEnemies > 0, context.roster.enemy.isAlive,
@@ -115,24 +107,17 @@ package extension CombatTriggerEngine {
                 ))
             }
             if triggers.spendManaThresholdBlockHealth > 0 {
-                events.append(contentsOf: HealingEngine.resolveHeal(
-                    HealRequest(
-                        amount: triggers.spendManaThresholdBlockHealth,
-                        target: actor,
-                        sourceActorID: actor.id,
-                        logAs: .instantHeal(
-                            actorName: actor.name,
-                            abilityName: triggerAbilityName(
-                                "spendManaThresholdBlockThreshold",
-                                for: actor,
-                                fallback: "Mana Cocoon",
-                                in: context
-                            ),
-                            keyword: .health
-                        )
-                    ),
-                    in: &context
-                ).events)
+                events.append(contentsOf: context.healEmitting(
+                    amount: triggers.spendManaThresholdBlockHealth,
+                    target: actor,
+                    source: actor,
+                    abilityName: triggerAbilityName(
+                        "spendManaThresholdBlockThreshold",
+                        for: actor,
+                        fallback: "Mana Cocoon",
+                        in: context
+                    )
+                ))
             }
         }
         // Overcharge: the guard must only be consumed when the threshold is met.
@@ -211,24 +196,16 @@ package extension CombatTriggerEngine {
         if triggers.onReachZeroManaRestoreMana > 0,
            context.roster.runtime(for: actor)?.currentMana == 0,
            context.claimBattleGuard(.darkRecovery, actorID: actor.id) {
-            let restored = context.restoreMana(triggers.onReachZeroManaRestoreMana, to: actor)
-            if restored > 0 {
-                events.append(context.nextEvent(
-                    kind: .effect,
-                    effectKind: .resourceGain,
-                    actorName: actor.name,
-                    abilityName: triggerAbilityName(
-                        "onReachZeroManaRestoreMana",
-                        for: actor,
-                        fallback: "Dark Recovery",
-                        in: context
-                    ),
-                    target: actor,
-                    amount: restored,
-                    keyword: .mana
-                ))
-                events.append(contentsOf: afterGainMana(by: actor, in: &context))
-            }
+            events.append(contentsOf: context.restoreManaEmitting(
+                triggers.onReachZeroManaRestoreMana,
+                to: actor,
+                abilityName: triggerAbilityName(
+                    "onReachZeroManaRestoreMana",
+                    for: actor,
+                    fallback: "Dark Recovery",
+                    in: context
+                )
+            ))
         }
 
         // Arcane Burst: spending enough Mana draws and automatically plays a random card.
@@ -300,24 +277,17 @@ package extension CombatTriggerEngine {
             ))
         }
         if triggers.onGainManaHealFlat > 0 {
-            events.append(contentsOf: HealingEngine.resolveHeal(
-                HealRequest(
-                    amount: triggers.onGainManaHealFlat,
-                    target: actor,
-                    sourceActorID: actor.id,
-                    logAs: .instantHeal(
-                        actorName: actor.name,
-                        abilityName: triggerAbilityName(
-                            "onGainManaHealFlat",
-                            for: actor,
-                            fallback: "Life Tap",
-                            in: context
-                        ),
-                        keyword: .health
-                    )
-                ),
-                in: &context
-            ).events)
+            events.append(contentsOf: context.healEmitting(
+                amount: triggers.onGainManaHealFlat,
+                target: actor,
+                source: actor,
+                abilityName: triggerAbilityName(
+                    "onGainManaHealFlat",
+                    for: actor,
+                    fallback: "Life Tap",
+                    in: context
+                )
+            ))
         }
         return events
     }

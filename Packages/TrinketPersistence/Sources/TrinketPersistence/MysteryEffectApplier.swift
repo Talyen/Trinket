@@ -195,8 +195,7 @@ public enum MysteryEffectApplier {
     }
 
     private static func scaledQuantity(_ quantity: Int, percent: Int) -> Int {
-        guard percent != 0 else { return quantity }
-        return max(0, (quantity * (100 + percent)) / 100)
+        CombatRounding.scaled(quantity, byPercent: percent)
     }
 
     private static func scaledAward(

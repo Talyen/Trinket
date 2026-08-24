@@ -32,7 +32,10 @@ struct BlockBuffHandler: BattleEffectHandler {
             sourceActorID: source.id,
             in: &context
         )
-
+        guard applied > 0 else {
+            // Fight pacing can scale the pool gain to zero; nothing was applied.
+            return EffectApplyOutcome(events: [], didApply: false)
+        }
         let event = context.nextEvent(
             kind: .effect,
             effectKind: .shieldApplied,

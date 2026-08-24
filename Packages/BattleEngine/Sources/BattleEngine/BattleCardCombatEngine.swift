@@ -221,20 +221,11 @@ public enum BattleCardCombatEngine {
             let runtime = context.roster[owner]
             guard runtime.isAlive, runtime.maxMana > 0 else { continue }
             let combatant = runtime.combatant
-            let restored = context.restoreMana(1, to: combatant)
-            guard restored > 0 else { continue }
-            events.append(
-                context.nextEvent(
-                    kind: .effect,
-                    effectKind: .resourceGain,
-                    actorName: combatant.name,
-                    abilityName: Keyword.mana.rawValue,
-                    target: combatant,
-                    amount: restored,
-                    keyword: .mana
-                )
-            )
-            events.append(contentsOf: CombatTriggerEngine.afterGainMana(by: combatant, in: &context))
+            events.append(contentsOf: context.restoreManaEmitting(
+                1,
+                to: combatant,
+                abilityName: Keyword.mana.rawValue
+            ))
         }
         return events
     }

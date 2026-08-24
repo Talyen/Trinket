@@ -10,8 +10,8 @@ import UIKit
 struct UltimateCinematicOverlay: View {
     let cinematic: BattleCinematicPresentation
     let effectsVolume: Double
-    var openingStyle: UltimateCinematicEnterStyle = .fade
-    var exitStyle: UltimateCinematicExitStyle = .fade
+    var openingStyle: UltimateCinematicCoverStyle = .fade
+    var exitStyle: UltimateCinematicCoverStyle = .fade
     let onPlaying: () -> Void
     let onAutoFinish: (Int) -> Void
     let onCollapseFinished: (Int) -> Void
@@ -23,7 +23,7 @@ struct UltimateCinematicOverlay: View {
     @State private var fallbackHoldTask: Task<Void, Never>?
     @State private var videoRevealTask: Task<Void, Never>?
     /// Cover style follows the phase: opening style while revealing, exit style while closing.
-    @State private var activeCoverStyle: UltimateCinematicExitStyle = .diagonalSplit
+    @State private var activeCoverStyle: UltimateCinematicCoverStyle = .diagonalSplit
 
     var body: some View {
         ZStack {
@@ -146,7 +146,7 @@ struct UltimateCinematicOverlay: View {
                 guard !didFinish else { return }
                 onAutoFinish(cinematicID)
             }
-            activeCoverStyle = openingStyle.coverStyle
+            activeCoverStyle = openingStyle
             withAnimation(TrinketMotion.Battle.ultimateSplitOpenPlaybackAnimation) {
                 splitProgress = 1
             }

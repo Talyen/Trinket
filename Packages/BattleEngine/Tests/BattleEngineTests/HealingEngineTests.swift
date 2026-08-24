@@ -117,6 +117,27 @@ struct HealingEngineTests {
         try #expect(leechEvent?.amount == 10)
     }
 
+    @Test func bloodLinkIntoFullHealthCompanionProducesNoLeechOutcome() throws {
+        let leech = ActiveEffect(id: 1, effect: .leech(.leech, 1.0, 3), remainingTurns: 3)
+        var context = BattleTestFixtures.makePipelineContext(
+            heroModifiers: CombatModifierProfile(
+                triggers: CombatTraitTriggers(
+                    healing: HealingTriggers(leechOverhealTransfersToCompanion: true)
+                )
+            ),
+            seed: BattleTestFixtures.deterministicNonCriticalSeed
+        )
+        context.roster.setActiveEffects([leech], for: context.roster.hero.combatant)
+
+        // Hero and Companion both start at full Health: the leech has nowhere
+        // to land and must behave like the self-heal path (no event, no flag).
+        let outcome = HealingEngine.leechFromDamage(10, sourceActorID: "source", in: &context)
+
+        try #expect(outcome.healthRestored == 0)
+        try #expect(outcome.events.isEmpty)
+        try #expect(!outcome.flags.contains(.leeched))
+    }
+
     @Test func leechFromDamageDoesNotReviveDefeatedSource() throws {
         let leech = ActiveEffect(id: 1, effect: .leech(.leech, 1.0, 3), remainingTurns: 3)
         var context = makeContext(seed: BattleTestFixtures.deterministicNonCriticalSeed)
@@ -260,5 +281,46 @@ struct HealingEngineTests {
         )
         try #expect(!outcome.isCritical)
         try #expect(outcome.healthRestored == 5)
+    }
+
+    @Test func healOverTimeOnHealArmsHoTButTickDoesNotRearm() throws {
+        let healing = HealingTriggers(healOverTimeOnHealTurns: 3, healOverTimeOnHealAmount: 2)
+        var context = BattleTestFixtures.makePipelineContext(
+            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(healing: healing)),
+            seed: BattleTestFixtures.deterministicNonCriticalSeed
+        )
+        let source = context.roster.hero.combatant
+        let target = context.roster.enemy.combatant
+        context.roster.mutateRuntime(for: target) { $0.currentHealth = 10 }
+
+        _ = HealingEngine.resolveHeal(
+            HealRequest(
+                amount: 3,
+                target: target,
+                sourceActorID: source.id,
+                logAs: .instantHeal(actorName: source.name, abilityName: "Blessing of Dawn", keyword: .health)
+            ),
+            in: &context
+        )
+        let armed = try #require(context.roster.runtime(for: target))
+        #expect(armed.healOverTimeAmount == 2)
+        #expect(armed.healOverTimeTurnsRemaining == 3)
+
+        // A HoT tick must not re-arm regardless of the logged ability name;
+        // the guard is the explicit flag, not a display-string match.
+        context.roster.mutateRuntime(for: target) { $0.currentHealth = 10 }
+        _ = HealingEngine.resolveHeal(
+            HealRequest(
+                amount: 1,
+                target: target,
+                sourceActorID: source.id,
+                logAs: .instantHeal(actorName: source.name, abilityName: "Lingering Blessing", keyword: .health),
+                isHoTTick: true
+            ),
+            in: &context
+        )
+        let afterTick = try #require(context.roster.runtime(for: target))
+        #expect(afterTick.healOverTimeAmount == 2)
+        #expect(afterTick.healOverTimeTurnsRemaining == 3)
     }
 }

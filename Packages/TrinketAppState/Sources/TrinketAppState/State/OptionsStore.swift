@@ -22,11 +22,6 @@ public enum UltimateCinematicShowPolicy: String, CaseIterable, Identifiable, Sen
         case .oncePerBattle: "Once Per Battle"
         }
     }
-
-    /// Cases shown in the Options picker.
-    public static var pickerCases: [Self] {
-        allCases
-    }
 }
 
 /// Local player preferences. Values persist device-locally in `UserDefaults`

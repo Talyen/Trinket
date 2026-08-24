@@ -58,8 +58,8 @@ public struct ItemCard<Art: View>: View {
             return customShineKeywords
         }
         guard item.rarity != .unique else { return nil }
-        if enablesAstralShine, item.rarity == .astral {
-            return item.keywords.isEmpty ? Array(item.baseType.keywordAffinities) : Array(item.keywords)
+        if enablesAstralShine {
+            return item.astralShineKeywords
         }
         return nil
     }
@@ -97,7 +97,7 @@ public struct ItemCard<Art: View>: View {
                     Text(balanced: item.displayName)
                         .trinketTypography(.cardLabel)
                         .foregroundStyle(.primary)
-                        .keywordShine(item.rarity == .astral ? item.baseType.keywordAffinities : [])
+                        .keywordShine(item.astralShineKeywordSet)
                         .uniqueShine(if: item.rarity == .unique)
                         .lineLimit(2)
                         .multilineTextAlignment(.center)

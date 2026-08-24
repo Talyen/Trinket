@@ -24,7 +24,7 @@ struct MusicPlayerRoutingTests {
         (
             enemyID: "skeleton",
             expectedTrackKind: MusicTrackKind.battle,
-            expectedContext: MusicContextKind.battle,
+            expectedContext: MusicTrackKind.battle,
             expectedTrackID: nil as String?
         ),
         (enemyID: "the_blight_treant", expectedTrackKind: .boss, expectedContext: .boss, expectedTrackID: "boss_blight_treant"),
@@ -32,7 +32,7 @@ struct MusicPlayerRoutingTests {
     func activeBattlePlaysExpectedTrack(
         enemyID: String,
         expectedTrackKind: MusicTrackKind,
-        expectedContext: MusicContextKind,
+        expectedContext: MusicTrackKind,
         expectedTrackID: String?
     ) throws {
         let stageID = enemyID == "skeleton" ? "chapter-1-stage-1" : "chapter-1-stage-10"

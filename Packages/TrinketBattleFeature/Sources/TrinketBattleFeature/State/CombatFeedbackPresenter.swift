@@ -19,40 +19,20 @@ enum CombatFeedbackPresenter {
         }
     }
 
+    /// Classifies post-`filterDisplayable` events: kinds dropped by the filter
+    /// never reach this switch.
     private static func classify(_ event: ActionEvent) -> CombatFeedbackClass {
         switch event.kind {
+        case .abilityDamage:
+            return .directDamage
         case .status:
             return .dot
-        case .ability, .abilityDamage:
-            return .directDamage
-        case .milestone:
+        case .ability, .milestone:
+            // Dropped by `filterDisplayable`.
             return .buff
         case .effect:
-            break
-        }
-
-        return switch event.effectKind {
-        case .instantHeal, .leechHeal:
-            .heal
-        case .resourceGain, .manaShieldTriggered, .cardsDrawn:
-            .resource
-        case .shieldAbsorbed:
-            .block
-        case .dodgeApplied:
-            .dodge
-        case .controlActionSkipped, .controlApplied, .controlTriggered:
-            .control
-        case .deathsDoorTriggered, .deathsDoorExpired:
-            .deathsDoor
-        case .thornsTriggered, .markedConsumed:
-            .directDamage
-        case nil, .shieldApplied, .shieldHalved, .manaShieldApplied,
-             .cleanseApplied, .purgeApplied, .leechApplied, .thornsApplied,
-             .markedApplied, .criticalChanceApplied, .damageKeywordOverrideApplied,
-             .nextHolyStrikeApplied, .nextStrikeDoubleApplied, .evadeNextHitApplied:
-            // Exhaustive on purpose: a new EffectOutcome must be classified here
-            // explicitly instead of silently rendering as a generic buff chip.
-            .buff
+            guard let effectKind = event.effectKind else { return .buff }
+            return CombatFeedbackEffectPresentation.descriptor(for: effectKind).feedbackClass
         }
     }
 
@@ -206,10 +186,7 @@ enum CombatFeedbackPresenter {
             if let index = keyIndices[key] {
                 let existing = result[index]
                 result[index] = PreparedSource(
-                    event: replacingAmount(
-                        in: existing.event,
-                        with: existing.event.amount + source.event.amount
-                    ),
+                    event: existing.event.with(amount: existing.event.amount + source.event.amount),
                     sourceEventIDs: existing.sourceEventIDs + source.sourceEventIDs,
                     originalOrder: min(existing.originalOrder, source.originalOrder)
                 )
@@ -226,14 +203,15 @@ enum CombatFeedbackPresenter {
         switch event.kind {
         case .abilityDamage:
             family = .abilityDamage
-        case .ability:
-            return nil
         case .status:
             family = .status
         case .effect:
-            guard let effectKind = event.effectKind, isAdditive(effectKind) else { return nil }
+            guard let effectKind = event.effectKind,
+                  CombatFeedbackEffectPresentation.descriptor(for: effectKind).isAdditive
+            else { return nil }
             family = .effect(effectKind)
-        case .milestone:
+        case .ability, .milestone:
+            // Dropped by `filterDisplayable`.
             return nil
         }
         return AggregationKey(
@@ -243,21 +221,6 @@ enum CombatFeedbackPresenter {
             isCritical: event.isCritical,
             isNegative: event.amount < 0
         )
-    }
-
-    private static func isAdditive(_ effectKind: ActionEvent.EffectOutcome) -> Bool {
-        switch effectKind {
-        case .instantHeal, .resourceGain, .cardsDrawn, .leechHeal, .shieldApplied,
-             .shieldAbsorbed, .thornsTriggered, .markedConsumed,
-             .manaShieldTriggered:
-            true
-        default:
-            false
-        }
-    }
-
-    private static func replacingAmount(in event: ActionEvent, with amount: Int) -> ActionEvent {
-        event.with(amount: amount)
     }
 
     private static func prepare(_ source: PreparedSource) -> PreparedEvent? {
@@ -283,19 +246,7 @@ enum CombatFeedbackPresenter {
     }
 
     private static func visualRole(for event: ActionEvent) -> CombatFeedbackVisualRole {
-        switch event.effectKind {
-        case .thornsApplied, .criticalChanceApplied, .manaShieldApplied,
-             .damageKeywordOverrideApplied, .nextHolyStrikeApplied, .nextStrikeDoubleApplied,
-             .evadeNextHitApplied, .leechApplied:
-            .beneficialStatus
-        case .markedApplied, .shieldHalved:
-            .negativeStatus
-        case nil, .instantHeal, .resourceGain, .cardsDrawn, .leechHeal,
-             .shieldApplied, .shieldAbsorbed, .controlActionSkipped, .controlApplied,
-             .controlTriggered, .cleanseApplied, .purgeApplied, .dodgeApplied,
-             .deathsDoorTriggered, .deathsDoorExpired, .thornsTriggered,
-             .markedConsumed, .manaShieldTriggered:
-            .keyword
-        }
+        guard let effectKind = event.effectKind else { return .keyword }
+        return CombatFeedbackEffectPresentation.descriptor(for: effectKind).visualRole
     }
 }

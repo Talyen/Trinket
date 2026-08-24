@@ -449,6 +449,59 @@ struct PlayerSaveSanitizerHomesteadTierTests {
     }
 }
 
+struct PlayerSaveSanitizerProgressionTests {
+    @Test func sanitizeProgressionsClampsCorruptLevelsAndXP() {
+        let sanitized = PlayerSaveSanitizer.sanitizeProgressions(
+            [
+                "knight": CombatantProgression(level: 0, currentXP: -5, requiredXP: 0),
+                "rogue": CombatantProgression(level: 3, currentXP: 10000, requiredXP: 1),
+            ],
+            validCombatantIDs: ["knight", "rogue"]
+        )
+
+        #expect(sanitized["knight"] == CombatantProgression(
+            level: 1,
+            currentXP: 0,
+            requiredXP: CombatantProgression.requiredXP(forLevel: 1)
+        ))
+        #expect(sanitized["rogue"] == CombatantProgression(
+            level: 3,
+            currentXP: CombatantProgression.requiredXP(forLevel: 3),
+            requiredXP: CombatantProgression.requiredXP(forLevel: 3)
+        ))
+    }
+
+    @Test func sanitizeProgressionsPrunesUnknownCombatants() {
+        let valid = CombatantProgression.at(level: 2)
+
+        let sanitized = PlayerSaveSanitizer.sanitizeProgressions(
+            [
+                "knight": valid,
+                "missing-combatant": CombatantProgression.at(level: 7),
+            ],
+            validCombatantIDs: ["knight"]
+        )
+
+        #expect(sanitized == ["knight": valid])
+    }
+
+    @Test func sanitizeRosterClampsCorruptProgressionSoMutationCannotBrick() throws {
+        var roster = PlayerRosterState.freshStart
+        roster.progressions[PlayerRosterState.starterHeroID] = CombatantProgression(
+            level: -4,
+            currentXP: -100,
+            requiredXP: 0
+        )
+
+        let sanitized = PlayerSaveSanitizer.sanitizeRoster(roster, inventory: .freshStart)
+
+        let progression = try #require(sanitized.progressions[PlayerRosterState.starterHeroID])
+        #expect(progression.level == 1)
+        #expect(progression.currentXP == 0)
+        #expect(progression.requiredXP == CombatantProgression.requiredXP(forLevel: 1))
+    }
+}
+
 struct PlayerSaveSanitizerTalentIDTests {
     @Test func sanitizeUnlockedTalentsRemapsRogueDodgeAndWhelpStunIDs() {
         let sanitized = PlayerSaveSanitizer.sanitizeUnlockedTalents(

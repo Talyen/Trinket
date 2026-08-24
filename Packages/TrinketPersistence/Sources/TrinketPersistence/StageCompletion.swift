@@ -24,9 +24,8 @@ public enum StageCompletion {
     }
 
     /// Applies an optional XP percent bonus (Labyrinth modifiers) to a base award.
-    public static func adjustedExperienceAward(_ base: Int, xpPercent: Int) -> Int {
-        guard base > 0, xpPercent != 0 else { return max(0, base) }
-        return max(0, base + (base * xpPercent) / 100)
+    static func adjustedExperienceAward(_ base: Int, xpPercent: Int) -> Int {
+        CombatRounding.scaled(base, byPercent: xpPercent)
     }
 
     /// Resolves catch-up XP for `combatant` and grants it on `roster`.

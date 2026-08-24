@@ -133,14 +133,11 @@ package extension DamagePipeline {
         to state: inout DamageResolutionState,
         in context: inout BattleState
     ) {
-        guard let sourceActorID = state.sourceActorID,
-              let source = context.roster.combatant(for: sourceActorID),
-              source.role != .enemy
-        else { return }
+        guard let source = state.partySource(in: context) else { return }
         let target = state.combatant
         let names = CombatTriggerEngine.partyAfflictedDamageAuras(
-            targetIsPoisoned: context.roster.activeEffects(for: target).contains { $0.effect.keyword == .poison },
-            targetIsBurning: context.roster.activeEffects(for: target).contains { $0.effect.keyword == .burn },
+            targetIsPoisoned: context.roster.hasAffliction(.poison, on: target),
+            targetIsBurning: context.roster.hasAffliction(.burn, on: target),
             in: context
         ).abilityNames
         for name in names {
@@ -197,8 +194,8 @@ package extension DamagePipeline {
         let enemy = context.roster.enemy.combatant
         let enemyIsFrozen = context.roster.hasControlStatus(for: enemy, keyword: .freeze)
         let enemyIsStunned = context.roster.hasControlStatus(for: enemy, keyword: .stun)
-        let enemyIsPoisoned = context.roster.activeEffects(for: enemy).contains { $0.effect.keyword == .poison }
-        let enemyIsBleeding = context.roster.activeEffects(for: enemy).contains { $0.effect.keyword == .bleed }
+        let enemyIsPoisoned = context.roster.hasAffliction(.poison, on: enemy)
+        let enemyIsBleeding = context.roster.hasAffliction(.bleed, on: enemy)
         let enemyBleedStacks = context.roster.activeEffects(for: enemy).count(where: { $0.effect.isBleed })
         var reductionFlat = 0
         var reductionMultiplier = 1.0

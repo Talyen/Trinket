@@ -53,13 +53,13 @@ package extension DamagePipeline {
         )
 
         var blockBroken = false
-        effects = updatedShieldEffects(
-            effects,
-            index: index,
-            keyword: keyword,
-            newBuffer: max(0, buffer - absorption.absorbed - absorption.extraRemoved),
-            blockBroken: &blockBroken
-        )
+        if let reduced = DefensePoolEngine.reduce(
+            absorption.absorbed + absorption.extraRemoved,
+            in: effects
+        ) {
+            effects = reduced.effects
+            blockBroken = reduced.broken
+        }
         context.roster.setActiveEffects(effects, for: state.combatant)
         state.activeEffects = effects
         state.damageEvents.append(contentsOf: applyBlockAbsorptionReactions(
@@ -95,29 +95,6 @@ package extension DamagePipeline {
             ))
             state.activeEffects = context.roster.activeEffects(for: state.combatant)
         }
-    }
-
-    /// Applies the post-absorption Block pool update, flagging when it is broken.
-    private static func updatedShieldEffects(
-        _ effects: [ActiveEffect],
-        index: Int,
-        keyword: Keyword,
-        newBuffer: Int,
-        blockBroken: inout Bool
-    ) -> [ActiveEffect] {
-        var updated = effects
-        if newBuffer <= 0 {
-            updated.remove(at: index)
-            blockBroken = true
-        } else {
-            updated[index] = ActiveEffect(
-                id: updated[index].id,
-                effect: .shield(keyword, newBuffer),
-                remainingTurns: 0,
-                sourceActorID: updated[index].sourceActorID
-            )
-        }
-        return updated
     }
 
     /// Result of a single Block absorption event.
@@ -171,42 +148,22 @@ package extension DamagePipeline {
               context.roster.hero.isAlive,
               context.heroModifiers.triggers.blockAbsorbsCompanionDamage
         else { return }
-        var heroEffects = context.roster.activeEffects(for: context.roster.hero.combatant)
-        guard let heroIndex = heroEffects.firstIndex(where: {
-            if case .shield = $0.effect {
-                return true
-            }
-            return false
-        }),
-            case let .shield(heroKeyword, heroBuffer) = heroEffects[heroIndex].effect,
-            heroBuffer > 0
+        let heroEffects = context.roster.activeEffects(for: context.roster.hero.combatant)
+        guard let reduced = DefensePoolEngine.reduce(state.remaining, in: heroEffects)
         else { return }
-        let heroAbsorbed = min(state.remaining, heroBuffer)
+        let heroAbsorbed = reduced.absorbed
         state.remaining -= heroAbsorbed
         state.blockedAmount += heroAbsorbed
         state.damageEvents.append(context.nextEvent(
             kind: .effect,
             effectKind: .shieldAbsorbed,
-            actorName: heroKeyword.rawValue,
+            actorName: reduced.keyword.rawValue,
             abilityName: "Intercede",
             target: context.roster.hero.combatant,
             amount: heroAbsorbed,
-            keyword: heroKeyword,
-            appliedEffectSummaries: [],
-            milestone: nil
+            keyword: reduced.keyword
         ))
-        let newHeroBuffer = heroBuffer - heroAbsorbed
-        if newHeroBuffer <= 0 {
-            heroEffects.remove(at: heroIndex)
-        } else {
-            heroEffects[heroIndex] = ActiveEffect(
-                id: heroEffects[heroIndex].id,
-                effect: .shield(heroKeyword, newHeroBuffer),
-                remainingTurns: 0,
-                sourceActorID: heroEffects[heroIndex].sourceActorID
-            )
-        }
-        context.roster.setActiveEffects(heroEffects, for: context.roster.hero.combatant)
+        context.roster.setActiveEffects(reduced.effects, for: context.roster.hero.combatant)
     }
 
     /// Talent Block-ignore modifiers (Holy, Burn, Physical-ignore) reduce the

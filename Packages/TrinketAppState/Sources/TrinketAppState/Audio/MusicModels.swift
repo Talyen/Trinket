@@ -2,14 +2,8 @@ import Foundation
 import TrinketBattleRuntime
 import TrinketContent
 
-enum MusicContextKind: Hashable {
-    case menu
-    case battle
-    case boss
-}
-
 struct MusicResumeKey: Hashable {
-    let contextKind: MusicContextKind
+    let contextKind: MusicTrackKind
     let stageID: String?
     let enemyID: String?
     let trackID: String
@@ -22,7 +16,7 @@ struct MusicPlaybackRequest: Equatable {
 
     static func resumable(
         track: MusicTrack,
-        contextKind: MusicContextKind,
+        contextKind: MusicTrackKind,
         stageID: String?,
         enemyID: String?
     ) -> Self {

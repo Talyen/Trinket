@@ -100,6 +100,8 @@ package enum ControlMeterEngine {
         )
     }
 
+    private static let freezeDecayPercent = 25
+
     /// End-of-round Freeze-buildup decay (25% of current buildup, floor). Skipped when the
     /// buildup's source carries `freezeBuildupDoesNotDecay` (Persistent Frost / Glacial Grip).
     /// Full meters (Frozen status) are left intact for the control-lock handler.
@@ -119,7 +121,7 @@ package enum ControlMeterEngine {
                context.modifiers(for: sourceID).triggers.freezeBuildupDoesNotDecay {
                 continue
             }
-            let decayed = max(0, amount - amount * 25 / 100)
+            let decayed = max(0, amount - amount * Self.freezeDecayPercent / 100)
             if decayed != amount {
                 effects[index] = ActiveEffect(
                     id: effects[index].id,
@@ -238,19 +240,11 @@ package enum ControlMeterEngine {
             let owner = source.combatant
             let currentBlock = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: owner))
             if currentBlock > 0 {
-                let restored = context.restoreMana(currentBlock, to: owner)
-                if restored > 0 {
-                    events.append(context.nextEvent(
-                        kind: .effect,
-                        effectKind: .resourceGain,
-                        actorName: owner.name,
-                        abilityName: "Rimeheart",
-                        target: owner,
-                        amount: restored,
-                        keyword: .mana
-                    ))
-                    events.append(contentsOf: CombatTriggerEngine.afterGainMana(by: owner, in: &context))
-                }
+                events.append(contentsOf: context.restoreManaEmitting(
+                    currentBlock,
+                    to: owner,
+                    abilityName: "Rimeheart"
+                ))
             }
         }
         // Volcanic Stun: Stunning the enemy also inflicts Burn.

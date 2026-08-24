@@ -54,6 +54,50 @@ class ScriptRegressionTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("Unknown command", result.stderr)
 
+    def test_triggers_swift_maps_known_token_to_grouped_field(self) -> None:
+        self.assertEqual(
+            self.codegen.triggers_swift("on_cleanse_self_heal:2"),
+            "CombatTraitTriggers(healing: HealingTriggers(cleanseSelfHeal: 2))",
+        )
+
+    def test_triggers_swift_rename_table_tokens(self) -> None:
+        output = self.codegen.triggers_swift("on_cleanse_draw:1|on_gain_gold_heal:3")
+        self.assertIn("cleanseBonusDraw: 1", output)
+        self.assertIn("gainGoldBonusHealSelf: 3", output)
+
+    def test_triggers_swift_damage_below_health_percent_both_arities(self) -> None:
+        self.assertEqual(
+            self.codegen.triggers_swift("damage_below_health_percent:50:5"),
+            "CombatTraitTriggers(damage: DamageTriggers("
+            "damageBelowHealthPercentThreshold: 50, damageBelowHealthPercentBonus: 5))",
+        )
+        self.assertEqual(
+            self.codegen.triggers_swift("damage_below_health_percent:50:fire:5"),
+            "CombatTraitTriggers(damage: DamageTriggers("
+            "damageBelowHealthPercentThreshold: 50, damageBelowHealthPercentKeyword: .fire, "
+            "damageBelowHealthPercentBonus: 5))",
+        )
+
+    def test_triggers_swift_generic_path_converts_snake_case_field(self) -> None:
+        self.assertEqual(
+            self.codegen.triggers_swift("poison_decay_slow_percent:50"),
+            "CombatTraitTriggers(dot: DotTriggers(poisonDecaySlowPercent: 50))",
+        )
+
+    def test_triggers_swift_unknown_token_fails_loudly(self) -> None:
+        with self.assertRaises(ValueError):
+            self.codegen.triggers_swift("not_a_real_trigger:1")
+
+    def test_triggers_swift_rejects_glued_tokens(self) -> None:
+        with self.assertRaises(ValueError):
+            self.codegen.triggers_swift("poison_decay_slow_percent:50,bogus_field:1")
+
+    def test_modifier_token_to_swift_multipart_keyword(self) -> None:
+        self.assertEqual(
+            self.codegen.modifier_token_to_swift("damage_dealt:fire:3"),
+            ".damageDealt(.fire, 3)",
+        )
+
     def test_plan_metadata_requires_lifecycle_fields_and_blocked_reason(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -826,6 +870,22 @@ class ScriptRegressionTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("SmokeShellTests", result.stdout)
 
+    def test_prepared_artwork_keeps_shell_smoke(self) -> None:
+        result = subprocess.run(
+            [
+                str(ROOT / "Scripts" / "handoff.sh"),
+                "--dry-run",
+                "--paths",
+                "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/PreparedArtwork.swift",
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("SmokeShellTests", result.stdout)
+
     def test_battle_feature_lab_runs_full_package_tests_and_smoke(self) -> None:
         # No lab demotion: a DEBUG variant file still runs the full package
         # suite plus the SmokeBattleTests canary.
@@ -945,7 +1005,7 @@ class ScriptRegressionTests(unittest.TestCase):
     def test_run_env_removes_shared_packages_derived_data(self) -> None:
         text = (ROOT / "Scripts" / "run-env.sh").read_text(encoding="utf-8")
         prune = text.split("trinket_derived_data_age_prune()", 1)[1].split(
-            "trinket_simulator_cleanup_idle_pool()", 1
+            "trinket_simulator_enforce_single_warm_booted()", 1
         )[0]
         self.assertIn('Packages/.DerivedData', prune)
         self.assertIn('rm -rf "$repo_root/Packages/.DerivedData"', prune)

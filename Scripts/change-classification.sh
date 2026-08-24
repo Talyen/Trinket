@@ -34,11 +34,8 @@ TRINKET_SMOKE_TARGETS=()
 TRINKET_HAS_CONTENT=false
 TRINKET_HAS_ASSETS=false
 TRINKET_HAS_PROJECT=false
-TRINKET_HAS_SWIFT=false
-TRINKET_HAS_APP_STATE=false
 TRINKET_HAS_FEATURE=false
 TRINKET_HAS_AUDIO=false
-TRINKET_HAS_DOCS_OR_TOOLS=false
 TRINKET_HAS_VISUAL_UI=false
 
 TRINKET_NEEDS_CONTENT_GENERATION=false
@@ -106,7 +103,6 @@ trinket_classify_package_swift_path() {
       ;;
   esac
 
-  TRINKET_HAS_SWIFT=true
   TRINKET_NEEDS_STYLE=true
   TRINKET_AUTHORED_PATHS+=("$path")
 
@@ -121,7 +117,8 @@ trinket_classify_package_swift_path() {
       ;;
     TrinketFeatureSupport)
       if [[ "$path" == Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Shared/AccessibilityID.swift \
-         || "$path" == Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/PreparedArtworkCache.swift ]]; then
+         || "$path" == Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/PreparedArtworkCache.swift \
+         || "$path" == Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/PreparedArtwork.swift ]]; then
         TRINKET_NEEDS_SMOKE=true
         trinket_add_smoke_target_for_path "$path"
       fi
@@ -176,11 +173,8 @@ trinket_reset_classification() {
   TRINKET_HAS_CONTENT=false
   TRINKET_HAS_ASSETS=false
   TRINKET_HAS_PROJECT=false
-  TRINKET_HAS_SWIFT=false
-  TRINKET_HAS_APP_STATE=false
   TRINKET_HAS_FEATURE=false
   TRINKET_HAS_AUDIO=false
-  TRINKET_HAS_DOCS_OR_TOOLS=false
   TRINKET_HAS_VISUAL_UI=false
 
   TRINKET_NEEDS_CONTENT_GENERATION=false
@@ -339,7 +333,6 @@ trinket_classify_path() {
     Packages/TrinketContent/Sources/TrinketContent/Content/*.swift)
       TRINKET_HAS_CONTENT=true
       TRINKET_NEEDS_CONTENT_GENERATION=true
-      TRINKET_HAS_SWIFT=true
       TRINKET_NEEDS_STYLE=true
       trinket_add_package TrinketContent
       TRINKET_AUTHORED_PATHS+=("$path")
@@ -352,7 +345,6 @@ trinket_classify_path() {
     Scripts/prepare-art-assets.sh|Scripts/prepare-music-assets.sh|Scripts/prepare-sfx-assets.sh|Scripts/prepare-cinematic-assets.sh|Scripts/prepare-app-icon.sh)
       TRINKET_HAS_ASSETS=true
       TRINKET_NEEDS_ASSET_GENERATION=true
-      TRINKET_HAS_DOCS_OR_TOOLS=true
       TRINKET_NEEDS_SCRIPT_TESTS=true
       TRINKET_AUTHORED_PATHS+=("$path")
       ;;
@@ -362,7 +354,6 @@ trinket_classify_path() {
       TRINKET_AUTHORED_PATHS+=("$path")
       ;;
     Packages/TrinketContent/*.swift)
-      TRINKET_HAS_SWIFT=true
       TRINKET_NEEDS_STYLE=true
       trinket_add_package TrinketContent
       TRINKET_AUTHORED_PATHS+=("$path")
@@ -372,33 +363,24 @@ trinket_classify_path() {
         package="${path#Packages/}"
         package="${package%%/*}"
         trinket_add_package "$package"
-        if [[ "$package" == TrinketAppState ]]; then
-          TRINKET_HAS_APP_STATE=true
-        fi
       else
-        TRINKET_HAS_SWIFT=true
         TRINKET_NEEDS_STYLE=true
         TRINKET_AUTHORED_PATHS+=("$path")
       fi
       ;;
     Trinket/App/*)
-      TRINKET_HAS_SWIFT=true
       TRINKET_NEEDS_STYLE=true
       TRINKET_NEEDS_APP_BUILD=true
-      TRINKET_HAS_APP_STATE=true
       TRINKET_AUTHORED_PATHS+=("$path")
       ;;
     Scripts/*|.github/*)
-      TRINKET_HAS_DOCS_OR_TOOLS=true
       TRINKET_NEEDS_SCRIPT_TESTS=true
       TRINKET_AUTHORED_PATHS+=("$path")
       ;;
     Docs/*|*.md)
-      TRINKET_HAS_DOCS_OR_TOOLS=true
       TRINKET_AUTHORED_PATHS+=("$path")
       ;;
     Trinket/Features/*|TrinketUITests/*)
-      TRINKET_HAS_SWIFT=true
       TRINKET_NEEDS_STYLE=true
       TRINKET_NEEDS_SMOKE=true
       TRINKET_HAS_FEATURE=true
@@ -406,7 +388,6 @@ trinket_classify_path() {
       trinket_add_smoke_target_for_path "$path"
       ;;
     *.swift)
-      TRINKET_HAS_SWIFT=true
       TRINKET_NEEDS_STYLE=true
       TRINKET_AUTHORED_PATHS+=("$path")
       ;;

@@ -13,6 +13,49 @@ package enum DefensePoolEngine {
         }
     }
 
+    /// Result of reducing a combatant's pooled Block.
+    package struct ShieldPoolReduction {
+        package let effects: [ActiveEffect]
+        package let keyword: Keyword
+        /// Points actually removed from the pool.
+        package let absorbed: Int
+        /// True when the reduction emptied the pool.
+        package let broken: Bool
+    }
+
+    /// Reduces the first pooled Block effect by `amount` (floor 0), removing the
+    /// effect when the pool empties. Returns nil when no positive Block exists.
+    package static func reduce(
+        _ amount: Int,
+        in effects: [ActiveEffect]
+    ) -> ShieldPoolReduction? {
+        guard amount > 0,
+              let index = effects.firstIndex(where: {
+                  if case .shield = $0.effect {
+                      return true
+                  }
+                  return false
+              }),
+              case let .shield(keyword, buffer) = effects[index].effect,
+              buffer > 0
+        else { return nil }
+        let absorbed = min(amount, buffer)
+        var updated = effects
+        var broken = false
+        if buffer - absorbed <= 0 {
+            updated.remove(at: index)
+            broken = true
+        } else {
+            updated[index] = ActiveEffect(
+                id: updated[index].id,
+                effect: .shield(keyword, buffer - absorbed),
+                remainingTurns: 0,
+                sourceActorID: updated[index].sourceActorID
+            )
+        }
+        return ShieldPoolReduction(effects: updated, keyword: keyword, absorbed: absorbed, broken: broken)
+    }
+
     /// Inherent Toughness-based damage reduction percent.
     /// No pool points — Toughness DR is never consumed or decayed.
     package static func effectiveToughnessMitigationPercent(

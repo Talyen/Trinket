@@ -83,7 +83,7 @@ package enum HealingEngine {
         if restored > 0, let sourceTriggers,
            sourceTriggers.healOverTimeOnHealAmount > 0,
            sourceTriggers.healOverTimeOnHealTurns > 0,
-           !request.isLingeringBlessingTick {
+           !request.isHoTTick {
             context.roster.mutateRuntime(for: request.target) {
                 $0.healOverTimeAmount = sourceTriggers.healOverTimeOnHealAmount
                 $0.healOverTimeTurnsRemaining = max(
@@ -97,19 +97,11 @@ package enum HealingEngine {
            sourceTriggers.onHealRestoreCasterMana > 0, restored > 0,
            let caster = context.roster.combatant(for: sourceActorID),
            caster.id != request.target.id {
-            let restoredMana = context.restoreMana(sourceTriggers.onHealRestoreCasterMana, to: caster.combatant)
-            if restoredMana > 0 {
-                events.append(context.nextEvent(
-                    kind: .effect,
-                    effectKind: .resourceGain,
-                    actorName: caster.name,
-                    abilityName: "Font of Magic",
-                    target: caster.combatant,
-                    amount: restoredMana,
-                    keyword: .mana
-                ))
-                events.append(contentsOf: CombatTriggerEngine.afterGainMana(by: caster.combatant, in: &context))
-            }
+            events.append(contentsOf: context.restoreManaEmitting(
+                sourceTriggers.onHealRestoreCasterMana,
+                to: caster.combatant,
+                abilityName: "Font of Magic"
+            ))
         }
 
         switch request.logAs {
@@ -149,7 +141,7 @@ package enum HealingEngine {
     ) -> CombatFlag? {
         guard amount > 0,
               let sourceActorID = request.sourceActorID,
-              let actor = context.roster.combatant(for: sourceActorID)
+              context.roster.combatant(for: sourceActorID) != nil
         else { return nil }
 
         let critKeyword: Keyword
@@ -163,19 +155,13 @@ package enum HealingEngine {
         }
         guard critKeyword.allowsCriticalHits else { return nil }
 
-        var chance = actor.primaryStats.contestedCriticalChance(
-            for: critKeyword,
-            againstDefenderToughness: request.target.primaryStats.toughness
+        guard CriticalChanceEngine.rollSucceeds(
+            keyword: critKeyword,
+            actorID: sourceActorID,
+            defender: request.target,
+            in: &context
         )
-        chance += context.modifiers(for: sourceActorID).triggers.criticalChanceBonus
-        for active in context.roster.activeEffects(for: actor.combatant) {
-            if case let .criticalChanceBonus(bonus, _) = active.effect {
-                chance += bonus
-            }
-        }
-        let cap = DamagePipeline.criticalChanceCap(for: actor.combatant)
-        chance = min(cap, max(0, chance))
-        guard BattleChance.succeeds(probability: chance, using: &context.rng) else { return nil }
+        else { return nil }
 
         amount *= 2
         return .critical

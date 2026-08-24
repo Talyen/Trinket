@@ -12,4 +12,10 @@ public enum CombatRounding {
     public static func rounded(_ value: Double) -> Int {
         max(0, Int(value.rounded()))
     }
+
+    /// Applies an integer percent bonus to `value`, clamping at zero.
+    public static func scaled(_ value: Int, byPercent percent: Int) -> Int {
+        guard value > 0, percent != 0 else { return max(0, value) }
+        return max(0, value + (value * percent) / 100)
+    }
 }

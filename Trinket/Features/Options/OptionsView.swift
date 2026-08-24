@@ -63,7 +63,7 @@ struct OptionsView: View {
 
             Section("Battle") {
                 Picker("Show Animations", selection: $options.ultimateCinematicShowPolicy) {
-                    ForEach(UltimateCinematicShowPolicy.pickerCases) { policy in
+                    ForEach(UltimateCinematicShowPolicy.allCases) { policy in
                         Text(policy.displayName).tag(policy)
                     }
                 }

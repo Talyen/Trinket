@@ -85,7 +85,7 @@ struct OnHitDamageHandler: BattleEffectHandler {
                 }
                 return false
             },
-            event: (.controlApplied, amount, keyword)
+            event: (.wardApplied, amount, keyword)
         )
         return EffectApplyOutcome(events: [event], didApply: true)
     }
@@ -174,11 +174,11 @@ struct RestoreManaOnHitHandler: BattleEffectHandler {
     let kind: EffectKind = .restoreManaOnHit
 
     func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
-        let amount = stacks.reduce(0) { maxAmount, active in
+        let amount = stacks.reduce(0) { sum, active in
             if case let .restoreManaOnHit(value, _) = active.effect {
-                return max(maxAmount, value)
+                return sum + value
             }
-            return maxAmount
+            return sum
         }
         guard amount > 0 else { return nil }
         let maxTicks = TimedBuffSummary.minRemainingTurns(in: stacks) { effect in
@@ -204,6 +204,7 @@ struct RestoreManaOnHitHandler: BattleEffectHandler {
         guard case let .restoreManaOnHit(amount, durationTurns) = effect else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
+        // Mana Shield stacks: each stack restores on hit (sum matches the summary).
         context.appendEffect(.restoreManaOnHit(amount, durationTurns), to: target, sourceID: source.id, remainingTurns: durationTurns)
         let event = context.nextEvent(
             kind: .effect,

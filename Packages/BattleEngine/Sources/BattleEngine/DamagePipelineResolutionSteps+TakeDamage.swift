@@ -200,18 +200,12 @@ package extension DamagePipeline {
         guard percent > 0 else { return [] }
         let leechAmount = CombatRounding.scaled(lost, multiplier: min(1, max(0, percent)))
         guard leechAmount > 0 else { return [] }
-        return HealingEngine.resolveHeal(
-            HealRequest(
-                amount: leechAmount,
-                target: context.roster.hero.combatant,
-                sourceActorID: source.combatant.id,
-                logAs: .instantHeal(
-                    actorName: source.name,
-                    abilityName: "Soul Sharing",
-                    keyword: .leech
-                )
-            ),
-            in: &context
-        ).events
+        return context.healEmitting(
+            amount: leechAmount,
+            target: context.roster.hero.combatant,
+            source: source.combatant,
+            abilityName: "Soul Sharing",
+            keyword: .leech
+        )
     }
 }

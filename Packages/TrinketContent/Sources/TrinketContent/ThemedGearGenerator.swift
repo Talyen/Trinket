@@ -38,21 +38,16 @@ public struct ThemedGearGenerator: Sendable {
 
         for slot in combatant.role.equipmentSlots {
             guard loadout.isAvailable(slot, inventory: inventory) else { continue }
-            guard let baseType = bestBaseType(
+            guard let item = makeItem(
                 for: slot,
-                keywordBias: resolvedBias,
+                combatant: combatant,
+                rarity: rarity,
+                fixedAffixCount: fixedAffixCount,
+                idPrefix: idPrefix,
+                resolvedBias: resolvedBias,
                 requireBuildAlignment: requireBuildAlignment,
                 using: &randomNumberGenerator
             ) else { continue }
-            let item = itemGenerator.generate(
-                id: "\(idPrefix)-\(combatant.id)-\(slot.rawValue)",
-                baseType: baseType,
-                rarity: rarity,
-                fixedAffixCount: fixedAffixCount,
-                keywordBias: resolvedBias,
-                requireBuildAlignment: requireBuildAlignment,
-                using: &randomNumberGenerator
-            )
             inventory.append(item)
             loadout.equip(item, in: slot, inventory: inventory)
         }
@@ -76,25 +71,48 @@ public struct ThemedGearGenerator: Sendable {
         var loadout = EquipmentLoadout()
         for slot in remaining {
             guard loadout.isAvailable(slot, inventory: []) else { continue }
-            guard let baseType = bestBaseType(
+            guard let item = makeItem(
                 for: slot,
-                keywordBias: resolvedBias,
+                combatant: combatant,
+                rarity: rarity,
+                fixedAffixCount: fixedAffixCount,
+                idPrefix: idPrefix,
+                resolvedBias: resolvedBias,
                 requireBuildAlignment: requireBuildAlignment,
                 using: &randomNumberGenerator
             ) else { continue }
-            let item = itemGenerator.generate(
-                id: "\(idPrefix)-\(combatant.id)-\(slot.rawValue)",
-                baseType: baseType,
-                rarity: rarity,
-                fixedAffixCount: fixedAffixCount,
-                keywordBias: resolvedBias,
-                requireBuildAlignment: requireBuildAlignment,
-                using: &randomNumberGenerator
-            )
             loadout.equip(item, in: slot, inventory: [item])
             return ThemedGearBuild(inventory: [item], loadout: loadout)
         }
         return ThemedGearBuild(inventory: [], loadout: loadout)
+    }
+
+    // swiftlint:disable:next function_parameter_count
+    private func makeItem(
+        for slot: ItemSlot,
+        combatant: Combatant,
+        rarity: Rarity,
+        fixedAffixCount: Int,
+        idPrefix: String,
+        resolvedBias: Set<Keyword>,
+        requireBuildAlignment: Bool,
+        using randomNumberGenerator: inout some RandomNumberGenerator
+    ) -> InventoryItem? {
+        guard let baseType = bestBaseType(
+            for: slot,
+            keywordBias: resolvedBias,
+            requireBuildAlignment: requireBuildAlignment,
+            using: &randomNumberGenerator
+        ) else { return nil }
+        return itemGenerator.generate(
+            id: "\(idPrefix)-\(combatant.id)-\(slot.rawValue)",
+            baseType: baseType,
+            rarity: rarity,
+            fixedAffixCount: fixedAffixCount,
+            keywordBias: resolvedBias,
+            requireBuildAlignment: requireBuildAlignment,
+            using: &randomNumberGenerator
+        )
     }
 
     private func bestBaseType(

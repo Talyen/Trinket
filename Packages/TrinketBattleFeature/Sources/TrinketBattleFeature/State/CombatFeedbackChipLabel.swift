@@ -78,49 +78,35 @@ enum CombatFeedbackChipLabel: Hashable {
 
     private static func statusLabel(for event: ActionEvent) -> CombatFeedbackStatusLabel? {
         guard let effectKind = event.effectKind else { return nil }
-        return switch effectKind {
-        case .thornsApplied: .thorns
-        case .criticalChanceApplied: .criticalUp
-        case .manaShieldApplied: .manaShield
-        case .damageKeywordOverrideApplied: .consecrated
-        case .nextHolyStrikeApplied: .nextHolyStrike
-        case .nextStrikeDoubleApplied: .nextStrikeDouble
-        case .evadeNextHitApplied: .evadeNextHit
-        case .markedApplied: .marked
-        case .leechApplied: .leech
-        case .shieldHalved: .blockDown
-        default: nil
-        }
+        return CombatFeedbackEffectPresentation.descriptor(for: effectKind).statusLabel
     }
 
     private static func from(
         effectKind: ActionEvent.EffectOutcome,
         event: ActionEvent
     ) -> Self? {
-        switch effectKind {
-        case .instantHeal, .leechHeal, .resourceGain, .shieldApplied, .manaShieldTriggered,
-             .cardsDrawn:
-            .amount(event.amount)
-        case .shieldAbsorbed, .thornsTriggered, .markedConsumed:
-            .amount(-event.amount)
-        case .dodgeApplied:
-            .word(.dodge)
-        case .cleanseApplied:
-            .word(.cleanse(event.keyword))
-        case .purgeApplied:
-            .word(.purge(event.keyword))
-        case .deathsDoorTriggered, .deathsDoorExpired:
-            .word(.plain(.deathsDoor))
-        case .controlActionSkipped:
-            .word(.plain(event.keyword))
-        case .controlTriggered:
-            .word(.triggered(event.keyword))
-        case .controlApplied:
-            .word(.applied(event.keyword))
-        case .thornsApplied, .criticalChanceApplied, .manaShieldApplied,
-             .damageKeywordOverrideApplied, .nextHolyStrikeApplied, .nextStrikeDoubleApplied,
-             .evadeNextHitApplied, .markedApplied, .leechApplied, .shieldHalved:
-            nil
+        guard let rule = CombatFeedbackEffectPresentation.descriptor(for: effectKind).labelRule else {
+            return nil
+        }
+        switch rule {
+        case .amount:
+            return .amount(event.amount)
+        case .negatedAmount:
+            return .amount(-event.amount)
+        case .dodgeWord:
+            return .word(.dodge)
+        case .plainKeyword:
+            return .word(.plain(event.keyword))
+        case .appliedKeyword:
+            return .word(.applied(event.keyword))
+        case .triggeredKeyword:
+            return .word(.triggered(event.keyword))
+        case .cleanseKeyword:
+            return .word(.cleanse(event.keyword))
+        case .purgeKeyword:
+            return .word(.purge(event.keyword))
+        case .deathsDoorIcon:
+            return .word(.plain(.deathsDoor))
         }
     }
 
@@ -145,6 +131,8 @@ enum CombatFeedbackStatusLabel: String, CaseIterable, Hashable {
     case marked = "Marked"
     case blockDown = "Block Down"
     case leech = "Leech"
+    case ward = "Ward"
+    case avatar = "Avatar"
 }
 
 /// Closed set of non-numeric chip phrases produced by battle presentation.
@@ -156,13 +144,12 @@ enum CombatFeedbackChipWord: Hashable {
     case triggered(Keyword)
     case cleanse(Keyword)
     case purge(Keyword)
-    case halve(Keyword)
     case status(CombatFeedbackStatusLabel)
 
     /// Short text drawn next to the keyword icon. `nil` means icon-only or dual-icon.
     var composeText: String? {
         switch self {
-        case .dodge, .cleanse, .purge, .halve, .status:
+        case .dodge, .cleanse, .purge, .status:
             nil
         case .critical:
             "Critical"

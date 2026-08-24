@@ -80,7 +80,7 @@ struct CombatTriggerTalentControlTests {
             remainingTurns: 0,
             sourceActorID: battle.roster.companion.id
         )
-        _ = DecayingDoTHandler(keyword: .poison).advanceTurn(active, on: enemy, in: &battle)
+        _ = DecayingDoTHandler(keyword: .poison, kind: .poison).advanceTurn(active, on: enemy, in: &battle)
         #expect(battle.roster.hasControlStatus(for: enemy, keyword: .stun))
     }
 

@@ -311,7 +311,7 @@ struct BattleFieldLane: View {
 
     private func beginPartyAttackWindUp(for card: BattleCard) {
         guard let combatantID = battleSession.combatantID(for: card.owner) else { return }
-        battleSession.beginAttackWindUp(for: combatantID)
+        battleSession.publishAttackTelegraph(.windUp, for: combatantID)
     }
 
     private func showDetails(for combatant: Combatant) {
@@ -419,7 +419,7 @@ private struct BattleCinematicLane: View {
         }
     }
 
-    private var openingStyle: UltimateCinematicEnterStyle {
+    private var openingStyle: UltimateCinematicCoverStyle {
         #if DEBUG
         battleSession.previewLabConfig?.openingStyle ?? .fade
         #else
@@ -427,7 +427,7 @@ private struct BattleCinematicLane: View {
         #endif
     }
 
-    private var closingStyle: UltimateCinematicExitStyle {
+    private var closingStyle: UltimateCinematicCoverStyle {
         #if DEBUG
         battleSession.previewLabConfig?.closingStyle ?? .fade
         #else

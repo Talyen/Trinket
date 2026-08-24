@@ -28,7 +28,7 @@ DID_ENSURE_SIMULATOR=false
 
 usage() {
   cat <<'USAGE'
-Usage: ./Scripts/test-package.sh [--no-build] [--build-only] [--build-for-testing] [--destination DESTINATION] [--verbose] [--quiet] [--include-balance-sweep-tests] <Package> [Package...]
+Usage: ./Scripts/test-package.sh [--no-build] [--build-for-testing] [--destination DESTINATION] [--verbose] [--quiet] [--include-balance-sweep-tests] <Package> [Package...]
 
 Runs Swift package test schemes from inside their package directories, allocating
 a unique result bundle for each invocation so repeated runs do not collide.
@@ -37,12 +37,10 @@ When multiple packages are passed, builds/tests run in parallel using per-packag
 DerivedData tenants (same model as `test.sh unit`), with SYMROOT/OBJROOT pinned
 into each tenant so SPM schemes do not share Packages/.DerivedData/build.db.
 
---build-only compiles the package scheme without running tests (local verify
-presentation-only demotion). --build-for-testing compiles each package scheme
-against a generic simulator destination and stamps package_<name> so later
---no-build runs can reuse the products. BattleEngine balance-sweep tests are
-skipped by default; pass --include-balance-sweep-tests for a one-off balance-tool
-test run.
+--build-for-testing compiles each package scheme against a generic simulator destination
+and stamps package_<name> so later --no-build runs can reuse the products. BattleEngine
+balance-sweep tests are skipped by default; pass --include-balance-sweep-tests for a
+one-off balance-tool test run.
 
 Packages:
 USAGE
@@ -53,10 +51,6 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     no-build|--no-build)
       ACTION="test-without-building"
-      shift
-      ;;
-    --build-only|build-only)
-      ACTION="build"
       shift
       ;;
     --build-for-testing|build-for-testing)
@@ -180,9 +174,7 @@ run_one_package() {
   fi
 
   if [[ "$defer_output" == "false" ]]; then
-    if [[ "$ACTION" == "build" ]]; then
-      echo "Building $package package (build-only)..."
-    elif [[ "$ACTION" == "build-for-testing" ]]; then
+    if [[ "$ACTION" == "build-for-testing" ]]; then
       echo "Building $package package (build-for-testing)..."
     else
       echo "Running $package package tests..."
@@ -205,7 +197,7 @@ run_one_package() {
   fi
   if [[ "$ACTION" == "build-for-testing" ]]; then
     # Generic destination compile that --no-build test runs reuse; no result
-    # bundle is produced (build-only invocations do not need one).
+    # bundle is produced (compiles have no test cases to record).
     xcodebuild_args=(
       xcodebuild build-for-testing \
         -scheme "$scheme" \
@@ -229,14 +221,14 @@ run_one_package() {
         "OBJROOT=$(package_objroot "$package_dd")" \
         "SHARED_PRECOMPS_DIR=$(package_shared_precomps_dir "$package_dd")"
     )
-    # Result bundles back test timing and failure diagnostics; build-only and
-    # build-for-testing runs skip them to avoid writing bulky unused xcresults.
+    # Result bundles back test timing and failure diagnostics; build-for-testing
+    # runs skip them to avoid writing bulky unused xcresults.
     if [[ "$ACTION" == "test" || "$ACTION" == "test-without-building" ]]; then
       xcodebuild_args+=(-resultBundlePath "$result_bundle")
     fi
   fi
   # Test filters only apply to test / test-without-building.
-  if [[ "$ACTION" != "build" && "$ACTION" != "build-for-testing" && ${#package_test_filters[@]} -gt 0 ]]; then
+  if [[ "$ACTION" != "build-for-testing" && ${#package_test_filters[@]} -gt 0 ]]; then
     xcodebuild_args+=("${package_test_filters[@]}")
   fi
   local package_wall=0
@@ -245,9 +237,9 @@ run_one_package() {
   package_wall=$SECONDS
 
   # Record per-package timings for on-demand hotspot mining (test-timing.sh).
-  # Build-only / build-for-testing runs have no test cases; skip those
-  # xcresults. Soft-fail record so a corrupt/partial bundle after a hung kill
-  # cannot mask the xcodebuild status.
+  # Build-for-testing runs have no test cases; skip those xcresults. Soft-fail
+  # record so a corrupt/partial bundle after a hung kill cannot mask the
+  # xcodebuild status.
   if [[ "$ACTION" == "test" || "$ACTION" == "test-without-building" ]] \
     && [[ -f "$result_bundle/Info.plist" ]] \
     && [[ "${TRINKET_RECORD_TIMING:-1}" != "0" ]]; then
@@ -271,7 +263,7 @@ run_one_package() {
     return "$package_status"
   fi
 
-  if [[ "$ACTION" == "test" || "$ACTION" == "build" || "$ACTION" == "build-for-testing" ]]; then
+  if [[ "$ACTION" == "test" || "$ACTION" == "build-for-testing" ]]; then
     touch_build_stamp "$RESULTS_DIR" "package_$package"
   fi
   return 0
@@ -304,9 +296,7 @@ package_run_token="$(date -u +%Y%m%dT%H%M%SZ)-$$-${RANDOM:-0}"
 package_output_root="$RESULTS_DIR/.deferred/test-package-$package_run_token"
 mkdir -p "$package_output_root"
 
-if [[ "$ACTION" == "build" ]]; then
-  echo "Building ${#PACKAGES[@]} packages in parallel (jobs=$jobs)..."
-elif [[ "$ACTION" == "build-for-testing" ]]; then
+if [[ "$ACTION" == "build-for-testing" ]]; then
   echo "Building ${#PACKAGES[@]} package schemes for testing in parallel (jobs=$jobs)..."
 else
   echo "Running ${#PACKAGES[@]} package test schemes in parallel (jobs=$jobs)..."
@@ -337,7 +327,6 @@ printf '%s\n' "${PACKAGES[@]}" | xargs -P "$jobs" -I{} bash -c '
   fi
   case "$action" in
     test-without-building) package_args=(--no-build "${package_args[@]}") ;;
-    build) package_args=(--build-only "${package_args[@]}") ;;
     build-for-testing) package_args=(--build-for-testing "${package_args[@]}") ;;
   esac
   if [[ "$quiet" == "true" ]]; then

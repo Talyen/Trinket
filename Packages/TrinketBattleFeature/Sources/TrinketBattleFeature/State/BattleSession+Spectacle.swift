@@ -20,34 +20,13 @@ extension BattleSession {
         feedback.noteAttackReactionsChanged(for: combatantID)
     }
 
-    func beginAttackWindUp(for combatantID: String) {
+    func publishAttackTelegraph(
+        _ phase: CombatantAttackPhase,
+        for combatantID: String
+    ) {
         spectacle.nextID += 1
         publishAttackReaction(
-            CombatantAttackReaction(id: spectacle.nextID, kind: .attack, phase: .windUp),
-            for: combatantID
-        )
-    }
-
-    func commitAttackSwing(for combatantID: String) {
-        spectacle.nextID += 1
-        publishAttackReaction(
-            CombatantAttackReaction(id: spectacle.nextID, kind: .attack, phase: .swing),
-            for: combatantID
-        )
-    }
-
-    func cancelAttack(for combatantID: String) {
-        spectacle.nextID += 1
-        publishAttackReaction(
-            CombatantAttackReaction(id: spectacle.nextID, kind: .attack, phase: .cancel),
-            for: combatantID
-        )
-    }
-
-    func publishFullAttack(for combatantID: String) {
-        spectacle.nextID += 1
-        publishAttackReaction(
-            CombatantAttackReaction(id: spectacle.nextID, kind: .attack, phase: .full),
+            CombatantAttackReaction(id: spectacle.nextID, kind: .attack, phase: phase),
             for: combatantID
         )
     }

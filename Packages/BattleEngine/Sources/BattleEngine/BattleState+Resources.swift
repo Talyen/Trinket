@@ -53,19 +53,12 @@ package extension BattleState {
             for owner in [BattleParticipant.hero, .companion] {
                 let member = roster[owner]
                 guard member.isAlive, member.id != combatant.id else { continue }
-                events.append(contentsOf: HealingEngine.resolveHeal(
-                    HealRequest(
-                        amount: triggers.onGainGoldHealParty,
-                        target: member.combatant,
-                        sourceActorID: combatant.id,
-                        logAs: .instantHeal(
-                            actorName: combatant.name,
-                            abilityName: "Golden Recovery",
-                            keyword: .health
-                        )
-                    ),
-                    in: &self
-                ).events)
+                events.append(contentsOf: healEmitting(
+                    amount: triggers.onGainGoldHealParty,
+                    target: member.combatant,
+                    source: combatant,
+                    abilityName: "Golden Recovery"
+                ))
             }
         }
         // Golden Touch: gaining Gold doubles the status effects of your next card.
@@ -129,6 +122,49 @@ package extension BattleState {
         }
         roster.update(runtime)
         return total
+    }
+
+    /// Restores mana, emits a `.resourceGain` event, and runs `afterGainMana` reactions.
+    mutating func restoreManaEmitting(
+        _ amount: Int,
+        to combatant: Combatant,
+        abilityName: String,
+        actorName: String? = nil
+    ) -> [ActionEvent] {
+        let restored = restoreMana(amount, to: combatant)
+        guard restored > 0 else { return [] }
+        var events: [ActionEvent] = []
+        events.append(nextEvent(
+            kind: .effect,
+            effectKind: .resourceGain,
+            actorName: actorName ?? combatant.name,
+            abilityName: abilityName,
+            target: combatant,
+            amount: restored,
+            keyword: .mana
+        ))
+        events.append(contentsOf: CombatTriggerEngine.afterGainMana(by: combatant, in: &self))
+        return events
+    }
+
+    /// Heals `target` from `source` and emits an `.instantHeal` event.
+    mutating func healEmitting(
+        amount: Int,
+        target: Combatant,
+        source: Combatant,
+        abilityName: String,
+        keyword: Keyword = .health
+    ) -> [ActionEvent] {
+        let outcome = HealingEngine.resolveHeal(
+            HealRequest(
+                amount: amount,
+                target: target,
+                sourceActorID: source.id,
+                logAs: .instantHeal(actorName: source.name, abilityName: abilityName, keyword: keyword)
+            ),
+            in: &self
+        )
+        return outcome.events
     }
 
     @discardableResult

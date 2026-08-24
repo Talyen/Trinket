@@ -100,17 +100,6 @@ struct PlayerRosterStateTests {
         #expect(save.roster.gold == 0)
     }
 
-    @Test func equippedItemResolvesFromInventoryAndLoadout() throws {
-        let roster = PlayerRosterState.testSeed
-        let inventory = PlayerInventoryState.testSeed
-        let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
-
-        let weapon = roster.equippedItem(for: .weapon, combatant: knight, inventory: inventory)
-
-        try #expect(weapon?.id == "longsword-basic")
-        try #expect(weapon?.baseType.slot == .weapon)
-    }
-
     @Test func equipmentLoadoutEquipAndUnequip() throws {
         let item = try #require(PlayerInventoryState.testSeed.item(matching: "wand-basic"))
         var loadout = EquipmentLoadout()

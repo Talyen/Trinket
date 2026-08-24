@@ -12,15 +12,6 @@ struct ShieldFromResourceHandler: BattleEffectHandler {
         case shieldFromHalfMana
         case shieldFromGold
 
-        var kind: EffectKind {
-            switch self {
-            case .convertManaToBlock: .convertManaToBlock
-            case .shieldFromMana: .shieldFromMana
-            case .shieldFromHalfMana: .shieldFromHalfMana
-            case .shieldFromGold: .shieldFromGold
-            }
-        }
-
         var spendsMana: Bool {
             switch self {
             case .convertManaToBlock: true
@@ -30,10 +21,7 @@ struct ShieldFromResourceHandler: BattleEffectHandler {
     }
 
     let mode: Mode
-
-    var kind: EffectKind {
-        mode.kind
-    }
+    let kind: EffectKind
 
     func apply(
         _ effect: Effect,
@@ -43,7 +31,7 @@ struct ShieldFromResourceHandler: BattleEffectHandler {
         action _: ActionApplyContext,
         in context: inout BattleState
     ) -> EffectApplyOutcome {
-        guard effect.kind == mode.kind else {
+        guard effect.kind == kind else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
 
@@ -187,7 +175,7 @@ struct MultiplyDoTHandler: BattleEffectHandler {
         context.roster.setActiveEffects(effects, for: target)
         let event = context.nextEvent(
             kind: .effect,
-            effectKind: .controlApplied,
+            effectKind: .dotAmplified,
             actorName: source.name,
             abilityName: ability.name,
             target: target,
@@ -241,7 +229,7 @@ struct RecurringDamageHandler: BattleEffectHandler {
                 }
                 return false
             },
-            event: (.controlApplied, potency, keyword)
+            event: (.recurringDamageApplied, potency, keyword)
         ))
         return EffectApplyOutcome(events: events, didApply: true)
     }
@@ -313,7 +301,7 @@ struct AvatarHandler: BattleEffectHandler {
             ability: ability,
             in: &context,
             replacing: { $0.kind == .avatar },
-            event: (.controlApplied, holyDamage, .holy)
+            event: (.avatarApplied, holyDamage, .holy)
         ))
         return EffectApplyOutcome(events: events, didApply: true)
     }

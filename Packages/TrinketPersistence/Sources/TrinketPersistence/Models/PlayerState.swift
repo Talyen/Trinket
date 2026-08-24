@@ -22,11 +22,6 @@ public struct PlayerInventoryState: Equatable, Hashable, Sendable {
         return items.first { $0.id == id }
     }
 
-    public func items(for slot: ItemSlot) -> [InventoryItem] {
-        let catalogSlot = slot.baseItemSlot
-        return items.filter { $0.baseType.slot == catalogSlot }
-    }
-
     public var ownedTrinketIDs: Set<String> {
         Set(items.filter(\.isTrinket).map(\.templateID))
     }
@@ -310,10 +305,6 @@ public struct PlayerRosterState: Equatable, Sendable {
         }
     }
 
-    public func isCombatantUnlocked(id combatantID: String) -> Bool {
-        unlockedHeroIDs.contains(combatantID) || unlockedCompanionIDs.contains(combatantID)
-    }
-
     /// Grants XP after applying the shared soft cap (`3 ×` current `requiredXP`).
     /// Returns the amount actually applied.
     @discardableResult
@@ -342,14 +333,6 @@ public struct PlayerRosterState: Equatable, Sendable {
         guard amount > 0, gold >= amount else { return false }
         gold -= amount
         return true
-    }
-
-    public func equippedItem(
-        for slot: ItemSlot,
-        combatant: Combatant,
-        inventory: PlayerInventoryState
-    ) -> InventoryItem? {
-        inventory.item(matching: equipmentLoadout(for: combatant).itemID(for: slot))
     }
 
     public var heroes: [Combatant] {

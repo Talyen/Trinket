@@ -21,7 +21,7 @@ enum CombatFeedbackVisualRole: Equatable {
 /// View-facing combat feedback item produced from one or more `ActionEvent`s.
 struct CombatFeedbackItem: Identifiable, Equatable {
     let id: Int
-    let sourceEventIDs: [Int]
+    var sourceEventIDs: [Int]
     let actionGroupID: Int
     let presentationIndex: Int
     let groupResultCount: Int
@@ -30,9 +30,9 @@ struct CombatFeedbackItem: Identifiable, Equatable {
     let feedbackClass: CombatFeedbackClass
     let keyword: Keyword
     let visualRole: CombatFeedbackVisualRole
-    let label: CombatFeedbackChipLabel
-    let availableAt: Date
-    let expiresAt: Date
+    var label: CombatFeedbackChipLabel
+    var availableAt: Date
+    var expiresAt: Date
     let reactionKind: CombatantHitReactionKind
     let firstScheduledAt: Date
 
@@ -76,23 +76,10 @@ struct CombatFeedbackItem: Identifiable, Equatable {
     }
 
     func scheduled(at date: Date) -> Self {
-        Self(
-            id: id,
-            sourceEventIDs: sourceEventIDs,
-            actionGroupID: actionGroupID,
-            presentationIndex: presentationIndex,
-            groupResultCount: groupResultCount,
-            presentationRole: presentationRole,
-            targetID: targetID,
-            feedbackClass: feedbackClass,
-            keyword: keyword,
-            visualRole: visualRole,
-            label: label,
-            availableAt: date,
-            expiresAt: date.addingTimeInterval(TrinketMotion.Battle.chipDisplayDuration),
-            reactionKind: reactionKind,
-            firstScheduledAt: firstScheduledAt
-        )
+        var copy = self
+        copy.availableAt = date
+        copy.expiresAt = date.addingTimeInterval(TrinketMotion.Battle.chipDisplayDuration)
+        return copy
     }
 }
 

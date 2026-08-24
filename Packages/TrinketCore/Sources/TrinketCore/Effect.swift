@@ -258,6 +258,10 @@ public enum Effect: Hashable, Sendable {
         }
     }
 
+    public static func poisonDecayAmount(for potency: Int) -> Int {
+        max(1, potency * 25 / 100)
+    }
+
     public func potencyAfterTurn(burnDecaySlowPercent: Double = 0) -> Int {
         switch self {
         case let .burn(potency):
@@ -266,8 +270,7 @@ public enum Effect: Hashable, Sendable {
             let adjustedLoss = CombatRounding.scaled(loss, multiplier: 1 - min(1, max(0, burnDecaySlowPercent)))
             return potency - adjustedLoss
         case let .poison(potency):
-            let decrease = max(1, potency * 25 / 100)
-            return potency - decrease
+            return potency - Self.poisonDecayAmount(for: potency)
         default:
             return 0
         }

@@ -59,7 +59,8 @@ struct CombatFeedbackChipPresentation {
                     visualRole: visualRole,
                     feedbackClass: feedbackClass
                 ),
-                text: "Critical"
+                // Single source of truth with the glyph atlas (composeText).
+                text: word.composeText ?? ""
             )
         case let .plain(chipKeyword):
             if chipKeyword == .deathsDoor {
@@ -75,10 +76,8 @@ struct CombatFeedbackChipPresentation {
             dualAction(leading: Keyword.purge.visualStyle, trailing: chipKeyword.visualStyle)
         case let .purge(chipKeyword):
             dualAction(leading: Keyword.purge.visualStyle, trailing: chipKeyword.visualStyle)
-        case let .halve(chipKeyword):
-            dualAction(leading: .negativeStatus, trailing: chipKeyword.visualStyle)
         case let .status(status):
-            resolveStatus(status)
+            resolveStatus(status, keyword: keyword)
         }
     }
 
@@ -96,12 +95,13 @@ struct CombatFeedbackChipPresentation {
     }
 
     private static func resolveStatus(
-        _ status: CombatFeedbackStatusLabel
+        _ status: CombatFeedbackStatusLabel,
+        keyword: Keyword
     ) -> Self {
         let beneficial = Keyword.VisualStyle.beneficialStatus
         let negative = Keyword.VisualStyle.negativeStatus
         switch status {
-        case .consecrated, .nextHolyStrike:
+        case .consecrated, .nextHolyStrike, .avatar:
             return dualAction(leading: beneficial, trailing: Keyword.holy.visualStyle)
         case .nextStrikeDouble:
             return dualAction(leading: beneficial, trailing: Keyword.physical.visualStyle)
@@ -113,6 +113,8 @@ struct CombatFeedbackChipPresentation {
             return dualAction(leading: beneficial, trailing: Keyword.physical.visualStyle)
         case .leech:
             return dualAction(leading: beneficial, trailing: Keyword.leech.visualStyle)
+        case .ward:
+            return dualAction(leading: beneficial, trailing: keyword.visualStyle)
         case .blockDown:
             return dualAction(leading: negative, trailing: Keyword.block.visualStyle)
         case .marked:

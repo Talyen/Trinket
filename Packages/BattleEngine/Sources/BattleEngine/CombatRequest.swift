@@ -175,7 +175,8 @@ public struct HealRequest: Equatable, Hashable, Sendable {
         sourceActorID: String? = nil,
         logAs: HealLogPolicy,
         revivesIfDead: Bool = false,
-        skipFightPacing: Bool = false
+        skipFightPacing: Bool = false,
+        isHoTTick: Bool = false
     ) {
         self.amount = amount
         self.target = target
@@ -183,12 +184,9 @@ public struct HealRequest: Equatable, Hashable, Sendable {
         self.logAs = logAs
         self.revivesIfDead = revivesIfDead
         self.skipFightPacing = skipFightPacing
+        self.isHoTTick = isHoTTick
     }
 
-    var isLingeringBlessingTick: Bool {
-        if case let .instantHeal(_, abilityName, _) = logAs {
-            return abilityName == "Lingering Blessing"
-        }
-        return false
-    }
+    /// When true, this heal is a Lingering Blessing HoT tick and must not re-arm HoT.
+    var isHoTTick: Bool
 }

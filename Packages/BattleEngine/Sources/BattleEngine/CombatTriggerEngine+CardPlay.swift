@@ -43,23 +43,16 @@ package extension CombatTriggerEngine {
               count == triggers.cardsPlayedManaThreshold
         else { return events }
 
-        let restored = context.restoreMana(triggers.cardsPlayedManaFlat, to: actor)
-        guard restored > 0 else { return events }
-        events.append(context.nextEvent(
-            kind: .effect,
-            effectKind: .resourceGain,
-            actorName: actor.name,
+        events.append(contentsOf: context.restoreManaEmitting(
+            triggers.cardsPlayedManaFlat,
+            to: actor,
             abilityName: triggerAbilityName(
                 "cardsPlayedManaThreshold",
                 for: actor,
                 fallback: "Resonant Chimes",
                 in: context
-            ),
-            target: actor,
-            amount: restored,
-            keyword: .mana
+            )
         ))
-        events.append(contentsOf: afterGainMana(by: actor, in: &context))
         return events
     }
 

@@ -38,6 +38,15 @@ package struct DamageResolutionState {
     public let combatant: Combatant
     public let sourceActorID: String?
     public let damageKeyword: Keyword?
+
+    /// Party member source for talent-gated damage steps. Returns nil for enemy sources.
+    func partySource(in context: BattleState) -> CombatantRuntime? {
+        guard let sourceActorID,
+              let source = context.roster.combatant(for: sourceActorID),
+              source.role != .enemy else { return nil }
+        return source
+    }
+
     /// Requested hit modifiers (bonuses, crit, dodge, reaction gating).
     public let options: DamageOptions
 

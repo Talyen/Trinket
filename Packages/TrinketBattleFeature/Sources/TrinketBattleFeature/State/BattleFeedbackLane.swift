@@ -178,25 +178,11 @@ final class BattleFeedbackLane {
         let existing = activeItems[matchIndex]
         guard let mergedLabel = existing.label.merging(with: item.label) else { return nil }
 
-        let newAvailableAt = date
-        let newExpiresAt = date.addingTimeInterval(TrinketMotion.Battle.chipDisplayDuration)
-        let updated = CombatFeedbackItem(
-            id: existing.id,
-            sourceEventIDs: existing.sourceEventIDs + item.sourceEventIDs,
-            actionGroupID: existing.actionGroupID,
-            presentationIndex: existing.presentationIndex,
-            groupResultCount: existing.groupResultCount,
-            presentationRole: existing.presentationRole,
-            targetID: existing.targetID,
-            feedbackClass: existing.feedbackClass,
-            keyword: existing.keyword,
-            visualRole: existing.visualRole,
-            label: mergedLabel,
-            availableAt: newAvailableAt,
-            expiresAt: newExpiresAt,
-            reactionKind: existing.reactionKind,
-            firstScheduledAt: existing.firstScheduledAt
-        )
+        var updated = existing
+        updated.sourceEventIDs += item.sourceEventIDs
+        updated.label = mergedLabel
+        updated.availableAt = date
+        updated.expiresAt = date.addingTimeInterval(TrinketMotion.Battle.chipDisplayDuration)
         activeItems[matchIndex] = updated
         for id in item.sourceEventIDs {
             presentedEventIDs.insert(id)

@@ -35,11 +35,6 @@ public struct BattleRoster {
         self.enemy = enemy
     }
 
-    /// Checks if any combatant runtime matches a predicate without allocating an array.
-    public func containsRuntime(where predicate: (CombatantRuntime) throws -> Bool) rethrows -> Bool {
-        try predicate(hero) || predicate(companion) || predicate(enemy)
-    }
-
     public subscript(participant: BattleParticipant) -> CombatantRuntime {
         get {
             switch participant {
@@ -159,6 +154,10 @@ public struct BattleRoster {
         activeEffects(for: combatant).contains { activeEffect in
             activeEffect.keyword == keyword && activeEffect.effect.isActionSkipPending
         }
+    }
+
+    func hasAffliction(_ keyword: Keyword, on combatant: Combatant) -> Bool {
+        activeEffects(for: combatant).contains { $0.effect.keyword == keyword }
     }
 
     /// True when `combatant` has any full stun/freeze meter (status active).

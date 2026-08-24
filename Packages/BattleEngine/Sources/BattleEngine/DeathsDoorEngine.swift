@@ -229,19 +229,12 @@ package enum DeathsDoorEngine {
               context.roster.companion.isAlive,
               companionTriggers.onAllyDeathsDoorHealAndCleanse > 0
         else { return [] }
-        var events = HealingEngine.resolveHeal(
-            HealRequest(
-                amount: companionTriggers.onAllyDeathsDoorHealAndCleanse,
-                target: combatant,
-                sourceActorID: context.roster.companion.id,
-                logAs: .instantHeal(
-                    actorName: context.roster.companion.name,
-                    abilityName: "Guardian Archive",
-                    keyword: .health
-                )
-            ),
-            in: &context
-        ).events
+        var events = context.healEmitting(
+            amount: companionTriggers.onAllyDeathsDoorHealAndCleanse,
+            target: combatant,
+            source: context.roster.companion.combatant,
+            abilityName: "Guardian Archive"
+        )
         var effects = context.roster.activeEffects(for: combatant)
         var removedKeywords: [Keyword] = []
         while let removed = EffectRemoval.removeRandomDebuff(from: &effects, using: &context.rng) {

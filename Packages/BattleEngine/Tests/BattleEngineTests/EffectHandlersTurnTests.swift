@@ -37,6 +37,29 @@ struct EffectHandlersTurnTests {
         try #expect(expiredOutcome.updatedStack == nil)
     }
 
+    @Test func burnDecaySlowTalentSlowsBurnAppliedByItsOwner() throws {
+        var battle = EffectHandlersTestSupport.makeBattle()
+        let burn = ActiveEffect(id: 1, effect: .burn(10), remainingTurns: 2, sourceActorID: "hero")
+        let baseline = EffectHandlersTestSupport.dispatchTick(burn, target: battle.enemy, battle: &battle)
+        try #expect(baseline.updatedStack?.effect.potency == 5)
+
+        var slowedBattle = BattleTestFixtures.makePipelineContext(
+            heroModifiers: CombatModifierProfile(
+                triggers: CombatTraitTriggers(
+                    dot: DotTriggers(burnDecaySlowPercent: 0.4)
+                )
+            )
+        )
+        let slowedBurn = ActiveEffect(id: 1, effect: .burn(10), remainingTurns: 2, sourceActorID: "source")
+        let slowed = EffectHandlersTestSupport.dispatchTick(
+            slowedBurn,
+            target: slowedBattle.roster.enemy.combatant,
+            battle: &slowedBattle
+        )
+        // Ember Persistence: the applier's Burn loses 40% less each round.
+        try #expect(slowed.updatedStack?.effect.potency == 7)
+    }
+
     @Test(arguments: [
         Effect.shield(.block, 5),
     ])

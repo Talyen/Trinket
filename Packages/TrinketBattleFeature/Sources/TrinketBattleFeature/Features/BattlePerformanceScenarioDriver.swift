@@ -53,12 +53,12 @@ struct BattlePerformanceScenarioDriver {
     private func runCombinedWorstCase() -> String? {
         guard let card = playableCard() else { return "no-playable-card" }
         if let combatantID = battleSession.combatantID(for: card.owner) {
-            battleSession.beginAttackWindUp(for: combatantID)
+            battleSession.publishAttackTelegraph(.windUp, for: combatantID)
         }
         let outcome = battleSession.playCard(cardID: card.id)
         guard outcome.didCommit else { return "commit-rejected" }
         if let combatantID = battleSession.combatantID(for: card.owner) {
-            battleSession.commitAttackSwing(for: combatantID)
+            battleSession.publishAttackTelegraph(.swing, for: combatantID)
         }
         castPresentation.append(activationRequest(for: card))
         return nil

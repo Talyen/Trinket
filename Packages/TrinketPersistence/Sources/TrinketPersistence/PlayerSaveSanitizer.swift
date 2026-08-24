@@ -229,6 +229,11 @@ enum PlayerSaveSanitizer {
             from: roster.abilityLoadouts
         )
 
+        sanitized.progressions = sanitizeProgressions(
+            roster.progressions,
+            validCombatantIDs: validHeroIDs.union(validCompanionIDs)
+        )
+
         sanitized.unlockedTalents = sanitizeUnlockedTalents(
             roster.unlockedTalents,
             validCombatantIDs: validHeroIDs.union(validCompanionIDs),
@@ -256,6 +261,25 @@ enum PlayerSaveSanitizer {
             if !filtered.isEmpty {
                 sanitized[combatantID] = filtered
             }
+        }
+        return sanitized
+    }
+
+    static func sanitizeProgressions(
+        _ progressions: [String: CombatantProgression],
+        validCombatantIDs: Set<String>
+    ) -> [String: CombatantProgression] {
+        var sanitized: [String: CombatantProgression] = [:]
+        for (combatantID, progression) in progressions {
+            guard validCombatantIDs.contains(combatantID) else { continue }
+            let level = max(1, progression.level)
+            let requiredXP = CombatantProgression.requiredXP(forLevel: level)
+            let currentXP = min(max(0, progression.currentXP), requiredXP)
+            sanitized[combatantID] = CombatantProgression(
+                level: level,
+                currentXP: currentXP,
+                requiredXP: requiredXP
+            )
         }
         return sanitized
     }

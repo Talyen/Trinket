@@ -23,13 +23,13 @@ Write as if explaining the work to a collaborator who knows Trinket as a game, n
 - Treat checked-in project configuration as the toolchain source of truth.
 - Do not add legacy-platform compatibility or UIKit bridges when current SwiftUI provides a first-party solution.
 - Never hand-edit generated code, processed assets/resources, `.DerivedData/`, `.tools/`, or the Xcode project. Edit authored inputs and use the routed generation checks.
-- Stay on `main`. Do not create or switch branches, and do not open pull requests. Land work by committing and pushing to `main` when explicitly requested. For requested commit or release work, read `Docs/Platform/Release.md`.
+- Keep the primary checkout on `main`. Do not create or switch branches, and do not open pull requests. Detached worktrees created by `./Scripts/agent-worktree.sh` are allowed for parallel verification. Land work by committing and pushing directly to `main` only when explicitly requested. For requested commit or release work, read `Docs/Platform/Release.md`.
 
 ## Change discipline
 
-- Deliver the smallest change that fully satisfies the request. Do not add speculative extension points, compatibility paths, defensive layers for impossible states, or adjacent cleanup.
-- Do not preserve backward compatibility unless it is an explicit current requirement. Choose the simplest implementation that fully satisfies the behavior the product needs now.
-- Prefer established, well-maintained libraries over custom implementations when they meet the current requirements.
+- Deliver the smallest change that fully satisfies the request. Do not add speculative extension points, compatibility paths, defensive layers for states already excluded by an enforced invariant, or adjacent cleanup.
+- Do not preserve source or API compatibility unless it is an explicit current requirement. Persisted saves, serialized identifiers, manifests, and live schemas are product data: preserve or migrate them unless the consumer window is proven closed or an intentional break is approved. Choose the simplest implementation that fully satisfies the behavior the product needs now.
+- Prefer an established dependency already used by the repository over a custom implementation. Add a new external dependency only when it materially reduces complexity and its maintenance, license, platform, and toolchain fit have been checked.
 - Prefer smaller surface area: delete → reuse → simplify locally → parameterize a confirmed duplicate → add an abstraction.
 - Extend the module that already owns the behavior before adding a file, type, protocol, manager, helper, wrapper, or configuration object. A generic abstraction needs at least three current uses or an enforced architectural boundary; predicted future reuse is insufficient.
 - Refactors remove the replaced path. Do not leave forwarding wrappers, parallel implementations, or duplicate tests unless compatibility explicitly requires them.
@@ -43,7 +43,7 @@ Touched areas must respect their nested guides and AgentContext cards. Run `./Sc
 
 - Verification does not imply authoring a test. Follow [`Docs/Platform/Testing.md`](Docs/Platform/Testing.md) to place consequential coverage in the cheapest existing semantic owner; that guide owns persistence reload semantics and the UI keep/drop rubric.
 - Full smoke and exhaustive UI are CI-owned post-push gates. Local simulator work is limited to routed targeted smoke classes or single-target UI debugging; reserve full local UI runs for release-time deploy verification (`test-deploy.sh`).
-- Before handoff, changed paths must pass path-scoped verification with `--isolate`. `./Scripts/handoff.sh --isolate --paths <file...>` is the canonical gate. Never kill foreign Xcode or Simulator processes; concurrency, worktree, lock, and diagnostics details live in `Docs/AgentContext/ci-and-project-generation.md` and `Docs/AgentContext/ci-diagnostics.md`.
+- Before handoff, run path-scoped verification with `--isolate`. `./Scripts/handoff.sh --isolate --paths <file...>` is the canonical gate; add `--final` when closing a task that used an execution plan. Do not claim completion unless the routed gate passes; if a required step is unavailable, report the exact blocker or skip. Never kill foreign Xcode or Simulator processes; concurrency, worktree, lock, and diagnostics details live in `Docs/AgentContext/ci-and-project-generation.md` and `Docs/AgentContext/ci-diagnostics.md`.
 - At handoff, report what changed, what verification ran, and anything intentionally left untouched. Write that in the same voice as Communication: readable without opening the diff. Example: “Enemies now pick a new target if the current one dies mid-turn. That logic lives in `BattleTurnEngine.swift`. Ran the BattleEngine tests.” Not: “Refactored `BattleTurnEngine` targeting resolution.” Include pass/fail, skips, and any change-budget justification.
 
 ## Commit and push

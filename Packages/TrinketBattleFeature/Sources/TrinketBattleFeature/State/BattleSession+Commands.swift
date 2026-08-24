@@ -194,7 +194,7 @@ extension BattleSession {
             else { return }
 
             if shouldTelegraphEnemyAttack(), let enemyID {
-                publishFullAttack(for: enemyID)
+                publishAttackTelegraph(.full, for: enemyID)
                 let impactDelay = enemyAttackImpactDelayOverride
                     ?? CombatFeedbackAttackRecipes.cardAttack(for: .attack).impactDelay
                 if impactDelay > 0 {

@@ -108,3 +108,14 @@ public extension View {
         accessibilityHidden(true)
     }
 }
+
+extension View {
+    @ViewBuilder
+    func optionalAccessibilityIdentifier(_ id: String?) -> some View {
+        if let id {
+            accessibilityIdentifier(id)
+        } else {
+            self
+        }
+    }
+}
