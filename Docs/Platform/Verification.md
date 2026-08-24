@@ -70,6 +70,39 @@ The shared build job produces test products for fan-out. Package unit schemes
 remain on the unit job. `check-build-cache-paths.sh` keeps local no-build
 freshness inputs aligned with the CI cache key.
 
+## Output efficiency telemetry
+
+Main CI profiles the existing verification boundaries automatically: the gate,
+asset gate, shared build, package unit tests, smoke tests, and each exhaustive
+UI shard. The wrapper streams stdout/stderr live and preserves the wrapped
+command's status; profiling is metadata-only and advisory. Each record carries
+the stable check label, CI/local environment, outcome, elapsed time, displayed
+line/byte counts, and output policy. Command arguments and output contents are
+not retained, and the measure is a stable line/byte proxy rather than a
+tokenizer-specific estimate.
+
+Normal verification is quiet. A report becomes actionable only for a sustained
+or materially excessive signal (the profiler owns the thresholds), and CI
+places at most three ranked advisories in the step summary. The profile
+directory is uploaded separately from diagnostic artifacts with 30-day
+retention; raw Xcode/test logs remain agent-visible only when a command prints
+them, not merely because they exist in a diagnostic artifact.
+
+Use these reports when investigating a local or hosted trend:
+
+```sh
+python3 Scripts/output-profile.py report --local
+python3 Scripts/output-profile.py report --ci <artifact-dirs...>
+python3 Scripts/output-profile.py report --actionable --top 3
+```
+
+`TRINKET_OUTPUT_PROFILE=0` is a debugging escape hatch. Set
+`TRINKET_OUTPUT_PROFILE_DIR` when an isolated test needs a different metadata
+directory; the CI default is `.DerivedData/OutputProfiles/`. The recurring
+maintenance task consumes actionable evidence, edits only a clean checkout,
+and leaves verified bounded changes uncommitted for review. Output profiling
+does not fail a correctness gate.
+
 ## Style and boundary ownership
 
 | Check | Owns |

@@ -13,4 +13,22 @@ jobs:
       - uses: ./.github/actions/setup-trinket
       # Same semantics as local ./Scripts/ci-gate.sh (single owner).
       - name: CI gate
-        run: ./Scripts/ci-gate.sh
+        run: >-
+          python3 Scripts/output-profile.py run
+          --label ci-gate
+          --policy ci-gate
+          -- ./Scripts/ci-gate.sh
+      - name: Report CI output profile
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: python3 Scripts/output-profile.py report --ci .DerivedData/OutputProfiles --actionable --top 3
+      - name: Upload CI output profile
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ${{ github.workflow }}-gate-output-profile-${{ github.run_id }}
+          path: .DerivedData/OutputProfiles/
+          include-hidden-files: true
+          retention-days: 30
+          if-no-files-found: ignore

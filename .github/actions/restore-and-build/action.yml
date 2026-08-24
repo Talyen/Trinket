@@ -68,7 +68,11 @@ runs:
       shell: bash
       env:
         SKIP_GENERATE: 1
-      run: ${{ inputs.build-command }}
+      run: >-
+        python3 Scripts/output-profile.py run
+        --label ci-build
+        --policy ci-build
+        -- ${{ inputs.build-command }}
 
     - name: Upload build failure diagnostics
       if: failure() && steps.build.outcome == 'failure'
@@ -79,6 +83,31 @@ runs:
         include-hidden-files: true
         retention-days: 7
         if-no-files-found: ignore
+
+    - name: Report CI output profile
+      if: always()
+      continue-on-error: true
+      shell: bash
+      run: python3 Scripts/output-profile.py report --ci .DerivedData/OutputProfiles --actionable --top 3
+
+    - name: Upload CI output profile
+      if: always()
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      with:
+        name: ${{ steps.ids.outputs.artifact-name }}-output-profile
+        path: .DerivedData/OutputProfiles/
+        include-hidden-files: true
+        retention-days: 30
+        if-no-files-found: ignore
+
+    - name: Remove output profile before build artifact save
+      if: always()
+      shell: bash
+      run: |
+        profile_dir="${TRINKET_OUTPUT_PROFILE_DIR:-.DerivedData/OutputProfiles}"
+        if [[ "$profile_dir" == ".DerivedData/OutputProfiles" ]]; then
+          rm -rf "$profile_dir"
+        fi
 
     - name: Prune DerivedData before cache/artifact save
       if: inputs.prune == 'true'

@@ -25,6 +25,32 @@ KEEP_PLAN=false
 PATH_MODE="unset"
 declare -a requested_paths=()
 
+TRINKET_PROFILE_STARTED_AT="$(date -u '+%Y-%m-%dT%H:%M:%S.000+00:00')"
+
+report_output_profile() {
+  local status=$?
+  trap - EXIT
+  if [[ "${TRINKET_OUTPUT_PROFILE:-1}" != "0" ]]; then
+    python3 Scripts/output-profile.py report --local --actionable \
+      --since "$TRINKET_PROFILE_STARTED_AT" --top 3 \
+      || echo "Warning: output profile report unavailable." >&2
+  fi
+  exit "$status"
+}
+
+trap report_output_profile EXIT
+
+# Run a routed check through the output profiler while leaving command output
+# and the command's exit status under the profiler's control. The profiler is
+# intentionally invoked for every check; TRINKET_OUTPUT_PROFILE=0 remains the
+# documented debugging escape hatch for callers that need the old direct path.
+run_profiled() {
+  local label="$1"
+  local policy="$2"
+  shift 2
+  python3 Scripts/output-profile.py run --label "$label" --policy "$policy" -- "$@"
+}
+
 # check_run <kind> <argument>
 run_check() {
   local kind="$1"
@@ -32,15 +58,15 @@ run_check() {
   case "$kind" in
     generate)
       case "$argument" in
-        normal) ./Scripts/generate.sh ;;
-        assets) ./Scripts/generate.sh --assets ;;
+        normal) run_profiled "generate" "live" ./Scripts/generate.sh ;;
+        assets) run_profiled "generate-assets" "live" ./Scripts/generate.sh --assets ;;
         *) echo "Unknown generate check: $argument" >&2; return 2 ;;
       esac
       ;;
     assert)
       case "$argument" in
-        idempotent) ./Scripts/assert-generated-output.sh --idempotent ;;
-        idempotent-assets) ./Scripts/assert-generated-output.sh --idempotent --assets ;;
+        idempotent) run_profiled "assert-generated-output" "live" ./Scripts/assert-generated-output.sh --idempotent ;;
+        idempotent-assets) run_profiled "assert-generated-output-assets" "live" ./Scripts/assert-generated-output.sh --idempotent --assets ;;
         *) echo "Unknown assert check: $argument" >&2; return 2 ;;
       esac
       ;;
@@ -52,14 +78,14 @@ run_check() {
         for target in "${smoke_targets[@]}"; do
           [[ "$target" =~ ^[A-Za-z0-9_]+$ ]] || { echo "Invalid smoke target: $target" >&2; return 2; }
         done
-        SKIP_GENERATE=1 ./Scripts/test.sh smoke "${smoke_targets[@]}"
+        run_profiled "test-smoke" "quiet-structured" env SKIP_GENERATE=1 ./Scripts/test.sh smoke "${smoke_targets[@]}"
       elif [[ "$argument" == style:* ]]; then
         local -a style_paths=()
         # shellcheck disable=SC2206
         style_paths=(${argument#style:})
-        ./Scripts/test.sh style "${style_paths[@]}"
+        run_profiled "test-style" "quiet-structured" ./Scripts/test.sh style "${style_paths[@]}"
       elif [[ "$argument" == style ]]; then
-        ./Scripts/test.sh style
+        run_profiled "test-style" "quiet-structured" ./Scripts/test.sh style
       else
         echo "Unknown test check: $argument" >&2; return 2
       fi
@@ -77,15 +103,15 @@ run_check() {
         done
         [[ "$valid" == true ]] || { echo "Unknown package: $package" >&2; return 2; }
       done
-      SKIP_GENERATE=1 ./Scripts/test-package.sh "${packages[@]}"
+      run_profiled "test-package" "quiet-structured" env SKIP_GENERATE=1 ./Scripts/test-package.sh "${packages[@]}"
       ;;
     build)
       [[ "$argument" == app ]] || { echo "Unknown build check: $argument" >&2; return 2; }
-      SKIP_GENERATE=1 ./Scripts/build.sh
+      run_profiled "build-app" "quiet-structured" env SKIP_GENERATE=1 ./Scripts/build.sh
       ;;
     scripts)
       [[ "$argument" == all ]] || { echo "Unknown script check: $argument" >&2; return 2; }
-      ./Scripts/test-scripts.sh
+      run_profiled "test-scripts" "quiet-structured" ./Scripts/test-scripts.sh
       ;;
     *)
       echo "Unknown verification kind: $kind" >&2; return 2
@@ -151,7 +177,7 @@ trinket_collect_paths "$PATH_MODE" "${requested_paths[@]-}"
 if [[ "$FINAL" == true ]]; then
   docs_args=("--final")
   [[ "$KEEP_PLAN" == true ]] && docs_args+=("--keep-plan")
-  python3 ./Scripts/check-docs.py "${docs_args[@]}"
+  run_profiled "documentation" "live" python3 ./Scripts/check-docs.py "${docs_args[@]}"
 fi
 
 if [[ ${#TRINKET_CHANGED_PATHS[@]} -eq 0 ]]; then

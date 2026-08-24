@@ -44,7 +44,25 @@ jobs:
       - uses: ./.github/actions/setup-trinket
       # Same semantics as local ./Scripts/ci-assets-gate.sh (single owner).
       - name: Asset codegen gate
-        run: ./Scripts/ci-assets-gate.sh
+        run: >-
+          python3 Scripts/output-profile.py run
+          --label ci-assets-gate
+          --policy ci-assets-gate
+          -- ./Scripts/ci-assets-gate.sh
+      - name: Report CI output profile
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: python3 Scripts/output-profile.py report --ci .DerivedData/OutputProfiles --actionable --top 3
+      - name: Upload CI output profile
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ${{ github.workflow }}-assets-output-profile-${{ github.run_id }}
+          path: .DerivedData/OutputProfiles/
+          include-hidden-files: true
+          retention-days: 30
+          if-no-files-found: ignore
 
   build:
     name: Build for testing
@@ -79,6 +97,7 @@ jobs:
       - uses: ./.github/actions/setup-trinket
       - uses: ./.github/actions/test-job
         with:
+          profile-label: unit-tests
           build-artifact: ${{ needs.build.outputs.build-artifact }}
           artifact-name: ${{ inputs.artifact-prefix }}unit
           # Bare `test.sh unit` runs package schemes only (no app build/plan),
@@ -100,6 +119,7 @@ jobs:
       - uses: ./.github/actions/setup-trinket
       - uses: ./.github/actions/test-job
         with:
+          profile-label: smoke-tests
           build-artifact: ${{ needs.build.outputs.build-artifact }}
           artifact-name: ${{ inputs.artifact-prefix }}smoke
           rebuild-command: ./Scripts/build-for-testing.sh --app-only
@@ -128,6 +148,7 @@ jobs:
       - uses: ./.github/actions/setup-trinket
       - uses: ./.github/actions/test-job
         with:
+          profile-label: exhaustive-ui-${{ matrix.name }}
           build-artifact: ${{ needs.build.outputs.build-artifact }}
           artifact-name: ${{ inputs.artifact-prefix }}exhaustive-ui-${{ matrix.name }}
           rebuild-command: ./Scripts/build-for-testing.sh --app-only

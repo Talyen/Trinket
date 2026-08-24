@@ -13,7 +13,7 @@ done < <(rg --files Scripts -g '*.sh' | LC_ALL=C sort)
 
 echo "=== Python script regressions ==="
 python_log="$TEST_LOG_DIR/python.log"
-if python3 -m unittest discover -s Scripts/Tests -p 'test*.py' >"$python_log" 2>&1; then
+if python3 -m unittest discover -b -s Scripts/Tests -p 'test*.py' >"$python_log" 2>&1; then
   echo "Python script regressions passed."
 else
   cat "$python_log" >&2

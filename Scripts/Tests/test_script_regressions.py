@@ -639,16 +639,77 @@ class ScriptRegressionTests(unittest.TestCase):
         self.assertEqual(explicit.returncode, 0, explicit.stderr)
 
     def test_agent_context_caps_accidental_working_tree_scope(self) -> None:
-        result = subprocess.run(
-            [str(ROOT / "Scripts" / "agent-context.sh"), "--agent", "--working-tree"],
-            cwd=ROOT,
-            env={**os.environ, "TRINKET_MAX_WORKING_TREE_PATHS": "0"},
-            capture_output=True,
-            text=True,
-            check=False,
-        )
+        with tempfile.TemporaryDirectory(
+            dir=ROOT, prefix=".agent-context-cap-"
+        ) as probe_directory:
+            probe = Path(probe_directory) / "untracked-probe.txt"
+            probe.write_text("working-tree cap probe\n", encoding="utf-8")
+            result = subprocess.run(
+                [str(ROOT / "Scripts" / "agent-context.sh"), "--agent", "--working-tree"],
+                cwd=ROOT,
+                env={**os.environ, "TRINKET_MAX_WORKING_TREE_PATHS": "0"},
+                capture_output=True,
+                text=True,
+                check=False,
+            )
         self.assertEqual(result.returncode, 3)
         self.assertIn("use explicit --paths or --allow-broad-scope", result.stderr)
+
+    def test_handoff_profiles_final_documentation_route_automatically(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            profile_directory = Path(directory)
+            result = subprocess.run(
+                [
+                    str(ROOT / "Scripts" / "handoff.sh"),
+                    "--final",
+                    "--keep-plan",
+                    "--paths",
+                    "Docs/README.md",
+                ],
+                cwd=ROOT,
+                env={
+                    **os.environ,
+                    "TRINKET_OUTPUT_PROFILE_DIR": str(profile_directory),
+                },
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            profile_files = [path for path in profile_directory.rglob("*") if path.is_file()]
+            self.assertTrue(profile_files, "automatic profiling did not write metadata")
+            profile_text = "\n".join(
+                path.read_text(encoding="utf-8") for path in profile_files
+            )
+            self.assertIn("documentation", profile_text)
+            self.assertNotIn("check-docs.py", profile_text)
+
+    def test_handoff_profiling_can_be_bypassed_for_debugging(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            profile_directory = Path(directory)
+            result = subprocess.run(
+                [
+                    str(ROOT / "Scripts" / "handoff.sh"),
+                    "--final",
+                    "--keep-plan",
+                    "--paths",
+                    "Docs/README.md",
+                ],
+                cwd=ROOT,
+                env={
+                    **os.environ,
+                    "TRINKET_OUTPUT_PROFILE": "0",
+                    "TRINKET_OUTPUT_PROFILE_DIR": str(profile_directory),
+                },
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertFalse(
+                any(path.is_file() for path in profile_directory.rglob("*")),
+                "profiling bypass unexpectedly wrote metadata",
+            )
 
     def test_agent_context_routes_app_state_to_battle_card(self) -> None:
         result = subprocess.run(
