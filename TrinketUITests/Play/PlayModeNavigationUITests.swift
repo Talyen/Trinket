@@ -25,12 +25,12 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
         launchApp(arguments: TestLaunchArg.allForScreen("labyrinth-map"))
 
         assertExists(AccessibilityID.Play.labyrinthMap)
-        let entryNode = app.buttons[AccessibilityID.Play.labyrinthFloor1EntryNode]
+        let entryNode = app.descendants(matching: .any)[AccessibilityID.Play.labyrinthFloor1EntryNode]
         assertExists(entryNode)
         tapWhenReady(entryNode)
         assertExists(AccessibilityID.Play.labyrinthNodeInspector)
         assertExists(
-            app.buttons.matching(
+            app.descendants(matching: .any).matching(
                 NSPredicate(
                     format: "identifier BEGINSWITH %@",
                     AccessibilityID.Play.labyrinthInspectorAction("")
@@ -38,7 +38,7 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
             ).firstMatch
         )
 
-        let lockedNode = app.buttons[AccessibilityID.Play.labyrinthFloor1LockedNode]
+        let lockedNode = app.descendants(matching: .any)[AccessibilityID.Play.labyrinthFloor1LockedNode]
         assertExists(lockedNode)
         tapWhenReady(lockedNode)
         assertDoesNotExist(AccessibilityID.Play.labyrinthNodeInspector)
