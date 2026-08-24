@@ -135,6 +135,7 @@ run_one_package() {
   local defer_output="${2:-false}"
   local scheme
   local package_report_prefix=""
+  local invocation_id
   local result_bundle
   local log_file
   local package_dd
@@ -148,6 +149,7 @@ run_one_package() {
     package_report_prefix="${REPORT_PREFIX}-${package}"
   fi
   xcode_runner_prepare "$package" "$RESULTS_DIR" "$package_report_prefix"
+  invocation_id="$XCODE_RUNNER_INVOCATION_ID"
   result_bundle="$XCODE_RUNNER_RESULT_BUNDLE_PATH"
   log_file="$XCODE_RUNNER_LOG_PATH"
   package_report_prefix="$XCODE_RUNNER_REPORT_PREFIX"
@@ -246,6 +248,7 @@ run_one_package() {
     if [[ "$ACTION" == "test-without-building" ]]; then
       ./Scripts/test-timing.sh record \
         --mode "package:$package" \
+        --run "$invocation_id" \
         --wall "$package_wall" \
         --xcresult "$result_bundle" \
         --no-build \
@@ -253,6 +256,7 @@ run_one_package() {
     else
       ./Scripts/test-timing.sh record \
         --mode "package:$package" \
+        --run "$invocation_id" \
         --wall "$package_wall" \
         --xcresult "$result_bundle" \
         || echo "Warning: failed to record timing for package:$package" >&2

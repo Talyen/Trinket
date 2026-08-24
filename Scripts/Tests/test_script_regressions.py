@@ -961,7 +961,10 @@ class ScriptRegressionTests(unittest.TestCase):
         text = (ROOT / "Scripts" / "test-package.sh").read_text(encoding="utf-8")
         self.assertIn("./Scripts/test-timing.sh record", text)
         self.assertIn('package:$package', text)
+        self.assertIn('--run "$invocation_id"', text)
         self.assertIn("--xcresult", text)
+        test_text = (ROOT / "Scripts" / "test.sh").read_text(encoding="utf-8")
+        self.assertIn('--run "$XCODE_RUNNER_INVOCATION_ID"', test_text)
 
     def test_test_package_parallelizes_multiple_packages(self) -> None:
         # test-package.sh is the single owner of parallel package builds/tests:

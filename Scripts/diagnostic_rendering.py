@@ -54,7 +54,7 @@ def render_markdown(report: DiagnosticReport) -> str:
         suffix = f" — `{location}`" if location else ""
         test = f" ({issue.test})" if issue.test else ""
         lines.append(f"{index}. **{issue.title}**{test}{suffix}: {issue.message[:1200]}")
-        detail_preview, detail_truncated = bounded_text(issue.details, line_limit=3)
+        detail_preview, detail_truncated = bounded_text(issue.details)
         for detail in detail_preview.splitlines():
             lines.append(f"   - {detail}")
         if detail_truncated:

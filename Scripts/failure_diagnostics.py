@@ -33,6 +33,7 @@ except ModuleNotFoundError:
 # Each detail fetch is a separate xcresulttool process; summary/test-node parsing already
 # yields file, line, and message for most failures. Cap enrichment to bound bad-run latency.
 MAX_TEST_DETAIL_FETCHES = 5
+ACCESSIBILITY_SNAPSHOT_MARKER = "Accessibility snapshot:"
 
 
 def _load_infrastructure_pattern() -> str:
@@ -49,7 +50,7 @@ def _load_infrastructure_pattern() -> str:
         pass
     # Minimal fallback keeps simulator classification working if the config file
     # is missing; the bash retry matcher fails closed on its own source error.
-    return "unable to boot|coresimulator"
+    return r"unable to boot|coresimulatorservice|coresimulator (?:service|error|failure|failed|unavailable)"
 
 
 INFRASTRUCTURE_FAILURE_PATTERN = _load_infrastructure_pattern()
@@ -166,6 +167,20 @@ def _classify_text(text: str, default: str) -> str:
     return default if default in CLASSIFICATIONS else "unknown"
 
 
+def _split_accessibility_snapshot(message: str) -> tuple[str, str]:
+    if ACCESSIBILITY_SNAPSHOT_MARKER not in message:
+        return message.strip(), ""
+    failure, snapshot = message.split(ACCESSIBILITY_SNAPSHOT_MARKER, 1)
+    detail_lines = []
+    for line in snapshot.strip().splitlines():
+        stripped = line.strip()
+        if stripped.startswith("AX: "):
+            stripped = stripped[4:]
+        if stripped:
+            detail_lines.append(stripped)
+    return failure.strip(), "\n".join(detail_lines)
+
+
 def _extract_location(value: Any) -> tuple[str, int | None]:
     if not isinstance(value, dict):
         return "", None
@@ -206,6 +221,7 @@ def parse_summary(summary: dict[str, Any]) -> list[IssueObservation]:
         test = _text(failure.get("testIdentifierString")) or _text(failure.get("testName"))
         test_url = _text(failure.get("testIdentifierURL"))
         message = _text(failure.get("failureText")) or _text(failure.get("message"))
+        message, details = _split_accessibility_snapshot(message)
         file, line = _extract_location(failure)
         observations.append(
             IssueObservation(
@@ -216,6 +232,7 @@ def parse_summary(summary: dict[str, Any]) -> list[IssueObservation]:
                 test_aliases=identifier_aliases(test, test_url),
                 file=file,
                 line=line,
+                details=details,
             )
         )
     return observations
@@ -299,6 +316,7 @@ def parse_test_detail(detail: dict[str, Any], test_id: str) -> IssueObservation:
     _collect_strings(detail.get("testRuns", []), values)
     failures = [value for value in values if value and ("failed" in value.lower() or "expectation" in value.lower())]
     message = next((value for value in failures if "expectation" in value.lower()), "Test reported Failed")
+    message, accessibility_details = _split_accessibility_snapshot(message)
     file = ""
     line: int | None = None
     match = re.search(
@@ -317,7 +335,7 @@ def parse_test_detail(detail: dict[str, Any], test_id: str) -> IssueObservation:
         test_aliases=identifier_aliases(test, test_url, test_id),
         file=file,
         line=line,
-        details="\n".join(dict.fromkeys(values)),
+        details=accessibility_details or "\n".join(dict.fromkeys(values)),
         generic=message in GENERIC_MESSAGES,
     )
 
@@ -362,7 +380,7 @@ LOG_PATTERNS: tuple[tuple[str, str, str], ...] = (
     (INFRASTRUCTURE_FAILURE_PATTERN, "simulator-infrastructure", "Simulator infrastructure"),
     (r"(?:test (?:runner|process) (?:crashed|crash|exited)|test .*terminated unexpectedly|testing failed|failed to (?:build|test)|terminated due to signal|killed by signal|(?:test .*|^|\s)timed? out|timeout|hang detected|(?:failed to launch test|test .*failed to launch)|test execution interrupted|exc_crash|abort trap|signal [0-9]+)", "test-failure", "Test process failure"),
     (r"(?:scheme .{0,80}not found|workspace .{0,40}does not contain|no test plan|invalid destination|unable to find a destination|destination .* unavailable|requires a provisioning profile|code signing|requires a development team|no such module)", "configuration", "Configuration failure"),
-    (r"(?:command not found|unable to find utility|xcode-select|developer directory|toolchain|swiftlint)", "tooling", "Tooling failure"),
+    (r"(?:command not found|unable to find utility|xcode-select[^\n]*error|developer directory[^\n]*(?:invalid|missing|not found)|toolchain[^\n]*(?:not found|invalid|not configured)|swiftlint[^\n]*(?:error|not found|unavailable))", "tooling", "Tooling failure"),
     (r"xcodebuild: error", "unknown", "Xcode invocation"),
 )
 
@@ -374,19 +392,55 @@ def parse_log(log_path: Path, exit_code: int) -> list[IssueObservation]:
         return []
     observations: list[IssueObservation] = []
     diagnostic = re.compile(r"^(?P<file>[^\n:]+(?::[^\n:]+)*):(?P<line>\d+)(?::\d+)?:\s*(?:fatal )?error:\s*(?P<message>.+)$", re.I)
+    xctest_failure = re.compile(
+        r"^-\[(?P<test>[^\]]+)\]\s*:\s*failed\s*-\s*(?P<message>.*)$",
+        re.I,
+    )
     try:
-        for raw_line in stream:
+        lines = iter(stream)
+        pending_line: str | None = None
+        while True:
+            raw_line = pending_line if pending_line is not None else next(lines, None)
+            pending_line = None
+            if raw_line is None:
+                break
             line_text = raw_line.strip()
             match = diagnostic.search(line_text)
             if match:
                 message = match.group("message").strip()
-                observation = IssueObservation(
-                    _classify_text(message, "build-failure"),
-                    "Build diagnostic",
-                    message,
-                    file=_display_path(match.group("file")),
-                    line=int(match.group("line")),
-                )
+                test_match = xctest_failure.match(message)
+                if test_match:
+                    failure_message, details = _split_accessibility_snapshot(test_match.group("message"))
+                    next_line = next(lines, "")
+                    if next_line.strip() == ACCESSIBILITY_SNAPSHOT_MARKER:
+                        snapshot_lines = []
+                        for continuation in lines:
+                            stripped = continuation.strip()
+                            if not stripped.startswith("AX: "):
+                                pending_line = continuation
+                                break
+                            snapshot_lines.append(stripped[4:])
+                        details = "\n".join(snapshot_lines)
+                    elif next_line:
+                        pending_line = next_line
+                    test = test_match.group("test").strip()
+                    observation = IssueObservation(
+                        "test-failure",
+                        test or "XCTest failure",
+                        failure_message,
+                        test=test,
+                        file=_display_path(match.group("file")),
+                        line=int(match.group("line")),
+                        details=details,
+                    )
+                else:
+                    observation = IssueObservation(
+                        _classify_text(message, "build-failure"),
+                        "Build diagnostic",
+                        message,
+                        file=_display_path(match.group("file")),
+                        line=int(match.group("line")),
+                    )
             else:
                 observation = next(
                     (

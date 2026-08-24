@@ -113,6 +113,7 @@ FAKE_XCODE_STATE="$failure_state" FAKE_XCODE_MODE=fail REPORT_CAPTURE="$failure_
     result="$XCODE_RUNNER_RESULT_BUNDLE_PATH"
     log="$XCODE_RUNNER_LOG_PATH"
     report="$XCODE_RUNNER_REPORT_PREFIX"
+    [[ "$XCODE_RUNNER_INVOCATION_ID" == "$(basename "$result" .xcresult)" ]]
     if xcode_runner_run --label failure --result-bundle "$result" --log "$log" \
       --report-prefix "$report" --quiet --defer-terminal-output -- "$3"; then
       echo "failure command unexpectedly succeeded" >&2

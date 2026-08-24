@@ -48,6 +48,7 @@ Read these focused guides:
 | `./Scripts/test-package.sh <Package>` | Run one package's tests |
 | `./Scripts/test.sh unit` | Run all package unit suites |
 | `./Scripts/test-timing.sh report` | Show per-suite wall-time history and hotspots from test runs |
+| `./Scripts/test-timing.sh show --last 10` | Show recent run IDs, outcomes, targets, and result-bundle availability without hotspot output |
 | `./Scripts/test.sh smoke` | Run the checked-in smoke registry |
 | `./Scripts/test.sh smoke <Class...>` | Run targeted smoke classes |
 | `./Scripts/test.sh ui <Target>` | Run one exhaustive UI target; bare full suite requires `TRINKET_ALLOW_FULL_UI=1` (CI-owned otherwise) |

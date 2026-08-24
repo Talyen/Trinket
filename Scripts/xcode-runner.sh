@@ -64,10 +64,11 @@ xcode_runner_prepare() {
 
   mkdir -p "$(dirname "$report_prefix")"
   XCODE_RUNNER_LABEL="$label"
+  XCODE_RUNNER_INVOCATION_ID="${safe_label}-${token}"
   XCODE_RUNNER_RESULT_BUNDLE_PATH="$result_bundle"
   XCODE_RUNNER_LOG_PATH="$log_file"
   XCODE_RUNNER_REPORT_PREFIX="$report_prefix"
-  export XCODE_RUNNER_LABEL XCODE_RUNNER_RESULT_BUNDLE_PATH XCODE_RUNNER_LOG_PATH XCODE_RUNNER_REPORT_PREFIX
+  export XCODE_RUNNER_LABEL XCODE_RUNNER_INVOCATION_ID XCODE_RUNNER_RESULT_BUNDLE_PATH XCODE_RUNNER_LOG_PATH XCODE_RUNNER_REPORT_PREFIX
 }
 
 # Run "$@" silently under a wall-clock cap (seconds; macOS has no stock timeout(1)).

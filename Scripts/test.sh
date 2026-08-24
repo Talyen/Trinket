@@ -290,7 +290,7 @@ record_timing() {
     fi
     timing_args+=(--no-xcresult)
   fi
-  local record_args=(--mode "$MODE" --wall "$TEST_WALL_SECONDS" "${timing_args[@]}")
+  local record_args=(--mode "$MODE" --run "$XCODE_RUNNER_INVOCATION_ID" --wall "$TEST_WALL_SECONDS" "${timing_args[@]}")
   if [[ "$NO_BUILD" == "true" ]]; then
     record_args+=(--no-build)
   fi

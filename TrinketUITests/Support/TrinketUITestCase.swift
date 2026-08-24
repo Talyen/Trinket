@@ -289,7 +289,7 @@ class TrinketUITestCase: XCTestCase {
     ) {
         let element = app.descendants(matching: .any)[identifier]
         guard element.waitForExistence(timeout: timeout) else {
-            fail("Element '\(identifier)' not found", file: file, line: line)
+            fail(missingElementMessage("Element '\(identifier)' not found"), file: file, line: line)
             return
         }
     }
@@ -301,9 +301,43 @@ class TrinketUITestCase: XCTestCase {
         line: UInt = #line
     ) {
         guard element.waitForExistence(timeout: timeout) else {
-            fail("Element not found", file: file, line: line)
+            fail(missingElementMessage("Element not found"), file: file, line: line)
             return
         }
+    }
+
+    private func missingElementMessage(_ message: String) -> String {
+        guard let app else { return message }
+        var entries: [String] = []
+        var seen: Set<String> = []
+        for element in app.descendants(matching: .any).allElementsBoundByIndex {
+            let identifier = element.identifier.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !identifier.isEmpty else { continue }
+            let normalizedIdentifier = identifier.replacingOccurrences(
+                of: #"\s+"#,
+                with: " ",
+                options: .regularExpression
+            )
+            let entry = "\(String(describing: element.elementType))[\(normalizedIdentifier)]"
+            guard seen.insert(entry).inserted else { continue }
+            entries.append(entry)
+            if entries.count == 30 {
+                break
+            }
+        }
+        if entries.isEmpty {
+            return "\(message)\nAccessibility snapshot:\nAX: (no identified elements)"
+        }
+        var lines: [String] = []
+        for start in stride(from: 0, to: entries.count, by: 4) {
+            let end = min(start + 4, entries.count)
+            lines.append("AX: " + entries[start ..< end].joined(separator: "; "))
+        }
+        var snapshot = lines.joined(separator: "\n")
+        if snapshot.count > 2400 {
+            snapshot = String(snapshot.prefix(2399)) + "…"
+        }
+        return "\(message)\nAccessibility snapshot:\n\(snapshot)"
     }
 
     func assertDoesNotExist(

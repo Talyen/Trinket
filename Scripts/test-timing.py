@@ -41,6 +41,8 @@ def valid_entry(entry: object) -> bool:
         return False
     if not isinstance(entry.get("mode"), str) or not entry["mode"]:
         return False
+    if "run" in entry and (not isinstance(entry["run"], str) or not entry["run"]):
+        return False
     summary = entry.get("summary")
     tests = entry.get("tests")
     if not isinstance(summary, dict) or not isinstance(tests, list):
@@ -155,7 +157,7 @@ def parse_options(args: list[str]) -> dict:
     index = 0
     while index < len(args):
         token = args[index]
-        if token in {"--mode", "--wall", "--xcresult", "--max-wall"}:
+        if token in {"--mode", "--run", "--wall", "--xcresult", "--max-wall"}:
             if index + 1 >= len(args):
                 label = token.lstrip("-")
                 raise SystemExit(f"{token} requires a finite non-negative number" if label in {"wall", "max-wall"} else f"{token} requires a value")
@@ -189,6 +191,9 @@ def record(results_dir: Path, log_path: Path, args: list[str]) -> None:
     mode = values.get("mode", "")
     if not mode:
         raise SystemExit("record requires --mode")
+    run = values.get("run", "")
+    if not run:
+        raise SystemExit("record requires --run")
     wall = values.get("wall")
     wall_seconds = finite_nonnegative(wall, "--wall") if wall is not None else None
     xcresult = values.get("xcresult", "")
@@ -208,15 +213,18 @@ def record(results_dir: Path, log_path: Path, args: list[str]) -> None:
             raise SystemExit(f"xcresult is incomplete: {path}")
         parsed = parse_xcresult(path)
         recorded_xcresult = str(path)
-    append_entry(results_dir, log_path, {"recorded_at": datetime.now(timezone.utc).isoformat(), "mode": mode, "targets": values["targets"], "no_build": bool(values.get("no_build")), "wall_seconds": wall_seconds, "xcresult": recorded_xcresult, **parsed})
+    append_entry(results_dir, log_path, {"recorded_at": datetime.now(timezone.utc).isoformat(), "run": run, "mode": mode, "targets": values["targets"], "no_build": bool(values.get("no_build")), "wall_seconds": wall_seconds, "xcresult": recorded_xcresult, **parsed})
     # Quiet test runs print nothing on success; this single line is the
     # terminal-visible proof that tests executed and their outcome.
     summary = parsed["summary"]
-    if summary.get("result") != "wall-only":
+    if summary.get("result") == "wall-only":
+        print(f"{mode} — wall-only timing {format_seconds(wall_seconds)} (run {run})")
+    else:
         wall_note = f" (wall {format_seconds(wall_seconds)})" if wall_seconds is not None else ""
         print(
             f"{mode} — {summary.get('passed', 0)} passed, {summary.get('failed', 0)} failed, "
-            f"{summary.get('skipped', 0)} skipped in {format_seconds(summary.get('xcresult_seconds'))}{wall_note}"
+            f"{summary.get('skipped', 0)} skipped in {format_seconds(summary.get('xcresult_seconds'))}{wall_note} "
+            f"(run {run})"
         )
 
 
@@ -236,6 +244,45 @@ def median(values: list[float]) -> float:
         return 0.0
     middle = len(ordered) // 2
     return ordered[middle] if len(ordered) % 2 else (ordered[middle - 1] + ordered[middle]) / 2
+
+
+def entry_run(entry: dict) -> str:
+    run = entry.get("run")
+    if isinstance(run, str) and run:
+        return run
+    xcresult = entry.get("xcresult")
+    if isinstance(xcresult, str) and xcresult:
+        return Path(xcresult).stem
+    return "unknown"
+
+
+def xcresult_state(entry: dict) -> str:
+    xcresult = entry.get("xcresult")
+    if not isinstance(xcresult, str) or not xcresult:
+        return "(not recorded/incomplete)"
+    return "(available)" if Path(xcresult).exists() else "(pruned)"
+
+
+def show(log_path: Path, args: list[str]) -> None:
+    values = parse_options(args)
+    entries = load_entries(log_path)
+    mode = values.get("mode")
+    if mode:
+        entries = [entry for entry in entries if entry.get("mode") == mode]
+    if not entries:
+        print(f"No timing entries in {log_path}")
+        return
+    recent = entries[-values.get("last", 10):]
+    for entry in recent:
+        summary = entry.get("summary", {})
+        targets = ", ".join(entry.get("targets") or []) or "—"
+        when = entry.get("recorded_at", "")
+        counts = f"{summary.get('passed', 0)} passed, {summary.get('failed', 0)} failed, {summary.get('skipped', 0)} skipped"
+        print(
+            f"{when} | {entry_run(entry)} | {entry.get('mode', '?')} | "
+            f"{summary.get('result', 'Unknown')} | {counts} | wall {format_seconds(entry.get('wall_seconds'))} | "
+            f"xcresult {xcresult_state(entry)} | {targets}"
+        )
 
 
 def report(log_path: Path, args: list[str]) -> None:
@@ -283,6 +330,31 @@ def report(log_path: Path, args: list[str]) -> None:
             print(f"{format_seconds(sum(seconds)):>8} {format_seconds(median(seconds)):>8} {len(seconds):>5}  {name}")
 
 
+def assert_budget(log_path: Path, args: list[str]) -> None:
+    values = parse_options(args)
+    mode = values.get("mode", "")
+    maximum = values.get("max_wall")
+    if not mode or maximum is None:
+        raise SystemExit("assert-budget requires --mode and --max-wall")
+    maximum_seconds = finite_nonnegative(maximum, "--max-wall")
+    entries = [entry for entry in load_entries(log_path) if entry.get("mode") == mode]
+    if not entries:
+        if values.get("skip_if_missing"):
+            print(f"No timing entries for mode '{mode}'; skipping budget check.")
+            return
+        raise SystemExit(f"No timing entries for mode '{mode}' in {log_path}")
+    latest = entries[-1]
+    duration = latest.get("summary", {}).get("xcresult_seconds")
+    source = "xcresult"
+    if duration is None:
+        duration = latest.get("wall_seconds")
+        source = "wall"
+    if duration is None:
+        raise SystemExit(f"Latest '{mode}' timing entry has no measurable duration")
+    duration = finite_nonnegative(duration, "latest duration")
+    if duration > maximum_seconds:
+        raise SystemExit(f"Timing budget exceeded for '{mode}': {format_seconds(duration)} ({source}) > {format_seconds(maximum_seconds)}")
+    print(f"Timing budget OK for '{mode}': {format_seconds(duration)} ({source}) <= {format_seconds(maximum_seconds)}")
 
 
 def main(argv: list[str]) -> int:
@@ -290,13 +362,13 @@ def main(argv: list[str]) -> int:
     command = argv[0] if argv else "report"
     args = argv[1:] if argv else []
     if command in {"-h", "--help", "help"}:
-        print("Usage: test-timing.sh [report|record] ...")
+        print("Usage: test-timing.sh [show|report|record|assert-budget] ...")
         return 0
-    if command not in {"report", "record"}:
+    if command not in {"show", "report", "record", "assert-budget"}:
         args = argv
         command = "report"
     log_path = results_dir / "timing-log.jsonl"
-    handlers = {"report": report, "record": record}
+    handlers = {"show": show, "report": report, "record": record, "assert-budget": assert_budget}
     if command == "record":
         handlers[command](results_dir, log_path, args)
     else:

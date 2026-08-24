@@ -182,6 +182,54 @@ class ReporterTests(unittest.TestCase):
             self.assertEqual(len(report.issues), 1)
             self.assertNotIn("raw_log_path", report.to_dict())
 
+    def test_xctest_log_fallback_keeps_bounded_accessibility_context(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            log = root / "xcodebuild.log"
+            snapshot = "\n".join(f"AX: Button[node-{index}]" for index in range(10))
+            log.write_text(
+                "ExecuteExternalTool /Applications/Xcode.app/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc --version\n"
+                "Copy /Library/Developer/CoreSimulator/Volumes/iOS.simruntime/AccessibilityBundles/WebCore.axbundle\n"
+                "/TrinketUITests/PlayModeNavigationUITests.swift:29: error: "
+                "-[TrinketUITests.PlayModeNavigationUITests testLabyrinthMapNodeInspectorInteractions] "
+                ": failed - Element 'entry-node' not found\n"
+                f"{REPORTER.ACCESSIBILITY_SNAPSHOT_MARKER}\n"
+                f"{snapshot}\n"
+                "    t = 9.98s Tear Down\n",
+                encoding="utf-8",
+            )
+
+            report = REPORTER.build_report(
+                namespace(root / "incomplete.xcresult", log, 65, root / "report")
+            )
+
+            self.assertEqual(report.classification, "test-failure")
+            self.assertEqual(len(report.issues), 1)
+            issue = report.issues[0]
+            self.assertEqual(issue.message, "Element 'entry-node' not found")
+            self.assertIn("Button[node-0]", issue.details)
+            self.assertIn("Button[node-9]", issue.details)
+            markdown = REPORTER.render_markdown(report)
+            self.assertIn("Button[node-0]", markdown)
+            self.assertIn("additional detail", markdown)
+            self.assertNotIn("XcodeDefault.xctoolchain", markdown)
+
+    def test_structured_summary_splits_accessibility_context_from_message(self) -> None:
+        observations = REPORTER.parse_summary(
+            {
+                "testFailures": [
+                    {
+                        "testIdentifierString": "ExampleTests/testMissingElement",
+                        "failureText": "Element not found\nAccessibility snapshot:\nAX: Any[map]; Button[back]",
+                    }
+                ]
+            }
+        )
+
+        self.assertEqual(len(observations), 1)
+        self.assertEqual(observations[0].message, "Element not found")
+        self.assertEqual(observations[0].details, "Any[map]; Button[back]")
+
     def test_log_fallback_scans_past_two_megabytes_and_classifies_late_linker_failure(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
