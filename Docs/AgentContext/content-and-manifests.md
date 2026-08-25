@@ -17,8 +17,8 @@ Shared media-pipeline rules: raw source folders (`Raw Assets/` and per-pipeline
 raw directories) are not in Xcode target membership; processed outputs under
 `Trinket/` are. Generated files are committed so the app builds without rerunning
 the generator, and verification asserts generated output matches HEAD.
-Hash-based media pipelines (art, cinematics) re-encode when source bytes or
-encode settings change; set `FORCE_ASSET_REENCODE=1` to rebuild regardless of hash.
+Hash-based media pipelines re-encode when source bytes or encode settings
+change; set `FORCE_ASSET_REENCODE=1` to rebuild regardless of cached state.
 
 **Abilities:** author only in the authored catalog Swift under `Packages/TrinketContent/Sources/TrinketContent/Content/`. To list or understand abilities, use `AbilityCatalog.all` or the generated inventory; there is no authored abilities TSV.
 

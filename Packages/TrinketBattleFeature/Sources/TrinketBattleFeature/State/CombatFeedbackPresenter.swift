@@ -64,17 +64,18 @@ enum CombatFeedbackPresenter {
         }
         let sources = consolidate(filteredSources)
         let prepared = sources.compactMap(prepare)
-        var targetOrder: [String] = []
-        var grouped: [String: [PreparedEvent]] = [:]
+        var groupOrder: [PresentationGroupKey] = []
+        var grouped: [PresentationGroupKey: [PreparedEvent]] = [:]
         for item in prepared {
-            if grouped[item.targetID] == nil {
-                targetOrder.append(item.targetID)
+            let key = PresentationGroupKey(actionID: item.actionID, targetID: item.targetID)
+            if grouped[key] == nil {
+                groupOrder.append(key)
             }
-            grouped[item.targetID, default: []].append(item)
+            grouped[key, default: []].append(item)
         }
 
-        return targetOrder.flatMap { targetID -> [CombatFeedbackItem] in
-            let sorted = (grouped[targetID] ?? []).sorted { lhs, rhs in
+        return groupOrder.flatMap { key -> [CombatFeedbackItem] in
+            let sorted = (grouped[key] ?? []).sorted { lhs, rhs in
                 let lhsPriority = displayPriority(for: lhs.feedbackClass)
                 let rhsPriority = displayPriority(for: rhs.feedbackClass)
                 if lhsPriority == rhsPriority {
@@ -82,7 +83,6 @@ enum CombatFeedbackPresenter {
                 }
                 return lhsPriority < rhsPriority
             }
-            guard let actionGroupID = sorted.first?.actionID else { return [] }
             let availableAt = date
             let expiresAt = availableAt.addingTimeInterval(TrinketMotion.Battle.chipDisplayDuration)
             let groupResultCount = sorted.count
@@ -90,7 +90,7 @@ enum CombatFeedbackPresenter {
                 CombatFeedbackItem(
                     id: prepared.id,
                     sourceEventIDs: prepared.sourceEventIDs,
-                    actionGroupID: actionGroupID,
+                    actionGroupID: key.actionID,
                     presentationIndex: presentationIndex,
                     groupResultCount: groupResultCount,
                     presentationRole: presentationRole(
@@ -149,11 +149,17 @@ enum CombatFeedbackPresenter {
             case effect(ActionEvent.EffectOutcome)
         }
 
+        let actionID: Int
         let targetID: String
         let keyword: Keyword
         let family: Family
         let isCritical: Bool
         let isNegative: Bool
+    }
+
+    private struct PresentationGroupKey: Hashable {
+        let actionID: Int
+        let targetID: String
     }
 
     private static func filterDisplayable(_ events: [ActionEvent]) -> [ActionEvent] {
@@ -165,13 +171,10 @@ enum CombatFeedbackPresenter {
             if event.kind == .abilityDamage, event.amount == 0 {
                 return false
             }
-            if event.effectKind == .cardsDrawn
-                || event.effectKind == .controlApplied
-                || event.effectKind == .leechApplied {
-                return false
-            }
-            if event.effectKind == .resourceGain, event.amount < 0 {
-                return false
+            if event.kind == .effect, let effectKind = event.effectKind {
+                return CombatFeedbackEffectPresentation
+                    .descriptor(for: effectKind)
+                    .shouldDisplay(amount: event.amount)
             }
             return true
         }
@@ -217,6 +220,7 @@ enum CombatFeedbackPresenter {
             return nil
         }
         return AggregationKey(
+            actionID: event.actionID,
             targetID: event.targetID,
             keyword: event.keyword,
             family: family,

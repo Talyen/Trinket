@@ -1,25 +1,22 @@
-# id	asset_name	source_path	volume_gain
-ui_tap	sfx_ui_tap	Raw Assets/Sound Effects/UI/Minimalist1.ogg	1.0
-ui_confirm	sfx_ui_confirm	Raw Assets/Sound Effects/UI/synth_confirmation.wav	1.0
-ui_cancel	sfx_ui_cancel	Raw Assets/Sound Effects/UI/synth_cancel.wav	1.0
-ui_decline	sfx_ui_decline	Raw Assets/Sound Effects/UI/029_Decline_09.wav	1.0
-ui_deny	sfx_ui_deny	Raw Assets/Sound Effects/UI/synth_error.wav	1.0
-ui_toggle_on	sfx_ui_toggle_on	Raw Assets/Sound Effects/UI/switch 1.wav	1.0
-ui_toggle_off	sfx_ui_toggle_off	Raw Assets/Sound Effects/UI/switch 2.wav	1.0
-ui_equip	sfx_ui_equip	Raw Assets/Sound Effects/Items/clothing movement 1.wav	1.0
-ui_unequip	sfx_ui_unequip	Raw Assets/Sound Effects/Materials/wood_small_pickup.wav	1.0
-ui_buy_sell	sfx_ui_buy_sell	Raw Assets/Sound Effects/Items/DSGNTonl_USABLE-Magic Coin_HY_PC-001.wav	1.0
-ability_draw	sfx_ability_draw	Raw Assets/Sound Effects/Card and Board/card_draw_2.wav	1.0
-hit	sfx_hit	Raw Assets/Sound Effects/Attacks and Combat/Hit 1.wav	1.0
-hit_burn	sfx_hit_burn	Raw Assets/Sound Effects/Spells/Fireball 1.ogg	1.0
-hit_freeze	sfx_hit_freeze	Raw Assets/Sound Effects/Spells/Ice Throw 1.ogg	1.0
-heal	sfx_heal	Raw Assets/Sound Effects/Spells/Heal 1.wav	1.0
-buff	sfx_buff	Raw Assets/Sound Effects/Spells/Buff 1.wav	1.0
-block	sfx_block	Raw Assets/Sound Effects/Attacks and Combat/Sword Attacks Hits and Blocks/Block 1.ogg	1.0
-control_freeze	sfx_control_freeze	Raw Assets/Sound Effects/Spells/Ice Freeze 1.ogg	1.0
-control_stun	sfx_control_stun	Raw Assets/Sound Effects/Attacks and Combat/Stun 1.wav	1.0
-purge	sfx_purge	Raw Assets/Sound Effects/Spells/Purge 1.wav	1.0
-deaths_door	sfx_deaths_door	Raw Assets/Sound Effects/Musical Effects/Death's Door.wav	1.0
-victory	sfx_victory	Raw Assets/Sound Effects/Musical Effects/Victory 1.wav	1.0
-defeat	sfx_defeat	Raw Assets/Sound Effects/Musical Effects/Defeat 1.wav	1.0
-mystery_event	sfx_mystery_event	Raw Assets/Sound Effects/Musical Effects/Mystery Event.wav	1.0
+# id	swift_symbol	asset_name	source_path	volume_gain
+ui_confirm	uiConfirm	sfx_ui_confirm	Raw Assets/Sound Effects/UI/synth_confirmation.wav	1.0
+ui_cancel	uiCancel	sfx_ui_cancel	Raw Assets/Sound Effects/UI/synth_cancel.wav	1.0
+ui_deny	uiDeny	sfx_ui_deny	Raw Assets/Sound Effects/UI/synth_error.wav	1.0
+ui_toggle_on	uiToggleOn	sfx_ui_toggle_on	Raw Assets/Sound Effects/UI/switch 1.wav	1.0
+ui_toggle_off	uiToggleOff	sfx_ui_toggle_off	Raw Assets/Sound Effects/UI/switch 2.wav	1.0
+ui_equip	uiEquip	sfx_ui_equip	Raw Assets/Sound Effects/Items/clothing movement 1.wav	1.0
+ui_buy_sell	uiBuySell	sfx_ui_buy_sell	Raw Assets/Sound Effects/Items/DSGNTonl_USABLE-Magic Coin_HY_PC-001.wav	1.0
+ability_draw	abilityDraw	sfx_ability_draw	Raw Assets/Sound Effects/Card and Board/card_draw_2.wav	1.0
+hit	hit	sfx_hit	Raw Assets/Sound Effects/Attacks and Combat/Hit 1.wav	1.0
+hit_burn	hitBurn	sfx_hit_burn	Raw Assets/Sound Effects/Spells/Fireball 1.ogg	1.0
+hit_freeze	hitFreeze	sfx_hit_freeze	Raw Assets/Sound Effects/Spells/Ice Throw 1.ogg	1.0
+heal	heal	sfx_heal	Raw Assets/Sound Effects/Spells/Heal 1.wav	1.0
+buff	buff	sfx_buff	Raw Assets/Sound Effects/Spells/Buff 1.wav	1.0
+block	block	sfx_block	Raw Assets/Sound Effects/Attacks and Combat/Sword Attacks Hits and Blocks/Block 1.ogg	1.0
+control_freeze	controlFreeze	sfx_control_freeze	Raw Assets/Sound Effects/Spells/Ice Freeze 1.ogg	1.0
+control_stun	controlStun	sfx_control_stun	Raw Assets/Sound Effects/Attacks and Combat/Stun 1.wav	1.0
+purge	purge	sfx_purge	Raw Assets/Sound Effects/Spells/Purge 1.wav	1.0
+deaths_door	deathsDoor	sfx_deaths_door	Raw Assets/Sound Effects/Musical Effects/Death's Door.wav	1.0
+victory	victory	sfx_victory	Raw Assets/Sound Effects/Musical Effects/Victory 1.wav	1.0
+defeat	defeat	sfx_defeat	Raw Assets/Sound Effects/Musical Effects/Defeat 1.wav	1.0
+mystery_event	mysteryEvent	sfx_mystery_event	Raw Assets/Sound Effects/Musical Effects/Mystery Event.wav	1.0

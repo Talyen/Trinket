@@ -220,8 +220,8 @@ final class CombatFeedbackGlyphAtlas {
                 }
                 // Word fragments stay headline-sized; secondary only shrinks numerics.
                 if role == .headline {
-                    for word in Self.wordAtlasCases(for: typography).compactMap(\.composeText) {
-                        let key = FragmentKey(face: face, text: word)
+                    for fragment in Self.wordAtlasFragments(for: typography) {
+                        let key = FragmentKey(face: face, text: fragment)
                         if fragments[key] == nil {
                             requests.append(.fragment(key, recipe))
                         }
@@ -235,25 +235,10 @@ final class CombatFeedbackGlyphAtlas {
     /// Short word fragments still drawn next to a keyword icon.
     /// Icon-only / dual-icon chips (dodge, Death's Door, cleanse, status, …) need
     /// no text fragments. Numerics use `numericAtlasFragments`.
-    nonisolated static func wordAtlasCases(
+    nonisolated static func wordAtlasFragments(
         for typography: CombatFeedbackTypographyTier
-    ) -> [CombatFeedbackChipWord] {
-        switch typography {
-        case .emphasis:
-            // Death's Door is emphasis + symbol-only; no word fragment.
-            []
-        case .normal:
-            CombatFeedbackChipWord.textAtlasCases.filter { word in
-                switch word {
-                case .critical:
-                    false
-                case .plain, .applied, .triggered:
-                    true
-                case .dodge, .cleanse, .purge, .status:
-                    false
-                }
-            }
-        }
+    ) -> [String] {
+        CombatFeedbackRasterCatalog.wordAtlasFragments(for: typography)
     }
 
     nonisolated static func bake(_ requests: [PrewarmRequest]) -> [PreparedGlyph] {

@@ -138,7 +138,6 @@ enum CombatFeedbackStatusLabel: String, CaseIterable, Hashable {
 /// Closed set of non-numeric chip phrases produced by battle presentation.
 enum CombatFeedbackChipWord: Hashable {
     case dodge
-    case critical
     case plain(Keyword)
     case applied(Keyword)
     case triggered(Keyword)
@@ -151,8 +150,6 @@ enum CombatFeedbackChipWord: Hashable {
         switch self {
         case .dodge, .cleanse, .purge, .status:
             nil
-        case .critical:
-            "Critical"
         case let .plain(keyword):
             keyword == .deathsDoor ? nil : keyword.rawValue
         case let .applied(keyword):
@@ -160,16 +157,5 @@ enum CombatFeedbackChipWord: Hashable {
         case let .triggered(keyword):
             keyword.rawValue
         }
-    }
-
-    /// Exhaustive word cases that still need a text fragment in the glyph atlas.
-    static var textAtlasCases: [Self] {
-        var words: [Self] = [.critical]
-        for keyword in Keyword.allCases where keyword != .deathsDoor {
-            words.append(.plain(keyword))
-            words.append(.applied(keyword))
-            words.append(.triggered(keyword))
-        }
-        return words
     }
 }

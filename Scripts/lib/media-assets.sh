@@ -17,16 +17,33 @@ trinket_asset_validate_identifier() {
   fi
 }
 
+trinket_asset_validate_swift_identifier() {
+  local label="$1" value="$2"
+  if [[ ! "$value" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]; then
+    echo "$label '$value' should be a Swift identifier." >&2
+    return 1
+  fi
+  case "$value" in
+    Any|Protocol|Self|Type|actor|any|as|associatedtype|async|await|borrowing|break|case|catch|class|consuming|continue|default|defer|deinit|do|each|else|enum|extension|fallthrough|false|fileprivate|for|func|guard|if|import|in|init|inout|internal|is|isolated|let|macro|nil|nonisolated|open|operator|package|precedencegroup|private|protocol|public|repeat|rethrows|return|self|some|static|struct|subscript|super|switch|throw|throws|true|try|typealias|var|where|while)
+      echo "$label '$value' is a reserved Swift keyword." >&2
+      return 1
+      ;;
+  esac
+}
+
 trinket_asset_needs_reencode() {
-  local state_was_present="$1"
-  local recorded_hash="$2"
-  local source_hash="$3"
-  local output_file="$4"
+  local recorded_hash="$1"
+  local source_hash="$2"
+  local recorded_profile="$3"
+  local encode_profile="$4"
+  local output_file="$5"
 
   [[ "${FORCE_ASSET_REENCODE:-0}" == "1" ]] \
-    || [[ "$state_was_present" == false && ! -f "$output_file" ]] \
-    || [[ "$state_was_present" == true && "$recorded_hash" != "$source_hash" ]] \
-    || [[ ! -f "$output_file" && "$state_was_present" == true ]]
+    || [[ ! -f "$output_file" ]] \
+    || [[ -z "$recorded_hash" ]] \
+    || [[ "$recorded_hash" != "$source_hash" ]] \
+    || [[ -z "$recorded_profile" ]] \
+    || [[ "$recorded_profile" != "$encode_profile" ]]
 }
 
 trinket_asset_convert_aac() {
@@ -48,10 +65,11 @@ trinket_asset_prune_orphans() {
   local resources_dir="$1"
   local active_file="$2"
   local label="$3"
+  local file_extension="$4"
   local file filename
 
   shopt -s nullglob
-  for file in "$resources_dir"/*.m4a; do
+  for file in "$resources_dir"/*."$file_extension"; do
     [[ -f "$file" ]] || continue
     filename="$(basename "$file")"
     if ! grep -qx "$filename" "$active_file"; then

@@ -40,8 +40,8 @@ struct CombatFeedbackPresenterTests {
 
         let abilityItems = CombatFeedbackPresenter.makeItems(
             from: [
-                makeEvent(id: 1, kind: .abilityDamage, amount: 2, keyword: .physical),
-                makeEvent(id: 2, kind: .abilityDamage, amount: 4, keyword: .physical),
+                makeEvent(id: 1, kind: .abilityDamage, amount: 2, keyword: .physical, actionID: 1),
+                makeEvent(id: 2, kind: .abilityDamage, amount: 4, keyword: .physical, actionID: 1),
             ],
             at: .now
         )
@@ -51,8 +51,8 @@ struct CombatFeedbackPresenterTests {
 
         let sameKind = CombatFeedbackPresenter.makeItems(
             from: [
-                makeEvent(id: 20, kind: .status, amount: 2, keyword: .bleed),
-                makeEvent(id: 21, kind: .status, amount: 3, keyword: .bleed),
+                makeEvent(id: 20, kind: .status, amount: 2, keyword: .bleed, actionID: 20),
+                makeEvent(id: 21, kind: .status, amount: 3, keyword: .bleed, actionID: 20),
             ],
             at: .now
         )
@@ -98,14 +98,16 @@ struct CombatFeedbackPresenterTests {
                     kind: .effect,
                     effectKind: .shieldApplied,
                     amount: 2,
-                    keyword: .block
+                    keyword: .block,
+                    actionID: 7
                 ),
                 makeEvent(
                     id: 8,
                     kind: .effect,
                     effectKind: .shieldApplied,
                     amount: 3,
-                    keyword: .block
+                    keyword: .block,
+                    actionID: 7
                 ),
             ],
             at: .now
@@ -253,49 +255,25 @@ struct CombatFeedbackPresenterTests {
     @Test func assignsPriorityAndPresentationRolesDeterministically() {
         let items = CombatFeedbackPresenter.makeItems(
             from: [
-                makeEvent(id: 1, kind: .status, amount: 1, keyword: .bleed),
+                makeEvent(id: 1, kind: .status, amount: 1, keyword: .bleed, actionID: 1),
                 makeEvent(
-                    id: 2,
-                    kind: .effect,
-                    effectKind: .resourceGain,
-                    amount: 1,
-                    keyword: .gold
+                    id: 2, kind: .effect, effectKind: .resourceGain, amount: 1, keyword: .gold, actionID: 1
                 ),
                 makeEvent(
-                    id: 3,
-                    kind: .effect,
-                    effectKind: .instantHeal,
-                    amount: 2,
-                    keyword: .health
+                    id: 3, kind: .effect, effectKind: .instantHeal, amount: 2, keyword: .health, actionID: 1
                 ),
                 makeEvent(
-                    id: 4,
-                    kind: .effect,
-                    effectKind: .controlApplied,
-                    amount: 1,
-                    keyword: .stun
+                    id: 4, kind: .effect, effectKind: .controlApplied, amount: 1, keyword: .stun, actionID: 1
                 ),
-                makeEvent(id: 5, kind: .abilityDamage, amount: 8, keyword: .physical),
+                makeEvent(id: 5, kind: .abilityDamage, amount: 8, keyword: .physical, actionID: 1),
                 makeEvent(
-                    id: 6,
-                    kind: .effect,
-                    effectKind: .shieldApplied,
-                    amount: 3,
-                    keyword: .block
+                    id: 6, kind: .effect, effectKind: .shieldApplied, amount: 3, keyword: .block, actionID: 1
                 ),
                 makeEvent(
-                    id: 7,
-                    kind: .effect,
-                    effectKind: .dodgeApplied,
-                    amount: 0,
-                    keyword: .dodge
+                    id: 7, kind: .effect, effectKind: .dodgeApplied, amount: 0, keyword: .dodge, actionID: 1
                 ),
                 makeEvent(
-                    id: 8,
-                    kind: .effect,
-                    effectKind: .resourceGain,
-                    amount: 2,
-                    keyword: .mana
+                    id: 8, kind: .effect, effectKind: .resourceGain, amount: 2, keyword: .mana, actionID: 1
                 ),
             ],
             at: .now
@@ -340,6 +318,49 @@ struct CombatFeedbackPresenterTests {
 }
 
 extension CombatFeedbackPresenterTests {
+    @Test func keepsSameKindResultsSeparateAcrossActionIDs() {
+        let items = CombatFeedbackPresenter.makeItems(
+            from: [
+                makeEvent(id: 1, kind: .abilityDamage, amount: 4, keyword: .burn, actionID: 10),
+                makeEvent(id: 2, kind: .abilityDamage, amount: 3, keyword: .burn, actionID: 11),
+            ],
+            at: .now
+        )
+        #expect(items.count == 2)
+        #expect(items.map(\.actionGroupID) == [10, 11])
+        #expect(items.map(\.text) == ["4", "3"])
+        #expect(items.allSatisfy { $0.groupResultCount == 1 })
+        #expect(items.allSatisfy { $0.presentationRole == .headline })
+    }
+
+    @Test func keepsPresentationRolesLocalToEachActionAndTarget() throws {
+        let items = CombatFeedbackPresenter.makeItems(
+            from: [
+                makeEvent(id: 1, kind: .abilityDamage, amount: 8, keyword: .physical, actionID: 1),
+                makeEvent(id: 2, kind: .status, amount: 1, keyword: .bleed, actionID: 1),
+                makeEvent(
+                    id: 3, kind: .effect, effectKind: .instantHeal, amount: 2, keyword: .health, actionID: 1
+                ),
+                makeEvent(
+                    id: 4, kind: .effect, effectKind: .shieldApplied, amount: 3, keyword: .block, actionID: 1
+                ),
+                makeEvent(id: 5, kind: .abilityDamage, amount: 4, keyword: .physical, actionID: 2),
+            ],
+            at: .now
+        )
+        let firstAction = items.filter { $0.actionGroupID == 1 }
+        let secondAction = items.filter { $0.actionGroupID == 2 }
+        #expect(firstAction.count == 4)
+        #expect(firstAction.allSatisfy { $0.groupResultCount == 4 })
+        let firstHeadline = try #require(firstAction.first)
+        #expect(firstHeadline.presentationRole == .headline)
+        #expect(firstAction.dropFirst().allSatisfy { $0.presentationRole == .secondary })
+        #expect(secondAction.count == 1)
+        let secondItem = try #require(secondAction.first)
+        #expect(secondItem.groupResultCount == 1)
+        #expect(secondItem.presentationRole == .headline)
+    }
+
     @Test func overlayKeepsAllGroupsAndEmitsOneCanvasChipPerDistinctKind() {
         let first = CombatFeedbackPresenter.makeItems(
             from: [makeEvent(id: 1, kind: .abilityDamage, amount: 3, keyword: .physical)],
@@ -376,6 +397,24 @@ extension CombatFeedbackPresenterTests {
         ])
         #expect(mixedChips.map(\.feedbackClass) == [.directDamage, .buff])
         #expect(mixedChips.allSatisfy { !$0.label.displayString.contains("Effect") })
+    }
+
+    @Test func keepsAbilityDamageVisibleWhenEffectKindWouldHideAnEffectChip() {
+        let items = CombatFeedbackPresenter.makeItems(
+            from: [
+                makeEvent(
+                    id: 1,
+                    kind: .abilityDamage,
+                    effectKind: .cardsDrawn,
+                    amount: 6,
+                    keyword: .physical
+                ),
+            ],
+            at: .now
+        )
+        #expect(items.count == 1)
+        #expect(items[0].feedbackClass == .directDamage)
+        #expect(items[0].label == .amount(-6))
     }
 
     @Test func suppressesCardsControlBuildupLeechAppliedAndNumericZeroesButNamesZeroValueStatuses() {
@@ -417,9 +456,9 @@ extension CombatFeedbackPresenterTests {
     @Test func mergesGoldGainsAndSuppressesGoldLossChips() throws {
         let items = CombatFeedbackPresenter.makeItems(
             from: [
-                makeEvent(id: 1, kind: .effect, effectKind: .resourceGain, amount: 4, keyword: .gold),
-                makeEvent(id: 2, kind: .effect, effectKind: .resourceGain, amount: 3, keyword: .gold),
-                makeEvent(id: 3, kind: .effect, effectKind: .resourceGain, amount: -3, keyword: .gold),
+                makeEvent(id: 1, kind: .effect, effectKind: .resourceGain, amount: 4, keyword: .gold, actionID: 1),
+                makeEvent(id: 2, kind: .effect, effectKind: .resourceGain, amount: 3, keyword: .gold, actionID: 1),
+                makeEvent(id: 3, kind: .effect, effectKind: .resourceGain, amount: -3, keyword: .gold, actionID: 1),
             ],
             at: .now
         )

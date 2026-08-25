@@ -35,15 +35,20 @@ enum CombatFeedbackChipComposer {
         )
 
         var leadingGlyph: CombatFeedbackGlyphAtlas.Glyph?
-        if let leadingName = presentation.leadingSymbolName {
-            guard let glyph = atlas.symbol(named: leadingName, face: face, recipe: recipe) else {
+        if let leadingStyle = presentation.leadingStyle?.visualStyle {
+            guard let glyph = atlas.symbol(
+                named: leadingStyle.symbolName,
+                face: face,
+                recipe: recipe
+            ) else {
                 return nil
             }
             leadingGlyph = glyph
         }
 
+        let trailingStyle = presentation.trailingStyle.visualStyle
         guard let trailingGlyph = atlas.symbol(
-            named: presentation.trailingSymbolName,
+            named: trailingStyle.symbolName,
             face: face,
             recipe: recipe
         ) else {
@@ -70,16 +75,16 @@ enum CombatFeedbackChipComposer {
                 // UIStyleCheck: allow - CoreGraphics compose needs UIKit colors bridged from semantic roles.
                 (
                     $0,
-                    UIColor((presentation.leadingTint ?? presentation.trailingTint).color)
+                    UIColor((presentation.leadingStyle ?? presentation.trailingStyle).visualStyle.color)
                 )
             },
             trailing: (
                 trailingGlyph,
                 // UIStyleCheck: allow - CoreGraphics compose needs UIKit colors bridged from semantic roles.
-                UIColor(presentation.trailingTint.color)
+                UIColor(trailingStyle.color)
             ),
             textGlyphs: renderedText,
-            textTint: UIColor(presentation.trailingTint.color),
+            textTint: UIColor(trailingStyle.color),
             layoutDirection: layoutDirection,
             displayScale: scale
         )

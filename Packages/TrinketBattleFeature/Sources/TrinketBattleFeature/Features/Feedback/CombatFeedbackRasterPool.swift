@@ -7,17 +7,23 @@ import TrinketDesignSystem
 import TrinketFeatureSupport
 
 struct CombatFeedbackRasterKey: Hashable {
-    let feedbackClass: String
-    let presentationRole: String
-    /// Keyword + visual role keep identically symbolled styles (e.g. poison vs bleed)
-    /// from sharing a pre-tinted raster.
-    let keyword: String
-    let visualRole: String
-    let leadingSymbolName: String?
-    let trailingSymbolName: String
-    let label: CombatFeedbackChipLabel
+    let typography: CombatFeedbackTypographyTier
+    let presentationRole: CombatFeedbackPresentationRole
+    let presentation: CombatFeedbackChipPresentation
     let layoutDirection: LayoutDirection
     let displayScaleHundredths: Int
+
+    init(
+        item: CombatFeedbackItem,
+        layoutDirection: LayoutDirection,
+        displayScale: CGFloat
+    ) {
+        typography = item.feedbackClass.typographyTier
+        presentationRole = item.presentationRole
+        presentation = item.chipPresentation
+        self.layoutDirection = layoutDirection
+        displayScaleHundredths = Int((max(1, displayScale) * 100).rounded())
+    }
 }
 
 /// Immutable raster owned exclusively by `CombatFeedbackRasterPool` (`@MainActor`).
@@ -267,18 +273,10 @@ final class CombatFeedbackRasterPool {
         layoutDirection: LayoutDirection,
         displayScale: CGFloat
     ) -> CombatFeedbackRasterKey {
-        let presentation = item.chipPresentation
-        let scale = max(1, displayScale)
-        return CombatFeedbackRasterKey(
-            feedbackClass: item.feedbackClass.rawValue,
-            presentationRole: item.presentationRole.rawValue,
-            keyword: item.keyword.rawValue,
-            visualRole: item.visualRole.cacheKey,
-            leadingSymbolName: presentation.leadingSymbolName,
-            trailingSymbolName: presentation.trailingSymbolName,
-            label: item.label,
+        CombatFeedbackRasterKey(
+            item: item,
             layoutDirection: layoutDirection,
-            displayScaleHundredths: Int((scale * 100).rounded())
+            displayScale: displayScale
         )
     }
 

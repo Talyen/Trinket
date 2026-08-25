@@ -2,6 +2,30 @@
 
 import Foundation
 
+public enum SFXID {
+    public static let uiConfirm = "ui_confirm"
+    public static let uiCancel = "ui_cancel"
+    public static let uiDeny = "ui_deny"
+    public static let uiToggleOn = "ui_toggle_on"
+    public static let uiToggleOff = "ui_toggle_off"
+    public static let uiEquip = "ui_equip"
+    public static let uiBuySell = "ui_buy_sell"
+    public static let abilityDraw = "ability_draw"
+    public static let hit = "hit"
+    public static let hitBurn = "hit_burn"
+    public static let hitFreeze = "hit_freeze"
+    public static let heal = "heal"
+    public static let buff = "buff"
+    public static let block = "block"
+    public static let controlFreeze = "control_freeze"
+    public static let controlStun = "control_stun"
+    public static let purge = "purge"
+    public static let deathsDoor = "deaths_door"
+    public static let victory = "victory"
+    public static let defeat = "defeat"
+    public static let mysteryEvent = "mystery_event"
+}
+
 public struct SFXClip: Identifiable, Hashable, Sendable {
     public let id: String
     public let resourceName: String
@@ -12,12 +36,6 @@ public struct SFXClip: Identifiable, Hashable, Sendable {
 public enum SFXCatalog {
     public static let clips: [SFXClip] = [
         SFXClip(
-            id: "ui_tap",
-            resourceName: "sfx_ui_tap",
-            fileExtension: "m4a",
-            volumeGain: 1.0
-        ),
-        SFXClip(
             id: "ui_confirm",
             resourceName: "sfx_ui_confirm",
             fileExtension: "m4a",
@@ -26,12 +44,6 @@ public enum SFXCatalog {
         SFXClip(
             id: "ui_cancel",
             resourceName: "sfx_ui_cancel",
-            fileExtension: "m4a",
-            volumeGain: 1.0
-        ),
-        SFXClip(
-            id: "ui_decline",
-            resourceName: "sfx_ui_decline",
             fileExtension: "m4a",
             volumeGain: 1.0
         ),
@@ -56,12 +68,6 @@ public enum SFXCatalog {
         SFXClip(
             id: "ui_equip",
             resourceName: "sfx_ui_equip",
-            fileExtension: "m4a",
-            volumeGain: 1.0
-        ),
-        SFXClip(
-            id: "ui_unequip",
-            resourceName: "sfx_ui_unequip",
             fileExtension: "m4a",
             volumeGain: 1.0
         ),

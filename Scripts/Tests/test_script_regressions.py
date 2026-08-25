@@ -32,6 +32,147 @@ class ScriptRegressionTests(unittest.TestCase):
         cls.codegen = load_script("content_codegen", "content_codegen.py")
         cls.check_docs = load_script("check_docs", "check-docs.py")
 
+    def make_sfx_fixture(self, directory: str) -> tuple[Path, dict[str, str], Path]:
+        root = Path(directory)
+        for relative in (
+            "Scripts/lib",
+            "SoundManifest",
+            "Raw Assets/Sound Effects",
+            "Trinket/Media/SFX",
+            "Packages/TrinketContent/Sources/TrinketContent/Generated",
+            "bin",
+        ):
+            (root / relative).mkdir(parents=True, exist_ok=True)
+
+        for relative in ("Scripts/prepare-sfx-assets.sh", "Scripts/lib/media-assets.sh"):
+            destination = root / relative
+            destination.write_text((ROOT / relative).read_text(encoding="utf-8"), encoding="utf-8")
+            destination.chmod(0o755)
+
+        source = root / "Raw Assets/Sound Effects/clip.wav"
+        source.write_bytes(b"fixture audio")
+        (root / "SoundManifest/sfx.tsv").write_text(
+            "# id\tswift_symbol\tasset_name\tsource_path\tvolume_gain\n"
+            "test_clip\ttestClip\tsfx_test_clip\tRaw Assets/Sound Effects/clip.wav\t1.0\n",
+            encoding="utf-8",
+        )
+
+        conversion_log = root / "afconvert.log"
+        afconvert = root / "bin/afconvert"
+        afconvert.write_text(
+            "#!/usr/bin/env bash\n"
+            "printf 'convert\\n' >> \"$AFCONVERT_LOG\"\n"
+            "cp \"$1\" \"$2\"\n",
+            encoding="utf-8",
+        )
+        afconvert.chmod(0o755)
+        environment = {
+            **os.environ,
+            "PATH": f"{root / 'bin'}:{os.environ['PATH']}",
+            "AFCONVERT_LOG": str(conversion_log),
+        }
+        return root, environment, conversion_log
+
+    def run_sfx_fixture(
+        self, root: Path, environment: dict[str, str]
+    ) -> subprocess.CompletedProcess[str]:
+        return subprocess.run(
+            [str(root / "Scripts/prepare-sfx-assets.sh")],
+            cwd=root,
+            env=environment,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+
+    def test_sfx_cache_tracks_profile_state_output_and_force(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root, environment, conversion_log = self.make_sfx_fixture(directory)
+
+            def assert_run(expected_conversions: int, **overrides: str) -> None:
+                result = self.run_sfx_fixture(root, {**environment, **overrides})
+                self.assertEqual(result.returncode, 0, result.stderr)
+                conversion_count = conversion_log.read_text(encoding="utf-8").count("convert")
+                self.assertEqual(conversion_count, expected_conversions)
+
+            assert_run(1)
+            generated = (
+                root
+                / "Packages/TrinketContent/Sources/TrinketContent/Generated/SFXCatalog.generated.swift"
+            ).read_text(encoding="utf-8")
+            self.assertIn('public static let testClip = "test_clip"', generated)
+            state = (
+                root
+                / "Packages/TrinketContent/Sources/TrinketContent/Generated/SFXSourceHashes.generated.tsv"
+            )
+            with state.open("a", encoding="utf-8") as handle:
+                handle.write("orphan\tstale\tstale-profile\n")
+
+            assert_run(1)
+            self.assertNotIn("orphan", state.read_text(encoding="utf-8"))
+
+            assert_run(2, SFX_AAC_BITRATE="96000")
+
+            state.unlink()
+            assert_run(3)
+
+            output = root / "Trinket/Media/SFX/sfx_test_clip.m4a"
+            output.unlink()
+            assert_run(4)
+
+            assert_run(5, FORCE_ASSET_REENCODE="1")
+
+    def test_sfx_manifest_rejects_invalid_and_duplicate_swift_symbols(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root, environment, _ = self.make_sfx_fixture(directory)
+            manifest = root / "SoundManifest/sfx.tsv"
+            for reserved in ("repeat", "actor", "async", "package"):
+                manifest.write_text(
+                    f"test_clip\t{reserved}\tsfx_test_clip\tRaw Assets/Sound Effects/clip.wav\t1.0\n",
+                    encoding="utf-8",
+                )
+                invalid = self.run_sfx_fixture(root, environment)
+                self.assertNotEqual(invalid.returncode, 0, reserved)
+                self.assertIn("reserved Swift keyword", invalid.stderr, reserved)
+
+            manifest.write_text(
+                "first\tsharedSymbol\tsfx_first\tRaw Assets/Sound Effects/clip.wav\t1.0\n"
+                "second\tsharedSymbol\tsfx_second\tRaw Assets/Sound Effects/clip.wav\t1.0\n",
+                encoding="utf-8",
+            )
+            duplicate = self.run_sfx_fixture(root, environment)
+            self.assertNotEqual(duplicate.returncode, 0)
+            self.assertIn("Duplicate SFX Swift symbol 'sharedSymbol'", duplicate.stderr)
+
+    def test_media_orphan_pruning_is_extension_scoped(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            resources = root / "Media"
+            resources.mkdir()
+            active = root / "active.txt"
+            active.write_text("keep.mp4\n", encoding="utf-8")
+            for name in ("keep.mp4", "remove.mp4", "ignore.m4a"):
+                (resources / name).write_text(name, encoding="utf-8")
+
+            result = subprocess.run(
+                [
+                    "bash",
+                    "-c",
+                    'source "$1"; trinket_asset_prune_orphans "$2" "$3" cinematic mp4',
+                    "media-prune-test",
+                    str(ROOT / "Scripts/lib/media-assets.sh"),
+                    str(resources),
+                    str(active),
+                ],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertTrue((resources / "keep.mp4").exists())
+            self.assertFalse((resources / "remove.mp4").exists())
+            self.assertTrue((resources / "ignore.m4a").exists())
+
     def test_publicize_ignores_braces_in_string_literals(self) -> None:
         source = 'struct Thing {\n    let brace = "}"\n    let value = 1\n}\n'
         output = self.codegen.publicize(source)

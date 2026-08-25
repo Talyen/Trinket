@@ -1,3 +1,4 @@
+import BattleEngine
 import Foundation
 import TrinketCore
 import TrinketDesignSystem
@@ -9,24 +10,32 @@ import TrinketFeatureSupport
 /// glyph atlas already prewarms the full digit alphabet so warm numeric blits stay
 /// sub-millisecond. Caching every magnitude × keyword would cost tens of thousands
 /// of CGImages.
-@MainActor
 enum CombatFeedbackRasterCatalog {
     /// Every closed (non-numeric) chip the presenter can emit, in both headline and
     /// secondary roles so dense groups stay cache-warm.
     static func closedVocabularyItems(at date: Date = .now) -> [CombatFeedbackItem] {
-        let wordSources = wordSources()
         let expiresAt = date.addingTimeInterval(1)
         var items: [CombatFeedbackItem] = []
-        for role in CombatFeedbackPresentationRole.allCases {
-            for source in wordSources {
-                items.append(
-                    catalogItem(
-                        from: source,
-                        presentationRole: role,
-                        availableAt: date,
-                        expiresAt: expiresAt
-                    )
+        var preparedAppearances: Set<PreparedAppearance> = []
+        var nextID = 1
+        for source in liveWordSources {
+            for role in CombatFeedbackPresentationRole.allCases {
+                let item = catalogItem(
+                    from: source,
+                    id: nextID,
+                    presentationRole: role,
+                    availableAt: date,
+                    expiresAt: expiresAt
                 )
+                let appearance = PreparedAppearance(
+                    typography: item.feedbackClass.typographyTier,
+                    presentationRole: role,
+                    presentation: item.chipPresentation
+                )
+                if preparedAppearances.insert(appearance).inserted {
+                    items.append(item)
+                    nextID += 1
+                }
             }
         }
         return items
@@ -38,125 +47,117 @@ enum CombatFeedbackRasterCatalog {
         CombatFeedbackOverlayPolicy.orderedChips(from: closedVocabularyItems(at: date))
     }
 
+    /// Unique short word texts drawn next to a keyword icon, derived from the
+    /// closed-vocabulary catalog rather than a parallel keyword inventory.
+    static func wordAtlasFragments(for typography: CombatFeedbackTypographyTier) -> [String] {
+        var seen: Set<String> = []
+        var fragments: [String] = []
+        for item in closedVocabularyItems() where item.feedbackClass.typographyTier == typography {
+            guard let text = item.chipPresentation.text, !text.isEmpty else { continue }
+            if seen.insert(text).inserted {
+                fragments.append(text)
+            }
+        }
+        return fragments
+    }
+
     private struct CatalogSource {
-        let id: Int
         let feedbackClass: CombatFeedbackClass
         let keyword: Keyword
         let visualRole: CombatFeedbackVisualRole
         let label: CombatFeedbackChipLabel
-        let reactionKind: CombatantHitReactionKind
     }
 
-    private static func wordSources() -> [CatalogSource] {
-        var sources = specialWordSources(startingID: 1)
-        sources += keywordWordSources(startingID: sources.count + 1)
-        sources += statusWordSources(startingID: sources.count + 1)
-        return sources
+    private struct PreparedAppearance: Hashable {
+        let typography: CombatFeedbackTypographyTier
+        let presentationRole: CombatFeedbackPresentationRole
+        let presentation: CombatFeedbackChipPresentation
     }
 
-    private static func specialWordSources(startingID: Int) -> [CatalogSource] {
-        [
-            source(
-                id: startingID,
-                feedbackClass: .dodge,
-                keyword: .dodge,
-                visualRole: .keyword,
-                label: .word(.dodge),
-                reactionKind: .dodge
-            ),
-            source(
-                id: startingID + 1,
-                feedbackClass: .critical,
-                keyword: .physical,
-                visualRole: .keyword,
-                label: .word(.critical),
-                reactionKind: .critical
-            ),
-            source(
-                id: startingID + 2,
-                feedbackClass: .deathsDoor,
-                keyword: .deathsDoor,
-                visualRole: .keyword,
-                label: .word(.plain(.deathsDoor))
-            ),
-        ]
+    private struct ResolvedAppearance: Hashable {
+        let typography: CombatFeedbackTypographyTier
+        let presentation: CombatFeedbackChipPresentation
     }
 
-    private static func keywordWordSources(startingID: Int) -> [CatalogSource] {
+    /// Presenter enumeration is independent of chip dates/roles; share one result
+    /// across catalog warmup and glyph-atlas fragment collection.
+    private static let liveWordSources: [CatalogSource] = {
         var sources: [CatalogSource] = []
-        var nextID = startingID
-        for keyword in Keyword.allCases {
-            if keyword != .deathsDoor {
-                sources.append(contentsOf: [
-                    source(id: nextID, feedbackClass: .buff, keyword: keyword, label: .word(.plain(keyword))),
-                    source(
-                        id: nextID + 1,
-                        feedbackClass: .buff,
-                        keyword: keyword,
-                        label: .word(.applied(keyword))
-                    ),
-                    source(
-                        id: nextID + 2,
-                        feedbackClass: .buff,
-                        keyword: keyword,
-                        label: .word(.triggered(keyword))
-                    ),
-                ])
-                nextID += 3
+        for outcome in ActionEvent.EffectOutcome.allCases {
+            let descriptor = CombatFeedbackEffectPresentation.descriptor(for: outcome)
+            guard descriptor.shouldDisplay(amount: 1), isClosedVocabulary(descriptor) else {
+                continue
             }
-            sources.append(contentsOf: [
-                source(id: nextID, feedbackClass: .buff, keyword: keyword, label: .word(.cleanse(keyword))),
-                source(id: nextID + 1, feedbackClass: .buff, keyword: keyword, label: .word(.purge(keyword))),
-            ])
-            nextID += 2
+            var seenAppearances: Set<ResolvedAppearance> = []
+            for keyword in Keyword.allCases {
+                let event = catalogEvent(outcome: outcome, keyword: keyword)
+                for item in CombatFeedbackPresenter.makeItems(
+                    from: [event],
+                    at: Date(timeIntervalSince1970: 0)
+                ) {
+                    let appearance = ResolvedAppearance(
+                        typography: item.feedbackClass.typographyTier,
+                        presentation: item.chipPresentation
+                    )
+                    guard seenAppearances.insert(appearance).inserted else { continue }
+                    sources.append(
+                        CatalogSource(
+                            feedbackClass: item.feedbackClass,
+                            keyword: item.keyword,
+                            visualRole: item.visualRole,
+                            label: item.label
+                        )
+                    )
+                }
+            }
         }
         return sources
-    }
+    }()
 
-    private static func statusWordSources(startingID: Int) -> [CatalogSource] {
-        CombatFeedbackStatusLabel.allCases.enumerated().map { offset, status in
-            source(
-                id: startingID + offset,
-                feedbackClass: .buff,
-                keyword: .holy,
-                visualRole: .beneficialStatus,
-                label: .word(.status(status))
-            )
+    private static func isClosedVocabulary(
+        _ descriptor: CombatFeedbackEffectPresentation.Descriptor
+    ) -> Bool {
+        if descriptor.statusLabel != nil {
+            return true
+        }
+        switch descriptor.labelRule {
+        case .dodgeWord, .plainKeyword, .appliedKeyword, .triggeredKeyword,
+             .cleanseKeyword, .purgeKeyword, .deathsDoorIcon:
+            return true
+        case .amount, .negatedAmount, nil:
+            return false
         }
     }
 
-    private static func source(
-        id: Int,
-        feedbackClass: CombatFeedbackClass,
-        keyword: Keyword,
-        visualRole: CombatFeedbackVisualRole = .keyword,
-        label: CombatFeedbackChipLabel,
-        reactionKind: CombatantHitReactionKind = .none
-    ) -> CatalogSource {
-        CatalogSource(
-            id: id,
-            feedbackClass: feedbackClass,
-            keyword: keyword,
-            visualRole: visualRole,
-            label: label,
-            reactionKind: reactionKind
+    private static func catalogEvent(
+        outcome: ActionEvent.EffectOutcome,
+        keyword: Keyword
+    ) -> ActionEvent {
+        ActionEvent(
+            id: 1,
+            actionID: 1,
+            kind: .effect,
+            effectKind: outcome,
+            actorName: "Hero",
+            abilityName: "Catalog",
+            targetID: "catalog",
+            targetName: "Catalog",
+            amount: 1,
+            keyword: keyword
         )
     }
 
     private static func catalogItem(
         from source: CatalogSource,
+        id: Int,
         presentationRole: CombatFeedbackPresentationRole,
         availableAt: Date,
         expiresAt: Date
     ) -> CombatFeedbackItem {
-        let roleBias = switch presentationRole {
-        case .headline: 0
-        case .secondary: 0x1000_0000
-        }
-        return CombatFeedbackItem(
-            id: source.id &+ roleBias,
-            sourceEventIDs: [source.id],
-            actionGroupID: source.id,
+        CombatFeedbackItem(
+            id: id,
+            sourceEventIDs: [id],
+            actionGroupID: id,
             presentationIndex: presentationRole == .headline ? 0 : 1,
             groupResultCount: presentationRole == .headline ? 1 : 4,
             presentationRole: presentationRole,
@@ -167,7 +168,7 @@ enum CombatFeedbackRasterCatalog {
             label: source.label,
             availableAt: availableAt,
             expiresAt: expiresAt,
-            reactionKind: source.reactionKind
+            reactionKind: .none
         )
     }
 }

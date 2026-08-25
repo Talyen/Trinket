@@ -10,6 +10,12 @@ import TrinketFeatureSupport
 /// and chip label rule all read from this table instead of parallel switches.
 /// Table completeness is enforced by `CombatFeedbackEffectPresentationTests`.
 enum CombatFeedbackEffectPresentation {
+    enum DisplayRule: Equatable {
+        case visible
+        case positiveAmountOnly
+        case hidden
+    }
+
     /// How an event's chip label is derived. `nil` means the chip renders as a
     /// status icon driven by `statusLabel`.
     enum LabelRule {
@@ -31,34 +37,57 @@ enum CombatFeedbackEffectPresentation {
         let isAdditive: Bool
         let statusLabel: CombatFeedbackStatusLabel?
         let labelRule: LabelRule?
+        let displayRule: DisplayRule
 
         init(
             _ feedbackClass: CombatFeedbackClass,
             visualRole: CombatFeedbackVisualRole = .keyword,
             isAdditive: Bool = false,
             statusLabel: CombatFeedbackStatusLabel? = nil,
-            labelRule: LabelRule? = nil
+            labelRule: LabelRule? = nil,
+            displayRule: DisplayRule = .visible
         ) {
             self.feedbackClass = feedbackClass
             self.visualRole = visualRole
             self.isAdditive = isAdditive
             self.statusLabel = statusLabel
             self.labelRule = labelRule
+            self.displayRule = displayRule
+        }
+
+        func shouldDisplay(amount: Int) -> Bool {
+            switch displayRule {
+            case .visible:
+                true
+            case .positiveAmountOnly:
+                amount >= 0
+            case .hidden:
+                false
+            }
         }
     }
 
     private static let table: [ActionEvent.EffectOutcome: Descriptor] = [
         .instantHeal: Descriptor(.heal, isAdditive: true, labelRule: .amount),
         .leechHeal: Descriptor(.heal, isAdditive: true, labelRule: .amount),
-        .resourceGain: Descriptor(.resource, isAdditive: true, labelRule: .amount),
+        .resourceGain: Descriptor(
+            .resource,
+            isAdditive: true,
+            labelRule: .amount,
+            displayRule: .positiveAmountOnly
+        ),
         .manaShieldTriggered: Descriptor(.resource, isAdditive: true, labelRule: .amount),
-        .cardsDrawn: Descriptor(.resource, isAdditive: true, labelRule: .amount),
+        .cardsDrawn: Descriptor(
+            .resource,
+            isAdditive: true,
+            labelRule: .amount,
+            displayRule: .hidden
+        ),
         .shieldApplied: Descriptor(.buff, isAdditive: true, labelRule: .amount),
         .shieldAbsorbed: Descriptor(.block, isAdditive: true, labelRule: .negatedAmount),
         .dodgeApplied: Descriptor(.dodge, labelRule: .dodgeWord),
         .controlActionSkipped: Descriptor(.control, labelRule: .plainKeyword),
-        // Filtered before display (control noise); classified for completeness.
-        .controlApplied: Descriptor(.control, labelRule: .appliedKeyword),
+        .controlApplied: Descriptor(.control, labelRule: .appliedKeyword, displayRule: .hidden),
         .controlTriggered: Descriptor(.control, labelRule: .triggeredKeyword),
         .cleanseApplied: Descriptor(.buff, labelRule: .cleanseKeyword),
         .purgeApplied: Descriptor(.buff, labelRule: .purgeKeyword),
@@ -66,8 +95,7 @@ enum CombatFeedbackEffectPresentation {
         .deathsDoorExpired: Descriptor(.deathsDoor, labelRule: .deathsDoorIcon),
         .thornsTriggered: Descriptor(.directDamage, isAdditive: true, labelRule: .negatedAmount),
         .markedConsumed: Descriptor(.directDamage, isAdditive: true, labelRule: .negatedAmount),
-        // Filtered before display (passive mechanic); classified for completeness.
-        .leechApplied: Descriptor(.buff, labelRule: .plainKeyword),
+        .leechApplied: Descriptor(.buff, labelRule: .plainKeyword, displayRule: .hidden),
         .shieldHalved: Descriptor(.buff, visualRole: .negativeStatus, statusLabel: .blockDown),
         .thornsApplied: Descriptor(.buff, visualRole: .beneficialStatus, statusLabel: .thorns),
         .markedApplied: Descriptor(.buff, visualRole: .negativeStatus, statusLabel: .marked),

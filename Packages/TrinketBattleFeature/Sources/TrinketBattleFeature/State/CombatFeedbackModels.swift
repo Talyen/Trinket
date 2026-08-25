@@ -8,14 +8,6 @@ enum CombatFeedbackVisualRole: Equatable {
     case keyword
     case beneficialStatus
     case negativeStatus
-
-    var cacheKey: String {
-        switch self {
-        case .keyword: "keyword"
-        case .beneficialStatus: "beneficialStatus"
-        case .negativeStatus: "negativeStatus"
-        }
-    }
 }
 
 /// View-facing combat feedback item produced from one or more `ActionEvent`s.

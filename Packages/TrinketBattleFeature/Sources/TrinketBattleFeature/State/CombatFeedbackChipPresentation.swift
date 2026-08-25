@@ -5,11 +5,23 @@ import TrinketFeatureSupport
 
 /// Resolved glyphs + optional short text for one combat floating chip.
 /// Dual-symbol chips use independent tints (e.g. purple sparkles + Bleed red).
-struct CombatFeedbackChipPresentation {
-    let leadingSymbolName: String?
-    let leadingTint: Keyword.VisualStyle?
-    let trailingSymbolName: String
-    let trailingTint: Keyword.VisualStyle
+struct CombatFeedbackChipPresentation: Hashable {
+    enum Style: Hashable {
+        case keyword(Keyword)
+        case beneficialStatus
+        case negativeStatus
+
+        var visualStyle: Keyword.VisualStyle {
+            switch self {
+            case let .keyword(keyword): keyword.visualStyle
+            case .beneficialStatus: .beneficialStatus
+            case .negativeStatus: .negativeStatus
+            }
+        }
+    }
+
+    let leadingStyle: Style?
+    let trailingStyle: Style
     /// Visible chip text. `nil` for icon-only / dual-icon chips.
     let text: String?
 
@@ -21,75 +33,57 @@ struct CombatFeedbackChipPresentation {
     ) -> Self {
         switch label {
         case .amount:
-            let tint = trailingStyle(
+            let style = trailingStyle(
                 keyword: keyword,
                 visualRole: visualRole,
                 feedbackClass: feedbackClass
             )
             return Self(
-                leadingSymbolName: nil,
-                leadingTint: nil,
-                trailingSymbolName: tint.symbolName,
-                trailingTint: tint,
+                leadingStyle: nil,
+                trailingStyle: style,
                 text: label.displayString
             )
         case let .word(word):
             return resolveWord(
                 word,
-                keyword: keyword,
-                visualRole: visualRole,
-                feedbackClass: feedbackClass
+                keyword: keyword
             )
         }
     }
 
     private static func resolveWord(
         _ word: CombatFeedbackChipWord,
-        keyword: Keyword,
-        visualRole: CombatFeedbackVisualRole,
-        feedbackClass: CombatFeedbackClass
+        keyword: Keyword
     ) -> Self {
         switch word {
         case .dodge:
-            iconOnly(trailing: Keyword.dodge.visualStyle)
-        case .critical:
-            textAndIcon(
-                trailing: trailingStyle(
-                    keyword: keyword,
-                    visualRole: visualRole,
-                    feedbackClass: feedbackClass
-                ),
-                // Single source of truth with the glyph atlas (composeText).
-                text: word.composeText ?? ""
-            )
+            iconOnly(trailing: .keyword(.dodge))
         case let .plain(chipKeyword):
             if chipKeyword == .deathsDoor {
-                iconOnly(trailing: Keyword.deathsDoor.visualStyle)
+                iconOnly(trailing: .keyword(.deathsDoor))
             } else {
-                textAndIcon(trailing: chipKeyword.visualStyle, text: chipKeyword.rawValue)
+                textAndIcon(trailing: .keyword(chipKeyword), text: chipKeyword.rawValue)
             }
         case let .applied(chipKeyword):
-            textAndIcon(trailing: chipKeyword.visualStyle, text: chipKeyword.rawValue)
+            textAndIcon(trailing: .keyword(chipKeyword), text: chipKeyword.rawValue)
         case let .triggered(chipKeyword):
-            textAndIcon(trailing: chipKeyword.visualStyle, text: chipKeyword.rawValue)
+            textAndIcon(trailing: .keyword(chipKeyword), text: chipKeyword.rawValue)
         case let .cleanse(chipKeyword):
-            dualAction(leading: Keyword.purge.visualStyle, trailing: chipKeyword.visualStyle)
+            dualAction(leading: .keyword(.purge), trailing: .keyword(chipKeyword))
         case let .purge(chipKeyword):
-            dualAction(leading: Keyword.purge.visualStyle, trailing: chipKeyword.visualStyle)
+            dualAction(leading: .keyword(.purge), trailing: .keyword(chipKeyword))
         case let .status(status):
             resolveStatus(status, keyword: keyword)
         }
     }
 
     private static func textAndIcon(
-        trailing: Keyword.VisualStyle,
+        trailing: Style,
         text: String
     ) -> Self {
         Self(
-            leadingSymbolName: nil,
-            leadingTint: nil,
-            trailingSymbolName: trailing.symbolName,
-            trailingTint: trailing,
+            leadingStyle: nil,
+            trailingStyle: trailing,
             text: text
         )
     }
@@ -98,59 +92,54 @@ struct CombatFeedbackChipPresentation {
         _ status: CombatFeedbackStatusLabel,
         keyword: Keyword
     ) -> Self {
-        let beneficial = Keyword.VisualStyle.beneficialStatus
-        let negative = Keyword.VisualStyle.negativeStatus
+        let beneficial = Style.beneficialStatus
+        let negative = Style.negativeStatus
         switch status {
         case .consecrated, .nextHolyStrike, .avatar:
-            return dualAction(leading: beneficial, trailing: Keyword.holy.visualStyle)
+            return dualAction(leading: beneficial, trailing: .keyword(.holy))
         case .nextStrikeDouble:
-            return dualAction(leading: beneficial, trailing: Keyword.physical.visualStyle)
+            return dualAction(leading: beneficial, trailing: .keyword(.physical))
         case .evadeNextHit:
-            return dualAction(leading: beneficial, trailing: Keyword.dodge.visualStyle)
+            return dualAction(leading: beneficial, trailing: .keyword(.dodge))
         case .manaShield:
-            return dualAction(leading: beneficial, trailing: Keyword.mana.visualStyle)
+            return dualAction(leading: beneficial, trailing: .keyword(.mana))
         case .criticalUp, .thorns:
-            return dualAction(leading: beneficial, trailing: Keyword.physical.visualStyle)
+            return dualAction(leading: beneficial, trailing: .keyword(.physical))
         case .ward:
-            return dualAction(leading: beneficial, trailing: keyword.visualStyle)
+            return dualAction(leading: beneficial, trailing: .keyword(keyword))
         case .blockDown:
-            return dualAction(leading: negative, trailing: Keyword.block.visualStyle)
+            return dualAction(leading: negative, trailing: .keyword(.block))
         case .marked:
             return iconOnly(trailing: negative)
         case .hemorrhage:
-            return dualAction(leading: negative, trailing: Keyword.bleed.visualStyle)
+            return dualAction(leading: negative, trailing: .keyword(.bleed))
         }
     }
 
-    private static func iconOnly(trailing: Keyword.VisualStyle) -> Self {
+    private static func iconOnly(trailing: Style) -> Self {
         Self(
-            leadingSymbolName: nil,
-            leadingTint: nil,
-            trailingSymbolName: trailing.symbolName,
-            trailingTint: trailing,
+            leadingStyle: nil,
+            trailingStyle: trailing,
             text: nil
         )
     }
 
     private static func dualAction(
-        leading: Keyword.VisualStyle,
-        trailing: Keyword.VisualStyle
+        leading: Style,
+        trailing: Style
     ) -> Self {
         Self(
-            leadingSymbolName: leading.symbolName,
-            leadingTint: leading,
-            trailingSymbolName: trailing.symbolName,
-            trailingTint: trailing,
+            leadingStyle: leading,
+            trailingStyle: trailing,
             text: nil
         )
     }
 
-    /// Trailing tint for numeric / single-style chips.
     private static func trailingStyle(
         keyword: Keyword,
         visualRole: CombatFeedbackVisualRole,
         feedbackClass: CombatFeedbackClass
-    ) -> Keyword.VisualStyle {
+    ) -> Style {
         switch visualRole {
         case .beneficialStatus:
             return .beneficialStatus
@@ -161,13 +150,13 @@ struct CombatFeedbackChipPresentation {
         }
 
         return switch feedbackClass {
-        case .heal: .health
-        case .resource: keyword == .mana ? .mana : .gold
-        case .block: .block
-        case .dodge: Keyword.dodge.visualStyle
-        case .control: keyword.visualStyle
-        case .deathsDoor: Keyword.deathsDoor.visualStyle
-        case .directDamage, .critical, .dot, .buff: keyword.visualStyle
+        case .heal: .keyword(.health)
+        case .resource: .keyword(keyword == .mana ? .mana : .gold)
+        case .block: .keyword(.block)
+        case .dodge: .keyword(.dodge)
+        case .control: .keyword(keyword)
+        case .deathsDoor: .keyword(.deathsDoor)
+        case .directDamage, .critical, .dot, .buff: .keyword(keyword)
         }
     }
 }

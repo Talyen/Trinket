@@ -18,6 +18,12 @@ struct GameContentCatalogInvariantTests {
         }
     }
 
+    @Test func battlePrewarmSFXResolveInCatalog() throws {
+        for id in SFXID.battlePrewarmIDs {
+            _ = try #require(SFXCatalog.clipsByID[id], "Missing prewarm SFX id \(id)")
+        }
+    }
+
     @Test func everyStageReferencesKnownEncounterContent() throws {
         let enemyIDs = Set(GameContent.enemies.map(\.id))
         for stage in GameContent.chapters.flatMap(\.stages) {
