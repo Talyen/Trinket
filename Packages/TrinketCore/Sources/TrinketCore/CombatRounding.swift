@@ -16,6 +16,6 @@ public enum CombatRounding {
     /// Applies an integer percent bonus to `value`, clamping at zero.
     public static func scaled(_ value: Int, byPercent percent: Int) -> Int {
         guard value > 0, percent != 0 else { return max(0, value) }
-        return max(0, value + (value * percent) / 100)
+        return scaled(value, multiplier: 1.0 + Double(percent) / 100.0)
     }
 }

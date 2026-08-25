@@ -12,36 +12,14 @@ struct RewardItemRevealCard: View {
         verticalSizeClass == .compact ? 180 : 234
     }
 
-    private var astralShineKeywords: [Keyword]? {
-        item.astralShineKeywords
-    }
-
     var body: some View {
-        VStack(spacing: TrinketDesign.Metrics.mediumSpacing) {
+        ItemCard(
+            item: item,
+            showsAffixCount: false,
+            presentation: .reveal
+        ) {
             ItemArtwork(item: item)
-                .aspectRatio(3.0 / 4.0, contentMode: .fit)
                 .frame(height: artworkHeight)
-                .clipShape(TrinketDesign.cardShape)
-                .trinketCardSurface()
-                .colorShineBorder(
-                    colors: item.rarity == .unique ? UniqueShine.borderColors : nil,
-                    cornerRadius: TrinketDesign.Corners.card,
-                    lineWidth: 2
-                )
-                .keywordShineBorder(
-                    keywords: astralShineKeywords,
-                    cornerRadius: TrinketDesign.Corners.card,
-                    lineWidth: 2
-                )
-
-            VStack(spacing: TrinketDesign.Metrics.extraSmallSpacing) {
-                TrinketRarityLabel(rarity: item.rarity)
-
-                Text(balanced: item.displayName)
-                    .trinketTypography(.sectionDisplay)
-                    .uniqueShine(if: item.rarity == .unique)
-                    .multilineTextAlignment(.center)
-            }
         }
     }
 }

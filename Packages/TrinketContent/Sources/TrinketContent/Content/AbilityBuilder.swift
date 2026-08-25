@@ -13,17 +13,13 @@ enum AbilityBuilder {
         hasLeech: Bool = false
     ) -> Ability {
         let damageComponents = amount > 0 ? [DamageComponent(amount, keyword: keyword)] : []
-        var targetedEffects = extras
-        if let dot = Effect.pairedDoT(keyword: keyword, potency: amount) {
-            targetedEffects.insert(TargetedEffect(dot), at: 0)
-        }
         return Ability(
             id: id,
             name: name,
             tier: tier,
             description: description,
             damageComponents: damageComponents,
-            targetedEffects: targetedEffects,
+            targetedEffects: extras,
             hasLeech: hasLeech
         )
     }

@@ -13,41 +13,25 @@ enum AbilityValidator {
 
     static let descriptionOverrideIDs: Set<String> = [
         "astral-arrow",
-        "avatar-of-justice",
         "blessed-aegis",
         "bounty-shot",
         "cold-snap",
-        "combustion",
         "dark-pact",
         "earthquake",
-        "faustian-bargain",
-        "fire-arrow",
         "glacial-ward",
         "golden-plate",
-        "hemorrhage",
-        "meteor",
-        "molten-bulwark",
         "panacea-potion",
-        "phoenix-feather",
         "pounce",
         "predators-focus",
         "sap-arrow",
-        "serrated-edge",
         "shadowstep",
         "smite",
         "sunburst",
         "thorn-mail",
     ]
 
-    static let doTPairingExemptIDs: Set<String> = [
-        "mana-berries",
-        "pixie-dust",
-        "faustian-bargain",
-    ]
-
     static func validate(_ ability: Ability) -> [Issue] {
         var issues = validateEffectTargets(for: ability)
-        issues.append(contentsOf: validatePairedDoTComponents(for: ability))
         issues.append(contentsOf: validateTierDamage(for: ability))
         issues.append(contentsOf: validateDescription(for: ability))
         issues.append(contentsOf: validateConditionalDamage(for: ability))
@@ -81,27 +65,6 @@ enum AbilityValidator {
                 }
             default:
                 continue
-            }
-        }
-
-        return issues
-    }
-
-    private static func validatePairedDoTComponents(for ability: Ability) -> [Issue] {
-        var issues: [Issue] = []
-
-        for component in ability.damageComponents where component.target == .abilityTarget {
-            guard Effect.pairedDoT(keyword: component.keyword, potency: component.amount) != nil else {
-                continue
-            }
-            let hasPair = ability.effects.contains {
-                $0.keyword == component.keyword && $0.potency == component.amount
-            }
-            if !hasPair {
-                issues.append(Issue(
-                    abilityID: ability.id,
-                    message: "missing paired .\(String(describing: component.keyword).lowercased())(\(component.amount))"
-                ))
             }
         }
 

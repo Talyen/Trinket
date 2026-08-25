@@ -34,7 +34,6 @@ struct EffectHandlersApplyTests {
 
     @Test(arguments: [
         Effect.shield(.block, 5),
-        .standardLeechBuff,
     ])
     func defensiveBuffHandlersApplyAndEmitEvents(effect: Effect) throws {
         var battle = EffectHandlersTestSupport.makeBattle()
@@ -56,35 +55,9 @@ struct EffectHandlersApplyTests {
                 return false
             })
             try #expect(outcome.events.contains { $0.effectKind == .shieldApplied && $0.amount == 5 })
-        case .standardLeechBuff:
-            try #expect(battle.activeEffects(of: battle.hero).contains {
-                $0.effect.keyword == .leech && !$0.effect.isInstant
-            })
-            try #expect(outcome.events.contains { $0.effectKind == .leechApplied })
         default:
             Issue.record("Unexpected defensive buff \(effect)")
         }
-    }
-
-    @Test func leechHandlerReplacesExistingLeechInsteadOfStacking() throws {
-        var battle = EffectHandlersTestSupport.makeBattle()
-        _ = EffectHandlersTestSupport.dispatch(
-            .standardLeechBuff,
-            ability: CombatantFixtures.ability(),
-            source: battle.hero,
-            target: battle.hero,
-            battle: &battle
-        )
-        let outcome = EffectHandlersTestSupport.dispatch(
-            .standardLeechBuff,
-            ability: CombatantFixtures.ability(),
-            source: battle.hero,
-            target: battle.hero,
-            battle: &battle
-        )
-        try #expect(outcome.didApply)
-        let leechStacks = battle.activeEffects(of: battle.hero).filter { $0.effect.keyword == .leech }
-        try #expect(leechStacks.count == 1)
     }
 
     @Test func drawCardsHandlerDrawsIntoHandAndEmitsEvent() throws {

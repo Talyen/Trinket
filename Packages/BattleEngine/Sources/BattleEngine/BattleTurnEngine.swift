@@ -62,12 +62,10 @@ public enum BattleTurnEngine {
         ability: Ability,
         actor: Combatant,
         abilityTarget: Combatant,
-        context: inout BattleState,
-        chosenBranchIndex: Int? = nil
+        context: inout BattleState
     ) -> [ActionEvent] {
         var events: [ActionEvent] = []
         var resolvedAbility = ability.resolvingOutcomeBranch(
-            preferredIndex: chosenBranchIndex,
             using: &context.rng
         )
         events.append(contentsOf: spendManaToEmpowerBurnOrFreezeIfNeeded(
@@ -88,7 +86,6 @@ public enum BattleTurnEngine {
             ability: resolvedAbility,
             actor: actor,
             abilityTarget: abilityTarget,
-            pairedDirectDamage: damageOutcome.pairedDirectDamage,
             context: &context,
             events: &events
         )
@@ -145,7 +142,6 @@ extension BattleTurnEngine {
     private struct DamageComponentOutcome {
         let events: [ActionEvent]
         let resolvedComponents: [ResolvedDamageComponent]
-        let pairedDirectDamage: [PairedDamage]
         let logDamageKeyword: Keyword?
 
         var totalDealt: Int {
@@ -162,7 +158,6 @@ extension BattleTurnEngine {
     ) -> DamageComponentOutcome {
         var events: [ActionEvent] = []
         var resolvedComponents: [ResolvedDamageComponent] = []
-        var pairedDirectDamage: [PairedDamage] = []
         var logDamageKeyword: Keyword?
         let keywordOverride = activeDamageKeywordOverride(for: actor, in: context)
 
@@ -271,19 +266,52 @@ extension BattleTurnEngine {
             if shouldConsumeNextStrikeCritical {
                 removeActiveEffect(for: actor, in: &context) { $0 == .nextStrikeCritical }
             }
-
-            // Pairing feeds on-hit DoT effects; self HP costs are not attack damage.
             if amount > 0, !isSelfHealthCost {
-                pairedDirectDamage.append(PairedDamage(keyword: damageKeyword, amount: amount))
+                events.append(contentsOf: consumeHemorrhageIfActive(for: actor, in: &context))
+                events.append(contentsOf: applyDoTStackFromDamage(
+                    keyword: damageKeyword,
+                    potency: amount,
+                    to: damageTarget,
+                    sourceActorID: actor.id,
+                    context: &context
+                ))
             }
         }
 
         return DamageComponentOutcome(
             events: events,
             resolvedComponents: resolvedComponents,
-            pairedDirectDamage: pairedDirectDamage,
             logDamageKeyword: logDamageKeyword
         )
+    }
+
+    private static func applyDoTStackFromDamage(
+        keyword: Keyword,
+        potency: Int,
+        to target: Combatant,
+        sourceActorID: String,
+        context: inout BattleState
+    ) -> [ActionEvent] {
+        switch keyword {
+        case .burn, .poison:
+            context.applyDecayingDoT(
+                keyword: keyword,
+                potency: potency,
+                to: target,
+                sourceActorID: sourceActorID,
+                dealImmediateDamage: false
+            )
+        case .bleed:
+            DoTApplicator.applyBleed(
+                potency: potency,
+                to: target,
+                sourceActorID: sourceActorID,
+                dealImmediateDamage: false,
+                in: &context
+            )
+        default:
+            []
+        }
     }
 
     private static func activeDamageKeywordOverride(
@@ -314,16 +342,71 @@ extension BattleTurnEngine {
         ActiveEffectMutation.removeMatching(from: actor, in: &context, where: matches)
     }
 
+    private static func consumeHemorrhageIfActive(
+        for actor: Combatant,
+        in context: inout BattleState
+    ) -> [ActionEvent] {
+        var hemorrhageDamage: Int?
+        for active in context.roster.activeEffects(for: actor) {
+            if case let .hemorrhage(damage) = active.effect {
+                hemorrhageDamage = damage
+                break
+            }
+        }
+        guard let hemorrhageDamage else { return [] }
+        removeActiveEffect(for: actor, in: &context) {
+            if case .hemorrhage = $0 {
+                return true
+            }
+            return false
+        }
+        let hemorrhageOutcome = context.resolveDamage(
+            DamageRequest(
+                amount: hemorrhageDamage,
+                target: actor,
+                keyword: .bleed,
+                sourceActorID: actor.id,
+                options: DamageOptions(
+                    applyStatBonus: false,
+                    applyItemBonus: false,
+                    applyDodge: false,
+                    isRetaliation: true
+                )
+            )
+        )
+        var hemorrhageEvents = hemorrhageOutcome.events
+        if let lastIndex = hemorrhageEvents.indices.last {
+            let event = hemorrhageEvents[lastIndex]
+            hemorrhageEvents[lastIndex] = event.with(
+                effectKind: .hemorrhageTriggered,
+                actorID: actor.id,
+                actorName: actor.name,
+                abilityName: "Hemorrhage"
+            )
+        } else if hemorrhageOutcome.healthLost > 0 {
+            hemorrhageEvents.append(context.nextEvent(
+                kind: .effect,
+                effectKind: .hemorrhageTriggered,
+                actorID: actor.id,
+                actorName: actor.name,
+                abilityName: "Hemorrhage",
+                target: actor,
+                amount: hemorrhageOutcome.healthLost,
+                keyword: .bleed
+            ))
+        }
+        return hemorrhageEvents
+    }
+
     private static func applyTargetedEffects(
         ability: Ability,
         actor: Combatant,
         abilityTarget: Combatant,
-        pairedDirectDamage: [PairedDamage],
         context: inout BattleState,
         events: inout [ActionEvent]
     ) -> [String] {
         var appliedEffectLogs: [String] = []
-        let actionContext = ActionApplyContext(pairedDirectDamage: pairedDirectDamage)
+        let actionContext = ActionApplyContext()
 
         for targetedEffect in ability.targetedEffects {
             if let condition = targetedEffect.condition,

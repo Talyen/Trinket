@@ -19,13 +19,7 @@ public extension PlayerSaveStore {
     func equippedCombatantName(for itemID: String) -> String? {
         for (combatantID, loadout) in roster.equipmentLoadouts {
             guard loadout.itemIDsBySlot.values.contains(itemID) else { continue }
-            if let hero = GameContent.heroes.first(where: { $0.id == combatantID }) {
-                return hero.name
-            }
-            if let companion = GameContent.companions.first(where: { $0.id == combatantID }) {
-                return companion.name
-            }
-            return combatantID
+            return GameContent.combatant(matching: combatantID)?.name ?? combatantID
         }
         return nil
     }

@@ -94,8 +94,33 @@ struct OnHitDamageHandler: BattleEffectHandler {
 struct MarkedHandler: BattleEffectHandler {
     let kind: EffectKind = .marked
 
-    func summary(for _: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
-        EffectSummary(keyword: keyword, text: "Marked")
+    func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
+        guard !stacks.isEmpty else { return nil }
+        let bonus = stacks.reduce(0) { maxBonus, item in
+            if case let .marked(value, _) = item.effect {
+                return max(maxBonus, value)
+            }
+            return maxBonus
+        }
+        let maxTicks = TimedBuffSummary.minRemainingTurns(in: stacks) { effect in
+            if case let .marked(_, duration) = effect {
+                return duration
+            }
+            return nil
+        }
+        if bonus > 0 {
+            if maxTicks > 0 {
+                return EffectSummary(
+                    keyword: keyword,
+                    text: "Marked: takes +\(bonus) damage from attacks, \(BattleTiming.remainingDurationLabel(turns: maxTicks))."
+                )
+            }
+            return EffectSummary(
+                keyword: keyword,
+                text: "Marked: takes +\(bonus) damage from attacks."
+            )
+        }
+        return EffectSummary(keyword: keyword, text: "Marked: takes extra damage from attacks.")
     }
 
     func apply(
@@ -257,6 +282,44 @@ struct DamageKeywordOverrideHandler: BattleEffectHandler {
             in: &context,
             replacing: { $0.kind == .damageKeywordOverride },
             event: (.damageKeywordOverrideApplied, bonus, keyword)
+        )
+        return EffectApplyOutcome(events: [event], didApply: true)
+    }
+}
+
+struct HemorrhageHandler: BattleEffectHandler {
+    let kind: EffectKind = .hemorrhage
+
+    func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
+        let amount = stacks.reduce(0) { maxAmount, active in
+            if case let .hemorrhage(value) = active.effect {
+                return max(maxAmount, value)
+            }
+            return maxAmount
+        }
+        guard amount > 0 else { return nil }
+        return EffectSummary(keyword: keyword, text: "Hemorrhage: \(amount) Bleed (on next attack).")
+    }
+
+    func apply(
+        _ effect: Effect,
+        ability: Ability,
+        source: Combatant,
+        target: Combatant,
+        action _: ActionApplyContext,
+        in context: inout BattleState
+    ) -> EffectApplyOutcome {
+        guard case let .hemorrhage(amount) = effect, amount > 0 else {
+            return EffectApplyOutcome(events: [], didApply: false)
+        }
+        let event = ActiveEffectMutation.replaceAndEmit(
+            .hemorrhage(amount),
+            to: target,
+            source: source,
+            ability: ability,
+            in: &context,
+            replacing: { $0.kind == .hemorrhage },
+            event: (.hemorrhageApplied, amount, .bleed)
         )
         return EffectApplyOutcome(events: [event], didApply: true)
     }

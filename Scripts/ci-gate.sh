@@ -6,6 +6,46 @@ cd "$(dirname "$0")/.."
 # shellcheck source=lib/tools.sh
 source Scripts/lib/tools.sh
 
+FAST=false
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --fast) FAST=true ;;
+    --help|-h)
+      cat <<'USAGE'
+Usage: ./Scripts/ci-gate.sh [--fast]
+
+Full gate (default): generation, style, module boundaries, script regressions,
+Swift Testing policy, and release-note validation.
+
+--fast skips generation and style (already covered by handoff/push) and runs
+only the cheap full-tree slices: module boundaries, Swift Testing migration,
+and release-note validation.
+USAGE
+      exit 0
+      ;;
+    *)
+      echo "Unknown argument: $1" >&2
+      exit 1
+      ;;
+  esac
+  shift
+done
+
+if [[ "$FAST" == true ]]; then
+  echo "=== Module boundary check ==="
+  ./Scripts/check-module-boundaries.sh
+
+  echo "=== Swift Testing migration gate ==="
+  ./Scripts/check-swift-testing-migration.sh
+
+  echo "=== Validate release notes config ==="
+  ./Scripts/release-notes.sh validate
+
+  echo "=== Fast gate checks passed ==="
+  exit 0
+fi
+
 echo "=== Ensure pinned tools ==="
 trinket_require_pinned_tools
 

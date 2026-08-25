@@ -44,8 +44,7 @@ public enum CombatantLevelScaler {
         return CombatPowerRating.evaluate(
             maxHealth: scaled.maxHealth,
             primaryStats: scaled.primaryStats,
-            level: level,
-            powerMultiplier: EnemyPowerCurve.stats(level: level, isBoss: enemy.isBoss)
+            level: level
         )
     }
 

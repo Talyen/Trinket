@@ -22,20 +22,10 @@ enum CombatantStatusEffectKind: String, CaseIterable, Identifiable {
         }
     }
 
-    var saturationDuration: TimeInterval? {
-        switch self {
-        case .swirlingStars:
-            nil
-        case .iceCrystals:
-            TrinketMotion.Battle.combatantFreezeEncroachDuration
-        }
-    }
-
     func progress(after elapsed: TimeInterval) -> CGFloat {
-        let progress = CGFloat(
+        CGFloat(
             elapsed / TrinketMotion.Battle.combatantStatusEffectPhaseDuration
         )
-        return self == .iceCrystals ? min(progress, 1) : progress
     }
 }
 
@@ -139,8 +129,8 @@ struct CombatantStatusEffectOverlay: View {
         .allowsHitTesting(false)
     }
 
-    /// Edge snowflakes plus a faint frosty veil that creeps inward from the rim.
-    /// Encroachment caps once; the presentation clock then pauses on this frame.
+    /// Edge snowflakes plus a faint frosty veil that creeps inward from the rim
+    /// and continuously animates ambient snowflake and veil particle shimmer.
     private func iceCrystals(size: CGSize, style: Keyword.VisualStyle, phase: CGFloat) -> some View {
         let flakes = max(config.particleCount, 1)
         let encroach = min(
@@ -307,7 +297,6 @@ struct CombatantStatusEffectPresentation<Content: View>: View {
     let content: Content
 
     @State private var startDate = Date()
-    @State private var isSaturated = false
 
     init(
         keyword: Keyword?,
@@ -331,8 +320,8 @@ struct CombatantStatusEffectPresentation<Content: View>: View {
         kind: CombatantStatusEffectKind,
         config: CombatantStatusEffectConfig
     ) -> some View {
-        TimelineView(.animation(paused: isSaturated)) { timeline in
-            // Stun must keep an absolute, unbounded phase when a sheet obscures the battlefield.
+        TimelineView(.animation) { timeline in
+            // Status overlays keep an absolute, unbounded phase when active.
             let progress = kind.progress(
                 after: timeline.date.timeIntervalSince(startDate)
             )
@@ -354,17 +343,9 @@ struct CombatantStatusEffectPresentation<Content: View>: View {
         }
         .onChange(of: keyword) { _, _ in
             startDate = Date()
-            isSaturated = false
         }
         .onAppear {
             startDate = Date()
-            isSaturated = false
-        }
-        .task(id: keyword) {
-            guard let saturationDuration = kind.saturationDuration else { return }
-            try? await Task.sleep(for: .seconds(saturationDuration))
-            guard !Task.isCancelled else { return }
-            isSaturated = true
         }
     }
 }

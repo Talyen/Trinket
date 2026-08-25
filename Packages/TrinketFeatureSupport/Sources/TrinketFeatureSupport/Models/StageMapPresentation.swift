@@ -73,12 +73,6 @@ public extension Stage {
         "\(mapLabel) · \(encounterTypeTitle)"
     }
 
-    var recruitCombatant: Combatant? {
-        guard case .recruit = encounter else { return nil }
-        guard let event = mysteryEvent else { return nil }
-        return GameContent.combatant(forMysteryEvent: event)
-    }
-
     func encounterCombatantArtReference(worldSeed: UInt64) -> CombatantArtReference? {
         guard let enemyID = resolvedBattleEnemyID(worldSeed: worldSeed) else { return nil }
         return GameContent.enemy(matching: enemyID)?.combatant.artReference
@@ -88,10 +82,10 @@ public extension Stage {
         if encounter.isCombat {
             return nil
         }
+        if case let .recruit(eventID) = encounter {
+            return GameContent.recruitEncounterArtReference(forEventID: eventID)
+        }
         if encounter.eventID != nil {
-            if let recruit = recruitCombatant {
-                return GameContent.recruitEncounterArtReference(for: recruit.role)
-            }
             guard let artID = mysteryEvent?.artID else { return nil }
             return ArtCatalog.encounterArtByID[artID]
         }

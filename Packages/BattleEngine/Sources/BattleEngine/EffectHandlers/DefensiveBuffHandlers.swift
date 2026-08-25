@@ -49,57 +49,6 @@ struct BlockBuffHandler: BattleEffectHandler {
     }
 }
 
-struct LeechHandler: BattleEffectHandler {
-    let kind: EffectKind = .leech
-
-    func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
-        let percent = stacks.reduce(0.0) { maxPercent, effect in
-            if case let .leech(_, value, _) = effect.effect {
-                return max(maxPercent, value)
-            }
-            return maxPercent
-        }
-        guard percent > 0 else { return nil }
-        let maxTicks = TimedBuffSummary.minRemainingTurns(in: stacks) { effect in
-            if case let .leech(_, _, duration) = effect {
-                return duration
-            }
-            return nil
-        }
-        return EffectSummary(
-            keyword: keyword,
-            text: "\(keyword.rawValue): \(Int(percent * 100))% leech, \(BattleTiming.remainingDurationLabel(turns: maxTicks))."
-        )
-    }
-
-    func apply(
-        _ effect: Effect,
-        ability: Ability,
-        source: Combatant,
-        target: Combatant,
-        action _: ActionApplyContext,
-        in context: inout BattleState
-    ) -> EffectApplyOutcome {
-        guard case .leech = effect else {
-            return EffectApplyOutcome(events: [], didApply: false)
-        }
-        let adjusted = context.adjustedOutgoingEffect(effect, sourceID: source.id)
-        guard case let .leech(adjustedKeyword, adjustedPercent, adjustedDuration) = adjusted else {
-            return EffectApplyOutcome(events: [], didApply: false)
-        }
-        let event = ActiveEffectMutation.replaceAndEmit(
-            .leech(adjustedKeyword, adjustedPercent, adjustedDuration),
-            to: target,
-            source: source,
-            ability: ability,
-            in: &context,
-            replacing: { $0.kind == .leech },
-            event: (.leechApplied, Int(adjustedPercent * 100), adjustedKeyword)
-        )
-        return EffectApplyOutcome(events: [event], didApply: true)
-    }
-}
-
 /// Shared handler for one-shot "next …" flag effects: any existing stack of the
 /// same kind is dropped, the flag is reapplied with zero remaining turns, and a
 /// single "applied" event is emitted.

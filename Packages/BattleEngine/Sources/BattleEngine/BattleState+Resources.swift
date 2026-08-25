@@ -192,7 +192,7 @@ public extension BattleTurnEngine {
     ) -> [ActionEvent] {
         guard ability.hasManaEmpowerableBurnOrFreezeDamage else { return [] }
         let empoweredKeyword = ability.damageComponents.first(where: \.isManaEmpowerableBurnOrFreezeDamage)?.keyword
-        let repeats = ability.id == "meteor"
+        let repeats = ability.repeatsManaEmpowerment
             || (ability.hasManaEmpowerableBurnDamage
                 && context.modifiers(for: actor.id).triggers.repeatManaEmpowerment)
         // Spell Channeling / Efficient Care: talent Mana-empowerment cost reductions.

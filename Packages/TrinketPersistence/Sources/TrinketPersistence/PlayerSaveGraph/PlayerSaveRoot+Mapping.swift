@@ -61,10 +61,7 @@ public extension PlayerSaveRoot {
             worldSeed: worldSeed,
             starterSelection: mappedStarterSelection,
             journey: journey?.toJourneyProgressState() ?? .initial,
-            roster: roster?.toPlayerRosterState(
-                inventory: inventoryState,
-                schemaVersion: schemaVersion
-            ) ?? .freshStart,
+            roster: roster?.toPlayerRosterState(schemaVersion: schemaVersion) ?? .freshStart,
             inventory: inventoryState,
             homestead: homestead?.toPlayerHomesteadState() ?? .freshStart,
             spires: spires?.toPlayerSpiresState() ?? .freshStart,

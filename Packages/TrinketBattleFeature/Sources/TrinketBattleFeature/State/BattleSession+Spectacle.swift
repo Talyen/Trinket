@@ -353,7 +353,6 @@ extension BattleSession {
         clearOutcomePresentation()
         overlayCombatantDetail = nil
         overlayAbilityDetail = nil
-        pendingBranchChoice = nil
         isShowingBattleLog = false
         feedback.clear()
         clearSpectacle()
@@ -390,9 +389,6 @@ extension BattleSession {
         if overlayAbilityDetail != nil {
             overlayAbilityDetail = nil
         }
-        if pendingBranchChoice != nil {
-            pendingBranchChoice = nil
-        }
         if isShowingBattleLog {
             isShowingBattleLog = false
         }
@@ -415,7 +411,6 @@ extension BattleSession {
         feedback.release()
         overlayCombatantDetail = nil
         overlayAbilityDetail = nil
-        pendingBranchChoice = nil
         isShowingBattleLog = false
         presentationContext = nil
     }

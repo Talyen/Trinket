@@ -111,12 +111,22 @@ run_check() {
       ;;
     scripts)
       [[ "$argument" == all ]] || { echo "Unknown script check: $argument" >&2; return 2; }
-      run_profiled "test-scripts" "quiet-structured" ./Scripts/test-scripts.sh
+      if [[ "$FINAL" == true ]]; then
+        run_profiled "test-scripts" "quiet-structured" ./Scripts/test-scripts.sh --skip-docs
+      else
+        run_profiled "test-scripts" "quiet-structured" ./Scripts/test-scripts.sh
+      fi
       ;;
     *)
       echo "Unknown verification kind: $kind" >&2; return 2
       ;;
   esac
+}
+
+run_cheap_ci_slices() {
+  run_profiled "module-boundaries" "quiet-structured" ./Scripts/check-module-boundaries.sh
+  run_profiled "swift-testing-migration" "quiet-structured" ./Scripts/check-swift-testing-migration.sh
+  run_profiled "release-notes-validate" "quiet-structured" ./Scripts/release-notes.sh validate
 }
 
 while [[ $# -gt 0 ]]; do
@@ -222,5 +232,11 @@ else
     echo "UI note: no smoke owner was inferred for the changed feature path. CI smoke / exhaustive UI remain the broad net."
   fi
 fi
+
+if [[ "$QUIET" != true ]]; then
+  echo ""
+  echo "=== Cheap CI slices (boundaries, Swift Testing, release notes) ==="
+fi
+run_cheap_ci_slices
 
 exit 0

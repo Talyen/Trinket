@@ -26,19 +26,6 @@ enum AbilityDescriptionFormatter {
         return text.hasSuffix(".") ? String(text.dropLast()) : text
     }
 
-    /// Standalone sentence describing one branch, including the ability's
-    /// shared clauses (Critical bonuses, Leech) that apply to every outcome.
-    static func branchSummary(_ branch: AbilityOutcomeBranch, of ability: Ability) -> String {
-        var sentences = [capitalize(formatBranch(branch))]
-        if let critical = criticalClause(for: ability) {
-            sentences.append(capitalize(critical))
-        }
-        if ability.hasLeech {
-            sentences.append("Leech")
-        }
-        return sentences.joined(separator: ". ") + "."
-    }
-
     private static func criticalClause(for ability: Ability) -> String? {
         if ability.guaranteedCriticalIfEnemyBuffed {
             return "always Criticals if the enemy has a buff"
@@ -62,14 +49,15 @@ enum AbilityDescriptionFormatter {
         }
 
         for targetedEffect in ability.targetedEffects {
-            if isPairedDoT(targetedEffect.effect, in: enemyDamage) {
-                continue
-            }
             clauses.append(formatTargetedEffect(targetedEffect))
         }
 
         if let critical = criticalClause(for: ability) {
             clauses.append(critical)
+        }
+
+        if ability.repeatsManaEmpowerment {
+            clauses.append("convert all your Mana into bonus Burn damage")
         }
 
         let body = joinClauses(clauses)
@@ -118,11 +106,6 @@ enum AbilityDescriptionFormatter {
         }
     }
 
-    private static func isPairedDoT(_ effect: Effect, in damage: [DamageComponent]) -> Bool {
-        guard let potency = effect.potency else { return false }
-        return damage.contains { $0.keyword == effect.keyword && $0.amount == potency }
-    }
-
     private static func joinOr(_ clauses: [String]) -> String {
         guard let first = clauses.first else { return "" }
         guard clauses.count > 1 else {
@@ -148,13 +131,17 @@ enum AbilityDescriptionFormatter {
             return capitalize(first) + ". " + capitalize(joinedTail) + "."
         }
 
-        return joinWithAnd(clauses.map(capitalize)) + "."
+        let formatted = [capitalize(first)] + clauses.dropFirst().map(lowercaseFirst)
+        return joinWithAnd(formatted) + "."
     }
 
     private static func joinWithAnd(_ clauses: [String]) -> String {
         guard let first = clauses.first else { return "" }
         guard clauses.count > 1 else { return first }
-        return clauses.dropLast().joined(separator: ", ") + " and " + clauses[clauses.count - 1]
+        if clauses.count == 2 {
+            return "\(clauses[0]) and \(clauses[1])"
+        }
+        return clauses.dropLast().joined(separator: ", ") + ", and " + clauses[clauses.count - 1]
     }
 
     private static func capitalize(_ text: String) -> String {

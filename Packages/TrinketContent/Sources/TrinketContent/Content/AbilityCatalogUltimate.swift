@@ -4,7 +4,6 @@ import TrinketCore
 enum AbilityCatalogUltimate {
     static let avatarOfJustice = Ability(
         id: "avatar-of-justice", name: "Avatar", tier: .ultimate,
-        description: "Gain 4 Block and deal 6 Holy damage each turn for 2 turns.",
         targetedEffects: [
             TargetedEffect(.avatar(holyDamage: 6, blockPerTurn: 4, turns: 1)),
         ]
@@ -35,13 +34,8 @@ enum AbilityCatalogUltimate {
 
     static let combustion = Ability(
         id: "combustion", name: "Combustion", tier: .ultimate,
-        description: "Deal 4 Burn damage. Doubled if the enemy was already Burning.",
         damageComponents: [
             DamageComponent(4, keyword: .burn, bonusAmount: 4, condition: .enemyBurning),
-        ],
-        targetedEffects: [
-            TargetedEffect(.burn(4), condition: .enemyBurning),
-            TargetedEffect(.burn(4)),
         ]
     )
 
@@ -62,13 +56,11 @@ enum AbilityCatalogUltimate {
 
     static let faustianBargain = Ability(
         id: "faustian-bargain", name: "Faustian Bargain", tier: .ultimate,
-        description: "Lose 2 Health. Deal 4 Burn damage. Draw a card.",
         damageComponents: [
             DamageComponent(2, keyword: .physical, target: .actor),
             DamageComponent(4, keyword: .burn),
         ],
         targetedEffects: [
-            TargetedEffect(.burn(4)),
             TargetedEffect(.drawCards(1), target: .actor),
         ]
     )
@@ -87,12 +79,9 @@ enum AbilityCatalogUltimate {
 
     static let hemorrhage = Ability(
         id: "hemorrhage", name: "Hemorrhage", tier: .ultimate,
-        description: "Deal 4 Bleed damage. The next time the enemy attacks, they take 4 Bleed damage.",
         damageComponents: [DamageComponent(4, keyword: .bleed)],
         targetedEffects: [
-            TargetedEffect(.bleed(4)),
-            TargetedEffect(.onHitDamage(.bleed, 4), target: .hero),
-            TargetedEffect(.onHitDamage(.bleed, 4), target: .companion),
+            TargetedEffect(.hemorrhage(4)),
         ]
     )
 
@@ -107,17 +96,14 @@ enum AbilityCatalogUltimate {
 
     static let meteor = Ability(
         id: "meteor", name: "Meteor", tier: .ultimate,
-        description: "Deal 6 Burn damage. Convert all your Mana into bonus Burn damage.",
         damageComponents: [DamageComponent(6, keyword: .burn)],
-        targetedEffects: [TargetedEffect(.burn(6))]
+        repeatsManaEmpowerment: true
     )
 
     static let moltenBulwark = Ability(
         id: "molten-bulwark", name: "Molten Bulwark", tier: .ultimate,
-        description: "Deal 2 Burn damage and Gain 4 Block. Next time you're hit, Deal 3 Burn damage.",
         damageComponents: [DamageComponent(2, keyword: .burn)],
         targetedEffects: [
-            TargetedEffect(.burn(2)),
             TargetedEffect(.shield(.block, 4)),
             TargetedEffect(.onHitDamage(.burn, 3)),
         ]
@@ -138,10 +124,8 @@ enum AbilityCatalogUltimate {
 
     static let phoenixFeather = Ability(
         id: "phoenix-feather", name: "Phoenix Feather", tier: .ultimate,
-        description: "Deal 3 Burn damage and Revive an Ally.",
         damageComponents: [DamageComponent(3, keyword: .burn)],
         targetedEffects: [
-            TargetedEffect(.burn(3)),
             TargetedEffect(.revive(1), target: .defeatedAlly),
         ]
     )

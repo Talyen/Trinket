@@ -13,7 +13,6 @@ public enum EffectHandlers {
         .controlMeter: ControlMeterHandler(),
         .shield: BlockBuffHandler(),
         .instantHeal: InstantHealHandler(),
-        .leech: LeechHandler(),
         .resourceGain: ResourceGainHandler(),
         .drawCards: DrawCardsHandler(),
         .drawAndPlayCards: DrawAndPlayCardsHandler(),
@@ -33,21 +32,21 @@ public enum EffectHandlers {
             appliedEffectKind: .nextHolyStrikeApplied,
             amount: 0,
             keyword: .holy,
-            summaryText: "Next Holy Strike ready."
+            summaryText: "Holy Strike: next attack deals double Holy damage and applies Burning."
         ),
         .nextStrikeDouble: FlagEffectHandler(
             flag: .nextStrikeDouble,
             appliedEffectKind: .nextStrikeDoubleApplied,
             amount: 0,
             keyword: .physical,
-            summaryText: "Next attack deals double damage."
+            summaryText: "Double Strike: next attack deals double damage."
         ),
         .evadeNextHit: FlagEffectHandler(
             flag: .evadeNextHit,
             appliedEffectKind: .evadeNextHitApplied,
             amount: 0,
             keyword: .dodge,
-            summaryText: "Dodge the next attack."
+            summaryText: "Evasion: dodge the next attack."
         ),
         .convertManaToBlock: ShieldFromResourceHandler(mode: .convertManaToBlock, kind: .convertManaToBlock),
         .shieldFromMana: ShieldFromResourceHandler(mode: .shieldFromMana, kind: .shieldFromMana),
@@ -59,14 +58,14 @@ public enum EffectHandlers {
             appliedEffectKind: .criticalChanceApplied,
             amount: 100,
             keyword: .physical,
-            summaryText: "Next attack is a guaranteed Critical Hit."
+            summaryText: "Critical Focus: next attack is a guaranteed Critical Hit."
         ),
         .freezeNextAttacker: FlagEffectHandler(
             flag: .freezeNextAttacker,
             appliedEffectKind: .controlApplied,
             amount: 0,
             keyword: .freeze,
-            summaryText: "Freeze the next attacker."
+            summaryText: "Glacial Ward: freeze the next attacker."
         ),
         .onHitDamage: OnHitDamageHandler(),
         .multiplyDoT: MultiplyDoTHandler(),
@@ -76,6 +75,7 @@ public enum EffectHandlers {
         .damageReductionPercent: TimedDebuffHandler(kind: .damageReductionPercent),
         .damageReductionFlat: TimedDebuffHandler(kind: .damageReductionFlat),
         .strengthReduction: TimedDebuffHandler(kind: .strengthReduction),
+        .hemorrhage: HemorrhageHandler(),
     ]
 
     public static func handler(for kind: EffectKind) -> (any BattleEffectHandler)? {

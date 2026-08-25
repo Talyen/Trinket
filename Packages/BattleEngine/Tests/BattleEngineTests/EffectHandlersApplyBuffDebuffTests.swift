@@ -48,23 +48,6 @@ struct EffectHandlersApplyBuffDebuffTests {
         #expect(!Effect.controlMeter(.freeze, 1, 1).canApplyToDefeatedTarget)
     }
 
-    @Test func bleedHandlerReportsAppliedWhenPairedDamageSuppressesEvents() throws {
-        // Paired direct damage skips the immediate hit, so no events fire even
-        // though the bleed stack lands; didApply must track the stack.
-        var battle = EffectHandlersTestSupport.makeBattle()
-        let outcome = EffectHandlersTestSupport.dispatch(
-            .bleed(4),
-            ability: CombatantFixtures.ability(),
-            source: battle.hero,
-            target: battle.enemy,
-            action: ActionApplyContext(pairedDirectDamage: [PairedDamage(keyword: .bleed, amount: 6)]),
-            battle: &battle
-        )
-        try #expect(outcome.didApply)
-        try #expect(outcome.events.isEmpty)
-        try #expect(battle.activeEffects(of: battle.enemy).count(where: { $0.effect.isBleed }) == 1)
-    }
-
     @Test func cardCombatNoOpHandlersDoNotApply() throws {
         do {
             var battle = EffectHandlersTestSupport.makeBattle()

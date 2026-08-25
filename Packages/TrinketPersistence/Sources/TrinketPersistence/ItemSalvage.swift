@@ -27,14 +27,16 @@ public enum ItemSalvage {
 
     private static func materials(for slot: ItemSlot) -> (HomesteadResource, HomesteadResource) {
         switch slot.baseItemSlot {
-        case .weapon, .secondaryWeapon:
+        case .weapon:
             (.iron, .wood)
         case .armor:
             (.hide, .stone)
-        case .accessory, .secondaryAccessory:
+        case .accessory:
             (.herbs, .crystal)
-        case .trinket, .secondaryTrinket:
+        case .trinket:
             preconditionFailure("Trinkets cannot be salvaged.")
+        default:
+            preconditionFailure("Unsupported salvage slot: \(slot)")
         }
     }
 
@@ -59,21 +61,8 @@ public enum ItemSalvageApplier {
         guard ItemSalvage.isEligible(item) else { return .ineligible }
 
         let yields = ItemSalvage.yields(for: item)
-        unequip(itemID: itemID, from: &save.roster)
+        save.roster.unequip(itemID: itemID)
         save.inventory.removeItem(id: itemID)
         return .success(yields: save.grantMaterials(yields))
-    }
-
-    private static func unequip(itemID: String, from roster: inout PlayerRosterState) {
-        for (combatantID, var loadout) in roster.equipmentLoadouts {
-            var didChange = false
-            for slot in ItemSlot.allCases where loadout.itemID(for: slot) == itemID {
-                loadout.unequip(slot)
-                didChange = true
-            }
-            if didChange {
-                roster.equipmentLoadouts[combatantID] = loadout
-            }
-        }
     }
 }

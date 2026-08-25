@@ -132,6 +132,7 @@ enum CombatFeedbackStatusLabel: String, CaseIterable, Hashable {
     case blockDown = "Block Down"
     case ward = "Ward"
     case avatar = "Avatar"
+    case hemorrhage = "Hemorrhage"
 }
 
 /// Closed set of non-numeric chip phrases produced by battle presentation.

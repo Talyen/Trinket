@@ -145,5 +145,4 @@ public enum BattlePlayError: Error, Equatable, Sendable {
     case cardNotInHand
     case ownerDefeated
     case ownerSkipping
-    case invalidBranchSelection
 }

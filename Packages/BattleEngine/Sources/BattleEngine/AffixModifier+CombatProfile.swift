@@ -81,13 +81,8 @@ public extension AffixModifier {
     }
 
     private func applyDurationBonus(to profile: inout CombatModifierProfile) {
-        switch self {
-        case let .leechDuration(amount):
-            profile.leechDurationBonus += amount
-        case let .bleedDuration(amount):
+        if case let .bleedDuration(amount) = self {
             profile.bleedDurationBonus += amount
-        default:
-            break
         }
     }
 }

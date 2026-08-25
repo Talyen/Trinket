@@ -111,15 +111,26 @@ struct PlayerRosterStateTests {
         try #expect(loadout.itemID(for: .weapon) == nil)
     }
 
+    @Test func unequipByItemIDRemovesItemFromAllLoadouts() {
+        var roster = PlayerRosterState.freshStart
+        var loadout1 = EquipmentLoadout()
+        loadout1.itemIDsBySlot[.weapon] = "test-sword"
+        var loadout2 = EquipmentLoadout()
+        loadout2.itemIDsBySlot[.accessory] = "test-ring"
+        loadout2.itemIDsBySlot[.weapon] = "test-sword-2"
+        roster.equipmentLoadouts["hero1"] = loadout1
+        roster.equipmentLoadouts["companion1"] = loadout2
+
+        let didUnequip = roster.unequip(itemID: "test-sword")
+        #expect(didUnequip)
+        #expect(roster.equipmentLoadouts["hero1"]?.itemID(for: .weapon) == nil)
+        #expect(roster.equipmentLoadouts["companion1"]?.itemID(for: .accessory) == "test-ring")
+
+        let nonExistent = roster.unequip(itemID: "non-existent")
+        #expect(!nonExistent)
+    }
+
     @Test func legacyTrinketSlotsMigrateToAccessorySlotsAndUnequipRemovedSlots() throws {
-        let accessoryBase = try #require(GameContent.itemBaseTypes.first { $0.id == "ruby_ring" })
-        let items = [
-            InventoryItem(id: "hero-primary", baseType: accessoryBase, rarity: .basic, displayName: "Ruby Ring", affixes: []),
-            InventoryItem(id: "hero-secondary", baseType: accessoryBase, rarity: .basic, displayName: "Ruby Ring", affixes: []),
-            InventoryItem(id: "hero-tertiary", baseType: accessoryBase, rarity: .basic, displayName: "Ruby Ring", affixes: []),
-            InventoryItem(id: "companion-primary", baseType: accessoryBase, rarity: .basic, displayName: "Ruby Ring", affixes: []),
-            InventoryItem(id: "companion-secondary", baseType: accessoryBase, rarity: .basic, displayName: "Ruby Ring", affixes: []),
-        ]
         let heroLoadout = EquipmentLoadoutModel(combatantID: "knight")
         heroLoadout.slots = [
             EquipmentSlotModel(slotID: "Trinket", itemID: "hero-primary"),
@@ -134,10 +145,7 @@ struct PlayerRosterStateTests {
         let model = RosterModel()
         model.equipmentLoadouts = [heroLoadout, companionLoadout]
 
-        let roster = model.toPlayerRosterState(
-            inventory: PlayerInventoryState(items: items),
-            schemaVersion: 13
-        )
+        let roster = model.toPlayerRosterState(schemaVersion: 13)
         let hero = try #require(roster.equipmentLoadouts["knight"])
         let companion = try #require(roster.equipmentLoadouts["bear"])
 

@@ -289,4 +289,69 @@ struct AbilityEffectIntegrationTests {
         try #expect(burningHit == 8)
         try #expect(BattleTestFixtures.burnPotency(on: burning) == 10)
     }
+
+    @Test func hemorrhageAppliesDebuffToEnemyAndDamagesEnemyWhenItAttacks() throws {
+        let hero = Combatant(
+            id: "hero",
+            name: "Hero",
+            role: .hero,
+            maxHealth: 20,
+            abilities: [.hemorrhage]
+        )
+        let companion = BattleTestFixtures.passiveCompanion()
+        let enemy = Combatant(
+            id: "enemy",
+            name: "Enemy",
+            role: .enemy,
+            maxHealth: 100,
+            abilities: [.slash]
+        )
+        var battle = BattleTestFixtures.standardParty(hero: hero, companion: companion, enemy: enemy)
+
+        _ = try BattleTestFixtures.playCardNamed("Hemorrhage", owner: .hero, on: &battle)
+
+        // Hemorrhage is applied to enemy, not hero or companion
+        try #expect(battle.hasEnemyEffect {
+            if case .hemorrhage = $0 {
+                return true
+            }
+            return false
+        })
+        try #expect(!battle.hasHeroEffect {
+            if case .hemorrhage = $0 {
+                return true
+            }
+            if case .onHitDamage = $0 {
+                return true
+            }
+            return false
+        })
+        try #expect(!battle.activeEffects(of: battle.companion).contains {
+            if case .hemorrhage = $0.effect {
+                return true
+            }
+            if case .onHitDamage = $0.effect {
+                return true
+            }
+            return false
+        })
+
+        let enemyHealthBefore = battle.health(of: battle.enemy)
+
+        // Enemy takes turn and attacks
+        let enemyTurnEvents = BattleTestFixtures.endTurn(on: &battle)
+
+        // Enemy should have taken 4 Bleed damage from Hemorrhage when attacking
+        try #expect(enemyTurnEvents.contains { $0.effectKind == .hemorrhageTriggered && $0.amount == 4 })
+        // Bleed DoT ticks for 4, and Hemorrhage hits for 4 -> total 8 damage taken
+        try #expect(battle.health(of: battle.enemy) == enemyHealthBefore - 8)
+
+        // Hemorrhage effect is consumed after attacking
+        try #expect(!battle.hasEnemyEffect {
+            if case .hemorrhage = $0 {
+                return true
+            }
+            return false
+        })
+    }
 }

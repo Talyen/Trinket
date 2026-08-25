@@ -9,16 +9,8 @@ extension BattleCardCombatEngine {
         owner: BattleParticipant,
         context: inout BattleState
     ) -> BattleCard? {
-        guard context.roster[owner].isAlive else { return nil }
-        let ability: Ability? = switch owner {
-        case .hero:
-            context.heroDeck.drawFirst(where: { $0.tier == tier })
-        case .companion:
-            context.companionDeck.drawFirst(where: { $0.tier == tier })
-        case .enemy:
-            nil
-        }
-        guard let ability else { return nil }
+        guard context.roster[owner].isAlive, let keyPath = deckKeyPath(for: owner) else { return nil }
+        guard let ability = context[keyPath: keyPath].drawFirst(where: { $0.tier == tier }) else { return nil }
         // Planned pulls select deterministically; the legacy random-owner pick
         // consumed one RNG draw per dealt card. Burn one here so the battle
         // RNG stream stays aligned and seeded combat rolls keep their pinned

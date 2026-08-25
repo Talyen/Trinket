@@ -70,6 +70,8 @@ public enum TrinketDesign {
         public static let cardPlaceholderIconPointSize: CGFloat = 38
         /// Wallet / reward-summary resource artwork square edge.
         public static let walletResourceArtworkSize: CGFloat = 36
+        /// Toolbar / glass-chip resource artwork square edge.
+        public static let compactResourceArtworkSize: CGFloat = 20
         /// Wallet / reward-summary resource row minimum height.
         public static let walletResourceRowMinHeight: CGFloat = 46
         /// Mystery choice card reward artwork square edge.

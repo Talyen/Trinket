@@ -265,26 +265,14 @@ package extension DamagePipeline {
         in _: inout BattleState
     ) {
         guard state.sourceActorID != nil else { return }
-        let effects = state.activeEffects
-        guard effects.contains(where: {
-            if case .marked = $0.effect {
-                return true
-            }; return false
-        }) else {
-            return
+        for active in state.activeEffects {
+            if case let .marked(bonus, _) = active.effect {
+                state.remaining += bonus
+                state.dealt += bonus
+                state.markedBonusApplied = true
+                break
+            }
         }
-
-        guard let index = effects.firstIndex(where: {
-            if case .marked = $0.effect {
-                return true
-            }; return false
-        }),
-            case let .marked(bonus, _) = effects[index].effect
-        else { return }
-
-        state.remaining += bonus
-        state.dealt += bonus
-        state.markedBonusApplied = true
     }
 
     static func applyItemReduction(
@@ -434,17 +422,21 @@ package extension DamagePipeline {
     ) {
         guard state.markedBonusApplied else { return }
 
-        var effects = context.roster.activeEffects(for: state.combatant)
-        guard let index = effects.firstIndex(where: {
-            if case .marked = $0.effect {
-                return true
-            }; return false
-        }),
-            case let .marked(bonus, _) = effects[index].effect
-        else { return }
+        var markedBonus: Int?
+        for active in context.roster.activeEffects(for: state.combatant) {
+            if case let .marked(bonus, _) = active.effect {
+                markedBonus = bonus
+                break
+            }
+        }
+        guard let bonus = markedBonus else { return }
 
-        effects.remove(at: index)
-        context.roster.setActiveEffects(effects, for: state.combatant)
+        ActiveEffectMutation.removeMatching(from: state.combatant, in: &context) {
+            if case .marked = $0 {
+                return true
+            }
+            return false
+        }
         state.damageEvents.append(context.nextEvent(
             kind: .effect,
             effectKind: .markedConsumed,

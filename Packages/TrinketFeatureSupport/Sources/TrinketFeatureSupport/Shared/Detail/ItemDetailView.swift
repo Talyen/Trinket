@@ -9,23 +9,31 @@ public enum ItemSalvageActionResult: Equatable, Sendable {
     case persistenceFailure
 }
 
+public enum ItemDetailFooter: Equatable {
+    case none
+    case purchase(
+        price: Int,
+        canAfford: Bool,
+        isDisabled: Bool,
+        titleOverride: String?,
+        accessibilityID: String
+    )
+    case primaryAction(
+        title: String,
+        accessibilityID: String?,
+        dismissAfter: Bool
+    )
+}
+
 public struct ItemDetailView: View {
     @Environment(\.dismiss) private var dismiss
 
     let item: InventoryItem
-    var purchasePrice: Int?
-    var canAfford: Bool = true
-    var isPurchaseDisabled: Bool = false
-    /// When set, replaces the default Buy / Need Gold label (e.g. Sold Out).
-    var purchaseButtonTitleOverride: String?
-    var onPurchase: (() -> Void)?
-    var primaryActionTitle: String?
-    var primaryActionAccessibilityID: String?
-    var dismissAfterPrimaryAction = false
-    var onPrimaryAction: (() -> Void)?
+    let footer: ItemDetailFooter
     var salvageYields: [ResourceAmount]?
     var equippedByName: String?
-    /// Persistence maps its result to this small presentation contract.
+    var onPurchase: (() -> Void)?
+    var onPrimaryAction: (() -> Void)?
     var onSalvage: (() -> ItemSalvageActionResult)?
     var onSalvageFinished: ((ItemSalvageActionResult) -> Void)?
 
@@ -49,48 +57,37 @@ public struct ItemDetailView: View {
         onSalvageFinished: ((ItemSalvageActionResult) -> Void)? = nil
     ) {
         self.item = item
-        self.purchasePrice = purchasePrice
-        self.canAfford = canAfford
-        self.isPurchaseDisabled = isPurchaseDisabled
-        self.purchaseButtonTitleOverride = purchaseButtonTitleOverride
-        self.onPurchase = onPurchase
-        self.primaryActionTitle = primaryActionTitle
-        self.primaryActionAccessibilityID = primaryActionAccessibilityID
-        self.dismissAfterPrimaryAction = dismissAfterPrimaryAction
-        self.onPrimaryAction = onPrimaryAction
         self.salvageYields = salvageYields
         self.equippedByName = equippedByName
+        self.onPurchase = onPurchase
+        self.onPrimaryAction = onPrimaryAction
         self.onSalvage = onSalvage
         self.onSalvageFinished = onSalvageFinished
-    }
 
-    private var purchaseButtonTitle: String {
-        if let purchaseButtonTitleOverride {
-            return purchaseButtonTitleOverride
+        if let primaryActionTitle, onPrimaryAction != nil {
+            footer = .primaryAction(
+                title: primaryActionTitle,
+                accessibilityID: primaryActionAccessibilityID,
+                dismissAfter: dismissAfterPrimaryAction
+            )
+        } else if let purchasePrice, onPurchase != nil {
+            footer = .purchase(
+                price: purchasePrice,
+                canAfford: canAfford,
+                isDisabled: isPurchaseDisabled,
+                titleOverride: purchaseButtonTitleOverride,
+                accessibilityID: AccessibilityID.Shop.detailBuyButton
+            )
+        } else {
+            footer = .none
         }
-        guard let purchasePrice else { return "Buy" }
-        return canAfford ? "Buy for \(purchasePrice) Gold" : "Need \(purchasePrice) Gold"
     }
 
     private var showsSalvageAction: Bool {
         !item.isTrinket
             && item.rarity != .unique
             && onSalvage != nil
-            && primaryActionTitle == nil
-            && purchasePrice == nil
-    }
-
-    /// Every affix on a Unique carries the ember shine; corruption cannot coexist.
-    private func uniqueAffixShineColors(_ affix: ItemAffix) -> [Color]? {
-        if item.rarity == .unique {
-            return UniqueShine.textColors
-        }
-        return affix.isCorrupted ? CorruptionShine.textColors : nil
-    }
-
-    var eyebrow: String {
-        let tag = item.isTrinket ? "TRINKET" : item.rarity.label.uppercased()
-        return item.isCorrupted ? "\(tag) · CORRUPTED" : tag
+            && footer == .none
     }
 
     public var body: some View {
@@ -98,7 +95,7 @@ public struct ItemDetailView: View {
             title: item.displayName,
             header: {
                 DetailHeroHeader(
-                    eyebrow: eyebrow,
+                    eyebrow: ItemDetailContent.eyebrow(for: item),
                     title: item.displayName,
                     titleKeywords: Set(item.astralShineKeywords ?? []),
                     titleShineColors: item.rarity == .unique ? UniqueShine.textColors : nil,
@@ -110,64 +107,15 @@ public struct ItemDetailView: View {
                 .accessibilityIdentifier(AccessibilityID.LoadoutPicker.itemDetail(item.id))
             },
             bodyContent: {
-                DetailSection("Traits") {
-                    VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
-                        ForEach(Array(item.displayedAffixes.enumerated()), id: \.element.id) { index, affix in
-                            DetailTraitRow(
-                                title: affix.title,
-                                description: affix.description,
-                                titleKeywords: item.isPerfectAffix(at: index) ? affix.keywords : [],
-                                titleShineColors: uniqueAffixShineColors(affix)
-                            )
-                        }
-                    }
-                }
-
-                if showsSalvageAction {
-                    Button("Salvage") {
-                        isSalvageConfirmationPresented = true
-                    }
-                    .frame(maxWidth: .infinity)
-                    .trinketSecondaryActionButton(
-                        tint: TrinketDesign.Colors.destructive,
-                        accessibilityIdentifier: AccessibilityID.Collection.salvageButton
-                    )
-                    .padding(.top, TrinketDesign.Metrics.sectionSpacing)
-                }
+                ItemDetailContent(
+                    item: item,
+                    showsSalvageAction: showsSalvageAction,
+                    onSalvageTapped: { isSalvageConfirmationPresented = true }
+                )
             }
         )
         .safeAreaInset(edge: .bottom) {
-            if let primaryActionTitle, let onPrimaryAction {
-                Button(primaryActionTitle) {
-                    onPrimaryAction()
-                    if dismissAfterPrimaryAction {
-                        dismiss()
-                    }
-                }
-                .frame(maxWidth: .infinity)
-                .trinketPrimaryActionButton(
-                    accessibilityIdentifier: primaryActionAccessibilityID ?? primaryActionTitle
-                )
-                .trinketCenteredPrimaryAction()
-                .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-                .padding(.vertical, TrinketDesign.Metrics.mediumSpacing)
-                .trinketSheetChromeIgnoresDismissDrag()
-            } else if purchasePrice != nil, let onPurchase {
-                Button {
-                    onPurchase()
-                } label: {
-                    Text(purchaseButtonTitle)
-                        .frame(maxWidth: .infinity)
-                }
-                .trinketPrimaryActionButton(
-                    accessibilityIdentifier: AccessibilityID.Shop.detailBuyButton
-                )
-                .trinketCenteredPrimaryAction()
-                .disabled(!canAfford || isPurchaseDisabled)
-                .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-                .padding(.vertical, TrinketDesign.Metrics.mediumSpacing)
-                .trinketSheetChromeIgnoresDismissDrag()
-            }
+            footerView
         }
         .alert(
             "Salvage \(item.displayName)?",
@@ -196,6 +144,61 @@ public struct ItemDetailView: View {
         } message: {
             Text(salvageErrorMessage ?? "")
         }
+    }
+
+    @ViewBuilder
+    private var footerView: some View {
+        switch footer {
+        case .none:
+            EmptyView()
+        case let .primaryAction(title, accessibilityID, dismissAfter):
+            if let onPrimaryAction {
+                Button(title) {
+                    onPrimaryAction()
+                    if dismissAfter {
+                        dismiss()
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .trinketPrimaryActionButton(
+                    accessibilityIdentifier: accessibilityID ?? title
+                )
+                .trinketCenteredPrimaryAction()
+                .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+                .padding(.vertical, TrinketDesign.Metrics.mediumSpacing)
+                .trinketSheetChromeIgnoresDismissDrag()
+            }
+        case let .purchase(price, canAfford, isDisabled, titleOverride, accessibilityID):
+            if let onPurchase {
+                Button {
+                    onPurchase()
+                } label: {
+                    Text(purchaseButtonTitle(
+                        price: price,
+                        canAfford: canAfford,
+                        titleOverride: titleOverride
+                    ))
+                    .frame(maxWidth: .infinity)
+                }
+                .trinketPrimaryActionButton(accessibilityIdentifier: accessibilityID)
+                .trinketCenteredPrimaryAction()
+                .disabled(!canAfford || isDisabled)
+                .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+                .padding(.vertical, TrinketDesign.Metrics.mediumSpacing)
+                .trinketSheetChromeIgnoresDismissDrag()
+            }
+        }
+    }
+
+    private func purchaseButtonTitle(
+        price: Int,
+        canAfford: Bool,
+        titleOverride: String?
+    ) -> String {
+        if let titleOverride {
+            return titleOverride
+        }
+        return canAfford ? "Buy for \(price) Gold" : "Need \(price) Gold"
     }
 
     private var salvageConfirmationMessage: String {
@@ -232,6 +235,52 @@ public struct ItemDetailView: View {
         default:
             let head = parts.dropLast().joined(separator: ", ")
             return "\(head), and \(parts[parts.count - 1])"
+        }
+    }
+}
+
+struct ItemDetailContent: View {
+    let item: InventoryItem
+    let showsSalvageAction: Bool
+    let onSalvageTapped: () -> Void
+
+    static func eyebrow(for item: InventoryItem) -> String {
+        let tag = item.isTrinket ? "TRINKET" : item.rarity.label.uppercased()
+        return item.isCorrupted ? "\(tag) · CORRUPTED" : tag
+    }
+
+    /// Every affix on a Unique carries the ember shine; corruption cannot coexist.
+    private func uniqueAffixShineColors(_ affix: ItemAffix) -> [Color]? {
+        if item.rarity == .unique {
+            return UniqueShine.textColors
+        }
+        return affix.isCorrupted ? CorruptionShine.textColors : nil
+    }
+
+    var body: some View {
+        DetailSection("Traits") {
+            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
+                ForEach(Array(item.displayedAffixes.enumerated()), id: \.element.id) { index, affix in
+                    DetailTraitRow(
+                        title: affix.title,
+                        description: affix.description,
+                        titleKeywords: item.isPerfectAffix(at: index) ? affix.keywords : [],
+                        titleShineColors: uniqueAffixShineColors(affix)
+                    )
+                }
+            }
+        }
+
+        if showsSalvageAction {
+            Button("Salvage") {
+                onSalvageTapped()
+            }
+            .frame(maxWidth: .infinity)
+            .trinketSecondaryActionButton(
+                tint: TrinketDesign.Colors.destructive,
+                accessibilityIdentifier: AccessibilityID.Collection.salvageButton
+            )
+            .padding(.top, TrinketDesign.Metrics.sectionSpacing)
         }
     }
 }

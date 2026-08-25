@@ -25,14 +25,6 @@ struct EffectModelTests {
         try #expect(avatar.kind == .avatar)
     }
 
-    @Test func pairedDoTMapsDamageKeywordsOnly() throws {
-        try #expect(Effect.pairedDoT(keyword: .burn, potency: 3) == .burn(3))
-        try #expect(Effect.pairedDoT(keyword: .poison, potency: 2) == .poison(2))
-        try #expect(Effect.pairedDoT(keyword: .bleed, potency: 4) == .bleed(4))
-        try #expect(Effect.pairedDoT(keyword: .physical, potency: 2) == nil)
-        try #expect(Effect.pairedDoT(keyword: .burn, potency: 0) == nil)
-    }
-
     @Test func manaEmpowermentRaisesBurnAndFreezeDamageNumbersOnly() throws {
         try #expect(Effect.burn(2).isManaEmpowerableBurnOrFreezeDamage)
         try #expect(Effect.recurringDamage(.freeze, 2, 2).isManaEmpowerableBurnOrFreezeDamage)
@@ -62,7 +54,6 @@ struct EffectModelTests {
         try #expect(Effect.bleed(1).isRemovableDebuff)
         try #expect(Effect.controlMeter(.stun, 1, 10).isRemovableDebuff)
         try #expect(!(Effect.shield(.block, 1)).isRemovableDebuff)
-        try #expect(!(Effect.leech(.leech, 0.1, 6)).isRemovableDebuff)
         try #expect(!(Effect.cleanse(.poison)).isRemovableDebuff)
         try #expect(!(Effect.cleanse(nil)).isRemovableDebuff)
         try #expect(!(Effect.instantHeal(.health, 1)).isRemovableDebuff)
@@ -73,7 +64,6 @@ struct EffectModelTests {
         try #expect(!(Effect.halveShield(.block)).isRemovableDebuff)
 
         try #expect(Effect.shield(.block, 1).isRemovableBuff)
-        try #expect(Effect.leech(.leech, 0.1, 6).isRemovableBuff)
         try #expect(!(Effect.burn(1)).isRemovableBuff)
         try #expect(!(Effect.poison(1)).isRemovableBuff)
         try #expect(!(Effect.controlMeter(.stun, 1, 10)).isRemovableBuff)
@@ -88,7 +78,6 @@ struct EffectModelTests {
         try #expect(!(Effect.evadeNextHit.advancesEachTurn))
         try #expect(Effect.nextStrikeDouble.isRemovableBuff)
         try #expect(Effect.evadeNextHit.isRemovableBuff)
-        try #expect(Effect.leech(.leech, 0.1, 6).advancesEachTurn)
         try #expect(!(Effect.instantHeal(.health, 1)).advancesEachTurn)
         try #expect(!(Effect.resourceGain(.gold, 1)).advancesEachTurn)
         try #expect(!(Effect.cleanse(.poison)).advancesEachTurn)

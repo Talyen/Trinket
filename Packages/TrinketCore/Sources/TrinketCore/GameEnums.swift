@@ -80,11 +80,9 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Codable, Send
     /// Returns all keywords mentioned in the provided text in appearance order without duplicates.
     public static func referenced(in text: String) -> [Self] {
         var result: [Self] = []
-        for (term, keyword) in styledTerms {
-            if text.localizedStandardContains(term) || text.localizedCaseInsensitiveContains(term) {
-                if !result.contains(keyword) {
-                    result.append(keyword)
-                }
+        for (term, keyword) in styledTerms where text.localizedStandardContains(term) {
+            if !result.contains(keyword) {
+                result.append(keyword)
             }
         }
         return result

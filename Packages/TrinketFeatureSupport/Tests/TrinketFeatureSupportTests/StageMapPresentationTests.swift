@@ -30,6 +30,34 @@ struct StageMapPresentationTests {
         #expect(bosses.count == 1)
     }
 
+    @Test func campaignRecruitStagesAlwaysUseMysteryRecruitSceneArt() throws {
+        let recruits = GameContent.chapters.flatMap(\.stages).filter {
+            $0.encounter.recruitEventID != nil
+        }
+        #expect(!recruits.isEmpty)
+
+        for stage in recruits {
+            let art = try #require(
+                stage.encounterArtReference,
+                "Recruit stage \(stage.id) should use mystery recruit scene art"
+            )
+            #expect(
+                art.imageName == "encounter_mystery_recruit_heroes"
+                    || art.imageName == "encounter_mystery_recruit_companions",
+                "Recruit stage \(stage.id) used \(art.imageName)"
+            )
+        }
+
+        let companion = try #require(GameContent.stage(id: "chapter-1-stage-2"))
+        let hero = try #require(GameContent.stage(id: "chapter-1-stage-5"))
+        let randomCompanion = try #require(GameContent.stage(id: "chapter-2-stage-6"))
+        let empty = try #require(GameContent.stage(id: "chapter-3-stage-7"))
+        #expect(companion.encounterArtReference?.imageName == "encounter_mystery_recruit_companions")
+        #expect(hero.encounterArtReference?.imageName == "encounter_mystery_recruit_heroes")
+        #expect(randomCompanion.encounterArtReference?.imageName == "encounter_mystery_recruit_companions")
+        #expect(empty.encounterArtReference?.imageName == "encounter_mystery_recruit_heroes")
+    }
+
     @Test func battleStagesPreferEnemyArtOverEncounterArt() throws {
         let stage = try #require(GameContent.chapters[0].stages.first { $0.id == "chapter-1-stage-1" })
 

@@ -9,7 +9,6 @@ public struct TalentTreeCard: View {
     let tree: TalentTree
     let caption: String
     var isLocked = false
-    var lockedText = "Locked"
     var showsShine = true
     var accessibilityID: String?
 
@@ -17,14 +16,12 @@ public struct TalentTreeCard: View {
         tree: TalentTree,
         caption: String,
         isLocked: Bool = false,
-        lockedText: String = "Locked",
         showsShine: Bool = true,
         accessibilityID: String? = nil
     ) {
         self.tree = tree
         self.caption = caption
         self.isLocked = isLocked
-        self.lockedText = lockedText
         self.showsShine = showsShine
         self.accessibilityID = accessibilityID
     }
@@ -32,7 +29,6 @@ public struct TalentTreeCard: View {
     public var body: some View {
         ProductCardShell(
             isLocked: isLocked,
-            lockedText: lockedText,
             shineKeywords: showsShine ? [tree.keyword] : nil,
             accessibilityID: accessibilityID,
             art: {

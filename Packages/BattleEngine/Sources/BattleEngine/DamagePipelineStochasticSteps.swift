@@ -39,14 +39,12 @@ package extension DamagePipeline {
         guard dodged else { return }
 
         if hasEvadeNextHit {
-            var effects = context.roster.activeEffects(for: state.combatant)
-            effects.removeAll {
-                if case .evadeNextHit = $0.effect {
+            ActiveEffectMutation.removeMatching(from: state.combatant, in: &context) {
+                if case .evadeNextHit = $0 {
                     return true
                 }
                 return false
             }
-            context.roster.setActiveEffects(effects, for: state.combatant)
         }
 
         state.damageEvents.append(context.nextEvent(

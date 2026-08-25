@@ -117,6 +117,8 @@ struct CombatFeedbackChipPresentation {
             return dualAction(leading: negative, trailing: Keyword.block.visualStyle)
         case .marked:
             return iconOnly(trailing: negative)
+        case .hemorrhage:
+            return dualAction(leading: negative, trailing: Keyword.bleed.visualStyle)
         }
     }
 

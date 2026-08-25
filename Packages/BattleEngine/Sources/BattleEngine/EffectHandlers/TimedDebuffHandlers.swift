@@ -21,13 +21,27 @@ struct TimedDebuffHandler: BattleEffectHandler {
 
     func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         guard let active = stacks.first else { return nil }
+        let maxTicks = TimedBuffSummary.minRemainingTurns(in: stacks) { effect in
+            effect.durationTurns > 0 ? effect.durationTurns : nil
+        }
+        let durationSuffix = maxTicks > 0 ? ", \(BattleTiming.remainingDurationLabel(turns: maxTicks))" : ""
         switch active.effect {
         case let .damageReductionPercent(percent, _):
-            return EffectSummary(keyword: keyword, text: "Damage -\(Int((percent * 100).rounded()))%")
+            let percentInt = Int((percent * 100).rounded())
+            return EffectSummary(
+                keyword: keyword,
+                text: "Weakened: outgoing damage reduced by \(percentInt)%\(durationSuffix)."
+            )
         case let .damageReductionFlat(amount, _):
-            return EffectSummary(keyword: keyword, text: "Damage -\(amount)")
+            return EffectSummary(
+                keyword: keyword,
+                text: "Dazzled: outgoing damage reduced by \(amount)\(durationSuffix)."
+            )
         case let .strengthReduction(amount, _):
-            return EffectSummary(keyword: keyword, text: "Strength -\(amount)")
+            return EffectSummary(
+                keyword: keyword,
+                text: "Weakened Soul: Strength reduced by \(amount)\(durationSuffix)."
+            )
         default:
             return nil
         }

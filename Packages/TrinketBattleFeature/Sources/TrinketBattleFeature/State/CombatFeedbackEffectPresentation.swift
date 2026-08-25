@@ -81,6 +81,8 @@ enum CombatFeedbackEffectPresentation {
         .avatarApplied: Descriptor(.buff, visualRole: .beneficialStatus, statusLabel: .avatar),
         .recurringDamageApplied: Descriptor(.dot, labelRule: .appliedKeyword),
         .dotAmplified: Descriptor(.dot, labelRule: .triggeredKeyword),
+        .hemorrhageApplied: Descriptor(.buff, visualRole: .negativeStatus, statusLabel: .hemorrhage),
+        .hemorrhageTriggered: Descriptor(.directDamage, isAdditive: true, labelRule: .negatedAmount),
     ]
 
     static func descriptor(for effectKind: ActionEvent.EffectOutcome) -> Descriptor {

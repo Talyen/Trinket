@@ -1,18 +1,6 @@
 import Foundation
 import TrinketCore
 
-/// One player-selectable outcome of a branchable ability: display-ready text
-/// plus the keywords that drive its visual treatment.
-public struct AbilityBranchChoice: Hashable, Sendable {
-    public let summary: String
-    public let keywords: [Keyword]
-
-    public init(summary: String, keywords: [Keyword]) {
-        self.summary = summary
-        self.keywords = keywords
-    }
-}
-
 /// One randomly chosen outcome for an ability that lists alternatives with "or".
 public struct AbilityOutcomeBranch: Hashable, Sendable {
     public let damageComponents: [DamageComponent]
@@ -49,6 +37,9 @@ public struct Ability: Identifiable, Hashable, Sendable {
     /// When true, damage from this ability heals the attacker for `Effect.abilityLeechPercent`
     /// of health lost (Leech keyword — not a lasting buff).
     public let hasLeech: Bool
+    /// When true, Mana empowerment purchases repeat until the actor cannot afford another
+    /// (Meteor). Item triggers can also enable this for Burn cards.
+    public let repeatsManaEmpowerment: Bool
 
     public var effects: [Effect] {
         targetedEffects.map(\.effect)
@@ -65,7 +56,8 @@ public struct Ability: Identifiable, Hashable, Sendable {
         outcomeBranches: [AbilityOutcomeBranch]? = nil,
         criticalChanceBonus: Double = 0,
         guaranteedCriticalIfEnemyBuffed: Bool = false,
-        hasLeech: Bool = false
+        hasLeech: Bool = false,
+        repeatsManaEmpowerment: Bool = false
     ) {
         self.id = id
         self.name = name
@@ -76,6 +68,7 @@ public struct Ability: Identifiable, Hashable, Sendable {
         self.criticalChanceBonus = criticalChanceBonus
         self.guaranteedCriticalIfEnemyBuffed = guaranteedCriticalIfEnemyBuffed
         self.hasLeech = hasLeech
+        self.repeatsManaEmpowerment = repeatsManaEmpowerment
         if let targetedEffects {
             self.targetedEffects = targetedEffects
         } else {
@@ -95,7 +88,8 @@ public struct Ability: Identifiable, Hashable, Sendable {
         outcomeBranches: [AbilityOutcomeBranch]? = nil,
         criticalChanceBonus: Double = 0,
         guaranteedCriticalIfEnemyBuffed: Bool = false,
-        hasLeech: Bool = false
+        hasLeech: Bool = false,
+        repeatsManaEmpowerment: Bool = false
     ) {
         let components = directDamage > 0
             ? [DamageComponent(directDamage, keyword: damageKeyword)]
@@ -111,7 +105,8 @@ public struct Ability: Identifiable, Hashable, Sendable {
             outcomeBranches: outcomeBranches,
             criticalChanceBonus: criticalChanceBonus,
             guaranteedCriticalIfEnemyBuffed: guaranteedCriticalIfEnemyBuffed,
-            hasLeech: hasLeech
+            hasLeech: hasLeech,
+            repeatsManaEmpowerment: repeatsManaEmpowerment
         )
     }
 
@@ -171,23 +166,10 @@ public struct Ability: Identifiable, Hashable, Sendable {
     public func resolvingOutcomeBranch(
         using rng: inout some RandomNumberGenerator
     ) -> Self {
-        resolvingOutcomeBranch(preferredIndex: nil, using: &rng)
-    }
-
-    /// Fixed playable snapshot. Uses `preferredIndex` when it names an authored
-    /// branch; otherwise picks one at random.
-    public func resolvingOutcomeBranch(
-        preferredIndex: Int?,
-        using rng: inout some RandomNumberGenerator
-    ) -> Self {
         guard let branches = outcomeBranches, !branches.isEmpty else {
             return self
         }
-        let index = if let preferredIndex, branches.indices.contains(preferredIndex) {
-            preferredIndex
-        } else {
-            Int.random(in: 0 ..< branches.count, using: &rng)
-        }
+        let index = Int.random(in: 0 ..< branches.count, using: &rng)
         return resolving(branch: branches[index], using: &rng)
     }
 
@@ -209,13 +191,7 @@ public struct Ability: Identifiable, Hashable, Sendable {
                 )
             }
         }
-        var effects = branch.targetedEffects
-        for component in components {
-            if let dot = Effect.pairedDoT(keyword: component.keyword, potency: component.amount),
-               !effects.contains(where: { $0.effect == dot }) {
-                effects.insert(TargetedEffect(dot), at: 0)
-            }
-        }
+        let effects = branch.targetedEffects
         return Self(
             id: id,
             name: name,
@@ -226,26 +202,9 @@ public struct Ability: Identifiable, Hashable, Sendable {
             outcomeBranches: nil,
             criticalChanceBonus: criticalChanceBonus,
             guaranteedCriticalIfEnemyBuffed: guaranteedCriticalIfEnemyBuffed,
-            hasLeech: hasLeech
+            hasLeech: hasLeech,
+            repeatsManaEmpowerment: repeatsManaEmpowerment
         )
-    }
-
-    /// Player-facing per-branch choices for abilities whose outcomes the player
-    /// may pick. `nil` when the ability has fewer than two branches.
-    public var outcomeChoices: [AbilityBranchChoice]? {
-        guard let branches = outcomeBranches, branches.count > 1 else { return nil }
-        return branches.map { branch in
-            var keywords = branch.damageComponents.map(\.keyword)
-            keywords.append(contentsOf: branch.targetedEffects.map(\.effect.keyword))
-            var uniqueKeywords: [Keyword] = []
-            for keyword in keywords where !uniqueKeywords.contains(keyword) {
-                uniqueKeywords.append(keyword)
-            }
-            return AbilityBranchChoice(
-                summary: AbilityDescriptionFormatter.branchSummary(branch, of: self),
-                keywords: uniqueKeywords
-            )
-        }
     }
 
     /// True when this resolved ability has Burn/Freeze damage numbers Mana can empower.
@@ -280,7 +239,8 @@ public struct Ability: Identifiable, Hashable, Sendable {
             outcomeBranches: nil,
             criticalChanceBonus: criticalChanceBonus,
             guaranteedCriticalIfEnemyBuffed: guaranteedCriticalIfEnemyBuffed,
-            hasLeech: hasLeech
+            hasLeech: hasLeech,
+            repeatsManaEmpowerment: repeatsManaEmpowerment
         )
     }
 }

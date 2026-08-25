@@ -3,10 +3,6 @@ import TrinketContent
 import TrinketCore
 
 enum RosterHydration {
-    static let combatantsByID = Dictionary(
-        uniqueKeysWithValues: (GameContent.heroes + GameContent.companions).map { ($0.id, $0) }
-    )
-
     static func resolveEquipmentSlot(
         _ rawValue: String,
         schemaVersion: Int,
@@ -59,12 +55,41 @@ enum RosterHydration {
         resolvedAbilities(ids)
     }
 
+    /// Exact catalog matches only — no tier fallbacks. Decode leaves gaps for
+    /// the sanitizer's `resolveAbilityLoadouts` to fill.
+    static func rawAbilityLoadouts(
+        from ids: [String: AbilityLoadoutIDs]
+    ) -> [String: AbilityLoadout] {
+        var resolved: [String: AbilityLoadout] = [:]
+        for (combatantID, loadoutIDs) in ids {
+            guard let combatant = GameContent.combatant(matching: combatantID) else { continue }
+            let choices = combatant.abilityChoices
+            resolved[combatantID] = AbilityLoadout(
+                basic: exactAbility(loadoutIDs.basicID, choices: choices.abilities(for: .basic)),
+                skill: exactAbility(loadoutIDs.skillID, choices: choices.abilities(for: .skill)),
+                ultimate: exactAbility(loadoutIDs.ultimateID, choices: choices.abilities(for: .ultimate))
+            )
+        }
+        return resolved
+    }
+
+    private static func exactAbility(_ id: String?, choices: [Ability]) -> Ability? {
+        guard let id else { return nil }
+        if let match = choices.first(where: { $0.id == id }) {
+            return match
+        }
+        if let remappedID = LegacyIDRemap.remappedAbilityID(id) {
+            return choices.first(where: { $0.id == remappedID })
+        }
+        return nil
+    }
+
     private static func resolvedAbilities(
         _ loadouts: [String: AbilityLoadoutIDs]
     ) -> [String: AbilityLoadout] {
         var resolved: [String: AbilityLoadout] = [:]
         for (combatantID, ids) in loadouts {
-            guard let combatant = combatantsByID[combatantID] else { continue }
+            guard let combatant = GameContent.combatant(matching: combatantID) else { continue }
             resolved[combatantID] = resolvedLoadout(
                 ids,
                 defaults: combatant.abilityLoadout,
@@ -139,7 +164,7 @@ enum RosterHydration {
     ) -> [String: EquipmentLoadout] {
         var resolved: [String: EquipmentLoadout] = [:]
         for (combatantID, loadout) in loadouts {
-            let combatant = combatantsByID[combatantID]
+            let combatant = GameContent.combatant(matching: combatantID)
             if inventoryItems != nil, combatant == nil {
                 continue
             }
@@ -151,6 +176,20 @@ enum RosterHydration {
             )
         }
         return enforceUniqueEquippedItems(resolved)
+    }
+
+    /// One inventory instance may only occupy one slot on a loadout. First
+    /// claim wins in `ItemSlot.allCases` order.
+    static func deduplicateWithinLoadout(_ loadout: EquipmentLoadout) -> EquipmentLoadout {
+        var unique = EquipmentLoadout()
+        var claimedItemIDs = Set<String>()
+        for slot in ItemSlot.allCases {
+            guard let itemID = loadout.itemID(for: slot), claimedItemIDs.insert(itemID).inserted else {
+                continue
+            }
+            unique.itemIDsBySlot[slot] = itemID
+        }
+        return unique
     }
 
     /// One inventory instance may only be equipped on one combatant. First claim

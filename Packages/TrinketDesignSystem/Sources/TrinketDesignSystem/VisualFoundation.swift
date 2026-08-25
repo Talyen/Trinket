@@ -292,19 +292,6 @@ extension ChipChromeRole {
     }
 }
 
-struct WalletPillModifier: ViewModifier {
-    func body(content: Content) -> some View {
-        content
-            .padding(.horizontal, TrinketDesign.Metrics.chipPaddingHorizontal)
-            .padding(.vertical, TrinketDesign.Metrics.chipPaddingVertical)
-            .modifier(TrinketGlassBackgroundModifier(
-                glass: .regular,
-                shape: Capsule(style: .continuous),
-                solidFill: ThemePalette.trinket.secondaryBackground
-            ))
-    }
-}
-
 public extension View {
     func trinketScreenBackground() -> some View {
         modifier(ScreenBackgroundModifier())
@@ -330,9 +317,5 @@ public extension View {
 
     func trinketGlassChip(_ role: ChipChromeRole = .standard) -> some View {
         modifier(GlassChipModifier(role: role))
-    }
-
-    func trinketWalletPill() -> some View {
-        modifier(WalletPillModifier())
     }
 }

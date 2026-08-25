@@ -70,7 +70,6 @@ public enum Effect: Hashable, Sendable {
     /// Flat Block buffer. Stacks into a single pool; no timed duration.
     case shield(Keyword, Int)
     case instantHeal(Keyword, Int)
-    case leech(Keyword, Double, Int)
     case resourceGain(Keyword, Int)
     /// Draw `Int` cards for the resolved effect target's deck (hero or companion).
     case drawCards(Int)
@@ -129,27 +128,14 @@ public enum Effect: Hashable, Sendable {
     case damageReductionFlat(Int, Int)
     /// Bearer's Strength is reduced by `amount` for `turns` (Weaken Soul).
     case strengthReduction(Int, Int)
+    /// Bearer takes `Int` Bleed damage the next time it attacks, then consumes.
+    case hemorrhage(Int)
 
     public static let bleedDoTTurnCount = 2
     /// Fraction of health lost healed when an ability with the Leech keyword deals damage.
     public static let abilityLeechPercent = 0.50
-    /// Legacy timed-buff leech percent.
-    public static let standardLeechPercent = 0.10
-    public static let standardLeechDuration = 6
     public static let standardMarkedDuration = 6
     public static let standardMarkedBonus = 2
-    public static let standardLeechBuff = Self.leech(.leech, standardLeechPercent, standardLeechDuration)
-
-    /// DoT stack paired with a direct hit of the same keyword (`burn` / `poison` / `bleed`).
-    public static func pairedDoT(keyword: Keyword, potency: Int) -> Self? {
-        guard potency > 0 else { return nil }
-        switch keyword {
-        case .burn: return .burn(potency)
-        case .poison: return .poison(potency)
-        case .bleed: return .bleed(potency)
-        default: return nil
-        }
-    }
 
     /// Burn/Poison stack for the decaying-DoT keywords. Only `.burn` and
     /// `.poison` decay; other keywords coerce to poison, mirroring the
@@ -169,7 +155,6 @@ public enum Effect: Hashable, Sendable {
         case let .controlMeter(k, _, _): k
         case let .shield(k, _): k
         case let .instantHeal(k, _): k
-        case let .leech(k, _, _): k
         case let .resourceGain(k, _): k
         case .drawCards, .drawAndPlayCards: .physical
         case let .cleanse(k?): k
@@ -198,6 +183,7 @@ public enum Effect: Hashable, Sendable {
         case .damageReductionPercent: .physical
         case .damageReductionFlat: .physical
         case .strengthReduction: .physical
+        case .hemorrhage: .bleed
         }
     }
 
@@ -208,6 +194,7 @@ public enum Effect: Hashable, Sendable {
         case let .onHitDamage(_, p): p
         case let .recurringDamage(_, p, _): p
         case let .avatar(holyDamage, _, _): holyDamage
+        case let .hemorrhage(p): p
         default: nil
         }
     }
@@ -240,7 +227,6 @@ public enum Effect: Hashable, Sendable {
     public var durationTurns: Int {
         switch self {
         case .bleed: Self.bleedDoTTurnCount
-        case let .leech(_, _, d): d
         case let .marked(_, d): d
         case let .criticalChanceBonus(_, d): d
         case let .restoreManaOnHit(_, d): d
@@ -253,7 +239,7 @@ public enum Effect: Hashable, Sendable {
              .shield, .thorns, .nextHolyStrike, .nextStrikeDouble, .evadeNextHit,
              .convertManaToBlock, .shieldFromMana, .shieldFromHalfMana, .shieldFromGold, .maximumManaBonus,
              .nextStrikeCritical, .freezeNextAttacker, .onHitDamage, .multiplyDoT, .revive,
-             .cleanseHealPerDebuff:
+             .cleanseHealPerDebuff, .hemorrhage:
             0
         }
     }
@@ -283,13 +269,13 @@ public enum Effect: Hashable, Sendable {
     public static func defaultTarget(for effect: Self) -> EffectTarget {
         switch effect {
         case .burn, .poison, .bleed, .controlMeter, .halveShield, .purge, .purgeRandom, .marked,
-             .multiplyDoT, .recurringDamage:
+             .multiplyDoT, .recurringDamage, .hemorrhage:
             .abilityTarget
         case .instantHeal:
             .lowestHealthAlly
         case .revive:
             .defeatedAlly
-        case .shield, .leech, .resourceGain, .drawCards, .drawAndPlayCards, .cleanse, .cleanseRandom,
+        case .shield, .resourceGain, .drawCards, .drawAndPlayCards, .cleanse, .cleanseRandom,
              .cleanseHealPerDebuff,
              .deathsDoor, .thorns, .criticalChanceBonus, .restoreManaOnHit,
              .damageKeywordOverride, .nextHolyStrike, .nextStrikeDouble, .evadeNextHit,

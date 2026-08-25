@@ -66,12 +66,14 @@ VALID_KEYWORDS = frozenset(
         "stun",
         "health",
         "block",
-        "armor",
         "leech",
         "gold",
         "mana",
         "dodge",
         "purge",
+        "cleanse",
+        "deathsDoor",
+        "deaths_door",
     }
 )
 SWIFT_IDENTIFIER = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
@@ -392,8 +394,6 @@ def modifier_token_to_swift(token: str) -> str:
         return f".companionDamageDealt({token.split(':', 1)[1]})"
     if token.startswith("maximum_mana:"):
         return f".maximumMana({token.split(':', 1)[1]})"
-    if token.startswith("leech_duration:"):
-        return f".leechDuration({token.split(':', 1)[1]})"
     if token.startswith("companion_bleed_damage_dealt:"):
         return f".companionBleedDamageDealt({token.split(':', 1)[1]})"
     if token.startswith("poison_damage_dealt_percent:"):

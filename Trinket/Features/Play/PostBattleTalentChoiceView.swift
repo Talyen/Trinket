@@ -55,12 +55,15 @@ struct PostBattleTalentChoiceView: View {
     ) -> some View {
         DetailHeroScrollShell(title: combatant.name) { baseHeight, overscroll in
             DetailHeroHeader(
-                eyebrow: "CHOOSE A TALENT",
                 title: combatant.name,
                 baseHeight: baseHeight,
                 overscroll: overscroll
             ) {
                 CombatantArtwork(combatant: combatant)
+            } footer: {
+                Text("Choose a Talent")
+                    .trinketTypography(.secondaryBody)
+                    .trinketOnArtText(.eyebrow)
             }
         } bodyContent: {
             LazyVGrid(columns: treeColumns, spacing: TrinketDesign.Metrics.smallSpacing) {
@@ -110,7 +113,6 @@ struct PostBattleTalentChoiceView: View {
                 tree: tree,
                 caption: choiceCountLabel(nodes.count),
                 isLocked: nodes.isEmpty,
-                lockedText: "Complete",
                 showsShine: !nodes.isEmpty,
                 accessibilityID: AccessibilityID.TalentChoice.tree(id: tree.id)
             )

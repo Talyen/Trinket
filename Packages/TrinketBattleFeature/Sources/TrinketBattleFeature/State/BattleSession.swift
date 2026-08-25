@@ -39,9 +39,6 @@ public final class BattleSession: BattleRuntime {
 
     public var overlayCombatantDetail: CombatantCardDetail?
     public var overlayAbilityDetail: Ability?
-    /// Presented while the player picks an outcome branch for a played card;
-    /// blocks end-turn and auto-battle until resolved or cancelled.
-    var pendingBranchChoice: BranchChoicePresentation?
     /// Presented from Play (not Options) so the log overlays the live battlefield.
     public var isShowingBattleLog = false
 
@@ -148,7 +145,6 @@ public final class BattleSession: BattleRuntime {
         engineState?.phase == .playerTurn && !(engineState?.isBattleOver ?? true)
             && hasActiveSimulation
             && !isDealingOpeningHand
-            && pendingBranchChoice == nil
             && spectacle.activeCinematic == nil
             && !spectacle.isShowingVictory && !spectacle.isShowingDefeat
     }

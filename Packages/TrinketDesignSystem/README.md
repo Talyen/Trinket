@@ -88,13 +88,12 @@ Route recurring chrome through these modifiers — do not call raw SwiftUI styli
 | `.trinketTypography(_:)` | Scalable text hierarchy (`TypographyRole`) |
 | `.trinketCardSurface()` | 3:4 card identity tiles |
 | `ArtworkPickerSelectionBadge` / `.trinketArtworkPickerSelectionBorder(isSelected:color:)` | Selected artwork picker checkmark + stroke |
-| `.trinketLockedCardEffect(isLocked:text:cornerRadius:)` | Subtle desaturation + opaque content blur, larger opaque paper lock with ink edge contrast |
+| `.trinketLockedCardEffect(isLocked:cornerRadius:)` | Subtle desaturation + opaque content blur, larger opaque paper lock with ink edge contrast |
 | `TrinketDesign.Metrics.collectionGridItems` / `.partyPickerGridItems` / `.hubGridItems(for:)` | Shared collection, party-picker, and size-class hub grids |
 | `TrinketDesign.Metrics.collectionShelfPreviewLimit` | Peek-shelf card count for Collection / party shelves |
 | `.trinketPrimaryActionButton()` | Primary CTAs (`.glassProminent`) |
 | `.trinketCenteredPrimaryAction()` | Half-width, centered layout for a lone screen primary action |
 | `.trinketQuietTapButtonStyle()` | Tap without press dimming — prefer over `.plain` for artwork in scroll views |
-| `.trinketStatusBadge()` / `.trinketWalletPill()` | Glass capsule chips via shared `TrinketGlassBackgroundModifier` |
 | `.trinketOnArtText(_:)` | Paper foreground + ink shadows on hero art |
 | `TrinketHeroScrim.gradient(for:)` | Homestead / detail / chapter hero readability scrims |
 | `.trinketArtworkBlend(_:)` | Optional `.perimeter` or `.bottom` blend into a semantic destination surface; defaults to `.none` |

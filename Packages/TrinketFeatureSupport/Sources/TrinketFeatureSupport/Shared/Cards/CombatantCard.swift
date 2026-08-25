@@ -23,7 +23,6 @@ public struct CombatantCard: View {
     public var body: some View {
         ProductCardShell(
             isLocked: isLocked,
-            lockedText: "Locked",
             isSelected: isSelected,
             showsLabel: showsName,
             art: {

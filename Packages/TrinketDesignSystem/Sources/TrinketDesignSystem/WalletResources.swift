@@ -1,4 +1,5 @@
 import SwiftUI
+import TrinketCore
 
 public struct TrinketWalletGrid<Content: View>: View {
     private let columnCount: Int
@@ -99,7 +100,60 @@ public struct TrinketWalletResourcePill<Artwork: View>: View {
     }
 }
 
-/// Sizes columns to the widest pill, then shrinks only when the proposed width is tighter.
+/// Compact horizontal resource balance for toolbars and buy chips.
+public struct TrinketCompactResourceChip<Artwork: View>: View {
+    private let amount: Int
+    private let tint: Color
+    private let animationTrigger: Int
+    private let artwork: Artwork
+
+    private var displayedAmount: String {
+        amount >= 100000
+            ? amount.formatted(.number.notation(.compactName))
+            : amount.formatted()
+    }
+
+    public init(
+        amount: Int,
+        tint: Color,
+        animationTrigger: Int = 0,
+        @ViewBuilder artwork: () -> Artwork
+    ) {
+        self.amount = amount
+        self.tint = tint
+        self.animationTrigger = animationTrigger
+        self.artwork = artwork()
+    }
+
+    public var body: some View {
+        HStack(spacing: TrinketDesign.Metrics.denseSpacing) {
+            artwork
+                .frame(
+                    width: TrinketDesign.Metrics.compactResourceArtworkSize,
+                    height: TrinketDesign.Metrics.compactResourceArtworkSize
+                )
+                .keyframeAnimator(
+                    initialValue: CGFloat(1),
+                    trigger: animationTrigger
+                ) { content, scale in
+                    content.scaleEffect(scale)
+                } keyframes: { _ in
+                    CubicKeyframe(1.08, duration: 0.08)
+                    SpringKeyframe(1, duration: 0.18, spring: .smooth)
+                }
+
+            Text(displayedAmount)
+                .monospacedDigit()
+                .contentTransition(.numericText())
+        }
+        .trinketTypography(.button)
+        .foregroundStyle(tint)
+        .trinketGlassChip(.emphasis)
+        .animation(TrinketMotion.Interaction.stateChange, value: amount)
+    }
+}
+
+/// Sizes columns to fit subview widths, equalizing across columns when constrained by proposed width.
 private struct TrinketWalletGridLayout: Layout {
     var columnCount: Int
     var horizontalSpacing: CGFloat
@@ -139,17 +193,27 @@ private struct TrinketWalletGridLayout: Layout {
         let columns = max(1, min(columnCount, itemCount))
         let rows = (itemCount + columns - 1) / columns
         let idealSizes = subviews.map { $0.sizeThatFits(.unspecified) }
-        let maxItemWidth = (idealSizes.map(\.width).max() ?? 0).rounded(.up)
         let columnGaps = horizontalSpacing * CGFloat(columns - 1)
-        var columnWidth = maxItemWidth
-        let idealWidth = columnWidth * CGFloat(columns) + columnGaps
+
+        var idealColumnWidths = Array(repeating: CGFloat(0), count: columns)
+        for index in 0 ..< itemCount {
+            let column = index % columns
+            idealColumnWidths[column] = max(idealColumnWidths[column], idealSizes[index].width.rounded(.up))
+        }
+
+        let idealWidth = idealColumnWidths.reduce(0, +) + columnGaps
+        let columnWidths: [CGFloat]
         if let proposedWidth = proposal.width, proposedWidth.isFinite, proposedWidth < idealWidth {
-            columnWidth = max(0, (proposedWidth - columnGaps) / CGFloat(columns))
+            let equalizedWidth = max(0, (proposedWidth - columnGaps) / CGFloat(columns))
+            columnWidths = Array(repeating: equalizedWidth, count: columns)
+        } else {
+            columnWidths = idealColumnWidths
         }
 
         var rowHeights = Array(repeating: CGFloat(0), count: rows)
         for index in 0 ..< itemCount {
-            rowHeights[index / columns] = max(rowHeights[index / columns], idealSizes[index].height)
+            let row = index / columns
+            rowHeights[row] = max(rowHeights[row], idealSizes[index].height)
         }
 
         var frames: [CGRect] = []
@@ -160,9 +224,9 @@ private struct TrinketWalletGridLayout: Layout {
             for column in 0 ..< columns {
                 let index = row * columns + column
                 if index < itemCount {
-                    frames.append(CGRect(x: x, y: y, width: columnWidth, height: rowHeights[row]))
+                    frames.append(CGRect(x: x, y: y, width: columnWidths[column], height: rowHeights[row]))
                 }
-                x += columnWidth + horizontalSpacing
+                x += columnWidths[column] + horizontalSpacing
             }
             y += rowHeights[row]
             if row < rows - 1 {
@@ -170,8 +234,8 @@ private struct TrinketWalletGridLayout: Layout {
             }
         }
 
-        let width = columnWidth * CGFloat(columns) + columnGaps
-        let height = rowHeights.reduce(0, +) + verticalSpacing * CGFloat(max(rows - 1, 0))
-        return Arrangement(size: CGSize(width: width, height: height), frames: frames)
+        let totalWidth = columnWidths.reduce(0, +) + columnGaps
+        let totalHeight = rowHeights.reduce(0, +) + verticalSpacing * CGFloat(max(rows - 1, 0))
+        return Arrangement(size: CGSize(width: totalWidth, height: totalHeight), frames: frames)
     }
 }

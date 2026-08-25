@@ -10,7 +10,6 @@ public enum EffectKind: Hashable, CaseIterable, Sendable {
     case controlMeter
     case shield
     case instantHeal
-    case leech
     case resourceGain
     case drawCards
     case drawAndPlayCards
@@ -43,6 +42,7 @@ public enum EffectKind: Hashable, CaseIterable, Sendable {
     case damageReductionPercent
     case damageReductionFlat
     case strengthReduction
+    case hemorrhage
 }
 
 public extension Effect {
@@ -56,7 +56,6 @@ public extension Effect {
         case .controlMeter: .controlMeter
         case .shield: .shield
         case .instantHeal: .instantHeal
-        case .leech: .leech
         case .resourceGain: .resourceGain
         case .drawCards: .drawCards
         case .drawAndPlayCards: .drawAndPlayCards
@@ -89,6 +88,7 @@ public extension Effect {
         case .damageReductionPercent: .damageReductionPercent
         case .damageReductionFlat: .damageReductionFlat
         case .strengthReduction: .strengthReduction
+        case .hemorrhage: .hemorrhage
         }
     }
 
@@ -97,7 +97,7 @@ public extension Effect {
     var isRemovableDebuff: Bool {
         switch self {
         case .burn, .poison, .bleed, .controlMeter, .marked, .recurringDamage,
-             .damageReductionPercent, .damageReductionFlat, .strengthReduction:
+             .damageReductionPercent, .damageReductionFlat, .strengthReduction, .hemorrhage:
             true
         default:
             false
@@ -108,7 +108,7 @@ public extension Effect {
     /// strip from enemies.
     var isRemovableBuff: Bool {
         switch self {
-        case .shield, .leech, .thorns, .criticalChanceBonus, .restoreManaOnHit,
+        case .shield, .thorns, .criticalChanceBonus, .restoreManaOnHit,
              .damageKeywordOverride, .nextHolyStrike, .nextStrikeDouble, .evadeNextHit,
              .maximumManaBonus, .nextStrikeCritical, .freezeNextAttacker, .onHitDamage, .avatar:
             true
@@ -122,7 +122,7 @@ public extension Effect {
     var advancesEachTurn: Bool {
         switch self {
         case .burn, .poison, .bleed, .controlMeter,
-             .leech, .deathsDoor,
+             .deathsDoor,
              .marked, .criticalChanceBonus, .restoreManaOnHit, .damageKeywordOverride,
              .recurringDamage, .avatar, .damageReductionPercent, .damageReductionFlat, .strengthReduction:
             true

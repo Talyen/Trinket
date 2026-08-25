@@ -17,7 +17,6 @@ public enum AffixModifier: Equatable, Hashable, Codable, Sendable {
     case goldGained(Int)
     case goldGainedPercent(Double)
     case blockGained(Int)
-    case leechDuration(Int)
     case bleedDuration(Int)
     case damageTakenPercent(Keyword, Double)
     case damageTakenFlat(Keyword, Int)
@@ -54,7 +53,6 @@ public extension AffixModifier {
              let .leechHealing(v),
              let .goldGained(v),
              let .blockGained(v),
-             let .leechDuration(v),
              let .bleedDuration(v),
              let .damageTakenFlat(_, v),
              let .companionDamageDealt(v),
@@ -84,7 +82,6 @@ public extension AffixModifier {
         case let .leechHealing(v): .leechHealing(transform(v))
         case let .goldGained(v): .goldGained(transform(v))
         case let .blockGained(v): .blockGained(transform(v))
-        case let .leechDuration(v): .leechDuration(transform(v))
         case let .bleedDuration(v): .bleedDuration(transform(v))
         case let .damageTakenFlat(kw, v): .damageTakenFlat(kw, transform(v))
         case let .companionDamageDealt(v): .companionDamageDealt(transform(v))

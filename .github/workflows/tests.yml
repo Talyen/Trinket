@@ -4,10 +4,9 @@ name: Build and test
 # Warm DerivedData: primary key build-<nonsource>-<full>; restore-keys
 # build-<nonsource>- for same toolchain/assets incremental source rebuilds.
 # Within-run fan-out uses a run-scoped artifact of pruned .DerivedData. The
-# build job is app-only (the app scheme compiles every package as a dependency)
-# so package-scheme builds stay off the shared fan-out critical path; the unit
-# job builds and runs all package schemes itself via test.sh unit. The
-# exhaustive UI suite is sharded by feature so post-push validation does not
+# build job compiles the app and every package test scheme so unit can run
+# with --no-build; smoke and exhaustive UI rebuild app-only on artifact miss.
+# The exhaustive UI suite is sharded by feature so post-push validation does not
 # serialize every journey on one CI simulator.
 
 on:
@@ -69,7 +68,7 @@ jobs:
     needs: [changes, gate]
     if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.code == 'true'
     runs-on: macos-26
-    timeout-minutes: 25
+    timeout-minutes: 30
     outputs:
       build-artifact: ${{ steps.restore-and-build.outputs.artifact-name }}
     steps:
@@ -89,9 +88,9 @@ jobs:
     needs: [changes, build]
     if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.code == 'true'
     runs-on: macos-26
-    # Cold package-scheme builds (uncached) plus the full parallel package test
-    # run; 25 min was the old full-build budget, give the test phase headroom.
-    timeout-minutes: 30
+    # Package schemes are built in the shared build job; this job runs tests
+    # only against the warmed artifact (--no-build), with a full rebuild on miss.
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - uses: ./.github/actions/setup-trinket
@@ -100,13 +99,10 @@ jobs:
           profile-label: unit-tests
           build-artifact: ${{ needs.build.outputs.build-artifact }}
           artifact-name: ${{ inputs.artifact-prefix }}unit
-          # Bare `test.sh unit` runs package schemes only (no app build/plan),
-          # so an artifact miss needs no app rebuild here — test.sh unit
-          # cold-builds the package schemes itself. This means package builds
-          # are uncached per run; re-measure unit wall-time and revisit the
-          # 30-min timeout or cache coverage if the job starts to lag.
-          rebuild-command: 'true'
-          command: ./Scripts/test.sh unit
+          # Package schemes are in the shared build artifact; rebuild the full
+          # warm tree on miss so --no-build can run tests only.
+          rebuild-command: ./Scripts/build-for-testing.sh
+          command: ./Scripts/test.sh unit --no-build
 
   smoke:
     name: Smoke tests

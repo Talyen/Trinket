@@ -6,7 +6,7 @@ import TrinketFeatureSupport
 
 struct EncounterArtwork: View {
     let stage: Stage
-    /// Seeded/pinned non-recruit mystery for unpinned journey stages.
+    /// Seeded/pinned mystery or recruit for unpinned journey stages.
     var resolvedMysteryEvent: MysteryEvent?
     var worldSeed: UInt64 = 0
     var prefersThumbnail = false
@@ -19,10 +19,22 @@ struct EncounterArtwork: View {
         return event
     }
 
+    /// Prefer the seeded recruit so empty stages show the companion scene when
+    /// that is who resolution picked, not the authored hero default.
+    private var recruitSceneArt: EncounterArtReference? {
+        if let event = resolvedMysteryEvent, event.isRecruit {
+            return GameContent.recruitEncounterArtReference(for: event)
+        }
+        guard case .recruit = stage.encounter else { return nil }
+        return stage.encounterArtReference
+    }
+
     var body: some View {
         ZStack {
             if let combatantArt = stage.encounterCombatantArtReference(worldSeed: worldSeed) {
                 MapTileArtwork(art: combatantArt, prefersThumbnail: prefersThumbnail)
+            } else if let art = recruitSceneArt {
+                MapTileArtwork(art: art, prefersThumbnail: prefersThumbnail)
             } else if let event = nonRecruitMysteryEvent {
                 MysteryEventHeroArtwork(
                     event: event,

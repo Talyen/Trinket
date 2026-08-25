@@ -132,28 +132,13 @@ struct ShopEncounterView: View {
     }
 
     private var goldWallet: some View {
-        HStack(spacing: TrinketDesign.Metrics.denseSpacing) {
-            Image(systemName: Keyword.gold.visualStyle.symbolName)
-                .trinketTypography(.badge)
-                .foregroundStyle(Keyword.gold.visualStyle.color)
-                .keyframeAnimator(
-                    initialValue: CGFloat(1),
-                    trigger: purchaseFeedbackTrigger
-                ) { content, scale in
-                    content.scaleEffect(scale)
-                } keyframes: { _ in
-                    CubicKeyframe(1.08, duration: 0.08)
-                    SpringKeyframe(1, duration: 0.18, spring: .smooth)
-                }
-
-            Text("\(playerSave.roster.gold)")
-                .trinketTypography(.statValue)
-                .monospacedDigit()
-                .frame(minWidth: 36, alignment: .trailing)
-                .contentTransition(.numericText())
+        TrinketCompactResourceChip(
+            amount: playerSave.roster.gold,
+            tint: HomesteadResource.gold.tint,
+            animationTrigger: purchaseFeedbackTrigger
+        ) {
+            HomesteadResourceArtwork(resource: .gold)
         }
-        .trinketWalletPill()
-        .animation(TrinketMotion.Interaction.stateChange, value: playerSave.roster.gold)
     }
 
     private var offerGrid: some View {

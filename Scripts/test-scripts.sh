@@ -3,6 +3,29 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
+SKIP_DOCS=false
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --skip-docs) SKIP_DOCS=true ;;
+    --help|-h)
+      cat <<'USAGE'
+Usage: ./Scripts/test-scripts.sh [--skip-docs]
+
+Syntax and regression checks for repository scripts. By default also runs
+documentation link/inventory checks via check-docs.py; pass --skip-docs when
+a caller already ran the docs gate (for example handoff --final).
+USAGE
+      exit 0
+      ;;
+    *)
+      echo "Unknown argument: $1" >&2
+      exit 1
+      ;;
+  esac
+  shift
+done
+
 TEST_LOG_DIR="$(mktemp -d)"
 trap 'rm -rf "$TEST_LOG_DIR"' EXIT
 
@@ -35,7 +58,9 @@ done < <(rg --files Scripts/Tests -g 'test-*.sh' | LC_ALL=C sort)
 echo "=== Build input / cache-key path alignment ==="
 ./Scripts/check-build-cache-paths.sh
 
-echo "=== Documentation links and inventory ==="
-python3 ./Scripts/check-docs.py
+if [[ "$SKIP_DOCS" != true ]]; then
+  echo "=== Documentation links and inventory ==="
+  python3 ./Scripts/check-docs.py
+fi
 
 echo "=== Script checks passed ==="

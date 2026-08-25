@@ -42,20 +42,22 @@ struct HealingEngineTests {
     }
 
     @Test func leechFromDamageHealsAndSetsLeechedFlag() throws {
-        let leech = ActiveEffect(id: 1, effect: .leech(.leech, 1.0, 3), remainingTurns: 3)
         var context = makeContext(seed: BattleTestFixtures.deterministicNonCriticalSeed)
         context.roster.mutateRuntime(for: context.roster.hero.combatant) { $0.currentHealth = 30 }
-        context.roster.setActiveEffects([leech], for: context.roster.hero.combatant)
         let before = context.roster.hero.currentHealth
-        let outcome = HealingEngine.leechFromDamage(10, sourceActorID: "source", in: &context)
+        let outcome = HealingEngine.leechFromDamage(
+            10,
+            sourceActorID: "source",
+            abilityHasLeech: true,
+            in: &context
+        )
         try #expect(outcome.flags.contains(.leeched))
         try #expect(context.roster.hero.currentHealth > before)
         try #expect(outcome.healthRestored == context.roster.hero.currentHealth - before)
         try #expect(outcome.events.first?.amount == outcome.healthRestored)
     }
 
-    @Test func keywordDamageLeechDoesNotReplaceStrongerLeechBuff() throws {
-        let leech = ActiveEffect(id: 1, effect: .leech(.leech, 1.0, 3), remainingTurns: 3)
+    @Test func keywordDamageLeechHealsAtAbilityPercent() throws {
         var context = BattleTestFixtures.makePipelineContext(
             heroModifiers: CombatModifierProfile(
                 triggers: CombatTraitTriggers(
@@ -67,7 +69,6 @@ struct HealingEngineTests {
             seed: BattleTestFixtures.deterministicNonCriticalSeed
         )
         context.roster.mutateRuntime(for: context.roster.hero.combatant) { $0.currentHealth = 20 }
-        context.roster.setActiveEffects([leech], for: context.roster.hero.combatant)
 
         let outcome = HealingEngine.leechFromDamage(
             10,
@@ -76,8 +77,8 @@ struct HealingEngineTests {
             in: &context
         )
 
-        try #expect(outcome.healthRestored == 10)
-        try #expect(context.roster.hero.currentHealth == 30)
+        try #expect(outcome.healthRestored == 5)
+        try #expect(context.roster.hero.currentHealth == 25)
     }
 
     @Test func abilityLeechHealsHalfOfDamageDealt() throws {
@@ -96,7 +97,6 @@ struct HealingEngineTests {
     }
 
     @Test func bloodLinkRoutesOverhealToCompanionAndEmitsLeechEvent() throws {
-        let leech = ActiveEffect(id: 1, effect: .leech(.leech, 1.0, 3), remainingTurns: 3)
         var context = BattleTestFixtures.makePipelineContext(
             heroModifiers: CombatModifierProfile(
                 triggers: CombatTraitTriggers(
@@ -105,20 +105,23 @@ struct HealingEngineTests {
             ),
             seed: BattleTestFixtures.deterministicNonCriticalSeed
         )
-        context.roster.setActiveEffects([leech], for: context.roster.hero.combatant)
         context.roster.mutateRuntime(for: context.roster.companion.combatant) { $0.currentHealth = 10 }
 
-        let outcome = HealingEngine.leechFromDamage(10, sourceActorID: "source", in: &context)
+        let outcome = HealingEngine.leechFromDamage(
+            10,
+            sourceActorID: "source",
+            abilityHasLeech: true,
+            in: &context
+        )
 
-        try #expect(outcome.healthRestored == 10)
-        try #expect(context.roster.companion.currentHealth == 20)
+        try #expect(outcome.healthRestored == 5)
+        try #expect(context.roster.companion.currentHealth == 15)
         let leechEvent = outcome.events.first { $0.effectKind == .leechHeal }
         try #expect(leechEvent?.targetID == context.roster.companion.id)
-        try #expect(leechEvent?.amount == 10)
+        try #expect(leechEvent?.amount == 5)
     }
 
     @Test func bloodLinkIntoFullHealthCompanionProducesNoLeechOutcome() throws {
-        let leech = ActiveEffect(id: 1, effect: .leech(.leech, 1.0, 3), remainingTurns: 3)
         var context = BattleTestFixtures.makePipelineContext(
             heroModifiers: CombatModifierProfile(
                 triggers: CombatTraitTriggers(
@@ -127,11 +130,15 @@ struct HealingEngineTests {
             ),
             seed: BattleTestFixtures.deterministicNonCriticalSeed
         )
-        context.roster.setActiveEffects([leech], for: context.roster.hero.combatant)
 
         // Hero and Companion both start at full Health: the leech has nowhere
         // to land and must behave like the self-heal path (no event, no flag).
-        let outcome = HealingEngine.leechFromDamage(10, sourceActorID: "source", in: &context)
+        let outcome = HealingEngine.leechFromDamage(
+            10,
+            sourceActorID: "source",
+            abilityHasLeech: true,
+            in: &context
+        )
 
         try #expect(outcome.healthRestored == 0)
         try #expect(outcome.events.isEmpty)
@@ -139,11 +146,14 @@ struct HealingEngineTests {
     }
 
     @Test func leechFromDamageDoesNotReviveDefeatedSource() throws {
-        let leech = ActiveEffect(id: 1, effect: .leech(.leech, 1.0, 3), remainingTurns: 3)
         var context = makeContext(seed: BattleTestFixtures.deterministicNonCriticalSeed)
         context.roster.mutateRuntime(for: context.roster.hero.combatant) { $0.currentHealth = 0 }
-        context.roster.setActiveEffects([leech], for: context.roster.hero.combatant)
-        let outcome = HealingEngine.leechFromDamage(10, sourceActorID: "source", in: &context)
+        let outcome = HealingEngine.leechFromDamage(
+            10,
+            sourceActorID: "source",
+            abilityHasLeech: true,
+            in: &context
+        )
         try #expect(outcome.healthRestored == 0)
         try #expect(context.roster.hero.currentHealth == 0)
     }
@@ -243,19 +253,21 @@ struct HealingEngineTests {
         )
         let source = context.roster.hero.combatant
         context.roster.setActiveEffects(
-            [
-                ActiveEffect(id: 1, effect: .leech(.leech, 1.0, 3), remainingTurns: 3),
-                ActiveEffect(id: 2, effect: .criticalChanceBonus(1.0, 6), remainingTurns: 6),
-            ],
+            [ActiveEffect(id: 1, effect: .criticalChanceBonus(1.0, 6), remainingTurns: 6)],
             for: source
         )
         context.roster.mutateRuntime(for: source) { $0.currentHealth = 20 }
 
-        let outcome = HealingEngine.leechFromDamage(10, sourceActorID: "source", in: &context)
+        let outcome = HealingEngine.leechFromDamage(
+            10,
+            sourceActorID: "source",
+            abilityHasLeech: true,
+            in: &context
+        )
         try #expect(outcome.isCritical)
         try #expect(outcome.flags.contains(.leeched))
-        // Crit doubles the 10 leech heal to 20; target Wisdom 20 adds +4 via heal().
-        try #expect(outcome.healthRestored == 24)
+        // Crit doubles the 5 leech heal to 10; source Wisdom 20 adds +2 via heal().
+        try #expect(outcome.healthRestored == 12)
         try #expect(outcome.events.first?.isCritical == true)
         try #expect(outcome.events.first?.keyword == .leech)
     }

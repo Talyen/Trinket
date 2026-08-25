@@ -221,7 +221,7 @@ public struct CombatantRuntime: Hashable {
     /// Restores `amount` health, capped at `maxHealth` and boosted by
     /// Wisdom's diminishing returns curve percentage. Returns the actual amount restored.
     public mutating func heal(_ amount: Int) -> Int {
-        let wisdomPercent = primaryStats.diminishingReturnsPercent(for: primaryStats.wisdom)
+        let wisdomPercent = PrimaryStats.diminishingReturnsPercent(for: primaryStats.wisdom)
         let wisdomBonus = CombatRounding.scaled(amount, multiplier: wisdomPercent)
         let total = amount + wisdomBonus
         let space = max(0, maxHealth - currentHealth)

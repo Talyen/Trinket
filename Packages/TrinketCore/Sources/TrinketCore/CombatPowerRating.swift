@@ -2,20 +2,17 @@ import Foundation
 
 public struct CombatPowerSnapshot: Equatable, Sendable {
     public let level: Int
-    public let powerMultiplier: Double
     public let maxHealth: Int
     public let primaryStatTotal: Int
     public let rating: Int
 
     public init(
         level: Int,
-        powerMultiplier: Double,
         maxHealth: Int,
         primaryStatTotal: Int,
         rating: Int
     ) {
         self.level = level
-        self.powerMultiplier = powerMultiplier
         self.maxHealth = maxHealth
         self.primaryStatTotal = primaryStatTotal
         self.rating = rating
@@ -23,12 +20,11 @@ public struct CombatPowerSnapshot: Equatable, Sendable {
 }
 
 public enum CombatPowerRating {
-    /// Summarizes scaled combat power from final combatant stats and the level power multiplier.
+    /// Summarizes scaled combat power from final combatant stats.
     public static func evaluate(
         maxHealth: Int,
         primaryStats: PrimaryStats,
-        level: Int,
-        powerMultiplier: Double
+        level: Int
     ) -> CombatPowerSnapshot {
         let statTotal = primaryStats.strength
             + primaryStats.agility
@@ -38,7 +34,6 @@ public enum CombatPowerRating {
         let rating = maxHealth + statTotal
         return CombatPowerSnapshot(
             level: level,
-            powerMultiplier: powerMultiplier,
             maxHealth: maxHealth,
             primaryStatTotal: statTotal,
             rating: rating

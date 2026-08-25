@@ -14,23 +14,18 @@ public extension PrimaryStats {
         return Double(statValue) / (Double(statValue) + 80.0)
     }
 
-    /// Pure diminishing returns curve formula applied to instance stat value.
-    func diminishingReturnsPercent(for statValue: Int) -> Double {
-        Self.diminishingReturnsPercent(for: statValue)
-    }
-
     /// Outgoing damage scaling percentage bonus derived from primary stats
     /// using the diminishing returns curve.
     func statDamageBonusPercent(keyword: Keyword) -> Double {
         switch keyword {
         case .physical, .stun:
-            diminishingReturnsPercent(for: strength)
+            Self.diminishingReturnsPercent(for: strength)
         case .bleed:
-            diminishingReturnsPercent(for: agility)
+            Self.diminishingReturnsPercent(for: agility)
         case .burn, .freeze:
-            diminishingReturnsPercent(for: intellect)
+            Self.diminishingReturnsPercent(for: intellect)
         case .poison, .holy:
-            diminishingReturnsPercent(for: wisdom)
+            Self.diminishingReturnsPercent(for: wisdom)
         default:
             0.0
         }
@@ -41,7 +36,7 @@ public extension PrimaryStats {
     func contestedDodgeChance(againstAttackerAgility attackerAgility: Int) -> Double {
         max(
             0,
-            diminishingReturnsPercent(for: agility) - diminishingReturnsPercent(for: attackerAgility)
+            Self.diminishingReturnsPercent(for: agility) - Self.diminishingReturnsPercent(for: attackerAgility)
         )
     }
 
@@ -56,21 +51,21 @@ public extension PrimaryStats {
     func contestedEnemyDodgeChance(againstAttackerAgility attackerAgility: Int) -> Double {
         let base = max(
             0,
-            diminishingReturnsPercent(for: agility) - diminishingReturnsPercent(for: attackerAgility)
+            Self.diminishingReturnsPercent(for: agility) - Self.diminishingReturnsPercent(for: attackerAgility)
         )
         return max(0, base / (1.0 + Self.enemyDodgeFalloffConstant * base))
     }
 
     /// Percentage damage reduction from Toughness using the diminishing returns curve.
     var toughnessMitigationPercent: Double {
-        diminishingReturnsPercent(for: toughness)
+        Self.diminishingReturnsPercent(for: toughness)
     }
 
     /// Stun/freeze control-meter buildup threshold for a combatant with the given
     /// effective max health (`base max + toughness`). Scales with Agility using
     /// the diminishing returns curve.
     func controlMeterThreshold(baseMaxHealth: Int) -> Int {
-        let agilityResist = 1.0 + diminishingReturnsPercent(for: agility)
+        let agilityResist = 1.0 + Self.diminishingReturnsPercent(for: agility)
         return max(1, CombatRounding.rounded(Double(baseMaxHealth) * 0.20 * agilityResist))
     }
 
@@ -84,15 +79,15 @@ public extension PrimaryStats {
         guard keyword.allowsCriticalHits else { return 0 }
         let attackCurve: Double = switch keyword {
         case .physical, .bleed, .stun:
-            diminishingReturnsPercent(for: agility)
+            Self.diminishingReturnsPercent(for: agility)
         case .burn, .freeze:
-            diminishingReturnsPercent(for: intellect)
+            Self.diminishingReturnsPercent(for: intellect)
         case .poison, .holy, .health, .leech:
-            diminishingReturnsPercent(for: wisdom)
+            Self.diminishingReturnsPercent(for: wisdom)
         default:
             0.0
         }
-        return max(0, attackCurve - diminishingReturnsPercent(for: defenderToughness))
+        return max(0, attackCurve - Self.diminishingReturnsPercent(for: defenderToughness))
     }
 }
 

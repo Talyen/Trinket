@@ -296,11 +296,36 @@ class ScriptRegressionTests(unittest.TestCase):
         self.assertIn("build-cache-key", text)
         self.assertIn("build-for-testing.sh", text)
         self.assertIn("prune-derived-data-cache.sh", text)
+        self.assertIn("default: './Scripts/build-for-testing.sh'", text)
+        self.assertNotIn("default: './Scripts/build-for-testing.sh --app-only'", text)
         workflow = (ROOT / ".github" / "workflows" / "tests.yml").read_text(
             encoding="utf-8"
         )
         self.assertIn("restore-and-build", workflow)
+        self.assertIn("./Scripts/test.sh unit --no-build", workflow)
         self.assertNotIn("actions/cache/restore@", workflow)
+
+    def test_ci_gate_fast_skips_generation_and_style(self) -> None:
+        text = (ROOT / "Scripts" / "ci-gate.sh").read_text(encoding="utf-8")
+        self.assertIn("--fast", text)
+        self.assertIn("check-module-boundaries.sh", text)
+        self.assertIn("check-swift-testing-migration.sh", text)
+        self.assertIn("release-notes.sh validate", text)
+        self.assertIn("=== Fast gate checks passed ===", text)
+
+    def test_test_scripts_supports_skip_docs(self) -> None:
+        text = (ROOT / "Scripts" / "test-scripts.sh").read_text(encoding="utf-8")
+        self.assertIn("--skip-docs", text)
+        self.assertIn('if [[ "$SKIP_DOCS" != true ]]; then', text)
+
+    def test_handoff_runs_cheap_ci_slices_and_skips_docs_on_final(self) -> None:
+        handoff = (ROOT / "Scripts" / "handoff.sh").read_text(encoding="utf-8")
+        self.assertIn("run_cheap_ci_slices", handoff)
+        self.assertIn("check-module-boundaries.sh", handoff)
+        self.assertIn("check-swift-testing-migration.sh", handoff)
+        self.assertIn("release-notes.sh validate", handoff)
+        self.assertIn('if [[ "$FINAL" == true ]]; then', handoff)
+        self.assertIn("./Scripts/test-scripts.sh --skip-docs", handoff)
 
     def test_authored_content_swift_routes_generation_style_and_package(self) -> None:
         result = subprocess.run(

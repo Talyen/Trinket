@@ -4,6 +4,10 @@ import os
 import SwiftData
 import TrinketContent
 
+public enum PlayerSaveDefaults {
+    public static let loggingSubsystem = "com.ryanmcintire.Trinket"
+}
+
 /// Write-through hub for the player SwiftData graph.
 ///
 /// **Owns:** `ModelContainer` / `ModelContext`, deferred save + rollback,
@@ -180,7 +184,11 @@ public final class PlayerSaveStore {
 
         let loadedRoot = try Self.loadOrCreateRoot(in: context, logger: logger)
         root = loadedRoot.root
-        installObservedSave(root.toPlayerSave())
+        // Decode is raw; sanitize owns value normalization. Install the clean
+        // save immediately so reads never see dirty disk rows.
+        var sanitized = PlayerSaveSanitizer.sanitize(root.toPlayerSave())
+        sanitized.schemaVersion = PlayerSave.currentSchemaVersion
+        installObservedSave(sanitized)
         if loadedRoot.wasExisting {
             ensureRequiredGraph()
         } else if loadedRoot.initialSaveFailed {
@@ -207,13 +215,10 @@ public final class PlayerSaveStore {
         let (candidate, changedSlices) = try measured("MutationPreparation") {
             var candidate = snapshot
             update(&candidate)
+            // Full sanitize so cross-slice couplings (inventory→roster,
+            // roster→labyrinth eligibility, world seed) always apply before validate.
+            candidate = PlayerSaveSanitizer.sanitize(candidate)
             var changedSlices = PlayerSaveSlice.changed(between: snapshot, and: candidate)
-            candidate = PlayerSaveSanitizer.sanitize(candidate, changedSlices: changedSlices)
-            // The roster sanitizer resolves loadouts against the sanitized inventory, so an
-            // inventory-only mutation can still rewrite the roster; persist that fix too.
-            if changedSlices.contains(.inventory), snapshot.roster != candidate.roster {
-                changedSlices.insert(.roster)
-            }
             try PlayerSaveSanitizer.validate(candidate)
             if !changedSlices.isEmpty {
                 candidate.modifiedAt = Date()
@@ -358,28 +363,57 @@ public final class PlayerSaveStore {
         }
     }
 
+    /// Persists semantic sanitize diffs and structural graph repairs for an
+    /// existing store. Decode is raw; compare against `root.toPlayerSave()` so
+    /// dirty rows are visible and written back — not only when child models
+    /// are missing.
     private func ensureRequiredGraph() {
-        var save = PlayerSaveSanitizer.sanitize(currentSave)
+        let rawSave = root.toPlayerSave()
+        var save = PlayerSaveSanitizer.sanitize(rawSave)
         save.schemaVersion = PlayerSave.currentSchemaVersion
-        let repairSlices = root.repairSlices(for: save)
+        var repairSlices = root.repairSlices(for: save)
         guard !repairSlices.isEmpty else { return }
 
-        let snapshot = currentSave
+        if !repairSlices.contains(.root) {
+            save.modifiedAt = Date()
+            repairSlices.insert(.root)
+        } else if save.modifiedAt == rawSave.modifiedAt {
+            save.modifiedAt = Date()
+        }
+
+        let observedSnapshot = assembledSave()
         root.apply(save, slices: repairSlices, context: context)
         installObservedSave(save, slices: repairSlices)
         do {
             try saveGraph()
         } catch {
-            root.apply(snapshot, slices: repairSlices, context: context)
-            installObservedSave(snapshot, slices: repairSlices)
+            root.apply(rawSave, slices: repairSlices, context: context)
+            installObservedSave(observedSnapshot)
             lastPersistenceError = .writeFailed
             logger.error(
                 "Failed to persist sanitized player graph: \(error.localizedDescription, privacy: .public)"
             )
         }
     }
+}
 
-    private static func openContainer(
+#if DEBUG
+public extension PlayerSaveStore {
+    func dropInventoryGraphForTesting() {
+        if let inventory = root.inventory {
+            context.delete(inventory)
+        }
+        root.inventory = nil
+    }
+
+    func reapplyRequiredGraphForTesting() {
+        ensureRequiredGraph()
+    }
+}
+#endif
+
+private extension PlayerSaveStore {
+    static func openContainer(
         schema: Schema,
         configuration: ModelConfiguration,
         recoveryURL: URL?,
@@ -399,7 +433,7 @@ public final class PlayerSaveStore {
         )
     }
 
-    private static func loadOrCreateRoot(
+    static func loadOrCreateRoot(
         in context: ModelContext,
         logger: Logger
     ) throws -> (root: PlayerSaveRoot, wasExisting: Bool, initialSaveFailed: Bool) {
@@ -423,7 +457,7 @@ public final class PlayerSaveStore {
         }
     }
 
-    private func measured<Result>(
+    func measured<Result>(
         _ name: StaticString,
         operation: () throws -> Result
     ) rethrows -> Result {
@@ -433,24 +467,7 @@ public final class PlayerSaveStore {
         }
         return try operation()
     }
-}
 
-#if DEBUG
-public extension PlayerSaveStore {
-    func dropInventoryGraphForTesting() {
-        if let inventory = root.inventory {
-            context.delete(inventory)
-        }
-        root.inventory = nil
-    }
-
-    func reapplyRequiredGraphForTesting() {
-        ensureRequiredGraph()
-    }
-}
-#endif
-
-private extension PlayerSaveStore {
     func scheduleDeferredSave() {
         deferredSaveTask?.cancel()
         deferredSaveTask = Task(priority: .utility) { @MainActor [weak self] in

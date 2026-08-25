@@ -70,7 +70,8 @@ Read these focused guides:
 | `./Scripts/generate.sh --assets` | Also prepare art, music, SFX, and cinematics |
 | `./Scripts/assert-generated-output.sh --idempotent` | Confirm regeneration produces no diff |
 | `./Scripts/build.sh` | Build the app with the routed local toolchain |
-| `./Scripts/build-for-testing.sh --app-only` | Rebuild the app for `test.sh … --no-build` runs against CI build artifacts |
+| `./Scripts/build-for-testing.sh` | Rebuild app and package schemes for `test.sh … --no-build` runs against CI build artifacts |
+| `./Scripts/build-for-testing.sh --app-only` | Rebuild only the app (smoke/UI artifact miss recovery) |
 | `./Scripts/test-package.sh <Package>` | Run one package's tests |
 | `./Scripts/test.sh unit` | Run all package unit suites |
 | `./Scripts/test-timing.sh report` | Show per-suite wall-time history and hotspots from test runs |
@@ -82,9 +83,11 @@ Read these focused guides:
 | `./Scripts/agent-context.sh --agent --paths …` | Print concise guidance and verification routing; use `--full` for full commands and `--working-tree --allow-broad-scope` only intentionally |
 | `./Scripts/agent-watch-ci.sh [--sha …]` | Poll a hosted CI run for a commit; prints failed jobs and annotations when red |
 | `./Scripts/agent-worktree.sh -h` | Create/list/remove isolated git worktrees for parallel agent sessions |
-| `./Scripts/handoff.sh --isolate --paths …` | Canonical path-scoped source gate; use `--working-tree` only intentionally |
+| `./Scripts/handoff.sh --isolate --paths …` | Canonical path-scoped source gate; use `--working-tree` only intentionally; always finishes with cheap CI slices (boundaries, Swift Testing, release notes) |
 | `./Scripts/new-plan.sh <PlanName>` | Scaffold an expiring active execution plan under `Docs/Plans/`; completed plans move to `Docs/Plans/Archived/` |
 | `./Scripts/ci-gate.sh` | Generation, style, boundaries, script regressions, and release-note validation |
+| `./Scripts/ci-gate.sh --fast` | Cheap full-tree slices only (boundaries, Swift Testing, release notes); skips generation and style |
+| `./Scripts/test-scripts.sh [--skip-docs]` | Script syntax/regressions; omit docs when a caller already ran `check-docs.py --final` |
 | `./Scripts/ci-assets-gate.sh` | Asset generation, idempotence, and locale-stability gate |
 | `python3 ./Scripts/check-docs.py [--final] [--keep-plan]` | Check links, structure, smoke classes, stale terms, and execution-plan lifecycle |
 | `./Scripts/test-deploy.sh [--mode smoke]` | Pre-release deploy verification (`release.sh` calls this); `--mode smoke` is an optional canary |

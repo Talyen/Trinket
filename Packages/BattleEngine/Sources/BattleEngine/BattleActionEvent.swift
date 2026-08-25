@@ -52,6 +52,8 @@ public struct ActionEvent: Identifiable, Equatable {
         case dotAmplified
         case recurringDamageApplied
         case avatarApplied
+        case hemorrhageApplied
+        case hemorrhageTriggered
     }
 
     public let id: Int

@@ -143,7 +143,9 @@ public final class PlaySession {
             for: combatantID
         )
         if result == .unlocked {
-            postBattleTalentCombatantIDs.removeFirst()
+            if playerSave.roster.availableTalentPoints(for: combatantID) == 0 {
+                postBattleTalentCombatantIDs.removeFirst()
+            }
         }
         return result
     }

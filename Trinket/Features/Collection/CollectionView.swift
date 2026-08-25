@@ -34,14 +34,10 @@ struct CollectionView: View {
             } message: {
                 Text("That item isn't in your collection.")
             }
-            .sheet(item: $salvageDetail.selectedItem) { item in
-                SalvageItemDetailSheet(item: item) { result in
-                    salvageDetail.salvageFinished(
-                        result: result,
-                        item: item
-                    )
-                }
-            }
+            .salvageInventoryPresentation(
+                salvageDetail: $salvageDetail,
+                hapticsEnabled: options.hapticsEnabled
+            )
             .sheet(item: $selectedCombatant) { context in
                 NavigationStack {
                     RosterCombatantDetailView(
@@ -62,18 +58,6 @@ struct CollectionView: View {
                         AppFramePacingSignposts.Name.sheetPresent,
                         detail: "collectionCombatant=\(context.combatantID)"
                     )
-                }
-            }
-            .trinketSensoryFeedback(
-                .success,
-                trigger: salvageDetail.salvageSuccessCount,
-                enabled: options.hapticsEnabled
-            )
-            .overlay {
-                if let event = salvageDetail.transmutationEvent {
-                    SalvageTransmutationLayer(event: event) {
-                        salvageDetail.finishTransmutation(id: event.id)
-                    }
                 }
             }
     }

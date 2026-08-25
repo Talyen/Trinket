@@ -177,7 +177,7 @@ public enum TrinketMotion: Sendable {
         /// Freeze frost finishes encroaching at this fraction of the status phase.
         public static let combatantFreezeEncroachProgress: Double = 0.35
 
-        /// Timeline duration until freeze overlay can pause on a static saturated veil.
+        /// Timeline duration until freeze frost finishes encroaching before sustained particle shimmer.
         public static var combatantFreezeEncroachDuration: TimeInterval {
             combatantStatusEffectPhaseDuration * combatantFreezeEncroachProgress
         }

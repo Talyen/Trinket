@@ -7,13 +7,11 @@ import TrinketTestSupport
 @testable import TrinketBattleFeature
 
 struct BattlePresentationControlSkipTests {
-    @Test func stunPhaseContinuesBeyondItsFirstOrbitWhileFreezeSaturates() {
+    @Test func stunAndFreezeProgressContinuesBeyondFirstPhase() {
         let elapsed: TimeInterval = 60
 
         #expect(CombatantStatusEffectKind.swirlingStars.progress(after: elapsed) > 1)
-        #expect(CombatantStatusEffectKind.swirlingStars.saturationDuration == nil)
-        #expect(CombatantStatusEffectKind.iceCrystals.progress(after: elapsed) == 1)
-        #expect(CombatantStatusEffectKind.iceCrystals.saturationDuration != nil)
+        #expect(CombatantStatusEffectKind.iceCrystals.progress(after: elapsed) > 1)
     }
 
     @Test func cardActivationRequestNormalizesKeywords() {

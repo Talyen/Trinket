@@ -4,10 +4,6 @@ import TrinketContent
 import TrinketCore
 
 extension InventoryModel {
-    private static let itemBaseTypesByID = Dictionary(
-        uniqueKeysWithValues: GameContent.itemBaseTypes.map { ($0.id, $0) }
-    )
-
     func toPlayerInventoryState() -> PlayerInventoryState {
         PlayerInventoryState(items: (items ?? [])
             .sorted { lhs, rhs in
@@ -20,7 +16,7 @@ extension InventoryModel {
     }
 
     private static func restoredItem(from item: InventoryItemModel) -> InventoryItem? {
-        guard let baseType = itemBaseTypesByID[item.baseTypeID] else {
+        guard let baseType = GameContent.itemBaseType(matching: item.baseTypeID) else {
             inventoryMappingLogger.error(
                 "Dropping inventory item \(item.id, privacy: .public) with unknown base type \(item.baseTypeID, privacy: .public)"
             )

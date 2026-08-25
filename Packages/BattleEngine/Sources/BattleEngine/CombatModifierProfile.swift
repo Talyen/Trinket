@@ -14,7 +14,6 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
     public var goldGainedBonus: Int
     public var goldGainedPercent: Double
     public var blockGainedBonus: Int
-    public var leechDurationBonus: Int
     public var bleedDurationBonus: Int
     public var damageTakenReduction: [Keyword: Double]
     public var damageTakenFlat: [Keyword: Int]
@@ -41,15 +40,13 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         goldGainedBonus: Int = 0,
         goldGainedPercent: Double = 0,
         blockGainedBonus: Int = 0,
-        leechDurationBonus: Int = 0,
         bleedDurationBonus: Int = 0,
         damageTakenReduction: [Keyword: Double] = [:],
         damageTakenFlat: [Keyword: Int] = [:],
         damageTakenVulnerability: [Keyword: Double] = [:],
         companionDamageDealtBonus: Int = 0,
         companionBleedDamageDealtBonus: Int = 0,
-        triggers: CombatTraitTriggers = CombatTraitTriggers(
-        ),
+        triggers: CombatTraitTriggers = CombatTraitTriggers(),
         traitDisplayName: String? = nil,
         triggerAbilityNames: [String: String] = [:]
     ) {
@@ -64,7 +61,6 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         self.goldGainedBonus = goldGainedBonus
         self.goldGainedPercent = goldGainedPercent
         self.blockGainedBonus = blockGainedBonus
-        self.leechDurationBonus = leechDurationBonus
         self.bleedDurationBonus = bleedDurationBonus
         self.damageTakenReduction = damageTakenReduction
         self.damageTakenFlat = damageTakenFlat
@@ -101,7 +97,6 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         goldGainedBonus += other.goldGainedBonus
         goldGainedPercent += other.goldGainedPercent
         blockGainedBonus += other.blockGainedBonus
-        leechDurationBonus += other.leechDurationBonus
         bleedDurationBonus += other.bleedDurationBonus
         for (keyword, amount) in other.damageTakenReduction {
             damageTakenReduction[keyword, default: 0] += amount

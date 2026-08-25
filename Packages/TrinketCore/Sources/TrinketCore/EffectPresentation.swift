@@ -47,6 +47,8 @@ public enum EffectPresentation {
             return effect.keyword.statusAlias ?? effect.keyword.rawValue
         case let .bleed(potency):
             return bleedActivePhrase(potency: potency, keyword: effect.keyword)
+        case let .hemorrhage(potency):
+            return "Hemorrhage: \(potency) Bleed"
         case let .controlMeter(keyword, amount, threshold):
             if amount >= threshold {
                 return keyword.statusAlias ?? keyword.rawValue
@@ -71,8 +73,6 @@ public enum EffectPresentation {
 
     private static func activeBuffPhrase(for effect: Effect) -> String? {
         switch effect {
-        case .leech:
-            "Leech"
         case .deathsDoor:
             "Death's Door"
         case let .thorns(stacks):
@@ -96,12 +96,18 @@ public enum EffectPresentation {
         case .evadeNextHit:
             "Evade Next Hit"
         default:
-            glacialActiveBuffPhrase(for: effect)
+            secondaryActiveBuffPhrase(for: effect)
         }
     }
 
-    private static func glacialActiveBuffPhrase(for effect: Effect) -> String? {
+    private static func secondaryActiveBuffPhrase(for effect: Effect) -> String? {
         switch effect {
+        case let .damageReductionPercent(percent, _):
+            "Damage -\(Int((percent * 100).rounded()))%"
+        case let .damageReductionFlat(amount, _):
+            "Damage -\(amount)"
+        case let .strengthReduction(amount, _):
+            "Strength -\(amount)"
         case .freezeNextAttacker:
             "Glacial Ward"
         case let .onHitDamage(.freeze, amount):
@@ -125,6 +131,8 @@ public enum EffectPresentation {
             statusPhrase(for: .poison, amount: amount)
         case let .bleed(amount):
             statusPhrase(for: .bleed, amount: amount)
+        case let .hemorrhage(amount):
+            "the next time they attack, they take \(amount) Bleed damage"
         case let .recurringDamage(keyword, amount, turns):
             "deal \(amount) \(keyword.rawValue) damage each turn \(durationPhrase(turns: turns))"
         case let .avatar(holyDamage, blockPerTurn, turns):
@@ -182,8 +190,6 @@ public enum EffectPresentation {
         switch effect {
         case let .instantHeal(.health, amount):
             "restore \(amount) Health"
-        case .leech:
-            "gain Leech"
         case let .resourceGain(.gold, amount):
             "steal \(amount) Gold"
         case let .resourceGain(.mana, amount):
@@ -237,6 +243,12 @@ public enum EffectPresentation {
             "restore \(amount) Mana when you take damage"
         case let .damageKeywordOverride(keyword, bonus, durationTurns):
             "your attacks become \(keyword.rawValue) damage and deal +\(bonus) \(durationPhrase(turns: durationTurns))"
+        case let .damageReductionPercent(percent, durationTurns):
+            "reduces damage dealt by \(Int((percent * 100).rounded()))% \(durationPhrase(turns: durationTurns))"
+        case let .damageReductionFlat(amount, durationTurns):
+            "reduces damage dealt by \(amount) \(durationPhrase(turns: durationTurns))"
+        case let .strengthReduction(amount, durationTurns):
+            "reduces Strength by \(amount) \(durationPhrase(turns: durationTurns))"
         default:
             nil
         }

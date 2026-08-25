@@ -101,15 +101,27 @@ enum PlayerSaveSanitizer {
     static let defaultHeroIDs: Set<String> = Set(GameContent.heroes.map(\.id))
     static let defaultCompanionIDs: Set<String> = Set(GameContent.companions.map(\.id))
     static let defaultChapterIDs: Set<String> = Set(GameContent.chapters.map(\.id))
-    static let defaultStageIDs: Set<String> = Set(GameContent.chapters.flatMap(\.stages).map(\.id))
+    static let defaultAllStages: [Stage] = GameContent.chapters.flatMap(\.stages)
+    static let defaultStageIDs: Set<String> = Set(defaultAllStages.map(\.id))
 
     static func sanitizeJourney(
         _ journey: JourneyProgressState,
-        chapters: [Chapter] = GameContent.chapters
+        chapters: [Chapter]? = nil
     ) -> JourneyProgressState {
-        let validChapterIDs = chapters == GameContent.chapters ? defaultChapterIDs : Set(chapters.map(\.id))
-        let allStages = chapters.flatMap(\.stages)
-        let validStageIDs = chapters == GameContent.chapters ? defaultStageIDs : Set(allStages.map(\.id))
+        let activeChapters = chapters ?? GameContent.chapters
+        let validChapterIDs: Set<String>
+        let allStages: [Stage]
+        let validStageIDs: Set<String>
+
+        if let chapters {
+            validChapterIDs = Set(chapters.map(\.id))
+            allStages = chapters.flatMap(\.stages)
+            validStageIDs = Set(allStages.map(\.id))
+        } else {
+            validChapterIDs = defaultChapterIDs
+            allStages = defaultAllStages
+            validStageIDs = defaultStageIDs
+        }
 
         var sanitized = journey
         sanitized.completedStageIDs = journey.completedStageIDs.filter { validStageIDs.contains($0) }
@@ -126,7 +138,7 @@ enum PlayerSaveSanitizer {
         if validChapterIDs.contains(sanitized.activeChapterID) {
             // keep
         } else {
-            sanitized.activeChapterID = chapters.first?.id ?? JourneyProgressState.initial.activeChapterID
+            sanitized.activeChapterID = activeChapters.first?.id ?? JourneyProgressState.initial.activeChapterID
         }
 
         if let activeStageID = sanitized.activeStageID,
@@ -141,7 +153,7 @@ enum PlayerSaveSanitizer {
             sanitized.activeChapterID = firstIncomplete.chapterID
         } else {
             sanitized.activeStageID = nil
-            sanitized.activeChapterID = chapters.last?.id
+            sanitized.activeChapterID = activeChapters.last?.id
                 ?? JourneyProgressState.initial.activeChapterID
         }
 

@@ -164,9 +164,9 @@ extension BattleSession {
     }
 
     @discardableResult
-    func playEngineCard(cardID: Int, branchIndex: Int? = nil) throws -> [ActionEvent] {
+    func playEngineCard(cardID: Int) throws -> [ActionEvent] {
         guard var engineState else { throw BattlePlayError.battleOver }
-        let events = try engineState.playCard(cardID: cardID, rebuildLog: false, branchIndex: branchIndex)
+        let events = try engineState.playCard(cardID: cardID, rebuildLog: false)
         self.engineState = engineState
         return events
     }
@@ -319,8 +319,6 @@ extension BattleSession {
         for configuration: BattleRunConfiguration,
         presentation: BattlePresentationContext? = nil
     ) {
-        activeBattle = configuration
-        lifecyclePhase = .active
         installActiveBattle(configuration, presentation: presentation)
     }
 

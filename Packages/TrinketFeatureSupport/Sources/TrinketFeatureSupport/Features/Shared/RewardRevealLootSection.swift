@@ -90,7 +90,7 @@ public struct RewardRevealLootSection: View {
         if rewardCount > 0 {
             let goldOffset = gold > 0 ? 1 : 0
             TrinketWalletGrid(
-                columnCount: max(1, rewardCount)
+                columnCount: min(4, max(1, rewardCount))
             ) {
                 if gold > 0 {
                     TrinketWalletResourcePill(

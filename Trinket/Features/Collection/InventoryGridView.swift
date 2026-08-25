@@ -74,25 +74,9 @@ struct InventoryGridView: View {
                 .accessibilityIdentifier("Inventory filter")
             }
         }
-        .sheet(item: $salvageDetail.selectedItem) { item in
-            SalvageItemDetailSheet(item: item) { result in
-                salvageDetail.salvageFinished(
-                    result: result,
-                    item: item
-                )
-            }
-        }
-        .overlay {
-            if let event = salvageDetail.transmutationEvent {
-                SalvageTransmutationLayer(event: event) {
-                    salvageDetail.finishTransmutation(id: event.id)
-                }
-            }
-        }
-        .trinketSensoryFeedback(
-            .success,
-            trigger: salvageDetail.salvageSuccessCount,
-            enabled: options.hapticsEnabled
+        .salvageInventoryPresentation(
+            salvageDetail: $salvageDetail,
+            hapticsEnabled: options.hapticsEnabled
         )
     }
 

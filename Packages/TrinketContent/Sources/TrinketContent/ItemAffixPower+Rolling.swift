@@ -94,6 +94,94 @@ public extension ItemAffixPower {
         return triggers.affixMagnitudesAreAtOrAboveRollMax(of: catalog.triggers)
     }
 
+    func hasBumpableField(direction: ItemAffixPowerBumpDirection) -> Bool {
+        modifiers.contains { $0.bumped(intDelta: direction.intDelta, percentDelta: direction.percentDelta) != nil }
+            || triggers.hasBumpableAffixMagnitude(direction: direction)
+    }
+
+    enum BumpTarget: Sendable {
+        case modifier(Int)
+        case trigger(Int)
+    }
+
+    func bumpCandidates(direction: ItemAffixPowerBumpDirection) -> [BumpTarget] {
+        var candidates: [BumpTarget] = []
+        for (index, modifier) in modifiers.enumerated()
+            where modifier.bumped(intDelta: direction.intDelta, percentDelta: direction.percentDelta) != nil {
+            candidates.append(.modifier(index))
+        }
+        for (index, field) in CombatTraitTriggers.affixMagnitudeFields.enumerated()
+            where field.canBump(in: triggers, direction: direction) {
+            candidates.append(.trigger(index))
+        }
+        return candidates
+    }
+
+    func bumped(target: BumpTarget, direction: ItemAffixPowerBumpDirection) -> ItemAffixPower {
+        var modifiers = modifiers
+        var triggers = triggers
+        var description = description
+
+        switch target {
+        case let .modifier(index):
+            guard modifiers.indices.contains(index),
+                  let bumpedModifier = modifiers[index].bumped(
+                      intDelta: direction.intDelta,
+                      percentDelta: direction.percentDelta
+                  ) else {
+                return self
+            }
+            let old = modifiers[index].numericValue
+            let new = bumpedModifier.numericValue
+            modifiers[index] = bumpedModifier
+            description = Self.replacingMagnitude(
+                in: description,
+                from: old,
+                to: new,
+                isPercent: modifiers[index].isPercent
+            )
+
+        case let .trigger(index):
+            guard CombatTraitTriggers.affixMagnitudeFields.indices.contains(index) else { return self }
+            let field = CombatTraitTriggers.affixMagnitudeFields[index]
+            field.bump(in: &triggers, direction: direction) { old, new, isPercent in
+                description = Self.replacingMagnitude(
+                    in: description,
+                    from: old,
+                    to: new,
+                    isPercent: isPercent
+                )
+            }
+        }
+
+        return ItemAffixPower(description: description, modifiers: modifiers, triggers: triggers)
+    }
+
+    static func hasBumpableField(in powers: [ItemAffixPower], direction: ItemAffixPowerBumpDirection) -> Bool {
+        powers.contains { $0.hasBumpableField(direction: direction) }
+    }
+
+    static func applyBump(
+        direction: ItemAffixPowerBumpDirection,
+        to powers: inout [ItemAffixPower],
+        affixIDs: [String],
+        using randomNumberGenerator: inout some RandomNumberGenerator
+    ) -> (title: String, affixIndex: Int)? {
+        var candidates: [(powerIndex: Int, target: BumpTarget)] = []
+        for (powerIndex, power) in powers.enumerated() {
+            for target in power.bumpCandidates(direction: direction) {
+                candidates.append((powerIndex, target))
+            }
+        }
+        guard let pick = candidates.randomElement(using: &randomNumberGenerator) else {
+            return nil
+        }
+        powers[pick.powerIndex] = powers[pick.powerIndex].bumped(target: pick.target, direction: direction)
+        let title = GameContent.itemAffixDefinition(matching: affixIDs[pick.powerIndex])?.title
+            ?? affixIDs[pick.powerIndex]
+        return (title, pick.powerIndex)
+    }
+
     private static func replacingMagnitude(
         in description: String,
         from old: Double,
@@ -116,6 +204,19 @@ public extension ItemAffixPower {
             searchStart = range.upperBound
         }
         return description
+    }
+}
+
+public enum ItemAffixPowerBumpDirection: Equatable, Sendable {
+    case up
+    case down
+
+    public var intDelta: Int {
+        self == .up ? 1 : -1
+    }
+
+    public var percentDelta: Double {
+        self == .up ? 0.01 : -0.01
     }
 }
 
@@ -227,6 +328,12 @@ private extension CombatTraitTriggers {
         return rolled
     }
 
+    func hasBumpableAffixMagnitude(direction: ItemAffixPowerBumpDirection) -> Bool {
+        Self.affixMagnitudeFields.contains { field in
+            field.canBump(in: self, direction: direction)
+        }
+    }
+
     func affixMagnitudesAreAtOrAboveRollMax(of catalog: Self) -> Bool {
         for field in Self.affixMagnitudeFields {
             switch field {
@@ -249,12 +356,42 @@ private extension CombatTraitTriggers {
         return true
     }
 
-    private enum AffixMagnitudeField: Sendable {
+    enum AffixMagnitudeField: Sendable {
         case int(WritableKeyPath<CombatTraitTriggers, Int> & Sendable)
         case percent(WritableKeyPath<CombatTraitTriggers, Double> & Sendable)
+
+        func canBump(in triggers: CombatTraitTriggers, direction: ItemAffixPowerBumpDirection) -> Bool {
+            switch self {
+            case let .int(keyPath):
+                let value = triggers[keyPath: keyPath]
+                return value > 0 && (direction == .up || value > 1)
+            case let .percent(keyPath):
+                let value = triggers[keyPath: keyPath]
+                return value > 0 && (direction == .up || value > 0.01 + 1e-9)
+            }
+        }
+
+        func bump(
+            in triggers: inout CombatTraitTriggers,
+            direction: ItemAffixPowerBumpDirection,
+            record: (Double, Double, Bool) -> Void
+        ) {
+            switch self {
+            case let .int(keyPath):
+                let old = triggers[keyPath: keyPath]
+                let new = old + direction.intDelta
+                triggers[keyPath: keyPath] = new
+                record(Double(old), Double(new), false)
+            case let .percent(keyPath):
+                let old = triggers[keyPath: keyPath]
+                let new = old + direction.percentDelta
+                triggers[keyPath: keyPath] = new
+                record(old, new, true)
+            }
+        }
     }
 
-    private static let affixMagnitudeFields: [AffixMagnitudeField] = [
+    static let affixMagnitudeFields: [AffixMagnitudeField] = [
         .int(\.cleanseSelfHeal),
         .int(\.gainGoldBonusHealSelf),
         .percent(\.thornsPercent),

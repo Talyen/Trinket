@@ -9,34 +9,36 @@ import TrinketCore
 /// For each keyword group, kinds are tried in `priorityOrder` and the first
 /// handler that returns a non-nil summary wins. This preserves the historical
 /// priority ordering (decaying DoTs first, then bleed, then defensive
-/// totals, then control-meter build-up, then active control effects, then leech,
-/// then cleanse).
+/// totals, then control-meter build-up, then active control effects, then cleanse).
 public enum EffectSummaryBuilder {
     private static let priorityOrder: [EffectKind] = [
         .deathsDoor,
         .burn, .poison,
-        .bleed,
+        .bleed, .hemorrhage,
         .shield,
         .thorns, .marked, .criticalChanceBonus, .restoreManaOnHit, .damageKeywordOverride,
+        .nextHolyStrike, .nextStrikeDouble, .evadeNextHit,
         .nextStrikeCritical, .freezeNextAttacker, .onHitDamage, .maximumManaBonus,
         .recurringDamage, .avatar,
+        .damageReductionPercent, .damageReductionFlat, .strengthReduction,
         .controlMeter,
-        .leech,
     ]
 
-    /// Returns one `EffectSummary` per keyword that has at least one active
-    /// effect with a non-nil summary. Order is unspecified.
+    /// Returns an `EffectSummary` for each active effect kind/stack group.
+    /// Order follows `priorityOrder`.
     public static func build(for effects: [ActiveEffect]) -> [EffectSummary] {
-        Dictionary(grouping: effects, by: \.keyword).compactMap { keyword, group in
-            for kind in priorityOrder {
-                let stacks = group.filter { $0.effect.kind == kind }
-                guard !stacks.isEmpty else { continue }
-                guard let handler = EffectHandlers.all[kind] else { continue }
+        var summaries: [EffectSummary] = []
+        for kind in priorityOrder {
+            let kindEffects = effects.filter { $0.effect.kind == kind }
+            guard !kindEffects.isEmpty else { continue }
+            guard let handler = EffectHandlers.all[kind] else { continue }
+            let groupedByKeyword = Dictionary(grouping: kindEffects, by: \.keyword)
+            for (keyword, stacks) in groupedByKeyword {
                 if let summary = handler.summary(for: stacks, keyword: keyword) {
-                    return summary
+                    summaries.append(summary)
                 }
             }
-            return nil
         }
+        return summaries
     }
 }

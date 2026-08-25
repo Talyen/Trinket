@@ -134,7 +134,7 @@ struct PlayModeArtworkCard: View {
                     TrinketDesign.Colors.surface
                 }
             }
-            .trinketLockedCardEffect(isLocked: isLocked, text: isLocked ? "Locked" : nil)
+            .trinketLockedCardEffect(isLocked: isLocked)
 
             VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
                 if let subtitle {

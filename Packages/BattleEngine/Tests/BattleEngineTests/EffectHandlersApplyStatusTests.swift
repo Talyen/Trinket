@@ -136,7 +136,7 @@ struct EffectHandlersApplyStatusTests {
             BattleStateTestFactory.seedActiveEffects(
                 [
                     ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTurns: 6),
-                    ActiveEffect(id: 2, effect: .leech(.leech, 0.1, 6), remainingTurns: 6),
+                    ActiveEffect(id: 2, effect: .thorns(3), remainingTurns: 0),
                 ],
                 for: battle.enemy,
                 on: &battle
@@ -156,7 +156,7 @@ struct EffectHandlersApplyStatusTests {
             BattleStateTestFactory.seedActiveEffects(
                 [
                     ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTurns: 6),
-                    ActiveEffect(id: 2, effect: .leech(.leech, 0.1, 6), remainingTurns: 6),
+                    ActiveEffect(id: 2, effect: .thorns(3), remainingTurns: 0),
                 ],
                 for: battle.enemy,
                 on: &battle
@@ -179,7 +179,7 @@ struct EffectHandlersApplyStatusTests {
                 return false
             })
             try #expect(battle.activeEffects(of: battle.enemy).contains {
-                if case .leech = $0.effect {
+                if case .thorns = $0.effect {
                     return true
                 }
                 return false

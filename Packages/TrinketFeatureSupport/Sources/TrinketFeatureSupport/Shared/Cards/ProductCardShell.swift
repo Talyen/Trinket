@@ -6,7 +6,6 @@ import TrinketDesignSystem
 @MainActor
 public struct ProductCardShell<Art: View, Label: View>: View {
     var isLocked: Bool = false
-    var lockedText: String? = "Locked"
     var isSelected: Bool = false
     var appliesCardSurface: Bool = true
     var showsLabel: Bool = true
@@ -21,7 +20,6 @@ public struct ProductCardShell<Art: View, Label: View>: View {
 
     public init(
         isLocked: Bool = false,
-        lockedText: String? = "Locked",
         isSelected: Bool = false,
         appliesCardSurface: Bool = true,
         showsLabel: Bool = true,
@@ -34,7 +32,6 @@ public struct ProductCardShell<Art: View, Label: View>: View {
         @ViewBuilder label: @escaping () -> Label = { EmptyView() }
     ) {
         self.isLocked = isLocked
-        self.lockedText = lockedText ?? "Locked"
         self.isSelected = isSelected
         self.appliesCardSurface = appliesCardSurface
         self.showsLabel = showsLabel
@@ -79,7 +76,7 @@ public struct ProductCardShell<Art: View, Label: View>: View {
                 art()
                     .clipShape(TrinketDesign.cardShape)
             }
-            .trinketLockedCardEffect(isLocked: isLocked, text: isLocked ? lockedText : nil)
+            .trinketLockedCardEffect(isLocked: isLocked)
 
         Group {
             if appliesCardSurface {

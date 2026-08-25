@@ -12,6 +12,7 @@ struct CombatPipelineTests {
         targetPrimaryStats: PrimaryStats = PrimaryStats(),
         targetEffects: [ActiveEffect] = [],
         sourcePrimaryStats: PrimaryStats = PrimaryStats(),
+        heroModifiers: CombatModifierProfile = .zero,
         seed: UInt64 = BattleTestFixtures.deterministicNonCriticalSeed
     ) -> BattleState {
         BattleTestFixtures.makePipelineContext(
@@ -19,6 +20,7 @@ struct CombatPipelineTests {
             targetPrimaryStats: targetPrimaryStats,
             targetEffects: targetEffects,
             sourcePrimaryStats: sourcePrimaryStats,
+            heroModifiers: heroModifiers,
             seed: seed
         )
     }
@@ -137,11 +139,17 @@ struct CombatPipelineTests {
 
     @Test(arguments: ["dot", "direct", "self"] as [String])
     func applyDamageLeechMatrix(mode: String) throws {
-        let leech = ActiveEffect(id: 1, effect: .leech(.leech, 1.0, 3), remainingTurns: 3)
-        var context = makeContext(seed: BattleTestFixtures.deterministicNonCriticalSeed)
+        var context = makeContext(
+            heroModifiers: mode == "dot"
+                ? CombatModifierProfile(
+                    triggers: CombatTraitTriggers(dot: DotTriggers(burnDamageLeech: true))
+                )
+                : CombatModifierProfile(),
+            seed: BattleTestFixtures.deterministicNonCriticalSeed
+        )
         context.roster.mutateRuntime(for: context.roster.hero.combatant) { $0.currentHealth = 30 }
-        context.roster.setActiveEffects([leech], for: context.roster.hero.combatant)
         let before = context.roster.hero.currentHealth
+        let abilityHasLeech = mode != "dot"
 
         switch mode {
         case "dot":
@@ -159,7 +167,8 @@ struct CombatPipelineTests {
                 10,
                 to: context.roster.enemy.combatant,
                 keyword: .physical,
-                sourceActorID: "source"
+                sourceActorID: "source",
+                abilityHasLeech: abilityHasLeech
             )
             try #expect(context.roster.hero.currentHealth > before)
             try #expect(events.contains { $0.effectKind == .leechHeal })
@@ -169,7 +178,8 @@ struct CombatPipelineTests {
                 10,
                 to: context.roster.hero.combatant,
                 keyword: .physical,
-                sourceActorID: "source"
+                sourceActorID: "source",
+                abilityHasLeech: abilityHasLeech
             )
             try #expect(context.roster.hero.currentHealth == before - expectedLoss)
             try #expect(!(events.contains { $0.effectKind == .leechHeal }))

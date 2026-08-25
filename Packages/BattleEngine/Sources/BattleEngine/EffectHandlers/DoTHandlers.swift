@@ -151,20 +151,19 @@ struct DecayingDoTHandler: BattleEffectHandler {
         ability _: Ability,
         source: Combatant,
         target: Combatant,
-        action: ActionApplyContext,
+        action _: ActionApplyContext,
         in context: inout BattleState
     ) -> EffectApplyOutcome {
         guard let potency = effect.potency, matches(effect) else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
         // Defeated targets are excluded by the turn engine's apply gate.
-        let skipImmediate = action.shouldSkipImmediateDoT(keyword: keyword)
         let events = context.applyDecayingDoT(
             keyword: keyword,
             potency: potency,
             to: target,
             sourceActorID: source.id,
-            dealImmediateDamage: !skipImmediate
+            dealImmediateDamage: true
         )
         return EffectApplyOutcome(events: events, didApply: true)
     }
@@ -304,18 +303,17 @@ struct BleedHandler: BattleEffectHandler {
         ability _: Ability,
         source: Combatant,
         target: Combatant,
-        action: ActionApplyContext,
+        action _: ActionApplyContext,
         in context: inout BattleState
     ) -> EffectApplyOutcome {
         guard case let .bleed(potency) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
         // Defeated targets are excluded by the turn engine's apply gate.
         let bleedsBefore = context.roster.activeEffects(for: target).count(where: \.effect.isBleed)
-        let skipImmediate = action.shouldSkipImmediateDoT(keyword: .bleed)
         let events = DoTApplicator.applyBleed(
             potency: potency,
             to: target,
             sourceActorID: source.id,
-            dealImmediateDamage: !skipImmediate,
+            dealImmediateDamage: true,
             in: &context
         )
         // The stack lands even when immediate damage and reactions emit nothing,

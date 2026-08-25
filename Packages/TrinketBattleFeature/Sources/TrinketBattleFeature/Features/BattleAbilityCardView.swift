@@ -369,7 +369,7 @@ struct BattleAbilityCardView: View {
         onInteractionChanged(false)
         let didPlay = onPlay(request)
         if didPlay {
-            cancelTapLift()
+            resetVisualState()
             return
         }
         didAnnounceWindUp = hadWindUp

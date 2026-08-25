@@ -211,8 +211,10 @@ public struct PlayerRosterState: Equatable, Sendable {
     }
 
     public mutating func setEquipmentLoadout(_ loadout: EquipmentLoadout, for combatant: Combatant) {
-        // One inventory instance per combatant — collapse same-item multi-slot state.
-        let resolvedLoadout = Self.deduplicatedLoadout(loadout)
+        // Target combatant wins ownership; other loadouts drop the same item IDs.
+        // (Load/sanitize uses RosterHydration.enforceUniqueEquippedItems — sorted
+        // first-wins — which is intentionally different.)
+        let resolvedLoadout = RosterHydration.deduplicateWithinLoadout(loadout)
         let newlyEquipped = Set(resolvedLoadout.itemIDsBySlot.values)
         for (combatantID, var otherLoadout) in equipmentLoadouts where combatantID != combatant.id {
             for slot in ItemSlot.allCases {
@@ -225,17 +227,21 @@ public struct PlayerRosterState: Equatable, Sendable {
         equipmentLoadouts[combatant.id] = resolvedLoadout
     }
 
-    private static func deduplicatedLoadout(_ loadout: EquipmentLoadout) -> EquipmentLoadout {
-        var unique = EquipmentLoadout()
-        var claimedItemIDs = Set<String>()
-        for slot in ItemSlot.allCases {
-            guard let itemID = loadout.itemID(for: slot), !claimedItemIDs.contains(itemID) else {
-                continue
+    @discardableResult
+    public mutating func unequip(itemID: String) -> Bool {
+        var didUnequip = false
+        for (combatantID, var loadout) in equipmentLoadouts {
+            var didChange = false
+            for slot in ItemSlot.allCases where loadout.itemID(for: slot) == itemID {
+                loadout.unequip(slot)
+                didChange = true
             }
-            claimedItemIDs.insert(itemID)
-            unique.itemIDsBySlot[slot] = itemID
+            if didChange {
+                equipmentLoadouts[combatantID] = loadout
+                didUnequip = true
+            }
         }
-        return unique
+        return didUnequip
     }
 
     public mutating func setActiveHero(_ hero: Combatant) {

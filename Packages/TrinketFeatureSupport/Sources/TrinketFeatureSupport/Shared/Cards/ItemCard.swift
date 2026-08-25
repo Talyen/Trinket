@@ -3,11 +3,17 @@ import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
 
+public enum ItemCardPresentation {
+    case standard
+    case reveal
+}
+
 public struct ItemCard<Art: View>: View {
     let item: InventoryItem
     var showsAffixCount: Bool
     var showsName: Bool = true
     var reservesLabelSpace: Bool = true
+    var presentation: ItemCardPresentation = .standard
     /// When false, art is clipped only — no panel fill/stroke/shadow (shop offer tiles).
     var appliesCardSurface: Bool = true
     var isSelected = false
@@ -27,6 +33,7 @@ public struct ItemCard<Art: View>: View {
         showsAffixCount: Bool,
         showsName: Bool = true,
         reservesLabelSpace: Bool = true,
+        presentation: ItemCardPresentation = .standard,
         appliesCardSurface: Bool = true,
         isSelected: Bool = false,
         fadesLabel: Bool = false,
@@ -40,6 +47,7 @@ public struct ItemCard<Art: View>: View {
         self.showsAffixCount = showsAffixCount
         self.showsName = showsName
         self.reservesLabelSpace = reservesLabelSpace
+        self.presentation = presentation
         self.appliesCardSurface = appliesCardSurface
         self.isSelected = isSelected
         self.fadesLabel = fadesLabel
@@ -82,34 +90,12 @@ public struct ItemCard<Art: View>: View {
             shineLineWidth: shineLineWidth,
             art: art,
             label: {
-                VStack(spacing: TrinketDesign.Metrics.tightSpacing) {
-                    HStack(spacing: TrinketDesign.Metrics.tightSpacing) {
-                        TrinketRarityLabel(rarity: item.rarity)
-                            .lineLimit(1)
-                        if item.isCorrupted {
-                            Text("Corrupted")
-                                .trinketTypography(.caption)
-                                .foregroundStyle(TrinketDesign.Colors.destructive)
-                                .lineLimit(1)
-                        }
-                    }
-
-                    Text(balanced: item.displayName)
-                        .trinketTypography(.cardLabel)
-                        .foregroundStyle(.primary)
-                        .keywordShine(item.astralShineKeywordSet)
-                        .uniqueShine(if: item.rarity == .unique)
-                        .lineLimit(2)
-                        .multilineTextAlignment(.center)
-
-                    if showsAffixCount {
-                        Text(item.affixCountLabel)
-                            .trinketTypography(.caption)
-                            .foregroundStyle(.secondary)
-                            .lineLimit(1)
-                    }
+                switch presentation {
+                case .standard:
+                    standardLabel
+                case .reveal:
+                    revealLabel
                 }
-                .opacity(labelOpacity)
             }
         )
         .onAppear {
@@ -119,6 +105,49 @@ public struct ItemCard<Art: View>: View {
             }
         }
     }
+
+    private var standardLabel: some View {
+        VStack(spacing: TrinketDesign.Metrics.tightSpacing) {
+            HStack(spacing: TrinketDesign.Metrics.tightSpacing) {
+                TrinketRarityLabel(rarity: item.rarity)
+                    .lineLimit(1)
+                if item.isCorrupted {
+                    Text("Corrupted")
+                        .trinketTypography(.caption)
+                        .foregroundStyle(TrinketDesign.Colors.destructive)
+                        .lineLimit(1)
+                }
+            }
+
+            Text(balanced: item.displayName)
+                .trinketTypography(.cardLabel)
+                .foregroundStyle(.primary)
+                .keywordShine(item.astralShineKeywordSet)
+                .uniqueShine(if: item.rarity == .unique)
+                .lineLimit(2)
+                .multilineTextAlignment(.center)
+
+            if showsAffixCount {
+                Text(item.affixCountLabel)
+                    .trinketTypography(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            }
+        }
+        .opacity(labelOpacity)
+    }
+
+    private var revealLabel: some View {
+        VStack(spacing: TrinketDesign.Metrics.extraSmallSpacing) {
+            TrinketRarityLabel(rarity: item.rarity)
+
+            Text(balanced: item.displayName)
+                .trinketTypography(.sectionDisplay)
+                .uniqueShine(if: item.rarity == .unique)
+                .multilineTextAlignment(.center)
+        }
+        .opacity(labelOpacity)
+    }
 }
 
 public extension ItemCard where Art == ItemArtwork {
@@ -127,6 +156,7 @@ public extension ItemCard where Art == ItemArtwork {
         showsAffixCount: Bool,
         showsName: Bool = true,
         reservesLabelSpace: Bool = true,
+        presentation: ItemCardPresentation = .standard,
         appliesCardSurface: Bool = true,
         isSelected: Bool = false,
         fadesLabel: Bool = false,
@@ -140,6 +170,7 @@ public extension ItemCard where Art == ItemArtwork {
             showsAffixCount: showsAffixCount,
             showsName: showsName,
             reservesLabelSpace: reservesLabelSpace,
+            presentation: presentation,
             appliesCardSurface: appliesCardSurface,
             isSelected: isSelected,
             fadesLabel: fadesLabel,

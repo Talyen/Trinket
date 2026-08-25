@@ -6,7 +6,6 @@ enum AbilityCatalogSkill {
         id: "acid-potion", name: "Acid Potion", tier: .skill,
         damageComponents: [DamageComponent(3, keyword: .poison)],
         targetedEffects: [
-            TargetedEffect(.poison(3)),
             TargetedEffect(.halveShield(.block), target: .enemy),
         ]
     )
@@ -16,8 +15,7 @@ enum AbilityCatalogSkill {
         damageComponents: [
             DamageComponent(1, keyword: .physical, target: .actor),
             DamageComponent(4, keyword: .bleed),
-        ],
-        targetedEffects: [TargetedEffect(.bleed(4))]
+        ]
     )
 
     static let bountyShot = Ability(
@@ -113,10 +111,7 @@ enum AbilityCatalogSkill {
 
     static let poisonDagger = Ability(
         id: "poison-dagger", name: "Poison Dagger", tier: .skill,
-        damageComponents: [DamageComponent(2, keyword: .poison)],
-        targetedEffects: [
-            TargetedEffect(.poison(2)),
-        ]
+        damageComponents: [DamageComponent(2, keyword: .poison)]
     )
 
     static let pounce = Ability(
@@ -144,10 +139,8 @@ enum AbilityCatalogSkill {
 
     static let serratedEdge = Ability(
         id: "serrated-edge", name: "Serrated Edge", tier: .skill,
-        description: "Deal 2 Bleed damage. Reduces enemy Health gain by 50% for 2 turns.",
         damageComponents: [DamageComponent(2, keyword: .bleed)],
         targetedEffects: [
-            TargetedEffect(.bleed(2)),
             TargetedEffect(.damageReductionPercent(0.50, 2), target: .enemy),
         ]
     )

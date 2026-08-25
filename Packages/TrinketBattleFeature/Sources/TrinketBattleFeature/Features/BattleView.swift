@@ -263,15 +263,6 @@ struct BattleFieldLane: View {
                 CardCastPresentationLane(presentation: castPresentation)
                     .zIndex(3)
 
-                if let branchChoice = battleSession.pendingBranchChoice {
-                    BranchChoiceOverlay(
-                        presentation: branchChoice,
-                        onChoose: playChosenBranch(_:copyRequest:),
-                        onCancel: { battleSession.dismissBranchChoice() }
-                    )
-                    .zIndex(5)
-                }
-
                 BattleCastPrewarmLane(presentation: presentation)
                     .zIndex(2)
 

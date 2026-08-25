@@ -218,8 +218,10 @@ extension RosterModel {
 }
 
 extension RosterModel {
+    /// Decodes stored rows into typed state. Value normalization (active
+    /// selection, ability fallbacks, inventory-backed equipment) is owned by
+    /// `PlayerSaveSanitizer`, which runs over every decoded save.
     func toPlayerRosterState(
-        inventory: PlayerInventoryState,
         schemaVersion: Int = PlayerSave.currentSchemaVersion
     ) -> PlayerRosterState {
         let unlocked = unlockedCombatants ?? []
@@ -233,7 +235,7 @@ extension RosterModel {
             ($0.combatantID, RosterHydration.AbilityLoadoutIDs(basicID: $0.basicID, skillID: $0.skillID, ultimateID: $0.ultimateID))
         })
         let equipmentValues = Dictionary(lastWins: (equipmentLoadouts ?? []).map { loadoutModel in
-            let isHero = RosterHydration.combatantsByID[loadoutModel.combatantID]?.role == .hero
+            let isHero = GameContent.combatant(matching: loadoutModel.combatantID)?.role == .hero
             return (
                 loadoutModel.combatantID,
                 EquipmentLoadout(itemIDsBySlot: Dictionary(lastWins: (loadoutModel.slots ?? []).compactMap { slot in
@@ -249,26 +251,15 @@ extension RosterModel {
         let talentValues = Dictionary(lastWins: (talentLoadouts ?? []).map { loadoutModel in
             (loadoutModel.combatantID, Set((loadoutModel.unlockedNodes ?? []).map(\.nodeID)))
         })
-        let inventoryItemIDs = Set(inventory.items.map(\.id))
-        let (resolvedHeroID, resolvedCompanionID) = RosterHydration.resolveActiveSelection(
+
+        return PlayerRosterState(
             activeHeroID: activeHeroID,
             activeCompanionID: activeCompanionID,
             unlockedHeroIDs: heroIDs,
-            unlockedCompanionIDs: companionIDs
-        )
-
-        return PlayerRosterState(
-            activeHeroID: resolvedHeroID,
-            activeCompanionID: resolvedCompanionID,
-            unlockedHeroIDs: heroIDs,
             unlockedCompanionIDs: companionIDs,
-            abilityLoadouts: RosterHydration.resolveAbilityLoadouts(from: abilityIDValues),
+            abilityLoadouts: RosterHydration.rawAbilityLoadouts(from: abilityIDValues),
             progressions: progressionValues,
-            equipmentLoadouts: RosterHydration.resolveEquipmentLoadouts(
-                from: equipmentValues,
-                inventoryItemIDs: inventoryItemIDs,
-                inventoryItems: inventory.items
-            ),
+            equipmentLoadouts: equipmentValues,
             unlockedTalents: talentValues,
             gold: gold
         )

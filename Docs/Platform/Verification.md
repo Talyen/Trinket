@@ -15,6 +15,7 @@ Choose the cheapest route that answers the question at hand.
 | Focused iteration | Package/test script | Fast feedback on the current owner |
 | Task handoff | `handoff.sh` | Required path-scoped agent gate |
 | Gate only | `ci-gate.sh` | Generation, style, boundaries, scripts, and release metadata; no unit/UI |
+| Fast gate | `ci-gate.sh --fast` | Cheap full-tree slices only (boundaries, Swift Testing, release notes) |
 | Local canary | `test-deploy.sh --mode smoke` | Optional human confidence: gate, unit, and smoke |
 | Release confidence | `release.sh` / `test-deploy.sh` | Pre-release only: gate, unit, and full UI (the one sanctioned local full-UI run) |
 | Main CI | Shared `tests.yml` workflow | Post-push on `main` (no pull-request workflow): gate, build once, unit, full smoke, and sharded exhaustive UI |
@@ -55,20 +56,24 @@ reruns in the same slot. Final handoff still uses the full isolated route.
 `handoff.sh` is the canonical path-scoped route. It composes generation,
 style, package, compile, smoke, and idempotence checks from the changed paths;
 the script's help and `agent-context.sh` output show the exact route. Final
-plan cleanup is checked with `--final`.
+plan cleanup is checked with `--final`. After the routed plan succeeds, handoff
+always runs the cheap CI slices (module boundaries, Swift Testing migration,
+release-note validation) that full `ci-gate.sh` also enforces.
 
 ## Gate composition
 
 | Gate | Composition |
 |---|---|
 | `ci-gate.sh` | Generate/assert against HEAD, full-tree style, module boundaries, script syntax and regression tests, Swift Testing policy, release-note validation |
+| `ci-gate.sh --fast` | Module boundaries, Swift Testing policy, and release-note validation only |
 | `ci-assets-gate.sh` | Generate assets, assert, regenerate in a stable locale, assert again |
 | `test-deploy.sh` | Release-time: `ci-gate.sh`, unit, then full UI, or the optional smoke canary |
 | Main CI | Post-push on `main`: gate, one build-for-testing, parallel unit/full-smoke/exhaustive-UI jobs |
 
-The shared build job produces test products for fan-out. Package unit schemes
-remain on the unit job. `check-build-cache-paths.sh` keeps local no-build
-freshness inputs aligned with the CI cache key.
+The shared build job produces test products for fan-out, including every
+package test scheme so the unit job can run with `--no-build`. Smoke and
+exhaustive UI rebuild app-only on artifact miss. `check-build-cache-paths.sh`
+keeps local no-build freshness inputs aligned with the CI cache key.
 
 ## Output efficiency telemetry
 

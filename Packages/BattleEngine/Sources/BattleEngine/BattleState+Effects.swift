@@ -15,12 +15,6 @@ package extension BattleState {
             return .shield(
                 keyword, buffer + profile.blockGainedBonus
             )
-        case let .leech(keyword, percent, durationTurns):
-            return .leech(
-                keyword,
-                percent,
-                durationTurns + profile.leechDurationBonus
-            )
         default:
             return effect
         }

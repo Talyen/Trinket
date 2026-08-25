@@ -14,7 +14,8 @@ extension BattleState {
         applyDodge: Bool = true,
         isRetaliation: Bool = false,
         abilityCriticalChanceBonus: Double = 0,
-        guaranteedCriticalIfEnemyBuffed: Bool = false
+        guaranteedCriticalIfEnemyBuffed: Bool = false,
+        abilityHasLeech: Bool = false
     ) -> (healthLost: Int, events: [ActionEvent]) {
         let outcome = resolveDamage(
             DamageRequest(
@@ -29,7 +30,8 @@ extension BattleState {
                     abilityCriticalChanceBonus: abilityCriticalChanceBonus,
                     guaranteedCriticalIfEnemyBuffed: guaranteedCriticalIfEnemyBuffed,
                     isRetaliation: isRetaliation,
-                    isAttackHit: !isRetaliation
+                    isAttackHit: !isRetaliation,
+                    abilityHasLeech: abilityHasLeech
                 )
             )
         )

@@ -99,7 +99,7 @@ struct MaximumManaBonusHandler: BattleEffectHandler {
             return sum
         }
         guard total > 0 else { return nil }
-        return EffectSummary(keyword: keyword, text: "Maximum Mana +\(total).")
+        return EffectSummary(keyword: keyword, text: "Maximum Mana: +\(total).")
     }
 
     func apply(

@@ -309,16 +309,29 @@ struct ItemCorruptionTests {
         #expect(powers[0].description == "Apply 3 Poison when target Bleeds.")
     }
 
-    @Test func rewriteStandaloneNumberIgnoresEmbeddedDigitsAndPercentages() {
-        let text = "Gain 5 Strength for 50 seconds when below 5% Health."
-        let updated = AffixPowerBump.rewriteStandaloneNumber(text, from: 5, to: 6)
-        #expect(updated == "Gain 6 Strength for 50 seconds when below 5% Health.")
-    }
+    @Test func bumpAppliesIntegerAndPercentTriggersCorrectly() {
+        var intPowers = [
+            ItemAffixPower(
+                description: "Gain 5 Block when broken.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(block: BlockTriggers(blockBrokenBlockFlat: 5))
+            ),
+        ]
+        var rng = SeededRandomNumberGenerator(seed: 1)
+        _ = AffixPowerBump.apply(direction: .up, to: &intPowers, affixIDs: ["test_block"], using: &rng)
+        #expect(intPowers[0].triggers.blockBrokenBlockFlat == 6)
+        #expect(intPowers[0].description == "Gain 6 Block when broken.")
 
-    @Test func rewritePercentIgnoresEmbeddedDigits() {
-        let text = "Gain 25% Poison damage when below 5% Health."
-        let updated = AffixPowerBump.rewritePercent(text, from: 0.05, to: 0.06)
-        #expect(updated == "Gain 25% Poison damage when below 6% Health.")
+        var pctPowers = [
+            ItemAffixPower(
+                description: "Gain 25% Thorns.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(mitigation: MitigationTriggers(thornsPercent: 0.25))
+            ),
+        ]
+        _ = AffixPowerBump.apply(direction: .up, to: &pctPowers, affixIDs: ["test_thorns"], using: &rng)
+        #expect(abs(pctPowers[0].triggers.thornsPercent - 0.26) < 0.001)
+        #expect(pctPowers[0].description == "Gain 26% Thorns.")
     }
 }
 

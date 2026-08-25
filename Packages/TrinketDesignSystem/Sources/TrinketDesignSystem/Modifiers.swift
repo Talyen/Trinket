@@ -18,7 +18,6 @@ struct CardSurfaceModifier: ViewModifier {
 
 struct LockedCardEffectModifier: ViewModifier {
     let isLocked: Bool
-    let text: String?
     let cornerRadius: CGFloat
 
     @ScaledMetric(relativeTo: .body)
@@ -29,11 +28,9 @@ struct LockedCardEffectModifier: ViewModifier {
 
     init(
         isLocked: Bool,
-        text: String? = nil,
         cornerRadius: CGFloat = TrinketDesign.Corners.card
     ) {
         self.isLocked = isLocked
-        self.text = text
         self.cornerRadius = cornerRadius
     }
 
@@ -182,10 +179,9 @@ public extension View {
 
     func trinketLockedCardEffect(
         isLocked: Bool,
-        text: String? = nil,
         cornerRadius: CGFloat = TrinketDesign.Corners.card
     ) -> some View {
-        modifier(LockedCardEffectModifier(isLocked: isLocked, text: text, cornerRadius: cornerRadius))
+        modifier(LockedCardEffectModifier(isLocked: isLocked, cornerRadius: cornerRadius))
     }
 
     func trinketCardLabelSpace(_ isReserved: Bool = true) -> some View {

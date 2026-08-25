@@ -71,18 +71,4 @@ struct EffectHandlersTurnTests {
         try #expect(outcome.updatedStack == nil)
         try #expect(!(outcome.removeAfter))
     }
-
-    @Test func leechTickDecrementsRemainingDuration() throws {
-        var battle = EffectHandlersTestSupport.makeBattle()
-        let leech = ActiveEffect(
-            id: 1,
-            effect: .standardLeechBuff,
-            remainingTurns: 2,
-            sourceActorID: "hero"
-        )
-        let outcome = EffectHandlersTestSupport.dispatchTick(leech, target: battle.hero, battle: &battle)
-        try #expect(outcome.events.isEmpty)
-        try #expect(outcome.updatedStack?.remainingTurns == 1)
-        try #expect(!(outcome.removeAfter))
-    }
 }

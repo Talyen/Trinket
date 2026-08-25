@@ -313,30 +313,16 @@ public struct BattleState {
     @discardableResult
     public mutating func playCard(
         cardID: Int,
-        rebuildLog: Bool = true,
-        branchIndex: Int? = nil
+        rebuildLog: Bool = true
     ) throws -> [ActionEvent] {
         guard !isBattleOver else { throw BattlePlayError.battleOver }
         // Events are already appended via `nextEvent` during resolution; return value is the delta.
         let events = try BattleCardCombatEngine.playCard(
             cardID: cardID,
-            branchIndex: branchIndex,
             context: &self
         )
         finishMutation(rebuildLog: rebuildLog)
         return events
-    }
-
-    /// True when playing this card should ask the player to pick an outcome
-    /// branch (two or more branches that still differ under current conditions).
-    public func requiresBranchChoice(cardID: Int) -> Bool {
-        guard let card = hand.card(id: cardID) else { return false }
-        let actor = roster[card.owner].combatant
-        return BattleCardCombatEngine.requiresBranchChoice(
-            ability: card.ability,
-            actor: actor,
-            in: self
-        )
     }
 
     @discardableResult

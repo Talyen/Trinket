@@ -12,28 +12,12 @@ struct AbilityCatalogTests {
         try #expect(AbilityCatalog.ability(id: "missing-ability") == nil)
     }
 
-    @Test func doTPairingMatchesDamageComponents() throws {
-        for ability in AbilityCatalog.all where !AbilityValidator.doTPairingExemptIDs.contains(ability.id) {
-            for component in ability.damageComponents where component.target == .abilityTarget {
-                guard Effect.pairedDoT(keyword: component.keyword, potency: component.amount) != nil else {
-                    continue
-                }
-                try #expect(
-                    ability.effects.contains {
-                        $0.keyword == component.keyword && $0.potency == component.amount
-                    },
-                    "\(ability.id) should pair \(component.keyword.rawValue) damage with .\(String(describing: component.keyword).lowercased())(\(component.amount))"
-                )
-            }
-        }
-    }
-
     @Test func catalogPassesValidation() throws {
         let issues = AbilityValidator.validateCatalog()
         try #expect(issues.isEmpty, "\(issues.map(\.description).joined(separator: "\n"))")
     }
 
-    @Test func directHitBuilderAddsPairedDoT() throws {
+    @Test func directHitBuilderDoesNotAddTargetedDoT() throws {
         let ability = AbilityBuilder.directHit(
             id: "burn-hit",
             name: "Burn Hit",
@@ -42,11 +26,7 @@ struct AbilityCatalogTests {
             keyword: .burn
         )
         try #expect(ability.damageComponents == [DamageComponent(3, keyword: .burn)])
-        try #expect(ability.effects.contains {
-            if case .burn(3) = $0 {
-                return true
-            }; return false
-        })
+        try #expect(ability.targetedEffects.isEmpty)
         try #expect(ability.summary == "Deal 3 Burn damage.")
 
         let bleedHit = AbilityBuilder.directHit(
@@ -57,22 +37,17 @@ struct AbilityCatalogTests {
             keyword: .bleed
         )
         try #expect(bleedHit.damageComponents == [DamageComponent(2, keyword: .bleed)])
-        try #expect(bleedHit.effects.contains {
-            if case .bleed(2) = $0 {
-                return true
-            }; return false
-        })
+        try #expect(bleedHit.targetedEffects.isEmpty)
         try #expect(bleedHit.summary == "Deal 2 Bleed damage.")
     }
 
     @Test func empoweredByManaRaisesBurnAndFreezeNumbers() throws {
         let empowered = Ability.fireArrow.empoweredByMana()
         try #expect(Ability.fireArrow.hasManaEmpowerableBurnOrFreezeDamage)
-        try #expect(empowered.damageComponents == [DamageComponent(2, keyword: .burn)])
-        try #expect(empowered.targetedEffects == [
-            TargetedEffect(.burn(2), condition: .enemyBurning),
-            TargetedEffect(.burn(2)),
+        try #expect(empowered.damageComponents == [
+            DamageComponent(2, keyword: .burn, bonusAmount: 2, condition: .enemyBurning),
         ])
+        try #expect(empowered.targetedEffects.isEmpty)
         try #expect(!Ability.slash.hasManaEmpowerableBurnOrFreezeDamage)
         try #expect(Ability.slash.empoweredByMana() == Ability.slash)
         try #expect(
@@ -99,20 +74,19 @@ struct AbilityCatalogTests {
             damageComponents: [
                 DamageComponent(2, keyword: .bleed),
                 DamageComponent(2, keyword: .poison),
-            ],
-            effects: [
-                TargetedEffect(.bleed(2)),
-                TargetedEffect(.poison(2)),
             ]
         )
         try #expect(
-            ability.summary == "Deal 2 Bleed damage and Deal 2 Poison damage."
+            ability.summary == "Deal 2 Bleed damage and deal 2 Poison damage."
         )
     }
 
     @Test func representativeAbilitiesKeepTypedContracts() throws {
         try #expect(!Ability.hemorrhage.hasLeech)
         try #expect(Ability.hemorrhage.criticalChanceBonus == 0)
+        try #expect(Ability.hemorrhage.targetedEffects == [
+            TargetedEffect(.hemorrhage(4)),
+        ])
         try #expect(Ability.serratedEdge.criticalChanceBonus == 0)
         try #expect(Ability.stab.directDamage == 2)
         try #expect(!Ability.bloodOffering.hasLeech)
@@ -174,36 +148,23 @@ struct AbilityCatalogTests {
         try #expect(issues.contains { $0.message.contains("bonusAmount") })
     }
 
-    // MARK: - Player-facing outcome choices
+    // MARK: - Outcome branches
 
-    @Test func outcomeChoicesExposePerBranchSummariesAndKeywords() throws {
-        let titheChoices = try #require(Ability.tithe.outcomeChoices)
-        try #expect(titheChoices.count == 2)
-        try #expect(titheChoices[0].summary == "Deal 3 Holy damage.")
-        try #expect(titheChoices[0].keywords == [.holy])
-        try #expect(titheChoices[1].summary == "Steal 3 Gold.")
-        try #expect(titheChoices[1].keywords == [.gold])
+    @Test func resolvingOutcomeBranchPicksBranchUsingRNG() {
+        var rng = SeededRandomNumberGenerator(seed: 42)
+        let resolvedTithe = Ability.tithe.resolvingOutcomeBranch(using: &rng)
+        #expect(resolvedTithe.outcomeBranches == nil)
+        #expect(resolvedTithe.damageComponents.count == 1 || resolvedTithe.targetedEffects.count == 1)
+
+        let resolvedSlash = Ability.slash.resolvingOutcomeBranch(using: &rng)
+        #expect(resolvedSlash.damageComponents == Ability.slash.damageComponents)
     }
 
-    @Test func threeWayAbilitiesExposeThreeChoices() throws {
-        let arrow = try #require(Ability.astralArrow.outcomeChoices)
-        #expect(arrow.count == 3)
-        #expect(arrow.map(\.keywords.first) == [.stun, .freeze, .burn])
-
-        let potion = try #require(Ability.luckPotion.outcomeChoices)
-        #expect(potion.count == 3)
-        #expect(potion.map(\.keywords.first) == [.mana, .gold, .block])
-    }
-
-    @Test func branchSummariesCarrySharedAbilityClauses() throws {
-        for choice in try #require(Ability.bloodthorn.outcomeChoices) {
-            #expect(choice.summary.hasSuffix("Leech."))
-            #expect(choice.keywords == [.bleed] || choice.keywords == [.poison])
-        }
-    }
-
-    @Test func nonBranchableAbilitiesExposeNoChoices() {
-        #expect(Ability.slash.outcomeChoices == nil)
-        #expect(Ability.block.outcomeChoices == nil)
+    @Test func resolvingOutcomeBranchPreservesSharedAbilityClauses() {
+        var rng = SeededRandomNumberGenerator(seed: 42)
+        let resolvedBloodthorn = Ability.bloodthorn.resolvingOutcomeBranch(using: &rng)
+        #expect(resolvedBloodthorn.hasLeech)
+        #expect(resolvedBloodthorn.damageComponents.count == 1)
+        #expect(resolvedBloodthorn.damageComponents[0].keyword == .bleed || resolvedBloodthorn.damageComponents[0].keyword == .poison)
     }
 }

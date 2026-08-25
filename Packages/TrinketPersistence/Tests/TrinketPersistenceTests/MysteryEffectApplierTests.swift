@@ -89,13 +89,12 @@ struct MysteryEffectApplierTests {
             materialsFoundPercent: 25
         )
 
-        #expect(boosted.grantedGold == baseline.grantedGold + (baseline.grantedGold * 25) / 100)
-        let baselineXP = baseline.heroGrantedExperience + baseline.companionGrantedExperience
-        let boostedXP = boosted.heroGrantedExperience + boosted.companionGrantedExperience
-        #expect(boostedXP == baselineXP + (baselineXP * 25) / 100)
+        #expect(boosted.grantedGold == CombatRounding.scaled(baseline.grantedGold, byPercent: 25))
+        #expect(boosted.heroGrantedExperience == CombatRounding.scaled(baseline.heroGrantedExperience, byPercent: 25))
+        #expect(boosted.companionGrantedExperience == CombatRounding.scaled(baseline.companionGrantedExperience, byPercent: 25))
         let baseQuantity = MysteryEffectApplier.materialQuantity(forLevel: 1)
         try #expect(
-            boosted.grantedMaterials == [ResourceAmount(.herbs, (baseQuantity * 125) / 100)]
+            boosted.grantedMaterials == [ResourceAmount(.herbs, CombatRounding.scaled(baseQuantity, byPercent: 25))]
         )
     }
 
