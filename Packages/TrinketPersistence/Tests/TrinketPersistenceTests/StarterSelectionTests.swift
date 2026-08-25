@@ -19,24 +19,24 @@ struct StarterSelectionTests {
         )
 
         #expect(firstStore.starterSelection == .fresh)
-        #expect(firstStore.confirmStarterHero("rogue"))
+        #expect(firstStore.confirmStarterHero("warlock"))
 
         let resumedStore = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
         #expect(
             resumedStore.starterSelection
-                == StarterSelectionState(phase: .chooseCompanion, heroID: "rogue")
+                == StarterSelectionState(phase: .chooseCompanion, heroID: "warlock")
         )
-        #expect(resumedStore.completeStarterSelection(companionID: "panther"))
+        #expect(resumedStore.completeStarterSelection(companionID: "pixie"))
 
         let completedStore = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
         #expect(completedStore.starterSelection == .complete)
-        #expect(completedStore.roster.activeHeroID == "rogue")
-        #expect(completedStore.roster.activeCompanionID == "panther")
-        #expect(completedStore.roster.unlockedHeroIDs == ["rogue"])
-        #expect(completedStore.roster.unlockedCompanionIDs == ["panther"])
+        #expect(completedStore.roster.activeHeroID == "warlock")
+        #expect(completedStore.roster.activeCompanionID == "pixie")
+        #expect(completedStore.roster.unlockedHeroIDs == ["warlock"])
+        #expect(completedStore.roster.unlockedCompanionIDs == ["pixie"])
         #expect(completedStore.roster.progressions == [
-            "rogue": .initial,
-            "panther": .initial,
+            "warlock": .initial,
+            "pixie": .initial,
         ])
     }
 

@@ -21,8 +21,8 @@ struct PostBattleTalentChoiceTests {
         try state.playerSave.performBatchMutation { save in
             save.roster.progressions[hero.id] = CombatantProgression(
                 level: 1,
-                currentXP: 99,
-                requiredXP: 100
+                currentXP: 9,
+                requiredXP: 10
             )
             save.roster.progressions[companion.id] = .initial
         }
@@ -47,7 +47,7 @@ struct PostBattleTalentChoiceTests {
         let hero = state.playerSave.roster.activeHero
         let companion = state.playerSave.roster.activeCompanion
         try state.playerSave.performBatchMutation { save in
-            let nearLevelTwo = CombatantProgression(level: 1, currentXP: 99, requiredXP: 100)
+            let nearLevelTwo = CombatantProgression(level: 1, currentXP: 9, requiredXP: 10)
             save.roster.progressions[hero.id] = nearLevelTwo
             save.roster.progressions[companion.id] = nearLevelTwo
         }
@@ -91,8 +91,8 @@ struct PostBattleTalentChoiceTests {
         try playerSave.performBatchMutation { save in
             save.roster.progressions[hero.id] = CombatantProgression(
                 level: 1,
-                currentXP: 99,
-                requiredXP: 100
+                currentXP: 9,
+                requiredXP: 10
             )
         }
         _ = state.journey.startBattle(for: stage)

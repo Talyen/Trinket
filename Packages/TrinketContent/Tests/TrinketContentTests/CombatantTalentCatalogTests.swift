@@ -105,4 +105,17 @@ struct CombatantTalentCatalogTests {
         #expect(merged.goldDoubledWhileFullHealth)
         #expect(merged.criticalPurgeAll)
     }
+
+    @Test func starterEligibilityMatchesEveryHeroAndCompanionInCatalogOrder() {
+        #expect(GameContent.starterHeroes == GameContent.heroes)
+        #expect(GameContent.starterHeroIDs == GameContent.heroes.map(\.id))
+        #expect(GameContent.starterCompanions == GameContent.companions)
+        #expect(GameContent.starterCompanionIDs == GameContent.companions.map(\.id))
+
+        let allStarters = GameContent.starterHeroes + GameContent.starterCompanions
+        for combatant in allStarters {
+            let affinities = CombatantTalentCatalog.combatantTreeAffinities[combatant.id]
+            #expect(affinities?.count == 3, "\(combatant.id) must have exactly 3 authored tree affinities")
+        }
+    }
 }

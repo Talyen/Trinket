@@ -1,15 +1,15 @@
 id	name	role	max_health	max_mana	growth_archetype	basics	skills	ultimates	strength	agility	toughness	intellect	wisdom
 knight	Knight	hero	17	0	tank	bash,block	smite,sunder	avatarOfJustice,moltenBulwark	11	9	12	7	11
+ranger	Ranger	hero	14	0	assassin	venomArrow,fireArrow	sapArrow,bountyShot	packTactics,astralArrow	10	12	9	7	12
 rogue	Rogue	hero	14	0	assassin	stab,blackjack	poisonDagger,serratedEdge	hemorrhage,shadowstep	9	13	9	8	11
 wizard	Wizard	hero	14	10	mage	manaBerries,rayOfFrost	fireball,glacialWard	meteor,blizzard	7	9	8	14	12
-ranger	Ranger	hero	14	0	assassin	venomArrow,fireArrow	sapArrow,bountyShot	packTactics,astralArrow	10	12	9	7	12
 warlock	Warlock	hero	16	9	mage	kindling,fangs	bloodOffering,darkPact	combustion,faustianBargain	8	9	8	13	12
+wolf	Wolf	companion	14	0	assassin	fangs,rendingSlash	pounce,predatorsFocus	packTactics,hemorrhage	10	12	10	7	11
 bear	Bear	companion	17	0	tank	maul,fangs	briarShield,sunder	earthquake,thornMail	11	9	12	7	11
 frost_whelp	Frost Whelp	companion	14	8	mage	rayOfFrost,iceShot	frostbolt,coldSnap	blizzard,astralArrow	7	10	8	14	11
 lizard_scout	Lizard Scout	companion	14	0	assassin	stab,blackjack	serratedEdge,poisonDagger	hemorrhage,steal	9	12	9	9	11
 panther	Panther	companion	15	0	bruiser	rendingSlash,fangs	pounce,venomFangs	shadowstep,bloodthorn	12	12	10	8	8
 phoenix	Phoenix	companion	14	8	mage	kindling,fireArrow	fireball,cinderbloom	phoenixFeather,combustion	7	10	8	13	12
-wolf	Wolf	companion	14	0	assassin	fangs,rendingSlash	pounce,predatorsFocus	packTactics,hemorrhage	10	12	10	7	11
 golden_retriever	Golden Retriever	companion	16	0	support	apple,sniffOut	stoneskinPotion,tithe	luckPotion,goldenPlate	8	9	11	8	14
 library_owl	Library Owl	companion	14	8	support	apple,stargaze	heal,cleanse	panaceaPotion,sunburst	7	9	9	12	13
 risen_skeleton	Risen Skeleton	companion	15	0	bruiser	slash,block	darkPact,sunder	faustianBargain,hemorrhage	12	10	11	9	8

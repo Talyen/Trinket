@@ -39,32 +39,37 @@ public enum CombatantTalentCatalog {
     public static let combatantTreeAffinities: [String: [TreeAffinity]] = [
         // Heroes
         "knight": [
+            TreeAffinity(name: "Crusade", keyword: .stun),
             TreeAffinity(name: "Chivalry", keyword: .block),
             TreeAffinity(name: "Devotion", keyword: .holy),
-            TreeAffinity(name: "Crusade", keyword: .stun),
+        ],
+        "ranger": [
+            TreeAffinity(name: "Nightshade", keyword: .poison),
+            TreeAffinity(name: "Marksmanship", keyword: .bleed),
+            TreeAffinity(name: "Wildfire", keyword: .burn),
         ],
         "rogue": [
+            TreeAffinity(name: "Cutpurse", keyword: .gold),
             TreeAffinity(name: "Venom", keyword: .poison),
             TreeAffinity(name: "Laceration", keyword: .bleed),
-            TreeAffinity(name: "Cutpurse", keyword: .gold),
         ],
         "wizard": [
             TreeAffinity(name: "Cryomancy", keyword: .freeze),
             TreeAffinity(name: "Pyromancy", keyword: .burn),
             TreeAffinity(name: "Arcana", keyword: .mana),
         ],
-        "ranger": [
-            TreeAffinity(name: "Nightshade", keyword: .poison),
-            TreeAffinity(name: "Wildfire", keyword: .burn),
-            TreeAffinity(name: "Marksmanship", keyword: .bleed),
-        ],
         "warlock": [
-            TreeAffinity(name: "Hellfire", keyword: .burn),
             TreeAffinity(name: "Siphon", keyword: .leech),
             TreeAffinity(name: "Occult", keyword: .mana),
+            TreeAffinity(name: "Hellfire", keyword: .burn),
         ],
 
         // Companions
+        "wolf": [
+            TreeAffinity(name: "Fangs", keyword: .bleed),
+            TreeAffinity(name: "Agility", keyword: .dodge),
+            TreeAffinity(name: "Savagery", keyword: .physical),
+        ],
         "bear": [
             TreeAffinity(name: "Endurance", keyword: .block),
             TreeAffinity(name: "Ferocity", keyword: .physical),
@@ -90,20 +95,15 @@ public enum CombatantTalentCatalog {
             TreeAffinity(name: "Renewal", keyword: .health),
             TreeAffinity(name: "Rebirth", keyword: .deathsDoor),
         ],
-        "wolf": [
-            TreeAffinity(name: "Fangs", keyword: .bleed),
-            TreeAffinity(name: "Agility", keyword: .dodge),
-            TreeAffinity(name: "Savagery", keyword: .physical),
-        ],
         "golden_retriever": [
             TreeAffinity(name: "Retrieval", keyword: .gold),
             TreeAffinity(name: "Loyalty", keyword: .block),
             TreeAffinity(name: "Morale", keyword: .health),
         ],
         "library_owl": [
+            TreeAffinity(name: "Sanctuary", keyword: .health),
             TreeAffinity(name: "Illumination", keyword: .holy),
             TreeAffinity(name: "Erudition", keyword: .cleanse),
-            TreeAffinity(name: "Sanctuary", keyword: .health),
         ],
         "risen_skeleton": [
             TreeAffinity(name: "Ossuary", keyword: .physical),

@@ -18,7 +18,7 @@ final class PlayerSaveStoreTests {
         let storeURL = context.storeURL()
         let firstStore = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true, persistSaveImmediately: true)
         firstStore.grantGold(42)
-        firstStore.grantExperience(20, to: GameContent.heroes[0])
+        firstStore.grantExperience(5, to: GameContent.heroes[0])
         firstStore.grantHomestead([ResourceAmount(.wood, 14), ResourceAmount(.crystal, 2)])
         let template = try #require(GameContent.itemTemplate(matching: "shortsword-basic"))
         firstStore.appendInventoryItem(template.rewardInstance(for: "chapter-1-stage-1"))
@@ -27,7 +27,7 @@ final class PlayerSaveStoreTests {
         let secondStore = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
 
         try #expect(secondStore.roster.gold == 42)
-        try #expect(secondStore.roster.progression(for: GameContent.heroes[0]).currentXP == 20)
+        try #expect(secondStore.roster.progression(for: GameContent.heroes[0]).currentXP == 5)
         try #expect(secondStore.homestead.resources[.wood] == 14)
         try #expect(secondStore.homestead.resources[.crystal] == 2)
         _ = try #require(secondStore.inventory.item(matching: "chapter-1-stage-1-shortsword-basic"))

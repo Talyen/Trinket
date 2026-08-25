@@ -378,13 +378,14 @@ extension CombatFeedbackPresenterTests {
         #expect(mixedChips.allSatisfy { !$0.label.displayString.contains("Effect") })
     }
 
-    @Test func suppressesCardsControlBuildupAndNumericZeroesButNamesZeroValueStatuses() {
+    @Test func suppressesCardsControlBuildupLeechAppliedAndNumericZeroesButNamesZeroValueStatuses() {
         let items = CombatFeedbackPresenter.makeItems(
             from: [
                 makeEvent(id: 1, kind: .effect, effectKind: .cardsDrawn, amount: 2, keyword: .physical),
                 makeEvent(id: 2, kind: .effect, effectKind: .controlApplied, amount: 4, keyword: .stun),
                 makeEvent(id: 3, kind: .effect, effectKind: .shieldApplied, amount: 0, keyword: .block),
                 makeEvent(id: 4, kind: .effect, effectKind: .nextHolyStrikeApplied, amount: 0, keyword: .holy),
+                makeEvent(id: 5, kind: .effect, effectKind: .leechApplied, amount: 10, keyword: .physical),
             ],
             at: .now
         )
@@ -404,7 +405,6 @@ extension CombatFeedbackPresenterTests {
             makeEvent(id: 6, kind: .effect, effectKind: .criticalChanceApplied, amount: 15, keyword: .physical),
             makeEvent(id: 7, kind: .effect, effectKind: .markedApplied, amount: 3, keyword: .physical),
             makeEvent(id: 8, kind: .effect, effectKind: .shieldHalved, amount: 0, keyword: .block),
-            makeEvent(id: 9, kind: .effect, effectKind: .leechApplied, amount: 10, keyword: .physical),
         ].flatMap { CombatFeedbackPresenter.makeItems(from: [$0], at: now) }
 
         let byID = Dictionary(uniqueKeysWithValues: items.map { ($0.id, $0) })
@@ -412,10 +412,6 @@ extension CombatFeedbackPresenterTests {
         #expect(try #require(byID[6]).label == .word(.status(.criticalUp)))
         #expect(try #require(byID[7]).label == .word(.status(.marked)))
         #expect(try #require(byID[8]).label == .word(.status(.blockDown)))
-
-        let leech = try #require(byID[9])
-        #expect(leech.label == .word(.status(.leech)))
-        #expect(leech.visualRole == .beneficialStatus)
     }
 
     @Test func mergesGoldGainsAndSuppressesGoldLossChips() throws {

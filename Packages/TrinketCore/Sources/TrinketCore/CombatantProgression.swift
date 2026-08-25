@@ -7,7 +7,7 @@ public struct CombatantProgression: Equatable, Hashable, Codable, Sendable {
 
     public static func requiredXP(forLevel level: Int) -> Int {
         let steps = max(level - 1, 0)
-        return 100 + (50 * steps) + (5 * steps * steps)
+        return 10 + (5 * steps) + ((steps * steps) / 2)
     }
 
     public static let initial = Self(

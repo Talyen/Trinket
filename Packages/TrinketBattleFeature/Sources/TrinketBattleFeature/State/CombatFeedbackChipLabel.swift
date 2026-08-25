@@ -130,7 +130,6 @@ enum CombatFeedbackStatusLabel: String, CaseIterable, Hashable {
     case evadeNextHit = "Evade"
     case marked = "Marked"
     case blockDown = "Block Down"
-    case leech = "Leech"
     case ward = "Ward"
     case avatar = "Avatar"
 }

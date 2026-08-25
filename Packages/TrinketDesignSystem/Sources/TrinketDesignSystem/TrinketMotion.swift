@@ -291,16 +291,16 @@ public enum TrinketMotion: Sendable {
         public static let chipDisplayDuration: TimeInterval = alchemyPopDisplayDuration
 
         /// Alchemy Pop presentation lifetime (`pop + hold + rise`).
-        public static let alchemyPopDisplayDuration: TimeInterval = 0.63
+        public static let alchemyPopDisplayDuration: TimeInterval = 0.73
 
         /// Rapid FIFO cadence for successive chips in one combatant's vertical stream.
         public static let feedbackStreamStagger: TimeInterval = 0.126
 
         /// Maximum rise as a fraction of the corresponding combatant card height.
-        public static let chipTravelFraction: CGFloat = 0.44
+        public static let chipTravelFraction: CGFloat = 0.48
 
         /// Minimum clearance between the final label bounds and the card's top edge.
-        public static let chipTopClearance: CGFloat = 8
+        public static let chipTopClearance: CGFloat = 4
 
         // MARK: Alchemy Pop envelope (ported from Alchemy combat-text.tsx)
 
@@ -310,8 +310,8 @@ public enum TrinketMotion: Sendable {
         public static let alchemyPopEndScale: CGFloat = 1.0
         public static let alchemyPopDuration: TimeInterval = 0.14
         public static let alchemyPopHoldDuration: TimeInterval = 0.14
-        public static let alchemyPopShrinkDuration: TimeInterval = 0.35
-        public static let alchemyPopRiseDuration: TimeInterval = 0.35
+        public static let alchemyPopShrinkDuration: TimeInterval = 0.45
+        public static let alchemyPopRiseDuration: TimeInterval = 0.45
         public static let alchemyPopFadeDuration: TimeInterval = 0.28
 
         /// Maximum continuous accumulation lifetime for an active floating chip.

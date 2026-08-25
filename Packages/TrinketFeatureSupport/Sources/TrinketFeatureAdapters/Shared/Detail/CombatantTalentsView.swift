@@ -25,6 +25,7 @@ public struct CombatantTalentsView: View {
         progression: CombatantProgression,
         unlockedTalents: Binding<Set<String>>,
         allowsEditing: Bool = true,
+        initialSelectedNodeID: String? = nil,
         visibleNodeIDs: Set<String>? = nil,
         showsReset: Bool = true,
         nodeAccessibilityIdentifier: @escaping (String) -> String = AccessibilityID.CombatantDetail.talentsNode,
@@ -42,8 +43,14 @@ public struct CombatantTalentsView: View {
         self.unlockAccessibilityIdentifier = unlockAccessibilityIdentifier
         self.onUnlockTalent = onUnlockTalent
         self.onResetTalents = onResetTalents
+
+        let defaultInitialID = tree.nodes.first(where: { visibleNodeIDs?.contains($0.id) ?? true })?.id
+        let initialID = initialSelectedNodeID.flatMap { id in
+            (visibleNodeIDs?.contains(id) ?? true) ? id : nil
+        } ?? defaultInitialID
+
         _selectedNodeID = State(
-            initialValue: tree.nodes.first(where: { visibleNodeIDs?.contains($0.id) ?? true })?.id
+            initialValue: initialID
         )
     }
 

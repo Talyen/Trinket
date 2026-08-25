@@ -88,14 +88,17 @@ public struct ItemDetailView: View {
         return affix.isCorrupted ? CorruptionShine.textColors : nil
     }
 
+    var eyebrow: String {
+        let tag = item.isTrinket ? "TRINKET" : item.rarity.label.uppercased()
+        return item.isCorrupted ? "\(tag) · CORRUPTED" : tag
+    }
+
     public var body: some View {
         DetailHeroScrollShell(
             title: item.displayName,
             header: {
                 DetailHeroHeader(
-                    eyebrow: item.isCorrupted
-                        ? "\(item.rarity.label.uppercased()) · CORRUPTED"
-                        : item.rarity.label.uppercased(),
+                    eyebrow: eyebrow,
                     title: item.displayName,
                     titleKeywords: Set(item.astralShineKeywords ?? []),
                     titleShineColors: item.rarity == .unique ? UniqueShine.textColors : nil,

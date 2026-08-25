@@ -165,7 +165,9 @@ enum CombatFeedbackPresenter {
             if event.kind == .abilityDamage, event.amount == 0 {
                 return false
             }
-            if event.effectKind == .cardsDrawn || event.effectKind == .controlApplied {
+            if event.effectKind == .cardsDrawn
+                || event.effectKind == .controlApplied
+                || event.effectKind == .leechApplied {
                 return false
             }
             if event.effectKind == .resourceGain, event.amount < 0 {

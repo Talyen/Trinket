@@ -114,6 +114,117 @@ public extension CombatantTalentCatalog {
             )
     ]
 
+    static let rangerTalents: [String: CombatantTalentEffect] = [
+            "ranger_poison_t1_1": CombatantTalentEffect(
+                name: "Venomous Arrows",
+                description: "Basic attacks apply 2 Poison.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(attack: AttackTriggers(attacksApplyPoison: 2))
+            ),
+            "ranger_poison_t1_2": CombatantTalentEffect(
+                name: "Paralytic Poison",
+                description: "Poisoned enemies have a 15% chance to miss their attacks.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(mitigation: MitigationTriggers(poisonedEnemyMissChancePercent: 0.15))
+            ),
+            "ranger_poison_t2_1": CombatantTalentEffect(
+                name: "Prey on the Weak",
+                description: "Companion attacks against Poisoned enemies deal 2 additional damage.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(damage: DamageTriggers(companionDamageVsPoisonedBonus: 2))
+            ),
+            "ranger_poison_t2_2": CombatantTalentEffect(
+                name: "Toxic Backlash",
+                description: "When Poison is Cleansed, the enemy takes 3 damage per Poison removed.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(cleanse: CleanseTriggers(onCleansePoisonDealDamagePerStack: 3))
+            ),
+            "ranger_poison_t3_1": CombatantTalentEffect(
+                name: "Corrosive Venom",
+                description: "Poison strips 2 Block before damaging Health.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(block: BlockTriggers(poisonStripsBlockBeforeHealth: 2))
+            ),
+            "ranger_poison_t3_2": CombatantTalentEffect(
+                name: "Lethal Dose",
+                description: "Poison damage is doubled against enemies below half Health.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(damage: DamageTriggers(poisonDamageBelowHealthThreshold: 0.5, poisonDamageBelowHealthMultiplier: 2))
+            ),
+            "ranger_burn_t1_1": CombatantTalentEffect(
+                name: "Flaming Arrows",
+                description: "Critical hits apply 2 Burn.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(attack: AttackTriggers(criticalApplyBurn: 2))
+            ),
+            "ranger_burn_t1_2": CombatantTalentEffect(
+                name: "Slow Burn",
+                description: "Enemies lose 40% less Burn at the end of each round.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(dot: DotTriggers(burnDecaySlowPercent: 0.40))
+            ),
+            "ranger_burn_t2_1": CombatantTalentEffect(
+                name: "Cauterize",
+                description: "Burn damage consumes Bleed to trigger its remaining damage instantly.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(dot: DotTriggers(onBurnDamageDetonateBleed: true))
+            ),
+            "ranger_burn_t2_2": CombatantTalentEffect(
+                name: "Smoke Screen",
+                description: "Inflicting Burn grants +10% Dodge chance until your next turn.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(dodge: DodgeTriggers(onApplyBurnDodgeChanceUntilNextTurn: 0.10))
+            ),
+            "ranger_burn_t3_1": CombatantTalentEffect(
+                name: "Scorched Earth",
+                description: "Companion attacks deal 2 additional damage to Burning enemies.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(damage: DamageTriggers(companionDamageVsBurningBonus: 2))
+            ),
+            "ranger_burn_t3_2": CombatantTalentEffect(
+                name: "Inferno Barrage",
+                description: "Your Ultimate applies 8 Burn.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(enemyTurn: EnemyTurnTriggers(ultimateAppliesBurnPotency: 8))
+            ),
+            "ranger_bleed_t1_1": CombatantTalentEffect(
+                name: "Lead the Hunt",
+                description: "Increase Companion Bleed damage dealt by 3.",
+                modifiers: [.companionBleedDamageDealt(3)],
+                triggers: CombatTraitTriggers()
+            ),
+            "ranger_bleed_t1_2": CombatantTalentEffect(
+                name: "Broadhead Arrows",
+                description: "Attacks have a 50% chance to apply 1 Bleed.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(attack: AttackTriggers(directHitBleedChancePercent: 0.5))
+            ),
+            "ranger_bleed_t2_1": CombatantTalentEffect(
+                name: "Hamstring Shot",
+                description: "A Bleeding enemy has a 15% chance to skip its action each round.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(enemyTurn: EnemyTurnTriggers(bleedingEnemyActionSkipChancePercent: 0.15))
+            ),
+            "ranger_bleed_t2_2": CombatantTalentEffect(
+                name: "Hunter's Mark",
+                description: "Increase Companion Bleed duration by 1 and Bleed damage dealt by 3.",
+                modifiers: [.bleedDuration(1), .companionBleedDamageDealt(3)],
+                triggers: CombatTraitTriggers()
+            ),
+            "ranger_bleed_t3_1": CombatantTalentEffect(
+                name: "Pinning Strike",
+                description: "Bleeding enemies take 2 damage whenever they attack.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(mitigation: MitigationTriggers(bleedingEnemyAttackDealDamage: 2))
+            ),
+            "ranger_bleed_t3_2": CombatantTalentEffect(
+                name: "Blood Tracker",
+                description: "Gain +15% Critical Hit chance against Bleeding enemies.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(damage: DamageTriggers(critChancePerBleedingEnemy: 0.15))
+            )
+    ]
+
     static let rogueTalents: [String: CombatantTalentEffect] = [
             "rogue_poison_t1_1": CombatantTalentEffect(
                 name: "Toxic Coating",
@@ -336,117 +447,6 @@ public extension CombatantTalentCatalog {
             )
     ]
 
-    static let rangerTalents: [String: CombatantTalentEffect] = [
-            "ranger_poison_t1_1": CombatantTalentEffect(
-                name: "Venomous Arrows",
-                description: "Basic attacks apply 2 Poison.",
-                modifiers: [],
-                triggers: CombatTraitTriggers(attack: AttackTriggers(attacksApplyPoison: 2))
-            ),
-            "ranger_poison_t1_2": CombatantTalentEffect(
-                name: "Paralytic Poison",
-                description: "Poisoned enemies have a 15% chance to miss their attacks.",
-                modifiers: [],
-                triggers: CombatTraitTriggers(mitigation: MitigationTriggers(poisonedEnemyMissChancePercent: 0.15))
-            ),
-            "ranger_poison_t2_1": CombatantTalentEffect(
-                name: "Prey on the Weak",
-                description: "Companion attacks against Poisoned enemies deal 2 additional damage.",
-                modifiers: [],
-                triggers: CombatTraitTriggers(damage: DamageTriggers(companionDamageVsPoisonedBonus: 2))
-            ),
-            "ranger_poison_t2_2": CombatantTalentEffect(
-                name: "Toxic Backlash",
-                description: "When Poison is Cleansed, the enemy takes 3 damage per Poison removed.",
-                modifiers: [],
-                triggers: CombatTraitTriggers(cleanse: CleanseTriggers(onCleansePoisonDealDamagePerStack: 3))
-            ),
-            "ranger_poison_t3_1": CombatantTalentEffect(
-                name: "Corrosive Venom",
-                description: "Poison strips 2 Block before damaging Health.",
-                modifiers: [],
-                triggers: CombatTraitTriggers(block: BlockTriggers(poisonStripsBlockBeforeHealth: 2))
-            ),
-            "ranger_poison_t3_2": CombatantTalentEffect(
-                name: "Lethal Dose",
-                description: "Poison damage is doubled against enemies below half Health.",
-                modifiers: [],
-                triggers: CombatTraitTriggers(damage: DamageTriggers(poisonDamageBelowHealthThreshold: 0.5, poisonDamageBelowHealthMultiplier: 2))
-            ),
-            "ranger_burn_t1_1": CombatantTalentEffect(
-                name: "Flaming Arrows",
-                description: "Critical hits apply 2 Burn.",
-                modifiers: [],
-                triggers: CombatTraitTriggers(attack: AttackTriggers(criticalApplyBurn: 2))
-            ),
-            "ranger_burn_t1_2": CombatantTalentEffect(
-                name: "Slow Burn",
-                description: "Enemies lose 40% less Burn at the end of each round.",
-                modifiers: [],
-                triggers: CombatTraitTriggers(dot: DotTriggers(burnDecaySlowPercent: 0.40))
-            ),
-            "ranger_burn_t2_1": CombatantTalentEffect(
-                name: "Cauterize",
-                description: "Burn damage consumes Bleed to trigger its remaining damage instantly.",
-                modifiers: [],
-                triggers: CombatTraitTriggers(dot: DotTriggers(onBurnDamageDetonateBleed: true))
-            ),
-            "ranger_burn_t2_2": CombatantTalentEffect(
-                name: "Smoke Screen",
-                description: "Inflicting Burn grants +10% Dodge chance until your next turn.",
-                modifiers: [],
-                triggers: CombatTraitTriggers(dodge: DodgeTriggers(onApplyBurnDodgeChanceUntilNextTurn: 0.10))
-            ),
-            "ranger_burn_t3_1": CombatantTalentEffect(
-                name: "Scorched Earth",
-                description: "Companion attacks deal 2 additional damage to Burning enemies.",
-                modifiers: [],
-                triggers: CombatTraitTriggers(damage: DamageTriggers(companionDamageVsBurningBonus: 2))
-            ),
-            "ranger_burn_t3_2": CombatantTalentEffect(
-                name: "Inferno Barrage",
-                description: "Your Ultimate applies 8 Burn.",
-                modifiers: [],
-                triggers: CombatTraitTriggers(enemyTurn: EnemyTurnTriggers(ultimateAppliesBurnPotency: 8))
-            ),
-            "ranger_bleed_t1_1": CombatantTalentEffect(
-                name: "Lead the Hunt",
-                description: "Increase Companion Bleed damage dealt by 3.",
-                modifiers: [.companionBleedDamageDealt(3)],
-                triggers: CombatTraitTriggers()
-            ),
-            "ranger_bleed_t1_2": CombatantTalentEffect(
-                name: "Broadhead Arrows",
-                description: "Attacks have a 50% chance to apply 1 Bleed.",
-                modifiers: [],
-                triggers: CombatTraitTriggers(attack: AttackTriggers(directHitBleedChancePercent: 0.5))
-            ),
-            "ranger_bleed_t2_1": CombatantTalentEffect(
-                name: "Hamstring Shot",
-                description: "A Bleeding enemy has a 15% chance to skip its action each round.",
-                modifiers: [],
-                triggers: CombatTraitTriggers(enemyTurn: EnemyTurnTriggers(bleedingEnemyActionSkipChancePercent: 0.15))
-            ),
-            "ranger_bleed_t2_2": CombatantTalentEffect(
-                name: "Hunter's Mark",
-                description: "Increase Companion Bleed duration by 1 and Bleed damage dealt by 3.",
-                modifiers: [.bleedDuration(1), .companionBleedDamageDealt(3)],
-                triggers: CombatTraitTriggers()
-            ),
-            "ranger_bleed_t3_1": CombatantTalentEffect(
-                name: "Pinning Strike",
-                description: "Bleeding enemies take 2 damage whenever they attack.",
-                modifiers: [],
-                triggers: CombatTraitTriggers(mitigation: MitigationTriggers(bleedingEnemyAttackDealDamage: 2))
-            ),
-            "ranger_bleed_t3_2": CombatantTalentEffect(
-                name: "Blood Tracker",
-                description: "Gain +15% Critical Hit chance against Bleeding enemies.",
-                modifiers: [],
-                triggers: CombatTraitTriggers(damage: DamageTriggers(critChancePerBleedingEnemy: 0.15))
-            )
-    ]
-
     static let warlockTalents: [String: CombatantTalentEffect] = [
             "warlock_burn_t1_1": CombatantTalentEffect(
                 name: "Bloodfire",
@@ -555,6 +555,117 @@ public extension CombatantTalentCatalog {
                 description: "Gaining Mana restores 2 Health.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(mana: ManaTriggers(onGainManaHealFlat: 2))
+            )
+    ]
+
+    static let wolfTalents: [String: CombatantTalentEffect] = [
+            "wolf_bleed_t1_1": CombatantTalentEffect(
+                name: "Pack Ferocity",
+                description: "Increase Bleed duration by 1 and Bleed damage dealt by 1.",
+                modifiers: [.bleedDuration(1), .damageDealt(.bleed, 1)],
+                triggers: CombatTraitTriggers()
+            ),
+            "wolf_bleed_t1_2": CombatantTalentEffect(
+                name: "Deep Bite",
+                description: "Deal 2 additional damage to Bleeding enemies.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(damage: DamageTriggers(damageVsBleedingBonus: 2))
+            ),
+            "wolf_bleed_t2_1": CombatantTalentEffect(
+                name: "Hamstring",
+                description: "Bleeding enemies deal 2 less damage.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(mitigation: MitigationTriggers(bleedingEnemyDamageReductionFlat: 2))
+            ),
+            "wolf_bleed_t2_2": CombatantTalentEffect(
+                name: "Open Wounds",
+                description: "Applying Bleed to a Bleeding target deals 2 instant damage.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(dot: DotTriggers(onBleedAppliedToBleedingDealDamage: 2))
+            ),
+            "wolf_bleed_t3_1": CombatantTalentEffect(
+                name: "Carnivore",
+                description: "Heal 2 Health whenever Bleed deals damage.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(dot: DotTriggers(onBleedDamageHealSelf: 2))
+            ),
+            "wolf_bleed_t3_2": CombatantTalentEffect(
+                name: "Savage Tear",
+                description: "Bleed ticks have a 20% chance to critically strike.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(damage: DamageTriggers(bleedTickCritChancePercent: 0.20))
+            ),
+            "wolf_dodge_t1_1": CombatantTalentEffect(
+                name: "Sidestep",
+                description: "Gain 2 Block whenever you Dodge.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(dodge: DodgeTriggers(dodgeBlockFlat: 2))
+            ),
+            "wolf_dodge_t1_2": CombatantTalentEffect(
+                name: "Nimble Fang",
+                description: "After Dodging, your next attack inflicts 2 Bleed.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(dodge: DodgeTriggers(nextAttackBleedAfterDodge: 2))
+            ),
+            "wolf_dodge_t2_1": CombatantTalentEffect(
+                name: "Pack Coordination",
+                description: "When Wolf Dodges, the Hero gains +10% Dodge until your next turn.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(dodge: DodgeTriggers(onCompanionDodgeGrantHeroDodgePercent: 0.10))
+            ),
+            "wolf_dodge_t2_2": CombatantTalentEffect(
+                name: "Flanking Position",
+                description: "Dodging makes your next party hit a guaranteed Critical Hit.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(dodge: DodgeTriggers(onDodgeNextPartyHitGuaranteedCritical: true))
+            ),
+            "wolf_dodge_t3_1": CombatantTalentEffect(
+                name: "Evasive Pack",
+                description: "Wolf automatically Dodges attacks after the first hit each turn. These Dodges do not counterattack.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(dodge: DodgeTriggers(autoDodgeAfterFirstHitPerTurn: true))
+            ),
+            "wolf_dodge_t3_2": CombatantTalentEffect(
+                name: "Snapping Jaws",
+                description: "Dodging counters with an immediate basic attack.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(dodge: DodgeTriggers(onDodgeCounterBasicAttack: true))
+            ),
+            "wolf_physical_t1_1": CombatantTalentEffect(
+                name: "Alpha Howl",
+                description: "Party deals 2 additional Physical damage for the first 3 turns.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(attack: AttackTriggers(partyPhysicalDamageBonusFirstTurns: 2, partyPhysicalDamageBonusFirstTurnCount: 3))
+            ),
+            "wolf_physical_t1_2": CombatantTalentEffect(
+                name: "Predatory Focus",
+                description: "Deal 3 additional damage to enemies with lower Health than Wolf.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(damage: DamageTriggers(damageVsLowerHealthEnemyBonus: 3))
+            ),
+            "wolf_physical_t2_1": CombatantTalentEffect(
+                name: "Bone-Crushing Bite",
+                description: "Physical attacks ignore half of enemy Block.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(block: BlockTriggers(physicalBlockIgnorePercent: 0.5))
+            ),
+            "wolf_physical_t2_2": CombatantTalentEffect(
+                name: "Alpha Might",
+                description: "While the enemy is below half Health, party Physical attacks deal 2 additional damage.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(damage: DamageTriggers(damageBelowHealthPercentThreshold: 0.5, damageBelowHealthPercentKeyword: .physical, damageBelowHealthPercentBonus: 2))
+            ),
+            "wolf_physical_t3_1": CombatantTalentEffect(
+                name: "Feral Frenzy",
+                description: "While the enemy is below 40% Health, the Wolf draws 1 extra card each round.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(enemyTurn: EnemyTurnTriggers(extraCardDrawBelowEnemyHealthPercent: 0.40))
+            ),
+            "wolf_physical_t3_2": CombatantTalentEffect(
+                name: "Rending Fangs",
+                description: "Physical attacks apply 1 Bleed on hit.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(attack: AttackTriggers(physicalAttackApplyBleed: 1))
             )
     ]
 
@@ -1110,117 +1221,6 @@ public extension CombatantTalentCatalog {
                 description: "Gain +50% Dodge chance and debuff immunity while on Death's Door.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(revival: RevivalTriggers(deathsDoorDodgeAndDebuffImmunity: true))
-            )
-    ]
-
-    static let wolfTalents: [String: CombatantTalentEffect] = [
-            "wolf_bleed_t1_1": CombatantTalentEffect(
-                name: "Pack Ferocity",
-                description: "Increase Bleed duration by 1 and Bleed damage dealt by 1.",
-                modifiers: [.bleedDuration(1), .damageDealt(.bleed, 1)],
-                triggers: CombatTraitTriggers()
-            ),
-            "wolf_bleed_t1_2": CombatantTalentEffect(
-                name: "Deep Bite",
-                description: "Deal 2 additional damage to Bleeding enemies.",
-                modifiers: [],
-                triggers: CombatTraitTriggers(damage: DamageTriggers(damageVsBleedingBonus: 2))
-            ),
-            "wolf_bleed_t2_1": CombatantTalentEffect(
-                name: "Hamstring",
-                description: "Bleeding enemies deal 2 less damage.",
-                modifiers: [],
-                triggers: CombatTraitTriggers(mitigation: MitigationTriggers(bleedingEnemyDamageReductionFlat: 2))
-            ),
-            "wolf_bleed_t2_2": CombatantTalentEffect(
-                name: "Open Wounds",
-                description: "Applying Bleed to a Bleeding target deals 2 instant damage.",
-                modifiers: [],
-                triggers: CombatTraitTriggers(dot: DotTriggers(onBleedAppliedToBleedingDealDamage: 2))
-            ),
-            "wolf_bleed_t3_1": CombatantTalentEffect(
-                name: "Carnivore",
-                description: "Heal 2 Health whenever Bleed deals damage.",
-                modifiers: [],
-                triggers: CombatTraitTriggers(dot: DotTriggers(onBleedDamageHealSelf: 2))
-            ),
-            "wolf_bleed_t3_2": CombatantTalentEffect(
-                name: "Savage Tear",
-                description: "Bleed ticks have a 20% chance to critically strike.",
-                modifiers: [],
-                triggers: CombatTraitTriggers(damage: DamageTriggers(bleedTickCritChancePercent: 0.20))
-            ),
-            "wolf_dodge_t1_1": CombatantTalentEffect(
-                name: "Sidestep",
-                description: "Gain 2 Block whenever you Dodge.",
-                modifiers: [],
-                triggers: CombatTraitTriggers(dodge: DodgeTriggers(dodgeBlockFlat: 2))
-            ),
-            "wolf_dodge_t1_2": CombatantTalentEffect(
-                name: "Nimble Fang",
-                description: "After Dodging, your next attack inflicts 2 Bleed.",
-                modifiers: [],
-                triggers: CombatTraitTriggers(dodge: DodgeTriggers(nextAttackBleedAfterDodge: 2))
-            ),
-            "wolf_dodge_t2_1": CombatantTalentEffect(
-                name: "Pack Coordination",
-                description: "When Wolf Dodges, the Hero gains +10% Dodge until your next turn.",
-                modifiers: [],
-                triggers: CombatTraitTriggers(dodge: DodgeTriggers(onCompanionDodgeGrantHeroDodgePercent: 0.10))
-            ),
-            "wolf_dodge_t2_2": CombatantTalentEffect(
-                name: "Flanking Position",
-                description: "Dodging makes your next party hit a guaranteed Critical Hit.",
-                modifiers: [],
-                triggers: CombatTraitTriggers(dodge: DodgeTriggers(onDodgeNextPartyHitGuaranteedCritical: true))
-            ),
-            "wolf_dodge_t3_1": CombatantTalentEffect(
-                name: "Evasive Pack",
-                description: "Wolf automatically Dodges attacks after the first hit each turn. These Dodges do not counterattack.",
-                modifiers: [],
-                triggers: CombatTraitTriggers(dodge: DodgeTriggers(autoDodgeAfterFirstHitPerTurn: true))
-            ),
-            "wolf_dodge_t3_2": CombatantTalentEffect(
-                name: "Snapping Jaws",
-                description: "Dodging counters with an immediate basic attack.",
-                modifiers: [],
-                triggers: CombatTraitTriggers(dodge: DodgeTriggers(onDodgeCounterBasicAttack: true))
-            ),
-            "wolf_physical_t1_1": CombatantTalentEffect(
-                name: "Alpha Howl",
-                description: "Party deals 2 additional Physical damage for the first 3 turns.",
-                modifiers: [],
-                triggers: CombatTraitTriggers(attack: AttackTriggers(partyPhysicalDamageBonusFirstTurns: 2, partyPhysicalDamageBonusFirstTurnCount: 3))
-            ),
-            "wolf_physical_t1_2": CombatantTalentEffect(
-                name: "Predatory Focus",
-                description: "Deal 3 additional damage to enemies with lower Health than Wolf.",
-                modifiers: [],
-                triggers: CombatTraitTriggers(damage: DamageTriggers(damageVsLowerHealthEnemyBonus: 3))
-            ),
-            "wolf_physical_t2_1": CombatantTalentEffect(
-                name: "Bone-Crushing Bite",
-                description: "Physical attacks ignore half of enemy Block.",
-                modifiers: [],
-                triggers: CombatTraitTriggers(block: BlockTriggers(physicalBlockIgnorePercent: 0.5))
-            ),
-            "wolf_physical_t2_2": CombatantTalentEffect(
-                name: "Alpha Might",
-                description: "While the enemy is below half Health, party Physical attacks deal 2 additional damage.",
-                modifiers: [],
-                triggers: CombatTraitTriggers(damage: DamageTriggers(damageBelowHealthPercentThreshold: 0.5, damageBelowHealthPercentKeyword: .physical, damageBelowHealthPercentBonus: 2))
-            ),
-            "wolf_physical_t3_1": CombatantTalentEffect(
-                name: "Feral Frenzy",
-                description: "While the enemy is below 40% Health, the Wolf draws 1 extra card each round.",
-                modifiers: [],
-                triggers: CombatTraitTriggers(enemyTurn: EnemyTurnTriggers(extraCardDrawBelowEnemyHealthPercent: 0.40))
-            ),
-            "wolf_physical_t3_2": CombatantTalentEffect(
-                name: "Rending Fangs",
-                description: "Physical attacks apply 1 Bleed on hit.",
-                modifiers: [],
-                triggers: CombatTraitTriggers(attack: AttackTriggers(physicalAttackApplyBleed: 1))
             )
     ]
 
@@ -2006,16 +2006,16 @@ public extension CombatantTalentCatalog {
         combined.reserveCapacity(324)
         for group in [
             knightTalents,
+            rangerTalents,
             rogueTalents,
             wizardTalents,
-            rangerTalents,
             warlockTalents,
+            wolfTalents,
             bearTalents,
             frostWhelpTalents,
             lizardScoutTalents,
             pantherTalents,
             phoenixTalents,
-            wolfTalents,
             goldenRetrieverTalents,
             libraryOwlTalents,
             risenSkeletonTalents,

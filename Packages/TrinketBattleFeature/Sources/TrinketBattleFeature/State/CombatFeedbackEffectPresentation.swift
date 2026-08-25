@@ -66,7 +66,8 @@ enum CombatFeedbackEffectPresentation {
         .deathsDoorExpired: Descriptor(.deathsDoor, labelRule: .deathsDoorIcon),
         .thornsTriggered: Descriptor(.directDamage, isAdditive: true, labelRule: .negatedAmount),
         .markedConsumed: Descriptor(.directDamage, isAdditive: true, labelRule: .negatedAmount),
-        .leechApplied: Descriptor(.buff, visualRole: .beneficialStatus, statusLabel: .leech),
+        // Filtered before display (passive mechanic); classified for completeness.
+        .leechApplied: Descriptor(.buff, labelRule: .plainKeyword),
         .shieldHalved: Descriptor(.buff, visualRole: .negativeStatus, statusLabel: .blockDown),
         .thornsApplied: Descriptor(.buff, visualRole: .beneficialStatus, statusLabel: .thorns),
         .markedApplied: Descriptor(.buff, visualRole: .negativeStatus, statusLabel: .marked),

@@ -61,25 +61,11 @@ struct PostBattleTalentChoiceView: View {
                 overscroll: overscroll
             ) {
                 CombatantArtwork(combatant: combatant)
-            } footer: {
-                Text("TALENT POINT EARNED")
-                    .trinketTypography(.eyebrow)
-                    .trinketOnArtText(.eyebrow)
-                    .frame(maxWidth: .infinity, alignment: .leading)
             }
         } bodyContent: {
-            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.mediumSpacing) {
-                Text(balanced: "Choose a Talent Tree")
-                    .trinketTypography(.sectionTitle)
-
-                Text("You can choose one Talent now or come back to it later from Combatant Detail.")
-                    .trinketTypography(.body)
-                    .foregroundStyle(.secondary)
-
-                LazyVGrid(columns: treeColumns, spacing: TrinketDesign.Metrics.smallSpacing) {
-                    ForEach(config.trees) { tree in
-                        talentTreeButton(tree, combatantID: combatant.id)
-                    }
+            LazyVGrid(columns: treeColumns, spacing: TrinketDesign.Metrics.smallSpacing) {
+                ForEach(config.trees) { tree in
+                    talentTreeButton(tree, combatantID: combatant.id)
                 }
             }
             .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
@@ -100,7 +86,7 @@ struct PostBattleTalentChoiceView: View {
                 get: { playerSave.roster.unlockedTalents(for: combatant.id) },
                 set: { _ in }
             ),
-            visibleNodeIDs: Set(legalNodes(in: tree, combatantID: combatant.id).map(\.id)),
+            initialSelectedNodeID: legalNodes(in: tree, combatantID: combatant.id).first?.id,
             showsReset: false,
             nodeAccessibilityIdentifier: AccessibilityID.TalentChoice.node,
             unlockAccessibilityIdentifier: AccessibilityID.TalentChoice.unlockButton,

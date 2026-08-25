@@ -242,6 +242,7 @@ struct StageRewardTests {
         )
 
         var defaulted = SaveTestSupport.makeSave()
+        defaulted.roster.progressions[hero.id] = .at(level: 10)
         StageCompletion.complete(
             deepStage,
             hero: hero,
@@ -252,6 +253,7 @@ struct StageRewardTests {
         let defaultedHeroXP = defaulted.roster.progression(for: hero).currentXP
 
         var lowered = SaveTestSupport.makeSave()
+        lowered.roster.progressions[hero.id] = .at(level: 10)
         StageCompletion.complete(
             deepStage,
             hero: hero,

@@ -13,10 +13,10 @@ struct MysteryEffectApplierTests {
         let heroProgressionBefore = save.roster.progression(for: hero)
         let companionProgressionBefore = save.roster.progression(for: companion)
         // Pinned for the seeded fresh roster (knight/wolf at level 2, hero
-        // highest level 3): equal-level award 155/1.5=103 with hero catch-up
-        // round(103*1.5903)=164, then nearest 5 → 165 / 105.
-        let expectedHeroXP = 165
-        let expectedCompanionXP = 105
+        // highest level 3): equal-level award 15/1.5=10 with hero catch-up
+        // round(10*1.5902)=16, with step 1 → 16 / 10.
+        let expectedHeroXP = 16
+        let expectedCompanionXP = 10
         var randomNumberGenerator = SeededRandomNumberGenerator(seed: 1)
 
         let result = MysteryEffectApplier.apply(
@@ -107,10 +107,10 @@ struct MysteryEffectApplierTests {
         save.roster.progressions[companion.id] = .at(level: 5)
         let heroBefore = save.roster.progression(for: hero)
         let companionBefore = save.roster.progression(for: companion)
-        // Pinned: level-20 equal award 2855 / 2.5 = 1142 → 1140;
-        // level-5 award 380 / 1.5 = 253 → 255.
-        let expectedHeroXP = 1140
-        let expectedCompanionXP = 255
+        // Pinned: level-20 equal award 285 / 2.5 = 114;
+        // level-5 award 38 / 1.5 = 25.
+        let expectedHeroXP = 114
+        let expectedCompanionXP = 25
         var randomNumberGenerator = SeededRandomNumberGenerator(seed: 1)
 
         let result = MysteryEffectApplier.apply(
@@ -127,10 +127,6 @@ struct MysteryEffectApplierTests {
         try #expect(expectedHeroXP != expectedCompanionXP)
         try #expect(result.heroProgressionAfter == heroBefore.addingExperience(expectedHeroXP))
         try #expect(result.companionProgressionAfter == companionBefore.addingExperience(expectedCompanionXP))
-        try #expect(result.heroGrantedExperience.isMultiple(of: MysteryEffectApplier.experienceAwardStep))
-        try #expect(
-            result.companionGrantedExperience.isMultiple(of: MysteryEffectApplier.experienceAwardStep)
-        )
     }
 
     @Test func grantExperienceCapsAtThreeTimesRequiredXP() throws {

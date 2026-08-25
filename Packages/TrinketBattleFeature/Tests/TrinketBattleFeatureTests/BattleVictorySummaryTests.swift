@@ -95,8 +95,8 @@ struct BattleVictorySummaryTests {
             companion: companion,
             enemy: enemy,
             enemyEncounterLevel: 2,
-            heroProgression: CombatantProgression(level: 2, currentXP: 10, requiredXP: 155),
-            companionProgression: CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),
+            heroProgression: CombatantProgression(level: 2, currentXP: 1, requiredXP: 15),
+            companionProgression: CombatantProgression(level: 1, currentXP: 0, requiredXP: 10),
             stageReward: StageReward(gold: 12, itemTemplateIDs: [], materialRewards: [
                 ResourceAmount(.wood, 8),
                 ResourceAmount(.stone, 3),
@@ -104,8 +104,8 @@ struct BattleVictorySummaryTests {
             rewardItems: [lootItem],
             hasProgressionRewards: true,
             musicStageID: "chapter-1-stage-1",
-            heroExperienceAward: 17,
-            companionExperienceAward: 9,
+            heroExperienceAward: 2,
+            companionExperienceAward: 1,
             materialRewards: [
                 ResourceAmount(.wood, 8),
                 ResourceAmount(.stone, 3),
@@ -115,8 +115,8 @@ struct BattleVictorySummaryTests {
         #expect(summary.stageGold == 12)
         #expect(summary.battleGold >= 0)
         #expect(summary.totalGold == summary.stageGold + summary.battleGold)
-        #expect(summary.experience == 17)
-        #expect(summary.companionExperience == 9)
+        #expect(summary.experience == 2)
+        #expect(summary.companionExperience == 1)
         #expect(summary.heroName == hero.name)
         #expect(summary.companionName == companion.name)
         #expect(summary.heroArtworkName == hero.artReference?.thumbnailImageName)
@@ -124,8 +124,8 @@ struct BattleVictorySummaryTests {
         #expect(summary.rewardItems == [lootItem])
         #expect(summary.materialRewards.count == 2)
         #expect(summary.heroProgressionBefore.level == 2)
-        #expect(summary.heroProgressionAfter.currentXP == 27)
-        #expect(summary.companionProgressionAfter.currentXP == 9)
+        #expect(summary.heroProgressionAfter.currentXP == 3)
+        #expect(summary.companionProgressionAfter.currentXP == 1)
     }
 
     private func assertCompanionOnlyAwardSummary() throws {
@@ -136,18 +136,18 @@ struct BattleVictorySummaryTests {
             companion: companion,
             enemy: enemy,
             enemyEncounterLevel: 1,
-            heroProgression: CombatantProgression(level: 15, currentXP: 0, requiredXP: 100),
-            companionProgression: CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),
+            heroProgression: CombatantProgression(level: 15, currentXP: 0, requiredXP: CombatantProgression.requiredXP(forLevel: 15)),
+            companionProgression: CombatantProgression(level: 1, currentXP: 0, requiredXP: 10),
             stageReward: StageReward(gold: 0, itemTemplateIDs: []),
             heroExperienceAward: 0,
-            companionExperienceAward: 13
+            companionExperienceAward: 2
         )
         let summary = try makeDrivenVictorySummary(configuration: configuration, context: context)
         #expect(summary.experience == 0)
-        #expect(summary.companionExperience == 13)
+        #expect(summary.companionExperience == 2)
         #expect(summary.hasExperienceAwards == true)
         #expect(summary.rewardItems.isEmpty)
-        #expect(summary.companionProgressionAfter.currentXP == 13)
+        #expect(summary.companionProgressionAfter.currentXP == 2)
     }
 
     private func assertBakedAwardsIgnoreExperienceBonus() throws {
@@ -168,19 +168,19 @@ struct BattleVictorySummaryTests {
             companion: companion,
             enemy: enemy,
             enemyEncounterLevel: 2,
-            heroProgression: CombatantProgression(level: 2, currentXP: 0, requiredXP: 155),
-            companionProgression: CombatantProgression(level: 2, currentXP: 0, requiredXP: 155),
+            heroProgression: CombatantProgression(level: 2, currentXP: 0, requiredXP: 15),
+            companionProgression: CombatantProgression(level: 2, currentXP: 0, requiredXP: 15),
             stageReward: StageReward(gold: 10, itemTemplateIDs: []),
             rewardItems: [pendingItem],
             experienceBonusPercent: 20,
             defeatPrimaryAction: .retreat,
             hasProgressionRewards: true,
-            heroExperienceAward: 42,
-            companionExperienceAward: 42
+            heroExperienceAward: 4,
+            companionExperienceAward: 4
         )
         let summary = try makeDrivenVictorySummary(configuration: configuration, context: context)
-        #expect(summary.experience == 42)
-        #expect(summary.companionExperience == 42)
+        #expect(summary.experience == 4)
+        #expect(summary.companionExperience == 4)
         #expect(summary.rewardItems == [pendingItem])
         #expect(context.experienceBonusPercent == 20)
     }

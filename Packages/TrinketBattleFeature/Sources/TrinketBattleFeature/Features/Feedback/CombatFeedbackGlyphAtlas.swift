@@ -371,8 +371,9 @@ enum CombatFeedbackGlyphMetrics {
         // stays a single face per role regardless of user text settings.
         let traits = UITraitCollection(preferredContentSizeCategory: .large)
         let preferred = UIFont.preferredFont(forTextStyle: textStyle, compatibleWith: traits)
+        let pointSize = preferred.pointSize * 0.90
         let resolvedWeight = uiWeight(weight)
-        let weighted = UIFont.systemFont(ofSize: preferred.pointSize, weight: resolvedWeight)
+        let weighted = UIFont.systemFont(ofSize: pointSize, weight: resolvedWeight)
         let roundedDescriptor = weighted.fontDescriptor.withDesign(.rounded) ?? weighted.fontDescriptor
         let monospacedDescriptor = roundedDescriptor.addingAttributes([
             .featureSettings: [[
@@ -380,7 +381,7 @@ enum CombatFeedbackGlyphMetrics {
                 UIFontDescriptor.FeatureKey.selector: kMonospacedNumbersSelector,
             ]],
         ])
-        return UIFont(descriptor: monospacedDescriptor, size: preferred.pointSize)
+        return UIFont(descriptor: monospacedDescriptor, size: pointSize)
     }
 
     private static func uiTextStyle(_ style: Font.TextStyle) -> UIFont.TextStyle {

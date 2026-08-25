@@ -16,8 +16,6 @@ public struct AppEnvironment: Sendable {
     public let completedStageIDs: [String]
     /// Test-only deterministic recruit event selected for the Mystery deep link.
     public let mysteryRecruitEventID: String?
-    /// Tuning/test-only deterministic landing target for the starter roulette wheel.
-    public let starterRouletteSeed: Int?
     public let storeName: String?
     /// Test-only override of the battle auto-end cadence (UI anti-flake contract).
     public let battleTickInterval: TimeInterval?
@@ -40,7 +38,6 @@ public struct AppEnvironment: Sendable {
         persistSaveImmediately: Bool,
         completedStageIDs: [String],
         mysteryRecruitEventID: String?,
-        starterRouletteSeed: Int?,
         storeName: String?,
         battleTickInterval: TimeInterval?,
         startingGold: Int?,
@@ -58,7 +55,6 @@ public struct AppEnvironment: Sendable {
         self.persistSaveImmediately = persistSaveImmediately
         self.completedStageIDs = completedStageIDs
         self.mysteryRecruitEventID = mysteryRecruitEventID
-        self.starterRouletteSeed = starterRouletteSeed
         self.storeName = storeName
         self.battleTickInterval = battleTickInterval
         self.startingGold = startingGold
@@ -102,8 +98,6 @@ public struct AppEnvironment: Sendable {
             persistSaveImmediately: arguments.contains("-persist-save-immediately"),
             completedStageIDs: completedStageIDs(from: arguments),
             mysteryRecruitEventID: argumentValue(after: "-mystery-recruit-event", in: arguments),
-            starterRouletteSeed: argumentValue(after: "-starter-roulette-seed", in: arguments)
-                .flatMap(Int.init),
             storeName: arguments.firstIndex(of: "-store-name").flatMap { idx in
                 arguments.indices.contains(idx + 1) ? arguments[idx + 1] : nil
             },

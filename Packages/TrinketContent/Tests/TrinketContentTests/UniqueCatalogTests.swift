@@ -96,4 +96,27 @@ struct UniqueCatalogTests {
         #expect(channeled.basic.modifiers == [.maximumMana(4)])
         #expect(channeled.astral.modifiers == [.maximumMana(8)])
     }
+
+    @Test func basicAstralUniqueAndTrinketCatalogsDoNotOverlap() {
+        #expect(GameContent.uniqueItems.allSatisfy { !$0.isTrinket && $0.rarity == .unique })
+        #expect(GameContent.sampleInventoryItems.allSatisfy { !$0.isTrinket && $0.rarity != .unique })
+        #expect(GameContent.trinketItems.allSatisfy { $0.isTrinket && $0.rarity != .unique })
+
+        let uniqueIDs = Set(GameContent.uniqueItems.map(\.id))
+        let trinketIDs = Set(GameContent.trinketItems.map(\.id))
+        let sampleIDs = Set(GameContent.sampleInventoryItems.map(\.id))
+        #expect(uniqueIDs.isDisjoint(with: trinketIDs))
+        #expect(sampleIDs.isDisjoint(with: trinketIDs))
+        #expect(sampleIDs.isDisjoint(with: uniqueIDs))
+    }
+
+    @Test func uniqueItemsUseBaseItemArtwork() throws {
+        for item in GameContent.uniqueItems {
+            let art = try #require(item.artReference, "Unique item \(item.id) should have an art reference")
+            #expect(
+                art == item.baseType.previewArtReference,
+                "Unique item \(item.id) art (\(art.imageName)) must match base type \(item.baseType.id) art"
+            )
+        }
+    }
 }

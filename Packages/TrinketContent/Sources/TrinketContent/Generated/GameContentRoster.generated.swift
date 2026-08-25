@@ -20,6 +20,19 @@ enum GameContentRosterGenerated {
             growthArchetype: .tank
         ))
         list.append(Combatant(
+            id: "ranger",
+            name: "Ranger",
+            role: .hero,
+            maxHealth: 14,
+            abilityChoices: AbilityChoices(
+                basics: [.venomArrow, .fireArrow],
+                skills: [.sapArrow, .bountyShot],
+                ultimates: [.packTactics, .astralArrow]
+            ),
+            primaryStats: PrimaryStats(strength: 10, agility: 12, toughness: 9, intellect: 7, wisdom: 12),
+            growthArchetype: .assassin
+        ))
+        list.append(Combatant(
             id: "rogue",
             name: "Rogue",
             role: .hero,
@@ -47,19 +60,6 @@ enum GameContentRosterGenerated {
             growthArchetype: .mage
         ))
         list.append(Combatant(
-            id: "ranger",
-            name: "Ranger",
-            role: .hero,
-            maxHealth: 14,
-            abilityChoices: AbilityChoices(
-                basics: [.venomArrow, .fireArrow],
-                skills: [.sapArrow, .bountyShot],
-                ultimates: [.packTactics, .astralArrow]
-            ),
-            primaryStats: PrimaryStats(strength: 10, agility: 12, toughness: 9, intellect: 7, wisdom: 12),
-            growthArchetype: .assassin
-        ))
-        list.append(Combatant(
             id: "warlock",
             name: "Warlock",
             role: .hero,
@@ -79,6 +79,19 @@ enum GameContentRosterGenerated {
     static let companions: [Combatant] = {
         var list = [Combatant]()
         list.reserveCapacity(13)
+        list.append(Combatant(
+            id: "wolf",
+            name: "Wolf",
+            role: .companion,
+            maxHealth: 14,
+            abilityChoices: AbilityChoices(
+                basics: [.fangs, .rendingSlash],
+                skills: [.pounce, .predatorsFocus],
+                ultimates: [.packTactics, .hemorrhage]
+            ),
+            primaryStats: PrimaryStats(strength: 10, agility: 12, toughness: 10, intellect: 7, wisdom: 11),
+            growthArchetype: .assassin
+        ))
         list.append(Combatant(
             id: "bear",
             name: "Bear",
@@ -145,19 +158,6 @@ enum GameContentRosterGenerated {
             ),
             primaryStats: PrimaryStats(strength: 7, agility: 10, toughness: 8, intellect: 13, wisdom: 12),
             growthArchetype: .mage
-        ))
-        list.append(Combatant(
-            id: "wolf",
-            name: "Wolf",
-            role: .companion,
-            maxHealth: 14,
-            abilityChoices: AbilityChoices(
-                basics: [.fangs, .rendingSlash],
-                skills: [.pounce, .predatorsFocus],
-                ultimates: [.packTactics, .hemorrhage]
-            ),
-            primaryStats: PrimaryStats(strength: 10, agility: 12, toughness: 10, intellect: 7, wisdom: 11),
-            growthArchetype: .assassin
         ))
         list.append(Combatant(
             id: "golden_retriever",

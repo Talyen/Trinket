@@ -28,10 +28,10 @@ struct ExperienceScalingTests {
 
     @Test func baseBattleAwardTargetsEarlyMidAndLateProgression() throws {
         let award = ExperienceScaling.baseBattleAward(forPlayerLevel: 1)
-        try #expect(award == 67)
+        try #expect(award == 7)
         try #expect(abs((
             Double(CombatantProgression.requiredXP(forLevel: 1)) / Double(award)
-        ) - 1.5) < 0.05)
+        ) - 1.5) < 0.1)
         for (level, battlesPerLevel) in [(25, 2.5), (45, 3.5)] {
             let award = ExperienceScaling.baseBattleAward(forPlayerLevel: level)
             try #expect(abs((
@@ -42,32 +42,32 @@ struct ExperienceScalingTests {
 
     @Test func battleAwardAppliesLevelDeltaAndCatchUpMultiplier() throws {
         try #expect(ExperienceScaling.battleAward(playerLevel: 20, enemyLevel: 5) == 0)
-        try #expect(ExperienceScaling.battleAward(playerLevel: 5, enemyLevel: 5) == 253)
+        try #expect(ExperienceScaling.battleAward(playerLevel: 5, enemyLevel: 5) == 25)
 
         try #expect(
             ExperienceScaling.battleAwardWithCatchUp(playerLevel: 20, enemyLevel: 5, highestLevel: 25) == 0
         )
 
-        // Pinned values, not re-derived: level-5 equal fight (253 base) × catch-up
-        // toward highest 10 (≈2.377) rounds to 601.
+        // Pinned values, not re-derived: level-5 equal fight (25 base) × catch-up
+        // toward highest 10 (≈2.377) rounds to 59.
         try #expect(
             ExperienceScaling.battleAwardWithCatchUp(playerLevel: 5, enemyLevel: 5, highestLevel: 10)
-                == 601
+                == 59
         )
     }
 
     @Test func equalBattleAwardMatchesEqualLevelCatchUpAward() throws {
         // Pinned equal-level award for player 12 catching up to highest 18.
-        try #expect(ExperienceScaling.equalBattleAward(playerLevel: 12, highestLevel: 18) == 2030)
+        try #expect(ExperienceScaling.equalBattleAward(playerLevel: 12, highestLevel: 18) == 201)
     }
 
     @Test func cappedAwardClipsAtThreeTimesRequiredXP() throws {
         let progression = CombatantProgression.at(level: 1)
         let ceiling = progression.requiredXP * ExperienceScaling.maxGrantLevelsEquivalent
-        try #expect(ceiling == 300)
-        try #expect(ExperienceScaling.cappedAward(50, for: progression) == 50)
-        try #expect(ExperienceScaling.cappedAward(300, for: progression) == 300)
-        try #expect(ExperienceScaling.cappedAward(10000, for: progression) == 300)
+        try #expect(ceiling == 30)
+        try #expect(ExperienceScaling.cappedAward(5, for: progression) == 5)
+        try #expect(ExperienceScaling.cappedAward(30, for: progression) == 30)
+        try #expect(ExperienceScaling.cappedAward(1000, for: progression) == 30)
         try #expect(ExperienceScaling.cappedAward(0, for: progression) == 0)
         try #expect(ExperienceScaling.cappedAward(-5, for: progression) == 0)
     }

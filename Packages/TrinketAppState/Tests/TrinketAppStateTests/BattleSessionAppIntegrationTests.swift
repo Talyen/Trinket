@@ -37,11 +37,11 @@ struct BattleSessionAppIntegrationTests {
         #expect(appState.battle.activeBattle?.hero.progression.currentXP == 0)
 
         var updatedRoster = appState.playerSave.roster
-        updatedRoster.grantExperience(25, to: appState.playerSave.roster.activeHero)
+        updatedRoster.grantExperience(3, to: appState.playerSave.roster.activeHero)
         appState.playerSave.roster = updatedRoster
         appState.restartActiveBattle()
 
-        #expect(appState.battle.activeBattle?.hero.progression.currentXP == 25)
+        #expect(appState.battle.activeBattle?.hero.progression.currentXP == 3)
     }
 
     @Test func startBattleReturnsMessageWhenEnemyMissing() throws {

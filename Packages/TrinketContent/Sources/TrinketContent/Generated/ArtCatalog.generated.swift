@@ -1224,7 +1224,7 @@ extension InventoryItem {
         // Catalog keys are template ids (e.g. crossbow-basic), not per-instance ids.
         ArtCatalog.itemArtByID[templateID]
             ?? ArtCatalog.itemArtByID["\(baseType.id)-\(rarity.rawValue)"]
-            ?? ArtCatalog.itemArtByID[baseType.id]
+            ?? baseType.previewArtReference
     }
 }
 

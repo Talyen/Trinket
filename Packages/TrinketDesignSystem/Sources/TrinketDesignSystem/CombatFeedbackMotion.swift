@@ -42,7 +42,7 @@ public struct CombatFeedbackKeyframeSample: Sendable, Equatable {
 }
 
 /// The two chip typography tiers. Single source for class→font mapping:
-/// emphasis ≈34pt heavy (critical, deaths door), normal ≈28pt bold for the rest.
+/// emphasis heavy / largeTitle (critical, deaths door), normal bold / title for the rest.
 public enum CombatFeedbackTypographyTier: Hashable, CaseIterable, Sendable {
     case emphasis
     case normal

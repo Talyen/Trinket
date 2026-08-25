@@ -47,48 +47,56 @@ struct MysteryUnlockContent: View {
     }
 
     private func recruitUnlockStage(combatant: Combatant) -> some View {
-        RewardRevealShell(
-            eyebrow: combatant.role == .companion ? "New Companion" : "New Hero",
-            eyebrowAccessibilityIdentifier: AccessibilityID.Mystery.unlockEyebrow,
-            title: combatant.name,
-            subtitle: "UNLOCKED",
-            subtitleAccessibilityIdentifier: AccessibilityID.Mystery.unlockSubtitle,
-            titleAccessibilityIdentifier: AccessibilityID.Mystery.unlockName,
-            eyebrowOpacity: ceremony.eyebrowOpacity,
-            titleOpacity: ceremony.titleOpacity,
-            subtitleOpacity: ceremony.subtitleOpacity,
-            content: {
-                VStack(spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
-                    Button {
-                        onSelectDetail(
-                            CombatantDetailContext(
-                                kind: combatant.role == .companion ? .companion : .hero,
-                                combatantID: combatant.id
-                            )
-                        )
-                    } label: {
-                        recruitPortrait(combatant: combatant)
-                    }
-                    // UIStyleCheck: allow - Unlock art is the tap target for combatant detail; no button chrome.
-                    .trinketQuietTapButtonStyle()
-                    .accessibilityIdentifier(AccessibilityID.Mystery.unlockCard(name: combatant.name))
-                    .scaleEffect(ceremony.artScale)
-                    .frame(maxWidth: 430)
-                    .allowsHitTesting(ceremony.allowsDetail)
-                    .overlay(alignment: .bottomTrailing) {
-                        recruitSealBadge
-                    }
+        ZStack {
+            KeywordPlasmaBackground(keywords: recruitPlasmaKeywords(for: combatant))
 
-                    mysteryPersistFailureBanner(session.persistFailureMessage, centered: true)
-                }
-            },
-            primaryActionTitle: "Recruit",
-            primaryActionAccessibilityIdentifier: AccessibilityID.Mystery.continueButton,
-            isPrimaryActionDisabled: !ceremony.isOffered,
-            onPrimaryAction: confirmRecruit,
-            pinsPrimaryActionToBottom: false,
-            primaryActionOpacity: ceremony.recruitOpacity
-        )
+            RewardRevealShell(
+                eyebrow: combatant.role == .companion ? "New Companion" : "New Hero",
+                eyebrowAccessibilityIdentifier: AccessibilityID.Mystery.unlockEyebrow,
+                title: combatant.name,
+                subtitle: "UNLOCKED",
+                subtitleAccessibilityIdentifier: AccessibilityID.Mystery.unlockSubtitle,
+                titleAccessibilityIdentifier: AccessibilityID.Mystery.unlockName,
+                eyebrowOpacity: ceremony.eyebrowOpacity,
+                titleOpacity: ceremony.titleOpacity,
+                subtitleOpacity: ceremony.subtitleOpacity,
+                content: {
+                    VStack(spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
+                        Button {
+                            onSelectDetail(
+                                CombatantDetailContext(
+                                    kind: combatant.role == .companion ? .companion : .hero,
+                                    combatantID: combatant.id
+                                )
+                            )
+                        } label: {
+                            recruitPortrait(combatant: combatant)
+                        }
+                        // UIStyleCheck: allow - Unlock art is the tap target for combatant detail; no button chrome.
+                        .trinketQuietTapButtonStyle()
+                        .accessibilityIdentifier(AccessibilityID.Mystery.unlockCard(name: combatant.name))
+                        .scaleEffect(ceremony.artScale)
+                        .frame(maxWidth: 430)
+                        .allowsHitTesting(ceremony.allowsDetail)
+                        .overlay(alignment: .bottomTrailing) {
+                            recruitSealBadge
+                        }
+
+                        mysteryPersistFailureBanner(session.persistFailureMessage, centered: true)
+                    }
+                },
+                primaryActionTitle: "Recruit",
+                primaryActionAccessibilityIdentifier: AccessibilityID.Mystery.continueButton,
+                isPrimaryActionDisabled: !ceremony.isOffered,
+                onPrimaryAction: confirmRecruit,
+                pinsPrimaryActionToBottom: false,
+                primaryActionOpacity: ceremony.recruitOpacity
+            )
+        }
+    }
+
+    private func recruitPlasmaKeywords(for combatant: Combatant) -> [Keyword] {
+        CombatantTalentCatalog.combatantTreeAffinities[combatant.id]?.map(\.keyword) ?? []
     }
 
     private var recruitSealBadge: some View {

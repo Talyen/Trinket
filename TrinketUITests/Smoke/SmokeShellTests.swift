@@ -47,8 +47,8 @@ final class StarterOnboardingSmokeTests: TrinketUITestCase {
         if !heroConfirm.waitForExistence(timeout: 10) {
             XCTFail("Confirm Hero not found. Tree: \(String(app.debugDescription.prefix(2500)))")
         }
-        // The wheel lands a selection on its own; the label must surface the
-        // chosen combatant, never the bare-role no-selection fallback.
+        // The carousel opens on the first combatant; Confirm must name that
+        // combatant, never the bare-role no-selection fallback.
         XCTAssertNotEqual(heroConfirm.label, "Confirm Hero")
         tapWhenReady(heroConfirm)
 

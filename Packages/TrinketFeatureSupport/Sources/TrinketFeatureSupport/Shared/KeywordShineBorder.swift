@@ -35,17 +35,17 @@ public struct KeywordShineBorder: View {
 
     public var body: some View {
         TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: !isMotionActive)) { context in
+            let angle = TrinketMotion.Shine.phase(at: context.date.timeIntervalSinceReferenceDate) * 360
             KeywordShineBorderStroke(
                 colors: colors,
                 cornerRadius: cornerRadius,
                 lineWidth: lineWidth,
-                angle: isMotionActive
-                    ? TrinketMotion.Shine.phase(at: context.date.timeIntervalSinceReferenceDate) * 360
-                    : 0,
+                angle: angle,
                 motionEnabled: isMotionActive
             )
         }
         .allowsHitTesting(false)
+        .animation(nil, value: isMotionActive)
     }
 }
 

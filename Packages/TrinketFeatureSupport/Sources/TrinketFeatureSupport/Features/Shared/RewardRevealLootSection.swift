@@ -15,6 +15,7 @@ public struct RewardRevealLootSection: View {
     let visibleWalletRewardCount: Int
     var spacing: CGFloat = TrinketDesign.Metrics.largeSpacing
     let onSelectItem: (InventoryItem) -> Void
+    @Binding var focusedItemID: String?
 
     public static func walletRewardCount(gold: Int, materials: [ResourceAmount]) -> Int {
         (gold > 0 ? 1 : 0) + materials.count { $0.quantity > 0 }
@@ -30,6 +31,7 @@ public struct RewardRevealLootSection: View {
         areItemsVisible: Bool,
         visibleWalletRewardCount: Int,
         spacing: CGFloat = TrinketDesign.Metrics.largeSpacing,
+        focusedItemID: Binding<String?>,
         onSelectItem: @escaping (InventoryItem) -> Void
     ) {
         self.items = items
@@ -41,6 +43,7 @@ public struct RewardRevealLootSection: View {
         self.areItemsVisible = areItemsVisible
         self.visibleWalletRewardCount = visibleWalletRewardCount
         self.spacing = spacing
+        _focusedItemID = focusedItemID
         self.onSelectItem = onSelectItem
     }
 
@@ -68,6 +71,7 @@ public struct RewardRevealLootSection: View {
                     }
                     .trinketQuietTapButtonStyle()
                     .containerRelativeFrame(.horizontal)
+                    .id(item.id)
                     .accessibilityIdentifier(itemAccessibilityID(item.id))
                 }
             }
@@ -75,6 +79,7 @@ public struct RewardRevealLootSection: View {
         }
         .scrollIndicators(.hidden)
         .scrollTargetBehavior(.paging)
+        .scrollPosition(id: $focusedItemID)
     }
 
     @ViewBuilder

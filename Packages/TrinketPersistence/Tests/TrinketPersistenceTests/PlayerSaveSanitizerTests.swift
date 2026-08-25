@@ -528,7 +528,7 @@ struct PlayerSaveSanitizerTalentIDTests {
         ]
 
         let sanitized = PlayerSaveSanitizer.sanitizeRoster(roster, inventory: .freshStart)
-        #expect(sanitized.unlockedTalents["knight"] == ["knight_block_t1_1"])
+        #expect(sanitized.unlockedTalents["knight"] == ["knight_stun_t1_1"])
     }
 
     @Test func sanitizeUnlockedTalentsDropsUnlocksWhenBudgetIsZero() {

@@ -6,26 +6,9 @@ import TrinketDesignSystem
 import TrinketFeatureAdapters
 import TrinketFeatureSupport
 
-/// First-launch starter picker: a native paged carousel that rolls to a random
-/// suggestion, then hands browsing and confirmation to the player.
+/// First-launch starter picker: a native horizontal carousel that starts on the
+/// first combatant and hands browsing and confirmation to the player.
 struct StarterRouletteScreen: View {
-    private enum Phase {
-        case rolling
-        case landed
-    }
-
-    private struct WheelEntry: Identifiable, Equatable {
-        let lap: Int
-        let combatant: Combatant
-
-        var id: String {
-            "\(lap)#\(combatant.id)"
-        }
-    }
-
-    /// Roster repeats so the opening roll travels a few card widths.
-    private static let rollLaps = 3
-
     @Environment(OptionsStore.self) private var options
 
     let roleName: String
@@ -35,8 +18,6 @@ struct StarterRouletteScreen: View {
 
     @State private var scrollEntryID: String?
     @State private var selectedCombatant: Combatant?
-    @State private var phase: Phase = .rolling
-    @State private var landingFeedbackTrigger = 0
     @State private var selectionFeedbackTrigger = 0
     @State private var inspectedCombatant: Combatant?
     @State private var showsSaveFailure = false
@@ -52,35 +33,40 @@ struct StarterRouletteScreen: View {
         self.combatants = combatants
         self.screenAccessibilityID = screenAccessibilityID
         self.onConfirm = onConfirm
-        // The wheel opens resting on the first entry with its name already up;
-        // the roll then travels from there instead of flashing an empty plate.
-        _scrollEntryID = State(
-            initialValue: combatants.first.map { WheelEntry(lap: 0, combatant: $0).id }
-        )
+        _scrollEntryID = State(initialValue: combatants.first?.id)
         _selectedCombatant = State(initialValue: combatants.first)
     }
 
     var body: some View {
-        GeometryReader { geometry in
-            let layout = RouletteLayout(screenWidth: geometry.size.width)
+        ZStack {
+            activeBackgroundEffect
+                .ignoresSafeArea()
 
-            VStack(spacing: 0) {
-                header
+            GeometryReader { geometry in
+                let layout = RouletteLayout(containerSize: geometry.size)
 
-                Spacer(minLength: TrinketDesign.Metrics.sectionSpacing)
+                VStack(spacing: 0) {
+                    header
+                        .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
 
-                wheelBand(layout: layout)
+                    Spacer(minLength: TrinketDesign.Metrics.smallSpacing)
 
-                namePlate
-                    .padding(.top, TrinketDesign.Metrics.mediumSpacing)
+                    wheelBand(layout: layout)
 
-                Spacer(minLength: TrinketDesign.Metrics.sectionSpacing)
+                    pageIndicator
 
-                confirmAction
-                    .padding(.bottom, TrinketDesign.Metrics.sectionSpacing)
+                    namePlate
+                        .padding(.top, TrinketDesign.Metrics.smallSpacing)
+                        .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+
+                    continueAction
+                        .padding(.top, TrinketDesign.Metrics.mediumSpacing)
+                        .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+
+                    Spacer(minLength: TrinketDesign.Metrics.sectionSpacing)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
         }
         .toolbarVisibility(.hidden, for: .navigationBar)
         .trinketScreenBackground()
@@ -93,20 +79,14 @@ struct StarterRouletteScreen: View {
             trigger: selectionFeedbackTrigger,
             enabled: options.hapticsEnabled
         )
-        .trinketSensoryFeedback(
-            .success,
-            trigger: landingFeedbackTrigger,
-            enabled: options.hapticsEnabled
-        )
         // A re-revealed screen (edge-swipe past the hidden nav bar) must not
         // stay locked out of Confirm by a stale in-flight flag.
         .onAppear { isConfirming = false }
-        .task { await runCeremony() }
         .onChange(of: scrollEntryID) { _, newID in
             guard let newID,
-                  let entry = entries.first(where: { $0.id == newID })
+                  let combatant = combatants.first(where: { $0.id == newID })
             else { return }
-            updateSelection(entry.combatant)
+            updateSelection(combatant)
         }
         .alert("Couldn't Save Progress", isPresented: $showsSaveFailure) {
             Button("OK", role: .cancel) {}
@@ -134,22 +114,23 @@ struct StarterRouletteScreen: View {
             .padding(.top, TrinketDesign.Metrics.sectionSpacing)
     }
 
-    // MARK: Wheel
+    // MARK: Background Effect View
 
-    private var entries: [WheelEntry] {
-        (0 ..< Self.rollLaps).flatMap { lap in
-            combatants.map { WheelEntry(lap: lap, combatant: $0) }
-        }
+    private var activeBackgroundEffect: some View {
+        KeywordPlasmaBackground(
+            keywords: activeKeywords,
+            isMotionActive: inspectedCombatant == nil
+        )
     }
 
+    // MARK: Wheel
+
     private func wheelBand(layout: RouletteLayout) -> some View {
-        // Eager stack: every entry must exist so `scrollPosition(id:)` can land
-        // on the last-lap winner; a lazy container never materializes that cell
-        // and the programmatic roll silently no-ops.
         ScrollView(.horizontal) {
-            HStack(spacing: TrinketDesign.Metrics.largeSpacing) {
-                ForEach(entries) { entry in
-                    wheelCard(entry, layout: layout)
+            HStack(spacing: TrinketDesign.Metrics.mediumSpacing) {
+                ForEach(combatants) { combatant in
+                    wheelCard(combatant, layout: layout)
+                        .id(combatant.id)
                 }
             }
             .scrollTargetLayout()
@@ -157,29 +138,36 @@ struct StarterRouletteScreen: View {
         .scrollPosition(id: $scrollEntryID)
         .scrollTargetBehavior(.viewAligned)
         .scrollIndicators(.hidden)
-        // Blocks touch input mid-roll without disabling scrolling itself —
-        // `scrollDisabled` also rejects the programmatic roll, leaving the
-        // wheel stuck at its starting layout while the binding moves on.
-        .allowsHitTesting(phase == .landed)
         .contentMargins(.horizontal, layout.edgeMargin, for: .scrollContent)
         .frame(height: layout.bandHeight)
     }
 
-    private func wheelCard(_ entry: WheelEntry, layout: RouletteLayout) -> some View {
-        let isCentered = selectedCombatant?.id == entry.combatant.id
+    private func wheelCard(_ combatant: Combatant, layout: RouletteLayout) -> some View {
+        let isCentered = selectedCombatant?.id == combatant.id
+        let shineKeywords = CombatantTalentCatalog
+            .combatantTreeAffinities[combatant.id]?
+            .map(\.keyword)
 
-        return InspectableTapButton(
-            action: { center(on: entry) },
-            longPress: { inspectedCombatant = entry.combatant },
-            label: {
-                CombatantCard(
-                    combatant: entry.combatant,
-                    showsName: false,
-                    isSelected: isCentered
-                )
-                .frame(width: layout.cardWidth, height: layout.cardHeight)
+        return Button {
+            if isCentered {
+                inspectedCombatant = combatant
+            } else {
+                center(on: combatant)
             }
-        )
+        } label: {
+            CombatantCard(
+                combatant: combatant,
+                showsName: false,
+                isSelected: isCentered
+            )
+            .keywordShineBorder(
+                keywords: shineKeywords,
+                cornerRadius: TrinketDesign.Corners.card,
+                lineWidth: 2,
+                isMotionActive: isCentered
+            )
+            .frame(width: layout.cardWidth, height: layout.cardHeight)
+        }
         .trinketSelectionCardButtonStyle()
         // First-party carousel emphasis: cards shrink and dim as they leave the
         // viewport center. Continuous with `.interactive`; no per-frame
@@ -191,88 +179,63 @@ struct StarterRouletteScreen: View {
                 .opacity(1 - distance * RouletteLayout.edgeDimming)
         }
         .accessibilityIdentifier(
-            AccessibilityID.Onboarding.option(role: roleName, combatantID: entry.combatant.id)
+            AccessibilityID.Onboarding.option(role: roleName, combatantID: combatant.id)
         )
     }
 
-    // MARK: Name plate
+    // MARK: Page Indicator
+
+    private var pageIndicator: some View {
+        HStack(spacing: TrinketDesign.Metrics.denseSpacing) {
+            ForEach(combatants) { combatant in
+                let isSelected = selectedCombatant?.id == combatant.id
+                Circle()
+                    .fill(isSelected ? TrinketDesign.Colors.accent : Color.secondary.opacity(0.35))
+                    .frame(width: isSelected ? 7 : 5, height: isSelected ? 7 : 5)
+            }
+        }
+        .accessibilityHidden(true)
+        .animation(TrinketMotion.Interaction.selection, value: selectedCombatant?.id)
+        .padding(.top, TrinketDesign.Metrics.smallSpacing)
+    }
+
+    // MARK: Name plate & Affinities
 
     private var namePlate: some View {
-        Group {
+        VStack(spacing: TrinketDesign.Metrics.extraSmallSpacing) {
             if let selectedCombatant {
                 Text(balanced: selectedCombatant.name)
                     .trinketTypography(.screenTitle)
-                    .id(selectedCombatant.id)
-                    .transition(
-                        .asymmetric(
-                            insertion: .move(edge: .trailing).combined(with: .opacity),
-                            removal: .opacity
-                        )
-                    )
+                    .contentTransition(.numericText())
+
+                if let affinities = CombatantTalentCatalog.combatantTreeAffinities[selectedCombatant.id]?.map(\.keyword) {
+                    HStack(spacing: TrinketDesign.Metrics.smallSpacing) {
+                        ForEach(affinities, id: \.self) { keyword in
+                            Text(keyword.rawValue)
+                                .trinketTypography(.cardLabel)
+                                .fontWeight(.bold)
+                                .foregroundStyle(keyword.visualStyle.color)
+                                .contentTransition(.numericText())
+                        }
+                    }
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel(affinities.map(\.rawValue).joined(separator: ", "))
+                }
             }
         }
         .animation(TrinketMotion.Onboarding.plateSwap, value: selectedCombatant?.id)
-        .frame(maxWidth: .infinity, minHeight: 96)
+        .frame(maxWidth: .infinity, minHeight: 68)
     }
 
-    // MARK: Confirm action
+    // MARK: Continue action
 
-    private var confirmAction: some View {
-        Button("Confirm", action: confirm)
+    private var continueAction: some View {
+        Button("Continue", action: confirm)
             .disabled(selectedCombatant == nil || isConfirming)
             .trinketPrimaryActionButton(
                 accessibilityIdentifier: AccessibilityID.Onboarding.confirm(role: roleName)
             )
             .trinketCenteredPrimaryAction()
-    }
-
-    // MARK: Ceremony
-
-    private func runCeremony() async {
-        guard phase == .rolling, let winner = drawWinner() else { return }
-        let target = WheelEntry(lap: Self.rollLaps - 1, combatant: winner)
-
-        if AppEnvironment.shared.skipOnboardingCeremony {
-            scrollEntryID = target.id
-            settle(on: winner, target: target)
-            return
-        }
-
-        try? await Task.sleep(for: .seconds(TrinketMotion.Onboarding.rollStartDelay))
-        guard !Task.isCancelled else { return }
-
-        withAnimation(TrinketMotion.Onboarding.roll) {
-            scrollEntryID = target.id
-        }
-
-        try? await Task.sleep(for: .seconds(TrinketMotion.Onboarding.rollDuration))
-        guard !Task.isCancelled else { return }
-
-        settle(on: winner, target: target)
-    }
-
-    /// Landing pins the resting position and selection explicitly — a dropped
-    /// scroll echo mid-roll must never desync the name plate or lock Confirm.
-    private func settle(on winner: Combatant, target: WheelEntry) {
-        if scrollEntryID != target.id {
-            scrollEntryID = target.id
-        }
-        updateSelection(winner)
-        phase = .landed
-        landingFeedbackTrigger += 1
-    }
-
-    private func drawWinner() -> Combatant? {
-        guard !combatants.isEmpty else { return nil }
-        let index: Int
-        if let seed = AppEnvironment.shared.starterRouletteSeed {
-            var rng = SeededRandomNumberGenerator(seed: UInt64(bitPattern: Int64(seed)))
-            index = Int.random(in: 0 ..< combatants.count, using: &rng)
-        } else {
-            var rng = SystemRandomNumberGenerator()
-            index = Int.random(in: 0 ..< combatants.count, using: &rng)
-        }
-        return combatants[index]
     }
 
     // MARK: Interaction
@@ -282,16 +245,13 @@ struct StarterRouletteScreen: View {
         withAnimation(TrinketMotion.Onboarding.plateSwap) {
             selectedCombatant = combatant
         }
-        // Skip the buzz while names churn during the roll.
-        if phase == .landed {
-            selectionFeedbackTrigger += 1
-        }
+        selectionFeedbackTrigger += 1
     }
 
-    private func center(on entry: WheelEntry) {
-        guard phase == .landed, scrollEntryID != entry.id else { return }
+    private func center(on combatant: Combatant) {
+        guard scrollEntryID != combatant.id else { return }
         withAnimation(TrinketMotion.Onboarding.plateSwap) {
-            scrollEntryID = entry.id
+            scrollEntryID = combatant.id
         }
     }
 
@@ -303,6 +263,11 @@ struct StarterRouletteScreen: View {
             showsSaveFailure = true
         }
     }
+
+    private var activeKeywords: [Keyword] {
+        guard let selectedCombatant else { return [] }
+        return CombatantTalentCatalog.combatantTreeAffinities[selectedCombatant.id]?.map(\.keyword) ?? []
+    }
 }
 
 // MARK: Layout metrics
@@ -311,10 +276,10 @@ private struct RouletteLayout {
     static let edgeScaleDrop: CGFloat = 0.08
     static let edgeDimming: CGFloat = 0.45
 
-    let screenWidth: CGFloat
+    let containerSize: CGSize
 
     var cardWidth: CGFloat {
-        min(screenWidth * 0.58, 290)
+        min(containerSize.width * 0.58, 250)
     }
 
     var cardHeight: CGFloat {
@@ -327,6 +292,6 @@ private struct RouletteLayout {
 
     /// Leading/trailing inset that centers exactly one card in the viewport.
     var edgeMargin: CGFloat {
-        max(0, (screenWidth - cardWidth) / 2)
+        max(0, (containerSize.width - cardWidth) / 2)
     }
 }

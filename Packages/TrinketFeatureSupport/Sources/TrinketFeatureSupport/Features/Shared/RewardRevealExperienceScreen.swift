@@ -51,6 +51,7 @@ public struct RewardRevealExperienceScreen<Experience: View>: View {
     @State private var isCompleting = false
     @State private var revealSequence = RewardRevealSequenceState()
     @State private var selectedRewardItem: InventoryItem?
+    @State private var focusedItemID: String?
 
     public init(
         eyebrow: String?,
@@ -76,42 +77,51 @@ public struct RewardRevealExperienceScreen<Experience: View>: View {
         self.onPrimaryAction = onPrimaryAction
         self.contentTopPadding = contentTopPadding
         self.contentStackSpacing = contentStackSpacing
+        _focusedItemID = State(initialValue: loot.items.first?.id)
     }
 
     public var body: some View {
-        RewardRevealShell(
-            eyebrow: eyebrow,
-            eyebrowAccessibilityIdentifier: nil,
-            title: title,
-            subtitle: nil,
-            titleAccessibilityIdentifier: titleAccessibilityIdentifier,
-            titleColor: TrinketDesign.Colors.accent,
-            content: {
-                VStack(spacing: contentStackSpacing) {
-                    experience(onExperienceBarCompleted)
-                    RewardRevealLootSection(
-                        items: loot.items,
-                        gold: loot.gold,
-                        materials: loot.materials,
-                        showsIncreasePrefix: loot.showsIncreasePrefix,
-                        emptyMessage: loot.emptyMessage,
-                        itemAccessibilityID: loot.itemAccessibilityID,
-                        areItemsVisible: revealSequence.areItemsVisible,
-                        visibleWalletRewardCount: revealSequence.visibleWalletRewardCount,
-                        spacing: loot.lootSpacing,
-                        onSelectItem: { selectedRewardItem = $0 }
-                    )
-                    .accessibilityIdentifier(loot.lootAccessibilityIdentifier ?? titleAccessibilityIdentifier)
-                }
-            },
-            primaryActionTitle: revealSequence.isSequenceComplete ? primaryActionTitle : nil,
-            primaryActionAccessibilityIdentifier: primaryActionAccessibilityIdentifier,
-            isPrimaryActionDisabled: isCompleting,
-            onPrimaryAction: complete,
-            contentTopPadding: contentTopPadding,
-            contentStackSpacing: contentStackSpacing,
-            pinsPrimaryActionToBottom: false
-        )
+        ZStack {
+            KeywordPlasmaBackground(
+                keywords: focusedPlasmaKeywords,
+                isMotionActive: selectedRewardItem == nil
+            )
+
+            RewardRevealShell(
+                eyebrow: eyebrow,
+                eyebrowAccessibilityIdentifier: nil,
+                title: title,
+                subtitle: nil,
+                titleAccessibilityIdentifier: titleAccessibilityIdentifier,
+                titleColor: TrinketDesign.Colors.accent,
+                content: {
+                    VStack(spacing: contentStackSpacing) {
+                        experience(onExperienceBarCompleted)
+                        RewardRevealLootSection(
+                            items: loot.items,
+                            gold: loot.gold,
+                            materials: loot.materials,
+                            showsIncreasePrefix: loot.showsIncreasePrefix,
+                            emptyMessage: loot.emptyMessage,
+                            itemAccessibilityID: loot.itemAccessibilityID,
+                            areItemsVisible: revealSequence.areItemsVisible,
+                            visibleWalletRewardCount: revealSequence.visibleWalletRewardCount,
+                            spacing: loot.lootSpacing,
+                            focusedItemID: $focusedItemID,
+                            onSelectItem: { selectedRewardItem = $0 }
+                        )
+                        .accessibilityIdentifier(loot.lootAccessibilityIdentifier ?? titleAccessibilityIdentifier)
+                    }
+                },
+                primaryActionTitle: revealSequence.isSequenceComplete ? primaryActionTitle : nil,
+                primaryActionAccessibilityIdentifier: primaryActionAccessibilityIdentifier,
+                isPrimaryActionDisabled: isCompleting,
+                onPrimaryAction: complete,
+                contentTopPadding: contentTopPadding,
+                contentStackSpacing: contentStackSpacing,
+                pinsPrimaryActionToBottom: false
+            )
+        }
         .sheet(item: $selectedRewardItem) { item in
             NavigationStack {
                 ItemDetailView(item: item)
@@ -119,6 +129,9 @@ public struct RewardRevealExperienceScreen<Experience: View>: View {
             .trinketDetailSheet()
         }
         .onAppear {
+            if focusedItemID == nil {
+                focusedItemID = loot.items.first?.id
+            }
             if !hasExperienceAwards {
                 revealSequence.start(itemCount: loot.items.count, walletCount: walletRewardCount)
             }
@@ -126,6 +139,15 @@ public struct RewardRevealExperienceScreen<Experience: View>: View {
         .onDisappear {
             revealSequence.cancel(walletCount: walletRewardCount)
         }
+    }
+
+    private var focusedPlasmaKeywords: [Keyword] {
+        guard let focusedItemID,
+              let item = loot.items.first(where: { $0.id == focusedItemID })
+        else {
+            return loot.items.first?.plasmaKeywords ?? []
+        }
+        return item.plasmaKeywords
     }
 
     private func onExperienceBarCompleted() {
