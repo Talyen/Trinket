@@ -278,13 +278,31 @@ struct CombatTriggerTalentRecoveryTests {
             dealOpeningHand: false
         )
         // Gain 3 block, then 3 block (total 6 -> +1 Max HP)
-        _ = battle.applyBlock(3, to: battle.roster.companion.combatant, source: battle.roster.companion.combatant, abilityName: "Test")
+        _ = EffectHandlersTestSupport.dispatch(
+            .shield(.block, 3),
+            ability: .block,
+            source: battle.roster.companion.combatant,
+            target: battle.roster.companion.combatant,
+            battle: &battle
+        )
         #expect(battle.roster.runtime(for: battle.roster.companion.combatant)?.talentMaxHealthBonus == 0)
-        _ = battle.applyBlock(3, to: battle.roster.companion.combatant, source: battle.roster.companion.combatant, abilityName: "Test")
+        _ = EffectHandlersTestSupport.dispatch(
+            .shield(.block, 3),
+            ability: .block,
+            source: battle.roster.companion.combatant,
+            target: battle.roster.companion.combatant,
+            battle: &battle
+        )
         #expect(battle.roster.runtime(for: battle.roster.companion.combatant)?.talentMaxHealthBonus == 1)
 
         // Gain massive block (total 100 -> capped at +10 Max HP)
-        _ = battle.applyBlock(100, to: battle.roster.companion.combatant, source: battle.roster.companion.combatant, abilityName: "Test")
+        _ = EffectHandlersTestSupport.dispatch(
+            .shield(.block, 100),
+            ability: .block,
+            source: battle.roster.companion.combatant,
+            target: battle.roster.companion.combatant,
+            battle: &battle
+        )
         #expect(battle.roster.runtime(for: battle.roster.companion.combatant)?.talentMaxHealthBonus == 10)
     }
 

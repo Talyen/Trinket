@@ -119,15 +119,44 @@ struct BalanceSweepOrchestrationTests {
     }
 
     @Test func sweepReportJSONRoundTrips() throws {
-        let report = BalanceSweepRunner.run(
-            config: BalanceSweepConfig(
-                mode: .identity,
-                battlesPerTier: 1,
-                seed: 3,
-                tiers: [.early],
-                jobs: 1,
-                enemyIDs: ["living_armor"]
-            )
+        let config = BalanceSweepConfig(
+            mode: .identity,
+            battlesPerTier: 1,
+            seed: 3,
+            tiers: [.early],
+            jobs: 1,
+            enemyIDs: ["living_armor"]
+        )
+        let report = BalanceSweepReport(
+            config: config,
+            policyID: "greedy-v1",
+            records: [
+                BalanceBattleRecord(
+                    tier: .early,
+                    heroID: "knight",
+                    companionID: "bear",
+                    enemyID: "living_armor",
+                    isBoss: false,
+                    heroAbilityIDs: ["slash"],
+                    companionAbilityIDs: ["bash"],
+                    enemyAbilityIDs: ["strike"],
+                    enemyTraitID: "",
+                    affixIDs: [],
+                    heroTalentIDs: [],
+                    companionTalentIDs: [],
+                    seed: 3,
+                    policyID: "greedy-v1",
+                    result: BattleSimResult(
+                        outcome: .victory,
+                        rounds: 2,
+                        actions: 4,
+                        timedOut: false,
+                        partyHPRemainingFraction: 0.8,
+                        enemyHPRemainingFraction: 0
+                    )
+                ),
+            ],
+            elapsedSeconds: 0.01
         )
         let data = try JSONEncoder().encode(report)
         let decoded = try JSONDecoder().decode(BalanceSweepReport.self, from: data)

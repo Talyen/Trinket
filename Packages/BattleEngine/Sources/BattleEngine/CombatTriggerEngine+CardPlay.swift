@@ -202,52 +202,6 @@ package extension CombatTriggerEngine {
         ).events
     }
 
-    static func afterBlockGained(
-        _ amount: Int,
-        by actor: Combatant,
-        in context: inout BattleState
-    ) -> [ActionEvent] {
-        let percent = context.modifiers(for: actor.id).triggers.blockGainThornsPercent
-        let gained = CombatRounding.scaled(amount, multiplier: percent)
-        guard amount > 0, gained > 0 else { return [] }
-
-        var effects = context.roster.activeEffects(for: actor)
-        let existing = effects.reduce(0) { total, active in
-            if case let .thorns(stacks) = active.effect {
-                return total + stacks
-            }
-            return total
-        }
-        effects.removeAll {
-            if case .thorns = $0.effect {
-                return true
-            }
-            return false
-        }
-        let total = existing + gained
-        effects.append(ActiveEffect(
-            id: context.consumeNextEffectID(),
-            effect: .thorns(total),
-            remainingTurns: 0,
-            sourceActorID: actor.id
-        ))
-        context.roster.setActiveEffects(effects, for: actor)
-        return [context.nextEvent(
-            kind: .effect,
-            effectKind: .thornsApplied,
-            actorName: actor.name,
-            abilityName: triggerAbilityName(
-                "blockGainThornsPercent",
-                for: actor,
-                fallback: "Thorns",
-                in: context
-            ),
-            target: actor,
-            amount: total,
-            keyword: .physical
-        )]
-    }
-
     static func drawCards(
         _ count: Int,
         for owner: BattleParticipant,

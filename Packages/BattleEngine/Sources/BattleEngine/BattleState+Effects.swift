@@ -1,6 +1,11 @@
 import TrinketContent
 import TrinketCore
 
+package struct BlockGain {
+    package let applied: Int
+    package let events: [ActionEvent]
+}
+
 package extension BattleState {
     mutating func consumeNextEffectID() -> Int {
         let id = nextEffectID
@@ -20,27 +25,47 @@ package extension BattleState {
         }
     }
 
-    // swiftlint:disable:next function_body_length
     mutating func applyBlock(
         _ amount: Int,
         to target: Combatant,
         source: Combatant,
-        abilityName: String
+        abilityName: String,
+        applyOutgoingAdjustment: Bool = true
     ) -> [ActionEvent] {
+        applyBlockGain(
+            amount,
+            to: target,
+            source: source,
+            abilityName: abilityName,
+            applyOutgoingAdjustment: applyOutgoingAdjustment
+        ).events
+    }
+
+    /// `applyOutgoingAdjustment` is false when copying an amount that already
+    /// went through outgoing Block bonus and fight pacing (Shield Bond).
+    mutating func applyBlockGain(
+        _ amount: Int,
+        to target: Combatant,
+        source: Combatant,
+        abilityName: String,
+        applyOutgoingAdjustment: Bool = true
+    ) -> BlockGain {
         if CombatTriggerEngine.frozenTargetCannotBlockOrHeal(target, in: self) {
-            return []
+            return BlockGain(applied: 0, events: [])
         }
-        let adjusted = adjustedOutgoingEffect(.shield(.block, amount), sourceID: source.id)
-        let (keyword, buffer): (Keyword, Int) = if case let .shield(kw, buf) = adjusted {
-            (kw, buf)
+        let (keyword, buffer): (Keyword, Int)
+        if applyOutgoingAdjustment,
+           case let .shield(kw, buf) = adjustedOutgoingEffect(.shield(.block, amount), sourceID: source.id) {
+            (keyword, buffer) = (kw, buf)
         } else {
-            (.block, amount)
+            (keyword, buffer) = (.block, amount)
         }
         let applied = DefensePoolEngine.add(
             buffer,
             to: target,
             keyword: keyword,
             sourceActorID: source.id,
+            applyFightPacing: applyOutgoingAdjustment,
             in: &self
         )
         var events = [nextEvent(
@@ -57,44 +82,7 @@ package extension BattleState {
             by: target,
             in: &self
         ))
-
-        // Vital Armor: gain 1 Max Health for every N Block gained this battle (up to +10 Max Health).
-        if applied > 0 {
-            let triggers = modifiers(for: target.id).triggers
-            if triggers.blockGainedMaxHealthEvery > 0 {
-                roster.mutateRuntime(for: target) { runtime in
-                    let prevBlock = runtime.totalBlockGainedThisCombat
-                    let newBlock = prevBlock + applied
-                    runtime.totalBlockGainedThisCombat = newBlock
-                    let prevBonus = prevBlock / triggers.blockGainedMaxHealthEvery
-                    let newBonus = min(10, newBlock / triggers.blockGainedMaxHealthEvery)
-                    let gained = newBonus - min(10, prevBonus)
-                    if gained > 0 {
-                        runtime.talentMaxHealthBonus += gained
-                        runtime.currentHealth = min(runtime.maxHealth, runtime.currentHealth + gained)
-                    }
-                }
-            }
-            // Shield Bond: whenever the Companion gains Block, the Hero gains equal Block.
-            if target.role == .companion,
-               triggers.companionBlockSharesToHeroPercent > 0,
-               roster.hero.isAlive {
-                let share = CombatRounding.scaled(
-                    applied,
-                    multiplier: min(1, max(0, triggers.companionBlockSharesToHeroPercent))
-                )
-                if share > 0 {
-                    DefensePoolEngine.add(
-                        share,
-                        to: roster.hero.combatant,
-                        keyword: .block,
-                        sourceActorID: target.id,
-                        in: &self
-                    )
-                }
-            }
-        }
-        return events
+        return BlockGain(applied: applied, events: events)
     }
 
     /// Fae Ward interception point: "block the first negative effect applied

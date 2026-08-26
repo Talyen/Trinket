@@ -71,7 +71,7 @@ Play → Collection → Homestead → Options
 
 ## Generate
 
-Single entry point: `./Scripts/generate.sh` (add `--assets` for art, music, SFX, and cinematics). Operational steps, authored vs generated inputs, and ability catalogs: [content-and-manifests.md](../AgentContext/content-and-manifests.md). CI/pre-push asserts generated output matches HEAD; local `handoff` uses `--idempotent`.
+Single entry point: `./Scripts/generate.sh` (add `--assets` for art, music, SFX, and cinematics). Operational steps, authored vs generated inputs, and ability catalogs: [content-and-manifests.md](../AgentContext/content-and-manifests.md). CI/pre-push asserts generated output matches HEAD. Path-scoped `handoff` runs `assert-generated-output.sh --idempotent` when generation inputs change; use `./Scripts/assert-generated-output.sh --idempotent` for a standalone check.
 
 ## Dependency rules
 

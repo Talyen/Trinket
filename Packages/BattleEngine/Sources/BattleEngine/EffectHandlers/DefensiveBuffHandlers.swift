@@ -19,32 +19,16 @@ struct BlockBuffHandler: BattleEffectHandler {
         target: Combatant,
         in context: inout BattleState
     ) -> EffectApplyOutcome {
-        let adjusted = context.adjustedOutgoingEffect(effect, sourceID: source.id)
-        guard case let .shield(keyword, amount) = adjusted else {
+        guard case let .shield(_, amount) = effect else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
-
-        let applied = DefensePoolEngine.add(
+        let gain = context.applyBlockGain(
             amount,
             to: target,
-            keyword: keyword,
-            sourceActorID: source.id,
-            in: &context
+            source: source,
+            abilityName: ability.name
         )
-        guard applied > 0 else {
-            // Fight pacing can scale the pool gain to zero; nothing was applied.
-            return EffectApplyOutcome(events: [], didApply: false)
-        }
-        let event = context.nextEvent(
-            kind: .effect,
-            effectKind: .shieldApplied,
-            actorName: source.name,
-            abilityName: ability.name,
-            target: target,
-            amount: applied,
-            keyword: keyword
-        )
-        return EffectApplyOutcome(events: [event], didApply: true)
+        return EffectApplyOutcome(events: gain.applied > 0 ? gain.events : [], didApply: gain.applied > 0)
     }
 }
 

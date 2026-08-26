@@ -6,7 +6,6 @@ struct DecayingDoTHandler: BattleEffectHandler {
     let keyword: Keyword
     let kind: EffectKind
 
-    // swiftlint:disable:next function_body_length cyclomatic_complexity
     func advanceTurn(_ active: ActiveEffect, on target: Combatant, in context: inout BattleState) -> EffectTurnOutcome {
         guard matches(active.effect) else { return EffectTurnOutcome() }
         let sourceTriggers = active.sourceActorID.map { context.modifiers(for: $0).triggers }
@@ -45,92 +44,21 @@ struct DecayingDoTHandler: BattleEffectHandler {
                     in: &context
                 )
                 events.append(contentsOf: outcome.events)
-                if keyword == .burn, let sourceActorID = active.sourceActorID, let sourceTriggers {
-                    events.append(contentsOf: DoTMirrorCascade.resolve(
-                        keyword: .burn,
-                        initialHealthLost: outcome.healthLost,
-                        target: target,
-                        sourceActorID: sourceActorID,
-                        in: &context
-                    ))
-                    if sourceTriggers.onBurnTickHolyDamage > 0 {
-                        events.append(contentsOf: context.resolveDamage(
-                            DamageRequest(
-                                amount: sourceTriggers.onBurnTickHolyDamage,
-                                target: target,
-                                keyword: .holy,
-                                sourceActorID: sourceActorID,
-                                options: DamageOptions(
-                                    applyStatBonus: false,
-                                    applyItemBonus: false,
-                                    applyDodge: false,
-                                    isRetaliation: true
-                                )
-                            )
-                        ).events)
-                    }
-                    if sourceTriggers.onBurnDamageDetonateBleed, outcome.healthLost > 0 {
-                        events.append(contentsOf: CombatTriggerEngine.detonateBleed(
-                            on: target,
-                            sourceActorID: sourceActorID,
-                            in: &context
-                        ))
-                    }
-                    if sourceTriggers.onBurnDamageRestoreManaFlat > 0,
-                       outcome.healthLost >= sourceTriggers.burnDamageManaRestoreThreshold {
-                        let already = context.burnManaRestoredThisTurn[sourceActorID, default: 0]
-                        let cap = sourceTriggers.onBurnDamageRestoreManaPerTurnCap
-                        if cap <= 0 || already < cap,
-                           let caster = context.roster.combatant(for: sourceActorID) {
-                            let toRestore = min(
-                                sourceTriggers.onBurnDamageRestoreManaFlat,
-                                cap > 0 ? cap - already : sourceTriggers.onBurnDamageRestoreManaFlat
-                            )
-                            let restored = context.restoreMana(toRestore, to: caster.combatant)
-                            if restored > 0 {
-                                context.burnManaRestoredThisTurn[sourceActorID, default: 0] += restored
-                                events.append(context.nextEvent(
-                                    kind: .effect,
-                                    effectKind: .resourceGain,
-                                    actorName: caster.name,
-                                    abilityName: "Pyromancer's Spark",
-                                    target: caster.combatant,
-                                    amount: restored,
-                                    keyword: .mana
-                                ))
-                                events.append(contentsOf: CombatTriggerEngine.afterGainMana(by: caster.combatant, in: &context))
-                            }
-                        }
-                    }
-                }
-                if keyword == .poison, let sourceActorID = active.sourceActorID,
-                   let sourceTriggers, sourceTriggers.poisonDamageLeechPercent > 0,
-                   outcome.healthLost > 0,
-                   let caster = context.roster.combatant(for: sourceActorID) {
-                    let leech = CombatRounding.scaled(outcome.healthLost, multiplier: sourceTriggers.poisonDamageLeechPercent)
-                    if leech > 0 {
-                        events.append(contentsOf: HealingEngine.resolveHeal(
-                            HealRequest(amount: leech, target: caster.combatant, sourceActorID: sourceActorID),
-                            in: &context
-                        ).events)
-                    }
-                }
-            }
-            // Paralysis: enemies with enough Poison become Stunned.
-            if keyword == .poison,
-               let sourceTriggers, sourceTriggers.poisonThresholdStunAmount > 0,
-               nextPotency >= sourceTriggers.poisonThresholdStunAmount,
-               target.role == .enemy,
-               context.roster.health(for: target) > 0 {
-                events.append(contentsOf: ControlMeterEngine.applyMeterCharge(
-                    ControlMeterEngine.threshold(for: target, in: context),
-                    keyword: .stun,
-                    to: target,
+                events.append(contentsOf: CombatTriggerEngine.afterDoTTick(
+                    keyword: keyword,
+                    healthLost: outcome.healthLost,
+                    target: target,
                     sourceActorID: active.sourceActorID,
-                    applyFightPacing: false,
                     in: &context
                 ))
             }
+            events.append(contentsOf: CombatTriggerEngine.afterDecayingDoTTurn(
+                keyword: keyword,
+                nextPotency: nextPotency,
+                target: target,
+                sourceActorID: active.sourceActorID,
+                in: &context
+            ))
             var updated = active
             updated.effect = Effect.decayingDoT(keyword: keyword, potency: nextPotency)
             return EffectTurnOutcome(events: events, updatedStack: updated)

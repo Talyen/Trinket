@@ -71,9 +71,12 @@ package enum DefensePoolEngine {
         to target: Combatant,
         keyword: Keyword = .block,
         sourceActorID: String? = nil,
+        applyFightPacing: Bool = true,
         in context: inout BattleState
     ) -> Int {
-        let pacedAmount = sourceActorID.map { context.paced(amount, sourceActorID: $0) } ?? amount
+        let pacedAmount = applyFightPacing
+            ? (sourceActorID.map { context.paced(amount, sourceActorID: $0) } ?? amount)
+            : amount
         guard pacedAmount > 0 else { return 0 }
         var effects = context.roster.activeEffects(for: target)
         if let index = effects.firstIndex(where: {

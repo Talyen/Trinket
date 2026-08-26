@@ -152,15 +152,15 @@ struct TrinketEffectTests {
             )
         ))
 
-        battle.withEngineContext { context in
-            _ = context.applyBlock(
-                block,
-                to: context.roster.hero.combatant,
-                source: context.roster.hero.combatant,
-                abilityName: "Test"
-            )
-        }
+        let outcome = EffectHandlersTestSupport.dispatch(
+            .shield(.block, block),
+            ability: .block,
+            source: battle.hero,
+            target: battle.hero,
+            battle: &battle
+        )
 
+        try #expect(outcome.didApply)
         try #expect(battle.activeEffects(of: battle.hero).contains {
             guard case let .thorns(amount) = $0.effect else { return false }
             return amount == thorns

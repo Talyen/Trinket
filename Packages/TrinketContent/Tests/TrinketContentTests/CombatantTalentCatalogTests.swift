@@ -118,4 +118,9 @@ struct CombatantTalentCatalogTests {
             #expect(affinities?.count == 3, "\(combatant.id) must have exactly 3 authored tree affinities")
         }
     }
+
+    @Test func treeAffinityKeysMatchHeroAndCompanionRoster() {
+        let rosterIDs = Set((GameContent.heroes + GameContent.companions).map(\.id))
+        #expect(Set(CombatantTalentCatalog.combatantTreeAffinities.keys) == rosterIDs)
+    }
 }

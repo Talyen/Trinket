@@ -39,4 +39,3 @@ Generated files are committed so the app builds without rerunning the generator.
 | `Enemy` | Enemy model |
 | `ItemGenerator` | Random item generation from base + affix pools |
 | `ShopOfferGenerator` | Procedural Merchant's Shop shelves (rarity + gold prices) |
-| `PlayerContentCatalog` | Runtime lookup for content references |

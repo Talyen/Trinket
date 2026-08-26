@@ -69,19 +69,62 @@ struct CombatTriggerTalentDefenseTests {
             hero: BattleTestFixtures.passiveHero(maxHealth: 50),
             companion: BattleTestFixtures.passiveCompanion(maxHealth: 20),
             enemy: BattleTestFixtures.silentEnemy(maxHealth: 100),
+            companionModifiers: .init(
+                blockGainedBonus: 2,
+                triggers: CombatTraitTriggers(
+                    block: BlockTriggers(companionBlockSharesToHeroPercent: 1)
+                )
+            ),
+            dealOpeningHand: false
+        )
+        let outcome = EffectHandlersTestSupport.dispatch(
+            .shield(.block, 4),
+            ability: .block,
+            source: battle.roster.companion.combatant,
+            target: battle.roster.companion.combatant,
+            battle: &battle
+        )
+        let companionBlock = DefensePoolEngine.blockPoints(
+            in: battle.roster.activeEffects(for: battle.roster.companion.combatant)
+        )
+        let heroBlock = DefensePoolEngine.blockPoints(
+            in: battle.roster.activeEffects(for: battle.roster.hero.combatant)
+        )
+        #expect(companionBlock == 6)
+        #expect(heroBlock == 6)
+        #expect(outcome.events.contains {
+            $0.effectKind == .shieldApplied && $0.targetID == battle.roster.hero.id && $0.amount == 6
+        })
+    }
+
+    @Test func shieldBondSharedBlockGrantsHeroThorns() {
+        var battle = BattleStateTestFactory.makeBattle(
+            hero: BattleTestFixtures.passiveHero(maxHealth: 50),
+            companion: BattleTestFixtures.passiveCompanion(maxHealth: 20),
+            enemy: BattleTestFixtures.silentEnemy(maxHealth: 100),
+            heroModifiers: .init(triggers: CombatTraitTriggers(
+                block: BlockTriggers(blockGainThornsPercent: 0.5)
+            )),
             companionModifiers: .init(triggers: CombatTraitTriggers(
                 block: BlockTriggers(companionBlockSharesToHeroPercent: 1)
             )),
             dealOpeningHand: false
         )
-        _ = battle.applyBlock(
-            4,
-            to: battle.roster.companion.combatant,
+        _ = EffectHandlersTestSupport.dispatch(
+            .shield(.block, 4),
+            ability: .block,
             source: battle.roster.companion.combatant,
-            abilityName: "Test"
+            target: battle.roster.companion.combatant,
+            battle: &battle
         )
-        let heroBlock = DefensePoolEngine.blockPoints(in: battle.roster.activeEffects(for: battle.roster.hero.combatant))
+        let heroBlock = DefensePoolEngine.blockPoints(
+            in: battle.roster.activeEffects(for: battle.roster.hero.combatant)
+        )
         #expect(heroBlock == 4)
+        #expect(battle.roster.activeEffects(for: battle.roster.hero.combatant).contains {
+            guard case let .thorns(amount) = $0.effect else { return false }
+            return amount == 2
+        })
     }
 
     @Test func blindingCarapaceDebuffsAttackerAfterBlocking() {

@@ -32,32 +32,23 @@ struct EffectHandlersApplyTests {
 
     // MARK: - Defensive buffs
 
-    @Test(arguments: [
-        Effect.shield(.block, 5),
-    ])
-    func defensiveBuffHandlersApplyAndEmitEvents(effect: Effect) throws {
+    @Test func shieldHandlerAppliesAndEmitsEvents() throws {
         var battle = EffectHandlersTestSupport.makeBattle()
         let outcome = EffectHandlersTestSupport.dispatch(
-            effect,
+            .shield(.block, 5),
             ability: CombatantFixtures.ability(),
             source: battle.hero,
             target: battle.hero,
             battle: &battle
         )
         try #expect(outcome.didApply)
-
-        switch effect {
-        case .shield(.block, 5):
-            try #expect(battle.activeEffects(of: battle.hero).contains { ae in
-                if case .shield(.block, 5) = ae.effect {
-                    return true
-                }
-                return false
-            })
-            try #expect(outcome.events.contains { $0.effectKind == .shieldApplied && $0.amount == 5 })
-        default:
-            Issue.record("Unexpected defensive buff \(effect)")
-        }
+        try #expect(battle.activeEffects(of: battle.hero).contains { ae in
+            if case .shield(.block, 5) = ae.effect {
+                return true
+            }
+            return false
+        })
+        try #expect(outcome.events.contains { $0.effectKind == .shieldApplied && $0.amount == 5 })
     }
 
     @Test func drawCardsHandlerDrawsIntoHandAndEmitsEvent() throws {

@@ -2,7 +2,7 @@
 
 Use for abilities, item bases, stages, art, music, SFX, cinematics, and project generation.
 
-**Single entry:** `./Scripts/generate.sh` validates ContentManifest TSVs, regenerates content catalogs (emits `public` from `content_codegen.py`), optionally prepares art/music/SFX/cinematics (`--assets`), then runs XcodeGen.
+**Single entry:** `./Scripts/generate.sh` validates ContentManifest TSVs, regenerates content catalogs (trigger families are `public`; catalog blobs are `internal` and reached through `GameContent`), optionally prepares art/music/SFX/cinematics (`--assets`), then runs XcodeGen. Pass `--skip-xcodegen` for content/asset codegen only.
 
 | Input | Run | Review |
 |---|---|---|
@@ -10,6 +10,7 @@ Use for abilities, item bases, stages, art, music, SFX, cinematics, and project 
 | Trigger-family schema | `./Scripts/generate.sh` | Generated trigger output; authored exceptions stay authored |
 | Media manifests or matching raw inputs | `./Scripts/generate.sh --assets` | Generated catalog plus expected processed files |
 | `project.yml` | `./Scripts/generate.sh` | Regenerated project diff |
+| Content/assets without regenerating the Xcode project | `./Scripts/generate.sh --skip-xcodegen` | Catalog/asset diff only |
 
 After content edits, stage `Packages/TrinketContent/Sources/TrinketContent/Generated/`. Pipeline formats live in each manifest directory's README; each `prepare-<media>-assets.sh` is that pipeline's focused debugging entry point.
 
