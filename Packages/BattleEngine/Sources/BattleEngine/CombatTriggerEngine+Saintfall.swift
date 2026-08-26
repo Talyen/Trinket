@@ -25,13 +25,7 @@ package extension CombatTriggerEngine {
                     target: attacker.combatant,
                     keyword: keyword,
                     sourceActorID: target.id,
-                    options: DamageOptions(
-                        applyStatBonus: false,
-                        applyItemBonus: false,
-                        applyDodge: false,
-                        isRetaliation: true,
-                        applyControlMeter: true
-                    )
+                    options: .flatControlReaction
                 )
             )
             events.append(contentsOf: outcome.events)

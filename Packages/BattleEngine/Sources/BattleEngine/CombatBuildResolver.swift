@@ -26,17 +26,7 @@ public enum CombatBuildResolver {
         profile.merge(additionalModifiers)
 
         let effectiveStats = combatant.primaryStats.merged(with: profile.statBonuses)
-        let builtCombatant = Combatant(
-            id: combatant.id,
-            name: combatant.name,
-            role: combatant.role,
-            maxHealth: combatant.maxHealth,
-            maxMana: combatant.maxMana,
-            actionIntervalTurns: combatant.actionIntervalTurns,
-            abilityChoices: combatant.abilityChoices,
-            primaryStats: effectiveStats,
-            growthArchetype: combatant.growthArchetype
-        )
+        let builtCombatant = makeBuiltCombatant(from: combatant, effectiveStats: effectiveStats)
 
         return CombatBuild(combatant: builtCombatant, modifiers: profile)
     }
@@ -50,7 +40,27 @@ public enum CombatBuildResolver {
             profile.traitDisplayName = trait.name
         }
 
-        return CombatBuild(combatant: enemy.combatant, modifiers: profile)
+        let effectiveStats = enemy.combatant.primaryStats.merged(with: profile.statBonuses)
+        let builtCombatant = makeBuiltCombatant(from: enemy.combatant, effectiveStats: effectiveStats)
+
+        return CombatBuild(combatant: builtCombatant, modifiers: profile)
+    }
+
+    private static func makeBuiltCombatant(
+        from combatant: Combatant,
+        effectiveStats: PrimaryStats
+    ) -> Combatant {
+        Combatant(
+            id: combatant.id,
+            name: combatant.name,
+            role: combatant.role,
+            maxHealth: combatant.maxHealth,
+            maxMana: combatant.maxMana,
+            actionIntervalTurns: combatant.actionIntervalTurns,
+            abilityChoices: combatant.abilityChoices,
+            primaryStats: effectiveStats,
+            growthArchetype: combatant.growthArchetype
+        )
     }
 
     private static func affixProfile(

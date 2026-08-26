@@ -38,7 +38,7 @@ package extension DamagePipeline {
                 : 0
             if state.options.isAttackHit,
                var runtime = context.roster.runtime(for: actor.combatant) {
-                let profile = context.modifiers(for: sourceActorID)
+                let profile = state.sourceModifiers ?? context.modifiers(for: sourceActorID)
                 if !runtime.hasTriggeredFirstHitBonus, profile.triggers.firstHitDoubleDamage {
                     state.itemBonus += (state.amount + state.statBonus)
                     runtime.hasTriggeredFirstHitBonus = true
@@ -61,7 +61,8 @@ package extension DamagePipeline {
               let sourceActorID = state.sourceActorID,
               let damageKeyword = state.damageKeyword
         else { return }
-        let percent = context.modifiers(for: sourceActorID).damageDealtPercent(for: damageKeyword)
+        let profile = state.sourceModifiers ?? context.modifiers(for: sourceActorID)
+        let percent = profile.damageDealtPercent(for: damageKeyword)
         let percentBonus = CombatRounding.scaled(max(0, state.remaining), multiplier: percent)
         state.itemBonus += percentBonus
         state.remaining += percentBonus
@@ -113,7 +114,8 @@ package extension DamagePipeline {
         if state.options.isAttackHit,
            let sourceActorID = state.sourceActorID,
            state.targetStatus.isStunned {
-            let multiplier = context.modifiers(for: sourceActorID).triggers.stunnedDamageMultiplier
+            let profile = state.sourceModifiers ?? context.modifiers(for: sourceActorID)
+            let multiplier = profile.triggers.stunnedDamageMultiplier
             if multiplier > 1 {
                 state.remaining = CombatRounding.scaled(state.remaining, multiplier: multiplier)
             }
@@ -136,8 +138,8 @@ package extension DamagePipeline {
         guard let source = state.partySource(in: context) else { return }
         let target = state.combatant
         let names = CombatTriggerEngine.partyAfflictedDamageAuras(
-            targetIsPoisoned: context.roster.hasAffliction(.poison, on: target),
-            targetIsBurning: context.roster.hasAffliction(.burn, on: target),
+            targetIsPoisoned: state.targetStatus.isPoisoned,
+            targetIsBurning: state.targetStatus.isBurning,
             in: context
         ).abilityNames
         for name in names {
@@ -264,7 +266,7 @@ package extension DamagePipeline {
         to state: inout DamageResolutionState,
         in _: inout BattleState
     ) {
-        guard state.sourceActorID != nil else { return }
+        guard state.options.isAttackHit, state.sourceActorID != nil else { return }
         for active in state.activeEffects {
             if case let .marked(bonus, _) = active.effect {
                 state.remaining += bonus
@@ -287,7 +289,7 @@ package extension DamagePipeline {
             state.buildupDamage = state.remaining
             return
         }
-        let profile = context.modifiers(for: state.combatant.id)
+        let profile = state.targetModifiers ?? context.modifiers(for: state.combatant.id)
         let flatReduction = profile.damageTakenFlat(for: damageKeyword)
         if flatReduction > 0 {
             state.remaining = max(0, state.remaining - flatReduction)
@@ -346,28 +348,29 @@ package extension DamagePipeline {
     ) {
         guard state.remaining > 0 else { return }
 
-        let profile = context.modifiers(for: state.combatant.id)
+        let profile = state.targetModifiers ?? context.modifiers(for: state.combatant.id)
         let defenderTriggers = profile.triggers
         var effectivePercent = DefensePoolEngine.effectiveToughnessMitigationPercent(
             for: state.combatant
         )
         if let sourceActorID = state.sourceActorID {
-            let ignorePercent = min(1, context.modifiers(for: sourceActorID).triggers.ignoreEnemyMitigationPercent)
+            let sourceProfile = state.sourceModifiers ?? context.modifiers(for: sourceActorID)
+            let ignorePercent = min(1, sourceProfile.triggers.ignoreEnemyMitigationPercent)
             if ignorePercent > 0 {
                 effectivePercent *= (1 - ignorePercent)
             }
             if state.damageKeyword == .leech,
-               context.modifiers(for: sourceActorID).triggers.leechIgnoresMitigation {
+               sourceProfile.triggers.leechIgnoresMitigation {
                 effectivePercent = 0
             }
             // Searing Heat / Molten Heat: Burn damage ignores all enemy mitigation.
             if state.damageKeyword == .burn,
-               context.modifiers(for: sourceActorID).triggers.burnIgnoresBlockAndMitigation {
+               sourceProfile.triggers.burnIgnoresBlockAndMitigation {
                 effectivePercent = 0
             }
             // Deep Wounds: Bleed ignores enemy armor and damage reduction.
             if state.damageKeyword == .bleed,
-               context.modifiers(for: sourceActorID).triggers.bleedsIgnoreMitigation {
+               sourceProfile.triggers.bleedsIgnoreMitigation {
                 effectivePercent = 0
             }
         }

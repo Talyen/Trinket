@@ -33,7 +33,7 @@ struct AppStatePlayFlowTests {
         #expect(state.battle.activeBattle?.runKey == PlayBattleOrigin.journey(stageID: stage.id).runKey)
         #expect(state.shellSession.selectedTab == .play)
         let battle = try #require(context.lastBattle)
-        #expect(battle.hasActiveSimulation)
+        #expect(battle.lifecyclePhase == .active)
     }
 
     @Test func unchangedJourneyInputsReuseLaunchPreparedBattle() throws {

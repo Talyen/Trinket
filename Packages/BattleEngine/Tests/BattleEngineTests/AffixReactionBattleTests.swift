@@ -644,7 +644,9 @@ extension AffixReactionBattleTests {
     @Test func sidestepAndWhiplashFireWhenDodging() throws {
         var context = BattleTestFixtures.makePipelineContext(
             targetMaxHealth: 20,
+            sourcePrimaryStats: PrimaryStats(strength: 80),
             heroModifiers: CombatModifierProfile(
+                damageDealtBonus: [.stun: 7],
                 triggers: CombatTraitTriggers(
                     control: ControlTriggers(
                         dodgeDealStunFlat: 3

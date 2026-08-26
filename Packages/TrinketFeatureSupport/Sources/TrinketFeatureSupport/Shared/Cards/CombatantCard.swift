@@ -62,22 +62,12 @@ public struct CollectionCombatantButton: View {
 
     public var body: some View {
         Button(action: onSelect) {
-            Group {
-                if let cardWidth {
-                    CombatantCard(
-                        combatant: combatant,
-                        isLocked: isLocked,
-                        showsName: showsName
-                    )
-                    .frame(width: cardWidth)
-                } else {
-                    CombatantCard(
-                        combatant: combatant,
-                        isLocked: isLocked,
-                        showsName: showsName
-                    )
-                }
-            }
+            CombatantCard(
+                combatant: combatant,
+                isLocked: isLocked,
+                showsName: showsName
+            )
+            .frame(width: cardWidth)
         }
         .trinketQuietTapButtonStyle()
         .allowsHitTesting(!isLocked)

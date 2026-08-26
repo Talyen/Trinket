@@ -192,12 +192,7 @@ package extension CombatTriggerEngine {
                 target: context.roster.enemy.combatant,
                 keyword: .poison,
                 sourceActorID: actor.id,
-                options: DamageOptions(
-                    applyStatBonus: false,
-                    applyItemBonus: false,
-                    applyDodge: false,
-                    isRetaliation: true
-                )
+                options: .flatReaction
             )
         ).events
     }

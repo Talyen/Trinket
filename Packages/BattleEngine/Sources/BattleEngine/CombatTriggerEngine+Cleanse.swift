@@ -187,12 +187,7 @@ package extension CombatTriggerEngine {
                 target: context.roster.enemy.combatant,
                 keyword: .physical,
                 sourceActorID: source.id,
-                options: DamageOptions(
-                    applyStatBonus: false,
-                    applyItemBonus: false,
-                    applyDodge: false,
-                    isRetaliation: true
-                )
+                options: .flatReaction
             )
         ).events
     }

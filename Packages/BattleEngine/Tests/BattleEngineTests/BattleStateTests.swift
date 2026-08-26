@@ -187,4 +187,33 @@ struct BattleStateTests {
         try #expect(!(battle.isPartyDefeated))
         try #expect(!(battle.isEnemyDefeated))
     }
+
+    @Test func turnCadenceTracksAndResetsState() throws {
+        var cadence = BattleTurnCadence()
+        cadence.cardsPlayed[.hero] = 2
+        cadence.skillCardsPlayed[.hero] = 1
+        cadence.freezeCardsPlayed[.hero] = 1
+        cadence.burnManaRestored["hero"] = 3
+        cadence.spendManaDrawOwners.insert(.hero)
+        cadence.healthLossDrawOwners.insert(.hero)
+        cadence.goldDrawOwners.insert(.hero)
+
+        try #expect(cadence.cardsPlayed[.hero] == 2)
+        try #expect(cadence.skillCardsPlayed[.hero] == 1)
+        try #expect(cadence.freezeCardsPlayed[.hero] == 1)
+        try #expect(cadence.burnManaRestored["hero"] == 3)
+        try #expect(cadence.spendManaDrawOwners.contains(.hero))
+        try #expect(cadence.healthLossDrawOwners.contains(.hero))
+        try #expect(cadence.goldDrawOwners.contains(.hero))
+
+        cadence.reset()
+
+        try #expect(cadence.cardsPlayed.isEmpty)
+        try #expect(cadence.skillCardsPlayed.isEmpty)
+        try #expect(cadence.freezeCardsPlayed.isEmpty)
+        try #expect(cadence.burnManaRestored.isEmpty)
+        try #expect(cadence.spendManaDrawOwners.isEmpty)
+        try #expect(cadence.healthLossDrawOwners.isEmpty)
+        try #expect(cadence.goldDrawOwners.isEmpty)
+    }
 }

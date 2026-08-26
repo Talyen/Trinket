@@ -94,6 +94,10 @@ package struct DamageResolutionState {
     /// Set to `true` when marked bonus damage is applied.
     public var markedBonusApplied: Bool = false
 
+    /// Cached modifier profiles captured once per damage resolution to avoid repeated struct copies.
+    public var sourceModifiers: CombatModifierProfile?
+    public var targetModifiers: CombatModifierProfile?
+
     public init(
         amount: Int,
         combatant: Combatant,

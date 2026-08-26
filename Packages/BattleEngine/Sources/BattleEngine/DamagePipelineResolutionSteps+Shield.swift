@@ -253,12 +253,7 @@ package extension DamagePipeline {
                         target: attacker.combatant,
                         keyword: .holy,
                         sourceActorID: state.combatant.id,
-                        options: DamageOptions(
-                            applyStatBonus: false,
-                            applyItemBonus: false,
-                            applyDodge: false,
-                            isRetaliation: true
-                        )
+                        options: .flatReaction
                     )
                 ).events)
             }
@@ -287,12 +282,7 @@ package extension DamagePipeline {
                     target: state.combatant,
                     keyword: .physical,
                     sourceActorID: attackerID,
-                    options: DamageOptions(
-                        applyStatBonus: false,
-                        applyItemBonus: false,
-                        applyDodge: false,
-                        isRetaliation: true
-                    )
+                    options: .flatReaction
                 )
             ).events)
             state.activeEffects = context.roster.activeEffects(for: state.combatant)

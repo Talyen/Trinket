@@ -50,4 +50,8 @@ struct KeywordCoreTests {
         try #expect(keywords.contains(.holy))
         try #expect(!keywords.contains(.burn))
     }
+
+    @Test func bleedRulesTextMatchesTurnCount() throws {
+        try #expect(Keyword.bleed.rulesText.contains("\(Effect.bleedDoTTurnCount) rounds"))
+    }
 }

@@ -78,13 +78,43 @@ public struct BattleState {
     public var nextCardID: Int
     /// Party owners whose cards are unplayable this player turn due to control skip.
     public var ownersSkippingThisPlayerTurn: Set<BattleParticipant>
-    public var cardsPlayedThisTurn: [BattleParticipant: Int]
-    public var skillCardsPlayedThisTurn: [BattleParticipant: Int]
-    public var freezeCardsPlayedThisTurn: [BattleParticipant: Int]
-    public var burnManaRestoredThisTurn: [String: Int]
-    public var spendManaDrawOwnersThisTurn: Set<BattleParticipant>
-    public var healthLossDrawOwnersThisTurn: Set<BattleParticipant>
-    public var goldDrawOwnersThisTurn: Set<BattleParticipant>
+    public var turnCadence: BattleTurnCadence
+
+    public var cardsPlayedThisTurn: [BattleParticipant: Int] {
+        get { turnCadence.cardsPlayed }
+        set { turnCadence.cardsPlayed = newValue }
+    }
+
+    public var skillCardsPlayedThisTurn: [BattleParticipant: Int] {
+        get { turnCadence.skillCardsPlayed }
+        set { turnCadence.skillCardsPlayed = newValue }
+    }
+
+    public var freezeCardsPlayedThisTurn: [BattleParticipant: Int] {
+        get { turnCadence.freezeCardsPlayed }
+        set { turnCadence.freezeCardsPlayed = newValue }
+    }
+
+    public var burnManaRestoredThisTurn: [String: Int] {
+        get { turnCadence.burnManaRestored }
+        set { turnCadence.burnManaRestored = newValue }
+    }
+
+    public var spendManaDrawOwnersThisTurn: Set<BattleParticipant> {
+        get { turnCadence.spendManaDrawOwners }
+        set { turnCadence.spendManaDrawOwners = newValue }
+    }
+
+    public var healthLossDrawOwnersThisTurn: Set<BattleParticipant> {
+        get { turnCadence.healthLossDrawOwners }
+        set { turnCadence.healthLossDrawOwners = newValue }
+    }
+
+    public var goldDrawOwnersThisTurn: Set<BattleParticipant> {
+        get { turnCadence.goldDrawOwners }
+        set { turnCadence.goldDrawOwners = newValue }
+    }
+
     public var additionalControlSkipsByCombatantID: [String: Int]
     public var isResolvingTalentReaction: Bool
     public var isResolvingDoTDetonation: Bool
@@ -141,13 +171,7 @@ public struct BattleState {
         openingHandDealPlan: [OpeningHandDraw] = [],
         nextCardID: Int = 0,
         ownersSkippingThisPlayerTurn: Set<BattleParticipant> = [],
-        cardsPlayedThisTurn: [BattleParticipant: Int] = [:],
-        skillCardsPlayedThisTurn: [BattleParticipant: Int] = [:],
-        freezeCardsPlayedThisTurn: [BattleParticipant: Int] = [:],
-        burnManaRestoredThisTurn: [String: Int] = [:],
-        spendManaDrawOwnersThisTurn: Set<BattleParticipant> = [],
-        healthLossDrawOwnersThisTurn: Set<BattleParticipant> = [],
-        goldDrawOwnersThisTurn: Set<BattleParticipant> = [],
+        turnCadence: BattleTurnCadence = BattleTurnCadence(),
         additionalControlSkipsByCombatantID: [String: Int] = [:],
         isResolvingTalentReaction: Bool = false,
         isResolvingDoTDetonation: Bool = false,
@@ -190,13 +214,7 @@ public struct BattleState {
         self.openingHandDealPlan = openingHandDealPlan
         self.nextCardID = nextCardID
         self.ownersSkippingThisPlayerTurn = ownersSkippingThisPlayerTurn
-        self.cardsPlayedThisTurn = cardsPlayedThisTurn
-        self.skillCardsPlayedThisTurn = skillCardsPlayedThisTurn
-        self.freezeCardsPlayedThisTurn = freezeCardsPlayedThisTurn
-        self.burnManaRestoredThisTurn = burnManaRestoredThisTurn
-        self.spendManaDrawOwnersThisTurn = spendManaDrawOwnersThisTurn
-        self.healthLossDrawOwnersThisTurn = healthLossDrawOwnersThisTurn
-        self.goldDrawOwnersThisTurn = goldDrawOwnersThisTurn
+        self.turnCadence = turnCadence
         self.additionalControlSkipsByCombatantID = additionalControlSkipsByCombatantID
         self.isResolvingTalentReaction = isResolvingTalentReaction
         self.isResolvingDoTDetonation = isResolvingDoTDetonation

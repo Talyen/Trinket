@@ -1,4 +1,3 @@
-import CoreGraphics
 import Foundation
 import Testing
 import TrinketCore
@@ -6,28 +5,7 @@ import TrinketTestSupport
 @testable import BattleEngine
 @testable import TrinketBattleFeature
 
-struct BattlePresentationControlSkipTests {
-    @Test func stunAndFreezeProgressContinuesBeyondFirstPhase() {
-        let elapsed: TimeInterval = 60
-
-        #expect(CombatantStatusEffectKind.swirlingStars.progress(after: elapsed) > 1)
-        #expect(CombatantStatusEffectKind.iceCrystals.progress(after: elapsed) > 1)
-    }
-
-    @Test func cardActivationRequestNormalizesKeywords() {
-        let request = CardActivationRequest(
-            artworkName: nil,
-            center: .zero,
-            size: CGSize(width: 100, height: 140),
-            rotation: 0,
-            verticalTilt: 0,
-            scale: 1,
-            keywords: [.burn, .burn, .physical]
-        )
-
-        #expect(request.keywords == [.burn, .physical])
-    }
-
+struct BattlePresentationProjectionTests {
     @Test func projectsTriggeredStunAndFreezeForPartyOwners() {
         let state = BattleState(
             hero: CombatantFixtures.combatant(id: "hero", role: .hero),

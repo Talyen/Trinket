@@ -97,10 +97,6 @@ final class BattlePresentationState {
     private(set) var ownerControlSkipKeywords: [BattleParticipant: Keyword] = [:]
     private(set) var isBattleOver = false
 
-    var isReady: Bool {
-        configurationID != nil && hero != nil && companion != nil && enemy != nil
-    }
-
     func install(_ snapshot: BattlePresentationSnapshot) {
         if configurationID != snapshot.configurationID {
             configurationID = snapshot.configurationID

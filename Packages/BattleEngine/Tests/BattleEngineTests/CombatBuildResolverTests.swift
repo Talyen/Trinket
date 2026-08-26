@@ -104,4 +104,22 @@ struct CombatBuildResolverTests {
         )
         try #expect(build.modifiers.damageDealtBonus[.physical] == 18)
     }
+
+    @Test func enemyEffectiveStatsIncludeProfileStatBonuses() throws {
+        let baseCombatant = Combatant(
+            id: "test-enemy",
+            name: "Test Enemy",
+            role: .enemy,
+            maxHealth: 50,
+            abilities: [],
+            primaryStats: PrimaryStats(strength: 10, agility: 12, toughness: 8, intellect: 5, wisdom: 6)
+        )
+        let enemy = Enemy(
+            combatant: baseCombatant,
+            traitID: "",
+            isBoss: false
+        )
+        let build = CombatBuildResolver.build(enemy: enemy)
+        try #expect(build.combatant.primaryStats == baseCombatant.primaryStats)
+    }
 }

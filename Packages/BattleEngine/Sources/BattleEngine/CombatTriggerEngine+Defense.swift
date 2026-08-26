@@ -137,13 +137,7 @@ package extension CombatTriggerEngine {
                         target: target,
                         keyword: .physical,
                         sourceActorID: combatant.id,
-                        options: DamageOptions(
-                            applyStatBonus: false,
-                            applyItemBonus: false,
-                            applyDodge: false,
-                            isRetaliation: true,
-                            causedByDodge: true
-                        )
+                        options: .flatReaction
                     )
                 ).events)
             }
@@ -156,13 +150,7 @@ package extension CombatTriggerEngine {
                             target: target,
                             keyword: .physical,
                             sourceActorID: combatant.id,
-                            options: DamageOptions(
-                                applyStatBonus: false,
-                                applyItemBonus: false,
-                                applyDodge: false,
-                                isRetaliation: true,
-                                causedByDodge: true
-                            )
+                            options: .flatReaction
                         )
                     ).events)
                 }
@@ -324,12 +312,7 @@ package extension CombatTriggerEngine {
                     target: enemy,
                     keyword: .holy,
                     sourceActorID: actor.id,
-                    options: DamageOptions(
-                        applyStatBonus: false,
-                        applyItemBonus: false,
-                        applyDodge: false,
-                        isRetaliation: true
-                    )
+                    options: .flatReaction
                 )
             ).events)
         }
@@ -510,12 +493,7 @@ package extension CombatTriggerEngine {
                 target: enemy,
                 keyword: .stun,
                 sourceActorID: combatant.id,
-                options: DamageOptions(
-                    applyDodge: true,
-                    isRetaliation: true,
-                    applyControlMeter: true,
-                    causedByDodge: true
-                )
+                options: .dodgeTriggeredControlReaction
             )
         )
         var events = outcome.events.map { event in

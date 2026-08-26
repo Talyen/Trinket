@@ -28,12 +28,7 @@ package extension CombatTriggerEngine {
                         target: target,
                         keyword: .holy,
                         sourceActorID: sourceActorID,
-                        options: DamageOptions(
-                            applyStatBonus: false,
-                            applyItemBonus: false,
-                            applyDodge: false,
-                            isRetaliation: true
-                        )
+                        options: .flatReaction
                     )
                 ).events)
             }

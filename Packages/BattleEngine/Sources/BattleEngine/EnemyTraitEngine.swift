@@ -57,13 +57,9 @@ package enum EnemyTraitEngine {
                     target: targetRuntime.combatant,
                     keyword: keyword,
                     sourceActorID: source.id,
-                    options: DamageOptions(
-                        applyStatBonus: false,
-                        applyItemBonus: false,
-                        applyDodge: false,
-                        isRetaliation: true,
-                        applyControlMeter: keyword == .stun || keyword == .freeze
-                    )
+                    options: keyword == .stun || keyword == .freeze
+                        ? .flatControlReaction
+                        : .flatReaction
                 )
             )
             events.append(contentsOf: outcome.events)
@@ -110,12 +106,7 @@ package enum EnemyTraitEngine {
                 target: attacker,
                 keyword: .physical,
                 sourceActorID: defender.id,
-                options: DamageOptions(
-                    applyStatBonus: false,
-                    applyItemBonus: false,
-                    applyDodge: false,
-                    isRetaliation: true
-                )
+                options: .flatReaction
             )
         )
         let events = outcome.events.map { event in

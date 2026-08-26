@@ -5,21 +5,31 @@ import TrinketTestSupport
 @testable import BattleEngine
 
 struct DamagePipelineTests {
-    private func makeContext(seed: UInt64 = BattleTestFixtures.deterministicNonCriticalSeed) -> BattleState {
+    private func makeContext(
+        seed: UInt64 = BattleTestFixtures.deterministicNonCriticalSeed,
+        heroModifiers: CombatModifierProfile = .zero
+    ) -> BattleState {
         let target = CombatantFixtures.combatant(id: "target", role: .enemy, maxHealth: 50)
         let source = CombatantFixtures.combatant(id: "source", role: .hero, maxHealth: 50)
         return BattleStateTestFactory.makeBattle(
             hero: source,
             companion: CombatantFixtures.combatant(id: "companion", role: .companion),
             enemy: target,
+            heroModifiers: heroModifiers,
             rngSeed: seed,
             dealOpeningHand: false
         )
     }
 
-    @Test func healthCostIgnoresBlockBuffer() throws {
-        var context = makeContext(seed: BattleTestFixtures.deterministicNonCriticalSeed)
+    @Test func healthCostIgnoresDamagePrevention() throws {
+        var context = makeContext(
+            seed: BattleTestFixtures.deterministicNonCriticalSeed,
+            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
+                gold: GoldTriggers(goldAbsorbsDamage: true)
+            ))
+        )
         let hero = context.roster.hero.combatant
+        context.gold = 5
         context.roster.setActiveEffects(
             [ActiveEffect(id: 1, effect: .shield(.block, 20), remainingTurns: 6)],
             for: hero
@@ -38,6 +48,7 @@ struct DamagePipelineTests {
 
         try #expect(outcome.healthLost == 2)
         try #expect(context.roster.health(for: hero) == healthBefore - 2)
+        try #expect(context.gold == 5)
         let shield = context.roster.activeEffects(for: hero).first {
             if case .shield = $0.effect {
                 return true
@@ -50,6 +61,32 @@ struct DamagePipelineTests {
         }
         try #expect(buffer == 20)
         try #expect(!(outcome.events.contains { $0.effectKind == .shieldAbsorbed }))
+
+        var fatalContext = BattleStateTestFactory.makeBattle(
+            hero: CombatantFixtures.combatant(id: "fatal-hero", role: .hero, maxHealth: 2),
+            companion: CombatantFixtures.combatant(id: "guard", role: .companion, maxHealth: 20),
+            enemy: CombatantFixtures.combatant(id: "fatal-target", role: .enemy),
+            companionModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
+                block: BlockTriggers(companionFatalDamageRedirectBlock: 10)
+            )),
+            dealOpeningHand: false
+        )
+        let fatalHero = fatalContext.roster.hero.combatant
+        let companion = fatalContext.roster.companion.combatant
+        let companionHealth = fatalContext.roster.health(for: companion)
+
+        let fatalOutcome = fatalContext.resolveDamage(DamageRequest(
+            amount: 2,
+            target: fatalHero,
+            keyword: .physical,
+            sourceActorID: fatalHero.id,
+            options: .healthCost
+        ))
+
+        try #expect(fatalOutcome.healthLost == 2)
+        try #expect(fatalContext.roster.health(for: fatalHero) == 1)
+        try #expect(fatalContext.roster.isDeathsDoorActive(for: fatalHero))
+        try #expect(fatalContext.roster.health(for: companion) == companionHealth)
     }
 
     @Test func evadeNextHitForcesDodgeAndConsumesBuff() throws {

@@ -178,15 +178,21 @@ class HomesteadNodeRow:
     production: str
 
 
-def read_tsv(path: Path) -> list[list[str]]:
-    rows: list[list[str]] = []
+@functools.cache
+def _read_tsv_cached(path: Path) -> tuple[tuple[str, ...], ...]:
+    rows: list[tuple[str, ...]] = []
     for line in path.read_text().splitlines():
         if not line or line.startswith("#"):
             continue
-        rows.append(line.split("\t"))
-    return rows
+        rows.append(tuple(line.split("\t")))
+    return tuple(rows)
 
 
+def read_tsv(path: Path) -> list[list[str]]:
+    return [list(row) for row in _read_tsv_cached(path)]
+
+
+@functools.cache
 def parse_affix_rows() -> list[AffixRow]:
     path = MANIFEST_DIR / "affixes.tsv"
     lines = read_tsv(path)
@@ -215,6 +221,7 @@ def parse_affix_rows() -> list[AffixRow]:
     return rows
 
 
+@functools.cache
 def parse_trait_rows() -> list[TraitRow]:
     path = MANIFEST_DIR / "traits.tsv"
     lines = read_tsv(path)
@@ -225,6 +232,7 @@ def parse_trait_rows() -> list[TraitRow]:
     return [TraitRow(*row) for row in lines[1:]]
 
 
+@functools.cache
 def parse_stage_rows() -> list[StageRow]:
     path = MANIFEST_DIR / "stages.tsv"
     lines = read_tsv(path)
@@ -249,6 +257,7 @@ def parse_stage_rows() -> list[StageRow]:
     return rows
 
 
+@functools.cache
 def parse_item_base_rows() -> list[ItemBaseRow]:
     path = MANIFEST_DIR / "item_bases.tsv"
     lines = read_tsv(path)
@@ -259,6 +268,7 @@ def parse_item_base_rows() -> list[ItemBaseRow]:
     return [ItemBaseRow(*row) for row in lines[1:]]
 
 
+@functools.cache
 def parse_combatant_rows() -> list[CombatantRow]:
     path = MANIFEST_DIR / "combatants.tsv"
     lines = read_tsv(path)
@@ -288,6 +298,7 @@ def parse_combatant_rows() -> list[CombatantRow]:
     return rows
 
 
+@functools.cache
 def parse_enemy_rows() -> list[EnemyRow]:
     path = MANIFEST_DIR / "enemies.tsv"
     lines = read_tsv(path)
@@ -311,6 +322,7 @@ def parse_enemy_rows() -> list[EnemyRow]:
     return rows
 
 
+@functools.cache
 def parse_homestead_node_rows() -> list[HomesteadNodeRow]:
     path = MANIFEST_DIR / "homestead_nodes.tsv"
     lines = read_tsv(path)
@@ -1700,6 +1712,7 @@ class TalentRow:
     triggers: str
 
 
+@functools.cache
 def parse_talent_rows() -> list[TalentRow]:
     path = MANIFEST_DIR / "talents.tsv"
     lines = read_tsv(path)

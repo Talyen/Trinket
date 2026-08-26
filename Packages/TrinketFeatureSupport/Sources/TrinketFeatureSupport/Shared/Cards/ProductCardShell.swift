@@ -82,29 +82,20 @@ public struct ProductCardShell<Art: View, Label: View>: View {
             if appliesCardSurface {
                 baseTile
                     .trinketCardSurface()
-                    .trinketArtworkPickerSelectionBorder(
-                        isSelected: isSelected,
-                        lineWidth: 1.5
-                    )
-                    .colorShineBorder(
-                        colors: borderShineColors,
-                        cornerRadius: TrinketDesign.Corners.card,
-                        lineWidth: shineLineWidth
-                    )
             } else {
                 baseTile
                     .clipShape(TrinketDesign.cardShape)
-                    .trinketArtworkPickerSelectionBorder(
-                        isSelected: isSelected,
-                        lineWidth: 1.5
-                    )
-                    .colorShineBorder(
-                        colors: borderShineColors,
-                        cornerRadius: TrinketDesign.Corners.card,
-                        lineWidth: shineLineWidth
-                    )
             }
         }
+        .trinketArtworkPickerSelectionBorder(
+            isSelected: isSelected,
+            lineWidth: 1.5
+        )
+        .colorShineBorder(
+            colors: borderShineColors,
+            cornerRadius: TrinketDesign.Corners.card,
+            lineWidth: shineLineWidth
+        )
         .animation(TrinketMotion.Interaction.selection, value: isSelected)
     }
 }

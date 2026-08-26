@@ -490,7 +490,7 @@ func reconcileModels<Model: PersistentModel, Value, Key: Hashable>(
     update: (Model, Value) -> Void,
     context: ModelContext?
 ) -> [Model] {
-    var modelsByKey: [Key: Model] = [:]
+    var modelsByKey = [Key: Model](minimumCapacity: existing.count)
     for model in existing {
         let key = existingKey(model)
         if modelsByKey[key] == nil {
@@ -500,10 +500,12 @@ func reconcileModels<Model: PersistentModel, Value, Key: Hashable>(
         }
     }
 
-    let reconciled = values.map { value in
+    var reconciled: [Model] = []
+    reconciled.reserveCapacity(values.count)
+    for value in values {
         let model = modelsByKey.removeValue(forKey: valueKey(value)) ?? make(value)
         update(model, value)
-        return model
+        reconciled.append(model)
     }
     for removed in modelsByKey.values {
         context?.delete(removed)

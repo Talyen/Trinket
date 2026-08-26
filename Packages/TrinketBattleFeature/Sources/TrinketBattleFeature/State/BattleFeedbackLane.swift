@@ -35,13 +35,13 @@ final class BattleFeedbackLane {
     private var hitReactionBridges: [(
         ownerID: UUID,
         combatantID: String,
-        onChange: () -> Void
+        onChange: (CombatantHitReaction?) -> Void
     )] = []
     @ObservationIgnored
     private var attackReactionBridges: [(
         ownerID: UUID,
         combatantID: String,
-        onChange: () -> Void
+        onChange: (CombatantAttackReaction?) -> Void
     )] = []
 
     var latestExpiry: Date? {
@@ -63,10 +63,11 @@ final class BattleFeedbackLane {
     func installHitReactionBridge(
         ownerID: UUID,
         combatantID: String,
-        onChange: @escaping () -> Void
+        onChange: @escaping (CombatantHitReaction?) -> Void
     ) {
         hitReactionBridges.removeAll { $0.ownerID == ownerID }
         hitReactionBridges.append((ownerID, combatantID, onChange))
+        onChange(hitReactionsByTargetID[combatantID])
     }
 
     func uninstallHitReactionBridge(ownerID: UUID) {
@@ -76,10 +77,11 @@ final class BattleFeedbackLane {
     func installAttackReactionBridge(
         ownerID: UUID,
         combatantID: String,
-        onChange: @escaping () -> Void
+        onChange: @escaping (CombatantAttackReaction?) -> Void
     ) {
         attackReactionBridges.removeAll { $0.ownerID == ownerID }
         attackReactionBridges.append((ownerID, combatantID, onChange))
+        onChange(attackReactionsByCombatantID[combatantID])
     }
 
     func uninstallAttackReactionBridge(ownerID: UUID) {
@@ -98,22 +100,23 @@ final class BattleFeedbackLane {
 
     func noteHitReactionsChanged(for combatantIDs: Set<String>) {
         for bridge in hitReactionBridges where combatantIDs.contains(bridge.combatantID) {
-            bridge.onChange()
+            bridge.onChange(hitReactionsByTargetID[bridge.combatantID])
         }
     }
 
     func noteAttackReactionsChanged(for combatantID: String) {
+        let reaction = attackReactionsByCombatantID[combatantID]
         for bridge in attackReactionBridges where bridge.combatantID == combatantID {
-            bridge.onChange()
+            bridge.onChange(reaction)
         }
     }
 
     func resetPresentation() {
         for bridge in hitReactionBridges {
-            bridge.onChange()
+            bridge.onChange(nil)
         }
         for bridge in attackReactionBridges {
-            bridge.onChange()
+            bridge.onChange(nil)
         }
         publish(.reset)
     }

@@ -244,7 +244,7 @@ struct CombatTriggerTalentResourceTests {
             abilityName: "Test"
         )
         let companion = battle.roster.companion.combatant
-        _ = battle.resolveDamage(
+        let outcome = battle.resolveDamage(
             DamageRequest(
                 amount: 2,
                 target: battle.roster.enemy.combatant,
@@ -258,6 +258,7 @@ struct CombatTriggerTalentResourceTests {
                 )
             )
         )
+        #expect(outcome.healthLost > 0)
         #expect(DefensePoolEngine.blockPoints(in: battle.roster.activeEffects(for: battle.roster.enemy.combatant)) == 0)
         #expect(DefensePoolEngine.blockPoints(in: battle.roster.activeEffects(for: companion)) == 5)
     }

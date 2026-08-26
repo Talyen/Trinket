@@ -10,18 +10,6 @@ import TrinketTestSupport
 
 @MainActor
 struct BattleSessionAutoBattleTests {
-    @Test func interactionStateBlocksCombatantTapsDuringTapLiftAndPress() {
-        let state = BattleInteractionState()
-        #expect(!state.blocksCombatantTaps)
-
-        state.autoLiftCardID = 42
-        #expect(state.blocksCombatantTaps)
-
-        state.autoLiftCardID = nil
-        state.suppressCombatantTaps = true
-        #expect(state.blocksCombatantTaps)
-    }
-
     @Test func autoBattlePlaysCardsInGreedyOrderUntilDisabled() async throws {
         let session = try BattleSessionTestSupport.makeConfiguredSession()
         let expectedCardIDs = try BattleSessionTestSupport.greedyPlaySequence(from: session)

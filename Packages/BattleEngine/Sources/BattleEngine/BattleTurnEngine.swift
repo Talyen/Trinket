@@ -73,6 +73,7 @@ public enum BattleTurnEngine {
             actor: actor,
             context: &context
         ))
+        events.append(contentsOf: consumeHemorrhageIfActive(for: actor, in: &context))
 
         let damageOutcome = applyDamageComponents(
             ability: resolvedAbility,
@@ -267,7 +268,6 @@ extension BattleTurnEngine {
                 removeActiveEffect(for: actor, in: &context) { $0 == .nextStrikeCritical }
             }
             if amount > 0, !isSelfHealthCost {
-                events.append(contentsOf: consumeHemorrhageIfActive(for: actor, in: &context))
                 events.append(contentsOf: applyDoTStackFromDamage(
                     keyword: damageKeyword,
                     potency: amount,
@@ -366,12 +366,7 @@ extension BattleTurnEngine {
                 target: actor,
                 keyword: .bleed,
                 sourceActorID: actor.id,
-                options: DamageOptions(
-                    applyStatBonus: false,
-                    applyItemBonus: false,
-                    applyDodge: false,
-                    isRetaliation: true
-                )
+                options: .flatReaction
             )
         )
         var hemorrhageEvents = hemorrhageOutcome.events

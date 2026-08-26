@@ -75,16 +75,14 @@ struct BattleHandView: View {
                 containerWidth: geometry.size.width,
                 cardCount: cards.count
             )
-            let liveSnapshots = cards.indices.map { index in
-                liveSnapshot(
-                    index: index,
-                    layout: layout,
-                    containerWidth: geometry.size.width
-                )
-            }
             ZStack(alignment: .bottom) {
-                ForEach(Array(cards.enumerated()), id: \.element.id) { index, card in
-                    let liveSnapshot = liveSnapshots[index]
+                ForEach(cards) { card in
+                    let index = cards.firstIndex(where: { $0.id == card.id }) ?? 0
+                    let liveSnapshot = liveSnapshot(
+                        index: index,
+                        layout: layout,
+                        containerWidth: geometry.size.width
+                    )
                     let controlSkipKeyword = ownerControlSkipKeywords[card.owner]
                     let isHeld = heldInteraction?.cardID == card.id
                     let snapshot = isHeld ? (heldInteraction?.layout ?? liveSnapshot) : liveSnapshot

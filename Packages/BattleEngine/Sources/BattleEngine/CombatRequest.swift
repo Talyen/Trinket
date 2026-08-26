@@ -84,6 +84,30 @@ public struct DamageOptions: Equatable, Hashable, Sendable {
         applyDodge: false,
         isHealthCost: true
     )
+
+    package static let flatReaction = Self(
+        applyStatBonus: false,
+        applyItemBonus: false,
+        applyDodge: false,
+        isRetaliation: true
+    )
+
+    package static let flatControlReaction = Self(
+        applyStatBonus: false,
+        applyItemBonus: false,
+        applyDodge: false,
+        isRetaliation: true,
+        applyControlMeter: true
+    )
+
+    package static let dodgeTriggeredControlReaction = Self(
+        applyStatBonus: false,
+        applyItemBonus: false,
+        applyDodge: true,
+        isRetaliation: true,
+        applyControlMeter: true,
+        causedByDodge: true
+    )
 }
 
 /// Describes one damage application through the combat pipeline.

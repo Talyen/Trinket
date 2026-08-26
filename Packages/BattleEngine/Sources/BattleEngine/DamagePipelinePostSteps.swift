@@ -470,12 +470,7 @@ package extension DamagePipeline {
                         target: target,
                         keyword: .physical,
                         sourceActorID: sourceActorID,
-                        options: DamageOptions(
-                            applyStatBonus: false,
-                            applyItemBonus: false,
-                            applyDodge: false,
-                            isRetaliation: true
-                        )
+                        options: .flatReaction
                     )
                 ).events)
             }

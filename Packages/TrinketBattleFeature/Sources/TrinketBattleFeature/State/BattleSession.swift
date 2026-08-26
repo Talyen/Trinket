@@ -150,7 +150,7 @@ public final class BattleSession: BattleRuntime {
     }
 
     /// True when a battle configuration has installed an authoritative simulation.
-    public var hasActiveSimulation: Bool {
+    var hasActiveSimulation: Bool {
         engineState != nil
     }
 
@@ -205,7 +205,6 @@ public final class BattleSession: BattleRuntime {
         return CombatantReadModel(
             combatant: combatant,
             health: engineState.health(of: combatant),
-            maxHealth: engineState.maxHealth(of: combatant),
             mana: engineState.mana(of: combatant),
             activeEffectSummaries: engineState.effectSummaries(of: combatant)
         )

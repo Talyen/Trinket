@@ -42,9 +42,17 @@ public struct SetupAwareHeuristicPolicy: SimulationPlayPolicy {
 private enum HeuristicCardScoring {
     static func preferredPlayableCard(in battle: BattleState, setupAware: Bool) -> BattleCard? {
         let playable = battle.hand.cards.filter { battle.isCardPlayable($0) }
-        return playable.max(by: { lhs, rhs in
-            score(lhs, in: battle, setupAware: setupAware) < score(rhs, in: battle, setupAware: setupAware)
-        })
+        guard !playable.isEmpty else { return nil }
+        var bestCard: BattleCard?
+        var bestScore = Int.min
+        for card in playable {
+            let cardScore = score(card, in: battle, setupAware: setupAware)
+            if cardScore > bestScore {
+                bestScore = cardScore
+                bestCard = card
+            }
+        }
+        return bestCard
     }
 
     private static func score(_ card: BattleCard, in battle: BattleState, setupAware: Bool) -> Int {
@@ -56,9 +64,9 @@ private enum HeuristicCardScoring {
         let hpFraction = Double(actorHP) / Double(maxHP)
 
         let damage = ability.directDamage
-        let selfDamage = ability.damageComponents
-            .filter { $0.target == .actor }
-            .reduce(0) { $0 + $1.amount }
+        let selfDamage = ability.damageComponents.reduce(0) { total, component in
+            component.target == .actor ? total + component.amount : total
+        }
 
         if damage > 0, damage >= enemyHP {
             return 10000 + damage

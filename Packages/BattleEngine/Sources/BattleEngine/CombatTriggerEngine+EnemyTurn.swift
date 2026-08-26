@@ -22,12 +22,7 @@ package extension CombatTriggerEngine {
                     target: enemy,
                     keyword: .physical,
                     sourceActorID: source.id,
-                    options: DamageOptions(
-                        applyStatBonus: false,
-                        applyItemBonus: false,
-                        applyDodge: false,
-                        isRetaliation: true
-                    )
+                    options: .flatReaction
                 )
             ).events
             guard context.roster.enemy.isAlive else { return (events, true) }

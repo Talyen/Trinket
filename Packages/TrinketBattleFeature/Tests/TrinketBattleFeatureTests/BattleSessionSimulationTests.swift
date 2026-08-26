@@ -147,7 +147,8 @@ struct BattleSessionSimulationTests {
 
         session.endBattle()
 
-        #expect(!session.presentation.isReady)
+        #expect(session.activeBattle == nil)
+        #expect(session.presentation.configurationID == nil)
         #expect(session.presentation.hand.isEmpty)
     }
 
@@ -357,31 +358,56 @@ extension BattleSessionSimulationTests {
         let session = BattleSession(openingHandDrawStagger: 0)
         let heroOwner = UUID()
         let enemyOwner = UUID()
-        var heroHits = 0
-        var enemyHits = 0
-        var heroAttacks = 0
-        var enemyAttacks = 0
+        var heroHits: [CombatantHitReaction?] = []
+        var enemyHits: [CombatantHitReaction?] = []
+        var heroAttacks: [CombatantAttackReaction?] = []
+        var enemyAttacks: [CombatantAttackReaction?] = []
 
         session.feedback.installHitReactionBridge(ownerID: heroOwner, combatantID: "hero") {
-            heroHits += 1
+            heroHits.append($0)
         }
         session.feedback.installHitReactionBridge(ownerID: enemyOwner, combatantID: "enemy") {
-            enemyHits += 1
+            enemyHits.append($0)
         }
         session.feedback.installAttackReactionBridge(ownerID: heroOwner, combatantID: "hero") {
-            heroAttacks += 1
+            heroAttacks.append($0)
         }
         session.feedback.installAttackReactionBridge(ownerID: enemyOwner, combatantID: "enemy") {
-            enemyAttacks += 1
+            enemyAttacks.append($0)
         }
 
-        session.feedback.noteHitReactionsChanged(for: ["enemy"])
-        session.feedback.noteAttackReactionsChanged(for: "hero")
+        #expect(heroHits == [nil])
+        #expect(enemyHits == [nil])
+        #expect(heroAttacks == [nil])
+        #expect(enemyAttacks == [nil])
 
-        #expect(heroHits == 0)
-        #expect(enemyHits == 1)
-        #expect(heroAttacks == 1)
-        #expect(enemyAttacks == 0)
+        let enemyHit = CombatantHitReaction(id: 42, kind: .damage)
+        session.feedback.hitReactionsByTargetID["enemy"] = enemyHit
+        session.feedback.noteHitReactionsChanged(for: ["enemy"])
+
+        let heroAttack = CombatantAttackReaction(id: 42, kind: .attack, phase: .swing)
+        session.publishAttackReaction(heroAttack, for: "hero")
+
+        #expect(heroHits == [nil])
+        #expect(enemyHits == [nil, enemyHit])
+        #expect(heroAttacks == [nil, heroAttack])
+        #expect(enemyAttacks == [nil])
+
+        session.feedback.clear()
+
+        #expect(heroHits == [nil, nil])
+        #expect(enemyHits == [nil, enemyHit, nil])
+        #expect(heroAttacks == [nil, heroAttack, nil])
+        #expect(enemyAttacks == [nil, nil])
+
+        session.feedback.hitReactionsByTargetID["enemy"] = enemyHit
+        session.feedback.noteHitReactionsChanged(for: ["enemy"])
+        session.publishAttackReaction(heroAttack, for: "hero")
+
+        #expect(heroHits == [nil, nil])
+        #expect(enemyHits == [nil, enemyHit, nil, enemyHit])
+        #expect(heroAttacks == [nil, heroAttack, nil, heroAttack])
+        #expect(enemyAttacks == [nil, nil])
 
         session.feedback.uninstallHitReactionBridge(ownerID: heroOwner)
         session.feedback.uninstallHitReactionBridge(ownerID: enemyOwner)

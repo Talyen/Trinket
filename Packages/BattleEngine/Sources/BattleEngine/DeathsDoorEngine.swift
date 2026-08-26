@@ -65,12 +65,7 @@ package enum DeathsDoorEngine {
                         target: context.roster.enemy.combatant,
                         keyword: .physical,
                         sourceActorID: combatant.id,
-                        options: DamageOptions(
-                            applyStatBonus: false,
-                            applyItemBonus: false,
-                            applyDodge: false,
-                            isRetaliation: true
-                        )
+                        options: .flatReaction
                     )
                 )
                 return outcome.events

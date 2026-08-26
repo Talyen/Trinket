@@ -123,12 +123,7 @@ package extension DamagePipeline {
                     target: attacker.combatant,
                     keyword: .holy,
                     sourceActorID: state.combatant.id,
-                    options: DamageOptions(
-                        applyStatBonus: false,
-                        applyItemBonus: false,
-                        applyDodge: false,
-                        isRetaliation: true
-                    )
+                    options: .flatReaction
                 )
             ).events)
         }
@@ -258,12 +253,7 @@ package extension DamagePipeline {
                 target: attacker.combatant,
                 keyword: keyword,
                 sourceActorID: state.combatant.id,
-                options: DamageOptions(
-                    applyStatBonus: false,
-                    applyItemBonus: false,
-                    applyDodge: false,
-                    isRetaliation: true
-                )
+                options: .flatReaction
             )
         )
         var retaliationEvents = outcome.events

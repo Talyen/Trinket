@@ -107,7 +107,7 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Codable, Send
         case .poison:
             "Poison deals damage each round and fades slowly"
         case .bleed:
-            "Bleed deals damage each round for 3 rounds"
+            "Bleed deals damage each round for 2 rounds"
         case .leech:
             "Leech damage heals the attacker"
         case .freeze:

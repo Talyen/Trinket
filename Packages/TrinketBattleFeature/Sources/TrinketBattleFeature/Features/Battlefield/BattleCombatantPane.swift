@@ -125,14 +125,13 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
             )
             .onAppear {
                 installHitReactionBridge()
-                adoptLatestReactionIfNeeded()
             }
             .onDisappear {
                 battleSession.feedback.uninstallHitReactionBridge(ownerID: reactionBridgeOwnerID)
             }
             .onChange(of: combatantID) { _, _ in
+                adoptReaction(nil)
                 installHitReactionBridge()
-                adoptLatestReactionIfNeeded()
             }
     }
 
@@ -226,15 +225,18 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
         battleSession.feedback.installHitReactionBridge(
             ownerID: reactionBridgeOwnerID,
             combatantID: combatantID
-        ) {
-            adoptLatestReactionIfNeeded()
+        ) { reaction in
+            adoptReaction(reaction)
         }
     }
 
-    private func adoptLatestReactionIfNeeded() {
-        guard let reaction = battleSession.feedback.hitReactionsByTargetID[combatantID],
-              reaction.id != latestReactionID
-        else { return }
+    private func adoptReaction(_ reaction: CombatantHitReaction?) {
+        guard let reaction else {
+            activeKind = .none
+            latestReactionID = 0
+            return
+        }
+        guard reaction.id != latestReactionID else { return }
         activeKind = reaction.kind
         latestReactionID = reaction.id
         playToken &+= 1

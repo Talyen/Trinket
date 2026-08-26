@@ -35,11 +35,23 @@ struct BattleMechanicsTests {
             enemyEffects: [ActiveEffect(id: 1, effect: .marked(2, 6), remainingTurns: 6, sourceActorID: hero.id)]
         )
 
-        let outcome = context.resolveDamage(
+        let dotOutcome = context.resolveDamage(
+            .doTTick(amount: 3, target: enemy, keyword: .burn, sourceActorID: hero.id)
+        )
+
+        try #expect(dotOutcome.healthLost == 3)
+        try #expect(context.roster.activeEffects(for: enemy).contains {
+            if case .marked = $0.effect {
+                return true
+            }
+            return false
+        })
+
+        let attackOutcome = context.resolveDamage(
             .directAbilityHit(amount: 3, target: enemy, keyword: .physical, sourceActorID: hero.id)
         )
 
-        try #expect(outcome.healthLost == 5)
+        try #expect(attackOutcome.healthLost == 5)
         try #expect(
             !context.roster.activeEffects(for: enemy).contains {
                 if case .marked = $0.effect {

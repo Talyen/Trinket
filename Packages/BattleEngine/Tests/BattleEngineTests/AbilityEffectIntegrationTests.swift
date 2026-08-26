@@ -354,4 +354,52 @@ struct AbilityEffectIntegrationTests {
             return false
         })
     }
+
+    @Test func hemorrhageDamagesEnemyWhenItPerformsNonDamagingAction() throws {
+        let hero = Combatant(
+            id: "hero",
+            name: "Hero",
+            role: .hero,
+            maxHealth: 20,
+            abilities: [.hemorrhage]
+        )
+        let companion = BattleTestFixtures.passiveCompanion()
+        let enemy = Combatant(
+            id: "enemy",
+            name: "Enemy",
+            role: .enemy,
+            maxHealth: 100,
+            abilities: [.block]
+        )
+        var battle = BattleTestFixtures.standardParty(hero: hero, companion: companion, enemy: enemy)
+
+        _ = try BattleTestFixtures.playCardNamed("Hemorrhage", owner: .hero, on: &battle)
+
+        try #expect(battle.hasEnemyEffect {
+            if case .hemorrhage = $0 {
+                return true
+            }
+            return false
+        })
+
+        let enemyHealthBefore = battle.health(of: battle.enemy)
+
+        // Enemy takes turn and performs non-damaging Block ability
+        let enemyTurnEvents = BattleTestFixtures.endTurn(on: &battle)
+
+        // Enemy took 4 Bleed damage from Hemorrhage when taking action with non-damaging Block
+        try #expect(enemyTurnEvents.contains { $0.effectKind == .hemorrhageTriggered && $0.amount == 4 })
+        // Hemorrhage dealt 4 damage when casting Block; Bleed DoT ticked for 4 at end of round
+        // (with Block absorbing 3 if on self, or dealt to health), resulting in 5 net health lost
+        let healthLost = enemyHealthBefore - battle.health(of: battle.enemy)
+        try #expect(healthLost == 5)
+
+        // Hemorrhage effect is consumed
+        try #expect(!battle.hasEnemyEffect {
+            if case .hemorrhage = $0 {
+                return true
+            }
+            return false
+        })
+    }
 }

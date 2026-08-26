@@ -148,12 +148,7 @@ package extension CombatTriggerEngine {
                     target: enemy,
                     keyword: .poison,
                     sourceActorID: source.id,
-                    options: DamageOptions(
-                        applyStatBonus: false,
-                        applyItemBonus: false,
-                        applyDodge: false,
-                        isRetaliation: true
-                    )
+                    options: .flatReaction
                 )
             ).events)
         }

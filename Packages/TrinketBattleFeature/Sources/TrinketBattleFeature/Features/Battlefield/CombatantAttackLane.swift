@@ -23,14 +23,13 @@ struct CombatantAttackLane<Content: View>: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .onAppear {
                 installAttackReactionBridge()
-                adoptLatestAttackIfNeeded()
             }
             .onDisappear {
                 battleSession.feedback.uninstallAttackReactionBridge(ownerID: attackBridgeOwnerID)
             }
             .onChange(of: combatantID) { _, _ in
+                resetAttack()
                 installAttackReactionBridge()
-                adoptLatestAttackIfNeeded()
             }
     }
 
@@ -38,15 +37,23 @@ struct CombatantAttackLane<Content: View>: View {
         battleSession.feedback.installAttackReactionBridge(
             ownerID: attackBridgeOwnerID,
             combatantID: combatantID
-        ) {
-            adoptLatestAttackIfNeeded()
+        ) { reaction in
+            adoptReaction(reaction)
         }
     }
 
-    private func adoptLatestAttackIfNeeded() {
-        guard let reaction = battleSession.feedback.attackReactionsByCombatantID[combatantID],
-              reaction.id != latestReactionID
-        else { return }
+    private func resetAttack() {
+        phaseGeneration &+= 1
+        latestReactionID = 0
+        pose = CombatantAttackPose.rest
+    }
+
+    private func adoptReaction(_ reaction: CombatantAttackReaction?) {
+        guard let reaction else {
+            resetAttack()
+            return
+        }
+        guard reaction.id != latestReactionID else { return }
         latestReactionID = reaction.id
         phaseGeneration &+= 1
         let generation = phaseGeneration

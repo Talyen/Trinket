@@ -48,13 +48,7 @@ package extension CombatTriggerEngine {
 
     /// Resets per-round runtime state and draw/gold owner sets.
     private static func resetTurnCadenceState(in context: inout BattleState) {
-        context.cardsPlayedThisTurn = [:]
-        context.skillCardsPlayedThisTurn = [:]
-        context.freezeCardsPlayedThisTurn = [:]
-        context.burnManaRestoredThisTurn = [:]
-        context.spendManaDrawOwnersThisTurn = []
-        context.healthLossDrawOwnersThisTurn = []
-        context.goldDrawOwnersThisTurn = []
+        context.turnCadence.reset()
 
         // Talent per-turn runtime state: Dodge bonuses and the attack-hit flag reset
         // each round; pending one-shot dodge effects are consumed on the next hit.

@@ -52,7 +52,8 @@ package extension DamagePipeline {
         to state: inout DamageResolutionState,
         in context: inout BattleState
     ) {
-        guard state.remaining > 0,
+        guard !state.options.isHealthCost,
+              state.remaining > 0,
               context.gold > 0,
               context.modifiers(for: state.combatant.id).triggers.goldAbsorbsDamage
         else { return }
@@ -80,7 +81,8 @@ package extension DamagePipeline {
         to state: inout DamageResolutionState,
         in context: inout BattleState
     ) -> Bool {
-        guard state.combatant.role == .hero,
+        guard !state.options.isHealthCost,
+              state.combatant.role == .hero,
               state.remaining > 0,
               context.roster.health(for: state.combatant) <= state.remaining,
               context.roster.companion.isAlive,
@@ -94,12 +96,7 @@ package extension DamagePipeline {
                 target: companion,
                 keyword: state.damageKeyword ?? .physical,
                 sourceActorID: state.sourceActorID,
-                options: DamageOptions(
-                    applyStatBonus: false,
-                    applyItemBonus: false,
-                    applyDodge: false,
-                    isRetaliation: true
-                )
+                options: .flatReaction
             )
         ).events)
         if context.roster.companion.isAlive, !context.roster.isDeathsDoorActive(for: companion) {

@@ -6,17 +6,16 @@ import TrinketCore
 import TrinketFeatureContracts
 
 extension BattleSession {
-    public struct PreparedBattleRun {
-        public let configuration: BattleRunConfiguration
+    struct PreparedBattleRun {
+        let configuration: BattleRunConfiguration
         fileprivate let state: BattleState
     }
 
-    public struct CombatantReadModel {
-        public let combatant: Combatant
-        public let health: Int
-        public let maxHealth: Int
-        public let mana: Int
-        public let activeEffectSummaries: [TrinketCore.EffectSummary]
+    struct CombatantReadModel {
+        let combatant: Combatant
+        let health: Int
+        let mana: Int
+        let activeEffectSummaries: [TrinketCore.EffectSummary]
     }
 
     struct VictoryInput {
