@@ -68,7 +68,7 @@ jobs:
     needs: [changes, gate]
     if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.code == 'true'
     runs-on: macos-26
-    timeout-minutes: 30
+    timeout-minutes: 45
     outputs:
       build-artifact: ${{ steps.restore-and-build.outputs.artifact-name }}
     steps:

@@ -39,9 +39,12 @@ if ! grep -E -q 'swift(c|-frontend)' "$COMBINED"; then
   exit 1
 fi
 
+# xcode reporter only: github-actions-logging floods Checks with unused_import
+# findings while this pass is still advisory, and that annotation volume plus
+# cache save overflows the build job's wall clock.
 extra_args=()
 if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
-  extra_args+=(--reporter xcode --reporter github-actions-logging)
+  extra_args+=(--reporter xcode)
 fi
 
 echo "=== SwiftLint analyze (unused_import / unused_declaration) ==="

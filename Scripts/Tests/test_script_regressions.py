@@ -443,6 +443,9 @@ class ScriptRegressionTests(unittest.TestCase):
         text = (ROOT / "Scripts" / "lint-analyze.sh").read_text(encoding="utf-8")
         self.assertIn("swiftlint analyze", text)
         self.assertIn("compiler-log-path", text)
+        # Advisory analyze must not emit Checks annotations: that reporter
+        # volume plus cache save overflowed the 30-minute build job timeout.
+        self.assertNotIn("--reporter github-actions-logging", text)
         style = (ROOT / "Scripts" / "test.sh").read_text(encoding="utf-8")
         self.assertNotIn("lint-analyze.sh", style)
         handoff = (ROOT / "Scripts" / "handoff.sh").read_text(encoding="utf-8")
@@ -454,6 +457,11 @@ class ScriptRegressionTests(unittest.TestCase):
         self.assertRegex(
             restore,
             r"SwiftLint analyze\n(?:.*\n){0,6}      continue-on-error: true",
+        )
+        tests_yml = (ROOT / ".github" / "workflows" / "tests.yml").read_text(encoding="utf-8")
+        self.assertRegex(
+            tests_yml,
+            r"name: Build for testing\n(?:.*\n){0,6}    timeout-minutes: 45",
         )
 
     def test_change_budget_warns_when_package_production_lacks_tests(self) -> None:
