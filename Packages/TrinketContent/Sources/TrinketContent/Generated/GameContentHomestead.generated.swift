@@ -21,6 +21,7 @@ enum GameContentHomesteadGenerated {
                         title: "Health",
                         description: "Increase Health by 4\nProduces 1 Food per day"
                     ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.maximumHealth(4)], companionModifiers: [.maximumHealth(4)]),
                     production: ResourceAmount(.food, 1)
                 ),
                 HomesteadNodeTier(
@@ -30,6 +31,7 @@ enum GameContentHomesteadGenerated {
                         title: "Health",
                         description: "Increase Health by 8\nProduces 2 Food per day"
                     ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.maximumHealth(8)], companionModifiers: [.maximumHealth(8)]),
                     production: ResourceAmount(.food, 2)
                 ),
                 HomesteadNodeTier(
@@ -39,6 +41,7 @@ enum GameContentHomesteadGenerated {
                         title: "Health",
                         description: "Increase Health by 12\nProduces 3 Food per day"
                     ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.maximumHealth(12)], companionModifiers: [.maximumHealth(12)]),
                     production: ResourceAmount(.food, 3)
                 ),
                 HomesteadNodeTier(
@@ -48,6 +51,7 @@ enum GameContentHomesteadGenerated {
                         title: "Health",
                         description: "Increase Health by 16\nProduces 4 Food per day"
                     ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.maximumHealth(16)], companionModifiers: [.maximumHealth(16)]),
                     production: ResourceAmount(.food, 4)
                 )
             ]
@@ -67,6 +71,7 @@ enum GameContentHomesteadGenerated {
                         title: "Healing",
                         description: "Increase Healing by 1\nProduces 1 Herbs per day"
                     ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.healthRestored(1)], companionModifiers: [.healthRestored(1)]),
                     production: ResourceAmount(.herbs, 1)
                 ),
                 HomesteadNodeTier(
@@ -76,6 +81,7 @@ enum GameContentHomesteadGenerated {
                         title: "Healing",
                         description: "Increase Healing by 2\nProduces 2 Herbs per day"
                     ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.healthRestored(2)], companionModifiers: [.healthRestored(2)]),
                     production: ResourceAmount(.herbs, 2)
                 ),
                 HomesteadNodeTier(
@@ -85,6 +91,7 @@ enum GameContentHomesteadGenerated {
                         title: "Healing",
                         description: "Increase Healing by 3\nProduces 3 Herbs per day"
                     ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.healthRestored(3)], companionModifiers: [.healthRestored(3)]),
                     production: ResourceAmount(.herbs, 3)
                 ),
                 HomesteadNodeTier(
@@ -94,6 +101,7 @@ enum GameContentHomesteadGenerated {
                         title: "Healing",
                         description: "Increase Healing by 4\nProduces 4 Herbs per day"
                     ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.healthRestored(4)], companionModifiers: [.healthRestored(4)]),
                     production: ResourceAmount(.herbs, 4)
                 )
             ]
@@ -113,6 +121,7 @@ enum GameContentHomesteadGenerated {
                         title: "Strength",
                         description: "Increase Strength by 2\nProduces 1 Food per day"
                     ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.strength(2)], companionModifiers: [.strength(2)]),
                     production: ResourceAmount(.food, 1)
                 ),
                 HomesteadNodeTier(
@@ -122,6 +131,7 @@ enum GameContentHomesteadGenerated {
                         title: "Strength",
                         description: "Increase Strength by 4\nProduces 2 Food per day"
                     ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.strength(4)], companionModifiers: [.strength(4)]),
                     production: ResourceAmount(.food, 2)
                 ),
                 HomesteadNodeTier(
@@ -131,6 +141,7 @@ enum GameContentHomesteadGenerated {
                         title: "Strength",
                         description: "Increase Strength by 6\nProduces 3 Food per day"
                     ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.strength(6)], companionModifiers: [.strength(6)]),
                     production: ResourceAmount(.food, 3)
                 ),
                 HomesteadNodeTier(
@@ -140,6 +151,7 @@ enum GameContentHomesteadGenerated {
                         title: "Strength",
                         description: "Increase Strength by 8\nProduces 4 Food per day"
                     ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.strength(8)], companionModifiers: [.strength(8)]),
                     production: ResourceAmount(.food, 4)
                 )
             ]
@@ -159,6 +171,7 @@ enum GameContentHomesteadGenerated {
                         title: "Toughness",
                         description: "Increase Toughness by 2\nProduces 1 Food per day"
                     ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.toughness(2)], companionModifiers: [.toughness(2)]),
                     production: ResourceAmount(.food, 1)
                 ),
                 HomesteadNodeTier(
@@ -168,6 +181,7 @@ enum GameContentHomesteadGenerated {
                         title: "Toughness",
                         description: "Increase Toughness by 4\nProduces 2 Food per day"
                     ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.toughness(4)], companionModifiers: [.toughness(4)]),
                     production: ResourceAmount(.food, 2)
                 ),
                 HomesteadNodeTier(
@@ -177,6 +191,7 @@ enum GameContentHomesteadGenerated {
                         title: "Toughness",
                         description: "Increase Toughness by 6\nProduces 3 Food per day"
                     ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.toughness(6)], companionModifiers: [.toughness(6)]),
                     production: ResourceAmount(.food, 3)
                 ),
                 HomesteadNodeTier(
@@ -186,6 +201,7 @@ enum GameContentHomesteadGenerated {
                         title: "Toughness",
                         description: "Increase Toughness by 8\nProduces 4 Food per day"
                     ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.toughness(8)], companionModifiers: [.toughness(8)]),
                     production: ResourceAmount(.food, 4)
                 )
             ]
@@ -205,6 +221,7 @@ enum GameContentHomesteadGenerated {
                         title: "Burn Ward",
                         description: "Reduce Burn damage taken by 10%\nProduces 1 Food per day"
                     ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.damageTakenPercent(.burn, 0.10)], companionModifiers: [.damageTakenPercent(.burn, 0.10)]),
                     production: ResourceAmount(.food, 1)
                 ),
                 HomesteadNodeTier(
@@ -214,6 +231,7 @@ enum GameContentHomesteadGenerated {
                         title: "Burn Ward",
                         description: "Reduce Burn damage taken by 20%\nProduces 2 Food per day"
                     ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.damageTakenPercent(.burn, 0.20)], companionModifiers: [.damageTakenPercent(.burn, 0.20)]),
                     production: ResourceAmount(.food, 2)
                 ),
                 HomesteadNodeTier(
@@ -223,6 +241,7 @@ enum GameContentHomesteadGenerated {
                         title: "Burn Ward",
                         description: "Reduce Burn damage taken by 30%\nProduces 3 Food per day"
                     ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.damageTakenPercent(.burn, 0.30)], companionModifiers: [.damageTakenPercent(.burn, 0.30)]),
                     production: ResourceAmount(.food, 3)
                 ),
                 HomesteadNodeTier(
@@ -232,6 +251,7 @@ enum GameContentHomesteadGenerated {
                         title: "Burn Ward",
                         description: "Reduce Burn damage taken by 40%\nProduces 4 Food per day"
                     ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.damageTakenPercent(.burn, 0.40)], companionModifiers: [.damageTakenPercent(.burn, 0.40)]),
                     production: ResourceAmount(.food, 4)
                 )
             ]
@@ -250,7 +270,8 @@ enum GameContentHomesteadGenerated {
                     bonus: HomesteadBonus(
                         title: "Physical Damage",
                         description: "Increase Physical damage dealt by 1"
-                    )
+                    ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.damageDealt(.physical, 1)], companionModifiers: [.damageDealt(.physical, 1)])
                 ),
                 HomesteadNodeTier(
                     tier: 2,
@@ -258,7 +279,8 @@ enum GameContentHomesteadGenerated {
                     bonus: HomesteadBonus(
                         title: "Physical Damage",
                         description: "Increase Physical damage dealt by 2"
-                    )
+                    ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.damageDealt(.physical, 2)], companionModifiers: [.damageDealt(.physical, 2)])
                 ),
                 HomesteadNodeTier(
                     tier: 3,
@@ -266,7 +288,8 @@ enum GameContentHomesteadGenerated {
                     bonus: HomesteadBonus(
                         title: "Physical Damage",
                         description: "Increase Physical damage dealt by 3"
-                    )
+                    ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.damageDealt(.physical, 3)], companionModifiers: [.damageDealt(.physical, 3)])
                 ),
                 HomesteadNodeTier(
                     tier: 4,
@@ -274,7 +297,8 @@ enum GameContentHomesteadGenerated {
                     bonus: HomesteadBonus(
                         title: "Physical Damage",
                         description: "Increase Physical damage dealt by 4"
-                    )
+                    ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.damageDealt(.physical, 4)], companionModifiers: [.damageDealt(.physical, 4)])
                 )
             ]
         ))
@@ -292,7 +316,8 @@ enum GameContentHomesteadGenerated {
                     bonus: HomesteadBonus(
                         title: "Freeze Ward",
                         description: "Reduces Freeze damage taken by 15%"
-                    )
+                    ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.damageTakenPercent(.freeze, 0.15)], companionModifiers: [.damageTakenPercent(.freeze, 0.15)])
                 ),
                 HomesteadNodeTier(
                     tier: 2,
@@ -300,7 +325,8 @@ enum GameContentHomesteadGenerated {
                     bonus: HomesteadBonus(
                         title: "Freeze Ward",
                         description: "Reduces Freeze damage taken by 30%"
-                    )
+                    ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.damageTakenPercent(.freeze, 0.3)], companionModifiers: [.damageTakenPercent(.freeze, 0.3)])
                 ),
                 HomesteadNodeTier(
                     tier: 3,
@@ -308,7 +334,8 @@ enum GameContentHomesteadGenerated {
                     bonus: HomesteadBonus(
                         title: "Freeze Ward",
                         description: "Reduces Freeze damage taken by 40%"
-                    )
+                    ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.damageTakenPercent(.freeze, 0.4)], companionModifiers: [.damageTakenPercent(.freeze, 0.4)])
                 ),
                 HomesteadNodeTier(
                     tier: 4,
@@ -316,7 +343,8 @@ enum GameContentHomesteadGenerated {
                     bonus: HomesteadBonus(
                         title: "Freeze Ward",
                         description: "Reduces Freeze damage taken by 50%"
-                    )
+                    ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.damageTakenPercent(.freeze, 0.5)], companionModifiers: [.damageTakenPercent(.freeze, 0.5)])
                 )
             ]
         ))
@@ -334,7 +362,8 @@ enum GameContentHomesteadGenerated {
                     bonus: HomesteadBonus(
                         title: "Catalyzed Venom",
                         description: "Increase Poison damage dealt by 5%\nDecrease Poison damage taken by 10%"
-                    )
+                    ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.poisonDamageDealtPercent(0.05), .damageTakenPercent(.poison, 0.10)], companionModifiers: [.poisonDamageDealtPercent(0.05), .damageTakenPercent(.poison, 0.10)])
                 ),
                 HomesteadNodeTier(
                     tier: 2,
@@ -342,7 +371,8 @@ enum GameContentHomesteadGenerated {
                     bonus: HomesteadBonus(
                         title: "Catalyzed Venom",
                         description: "Increase Poison damage dealt by 10%\nDecrease Poison damage taken by 20%"
-                    )
+                    ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.poisonDamageDealtPercent(0.10), .damageTakenPercent(.poison, 0.20)], companionModifiers: [.poisonDamageDealtPercent(0.10), .damageTakenPercent(.poison, 0.20)])
                 ),
                 HomesteadNodeTier(
                     tier: 3,
@@ -350,7 +380,8 @@ enum GameContentHomesteadGenerated {
                     bonus: HomesteadBonus(
                         title: "Catalyzed Venom",
                         description: "Increase Poison damage dealt by 15%\nDecrease Poison damage taken by 30%"
-                    )
+                    ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.poisonDamageDealtPercent(0.15), .damageTakenPercent(.poison, 0.30)], companionModifiers: [.poisonDamageDealtPercent(0.15), .damageTakenPercent(.poison, 0.30)])
                 ),
                 HomesteadNodeTier(
                     tier: 4,
@@ -358,7 +389,8 @@ enum GameContentHomesteadGenerated {
                     bonus: HomesteadBonus(
                         title: "Catalyzed Venom",
                         description: "Increase Poison damage dealt by 20%\nDecrease Poison damage taken by 40%"
-                    )
+                    ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.poisonDamageDealtPercent(0.20), .damageTakenPercent(.poison, 0.40)], companionModifiers: [.poisonDamageDealtPercent(0.20), .damageTakenPercent(.poison, 0.40)])
                 )
             ]
         ))
@@ -377,6 +409,7 @@ enum GameContentHomesteadGenerated {
                         title: "Mana",
                         description: "Increase Mana by 2\nProduces 1 Crystal per day"
                     ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.maximumMana(2)], companionModifiers: [.maximumMana(2)]),
                     production: ResourceAmount(.crystal, 1)
                 ),
                 HomesteadNodeTier(
@@ -386,6 +419,7 @@ enum GameContentHomesteadGenerated {
                         title: "Mana",
                         description: "Increase Mana by 4\nProduces 2 Crystal per day"
                     ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.maximumMana(4)], companionModifiers: [.maximumMana(4)]),
                     production: ResourceAmount(.crystal, 2)
                 ),
                 HomesteadNodeTier(
@@ -395,6 +429,7 @@ enum GameContentHomesteadGenerated {
                         title: "Mana",
                         description: "Increase Mana by 6\nProduces 3 Crystal per day"
                     ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.maximumMana(6)], companionModifiers: [.maximumMana(6)]),
                     production: ResourceAmount(.crystal, 3)
                 ),
                 HomesteadNodeTier(
@@ -404,6 +439,7 @@ enum GameContentHomesteadGenerated {
                         title: "Mana",
                         description: "Increase Mana by 8\nProduces 4 Crystal per day"
                     ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.maximumMana(8)], companionModifiers: [.maximumMana(8)]),
                     production: ResourceAmount(.crystal, 4)
                 )
             ]
@@ -422,7 +458,8 @@ enum GameContentHomesteadGenerated {
                     bonus: HomesteadBonus(
                         title: "Elemental Etching",
                         description: "Increase Burn, Freeze, and Holy damage dealt by 1"
-                    )
+                    ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.damageDealt(.burn, 1), .damageDealt(.freeze, 1), .damageDealt(.holy, 1)], companionModifiers: [.damageDealt(.burn, 1), .damageDealt(.freeze, 1), .damageDealt(.holy, 1)])
                 ),
                 HomesteadNodeTier(
                     tier: 2,
@@ -430,7 +467,8 @@ enum GameContentHomesteadGenerated {
                     bonus: HomesteadBonus(
                         title: "Elemental Etching",
                         description: "Increase Burn, Freeze, and Holy damage dealt by 2"
-                    )
+                    ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.damageDealt(.burn, 2), .damageDealt(.freeze, 2), .damageDealt(.holy, 2)], companionModifiers: [.damageDealt(.burn, 2), .damageDealt(.freeze, 2), .damageDealt(.holy, 2)])
                 ),
                 HomesteadNodeTier(
                     tier: 3,
@@ -438,7 +476,8 @@ enum GameContentHomesteadGenerated {
                     bonus: HomesteadBonus(
                         title: "Elemental Etching",
                         description: "Increase Burn, Freeze, and Holy damage dealt by 3"
-                    )
+                    ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.damageDealt(.burn, 3), .damageDealt(.freeze, 3), .damageDealt(.holy, 3)], companionModifiers: [.damageDealt(.burn, 3), .damageDealt(.freeze, 3), .damageDealt(.holy, 3)])
                 ),
                 HomesteadNodeTier(
                     tier: 4,
@@ -446,7 +485,8 @@ enum GameContentHomesteadGenerated {
                     bonus: HomesteadBonus(
                         title: "Elemental Etching",
                         description: "Increase Burn, Freeze, and Holy damage dealt by 4"
-                    )
+                    ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.damageDealt(.burn, 4), .damageDealt(.freeze, 4), .damageDealt(.holy, 4)], companionModifiers: [.damageDealt(.burn, 4), .damageDealt(.freeze, 4), .damageDealt(.holy, 4)])
                 )
             ]
         ))
@@ -465,6 +505,7 @@ enum GameContentHomesteadGenerated {
                         title: "Companion Damage",
                         description: "Increase Companion damage dealt by 1\nProduces 1 Hide per day"
                     ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.companionDamageDealt(1)]),
                     production: ResourceAmount(.hide, 1)
                 ),
                 HomesteadNodeTier(
@@ -474,6 +515,7 @@ enum GameContentHomesteadGenerated {
                         title: "Companion Damage",
                         description: "Increase Companion damage dealt by 2\nProduces 2 Hide per day"
                     ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.companionDamageDealt(2)]),
                     production: ResourceAmount(.hide, 2)
                 ),
                 HomesteadNodeTier(
@@ -483,6 +525,7 @@ enum GameContentHomesteadGenerated {
                         title: "Companion Damage",
                         description: "Increase Companion damage dealt by 3\nProduces 3 Hide per day"
                     ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.companionDamageDealt(3)]),
                     production: ResourceAmount(.hide, 3)
                 ),
                 HomesteadNodeTier(
@@ -492,6 +535,7 @@ enum GameContentHomesteadGenerated {
                         title: "Companion Damage",
                         description: "Increase Companion damage dealt by 4\nProduces 4 Hide per day"
                     ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.companionDamageDealt(4)]),
                     production: ResourceAmount(.hide, 4)
                 )
             ]
@@ -510,7 +554,8 @@ enum GameContentHomesteadGenerated {
                     bonus: HomesteadBonus(
                         title: "Companion Agility",
                         description: "Increase Companion Agility by 2"
-                    )
+                    ),
+                    combatBonus: HomesteadTierCombatBonus(companionModifiers: [.agility(2)])
                 ),
                 HomesteadNodeTier(
                     tier: 2,
@@ -518,7 +563,8 @@ enum GameContentHomesteadGenerated {
                     bonus: HomesteadBonus(
                         title: "Companion Agility",
                         description: "Increase Companion Agility by 4"
-                    )
+                    ),
+                    combatBonus: HomesteadTierCombatBonus(companionModifiers: [.agility(4)])
                 ),
                 HomesteadNodeTier(
                     tier: 3,
@@ -526,7 +572,8 @@ enum GameContentHomesteadGenerated {
                     bonus: HomesteadBonus(
                         title: "Companion Agility",
                         description: "Increase Companion Agility by 6"
-                    )
+                    ),
+                    combatBonus: HomesteadTierCombatBonus(companionModifiers: [.agility(6)])
                 ),
                 HomesteadNodeTier(
                     tier: 4,
@@ -534,7 +581,8 @@ enum GameContentHomesteadGenerated {
                     bonus: HomesteadBonus(
                         title: "Companion Agility",
                         description: "Increase Companion Agility by 8"
-                    )
+                    ),
+                    combatBonus: HomesteadTierCombatBonus(companionModifiers: [.agility(8)])
                 )
             ]
         ))
@@ -552,7 +600,8 @@ enum GameContentHomesteadGenerated {
                     bonus: HomesteadBonus(
                         title: "Astral Find",
                         description: "Find 5% more Astral items"
-                    )
+                    ),
+                    combatBonus: HomesteadTierCombatBonus(astralChanceBonusPercent: 5)
                 ),
                 HomesteadNodeTier(
                     tier: 2,
@@ -560,7 +609,8 @@ enum GameContentHomesteadGenerated {
                     bonus: HomesteadBonus(
                         title: "Astral Find",
                         description: "Find 10% more Astral items"
-                    )
+                    ),
+                    combatBonus: HomesteadTierCombatBonus(astralChanceBonusPercent: 10)
                 ),
                 HomesteadNodeTier(
                     tier: 3,
@@ -568,7 +618,8 @@ enum GameContentHomesteadGenerated {
                     bonus: HomesteadBonus(
                         title: "Astral Find",
                         description: "Find 15% more Astral items"
-                    )
+                    ),
+                    combatBonus: HomesteadTierCombatBonus(astralChanceBonusPercent: 15)
                 ),
                 HomesteadNodeTier(
                     tier: 4,
@@ -576,7 +627,8 @@ enum GameContentHomesteadGenerated {
                     bonus: HomesteadBonus(
                         title: "Astral Find",
                         description: "Find 20% more Astral items"
-                    )
+                    ),
+                    combatBonus: HomesteadTierCombatBonus(astralChanceBonusPercent: 20)
                 )
             ]
         ))
@@ -595,6 +647,7 @@ enum GameContentHomesteadGenerated {
                         title: "Gold Find",
                         description: "Find 5% more Gold\nProduces 1 Gold per day"
                     ),
+                    combatBonus: HomesteadTierCombatBonus(goldFindPercent: 5),
                     production: ResourceAmount(.gold, 1)
                 ),
                 HomesteadNodeTier(
@@ -604,6 +657,7 @@ enum GameContentHomesteadGenerated {
                         title: "Gold Find",
                         description: "Find 10% more Gold\nProduces 2 Gold per day"
                     ),
+                    combatBonus: HomesteadTierCombatBonus(goldFindPercent: 10),
                     production: ResourceAmount(.gold, 2)
                 ),
                 HomesteadNodeTier(
@@ -613,6 +667,7 @@ enum GameContentHomesteadGenerated {
                         title: "Gold Find",
                         description: "Find 15% more Gold\nProduces 3 Gold per day"
                     ),
+                    combatBonus: HomesteadTierCombatBonus(goldFindPercent: 15),
                     production: ResourceAmount(.gold, 3)
                 ),
                 HomesteadNodeTier(
@@ -622,6 +677,7 @@ enum GameContentHomesteadGenerated {
                         title: "Gold Find",
                         description: "Find 20% more Gold\nProduces 4 Gold per day"
                     ),
+                    combatBonus: HomesteadTierCombatBonus(goldFindPercent: 20),
                     production: ResourceAmount(.gold, 4)
                 )
             ]

@@ -54,11 +54,12 @@ After a green isolated rebuild, `--no-build` is appropriate for mid-task smoke
 reruns in the same slot. Final handoff still uses the full isolated route.
 
 `handoff.sh` is the canonical path-scoped route. It composes generation,
-style, package, compile, smoke, and idempotence checks from the changed paths;
-the script's help and `agent-context.sh` output show the exact route. Final
-plan cleanup is checked with `--final`. After the routed plan succeeds, handoff
-always runs the cheap CI slices (module boundaries, Swift Testing migration,
-release-note validation) that full `ci-gate.sh` also enforces.
+style, package, compile, smoke, documentation, and idempotence checks from the
+changed paths; the script's help and `agent-context.sh` output show the exact
+route. Docs and Markdown edits route `check-docs.py`. `--final` is only for
+plan-lifecycle cleanup. After the routed plan succeeds, handoff always runs
+the cheap CI slices (module boundaries, Swift Testing migration, release-note
+validation) that full `ci-gate.sh` also enforces.
 
 ## Gate composition
 

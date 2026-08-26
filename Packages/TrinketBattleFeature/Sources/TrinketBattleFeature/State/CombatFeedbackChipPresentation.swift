@@ -69,7 +69,7 @@ struct CombatFeedbackChipPresentation: Hashable {
         case let .triggered(chipKeyword):
             textAndIcon(trailing: .keyword(chipKeyword), text: chipKeyword.rawValue)
         case let .cleanse(chipKeyword):
-            dualAction(leading: .keyword(.purge), trailing: .keyword(chipKeyword))
+            dualAction(leading: .keyword(.cleanse), trailing: .keyword(chipKeyword))
         case let .purge(chipKeyword):
             dualAction(leading: .keyword(.purge), trailing: .keyword(chipKeyword))
         case let .status(status):
@@ -92,31 +92,10 @@ struct CombatFeedbackChipPresentation: Hashable {
         _ status: CombatFeedbackStatusLabel,
         keyword: Keyword
     ) -> Self {
-        let beneficial = Style.beneficialStatus
-        let negative = Style.negativeStatus
-        switch status {
-        case .consecrated, .nextHolyStrike, .avatar:
-            return dualAction(leading: beneficial, trailing: .keyword(.holy))
-        case .nextStrikeDouble:
-            return dualAction(leading: beneficial, trailing: .keyword(.physical))
-        case .evadeNextHit:
-            return dualAction(leading: beneficial, trailing: .keyword(.dodge))
-        case .manaShield:
-            return dualAction(leading: beneficial, trailing: .keyword(.mana))
-        case .criticalUp, .thorns:
-            return dualAction(leading: beneficial, trailing: .keyword(.physical))
-        case .ward:
-            return dualAction(leading: beneficial, trailing: .keyword(keyword))
-        case .blockDown:
-            return dualAction(leading: negative, trailing: .keyword(.block))
-        case .marked:
-            return iconOnly(trailing: negative)
-        case .hemorrhage:
-            return dualAction(leading: negative, trailing: .keyword(.bleed))
-        }
+        CombatFeedbackEffectPresentation.chipPresentation(for: status, keyword: keyword)
     }
 
-    private static func iconOnly(trailing: Style) -> Self {
+    static func iconOnly(trailing: Style) -> Self {
         Self(
             leadingStyle: nil,
             trailingStyle: trailing,
@@ -124,7 +103,7 @@ struct CombatFeedbackChipPresentation: Hashable {
         )
     }
 
-    private static func dualAction(
+    static func dualAction(
         leading: Style,
         trailing: Style
     ) -> Self {

@@ -12,7 +12,8 @@ struct MysteryChoiceCard: View {
     let isSelected: Bool
     let isDisabled: Bool
     let materialQuantity: Int
-    let experienceAward: Int
+    let heroExperienceAward: Int
+    let companionExperienceAward: Int
     let onSelect: () -> Void
 
     var body: some View {
@@ -112,8 +113,14 @@ struct MysteryChoiceCard: View {
 
         case .gainExperience:
             rewardSummary(
-                title: "\(previewExperienceAward) XP",
-                value: nil,
+                title: "Hero",
+                value: "+\(heroExperienceAward) XP",
+                systemIcon: "star.fill",
+                tint: TrinketDesign.Colors.warning
+            )
+            rewardSummary(
+                title: "Companion",
+                value: "+\(companionExperienceAward) XP",
                 systemIcon: "star.fill",
                 tint: TrinketDesign.Colors.warning
             )
@@ -213,10 +220,6 @@ struct MysteryChoiceCard: View {
             systemIcon: "gift.fill",
             tint: HomesteadResource.gold.tint
         )
-    }
-
-    private var previewExperienceAward: Int {
-        experienceAward
     }
 
     private func generatedItemRewardText(

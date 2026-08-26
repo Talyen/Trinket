@@ -101,19 +101,63 @@ public struct PlayerHomesteadState: Equatable, Hashable, Sendable {
         projected.settleProduction(at: date, roster: roster)
         return projected.pendingProduction
             .compactMap { resource, amount in
-                let available = Int(amount.rounded(.down))
-                let quantity = if resource == .gold {
-                    min(
-                        available,
-                        max(0, PlayerRosterState.maxGoldBalance - projected.balance(for: resource, roster: roster))
-                    )
-                } else {
-                    available
-                }
+                let quantity = projected.collectibleQuantity(
+                    for: resource,
+                    pending: amount,
+                    roster: roster
+                )
                 guard quantity > 0 else { return nil }
                 return ResourceAmount(resource, quantity)
             }
             .sorted { $0.resource.rawValue < $1.resource.rawValue }
+    }
+
+    /// Next date when any producing resource crosses a whole collectible unit.
+    public func nextCollectibleDate(after date: Date, roster: PlayerRosterState) -> Date? {
+        var projected = self
+        projected.settleProduction(at: date, roster: roster)
+
+        var rates: [HomesteadResource: Double] = [:]
+        for nodeID in HomesteadNodeID.allCases {
+            let activeTier = projected.tier(for: nodeID)
+            guard activeTier > 0,
+                  let definition = GameContent.homesteadNode(matching: nodeID),
+                  let production = definition.tier(activeTier)?.production,
+                  production.quantity > 0
+            else { continue }
+            rates[production.resource, default: 0] += Double(production.quantity) / Self.secondsPerDay
+        }
+
+        var soonest: TimeInterval?
+        for (resource, rate) in rates where rate > 0 {
+            let pending = projected.pendingProduction[resource, default: 0]
+            if resource == .gold {
+                let capacity = Double(PlayerRosterState.maxGoldBalance)
+                    - Double(projected.balance(for: .gold, roster: roster))
+                guard pending < capacity else { continue }
+            }
+            let remaining = floor(pending) + 1 - pending
+            let seconds = remaining / rate
+            guard seconds.isFinite, seconds > 0 else { continue }
+            soonest = min(soonest ?? seconds, seconds)
+        }
+        return soonest.map { date.addingTimeInterval($0) }
+    }
+
+    func collectibleQuantity(
+        for resource: HomesteadResource,
+        pending amount: Double,
+        roster: PlayerRosterState
+    ) -> Int {
+        let available = Int(amount.rounded(.down))
+        guard available > 0 else { return 0 }
+        if resource == .gold {
+            return min(
+                available,
+                max(0, PlayerRosterState.maxGoldBalance - balance(for: .gold, roster: roster))
+            )
+        }
+        return available
     }
 
     @discardableResult
@@ -125,27 +169,19 @@ public struct PlayerHomesteadState: Equatable, Hashable, Sendable {
 
         let collected = pendingProduction
             .compactMap { resource, amount -> ResourceAmount? in
-                let balance = balance(for: resource, roster: roster)
-                let available = Int(amount.rounded(.down))
-                let quantity = resource == .gold
-                    ? min(available, max(0, PlayerRosterState.maxGoldBalance - balance))
-                    : available
+                let quantity = collectibleQuantity(for: resource, pending: amount, roster: roster)
                 guard quantity > 0 else { return nil }
                 return ResourceAmount(resource, quantity)
             }
             .sorted { $0.resource.rawValue < $1.resource.rawValue }
 
         for amount in collected {
-            let quantity: Int
             if amount.resource == .gold {
-                let current = roster.gold
-                quantity = min(amount.quantity, PlayerRosterState.maxGoldBalance - current)
-                roster.grantGold(quantity)
+                roster.grantGold(amount.quantity)
             } else {
-                quantity = amount.quantity
-                resources[amount.resource, default: 0] += quantity
+                resources[amount.resource, default: 0] += amount.quantity
             }
-            pendingProduction[amount.resource, default: 0] -= Double(quantity)
+            pendingProduction[amount.resource, default: 0] -= Double(amount.quantity)
         }
         pendingProduction = pendingProduction.filter { $0.value > 0 }
         return collected

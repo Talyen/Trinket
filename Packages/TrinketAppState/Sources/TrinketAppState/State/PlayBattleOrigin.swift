@@ -3,6 +3,7 @@ import TrinketBattleRuntime
 import TrinketContent
 import TrinketCore
 import TrinketFeatureContracts
+import TrinketPersistence
 
 /// Play-mode origin for an active or prepared battle. Owned by AppState —
 /// BattleFeature only sees the opaque `BattleRunKey` and presentation fields.
@@ -47,7 +48,13 @@ public enum PlayBattleOrigin: Hashable, Sendable {
 @MainActor
 struct PlayBattleRoute {
     let origin: PlayBattleOrigin
-    let complete: @MainActor (BattleRunConfiguration, BattlePresentationContext?, Int, [ResourceAmount]?) -> Bool
+    let complete: @MainActor (
+        BattleRunConfiguration,
+        BattlePresentationContext?,
+        Int,
+        [ResourceAmount]?,
+        BattleLootPackage?
+    ) -> Bool
 
     /// True when `route` matches `runKey` (both nil, or same origin run key).
     static func matches(_ route: Self?, runKey: BattleRunKey?, missingLog: String) -> Bool {

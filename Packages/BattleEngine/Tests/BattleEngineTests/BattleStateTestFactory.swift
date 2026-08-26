@@ -122,4 +122,69 @@ enum BattleStateTestFactory {
         }
         return battle
     }
+
+    /// Pipeline/handler battle with no deck bootstrap. Applies modifier max HP/mana
+    /// like the production convenience init, and sequences `nextEffectID` after
+    /// any seeded effects.
+    static func makeMinimalBattle(
+        hero: Combatant,
+        companion: Combatant,
+        enemy: Combatant,
+        heroEffects: [ActiveEffect] = [],
+        companionEffects: [ActiveEffect] = [],
+        enemyEffects: [ActiveEffect] = [],
+        heroHealth: Int? = nil,
+        companionHealth: Int? = nil,
+        enemyHealth: Int? = nil,
+        heroMana: Int? = nil,
+        companionMana: Int? = nil,
+        enemyMana: Int? = nil,
+        heroModifiers: CombatModifierProfile = .zero,
+        companionModifiers: CombatModifierProfile = .zero,
+        enemyModifiers: CombatModifierProfile = .zero,
+        rngSeed: UInt64 = BattleTestFixtures.deterministicNonCriticalSeed,
+        nextEffectID: Int? = nil,
+        nextEventID: Int = 0
+    ) -> BattleState {
+        let maxExistingEffectID = max(
+            heroEffects.map(\.id).max() ?? 0,
+            companionEffects.map(\.id).max() ?? 0,
+            enemyEffects.map(\.id).max() ?? 0
+        )
+        return BattleState(
+            roster: BattleRoster(
+                hero: CombatantRuntime(
+                    combatant: hero,
+                    initialHealth: heroHealth,
+                    initialMana: heroMana,
+                    initialActiveEffects: heroEffects,
+                    maximumHealthBonus: heroModifiers.maximumHealthBonus,
+                    maximumManaBonus: heroModifiers.maximumManaBonus
+                ),
+                companion: CombatantRuntime(
+                    combatant: companion,
+                    initialHealth: companionHealth,
+                    initialMana: companionMana,
+                    initialActiveEffects: companionEffects,
+                    maximumHealthBonus: companionModifiers.maximumHealthBonus,
+                    maximumManaBonus: companionModifiers.maximumManaBonus
+                ),
+                enemy: CombatantRuntime(
+                    combatant: enemy,
+                    initialHealth: enemyHealth,
+                    initialMana: enemyMana,
+                    initialActiveEffects: enemyEffects
+                )
+            ),
+            rng: SeededRandomNumberGenerator(seed: rngSeed),
+            nextEffectID: nextEffectID ?? maxExistingEffectID + 1,
+            nextEventID: nextEventID,
+            events: [],
+            gold: 0,
+            initialGold: 0,
+            heroModifiers: heroModifiers,
+            companionModifiers: companionModifiers,
+            enemyModifiers: enemyModifiers
+        )
+    }
 }

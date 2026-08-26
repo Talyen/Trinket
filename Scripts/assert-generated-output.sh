@@ -67,6 +67,7 @@ cd "$(dirname "$0")/.."
 
 REGENERATE=false
 INCLUDE_ASSETS=false
+STRICT_ASSETS=false
 # committed: fail when tracked generated paths differ from HEAD (CI / pre-push).
 # idempotent: regenerate once and fail if tracked outputs still change (local handoff).
 MODE="committed"
@@ -86,6 +87,8 @@ Modes:
 Options:
   --regenerate     Run ./Scripts/generate.sh before the committed-mode check
   --assets         Include art/music/SFX/cinematic outputs when regenerating or checking
+  --strict-assets  With --assets/--idempotent, fingerprint full media trees (CI assets gate).
+                   Default asset idempotence checks generated catalogs and hash TSVs only.
   --idempotent     Consistency check (see Modes); implies a regenerate pass
   -h, --help       Show this help
 
@@ -102,6 +105,11 @@ while [[ $# -gt 0 ]]; do
       ;;
     --assets)
       INCLUDE_ASSETS=true
+      shift
+      ;;
+    --strict-assets)
+      INCLUDE_ASSETS=true
+      STRICT_ASSETS=true
       shift
       ;;
     --idempotent)
@@ -135,16 +143,43 @@ run_generate() {
 snapshot_tracked() {
   local path
   for path in "${TRACKED_PATHS[@]}"; do
-    if [[ -d "$path" ]]; then
-      find "$path" -type f ! -name '.DS_Store' -print0 \
-        | LC_ALL=C sort -z \
-        | xargs -0 shasum -a 256 2>/dev/null
-    elif [[ -f "$path" ]]; then
-      shasum -a 256 "$path"
-    else
-      printf 'MISSING %s\n' "$path"
-    fi
+    trinket_snapshot_path "$path"
   done
+}
+
+# Asset idempotence without hashing entire binary media trees. Per-asset hash TSVs
+# are the correctness signal; catalogs must stay aligned with manifests.
+snapshot_tracked_asset_catalogs() {
+  local path
+  for path in "${TRACKED_PATHS[@]}"; do
+    case "$path" in
+      Trinket/Media/*|Trinket/Assets.xcassets|Trinket/AppIcon.icon)
+        continue
+        ;;
+    esac
+    trinket_snapshot_path "$path"
+  done
+}
+
+trinket_snapshot_path() {
+  local path="$1"
+  if [[ -d "$path" ]]; then
+    find "$path" -type f ! -name '.DS_Store' -print0 \
+      | LC_ALL=C sort -z \
+      | xargs -0 shasum -a 256 2>/dev/null
+  elif [[ -f "$path" ]]; then
+    shasum -a 256 "$path"
+  else
+    printf 'MISSING %s\n' "$path"
+  fi
+}
+
+snapshot_for_idempotent_check() {
+  if [[ "$INCLUDE_ASSETS" == true && "$STRICT_ASSETS" != true ]]; then
+    snapshot_tracked_asset_catalogs
+  else
+    snapshot_tracked
+  fi
 }
 
 if [[ "$MODE" == "idempotent" ]]; then
@@ -182,9 +217,9 @@ if [[ "$MODE" == "idempotent" ]]; then
     exit 0
   fi
 
-  before="$(snapshot_tracked)"
+  before="$(snapshot_for_idempotent_check)"
   run_generate
-  after="$(snapshot_tracked)"
+  after="$(snapshot_for_idempotent_check)"
   if [[ "$before" == "$after" ]]; then
     echo "Generated output is stable under regenerate (matches manifests)."
     # Align with verify/ci-gate so later wrappers skip generate.

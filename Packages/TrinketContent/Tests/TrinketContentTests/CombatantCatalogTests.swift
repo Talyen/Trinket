@@ -1,5 +1,6 @@
 import Testing
 import TrinketContent
+import TrinketCore
 
 struct CombatantCatalogTests {
     @Test func homesteadNodeIDsAreUnique() throws {
@@ -59,6 +60,35 @@ struct CombatantCatalogTests {
                 }
             }
         }
+    }
+
+    @Test func homesteadCombatBonusesMatchAuthoredTierValues() {
+        let culinary = HomesteadEffects.from(nodeTiers: [.culinaryArts: 1])
+        #expect(culinary.heroModifiers == [.damageTakenPercent(.burn, 0.10)])
+        #expect(culinary.companionModifiers == culinary.heroModifiers)
+
+        let culinaryMax = HomesteadEffects.from(nodeTiers: [.culinaryArts: 4])
+        #expect(culinaryMax.heroModifiers == [.damageTakenPercent(.burn, 0.40)])
+
+        let wool = HomesteadEffects.from(nodeTiers: [.woolTailoring: 1])
+        #expect(wool.heroModifiers == [.damageTakenPercent(.freeze, 0.15)])
+        let woolMax = HomesteadEffects.from(nodeTiers: [.woolTailoring: 4])
+        #expect(woolMax.heroModifiers == [.damageTakenPercent(.freeze, 0.5)])
+
+        let alchemy = HomesteadEffects.from(nodeTiers: [.alchemyLab: 1])
+        #expect(alchemy.heroModifiers == [
+            .poisonDamageDealtPercent(0.05),
+            .damageTakenPercent(.poison, 0.10),
+        ])
+        #expect(alchemy.companionModifiers == alchemy.heroModifiers)
+
+        let lodge = HomesteadEffects.from(nodeTiers: [.hunterLodge: 4])
+        #expect(lodge.heroModifiers == [.companionDamageDealt(4)])
+        #expect(lodge.companionModifiers.isEmpty)
+
+        let agility = HomesteadEffects.from(nodeTiers: [.agilityTraining: 2])
+        #expect(agility.heroModifiers.isEmpty)
+        #expect(agility.companionModifiers == [.agility(4)])
     }
 
     @Test func playerCombatantsHaveCompleteAbilityChoicesAndLoadouts() throws {

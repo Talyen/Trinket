@@ -131,13 +131,14 @@ id	name	max_health	is_boss	growth_archetype	abilities	trait_id	faction
 Tab-separated columns:
 
 ```text
-node_id	title	summary	symbol_name	category	prerequisites	tier	cost	bonus_title	bonus_description	production
+node_id	title	summary	symbol_name	category	prerequisites	tier	cost	bonus_title	bonus_description	modifiers	production
 ```
 
 - `node_id`: `HomesteadNodeID` case name (e.g. `wheatField`).
 - `category`: `farming`, `crafting`, `alchemy`, `training`, or `arcana`.
 - `prerequisites`: pipe-separated `nodeID` or `nodeID:tier` tokens.
 - `cost`: pipe-separated `resource:amount` tokens (e.g. `wood:10|stone:4`).
+- `modifiers`: affix-token combat bonuses for that tier. Default scope is hero and companion; prefix `hero.` / `companion.` to target one side. Homestead-only tokens: `astral_chance:N`, `gold_find:N`.
 - One row per tier; node metadata must match across tiers for the same `node_id`.
 
 Homestead catalogs are manifest-driven via `homestead_nodes.tsv`. Hand-written homestead Swift files are thin wrappers over generated output.

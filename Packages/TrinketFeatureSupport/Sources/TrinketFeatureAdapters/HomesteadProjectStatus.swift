@@ -20,13 +20,8 @@ public enum HomesteadTierPathState: Equatable {
     case locked
 }
 
-public enum HomesteadFooterState: Equatable {
-    case action(title: String, enabled: Bool, reason: String?)
-    case complete
-}
-
-/// Derived presentation state for Homestead rows, the tier path, and its
-/// persistent action footer. Nothing here is persisted or used by game rules.
+/// Derived presentation state for Homestead rows and the tier path.
+/// Nothing here is persisted or used by game rules.
 public struct HomesteadProjectStatus {
     public let definition: HomesteadNodeDefinition
     public let homestead: PlayerHomesteadState
@@ -117,38 +112,6 @@ public struct HomesteadProjectStatus {
         }
     }
 
-    public var footerState: HomesteadFooterState {
-        guard let nextTier else { return .complete }
-
-        let title = nextTier.tier == 1 ? "Build" : "Upgrade"
-        let enabled = canBuildOrUpgrade
-        let reason: String? = if !isUnlocked {
-            unlockRequirementText
-        } else if !isAffordable {
-            missingResourceText ?? "Gather materials to continue."
-        } else {
-            nil
-        }
-        return .action(title: title, enabled: enabled, reason: reason)
-    }
-
-    public var actionTitle: String {
-        switch footerState {
-        case let .action(title, _, _): title
-        case .complete: "Complete"
-        }
-    }
-
-    public var statusTitle: String {
-        switch rowState {
-        case .prerequisiteLocked: "Locked"
-        case let .unbuilt(affordable): affordable ? "Ready to Build" : "Unbuilt"
-        case .built: "Built"
-        case .upgradeReady: "Ready to Upgrade"
-        case .completed: "Complete"
-        }
-    }
-
     public var statusSymbolName: String {
         switch rowState {
         case .prerequisiteLocked: "lock.fill"
@@ -169,44 +132,12 @@ public struct HomesteadProjectStatus {
         }
     }
 
-    public var missingResources: [ResourceAmount] {
-        guard let nextTier else { return [] }
-        return nextTier.cost.compactMap { amount in
-            let missing = amount.quantity - balance(for: amount)
-            guard missing > 0 else { return nil }
-            return ResourceAmount(amount.resource, missing)
-        }
-    }
-
-    public var missingResourceText: String? {
-        let missing = missingResources
-        guard !missing.isEmpty else { return nil }
-        if missing.count == 1, let first = missing.first {
-            return "Need \(first.quantity) \(first.resource.displayName)"
-        }
-        return "Need \(missing.count) materials"
-    }
-
-    public var unlockRequirementText: String {
-        let unmet = definition.prerequisites.first { homestead.tier(for: $0.nodeID) < $0.minimumTier }
-        guard let unmet else { return "Locked" }
-        let title = GameContent.homesteadNode(matching: unmet.nodeID)?.title ?? unmet.nodeID.rawValue
-        return "Requires \(title)"
-    }
-
     public func balance(for amount: ResourceAmount) -> Int {
         homestead.balance(for: amount.resource, roster: roster)
     }
 
     public func hasEnough(_ amount: ResourceAmount) -> Bool {
         balance(for: amount) >= amount.quantity
-    }
-
-    public var detailBuildButtonAccessibilityID: String {
-        if currentTier == 0 {
-            return "Build \(definition.title) Button"
-        }
-        return "Upgrade \(definition.title) Button"
     }
 
     public init(

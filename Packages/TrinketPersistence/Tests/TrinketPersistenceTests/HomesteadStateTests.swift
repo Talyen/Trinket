@@ -175,6 +175,41 @@ struct HomesteadStateTests {
         try #expect(homestead.pendingProduction.isEmpty)
     }
 
+    @Test func pendingGoldPreviewMatchesCollectedAmountAtCap() throws {
+        let start = Date(timeIntervalSince1970: 0)
+        var homestead = PlayerHomesteadState(
+            resources: [:],
+            nodeTiers: [.wishingWell: 1],
+            lastProductionAt: start
+        )
+        var roster = PlayerRosterState.freshStart
+        roster.gold = PlayerRosterState.maxGoldBalance - 1
+        let collectAt = start.addingTimeInterval(3 * PlayerHomesteadState.secondsPerDay)
+
+        let preview = homestead.pendingProductionAmounts(at: collectAt, roster: roster)
+        let collected = homestead.collectProduction(at: collectAt, roster: &roster)
+        try #expect(preview == collected)
+        try #expect(collected == [ResourceAmount(.gold, 1)])
+        try #expect(roster.gold == PlayerRosterState.maxGoldBalance)
+    }
+
+    @Test func nextCollectibleDateWakesAtNextWholeUnit() throws {
+        let start = Date(timeIntervalSince1970: 0)
+        let homestead = PlayerHomesteadState(
+            resources: [:],
+            nodeTiers: [.wheatField: 1],
+            lastProductionAt: start
+        )
+        let roster = PlayerRosterState.freshStart
+
+        let fromStart = try #require(homestead.nextCollectibleDate(after: start, roster: roster))
+        try #expect(abs(fromStart.timeIntervalSince(start) - PlayerHomesteadState.secondsPerDay) < 0.001)
+
+        let halfway = start.addingTimeInterval(12 * 60 * 60)
+        let fromHalfway = try #require(homestead.nextCollectibleDate(after: halfway, roster: roster))
+        try #expect(abs(fromHalfway.timeIntervalSince(halfway) - 12 * 60 * 60) < 0.001)
+    }
+
     @Test func materialGrantSettlesProductionBeforeApplyingReward() throws {
         let start = Date(timeIntervalSince1970: 0)
         var save = PlayerSave(

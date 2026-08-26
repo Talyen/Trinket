@@ -73,21 +73,17 @@ public enum MysteryEffectApplier {
         )
     }
 
-    /// Mystery reward level: chapter base level for journey stages, Labyrinth node depth
-    /// otherwise, pulled down to the active party's bounded scaling ceiling.
+    /// Mystery reward level: chapter base or Labyrinth node depth, pulled down
+    /// to the active party's bounded scaling ceiling.
     public static func resolvedEncounterLevel(
         stage: Stage,
         labyrinthNodeID: String?,
         save: PlayerSave
     ) -> Int {
-        let authoredLevel = if let labyrinthNodeID, let node = save.labyrinth.nodes[labyrinthNodeID] {
-            EncounterLevelResolver.labyrinthEnemyLevel(for: node)
-        } else {
-            StageCompletion.resolvedEncounterLevel(for: stage, in: GameContent.chapters)
-        }
-        return EncounterLevelResolver.partyAdjusted(
-            authoredLevel,
-            partyAverageLevel: save.roster.activePartyAverageLevel
+        StageCompletion.partyAdjustedEncounterLevel(
+            for: stage,
+            labyrinthNodeID: labyrinthNodeID,
+            save: save
         )
     }
 

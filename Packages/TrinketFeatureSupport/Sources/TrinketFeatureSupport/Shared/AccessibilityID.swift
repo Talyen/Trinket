@@ -195,6 +195,10 @@ public enum AccessibilityID {
             "Mystery Choice \(choiceID)"
         }
 
+        public static func rewardItem(_ itemID: String) -> String {
+            "Mystery Reward Item \(itemID)"
+        }
+
         public static func corruptItemCard(itemID: String) -> String {
             "Mystery Corrupt Item \(itemID)"
         }

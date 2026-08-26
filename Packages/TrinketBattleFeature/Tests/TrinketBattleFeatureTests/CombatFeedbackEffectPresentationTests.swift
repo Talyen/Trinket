@@ -75,4 +75,22 @@ struct CombatFeedbackEffectPresentationTests {
         #expect(!resource.shouldDisplay(amount: -3))
         #expect(!CombatFeedbackEffectPresentation.descriptor(for: .cardsDrawn).shouldDisplay(amount: 2))
     }
+
+    @Test func everyStatusLabelResolvesChipPresentation() {
+        for status in CombatFeedbackStatusLabel.allCases {
+            let presentation = CombatFeedbackEffectPresentation.chipPresentation(
+                for: status,
+                keyword: .physical
+            )
+            #expect(presentation.trailingStyle != .beneficialStatus || presentation.leadingStyle != nil)
+        }
+
+        let ward = CombatFeedbackEffectPresentation.chipPresentation(for: .ward, keyword: .holy)
+        #expect(ward.trailingStyle == .keyword(.holy))
+
+        let marked = CombatFeedbackEffectPresentation.chipPresentation(for: .marked, keyword: .physical)
+        #expect(marked.leadingStyle == nil)
+        #expect(marked.trailingStyle == .negativeStatus)
+        #expect(marked.text == nil)
+    }
 }

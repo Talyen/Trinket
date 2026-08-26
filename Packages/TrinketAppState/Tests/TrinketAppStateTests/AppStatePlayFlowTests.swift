@@ -180,7 +180,13 @@ struct AppStatePlayFlowTests {
         let stage = try #require(GameContent.chapters[0].stages.first)
         _ = state.journey.startBattle(for: stage)
         let configuration = try #require(state.battle.activeBattle)
+        let presentation = try #require(state.battlePresentation(for: configuration.runKey))
         let initialGold = state.playerSave.roster.gold
+        let expectedGold = StageCompletion.resolvedGoldReward(
+            stageGold: presentation.stageReward?.gold ?? 0,
+            battleEarnedGold: 5,
+            homestead: state.playerSave.homestead
+        )
 
         state.completeActiveBattle(configuration, battleEarnedGold: 5)
 
@@ -195,14 +201,7 @@ struct AppStatePlayFlowTests {
         #expect(state.battle.activeBattle == nil)
         #expect(state.playerSave.journey.activeStageID == "chapter-1-stage-2")
         #expect(state.playerSave.roster.gold == goldAfterFirstContinue)
-        let loot = BattleLoot.resolveJourney(
-            stage: stage,
-            encounterLevel: configuration.enemyEncounterLevel ?? 1,
-            enemyIsBoss: false,
-            worldSeed: state.playerSave.worldSeed,
-            ownedUniqueIDs: []
-        )
-        #expect(state.playerSave.roster.gold == initialGold + 5 + loot.gold)
+        #expect(state.playerSave.roster.gold == initialGold + expectedGold)
     }
 
     @Test func completeActiveBattleWithoutStageGrantsGoldOnly() throws {
@@ -404,15 +403,9 @@ struct AppStatePlayFlowTests {
         // Loot All must pass raw mid-battle gold (summary.rawBattleEarnedGold),
         // not the homestead-adjusted display split (summary.battleGold).
         let rawBattleEarnedGold = 20
-        let loot = BattleLoot.resolveJourney(
-            stage: stage,
-            encounterLevel: configuration.enemyEncounterLevel ?? 1,
-            enemyIsBoss: false,
-            worldSeed: state.playerSave.worldSeed,
-            ownedUniqueIDs: []
-        )
+        let presentation = try #require(state.battlePresentation(for: configuration.runKey))
         let expectedTotal = StageCompletion.resolvedGoldReward(
-            stageGold: loot.gold,
+            stageGold: presentation.stageReward?.gold ?? 0,
             battleEarnedGold: rawBattleEarnedGold,
             homestead: state.playerSave.homestead
         )

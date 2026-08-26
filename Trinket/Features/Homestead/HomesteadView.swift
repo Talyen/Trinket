@@ -67,7 +67,7 @@ struct HomesteadView: View {
     }
 
     private var collectionSection: some View {
-        TimelineView(.periodic(from: .now, by: 60)) { context in
+        TimelineView(HomesteadProductionSchedule(homestead: homestead, roster: roster)) { context in
             let pending = homestead.pendingProductionAmounts(at: context.date, roster: roster)
             Group {
                 if !pending.isEmpty {
@@ -232,4 +232,31 @@ struct HomesteadView: View {
 private struct HomesteadDepositEvent: Identifiable {
     let id = UUID()
     let amounts: [ResourceAmount]
+}
+
+/// Wakes Collect when any homestead resource crosses a whole unit.
+private struct HomesteadProductionSchedule: TimelineSchedule {
+    let homestead: PlayerHomesteadState
+    let roster: PlayerRosterState
+
+    func entries(from startDate: Date, mode: TimelineScheduleMode) -> Entries {
+        Entries(homestead: homestead, roster: roster, date: startDate, remaining: mode == .lowFrequency ? 2 : 32)
+    }
+
+    struct Entries: Sequence, IteratorProtocol {
+        let homestead: PlayerHomesteadState
+        let roster: PlayerRosterState
+        var date: Date
+        var remaining: Int
+
+        mutating func next() -> Date? {
+            guard remaining > 0 else { return nil }
+            remaining -= 1
+            let emitted = date
+            let upcoming = homestead.nextCollectibleDate(after: emitted, roster: roster)
+                ?? emitted.addingTimeInterval(PlayerHomesteadState.secondsPerDay)
+            date = upcoming > emitted ? upcoming : emitted.addingTimeInterval(1)
+            return emitted
+        }
+    }
 }

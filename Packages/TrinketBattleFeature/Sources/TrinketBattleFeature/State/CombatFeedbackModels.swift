@@ -26,7 +26,7 @@ struct CombatFeedbackItem: Identifiable, Equatable {
     var availableAt: Date
     var expiresAt: Date
     let reactionKind: CombatantHitReactionKind
-    let firstScheduledAt: Date
+    var firstScheduledAt: Date
 
     init(
         id: Int,
@@ -71,6 +71,7 @@ struct CombatFeedbackItem: Identifiable, Equatable {
         var copy = self
         copy.availableAt = date
         copy.expiresAt = date.addingTimeInterval(TrinketMotion.Battle.chipDisplayDuration)
+        copy.firstScheduledAt = date
         return copy
     }
 }

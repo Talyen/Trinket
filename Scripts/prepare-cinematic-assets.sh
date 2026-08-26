@@ -40,6 +40,8 @@ cleanup() {
 }
 trap cleanup EXIT
 
+trinket_asset_begin_state_lookup "$state_file"
+
 # ISO BMFF sample entries use hvc1 (or hev1) for HEVC. Prefer this over mdls so CI
 # does not depend on Spotlight indexing freshly written files.
 assert_hevc_mp4() {
@@ -83,17 +85,8 @@ while IFS=$'\t' read -r actor_id ability_id asset_name source_path has_audio || 
 
   cast_key="$actor_id|$ability_id"
 
-  if grep -qx "$cast_key" "$seen_ids_temp"; then
-    echo "Duplicate cinematic cast key '$cast_key'." >&2
-    exit 1
-  fi
-  printf '%s\n' "$cast_key" >> "$seen_ids_temp"
-
-  if grep -qx "$asset_name" "$seen_assets_temp"; then
-    echo "Duplicate cinematic asset name '$asset_name'." >&2
-    exit 1
-  fi
-  printf '%s\n' "$asset_name" >> "$seen_assets_temp"
+  trinket_asset_assert_unique "$seen_ids_temp" "cinematic cast key" "$cast_key"
+  trinket_asset_assert_unique "$seen_assets_temp" "cinematic asset name" "$asset_name"
 
   if ! awk -F$'\t' -v id="$actor_id" 'NR > 1 && $1 == id && ($3 == "hero" || $3 == "companion") { found=1 } END { exit found ? 0 : 1 }' "$combatants_tsv"; then
     echo "Cinematic actor id '$actor_id' must match a Hero or Companion combatant." >&2
@@ -135,8 +128,7 @@ while IFS=$'\t' read -r actor_id ability_id asset_name source_path has_audio || 
 
   dest="$resources_dir/${asset_name}.mp4"
   source_hash="$(shasum -a 256 "$source_path" | awk '{print $1}')"
-  recorded_hash="$(awk -F$'\t' -v name="$asset_name" '$1 == name { print $2; exit }' "$state_file" 2>/dev/null || true)"
-  recorded_profile="$(awk -F$'\t' -v name="$asset_name" '$1 == name { print $3; exit }' "$state_file" 2>/dev/null || true)"
+  trinket_asset_read_recorded_state recorded_hash recorded_profile "$asset_name"
   needs_convert=false
   if trinket_asset_needs_reencode "$recorded_hash" "$source_hash" "$recorded_profile" "$hevc_preset" "$dest"; then
     needs_convert=true

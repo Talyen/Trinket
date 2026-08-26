@@ -23,6 +23,7 @@ genuinely new concern. The authoritative suite inventory is the
 ## Conventions
 
 - Use `BattleStateTestFactory.makeBattle(...)` for deterministic RNG.
+- Use `BattleStateTestFactory.makeMinimalBattle(...)` (or `BattleTestFixtures.makePipelineContext` / `makeContext`) for pipeline tests that must skip deck bootstrap.
 - Prefer `BattleTestFixtures` helpers (`playFirstPlayableCard`, `endTurn`, …).
 - Public facade: reads + `playCard` / `endTurn` / log lifecycle. Engine mutations are `package`.
 

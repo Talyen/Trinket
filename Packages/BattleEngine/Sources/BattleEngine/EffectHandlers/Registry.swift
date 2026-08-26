@@ -32,21 +32,21 @@ public enum EffectHandlers {
             appliedEffectKind: .nextHolyStrikeApplied,
             amount: 0,
             keyword: .holy,
-            summaryText: "Holy Strike: next attack deals double Holy damage and applies Burning."
+            summaryText: EffectMetadata.requiredBattleSummaryPhrase(for: .nextHolyStrike)
         ),
         .nextStrikeDouble: FlagEffectHandler(
             flag: .nextStrikeDouble,
             appliedEffectKind: .nextStrikeDoubleApplied,
             amount: 0,
             keyword: .physical,
-            summaryText: "Double Strike: next attack deals double damage."
+            summaryText: EffectMetadata.requiredBattleSummaryPhrase(for: .nextStrikeDouble)
         ),
         .evadeNextHit: FlagEffectHandler(
             flag: .evadeNextHit,
             appliedEffectKind: .evadeNextHitApplied,
             amount: 0,
             keyword: .dodge,
-            summaryText: "Evasion: dodge the next attack."
+            summaryText: EffectMetadata.requiredBattleSummaryPhrase(for: .evadeNextHit)
         ),
         .convertManaToBlock: ShieldFromResourceHandler(mode: .convertManaToBlock, kind: .convertManaToBlock),
         .shieldFromMana: ShieldFromResourceHandler(mode: .shieldFromMana, kind: .shieldFromMana),
@@ -58,14 +58,14 @@ public enum EffectHandlers {
             appliedEffectKind: .criticalChanceApplied,
             amount: 100,
             keyword: .physical,
-            summaryText: "Critical Focus: next attack is a guaranteed Critical Hit."
+            summaryText: EffectMetadata.requiredBattleSummaryPhrase(for: .nextStrikeCritical)
         ),
         .freezeNextAttacker: FlagEffectHandler(
             flag: .freezeNextAttacker,
             appliedEffectKind: .controlApplied,
             amount: 0,
             keyword: .freeze,
-            summaryText: "Glacial Ward: freeze the next attacker."
+            summaryText: EffectMetadata.requiredBattleSummaryPhrase(for: .freezeNextAttacker)
         ),
         .onHitDamage: OnHitDamageHandler(),
         .multiplyDoT: MultiplyDoTHandler(),

@@ -56,7 +56,10 @@ public enum SpireCompletion {
         }
 
         let encounterLevel = enemyEncounterLevel
-            ?? EncounterLevelResolver.spireEnemyLevel(for: floor)
+            ?? EncounterLevelResolver.partyAdjusted(
+                EncounterLevelResolver.spireEnemyLevel(for: floor),
+                partyAverageLevel: save.roster.activePartyAverageLevel
+            )
         let resolvedLoot = loot ?? resolveLoot(
             for: floor,
             encounterLevel: encounterLevel,

@@ -25,7 +25,7 @@ struct HomesteadPresentationTests {
         .upgradeNotReady,
         .completed,
     ])
-    func projectLifecycleExposesExpectedRowAndFooter(caseKind: LifecycleCase) throws {
+    func projectLifecycleExposesExpectedRowAndTierPath(caseKind: LifecycleCase) throws {
         switch caseKind {
         case .lockedPrerequisite:
             try assertLockedPrerequisiteLifecycle()
@@ -51,12 +51,7 @@ struct HomesteadPresentationTests {
         #expect(status.rowState == .prerequisiteLocked)
         #expect(status.overviewEffect == nil)
         #expect(status.tierPathState(for: firstTier) == .locked)
-        if case let .action(_, enabled, reason) = status.footerState {
-            #expect(!enabled)
-            #expect(reason != nil)
-        } else {
-            Issue.record("expected locked footer action")
-        }
+        #expect(!status.canBuildOrUpgrade)
     }
 
     private func assertUnbuiltAffordableLifecycle() throws {
@@ -67,12 +62,7 @@ struct HomesteadPresentationTests {
         )
         #expect(status.rowState == .unbuilt(affordable: true))
         #expect(status.overviewEffect == nil)
-        if case let .action(_, enabled, reason) = status.footerState {
-            #expect(enabled)
-            #expect(reason == nil)
-        } else {
-            Issue.record("expected build footer action")
-        }
+        #expect(status.canBuildOrUpgrade)
     }
 
     private func assertUnbuiltUnaffordableLifecycle() throws {
@@ -129,7 +119,7 @@ struct HomesteadPresentationTests {
         #expect(status.rowState == .completed)
         let activeBonus = try #require(definition.tier(4)?.bonus)
         #expect(status.overviewEffect == activeBonus)
-        #expect(status.footerState == .complete)
+        #expect(!status.canBuildOrUpgrade)
     }
 
     @Test func tierPathMapsCurrentTiersZeroThroughFour() throws {

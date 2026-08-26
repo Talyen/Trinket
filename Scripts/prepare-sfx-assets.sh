@@ -42,6 +42,8 @@ cleanup() {
 }
 trap cleanup EXIT
 
+trinket_asset_begin_state_lookup "$state_file"
+
 while IFS=$'\t' read -r id swift_symbol asset_name source_path volume_gain || [[ -n "${id:-}" ]]; do
   [[ -z "${id:-}" || "$id" == \#* ]] && continue
 
@@ -54,23 +56,9 @@ while IFS=$'\t' read -r id swift_symbol asset_name source_path volume_gain || [[
   trinket_asset_validate_swift_identifier "SFX Swift symbol" "$swift_symbol"
   trinket_asset_validate_identifier "Asset name" "$asset_name"
 
-  if grep -qx "$id" "$seen_ids_temp"; then
-    echo "Duplicate SFX id '$id'." >&2
-    exit 1
-  fi
-  printf '%s\n' "$id" >> "$seen_ids_temp"
-
-  if grep -qx "$swift_symbol" "$seen_symbols_temp"; then
-    echo "Duplicate SFX Swift symbol '$swift_symbol'." >&2
-    exit 1
-  fi
-  printf '%s\n' "$swift_symbol" >> "$seen_symbols_temp"
-
-  if grep -qx "$asset_name" "$seen_assets_temp"; then
-    echo "Duplicate SFX asset name '$asset_name'." >&2
-    exit 1
-  fi
-  printf '%s\n' "$asset_name" >> "$seen_assets_temp"
+  trinket_asset_assert_unique "$seen_ids_temp" "SFX id" "$id"
+  trinket_asset_assert_unique "$seen_symbols_temp" "SFX Swift symbol" "$swift_symbol"
+  trinket_asset_assert_unique "$seen_assets_temp" "SFX asset name" "$asset_name"
 
   if [[ ! -f "$source_path" ]]; then
     echo "Missing source file for '$id': $source_path" >&2
@@ -87,8 +75,7 @@ while IFS=$'\t' read -r id swift_symbol asset_name source_path volume_gain || [[
   output_file="$resources_dir/$asset_name.m4a"
 
   source_hash="$(shasum -a 256 "$source_path" | awk '{print $1}')"
-  recorded_hash="$(awk -F$'\t' -v name="$asset_name" '$1 == name { print $2; exit }' "$state_file" 2>/dev/null || true)"
-  recorded_profile="$(awk -F$'\t' -v name="$asset_name" '$1 == name { print $3; exit }' "$state_file" 2>/dev/null || true)"
+  trinket_asset_read_recorded_state recorded_hash recorded_profile "$asset_name"
   needs_convert=false
   if trinket_asset_needs_reencode "$recorded_hash" "$source_hash" "$recorded_profile" "$encode_profile" "$output_file"; then
     needs_convert=true

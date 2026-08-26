@@ -28,7 +28,7 @@ public final class LabyrinthPlayMode {
     public let battle: any BattleRuntime
     private let battleLaunch: PlayBattleLaunch
     private let encounters: EncounterPlayMode
-    private var preparedInputs: PreparationInputs?
+    private var encounterCoordinator: PlayBattleEncounterCoordinator<PreparationInputs>
 
     public var activeNodeSession: LabyrinthNodeSession?
 
@@ -42,6 +42,13 @@ public final class LabyrinthPlayMode {
         self.battle = battle
         self.battleLaunch = battleLaunch
         self.encounters = encounters
+        encounterCoordinator = PlayBattleEncounterCoordinator(
+            battle: battle,
+            battleLaunch: battleLaunch
+        )
+        encounterCoordinator.installBeginGate { [weak self] in
+            self?.canBeginTransientEncounter ?? false
+        }
     }
 
     private var canBeginTransientEncounter: Bool {
@@ -91,15 +98,12 @@ public final class LabyrinthPlayMode {
         case .battle, .boss:
             return startBattle(nodeID: nodeID)
         case .shop:
-            switch encounters.beginShopEncounter(origin: .labyrinth(nodeID: nodeID)) {
-            case .autoCompleted:
-                if let failure = completeNodeOrPersistFailure(nodeID: nodeID) {
-                    return failure
-                }
-                return encounters.emptyShopClosedMessage(identifier: nodeID)
-            case .opened, .unavailable:
-                return nil
-            }
+            return PlayShopEncounterRouting.handle(
+                encounters: encounters,
+                origin: .labyrinth(nodeID: nodeID),
+                identifier: nodeID,
+                onAutoComplete: { completeNodeOrPersistFailure(nodeID: nodeID) }
+            )
         case .mystery, .event, .craft:
             return beginMysteryEncounter(nodeID: nodeID)
         case .recruit:
@@ -193,7 +197,7 @@ public final class LabyrinthPlayMode {
 
     @discardableResult
     func startBattle(nodeID: String) -> StageMapMessage? {
-        guard battle.lifecyclePhase != .active else { return nil }
+        guard canBeginTransientEncounter else { return nil }
         let labyrinth = playerSave.labyrinth
         guard let node = labyrinth.node(id: nodeID), node.type.isCombat else {
             return StageMapMessage(title: "Encounter Missing", message: "This path is not ready yet.")
@@ -203,19 +207,10 @@ public final class LabyrinthPlayMode {
             return StageMapMessage(title: "Encounter Missing", message: "This path is not ready yet.")
         }
 
-        let origin = PlayBattleOrigin.labyrinth(nodeID: nodeID)
-        let activated = battleLaunch.activateCombat(
-            origin: origin,
-            encounter: encounter,
-            route: battleRoute(nodeID: nodeID),
-            loot: battleLoot(for: node, labyrinth: labyrinth, encounterLevel: encounter.level),
-            universalModifiers: Self.combatModifiers(from: effects),
-            labyrinthModifiers: LabyrinthCatalog.modifiers(ids: node.modifierIDs)
+        let activated = encounterCoordinator.activateBattle(
+            combatRequest(node: node, labyrinth: labyrinth, encounter: encounter, effects: effects)
         )
-        if activated {
-            preparedInputs = nil
-        }
-        return activated ? nil : PlayBattleLaunch.activationFailureMessage
+        return encounterCoordinator.activationFailureMessageIfNeeded(activated)
     }
 
     public func previewMysteryEvent(for node: LabyrinthNode) -> MysteryEvent? {
@@ -250,7 +245,7 @@ public final class LabyrinthPlayMode {
             guard let node = labyrinth.node(id: nodeID), node.type.isCombat else { return false }
             return !battle.hasPreparedRun(PlayBattleOrigin.labyrinth(nodeID: nodeID).runKey)
         }
-        guard inputs != preparedInputs || battle.lifecyclePhase == .idle || missingPreparedRun else { return }
+        guard !encounterCoordinator.inputsMatch(inputs) || battle.lifecyclePhase == .idle || missingPreparedRun else { return }
 
         var preparedAll = true
         var preparedKeys: Set<BattleRunKey> = []
@@ -263,7 +258,7 @@ public final class LabyrinthPlayMode {
         }
         battleLaunch.keepPreparedRuns(preparedKeys)
         if preparedAll {
-            preparedInputs = inputs
+            encounterCoordinator.notePreparedInputs(inputs)
         }
     }
 
@@ -293,14 +288,8 @@ public final class LabyrinthPlayMode {
         let effects = labyrinth.effects(for: node.id)
         guard let encounter = resolvedEncounter(for: node) else { return false }
 
-        let origin = PlayBattleOrigin.labyrinth(nodeID: node.id)
-        return battleLaunch.prepareCombat(
-            origin: origin,
-            encounter: encounter,
-            route: battleRoute(nodeID: node.id),
-            loot: battleLoot(for: node, labyrinth: labyrinth, encounterLevel: encounter.level),
-            universalModifiers: Self.combatModifiers(from: effects),
-            labyrinthModifiers: LabyrinthCatalog.modifiers(ids: node.modifierIDs)
+        return encounterCoordinator.prepareCombatWithoutCache(
+            combatRequest(node: node, labyrinth: labyrinth, encounter: encounter, effects: effects)
         )
     }
 
@@ -323,6 +312,7 @@ public final class LabyrinthPlayMode {
         battleEarnedGold: Int = 0,
         materialRewards: [ResourceAmount]? = nil,
         rewardItem: InventoryItem? = nil,
+        loot: BattleLootPackage? = nil,
         enemyEncounterLevel: Int? = nil,
         partyRunHealth: [String: Int]? = nil
     ) -> Bool {
@@ -341,6 +331,7 @@ public final class LabyrinthPlayMode {
                 battleEarnedGold: battleEarnedGold,
                 materialRewards: materialRewards,
                 rewardItem: rewardItem,
+                loot: loot,
                 enemyEncounterLevel: enemyEncounterLevel,
                 partyRunHealth: resolvedRunHealth,
                 save: &save
@@ -379,6 +370,24 @@ extension LabyrinthPlayMode {
         return modifiers
     }
 
+    private func combatRequest(
+        node: LabyrinthNode,
+        labyrinth: PlayerLabyrinthState,
+        encounter: (combatant: Combatant, level: Int),
+        effects: LabyrinthModifierEffects
+    ) -> PlayBattleEncounterCoordinator<PreparationInputs>.CombatRequest {
+        PlayBattleEncounterCoordinator<PreparationInputs>.CombatRequest(
+            origin: .labyrinth(nodeID: node.id),
+            encounter: encounter,
+            route: battleRoute(nodeID: node.id),
+            loot: battleLoot(for: node, labyrinth: labyrinth, encounterLevel: encounter.level),
+            stageRewardsAlreadyClaimed: false,
+            universalModifiers: Self.combatModifiers(from: effects),
+            labyrinthModifiers: LabyrinthCatalog.modifiers(ids: node.modifierIDs),
+            preparationInputs: preparationInputs(labyrinth: labyrinth)
+        )
+    }
+
     private func battleLoot(
         for node: LabyrinthNode,
         labyrinth: PlayerLabyrinthState,
@@ -397,7 +406,7 @@ extension LabyrinthPlayMode {
 
     func battleRoute(nodeID: String) -> PlayBattleRoute {
         let origin = PlayBattleOrigin.labyrinth(nodeID: nodeID)
-        return PlayBattleRoute(origin: origin) { [weak self] configuration, presentation, battleEarnedGold, materialRewards in
+        return PlayBattleRoute(origin: origin) { [weak self] configuration, presentation, battleEarnedGold, materialRewards, loot in
             guard let self else { return false }
             // Persist end-of-battle party health so wounds carry to the next fight.
             // Commits cap at the baseline maximum: in-battle max-health growth is
@@ -418,6 +427,7 @@ extension LabyrinthPlayMode {
                 battleEarnedGold: battleEarnedGold,
                 materialRewards: materialRewards,
                 rewardItem: presentation?.pendingRewardItem,
+                loot: loot,
                 enemyEncounterLevel: configuration.enemyEncounterLevel,
                 partyRunHealth: runHealth
             )

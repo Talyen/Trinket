@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Pre-push gate: full-tree style + agent push gate (generate/assert).
+# Pre-push gate: path-scoped style for pushed Swift files + agent push gate.
 # Install with: git config core.hooksPath .githooks
 set -euo pipefail
 
@@ -15,8 +15,64 @@ echo "=== Pre-push: ensure pinned format/lint tools ==="
 ./Scripts/ensure-ci-tools.sh
 export PATH="$ROOT/.tools:$PATH"
 
+# Git feeds one "local_ref local_sha remote_ref remote_sha" line per ref on stdin.
+# Read those first so later pipes cannot steal the push range.
+push_lines=()
+while IFS= read -r line; do
+  [[ -n "$line" ]] || continue
+  push_lines+=("$line")
+done
+
+collect_pushed_paths() {
+  local z40="0000000000000000000000000000000000000000"
+  local local_ref local_sha remote_ref remote_sha
+  local line
+
+  emit_commit_paths() {
+    git log -m --format= --name-only --diff-filter=ACMR "$@"
+  }
+
+  if (( ${#push_lines[@]} > 0 )); then
+    for line in "${push_lines[@]}"; do
+      read -r local_ref local_sha remote_ref remote_sha <<<"$line"
+      if [[ "$local_sha" == "$z40" ]]; then
+        continue
+      fi
+      if [[ "$remote_sha" == "$z40" ]]; then
+        if git for-each-ref --format='%(refname)' refs/remotes | grep -q .; then
+          emit_commit_paths "$local_sha" --not --remotes
+        else
+          git diff-tree --root --no-commit-id --name-only -m -r --diff-filter=ACMR "$local_sha"
+        fi
+      else
+        emit_commit_paths "$remote_sha..$local_sha"
+      fi
+    done
+    return 0
+  fi
+
+  if git for-each-ref --format='%(refname)' refs/remotes | grep -q .; then
+    emit_commit_paths HEAD --not --remotes
+  else
+    git diff-tree --root --no-commit-id --name-only -m -r --diff-filter=ACMR HEAD
+  fi
+}
+
+style_swift=()
+while IFS= read -r path; do
+  if [[ "$path" == *.swift && -f "$path" ]]; then
+    style_swift+=("$path")
+  fi
+done < <(collect_pushed_paths | sed '/^$/d' | sort -u)
+
 echo "=== Pre-push: style (format / lint / UI / platform bans / exclusivity) ==="
-./Scripts/test.sh style
+if (( ${#style_swift[@]} > 0 )); then
+  echo "Path-scoped style on ${#style_swift[@]} Swift file(s) in the push range."
+  ./Scripts/test.sh style "${style_swift[@]}"
+else
+  ./Scripts/check-platform-api-bans.sh
+  ./Scripts/check-exclusivity-footguns.sh
+fi
 
 echo "=== Pre-push: agent push gate (generate + assert vs HEAD) ==="
 ./Scripts/agent-push-gate.sh

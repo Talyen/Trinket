@@ -21,7 +21,7 @@ public final class JourneyPlayMode {
     public let battle: any BattleRuntime
     private let battleLaunch: PlayBattleLaunch
     private let encounters: EncounterPlayMode
-    private var preparedInputs: PreparationInputs?
+    private var encounterCoordinator: PlayBattleEncounterCoordinator<PreparationInputs>
 
     init(
         playerSave: PlayerSaveStore,
@@ -33,6 +33,13 @@ public final class JourneyPlayMode {
         self.battle = battle
         self.battleLaunch = battleLaunch
         self.encounters = encounters
+        encounterCoordinator = PlayBattleEncounterCoordinator(
+            battle: battle,
+            battleLaunch: battleLaunch,
+            canBeginTransientEncounter: { [weak encounters] in
+                encounters?.canBeginTransientEncounter ?? false
+            }
+        )
     }
 
     public var playChapter: Chapter {
@@ -48,6 +55,7 @@ public final class JourneyPlayMode {
         battleEarnedGold: Int = 0,
         materialRewards: [ResourceAmount]? = nil,
         rewardItem: InventoryItem? = nil,
+        loot: BattleLootPackage? = nil,
         enemyEncounterLevel: Int? = nil
     ) -> Bool {
         persistStageCompletions(
@@ -57,6 +65,7 @@ public final class JourneyPlayMode {
             battleEarnedGold: battleEarnedGold,
             materialRewards: materialRewards,
             rewardItem: rewardItem,
+            loot: loot,
             enemyEncounterLevel: enemyEncounterLevel
         )
     }
@@ -71,57 +80,21 @@ public final class JourneyPlayMode {
 
     @discardableResult
     public func startBattle(for stage: Stage) -> StageMapMessage? {
-        guard battle.lifecyclePhase != .active else { return nil }
+        guard encounters.canBeginTransientEncounter else { return nil }
 
         guard let encounter = resolvedEncounter(for: stage) else {
             return StageMapMessage(title: "Encounter Missing", message: "This stage is not ready yet.")
         }
 
-        let origin = PlayBattleOrigin.journey(stageID: stage.id)
-        let activated = battleLaunch.activateCombat(
-            origin: origin,
-            encounter: encounter,
-            route: battleRoute(stageID: stage.id),
-            loot: battleLoot(for: stage, encounter: encounter),
-            stageRewardsAlreadyClaimed: Self.stageRewardsAlreadyClaimed(
-                for: stage,
-                journey: playerSave.journey
-            )
-        )
-        guard activated else {
-            return PlayBattleLaunch.activationFailureMessage
-        }
-        preparedInputs = nil
-        return nil
+        let activated = encounterCoordinator.activateBattle(combatRequest(for: stage, encounter: encounter))
+        return encounterCoordinator.activationFailureMessageIfNeeded(activated)
     }
 
     public func prepareBattle(for stage: Stage) {
         guard battle.lifecyclePhase != .active,
               let encounter = resolvedEncounter(for: stage)
         else { return }
-        let stageRewardsAlreadyClaimed = Self.stageRewardsAlreadyClaimed(
-            for: stage,
-            journey: playerSave.journey
-        )
-        let inputs = PreparationInputs(
-            stageID: stage.id,
-            party: PlayBattlePartySnapshot(playerSave: playerSave),
-            stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed
-        )
-        let origin = PlayBattleOrigin.journey(stageID: stage.id)
-        guard inputs != preparedInputs
-            || battle.lifecyclePhase == .idle
-            || !battle.hasPreparedRun(origin.runKey)
-        else { return }
-        if battleLaunch.prepareCombat(
-            origin: origin,
-            encounter: encounter,
-            route: battleRoute(stageID: stage.id),
-            loot: battleLoot(for: stage, encounter: encounter),
-            stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed
-        ) {
-            preparedInputs = inputs
-        }
+        encounterCoordinator.prepareBattle(combatRequest(for: stage, encounter: encounter))
     }
 
     @discardableResult
@@ -149,15 +122,12 @@ public final class JourneyPlayMode {
                 forcedEventID: resolvedStage.encounter.recruitEventID
             )
         case .shop:
-            switch encounters.beginShopEncounter(origin: .journey(stage: resolvedStage)) {
-            case .autoCompleted:
-                if let failure = completeStageOrPersistFailure(resolvedStage) {
-                    return failure
-                }
-                return encounters.emptyShopClosedMessage(identifier: resolvedStage.id)
-            case .opened, .unavailable:
-                return nil
-            }
+            return PlayShopEncounterRouting.handle(
+                encounters: encounters,
+                origin: .journey(stage: resolvedStage),
+                identifier: resolvedStage.id,
+                onAutoComplete: { completeStageOrPersistFailure(resolvedStage) }
+            )
         case .event, .rest:
             return completeStageOrPersistFailure(resolvedStage)
         }
@@ -213,6 +183,7 @@ public final class JourneyPlayMode {
         materialRewards: [ResourceAmount]? = nil,
         rewardItem: InventoryItem? = nil,
         resetJourney: Bool = false,
+        loot: BattleLootPackage? = nil,
         enemyEncounterLevel: Int? = nil
     ) -> Bool {
         guard !stages.isEmpty else { return false }
@@ -230,6 +201,7 @@ public final class JourneyPlayMode {
                     battleEarnedGold: isLast ? battleEarnedGold : 0,
                     materialRewards: isLast ? materialRewards : nil,
                     rewardItem: isLast ? rewardItem : nil,
+                    loot: isLast ? loot : nil,
                     enemyEncounterLevel: enemyEncounterLevel,
                     in: GameContent.chapters,
                     save: &save
@@ -277,9 +249,33 @@ extension JourneyPlayMode {
         journey.hasClaimedRewards(for: stage)
     }
 
+    private func combatRequest(
+        for stage: Stage,
+        encounter: (combatant: Combatant, level: Int)
+    ) -> PlayBattleEncounterCoordinator<PreparationInputs>.CombatRequest {
+        let stageRewardsAlreadyClaimed = Self.stageRewardsAlreadyClaimed(
+            for: stage,
+            journey: playerSave.journey
+        )
+        return PlayBattleEncounterCoordinator<PreparationInputs>.CombatRequest(
+            origin: .journey(stageID: stage.id),
+            encounter: encounter,
+            route: battleRoute(stageID: stage.id),
+            loot: battleLoot(for: stage, encounter: encounter),
+            stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
+            universalModifiers: [],
+            labyrinthModifiers: [],
+            preparationInputs: PreparationInputs(
+                stageID: stage.id,
+                party: PlayBattlePartySnapshot(playerSave: playerSave),
+                stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed
+            )
+        )
+    }
+
     func battleRoute(stageID: String) -> PlayBattleRoute {
         let origin = PlayBattleOrigin.journey(stageID: stageID)
-        return PlayBattleRoute(origin: origin) { [weak self] configuration, presentation, battleEarnedGold, materialRewards in
+        return PlayBattleRoute(origin: origin) { [weak self] configuration, presentation, battleEarnedGold, materialRewards, loot in
             guard let self, let stage = GameContent.stage(id: stageID) else { return false }
             return completeStage(
                 stage,
@@ -288,6 +284,7 @@ extension JourneyPlayMode {
                 battleEarnedGold: battleEarnedGold,
                 materialRewards: materialRewards,
                 rewardItem: presentation?.pendingRewardItem,
+                loot: loot,
                 enemyEncounterLevel: configuration.enemyEncounterLevel
             )
         }

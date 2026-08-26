@@ -150,6 +150,59 @@ struct ShopPurchaseApplierTests {
         #expect(save.inventory.items == [trinket])
     }
 
+    @Test @MainActor func campaignAppliersSurviveStoreReload() throws {
+        let context = try PersistenceTestContext()
+        let store = try context.makeSaveStore()
+        let stage = GameContent.chapters[0].stages[0]
+        let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
+        let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
+        let loot = BattleLoot.resolveJourney(
+            stage: stage,
+            encounterLevel: EncounterLevelResolver.journeyEnemyLevel(for: stage, in: GameContent.chapters[0]),
+            enemyIsBoss: false,
+            worldSeed: store.currentSave.worldSeed,
+            ownedUniqueIDs: []
+        )
+        let offer = try makeOffer(price: 28)
+        var rng = SeededRandomNumberGenerator(seed: 1)
+        try store.performBatchMutation { save in
+            save.roster.gold = 100
+            save.homestead.resources = [:]
+            StageCompletion.complete(
+                stage,
+                hero: hero,
+                companion: companion,
+                loot: loot,
+                in: GameContent.chapters,
+                save: &save
+            )
+            _ = ShopPurchaseApplier.purchase(
+                offer: offer,
+                visitToken: "visit-reload",
+                stageID: "chapter-2-stage-8",
+                save: &save
+            )
+            _ = MysteryEffectApplier.apply(
+                [.gainMaterial(.herbs)],
+                stageID: "chapter-1-stage-2",
+                choiceID: "harvest",
+                encounterLevel: 1,
+                save: &save,
+                using: &rng
+            )
+        }
+        let gold = store.roster.gold
+        let herbs = store.homestead.resources[.herbs]
+        let items = store.inventory.items.count
+        let reloaded = try PlayerSaveStore(storeURL: context.storeURL(), disableCloudSync: true)
+        #expect(reloaded.journey.hasClaimedRewards(for: stage))
+        #expect(reloaded.roster.gold == gold)
+        #expect(reloaded.homestead.resources[.herbs] == herbs)
+        #expect((herbs ?? 0) > 0)
+        #expect(reloaded.inventory.items.count == items)
+        #expect(reloaded.inventory.item(matching: loot.item.id) != nil)
+    }
+
     private func makeOffer(price: Int) throws -> ShopOffer {
         let baseType = try #require(GameContent.itemBaseTypes.first { $0.id == "longsword" })
         var randomNumberGenerator = SeededRandomNumberGenerator(seed: 7)

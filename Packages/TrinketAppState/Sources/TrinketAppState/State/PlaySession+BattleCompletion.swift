@@ -40,8 +40,12 @@ struct PlayBattleCompletion {
         }
 
         let origin = route?.origin
+        let loot = Self.preparedLoot(
+            from: presentation,
+            materialRewards: materialRewards
+        )
         let persisted = if let route {
-            route.complete(configuration, presentation, battleEarnedGold, materialRewards)
+            route.complete(configuration, presentation, battleEarnedGold, materialRewards, loot)
         } else {
             battleEarnedGold != 0 ? grantBattleEarnedGold(battleEarnedGold) : true
         }
@@ -51,6 +55,21 @@ struct PlayBattleCompletion {
             battle.endBattle()
         }
         return persisted
+    }
+
+    /// Rebuilds the launch-baked loot package so claim grants the gold, item, and
+    /// materials victory chrome already showed. Auto-claim has no materials
+    /// argument; Continue may pass the same list from the summary.
+    static func preparedLoot(
+        from presentation: BattlePresentationContext?,
+        materialRewards: [ResourceAmount]?
+    ) -> BattleLootPackage? {
+        guard let presentation, let item = presentation.pendingRewardItem else { return nil }
+        return BattleLootPackage(
+            item: item,
+            gold: presentation.stageReward?.gold ?? 0,
+            materials: materialRewards ?? presentation.materialRewards
+        )
     }
 
     @discardableResult

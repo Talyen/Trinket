@@ -6,6 +6,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -143,6 +144,88 @@ class ScriptRegressionTests(unittest.TestCase):
             duplicate = self.run_sfx_fixture(root, environment)
             self.assertNotEqual(duplicate.returncode, 0)
             self.assertIn("Duplicate SFX Swift symbol 'sharedSymbol'", duplicate.stderr)
+
+    def make_music_fixture(self, directory: str) -> tuple[Path, dict[str, str], Path]:
+        root = Path(directory)
+        for relative in (
+            "Scripts/lib",
+            "MusicManifest",
+            "Raw Assets/Music",
+            "Trinket/Media/Music",
+            "Packages/TrinketContent/Sources/TrinketContent/Generated",
+            "bin",
+        ):
+            (root / relative).mkdir(parents=True, exist_ok=True)
+
+        for relative in ("Scripts/prepare-music-assets.sh", "Scripts/lib/media-assets.sh"):
+            destination = root / relative
+            destination.write_text((ROOT / relative).read_text(encoding="utf-8"), encoding="utf-8")
+            destination.chmod(0o755)
+
+        source = root / "Raw Assets/Music/track.mp3"
+        source.write_bytes(b"fixture music")
+        (root / "MusicManifest/music.tsv").write_text(
+            "# kind\tid\tasset_name\tsource_path\tboss_enemy_id\tlooping\tvolume_gain\n"
+            "menu\ttest_track\tmusic_test_track\tRaw Assets/Music/track.mp3\tnone\ttrue\t1.0\n",
+            encoding="utf-8",
+        )
+
+        conversion_log = root / "afconvert.log"
+        afconvert = root / "bin/afconvert"
+        afconvert.write_text(
+            "#!/usr/bin/env bash\n"
+            "printf 'convert\\n' >> \"$AFCONVERT_LOG\"\n"
+            "cp \"$1\" \"$2\"\n",
+            encoding="utf-8",
+        )
+        afconvert.chmod(0o755)
+        environment = {
+            **os.environ,
+            "PATH": f"{root / 'bin'}:{os.environ['PATH']}",
+            "AFCONVERT_LOG": str(conversion_log),
+        }
+        return root, environment, conversion_log
+
+    def run_music_fixture(
+        self, root: Path, environment: dict[str, str]
+    ) -> subprocess.CompletedProcess[str]:
+        return subprocess.run(
+            ["bash", "Scripts/prepare-music-assets.sh"],
+            cwd=root,
+            env=environment,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+
+    def test_music_cache_tracks_profile_state_output_and_force(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root, environment, conversion_log = self.make_music_fixture(directory)
+
+            def assert_run(expected_conversions: int, **overrides: str) -> None:
+                result = self.run_music_fixture(root, {**environment, **overrides})
+                self.assertEqual(result.returncode, 0, result.stderr)
+                conversion_count = conversion_log.read_text(encoding="utf-8").count("convert")
+                self.assertEqual(conversion_count, expected_conversions)
+
+            assert_run(1)
+            state = (
+                root
+                / "Packages/TrinketContent/Sources/TrinketContent/Generated/MusicSourceHashes.generated.tsv"
+            )
+            with state.open("a", encoding="utf-8") as handle:
+                handle.write("orphan\tstale\tstale-profile\n")
+
+            assert_run(1)
+            self.assertNotIn("orphan", state.read_text(encoding="utf-8"))
+            assert_run(2, MUSIC_AAC_BITRATE="128000")
+            assert_run(3, FORCE_ASSET_REENCODE="1")
+
+    def test_assert_generated_output_supports_tiered_asset_idempotence(self) -> None:
+        text = (ROOT / "Scripts" / "assert-generated-output.sh").read_text(encoding="utf-8")
+        self.assertIn("snapshot_tracked_asset_catalogs", text)
+        self.assertIn("snapshot_for_idempotent_check", text)
+        self.assertIn("--strict-assets", text)
 
     def test_media_orphan_pruning_is_extension_scoped(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -467,6 +550,74 @@ class ScriptRegressionTests(unittest.TestCase):
         self.assertIn("release-notes.sh validate", handoff)
         self.assertIn('if [[ "$FINAL" == true ]]; then', handoff)
         self.assertIn("./Scripts/test-scripts.sh --skip-docs", handoff)
+        self.assertIn('kind" == docs && "$FINAL" == true', handoff)
+
+    def test_docs_markdown_routes_check_docs(self) -> None:
+        result = subprocess.run(
+            [
+                str(ROOT / "Scripts" / "handoff.sh"),
+                "--dry-run",
+                "--paths",
+                "Docs/Platform/Verification.md",
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        plan = [line.strip() for line in result.stdout.splitlines() if line.startswith("  ")]
+        self.assertEqual(plan, ["python3 ./Scripts/check-docs.py"])
+
+    def test_agent_push_gate_skips_generate_when_classification_does_not_need_it(self) -> None:
+        text = (ROOT / "Scripts" / "agent-push-gate.sh").read_text(encoding="utf-8")
+        self.assertIn("TRINKET_NEEDS_CONTENT_GENERATION", text)
+        self.assertIn("TRINKET_NEEDS_PROJECT_GENERATION", text)
+        self.assertIn("skip generate (no content, project, or asset inputs)", text)
+
+    def test_pre_push_path_scopes_style_to_pushed_swift(self) -> None:
+        text = (ROOT / ".githooks" / "pre-push").read_text(encoding="utf-8")
+        self.assertIn('test.sh style "${style_swift[@]}"', text)
+        self.assertIn("check-platform-api-bans.sh", text)
+        self.assertIn('"$remote_sha..$local_sha"', text)
+        self.assertIn("push_lines+=", text)
+        self.assertNotIn("./Scripts/test.sh style\n", text)
+
+    def test_content_codegen_routes_generation_and_script_tests(self) -> None:
+        result = subprocess.run(
+            [
+                str(ROOT / "Scripts" / "handoff.sh"),
+                "--dry-run",
+                "--paths",
+                "Scripts/content_codegen.py",
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        plan = "\n".join(result.stdout.splitlines())
+        self.assertIn("./Scripts/generate.sh", plan)
+        self.assertIn("./Scripts/test-scripts.sh", plan)
+
+    def test_media_assets_lib_routes_asset_generation(self) -> None:
+        result = subprocess.run(
+            [
+                str(ROOT / "Scripts" / "handoff.sh"),
+                "--dry-run",
+                "--paths",
+                "Scripts/lib/media-assets.sh",
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        plan = "\n".join(result.stdout.splitlines())
+        self.assertIn("./Scripts/generate.sh --assets", plan)
+        self.assertIn("./Scripts/test-scripts.sh", plan)
 
     def test_authored_content_swift_routes_generation_style_and_package(self) -> None:
         result = subprocess.run(
@@ -1172,6 +1323,67 @@ class ScriptRegressionTests(unittest.TestCase):
         self.assertIn("./Scripts/test-package.sh TrinketBattleFeature", plan)
         self.assertNotIn("--build-only TrinketBattleFeature", plan)
         self.assertIn("SmokeBattleTests", plan)
+
+    def test_compile_only_packages_are_disjoint_from_test_packages(self) -> None:
+        owner = (ROOT / "Scripts" / "swift-source-dirs.env").read_text(encoding="utf-8")
+        test_packages = re.findall(
+            r"^\s+(Trinket\w+|BattleEngine)\s*$",
+            owner.split("TRINKET_TEST_PACKAGES=(")[1].split(")")[0],
+            re.MULTILINE,
+        )
+        compile_only = re.findall(
+            r"^\s+(Trinket\w+|BattleEngine)\s*$",
+            owner.split("TRINKET_COMPILE_ONLY_PACKAGES=(")[1].split(")")[0],
+            re.MULTILINE,
+        )
+        self.assertEqual(set(test_packages) & set(compile_only), set())
+        classified = re.search(
+            r"case \"\$package\" in\n\s+([^\n]+)",
+            (ROOT / "Scripts" / "change-classification.sh").read_text(encoding="utf-8"),
+        )
+        self.assertIsNotNone(classified)
+        for package in classified.group(1).split("|"):  # type: ignore[union-attr]
+            package = package.strip().rstrip(")")
+            self.assertTrue(
+                package in test_packages or package in compile_only,
+                f"{package} missing from swift-source-dirs package registry",
+            )
+
+    def test_battle_runtime_routes_to_app_build_not_test_package(self) -> None:
+        result = subprocess.run(
+            [
+                str(ROOT / "Scripts" / "handoff.sh"),
+                "--dry-run",
+                "--paths",
+                "Packages/TrinketBattleRuntime/Sources/TrinketBattleRuntime/BattleRuntime.swift",
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        plan = "\n".join(result.stdout.splitlines())
+        self.assertIn("./Scripts/build.sh", plan)
+        self.assertNotIn("test-package.sh TrinketBattleRuntime", plan)
+
+    def test_test_support_routes_to_app_build_not_test_package(self) -> None:
+        result = subprocess.run(
+            [
+                str(ROOT / "Scripts" / "handoff.sh"),
+                "--dry-run",
+                "--paths",
+                "Packages/TrinketTestSupport/Sources/TrinketTestSupport/CombatantFixtures.swift",
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        plan = "\n".join(result.stdout.splitlines())
+        self.assertIn("./Scripts/build.sh", plan)
+        self.assertNotIn("test-package.sh TrinketTestSupport", plan)
 
     def test_generate_stamp_records_input_porcelain_sidecar(self) -> None:
         text = (ROOT / "Scripts" / "build-inputs.sh").read_text(encoding="utf-8")

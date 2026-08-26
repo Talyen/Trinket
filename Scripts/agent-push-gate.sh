@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Commit-completeness gate for agents after commit and before push.
-# Regenerates with pinned XcodeGen (forced), then asserts generated output vs HEAD.
-# Conditionally includes asset pipelines when classification says assets changed.
+# Regenerates only when classification says content, project, or assets
+# changed, then asserts generated output vs HEAD.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -18,9 +18,11 @@ usage() {
   cat <<'EOF'
 Usage: ./Scripts/agent-push-gate.sh [--paths <file> ...]
 
-Ensures generated catalogs/assets/project.pbxproj match what CI will regenerate:
+Ensures generated catalogs/assets/project.pbxproj match what CI will regenerate
+when the commit scope can affect them:
   1. ./Scripts/ensure-ci-tools.sh (pinned SwiftFormat/SwiftLint/XcodeGen)
-  2. ./Scripts/generate.sh [--assets] --force-xcodegen
+  2. ./Scripts/generate.sh [--assets] --force-xcodegen (skipped when classification
+     reports no content, project, or asset generation)
   3. ./Scripts/assert-generated-output.sh [--assets]
 
 Without --paths, unions working-tree paths with local commits not present on a
@@ -127,6 +129,22 @@ fi
 INCLUDE_ASSETS=false
 if [[ "$TRINKET_NEEDS_ASSET_GENERATION" == true ]]; then
   INCLUDE_ASSETS=true
+fi
+
+NEEDS_GENERATE=false
+if [[ "$TRINKET_NEEDS_CONTENT_GENERATION" == true \
+   || "$TRINKET_NEEDS_PROJECT_GENERATION" == true \
+   || "$TRINKET_NEEDS_ASSET_GENERATION" == true ]]; then
+  NEEDS_GENERATE=true
+fi
+
+if [[ "$NEEDS_GENERATE" != true ]]; then
+  echo "=== Agent push gate: skip generate (no content, project, or asset inputs) ==="
+  report_change_budget
+  echo "=== Agent push gate passed ==="
+  echo "Note: push-gate is generate/assert completeness only — not style or compile."
+  echo "Pre-CI source checks: ./Scripts/handoff.sh --isolate --paths …"
+  exit 0
 fi
 
 if ! command -v xcodegen >/dev/null 2>&1; then

@@ -91,7 +91,7 @@ Read these focused guides:
 | `./Scripts/ci-assets-gate.sh` | Asset generation, idempotence, and locale-stability gate |
 | `python3 ./Scripts/check-docs.py [--final] [--keep-plan]` | Check links, structure, smoke classes, stale terms, and execution-plan lifecycle |
 | `./Scripts/test-deploy.sh [--mode smoke]` | Pre-release deploy verification (`release.sh` calls this); `--mode smoke` is an optional canary |
-| `./Scripts/agent-push-gate.sh` | Post-commit generation completeness check |
+| `./Scripts/agent-push-gate.sh` | Post-commit generation completeness; skips generate when classification has no content/project/asset inputs |
 | `./Scripts/ci-diagnostics.sh [RESULTS_DIR]` | Aggregate the current diagnostics session |
 | `./Scripts/ci-diagnostics.sh --stage-artifacts <RESULTS_DIR> <ARTIFACT_DIR>` | Stage structured artifacts, adding raw failure evidence only when needed |
 | `./Scripts/ci-diagnostics.sh --cleanup [--keep] <RESULTS_DIR>` | Delete passed result/report history after staging; retain failures for current triage unless `--keep` |

@@ -92,76 +92,48 @@ public extension Effect {
         }
     }
 
+    private var behaviorMetadata: EffectBehaviorMetadata {
+        EffectMetadata.behavior(for: kind)
+    }
+
     /// True when this effect represents a debuff that `cleanse` is allowed to
     /// strip from allies.
     var isRemovableDebuff: Bool {
-        switch self {
-        case .burn, .poison, .bleed, .controlMeter, .marked, .recurringDamage,
-             .damageReductionPercent, .damageReductionFlat, .strengthReduction, .hemorrhage:
-            true
-        default:
-            false
-        }
+        behaviorMetadata.isRemovableDebuff
     }
 
     /// True when this effect represents a buff that `purge` is allowed to
     /// strip from enemies.
     var isRemovableBuff: Bool {
-        switch self {
-        case .shield, .thorns, .criticalChanceBonus, .restoreManaOnHit,
-             .damageKeywordOverride, .nextHolyStrike, .nextStrikeDouble, .evadeNextHit,
-             .maximumManaBonus, .nextStrikeCritical, .freezeNextAttacker, .onHitDamage, .avatar:
-            true
-        default:
-            false
-        }
+        behaviorMetadata.isRemovableBuff
     }
 
     /// True when this effect occupies a slot on the combatant and advances
     /// its `remainingTurns` over time.
     var advancesEachTurn: Bool {
-        switch self {
-        case .burn, .poison, .bleed, .controlMeter,
-             .deathsDoor,
-             .marked, .criticalChanceBonus, .restoreManaOnHit, .damageKeywordOverride,
-             .recurringDamage, .avatar, .damageReductionPercent, .damageReductionFlat, .strengthReduction:
-            true
-        default:
-            false
-        }
+        behaviorMetadata.advancesEachTurn
     }
 
     /// True when this effect resolves immediately and never occupies a slot
     /// on the combatant.
     var isInstant: Bool {
         switch self {
-        case .instantHeal, .resourceGain, .drawCards, .drawAndPlayCards, .cleanse, .cleanseRandom,
-             .cleanseHealPerDebuff,
-             .purge, .purgeRandom, .halveShield, .convertManaToBlock, .shieldFromMana,
-             .shieldFromGold, .shieldFromHalfMana, .multiplyDoT, .revive:
+        case .cleanseHealPerDebuff:
             true
         default:
-            false
+            behaviorMetadata.isInstant
         }
     }
 
     /// True for burn and poison, which decay their potency each turn instead
     /// of consuming duration.
     var isDecayingDoT: Bool {
-        switch self {
-        case .burn, .poison:
-            true
-        default:
-            false
-        }
+        behaviorMetadata.isDecayingDoT
     }
 
     /// True for bleed, which tracks its own duration.
     var isBleed: Bool {
-        if case .bleed = self {
-            return true
-        }
-        return false
+        behaviorMetadata.isBleed
     }
 
     /// Amount and threshold for `.controlMeter`, if applicable.

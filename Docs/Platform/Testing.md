@@ -32,7 +32,8 @@ in `TrinketPersistence`'s `TrinketPersistenceTestSupport` target—not in `Trink
 Persistence-free. App suites use `AppTestContext`; Persistence uses
 `PersistenceTestContext`. Battle RNG: always
 `BattleStateTestFactory.makeBattle(...)` with the factory default seed
-(`CombatantFixtures.deterministicBattleSeed`). Use explicit seeds only for RNG
+(`CombatantFixtures.deterministicBattleSeed`). Pipeline tests that must skip
+deck bootstrap use `makeMinimalBattle`. Use explicit seeds only for RNG
 edge cases; seed `0` can invalidate dodge-sensitive assertions. Dispatch via
 `EffectHandlers.all`.
 

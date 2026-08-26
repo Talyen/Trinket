@@ -78,7 +78,8 @@ public enum BattleLoot {
         return BattleLootPackage(item: item, gold: gold, materials: materials)
     }
 
-    /// Journey combat loot; seed is stable per save + stage so victory chrome matches claim.
+    /// Journey combat loot. Prepared battles grant this package at claim rather
+    /// than re-rolling; the seed remains for fallback completions without a live run.
     public static func resolveJourney(
         stage: Stage,
         encounterLevel: Int,

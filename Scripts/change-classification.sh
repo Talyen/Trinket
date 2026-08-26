@@ -15,6 +15,8 @@
 TRINKET_CHANGE_CLASSIFICATION_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=lib/smoke-classes.sh
 source "$TRINKET_CHANGE_CLASSIFICATION_DIR/lib/smoke-classes.sh"
+# shellcheck source=swift-source-dirs.env
+source "$TRINKET_CHANGE_CLASSIFICATION_DIR/swift-source-dirs.env"
 
 TRINKET_CHANGED_PATHS=()
 TRINKET_AUTHORED_PATHS=()
@@ -45,6 +47,7 @@ TRINKET_NEEDS_STYLE=false
 TRINKET_NEEDS_APP_BUILD=false
 TRINKET_NEEDS_SMOKE=false
 TRINKET_NEEDS_SCRIPT_TESTS=false
+TRINKET_NEEDS_DOCS=false
 # True when feature/shared/model Swift would need app compile but xcodebuild is absent.
 TRINKET_APP_COMPILE_SKIPPED_NO_XCODE=false
 TRINKET_SMOKE_TARGET_UNRESOLVED=false
@@ -64,6 +67,36 @@ trinket_add_unique() {
 }
 
 trinket_add_package() { trinket_add_unique TRINKET_PACKAGES "$1"; }
+
+trinket_package_has_tests() {
+  local package="$1"
+  local candidate
+  for candidate in "${TRINKET_TEST_PACKAGES[@]}"; do
+    [[ "$candidate" == "$package" ]] && return 0
+  done
+  return 1
+}
+
+trinket_package_is_compile_only() {
+  local package="$1"
+  local candidate
+  for candidate in "${TRINKET_COMPILE_ONLY_PACKAGES[@]}"; do
+    [[ "$candidate" == "$package" ]] && return 0
+  done
+  return 1
+}
+
+# Route touched package diffs to package tests or app compile proof.
+trinket_route_package_verification() {
+  local package="$1"
+  if trinket_package_has_tests "$package"; then
+    trinket_add_package "$package"
+  elif trinket_package_is_compile_only "$package"; then
+    TRINKET_NEEDS_APP_BUILD=true
+  else
+    TRINKET_NEEDS_APP_BUILD=true
+  fi
+}
 trinket_add_context_card() { trinket_add_unique TRINKET_CONTEXT_CARDS "$1"; }
 trinket_add_route_card() { trinket_add_unique TRINKET_ROUTE_CARDS "$1"; }
 trinket_add_skill() { trinket_add_unique TRINKET_SKILLS "$1"; }
@@ -107,7 +140,7 @@ trinket_classify_package_swift_path() {
   TRINKET_AUTHORED_PATHS+=("$path")
 
   case "$package" in
-    TrinketTestSupport)
+    TrinketBattleRuntime|TrinketTestSupport)
       TRINKET_NEEDS_APP_BUILD=true
       ;;
     TrinketDesignSystem)
@@ -184,6 +217,7 @@ trinket_reset_classification() {
   TRINKET_NEEDS_APP_BUILD=false
   TRINKET_NEEDS_SMOKE=false
   TRINKET_NEEDS_SCRIPT_TESTS=false
+  TRINKET_NEEDS_DOCS=false
   TRINKET_APP_COMPILE_SKIPPED_NO_XCODE=false
   TRINKET_SMOKE_TARGET_UNRESOLVED=false
 }
@@ -342,7 +376,13 @@ trinket_classify_path() {
       TRINKET_NEEDS_ASSET_GENERATION=true
       TRINKET_AUTHORED_PATHS+=("$path")
       ;;
-    Scripts/prepare-art-assets.sh|Scripts/prepare-music-assets.sh|Scripts/prepare-sfx-assets.sh|Scripts/prepare-cinematic-assets.sh|Scripts/prepare-app-icon.sh)
+    Scripts/content_codegen.py)
+      TRINKET_HAS_CONTENT=true
+      TRINKET_NEEDS_CONTENT_GENERATION=true
+      TRINKET_NEEDS_SCRIPT_TESTS=true
+      TRINKET_AUTHORED_PATHS+=("$path")
+      ;;
+    Scripts/lib/media-assets.sh|Scripts/prepare-art-assets.sh|Scripts/prepare-music-assets.sh|Scripts/prepare-sfx-assets.sh|Scripts/prepare-cinematic-assets.sh|Scripts/prepare-app-icon.sh)
       TRINKET_HAS_ASSETS=true
       TRINKET_NEEDS_ASSET_GENERATION=true
       TRINKET_NEEDS_SCRIPT_TESTS=true
@@ -355,14 +395,14 @@ trinket_classify_path() {
       ;;
     Packages/TrinketContent/*.swift)
       TRINKET_NEEDS_STYLE=true
-      trinket_add_package TrinketContent
+      trinket_route_package_verification TrinketContent
       TRINKET_AUTHORED_PATHS+=("$path")
       ;;
     Packages/*/*.swift)
       if trinket_classify_package_swift_path "$path"; then
         package="${path#Packages/}"
         package="${package%%/*}"
-        trinket_add_package "$package"
+        trinket_route_package_verification "$package"
       else
         TRINKET_NEEDS_STYLE=true
         TRINKET_AUTHORED_PATHS+=("$path")
@@ -378,6 +418,7 @@ trinket_classify_path() {
       TRINKET_AUTHORED_PATHS+=("$path")
       ;;
     Docs/*|*.md)
+      TRINKET_NEEDS_DOCS=true
       TRINKET_AUTHORED_PATHS+=("$path")
       ;;
     Trinket/Features/*|TrinketUITests/*)
@@ -545,6 +586,9 @@ trinket_build_verification_plan() {
   fi
   if [[ "$TRINKET_NEEDS_SCRIPT_TESTS" == true ]]; then
     trinket_add_verification scripts all "./Scripts/test-scripts.sh"
+  fi
+  if [[ "$TRINKET_NEEDS_DOCS" == true ]]; then
+    trinket_add_verification docs check "python3 ./Scripts/check-docs.py"
   fi
   if (( ${#TRINKET_PACKAGES[@]} > 0 )); then
     trinket_add_verification package "${TRINKET_PACKAGES[*]}" "./Scripts/test-package.sh ${TRINKET_PACKAGES[*]}"

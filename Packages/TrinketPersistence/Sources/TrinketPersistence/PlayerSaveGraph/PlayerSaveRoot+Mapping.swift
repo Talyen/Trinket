@@ -44,6 +44,19 @@ struct PlayerSaveSlice: OptionSet {
         }
         return slices
     }
+
+    /// Expands a mutation diff into the slices that must be sanitized so
+    /// cross-slice couplings match a full sanitize pass.
+    static func sanitizeTargets(for mutationSlices: Self) -> Self {
+        var targets = mutationSlices
+        if targets.contains(.inventory) {
+            targets.insert(.roster)
+        }
+        if targets.contains(.roster) {
+            targets.insert(.labyrinth)
+        }
+        return targets
+    }
 }
 
 public extension PlayerSaveRoot {

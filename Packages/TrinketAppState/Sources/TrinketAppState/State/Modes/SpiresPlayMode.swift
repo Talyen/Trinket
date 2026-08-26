@@ -20,7 +20,7 @@ public final class SpiresPlayMode {
     public let playerSave: PlayerSaveStore
     public let battle: any BattleRuntime
     private let battleLaunch: PlayBattleLaunch
-    private var preparedInputs: PreparationInputs?
+    private var encounterCoordinator: PlayBattleEncounterCoordinator<PreparationInputs>
 
     init(
         playerSave: PlayerSaveStore,
@@ -30,6 +30,10 @@ public final class SpiresPlayMode {
         self.playerSave = playerSave
         self.battle = battle
         self.battleLaunch = battleLaunch
+        encounterCoordinator = PlayBattleEncounterCoordinator(
+            battle: battle,
+            battleLaunch: battleLaunch
+        )
     }
 
     public func resolvedEncounter(for floor: SpireFloor) -> (combatant: Combatant, level: Int)? {
@@ -63,7 +67,7 @@ public final class SpiresPlayMode {
 
     func battleRoute(spireID: SpireID, floor: Int) -> PlayBattleRoute {
         let origin = PlayBattleOrigin.spire(spireID: spireID, floor: floor)
-        return PlayBattleRoute(origin: origin) { [weak self] configuration, presentation, battleEarnedGold, materialRewards in
+        return PlayBattleRoute(origin: origin) { [weak self] configuration, presentation, battleEarnedGold, materialRewards, loot in
             guard let self,
                   let resolvedFloor = GameContent.spireFloor(spireID: spireID, floor: floor)
             else { return false }
@@ -74,6 +78,7 @@ public final class SpiresPlayMode {
                 battleEarnedGold: battleEarnedGold,
                 materialRewards: materialRewards,
                 rewardItem: presentation?.pendingRewardItem,
+                loot: loot,
                 enemyEncounterLevel: configuration.enemyEncounterLevel
             )
         }
@@ -116,17 +121,8 @@ public final class SpiresPlayMode {
             return StageMapMessage(title: "Encounter Missing", message: "This floor is not ready yet.")
         }
 
-        let origin = PlayBattleOrigin.spire(spireID: floor.spireID, floor: floor.floor)
-        let activated = battleLaunch.activateCombat(
-            origin: origin,
-            encounter: encounter,
-            route: battleRoute(spireID: floor.spireID, floor: floor.floor),
-            loot: battleLoot(for: floor, encounterLevel: encounter.level)
-        )
-        if activated {
-            preparedInputs = nil
-        }
-        return activated ? nil : PlayBattleLaunch.activationFailureMessage
+        let activated = encounterCoordinator.activateBattle(combatRequest(for: floor, encounter: encounter))
+        return encounterCoordinator.activationFailureMessageIfNeeded(activated)
     }
 
     public func prepareBattle(for floor: SpireFloor) {
@@ -143,24 +139,27 @@ public final class SpiresPlayMode {
               let encounter = resolvedEncounter(for: floor)
         else { return }
 
-        let inputs = PreparationInputs(
-            spireID: floor.spireID,
-            floor: floor.floor,
-            party: PlayBattlePartySnapshot(playerSave: playerSave)
-        )
-        let origin = PlayBattleOrigin.spire(spireID: floor.spireID, floor: floor.floor)
-        guard inputs != preparedInputs
-            || battle.lifecyclePhase == .idle
-            || !battle.hasPreparedRun(origin.runKey)
-        else { return }
-        if battleLaunch.prepareCombat(
-            origin: origin,
+        encounterCoordinator.prepareBattle(combatRequest(for: floor, encounter: encounter))
+    }
+
+    private func combatRequest(
+        for floor: SpireFloor,
+        encounter: (combatant: Combatant, level: Int)
+    ) -> PlayBattleEncounterCoordinator<PreparationInputs>.CombatRequest {
+        PlayBattleEncounterCoordinator<PreparationInputs>.CombatRequest(
+            origin: .spire(spireID: floor.spireID, floor: floor.floor),
             encounter: encounter,
             route: battleRoute(spireID: floor.spireID, floor: floor.floor),
-            loot: battleLoot(for: floor, encounterLevel: encounter.level)
-        ) {
-            preparedInputs = inputs
-        }
+            loot: battleLoot(for: floor, encounterLevel: encounter.level),
+            stageRewardsAlreadyClaimed: false,
+            universalModifiers: [],
+            labyrinthModifiers: [],
+            preparationInputs: PreparationInputs(
+                spireID: floor.spireID,
+                floor: floor.floor,
+                party: PlayBattlePartySnapshot(playerSave: playerSave)
+            )
+        )
     }
 
     @discardableResult
@@ -171,6 +170,7 @@ public final class SpiresPlayMode {
         battleEarnedGold: Int = 0,
         materialRewards: [ResourceAmount]? = nil,
         rewardItem: InventoryItem? = nil,
+        loot: BattleLootPackage? = nil,
         enemyEncounterLevel: Int? = nil
     ) -> Bool {
         playerSave.persistBatch(logging: "Failed to persist Spire floor") { save in
@@ -181,6 +181,7 @@ public final class SpiresPlayMode {
                 battleEarnedGold: battleEarnedGold,
                 materialRewards: materialRewards,
                 rewardItem: rewardItem,
+                loot: loot,
                 enemyEncounterLevel: enemyEncounterLevel,
                 save: &save
             )

@@ -383,6 +383,22 @@ struct AppStateLabyrinthTests { // swiftlint:disable:this type_body_length
         #expect(state.playerSave.labyrinth.runHealthByCombatantID == healed)
     }
 
+    @Test func startBattleDoesNotActivateWhileCampfireRestIsOpen() throws {
+        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        _ = state.labyrinth.enter()
+        let restNodeID = try #require(LabyrinthTestSupport.firstReachableNodeID(of: .rest, in: state))
+        let combatNodeID = try #require(
+            state.playerSave.labyrinth.nodes.values.first(where: \.type.isCombat)?.id
+        )
+
+        #expect(state.labyrinth.beginRest(nodeID: restNodeID) == nil)
+        #expect(state.labyrinth.activeNodeSession?.nodeID == restNodeID)
+
+        #expect(state.labyrinth.startBattle(nodeID: combatNodeID) == nil)
+        #expect(state.battle.activeBattle == nil)
+        #expect(state.labyrinth.activeNodeSession?.nodeID == restNodeID)
+    }
+
     @Test func completingLabyrinthBattleCommitsPartyRunHealth() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         _ = state.labyrinth.enter()

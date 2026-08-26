@@ -167,8 +167,56 @@ struct AppStateMysteryRecruitTests {
 
         let session = try #require(state.encounters.activeMysteryEncounter)
         #expect(session.phase == .reading)
+        #expect(session.persistFailureMessage == MysteryEncounterSession.choiceUnavailableMessage)
         #expect(!state.playerSave.journey.completedStageIDs.contains(stage.id))
         #expect(state.playerSave.roster.gold == goldBefore)
+    }
+
+    @Test func mysteryExperiencePreviewMatchesHeroAndCompanionAwards() throws {
+        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        var roster = state.playerSave.roster
+        roster.progressions[roster.activeHeroID] = .at(level: 20)
+        roster.progressions[roster.activeCompanionID] = .at(level: 5)
+        state.playerSave.roster = roster
+
+        let event = try #require(GameContent.mysteryEvent(matching: "overgrown-temple"))
+        let session = attachMysterySession(event: event, to: state)
+        session.installPreviews(save: state.playerSave.currentSave)
+
+        let expectedHero = MysteryEffectApplier.experienceAward(
+            for: roster.progression(for: roster.activeHero),
+            highestLevel: roster.highestHeroLevel
+        )
+        let expectedCompanion = MysteryEffectApplier.experienceAward(
+            for: roster.progression(for: roster.activeCompanion),
+            highestLevel: roster.highestCompanionLevel
+        )
+        #expect(session.previewHeroExperienceAward == expectedHero)
+        #expect(session.previewCompanionExperienceAward == expectedCompanion)
+        #expect(expectedHero != expectedCompanion)
+    }
+
+    @Test func leaveChoiceDismissesEncounterAndCompletesProgress() throws {
+        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        let event = try #require(GameContent.mysteryEvent(matching: GameContent.corruptionAltarEventID))
+        attachMysterySession(event: event, to: state)
+
+        #expect(state.encounters.resolveActiveMysteryChoice(choiceID: "leave"))
+        #expect(state.encounters.activeMysteryEncounter == nil)
+    }
+
+    @Test func corruptChoiceWithNoEligibleItemsFailsWithBanner() throws {
+        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        state.playerSave.inventory = .freshStart
+        let event = try #require(GameContent.mysteryEvent(matching: GameContent.corruptionAltarEventID))
+        attachMysterySession(event: event, to: state)
+
+        #expect(!state.encounters.resolveActiveMysteryChoice(choiceID: "corrupt-item"))
+
+        let session = try #require(state.encounters.activeMysteryEncounter)
+        #expect(session.phase == .reading)
+        #expect(session.persistFailureMessage == MysteryEncounterSession.choiceUnavailableMessage)
+        #expect(!state.playerSave.journey.completedStageIDs.contains(session.stage.id))
     }
 
     #if DEBUG
@@ -258,4 +306,26 @@ struct AppStateMysteryRecruitTests {
         #expect(!state.playerSave.roster.isCompanionUnlocked("bear"))
     }
     #endif
+
+    @discardableResult
+    private func attachMysterySession(
+        event: MysteryEvent,
+        to state: PlaySession
+    ) -> MysteryEncounterSession {
+        let stage = Stage(
+            id: "audit-mystery-\(event.id)",
+            chapterID: "chapter-1",
+            chapterNumber: 1,
+            stageNumber: 99,
+            encounter: .mysteryEvent(eventID: event.id),
+            rewards: .empty
+        )
+        let session = MysteryEncounterSession(
+            origin: .journey(stage: stage),
+            event: event,
+            combatant: nil
+        )
+        state.encounters.activeMysteryEncounter = session
+        return session
+    }
 }

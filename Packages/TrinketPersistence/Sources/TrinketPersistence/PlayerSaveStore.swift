@@ -215,9 +215,9 @@ public final class PlayerSaveStore {
         let (candidate, changedSlices) = try measured("MutationPreparation") {
             var candidate = snapshot
             update(&candidate)
-            // Full sanitize so cross-slice couplings (inventory→roster,
-            // roster→labyrinth eligibility, world seed) always apply before validate.
-            candidate = PlayerSaveSanitizer.sanitize(candidate)
+            let mutationSlices = PlayerSaveSlice.changed(between: snapshot, and: candidate)
+            let sanitizeSlices = PlayerSaveSlice.sanitizeTargets(for: mutationSlices)
+            candidate = PlayerSaveSanitizer.sanitize(candidate, changedSlices: sanitizeSlices)
             var changedSlices = PlayerSaveSlice.changed(between: snapshot, and: candidate)
             try PlayerSaveSanitizer.validate(candidate)
             if !changedSlices.isEmpty {

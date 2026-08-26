@@ -22,31 +22,21 @@ enum BattleTestFixtures {
         enemyModifiers: CombatModifierProfile = .zero,
         seed: UInt64 = deterministicNonCriticalSeed
     ) -> BattleState {
-        let target = CombatantFixtures.combatant(
-            id: "target", role: .enemy, maxHealth: targetMaxHealth,
-            primaryStats: targetPrimaryStats
-        )
-        let source = CombatantFixtures.combatant(
-            id: "source", role: .hero, maxHealth: 50,
-            primaryStats: sourcePrimaryStats
-        )
-        let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
-        let roster = BattleRoster(
-            hero: CombatantRuntime(combatant: source, initialActiveEffects: []),
-            companion: CombatantRuntime(combatant: companion),
-            enemy: CombatantRuntime(combatant: target, initialActiveEffects: targetEffects)
-        )
-        return BattleState(
-            roster: roster,
-            rng: SeededRandomNumberGenerator(seed: seed),
-            nextEffectID: 0,
-            nextEventID: 0,
-            events: [],
-            gold: 0,
-            initialGold: 0,
+        BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.combatant(
+                id: "source", role: .hero, maxHealth: 50,
+                primaryStats: sourcePrimaryStats
+            ),
+            companion: CombatantFixtures.combatant(id: "companion", role: .companion),
+            enemy: CombatantFixtures.combatant(
+                id: "target", role: .enemy, maxHealth: targetMaxHealth,
+                primaryStats: targetPrimaryStats
+            ),
+            enemyEffects: targetEffects,
             heroModifiers: heroModifiers,
             companionModifiers: companionModifiers,
-            enemyModifiers: enemyModifiers
+            enemyModifiers: enemyModifiers,
+            rngSeed: seed
         )
     }
 
@@ -291,39 +281,28 @@ enum BattleTestFixtures {
         companionModifiers: CombatModifierProfile = .zero,
         enemyModifiers: CombatModifierProfile = .zero,
         seed: UInt64 = Self.deterministicNonCriticalSeed,
-        nextEffectID: Int = 1,
-        nextEventID: Int = 1
+        nextEffectID: Int? = nil,
+        nextEventID: Int = 0
     ) -> BattleState {
-        BattleState(
-            roster: BattleRoster(
-                hero: CombatantRuntime(
-                    combatant: hero,
-                    initialHealth: heroHealth,
-                    initialMana: heroMana,
-                    initialActiveEffects: heroEffects
-                ),
-                companion: CombatantRuntime(
-                    combatant: companion,
-                    initialHealth: companionHealth,
-                    initialMana: companionMana,
-                    initialActiveEffects: companionEffects
-                ),
-                enemy: CombatantRuntime(
-                    combatant: enemy,
-                    initialHealth: enemyHealth,
-                    initialMana: enemyMana,
-                    initialActiveEffects: enemyEffects
-                )
-            ),
-            rng: SeededRandomNumberGenerator(seed: seed),
-            nextEffectID: nextEffectID,
-            nextEventID: nextEventID,
-            events: [],
-            gold: 0,
-            initialGold: 0,
+        BattleStateTestFactory.makeMinimalBattle(
+            hero: hero,
+            companion: companion,
+            enemy: enemy,
+            heroEffects: heroEffects,
+            companionEffects: companionEffects,
+            enemyEffects: enemyEffects,
+            heroHealth: heroHealth,
+            companionHealth: companionHealth,
+            enemyHealth: enemyHealth,
+            heroMana: heroMana,
+            companionMana: companionMana,
+            enemyMana: enemyMana,
             heroModifiers: heroModifiers,
             companionModifiers: companionModifiers,
-            enemyModifiers: enemyModifiers
+            enemyModifiers: enemyModifiers,
+            rngSeed: seed,
+            nextEffectID: nextEffectID,
+            nextEventID: nextEventID
         )
     }
 }

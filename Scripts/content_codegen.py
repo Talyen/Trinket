@@ -174,6 +174,7 @@ class HomesteadNodeRow:
     cost: str
     bonus_title: str
     bonus_description: str
+    modifiers: str
     production: str
 
 
@@ -325,6 +326,7 @@ def parse_homestead_node_rows() -> list[HomesteadNodeRow]:
         "cost",
         "bonus_title",
         "bonus_description",
+        "modifiers",
         "production",
     ]
     if header != expected:
@@ -1345,6 +1347,52 @@ def generate_ability_index() -> None:
     write_generated_file(GENERATED_DIR / "AbilityCatalogIndex.generated.swift", body)
 
 
+def parse_homestead_combat_tokens(
+    raw: str,
+) -> tuple[list[str], list[str], int, int]:
+    hero: list[str] = []
+    companion: list[str] = []
+    astral = 0
+    gold = 0
+    for token in parse_modifier_tokens(raw):
+        if token.startswith("astral_chance:"):
+            astral = int(token.split(":", 1)[1])
+            continue
+        if token.startswith("gold_find:"):
+            gold = int(token.split(":", 1)[1])
+            continue
+        scope = "both"
+        body = token
+        if token.startswith("hero."):
+            scope = "hero"
+            body = token.removeprefix("hero.")
+        elif token.startswith("companion."):
+            scope = "companion"
+            body = token.removeprefix("companion.")
+        swift = modifier_token_to_swift(body)
+        if scope in ("hero", "both"):
+            hero.append(swift)
+        if scope in ("companion", "both"):
+            companion.append(swift)
+    if not hero and not companion and astral == 0 and gold == 0:
+        raise ValueError("homestead modifiers must declare combat bonuses")
+    return hero, companion, astral, gold
+
+
+def render_homestead_combat_bonus(raw: str) -> str:
+    hero, companion, astral, gold = parse_homestead_combat_tokens(raw)
+    parts: list[str] = []
+    if hero:
+        parts.append(f"heroModifiers: [{', '.join(hero)}]")
+    if companion:
+        parts.append(f"companionModifiers: [{', '.join(companion)}]")
+    if astral:
+        parts.append(f"astralChanceBonusPercent: {astral}")
+    if gold:
+        parts.append(f"goldFindPercent: {gold}")
+    return "HomesteadTierCombatBonus(" + ", ".join(parts) + ")"
+
+
 def parse_homestead_prerequisites(raw: str) -> str:
     if not raw.strip():
         return "[]"
@@ -1372,7 +1420,8 @@ def render_homestead_tier(row: HomesteadNodeRow) -> str:
                     bonus: HomesteadBonus(
                         title: "{swift_escape(row.bonus_title)}",
                         description: "{swift_escape(row.bonus_description)}"
-                    ){production_line}
+                    ),
+                    combatBonus: {render_homestead_combat_bonus(row.modifiers)}{production_line}
                 )"""
 
 
@@ -1466,6 +1515,8 @@ def validate_homestead_node_rows(rows: list[HomesteadNodeRow]) -> None:
         _require_non_empty("symbol_name", row.symbol_name, row_id)
         _require_non_empty("bonus_title", row.bonus_title, row_id)
         _require_non_empty("bonus_description", row.bonus_description, row_id)
+        _require_non_empty("modifiers", row.modifiers, row_id)
+        parse_homestead_combat_tokens(row.modifiers)
         validate_homestead_cost(row.cost, row_id)
         if row.production.strip():
             resource, quantity = row.production.split(":", 1)

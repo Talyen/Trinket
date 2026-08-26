@@ -21,21 +21,45 @@ public struct HomesteadBonus: Hashable, Sendable {
     }
 }
 
+public struct HomesteadTierCombatBonus: Equatable, Hashable, Sendable {
+    public var heroModifiers: [AffixModifier]
+    public var companionModifiers: [AffixModifier]
+    public var astralChanceBonusPercent: Int
+    public var goldFindPercent: Int
+
+    public static let empty = Self()
+
+    public init(
+        heroModifiers: [AffixModifier] = [],
+        companionModifiers: [AffixModifier] = [],
+        astralChanceBonusPercent: Int = 0,
+        goldFindPercent: Int = 0
+    ) {
+        self.heroModifiers = heroModifiers
+        self.companionModifiers = companionModifiers
+        self.astralChanceBonusPercent = astralChanceBonusPercent
+        self.goldFindPercent = goldFindPercent
+    }
+}
+
 public struct HomesteadNodeTier: Hashable, Sendable {
     public let tier: Int
     public let cost: [ResourceAmount]
     public let bonus: HomesteadBonus
+    public let combatBonus: HomesteadTierCombatBonus
     public let production: ResourceAmount?
 
     public init(
         tier: Int,
         cost: [ResourceAmount],
         bonus: HomesteadBonus,
+        combatBonus: HomesteadTierCombatBonus = .empty,
         production: ResourceAmount? = nil
     ) {
         self.tier = tier
         self.cost = cost
         self.bonus = bonus
+        self.combatBonus = combatBonus
         self.production = production
     }
 }

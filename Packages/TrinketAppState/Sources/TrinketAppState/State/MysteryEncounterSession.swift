@@ -51,7 +51,10 @@ public final class MysteryEncounterSession: Identifiable {
     public private(set) var isResolvingChoice = false
     public private(set) var persistFailureMessage: String?
     public private(set) var previewMaterialQuantity = 0
-    public private(set) var previewExperienceAward = 0
+    public private(set) var previewHeroExperienceAward = 0
+    public private(set) var previewCompanionExperienceAward = 0
+
+    static let choiceUnavailableMessage = "That choice isn't available anymore."
 
     public var showsReveal: Bool {
         phase == .revealing && unlockedCombatantID != nil
@@ -155,9 +158,23 @@ public final class MysteryEncounterSession: Identifiable {
             save: save
         )
         previewMaterialQuantity = MysteryEffectApplier.materialQuantity(forLevel: level)
-        previewExperienceAward = MysteryEffectApplier.experienceAward(
-            for: save.roster.progression(for: save.roster.activeHero),
-            highestLevel: save.roster.highestHeroLevel
+        let experiencePercent = labyrinthNodeID.map {
+            save.labyrinth.effects(for: $0).experienceEarnedPercent
+        } ?? 0
+        let roster = save.roster
+        previewHeroExperienceAward = CombatRounding.scaled(
+            MysteryEffectApplier.experienceAward(
+                for: roster.progression(for: roster.activeHero),
+                highestLevel: roster.highestHeroLevel
+            ),
+            byPercent: experiencePercent
+        )
+        previewCompanionExperienceAward = CombatRounding.scaled(
+            MysteryEffectApplier.experienceAward(
+                for: roster.progression(for: roster.activeCompanion),
+                highestLevel: roster.highestCompanionLevel
+            ),
+            byPercent: experiencePercent
         )
     }
 }
@@ -209,6 +226,10 @@ extension MysteryEncounterSession {
     func markPersistFailed(_ message: String) {
         isResolvingChoice = false
         persistFailureMessage = message
+    }
+
+    func markChoiceUnavailable() {
+        markPersistFailed(Self.choiceUnavailableMessage)
     }
 
     func clearPersistFailure() {

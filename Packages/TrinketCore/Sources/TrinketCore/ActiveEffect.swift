@@ -17,10 +17,6 @@ public struct ActiveEffect: Identifiable, Hashable, Sendable {
         effect.keyword
     }
 
-    public var summary: String {
-        EffectPresentation.activePhrase(for: self)
-    }
-
     /// True when a full stun/freeze meter still has an unconsumed action skip
     /// (`remainingTurns == 0`). After the skip is consumed, linger uses
     /// `remainingTurns > 0` so status stays without skipping again.

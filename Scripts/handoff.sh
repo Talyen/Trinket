@@ -117,6 +117,10 @@ run_check() {
         run_profiled "test-scripts" "quiet-structured" ./Scripts/test-scripts.sh
       fi
       ;;
+    docs)
+      [[ "$argument" == check ]] || { echo "Unknown docs check: $argument" >&2; return 2; }
+      run_profiled "check-docs" "live" python3 ./Scripts/check-docs.py
+      ;;
     *)
       echo "Unknown verification kind: $kind" >&2; return 2
       ;;
@@ -216,6 +220,10 @@ if (( ${#TRINKET_VERIFICATION_COMMANDS[@]} > 0 )); then
     if [[ "$QUIET" != true ]]; then
       echo ""
       echo "=== $cmd ==="
+    fi
+    if [[ "$kind" == docs && "$FINAL" == true ]]; then
+      # --final already ran check-docs.py with plan-lifecycle flags.
+      continue
     fi
     if ! run_check "$kind" "$argument"; then
       echo "FAIL: $cmd"

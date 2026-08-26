@@ -104,7 +104,10 @@ public extension EncounterPlayMode {
     @discardableResult
     func resolveActiveMysteryChoice(choiceID: String? = nil) -> Bool {
         guard let mysterySession = activeMysteryEncounter else { return false }
-        guard mysterySession.canResolveChoice else { return false }
+        guard mysterySession.canResolveChoice else {
+            mysterySession.markChoiceUnavailable()
+            return false
+        }
 
         return persistMysteryResolution(mysterySession, logging: "Failed to apply mystery effects") { save, rng in
             mysterySession.resolveChoice(
@@ -120,7 +123,10 @@ public extension EncounterPlayMode {
     @discardableResult
     func corruptActiveMysteryItem(itemID: String) -> Bool {
         guard let mysterySession = activeMysteryEncounter else { return false }
-        guard mysterySession.showsCorruptItemChoice else { return false }
+        guard mysterySession.showsCorruptItemChoice else {
+            mysterySession.markChoiceUnavailable()
+            return false
+        }
 
         return persistMysteryResolution(mysterySession, logging: "Failed to corrupt mystery item") { save, rng in
             mysterySession.corruptSelectedItem(
@@ -206,6 +212,7 @@ public extension EncounterPlayMode {
     ) -> Bool {
         switch outcome {
         case .failed:
+            mysterySession.markChoiceUnavailable()
             return false
         case .dismiss:
             activeMysteryEncounter = nil

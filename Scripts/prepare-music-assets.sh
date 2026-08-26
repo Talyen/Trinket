@@ -44,6 +44,8 @@ cleanup() {
 }
 trap cleanup EXIT
 
+trinket_asset_begin_state_lookup "$state_file"
+
 while IFS=$'\t' read -r kind id asset_name source_path boss_enemy_id looping volume_gain || [[ -n "${kind:-}" ]]; do
   [[ -z "${kind:-}" || "$kind" == \#* ]] && continue
   [[ "$boss_enemy_id" == "none" ]] && boss_enemy_id=""
@@ -61,17 +63,8 @@ while IFS=$'\t' read -r kind id asset_name source_path boss_enemy_id looping vol
   trinket_asset_validate_identifier "Track id" "$id"
   trinket_asset_validate_identifier "Asset name" "$asset_name"
 
-  if grep -qx "$id" "$seen_ids_temp"; then
-    echo "Duplicate music track id '$id'." >&2
-    exit 1
-  fi
-  printf '%s\n' "$id" >> "$seen_ids_temp"
-
-  if grep -qx "$asset_name" "$seen_assets_temp"; then
-    echo "Duplicate music asset name '$asset_name'." >&2
-    exit 1
-  fi
-  printf '%s\n' "$asset_name" >> "$seen_assets_temp"
+  trinket_asset_assert_unique "$seen_ids_temp" "music track id" "$id"
+  trinket_asset_assert_unique "$seen_assets_temp" "music asset name" "$asset_name"
 
   if [[ ! -f "$source_path" ]]; then
     echo "Missing source file for '$id': $source_path" >&2
@@ -100,11 +93,7 @@ while IFS=$'\t' read -r kind id asset_name source_path boss_enemy_id looping vol
       echo "Boss music '$id' references missing or non-boss enemy '$boss_enemy_id'." >&2
       exit 1
     fi
-    if grep -Fqx "$boss_enemy_id" "$seen_boss_ids_temp"; then
-      echo "Duplicate boss music enemy id '$boss_enemy_id'." >&2
-      exit 1
-    fi
-    printf '%s\n' "$boss_enemy_id" >> "$seen_boss_ids_temp"
+    trinket_asset_assert_unique "$seen_boss_ids_temp" "boss music enemy id" "$boss_enemy_id"
   elif [[ -n "$boss_enemy_id" ]]; then
     echo "Only boss music may include boss_enemy_id; '$id' has '$boss_enemy_id'." >&2
     exit 1
@@ -116,8 +105,7 @@ while IFS=$'\t' read -r kind id asset_name source_path boss_enemy_id looping vol
   output_file="$resources_dir/$asset_name.m4a"
 
   source_hash="$(shasum -a 256 "$source_path" | awk '{print $1}')"
-  recorded_hash="$(awk -F$'\t' -v name="$asset_name" '$1 == name { print $2; exit }' "$state_file" 2>/dev/null || true)"
-  recorded_profile="$(awk -F$'\t' -v name="$asset_name" '$1 == name { print $3; exit }' "$state_file" 2>/dev/null || true)"
+  trinket_asset_read_recorded_state recorded_hash recorded_profile "$asset_name"
   needs_convert=false
   if trinket_asset_needs_reencode "$recorded_hash" "$source_hash" "$recorded_profile" "$encode_profile" "$output_file"; then
     needs_convert=true

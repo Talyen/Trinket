@@ -123,7 +123,8 @@ struct MysteryEncounterView: View {
                     isSelected: selectedChoiceID == choice.id,
                     isDisabled: session.isResolvingChoice,
                     materialQuantity: session.previewMaterialQuantity,
-                    experienceAward: session.previewExperienceAward
+                    heroExperienceAward: session.previewHeroExperienceAward,
+                    companionExperienceAward: session.previewCompanionExperienceAward
                 ) {
                     guard selectedChoiceID != choice.id else { return }
                     selectedChoiceID = choice.id

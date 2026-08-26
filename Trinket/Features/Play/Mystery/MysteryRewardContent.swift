@@ -26,11 +26,11 @@ struct MysteryRewardContent: View {
                 materials: result.grantedMaterials,
                 showsIncreasePrefix: false,
                 emptyMessage: nil,
-                itemAccessibilityID: AccessibilityID.Battle.rewardItem,
+                itemAccessibilityID: AccessibilityID.Mystery.rewardItem,
                 lootSpacing: TrinketDesign.Metrics.sectionSpacing
             ),
             primaryActionTitle: "Loot All",
-            primaryActionAccessibilityIdentifier: AccessibilityID.Battle.continueButton,
+            primaryActionAccessibilityIdentifier: AccessibilityID.Mystery.continueButton,
             onPrimaryAction: onFinish,
             contentTopPadding: TrinketDesign.Metrics.contentTopPadding + TrinketDesign.Metrics.mediumSpacing,
             contentStackSpacing: TrinketDesign.Metrics.sectionSpacing

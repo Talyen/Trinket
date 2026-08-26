@@ -87,4 +87,30 @@ struct EffectModelTests {
         try #expect(!(Effect.purgeRandom.advancesEachTurn))
         try #expect(!(Effect.halveShield(.block)).advancesEachTurn)
     }
+
+    @Test func everyEffectKindHasBehaviorMetadata() {
+        for kind in EffectKind.allCases {
+            _ = EffectMetadata.behavior(for: kind)
+        }
+    }
+
+    @Test func representativeEffectsHaveNonEmptyApplyPhrases() {
+        let effects: [Effect] = [
+            .burn(2),
+            .shield(.block, 4),
+            .instantHeal(.health, 5),
+            .cleanse(.poison),
+            .nextHolyStrike,
+            .evadeNextHit,
+        ]
+        for effect in effects {
+            #expect(!EffectPresentation.applyPhrase(for: effect).isEmpty)
+        }
+    }
+
+    @Test func flagEffectSummaryPhrasesAreRegistered() {
+        for kind in [EffectKind.nextHolyStrike, .nextStrikeDouble, .evadeNextHit, .nextStrikeCritical, .freezeNextAttacker] {
+            #expect(!EffectMetadata.requiredBattleSummaryPhrase(for: kind).isEmpty)
+        }
+    }
 }

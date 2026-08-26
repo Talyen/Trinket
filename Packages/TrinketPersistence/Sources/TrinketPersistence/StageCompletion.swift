@@ -92,6 +92,26 @@ public enum StageCompletion {
         return EncounterLevelResolver.journeyEnemyLevel(for: stage, in: chapter)
     }
 
+    /// Authored journey or Labyrinth level, pulled down to the party's bounded
+    /// scaling ceiling. Battle prepare paths pass the already-scaled level;
+    /// this fallback covers mystery rewards and claim without a live encounter.
+    public static func partyAdjustedEncounterLevel(
+        for stage: Stage,
+        labyrinthNodeID: String? = nil,
+        in chapters: [Chapter] = GameContent.chapters,
+        save: PlayerSave
+    ) -> Int {
+        let authoredLevel = if let labyrinthNodeID, let node = save.labyrinth.nodes[labyrinthNodeID] {
+            EncounterLevelResolver.labyrinthEnemyLevel(for: node)
+        } else {
+            resolvedEncounterLevel(for: stage, in: chapters)
+        }
+        return EncounterLevelResolver.partyAdjusted(
+            authoredLevel,
+            partyAverageLevel: save.roster.activePartyAverageLevel
+        )
+    }
+
     /// Shared victory-reward sequence: gold with homestead find bonus, combat XP
     /// for hero + companion, materials, then one unique item. Mode completion
     /// entry points resolve mode-specific loot/stipend values, then call this.
@@ -206,7 +226,7 @@ public enum StageCompletion {
         }
 
         let encounterLevel = enemyEncounterLevel
-            ?? resolvedEncounterLevel(for: stage, in: GameContent.chapters)
+            ?? partyAdjustedEncounterLevel(for: stage, save: save)
         let enemyIsBoss: Bool = {
             guard let enemyID = stage.encounter.battleEnemyID else { return false }
             return GameContent.enemy(matching: enemyID)?.isBoss == true

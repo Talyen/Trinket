@@ -94,6 +94,20 @@ struct AppStateShopEncounterTests {
         #expect(state.encounters.activeShopEncounter != nil)
     }
 
+    @Test func startBattleDoesNotActivateWhileShopIsOpen() throws {
+        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        let shopStage = try #require(GameContent.stage(id: "chapter-2-stage-8"))
+        let battleStage = GameContent.chapters[0].stages.first(where: \.encounter.isCombat)
+        let resolvedBattle = try #require(battleStage)
+
+        #expect(state.journey.handleStagePrimaryAction(for: shopStage) == nil)
+        #expect(state.encounters.activeShopEncounter != nil)
+
+        #expect(state.journey.startBattle(for: resolvedBattle) == nil)
+        #expect(state.battle.activeBattle == nil)
+        #expect(state.encounters.activeShopEncounter != nil)
+    }
+
     #if DEBUG
     @Test func finishShopEncounterSurfacesLeaveFailureWhenPersistFails() throws {
         let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
