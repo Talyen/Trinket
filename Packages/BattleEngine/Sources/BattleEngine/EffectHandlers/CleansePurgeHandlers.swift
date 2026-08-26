@@ -33,7 +33,6 @@ struct CleansePurgeHandler: BattleEffectHandler {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        action _: ActionApplyContext,
         in context: inout BattleState
     ) -> EffectApplyOutcome {
         var currentEffects = context.roster.activeEffects(for: target)

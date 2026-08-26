@@ -223,7 +223,7 @@ struct BattleVictorySummaryTests {
         BattleSessionTestSupport.driveUntilOutcome(session)
 
         let summary = try #require(session.makeVictorySummary(for: configuration, presentation: context))
-        let earnedGold = try #require(session.readModel?.earnedGold)
+        let earnedGold = try #require(session.earnedGold)
 
         let expectedTotal = HomesteadEffects(
             heroModifiers: [],

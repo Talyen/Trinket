@@ -10,8 +10,9 @@ enum PlayerSaveSanitizer {
     /// Sanitizes only the mutated slices. Unchanged slices are skipped because
     /// every sanitizer is idempotent for already-normalized values; the roster
     /// sanitizer still re-runs when inventory changed (it resolves loadouts
-    /// against inventory item ids), and the labyrinth sanitizer always sees the
-    /// sanitized roster for recruit eligibility.
+    /// against inventory item ids). Labyrinth sanitize runs on labyrinth
+    /// mutations and full load; recruit eligibility is applied when a map is
+    /// generated.
     static func sanitize(_ save: PlayerSave, changedSlices: PlayerSaveSlice) -> PlayerSave {
         var sanitized = save
         sanitized.worldSeed = resolvedWorldSeed(save)

@@ -211,20 +211,11 @@ public struct PlayerRosterState: Equatable, Sendable {
     }
 
     public mutating func setEquipmentLoadout(_ loadout: EquipmentLoadout, for combatant: Combatant) {
-        // Target combatant wins ownership; other loadouts drop the same item IDs.
-        // (Load/sanitize uses RosterHydration.enforceUniqueEquippedItems — sorted
-        // first-wins — which is intentionally different.)
-        let resolvedLoadout = RosterHydration.deduplicateWithinLoadout(loadout)
-        let newlyEquipped = Set(resolvedLoadout.itemIDsBySlot.values)
-        for (combatantID, var otherLoadout) in equipmentLoadouts where combatantID != combatant.id {
-            for slot in ItemSlot.allCases {
-                if let itemID = otherLoadout.itemID(for: slot), newlyEquipped.contains(itemID) {
-                    otherLoadout.unequip(slot)
-                }
-            }
-            equipmentLoadouts[combatantID] = otherLoadout
-        }
-        equipmentLoadouts[combatant.id] = resolvedLoadout
+        equipmentLoadouts = RosterHydration.applyLoadout(
+            loadout,
+            for: combatant.id,
+            in: equipmentLoadouts
+        )
     }
 
     @discardableResult

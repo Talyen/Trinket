@@ -95,7 +95,8 @@ extension PlayerSaveSanitizer {
             mapVersion: LabyrinthGenerator.currentMapVersion,
             hasEntered: legacy.hasEntered,
             clusters: generated.clusters,
-            nodes: nodes
+            nodes: nodes,
+            runHealthByCombatantID: legacy.runHealthByCombatantID
         )
     }
 

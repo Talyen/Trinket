@@ -114,7 +114,7 @@ enum BattleSessionTestSupport {
             }
             break
         }
-        return session.outcome == .victory ? session.readModel?.earnedGold : nil
+        return session.outcome == .victory ? session.earnedGold : nil
     }
 
     /// Cycles the hand until `abilityID` is playable (does not play it).
@@ -171,7 +171,7 @@ enum BattleSessionTestSupport {
             cardID: card.id,
             at: date
         )
-        return session.outcome == .victory ? session.readModel?.earnedGold : nil
+        return session.outcome == .victory ? session.earnedGold : nil
     }
 
     static func greedyPlaySequence(from session: BattleSession) throws -> [Int] {

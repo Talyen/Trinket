@@ -159,6 +159,12 @@ private struct TrinketPressButtonStyle: ButtonStyle {
 }
 
 public extension View {
+    /// Applies `accessibilityIdentifier` when non-nil. Prefer this over a local
+    /// optional-identifier copy; glass CTAs still apply IDs after button styles.
+    func trinketAccessibilityIdentifier(_ identifier: String?) -> some View {
+        modifier(OptionalAccessibilityIdentifierModifier(identifier: identifier))
+    }
+
     /// Selection stroke for 3:4 artwork picker tiles (loadout / party grids).
     func trinketArtworkPickerSelectionBorder(
         isSelected: Bool,

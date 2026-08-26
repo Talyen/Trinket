@@ -13,7 +13,7 @@ public enum ItemSalvage {
     /// Single eligibility source for UI affordances and the salvage applier:
     /// Trinkets and Uniques can never be salvaged.
     public static func isEligible(_ item: InventoryItem) -> Bool {
-        item.baseType.slot != .trinket && item.rarity != .unique
+        !item.isTrinket && item.rarity != .unique
     }
 
     public static func yields(for item: InventoryItem) -> [ResourceAmount] {

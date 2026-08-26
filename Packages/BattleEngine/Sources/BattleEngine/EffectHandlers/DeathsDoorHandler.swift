@@ -18,7 +18,6 @@ struct DeathsDoorHandler: BattleEffectHandler {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        action _: ActionApplyContext,
         in _: inout BattleState
     ) -> EffectApplyOutcome {
         _ = effect; _ = ability; _ = source; _ = target

@@ -58,7 +58,7 @@ package extension CombatTriggerEngine {
 
         // Talent per-turn runtime state: Dodge bonuses and the attack-hit flag reset
         // each round; pending one-shot dodge effects are consumed on the next hit.
-        for owner in [BattleParticipant.hero, .companion] {
+        for owner in BattleParticipant.allCases {
             context.roster.mutateRuntime(for: context.roster[owner].combatant) { runtime in
                 if runtime.bonusDodgeExpiresAtTurn == 0 || context.turnCount >= runtime.bonusDodgeExpiresAtTurn {
                     runtime.bonusDodgeUntilNextTurn = 0

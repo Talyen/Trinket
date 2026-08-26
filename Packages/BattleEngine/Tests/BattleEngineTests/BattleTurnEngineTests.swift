@@ -1,8 +1,8 @@
-import BattleEngine
 import Testing
 import TrinketContent
 import TrinketCore
 import TrinketTestSupport
+@testable import BattleEngine
 
 struct BattleTurnEngineTests {
     private func makeContext(
@@ -385,5 +385,71 @@ struct BattleTurnEngineComponentTests {
         #expect(components.map(\.amount) == [2, 3])
         let summary = try #require(events.first { $0.kind == .ability })
         #expect(summary.amount == 5)
+    }
+
+    @Test func turnCadenceResetsAllParticipantsIncludingEnemy() throws {
+        var context = BattleStateTestFactory.makeBattle(
+            hero: CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [.slash]),
+            companion: CombatantFixtures.combatant(id: "companion", role: .companion),
+            enemy: CombatantFixtures.combatant(id: "enemy", role: .enemy, abilities: [.slash]),
+            dealOpeningHand: false
+        )
+        for participant in BattleParticipant.allCases {
+            context.roster.mutateRuntime(for: context.roster[participant].combatant) { runtime in
+                runtime.hasTakenAttackHitThisTurn = true
+                runtime.faeWardBlockedThisTurn = true
+            }
+        }
+        _ = CombatTriggerEngine.atPlayerTurnStart(in: &context)
+        for participant in BattleParticipant.allCases {
+            let runtime = try #require(context.roster.runtime(for: context.roster[participant].combatant))
+            #expect(!runtime.hasTakenAttackHitThisTurn)
+            #expect(!runtime.faeWardBlockedThisTurn)
+        }
+    }
+
+    @Test func manaEmpowermentTerminatesSafelyWithZeroCost() throws {
+        let burnAbility = Ability(
+            id: "flame-burst",
+            name: "Flame Burst",
+            tier: .basic,
+            damageComponents: [DamageComponent(5, keyword: .burn)]
+        )
+        let hero = Combatant(
+            id: "hero",
+            name: "Hero",
+            role: .hero,
+            maxHealth: 50,
+            maxMana: 10,
+            abilities: [burnAbility]
+        )
+        let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
+        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy)
+        var context = BattleStateTestFactory.makeBattle(
+            hero: hero,
+            companion: companion,
+            enemy: enemy,
+            heroModifiers: CombatModifierProfile(
+                triggers: CombatTraitTriggers(
+                    mana: ManaTriggers(
+                        repeatManaEmpowerment: true,
+                        empowermentCostReduction: 10
+                    )
+                )
+            ),
+            dealOpeningHand: false
+        )
+        context.roster.mutateRuntime(for: hero) {
+            $0.currentMana = 5
+        }
+        let events = BattleTurnEngine.performAction(
+            ability: burnAbility,
+            actor: hero,
+            abilityTarget: enemy,
+            context: &context
+        )
+        try #expect(context.roster.runtime(for: hero)?.currentMana == 5)
+        let summary = try #require(events.first { $0.kind == .ability })
+        #expect(summary.amount == 6)
     }
 }

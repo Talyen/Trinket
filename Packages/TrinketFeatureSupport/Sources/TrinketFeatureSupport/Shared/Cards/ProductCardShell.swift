@@ -54,7 +54,7 @@ public struct ProductCardShell<Art: View, Label: View>: View {
                     .trinketCardLabelSpace(reservesLabelSpace)
             }
         }
-        .optionalAccessibilityIdentifier(accessibilityID)
+        .trinketAccessibilityIdentifier(accessibilityID)
     }
 
     private var borderShineColors: [Color]? {

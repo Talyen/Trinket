@@ -12,7 +12,6 @@ struct TimedDebuffHandler: BattleEffectHandler {
         ability _: Ability,
         source: Combatant,
         target: Combatant,
-        action _: ActionApplyContext,
         in context: inout BattleState
     ) -> EffectApplyOutcome {
         context.appendEffect(effect, to: target, sourceID: source.id, remainingTurns: effect.durationTurns)

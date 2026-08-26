@@ -13,8 +13,9 @@ import TrinketPersistence
 struct PlayBrowsingStack: View {
     @Environment(PlaySession.self) private var play
     @Environment(JourneyPlayMode.self) private var journey
-    @Environment(BattleSession.self) private var battle
     @Environment(PlayerSaveStore.self) private var playerSave
+    @Environment(\.isBattleActive) private var isBattleActive
+    @Environment(\.presentPlayCombatantDetail) private var presentPlayCombatantDetail
     @Binding var navigationPath: [PlayLaunchDestination]
     @Binding var stageMessage: StageMapMessage?
 
@@ -50,7 +51,7 @@ struct PlayBrowsingStack: View {
     }
 
     private func openMode(_ destination: PlayLaunchDestination) {
-        guard battle.lifecyclePhase != .active else { return }
+        guard !isBattleActive else { return }
         navigationPath.append(destination)
     }
 
@@ -77,7 +78,7 @@ struct PlayBrowsingStack: View {
 
     private func showEnemyDetails(for stage: Stage) {
         guard let detail = enemyDetail(for: stage) else { return }
-        battle.presentCombatantDetail(detail)
+        presentPlayCombatantDetail(detail)
     }
 
     private func enemyDetail(for stage: Stage) -> CombatantCardDetail? {

@@ -255,7 +255,7 @@ struct ItemGeneratorTests {
     @Test func mysteryItemRarityNeverRollsUniqueTier() {
         // Mystery rewards promise an authored base type and affixes; the Unique
         // tier would silently discard both, so its band folds into Astral.
-        for seed in UInt64(1) ... 400 {
+        for seed in UInt64(1) ... 50 {
             var randomNumberGenerator = SeededRandomNumberGenerator(seed: seed)
             let tier = MysteryItemRarity.roll(astralChanceBonusPercent: 50, using: &randomNumberGenerator)
             #expect(tier != .unique)

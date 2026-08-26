@@ -17,7 +17,6 @@ struct BlockBuffHandler: BattleEffectHandler {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        action _: ActionApplyContext,
         in context: inout BattleState
     ) -> EffectApplyOutcome {
         let adjusted = context.adjustedOutgoingEffect(effect, sourceID: source.id)
@@ -73,7 +72,6 @@ struct FlagEffectHandler: BattleEffectHandler {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        action _: ActionApplyContext,
         in context: inout BattleState
     ) -> EffectApplyOutcome {
         guard effect == flag else {

@@ -42,7 +42,6 @@ public protocol BattleEffectHandler: Sendable {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        action: ActionApplyContext,
         in context: inout BattleState
     ) -> EffectApplyOutcome
     func advanceTurn(

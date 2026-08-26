@@ -14,6 +14,16 @@ struct LabyrinthMigrationTests {
         #expect(migratedFloor.nodeIDs.allSatisfy { !$0.contains("ironGalleries") })
     }
 
+    @Test func preservesRunHealthAcrossMapVersionRegeneration() throws {
+        var legacy = try makeVersionFourState(seed: 9, clearedNodeCount: 2)
+        legacy.runHealthByCombatantID = ["knight": 7, "wolf": 4]
+
+        let sanitized = PlayerSaveSanitizer.sanitizeLabyrinth(legacy)
+
+        #expect(sanitized.runHealthByCombatantID == ["knight": 7, "wolf": 4])
+        #expect(sanitized.mapVersion == LabyrinthGenerator.currentMapVersion)
+    }
+
     private func makeVersionFourState(
         seed: UInt64,
         clearedNodeCount: Int

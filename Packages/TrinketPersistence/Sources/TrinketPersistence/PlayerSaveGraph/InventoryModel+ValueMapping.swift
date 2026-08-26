@@ -71,7 +71,9 @@ extension InventoryModel {
             baseType: authored.baseType,
             rarity: .astral,
             displayName: authored.displayName,
-            affixes: authored.affixes
+            affixes: authored.affixes,
+            isCorrupted: persistedItem.isCorrupted,
+            affixPowers: persistedItem.affixPowers
         )
     }
 }

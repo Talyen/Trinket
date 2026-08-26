@@ -19,21 +19,6 @@ extension BattleSession {
         public let activeEffectSummaries: [TrinketCore.EffectSummary]
     }
 
-    public struct ReadModel {
-        public let hero: Combatant
-        public let companion: Combatant
-        public let enemy: Combatant
-        public let hand: [BattleCard]
-        public let turnCount: Int
-        public let earnedGold: Int
-        public let isBattleOver: Bool
-        public let isPartyDefeated: Bool
-        public let events: [ActionEvent]
-        public let log: [LogEntry]
-        public let healthByCombatantID: [String: Int]
-        public let modifiersByCombatantID: [String: CombatModifierProfile]
-    }
-
     struct VictoryInput {
         let earnedGold: Int
         let heroName: String
@@ -94,29 +79,6 @@ extension BattleSession {
             earnedGold: engineState.earnedGold,
             heroName: engineState.hero.name,
             companionName: engineState.companion.name
-        )
-    }
-
-    var readModel: ReadModel? {
-        guard let engineState else { return nil }
-        let combatants = [engineState.hero, engineState.companion, engineState.enemy]
-        return ReadModel(
-            hero: engineState.hero,
-            companion: engineState.companion,
-            enemy: engineState.enemy,
-            hand: engineState.hand.cards,
-            turnCount: engineState.turnCount,
-            earnedGold: engineState.earnedGold,
-            isBattleOver: engineState.isBattleOver,
-            isPartyDefeated: engineState.isPartyDefeated,
-            events: engineState.events,
-            log: engineState.log,
-            healthByCombatantID: Dictionary(
-                uniqueKeysWithValues: combatants.map { ($0.id, engineState.health(of: $0)) }
-            ),
-            modifiersByCombatantID: Dictionary(
-                uniqueKeysWithValues: combatants.map { ($0.id, engineState.modifiers(for: $0.id)) }
-            )
         )
     }
 

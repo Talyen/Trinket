@@ -347,7 +347,6 @@ extension BattleTestFixtures {
             ability: ability,
             source: source,
             target: target,
-            action: ActionApplyContext(),
             in: &context
         )
     }

@@ -10,7 +10,6 @@ struct InstantHealHandler: BattleEffectHandler {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        action _: ActionApplyContext,
         in context: inout BattleState
     ) -> EffectApplyOutcome {
         guard case let .instantHeal(keyword, amount) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
@@ -42,7 +41,6 @@ struct ResourceGainHandler: BattleEffectHandler {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        action _: ActionApplyContext,
         in context: inout BattleState
     ) -> EffectApplyOutcome {
         guard case let .resourceGain(keyword, amount) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
@@ -85,7 +83,6 @@ struct DrawCardsHandler: BattleEffectHandler {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        action _: ActionApplyContext,
         in context: inout BattleState
     ) -> EffectApplyOutcome {
         guard case let .drawCards(count) = effect, count > 0 else {
@@ -120,7 +117,6 @@ struct DrawAndPlayCardsHandler: BattleEffectHandler {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        action _: ActionApplyContext,
         in context: inout BattleState
     ) -> EffectApplyOutcome {
         guard case let .drawAndPlayCards(count) = effect, count > 0 else {

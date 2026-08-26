@@ -152,10 +152,9 @@ public final class SFXPlayer {
         let missing = ids.filter { preparedVoicesByID[$0] == nil }
         if !missing.isEmpty {
             warm(missing)
-        } else {
-            configureSessionIfNeeded()
-            _ = ensureEngineRunning()
+            return engineIsRunning
         }
+        configureSessionIfNeeded()
         guard ensureEngineRunning() else { return false }
         startPreparedVoicesIfNeeded()
         return true

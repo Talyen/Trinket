@@ -60,7 +60,6 @@ public final class PreparedArtworkCache {
     @ObservationIgnored private var pinCountsByName: [String: Int] = [:]
     @ObservationIgnored private var priorityWarmupTask: Task<Void, Never>?
     @ObservationIgnored private var deferredWarmupTask: Task<Void, Never>?
-    @ObservationIgnored private var decodeTasksByName: [String: Task<PreparedArtwork, Never>] = [:]
     @ObservationIgnored private var decodedCostsByName: [String: Int] = [:]
     @ObservationIgnored private var launchWarmupNames: [String] = []
     @ObservationIgnored private let catalogNamesProvider: () -> [String]
@@ -212,25 +211,18 @@ public final class PreparedArtworkCache {
             completedCount += imageNames.count - namesToDecode.count
         }
 
+        let decode = decodeHandler
         await withTaskGroup(of: PreparedArtwork.self) { group in
             var iterator = namesToDecode.makeIterator()
-            // Decode tasks are shared across batches by name; only this batch's
-            // tasks may be cancelled when this batch is cancelled.
-            var batchTasks: [Task<PreparedArtwork, Never>] = []
 
             for _ in 0 ..< maximumConcurrency {
                 guard let name = iterator.next() else { break }
-                let task = decodeTask(for: name)
-                batchTasks.append(task)
-                group.addTask { await task.value }
+                group.addTask { await decode(name) }
             }
 
             while let prepared = await group.next() {
                 guard !Task.isCancelled else {
                     group.cancelAll()
-                    for task in batchTasks {
-                        task.cancel()
-                    }
                     return
                 }
                 if let image = prepared.image {
@@ -245,29 +237,16 @@ public final class PreparedArtworkCache {
                         pinnedImages[prepared.name] = image
                     }
                 }
-                decodeTasksByName[prepared.name] = nil
                 if countsTowardLaunch {
                     completedCount += 1
                 }
 
                 if let name = iterator.next() {
-                    let task = decodeTask(for: name)
-                    batchTasks.append(task)
-                    group.addTask { await task.value }
+                    group.addTask { await decode(name) }
                 }
                 await Task.yield()
             }
         }
-    }
-
-    private func decodeTask(for name: String) -> Task<PreparedArtwork, Never> {
-        if let task = decodeTasksByName[name] {
-            return task
-        }
-        let decode = decodeHandler
-        let task = Task { await decode(name) }
-        decodeTasksByName[name] = task
-        return task
     }
 
     func launchWarmupSnapshot() -> PreparedArtworkCacheSnapshot {

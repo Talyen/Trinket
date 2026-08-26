@@ -16,9 +16,6 @@ public struct RosterCombatantDetailView: View {
     let effectsVolume: Double
     var hidesNavigationBar = false
 
-    /// Avoid re-scanning the catalog + configured roster on every parent invalidation.
-    @State private var resolvedCombatant: Combatant?
-
     public init(
         kind: CombatantDetailContext.Kind,
         combatantID: String,
@@ -34,7 +31,7 @@ public struct RosterCombatantDetailView: View {
     }
 
     public var body: some View {
-        let combatant = resolvedCombatant ?? resolveCombatant()
+        let combatant = resolveCombatant()
         if let combatant {
             CombatantDetailPane(
                 combatant: combatant,
@@ -58,7 +55,7 @@ public struct RosterCombatantDetailView: View {
                 inventoryItems: Binding(
                     get: { playerSave.inventory.items },
                     set: { newItems in
-                        playerSave.inventory = PlayerInventoryState(items: newItems)
+                        playerSave.inventory.items = newItems
                     }
                 ),
                 unlockedTalents: Binding(
@@ -84,11 +81,6 @@ public struct RosterCombatantDetailView: View {
                     }
                 }
             )
-            .onAppear {
-                if resolvedCombatant == nil {
-                    resolvedCombatant = combatant
-                }
-            }
         } else {
             ContentUnavailableView(
                 kind == .hero ? "Hero Not Found" : "Companion Not Found",

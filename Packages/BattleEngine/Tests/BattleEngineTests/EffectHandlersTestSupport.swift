@@ -23,7 +23,6 @@ enum EffectHandlersTestSupport {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        action: ActionApplyContext = ActionApplyContext(),
         battle: inout BattleState
     ) -> EffectApplyOutcome {
         guard let handler = EffectHandlers.handler(for: effect.kind) else {
@@ -35,7 +34,6 @@ enum EffectHandlersTestSupport {
                 ability: ability,
                 source: source,
                 target: target,
-                action: action,
                 in: &context
             )
         }

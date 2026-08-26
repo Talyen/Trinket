@@ -1,6 +1,5 @@
 import SwiftUI
 import TrinketAppState
-import TrinketBattleFeature
 import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
@@ -11,9 +10,10 @@ import TrinketPersistence
 
 struct SpireClimbView: View {
     @Environment(SpiresPlayMode.self) private var spires
-    @Environment(BattleSession.self) private var battle
     @Environment(PlayerSaveStore.self) private var playerSave
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.isBattleActive) private var isBattleActive
+    @Environment(\.presentPlayCombatantDetail) private var presentPlayCombatantDetail
 
     @State private var floorMessage: StageMapMessage?
 
@@ -77,7 +77,7 @@ struct SpireClimbView: View {
                     StageSelectList(
                         rows: rows,
                         isPrimaryActionDisabled: { _ in
-                            battle.lifecyclePhase == .active || !isPartyAttuned(to: spire)
+                            isBattleActive || !isPartyAttuned(to: spire)
                         },
                         onArtworkTap: showEnemyDetails,
                         onPrimaryAction: { floor in
@@ -135,7 +135,7 @@ struct SpireClimbView: View {
 
     private func showEnemyDetails(for floor: SpireFloor) {
         guard let encounter = spires.resolvedEncounter(for: floor) else { return }
-        battle.presentCombatantDetail(
+        presentPlayCombatantDetail(
             CombatantCardDetail(
                 combatant: encounter.combatant
             )

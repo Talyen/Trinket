@@ -148,6 +148,21 @@ struct AbilityCatalogTests {
         try #expect(issues.contains { $0.message.contains("bonusAmount") })
     }
 
+    @Test func validatorRejectsPurgeOnAllyInOutcomeBranch() throws {
+        let ability = Ability(
+            id: "bad-branch-purge",
+            name: "Bad Branch Purge",
+            tier: .skill,
+            outcomeBranches: [
+                AbilityOutcomeBranch(
+                    targetedEffects: [TargetedEffect(.purgeRandom, target: .actor)]
+                ),
+            ]
+        )
+        let issues = AbilityValidator.validate(ability)
+        try #expect(issues.contains { $0.message.contains("purge effects must target enemies") })
+    }
+
     // MARK: - Outcome branches
 
     @Test func resolvingOutcomeBranchPicksBranchUsingRNG() {

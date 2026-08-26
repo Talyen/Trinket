@@ -44,10 +44,11 @@ public enum ShopPurchaseApplier {
             offerID: offer.id,
             visitToken: visitToken
         )
+        let itemID = offer.item.isTrinket ? offer.item.id : instanceID
         guard offer.price >= 0 else {
             return .insufficientGold
         }
-        guard !save.inventory.items.contains(where: { $0.id == instanceID }) else {
+        guard !save.inventory.items.contains(where: { $0.id == itemID }) else {
             return .alreadyOwned
         }
         if offer.item.isTrinket,
@@ -59,7 +60,7 @@ public enum ShopPurchaseApplier {
         }
 
         let purchased = InventoryItem(
-            id: offer.item.isTrinket ? offer.item.id : instanceID,
+            id: itemID,
             templateID: offer.item.templateID,
             baseType: offer.item.baseType,
             rarity: offer.item.rarity,

@@ -47,7 +47,9 @@ enum AbilityValidator {
         let enemyTargets: Set<EffectTarget> = [.abilityTarget, .enemy]
         var issues: [Issue] = []
 
-        for targetedEffect in ability.targetedEffects {
+        let targetedEffects = ability.targetedEffects
+            + (ability.outcomeBranches?.flatMap(\.targetedEffects) ?? [])
+        for targetedEffect in targetedEffects {
             switch targetedEffect.effect {
             case .cleanse, .cleanseRandom, .cleanseHealPerDebuff:
                 if !allyTargets.contains(targetedEffect.target) {

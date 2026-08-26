@@ -262,7 +262,6 @@ package extension CombatTriggerEngine {
                     ),
                     source: actor,
                     target: actor,
-                    action: ActionApplyContext(),
                     in: &context
                 )
                 events.append(contentsOf: outcome.events)

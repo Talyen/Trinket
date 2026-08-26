@@ -26,6 +26,8 @@ struct PlayView: View {
             )
             PlayBattleOverlay(stageMessage: $stageMessage)
         }
+        .environment(\.isBattleActive, battle.lifecyclePhase == .active)
+        .environment(\.presentPlayCombatantDetail, battle.presentCombatantDetail)
         .onAppear {
             restorePlayDestinationIfNeeded()
         }
@@ -73,4 +75,9 @@ struct PlayView: View {
             [.explore, .spiresHub, .spireClimb(spireID)]
         }
     }
+}
+
+extension EnvironmentValues {
+    @Entry var isBattleActive = false
+    @Entry var presentPlayCombatantDetail: (CombatantCardDetail) -> Void = { _ in }
 }

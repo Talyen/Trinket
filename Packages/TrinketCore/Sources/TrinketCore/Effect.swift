@@ -269,7 +269,8 @@ public enum Effect: Hashable, Sendable {
     public static func defaultTarget(for effect: Self) -> EffectTarget {
         switch effect {
         case .burn, .poison, .bleed, .controlMeter, .halveShield, .purge, .purgeRandom, .marked,
-             .multiplyDoT, .recurringDamage, .hemorrhage:
+             .multiplyDoT, .recurringDamage, .hemorrhage,
+             .damageReductionPercent, .damageReductionFlat, .strengthReduction:
             .abilityTarget
         case .instantHeal:
             .lowestHealthAlly
@@ -280,8 +281,7 @@ public enum Effect: Hashable, Sendable {
              .deathsDoor, .thorns, .criticalChanceBonus, .restoreManaOnHit,
              .damageKeywordOverride, .nextHolyStrike, .nextStrikeDouble, .evadeNextHit,
              .convertManaToBlock, .shieldFromMana, .shieldFromHalfMana, .shieldFromGold, .maximumManaBonus,
-             .nextStrikeCritical, .freezeNextAttacker, .onHitDamage, .avatar,
-             .damageReductionPercent, .damageReductionFlat, .strengthReduction:
+             .nextStrikeCritical, .freezeNextAttacker, .onHitDamage, .avatar:
             .actor
         }
     }

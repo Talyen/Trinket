@@ -21,7 +21,6 @@ struct ThornsHandler: BattleEffectHandler {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        action _: ActionApplyContext,
         in context: inout BattleState
     ) -> EffectApplyOutcome {
         guard case let .thorns(amount) = effect, amount > 0 else {
@@ -67,7 +66,6 @@ struct OnHitDamageHandler: BattleEffectHandler {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        action _: ActionApplyContext,
         in context: inout BattleState
     ) -> EffectApplyOutcome {
         guard case let .onHitDamage(keyword, amount) = effect, amount > 0 else {
@@ -128,7 +126,6 @@ struct MarkedHandler: BattleEffectHandler {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        action _: ActionApplyContext,
         in context: inout BattleState
     ) -> EffectApplyOutcome {
         guard case let .marked(bonus, durationTurns) = effect else {
@@ -175,7 +172,6 @@ struct CriticalChanceBonusHandler: BattleEffectHandler {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        action _: ActionApplyContext,
         in context: inout BattleState
     ) -> EffectApplyOutcome {
         guard case let .criticalChanceBonus(percent, durationTurns) = effect else {
@@ -223,7 +219,6 @@ struct RestoreManaOnHitHandler: BattleEffectHandler {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        action _: ActionApplyContext,
         in context: inout BattleState
     ) -> EffectApplyOutcome {
         guard case let .restoreManaOnHit(amount, durationTurns) = effect else {
@@ -268,7 +263,6 @@ struct DamageKeywordOverrideHandler: BattleEffectHandler {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        action _: ActionApplyContext,
         in context: inout BattleState
     ) -> EffectApplyOutcome {
         guard case let .damageKeywordOverride(keyword, bonus, durationTurns) = effect else {
@@ -306,7 +300,6 @@ struct HemorrhageHandler: BattleEffectHandler {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        action _: ActionApplyContext,
         in context: inout BattleState
     ) -> EffectApplyOutcome {
         guard case let .hemorrhage(amount) = effect, amount > 0 else {

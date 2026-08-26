@@ -406,8 +406,6 @@ extension BattleTurnEngine {
         events: inout [ActionEvent]
     ) -> [String] {
         var appliedEffectLogs: [String] = []
-        let actionContext = ActionApplyContext()
-
         for targetedEffect in ability.targetedEffects {
             if let condition = targetedEffect.condition,
                !BattleConditionEvaluator.isMet(
@@ -442,7 +440,6 @@ extension BattleTurnEngine {
                 ability: ability,
                 source: actor,
                 target: effectTarget,
-                action: actionContext,
                 in: &context
             )
             events.append(contentsOf: outcome.events)

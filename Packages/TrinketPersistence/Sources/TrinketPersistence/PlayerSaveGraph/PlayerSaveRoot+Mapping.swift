@@ -14,48 +14,83 @@ struct PlayerSaveSlice: OptionSet {
     static let labyrinth = Self(rawValue: 1 << 6)
     static let all: Self = [.root, .journey, .roster, .inventory, .homestead, .spires, .labyrinth]
 
-    static func changed(between snapshot: PlayerSave, and candidate: PlayerSave) -> Self {
+    static func changed(
+        between snapshot: PlayerSave,
+        and candidate: PlayerSave,
+        within candidates: Self = .all
+    ) -> Self {
         var slices: Self = []
-        if snapshot.schemaVersion != candidate.schemaVersion
-            || snapshot.modifiedAt != candidate.modifiedAt
-            || snapshot.sessionGeneration != candidate.sessionGeneration
-            || snapshot.worldSeed != candidate.worldSeed
-            || snapshot.starterSelection != candidate.starterSelection
-            || snapshot.corruptionAltarCooldownRemaining != candidate.corruptionAltarCooldownRemaining {
-            slices.insert(.root)
+        if candidates.contains(.root) {
+            if snapshot.schemaVersion != candidate.schemaVersion
+                || snapshot.modifiedAt != candidate.modifiedAt
+                || snapshot.sessionGeneration != candidate.sessionGeneration
+                || snapshot.worldSeed != candidate.worldSeed
+                || snapshot.starterSelection != candidate.starterSelection
+                || snapshot.corruptionAltarCooldownRemaining != candidate.corruptionAltarCooldownRemaining {
+                slices.insert(.root)
+            }
         }
-        if snapshot.journey != candidate.journey {
+        if candidates.contains(.journey), snapshot.journey != candidate.journey {
             slices.insert(.journey)
         }
-        if snapshot.roster != candidate.roster {
+        if candidates.contains(.roster), snapshot.roster != candidate.roster {
             slices.insert(.roster)
         }
-        if snapshot.inventory != candidate.inventory {
+        if candidates.contains(.inventory), snapshot.inventory != candidate.inventory {
             slices.insert(.inventory)
         }
-        if snapshot.homestead != candidate.homestead {
+        if candidates.contains(.homestead), snapshot.homestead != candidate.homestead {
             slices.insert(.homestead)
         }
-        if snapshot.spires != candidate.spires {
+        if candidates.contains(.spires), snapshot.spires != candidate.spires {
             slices.insert(.spires)
         }
-        if snapshot.labyrinth != candidate.labyrinth {
+        if candidates.contains(.labyrinth), snapshot.labyrinth != candidate.labyrinth {
             slices.insert(.labyrinth)
         }
         return slices
     }
 
+    /// Slices that must be re-diffed after sanitize. The sanitizer always
+    /// resolves `worldSeed` (root) and may pin `labyrinth.worldSeed` even when
+    /// those slices were not in the original mutation.
+    static func persistTargets(for sanitizeSlices: Self) -> Self {
+        sanitizeSlices.union(.root).union(.labyrinth)
+    }
+
     /// Expands a mutation diff into the slices that must be sanitized so
-    /// cross-slice couplings match a full sanitize pass.
+    /// cross-slice couplings match a full sanitize pass. Inventory writes also
+    /// sanitize roster (equipped items must exist). Labyrinth recruit eligibility
+    /// is applied at map generation, not on every roster write.
     static func sanitizeTargets(for mutationSlices: Self) -> Self {
         var targets = mutationSlices
         if targets.contains(.inventory) {
             targets.insert(.roster)
         }
-        if targets.contains(.roster) {
-            targets.insert(.labyrinth)
-        }
         return targets
+    }
+
+    static func prepareCandidate(
+        from snapshot: PlayerSave,
+        update: (inout PlayerSave) -> Void
+    ) throws -> (candidate: PlayerSave, changedSlices: Self) {
+        var candidate = snapshot
+        update(&candidate)
+        let mutationSlices = changed(between: snapshot, and: candidate)
+        guard !mutationSlices.isEmpty else { return (snapshot, []) }
+        let sanitizeSlices = sanitizeTargets(for: mutationSlices)
+        candidate = PlayerSaveSanitizer.sanitize(candidate, changedSlices: sanitizeSlices)
+        var changedSlices = changed(
+            between: snapshot,
+            and: candidate,
+            within: persistTargets(for: sanitizeSlices)
+        )
+        try PlayerSaveSanitizer.validate(candidate)
+        if !changedSlices.isEmpty {
+            candidate.modifiedAt = Date()
+            changedSlices.insert(.root)
+        }
+        return (candidate, changedSlices)
     }
 }
 

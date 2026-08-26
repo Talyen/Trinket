@@ -334,15 +334,6 @@ public final class BattleSession: BattleRuntime {
         )
     }
 
-    public func prepareAllBattleCinematics() {
-        for reference in UltimateCinematicCatalog.allReferences {
-            BattleCinematicPlayer.shared.warm(
-                actorID: reference.actorID,
-                abilityID: reference.abilityID
-            )
-        }
-    }
-
     func syncLogForDisplay() {
         syncEngineLog()
     }

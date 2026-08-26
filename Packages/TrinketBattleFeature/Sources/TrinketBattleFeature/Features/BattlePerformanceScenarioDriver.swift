@@ -85,8 +85,8 @@ struct BattlePerformanceScenarioDriver {
     }
 
     static func feedbackEvents(in session: BattleSession) -> [ActionEvent] {
-        guard let readModel = session.readModel else { return [] }
-        let targets = [readModel.enemy, readModel.hero, readModel.companion]
+        guard let state = session.engineState else { return [] }
+        let targets = [state.enemy, state.hero, state.companion]
         let keywords: [Keyword] = [.physical, .burn, .freeze, .holy, .poison, .block]
         return (0 ..< 9).map { index in
             let target = targets[index % targets.count]
@@ -94,8 +94,8 @@ struct BattlePerformanceScenarioDriver {
                 id: 90000 + index,
                 kind: index.isMultiple(of: 3) ? .effect : .abilityDamage,
                 effectKind: index.isMultiple(of: 3) ? .shieldApplied : nil,
-                actorID: readModel.hero.id,
-                actorName: readModel.hero.name,
+                actorID: state.hero.id,
+                actorName: state.hero.name,
                 abilityID: "performance-feedback",
                 abilityName: "Performance Feedback",
                 targetID: target.id,

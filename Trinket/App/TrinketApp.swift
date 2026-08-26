@@ -17,20 +17,16 @@ private let trinketAppLogger = Logger(
 @main
 struct TrinketApp: App {
     @State private var appState: AppState?
-    @State private var battleSession: BattleSession?
     @State private var bootstrapFailureMessage: String?
 
     init() {
         let environment = AppEnvironment.shared
-        var concreteBattleSession: BattleSession?
         let makeBattleRuntime: (BattleRuntimeDependencies) -> any BattleRuntime = { dependencies in
-            let session = BattleSession(
+            BattleSession(
                 autoEndTurnDelay: environment.battleTickInterval
                     ?? BattleSession.autoEndTurnDelay,
                 presentationEnvironment: dependencies
             )
-            concreteBattleSession = session
-            return session
         }
 
         do {
@@ -39,7 +35,6 @@ struct TrinketApp: App {
                 makeBattleRuntime: makeBattleRuntime
             )
             _appState = State(initialValue: state)
-            _battleSession = State(initialValue: concreteBattleSession)
         } catch {
             assertionFailure("AppState bootstrap failed: \(error)")
             trinketAppLogger.error(
@@ -53,7 +48,6 @@ struct TrinketApp: App {
                     makeBattleRuntime: makeBattleRuntime
                 )
                 _appState = State(initialValue: state)
-                _battleSession = State(initialValue: concreteBattleSession)
             } catch {
                 trinketAppLogger.fault(
                     "AppState in-memory fallback failed: \(error.localizedDescription, privacy: .public)"
@@ -68,10 +62,9 @@ struct TrinketApp: App {
 
     var body: some Scene {
         WindowGroup {
-            if let appState, let battleSession {
+            if let appState {
                 PreparedAppRoot(
                     appState: appState,
-                    battleSession: battleSession,
                     priorityImageNames: priorityImageNames(for: appState)
                 )
             } else {
@@ -159,8 +152,14 @@ private struct PreparedAppRoot: View {
     @State private var areCastEffectsPrepared = false
 
     let appState: AppState
-    let battleSession: BattleSession
     let priorityImageNames: [String]
+
+    private var battleSession: BattleSession {
+        guard let session = appState.play.battle as? BattleSession else {
+            preconditionFailure("AppState battle runtime must be BattleSession")
+        }
+        return session
+    }
 
     var body: some View {
         Group {
@@ -200,7 +199,6 @@ private struct PreparedAppRoot: View {
                 artworkCache.releasePins(names: priorityImageNames)
             }
             appState.prepareLaunchPerformanceResources()
-            battleSession.prepareAllBattleCinematics()
             // Align the minimum hold with first paint (same yield as the
             // progress fill) so a warm cache cannot dismiss before the bar runs.
             await Task.yield()

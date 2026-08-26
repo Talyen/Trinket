@@ -207,7 +207,8 @@ public extension BattleTurnEngine {
         }
         var events: [ActionEvent] = []
         var purchases = 0
-        while purchases == 0 || repeats {
+        let maxPurchases = empowermentCost > 0 ? max(1, (context.roster.runtime(for: actor)?.maxMana ?? 1) / empowermentCost) : 1
+        while purchases == 0 || repeats, purchases < maxPurchases {
             guard let runtime = context.roster.runtime(for: actor),
                   runtime.maxMana > 0,
                   runtime.currentMana >= empowermentCost

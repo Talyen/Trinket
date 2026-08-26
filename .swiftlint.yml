@@ -139,6 +139,9 @@ excluded:
   - Packages/TrinketContent/Sources/TrinketContent/Generated
   - .DerivedData
   - .build
+  - build
+  - "Packages/*/build"
+  - "Packages/*/.build"
   # DEBUG feel-tuning lab; intentionally dense parameter surface.
   - Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/Layout/BattleHandMotionLab.swift
   - Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/Feedback/CombatFeedbackFloatMotionLab.swift

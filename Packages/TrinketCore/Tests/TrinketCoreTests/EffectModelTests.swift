@@ -25,6 +25,12 @@ struct EffectModelTests {
         try #expect(avatar.kind == .avatar)
     }
 
+    @Test func damageAndStrengthReductionDefaultToAbilityTarget() {
+        #expect(Effect.defaultTarget(for: .damageReductionPercent(0.25, 2)) == .abilityTarget)
+        #expect(Effect.defaultTarget(for: .damageReductionFlat(3, 1)) == .abilityTarget)
+        #expect(Effect.defaultTarget(for: .strengthReduction(2, 3)) == .abilityTarget)
+    }
+
     @Test func manaEmpowermentRaisesBurnAndFreezeDamageNumbersOnly() throws {
         try #expect(Effect.burn(2).isManaEmpowerableBurnOrFreezeDamage)
         try #expect(Effect.recurringDamage(.freeze, 2, 2).isManaEmpowerableBurnOrFreezeDamage)

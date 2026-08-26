@@ -1,6 +1,5 @@
 import SwiftUI
 import TrinketAppState
-import TrinketBattleFeature
 import TrinketContent
 import TrinketDesignSystem
 import TrinketFeatureAdapters
@@ -14,7 +13,7 @@ struct StageSelectActiveCard<
     ArtworkAccessory: View
 >: View {
     @Environment(OptionsStore.self) private var options
-    @Environment(BattleSession.self) private var battle
+    @Environment(\.isBattleActive) private var isBattleActive
 
     let presentation: StageSelectRowPresentation<Item>
     let isPrimaryActionDisabled: Bool
@@ -185,7 +184,7 @@ struct StageSelectActiveCard<
                 .contentShape(Rectangle())
         }
         .trinketQuietTapButtonStyle()
-        .disabled(battle.lifecyclePhase == .active)
+        .disabled(isBattleActive)
         .accessibilityLabel("Party")
         .accessibilityIdentifier(presentation.partyControlAccessibilityID)
     }

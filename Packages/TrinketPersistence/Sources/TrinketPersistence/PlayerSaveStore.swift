@@ -72,8 +72,6 @@ public final class PlayerSaveStore {
 
     public var journey: JourneyProgressState {
         get { observedJourney }
-        // Slice setters write raw values; the mutation hub sanitizes every
-        // changed slice exactly once (see performBatchMutation).
         set { mutate { $0.journey = newValue } }
     }
 
@@ -213,18 +211,7 @@ public final class PlayerSaveStore {
         }
         let snapshot = measured("SnapshotProjection") { currentSave }
         let (candidate, changedSlices) = try measured("MutationPreparation") {
-            var candidate = snapshot
-            update(&candidate)
-            let mutationSlices = PlayerSaveSlice.changed(between: snapshot, and: candidate)
-            let sanitizeSlices = PlayerSaveSlice.sanitizeTargets(for: mutationSlices)
-            candidate = PlayerSaveSanitizer.sanitize(candidate, changedSlices: sanitizeSlices)
-            var changedSlices = PlayerSaveSlice.changed(between: snapshot, and: candidate)
-            try PlayerSaveSanitizer.validate(candidate)
-            if !changedSlices.isEmpty {
-                candidate.modifiedAt = Date()
-                changedSlices.insert(.root)
-            }
-            return (candidate, changedSlices)
+            try PlayerSaveSlice.prepareCandidate(from: snapshot, update: update)
         }
         guard !changedSlices.isEmpty else { return }
         measured("GraphApply") {
@@ -310,22 +297,22 @@ public final class PlayerSaveStore {
     }
 
     public func resetGameplayProgress() throws {
-        var fresh = PlayerSave.fresh
-        fresh.sessionGeneration = currentSave.sessionGeneration &+ 1
-        try resetRoot(with: fresh)
+        try resetWithIncrementedSessionGeneration(.fresh)
     }
 
     public func applyTestSeed() throws {
-        var seeded = PlayerSave.testSeed
-        seeded.sessionGeneration = currentSave.sessionGeneration &+ 1
-        try resetRoot(with: seeded)
+        try resetWithIncrementedSessionGeneration(.testSeed)
     }
 
     /// Unlocks all heroes/companions at level 20 and clears Chapter 1 (Modes unlock).
     public func unlockAllContent() throws {
-        var unlocked = PlayerSave.unlockedAll
-        unlocked.sessionGeneration = currentSave.sessionGeneration &+ 1
-        try resetRoot(with: unlocked)
+        try resetWithIncrementedSessionGeneration(.unlockedAll)
+    }
+
+    private func resetWithIncrementedSessionGeneration(_ base: PlayerSave) throws {
+        var save = base
+        save.sessionGeneration = currentSave.sessionGeneration &+ 1
+        try resetRoot(with: save)
     }
 
     private func mutate(_ update: (inout PlayerSave) -> Void) {
@@ -334,11 +321,8 @@ public final class PlayerSaveStore {
             if !persistSaveImmediately {
                 scheduleDeferredSave()
             }
-        } catch let error as PlayerSavePersistenceError {
-            lastPersistenceError = error
-            logger.error("Failed to persist player graph mutation: \(error.localizedDescription, privacy: .public)")
         } catch {
-            lastPersistenceError = .writeFailed
+            lastPersistenceError = (error as? PlayerSavePersistenceError) ?? .writeFailed
             logger.error("Failed to persist player graph mutation: \(error.localizedDescription, privacy: .public)")
         }
     }

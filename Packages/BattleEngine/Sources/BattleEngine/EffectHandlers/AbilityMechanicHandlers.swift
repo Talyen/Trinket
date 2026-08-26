@@ -28,7 +28,6 @@ struct ShieldFromResourceHandler: BattleEffectHandler {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        action _: ActionApplyContext,
         in context: inout BattleState
     ) -> EffectApplyOutcome {
         guard effect.kind == kind else {
@@ -107,7 +106,6 @@ struct MaximumManaBonusHandler: BattleEffectHandler {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        action _: ActionApplyContext,
         in context: inout BattleState
     ) -> EffectApplyOutcome {
         guard case let .maximumManaBonus(amount) = effect, amount > 0 else {
@@ -148,7 +146,6 @@ struct MultiplyDoTHandler: BattleEffectHandler {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        action _: ActionApplyContext,
         in context: inout BattleState
     ) -> EffectApplyOutcome {
         guard case let .multiplyDoT(keyword, factor) = effect, factor > 1 else {
@@ -204,7 +201,6 @@ struct RecurringDamageHandler: BattleEffectHandler {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        action _: ActionApplyContext,
         in context: inout BattleState
     ) -> EffectApplyOutcome {
         guard case let .recurringDamage(keyword, potency, turns) = effect, potency > 0, turns > 0 else {
@@ -280,7 +276,6 @@ struct AvatarHandler: BattleEffectHandler {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        action _: ActionApplyContext,
         in context: inout BattleState
     ) -> EffectApplyOutcome {
         guard case let .avatar(holyDamage, blockPerTurn, turns) = effect,
@@ -376,7 +371,6 @@ struct ReviveHandler: BattleEffectHandler {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        action _: ActionApplyContext,
         in context: inout BattleState
     ) -> EffectApplyOutcome {
         guard case let .revive(health) = effect, health > 0 else {

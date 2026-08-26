@@ -472,7 +472,6 @@ package extension CombatTriggerEngine {
                 ability: cascadeAbility,
                 source: combatant,
                 target: combatant,
-                action: ActionApplyContext(),
                 in: &context
             )
             guard played.didApply else { break }

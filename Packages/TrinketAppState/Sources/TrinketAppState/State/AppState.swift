@@ -231,7 +231,9 @@ public final class AppState {
     public func trimMemoryFootprint() {
         play.battle.trimMemoryFootprint(releaseBattleLog: true)
         musicPlayer.clearEncounterResumePositions()
-        sfxPlayer.releaseResources()
+        if play.battle.lifecyclePhase == .idle {
+            sfxPlayer.releaseResources()
+        }
     }
 
     public func refreshMusic(scenePhase: ScenePhase, volumeOverride: Double? = nil) {

@@ -46,11 +46,11 @@ public struct CategoryBrowseShelf<Destination: View, Content: View>: View {
                 categoryHeader
             }
             .trinketQuietTapButtonStyle()
-            .modifier(OptionalAccessibilityIdentifier(linkAccessibilityIdentifier))
+            .trinketAccessibilityIdentifier(linkAccessibilityIdentifier)
 
             horizontalShelf
         }
-        .modifier(OptionalAccessibilityIdentifier(sectionAccessibilityIdentifier))
+        .trinketAccessibilityIdentifier(sectionAccessibilityIdentifier)
     }
 
     private var categoryHeader: some View {
@@ -94,21 +94,5 @@ public struct CategoryBrowseShelf<Destination: View, Content: View>: View {
             for: .scrollContent
         )
         .scrollTargetBehavior(.viewAligned)
-    }
-}
-
-private struct OptionalAccessibilityIdentifier: ViewModifier {
-    let identifier: String?
-
-    init(_ identifier: String?) {
-        self.identifier = identifier
-    }
-
-    func body(content: Content) -> some View {
-        if let identifier {
-            content.accessibilityIdentifier(identifier)
-        } else {
-            content
-        }
     }
 }

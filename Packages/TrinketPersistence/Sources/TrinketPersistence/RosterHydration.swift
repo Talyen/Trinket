@@ -211,4 +211,27 @@ enum RosterHydration {
         }
         return unique
     }
+
+    /// Reassigns a combatant's loadout so that the target combatant wins ownership of all
+    /// newly equipped items, stripping any conflicting item IDs from all other combatants.
+    static func applyLoadout(
+        _ loadout: EquipmentLoadout,
+        for combatantID: String,
+        in loadouts: [String: EquipmentLoadout]
+    ) -> [String: EquipmentLoadout] {
+        let resolved = deduplicateWithinLoadout(loadout)
+        let newlyEquipped = Set(resolved.itemIDsBySlot.values)
+        var updated = loadouts
+        for (otherID, otherLoadout) in loadouts where otherID != combatantID {
+            var cleaned = otherLoadout
+            for slot in ItemSlot.allCases {
+                if let itemID = cleaned.itemID(for: slot), newlyEquipped.contains(itemID) {
+                    cleaned.unequip(slot)
+                }
+            }
+            updated[otherID] = cleaned
+        }
+        updated[combatantID] = resolved
+        return updated
+    }
 }

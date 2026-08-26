@@ -1,6 +1,5 @@
 import SwiftUI
 import TrinketAppState
-import TrinketBattleFeature
 import TrinketContent
 import TrinketDesignSystem
 import TrinketFeatureAdapters
@@ -10,8 +9,9 @@ import TrinketPersistence
 
 struct LabyrinthNodeInspector: View {
     @Environment(LabyrinthPlayMode.self) private var labyrinth
-    @Environment(BattleSession.self) private var battle
     @Environment(PlayerSaveStore.self) private var playerSave
+    @Environment(\.isBattleActive) private var isBattleActive
+    @Environment(\.presentPlayCombatantDetail) private var presentPlayCombatantDetail
 
     let node: LabyrinthNode
     let state: PlayerLabyrinthState
@@ -38,10 +38,10 @@ struct LabyrinthNodeInspector: View {
     var body: some View {
         StageSelectActiveCard(
             presentation: presentation,
-            isPrimaryActionDisabled: battle.lifecyclePhase == .active,
+            isPrimaryActionDisabled: isBattleActive,
             onArtworkTap: {
                 if let enemyDetail {
-                    battle.presentCombatantDetail(enemyDetail)
+                    presentPlayCombatantDetail(enemyDetail)
                 }
             },
             onPrimaryAction: {
