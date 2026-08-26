@@ -12,9 +12,6 @@ public enum AbilityCatalog {
             + AbilityCatalogUltimate.all
 
     public static func ability(id: String) -> Ability? {
-        if let indexed = AbilityCatalogIndexGenerated.abilitiesByID[id] {
-            return indexed
-        }
-        return all.first { $0.id == id }
+        AbilityCatalogIndexGenerated.abilitiesByID[id]
     }
 }

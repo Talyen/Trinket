@@ -69,7 +69,7 @@ validation) that full `ci-gate.sh` also enforces.
 | `ci-gate.sh --fast` | Module boundaries, Swift Testing policy, and release-note validation only |
 | `ci-assets-gate.sh` | Generate assets, assert, regenerate in a stable locale, assert again |
 | `test-deploy.sh` | Release-time: `ci-gate.sh`, unit, then full UI, or the optional smoke canary |
-| Main CI | Post-push on `main`: gate, one build-for-testing, parallel unit/full-smoke/exhaustive-UI jobs |
+| Main CI | Post-push on `main`: gate, one build-for-testing (then advisory SwiftLint analyze), parallel unit/full-smoke/exhaustive-UI jobs, plus an advisory diff-review summary |
 
 The shared build job produces test products for fan-out, including every
 package test scheme so the unit job can run with `--no-build`. Smoke and
@@ -118,6 +118,8 @@ does not fail a correctness gate.
 | `check-ui-style.sh` | Product colors, materials, and chrome routed through `TrinketDesign` |
 | `check-platform-api-bans.sh` | Repository-banned legacy observation/navigation APIs |
 | `check-exclusivity-footguns.sh` | Suspicious `inout` access to stored properties |
+| `check-agent-invariants.sh` | BattleEngine entropy, test `Task.sleep`, persistence `try?`, undocumented concurrency escapes, file-level SwiftLint disables |
+| `check-accessibility-ids.sh` | Unique `AccessibilityID` constants; UITests must query `AccessibilityID.*` |
 | `check-module-boundaries.sh` | Package layering and imports |
 
 `Color.primary`, `.secondary`, and `.clear` remain valid adaptive primitives.

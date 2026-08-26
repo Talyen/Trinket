@@ -22,7 +22,7 @@ focused iteration.
 
 Defined as `TestLaunchArg` in `Support/TrinketUITestCase.swift` and parsed by
 `AppEnvironment`. Helpers include `allForScreen`, `allForTab`, `allForBattle`,
-`allForBattleVictory`, `allForMidBattle`, `allForShop`, `allForMystery`, and
+`allForBattleVictory`, `allForMidBattle`, `allForShop`, and
 `completedStages`. Use the source type for the complete, current catalog.
 
 **Default smoke args:** `-reset-state`, `-seed-test-progress`, `-disable-cloud-sync`.

@@ -98,7 +98,8 @@ Read these focused guides:
 | `python3 ./Scripts/output-profile.py report --local` | Rank recent local output profiles and actionable hotspots |
 | `python3 ./Scripts/output-profile.py report --ci <artifact-dirs...>` | Aggregate CI profile artifacts without reading raw logs |
 | `python3 ./Scripts/output-profile.py report --actionable --top 3` | Print at most three actionable output hotspots |
-| `./Scripts/change-budget.sh --paths …` | Advisory authored-surface report against HEAD |
+| `./Scripts/change-budget.sh --paths …` | Advisory authored-surface report against HEAD; `--base <rev>` for CI ranges |
+| `./Scripts/lint-analyze.sh` | CI-only advisory SwiftLint analyzer (`unused_import` / `unused_declaration`) after a compiler log exists; never from handoff or style |
 | `./Scripts/ensure-ci-tools.sh` | Install pinned XcodeGen, SwiftFormat, SwiftLint, ripgrep, and xcbeautify |
 | `./Scripts/update-tools.sh [--apply]` | Report newer SwiftFormat/SwiftLint releases; with `--apply`, bump the pins in `tool-versions.env` (checksummed) and re-install |
 | `./Scripts/run-simulator.sh` | Build and launch on a managed simulator |

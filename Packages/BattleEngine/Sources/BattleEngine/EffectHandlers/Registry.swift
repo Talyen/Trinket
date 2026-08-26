@@ -17,6 +17,7 @@ public enum EffectHandlers {
         .drawCards: DrawCardsHandler(),
         .drawAndPlayCards: DrawAndPlayCardsHandler(),
         .cleanse: CleansePurgeHandler(mode: .cleanse, kind: .cleanse),
+        .cleanseHealPerDebuff: CleansePurgeHandler(mode: .cleanse, kind: .cleanseHealPerDebuff),
         .cleanseRandom: CleansePurgeHandler(mode: .cleanseRandom, kind: .cleanseRandom),
         .purge: CleansePurgeHandler(mode: .purge, kind: .purge),
         .purgeRandom: CleansePurgeHandler(mode: .purgeRandom, kind: .purgeRandom),

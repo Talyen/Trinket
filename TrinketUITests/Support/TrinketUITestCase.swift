@@ -130,10 +130,6 @@ enum TestLaunchArg {
         allForScreen("shop", reset: reset)
     }
 
-    static func allForMystery(reset: Bool = true) -> [String] {
-        allForScreen("mystery", reset: reset)
-    }
-
     static func replacingBattleTickInterval(_ interval: String, in args: [String]) -> [String] {
         var result = args
         if let index = result.firstIndex(of: "-battle-tick-interval"), index + 1 < result.count {
@@ -502,6 +498,7 @@ extension XCUIApplication {
         // Prefer the frontmost tab surface. Inactive tabs often remain in the AX
         // hierarchy; always choosing Play made Homestead scrolls miss list content.
         let candidates = [
+            AccessibilityID.Screen.collection,
             AccessibilityID.Screen.homestead,
             AccessibilityID.Screen.play,
             AccessibilityID.Screen.options,

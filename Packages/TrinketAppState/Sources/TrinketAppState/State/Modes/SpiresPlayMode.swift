@@ -95,7 +95,11 @@ public final class SpiresPlayMode {
         let spires = playerSave.spires
         let roster = playerSave.roster
 
-        guard spires.isFloorStartable(floor.floor, spireID: floor.spireID.rawValue) else {
+        guard spires.isFloorStartable(
+            floor.floor,
+            spireID: floor.spireID.rawValue,
+            floorCount: spire.floorCount
+        ) else {
             if spires.isFloorCleared(floor.floor, spireID: floor.spireID.rawValue) {
                 return StageMapMessage(
                     title: "Floor Cleared",
@@ -130,7 +134,11 @@ public final class SpiresPlayMode {
         let roster = playerSave.roster
         guard battle.lifecyclePhase != .active,
               let spire = GameContent.spire(id: floor.spireID),
-              spires.isFloorStartable(floor.floor, spireID: floor.spireID.rawValue),
+              spires.isFloorStartable(
+                  floor.floor,
+                  spireID: floor.spireID.rawValue,
+                  floorCount: spire.floorCount
+              ),
               SpireAttunement.evaluate(
                   hero: roster.activeHero,
                   companion: roster.activeCompanion,

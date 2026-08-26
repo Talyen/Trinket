@@ -74,7 +74,6 @@ enum StageTypeSymbol {
 public enum StageEncounter: Hashable, Sendable {
     case battle(enemyID: String)
     case randomBattle
-    case event
     case shop
     case rest
     case mysteryEvent(eventID: String)
@@ -87,8 +86,6 @@ public enum StageEncounter: Hashable, Sendable {
         switch self {
         case .battle, .randomBattle:
             "Battle"
-        case .event:
-            "Event"
         case .shop:
             "Shop"
         case .rest:
@@ -108,8 +105,6 @@ public enum StageEncounter: Hashable, Sendable {
                 : StageTypeSymbol.battle
         case .randomBattle:
             StageTypeSymbol.battle
-        case .event:
-            StageTypeSymbol.mystery
         case .shop:
             StageTypeSymbol.shop
         case .rest:
@@ -125,8 +120,6 @@ public enum StageEncounter: Hashable, Sendable {
         switch self {
         case .battle, .randomBattle:
             "Battle"
-        case .event:
-            "Continue"
         case .shop:
             "Shop"
         case .rest:
@@ -142,7 +135,7 @@ public enum StageEncounter: Hashable, Sendable {
         switch self {
         case .battle, .randomBattle:
             true
-        case .event, .shop, .rest, .mysteryEvent, .recruit:
+        case .shop, .rest, .mysteryEvent, .recruit:
             false
         }
     }

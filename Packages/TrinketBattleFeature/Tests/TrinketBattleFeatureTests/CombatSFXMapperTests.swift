@@ -8,7 +8,7 @@ import TrinketFeatureSupport
 @MainActor
 struct CombatSFXMapperTests {
     // This matrix intentionally keeps all semantic mapper branches in one fast test.
-    // swiftlint:disable function_body_length
+    // swiftlint:disable function_body_length - mapper branches stay one fast test
     @Test func semanticFeedbackMappingsCoverTypedFallbackAndSilentCases() {
         for keyword: Keyword in [.physical, .holy, .poison, .bleed, .leech] {
             let item = feedbackItem(feedbackClass: .directDamage, keyword: keyword, label: .amount(-10))

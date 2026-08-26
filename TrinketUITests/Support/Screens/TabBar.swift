@@ -5,19 +5,19 @@ struct TabBar {
     let app: XCUIApplication
 
     func selectPlay() {
-        app.tabBars.buttons["Play"].tap()
+        app.tabBars.buttons[AccessibilityID.Tab.play].tap()
     }
 
     func selectCollection() {
-        app.tabBars.buttons["Collection"].tap()
+        app.tabBars.buttons[AccessibilityID.Tab.collection].tap()
     }
 
     func selectHomestead() {
-        app.tabBars.buttons["Homestead"].tap()
+        app.tabBars.buttons[AccessibilityID.Tab.homestead].tap()
     }
 
     func selectOptions() {
-        app.tabBars.buttons["Options"].tap()
+        app.tabBars.buttons[AccessibilityID.Tab.options].tap()
     }
 }
 

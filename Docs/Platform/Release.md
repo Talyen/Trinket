@@ -58,10 +58,10 @@ prompt to `ReleaseNotes/.prompt.md`.
 
 `git config core.hooksPath .githooks` enables the advisory commit-message hook
 and the pre-push style/generation checks. Pre-push styles Swift files in the
-commits being pushed (platform bans stay full-tree) and runs `agent-push-gate.sh`,
-which regenerates only when classification says content, project, or assets
-changed. A requested push still requires a green path-scoped handoff before
-commit. Review and include only task-related authored and generated files.
+commits being pushed (platform bans stay full-tree), runs `agent-push-gate.sh`
+(regenerate only when classification says content, project, or assets changed),
+then path-scoped package tests against that generated tree. A requested push
+still requires a green path-scoped handoff before commit. Review and include only task-related authored and generated files.
 
 Fastlane upload remains a separate future step: provide an App Store Connect API
 key, configure `deliver`, and extend the release workflow only when automated

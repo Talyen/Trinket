@@ -122,4 +122,48 @@ struct CombatBuildResolverTests {
         let build = CombatBuildResolver.build(enemy: enemy)
         try #expect(build.combatant.primaryStats == baseCombatant.primaryStats)
     }
+
+    @Test func equippedAffixWritesTriggerAbilityNameFromTitle() throws {
+        let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
+        let payday = try #require(GameContent.itemAffixDefinitions.first { $0.id == "payday" })
+        let baseType = try #require(GameContent.itemBaseTypes.first { $0.slot == .accessory })
+        let item = InventoryItem(
+            id: "payday-ring",
+            baseType: baseType,
+            rarity: .basic,
+            displayName: baseType.name,
+            affixes: [payday.resolved(for: .basic)]
+        )
+        var loadout = EquipmentLoadout()
+        loadout.equip(item, inventory: [item])
+        let build = CombatBuildResolver.build(
+            combatant: knight,
+            equipmentLoadout: loadout,
+            inventory: [item]
+        )
+        try #expect(build.modifiers.triggerAbilityName("dodgeGoldFlat", fallback: "") == "Payday")
+    }
+
+    @Test func equippedAffixTitleWinsSharedTriggerFieldOverTalent() throws {
+        let fox = try #require(GameContent.companions.first { $0.id == "fox" })
+        let payday = try #require(GameContent.itemAffixDefinitions.first { $0.id == "payday" })
+        let baseType = try #require(GameContent.itemBaseTypes.first { $0.slot == .accessory })
+        let item = InventoryItem(
+            id: "payday-charm",
+            baseType: baseType,
+            rarity: .basic,
+            displayName: baseType.name,
+            affixes: [payday.resolved(for: .basic)]
+        )
+        var loadout = EquipmentLoadout()
+        loadout.equip(item, inventory: [item])
+        let build = CombatBuildResolver.build(
+            combatant: fox,
+            equipmentLoadout: loadout,
+            inventory: [item],
+            unlockedTalents: ["fox_gold_t1_1"]
+        )
+        try #expect(build.modifiers.triggerAbilityName("dodgeGoldFlat", fallback: "") == "Payday")
+        try #expect(build.modifiers.triggers.dodgeGoldFlat == 3)
+    }
 }

@@ -7,6 +7,22 @@ public struct EffectBehaviorMetadata: Sendable, Equatable {
     let isInstant: Bool
     let isDecayingDoT: Bool
     let isBleed: Bool
+
+    init(
+        isRemovableDebuff: Bool = false,
+        isRemovableBuff: Bool = false,
+        advancesEachTurn: Bool = false,
+        isInstant: Bool = false,
+        isDecayingDoT: Bool = false,
+        isBleed: Bool = false
+    ) {
+        self.isRemovableDebuff = isRemovableDebuff
+        self.isRemovableBuff = isRemovableBuff
+        self.advancesEachTurn = advancesEachTurn
+        self.isInstant = isInstant
+        self.isDecayingDoT = isDecayingDoT
+        self.isBleed = isBleed
+    }
 }
 
 public enum EffectMetadata {
@@ -27,318 +43,46 @@ public enum EffectMetadata {
     }
 
     private static let behaviorTable: [EffectKind: EffectBehaviorMetadata] = [
-        .burn: .init(
-            isRemovableDebuff: true,
-            isRemovableBuff: false,
-            advancesEachTurn: true,
-            isInstant: false,
-            isDecayingDoT: true,
-            isBleed: false
-        ),
-        .poison: .init(
-            isRemovableDebuff: true,
-            isRemovableBuff: false,
-            advancesEachTurn: true,
-            isInstant: false,
-            isDecayingDoT: true,
-            isBleed: false
-        ),
-        .bleed: .init(
-            isRemovableDebuff: true,
-            isRemovableBuff: false,
-            advancesEachTurn: true,
-            isInstant: false,
-            isDecayingDoT: false,
-            isBleed: true
-        ),
-        .controlMeter: .init(
-            isRemovableDebuff: true,
-            isRemovableBuff: false,
-            advancesEachTurn: true,
-            isInstant: false,
-            isDecayingDoT: false,
-            isBleed: false
-        ),
-        .shield: .init(
-            isRemovableDebuff: false,
-            isRemovableBuff: true,
-            advancesEachTurn: false,
-            isInstant: false,
-            isDecayingDoT: false,
-            isBleed: false
-        ),
-        .instantHeal: .init(
-            isRemovableDebuff: false,
-            isRemovableBuff: false,
-            advancesEachTurn: false,
-            isInstant: true,
-            isDecayingDoT: false,
-            isBleed: false
-        ),
-        .resourceGain: .init(
-            isRemovableDebuff: false,
-            isRemovableBuff: false,
-            advancesEachTurn: false,
-            isInstant: true,
-            isDecayingDoT: false,
-            isBleed: false
-        ),
-        .drawCards: .init(
-            isRemovableDebuff: false,
-            isRemovableBuff: false,
-            advancesEachTurn: false,
-            isInstant: true,
-            isDecayingDoT: false,
-            isBleed: false
-        ),
-        .drawAndPlayCards: .init(
-            isRemovableDebuff: false,
-            isRemovableBuff: false,
-            advancesEachTurn: false,
-            isInstant: true,
-            isDecayingDoT: false,
-            isBleed: false
-        ),
-        .cleanse: .init(
-            isRemovableDebuff: false,
-            isRemovableBuff: false,
-            advancesEachTurn: false,
-            isInstant: true,
-            isDecayingDoT: false,
-            isBleed: false
-        ),
-        .cleanseRandom: .init(
-            isRemovableDebuff: false,
-            isRemovableBuff: false,
-            advancesEachTurn: false,
-            isInstant: true,
-            isDecayingDoT: false,
-            isBleed: false
-        ),
-        .purge: .init(
-            isRemovableDebuff: false,
-            isRemovableBuff: false,
-            advancesEachTurn: false,
-            isInstant: true,
-            isDecayingDoT: false,
-            isBleed: false
-        ),
-        .purgeRandom: .init(
-            isRemovableDebuff: false,
-            isRemovableBuff: false,
-            advancesEachTurn: false,
-            isInstant: true,
-            isDecayingDoT: false,
-            isBleed: false
-        ),
-        .halveShield: .init(
-            isRemovableDebuff: false,
-            isRemovableBuff: false,
-            advancesEachTurn: false,
-            isInstant: true,
-            isDecayingDoT: false,
-            isBleed: false
-        ),
-        .deathsDoor: .init(
-            isRemovableDebuff: false,
-            isRemovableBuff: false,
-            advancesEachTurn: true,
-            isInstant: false,
-            isDecayingDoT: false,
-            isBleed: false
-        ),
-        .thorns: .init(
-            isRemovableDebuff: false,
-            isRemovableBuff: true,
-            advancesEachTurn: false,
-            isInstant: false,
-            isDecayingDoT: false,
-            isBleed: false
-        ),
-        .marked: .init(
-            isRemovableDebuff: true,
-            isRemovableBuff: false,
-            advancesEachTurn: true,
-            isInstant: false,
-            isDecayingDoT: false,
-            isBleed: false
-        ),
-        .criticalChanceBonus: .init(
-            isRemovableDebuff: false,
-            isRemovableBuff: true,
-            advancesEachTurn: true,
-            isInstant: false,
-            isDecayingDoT: false,
-            isBleed: false
-        ),
-        .restoreManaOnHit: .init(
-            isRemovableDebuff: false,
-            isRemovableBuff: true,
-            advancesEachTurn: true,
-            isInstant: false,
-            isDecayingDoT: false,
-            isBleed: false
-        ),
-        .damageKeywordOverride: .init(
-            isRemovableDebuff: false,
-            isRemovableBuff: true,
-            advancesEachTurn: true,
-            isInstant: false,
-            isDecayingDoT: false,
-            isBleed: false
-        ),
-        .nextHolyStrike: .init(
-            isRemovableDebuff: false,
-            isRemovableBuff: true,
-            advancesEachTurn: false,
-            isInstant: false,
-            isDecayingDoT: false,
-            isBleed: false
-        ),
-        .nextStrikeDouble: .init(
-            isRemovableDebuff: false,
-            isRemovableBuff: true,
-            advancesEachTurn: false,
-            isInstant: false,
-            isDecayingDoT: false,
-            isBleed: false
-        ),
-        .evadeNextHit: .init(
-            isRemovableDebuff: false,
-            isRemovableBuff: true,
-            advancesEachTurn: false,
-            isInstant: false,
-            isDecayingDoT: false,
-            isBleed: false
-        ),
-        .convertManaToBlock: .init(
-            isRemovableDebuff: false,
-            isRemovableBuff: false,
-            advancesEachTurn: false,
-            isInstant: true,
-            isDecayingDoT: false,
-            isBleed: false
-        ),
-        .shieldFromMana: .init(
-            isRemovableDebuff: false,
-            isRemovableBuff: false,
-            advancesEachTurn: false,
-            isInstant: true,
-            isDecayingDoT: false,
-            isBleed: false
-        ),
-        .shieldFromHalfMana: .init(
-            isRemovableDebuff: false,
-            isRemovableBuff: false,
-            advancesEachTurn: false,
-            isInstant: true,
-            isDecayingDoT: false,
-            isBleed: false
-        ),
-        .shieldFromGold: .init(
-            isRemovableDebuff: false,
-            isRemovableBuff: false,
-            advancesEachTurn: false,
-            isInstant: true,
-            isDecayingDoT: false,
-            isBleed: false
-        ),
-        .maximumManaBonus: .init(
-            isRemovableDebuff: false,
-            isRemovableBuff: true,
-            advancesEachTurn: false,
-            isInstant: true,
-            isDecayingDoT: false,
-            isBleed: false
-        ),
-        .nextStrikeCritical: .init(
-            isRemovableDebuff: false,
-            isRemovableBuff: true,
-            advancesEachTurn: false,
-            isInstant: false,
-            isDecayingDoT: false,
-            isBleed: false
-        ),
-        .freezeNextAttacker: .init(
-            isRemovableDebuff: false,
-            isRemovableBuff: true,
-            advancesEachTurn: false,
-            isInstant: false,
-            isDecayingDoT: false,
-            isBleed: false
-        ),
-        .onHitDamage: .init(
-            isRemovableDebuff: false,
-            isRemovableBuff: true,
-            advancesEachTurn: false,
-            isInstant: false,
-            isDecayingDoT: false,
-            isBleed: false
-        ),
-        .multiplyDoT: .init(
-            isRemovableDebuff: false,
-            isRemovableBuff: false,
-            advancesEachTurn: false,
-            isInstant: true,
-            isDecayingDoT: false,
-            isBleed: false
-        ),
-        .recurringDamage: .init(
-            isRemovableDebuff: true,
-            isRemovableBuff: false,
-            advancesEachTurn: true,
-            isInstant: false,
-            isDecayingDoT: false,
-            isBleed: false
-        ),
-        .avatar: .init(
-            isRemovableDebuff: false,
-            isRemovableBuff: true,
-            advancesEachTurn: true,
-            isInstant: false,
-            isDecayingDoT: false,
-            isBleed: false
-        ),
-        .revive: .init(
-            isRemovableDebuff: false,
-            isRemovableBuff: false,
-            advancesEachTurn: false,
-            isInstant: true,
-            isDecayingDoT: false,
-            isBleed: false
-        ),
-        .damageReductionPercent: .init(
-            isRemovableDebuff: true,
-            isRemovableBuff: false,
-            advancesEachTurn: true,
-            isInstant: false,
-            isDecayingDoT: false,
-            isBleed: false
-        ),
-        .damageReductionFlat: .init(
-            isRemovableDebuff: true,
-            isRemovableBuff: false,
-            advancesEachTurn: true,
-            isInstant: false,
-            isDecayingDoT: false,
-            isBleed: false
-        ),
-        .strengthReduction: .init(
-            isRemovableDebuff: true,
-            isRemovableBuff: false,
-            advancesEachTurn: true,
-            isInstant: false,
-            isDecayingDoT: false,
-            isBleed: false
-        ),
-        .hemorrhage: .init(
-            isRemovableDebuff: true,
-            isRemovableBuff: false,
-            advancesEachTurn: false,
-            isInstant: false,
-            isDecayingDoT: false,
-            isBleed: false
-        ),
+        .burn: .init(isRemovableDebuff: true, advancesEachTurn: true, isDecayingDoT: true),
+        .poison: .init(isRemovableDebuff: true, advancesEachTurn: true, isDecayingDoT: true),
+        .bleed: .init(isRemovableDebuff: true, advancesEachTurn: true, isBleed: true),
+        .controlMeter: .init(isRemovableDebuff: true, advancesEachTurn: true),
+        .shield: .init(isRemovableBuff: true),
+        .instantHeal: .init(isInstant: true),
+        .resourceGain: .init(isInstant: true),
+        .drawCards: .init(isInstant: true),
+        .drawAndPlayCards: .init(isInstant: true),
+        .cleanse: .init(isInstant: true),
+        .cleanseHealPerDebuff: .init(isInstant: true),
+        .cleanseRandom: .init(isInstant: true),
+        .purge: .init(isInstant: true),
+        .purgeRandom: .init(isInstant: true),
+        .halveShield: .init(isInstant: true),
+        .deathsDoor: .init(advancesEachTurn: true),
+        .thorns: .init(isRemovableBuff: true),
+        .marked: .init(isRemovableDebuff: true, advancesEachTurn: true),
+        .criticalChanceBonus: .init(isRemovableBuff: true, advancesEachTurn: true),
+        .restoreManaOnHit: .init(isRemovableBuff: true, advancesEachTurn: true),
+        .damageKeywordOverride: .init(isRemovableBuff: true, advancesEachTurn: true),
+        .nextHolyStrike: .init(isRemovableBuff: true),
+        .nextStrikeDouble: .init(isRemovableBuff: true),
+        .evadeNextHit: .init(isRemovableBuff: true),
+        .convertManaToBlock: .init(isInstant: true),
+        .shieldFromMana: .init(isInstant: true),
+        .shieldFromHalfMana: .init(isInstant: true),
+        .shieldFromGold: .init(isInstant: true),
+        .maximumManaBonus: .init(isRemovableBuff: true, isInstant: true),
+        .nextStrikeCritical: .init(isRemovableBuff: true),
+        .freezeNextAttacker: .init(isRemovableBuff: true),
+        .onHitDamage: .init(isRemovableBuff: true),
+        .multiplyDoT: .init(isInstant: true),
+        .recurringDamage: .init(isRemovableDebuff: true, advancesEachTurn: true),
+        .avatar: .init(isRemovableBuff: true, advancesEachTurn: true),
+        .revive: .init(isInstant: true),
+        .damageReductionPercent: .init(isRemovableDebuff: true, advancesEachTurn: true),
+        .damageReductionFlat: .init(isRemovableDebuff: true, advancesEachTurn: true),
+        .strengthReduction: .init(isRemovableDebuff: true, advancesEachTurn: true),
+        .hemorrhage: .init(isRemovableDebuff: true),
     ]
 
     private static let battleSummaryPhrases: [EffectKind: String] = [

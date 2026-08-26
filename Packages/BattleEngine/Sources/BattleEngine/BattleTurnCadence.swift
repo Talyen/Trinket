@@ -7,7 +7,7 @@ public struct BattleTurnCadence: Equatable, Hashable, Sendable {
     public var cardsPlayed: [BattleParticipant: Int]
     public var skillCardsPlayed: [BattleParticipant: Int]
     public var freezeCardsPlayed: [BattleParticipant: Int]
-    public var burnManaRestored: [String: Int]
+    public var burnManaRestored: [BattleParticipant: Int]
     public var spendManaDrawOwners: Set<BattleParticipant>
     public var healthLossDrawOwners: Set<BattleParticipant>
     public var goldDrawOwners: Set<BattleParticipant>
@@ -16,7 +16,7 @@ public struct BattleTurnCadence: Equatable, Hashable, Sendable {
         cardsPlayed: [BattleParticipant: Int] = [:],
         skillCardsPlayed: [BattleParticipant: Int] = [:],
         freezeCardsPlayed: [BattleParticipant: Int] = [:],
-        burnManaRestored: [String: Int] = [:],
+        burnManaRestored: [BattleParticipant: Int] = [:],
         spendManaDrawOwners: Set<BattleParticipant> = [],
         healthLossDrawOwners: Set<BattleParticipant> = [],
         goldDrawOwners: Set<BattleParticipant> = []

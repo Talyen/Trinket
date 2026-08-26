@@ -30,6 +30,7 @@ enum ModelContainerBootstrap {
 
             if deleteStoreOnFailure, let storeURL = storeURLForRecovery {
                 deleteStoreFiles(at: storeURL, logger: logger, logLabel: logLabel)
+                // PersistenceCheck: allow - recovery reopen after deleting a corrupt store
                 if let recovered = try? ModelContainer(
                     for: schema,
                     configurations: primaryConfiguration

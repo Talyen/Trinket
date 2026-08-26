@@ -45,7 +45,7 @@ package extension CombatTriggerEngine {
                 triggers.spendManaBlockFlat,
                 to: actor,
                 source: actor,
-                abilityName: affixName(.aetherward)
+                abilityName: triggerAbilityName("spendManaBlockFlat", for: actor, fallback: "Aetherward", in: context)
             ))
         }
 
@@ -298,7 +298,7 @@ package extension CombatTriggerEngine {
                 amount,
                 to: actor,
                 source: actor,
-                abilityName: affixName(.arcaneWard)
+                abilityName: triggerAbilityName("gainManaBlockFlat", for: actor, fallback: "Arcane Ward", in: context)
             ))
         }
         if triggers.onGainManaHealFlat > 0 {

@@ -14,6 +14,27 @@ struct EffectHandlersApplyTests {
         }
     }
 
+    @Test func everyAbilityCatalogEffectHasAHandler() throws {
+        for ability in AbilityCatalog.all {
+            for effect in Self.effects(in: ability) {
+                try #expect(
+                    EffectHandlers.all[effect.kind] != nil,
+                    "\(ability.id) is missing a handler for \(effect.kind)"
+                )
+            }
+        }
+    }
+
+    private static func effects(in ability: Ability) -> [Effect] {
+        var result = ability.effects
+        if let branches = ability.outcomeBranches {
+            for branch in branches {
+                result.append(contentsOf: branch.targetedEffects.map(\.effect))
+            }
+        }
+        return result
+    }
+
     // MARK: - DoT handlers
 
     @Test func burnHandlerAppliesBurnEffect() throws {

@@ -21,8 +21,16 @@ public enum AccessibilityID {
 
     public enum Screen {
         public static let play = "Play Screen"
+        public static let collection = "Collection Screen"
         public static let homestead = "Homestead Screen"
         public static let options = "Options Screen"
+    }
+
+    public enum Tab {
+        public static let play = "Play"
+        public static let collection = "Collection"
+        public static let homestead = "Homestead"
+        public static let options = "Options"
     }
 
     public enum Options {

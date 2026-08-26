@@ -44,6 +44,14 @@ public enum BattleConditionEvaluator {
         }
     }
 
+    public static func lowestHealthAlly(in context: BattleState) -> Combatant {
+        lowestHealthAlly(
+            hero: context.roster.hero.combatant,
+            companion: context.roster.companion.combatant,
+            context: context
+        )
+    }
+
     public static func lowestHealthAlly(
         hero: Combatant,
         companion: Combatant,

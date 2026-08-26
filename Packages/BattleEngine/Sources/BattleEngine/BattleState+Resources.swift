@@ -14,7 +14,9 @@ package extension BattleState {
         abilityName: String
     ) -> [ActionEvent] {
         let granted = goldGranted(for: amount, sourceActorID: combatant.id)
-        addGold(amount, sourceActorID: combatant.id)
+        let previousEarned = max(0, gold - initialGold)
+        gold += granted
+        let currentEarned = max(0, gold - initialGold)
         var events = [nextEvent(
             kind: .effect,
             effectKind: .resourceGain,
@@ -41,7 +43,12 @@ package extension BattleState {
                     kind: .effect,
                     effectKind: .cardsDrawn,
                     actorName: combatant.name,
-                    abilityName: "Golden Opportunity",
+                    abilityName: CombatTriggerEngine.triggerAbilityName(
+                        "onGainGoldDrawCardOncePerTurn",
+                        for: combatant,
+                        fallback: "Golden Opportunity",
+                        in: self
+                    ),
                     target: combatant,
                     amount: drawn,
                     keyword: .physical
@@ -57,7 +64,12 @@ package extension BattleState {
                     amount: triggers.onGainGoldHealParty,
                     target: member.combatant,
                     source: combatant,
-                    abilityName: "Golden Recovery"
+                    abilityName: CombatTriggerEngine.triggerAbilityName(
+                        "onGainGoldHealParty",
+                        for: combatant,
+                        fallback: "Golden Recovery",
+                        in: self
+                    )
                 ))
             }
         }
@@ -67,8 +79,6 @@ package extension BattleState {
         }
         // Golden Guard: 1 Block per N Gold earned this battle (party-wide gold).
         if granted > 0 {
-            let previousEarned = max(0, gold - granted - initialGold)
-            let currentEarned = max(0, gold - initialGold)
             for owner in [BattleParticipant.hero, .companion] {
                 let member = roster[owner]
                 guard member.isAlive else { continue }
@@ -80,7 +90,12 @@ package extension BattleState {
                         newlyGranted,
                         to: member.combatant,
                         source: member.combatant,
-                        abilityName: "Golden Guard"
+                        abilityName: CombatTriggerEngine.triggerAbilityName(
+                            "blockPerGoldEarnedEvery",
+                            for: member.combatant,
+                            fallback: "Golden Guard",
+                            in: self
+                        )
                     ))
                 }
             }

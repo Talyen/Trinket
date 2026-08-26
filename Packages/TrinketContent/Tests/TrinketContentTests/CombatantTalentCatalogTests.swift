@@ -98,6 +98,12 @@ struct CombatantTalentCatalogTests {
         }
     }
 
+    @Test func triggerFamilyFieldNamesAreUnique() {
+        let names = CombatTraitTriggers.allFieldNames
+        #expect(!names.isEmpty)
+        #expect(Set(names).count == names.count)
+    }
+
     @Test func boolTalentFlagsSurviveMergeIntoEmptyProfile() {
         var merged = CombatTraitTriggers()
         merged.merge(CombatTraitTriggers(gold: GoldTriggers(goldDoubledWhileFullHealth: true)))

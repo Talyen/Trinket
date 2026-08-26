@@ -9,7 +9,7 @@ struct CollectionScreen {
         file: StaticString = #file,
         line: UInt = #line
     ) {
-        let element = app.buttons[AccessibilityID.Collection.heroesCategory]
+        let element = app.descendants(matching: .any)[AccessibilityID.Screen.collection]
         XCTAssertTrue(element.waitForExistence(timeout: timeout), "Collection screen not found", file: file, line: line)
     }
 }

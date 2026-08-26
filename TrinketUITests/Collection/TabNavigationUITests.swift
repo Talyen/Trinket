@@ -1,9 +1,8 @@
 import TrinketFeatureSupport
 import XCTest
 
-/// Tab-reachable surface journeys that smoke does not own: loadout picker and Homestead detail.
+/// Collection shelf and inventory-grid salvage. One launch covers both surfaces.
 final class TabNavigationUITests: TrinketUITestCase {
-    /// One launch covers both collection surfaces: shelf salvage, then inventory-grid salvage.
     func testSalvageRemovesShelfAndInventoryGridItemsImmediately() {
         launchApp(arguments: TestLaunchArg.allForTab("collection"))
         collection.assertLoaded()
@@ -18,33 +17,6 @@ final class TabNavigationUITests: TrinketUITestCase {
             itemID: "mace-basic",
             remainingItemID: "mace-astral"
         )
-    }
-
-    func testHeroDetailAbilityPickerSelectsAndDismisses() {
-        launchApp(arguments: TestLaunchArg.allForScreen("hero:knight"))
-        combatantDetail.assertLoaded(for: "Knight", timeout: 8)
-
-        scrollUntilVisible(button(AccessibilityID.Equipment.basicAbilitySlot), swipingUp: true)
-        assertButtonExists(AccessibilityID.Equipment.basicAbilitySlot)
-        button(AccessibilityID.Equipment.basicAbilitySlot).tap()
-        assertExists(AccessibilityID.LoadoutPicker.abilityGrid("Basic"))
-        button(AccessibilityID.LoadoutPicker.abilityCandidate("block")).tap()
-        assertExists(AccessibilityID.LoadoutPicker.abilityDetail("block"))
-        button(AccessibilityID.LoadoutPicker.selectAbility("block")).tap()
-
-        assertDoesNotExist(AccessibilityID.LoadoutPicker.abilityGrid("Basic"), timeout: 5)
-        assertButtonExists(AccessibilityID.Equipment.basicAbilitySlot)
-    }
-
-    /// Homestead category → node → detail navigation is usable (CI-owned owner;
-    /// perf harness only exercises this as a side effect).
-    func testHomesteadNodeDetailJourney() {
-        launchApp(arguments: TestLaunchArg.allForTab("homestead"))
-        homestead.assertLoaded()
-
-        homestead.openFarmingCategoryAndRevealWheatFieldNode()
-        tapButton(AccessibilityID.Homestead.node(title: "Wheat Field"))
-        homestead.assertNodeDetail(named: "Wheat Field")
     }
 
     private func assertSalvageRemovesItemImmediately(

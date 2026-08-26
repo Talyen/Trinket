@@ -67,10 +67,10 @@ public enum CombatBuildResolver {
         for item: InventoryItem
     ) -> CombatModifierProfile {
         item.affixes.enumerated().reduce(into: CombatModifierProfile.zero) { partial, element in
-            let (index, _) = element
+            let (index, affix) = element
             guard let power = item.resolvedPower(at: index) else { return }
             partial.merge(power.modifiers)
-            power.triggers.apply(to: &partial)
+            power.triggers.apply(to: &partial, abilityName: affix.title)
         }
     }
 }

@@ -15,7 +15,7 @@ package extension CombatTriggerEngine {
             events.append(contentsOf: context.restoreManaEmitting(
                 context.paced(triggers.leechRestoreManaFlat, sourceActorID: actor.id),
                 to: actor,
-                abilityName: affixName(.siphoning)
+                abilityName: triggerAbilityName("leechRestoreManaFlat", for: actor, fallback: "Siphoning", in: context)
             ))
         }
 
@@ -23,7 +23,7 @@ package extension CombatTriggerEngine {
             events.append(contentsOf: context.grantGoldEvent(
                 triggers.leechGoldFlat,
                 to: actor,
-                abilityName: affixName(.bloodPrice)
+                abilityName: triggerAbilityName("leechGoldFlat", for: actor, fallback: "Blood Price", in: context)
             ))
         }
 
@@ -80,7 +80,12 @@ package extension CombatTriggerEngine {
             amount: share,
             target: context.roster.companion.combatant,
             source: context.roster.hero.combatant,
-            abilityName: affixName(.symbiosis)
+            abilityName: triggerAbilityName(
+                "companionLeechSharePercent",
+                for: context.roster.hero.combatant,
+                fallback: "Symbiosis",
+                in: context
+            )
         )
     }
 }

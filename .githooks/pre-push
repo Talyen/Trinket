@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Pre-push gate: path-scoped style for pushed Swift files + agent push gate.
+# Pre-push gate: path-scoped style, generation completeness, then path-scoped package tests.
 # Install with: git config core.hooksPath .githooks
 set -euo pipefail
 
@@ -59,22 +59,45 @@ collect_pushed_paths() {
 }
 
 style_swift=()
+pushed_paths=()
 while IFS= read -r path; do
+  [[ -n "$path" ]] || continue
+  pushed_paths+=("$path")
   if [[ "$path" == *.swift && -f "$path" ]]; then
     style_swift+=("$path")
   fi
 done < <(collect_pushed_paths | sed '/^$/d' | sort -u)
 
-echo "=== Pre-push: style (format / lint / UI / platform bans / exclusivity) ==="
+echo "=== Pre-push: style (format / lint / UI / platform bans / exclusivity / agent invariants / accessibility IDs) ==="
 if (( ${#style_swift[@]} > 0 )); then
   echo "Path-scoped style on ${#style_swift[@]} Swift file(s) in the push range."
   ./Scripts/test.sh style "${style_swift[@]}"
 else
   ./Scripts/check-platform-api-bans.sh
   ./Scripts/check-exclusivity-footguns.sh
+  ./Scripts/check-agent-invariants.sh
+  ./Scripts/check-accessibility-ids.sh
 fi
 
 echo "=== Pre-push: agent push gate (generate + assert vs HEAD) ==="
 ./Scripts/agent-push-gate.sh
+
+echo "=== Pre-push: path-scoped package tests ==="
+# shellcheck source=Scripts/change-classification.sh
+source Scripts/change-classification.sh
+if (( ${#pushed_paths[@]} > 0 )); then
+  trinket_collect_paths explicit "${pushed_paths[@]}"
+  trinket_classify_paths
+fi
+if (( ${#TRINKET_PACKAGES[@]} > 0 )); then
+  echo "Package tests for: ${TRINKET_PACKAGES[*]}"
+  if command -v xcodebuild >/dev/null 2>&1; then
+    SKIP_GENERATE=1 ./Scripts/test-package.sh "${TRINKET_PACKAGES[@]}"
+  else
+    echo "Skipping package tests (xcodebuild unavailable)." >&2
+  fi
+else
+  echo "No package test targets in the push range."
+fi
 
 echo "=== Pre-push gate passed ==="

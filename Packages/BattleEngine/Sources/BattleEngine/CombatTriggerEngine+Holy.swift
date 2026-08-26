@@ -17,7 +17,7 @@ package extension CombatTriggerEngine {
                 profile.triggers.holyDamageBlockFlat,
                 to: source,
                 source: source,
-                abilityName: triggerAbilityName("holyDamageBlockFlat", for: source, fallback: affixName(.sanctum), in: context)
+                abilityName: triggerAbilityName("holyDamageBlockFlat", for: source, fallback: "Sanctum", in: context)
             ))
         }
 
@@ -26,7 +26,7 @@ package extension CombatTriggerEngine {
                 source: source,
                 target: source,
                 count: profile.triggers.holyDamageCleanseCount,
-                abilityName: triggerAbilityName("holyDamageCleanseCount", for: source, fallback: affixName(.absolving), in: context),
+                abilityName: triggerAbilityName("holyDamageCleanseCount", for: source, fallback: "Absolving", in: context),
                 in: &context
             ))
         }
@@ -36,17 +36,13 @@ package extension CombatTriggerEngine {
                 amount: profile.triggers.holyDamageHealFlat,
                 target: source,
                 source: source,
-                abilityName: triggerAbilityName("holyDamageHealFlat", for: source, fallback: affixName(.beacon), in: context)
+                abilityName: triggerAbilityName("holyDamageHealFlat", for: source, fallback: "Beacon", in: context)
             ))
         }
 
         // Divine Blessing / Sunlight Spark: heal the lowest-Health ally.
         if profile.triggers.holyDamageHealLowestAllyFlat > 0 {
-            let lowest = BattleConditionEvaluator.lowestHealthAlly(
-                hero: context.roster.hero.combatant,
-                companion: context.roster.companion.combatant,
-                context: context
-            )
+            let lowest = BattleConditionEvaluator.lowestHealthAlly(in: context)
             let blessingName = triggerAbilityName(
                 "holyDamageHealLowestAllyFlat",
                 for: source,
@@ -60,22 +56,20 @@ package extension CombatTriggerEngine {
                 abilityName: blessingName
             ))
         }
-        // Sun Glyph: Holy damage dealt by the Companion heals the Hero.
         if profile.triggers.holyDamageHealHeroFlat > 0, context.roster.hero.isAlive {
             events.append(contentsOf: context.healEmitting(
                 amount: profile.triggers.holyDamageHealHeroFlat,
                 target: context.roster.hero.combatant,
                 source: source,
-                abilityName: "Sun Glyph"
+                abilityName: triggerAbilityName("holyDamageHealHeroFlat", for: source, fallback: "Sun Glyph", in: context)
             ))
         }
 
-        // Radiant Wisdom: Holy damage restores 1 Mana.
         if profile.triggers.onHolyDamageRestoreMana > 0 {
             events.append(contentsOf: context.restoreManaEmitting(
                 profile.triggers.onHolyDamageRestoreMana,
                 to: source,
-                abilityName: "Radiant Wisdom"
+                abilityName: triggerAbilityName("onHolyDamageRestoreMana", for: source, fallback: "Radiant Wisdom", in: context)
             ))
         }
         // Revealed Flaw: Holy damage arms the owner's next hit with bonus damage.
@@ -105,18 +99,16 @@ package extension CombatTriggerEngine {
                 remainingTurns: 1
             )
         }
-        // Purifying Light: Holy attacks remove all positive buffs from the target.
         if profile.triggers.holyDamagePurgeAll, context.roster.health(for: enemy) > 0 {
             events.append(contentsOf: applyPurge(
                 to: enemy,
                 source: source,
-                abilityName: "Purifying Light",
+                abilityName: triggerAbilityName("holyDamagePurgeAll", for: source, fallback: "Purifying Light", in: context),
                 count: 0,
                 purgeAll: true,
                 in: &context
             ))
         }
-        // Radiant Barrier: dealing Holy damage grants the party 2 Block.
         if profile.triggers.onHolyDamagePartyBlock > 0 {
             for owner in [BattleParticipant.hero, .companion] {
                 let member = context.roster[owner]
@@ -125,7 +117,7 @@ package extension CombatTriggerEngine {
                     profile.triggers.onHolyDamagePartyBlock,
                     to: member.combatant,
                     source: source,
-                    abilityName: "Radiant Barrier"
+                    abilityName: triggerAbilityName("onHolyDamagePartyBlock", for: source, fallback: "Radiant Barrier", in: context)
                 ))
             }
         }
@@ -134,7 +126,7 @@ package extension CombatTriggerEngine {
             events.append(contentsOf: applyPurge(
                 to: enemy,
                 source: source,
-                abilityName: affixName(.nullifying),
+                abilityName: triggerAbilityName("holyDamagePurgeCount", for: source, fallback: "Nullifying", in: context),
                 count: profile.triggers.holyDamagePurgeCount,
                 purgeAll: false,
                 in: &context

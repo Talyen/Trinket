@@ -307,6 +307,24 @@ public struct CombatTraitTriggers: Codable, Sendable, Equatable, Hashable {
 }
 
 extension CombatTraitTriggers {
+    /// Every trigger-family stored property name, including defaulted fields.
+    public static var allFieldNames: [String] {
+        allNames(DamageTriggers())
+            + allNames(AttackTriggers())
+            + allNames(BlockTriggers())
+            + allNames(MitigationTriggers())
+            + allNames(DotTriggers())
+            + allNames(ControlTriggers())
+            + allNames(DodgeTriggers())
+            + allNames(ManaTriggers())
+            + allNames(GoldTriggers())
+            + allNames(HealingTriggers())
+            + allNames(RevivalTriggers())
+            + allNames(CleanseTriggers())
+            + allNames(EnemyTurnTriggers())
+            + allNames(OnHitTriggers())
+    }
+
     /// Trigger field names whose values differ from family defaults.
     public var populatedFieldNames: [String] {
         Self.populatedNames(storage.fields.damage, defaults: DamageTriggers())
@@ -323,6 +341,10 @@ extension CombatTraitTriggers {
             + Self.populatedNames(storage.fields.cleanse, defaults: CleanseTriggers())
             + Self.populatedNames(storage.fields.enemyTurn, defaults: EnemyTurnTriggers())
             + Self.populatedNames(storage.fields.onHit, defaults: OnHitTriggers())
+    }
+
+    private static func allNames(_ value: some Any) -> [String] {
+        Mirror(reflecting: value).children.compactMap(\.label)
     }
 
     private static func populatedNames<Family>(_ value: Family, defaults: Family) -> [String] {

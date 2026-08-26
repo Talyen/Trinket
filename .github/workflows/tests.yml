@@ -134,7 +134,7 @@ jobs:
           - name: Battle
             target: BattleFlowUITests
           - name: Collection
-            target: TabNavigationUITests
+            target: TabNavigationUITests HeroDetailAbilityPickerUITests HomesteadNodeDetailUITests
           - name: Play
             target: PlayMapUITests PlayModeNavigationUITests MysteryRecruitUITests ShopFlowUITests
     runs-on: macos-26
@@ -149,6 +149,53 @@ jobs:
           artifact-name: ${{ inputs.artifact-prefix }}exhaustive-ui-${{ matrix.name }}
           rebuild-command: ./Scripts/build-for-testing.sh --app-only
           command: ./Scripts/test.sh ui --no-build ${{ matrix.target }}
+
+  diff-review:
+    name: Advisory diff review
+    needs: [changes]
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.code == 'true'
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 0
+      - name: Change-budget summary
+        env:
+          BEFORE: ${{ github.event.before }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          z40=0000000000000000000000000000000000000000
+          if [[ -z "${BEFORE:-}" || "$BEFORE" == "$z40" ]]; then
+            if git rev-parse --verify HEAD^ >/dev/null 2>&1; then
+              base="HEAD^"
+            else
+              echo "No parent commit; skipping advisory diff review."
+              exit 0
+            fi
+          else
+            base="$BEFORE"
+            git cat-file -e "$base^{commit}" 2>/dev/null || git fetch --depth=1 origin "$base"
+          fi
+          mapfile -t paths < <(git diff --name-only --diff-filter=ACMR "$base" "$SHA" | sed '/^$/d')
+          {
+            echo "## Advisory diff review"
+            echo
+            echo "Base \`$base\` → \`$SHA\`."
+            echo
+            echo '```'
+            if ((${#paths[@]} > 0)); then
+              ./Scripts/change-budget.sh --base "$base" --paths "${paths[@]}"
+            else
+              echo "No authored paths in range."
+            fi
+            echo '```'
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+          if [[ -f "$GITHUB_STEP_SUMMARY" ]] && grep -q "production Swift in .* changed with no test path" "$GITHUB_STEP_SUMMARY"; then
+            echo "::notice::Production Swift changed without matching package tests. See the Advisory diff review summary."
+          fi
 
   # Aggregate status for dashboards (not a required push gate on main).
   # Check name appears as "tests / CI OK" to callers of this reusable workflow.

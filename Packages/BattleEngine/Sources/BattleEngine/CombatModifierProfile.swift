@@ -192,6 +192,13 @@ public extension CombatTraitTriggers {
     func apply(to profile: inout CombatModifierProfile) {
         profile.triggers.merge(self)
     }
+
+    func apply(to profile: inout CombatModifierProfile, abilityName: String) {
+        apply(to: &profile)
+        for key in populatedFieldNames {
+            profile.setTriggerAbilityName(key, abilityName)
+        }
+    }
 }
 
 public extension CombatantTraitDefinition {
@@ -206,10 +213,7 @@ public extension CombatantTraitDefinition {
 public extension CombatantTalentEffect {
     func apply(to profile: inout CombatModifierProfile) {
         profile.merge(modifiers)
-        triggers.apply(to: &profile)
-        for key in triggers.populatedFieldNames {
-            profile.setTriggerAbilityName(key, name)
-        }
+        triggers.apply(to: &profile, abilityName: name)
     }
 }
 

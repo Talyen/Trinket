@@ -4,7 +4,7 @@ import TrinketCore
 import TrinketTestSupport
 @testable import BattleEngine
 
-// swiftlint:disable file_length
+// swiftlint:disable file_length - unique signature matrix stays one owner
 
 // Unique-item signature mechanics: Bloodfire mirror procs and Leech grants,
 // Wardbreaker's purge payoff, and Rimeheart's Freeze-to-Block/Mana engine.

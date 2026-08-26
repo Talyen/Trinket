@@ -31,7 +31,7 @@ package extension CombatTriggerEngine {
             converted,
             to: actor,
             source: actor,
-            abilityName: "Mana Shield"
+            abilityName: triggerAbilityName("unspentManaConvertsToBlock", for: actor, fallback: "Mana Shield", in: context)
         )
     }
 
@@ -48,7 +48,7 @@ package extension CombatTriggerEngine {
             block,
             to: actor,
             source: actor,
-            abilityName: "Hoard Armor"
+            abilityName: triggerAbilityName("blockPerGoldCollectedEvery", for: actor, fallback: "Hoard Armor", in: context)
         )
     }
 
@@ -80,7 +80,7 @@ package extension CombatTriggerEngine {
             amount: triggers.endTurnWithBlockHealFlat,
             target: actor,
             source: actor,
-            abilityName: "Hibernation"
+            abilityName: triggerAbilityName("endTurnWithBlockHealFlat", for: actor, fallback: "Hibernation", in: context)
         )
     }
 
@@ -102,7 +102,7 @@ package extension CombatTriggerEngine {
                 amount: triggers.cardsPlayedHealPartyAmount,
                 target: member.combatant,
                 source: actor,
-                abilityName: "Playful Energy"
+                abilityName: triggerAbilityName("cardsPlayedHealPartyThreshold", for: actor, fallback: "Playful Energy", in: context)
             ))
         }
         return events
@@ -115,16 +115,12 @@ package extension CombatTriggerEngine {
         in context: inout BattleState
     ) -> [ActionEvent] {
         guard triggers.endOfTurnHealLowestAlly > 0 else { return [] }
-        let lowest = BattleConditionEvaluator.lowestHealthAlly(
-            hero: context.roster.hero.combatant,
-            companion: context.roster.companion.combatant,
-            context: context
-        )
+        let lowest = BattleConditionEvaluator.lowestHealthAlly(in: context)
         return context.healEmitting(
             amount: triggers.endOfTurnHealLowestAlly,
             target: lowest,
             source: actor,
-            abilityName: "Cheer Up"
+            abilityName: triggerAbilityName("endOfTurnHealLowestAlly", for: actor, fallback: "Cheer Up", in: context)
         )
     }
 
@@ -143,7 +139,7 @@ package extension CombatTriggerEngine {
                 amount: triggers.partyRegenPerRound,
                 target: member.combatant,
                 source: actor,
-                abilityName: "Campfire Comfort"
+                abilityName: triggerAbilityName("partyRegenPerRound", for: actor, fallback: "Campfire Comfort", in: context)
             ))
         }
         return events

@@ -1,4 +1,4 @@
-// swiftlint:disable file_length
+// swiftlint:disable file_length - affix reaction matrix stays one owner
 import Testing
 import TrinketContent
 import TrinketCore

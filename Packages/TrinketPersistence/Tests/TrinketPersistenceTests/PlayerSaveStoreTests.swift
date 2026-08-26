@@ -222,21 +222,6 @@ final class PlayerSaveStoreTests {
         try #expect(reloaded.homestead.pendingProduction[.gold] == 10)
     }
 
-    @Test func equipmentLoadoutDropsMissingInventoryItemsOnLoad() throws {
-        let storeURL = context.storeURL()
-        let firstStore = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
-        var save = PlayerSave.testSeed
-        save.roster.equipmentLoadouts["knight"] = EquipmentLoadout(
-            itemIDsBySlot: [.weapon: "missing-item"]
-        )
-        try firstStore.performBatchMutation { $0 = save }
-
-        let store = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
-        let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
-
-        try #expect(store.roster.equipmentLoadout(for: knight).itemID(for: .weapon) == nil)
-    }
-
     @Test func noopBatchMutationDoesNotBumpModifiedAt() throws {
         let store = try context.makeSaveStore()
         let before = store.currentSave.modifiedAt

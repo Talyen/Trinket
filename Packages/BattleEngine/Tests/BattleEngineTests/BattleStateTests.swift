@@ -193,7 +193,7 @@ struct BattleStateTests {
         cadence.cardsPlayed[.hero] = 2
         cadence.skillCardsPlayed[.hero] = 1
         cadence.freezeCardsPlayed[.hero] = 1
-        cadence.burnManaRestored["hero"] = 3
+        cadence.burnManaRestored[.hero] = 3
         cadence.spendManaDrawOwners.insert(.hero)
         cadence.healthLossDrawOwners.insert(.hero)
         cadence.goldDrawOwners.insert(.hero)
@@ -201,7 +201,7 @@ struct BattleStateTests {
         try #expect(cadence.cardsPlayed[.hero] == 2)
         try #expect(cadence.skillCardsPlayed[.hero] == 1)
         try #expect(cadence.freezeCardsPlayed[.hero] == 1)
-        try #expect(cadence.burnManaRestored["hero"] == 3)
+        try #expect(cadence.burnManaRestored[.hero] == 3)
         try #expect(cadence.spendManaDrawOwners.contains(.hero))
         try #expect(cadence.healthLossDrawOwners.contains(.hero))
         try #expect(cadence.goldDrawOwners.contains(.hero))

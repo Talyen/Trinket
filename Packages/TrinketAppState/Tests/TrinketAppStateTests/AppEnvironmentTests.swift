@@ -18,6 +18,13 @@ struct AppEnvironmentTests {
             ("not-a-tab", nil),
         ]
 
+    @Test func tabAccessibilityIDsMatchDisplayNames() {
+        #expect(AccessibilityID.Tab.play == AppTab.play.displayName)
+        #expect(AccessibilityID.Tab.collection == AppTab.collection.displayName)
+        #expect(AccessibilityID.Tab.homestead == AppTab.homestead.displayName)
+        #expect(AccessibilityID.Tab.options == AppTab.options.displayName)
+    }
+
     @Test(arguments: selectedTabCases)
     func selectedTabParsesKnownTabsAliasesAndInvalidInput(rawValue: String, expected: AppTab?) {
         let env = Self.parse(arguments: ["-selectedTab", rawValue])

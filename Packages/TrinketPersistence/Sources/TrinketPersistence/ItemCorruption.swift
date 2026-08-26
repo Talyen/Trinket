@@ -97,10 +97,10 @@ public enum ItemCorruption {
             kinds.insert(.upgradeRarity)
         }
         let powers = resolvedPowers(for: item)
-        if AffixPowerBump.hasBumpableField(in: powers, direction: .up) {
+        if ItemAffixPower.hasBumpableField(in: powers, direction: .up) {
             kinds.insert(.bumpUp)
         }
-        if AffixPowerBump.hasBumpableField(in: powers, direction: .down) {
+        if ItemAffixPower.hasBumpableField(in: powers, direction: .down) {
             kinds.insert(.bumpDown)
         }
         return kinds
@@ -248,7 +248,7 @@ public enum ItemCorruption {
         using randomNumberGenerator: inout some RandomNumberGenerator
     ) {
         if kinds.contains(.bumpUp),
-           let bump = AffixPowerBump.apply(
+           let bump = ItemAffixPower.applyBump(
                direction: .up,
                to: &powers,
                affixIDs: affixIDs,
@@ -258,7 +258,7 @@ public enum ItemCorruption {
             markCandidates.append((.empowered, bump.affixIndex))
         }
         if kinds.contains(.bumpDown),
-           let bump = AffixPowerBump.apply(
+           let bump = ItemAffixPower.applyBump(
                direction: .down,
                to: &powers,
                affixIDs: affixIDs,

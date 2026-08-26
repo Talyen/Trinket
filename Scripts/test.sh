@@ -105,8 +105,10 @@ if [[ "$MODE" == "style" ]]; then
   fi
   ./Scripts/check-platform-api-bans.sh || style_status=$?
   ./Scripts/check-exclusivity-footguns.sh || style_status=$?
+  ./Scripts/check-agent-invariants.sh || style_status=$?
+  ./Scripts/check-accessibility-ids.sh || style_status=$?
   if [[ "$style_status" -ne 0 ]]; then
-    echo "Style gate failed (format / lint / UI style / platform API bans / exclusivity)." >&2
+    echo "Style gate failed (format / lint / UI style / platform API bans / exclusivity / agent invariants / accessibility IDs)." >&2
     exit "$style_status"
   fi
   echo "Style gate passed."

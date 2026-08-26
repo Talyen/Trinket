@@ -60,7 +60,7 @@ package extension CombatTriggerEngine {
                 }
                 runtime.hasTakenAttackHitThisTurn = false
                 runtime.faeWardBlockedThisTurn = false
-                runtime.hasTriggeredSaintfallThisTurn = false
+                runtime.hasTriggeredBlockBreakThisTurn = false
             }
         }
     }
@@ -109,7 +109,7 @@ package extension CombatTriggerEngine {
                 triggers.drawEveryOtherTurn,
                 for: owner,
                 actor: actor,
-                abilityName: "Tattered Pages",
+                abilityName: triggerAbilityName("drawEveryOtherTurn", for: actor, fallback: "Tattered Pages", in: context),
                 in: &context
             ))
         }
@@ -118,7 +118,12 @@ package extension CombatTriggerEngine {
                 triggers.companionCardsPerTurn,
                 for: .companion,
                 actor: actor,
-                abilityName: "Companion's Collar",
+                abilityName: triggerAbilityName(
+                    "companionCardsPerTurn",
+                    for: actor,
+                    fallback: "Companion's Collar",
+                    in: context
+                ),
                 in: &context
             ))
         }
@@ -141,7 +146,7 @@ package extension CombatTriggerEngine {
             events.append(contentsOf: context.grantGoldEvent(
                 triggers.goldPerTurn,
                 to: actor,
-                abilityName: "Merchant's Favor"
+                abilityName: triggerAbilityName("goldPerTurn", for: actor, fallback: "Merchant's Favor", in: context)
             ))
         }
         if triggers.healthPerTurn > 0 {
@@ -149,7 +154,7 @@ package extension CombatTriggerEngine {
                 amount: triggers.healthPerTurn,
                 target: actor,
                 source: actor,
-                abilityName: "Grove's Favor"
+                abilityName: triggerAbilityName("healthPerTurn", for: actor, fallback: "Grove's Favor", in: context)
             ))
         }
         if runtime.healOverTimeTurnsRemaining > 0, runtime.healOverTimeAmount > 0 {
@@ -192,7 +197,7 @@ package extension CombatTriggerEngine {
             events.append(contentsOf: context.grantGoldEvent(
                 triggers.goldEveryNTurnsAmount,
                 to: actor,
-                abilityName: "Dig for Treasure"
+                abilityName: triggerAbilityName("goldEveryNTurnsAmount", for: actor, fallback: "Dig for Treasure", in: context)
             ))
         }
         if triggers.healthRegenFirstTurnsDuration > 0,
@@ -201,7 +206,7 @@ package extension CombatTriggerEngine {
                 amount: triggers.healthRegenFirstTurnsAmount,
                 target: actor,
                 source: actor,
-                abilityName: "Sprite Touch"
+                abilityName: triggerAbilityName("healthRegenFirstTurnsAmount", for: actor, fallback: "Sprite Touch", in: context)
             ))
         }
         if triggers.healthRegenAboveHalfHealth > 0,
@@ -211,7 +216,7 @@ package extension CombatTriggerEngine {
                 amount: triggers.healthRegenAboveHalfHealth,
                 target: actor,
                 source: actor,
-                abilityName: "Safe Perch"
+                abilityName: triggerAbilityName("healthRegenAboveHalfHealth", for: actor, fallback: "Safe Perch", in: context)
             ))
         }
         return events
@@ -239,7 +244,12 @@ package extension CombatTriggerEngine {
                     kind: .effect,
                     effectKind: .cardsDrawn,
                     actorName: actor.name,
-                    abilityName: "Arcane Surge",
+                    abilityName: triggerAbilityName(
+                        "startTurnFullManaDrawCards",
+                        for: actor,
+                        fallback: "Arcane Surge",
+                        in: context
+                    ),
                     target: actor,
                     amount: drawn,
                     keyword: .physical
@@ -250,7 +260,7 @@ package extension CombatTriggerEngine {
             events.append(contentsOf: context.restoreManaEmitting(
                 1,
                 to: actor,
-                abilityName: "Aetherial Surge"
+                abilityName: triggerAbilityName("bonusManaOnTurns", for: actor, fallback: "Aetherial Surge", in: context)
             ))
         }
         return events
@@ -273,7 +283,12 @@ package extension CombatTriggerEngine {
                     kind: .effect,
                     effectKind: .cardsDrawn,
                     actorName: actor.name,
-                    abilityName: "Frenzied Tail",
+                    abilityName: triggerAbilityName(
+                        "extraCardDrawWhileEnemyBleeding",
+                        for: actor,
+                        fallback: "Frenzied Tail",
+                        in: context
+                    ),
                     target: actor,
                     amount: drawn,
                     keyword: .physical
@@ -292,7 +307,12 @@ package extension CombatTriggerEngine {
                     kind: .effect,
                     effectKind: .cardsDrawn,
                     actorName: actor.name,
-                    abilityName: "Feral Frenzy",
+                    abilityName: triggerAbilityName(
+                        "extraCardDrawBelowEnemyHealthPercent",
+                        for: actor,
+                        fallback: "Feral Frenzy",
+                        in: context
+                    ),
                     target: actor,
                     amount: drawn,
                     keyword: .physical
@@ -345,7 +365,12 @@ package extension CombatTriggerEngine {
                         triggers.everyNTurnsTeamBlockAmount,
                         to: member.combatant,
                         source: actor,
-                        abilityName: "Quaking Carapace"
+                        abilityName: triggerAbilityName(
+                            "everyNTurnsTeamBlockAmount",
+                            for: actor,
+                            fallback: "Quaking Carapace",
+                            in: context
+                        )
                     ))
                 }
             }
@@ -367,7 +392,7 @@ package extension CombatTriggerEngine {
             events.append(contentsOf: context.restoreManaEmitting(
                 triggers.startBattleBonusMana,
                 to: actor,
-                abilityName: "Dragon Spark"
+                abilityName: triggerAbilityName("startBattleBonusMana", for: actor, fallback: "Dragon Spark", in: context)
             ))
         }
         if triggers.startBattleBlock > 0 {
@@ -375,14 +400,14 @@ package extension CombatTriggerEngine {
                 triggers.startBattleBlock,
                 to: actor,
                 source: actor,
-                abilityName: "Watchful Eye"
+                abilityName: triggerAbilityName("startBattleBlock", for: actor, fallback: "Watchful Eye", in: context)
             ))
         }
         if triggers.startBattleBonusGold > 0 {
             events.append(contentsOf: context.grantGoldEvent(
                 triggers.startBattleBonusGold,
                 to: actor,
-                abilityName: "Deep Pockets"
+                abilityName: triggerAbilityName("startBattleBonusGold", for: actor, fallback: "Deep Pockets", in: context)
             ))
         }
         return events

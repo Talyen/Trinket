@@ -420,6 +420,55 @@ class ScriptRegressionTests(unittest.TestCase):
             )
             self.assertEqual(accepted.returncode, 0, accepted.stdout + accepted.stderr)
 
+    def test_agent_invariants_cover_entropy_sleep_persistence_and_concurrency(self) -> None:
+        text = (ROOT / "Scripts" / "check-agent-invariants.sh").read_text(encoding="utf-8")
+        self.assertIn(r"\b(Date|UUID)\(\)", text)
+        self.assertIn("Task.sleep", text)
+        self.assertIn("PersistenceCheck", text)
+        self.assertIn("@unchecked Sendable", text)
+
+    def test_accessibility_ids_reject_duplicate_constants_and_raw_uitest_literals(self) -> None:
+        checker = load_script("check_accessibility_ids", "check-accessibility-ids.py")
+        duplicates = checker.unique_constants()
+        self.assertEqual(duplicates, [])
+        raw = checker.raw_uitest_literals(checker.allowlist())
+        self.assertEqual(raw, [], raw)
+
+    def test_style_gate_invokes_agent_invariants_and_accessibility_ids(self) -> None:
+        text = (ROOT / "Scripts" / "test.sh").read_text(encoding="utf-8")
+        self.assertIn("check-agent-invariants.sh", text)
+        self.assertIn("check-accessibility-ids.sh", text)
+
+    def test_lint_analyze_is_ci_only(self) -> None:
+        text = (ROOT / "Scripts" / "lint-analyze.sh").read_text(encoding="utf-8")
+        self.assertIn("swiftlint analyze", text)
+        self.assertIn("compiler-log-path", text)
+        style = (ROOT / "Scripts" / "test.sh").read_text(encoding="utf-8")
+        self.assertNotIn("lint-analyze.sh", style)
+        handoff = (ROOT / "Scripts" / "handoff.sh").read_text(encoding="utf-8")
+        self.assertNotIn("lint-analyze.sh", handoff)
+        restore = (ROOT / ".github" / "actions" / "restore-and-build" / "action.yml").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("lint-analyze.sh", restore)
+        self.assertRegex(
+            restore,
+            r"SwiftLint analyze\n(?:.*\n){0,6}      continue-on-error: true",
+        )
+
+    def test_change_budget_warns_when_package_production_lacks_tests(self) -> None:
+        text = (ROOT / "Scripts" / "change-budget.sh").read_text(encoding="utf-8")
+        self.assertIn("--base", text)
+        self.assertIn(
+            "production Swift in ${package} changed with no test path in that package",
+            text,
+        )
+
+    def test_ci_diff_review_is_advisory(self) -> None:
+        text = (ROOT / ".github" / "workflows" / "tests.yml").read_text(encoding="utf-8")
+        self.assertRegex(text, r"diff-review:\n(?:.*\n){0,8}    continue-on-error: true")
+        self.assertNotRegex(text, r"ci-ok:\n(?:.*\n)*?needs:.*diff-review")
+
     def test_prepare_asset_scripts_use_c_locale_header_preserving_sort(self) -> None:
         scripts = tuple(
             path.name
@@ -579,6 +628,9 @@ class ScriptRegressionTests(unittest.TestCase):
         text = (ROOT / ".githooks" / "pre-push").read_text(encoding="utf-8")
         self.assertIn('test.sh style "${style_swift[@]}"', text)
         self.assertIn("check-platform-api-bans.sh", text)
+        self.assertIn("check-agent-invariants.sh", text)
+        self.assertIn("test-package.sh", text)
+        self.assertLess(text.find("agent-push-gate.sh"), text.find("test-package.sh"))
         self.assertIn('"$remote_sha..$local_sha"', text)
         self.assertIn("push_lines+=", text)
         self.assertNotIn("./Scripts/test.sh style\n", text)

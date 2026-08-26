@@ -49,10 +49,7 @@ public extension PrimaryStats {
     /// `contestedDodgeChance`, then compressed with the enemy falloff so steeper
     /// diminishing returns apply as the chance grows.
     func contestedEnemyDodgeChance(againstAttackerAgility attackerAgility: Int) -> Double {
-        let base = max(
-            0,
-            Self.diminishingReturnsPercent(for: agility) - Self.diminishingReturnsPercent(for: attackerAgility)
-        )
+        let base = contestedDodgeChance(againstAttackerAgility: attackerAgility)
         return max(0, base / (1.0 + Self.enemyDodgeFalloffConstant * base))
     }
 

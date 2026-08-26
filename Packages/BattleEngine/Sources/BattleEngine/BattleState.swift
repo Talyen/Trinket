@@ -95,7 +95,7 @@ public struct BattleState {
         set { turnCadence.freezeCardsPlayed = newValue }
     }
 
-    public var burnManaRestoredThisTurn: [String: Int] {
+    public var burnManaRestoredThisTurn: [BattleParticipant: Int] {
         get { turnCadence.burnManaRestored }
         set { turnCadence.burnManaRestored = newValue }
     }

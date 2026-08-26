@@ -9,8 +9,9 @@ This skill guides programmatic interaction with the iOS Simulator using Apple's 
 
 ## Trinket isolation & safety rules
 
-When working inside the Trinket repository, respect the managed agent pool defined in [`Docs/Platform/SimulatorOperations.md`](file:///Users/ryanmcintire/Documents/Trinket/Docs/Platform/SimulatorOperations.md):
+When working inside the Trinket repository, respect the managed agent pool defined in [`Docs/Platform/SimulatorOperations.md`](../../../Docs/Platform/SimulatorOperations.md):
 
+- **Always target specific UDIDs**: Never use `booted` as a target alias because multiple simulators (`Trinket Run`, `Trinket Agent 1`, `Trinket Agent 2`) may run concurrently.
 - **Never run destructive global commands**: Do not run `xcrun simctl shutdown all` or `xcrun simctl erase all`.
 - **Use isolated slots**: For agent runs, use `--isolate` with repository runners (`./Scripts/run-simulator.sh` or `./Scripts/handoff.sh --isolate`). Agents lease an isolated slot (`Trinket Agent N`) to avoid interrupting user/human sessions (`Trinket Run`).
 - **Never kill foreign simulator or Xcode processes**: Only manage the device leased to the current process.
@@ -19,55 +20,60 @@ When working inside the Trinket repository, respect the managed agent pool defin
 
 ## Quick command reference (`xcrun simctl`)
 
-All commands operate on either a target device UDID or device name alias (or `booted` if only one simulator is active).
-
 ### 1. Device discovery & lifecycle
 
 ```bash
-# List available runtimes and booted/available devices (JSON format for scripting)
+# Resolve UDID for a managed Trinket simulator
+UDID="$(xcrun simctl list devices available -j | python3 Scripts/simctl_json.py udid-for-name "Trinket Run")"
+# or for an agent slot:
+UDID="$(xcrun simctl list devices available -j | python3 Scripts/simctl_json.py udid-for-name "Trinket Agent 1")"
+
+# List available runtimes and devices in JSON format
 xcrun simctl list devices available -j
 xcrun simctl list runtimes -j
 
-# Boot a specific simulator
+# Headless boot (sufficient for screenshotting, logs, and background testing)
 xcrun simctl boot <UDID>
-
-# Wait for boot to finish completely
 xcrun simctl bootstatus <UDID> -b
 
-# Open the Simulator GUI window focused on the device
+# Optional: Focus the Simulator GUI window (only when requested for visual inspection)
 open -a Simulator --args -CurrentDeviceUDID <UDID>
 
-# Gracefully shutdown a specific device
+# Safe graceful shutdown (stops PosterBoard first to prevent guest crash alerts)
+xcrun simctl spawn <UDID> launchctl stop com.apple.PosterBoard 2>/dev/null || true
 xcrun simctl shutdown <UDID>
 ```
 
-### 2. App installation, launch & control
+### 2. App installation, launch & environment
 
 ```bash
-# Install an app bundle (.app built for iphonesimulator)
-xcrun simctl install <UDID> /path/to/App.app
+# Prefer repo launcher to build, install, place on home screen, and run in dark mode
+./Scripts/run-simulator.sh
 
-# Launch app by bundle identifier
-xcrun simctl launch <UDID> <bundle.identifier>
+# Manual install of a built app bundle
+xcrun simctl install <UDID> /path/to/Trinket.app
+
+# Launch app with dark mode and launch arguments
+xcrun simctl launch --terminate-running-process <UDID> <bundle.identifier> -- -appearance dark
+
+# Launch with environment variables
+SIMCTL_CHILD_MY_FLAG=1 xcrun simctl launch <UDID> <bundle.identifier>
+
+# Launch with locale/language override
+xcrun simctl launch <UDID> <bundle.identifier> -- -AppleLanguages "(es)" -AppleLocale "es_ES"
 
 # Terminate running app
 xcrun simctl terminate <UDID> <bundle.identifier>
 
-# Relaunch with clean restart and arguments
-xcrun simctl launch --terminate-running-process <UDID> <bundle.identifier> -- -key value
-
-# Uninstall app
+# Uninstall app (clears sandbox state)
 xcrun simctl uninstall <UDID> <bundle.identifier>
-
-# Locate the sandboxed app container or data directory
-xcrun simctl get_app_container <UDID> <bundle.identifier> data
 ```
 
 ### 3. Visual inspection & media capture
 
 ```bash
-# Capture screenshot (PNG)
-xcrun simctl io <UDID> screenshot /path/to/screenshot.png --type=png
+# Capture clean screenshot without window frame masking artifacts
+xcrun simctl io <UDID> screenshot /path/to/screenshot.png --type=png --mask=ignored
 
 # Record video of simulator screen (Ctrl+C / SIGINT to stop)
 xcrun simctl io <UDID> recordVideo /path/to/recording.mp4
@@ -76,14 +82,23 @@ xcrun simctl io <UDID> recordVideo /path/to/recording.mp4
 xcrun simctl addmedia <UDID> /path/to/sample.png
 ```
 
-### 4. UI appearance & environment overrides
+### 4. UI appearance, Dynamic Type & environment overrides
 
 ```bash
-# Switch appearance mode (light / dark)
+# Switch appearance mode (Trinket defaults to dark)
 xcrun simctl ui <UDID> appearance dark
 xcrun simctl ui <UDID> appearance light
 
-# Override status bar for clean screenshots / marketing visuals
+# Override Dynamic Type text size (for accessibility audits)
+# Options: extra-small, small, medium, large, extra-large, extra-extra-large,
+#          extra-extra-extra-large, accessibility-medium, accessibility-large, ...
+xcrun simctl ui <UDID> content_size extra-large
+xcrun simctl ui <UDID> content_size medium
+
+# Increase contrast
+xcrun simctl ui <UDID> increase_contrast enabled
+
+# Override status bar for clean documentation / walkthrough visuals
 xcrun simctl status_bar <UDID> override \
   --time "9:41" \
   --batteryState charged \
@@ -95,48 +110,55 @@ xcrun simctl status_bar <UDID> override \
 xcrun simctl status_bar <UDID> clear
 
 # Open deep link / URL
-xcrun simctl openurl <UDID> "my-scheme://route/path"
+xcrun simctl openurl <UDID> "trinket://route/path"
 
 # Set/get clipboard content
 echo "Hello World" | xcrun simctl pbcopy <UDID>
 xcrun simctl pbpaste <UDID>
 ```
 
-### 5. Permissions & privacy management
+### 5. Sandbox data, user defaults & diagnostics
 
 ```bash
-# Grant specific permission (e.g. photos, camera, location, notifications)
-xcrun simctl privacy <UDID> grant photos <bundle.identifier>
+# Locate sandbox data container (save games, SwiftData / CoreData stores)
+DATA_DIR="$(xcrun simctl get_app_container <UDID> <bundle.identifier> data)"
+ls -la "$DATA_DIR/Documents/"
 
-# Revoke permission
-xcrun simctl privacy <UDID> revoke location <bundle.identifier>
+# Read / write UserDefaults within the guest simulator
+xcrun simctl spawn <UDID> defaults read <bundle.identifier>
+xcrun simctl spawn <UDID> defaults write <bundle.identifier> <key> -bool true
 
-# Reset all permissions for an app
-xcrun simctl privacy <UDID> reset all <bundle.identifier>
-```
-
-### 6. Push notifications & diagnostics
-
-```bash
-# Simulate an APNs push notification using a payload JSON file
-xcrun simctl push <UDID> <bundle.identifier> payload.apns
-
-# Stream live unified logs from the device filtered to app subsystem
+# Stream live unified logs filtered to app subsystem
 xcrun simctl spawn <UDID> log stream --predicate 'subsystem == "<bundle.identifier>"' --level debug
 
-# Collect diagnostic archive
-xcrun simctl diagnose -b -o /path/to/output_dir
+# Grant or revoke permissions
+xcrun simctl privacy <UDID> grant photos <bundle.identifier>
+xcrun simctl privacy <UDID> reset all <bundle.identifier>
+
+# Simulate an APNs push notification
+xcrun simctl push <UDID> <bundle.identifier> payload.apns
 ```
 
 ---
 
 ## Recipes for agents
 
-### Taking a clean visual screenshot of a UI change
-1. Ensure the app is built and installed on the designated simulator.
-2. Override the status bar: `xcrun simctl status_bar <UDID> override --time "9:41" --batteryState charged --batteryLevel 100`.
-3. Set appearance: `xcrun simctl ui <UDID> appearance dark`.
-4. Launch app: `xcrun simctl launch --terminate-running-process <UDID> <bundle.identifier>`.
-5. Wait briefly for view transitions / rendering to settle.
-6. Capture: `xcrun simctl io <UDID> screenshot <artifact_path>.png`.
-7. Clear status bar: `xcrun simctl status_bar <UDID> clear`.
+### Taking a clean visual screenshot for a walkthrough
+1. Resolve target UDID:
+   ```bash
+   UDID="$(xcrun simctl list devices available -j | python3 Scripts/simctl_json.py udid-for-name "Trinket Run")"
+   ```
+2. Build and launch the app using `./Scripts/run-simulator.sh` or `xcrun simctl launch`.
+3. Set standard visual state:
+   ```bash
+   xcrun simctl ui "$UDID" appearance dark
+   xcrun simctl status_bar "$UDID" override --time "9:41" --batteryState charged --batteryLevel 100
+   ```
+4. Capture screenshot directly into your conversation artifacts directory:
+   ```bash
+   xcrun simctl io "$UDID" screenshot "<artifact_dir>/screenshot.png" --type=png --mask=ignored
+   ```
+5. Clean up status bar override:
+   ```bash
+   xcrun simctl status_bar "$UDID" clear
+   ```

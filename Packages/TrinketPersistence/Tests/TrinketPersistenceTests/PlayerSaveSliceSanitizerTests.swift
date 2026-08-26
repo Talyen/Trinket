@@ -6,81 +6,71 @@ import TrinketPersistenceTestSupport
 
 @MainActor
 final class PlayerSaveSliceSanitizerTests {
-    @Test func sliceScopedSanitizeMatchesFullSanitizeForHomesteadMutation() {
-        var save = PlayerSave.fresh
-        save.homestead.pendingProduction[.wood] = 12.5
-
-        let full = PlayerSaveSanitizer.sanitize(save)
-        let scoped = PlayerSaveSanitizer.sanitize(
-            save,
-            changedSlices: .sanitizeTargets(for: [.homestead])
-        )
-
-        #expect(full == scoped)
+    private enum SliceEqualityCase: String, Sendable {
+        case homestead
+        case inventory
+        case roster
+        case labyrinth
     }
 
-    @Test func sliceScopedSanitizeMatchesFullSanitizeForInventoryMutation() throws {
-        let weaponBase = try #require(GameContent.itemBaseTypes.first { $0.slot == .weapon })
-        let weapon = InventoryItem(
-            id: "weapon-id",
-            templateID: "weapon-template",
-            baseType: weaponBase,
-            rarity: .basic,
-            displayName: "Test Sword",
-            affixes: []
-        )
+    @Test(arguments: [
+        SliceEqualityCase.homestead,
+        .inventory,
+        .roster,
+        .labyrinth,
+    ])
+    private func sliceScopedSanitizeMatchesFullSanitize(_ sliceCase: SliceEqualityCase) throws {
         var save = PlayerSave.fresh
-        save.inventory = PlayerInventoryState(items: [weapon])
-
-        let full = PlayerSaveSanitizer.sanitize(save)
-        let scoped = PlayerSaveSanitizer.sanitize(
-            save,
-            changedSlices: .sanitizeTargets(for: [.inventory])
-        )
-
-        #expect(full == scoped)
-    }
-
-    @Test func sliceScopedSanitizeMatchesFullSanitizeForRosterMutation() {
-        var save = PlayerSave.fresh
-        save.roster.gold = 999999
-
-        let full = PlayerSaveSanitizer.sanitize(save)
-        let scoped = PlayerSaveSanitizer.sanitize(
-            save,
-            changedSlices: .sanitizeTargets(for: [.roster])
-        )
-
-        #expect(full == scoped)
-    }
-
-    @Test func sliceScopedSanitizeMatchesFullSanitizeForLabyrinthMutation() {
-        var save = PlayerSave.fresh
-        save.labyrinth.ensureMap(seed: 4)
-        let nodeID = save.labyrinth.reachableNodeIDs().first ?? save.labyrinth.nodes.keys.min()
-        guard let nodeID, let node = save.labyrinth.nodes[nodeID] else {
-            Issue.record("Expected a generated labyrinth node")
-            return
+        let slice: PlayerSaveSlice
+        var labyrinthNodeID: String?
+        switch sliceCase {
+        case .homestead:
+            save.homestead.pendingProduction[.wood] = 12.5
+            slice = .homestead
+        case .inventory:
+            let weaponBase = try #require(GameContent.itemBaseTypes.first { $0.slot == .weapon })
+            save.inventory = PlayerInventoryState(items: [
+                InventoryItem(
+                    id: "weapon-id",
+                    templateID: "weapon-template",
+                    baseType: weaponBase,
+                    rarity: .basic,
+                    displayName: "Test Sword",
+                    affixes: []
+                ),
+            ])
+            slice = .inventory
+        case .roster:
+            save.roster.gold = 999999
+            slice = .roster
+        case .labyrinth:
+            save.labyrinth.ensureMap(seed: 4)
+            let nodeID = try #require(save.labyrinth.reachableNodeIDs().first ?? save.labyrinth.nodes.keys.min())
+            let node = try #require(save.labyrinth.nodes[nodeID])
+            save.labyrinth.nodes[nodeID] = LabyrinthNode(
+                id: node.id,
+                type: .event,
+                enemyID: nil,
+                depth: node.depth,
+                clusterID: node.clusterID,
+                outgoingIDs: node.outgoingIDs,
+                isCleared: node.isCleared,
+                isRevealed: true
+            )
+            slice = .labyrinth
+            labyrinthNodeID = nodeID
         }
-        save.labyrinth.nodes[nodeID] = LabyrinthNode(
-            id: node.id,
-            type: .event,
-            enemyID: nil,
-            depth: node.depth,
-            clusterID: node.clusterID,
-            outgoingIDs: node.outgoingIDs,
-            isCleared: node.isCleared,
-            isRevealed: true
-        )
 
         let full = PlayerSaveSanitizer.sanitize(save)
         let scoped = PlayerSaveSanitizer.sanitize(
             save,
-            changedSlices: .sanitizeTargets(for: [.labyrinth])
+            changedSlices: .sanitizeTargets(for: slice)
         )
 
         #expect(full == scoped)
-        #expect(full.labyrinth.nodes[nodeID]?.type == .mystery)
+        if let labyrinthNodeID {
+            #expect(full.labyrinth.nodes[labyrinthNodeID]?.type == .mystery)
+        }
     }
 
     @Test func inventoryAndRosterSanitizeTargetsDoNotExpandToLabyrinth() {

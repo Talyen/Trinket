@@ -8,15 +8,11 @@ struct CombatantBuffAuraBorder: View {
     let kind: CombatantBuffAuraKind
     var isMotionActive: Bool = true
 
-    private var motionEnabled: Bool {
-        isMotionActive
-    }
-
     var body: some View {
-        TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: !motionEnabled)) { context in
+        TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: !isMotionActive)) { context in
             CombatantBuffAuraStroke(
                 kind: kind,
-                angle: motionEnabled
+                angle: isMotionActive
                     ? TrinketMotion.Shine.phase(at: context.date.timeIntervalSinceReferenceDate) * 360
                     : 0
             )
@@ -30,16 +26,16 @@ private struct CombatantBuffAuraStroke: View {
     let angle: Double
 
     var body: some View {
-        let style = palette(for: kind)
+        let base = kind.keyword.visualStyle.color
         TrinketDesign.cardShape.strokeBorder(
             AngularGradient(
                 gradient: Gradient(stops: [
-                    .init(color: style.base.opacity(0.22), location: 0),
-                    .init(color: style.base.opacity(0.65), location: 0.28),
-                    .init(color: style.highlight, location: 0.4),
-                    .init(color: style.base.opacity(0.9), location: 0.5),
-                    .init(color: style.base.opacity(0.28), location: 0.72),
-                    .init(color: style.base.opacity(0.22), location: 1),
+                    .init(color: base.opacity(0.22), location: 0),
+                    .init(color: base.opacity(0.65), location: 0.28),
+                    .init(color: TrinketDesign.Colors.Overlay.paper.opacity(0.95), location: 0.4),
+                    .init(color: base.opacity(0.9), location: 0.5),
+                    .init(color: base.opacity(0.28), location: 0.72),
+                    .init(color: base.opacity(0.22), location: 1),
                 ]),
                 center: .center,
                 angle: .degrees(angle)
@@ -47,45 +43,19 @@ private struct CombatantBuffAuraStroke: View {
             lineWidth: 2
         )
     }
+}
 
-    private func palette(for kind: CombatantBuffAuraKind) -> (base: Color, highlight: Color) {
-        switch kind {
-        case .shadowstep:
-            // Purge keyword purple is the Shadowstep shimmer palette.
-            let style = Keyword.purge.visualStyle
-            return (style.color, TrinketDesign.Colors.Overlay.paper.opacity(0.92))
-        case .predatorsFocus:
-            // Physical keyword amber/orange is the Predator's Focus shimmer palette.
-            let style = Keyword.physical.visualStyle
-            return (style.color, TrinketDesign.Colors.Overlay.paper.opacity(0.95))
-        case .glacialWard:
-            // Freeze keyword cyan is the Glacial Ward shimmer palette.
-            let style = Keyword.freeze.visualStyle
-            return (style.color, TrinketDesign.Colors.Overlay.paper.opacity(0.95))
-        case .moltenBulwark:
-            // Burn keyword fire orange is the Molten Bulwark shimmer palette.
-            let style = Keyword.burn.visualStyle
-            return (style.color, TrinketDesign.Colors.Overlay.paper.opacity(0.95))
-        case .thorns:
-            // Poison keyword emerald green is the Thorns shimmer palette.
-            let style = Keyword.poison.visualStyle
-            return (style.color, TrinketDesign.Colors.Overlay.paper.opacity(0.92))
-        case .avatar:
-            // Gold keyword gold is the Avatar shimmer palette.
-            let style = Keyword.gold.visualStyle
-            return (style.color, TrinketDesign.Colors.Overlay.paper.opacity(0.95))
-        case .marked:
-            // Death's door crimson amber is the Marked vulnerability shimmer palette.
-            let style = Keyword.deathsDoor.visualStyle
-            return (style.color, TrinketDesign.Colors.Overlay.paper.opacity(0.95))
-        case .blizzard:
-            // Freeze keyword ice cyan is the Blizzard shimmer palette.
-            let style = Keyword.freeze.visualStyle
-            return (style.color, TrinketDesign.Colors.Overlay.paper.opacity(0.95))
-        case .earthquake:
-            // Stun keyword amber is the Earthquake shimmer palette.
-            let style = Keyword.stun.visualStyle
-            return (style.color, TrinketDesign.Colors.Overlay.paper.opacity(0.95))
+private extension CombatantBuffAuraKind {
+    var keyword: Keyword {
+        switch self {
+        case .shadowstep: .purge
+        case .predatorsFocus: .physical
+        case .glacialWard, .blizzard: .freeze
+        case .moltenBulwark: .burn
+        case .thorns: .poison
+        case .avatar: .gold
+        case .marked: .deathsDoor
+        case .earthquake: .stun
         }
     }
 }

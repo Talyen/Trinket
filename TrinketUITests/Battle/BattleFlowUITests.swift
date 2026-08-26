@@ -59,7 +59,7 @@ final class BattleFlowUITests: TrinketUITestCase {
         battle.retreatConfirmAction.tap()
 
         XCTAssertTrue(
-            app.tabBars.buttons["Play"].waitForExistence(timeout: Self.defaultTimeout),
+            app.tabBars.buttons[AccessibilityID.Tab.play].waitForExistence(timeout: Self.defaultTimeout),
             "Tab bar should return after retreat"
         )
         play.assertCampaignLoaded(number: 1)

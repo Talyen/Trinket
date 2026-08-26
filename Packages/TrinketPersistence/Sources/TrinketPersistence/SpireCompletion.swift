@@ -45,13 +45,11 @@ public enum SpireCompletion {
         guard !save.spires.isFloorCleared(floor.floor, spireID: spireID) else {
             return
         }
-        guard save.spires.isFloorStartable(floor.floor, spireID: spireID),
-              save.spires.isFloorUnlocked(
-                  floor.floor,
-                  spireID: spireID,
-                  floorCount: floorCount
-              )
-        else {
+        guard save.spires.isFloorStartable(
+            floor.floor,
+            spireID: spireID,
+            floorCount: floorCount
+        ) else {
             return
         }
 

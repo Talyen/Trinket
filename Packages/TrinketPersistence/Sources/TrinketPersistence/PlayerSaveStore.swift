@@ -184,11 +184,12 @@ public final class PlayerSaveStore {
         root = loadedRoot.root
         // Decode is raw; sanitize owns value normalization. Install the clean
         // save immediately so reads never see dirty disk rows.
-        var sanitized = PlayerSaveSanitizer.sanitize(root.toPlayerSave())
+        let rawSave = root.toPlayerSave()
+        var sanitized = PlayerSaveSanitizer.sanitize(rawSave)
         sanitized.schemaVersion = PlayerSave.currentSchemaVersion
         installObservedSave(sanitized)
         if loadedRoot.wasExisting {
-            ensureRequiredGraph()
+            ensureRequiredGraph(rawSave: rawSave, sanitized: sanitized)
         } else if loadedRoot.initialSaveFailed {
             lastPersistenceError = .writeFailed
             isPersistenceDegraded = true
@@ -351,9 +352,9 @@ public final class PlayerSaveStore {
     /// existing store. Decode is raw; compare against `root.toPlayerSave()` so
     /// dirty rows are visible and written back — not only when child models
     /// are missing.
-    private func ensureRequiredGraph() {
-        let rawSave = root.toPlayerSave()
-        var save = PlayerSaveSanitizer.sanitize(rawSave)
+    private func ensureRequiredGraph(rawSave: PlayerSave? = nil, sanitized: PlayerSave? = nil) {
+        let rawSave = rawSave ?? root.toPlayerSave()
+        var save = sanitized ?? PlayerSaveSanitizer.sanitize(rawSave)
         save.schemaVersion = PlayerSave.currentSchemaVersion
         var repairSlices = root.repairSlices(for: save)
         guard !repairSlices.isEmpty else { return }

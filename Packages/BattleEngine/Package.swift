@@ -35,7 +35,7 @@ let package = Package(
         .target(
             name: "BattleBalanceTools",
             dependencies: ["BattleEngine", "TrinketCore", "TrinketContent"],
-            path: "Sources/BalanceBalanceTools"
+            path: "Sources/BattleBalanceTools"
         ),
         .executableTarget(
             name: "BalanceSweepCLI",

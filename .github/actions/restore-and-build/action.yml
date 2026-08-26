@@ -73,6 +73,18 @@ runs:
         --policy ci-build
         -- ${{ inputs.build-command }}
 
+    - name: SwiftLint analyze
+      if: success()
+      continue-on-error: true
+      shell: bash
+      env:
+        SKIP_GENERATE: 1
+      run: >-
+        python3 Scripts/output-profile.py run
+        --label swiftlint-analyze
+        --policy ci-gate
+        -- ./Scripts/lint-analyze.sh
+
     - name: Upload build failure diagnostics
       if: failure() && steps.build.outcome == 'failure'
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

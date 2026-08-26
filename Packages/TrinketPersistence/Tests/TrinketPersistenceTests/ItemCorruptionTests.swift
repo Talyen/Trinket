@@ -202,7 +202,7 @@ struct ItemCorruptionTests {
         var powers = [executioners.basic]
         var rng = SeededRandomNumberGenerator(seed: 0)
 
-        let title = AffixPowerBump.apply(
+        let title = ItemAffixPower.applyBump(
             direction: .up,
             to: &powers,
             affixIDs: [executioners.id],
@@ -227,7 +227,7 @@ struct ItemCorruptionTests {
         let original = powers
         var rng = SeededRandomNumberGenerator(seed: 0)
 
-        let title = AffixPowerBump.apply(
+        let title = ItemAffixPower.applyBump(
             direction: .down,
             to: &powers,
             affixIDs: ["strength", "gold"],
@@ -245,7 +245,7 @@ struct ItemCorruptionTests {
         ]
         var rng = SeededRandomNumberGenerator(seed: 12)
 
-        let titleUp = AffixPowerBump.apply(
+        let titleUp = ItemAffixPower.applyBump(
             direction: .up,
             to: &powers,
             affixIDs: ["strength", "gold"],
@@ -253,7 +253,7 @@ struct ItemCorruptionTests {
         )?.title
         #expect(titleUp != nil)
 
-        let titleDown = AffixPowerBump.apply(
+        let titleDown = ItemAffixPower.applyBump(
             direction: .down,
             to: &powers,
             affixIDs: ["strength", "gold"],
@@ -271,7 +271,7 @@ struct ItemCorruptionTests {
         ]
         var rng = SeededRandomNumberGenerator(seed: 0)
 
-        let title = AffixPowerBump.apply(
+        let title = ItemAffixPower.applyBump(
             direction: .up,
             to: &powers,
             affixIDs: ["strength"],
@@ -297,7 +297,7 @@ struct ItemCorruptionTests {
         ]
         var rng = SeededRandomNumberGenerator(seed: 0)
 
-        let title = AffixPowerBump.apply(
+        let title = ItemAffixPower.applyBump(
             direction: .up,
             to: &powers,
             affixIDs: ["bleed_poison"],
@@ -318,7 +318,7 @@ struct ItemCorruptionTests {
             ),
         ]
         var rng = SeededRandomNumberGenerator(seed: 1)
-        _ = AffixPowerBump.apply(direction: .up, to: &intPowers, affixIDs: ["test_block"], using: &rng)
+        _ = ItemAffixPower.applyBump(direction: .up, to: &intPowers, affixIDs: ["test_block"], using: &rng)
         #expect(intPowers[0].triggers.blockBrokenBlockFlat == 6)
         #expect(intPowers[0].description == "Gain 6 Block when broken.")
 
@@ -329,7 +329,7 @@ struct ItemCorruptionTests {
                 triggers: CombatTraitTriggers(mitigation: MitigationTriggers(thornsPercent: 0.25))
             ),
         ]
-        _ = AffixPowerBump.apply(direction: .up, to: &pctPowers, affixIDs: ["test_thorns"], using: &rng)
+        _ = ItemAffixPower.applyBump(direction: .up, to: &pctPowers, affixIDs: ["test_thorns"], using: &rng)
         #expect(abs(pctPowers[0].triggers.thornsPercent - 0.26) < 0.001)
         #expect(pctPowers[0].description == "Gain 26% Thorns.")
     }

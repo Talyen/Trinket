@@ -15,10 +15,10 @@ genuinely new concern. The authoritative suite inventory is the
 | Damage pipeline steps, DoT math | `DamagePipelineTests`, `CombatPipelineTests`, `DoT*Tests` |
 | Engine cadence, fight pacing, control states | `BattleTurnEngineTests`, `FightPacingTests`, `ControlMeter*Tests`, `DeathsDoorEngineTests` |
 | Cross-boundary card combat | `BattleCardCombatTests` plus `*IntegrationTests` |
-| Builds, triggers, talents, traits, affixes, items, trinkets | `CombatBuildResolverTests`, `CombatTriggerTalent*Tests`, `TrinketEffectTests`, `*BattleTests` |
+| Builds, triggers, talents, traits, affixes, items, trinkets | `CombatBuildResolverTests`, `TalentCatalogRoundTripTests`, `CombatTriggerFieldCoverageTests`, `CombatTriggerTalent*Tests`, `TrinketEffectTests`, `*BattleTests` |
 | Catalog ability combos | `AbilityEffectIntegrationTests` |
 | Outcome, log, event formatting | `BattleOutcomeResolverTests`, `BattleLogReducerTests`, `EffectSummaryBuilderTests` |
-| Balance simulator and sweep tooling | `BattleSimulator*Tests`, `GreedyHeuristicPolicyTests`, `Balance*Tests` |
+| Balance simulator and sweep tooling | `BattleBalanceToolsTests` (`BattleSimulator*`, `Balance*`, `ModeProgressionToolingTests`); `GreedyHeuristicPolicyTests` stays in `BattleEngineTests` (Auto Battle) |
 
 ## Conventions
 

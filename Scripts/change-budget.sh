@@ -7,13 +7,19 @@ cd "$(dirname "$0")/.."
 source Scripts/change-classification.sh
 
 mode="working-tree"
+base="HEAD"
 declare -a requested=()
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --help|-h)
-      echo "Usage: ./Scripts/change-budget.sh [--paths <file> ...]"
+      echo "Usage: ./Scripts/change-budget.sh [--base <rev>] [--paths <file> ...]"
       echo "Warning thresholds: TRINKET_BUDGET_{PROD_LOC,TEST_LOC,NEW_SWIFT,TYPE,TEST_DECL}_WARN"
       exit 0
+      ;;
+    --base)
+      shift
+      [[ $# -gt 0 ]] || { echo "--base requires a revision" >&2; exit 1; }
+      base="$1"
       ;;
     --paths)
       mode="explicit"
@@ -36,8 +42,8 @@ fi
 stats=$(mktemp -t trinket-budget-stats.XXXXXX)
 patch=$(mktemp -t trinket-budget-patch.XXXXXX)
 trap 'rm -f "$stats" "$patch"' EXIT
-git diff --no-renames --numstat HEAD -- "${TRINKET_CHANGED_PATHS[@]}" > "$stats"
-git diff --no-renames --unified=0 HEAD -- "${TRINKET_CHANGED_PATHS[@]}" > "$patch"
+git diff --no-renames --numstat "$base" -- "${TRINKET_CHANGED_PATHS[@]}" > "$stats"
+git diff --no-renames --unified=0 "$base" -- "${TRINKET_CHANGED_PATHS[@]}" > "$patch"
 
 # Git omits untracked files; append them as all-added synthetic diffs.
 for path in "${TRINKET_CHANGED_PATHS[@]}"; do
@@ -49,6 +55,7 @@ for path in "${TRINKET_CHANGED_PATHS[@]}"; do
 done
 
 LC_ALL=C awk \
+  -v rev="$base" \
   -v prod_limit="${TRINKET_BUDGET_PROD_LOC_WARN:-250}" \
   -v test_limit="${TRINKET_BUDGET_TEST_LOC_WARN:-150}" \
   -v file_limit="${TRINKET_BUDGET_NEW_SWIFT_WARN:-2}" \
@@ -98,7 +105,7 @@ LC_ALL=C awk \
   }
   END {
     pn = pa - pd; tn = ta - td; dn = da - dd; typen = types_added - types_deleted; testn = tests_added - tests_deleted
-    print "Change budget (advisory vs HEAD):"
+    print "Change budget (advisory vs " rev "):"
     printf "  Production Swift: +%d/-%d (net %+d), new files %d, types +%d/-%d\n", pa, pd, pn, new_prod, types_added, types_deleted
     printf "  Test Swift:       +%d/-%d (net %+d), new files %d, declarations +%d/-%d\n", ta, td, tn, new_test, tests_added, tests_deleted
     printf "  Docs/tools:       +%d/-%d (net %+d)\n", da, dd, dn
@@ -112,3 +119,34 @@ LC_ALL=C awk \
     if (!warnings) print "  Warnings: none"
   }
 ' "$stats" "$patch"
+
+# Advisory: production Swift in a package with no matching test-path edits.
+prod_packages=""
+test_packages=""
+for path in "${TRINKET_CHANGED_PATHS[@]}"; do
+  [[ "$path" == *.swift ]] || continue
+  [[ "$path" == */Generated/* || "$path" == *.generated.swift ]] && continue
+  case "$path" in
+    Packages/*/Tests/*)
+      package="${path#Packages/}"
+      test_packages+="${package%%/*}"$'\n'
+      ;;
+    Packages/*/Sources/*)
+      package="${path#Packages/}"
+      prod_packages+="${package%%/*}"$'\n'
+      ;;
+  esac
+done
+missing=()
+while IFS= read -r package; do
+  [[ -z "$package" ]] && continue
+  if ! printf '%s' "$test_packages" | grep -Fxq "$package"; then
+    missing+=("$package")
+  fi
+done < <(printf '%s' "$prod_packages" | LC_ALL=C sort -u)
+if ((${#missing[@]} > 0)); then
+  echo "  Package test coverage:"
+  for package in "${missing[@]}"; do
+    echo "    - production Swift in ${package} changed with no test path in that package"
+  done
+fi

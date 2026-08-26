@@ -18,7 +18,9 @@
         "PlayMapUITests",
         "PlayModeNavigationUITests",
         "ShopFlowUITests",
-        "TabNavigationUITests"
+        "TabNavigationUITests",
+        "HeroDetailAbilityPickerUITests",
+        "HomesteadNodeDetailUITests"
       ],
       "target" : {
         "containerPath" : "container:Trinket.xcodeproj",

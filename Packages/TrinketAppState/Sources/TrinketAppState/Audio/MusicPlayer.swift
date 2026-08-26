@@ -366,8 +366,8 @@ final class MusicPlayer {
     }
 }
 
-/// `AVAudioPlayer` is not Sendable; this box is only used to hop a prepared
-/// instance from a detached load onto the MainActor.
+// Concurrency-Safety: `@unchecked Sendable` — AVAudioPlayer is not Sendable;
+// this box hops a prepared instance from a detached load onto the MainActor.
 private final class LoadedMusicPlayer: @unchecked Sendable {
     let player: AVAudioPlayer
 

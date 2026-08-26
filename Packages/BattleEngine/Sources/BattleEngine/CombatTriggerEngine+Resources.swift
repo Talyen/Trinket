@@ -9,7 +9,11 @@ package extension CombatTriggerEngine {
             let hero = context.roster.hero.combatant
             let amount = context.heroModifiers.triggers.defeatEnemyGoldFlat
             if amount > 0 {
-                events.append(contentsOf: context.grantGoldEvent(amount, to: hero, abilityName: affixName(.bounty)))
+                events.append(contentsOf: context.grantGoldEvent(
+                    amount,
+                    to: hero,
+                    abilityName: triggerAbilityName("defeatEnemyGoldFlat", for: hero, fallback: "Bounty", in: context)
+                ))
             }
         }
 
@@ -17,7 +21,11 @@ package extension CombatTriggerEngine {
             let companion = context.roster.companion.combatant
             let amount = context.companionModifiers.triggers.defeatEnemyGoldFlat
             if amount > 0 {
-                events.append(contentsOf: context.grantGoldEvent(amount, to: companion, abilityName: affixName(.bounty)))
+                events.append(contentsOf: context.grantGoldEvent(
+                    amount,
+                    to: companion,
+                    abilityName: triggerAbilityName("defeatEnemyGoldFlat", for: companion, fallback: "Bounty", in: context)
+                ))
             }
         }
 
@@ -57,7 +65,7 @@ package extension CombatTriggerEngine {
             events.append(contentsOf: context.grantGoldEvent(
                 triggers.critOnDefeatGold,
                 to: actor,
-                abilityName: "Bounty Hunter"
+                abilityName: triggerAbilityName("critOnDefeatGold", for: actor, fallback: "Bounty Hunter", in: context)
             ))
         }
         return events
@@ -71,12 +79,16 @@ package extension CombatTriggerEngine {
                 events.append(contentsOf: context.grantGoldEvent(
                     triggers.victoryGoldFlat,
                     to: actor,
-                    abilityName: "Smuggler's Map"
+                    abilityName: triggerAbilityName("victoryGoldFlat", for: actor, fallback: "Smuggler's Map", in: context)
                 ))
             }
             if triggers.victoryGoldCoin {
                 if BattleChance.succeeds(probability: 0.5, using: &context.rng) {
-                    events.append(contentsOf: context.grantGoldEvent(7, to: actor, abilityName: "Wishing Well Coin"))
+                    events.append(contentsOf: context.grantGoldEvent(
+                        7,
+                        to: actor,
+                        abilityName: triggerAbilityName("victoryGoldCoin", for: actor, fallback: "Wishing Well Coin", in: context)
+                    ))
                 } else {
                     let loss = min(3, max(0, context.gold))
                     guard loss > 0 else { continue }
@@ -85,7 +97,7 @@ package extension CombatTriggerEngine {
                         kind: .effect,
                         effectKind: .resourceGain,
                         actorName: actor.name,
-                        abilityName: "Wishing Well Coin",
+                        abilityName: triggerAbilityName("victoryGoldCoin", for: actor, fallback: "Wishing Well Coin", in: context),
                         target: actor,
                         amount: -loss,
                         keyword: .gold

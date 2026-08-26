@@ -12,8 +12,9 @@ struct SpiresProgressTests {
         #expect(state.activeFloor(for: SpireID.ironVein.rawValue, floorCount: 10) == 1)
         #expect(state.isFloorUnlocked(1, spireID: SpireID.ironVein.rawValue, floorCount: 10))
         #expect(!state.isFloorUnlocked(2, spireID: SpireID.ironVein.rawValue, floorCount: 10))
-        #expect(state.isFloorStartable(1, spireID: SpireID.ironVein.rawValue))
-        #expect(!state.isFloorStartable(2, spireID: SpireID.ironVein.rawValue))
+        #expect(state.isFloorStartable(1, spireID: SpireID.ironVein.rawValue, floorCount: 10))
+        #expect(!state.isFloorStartable(2, spireID: SpireID.ironVein.rawValue, floorCount: 10))
+        #expect(!state.isFloorStartable(11, spireID: SpireID.ironVein.rawValue, floorCount: 10))
     }
 
     @Test func sequentialClearsAdvanceActiveFloor() {
@@ -23,14 +24,28 @@ struct SpiresProgressTests {
         #expect(state.highestClearedFloor(for: SpireID.ironVein.rawValue) == 1)
         #expect(state.activeFloor(for: SpireID.ironVein.rawValue, floorCount: 10) == 2)
         #expect(state.isFloorCleared(1, spireID: SpireID.ironVein.rawValue))
-        #expect(!state.isFloorStartable(1, spireID: SpireID.ironVein.rawValue))
-        #expect(state.isFloorStartable(2, spireID: SpireID.ironVein.rawValue))
+        #expect(!state.isFloorStartable(1, spireID: SpireID.ironVein.rawValue, floorCount: 10))
+        #expect(state.isFloorStartable(2, spireID: SpireID.ironVein.rawValue, floorCount: 10))
+        #expect(!state.isFloorStartable(11, spireID: SpireID.ironVein.rawValue, floorCount: 10))
 
         let reclearFirst = state.markFloorCleared(1, spireID: SpireID.ironVein.rawValue)
         #expect(!reclearFirst)
         let skipToThird = state.markFloorCleared(3, spireID: SpireID.ironVein.rawValue)
         #expect(!skipToThird)
         #expect(state.highestClearedFloor(for: SpireID.ironVein.rawValue) == 1)
+    }
+
+    @Test func startableFloorStopsAtTowerHeight() {
+        var state = PlayerSpiresState.freshStart
+        let floorCount = 3
+        let spireID = SpireID.ironVein.rawValue
+        for floor in 1 ... floorCount {
+            #expect(state.isFloorStartable(floor, spireID: spireID, floorCount: floorCount))
+            let cleared = state.markFloorCleared(floor, spireID: spireID)
+            #expect(cleared)
+        }
+        #expect(!state.isFloorStartable(floorCount, spireID: spireID, floorCount: floorCount))
+        #expect(!state.isFloorStartable(floorCount + 1, spireID: spireID, floorCount: floorCount))
     }
 
     @Test func completionHonorsOverriddenEncounterLevelForExperience() throws {

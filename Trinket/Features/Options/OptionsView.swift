@@ -112,7 +112,7 @@ struct OptionsView: View {
         .scrollEdgeEffectStyle(.soft, for: .top)
         .navigationTitle("Options")
         .navigationBarTitleDisplayMode(.large)
-        .accessibilityIdentifier("Options Screen")
+        .accessibilityIdentifier(AccessibilityID.Screen.options)
         .alert(
             "Reset Game Progress?",
             isPresented: $isResetConfirmationPresented

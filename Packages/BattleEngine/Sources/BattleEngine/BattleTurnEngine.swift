@@ -486,11 +486,7 @@ extension BattleTurnEngine {
             if actor.role == .enemy {
                 return context.enemy
             }
-            return BattleConditionEvaluator.lowestHealthAlly(
-                hero: context.hero,
-                companion: context.companion,
-                context: context
-            )
+            return BattleConditionEvaluator.lowestHealthAlly(in: context)
         case .defeatedAlly:
             if context.roster.health(for: context.companion) <= 0 {
                 return context.companion

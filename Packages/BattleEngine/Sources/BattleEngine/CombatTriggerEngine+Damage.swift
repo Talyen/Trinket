@@ -314,11 +314,7 @@ package extension CombatTriggerEngine {
             ))
         }
         if triggers.onBurnDamageHealLowestAllyFlat > 0 {
-            let lowest = BattleConditionEvaluator.lowestHealthAlly(
-                hero: context.roster.hero.combatant,
-                companion: context.roster.companion.combatant,
-                context: context
-            )
+            let lowest = BattleConditionEvaluator.lowestHealthAlly(in: context)
             events.append(contentsOf: context.healEmitting(
                 amount: triggers.onBurnDamageHealLowestAllyFlat,
                 target: lowest,
@@ -367,7 +363,12 @@ package extension CombatTriggerEngine {
         var events = applyPurge(
             to: enemy,
             source: source,
-            abilityName: affixName(.unmaking),
+            abilityName: triggerAbilityName(
+                profile.triggers.criticalPurgeAll ? "criticalPurgeAll" : "criticalPurgeCount",
+                for: source,
+                fallback: "Unmaking",
+                in: context
+            ),
             count: profile.triggers.criticalPurgeCount,
             purgeAll: profile.triggers.criticalPurgeAll,
             in: &context

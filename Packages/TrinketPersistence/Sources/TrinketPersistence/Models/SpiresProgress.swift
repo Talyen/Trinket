@@ -29,9 +29,9 @@ public struct PlayerSpiresState: Equatable, Sendable {
         floor <= highestClearedFloor(for: spireID)
     }
 
-    /// True only for the next uncleared floor in the climb (one-clear tower).
-    public func isFloorStartable(_ floor: Int, spireID: String) -> Bool {
-        floor == highestClearedFloor(for: spireID) + 1
+    /// True only for the next uncleared floor in the climb (one-clear tower), bounded by floorCount.
+    public func isFloorStartable(_ floor: Int, spireID: String, floorCount: Int) -> Bool {
+        floor == highestClearedFloor(for: spireID) + 1 && floor <= floorCount
     }
 
     /// Advances highest cleared floor only for the next sequential floor.

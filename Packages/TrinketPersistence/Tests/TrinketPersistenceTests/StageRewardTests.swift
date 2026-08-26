@@ -190,17 +190,17 @@ struct StageRewardTests {
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
         let heroXPBefore = save.roster.progression(for: hero).currentXP
-        let eventStage = Stage(
-            id: "test-event",
+        let restStage = Stage(
+            id: "test-rest",
             chapterID: "chapter-1",
             chapterNumber: 1,
             stageNumber: 99,
-            encounter: .event,
+            encounter: .rest,
             rewards: StageReward(gold: 10, itemTemplateIDs: [], materialRewards: [ResourceAmount(.wood, 2)])
         )
 
         StageCompletion.claimRewardsIfNeeded(
-            for: eventStage,
+            for: restStage,
             hero: hero,
             companion: companion,
             save: &save
@@ -209,7 +209,7 @@ struct StageRewardTests {
         try #expect(save.roster.gold == 10)
         try #expect(save.homestead.resources[.wood] == 2)
         try #expect(save.roster.progression(for: hero).currentXP == heroXPBefore)
-        try #expect(save.journey.hasClaimedRewards(for: eventStage))
+        try #expect(save.journey.hasClaimedRewards(for: restStage))
     }
 
     @Test func scaledExperienceGrantsNothingWhenEnemyIsFarBelowPlayer() throws {

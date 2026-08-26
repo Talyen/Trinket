@@ -263,6 +263,48 @@ struct CombatTriggerTalentResourceTests {
         #expect(DefensePoolEngine.blockPoints(in: battle.roster.activeEffects(for: companion)) == 5)
     }
 
+    @Test func goldenGuardGrantsBlockWhenPartyGoldCrossesEveryThreshold() {
+        let guardTriggers = CombatTraitTriggers(block: BlockTriggers(blockPerGoldEarnedEvery: 3))
+        var battle = BattleStateTestFactory.makeBattle(
+            hero: BattleTestFixtures.passiveHero(),
+            companion: BattleTestFixtures.passiveCompanion(),
+            enemy: BattleTestFixtures.silentEnemy(maxHealth: 100),
+            initialGold: 1,
+            heroModifiers: .init(
+                goldGainedBonus: 1,
+                triggers: guardTriggers
+            ),
+            companionModifiers: .init(triggers: guardTriggers),
+            dealOpeningHand: false
+        )
+        let hero = battle.roster.hero.combatant
+        let companion = battle.roster.companion.combatant
+
+        _ = battle.grantGoldEvent(1, to: companion, abilityName: "Test")
+        #expect(DefensePoolEngine.blockPoints(in: battle.roster.activeEffects(for: hero)) == 0)
+        #expect(DefensePoolEngine.blockPoints(in: battle.roster.activeEffects(for: companion)) == 0)
+
+        _ = battle.grantGoldEvent(1, to: hero, abilityName: "Test")
+        #expect(DefensePoolEngine.blockPoints(in: battle.roster.activeEffects(for: hero)) == 1)
+        #expect(DefensePoolEngine.blockPoints(in: battle.roster.activeEffects(for: companion)) == 1)
+    }
+
+    @Test func hoardArmorGrantsBlockFromCarriedGold() {
+        var battle = BattleStateTestFactory.makeBattle(
+            hero: BattleTestFixtures.passiveHero(),
+            companion: BattleTestFixtures.passiveCompanion(),
+            enemy: BattleTestFixtures.silentEnemy(maxHealth: 100),
+            initialGold: 10,
+            companionModifiers: .init(triggers: CombatTraitTriggers(
+                block: BlockTriggers(blockPerGoldCollectedEvery: 5)
+            )),
+            dealOpeningHand: false
+        )
+        _ = CombatTriggerEngine.atPlayerEndTurn(in: &battle)
+        #expect(DefensePoolEngine.blockPoints(in: battle.roster.activeEffects(for: battle.roster.companion.combatant)) == 2)
+        #expect(DefensePoolEngine.blockPoints(in: battle.roster.activeEffects(for: battle.roster.hero.combatant)) == 0)
+    }
+
     @Test func campfireComfortRestoresEachAllyAtEndOfRound() {
         var battle = BattleStateTestFactory.makeBattle(
             hero: BattleTestFixtures.passiveHero(maxHealth: 20),

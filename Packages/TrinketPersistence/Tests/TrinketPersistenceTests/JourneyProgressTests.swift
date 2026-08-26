@@ -77,6 +77,7 @@ final class JourneyProgressTests {
 
     @Test func journeyPersistsProgress() throws {
         let directoryURL = try SaveTestSupport.makeTempDirectory(prefix: "JourneyProgressTests")
+        defer { SaveTestSupport.removeTempDirectory(directoryURL) }
 
         let firstSaveStore = try SaveTestSupport.makeSaveStore(directoryURL: directoryURL)
         try firstSaveStore.performBatchMutation { save in
@@ -90,6 +91,7 @@ final class JourneyProgressTests {
 
     @Test func journeyPersistsPinnedMysteryEventIDs() throws {
         let directoryURL = try SaveTestSupport.makeTempDirectory(prefix: "JourneyPinTests")
+        defer { SaveTestSupport.removeTempDirectory(directoryURL) }
 
         let event = try #require(GameContent.mysteryEvent(matching: "mana-berries"))
         let firstSaveStore = try SaveTestSupport.makeSaveStore(directoryURL: directoryURL)

@@ -26,7 +26,7 @@ def _trigger_families() -> dict:
 VALID_SLOTS = frozenset({"weapon", "armor", "accessory", "trinket"})
 VALID_TIERS = frozenset({"basic", "skill", "ultimate"})
 VALID_ENCOUNTERS = frozenset(
-    {"battle", "event", "shop", "rest", "mystery", "recruit", "random_battle"}
+    {"battle", "shop", "rest", "mystery", "recruit", "random_battle"}
 )
 VALID_CHAPTER_THEMES = frozenset({"forest", "dungeon", "desert", "tundra"})
 # Recruit sentinel: empty id = any eligible unlock; this id = companion-only pool.
@@ -681,11 +681,6 @@ def publicize(text: str) -> str:
                 else:
                     line = f"public {line}"
                     in_public_type = True
-            elif line.startswith("public extension "):
-                in_public_type = False
-            elif line.startswith("extension ") and not line.startswith("public "):
-                line = f"public {line}"
-                in_public_type = False
             else:
                 in_public_type = False
 
@@ -1132,8 +1127,6 @@ def render_stage_encounter(row: StageRow) -> str:
         return f'.battle(enemyID: "{swift_escape(row.enemy_id)}")'
     if row.encounter == "random_battle":
         return ".randomBattle"
-    if row.encounter == "event":
-        return ".event"
     if row.encounter == "shop":
         return ".shop"
     if row.encounter == "rest":

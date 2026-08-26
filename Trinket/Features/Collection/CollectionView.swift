@@ -25,7 +25,7 @@ struct CollectionView: View {
         collectionBrowseContent
             .trinketScreenBackground()
             .scrollEdgeEffectStyle(.soft, for: .top)
-            .accessibilityIdentifier("Collection Screen")
+            .accessibilityIdentifier(AccessibilityID.Screen.collection)
             .navigationTitle("Collection")
             .navigationBarTitleDisplayMode(.large)
             .onAppear(perform: presentPendingLaunchRoute)

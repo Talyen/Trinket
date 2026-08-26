@@ -199,26 +199,6 @@ struct LabyrinthProgressTests {
         }
     }
 
-    @Test func sanitizeCollapsesLegacyEventNodesToMystery() throws {
-        var dirty = PlayerLabyrinthState.freshStart
-        dirty.ensureMap(seed: 4)
-        let nodeID = try #require(dirty.reachableNodeIDs().first ?? dirty.nodes.keys.min())
-        if let node = dirty.nodes[nodeID] {
-            dirty.nodes[nodeID] = LabyrinthNode(
-                id: node.id,
-                type: .event,
-                enemyID: nil,
-                depth: node.depth,
-                clusterID: node.clusterID,
-                outgoingIDs: node.outgoingIDs,
-                isCleared: node.isCleared,
-                isRevealed: true
-            )
-        }
-        let sanitized = PlayerSaveSanitizer.sanitizeLabyrinth(dirty)
-        #expect(sanitized.nodes[nodeID]?.type == .mystery)
-    }
-
     @Test func labyrinthEconomyModifiersScaleCombatLoot() {
         let node = LabyrinthNode(
             id: "econ-node",

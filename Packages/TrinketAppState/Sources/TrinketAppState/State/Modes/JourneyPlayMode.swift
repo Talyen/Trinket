@@ -128,7 +128,7 @@ public final class JourneyPlayMode {
                 identifier: resolvedStage.id,
                 onAutoComplete: { completeStageOrPersistFailure(resolvedStage) }
             )
-        case .event, .rest:
+        case .rest:
             return completeStageOrPersistFailure(resolvedStage)
         }
     }

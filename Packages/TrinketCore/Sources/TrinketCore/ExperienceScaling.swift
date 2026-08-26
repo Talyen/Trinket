@@ -44,7 +44,7 @@ public enum ExperienceScaling {
     public static func baseBattleAward(forPlayerLevel level: Int) -> Int {
         let required = CombatantProgression.requiredXP(forLevel: level)
         let battles = ProgressionBracket.forLevel(level).targetBattlesPerLevel
-        return max(1, Int((Double(required) / battles).rounded()))
+        return max(1, CombatRounding.rounded(Double(required) / battles))
     }
 
     public static func battleAward(playerLevel: Int, enemyLevel: Int) -> Int {
@@ -64,7 +64,7 @@ public enum ExperienceScaling {
         let award = battleAward(playerLevel: playerLevel, enemyLevel: enemyLevel)
         guard award > 0 else { return 0 }
         let catchUp = catchUpMultiplier(for: playerLevel, highestLevel: highestLevel)
-        return max(1, Int((Double(award) * catchUp).rounded()))
+        return max(1, CombatRounding.scaled(award, multiplier: catchUp))
     }
 
     /// Equal-level battle XP for `playerLevel`, including same-role catch-up.
@@ -95,7 +95,7 @@ public enum ExperienceScaling {
     ) -> Int {
         guard baseExperience > 0 else { return 0 }
         let multiplier = levelDeltaMultiplier(playerLevel: playerLevel, enemyLevel: enemyLevel)
-        return max(0, Int((Double(baseExperience) * multiplier).rounded()))
+        return CombatRounding.scaled(baseExperience, multiplier: multiplier)
     }
 
     /// Catch-up XP multiplier. Returns 1.0 when the combatant is at or above

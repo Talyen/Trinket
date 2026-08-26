@@ -16,13 +16,13 @@ Trinket/                    Thin app target — entry, roots, non-Battle product
 Packages/
   TrinketCore/              Domain primitives (effects, stats, enums, progression)
   TrinketContent/           Catalogs + Generated/ content, encounter-level resolution, art, music, SFX, and cinematic catalogs
-  BattleEngine/             Card combat rules, effect handlers, decks/hand
+  BattleEngine/             Card combat rules, effect handlers, decks/hand, `CombatBuildResolver` (app-unlinked `BattleBalanceTools`)
   TrinketPersistence/       Save model, stores, migration, CloudKit sync
   TrinketDesignSystem/      App chrome, surfaces, typography, Keyword visuals, ExperienceBar (TrinketCore only)
   TrinketFeatureSupport/    Package hosting shared UI and contract/adapter products
     Sources/TrinketFeatureSupport/    Shared game UI, presentation models, artwork/frame support
     Sources/TrinketFeatureContracts/ Pure navigation/deep-link values, battle presentation/reward DTOs (SwiftUI-free)
-    Sources/TrinketFeatureAdapters/  Save-backed map/detail adapters and combat build resolution
+    Sources/TrinketFeatureAdapters/  Save-backed map/detail adapters
   TrinketBattleRuntime/     SwiftUI-free battle lifecycle contract and launch DTOs
   TrinketBattleFeature/     Battle facade, read lanes, presentation, outcome, and Battle UI
   TrinketAppState/          App/Play orchestration, encounter sessions, options, and audio
@@ -118,7 +118,7 @@ TrinketDesignSystem ────────────────────
 `TrinketFeatureSupport` is persistence- and battle-engine-free reusable presentation.
 `TrinketFeatureContracts` is the SwiftUI-free value layer for route and
 `BattlePresentationContext`; it must not grow save-backed behavior.
-`TrinketFeatureAdapters` owns save-backed map/detail adapters and combat build resolution;
+`TrinketFeatureAdapters` owns save-backed map/detail adapters;
 it cannot be imported by `TrinketBattleFeature`. Neither support target may depend on
 `TrinketBattleFeature` or `TrinketAppState`.
 `TrinketBattleFeature` cannot depend on `TrinketAppState`. `TrinketAppState` depends on
