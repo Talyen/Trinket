@@ -54,21 +54,46 @@ public final class PlaySession {
         let registry = PlayBattleRunRegistry()
         battleRunRegistry = registry
 
-        let graph = PlayModeGraph.assemble(
+        let battleLaunch = PlayBattleLaunch(
             playerSave: playerSave,
             shellSession: shellSession,
             battle: battle,
-            options: options,
-            sfxPlayer: sfxPlayer,
             runRegistry: registry,
             battlePerformanceScenario: battlePerformanceScenario
         )
-        battleLaunch = graph.battleLaunch
-        journey = graph.journey
-        labyrinth = graph.labyrinth
-        spires = graph.spires
-        encounters = graph.encounters
-        battleCompletion = graph.battleCompletion
+        let encounters = EncounterPlayMode(
+            playerSave: playerSave,
+            battle: battle,
+            options: options,
+            sfxPlayer: sfxPlayer
+        )
+        let journey = JourneyPlayMode(
+            playerSave: playerSave,
+            battle: battle,
+            battleLaunch: battleLaunch,
+            encounters: encounters
+        )
+        let labyrinth = LabyrinthPlayMode(
+            playerSave: playerSave,
+            battle: battle,
+            battleLaunch: battleLaunch,
+            encounters: encounters
+        )
+        let spires = SpiresPlayMode(
+            playerSave: playerSave,
+            battle: battle,
+            battleLaunch: battleLaunch
+        )
+        let battleCompletion = PlayBattleCompletion(
+            playerSave: playerSave,
+            battle: battle
+        )
+        self.battleLaunch = battleLaunch
+        self.journey = journey
+        self.labyrinth = labyrinth
+        self.spires = spires
+        self.encounters = encounters
+        self.battleCompletion = battleCompletion
     }
 
     public func consumePendingDestination() -> PlayLaunchDestination? {
@@ -225,72 +250,5 @@ final class PlayBattleRunRegistry {
 
     func removeAll() {
         battleRuns.removeAll(keepingCapacity: true)
-    }
-}
-
-/// Assembles a fully wired Play mode graph in one place — no deferred bind steps.
-@MainActor
-enum PlayModeGraph {
-    struct Assembled {
-        let battleLaunch: PlayBattleLaunch
-        let journey: JourneyPlayMode
-        let labyrinth: LabyrinthPlayMode
-        let spires: SpiresPlayMode
-        let encounters: EncounterPlayMode
-        let battleCompletion: PlayBattleCompletion
-    }
-
-    static func assemble(
-        playerSave: PlayerSaveStore,
-        shellSession: ShellSession,
-        battle: any BattleRuntime,
-        options: OptionsStore,
-        sfxPlayer: SFXPlayer,
-        runRegistry: PlayBattleRunRegistry,
-        battlePerformanceScenario: BattlePerformanceScenario?
-    ) -> Assembled {
-        let battleLaunch = PlayBattleLaunch(
-            playerSave: playerSave,
-            shellSession: shellSession,
-            battle: battle,
-            runRegistry: runRegistry,
-            battlePerformanceScenario: battlePerformanceScenario
-        )
-        let encounters = EncounterPlayMode(
-            playerSave: playerSave,
-            battle: battle,
-            options: options,
-            sfxPlayer: sfxPlayer
-        )
-        let journey = JourneyPlayMode(
-            playerSave: playerSave,
-            battle: battle,
-            battleLaunch: battleLaunch,
-            encounters: encounters
-        )
-        let labyrinth = LabyrinthPlayMode(
-            playerSave: playerSave,
-            battle: battle,
-            battleLaunch: battleLaunch,
-            encounters: encounters
-        )
-        let spires = SpiresPlayMode(
-            playerSave: playerSave,
-            battle: battle,
-            battleLaunch: battleLaunch
-        )
-        let battleCompletion = PlayBattleCompletion(
-            playerSave: playerSave,
-            battle: battle
-        )
-
-        return Assembled(
-            battleLaunch: battleLaunch,
-            journey: journey,
-            labyrinth: labyrinth,
-            spires: spires,
-            encounters: encounters,
-            battleCompletion: battleCompletion
-        )
     }
 }

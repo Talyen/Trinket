@@ -132,8 +132,8 @@ public struct CombatantRuntime: Hashable {
         self.hasTriggeredDeathRevive = hasTriggeredDeathRevive
         self.hasTriggeredPhoenixGift = hasTriggeredPhoenixGift
         talentBox = TalentBox(TalentState())
-        currentHealth = initialHealth ?? (combatant.maxHealth + maximumHealthBonus)
-        currentMana = initialMana ?? (combatant.hasMana ? combatant.maxMana + (combatant.primaryStats.intellect / 5) + maximumManaBonus : 0)
+        currentHealth = initialHealth ?? CombatantMaxValues.maxHealth(for: combatant, flatBonus: maximumHealthBonus)
+        currentMana = initialMana ?? CombatantMaxValues.maxMana(for: combatant, flatBonus: maximumManaBonus)
         activeEffects = initialActiveEffects
         actionCount = 0
     }
@@ -153,18 +153,17 @@ public struct CombatantRuntime: Hashable {
     }
 
     public var maxHealth: Int {
-        combatant.maxHealth + maximumHealthBonus + self.talentMaxHealthBonus
+        CombatantMaxValues.maxHealth(for: combatant, flatBonus: maximumHealthBonus, talentBonus: self.talentMaxHealthBonus)
     }
 
     public var maxMana: Int {
-        guard combatant.hasMana else { return 0 }
         let effectBonus = activeEffects.reduce(0) { sum, active in
             if case let .maximumManaBonus(amount) = active.effect {
                 return sum + amount
             }
             return sum
         }
-        return combatant.maxMana + (combatant.primaryStats.intellect / 5) + maximumManaBonus + effectBonus
+        return CombatantMaxValues.maxMana(for: combatant, flatBonus: maximumManaBonus, effectBonus: effectBonus)
     }
 
     public var primaryStats: PrimaryStats {
@@ -226,9 +225,10 @@ public struct CombatantRuntime: Hashable {
         let wisdomPercent = PrimaryStats.diminishingReturnsPercent(for: primaryStats.wisdom)
         let wisdomBonus = CombatRounding.scaled(amount, multiplier: wisdomPercent)
         let total = amount + wisdomBonus
-        let space = max(0, maxHealth - currentHealth)
+        let cachedMaxHealth = maxHealth
+        let space = max(0, cachedMaxHealth - currentHealth)
         let actual = min(total, space)
-        currentHealth = min(maxHealth, currentHealth + total)
+        currentHealth += actual
         return actual
     }
 

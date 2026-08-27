@@ -456,7 +456,11 @@ private extension PlayerSaveStore {
     func scheduleDeferredSave() {
         deferredSaveTask?.cancel()
         deferredSaveTask = Task(priority: .utility) { @MainActor [weak self] in
-            await Task.yield()
+            do {
+                try await Task.sleep(nanoseconds: 300000000)
+            } catch {
+                return
+            }
             guard let self, !Task.isCancelled else { return }
             do {
                 try saveGraph()

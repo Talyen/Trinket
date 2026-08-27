@@ -368,50 +368,41 @@ def parse_modifier_tokens(raw: str) -> list[str]:
     return [part.strip() for part in raw.split("|") if part.strip()]
 
 
+_MODIFIER_SIMPLE: dict[str, str] = {
+    "strength": ".strength",
+    "agility": ".agility",
+    "toughness": ".toughness",
+    "intellect": ".intellect",
+    "wisdom": ".wisdom",
+    "maximum_health": ".maximumHealth",
+    "health_restored": ".healthRestored",
+    "leech_gained_percent": ".leechGainedPercent",
+    "leech_healing": ".leechHealing",
+    "gold_gained": ".goldGained",
+    "gold_gained_percent": ".goldGainedPercent",
+    "block_gained": ".blockGained",
+    "bleed_duration": ".bleedDuration",
+    "companion_damage_dealt": ".companionDamageDealt",
+    "maximum_mana": ".maximumMana",
+    "companion_bleed_damage_dealt": ".companionBleedDamageDealt",
+    "poison_damage_dealt_percent": ".poisonDamageDealtPercent",
+}
+
 def modifier_token_to_swift(token: str) -> str:
-    if token.startswith("strength:"):
-        return f".strength({token.split(':', 1)[1]})"
-    if token.startswith("agility:"):
-        return f".agility({token.split(':', 1)[1]})"
-    if token.startswith("toughness:"):
-        return f".toughness({token.split(':', 1)[1]})"
-    if token.startswith("intellect:"):
-        return f".intellect({token.split(':', 1)[1]})"
-    if token.startswith("wisdom:"):
-        return f".wisdom({token.split(':', 1)[1]})"
-    if token.startswith("maximum_health:"):
-        return f".maximumHealth({token.split(':', 1)[1]})"
-    if token.startswith("damage_dealt:"):
-        _, keyword, amount = token.split(":", 2)
+    if ":" not in token:
+        raise ValueError(f"Unknown modifier token: {token}")
+    prefix, rest = token.split(":", 1)
+    if prefix in _MODIFIER_SIMPLE:
+        return f"{_MODIFIER_SIMPLE[prefix]}({rest})"
+    if prefix == "damage_dealt":
+        keyword, amount = rest.split(":", 1)
         return f".damageDealt(.{keyword}, {amount})"
-    if token.startswith("health_restored:"):
-        return f".healthRestored({token.split(':', 1)[1]})"
-    if token.startswith("leech_gained_percent:"):
-        return f".leechGainedPercent({token.split(':', 1)[1]})"
-    if token.startswith("leech_healing:"):
-        return f".leechHealing({token.split(':', 1)[1]})"
-    if token.startswith("gold_gained:"):
-        return f".goldGained({token.split(':', 1)[1]})"
-    if token.startswith("gold_gained_percent:"):
-        return f".goldGainedPercent({token.split(':', 1)[1]})"
-    if token.startswith("block_gained:"):
-        return f".blockGained({token.split(':', 1)[1]})"
-    if token.startswith("bleed_duration:"):
-        return f".bleedDuration({token.split(':', 1)[1]})"
-    if token.startswith("damage_taken_percent:"):
-        _, keyword, amount = token.split(":", 2)
+    if prefix == "damage_taken_percent":
+        keyword, amount = rest.split(":", 1)
         return f".damageTakenPercent(.{keyword}, {amount})"
-    if token.startswith("damage_taken_vulnerability:"):
-        _, keyword, amount = token.split(":", 2)
+    if prefix == "damage_taken_vulnerability":
+        keyword, amount = rest.split(":", 1)
         return f".damageTakenVulnerability(.{keyword}, {amount})"
-    if token.startswith("companion_damage_dealt:"):
-        return f".companionDamageDealt({token.split(':', 1)[1]})"
-    if token.startswith("maximum_mana:"):
-        return f".maximumMana({token.split(':', 1)[1]})"
-    if token.startswith("companion_bleed_damage_dealt:"):
-        return f".companionBleedDamageDealt({token.split(':', 1)[1]})"
-    if token.startswith("poison_damage_dealt_percent:"):
-        return f".poisonDamageDealtPercent({token.split(':', 1)[1]})"
     raise ValueError(f"Unknown modifier token: {token}")
 
 

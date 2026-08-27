@@ -89,6 +89,40 @@ struct CardLabelSpaceModifier: ViewModifier {
     }
 }
 
+private struct GlassActionButtonModifier: ViewModifier {
+    let controlSize: ControlSize
+    let tint: Color
+    let labelColor: Color?
+    let isProminent: Bool
+    let accessibilityIdentifier: String?
+
+    func body(content: Content) -> some View {
+        Group {
+            if isProminent {
+                content.buttonStyle(.glassProminent)
+            } else {
+                content.buttonStyle(.glass)
+            }
+        }
+        .tint(tint)
+        .modifier(OptionalForegroundModifier(color: labelColor))
+        .controlSize(controlSize)
+        .buttonBorderShape(.roundedRectangle)
+        .modifier(OptionalAccessibilityIdentifierModifier(identifier: accessibilityIdentifier))
+    }
+}
+
+private struct OptionalForegroundModifier: ViewModifier {
+    let color: Color?
+    func body(content: Content) -> some View {
+        if let color {
+            content.foregroundStyle(color)
+        } else {
+            content
+        }
+    }
+}
+
 struct PrimaryActionButtonModifier: ViewModifier {
     let controlSize: ControlSize
     let tint: Color
@@ -96,15 +130,13 @@ struct PrimaryActionButtonModifier: ViewModifier {
     let accessibilityIdentifier: String?
 
     func body(content: Content) -> some View {
-        // Apply the test selector *after* `.glassProminent`. Identifiers attached before
-        // the glass style are dropped from the XCUITest tree (label remains, id does not).
-        content
-            .buttonStyle(.glassProminent)
-            .tint(tint)
-            .foregroundStyle(labelColor)
-            .controlSize(controlSize)
-            .buttonBorderShape(.roundedRectangle)
-            .modifier(OptionalAccessibilityIdentifierModifier(identifier: accessibilityIdentifier))
+        content.modifier(GlassActionButtonModifier(
+            controlSize: controlSize,
+            tint: tint,
+            labelColor: labelColor,
+            isProminent: true,
+            accessibilityIdentifier: accessibilityIdentifier
+        ))
     }
 }
 
@@ -114,13 +146,13 @@ struct SecondaryActionButtonModifier: ViewModifier {
     let accessibilityIdentifier: String?
 
     func body(content: Content) -> some View {
-        // Same identifier ordering rule as primary: apply after the glass style.
-        content
-            .buttonStyle(.glass)
-            .tint(tint)
-            .controlSize(controlSize)
-            .buttonBorderShape(.roundedRectangle)
-            .modifier(OptionalAccessibilityIdentifierModifier(identifier: accessibilityIdentifier))
+        content.modifier(GlassActionButtonModifier(
+            controlSize: controlSize,
+            tint: tint,
+            labelColor: nil,
+            isProminent: false,
+            accessibilityIdentifier: accessibilityIdentifier
+        ))
     }
 }
 

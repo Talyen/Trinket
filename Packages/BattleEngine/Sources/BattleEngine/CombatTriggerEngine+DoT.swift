@@ -96,7 +96,7 @@ package extension CombatTriggerEngine {
         guard let caster = context.roster.combatant(for: sourceActorID),
               let participant = context.roster.participant(for: caster.combatant)
         else { return [] }
-        let already = context.burnManaRestoredThisTurn[participant, default: 0]
+        let already = context.turnCadence.burnManaRestored[participant, default: 0]
         let cap = sourceTriggers.onBurnDamageRestoreManaPerTurnCap
         guard cap <= 0 || already < cap else { return [] }
         let toRestore = min(
@@ -105,7 +105,7 @@ package extension CombatTriggerEngine {
         )
         let restored = context.restoreMana(toRestore, to: caster.combatant)
         guard restored > 0 else { return [] }
-        context.burnManaRestoredThisTurn[participant, default: 0] += restored
+        context.turnCadence.burnManaRestored[participant, default: 0] += restored
         var events = [context.nextEvent(
             kind: .effect,
             effectKind: .resourceGain,

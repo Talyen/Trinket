@@ -19,7 +19,7 @@ public struct BattleRunConfiguration: Identifiable {
         /// Maximum health a fresh battle starts from. Excludes in-battle
         /// max-health growth (e.g. Vital Armor), which is battle-scoped.
         public var baselineMaxHealth: Int {
-            combatant.maxHealth + modifiers.maximumHealthBonus
+            CombatantMaxValues.maxHealth(for: combatant, modifiers: modifiers)
         }
 
         public init(

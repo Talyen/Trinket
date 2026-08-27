@@ -92,7 +92,7 @@ package extension CombatTriggerEngine {
         in context: inout BattleState
     ) -> [ActionEvent] {
         guard triggers.cardsPlayedHealPartyThreshold > 0,
-              (context.cardsPlayedThisTurn[owner] ?? 0) >= triggers.cardsPlayedHealPartyThreshold
+              (context.turnCadence.cardsPlayed[owner] ?? 0) >= triggers.cardsPlayedHealPartyThreshold
         else { return [] }
         var events: [ActionEvent] = []
         for otherOwner in [BattleParticipant.hero, .companion] {

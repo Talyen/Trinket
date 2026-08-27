@@ -3,10 +3,11 @@ import TrinketContent
 import TrinketCore
 
 /// Runner for a single, ordered damage resolution sequence.
+///
+/// The order below is the canonical contract. Toughness-based inherent DR runs
+/// after item mods and crit so it mitigates the final pre-Block hit amount;
+/// Block absorbs last. Reordering requires a deterministic regression test.
 package enum DamagePipeline {
-    /// Canonical damage resolution order. Toughness-based inherent DR runs after
-    /// item mods and crit so it mitigates the final pre-Block hit amount; Block
-    /// absorbs last.
     package static func run(
         state: inout DamageResolutionState,
         in context: inout BattleState
@@ -20,6 +21,7 @@ package enum DamagePipeline {
             return
         }
 
+        // Phase 1: gates and bonuses (dodge → crit → bonuses → pacing)
         applyDodgeGate(to: &state, in: &context)
         if state.isDodged {
             return
@@ -29,6 +31,8 @@ package enum DamagePipeline {
         applyCriticalBlockSteal(to: &state, in: &context)
         applyDamageBonus(to: &state, in: &context)
         applyFightPacing(to: &state, in: &context)
+
+        // Phase 2: mitigation and shields (marked → reduction → crit mult → mitigation → shield → take)
         applyMarkedBonus(to: &state, in: &context)
         applyItemReduction(to: &state, in: &context)
         applyCriticalMultiply(to: &state, in: &context)
@@ -37,6 +41,8 @@ package enum DamagePipeline {
         applyTakeDamage(to: &state, in: &context)
         applyMarkedConsume(to: &state, in: &context)
         applyDeathsDoor(to: &state, in: &context)
+
+        // Phase 3: post-damage reactions (leech, talent, control)
         applyLeech(to: &state, in: &context)
         applyTalentDamageApplications(to: &state, in: &context)
 

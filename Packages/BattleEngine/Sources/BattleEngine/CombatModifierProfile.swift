@@ -163,12 +163,31 @@ public struct CombatBuild: Equatable, Hashable, Sendable {
     }
 
     public var effectiveMaxHealth: Int {
-        combatant.maxHealth + modifiers.maximumHealthBonus
+        CombatantMaxValues.maxHealth(for: combatant, modifiers: modifiers)
     }
 
     public var effectiveMaxMana: Int {
+        CombatantMaxValues.maxMana(for: combatant, modifiers: modifiers)
+    }
+}
+
+public enum CombatantMaxValues {
+    public static func maxHealth(for combatant: Combatant, modifiers: CombatModifierProfile) -> Int {
+        combatant.maxHealth + modifiers.maximumHealthBonus
+    }
+
+    public static func maxMana(for combatant: Combatant, modifiers: CombatModifierProfile) -> Int {
         guard combatant.hasMana else { return 0 }
         return combatant.maxMana + (combatant.primaryStats.intellect / 5) + modifiers.maximumManaBonus
+    }
+
+    public static func maxHealth(for combatant: Combatant, flatBonus: Int, talentBonus: Int = 0) -> Int {
+        combatant.maxHealth + flatBonus + talentBonus
+    }
+
+    public static func maxMana(for combatant: Combatant, flatBonus: Int, effectBonus: Int = 0) -> Int {
+        guard combatant.hasMana else { return 0 }
+        return combatant.maxMana + (combatant.primaryStats.intellect / 5) + flatBonus + effectBonus
     }
 }
 

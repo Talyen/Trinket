@@ -81,41 +81,6 @@ public struct BattleState {
     public var ownersSkippingThisPlayerTurn: Set<BattleParticipant>
     public var turnCadence: BattleTurnCadence
 
-    public var cardsPlayedThisTurn: [BattleParticipant: Int] {
-        get { turnCadence.cardsPlayed }
-        set { turnCadence.cardsPlayed = newValue }
-    }
-
-    public var skillCardsPlayedThisTurn: [BattleParticipant: Int] {
-        get { turnCadence.skillCardsPlayed }
-        set { turnCadence.skillCardsPlayed = newValue }
-    }
-
-    public var freezeCardsPlayedThisTurn: [BattleParticipant: Int] {
-        get { turnCadence.freezeCardsPlayed }
-        set { turnCadence.freezeCardsPlayed = newValue }
-    }
-
-    public var burnManaRestoredThisTurn: [BattleParticipant: Int] {
-        get { turnCadence.burnManaRestored }
-        set { turnCadence.burnManaRestored = newValue }
-    }
-
-    public var spendManaDrawOwnersThisTurn: Set<BattleParticipant> {
-        get { turnCadence.spendManaDrawOwners }
-        set { turnCadence.spendManaDrawOwners = newValue }
-    }
-
-    public var healthLossDrawOwnersThisTurn: Set<BattleParticipant> {
-        get { turnCadence.healthLossDrawOwners }
-        set { turnCadence.healthLossDrawOwners = newValue }
-    }
-
-    public var goldDrawOwnersThisTurn: Set<BattleParticipant> {
-        get { turnCadence.goldDrawOwners }
-        set { turnCadence.goldDrawOwners = newValue }
-    }
-
     public var additionalControlSkipsByCombatantID: [String: Int]
     public var isResolvingTalentReaction: Bool
     public var isResolvingDoTDetonation: Bool

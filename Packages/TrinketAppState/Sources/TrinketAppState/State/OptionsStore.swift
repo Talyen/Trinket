@@ -48,15 +48,19 @@ public final class OptionsStore {
     public var rememberAutoBattlePreference: Bool {
         didSet {
             defaults.set(rememberAutoBattlePreference, forKey: Self.rememberAutoBattlePreferenceKey)
-            if !rememberAutoBattlePreference, autoBattleEnabled {
-                autoBattleEnabled = false
-            }
+            synchronizeAutoBattlePreference()
         }
     }
 
     /// Battle-toolbar Auto preference. Only meaningful when `rememberAutoBattlePreference` is on.
     public var autoBattleEnabled: Bool {
         didSet { defaults.set(autoBattleEnabled, forKey: Self.autoBattleEnabledKey) }
+    }
+
+    private func synchronizeAutoBattlePreference() {
+        if !rememberAutoBattlePreference, autoBattleEnabled {
+            autoBattleEnabled = false
+        }
     }
 
     public var ultimateCinematicShowPolicy: UltimateCinematicShowPolicy {

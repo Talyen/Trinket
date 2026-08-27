@@ -31,8 +31,8 @@ package extension CombatTriggerEngine {
             ))
         }
 
-        let count = context.cardsPlayedThisTurn[owner, default: 0] + 1
-        context.cardsPlayedThisTurn[owner] = count
+        let count = context.turnCadence.cardsPlayed[owner, default: 0] + 1
+        context.turnCadence.cardsPlayed[owner] = count
 
         if triggers.attackDelayEnemyTurnChancePercent > 0, context.roster.enemy.isAlive,
            BattleChance.succeeds(probability: triggers.attackDelayEnemyTurnChancePercent, using: &context.rng) {
@@ -64,8 +64,8 @@ package extension CombatTriggerEngine {
         in context: inout BattleState
     ) -> [ActionEvent] {
         guard ability.tier == .skill else { return [] }
-        let skillCount = context.skillCardsPlayedThisTurn[owner, default: 0] + 1
-        context.skillCardsPlayedThisTurn[owner] = skillCount
+        let skillCount = context.turnCadence.skillCardsPlayed[owner, default: 0] + 1
+        context.turnCadence.skillCardsPlayed[owner] = skillCount
         guard skillCount == 1,
               context.modifiers(for: actor.id).triggers.firstSkillCardPlaysTwicePerBattle,
               !context.skillEchoOwnersThisBattle.contains(actor.id)
@@ -132,8 +132,8 @@ package extension CombatTriggerEngine {
         in context: inout BattleState
     ) -> [ActionEvent] {
         guard ability.keywords.contains(.freeze) else { return [] }
-        let freezeCount = context.freezeCardsPlayedThisTurn[owner, default: 0] + 1
-        context.freezeCardsPlayedThisTurn[owner] = freezeCount
+        let freezeCount = context.turnCadence.freezeCardsPlayed[owner, default: 0] + 1
+        context.turnCadence.freezeCardsPlayed[owner] = freezeCount
         let threshold = triggers.freezeCardsPlayedThisTurnFreezeAll
         guard threshold > 0, freezeCount >= threshold, context.roster.enemy.isAlive else { return [] }
         let enemyThreshold = ControlMeterEngine.threshold(for: context.roster.enemy.combatant, in: context)
@@ -150,7 +150,7 @@ package extension CombatTriggerEngine {
     static func drawAfterSpendMana(by actor: Combatant, in context: inout BattleState) -> [ActionEvent] {
         guard let owner = context.roster.participant(for: actor), owner.isPartyMember else { return [] }
         let count = context.modifiers(for: actor.id).triggers.drawOnSpendMana
-        guard count > 0, context.spendManaDrawOwnersThisTurn.insert(owner).inserted else { return [] }
+        guard count > 0, context.turnCadence.spendManaDrawOwners.insert(owner).inserted else { return [] }
         return drawCards(
             count,
             for: owner,
@@ -163,7 +163,7 @@ package extension CombatTriggerEngine {
     static func drawAfterHealthLoss(by actor: Combatant, in context: inout BattleState) -> [ActionEvent] {
         guard let owner = context.roster.participant(for: actor), owner.isPartyMember else { return [] }
         let count = context.modifiers(for: actor.id).triggers.drawOnHealthLoss
-        guard count > 0, context.healthLossDrawOwnersThisTurn.insert(owner).inserted else { return [] }
+        guard count > 0, context.turnCadence.healthLossDrawOwners.insert(owner).inserted else { return [] }
         return drawCards(
             count,
             for: owner,

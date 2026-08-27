@@ -36,7 +36,7 @@ package extension BattleState {
         if triggers.onGainGoldDrawCardOncePerTurn,
            let owner = roster.participant(for: combatant),
            owner.isPartyMember,
-           goldDrawOwnersThisTurn.insert(owner).inserted {
+           turnCadence.goldDrawOwners.insert(owner).inserted {
             let drawn = BattleCardCombatEngine.drawCards(count: 1, for: owner, context: &self)
             if drawn > 0 {
                 events.append(nextEvent(

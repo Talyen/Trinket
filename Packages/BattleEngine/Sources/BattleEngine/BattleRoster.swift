@@ -109,6 +109,10 @@ public struct BattleRoster {
         runtime(for: combatant)?.maxHealth ?? 0
     }
 
+    public func maxMana(for combatant: Combatant) -> Int {
+        runtime(for: combatant)?.maxMana ?? 0
+    }
+
     // MARK: - Targeting
 
     /// The combatant the enemy prefers to attack: the living party member with
