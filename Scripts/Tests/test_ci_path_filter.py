@@ -90,14 +90,14 @@ class CIPathFilterTests(unittest.TestCase):
         self.assertNotIn("actions/checkout@", text)
         self.assertNotIn("dorny/paths-filter@", text)
 
-    def test_checkout_ci_asserts_root_build_inputs(self) -> None:
-        text = (
-            ROOT / ".github" / "actions" / "checkout-ci" / "action.yml"
-        ).read_text(encoding="utf-8")
+    def test_tests_yml_sparse_checkout_asserts_root_build_inputs(self) -> None:
+        text = (ROOT / ".github" / "workflows" / "tests.yml").read_text(encoding="utf-8")
+        self.assertIn("sparse-checkout-cone-mode: true", text)
         self.assertIn("test -f project.yml", text)
         self.assertIn("test -f Smoke.xctestplan", text)
         self.assertIn("test -f FullUI.xctestplan", text)
         self.assertIn("test -f BattlePerformance.xctestplan", text)
+        self.assertNotIn("checkout-ci", text)
 
     def test_test_job_reads_preboot_status(self) -> None:
         text = (
