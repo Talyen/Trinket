@@ -293,6 +293,7 @@ struct CombatantStatusCardTransform: ViewModifier {
 
 /// Continuous stun/freeze overlay while a status accent is active.
 struct CombatantStatusEffectPresentation<Content: View>: View {
+    @Environment(BattleSession.self) private var battleSession
     let keyword: Keyword?
     let content: Content
 
@@ -320,7 +321,9 @@ struct CombatantStatusEffectPresentation<Content: View>: View {
         kind: CombatantStatusEffectKind,
         config: CombatantStatusEffectConfig
     ) -> some View {
-        TimelineView(.animation) { timeline in
+        TimelineView(
+            .animation(paused: battleSession.lifecyclePhase != .active)
+        ) { timeline in
             // Status overlays keep an absolute, unbounded phase when active.
             let progress = kind.progress(
                 after: timeline.date.timeIntervalSince(startDate)

@@ -4,12 +4,11 @@ import TrinketCore
 import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
-@MainActor
 struct ItemSalvageApplierTests {
     @Test func yieldsMatchSlotAndRarityTable() throws {
-        let basicWeapon = try makeItem(baseID: "longsword", rarity: .basic)
-        let astralTrinket = try makeItem(baseID: "sapphire_ring", rarity: .astral)
-        let basicArmor = try makeItem(baseID: "leather_armor", rarity: .basic)
+        let basicWeapon = try SaveTestSupport.makeGeneratedItem(baseID: "longsword", rarity: .basic)
+        let astralTrinket = try SaveTestSupport.makeGeneratedItem(baseID: "sapphire_ring", rarity: .astral)
+        let basicArmor = try SaveTestSupport.makeGeneratedItem(baseID: "leather_armor", rarity: .basic)
 
         #expect(ItemSalvage.yields(for: basicWeapon) == [
             ResourceAmount(.iron, 8),
@@ -25,10 +24,14 @@ struct ItemSalvageApplierTests {
         ])
     }
 
-    @Test func salvageRemovesItemGrantsMaterialsAndPersists() throws {
+    @Test @MainActor func salvageRemovesItemGrantsMaterialsAndPersists() throws {
         let context = try PersistenceTestContext()
         let store = try context.makeSaveStore()
-        let item = try makeItem(baseID: "longsword", rarity: .basic, id: "salvage-sword")
+        let item = try SaveTestSupport.makeGeneratedItem(
+            baseID: "longsword",
+            rarity: .basic,
+            id: "salvage-sword"
+        )
         var save = store.currentSave
         save.inventory.items = [item]
         save.homestead.resources = [:]
@@ -58,7 +61,11 @@ struct ItemSalvageApplierTests {
 
     @Test func salvageUnequipsItemFromLoadouts() throws {
         var save = SaveTestSupport.makeSave(modifiedAt: .now)
-        let item = try makeItem(baseID: "longsword", rarity: .basic, id: "equipped-sword")
+        let item = try SaveTestSupport.makeGeneratedItem(
+            baseID: "longsword",
+            rarity: .basic,
+            id: "equipped-sword"
+        )
         save.inventory.items = [item]
         save.roster.equipmentLoadouts["knight"] = EquipmentLoadout(
             itemIDsBySlot: [.weapon: item.id]
@@ -78,7 +85,7 @@ struct ItemSalvageApplierTests {
 
     @Test func unknownItemLeavesSaveUnchanged() throws {
         var save = SaveTestSupport.makeSave(modifiedAt: .now)
-        let item = try makeItem(baseID: "longsword", rarity: .basic, id: "keep-me")
+        let item = try SaveTestSupport.makeGeneratedItem(baseID: "longsword", rarity: .basic, id: "keep-me")
         save.inventory.items = [item]
         save.homestead.resources = [.iron: 3]
         let before = save
@@ -101,9 +108,21 @@ struct ItemSalvageApplierTests {
         #expect(save == before)
     }
 
+    @Test func uniquesCannotBeSalvaged() throws {
+        let unique = try #require(GameContent.unique(matching: "bloodfire_signet"))
+        var save = SaveTestSupport.makeSave()
+        save.inventory.items = [unique]
+        let before = save
+
+        let result = ItemSalvageApplier.salvage(itemID: unique.id, save: &save)
+
+        #expect(result == .ineligible)
+        #expect(save == before)
+    }
+
     @Test func salvageGrantsFullYieldBeyondLegacyMaterialCap() throws {
         var save = SaveTestSupport.makeSave(modifiedAt: .now)
-        let item = try makeItem(baseID: "longsword", rarity: .basic, id: "cap-sword")
+        let item = try SaveTestSupport.makeGeneratedItem(baseID: "longsword", rarity: .basic, id: "cap-sword")
         save.inventory.items = [item]
         save.homestead.resources = [
             .iron: 997,
@@ -120,21 +139,5 @@ struct ItemSalvageApplierTests {
         #expect(save.inventory.items.isEmpty)
         #expect(save.homestead.resources[.iron] == 1005)
         #expect(save.homestead.resources[.wood] == 1003)
-    }
-
-    private func makeItem(
-        baseID: String,
-        rarity: Rarity,
-        id: String? = nil
-    ) throws -> InventoryItem {
-        let baseType = try #require(GameContent.itemBaseTypes.first { $0.id == baseID })
-        var randomNumberGenerator = SeededRandomNumberGenerator(seed: 11)
-        return ItemGenerator().generate(
-            id: id ?? "\(baseID)-\(rarity.rawValue)-salvage",
-            templateID: "\(baseID)-\(rarity.rawValue)",
-            baseType: baseType,
-            rarity: rarity,
-            using: &randomNumberGenerator
-        )
     }
 }

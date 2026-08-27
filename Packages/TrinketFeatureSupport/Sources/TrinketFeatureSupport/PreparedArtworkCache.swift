@@ -39,7 +39,9 @@ enum PreparedArtworkMemoryBudget {
 }
 
 /// App-wide artwork preparation. Priority assets decode before launch releases the
-/// interactive UI; remaining catalog work continues opportunistically afterward.
+/// interactive UI and stay pinned so deferred catalog warmup cannot evict them;
+/// remaining catalog work continues opportunistically afterward. On-demand
+/// `Image(name)` on a presentation frame is a hitch, not a memory optimization.
 @MainActor
 @Observable
 public final class PreparedArtworkCache {
@@ -53,9 +55,11 @@ public final class PreparedArtworkCache {
     public private(set) var isDeferredWarmupComplete = false
 
     @ObservationIgnored private let images = NSCache<NSString, UIImage>()
-    /// Launch-critical bitmaps are a deliberately small strong set while their
-    /// owning warmup is active. Callers release their pins at the end of that
-    /// lifecycle so transient preparation cannot grow without bound.
+    /// Launch-critical bitmaps are a deliberately small strong set. The app
+    /// keeps the first interactive working set pinned so deferred catalog
+    /// decode cannot evict it from `NSCache` and force `Image(name)` on a
+    /// presentation frame. Transient owners (battle, a visible Collection
+    /// sheet) still pin/release around their own lifecycle.
     @ObservationIgnored private var pinnedImages: [String: UIImage] = [:]
     @ObservationIgnored private var pinCountsByName: [String: Int] = [:]
     @ObservationIgnored private var priorityWarmupTask: Task<Void, Never>?
@@ -192,8 +196,7 @@ public final class PreparedArtworkCache {
     }
 
     /// Test seam for awaiting the intentionally detached deferred warmup task.
-    /// Production launch still releases after priority preparation and does not
-    /// block on the full catalog.
+    /// Production launch does not block on the full catalog.
     func waitForDeferredWarmup() async {
         guard let deferredWarmupTask else { return }
         await deferredWarmupTask.value

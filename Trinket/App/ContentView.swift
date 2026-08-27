@@ -18,7 +18,8 @@ struct ContentView: View {
     var body: some View {
         @Bindable var shellSession = shellSession
 
-        // Bare PlayView during battle removes the tab bar from the hierarchy.
+        // Keep TabView mounted during battle and hide the bar. Destroying the
+        // tab root recolds Collection / Homestead / Options after every fight.
         Group {
             if playerSave.starterSelection.phase != .complete {
                 StarterSelectionFlow(
@@ -27,15 +28,12 @@ struct ContentView: View {
                     confirmCompanion: appState.completeStarterSelection
                 )
                 .transition(.opacity)
-            } else if battle.lifecyclePhase == .active {
-                PlayView()
-                    .transition(.opacity)
             } else {
                 tabRoot(selection: $shellSession.selectedTab)
                     .transition(.opacity)
             }
         }
-        .animation(TrinketMotion.Screen.crossfade, value: battle.activeBattle?.id)
+        .animation(TrinketMotion.Screen.crossfade, value: playerSave.starterSelection.phase)
         .trinketSensoryFeedback(
             .success,
             trigger: playerSave.starterSelection.phase == .complete,
@@ -67,14 +65,20 @@ struct ContentView: View {
             )
         }
         .onAppear {
+            guard !shellSession.isShellWarmupActive else { return }
             appState.refreshMusic(scenePhase: scenePhase)
         }
         .onChange(of: shellSession.selectedTab) { _, newTab in
+            guard !shellSession.isShellWarmupActive else { return }
             appState.refreshMusic(scenePhase: scenePhase)
             AppFramePacingSignposts.event(
                 AppFramePacingSignposts.Name.tabSwitch,
                 detail: "tab=\(newTab.rawValue)"
             )
+        }
+        .onChange(of: shellSession.isShellWarmupActive) { _, isWarmup in
+            guard !isWarmup else { return }
+            appState.refreshMusic(scenePhase: scenePhase)
         }
         .onChange(of: battle.activeBattle?.id) { _, newValue in
             appState.reconcileShellState(
@@ -129,5 +133,11 @@ struct ContentView: View {
                 }
             }
         }
+        // Keep the tab hosts alive during battle. Tearing TabView down recolds
+        // Collection / Homestead / Options; hiding the bar is the art-forward chrome.
+        .toolbarVisibility(
+            battle.lifecyclePhase == .active ? .hidden : .visible,
+            for: .tabBar
+        )
     }
 }

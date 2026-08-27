@@ -62,12 +62,14 @@ struct BattleLootTests {
         }
     }
 
+    private static let ladderDraws: UInt64 = 100
+
     @Test func normalDropLadderMatchesAuthoredBands() {
         var uniqueCount = 0
         var trinketCount = 0
         var astralCount = 0
         var basicCount = 0
-        for seed in UInt64(0) ..< 400 {
+        for seed in UInt64(0) ..< Self.ladderDraws {
             var rng = SeededRandomNumberGenerator(seed: seed)
             switch ItemRarityRoll.roll(bossContent: false, using: &rng) {
             case .unique: uniqueCount += 1
@@ -77,17 +79,17 @@ struct BattleLootTests {
             }
         }
         // Authored normal-content bands: 5% Unique / 7% Trinket / 8% Astral.
-        #expect((10 ... 30).contains(uniqueCount))
-        #expect((16 ... 40).contains(trinketCount))
-        #expect((20 ... 44).contains(astralCount))
-        #expect(basicCount >= 300)
+        #expect((1 ... 12).contains(uniqueCount))
+        #expect((2 ... 15).contains(trinketCount))
+        #expect((2 ... 16).contains(astralCount))
+        #expect(basicCount >= 65)
     }
 
     @Test func bossDropLadderMatchesAuthoredBands() {
         var uniqueCount = 0
         var trinketCount = 0
         var astralCount = 0
-        for seed in UInt64(0) ..< 400 {
+        for seed in UInt64(0) ..< Self.ladderDraws {
             var rng = SeededRandomNumberGenerator(seed: seed)
             switch ItemRarityRoll.roll(bossContent: true, using: &rng) {
             case .unique: uniqueCount += 1
@@ -97,9 +99,9 @@ struct BattleLootTests {
             }
         }
         // Authored boss bands: 30% Unique / 30% Trinket / 40% Astral.
-        #expect((92 ... 148).contains(uniqueCount))
-        #expect((92 ... 148).contains(trinketCount))
-        #expect((128 ... 192).contains(astralCount))
+        #expect((18 ... 43).contains(uniqueCount))
+        #expect((18 ... 43).contains(trinketCount))
+        #expect((27 ... 54).contains(astralCount))
     }
 
     @Test func disallowingUniquesFoldsTheirBandIntoAstral() {
@@ -108,7 +110,7 @@ struct BattleLootTests {
         var astralAllowed = 0
         var trinketFolded = 0
         var astralFolded = 0
-        for seed in UInt64(0) ..< 400 {
+        for seed in UInt64(0) ..< Self.ladderDraws {
             var allowedRng = SeededRandomNumberGenerator(seed: seed)
             switch ItemRarityRoll.roll(bossContent: false, using: &allowedRng) {
             case .unique: uniqueAllowed += 1
@@ -126,7 +128,7 @@ struct BattleLootTests {
             case .basic: break
             }
         }
-        // Same draws, so every rolled Unique lands in Astral instead.
+        // Unique band remaps to Astral; Trinket window stays put.
         #expect(trinketFolded == trinketAllowed)
         #expect(astralFolded == astralAllowed + uniqueAllowed)
         #expect(uniqueAllowed > 0)

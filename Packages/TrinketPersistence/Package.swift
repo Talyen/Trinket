@@ -29,7 +29,7 @@ let package = Package(
         ),
         .target(
             name: "TrinketPersistenceTestSupport",
-            dependencies: ["TrinketPersistence"]
+            dependencies: ["TrinketPersistence", "TrinketContent", "TrinketCore"]
         ),
         .testTarget(
             name: "TrinketPersistenceTests",

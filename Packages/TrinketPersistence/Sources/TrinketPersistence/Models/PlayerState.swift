@@ -210,6 +210,17 @@ public struct PlayerRosterState: Equatable, Sendable {
         equipmentLoadouts[combatant.id] ?? EquipmentLoadout()
     }
 
+    public func equippedCombatantID(for itemID: String) -> String? {
+        equipmentLoadouts.first { _, loadout in
+            loadout.itemIDsBySlot.values.contains(itemID)
+        }?.key
+    }
+
+    public func equippedCombatantName(for itemID: String) -> String? {
+        guard let combatantID = equippedCombatantID(for: itemID) else { return nil }
+        return GameContent.combatant(matching: combatantID)?.name ?? combatantID
+    }
+
     public mutating func setEquipmentLoadout(_ loadout: EquipmentLoadout, for combatant: Combatant) {
         equipmentLoadouts = RosterHydration.applyLoadout(
             loadout,

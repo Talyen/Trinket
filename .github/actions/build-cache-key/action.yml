@@ -1,9 +1,10 @@
 name: Build cache key
 description: >
   Compose the two-tier DerivedData cache key used by tests.yml.
-  nonsource covers toolchain/assets/build-config; full adds app/package/test sources.
-  Path lists for hashFiles live only here so workflows cannot drift.
-  Scripts/check-build-cache-paths.sh guards required shared roots against
+  nonsource covers toolchain/assets/build-config plus tool-versions.env;
+  full adds app/package/test sources and Scripts/**. Script-only CI edits
+  prefix-restore. Path lists for hashFiles live only here so workflows cannot
+  drift. Scripts/check-build-cache-paths.sh guards required shared roots against
   Scripts/build-inputs.sh (intentional differences documented there).
 
 inputs:
@@ -30,10 +31,14 @@ runs:
       id: export
       shell: bash
       run: |
-        # nonsource: toolchain/assets/build-config (Scripts/** includes tool-versions.env).
-        # full: nonsource + app/package/test Swift sources.
-        nonsource="${{ hashFiles('ContentManifest/**', 'ArtManifest/**', 'MusicManifest/**', 'SoundManifest/**', 'CinematicManifest/**', 'Raw Assets/**', 'Scripts/**', 'project.yml', '*.xctestplan') }}"
-        full="${{ hashFiles('Trinket/**', 'TrinketUITests/**', 'Packages/**', 'ContentManifest/**', 'ArtManifest/**', 'MusicManifest/**', 'SoundManifest/**', 'CinematicManifest/**', 'Raw Assets/**', 'Scripts/**', 'project.yml', '*.xctestplan') }}"
+        # nonsource: toolchain/assets/build-config. Scripts/** stays off this
+        # prefix so lint/CI script edits prefix-restore; tool-versions.env is
+        # the one script that must cold-rebuild. full adds sources + Scripts/**.
+        # Sparse checkout omits Raw Assets from the worktree, so hashFiles of
+        # that tree is empty. The commit's tree SHA still busts the cache.
+        raw_assets_tree="$(git rev-parse "HEAD:Raw Assets" 2>/dev/null || echo missing)"
+        nonsource="${{ hashFiles('ContentManifest/**', 'ArtManifest/**', 'MusicManifest/**', 'SoundManifest/**', 'CinematicManifest/**', 'Raw Assets/**', 'Scripts/tool-versions.env', 'project.yml', '*.xctestplan') }}-${raw_assets_tree}"
+        full="${{ hashFiles('Trinket/**', 'TrinketUITests/**', 'Packages/**', 'ContentManifest/**', 'ArtManifest/**', 'MusicManifest/**', 'SoundManifest/**', 'CinematicManifest/**', 'Raw Assets/**', 'Scripts/**', 'project.yml', '*.xctestplan') }}-${raw_assets_tree}"
         echo "cache-key=build-${nonsource}-${full}" >> "$GITHUB_OUTPUT"
         echo "cache-restore-prefix=build-${nonsource}-" >> "$GITHUB_OUTPUT"
         echo "artifact-name=${{ inputs.artifact-prefix }}build-derived-data-${{ github.run_id }}" >> "$GITHUB_OUTPUT"

@@ -97,14 +97,15 @@ public struct RosterCombatantDetailView: View {
     }
 
     private func resolveCombatant() -> Combatant? {
-        let catalog: [Combatant] = switch kind {
-        case .hero:
-            GameContent.heroes
-        case .companion:
-            GameContent.companions
+        guard let base = GameContent.combatant(matching: combatantID) else {
+            return nil
         }
-        return playerSave.roster
-            .configuredCombatants(catalog)
-            .first(where: { $0.id == combatantID })
+        switch kind {
+        case .hero:
+            guard base.role == .hero else { return nil }
+        case .companion:
+            guard base.role == .companion else { return nil }
+        }
+        return playerSave.roster.configuredCombatant(base)
     }
 }

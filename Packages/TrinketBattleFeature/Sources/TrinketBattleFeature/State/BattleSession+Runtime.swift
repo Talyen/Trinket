@@ -82,8 +82,26 @@ extension BattleSession {
     }
 
     func presentationSnapshot() -> BattlePresentationSnapshot? {
-        guard let activeBattle else { return nil }
-        return engineState?.battlePresentationSnapshot(configurationID: activeBattle.id)
+        if let activeBattle {
+            return engineState?.battlePresentationSnapshot(configurationID: activeBattle.id)
+        }
+        guard let run = singlePreparedBattleRun else { return nil }
+        return run.state.battlePresentationSnapshot(configurationID: run.configuration.id)
+    }
+
+    /// Hidden battlefield first-layout is only a keep-alive when exactly one
+    /// prepared run exists. Multiple candidates (labyrinth) would rebuild on tap.
+    public var overlayBattleConfiguration: BattleRunConfiguration? {
+        _ = preparedBattlePresentationRevision
+        if let activeBattle {
+            return activeBattle
+        }
+        return singlePreparedBattleRun?.configuration
+    }
+
+    private var singlePreparedBattleRun: PreparedBattleRun? {
+        guard preparedBattleRunsByKey.count == 1 else { return nil }
+        return preparedBattleRunsByKey.values.first
     }
 
     func openingHandArtworkNames(for preparedRun: PreparedBattleRun) -> [String] {
@@ -174,6 +192,7 @@ extension BattleSession {
         )
         preparedBattlePresentationRevision += 1
         lifecyclePhase = .prepared
+        installSimulationPresentation()
         return true
     }
 
@@ -186,6 +205,8 @@ extension BattleSession {
         }
         if preparedBattleRunsByKey.isEmpty {
             lifecyclePhase = .idle
+        } else {
+            installSimulationPresentation()
         }
     }
 
@@ -206,10 +227,14 @@ extension BattleSession {
               preparedBattleRun.configuration.enemy?.id == enemyID
         else { return false }
 
-        preparedBattleRunsByKey.removeValue(forKey: runKey)
-        preparedBattlePresentationRevision += 1
+        // Activate before dropping the prepared run so the overlay battlefield
+        // keeps the same configuration identity across the Start tap.
         engineState = preparedBattleRun.state
-        activatePresentation(for: preparedBattleRun.configuration)
+        activatePresentation(
+            for: preparedBattleRun.configuration,
+            presentation: presentationContext
+        )
+        preparedBattleRunsByKey.removeValue(forKey: runKey)
         return true
     }
 
@@ -269,7 +294,11 @@ extension BattleSession {
     }
 
     public func trimMemoryFootprint(releaseBattleLog: Bool) {
-        releasePreparedArtworkPins()
+        // Keep pins while a prepared overlay or active fight needs hitch-free
+        // faces; idle battles can drop them under memory pressure.
+        if lifecyclePhase == .idle {
+            releasePreparedArtworkPins()
+        }
         if releaseBattleLog {
             releaseEngineLogProjection()
         }

@@ -18,7 +18,7 @@ Choose the cheapest route that answers the question at hand.
 | Fast gate | `ci-gate.sh --fast` | Cheap full-tree slices only (boundaries, Swift Testing, release notes) |
 | Local canary | `test-deploy.sh --mode smoke` | Optional human confidence: gate, unit, and smoke |
 | Release confidence | `release.sh` / `test-deploy.sh` | Pre-release only: gate, unit, and full UI (the one sanctioned local full-UI run) |
-| Main CI | Shared `tests.yml` workflow | Post-push on `main` (no pull-request workflow): gate, build once, unit, full smoke, and sharded exhaustive UI |
+| Main CI | Shared `tests.yml` workflow | Post-push on `main` (no pull-request workflow): path filter, then generate/style, app-only build, unit, sharded smoke, and sharded exhaustive UI |
 | Local debugging / performance | `test.sh ui <Target>` / `performance.sh` | Single UI target or ad hoc performance; the full exhaustive suite is CI-owned |
 
 Run `./Scripts/agent-context.sh --agent --paths <files...>` after touched paths
@@ -69,12 +69,17 @@ validation) that full `ci-gate.sh` also enforces.
 | `ci-gate.sh --fast` | Module boundaries, Swift Testing policy, and release-note validation only |
 | `ci-assets-gate.sh` | Generate assets, assert, regenerate in a stable locale, assert again |
 | `test-deploy.sh` | Release-time: `ci-gate.sh`, unit, then full UI, or the optional smoke canary |
-| Main CI | Post-push on `main`: gate, one build-for-testing (then advisory SwiftLint analyze), parallel unit/full-smoke/exhaustive-UI jobs, plus an advisory diff-review summary |
+| Main CI | Post-push on `main`: path filter; generate/style on product or infra changes; app-only build, package unit, sharded smoke, and sharded exhaustive UI on product changes; advisory SwiftLint analyze and diff-review do not block tests |
 
-The shared build job produces test products for fan-out, including every
-package test scheme so the unit job can run with `--no-build`. Smoke and
-exhaustive UI rebuild app-only on artifact miss. `check-build-cache-paths.sh`
-keeps local no-build freshness inputs aligned with the CI cache key.
+The shared build job produces app test products for smoke and exhaustive UI
+fan-out (Products + stamps, not the full DerivedData tree). Package unit
+restores the warm compile cache and compiles its own schemes in parallel with
+that build. Infra-only pushes (lint/CI glue Scripts, workflows, style config)
+skip macos app/UI; build/test/generate Scripts still classify as product `code`
+so macos jobs run. Smoke and exhaustive UI rebuild app-only on artifact miss.
+Advisory SwiftLint analyze uses the app-only compiler log (package unused_*
+coverage is thinner). `check-build-cache-paths.sh` keeps local no-build
+freshness inputs aligned with the CI cache key.
 
 ## Output efficiency telemetry
 

@@ -62,7 +62,7 @@ struct OptionsView: View {
             }
 
             Section("Battle") {
-                Picker("Show Animations", selection: $options.ultimateCinematicShowPolicy) {
+                Picker("Show Ultimate Animations", selection: $options.ultimateCinematicShowPolicy) {
                     ForEach(UltimateCinematicShowPolicy.allCases) { policy in
                         Text(policy.displayName).tag(policy)
                     }
@@ -124,7 +124,13 @@ struct OptionsView: View {
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("This permanently deletes journey, roster, and inventory progress on this device. Settings are kept.")
+            Text(
+                """
+                This permanently clears your Campaign stages, Explore runs, Heroes and Companions, \
+                Items, and Homestead upgrades on this device. You'll choose a new starter Hero again. \
+                Options settings are kept.
+                """
+            )
         }
         .trinketFailureAlert("Action Failed", message: $actionErrorMessage)
     }

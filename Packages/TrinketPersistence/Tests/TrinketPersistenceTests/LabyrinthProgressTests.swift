@@ -122,12 +122,14 @@ struct LabyrinthProgressTests {
         progress.ensureMap(seed: 55)
         let firstReachable = try #require(progress.reachableNodeIDs().first)
         progress.markCleared(nodeID: firstReachable)
+        progress.runHealthByCombatantID = ["knight": 11, "wolf": 6]
         first.labyrinth = progress
 
         let second = try SaveTestSupport.makeSaveStore(directoryURL: directory)
         #expect(second.labyrinth.hasMap)
         #expect(second.labyrinth.nodes[firstReachable]?.isCleared == true)
         #expect(second.labyrinth.worldSeed == 55)
+        #expect(second.labyrinth.runHealthByCombatantID == ["knight": 11, "wolf": 6])
     }
 
     @Test func completionGrantsGoldAndClearsNode() throws {

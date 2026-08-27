@@ -20,12 +20,14 @@ struct PlayBattlePartySnapshot: Equatable {
     let roster: PlayerRosterState
     let inventory: PlayerInventoryState
     let homestead: PlayerHomesteadState
+    let worldSeed: UInt64
 
     @MainActor
     init(playerSave: PlayerSaveStore) {
         roster = playerSave.roster
         inventory = playerSave.inventory
         homestead = playerSave.homestead
+        worldSeed = playerSave.worldSeed
     }
 }
 

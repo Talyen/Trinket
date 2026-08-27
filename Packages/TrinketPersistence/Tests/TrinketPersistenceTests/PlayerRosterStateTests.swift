@@ -130,6 +130,18 @@ struct PlayerRosterStateTests {
         #expect(!nonExistent)
     }
 
+    @Test func equippedCombatantNameResolvesCatalogName() throws {
+        var roster = PlayerRosterState.freshStart
+        var loadout = EquipmentLoadout()
+        loadout.itemIDsBySlot[.weapon] = "test-sword"
+        roster.equipmentLoadouts["knight"] = loadout
+        let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
+
+        #expect(roster.equippedCombatantID(for: "test-sword") == "knight")
+        #expect(roster.equippedCombatantName(for: "test-sword") == knight.name)
+        #expect(roster.equippedCombatantID(for: "missing") == nil)
+    }
+
     @Test func legacyTrinketSlotsMigrateToAccessorySlotsAndUnequipRemovedSlots() throws {
         let heroLoadout = EquipmentLoadoutModel(combatantID: "knight")
         heroLoadout.slots = [

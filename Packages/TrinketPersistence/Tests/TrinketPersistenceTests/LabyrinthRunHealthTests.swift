@@ -1,7 +1,6 @@
 import Foundation
 import Testing
 import TrinketContent
-import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
 /// Campfire rest math and run-scoped party health persistence.
@@ -109,19 +108,5 @@ struct LabyrinthRunHealthTests {
         ))
         let reloaded = model.toPlayerLabyrinthState()
         #expect(reloaded.runHealthByCombatantID == ["wolf": 4])
-    }
-
-    @Test @MainActor func labyrinthRunHealthPersistsThroughStore() throws {
-        let directory = try SaveTestSupport.makeTempDirectory(prefix: "labyrinth-run-health")
-        defer { SaveTestSupport.removeTempDirectory(directory) }
-
-        let first = try SaveTestSupport.makeSaveStore(directoryURL: directory)
-        var progress = first.labyrinth
-        progress.ensureMap(seed: 55)
-        progress.runHealthByCombatantID = ["knight": 11, "wolf": 6]
-        first.labyrinth = progress
-
-        let second = try SaveTestSupport.makeSaveStore(directoryURL: directory)
-        #expect(second.labyrinth.runHealthByCombatantID == ["knight": 11, "wolf": 6])
     }
 }

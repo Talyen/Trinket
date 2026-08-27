@@ -89,11 +89,36 @@ If engine/hand fails, profile and simplify engine mutation or projection invalid
 
 Do not freeze slots, delay card removal, add placeholders, split user-visible work across frames, reduce feedback richness, lower asset resolution, reduce particle counts, or add another presentation framework to win a metric. Hand movement is gameplay feedback.
 
+Do not drop launch or imminent artwork pins, or replace `PreparedArtworkCache`
+hits with on-demand `Image(name)`, to reduce memory. A smaller footprint that
+re-decodes on the presentation frame is a hitch regression. Pins are the
+eviction defense; `NSCache` alone is not. See
+[MemoryAndEnergyInvestigation.md](MemoryAndEnergyInvestigation.md).
+
 ## Investigation loop
 
 1. Reproduce the exact failing scenario with the same source, optimized build settings, seed, duration, Xcode, runtime, and Simulator.
 2. Compare all five individual reports and their aggregate. A median must not hide a failing repetition.
-3. Profile the failing stage with Animation Hitches and Time Profiler. DEBUG signposts in subsystem `com.trinket.framepacing` separately identify engine resolution, projection publication, feedback preparation, and return to the next display callback. None alone represents the full rendered frame.
+3. Profile the failing stage with Time Profiler (and Animation Hitches on device). DEBUG signposts in subsystem `com.trinket.framepacing` separately identify engine resolution, projection publication, feedback preparation, and return to the next display callback. None alone represents the full rendered frame.
+
+   On Xcode 26.4–27.0, `xctrace record --device <simulator>` deadlocks the in-sim
+   DTServiceHub handshake and ignores `--time-limit`, so the recording never
+   ends. Record on the host and attach to Trinket (Simulator apps are ordinary
+   host processes). Do not use host `--all-processes` unless you need every
+   PID: it kperf-samples the whole Mac and then symbolicates every process
+   into a deferred `.trace`, which is why a 5s capture can take tens of
+   seconds to save.
+
+   ```sh
+   ./Scripts/record-time-profiler.sh --output .DerivedData/PerformanceResults/tp.trace --time-limit 8s
+   ```
+
+   The wrapper waits for xctrace to report that recording ended, then waits
+   for save to finish. It does not guess a serialize window. SIGINT only if
+   `--time-limit` is ignored.
+
+   Animation Hitches is unsupported on Simulator (`Hitches is not supported on
+   this platform`). Capture that template on a physical device.
 4. Identify an app-attributed stack, observation invalidation, layout pass, or rendering phase. Simulator scheduling noise alone is not an app regression.
 5. Make one small change that removes work or code while preserving/improving intended gameplay feel.
 6. Run the focused stage again, then the full six-scenario Battle matrix.

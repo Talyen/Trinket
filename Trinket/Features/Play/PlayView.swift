@@ -32,6 +32,7 @@ struct PlayView: View {
             restorePlayDestinationIfNeeded()
         }
         .onChange(of: play.shellSession.selectedTab) { previousTab, newTab in
+            guard !play.shellSession.isShellWarmupActive else { return }
             guard newTab == .play, previousTab != .play else { return }
             // A normal Play-tab visit is a fresh choice. Pending destinations
             // are consumed only for battle/deep-link restoration below.

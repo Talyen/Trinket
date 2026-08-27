@@ -2,7 +2,7 @@
 # CI-only advisory SwiftLint analyzer pass (unused_import / unused_declaration).
 # Requires an xcodebuild compiler log from build-for-testing. Do not add this
 # to handoff.sh or test.sh style — it needs the shared CI build index/log.
-# restore-and-build runs this with continue-on-error until the first green baseline.
+# tests.yml runs this as an advisory job after build, off the test critical path.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -26,7 +26,12 @@ if [[ ! -d "$RAW_DIR" ]]; then
 fi
 
 shopt -s nullglob
-logs=("$RAW_DIR"/*.log)
+app_logs=("$RAW_DIR"/build-app-*.log)
+if ((${#app_logs[@]} > 0)); then
+  logs=("${app_logs[@]}")
+else
+  logs=("$RAW_DIR"/*.log)
+fi
 shopt -u nullglob
 if ((${#logs[@]} == 0)); then
   echo "lint-analyze: no *.log files under $RAW_DIR." >&2

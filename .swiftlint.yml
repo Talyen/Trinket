@@ -5,7 +5,7 @@
 #
 # Analyzer rules (unused_import, unused_declaration) need `swiftlint analyze` plus
 # a compiler index/log and are intentionally not part of the fail-closed style gate.
-# CI runs them after the shared build via Scripts/lint-analyze.sh (advisory until green).
+# CI runs them in an advisory job after the shared build (Scripts/lint-analyze.sh).
 analyzer_rules:
   - unused_import
   - unused_declaration

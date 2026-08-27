@@ -6,6 +6,12 @@ import TrinketFeatureSupport
 
 @MainActor
 struct OptionsUltimateSkipPolicyTests {
+    @Test func defaultShowPolicyIsOncePerBattle() throws {
+        let defaults = try #require(UserDefaults(suiteName: "OptionsUltimateSkipPolicyTests.\(UUID().uuidString)"))
+        let options = OptionsStore(defaults: defaults)
+        #expect(options.ultimateCinematicShowPolicy == .oncePerBattle)
+    }
+
     @Test func oncePerBattleAutoSkipsAfterActorPresented() throws {
         let defaults = try #require(UserDefaults(suiteName: "OptionsUltimateSkipPolicyTests.\(UUID().uuidString)"))
         let options = OptionsStore(defaults: defaults)

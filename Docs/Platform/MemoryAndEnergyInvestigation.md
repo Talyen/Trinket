@@ -13,7 +13,9 @@ budget or improvement.
    caches, retained view/session graphs, leaked objects, and transient decode peaks.
 4. Repeat the same journey after the change and compare peaks and settled footprint.
 5. Verify cache eviction and scene background/foreground behavior; a lower peak that
-   produces repeated decode churn is not automatically an improvement.
+   produces repeated decode churn is not automatically an improvement. Launch and
+   imminent-destination artwork pins are hitch prevention — do not release the
+   first-interactive working set after warmup to lower the peak.
 
 For art inputs, `./Scripts/report-art-memory.sh` estimates full-catalog RGBA decode
 cost. It is a catalog-sizing signal, not expected simultaneous residency. Current

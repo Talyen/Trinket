@@ -3,7 +3,6 @@ import TrinketContent
 import TrinketCore
 @testable import TrinketPersistence
 
-@MainActor
 struct ItemCorruptionTests {
     @Test func neverProducesZeroAffixItems() throws {
         let item = try makeItem(baseID: "longsword", rarity: .basic, affixCount: 1)
@@ -129,7 +128,7 @@ struct ItemCorruptionTests {
         #expect(save.inventory.items == [trinket])
     }
 
-    @Test func corruptionPersistsAcrossReload() throws {
+    @Test @MainActor func corruptionPersistsAcrossReload() throws {
         let context = try PersistenceTestContext()
         let store = try context.makeSaveStore()
         let item = try makeItem(baseID: "sapphire_ring", rarity: .basic, affixCount: 2, id: "corrupt-ring")

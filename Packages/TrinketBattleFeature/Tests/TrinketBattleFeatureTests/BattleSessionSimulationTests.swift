@@ -322,6 +322,26 @@ struct BattleSessionSimulationTests {
         #expect(!(session.engineState?.events.isEmpty ?? true))
     }
 
+    @Test func trimMemoryFootprintKeepsPreparedArtworkPinNamesWhilePrepared() {
+        let session = BattleSession(openingHandDrawStagger: 0)
+        session.lifecyclePhase = .prepared
+        session.preparedArtworkNames = ["opening-hand-art"]
+
+        session.trimMemoryFootprint(releaseBattleLog: true)
+
+        #expect(session.preparedArtworkNames == ["opening-hand-art"])
+    }
+
+    @Test func trimMemoryFootprintReleasesPreparedArtworkPinNamesWhenIdle() {
+        let session = BattleSession(openingHandDrawStagger: 0)
+        session.lifecyclePhase = .idle
+        session.preparedArtworkNames = ["opening-hand-art"]
+
+        session.trimMemoryFootprint(releaseBattleLog: true)
+
+        #expect(session.preparedArtworkNames.isEmpty)
+    }
+
     private func feedbackEvent(
         id: Int,
         amount: Int,

@@ -374,7 +374,10 @@ extension BattleSession {
         }
     }
 
-    func resetRun(from configuration: BattleRunConfiguration) {
+    func resetRun(
+        from configuration: BattleRunConfiguration,
+        holdOpeningHandForOverlayFade: Bool = false
+    ) {
         cancelPendingAutoEnd()
         cancelOpeningHandDeal()
         deliveredClaimedVictoryConfigurationID = nil
@@ -396,7 +399,12 @@ extension BattleSession {
         if isAutoBattleEnabled != preferred {
             isAutoBattleEnabled = preferred
         }
-        beginOpeningHandDeal(for: configuration.id)
+        beginOpeningHandDeal(
+            for: configuration.id,
+            startDelay: holdOpeningHandForOverlayFade
+                ? TrinketMotion.Screen.crossfadeDuration
+                : 0
+        )
     }
 
     func clearRunState() {

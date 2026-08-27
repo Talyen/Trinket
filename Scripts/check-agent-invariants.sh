@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 # Fail-closed mechanical invariants that agents otherwise skip: BattleEngine
 # entropy, test Task.sleep, persistence try?, undocumented concurrency escapes,
-# and file-level swiftlint:disable without a reason.
+# file-level swiftlint:disable without a reason, and launch artwork pin release.
 #
 # Escape hatches (nearby line, same style as ExclusivityCheck):
 #   EntropyCheck: allow - <reason>
 #   TestSleepCheck: allow - <reason>
 #   PersistenceCheck: allow - <reason>
 #   ConcurrencyCheck: allow - <reason>
+#   ArtworkWorkingSetCheck: allow - <reason>
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -165,10 +166,27 @@ done < <(
     "${SWIFT_SOURCE_DIRS[@]}" 2>/dev/null || true
 )
 
+while IFS= read -r match; do
+  [[ -z "$match" ]] && continue
+  local_file="${match%%:*}"
+  rest="${match#*:}"
+  line="${rest%%:*}"
+  text="${rest#*:}"
+  if [[ "$text" =~ ^[[:space:]]*// ]]; then
+    continue
+  fi
+  if has_nearby_allow "$local_file" "$line" "ArtworkWorkingSetCheck"; then
+    continue
+  fi
+  violations+=("${local_file}:${line}: do not release launch artwork pins after warmup (ArtworkWorkingSetCheck)")
+done < <(
+  scan_matches 'releasePins' '*.swift' Trinket/App/TrinketApp.swift
+)
+
 if ((${#violations[@]} > 0)); then
   echo "Agent invariant check failed:" >&2
   printf '  %s\n' "${violations[@]}" >&2
-  echo "Escape hatches: EntropyCheck / TestSleepCheck / PersistenceCheck / ConcurrencyCheck: allow - <reason>." >&2
+  echo "Escape hatches: EntropyCheck / TestSleepCheck / PersistenceCheck / ConcurrencyCheck / ArtworkWorkingSetCheck: allow - <reason>." >&2
   exit 1
 fi
 

@@ -5,7 +5,6 @@ import TrinketCore
 import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
-@MainActor
 struct TalentPersistenceTests {
     @Test func saveSanitizerFiltersInvalidCombatantsAndTalents() {
         var roster = PlayerRosterState.freshStart
@@ -18,7 +17,7 @@ struct TalentPersistenceTests {
         #expect(sanitized.unlockedTalents["invalid_combatant"] == nil)
     }
 
-    @Test func talentLoadoutsSurvivePlayerSaveStoreRoundTrip() throws {
+    @Test @MainActor func talentLoadoutsSurvivePlayerSaveStoreRoundTrip() throws {
         let context = try PersistenceTestContext()
         let storeURL = context.storeURL()
         let firstStore = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true, persistSaveImmediately: true)
@@ -45,7 +44,7 @@ struct TalentPersistenceTests {
         #expect(secondStore.currentSave.roster.unlockedTalents["rogue"] == rogueTalents)
     }
 
-    @Test func unlockingTalentThroughStoreSurvivesReload() throws {
+    @Test @MainActor func unlockingTalentThroughStoreSurvivesReload() throws {
         let context = try PersistenceTestContext()
         let storeURL = context.storeURL()
         let store = try PlayerSaveStore(
@@ -65,13 +64,8 @@ struct TalentPersistenceTests {
         #expect(reloaded.roster.unlockedTalents(for: "knight") == [node.id])
     }
 
-    @Test func storeRejectsUnavailableTalentWithoutMutation() throws {
-        let context = try PersistenceTestContext()
-        let store = try PlayerSaveStore(
-            storeURL: context.storeURL(),
-            disableCloudSync: true,
-            persistSaveImmediately: true
-        )
+    @Test @MainActor func storeRejectsUnavailableTalentWithoutMutation() throws {
+        let store = try PlayerSaveStore(inMemoryOnly: true, persistSaveImmediately: true)
         let knightTree = try #require(CombatantTalentCatalog.allConfigs["knight"]?.trees.first)
         let knightNode = try #require(knightTree.nodes.first)
         let rogueTree = try #require(CombatantTalentCatalog.allConfigs["rogue"]?.trees.first)
@@ -94,13 +88,8 @@ struct TalentPersistenceTests {
     }
 
     #if DEBUG
-    @Test func failedTalentSaveRollsBackUnlock() throws {
-        let context = try PersistenceTestContext()
-        let store = try PlayerSaveStore(
-            storeURL: context.storeURL(),
-            disableCloudSync: true,
-            persistSaveImmediately: true
-        )
+    @Test @MainActor func failedTalentSaveRollsBackUnlock() throws {
+        let store = try PlayerSaveStore(inMemoryOnly: true, persistSaveImmediately: true)
         try store.performBatchMutation { save in
             save.roster.progressions["knight"] = .at(level: 2)
         }

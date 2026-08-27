@@ -200,14 +200,9 @@ struct AbilityEffectIntegrationTests {
         )
 
         // The buff lives on the caster, not as a Holy DoT on the enemy.
-        try #expect(battle.activeEffects(of: battle.hero).contains { active in
-            if case .avatar(6, 4, 1) = active.effect {
-                return active.remainingTurns == 1
-            }
-            return false
-        })
-        try #expect(!battle.activeEffects(of: battle.enemy).contains { active in
-            if case .recurringDamage(.holy, _, _) = active.effect {
+        try #expect(avatarRemainingTurns(on: battle.hero, in: battle) == 2)
+        try #expect(!battle.activeEffects(of: battle.enemy).contains {
+            if case .recurringDamage(.holy, _, _) = $0.effect {
                 return true
             }
             return false
@@ -215,26 +210,23 @@ struct AbilityEffectIntegrationTests {
         #expect(CombatantBuffAura.kind(from: battle.activeEffects(of: battle.hero)) == .avatar)
         #expect(CombatantBuffAura.kind(from: battle.activeEffects(of: battle.enemy)) == nil)
 
-        // First pulse on cast: Holy damage to the enemy plus Block for the caster.
+        // Pulse on cast: Holy damage to the enemy plus Block for the caster.
         let healthAfterCast = battle.health(of: battle.enemy)
         try #expect(healthAfterCast < 100)
-        let blockAfterCast = DefensePoolEngine.blockPoints(
-            in: battle.activeEffects(of: battle.hero)
-        )
-        try #expect(blockAfterCast == 4)
+        try #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.hero)) == 4)
 
-        // Second pulse next round repeats the Holy damage AND the Block, then the buff expires.
-        let endEvents = BattleTestFixtures.endTurn(on: &battle)
-        try #expect(battle.health(of: battle.enemy) < healthAfterCast)
-        try #expect(endEvents.contains {
-            $0.effectKind == .shieldApplied && $0.targetID == hero.id && $0.amount == 4
-        })
-        try #expect(!battle.activeEffects(of: battle.hero).contains { active in
-            if case .avatar = active.effect {
-                return true
-            }
-            return false
-        })
+        // End of this round pulses again; the buff still has the next round.
+        let firstEndEvents = BattleTestFixtures.endTurn(on: &battle)
+        let healthAfterFirstRound = battle.health(of: battle.enemy)
+        try #expect(healthAfterFirstRound < healthAfterCast)
+        try #expect(avatarPulsedBlock(firstEndEvents, casterID: hero.id))
+        try #expect(avatarRemainingTurns(on: battle.hero, in: battle) == 1)
+
+        // End of the next round pulses a third time, then the buff expires.
+        let secondEndEvents = BattleTestFixtures.endTurn(on: &battle)
+        try #expect(battle.health(of: battle.enemy) < healthAfterFirstRound)
+        try #expect(avatarPulsedBlock(secondEndEvents, casterID: hero.id))
+        try #expect(avatarRemainingTurns(on: battle.hero, in: battle) == nil)
     }
 
     @Test func pounceDoublesStunOnlyOnTheOpeningTurn() throws {
@@ -401,5 +393,20 @@ struct AbilityEffectIntegrationTests {
             }
             return false
         })
+    }
+}
+
+private func avatarRemainingTurns(on combatant: Combatant, in battle: BattleState) -> Int? {
+    battle.activeEffects(of: combatant).compactMap { active -> Int? in
+        if case .avatar(6, 4, 2) = active.effect {
+            return active.remainingTurns
+        }
+        return nil
+    }.first
+}
+
+private func avatarPulsedBlock(_ events: [ActionEvent], casterID: String) -> Bool {
+    events.contains {
+        $0.effectKind == .shieldApplied && $0.targetID == casterID && $0.amount == 4
     }
 }

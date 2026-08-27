@@ -91,12 +91,13 @@ struct PlayBrowsingStack: View {
 }
 
 private struct BattlePresentationTaskKey: Equatable {
-    let activeBattleID: UUID?
+    let overlayConfigurationID: UUID?
     let preparedRevision: Int
     let displayScale: CGFloat
 }
 
-/// Tracks only `activeBattle` so sheet/log writes do not rebuild Battle chrome identity.
+/// Tracks overlay configuration so a single prepared run can first-layout the
+/// battlefield before Start, without rebuilding browsing chrome on combat ticks.
 struct PlayBattleOverlay: View {
     @Environment(PlaySession.self) private var play
     @Environment(BattleSession.self) private var battle
@@ -106,9 +107,10 @@ struct PlayBattleOverlay: View {
     @State private var didPresentLaunchVictory = false
 
     var body: some View {
-        let configuration = battle.activeBattle
-        // The stack itself is stable; activation inserts only prepared battle
-        // content. Opacity crossfade softens enter/exit without a custom nav stack.
+        let configuration = battle.overlayBattleConfiguration
+        let isActive = battle.activeBattle != nil
+        // A single prepared run first-layouts BattleView here at opacity 0.
+        // Activation keeps that identity and fades it in.
         NavigationStack {
             if let configuration {
                 if let presentationContext = battlePresentationContext(for: configuration) {
@@ -139,15 +141,18 @@ struct PlayBattleOverlay: View {
                     .accessibilityHidden(true)
             }
         }
-        .opacity(configuration == nil ? 0 : 1)
-        .animation(TrinketMotion.Screen.crossfade, value: configuration?.id)
-        .allowsHitTesting(configuration.flatMap { battlePresentationContext(for: $0) } != nil)
-        .accessibilityHidden(configuration == nil)
+        .opacity(isActive ? 1 : 0)
+        .animation(TrinketMotion.Screen.crossfade, value: battle.activeBattle?.id)
+        .allowsHitTesting(isActive && configuration.flatMap { battlePresentationContext(for: $0) } != nil)
+        .accessibilityHidden(!isActive)
         .onAppear(perform: installClaimedVictoryHandler)
         .onDisappear {
             battle.uninstallClaimedVictoryHandler(ownerID: claimedVictoryHandlerOwnerID)
         }
         .onChange(of: configuration?.id, initial: true) { _, _ in
+            syncPresentationContext()
+        }
+        .onChange(of: battle.activeBattle?.id) { _, _ in
             syncPresentationContext()
         }
         .task(id: battlePresentationTaskKey) {
@@ -157,18 +162,19 @@ struct PlayBattleOverlay: View {
 
     private var battlePresentationTaskKey: BattlePresentationTaskKey {
         BattlePresentationTaskKey(
-            activeBattleID: battle.activeBattle?.id,
+            overlayConfigurationID: battle.overlayBattleConfiguration?.id,
             preparedRevision: battle.preparedBattlePresentationRevision,
             displayScale: displayScale
         )
     }
 
     private func syncPresentationContext() {
-        guard let configuration = battle.activeBattle,
+        guard let configuration = battle.overlayBattleConfiguration,
               let presentationContext = battlePresentationContext(for: configuration)
         else { return }
         let launchVictoryWasPresented = battle.spectacle.isShowingVictory
         battle.installPresentationContext(presentationContext)
+        guard battle.activeBattle != nil else { return }
         if launchVictoryWasPresented {
             battle.presentLaunchVictory()
             didPresentLaunchVictory = true

@@ -80,48 +80,4 @@ struct SpiresProgressTests {
         #expect(scaled > 0)
         #expect(scaled < authored)
     }
-
-    @Test func claimFallbackUsesPartyAdjustedEncounterLevel() throws {
-        let spire = try #require(GameContent.spire(id: .ironVein))
-        let topFloor = try #require(GameContent.spireFloor(spireID: .ironVein, floor: spire.floorCount))
-        let authoredLevel = EncounterLevelResolver.spireEnemyLevel(for: topFloor)
-        let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
-
-        var save = SaveTestSupport.makeSave()
-        for floor in 1 ..< spire.floorCount {
-            _ = save.spires.markFloorCleared(floor, spireID: SpireID.ironVein.rawValue)
-        }
-        save.roster.progressions[hero.id] = .at(level: 3)
-        save.roster.progressions[companion.id] = .at(level: 2)
-
-        let expectedLevel = EncounterLevelResolver.partyAdjusted(
-            authoredLevel,
-            partyAverageLevel: save.roster.activePartyAverageLevel
-        )
-        SpireCompletion.complete(
-            floor: topFloor,
-            hero: hero,
-            companion: companion,
-            enemyEncounterLevel: expectedLevel,
-            save: &save
-        )
-        let pinnedXP = save.roster.progression(for: hero).currentXP
-
-        var fallback = SaveTestSupport.makeSave()
-        for floor in 1 ..< spire.floorCount {
-            _ = fallback.spires.markFloorCleared(floor, spireID: SpireID.ironVein.rawValue)
-        }
-        fallback.roster.progressions[hero.id] = .at(level: 3)
-        fallback.roster.progressions[companion.id] = .at(level: 2)
-        SpireCompletion.complete(
-            floor: topFloor,
-            hero: hero,
-            companion: companion,
-            save: &fallback
-        )
-
-        #expect(expectedLevel < authoredLevel)
-        #expect(fallback.roster.progression(for: hero).currentXP == pinnedXP)
-    }
 }

@@ -1,13 +1,21 @@
 name: Build and test
 
 # Shared build-once test fan-out used by ci.yml.
+# Gate, app-only build, and package unit run in parallel after the path filter.
+# Lint/CI-glue Scripts and workflows are infra-only (generate/style, no macos
+# app/UI). Build/test/generate Scripts still classify as product code so macos
+# jobs run. Smoke is sharded; exhaustive UI is sharded by feature. The build
+# artifact is Products + stamps, not the full DerivedData tree. Test jobs
+# sparse-checkout without Raw Assets (and assert project.yml / *.xctestplan).
 # Warm DerivedData: primary key build-<nonsource>-<full>; restore-keys
-# build-<nonsource>- for same toolchain/assets incremental source rebuilds.
-# Within-run fan-out uses a run-scoped artifact of pruned .DerivedData. The
-# build job compiles the app and every package test scheme so unit can run
-# with --no-build; smoke and exhaustive UI rebuild app-only on artifact miss.
-# The exhaustive UI suite is sharded by feature so post-push validation does not
-# serialize every journey on one CI simulator.
+# build-<nonsource>- for same toolchain/assets incremental source rebuilds
+# (script-only edits keep that prefix). Within-run fan-out uses a run-scoped
+# artifact of pruned .DerivedData. The build job compiles the app so smoke and
+# exhaustive UI can run with --no-build; the unit job compiles package schemes
+# itself. Advisory SwiftLint analyze runs beside tests from the app-only
+# compiler log, not on the build job. The exhaustive UI suite is sharded by
+# feature so post-push validation does not serialize every journey on one CI
+# simulator.
 
 on:
   workflow_call:
@@ -29,7 +37,7 @@ jobs:
 
   gate:
     needs: changes
-    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.code == 'true'
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.code == 'true' || needs.changes.outputs.infra == 'true'
     uses: ./.github/workflows/gate.yml
 
   assets-gate:
@@ -65,61 +73,84 @@ jobs:
 
   build:
     name: Build for testing
-    needs: [changes, gate]
+    needs: [changes]
     if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.code == 'true'
     runs-on: macos-26
-    timeout-minutes: 45
+    timeout-minutes: 30
     outputs:
       build-artifact: ${{ steps.restore-and-build.outputs.artifact-name }}
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: ./.github/actions/checkout-ci
+        with:
+          sparse: 'true'
       - uses: ./.github/actions/setup-trinket
       - name: Restore warm cache and build
         id: restore-and-build
         uses: ./.github/actions/restore-and-build
         with:
           artifact-prefix: ${{ inputs.artifact-prefix }}
+          build-command: ./Scripts/build-for-testing.sh --app-only
           prune: 'true'
           save-cache: 'true'
           upload-artifact: 'true'
+      - name: Upload compiler logs for analyze
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ${{ steps.restore-and-build.outputs.artifact-name }}-compiler-logs
+          path: .DerivedData/TestResults/raw
+          include-hidden-files: true
+          retention-days: 1
+          if-no-files-found: error
 
   unit:
     name: Unit tests
-    needs: [changes, build]
+    needs: [changes]
     if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.code == 'true'
     runs-on: macos-26
-    # Package schemes are built in the shared build job; this job runs tests
-    # only against the warmed artifact (--no-build), with a full rebuild on miss.
+    # Package schemes are compiled in this job; the shared build is app-only
+    # so smoke/UI can start without waiting on package test products.
     timeout-minutes: 25
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: ./.github/actions/checkout-ci
+        with:
+          sparse: 'true'
       - uses: ./.github/actions/setup-trinket
+      - uses: ./.github/actions/restore-and-build
+        with:
+          skip-build: 'true'
       - uses: ./.github/actions/test-job
         with:
           profile-label: unit-tests
-          build-artifact: ${{ needs.build.outputs.build-artifact }}
           artifact-name: ${{ inputs.artifact-prefix }}unit
-          # Package schemes are in the shared build artifact; rebuild the full
-          # warm tree on miss so --no-build can run tests only.
-          rebuild-command: ./Scripts/build-for-testing.sh
-          command: ./Scripts/test.sh unit --no-build
+          command: ./Scripts/test.sh unit
 
   smoke:
-    name: Smoke tests
+    name: Smoke tests (${{ matrix.name }})
     needs: [changes, build]
     if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.code == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Shell
+            target: SmokeShellTests StarterOnboardingSmokeTests
+          - name: Play
+            target: SmokeBattleTests SmokeShopTests
     runs-on: macos-26
     timeout-minutes: 25
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: ./.github/actions/checkout-ci
+        with:
+          sparse: 'true'
       - uses: ./.github/actions/setup-trinket
       - uses: ./.github/actions/test-job
         with:
-          profile-label: smoke-tests
+          profile-label: smoke-tests-${{ matrix.name }}
           build-artifact: ${{ needs.build.outputs.build-artifact }}
-          artifact-name: ${{ inputs.artifact-prefix }}smoke
+          artifact-name: ${{ inputs.artifact-prefix }}smoke-${{ matrix.name }}
           rebuild-command: ./Scripts/build-for-testing.sh --app-only
-          command: ./Scripts/test.sh smoke --no-build
+          command: ./Scripts/test.sh smoke --no-build ${{ matrix.target }}
+          preboot-simulator: 'true'
 
   exhaustive-ui:
     name: Exhaustive UI (${{ matrix.name }})
@@ -134,13 +165,17 @@ jobs:
           - name: Battle
             target: BattleFlowUITests
           - name: Collection
-            target: TabNavigationUITests HeroDetailAbilityPickerUITests HomesteadNodeDetailUITests
+            target: TabNavigationUITests HeroDetailAbilityPickerUITests
+          - name: Homestead
+            target: HomesteadNodeDetailUITests
           - name: Play
             target: PlayMapUITests PlayModeNavigationUITests MysteryRecruitUITests ShopFlowUITests
     runs-on: macos-26
     timeout-minutes: 25
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: ./.github/actions/checkout-ci
+        with:
+          sparse: 'true'
       - uses: ./.github/actions/setup-trinket
       - uses: ./.github/actions/test-job
         with:
@@ -149,11 +184,53 @@ jobs:
           artifact-name: ${{ inputs.artifact-prefix }}exhaustive-ui-${{ matrix.name }}
           rebuild-command: ./Scripts/build-for-testing.sh --app-only
           command: ./Scripts/test.sh ui --no-build ${{ matrix.target }}
+          preboot-simulator: 'true'
+
+  analyze:
+    name: Advisory SwiftLint analyze
+    needs: [changes, build]
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.code == 'true'
+    continue-on-error: true
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - uses: ./.github/actions/checkout-ci
+        with:
+          sparse: 'true'
+      - uses: ./.github/actions/setup-trinket
+      - name: Download compiler logs
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: ${{ needs.build.outputs.build-artifact }}-compiler-logs
+          path: .DerivedData/TestResults/raw
+      - name: SwiftLint analyze
+        continue-on-error: true
+        env:
+          SKIP_GENERATE: 1
+        run: >-
+          python3 Scripts/output-profile.py run
+          --label swiftlint-analyze
+          --policy ci-gate
+          -- ./Scripts/lint-analyze.sh
+      - name: Report CI output profile
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: python3 Scripts/output-profile.py report --ci .DerivedData/OutputProfiles --actionable --top 3
+      - name: Upload CI output profile
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ${{ github.workflow }}-analyze-output-profile-${{ github.run_id }}
+          path: .DerivedData/OutputProfiles/
+          include-hidden-files: true
+          retention-days: 30
+          if-no-files-found: ignore
 
   diff-review:
     name: Advisory diff review
     needs: [changes]
-    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.code == 'true'
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.code == 'true' || needs.changes.outputs.infra == 'true'
     continue-on-error: true
     runs-on: ubuntu-latest
     timeout-minutes: 5

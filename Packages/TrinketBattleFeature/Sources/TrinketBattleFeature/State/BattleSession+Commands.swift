@@ -97,7 +97,10 @@ extension BattleSession {
         scheduleAutoEndIfNeeded()
     }
 
-    func beginOpeningHandDeal(for configurationID: UUID) {
+    func beginOpeningHandDeal(
+        for configurationID: UUID,
+        startDelay: TimeInterval = 0
+    ) {
         guard hasActiveSimulation,
               engineHand.isEmpty,
               activeBattle?.id == configurationID
@@ -124,10 +127,10 @@ extension BattleSession {
                 }
             }
 
-            await CombatFeedbackDisplayLinkGate.waitForNextDisplayLink()
-            guard !Task.isCancelled,
-                  activeBattle?.id == configurationID
-            else { return }
+            guard await waitForOpeningHandDealStart(
+                configurationID: configurationID,
+                startDelay: startDelay
+            ) else { return }
 
             presentationEnvironment.playSFX([SFXID.abilityDraw])
 
@@ -162,6 +165,18 @@ extension BattleSession {
             presentResolvedEvents(events, at: .now)
             scheduleAutoEndIfNeeded()
         }
+    }
+
+    private func waitForOpeningHandDealStart(
+        configurationID: UUID,
+        startDelay: TimeInterval
+    ) async -> Bool {
+        if startDelay > 0 {
+            try? await Task.sleep(for: .seconds(startDelay))
+            guard !Task.isCancelled, activeBattle?.id == configurationID else { return false }
+        }
+        await CombatFeedbackDisplayLinkGate.waitForNextDisplayLink()
+        return !Task.isCancelled && activeBattle?.id == configurationID
     }
 
     func cancelOpeningHandDeal() {

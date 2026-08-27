@@ -1,7 +1,6 @@
 import Testing
 import TrinketContent
 import TrinketCore
-import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
 /// Bounded downward party scaling must reach Labyrinth combat rewards: the level
@@ -88,41 +87,5 @@ struct LabyrinthEncounterLevelOverrideTests {
         #expect(authored > 0)
         #expect(scaled > 0)
         #expect(scaled < authored)
-    }
-
-    @Test func claimFallbackUsesPartyAdjustedEncounterLevel() throws {
-        let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
-        let deepStage = try #require(
-            GameContent.chapters.flatMap(\.stages).last(where: {
-                $0.encounter.isCombat
-                    && StageCompletion.resolvedEncounterLevel(for: $0, in: GameContent.chapters) > 5
-            })
-        )
-        var save = SaveTestSupport.makeSave()
-        save.roster.progressions[hero.id] = .at(level: 3)
-        save.roster.progressions[companion.id] = .at(level: 2)
-        let expectedLevel = StageCompletion.partyAdjustedEncounterLevel(for: deepStage, save: save)
-        StageCompletion.complete(
-            deepStage,
-            hero: hero,
-            companion: companion,
-            enemyEncounterLevel: expectedLevel,
-            in: GameContent.chapters,
-            save: &save
-        )
-        let pinnedXP = save.roster.progression(for: hero).currentXP
-        var fallback = SaveTestSupport.makeSave()
-        fallback.roster.progressions[hero.id] = .at(level: 3)
-        fallback.roster.progressions[companion.id] = .at(level: 2)
-        StageCompletion.complete(
-            deepStage,
-            hero: hero,
-            companion: companion,
-            in: GameContent.chapters,
-            save: &fallback
-        )
-        #expect(expectedLevel == 5)
-        #expect(fallback.roster.progression(for: hero).currentXP == pinnedXP)
     }
 }

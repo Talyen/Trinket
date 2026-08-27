@@ -426,6 +426,8 @@ class ScriptRegressionTests(unittest.TestCase):
         self.assertIn("Task.sleep", text)
         self.assertIn("PersistenceCheck", text)
         self.assertIn("@unchecked Sendable", text)
+        self.assertIn("ArtworkWorkingSetCheck", text)
+        self.assertIn("Trinket/App/TrinketApp.swift", text)
 
     def test_accessibility_ids_reject_duplicate_constants_and_raw_uitest_literals(self) -> None:
         checker = load_script("check_accessibility_ids", "check-accessibility-ids.py")
@@ -446,6 +448,7 @@ class ScriptRegressionTests(unittest.TestCase):
         # Advisory analyze must not emit Checks annotations: that reporter
         # volume plus cache save overflowed the 30-minute build job timeout.
         self.assertNotIn("--reporter github-actions-logging", text)
+        self.assertIn("build-app-", text)
         style = (ROOT / "Scripts" / "test.sh").read_text(encoding="utf-8")
         self.assertNotIn("lint-analyze.sh", style)
         handoff = (ROOT / "Scripts" / "handoff.sh").read_text(encoding="utf-8")
@@ -453,16 +456,31 @@ class ScriptRegressionTests(unittest.TestCase):
         restore = (ROOT / ".github" / "actions" / "restore-and-build" / "action.yml").read_text(
             encoding="utf-8"
         )
-        self.assertIn("lint-analyze.sh", restore)
-        self.assertRegex(
-            restore,
-            r"SwiftLint analyze\n(?:.*\n){0,6}      continue-on-error: true",
-        )
+        self.assertNotIn("lint-analyze.sh", restore)
         tests_yml = (ROOT / ".github" / "workflows" / "tests.yml").read_text(encoding="utf-8")
+        self.assertIn("lint-analyze.sh", tests_yml)
         self.assertRegex(
             tests_yml,
-            r"name: Build for testing\n(?:.*\n){0,6}    timeout-minutes: 45",
+            r"name: Advisory SwiftLint analyze\n(?:.*\n){0,8}    continue-on-error: true",
         )
+        self.assertRegex(
+            tests_yml,
+            r"SwiftLint analyze\n(?:.*\n){0,6}        continue-on-error: true",
+        )
+        self.assertRegex(
+            tests_yml,
+            r"name: Build for testing\n    needs: \[changes\]\n",
+        )
+        self.assertNotIn("needs: [changes, gate]", tests_yml)
+        self.assertRegex(
+            tests_yml,
+            r"name: Build for testing\n(?:.*\n){0,8}    timeout-minutes: 30",
+        )
+
+    def test_ci_analyze_is_advisory(self) -> None:
+        text = (ROOT / ".github" / "workflows" / "tests.yml").read_text(encoding="utf-8")
+        self.assertRegex(text, r"analyze:\n(?:.*\n){0,8}    continue-on-error: true")
+        self.assertNotRegex(text, r"ci-ok:\n(?:.*\n)*?needs:.*analyze")
 
     def test_change_budget_warns_when_package_production_lacks_tests(self) -> None:
         text = (ROOT / "Scripts" / "change-budget.sh").read_text(encoding="utf-8")
@@ -583,8 +601,28 @@ class ScriptRegressionTests(unittest.TestCase):
             encoding="utf-8"
         )
         self.assertIn("restore-and-build", workflow)
-        self.assertIn("./Scripts/test.sh unit --no-build", workflow)
+        self.assertIn("./Scripts/test.sh unit", workflow)
+        self.assertNotIn("./Scripts/test.sh unit --no-build", workflow)
+        self.assertIn("build-for-testing.sh --app-only", workflow)
+        self.assertIn("name: Homestead", workflow)
+        self.assertIn("preboot-simulator: 'true'", workflow)
+        self.assertIn("skip-build: 'true'", workflow)
+        self.assertIn("checkout-ci", workflow)
+        self.assertIn("Smoke tests (${{ matrix.name }})", workflow)
+        self.assertIn("needs.changes.outputs.infra", workflow)
         self.assertNotIn("actions/cache/restore@", workflow)
+        self.assertIn("stage-ci-test-artifact.sh", text)
+        self.assertIn("skip-build", text)
+        cache_key = (
+            ROOT / ".github" / "actions" / "build-cache-key" / "action.yml"
+        ).read_text(encoding="utf-8")
+        self.assertIn('git rev-parse "HEAD:Raw Assets"', cache_key)
+        checkout = (
+            ROOT / ".github" / "actions" / "checkout-ci" / "action.yml"
+        ).read_text(encoding="utf-8")
+        sparse_block = checkout.split("sparse-checkout:", 1)[1]
+        self.assertIn(".github", sparse_block)
+        self.assertNotIn("Raw Assets", sparse_block)
 
     def test_ci_gate_fast_skips_generation_and_style(self) -> None:
         text = (ROOT / "Scripts" / "ci-gate.sh").read_text(encoding="utf-8")
@@ -948,6 +986,40 @@ class ScriptRegressionTests(unittest.TestCase):
         )
         self.assertIn("TRINKET_CLEANUP_TEST_ARTIFACTS: 0", test_job)
 
+    def test_record_time_profiler_avoids_simulator_device_deadlock(self) -> None:
+        script = ROOT / "Scripts" / "record-time-profiler.sh"
+
+        def printed(*args: str) -> str:
+            result = subprocess.run(
+                [str(script), "--print-command", *args],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            return result.stdout
+
+        default = printed("--output", "/tmp/trinket-tp.trace", "--time-limit", "8s")
+        self.assertIn("--instrument", default)
+        self.assertIn("Time Profiler", default)
+        self.assertIn("--attach", default)
+        self.assertIn("Trinket", default)
+        self.assertNotIn("--all-processes", default)
+        self.assertNotIn("--device", default)
+        self.assertNotIn("--template", default)
+
+        wide = printed("--output", "/tmp/trinket-tp.trace", "--all-processes")
+        self.assertIn("--all-processes", wide)
+        self.assertNotIn("--attach", wide)
+        self.assertNotIn("--device", wide)
+
+        text = script.read_text(encoding="utf-8")
+        self.assertIn("DTServiceHub", text)
+        self.assertIn("ending recording", text)
+        self.assertNotIn("SAVE_BUDGET", text)
+        self.assertIn("kill -INT", text)
+
     def test_new_plan_scaffold_creates_lifecycle_metadata(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             plan_name = f"TokenEfficiencyFixture{Path(directory).name}"
@@ -1154,6 +1226,22 @@ class ScriptRegressionTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("Docs/Skills/apple-design/SKILL.md", result.stdout)
         self.assertNotIn("Docs/AgentContext/swiftui-features.md", result.stdout)
+
+    def test_agent_context_routes_prepared_artwork_to_swiftui_features(self) -> None:
+        result = subprocess.run(
+            [
+                str(ROOT / "Scripts" / "agent-context.sh"),
+                "--agent",
+                "--paths",
+                "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/PreparedArtworkCache.swift",
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("Docs/AgentContext/swiftui-features.md", result.stdout)
 
     def test_agent_context_keeps_design_skill_off_design_system_tests(self) -> None:
         result = subprocess.run(

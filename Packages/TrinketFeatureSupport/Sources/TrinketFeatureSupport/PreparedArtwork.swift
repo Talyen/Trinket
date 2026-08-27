@@ -36,6 +36,9 @@ public extension Image {
 
     /// Catalog artwork that prefers the launch-prepared bitmap cache.
     ///
+    /// `Image(name)` is only the cache-miss path: it sync-decodes on the calling
+    /// frame and hitches. Do not invert this to load on demand.
+    ///
     /// UIImage-backed prepared images become VoiceOver / XCUITest hits unless marked
     /// decorative. After `.resizable()` / framing, chain `.accessibilityHidden(true)`
     /// (or `.decorativePreparedArtwork()`) unless this image *is* the accessibility element.

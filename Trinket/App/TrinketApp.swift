@@ -106,6 +106,7 @@ struct TrinketApp: App {
             Array(roster.collectionHeroes.prefix(shelfLimit))
                 + Array(roster.collectionCompanions.prefix(shelfLimit))
         ).compactMap { $0.artReference?.thumbnailImageName }
+        let collectionDetail = CollectionView.imminentDetailArtworkNames(roster: roster)
         let collectionItems = inventory.items.prefix(shelfLimit).compactMap {
             $0.artReference?.thumbnailImageName
         }
@@ -123,16 +124,20 @@ struct TrinketApp: App {
             ArtCatalog.backgroundArtByID[chapter.id]
                 ?? ArtCatalog.backgroundArtByID["chapter-1"]
         )?.imageName
-        let campaignRows = chapter.stages.compactMap { stage -> String? in
+        let campaignRows = chapter.stages.flatMap { stage -> [String] in
             if let combatant = stage.encounterCombatantArtReference(
                 worldSeed: appState.playerSave.worldSeed
             ) {
-                return combatant.thumbnailImageName
+                return [combatant.imageName, combatant.thumbnailImageName].compactMap(\.self)
             }
-            return stage.encounterArtReference?.thumbnailImageName
+            if let encounter = stage.encounterArtReference {
+                return [encounter.imageName, encounter.thumbnailImageName].compactMap(\.self)
+            }
+            return []
         }
 
         return collectionCombatants
+            + collectionDetail
             + collectionItems
             + playModeCards
             + homesteadCards
@@ -149,6 +154,7 @@ private struct PreparedAppRoot: View {
     @Environment(\.displayScale) private var displayScale
     @State private var artworkCache = PreparedArtworkCache.shared
     @State private var isResourcePreparationComplete = false
+    @State private var isShellWarmupComplete = false
     @State private var areCastEffectsPrepared = false
 
     let appState: AppState
@@ -162,17 +168,17 @@ private struct PreparedAppRoot: View {
     }
 
     var body: some View {
-        Group {
-            if isPreparationComplete {
+        ZStack {
+            if isResourcePreparationComplete {
                 ContentView()
                     .environment(battleSession)
-            } else {
-                ZStack {
-                    LaunchWarmupView()
-                    if shouldPrepareCastEffects, !areCastEffectsPrepared {
-                        CardCastEffectsPrewarmView {
-                            areCastEffectsPrepared = true
-                        }
+            }
+            if !isPreparationComplete {
+                LaunchWarmupView()
+                    .allowsHitTesting(true)
+                if shouldPrepareCastEffects, !areCastEffectsPrepared {
+                    CardCastEffectsPrewarmView {
+                        areCastEffectsPrepared = true
                     }
                 }
             }
@@ -195,9 +201,6 @@ private struct PreparedAppRoot: View {
         .task {
             MetricKitSubscriber.shared.start()
             guard !isResourcePreparationComplete else { return }
-            defer {
-                artworkCache.releasePins(names: priorityImageNames)
-            }
             appState.prepareLaunchPerformanceResources()
             // Align the minimum hold with first paint (same yield as the
             // progress fill) so a warm cache cannot dismiss before the bar runs.
@@ -205,24 +208,57 @@ private struct PreparedAppRoot: View {
             let displayedAt = ContinuousClock.now
             await BattlePresentationWarmup.prepareAndWait(displayScale: displayScale)
             await artworkCache.prepareAll(priorityImageNames: priorityImageNames)
+            // Launch pins stay for the session. Releasing them here lets
+            // deferred catalog decode evict first-screen art; the next tap
+            // then hits Image(name) on the presentation frame.
             guard !Task.isCancelled else { return }
             if let stageID = appState.playerSave.journey.activeStageID,
                let stage = GameContent.stage(id: stageID) {
                 appState.play.journey.prepareBattle(for: stage)
             }
+            let shouldWarmTabs = appState.playerSave.starterSelection.phase == .complete
+            if shouldWarmTabs {
+                appState.shellSession.isShellWarmupActive = true
+            }
+            isResourcePreparationComplete = true
+            await warmShellTabRoots()
+            appState.shellSession.isShellWarmupActive = false
             let hold = Self.minimumLaunchDisplayDuration
                 - displayedAt.duration(to: ContinuousClock.now)
             if hold > .zero {
                 try? await Task.sleep(for: hold)
             }
             guard !Task.isCancelled else { return }
-            isResourcePreparationComplete = true
-            // Capture the first interactive root separately from the decode peak.
-            // Two yields let ContentView install its initial hierarchy first.
+            isShellWarmupComplete = true
             await Task.yield()
             await Task.yield()
             artworkCache.reportMemorySnapshot(label: "interactiveRoot")
         }
+    }
+
+    /// Visit every tab root under the launch cover so the first real tap is not
+    /// a cold SwiftUI body. Does not defer that work onto later scrolling.
+    private func warmShellTabRoots() async {
+        guard appState.playerSave.starterSelection.phase == .complete else { return }
+        let original = appState.shellSession.selectedTab
+        defer { appState.shellSession.selectedTab = original }
+        await Task.yield()
+        await Task.yield()
+        // Play keeps the longer budget for the hidden battlefield; other tabs
+        // only need a shorter first-layout window under the cover.
+        let originalBudget = original == .play
+            ? ShellSession.tabFirstLayoutBudget
+            : ShellSession.secondaryTabFirstLayoutBudget
+        try? await Task.sleep(for: originalBudget)
+        for tab in AppTab.allCases where tab != original {
+            guard !Task.isCancelled else { return }
+            appState.shellSession.selectedTab = tab
+            let budget = tab == .play
+                ? ShellSession.tabFirstLayoutBudget
+                : ShellSession.secondaryTabFirstLayoutBudget
+            try? await Task.sleep(for: budget)
+        }
+        await Task.yield()
     }
 
     private var shouldPrepareCastEffects: Bool {
@@ -232,6 +268,8 @@ private struct PreparedAppRoot: View {
     }
 
     private var isPreparationComplete: Bool {
-        isResourcePreparationComplete && (areCastEffectsPrepared || !shouldPrepareCastEffects)
+        isResourcePreparationComplete
+            && isShellWarmupComplete
+            && (areCastEffectsPrepared || !shouldPrepareCastEffects)
     }
 }

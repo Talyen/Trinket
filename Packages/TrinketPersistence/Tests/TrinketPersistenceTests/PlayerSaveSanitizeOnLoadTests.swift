@@ -22,19 +22,7 @@ final class PlayerSaveSanitizeOnLoadTests {
             itemIDsBySlot: [.weapon: "ghost-sword"]
         )
 
-        do {
-            let container = try ModelContainer(
-                for: PlayerSaveGraph.schema,
-                configurations: ModelConfiguration(
-                    schema: PlayerSaveGraph.schema,
-                    url: storeURL,
-                    cloudKitDatabase: .none
-                )
-            )
-            let modelContext = ModelContext(container)
-            modelContext.insert(PlayerSaveRoot(save: dirty))
-            try modelContext.save()
-        }
+        try SaveTestSupport.writeRoot(dirty, to: storeURL)
 
         let store = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
         try #expect(store.homestead.resources[.wood] == 0)

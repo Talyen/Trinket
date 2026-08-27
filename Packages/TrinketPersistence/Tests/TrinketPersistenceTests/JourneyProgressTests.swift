@@ -6,8 +6,7 @@ import TrinketCore
 import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
-@MainActor
-final class JourneyProgressTests {
+struct JourneyProgressTests {
     private var chapter: Chapter {
         GameContent.chapters[0]
     }
@@ -75,7 +74,22 @@ final class JourneyProgressTests {
         try #expect(progress.activeChapterID == "chapter-2")
     }
 
-    @Test func journeyPersistsProgress() throws {
+    @Test func nextStageReturnsNilAfterFinalStage() throws {
+        let finalChapter = try #require(GameContent.chapters.last)
+        let finalStage = try #require(finalChapter.stages.last)
+
+        try #expect(JourneyProgressState.nextStage(after: finalStage, in: GameContent.chapters) == nil)
+    }
+
+    @Test func nextStageCrossesIntoFollowingChapter() throws {
+        let chapterOneFinal = try #require(chapter.stages.last)
+        let next = try #require(JourneyProgressState.nextStage(after: chapterOneFinal, in: GameContent.chapters))
+
+        try #expect(next.chapterID == "chapter-2")
+        try #expect(next.id == "chapter-2-stage-1")
+    }
+
+    @Test @MainActor func journeyPersistsProgress() throws {
         let directoryURL = try SaveTestSupport.makeTempDirectory(prefix: "JourneyProgressTests")
         defer { SaveTestSupport.removeTempDirectory(directoryURL) }
 
@@ -89,7 +103,7 @@ final class JourneyProgressTests {
         try #expect(secondSaveStore.journey.completedStageIDs.contains("chapter-1-stage-1"))
     }
 
-    @Test func journeyPersistsPinnedMysteryEventIDs() throws {
+    @Test @MainActor func journeyPersistsPinnedMysteryEventIDs() throws {
         let directoryURL = try SaveTestSupport.makeTempDirectory(prefix: "JourneyPinTests")
         defer { SaveTestSupport.removeTempDirectory(directoryURL) }
 
@@ -105,7 +119,7 @@ final class JourneyProgressTests {
         )
     }
 
-    @Test func startupRepairsDuplicateJourneyStageRows() throws {
+    @Test @MainActor func startupRepairsDuplicateJourneyStageRows() throws {
         let directoryURL = try SaveTestSupport.makeTempDirectory(prefix: "JourneyDuplicateStageTests")
         defer { SaveTestSupport.removeTempDirectory(directoryURL) }
         let storeURL = SaveTestSupport.makeStoreURL(directoryURL: directoryURL)

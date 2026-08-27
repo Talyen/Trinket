@@ -4,8 +4,7 @@ import TrinketCore
 import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
-@MainActor
-final class PlayerSaveSliceSanitizerTests {
+struct PlayerSaveSliceSanitizerTests {
     private enum SliceEqualityCase: String, Sendable {
         case homestead
         case inventory
@@ -130,7 +129,7 @@ final class PlayerSaveSliceSanitizerTests {
         #expect(changedSlices.contains(.labyrinth))
     }
 
-    @Test func homesteadMutationPersistsSanitizerLabyrinthWorldSeedPin() throws {
+    @Test @MainActor func homesteadMutationPersistsSanitizerLabyrinthWorldSeedPin() throws {
         let context = try PersistenceTestContext()
         let storeURL = context.storeURL()
         let store = try PlayerSaveStore(

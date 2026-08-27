@@ -17,7 +17,7 @@ struct MysteryEncounterView: View {
     @State private var choiceFeedbackTrigger = 0
 
     var body: some View {
-        Group {
+        ZStack {
             if session.showsReveal, let unlockedID = session.unlockedCombatantID {
                 MysteryUnlockContent(
                     session: session,
@@ -26,28 +26,34 @@ struct MysteryEncounterView: View {
                     onFinish: { encounters.finishActiveMysteryEncounter(dismiss: false) },
                     onDismiss: { encounters.dismissActiveMysteryEncounter() }
                 )
+                .transition(.opacity)
             } else if session.showsReward, let result = session.applyResult {
                 MysteryRewardContent(
                     session: session,
                     result: result,
                     onFinish: { encounters.finishActiveMysteryEncounter() }
                 )
+                .transition(.opacity)
             } else if session.showsCorruptionReveal, let result = session.corruptionResult {
                 MysteryCorruptionRevealContent(
                     session: session,
                     result: result,
                     onFinish: { encounters.finishActiveMysteryCorruptionReveal() }
                 )
+                .transition(.opacity)
             } else if session.showsCorruptItemChoice {
                 MysteryCorruptItemChoiceContent(
                     session: session,
                     onCorruptItem: { encounters.corruptActiveMysteryItem(itemID: $0) },
                     onCancelCorruptSelection: { encounters.cancelActiveMysteryCorruptSelection() }
                 )
+                .transition(.opacity)
             } else {
                 readingContent
+                    .transition(.opacity)
             }
         }
+        .animation(TrinketMotion.Screen.crossfade, value: screenPhase)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .trinketScreenBackground()
         .sheet(item: $selectedDetail) { context in
@@ -62,6 +68,30 @@ struct MysteryEncounterView: View {
             }
             .trinketDetailSheet()
         }
+    }
+
+    private var screenPhase: MysteryScreenPhase {
+        if session.showsReveal {
+            return .reveal
+        }
+        if session.showsReward {
+            return .reward
+        }
+        if session.showsCorruptionReveal {
+            return .corruptionReveal
+        }
+        if session.showsCorruptItemChoice {
+            return .corruptItemChoice
+        }
+        return .reading
+    }
+
+    private enum MysteryScreenPhase: Equatable {
+        case reading
+        case reveal
+        case reward
+        case corruptionReveal
+        case corruptItemChoice
     }
 
     private var readingContent: some View {

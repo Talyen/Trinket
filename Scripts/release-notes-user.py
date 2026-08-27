@@ -7,29 +7,61 @@ import argparse
 import re
 import subprocess
 import sys
-from datetime import date
+from dataclasses import dataclass
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "ReleaseNotes" / "en-US.txt"
-PROMPT = ROOT / "ReleaseNotes" / ".prompt.md"
 
-SKIP_PREFIXES = (
-    "style:",
-    "style ",
-    "test:",
-    "ci:",
-    "chore:",
-    "docs:",
-    "build:",
-    "Merge ",
-    "Revert ",
+KEEP_TYPES = ("feat", "fix", "content", "perf")
+SKIP_TYPES = ("refactor", "style", "chore", "ci", "docs", "build", "test")
+SKIP_VERBS = ("extract", "thin", "split", "wire", "rename", "refactor")
+CONVENTIONAL_TYPE = re.compile(
+    r"^(feat|fix|perf|refactor|content|style|test|ci|chore|docs|build)"
+    r"(\([^)]+\))?!?:\s*",
+    re.IGNORECASE,
 )
-
-USER_FACING_PREFIXES = ("add ", "fix ", "implement ", "introduce ", "complete ", "restore ", "pause ", "guard ")
-USER_FACING_TYPES = ("feat", "content", "perf")
-TECHNICAL_TYPES = ("refactor", "style", "chore", "ci", "docs", "build", "test")
-
+SKIP_VERB_PREFIX = re.compile(
+    rf"^({'|'.join(SKIP_VERBS)})\b",
+    re.IGNORECASE,
+)
+USER_FACING_TRAILER = re.compile(
+    r"^User-Facing:\s*(yes|no)\s*$",
+    re.MULTILINE | re.IGNORECASE,
+)
+UNRELEASED_PLACEHOLDER = re.compile(
+    r"\n## \[Unreleased\]\s*(?:<!--[^\n]*-->\s*)?",
+)
+INFRA_PREFIXES = (
+    "Scripts/",
+    "Docs/",
+    ".github/",
+    ".githooks/",
+    ".agents/",
+    "TrinketUITests/",
+    "Trinket.xcodeproj/",
+    "ReleaseNotes/",
+)
+INFRA_NAMES = {
+    ".swiftlint.yml",
+    ".swiftformat",
+    ".gitignore",
+    "cliff.toml",
+    "CHANGELOG.md",
+    "project.yml",
+    "AGENTS.md",
+    "FullUI.xctestplan",
+}
+PRODUCT_PREFIXES = (
+    "Trinket/",
+    "Packages/",
+    "ContentManifest/",
+    "ArtManifest/",
+    "MusicManifest/",
+    "SoundManifest/",
+    "CinematicManifest/",
+    "Raw Assets/",
+)
 TECHNICAL_TERMS = (
     "SwiftFormat",
     "SwiftLint",
@@ -48,6 +80,13 @@ TECHNICAL_TERMS = (
 )
 
 
+@dataclass(frozen=True)
+class Commit:
+    subject: str
+    body: str = ""
+    files: tuple[str, ...] = ()
+
+
 def run(*args: str) -> str:
     result = subprocess.run(args, cwd=ROOT, capture_output=True, text=True, check=True)
     return result.stdout
@@ -58,44 +97,61 @@ def latest_tag() -> str | None:
     return tags[0] if tags else None
 
 
-def commit_messages(since_tag: str | None) -> list[tuple[str, str]]:
-    log_range = f"{since_tag}..HEAD" if since_tag else "HEAD"
-    raw = run(
-        "git",
-        "log",
-        log_range,
-        "--pretty=format:---%n%B",
-        "--no-merges",
-    )
-    commits: list[tuple[str, str]] = []
-    for block in raw.split("---\n"):
-        block = block.strip()
-        if not block:
-            continue
-        lines = block.splitlines()
-        subject = lines[0].strip()
-        body = "\n".join(lines[1:]).strip()
-        commits.append((subject, body))
-    return commits
+def strip_unreleased_section(text: str) -> str:
+    return UNRELEASED_PLACEHOLDER.sub("\n", text, count=1)
 
 
-def is_user_facing(subject: str, body: str) -> bool:
-    if any(subject.startswith(prefix) for prefix in SKIP_PREFIXES):
-        return False
-    if re.search(r"^User-Facing:\s*no\s*$", body, re.MULTILINE | re.IGNORECASE):
-        return False
-    if re.search(r"^User-Facing:\s*yes\s*$", body, re.MULTILINE | re.IGNORECASE):
+def conventional_type(subject: str) -> str | None:
+    match = CONVENTIONAL_TYPE.match(subject)
+    return match.group(1).lower() if match else None
+
+
+def is_infra_path(path: str) -> bool:
+    if path in INFRA_NAMES or path.endswith(".md") or path.endswith(".xctestplan"):
         return True
-    lowered = subject.lower()
-    if lowered.startswith(("fix(ci)", "fix(content)", "style", "chore(release)")):
-        return False
-    if lowered.startswith(USER_FACING_PREFIXES):
+    if path.endswith("Package.swift") or "TrinketTestSupport" in path:
         return True
-    if lowered.startswith(USER_FACING_TYPES):
+    if "/Tests/" in path or path.endswith("Tests.swift"):
         return True
-    if "test" in lowered and lowered.startswith(("add ", "fix ")):
+    return path.startswith(INFRA_PREFIXES)
+
+
+def is_product_path(path: str) -> bool:
+    return not is_infra_path(path) and path.startswith(PRODUCT_PREFIXES)
+
+
+def is_infra_only(files: tuple[str, ...]) -> bool:
+    return bool(files) and all(is_infra_path(path) for path in files)
+
+
+def has_product_path(files: tuple[str, ...]) -> bool:
+    return any(is_product_path(path) for path in files)
+
+
+def user_facing_trailer(body: str) -> str | None:
+    match = USER_FACING_TRAILER.search(body)
+    return match.group(1).lower() if match else None
+
+
+def is_user_facing(commit: Commit) -> bool:
+    subject = commit.subject.strip()
+    if subject.startswith(("Merge ", "Revert ")):
         return False
-    return not lowered.startswith(TECHNICAL_TYPES)
+    trailer = user_facing_trailer(commit.body)
+    if trailer == "no":
+        return False
+    if trailer == "yes":
+        return True
+    if is_infra_only(commit.files):
+        return False
+    commit_type = conventional_type(subject)
+    if commit_type in SKIP_TYPES:
+        return False
+    if commit_type in KEEP_TYPES:
+        return True
+    if SKIP_VERB_PREFIX.match(subject):
+        return False
+    return has_product_path(commit.files)
 
 
 def simplify_line(line: str) -> str:
@@ -107,62 +163,57 @@ def simplify_line(line: str) -> str:
     return line
 
 
-def subject_to_user_line(subject: str) -> str:
-    line = subject
-    line = re.sub(r"^(feat|fix|content|perf)(\([^)]+\))?:\s*", "", line, flags=re.IGNORECASE)
-    line = simplify_line(line)
+def capitalize_line(line: str) -> str:
     if not line:
         return ""
     if not line[0].isupper():
-        line = line[0].upper() + line[1:]
+        return line[0].upper() + line[1:]
     return line
+
+
+def subject_to_user_line(subject: str) -> str:
+    line = CONVENTIONAL_TYPE.sub("", subject, count=1)
+    return capitalize_line(simplify_line(line))
 
 
 def extract_bullets(body: str) -> list[str]:
     bullets: list[str] = []
     for raw in body.splitlines():
         raw = raw.strip()
-        if raw.startswith("- "):
-            cleaned = simplify_line(raw[2:])
-            if cleaned and not cleaned.lower().startswith(("co-authored-by", "user-facing:")):
-                bullets.append(cleaned)
+        if not raw.startswith("- "):
+            continue
+        cleaned = simplify_line(raw[2:])
+        if cleaned and not cleaned.lower().startswith(("co-authored-by", "user-facing:")):
+            bullets.append(cleaned)
     return bullets
 
 
-def build_notes(commits: list[tuple[str, str]], version: str) -> tuple[str, list[str]]:
-    headlines: list[str] = []
-    detail_bullets: list[str] = []
+def player_line(commit: Commit) -> str:
+    for bullet in extract_bullets(commit.body):
+        line = capitalize_line(bullet)
+        if line:
+            return line
+    return subject_to_user_line(commit.subject)
 
-    for subject, body in commits:
-        if not is_user_facing(subject, body):
+
+def build_notes(commits: list[Commit], version: str = "") -> tuple[str, list[str]]:
+    del version
+    lines: list[str] = []
+    for commit in commits:
+        if not is_user_facing(commit):
             continue
-        headline = subject_to_user_line(subject)
-        if headline:
-            headlines.append(headline)
-        for bullet in extract_bullets(body):
-            if bullet not in detail_bullets:
-                detail_bullets.append(bullet)
+        line = player_line(commit)
+        if line and line not in lines:
+            lines.append(line)
 
-    if not headlines and not detail_bullets:
-        summary = "Bug fixes and improvements."
-        bullets = ["• Stability and performance improvements"]
-        return summary, bullets
+    if not lines:
+        return "Bug fixes and improvements.", ["• Stability and performance improvements"]
 
-    summary = headlines[0] if headlines else detail_bullets[0]
+    summary = lines[0]
     if len(summary) > 150:
         summary = summary[:147].rstrip() + "..."
 
-    bullets: list[str] = []
-    for item in headlines[:3]:
-        bullets.append(f"• {item}")
-    for item in detail_bullets:
-        formatted = f"• {item}"
-        if formatted not in bullets and len(bullets) < 6:
-            bullets.append(formatted)
-
-    if not bullets:
-        bullets = [f"• {summary}"]
-
+    bullets = [f"• {item}" for item in lines[:6]]
     return summary, bullets
 
 
@@ -174,41 +225,38 @@ def validate_notes(summary: str, bullets: list[str]) -> None:
         print(f"Warning: summary line is {len(summary)} chars (App Store truncates around 150).", file=sys.stderr)
 
 
-def write_prompt(version: str, summary: str, bullets: list[str], commits: list[tuple[str, str]]) -> None:
-    dev_lines = []
-    for subject, body in commits:
-        if is_user_facing(subject, body):
-            dev_lines.append(f"- {subject}")
-            for b in extract_bullets(body)[:2]:
-                dev_lines.append(f"  - {b}")
+def parse_git_log(raw: str) -> list[Commit]:
+    commits: list[Commit] = []
+    for block in raw.split("===COMMIT===\n"):
+        block = block.strip("\n")
+        if not block:
+            continue
+        if "\n===BODY===\n" not in block or "\n===FILES===" not in block:
+            continue
+        subject_part, rest = block.split("\n===BODY===\n", 1)
+        body_part, files_part = rest.split("\n===FILES===", 1)
+        files = tuple(path.strip() for path in files_part.splitlines() if path.strip())
+        commits.append(
+            Commit(subject=subject_part.strip(), body=body_part.strip(), files=files)
+        )
+    return commits
 
-    prompt = f"""# Release Notes Prompt (v{version})
 
-Use this when asking an agent to polish App Store copy. The deterministic draft is
-already written to `ReleaseNotes/en-US.txt`.
+def load_commits(since_tag: str | None) -> list[Commit]:
+    log_range = f"{since_tag}..HEAD" if since_tag else "HEAD"
+    raw = run(
+        "git",
+        "log",
+        log_range,
+        "--pretty=format:===COMMIT===%n%s%n===BODY===%n%b%n===FILES===",
+        "--name-only",
+        "--no-merges",
+    )
+    return parse_git_log(raw)
 
-## Instructions
 
-Rewrite the developer changelog below into App Store "What's New" copy for Trinket,
-a portrait fantasy idle auto-battler. Requirements:
-
-- Plain text only (no markdown)
-- First line: compelling summary, max 150 characters
-- 3–6 bullet lines starting with •
-- Player benefit language; no CI, test, refactor, or tooling jargon
-- Total length under 4000 characters
-
-## Current Draft
-
-{summary}
-
-{chr(10).join(bullets)}
-
-## Developer Source
-
-{chr(10).join(dev_lines) if dev_lines else "- (no user-facing commits)"}
-"""
-    PROMPT.write_text(prompt, encoding="utf-8")
+def format_notes(summary: str, bullets: list[str]) -> str:
+    return summary + "\n\n" + "\n".join(bullets) + "\n"
 
 
 def main() -> None:
@@ -216,25 +264,33 @@ def main() -> None:
     parser.add_argument("--version", help="Release version (e.g. 0.2.0)")
     parser.add_argument("--since-tag", help="Git tag to start from (default: latest v* tag)")
     parser.add_argument("--dry-run", action="store_true", help="Print to stdout only")
+    parser.add_argument(
+        "--strip-unreleased",
+        metavar="CHANGELOG",
+        help="Remove leftover Unreleased placeholder from a changelog file",
+    )
     args = parser.parse_args()
 
-    since = args.since_tag or latest_tag()
-    commits = commit_messages(since)
-    version = args.version or "unreleased"
-
-    summary, bullets = build_notes(commits, version)
-    validate_notes(summary, bullets)
-
-    content = summary + "\n\n" + "\n".join(bullets) + "\n"
-
-    if args.dry_run:
-        print(content)
+    if args.strip_unreleased:
+        path = Path(args.strip_unreleased)
+        original = path.read_text(encoding="utf-8")
+        updated = strip_unreleased_section(original)
+        if updated != original:
+            path.write_text(updated, encoding="utf-8")
         return
 
-    write_prompt(version, summary, bullets, commits)
+    since = args.since_tag or latest_tag()
+    commits = load_commits(since)
+    summary, bullets = build_notes(commits, args.version or "unreleased")
+    validate_notes(summary, bullets)
+    content = format_notes(summary, bullets)
+
+    if args.dry_run:
+        print(content, end="")
+        return
+
     OUTPUT.write_text(content, encoding="utf-8")
     print(f"Wrote {OUTPUT.relative_to(ROOT)}")
-    print(f"Wrote {PROMPT.relative_to(ROOT)} (optional AI polish prompt)")
 
 
 if __name__ == "__main__":

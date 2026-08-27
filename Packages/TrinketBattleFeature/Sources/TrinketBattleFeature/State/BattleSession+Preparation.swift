@@ -6,15 +6,10 @@ import TrinketFeatureSupport
 public extension BattleSession {
     /// Warms the prepared launch candidates or active fallback run without exposing
     /// BattleFeature's caches and presentation primitives to app mode screens.
+    /// Pins before activation so Start Battle does not sync-decode on the
+    /// transition frame.
     func prepareBattlePresentationAssets(displayScale: CGFloat) async {
         guard lifecyclePhase == .prepared || lifecyclePhase == .active else { return }
-        releasePreparedArtworkPins()
-
-        // Let the navigation transition commit before doing the first expensive
-        // raster work. The task owner in PlayView cancels this work when the
-        // prepared-run revision changes.
-        await Task.yield()
-        guard !Task.isCancelled else { return }
 
         let phase = lifecyclePhase
         let preparedRuns = phase == .prepared ? preparedBattleRuns : []
@@ -49,18 +44,26 @@ public extension BattleSession {
         if activeConfiguration != nil {
             artworkNames.append(contentsOf: activeOpeningHandArtworkNames())
         }
+        let uniqueNames = Set(artworkNames)
         guard !Task.isCancelled else { return }
+        // Pin replacements before dropping the previous set so Start cannot
+        // sync-decode opening-hand faces during a keep-alive warmup restart.
+        guard uniqueNames != preparedArtworkNames else { return }
         await PreparedArtworkCache.shared.prepareAndPin(names: artworkNames)
         guard !Task.isCancelled else {
             PreparedArtworkCache.shared.releasePins(names: artworkNames)
             return
         }
-        releasePreparedArtworkPins()
-        preparedArtworkNames = Set(artworkNames)
+        let obsoleteNames = preparedArtworkNames.subtracting(uniqueNames)
+        if !obsoleteNames.isEmpty {
+            PreparedArtworkCache.shared.releasePins(names: Array(obsoleteNames))
+        }
+        preparedArtworkNames = uniqueNames
     }
 
     /// Releases artwork retained for the current prepared/active run.
-    /// Preparation owns these pins until the run is activated, replaced, or ended.
+    /// Pins stay across keep-alive Start; owners drop them when the run is
+    /// replaced or ended.
     func releasePreparedArtworkPins() {
         guard !preparedArtworkNames.isEmpty else { return }
         PreparedArtworkCache.shared.releasePins(names: Array(preparedArtworkNames))

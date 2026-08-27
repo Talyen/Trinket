@@ -8,8 +8,8 @@ UI selector constants live in `Packages/TrinketFeatureSupport`.
 
 | Area | Path | When |
 |------|------|------|
-| Smoke | `Smoke/` sources; `Smoke.xctestplan` at repo root | Local and CI `test.sh smoke` (registry-defined classes) |
-| Exhaustive | `Play/`, `Collection/`, `Battle/` | Main CI (sharded); local only for targeted debugging |
+| Smoke | `Smoke/` sources; `Smoke.xctestplan` at repo root | Local and CI `test.sh smoke` (registry-defined classes); CI shards shell vs play |
+| Exhaustive | `Play/`, `Collection/`, `Battle/` | Main CI (sharded by feature, homestead detail separate); local only for targeted debugging |
 | Performance | `Performance/`, `BattlePerformance.xctestplan` (repo root) | Ad hoc `performance.sh` / `test.sh performance` when investigating performance; not CI or smoke |
 | Support | `Support/Screens/` | Page objects (`PlayScreen`, `BattleScreen`, `TabBar`, …) |
 

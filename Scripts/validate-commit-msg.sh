@@ -38,8 +38,8 @@ if ((${#SUBJECT} > 72)); then
   WARN=1
 fi
 
-if ! printf '%s\n' "$MSG" | sed -n '2,$p' | grep -qE '^$|^[-*]|^User-Facing:|^Breaking:|^Co-authored-by:'; then
-  echo "commit-msg: consider a blank line after the subject with bullet details and optional User-Facing: trailer" >&2
+if ! printf '%s\n' "$MSG" | sed -n '2,$p' | grep -qE '^$|^[-*]|^Breaking:|^Co-authored-by:'; then
+  echo "commit-msg: consider a blank line after the subject with bullet details" >&2
   WARN=1
 fi
 

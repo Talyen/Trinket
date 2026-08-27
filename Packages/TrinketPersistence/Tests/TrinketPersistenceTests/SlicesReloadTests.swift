@@ -1,5 +1,4 @@
 import Foundation
-import SwiftData
 import Testing
 import TrinketContent
 import TrinketCore
@@ -66,19 +65,7 @@ final class SlicesReloadTests {
         // Bypass current equip validation: pre-change saves wrote Armor directly.
         oldSave.roster.equipmentLoadouts[bear.id] = EquipmentLoadout(itemIDsBySlot: [.armor: armor.id])
 
-        do {
-            let container = try ModelContainer(
-                for: PlayerSaveGraph.schema,
-                configurations: ModelConfiguration(
-                    schema: PlayerSaveGraph.schema,
-                    url: storeURL,
-                    cloudKitDatabase: .none
-                )
-            )
-            let modelContext = ModelContext(container)
-            modelContext.insert(PlayerSaveRoot(save: oldSave))
-            try modelContext.save()
-        }
+        try SaveTestSupport.writeRoot(oldSave, to: storeURL)
 
         let reloaded = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
 

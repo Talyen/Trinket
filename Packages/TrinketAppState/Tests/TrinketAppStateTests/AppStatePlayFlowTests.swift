@@ -21,19 +21,21 @@ struct AppStatePlayFlowTests {
     @Test func preparedJourneyBattleActivatesConfigurationAndState() throws {
         let state = try context.makePlaySession()
         let stage = try #require(GameContent.chapters[0].stages.first)
+        let battle = try #require(context.lastBattle)
         state.shellSession.selectedTab = .options
 
         state.journey.prepareBattle(for: stage)
 
         #expect(state.battle.activeBattle == nil)
         #expect(state.shellSession.selectedTab == .options)
+        let preparedRevision = battle.preparedBattlePresentationRevision
 
         #expect(state.journey.startBattle(for: stage) == nil)
 
         #expect(state.battle.activeBattle?.runKey == PlayBattleOrigin.journey(stageID: stage.id).runKey)
         #expect(state.shellSession.selectedTab == .play)
-        let battle = try #require(context.lastBattle)
         #expect(battle.lifecyclePhase == .active)
+        #expect(battle.preparedBattlePresentationRevision == preparedRevision)
     }
 
     @Test func unchangedJourneyInputsReuseLaunchPreparedBattle() throws {

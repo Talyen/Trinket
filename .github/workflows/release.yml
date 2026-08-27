@@ -97,8 +97,12 @@ jobs:
       - name: Validate changelog config
         run: ./Scripts/release-notes.sh validate
 
-      - name: Generate release body
-        run: ./Scripts/release-notes.sh github-body "${GITHUB_REF_NAME}" > "${RUNNER_TEMP}/release-body.md"
+      - name: Compose GitHub release body
+        run: |
+          {
+            cat ReleaseNotes/en-US.txt
+            printf '\nSee CHANGELOG.md for the full developer log.\n'
+          } > "${RUNNER_TEMP}/release-body.md"
 
       - name: Upload App Store notes artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

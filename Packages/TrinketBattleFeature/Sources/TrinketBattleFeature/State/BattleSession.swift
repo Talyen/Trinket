@@ -276,10 +276,14 @@ public final class BattleSession: BattleRuntime {
         _ configuration: BattleRunConfiguration,
         presentation: BattlePresentationContext? = nil
     ) {
+        let holdOpeningHandForOverlayFade = activeBattle == nil
         activeBattle = configuration
         presentationContext = presentation
         lifecyclePhase = .active
-        resetRun(from: configuration)
+        resetRun(
+            from: configuration,
+            holdOpeningHandForOverlayFade: holdOpeningHandForOverlayFade
+        )
     }
 
     public func installPresentationContext(_ context: BattlePresentationContext) {

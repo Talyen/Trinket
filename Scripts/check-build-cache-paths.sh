@@ -10,6 +10,8 @@
 # - changes.yml also watches .github/**, Trinket.xcodeproj/**, lint/format config —
 #   those trigger CI jobs but are deliberately omitted from the cache key so
 #   workflow-only edits can reuse warm DerivedData.
+# - Cache nonsource hashes Scripts/tool-versions.env, not Scripts/**, so
+#   script-only CI edits prefix-restore; Scripts/** remains on the full key.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -110,6 +112,17 @@ if [[ "$full_line" != *'Trinket/**'* ]]; then
 fi
 if [[ "$full_line" != *'Packages/**'* ]]; then
   echo "build-cache-key full hashFiles must include Packages/**" >&2
+  missing=1
+fi
+
+nonsource_line="$(grep 'nonsource=' "$CACHE_KEY_ACTION" | head -1 || true)"
+[[ -n "$nonsource_line" ]] || die "missing nonsource= hashFiles line in build-cache-key"
+if [[ "$nonsource_line" == *'Scripts/**'* ]]; then
+  echo "nonsource hashFiles must not include Scripts/**; script-only edits should prefix-restore." >&2
+  missing=1
+fi
+if [[ "$nonsource_line" != *'Scripts/tool-versions.env'* ]]; then
+  echo "nonsource hashFiles must include Scripts/tool-versions.env" >&2
   missing=1
 fi
 

@@ -73,23 +73,30 @@ struct StageSelectCompletionPanel: View {
     }
 }
 
-/// Invalidates prepared Stage Select / Spire battles when party, gear, or homestead effects change.
+/// Invalidates prepared Stage Select / Spire battles when party, gear, homestead,
+/// world seed, or claimed-reward state change.
 ///
-/// `PlayBattleLaunch` snapshots roster, inventory, and homestead into the prepared run;
-/// activation reuses that snapshot when party IDs match, so these slices must participate.
+/// `PlayBattleLaunch` snapshots those inputs into the prepared run;
+/// activation reuses that snapshot when party IDs match, so they must participate.
 @MainActor
 struct StageSelectPrepareDependency: Equatable {
     let runKey: String
     let roster: PlayerRosterState
     let inventory: PlayerInventoryState
     let homestead: PlayerHomesteadState
+    let worldSeed: UInt64
+    let stageRewardsAlreadyClaimed: Bool
 
     static func journey(playerSave: PlayerSaveStore) -> Self? {
         guard let stageID = playerSave.journey.activeStageID,
               let stage = GameContent.stage(id: stageID),
               stage.encounter.isCombat
         else { return nil }
-        return Self(runKey: stageID, playerSave: playerSave)
+        return Self(
+            runKey: stageID,
+            playerSave: playerSave,
+            stageRewardsAlreadyClaimed: playerSave.journey.hasClaimedRewards(for: stage)
+        )
     }
 
     static func spire(spireID: SpireID, floor: Int, playerSave: PlayerSaveStore) -> Self {
@@ -107,11 +114,17 @@ struct StageSelectPrepareDependency: Equatable {
         return Self(runKey: runKey, playerSave: playerSave)
     }
 
-    private init(runKey: String, playerSave: PlayerSaveStore) {
+    private init(
+        runKey: String,
+        playerSave: PlayerSaveStore,
+        stageRewardsAlreadyClaimed: Bool = false
+    ) {
         self.runKey = runKey
         roster = playerSave.roster
         inventory = playerSave.inventory
         homestead = playerSave.homestead
+        worldSeed = playerSave.worldSeed
+        self.stageRewardsAlreadyClaimed = stageRewardsAlreadyClaimed
     }
 }
 

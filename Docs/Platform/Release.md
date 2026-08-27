@@ -1,7 +1,8 @@
 # Release process
 
-Trinket generates developer changelogs and player-facing App Store notes at a
-release boundary. Agents do not edit `CHANGELOG.md` for ordinary commits.
+Trinket generates a developer changelog and player-facing App Store notes at a
+release boundary. Agents do not edit `CHANGELOG.md` or `ReleaseNotes/en-US.txt`
+for ordinary commits.
 
 ## Sources of truth
 
@@ -20,15 +21,13 @@ Use an imperative subject, preferably:
 <type>(<scope>): <subject no longer than 72 characters>
 
 - <notable change>
-
-User-Facing: yes | no
-Breaking: <description when applicable>
 ```
 
 Supported types are `feat`, `fix`, `perf`, `refactor`, `content`, `style`,
 `test`, `ci`, `chore`, and `docs`. Plain imperative subjects remain supported.
-Mark player-visible changes explicitly; otherwise release-note generation uses
-heuristics.
+Prefer `feat` or `fix` when a change is player-visible; use `refactor` for
+internal reshaping. Player-facing notes are inferred from commit type and
+touched paths at release time.
 
 ## Shipping
 
@@ -44,15 +43,15 @@ commits release artifacts, and creates a tag. Useful exceptions include
 `--version X.Y.Z`, `--no-tag`, and emergency-only `--skip-tests`.
 
 A pushed `v*` tag triggers the GitHub release workflow. It confirms that the
-tagged commit is on `main` with green CI, then creates a GitHub Release and
-uploads store-note artifacts. It does not repeat the full suite already run by
-the release command and main CI.
+tagged commit is on `main` with green CI, then creates a GitHub Release whose
+body is `ReleaseNotes/en-US.txt` and uploads that file as an artifact. It does
+not repeat the full suite already run by the release command and main CI.
 
 Apple's What's New field is required for updates after the first version, is
 plain text and localizable, and permits up to 4,000 characters. See
 [Apple's platform version reference](https://developer.apple.com/help/app-store-connect/reference/app-information/platform-version-information/).
-`release-notes-user.sh` validates the limit and writes an optional polishing
-prompt to `ReleaseNotes/.prompt.md`.
+`release-notes-user.sh` infers player-facing commits and writes
+`ReleaseNotes/en-US.txt`. Paste that file into App Store Connect when submitting.
 
 ## Local hooks and push discipline
 

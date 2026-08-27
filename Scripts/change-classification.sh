@@ -302,7 +302,8 @@ trinket_path_is_visual_ui() {
     Packages/TrinketBattleFeature/Sources/*/Features/*|Packages/TrinketBattleFeature/Sources/*/Views/*|\
     Packages/TrinketFeatureSupport/Sources/*/Features/*|Packages/TrinketFeatureSupport/Sources/*/FeatureAdapters/*|\
     Packages/TrinketFeatureSupport/Sources/*/Shared/Cards/*|Packages/TrinketFeatureSupport/Sources/*/Shared/Detail/*|\
-    Packages/TrinketFeatureSupport/Sources/*/Shared/Forms/*)
+    Packages/TrinketFeatureSupport/Sources/*/Shared/Forms/*|\
+    Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/PreparedArtwork*.swift)
       return 0
       ;;
     *) return 1 ;;

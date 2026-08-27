@@ -71,7 +71,9 @@ Read these focused guides:
 | `./Scripts/assert-generated-output.sh --idempotent` | Confirm regeneration produces no diff |
 | `./Scripts/build.sh` | Build the app with the routed local toolchain |
 | `./Scripts/build-for-testing.sh` | Rebuild app and package schemes for `test.sh … --no-build` runs against CI build artifacts |
-| `./Scripts/build-for-testing.sh --app-only` | Rebuild only the app (smoke/UI artifact miss recovery) |
+| `./Scripts/build-for-testing.sh --app-only` | Rebuild only the app (CI shared build; smoke/UI artifact miss recovery) |
+| `./Scripts/ci-path-filter.py` | CI path filter via the GitHub compare API (no full checkout); `code` / `assets` / `infra` outputs |
+| `./Scripts/stage-ci-test-artifact.sh` | Stage Products + stamps for the CI `--no-build` fan-out artifact |
 | `./Scripts/test-package.sh <Package>` | Run one package's tests |
 | `./Scripts/test.sh unit` | Run all package unit suites |
 | `./Scripts/test-timing.sh report` | Show per-suite wall-time history and hotspots from test runs |
@@ -80,6 +82,7 @@ Read these focused guides:
 | `./Scripts/test.sh smoke <Class...>` | Run targeted smoke classes |
 | `./Scripts/test.sh ui <Target>` | Run one exhaustive UI target; bare full suite requires `TRINKET_ALLOW_FULL_UI=1` (CI-owned otherwise) |
 | `./Scripts/performance.sh` | Ad hoc app + battle performance matrix (not CI) |
+| `./Scripts/record-time-profiler.sh --output <path.trace>` | Host Time Profiler of the Trinket process (no `xctrace --device`; `--all-processes` is opt-in and slow) |
 | `./Scripts/agent-context.sh --agent --paths …` | Print concise guidance and verification routing; use `--full` for full commands and `--working-tree --allow-broad-scope` only intentionally |
 | `./Scripts/agent-watch-ci.sh [--sha …]` | Poll a hosted CI run for a commit; prints failed jobs and annotations when red |
 | `./Scripts/agent-worktree.sh -h` | Create/list/remove isolated git worktrees for parallel agent sessions |
@@ -99,7 +102,7 @@ Read these focused guides:
 | `python3 ./Scripts/output-profile.py report --ci <artifact-dirs...>` | Aggregate CI profile artifacts without reading raw logs |
 | `python3 ./Scripts/output-profile.py report --actionable --top 3` | Print at most three actionable output hotspots |
 | `./Scripts/change-budget.sh --paths …` | Advisory authored-surface report against HEAD; `--base <rev>` for CI ranges |
-| `./Scripts/lint-analyze.sh` | CI-only advisory SwiftLint analyzer (`unused_import` / `unused_declaration`) after a compiler log exists; never from handoff or style |
+| `./Scripts/lint-analyze.sh` | CI-only advisory SwiftLint analyzer (`unused_import` / `unused_declaration`) after a compiler log exists; runs beside tests, never from handoff or style |
 | `./Scripts/ensure-ci-tools.sh` | Install pinned XcodeGen, SwiftFormat, SwiftLint, ripgrep, and xcbeautify |
 | `./Scripts/update-tools.sh [--apply]` | Report newer SwiftFormat/SwiftLint releases; with `--apply`, bump the pins in `tool-versions.env` (checksummed) and re-install |
 | `./Scripts/run-simulator.sh` | Build and launch on a managed simulator |

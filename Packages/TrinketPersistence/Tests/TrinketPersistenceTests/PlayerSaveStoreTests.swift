@@ -55,19 +55,7 @@ final class PlayerSaveStoreTests {
     @Test func versionedStoreAdoptsCurrentUnversionedSchema() throws {
         let storeURL = context.storeURL()
         let legacySchema = Schema(PlayerSaveSchema.models)
-        do {
-            let container = try ModelContainer(
-                for: legacySchema,
-                configurations: ModelConfiguration(
-                    schema: legacySchema,
-                    url: storeURL,
-                    cloudKitDatabase: .none
-                )
-            )
-            let modelContext = ModelContext(container)
-            modelContext.insert(PlayerSaveRoot(save: .testSeed))
-            try modelContext.save()
-        }
+        try SaveTestSupport.writeRoot(.testSeed, to: storeURL, schema: legacySchema)
 
         let versionedStore = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
 
@@ -502,19 +490,8 @@ struct PlayerSaveSchemaMigrationTests {
     @Test func storeMigratesWhenCurrentSchemaRemovesAnEntity() throws {
         let storeURL = context.storeURL()
         let legacySchema = Schema(PlayerSaveSchema.models + [LegacyPrimaryStatsRow.self])
-        do {
-            let container = try ModelContainer(
-                for: legacySchema,
-                configurations: ModelConfiguration(
-                    schema: legacySchema,
-                    url: storeURL,
-                    cloudKitDatabase: .none
-                )
-            )
-            let modelContext = ModelContext(container)
-            modelContext.insert(PlayerSaveRoot(save: .testSeed))
-            modelContext.insert(LegacyPrimaryStatsRow(combatantID: "knight", wisdom: 7))
-            try modelContext.save()
+        try SaveTestSupport.writeRoot(.testSeed, to: storeURL, schema: legacySchema) { context in
+            context.insert(LegacyPrimaryStatsRow(combatantID: "knight", wisdom: 7))
         }
 
         let migratedStore = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)

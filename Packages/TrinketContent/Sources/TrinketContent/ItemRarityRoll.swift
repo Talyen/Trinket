@@ -27,24 +27,23 @@ public enum ItemRarityRoll {
         allowsUnique: Bool = true,
         using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> ItemDropTier {
-        let uniqueChance = bossContent ? 30 : (allowsUnique ? 5 : 0)
+        // Keep band thresholds fixed so disallowing Unique remaps that band to
+        // Astral without sliding Trinket/Astral windows down the ladder.
+        let uniqueBand = bossContent ? 30 : 5
         let trinketChance = bossContent ? 30 : 7
         var astralChance = bossContent ? 40 : 8
         if !bossContent {
             astralChance += max(0, min(100, astralChanceBonusPercent))
-            if !allowsUnique {
-                astralChance += 5
-            }
         }
 
         let draw = Int.random(in: 0 ..< 100, using: &randomNumberGenerator)
-        if draw < uniqueChance {
-            return .unique
+        if draw < uniqueBand {
+            return allowsUnique ? .unique : .astral
         }
-        if draw < uniqueChance + trinketChance {
+        if draw < uniqueBand + trinketChance {
             return .trinket
         }
-        if draw < uniqueChance + trinketChance + astralChance {
+        if draw < uniqueBand + trinketChance + astralChance {
             return .astral
         }
         return .basic

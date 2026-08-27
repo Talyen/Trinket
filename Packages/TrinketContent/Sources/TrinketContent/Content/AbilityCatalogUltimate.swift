@@ -5,7 +5,7 @@ enum AbilityCatalogUltimate {
     static let avatarOfJustice = Ability(
         id: "avatar-of-justice", name: "Avatar", tier: .ultimate,
         targetedEffects: [
-            TargetedEffect(.avatar(holyDamage: 6, blockPerTurn: 4, turns: 1)),
+            TargetedEffect(.avatar(holyDamage: 6, blockPerTurn: 4, turns: 2)),
         ]
     )
 

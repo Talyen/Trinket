@@ -1,5 +1,7 @@
 import Foundation
 import SwiftData
+import TrinketContent
+import TrinketCore
 import TrinketPersistence
 
 /// Shared temp-directory save-store harness for Persistence and AppState tests.
@@ -76,6 +78,46 @@ public enum SaveTestSupport {
             roster: roster,
             inventory: inventory,
             homestead: homestead
+        )
+    }
+
+    public static func writeRoot(
+        _ save: PlayerSave,
+        to storeURL: URL,
+        schema: Schema = PlayerSaveGraph.schema,
+        additionalInserts: ((ModelContext) throws -> Void)? = nil
+    ) throws {
+        let container = try ModelContainer(
+            for: schema,
+            configurations: ModelConfiguration(
+                schema: schema,
+                url: storeURL,
+                cloudKitDatabase: .none
+            )
+        )
+        let context = ModelContext(container)
+        context.insert(PlayerSaveRoot(save: save))
+        try additionalInserts?(context)
+        try context.save()
+    }
+
+    public static func makeGeneratedItem(
+        baseID: String,
+        rarity: Rarity,
+        id: String? = nil,
+        templateID: String? = nil,
+        seed: UInt64 = 11
+    ) throws -> InventoryItem {
+        guard let baseType = GameContent.itemBaseTypes.first(where: { $0.id == baseID }) else {
+            throw PlayerSavePersistenceError.invalidSave("Unknown item base \(baseID)")
+        }
+        var randomNumberGenerator = SeededRandomNumberGenerator(seed: seed)
+        return ItemGenerator().generate(
+            id: id ?? "\(baseID)-\(rarity.rawValue)",
+            templateID: templateID ?? "\(baseID)-\(rarity.rawValue)",
+            baseType: baseType,
+            rarity: rarity,
+            using: &randomNumberGenerator
         )
     }
 }

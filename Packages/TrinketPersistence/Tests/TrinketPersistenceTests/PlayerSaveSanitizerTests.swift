@@ -3,8 +3,7 @@ import TrinketContent
 import TrinketCore
 @testable import TrinketPersistence
 
-@MainActor
-final class PlayerSaveSanitizerTests {
+struct PlayerSaveSanitizerTests {
     @Test func sanitizeInventoryRemovesDuplicateItemIDs() throws {
         let baseType = try #require(GameContent.itemBaseTypes.first)
         let duplicate = InventoryItem(
@@ -405,7 +404,6 @@ final class PlayerSaveSanitizerTests {
     }
 }
 
-@MainActor
 struct PlayerSaveSanitizerAbilityCollisionTests {
     @Test func sanitizeRosterKeepsLiveSkillThatSharesLegacyRemapID() throws {
         let wizard = try #require(GameContent.heroes.first { $0.id == "wizard" })

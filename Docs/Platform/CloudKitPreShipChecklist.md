@@ -27,7 +27,7 @@ Confirm in source / CI config:
 - [ ] User-facing reset copy does **not** claim live iCloud sync (`OptionsView` — this device only)
 - [ ] `PrivacyInfo.xcprivacy` present (`Trinket/PrivacyInfo.xcprivacy`; no tracking; collected-data empty until sync ships)
 - [ ] `INFOPLIST_KEY_UIBackgroundModes: remote-notification` remains absent while sync is disabled (`project.yml`)
-- [ ] `PlayerSaveStore.resolveConfiguration` documents local-only vs private CloudKit paths; private path unused until entitlements + portal
+- [ ] `PlayerSaveStoreConfiguration.resolveConfiguration` documents local-only vs private CloudKit paths; private path unused until entitlements + portal
 - [ ] Entitlements file exists but empty on purpose — do not invent CloudKit keys before Developer Program enrollment
 - [ ] Passive Homestead collection has an explicit CloudKit readiness gate; the local collector cannot run while private CloudKit is enabled
 - [ ] The CloudKit passive-production authority is implemented before that gate is removed; no UI path writes a local collection while cloud sync is active

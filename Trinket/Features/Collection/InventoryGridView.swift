@@ -127,7 +127,7 @@ extension ItemDetailView {
         return Self(
             item: item,
             salvageYields: yields,
-            equippedByName: saveStore.equippedCombatantName(for: item.id),
+            equippedByName: saveStore.roster.equippedCombatantName(for: item.id),
             onSalvage: { () -> ItemSalvageActionResult in
                 let result = withAnimation(TrinketMotion.Reward.stateChange) {
                     saveStore.salvageItem(id: item.id)

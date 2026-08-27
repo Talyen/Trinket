@@ -13,6 +13,7 @@ struct CollectionView: View {
     @State private var salvageDetail = SalvageDetailState()
     @State private var selectedCombatant: CombatantDetailContext?
     @State private var showMissingItem = false
+    @State private var pinnedDetailArtwork: [String] = []
     @Namespace private var zoomNamespace
 
     let consumePendingPresentation: () -> LaunchPresentation?
@@ -29,6 +30,16 @@ struct CollectionView: View {
             .navigationTitle("Collection")
             .navigationBarTitleDisplayMode(.large)
             .onAppear(perform: presentPendingLaunchRoute)
+            .task(id: imminentDetailArtworkPinKey) {
+                // Shelf thumbs are launch-priority; pin the sheet's full
+                // portraits and compact ability/talent art so NSCache eviction
+                // cannot force Image(name) onto the zoom+sheet frame.
+                await refreshImminentDetailArtworkPins()
+            }
+            .onDisappear {
+                PreparedArtworkCache.shared.releasePins(names: pinnedDetailArtwork)
+                pinnedDetailArtwork = []
+            }
             .alert("Item Not Found", isPresented: $showMissingItem) {
                 Button("OK", role: .cancel) {}
             } message: {
@@ -114,6 +125,47 @@ struct CollectionView: View {
             .padding(.top, TrinketDesign.Metrics.compactContentTopPadding)
             .padding(.bottom, TrinketDesign.Metrics.sectionSpacing)
         }
+    }
+
+    private var imminentDetailArtworkPinKey: [String] {
+        Self.imminentDetailArtworkNames(roster: playerSave.roster).sorted()
+    }
+
+    static func imminentDetailArtworkNames(roster: PlayerRosterState) -> [String] {
+        let shelfLimit = TrinketDesign.Metrics.collectionShelfPreviewLimit
+        let combatants = Array(roster.collectionHeroes.prefix(shelfLimit))
+            + Array(roster.collectionCompanions.prefix(shelfLimit))
+        var names: [String] = []
+        for combatant in combatants {
+            if let fullName = combatant.artReference?.imageName {
+                names.append(fullName)
+            }
+            for ability in roster.configuredCombatant(combatant).abilities {
+                if let reference = ability.artReference {
+                    names.append(reference.thumbnailImageName ?? reference.imageName)
+                }
+            }
+            for tree in CombatantTalentCatalog.config(for: combatant.id).trees {
+                if let reference = tree.keyword.artReference {
+                    names.append(reference.thumbnailImageName ?? reference.imageName)
+                }
+            }
+        }
+        return names
+    }
+
+    private func refreshImminentDetailArtworkPins() async {
+        let next = Array(Set(Self.imminentDetailArtworkNames(roster: playerSave.roster))).sorted()
+        let previous = Set(pinnedDetailArtwork)
+        let added = Set(next).subtracting(previous)
+        let removed = previous.subtracting(next)
+        if !added.isEmpty {
+            await PreparedArtworkCache.shared.prepareAndPin(names: Array(added))
+        }
+        if !removed.isEmpty {
+            PreparedArtworkCache.shared.releasePins(names: Array(removed))
+        }
+        pinnedDetailArtwork = next
     }
 
     private func presentPendingLaunchRoute() {

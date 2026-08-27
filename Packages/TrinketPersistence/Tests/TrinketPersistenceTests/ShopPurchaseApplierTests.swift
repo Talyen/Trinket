@@ -204,14 +204,12 @@ struct ShopPurchaseApplierTests {
     }
 
     private func makeOffer(price: Int) throws -> ShopOffer {
-        let baseType = try #require(GameContent.itemBaseTypes.first { $0.id == "longsword" })
-        var randomNumberGenerator = SeededRandomNumberGenerator(seed: 7)
-        let item = ItemGenerator().generate(
+        let item = try SaveTestSupport.makeGeneratedItem(
+            baseID: "longsword",
+            rarity: .basic,
             id: "chapter-2-stage-8-offer-0",
             templateID: "longsword-basic",
-            baseType: baseType,
-            rarity: .basic,
-            using: &randomNumberGenerator
+            seed: 7
         )
         return ShopOffer(id: "chapter-2-stage-8-offer-0", item: item, price: price)
     }

@@ -9,6 +9,9 @@ on:
       assets:
         description: Whether any processed asset input changed
         value: ${{ jobs.changes.outputs.assets }}
+      infra:
+        description: Whether Scripts, workflows, or style config changed
+        value: ${{ jobs.changes.outputs.infra }}
 
 jobs:
   changes:
@@ -18,42 +21,20 @@ jobs:
     outputs:
       code: ${{ steps.filter.outputs.code }}
       assets: ${{ steps.filter.outputs.assets }}
+      infra: ${{ steps.filter.outputs.infra }}
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-      - uses: dorny/paths-filter@6852f92c20ea7fd3b0c25de3b5112db3a98da050 # v3
+      # Push events cannot use dorny REST mode (PR-only). Fetch the filter
+      # script and the compare file list from the API so this job does not
+      # clone Raw Assets / Packages.
+      - name: Detect changed paths
         id: filter
-        with:
-          filters: |
-            code:
-              - 'Trinket/**'
-              - 'Packages/**'
-              - 'TrinketUITests/**'
-              - 'ContentManifest/**'
-              - 'ArtManifest/**'
-              - 'MusicManifest/**'
-              - 'SoundManifest/**'
-              - 'CinematicManifest/**'
-              - 'Raw Assets/**'
-              - 'Scripts/**'
-              # Prose-only script edits do not affect build/test behavior.
-              - '!Scripts/**/*.md'
-              - 'project.yml'
-              - 'Trinket.xcodeproj/**'
-              - '*.xctestplan'
-              - '.swiftlint.yml'
-              - '.swiftformat'
-              - 'cliff.toml'
-              # Workflow/action changes that affect build/test behavior.
-              - '.github/actions/**'
-              - '.github/workflows/**'
-            assets:
-              - 'ArtManifest/**'
-              - 'MusicManifest/**'
-              - 'SoundManifest/**'
-              - 'CinematicManifest/**'
-              - 'Raw Assets/**'
-              - 'Scripts/prepare-art-assets.sh'
-              - 'Scripts/prepare-music-assets.sh'
-              - 'Scripts/prepare-sfx-assets.sh'
-              - 'Scripts/prepare-cinematic-assets.sh'
-              - 'Scripts/prepare-app-icon.sh'
+        env:
+          BEFORE: ${{ github.event.before }}
+          SHA: ${{ github.sha }}
+          EVENT_NAME: ${{ github.event_name }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh api "repos/${GITHUB_REPOSITORY}/contents/Scripts/ci-path-filter.py?ref=${SHA}" \
+            --jq .content | base64 --decode > /tmp/ci-path-filter.py
+          python3 /tmp/ci-path-filter.py
