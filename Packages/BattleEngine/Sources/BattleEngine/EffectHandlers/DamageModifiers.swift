@@ -42,14 +42,15 @@ struct ControlMeterHandler: BattleEffectHandler {
         if meter.effect.isActionSkipPending {
             let alias = keyword.statusAlias ?? keyword.rawValue
             if meter.isAwaitingActionSkip {
-                return EffectSummary(keyword: keyword, text: "\(alias): action prevented.")
+                return EffectSummary(keyword: keyword, text: "\(alias): Next action is prevented.")
             }
-            return EffectSummary(keyword: keyword, text: alias)
+            return EffectSummary(keyword: keyword, text: "\(alias): Recovering from \(keyword.rawValue).")
         }
         guard let values = meter.effect.controlMeterValues else { return nil }
+        let alias = keyword.statusAlias ?? keyword.rawValue
         return EffectSummary(
             keyword: keyword,
-            text: "\(keyword.rawValue) Build-up: \(values.amount)/\(values.threshold)"
+            text: "\(keyword.rawValue) Build-up: \(values.amount)/\(values.threshold) toward \(alias)."
         )
     }
 

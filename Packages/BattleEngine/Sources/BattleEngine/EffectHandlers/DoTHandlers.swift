@@ -70,8 +70,22 @@ struct DecayingDoTHandler: BattleEffectHandler {
     }
 
     func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
-        guard stacks.contains(where: \.effect.isDecayingDoT) else { return nil }
-        return EffectSummary(keyword: keyword, text: "\(keyword.rawValue) active")
+        let total = stacks.reduce(0) { sum, active in
+            if case let .burn(potency) = active.effect, keyword == .burn {
+                return sum + potency
+            }
+            if case let .poison(potency) = active.effect, keyword == .poison {
+                return sum + potency
+            }
+            return sum
+        }
+        guard total > 0 else { return nil }
+        let decayDescription = keyword == .burn ? "decaying over time" : "decaying slowly"
+        let alias = keyword.statusAlias ?? keyword.rawValue
+        return EffectSummary(
+            keyword: keyword,
+            text: "\(alias): Takes \(total) \(keyword.rawValue) damage each turn, \(decayDescription)."
+        )
     }
 
     func apply(
@@ -222,7 +236,8 @@ struct BleedHandler: BattleEffectHandler {
             return sum + potency
         }
         guard total > 0 else { return nil }
-        return EffectSummary(keyword: keyword, text: "\(keyword.rawValue): \(total) damage")
+        let alias = keyword.statusAlias ?? keyword.rawValue
+        return EffectSummary(keyword: keyword, text: "\(alias): Takes \(total) \(keyword.rawValue) damage each turn.")
     }
 
     func apply(

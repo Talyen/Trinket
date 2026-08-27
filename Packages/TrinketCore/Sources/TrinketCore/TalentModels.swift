@@ -7,7 +7,7 @@ public struct TalentNode: Identifiable, Hashable, Codable, Sendable {
     public let keyword: Keyword
     /// 1-indexed visual unlock row index: 1, 2, or 3 (UI progression gating only; power is flat across rows).
     public let row: Int
-
+    public let symbolName: String?
     public let description: String
 
     public init(
@@ -15,12 +15,14 @@ public struct TalentNode: Identifiable, Hashable, Codable, Sendable {
         name: String,
         keyword: Keyword,
         row: Int = 1,
+        symbolName: String? = nil,
         description: String
     ) {
         self.id = id
         self.name = name
         self.keyword = keyword
         self.row = row
+        self.symbolName = symbolName
         self.description = description
     }
 }

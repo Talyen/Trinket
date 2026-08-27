@@ -14,3 +14,27 @@ fire_elemental	Fire Elemental	13	false	mage	kindling,fireball,combustion	fire_el
 frost_elemental	Frost Elemental	14	false	mage	rayOfFrost,glacialWard,blizzard	frost_elemental_trait	elemental
 slime	Slime	15	false	tank	causticJab,acidPotion,bloodthorn	slime_trait	beast
 will_o_wisp	Will-o-Wisp	13	false	mage	iceShot,frostbolt,blizzard	will_o_wisp_trait	elemental
+bandit	Bandit	13	false	assassin	stab,serratedEdge,shadowstep	bandit_trait	mortal
+ogre	Ogre	15	false	bruiser	slash,sunder,thornMail	ogre_trait	mortal
+fire_imp	Fire Imp	13	false	assassin	kindling,fireball,combustion	fire_imp_trait	corrupted
+hellhound	Hellhound	14	false	bruiser	kindling,pounce,moltenBulwark	hellhound_trait	beast
+pyromancer	Pyromancer	13	false	mage	kindling,fireball,meteor	pyromancer_trait	mortal
+giant_spider	Giant Spider	14	false	assassin	causticJab,venomFangs,bloodthorn	giant_spider_trait	beast
+giant_snake	Giant Snake	14	false	assassin	causticJab,venomFangs,bloodthorn	giant_snake_trait	beast
+blood_cultist	Blood Cultist	13	false	mage	rendingSlash,bloodOffering,hemorrhage	blood_cultist_trait	mortal
+dire_wolf	Dire Wolf	14	false	bruiser	fangs,serratedEdge,packTactics	dire_wolf_trait	beast
+vampire	Vampire	14	false	assassin	fangs,darkPact,hemorrhage	vampire_trait	undead
+the_blood_countess	The Blood Countess	15	true	mage	rendingSlash,bloodOffering,hemorrhage	the_blood_countess_trait	undead
+zealot	Zealot	14	false	bruiser	slash,smite,avatarOfJustice	zealot_trait	mortal
+cleric	Cleric	13	false	support	shieldBash,smite,sunburst	cleric_trait	mortal
+inquisitor	Inquisitor	14	false	assassin	stab,smite,sunburst	inquisitor_trait	mortal
+paladin	Paladin	15	false	tank	shieldBash,smite,blessedAegis	paladin_trait	mortal
+the_seraph	The Seraph	15	true	mage	slash,smite,sunburst	the_seraph_trait	mortal
+winter_wolf	Winter Wolf	14	false	assassin	fangs,coldSnap,packTactics	winter_wolf_trait	beast
+ice_wraith	Ice Wraith	13	false	mage	rayOfFrost,frostbolt,blizzard	ice_wraith_trait	undead
+yeti	Yeti	15	false	tank	bash,glacialWard,blizzard	yeti_trait	beast
+banshee	Banshee	13	false	mage	bash,darkPact,earthquake	banshee_trait	undead
+brawler	Brawler	14	false	bruiser	bash,sunder,earthquake	brawler_trait	mortal
+stone_golem	Stone Golem	15	false	tank	shieldBash,stoneskinPotion,earthquake	stone_golem_trait	construct
+earth_elemental	Earth Elemental	15	false	tank	bash,sunder,earthquake	earth_elemental_trait	elemental
+the_stone_titan	The Stone Titan	15	true	tank	bash,sunder,earthquake	the_stone_titan_trait	construct

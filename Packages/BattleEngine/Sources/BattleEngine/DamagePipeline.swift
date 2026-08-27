@@ -25,10 +25,6 @@ package enum DamagePipeline {
             return
         }
         state.targetStatus = DamageTargetStatus(for: state.combatant, in: context)
-        state.targetModifiers = context.modifiers(for: state.combatant.id)
-        if let sourceActorID = state.sourceActorID {
-            state.sourceModifiers = context.modifiers(for: sourceActorID)
-        }
         applyCriticalGate(to: &state, in: &context)
         applyCriticalBlockSteal(to: &state, in: &context)
         applyDamageBonus(to: &state, in: &context)

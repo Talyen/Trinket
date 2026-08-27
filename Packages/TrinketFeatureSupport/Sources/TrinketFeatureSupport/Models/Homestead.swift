@@ -31,3 +31,20 @@ public extension HomesteadResource {
         "Homestead Wallet Resource \(rawValue)"
     }
 }
+
+public extension [ResourceAmount] {
+    var formattedYieldList: String {
+        let parts = map { "\($0.quantity) \($0.resource.displayName)" }
+        switch parts.count {
+        case 0:
+            return "nothing"
+        case 1:
+            return parts[0]
+        case 2:
+            return "\(parts[0]) and \(parts[1])"
+        default:
+            let head = parts.dropLast().joined(separator: ", ")
+            return "\(head), and \(parts[parts.count - 1])"
+        }
+    }
+}

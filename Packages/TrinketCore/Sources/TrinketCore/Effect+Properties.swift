@@ -119,12 +119,7 @@ public extension Effect {
     /// True when this effect resolves immediately and never occupies a slot
     /// on the combatant.
     var isInstant: Bool {
-        switch self {
-        case .cleanseHealPerDebuff:
-            true
-        default:
-            behaviorMetadata.isInstant
-        }
+        behaviorMetadata.isInstant
     }
 
     /// True for burn and poison, which decay their potency each turn instead

@@ -202,7 +202,7 @@ public struct ItemDetailView: View {
     }
 
     private var salvageConfirmationMessage: String {
-        let message = "You will receive \(Self.formattedYieldList(salvageYields ?? []))."
+        let message = "You will receive \((salvageYields ?? []).formattedYieldList)."
         if let equippedByName {
             return message + " This unequips it from \(equippedByName)."
         }
@@ -224,18 +224,7 @@ public struct ItemDetailView: View {
     }
 
     public static func formattedYieldList(_ yields: [ResourceAmount]) -> String {
-        let parts = yields.map { "\($0.quantity) \($0.resource.displayName)" }
-        switch parts.count {
-        case 0:
-            return "nothing"
-        case 1:
-            return parts[0]
-        case 2:
-            return "\(parts[0]) and \(parts[1])"
-        default:
-            let head = parts.dropLast().joined(separator: ", ")
-            return "\(head), and \(parts[parts.count - 1])"
-        }
+        yields.formattedYieldList
     }
 }
 

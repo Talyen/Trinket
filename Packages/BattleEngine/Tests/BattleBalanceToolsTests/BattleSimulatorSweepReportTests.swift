@@ -4,6 +4,7 @@ import TrinketContent
 import TrinketCore
 @testable import BattleBalanceTools
 
+@Suite(.serialized)
 struct BattleSimulatorSweepReportTests {
     @Test func parallelIdentityMatchesSequentialOutcomes() {
         let sequential = BalanceSweepRunner.run(

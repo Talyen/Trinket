@@ -20,4 +20,9 @@ public struct PrimaryStats: Equatable, Hashable, Codable, Sendable {
         self.intellect = intellect
         self.wisdom = wisdom
     }
+
+    /// Total sum of all five primary stats.
+    public var total: Int {
+        strength + agility + toughness + intellect + wisdom
+    }
 }

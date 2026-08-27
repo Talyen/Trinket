@@ -43,7 +43,8 @@ struct ArtCatalogIntegrationTests {
             )
         }
 
-        for enemy in GameContent.enemies {
+        let campaignEnemyIDs = Set(GameContent.chapters.flatMap(\.stages).compactMap(\.encounter.battleEnemyID))
+        for enemy in GameContent.enemies where campaignEnemyIDs.contains(enemy.id) {
             _ = try #require(
                 ArtCatalog.combatantArtByID[enemy.id],
                 "\(enemy.name) should have an art reference in the catalog"

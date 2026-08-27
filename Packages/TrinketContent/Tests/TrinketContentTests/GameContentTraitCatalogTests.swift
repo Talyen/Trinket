@@ -66,5 +66,20 @@ struct GameContentTraitCatalogTests {
         let frostwarden = try #require(GameContent.traits.first { $0.id == "the_frostwarden_trait" })
         try #expect(frostwarden.triggers.turnFreezeDamageAllEnemies == 1)
         try #expect(frostwarden.triggers.turnRandomDamageAllEnemiesAmount == 0)
+
+        let countess = try #require(GameContent.traits.first { $0.id == "the_blood_countess_trait" })
+        try #expect(countess.triggers.turnRandomDamageAllEnemiesKeywordA == .bleed)
+        try #expect(countess.triggers.turnRandomDamageAllEnemiesKeywordB == .bleed)
+        try #expect(countess.triggers.turnRandomDamageAllEnemiesAmount == 1)
+
+        let seraph = try #require(GameContent.traits.first { $0.id == "the_seraph_trait" })
+        try #expect(seraph.triggers.turnRandomDamageAllEnemiesKeywordA == .holy)
+        try #expect(seraph.triggers.turnRandomDamageAllEnemiesKeywordB == .holy)
+        try #expect(seraph.triggers.turnRandomDamageAllEnemiesAmount == 1)
+
+        let titan = try #require(GameContent.traits.first { $0.id == "the_stone_titan_trait" })
+        try #expect(titan.triggers.turnRandomDamageAllEnemiesKeywordA == .stun)
+        try #expect(titan.triggers.turnRandomDamageAllEnemiesKeywordB == .stun)
+        try #expect(titan.triggers.turnRandomDamageAllEnemiesAmount == 1)
     }
 }

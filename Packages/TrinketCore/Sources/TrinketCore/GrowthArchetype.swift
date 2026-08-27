@@ -135,18 +135,15 @@ public enum StatGrowth {
         guard healthMultiplier != 1.0 || statsMultiplier != 1.0 else {
             return (maxHealth, maxMana, primaryStats)
         }
-        func scaled(_ value: Int, multiplier: Double) -> Int {
-            max(0, Int((Double(value) * multiplier).rounded()))
-        }
         return (
-            maxHealth: max(1, scaled(maxHealth, multiplier: healthMultiplier)),
-            maxMana: scaled(maxMana, multiplier: statsMultiplier),
+            maxHealth: max(1, CombatRounding.scaled(maxHealth, multiplier: healthMultiplier)),
+            maxMana: CombatRounding.scaled(maxMana, multiplier: statsMultiplier),
             primaryStats: PrimaryStats(
-                strength: scaled(primaryStats.strength, multiplier: statsMultiplier),
-                agility: scaled(primaryStats.agility, multiplier: statsMultiplier),
-                toughness: scaled(primaryStats.toughness, multiplier: statsMultiplier),
-                intellect: scaled(primaryStats.intellect, multiplier: statsMultiplier),
-                wisdom: scaled(primaryStats.wisdom, multiplier: statsMultiplier)
+                strength: CombatRounding.scaled(primaryStats.strength, multiplier: statsMultiplier),
+                agility: CombatRounding.scaled(primaryStats.agility, multiplier: statsMultiplier),
+                toughness: CombatRounding.scaled(primaryStats.toughness, multiplier: statsMultiplier),
+                intellect: CombatRounding.scaled(primaryStats.intellect, multiplier: statsMultiplier),
+                wisdom: CombatRounding.scaled(primaryStats.wisdom, multiplier: statsMultiplier)
             )
         )
     }

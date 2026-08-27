@@ -18,7 +18,6 @@ struct ThemePalette {
     let healthRestore: Color
     let overlayInk: Color
     let overlayPaper: Color
-    let heroScrim: Color
     let shadow: ShadowStyle
 
     static let trinket = Self(
@@ -39,7 +38,6 @@ struct ThemePalette {
         healthRestore: DesignAssetColors.named("ThemeHealthRestore"),
         overlayInk: DesignAssetColors.named("ThemeOverlayInk"),
         overlayPaper: DesignAssetColors.named("ThemeOverlayPaper"),
-        heroScrim: DesignAssetColors.named("ThemeHeroScrim"),
         shadow: .elevated
     )
 }

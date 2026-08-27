@@ -38,7 +38,7 @@ package extension DamagePipeline {
                 : 0
             if state.options.isAttackHit,
                var runtime = context.roster.runtime(for: actor.combatant) {
-                let profile = state.sourceModifiers ?? context.modifiers(for: sourceActorID)
+                let profile = context.modifiers(for: sourceActorID)
                 if !runtime.hasTriggeredFirstHitBonus, profile.triggers.firstHitDoubleDamage {
                     state.itemBonus += (state.amount + state.statBonus)
                     runtime.hasTriggeredFirstHitBonus = true
@@ -61,7 +61,7 @@ package extension DamagePipeline {
               let sourceActorID = state.sourceActorID,
               let damageKeyword = state.damageKeyword
         else { return }
-        let profile = state.sourceModifiers ?? context.modifiers(for: sourceActorID)
+        let profile = context.modifiers(for: sourceActorID)
         let percent = profile.damageDealtPercent(for: damageKeyword)
         let percentBonus = CombatRounding.scaled(max(0, state.remaining), multiplier: percent)
         state.itemBonus += percentBonus
@@ -114,7 +114,7 @@ package extension DamagePipeline {
         if state.options.isAttackHit,
            let sourceActorID = state.sourceActorID,
            state.targetStatus.isStunned {
-            let profile = state.sourceModifiers ?? context.modifiers(for: sourceActorID)
+            let profile = context.modifiers(for: sourceActorID)
             let multiplier = profile.triggers.stunnedDamageMultiplier
             if multiplier > 1 {
                 state.remaining = CombatRounding.scaled(state.remaining, multiplier: multiplier)
@@ -201,7 +201,7 @@ package extension DamagePipeline {
         let enemyBleedStacks = context.roster.activeEffects(for: enemy).count(where: { $0.effect.isBleed })
         var reductionFlat = 0
         var reductionMultiplier = 1.0
-        for profile in [context.heroModifiers, context.companionModifiers] {
+        for profile in CombatTriggerEngine.livingAllyModifiers(in: context) {
             let t = profile.triggers
             if enemyIsFrozen {
                 reductionFlat += t.frozenEnemyDamageReductionFlat
@@ -289,7 +289,7 @@ package extension DamagePipeline {
             state.buildupDamage = state.remaining
             return
         }
-        let profile = state.targetModifiers ?? context.modifiers(for: state.combatant.id)
+        let profile = context.modifiers(for: state.combatant.id)
         let flatReduction = profile.damageTakenFlat(for: damageKeyword)
         if flatReduction > 0 {
             state.remaining = max(0, state.remaining - flatReduction)
@@ -348,13 +348,13 @@ package extension DamagePipeline {
     ) {
         guard state.remaining > 0 else { return }
 
-        let profile = state.targetModifiers ?? context.modifiers(for: state.combatant.id)
+        let profile = context.modifiers(for: state.combatant.id)
         let defenderTriggers = profile.triggers
         var effectivePercent = DefensePoolEngine.effectiveToughnessMitigationPercent(
             for: state.combatant
         )
         if let sourceActorID = state.sourceActorID {
-            let sourceProfile = state.sourceModifiers ?? context.modifiers(for: sourceActorID)
+            let sourceProfile = context.modifiers(for: sourceActorID)
             let ignorePercent = min(1, sourceProfile.triggers.ignoreEnemyMitigationPercent)
             if ignorePercent > 0 {
                 effectivePercent *= (1 - ignorePercent)

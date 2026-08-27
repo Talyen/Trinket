@@ -26,6 +26,7 @@ struct KeywordCoreTests {
         (.block, .mitigation),
         (.dodge, .mitigation),
         (.purge, .mitigation),
+        (.cleanse, .restoration),
         (.health, .restoration),
         (.leech, .restoration),
         (.deathsDoor, .restoration),
@@ -42,13 +43,28 @@ struct KeywordCoreTests {
         try #expect(rawValues.allSatisfy { !$0.isEmpty })
     }
 
-    @Test func referencedKeywordsExtraction() throws {
+    @Test func referencedKeywordsExtractionMaintainsAppearanceOrder() throws {
         let text = "Gain 1 Block when you deal Stun or Holy damage."
         let keywords = Keyword.referenced(in: text)
-        try #expect(keywords.contains(.block))
-        try #expect(keywords.contains(.stun))
-        try #expect(keywords.contains(.holy))
+        try #expect(keywords == [.block, .stun, .holy])
         try #expect(!keywords.contains(.burn))
+
+        // Ensure shorter keyword ("Stun" 4 chars) appearing before longer keyword ("Bleed" 5 chars)
+        // is preserved in exact appearance order (not term length descending).
+        let stunBeforeBleed = "Deal Stun then Bleed."
+        try #expect(Keyword.referenced(in: stunBeforeBleed) == [.stun, .bleed])
+
+        let bleedBeforeStun = "Deal Bleed then Stun."
+        try #expect(Keyword.referenced(in: bleedBeforeStun) == [.bleed, .stun])
+    }
+
+    @Test func referencedKeywordsMatchesStatusAliasesAndDeduplicates() throws {
+        let text = "Applies Burning then Frozen, then more Burning."
+        let keywords = Keyword.referenced(in: text)
+        try #expect(keywords == [.burn, .freeze])
+
+        let caseInsensitive = "deal poison and holy damage"
+        try #expect(Keyword.referenced(in: caseInsensitive) == [.poison, .holy])
     }
 
     @Test func bleedRulesTextMatchesTurnCount() throws {

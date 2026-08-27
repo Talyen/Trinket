@@ -4,11 +4,15 @@ public extension String {
     /// Returns a copy of the string with the space before the final word replaced with a non-breaking space (`\u{00A0}`),
     /// binding the final words together to prevent single-word orphan line wraps.
     func trinketBalanced() -> String {
-        guard let lastSpaceIndex = lastIndex(where: { $0 == " " || $0 == "\t" }) else {
+        guard let lastNonWhitespace = lastIndex(where: { !$0.isWhitespace }) else {
+            return self
+        }
+        let prefix = self[...lastNonWhitespace]
+        guard let lastWordStart = prefix.lastIndex(where: { $0.isWhitespace }) else {
             return self
         }
         var result = self
-        result.replaceSubrange(lastSpaceIndex ... lastSpaceIndex, with: "\u{00A0}")
+        result.replaceSubrange(lastWordStart ... lastWordStart, with: "\u{00A0}")
         return result
     }
 }

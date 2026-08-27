@@ -299,20 +299,17 @@ struct CombatFeedbackPresenterTests {
         abilityID: String = "slash",
         abilityName: String = "Slash"
     ) -> ActionEvent {
-        ActionEvent(
+        BattleSessionTestSupport.makeActionEvent(
             id: id,
-            actionID: actionID ?? id,
             kind: kind,
             effectKind: effectKind,
-            actorID: "hero",
-            actorName: "Hero",
-            abilityID: abilityID,
-            abilityName: abilityName,
-            targetID: targetID,
-            targetName: targetID.capitalized,
             amount: amount,
             keyword: keyword,
-            isCritical: isCritical
+            targetID: targetID,
+            isCritical: isCritical,
+            actionID: actionID,
+            abilityID: abilityID,
+            abilityName: abilityName
         )
     }
 }

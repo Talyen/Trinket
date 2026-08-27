@@ -56,14 +56,20 @@ package enum CombatTriggerEngine {
         guard target.role == .enemy else { return 1 }
         let isBurning = context.roster.activeEffects(for: target).contains { $0.effect.keyword == .burn }
         guard isBurning else { return 1 }
-        let reduction = livingAllyModifiers(in: context)
-            .reduce(0) { $0 + $1.triggers.burnReducesEnemyHealingAndLeechPercent }
+        var reduction = 0.0
+        if context.roster.hero.isAlive {
+            reduction += context.heroModifiers.triggers.burnReducesEnemyHealingAndLeechPercent
+        }
+        if context.roster.companion.isAlive {
+            reduction += context.companionModifiers.triggers.burnReducesEnemyHealingAndLeechPercent
+        }
         return max(0, 1 - min(1, reduction))
     }
 
     /// True when any living ally has Purifying Aura.
     static func partyDebuffsExpireFaster(in context: BattleState) -> Bool {
-        livingAllyModifiers(in: context).contains(where: \.triggers.partyDebuffDurationHalved)
+        (context.roster.hero.isAlive && context.heroModifiers.triggers.partyDebuffDurationHalved)
+            || (context.roster.companion.isAlive && context.companionModifiers.triggers.partyDebuffDurationHalved)
     }
 
     /// Companion-authored `onHero*` reactions when the hero acts and the companion is alive.

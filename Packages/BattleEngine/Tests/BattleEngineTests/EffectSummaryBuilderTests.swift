@@ -24,18 +24,18 @@ struct EffectSummaryBuilderTests {
         switch caseKind {
         case .burnActive:
             effects = [ActiveEffect(id: 1, effect: .burn(3), remainingTurns: 0)]
-            expectedText = "Burn active"
+            expectedText = "Burning: Takes 3 Burn damage each turn, decaying over time."
             expectedKeyword = .burn
         case .bleedStacks:
             effects = [
                 ActiveEffect(id: 1, effect: .bleed(3), remainingTurns: 2),
                 ActiveEffect(id: 2, effect: .bleed(2), remainingTurns: 1),
             ]
-            expectedText = "Bleed: 5 damage"
+            expectedText = "Bleeding: Takes 5 Bleed damage each turn."
             expectedKeyword = nil
         case .shield:
             effects = [ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTurns: 0)]
-            expectedText = "Block: 5."
+            expectedText = "Block: Absorbs up to 5 incoming damage."
             expectedKeyword = nil
         case .deathsDoor:
             effects = [
@@ -45,7 +45,7 @@ struct EffectSummaryBuilderTests {
                     remainingTurns: BattleTiming.deathsDoorDurationTurns
                 ),
             ]
-            expectedText = "Death's Door: immune to fatal blows while it lasts."
+            expectedText = "Death's Door: Immune to fatal damage while active."
             expectedKeyword = .deathsDoor
         }
 
@@ -61,17 +61,17 @@ struct EffectSummaryBuilderTests {
         let buildup = EffectSummaryBuilder.build(for: [
             ActiveEffect(id: 1, effect: .controlMeter(.stun, 3, 10), remainingTurns: 0),
         ])
-        try #expect(buildup.first?.text == "Stun Build-up: 3/10")
+        try #expect(buildup.first?.text == "Stun Build-up: 3/10 toward Stunned.")
 
         let triggered = EffectSummaryBuilder.build(for: [
             ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTurns: 0),
         ])
-        try #expect(triggered.first?.text == "Stunned: action prevented.")
+        try #expect(triggered.first?.text == "Stunned: Next action is prevented.")
 
         let lingered = EffectSummaryBuilder.build(for: [
             ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTurns: 1),
         ])
-        try #expect(lingered.first?.text == "Stunned")
+        try #expect(lingered.first?.text == "Stunned: Recovering from Stun.")
     }
 
     @Test func avatarSelfBuffSummary() throws {
@@ -79,7 +79,7 @@ struct EffectSummaryBuilderTests {
             ActiveEffect(id: 1, effect: .avatar(holyDamage: 6, blockPerTurn: 4, turns: 1), remainingTurns: 1),
         ])
         try #expect(summaries.first?.keyword == .holy)
-        try #expect(summaries.first?.text == "Avatar: deal 6 Holy damage and gain 4 Block each turn, 1 turn left.")
+        try #expect(summaries.first?.text == "Avatar: Deals 6 Holy damage and gains 4 Block each turn, 1 turn left.")
     }
 
     @Test func emptyEffectsProducesEmptySummaries() throws {
@@ -107,11 +107,11 @@ struct EffectSummaryBuilderTests {
         ]
         let summaries = EffectSummaryBuilder.build(for: effects)
         try #expect(summaries.count == 5)
-        try #expect(summaries.contains { $0.text.contains("Thorns: 3") })
-        try #expect(summaries.contains { $0.text.contains("Marked: takes +2 damage") })
+        try #expect(summaries.contains { $0.text.contains("Thorns: Deals 3 Physical damage") })
+        try #expect(summaries.contains { $0.text.contains("Marked: Takes +2 damage") })
         try #expect(summaries.contains { $0.text.contains("Critical Focus") })
         try #expect(summaries.contains { $0.text.contains("Double Strike") })
-        try #expect(summaries.contains { $0.text.contains("Weakened: outgoing damage reduced by 25%") })
+        try #expect(summaries.contains { $0.text.contains("Weakened: Outgoing damage reduced by 25%") })
     }
 
     @Test func timedDebuffsAndFlagEffectsProduceFormattedSummaries() throws {
@@ -131,8 +131,8 @@ struct EffectSummaryBuilderTests {
         try #expect(summaries.contains { $0.text.contains("Glacial Ward:") })
         try #expect(summaries.contains { $0.text.contains("Dazzled:") })
         try #expect(summaries.contains { $0.text.contains("Weakened Soul:") })
-        try #expect(summaries.contains { $0.text.contains("Maximum Mana: +2.") })
-        try #expect(summaries.contains { $0.text.contains("Hemorrhage: 4 Bleed") })
+        try #expect(summaries.contains { $0.text.contains("Maximum Mana: Increases Maximum Mana by +2.") })
+        try #expect(summaries.contains { $0.text.contains("Hemorrhage: Takes 4 Bleed damage") })
     }
 
     @Test func borderAuraEffectsAllGenerateActiveEffectSummaries() throws {

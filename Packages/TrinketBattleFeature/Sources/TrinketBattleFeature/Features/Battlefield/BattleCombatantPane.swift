@@ -153,7 +153,7 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
                     spring: .snappy(duration: layout.impactDuration)
                 )
                 SpringKeyframe(
-                    layout.recipe.scaleX[safe: 1]?.value ?? 1.0,
+                    layout.recoveryScaleX,
                     duration: layout.recoveryDuration,
                     spring: .bouncy(duration: layout.recoveryDuration)
                 )
@@ -165,7 +165,7 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
                     spring: .snappy(duration: layout.impactDuration)
                 )
                 SpringKeyframe(
-                    layout.recipe.scaleY[safe: 1]?.value ?? 1.0,
+                    layout.recoveryScaleY,
                     duration: layout.recoveryDuration,
                     spring: .bouncy(duration: layout.recoveryDuration)
                 )
@@ -266,6 +266,8 @@ private struct ReactionLayoutState {
     let recipe: CombatantHitReactionRecipe
     let impactScaleX: Double
     let impactScaleY: Double
+    let recoveryScaleX: Double
+    let recoveryScaleY: Double
     let impactDuration: Double
     let recoveryDuration: Double
     let impactOffsetX: Double
@@ -276,12 +278,12 @@ private struct ReactionLayoutState {
     init(activeKind: CombatantHitReactionKind, recoilDirection: CombatantHitRecoilDirection) {
         let reactionRecipe = CombatFeedbackCardRecipes.cardReaction(for: activeKind)
         let defaultOffset = CGSize(
-            width: CGFloat(reactionRecipe.offsetX[safe: 0]?.value ?? 0),
-            height: CGFloat(reactionRecipe.offsetY[safe: 0]?.value ?? 0)
+            width: CGFloat(reactionRecipe.rawImpactOffsetX),
+            height: CGFloat(reactionRecipe.rawImpactOffsetY)
         )
         let isVerticalImpact = activeKind == .damage || activeKind == .critical
-        let recipeScaleX: Double = reactionRecipe.scaleX[safe: 0]?.value ?? 1.0
-        let recipeScaleY: Double = reactionRecipe.scaleY[safe: 0]?.value ?? 1.0
+        let recipeScaleX: Double = reactionRecipe.rawImpactScaleX
+        let recipeScaleY: Double = reactionRecipe.rawImpactScaleY
         let impactScales = isVerticalImpact
             ? recoilDirection.impactScales(scaleX: recipeScaleX, scaleY: recipeScaleY)
             : (x: recipeScaleX, y: recipeScaleY)
@@ -292,12 +294,14 @@ private struct ReactionLayoutState {
         recipe = reactionRecipe
         impactScaleX = impactScales.x
         impactScaleY = impactScales.y
-        impactDuration = reactionRecipe.scaleX[safe: 0]?.duration ?? 0.08
-        recoveryDuration = reactionRecipe.scaleX[safe: 1]?.duration ?? 0.16
+        recoveryScaleX = reactionRecipe.recoveryScaleX
+        recoveryScaleY = reactionRecipe.recoveryScaleY
+        impactDuration = reactionRecipe.impactDuration
+        recoveryDuration = reactionRecipe.recoveryDuration
         impactOffsetX = Double(resolvedOffset.width)
         impactOffsetY = Double(resolvedOffset.height)
-        recoverOffsetX = reactionRecipe.offsetX[safe: 1]?.value ?? 0
-        recoverOffsetY = reactionRecipe.offsetY[safe: 1]?.value ?? 0
+        recoverOffsetX = reactionRecipe.recoverOffsetX
+        recoverOffsetY = reactionRecipe.recoverOffsetY
     }
 }
 

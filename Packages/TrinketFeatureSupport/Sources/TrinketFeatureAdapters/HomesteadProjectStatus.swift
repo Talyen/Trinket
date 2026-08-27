@@ -96,11 +96,10 @@ public struct HomesteadProjectStatus {
         before: PathConnectorState?,
         after: PathConnectorState?
     ) {
-        let states = definition.tiers.map(tierPathState(for:))
-        return PathConnectorState.pair(
+        PathConnectorState.pair(
             at: tierIndex,
             count: definition.tiers.count,
-            state: { connectorState(for: states[$0]) }
+            state: { connectorState(for: tierPathState(for: definition.tiers[$0])) }
         )
     }
 

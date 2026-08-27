@@ -2,8 +2,15 @@ import Testing
 import TrinketCore
 
 struct PrimaryStatsRulesTests {
+    @Test func primaryStatsTotalCalculatesSum() throws {
+        let stats = PrimaryStats(strength: 10, agility: 8, toughness: 12, intellect: 14, wisdom: 6)
+        try #expect(stats.total == 50)
+        try #expect(PrimaryStats().total == 0)
+    }
+
     @Test func diminishingReturnsPercentCalculatesCorrectly() throws {
         try #expect(PrimaryStats.diminishingReturnsPercent(for: 0) == 0.0)
+        try #expect(PrimaryStats.diminishingReturnsPercent(for: -10) == 0.0)
         try #expect(abs(PrimaryStats.diminishingReturnsPercent(for: 20) - 0.20) < 0.0001)
         try #expect(abs(PrimaryStats.diminishingReturnsPercent(for: 80) - 0.50) < 0.0001)
         try #expect(abs(PrimaryStats.diminishingReturnsPercent(for: 120) - 0.60) < 0.0001)

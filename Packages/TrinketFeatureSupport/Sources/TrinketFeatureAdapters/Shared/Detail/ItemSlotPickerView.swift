@@ -14,12 +14,15 @@ struct ItemSlotPickerView: View {
     @State private var selectedItem: InventoryItem?
 
     var body: some View {
+        let eligible = eligibleItems
+        let displayItems = ordered(items: eligible)
+
         Group {
-            if orderedItems.isEmpty {
+            if displayItems.isEmpty {
                 ContentUnavailableView("No Items to Equip", systemImage: "shippingbox")
             } else {
                 OptionPickerGrid(
-                    items: orderedItems,
+                    items: displayItems,
                     isSelected: { item in
                         item.id == equipmentLoadout.itemID(for: slot)
                     },
@@ -70,16 +73,19 @@ struct ItemSlotPickerView: View {
         }
         .onAppear {
             if itemOrder.isEmpty {
-                itemOrder = entrySortedItems.map(\.id)
+                itemOrder = entrySorted(items: eligibleItems).map(\.id)
             }
         }
     }
 
-    private var orderedItems: [InventoryItem] {
-        let items = inventoryItems.filter {
+    private var eligibleItems: [InventoryItem] {
+        inventoryItems.filter {
             equipmentLoadout.canEquip($0, in: slot, inventory: inventoryItems)
         }
-        guard !itemOrder.isEmpty else { return entrySortedItems }
+    }
+
+    private func ordered(items: [InventoryItem]) -> [InventoryItem] {
+        guard !itemOrder.isEmpty else { return entrySorted(items: items) }
 
         let itemsByID = Dictionary(uniqueKeysWithValues: items.map { ($0.id, $0) })
         let ordered = itemOrder.compactMap { itemsByID[$0] }
@@ -88,18 +94,18 @@ struct ItemSlotPickerView: View {
         return ordered + newItems
     }
 
-    private var entrySortedItems: [InventoryItem] {
-        let items = inventoryItems.filter {
-            equipmentLoadout.canEquip($0, in: slot, inventory: inventoryItems)
-        }
+    private func entrySorted(items: [InventoryItem]) -> [InventoryItem] {
         guard
             let equippedID = equipmentLoadout.itemID(for: slot),
-            let equippedItem = items.first(where: { $0.id == equippedID })
+            let index = items.firstIndex(where: { $0.id == equippedID })
         else {
             return items
         }
 
-        return [equippedItem] + items.filter { $0.id != equippedID }
+        var result = items
+        let equipped = result.remove(at: index)
+        result.insert(equipped, at: 0)
+        return result
     }
 
     /// Item IDs worn in sibling slots of the same family, so the picker can mark

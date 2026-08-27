@@ -98,7 +98,7 @@ struct MaximumManaBonusHandler: BattleEffectHandler {
             return sum
         }
         guard total > 0 else { return nil }
-        return EffectSummary(keyword: keyword, text: "Maximum Mana: +\(total).")
+        return EffectSummary(keyword: keyword, text: "Maximum Mana: Increases Maximum Mana by +\(total).")
     }
 
     func apply(
@@ -192,7 +192,7 @@ struct RecurringDamageHandler: BattleEffectHandler {
         else { return nil }
         return EffectSummary(
             keyword: keyword,
-            text: "\(damageKeyword.rawValue): \(potency)/turn, \(BattleTiming.remainingDurationLabel(turns: active.remainingTurns))."
+            text: "\(damageKeyword.rawValue): Deals \(potency) \(damageKeyword.rawValue) damage each turn, \(BattleTiming.remainingDurationLabel(turns: active.remainingTurns))."
         )
     }
 
@@ -267,7 +267,7 @@ struct AvatarHandler: BattleEffectHandler {
         else { return nil }
         return EffectSummary(
             keyword: keyword,
-            text: "Avatar: deal \(holyDamage) Holy damage and gain \(blockPerTurn) Block each turn, \(BattleTiming.remainingDurationLabel(turns: active.remainingTurns))."
+            text: "Avatar: Deals \(holyDamage) Holy damage and gains \(blockPerTurn) Block each turn, \(BattleTiming.remainingDurationLabel(turns: active.remainingTurns))."
         )
     }
 

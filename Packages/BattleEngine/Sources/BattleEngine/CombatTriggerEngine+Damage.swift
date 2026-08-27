@@ -383,13 +383,12 @@ package extension CombatTriggerEngine {
         }
 
         if profile.triggers.criticalActionGoldFlat > 0,
-           context.criticalGoldActionByActorID[source.id] != context.actionCount {
+           context.claimActionGuard(.criticalActionGold, actorID: source.id) {
             events.append(contentsOf: context.grantGoldEvent(
                 profile.triggers.criticalActionGoldFlat,
                 to: source,
                 abilityName: triggerAbilityName("criticalActionGoldFlat", for: source, fallback: "Lucky Clover", in: context)
             ))
-            context.criticalGoldActionByActorID[source.id] = context.actionCount
         }
 
         if profile.triggers.criticalApplyPoison > 0, context.roster.health(for: enemy) > 0 {

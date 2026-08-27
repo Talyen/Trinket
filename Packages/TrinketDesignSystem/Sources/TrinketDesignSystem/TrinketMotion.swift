@@ -50,8 +50,15 @@ public enum TrinketMotion: Sendable {
     public enum Shine: Sendable {
         /// One full loop shared by text and border shine.
         public static let loopPeriod: TimeInterval = 4.8
+        /// Loop period for fast text gradient sweeps.
+        public static let textShineDuration: TimeInterval = 2.4
+
+        public static var textAnimation: Animation {
+            .linear(duration: textShineDuration).repeatForever(autoreverses: false)
+        }
 
         /// Normalized position within the shared loop for a nonnegative clock value.
+        @inlinable
         public static func phase(at elapsed: TimeInterval) -> Double {
             elapsed.truncatingRemainder(dividingBy: loopPeriod) / loopPeriod
         }
@@ -340,6 +347,7 @@ public enum TrinketMotion: Sendable {
         public static let statusBorderPulseDimOpacity = 0.45
 
         /// Parked until hold ends, then cubic ease-in rise.
+        @inlinable
         public static func chipMotionProgress(elapsed: TimeInterval) -> Double {
             guard elapsed > alchemyHoldEndTime else { return 0 }
             let riseProg = (elapsed - alchemyHoldEndTime) / alchemyPopRiseDuration
@@ -348,6 +356,7 @@ public enum TrinketMotion: Sendable {
         }
 
         /// Scale envelope for the Alchemy Pop float recipe. Pop overshoot -> hold -> shrink to 1.0 during rise.
+        @inlinable
         public static func chipScale(elapsed: TimeInterval) -> CGFloat {
             let t = elapsed
             if t <= 0 {
@@ -368,6 +377,7 @@ public enum TrinketMotion: Sendable {
             return lerp(alchemyPopHoldScale, alchemyPopEndScale, shrinkProg)
         }
 
+        @inlinable
         public static func chipOpacity(elapsed: TimeInterval) -> Double {
             if elapsed <= alchemyFadeStartTime {
                 return 1
@@ -380,6 +390,7 @@ public enum TrinketMotion: Sendable {
             return lerp(1, 0, fadeProg)
         }
 
+        @inlinable
         public static func chipTravelDistance(cardHeight: CGFloat, chipHeight: CGFloat) -> CGFloat {
             let proportionalTravel = cardHeight * chipTravelFraction
             let topSafeTravel = cardHeight / 2 - chipHeight / 2 - chipTopClearance
@@ -388,28 +399,34 @@ public enum TrinketMotion: Sendable {
 
         // MARK: Alchemy Pop sampling
 
-        private static var alchemyPopPeakTime: TimeInterval {
+        @inlinable
+        public static var alchemyPopPeakTime: TimeInterval {
             alchemyPopDuration * 0.75
         }
 
-        private static var alchemyPopEndTime: TimeInterval {
+        @inlinable
+        public static var alchemyPopEndTime: TimeInterval {
             alchemyPopDuration
         }
 
-        private static var alchemyHoldEndTime: TimeInterval {
+        @inlinable
+        public static var alchemyHoldEndTime: TimeInterval {
             alchemyPopEndTime + alchemyPopHoldDuration
         }
 
-        private static var alchemyFadeStartTime: TimeInterval {
+        @inlinable
+        public static var alchemyFadeStartTime: TimeInterval {
             max(alchemyHoldEndTime, alchemyPopDisplayDuration - alchemyPopFadeDuration)
         }
 
-        private static func lerp(_ start: CGFloat, _ end: CGFloat, _ progress: Double) -> CGFloat {
+        @inlinable
+        public static func lerp(_ start: CGFloat, _ end: CGFloat, _ progress: Double) -> CGFloat {
             let p = min(max(progress, 0), 1)
             return start + (end - start) * CGFloat(p)
         }
 
-        private static func lerp(_ start: Double, _ end: Double, _ progress: Double) -> Double {
+        @inlinable
+        public static func lerp(_ start: Double, _ end: Double, _ progress: Double) -> Double {
             let p = min(max(progress, 0), 1)
             return start + (end - start) * p
         }

@@ -5,7 +5,7 @@ import TrinketCore
 enum GameContentTraitsGenerated {
     static let definitions: [CombatantTraitDefinition] = {
         var list = [CombatantTraitDefinition]()
-        list.reserveCapacity(15)
+        list.reserveCapacity(39)
         list.append(CombatantTraitDefinition(
             id: "living_armor_trait",
             name: "Living Armor",
@@ -110,6 +110,174 @@ enum GameContentTraitsGenerated {
             description: "Physical and Freeze damage taken reduced by 30%.",
             modifiers: [.damageTakenPercent(.physical, 0.30), .damageTakenPercent(.freeze, 0.30)],
             triggers: CombatTraitTriggers()
+        ))
+        list.append(CombatantTraitDefinition(
+            id: "bandit_trait",
+            name: "Bandit",
+            description: "Deals double damage on the first attack. Holy damage taken increased by 30%.",
+            modifiers: [.damageTakenVulnerability(.holy, 0.30)],
+            triggers: CombatTraitTriggers(damage: DamageTriggers(firstHitDoubleDamage: true))
+        ))
+        list.append(CombatantTraitDefinition(
+            id: "ogre_trait",
+            name: "Ogre",
+            description: "Physical attacks deal double damage to enemy Block. Holy damage taken increased by 30%.",
+            modifiers: [.damageTakenVulnerability(.holy, 0.30)],
+            triggers: CombatTraitTriggers(block: BlockTriggers(physicalBlockBreakMultiplier: 2.0))
+        ))
+        list.append(CombatantTraitDefinition(
+            id: "fire_imp_trait",
+            name: "Fire Imp",
+            description: "Critical hits apply 1 Burn. Freeze damage taken increased by 30%.",
+            modifiers: [.damageTakenVulnerability(.freeze, 0.30)],
+            triggers: CombatTraitTriggers(attack: AttackTriggers(criticalApplyBurn: 1))
+        ))
+        list.append(CombatantTraitDefinition(
+            id: "hellhound_trait",
+            name: "Hellhound",
+            description: "Attacks against Burning enemies deal 25% additional damage. Freeze damage taken increased by 30%.",
+            modifiers: [.damageTakenVulnerability(.freeze, 0.30)],
+            triggers: CombatTraitTriggers(damage: DamageTriggers(damageVsBurningMultiplier: 1.25))
+        ))
+        list.append(CombatantTraitDefinition(
+            id: "pyromancer_trait",
+            name: "Pyromancer",
+            description: "Burn damage ignores all enemy Block and damage reduction. Freeze damage taken increased by 30%.",
+            modifiers: [.damageTakenVulnerability(.freeze, 0.30)],
+            triggers: CombatTraitTriggers(block: BlockTriggers(burnIgnoresBlockAndMitigation: true))
+        ))
+        list.append(CombatantTraitDefinition(
+            id: "giant_spider_trait",
+            name: "Giant Spider",
+            description: "Attacks apply 1 Poison. Burn damage taken increased by 30%.",
+            modifiers: [.damageTakenVulnerability(.burn, 0.30)],
+            triggers: CombatTraitTriggers(attack: AttackTriggers(attacksApplyPoison: 1))
+        ))
+        list.append(CombatantTraitDefinition(
+            id: "giant_snake_trait",
+            name: "Giant Snake",
+            description: "Poison strips 1 Block before damaging Health. Freeze damage taken increased by 30%.",
+            modifiers: [.damageTakenVulnerability(.freeze, 0.30)],
+            triggers: CombatTraitTriggers(block: BlockTriggers(poisonStripsBlockBeforeHealth: 1))
+        ))
+        list.append(CombatantTraitDefinition(
+            id: "blood_cultist_trait",
+            name: "Blood Cultist",
+            description: "When Bleed deals damage, your next basic attack is a guaranteed Critical Hit. Holy damage taken increased by 30%.",
+            modifiers: [.damageTakenVulnerability(.holy, 0.30)],
+            triggers: CombatTraitTriggers(attack: AttackTriggers(onBleedDamageNextBasicGuaranteedCrit: true))
+        ))
+        list.append(CombatantTraitDefinition(
+            id: "dire_wolf_trait",
+            name: "Dire Wolf",
+            description: "Attacks against Bleeding enemies deal 1 additional damage. Physical damage taken reduced by 10%.",
+            modifiers: [.damageTakenPercent(.physical, 0.10)],
+            triggers: CombatTraitTriggers(damage: DamageTriggers(damageVsBleedingBonus: 1))
+        ))
+        list.append(CombatantTraitDefinition(
+            id: "vampire_trait",
+            name: "Vampire",
+            description: "10% chance to Leech. Reaching full Health makes your next attack deal 1 additional damage. Holy and Burn damage taken increased by 30%.",
+            modifiers: [.damageTakenVulnerability(.holy, 0.30), .damageTakenVulnerability(.burn, 0.30)],
+            triggers: CombatTraitTriggers(attack: AttackTriggers(nextAttackBonusOnFullHealth: 1), healing: HealingTriggers(leechChancePercent: 0.10))
+        ))
+        list.append(CombatantTraitDefinition(
+            id: "the_blood_countess_trait",
+            name: "The Blood Countess",
+            description: "Holy damage taken increased by 30%. Deals 1 Bleed damage each turn to all enemies.",
+            modifiers: [.damageTakenVulnerability(.holy, 0.30)],
+            triggers: CombatTraitTriggers(damage: DamageTriggers(turnRandomDamageAllEnemiesKeywordA: .bleed, turnRandomDamageAllEnemiesKeywordB: .bleed, turnRandomDamageAllEnemiesAmount: 1))
+        ))
+        list.append(CombatantTraitDefinition(
+            id: "zealot_trait",
+            name: "Zealot",
+            description: "Dealing Holy damage adds 1 Holy damage to your next attack. Bleed damage taken increased by 30%.",
+            modifiers: [.damageTakenVulnerability(.bleed, 0.30)],
+            triggers: CombatTraitTriggers(attack: AttackTriggers(holyDamageNextAttackHolyBonus: 1))
+        ))
+        list.append(CombatantTraitDefinition(
+            id: "cleric_trait",
+            name: "Cleric",
+            description: "Dealing Holy damage restores 1 Health. Gain 1 Block at the start of each round.",
+            modifiers: [],
+            triggers: CombatTraitTriggers(block: BlockTriggers(blockPerTurn: 1), healing: HealingTriggers(holyDamageHealLowestAllyFlat: 1))
+        ))
+        list.append(CombatantTraitDefinition(
+            id: "inquisitor_trait",
+            name: "Inquisitor",
+            description: "Dealing Holy damage adds 1 Holy damage to your next attack. Bleed damage taken increased by 30%.",
+            modifiers: [.damageTakenVulnerability(.bleed, 0.30)],
+            triggers: CombatTraitTriggers(attack: AttackTriggers(holyDamageNextAttackHolyBonus: 1))
+        ))
+        list.append(CombatantTraitDefinition(
+            id: "paladin_trait",
+            name: "Paladin",
+            description: "Gain 1 Block when you deal Stun or Holy damage. Holy damage taken reduced by 30%.",
+            modifiers: [.damageTakenPercent(.holy, 0.30)],
+            triggers: CombatTraitTriggers(block: BlockTriggers(holyDamageBlockFlat: 1, stunDamageBlockFlat: 1))
+        ))
+        list.append(CombatantTraitDefinition(
+            id: "the_seraph_trait",
+            name: "The Seraph",
+            description: "Bleed damage taken increased by 30%. Deals 1 Holy damage each turn to all enemies.",
+            modifiers: [.damageTakenVulnerability(.bleed, 0.30)],
+            triggers: CombatTraitTriggers(damage: DamageTriggers(turnRandomDamageAllEnemiesKeywordA: .holy, turnRandomDamageAllEnemiesKeywordB: .holy, turnRandomDamageAllEnemiesAmount: 1))
+        ))
+        list.append(CombatantTraitDefinition(
+            id: "winter_wolf_trait",
+            name: "Winter Wolf",
+            description: "Basic attacks apply 1 Freeze. Burn damage taken increased by 30%.",
+            modifiers: [.damageTakenVulnerability(.burn, 0.30)],
+            triggers: CombatTraitTriggers(attack: AttackTriggers(basicAttackFreezeBuildup: 1))
+        ))
+        list.append(CombatantTraitDefinition(
+            id: "ice_wraith_trait",
+            name: "Ice Wraith",
+            description: "Frozen enemies deal 1 less damage. Physical damage taken reduced by 30%. Burn and Holy damage taken increased by 30%.",
+            modifiers: [.damageTakenPercent(.physical, 0.30), .damageTakenVulnerability(.burn, 0.30), .damageTakenVulnerability(.holy, 0.30)],
+            triggers: CombatTraitTriggers(mitigation: MitigationTriggers(frozenEnemyDamageReductionFlat: 1))
+        ))
+        list.append(CombatantTraitDefinition(
+            id: "yeti_trait",
+            name: "Yeti",
+            description: "Gain 1 Block whenever an enemy becomes Frozen. Freeze damage taken reduced by 30%. Burn damage taken increased by 30%.",
+            modifiers: [.damageTakenPercent(.freeze, 0.30), .damageTakenVulnerability(.burn, 0.30)],
+            triggers: CombatTraitTriggers(block: BlockTriggers(onEnemyFrozenGainBlock: 1))
+        ))
+        list.append(CombatantTraitDefinition(
+            id: "banshee_trait",
+            name: "Banshee",
+            description: "Attacks against Stunned enemies deal 1 additional damage. Holy damage taken increased by 30%.",
+            modifiers: [.damageTakenVulnerability(.holy, 0.30)],
+            triggers: CombatTraitTriggers(damage: DamageTriggers(damageWhileTargetStunnedBonus: 1))
+        ))
+        list.append(CombatantTraitDefinition(
+            id: "brawler_trait",
+            name: "Brawler",
+            description: "Stunned enemies deal half damage on their next turn. Bleed damage taken increased by 30%.",
+            modifiers: [.damageTakenVulnerability(.bleed, 0.30)],
+            triggers: CombatTraitTriggers(mitigation: MitigationTriggers(stunnedEnemyNextTurnDamageMultiplier: 0.5))
+        ))
+        list.append(CombatantTraitDefinition(
+            id: "stone_golem_trait",
+            name: "Stone Golem",
+            description: "Gain 1 Block at the start of each round. While you have Block, attacks deal 1 additional damage.",
+            modifiers: [],
+            triggers: CombatTraitTriggers(block: BlockTriggers(blockPerTurn: 1, shieldDamageBonusWhileBlocked: 1))
+        ))
+        list.append(CombatantTraitDefinition(
+            id: "earth_elemental_trait",
+            name: "Earth Elemental",
+            description: "Breaking an enemy's Block deals 1 Physical damage to them. Freeze and Burn damage taken reduced by 20%.",
+            modifiers: [.damageTakenPercent(.freeze, 0.20), .damageTakenPercent(.burn, 0.20)],
+            triggers: CombatTraitTriggers(block: BlockTriggers(onEnemyBlockBrokenDealPhysical: 1))
+        ))
+        list.append(CombatantTraitDefinition(
+            id: "the_stone_titan_trait",
+            name: "The Stone Titan",
+            description: "Deals 1 Stun damage each turn to all enemies.",
+            modifiers: [],
+            triggers: CombatTraitTriggers(damage: DamageTriggers(turnRandomDamageAllEnemiesKeywordA: .stun, turnRandomDamageAllEnemiesKeywordB: .stun, turnRandomDamageAllEnemiesAmount: 1))
         ))
         return list
     }()

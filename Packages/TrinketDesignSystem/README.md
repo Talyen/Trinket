@@ -11,8 +11,8 @@ Shared app chrome — semantic surfaces, typography, keyword visuals, and reusab
 | `DesignAssetColors.swift` | Package-bundled semantic color assets (`Bundle.module`) |
 | `Resources/DesignColors.xcassets` | Theme, keyword, encounter, placeholder, resource, chapter color sets |
 | `VisualFoundation.swift` | Background modes, surface roles, spacing tokens |
-| `HeroScrim.swift` | Hero art scrims and on-art text styling |
-| `ArtworkBlend.swift` | Optional semantic perimeter and bottom-edge artwork blending |
+| `HeroScrim.swift` | On-art text styling (`.trinketOnArtText`) |
+| `ArtworkBlend.swift` | Optional semantic bottom-edge artwork blending |
 | `Keyword+VisualStyle.swift` | Color + SF Symbol per Keyword |
 | `HomesteadResource+Color.swift` | Homestead resource tint resolution |
 | `Modifiers.swift` | Semantic view modifiers for backgrounds, surfaces |
@@ -27,14 +27,14 @@ All production colors load from `DesignColors.xcassets` through `DesignAssetColo
 |---|---|---|
 | Theme chrome | `TrinketDesign.Colors.canvas/surface/panel/…/accent/success/…` | `ThemeCanvas`, `ThemeSurface`, … |
 | Gameplay health | `TrinketDesign.Colors.health`, `.healthRestore`, battle derived opacities | `ThemeHealth`, `ThemeHealthRestore` |
-| Overlays | `TrinketDesign.Colors.Overlay.ink/paper/…` | `ThemeOverlayInk`, `ThemeOverlayPaper`, `ThemeHeroScrim` |
+| Overlays | `TrinketDesign.Colors.Overlay.ink/paper/…` | `ThemeOverlayInk`, `ThemeOverlayPaper` |
 | Keywords | `Keyword.visualStyle.color` | `KeywordPhysical` … `KeywordDeathsDoor` |
 | Encounters | `TrinketDesign.Colors.encounter*` | `EncounterBattle` … |
 | Placeholders | `TrinketDesign.CardPlaceholderStyle.*` | `PlaceholderHero` … |
 | Resources | `HomesteadResource.tint` | `ResourceWood` … `ResourceHide` / `ResourceCrystal` (+ gold via KeywordGold) |
 | Chapter | `TrinketDesign.Colors.chapterForest` / `.chapterDungeon` / `.chapterDesert` / `.chapterTundra` | `ChapterForest` … `ChapterTundra` |
 
-Hero art overlays use `TrinketHeroScrim.gradient(for:)` and `.trinketOnArtText(_:)`.
+On-art text styling uses `.trinketOnArtText(_:)`.
 
 **Enforcement:** `./Scripts/check-ui-style.sh` fails style/CI on one-off colors. Escape hatch: nearby `UIStyleCheck: allow` with a concrete reason. New colors = new `DesignColors` asset + public design-system API.
 
@@ -95,12 +95,11 @@ Route recurring chrome through these modifiers — do not call raw SwiftUI styli
 | `.trinketCenteredPrimaryAction()` | Half-width, centered layout for a lone screen primary action |
 | `.trinketQuietTapButtonStyle()` | Tap without press dimming — prefer over `.plain` for artwork in scroll views |
 | `.trinketOnArtText(_:)` | Paper foreground + ink shadows on hero art |
-| `TrinketHeroScrim.gradient(for:)` | Homestead / detail / chapter hero readability scrims |
-| `.trinketArtworkBlend(_:)` | Optional `.perimeter` or `.bottom` blend into a semantic destination surface; defaults to `.none` |
+| `.trinketArtworkBlend(_:)` | Optional `.bottom` blend into a semantic destination surface; defaults to `.none` |
 | `.trinketSensoryFeedback(_:trigger:enabled:)` | Gate `.sensoryFeedback` on Options haptics toggle |
 
 Glass chrome routes through `.glassEffect` inside this package only.
 
-Artwork blends should replace an overlapping edge scrim rather than stack with it. Use `.perimeter(into:)` for bounded thumbnails and cards, `.bottom(into:)` for full-bleed art meeting a lower surface, and `.none` when artwork should retain a crisp edge. Keep text-only contrast treatments such as `.trinketOnArtText(_:)` when they serve a separate readability purpose.
+Artwork blends provide a transition into destination surfaces. Use `.bottom(into:)` for full-bleed art meeting a lower surface, and `.none` when artwork should retain a crisp edge. Keep text-only contrast treatments such as `.trinketOnArtText(_:)` when they serve a separate readability purpose.
 
 Platform API notes: [iOS26AppleReference.md](../../Docs/Platform/iOS26AppleReference.md). Fluid motion: [apple-design skill](../../Docs/Skills/apple-design/SKILL.md) (`TrinketMotion`). Standing stack rules: [Architecture.md](../../Docs/Platform/Architecture.md).

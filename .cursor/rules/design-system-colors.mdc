@@ -12,7 +12,7 @@ When editing SwiftUI or presentation code, **do not invent one-off colors**. Rou
 
 - Chrome: `TrinketDesign.Colors.canvas/surface/panel/elevated/subtleStroke/accent/…`
 - Health: `TrinketDesign.Colors.health` / `.healthRestore` (and battle derived tokens)
-- Overlays: `TrinketDesign.Colors.Overlay.ink/paper/…`, `TrinketHeroScrim`, `.trinketOnArtText`
+- Overlays: `TrinketDesign.Colors.Overlay.ink/paper/…`, `.trinketOnArtText`
 - Domain: `Keyword.visualStyle`, `HomesteadTint.color`, `HomesteadResource.tint`, `TrinketDesign.Colors.encounter*`, `TrinketDesign.CardPlaceholderStyle`
 - Surfaces: `.trinketSurface`, `.trinketScreenBackground`, `.trinketMaterial`, `.trinketGlassChip`
 

@@ -50,6 +50,22 @@ struct CombatantTalentCatalogTests {
         }
     }
 
+    @Test func allTalentNodesHaveAuthoredSymbols() {
+        for combatantID in CombatantTalentCatalog.combatantTreeAffinities.keys {
+            let config = CombatantTalentCatalog.config(for: combatantID)
+            for tree in config.trees {
+                for node in tree.nodes {
+                    #expect(node.symbolName != nil && !(node.symbolName?.isEmpty ?? true), "missing symbol on node \(node.id)")
+                    if let effect = CombatantTalentCatalog.effect(for: node.id) {
+                        #expect(!effect.symbolName.isEmpty, "missing symbol on effect \(node.id)")
+                    } else {
+                        Issue.record("missing effect for \(node.id)")
+                    }
+                }
+            }
+        }
+    }
+
     @Test func talentDisplayNamesAreUnique() {
         var names: [String: String] = [:]
         for combatantID in CombatantTalentCatalog.combatantTreeAffinities.keys {

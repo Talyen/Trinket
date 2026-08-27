@@ -68,6 +68,8 @@ public enum EffectPresentation {
         switch effect {
         case let .shield(.block, buffer):
             "gain \(buffer) Block"
+        case let .shield(keyword, buffer):
+            "gain \(buffer) \(keyword.rawValue)"
         case let .thorns(stacks):
             "gain \(stacks) Thorns"
         case .nextHolyStrike:
@@ -86,6 +88,8 @@ public enum EffectPresentation {
             "gain Block equal to half your Mana"
         case let .shieldFromGold(goldPerBlock):
             "gain 1 Block for every \(goldPerBlock) Gold"
+        case .deathsDoor:
+            "survive fatal blows at 1 Health"
         default:
             nil
         }
@@ -95,10 +99,14 @@ public enum EffectPresentation {
         switch effect {
         case let .instantHeal(.health, amount):
             "restore \(amount) Health"
+        case let .instantHeal(keyword, amount):
+            "restore \(amount) \(keyword.rawValue)"
         case let .resourceGain(.gold, amount):
             "steal \(amount) Gold"
         case let .resourceGain(.mana, amount):
             "restore \(amount) Mana"
+        case let .resourceGain(keyword, amount):
+            "gain \(amount) \(keyword.rawValue)"
         case let .drawCards(count):
             count == 1 ? "draw 1 card" : "draw \(count) cards"
         case let .drawAndPlayCards(count):
@@ -134,8 +142,14 @@ public enum EffectPresentation {
     }
 
     private static func shieldHalvePhrase(for effect: Effect) -> String? {
-        guard case .halveShield(.block) = effect else { return nil }
-        return "halve the enemy's Block"
+        switch effect {
+        case .halveShield(.block):
+            "halve the enemy's Block"
+        case let .halveShield(keyword):
+            "halve the enemy's \(keyword.rawValue)"
+        default:
+            nil
+        }
     }
 
     private static func utilityPhrase(for effect: Effect) -> String? {

@@ -8,36 +8,38 @@ import TrinketCore
 /// tracks how that definition's state has evolved during the battle.
 @dynamicMemberLookup
 public struct CombatantRuntime: Hashable {
-    package struct TalentState: Equatable, Hashable, Sendable {
-        var talentMaxHealthBonus: Int = 0
-        var pendingDamageAfterDodge: Int = 0
-        var pendingDamageDoubleAfterDodge: Bool = false
-        var pendingGuaranteedCriticalAfterDodge: Bool = false
-        var pendingBleedAfterDodge: Int = 0
-        var pendingCardDamageBonus: Int = 0
-        var pendingCardDamagePercent: Double = 0.0
-        var talentDamagePercentBonus: Double = 0.0
-        var talentDamagePercentUntilTurn: Int = 0
-        var pendingNextHitBonus: Int = 0
-        var pendingNextAttackHolyBonus: Int = 0
-        var pendingBasicGuaranteedCrit: Bool = false
-        var pendingAttackBonusOnFullHealth: Int = 0
-        var permanentDamageBonus: Int = 0
-        var keywordDamageRamp: [Keyword: Int] = [:]
-        var talentLeechOverhealDamageBonus: Int = 0
-        var totalBlockGainedThisCombat: Int = 0
-        var pendingDoubleStatusNextCard: Bool = false
-        var talentStatBonus: PrimaryStats = .init()
-        var bonusDodgeUntilNextTurn: Double = 0.0
-        var bonusDodgeExpiresAtTurn: Int = 0
-        var healOverTimeAmount: Int = 0
-        var healOverTimeTurnsRemaining: Int = 0
-        var hasTakenAttackHitThisTurn: Bool = false
-        var hasNegatedFirstEnemyAttack: Bool = false
-        var manaSpentThisCardPlay: Int = 0
-        var faeWardBlockedThisTurn: Bool = false
-        var hasTriggeredBlockBreakThisTurn: Bool = false
-        var talentCritMultiplierBonus: Double = 0.0
+    public struct TalentState: Equatable, Hashable, Sendable {
+        public var talentMaxHealthBonus: Int = 0
+        public var pendingDamageAfterDodge: Int = 0
+        public var pendingDamageDoubleAfterDodge: Bool = false
+        public var pendingGuaranteedCriticalAfterDodge: Bool = false
+        public var pendingBleedAfterDodge: Int = 0
+        public var pendingCardDamageBonus: Int = 0
+        public var pendingCardDamagePercent: Double = 0.0
+        public var talentDamagePercentBonus: Double = 0.0
+        public var talentDamagePercentUntilTurn: Int = 0
+        public var pendingNextHitBonus: Int = 0
+        public var pendingNextAttackHolyBonus: Int = 0
+        public var pendingBasicGuaranteedCrit: Bool = false
+        public var pendingAttackBonusOnFullHealth: Int = 0
+        public var permanentDamageBonus: Int = 0
+        public var keywordDamageRamp: [Keyword: Int] = [:]
+        public var talentLeechOverhealDamageBonus: Int = 0
+        public var totalBlockGainedThisCombat: Int = 0
+        public var pendingDoubleStatusNextCard: Bool = false
+        public var talentStatBonus: PrimaryStats = .init()
+        public var bonusDodgeUntilNextTurn: Double = 0.0
+        public var bonusDodgeExpiresAtTurn: Int = 0
+        public var healOverTimeAmount: Int = 0
+        public var healOverTimeTurnsRemaining: Int = 0
+        public var hasTakenAttackHitThisTurn: Bool = false
+        public var hasNegatedFirstEnemyAttack: Bool = false
+        public var manaSpentThisCardPlay: Int = 0
+        public var faeWardBlockedThisTurn: Bool = false
+        public var hasTriggeredBlockBreakThisTurn: Bool = false
+        public var talentCritMultiplierBonus: Double = 0.0
+
+        public init() {}
     }
 
     // Concurrency-Safety: `@unchecked Sendable` — COW box is mutated only through
@@ -61,7 +63,7 @@ public struct CombatantRuntime: Hashable {
         }
     }
 
-    package subscript<T>(dynamicMember keyPath: WritableKeyPath<TalentState, T>) -> T {
+    public subscript<T>(dynamicMember keyPath: WritableKeyPath<TalentState, T>) -> T {
         get { talentBox.state[keyPath: keyPath] }
         set { mutateTalentState { $0[keyPath: keyPath] = newValue } }
     }

@@ -1700,6 +1700,7 @@ def generate_encounter_art_catalog(rows: list[StageRow]) -> None:
 class TalentRow:
     id: str
     name: str
+    symbol_name: str
     description: str
     modifiers: str
     triggers: str
@@ -1710,7 +1711,7 @@ def parse_talent_rows() -> list[TalentRow]:
     path = MANIFEST_DIR / "talents.tsv"
     lines = read_tsv(path)
     header = lines[0]
-    expected = ["id", "name", "description", "modifiers", "triggers"]
+    expected = ["id", "name", "symbol_name", "description", "modifiers", "triggers"]
     if header != expected:
         raise ValueError(f"{path} header mismatch: {header}")
     return [TalentRow(*row) for row in lines[1:]]
@@ -1732,6 +1733,7 @@ def generate_talent_catalog(rows: list[TalentRow], combatant_ids: list[str]) -> 
         return (
             f'            "{swift_escape(row.id)}": CombatantTalentEffect(\n'
             f'                name: "{swift_escape(row.name)}",\n'
+            f'                symbolName: "{swift_escape(row.symbol_name)}",\n'
             f'                description: "{swift_escape(row.description)}",\n'
             f"                modifiers: {modifiers_swift(row.modifiers)},\n"
             f"                triggers: {triggers_swift(row.triggers)}\n"
@@ -1775,6 +1777,23 @@ def generate_talent_catalog(rows: list[TalentRow], combatant_ids: list[str]) -> 
     write_generated_file(GENERATED_DIR / "CombatantTalentCatalog.generated.swift", body)
 
 
+def validate_talent_rows(rows: list[TalentRow]) -> None:
+    seen: set[str] = set()
+    for row in rows:
+        if row.id in seen:
+            raise ValueError(f"Duplicate talent id: {row.id}")
+        seen.add(row.id)
+
+        _validate_snake_id("talent id", row.id, row.id)
+        _require_non_empty("talent name", row.name, row.id)
+        _require_non_empty("talent symbol_name", row.symbol_name, row.id)
+        _require_non_empty("talent description", row.description, row.id)
+
+        for token in parse_modifier_tokens(row.modifiers):
+            modifier_token_to_swift(token)
+        triggers_swift(row.triggers)
+
+
 def validate_manifests() -> tuple[
     list[AffixRow],
     list[TraitRow],
@@ -1791,10 +1810,12 @@ def validate_manifests() -> tuple[
     stage_rows = parse_stage_rows()
     homestead_rows = parse_homestead_node_rows()
     item_base_rows = parse_item_base_rows()
+    talent_rows = parse_talent_rows()
     ability_symbols = collect_ability_symbols()
 
     validate_affix_rows(affix_rows)
     validate_trait_rows(trait_rows)
+    validate_talent_rows(talent_rows)
     validate_combatant_rows(combatant_rows, ability_symbols)
     validate_enemy_rows(
         enemy_rows,

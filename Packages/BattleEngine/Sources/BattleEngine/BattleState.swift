@@ -15,6 +15,7 @@ public struct TalentActionGuardKey: Hashable, Sendable {
         case surpriseStrike
         case seismicRoar
         case endlessLegion
+        case criticalActionGold
     }
 
     public var kind: Kind
@@ -118,7 +119,6 @@ public struct BattleState {
     public var additionalControlSkipsByCombatantID: [String: Int]
     public var isResolvingTalentReaction: Bool
     public var isResolvingDoTDetonation: Bool
-    public var criticalGoldActionByActorID: [String: Int]
     /// Once-per-action guards for combatant talent thresholds (Mana Cocoon, Overcharge, Chaos Rift).
     public var talentActionGuardByActorID: [TalentActionGuardKey: Int]
     /// Spell Echo: combatants who already echoed their first Skill this battle.
@@ -175,7 +175,6 @@ public struct BattleState {
         additionalControlSkipsByCombatantID: [String: Int] = [:],
         isResolvingTalentReaction: Bool = false,
         isResolvingDoTDetonation: Bool = false,
-        criticalGoldActionByActorID: [String: Int] = [:],
         talentActionGuardByActorID: [TalentActionGuardKey: Int] = [:],
         skillEchoOwnersThisBattle: Set<String> = [],
         talentReactionDepth: Int = 0,
@@ -218,7 +217,6 @@ public struct BattleState {
         self.additionalControlSkipsByCombatantID = additionalControlSkipsByCombatantID
         self.isResolvingTalentReaction = isResolvingTalentReaction
         self.isResolvingDoTDetonation = isResolvingDoTDetonation
-        self.criticalGoldActionByActorID = criticalGoldActionByActorID
         self.talentActionGuardByActorID = talentActionGuardByActorID
         self.skillEchoOwnersThisBattle = skillEchoOwnersThisBattle
         self.talentReactionDepth = talentReactionDepth

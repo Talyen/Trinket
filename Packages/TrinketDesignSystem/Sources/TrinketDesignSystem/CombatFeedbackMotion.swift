@@ -1,6 +1,7 @@
 import CoreGraphics
 import Foundation
 import SwiftUI
+import TrinketCore
 
 /// Semantic classes for floating combat chips. Feature code maps engine events → these.
 public enum CombatFeedbackClass: String, CaseIterable, Sendable, Equatable {
@@ -140,6 +141,46 @@ public struct CombatantHitReactionRecipe: Sendable, Equatable {
         self.rotation = rotation
         self.duration = duration
     }
+
+    public var impactDuration: TimeInterval {
+        scaleX[safe: 0]?.duration ?? 0.08
+    }
+
+    public var recoveryDuration: TimeInterval {
+        scaleX[safe: 1]?.duration ?? 0.16
+    }
+
+    public var rawImpactScaleX: Double {
+        scaleX[safe: 0]?.value ?? 1.0
+    }
+
+    public var rawImpactScaleY: Double {
+        scaleY[safe: 0]?.value ?? 1.0
+    }
+
+    public var rawImpactOffsetX: Double {
+        offsetX[safe: 0]?.value ?? 0.0
+    }
+
+    public var rawImpactOffsetY: Double {
+        offsetY[safe: 0]?.value ?? 0.0
+    }
+
+    public var recoveryScaleX: Double {
+        scaleX[safe: 1]?.value ?? 1.0
+    }
+
+    public var recoveryScaleY: Double {
+        scaleY[safe: 1]?.value ?? 1.0
+    }
+
+    public var recoverOffsetX: Double {
+        offsetX[safe: 1]?.value ?? 0.0
+    }
+
+    public var recoverOffsetY: Double {
+        offsetY[safe: 1]?.value ?? 0.0
+    }
 }
 
 /// Whole-card attack telegraph kinds (enemy lunge before resolve).
@@ -266,13 +307,6 @@ public struct CombatantAttackReactionRecipe: Sendable, Equatable {
     }
 }
 
-public extension Array {
-    subscript(safe index: Int) -> Element? {
-        guard indices.contains(index) else { return nil }
-        return self[index]
-    }
-}
-
 /// Vertical recoil direction for damage/critical portrait hit reactions.
 /// Enemy cards kick up; party cards (hero/pet) kick down toward the hand edge.
 public enum CombatantHitRecoilDirection: String, CaseIterable, Sendable, Equatable {
@@ -280,6 +314,7 @@ public enum CombatantHitRecoilDirection: String, CaseIterable, Sendable, Equatab
     case down
 
     /// Impact translation for damage/critical hits. Non-impact kinds use recipe offsets.
+    @inlinable
     public func impactOffset(magnitude: CGFloat) -> CGSize {
         switch self {
         case .up:
@@ -292,6 +327,7 @@ public enum CombatantHitRecoilDirection: String, CaseIterable, Sendable, Equatab
     /// Impact scale axes for damage/critical squash.
     /// `.up` swaps recipe axes (horizontal compress / vertical stretch).
     /// `.down` keeps recipe axes (vertical compress / horizontal stretch).
+    @inlinable
     public func impactScales(
         scaleX: Double,
         scaleY: Double
@@ -311,6 +347,7 @@ public enum CombatFeedbackLayout: Sendable {
     public static let streamGap: CGFloat = 4
 
     /// Stable pseudo-random value in `0...1` shared by non-pathing visual effects.
+    @inlinable
     public static func unitNoise(seed: Int) -> CGFloat {
         let mixed = UInt64(bitPattern: Int64(seed)) &* 0x9E37_79B9_7F4A_7C15
         let shifted = mixed ^ (mixed >> 33)

@@ -63,7 +63,7 @@ public struct TrinketRarityLabel: View {
                 // with every premium label's animation commit on the same frame.
                 await Task.yield()
                 guard !Task.isCancelled else { return }
-                withAnimation(.linear(duration: 2.4).repeatForever(autoreverses: false)) {
+                withAnimation(TrinketMotion.Shine.textAnimation) {
                     shinePhase = true
                 }
             }

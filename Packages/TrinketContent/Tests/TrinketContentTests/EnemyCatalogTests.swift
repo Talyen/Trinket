@@ -5,9 +5,12 @@ import TrinketCore
 struct EnemyCatalogTests {
     private static let bossIDs: Set<String> = [
         "the_blight_treant",
+        "the_blood_countess",
         "the_forge_golem",
         "the_frostwarden",
         "the_iron_bear",
+        "the_seraph",
+        "the_stone_titan",
     ]
 
     @Test func enemyCatalogInvariants() throws {

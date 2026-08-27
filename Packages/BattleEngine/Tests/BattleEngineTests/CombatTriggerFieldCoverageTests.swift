@@ -9,9 +9,9 @@ struct CombatTriggerFieldCoverageTests {
         try #expect(!names.isEmpty)
         try #expect(Set(names).count == names.count, "duplicate trigger field names: \(duplicateNames(names))")
 
-        let sources = try engineSources()
+        let referencedIdentifiers = try engineReferencedIdentifiers()
         let missing = names.filter { name in
-            !sources.contains("." + name)
+            !referencedIdentifiers.contains(name)
         }
         try #expect(missing.isEmpty, "Trigger fields never read by BattleEngine: \(missing.sorted())")
     }
@@ -23,7 +23,7 @@ struct CombatTriggerFieldCoverageTests {
         .sorted()
     }
 
-    private func engineSources() throws -> String {
+    private func engineReferencedIdentifiers() throws -> Set<String> {
         let testsDirectory = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
         let engineDirectory = testsDirectory
             .deletingLastPathComponent()
@@ -43,6 +43,27 @@ struct CombatTriggerFieldCoverageTests {
             }
         }
         try #expect(!files.isEmpty, "BattleEngine sources missing at \(engineDirectory.path)")
-        return try files.map { try String(contentsOf: $0, encoding: .utf8) }.joined(separator: "\n")
+        var identifiers = Set<String>()
+        for file in files {
+            let content = try String(contentsOf: file, encoding: .utf8)
+            var index = content.startIndex
+            while let dotIndex = content[index...].firstIndex(of: ".") {
+                let afterDot = content.index(after: dotIndex)
+                var endIndex = afterDot
+                while endIndex < content.endIndex {
+                    let char = content[endIndex]
+                    if char.isLetter || char.isNumber || char == "_" {
+                        endIndex = content.index(after: endIndex)
+                    } else {
+                        break
+                    }
+                }
+                if afterDot < endIndex {
+                    identifiers.insert(String(content[afterDot ..< endIndex]))
+                }
+                index = endIndex < content.endIndex ? endIndex : content.endIndex
+            }
+        }
+        return identifiers
     }
 }

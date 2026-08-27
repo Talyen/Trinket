@@ -194,11 +194,10 @@ struct MaterialRoleModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         switch MaterialRoleStyle(role: role) {
-        case let .glass(glass, solidFill):
+        case let .glass(glass):
             content.modifier(TrinketGlassBackgroundModifier(
                 glass: glass,
-                shape: shape,
-                solidFill: solidFill
+                shape: shape
             ))
         case .ultraThinMaterial:
             content
@@ -211,23 +210,18 @@ struct MaterialRoleModifier: ViewModifier {
 }
 
 enum MaterialRoleStyle {
-    case glass(glass: Glass, solidFill: Color)
+    case glass(glass: Glass)
     case ultraThinMaterial
 
     init(role: MaterialRole) {
         let palette = ThemePalette.trinket
         switch role {
-        case .bottomBar:
-            self = .glass(glass: .regular, solidFill: palette.panelSurface)
+        case .bottomBar, .homesteadFooter:
+            self = .glass(glass: .regular)
         case .rewardReveal:
-            self = .glass(glass: .regular.tint(palette.accent), solidFill: palette.elevatedBackground)
+            self = .glass(glass: .regular.tint(palette.accent))
         case .subtleOverlay:
             self = .ultraThinMaterial
-        case .homesteadFooter:
-            self = .glass(
-                glass: .regular,
-                solidFill: palette.panelSurface
-            )
         }
     }
 }
@@ -235,7 +229,6 @@ enum MaterialRoleStyle {
 struct TrinketGlassBackgroundModifier<S: Shape>: ViewModifier {
     let glass: Glass
     let shape: S
-    let solidFill: Color
 
     func body(content: Content) -> some View {
         content
@@ -270,8 +263,7 @@ struct GlassChipModifier: ViewModifier {
             }
             .modifier(TrinketGlassBackgroundModifier(
                 glass: .regular,
-                shape: Capsule(style: .continuous),
-                solidFill: ThemePalette.trinket.elevatedBackground
+                shape: Capsule(style: .continuous)
             ))
     }
 }

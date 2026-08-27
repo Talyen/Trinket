@@ -13,7 +13,7 @@ struct ThornsHandler: BattleEffectHandler {
             return sum
         }
         guard total > 0 else { return nil }
-        return EffectSummary(keyword: keyword, text: "Thorns: \(total) (until next hit).")
+        return EffectSummary(keyword: keyword, text: "Thorns: Deals \(total) Physical damage to the next attacker.")
     }
 
     func apply(
@@ -58,7 +58,7 @@ struct OnHitDamageHandler: BattleEffectHandler {
         }
         guard amount > 0 else { return nil }
         let label = keyword == .freeze ? "Glacial Ward" : "\(keyword.rawValue) Ward"
-        return EffectSummary(keyword: keyword, text: "\(label): \(amount) \(keyword.rawValue) (until next hit).")
+        return EffectSummary(keyword: keyword, text: "\(label): Deals \(amount) \(keyword.rawValue) damage to the next attacker.")
     }
 
     func apply(
@@ -110,15 +110,15 @@ struct MarkedHandler: BattleEffectHandler {
             if maxTicks > 0 {
                 return EffectSummary(
                     keyword: keyword,
-                    text: "Marked: takes +\(bonus) damage from attacks, \(BattleTiming.remainingDurationLabel(turns: maxTicks))."
+                    text: "Marked: Takes +\(bonus) damage from attacks, \(BattleTiming.remainingDurationLabel(turns: maxTicks))."
                 )
             }
             return EffectSummary(
                 keyword: keyword,
-                text: "Marked: takes +\(bonus) damage from attacks."
+                text: "Marked: Takes +\(bonus) damage from attacks."
             )
         }
-        return EffectSummary(keyword: keyword, text: "Marked: takes extra damage from attacks.")
+        return EffectSummary(keyword: keyword, text: "Marked: Takes extra damage from attacks.")
     }
 
     func apply(
@@ -163,7 +163,7 @@ struct CriticalChanceBonusHandler: BattleEffectHandler {
         }
         return EffectSummary(
             keyword: keyword,
-            text: "Focused: +\(Int(percent * 100))% Critical, \(BattleTiming.remainingDurationLabel(turns: maxTicks))."
+            text: "Focused: Increases Critical chance by +\(Int(percent * 100))%, \(BattleTiming.remainingDurationLabel(turns: maxTicks))."
         )
     }
 
@@ -210,7 +210,7 @@ struct RestoreManaOnHitHandler: BattleEffectHandler {
         }
         return EffectSummary(
             keyword: keyword,
-            text: "Mana Shield: restore \(amount) Mana when hit, \(BattleTiming.remainingDurationLabel(turns: maxTicks))."
+            text: "Mana Shield: Restores \(amount) Mana when hit, \(BattleTiming.remainingDurationLabel(turns: maxTicks))."
         )
     }
 
@@ -254,7 +254,7 @@ struct DamageKeywordOverrideHandler: BattleEffectHandler {
         }
         return EffectSummary(
             keyword: keyword,
-            text: "Consecrated: attacks deal \(overrideKeyword.rawValue) (+\(bonus)), \(BattleTiming.remainingDurationLabel(turns: maxTicks))."
+            text: "Consecrated: Attacks deal \(overrideKeyword.rawValue) damage (+\(bonus)), \(BattleTiming.remainingDurationLabel(turns: maxTicks))."
         )
     }
 
@@ -292,7 +292,7 @@ struct HemorrhageHandler: BattleEffectHandler {
             return maxAmount
         }
         guard amount > 0 else { return nil }
-        return EffectSummary(keyword: keyword, text: "Hemorrhage: \(amount) Bleed (on next attack).")
+        return EffectSummary(keyword: keyword, text: "Hemorrhage: Takes \(amount) Bleed damage on next attack.")
     }
 
     func apply(

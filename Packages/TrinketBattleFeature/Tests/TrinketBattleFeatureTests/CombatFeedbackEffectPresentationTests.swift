@@ -1,5 +1,6 @@
 import BattleEngine
 import Testing
+import TrinketDesignSystem
 @testable import TrinketBattleFeature
 
 struct CombatFeedbackEffectPresentationTests {
@@ -92,5 +93,35 @@ struct CombatFeedbackEffectPresentationTests {
         #expect(marked.leadingStyle == nil)
         #expect(marked.trailingStyle == .negativeStatus)
         #expect(marked.text == nil)
+    }
+
+    @Test func hitReactionRecipeComputedPropertiesAndFallbacks() {
+        let defaultDamage = CombatFeedbackCardRecipes.cardReaction(for: .damage)
+        #expect(defaultDamage.impactDuration > 0)
+        #expect(defaultDamage.recoveryDuration > 0)
+        #expect(defaultDamage.rawImpactScaleX > 0)
+        #expect(defaultDamage.rawImpactScaleY > 0)
+        #expect(defaultDamage.recoveryScaleX > 0)
+        #expect(defaultDamage.recoveryScaleY > 0)
+
+        // Custom empty recipe verifies safe fallback behavior without crashing
+        let emptyRecipe = CombatantHitReactionRecipe(
+            kind: .none,
+            scaleX: [],
+            scaleY: [],
+            offsetX: [],
+            offsetY: [],
+            duration: 0.24
+        )
+        #expect(emptyRecipe.impactDuration == 0.08)
+        #expect(emptyRecipe.recoveryDuration == 0.16)
+        #expect(emptyRecipe.rawImpactScaleX == 1.0)
+        #expect(emptyRecipe.rawImpactScaleY == 1.0)
+        #expect(emptyRecipe.recoveryScaleX == 1.0)
+        #expect(emptyRecipe.recoveryScaleY == 1.0)
+        #expect(emptyRecipe.rawImpactOffsetX == 0.0)
+        #expect(emptyRecipe.rawImpactOffsetY == 0.0)
+        #expect(emptyRecipe.recoverOffsetX == 0.0)
+        #expect(emptyRecipe.recoverOffsetY == 0.0)
     }
 }

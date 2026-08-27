@@ -34,7 +34,6 @@ public struct CombatantDetailPane: View {
     @State private var viewingItem: InventoryItem?
     @State private var selectedTalentTree: TalentTree?
     @State private var selectionFeedbackTrigger = 0
-    @State private var cachedCombatBuild: CombatBuild?
 
     /// Distinct from `Ability` so view-only and loadout destinations do not collide.
     private struct ViewOnlyAbility: Hashable, Identifiable {
@@ -45,25 +44,7 @@ public struct CombatantDetailPane: View {
         }
     }
 
-    private struct CombatBuildInputs: Equatable {
-        let combatantID: String
-        let loadout: AbilityLoadout
-        let equipmentLoadout: EquipmentLoadout
-        let inventoryItems: [InventoryItem]
-        let unlockedTalents: Set<String>
-    }
-
-    private var combatBuildInputs: CombatBuildInputs {
-        CombatBuildInputs(
-            combatantID: combatant.id,
-            loadout: loadout,
-            equipmentLoadout: equipmentLoadout,
-            inventoryItems: inventoryItems,
-            unlockedTalents: unlockedTalents
-        )
-    }
-
-    private func makeCombatBuild() -> CombatBuild {
+    private var combatBuild: CombatBuild {
         CombatBuildResolver.build(
             combatant: combatant,
             equipmentLoadout: equipmentLoadout,
@@ -80,7 +61,7 @@ public struct CombatantDetailPane: View {
     }
 
     public var body: some View {
-        let combatBuild = cachedCombatBuild ?? makeCombatBuild()
+        let combatBuild = combatBuild
 
         DetailHeroScrollShell(
             title: combatant.name,
@@ -153,16 +134,6 @@ public struct CombatantDetailPane: View {
             trigger: selectionFeedbackTrigger,
             enabled: hapticsEnabled
         )
-        .onAppear {
-            // Seed the cache with the value body already resolved; recomputing here
-            // would build the same combat build twice on first render.
-            if cachedCombatBuild == nil {
-                cachedCombatBuild = combatBuild
-            }
-        }
-        .onChange(of: combatBuildInputs) {
-            cachedCombatBuild = makeCombatBuild()
-        }
     }
 
     @ViewBuilder

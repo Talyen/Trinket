@@ -16,12 +16,13 @@ public struct TrinketWalletGrid<Content: View>: View {
     public var body: some View {
         TrinketWalletGridLayout(
             columnCount: columnCount,
-            horizontalSpacing: TrinketDesign.Metrics.smallSpacing,
+            horizontalSpacing: TrinketDesign.Metrics.mediumSpacing,
             verticalSpacing: TrinketDesign.Metrics.denseSpacing
         ) {
             content
         }
-        .padding(TrinketDesign.Metrics.mediumSpacing)
+        .padding(.horizontal, TrinketDesign.Metrics.mediumSpacing)
+        .padding(.vertical, TrinketDesign.Metrics.smallSpacing)
         .trinketMaterial(.homesteadFooter)
     }
 }
@@ -56,7 +57,7 @@ public struct TrinketWalletResourcePill<Artwork: View>: View {
     }
 
     public var body: some View {
-        HStack(spacing: TrinketDesign.Metrics.smallSpacing) {
+        HStack(spacing: TrinketDesign.Metrics.denseSpacing) {
             artwork
                 .frame(
                     width: TrinketDesign.Metrics.walletResourceArtworkSize,

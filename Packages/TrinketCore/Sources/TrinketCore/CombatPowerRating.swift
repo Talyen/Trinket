@@ -23,16 +23,10 @@ public enum CombatPowerRating {
         primaryStats: PrimaryStats,
         level: Int
     ) -> CombatPowerSnapshot {
-        let statTotal = primaryStats.strength
-            + primaryStats.agility
-            + primaryStats.toughness
-            + primaryStats.intellect
-            + primaryStats.wisdom
-        let rating = maxHealth + statTotal
-        return CombatPowerSnapshot(
+        CombatPowerSnapshot(
             level: level,
             maxHealth: maxHealth,
-            rating: rating
+            rating: maxHealth + primaryStats.total
         )
     }
 }

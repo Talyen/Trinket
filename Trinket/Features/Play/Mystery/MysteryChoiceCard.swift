@@ -112,17 +112,16 @@ struct MysteryChoiceCard: View {
             )
 
         case .gainExperience:
+            let valueText = if heroExperienceAward == companionExperienceAward {
+                "+\(heroExperienceAward) XP"
+            } else {
+                "+\(heroExperienceAward) / +\(companionExperienceAward) XP"
+            }
             rewardSummary(
-                title: "Hero",
-                value: "+\(heroExperienceAward) XP",
-                systemIcon: "star.fill",
-                tint: TrinketDesign.Colors.warning
-            )
-            rewardSummary(
-                title: "Companion",
-                value: "+\(companionExperienceAward) XP",
-                systemIcon: "star.fill",
-                tint: TrinketDesign.Colors.warning
+                title: "Experience",
+                value: valueText,
+                systemIcon: "sparkles",
+                tint: TrinketDesign.Colors.arcane
             )
 
         case let .gainGeneratedItem(baseTypeID, guaranteedAffixIDs):

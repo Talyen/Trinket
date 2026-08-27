@@ -162,13 +162,14 @@ public struct CombatantTalentsView: View {
         let isUnlocked = unlockedTalents.contains(node.id)
         let isSelected = selectedNodeID == node.id
         let style = node.keyword.visualStyle
+        let symbolName = node.symbolName ?? style.symbolName
 
         return Button {
             selectedNodeID = node.id
         } label: {
             VStack(spacing: TrinketDesign.Metrics.smallSpacing) {
                 if isUnlocked {
-                    Image(systemName: style.symbolName)
+                    Image(systemName: symbolName)
                         .trinketTypography(.screenTitle)
                         .foregroundStyle(style.color)
                 } else if isRowLocked {
@@ -176,7 +177,7 @@ public struct CombatantTalentsView: View {
                         .trinketTypography(.sectionTitle)
                         .foregroundStyle(.tertiary)
                 } else {
-                    Image(systemName: style.symbolName)
+                    Image(systemName: symbolName)
                         .trinketTypography(.screenTitle)
                         .foregroundStyle(style.color.opacity(0.75))
                 }
@@ -236,10 +237,17 @@ public struct CombatantTalentsView: View {
                     availablePoints: availablePoints
                 )
                 let style = selectedNode.keyword.visualStyle
+                let symbolName = selectedNode.symbolName ?? style.symbolName
 
-                Text(balanced: selectedNode.name)
-                    .trinketTypography(.cardTitle)
-                    .foregroundStyle(style.color)
+                HStack(spacing: TrinketDesign.Metrics.smallSpacing) {
+                    Image(systemName: symbolName)
+                        .trinketTypography(.cardTitle)
+                        .foregroundStyle(style.color)
+
+                    Text(balanced: selectedNode.name)
+                        .trinketTypography(.cardTitle)
+                        .foregroundStyle(style.color)
+                }
 
                 KeywordDescriptionText(text: selectedNode.description)
                     .trinketTypography(.body)

@@ -4,18 +4,20 @@ import TrinketCore
 /// Defines an authored talent node's distinct mechanics, modifiers, and triggers.
 public struct CombatantTalentEffect: Sendable {
     public let name: String
+    public let symbolName: String
     public let description: String
     public let modifiers: [AffixModifier]
     public let triggers: CombatTraitTriggers
 
     public init(
         name: String,
+        symbolName: String = "",
         description: String,
         modifiers: [AffixModifier] = [],
-        triggers: CombatTraitTriggers = CombatTraitTriggers(
-        )
+        triggers: CombatTraitTriggers = CombatTraitTriggers()
     ) {
         self.name = name
+        self.symbolName = symbolName
         self.description = description
         self.modifiers = modifiers
         self.triggers = triggers
@@ -191,6 +193,7 @@ public enum CombatantTalentCatalog {
                         name: signature.name,
                         keyword: keyword,
                         row: row,
+                        symbolName: signature.symbolName.isEmpty ? nil : signature.symbolName,
                         description: signature.description
                     )
                 )

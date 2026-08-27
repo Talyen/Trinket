@@ -29,12 +29,12 @@ struct TimedDebuffHandler: BattleEffectHandler {
             let percentInt = Int((percent * 100).rounded())
             return EffectSummary(
                 keyword: keyword,
-                text: "Weakened: outgoing damage reduced by \(percentInt)%\(durationSuffix)."
+                text: "Weakened: Outgoing damage reduced by \(percentInt)%\(durationSuffix)."
             )
         case let .damageReductionFlat(amount, _):
             return EffectSummary(
                 keyword: keyword,
-                text: "Dazzled: outgoing damage reduced by \(amount)\(durationSuffix)."
+                text: "Dazzled: Outgoing damage reduced by \(amount)\(durationSuffix)."
             )
         case let .strengthReduction(amount, _):
             return EffectSummary(

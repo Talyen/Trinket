@@ -27,69 +27,64 @@ public struct EffectBehaviorMetadata: Sendable, Equatable {
 
 public enum EffectMetadata {
     public static func behavior(for kind: EffectKind) -> EffectBehaviorMetadata {
-        guard let metadata = behaviorTable[kind] else {
-            preconditionFailure("Every EffectKind needs behavior metadata; missing \(kind)")
+        switch kind {
+        case .burn:
+            .init(isRemovableDebuff: true, advancesEachTurn: true, isDecayingDoT: true)
+        case .poison:
+            .init(isRemovableDebuff: true, advancesEachTurn: true, isDecayingDoT: true)
+        case .bleed:
+            .init(isRemovableDebuff: true, advancesEachTurn: true, isBleed: true)
+        case .controlMeter:
+            .init(isRemovableDebuff: true, advancesEachTurn: true)
+        case .shield:
+            .init(isRemovableBuff: true)
+        case .instantHeal, .resourceGain, .drawCards, .drawAndPlayCards,
+             .cleanse, .cleanseHealPerDebuff, .cleanseRandom,
+             .purge, .purgeRandom, .halveShield,
+             .convertManaToBlock, .shieldFromMana, .shieldFromHalfMana, .shieldFromGold,
+             .multiplyDoT, .revive:
+            .init(isInstant: true)
+        case .deathsDoor:
+            .init(advancesEachTurn: true)
+        case .thorns, .nextHolyStrike, .nextStrikeDouble, .evadeNextHit,
+             .nextStrikeCritical, .freezeNextAttacker, .onHitDamage:
+            .init(isRemovableBuff: true)
+        case .maximumManaBonus:
+            .init(isRemovableBuff: true, isInstant: true)
+        case .marked, .recurringDamage, .damageReductionPercent,
+             .damageReductionFlat, .strengthReduction:
+            .init(isRemovableDebuff: true, advancesEachTurn: true)
+        case .criticalChanceBonus, .restoreManaOnHit, .damageKeywordOverride, .avatar:
+            .init(isRemovableBuff: true, advancesEachTurn: true)
+        case .hemorrhage:
+            .init(isRemovableDebuff: true)
         }
-        return metadata
     }
 
     /// Battle log summaries for flag-style effects. Parameterized effects build
     /// summaries from runtime values instead.
     public static func requiredBattleSummaryPhrase(for kind: EffectKind) -> String {
-        guard let phrase = battleSummaryPhrases[kind] else {
+        guard let phrase = battleSummaryPhrase(for: kind) else {
             preconditionFailure("Every flag effect needs a battle summary phrase; missing \(kind)")
         }
         return phrase
     }
 
-    private static let behaviorTable: [EffectKind: EffectBehaviorMetadata] = [
-        .burn: .init(isRemovableDebuff: true, advancesEachTurn: true, isDecayingDoT: true),
-        .poison: .init(isRemovableDebuff: true, advancesEachTurn: true, isDecayingDoT: true),
-        .bleed: .init(isRemovableDebuff: true, advancesEachTurn: true, isBleed: true),
-        .controlMeter: .init(isRemovableDebuff: true, advancesEachTurn: true),
-        .shield: .init(isRemovableBuff: true),
-        .instantHeal: .init(isInstant: true),
-        .resourceGain: .init(isInstant: true),
-        .drawCards: .init(isInstant: true),
-        .drawAndPlayCards: .init(isInstant: true),
-        .cleanse: .init(isInstant: true),
-        .cleanseHealPerDebuff: .init(isInstant: true),
-        .cleanseRandom: .init(isInstant: true),
-        .purge: .init(isInstant: true),
-        .purgeRandom: .init(isInstant: true),
-        .halveShield: .init(isInstant: true),
-        .deathsDoor: .init(advancesEachTurn: true),
-        .thorns: .init(isRemovableBuff: true),
-        .marked: .init(isRemovableDebuff: true, advancesEachTurn: true),
-        .criticalChanceBonus: .init(isRemovableBuff: true, advancesEachTurn: true),
-        .restoreManaOnHit: .init(isRemovableBuff: true, advancesEachTurn: true),
-        .damageKeywordOverride: .init(isRemovableBuff: true, advancesEachTurn: true),
-        .nextHolyStrike: .init(isRemovableBuff: true),
-        .nextStrikeDouble: .init(isRemovableBuff: true),
-        .evadeNextHit: .init(isRemovableBuff: true),
-        .convertManaToBlock: .init(isInstant: true),
-        .shieldFromMana: .init(isInstant: true),
-        .shieldFromHalfMana: .init(isInstant: true),
-        .shieldFromGold: .init(isInstant: true),
-        .maximumManaBonus: .init(isRemovableBuff: true, isInstant: true),
-        .nextStrikeCritical: .init(isRemovableBuff: true),
-        .freezeNextAttacker: .init(isRemovableBuff: true),
-        .onHitDamage: .init(isRemovableBuff: true),
-        .multiplyDoT: .init(isInstant: true),
-        .recurringDamage: .init(isRemovableDebuff: true, advancesEachTurn: true),
-        .avatar: .init(isRemovableBuff: true, advancesEachTurn: true),
-        .revive: .init(isInstant: true),
-        .damageReductionPercent: .init(isRemovableDebuff: true, advancesEachTurn: true),
-        .damageReductionFlat: .init(isRemovableDebuff: true, advancesEachTurn: true),
-        .strengthReduction: .init(isRemovableDebuff: true, advancesEachTurn: true),
-        .hemorrhage: .init(isRemovableDebuff: true),
-    ]
-
-    private static let battleSummaryPhrases: [EffectKind: String] = [
-        .nextHolyStrike: "Holy Strike: next attack deals double Holy damage and applies Burning.",
-        .nextStrikeDouble: "Double Strike: next attack deals double damage.",
-        .evadeNextHit: "Evasion: dodge the next attack.",
-        .nextStrikeCritical: "Critical Focus: next attack is a guaranteed Critical Hit.",
-        .freezeNextAttacker: "Glacial Ward: freeze the next attacker.",
-    ]
+    /// Returns the battle log summary phrase for flag-style effects, or nil if none.
+    public static func battleSummaryPhrase(for kind: EffectKind) -> String? {
+        switch kind {
+        case .nextHolyStrike:
+            "Holy Strike: Next attack deals double Holy damage and applies Burning."
+        case .nextStrikeDouble:
+            "Double Strike: Next attack deals double damage."
+        case .evadeNextHit:
+            "Evasion: Dodges the next attack."
+        case .nextStrikeCritical:
+            "Critical Focus: Next attack is a guaranteed Critical Hit."
+        case .freezeNextAttacker:
+            "Glacial Ward: Freezes the next attacker."
+        default:
+            nil
+        }
+    }
 }

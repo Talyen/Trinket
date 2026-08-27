@@ -79,13 +79,21 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Codable, Send
 
     /// Returns all keywords mentioned in the provided text in appearance order without duplicates.
     public static func referenced(in text: String) -> [Self] {
-        var result: [Self] = []
-        for (term, keyword) in styledTerms where text.localizedStandardContains(term) {
-            if !result.contains(keyword) {
-                result.append(keyword)
+        var keywordFirstIndices: [Self: String.Index] = [:]
+        for (term, keyword) in styledTerms {
+            if let range = text.range(of: term, options: .caseInsensitive) {
+                if let existing = keywordFirstIndices[keyword] {
+                    if range.lowerBound < existing {
+                        keywordFirstIndices[keyword] = range.lowerBound
+                    }
+                } else {
+                    keywordFirstIndices[keyword] = range.lowerBound
+                }
             }
         }
-        return result
+        return keywordFirstIndices
+            .sorted { $0.value < $1.value }
+            .map(\.key)
     }
 
     public var rulesText: String {
@@ -250,5 +258,12 @@ public enum ItemSlot: String, CaseIterable, Identifiable, Hashable, Sendable {
 
     public func accepts(_ baseTypeSlot: Self) -> Bool {
         baseTypeSlot == baseItemSlot
+    }
+}
+
+public extension Collection {
+    subscript(safe index: Index) -> Element? {
+        guard indices.contains(index) else { return nil }
+        return self[index]
     }
 }

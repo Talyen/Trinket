@@ -8,7 +8,7 @@ package extension BattleState {
         talentReactionDepth += 1
         defer { talentReactionDepth -= 1 }
         var resolved = request
-        if talentReactionDepth > 2 {
+        if talentReactionDepth > 1 {
             resolved.options.isRetaliation = true
         }
 

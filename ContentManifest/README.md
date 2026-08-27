@@ -33,10 +33,11 @@ id	title	slot	keywords	weight	basic_description	astral_description	basic_modifie
 Tab-separated columns:
 
 ```text
-id	name	description	modifiers	triggers
+id	name	symbol_name	description	modifiers	triggers
 ```
 
 - `id`: `{combatantID}_{keyword}_t{row}_{slot}` matching `CombatantTalentCatalog` tree nodes.
+- `symbol_name`: SF Symbol system name for the talent node icon.
 - `modifiers` / `triggers`: same pipe-separated DSL as affixes (`damage_dealt:physical:1`, `blockPerTurn:2`). CamelCase schema field names are accepted as trigger tokens.
 
 ### Enemy traits (`ContentManifest/traits.tsv`)

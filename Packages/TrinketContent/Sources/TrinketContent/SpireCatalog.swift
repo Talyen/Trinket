@@ -65,13 +65,13 @@ enum SpireCatalog {
     /// Preferred enemy IDs per Spire keyword, ordered for floors 1…n (boss last when possible).
     /// Prefer enemies whose kits include the Spire keyword; fall back to thematic roster fills.
     private static let enemyPools: [Keyword: [String]] = [
-        .physical: ["goblin", "skeleton", "slime", "mimic", "the_iron_bear"],
-        .burn: ["will_o_wisp", "fire_elemental", "the_forge_golem"],
-        .poison: ["plague_doctor", "necromancer", "the_blight_treant"],
-        .bleed: ["mimic", "necromancer", "the_blight_treant"],
-        .holy: ["skeleton", "living_armor", "the_iron_bear"],
-        .freeze: ["frost_elemental", "the_frostwarden"],
-        .stun: ["goblin", "living_armor", "the_forge_golem"],
+        .physical: ["goblin", "bandit", "ogre", "living_armor", "the_iron_bear"],
+        .burn: ["fire_imp", "hellhound", "fire_elemental", "pyromancer", "the_forge_golem"],
+        .poison: ["giant_spider", "giant_snake", "slime", "plague_doctor", "the_blight_treant"],
+        .bleed: ["blood_cultist", "dire_wolf", "vampire", "necromancer", "the_blood_countess"],
+        .holy: ["zealot", "cleric", "inquisitor", "paladin", "the_seraph"],
+        .freeze: ["winter_wolf", "frost_elemental", "ice_wraith", "yeti", "the_frostwarden"],
+        .stun: ["banshee", "brawler", "stone_golem", "earth_elemental", "the_stone_titan"],
     ]
 
     private static let floorsBySpireID: [SpireID: [SpireFloor]] = {

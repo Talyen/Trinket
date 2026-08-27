@@ -5,33 +5,26 @@ import UIKit
 @testable import TrinketDesignSystem
 
 struct ThemePaletteTests {
-    @Test func semanticForegroundsMeetContrastInDarkEnvironment() throws {
+    private static let semanticForegroundNames = [
+        "ThemeAntiqueGold",
+        "ThemeHighlightGold",
+        "ThemePressedGold",
+        "ThemeSuccess",
+        "ThemeWarning",
+        "ThemeDestructive",
+        "ThemeInformational",
+        "ThemeArcane",
+        "ThemeHealth",
+        "ThemeHealthRestore",
+    ]
+
+    @Test(arguments: semanticForegroundNames)
+    func semanticForegroundMeetsContrastInDarkEnvironment(colorName: String) throws {
         // Resolve via UIKit asset lookup (dark traits) instead of SwiftUI
         // `Color.resolve`, which pays a multi-second host cold start in this package.
         let canvas = try darkResolvedSRGB("ThemeCanvas")
-        let semanticForegroundNames = [
-            "ThemeAntiqueGold",
-            "ThemeHighlightGold",
-            "ThemePressedGold",
-            "ThemeSuccess",
-            "ThemeWarning",
-            "ThemeDestructive",
-            "ThemeInformational",
-            "ThemeArcane",
-            "ThemeHealth",
-            "ThemeHealthRestore",
-        ]
-
-        var accent: (red: Double, green: Double, blue: Double)?
-        for name in semanticForegroundNames {
-            let color = try darkResolvedSRGB(name)
-            if name == "ThemeAntiqueGold" {
-                accent = color
-            }
-            #expect(contrastRatio(color, canvas) >= 4.5)
-        }
-        let resolvedAccent = try #require(accent)
-        #expect(contrastRatio(canvas, resolvedAccent) >= 4.5)
+        let color = try darkResolvedSRGB(colorName)
+        #expect(contrastRatio(color, canvas) >= 4.5)
     }
 }
 

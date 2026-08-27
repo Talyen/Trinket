@@ -56,12 +56,14 @@ package extension CombatTriggerEngine {
 
         var events: [ActionEvent] = []
         if triggers.stunDealPhysicalFlat > 0 {
-            events.append(contentsOf: DoTDamage.resolveTurnDamage(
-                basePotency: triggers.stunDealPhysicalFlat,
-                keyword: .physical,
-                target: enemy,
-                sourceActorID: actor.id,
-                in: &context
+            events.append(contentsOf: context.resolveDamage(
+                DamageRequest(
+                    amount: triggers.stunDealPhysicalFlat,
+                    target: enemy,
+                    keyword: .physical,
+                    sourceActorID: actor.id,
+                    options: .flatReaction
+                )
             ).events)
         }
 

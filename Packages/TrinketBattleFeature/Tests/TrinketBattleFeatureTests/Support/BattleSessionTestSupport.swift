@@ -198,4 +198,33 @@ enum BattleSessionTestSupport {
             playCard: playCard
         )
     }
+
+    nonisolated static func makeActionEvent(
+        id: Int,
+        kind: ActionEvent.Kind,
+        effectKind: ActionEvent.EffectOutcome? = nil,
+        amount: Int,
+        keyword: Keyword,
+        targetID: String = "enemy",
+        isCritical: Bool = false,
+        actionID: Int? = nil,
+        abilityID: String = "slash",
+        abilityName: String = "Slash"
+    ) -> ActionEvent {
+        ActionEvent(
+            id: id,
+            actionID: actionID ?? id,
+            kind: kind,
+            effectKind: effectKind,
+            actorID: "hero",
+            actorName: "Hero",
+            abilityID: abilityID,
+            abilityName: abilityName,
+            targetID: targetID,
+            targetName: targetID.capitalized,
+            amount: amount,
+            keyword: keyword,
+            isCritical: isCritical
+        )
+    }
 }
