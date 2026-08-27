@@ -607,7 +607,9 @@ class ScriptRegressionTests(unittest.TestCase):
         self.assertIn("name: Homestead", workflow)
         self.assertIn("preboot-simulator: 'true'", workflow)
         self.assertIn("skip-build: 'true'", workflow)
-        self.assertIn("checkout-ci", workflow)
+        self.assertIn("sparse-checkout-cone-mode: true", workflow)
+        self.assertIn("test -f project.yml", workflow)
+        self.assertNotIn("checkout-ci", workflow)
         self.assertIn("Smoke tests (${{ matrix.name }})", workflow)
         self.assertIn("needs.changes.outputs.infra", workflow)
         self.assertNotIn("actions/cache/restore@", workflow)
@@ -617,10 +619,7 @@ class ScriptRegressionTests(unittest.TestCase):
             ROOT / ".github" / "actions" / "build-cache-key" / "action.yml"
         ).read_text(encoding="utf-8")
         self.assertIn('git rev-parse "HEAD:Raw Assets"', cache_key)
-        checkout = (
-            ROOT / ".github" / "actions" / "checkout-ci" / "action.yml"
-        ).read_text(encoding="utf-8")
-        sparse_block = checkout.split("sparse-checkout:", 1)[1]
+        sparse_block = workflow.split("sparse-checkout:", 1)[1]
         self.assertIn(".github", sparse_block)
         self.assertNotIn("Raw Assets", sparse_block)
 
