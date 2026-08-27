@@ -3,8 +3,8 @@ import Foundation
 /// Display-link pacing normalized to the refresh period observed during the sample.
 /// This report supplies raw, scenario-addressable diagnostics; it is not an
 /// authoritative render-pipeline hitch metric.
-public struct FramePacingReport: Equatable, Sendable {
-    public static let schemaVersion = 4
+public struct     FramePacingReport: Equatable, Sendable {
+    public static let schemaVersion = 5
 
     public var sampleCount: Int
     public var expectedFPS: Double
@@ -161,7 +161,10 @@ public enum FramePacingAnalyzer {
 
     private static func percentile(_ sorted: [CFTimeInterval], fraction: Double) -> CFTimeInterval {
         guard !sorted.isEmpty else { return 0 }
-        let index = min(sorted.count - 1, max(0, Int((Double(sorted.count - 1) * fraction).rounded(.up))))
+        // Nearest-rank: ceil(p * n) - 1, clamped. Previous used (n-1)*p rounded up, inflating p95.
+        let n = Double(sorted.count)
+        let rank = Int((n * fraction).rounded(.up))
+        let index = min(sorted.count - 1, max(0, rank - 1))
         return sorted[index]
     }
 

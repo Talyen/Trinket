@@ -33,9 +33,13 @@ struct PreparedArtworkCacheSnapshot: Equatable, Sendable {
     }
 }
 
+/// Tuned for 6 GB typical (iPhone 14/15/16 base). 6 GB Jetsam kills around
+/// 1.4–1.8 GB, 8 GB around 2.0–2.5 GB, so 320/550 is ~5–8% of RAM and 3× under
+/// the kill line. Do not lower to re-target 4 GB without product approval.
+/// See Docs/Platform/PerformanceInvestigationPlaybook.md § Artwork Budgets.
 enum PreparedArtworkMemoryBudget {
-    static let residentArtworkByteCount = 240 * 1024 * 1024
-    static let steadyStateProcessByteCount = 400 * 1024 * 1024
+    static let residentArtworkByteCount = 320 * 1024 * 1024
+    static let steadyStateProcessByteCount = 550 * 1024 * 1024
 }
 
 /// App-wide artwork preparation. Priority assets decode before launch releases the
@@ -91,9 +95,11 @@ public final class PreparedArtworkCache {
     private func configureImageBudget() {
         let physicalMemory = Int(ProcessInfo.processInfo.physicalMemory)
         let adaptiveBudget = physicalMemory / 24
-        // Leave room below the 240 MiB artwork target for the small strong pin
-        // set and temporary decoder surfaces that NSCache does not cost-account.
-        images.totalCostLimit = min(max(adaptiveBudget, 96 * 1024 * 1024), 160 * 1024 * 1024)
+        // 6 GB typical target: 320 MiB artwork / 550 MiB process. Leave room
+        // below the artwork target for the small strong pin set and temporary
+        // decoder surfaces that NSCache does not cost-account. Do not lower
+        // floor to 96 or cap to 160 to re-target 4 GB without product approval.
+        images.totalCostLimit = min(max(adaptiveBudget, 160 * 1024 * 1024), 260 * 1024 * 1024)
     }
 
     /// Isolated cache for unit tests (does not touch `shared`).

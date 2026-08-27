@@ -95,9 +95,11 @@ public struct BattleState {
     /// True while Arcane Burst is auto-playing a card (blocks re-entry).
     public var isResolvingAutoPlayCard: Bool
     /// Nested `drawAndPlayCards` auto-play depth. Caps runaway chains.
+    /// Keep in sync with `ReactionScope.maxDrawAndPlayDepth` (10) — mechanics
+    /// should limit chains, cap is safety only.
     public var drawAndPlayDepth: Int = 0
     /// Maximum nested auto-play depth; further draw-and-play effects skip drawing.
-    public static let maxDrawAndPlayDepth = 8
+    public static let maxDrawAndPlayDepth = ReactionScope.maxDrawAndPlayDepth
     /// Authored faction of the enemy in this battle (talent conditions such as Bane of Evil).
     public let enemyFaction: EnemyFaction
 

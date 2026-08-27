@@ -8,7 +8,10 @@ package extension CombatTriggerEngine {
         in context: inout BattleState
     ) -> [ActionEvent] {
         guard context.roster.combatant(for: sourceActorID) != nil else { return [] }
-        guard context.dotRecursionDepth < 2 else { return [] }
+        guard context.dotRecursionDepth < ReactionScope.maxDotRecursionDepth else {
+            assertionFailure("ReactionScope: dotRecursionDepth hit cap 10 in afterBleedApplied")
+            return []
+        }
         context.dotRecursionDepth += 1
         defer { context.dotRecursionDepth -= 1 }
         let profile = context.modifiers(for: sourceActorID)
@@ -44,7 +47,10 @@ package extension CombatTriggerEngine {
         sourceActorID: String,
         in context: inout BattleState
     ) -> [ActionEvent] {
-        guard context.dotRecursionDepth < 2 else { return [] }
+        guard context.dotRecursionDepth < ReactionScope.maxDotRecursionDepth else {
+            assertionFailure("ReactionScope: dotRecursionDepth hit cap 10 in afterDecayingDoTApplied")
+            return []
+        }
         context.dotRecursionDepth += 1
         defer { context.dotRecursionDepth -= 1 }
         var events: [ActionEvent] = []

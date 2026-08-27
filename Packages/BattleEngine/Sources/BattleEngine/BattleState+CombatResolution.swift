@@ -7,6 +7,10 @@ package extension BattleState {
 
         talentReactionDepth += 1
         defer { talentReactionDepth -= 1 }
+        if talentReactionDepth > ReactionScope.maxTalentReactionDepth {
+            assertionFailure("ReactionScope: talentReactionDepth hit cap 10 — possible infinite loop")
+            return .empty
+        }
         var resolved = request
         if talentReactionDepth > 1 {
             resolved.options.isRetaliation = true

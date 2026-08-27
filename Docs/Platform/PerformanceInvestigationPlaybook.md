@@ -89,11 +89,33 @@ If engine/hand fails, profile and simplify engine mutation or projection invalid
 
 Do not freeze slots, delay card removal, add placeholders, split user-visible work across frames, reduce feedback richness, lower asset resolution, reduce particle counts, or add another presentation framework to win a metric. Hand movement is gameplay feedback.
 
-Do not drop launch or imminent artwork pins, or replace `PreparedArtworkCache`
-hits with on-demand `Image(name)`, to reduce memory. A smaller footprint that
-re-decodes on the presentation frame is a hitch regression. Pins are the
-eviction defense; `NSCache` alone is not. See
+Do not drop launch or imminent artwork pins, replace `PreparedArtworkCache`
+hits with on-demand `Image(name)`, or lower `PreparedArtworkMemoryBudget` /
+`NSCache.totalCostLimit` to re-target 4 GB, to reduce memory. A smaller
+footprint that re-decodes on the presentation frame is a hitch regression.
+Pins are the eviction defense; `NSCache` alone is not. Budgets are tuned for
+6 GB typical (320 MiB artwork / 550 MiB process / 260 MiB cache cap,
+`physicalMemory/24` floored to 160). See
 [MemoryAndEnergyInvestigation.md](MemoryAndEnergyInvestigation.md).
+
+### Artwork Budgets (6 GB typical, 2026-08)
+
+Assumes iPhone 14/15/16 base (6 GB) as typical, with 8 GB on Pro/16. Jetsam
+kills foreground apps around 1.4–1.8 GB on 6 GB and 2.0–2.5 GB on 8 GB, so the
+budgets below are ~5–8% of RAM and 3× under the kill line. Do not lower to
+re-target 4 GB (iPhone 12/13) without product approval — the 80 MB pinned
+first-screen set is ~1–1.3% of 6–8 GB and is the hitch defense.
+
+| Budget | Value | Location |
+|---|---|---|
+| `NSCache.totalCostLimit` | `min(max(physicalMemory/24, 160 MiB), 260 MiB)` (6 GB→250, 8 GB→260) | `PreparedArtworkCache.configureImageBudget()` |
+| `residentArtworkByteCount` | 320 MiB | `PreparedArtworkMemoryBudget` |
+| `steadyStateProcessByteCount` | 550 MiB | `PreparedArtworkMemoryBudget` |
+
+`physicalMemory/24` already adapts; the 160 floor and 260 cap are the product
+decision. If a future agent needs to support a larger catalog, raise the cap
+toward 300–320 (still safe), not the floor. Any lowering must update this
+section and `AGENTS.md` Guardrails and pass `check-artwork-budget.sh`.
 
 ## Investigation loop
 

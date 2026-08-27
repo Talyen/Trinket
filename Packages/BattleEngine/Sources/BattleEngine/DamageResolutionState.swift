@@ -29,10 +29,25 @@ package struct DamageTargetStatus {
     }
 }
 
+/// Reaction depth limits. User-approved safety cap is 10 — chains should be
+/// limited by mechanics (once-per-turn guards, isResolving* flags), not an
+/// arbitrary shallow cap. Hit at 10 logs and truncates to avoid true infinite
+/// recursion.
+package enum ReactionScope {
+    package static let maxTalentReactionDepth = 10
+    package static let maxDotRecursionDepth = 10
+    package static let maxDrawAndPlayDepth = 10
+}
+
 /// Working state threaded through the named damage-resolution steps in
 /// `BattleState.resolveDamage`. Each step mutates this struct in place; the
 /// orchestrator reads the final `healthLost` and `damageEvents` once the
 /// pipeline completes.
+///
+/// Invariant: `buildupDamage` is post-mitigation, pre-shield damage captured
+/// before `applyShieldAbsorption` so fully blocked hits still charge the
+/// control meter. It must equal `remaining` just before shield absorption
+/// (asserted in `applyMitigation`).
 package struct DamageResolutionState {
     public let amount: Int
     public let combatant: Combatant

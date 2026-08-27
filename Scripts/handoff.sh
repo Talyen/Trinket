@@ -131,6 +131,7 @@ run_cheap_ci_slices() {
   run_profiled "module-boundaries" "quiet-structured" ./Scripts/check-module-boundaries.sh
   run_profiled "swift-testing-migration" "quiet-structured" ./Scripts/check-swift-testing-migration.sh
   run_profiled "release-notes-validate" "quiet-structured" ./Scripts/release-notes.sh validate
+  run_profiled "artwork-budget" "quiet-structured" ./Scripts/check-artwork-budget.sh
 }
 
 while [[ $# -gt 0 ]]; do

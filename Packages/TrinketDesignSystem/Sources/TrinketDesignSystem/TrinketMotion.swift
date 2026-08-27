@@ -2,8 +2,12 @@ import CoreGraphics
 import Foundation
 import SwiftUI
 
-/// Shared motion presets. Battle spectacle (R-008 / R-011) is the first consumer;
-/// combat feedback chips extend the same vocabulary (R-001 / R-006).
+/// Shared motion presets. Prefer feature-owned motion where only one feature
+/// consumes the token: `Battle` → `TrinketBattleFeature.BattleMotion`,
+/// `Homestead` → Homestead feature, `Mystery`/`Onboarding` → their screens.
+/// This enum keeps only truly shared tokens (`Interaction`, `Content`, `Screen`,
+/// `Shine`, `Reward`). Battle/Homestead/Mystery/Onboarding/Labyrinth remain here
+/// for compatibility but new code should use the feature-owned type.
 public enum TrinketMotion: Sendable {
     /// Restrained feedback for ordinary controls and committed state changes.
     public enum Interaction: Sendable {

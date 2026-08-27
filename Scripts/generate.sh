@@ -79,6 +79,9 @@ acquire_generation_lock() {
   local started_at=$SECONDS
   local lock_pid=""
 
+  # Ensure cleanup runs even if we return 1 from inside the loop.
+  trap cleanup_generation_lock EXIT INT TERM
+
   while ! mkdir "$GENERATION_LOCK_DIR" 2>/dev/null; do
     lock_pid=""
     if [[ -f "$GENERATION_LOCK_DIR/pid" ]]; then
@@ -105,7 +108,6 @@ acquire_generation_lock() {
   done
 
   printf '%s\n' "$$" > "$GENERATION_LOCK_DIR/pid"
-  trap cleanup_generation_lock EXIT INT TERM
 }
 
 ensure_pinned_xcodegen_path() {
