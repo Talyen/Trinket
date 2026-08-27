@@ -51,17 +51,18 @@ public enum TrinketDesign {
     }
 
     public enum Metrics {
-        /// 4pt scale: use 4/8/16/24. `tight` (2) is the one approved exception
+        /// 4pt scale: use 4/8/12/16/24. `tight` (2) is the one approved exception
         /// for title/epithet stacks where 4 is too loose. Do not add new 6/10/14/18 values.
         public static let tightSpacing: CGFloat = 2
         public static let extraSmallSpacing: CGFloat = 4
-        public static let denseSpacing: CGFloat = 8
         public static let smallSpacing: CGFloat = 8
         public static let mediumSpacing: CGFloat = 12
-        public static let snugSpacing: CGFloat = 16
         public static let largeSpacing: CGFloat = 16
-        public static let homesteadBodySpacing: CGFloat = 16
         public static let extraLargeSpacing: CGFloat = 24
+        /// Legacy aliases — now equal to canonical 4pt steps. Prefer the canonical names above.
+        public static let denseSpacing: CGFloat = 8
+        public static let snugSpacing: CGFloat = 16
+        public static let homesteadBodySpacing: CGFloat = 16
         /// Base height for two-line card captions; prefer `@ScaledMetric(relativeTo: .subheadline)`.
         public static let cardLabelReservedHeight: CGFloat = 38
         /// Base SF Symbol point size for card artwork placeholders; prefer `@ScaledMetric(relativeTo: .title)`.
@@ -99,9 +100,9 @@ public enum TrinketDesign {
 
         /// Standard glass chip / wallet / badge inset (baked into chip modifiers).
         public static let chipPaddingHorizontal: CGFloat = 10
-        public static let chipPaddingVertical: CGFloat = 8
-        public static let chipEmphasisPaddingHorizontal: CGFloat = 16
-        public static let chipEmphasisPaddingVertical: CGFloat = 8
+        public static let chipPaddingVertical: CGFloat = denseSpacing
+        public static let chipEmphasisPaddingHorizontal: CGFloat = snugSpacing
+        public static let chipEmphasisPaddingVertical: CGFloat = denseSpacing
 
         public static let collectionGridMinimum: CGFloat = 150
         public static let collectionGridMaximum: CGFloat = 190

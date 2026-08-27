@@ -3,7 +3,7 @@ import Foundation
 /// Display-link pacing normalized to the refresh period observed during the sample.
 /// This report supplies raw, scenario-addressable diagnostics; it is not an
 /// authoritative render-pipeline hitch metric.
-public struct     FramePacingReport: Equatable, Sendable {
+public struct FramePacingReport: Equatable, Sendable {
     public static let schemaVersion = 5
 
     public var sampleCount: Int
@@ -85,7 +85,8 @@ public struct     FramePacingReport: Equatable, Sendable {
             map[String(pair[0])] = String(pair[1])
         }
         guard
-            map["schema"].flatMap(Int.init) == schemaVersion,
+            let schema = map["schema"].flatMap(Int.init),
+            schema == schemaVersion || schema == 4,
             let samples = map["samples"].flatMap(Int.init),
             let expectedFPS = map["expectedFPS"].flatMap(Double.init),
             let averageFPS = map["avgFPS"].flatMap(Double.init),

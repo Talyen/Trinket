@@ -108,7 +108,7 @@ first-screen set is ~1–1.3% of 6–8 GB and is the hitch defense.
 
 | Budget | Value | Location |
 |---|---|---|
-| `NSCache.totalCostLimit` | `min(max(physicalMemory/24, 160 MiB), 260 MiB)` (6 GB→250, 8 GB→260) | `PreparedArtworkCache.configureImageBudget()` |
+| `NSCache.totalCostLimit` | `min(max(physicalMemory/24, 160 MiB), 260 MiB)` (6 GB→256, 8 GB→260) | `PreparedArtworkCache.configureImageBudget()` |
 | `residentArtworkByteCount` | 320 MiB | `PreparedArtworkMemoryBudget` |
 | `steadyStateProcessByteCount` | 550 MiB | `PreparedArtworkMemoryBudget` |
 

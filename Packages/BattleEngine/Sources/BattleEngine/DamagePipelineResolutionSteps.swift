@@ -340,8 +340,10 @@ package extension DamagePipeline {
         state.buildupDamage = state.remaining
     }
 
+    // swiftlint:disable:next orphaned_doc_comment
     /// Toughness-based inherent DR: percentage reduction from Toughness (K = 80)
     /// plus flat passive mitigation from traits/affixes.
+    // swiftlint:disable:next function_body_length
     static func applyMitigation(
         to state: inout DamageResolutionState,
         in context: inout BattleState
@@ -417,6 +419,10 @@ package extension DamagePipeline {
 
         state.remaining = remaining
         state.buildupDamage = state.remaining
+        assert(
+            state.buildupDamage == state.remaining,
+            "buildupDamage invariant: \(state.buildupDamage) != remaining \(state.remaining) after applyMitigation"
+        )
     }
 
     static func applyMarkedConsume(

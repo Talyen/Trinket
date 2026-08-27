@@ -1,3 +1,4 @@
+import os
 import TrinketContent
 import TrinketCore
 
@@ -9,7 +10,7 @@ package extension CombatTriggerEngine {
     ) -> [ActionEvent] {
         guard context.roster.combatant(for: sourceActorID) != nil else { return [] }
         guard context.dotRecursionDepth < ReactionScope.maxDotRecursionDepth else {
-            assertionFailure("ReactionScope: dotRecursionDepth hit cap 10 in afterBleedApplied")
+            ReactionScope.capHit(site: "afterBleedApplied", depth: context.dotRecursionDepth)
             return []
         }
         context.dotRecursionDepth += 1
@@ -48,7 +49,7 @@ package extension CombatTriggerEngine {
         in context: inout BattleState
     ) -> [ActionEvent] {
         guard context.dotRecursionDepth < ReactionScope.maxDotRecursionDepth else {
-            assertionFailure("ReactionScope: dotRecursionDepth hit cap 10 in afterDecayingDoTApplied")
+            ReactionScope.capHit(site: "afterDecayingDoTApplied", depth: context.dotRecursionDepth)
             return []
         }
         context.dotRecursionDepth += 1

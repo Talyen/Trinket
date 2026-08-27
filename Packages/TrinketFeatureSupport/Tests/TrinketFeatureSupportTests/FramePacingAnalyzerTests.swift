@@ -42,7 +42,8 @@ struct FramePacingAnalyzerTests {
         #expect(report.severeStallCount == 1)
         #expect(abs(report.missedDeadlineRatio - 0.01) < 0.000_01)
         #expect(abs(report.maxFrameMs - (4000.0 / 120.0)) < 0.01)
-        #expect(report.p99FrameMs >= (2000.0 / 120.0) - 0.01)
+        #expect(abs(report.p95FrameMs - (1000.0 / 120.0)) < 0.01)
+        #expect(abs(report.p99FrameMs - (1000.0 / 120.0)) < 0.01)
         #expect(report.onePercentLowFPS < 120)
     }
 
@@ -73,6 +74,8 @@ struct FramePacingAnalyzerTests {
         )
         let parsed = FramePacingReport.parseAccessibilityValue(report.accessibilityValue)
         #expect(parsed?.accessibilityValue == report.accessibilityValue)
+        let legacyValue = report.accessibilityValue.replacingOccurrences(of: "schema=5", with: "schema=4")
+        #expect(FramePacingReport.parseAccessibilityValue(legacyValue) != nil)
         #expect(FramePacingReport.parseAccessibilityValue("schema=3;samples=1") == nil)
     }
 }

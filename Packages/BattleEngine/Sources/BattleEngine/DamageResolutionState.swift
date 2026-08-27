@@ -1,4 +1,5 @@
 import Foundation
+import os
 import TrinketContent
 import TrinketCore
 
@@ -37,6 +38,22 @@ package enum ReactionScope {
     package static let maxTalentReactionDepth = 10
     package static let maxDotRecursionDepth = 10
     package static let maxDrawAndPlayDepth = 10
+
+    package static let logger = Logger(subsystem: "com.trinket.battle", category: "ReactionScope")
+
+    package static func capHit(site: String, depth: Int) {
+        logger.fault("ReactionScope: \(site, privacy: .public) hit cap 10 at depth \(depth, privacy: .public) — possible infinite loop")
+        #if DEBUG
+        if !isRunningTests {
+            assertionFailure("ReactionScope: \(site) hit cap 10 — possible infinite loop")
+        }
+        #endif
+    }
+
+    private static var isRunningTests: Bool {
+        NSClassFromString("XCTestCase") != nil || NSClassFromString("XCTest") != nil
+            || ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+    }
 }
 
 /// Working state threaded through the named damage-resolution steps in

@@ -1,3 +1,4 @@
+import os
 import TrinketContent
 import TrinketCore
 
@@ -8,7 +9,7 @@ package extension BattleState {
         talentReactionDepth += 1
         defer { talentReactionDepth -= 1 }
         if talentReactionDepth > ReactionScope.maxTalentReactionDepth {
-            assertionFailure("ReactionScope: talentReactionDepth hit cap 10 — possible infinite loop")
+            ReactionScope.capHit(site: "talentReactionDepth", depth: talentReactionDepth)
             return .empty
         }
         var resolved = request

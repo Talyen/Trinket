@@ -94,12 +94,16 @@ public final class PreparedArtworkCache {
 
     private func configureImageBudget() {
         let physicalMemory = Int(ProcessInfo.processInfo.physicalMemory)
+        images.totalCostLimit = Self.totalCostLimit(forPhysicalMemory: physicalMemory)
+    }
+
+    nonisolated static func totalCostLimit(forPhysicalMemory physicalMemory: Int) -> Int {
         let adaptiveBudget = physicalMemory / 24
         // 6 GB typical target: 320 MiB artwork / 550 MiB process. Leave room
         // below the artwork target for the small strong pin set and temporary
         // decoder surfaces that NSCache does not cost-account. Do not lower
         // floor to 96 or cap to 160 to re-target 4 GB without product approval.
-        images.totalCostLimit = min(max(adaptiveBudget, 160 * 1024 * 1024), 260 * 1024 * 1024)
+        return min(max(adaptiveBudget, 160 * 1024 * 1024), 260 * 1024 * 1024)
     }
 
     /// Isolated cache for unit tests (does not touch `shared`).

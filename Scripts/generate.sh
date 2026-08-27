@@ -71,7 +71,13 @@ XCODEGEN_CACHE_PATH="$TRINKET_XCODEGEN_CACHE_PATH"
 LOCK_TIMEOUT_SECONDS="${TRINKET_GENERATE_LOCK_TIMEOUT_SECONDS:-120}"
 
 cleanup_generation_lock() {
-  rm -rf "$GENERATION_LOCK_DIR"
+  if [[ -f "$GENERATION_LOCK_DIR/pid" ]]; then
+    local pid_in_lock=""
+    read -r pid_in_lock < "$GENERATION_LOCK_DIR/pid" 2>/dev/null || pid_in_lock=""
+    if [[ "$pid_in_lock" == "$$" ]]; then
+      rm -rf "$GENERATION_LOCK_DIR"
+    fi
+  fi
 }
 
 acquire_generation_lock() {

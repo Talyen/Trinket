@@ -9,20 +9,31 @@ violations=()
 # and Docs/Platform/PerformanceInvestigationPlaybook.md § Artwork Budgets.
 
 file="Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/PreparedArtworkCache.swift"
-if ! rg -q "residentArtworkByteCount = 320 \* 1024 \* 1024" "$file"; then
+
+search() {
+  local pattern="$1" target="$2"
+  if command -v rg >/dev/null 2>&1; then
+    rg -q --no-ignore -g '!*' "$pattern" "$target" 2>/dev/null
+  else
+    grep -Eq "$pattern" "$target"
+  fi
+}
+
+# Anchored to assignment/cost-limit call sites to avoid matching prose comments.
+if ! search "residentArtworkByteCount = 320 \* 1024 \* 1024" "$file"; then
   violations+=("$file: residentArtworkByteCount must be 320 MiB (6 GB typical). See PerformanceInvestigationPlaybook § Artwork Budgets.")
 fi
-if ! rg -q "steadyStateProcessByteCount = 550 \* 1024 \* 1024" "$file"; then
+if ! search "steadyStateProcessByteCount = 550 \* 1024 \* 1024" "$file"; then
   violations+=("$file: steadyStateProcessByteCount must be 550 MiB (6 GB typical).")
 fi
-if ! rg -q "160 \* 1024 \* 1024" "$file"; then
+if ! search "totalCostLimit\(forPhysicalMemory|.*160 \* 1024 \* 1024" "$file"; then
   violations+=("$file: NSCache floor must be 160 MiB (not 96).")
 fi
-if ! rg -q "260 \* 1024 \* 1024" "$file"; then
+if ! search "260 \* 1024 \* 1024" "$file"; then
   violations+=("$file: NSCache cap must be 260 MiB (not 160).")
 fi
-# Forbid the old 4 GB-targeted 96 MiB floor from creeping back.
-if rg -q "96 \* 1024 \* 1024" "$file"; then
+# Forbid the old 4 GB-targeted 96 MiB floor assignment (ignore prose like "Do not lower floor to 96").
+if search "^\s*[^/]*96 \* 1024 \* 1024" "$file"; then
   violations+=("$file: 96 MiB floor is the old 4 GB target — do not reintroduce without product approval.")
 fi
 

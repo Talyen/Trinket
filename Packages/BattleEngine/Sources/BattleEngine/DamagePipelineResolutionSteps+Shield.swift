@@ -3,10 +3,15 @@ import TrinketContent
 import TrinketCore
 
 package extension DamagePipeline {
+    // swiftlint:disable:next function_body_length
     static func applyShieldAbsorption(
         to state: inout DamageResolutionState,
         in context: inout BattleState
     ) {
+        assert(
+            state.buildupDamage == state.remaining || state.remaining == 0,
+            "buildupDamage invariant before shield: buildup \(state.buildupDamage) != remaining \(state.remaining)"
+        )
         var effects = context.roster.activeEffects(for: state.combatant)
 
         applyIntercede(to: &state, in: &context)
