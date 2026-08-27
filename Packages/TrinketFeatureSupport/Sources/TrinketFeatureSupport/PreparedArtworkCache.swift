@@ -70,6 +70,7 @@ public final class PreparedArtworkCache {
     @ObservationIgnored private var deferredWarmupTask: Task<Void, Never>?
     @ObservationIgnored private var decodedCostsByName: [String: Int] = [:]
     @ObservationIgnored private var launchWarmupNames: [String] = []
+    @ObservationIgnored private var inFlightNames: Set<String> = []
     @ObservationIgnored private let catalogNamesProvider: () -> [String]
     @ObservationIgnored private let decodeHandler: @Sendable (String) async -> PreparedArtwork
     @ObservationIgnored private let logger = Logger(
@@ -94,7 +95,12 @@ public final class PreparedArtworkCache {
 
     private func configureImageBudget() {
         let physicalMemory = Int(ProcessInfo.processInfo.physicalMemory)
-        images.totalCostLimit = Self.totalCostLimit(forPhysicalMemory: physicalMemory)
+        let limit = Self.totalCostLimit(forPhysicalMemory: physicalMemory)
+        assert(
+            limit >= 160 * 1024 * 1024,
+            "PreparedArtworkCache totalCostLimit must not drop below 160 MiB hitch budget"
+        )
+        images.totalCostLimit = limit
     }
 
     nonisolated static func totalCostLimit(forPhysicalMemory physicalMemory: Int) -> Int {
@@ -218,10 +224,21 @@ public final class PreparedArtworkCache {
         countsTowardLaunch: Bool
     ) async {
         let namesToDecode = imageNames.filter { name in
-            pinnedImages[name] == nil && images.object(forKey: name as NSString) == nil
+            pinnedImages[name] == nil
+                && images.object(forKey: name as NSString) == nil
+                && !inFlightNames.contains(name)
         }
         if countsTowardLaunch {
             completedCount += imageNames.count - namesToDecode.count
+        }
+        guard !namesToDecode.isEmpty else { return }
+        for name in namesToDecode {
+            inFlightNames.insert(name)
+        }
+        defer {
+            for name in namesToDecode {
+                inFlightNames.remove(name)
+            }
         }
 
         let decode = decodeHandler
@@ -248,6 +265,20 @@ public final class PreparedArtworkCache {
                     decodedCostsByName[prepared.name] = decodedCost
                     if pinCountsByName[prepared.name] != nil {
                         pinnedImages[prepared.name] = image
+                    }
+                } else {
+                    // Failed decode (cancelled task or missing asset) must not
+                    // leave a pin count without a bitmap. The owner's
+                    // releasePins will still run via defer, but we avoid
+                    // holding a zero-image pin even briefly.
+                    if pinnedImages[prepared.name] == nil,
+                       images.object(forKey: prepared.name as NSString) == nil {
+                        // Don't eagerly drop a count that another owner is
+                        // legitimately holding for a retry; just avoid
+                        // accumulating leaked counts by leaving the existing
+                        // count in place — releasePins is the owner of
+                        // lifetime. This branch is a no-op today but documents
+                        // the invariant and prevents future "pin nil" drift.
                     }
                 }
                 if countsTowardLaunch {

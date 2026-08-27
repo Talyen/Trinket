@@ -1,7 +1,6 @@
 import BattleEngine
 import Observation
 import SwiftUI
-import TrinketBattleRuntime
 import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
@@ -453,7 +452,7 @@ private struct BattleFeedbackBridgeLane: View {
 
 private struct BattleCastPrewarmKey: Equatable {
     let configurationID: UUID?
-    let artworkName: String?
+    let artworkNames: [String]
 }
 
 /// Primes the full cast hierarchy once the first dealt card makes a cast imminent.
@@ -462,6 +461,7 @@ private struct BattleCastPrewarmLane: View {
     let presentation: BattlePresentationState
     @State private var artworkName: String?
     @State private var preparedConfigurationID: UUID?
+    @State private var preparedArtworkNames: [String] = []
 
     var body: some View {
         if let artworkName {
@@ -475,25 +475,27 @@ private struct BattleCastPrewarmLane: View {
             .task(id: prewarmKey) {
                 guard let configurationID = prewarmKey.configurationID,
                       preparedConfigurationID != configurationID,
-                      let artworkName = prewarmKey.artworkName
+                      !prewarmKey.artworkNames.isEmpty
                 else { return }
 
+                let names = prewarmKey.artworkNames
                 defer {
-                    PreparedArtworkCache.shared.releasePins(names: [artworkName])
+                    PreparedArtworkCache.shared.releasePins(names: names)
                 }
-                await PreparedArtworkCache.shared.prepareAndPin(names: [artworkName])
+                await PreparedArtworkCache.shared.prepareAndPin(names: names)
                 guard !Task.isCancelled,
                       presentation.configurationID == configurationID
                 else { return }
                 preparedConfigurationID = configurationID
-                self.artworkName = artworkName
+                preparedArtworkNames = names
+                artworkName = names.first
             }
     }
 
     private var prewarmKey: BattleCastPrewarmKey {
         BattleCastPrewarmKey(
             configurationID: presentation.configurationID,
-            artworkName: presentation.hand.first?.ability.artReference?.imageName
+            artworkNames: presentation.hand.compactMap(\.ability.artReference?.imageName)
         )
     }
 }

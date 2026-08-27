@@ -1,5 +1,5 @@
 import Foundation
-import TrinketBattleRuntime
+import BattleEngine
 
 public struct AppEnvironment: Sendable {
     public static let shared = load()
@@ -95,7 +95,7 @@ public struct AppEnvironment: Sendable {
             skipOnboardingCeremony: arguments.contains("-skip-onboarding-ceremony"),
             disableCloudSync: disableCloudSync,
             disableAudio: arguments.contains("-disable-audio"),
-            persistSaveImmediately: arguments.contains("-persist-save-immediately"),
+            persistSaveImmediately: !arguments.contains("-defer-persistence"),
             completedStageIDs: completedStageIDs(from: arguments),
             mysteryRecruitEventID: argumentValue(after: "-mystery-recruit-event", in: arguments),
             storeName: arguments.firstIndex(of: "-store-name").flatMap { idx in

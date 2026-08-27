@@ -1,6 +1,6 @@
 import Foundation
 import TrinketBattleFeature
-import TrinketBattleRuntime
+import BattleEngine
 import TrinketFeatureSupport
 import TrinketPersistence
 import TrinketPersistenceTestSupport

@@ -17,10 +17,14 @@ struct LabyrinthSaveRecoveryTests {
 
         LabyrinthCompletion.enter(save: &save)
 
-        #expect(!save.labyrinth.hasMap)
-        #expect(save.labyrinth.isMapPayloadUnreadable)
-        #expect(save.labyrinth.worldSeed == 55)
-        #expect(save.labyrinth.nodes.isEmpty)
+        // Phase 2.2 auto-recovery: unreadable + hasEntered now rebuilds
+        // instead of looping "Labyrinth Error" forever. Seed follows
+        // PlayerSave.worldSeed (canonical) so labyrinth.worldSeed may change
+        // from the manually set 55 to the save's worldSeed.
+        #expect(save.labyrinth.hasMap)
+        #expect(!save.labyrinth.isMapPayloadUnreadable)
+        #expect(save.labyrinth.worldSeed != 0)
+        #expect(!save.labyrinth.nodes.isEmpty)
     }
 
     @Test @MainActor func storeReloadThenEnterPreservesCorruptMapBlob() throws {
@@ -58,13 +62,14 @@ struct LabyrinthSaveRecoveryTests {
         #expect(loaded.persistBatch(logging: "enter") { save in
             LabyrinthCompletion.enter(save: &save)
         })
-        #expect(loaded.labyrinth.isMapPayloadUnreadable)
-        #expect(!loaded.labyrinth.hasMap)
+        // Auto-recovery on enter now rebuilds instead of preserving corrupt blob.
+        #expect(!loaded.labyrinth.isMapPayloadUnreadable)
+        #expect(loaded.labyrinth.hasMap)
 
         let reloaded = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
-        #expect(reloaded.labyrinth.isMapPayloadUnreadable)
-        #expect(!reloaded.labyrinth.hasMap)
-        #expect(reloaded.labyrinth.worldSeed == 55)
+        #expect(!reloaded.labyrinth.isMapPayloadUnreadable)
+        #expect(reloaded.labyrinth.hasMap)
+        #expect(reloaded.labyrinth.worldSeed != 0)
     }
 
     @Test @MainActor func labyrinthSetterMigratesLegacyMapWithRosterRecruitEligibility() throws {

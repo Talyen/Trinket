@@ -125,8 +125,21 @@ public struct PlayerLabyrinthState: Equatable, Sendable {
         seed: UInt64? = nil,
         eligibleRecruitEventIDs: [String] = []
     ) {
-        guard !isMapPayloadUnreadable, !hasMap else { return }
-        let resolvedSeed = seed ?? worldSeed
+        if isMapPayloadUnreadable {
+            // Auto-recovery path for corrupt blobs (Phase 2.2): clear the
+            // unreadable flag so a fresh map can be generated instead of
+            // looping "Labyrinth Error" forever.
+            isMapPayloadUnreadable = false
+            if hasMap {
+                return
+            }
+        } else if hasMap {
+            return
+        }
+        let resolvedSeed: UInt64 = {
+            if let seed, seed != 0 { return seed }
+            return worldSeed
+        }()
         guard resolvedSeed != 0 else { return }
         let generated = LabyrinthGenerator.makeInitialMap(
             seed: resolvedSeed,

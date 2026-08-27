@@ -129,7 +129,16 @@ public struct EquipmentLoadout: Equatable, Hashable, Sendable {
             }
         }
         if item.baseType.weaponKind == .twoHanded {
-            itemIDsBySlot[.secondaryWeapon] = nil
+            if item.baseType.isRanged {
+                // Ranged two-handers (bows) keep a Quiver but clear shields/spellbooks.
+                if let secondaryID = itemIDsBySlot[.secondaryWeapon],
+                   let secondary = inventory.first(where: { $0.id == secondaryID }),
+                   !secondary.baseType.isQuiver {
+                    itemIDsBySlot[.secondaryWeapon] = nil
+                }
+            } else {
+                itemIDsBySlot[.secondaryWeapon] = nil
+            }
         }
         itemIDsBySlot[destination] = item.id
     }
@@ -141,14 +150,37 @@ public struct EquipmentLoadout: Equatable, Hashable, Sendable {
     ) -> Bool {
         guard item.baseType.canEquip(in: slot) else { return false }
         guard trinketBaseIsFree(item, excluding: slot, inventory: inventory) else { return false }
+        // Main-hand gate: melee weapons cannot be equipped while a Quiver is worn.
+        if slot == .weapon, !item.baseType.isRanged {
+            if let secondaryID = itemID(for: .secondaryWeapon),
+               let secondary = inventory.first(where: { $0.id == secondaryID }),
+               secondary.baseType.isQuiver {
+                return false
+            }
+        }
         guard slot == .secondaryWeapon else { return true }
         guard
             let primaryID = itemID(for: .weapon),
             let primary = inventory.first(where: { $0.id == primaryID })
         else {
+            // No primary — Quiver requires a ranged primary.
+            if item.baseType.isQuiver {
+                return false
+            }
             return true
         }
-        return primary.baseType.weaponKind != .twoHanded
+        // Quiver only with a ranged primary; shields/spellbook blocked by ranged.
+        if item.baseType.isQuiver {
+            return primary.baseType.isRanged
+        }
+        if primary.baseType.isRanged {
+            return false
+        }
+        // Non-ranged two-handers block any off-hand; ranged two-handers already handled above.
+        if primary.baseType.weaponKind == .twoHanded {
+            return false
+        }
+        return true
     }
 
     /// Trinkets are unique per combatant: the same base type may be worn in
@@ -173,6 +205,18 @@ public struct EquipmentLoadout: Equatable, Hashable, Sendable {
             let primaryID = itemID(for: .weapon),
             let primary = inventory.first(where: { $0.id == primaryID })
         else {
+            return true
+        }
+        // If a Quiver is equipped, the slot is still available — but only a
+        // ranged primary keeps it valid; otherwise mirror canEquip's ranged/quiver rules.
+        if let secondaryID = itemID(for: .secondaryWeapon),
+           let secondary = inventory.first(where: { $0.id == secondaryID }),
+           secondary.baseType.isQuiver {
+            return primary.baseType.isRanged
+        }
+        if primary.baseType.isRanged {
+            // Ranged primary keeps the slot available, but only Quiver can fill it.
+            // Report available so the UI shows the slot; canEquip filters shield attempts.
             return true
         }
         return primary.baseType.weaponKind != .twoHanded

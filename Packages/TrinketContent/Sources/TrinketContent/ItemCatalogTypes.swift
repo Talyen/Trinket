@@ -48,6 +48,23 @@ public struct ItemBaseType: Identifiable, Equatable, Hashable, Sendable {
     public var defaultEquipmentSlot: ItemSlot {
         weaponKind == .offHand ? .secondaryWeapon : slot
     }
+
+    /// Ranged two-handers (bows / crossbow) that pair with Quiver in the off-hand.
+    public var isRanged: Bool {
+        Self.rangedBaseIDs.contains(id)
+    }
+
+    /// Off-hand Quiver — the only off-hand that can be paired with a ranged two-hander.
+    public var isQuiver: Bool {
+        id == "quiver"
+    }
+
+    private static let rangedBaseIDs: Set<String> = [
+        "crossbow",
+        "longbow",
+        "recurve_bow",
+        "shortbow",
+    ]
 }
 
 public extension ItemBaseType {

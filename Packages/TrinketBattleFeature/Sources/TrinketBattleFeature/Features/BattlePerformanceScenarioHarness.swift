@@ -1,4 +1,4 @@
-import TrinketBattleRuntime
+import BattleEngine
 import TrinketFeatureSupport
 #if DEBUG
 import SwiftUI

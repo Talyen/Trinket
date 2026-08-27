@@ -11,15 +11,14 @@
 		3F9145F17317B18C900AE4BA /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = B16CD0B73E69AB7EEA6213A0 /* PrivacyInfo.xcprivacy */; };
 		4BEF56B8E7150AD4FC45E71F /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 1CDE25AF095036F687FA72F9 /* AppIcon.icon */; };
 		58964BED59FF6AEEC43856CB /* TrinketContent in Frameworks */ = {isa = PBXBuildFile; productRef = 16AE1F6E42FEAB883DB2CB3E /* TrinketContent */; };
-		9628FFC3F13EBBFACC58AC4E /* TrinketBattleFeature in Frameworks */ = {isa = PBXBuildFile; productRef = C8EA905F0353F12131822072 /* TrinketBattleFeature */; };
-		984598EB5CC911953BC4F96F /* TrinketBattleRuntime in Frameworks */ = {isa = PBXBuildFile; productRef = BD6359D761EAC98AF53BF3C0 /* TrinketBattleRuntime */; };
-		B7599007C02C89BBFD9CB989 /* TrinketFeatureContracts in Frameworks */ = {isa = PBXBuildFile; productRef = B272982FB6EC9592050EDC80 /* TrinketFeatureContracts */; };
+		9628FFC3F13EBBFACC58AC4E /* TrinketAppState in Frameworks */ = {isa = PBXBuildFile; productRef = 3A9FAC008934C69C357C2297 /* TrinketAppState */; };
+		984598EB5CC911953BC4F96F /* TrinketPersistence in Frameworks */ = {isa = PBXBuildFile; productRef = 9658964970EAA7409EF39951 /* TrinketPersistence */; };
+		B7599007C02C89BBFD9CB989 /* TrinketFeatureAdapters in Frameworks */ = {isa = PBXBuildFile; productRef = 70AA74FBE912AB1EBC7CCDB4 /* TrinketFeatureAdapters */; };
 		BFC3CE982AB3EB307C0E5578 /* Media in Resources */ = {isa = PBXBuildFile; fileRef = ADA42E5A1490B3683FC93B52 /* Media */; };
 		C6E80F80F414B3EB960B3DF9 /* BattleEngine in Frameworks */ = {isa = PBXBuildFile; productRef = 2AA0B90E0358E0B20FD2400D /* BattleEngine */; };
-		D069EA9D8B0FC83BD641A500 /* TrinketPersistence in Frameworks */ = {isa = PBXBuildFile; productRef = 9658964970EAA7409EF39951 /* TrinketPersistence */; };
-		D590E6C02282D88DAE05949C /* TrinketAppState in Frameworks */ = {isa = PBXBuildFile; productRef = 3A9FAC008934C69C357C2297 /* TrinketAppState */; };
-		F617A3BED12187C4A935CFFF /* TrinketDesignSystem in Frameworks */ = {isa = PBXBuildFile; productRef = 32051286CDB32D00CC65B576 /* TrinketDesignSystem */; };
-		F8CC3ED7216627F7C5B3F8BD /* TrinketFeatureAdapters in Frameworks */ = {isa = PBXBuildFile; productRef = 70AA74FBE912AB1EBC7CCDB4 /* TrinketFeatureAdapters */; };
+		D069EA9D8B0FC83BD641A500 /* TrinketDesignSystem in Frameworks */ = {isa = PBXBuildFile; productRef = 32051286CDB32D00CC65B576 /* TrinketDesignSystem */; };
+		F617A3BED12187C4A935CFFF /* TrinketFeatureContracts in Frameworks */ = {isa = PBXBuildFile; productRef = B272982FB6EC9592050EDC80 /* TrinketFeatureContracts */; };
+		F8CC3ED7216627F7C5B3F8BD /* TrinketBattleFeature in Frameworks */ = {isa = PBXBuildFile; productRef = C8EA905F0353F12131822072 /* TrinketBattleFeature */; };
 		F9D95B8C131F9E36ECEA7C11 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8241DDA3B7612A6E5B8B9EDF /* Assets.xcassets */; };
 		FA5C757C3D32F14239BD0F1C /* TrinketCore in Frameworks */ = {isa = PBXBuildFile; productRef = DEEACF4ECF5EFFFE57C7E6FA /* TrinketCore */; };
 /* End PBXBuildFile section */
@@ -47,7 +46,6 @@
 		9C0890BB8BE4806E4AEDBE9B /* TrinketAppState */ = {isa = PBXFileReference; lastKnownFileType = folder; name = TrinketAppState; path = Packages/TrinketAppState; sourceTree = SOURCE_ROOT; };
 		ADA42E5A1490B3683FC93B52 /* Media */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Media; path = Trinket/Media; sourceTree = SOURCE_ROOT; };
 		B16CD0B73E69AB7EEA6213A0 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-		C0FBF8545A8DB4F45528068B /* TrinketBattleRuntime */ = {isa = PBXFileReference; lastKnownFileType = folder; name = TrinketBattleRuntime; path = Packages/TrinketBattleRuntime; sourceTree = SOURCE_ROOT; };
 		C8EFA27866F6BA45C26D504E /* TrinketBattleFeature */ = {isa = PBXFileReference; lastKnownFileType = folder; name = TrinketBattleFeature; path = Packages/TrinketBattleFeature; sourceTree = SOURCE_ROOT; };
 		D77B1B572840FE4B65134F04 /* Smoke.xctestplan */ = {isa = PBXFileReference; path = Smoke.xctestplan; sourceTree = "<group>"; };
 		E43AF427DA2725C7880E05D0 /* BattleEngine */ = {isa = PBXFileReference; lastKnownFileType = folder; name = BattleEngine; path = Packages/BattleEngine; sourceTree = SOURCE_ROOT; };
@@ -115,13 +113,12 @@
 				FA5C757C3D32F14239BD0F1C /* TrinketCore in Frameworks */,
 				58964BED59FF6AEEC43856CB /* TrinketContent in Frameworks */,
 				C6E80F80F414B3EB960B3DF9 /* BattleEngine in Frameworks */,
-				984598EB5CC911953BC4F96F /* TrinketBattleRuntime in Frameworks */,
-				D069EA9D8B0FC83BD641A500 /* TrinketPersistence in Frameworks */,
-				F617A3BED12187C4A935CFFF /* TrinketDesignSystem in Frameworks */,
-				B7599007C02C89BBFD9CB989 /* TrinketFeatureContracts in Frameworks */,
-				F8CC3ED7216627F7C5B3F8BD /* TrinketFeatureAdapters in Frameworks */,
-				9628FFC3F13EBBFACC58AC4E /* TrinketBattleFeature in Frameworks */,
-				D590E6C02282D88DAE05949C /* TrinketAppState in Frameworks */,
+				984598EB5CC911953BC4F96F /* TrinketPersistence in Frameworks */,
+				D069EA9D8B0FC83BD641A500 /* TrinketDesignSystem in Frameworks */,
+				F617A3BED12187C4A935CFFF /* TrinketFeatureContracts in Frameworks */,
+				B7599007C02C89BBFD9CB989 /* TrinketFeatureAdapters in Frameworks */,
+				F8CC3ED7216627F7C5B3F8BD /* TrinketBattleFeature in Frameworks */,
+				9628FFC3F13EBBFACC58AC4E /* TrinketAppState in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -134,7 +131,6 @@
 				E43AF427DA2725C7880E05D0 /* BattleEngine */,
 				9C0890BB8BE4806E4AEDBE9B /* TrinketAppState */,
 				C8EFA27866F6BA45C26D504E /* TrinketBattleFeature */,
-				C0FBF8545A8DB4F45528068B /* TrinketBattleRuntime */,
 				FB2F3612614E891F44DD2597 /* TrinketContent */,
 				2038380B9FA35C2B4DB4B598 /* TrinketCore */,
 				3301AA31D98CDD220CFDF5FF /* TrinketDesignSystem */,
@@ -228,7 +224,6 @@
 				DEEACF4ECF5EFFFE57C7E6FA /* TrinketCore */,
 				16AE1F6E42FEAB883DB2CB3E /* TrinketContent */,
 				2AA0B90E0358E0B20FD2400D /* BattleEngine */,
-				BD6359D761EAC98AF53BF3C0 /* TrinketBattleRuntime */,
 				9658964970EAA7409EF39951 /* TrinketPersistence */,
 				32051286CDB32D00CC65B576 /* TrinketDesignSystem */,
 				B272982FB6EC9592050EDC80 /* TrinketFeatureContracts */,
@@ -267,7 +262,6 @@
 				B8F57CFCADA520AB194C8BED /* XCLocalSwiftPackageReference "Packages/BattleEngine" */,
 				096C6982EC2447F60910550A /* XCLocalSwiftPackageReference "Packages/TrinketAppState" */,
 				EA210CC58478BEC431965D78 /* XCLocalSwiftPackageReference "Packages/TrinketBattleFeature" */,
-				CD5683D443F88697A4974863 /* XCLocalSwiftPackageReference "Packages/TrinketBattleRuntime" */,
 				355F0B06AED548C005142BD6 /* XCLocalSwiftPackageReference "Packages/TrinketContent" */,
 				5E1DE20763EC52DE81FE7B72 /* XCLocalSwiftPackageReference "Packages/TrinketCore" */,
 				67B181382CCFAFEB2A60F327 /* XCLocalSwiftPackageReference "Packages/TrinketDesignSystem" */,
@@ -607,10 +601,6 @@
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Packages/BattleEngine;
 		};
-		CD5683D443F88697A4974863 /* XCLocalSwiftPackageReference "Packages/TrinketBattleRuntime" */ = {
-			isa = XCLocalSwiftPackageReference;
-			relativePath = Packages/TrinketBattleRuntime;
-		};
 		EA210CC58478BEC431965D78 /* XCLocalSwiftPackageReference "Packages/TrinketBattleFeature" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Packages/TrinketBattleFeature;
@@ -645,10 +635,6 @@
 		B272982FB6EC9592050EDC80 /* TrinketFeatureContracts */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = TrinketFeatureContracts;
-		};
-		BD6359D761EAC98AF53BF3C0 /* TrinketBattleRuntime */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = TrinketBattleRuntime;
 		};
 		C8EA905F0353F12131822072 /* TrinketBattleFeature */ = {
 			isa = XCSwiftPackageProductDependency;

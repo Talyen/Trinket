@@ -1,7 +1,7 @@
 import BattleEngine
 import Foundation
 import Observation
-import TrinketBattleRuntime
+import BattleEngine
 import TrinketDesignSystem
 import TrinketFeatureSupport
 

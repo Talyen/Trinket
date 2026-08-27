@@ -110,25 +110,76 @@ struct CombatantEquipmentTests {
 
     @Test func twoHandedWeaponUnequipsAndDisablesSecondaryWeaponSlot() throws {
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let crossbow = try ItemFixtures.makeItem("crossbow", id: "crossbow-a")
+        let maul = try ItemFixtures.makeItem("maul", id: "maul-a")
         let sword = try ItemFixtures.makeItem("longsword", id: "sword-a")
-        let inventory = [crossbow, sword]
+        let inventory = [maul, sword]
         var loadout = EquipmentLoadout()
         loadout.equip(sword, in: .secondaryWeapon, inventory: inventory)
-        loadout.equip(crossbow, in: .weapon, inventory: inventory)
+        loadout.equip(maul, in: .weapon, inventory: inventory)
 
-        try #expect(loadout.itemID(for: .weapon) == crossbow.id)
+        try #expect(loadout.itemID(for: .weapon) == maul.id)
         try #expect(loadout.itemID(for: .secondaryWeapon) == nil)
         try #expect(!loadout.isAvailable(.secondaryWeapon, inventory: inventory))
         try #expect(!loadout.canEquip(sword, in: .secondaryWeapon, inventory: inventory))
 
         let sanitized = EquipmentLoadout(itemIDsBySlot: [
-            .weapon: crossbow.id,
+            .weapon: maul.id,
             .secondaryWeapon: sword.id,
-        ]).sanitized(for: knight, inventory: [crossbow, sword])
+        ]).sanitized(for: knight, inventory: [maul, sword])
 
-        try #expect(sanitized.itemID(for: .weapon) == crossbow.id)
+        try #expect(sanitized.itemID(for: .weapon) == maul.id)
         try #expect(sanitized.itemID(for: .secondaryWeapon) == nil)
+    }
+
+    @Test func rangedTwoHanderAllowsQuiverButBlocksShields() throws {
+        let crossbow = try ItemFixtures.makeItem("crossbow", id: "crossbow-a")
+        let quiver = try ItemFixtures.makeItem("quiver", id: "quiver-a")
+        let shield = try ItemFixtures.makeItem("kite_shield", id: "shield-a")
+        let buckler = try ItemFixtures.makeItem("leather_buckler", id: "buckler-a")
+        let spellbook = try ItemFixtures.makeItem("spellbook", id: "spellbook-a")
+        let sword = try ItemFixtures.makeItem("longsword", id: "sword-a")
+        var loadout = EquipmentLoadout()
+        loadout.equip(crossbow, in: .weapon, inventory: [crossbow, quiver, shield, buckler, spellbook, sword])
+
+        try #expect(loadout.isAvailable(.secondaryWeapon, inventory: [crossbow, quiver, shield, buckler, spellbook, sword]))
+        try #expect(loadout.canEquip(quiver, in: .secondaryWeapon, inventory: [crossbow, quiver, shield, buckler, spellbook, sword]))
+        try #expect(!loadout.canEquip(shield, in: .secondaryWeapon, inventory: [crossbow, quiver, shield, buckler, spellbook, sword]))
+        try #expect(!loadout.canEquip(buckler, in: .secondaryWeapon, inventory: [crossbow, quiver, shield, buckler, spellbook, sword]))
+        try #expect(!loadout.canEquip(spellbook, in: .secondaryWeapon, inventory: [crossbow, quiver, shield, buckler, spellbook, sword]))
+
+        loadout.equip(quiver, in: .secondaryWeapon, inventory: [crossbow, quiver, shield, buckler, spellbook, sword])
+        try #expect(loadout.itemID(for: .secondaryWeapon) == quiver.id)
+        // Equipping a second bow keeps the quiver
+        let longbow = try ItemFixtures.makeItem("longbow", id: "longbow-a")
+        var loadout2 = EquipmentLoadout(itemIDsBySlot: [.weapon: crossbow.id, .secondaryWeapon: quiver.id])
+        loadout2.equip(longbow, in: .weapon, inventory: [crossbow, longbow, quiver])
+        try #expect(loadout2.itemID(for: .secondaryWeapon) == quiver.id)
+        // Non-ranged weapon cannot be equipped while Quiver is worn (must unequip quiver first)
+        var loadout3 = EquipmentLoadout(itemIDsBySlot: [.weapon: crossbow.id, .secondaryWeapon: quiver.id])
+        let maul = try ItemFixtures.makeItem("maul", id: "maul-a")
+        loadout3.equip(maul, in: .weapon, inventory: [crossbow, maul, quiver])
+        try #expect(loadout3.itemID(for: .weapon) == crossbow.id)
+        try #expect(loadout3.itemID(for: .secondaryWeapon) == quiver.id)
+        loadout3.unequip(.secondaryWeapon)
+        loadout3.equip(maul, in: .weapon, inventory: [maul, quiver])
+        try #expect(loadout3.itemID(for: .weapon) == maul.id)
+        try #expect(loadout3.itemID(for: .secondaryWeapon) == nil)
+    }
+
+    @Test func quiverRequiresRangedPrimaryAndBlocksMeleeMainHand() throws {
+        let quiver = try ItemFixtures.makeItem("quiver", id: "quiver-a")
+        let crossbow = try ItemFixtures.makeItem("crossbow", id: "crossbow-a")
+        let sword = try ItemFixtures.makeItem("longsword", id: "sword-a")
+        var loadout = EquipmentLoadout()
+        // No primary — quiver cannot be equipped
+        try #expect(!loadout.canEquip(quiver, in: .secondaryWeapon, inventory: [quiver, crossbow]))
+        loadout.equip(sword, in: .weapon, inventory: [sword, quiver])
+        try #expect(!loadout.canEquip(quiver, in: .secondaryWeapon, inventory: [sword, quiver]))
+        loadout.equip(crossbow, in: .weapon, inventory: [crossbow, quiver, sword])
+        try #expect(loadout.canEquip(quiver, in: .secondaryWeapon, inventory: [crossbow, quiver, sword]))
+        loadout.equip(quiver, in: .secondaryWeapon, inventory: [crossbow, quiver, sword])
+        try #expect(loadout.itemID(for: .secondaryWeapon) == quiver.id)
+        try #expect(!loadout.canEquip(sword, in: .weapon, inventory: [crossbow, quiver, sword]))
     }
 
     @Test func oneHandedItemsMoveOrDualWieldAcrossWeaponSlots() throws {

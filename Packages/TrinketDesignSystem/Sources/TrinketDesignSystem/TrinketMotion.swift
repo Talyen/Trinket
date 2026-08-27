@@ -3,11 +3,10 @@ import Foundation
 import SwiftUI
 
 /// Shared motion presets. Prefer feature-owned motion where only one feature
-/// consumes the token: `Battle` → `TrinketBattleFeature.BattleMotion`,
-/// `Homestead` → Homestead feature, `Mystery`/`Onboarding` → their screens.
-/// This enum keeps only truly shared tokens (`Interaction`, `Content`, `Screen`,
-/// `Shine`, `Reward`). Battle/Homestead/Mystery/Onboarding/Labyrinth remain here
-/// for compatibility but new code should use the feature-owned type.
+/// consumes the token; this enum keeps only tokens shared across features
+/// (`Interaction`, `Content`, `Screen`, `Shine`, `Reward`). `Battle`,
+/// `Homestead`, `Mystery`, `Onboarding`, and `Labyrinth` remain here as the
+/// canonical owners until their consuming features extract them.
 public enum TrinketMotion: Sendable {
     /// Restrained feedback for ordinary controls and committed state changes.
     public enum Interaction: Sendable {

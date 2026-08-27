@@ -125,7 +125,7 @@ public final class PlayerSaveStore {
         disableCloudSync: Bool = false,
         resetState: Bool = false,
         inMemoryOnly: Bool = false,
-        persistSaveImmediately: Bool = false
+        persistSaveImmediately: Bool = true
     ) throws {
         let bootstrapInterval = Self.performanceSignposter.beginInterval("PlayerSaveBootstrap")
         defer {

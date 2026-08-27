@@ -1,4 +1,3 @@
-import BattleEngine
 import Foundation
 import TrinketContent
 import TrinketCore
@@ -39,6 +38,7 @@ public struct BattleRunConfiguration: Identifiable {
         }
     }
 
+    // EntropyCheck: allow - battle run identity is per-launch local, not seeded combat RNG.
     public let id = UUID()
     public let runKey: BattleRunKey?
     public let rngSeed: UInt64

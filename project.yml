@@ -15,8 +15,6 @@ packages:
     path: Packages/TrinketContent
   BattleEngine:
     path: Packages/BattleEngine
-  TrinketBattleRuntime:
-    path: Packages/TrinketBattleRuntime
   TrinketPersistence:
     path: Packages/TrinketPersistence
   TrinketDesignSystem:
@@ -70,7 +68,6 @@ targets:
       - package: TrinketCore
       - package: TrinketContent
       - package: BattleEngine
-      - package: TrinketBattleRuntime
       - package: TrinketPersistence
       - package: TrinketDesignSystem
       - package: TrinketFeatureSupport

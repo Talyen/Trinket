@@ -1,6 +1,6 @@
 import BattleEngine
 import SwiftUI
-import TrinketBattleRuntime
+import BattleEngine
 import TrinketContent
 import TrinketCore
 import TrinketFeatureContracts

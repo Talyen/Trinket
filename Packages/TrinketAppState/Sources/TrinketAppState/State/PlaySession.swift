@@ -1,5 +1,5 @@
 import Observation
-import TrinketBattleRuntime
+import BattleEngine
 import TrinketContent
 import TrinketCore
 import TrinketFeatureContracts

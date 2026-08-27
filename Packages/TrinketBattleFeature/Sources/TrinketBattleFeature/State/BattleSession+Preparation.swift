@@ -1,6 +1,6 @@
 import Foundation
 import SwiftUI
-import TrinketBattleRuntime
+import BattleEngine
 import TrinketFeatureSupport
 
 public extension BattleSession {
