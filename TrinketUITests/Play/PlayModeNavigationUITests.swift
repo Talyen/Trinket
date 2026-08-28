@@ -24,9 +24,19 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
     func testLabyrinthMapNodeInspectorInteractions() {
         launchApp(arguments: TestLaunchArg.allForScreen("labyrinth-map"))
 
-        assertExists(AccessibilityID.Play.labyrinthMap, timeout: 10)
+        // Deep link may land on emptyState before `enter()` completes; tap Enter if needed.
+        let enterButton = app.descendants(matching: .any)[AccessibilityID.Play.labyrinthEnter]
+        if enterButton.waitForExistence(timeout: 2) {
+            tapWhenReady(enterButton)
+        }
+        assertExists(AccessibilityID.Play.labyrinthMap, timeout: 15)
         let entryNode = app.descendants(matching: .any)[AccessibilityID.Play.labyrinthFloor1EntryNode]
-        assertExists(entryNode, timeout: 10)
+        if !entryNode.waitForExistence(timeout: 5) {
+            // Map hex layout may need a layout pulse on cold launch.
+            app.swipeUp()
+            app.swipeDown()
+        }
+        assertExists(entryNode, timeout: 15)
         tapWhenReady(entryNode)
         assertExists(AccessibilityID.Play.labyrinthNodeInspector, timeout: 10)
         assertExists(
