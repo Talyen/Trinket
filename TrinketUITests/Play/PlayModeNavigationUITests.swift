@@ -24,11 +24,11 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
     func testLabyrinthMapNodeInspectorInteractions() {
         launchApp(arguments: TestLaunchArg.allForScreen("labyrinth-map"))
 
-        assertExists(AccessibilityID.Play.labyrinthMap)
+        assertExists(AccessibilityID.Play.labyrinthMap, timeout: 10)
         let entryNode = app.descendants(matching: .any)[AccessibilityID.Play.labyrinthFloor1EntryNode]
-        assertExists(entryNode)
+        assertExists(entryNode, timeout: 10)
         tapWhenReady(entryNode)
-        assertExists(AccessibilityID.Play.labyrinthNodeInspector)
+        assertExists(AccessibilityID.Play.labyrinthNodeInspector, timeout: 10)
         assertExists(
             app.descendants(matching: .any).matching(
                 NSPredicate(

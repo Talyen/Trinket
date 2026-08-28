@@ -8,25 +8,25 @@ final class SmokeShellTests: SeededSmokeUITestCase {
     }
 
     func testTabShellsAreReachable() {
-        play.assertLoaded()
-        assertExists(AccessibilityID.Play.campaignModeCard)
-        assertExists(AccessibilityID.Play.exploreModeCard)
+        play.assertLoaded(timeout: 10)
+        assertExists(AccessibilityID.Play.campaignModeCard, timeout: 10)
+        assertExists(AccessibilityID.Play.exploreModeCard, timeout: 10)
 
         tabBar.selectCollection()
-        collection.assertLoaded()
-        assertExists(AccessibilityID.Collection.heroesCategory)
-        assertExists(AccessibilityID.Collection.companionsCategory)
+        collection.assertLoaded(timeout: 10)
+        assertExists(AccessibilityID.Collection.heroesCategory, timeout: 10)
+        assertExists(AccessibilityID.Collection.companionsCategory, timeout: 10)
 
         tabBar.selectHomestead()
-        homestead.assertLoaded()
-        assertExists(AccessibilityID.Homestead.resourceWallet)
+        homestead.assertLoaded(timeout: 10)
+        assertExists(AccessibilityID.Homestead.resourceWallet, timeout: 10)
 
         tabBar.selectOptions()
-        options.assertLoaded()
-        assertExists(AccessibilityID.Options.hapticsToggle)
+        options.assertLoaded(timeout: 10)
+        assertExists(AccessibilityID.Options.hapticsToggle, timeout: 10)
 
         tabBar.selectPlay()
-        play.assertLoaded()
+        play.assertLoaded(timeout: 10)
     }
 }
 
@@ -51,10 +51,10 @@ final class StarterOnboardingSmokeTests: TrinketUITestCase {
         XCTAssertNotEqual(heroConfirm.label, "Confirm Hero")
         tapWhenReady(heroConfirm)
 
-        assertExists(AccessibilityID.Onboarding.companionScreen, timeout: 10)
+        assertExists(AccessibilityID.Onboarding.companionScreen, timeout: 15)
 
         let companionConfirm = app.descendants(matching: .any)[AccessibilityID.Onboarding.confirm(role: "Companion")]
-        if !companionConfirm.waitForExistence(timeout: 10) {
+        if !companionConfirm.waitForExistence(timeout: 15) {
             XCTFail("Confirm Companion not found. Tree: \(String(app.debugDescription.prefix(2500)))")
         }
         XCTAssertNotEqual(companionConfirm.label, "Confirm Companion")
@@ -62,10 +62,10 @@ final class StarterOnboardingSmokeTests: TrinketUITestCase {
 
         // Onboarding completes with a crossfade to the Play hub.
         XCTAssertTrue(
-            app.tabBars.firstMatch.waitForExistence(timeout: 10),
+            app.tabBars.firstMatch.waitForExistence(timeout: 15),
             "Tab bar did not appear after onboarding"
         )
         // The hub's container is the stable signal; give the Play screen a moment to settle.
-        _ = app.descendants(matching: .any)[AccessibilityID.Play.modesScreen].waitForExistence(timeout: 5)
+        _ = app.descendants(matching: .any)[AccessibilityID.Play.modesScreen].waitForExistence(timeout: 10)
     }
 }

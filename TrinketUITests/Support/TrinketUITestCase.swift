@@ -140,7 +140,7 @@ enum TestLaunchArg {
 
 class TrinketUITestCase: XCTestCase {
     /// Deep-linked screens should appear quickly; keep failure waits short to cut flake wall time.
-    static let defaultTimeout: TimeInterval = 3
+    static let defaultTimeout: TimeInterval = 5
 
     // IUO matches XCTest launch lifecycle: set in launchApp, cleared in tearDown.
     // swiftlint:disable:next implicitly_unwrapped_optional

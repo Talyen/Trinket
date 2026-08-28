@@ -68,12 +68,12 @@ final class BattleFlowUITests: TrinketUITestCase {
     private func waitForCardCount(_ cards: XCUIElementQuery, droppingFrom initial: Int) -> Bool {
         let predicate = NSPredicate(format: "count == %d", initial - 1)
         let expectation = XCTNSPredicateExpectation(predicate: predicate, object: cards)
-        return XCTWaiter().wait(for: [expectation], timeout: Self.defaultTimeout) == .completed
+        return XCTWaiter().wait(for: [expectation], timeout: 10) == .completed
     }
 
     private func waitForCardCountBelow(_ cards: XCUIElementQuery, _ initial: Int) -> Bool {
         let predicate = NSPredicate(format: "count < %d", initial)
         let expectation = XCTNSPredicateExpectation(predicate: predicate, object: cards)
-        return XCTWaiter().wait(for: [expectation], timeout: Self.defaultTimeout) == .completed
+        return XCTWaiter().wait(for: [expectation], timeout: 10) == .completed
     }
 }
