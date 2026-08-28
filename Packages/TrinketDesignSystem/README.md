@@ -7,7 +7,6 @@ Shared app chrome — semantic surfaces, typography, keyword visuals, and reusab
 | File | Role |
 |------|------|
 | `TrinketDesign.swift` | Colors, metrics, overlays, and card chrome |
-| `ThemePalette.swift` | Internal mapping from `Theme*` assets to role colors |
 | `DesignAssetColors.swift` | Package-bundled semantic color assets (`Bundle.module`) |
 | `Resources/DesignColors.xcassets` | Theme, keyword, encounter, placeholder, resource, chapter color sets |
 | `VisualFoundation.swift` | Background modes, surface roles, spacing tokens |
@@ -17,7 +16,7 @@ Shared app chrome — semantic surfaces, typography, keyword visuals, and reusab
 | `HomesteadResource+Color.swift` | Homestead resource tint resolution |
 | `Modifiers.swift` | Semantic view modifiers for backgrounds, surfaces |
 | `ExperienceBar.swift` | XP/level progress bar |
-| `VerticalPathRail.swift` | Shared vertical node rail + connectors (Homestead / Stage select); `PathNodeMetrics` + `PathNodeChrome` keep circle size, stroke weight, and glyph scale in sync |
+| `TrinketMotion.swift` | Motion recipes shared by multiple product features |
 
 ## Color families
 
@@ -81,7 +80,7 @@ Route recurring chrome through these modifiers — do not call raw SwiftUI styli
 
 | Modifier / API | Use for |
 |----------------|---------|
-| `.trinketScreenBackground()` | Shared tab/screen canvas (`ThemePalette.trinket.appBackground`) |
+| `.trinketScreenBackground()` | Shared tab/screen canvas (`TrinketDesign.Colors.canvas`) |
 | `.trinketSurface(_:)` | Panels, cards, rows, selected/disabled/warning/reward states |
 | `.trinketMaterial(_:)` | Bottom bars, popovers, reward reveals; modal uses solid surface; toolbar passes through |
 | `.trinketGlassChip()` | Glass capsule chips via shared `TrinketGlassBackgroundModifier` |

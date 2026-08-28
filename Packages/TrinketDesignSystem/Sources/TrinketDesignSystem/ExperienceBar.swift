@@ -21,9 +21,9 @@ public struct ExperienceBar: View {
     @State private var animationTask: Task<Void, Never>?
 
     private let initialDelay: TimeInterval = 0.10
-    private let segmentSteps = 24
 
     nonisolated static let animationBudget: TimeInterval = 0.30
+    nonisolated static let animationFramesPerSecond = 60
 
     /// Normalized crop anchor for circular combatant thumbs. Portrait art is 3:4;
     /// a center crop clips heads, so default toward the upper body / face.
@@ -64,7 +64,7 @@ public struct ExperienceBar: View {
                 circularPortrait(artworkName: artworkName)
             }
 
-            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.denseSpacing) {
+            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
                 HStack(alignment: .firstTextBaseline, spacing: TrinketDesign.Metrics.smallSpacing) {
                     Text(combatantName)
                         .trinketTypography(.cardLabel)
@@ -204,9 +204,15 @@ public struct ExperienceBar: View {
     private func runSegments(clock: SuspendingClock) async {
         let segments = Self.segments(from: pre, to: post)
         let segmentDuration = Self.segmentDuration(forSegmentCount: segments.count)
-        for segment in segments {
+        let stepCounts = Self.stepCounts(forSegmentCount: segments.count)
+        for (segment, stepCount) in zip(segments, stepCounts) {
             guard !Task.isCancelled else { return }
-            await animate(to: segment, duration: segmentDuration, clock: clock)
+            await animate(
+                to: segment,
+                duration: segmentDuration,
+                stepCount: stepCount,
+                clock: clock
+            )
             guard !Task.isCancelled else { return }
             if segment.levelsGained > 0 {
                 applyLevelUp(newLevel: segment.newLevel, newRequiredXP: segment.newRequiredXP)
@@ -219,6 +225,7 @@ public struct ExperienceBar: View {
     private func animate(
         to segment: Segment,
         duration: TimeInterval,
+        stepCount: Int,
         clock: SuspendingClock
     ) async {
         let startFraction = segment.startFraction
@@ -228,7 +235,6 @@ public struct ExperienceBar: View {
 
         displayedFraction = startFraction
 
-        let stepCount = max(1, segmentSteps)
         let stepDuration = duration / Double(stepCount)
 
         for step in 1 ... stepCount {
@@ -330,5 +336,16 @@ public struct ExperienceBar: View {
     nonisolated static func segmentDuration(forSegmentCount count: Int) -> TimeInterval {
         guard count > 0 else { return 0 }
         return animationBudget / Double(count)
+    }
+
+    nonisolated static func stepCounts(forSegmentCount count: Int) -> [Int] {
+        guard count > 0 else { return [] }
+        let frameBudget = Int((animationBudget * Double(animationFramesPerSecond)).rounded(.down))
+        let totalSteps = max(count, frameBudget)
+        let baseSteps = totalSteps / count
+        let remainder = totalSteps % count
+        return (0 ..< count).map { index in
+            baseSteps + (index < remainder ? 1 : 0)
+        }
     }
 }

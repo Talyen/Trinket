@@ -59,7 +59,7 @@ public final class BattleSession: BattleRuntime {
     @ObservationIgnored
     var deliveredClaimedVictoryConfigurationID: UUID?
     /// Gap between paced opening-hand draws. `<= 0` deals the hand synchronously in `resetRun`
-    /// (unit tests). Production uses `TrinketMotion.Battle.cardDrawStagger`.
+    /// (unit tests). Production uses `BattleMotion.cardDrawStagger`.
     public var openingHandDrawStagger: TimeInterval
 
     /// Auto-battle poll interval while blocked. Unit tests set `.zero`.
@@ -106,13 +106,13 @@ public final class BattleSession: BattleRuntime {
 
     public init(
         autoEndTurnDelay: TimeInterval = BattleSession.autoEndTurnDelay,
-        openingHandDrawStagger: TimeInterval = TrinketMotion.Battle.cardDrawStagger,
+        openingHandDrawStagger: TimeInterval? = nil,
         enemyAttackImpactDelayOverride: TimeInterval? = nil,
         outcomePresentationDelayOverride: TimeInterval? = nil,
         presentationEnvironment: BattleRuntimeDependencies = .silent
     ) {
         self.autoEndTurnDelay = autoEndTurnDelay
-        self.openingHandDrawStagger = openingHandDrawStagger
+        self.openingHandDrawStagger = openingHandDrawStagger ?? BattleMotion.cardDrawStagger
         self.enemyAttackImpactDelayOverride = enemyAttackImpactDelayOverride
         self.outcomePresentationDelayOverride = outcomePresentationDelayOverride
         self.presentationEnvironment = presentationEnvironment

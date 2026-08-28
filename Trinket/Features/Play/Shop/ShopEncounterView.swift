@@ -173,7 +173,7 @@ struct ShopEncounterView: View {
     }
 
     private func buyButtonLabel(offer: ShopOffer, soldOut: Bool, canBuy: Bool) -> some View {
-        HStack(spacing: TrinketDesign.Metrics.denseSpacing) {
+        HStack(spacing: TrinketDesign.Metrics.smallSpacing) {
             if soldOut {
                 Text("Sold")
             } else {

@@ -81,8 +81,8 @@ struct BattleAbilityCardView: View {
             if isPlayArmed {
                 TrinketDesign.cardShape
                     .stroke(
-                        TrinketDesign.Colors.accent.opacity(TrinketMotion.Battle.cardArmedRingOpacity),
-                        lineWidth: TrinketMotion.Battle.cardArmedRingLineWidth
+                        TrinketDesign.Colors.accent.opacity(BattleMotion.cardArmedRingOpacity),
+                        lineWidth: BattleMotion.cardArmedRingLineWidth
                     )
             }
         }
@@ -93,14 +93,14 @@ struct BattleAbilityCardView: View {
             .degrees(isDragging ? verticalTilt : 0),
             axis: (x: 1, y: 0, z: 0),
             anchor: .bottom,
-            perspective: TrinketMotion.Battle.cardPerspective
+            perspective: BattleMotion.cardPerspective
         )
         .offset(activeOffset)
         .offset(tapLiftOffset)
         .shadow(
             color: isDragging ? TrinketDesign.Colors.Overlay.dragShadow.opacity(0.55) : .clear,
-            radius: TrinketMotion.Battle.cardHeldShadowRadius,
-            y: TrinketMotion.Battle.cardHeldShadowY
+            radius: BattleMotion.cardHeldShadowRadius,
+            y: BattleMotion.cardHeldShadowY
         )
         .gesture(
             DragGesture(minimumDistance: 0)
@@ -151,7 +151,7 @@ struct BattleAbilityCardView: View {
     /// takes over. Matches the overlay handoff order (applied after rotation/3D).
     private var tapLiftOffset: CGSize {
         guard isTapLifting else { return .zero }
-        return CGSize(width: 0, height: -height * TrinketMotion.Battle.tapLiftHeightFraction)
+        return CGSize(width: 0, height: -height * BattleMotion.tapLiftHeightFraction)
     }
 
     private var restingTranslation: CGSize {
@@ -164,25 +164,25 @@ struct BattleAbilityCardView: View {
             translation: dragTranslation,
             predictedEndTranslation: predictedEndTranslation,
             cardWidth: width,
-            maximumDegrees: TrinketMotion.Battle.cardHeldTiltDegrees
+            maximumDegrees: BattleMotion.cardHeldTiltDegrees
         )
     }
 
     private var verticalTilt: Double {
         min(
             max(
-                Double(-dragTranslation.height / height) * TrinketMotion.Battle.cardVerticalTiltGain,
-                -TrinketMotion.Battle.cardVerticalTiltClamp
+                Double(-dragTranslation.height / height) * BattleMotion.cardVerticalTiltGain,
+                -BattleMotion.cardVerticalTiltClamp
             ),
-            TrinketMotion.Battle.cardVerticalTiltClamp
+            BattleMotion.cardVerticalTiltClamp
         )
     }
 
     private var heldScale: CGSize {
         guard isDragging else { return CGSize(width: 1, height: 1) }
-        var base = CGFloat(TrinketMotion.Battle.cardHeldScale)
+        var base = CGFloat(BattleMotion.cardHeldScale)
         if isPlayArmed {
-            base += TrinketMotion.Battle.cardArmedScaleBoost
+            base += BattleMotion.cardArmedScaleBoost
         }
         return CGSize(width: base, height: base)
     }
@@ -195,7 +195,7 @@ struct BattleAbilityCardView: View {
         guard interactionResolution != .inspecting else { return }
 
         if interactionResolution == .idle {
-            withAnimation(TrinketMotion.Battle.cardPress) {
+            withAnimation(BattleMotion.cardPress) {
                 // The state transition drives the held-card scale and shadow.
                 interactionResolution = .pressing
             }
@@ -229,7 +229,7 @@ struct BattleAbilityCardView: View {
             if armed {
                 playArmFeedbackToken &+= 1
             }
-            withAnimation(TrinketMotion.Battle.cardLift) {
+            withAnimation(BattleMotion.cardLift) {
                 isPlayArmed = armed
             }
         }
@@ -307,7 +307,7 @@ struct BattleAbilityCardView: View {
 
     private func scheduleInspection() {
         cancelInspection()
-        let duration = TrinketMotion.Battle.cardInspectHoldDuration
+        let duration = BattleMotion.cardInspectHoldDuration
         inspectionTask = Task { @MainActor in
             try? await Task.sleep(for: .seconds(duration))
             guard !Task.isCancelled else { return }
@@ -329,7 +329,7 @@ struct BattleAbilityCardView: View {
 
     private func resetVisualState() {
         cancelAnnouncedWindUp()
-        withAnimation(TrinketMotion.Battle.cardReturn) {
+        withAnimation(BattleMotion.cardReturn) {
             dragTranslation = .zero
             predictedEndTranslation = .zero
             isPlayArmed = false
@@ -354,7 +354,7 @@ struct BattleAbilityCardView: View {
             rotation: CGFloat(activeRotation * .pi / 180),
             verticalTilt: CGFloat(verticalTilt),
             scale: heldScale.width,
-            perspective: TrinketMotion.Battle.cardPerspective,
+            perspective: BattleMotion.cardPerspective,
             keywords: card.ability.keywords
         )
         publishPlay(request)
@@ -381,12 +381,12 @@ private extension BattleAbilityCardView {
     func beginTapPlay() {
         guard tapLiftTask == nil else { return }
         announceWindUpIfNeeded()
-        withAnimation(TrinketMotion.Battle.tapLift) {
+        withAnimation(BattleMotion.tapLift) {
             isTapLifting = true
         }
         cancelTapLift()
         tapLiftTask = Task { @MainActor in
-            try? await Task.sleep(for: .seconds(TrinketMotion.Battle.tapLiftPlayDelay))
+            try? await Task.sleep(for: .seconds(BattleMotion.tapLiftPlayDelay))
             guard !Task.isCancelled else { return }
             publishTapPlay()
         }
@@ -404,7 +404,7 @@ private extension BattleAbilityCardView {
             // does not commit; cancelling here would yank a committed swing.
             didAnnounceWindUp = false
         }
-        withAnimation(TrinketMotion.Battle.tapLift) {
+        withAnimation(BattleMotion.tapLift) {
             isTapLifting = shouldLift
         }
     }
@@ -420,7 +420,7 @@ private extension BattleAbilityCardView {
             rotation: restingRotation * .pi / 180,
             verticalTilt: 0,
             scale: 1,
-            perspective: TrinketMotion.Battle.cardPerspective,
+            perspective: BattleMotion.cardPerspective,
             keywords: card.ability.keywords
         )
         publishPlay(request)

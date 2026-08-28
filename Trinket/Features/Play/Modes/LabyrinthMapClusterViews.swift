@@ -309,8 +309,8 @@ private struct LabyrinthNodeButtonStyle: ButtonStyle {
                 radius: isSelected ? 8 : 0,
                 y: isSelected ? 5 : 0
             )
-            .animation(TrinketMotion.Labyrinth.selection, value: configuration.isPressed)
-            .animation(TrinketMotion.Labyrinth.selection, value: isSelected)
+            .animation(LabyrinthMapMotion.selection, value: configuration.isPressed)
+            .animation(LabyrinthMapMotion.selection, value: isSelected)
     }
 }
 

@@ -4,7 +4,7 @@ import Testing
 import UIKit
 @testable import TrinketDesignSystem
 
-struct ThemePaletteTests {
+struct SemanticColorContrastTests {
     private static let semanticForegroundNames = [
         "ThemeAntiqueGold",
         "ThemeHighlightGold",

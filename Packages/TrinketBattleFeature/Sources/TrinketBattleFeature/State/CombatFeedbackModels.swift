@@ -70,7 +70,7 @@ struct CombatFeedbackItem: Identifiable, Equatable {
     func scheduled(at date: Date) -> Self {
         var copy = self
         copy.availableAt = date
-        copy.expiresAt = date.addingTimeInterval(TrinketMotion.Battle.chipDisplayDuration)
+        copy.expiresAt = date.addingTimeInterval(BattleMotion.chipDisplayDuration)
         copy.firstScheduledAt = date
         return copy
     }

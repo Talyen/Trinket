@@ -59,7 +59,7 @@ struct BattleFeedbackLaneTests {
         #expect(lane.activeItems.count == 1)
         #expect(lane.activeItems[0].text == "7")
         #expect(lane.activeItems[0].availableAt == nextTime)
-        #expect(lane.activeItems[0].expiresAt == nextTime.addingTimeInterval(TrinketMotion.Battle.chipDisplayDuration))
+        #expect(lane.activeItems[0].expiresAt == nextTime.addingTimeInterval(BattleMotion.chipDisplayDuration))
         #expect(playedSFX.count == 2)
         #expect(lane.hitReactionsByTargetID[event2.targetID]?.id == event2.id)
         #expect(updates.count == 2)
@@ -81,7 +81,7 @@ struct BattleFeedbackLaneTests {
             at: start
         )
         let queuedBurn = lane.activeItems.first { $0.id == 2 }
-        #expect(queuedBurn?.availableAt == start.addingTimeInterval(TrinketMotion.Battle.feedbackStreamStagger))
+        #expect(queuedBurn?.availableAt == start.addingTimeInterval(BattleMotion.feedbackStreamStagger))
 
         lane.record(
             [makeEvent(id: 3, kind: .status, amount: 3, keyword: .burn)],
@@ -112,7 +112,7 @@ struct BattleFeedbackLaneTests {
 
         let lastChip = try #require(lane.activeItems.last)
         let visibleAt = lastChip.availableAt
-        let expectedDelay = 9 * TrinketMotion.Battle.feedbackStreamStagger
+        let expectedDelay = 9 * BattleMotion.feedbackStreamStagger
         #expect(abs(visibleAt.timeIntervalSince(start) - expectedDelay) < 0.001)
 
         let mergeTime = visibleAt.addingTimeInterval(0.08)

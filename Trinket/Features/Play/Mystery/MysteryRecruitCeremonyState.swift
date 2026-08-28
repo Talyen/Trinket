@@ -16,13 +16,13 @@ final class MysteryRecruitCeremonyState {
     private(set) var phase: Phase = .veiled
     private(set) var veilAmount = 1.0
     private(set) var bloomOpacity = 0.0
-    private(set) var artScale = TrinketMotion.Mystery.veiledArtScale
+    private(set) var artScale = MysteryCeremonyMotion.veiledArtScale
     private(set) var eyebrowOpacity = 0.0
     private(set) var titleOpacity = 0.0
     private(set) var subtitleOpacity = 0.0
     private(set) var recruitOpacity = 0.0
     private(set) var checkOpacity = 0.0
-    private(set) var sealBadgeScale = TrinketMotion.Mystery.sealBadgeStartScale
+    private(set) var sealBadgeScale = MysteryCeremonyMotion.sealBadgeStartScale
     private(set) var unmaskFeedbackTrigger = 0
     private(set) var sealFeedbackTrigger = 0
 
@@ -49,37 +49,37 @@ final class MysteryRecruitCeremonyState {
 
     private func runUnmaskSequence(onUnmaskPeak: @escaping () -> Void) async {
         let clock = SuspendingClock()
-        try? await clock.sleep(for: .seconds(TrinketMotion.Mystery.veilHold))
+        try? await clock.sleep(for: .seconds(MysteryCeremonyMotion.veilHold))
         guard !Task.isCancelled else { return }
 
         phase = .unmasking
-        withAnimation(TrinketMotion.Mystery.unmask) {
+        withAnimation(MysteryCeremonyMotion.unmask) {
             veilAmount = 0
             artScale = 1
         }
-        withAnimation(TrinketMotion.Mystery.bloomIn) {
-            bloomOpacity = TrinketMotion.Mystery.bloomPeakOpacity
+        withAnimation(MysteryCeremonyMotion.bloomIn) {
+            bloomOpacity = MysteryCeremonyMotion.bloomPeakOpacity
         }
 
         try? await clock.sleep(
             for: .seconds(
-                TrinketMotion.Mystery.unmaskResponse * TrinketMotion.Mystery.bloomPeakFraction
+                MysteryCeremonyMotion.unmaskResponse * MysteryCeremonyMotion.bloomPeakFraction
             )
         )
         guard !Task.isCancelled else { return }
         onUnmaskPeak()
         unmaskFeedbackTrigger += 1
-        withAnimation(TrinketMotion.Mystery.bloomOut) {
+        withAnimation(MysteryCeremonyMotion.bloomOut) {
             bloomOpacity = 0
         }
 
         try? await clock.sleep(
             for: .seconds(
-                TrinketMotion.Mystery.unmaskResponse * (1 - TrinketMotion.Mystery.bloomPeakFraction)
+                MysteryCeremonyMotion.unmaskResponse * (1 - MysteryCeremonyMotion.bloomPeakFraction)
             )
         )
         guard !Task.isCancelled else { return }
-        try? await clock.sleep(for: .seconds(TrinketMotion.Mystery.chromeAfterUnmask))
+        try? await clock.sleep(for: .seconds(MysteryCeremonyMotion.chromeAfterUnmask))
         guard !Task.isCancelled else { return }
         await presentChrome()
         task = nil
@@ -87,22 +87,22 @@ final class MysteryRecruitCeremonyState {
 
     private func presentChrome() async {
         let clock = SuspendingClock()
-        withAnimation(TrinketMotion.Mystery.chrome) {
+        withAnimation(MysteryCeremonyMotion.chrome) {
             eyebrowOpacity = 1
         }
-        try? await clock.sleep(for: .seconds(TrinketMotion.Mystery.chromeStagger))
+        try? await clock.sleep(for: .seconds(MysteryCeremonyMotion.chromeStagger))
         guard !Task.isCancelled else { return }
-        withAnimation(TrinketMotion.Mystery.chrome) {
+        withAnimation(MysteryCeremonyMotion.chrome) {
             titleOpacity = 1
         }
-        try? await clock.sleep(for: .seconds(TrinketMotion.Mystery.chromeStagger))
+        try? await clock.sleep(for: .seconds(MysteryCeremonyMotion.chromeStagger))
         guard !Task.isCancelled else { return }
-        withAnimation(TrinketMotion.Mystery.chrome) {
+        withAnimation(MysteryCeremonyMotion.chrome) {
             subtitleOpacity = 1
         }
-        try? await clock.sleep(for: .seconds(TrinketMotion.Mystery.recruitButtonDelay))
+        try? await clock.sleep(for: .seconds(MysteryCeremonyMotion.recruitButtonDelay))
         guard !Task.isCancelled else { return }
-        withAnimation(TrinketMotion.Mystery.chrome) {
+        withAnimation(MysteryCeremonyMotion.chrome) {
             recruitOpacity = 1
         }
         phase = .offered
@@ -121,21 +121,21 @@ final class MysteryRecruitCeremonyState {
                 recruitOpacity = 0
                 subtitleOpacity = 0
             }
-            withAnimation(TrinketMotion.Mystery.seal) {
+            withAnimation(MysteryCeremonyMotion.seal) {
                 checkOpacity = 1
                 sealBadgeScale = 1
-                artScale = TrinketMotion.Mystery.sealArtPeakScale
+                artScale = MysteryCeremonyMotion.sealArtPeakScale
             }
-            try? await clock.sleep(for: .seconds(TrinketMotion.Mystery.sealArtPeakDelay))
+            try? await clock.sleep(for: .seconds(MysteryCeremonyMotion.sealArtPeakDelay))
             guard !Task.isCancelled else { return }
-            withAnimation(TrinketMotion.Mystery.seal) {
+            withAnimation(MysteryCeremonyMotion.seal) {
                 artScale = 1
             }
             try? await clock.sleep(
                 for: .seconds(
-                    TrinketMotion.Mystery.sealResponse
-                        + TrinketMotion.Mystery.sealHoldBeforeDismiss
-                        - TrinketMotion.Mystery.sealArtPeakDelay
+                    MysteryCeremonyMotion.sealResponse
+                        + MysteryCeremonyMotion.sealHoldBeforeDismiss
+                        - MysteryCeremonyMotion.sealArtPeakDelay
                 )
             )
             guard !Task.isCancelled else { return }

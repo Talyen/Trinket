@@ -84,7 +84,7 @@ enum CombatFeedbackPresenter {
                 return lhsPriority < rhsPriority
             }
             let availableAt = date
-            let expiresAt = availableAt.addingTimeInterval(TrinketMotion.Battle.chipDisplayDuration)
+            let expiresAt = availableAt.addingTimeInterval(BattleMotion.chipDisplayDuration)
             let groupResultCount = sorted.count
             return sorted.enumerated().map { presentationIndex, prepared in
                 CombatFeedbackItem(

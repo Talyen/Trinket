@@ -20,6 +20,12 @@ public enum HomesteadTierPathState: Equatable {
     case locked
 }
 
+public enum HomesteadTierConnectorState: Equatable, Sendable {
+    case completed
+    case progressed
+    case future
+}
+
 /// Derived presentation state for Homestead rows and the tier path.
 /// Nothing here is persisted or used by game rules.
 public struct HomesteadProjectStatus {
@@ -91,19 +97,21 @@ public struct HomesteadProjectStatus {
         return .future
     }
 
-    /// Connector segments for the shared vertical path rail (Stage-select style).
     public func tierPathConnectors(for tierIndex: Int) -> (
-        before: PathConnectorState?,
-        after: PathConnectorState?
+        before: HomesteadTierConnectorState?,
+        after: HomesteadTierConnectorState?
     ) {
-        PathConnectorState.pair(
-            at: tierIndex,
-            count: definition.tiers.count,
-            state: { connectorState(for: tierPathState(for: definition.tiers[$0])) }
-        )
+        let tierCount = definition.tiers.count
+        let before = tierIndex == 0
+            ? nil
+            : connectorState(for: tierPathState(for: definition.tiers[tierIndex]))
+        let after = tierIndex >= tierCount - 1
+            ? nil
+            : connectorState(for: tierPathState(for: definition.tiers[tierIndex + 1]))
+        return (before, after)
     }
 
-    private func connectorState(for state: HomesteadTierPathState) -> PathConnectorState {
+    private func connectorState(for state: HomesteadTierPathState) -> HomesteadTierConnectorState {
         switch state {
         case .completed: .completed
         case .next: .progressed

@@ -33,8 +33,8 @@ final class BattleCastPresentationState {
     private func scheduleStuckReset(for requestID: UUID) {
         cancelStuckReset()
         let delay = stuckResetDelayOverride
-            ?? TrinketMotion.Battle.cardActivationDuration
-            + TrinketMotion.Battle.cardActivationStuckSlack
+            ?? BattleMotion.cardActivationDuration
+            + BattleMotion.cardActivationStuckSlack
         pendingStuckResetTask = Task { @MainActor [weak self] in
             if delay > 0 {
                 try? await Task.sleep(for: .seconds(delay))
@@ -76,7 +76,7 @@ struct CardActivationRequest: Equatable, Identifiable {
         scale: CGFloat,
         perspective: CGFloat = 0.35,
         keywords: [Keyword],
-        particleCount: Int = TrinketMotion.Battle.cardCastParticleCount
+        particleCount: Int = BattleMotion.cardCastParticleCount
     ) {
         self.id = id
         self.startedAt = startedAt
@@ -182,7 +182,7 @@ struct CardCastEffectsLayer: View {
         .task(id: request?.id) {
             guard let request else { return }
             let elapsed = Date.now.timeIntervalSince(request.startedAt)
-            let remaining = max(0, TrinketMotion.Battle.cardActivationDuration - elapsed)
+            let remaining = max(0, BattleMotion.cardActivationDuration - elapsed)
             try? await Task.sleep(for: .seconds(remaining))
             guard !Task.isCancelled else { return }
             onFinished(request.id)
@@ -427,7 +427,7 @@ public struct BattleDissolveArtwork<Content: View>: View {
                     isComplete = false
                 }
                 .task(id: startDate) {
-                    try? await Task.sleep(for: .seconds(TrinketMotion.Battle.cardActivationDuration))
+                    try? await Task.sleep(for: .seconds(BattleMotion.cardActivationDuration))
                     guard !Task.isCancelled else { return }
                     isComplete = true
                     onFinished?()
@@ -443,7 +443,7 @@ public struct BattleDissolveArtwork<Content: View>: View {
 /// does not pay card-surface + artwork + mask + particles together cold.
 public struct CardCastEffectsPrewarmView: View {
     private static let prewarmParticles = CardActivationParticle.make(
-        count: TrinketMotion.Battle.cardCastParticleCount
+        count: BattleMotion.cardCastParticleCount
     )
 
     public var artworkName: String? = "ability_bash"
@@ -508,5 +508,5 @@ private func dissolveNoise(column: Int, row: Int) -> CGFloat {
 }
 
 private func cardActivationProgress(elapsed: TimeInterval) -> CGFloat {
-    CGFloat(min(max(elapsed / TrinketMotion.Battle.cardActivationDuration, 0), 1))
+    CGFloat(min(max(elapsed / BattleMotion.cardActivationDuration, 0), 1))
 }

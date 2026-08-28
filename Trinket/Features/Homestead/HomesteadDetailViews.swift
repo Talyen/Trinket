@@ -36,7 +36,7 @@ struct HomesteadNodeDetailView: View {
             HomesteadBuildingArtwork(definition: definition, variant: .full)
                 .saturation(status.isUnlocked ? 1 : 0)
                 .opacity(status.isUnlocked ? 1 : 0.66)
-                .animation(TrinketMotion.Homestead.nodeSettle, value: status.isUnlocked)
+                .animation(HomesteadMotion.nodeSettle, value: status.isUnlocked)
         } bodyContent: {
             HomesteadTierPath(
                 definition: definition,

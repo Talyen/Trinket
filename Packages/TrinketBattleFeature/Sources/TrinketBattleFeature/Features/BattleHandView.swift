@@ -125,18 +125,18 @@ struct BattleHandView: View {
                     )
                     .offset(x: snapshot.fanOffsetX)
                     .zIndex(isHeld ? 100 : Double(index))
-                    .animation(isHeld ? nil : TrinketMotion.Battle.handReflow, value: liveSnapshot)
+                    .animation(isHeld ? nil : BattleMotion.handReflow, value: liveSnapshot)
                     .transition(
                         .asymmetric(
                             insertion: .offset(
                                 x: card.owner == .hero
-                                    ? -TrinketMotion.Battle.dealInsertOffset
-                                    : TrinketMotion.Battle.dealInsertOffset,
-                                y: TrinketMotion.Battle.dealInsertOffset
+                                    ? -BattleMotion.dealInsertOffset
+                                    : BattleMotion.dealInsertOffset,
+                                y: BattleMotion.dealInsertOffset
                             )
                             .combined(with: .opacity)
-                            .combined(with: .scale(scale: TrinketMotion.Battle.dealInsertScale))
-                            .animation(TrinketMotion.Battle.deal),
+                            .combined(with: .scale(scale: BattleMotion.dealInsertScale))
+                            .animation(BattleMotion.deal),
                             removal: .identity
                         )
                     )

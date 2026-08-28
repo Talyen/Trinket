@@ -42,7 +42,7 @@ struct BattleCombatantPane: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .contentShape(TrinketDesign.cardShape)
-                .animation(TrinketMotion.Battle.scrim, value: isDefeated)
+                .animation(BattleMotion.scrim, value: isDefeated)
             }
         }
         .trinketQuietTapButtonStyle()
@@ -93,7 +93,7 @@ struct BattleCombatantPane: View {
         }
         .frame(maxWidth: .infinity)
         .opacity(isDefeated ? 0 : 1)
-        .animation(TrinketMotion.Battle.scrim, value: isDefeated)
+        .animation(BattleMotion.scrim, value: isDefeated)
         .allowsHitTesting(!isDefeated)
     }
 }
@@ -327,7 +327,7 @@ private struct CombatantStatusBorderPulse: View {
         .onAppear {
             pulseAmount = 0
             withAnimation(
-                TrinketMotion.Battle.statusBorderPulse.repeatForever(autoreverses: true)
+                BattleMotion.statusBorderPulse.repeatForever(autoreverses: true)
             ) {
                 pulseAmount = 1
             }
@@ -346,7 +346,7 @@ private struct CombatantStatusBorderPulseStroke: View, Animatable {
     }
 
     var body: some View {
-        let dim = TrinketMotion.Battle.statusBorderPulseDimOpacity
+        let dim = BattleMotion.statusBorderPulseDimOpacity
         let opacity = dim + (1 - dim) * pulseAmount
         TrinketDesign.cardShape.strokeBorder(
             keyword.visualStyle.color.opacity(opacity),

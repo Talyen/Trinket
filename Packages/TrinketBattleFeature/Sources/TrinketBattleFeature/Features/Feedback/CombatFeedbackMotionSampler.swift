@@ -18,10 +18,10 @@ enum CombatFeedbackMotionSampler {
     ) -> CombatFeedbackAnimationState {
         let elapsed = max(0, date.timeIntervalSince(item.availableAt))
         return CombatFeedbackAnimationState(
-            opacity: TrinketMotion.Battle.chipOpacity(elapsed: elapsed),
+            opacity: BattleMotion.chipOpacity(elapsed: elapsed),
             verticalOffset: -Double(travelDistance)
-                * TrinketMotion.Battle.chipMotionProgress(elapsed: elapsed),
-            scale: Double(TrinketMotion.Battle.chipScale(elapsed: elapsed))
+                * BattleMotion.chipMotionProgress(elapsed: elapsed),
+            scale: Double(BattleMotion.chipScale(elapsed: elapsed))
         )
     }
 }

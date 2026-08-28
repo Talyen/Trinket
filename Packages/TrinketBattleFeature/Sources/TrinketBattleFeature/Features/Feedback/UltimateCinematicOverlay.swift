@@ -101,13 +101,13 @@ struct UltimateCinematicOverlay: View {
 
         // Keep the video layer mounted while closing so ability art never flashes underneath.
         activeCoverStyle = exitStyle
-        withAnimation(TrinketMotion.Battle.ultimateSplitClosePlaybackAnimation) {
+        withAnimation(BattleMotion.ultimateSplitClosePlaybackAnimation) {
             splitProgress = 0
         }
         collapseTask?.cancel()
         collapseTask = Task { @MainActor in
             let clock = SuspendingClock()
-            let duration = TrinketMotion.Battle.ultimateSplitCloseAtPlayback
+            let duration = BattleMotion.ultimateSplitCloseAtPlayback
             try? await clock.sleep(for: .seconds(duration), tolerance: .milliseconds(20))
             guard !Task.isCancelled else { return }
             onCollapseFinished(collapseID)
@@ -141,13 +141,13 @@ struct UltimateCinematicOverlay: View {
                 actorID: actorID,
                 abilityID: abilityID,
                 effectsVolume: effectsVolume,
-                rate: Float(TrinketMotion.Battle.ultimateCinematicPlaybackSpeed)
+                rate: Float(BattleMotion.ultimateCinematicPlaybackSpeed)
             ) {
                 guard !didFinish else { return }
                 onAutoFinish(cinematicID)
             }
             activeCoverStyle = openingStyle
-            withAnimation(TrinketMotion.Battle.ultimateSplitOpenPlaybackAnimation) {
+            withAnimation(BattleMotion.ultimateSplitOpenPlaybackAnimation) {
                 splitProgress = 1
             }
             scheduleVideoWatchdog()
@@ -157,7 +157,7 @@ struct UltimateCinematicOverlay: View {
     private func scheduleVideoWatchdog() {
         fallbackHoldTask?.cancel()
         let cinematicID = cinematic.id
-        let hold = TrinketMotion.Battle.ultimateVideoWatchdog
+        let hold = BattleMotion.ultimateVideoWatchdog
         fallbackHoldTask = Task { @MainActor in
             let clock = SuspendingClock()
             try? await clock.sleep(for: .seconds(hold), tolerance: .milliseconds(40))

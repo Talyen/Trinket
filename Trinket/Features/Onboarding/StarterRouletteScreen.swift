@@ -6,6 +6,12 @@ import TrinketDesignSystem
 import TrinketFeatureAdapters
 import TrinketFeatureSupport
 
+private enum StarterRouletteMotion {
+    static var plateSwap: Animation {
+        .spring(response: 0.30, dampingFraction: 0.9)
+    }
+}
+
 /// First-launch starter picker: a native horizontal carousel that starts on the
 /// first combatant and hands browsing and confirmation to the player.
 struct StarterRouletteScreen: View {
@@ -186,7 +192,7 @@ struct StarterRouletteScreen: View {
     // MARK: Page Indicator
 
     private var pageIndicator: some View {
-        HStack(spacing: TrinketDesign.Metrics.denseSpacing) {
+        HStack(spacing: TrinketDesign.Metrics.smallSpacing) {
             ForEach(combatants) { combatant in
                 let isSelected = selectedCombatant?.id == combatant.id
                 Circle()
@@ -223,7 +229,7 @@ struct StarterRouletteScreen: View {
                 }
             }
         }
-        .animation(TrinketMotion.Onboarding.plateSwap, value: selectedCombatant?.id)
+        .animation(StarterRouletteMotion.plateSwap, value: selectedCombatant?.id)
         .frame(maxWidth: .infinity, minHeight: 68)
     }
 
@@ -242,7 +248,7 @@ struct StarterRouletteScreen: View {
 
     private func updateSelection(_ combatant: Combatant) {
         guard selectedCombatant?.id != combatant.id else { return }
-        withAnimation(TrinketMotion.Onboarding.plateSwap) {
+        withAnimation(StarterRouletteMotion.plateSwap) {
             selectedCombatant = combatant
         }
         selectionFeedbackTrigger += 1
@@ -250,7 +256,7 @@ struct StarterRouletteScreen: View {
 
     private func center(on combatant: Combatant) {
         guard scrollEntryID != combatant.id else { return }
-        withAnimation(TrinketMotion.Onboarding.plateSwap) {
+        withAnimation(StarterRouletteMotion.plateSwap) {
             scrollEntryID = combatant.id
         }
     }

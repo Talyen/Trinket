@@ -100,7 +100,7 @@ public struct ItemCard<Art: View>: View {
         )
         .onAppear {
             guard fadesLabel else { return }
-            withAnimation(.easeOut(duration: TrinketMotion.Battle.cardActivationDuration)) {
+            withAnimation(.easeOut(duration: TrinketMotion.Content.cardDissolveDuration)) {
                 labelOpacity = 0
             }
         }

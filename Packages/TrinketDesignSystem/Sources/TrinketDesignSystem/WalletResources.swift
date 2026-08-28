@@ -17,7 +17,7 @@ public struct TrinketWalletGrid<Content: View>: View {
         TrinketWalletGridLayout(
             columnCount: columnCount,
             horizontalSpacing: TrinketDesign.Metrics.mediumSpacing,
-            verticalSpacing: TrinketDesign.Metrics.denseSpacing
+            verticalSpacing: TrinketDesign.Metrics.smallSpacing
         ) {
             content
         }
@@ -57,7 +57,7 @@ public struct TrinketWalletResourcePill<Artwork: View>: View {
     }
 
     public var body: some View {
-        HStack(spacing: TrinketDesign.Metrics.denseSpacing) {
+        HStack(spacing: TrinketDesign.Metrics.smallSpacing) {
             artwork
                 .frame(
                     width: TrinketDesign.Metrics.walletResourceArtworkSize,
@@ -83,7 +83,7 @@ public struct TrinketWalletResourcePill<Artwork: View>: View {
             minHeight: TrinketDesign.Metrics.walletResourceRowMinHeight,
             alignment: .leading
         )
-        .animation(TrinketMotion.Homestead.tierCompletion, value: amount)
+        .animation(TrinketMotion.Interaction.walletIncrease, value: amount)
         .keyframeAnimator(initialValue: CGFloat(1), trigger: increaseAnimationTrigger) { content, scale in
             content.scaleEffect(scale)
         } keyframes: { _ in
@@ -127,7 +127,7 @@ public struct TrinketCompactResourceChip<Artwork: View>: View {
     }
 
     public var body: some View {
-        HStack(spacing: TrinketDesign.Metrics.denseSpacing) {
+        HStack(spacing: TrinketDesign.Metrics.smallSpacing) {
             artwork
                 .frame(
                     width: TrinketDesign.Metrics.compactResourceArtworkSize,

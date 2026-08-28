@@ -160,8 +160,8 @@ struct LabyrinthMapView: View {
                 .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
-        .animation(TrinketMotion.Labyrinth.floorChange, value: viewedFloor)
-        .animation(TrinketMotion.Labyrinth.inspector, value: selectedNodeID)
+        .animation(LabyrinthMapMotion.floorChange, value: viewedFloor)
+        .animation(LabyrinthMapMotion.inspector, value: selectedNodeID)
         .trinketSensoryFeedback(
             .selection,
             trigger: selectedNodeID,

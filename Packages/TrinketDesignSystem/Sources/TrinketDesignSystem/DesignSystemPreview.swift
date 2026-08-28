@@ -1,6 +1,6 @@
 import SwiftUI
 
-private struct ThemePaletteGallery: View {
+private struct DesignSystemGallery: View {
     private let semanticColors: [(String, Color)] = [
         ("Antique Gold", TrinketDesign.Colors.accent),
         ("Highlight Gold", TrinketDesign.Colors.accentEmphasized),
@@ -119,6 +119,6 @@ private struct ThemePaletteGallery: View {
 }
 
 #Preview("Gold and Charcoal Palette") {
-    ThemePaletteGallery()
+    DesignSystemGallery()
         .preferredColorScheme(.dark)
 }

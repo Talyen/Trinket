@@ -1,3 +1,4 @@
+import BattleEngine
 import Foundation
 import Testing
 import TrinketContent
@@ -5,7 +6,7 @@ import TrinketCore
 import TrinketDesignSystem
 import TrinketFeatureSupport
 import TrinketTestSupport
-@testable @testable import TrinketBattleFeature
+@testable import TrinketBattleFeature
 
 @MainActor
 struct BattleSessionPreparationTests {

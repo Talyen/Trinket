@@ -72,7 +72,7 @@ private struct SalvageTransmutationEffect: View {
                             .foregroundStyle(.primary)
                             .lineLimit(1)
                     }
-                    .padding(TrinketDesign.Metrics.denseSpacing)
+                    .padding(TrinketDesign.Metrics.smallSpacing)
                     .trinketMaterial(
                         .subtleOverlay,
                         cornerRadius: TrinketDesign.Corners.card
@@ -123,7 +123,7 @@ private struct SalvageTransmutationEffect: View {
         guard !Task.isCancelled else { return }
         isDissolving = true
 
-        try? await Task.sleep(for: .seconds(TrinketMotion.Battle.cardActivationDuration))
+        try? await Task.sleep(for: .seconds(TrinketMotion.Content.cardDissolveDuration))
         guard !Task.isCancelled else { return }
         withAnimation(TrinketMotion.Reward.reveal) {
             showsMaterials = true

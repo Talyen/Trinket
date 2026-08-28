@@ -41,7 +41,7 @@ public extension Keyword {
         )
         public static let health = Self(
             color: DesignAssetColors.named("KeywordHealth"),
-            secondaryColor: ThemePalette.trinket.health,
+            secondaryColor: TrinketDesign.Colors.health,
             symbolName: "heart.fill"
         )
         public static let gold = Self(
@@ -92,11 +92,11 @@ public extension Keyword {
             symbolName: "hourglass.bottomhalf.filled"
         )
         public static let beneficialStatus = Self(
-            color: ThemePalette.trinket.success,
+            color: TrinketDesign.Colors.success,
             symbolName: "arrowshape.up.fill"
         )
         public static let negativeStatus = Self(
-            color: ThemePalette.trinket.destructive,
+            color: TrinketDesign.Colors.destructive,
             symbolName: "arrowshape.down.fill"
         )
     }

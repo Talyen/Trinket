@@ -75,7 +75,7 @@ final class CombatFeedbackRasterUIView: UIView {
     }
 
     static let preallocatedSlotCount = Int(ceil(
-        TrinketMotion.Battle.chipDisplayDuration / TrinketMotion.Battle.feedbackStreamStagger
+        BattleMotion.chipDisplayDuration / BattleMotion.feedbackStreamStagger
     )) + 1
 
     private var layersByID: [Int: ChipLayer] = [:]
@@ -227,7 +227,7 @@ final class CombatFeedbackRasterUIView: UIView {
         chipHeight: CGFloat,
         at date: Date
     ) -> CombatFeedbackAnimationState {
-        let travelDistance = TrinketMotion.Battle.chipTravelDistance(
+        let travelDistance = BattleMotion.chipTravelDistance(
             cardHeight: cardHeight,
             chipHeight: chipHeight
         )

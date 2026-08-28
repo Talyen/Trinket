@@ -71,7 +71,7 @@ struct HomesteadView: View {
             let pending = homestead.pendingProductionAmounts(at: context.date, roster: roster)
             Group {
                 if !pending.isEmpty {
-                    HStack(spacing: TrinketDesign.Metrics.snugSpacing) {
+                    HStack(spacing: TrinketDesign.Metrics.largeSpacing) {
                         Spacer(minLength: 0)
                         if playerSave.isCloudSyncEnabled {
                             Text("Unavailable with cloud sync")
@@ -101,7 +101,7 @@ struct HomesteadView: View {
                         Spacer(minLength: 0)
                     }
                 } else if let depositEvent {
-                    HStack(spacing: TrinketDesign.Metrics.snugSpacing) {
+                    HStack(spacing: TrinketDesign.Metrics.largeSpacing) {
                         Spacer(minLength: 0)
                         collectResourceIcons(depositEvent.amounts)
                             .offset(y: isDepositLaunching ? -depositTravelDistance : 0)
@@ -148,7 +148,7 @@ struct HomesteadView: View {
         _ amounts: [ResourceAmount],
         drawsAttention: Bool = false
     ) -> some View {
-        HStack(spacing: -TrinketDesign.Metrics.snugSpacing) {
+        HStack(spacing: -TrinketDesign.Metrics.largeSpacing) {
             ForEach(Array(amounts.enumerated()), id: \.offset) { index, amount in
                 HomesteadResourceArtwork(resource: amount.resource)
                     .frame(
@@ -164,7 +164,7 @@ struct HomesteadView: View {
                         radius: TrinketDesign.Metrics.tightSpacing
                     )
                     .animation(
-                        TrinketMotion.Homestead.tierCompletion.delay(
+                        HomesteadMotion.tierCompletion.delay(
                             Double(index) * TrinketMotion.Reward.resourceStagger
                         ),
                         value: isIconAttentionRaised
@@ -200,7 +200,7 @@ struct HomesteadView: View {
         depositDismissTask?.cancel()
         depositDismissTask = Task { @MainActor in
             await Task.yield()
-            withAnimation(TrinketMotion.Homestead.tierCompletion) {
+            withAnimation(HomesteadMotion.tierCompletion) {
                 isDepositLaunching = true
             }
             try? await Task.sleep(for: .seconds(0.5))

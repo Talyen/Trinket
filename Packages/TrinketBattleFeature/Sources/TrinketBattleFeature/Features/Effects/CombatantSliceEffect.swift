@@ -255,7 +255,7 @@ struct BattleSliceArtwork<Content: View>: View {
                     let progress = min(
                         max(
                             timeline.date.timeIntervalSince(startDate)
-                                / TrinketMotion.Battle.combatantSliceDuration,
+                                / BattleMotion.combatantSliceDuration,
                             0
                         ),
                         1
@@ -272,7 +272,7 @@ struct BattleSliceArtwork<Content: View>: View {
                     isComplete = false
                 }
                 .task(id: startDate) {
-                    try? await Task.sleep(for: .seconds(TrinketMotion.Battle.combatantSliceDuration))
+                    try? await Task.sleep(for: .seconds(BattleMotion.combatantSliceDuration))
                     guard !Task.isCancelled else { return }
                     isComplete = true
                 }

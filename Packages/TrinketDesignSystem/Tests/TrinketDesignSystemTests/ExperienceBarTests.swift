@@ -90,4 +90,16 @@ struct ExperienceBarTests {
         let totalLevelUps = segments.count(where: { $0.levelsGained > 0 })
         try #expect(totalLevelUps == post.level - pre.level)
     }
+
+    @Test(arguments: [1, 2, 3, 20])
+    func animationStepsStayWithinTheUsefulFrameBudget(segmentCount: Int) {
+        let stepCounts = ExperienceBar.stepCounts(forSegmentCount: segmentCount)
+        let frameBudget = Int(
+            ExperienceBar.animationBudget * Double(ExperienceBar.animationFramesPerSecond)
+        )
+
+        #expect(stepCounts.count == segmentCount)
+        #expect(stepCounts.allSatisfy { $0 >= 1 })
+        #expect(stepCounts.reduce(0, +) == max(segmentCount, frameBudget))
+    }
 }

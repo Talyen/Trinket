@@ -95,7 +95,7 @@ struct LabyrinthNodeInspector: View {
             VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
                 ForEach(modifiers) { modifier in
                     VStack(alignment: .leading, spacing: TrinketDesign.Metrics.tightSpacing) {
-                        HStack(spacing: TrinketDesign.Metrics.denseSpacing) {
+                        HStack(spacing: TrinketDesign.Metrics.smallSpacing) {
                             Image(systemName: modifierSymbolName(for: modifier))
                                 .symbolRenderingMode(.hierarchical)
                             Text(modifier.title.uppercased())

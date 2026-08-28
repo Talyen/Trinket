@@ -257,8 +257,8 @@ extension BattleSession {
         let latestFeedbackDelay = feedback.activeItems
             .map { max(0, $0.expiresAt.timeIntervalSince(date)) }
             .max() ?? 0
-        let spectacleDelay = max(TrinketMotion.Battle.outcomePresentationMinimum, latestFeedbackDelay)
-            + TrinketMotion.Battle.outcomePresentationPadding
+        let spectacleDelay = max(BattleMotion.outcomePresentationMinimum, latestFeedbackDelay)
+            + BattleMotion.outcomePresentationPadding
         let delay = outcomePresentationDelayOverride ?? spectacleDelay
         guard delay > 0 else {
             show(self)
@@ -333,7 +333,7 @@ extension BattleSession {
     func scheduleCinematicWatchdog(expectedID: Int) {
         cancelCinematicWatchdog()
         let hold = cinematicSessionWatchdogOverride
-            ?? TrinketMotion.Battle.ultimateCinematicSessionWatchdog
+            ?? BattleMotion.ultimateCinematicSessionWatchdog
         spectacle.pendingCinematicWatchdogTask = Task { @MainActor [weak self] in
             if hold > 0 {
                 try? await Task.sleep(for: .seconds(hold))

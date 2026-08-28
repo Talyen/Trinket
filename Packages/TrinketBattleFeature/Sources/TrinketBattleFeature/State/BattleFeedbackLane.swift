@@ -173,7 +173,7 @@ final class BattleFeedbackLane {
                 && existing.visualRole == item.visualRole
                 && date >= existing.availableAt
                 && date < existing.expiresAt
-                && date.timeIntervalSince(existing.firstScheduledAt) < TrinketMotion.Battle.maxContinuousChipLifetime
+                && date.timeIntervalSince(existing.firstScheduledAt) < BattleMotion.maxContinuousChipLifetime
                 && existing.label.merging(with: item.label) != nil
         }) else { return nil }
 
@@ -184,7 +184,7 @@ final class BattleFeedbackLane {
         updated.sourceEventIDs += item.sourceEventIDs
         updated.label = mergedLabel
         updated.availableAt = date
-        updated.expiresAt = date.addingTimeInterval(TrinketMotion.Battle.chipDisplayDuration)
+        updated.expiresAt = date.addingTimeInterval(BattleMotion.chipDisplayDuration)
         activeItems[matchIndex] = updated
         for id in item.sourceEventIDs {
             presentedEventIDs.insert(id)
@@ -235,7 +235,7 @@ final class BattleFeedbackLane {
             }
         }
 
-        let maxRawLifetime = TrinketMotion.Battle.maxChipLifetime
+        let maxRawLifetime = BattleMotion.maxChipLifetime
         let referencedIDs = Set(activeItems.flatMap(\.sourceEventIDs))
         let expiredRawIDs: [Int] = eventRecordedAt.compactMap { entry -> Int? in
             let (eventID, recordedAt) = entry
@@ -281,7 +281,7 @@ final class BattleFeedbackLane {
     ) -> CombatFeedbackItem {
         let start = max(date, nextVisualStartByTarget[item.targetID] ?? .distantPast)
         nextVisualStartByTarget[item.targetID] = start.addingTimeInterval(
-            TrinketMotion.Battle.feedbackStreamStagger
+            BattleMotion.feedbackStreamStagger
         )
         return item.scheduled(at: start)
     }

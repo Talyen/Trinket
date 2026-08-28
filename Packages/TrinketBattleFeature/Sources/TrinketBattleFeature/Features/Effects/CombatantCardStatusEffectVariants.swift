@@ -24,7 +24,7 @@ enum CombatantStatusEffectKind: String, CaseIterable, Identifiable {
 
     func progress(after elapsed: TimeInterval) -> CGFloat {
         CGFloat(
-            elapsed / TrinketMotion.Battle.combatantStatusEffectPhaseDuration
+            elapsed / BattleMotion.combatantStatusEffectPhaseDuration
         )
     }
 }
@@ -134,7 +134,7 @@ struct CombatantStatusEffectOverlay: View {
     private func iceCrystals(size: CGSize, style: Keyword.VisualStyle, phase: CGFloat) -> some View {
         let flakes = max(config.particleCount, 1)
         let encroach = min(
-            max(phase / CGFloat(TrinketMotion.Battle.combatantFreezeEncroachProgress), 0),
+            max(phase / CGFloat(BattleMotion.combatantFreezeEncroachProgress), 0),
             1
         )
         let minDim = min(size.width, size.height)

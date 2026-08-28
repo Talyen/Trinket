@@ -140,7 +140,7 @@ struct LabyrinthCampfireView: View {
     // MARK: - Party meters
 
     private func partyMeter(_ member: CampfirePartyMember) -> some View {
-        VStack(alignment: .leading, spacing: TrinketDesign.Metrics.denseSpacing) {
+        VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
             HStack(alignment: .firstTextBaseline) {
                 Text(member.name)
                     .trinketTypography(.cardTitle)
@@ -157,7 +157,7 @@ struct LabyrinthCampfireView: View {
     }
 
     private func counterText(_ member: CampfirePartyMember) -> some View {
-        HStack(spacing: TrinketDesign.Metrics.denseSpacing) {
+        HStack(spacing: TrinketDesign.Metrics.smallSpacing) {
             Text(displayedCounter(member))
                 .monospacedDigit()
             Text("/ \(member.maxHealth)")

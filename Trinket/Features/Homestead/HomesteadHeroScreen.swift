@@ -47,12 +47,12 @@ struct HomesteadHeroScreen<HeroArt: View, WalletBottomContent: View, Body: View>
                 baseHeight: baseHeight,
                 overscroll: overscroll,
                 horizontalPadding: TrinketDesign.Metrics.contentMargin,
-                bottomPadding: TrinketDesign.Metrics.snugSpacing
+                bottomPadding: TrinketDesign.Metrics.largeSpacing
             ) {
                 heroArt()
             }
         } bodyContent: {
-            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.homesteadBodySpacing) {
+            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.largeSpacing) {
                 HomesteadResourceWallet(
                     homestead: homestead,
                     roster: roster,

@@ -78,7 +78,10 @@ struct HomesteadTierPath: View {
         return live
     }
 
-    private func connectors(for index: Int) -> (before: PathConnectorState?, after: PathConnectorState?) {
+    private func connectors(for index: Int) -> (
+        before: HomesteadTierConnectorState?,
+        after: HomesteadTierConnectorState?
+    ) {
         var pair = status.tierPathConnectors(for: index)
         if let fillingTier {
             let completingIndex = fillingTier - 1
@@ -124,32 +127,32 @@ struct HomesteadTierPath: View {
             return
         }
 
-        withAnimation(TrinketMotion.Homestead.connectorFill) {
+        withAnimation(HomesteadMotion.connectorFill) {
             upperFill = 1
         }
         withAnimation(
-            TrinketMotion.Homestead.connectorFill.delay(TrinketMotion.Homestead.connectorFillStagger)
+            HomesteadMotion.connectorFill.delay(HomesteadMotion.connectorFillStagger)
         ) {
             lowerFill = 1
         }
         let completingTier = completedTier
-        let fillCompleteDelay = TrinketMotion.Homestead.connectorFillDuration
-            + TrinketMotion.Homestead.connectorFillStagger
+        let fillCompleteDelay = HomesteadMotion.connectorFillDuration
+            + HomesteadMotion.connectorFillStagger
         Task { @MainActor in
             try? await Task.sleep(for: .seconds(fillCompleteDelay))
             guard fillingTier == completingTier else { return }
             fillingTier = nil
         }
-        revealNode(completedTier, delay: TrinketMotion.Homestead.nodeSettleDelay)
+        revealNode(completedTier, delay: HomesteadMotion.nodeSettleDelay)
     }
 
     private func revealNode(_ tier: Int, delay: TimeInterval) {
-        withAnimation(TrinketMotion.Homestead.nodeSettle.delay(delay)) {
+        withAnimation(HomesteadMotion.nodeSettle.delay(delay)) {
             mutateReveal { $0.insert(tier) }
             settlingTier = tier
-            settleScale = TrinketMotion.Homestead.nodeSettlePeakScale
+            settleScale = HomesteadMotion.nodeSettlePeakScale
         }
-        withAnimation(TrinketMotion.Homestead.nodeSettle.delay(delay + 0.08)) {
+        withAnimation(HomesteadMotion.nodeSettle.delay(delay + 0.08)) {
             settleScale = 1
         }
     }
@@ -161,7 +164,10 @@ struct HomesteadTierNode: View {
     let state: HomesteadTierPathState
     let chromeState: HomesteadTierPathState
     let status: HomesteadProjectStatus
-    let connectors: (before: PathConnectorState?, after: PathConnectorState?)
+    let connectors: (
+        before: HomesteadTierConnectorState?,
+        after: HomesteadTierConnectorState?
+    )
     var connectorBeforeFill: CGFloat?
     var connectorAfterFill: CGFloat?
     var settleScale: CGFloat = 1
@@ -185,16 +191,6 @@ struct HomesteadTierNode: View {
         HomesteadTierCopy.title(for: tier.tier, nodeTitle: definition.title)
     }
 
-    private var connectorStyle: PathConnectorStyle {
-        PathConnectorStyle(
-            progressedColor: TrinketDesign.Colors.accent.opacity(0.7),
-            completedColor: TrinketDesign.Colors.success.opacity(0.7),
-            futureColor: Color.secondary.opacity(0.28),
-            progressedWidth: 2.5,
-            futureWidth: 2
-        )
-    }
-
     var body: some View {
         Group {
             if isActionable, let onBuild {
@@ -215,19 +211,17 @@ struct HomesteadTierNode: View {
     }
 
     private var rowContent: some View {
-        HStack(alignment: .center, spacing: TrinketDesign.Metrics.snugSpacing) {
-            VerticalPathRail(
-                minHeight: 72,
+        HStack(alignment: .center, spacing: TrinketDesign.Metrics.largeSpacing) {
+            HomesteadTierPathRail(
                 connectorBefore: connectors.before,
                 connectorAfter: connectors.after,
-                style: connectorStyle,
                 connectorBeforeFill: connectorBeforeFill,
                 connectorAfterFill: connectorAfterFill
             ) {
                 tierNodeChrome
                     .scaleEffect(settleScale)
             }
-            .frame(width: PathNodeMetrics.railWidth)
+            .frame(width: HomesteadTierNodeMetrics.railWidth)
 
             VStack(alignment: .leading, spacing: TrinketDesign.Metrics.extraSmallSpacing) {
                 Text(tierTitle)
@@ -251,7 +245,7 @@ struct HomesteadTierNode: View {
     }
 
     private var tierNodeChrome: some View {
-        PathNodeChrome(
+        HomesteadTierNodeChrome(
             stroke: nodeStroke,
             emphasized: isActionable
         ) {
@@ -261,7 +255,7 @@ struct HomesteadTierNode: View {
 
     @ViewBuilder
     private var nodeGlyph: some View {
-        let glyphFont = PathNodeMetrics.glyphFont(emphasized: isActionable)
+        let glyphFont = HomesteadTierNodeMetrics.glyphFont(emphasized: isActionable)
         switch glyphKind {
         case .action:
             Image(systemName: "arrowshape.up.fill")

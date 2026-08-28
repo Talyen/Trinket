@@ -16,7 +16,7 @@ extension BattleFieldLane {
             }
         }
 
-        try? await Task.sleep(for: .seconds(TrinketMotion.Battle.tapLiftPlayDelay))
+        try? await Task.sleep(for: .seconds(BattleMotion.tapLiftPlayDelay))
         guard !Task.isCancelled, battleSession.isAutoBattleEnabled else {
             cancelPartyAttack(for: card)
             return false
@@ -66,7 +66,7 @@ extension BattleFieldLane {
         )
         let center = CGPoint(
             x: restingCenter.x,
-            y: restingCenter.y - metrics.cardHeight * TrinketMotion.Battle.tapLiftHeightFraction
+            y: restingCenter.y - metrics.cardHeight * BattleMotion.tapLiftHeightFraction
         )
 
         return CardActivationRequest(
@@ -79,7 +79,7 @@ extension BattleFieldLane {
             ) * .pi / 180,
             verticalTilt: 0,
             scale: 1,
-            perspective: TrinketMotion.Battle.cardPerspective,
+            perspective: BattleMotion.cardPerspective,
             keywords: card.ability.keywords
         )
     }

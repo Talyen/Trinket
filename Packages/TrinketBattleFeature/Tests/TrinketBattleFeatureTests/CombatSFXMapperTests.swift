@@ -166,7 +166,7 @@ struct CombatSFXMapperTests {
             visualRole: visualRole,
             label: label,
             availableAt: .now,
-            expiresAt: .now.addingTimeInterval(TrinketMotion.Battle.chipDisplayDuration),
+            expiresAt: .now.addingTimeInterval(BattleMotion.chipDisplayDuration),
             reactionKind: .none
         )
     }

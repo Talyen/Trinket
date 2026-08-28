@@ -140,7 +140,7 @@ extension BattleSession {
                       hasActiveSimulation
                 else { return }
 
-                let drew = withAnimation(TrinketMotion.Battle.deal) {
+                let drew = withAnimation(BattleMotion.deal) {
                     let didDraw = drawNextOpeningHandCard()
                     if didDraw {
                         installSimulationPresentation()

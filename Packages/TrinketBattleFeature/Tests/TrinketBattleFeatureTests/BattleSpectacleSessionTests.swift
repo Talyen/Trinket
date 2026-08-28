@@ -135,7 +135,7 @@ struct BattleSpectacleSessionTests {
 
         let flushAt = now.addingTimeInterval(1)
         let deferredItems = session.feedback.activeItems.filter { $0.availableAt >= flushAt }
-        let stagger = TrinketMotion.Battle.feedbackStreamStagger
+        let stagger = BattleMotion.feedbackStreamStagger
         for targetItems in Dictionary(grouping: deferredItems, by: \.targetID).values {
             let starts = targetItems.map(\.availableAt).sorted()
             for (earlier, later) in zip(starts, starts.dropFirst()) {

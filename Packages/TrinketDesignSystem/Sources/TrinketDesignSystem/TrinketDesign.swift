@@ -2,23 +2,23 @@ import SwiftUI
 
 public enum TrinketDesign {
     public enum Colors {
-        public static let canvas = ThemePalette.trinket.appBackground
-        public static let surface = ThemePalette.trinket.secondaryBackground
-        public static let panel = ThemePalette.trinket.panelSurface
-        public static let elevated = ThemePalette.trinket.elevatedBackground
-        public static let subtleStroke = ThemePalette.trinket.subtleStroke
+        public static let canvas = DesignAssetColors.named("ThemeCanvas")
+        public static let surface = DesignAssetColors.named("ThemeSurface")
+        public static let panel = DesignAssetColors.named("ThemePanel")
+        public static let elevated = DesignAssetColors.named("ThemeElevated")
+        public static let subtleStroke = DesignAssetColors.named("ThemeSubtleStroke")
 
-        public static let accent = ThemePalette.trinket.accent
-        public static let accentEmphasized = ThemePalette.trinket.accentEmphasized
-        public static let accentPressed = ThemePalette.trinket.accentPressed
-        public static let success = ThemePalette.trinket.success
-        public static let warning = ThemePalette.trinket.warning
-        public static let destructive = ThemePalette.trinket.destructive
-        public static let informational = ThemePalette.trinket.informational
-        public static let arcane = ThemePalette.trinket.arcane
+        public static let accent = DesignAssetColors.named("ThemeAntiqueGold")
+        public static let accentEmphasized = DesignAssetColors.named("ThemeHighlightGold")
+        public static let accentPressed = DesignAssetColors.named("ThemePressedGold")
+        public static let success = DesignAssetColors.named("ThemeSuccess")
+        public static let warning = DesignAssetColors.named("ThemeWarning")
+        public static let destructive = DesignAssetColors.named("ThemeDestructive")
+        public static let informational = DesignAssetColors.named("ThemeInformational")
+        public static let arcane = DesignAssetColors.named("ThemeArcane")
 
-        public static let health = ThemePalette.trinket.health
-        public static let healthRestore = ThemePalette.trinket.healthRestore
+        public static let health = DesignAssetColors.named("ThemeHealth")
+        public static let healthRestore = DesignAssetColors.named("ThemeHealthRestore")
         public static let healthTrailingDamage = health.opacity(0.35)
 
         /// Solid fill for battle card bottom-edge health chrome.
@@ -43,8 +43,8 @@ public enum TrinketDesign {
         public static let chapterTundra = DesignAssetColors.named("ChapterTundra")
 
         public enum Overlay {
-            public static let ink = ThemePalette.trinket.overlayInk
-            public static let paper = ThemePalette.trinket.overlayPaper
+            public static let ink = DesignAssetColors.named("ThemeOverlayInk")
+            public static let paper = DesignAssetColors.named("ThemeOverlayPaper")
             public static let dragShadow = ink.opacity(0.3)
             public static let cinematicDim = ink
         }
@@ -59,10 +59,6 @@ public enum TrinketDesign {
         public static let mediumSpacing: CGFloat = 12
         public static let largeSpacing: CGFloat = 16
         public static let extraLargeSpacing: CGFloat = 24
-        /// Legacy aliases — now equal to canonical 4pt steps. Prefer the canonical names above.
-        public static let denseSpacing: CGFloat = 8
-        public static let snugSpacing: CGFloat = 16
-        public static let homesteadBodySpacing: CGFloat = 16
         /// Base height for two-line card captions; prefer `@ScaledMetric(relativeTo: .subheadline)`.
         public static let cardLabelReservedHeight: CGFloat = 38
         /// Base SF Symbol point size for card artwork placeholders; prefer `@ScaledMetric(relativeTo: .title)`.
@@ -100,9 +96,9 @@ public enum TrinketDesign {
 
         /// Standard glass chip / wallet / badge inset (baked into chip modifiers).
         public static let chipPaddingHorizontal: CGFloat = 10
-        public static let chipPaddingVertical: CGFloat = denseSpacing
-        public static let chipEmphasisPaddingHorizontal: CGFloat = snugSpacing
-        public static let chipEmphasisPaddingVertical: CGFloat = denseSpacing
+        public static let chipPaddingVertical: CGFloat = smallSpacing
+        public static let chipEmphasisPaddingHorizontal: CGFloat = largeSpacing
+        public static let chipEmphasisPaddingVertical: CGFloat = smallSpacing
 
         public static let collectionGridMinimum: CGFloat = 150
         public static let collectionGridMaximum: CGFloat = 190

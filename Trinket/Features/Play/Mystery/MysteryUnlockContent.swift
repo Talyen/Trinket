@@ -126,10 +126,10 @@ struct MysteryUnlockContent: View {
         CombatantArtwork(combatant: combatant, variant: .hero)
             .aspectRatio(session.stage.encounter.artAspectRatio, contentMode: .fit)
             .saturation(1 - ceremony.veilAmount)
-            .brightness(TrinketMotion.Mystery.veiledBrightness * ceremony.veilAmount)
+            .brightness(MysteryCeremonyMotion.veiledBrightness * ceremony.veilAmount)
             .overlay {
                 TrinketDesign.Colors.canvas
-                    .opacity(TrinketMotion.Mystery.veiledOverlayOpacity * ceremony.veilAmount)
+                    .opacity(MysteryCeremonyMotion.veiledOverlayOpacity * ceremony.veilAmount)
                     .allowsHitTesting(false)
             }
             .overlay {

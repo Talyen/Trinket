@@ -2,7 +2,7 @@ import CoreGraphics
 import Foundation
 import SwiftUI
 import Testing
-@testable import TrinketDesignSystem
+@testable import TrinketBattleFeature
 
 struct CombatFeedbackMotionTests {
     @Test func typographyTiersMatchFeedbackClasses() {
@@ -47,33 +47,33 @@ struct CombatFeedbackMotionTests {
     }
 
     @Test func alchemyPopMotionProgressLifecycle() {
-        #expect(TrinketMotion.Battle.chipMotionProgress(elapsed: 0) == 0)
-        #expect(TrinketMotion.Battle.chipMotionProgress(elapsed: TrinketMotion.Battle.alchemyHoldEndTime) == 0)
-        let midProgress = TrinketMotion.Battle.chipMotionProgress(
-            elapsed: TrinketMotion.Battle.alchemyHoldEndTime + 0.225
+        #expect(BattleMotion.chipMotionProgress(elapsed: 0) == 0)
+        #expect(BattleMotion.chipMotionProgress(elapsed: BattleMotion.alchemyHoldEndTime) == 0)
+        let midProgress = BattleMotion.chipMotionProgress(
+            elapsed: BattleMotion.alchemyHoldEndTime + 0.225
         )
         #expect(midProgress > 0 && midProgress < 1)
-        let fullProgress = TrinketMotion.Battle.chipMotionProgress(
-            elapsed: TrinketMotion.Battle.alchemyPopDisplayDuration + 0.1
+        let fullProgress = BattleMotion.chipMotionProgress(
+            elapsed: BattleMotion.alchemyPopDisplayDuration + 0.1
         )
         #expect(fullProgress == 1.0)
     }
 
     @Test func alchemyPopScaleAndOpacityPhases() {
-        #expect(TrinketMotion.Battle.chipScale(elapsed: 0) == TrinketMotion.Battle.alchemyPopStartScale)
+        #expect(BattleMotion.chipScale(elapsed: 0) == BattleMotion.alchemyPopStartScale)
         #expect(
-            abs(TrinketMotion.Battle.chipScale(elapsed: TrinketMotion.Battle.alchemyPopPeakTime) - TrinketMotion.Battle
+            abs(BattleMotion.chipScale(elapsed: BattleMotion.alchemyPopPeakTime) - BattleMotion
                 .alchemyPopOvershootScale) < 0.001
         )
-        #expect(TrinketMotion.Battle.chipOpacity(elapsed: 0) == 1.0)
-        #expect(TrinketMotion.Battle.chipOpacity(elapsed: TrinketMotion.Battle.alchemyPopDisplayDuration) == 0.0)
+        #expect(BattleMotion.chipOpacity(elapsed: 0) == 1.0)
+        #expect(BattleMotion.chipOpacity(elapsed: BattleMotion.alchemyPopDisplayDuration) == 0.0)
     }
 
     @Test func chipTravelDistanceClampsToSafeBounds() {
         let cardHeight: CGFloat = 200
         let chipHeight: CGFloat = 30
-        let distance = TrinketMotion.Battle.chipTravelDistance(cardHeight: cardHeight, chipHeight: chipHeight)
+        let distance = BattleMotion.chipTravelDistance(cardHeight: cardHeight, chipHeight: chipHeight)
         #expect(distance > 0)
-        #expect(distance <= (cardHeight / 2 - chipHeight / 2 - TrinketMotion.Battle.chipTopClearance))
+        #expect(distance <= (cardHeight / 2 - chipHeight / 2 - BattleMotion.chipTopClearance))
     }
 }
