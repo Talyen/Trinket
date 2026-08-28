@@ -62,8 +62,10 @@ struct HomesteadTierPathRail<Node: View>: View {
 
     var body: some View {
         GeometryReader { geometry in
-            let centerY = geometry.size.height / 2
             let nodeRadius = HomesteadTierNodeMetrics.size / 2
+            // Clamp center to avoid negative offsets during first-layout when
+            // the parent has not yet resolved its minHeight (geometry 0).
+            let centerY = max(geometry.size.height / 2, nodeRadius)
 
             ZStack(alignment: .top) {
                 if let connectorBefore {
