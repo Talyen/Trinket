@@ -1,8 +1,8 @@
+import BattleEngine
 import os
 import SwiftUI
 import TrinketAppState
 import TrinketBattleFeature
-import BattleEngine
 import TrinketContent
 import TrinketCore
 import TrinketDesignSystem

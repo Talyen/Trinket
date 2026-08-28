@@ -14,8 +14,9 @@ trinket_dir_lock_acquire() {
 
   mkdir -p "$(dirname "$lock_dir")"
 
+  # Expand now so the EXIT trap captures the current lock path/pid (locals are gone at trap time).
   # shellcheck disable=SC2064
-  trap 'trinket_dir_lock_release "$lock_dir" "$$"' EXIT INT TERM
+  trap "trinket_dir_lock_release \"$lock_dir\" \"$$\"" EXIT INT TERM
 
   while ! mkdir "$lock_dir" 2>/dev/null; do
     lock_pid=""

@@ -1,7 +1,7 @@
+import BattleEngine
 import Foundation
 import Testing
 import TrinketBattleFeature
-import BattleEngine
 import TrinketContent
 import TrinketFeatureContracts
 import TrinketFeatureSupport

@@ -1,5 +1,5 @@
-import Foundation
 import BattleEngine
+import Foundation
 import TrinketContent
 
 struct MusicResumeKey: Hashable {

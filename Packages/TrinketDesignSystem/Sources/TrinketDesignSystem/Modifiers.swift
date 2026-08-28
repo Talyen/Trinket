@@ -4,9 +4,7 @@ struct CardSurfaceModifier: ViewModifier {
     var cornerRadius: CGFloat = TrinketDesign.Corners.card
 
     func body(content: Content) -> some View {
-        // Single source of truth is `trinketSurface(.card)` (VisualFoundation).
-        // This modifier remains for call sites that need a custom cornerRadius override.
-        content.trinketSurface(.card)
+        content.trinketSurface(.card, cornerRadiusOverride: cornerRadius)
     }
 }
 

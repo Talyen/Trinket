@@ -1,11 +1,9 @@
 import Foundation
 import Testing
-import BattleEngine
 import TrinketCore
 import TrinketDesignSystem
 import TrinketFeatureSupport
-@testable import BattleEngine
-@testable import TrinketBattleFeature
+@testable @testable import TrinketBattleFeature
 
 struct CombatFeedbackPresenterTests {
     @Test func filtersMergesAndSumsDamageChips() {

@@ -89,9 +89,16 @@ struct ScreenBackgroundModifier: ViewModifier {
 struct SurfaceModifier: ViewModifier {
     let role: SurfaceRole
     let isPressed: Bool
+    let cornerRadiusOverride: CGFloat?
+
+    init(role: SurfaceRole, isPressed: Bool = false, cornerRadiusOverride: CGFloat? = nil) {
+        self.role = role
+        self.isPressed = isPressed
+        self.cornerRadiusOverride = cornerRadiusOverride
+    }
 
     func body(content: Content) -> some View {
-        let style = SurfaceStyle(role: role, palette: ThemePalette.trinket)
+        let style = SurfaceStyle(role: role, palette: ThemePalette.trinket, cornerRadiusOverride: cornerRadiusOverride)
 
         content
             .padding(style.padding)
@@ -115,70 +122,70 @@ private struct SurfaceStyle {
     let shadow: ShadowStyle
 
     // swiftlint:disable:next function_body_length
-    init(role: SurfaceRole, palette: ThemePalette) {
+    init(role: SurfaceRole, palette: ThemePalette, cornerRadiusOverride: CGFloat? = nil) {
         switch role {
         case .base:
             fill = palette.panelSurface
             stroke = palette.subtleStroke
             strokeWidth = 1
             padding = TrinketDesign.Metrics.largeSpacing
-            cornerRadius = TrinketDesign.Corners.card
+            cornerRadius = cornerRadiusOverride ?? TrinketDesign.Corners.card
             shadow = .none
         case .secondary:
             fill = palette.secondaryBackground
             stroke = palette.subtleStroke.opacity(0.7)
             strokeWidth = 1
             padding = TrinketDesign.Metrics.snugSpacing
-            cornerRadius = TrinketDesign.Corners.card
+            cornerRadius = cornerRadiusOverride ?? TrinketDesign.Corners.card
             shadow = .none
         case .elevated:
             fill = palette.elevatedBackground
             stroke = palette.subtleStroke
             strokeWidth = 1
             padding = TrinketDesign.Metrics.largeSpacing
-            cornerRadius = TrinketDesign.Corners.card
+            cornerRadius = cornerRadiusOverride ?? TrinketDesign.Corners.card
             shadow = palette.shadow
         case .card:
             fill = palette.panelSurface
             stroke = .clear
             strokeWidth = 0
             padding = 0
-            cornerRadius = TrinketDesign.Corners.card
+            cornerRadius = cornerRadiusOverride ?? TrinketDesign.Corners.card
             shadow = palette.shadow
         case .denseRow:
             fill = palette.secondaryBackground
             stroke = .clear
             strokeWidth = 0
             padding = TrinketDesign.Metrics.mediumSpacing
-            cornerRadius = TrinketDesign.Corners.card
+            cornerRadius = cornerRadiusOverride ?? TrinketDesign.Corners.card
             shadow = .none
         case .selected:
             fill = palette.elevatedBackground
             stroke = palette.accent.opacity(0.72)
             strokeWidth = 1.5
             padding = TrinketDesign.Metrics.snugSpacing
-            cornerRadius = TrinketDesign.Corners.card
+            cornerRadius = cornerRadiusOverride ?? TrinketDesign.Corners.card
             shadow = ShadowStyle(color: palette.accent.opacity(0.18), radius: 10, y: 2)
         case .disabled:
             fill = palette.secondaryBackground
             stroke = palette.subtleStroke.opacity(0.45)
             strokeWidth = 1
             padding = TrinketDesign.Metrics.snugSpacing
-            cornerRadius = TrinketDesign.Corners.card
+            cornerRadius = cornerRadiusOverride ?? TrinketDesign.Corners.card
             shadow = .none
         case .warning:
             fill = palette.warning.opacity(0.12)
             stroke = palette.warning.opacity(0.65)
             strokeWidth = 1
             padding = TrinketDesign.Metrics.snugSpacing
-            cornerRadius = TrinketDesign.Corners.card
+            cornerRadius = cornerRadiusOverride ?? TrinketDesign.Corners.card
             shadow = .none
         case .reward:
             fill = palette.elevatedBackground
             stroke = palette.accent.opacity(0.70)
             strokeWidth = 1.25
             padding = TrinketDesign.Metrics.largeSpacing
-            cornerRadius = TrinketDesign.Corners.card
+            cornerRadius = cornerRadiusOverride ?? TrinketDesign.Corners.card
             shadow = ShadowStyle(color: palette.accent.opacity(0.20), radius: 14, y: 4)
         }
     }
@@ -289,8 +296,12 @@ public extension View {
         modifier(ScreenBackgroundModifier())
     }
 
-    func trinketSurface(_ role: SurfaceRole, isPressed: Bool = false) -> some View {
-        modifier(SurfaceModifier(role: role, isPressed: isPressed))
+    func trinketSurface(
+        _ role: SurfaceRole,
+        isPressed: Bool = false,
+        cornerRadiusOverride: CGFloat? = nil
+    ) -> some View {
+        modifier(SurfaceModifier(role: role, isPressed: isPressed, cornerRadiusOverride: cornerRadiusOverride))
     }
 
     func trinketMaterial(

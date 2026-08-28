@@ -1,5 +1,5 @@
-import Foundation
 import BattleEngine
+import Foundation
 import TrinketCore
 import TrinketFeatureContracts
 import TrinketPersistence
