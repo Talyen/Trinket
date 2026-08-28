@@ -98,6 +98,45 @@ public struct ControlTriggers: Equatable, Hashable, Sendable {
         self.turnFreezeDamageAllEnemies = turnFreezeDamageAllEnemies
         self.stunPurgeDealHolyPerEffect = stunPurgeDealHolyPerEffect
     }
+
+    /// All field names for this family — avoids `Mirror` reflection.
+    public static let fieldNames: [String] = ["freezeExtraActionSkips", "freezeExtendChancePercent", "stunExtendChancePercent", "physicalStunBuildupPercent", "holyStunBuildupPercent", "holyTriggeredStunGoldFlat", "freezeBuildupDoesNotDecay", "frozenEnemyCannotBlockOrHeal", "enemyStunExtraActionSkips", "onEnemyStunRecoverDrawCard", "onEnemyStunRecoverApplyAfflictions", "enemyStunThresholdReductionPercent", "onStunEnemyApplyBurn", "onceBelowHealthPercentStunAllEnemies", "freezeCardsPlayedThisTurnFreezeAll", "spendManaFreezeThreshold", "everyNTurnsFreezeAllEnemiesInterval", "everyNTurnsFreezeAllEnemiesAmount", "everyNTurnsStunBuildupInterval", "everyNTurnsStunBuildupAmount", "everyNTurnsTeamBlockAmount", "enemyStunnedApplyMarked", "enemyStunnedPurgeCount", "enemyStunnedPurgeAll", "stunDealPhysicalFlat", "dodgeDealStunFlat", "onDodgeAttackerStunBuildup", "onceBelowHealthPercentThreshold", "turnFreezeDamageAllEnemies", "stunPurgeDealHolyPerEffect"]
+
+    /// Field names where `self` differs from `other`.
+    func populatedFieldNames(comparedTo other: Self) -> [String] {
+        var names: [String] = []
+        if self.freezeExtraActionSkips != other.freezeExtraActionSkips { names.append("freezeExtraActionSkips") }
+        if self.freezeExtendChancePercent != other.freezeExtendChancePercent { names.append("freezeExtendChancePercent") }
+        if self.stunExtendChancePercent != other.stunExtendChancePercent { names.append("stunExtendChancePercent") }
+        if self.physicalStunBuildupPercent != other.physicalStunBuildupPercent { names.append("physicalStunBuildupPercent") }
+        if self.holyStunBuildupPercent != other.holyStunBuildupPercent { names.append("holyStunBuildupPercent") }
+        if self.holyTriggeredStunGoldFlat != other.holyTriggeredStunGoldFlat { names.append("holyTriggeredStunGoldFlat") }
+        if self.freezeBuildupDoesNotDecay != other.freezeBuildupDoesNotDecay { names.append("freezeBuildupDoesNotDecay") }
+        if self.frozenEnemyCannotBlockOrHeal != other.frozenEnemyCannotBlockOrHeal { names.append("frozenEnemyCannotBlockOrHeal") }
+        if self.enemyStunExtraActionSkips != other.enemyStunExtraActionSkips { names.append("enemyStunExtraActionSkips") }
+        if self.onEnemyStunRecoverDrawCard != other.onEnemyStunRecoverDrawCard { names.append("onEnemyStunRecoverDrawCard") }
+        if self.onEnemyStunRecoverApplyAfflictions != other.onEnemyStunRecoverApplyAfflictions { names.append("onEnemyStunRecoverApplyAfflictions") }
+        if self.enemyStunThresholdReductionPercent != other.enemyStunThresholdReductionPercent { names.append("enemyStunThresholdReductionPercent") }
+        if self.onStunEnemyApplyBurn != other.onStunEnemyApplyBurn { names.append("onStunEnemyApplyBurn") }
+        if self.onceBelowHealthPercentStunAllEnemies != other.onceBelowHealthPercentStunAllEnemies { names.append("onceBelowHealthPercentStunAllEnemies") }
+        if self.freezeCardsPlayedThisTurnFreezeAll != other.freezeCardsPlayedThisTurnFreezeAll { names.append("freezeCardsPlayedThisTurnFreezeAll") }
+        if self.spendManaFreezeThreshold != other.spendManaFreezeThreshold { names.append("spendManaFreezeThreshold") }
+        if self.everyNTurnsFreezeAllEnemiesInterval != other.everyNTurnsFreezeAllEnemiesInterval { names.append("everyNTurnsFreezeAllEnemiesInterval") }
+        if self.everyNTurnsFreezeAllEnemiesAmount != other.everyNTurnsFreezeAllEnemiesAmount { names.append("everyNTurnsFreezeAllEnemiesAmount") }
+        if self.everyNTurnsStunBuildupInterval != other.everyNTurnsStunBuildupInterval { names.append("everyNTurnsStunBuildupInterval") }
+        if self.everyNTurnsStunBuildupAmount != other.everyNTurnsStunBuildupAmount { names.append("everyNTurnsStunBuildupAmount") }
+        if self.everyNTurnsTeamBlockAmount != other.everyNTurnsTeamBlockAmount { names.append("everyNTurnsTeamBlockAmount") }
+        if self.enemyStunnedApplyMarked != other.enemyStunnedApplyMarked { names.append("enemyStunnedApplyMarked") }
+        if self.enemyStunnedPurgeCount != other.enemyStunnedPurgeCount { names.append("enemyStunnedPurgeCount") }
+        if self.enemyStunnedPurgeAll != other.enemyStunnedPurgeAll { names.append("enemyStunnedPurgeAll") }
+        if self.stunDealPhysicalFlat != other.stunDealPhysicalFlat { names.append("stunDealPhysicalFlat") }
+        if self.dodgeDealStunFlat != other.dodgeDealStunFlat { names.append("dodgeDealStunFlat") }
+        if self.onDodgeAttackerStunBuildup != other.onDodgeAttackerStunBuildup { names.append("onDodgeAttackerStunBuildup") }
+        if self.onceBelowHealthPercentThreshold != other.onceBelowHealthPercentThreshold { names.append("onceBelowHealthPercentThreshold") }
+        if self.turnFreezeDamageAllEnemies != other.turnFreezeDamageAllEnemies { names.append("turnFreezeDamageAllEnemies") }
+        if self.stunPurgeDealHolyPerEffect != other.stunPurgeDealHolyPerEffect { names.append("stunPurgeDealHolyPerEffect") }
+        return names
+    }
 }
 
 extension ControlTriggers {

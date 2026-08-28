@@ -192,11 +192,21 @@ def read_tsv(path: Path) -> list[list[str]]:
     return [list(row) for row in _read_tsv_cached(path)]
 
 
+def _parse_tsv_rows(path: Path, expected: list[str], row_type):
+    lines = read_tsv(path)
+    header = lines[0]
+    if header != expected:
+        raise ValueError(f"{path} header mismatch: {header}")
+    rows: list = []
+    for raw in lines[1:]:
+        padded = raw + [""] * (len(expected) - len(raw))
+        rows.append(row_type(*padded[: len(expected)]))
+    return rows
+
+
 @functools.cache
 def parse_affix_rows() -> list[AffixRow]:
     path = MANIFEST_DIR / "affixes.tsv"
-    lines = read_tsv(path)
-    header = lines[0]
     expected = [
         "id",
         "title",
@@ -210,8 +220,9 @@ def parse_affix_rows() -> list[AffixRow]:
         "basic_triggers",
         "astral_triggers",
     ]
-    if header != expected:
-        raise ValueError(f"{path} header mismatch: {header}")
+    lines = read_tsv(path)
+    if lines[0] != expected:
+        raise ValueError(f"{path} header mismatch: {lines[0]}")
     rows: list[AffixRow] = []
     for idx, raw in enumerate(lines[1:], start=2):
         if len(raw) < 9:
@@ -223,131 +234,103 @@ def parse_affix_rows() -> list[AffixRow]:
 
 @functools.cache
 def parse_trait_rows() -> list[TraitRow]:
-    path = MANIFEST_DIR / "traits.tsv"
-    lines = read_tsv(path)
-    header = lines[0]
-    expected = ["id", "name", "description", "modifiers", "triggers"]
-    if header != expected:
-        raise ValueError(f"{path} header mismatch: {header}")
-    return [TraitRow(*row) for row in lines[1:]]
+    return _parse_tsv_rows(
+        MANIFEST_DIR / "traits.tsv",
+        ["id", "name", "description", "modifiers", "triggers"],
+        TraitRow,
+    )
 
 
 @functools.cache
 def parse_stage_rows() -> list[StageRow]:
-    path = MANIFEST_DIR / "stages.tsv"
-    lines = read_tsv(path)
-    header = lines[0]
-    expected = [
-        "chapter_id",
-        "chapter_number",
-        "chapter_title",
-        "theme",
-        "stage_number",
-        "encounter",
-        "enemy_id",
-        "encounter_art_id",
-        "encounter_art_title",
-    ]
-    if header != expected:
-        raise ValueError(f"{path} header mismatch: {header}")
-    rows: list[StageRow] = []
-    for raw in lines[1:]:
-        padded = raw + [""] * (len(expected) - len(raw))
-        rows.append(StageRow(*padded[: len(expected)]))
-    return rows
+    return _parse_tsv_rows(
+        MANIFEST_DIR / "stages.tsv",
+        [
+            "chapter_id",
+            "chapter_number",
+            "chapter_title",
+            "theme",
+            "stage_number",
+            "encounter",
+            "enemy_id",
+            "encounter_art_id",
+            "encounter_art_title",
+        ],
+        StageRow,
+    )
 
 
 @functools.cache
 def parse_item_base_rows() -> list[ItemBaseRow]:
-    path = MANIFEST_DIR / "item_bases.tsv"
-    lines = read_tsv(path)
-    header = lines[0]
-    expected = ["id", "name", "slot", "weapon_kind", "keywords"]
-    if header != expected:
-        raise ValueError(f"{path} header mismatch: {header}")
-    return [ItemBaseRow(*row) for row in lines[1:]]
+    return _parse_tsv_rows(
+        MANIFEST_DIR / "item_bases.tsv",
+        ["id", "name", "slot", "weapon_kind", "keywords"],
+        ItemBaseRow,
+    )
 
 
 @functools.cache
 def parse_combatant_rows() -> list[CombatantRow]:
-    path = MANIFEST_DIR / "combatants.tsv"
-    lines = read_tsv(path)
-    header = lines[0]
-    expected = [
-        "id",
-        "name",
-        "role",
-        "max_health",
-        "max_mana",
-        "growth_archetype",
-        "basics",
-        "skills",
-        "ultimates",
-        "strength",
-        "agility",
-        "toughness",
-        "intellect",
-        "wisdom",
-    ]
-    if header != expected:
-        raise ValueError(f"{path} header mismatch: {header}")
-    rows: list[CombatantRow] = []
-    for raw in lines[1:]:
-        padded = raw + [""] * (len(expected) - len(raw))
-        rows.append(CombatantRow(*padded[: len(expected)]))
-    return rows
+    return _parse_tsv_rows(
+        MANIFEST_DIR / "combatants.tsv",
+        [
+            "id",
+            "name",
+            "role",
+            "max_health",
+            "max_mana",
+            "growth_archetype",
+            "basics",
+            "skills",
+            "ultimates",
+            "strength",
+            "agility",
+            "toughness",
+            "intellect",
+            "wisdom",
+        ],
+        CombatantRow,
+    )
 
 
 @functools.cache
 def parse_enemy_rows() -> list[EnemyRow]:
-    path = MANIFEST_DIR / "enemies.tsv"
-    lines = read_tsv(path)
-    header = lines[0]
-    expected = [
-        "id",
-        "name",
-        "max_health",
-        "is_boss",
-        "growth_archetype",
-        "abilities",
-        "trait_id",
-        "faction",
-    ]
-    if header != expected:
-        raise ValueError(f"{path} header mismatch: {header}")
-    rows: list[EnemyRow] = []
-    for raw in lines[1:]:
-        padded = raw + [""] * (len(expected) - len(raw))
-        rows.append(EnemyRow(*padded[: len(expected)]))
-    return rows
+    return _parse_tsv_rows(
+        MANIFEST_DIR / "enemies.tsv",
+        [
+            "id",
+            "name",
+            "max_health",
+            "is_boss",
+            "growth_archetype",
+            "abilities",
+            "trait_id",
+            "faction",
+        ],
+        EnemyRow,
+    )
 
 
 @functools.cache
 def parse_homestead_node_rows() -> list[HomesteadNodeRow]:
-    path = MANIFEST_DIR / "homestead_nodes.tsv"
-    lines = read_tsv(path)
-    header = lines[0]
-    expected = [
-        "node_id",
-        "title",
-        "summary",
-        "symbol_name",
-        "category",
-        "prerequisites",
-        "tier",
-        "cost",
-        "bonus_title",
-        "bonus_description",
-        "modifiers",
-        "production",
-    ]
-    if header != expected:
-        raise ValueError(f"{path} header mismatch: {header}")
-    rows: list[HomesteadNodeRow] = []
-    for raw in lines[1:]:
-        padded = raw + [""] * (len(expected) - len(raw))
-        rows.append(HomesteadNodeRow(*padded[: len(expected)]))
-    return rows
+    return _parse_tsv_rows(
+        MANIFEST_DIR / "homestead_nodes.tsv",
+        [
+            "node_id",
+            "title",
+            "summary",
+            "symbol_name",
+            "category",
+            "prerequisites",
+            "tier",
+            "cost",
+            "bonus_title",
+            "bonus_description",
+            "modifiers",
+            "production",
+        ],
+        HomesteadNodeRow,
+    )
 
 
 def swift_escape(value: str) -> str:
@@ -412,6 +395,102 @@ def parse_trigger_tokens(raw: str) -> list[str]:
     return [part.strip() for part in raw.split("|") if part.strip()]
 
 
+_TRIGGER_SIMPLE_MAP: dict[str, str] = {
+    "on_cleanse_draw": "cleanseBonusDraw",
+    "on_cleanse_self_heal": "cleanseSelfHeal",
+    "on_cleanse_heal": "cleanseBonusHeal",
+    "on_gain_gold_heal": "gainGoldBonusHealSelf",
+    "dodge_chance_bonus": "dodgeChanceBonus",
+    "passive_mitigation": "passiveMitigationFlat",
+    "thorns_percent": "thornsPercent",
+    "burn_decay_slow": "burnDecaySlowPercent",
+    "on_bleed_apply_poison": "onBleedApplyPoison",
+    "on_burn_apply_poison": "onBurnApplyPoison",
+    "on_bleed_deal_burn_damage": "onBleedDealBurnDamage",
+    "poison_decay_increase_chance": "poisonDecayIncreaseChance",
+    "freeze_damage_while_burning": "freezeDamageWhileBurningBonus",
+    "damage_while_target_frozen": "damageWhileTargetFrozenBonus",
+    "damage_after_dodge": "damageAfterDodgeBonus",
+    "on_block_broken_block": "blockBrokenBlockFlat",
+    "companion_leech_share_percent": "companionLeechSharePercent",
+    "block_on_deaths_door": "blockOnDeathsDoor",
+    "on_spend_mana_block": "spendManaBlockFlat",
+    "on_spend_mana_random_dot": "spendManaRandomDoTFlat",
+    "on_holy_damage_block": "holyDamageBlockFlat",
+    "on_stun_damage_block": "stunDamageBlockFlat",
+    "on_holy_damage_cleanse": "holyDamageCleanseCount",
+    "on_holy_damage_heal": "holyDamageHealFlat",
+    "on_burn_damage_heal": "burnDamageHealFlat",
+    "on_dodge_gold": "dodgeGoldFlat",
+    "ignore_enemy_mitigation_percent": "ignoreEnemyMitigationPercent",
+    "on_stun_deal_physical": "stunDealPhysicalFlat",
+    "damage_while_target_stunned": "damageWhileTargetStunnedBonus",
+    "on_enemy_stunned_apply_marked": "enemyStunnedApplyMarked",
+    "on_dodge_block": "dodgeBlockFlat",
+    "on_dodge_apply_poison": "dodgeApplyPoison",
+    "on_holy_damage_purge": "holyDamagePurgeCount",
+    "once_death_revive_health": "onceDeathReviveHealth",
+    "once_death_revive_block": "onceDeathReviveBlock",
+    "on_enemy_stunned_purge": "enemyStunnedPurgeCount",
+    "on_critical_purge": "criticalPurgeCount",
+    "on_critical_gold": "criticalGoldFlat",
+    "on_critical_action_gold": "criticalActionGoldFlat",
+    "on_leech_restore_mana": "leechRestoreManaFlat",
+    "on_gain_mana_block": "gainManaBlockFlat",
+    "on_defeat_enemy_gold": "defeatEnemyGoldFlat",
+    "on_leech_gold": "leechGoldFlat",
+    "on_dodge_heal": "dodgeHealFlat",
+    "on_dodge_deal_stun": "dodgeDealStunFlat",
+    "block_per_turn": "blockPerTurn",
+    "leech_chance": "leechChancePercent",
+    "on_hit_attacker_burn": "onHitAttackerBurn",
+    "turn_freeze_all_enemies": "turnFreezeDamageAllEnemies",
+    "on_holy_damage_poison": "holyDamagePoisonFlat",
+    "draw_every_other_turn": "drawEveryOtherTurn",
+    "draw_on_health_loss": "drawOnHealthLoss",
+    "physical_stun_buildup_percent": "physicalStunBuildupPercent",
+    "block_gain_thorns_percent": "blockGainThornsPercent",
+    "draw_on_spend_mana": "drawOnSpendMana",
+    "physical_damage_block_percent": "physicalDamageBlockPercent",
+    "on_bleed_damage_gold": "bleedDamageGoldFlat",
+    "gold_per_turn": "goldPerTurn",
+    "health_restored_poison_percent": "healthRestoredPoisonPercent",
+    "sundering_block_multiplier": "sunderingBlockMultiplier",
+    "victory_gold_flat": "victoryGoldFlat",
+    "health_per_turn": "healthPerTurn",
+    "companion_cards_per_turn": "companionCardsPerTurn",
+    "freeze_extra_action_skips": "freezeExtraActionSkips",
+    "stunned_damage_multiplier": "stunnedDamageMultiplier",
+    "critical_chance_bonus": "criticalChanceBonus",
+}
+
+_FLAG_TRIGGERS: dict[str, str] = {
+    "on_enemy_stunned_purge_all": "enemyStunnedPurgeAll",
+    "on_critical_purge_all": "criticalPurgeAll",
+    "first_hit_double_damage": "firstHitDoubleDamage",
+    "repeat_mana_empowerment": "repeatManaEmpowerment",
+    "freeze_damage_leech": "freezeDamageLeech",
+    "poison_damage_leech": "poisonDamageLeech",
+    "victory_gold_coin": "victoryGoldCoin",
+}
+
+def _apply_simple_trigger(token: str, values: dict[str, str]) -> bool:
+    for prefix, field in _TRIGGER_SIMPLE_MAP.items():
+        if token.startswith(prefix + ":"):
+            values[field] = token.split(":", 1)[1]
+            return True
+    for prefix, field in _FLAG_TRIGGERS.items():
+        if token == prefix or token.startswith(prefix + ":"):
+            # Support both bare flag and flag:value (value ignored)
+            if ":" in token:
+                remainder = token.split(":", 1)[1].strip()
+                values[field] = "true" if not remainder or remainder.lower() in ("true", "1") else remainder
+            else:
+                values[field] = "true"
+            return True
+    return False
+
+
 def triggers_swift(raw: str) -> str:
     families = _trigger_families()
     field_group = {
@@ -422,35 +501,9 @@ def triggers_swift(raw: str) -> str:
     known_fields = set(field_group)
     values: dict[str, str] = {}
     for token in parse_trigger_tokens(raw):
-        if token.startswith("on_cleanse_draw:"):
-            values["cleanseBonusDraw"] = token.split(":", 1)[1]
-        elif token.startswith("on_cleanse_self_heal:"):
-            values["cleanseSelfHeal"] = token.split(":", 1)[1]
-        elif token.startswith("on_cleanse_heal:"):
-            values["cleanseBonusHeal"] = token.split(":", 1)[1]
-        elif token.startswith("on_gain_gold_heal:"):
-            values["gainGoldBonusHealSelf"] = token.split(":", 1)[1]
-        elif token.startswith("dodge_chance_bonus:"):
-            values["dodgeChanceBonus"] = token.split(":", 1)[1]
-        elif token.startswith("passive_mitigation:"):
-            values["passiveMitigationFlat"] = token.split(":", 1)[1]
-        elif token.startswith("thorns_percent:"):
-            values["thornsPercent"] = token.split(":", 1)[1]
-        elif token.startswith("burn_decay_slow:"):
-            values["burnDecaySlowPercent"] = token.split(":", 1)[1]
-        elif token.startswith("on_bleed_apply_poison:"):
-            values["onBleedApplyPoison"] = token.split(":", 1)[1]
-        elif token.startswith("on_burn_apply_poison:"):
-            values["onBurnApplyPoison"] = token.split(":", 1)[1]
-        elif token.startswith("on_bleed_deal_burn_damage:"):
-            values["onBleedDealBurnDamage"] = token.split(":", 1)[1]
-        elif token.startswith("poison_decay_increase_chance:"):
-            values["poisonDecayIncreaseChance"] = token.split(":", 1)[1]
-        elif token.startswith("freeze_damage_while_burning:"):
-            values["freezeDamageWhileBurningBonus"] = token.split(":", 1)[1]
-        elif token.startswith("damage_while_target_frozen:"):
-            values["damageWhileTargetFrozenBonus"] = token.split(":", 1)[1]
-        elif token.startswith("damage_below_health_percent:"):
+        if _apply_simple_trigger(token, values):
+            continue
+        if token.startswith("damage_below_health_percent:"):
             parts = token.split(":")
             if len(parts) == 4:
                 _, threshold, keyword, bonus = parts
@@ -461,91 +514,18 @@ def triggers_swift(raw: str) -> str:
                 _, threshold, bonus = parts
                 values["damageBelowHealthPercentThreshold"] = threshold
                 values["damageBelowHealthPercentBonus"] = bonus
-        elif token.startswith("damage_after_dodge:"):
-            values["damageAfterDodgeBonus"] = token.split(":", 1)[1]
-        elif token.startswith("on_block_broken_block:"):
-            values["blockBrokenBlockFlat"] = token.split(":", 1)[1]
-        elif token.startswith("companion_leech_share_percent:"):
-            values["companionLeechSharePercent"] = token.split(":", 1)[1]
-        elif token.startswith("once_below_health_percent_heal:"):
+            continue
+        if token.startswith("once_below_health_percent_heal:"):
             _, threshold, amount = token.split(":", 2)
             values["onceBelowHealthPercentThreshold"] = threshold
             values["onceBelowHealthPercentHeal"] = amount
-        elif token.startswith("block_on_deaths_door:"):
-            values["blockOnDeathsDoor"] = token.split(":", 1)[1]
-        elif token.startswith("on_spend_mana_block:"):
-            values["spendManaBlockFlat"] = token.split(":", 1)[1]
-        elif token.startswith("on_spend_mana_random_dot:"):
-            values["spendManaRandomDoTFlat"] = token.split(":", 1)[1]
-        elif token.startswith("on_holy_damage_block:"):
-            values["holyDamageBlockFlat"] = token.split(":", 1)[1]
-        elif token.startswith("on_stun_damage_block:"):
-            values["stunDamageBlockFlat"] = token.split(":", 1)[1]
-        elif token.startswith("on_holy_damage_cleanse:"):
-            values["holyDamageCleanseCount"] = token.split(":", 1)[1]
-        elif token.startswith("on_holy_damage_heal:"):
-            values["holyDamageHealFlat"] = token.split(":", 1)[1]
-        elif token.startswith("on_burn_damage_heal:"):
-            values["burnDamageHealFlat"] = token.split(":", 1)[1]
-        elif token.startswith("on_dodge_gold:"):
-            values["dodgeGoldFlat"] = token.split(":", 1)[1]
-        elif token.startswith("ignore_enemy_mitigation_percent:"):
-            values["ignoreEnemyMitigationPercent"] = token.split(":", 1)[1]
-        elif token.startswith("on_stun_deal_physical:"):
-            values["stunDealPhysicalFlat"] = token.split(":", 1)[1]
-        elif token.startswith("damage_while_target_stunned:"):
-            values["damageWhileTargetStunnedBonus"] = token.split(":", 1)[1]
-        elif token.startswith("on_enemy_stunned_apply_marked:"):
-            values["enemyStunnedApplyMarked"] = token.split(":", 1)[1]
-        elif token.startswith("on_dodge_block:"):
-            values["dodgeBlockFlat"] = token.split(":", 1)[1]
-        elif token.startswith("on_dodge_apply_poison:"):
-            values["dodgeApplyPoison"] = token.split(":", 1)[1]
-        elif token.startswith("on_holy_damage_purge:"):
-            values["holyDamagePurgeCount"] = token.split(":", 1)[1]
-        elif token.startswith("once_death_revive_health:"):
-            values["onceDeathReviveHealth"] = token.split(":", 1)[1]
-        elif token.startswith("once_death_revive_block:"):
-            values["onceDeathReviveBlock"] = token.split(":", 1)[1]
-        elif token.startswith("on_enemy_stunned_purge_all:"):
-            values["enemyStunnedPurgeAll"] = "true"
-        elif token.startswith("on_enemy_stunned_purge:"):
-            values["enemyStunnedPurgeCount"] = token.split(":", 1)[1]
-        elif token.startswith("on_critical_purge_all:"):
-            values["criticalPurgeAll"] = "true"
-        elif token.startswith("on_critical_purge:"):
-            values["criticalPurgeCount"] = token.split(":", 1)[1]
-        elif token.startswith("on_critical_gold:"):
-            values["criticalGoldFlat"] = token.split(":", 1)[1]
-        elif token.startswith("on_critical_action_gold:"):
-            values["criticalActionGoldFlat"] = token.split(":", 1)[1]
-        elif token.startswith("on_leech_restore_mana:"):
-            values["leechRestoreManaFlat"] = token.split(":", 1)[1]
-        elif token.startswith("on_gain_mana_block:"):
-            values["gainManaBlockFlat"] = token.split(":", 1)[1]
-        elif token.startswith("on_defeat_enemy_gold:"):
-            values["defeatEnemyGoldFlat"] = token.split(":", 1)[1]
-        elif token.startswith("on_leech_gold:"):
-            values["leechGoldFlat"] = token.split(":", 1)[1]
-        elif token.startswith("on_dodge_heal:"):
-            values["dodgeHealFlat"] = token.split(":", 1)[1]
-        elif token.startswith("dodge_chance_below_health_percent:"):
+            continue
+        if token.startswith("dodge_chance_below_health_percent:"):
             _, threshold, bonus = token.split(":", 2)
             values["dodgeChanceBelowHealthPercentThreshold"] = threshold
             values["dodgeChanceBelowHealthPercentBonus"] = bonus
-        elif token.startswith("on_dodge_deal_stun:"):
-            values["dodgeDealStunFlat"] = token.split(":", 1)[1]
-        elif token.startswith("block_per_turn:"):
-            values["blockPerTurn"] = token.split(":", 1)[1]
-        elif token.startswith("first_hit_double_damage:"):
-            values["firstHitDoubleDamage"] = "true"
-        elif token.startswith("leech_chance:"):
-            values["leechChancePercent"] = token.split(":", 1)[1]
-        elif token.startswith("on_hit_attacker_burn:"):
-            values["onHitAttackerBurn"] = token.split(":", 1)[1]
-        elif token.startswith("turn_freeze_all_enemies:"):
-            values["turnFreezeDamageAllEnemies"] = token.split(":", 1)[1]
-        elif token.startswith("turn_random_damage_all_enemies:"):
+            continue
+        if token.startswith("turn_random_damage_all_enemies:"):
             parts = token.split(":")
             if len(parts) != 4:
                 raise ValueError(
@@ -556,52 +536,12 @@ def triggers_swift(raw: str) -> str:
             values["turnRandomDamageAllEnemiesKeywordA"] = f".{keyword_a}"
             values["turnRandomDamageAllEnemiesKeywordB"] = f".{keyword_b}"
             values["turnRandomDamageAllEnemiesAmount"] = amount
-        elif token.startswith("on_holy_damage_poison:"):
-            values["holyDamagePoisonFlat"] = token.split(":", 1)[1]
-        elif token.startswith("draw_every_other_turn:"):
-            values["drawEveryOtherTurn"] = token.split(":", 1)[1]
-        elif token.startswith("repeat_mana_empowerment:"):
-            values["repeatManaEmpowerment"] = "true"
-        elif token.startswith("draw_on_health_loss:"):
-            values["drawOnHealthLoss"] = token.split(":", 1)[1]
-        elif token.startswith("physical_stun_buildup_percent:"):
-            values["physicalStunBuildupPercent"] = token.split(":", 1)[1]
-        elif token.startswith("freeze_damage_leech:"):
-            values["freezeDamageLeech"] = "true"
-        elif token.startswith("block_gain_thorns_percent:"):
-            values["blockGainThornsPercent"] = token.split(":", 1)[1]
-        elif token.startswith("draw_on_spend_mana:"):
-            values["drawOnSpendMana"] = token.split(":", 1)[1]
-        elif token.startswith("physical_damage_block_percent:"):
-            values["physicalDamageBlockPercent"] = token.split(":", 1)[1]
-        elif token.startswith("poison_damage_leech:"):
-            values["poisonDamageLeech"] = "true"
-        elif token.startswith("on_bleed_damage_gold:"):
-            values["bleedDamageGoldFlat"] = token.split(":", 1)[1]
-        elif token.startswith("gold_per_turn:"):
-            values["goldPerTurn"] = token.split(":", 1)[1]
-        elif token.startswith("health_restored_poison_percent:"):
-            values["healthRestoredPoisonPercent"] = token.split(":", 1)[1]
-        elif token.startswith("sundering_block_multiplier:"):
-            values["sunderingBlockMultiplier"] = token.split(":", 1)[1]
-        elif token.startswith("cards_played_mana:"):
+            continue
+        if token.startswith("cards_played_mana:"):
             _, threshold, amount = token.split(":", 2)
             values["cardsPlayedManaThreshold"] = threshold
             values["cardsPlayedManaFlat"] = amount
-        elif token.startswith("victory_gold_flat:"):
-            values["victoryGoldFlat"] = token.split(":", 1)[1]
-        elif token.startswith("health_per_turn:"):
-            values["healthPerTurn"] = token.split(":", 1)[1]
-        elif token.startswith("companion_cards_per_turn:"):
-            values["companionCardsPerTurn"] = token.split(":", 1)[1]
-        elif token.startswith("freeze_extra_action_skips:"):
-            values["freezeExtraActionSkips"] = token.split(":", 1)[1]
-        elif token.startswith("stunned_damage_multiplier:"):
-            values["stunnedDamageMultiplier"] = token.split(":", 1)[1]
-        elif token.startswith("critical_chance_bonus:"):
-            values["criticalChanceBonus"] = token.split(":", 1)[1]
-        elif token.startswith("victory_gold_coin:"):
-            values["victoryGoldCoin"] = "true"
+            continue
         else:
             field, separator, value = token.partition(":")
             if not separator:
@@ -1292,6 +1232,11 @@ def generate_trigger_families() -> None:
             f'        try container.encodeNonDefault({f["name"]}, "{f["name"]}", default: {f["default"]})'
             for f in fields
         )
+        field_names_literal = ", ".join(f'"{f["name"]}"' for f in fields)
+        populated_checks = "\n".join(
+            f'        if self.{f["name"]} != other.{f["name"]} {{ names.append("{f["name"]}") }}'
+            for f in fields
+        )
         text = f"""// Generated by Scripts/content_codegen.py — do not edit.
 import Foundation
 import TrinketCore
@@ -1304,6 +1249,16 @@ public struct {type_name}: Equatable, Hashable, Sendable {{
 {init_params}
     ) {{
 {init_assigns}
+    }}
+
+    /// All field names for this family — avoids `Mirror` reflection.
+    public static let fieldNames: [String] = [{field_names_literal}]
+
+    /// Field names where `self` differs from `other`.
+    func populatedFieldNames(comparedTo other: Self) -> [String] {{
+        var names: [String] = []
+{populated_checks}
+        return names
     }}
 }}
 

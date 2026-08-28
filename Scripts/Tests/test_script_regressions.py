@@ -1502,7 +1502,7 @@ class ScriptRegressionTests(unittest.TestCase):
                 str(ROOT / "Scripts" / "handoff.sh"),
                 "--dry-run",
                 "--paths",
-                "Packages/TrinketBattleRuntime/Sources/TrinketBattleRuntime/BattleRuntime.swift",
+                "Packages/BattleEngine/Sources/BattleEngine/BattleRuntime.swift",
             ],
             cwd=ROOT,
             capture_output=True,
@@ -1511,8 +1511,7 @@ class ScriptRegressionTests(unittest.TestCase):
         )
         self.assertEqual(result.returncode, 0, result.stderr)
         plan = "\n".join(result.stdout.splitlines())
-        self.assertIn("./Scripts/build.sh", plan)
-        self.assertNotIn("test-package.sh TrinketBattleRuntime", plan)
+        self.assertIn("test-package.sh BattleEngine", plan)
 
     def test_test_support_routes_to_app_build_not_test_package(self) -> None:
         result = subprocess.run(

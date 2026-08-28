@@ -119,6 +119,52 @@ public struct AttackTriggers: Equatable, Hashable, Sendable {
         self.criticalPurgeCount = criticalPurgeCount
         self.criticalPurgeAll = criticalPurgeAll
     }
+
+    /// All field names for this family — avoids `Mirror` reflection.
+    public static let fieldNames: [String] = ["attacksApplyPoison", "physicalAttackApplyBleed", "physicalAttackApplyBleedAndStun", "physicalAttackFlatStunBuildup", "basicAttackApplyBleed", "basicAttackFreezeBuildup", "criticalApplyPoison", "criticalApplyBurn", "criticalApplyStunBuildup", "holyAttackApplyBurnAndStunBuildup", "onAttackStealGold", "basicAttackStealGold", "onAttackFrozenEnemyGainMana", "onAttackFrozenEnemyGainBlock", "onAttackStunnedEnemyGold", "onAttackStunnedEnemyBlock", "holyDamageNextHitBonus", "holyDamageNextAttackHolyBonus", "onBleedDamageNextBasicGuaranteedCrit", "nextAttackBonusOnFullHealth", "leechOverhealDamageBonus", "onHeroSpendManaCompanionNextAttackBonus", "partyBasicAttackHolyBonus", "partyHolyDamageBonusWhileCompanionFullHealth", "partyDamageBonusWhileCompanionFullHealth", "partyPhysicalDamageBonusFirstTurns", "partyPhysicalDamageBonusFirstTurnCount", "attackBurstChancePercent", "attackBurstDamage", "attackBurstBlock", "directHitBleedChancePercent", "attackApplyBleed", "onHeroAttackPoisonedEnemyApplyPoison", "onPhysicalDamageGainBlock", "critStealEnemyBlock", "criticalPurgeCount", "criticalPurgeAll"]
+
+    /// Field names where `self` differs from `other`.
+    func populatedFieldNames(comparedTo other: Self) -> [String] {
+        var names: [String] = []
+        if self.attacksApplyPoison != other.attacksApplyPoison { names.append("attacksApplyPoison") }
+        if self.physicalAttackApplyBleed != other.physicalAttackApplyBleed { names.append("physicalAttackApplyBleed") }
+        if self.physicalAttackApplyBleedAndStun != other.physicalAttackApplyBleedAndStun { names.append("physicalAttackApplyBleedAndStun") }
+        if self.physicalAttackFlatStunBuildup != other.physicalAttackFlatStunBuildup { names.append("physicalAttackFlatStunBuildup") }
+        if self.basicAttackApplyBleed != other.basicAttackApplyBleed { names.append("basicAttackApplyBleed") }
+        if self.basicAttackFreezeBuildup != other.basicAttackFreezeBuildup { names.append("basicAttackFreezeBuildup") }
+        if self.criticalApplyPoison != other.criticalApplyPoison { names.append("criticalApplyPoison") }
+        if self.criticalApplyBurn != other.criticalApplyBurn { names.append("criticalApplyBurn") }
+        if self.criticalApplyStunBuildup != other.criticalApplyStunBuildup { names.append("criticalApplyStunBuildup") }
+        if self.holyAttackApplyBurnAndStunBuildup != other.holyAttackApplyBurnAndStunBuildup { names.append("holyAttackApplyBurnAndStunBuildup") }
+        if self.onAttackStealGold != other.onAttackStealGold { names.append("onAttackStealGold") }
+        if self.basicAttackStealGold != other.basicAttackStealGold { names.append("basicAttackStealGold") }
+        if self.onAttackFrozenEnemyGainMana != other.onAttackFrozenEnemyGainMana { names.append("onAttackFrozenEnemyGainMana") }
+        if self.onAttackFrozenEnemyGainBlock != other.onAttackFrozenEnemyGainBlock { names.append("onAttackFrozenEnemyGainBlock") }
+        if self.onAttackStunnedEnemyGold != other.onAttackStunnedEnemyGold { names.append("onAttackStunnedEnemyGold") }
+        if self.onAttackStunnedEnemyBlock != other.onAttackStunnedEnemyBlock { names.append("onAttackStunnedEnemyBlock") }
+        if self.holyDamageNextHitBonus != other.holyDamageNextHitBonus { names.append("holyDamageNextHitBonus") }
+        if self.holyDamageNextAttackHolyBonus != other.holyDamageNextAttackHolyBonus { names.append("holyDamageNextAttackHolyBonus") }
+        if self.onBleedDamageNextBasicGuaranteedCrit != other.onBleedDamageNextBasicGuaranteedCrit { names.append("onBleedDamageNextBasicGuaranteedCrit") }
+        if self.nextAttackBonusOnFullHealth != other.nextAttackBonusOnFullHealth { names.append("nextAttackBonusOnFullHealth") }
+        if self.leechOverhealDamageBonus != other.leechOverhealDamageBonus { names.append("leechOverhealDamageBonus") }
+        if self.onHeroSpendManaCompanionNextAttackBonus != other.onHeroSpendManaCompanionNextAttackBonus { names.append("onHeroSpendManaCompanionNextAttackBonus") }
+        if self.partyBasicAttackHolyBonus != other.partyBasicAttackHolyBonus { names.append("partyBasicAttackHolyBonus") }
+        if self.partyHolyDamageBonusWhileCompanionFullHealth != other.partyHolyDamageBonusWhileCompanionFullHealth { names.append("partyHolyDamageBonusWhileCompanionFullHealth") }
+        if self.partyDamageBonusWhileCompanionFullHealth != other.partyDamageBonusWhileCompanionFullHealth { names.append("partyDamageBonusWhileCompanionFullHealth") }
+        if self.partyPhysicalDamageBonusFirstTurns != other.partyPhysicalDamageBonusFirstTurns { names.append("partyPhysicalDamageBonusFirstTurns") }
+        if self.partyPhysicalDamageBonusFirstTurnCount != other.partyPhysicalDamageBonusFirstTurnCount { names.append("partyPhysicalDamageBonusFirstTurnCount") }
+        if self.attackBurstChancePercent != other.attackBurstChancePercent { names.append("attackBurstChancePercent") }
+        if self.attackBurstDamage != other.attackBurstDamage { names.append("attackBurstDamage") }
+        if self.attackBurstBlock != other.attackBurstBlock { names.append("attackBurstBlock") }
+        if self.directHitBleedChancePercent != other.directHitBleedChancePercent { names.append("directHitBleedChancePercent") }
+        if self.attackApplyBleed != other.attackApplyBleed { names.append("attackApplyBleed") }
+        if self.onHeroAttackPoisonedEnemyApplyPoison != other.onHeroAttackPoisonedEnemyApplyPoison { names.append("onHeroAttackPoisonedEnemyApplyPoison") }
+        if self.onPhysicalDamageGainBlock != other.onPhysicalDamageGainBlock { names.append("onPhysicalDamageGainBlock") }
+        if self.critStealEnemyBlock != other.critStealEnemyBlock { names.append("critStealEnemyBlock") }
+        if self.criticalPurgeCount != other.criticalPurgeCount { names.append("criticalPurgeCount") }
+        if self.criticalPurgeAll != other.criticalPurgeAll { names.append("criticalPurgeAll") }
+        return names
+    }
 }
 
 extension AttackTriggers {

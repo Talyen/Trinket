@@ -267,7 +267,7 @@ struct BleedHandler: BattleEffectHandler {
 /// Bloodfire-style mirror procs: a hit of one DoT keyword may immediately deal
 /// the other keyword at the same amount, chaining while successive rolls succeed.
 enum DoTMirrorCascade {
-    static let maxChainDepth = 5
+    static let maxChainDepth = ReactionScope.maxDoTMirrorChainDepth
 
     static func resolve(
         keyword: Keyword,

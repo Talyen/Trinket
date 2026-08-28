@@ -140,6 +140,59 @@ public struct HealingTriggers: Equatable, Hashable, Sendable {
         self.leechOnBlockDamage = leechOnBlockDamage
         self.partyRegenPerRound = partyRegenPerRound
     }
+
+    /// All field names for this family — avoids `Mirror` reflection.
+    public static let fieldNames: [String] = ["cleanseSelfHeal", "cleanseBonusHeal", "onceBelowHealthPercentHeal", "blockOnDeathsDoor", "holyDamageHealFlat", "burnDamageHealFlat", "healthRestoredPoisonPercent", "healthPerTurn", "overhealConvertsToBlock", "overhealConvertsToMaxHealth", "overhealConvertsToMaxHealthCap", "overhealConvertsToMaxHealthPerEvent", "overhealShieldCap", "leechOverhealTransfersToCompanion", "leechSharesToHeroPercent", "onCompanionLeechRestoreHeroMana", "leechHealingVsAfflictedMultiplier", "leechPercentVsLowHealthEnemies", "leechBonusHealVsLowHealthEnemies", "leechChancePercent", "healingBelowHealthPercentThreshold", "healingBelowHealthPercentMultiplier", "healOverTimeOnHealTurns", "healOverTimeOnHealAmount", "onHealGrantBlock", "onHealRestoreCasterMana", "holyDamageHealLowestAllyFlat", "holyDamageHealHeroFlat", "endTurnWithBlockHealFlat", "endOfTurnHealLowestAlly", "cardsPlayedHealPartyThreshold", "cardsPlayedHealPartyAmount", "healthRegenFirstTurnsAmount", "healthRegenFirstTurnsDuration", "healthRegenAboveHalfHealth", "onBurnDamageHealLowestAllyFlat", "companionLeechSharePercent", "onLeechApplyPoison", "onLeechApplyBleed", "onLeechReduceEnemyStrength", "onLeechReduceEnemyStrengthTurns", "companionDamageLeechesToHeroPercent", "leechOnBlockDamage", "partyRegenPerRound"]
+
+    /// Field names where `self` differs from `other`.
+    func populatedFieldNames(comparedTo other: Self) -> [String] {
+        var names: [String] = []
+        if self.cleanseSelfHeal != other.cleanseSelfHeal { names.append("cleanseSelfHeal") }
+        if self.cleanseBonusHeal != other.cleanseBonusHeal { names.append("cleanseBonusHeal") }
+        if self.onceBelowHealthPercentHeal != other.onceBelowHealthPercentHeal { names.append("onceBelowHealthPercentHeal") }
+        if self.blockOnDeathsDoor != other.blockOnDeathsDoor { names.append("blockOnDeathsDoor") }
+        if self.holyDamageHealFlat != other.holyDamageHealFlat { names.append("holyDamageHealFlat") }
+        if self.burnDamageHealFlat != other.burnDamageHealFlat { names.append("burnDamageHealFlat") }
+        if self.healthRestoredPoisonPercent != other.healthRestoredPoisonPercent { names.append("healthRestoredPoisonPercent") }
+        if self.healthPerTurn != other.healthPerTurn { names.append("healthPerTurn") }
+        if self.overhealConvertsToBlock != other.overhealConvertsToBlock { names.append("overhealConvertsToBlock") }
+        if self.overhealConvertsToMaxHealth != other.overhealConvertsToMaxHealth { names.append("overhealConvertsToMaxHealth") }
+        if self.overhealConvertsToMaxHealthCap != other.overhealConvertsToMaxHealthCap { names.append("overhealConvertsToMaxHealthCap") }
+        if self.overhealConvertsToMaxHealthPerEvent != other.overhealConvertsToMaxHealthPerEvent { names.append("overhealConvertsToMaxHealthPerEvent") }
+        if self.overhealShieldCap != other.overhealShieldCap { names.append("overhealShieldCap") }
+        if self.leechOverhealTransfersToCompanion != other.leechOverhealTransfersToCompanion { names.append("leechOverhealTransfersToCompanion") }
+        if self.leechSharesToHeroPercent != other.leechSharesToHeroPercent { names.append("leechSharesToHeroPercent") }
+        if self.onCompanionLeechRestoreHeroMana != other.onCompanionLeechRestoreHeroMana { names.append("onCompanionLeechRestoreHeroMana") }
+        if self.leechHealingVsAfflictedMultiplier != other.leechHealingVsAfflictedMultiplier { names.append("leechHealingVsAfflictedMultiplier") }
+        if self.leechPercentVsLowHealthEnemies != other.leechPercentVsLowHealthEnemies { names.append("leechPercentVsLowHealthEnemies") }
+        if self.leechBonusHealVsLowHealthEnemies != other.leechBonusHealVsLowHealthEnemies { names.append("leechBonusHealVsLowHealthEnemies") }
+        if self.leechChancePercent != other.leechChancePercent { names.append("leechChancePercent") }
+        if self.healingBelowHealthPercentThreshold != other.healingBelowHealthPercentThreshold { names.append("healingBelowHealthPercentThreshold") }
+        if self.healingBelowHealthPercentMultiplier != other.healingBelowHealthPercentMultiplier { names.append("healingBelowHealthPercentMultiplier") }
+        if self.healOverTimeOnHealTurns != other.healOverTimeOnHealTurns { names.append("healOverTimeOnHealTurns") }
+        if self.healOverTimeOnHealAmount != other.healOverTimeOnHealAmount { names.append("healOverTimeOnHealAmount") }
+        if self.onHealGrantBlock != other.onHealGrantBlock { names.append("onHealGrantBlock") }
+        if self.onHealRestoreCasterMana != other.onHealRestoreCasterMana { names.append("onHealRestoreCasterMana") }
+        if self.holyDamageHealLowestAllyFlat != other.holyDamageHealLowestAllyFlat { names.append("holyDamageHealLowestAllyFlat") }
+        if self.holyDamageHealHeroFlat != other.holyDamageHealHeroFlat { names.append("holyDamageHealHeroFlat") }
+        if self.endTurnWithBlockHealFlat != other.endTurnWithBlockHealFlat { names.append("endTurnWithBlockHealFlat") }
+        if self.endOfTurnHealLowestAlly != other.endOfTurnHealLowestAlly { names.append("endOfTurnHealLowestAlly") }
+        if self.cardsPlayedHealPartyThreshold != other.cardsPlayedHealPartyThreshold { names.append("cardsPlayedHealPartyThreshold") }
+        if self.cardsPlayedHealPartyAmount != other.cardsPlayedHealPartyAmount { names.append("cardsPlayedHealPartyAmount") }
+        if self.healthRegenFirstTurnsAmount != other.healthRegenFirstTurnsAmount { names.append("healthRegenFirstTurnsAmount") }
+        if self.healthRegenFirstTurnsDuration != other.healthRegenFirstTurnsDuration { names.append("healthRegenFirstTurnsDuration") }
+        if self.healthRegenAboveHalfHealth != other.healthRegenAboveHalfHealth { names.append("healthRegenAboveHalfHealth") }
+        if self.onBurnDamageHealLowestAllyFlat != other.onBurnDamageHealLowestAllyFlat { names.append("onBurnDamageHealLowestAllyFlat") }
+        if self.companionLeechSharePercent != other.companionLeechSharePercent { names.append("companionLeechSharePercent") }
+        if self.onLeechApplyPoison != other.onLeechApplyPoison { names.append("onLeechApplyPoison") }
+        if self.onLeechApplyBleed != other.onLeechApplyBleed { names.append("onLeechApplyBleed") }
+        if self.onLeechReduceEnemyStrength != other.onLeechReduceEnemyStrength { names.append("onLeechReduceEnemyStrength") }
+        if self.onLeechReduceEnemyStrengthTurns != other.onLeechReduceEnemyStrengthTurns { names.append("onLeechReduceEnemyStrengthTurns") }
+        if self.companionDamageLeechesToHeroPercent != other.companionDamageLeechesToHeroPercent { names.append("companionDamageLeechesToHeroPercent") }
+        if self.leechOnBlockDamage != other.leechOnBlockDamage { names.append("leechOnBlockDamage") }
+        if self.partyRegenPerRound != other.partyRegenPerRound { names.append("partyRegenPerRound") }
+        return names
+    }
 }
 
 extension HealingTriggers {

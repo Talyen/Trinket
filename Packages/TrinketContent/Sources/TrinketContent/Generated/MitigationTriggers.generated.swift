@@ -71,6 +71,36 @@ public struct MitigationTriggers: Equatable, Hashable, Sendable {
         self.blockedControlBurnResistance = blockedControlBurnResistance
         self.afflictionResistance = afflictionResistance
     }
+
+    /// All field names for this family — avoids `Mirror` reflection.
+    public static let fieldNames: [String] = ["passiveMitigationFlat", "thornsPercent", "bleedResistance", "absorbHeroDamageFlat", "frozenEnemyDamageReductionFlat", "bleedingEnemyDamageReductionFlat", "stunnedEnemyNextTurnDamageMultiplier", "enemyBleedStacksDamageReductionStacks", "enemyBleedStacksDamageReductionPercent", "poisonedEnemyAccuracyPenaltyPercent", "poisonedEnemyMissChancePercent", "frozenEnemyMissChanceVsCompanionPercent", "holyDamageTargetMissNextAttack", "holyDamageReduceTargetDamage", "bleedingEnemyAttackDealDamage", "onAllyDamageHeal", "damageReductionPerUnspentManaEvery", "toughnessOnHit", "toughnessOnHitCap", "blockedControlBurnResistance", "afflictionResistance"]
+
+    /// Field names where `self` differs from `other`.
+    func populatedFieldNames(comparedTo other: Self) -> [String] {
+        var names: [String] = []
+        if self.passiveMitigationFlat != other.passiveMitigationFlat { names.append("passiveMitigationFlat") }
+        if self.thornsPercent != other.thornsPercent { names.append("thornsPercent") }
+        if self.bleedResistance != other.bleedResistance { names.append("bleedResistance") }
+        if self.absorbHeroDamageFlat != other.absorbHeroDamageFlat { names.append("absorbHeroDamageFlat") }
+        if self.frozenEnemyDamageReductionFlat != other.frozenEnemyDamageReductionFlat { names.append("frozenEnemyDamageReductionFlat") }
+        if self.bleedingEnemyDamageReductionFlat != other.bleedingEnemyDamageReductionFlat { names.append("bleedingEnemyDamageReductionFlat") }
+        if self.stunnedEnemyNextTurnDamageMultiplier != other.stunnedEnemyNextTurnDamageMultiplier { names.append("stunnedEnemyNextTurnDamageMultiplier") }
+        if self.enemyBleedStacksDamageReductionStacks != other.enemyBleedStacksDamageReductionStacks { names.append("enemyBleedStacksDamageReductionStacks") }
+        if self.enemyBleedStacksDamageReductionPercent != other.enemyBleedStacksDamageReductionPercent { names.append("enemyBleedStacksDamageReductionPercent") }
+        if self.poisonedEnemyAccuracyPenaltyPercent != other.poisonedEnemyAccuracyPenaltyPercent { names.append("poisonedEnemyAccuracyPenaltyPercent") }
+        if self.poisonedEnemyMissChancePercent != other.poisonedEnemyMissChancePercent { names.append("poisonedEnemyMissChancePercent") }
+        if self.frozenEnemyMissChanceVsCompanionPercent != other.frozenEnemyMissChanceVsCompanionPercent { names.append("frozenEnemyMissChanceVsCompanionPercent") }
+        if self.holyDamageTargetMissNextAttack != other.holyDamageTargetMissNextAttack { names.append("holyDamageTargetMissNextAttack") }
+        if self.holyDamageReduceTargetDamage != other.holyDamageReduceTargetDamage { names.append("holyDamageReduceTargetDamage") }
+        if self.bleedingEnemyAttackDealDamage != other.bleedingEnemyAttackDealDamage { names.append("bleedingEnemyAttackDealDamage") }
+        if self.onAllyDamageHeal != other.onAllyDamageHeal { names.append("onAllyDamageHeal") }
+        if self.damageReductionPerUnspentManaEvery != other.damageReductionPerUnspentManaEvery { names.append("damageReductionPerUnspentManaEvery") }
+        if self.toughnessOnHit != other.toughnessOnHit { names.append("toughnessOnHit") }
+        if self.toughnessOnHitCap != other.toughnessOnHitCap { names.append("toughnessOnHitCap") }
+        if self.blockedControlBurnResistance != other.blockedControlBurnResistance { names.append("blockedControlBurnResistance") }
+        if self.afflictionResistance != other.afflictionResistance { names.append("afflictionResistance") }
+        return names
+    }
 }
 
 extension MitigationTriggers {

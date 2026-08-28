@@ -106,9 +106,9 @@ check_no_package_dependency TrinketBattleFeature TrinketFeatureAdapters \
 # AppState owns orchestration, not BattleFeature presentation. The runtime
 # contract is the only battle dependency allowed at this layer.
 check_no_import "Packages/TrinketAppState/Sources" '^import TrinketBattleFeature$' \
-  'TrinketAppState must depend on TrinketBattleRuntime, not BattleFeature'
+  'TrinketAppState must depend on BattleEngine (BattleRuntime), not BattleFeature'
 check_no_production_target_dependency TrinketAppState TrinketBattleFeature \
-  'TrinketAppState production target must depend on TrinketBattleRuntime, not BattleFeature'
+  'TrinketAppState production target must depend on BattleEngine, not BattleFeature'
 check_no_import "Packages/TrinketAppState/Sources" '^import TrinketFeatureAdapters$' \
   'TrinketAppState must depend on pure contracts, not save-backed FeatureAdapters'
 check_no_import "Packages/TrinketAppState/Sources" '^import TrinketFeatureSupport$' \
@@ -147,13 +147,13 @@ while IFS= read -r file; do
   esac
 done < <(rg -l '^import TrinketBattleFeature$' Trinket -g '*.swift' 2>/dev/null || true)
 
-# Runtime contracts must stay portable and presentation-free.
-for forbidden in SwiftUI UIKit AVFoundation TrinketBattleFeature TrinketAppState; do
-  check_no_import "Packages/TrinketBattleRuntime/Sources" "^import $forbidden$" \
-    "TrinketBattleRuntime must not import $forbidden"
-  check_no_package_dependency TrinketBattleRuntime "$forbidden" \
-    "TrinketBattleRuntime must not depend on $forbidden"
+# Runtime contracts (now in BattleEngine) must stay portable and presentation-free.
+# BattleRuntime contract files must not import presentation layers.
+for forbidden in SwiftUI UIKit TrinketBattleFeature TrinketAppState; do
+  check_no_import "Packages/BattleEngine/Sources" "^import $forbidden$" \
+    "BattleEngine runtime contract must not import $forbidden"
 done
+# Note: AVFoundation is allowed in BattleEngine for haptics wiring via BattleRuntimeDependencies; not checked here.
 
 if (( ${#violations[@]} > 0 )); then
   echo "Module boundary violations:" >&2

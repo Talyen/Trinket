@@ -140,6 +140,59 @@ public struct BlockTriggers: Equatable, Hashable, Sendable {
         self.physicalDamageBlockPercent = physicalDamageBlockPercent
         self.freezeDamageGrantsBlock = freezeDamageGrantsBlock
     }
+
+    /// All field names for this family — avoids `Mirror` reflection.
+    public static let fieldNames: [String] = ["blockBrokenBlockFlat", "blockBrokenSaintfallPower", "holyDamageBlockFlat", "stunDamageBlockFlat", "blockPerTurn", "blockGainThornsPercent", "sunderingBlockMultiplier", "blockRetainsThreeQuarters", "blockAbsorbsCompanionDamage", "onEnemyBlockBrokenDealPhysical", "postBlockOverflowDamageMultiplier", "maxDamagePerHitCap", "blockGainedMaxHealthEvery", "shieldDamageBonusWhileBlocked", "physicalBlockBreakMultiplier", "holyBlockBreakMultiplier", "physicalBlockIgnorePercent", "physicalIgnoresBlockVsStunnedOrFrozen", "stunnedEnemyLoseAllBlock", "holyIgnoresBlock", "holyIgnoresBlockAndDodge", "burnIgnoresBlockAndMitigation", "poisonStripsBlockBeforeHealth", "bleedStripsBlockPerTurn", "spellDamageTakenReductionWhileBlocked", "companionBlockSharesToHeroPercent", "onBlockHitDealHoly", "onBlockReduceAttackerAccuracyPercent", "onBlockReduceAttackerAccuracyTurns", "companionBlockProtectsHeroPercent", "onAnyHealthLossGainBlock", "onSelfHealthLossGainBlock", "companionFatalDamageRedirectBlock", "onEnemyFrozenGainBlock", "onCompanionTakeDamageGrantHeroBlock", "startBattleBlock", "blockPerGoldEarnedEvery", "goldGainBlockPercent", "blockPerGoldCollectedEvery", "onBurnDamageGainBlock", "onAllyBurnDamageGainBlock", "onHolyDamagePartyBlock", "physicalDamageBlockPercent", "freezeDamageGrantsBlock"]
+
+    /// Field names where `self` differs from `other`.
+    func populatedFieldNames(comparedTo other: Self) -> [String] {
+        var names: [String] = []
+        if self.blockBrokenBlockFlat != other.blockBrokenBlockFlat { names.append("blockBrokenBlockFlat") }
+        if self.blockBrokenSaintfallPower != other.blockBrokenSaintfallPower { names.append("blockBrokenSaintfallPower") }
+        if self.holyDamageBlockFlat != other.holyDamageBlockFlat { names.append("holyDamageBlockFlat") }
+        if self.stunDamageBlockFlat != other.stunDamageBlockFlat { names.append("stunDamageBlockFlat") }
+        if self.blockPerTurn != other.blockPerTurn { names.append("blockPerTurn") }
+        if self.blockGainThornsPercent != other.blockGainThornsPercent { names.append("blockGainThornsPercent") }
+        if self.sunderingBlockMultiplier != other.sunderingBlockMultiplier { names.append("sunderingBlockMultiplier") }
+        if self.blockRetainsThreeQuarters != other.blockRetainsThreeQuarters { names.append("blockRetainsThreeQuarters") }
+        if self.blockAbsorbsCompanionDamage != other.blockAbsorbsCompanionDamage { names.append("blockAbsorbsCompanionDamage") }
+        if self.onEnemyBlockBrokenDealPhysical != other.onEnemyBlockBrokenDealPhysical { names.append("onEnemyBlockBrokenDealPhysical") }
+        if self.postBlockOverflowDamageMultiplier != other.postBlockOverflowDamageMultiplier { names.append("postBlockOverflowDamageMultiplier") }
+        if self.maxDamagePerHitCap != other.maxDamagePerHitCap { names.append("maxDamagePerHitCap") }
+        if self.blockGainedMaxHealthEvery != other.blockGainedMaxHealthEvery { names.append("blockGainedMaxHealthEvery") }
+        if self.shieldDamageBonusWhileBlocked != other.shieldDamageBonusWhileBlocked { names.append("shieldDamageBonusWhileBlocked") }
+        if self.physicalBlockBreakMultiplier != other.physicalBlockBreakMultiplier { names.append("physicalBlockBreakMultiplier") }
+        if self.holyBlockBreakMultiplier != other.holyBlockBreakMultiplier { names.append("holyBlockBreakMultiplier") }
+        if self.physicalBlockIgnorePercent != other.physicalBlockIgnorePercent { names.append("physicalBlockIgnorePercent") }
+        if self.physicalIgnoresBlockVsStunnedOrFrozen != other.physicalIgnoresBlockVsStunnedOrFrozen { names.append("physicalIgnoresBlockVsStunnedOrFrozen") }
+        if self.stunnedEnemyLoseAllBlock != other.stunnedEnemyLoseAllBlock { names.append("stunnedEnemyLoseAllBlock") }
+        if self.holyIgnoresBlock != other.holyIgnoresBlock { names.append("holyIgnoresBlock") }
+        if self.holyIgnoresBlockAndDodge != other.holyIgnoresBlockAndDodge { names.append("holyIgnoresBlockAndDodge") }
+        if self.burnIgnoresBlockAndMitigation != other.burnIgnoresBlockAndMitigation { names.append("burnIgnoresBlockAndMitigation") }
+        if self.poisonStripsBlockBeforeHealth != other.poisonStripsBlockBeforeHealth { names.append("poisonStripsBlockBeforeHealth") }
+        if self.bleedStripsBlockPerTurn != other.bleedStripsBlockPerTurn { names.append("bleedStripsBlockPerTurn") }
+        if self.spellDamageTakenReductionWhileBlocked != other.spellDamageTakenReductionWhileBlocked { names.append("spellDamageTakenReductionWhileBlocked") }
+        if self.companionBlockSharesToHeroPercent != other.companionBlockSharesToHeroPercent { names.append("companionBlockSharesToHeroPercent") }
+        if self.onBlockHitDealHoly != other.onBlockHitDealHoly { names.append("onBlockHitDealHoly") }
+        if self.onBlockReduceAttackerAccuracyPercent != other.onBlockReduceAttackerAccuracyPercent { names.append("onBlockReduceAttackerAccuracyPercent") }
+        if self.onBlockReduceAttackerAccuracyTurns != other.onBlockReduceAttackerAccuracyTurns { names.append("onBlockReduceAttackerAccuracyTurns") }
+        if self.companionBlockProtectsHeroPercent != other.companionBlockProtectsHeroPercent { names.append("companionBlockProtectsHeroPercent") }
+        if self.onAnyHealthLossGainBlock != other.onAnyHealthLossGainBlock { names.append("onAnyHealthLossGainBlock") }
+        if self.onSelfHealthLossGainBlock != other.onSelfHealthLossGainBlock { names.append("onSelfHealthLossGainBlock") }
+        if self.companionFatalDamageRedirectBlock != other.companionFatalDamageRedirectBlock { names.append("companionFatalDamageRedirectBlock") }
+        if self.onEnemyFrozenGainBlock != other.onEnemyFrozenGainBlock { names.append("onEnemyFrozenGainBlock") }
+        if self.onCompanionTakeDamageGrantHeroBlock != other.onCompanionTakeDamageGrantHeroBlock { names.append("onCompanionTakeDamageGrantHeroBlock") }
+        if self.startBattleBlock != other.startBattleBlock { names.append("startBattleBlock") }
+        if self.blockPerGoldEarnedEvery != other.blockPerGoldEarnedEvery { names.append("blockPerGoldEarnedEvery") }
+        if self.goldGainBlockPercent != other.goldGainBlockPercent { names.append("goldGainBlockPercent") }
+        if self.blockPerGoldCollectedEvery != other.blockPerGoldCollectedEvery { names.append("blockPerGoldCollectedEvery") }
+        if self.onBurnDamageGainBlock != other.onBurnDamageGainBlock { names.append("onBurnDamageGainBlock") }
+        if self.onAllyBurnDamageGainBlock != other.onAllyBurnDamageGainBlock { names.append("onAllyBurnDamageGainBlock") }
+        if self.onHolyDamagePartyBlock != other.onHolyDamagePartyBlock { names.append("onHolyDamagePartyBlock") }
+        if self.physicalDamageBlockPercent != other.physicalDamageBlockPercent { names.append("physicalDamageBlockPercent") }
+        if self.freezeDamageGrantsBlock != other.freezeDamageGrantsBlock { names.append("freezeDamageGrantsBlock") }
+        return names
+    }
 }
 
 extension BlockTriggers {

@@ -34,10 +34,15 @@ package struct DamageTargetStatus {
 /// limited by mechanics (once-per-turn guards, isResolving* flags), not an
 /// arbitrary shallow cap. Hit at 10 logs and truncates to avoid true infinite
 /// recursion.
+///
+/// `maxDepth` is the single source of truth; per-domain aliases remain for
+/// call-site clarity. DoT mirror cascading has its own sub-cap of 5.
 package enum ReactionScope {
-    package static let maxTalentReactionDepth = 10
-    package static let maxDotRecursionDepth = 10
-    package static let maxDrawAndPlayDepth = 10
+    package static let maxDepth = 10
+    package static let maxTalentReactionDepth = maxDepth
+    package static let maxDotRecursionDepth = maxDepth
+    package static let maxDrawAndPlayDepth = maxDepth
+    package static let maxDoTMirrorChainDepth = 5
 
     package static let logger = Logger(subsystem: "com.trinket.battle", category: "ReactionScope")
 

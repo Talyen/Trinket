@@ -23,7 +23,6 @@ Packages/
     Sources/TrinketFeatureSupport/    Shared game UI, presentation models, artwork/frame support
     Sources/TrinketFeatureContracts/ Pure navigation/deep-link values, battle presentation/reward DTOs (SwiftUI-free)
     Sources/TrinketFeatureAdapters/  Save-backed map/detail adapters
-  TrinketBattleRuntime/     SwiftUI-free battle lifecycle contract and launch DTOs
   TrinketBattleFeature/     Battle facade, read lanes, presentation, outcome, and Battle UI
   TrinketAppState/          App/Play orchestration, encounter sessions, options, and audio
   TrinketTestSupport/       Shared combat/content fixtures (CombatantFixtures, battle parties)
@@ -48,7 +47,6 @@ Scripts/                    generate, build, test, CI helpers
 | Shared UI chrome | [TrinketDesignSystem](../../Packages/TrinketDesignSystem/README.md) | Product colors, materials, typography, and reusable chrome |
 | Shared feature support | [TrinketFeatureSupport](../../Packages/TrinketFeatureSupport/README.md) | Game-specific presentation support and contracts |
 | Feature contracts | [TrinketFeatureContracts](../../Packages/TrinketFeatureSupport/README.md) | SwiftUI-free contract values; no save or view adapters |
-| Battle runtime contract | [TrinketBattleRuntime](../../Packages/TrinketBattleRuntime/README.md) | SwiftUI-free lifecycle and launch inputs |
 | Battle presentation | [TrinketBattleFeature](../../Packages/TrinketBattleFeature/README.md) | Battle lifecycle, projection, feedback, spectacle, and UI |
 | App and Play orchestration | [TrinketAppState](../../Packages/TrinketAppState/README.md) | Composition, shell navigation, mode owners, and audio |
 | App entry and non-Battle screens | `Trinket` | SwiftUI roots and product screens |
@@ -86,16 +84,16 @@ dependency sources of truth.
 ```text
 Trinket app
   ├── TrinketAppState
-  │     ├── TrinketBattleRuntime
+  │     ├── BattleEngine (BattleRuntime contract)
   │     └── TrinketFeatureContracts
   ├── TrinketBattleFeature
   ├── TrinketFeatureSupport
   └── TrinketFeatureAdapters
 
 TrinketBattleFeature ───→ TrinketFeatureSupport
-TrinketBattleFeature ───→ TrinketBattleRuntime
+TrinketBattleFeature ───→ BattleEngine
 
-TrinketBattleRuntime ───→ BattleEngine ───→ TrinketContent ──→ TrinketCore
+BattleEngine ───────────→ TrinketContent ──→ TrinketCore
 
 TrinketFeatureAdapters ──→ TrinketFeatureSupport
         │                   BattleEngine
@@ -122,12 +120,12 @@ TrinketDesignSystem ────────────────────
 it cannot be imported by `TrinketBattleFeature`. Neither support target may depend on
 `TrinketBattleFeature` or `TrinketAppState`.
 `TrinketBattleFeature` cannot depend on `TrinketAppState`. `TrinketAppState` depends on
-`TrinketBattleRuntime`, never the presentation feature. No package may import the `Trinket`
+`BattleEngine` (for `BattleRuntime`), never the presentation feature. No package may import the `Trinket`
 app module. `./Scripts/check-module-boundaries.sh` enforces these rules in source imports
 and package manifests.
 
 The app target is a composition root. `TrinketAppState` production code depends on
-`TrinketBattleRuntime` and `TrinketFeatureContracts`, never concrete BattleFeature or
+`BattleEngine` and `TrinketFeatureContracts`, never concrete BattleFeature or
 save-backed adapters. Views take the narrowest owner. Launch/DTO details:
 [battle-runtime.md](../AgentContext/battle-runtime.md).
 

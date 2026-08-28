@@ -116,6 +116,51 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
         self.burnDamageLeech = burnDamageLeech
         self.bleedDamageLeech = bleedDamageLeech
     }
+
+    /// All field names for this family — avoids `Mirror` reflection.
+    public static let fieldNames: [String] = ["burnDecaySlowPercent", "poisonDecaySlowPercent", "poisonDecayIncreaseChance", "onBleedApplyPoison", "onBurnApplyPoison", "onBleedDealBurnDamage", "onBleedDealPoisonChancePercent", "onBurnDealPoisonChancePercent", "onBleedDealBurnChancePercent", "onBurnDamageDetonateBleedChancePercent", "poisonStunChancePercent", "freezeDamageWhileBurningBonus", "onBleedDamagePoisonTick", "onBleedAppliedToBleedingExtendTurns", "onBleedAppliedToBleedingDealDamage", "bleedsIgnoreMitigation", "onBleedDamageHealSelf", "onBurnTickHolyDamage", "burnTicksTwicePerTurn", "damagePerBurnPotencyPercent", "burnIncreaseChancePercent", "poisonThresholdStunAmount", "poisonDamageLeechPercent", "onCritDoubleBleedDuration", "criticalOnBleedingDetonateBleed", "criticalDetonateBleedAndPoison", "onBurnDamageDetonateBleed", "freezeDamageLeech", "poisonDamageLeech", "bleedDamageGoldFlat", "burnDamageManaRestoreThreshold", "onBurnDamageRestoreManaPerTurnCap", "burnProcsBleedChancePercent", "bleedProcsBurnChancePercent", "burnDamageLeech", "bleedDamageLeech"]
+
+    /// Field names where `self` differs from `other`.
+    func populatedFieldNames(comparedTo other: Self) -> [String] {
+        var names: [String] = []
+        if self.burnDecaySlowPercent != other.burnDecaySlowPercent { names.append("burnDecaySlowPercent") }
+        if self.poisonDecaySlowPercent != other.poisonDecaySlowPercent { names.append("poisonDecaySlowPercent") }
+        if self.poisonDecayIncreaseChance != other.poisonDecayIncreaseChance { names.append("poisonDecayIncreaseChance") }
+        if self.onBleedApplyPoison != other.onBleedApplyPoison { names.append("onBleedApplyPoison") }
+        if self.onBurnApplyPoison != other.onBurnApplyPoison { names.append("onBurnApplyPoison") }
+        if self.onBleedDealBurnDamage != other.onBleedDealBurnDamage { names.append("onBleedDealBurnDamage") }
+        if self.onBleedDealPoisonChancePercent != other.onBleedDealPoisonChancePercent { names.append("onBleedDealPoisonChancePercent") }
+        if self.onBurnDealPoisonChancePercent != other.onBurnDealPoisonChancePercent { names.append("onBurnDealPoisonChancePercent") }
+        if self.onBleedDealBurnChancePercent != other.onBleedDealBurnChancePercent { names.append("onBleedDealBurnChancePercent") }
+        if self.onBurnDamageDetonateBleedChancePercent != other.onBurnDamageDetonateBleedChancePercent { names.append("onBurnDamageDetonateBleedChancePercent") }
+        if self.poisonStunChancePercent != other.poisonStunChancePercent { names.append("poisonStunChancePercent") }
+        if self.freezeDamageWhileBurningBonus != other.freezeDamageWhileBurningBonus { names.append("freezeDamageWhileBurningBonus") }
+        if self.onBleedDamagePoisonTick != other.onBleedDamagePoisonTick { names.append("onBleedDamagePoisonTick") }
+        if self.onBleedAppliedToBleedingExtendTurns != other.onBleedAppliedToBleedingExtendTurns { names.append("onBleedAppliedToBleedingExtendTurns") }
+        if self.onBleedAppliedToBleedingDealDamage != other.onBleedAppliedToBleedingDealDamage { names.append("onBleedAppliedToBleedingDealDamage") }
+        if self.bleedsIgnoreMitigation != other.bleedsIgnoreMitigation { names.append("bleedsIgnoreMitigation") }
+        if self.onBleedDamageHealSelf != other.onBleedDamageHealSelf { names.append("onBleedDamageHealSelf") }
+        if self.onBurnTickHolyDamage != other.onBurnTickHolyDamage { names.append("onBurnTickHolyDamage") }
+        if self.burnTicksTwicePerTurn != other.burnTicksTwicePerTurn { names.append("burnTicksTwicePerTurn") }
+        if self.damagePerBurnPotencyPercent != other.damagePerBurnPotencyPercent { names.append("damagePerBurnPotencyPercent") }
+        if self.burnIncreaseChancePercent != other.burnIncreaseChancePercent { names.append("burnIncreaseChancePercent") }
+        if self.poisonThresholdStunAmount != other.poisonThresholdStunAmount { names.append("poisonThresholdStunAmount") }
+        if self.poisonDamageLeechPercent != other.poisonDamageLeechPercent { names.append("poisonDamageLeechPercent") }
+        if self.onCritDoubleBleedDuration != other.onCritDoubleBleedDuration { names.append("onCritDoubleBleedDuration") }
+        if self.criticalOnBleedingDetonateBleed != other.criticalOnBleedingDetonateBleed { names.append("criticalOnBleedingDetonateBleed") }
+        if self.criticalDetonateBleedAndPoison != other.criticalDetonateBleedAndPoison { names.append("criticalDetonateBleedAndPoison") }
+        if self.onBurnDamageDetonateBleed != other.onBurnDamageDetonateBleed { names.append("onBurnDamageDetonateBleed") }
+        if self.freezeDamageLeech != other.freezeDamageLeech { names.append("freezeDamageLeech") }
+        if self.poisonDamageLeech != other.poisonDamageLeech { names.append("poisonDamageLeech") }
+        if self.bleedDamageGoldFlat != other.bleedDamageGoldFlat { names.append("bleedDamageGoldFlat") }
+        if self.burnDamageManaRestoreThreshold != other.burnDamageManaRestoreThreshold { names.append("burnDamageManaRestoreThreshold") }
+        if self.onBurnDamageRestoreManaPerTurnCap != other.onBurnDamageRestoreManaPerTurnCap { names.append("onBurnDamageRestoreManaPerTurnCap") }
+        if self.burnProcsBleedChancePercent != other.burnProcsBleedChancePercent { names.append("burnProcsBleedChancePercent") }
+        if self.bleedProcsBurnChancePercent != other.bleedProcsBurnChancePercent { names.append("bleedProcsBurnChancePercent") }
+        if self.burnDamageLeech != other.burnDamageLeech { names.append("burnDamageLeech") }
+        if self.bleedDamageLeech != other.bleedDamageLeech { names.append("bleedDamageLeech") }
+        return names
+    }
 }
 
 extension DotTriggers {

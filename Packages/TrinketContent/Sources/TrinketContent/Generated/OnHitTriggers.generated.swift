@@ -26,6 +26,21 @@ public struct OnHitTriggers: Equatable, Hashable, Sendable {
         self.onHitAttackerBleedTurns = onHitAttackerBleedTurns
         self.onHitAttackerHoly = onHitAttackerHoly
     }
+
+    /// All field names for this family — avoids `Mirror` reflection.
+    public static let fieldNames: [String] = ["onHitAttackerBurn", "onHitAttackerFreezeBuildup", "onHitAttackerPoison", "onHitAttackerBleedPotency", "onHitAttackerBleedTurns", "onHitAttackerHoly"]
+
+    /// Field names where `self` differs from `other`.
+    func populatedFieldNames(comparedTo other: Self) -> [String] {
+        var names: [String] = []
+        if self.onHitAttackerBurn != other.onHitAttackerBurn { names.append("onHitAttackerBurn") }
+        if self.onHitAttackerFreezeBuildup != other.onHitAttackerFreezeBuildup { names.append("onHitAttackerFreezeBuildup") }
+        if self.onHitAttackerPoison != other.onHitAttackerPoison { names.append("onHitAttackerPoison") }
+        if self.onHitAttackerBleedPotency != other.onHitAttackerBleedPotency { names.append("onHitAttackerBleedPotency") }
+        if self.onHitAttackerBleedTurns != other.onHitAttackerBleedTurns { names.append("onHitAttackerBleedTurns") }
+        if self.onHitAttackerHoly != other.onHitAttackerHoly { names.append("onHitAttackerHoly") }
+        return names
+    }
 }
 
 extension OnHitTriggers {

@@ -149,6 +149,62 @@ public struct DamageTriggers: Equatable, Hashable, Sendable {
         self.partyAllStatsBonusBelowHealthThreshold = partyAllStatsBonusBelowHealthThreshold
         self.partyAllStatsBonusBelowHealthAmount = partyAllStatsBonusBelowHealthAmount
     }
+
+    /// All field names for this family — avoids `Mirror` reflection.
+    public static let fieldNames: [String] = ["damageBelowHealthPercentThreshold", "damageBelowHealthPercentKeyword", "damageBelowHealthPercentBonus", "damageAfterDodgeBonus", "damageWhileTargetFrozenBonus", "damageWhileTargetStunnedBonus", "ignoreEnemyMitigationPercent", "leechIgnoresMitigation", "firstHitDoubleDamage", "turnRandomDamageAllEnemiesKeywordA", "turnRandomDamageAllEnemiesKeywordB", "turnRandomDamageAllEnemiesAmount", "holyDamagePoisonFlat", "stunnedDamageMultiplier", "criticalChanceBonus", "damageVsBleedingBonus", "damageVsPoisonedMultiplier", "damageVsBurningMultiplier", "damageVsFrozenMultiplier", "holyDamageVsStunnedOrBurningMultiplier", "holyDamageVsPoisonedOrBleedingMultiplier", "holyDamageVsStunnedBonus", "holyDamageVsUndeadOrCorruptedMultiplier", "frostDamageVsFrozenBonus", "burnDamageVsFrozenBonusPhysical", "burnDamageVsNoBlockMultiplier", "physicalDamageVsBleedingMultiplier", "damagePerMissingHealthEvery", "damagePerCarriedGoldEvery", "goldReservesDamageEvery", "goldReservesDamageCap", "damageVsLowerHealthEnemyBonus", "companionDamageVsPoisonedBonus", "companionDamageVsBurningBonus", "heroDamageVsStunnedMultiplier", "poisonDamageBelowHealthThreshold", "poisonDamageBelowHealthMultiplier", "bleedTickCritChancePercent", "burnDamageDoubleChancePercent", "partyCritChanceWhileCompanionAboveHealthThreshold", "partyCritChanceWhileCompanionAboveHealthBonus", "heroCritChanceWhileCompanionAlive", "critChancePerBleedingEnemy", "partyCritChanceWhileGoldAbove", "partyCritChanceWhileGoldAboveBonus", "partyAllStatsBonusBelowHealthThreshold", "partyAllStatsBonusBelowHealthAmount"]
+
+    /// Field names where `self` differs from `other`.
+    func populatedFieldNames(comparedTo other: Self) -> [String] {
+        var names: [String] = []
+        if self.damageBelowHealthPercentThreshold != other.damageBelowHealthPercentThreshold { names.append("damageBelowHealthPercentThreshold") }
+        if self.damageBelowHealthPercentKeyword != other.damageBelowHealthPercentKeyword { names.append("damageBelowHealthPercentKeyword") }
+        if self.damageBelowHealthPercentBonus != other.damageBelowHealthPercentBonus { names.append("damageBelowHealthPercentBonus") }
+        if self.damageAfterDodgeBonus != other.damageAfterDodgeBonus { names.append("damageAfterDodgeBonus") }
+        if self.damageWhileTargetFrozenBonus != other.damageWhileTargetFrozenBonus { names.append("damageWhileTargetFrozenBonus") }
+        if self.damageWhileTargetStunnedBonus != other.damageWhileTargetStunnedBonus { names.append("damageWhileTargetStunnedBonus") }
+        if self.ignoreEnemyMitigationPercent != other.ignoreEnemyMitigationPercent { names.append("ignoreEnemyMitigationPercent") }
+        if self.leechIgnoresMitigation != other.leechIgnoresMitigation { names.append("leechIgnoresMitigation") }
+        if self.firstHitDoubleDamage != other.firstHitDoubleDamage { names.append("firstHitDoubleDamage") }
+        if self.turnRandomDamageAllEnemiesKeywordA != other.turnRandomDamageAllEnemiesKeywordA { names.append("turnRandomDamageAllEnemiesKeywordA") }
+        if self.turnRandomDamageAllEnemiesKeywordB != other.turnRandomDamageAllEnemiesKeywordB { names.append("turnRandomDamageAllEnemiesKeywordB") }
+        if self.turnRandomDamageAllEnemiesAmount != other.turnRandomDamageAllEnemiesAmount { names.append("turnRandomDamageAllEnemiesAmount") }
+        if self.holyDamagePoisonFlat != other.holyDamagePoisonFlat { names.append("holyDamagePoisonFlat") }
+        if self.stunnedDamageMultiplier != other.stunnedDamageMultiplier { names.append("stunnedDamageMultiplier") }
+        if self.criticalChanceBonus != other.criticalChanceBonus { names.append("criticalChanceBonus") }
+        if self.damageVsBleedingBonus != other.damageVsBleedingBonus { names.append("damageVsBleedingBonus") }
+        if self.damageVsPoisonedMultiplier != other.damageVsPoisonedMultiplier { names.append("damageVsPoisonedMultiplier") }
+        if self.damageVsBurningMultiplier != other.damageVsBurningMultiplier { names.append("damageVsBurningMultiplier") }
+        if self.damageVsFrozenMultiplier != other.damageVsFrozenMultiplier { names.append("damageVsFrozenMultiplier") }
+        if self.holyDamageVsStunnedOrBurningMultiplier != other.holyDamageVsStunnedOrBurningMultiplier { names.append("holyDamageVsStunnedOrBurningMultiplier") }
+        if self.holyDamageVsPoisonedOrBleedingMultiplier != other.holyDamageVsPoisonedOrBleedingMultiplier { names.append("holyDamageVsPoisonedOrBleedingMultiplier") }
+        if self.holyDamageVsStunnedBonus != other.holyDamageVsStunnedBonus { names.append("holyDamageVsStunnedBonus") }
+        if self.holyDamageVsUndeadOrCorruptedMultiplier != other.holyDamageVsUndeadOrCorruptedMultiplier { names.append("holyDamageVsUndeadOrCorruptedMultiplier") }
+        if self.frostDamageVsFrozenBonus != other.frostDamageVsFrozenBonus { names.append("frostDamageVsFrozenBonus") }
+        if self.burnDamageVsFrozenBonusPhysical != other.burnDamageVsFrozenBonusPhysical { names.append("burnDamageVsFrozenBonusPhysical") }
+        if self.burnDamageVsNoBlockMultiplier != other.burnDamageVsNoBlockMultiplier { names.append("burnDamageVsNoBlockMultiplier") }
+        if self.physicalDamageVsBleedingMultiplier != other.physicalDamageVsBleedingMultiplier { names.append("physicalDamageVsBleedingMultiplier") }
+        if self.damagePerMissingHealthEvery != other.damagePerMissingHealthEvery { names.append("damagePerMissingHealthEvery") }
+        if self.damagePerCarriedGoldEvery != other.damagePerCarriedGoldEvery { names.append("damagePerCarriedGoldEvery") }
+        if self.goldReservesDamageEvery != other.goldReservesDamageEvery { names.append("goldReservesDamageEvery") }
+        if self.goldReservesDamageCap != other.goldReservesDamageCap { names.append("goldReservesDamageCap") }
+        if self.damageVsLowerHealthEnemyBonus != other.damageVsLowerHealthEnemyBonus { names.append("damageVsLowerHealthEnemyBonus") }
+        if self.companionDamageVsPoisonedBonus != other.companionDamageVsPoisonedBonus { names.append("companionDamageVsPoisonedBonus") }
+        if self.companionDamageVsBurningBonus != other.companionDamageVsBurningBonus { names.append("companionDamageVsBurningBonus") }
+        if self.heroDamageVsStunnedMultiplier != other.heroDamageVsStunnedMultiplier { names.append("heroDamageVsStunnedMultiplier") }
+        if self.poisonDamageBelowHealthThreshold != other.poisonDamageBelowHealthThreshold { names.append("poisonDamageBelowHealthThreshold") }
+        if self.poisonDamageBelowHealthMultiplier != other.poisonDamageBelowHealthMultiplier { names.append("poisonDamageBelowHealthMultiplier") }
+        if self.bleedTickCritChancePercent != other.bleedTickCritChancePercent { names.append("bleedTickCritChancePercent") }
+        if self.burnDamageDoubleChancePercent != other.burnDamageDoubleChancePercent { names.append("burnDamageDoubleChancePercent") }
+        if self.partyCritChanceWhileCompanionAboveHealthThreshold != other.partyCritChanceWhileCompanionAboveHealthThreshold { names.append("partyCritChanceWhileCompanionAboveHealthThreshold") }
+        if self.partyCritChanceWhileCompanionAboveHealthBonus != other.partyCritChanceWhileCompanionAboveHealthBonus { names.append("partyCritChanceWhileCompanionAboveHealthBonus") }
+        if self.heroCritChanceWhileCompanionAlive != other.heroCritChanceWhileCompanionAlive { names.append("heroCritChanceWhileCompanionAlive") }
+        if self.critChancePerBleedingEnemy != other.critChancePerBleedingEnemy { names.append("critChancePerBleedingEnemy") }
+        if self.partyCritChanceWhileGoldAbove != other.partyCritChanceWhileGoldAbove { names.append("partyCritChanceWhileGoldAbove") }
+        if self.partyCritChanceWhileGoldAboveBonus != other.partyCritChanceWhileGoldAboveBonus { names.append("partyCritChanceWhileGoldAboveBonus") }
+        if self.partyAllStatsBonusBelowHealthThreshold != other.partyAllStatsBonusBelowHealthThreshold { names.append("partyAllStatsBonusBelowHealthThreshold") }
+        if self.partyAllStatsBonusBelowHealthAmount != other.partyAllStatsBonusBelowHealthAmount { names.append("partyAllStatsBonusBelowHealthAmount") }
+        return names
+    }
 }
 
 extension DamageTriggers {

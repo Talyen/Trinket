@@ -176,7 +176,7 @@ package enum HealingEngine {
     ) -> [ActionEvent] {
         guard overflow > 0 else { return [] }
         var events: [ActionEvent] = []
-        let conversion = overhealConversionTriggers(source: sourceTriggers, target: targetTriggers)
+        let conversion = overhealConversionTriggers(source: sourceTriggers, target: targetTriggers, request: request)
         var overflowRemaining = overflow
         if conversion.overhealConvertsToMaxHealth {
             let perEvent = conversion.overhealConvertsToMaxHealthPerEvent
@@ -234,12 +234,26 @@ package enum HealingEngine {
 
     private static func overhealConversionTriggers(
         source: CombatTraitTriggers?,
-        target: CombatTraitTriggers
+        target: CombatTraitTriggers,
+        request: HealRequest
     ) -> CombatTraitTriggers {
-        if let source,
-           source.overhealConvertsToBlock
-           || source.overhealConvertsToMaxHealth
-           || source.overhealShieldCap > 0 {
+        let isSelfHeal = request.sourceActorID == request.target.id
+        if isSelfHeal {
+            if let source,
+               source.overhealConvertsToBlock
+               || source.overhealConvertsToMaxHealth
+               || source.overhealShieldCap > 0 {
+                return source
+            }
+            return target
+        }
+        // Ally heal: target's conversion takes priority so companion's Barrier Blessing isn't overwritten by healer's.
+        if target.overhealConvertsToBlock
+            || target.overhealConvertsToMaxHealth
+            || target.overhealShieldCap > 0 {
+            return target
+        }
+        if let source {
             return source
         }
         return target

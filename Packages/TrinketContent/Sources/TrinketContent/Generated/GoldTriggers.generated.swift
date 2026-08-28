@@ -68,6 +68,35 @@ public struct GoldTriggers: Equatable, Hashable, Sendable {
         self.goldDoubledWhileFullHealth = goldDoubledWhileFullHealth
         self.onGainGoldDoubleStatusEffectsNextCard = onGainGoldDoubleStatusEffectsNextCard
     }
+
+    /// All field names for this family — avoids `Mirror` reflection.
+    public static let fieldNames: [String] = ["gainGoldBonusHealSelf", "defeatEnemyGoldFlat", "leechGoldFlat", "goldPerTurn", "victoryGoldFlat", "victoryGoldCoin", "criticalGoldFlat", "criticalActionGoldFlat", "startBattleBonusGold", "onGainGoldDrawCardOncePerTurn", "onGainGoldHealParty", "goldEveryNTurnsInterval", "goldEveryNTurnsAmount", "onEnemyAbilityGold", "criticalVsStunnedEnemyGold", "critOnDefeatGold", "partyGoldGainedPercent", "goldAbsorbsDamage", "goldDoubledWhileFullHealth", "onGainGoldDoubleStatusEffectsNextCard"]
+
+    /// Field names where `self` differs from `other`.
+    func populatedFieldNames(comparedTo other: Self) -> [String] {
+        var names: [String] = []
+        if self.gainGoldBonusHealSelf != other.gainGoldBonusHealSelf { names.append("gainGoldBonusHealSelf") }
+        if self.defeatEnemyGoldFlat != other.defeatEnemyGoldFlat { names.append("defeatEnemyGoldFlat") }
+        if self.leechGoldFlat != other.leechGoldFlat { names.append("leechGoldFlat") }
+        if self.goldPerTurn != other.goldPerTurn { names.append("goldPerTurn") }
+        if self.victoryGoldFlat != other.victoryGoldFlat { names.append("victoryGoldFlat") }
+        if self.victoryGoldCoin != other.victoryGoldCoin { names.append("victoryGoldCoin") }
+        if self.criticalGoldFlat != other.criticalGoldFlat { names.append("criticalGoldFlat") }
+        if self.criticalActionGoldFlat != other.criticalActionGoldFlat { names.append("criticalActionGoldFlat") }
+        if self.startBattleBonusGold != other.startBattleBonusGold { names.append("startBattleBonusGold") }
+        if self.onGainGoldDrawCardOncePerTurn != other.onGainGoldDrawCardOncePerTurn { names.append("onGainGoldDrawCardOncePerTurn") }
+        if self.onGainGoldHealParty != other.onGainGoldHealParty { names.append("onGainGoldHealParty") }
+        if self.goldEveryNTurnsInterval != other.goldEveryNTurnsInterval { names.append("goldEveryNTurnsInterval") }
+        if self.goldEveryNTurnsAmount != other.goldEveryNTurnsAmount { names.append("goldEveryNTurnsAmount") }
+        if self.onEnemyAbilityGold != other.onEnemyAbilityGold { names.append("onEnemyAbilityGold") }
+        if self.criticalVsStunnedEnemyGold != other.criticalVsStunnedEnemyGold { names.append("criticalVsStunnedEnemyGold") }
+        if self.critOnDefeatGold != other.critOnDefeatGold { names.append("critOnDefeatGold") }
+        if self.partyGoldGainedPercent != other.partyGoldGainedPercent { names.append("partyGoldGainedPercent") }
+        if self.goldAbsorbsDamage != other.goldAbsorbsDamage { names.append("goldAbsorbsDamage") }
+        if self.goldDoubledWhileFullHealth != other.goldDoubledWhileFullHealth { names.append("goldDoubledWhileFullHealth") }
+        if self.onGainGoldDoubleStatusEffectsNextCard != other.onGainGoldDoubleStatusEffectsNextCard { names.append("onGainGoldDoubleStatusEffectsNextCard") }
+        return names
+    }
 }
 
 extension GoldTriggers {

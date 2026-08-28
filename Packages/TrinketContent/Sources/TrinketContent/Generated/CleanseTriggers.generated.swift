@@ -53,6 +53,30 @@ public struct CleanseTriggers: Equatable, Hashable, Sendable {
         self.partyDebuffDurationHalved = partyDebuffDurationHalved
         self.onCleansePoisonDealDamagePerStack = onCleansePoisonDealDamagePerStack
     }
+
+    /// All field names for this family — avoids `Mirror` reflection.
+    public static let fieldNames: [String] = ["cleanseBonusDraw", "holyDamageCleanseCount", "holyDamagePurgeCount", "holyDamagePurgeAll", "cleanseBlockPerStack", "cleanseAffectsBothHeroAndCompanion", "cleanseReflectDebuffToEnemy", "autoCleanseTeamPerTurn", "cleanseAlsoPurgesEnemyBuffs", "cleanseDodgeChanceBonus", "cleanseDodgeChanceBonusTurns", "cleansePartyBlock", "blockFirstDebuffPerTurn", "partyDebuffDurationHalved", "onCleansePoisonDealDamagePerStack"]
+
+    /// Field names where `self` differs from `other`.
+    func populatedFieldNames(comparedTo other: Self) -> [String] {
+        var names: [String] = []
+        if self.cleanseBonusDraw != other.cleanseBonusDraw { names.append("cleanseBonusDraw") }
+        if self.holyDamageCleanseCount != other.holyDamageCleanseCount { names.append("holyDamageCleanseCount") }
+        if self.holyDamagePurgeCount != other.holyDamagePurgeCount { names.append("holyDamagePurgeCount") }
+        if self.holyDamagePurgeAll != other.holyDamagePurgeAll { names.append("holyDamagePurgeAll") }
+        if self.cleanseBlockPerStack != other.cleanseBlockPerStack { names.append("cleanseBlockPerStack") }
+        if self.cleanseAffectsBothHeroAndCompanion != other.cleanseAffectsBothHeroAndCompanion { names.append("cleanseAffectsBothHeroAndCompanion") }
+        if self.cleanseReflectDebuffToEnemy != other.cleanseReflectDebuffToEnemy { names.append("cleanseReflectDebuffToEnemy") }
+        if self.autoCleanseTeamPerTurn != other.autoCleanseTeamPerTurn { names.append("autoCleanseTeamPerTurn") }
+        if self.cleanseAlsoPurgesEnemyBuffs != other.cleanseAlsoPurgesEnemyBuffs { names.append("cleanseAlsoPurgesEnemyBuffs") }
+        if self.cleanseDodgeChanceBonus != other.cleanseDodgeChanceBonus { names.append("cleanseDodgeChanceBonus") }
+        if self.cleanseDodgeChanceBonusTurns != other.cleanseDodgeChanceBonusTurns { names.append("cleanseDodgeChanceBonusTurns") }
+        if self.cleansePartyBlock != other.cleansePartyBlock { names.append("cleansePartyBlock") }
+        if self.blockFirstDebuffPerTurn != other.blockFirstDebuffPerTurn { names.append("blockFirstDebuffPerTurn") }
+        if self.partyDebuffDurationHalved != other.partyDebuffDurationHalved { names.append("partyDebuffDurationHalved") }
+        if self.onCleansePoisonDealDamagePerStack != other.onCleansePoisonDealDamagePerStack { names.append("onCleansePoisonDealDamagePerStack") }
+        return names
+    }
 }
 
 extension CleanseTriggers {

@@ -40,11 +40,33 @@ public struct BattleState {
     public let rngSeed: UInt64
 
     /// When `false`, no log cache is allocated or updated during the battle.
+    /// Requires `tracksEvents` to be true — log is built from events.
     public let tracksLog: Bool
 
     /// When `false`, action events are not retained on `events` (still returned from step APIs).
     /// Use for bulk simulation to avoid unbounded allocation.
     public let tracksEvents: Bool
+
+    /// Unified observation mode: `.none` = no events/log, `.eventsOnly` = events but no log, `.fullLog` = both.
+    public enum BattleObservationMode: Sendable {
+        case none, eventsOnly, fullLog
+        var tracksLog: Bool {
+            self == .fullLog
+        }
+
+        var tracksEvents: Bool {
+            self != .none
+        }
+    }
+
+    public var observationMode: BattleObservationMode {
+        switch (tracksLog, tracksEvents) {
+        case (true, true): .fullLog
+        case (false, true): .eventsOnly
+        case (false, false): .none
+        case (true, false): .none // invalid, treated as none
+        }
+    }
 
     /// When `false`, authored combat magnitudes skip hidden `FightPacing` scaling.
     /// Shipping battles leave this `true`.
@@ -157,6 +179,7 @@ public struct BattleState {
         tracksEvents: Bool = true,
         appliesFightPacing: Bool = true
     ) {
+        precondition(!(tracksLog && !tracksEvents), "tracksLog requires tracksEvents")
         rngSeed = rng.seed
         self.tracksLog = tracksLog
         self.tracksEvents = tracksEvents

@@ -122,6 +122,53 @@ public struct ManaTriggers: Equatable, Hashable, Sendable {
         self.companionCardsPerTurn = companionCardsPerTurn
         self.onFreezeEnemyGainManaEqualBlock = onFreezeEnemyGainManaEqualBlock
     }
+
+    /// All field names for this family — avoids `Mirror` reflection.
+    public static let fieldNames: [String] = ["spendManaBlockFlat", "empoweredElementDrawOpposite", "spendManaRandomDoTFlat", "gainManaBlockFlat", "leechRestoreManaFlat", "drawOnSpendMana", "repeatManaEmpowerment", "unspentManaConvertsToBlock", "spendManaThresholdCleanseCount", "spendManaEmpowerNextCardThreshold", "nextCardEmpowerPercent", "startTurnFullManaDrawCards", "firstSkillCardPlaysTwicePerBattle", "onReachZeroManaRestoreMana", "spendManaChaosRiftThreshold", "spendManaChaosRiftDamage", "onGainManaHealFlat", "startBattleBonusMana", "spendManaDamageBonusPerMana", "onHeroSpendManaGainBlock", "spendManaRefundChancePercent", "empowermentCostReduction", "healingEmpowermentCostReduction", "bonusManaOnTurns", "spendManaThresholdBlockThreshold", "spendManaThresholdBlockBlock", "spendManaThresholdBlockHealth", "manaGainDoubleChancePercent", "spendManaThresholdAutoPlayCard", "onSpendManaBurnBurningEnemies", "onHeroSpendManaApplyRandomAffliction", "cardsPlayedManaThreshold", "cardsPlayedManaFlat", "onBurnDamageRestoreManaFlat", "drawEveryOtherTurn", "drawOnHealthLoss", "companionCardsPerTurn", "onFreezeEnemyGainManaEqualBlock"]
+
+    /// Field names where `self` differs from `other`.
+    func populatedFieldNames(comparedTo other: Self) -> [String] {
+        var names: [String] = []
+        if self.spendManaBlockFlat != other.spendManaBlockFlat { names.append("spendManaBlockFlat") }
+        if self.empoweredElementDrawOpposite != other.empoweredElementDrawOpposite { names.append("empoweredElementDrawOpposite") }
+        if self.spendManaRandomDoTFlat != other.spendManaRandomDoTFlat { names.append("spendManaRandomDoTFlat") }
+        if self.gainManaBlockFlat != other.gainManaBlockFlat { names.append("gainManaBlockFlat") }
+        if self.leechRestoreManaFlat != other.leechRestoreManaFlat { names.append("leechRestoreManaFlat") }
+        if self.drawOnSpendMana != other.drawOnSpendMana { names.append("drawOnSpendMana") }
+        if self.repeatManaEmpowerment != other.repeatManaEmpowerment { names.append("repeatManaEmpowerment") }
+        if self.unspentManaConvertsToBlock != other.unspentManaConvertsToBlock { names.append("unspentManaConvertsToBlock") }
+        if self.spendManaThresholdCleanseCount != other.spendManaThresholdCleanseCount { names.append("spendManaThresholdCleanseCount") }
+        if self.spendManaEmpowerNextCardThreshold != other.spendManaEmpowerNextCardThreshold { names.append("spendManaEmpowerNextCardThreshold") }
+        if self.nextCardEmpowerPercent != other.nextCardEmpowerPercent { names.append("nextCardEmpowerPercent") }
+        if self.startTurnFullManaDrawCards != other.startTurnFullManaDrawCards { names.append("startTurnFullManaDrawCards") }
+        if self.firstSkillCardPlaysTwicePerBattle != other.firstSkillCardPlaysTwicePerBattle { names.append("firstSkillCardPlaysTwicePerBattle") }
+        if self.onReachZeroManaRestoreMana != other.onReachZeroManaRestoreMana { names.append("onReachZeroManaRestoreMana") }
+        if self.spendManaChaosRiftThreshold != other.spendManaChaosRiftThreshold { names.append("spendManaChaosRiftThreshold") }
+        if self.spendManaChaosRiftDamage != other.spendManaChaosRiftDamage { names.append("spendManaChaosRiftDamage") }
+        if self.onGainManaHealFlat != other.onGainManaHealFlat { names.append("onGainManaHealFlat") }
+        if self.startBattleBonusMana != other.startBattleBonusMana { names.append("startBattleBonusMana") }
+        if self.spendManaDamageBonusPerMana != other.spendManaDamageBonusPerMana { names.append("spendManaDamageBonusPerMana") }
+        if self.onHeroSpendManaGainBlock != other.onHeroSpendManaGainBlock { names.append("onHeroSpendManaGainBlock") }
+        if self.spendManaRefundChancePercent != other.spendManaRefundChancePercent { names.append("spendManaRefundChancePercent") }
+        if self.empowermentCostReduction != other.empowermentCostReduction { names.append("empowermentCostReduction") }
+        if self.healingEmpowermentCostReduction != other.healingEmpowermentCostReduction { names.append("healingEmpowermentCostReduction") }
+        if self.bonusManaOnTurns != other.bonusManaOnTurns { names.append("bonusManaOnTurns") }
+        if self.spendManaThresholdBlockThreshold != other.spendManaThresholdBlockThreshold { names.append("spendManaThresholdBlockThreshold") }
+        if self.spendManaThresholdBlockBlock != other.spendManaThresholdBlockBlock { names.append("spendManaThresholdBlockBlock") }
+        if self.spendManaThresholdBlockHealth != other.spendManaThresholdBlockHealth { names.append("spendManaThresholdBlockHealth") }
+        if self.manaGainDoubleChancePercent != other.manaGainDoubleChancePercent { names.append("manaGainDoubleChancePercent") }
+        if self.spendManaThresholdAutoPlayCard != other.spendManaThresholdAutoPlayCard { names.append("spendManaThresholdAutoPlayCard") }
+        if self.onSpendManaBurnBurningEnemies != other.onSpendManaBurnBurningEnemies { names.append("onSpendManaBurnBurningEnemies") }
+        if self.onHeroSpendManaApplyRandomAffliction != other.onHeroSpendManaApplyRandomAffliction { names.append("onHeroSpendManaApplyRandomAffliction") }
+        if self.cardsPlayedManaThreshold != other.cardsPlayedManaThreshold { names.append("cardsPlayedManaThreshold") }
+        if self.cardsPlayedManaFlat != other.cardsPlayedManaFlat { names.append("cardsPlayedManaFlat") }
+        if self.onBurnDamageRestoreManaFlat != other.onBurnDamageRestoreManaFlat { names.append("onBurnDamageRestoreManaFlat") }
+        if self.drawEveryOtherTurn != other.drawEveryOtherTurn { names.append("drawEveryOtherTurn") }
+        if self.drawOnHealthLoss != other.drawOnHealthLoss { names.append("drawOnHealthLoss") }
+        if self.companionCardsPerTurn != other.companionCardsPerTurn { names.append("companionCardsPerTurn") }
+        if self.onFreezeEnemyGainManaEqualBlock != other.onFreezeEnemyGainManaEqualBlock { names.append("onFreezeEnemyGainManaEqualBlock") }
+        return names
+    }
 }
 
 extension ManaTriggers {

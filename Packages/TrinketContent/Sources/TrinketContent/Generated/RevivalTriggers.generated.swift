@@ -44,6 +44,27 @@ public struct RevivalTriggers: Equatable, Hashable, Sendable {
         self.onAllyDeathsDoorHealAndCleanse = onAllyDeathsDoorHealAndCleanse
         self.surviveDeathsDoorPartyHealPercent = surviveDeathsDoorPartyHealPercent
     }
+
+    /// All field names for this family — avoids `Mirror` reflection.
+    public static let fieldNames: [String] = ["onceDeathReviveHealth", "onceDeathReviveBlock", "deathsDoorDurationBonusTurns", "reviveDealBurnDamage", "onSurviveDeathsDoorDamageBonusPercent", "deathsDoorDodgeAndDebuffImmunity", "onDeathDealPhysicalDamageAllEnemies", "guaranteedCritWhileOnDeathsDoor", "deathsDoorExpiredHealFlat", "onHeroFatalHealPercentMaxHealth", "onAllyDeathsDoorHealAndCleanse", "surviveDeathsDoorPartyHealPercent"]
+
+    /// Field names where `self` differs from `other`.
+    func populatedFieldNames(comparedTo other: Self) -> [String] {
+        var names: [String] = []
+        if self.onceDeathReviveHealth != other.onceDeathReviveHealth { names.append("onceDeathReviveHealth") }
+        if self.onceDeathReviveBlock != other.onceDeathReviveBlock { names.append("onceDeathReviveBlock") }
+        if self.deathsDoorDurationBonusTurns != other.deathsDoorDurationBonusTurns { names.append("deathsDoorDurationBonusTurns") }
+        if self.reviveDealBurnDamage != other.reviveDealBurnDamage { names.append("reviveDealBurnDamage") }
+        if self.onSurviveDeathsDoorDamageBonusPercent != other.onSurviveDeathsDoorDamageBonusPercent { names.append("onSurviveDeathsDoorDamageBonusPercent") }
+        if self.deathsDoorDodgeAndDebuffImmunity != other.deathsDoorDodgeAndDebuffImmunity { names.append("deathsDoorDodgeAndDebuffImmunity") }
+        if self.onDeathDealPhysicalDamageAllEnemies != other.onDeathDealPhysicalDamageAllEnemies { names.append("onDeathDealPhysicalDamageAllEnemies") }
+        if self.guaranteedCritWhileOnDeathsDoor != other.guaranteedCritWhileOnDeathsDoor { names.append("guaranteedCritWhileOnDeathsDoor") }
+        if self.deathsDoorExpiredHealFlat != other.deathsDoorExpiredHealFlat { names.append("deathsDoorExpiredHealFlat") }
+        if self.onHeroFatalHealPercentMaxHealth != other.onHeroFatalHealPercentMaxHealth { names.append("onHeroFatalHealPercentMaxHealth") }
+        if self.onAllyDeathsDoorHealAndCleanse != other.onAllyDeathsDoorHealAndCleanse { names.append("onAllyDeathsDoorHealAndCleanse") }
+        if self.surviveDeathsDoorPartyHealPercent != other.surviveDeathsDoorPartyHealPercent { names.append("surviveDeathsDoorPartyHealPercent") }
+        return names
+    }
 }
 
 extension RevivalTriggers {

@@ -92,6 +92,43 @@ public struct DodgeTriggers: Equatable, Hashable, Sendable {
         self.untargetableAboveHealthPercent = untargetableAboveHealthPercent
         self.onDodgeDrawAndPlayCardChainOnCrit = onDodgeDrawAndPlayCardChainOnCrit
     }
+
+    /// All field names for this family — avoids `Mirror` reflection.
+    public static let fieldNames: [String] = ["dodgeChanceBonus", "dodgeBlockFlat", "dodgeApplyPoison", "dodgeGoldFlat", "dodgeHealFlat", "dodgeChanceBelowHealthPercentThreshold", "dodgeChanceBelowHealthPercentBonus", "onDodgeDrawCardForHero", "nextAttackDoubleAfterDodge", "onDodgeDelayAttackerTurn", "onDodgeGrantHeroBlock", "onDodgePartyMana", "onDodgeCounterDamage", "onDodgeCounterBasicAttack", "critMultiplierPerDodge", "onDodgeNextPartyHitGuaranteedCritical", "onCompanionDodgeGrantHeroDodgePercent", "autoDodgeAfterFirstHitPerTurn", "nextAttackBleedAfterDodge", "onDodgeApplyPoisonOrBleed", "onDodgePartyNextCardDamageBonus", "onApplyBurnDodgeChanceUntilNextTurn", "dodgeChanceVsBleedingEnemiesBonus", "firstAttackGuaranteedCritical", "swapAndDodgeForHeroChance", "redirectSingleTargetAttacksToHero", "untargetableAboveHealthPercent", "onDodgeDrawAndPlayCardChainOnCrit"]
+
+    /// Field names where `self` differs from `other`.
+    func populatedFieldNames(comparedTo other: Self) -> [String] {
+        var names: [String] = []
+        if self.dodgeChanceBonus != other.dodgeChanceBonus { names.append("dodgeChanceBonus") }
+        if self.dodgeBlockFlat != other.dodgeBlockFlat { names.append("dodgeBlockFlat") }
+        if self.dodgeApplyPoison != other.dodgeApplyPoison { names.append("dodgeApplyPoison") }
+        if self.dodgeGoldFlat != other.dodgeGoldFlat { names.append("dodgeGoldFlat") }
+        if self.dodgeHealFlat != other.dodgeHealFlat { names.append("dodgeHealFlat") }
+        if self.dodgeChanceBelowHealthPercentThreshold != other.dodgeChanceBelowHealthPercentThreshold { names.append("dodgeChanceBelowHealthPercentThreshold") }
+        if self.dodgeChanceBelowHealthPercentBonus != other.dodgeChanceBelowHealthPercentBonus { names.append("dodgeChanceBelowHealthPercentBonus") }
+        if self.onDodgeDrawCardForHero != other.onDodgeDrawCardForHero { names.append("onDodgeDrawCardForHero") }
+        if self.nextAttackDoubleAfterDodge != other.nextAttackDoubleAfterDodge { names.append("nextAttackDoubleAfterDodge") }
+        if self.onDodgeDelayAttackerTurn != other.onDodgeDelayAttackerTurn { names.append("onDodgeDelayAttackerTurn") }
+        if self.onDodgeGrantHeroBlock != other.onDodgeGrantHeroBlock { names.append("onDodgeGrantHeroBlock") }
+        if self.onDodgePartyMana != other.onDodgePartyMana { names.append("onDodgePartyMana") }
+        if self.onDodgeCounterDamage != other.onDodgeCounterDamage { names.append("onDodgeCounterDamage") }
+        if self.onDodgeCounterBasicAttack != other.onDodgeCounterBasicAttack { names.append("onDodgeCounterBasicAttack") }
+        if self.critMultiplierPerDodge != other.critMultiplierPerDodge { names.append("critMultiplierPerDodge") }
+        if self.onDodgeNextPartyHitGuaranteedCritical != other.onDodgeNextPartyHitGuaranteedCritical { names.append("onDodgeNextPartyHitGuaranteedCritical") }
+        if self.onCompanionDodgeGrantHeroDodgePercent != other.onCompanionDodgeGrantHeroDodgePercent { names.append("onCompanionDodgeGrantHeroDodgePercent") }
+        if self.autoDodgeAfterFirstHitPerTurn != other.autoDodgeAfterFirstHitPerTurn { names.append("autoDodgeAfterFirstHitPerTurn") }
+        if self.nextAttackBleedAfterDodge != other.nextAttackBleedAfterDodge { names.append("nextAttackBleedAfterDodge") }
+        if self.onDodgeApplyPoisonOrBleed != other.onDodgeApplyPoisonOrBleed { names.append("onDodgeApplyPoisonOrBleed") }
+        if self.onDodgePartyNextCardDamageBonus != other.onDodgePartyNextCardDamageBonus { names.append("onDodgePartyNextCardDamageBonus") }
+        if self.onApplyBurnDodgeChanceUntilNextTurn != other.onApplyBurnDodgeChanceUntilNextTurn { names.append("onApplyBurnDodgeChanceUntilNextTurn") }
+        if self.dodgeChanceVsBleedingEnemiesBonus != other.dodgeChanceVsBleedingEnemiesBonus { names.append("dodgeChanceVsBleedingEnemiesBonus") }
+        if self.firstAttackGuaranteedCritical != other.firstAttackGuaranteedCritical { names.append("firstAttackGuaranteedCritical") }
+        if self.swapAndDodgeForHeroChance != other.swapAndDodgeForHeroChance { names.append("swapAndDodgeForHeroChance") }
+        if self.redirectSingleTargetAttacksToHero != other.redirectSingleTargetAttacksToHero { names.append("redirectSingleTargetAttacksToHero") }
+        if self.untargetableAboveHealthPercent != other.untargetableAboveHealthPercent { names.append("untargetableAboveHealthPercent") }
+        if self.onDodgeDrawAndPlayCardChainOnCrit != other.onDodgeDrawAndPlayCardChainOnCrit { names.append("onDodgeDrawAndPlayCardChainOnCrit") }
+        return names
+    }
 }
 
 extension DodgeTriggers {

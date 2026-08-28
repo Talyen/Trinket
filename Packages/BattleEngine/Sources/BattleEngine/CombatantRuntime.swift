@@ -9,62 +9,76 @@ import TrinketCore
 @dynamicMemberLookup
 public struct CombatantRuntime: Hashable {
     public struct TalentState: Equatable, Hashable, Sendable {
+        // MARK: Persistent (combat-long)
+
         public var talentMaxHealthBonus: Int = 0
+        public var permanentDamageBonus: Int = 0
+        public var keywordDamageRamp: [Keyword: Int] = [:]
+        public var talentLeechOverhealDamageBonus: Int = 0
+        public var totalBlockGainedThisCombat: Int = 0
+        public var talentStatBonus: PrimaryStats = .init()
+        public var talentCritMultiplierBonus: Double = 0.0
+        public var hasNegatedFirstEnemyAttack: Bool = false
+
+        // MARK: Turn-scoped (reset each round)
+
+        public var bonusDodgeUntilNextTurn: Double = 0.0
+        public var bonusDodgeExpiresAtTurn: Int = 0
+        public var healOverTimeAmount: Int = 0
+        public var healOverTimeTurnsRemaining: Int = 0
+        public var hasTakenAttackHitThisTurn: Bool = false
+        public var faeWardBlockedThisTurn: Bool = false
+        public var hasTriggeredBlockBreakThisTurn: Bool = false
+        public var talentDamagePercentBonus: Double = 0.0
+        public var talentDamagePercentUntilTurn: Int = 0
+
+        // MARK: Attack/Card-scoped (consumed on next hit/card)
+
         public var pendingDamageAfterDodge: Int = 0
         public var pendingDamageDoubleAfterDodge: Bool = false
         public var pendingGuaranteedCriticalAfterDodge: Bool = false
         public var pendingBleedAfterDodge: Int = 0
         public var pendingCardDamageBonus: Int = 0
         public var pendingCardDamagePercent: Double = 0.0
-        public var talentDamagePercentBonus: Double = 0.0
-        public var talentDamagePercentUntilTurn: Int = 0
         public var pendingNextHitBonus: Int = 0
         public var pendingNextAttackHolyBonus: Int = 0
         public var pendingBasicGuaranteedCrit: Bool = false
         public var pendingAttackBonusOnFullHealth: Int = 0
-        public var permanentDamageBonus: Int = 0
-        public var keywordDamageRamp: [Keyword: Int] = [:]
-        public var talentLeechOverhealDamageBonus: Int = 0
-        public var totalBlockGainedThisCombat: Int = 0
         public var pendingDoubleStatusNextCard: Bool = false
-        public var talentStatBonus: PrimaryStats = .init()
-        public var bonusDodgeUntilNextTurn: Double = 0.0
-        public var bonusDodgeExpiresAtTurn: Int = 0
-        public var healOverTimeAmount: Int = 0
-        public var healOverTimeTurnsRemaining: Int = 0
-        public var hasTakenAttackHitThisTurn: Bool = false
-        public var hasNegatedFirstEnemyAttack: Bool = false
         public var manaSpentThisCardPlay: Int = 0
-        public var faeWardBlockedThisTurn: Bool = false
-        public var hasTriggeredBlockBreakThisTurn: Bool = false
-        public var talentCritMultiplierBonus: Double = 0.0
 
         public init() {}
-    }
 
-    // Concurrency-Safety: `@unchecked Sendable` — COW box is mutated only through
-    // `mutateTalentState` while uniquely referenced; copies clone `TalentState`.
-    private final class TalentBox: @unchecked Sendable {
-        var state: TalentState
-        init(_ state: TalentState) {
-            self.state = state
+        /// Resets per-round state — called by `CombatTriggerEngine.resetTurnCadenceState`.
+        mutating func resetForNewTurn(currentTurn: Int) {
+            if bonusDodgeExpiresAtTurn == 0 || currentTurn >= bonusDodgeExpiresAtTurn {
+                bonusDodgeUntilNextTurn = 0
+                bonusDodgeExpiresAtTurn = 0
+            }
+            hasTakenAttackHitThisTurn = false
+            faeWardBlockedThisTurn = false
+            hasTriggeredBlockBreakThisTurn = false
+            if talentDamagePercentUntilTurn != 0, currentTurn >= talentDamagePercentUntilTurn {
+                talentDamagePercentBonus = 0
+                talentDamagePercentUntilTurn = 0
+            }
         }
     }
 
-    private var talentBox: TalentBox
+    private var talentBox: CopyOnWriteBox<TalentState>
 
     private mutating func mutateTalentState(_ body: (inout TalentState) -> Void) {
         if isKnownUniquelyReferenced(&talentBox) {
-            body(&talentBox.state)
+            body(&talentBox.value)
         } else {
-            var newState = talentBox.state
+            var newState = talentBox.value
             body(&newState)
-            talentBox = TalentBox(newState)
+            talentBox = CopyOnWriteBox(newState)
         }
     }
 
     public subscript<T>(dynamicMember keyPath: WritableKeyPath<TalentState, T>) -> T {
-        get { talentBox.state[keyPath: keyPath] }
+        get { talentBox.value[keyPath: keyPath] }
         set { mutateTalentState { $0[keyPath: keyPath] = newValue } }
     }
 
@@ -131,7 +145,7 @@ public struct CombatantRuntime: Hashable {
         self.hasTriggeredSecondWind = hasTriggeredSecondWind
         self.hasTriggeredDeathRevive = hasTriggeredDeathRevive
         self.hasTriggeredPhoenixGift = hasTriggeredPhoenixGift
-        talentBox = TalentBox(TalentState())
+        talentBox = CopyOnWriteBox(TalentState())
         currentHealth = initialHealth ?? CombatantMaxValues.maxHealth(for: combatant, flatBonus: maximumHealthBonus)
         currentMana = initialMana ?? CombatantMaxValues.maxMana(for: combatant, flatBonus: maximumManaBonus)
         activeEffects = initialActiveEffects
@@ -245,6 +259,10 @@ public struct CombatantRuntime: Hashable {
         activeEffects.removeAll(where: predicate)
     }
 
+    package mutating func resetTalentTurnState(currentTurn: Int) {
+        mutateTalentState { $0.resetForNewTurn(currentTurn: currentTurn) }
+    }
+
     public static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.combatant == rhs.combatant
             && lhs.currentHealth == rhs.currentHealth
@@ -259,7 +277,7 @@ public struct CombatantRuntime: Hashable {
             && lhs.hasTriggeredSecondWind == rhs.hasTriggeredSecondWind
             && lhs.hasTriggeredDeathRevive == rhs.hasTriggeredDeathRevive
             && lhs.hasTriggeredPhoenixGift == rhs.hasTriggeredPhoenixGift
-            && lhs.talentBox.state == rhs.talentBox.state
+            && lhs.talentBox.value == rhs.talentBox.value
     }
 
     public func hash(into hasher: inout Hasher) {
@@ -276,6 +294,6 @@ public struct CombatantRuntime: Hashable {
         hasher.combine(hasTriggeredSecondWind)
         hasher.combine(hasTriggeredDeathRevive)
         hasher.combine(hasTriggeredPhoenixGift)
-        hasher.combine(talentBox.state)
+        hasher.combine(talentBox.value)
     }
 }

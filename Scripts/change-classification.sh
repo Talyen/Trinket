@@ -129,7 +129,7 @@ trinket_classify_package_swift_path() {
   package="${package%%/*}"
 
   case "$package" in
-    TrinketCore|TrinketContent|BattleEngine|TrinketBattleRuntime|TrinketPersistence|TrinketDesignSystem|TrinketFeatureSupport|TrinketBattleFeature|TrinketAppState|TrinketTestSupport)
+    TrinketCore|TrinketContent|BattleEngine|TrinketPersistence|TrinketDesignSystem|TrinketFeatureSupport|TrinketBattleFeature|TrinketAppState|TrinketTestSupport)
       ;;
     *)
       return 1
@@ -140,7 +140,7 @@ trinket_classify_package_swift_path() {
   TRINKET_AUTHORED_PATHS+=("$path")
 
   case "$package" in
-    TrinketBattleRuntime|TrinketTestSupport)
+    TrinketTestSupport)
       TRINKET_NEEDS_APP_BUILD=true
       ;;
     TrinketDesignSystem)
@@ -315,10 +315,6 @@ trinket_add_battle_subcard_for_path() {
     Packages/BattleEngine/*)
       trinket_add_route_card Docs/AgentContext/battle.md
       trinket_add_context_card Docs/AgentContext/battle-engine.md
-      ;;
-    Packages/TrinketBattleRuntime/*)
-      trinket_add_route_card Docs/AgentContext/battle.md
-      trinket_add_context_card Docs/AgentContext/battle-runtime.md
       ;;
     Packages/TrinketAppState/*)
       case "$1" in

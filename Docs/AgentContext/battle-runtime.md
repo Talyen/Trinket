@@ -1,6 +1,6 @@
 # Battle runtime and presentation context
 
-Load for `TrinketBattleRuntime`, `BattleSession` lifecycle/commands, prepared activation, `TrinketAppState` battle launch and completion, or `TrinketBattleFeature` presentation, feedback, spectacle, outcome, and SwiftUI work.
+Load for `BattleEngine` (`BattleRuntime`), `BattleSession` lifecycle/commands, prepared activation, `TrinketAppState` battle launch and completion, or `TrinketBattleFeature` presentation, feedback, spectacle, outcome, and SwiftUI work.
 
 ## Runtime and app launch
 
