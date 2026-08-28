@@ -46,9 +46,10 @@ final class StarterOnboardingSmokeTests: TrinketUITestCase {
         if !heroConfirm.waitForExistence(timeout: 10) {
             XCTFail("Confirm Hero not found. Tree: \(String(app.debugDescription.prefix(2500)))")
         }
-        // The carousel opens on the first combatant; Confirm must name that
+        // The carousel opens on the first combatant; Confirm must be enabled and name that
         // combatant, never the bare-role no-selection fallback.
-        XCTAssertNotEqual(heroConfirm.label, "Confirm Hero")
+        XCTAssertTrue(heroConfirm.isEnabled)
+        XCTAssertNotEqual(heroConfirm.label.trimmingCharacters(in: .whitespacesAndNewlines), "Confirm Hero")
         tapWhenReady(heroConfirm)
 
         assertExists(AccessibilityID.Onboarding.companionScreen, timeout: 15)
@@ -57,7 +58,8 @@ final class StarterOnboardingSmokeTests: TrinketUITestCase {
         if !companionConfirm.waitForExistence(timeout: 15) {
             XCTFail("Confirm Companion not found. Tree: \(String(app.debugDescription.prefix(2500)))")
         }
-        XCTAssertNotEqual(companionConfirm.label, "Confirm Companion")
+        XCTAssertTrue(companionConfirm.isEnabled)
+        XCTAssertNotEqual(companionConfirm.label.trimmingCharacters(in: .whitespacesAndNewlines), "Confirm Companion")
         tapWhenReady(companionConfirm)
 
         // Onboarding completes with a crossfade to the Play hub.

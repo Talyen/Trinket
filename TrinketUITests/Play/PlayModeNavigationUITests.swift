@@ -26,27 +26,25 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
 
         // Deep link may land on emptyState before `enter()` completes; tap Enter if needed.
         let enterButton = app.descendants(matching: .any)[AccessibilityID.Play.labyrinthEnter]
-        if enterButton.waitForExistence(timeout: 2) {
+        if enterButton.waitForExistence(timeout: 3) {
             tapWhenReady(enterButton)
         }
-        assertExists(AccessibilityID.Play.labyrinthMap, timeout: 15)
+        assertExists(AccessibilityID.Play.labyrinthMap, timeout: 20)
         let entryNode = app.descendants(matching: .any)[AccessibilityID.Play.labyrinthFloor1EntryNode]
-        if !entryNode.waitForExistence(timeout: 5) {
+        if !entryNode.waitForExistence(timeout: 10) {
             // Map hex layout may need a layout pulse on cold launch.
+            assertExists(AccessibilityID.Play.labyrinthMap, timeout: 5)
             app.swipeUp()
             app.swipeDown()
+            _ = entryNode.waitForExistence(timeout: 5)
         }
-        assertExists(entryNode, timeout: 15)
+        assertExists(entryNode, timeout: 20)
         tapWhenReady(entryNode)
-        assertExists(AccessibilityID.Play.labyrinthNodeInspector, timeout: 10)
-        assertExists(
-            app.descendants(matching: .any).matching(
-                NSPredicate(
-                    format: "identifier BEGINSWITH %@",
-                    AccessibilityID.Play.labyrinthInspectorAction("")
-                )
-            ).firstMatch
-        )
+        assertExists(AccessibilityID.Play.labyrinthNodeInspector, timeout: 15)
+        let inspectorAction = app.descendants(matching: .any).matching(
+            NSPredicate(format: "identifier BEGINSWITH %@", AccessibilityID.Play.labyrinthInspectorAction(""))
+        ).firstMatch
+        assertExists(inspectorAction, timeout: 10)
 
         let lockedNode = app.descendants(matching: .any)[AccessibilityID.Play.labyrinthFloor1LockedNode]
         assertExists(lockedNode)

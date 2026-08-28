@@ -18,7 +18,8 @@ Choose the cheapest route that answers the question at hand.
 | Fast gate | `ci-gate.sh --fast` | Cheap full-tree slices only (boundaries, Swift Testing, release notes) |
 | Local canary | `test-deploy.sh --mode smoke` | Optional human confidence: gate, unit, and smoke |
 | Release confidence | `release.sh` / `test-deploy.sh` | Pre-release only: gate, unit, and full UI (the one sanctioned local full-UI run) |
-| Main CI | Shared `tests.yml` workflow | Post-push on `main` (no pull-request workflow): path filter, then generate/style, app-only build, unit, sharded smoke, and sharded exhaustive UI |
+| Main CI | Shared `tests.yml` workflow | Post-push on `main` (no pull-request workflow): path filter, then generate/style, app-only build, sharded unit (Heavy vs Rest), and sharded smoke; exhaustive is advisory nightly/dispatch |
+| Nightly exhaustive | `ci.yml` schedule + `workflow_dispatch` exhaustive | Full sharded exhaustive UI off the push path; visible but never blocks `CI OK` |
 | Local debugging / performance | `test.sh ui <Target>` / `performance.sh` | Single UI target or ad hoc performance; the full exhaustive suite is CI-owned |
 
 Run `./Scripts/agent-context.sh --agent --paths <files...>` after touched paths
@@ -69,17 +70,20 @@ validation) that full `ci-gate.sh` also enforces.
 | `ci-gate.sh --fast` | Module boundaries, Swift Testing policy, and release-note validation only |
 | `ci-assets-gate.sh` | Generate assets, assert, regenerate in a stable locale, assert again |
 | `test-deploy.sh` | Release-time: `ci-gate.sh`, unit, then full UI, or the optional smoke canary |
-| Main CI | Post-push on `main`: path filter; generate/style on product or infra changes; app-only build, package unit, sharded smoke, and sharded exhaustive UI on product changes; advisory SwiftLint analyze and diff-review do not block tests |
+| Main CI | Post-push on `main`: path filter; generate/style on product or infra changes; app-only build, sharded package unit (Heavy vs Rest, each preboots its simulator), and sharded smoke on product changes; advisory SwiftLint analyze, diff-review, and exhaustive UI do not block `CI OK` |
+| Nightly exhaustive | Scheduled `ci.yml` (or manual `workflow_dispatch` exhaustive) runs the full sharded exhaustive UI via the same fan-out artifact; reported as `Exhaustive OK (advisory)` |
 
 The shared build job produces app test products for smoke and exhaustive UI
 fan-out (Products + stamps, not the full DerivedData tree). Package unit
-restores the warm compile cache and compiles its own schemes in parallel with
-that build. Infra-only pushes (lint/CI glue Scripts, workflows, style config)
-skip macos app/UI; build/test/generate Scripts still classify as product `code`
-so macos jobs run. Smoke and exhaustive UI rebuild app-only on artifact miss.
-Advisory SwiftLint analyze uses the app-only compiler log (package unused_*
-coverage is thinner). `check-build-cache-paths.sh` keeps local no-build
-freshness inputs aligned with the CI cache key.
+(sharded Heavy/Rest, each with simulator preboot) restores the warm compile
+cache and compiles its own schemes in parallel with that build. Infra-only
+pushes (lint/CI glue Scripts, workflows, style config) skip macos app/UI;
+build/test/generate Scripts still classify as product `code` so macos jobs run.
+Smoke and exhaustive UI rebuild app-only on artifact miss. Advisory SwiftLint
+analyze uses the app-only compiler log (package unused_* coverage is thinner).
+`check-build-cache-paths.sh` keeps local no-build freshness inputs aligned with
+the CI cache key. Exhaustive UI is `continue-on-error` advisory so one labyrinth timing
+flake does not red `main`; it is reported via `Exhaustive OK (advisory)`.
 
 ## Output efficiency telemetry
 

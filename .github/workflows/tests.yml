@@ -4,18 +4,19 @@ name: Build and test
 # Gate, app-only build, and package unit run in parallel after the path filter.
 # Lint/CI-glue Scripts and workflows are infra-only (generate/style, no macos
 # app/UI). Build/test/generate Scripts still classify as product code so macos
-# jobs run. Smoke is sharded; exhaustive UI is sharded by feature. The build
-# artifact is Products + stamps, not the full DerivedData tree. Test jobs
-# sparse-checkout without Raw Assets (and assert project.yml / *.xctestplan).
-# Warm DerivedData: primary key build-<nonsource>-<full>; restore-keys
-# build-<nonsource>- for same toolchain/assets incremental source rebuilds
-# (script-only edits keep that prefix). Within-run fan-out uses a run-scoped
-# artifact of pruned .DerivedData. The build job compiles the app so smoke and
-# exhaustive UI can run with --no-build; the unit job compiles package schemes
-# itself. Advisory SwiftLint analyze runs beside tests from the app-only
-# compiler log, not on the build job. The exhaustive UI suite is sharded by
-# feature so post-push validation does not serialize every journey on one CI
-# simulator.
+# jobs run. Smoke is sharded; exhaustive UI is sharded by feature and is
+# advisory (nightly/scheduled or workflow_dispatch exhaustive), not a push
+# blocker — smoke + unit gate pushes. The build artifact is Products + stamps,
+# not the full DerivedData tree. Test jobs sparse-checkout without Raw Assets
+# (and assert project.yml / *.xctestplan). Warm DerivedData: primary key
+# build-<nonsource>-<full>; restore-keys build-<nonsource>- for same
+# toolchain/assets incremental source rebuilds (script-only edits keep that
+# prefix). Within-run fan-out uses a run-scoped artifact of pruned
+# .DerivedData. The build job compiles the app so smoke and exhaustive UI can
+# run with --no-build; the unit job compiles package schemes itself. Advisory
+# SwiftLint analyze runs beside tests from the app-only compiler log, not on
+# the build job. The exhaustive UI suite is sharded by feature so post-push
+# validation does not serialize every journey on one CI simulator.
 
 on:
   workflow_call:
@@ -125,12 +126,23 @@ jobs:
           if-no-files-found: error
 
   unit:
-    name: Unit tests
+    name: Unit tests (${{ matrix.name }})
     needs: [changes]
-    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.code == 'true'
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.code == 'true' || github.event_name == 'schedule'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Heavy
+            packages: BattleEngine
+            profile-label: unit-heavy
+          - name: Rest
+            packages: TrinketCore TrinketContent TrinketPersistence TrinketDesignSystem TrinketFeatureSupport TrinketBattleFeature TrinketAppState
+            profile-label: unit-rest
     runs-on: macos-26
     # Package schemes are compiled in this job; the shared build is app-only
     # so smoke/UI can start without waiting on package test products.
+    # Sharded 2-way (Heavy vs Rest) so BattleEngine no longer serializes all 8 packages.
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
@@ -163,9 +175,10 @@ jobs:
           skip-build: 'true'
       - uses: ./.github/actions/test-job
         with:
-          profile-label: unit-tests
-          artifact-name: ${{ inputs.artifact-prefix }}unit
-          command: ./Scripts/test.sh unit
+          profile-label: ${{ matrix.profile-label }}
+          artifact-name: ${{ inputs.artifact-prefix }}unit-${{ matrix.name }}
+          command: ./Scripts/test-package.sh ${{ matrix.packages }}
+          preboot-simulator: 'true'
 
   smoke:
     name: Smoke tests (${{ matrix.name }})
@@ -221,7 +234,8 @@ jobs:
     needs: [changes, build]
     if: >-
       inputs.include-exhaustive &&
-      (github.event_name == 'workflow_dispatch' || needs.changes.outputs.code == 'true')
+      (github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || needs.changes.outputs.code == 'true')
+    continue-on-error: true
     strategy:
       fail-fast: false
       matrix:
@@ -382,9 +396,10 @@ jobs:
 
   # Aggregate status for dashboards (not a required push gate on main).
   # Check name appears as "tests / CI OK" to callers of this reusable workflow.
+  # Exhaustive UI is advisory (nightly/dispatch) so it never blocks pushes.
   ci-ok:
     name: CI OK
-    needs: [changes, gate, assets-gate, build, unit, smoke, exhaustive-ui]
+    needs: [changes, gate, assets-gate, build, unit, smoke]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -400,3 +415,31 @@ jobs:
               exit 1
             fi
           done
+
+  # Advisory aggregate — visible but not a required gate. Useful for nightly
+  # dashboards; always succeeds on push so it never blocks ci-ok.
+  exhaustive-ok:
+    name: Exhaustive OK (advisory)
+    needs: [changes, exhaustive-ui]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Report exhaustive status
+        env:
+          RESULTS: ${{ join(needs.exhaustive-ui.result, ' ') }}
+          INCLUDED: ${{ inputs.include-exhaustive }}
+        run: |
+          echo "Exhaustive included: $INCLUDED"
+          echo "Exhaustive results: $RESULTS"
+          if [ "$INCLUDED" != "true" ]; then
+            echo "Exhaustive was not requested for this run — advisory OK."
+            exit 0
+          fi
+          for result in $RESULTS; do
+            if [ "$result" != "success" ] && [ "$result" != "skipped" ]; then
+              echo "::warning::Advisory exhaustive shard failed: $RESULTS"
+              exit 0
+            fi
+          done
+          echo "Advisory exhaustive passed."

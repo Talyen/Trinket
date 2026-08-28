@@ -601,7 +601,10 @@ class ScriptRegressionTests(unittest.TestCase):
             encoding="utf-8"
         )
         self.assertIn("restore-and-build", workflow)
-        self.assertIn("./Scripts/test.sh unit", workflow)
+        self.assertTrue(
+            "./Scripts/test.sh unit" in workflow or "./Scripts/test-package.sh" in workflow,
+            "unit job must invoke package tests via test.sh or test-package.sh",
+        )
         self.assertNotIn("./Scripts/test.sh unit --no-build", workflow)
         self.assertIn("build-for-testing.sh --app-only", workflow)
         self.assertIn("name: Homestead", workflow)

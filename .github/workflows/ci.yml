@@ -3,6 +3,9 @@ name: Trinket CI
 on:
   push:
     branches: [main]
+  schedule:
+    # Nightly exhaustive catches deep journeys off the push path.
+    - cron: '0 7 * * *'
   workflow_dispatch:
     inputs:
       scope:
@@ -25,4 +28,4 @@ jobs:
   tests:
     uses: ./.github/workflows/tests.yml
     with:
-      include-exhaustive: ${{ github.event_name == 'push' || inputs.scope == 'exhaustive' }}
+      include-exhaustive: ${{ github.event_name == 'schedule' || inputs.scope == 'exhaustive' }}

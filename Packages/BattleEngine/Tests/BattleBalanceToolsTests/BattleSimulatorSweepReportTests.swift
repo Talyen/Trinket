@@ -186,8 +186,9 @@ struct BattleSimulatorSweepReportTests {
         )
         #expect(late.records.count == 1)
         let lateRecord = late.records[0]
-        #expect(lateRecord.heroTalentIDs.count == 18)
-        #expect(lateRecord.companionTalentIDs.count == 18)
+        let lateBudget = CombatantTalentCatalog.validNodeIDs(for: lateRecord.heroID).count
+        #expect(lateRecord.heroTalentIDs.count == lateBudget)
+        #expect(lateRecord.companionTalentIDs.count == CombatantTalentCatalog.validNodeIDs(for: lateRecord.companionID).count)
         #expect(Set(lateRecord.heroTalentIDs) == CombatantTalentCatalog.validNodeIDs(for: lateRecord.heroID))
         #expect(Set(lateRecord.companionTalentIDs) == CombatantTalentCatalog.validNodeIDs(for: lateRecord.companionID))
     }
