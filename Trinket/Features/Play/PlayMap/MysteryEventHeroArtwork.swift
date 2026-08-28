@@ -3,11 +3,9 @@ import TrinketContent
 import TrinketDesignSystem
 import TrinketFeatureSupport
 
-/// Hero artwork chain shared by Mystery encounter reading and Active Stage Cards.
 struct MysteryEventHeroArtwork: View {
     let event: MysteryEvent
     let chapterID: String
-    /// Labyrinth hex seals prefer encounter thumbs; large surfaces keep full art.
     var preferThumbnail = false
 
     var body: some View {

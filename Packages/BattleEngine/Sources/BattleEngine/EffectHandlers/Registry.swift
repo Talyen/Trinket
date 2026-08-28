@@ -2,9 +2,6 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-/// Lookup table of every `BattleEffectHandler`, keyed by `EffectKind`.
-/// `performAction` resolves each targeted effect through this table instead
-/// of a single inline switch.
 public enum EffectHandlers {
     public static let all: [EffectKind: any BattleEffectHandler] = [
         .burn: DecayingDoTHandler(keyword: .burn, kind: .burn),

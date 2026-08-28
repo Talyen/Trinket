@@ -2,7 +2,6 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-/// Persistent The Labyrinth map.
 public struct PlayerLabyrinthState: Equatable, Sendable {
     private struct ReachabilityIndex {
         var explicitOutgoingIDs: Set<String> = []
@@ -14,11 +13,7 @@ public struct PlayerLabyrinthState: Equatable, Sendable {
     public var hasEntered: Bool
     public var clusters: [LabyrinthCluster]
     public var nodes: [String: LabyrinthNode]
-    /// Current-run party health by combatant id. Missing entries mean full health;
-    /// written on battle victory and Campfire rests, cleared when a map is generated.
     public var runHealthByCombatantID: [String: Int]
-    /// In-memory only: the SwiftData map blob existed but could not be decoded.
-    /// Sanitizer must not regenerate a map, and graph apply must keep the prior blob.
     public var isMapPayloadUnreadable: Bool
 
     public static let freshStart = Self()
@@ -59,8 +54,6 @@ public struct PlayerLabyrinthState: Equatable, Sendable {
         return cluster(id: node.clusterID)
     }
 
-    /// A node is actionable when revealed, not cleared, and adjacent to a cleared hex.
-    /// Explicit outgoing links bridge the entrance and completed floors.
     public func isNodeReachable(_ nodeID: String) -> Bool {
         guard let node = nodes[nodeID], node.isRevealed, !node.isCleared else { return false }
         if node.id == LabyrinthGenerator.entranceNodeID {
@@ -126,12 +119,6 @@ public struct PlayerLabyrinthState: Equatable, Sendable {
         eligibleRecruitEventIDs: [String] = []
     ) {
         if isMapPayloadUnreadable {
-            // Auto-recovery path for corrupt blobs (Phase 2.2): clear the
-            // unreadable flag so a fresh map can be generated instead of
-            // looping "Labyrinth Error" forever. `hasMap` is normally false
-            // when unreadable (nodes empty due to decode failure), but keep
-            // the guard defensively — sanitize preserves the blob, only
-            // ensureMap is allowed to rebuild.
             isMapPayloadUnreadable = false
             if hasMap {
                 return

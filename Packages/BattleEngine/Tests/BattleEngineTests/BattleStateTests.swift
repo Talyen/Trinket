@@ -6,7 +6,6 @@ import TrinketTestSupport
 
 struct BattleStateTests {
     private var defaultEnemy: Combatant {
-        // Catalog invariants guarantee a non-empty enemy list.
         GameContent.enemies[0].combatant
     }
 
@@ -64,8 +63,6 @@ struct BattleStateTests {
         }
         try #expect(!(battle.isPartyDefeated))
 
-        // Death's Door lasts N rounds; each endTurn advances one round.
-        // Expiry grace covers that last effect pass, then clears before the next player turn.
         for _ in 0 ..< BattleTiming.deathsDoorDurationTurns {
             _ = battle.endTurn()
         }
@@ -181,7 +178,6 @@ struct BattleStateTests {
 
         _ = try #require(try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle))
 
-        // Lose-health costs still trigger Death's Door, so the hero survives at 1 HP.
         try #expect(battle.health(of: battle.hero) == 1)
         try #expect(battle.health(of: battle.companion) == 20)
         try #expect(!(battle.isPartyDefeated))

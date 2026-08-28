@@ -26,8 +26,6 @@ public struct PlayerInventoryState: Equatable, Hashable, Sendable {
         Set(items.filter(\.isTrinket).map(\.templateID))
     }
 
-    /// Template IDs of Unique items currently held; Uniques are unsalvageable,
-    /// so this doubles as the ever-obtained exclusion set.
     public var ownedUniqueIDs: Set<String> {
         Set(items.filter { $0.rarity == .unique }.map(\.templateID))
     }
@@ -46,24 +44,18 @@ public struct PlayerRosterState: Equatable, Sendable {
     public var equipmentLoadouts: [String: EquipmentLoadout]
     public var unlockedTalents: [String: Set<String>]
 
-    /// The highest level among unlocked heroes. Returns 1 if no progression data exists.
     public var highestHeroLevel: Int {
         unlockedHeroIDs.compactMap { progressions[$0]?.level }.max() ?? 1
     }
 
-    /// The highest level among unlocked companions. Returns 1 if no progression data exists.
     public var highestCompanionLevel: Int {
         unlockedCompanionIDs.compactMap { progressions[$0]?.level }.max() ?? 1
     }
 
-    /// Floored midpoint of the active hero and companion levels — the party strength
-    /// reference for bounded downward enemy scaling.
     public var activePartyAverageLevel: Int {
         (progression(for: activeHero).level + progression(for: activeCompanion).level) / 2
     }
 
-    /// Recruit event ids whose combatant is not yet unlocked. Single source of truth
-    /// for Labyrinth map generation and save sanitizing.
     public var eligibleRecruitEventIDs: [String] {
         GameContent.recruitEvents.compactMap { event in
             guard let combatantID = event.unlockCombatantID,
@@ -256,8 +248,6 @@ public struct PlayerRosterState: Equatable, Sendable {
         activeCompanionID = companion.id
     }
 
-    /// Unlocks a hero or companion and seeds baseline progression when missing.
-    /// Returns `true` when the combatant was newly unlocked.
     @discardableResult
     public mutating func unlock(_ combatant: Combatant) -> Bool {
         switch combatant.role {
@@ -300,7 +290,6 @@ public struct PlayerRosterState: Equatable, Sendable {
         return inserted
     }
 
-    /// Unlocks every catalog hero and companion, setting each progression to `level`.
     public mutating func unlockAllCombatants(atLevel level: Int = 20) {
         let progression = CombatantProgression.at(level: level)
         unlockedHeroIDs = Set(GameContent.heroes.map(\.id))
@@ -313,8 +302,6 @@ public struct PlayerRosterState: Equatable, Sendable {
         }
     }
 
-    /// Grants XP after applying the shared soft cap (`3 ×` current `requiredXP`).
-    /// Returns the amount actually applied.
     @discardableResult
     public mutating func grantExperience(_ amount: Int, to combatant: Combatant) -> Int {
         let current = progression(for: combatant)
@@ -334,8 +321,6 @@ public struct PlayerRosterState: Equatable, Sendable {
         min(max(amount, 0), maxGoldBalance)
     }
 
-    /// Deducts gold when the roster can afford `amount`. Returns `false` without mutating
-    /// when `amount` is non-positive or exceeds the current balance.
     @discardableResult
     public mutating func spendGold(_ amount: Int) -> Bool {
         guard amount > 0, gold >= amount else { return false }
@@ -405,7 +390,6 @@ public struct PlayerRosterState: Equatable, Sendable {
                     }
                 }
 
-                // Preserve authored catalog order for equal-level and locked entries.
                 return left.offset < right.offset
             }
             .map(\.element)

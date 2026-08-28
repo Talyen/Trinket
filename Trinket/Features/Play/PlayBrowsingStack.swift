@@ -9,7 +9,6 @@ import TrinketFeatureContracts
 import TrinketFeatureSupport
 import TrinketPersistence
 
-/// Mode hub + campaign/explore destinations. Does not observe battle overlays.
 struct PlayBrowsingStack: View {
     @Environment(PlaySession.self) private var play
     @Environment(JourneyPlayMode.self) private var journey
@@ -96,8 +95,6 @@ private struct BattlePresentationTaskKey: Equatable {
     let displayScale: CGFloat
 }
 
-/// Tracks overlay configuration so a single prepared run can first-layout the
-/// battlefield before Start, without rebuilding browsing chrome on combat ticks.
 struct PlayBattleOverlay: View {
     @Environment(PlaySession.self) private var play
     @Environment(BattleSession.self) private var battle
@@ -109,8 +106,6 @@ struct PlayBattleOverlay: View {
     var body: some View {
         let configuration = battle.overlayBattleConfiguration
         let isActive = battle.activeBattle != nil
-        // A single prepared run first-layouts BattleView here at opacity 0.
-        // Activation keeps that identity and fades it in.
         NavigationStack {
             if let configuration {
                 if let presentationContext = battlePresentationContext(for: configuration) {
@@ -232,7 +227,6 @@ struct PlayBattleOverlay: View {
     )
 }
 
-/// Battle/session sheets and covers — isolated `@Bindable` so overlay writes stay here.
 struct PlaySessionPresentationModifier: ViewModifier {
     @Environment(BattleSession.self) private var battle
     @Environment(PlaySession.self) private var play

@@ -1,11 +1,8 @@
 import TrinketFeatureSupport
 import XCTest
 
-/// Battle frame-pacing gates. Real play and drag handling use actual XCUI gestures;
-/// component scenarios isolate which synchronous stage still misses the budget.
 final class BattlePerformanceUITests: TrinketUITestCase {
     private static var scenarioDuration: TimeInterval {
-        // Keep ≥ app `BattlePerformanceTiming.snapshotDelay` (10s full / 3s quick).
         ProcessInfo.processInfo.environment["TRINKET_PERFORMANCE_QUICK"] == "1" ? 3.2 : 10.5
     }
 

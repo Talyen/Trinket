@@ -16,9 +16,6 @@ enum BattleCardPlayResolution: Equatable, Sendable {
     }
 }
 
-/// Production battle runtime and presentation controller for one battle session.
-/// App orchestration sees only `BattleRuntime`; BattleFeature owns the engine state,
-/// projection, feedback, spectacle, overlays, and timing on this concrete object.
 @MainActor
 @Observable
 public final class BattleSession: BattleRuntime {
@@ -26,8 +23,6 @@ public final class BattleSession: BattleRuntime {
     public let spectacle = BattleSpectacleState()
     @ObservationIgnored
     let presentationEnvironment: BattleRuntimeDependencies
-    /// Session-local Auto control. Persists across battles only when Options
-    /// "Remember Auto-Battle Preference" is on.
     public var isAutoBattleEnabled: Bool {
         didSet {
             guard oldValue != isAutoBattleEnabled else { return }
@@ -38,7 +33,6 @@ public final class BattleSession: BattleRuntime {
 
     public var overlayCombatantDetail: CombatantCardDetail?
     public var overlayAbilityDetail: Ability?
-    /// Presented from Play (not Options) so the log overlays the live battlefield.
     public var isShowingBattleLog = false
 
     public internal(set) var activeBattle: BattleRunConfiguration?
@@ -58,18 +52,14 @@ public final class BattleSession: BattleRuntime {
     private var claimedVictoryHandler: ((BattleRunConfiguration, Int) -> Void)?
     @ObservationIgnored
     var deliveredClaimedVictoryConfigurationID: UUID?
-    /// Gap between paced opening-hand draws. `<= 0` deals the hand synchronously in `resetRun`
-    /// (unit tests). Production uses `BattleMotion.cardDrawStagger`.
-    public var openingHandDrawStagger: TimeInterval
+    public var openingHandDrawStagger: Duration
 
-    /// Auto-battle poll interval while blocked. Unit tests set `.zero`.
     var autoBattleRetryDelay: Duration = .milliseconds(50)
-    /// Test seam for the Ultimate overlay wall-clock ceiling. Production uses motion.
     @ObservationIgnored
-    var cinematicSessionWatchdogOverride: TimeInterval?
+    var cinematicSessionWatchdogOverride: Duration?
 
-    let autoEndTurnDelay: TimeInterval
-    let enemyAttackImpactDelayOverride: TimeInterval?
+    let autoEndTurnDelay: Duration
+    let enemyAttackImpactDelayOverride: Duration?
     @ObservationIgnored
     var pendingAutoEndTask: Task<Void, Never>?
     @ObservationIgnored
@@ -85,36 +75,33 @@ public final class BattleSession: BattleRuntime {
         pendingAutoEndTask != nil
     }
 
-    /// When true, delayed auto-end (and its enemy telegraph) must not advance combat.
-    /// Owned by AppState scene-phase reconciliation; independent of battle lifecycle.
     @ObservationIgnored
     public internal(set) var isSuspendedForScenePhase = false
-    /// Changes whenever a prepared run is replaced so the Play shell can restart
-    /// presentation warmup without observing the private prepared-run dictionary.
     public internal(set) var preparedBattlePresentationRevision = 0
 
-    /// Test seam for outcome timing. Production derives the delay from active spectacle.
     @ObservationIgnored
-    var outcomePresentationDelayOverride: TimeInterval?
+    var outcomePresentationDelayOverride: Duration?
 
-    /// Test seam for the one-frame party celebration beat.
     @ObservationIgnored
-    var partyCelebrateDelayOverride: TimeInterval?
+    var partyCelebrateDelayOverride: Duration?
 
-    /// Beat after the last playable card so feedback can show before the turn advances.
-    public static let autoEndTurnDelay: TimeInterval = 0.4
+    public static let autoEndTurnDelay: Duration = .milliseconds(400)
 
     public init(
-        autoEndTurnDelay: TimeInterval = BattleSession.autoEndTurnDelay,
+        autoEndTurnDelay: TimeInterval = 0.4,
         openingHandDrawStagger: TimeInterval? = nil,
         enemyAttackImpactDelayOverride: TimeInterval? = nil,
         outcomePresentationDelayOverride: TimeInterval? = nil,
+        partyCelebrateDelayOverride: TimeInterval? = nil,
+        cinematicSessionWatchdogOverride: TimeInterval? = nil,
         presentationEnvironment: BattleRuntimeDependencies = .silent
     ) {
-        self.autoEndTurnDelay = autoEndTurnDelay
-        self.openingHandDrawStagger = openingHandDrawStagger ?? BattleMotion.cardDrawStagger
-        self.enemyAttackImpactDelayOverride = enemyAttackImpactDelayOverride
-        self.outcomePresentationDelayOverride = outcomePresentationDelayOverride
+        self.autoEndTurnDelay = .seconds(autoEndTurnDelay)
+        self.openingHandDrawStagger = openingHandDrawStagger.map { .seconds($0) } ?? .seconds(BattleMotion.cardDrawStagger)
+        self.enemyAttackImpactDelayOverride = enemyAttackImpactDelayOverride.map { .seconds($0) }
+        self.outcomePresentationDelayOverride = outcomePresentationDelayOverride.map { .seconds($0) }
+        self.partyCelebrateDelayOverride = partyCelebrateDelayOverride.map { .seconds($0) }
+        self.cinematicSessionWatchdogOverride = cinematicSessionWatchdogOverride.map { .seconds($0) }
         self.presentationEnvironment = presentationEnvironment
         isAutoBattleEnabled = Self.preferredAutoBattleEnabled(
             from: presentationEnvironment
@@ -148,13 +135,10 @@ public final class BattleSession: BattleRuntime {
             && !spectacle.isShowingVictory && !spectacle.isShowingDefeat
     }
 
-    /// True when a battle configuration has installed an authoritative simulation.
     var hasActiveSimulation: Bool {
         engineState != nil
     }
 
-    /// Retreat is closed once the fight is decided, including the spectacle hold
-    /// before victory/defeat chrome appears.
     var canRetreat: Bool {
         activeBattle != nil && !presentation.isBattleOver && !spectacle.isShowingVictory && !spectacle.isShowingDefeat
     }
@@ -189,7 +173,6 @@ public final class BattleSession: BattleRuntime {
         )
     }
 
-    /// Used by launch previews that need victory chrome without running combat.
     public func presentLaunchVictory() {
         guard let configuration = activeBattle,
               let context = presentationContext,
@@ -220,14 +203,9 @@ public final class BattleSession: BattleRuntime {
         }
     }
 
-    /// DEBUG-only config the Preview Lab uses to preview Ultimate transition
-    /// styles. Production battles leave this `nil` and use the diagonal split defaults.
     var previewLabConfig: PreviewLabConfig?
     #endif
 
-    /// Connects app-owned battle persistence without making the render tree own
-    /// simulation completion. Owner identity prevents a stale overlay teardown
-    /// from clearing a newer installation.
     public func installClaimedVictoryHandler(
         ownerID: UUID,
         _ handler: @escaping (BattleRunConfiguration, Int) -> Void
@@ -260,8 +238,6 @@ public final class BattleSession: BattleRuntime {
         isShowingBattleLog = true
     }
 
-    /// Log projection for the app shell's sheet. The mutable simulation remains
-    /// inside BattleFeature while callers receive immutable log DTOs.
     public var logEntries: [LogEntry] {
         engineState?.log ?? []
     }
@@ -270,7 +246,6 @@ public final class BattleSession: BattleRuntime {
         isShowingBattleLog = false
     }
 
-    /// Installs presentation for a configuration already accepted by the runtime.
     func installActiveBattle(
         _ configuration: BattleRunConfiguration,
         presentation: BattlePresentationContext? = nil
@@ -319,8 +294,6 @@ public final class BattleSession: BattleRuntime {
         CombatFeedbackRasterPool.shared.resetDiagnostics()
     }
 
-    /// Eagerly prepares battle audio before activation. Repeated calls are cheap
-    /// because both caches skip already-prepared resources.
     public func prepareBattlePresentation(
         heroActorID: String?,
         heroUltimateID: String?,

@@ -6,7 +6,6 @@ import TrinketDesignSystem
 import TrinketFeatureSupport
 import TrinketPersistence
 
-/// Title / narrative / grid scaffolding for the corruption-altar item picker.
 private struct MysteryItemChoiceScaffold<Footer: View>: View {
     let title: String
     let titleAccessibilityIdentifier: String

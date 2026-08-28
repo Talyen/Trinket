@@ -5,7 +5,6 @@ import TrinketDesignSystem
 import TrinketFeatureSupport
 import TrinketPersistence
 
-/// State container for the inventory salvage detail sheet and transmutation animation.
 struct SalvageDetailState {
     var selectedItem: InventoryItem?
     var transmutationEvent: SalvageTransmutationEvent?
@@ -39,8 +38,6 @@ struct SalvageDetailState {
     }
 }
 
-/// Shared inventory-salvage detail sheet. The committed result is handed back
-/// to presentation state while inventory data remains the grid's sole source.
 struct SalvageItemDetailSheet: View {
     @Environment(PlayerSaveStore.self) private var playerSave
     let item: InventoryItem

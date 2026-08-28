@@ -37,7 +37,6 @@ struct BattleCardCombatTests {
         let companionDrawn = battle.hand.cards.count(where: { $0.owner == .companion })
         try #expect(heroDrawn + companionDrawn == BattleHand.maxSize)
         try #expect(battle.hand.cards.allSatisfy { $0.owner == .hero || $0.owner == .companion })
-        // Remaining deck sizes match what was not drawn (loadouts may be <3 after tier collapse).
         try #expect(battle.heroDeck.count == battle.hero.abilityLoadout.abilities.count - heroDrawn)
         try #expect(battle.companionDeck.count == battle.companion.abilityLoadout.abilities.count - companionDrawn)
     }
@@ -119,14 +118,9 @@ struct BattleCardCombatTests {
             companionAbilities: [.bash, .fangs, .bloodthorn],
             enemyMaxHealth: 500
         )
-        // Loadouts hold at most one card per tier (basic/skill/ultimate), so
-        // this hero's real deck is only 2 cards (Slash + Dark Pact) and the
-        // opening hand draw may exhaust it. Pad the deck so playing Dark Pact
-        // has enough supply left to draw a full 2 cards.
         battle.heroDeck.putOnBottom(.heal)
         battle.heroDeck.putOnBottom(.smite)
 
-        // Ensure Dark Pact is in hand at max size so overflow exercises the buffer.
         battle.hand = BattleHand()
         battle.handBuffer = BattleHandBuffer()
         battle.nextCardID += 1
@@ -138,7 +132,6 @@ struct BattleCardCombatTests {
 
         let events = try BattleTestFixtures.playCardNamed("Dark Pact", owner: .hero, on: &battle)
 
-        // Play frees 1 slot; draw 2 → 1 into hand, 1 into buffer; promote is a no-op.
         try #expect(battle.hand.count == BattleHand.maxSize)
         try #expect(battle.handBuffer.count == 1)
         try #expect(events.contains { $0.effectKind == .cardsDrawn && $0.amount == 2 })
@@ -227,7 +220,6 @@ struct BattleCardCombatTests {
         let played = try #require(battle.hand.cards.first { $0.ability.id == Ability.slash.id })
         _ = try battle.playCard(cardID: played.id)
 
-        // After effects, FIFO promote fills the freed slot with the oldest buffer card.
         try #expect(battle.hand.count == BattleHand.maxSize)
         try #expect(battle.hand.cards.contains { $0.id == firstBuffered.id })
         try #expect(battle.handBuffer.count == 1)
@@ -240,8 +232,6 @@ struct BattleCardCombatTests {
             companionAbilities: [.bash, .fangs, .bloodthorn],
             enemyMaxHealth: 500
         )
-        // Leave one open slot with hero owning both hand cards so the balanced
-        // draw prefers companion for the open slot; the second quota card buffers.
         battle.hand = BattleHand()
         battle.handBuffer = BattleHandBuffer()
         battle.nextCardID += 1
@@ -272,7 +262,6 @@ struct BattleCardCombatTests {
             enemyMaxHealth: 500
         )
         battle.turnCount = startingRound
-        // One open slot, tied owner counts (1 hero + 1 companion) → tie-break picks the open-slot owner.
         battle.hand = BattleHand()
         battle.handBuffer = BattleHandBuffer()
         battle.nextCardID += 1
@@ -320,11 +309,8 @@ struct BattleCardCombatTests {
         do {
             _ = try battle.playCard(cardID: heroCard.id)
             Issue.record("Expected ownerDefeated")
-        } catch BattlePlayError.ownerDefeated {
-            // expected
-        }
+        } catch BattlePlayError.ownerDefeated {}
 
-        // Companion cards remain playable.
         let companionCard = try #require(battle.hand.cards.first { $0.owner == .companion })
         try #expect(battle.isCardPlayable(companionCard))
     }

@@ -10,7 +10,7 @@ struct BattleClaimedVictoryTests {
     @Test func claimedVictoryIsDeliveredOnceWhenHandlerInstallsLate() {
         let party = BattlePartyFixtures.quickWinParty()
         let session = BattleSession(openingHandDrawStagger: 0, outcomePresentationDelayOverride: 0)
-        session.partyCelebrateDelayOverride = 0
+        session.partyCelebrateDelayOverride = .zero
         let (configuration, presentation) = BattleRunConfigurationTestSupport.make(
             rngSeed: BattleSessionTestSupport.deterministicBattleSeed,
             hero: party.hero,
@@ -36,7 +36,7 @@ struct BattleClaimedVictoryTests {
     @Test func claimedVictoryDeliveryResetsForRestart() {
         let party = BattlePartyFixtures.quickWinParty()
         let session = BattleSession(openingHandDrawStagger: 0, outcomePresentationDelayOverride: 0)
-        session.partyCelebrateDelayOverride = 0
+        session.partyCelebrateDelayOverride = .zero
         let first = BattleRunConfigurationTestSupport.make(
             rngSeed: BattleSessionTestSupport.deterministicBattleSeed,
             hero: party.hero,

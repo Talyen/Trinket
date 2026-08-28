@@ -3,7 +3,6 @@ import TrinketAppState
 import TrinketDesignSystem
 import TrinketFeatureSupport
 
-/// Shared scroll container and grid layout shell for Collection browse screens.
 @MainActor
 struct CollectionGridShell<Data: RandomAccessCollection, Content: View, EmptyContent: View>: View where Data.Element: Identifiable {
     let items: Data

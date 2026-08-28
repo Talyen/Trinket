@@ -2,7 +2,6 @@ import Observation
 import SwiftUI
 import TrinketDesignSystem
 
-/// Shared scroll + toolbar chrome for full-bleed hero detail sheets (combatants, items).
 public struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
     let title: String
     let heroHeightPolicy: HeroHeaderLayout.HeightPolicy
@@ -44,9 +43,7 @@ public struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
             }
             .trinketScreenBackground()
             .ignoresSafeArea(edges: .top)
-            // Short pages still rubber-band so hero overscroll (and sheet pans) stay on the scroll view.
             .scrollBounceBehavior(.always)
-            // Soft edge only once the inline title is pinned — keep hero art sharp at rest.
             .scrollEdgeEffectHidden(!showsPinnedScrollEdgeEffect, for: .top)
             .scrollEdgeEffectStyle(.soft, for: .top)
             .onScrollGeometryChange(for: ScrollPresentation.self) { geometry in
@@ -63,7 +60,6 @@ public struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
                     titleOpacity: min(max((offsetY - threshold) / 32, 0), 1)
                 )
             } action: { _, newPresentation in
-                // Scroll geometry fires every frame; skip redundant observer publications.
                 guard scrollPresentation != newPresentation else { return }
                 scrollPresentation = newPresentation
 
@@ -133,7 +129,6 @@ private struct DetailScrollNavigationTitle: View {
     }
 }
 
-/// Shared section chrome for hero-detail body content.
 public struct DetailSection<Content: View>: View {
     let title: String
     var sectionID: String?

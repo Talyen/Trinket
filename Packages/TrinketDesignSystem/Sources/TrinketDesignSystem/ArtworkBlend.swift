@@ -1,6 +1,5 @@
 import SwiftUI
 
-/// Semantic surface that artwork can visually dissolve into.
 public enum ArtworkBlendDestination: Equatable, Sendable {
     case canvas
 
@@ -11,14 +10,12 @@ public enum ArtworkBlendDestination: Equatable, Sendable {
     }
 }
 
-/// Optional edge blend for integrating artwork with its containing surface.
 public enum ArtworkBlend: Equatable, Sendable {
     case none
     case bottom(into: ArtworkBlendDestination)
 }
 
 private enum ArtworkBlendRecipe: Sendable {
-    /// Bottom-edge clear band before the destination color fully takes over.
     static let clearInset = 0.22
 }
 
@@ -58,7 +55,6 @@ private struct BottomArtworkBlend: View {
 }
 
 public extension View {
-    /// Blends artwork toward a semantic surface. The default preserves the source unchanged.
     func trinketArtworkBlend(_ blend: ArtworkBlend = .none) -> some View {
         modifier(ArtworkBlendModifier(blend: blend))
     }

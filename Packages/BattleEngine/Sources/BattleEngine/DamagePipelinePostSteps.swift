@@ -3,10 +3,6 @@ import TrinketContent
 import TrinketCore
 
 package extension DamagePipeline {
-    // MARK: - Post steps
-
-    /// Master Thief: a Critical Hit from the Fox steals the enemy's Block before
-    /// the hit resolves (so the stolen Block protects the Fox, not the enemy).
     static func applyCriticalBlockSteal(
         to state: inout DamageResolutionState,
         in context: inout BattleState
@@ -136,7 +132,6 @@ package extension DamagePipeline {
         )
     }
 
-    /// Physical-attack reactions: Stun buildup and Block from damage dealt.
     private static func applyPhysicalAttackReactions(
         to state: inout DamageResolutionState,
         source: Combatant,
@@ -175,7 +170,6 @@ package extension DamagePipeline {
         }
     }
 
-    /// Combatant Talent System — on-attack-hit applications.
     private static func applyTalentAttackApplications(
         to state: inout DamageResolutionState,
         source: Combatant,
@@ -214,7 +208,6 @@ package extension DamagePipeline {
         )
     }
 
-    /// On-hit applications driven by the damage keyword (ranged/physical/holy).
     private static func applyKeywordAfflictionApplications(
         to state: inout DamageResolutionState,
         source: Combatant,
@@ -234,7 +227,6 @@ package extension DamagePipeline {
         applyHolyAfflictions(to: &state, sourceActorID: sourceActorID, triggers: triggers, keyword: keyword, in: &context)
     }
 
-    /// Ranged/Physical on-hit affliction applications.
     private static func applyRangedAndPhysicalAfflictions(
         to state: inout DamageResolutionState,
         source: Combatant,
@@ -303,7 +295,6 @@ package extension DamagePipeline {
         }
     }
 
-    /// Holy on-hit affliction applications.
     private static func applyHolyAfflictions(
         to state: inout DamageResolutionState,
         sourceActorID: String,
@@ -331,7 +322,6 @@ package extension DamagePipeline {
         ))
     }
 
-    /// Basic-attack applications (Bleed, Freeze buildup, Steal Gold).
     private static func applyBasicAttackApplications(
         to state: inout DamageResolutionState,
         source: Combatant,
@@ -370,7 +360,6 @@ package extension DamagePipeline {
         }
     }
 
-    /// On-hit reactions driven by the target's status (Frozen/Stunned/Poisoned).
     private static func applyTargetStateReactions(
         to state: inout DamageResolutionState,
         source: Combatant,
@@ -428,7 +417,6 @@ package extension DamagePipeline {
         }
     }
 
-    /// Chance-based on-hit applications (Direct Hit Bleed, Ambush Bleed, Raise Minion).
     private static func applyRandomOnHitApplications(
         to state: inout DamageResolutionState,
         source: Combatant,
@@ -459,7 +447,6 @@ package extension DamagePipeline {
                 in: &context
             ))
         }
-        // Bone Burst: chance to deal extra Physical damage and gain Block.
         if triggers.attackBurstChancePercent > 0, targetAlive,
            BattleChance.succeeds(probability: triggers.attackBurstChancePercent, using: &context.rng) {
             let burstDamage = max(0, triggers.attackBurstDamage)
@@ -506,15 +493,12 @@ package extension DamagePipeline {
         to state: inout DamageResolutionState,
         in context: inout BattleState
     ) {
-        // Buildup uses post-mitigation / post-crit damage before shields
-        // (`buildupDamage`). Shields protect health, not control meters.
         guard state.buildupDamage > 0,
               let damageKeyword = state.damageKeyword,
               damageKeyword == .stun || damageKeyword == .freeze,
               !state.options.isRetaliation || state.options.applyControlMeter,
               context.roster.health(for: state.combatant) > 0
         else { return }
-        // `buildupDamage` is post-mitigation damage already fight-paced in resolution.
         state.damageEvents.append(contentsOf: ControlMeterEngine.applyMeterCharge(
             state.buildupDamage,
             keyword: damageKeyword,

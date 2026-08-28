@@ -1,7 +1,6 @@
 import Foundation
 import TrinketCore
 
-/// Catalog modifier shown by title only in player UI (no umbrella noun).
 public struct LabyrinthModifierID: RawRepresentable, Hashable, Codable, Sendable, Identifiable {
     public let rawValue: String
 
@@ -75,9 +74,6 @@ public struct LabyrinthModifierDefinition: Identifiable, Hashable, Sendable {
         nodeTypes.contains(type.canonical)
     }
 
-    /// Keyword tying this modifier to an enemy's own abilities, if any.
-    /// Dealt bonuses boost against enemies using the keyword; reductions guard
-    /// against them. Nil modifiers are eligible for any node of their type.
     public var relevantKeyword: Keyword? {
         switch effect {
         case let .damageDealt(keyword, _):
@@ -97,13 +93,10 @@ public enum LabyrinthNodeType: String, Hashable, Sendable, CaseIterable, Codable
     case rest
     case mystery
     case recruit
-    /// Legacy save value; sanitized to `.mystery`. Do not generate new event nodes.
     case event
-    /// Legacy save value; sanitized to `.mystery`. Do not generate new craft nodes.
     case craft
     case entrance
 
-    /// Canonical type after collapsing legacy `.event`/`.craft` into mystery encounters.
     public var canonical: Self {
         self == .event || self == .craft ? .mystery : self
     }
@@ -115,7 +108,6 @@ public enum LabyrinthNodeType: String, Hashable, Sendable, CaseIterable, Codable
             self = .battle
             return
         }
-        // Legacy saves encoded boss nodes as "warden" and entrance as "gate".
         if rawValue == "warden" {
             self = .boss
             return
@@ -184,7 +176,6 @@ public enum LabyrinthNodeType: String, Hashable, Sendable, CaseIterable, Codable
     }
 }
 
-/// Stable axial hex-grid position for a Labyrinth node within one floor.
 public struct LabyrinthGridPosition: Hashable, Codable, Sendable {
     public let row: Int
     public let column: Int
@@ -194,14 +185,10 @@ public struct LabyrinthGridPosition: Hashable, Codable, Sendable {
         self.column = column
     }
 
-    /// Axial projected half-column: `2 * column + row`.
     public var projectedHalfColumn: Int {
         2 * column + row
     }
 
-    /// True when the two hexes share an edge. Single source of truth for Labyrinth
-    /// hex adjacency — generation, reachability, and save sanitizing must not
-    /// re-implement this.
     public func isAdjacent(to other: Self) -> Bool {
         let rowDelta = other.row - row
         let columnDelta = other.column - column
@@ -210,23 +197,14 @@ public struct LabyrinthGridPosition: Hashable, Codable, Sendable {
             || (rowDelta == -1 && (columnDelta == 0 || columnDelta == 1))
     }
 
-    /// Row-major ordering used for stable floor layout (single source of truth for
-    /// Labyrinth node ordering).
     public static func isOrderedBefore(_ lhs: Self, _ rhs: Self) -> Bool {
         lhs.row == rhs.row ? lhs.column < rhs.column : lhs.row < rhs.row
     }
 }
 
-/// Shared floor-width contract for Labyrinth generation and map UI.
-///
-/// Floors stay within three full hex columns so portrait layout can size seals
-/// edge-to-edge for that worst case.
 public enum LabyrinthMapLayout {
-    /// Inclusive half-column bound: projected indices in `-max...max`.
     public static let maxProjectedHalfColumn = 2
-    /// `max − min` of projected half-columns across a valid floor.
     public static let maxProjectedSpan = maxProjectedHalfColumn * 2
-    /// Full hex columns that fit the projected half-column window.
     public static let fullColumnsAcross = maxProjectedHalfColumn + 1
 }
 
@@ -238,11 +216,8 @@ public struct LabyrinthNode: Identifiable, Hashable, Codable, Sendable {
     public let clusterID: String
     public let gridPosition: LabyrinthGridPosition?
     public let modifierIDs: [LabyrinthModifierID]
-    /// Concealed recruit event payload; the map exposes only the Recruit type.
     public let recruitEventID: String?
-    /// Pinned mystery event so reopen stays stable with inventory-gated picks.
     public var mysteryEventID: String?
-    /// Outgoing edge node ids within the same or next cluster.
     public var outgoingIDs: [String]
     public var isCleared: Bool
     public var isRevealed: Bool
@@ -291,7 +266,6 @@ public struct LabyrinthNode: Identifiable, Hashable, Codable, Sendable {
         isRevealed = try container.decodeIfPresent(Bool.self, forKey: .isRevealed) ?? false
     }
 
-    /// Whether the two nodes share a hex edge (delegates to `LabyrinthGridPosition`).
     public func isAdjacent(to other: Self) -> Bool {
         guard let gridPosition, let otherPosition = other.gridPosition else { return false }
         return gridPosition.isAdjacent(to: otherPosition)
@@ -314,7 +288,6 @@ public struct LabyrinthCluster: Identifiable, Hashable, Codable, Sendable {
     }
 }
 
-/// Aggregated combat/reward modifiers for one Labyrinth node.
 public struct LabyrinthModifierEffects: Equatable, Sendable {
     public var damageDealtBonus: [Keyword: Int]
     public var damageTakenReduction: [Keyword: Int]

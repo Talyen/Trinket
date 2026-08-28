@@ -1,8 +1,6 @@
 import Testing
 import TrinketContent
 
-/// Every legacy-ID remap target must exist in the current catalog. A rename
-/// that orphans a target fails here instead of silently degrading saves.
 struct LegacyIDRemapInvariantTests {
     @Test func talentRemapTargetsAreValidNodeIDs() {
         let allValidNodeIDs = CombatantTalentCatalog.validNodeIDsByCombatantID.values.reduce(into: Set()) { result, ids in

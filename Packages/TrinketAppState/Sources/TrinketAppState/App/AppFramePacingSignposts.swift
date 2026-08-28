@@ -3,9 +3,6 @@ import os
 import SwiftUI
 import TrinketFeatureContracts
 
-/// Navigation and shell destination signposts for Instruments Animation Hitches /
-/// Time Profiler. Shares the frame-pacing subsystem with battle effect signposts so
-/// one Instruments filter covers both.
 public enum AppFramePacingSignposts {
     public static let subsystem = FramePacingSignpostSupport.subsystem
     public static let category = "AppNavigation"

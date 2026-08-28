@@ -1,8 +1,6 @@
 import Foundation
 import TrinketCore
 
-/// Authored Unique items. One per base type; the signature affix is bespoke and
-/// its title mirrors the item name minus type suffixes (Signet, Locket, …).
 enum UniqueCatalog {
     static let definitions: [UniqueItemDefinition] = [
         wardbreaker,
@@ -14,8 +12,6 @@ enum UniqueCatalog {
         saintfallPlate,
         goldenVerdict,
     ]
-
-    // MARK: - Wardbreaker (Flail)
 
     private static let wardbreaker = UniqueItemDefinition(
         id: "wardbreaker",
@@ -53,8 +49,6 @@ enum UniqueCatalog {
         ]
     )
 
-    // MARK: - Dance of Blades (Leather Armor)
-
     private static let danceOfBlades = UniqueItemDefinition(
         id: "dance_of_blades",
         displayName: "Dance of Blades",
@@ -86,8 +80,6 @@ enum UniqueCatalog {
             .catalog(id: "sidestep"),
         ]
     )
-
-    // MARK: - Bloodfire Signet (Ruby Ring)
 
     private static let bloodfireSignet = UniqueItemDefinition(
         id: "bloodfire_signet",
@@ -131,8 +123,6 @@ enum UniqueCatalog {
         ]
     )
 
-    // MARK: - Rimeheart Locket (Sapphire Amulet)
-
     private static let rimeheartLocket = UniqueItemDefinition(
         id: "rimeheart_locket",
         displayName: "Rimeheart Locket",
@@ -163,8 +153,6 @@ enum UniqueCatalog {
             )),
             .catalog(id: "rime"),
             .catalog(id: "aetherward"),
-            // Manabound pinned with Mana-only keywords so the locket stays within
-            // the Sapphire affinity theme; the power matches the catalog astral.
             .bespoke(ItemAffixDefinition(
                 id: "manabound_pinned",
                 title: "Manabound",
@@ -182,8 +170,6 @@ enum UniqueCatalog {
             )),
         ]
     )
-
-    // MARK: - Blackfletch (Crossbow)
 
     private static let blackfletch = UniqueItemDefinition(
         id: "blackfletch",
@@ -217,8 +203,6 @@ enum UniqueCatalog {
         ]
     )
 
-    // MARK: - Twin Casting (Staff)
-
     private static let twinCasting = UniqueItemDefinition(
         id: "twin_casting",
         displayName: "Twin Casting",
@@ -251,8 +235,6 @@ enum UniqueCatalog {
         ]
     )
 
-    // MARK: - Saintfall Plate (Plate Armor)
-
     private static let saintfallPlate = UniqueItemDefinition(
         id: "saintfall_plate",
         displayName: "Saintfall Plate",
@@ -284,8 +266,6 @@ enum UniqueCatalog {
             .catalog(id: "vital"),
         ]
     )
-
-    // MARK: - Golden Verdict (Topaz Ring)
 
     private static let goldenVerdict = UniqueItemDefinition(
         id: "golden_verdict",

@@ -7,8 +7,6 @@ import TrinketDesignSystem
 @testable import TrinketBattleFeature
 
 struct CombatFeedbackRasterCatalogTests {
-    /// Every closed-vocabulary chip the presenter can emit must hash to a key the
-    /// warmup catalog already prepared. Numeric magnitudes stay on-demand.
     @Test func everyClosedVocabularyLivePresentationMapsToAWarmedKey() {
         let date = Date(timeIntervalSince1970: 1)
         let layoutDirection = LayoutDirection.leftToRight

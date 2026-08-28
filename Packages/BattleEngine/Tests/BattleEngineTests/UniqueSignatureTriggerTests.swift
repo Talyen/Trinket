@@ -6,8 +6,6 @@ import TrinketTestSupport
 
 // swiftlint:disable file_length - unique signature matrix stays one owner
 
-// Unique-item signature mechanics: Bloodfire mirror procs and Leech grants,
-// Wardbreaker's purge payoff, and Rimeheart's Freeze-to-Block/Mana engine.
 // swiftlint:disable:next type_body_length
 struct UniqueSignatureTriggerTests {
     private func hero(maxHealth: Int = 20) -> Combatant {
@@ -29,7 +27,6 @@ struct UniqueSignatureTriggerTests {
 
         _ = BattleTestFixtures.endTurn(on: &battle)
 
-        // Burn(6) halves to a 3-point tick; the mirror Bleed hits for the same 3.
         try #expect(battle.health(of: battle.enemy) == 100 - 6)
         #expect(!battle.activeEffects(of: battle.enemy).contains { $0.keyword == .bleed })
     }
@@ -52,7 +49,6 @@ struct UniqueSignatureTriggerTests {
 
         _ = BattleTestFixtures.endTurn(on: &battle)
 
-        // Initial Bleed tick plus the capped 5-hop mirror cascade.
         try #expect(battle.health(of: battle.enemy) == 100 - 6)
     }
 
@@ -68,7 +64,6 @@ struct UniqueSignatureTriggerTests {
 
         _ = BattleTestFixtures.endTurn(on: &battle)
 
-        // Burn(3) halves to a 1-point tick; no mirror procs are configured.
         try #expect(battle.health(of: battle.enemy) == 100 - 1)
     }
 
@@ -170,8 +165,6 @@ struct UniqueSignatureTriggerTests {
             CombatTriggerEngine.afterEnemyStunned(in: &context)
         }
 
-        // Flat payload: 2 Holy × 2 effects − 1 mitigation = 3. Wisdom-scaled
-        // bonuses or DoT-style re-entry would change this exact number.
         try #expect(battle.health(of: battle.enemy) == 100 - 3)
     }
 
@@ -226,7 +219,6 @@ struct UniqueSignatureTriggerTests {
             ))
         }
 
-        // Block tracks health lost after mitigation (4), never raw potency (5).
         try #expect(outcome.healthLost == 4)
         let block = battle.activeEffects(of: battle.hero).first { active in
             if case let .shield(keyword, points) = active.effect {
@@ -277,7 +269,6 @@ struct UniqueSignatureTriggerTests {
             )
         }
 
-        // Empty deck → the auto-play reports didApply == false and the cascade breaks.
         #expect(!events.contains { $0.effectKind == .cardsDrawn })
     }
 

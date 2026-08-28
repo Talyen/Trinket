@@ -21,7 +21,6 @@ private func recruit(
     )
 }
 
-/// One-choice Recruit encounters that unlock heroes and companions.
 enum RecruitEventPool {
     static let all: [MysteryEvent] = [
         recruit(
@@ -106,8 +105,6 @@ enum RecruitEventPool {
         all.first { $0.unlockCombatantID == combatantID }
     }
 
-    /// Recruit events whose combatant is not yet unlocked.
-    /// When `role` is set, only events unlocking that role are eligible.
     static func eligible(
         unlockedHeroIDs: Set<String>,
         unlockedCompanionIDs: Set<String>,

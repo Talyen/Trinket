@@ -131,8 +131,6 @@ struct HealingEngineTests {
             seed: BattleTestFixtures.deterministicNonCriticalSeed
         )
 
-        // Hero and Companion both start at full Health: the leech has nowhere
-        // to land and must behave like the self-heal path (no event, no flag).
         let outcome = HealingEngine.leechFromDamage(
             10,
             sourceActorID: "source",
@@ -220,7 +218,6 @@ struct HealingEngineTests {
         )
         context.roster.mutateRuntime(for: target) { $0.currentHealth = 10 }
 
-        // Force crit via active critical-chance buff.
         context.roster.setActiveEffects(
             [ActiveEffect(id: 1, effect: .criticalChanceBonus(1.0, 6), remainingTurns: 6)],
             for: source
@@ -266,7 +263,6 @@ struct HealingEngineTests {
         )
         try #expect(outcome.isCritical)
         try #expect(outcome.flags.contains(.leeched))
-        // Crit doubles the 5 leech heal to 10; source Wisdom 20 adds +2 via heal().
         try #expect(outcome.healthRestored == 12)
         try #expect(outcome.events.first?.isCritical == true)
         try #expect(outcome.events.first?.keyword == .leech)
@@ -318,8 +314,6 @@ struct HealingEngineTests {
         #expect(armed.healOverTimeAmount == 2)
         #expect(armed.healOverTimeTurnsRemaining == 3)
 
-        // A HoT tick must not re-arm regardless of the logged ability name;
-        // the guard is the explicit flag, not a display-string match.
         context.roster.mutateRuntime(for: target) { $0.currentHealth = 10 }
         _ = HealingEngine.resolveHeal(
             HealRequest(

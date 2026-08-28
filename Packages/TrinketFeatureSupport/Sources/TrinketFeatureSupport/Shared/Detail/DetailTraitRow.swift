@@ -2,14 +2,12 @@ import SwiftUI
 import TrinketCore
 import TrinketDesignSystem
 
-/// Shared trait container for combatant, item, and ability detail.
 public struct DetailTraitRow: View {
     var title: String?
     let description: String
     var descriptionAccessibilityID: String?
     var leadingIconKeyword: Keyword?
     var titleKeywords: Set<Keyword>
-    /// When set, shines the title in these colors instead of `titleKeywords`.
     var titleShineColors: [Color]?
 
     public init(

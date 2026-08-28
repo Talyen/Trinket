@@ -1,7 +1,6 @@
 import TrinketFeatureSupport
 import XCTest
 
-/// Exhaustive merchant shop journey via deep link (kept out of smoke).
 final class ShopFlowUITests: TrinketUITestCase {
     private var shop: ShopScreen {
         ShopScreen(app: app)

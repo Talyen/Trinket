@@ -25,8 +25,6 @@ public struct ExperienceBar: View {
     nonisolated static let animationBudget: TimeInterval = 0.30
     nonisolated static let animationFramesPerSecond = 60
 
-    /// Normalized crop anchor for circular combatant thumbs. Portrait art is 3:4;
-    /// a center crop clips heads, so default toward the upper body / face.
     private let artworkFocalX: Double
     private let artworkFocalY: Double
 
@@ -135,7 +133,6 @@ public struct ExperienceBar: View {
         .onDisappear {
             animationTask?.cancel()
             animationTask = nil
-            // Cancel without completion left Victory CTA locked when @State survived.
             if hasAnimated {
                 snapToPost()
                 reportCompletion()
@@ -145,7 +142,6 @@ public struct ExperienceBar: View {
 
     private func circularPortrait(artworkName: String) -> some View {
         let size: CGFloat = 58
-        // Combatant thumbs are authored at 3:4; match HomesteadFocalArtwork offset math.
         let sourceAspectRatio: CGFloat = 3.0 / 4.0
 
         return GeometryReader { geometry in

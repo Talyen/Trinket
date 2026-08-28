@@ -4,7 +4,6 @@ import TrinketCore
 import TrinketDesignSystem
 import TrinketFeatureSupport
 
-/// Shared enumeration of closed-vocabulary combat feedback chips.
 enum CombatFeedbackClosedVocabulary {
     struct Source: Equatable {
         let feedbackClass: CombatFeedbackClass

@@ -2,13 +2,9 @@ import Foundation
 import SwiftUI
 import TrinketPersistence
 
-/// How Ultimate cinematics are shown before presentation.
 public enum UltimateCinematicShowPolicy: String, CaseIterable, Identifiable, Sendable {
-    /// Always present the full-screen Ultimate cinematic.
     case always
-    /// Never present the full-screen Ultimate cinematic.
     case never
-    /// Show each of Hero and Companion's Ultimate cinematic once per battle; later casts auto-skip.
     case oncePerBattle
 
     public var id: String {
@@ -24,8 +20,6 @@ public enum UltimateCinematicShowPolicy: String, CaseIterable, Identifiable, Sen
     }
 }
 
-/// Local player preferences. Values persist device-locally in `UserDefaults`
-/// (not part of `PlayerSave` / CloudKit).
 @MainActor
 @Observable
 public final class OptionsStore {
@@ -43,8 +37,6 @@ public final class OptionsStore {
         didSet { defaults.set(hapticsEnabled, forKey: Self.hapticsEnabledKey) }
     }
 
-    /// When false (default), Auto starts OFF each battle and is not persisted.
-    /// When true, the battle toolbar Auto preference is restored across battles.
     public var rememberAutoBattlePreference: Bool {
         didSet {
             defaults.set(rememberAutoBattlePreference, forKey: Self.rememberAutoBattlePreferenceKey)
@@ -52,7 +44,6 @@ public final class OptionsStore {
         }
     }
 
-    /// Battle-toolbar Auto preference. Only meaningful when `rememberAutoBattlePreference` is on.
     public var autoBattleEnabled: Bool {
         didSet { defaults.set(autoBattleEnabled, forKey: Self.autoBattleEnabledKey) }
     }
@@ -101,7 +92,6 @@ public final class OptionsStore {
         }
     }
 
-    /// Whether a new Ultimate from this actor should skip the full-screen cinematic.
     public func shouldAutoSkipUltimateCinematic(
         actorID: String,
         actorsWhoPresentedThisBattle: Set<String>

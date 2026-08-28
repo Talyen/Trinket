@@ -36,7 +36,6 @@ struct PlayScreen {
             return
         }
 
-        // Be tolerant of a caller arriving from a nested Play destination.
         for _ in 0 ..< 4 {
             let back = app.navigationBars.buttons.firstMatch
             guard back.waitForExistence(timeout: 1), back.isHittable else { break }
@@ -78,7 +77,6 @@ struct PlayScreen {
         openStage(AccessibilityID.Play.stageAction(chapter: chapter, stage: stage))
     }
 
-    /// Battle stages expose a compact party control and start directly from the stage CTA.
     func startBattle(chapter: Int, stage: Int) {
         let party = app.descendants(matching: .any)[AccessibilityID.Play.stagePartyControl]
         XCTAssertTrue(party.waitForExistence(timeout: TrinketUITestCase.defaultTimeout), "Battle party control not found")
@@ -87,7 +85,6 @@ struct PlayScreen {
         XCTAssertTrue(start.waitForExistence(timeout: TrinketUITestCase.defaultTimeout), "Battle CTA not found")
         start.tap()
 
-        // The stage CTA must hand off directly to live battle chrome.
         let hand = app.descendants(matching: .any)[AccessibilityID.Battle.hand]
         let victory = app.descendants(matching: .any)[AccessibilityID.Battle.victory]
         let launched = hand.waitForExistence(timeout: 8)

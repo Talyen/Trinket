@@ -4,7 +4,6 @@ import TrinketCore
 import TrinketTestSupport
 @testable import BattleEngine
 
-/// Defensive injected-trigger talents: mitigation caps, Block sharing and redirects, and gold-funded absorption.
 struct CombatTriggerTalentDefenseTests {
     @Test func bulwarkFortressReducesHeroDamageWhileCompanionBlocked() {
         var battle = BattleStateTestFactory.makeBattle(
@@ -209,7 +208,6 @@ struct CombatTriggerTalentDefenseTests {
             heroModifiers: ironhideProfile,
             dealOpeningHand: false
         )
-        // Direct attack from enemy with 20 damage is capped to 10
         let attackOutcome = battle.resolveDamage(DamageRequest(
             amount: 20,
             target: battle.roster.hero.combatant,
@@ -219,7 +217,6 @@ struct CombatTriggerTalentDefenseTests {
         ))
         #expect(attackOutcome.healthLost == 10)
 
-        // DoT tick from enemy with 20 damage is NOT capped by Ironhide
         let dotOutcome = battle.resolveDamage(DamageRequest(
             amount: 20,
             target: battle.roster.hero.combatant,
@@ -332,8 +329,6 @@ struct CombatTriggerTalentDefenseTests {
     }
 
     @Test func thickHideReducesDamageTaken() throws {
-        // Verify passiveMitigationFlat reduces damage by 1 using a zero-toughness
-        // companion so toughness DR doesn't interfere with the expected value.
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 20)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30)

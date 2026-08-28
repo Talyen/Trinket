@@ -1,7 +1,6 @@
 import SwiftUI
 import TrinketFeatureSupport
 
-/// Prepared art sized for map tiles; prefers thumbnails for compact layouts.
 struct MapTileArtwork: View {
     let art: any PreparedArtworkReference
     var prefersThumbnail = false
@@ -17,7 +16,6 @@ struct MapTileArtwork: View {
     }
 }
 
-/// Tinted symbol fallback for map tiles without prepared art.
 struct MapTilePlaceholder: View {
     let tint: Color
     let symbolName: String

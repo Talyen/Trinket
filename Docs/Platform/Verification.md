@@ -129,6 +129,7 @@ does not fail a correctness gate.
 | `check-exclusivity-footguns.sh` | Suspicious `inout` access to stored properties |
 | `check-agent-invariants.sh` | BattleEngine entropy, test `Task.sleep`, persistence `try?`, undocumented concurrency escapes, file-level SwiftLint disables |
 | `check-accessibility-ids.sh` | Unique `AccessibilityID` constants; UITests must query `AccessibilityID.*` |
+| `check-comment-ban.sh` | Banned `//` in Swift authored sources (allowlist: `swift-tools-version` / `swiftlint:disable` / `swiftformat:disable` / `Generated` headers; transitional `*Check: allow` / `Concurrency-Safety:`) |
 | `check-module-boundaries.sh` | Package layering and imports |
 
 `Color.primary`, `.secondary`, and `.clear` remain valid adaptive primitives.

@@ -16,9 +16,6 @@ struct PlayView: View {
     @State private var navigationPath: [PlayLaunchDestination] = []
 
     var body: some View {
-        // Keep browsing chrome and battle overlay as separate observation scopes.
-        // A single `@Bindable` BattleSession here rebuilt the campaign stack on every
-        // overlay/sheet write (enemy detail, ability, log).
         ZStack {
             PlayBrowsingStack(
                 navigationPath: $navigationPath,
@@ -34,8 +31,6 @@ struct PlayView: View {
         .onChange(of: play.shellSession.selectedTab) { previousTab, newTab in
             guard !play.shellSession.isShellWarmupActive else { return }
             guard newTab == .play, previousTab != .play else { return }
-            // A normal Play-tab visit is a fresh choice. Pending destinations
-            // are consumed only for battle/deep-link restoration below.
             guard battle.lifecyclePhase != .active else { return }
             restorePlayDestinationIfNeeded(resetForNormalEntry: true)
         }
@@ -47,8 +42,6 @@ struct PlayView: View {
         .modifier(PlaySessionPresentationModifier(stageMessage: $stageMessage))
     }
 
-    /// Prefer pending post-battle / launch destinations. Otherwise leave the
-    /// explicit path empty so the mode chooser is the Play root.
     private func restorePlayDestinationIfNeeded(resetForNormalEntry: Bool = false) {
         guard battle.lifecyclePhase != .active else { return }
 

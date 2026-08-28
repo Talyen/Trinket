@@ -1,10 +1,5 @@
 import Foundation
 
-/// Presentation capabilities supplied by the composition root to a battle runtime.
-///
-/// The contract contains values and closures only. App-owned stores, SwiftUI, and
-/// audio frameworks stay outside the runtime package and are captured by the app
-/// when it builds these callbacks.
 @MainActor
 public struct BattleRuntimeDependencies {
     public let playSFX: ([String]) -> Void
@@ -16,7 +11,6 @@ public struct BattleRuntimeDependencies {
     public let setAutoBattleEnabled: (Bool) -> Void
     public let shouldAutoSkipUltimateCinematic: (String, Set<String>) -> Bool
 
-    /// No-op presentation bundle for non-composed contexts (tests, fallback paths).
     public static let silent = Self(
         playSFX: { _ in },
         warmSFX: { _, _ in },

@@ -1,11 +1,9 @@
 import Foundation
 import TrinketCore
 
-/// One randomly chosen outcome for an ability that lists alternatives with "or".
 public struct AbilityOutcomeBranch: Hashable, Sendable {
     public let damageComponents: [DamageComponent]
     public let targetedEffects: [TargetedEffect]
-    /// When true, each damage component's keyword is replaced with a random damage type at play.
     public let randomizeDamageKeywords: Bool
 
     public init(
@@ -34,11 +32,7 @@ public struct Ability: Identifiable, Hashable, Sendable {
     public let outcomeBranches: [AbilityOutcomeBranch]?
     public let criticalChanceBonus: Double
     public let guaranteedCriticalIfEnemyBuffed: Bool
-    /// When true, damage from this ability heals the attacker for `Effect.abilityLeechPercent`
-    /// of health lost (Leech keyword — not a lasting buff).
     public let hasLeech: Bool
-    /// When true, Mana empowerment purchases repeat until the actor cannot afford another
-    /// (Meteor). Item triggers can also enable this for Burn cards.
     public let repeatsManaEmpowerment: Bool
 
     public var effects: [Effect] {
@@ -162,7 +156,6 @@ public struct Ability: Identifiable, Hashable, Sendable {
         descriptionOverride ?? generatedDescription
     }
 
-    /// Fixed playable snapshot after choosing a random outcome branch (if any).
     public func resolvingOutcomeBranch(
         using rng: inout some RandomNumberGenerator
     ) -> Self {
@@ -207,7 +200,6 @@ public struct Ability: Identifiable, Hashable, Sendable {
         )
     }
 
-    /// True when this resolved ability has Burn/Freeze damage numbers Mana can empower.
     public var hasManaEmpowerableBurnOrFreezeDamage: Bool {
         damageComponents.contains(where: \.isManaEmpowerableBurnOrFreezeDamage)
             || targetedEffects.contains(where: \.effect.isManaEmpowerableBurnOrFreezeDamage)
@@ -220,7 +212,6 @@ public struct Ability: Identifiable, Hashable, Sendable {
             }
     }
 
-    /// Snapshot with every Burn/Freeze damage number raised by `amount` (default 1).
     public func empoweredByMana(amount: Int = 1) -> Self {
         guard amount > 0, hasManaEmpowerableBurnOrFreezeDamage else { return self }
         return Self(
@@ -271,8 +262,6 @@ private extension TargetedEffect {
 }
 
 public extension Ability {
-    /// True when playing this card can deal HP or DoT damage to the opponent.
-    /// Self-damage, heals, Block, Thorns, and draw are not combat damage.
     var dealsCombatDamage: Bool {
         if damageComponents.contains(where: \.isOffensiveCombatDamage) {
             return true

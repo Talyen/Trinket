@@ -5,7 +5,6 @@ import TrinketDesignSystem
 import TrinketFeatureAdapters
 import TrinketFeatureSupport
 
-/// Shared active + future encounter list for linear Stage Select surfaces.
 struct StageSelectList<Item: Identifiable, Artwork: View, PartyPickerSheet: View>: View {
     let rows: [StageSelectRowPresentation<Item>]
     let isPrimaryActionDisabled: (Item) -> Bool

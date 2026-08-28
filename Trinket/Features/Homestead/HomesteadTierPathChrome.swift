@@ -2,8 +2,6 @@ import SwiftUI
 import TrinketDesignSystem
 import TrinketFeatureAdapters
 
-// CI trigger: ensures exhaustive UI runs for test-timeout tuning.
-
 enum HomesteadTierNodeMetrics {
     static let size: CGFloat = 48
     static let railWidth: CGFloat = 54

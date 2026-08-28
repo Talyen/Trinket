@@ -1,9 +1,6 @@
 import SwiftUI
 import TrinketDesignSystem
 
-/// Style options for the cover transition of an Ultimate cinematic presentation
-/// overlay. The same visual languages serve both opening (revealing the video,
-/// driven 0 covered → 1 revealed) and exit.
 public enum UltimateCinematicCoverStyle: String, CaseIterable, Identifiable, Sendable {
     case diagonalSplit
     case fade
@@ -20,8 +17,6 @@ public enum UltimateCinematicCoverStyle: String, CaseIterable, Identifiable, Sen
     }
 }
 
-/// Dynamic cover layer rendering the selected transition style.
-/// `progress` ranges from 0.0 (fully covered / closed) to 1.0 (fully open / revealed).
 struct UltimateCinematicCoverView: View {
     let style: UltimateCinematicCoverStyle
     let progress: CGFloat
@@ -36,11 +31,9 @@ struct UltimateCinematicCoverView: View {
     }
 }
 
-/// Two cinematicDim half-planes that peel apart along a diagonal.
 struct DiagonalCinematicSplitCover: View {
     var progress: CGFloat
 
-    /// Top-left → bottom-right slash (~40° from vertical).
     private static let angleDegrees: CGFloat = 40
     private static let travelFactor: CGFloat = 0.6
 
@@ -74,7 +67,6 @@ struct DiagonalCinematicSplitCover: View {
     }
 }
 
-/// Half-plane on one side of a diagonal cut through the screen center.
 struct DiagonalCinematicHalfPlane: Shape {
     var isPrimary: Bool
     var angleDegrees: CGFloat
@@ -100,7 +92,6 @@ struct DiagonalCinematicHalfPlane: Shape {
     }
 }
 
-/// Fade: the dark cover uniformly fades out when opening and fades in when covering.
 struct FadeCinematicCover: View {
     var progress: CGFloat
 

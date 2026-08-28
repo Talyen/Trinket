@@ -2,15 +2,9 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-/// Mutable per-combatant state for the duration of a single battle.
-///
-/// The `Combatant` itself is treated as an immutable definition; the runtime
-/// tracks how that definition's state has evolved during the battle.
 @dynamicMemberLookup
 public struct CombatantRuntime: Hashable {
     public struct TalentState: Equatable, Hashable, Sendable {
-        // MARK: Persistent (combat-long)
-
         public var talentMaxHealthBonus: Int = 0
         public var permanentDamageBonus: Int = 0
         public var keywordDamageRamp: [Keyword: Int] = [:]
@@ -19,8 +13,6 @@ public struct CombatantRuntime: Hashable {
         public var talentStatBonus: PrimaryStats = .init()
         public var talentCritMultiplierBonus: Double = 0.0
         public var hasNegatedFirstEnemyAttack: Bool = false
-
-        // MARK: Turn-scoped (reset each round)
 
         public var bonusDodgeUntilNextTurn: Double = 0.0
         public var bonusDodgeExpiresAtTurn: Int = 0
@@ -31,8 +23,6 @@ public struct CombatantRuntime: Hashable {
         public var hasTriggeredBlockBreakThisTurn: Bool = false
         public var talentDamagePercentBonus: Double = 0.0
         public var talentDamagePercentUntilTurn: Int = 0
-
-        // MARK: Attack/Card-scoped (consumed on next hit/card)
 
         public var pendingDamageAfterDodge: Int = 0
         public var pendingDamageDoubleAfterDodge: Bool = false
@@ -49,7 +39,6 @@ public struct CombatantRuntime: Hashable {
 
         public init() {}
 
-        /// Resets per-round state — called by `CombatTriggerEngine.resetTurnCadenceState`.
         mutating func resetForNewTurn(currentTurn: Int) {
             if bonusDodgeExpiresAtTurn == 0 || currentTurn >= bonusDodgeExpiresAtTurn {
                 bonusDodgeUntilNextTurn = 0
@@ -82,44 +71,30 @@ public struct CombatantRuntime: Hashable {
         set { mutateTalentState { $0[keyPath: keyPath] = newValue } }
     }
 
-    /// The immutable combatant definition (name, role, ability loadout, etc.).
     public let combatant: Combatant
 
-    /// Current health. `0` means defeated.
     public var currentHealth: Int
 
-    /// Current mana. Starts at `combatant.maxMana` and is `0` for combatants without mana.
     public var currentMana: Int
 
-    /// Currently active status effects, in insertion order.
     public var activeEffects: [ActiveEffect]
 
-    /// Number of times this combatant has acted so far in the battle.
     public var actionCount: Int
 
-    /// Flat maximum-health bonus from equipped item affixes.
     public let maximumHealthBonus: Int
 
-    /// Flat maximum-mana bonus from equipped item affixes.
     public let maximumManaBonus: Int
 
-    /// True after this combatant has triggered Death's Door once this battle.
     public var hasConsumedDeathsDoor: Bool
 
-    /// Round when Death's Door expired; lethal protection lasts through that
-    /// round's remaining effect pass, then clears before the next player turn.
     public var deathsDoorExpiredAtTurn: Int?
 
-    /// True after this combatant's first-hit double-damage trait has fired once.
     public var hasTriggeredFirstHitBonus: Bool
 
-    /// True after this combatant's Second Wind affix has healed once this battle.
     public var hasTriggeredSecondWind: Bool
 
-    /// True after this combatant's trait death-revive has fired once this battle.
     public var hasTriggeredDeathRevive: Bool
 
-    /// True after this companion's Phoenix Gift has revived the hero once this battle.
     public var hasTriggeredPhoenixGift: Bool
 
     public init(
@@ -152,8 +127,6 @@ public struct CombatantRuntime: Hashable {
         actionCount = 0
     }
 
-    // MARK: - Identity passthrough
-
     public var id: String {
         combatant.id
     }
@@ -183,7 +156,6 @@ public struct CombatantRuntime: Hashable {
     public var primaryStats: PrimaryStats {
         var merged = combatant.primaryStats
         merged.merge(self.talentStatBonus)
-        // Weaken Soul: active Strength-reduction debuffs subtract from Strength.
         for active in activeEffects {
             if case let .strengthReduction(amount, _) = active.effect {
                 merged.strength -= amount
@@ -200,32 +172,22 @@ public struct CombatantRuntime: Hashable {
         combatant.abilities
     }
 
-    /// Indicates whether the combatant is alive.
     public var isAlive: Bool {
         currentHealth > 0
     }
 
-    // MARK: - State mutations
-
-    /// Subtracts `amount` from `currentHealth`, clamped at 0. Returns the
-    /// actual health lost. The caller is responsible for shield absorption
-    /// and mitigation before calling this.
     public mutating func takeRawDamage(_ amount: Int) -> Int {
         let actual = min(amount, currentHealth)
         currentHealth = max(0, currentHealth - amount)
         return actual
     }
 
-    /// Subtracts `amount` from `currentMana`, clamped at 0. Returns the
-    /// actual mana spent.
     public mutating func spendMana(_ amount: Int) -> Int {
         let actual = min(amount, currentMana)
         currentMana = max(0, currentMana - amount)
         return actual
     }
 
-    /// Restores `amount` mana, capped at `maxMana`. Returns the actual
-    /// amount restored.
     public mutating func restoreMana(_ amount: Int) -> Int {
         let space = max(0, maxMana - currentMana)
         let actual = min(amount, space)
@@ -233,8 +195,6 @@ public struct CombatantRuntime: Hashable {
         return actual
     }
 
-    /// Restores `amount` health, capped at `maxHealth` and boosted by
-    /// Wisdom's diminishing returns curve percentage. Returns the actual amount restored.
     public mutating func heal(_ amount: Int) -> Int {
         let wisdomPercent = PrimaryStats.diminishingReturnsPercent(for: primaryStats.wisdom)
         let wisdomBonus = CombatRounding.scaled(amount, multiplier: wisdomPercent)
@@ -246,7 +206,6 @@ public struct CombatantRuntime: Hashable {
         return actual
     }
 
-    /// Records that this combatant just acted.
     public mutating func markActed() {
         actionCount += 1
     }

@@ -45,7 +45,6 @@ struct BattleScreen {
         file: StaticString = #file,
         line: UInt = #line
     ) {
-        // Active combat shows the hand; outcome screens show Victory chrome.
         let handChrome = app.descendants(matching: .any)
             .matching(identifier: AccessibilityID.Battle.hand)
             .firstMatch

@@ -23,7 +23,7 @@ the focused subcard named beside it and do not read the router card by default.
 | [ci-and-project-generation.md](ci-and-project-generation.md) | `Scripts/`, `.github/`, `project.yml` |
 | [ci-diagnostics.md](ci-diagnostics.md) | **Lazy:** load only after a test/CI failure |
 
-Apple design procedure: [apple-design skill](../Skills/apple-design/SKILL.md) (attached for DesignSystem and visual feature paths only). Cursor glob rule `.cursor/rules/design-system-colors.mdc` enforces color routing independently of this catalog.
+Apple design procedure: [apple-design skill](../../.agents/skills/apple-design/SKILL.md) (attached for DesignSystem and visual feature paths only). Cursor glob rule `.cursor/rules/design-system-colors.mdc` enforces color routing independently of this catalog.
 
 Reading budget: locate the symbol with `rg`, read a bounded line range, and open a
 linked guide only when the task crosses that guide's concern. Generated catalogs and

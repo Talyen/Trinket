@@ -18,9 +18,6 @@ struct LabyrinthSaveRecoveryTests {
 
         LabyrinthCompletion.enter(save: &save)
 
-        // Phase 2.2 auto-recovery: unreadable now rebuilds instead of looping
-        // "Labyrinth Error" forever. Seed follows PlayerSave.worldSeed
-        // (canonical save seed), not the stale labyrinth.worldSeed 55.
         #expect(save.labyrinth.hasMap)
         #expect(!save.labyrinth.isMapPayloadUnreadable)
         #expect(save.labyrinth.worldSeed == expectedSeed)
@@ -63,7 +60,6 @@ struct LabyrinthSaveRecoveryTests {
         #expect(loaded.persistBatch(logging: "enter") { save in
             LabyrinthCompletion.enter(save: &save)
         })
-        // Auto-recovery on enter now rebuilds instead of preserving corrupt blob.
         #expect(!loaded.labyrinth.isMapPayloadUnreadable)
         #expect(loaded.labyrinth.hasMap)
         #expect(loaded.labyrinth.worldSeed == expectedSeed)

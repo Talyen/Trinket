@@ -88,8 +88,6 @@ extension BattleSession {
         return run.state.battlePresentationSnapshot(configurationID: run.configuration.id)
     }
 
-    /// Hidden battlefield first-layout is only a keep-alive when exactly one
-    /// prepared run exists. Multiple candidates (labyrinth) would rebuild on tap.
     public var overlayBattleConfiguration: BattleRunConfiguration? {
         _ = preparedBattlePresentationRevision
         if let activeBattle {
@@ -226,8 +224,6 @@ extension BattleSession {
               preparedBattleRun.configuration.enemy?.id == enemyID
         else { return false }
 
-        // Activate before dropping the prepared run so the overlay battlefield
-        // keeps the same configuration identity across the Start tap.
         engineState = preparedBattleRun.state
         activatePresentation(
             for: preparedBattleRun.configuration,
@@ -293,8 +289,6 @@ extension BattleSession {
     }
 
     public func trimMemoryFootprint(releaseBattleLog: Bool) {
-        // Keep pins while a prepared overlay or active fight needs hitch-free
-        // faces; idle battles can drop them under memory pressure.
         if lifecyclePhase == .idle {
             releasePreparedArtworkPins()
         }

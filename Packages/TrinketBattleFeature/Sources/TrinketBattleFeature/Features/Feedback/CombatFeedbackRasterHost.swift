@@ -4,8 +4,6 @@ import TrinketDesignSystem
 import TrinketFeatureSupport
 import UIKit
 
-/// UIKit-backed chip host. Always mounted and refreshed through
-/// `CombatFeedbackChipBridge` so chip publishes skip SwiftUI invalidation.
 struct CombatFeedbackRasterSlot: View {
     @Environment(\.layoutDirection) private var layoutDirection
 
@@ -99,7 +97,6 @@ final class CombatFeedbackRasterUIView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
 
-    /// Keeps the shared display-link motion clock resident before measured publishes.
     @MainActor
     static func prewarmMotionClock() {
         CombatFeedbackChipMotionClock.prewarm()
@@ -158,7 +155,6 @@ final class CombatFeedbackRasterUIView: UIView {
         withLayerActionsDisabled {
             for layer in layersByID.values {
                 layer.layer.position = center
-                // Reveal chips inserted before the host had a measured frame.
                 if layer.layer.isHidden {
                     layer.layer.isHidden = false
                 }
@@ -220,8 +216,6 @@ final class CombatFeedbackRasterUIView: UIView {
         return lhsItem.availableAt < rhsItem.availableAt
     }
 
-    /// Shared chip-motion sampling: travel distance from the host's card height
-    /// plus the sampler state at `date`.
     private func sampledState(
         for item: CombatFeedbackItem,
         chipHeight: CGFloat,
@@ -264,8 +258,6 @@ final class CombatFeedbackRasterUIView: UIView {
         }
         let rasterID = ObjectIdentifier(raster)
         let hasMeasuredBounds = !bounds.isEmpty
-        // Same recipe sampling as the old CAKeyframe path; driven by the shared
-        // display-link clock so publish does not install animation groups.
         let pose = compositorPose(
             for: item,
             chipSize: raster.pointSize,
@@ -282,7 +274,6 @@ final class CombatFeedbackRasterUIView: UIView {
                 chipLayer.position = CGPoint(x: bounds.midX, y: bounds.midY)
                 chipLayer.isHidden = false
             } else {
-                // Stay hidden until layoutSubviews can place us at the real center.
                 chipLayer.isHidden = true
             }
         }
@@ -313,9 +304,6 @@ final class CombatFeedbackRasterUIView: UIView {
         reusableLayers.append(layer.layer)
     }
 
-    /// Display-link sampling must write model values without Core Animation's
-    /// default ~0.25s implicit actions, or layout position corrections animate
-    /// downward while the rise transform continues upward.
     private func withLayerActionsDisabled(_ updates: () -> Void) {
         CATransaction.begin()
         CATransaction.setDisableActions(true)
@@ -324,8 +312,6 @@ final class CombatFeedbackRasterUIView: UIView {
     }
 }
 
-/// One display-link clock for every chip host. Samples the same motion recipes
-/// the previous CAKeyframe path used, without installing animation groups on publish.
 @MainActor
 private enum CombatFeedbackChipMotionClock {
     private static var hosts: [ObjectIdentifier: WeakHost] = [:]
@@ -353,7 +339,6 @@ private enum CombatFeedbackChipMotionClock {
         }
     }
 
-    /// Starts the shared motion clock before the first measured chip publish.
     static func prewarm() {
         ensureDisplayLink()
     }

@@ -25,9 +25,6 @@ public struct CombatantDetailPane: View {
     var onUnlockTalent: ((TalentNode, TalentTree) -> Void)?
     var onResetTalents: (() -> Void)?
 
-    /// Loadout picker navigation state is owned here at the pane level so the picker
-    /// destinations are at the root of whatever NavigationStack presents this view.
-    /// Each picker owns its detail destination so Back returns to that picker grid.
     @State private var selectedItemSlot: ItemSlot?
     @State private var selectedAbilityTier: AbilityTier?
     @State private var viewingAbility: ViewOnlyAbility?
@@ -35,7 +32,6 @@ public struct CombatantDetailPane: View {
     @State private var selectedTalentTree: TalentTree?
     @State private var selectionFeedbackTrigger = 0
 
-    /// Distinct from `Ability` so view-only and loadout destinations do not collide.
     private struct ViewOnlyAbility: Hashable, Identifiable {
         let ability: Ability
 
@@ -91,8 +87,6 @@ public struct CombatantDetailPane: View {
         } bodyContent: {
             combatantDetailBody(combatBuild: combatBuild)
         }
-        // Sub-picker navigation is declared here so it lands at the root of whichever
-        // NavigationStack contains this pane (typically the Collection detail sheet).
         .navigationDestination(item: $selectedItemSlot) { slot in
             ItemSlotPickerView(
                 slot: slot,

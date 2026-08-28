@@ -71,15 +71,12 @@ struct DoTMechanicsTests {
             enemyEffects: [ActiveEffect(id: 1, effect: .burn(4), remainingTurns: 0)]
         )
 
-        // End of round: burn 4 → 2.
         _ = BattleTestFixtures.endTurn(on: &battle)
         try #expect(BattleTestFixtures.burnPotency(on: battle) == 2)
 
-        // Play merges +2 onto the remaining stack → 4.
         _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
         try #expect(BattleTestFixtures.burnPotency(on: battle) == 4)
 
-        // Next end of round: burn 4 → 2.
         _ = BattleTestFixtures.endTurn(on: &battle)
         try #expect(BattleTestFixtures.burnPotency(on: battle) == 2)
     }
@@ -133,7 +130,6 @@ struct DoTMechanicsTests {
         var battle = isolatedBattle(heroAbilities: [bleedAbility(potency: 6)])
 
         _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
-        // Recycle: played card goes to bottom; opening hand had 2 copies from single-ability deck.
         if let second = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle) {
             _ = second
         } else {

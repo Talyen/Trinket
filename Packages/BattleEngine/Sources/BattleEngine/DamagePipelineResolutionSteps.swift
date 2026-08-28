@@ -3,8 +3,6 @@ import TrinketContent
 import TrinketCore
 
 package extension DamagePipeline {
-    // MARK: - Resolution steps
-
     static func applyDamageBonus(
         to state: inout DamageResolutionState,
         in context: inout BattleState
@@ -18,7 +16,6 @@ package extension DamagePipeline {
         state.dealt = state.remaining
     }
 
-    /// Stat-keyword and outgoing-item bonus computation.
     private static func applyStatAndItemBonus(
         to state: inout DamageResolutionState,
         in context: inout BattleState
@@ -52,7 +49,6 @@ package extension DamagePipeline {
         state.remaining = state.amount + state.statBonus + state.itemBonus
     }
 
-    /// Damage-dealt percent bonus from the source profile.
     private static func applyPercentBonus(
         to state: inout DamageResolutionState,
         in context: inout BattleState
@@ -68,8 +64,6 @@ package extension DamagePipeline {
         state.remaining += percentBonus
     }
 
-    /// Dodge-empowered talents consumed on the next attack hit: double damage
-    /// (Flyby Strike / Vanish / Misdirection) and party card damage (Feint Strike).
     private static func applyDodgeEmpoweredBonuses(
         to state: inout DamageResolutionState,
         in context: inout BattleState
@@ -106,7 +100,6 @@ package extension DamagePipeline {
         }
     }
 
-    /// Stunned-target multiplier and Combatant Talent System target-condition multipliers.
     private static func applyStunnedAndTalentMultipliers(
         to state: inout DamageResolutionState,
         in context: inout BattleState
@@ -120,8 +113,6 @@ package extension DamagePipeline {
                 state.remaining = CombatRounding.scaled(state.remaining, multiplier: multiplier)
             }
         }
-        // Combatant Talent System target-condition multipliers (poisoned/burning/frozen/
-        // bleeding/stunned/holy-vs-faction, no-Block burn, low-health poison).
         if state.options.applyItemBonus {
             let talentMultiplier = CombatTriggerEngine.damageMultiplier(for: state, in: context)
             if talentMultiplier != 1 {
@@ -143,7 +134,6 @@ package extension DamagePipeline {
             in: context
         ).abilityNames
         for name in names {
-            // `.ability` is combat-log only; chips already drop that kind.
             state.damageEvents.append(context.nextEvent(
                 kind: .ability,
                 actorName: source.name,
@@ -155,8 +145,6 @@ package extension DamagePipeline {
         }
     }
 
-    /// One-shot empowers consumed on the next attack hit (Revealed Flaw / Sanguine Overflow /
-    /// Holy Infusion) plus the combat-long Leech-overheal bonus (Sanguine Growth).
     private static func applyOneShotEmpowers(
         to state: inout DamageResolutionState,
         in context: inout BattleState
@@ -183,16 +171,11 @@ package extension DamagePipeline {
         }
     }
 
-    /// Enemy-side outgoing reductions from party talents (Numbing Cold, Hamstring,
-    /// Concussive Blow, Crippling Laceration, Blinding Fumes) and timed debuffs
-    /// (Blinding Carapace, Dazzle).
     private static func applyEnemyOutgoingReductions(
         to state: inout DamageResolutionState,
         in context: inout BattleState
     ) {
         guard state.sourceActorID == context.roster.enemy.id else { return }
-        // The attacker is guaranteed to be the enemy here; `state.combatant`
-        // is always the defender in this pipeline.
         let enemy = context.roster.enemy.combatant
         let enemyIsFrozen = context.roster.hasControlStatus(for: enemy, keyword: .freeze)
         let enemyIsStunned = context.roster.hasControlStatus(for: enemy, keyword: .stun)
@@ -220,7 +203,6 @@ package extension DamagePipeline {
                 reductionMultiplier *= (1 - min(1, t.enemyBleedStacksDamageReductionPercent))
             }
         }
-        // Blinding Carapace / Dazzle timed debuffs on the enemy.
         for active in context.roster.activeEffects(for: enemy) {
             switch active.effect {
             case let .damageReductionPercent(percent, _):
@@ -302,7 +284,6 @@ package extension DamagePipeline {
         if vulnerability > 0 {
             state.remaining = CombatRounding.scaled(state.remaining, multiplier: 1 + vulnerability)
         }
-        // Talent damage-type resistances (Tough Pelt / Steadfast / Lichbone).
         let defenderTriggers = profile.triggers
         var talentResistance = 0.0
         if damageKeyword == .bleed {
@@ -330,7 +311,6 @@ package extension DamagePipeline {
             return
         }
         var critMultiplier = 2.0
-        // Stalker's Precision: each Dodge raises this combatant's crit multiplier.
         if let sourceActorID = state.sourceActorID,
            let source = context.roster.combatant(for: sourceActorID) {
             critMultiplier += context.roster.runtime(for: source.combatant)?.talentCritMultiplierBonus ?? 0
@@ -340,9 +320,6 @@ package extension DamagePipeline {
         state.buildupDamage = state.remaining
     }
 
-    // swiftlint:disable:next orphaned_doc_comment
-    /// Toughness-based inherent DR: percentage reduction from Toughness (K = 80)
-    /// plus flat passive mitigation from traits/affixes.
     // swiftlint:disable:next function_body_length
     static func applyMitigation(
         to state: inout DamageResolutionState,
@@ -365,12 +342,10 @@ package extension DamagePipeline {
                sourceProfile.triggers.leechIgnoresMitigation {
                 effectivePercent = 0
             }
-            // Searing Heat / Molten Heat: Burn damage ignores all enemy mitigation.
             if state.damageKeyword == .burn,
                sourceProfile.triggers.burnIgnoresBlockAndMitigation {
                 effectivePercent = 0
             }
-            // Deep Wounds: Bleed ignores enemy armor and damage reduction.
             if state.damageKeyword == .bleed,
                sourceProfile.triggers.bleedsIgnoreMitigation {
                 effectivePercent = 0
@@ -382,15 +357,12 @@ package extension DamagePipeline {
             remaining = max(0, remaining - defenderTriggers.passiveMitigationFlat)
         }
 
-        // Hardened Chitin: take less damage from spells (non-Physical keywords)
-        // while holding Block.
         if state.damageKeyword != .physical,
            DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: state.combatant)) > 0,
            defenderTriggers.spellDamageTakenReductionWhileBlocked > 0 {
             remaining = max(0, remaining - defenderTriggers.spellDamageTakenReductionWhileBlocked)
         }
 
-        // Bulwark Fortress: while the Companion holds Block, the Hero takes less damage.
         if state.combatant.role == .hero,
            context.roster.companion.isAlive,
            DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: context.roster.companion.combatant)) > 0 {
@@ -399,13 +371,11 @@ package extension DamagePipeline {
                 remaining = CombatRounding.scaled(remaining, multiplier: 1 - protection)
             }
         }
-        // Guardian: the Companion absorbs damage whenever the Hero is attacked.
         if state.combatant.role == .hero,
            context.roster.companion.isAlive,
            context.companionModifiers.triggers.absorbHeroDamageFlat > 0 {
             remaining = max(0, remaining - context.companionModifiers.triggers.absorbHeroDamageFlat)
         }
-        // Aetherial Armor: 1 damage reduction per 2 unspent Mana.
         if defenderTriggers.damageReductionPerUnspentManaEvery > 0,
            let runtime = context.roster.runtime(for: state.combatant),
            runtime.maxMana > 0,

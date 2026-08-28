@@ -3,7 +3,6 @@ import Testing
 import TrinketContent
 import TrinketCore
 
-/// Integration tests for catalog abilities that combine damage, effects, and resources.
 struct AbilityEffectIntegrationTests {
     @Test func blackjackChoosesStunDamageOrGold() throws {
         let hero = Combatant(
@@ -44,8 +43,6 @@ struct AbilityEffectIntegrationTests {
     }
 
     @Test func doTComponentDoesNotLandWhenDamageComponentDefeatsTarget() throws {
-        // The turn engine's apply gate must keep DoT effects off combatants the
-        // damage component just defeated.
         let lethal = Ability(
             id: "lethal",
             name: "Lethal Cut",
@@ -85,7 +82,6 @@ struct AbilityEffectIntegrationTests {
             "Expected Bloodthorn to resolve in battle"
         )
 
-        // One randomly chosen typed hit (4 Bleed or 4 Poison) plus paired DoT.
         try #expect(battle.health(of: battle.enemy) == 95)
         let hasBleed = battle.hasEnemyEffect {
             if case .bleed = $0 {
@@ -133,7 +129,6 @@ struct AbilityEffectIntegrationTests {
             ]
         )
 
-        // Let DoTs tick once so hero is damaged before Mend.
         _ = BattleTestFixtures.endTurn(on: &battle)
         try #expect(battle.health(of: battle.hero) < 10)
 
@@ -199,7 +194,6 @@ struct AbilityEffectIntegrationTests {
             "Expected Avatar to resolve in battle"
         )
 
-        // The buff lives on the caster, not as a Holy DoT on the enemy.
         try #expect(avatarRemainingTurns(on: battle.hero, in: battle) == 2)
         try #expect(!battle.activeEffects(of: battle.enemy).contains {
             if case .recurringDamage(.holy, _, _) = $0.effect {
@@ -210,19 +204,16 @@ struct AbilityEffectIntegrationTests {
         #expect(CombatantBuffAura.kind(from: battle.activeEffects(of: battle.hero)) == .avatar)
         #expect(CombatantBuffAura.kind(from: battle.activeEffects(of: battle.enemy)) == nil)
 
-        // Pulse on cast: Holy damage to the enemy plus Block for the caster.
         let healthAfterCast = battle.health(of: battle.enemy)
         try #expect(healthAfterCast < 100)
         try #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.hero)) == 4)
 
-        // End of this round pulses again; the buff still has the next round.
         let firstEndEvents = BattleTestFixtures.endTurn(on: &battle)
         let healthAfterFirstRound = battle.health(of: battle.enemy)
         try #expect(healthAfterFirstRound < healthAfterCast)
         try #expect(avatarPulsedBlock(firstEndEvents, casterID: hero.id))
         try #expect(avatarRemainingTurns(on: battle.hero, in: battle) == 1)
 
-        // End of the next round pulses a third time, then the buff expires.
         let secondEndEvents = BattleTestFixtures.endTurn(on: &battle)
         try #expect(battle.health(of: battle.enemy) < healthAfterFirstRound)
         try #expect(avatarPulsedBlock(secondEndEvents, casterID: hero.id))
@@ -302,7 +293,6 @@ struct AbilityEffectIntegrationTests {
 
         _ = try BattleTestFixtures.playCardNamed("Hemorrhage", owner: .hero, on: &battle)
 
-        // Hemorrhage is applied to enemy, not hero or companion
         try #expect(battle.hasEnemyEffect {
             if case .hemorrhage = $0 {
                 return true
@@ -330,15 +320,11 @@ struct AbilityEffectIntegrationTests {
 
         let enemyHealthBefore = battle.health(of: battle.enemy)
 
-        // Enemy takes turn and attacks
         let enemyTurnEvents = BattleTestFixtures.endTurn(on: &battle)
 
-        // Enemy should have taken 4 Bleed damage from Hemorrhage when attacking
         try #expect(enemyTurnEvents.contains { $0.effectKind == .hemorrhageTriggered && $0.amount == 4 })
-        // Bleed DoT ticks for 4, and Hemorrhage hits for 4 -> total 8 damage taken
         try #expect(battle.health(of: battle.enemy) == enemyHealthBefore - 8)
 
-        // Hemorrhage effect is consumed after attacking
         try #expect(!battle.hasEnemyEffect {
             if case .hemorrhage = $0 {
                 return true
@@ -376,17 +362,12 @@ struct AbilityEffectIntegrationTests {
 
         let enemyHealthBefore = battle.health(of: battle.enemy)
 
-        // Enemy takes turn and performs non-damaging Block ability
         let enemyTurnEvents = BattleTestFixtures.endTurn(on: &battle)
 
-        // Enemy took 4 Bleed damage from Hemorrhage when taking action with non-damaging Block
         try #expect(enemyTurnEvents.contains { $0.effectKind == .hemorrhageTriggered && $0.amount == 4 })
-        // Hemorrhage dealt 4 damage when casting Block; Bleed DoT ticked for 4 at end of round
-        // (with Block absorbing 3 if on self, or dealt to health), resulting in 5 net health lost
         let healthLost = enemyHealthBefore - battle.health(of: battle.enemy)
         try #expect(healthLost == 5)
 
-        // Hemorrhage effect is consumed
         try #expect(!battle.hasEnemyEffect {
             if case .hemorrhage = $0 {
                 return true

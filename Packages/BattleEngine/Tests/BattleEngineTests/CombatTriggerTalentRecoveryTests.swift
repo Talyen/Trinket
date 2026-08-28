@@ -4,7 +4,6 @@ import TrinketCore
 import TrinketTestSupport
 @testable import BattleEngine
 
-/// Recovery injected-trigger talents: overheal conversion, leech healing, cleanses, and Death's Door restores.
 struct CombatTriggerTalentRecoveryTests {
     @Test func overhealConvertsToBlockForHealedTarget() {
         var battle = BattleStateTestFactory.makeBattle(
@@ -254,7 +253,6 @@ struct CombatTriggerTalentRecoveryTests {
             companionModifiers: pantherProfile,
             dealOpeningHand: false
         )
-        // Fully healthy companion receives 10 separate 1-point leech heals
         for _ in 0 ..< 10 {
             _ = HealingEngine.resolveHeal(
                 HealRequest(amount: 5, target: battle.roster.companion.combatant, sourceActorID: battle.roster.companion.id, logAs: .leech),
@@ -277,7 +275,6 @@ struct CombatTriggerTalentRecoveryTests {
             companionModifiers: bearProfile,
             dealOpeningHand: false
         )
-        // Gain 3 block, then 3 block (total 6 -> +1 Max HP)
         _ = EffectHandlersTestSupport.dispatch(
             .shield(.block, 3),
             ability: .block,
@@ -295,7 +292,6 @@ struct CombatTriggerTalentRecoveryTests {
         )
         #expect(battle.roster.runtime(for: battle.roster.companion.combatant)?.talentMaxHealthBonus == 1)
 
-        // Gain massive block (total 100 -> capped at +10 Max HP)
         _ = EffectHandlersTestSupport.dispatch(
             .shield(.block, 100),
             ability: .block,

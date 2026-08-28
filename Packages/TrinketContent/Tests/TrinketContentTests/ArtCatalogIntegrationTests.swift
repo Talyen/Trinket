@@ -3,7 +3,6 @@ import TrinketCore
 @testable import TrinketContent
 
 struct ArtCatalogIntegrationTests {
-    // This cross-catalog invariant intentionally owns all art-reference domains.
     // swiftlint:disable function_body_length - one catalog invariant owns all art-reference domains
     @Test func catalogAndContentArtReferencesResolveAcrossAllDomains() throws {
         for ability in AbilityCatalog.all {

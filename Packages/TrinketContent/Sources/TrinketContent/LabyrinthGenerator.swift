@@ -1,13 +1,11 @@
 import Foundation
 import TrinketCore
 
-/// Deterministic expanding floor generator for The Labyrinth.
 public enum LabyrinthGenerator {
     public static let currentMapVersion = 5
     public static let entranceNodeID = "labyrinth-entrance"
     public static let entranceClusterID = "labyrinth-cluster-0"
 
-    /// Deterministic fallback seed used when an initial map is requested with seed 0.
     public static let fallbackWorldSeed: UInt64 = 0x4C41_4259
 
     public static func makeInitialMap(
@@ -51,7 +49,6 @@ public enum LabyrinthGenerator {
         )
     }
 
-    /// Rebuilds a deterministic sequence of generated floors for save migration.
     public static func makeMap(
         seed: UInt64,
         floorCount: Int,
@@ -88,7 +85,6 @@ public enum LabyrinthGenerator {
         return generated
     }
 
-    /// Appends one floor beyond a cleared boss and wires the boss to its entry.
     public static func expandBeyondBoss(
         bossNodeID: String,
         clusters: inout [LabyrinthCluster],
@@ -120,7 +116,6 @@ public enum LabyrinthGenerator {
         nodes[boss.id] = boss
     }
 
-    /// Node types are visible for the whole floor; this remains the reachability hook.
     public static func revealReachable(from nodeID: String, nodes: inout [String: LabyrinthNode]) {
         guard let source = nodes[nodeID] else { return }
         for outgoingID in source.outgoingIDs {
@@ -249,7 +244,6 @@ public enum LabyrinthGenerator {
         return selected
     }
 
-    /// Limits projected center positions to `LabyrinthMapLayout` half-column slots.
     private static func boundedPositions(in row: Int) -> [LabyrinthGridPosition] {
         let bound = LabyrinthMapLayout.maxProjectedHalfColumn
         return (-bound ... bound).compactMap { projectedColumn in

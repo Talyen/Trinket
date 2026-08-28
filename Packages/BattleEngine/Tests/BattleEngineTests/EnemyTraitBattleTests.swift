@@ -86,7 +86,6 @@ struct EnemyTraitBattleTests {
         try #expect(threshold > 0)
 
         var events: [ActionEvent] = []
-        // Aura fires on even rounds only (`endTurn` increments `turnCount` first).
         for _ in 0 ..< (threshold * 2) {
             context.turnCount += 1
             events.append(contentsOf: EffectTurnEngine.advanceAll(context: &context))

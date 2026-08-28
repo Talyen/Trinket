@@ -163,8 +163,6 @@ struct AbilityCatalogTests {
         try #expect(issues.contains { $0.message.contains("purge effects must target enemies") })
     }
 
-    // MARK: - Outcome branches
-
     @Test func resolvingOutcomeBranchPicksBranchUsingRNG() {
         var rng = SeededRandomNumberGenerator(seed: 42)
         let resolvedTithe = Ability.tithe.resolvingOutcomeBranch(using: &rng)

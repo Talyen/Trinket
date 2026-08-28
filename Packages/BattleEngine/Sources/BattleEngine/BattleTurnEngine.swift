@@ -9,11 +9,6 @@ public enum BattleTurnEngine {
         category: "BattleTurnEngine"
     )
 
-    /// Consumes a pending stun/freeze skip for `actor` and records the action.
-    ///
-    /// The control meter stays at threshold with a linger duration so Stunned /
-    /// Frozen status remains through the following player turn without skipping
-    /// a second action.
     public static func consumeActionSkip(
         for actor: Combatant,
         context: inout BattleState
@@ -112,7 +107,6 @@ public enum BattleTurnEngine {
         return events
     }
 
-    /// Enemy ability selection by action cadence (Basic / Skill@3 / Ultimate@6).
     public static func selectedEnemyAbility(for actor: Combatant, turnNumber: Int) -> Ability? {
         let tier = preferredTier(for: turnNumber)
         return actor.abilityLoadout.ability(for: tier)
@@ -494,9 +488,6 @@ extension BattleTurnEngine {
             if context.roster.health(for: context.hero) <= 0 {
                 return context.hero
             }
-            // No ally is down: revive has nothing to revive. Return the primary so
-            // the handler still rejects deterministically instead of picking the
-            // companion arbitrarily.
             return context.hero
         }
     }

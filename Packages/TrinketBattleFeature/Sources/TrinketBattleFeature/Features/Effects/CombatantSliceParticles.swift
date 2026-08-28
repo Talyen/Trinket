@@ -2,7 +2,6 @@ import SwiftUI
 import TrinketDesignSystem
 import TrinketFeatureSupport
 
-/// Border-spawned dissolve sparks along each half's outer silhouette and cut face.
 struct SliceBorderParticle: Identifiable {
     let id: Int
     let origin: CGPoint
@@ -13,7 +12,6 @@ struct SliceBorderParticle: Identifiable {
     let sizeNoise: CGFloat
     let fadeNoise: CGFloat
 
-    /// Builds sparks for one half: visible rectangular edges plus the diagonal cut.
     static func make(count: Int, salt: Int = 0, isPrimary: Bool) -> [Self] {
         let geometry = HalfEdgeGeometry(isPrimary: isPrimary)
         var particles: [Self] = []
@@ -46,7 +44,6 @@ struct SliceBorderParticle: Identifiable {
         let halfSign: CGFloat
 
         init(isPrimary: Bool) {
-            // Match CrackSliceMask: primary occupies the -normal half-plane.
             halfSign = isPrimary ? -1 : 1
         }
     }
@@ -62,7 +59,6 @@ struct SliceBorderParticle: Identifiable {
         geometry: HalfEdgeGeometry
     ) -> EdgeSample? {
         if edge == 4 {
-            // Unit-space point on the jagged crack (texture aspect).
             let origin = CombatantSliceCrack.point(atFraction: along)
             guard origin.x >= 0.02, origin.x <= 0.98,
                   origin.y >= 0.02, origin.y <= 0.98
@@ -93,7 +89,6 @@ struct SliceBorderParticle: Identifiable {
             origin = CGPoint(x: 0.02, y: along)
             outward = CGVector(dx: -1, dy: 0)
         }
-        // Keep only outer-edge samples that sit on this half's silhouette.
         guard CombatantSliceCrack.side(of: origin) * geometry.halfSign >= 0 else { return nil }
         return EdgeSample(origin: origin, outward: outward)
     }
@@ -104,13 +99,11 @@ struct SliceBorderParticle: Identifiable {
         origin: CGPoint,
         outward: CGVector
     ) -> Self {
-        // Wide cone around the outward normal so sparks spray off the rim.
         let tangent = CGVector(dx: -outward.dy, dy: outward.dx)
         let spray = (CombatantCardEffectNoise.value(index + salt, salt: 29) - 0.5) * 1.6
         let inward = CombatantCardEffectNoise.value(index + salt, salt: 31) * 0.35
         var dx = outward.dx * (1 - inward) + tangent.dx * spray
         var dy = outward.dy * (1 - inward) + tangent.dy * spray
-        // Occasional fully free direction for "all directions" variety.
         if CombatantCardEffectNoise.value(index + salt, salt: 37) > 0.72 {
             let freeAngle = CombatantCardEffectNoise.value(index + salt, salt: 41) * .pi * 2
             dx = cos(freeAngle)
@@ -202,7 +195,6 @@ struct SliceBorderParticles: View {
     }
 }
 
-/// Red sparks emitted directly along the diagonal cut line as the card splits open.
 struct SliceCutParticle: Identifiable {
     let id: Int
     let linePosition: CGFloat

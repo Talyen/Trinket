@@ -14,8 +14,6 @@ struct HomesteadBuildingArtwork: View {
     var variant: Variant = .full
 
     var body: some View {
-        // Homestead projects require authored art; the catalog invariant test
-        // fails if a node is ever added without it.
         HomesteadFocalArtwork(
             art: art,
             displaySize: variant == .thumbnail ? .compact : .full,
@@ -37,8 +35,6 @@ struct HomesteadFocalArtwork: View {
     var displaySize: Image.PreparedArtworkDisplaySize = .full
     var interpolation: Image.Interpolation = .medium
 
-    /// Mode, chapter, and homestead art share a 4:3 source crop. Catalog focal
-    /// points keep subjects stable across portrait and regular-width layouts.
     private let sourceAspectRatio: CGFloat = 4.0 / 3.0
 
     init(

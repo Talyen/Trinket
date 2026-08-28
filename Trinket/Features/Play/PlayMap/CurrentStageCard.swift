@@ -5,7 +5,6 @@ import TrinketDesignSystem
 import TrinketFeatureAdapters
 import TrinketFeatureSupport
 
-/// Shared active encounter card used by linear Stage Select surfaces.
 struct StageSelectActiveCard<
     Item: Identifiable,
     Artwork: View,
@@ -211,7 +210,6 @@ extension StageSelectActiveCard where ArtworkAccessory == EmptyView {
     }
 }
 
-/// Shared index + encounter meta line for compact future rows.
 struct StageSelectMetaLine<Item: Identifiable>: View {
     let presentation: StageSelectRowPresentation<Item>
 

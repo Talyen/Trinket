@@ -3,7 +3,6 @@ import Foundation
 import SwiftUI
 import TrinketCore
 
-/// Semantic classes for floating combat chips. Feature code maps engine events → these.
 enum CombatFeedbackClass: String, CaseIterable, Sendable, Equatable {
     case directDamage
     case critical
@@ -17,13 +16,11 @@ enum CombatFeedbackClass: String, CaseIterable, Sendable, Equatable {
     case deathsDoor
 }
 
-/// Visual hierarchy inside one synchronized combat-feedback action group.
 enum CombatFeedbackPresentationRole: String, CaseIterable, Sendable, Equatable {
     case headline
     case secondary
 }
 
-/// One keyframe sample for a combat-chip motion track.
 struct CombatFeedbackKeyframeSample: Sendable, Equatable {
     let value: Double
     let duration: TimeInterval
@@ -36,8 +33,6 @@ struct CombatFeedbackKeyframeSample: Sendable, Equatable {
     }
 }
 
-/// The two chip typography tiers. Single source for class→font mapping:
-/// emphasis heavy / largeTitle (critical, deaths door), normal bold / title for the rest.
 enum CombatFeedbackTypographyTier: Hashable, CaseIterable, Sendable {
     case emphasis
     case normal
@@ -58,7 +53,6 @@ enum CombatFeedbackTypographyTier: Hashable, CaseIterable, Sendable {
 }
 
 extension CombatFeedbackClass {
-    /// Which typography tier renders this feedback class.
     var typographyTier: CombatFeedbackTypographyTier {
         switch self {
         case .critical, .deathsDoor:
@@ -69,14 +63,11 @@ extension CombatFeedbackClass {
     }
 }
 
-/// Visual styling for a floating combat chip class. All chips share one motion path.
 struct CombatFeedbackChipStyle: Sendable, Equatable {
     let feedbackClass: CombatFeedbackClass
     let fontWeight: Font.Weight
-    /// Dynamic Type text style for the primary float label (rounded + monospaced digits).
     let textStyle: Font.TextStyle
 
-    /// Chip styling derived from the shared typography tier mapping.
     static func forClass(_ feedbackClass: CombatFeedbackClass) -> Self {
         let tier = feedbackClass.typographyTier
         return Self(
@@ -87,7 +78,6 @@ struct CombatFeedbackChipStyle: Sendable, Equatable {
     }
 }
 
-/// Card-body hit reaction kinds paired with floating chips.
 enum CombatantHitReactionKind: String, CaseIterable, Sendable, Equatable {
     case none
     case damage
@@ -98,7 +88,6 @@ enum CombatantHitReactionKind: String, CaseIterable, Sendable, Equatable {
     case celebrate
 }
 
-/// Short transform recipe for combatant card artwork on hit.
 struct CombatantHitReactionRecipe: Sendable, Equatable {
     let kind: CombatantHitReactionKind
     let scaleX: [CombatFeedbackKeyframeSample]
@@ -167,13 +156,11 @@ struct CombatantHitReactionRecipe: Sendable, Equatable {
     }
 }
 
-/// Whole-card attack telegraph kinds (enemy lunge before resolve).
 enum CombatantAttackReactionKind: String, CaseIterable, Sendable, Equatable {
     case none
     case attack
 }
 
-/// Attack telegraph phase. Party uses wind-up → swing/cancel; enemy uses `.full`.
 enum CombatantAttackPhase: String, CaseIterable, Sendable, Equatable {
     case windUp
     case swing
@@ -181,7 +168,6 @@ enum CombatantAttackPhase: String, CaseIterable, Sendable, Equatable {
     case full
 }
 
-/// Live transform pose for interruptible attack springs.
 struct CombatantAttackPose: Sendable, Equatable {
     var scaleX: Double
     var scaleY: Double
@@ -206,7 +192,6 @@ struct CombatantAttackPose: Sendable, Equatable {
     static let rest = Self()
 }
 
-/// Attack aim: recipe Y is authored for enemy→party (down). Party flips Y toward the enemy.
 enum CombatantAttackAim: String, CaseIterable, Sendable, Equatable {
     case towardParty
     case towardEnemy
@@ -223,8 +208,6 @@ enum CombatantAttackAim: String, CaseIterable, Sendable, Equatable {
     }
 }
 
-/// Transform recipe for a combatant card attacking (art + bars + border).
-/// Keyframes are wind-up → swing → recover; `impactDelay` is when resolve should fire.
 struct CombatantAttackReactionRecipe: Sendable, Equatable {
     let kind: CombatantAttackReactionKind
     let scaleX: [CombatFeedbackKeyframeSample]
@@ -232,7 +215,6 @@ struct CombatantAttackReactionRecipe: Sendable, Equatable {
     let offsetX: [CombatFeedbackKeyframeSample]
     let offsetY: [CombatFeedbackKeyframeSample]
     let rotation: [CombatFeedbackKeyframeSample]
-    /// Time from animation start to swing peak (wind-up + swing durations).
     let impactDelay: TimeInterval
     let duration: TimeInterval
 
@@ -291,13 +273,10 @@ struct CombatantAttackReactionRecipe: Sendable, Equatable {
     }
 }
 
-/// Vertical recoil direction for damage/critical portrait hit reactions.
-/// Enemy cards kick up; party cards (hero/pet) kick down toward the hand edge.
 enum CombatantHitRecoilDirection: String, CaseIterable, Sendable, Equatable {
     case up
     case down
 
-    /// Impact translation for damage/critical hits. Non-impact kinds use recipe offsets.
     @inlinable
     func impactOffset(magnitude: CGFloat) -> CGSize {
         switch self {
@@ -308,9 +287,6 @@ enum CombatantHitRecoilDirection: String, CaseIterable, Sendable, Equatable {
         }
     }
 
-    /// Impact scale axes for damage/critical squash.
-    /// `.up` swaps recipe axes (horizontal compress / vertical stretch).
-    /// `.down` keeps recipe axes (vertical compress / horizontal stretch).
     @inlinable
     func impactScales(
         scaleX: Double,
@@ -325,12 +301,9 @@ enum CombatantHitRecoilDirection: String, CaseIterable, Sendable, Equatable {
     }
 }
 
-/// Shared constants for the fixed-anchor floating combat text presentation.
 enum CombatFeedbackLayout: Sendable {
-    /// Minimum vertical clearance between simultaneously visible chips in one stream.
     static let streamGap: CGFloat = 4
 
-    /// Stable pseudo-random value in `0...1` shared by non-pathing visual effects.
     @inlinable
     static func unitNoise(seed: Int) -> CGFloat {
         let mixed = UInt64(bitPattern: Int64(seed)) &* 0x9E37_79B9_7F4A_7C15

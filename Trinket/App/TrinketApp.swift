@@ -23,8 +23,7 @@ struct TrinketApp: App {
         let environment = AppEnvironment.shared
         let makeBattleRuntime: (BattleRuntimeDependencies) -> any BattleRuntime = { dependencies in
             BattleSession(
-                autoEndTurnDelay: environment.battleTickInterval
-                    ?? BattleSession.autoEndTurnDelay,
+                autoEndTurnDelay: environment.battleTickInterval ?? 0.4,
                 presentationEnvironment: dependencies
             )
         }
@@ -95,8 +94,6 @@ struct TrinketApp: App {
         ).sorted()
     }
 
-    /// One centralized strong working set for the first interactive surfaces.
-    /// Each surface uses the smallest variant that remains sharp at its rendered size.
     private func rootTabImageNames(for appState: AppState) -> [String] {
         let roster = appState.playerSave.roster
         let inventory = appState.playerSave.inventory
@@ -148,7 +145,6 @@ struct TrinketApp: App {
 }
 
 private struct PreparedAppRoot: View {
-    /// Avoid a flash when launch prep finishes before the screen can register.
     private static let minimumLaunchDisplayDuration: Duration = .seconds(1)
 
     @Environment(\.displayScale) private var displayScale
@@ -202,15 +198,10 @@ private struct PreparedAppRoot: View {
             MetricKitSubscriber.shared.start()
             guard !isResourcePreparationComplete else { return }
             appState.prepareLaunchPerformanceResources()
-            // Align the minimum hold with first paint (same yield as the
-            // progress fill) so a warm cache cannot dismiss before the bar runs.
             await Task.yield()
             let displayedAt = ContinuousClock.now
             await BattlePresentationWarmup.prepareAndWait(displayScale: displayScale)
             await artworkCache.prepareAll(priorityImageNames: priorityImageNames)
-            // Launch pins stay for the session. Releasing them here lets
-            // deferred catalog decode evict first-screen art; the next tap
-            // then hits Image(name) on the presentation frame.
             guard !Task.isCancelled else { return }
             if let stageID = appState.playerSave.journey.activeStageID,
                let stage = GameContent.stage(id: stageID) {
@@ -236,16 +227,12 @@ private struct PreparedAppRoot: View {
         }
     }
 
-    /// Visit every tab root under the launch cover so the first real tap is not
-    /// a cold SwiftUI body. Does not defer that work onto later scrolling.
     private func warmShellTabRoots() async {
         guard appState.playerSave.starterSelection.phase == .complete else { return }
         let original = appState.shellSession.selectedTab
         defer { appState.shellSession.selectedTab = original }
         await Task.yield()
         await Task.yield()
-        // Play keeps the longer budget for the hidden battlefield; other tabs
-        // only need a shorter first-layout window under the cover.
         let originalBudget = original == .play
             ? ShellSession.tabFirstLayoutBudget
             : ShellSession.secondaryTabFirstLayoutBudget
@@ -262,8 +249,6 @@ private struct PreparedAppRoot: View {
     }
 
     private var shouldPrepareCastEffects: Bool {
-        // Always prime the live TimelineView / Canvas cast path. Cold-cast scenarios
-        // still skip dissolve texture prepare inside CardCastEffectsPrewarmView.
         true
     }
 

@@ -8,7 +8,6 @@ import TrinketFeatureSupport
 import TrinketPersistence
 
 private enum HomesteadProjectRowMetrics {
-    /// 4:3 project art beside title + effect; height sits with two caption lines.
     static let artworkAspectRatio: CGFloat = 4.0 / 3.0
     static let artworkHeight: CGFloat = 92
     static var artworkWidth: CGFloat {
@@ -38,7 +37,6 @@ struct HomesteadProjectRow: View {
     }
 
     var body: some View {
-        // Locked rows stay tappable so players can inspect prerequisites and the tier path.
         NavigationLink(value: definition) {
             rowContent
                 .optionalMatchedTransitionSource(id: definition.id, in: zoomNamespace)
@@ -104,7 +102,6 @@ struct HomesteadProjectSection: View {
     let homestead: PlayerHomesteadState
     let roster: PlayerRosterState
     var zoomNamespace: Namespace.ID?
-    /// When false, only the project rows render (category title lives on the hero).
     var showsCategoryHeader = true
 
     var body: some View {

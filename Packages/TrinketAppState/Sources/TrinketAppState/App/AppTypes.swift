@@ -29,14 +29,12 @@ public enum LaunchScreen: Equatable, Sendable {
     case itemDetail(String)
     case options
     case battle
-    /// Test-only: stage 1-1 battle already at victory chrome (no live tick loop).
     case battleVictory
     case shop
     case mystery
     case labyrinth
     case labyrinthMap
 
-    /// Parses `-launch-screen` values. Keep `TestLaunchArg` screen strings in sync.
     public static func parse(_ raw: String) -> Self? {
         let parts = raw.split(separator: ":", maxSplits: 1).map(String.init)
         guard let kind = parts.first?.lowercased() else { return nil }

@@ -402,8 +402,6 @@ struct AppStatePlayFlowTests {
         let stage = try #require(GameContent.chapters[0].stages.first)
         _ = state.journey.startBattle(for: stage)
         let configuration = try #require(state.battle.activeBattle)
-        // Loot All must pass raw mid-battle gold (summary.rawBattleEarnedGold),
-        // not the homestead-adjusted display split (summary.battleGold).
         let rawBattleEarnedGold = 20
         let presentation = try #require(state.battlePresentation(for: configuration.runKey))
         let expectedTotal = StageCompletion.resolvedGoldReward(

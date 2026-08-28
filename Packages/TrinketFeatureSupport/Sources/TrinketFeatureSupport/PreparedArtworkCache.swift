@@ -5,13 +5,10 @@ import SwiftUI
 import TrinketContent
 import UIKit
 
-/// Ordered launch warmup buckets: priority assets unblock UI; deferred assets fill the cache.
 struct LaunchArtworkWarmupPlan: Equatable {
     let priorityNames: [String]
     let deferredNames: [String]
 
-    /// Priority names that exist in the catalog come first; remaining catalog names are deferred.
-    /// Catalog order is preserved within each bucket.
     static func make(priorityImageNames: [String], catalogNames: [String]) -> Self {
         let priority = Set(priorityImageNames)
         return Self(
@@ -33,19 +30,11 @@ struct PreparedArtworkCacheSnapshot: Equatable, Sendable {
     }
 }
 
-/// Tuned for 6 GB typical (iPhone 14/15/16 base). 6 GB Jetsam kills around
-/// 1.4–1.8 GB, 8 GB around 2.0–2.5 GB, so 320/550 is ~5–8% of RAM and 3× under
-/// the kill line. Do not lower to re-target 4 GB without product approval.
-/// See Docs/Platform/PerformanceInvestigationPlaybook.md § Artwork Budgets.
 enum PreparedArtworkMemoryBudget {
     static let residentArtworkByteCount = 320 * 1024 * 1024
     static let steadyStateProcessByteCount = 550 * 1024 * 1024
 }
 
-/// App-wide artwork preparation. Priority assets decode before launch releases the
-/// interactive UI and stay pinned so deferred catalog warmup cannot evict them;
-/// remaining catalog work continues opportunistically afterward. On-demand
-/// `Image(name)` on a presentation frame is a hitch, not a memory optimization.
 @MainActor
 @Observable
 public final class PreparedArtworkCache {
@@ -55,15 +44,9 @@ public final class PreparedArtworkCache {
     public private(set) var totalCount = 1
     public private(set) var isLaunchWarmupComplete = false
 
-    /// True once the non-priority catalog decode has finished (or there was none).
     public private(set) var isDeferredWarmupComplete = false
 
     @ObservationIgnored private let images = NSCache<NSString, UIImage>()
-    /// Launch-critical bitmaps are a deliberately small strong set. The app
-    /// keeps the first interactive working set pinned so deferred catalog
-    /// decode cannot evict it from `NSCache` and force `Image(name)` on a
-    /// presentation frame. Transient owners (battle, a visible Collection
-    /// sheet) still pin/release around their own lifecycle.
     @ObservationIgnored private var pinnedImages: [String: UIImage] = [:]
     @ObservationIgnored private var pinCountsByName: [String: Int] = [:]
     @ObservationIgnored private var priorityWarmupTask: Task<Void, Never>?
@@ -105,14 +88,9 @@ public final class PreparedArtworkCache {
 
     nonisolated static func totalCostLimit(forPhysicalMemory physicalMemory: Int) -> Int {
         let adaptiveBudget = physicalMemory / 24
-        // 6 GB typical target: 320 MiB artwork / 550 MiB process. Leave room
-        // below the artwork target for the small strong pin set and temporary
-        // decoder surfaces that NSCache does not cost-account. Do not lower
-        // floor to 96 or cap to 160 to re-target 4 GB without product approval.
         return min(max(adaptiveBudget, 160 * 1024 * 1024), 260 * 1024 * 1024)
     }
 
-    /// Isolated cache for unit tests (does not touch `shared`).
     static func makeForTesting(
         catalogNames: [String],
         decode: @escaping @Sendable (String) async -> PreparedArtwork = { PreparedArtwork(name: $0, image: nil) }
@@ -131,18 +109,12 @@ public final class PreparedArtworkCache {
         pinnedImages[name] ?? images.object(forKey: name as NSString)
     }
 
-    /// Decodes artwork into the cache without retaining a strong pin. Use this
-    /// for previews whose view owns the immediate presentation lifetime.
     public func prepare(names: [String]) async {
         let unique = Array(Set(names)).sorted()
         guard !unique.isEmpty else { return }
         await decode(unique, maximumConcurrency: 2, countsTowardLaunch: false)
     }
 
-    /// Decode and pin images that must survive NSCache pressure during a short
-    /// preparation lifecycle (for example, opening-hand ability art for an
-    /// imminent battle). The owner must call `releasePins(names:)` when that
-    /// lifecycle ends.
     public func prepareAndPin(names: [String]) async {
         let unique = Array(Set(names)).sorted()
         guard !unique.isEmpty else { return }
@@ -152,14 +124,9 @@ public final class PreparedArtworkCache {
                 pinnedImages[name] = image
             }
         }
-        // Decoded results are pinned inside decode() while the pin count is
-        // held; an owner that releases mid-decode must stay released.
         await decode(unique, maximumConcurrency: 2, countsTowardLaunch: false)
     }
 
-    /// Releases strong references held for a completed or cancelled preparation.
-    /// The decoded bitmap remains eligible in `NSCache` and can be reloaded if
-    /// memory pressure evicts it.
     public func releasePins(names: [String]) {
         for name in Set(names) {
             guard let count = pinCountsByName[name] else { continue }
@@ -211,8 +178,6 @@ public final class PreparedArtworkCache {
         }
     }
 
-    /// Test seam for awaiting the intentionally detached deferred warmup task.
-    /// Production launch does not block on the full catalog.
     func waitForDeferredWarmup() async {
         guard let deferredWarmupTask else { return }
         await deferredWarmupTask.value
@@ -267,9 +232,6 @@ public final class PreparedArtworkCache {
                         pinnedImages[prepared.name] = image
                     }
                 } else {
-                    // Failed decode leaves pinCount to be cleaned by the owner's
-                    // releasePins (defer). No bitmap to pin — NSCache stays empty
-                    // and retry will re-enter decode via the !inFlightNames gate.
                     assert(
                         pinnedImages[prepared.name] == nil,
                         "Failed decode must not have a pinned bitmap for \(prepared.name)"

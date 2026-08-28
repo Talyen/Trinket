@@ -5,12 +5,9 @@ import TrinketContent
 @MainActor
 @Observable
 final class BattleInteractionState {
-    /// Manual hand press/drag — owned by BattleView via onCardInteractionChanged.
     var suppressCombatantTaps = false
-    /// When set, the matching hand card mirrors the tap-lift rise before Auto play.
     var autoLiftCardID: Int?
 
-    /// Blocks combatant detail taps for manual hand interaction or Auto tap-lift.
     var blocksCombatantTaps: Bool {
         suppressCombatantTaps || autoLiftCardID != nil
     }

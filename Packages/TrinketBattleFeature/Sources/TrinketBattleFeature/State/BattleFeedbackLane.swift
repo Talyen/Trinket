@@ -4,7 +4,6 @@ import Observation
 import TrinketDesignSystem
 import TrinketFeatureSupport
 
-/// Independently observable, performance-sensitive combat feedback lane.
 @MainActor
 @Observable
 final class BattleFeedbackLane {

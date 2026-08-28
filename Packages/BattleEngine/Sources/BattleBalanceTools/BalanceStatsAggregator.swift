@@ -28,7 +28,6 @@ public struct PairCellSummary: Equatable, Sendable {
     public var flagReason: String?
 }
 
-/// Gameplay duration goal bands on sim `rounds` (`turnCount` = player phase + enemy phase).
 public enum BalanceDurationThresholds {
     public static let trashMinRounds = 5
     public static let trashMaxRounds = 15
@@ -176,7 +175,6 @@ public enum BalanceStatsAggregator {
         )
     }
 
-    /// Wilson score interval at ~95% confidence.
     public static func wilson(wins: Int, battles: Int, z: Double = 1.96) -> (low: Double, high: Double) {
         guard battles > 0 else { return (0, 0) }
         let n = Double(battles)

@@ -62,7 +62,6 @@ enum BattlePartySlot: String {
     }
 }
 
-/// Journey's shared, single-sheet party editor.
 struct StageBattlePartyPickerSheet: View {
     @Environment(OptionsStore.self) private var options
     @Environment(PlayerSaveStore.self) private var playerSave
@@ -178,7 +177,6 @@ struct StageBattlePartyPickerSheet: View {
     }
 }
 
-/// Full-grid party slot picker pushed from a shelf header.
 private struct BattlePartySlotGridView: View {
     @Environment(OptionsStore.self) private var options
     @Environment(PlayerSaveStore.self) private var playerSave

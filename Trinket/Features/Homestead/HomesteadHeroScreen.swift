@@ -6,7 +6,6 @@ import TrinketFeatureAdapters
 import TrinketFeatureSupport
 import TrinketPersistence
 
-/// Shared Homestead hero scroll shell: cinematic header, resource wallet, and body content.
 struct HomesteadHeroScreen<HeroArt: View, WalletBottomContent: View, Body: View>: View {
     let title: String
     let homestead: PlayerHomesteadState

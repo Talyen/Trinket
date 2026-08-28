@@ -1,7 +1,5 @@
 import Foundation
 
-/// Player-facing phrasing for `Effect`. Shared by battle logs and ability
-/// description generation. In-battle HUD summaries use `EffectSummaryBuilder`.
 public enum EffectPresentation {
     public static func applyPhrase(for effect: Effect) -> String {
         if let phrase = dotPhrase(for: effect) {
@@ -173,7 +171,6 @@ public enum EffectPresentation {
         }
     }
 
-    /// Duration values are player-facing combat turns.
     private static func durationPhrase(turns: Int) -> String {
         turns == 1 ? "for 1 turn" : "for \(turns) turns"
     }

@@ -2,13 +2,8 @@ import Foundation
 import TrinketCore
 
 public enum EncounterLevelResolver {
-    /// Bounded downward party scaling: enemies never rise above their authored level,
-    /// and never sit more than this many levels above the active party's average.
     public static let downwardPartyOffset = 3
 
-    /// Applies bounded downward scaling to an authored enemy level. Overleveled
-    /// parties keep the authored level; underleveled parties pull enemies down to
-    /// `partyAverageLevel + downwardPartyOffset`.
     public static func partyAdjusted(
         _ authoredLevel: Int,
         partyAverageLevel: Int
@@ -16,8 +11,6 @@ public enum EncounterLevelResolver {
         min(authoredLevel, partyAverageLevel + downwardPartyOffset)
     }
 
-    /// Journey mode: each chapter spans five enemy levels. Combat stages interpolate
-    /// from the chapter base through chapter base + 4.
     public static func journeyEnemyLevel(for stage: Stage, in chapter: Chapter) -> Int {
         let chapterBaseLevel = (chapter.number - 1) * 5 + 1
         guard stage.encounter.isCombat else {
@@ -38,12 +31,10 @@ public enum EncounterLevelResolver {
         return chapterBaseLevel + offset
     }
 
-    /// Spires: enemy level is twice the floor number.
     public static func spireEnemyLevel(for floor: SpireFloor) -> Int {
         max(1, floor.floor * 2)
     }
 
-    /// Labyrinth: enemy level is the node's depth.
     public static func labyrinthEnemyLevel(for node: LabyrinthNode) -> Int {
         max(1, node.depth)
     }

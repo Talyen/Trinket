@@ -30,7 +30,6 @@ private struct ShineTextModifier: ViewModifier {
     }
 }
 
-/// Red stops shared by corruption text and border shines, derived from the theme's destructive token.
 public enum CorruptionShine {
     public static let textColors: [Color] = [
         TrinketDesign.Colors.destructive,
@@ -41,7 +40,6 @@ public enum CorruptionShine {
     ]
 }
 
-/// Ember stops for Unique items — card borders and every affix line.
 public enum UniqueShine {
     public static let textColors: [Color] = [
         TrinketDesign.Colors.warning,
@@ -63,17 +61,14 @@ public extension View {
         colorShine(keywordShineColors(keywords))
     }
 
-    /// Animated traveling text shine through arbitrary colors.
     func colorShine(_ colors: [Color]) -> some View {
         modifier(ShineTextModifier(colors: colors))
     }
 
-    /// Corruption-red shimmer for marked affix names.
     func corruptionShine() -> some View {
         colorShine(CorruptionShine.textColors)
     }
 
-    /// Ember shimmer for Unique names and affixes while `isActive`.
     @ViewBuilder
     func uniqueShine(if isActive: Bool) -> some View {
         if isActive {

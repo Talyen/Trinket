@@ -1,21 +1,11 @@
 import CoreGraphics
 import Foundation
 
-/// Deterministic jagged "fissure" crack that spans the Slice card diagonal.
-/// Vertices live in unit space (0…1) built from the card's 192×256 aspect
-/// space so the split mask, drawn crack, and cut-face particles all share one
-/// shape. The crack generally follows the base diagonal (`CombatantSliceGeometry`)
-/// with small alternating perpendicular offsets, so the dissolve wipe and the
-/// separation direction keep their original look.
 enum CombatantSliceCrack {
     static let aspectWidth: CGFloat = 192
     static let aspectHeight: CGFloat = 256
-    /// Crack segments; interior direction changes = segmentCount - 1.
     static let segmentCount = 5
-    /// Max perpendicular wobble from the base diagonal in aspect pixels.
     static let wobble: CGFloat = 12
-    /// How far past the card boundary the crack extends on the base diagonal,
-    /// so the split polygons fully cover the card at its corners.
     private static let endPadding: CGFloat = 20
 
     private static let along = CGVector(
@@ -27,8 +17,6 @@ enum CombatantSliceCrack {
         dy: -sin(CombatantSliceGeometry.angleRadians)
     )
 
-    /// Crack vertices in unit space: endpoints extend off the card along the
-    /// base diagonal, interior vertices zigzag across it.
     static let points: [CGPoint] = {
         let span = cardSpanOffsets
         var vertices = [basePoint(aspectOffset: span.lowerBound - endPadding)]
@@ -44,7 +32,6 @@ enum CombatantSliceCrack {
         return vertices
     }()
 
-    /// Cumulative aspect-space length before each vertex.
     private static let cumulativeAspectLengths: [CGFloat] = {
         var lengths: [CGFloat] = [0]
         var running: CGFloat = 0
@@ -55,19 +42,15 @@ enum CombatantSliceCrack {
         return lengths
     }()
 
-    /// Total crack length in aspect-space pixels.
     static var totalAspectLength: CGFloat {
         cumulativeAspectLengths[points.count - 1]
     }
 
-    /// Arc-length fraction range that lies on the card; the crack's padded
-    /// endpoints reach past it so the split polygons fully cover the card.
     static var cardFractionRange: ClosedRange<CGFloat> {
         let start = endPadding / totalAspectLength
         return start ... (1 - start)
     }
 
-    /// Point at arc-length fraction `t` along the crack (unit space).
     static func point(atFraction fraction: CGFloat) -> CGPoint {
         let lead = min(max(fraction, 0), 1)
         let target = lead * totalAspectLength
@@ -87,13 +70,11 @@ enum CombatantSliceCrack {
         return points[points.count - 1]
     }
 
-    /// Point at arc-length fraction `t` in the given rendered size.
     static func point(atFraction fraction: CGFloat, size: CGSize) -> CGPoint {
         let unit = point(atFraction: fraction)
         return CGPoint(x: unit.x * size.width, y: unit.y * size.height)
     }
 
-    /// Pixel-space crack vertices from the start up to arc-length fraction `t`.
     static func polylinePoints(toFraction fraction: CGFloat, size: CGSize) -> [CGPoint] {
         let lead = min(max(fraction, 0), 1)
         var result = [CGPoint(x: points[0].x * size.width, y: points[0].y * size.height)]
@@ -119,7 +100,6 @@ enum CombatantSliceCrack {
         return result
     }
 
-    /// Unit tangent (aspect-space) of the crack segment at fraction `t`.
     static func tangent(atFraction fraction: CGFloat) -> CGVector {
         let lead = min(max(fraction, 0), 1)
         let target = lead * totalAspectLength
@@ -138,8 +118,6 @@ enum CombatantSliceCrack {
         return CGVector(dx: dx / length, dy: dy / length)
     }
 
-    /// Signed distance from a unit-space point to the crack. Negative on the
-    /// primary (-normal) side, matching `CombatantSliceGeometry` half-planing.
     static func side(of point: CGPoint) -> CGFloat {
         let px = point.x * aspectWidth
         let py = point.y * aspectHeight
@@ -168,7 +146,6 @@ enum CombatantSliceCrack {
         return nearestDistance * nearestSign
     }
 
-    /// Aspect-space offsets along the base diagonal where it crosses the card.
     private static var cardSpanOffsets: ClosedRange<CGFloat> {
         var offsets: [CGFloat] = []
         for boundary in [0 as CGFloat, 1] {

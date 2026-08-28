@@ -40,7 +40,6 @@ package extension CombatTriggerEngine {
             ))
         }
 
-        // Divine Blessing / Sunlight Spark: heal the lowest-Health ally.
         if profile.triggers.holyDamageHealLowestAllyFlat > 0 {
             let lowest = BattleConditionEvaluator.lowestHealthAlly(in: context)
             let blessingName = triggerAbilityName(
@@ -72,25 +71,21 @@ package extension CombatTriggerEngine {
                 abilityName: triggerAbilityName("onHolyDamageRestoreMana", for: source, fallback: "Radiant Wisdom", in: context)
             ))
         }
-        // Revealed Flaw: Holy damage arms the owner's next hit with bonus damage.
         if profile.triggers.holyDamageNextHitBonus > 0 {
             context.roster.mutateRuntime(for: source) {
                 $0.pendingNextHitBonus += profile.triggers.holyDamageNextHitBonus
             }
         }
-        // Holy Infusion: Holy damage empowers the owner's next attack with Holy.
         if profile.triggers.holyDamageNextAttackHolyBonus > 0 {
             context.roster.mutateRuntime(for: source) {
                 $0.pendingNextAttackHolyBonus += profile.triggers.holyDamageNextAttackHolyBonus
             }
         }
-        // Blinding Light: Holy attack hits make the target miss its next attack (defender evades next hit).
         if profile.triggers.holyDamageTargetMissNextAttack,
            isAttackHit,
            context.roster.health(for: enemy) > 0 {
             context.prependEffect(.evadeNextHit, to: enemy, remainingTurns: 0)
         }
-        // Dazzle: Holy damage reduces the target's outgoing damage on its next turn.
         if profile.triggers.holyDamageReduceTargetDamage > 0, context.roster.health(for: enemy) > 0 {
             context.appendEffect(
                 .damageReductionFlat(profile.triggers.holyDamageReduceTargetDamage, 1),

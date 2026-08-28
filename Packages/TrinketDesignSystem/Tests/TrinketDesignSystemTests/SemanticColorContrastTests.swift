@@ -20,8 +20,6 @@ struct SemanticColorContrastTests {
 
     @Test(arguments: semanticForegroundNames)
     func semanticForegroundMeetsContrastInDarkEnvironment(colorName: String) throws {
-        // Resolve via UIKit asset lookup (dark traits) instead of SwiftUI
-        // `Color.resolve`, which pays a multi-second host cold start in this package.
         let canvas = try darkResolvedSRGB("ThemeCanvas")
         let color = try darkResolvedSRGB(colorName)
         #expect(contrastRatio(color, canvas) >= 4.5)

@@ -101,4 +101,4 @@ Glass chrome routes through `.glassEffect` inside this package only.
 
 Artwork blends provide a transition into destination surfaces. Use `.bottom(into:)` for full-bleed art meeting a lower surface, and `.none` when artwork should retain a crisp edge. Keep text-only contrast treatments such as `.trinketOnArtText(_:)` when they serve a separate readability purpose.
 
-Platform API notes: [iOS26AppleReference.md](../../Docs/Platform/iOS26AppleReference.md). Fluid motion: [apple-design skill](../../Docs/Skills/apple-design/SKILL.md) (`TrinketMotion`). Standing stack rules: [Architecture.md](../../Docs/Platform/Architecture.md).
+Platform API notes: [iOS26AppleReference.md](../../Docs/Platform/iOS26AppleReference.md). Fluid motion: [apple-design skill](../../.agents/skills/apple-design/SKILL.md) (`TrinketMotion`). Standing stack rules: [Architecture.md](../../Docs/Platform/Architecture.md).

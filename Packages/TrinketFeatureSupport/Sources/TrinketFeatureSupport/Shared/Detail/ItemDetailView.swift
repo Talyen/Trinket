@@ -238,7 +238,6 @@ struct ItemDetailContent: View {
         return item.isCorrupted ? "\(tag) · CORRUPTED" : tag
     }
 
-    /// Every affix on a Unique carries the ember shine; corruption cannot coexist.
     private func uniqueAffixShineColors(_ affix: ItemAffix) -> [Color]? {
         if item.rarity == .unique {
             return UniqueShine.textColors

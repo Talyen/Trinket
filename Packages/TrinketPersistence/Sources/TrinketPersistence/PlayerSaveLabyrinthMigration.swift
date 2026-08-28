@@ -2,8 +2,6 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-/// Legacy labyrinth map regeneration and floor-progress migration, shared by
-/// `PlayerSaveSanitizer.sanitizeLabyrinth`.
 extension PlayerSaveSanitizer {
     static func sanitizeLabyrinth(
         _ labyrinth: PlayerLabyrinthState,
@@ -47,8 +45,6 @@ extension PlayerSaveSanitizer {
             )
         }
 
-        // Rebuild empty entered maps. Unreadable map blobs return early above:
-        // the sanitizer must never regenerate a map it could not parse.
         if sanitized.hasEntered, sanitized.nodes.isEmpty {
             sanitized.ensureMap(
                 seed: sanitized.worldSeed == 0 ? nil : sanitized.worldSeed,
@@ -100,8 +96,6 @@ extension PlayerSaveSanitizer {
         )
     }
 
-    /// Replays cleared-node counts from a pre-clustered legacy map onto the
-    /// regenerated layout, preserving roughly the same amount of progress.
     private static func migrateLegacyFloorProgress(
         from legacy: PlayerLabyrinthState, clusters: [LabyrinthCluster], nodes: inout [String: LabyrinthNode]
     ) {
@@ -133,8 +127,6 @@ extension PlayerSaveSanitizer {
         }
     }
 
-    /// Keeps already-reached floors traversable after regeneration so players
-    /// never lose access to floors they had unlocked.
     private static func ensureHistoricalFloorAccess(
         floorCount: Int,
         clusters: [LabyrinthCluster],

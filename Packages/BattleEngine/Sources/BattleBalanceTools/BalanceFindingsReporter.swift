@@ -1,7 +1,6 @@
 import BattleEngine
 import Foundation
 
-/// Short sweep brief for stdout and the default `.md`. Full tables stay in JSON / `--full-markdown`.
 public enum BalanceFindingsReporter {
     public static let contrastCap = 12
     public static let pairingCap = 3

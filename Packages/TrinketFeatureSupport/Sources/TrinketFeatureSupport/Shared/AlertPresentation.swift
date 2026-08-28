@@ -1,7 +1,6 @@
 import SwiftUI
 
 public extension View {
-    /// OK-only alert driven by an optional message; `nil` hides it.
     func trinketFailureAlert(_ title: String, message: Binding<String?>) -> some View {
         alert(
             title,

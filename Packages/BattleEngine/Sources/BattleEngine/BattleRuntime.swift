@@ -1,33 +1,22 @@
 import Foundation
 
-/// Lifecycle phase for the battle runtime. Prepared runs are held for launch
-/// prewarming; active runs own the simulation lifecycle.
 public enum BattleLifecyclePhase: Equatable, Sendable {
     case idle
     case prepared
     case active
 }
 
-/// The app-state-facing battle lifecycle boundary.
-///
-/// This contract deliberately contains only run preparation, activation, and
-/// lifecycle controls. BattleFeature supplies the presentation-backed implementation;
-/// AppState and Play modes can therefore compile without importing that UI module.
 @MainActor
 public protocol BattleRuntime: AnyObject {
     var activeBattle: BattleRunConfiguration? { get }
     var lifecyclePhase: BattleLifecyclePhase { get }
     var isSuspendedForScenePhase: Bool { get }
-    /// Party healths from the live engine state, by combatant id. Nil when no
-    /// battle state exists; read at victory to persist run-scoped health.
     var finalPartyHealthByCombatantID: [String: Int]? { get }
 
     @discardableResult
     func prepareBattleRun(_ configuration: BattleRunConfiguration) -> Bool
     func keepPreparedRuns(_ keys: Set<BattleRunKey>)
     func hasPreparedRun(_ runKey: BattleRunKey) -> Bool
-    /// Consumes only the matching prepared key. Returns false when a battle is
-    /// already active or the party/enemy IDs do not match; sibling prepares stay.
     func activatePreparedBattle(
         runKey: BattleRunKey,
         heroID: String,

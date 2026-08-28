@@ -7,7 +7,6 @@ import TrinketFeatureAdapters
 import TrinketFeatureSupport
 import TrinketPersistence
 
-/// Per-category Homestead list: category hero, wallet, and project rows.
 struct HomesteadCategoryView: View {
     let category: HomesteadNodeCategory
 
@@ -60,7 +59,6 @@ struct HomesteadCategoryView: View {
 }
 
 extension HomesteadNodeCategory {
-    /// Background art IDs used by the category cards and category hero.
     var artID: String {
         switch self {
         case .farming: "wheatField"

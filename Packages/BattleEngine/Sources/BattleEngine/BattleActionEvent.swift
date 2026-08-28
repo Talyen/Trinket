@@ -2,9 +2,6 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-/// A single observable event emitted during combat resolution. Rendered as
-/// floating text in the UI and reduced into combat-log lines by
-/// `BattleLogReducer`.
 public struct ActionEvent: Identifiable, Equatable {
     public enum Kind: Equatable {
         case ability
@@ -57,7 +54,6 @@ public struct ActionEvent: Identifiable, Equatable {
     }
 
     public let id: Int
-    /// Stable correlation for every event emitted while resolving one action.
     public let actionID: Int
     public let kind: Kind
     public let effectKind: EffectOutcome?
@@ -72,7 +68,6 @@ public struct ActionEvent: Identifiable, Equatable {
     public let keyword: Keyword
     public let appliedEffectSummaries: [String]
     public let milestone: Milestone?
-    /// Exact critical attribution for resolved ability-damage components.
     public let isCritical: Bool
 
     public init(
@@ -119,12 +114,6 @@ public struct ActionEvent: Identifiable, Equatable {
         keyword
     }
 
-    /// Returns a copy with the given fields replaced; omitted fields keep their
-    /// values. All fields are enumerated here so adding a field to `ActionEvent`
-    /// forces this helper (and not distant call sites) to be updated.
-    ///
-    /// `effectKind` uses nil-means-unchanged, so this helper cannot reset an
-    /// effect event back to `nil`; call sites that need that build a fresh event.
     public func with(
         effectKind: EffectOutcome? = nil,
         actorID: String? = nil,
@@ -153,7 +142,6 @@ public struct ActionEvent: Identifiable, Equatable {
     }
 }
 
-/// A human-readable line in the combat log.
 public struct LogEntry: Identifiable, Equatable {
     public let id: Int
     public let text: String

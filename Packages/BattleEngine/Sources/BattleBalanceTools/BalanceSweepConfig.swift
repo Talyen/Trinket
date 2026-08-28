@@ -22,7 +22,6 @@ public enum ContrastBaselineKind: String, Codable, Sendable {
 
 public struct BalanceSweepConfig: Equatable, Codable, Sendable {
     public var mode: BalanceSweepMode
-    /// Observations per identity enemy and pairs per contrast focus, per selected tier.
     public var battlesPerTier: Int
     public var seed: UInt64
     public var tiers: [SimulationPowerTier]
@@ -30,12 +29,8 @@ public struct BalanceSweepConfig: Equatable, Codable, Sendable {
     public var maxActions: Int
     public var peerDeltaFlagThreshold: Double
     public var outputDirectory: String
-    /// CLI process-pool size. `1` = one worker process; `0` = use active processor count.
-    /// In-process `BalanceSweepRunner` always maps work sequentially.
     public var jobs: Int
-    /// Inclusive start into flattened identity/contrast/progression work. CLI workers only.
     public var workOffset: Int
-    /// Max work items from `workOffset`. `nil` runs the remainder.
     public var workLimit: Int?
     public var appliesFightPacing: Bool
     public var policyID: String
@@ -69,7 +64,7 @@ public struct BalanceSweepConfig: Equatable, Codable, Sendable {
         workOffset: Int = 0,
         workLimit: Int? = nil,
         appliesFightPacing: Bool = true,
-        policyID: String = GreedyHeuristicPolicy.id,
+        policyID: String = PlayPolicy.greedy.rawValue,
         comparePolicies: Bool = false,
         heroIDs: [String] = [],
         companionIDs: [String] = [],
@@ -109,7 +104,6 @@ public struct BalanceSweepConfig: Equatable, Codable, Sendable {
         return Array(remainder.prefix(workLimit))
     }
 
-    /// Maps a global worker slice onto a contiguous region of concatenated work.
     public func localSlice(regionStart: Int, regionCount: Int) -> (offset: Int, limit: Int)? {
         guard regionCount > 0 else { return nil }
         let globalStart = workOffset
@@ -142,14 +136,14 @@ public struct BalanceSweepConfig: Equatable, Codable, Sendable {
         BalanceSweepRoster.resolve(config: self)
     }
 
-    public var policy: any SimulationPlayPolicy {
-        SimulationPolicies.make(id: policyID) ?? GreedyHeuristicPolicy()
+    public var policy: PlayPolicy {
+        SimulationPolicies.make(id: policyID) ?? .greedy
     }
 
-    public var comparePolicy: any SimulationPlayPolicy {
-        policyID == SetupAwareHeuristicPolicy.id
-            ? GreedyHeuristicPolicy()
-            : SetupAwareHeuristicPolicy()
+    public var comparePolicy: PlayPolicy {
+        policyID == PlayPolicy.setupAware.rawValue
+            ? .greedy
+            : .setupAware
     }
 }
 

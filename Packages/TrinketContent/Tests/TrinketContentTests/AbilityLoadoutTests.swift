@@ -2,7 +2,6 @@ import Testing
 import TrinketContent
 import TrinketCore
 
-/// Ability loadout selection.
 struct AbilityLoadoutTests {
     @Test func selectingReplacesAbilityInMatchingTier() throws {
         let loadout = AbilityLoadout(basic: .bash, skill: .smite, ultimate: .blessedAegis)

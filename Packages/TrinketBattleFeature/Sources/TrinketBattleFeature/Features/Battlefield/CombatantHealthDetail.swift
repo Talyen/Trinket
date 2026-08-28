@@ -3,9 +3,7 @@ import TrinketDesignSystem
 
 struct CombatHealthBar: View {
     enum Style {
-        /// Capsule bar used for general combatant detail chrome.
         case standard
-        /// Full-bleed rectangular strip for battle card bottom-edge chrome.
         case battleBorder
     }
 
@@ -59,8 +57,6 @@ struct CombatHealthBar: View {
                     }
                 }
             case .battleBorder:
-                // Avoid GeometryReader here — its width can collapse to ~0 when this
-                // strip is overlaid on landscape battle panes.
                 ZStack(alignment: .leading) {
                     Rectangle().fill(TrinketDesign.Colors.battleHealthTrack)
                     Rectangle()

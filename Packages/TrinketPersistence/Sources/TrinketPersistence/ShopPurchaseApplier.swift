@@ -19,10 +19,7 @@ public enum ShopPurchaseResult: Equatable, Sendable {
     }
 }
 
-/// Atomic gold spend + inventory grant for Merchant's Shop purchases.
 public enum ShopPurchaseApplier {
-    /// Stable inventory instance id for one purchase of `offerID` during `visitToken`.
-    /// Visit-scoped so dismiss/re-open cannot collide with a prior grant and burn gold.
     public static func inventoryInstanceID(
         stageID: String,
         offerID: String,
@@ -31,8 +28,6 @@ public enum ShopPurchaseApplier {
         "\(stageID)-shop-\(offerID)-\(visitToken)"
     }
 
-    /// Purchases `offer` into `save`, minting a unique inventory instance id from
-    /// `stageID`, offer id, and `visitToken`. Each listing is stock-1 per visit.
     public static func purchase(
         offer: ShopOffer,
         visitToken: String,

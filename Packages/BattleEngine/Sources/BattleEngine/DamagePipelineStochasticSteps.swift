@@ -3,8 +3,6 @@ import TrinketContent
 import TrinketCore
 
 package extension DamagePipeline {
-    // MARK: - Stochastic steps
-
     static func applyDodgeGate(
         to state: inout DamageResolutionState,
         in context: inout BattleState
@@ -59,8 +57,6 @@ package extension DamagePipeline {
             milestone: nil
         ))
         state.isDodged = true
-        // Evasive Pack auto-dodges do not trigger on-Dodge punish talents (Riposte).
-        // Hits caused by a dodge must not re-enter afterDodge (Whiplash loops).
         if !autoDodge, !state.options.causedByDodge {
             state.damageEvents.append(contentsOf: CombatTriggerEngine.afterDodge(
                 by: state.combatant,
@@ -91,7 +87,6 @@ package extension DamagePipeline {
         let profile = context.modifiers(for: state.combatant.id)
         chance += profile.triggers.dodgeChanceBonus
         chance += context.roster.runtime(for: state.combatant)?.bonusDodgeUntilNextTurn ?? 0
-        // Ashen Ward: +50% Dodge chance while on Death's Door.
         if context.roster.isDeathsDoorActive(for: state.combatant),
            profile.triggers.deathsDoorDodgeAndDebuffImmunity {
             chance += 0.5
@@ -141,14 +136,12 @@ package extension DamagePipeline {
         applyCritical(to: &state)
     }
 
-    /// Guaranteed-crit paths that bypass the soft cap and the RNG roll.
     private static func resolveGuaranteedCrit(
         to state: inout DamageResolutionState,
         actor: CombatantRuntime,
         in context: inout BattleState
     ) -> Bool {
         guard let sourceActorID = state.sourceActorID else { return false }
-        // "Always Criticals if the enemy has a buff" / next-strike critical are actually always.
         if state.options.guaranteedCritical {
             applyCritical(to: &state)
             return true
@@ -158,28 +151,24 @@ package extension DamagePipeline {
             applyCritical(to: &state)
             return true
         }
-        // Surprise Strike: this combatant's first attack in battle is a guaranteed critical.
         if state.options.isAttackHit,
            context.modifiers(for: sourceActorID).triggers.firstAttackGuaranteedCritical,
            context.claimBattleGuard(.surpriseStrike, actorID: actor.combatant.id) {
             applyCritical(to: &state)
             return true
         }
-        // Flanking Position: a dodge-empowered next party hit is a guaranteed critical.
         if state.options.isAttackHit,
            context.roster.runtime(for: actor.combatant)?.pendingGuaranteedCriticalAfterDodge == true {
             context.roster.mutateRuntime(for: actor.combatant) { $0.pendingGuaranteedCriticalAfterDodge = false }
             applyCritical(to: &state)
             return true
         }
-        // Taste for Blood: this combatant's next basic attack is a guaranteed critical.
         if state.options.isAttackHit, state.options.isBasicAttackHit,
            context.roster.runtime(for: actor.combatant)?.pendingBasicGuaranteedCrit == true {
             context.roster.mutateRuntime(for: actor.combatant) { $0.pendingBasicGuaranteedCrit = false }
             applyCritical(to: &state)
             return true
         }
-        // Deathly Wrath: guaranteed criticals while on Death's Door.
         if context.roster.isDeathsDoorActive(for: actor.combatant),
            context.modifiers(for: sourceActorID).triggers.guaranteedCritWhileOnDeathsDoor {
             applyCritical(to: &state)
@@ -188,7 +177,6 @@ package extension DamagePipeline {
         return false
     }
 
-    /// Dodge soft cap for the defending combatant (enemy archetype vs player 75%).
     static func dodgeChanceCap(for combatant: Combatant) -> Double {
         guard combatant.role == .enemy else {
             return PrimaryStats.playerChanceCap
@@ -196,7 +184,6 @@ package extension DamagePipeline {
         return combatant.growthArchetype.enemyDodgeChanceCap
     }
 
-    /// Crit soft cap for the attacking combatant (enemy archetype vs player 75%).
     static func criticalChanceCap(for combatant: Combatant) -> Double {
         guard combatant.role == .enemy else {
             return PrimaryStats.playerChanceCap

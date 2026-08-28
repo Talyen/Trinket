@@ -6,7 +6,6 @@ public enum StarterSelectionPhase: String, Equatable, Sendable {
     case complete
 }
 
-/// Save-root state kept separate from the roster so an interrupted first-run choice can resume.
 public struct StarterSelectionState: Equatable, Sendable {
     public private(set) var phase: StarterSelectionPhase
     public private(set) var heroID: String?

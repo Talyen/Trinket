@@ -12,7 +12,6 @@ public struct MysteryEffectApplyResult: Equatable, Sendable {
     public var companionProgressionBefore: CombatantProgression?
     public var companionProgressionAfter: CombatantProgression?
     public var grantedItems: [InventoryItem]
-    /// Combatant IDs newly unlocked by this apply (heroes and companions).
     public var unlockedCombatantIDs: [String]
 
     public init(
@@ -53,13 +52,11 @@ public struct MysteryEffectApplyResult: Equatable, Sendable {
 }
 
 public enum MysteryEffectApplier {
-    /// Fixed, deterministic material grant per level (L1 4 → L50 18).
     public static func materialQuantity(forLevel level: Int) -> Int {
         let clamped = max(1, level)
         return 4 + (clamped * 14) / 49
     }
 
-    /// Equal-level mystery XP after catch-up and the grant cap.
     public static func experienceAward(
         for progression: CombatantProgression,
         highestLevel: Int
@@ -73,8 +70,6 @@ public enum MysteryEffectApplier {
         )
     }
 
-    /// Mystery reward level: chapter base or Labyrinth node depth, pulled down
-    /// to the active party's bounded scaling ceiling.
     public static func resolvedEncounterLevel(
         stage: Stage,
         labyrinthNodeID: String?,
@@ -138,7 +133,6 @@ public enum MysteryEffectApplier {
         )
     }
 
-    /// Grants accumulated materials and snapshots progression deltas onto the result.
     private static func finalize(
         _ state: inout ApplyState,
         save: inout PlayerSave,
@@ -328,7 +322,6 @@ public enum MysteryEffectApplier {
         appendItem(item, to: &save, result: &state.result)
     }
 
-    /// Ownership filters threaded from the save into reward generation.
     private struct RewardOwnership {
         let ownedTrinketIDs: Set<String>
         let ownedUniqueIDs: Set<String>

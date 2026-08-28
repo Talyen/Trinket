@@ -378,7 +378,6 @@ struct PlayerSaveSanitizerTests {
 
         let sanitized = PlayerSaveSanitizer.sanitize(save)
 
-        // Stable combatant-ID order: first claim wins.
         try #expect(sanitized.roster.equipmentLoadout(for: knight).itemID(for: .weapon) == wand.id)
         try #expect(sanitized.roster.equipmentLoadout(for: wizard).itemID(for: .weapon) == nil)
     }

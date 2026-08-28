@@ -5,7 +5,6 @@ import TrinketDesignSystem
 import TrinketFeatureSupport
 import TrinketPersistence
 
-/// Direct talent tree view for a specific keyword affinity of a hero or companion.
 public struct CombatantTalentsView: View {
     let tree: TalentTree
     let progression: CombatantProgression
@@ -138,8 +137,6 @@ public struct CombatantTalentsView: View {
         }
     }
 
-    // MARK: - 2x3 Talent Grid
-
     private var talentGrid: some View {
         VStack(spacing: TrinketDesign.Metrics.mediumSpacing) {
             ForEach(1 ... 3, id: \.self) { row in
@@ -224,8 +221,6 @@ public struct CombatantTalentsView: View {
         }
         return keywords
     }
-
-    // MARK: - Inspector Content
 
     private var inspectorContent: some View {
         VStack(alignment: .leading, spacing: TrinketDesign.Metrics.mediumSpacing) {

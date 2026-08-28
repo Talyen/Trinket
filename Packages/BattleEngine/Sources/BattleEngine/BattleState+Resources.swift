@@ -32,7 +32,6 @@ package extension BattleState {
         ).events)
 
         let triggers = modifiers(for: combatant.id).triggers
-        // Golden Opportunity: gaining Gold draws 1 card (once per turn).
         if triggers.onGainGoldDrawCardOncePerTurn,
            let owner = roster.participant(for: combatant),
            owner.isPartyMember,
@@ -55,7 +54,6 @@ package extension BattleState {
                 ))
             }
         }
-        // Golden Recovery: gaining Gold restores 1 Health to the party.
         if triggers.onGainGoldHealParty > 0 {
             for owner in [BattleParticipant.hero, .companion] {
                 let member = roster[owner]
@@ -73,14 +71,9 @@ package extension BattleState {
                 ))
             }
         }
-        // Golden Touch: gaining Gold doubles the status effects of your next card.
         if triggers.onGainGoldDoubleStatusEffectsNextCard {
             roster.mutateRuntime(for: combatant) { $0.pendingDoubleStatusNextCard = true }
         }
-        // Golden Guard: Block equal to half Gold gained, floored per grant.
-        // A single Gold yields 0 Block by design (not accumulated via
-        // the legacy battle-total threshold). Legacy every-N fallback only
-        // runs when no percent trigger is present.
         if granted > 0 {
             for owner in [BattleParticipant.hero, .companion] {
                 let member = roster[owner]
@@ -103,7 +96,6 @@ package extension BattleState {
                     }
                     continue
                 }
-                // Legacy fallback for saves still carrying blockPerGoldEarnedEvery.
                 let every = modifiers(for: member.id).triggers.blockPerGoldEarnedEvery
                 guard every > 0 else { continue }
                 let newlyGranted = currentEarned / every - previousEarned / every
@@ -125,9 +117,6 @@ package extension BattleState {
         return events
     }
 
-    /// Flat + percent bonuses applied to an outgoing gold grant (Lucky / Gilded).
-    /// Companion talents apply party-wide: Haggler boosts all party Gold gains,
-    /// and Flawless Bounty doubles them while the Lizard Scout is at full Health.
     func goldGranted(for amount: Int, sourceActorID: String) -> Int {
         let profile = modifiers(for: sourceActorID)
         var percent = max(0, profile.goldGainedPercent)
@@ -151,8 +140,6 @@ package extension BattleState {
         guard var runtime = roster.runtime(for: combatant) else { return 0 }
         let actual = runtime.restoreMana(amount)
         var total = actual
-        // Prismatic Spark: a chance to double Mana gained. The extra restore is silent
-        // (no reaction re-trigger) so the doubled portion cannot loop into itself.
         if actual > 0, modifiers(for: combatant.id).triggers.manaGainDoubleChancePercent > 0,
            BattleChance.succeeds(probability: modifiers(for: combatant.id).triggers.manaGainDoubleChancePercent, using: &rng) {
             total += runtime.restoreMana(amount)
@@ -161,7 +148,6 @@ package extension BattleState {
         return total
     }
 
-    /// Restores mana, emits a `.resourceGain` event, and runs `afterGainMana` reactions.
     mutating func restoreManaEmitting(
         _ amount: Int,
         to combatant: Combatant,
@@ -184,7 +170,6 @@ package extension BattleState {
         return events
     }
 
-    /// Heals `target` from `source` and emits an `.instantHeal` event.
     mutating func healEmitting(
         amount: Int,
         target: Combatant,
@@ -214,13 +199,9 @@ package extension BattleState {
 }
 
 public extension BattleTurnEngine {
-    /// Mana spent per +1 Burn/Freeze empowerment on a card play.
     static let manaEmpowermentCost = 3
-    /// Burn/Freeze damage added per empowerment purchase.
     static let manaEmpowermentBonus = 1
 
-    /// Spends `manaEmpowermentCost` Mana to raise Burn/Freeze damage numbers on `ability` by
-    /// `manaEmpowermentBonus` when the actor can afford it.
     @discardableResult
     static func spendManaToEmpowerBurnOrFreezeIfNeeded(
         for ability: inout Ability,
@@ -232,7 +213,6 @@ public extension BattleTurnEngine {
         let repeats = ability.repeatsManaEmpowerment
             || (ability.hasManaEmpowerableBurnDamage
                 && context.modifiers(for: actor.id).triggers.repeatManaEmpowerment)
-        // Spell Channeling / Efficient Care: talent Mana-empowerment cost reductions.
         let triggers = context.modifiers(for: actor.id).triggers
         let isHealingCard = ability.keywords.contains(.health)
         let empowermentCost: Int = if isHealingCard, triggers.healingEmpowermentCostReduction > 0 {

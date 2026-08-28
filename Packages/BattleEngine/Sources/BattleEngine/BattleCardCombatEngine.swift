@@ -2,9 +2,7 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-/// Orchestrates player card plays, the enemy turn, and the end-of-round effect pass.
 public enum BattleCardCombatEngine {
-    /// Shuffles loadout decks and clears hand state. Does not draw the opening hand.
     public static func bootstrapDecks(context: inout BattleState) {
         context.heroDeck = CombatDeck.shuffled(
             from: context.hero.abilityLoadout,
@@ -21,23 +19,17 @@ public enum BattleCardCombatEngine {
         context.ownersSkippingThisPlayerTurn = []
     }
 
-    /// Headless / test convenience: bootstrap decks and fill the opening hand immediately.
     public static func bootstrapDecksAndOpeningHand(context: inout BattleState) {
         bootstrapDecks(context: &context)
         drawOpeningHand(context: &context)
     }
 
-    /// Draws the full opening hand (up to `BattleHand.maxSize`) and refreshes skip owners.
     @discardableResult
     public static func drawOpeningHand(context: inout BattleState) -> [ActionEvent] {
         while drawNextOpeningHandCard(context: &context) {}
         return finalizeOpeningHand(context: &context)
     }
 
-    /// Draws one opening-hand card. Guaranteed-plan slots (one Basic per party
-    /// member plus one Skill) are dealt first; any remaining slots fall back to
-    /// the legacy random-owner pick.
-    /// Returns `false` when the hand is full or no eligible deck remains.
     @discardableResult
     public static func drawNextOpeningHandCard(context: inout BattleState) -> Bool {
         guard context.hand.count < BattleHand.maxSize else { return false }
@@ -56,7 +48,6 @@ public enum BattleCardCombatEngine {
         return drawOne(owner: owner, context: &context) != nil
     }
 
-    /// Call after a paced opening deal finishes so skip owners match a bulk draw.
     @discardableResult
     public static func finalizeOpeningHand(context: inout BattleState) -> [ActionEvent] {
         context.ownersSkippingThisPlayerTurn = skippingOwners(in: context)
@@ -72,8 +63,6 @@ public enum BattleCardCombatEngine {
         return try playDrawnCard(card, context: &context)
     }
 
-    /// Plays a just-drawn card from the hand or overflow buffer. Does not
-    /// substitute a different in-hand card when the draw overflowed.
     static func playDrawnCard(
         _ card: BattleCard,
         context: inout BattleState
@@ -112,8 +101,6 @@ public enum BattleCardCombatEngine {
             abilityTarget: abilityTarget,
             in: &context
         ))
-        // Recycle after the card's effects (and on-play triggers) so a draw
-        // cannot fetch the card still resolving — empty personal decks stay empty.
         putAbilityOnBottom(card.ability, owner: card.owner, context: &context)
         discardDefeatedOwnerCards(context: &context)
         promoteFromBuffer(context: &context)
@@ -134,7 +121,6 @@ public enum BattleCardCombatEngine {
 
         var events: [ActionEvent] = []
 
-        // Clear party control skips that blocked card play this turn.
         for owner in context.ownersSkippingThisPlayerTurn {
             let combatant = context.roster[owner].combatant
             if context.roster.hasPendingActionSkip(for: combatant) {
@@ -159,19 +145,14 @@ public enum BattleCardCombatEngine {
             return events
         }
 
-        // End of turn triggers fire before round clock advances and block decays
         events.append(contentsOf: CombatTriggerEngine.atPlayerEndTurn(in: &context))
 
-        // End of round: advance round clock, then one effect pass.
         context.turnCount += 1
         events.append(contentsOf: EffectTurnEngine.advanceAll(context: &context))
         for combatant in [context.roster.hero.combatant, context.roster.companion.combatant, context.roster.enemy.combatant] {
             DefensePoolEngine.decayBlockAtEndOfRound(on: combatant, in: &context)
         }
         events.append(contentsOf: context.appendDefeatMilestonesIfNeeded())
-        // Death's Door expiry grace covers this round's effect pass so a DoT
-        // cannot kill in the same moment the effect falls off. Clear it before
-        // the next player turn.
         for participant in BattleParticipant.allCases {
             context.roster.mutateRuntime(for: context.roster[participant].combatant) {
                 $0.deathsDoorExpiredAtTurn = nil
@@ -188,8 +169,6 @@ public enum BattleCardCombatEngine {
         context.ownersSkippingThisPlayerTurn = skippingOwners(in: context)
         events.append(contentsOf: restoreManaAtPlayerTurnStart(context: &context))
         events.append(contentsOf: CombatTriggerEngine.atPlayerTurnStart(in: &context))
-        // Party members act this turn: drop any post-skip control linger so a
-        // recovered hero/companion no longer shows Stunned/Frozen while acting.
         for owner in [BattleParticipant.hero, .companion] {
             context.roster.clearControlStatusLinger(for: context.roster[owner].combatant)
         }
@@ -197,7 +176,6 @@ public enum BattleCardCombatEngine {
         return events
     }
 
-    /// Restores +1 Mana to living party members with a Mana pool.
     private static func restoreManaAtPlayerTurnStart(
         context: inout BattleState
     ) -> [ActionEvent] {
@@ -222,10 +200,6 @@ public enum BattleCardCombatEngine {
         return !context.ownersSkippingThisPlayerTurn.contains(card.owner)
     }
 
-    // MARK: - Private
-
-    /// Draws up to `count` cards for `owner` from their deck into the hand or buffer.
-    /// Returns how many cards were actually taken from the deck (empty deck / dead owner may reduce this).
     @discardableResult
     public static func drawCards(
         count: Int,
@@ -293,10 +267,6 @@ public enum BattleCardCombatEngine {
         return skipping
     }
 
-    /// Resolves simultaneous automatic draws one card at a time so open hand
-    /// slots go to the owner with fewer cards. Round parity rotates the
-    /// tie-break. Quotas continue after the hand is full so overflow enters
-    /// the hand buffer.
     private static func drawCardsBalanced(
         heroCount: Int,
         companionCount: Int,
@@ -314,7 +284,6 @@ public enum BattleCardCombatEngine {
             guard !candidates.isEmpty else { return }
 
             let owner: BattleParticipant = if context.hand.isFull {
-                // Hand is full — exhaust remaining quotas into the buffer without re-balancing.
                 candidates.contains(tieWinner) ? tieWinner : candidates[0]
             } else if candidates.count == 1 {
                 candidates[0]
@@ -342,7 +311,6 @@ public enum BattleCardCombatEngine {
         }
     }
 
-    /// Draws one card for `owner` into the hand or overflow buffer.
     static func drawOneCard(for owner: BattleParticipant, context: inout BattleState) -> BattleCard? {
         drawOne(owner: owner, context: &context)
     }
@@ -355,7 +323,6 @@ public enum BattleCardCombatEngine {
         }
     }
 
-    /// Draws the first card matching `keyword` from the owner's active draw deck without reshuffling discard.
     static func drawFirstCard(
         matching keyword: Keyword,
         for owner: BattleParticipant,

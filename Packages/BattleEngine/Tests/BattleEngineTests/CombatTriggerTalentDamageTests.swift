@@ -4,7 +4,6 @@ import TrinketCore
 import TrinketTestSupport
 @testable import BattleEngine
 
-/// Offensive injected-trigger talents: damage bonuses, multipliers, crit, and aura stacking.
 struct CombatTriggerTalentDamageTests {
     @Test func damageVsBleedingBonusAppliesWhenTargetIsBleeding() {
         var battle = BattleTestFixtures.makePipelineContext(
@@ -188,7 +187,7 @@ struct CombatTriggerTalentDamageTests {
             sourceActorID: battle.roster.companion.id,
             options: DamageOptions(applyStatBonus: false, applyItemBonus: true, applyDodge: false, isAttackHit: true)
         ))
-        #expect(outcome.healthLost == 9) // 5 + 4 bonus
+        #expect(outcome.healthLost == 9)
     }
 
     @Test func keywordReactionsSkipRetaliationHolyPings() {

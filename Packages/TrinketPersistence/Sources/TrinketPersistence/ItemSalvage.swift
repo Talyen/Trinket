@@ -8,10 +8,7 @@ public enum ItemSalvageResult: Equatable, Sendable {
     case ineligible
 }
 
-/// Deterministic material yields for salvaging inventory gear.
 public enum ItemSalvage {
-    /// Single eligibility source for UI affordances and the salvage applier:
-    /// Trinkets and Uniques can never be salvaged.
     public static func isEligible(_ item: InventoryItem) -> Bool {
         !item.isTrinket && item.rarity != .unique
     }
@@ -52,7 +49,6 @@ public enum ItemSalvage {
     }
 }
 
-/// Removes an inventory item, unequips it from all loadouts, and grants salvage materials.
 public enum ItemSalvageApplier {
     public static func salvage(itemID: String, save: inout PlayerSave) -> ItemSalvageResult {
         guard let item = save.inventory.items.first(where: { $0.id == itemID }) else {

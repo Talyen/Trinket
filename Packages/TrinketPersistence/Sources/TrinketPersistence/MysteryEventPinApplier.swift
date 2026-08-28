@@ -2,9 +2,7 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-/// Pins a resolved mystery event so reopen stays stable with inventory-gated picks.
 public enum MysteryEventPinApplier {
-    /// Pins `eventID` onto a labyrinth node when that node has no pinned event.
     @discardableResult
     public static func pinLabyrinthEvent(
         nodeID: String,
@@ -18,7 +16,6 @@ public enum MysteryEventPinApplier {
         return true
     }
 
-    /// Pins `eventID` onto a journey stage when that stage has no pinned event.
     @discardableResult
     public static func pinJourneyEvent(
         stageID: String,

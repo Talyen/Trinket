@@ -160,12 +160,6 @@ private struct OptionalAccessibilityIdentifierModifier: ViewModifier {
     }
 }
 
-/// Tap target with no press chrome and no system dimming.
-///
-/// Prefer this over `.buttonStyle(.plain)` for artwork and other custom content
-/// inside scroll views. `.plain` still flashes while the finger is down during a
-/// scroll drag; this style keeps `Button` semantics (including tap-to-open) and
-/// ignores `isPressed` for visuals.
 struct QuietTapButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
@@ -183,13 +177,10 @@ private struct TrinketPressButtonStyle: ButtonStyle {
 }
 
 public extension View {
-    /// Applies `accessibilityIdentifier` when non-nil. Prefer this over a local
-    /// optional-identifier copy; glass CTAs still apply IDs after button styles.
     func trinketAccessibilityIdentifier(_ identifier: String?) -> some View {
         modifier(OptionalAccessibilityIdentifierModifier(identifier: identifier))
     }
 
-    /// Selection stroke for 3:4 artwork picker tiles (loadout / party grids).
     func trinketArtworkPickerSelectionBorder(
         isSelected: Bool,
         color: Color = TrinketDesign.Colors.accent,
@@ -232,7 +223,6 @@ public extension View {
         ))
     }
 
-    /// Half-width, horizontally centered layout for a lone screen primary action.
     func trinketCenteredPrimaryAction() -> some View {
         containerRelativeFrame(.horizontal) { width, _ in
             width * TrinketDesign.Metrics.singlePrimaryActionWidthFraction
@@ -240,7 +230,6 @@ public extension View {
         .frame(maxWidth: .infinity)
     }
 
-    /// Quieter glass chrome for secondary actions (not the screen's primary CTA).
     func trinketSecondaryActionButton(
         controlSize: ControlSize = .large,
         tint: Color = TrinketDesign.Colors.accent,
@@ -257,21 +246,18 @@ public extension View {
         buttonStyle(QuietTapButtonStyle())
     }
 
-    /// Subtle touch-down feedback for large, stationary artwork navigation cards.
     func trinketArtworkCardButtonStyle() -> some View {
         buttonStyle(TrinketPressButtonStyle(
             pressedScale: TrinketMotion.Interaction.artworkCardPressedScale
         ))
     }
 
-    /// Nearly imperceptible touch-down feedback for stationary selection tiles.
     func trinketSelectionCardButtonStyle() -> some View {
         buttonStyle(TrinketPressButtonStyle(
             pressedScale: TrinketMotion.Interaction.selectionCardPressedScale
         ))
     }
 
-    /// Gates system sensory feedback on the Options haptics toggle.
     func trinketSensoryFeedback(
         _ feedback: SensoryFeedback,
         trigger: some Equatable,

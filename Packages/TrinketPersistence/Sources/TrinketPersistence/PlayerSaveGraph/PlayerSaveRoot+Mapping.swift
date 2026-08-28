@@ -51,17 +51,10 @@ struct PlayerSaveSlice: OptionSet {
         return slices
     }
 
-    /// Slices that must be re-diffed after sanitize. The sanitizer always
-    /// resolves `worldSeed` (root) and may pin `labyrinth.worldSeed` even when
-    /// those slices were not in the original mutation.
     static func persistTargets(for sanitizeSlices: Self) -> Self {
         sanitizeSlices.union(.root).union(.labyrinth)
     }
 
-    /// Expands a mutation diff into the slices that must be sanitized so
-    /// cross-slice couplings match a full sanitize pass. Inventory writes also
-    /// sanitize roster (equipped items must exist). Labyrinth recruit eligibility
-    /// is applied at map generation, not on every roster write.
     static func sanitizeTargets(for mutationSlices: Self) -> Self {
         var targets = mutationSlices
         if targets.contains(.inventory) {

@@ -120,7 +120,6 @@ package extension CombatTriggerEngine {
             }
         }
 
-        // Once-per-action spend thresholds: Mana Cocoon, Overcharge, Arcane Cleansing, Chaos Rift, Freeze.
         let cocoonMet = triggers.spendManaThresholdBlockThreshold > 0
             && amountSpent >= triggers.spendManaThresholdBlockThreshold
         if cocoonMet, context.claimActionGuard(.spendCocoon, actorID: actor.id) {
@@ -151,7 +150,6 @@ package extension CombatTriggerEngine {
                 ))
             }
         }
-        // Overcharge: the guard must only be consumed when the threshold is met.
         let overchargeMet = triggers.spendManaEmpowerNextCardThreshold > 0
             && amountSpent >= triggers.spendManaEmpowerNextCardThreshold
         if overchargeMet, context.claimActionGuard(.spendOvercharge, actorID: actor.id) {
@@ -210,7 +208,6 @@ package extension CombatTriggerEngine {
             ))
         }
 
-        // Arcane Breath: Mana spent on empowering a card adds bonus damage per Mana spent.
         if triggers.spendManaDamageBonusPerMana > 0,
            amountSpent >= BattleTurnEngine.manaEmpowermentCost {
             context.roster.mutateRuntime(for: actor) {
@@ -218,7 +215,6 @@ package extension CombatTriggerEngine {
             }
         }
 
-        // Dark Recovery: the first time you reach 0 Mana each battle, immediately restore Mana.
         if triggers.onReachZeroManaRestoreMana > 0,
            context.roster.runtime(for: actor)?.currentMana == 0,
            context.claimBattleGuard(.darkRecovery, actorID: actor.id) {
@@ -234,7 +230,6 @@ package extension CombatTriggerEngine {
             ))
         }
 
-        // Arcane Burst: spending enough Mana draws and automatically plays a random card.
         if triggers.spendManaThresholdAutoPlayCard > 0, !context.isResolvingAutoPlayCard {
             if context.claimActionGuard(.arcaneBurst, actorID: actor.id) {
                 context.roster.mutateRuntime(for: actor) { $0.manaSpentThisCardPlay = 0 }

@@ -2,7 +2,6 @@ import TrinketContent
 import TrinketCore
 
 package extension CombatTriggerEngine {
-    /// Per-tick Burn/Poison reactions after the DoT damage itself has resolved.
     static func afterDoTTick(
         keyword: Keyword,
         healthLost: Int,
@@ -67,7 +66,6 @@ package extension CombatTriggerEngine {
         return events
     }
 
-    /// End-of-turn Poison reactions after every tick has resolved (Paralysis).
     static func afterDecayingDoTTurn(
         keyword: Keyword,
         nextPotency: Int,
@@ -132,7 +130,6 @@ package extension CombatTriggerEngine {
         return events
     }
 
-    /// Resolves every remaining Bleed tick and decaying Poison tick on `target` immediately (Venomous Execution).
     static func detonateBleedAndPoison(
         on target: Combatant,
         sourceActorID: String,

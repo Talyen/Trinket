@@ -2,7 +2,6 @@ import TrinketContent
 import TrinketCore
 
 package extension CombatTriggerEngine {
-    /// Bastion / Carapace: Block granted once per round during effect cadence.
     static func turnBlock(
         for combatant: Combatant,
         in context: inout BattleState
@@ -46,7 +45,6 @@ package extension CombatTriggerEngine {
         return events
     }
 
-    /// Resets per-round runtime state and draw/gold owner sets.
     private static func resetTurnCadenceState(in context: inout BattleState) {
         context.turnCadence.reset()
         for owner in BattleParticipant.allCases {
@@ -56,7 +54,6 @@ package extension CombatTriggerEngine {
         }
     }
 
-    /// Sanctified Scroll: each living owner cleanses N debuffs from each living ally.
     private static func cleanseTeamIfNeeded(in context: inout BattleState) -> [ActionEvent] {
         var events: [ActionEvent] = []
         for owner in [BattleParticipant.hero, .companion] {
@@ -85,7 +82,6 @@ package extension CombatTriggerEngine {
         return events
     }
 
-    /// Per-owner start-of-turn cadence and battle-start bonuses.
     private static func startOfTurnCadence(
         for owner: BattleParticipant,
         runtime: CombatantRuntime,
@@ -174,7 +170,6 @@ package extension CombatTriggerEngine {
         return events
     }
 
-    /// Gold / heal cadences that fire on turn-count intervals or health conditions.
     private static func startOfTurnAfflictionCadence(
         for _: BattleParticipant,
         actor: Combatant,
@@ -213,7 +208,6 @@ package extension CombatTriggerEngine {
         return events
     }
 
-    /// Mana and gold start-of-turn resource gains.
     private static func startOfTurnResourceCadence(
         for owner: BattleParticipant,
         actor: Combatant,
@@ -257,7 +251,6 @@ package extension CombatTriggerEngine {
         return events
     }
 
-    /// Extra draws from enemy-state conditions (Frenzied Tail, Feral Frenzy).
     private static func startOfTurnDrawCadence(
         for owner: BattleParticipant,
         actor: Combatant,
@@ -265,7 +258,6 @@ package extension CombatTriggerEngine {
         in context: inout BattleState
     ) -> [ActionEvent] {
         var events: [ActionEvent] = []
-        // Frenzied Tail: while an enemy is Bleeding, the owner draws 1 extra card each round.
         if triggers.extraCardDrawWhileEnemyBleeding, context.roster.enemy.isAlive,
            context.roster.activeEffects(for: context.roster.enemy.combatant).contains(where: { $0.effect.keyword == .bleed }) {
             let drawn = BattleCardCombatEngine.drawCards(count: 1, for: owner, context: &context)
@@ -286,7 +278,6 @@ package extension CombatTriggerEngine {
                 ))
             }
         }
-        // Feral Frenzy: while the enemy is below the threshold, the Wolf draws 1 extra card each round.
         if triggers.extraCardDrawBelowEnemyHealthPercent > 0, context.roster.enemy.isAlive,
            context.roster.maxHealth(for: context.roster.enemy.combatant) > 0,
            Double(context.roster.health(for: context.roster.enemy.combatant))
@@ -313,7 +304,6 @@ package extension CombatTriggerEngine {
         return events
     }
 
-    /// Freezing Gale / Quaking Carapace interval charges and battle-start bonuses.
     private static func battleStartBonuses(
         for owner: BattleParticipant,
         actor: Combatant,
@@ -321,7 +311,6 @@ package extension CombatTriggerEngine {
         in context: inout BattleState
     ) -> [ActionEvent] {
         var events: [ActionEvent] = []
-        // Freezing Gale: every N turns, apply Freeze buildup to the enemy.
         if triggers.everyNTurnsFreezeAllEnemiesInterval > 0,
            context.turnCount > 0,
            context.turnCount.isMultiple(of: triggers.everyNTurnsFreezeAllEnemiesInterval),
@@ -335,7 +324,6 @@ package extension CombatTriggerEngine {
                 in: &context
             ))
         }
-        // Quaking Carapace: every N turns, add Stun buildup to the enemy and grant the team Block.
         if triggers.everyNTurnsStunBuildupInterval > 0,
            context.turnCount > 0,
            context.turnCount.isMultiple(of: triggers.everyNTurnsStunBuildupInterval),
@@ -370,7 +358,6 @@ package extension CombatTriggerEngine {
         return events
     }
 
-    /// Turn-0 bonuses: extra Mana, start-of-battle Block and Gold, first-turn draw.
     private static func turnZeroBonuses(
         for _: BattleParticipant,
         actor: Combatant,

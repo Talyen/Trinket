@@ -109,7 +109,6 @@ struct InventoryGridView: View {
 }
 
 extension ItemDetailView {
-    /// Collection inventory detail with salvage affordances for owned items.
     @MainActor
     static func inventorySalvageDetail(
         item: InventoryItem,

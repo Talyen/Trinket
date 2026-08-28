@@ -4,8 +4,6 @@ import TrinketCore
 import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
-/// Unique-item guarantees: durable ownership across save reload and
-/// Corruption Altar exclusion. Salvage rejection lives in `ItemSalvageApplierTests`.
 struct UniqueItemRuleTests {
     @Test @MainActor func uniqueSurvivesSaveRoundTripWithPinnedPowers() throws {
         let unique = try #require(GameContent.unique(matching: "wardbreaker"))

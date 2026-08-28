@@ -6,7 +6,6 @@ import TrinketFeatureAdapters
 import TrinketFeatureSupport
 import TrinketPersistence
 
-/// Cinematic header and scrolling body shared by linear Stage Select surfaces.
 struct StageSelectScreen<HeroArt: View, Content: View>: View {
     let eyebrow: String
     let title: String
@@ -43,7 +42,6 @@ struct StageSelectScreen<HeroArt: View, Content: View>: View {
     }
 }
 
-/// Empty completion panel shared by campaign chapter select and spire climb.
 struct StageSelectCompletionPanel: View {
     let title: String
     let description: String
@@ -73,11 +71,6 @@ struct StageSelectCompletionPanel: View {
     }
 }
 
-/// Invalidates prepared Stage Select / Spire battles when party, gear, homestead,
-/// world seed, or claimed-reward state change.
-///
-/// `PlayBattleLaunch` snapshots those inputs into the prepared run;
-/// activation reuses that snapshot when party IDs match, so they must participate.
 @MainActor
 struct StageSelectPrepareDependency: Equatable {
     let runKey: String
@@ -128,7 +121,6 @@ struct StageSelectPrepareDependency: Equatable {
     }
 }
 
-/// Cinematic Campaign chapter overview with five stable, inline stage rows.
 struct ChapterStageSelectView: View {
     @Environment(JourneyPlayMode.self) private var journey
     @Environment(PlayerSaveStore.self) private var playerSave

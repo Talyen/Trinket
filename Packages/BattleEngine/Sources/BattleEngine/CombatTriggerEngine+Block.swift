@@ -115,7 +115,6 @@ package extension CombatTriggerEngine {
         )
     }
 
-    /// Retribution triggers when a combatant's Block pool is broken by an attack (Saintfall).
     static func saintfallAfterBlockBroken(
         on target: Combatant,
         attackerID: String?,

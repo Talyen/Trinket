@@ -61,8 +61,6 @@ public enum EffectMetadata {
         }
     }
 
-    /// Battle log summaries for flag-style effects. Parameterized effects build
-    /// summaries from runtime values instead.
     public static func requiredBattleSummaryPhrase(for kind: EffectKind) -> String {
         guard let phrase = battleSummaryPhrase(for: kind) else {
             preconditionFailure("Every flag effect needs a battle summary phrase; missing \(kind)")
@@ -70,7 +68,6 @@ public enum EffectMetadata {
         return phrase
     }
 
-    /// Returns the battle log summary phrase for flag-style effects, or nil if none.
     public static func battleSummaryPhrase(for kind: EffectKind) -> String? {
         switch kind {
         case .nextHolyStrike:

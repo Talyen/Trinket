@@ -2,7 +2,6 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-/// Shared helpers for the pooled Block model and Toughness-based inherent DR.
 package enum DefensePoolEngine {
     package static func blockPoints(in effects: [ActiveEffect]) -> Int {
         effects.reduce(0) { sum, active in
@@ -13,18 +12,13 @@ package enum DefensePoolEngine {
         }
     }
 
-    /// Result of reducing a combatant's pooled Block.
     package struct ShieldPoolReduction {
         package let effects: [ActiveEffect]
         package let keyword: Keyword
-        /// Points actually removed from the pool.
         package let absorbed: Int
-        /// True when the reduction emptied the pool.
         package let broken: Bool
     }
 
-    /// Reduces the first pooled Block effect by `amount` (floor 0), removing the
-    /// effect when the pool empties. Returns nil when no positive Block exists.
     package static func reduce(
         _ amount: Int,
         in effects: [ActiveEffect]
@@ -56,15 +50,12 @@ package enum DefensePoolEngine {
         return ShieldPoolReduction(effects: updated, keyword: keyword, absorbed: absorbed, broken: broken)
     }
 
-    /// Inherent Toughness-based damage reduction percent.
-    /// No pool points — Toughness DR is never consumed or decayed.
     package static func effectiveToughnessMitigationPercent(
         for combatant: Combatant
     ) -> Double {
         max(0.0, min(1.0, combatant.primaryStats.toughnessMitigationPercent))
     }
 
-    /// Adds fight-paced Block points. Returns the paced amount actually applied (0 when skipped).
     @discardableResult
     package static func add(
         _ amount: Int,
@@ -126,8 +117,6 @@ package enum DefensePoolEngine {
         }
     }
 
-    /// Halves pooled Block at end of round (floor). Combatants with
-    /// `blockRetainsThreeQuarters` retain 75% instead, capped at 30 (Unbreakable / Enduring Shell).
     package static func decayBlockAtEndOfRound(
         on target: Combatant,
         in context: inout BattleState
@@ -142,7 +131,6 @@ package enum DefensePoolEngine {
         set(current / 2, on: target, in: &context)
     }
 
-    /// Halves pooled Block (floor). Used by `Effect.halveShield`.
     package static func halveBlock(
         on target: Combatant,
         in context: inout BattleState

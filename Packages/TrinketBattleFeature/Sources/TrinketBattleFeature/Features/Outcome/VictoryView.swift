@@ -7,7 +7,6 @@ import TrinketFeatureSupport
 struct VictoryView: View {
     let summary: BattleVictorySummary
     let primaryActionTitle: String
-    /// Stable selector for the primary action; never derived from display copy.
     let primaryActionAccessibilityIdentifier: String
     let onPrimaryAction: () -> Bool
 

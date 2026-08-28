@@ -4,10 +4,8 @@ import TrinketDesignSystem
 import TrinketFeatureSupport
 
 struct LaunchWarmupView: View {
-    /// Cosmetic fill duration — matches the minimum launch display hold.
     private static let fillDuration: TimeInterval = 1.0
 
-    /// Fun loading terms to cycle between while launch resources prewarm.
     private static let loadingTerms: [String] = [
         "Preparing your adventure…",
         "Polishing ancient trinkets…",
@@ -53,8 +51,6 @@ struct LaunchWarmupView: View {
         .preferredColorScheme(.dark)
         .accessibilityIdentifier("Launch Warmup")
         .task {
-            // Defer past the first committed frame so the fill isn't already
-            // finished when the system launch screen hands off to this view.
             await Task.yield()
             guard !Task.isCancelled else { return }
             withAnimation(.linear(duration: Self.fillDuration)) {

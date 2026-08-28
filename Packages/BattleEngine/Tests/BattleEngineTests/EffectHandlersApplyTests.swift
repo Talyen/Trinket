@@ -35,8 +35,6 @@ struct EffectHandlersApplyTests {
         return result
     }
 
-    // MARK: - DoT handlers
-
     @Test func burnHandlerAppliesBurnEffect() throws {
         var battle = EffectHandlersTestSupport.makeBattle()
         let enemy = battle.enemy
@@ -50,8 +48,6 @@ struct EffectHandlersApplyTests {
         try #expect(outcome.didApply)
         try #expect(battle.activeEffects(of: battle.enemy).contains { $0.effect.isDecayingDoT && $0.keyword == .burn })
     }
-
-    // MARK: - Defensive buffs
 
     @Test func shieldHandlerAppliesAndEmitsEvents() throws {
         var battle = EffectHandlersTestSupport.makeBattle()
@@ -81,13 +77,8 @@ struct EffectHandlersApplyTests {
                 abilities: [.slash, .heal, .smite, .darkPact]
             )
         )
-        // Loadouts hold at most one card per tier (basic/skill/ultimate), so
-        // this hero's real deck is only 2 cards and the opening hand draw
-        // may exhaust it. Pad the deck so this handler-level test can exercise
-        // a full 2-card draw independent of that capacity limit.
         battle.heroDeck.putOnBottom(.smite)
         battle.heroDeck.putOnBottom(.heal)
-        // Leave room in hand so both draws land visibly (not in the buffer).
         while battle.hand.count > 1 {
             _ = battle.hand.remove(id: battle.hand.cards[0].id)
         }
@@ -120,7 +111,6 @@ struct EffectHandlersApplyTests {
                 abilities: [.smite]
             )
         )
-        // Leave room in hand so drawn cards land in hand (not buffer)
         while battle.hand.count > 1 {
             _ = battle.hand.remove(id: battle.hand.cards[0].id)
         }
@@ -357,8 +347,6 @@ struct EffectHandlersApplyTests {
         try #expect(!(outcome.didApply))
         try #expect(outcome.events.isEmpty)
     }
-
-    // MARK: - Restoration
 
     @Test func resourceGainHandlerAddsGold() throws {
         var battle = EffectHandlersTestSupport.makeBattle(initialGold: 10)

@@ -61,7 +61,6 @@ struct ControlMeterHandler: BattleEffectHandler {
     ) -> EffectTurnOutcome {
         _ = target
         _ = context
-        // Awaiting skip: do not advance. Post-consume linger: decrement and remove at 0.
         guard active.remainingTurns > 0 else { return EffectTurnOutcome() }
         var updated = active
         updated.remainingTurns -= 1
@@ -81,7 +80,6 @@ struct ControlMeterHandler: BattleEffectHandler {
         guard case let .controlMeter(keyword, amount, _) = effect else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
-        // Defeated targets are excluded by the turn engine's apply gate.
         guard amount > 0 else {
             return EffectApplyOutcome(events: [], didApply: false)
         }

@@ -4,7 +4,7 @@ import TrinketCore
 @testable import BattleBalanceTools
 @testable import BattleEngine
 
-struct GreedyHeuristicPolicyTests {
+struct PlayPolicyTests {
     @Test func prefersLethalCardOverWeakerLeftmostCard() {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: [],
@@ -43,7 +43,7 @@ struct GreedyHeuristicPolicyTests {
         )
         battle.hand.append(lethal)
 
-        let chosen = GreedyHeuristicPolicy().preferredPlayableCard(in: battle)
+        let chosen = PlayPolicy.greedy.preferredPlayableCard(in: battle)
         #expect(chosen?.id == lethal.id)
         #expect(battle.hand.cards.first?.id == weak.id)
     }
@@ -87,13 +87,13 @@ struct GreedyHeuristicPolicyTests {
         )
         battle.hand.append(poison)
 
-        let chosen = SetupAwareHeuristicPolicy().preferredPlayableCard(in: battle)
+        let chosen = PlayPolicy.setupAware.preferredPlayableCard(in: battle)
         #expect(chosen?.id == poison.id)
     }
 
     @Test func simulationPoliciesMakeRejectsUnknownIDs() {
-        #expect(SimulationPolicies.make(id: GreedyHeuristicPolicy.id)?.id == GreedyHeuristicPolicy.id)
-        #expect(SimulationPolicies.make(id: SetupAwareHeuristicPolicy.id)?.id == SetupAwareHeuristicPolicy.id)
+        #expect(SimulationPolicies.make(id: PlayPolicy.greedy.rawValue)?.id == PlayPolicy.greedy.rawValue)
+        #expect(SimulationPolicies.make(id: PlayPolicy.setupAware.rawValue)?.id == PlayPolicy.setupAware.rawValue)
         #expect(SimulationPolicies.make(id: "setup-v2") == nil)
     }
 }

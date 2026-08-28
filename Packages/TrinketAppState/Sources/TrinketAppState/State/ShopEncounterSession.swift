@@ -5,7 +5,6 @@ import TrinketCore
 
 enum ShopEncounterOpenResult {
     case opened(ShopEncounterSession)
-    /// Shelf empty — caller should auto-complete the stage/node.
     case autoCompleted
     case unavailable
 }
@@ -20,14 +19,12 @@ public final class ShopEncounterSession: Identifiable {
 
     public let stage: Stage
     public let origin: PlayEncounterOrigin
-    /// When set, Leave completes a Labyrinth node instead of a journey stage.
     public var labyrinthNodeID: String? {
         origin.labyrinthNodeID
     }
 
     public let greeting: String
     public let offers: [ShopOffer]
-    /// Unique per open so inventory instance ids never collide across dismiss/re-open.
     public let visitToken: String
     public private(set) var purchasedOfferIDs: Set<String> = []
     public private(set) var purchaseCount = 0
@@ -48,7 +45,6 @@ public final class ShopEncounterSession: Identifiable {
         self.greeting = greeting
     }
 
-    /// Builds a shop session for a journey stage or Labyrinth shop node.
     static func open(
         origin: PlayEncounterOrigin,
         worldSeed: UInt64,

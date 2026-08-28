@@ -4,9 +4,7 @@ import TrinketCore
 import TrinketDesignSystem
 import TrinketFeatureSupport
 
-/// Pure presenter: engine events → classified feedback items.
 enum CombatFeedbackPresenter {
-    /// Sort order for chips stacked on one target (most important floats last).
     private static func displayPriority(for feedbackClass: CombatFeedbackClass) -> Int {
         switch feedbackClass {
         case .critical: 0
@@ -19,8 +17,6 @@ enum CombatFeedbackPresenter {
         }
     }
 
-    /// Classifies post-`filterDisplayable` events: kinds dropped by the filter
-    /// never reach this switch.
     private static func classify(_ event: ActionEvent) -> CombatFeedbackClass {
         switch event.kind {
         case .abilityDamage:
@@ -28,7 +24,6 @@ enum CombatFeedbackPresenter {
         case .status:
             return .dot
         case .ability, .milestone:
-            // Dropped by `filterDisplayable`.
             return .buff
         case .effect:
             guard let effectKind = event.effectKind else { return .buff }
@@ -110,7 +105,6 @@ enum CombatFeedbackPresenter {
         }
     }
 
-    /// Sparse groups keep headline sizing for every chip; denser groups promote index 0.
     private static func presentationRole(
         index: Int,
         groupResultCount: Int
@@ -120,8 +114,6 @@ enum CombatFeedbackPresenter {
         }
         return index == 0 ? .headline : .secondary
     }
-
-    // MARK: - Private
 
     private struct PreparedSource: Equatable {
         var event: ActionEvent
@@ -216,7 +208,6 @@ enum CombatFeedbackPresenter {
             else { return nil }
             family = .effect(effectKind)
         case .ability, .milestone:
-            // Dropped by `filterDisplayable`.
             return nil
         }
         return AggregationKey(

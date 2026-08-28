@@ -16,8 +16,6 @@ public final class LabyrinthProgressModel {
 struct LabyrinthMapPayload: Codable, Equatable {
     var clusters: [LabyrinthCluster]
     var nodes: [LabyrinthNode]
-    /// Current-run party health by combatant id. Older payloads lack the key,
-    /// which decodes as an empty dictionary (full health).
     var runHealthByCombatantID: [String: Int] = [:]
 
     init(

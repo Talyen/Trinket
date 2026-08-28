@@ -2,8 +2,6 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-/// DoT tick damage: resolves base potency through the damage pipeline (stat
-/// and item bonuses at tick time) and appends the `.status` log line.
 package enum DoTDamage {
     public static func resolveTurnDamage(
         basePotency: Int,

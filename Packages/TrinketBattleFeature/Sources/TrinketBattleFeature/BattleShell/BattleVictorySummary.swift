@@ -8,8 +8,6 @@ import TrinketFeatureSupport
 public struct BattleVictorySummary: Equatable {
     public let stageGold: Int
     public let battleGold: Int
-    /// Unadjusted mid-battle gold for grant paths. Do not pass `battleGold` into
-    /// completion APIs — that display split already includes homestead bonus.
     public let rawBattleEarnedGold: Int
     public let experience: Int
     public let companionExperience: Int
@@ -32,8 +30,6 @@ public struct BattleVictorySummary: Equatable {
         experience > 0 || companionExperience > 0
     }
 
-    /// Assembles victory chrome from launch-baked awards plus mid-battle earned gold.
-    /// Does not re-derive XP / material Persistence policy.
     public static func make(
         configuration: BattleRunConfiguration,
         presentation: BattlePresentationContext,

@@ -1,7 +1,6 @@
 import Foundation
 import TrinketCore
 
-/// Defines an authored talent node's distinct mechanics, modifiers, and triggers.
 public struct CombatantTalentEffect: Sendable {
     public let name: String
     public let symbolName: String
@@ -24,9 +23,7 @@ public struct CombatantTalentEffect: Sendable {
     }
 }
 
-/// Canonical catalog of combatant talent trees for Heroes and Companions.
 public enum CombatantTalentCatalog {
-    /// Authored name and keyword affinity pairing for a combatant's talent tree.
     public struct TreeAffinity: Sendable, Hashable {
         public let name: String
         public let keyword: Keyword
@@ -37,9 +34,7 @@ public enum CombatantTalentCatalog {
         }
     }
 
-    /// The 3 named keyword affinity trees for each Hero and Companion.
     public static let combatantTreeAffinities: [String: [TreeAffinity]] = [
-        // Heroes
         "knight": [
             TreeAffinity(name: "Crusade", keyword: .stun),
             TreeAffinity(name: "Chivalry", keyword: .block),
@@ -66,7 +61,6 @@ public enum CombatantTalentCatalog {
             TreeAffinity(name: "Hellfire", keyword: .burn),
         ],
 
-        // Companions
         "wolf": [
             TreeAffinity(name: "Fangs", keyword: .bleed),
             TreeAffinity(name: "Agility", keyword: .dodge),
@@ -134,10 +128,6 @@ public enum CombatantTalentCatalog {
         ],
     ]
 
-    // Signature talent definitions are generated from ContentManifest/talents.tsv
-    // (`CombatantTalentCatalog.generated.swift`). Per-combatant dictionaries keep
-    // each literal off the GCD worker-thread stack.
-
     public static let allConfigs: [String: CombatantTalentConfig] = {
         var configs: [String: CombatantTalentConfig] = [:]
         configs.reserveCapacity(combatantTreeAffinities.count)
@@ -157,12 +147,10 @@ public enum CombatantTalentCatalog {
         return nodeIDs
     }()
 
-    /// Resolves the valid talent node IDs for a combatant in O(1).
     public static func validNodeIDs(for combatantID: String) -> Set<String> {
         validNodeIDsByCombatantID[combatantID] ?? []
     }
 
-    /// Resolves the 3-tree talent configuration for a combatant.
     public static func config(for combatantID: String) -> CombatantTalentConfig {
         guard let cached = allConfigs[combatantID] else {
             preconditionFailure("Missing talent config for \(combatantID)")
@@ -170,12 +158,10 @@ public enum CombatantTalentCatalog {
         return cached
     }
 
-    /// Resolves the signature talent effect for a specific node ID, if authored.
     public static func effect(for nodeID: String) -> CombatantTalentEffect? {
         signatureTalents[nodeID]
     }
 
-    /// Generates a standardized 2x3 tree for a keyword affinity (6 nodes total).
     private static func makeTree(combatantID: String, name: String, keyword: Keyword) -> TalentTree {
         var nodes = [TalentNode]()
         nodes.reserveCapacity(6)

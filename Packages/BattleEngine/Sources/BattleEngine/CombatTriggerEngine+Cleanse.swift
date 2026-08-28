@@ -2,8 +2,6 @@ import TrinketContent
 import TrinketCore
 
 package extension CombatTriggerEngine {
-    /// Removes up to `count` random debuffs from `target`, logs each cleanse, and
-    /// runs heal/draw plus `afterCleansePerformed` for every removal.
     static func performRandomCleanses(
         source: Combatant,
         target: Combatant,
@@ -53,7 +51,6 @@ package extension CombatTriggerEngine {
         return events
     }
 
-    /// Reactions after a cleanse removes debuffs from `target` (Combatant Talent System).
     static func afterCleansePerformed(
         source: Combatant,
         target: Combatant,
@@ -89,7 +86,6 @@ package extension CombatTriggerEngine {
         return events
     }
 
-    /// Spellbreak Shield and Cleansing Ward: Block from cleansing.
     private static func cleanseShieldBonuses(
         triggers: CombatTraitTriggers,
         source: Combatant,
@@ -121,7 +117,6 @@ package extension CombatTriggerEngine {
         return events
     }
 
-    /// Dispel Magic, Toxic Backlash, and Reflective Ward: enemy-facing reactions.
     private static func cleanseEnemyReactions(
         triggers: CombatTraitTriggers,
         source: Combatant,
@@ -142,7 +137,6 @@ package extension CombatTriggerEngine {
         return events
     }
 
-    /// Dispel Magic: cleanse also purges 1 enemy buff.
     private static func dispelMagicPurge(
         triggers: CombatTraitTriggers,
         source: Combatant,
@@ -169,7 +163,6 @@ package extension CombatTriggerEngine {
         )]
     }
 
-    /// Toxic Backlash: cleansing Poison deals damage per cleansed potency point.
     private static func toxicBacklashDamage(
         triggers: CombatTraitTriggers,
         source: Combatant,
@@ -192,7 +185,6 @@ package extension CombatTriggerEngine {
         ).events
     }
 
-    /// Reflective Ward: cleansing reflects a matching DoT onto the enemy.
     private static func reflectiveWardReflect(
         triggers: CombatTraitTriggers,
         source: Combatant,
@@ -223,14 +215,12 @@ package extension CombatTriggerEngine {
         )
     }
 
-    /// Fae Swiftness and Mass Cleanse: party-facing reactions.
     private static func cleansePartyReactions(
         triggers: CombatTraitTriggers,
         source: Combatant,
         target: Combatant,
         in context: inout BattleState
     ) -> [ActionEvent] {
-        // Fae Swiftness: cleansing grants the target Dodge for N turns (default 1).
         if triggers.cleanseDodgeChanceBonus > 0 {
             let duration = max(1, triggers.cleanseDodgeChanceBonusTurns)
             context.roster.mutateRuntime(for: target) {
@@ -238,7 +228,6 @@ package extension CombatTriggerEngine {
                 $0.bonusDodgeExpiresAtTurn = max($0.bonusDodgeExpiresAtTurn, context.turnCount + duration)
             }
         }
-        // Mass Cleanse: the owner's cleanses also cleanse the other party member.
         guard triggers.cleanseAffectsBothHeroAndCompanion else { return [] }
         let other = target.role == .hero
             ? context.roster.companion.combatant

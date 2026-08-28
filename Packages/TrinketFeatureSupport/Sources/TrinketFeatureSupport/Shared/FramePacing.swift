@@ -1,8 +1,5 @@
 import Foundation
 
-/// Display-link pacing normalized to the refresh period observed during the sample.
-/// This report supplies raw, scenario-addressable diagnostics; it is not an
-/// authoritative render-pipeline hitch metric.
 public struct FramePacingReport: Equatable, Sendable {
     public static let schemaVersion = 5
 
@@ -58,7 +55,6 @@ public struct FramePacingReport: Equatable, Sendable {
         self.missedDeadlineRatio = missedDeadlineRatio
     }
 
-    /// Compact machine-readable payload fetched once after a UI performance scenario.
     public var accessibilityValue: String {
         String(
             format: "schema=%d;samples=%d;expectedFPS=%.2f;avgFPS=%.2f;p95Ms=%.2f;p99Ms=%.2f;oneLowFPS=%.2f;maxMs=%.2f;missed=%d;estimatedMissed=%d;severe=%d;missedRatio=%.5f",
@@ -117,10 +113,7 @@ public struct FramePacingReport: Equatable, Sendable {
 }
 
 public enum FramePacingAnalyzer {
-    /// Half-period tolerance separates actual missed presentation opportunities from
-    /// small CADisplayLink / Simulator scheduling jitter.
     static let missedDeadlinePeriodMultiplier = 1.5
-    /// Three display periods is a separately reported severe stall at either 60 or 120 Hz.
     static let severeStallPeriodMultiplier = 3.0
 
     public static func report(
@@ -162,7 +155,6 @@ public enum FramePacingAnalyzer {
 
     private static func percentile(_ sorted: [CFTimeInterval], fraction: Double) -> CFTimeInterval {
         guard !sorted.isEmpty else { return 0 }
-        // Nearest-rank: ceil(p * n) - 1, clamped. Previous used (n-1)*p rounded up, inflating p95.
         let n = Double(sorted.count)
         let rank = Int((n * fraction).rounded(.up))
         let index = min(sorted.count - 1, max(0, rank - 1))
@@ -179,8 +171,6 @@ public enum FramePacingAnalyzer {
         return sorted[midpoint]
     }
 
-    /// Average FPS delivered by the slowest fraction of frames. This is deliberately
-    /// duration-based, so a small number of long stalls cannot hide behind average FPS.
     private static func lowFPS(
         _ sorted: [CFTimeInterval],
         worstFraction: Double

@@ -2,13 +2,11 @@ import SwiftUI
 import TrinketContent
 import TrinketDesignSystem
 
-/// Reusable item tile for encounter choices (Mystery / Shop).
 @MainActor
 public struct EncounterItemTile: View {
     let item: InventoryItem
     var showsName: Bool = false
     var isSelected: Bool = false
-    /// Border shine applied only while selected (e.g. corruption-red in the altar picker).
     var selectionShineColors: [Color]?
     var isDisabled: Bool = false
     var accessibilityID: String?

@@ -1,18 +1,18 @@
 import Foundation
+import os
 import TrinketContent
 import TrinketCore
+
+private let sanitizerLogger = Logger(
+    subsystem: "com.ryanmcintire.Trinket",
+    category: "PlayerSaveSanitizer"
+)
 
 enum PlayerSaveSanitizer {
     static func sanitize(_ save: PlayerSave) -> PlayerSave {
         sanitize(save, changedSlices: .all)
     }
 
-    /// Sanitizes only the mutated slices. Unchanged slices are skipped because
-    /// every sanitizer is idempotent for already-normalized values; the roster
-    /// sanitizer still re-runs when inventory changed (it resolves loadouts
-    /// against inventory item ids). Labyrinth sanitize runs on labyrinth
-    /// mutations and full load; recruit eligibility is applied when a map is
-    /// generated.
     static func sanitize(_ save: PlayerSave, changedSlices: PlayerSaveSlice) -> PlayerSave {
         var sanitized = save
         sanitized.worldSeed = resolvedWorldSeed(save)
@@ -44,11 +44,6 @@ enum PlayerSaveSanitizer {
         return sanitized
     }
 
-    /// Resolves the save's world seed. Assign-once semantics: new games get
-    /// their random seed pinned at construction (`PlayerSave.fresh`); this only
-    /// fills in seeds for saves missing one (adopting the labyrinth map's seed
-    /// first). Both store entry points persist immediately after sanitizing, so
-    /// a seed is never invented twice for the same save.
     static func resolvedWorldSeed(_ save: PlayerSave) -> UInt64 {
         if save.worldSeed != 0 {
             return save.worldSeed
@@ -125,19 +120,27 @@ enum PlayerSaveSanitizer {
         }
 
         var sanitized = journey
+        let beforeCompleted = journey.completedStageIDs.count
+        let beforeClaimed = journey.claimedRewardStageIDs.count
         sanitized.completedStageIDs = journey.completedStageIDs.filter { validStageIDs.contains($0) }
         sanitized.claimedRewardStageIDs = journey.claimedRewardStageIDs.filter { validStageIDs.contains($0) }
+        if sanitized.completedStageIDs.count != beforeCompleted || sanitized.claimedRewardStageIDs.count != beforeClaimed {
+            sanitizerLogger.info("Sanitized journey: dropped invalid stage IDs")
+        }
         for stageID in sanitized.claimedRewardStageIDs {
             sanitized.completedStageIDs.insert(stageID)
         }
+        let beforePinned = journey.pinnedMysteryEventIDs.count
         sanitized.pinnedMysteryEventIDs = journey.pinnedMysteryEventIDs.filter { stageID, eventID in
             guard validStageIDs.contains(stageID), !eventID.isEmpty else { return false }
             return GameContent.mysteryEvent(matching: eventID) != nil
                 || GameContent.recruitEvent(matching: eventID) != nil
         }
+        if sanitized.pinnedMysteryEventIDs.count != beforePinned {
+            sanitizerLogger.info("Sanitized journey: dropped invalid pinned mystery events")
+        }
 
         if validChapterIDs.contains(sanitized.activeChapterID) {
-            // keep
         } else {
             sanitized.activeChapterID = activeChapters.first?.id ?? JourneyProgressState.initial.activeChapterID
         }
@@ -163,6 +166,7 @@ enum PlayerSaveSanitizer {
 
     static func sanitizeHomestead(_ homestead: PlayerHomesteadState) -> PlayerHomesteadState {
         var sanitized = homestead
+        let beforePending = homestead.pendingProduction.count
         sanitized.pendingProduction = Dictionary(
             uniqueKeysWithValues: homestead.pendingProduction.compactMap { resource, quantity in
                 guard quantity.isFinite, quantity > 0 else { return nil }
@@ -172,12 +176,19 @@ enum PlayerSaveSanitizer {
                 return (resource, quantity)
             }
         )
+        if sanitized.pendingProduction.count != beforePending {
+            sanitizerLogger.info("Sanitized homestead: dropped invalid pending production")
+        }
+        let hadGoldResource = homestead.resources[.gold] != nil
         sanitized.resources = Dictionary(
             uniqueKeysWithValues: homestead.resources.compactMap { resource, quantity in
                 guard resource != .gold else { return nil }
                 return (resource, max(0, quantity))
             }
         )
+        if hadGoldResource {
+            sanitizerLogger.notice("Sanitized homestead: dropped gold from resources (roster owns gold)")
+        }
         sanitized.nodeTiers = Dictionary(
             uniqueKeysWithValues: homestead.nodeTiers.compactMap { nodeID, tier in
                 guard let maxTier = HomesteadNodeCatalog.maxTierByNodeID[nodeID] else { return nil }
@@ -198,6 +209,10 @@ enum PlayerSaveSanitizer {
             seenIDs.insert(item.id)
             return true
         }
+        if uniqueItems.count != inventory.items.count {
+            sanitizerLogger
+                .notice("Sanitized inventory: dropped \(inventory.items.count - uniqueItems.count, privacy: .public) duplicate items")
+        }
         return PlayerInventoryState(items: uniqueItems)
     }
 
@@ -217,9 +232,11 @@ enum PlayerSaveSanitizer {
         sanitized.unlockedCompanionIDs = roster.unlockedCompanionIDs.filter { validCompanionIDs.contains($0) }
 
         if sanitized.unlockedHeroIDs.isEmpty {
+            sanitizerLogger.notice("Sanitized roster: injected starter hero (unlocked set was empty)")
             sanitized.unlockedHeroIDs = [PlayerRosterState.starterHeroID]
         }
         if sanitized.unlockedCompanionIDs.isEmpty {
+            sanitizerLogger.notice("Sanitized roster: injected starter companion (unlocked set was empty)")
             sanitized.unlockedCompanionIDs = [PlayerRosterState.starterCompanionID]
         }
 

@@ -2,8 +2,6 @@ import SwiftUI
 import TrinketDesignSystem
 import TrinketFeatureSupport
 
-/// Whole-card attack telegraph (art + bars + border). Pose springs support
-/// wind-up hold, swing+recover, cancel-to-rest, and enemy full auto-play.
 struct CombatantAttackLane<Content: View>: View {
     @Environment(BattleSession.self) private var battleSession
     let combatantID: String

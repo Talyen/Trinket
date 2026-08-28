@@ -1,7 +1,6 @@
 import Foundation
 import TrinketCore
 
-/// A single Merchant's Shop listing: a rolled item with a locked visit price.
 public struct ShopOffer: Identifiable, Equatable, Hashable, Sendable {
     public let id: String
     public let item: InventoryItem
@@ -14,7 +13,6 @@ public struct ShopOffer: Identifiable, Equatable, Hashable, Sendable {
     }
 }
 
-/// Procedural shop shelf for journey shop encounters.
 public enum ShopOfferGenerator {
     public static let offerCount = 4
     public static let basePriceRange = 20 ... 40
@@ -45,7 +43,6 @@ public enum ShopOfferGenerator {
             } else if allAstral {
                 .astral
             } else {
-                // Shops never offer Uniques; their band folds into Astral.
                 MysteryItemRarity.roll(
                     astralChanceBonusPercent: astralChanceBonusPercent,
                     using: &randomNumberGenerator
@@ -78,7 +75,6 @@ public enum ShopOfferGenerator {
         return offers
     }
 
-    /// Deterministic seed so a visit shelf is stable for that save + stage.
     public static func seed(worldSeed: UInt64, forStageID stageID: String) -> UInt64 {
         GameContent.encounterSeed(worldSeed, salt: "shop-\(stageID)")
     }

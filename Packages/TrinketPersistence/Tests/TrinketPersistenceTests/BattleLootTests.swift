@@ -22,8 +22,6 @@ struct BattleLootTests {
             ownedUniqueIDs: [],
             using: &rng
         )
-        // Generated Basic/Astral loot carries the roll id; Trinket/Unique tiers
-        // keep their stable catalog identity instead.
         let isCatalogIdentity = package.item.isTrinket || package.item.rarity == .unique
         #expect(isCatalogIdentity || package.item.id == "test-loot")
         if !isCatalogIdentity {
@@ -48,8 +46,6 @@ struct BattleLootTests {
             ownedUniqueIDs: [],
             using: &rng
         )
-        // Boss ladder is 30% Unique / 30% Trinket / 40% Astral — never Basic.
-        // Trinket-tier items carry Astral rarity, so only Basic is forbidden.
         switch package.item.rarity {
         case .unique, .astral:
             break
@@ -78,7 +74,6 @@ struct BattleLootTests {
             case .basic: basicCount += 1
             }
         }
-        // Authored normal-content bands: 5% Unique / 7% Trinket / 8% Astral.
         #expect((1 ... 12).contains(uniqueCount))
         #expect((2 ... 15).contains(trinketCount))
         #expect((2 ... 16).contains(astralCount))
@@ -98,7 +93,6 @@ struct BattleLootTests {
             case .basic: Issue.record("Boss ladder never yields Basic")
             }
         }
-        // Authored boss bands: 30% Unique / 30% Trinket / 40% Astral.
         #expect((18 ... 43).contains(uniqueCount))
         #expect((18 ... 43).contains(trinketCount))
         #expect((27 ... 54).contains(astralCount))
@@ -128,7 +122,6 @@ struct BattleLootTests {
             case .basic: break
             }
         }
-        // Unique band remaps to Astral; Trinket window stays put.
         #expect(trinketFolded == trinketAllowed)
         #expect(astralFolded == astralAllowed + uniqueAllowed)
         #expect(uniqueAllowed > 0)
@@ -175,7 +168,6 @@ struct BattleLootTests {
             ownedTrinketIDs: [],
             ownedUniqueIDs: []
         )
-        // Trinket-tier items carry Astral rarity; only Basic is forbidden.
         switch package.item.rarity {
         case .unique, .astral:
             break

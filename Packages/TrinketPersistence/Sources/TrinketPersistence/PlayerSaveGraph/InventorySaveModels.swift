@@ -30,9 +30,6 @@ public final class InventoryItemModel {
 
     public init() {}
 
-    /// Insert path. Delegates to `update(from:context:)` so inserted and updated
-    /// rows copy the same fields — a new `InventoryItem` property cannot be
-    /// persisted one way and silently dropped the other.
     public convenience init(item: InventoryItem) {
         self.init()
         update(from: item, context: nil)

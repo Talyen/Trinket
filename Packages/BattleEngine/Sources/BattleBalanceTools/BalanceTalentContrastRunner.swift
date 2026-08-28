@@ -100,7 +100,7 @@ enum BalanceTalentContrastRunner {
 
     static func run(
         context: BalanceContrastContext,
-        policy: some SimulationPlayPolicy
+        policy: PlayPolicy
     ) -> (sibling: [PairedContrastSummary], kit: [PairedContrastSummary]) {
         guard !context.heroes.isEmpty,
               !context.companions.isEmpty,
@@ -115,7 +115,7 @@ enum BalanceTalentContrastRunner {
 
     private static func runSiblingSweep(
         context: BalanceContrastContext,
-        policy: some SimulationPlayPolicy
+        policy: PlayPolicy
     ) -> [PairedContrastSummary] {
         let foci = siblingFoci(
             heroes: context.heroes,
@@ -161,7 +161,7 @@ enum BalanceTalentContrastRunner {
 
     private static func runKitSweep(
         context: BalanceContrastContext,
-        policy: some SimulationPlayPolicy
+        policy: PlayPolicy
     ) -> [PairedContrastSummary] {
         let foci = kitFoci(
             heroes: context.heroes,

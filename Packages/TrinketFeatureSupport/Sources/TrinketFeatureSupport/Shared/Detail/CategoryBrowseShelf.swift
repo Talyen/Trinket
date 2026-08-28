@@ -1,8 +1,6 @@
 import SwiftUI
 import TrinketDesignSystem
 
-/// Category title + chevron NavigationLink over a horizontal peek shelf.
-/// Used by Collection browse and the stage party picker.
 @MainActor
 public struct CategoryBrowseShelf<Destination: View, Content: View>: View {
     let title: String

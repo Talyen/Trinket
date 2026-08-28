@@ -2,7 +2,6 @@ import SwiftUI
 import TrinketAppState
 import TrinketFeatureSupport
 
-/// Last-resort launch UI when even in-memory AppState bootstrap fails.
 struct AppBootstrapFailureView: View {
     let message: String
 

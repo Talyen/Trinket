@@ -7,11 +7,9 @@ package extension DamagePipeline {
         to state: inout DamageResolutionState,
         in context: inout BattleState
     ) {
-        // Retaliation damage must never re-enter wards (mutual thorns ping-pong).
         guard !state.isDodged, !state.options.isRetaliation, let sourceActorID = state.sourceActorID else { return }
         guard let attacker = context.roster.combatant(for: sourceActorID) else { return }
 
-        // Evasive Pack: this defender has taken an attack hit this turn.
         if state.options.isAttackHit {
             context.roster.mutateRuntime(for: state.combatant) { $0.hasTakenAttackHitThisTurn = true }
         }
@@ -28,13 +26,11 @@ package extension DamagePipeline {
             applyManaShieldOnHit(to: &state, in: &context)
         }
 
-        // Thorns and freeze-next-attacker fire for direct attack hits (including fully blocked).
         if state.options.isAttackHit {
             applyOnHitWards(to: &state, attacker: attacker, in: &context)
         }
     }
 
-    /// Nimble Fang: the dodger's next attack hit applies Bleed to the target.
     private static func applyNimbleFang(
         to state: inout DamageResolutionState,
         attacker: CombatantRuntime,
@@ -57,7 +53,6 @@ package extension DamagePipeline {
         ))
     }
 
-    /// Enemy-trait reactions on health loss: thorns and attacker Burn.
     private static func applyEnemyTraitReactions(
         to state: inout DamageResolutionState,
         sourceActorID: String,
@@ -76,7 +71,6 @@ package extension DamagePipeline {
         ))
     }
 
-    /// Combatant Talent on-hit wards: the defender afflicts the attacker.
     private static func applyOnHitAttackerWards(
         to state: inout DamageResolutionState,
         attacker: CombatantRuntime,
@@ -185,8 +179,6 @@ package extension DamagePipeline {
     ) {
         let wards = onHitWardTotals(from: context.roster.activeEffects(for: state.combatant))
 
-        // Consume wards before nested resolveDamage so mutual thorns cannot recurse
-        // even if a retaliation path forgets `isRetaliation`.
         if wards.thornsStacks > 0 {
             ActiveEffectMutation.removeMatching(from: state.combatant, in: &context) {
                 if case .thorns = $0 {

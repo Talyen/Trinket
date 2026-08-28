@@ -20,7 +20,6 @@ package extension HealingEngine {
         let actorCombatant = actor.combatant
 
         let profile = context.modifiers(for: sourceActorID)
-        // Vampiric Touch: Leech heals based on the blocked portion too.
         var baseDamage = damage
         if profile.triggers.leechOnBlockDamage, blockedAmount > 0 {
             baseDamage += blockedAmount
@@ -44,7 +43,6 @@ package extension HealingEngine {
         guard leechPct > 0 else { return .empty }
         leechPct += profile.leechGainedBonus
 
-        // Blood Hunger: +2% Leech against below-half-Health enemies.
         if let target, profile.triggers.leechPercentVsLowHealthEnemies > 0,
            context.roster.maxHealth(for: target) > 0,
            Double(context.roster.health(for: target)) / Double(context.roster.maxHealth(for: target)) < 0.5 {
@@ -57,13 +55,11 @@ package extension HealingEngine {
             restored,
             multiplier: CombatTriggerEngine.incomingHealMultiplier(for: actorCombatant, in: context)
         )
-        // Grave Harvest: bonus Leech heal against below-half-Health enemies.
         if let target, profile.triggers.leechBonusHealVsLowHealthEnemies > 0,
            context.roster.maxHealth(for: target) > 0,
            Double(context.roster.health(for: target)) / Double(context.roster.maxHealth(for: target)) < 0.5 {
             restored += profile.triggers.leechBonusHealVsLowHealthEnemies
         }
-        // Frenzied Feeding / Affliction Siphon: double Leech vs Poisoned or Bleeding targets.
         if let target, profile.triggers.leechHealingVsAfflictedMultiplier > 1 {
             let afflicted = context.roster.activeEffects(for: target).contains {
                 $0.effect.keyword == .poison || $0.effect.keyword == .bleed
@@ -77,7 +73,6 @@ package extension HealingEngine {
         var events: [ActionEvent] = []
         var actualRestored = 0
         var leechFlags = Set<CombatFlag>()
-        // Blood Link: Leech overheal transfers to the Companion.
         if actorCombatant.role == .hero,
            context.roster.companion.isAlive,
            profile.triggers.leechOverhealTransfersToCompanion,
@@ -131,14 +126,12 @@ package extension HealingEngine {
                 milestone: nil,
                 isCritical: healOutcome.isCritical
             ))
-            // Symbiosis affix: the Hero's Leech healing is shared with the Companion.
             if actorCombatant.id == context.roster.hero.id {
                 events.append(contentsOf: CombatTriggerEngine.shareHeroLeechWithCompanion(
                     restored: actualRestored,
                     in: &context
                 ))
             }
-            // Shared Feast: the Companion shares its Leech healing with the Hero.
             if actorCombatant.role == .companion, context.roster.hero.isAlive,
                profile.triggers.leechSharesToHeroPercent > 0 {
                 let share = CombatRounding.scaled(
@@ -152,7 +145,6 @@ package extension HealingEngine {
                     ).events)
                 }
             }
-            // Vitality Infusion: Companion Leech restores Hero Mana.
             if actorCombatant.role == .companion, context.roster.hero.isAlive,
                profile.triggers.onCompanionLeechRestoreHeroMana > 0 {
                 events.append(contentsOf: context.restoreManaEmitting(

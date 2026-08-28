@@ -59,8 +59,6 @@ public struct TrinketRarityLabel: View {
             )
             .shadow(color: premiumShadowColor.opacity(0.62), radius: 6)
             .task {
-                // Defer shine so Collection/Homestead first paint is not stacked
-                // with every premium label's animation commit on the same frame.
                 await Task.yield()
                 guard !Task.isCancelled else { return }
                 withAnimation(TrinketMotion.Shine.textAnimation) {

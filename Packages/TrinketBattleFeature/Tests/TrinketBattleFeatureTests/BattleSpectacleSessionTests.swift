@@ -14,7 +14,6 @@ struct BattleSpectacleSessionTests {
     func unmappedUltimateKillingBlowPresentsVictoryWithoutCinematic(
         alreadyClaimed: Bool
     ) throws {
-        // Only Bloodthorn in the deck so draw cycling cannot kill before the Ultimate.
         let hero = CombatantFixtures.combatant(
             id: "hero",
             role: .hero,
@@ -160,7 +159,7 @@ struct BattleSpectacleSessionTests {
                 abilities: []
             )
         )
-        session.cinematicSessionWatchdogOverride = 0.05
+        session.cinematicSessionWatchdogOverride = .milliseconds(50)
         let now = Date()
         let ultimate = try #require(
             BattleSessionTestSupport.drawUntilPlayable(
@@ -292,7 +291,6 @@ struct BattleSpectacleSessionTests {
             enemy: enemy
         )
 
-        // Enemy ultimate cadence is every 6th action.
         for _ in 0 ..< 6 {
             session.endTurn()
         }
@@ -332,7 +330,6 @@ struct BattleSpectacleSessionTests {
         let cinematic = try #require(session.spectacle.activeCinematic)
         session.markCinematicPlaying()
 
-        // Stale fallback/video task from a prior overlay must not collapse the live cinematic.
         session.beginCinematicCollapse(expectedID: cinematic.id &+ 1)
         #expect(session.spectacle.activeCinematic?.phase == .playing)
         #expect(session.spectacle.activeCinematic?.id == cinematic.id)
@@ -343,7 +340,7 @@ struct BattleSpectacleSessionTests {
 
     @Test func clearAllPresentationCancelsPendingCelebration() {
         let session = BattleSession(outcomePresentationDelayOverride: 60)
-        session.partyCelebrateDelayOverride = 60
+        session.partyCelebrateDelayOverride = .seconds(60)
 
         session.scheduleVictoryPresentation(after: .now)
 

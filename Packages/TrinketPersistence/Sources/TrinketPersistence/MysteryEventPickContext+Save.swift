@@ -1,7 +1,6 @@
 import TrinketContent
 
 public extension MysteryEventPickContext {
-    /// Journey pick context: Corruption Altar from chapter 2+.
     static func journey(
         chapterNumber: Int,
         inventory: PlayerInventoryState,
@@ -14,7 +13,6 @@ public extension MysteryEventPickContext {
         )
     }
 
-    /// Labyrinth pick context: Corruption Altar always chapter-eligible.
     static func labyrinth(
         inventory: PlayerInventoryState,
         corruptionAltarCooldownRemaining: Int

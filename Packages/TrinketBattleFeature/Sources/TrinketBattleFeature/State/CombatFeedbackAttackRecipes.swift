@@ -21,8 +21,6 @@ enum CombatFeedbackAttackRecipes {
         duration: 0.01
     )
 
-    /// Pull up / compress → snap toward party → bouncy settle.
-    /// Impact at end of swing (0.40 + 0.15); recovery overlaps damage feedback.
     static let lungeCardAttack = CombatantAttackReactionRecipe(
         kind: .attack,
         scaleX: [

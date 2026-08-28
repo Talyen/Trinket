@@ -3,8 +3,6 @@ import TrinketContent
 import TrinketCore
 
 extension BattleCardCombatEngine {
-    /// Returns defeated-owner cards from hand/buffer to their decks so dead
-    /// companion/hero cards cannot permanently fill hand slots.
     static func discardDefeatedOwnerCards(context: inout BattleState) {
         guard !context.roster.hero.isAlive || !context.roster.companion.isAlive else { return }
         var survivingHand: [BattleCard] = []
@@ -28,8 +26,6 @@ extension BattleCardCombatEngine {
         context.handBuffer = survivingBuffer
     }
 
-    /// Moves buffered cards into the hand in FIFO order until the hand is full.
-    /// Skips defeated-owner cards (defensive; callers also purge before promote).
     static func promoteFromBuffer(context: inout BattleState) {
         guard !context.handBuffer.isEmpty else { return }
         while !context.hand.isFull {

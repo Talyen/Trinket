@@ -2,8 +2,6 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-/// Reduces the append-only `ActionEvent` stream into player-facing combat-log
-/// lines. This is the single source of truth for log formatting.
 public enum BattleLogReducer {
     public static func entries(
         from events: [ActionEvent]
@@ -11,8 +9,6 @@ public enum BattleLogReducer {
         entries(from: events, startingAt: 0)
     }
 
-    /// Appends log lines for events at and after `startIndex`. `LogEntry.id`
-    /// matches the event's index in the full stream.
     public static func entries(
         from events: [ActionEvent],
         startingAt startIndex: Int
@@ -90,13 +86,6 @@ public enum BattleLogReducer {
         }
     }
 
-    /// Builds the log line emitted when an actor uses an ability.
-    ///
-    /// - When the ability dealt damage and/or applied any effects, the line
-    ///   reads `"<actor> uses <ability> for <N> <keyword> damage to <target>"`
-    ///   followed by `" and <effects>"` if any.
-    /// - When the ability did neither, the line falls back to a shortened
-    ///   `"<actor> uses <ability>."` to avoid empty noise in the log.
     public static func lineForAction(
         actorName: String,
         abilityName: String,

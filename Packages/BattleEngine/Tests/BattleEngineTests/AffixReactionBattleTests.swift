@@ -126,8 +126,6 @@ struct AffixReactionBattleTests {
             ))
         )
 
-        // Strike's 2 damage breaks the 1-point Block, Cascading regrants 4, then
-        // end-of-round decay halves it to 2.
         _ = BattleTestFixtures.endTurn(on: &battle)
 
         let block = battle.activeEffects(of: battle.hero).first { active in
@@ -167,7 +165,6 @@ struct AffixReactionBattleTests {
         let companionAfterLeech = battle.health(of: battle.companion)
         try #expect(companionAfterLeech > 5)
 
-        // Fill the companion so a subsequent Heal targets the damaged hero only.
         battle.withEngineContext { context in
             context.roster.mutateRuntime(for: context.roster.companion.combatant) {
                 $0.currentHealth = $0.maxHealth
@@ -214,7 +211,6 @@ struct AffixReactionBattleTests {
             role: .enemy,
             maxHealth: 100,
             abilities: [
-                // Non-lethal: drop below 25% without killing so Death's Door does not own the hit.
                 Ability(id: "chip", name: "Chip", tier: .basic, directDamage: 16, damageKeyword: .physical),
             ]
         )
@@ -239,7 +235,6 @@ struct AffixReactionBattleTests {
             $0.abilityName == "Second Wind" && $0.amount == battle.paced(3, sourceActorID: battle.hero.id)
         })
         try #expect(!second.contains { $0.abilityName == "Second Wind" })
-        // Second chip is lethal after the heal; Death's Door owns that hit and leaves 1 HP.
         try #expect(second.contains { $0.effectKind == .deathsDoorTriggered })
         try #expect(battle.health(of: battle.hero) == 1)
     }
@@ -381,8 +376,6 @@ struct AffixReactionBattleTests {
         let baseline = baselineContext.resolveDamage(
             DamageRequest(amount: 50, target: baselineEnemy, keyword: .physical, sourceActorID: baselineHero.id, options: options)
         ).healthLost
-        // Toughness 100 DR% = 100 / 180 = 55.56%.
-        // Baseline damage: 50 * (1 - 5/9) = 22.22 → 22 health lost.
         try #expect(baseline == 22)
 
         var shreddingContext = BattleTestFixtures.makePipelineContext(
@@ -399,8 +392,6 @@ struct AffixReactionBattleTests {
         let withShredding = shreddingContext.resolveDamage(
             DamageRequest(amount: 50, target: shreddingEnemy, keyword: .physical, sourceActorID: shreddingHero.id, options: options)
         ).healthLost
-        // 50% mitigation shred reduces DR% to 27.78%.
-        // Shredded damage: 50 * (1 - 5/18) = 36.11 → 36 health lost.
         try #expect(withShredding == 36)
     }
 
@@ -857,7 +848,6 @@ extension AffixReactionBattleTests {
             in: &context
         )
 
-        // 2×2 + 3×2 = 10 damage across all four ticks; nothing is dropped.
         try #expect(healthBefore - context.roster.health(for: enemy) == 10)
         try #expect(events.count(where: { $0.kind == .status && $0.keyword == Keyword.bleed }) == 4)
         try #expect(!context.roster.activeEffects(for: enemy).contains { $0.keyword == Keyword.bleed })

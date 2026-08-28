@@ -221,7 +221,7 @@ enum BalanceContrastSupport {
 
     static func runEntityBaselinePair(
         matchups: (withEntity: ConfiguredSimulationMatchup, withBaseline: ConfiguredSimulationMatchup),
-        policy: some SimulationPlayPolicy,
+        policy: PlayPolicy,
         maxRounds: Int,
         maxActions: Int,
         appliesFightPacing: Bool
@@ -257,7 +257,7 @@ enum BalanceContrastSupport {
         ),
         primes: (tier: UInt64, pair: UInt64),
         makePair: @escaping @Sendable (Focus, SimulationPowerTier, Int, UInt64) -> Pair?,
-        policy: some SimulationPlayPolicy
+        policy: PlayPolicy
     ) -> [PairedContrastSummary] {
         guard !foci.isEmpty, !tiers.isEmpty else { return [] }
         let config = context.config

@@ -3,8 +3,6 @@ import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
 
-/// Keyword-art card for a talent tree: prepared art (or keyword placeholder),
-/// the tree name, and a progress caption, with keyword shine when choosable.
 public struct TalentTreeCard: View {
     let tree: TalentTree
     let caption: String

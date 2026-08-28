@@ -21,15 +21,10 @@ public enum TrinketDesign {
         public static let healthRestore = DesignAssetColors.named("ThemeHealthRestore")
         public static let healthTrailingDamage = health.opacity(0.35)
 
-        /// Solid fill for battle card bottom-edge health chrome.
         public static let battleHealth = health.opacity(0.92)
-        /// Dark empty track behind battle health fill so the strip reads on busy art.
         public static let battleHealthTrack = Overlay.ink.opacity(0.62)
-        /// Lagging damage remnant on battle health bars.
         public static let battleHealthTrailingDamage = health.opacity(0.45)
-        /// Bright fissure stroke for the enemy Slice death effect.
         public static let battleSliceCrack = DesignAssetColors.named("BattleSliceCrack")
-        /// Dark blood-red particles for the enemy Slice death effect.
         public static let battleSliceSpark = DesignAssetColors.named("BattleSliceSpark")
 
         public static let encounterBattle = DesignAssetColors.named("EncounterBattle")
@@ -51,33 +46,22 @@ public enum TrinketDesign {
     }
 
     public enum Metrics {
-        /// 4pt scale: use 4/8/12/16/24. `tight` (2) is the one approved exception
-        /// for title/epithet stacks where 4 is too loose. Do not add new 6/10/14/18 values.
         public static let tightSpacing: CGFloat = 2
         public static let extraSmallSpacing: CGFloat = 4
         public static let smallSpacing: CGFloat = 8
         public static let mediumSpacing: CGFloat = 12
         public static let largeSpacing: CGFloat = 16
         public static let extraLargeSpacing: CGFloat = 24
-        /// Base height for two-line card captions; prefer `@ScaledMetric(relativeTo: .subheadline)`.
         public static let cardLabelReservedHeight: CGFloat = 38
-        /// Base SF Symbol point size for card artwork placeholders; prefer `@ScaledMetric(relativeTo: .title)`.
         public static let cardPlaceholderIconPointSize: CGFloat = 38
-        /// Wallet / reward-summary resource artwork square edge.
         public static let walletResourceArtworkSize: CGFloat = 36
-        /// Toolbar / glass-chip resource artwork square edge.
         public static let compactResourceArtworkSize: CGFloat = 20
-        /// Wallet / reward-summary resource row minimum height.
         public static let walletResourceRowMinHeight: CGFloat = 46
-        /// Mystery choice card reward artwork square edge.
         public static let mysteryRewardArtworkSize: CGFloat = 44
-        /// Mystery choice card reward row minimum height.
         public static let mysteryRewardRowMinHeight: CGFloat = 48
         public static let statBarHeight: CGFloat = 7
-        /// Bottom-edge health strip height for battle cards.
         public static let battleHealthBarHeight: CGFloat = 3
         public static let contentMargin: CGFloat = 20
-        /// Width of a lone screen primary action relative to its container.
         public static let singlePrimaryActionWidthFraction: CGFloat = 0.5
         public static let contentTopPadding: CGFloat = 24
         public static let compactContentTopPadding: CGFloat = 16
@@ -87,14 +71,10 @@ public enum TrinketDesign {
         public static let collectionShelfHorizontalMargin: CGFloat = contentMargin
         public static let collectionShelfCardSpacing: CGFloat = 16
         public static let collectionShelfPeekRatio: CGFloat = 0.08
-        /// Peek-shelf card count for Collection browse and party picker shelves.
         public static let collectionShelfPreviewLimit = 8
-        /// Scroll bottom inset so Homestead content clears the floating tab bar.
         public static let tabBarContentClearance: CGFloat = 112
-        /// Tighter tab-bar clearance for chapter stage-select path scroll.
         public static let compactTabBarContentClearance: CGFloat = 92
 
-        /// Standard glass chip / wallet / badge inset (baked into chip modifiers).
         public static let chipPaddingHorizontal: CGFloat = 10
         public static let chipPaddingVertical: CGFloat = smallSpacing
         public static let chipEmphasisPaddingHorizontal: CGFloat = largeSpacing
@@ -105,7 +85,6 @@ public enum TrinketDesign {
         public static let partyPickerGridMinimum: CGFloat = 120
         public static let partyPickerGridMaximum: CGFloat = 160
 
-        /// Shared adaptive columns for collection / shop item grids.
         public static var collectionGridItems: [GridItem] {
             [
                 GridItem(
@@ -115,7 +94,6 @@ public enum TrinketDesign {
             ]
         }
 
-        /// Compact adaptive columns for party picker sheets.
         public static var partyPickerGridItems: [GridItem] {
             [
                 GridItem(
@@ -125,7 +103,6 @@ public enum TrinketDesign {
             ]
         }
 
-        /// Mode / category hub cards: two columns on regular width, one on compact.
         public static func hubGridItems(for horizontalSizeClass: UserInterfaceSizeClass?) -> [GridItem] {
             if horizontalSizeClass == .regular {
                 return [
@@ -138,7 +115,6 @@ public enum TrinketDesign {
     }
 
     public enum Corners {
-        /// Shared continuous radius for cards, panels, thumbs, and portrait frames.
         public static let card: CGFloat = 16
     }
 

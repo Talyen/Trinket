@@ -461,9 +461,6 @@ private extension PlayerSaveStore {
     }
 }
 
-/// Stand-in for the removed `PrimaryStatsModel` entity: the migration test below writes a
-/// save whose schema declares this extra entity, then opens it with the current
-/// schema to prove automatic lightweight migration can drop an entity.
 @Model
 final class LegacyPrimaryStatsRow {
     var combatantID: String = ""
@@ -475,10 +472,6 @@ final class LegacyPrimaryStatsRow {
     }
 }
 
-/// Guards the round-2 `PrimaryStatsModel` removal: an existing on-disk save whose
-/// schema still declares that entity must open under the current schema via
-/// automatic lightweight migration. The store bootstrapper deletes saves on open
-/// failure, so a migration regression would silently wipe progress.
 @MainActor
 struct PlayerSaveSchemaMigrationTests {
     let context: PersistenceTestContext

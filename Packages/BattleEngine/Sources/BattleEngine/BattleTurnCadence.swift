@@ -1,8 +1,6 @@
 import Foundation
 import TrinketCore
 
-/// Per-round runtime counters and one-shot draw/gold owner flags.
-/// Resets at the start of each player turn.
 public struct BattleTurnCadence: Equatable, Hashable, Sendable {
     public var cardsPlayed: [BattleParticipant: Int]
     public var skillCardsPlayed: [BattleParticipant: Int]

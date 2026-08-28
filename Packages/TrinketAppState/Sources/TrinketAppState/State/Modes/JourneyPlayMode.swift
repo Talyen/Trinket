@@ -6,7 +6,6 @@ import TrinketCore
 import TrinketFeatureContracts
 import TrinketPersistence
 
-/// Journey/campaign stage flow: map actions, prepare/start battle, and journey-unique victory writes.
 @MainActor
 @Observable
 public final class JourneyPlayMode {
@@ -45,7 +44,6 @@ public final class JourneyPlayMode {
         GameContent.chapter(id: playerSave.journey.activeChapterID) ?? GameContent.chapters[0]
     }
 
-    /// Completes a stage when persistence succeeds.
     @discardableResult
     func completeStage(
         _ stage: Stage,
@@ -157,7 +155,6 @@ public final class JourneyPlayMode {
         )
     }
 
-    /// Completes a stage, returning a save-failure message when persistence fails.
     func completeStageOrPersistFailure(_ stage: Stage) -> StageMapMessage? {
         let roster = playerSave.roster
         guard completeStage(

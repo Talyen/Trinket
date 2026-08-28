@@ -23,7 +23,6 @@ enum BattleMotion: Sendable {
     }
 
     static let cardHeldScale = 1.035
-    /// Softer than a deep drop shadow so held-card drag stays compositor-cheap.
     static let cardHeldShadowRadius: CGFloat = 6
     static let cardHeldShadowY: CGFloat = 16
     static let cardMaximumTiltDegrees = 20.0
@@ -65,13 +64,11 @@ enum BattleMotion: Sendable {
         .spring(response: 0.34, dampingFraction: 0.92)
     }
 
-    /// Hard ceilings prevent missing video notifications from trapping the battle overlay.
     static let ultimateVideoWatchdog: TimeInterval = 12.0
     static let ultimateCinematicSessionWatchdog: TimeInterval = 20.0
     static let scrimFade: TimeInterval = 0.2
     static let ultimateSplitOpen: TimeInterval = 0.5
     static let ultimateSplitClose: TimeInterval = 0.38
-    /// Code-only multiplier keeps video rate and cover timing synchronized.
     static let ultimateCinematicPlaybackSpeed = 1.2
 
     static var ultimateSplitOpenAtPlayback: TimeInterval {
@@ -124,7 +121,6 @@ enum BattleMotion: Sendable {
 
     static let statusBorderPulseDimOpacity = 0.45
 
-    /// Holds the chip at its impact point before a cubic rise.
     static func chipMotionProgress(elapsed: TimeInterval) -> Double {
         guard elapsed > alchemyHoldEndTime else { return 0 }
         let riseProgress = (elapsed - alchemyHoldEndTime) / alchemyPopRiseDuration

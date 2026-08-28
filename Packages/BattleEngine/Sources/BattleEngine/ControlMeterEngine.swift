@@ -2,9 +2,7 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-/// Stun/freeze control meter: tracks charge toward the next action skip.
 package enum ControlMeterEngine {
-    /// Applies meter charge towards stun or freeze control effects.
     package static func applyMeterCharge( // swiftlint:disable:this function_body_length
         _ amount: Int,
         keyword: Keyword,
@@ -14,7 +12,6 @@ package enum ControlMeterEngine {
         in context: inout BattleState
     ) -> [ActionEvent] {
         guard amount > 0, context.roster.health(for: combatant) > 0 else { return [] }
-        // Block further charge while Stunned/Frozen, including post-skip linger.
         if context.roster.hasControlStatus(for: combatant, keyword: keyword) {
             return []
         }
@@ -24,7 +21,6 @@ package enum ControlMeterEngine {
         guard pacedAmount > 0 else { return [] }
 
         var adjustedAmount = pacedAmount
-        // Steadfast / Lichbone: control-buildup resistance.
         if keyword == .stun || keyword == .freeze {
             let targetTriggers = context.modifiers(for: combatant.id).triggers
             let steadfastResistance = targetTriggers.blockedControlBurnResistance > 0
@@ -40,7 +36,6 @@ package enum ControlMeterEngine {
         guard adjustedAmount > 0 else { return [] }
 
         let threshold = threshold(for: combatant, in: context)
-        // Seismic Impact: enemies require less Stun buildup to become Stunned.
         let effectiveThreshold: Int = if keyword == .stun, combatant.role == .enemy, let sourceActorID,
                                          context.modifiers(for: sourceActorID).triggers.enemyStunThresholdReductionPercent > 0 {
             CombatRounding.scaled(
@@ -102,9 +97,6 @@ package enum ControlMeterEngine {
 
     private static let freezeDecayPercent = 25
 
-    /// End-of-round Freeze-buildup decay (25% of current buildup, floor). Skipped when the
-    /// buildup's source carries `freezeBuildupDoesNotDecay` (Persistent Frost / Glacial Grip).
-    /// Full meters (Frozen status) are left intact for the control-lock handler.
     package static func decayFreezeBuildup(
         on combatant: Combatant,
         in context: inout BattleState
@@ -152,7 +144,6 @@ package enum ControlMeterEngine {
         let combatant: Combatant
         let sourceActorID: String?
         let existingIndex: Int?
-        /// Unreduced threshold; the stored meter basis so decay and displays never see a reduced value.
         let baseThreshold: Int
     }
 
@@ -166,10 +157,6 @@ package enum ControlMeterEngine {
         let combatant = thresholdContext.combatant
         let sourceActorID = thresholdContext.sourceActorID
 
-        // A full meter stores the base threshold as both amount and basis: threshold
-        // reductions decide when it fills, never what "full" reads as. Storing the
-        // reduced value here would leave amount < storedThreshold and the status
-        // would not register (`isActionSkipPending` compares amount >= threshold).
         updateBuildup(
             ControlMeterUpdate(
                 keyword: keyword,
@@ -215,7 +202,6 @@ package enum ControlMeterEngine {
         if keyword == .stun, combatant.id == context.roster.enemy.id {
             events.append(contentsOf: CombatTriggerEngine.afterEnemyStunned(in: &context))
         }
-        // Glacial Barrier: gain Block whenever the enemy becomes Frozen.
         if keyword == .freeze,
            combatant.role == .enemy,
            let sourceActorID,
@@ -228,7 +214,6 @@ package enum ControlMeterEngine {
                 abilityName: "Glacial Barrier"
             ))
         }
-        // Rimeheart: freezing an enemy grants Mana equal to your current Block.
         if keyword == .freeze,
            combatant.role == .enemy,
            let sourceActorID,
@@ -244,7 +229,6 @@ package enum ControlMeterEngine {
                 ))
             }
         }
-        // Volcanic Stun: Stunning the enemy also inflicts Burn.
         if keyword == .stun,
            combatant.role == .enemy,
            let sourceActorID,

@@ -2,8 +2,6 @@ import SwiftUI
 import TrinketDesignSystem
 import TrinketFeatureSupport
 
-/// Incremental event-delta bridge to always-mounted UIKit hosts. Inserts and
-/// expirations touch only the affected target instead of rebuilding battle snapshots.
 @MainActor
 enum CombatFeedbackChipBridge {
     private static var hosts: [ObjectIdentifier: WeakHost] = [:]
@@ -93,19 +91,14 @@ enum CombatFeedbackChipBridge {
             nextAvailabilityTargetID = nil
         }
 
-        // Refresh applies visible chips immediately (compose on miss).
         refreshHosts(for: affectedTargets)
         updateAvailabilityWakeTime(considering: affectedTargets)
     }
 
-    /// Publish frames only update a resident timer's fire date. No idle polling or
-    /// per-publish Task allocation is required. Only the touched targets and the
-    /// previously scheduled wake are considered, so cost is O(changed) not O(total).
     private static func updateAvailabilityWakeTime(considering affectedTargets: Set<String>) {
         let now = Date()
         var earliest: Date?
         var earliestTargetID: String?
-        // The previously scheduled wake stays valid when its source target is untouched.
         if let previous = nextAvailabilityDate,
            let targetID = nextAvailabilityTargetID,
            !affectedTargets.contains(targetID) {
@@ -199,8 +192,6 @@ enum CombatFeedbackChipBridge {
                 misses.append(item)
             }
         }
-        // Compose misses on this flush. Warm glyph-atlas blits stay sub-ms; pacing
-        // them behind a park wake was making feedback text late or miss entirely.
         if !misses.isEmpty {
             for item in misses {
                 if let raster = CombatFeedbackRasterPool.shared.prepare(

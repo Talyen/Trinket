@@ -5,10 +5,6 @@ import TrinketCore
 import TrinketFeatureContracts
 import TrinketPersistence
 
-/// Shared battle launch and activation used by mode owners and the Play shell.
-///
-/// Encounter/loot resolve and party/build bake live here. Battle receives a pure
-/// `BattleRunConfiguration`; Play keeps the separate presentation/reward context.
 @MainActor
 struct PlayBattleLaunch {
     let playerSave: PlayerSaveStore
@@ -22,9 +18,6 @@ struct PlayBattleLaunch {
         message: "Could not start this battle. Try again."
     )
 
-    // MARK: Activate / prepare
-
-    /// Shared activate after mode-specific gates. Modes resolve loot and policy.
     @discardableResult
     func activateCombat(
         origin: PlayBattleOrigin,
@@ -48,7 +41,6 @@ struct PlayBattleLaunch {
         )
     }
 
-    /// Shared prepare after mode-specific gates. Modes resolve loot and policy.
     @discardableResult
     func prepareCombat(
         origin: PlayBattleOrigin,
@@ -88,7 +80,6 @@ struct PlayBattleLaunch {
         runRegistry.keep(keys)
     }
 
-    /// Installs a fresh battle configuration and syncs the tick loop.
     @discardableResult
     func activateBattle(
         _ input: BattleLaunchInput,
@@ -152,7 +143,6 @@ struct PlayBattleLaunch {
         )
     }
 
-    /// Run-scoped party health seeds battles only for Labyrinth origins.
     private func labyrinthStartingHealths(
         for origin: PlayBattleOrigin?
     ) -> (hero: Int?, companion: Int?) {

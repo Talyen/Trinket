@@ -7,11 +7,6 @@ public enum LaunchPresentation: Equatable {
     case collectionItem(String)
 }
 
-/// Deep-link / return target on the Play tab (launch args or post-battle).
-///
-/// The route is intentionally flat and `PlayView` expands it into a
-/// hierarchical path (`Explore → Spires → Climb`, for example). Keeping the
-/// value Hashable makes it safe to use with `NavigationStack(path:)`.
 public enum PlayLaunchDestination: Equatable, Hashable, Identifiable {
     case campaign
     case explore
@@ -34,8 +29,6 @@ public enum PlayLaunchDestination: Equatable, Hashable, Identifiable {
         }
     }
 
-    /// Maps a battle origin to a Play return destination.
-    /// Journey battles return to the Campaign stage screen (Mode Hub peer).
     static func returning(from origin: PlayBattleOrigin?) -> Self? {
         switch origin {
         case .none:

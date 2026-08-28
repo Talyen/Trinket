@@ -16,7 +16,6 @@ struct BattlePerformanceScenarioDriver {
     func perform() -> String? {
         switch scenario {
         case .realCardPlay, .handDragCancel:
-            // XCUI supplies the real finger gesture while the harness samples frames.
             nil
         case .engineHand:
             runEngineHand()

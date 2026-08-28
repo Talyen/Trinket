@@ -23,12 +23,10 @@ public enum StageCompletion {
         )
     }
 
-    /// Applies an optional XP percent bonus (Labyrinth modifiers) to a base award.
     static func adjustedExperienceAward(_ base: Int, xpPercent: Int) -> Int {
         CombatRounding.scaled(base, byPercent: xpPercent)
     }
 
-    /// Resolves catch-up XP for `combatant` and grants it on `roster`.
     public static func grantBattleExperience(
         enemyLevel: Int,
         to combatant: Combatant,
@@ -92,9 +90,6 @@ public enum StageCompletion {
         return EncounterLevelResolver.journeyEnemyLevel(for: stage, in: chapter)
     }
 
-    /// Authored journey or Labyrinth level, pulled down to the party's bounded
-    /// scaling ceiling. Battle prepare paths pass the already-scaled level;
-    /// this fallback covers mystery rewards and claim without a live encounter.
     public static func partyAdjustedEncounterLevel(
         for stage: Stage,
         labyrinthNodeID: String? = nil,
@@ -112,9 +107,6 @@ public enum StageCompletion {
         )
     }
 
-    /// Shared victory-reward sequence: gold with homestead find bonus, combat XP
-    /// for hero + companion, materials, then one unique item. Mode completion
-    /// entry points resolve mode-specific loot/stipend values, then call this.
     static func grantVictoryRewards(
         hero: Combatant,
         companion: Combatant,
@@ -172,7 +164,6 @@ public enum StageCompletion {
         }
     }
 
-    /// Completes a journey stage or Labyrinth node inside an open save mutation.
     public static func completeEncounter(
         stage: Stage,
         labyrinthNodeID: String?,
@@ -210,8 +201,6 @@ public enum StageCompletion {
         enemyEncounterLevel: Int? = nil,
         save: inout PlayerSave
     ) {
-        // Stage rewards claim once. Mid-battle gold still banks on claimed-stage
-        // replays / auto-complete so resourceGain loot is not silently dropped.
         guard !save.journey.hasClaimedRewards(for: stage) else {
             if battleEarnedGold != 0 {
                 save.applyGoldDelta(

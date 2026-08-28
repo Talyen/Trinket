@@ -6,7 +6,6 @@ enum AudioLogging {
     static let subsystem = Bundle.main.bundleIdentifier ?? "com.ryanmcintire.Trinket"
 }
 
-/// Shared ambient `AVAudioSession` setup for music and SFX players.
 enum AmbientAudioSession {
     @MainActor
     static func configureIfNeeded(configured: inout Bool, logger: Logger) {

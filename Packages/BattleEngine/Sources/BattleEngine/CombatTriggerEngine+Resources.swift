@@ -29,7 +29,6 @@ package extension CombatTriggerEngine {
             }
         }
 
-        // Combatant Talent System defeat reactions.
         for owner in [BattleParticipant.hero, .companion] {
             events.append(contentsOf: afterEnemyDefeatedReactions(for: owner, in: &context))
         }

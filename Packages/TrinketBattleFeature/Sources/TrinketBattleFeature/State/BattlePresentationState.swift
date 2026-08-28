@@ -11,9 +11,7 @@ struct BattleCombatantPresentation: Equatable {
     let maxHealth: Int
     let mana: Int
     let maxMana: Int
-    /// Keyword for the single status border pulse, or `nil` for the neutral stroke.
     let borderAccentKeyword: Keyword?
-    /// Persistent buff aura (e.g. Shadowstep shimmer), independent of border accent.
     let buffAuraKind: CombatantBuffAuraKind?
 }
 
@@ -23,12 +21,7 @@ struct BattlePresentationSnapshot: Equatable {
     let companion: BattleCombatantPresentation
     let enemy: BattleCombatantPresentation
     let hand: [BattleCard]
-    /// Card IDs that may be cast with the current mana / phase. Stored on the
-    /// projection so the hand lane does not observe the live simulation store.
     let playableCardIDs: Set<Int>
-    /// Party owners with an unconsumed Stun/Freeze action skip, mapped to that keyword.
-    /// Independent of border accent so Death's Door does not hide hand control FX.
-    /// Post-skip linger does not appear here — cards stay playable during linger.
     let ownerControlSkipKeywords: [BattleParticipant: Keyword]
     let isBattleOver: Bool
 
@@ -82,9 +75,6 @@ struct BattlePresentationSnapshot: Equatable {
     }
 }
 
-/// UI-facing projections are deliberately separate from the authoritative battle
-/// value. SwiftUI observes only these small lanes instead of every simulation/log
-/// mutation invalidating readers of the complete engine value.
 @MainActor
 @Observable
 final class BattlePresentationState {

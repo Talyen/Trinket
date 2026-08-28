@@ -2,7 +2,6 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-/// Shared handler for targeted/random cleanse (debuff removal) and purge (buff removal).
 struct CleansePurgeHandler: BattleEffectHandler {
     enum Mode: Sendable {
         case cleanse

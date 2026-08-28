@@ -34,7 +34,6 @@ struct TalentPersistenceTests {
         #expect(firstStore.currentSave.roster.unlockedTalents["knight"] == knightTalents)
         #expect(firstStore.currentSave.roster.unlockedTalents["rogue"] == rogueTalents)
 
-        // Reload fresh store from the same underlying store URL
         let secondStore = try PlayerSaveStore(
             storeURL: storeURL,
             disableCloudSync: true

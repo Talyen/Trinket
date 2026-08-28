@@ -104,7 +104,6 @@ package extension CombatTriggerEngine {
         return events
     }
 
-    /// Wardbreaker purges every beneficial effect and deals Holy damage for each.
     private static func wardbreakerStunPurge(
         perEffectHolyDamage: Int,
         actor: Combatant,
@@ -123,7 +122,6 @@ package extension CombatTriggerEngine {
             in: &context
         )
         if removableCount > 0, context.roster.health(for: enemy) > 0 {
-            // Trigger-dealt Holy matches its burn-tick sibling: flat, no stat/item scaling.
             events.append(contentsOf: context.resolveDamage(
                 DamageRequest(
                     amount: perEffectHolyDamage * removableCount,
@@ -143,7 +141,6 @@ package extension CombatTriggerEngine {
     ) -> [ActionEvent] {
         let profile = context.modifiers(for: target.id)
         var events = drawAfterHealthLoss(by: target, in: &context)
-        // Seismic Roar: the Companion stuns the enemy once when dropping below half Health.
         let belowHalfThreshold = profile.triggers.onceBelowHealthPercentThreshold > 0
             && context.roster.maxHealth(for: target) > 0
             && Double(context.roster.health(for: target)) / Double(context.roster.maxHealth(for: target))
@@ -169,7 +166,6 @@ package extension CombatTriggerEngine {
               !runtime.hasTriggeredSecondWind
         else { return events }
 
-        // Death's Door owns lethal hits; Second Wind must not preempt it.
         let deathsDoorOwnsLethalHit = DeathsDoorEngine.applies(to: target)
             && context.roster.health(for: target) == 0
             && (!context.roster.hasConsumedDeathsDoor(for: target)

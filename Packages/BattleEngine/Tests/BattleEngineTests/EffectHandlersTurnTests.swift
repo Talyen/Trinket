@@ -56,7 +56,6 @@ struct EffectHandlersTurnTests {
             target: slowedBattle.roster.enemy.combatant,
             battle: &slowedBattle
         )
-        // Ember Persistence: the applier's Burn loses 40% less each round.
         try #expect(slowed.updatedStack?.effect.potency == 7)
     }
 

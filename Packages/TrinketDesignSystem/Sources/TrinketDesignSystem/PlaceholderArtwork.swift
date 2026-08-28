@@ -1,16 +1,11 @@
 import SwiftUI
 import TrinketCore
 
-/// Tinted symbol fallback shown when prepared artwork is unavailable.
-///
-/// The single owner for card and pane artwork placeholders; sizing scales with
-/// Dynamic Type so placeholders never fall behind surrounding text.
 public struct PlaceholderArtwork: View {
     private let color: Color
     private let symbolName: String
     @ScaledMetric private var iconSize: CGFloat
 
-    /// Card-scale placeholder (base 38pt, scaling with `.title`).
     public init(_ style: TrinketDesign.CardPlaceholderStyle) {
         self.init(
             color: style.color,
@@ -20,7 +15,6 @@ public struct PlaceholderArtwork: View {
         )
     }
 
-    /// Pane-scale placeholder with an explicit icon role (combatant panes).
     public init(
         _ style: TrinketDesign.CardPlaceholderStyle,
         iconPointSize: CGFloat,
@@ -29,7 +23,6 @@ public struct PlaceholderArtwork: View {
         self.init(color: style.color, symbolName: style.symbolName, iconPointSize: iconPointSize, relativeTo: textStyle)
     }
 
-    /// Card-scale keyword-art placeholder.
     public init(_ style: Keyword.VisualStyle) {
         self.init(
             color: style.color,
@@ -39,7 +32,6 @@ public struct PlaceholderArtwork: View {
         )
     }
 
-    /// Large pane-scale keyword-art placeholder (talent tree headers).
     public init(
         _ style: Keyword.VisualStyle,
         iconPointSize: CGFloat,

@@ -4,12 +4,6 @@ import TrinketContent
 import TrinketCore
 import TrinketPersistence
 
-/// Shared temp-directory save-store harness for Persistence and AppState tests.
-///
-/// Lives as its own target in this package (not `TrinketTestSupport`) so
-/// TestSupport stays Persistence-free and the package graph stays acyclic.
-/// Hosting it in the Persistence package lets `TrinketPersistenceTests`
-/// `@testable`-import the store without SwiftPM linking two copies.
 public enum SaveTestSupport {
     public static func makeTempDirectory(prefix: String) throws -> URL {
         let url = FileManager.default.temporaryDirectory
@@ -61,8 +55,6 @@ public enum SaveTestSupport {
         return save
     }
 
-    /// Shared `PlayerSave` fixture with the deterministic test-seed defaults used
-    /// across Persistence applier tests. Overrides let a test swap a slice.
     public static func makeSave(
         roster: PlayerRosterState = .testSeed,
         inventory: PlayerInventoryState = PlayerInventoryState(items: []),

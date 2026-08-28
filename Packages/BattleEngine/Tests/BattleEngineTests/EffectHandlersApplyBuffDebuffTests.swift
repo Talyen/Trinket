@@ -5,8 +5,6 @@ import TrinketCore
 import TrinketTestSupport
 
 struct EffectHandlersApplyBuffDebuffTests {
-    // MARK: - Debuff
-
     @Test(arguments: [true, false])
     func halveShieldHandlerAppliesOnlyWhenBlockPresent(seedBlock: Bool) throws {
         var battle = EffectHandlersTestSupport.makeBattle()
@@ -40,8 +38,6 @@ struct EffectHandlersApplyBuffDebuffTests {
     }
 
     @Test func doTEffectsCannotApplyToDefeatedTargets() {
-        // Defeated-target exclusion is owned by the turn engine's apply gate,
-        // which consults this per-effect contract; handlers rely on it.
         #expect(!Effect.burn(3).canApplyToDefeatedTarget)
         #expect(!Effect.poison(3).canApplyToDefeatedTarget)
         #expect(!Effect.bleed(3).canApplyToDefeatedTarget)
@@ -62,8 +58,6 @@ struct EffectHandlersApplyBuffDebuffTests {
             try #expect(outcome.events.isEmpty)
         }
     }
-
-    // MARK: - Timed buffs
 
     @Test func thornsHandlerAppliesThornsAndEmitsEvent() throws {
         var battle = EffectHandlersTestSupport.makeBattle()
@@ -213,7 +207,6 @@ struct EffectHandlersApplyBuffDebuffTests {
             }
             return false
         }
-        // Recasts stack; each stack restores on hit.
         try #expect(shields.count == 2)
         try #expect(shields.contains { active in
             if case let .restoreManaOnHit(amount, duration) = active.effect {

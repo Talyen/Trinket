@@ -9,8 +9,6 @@ import TrinketFeatureSupport
 
 public struct BattleView: View {
     @State private var castPresentation = BattleCastPresentationState()
-    /// Blocks combatant detail Buttons while a hand card is held, and briefly after
-    /// release so the same finger-up cannot open details.
     @State private var interactionState = BattleInteractionState()
     @State private var isConfirmingRetreat = false
 
@@ -190,9 +188,6 @@ public struct BattleView: View {
     }
 }
 
-/// Isolated battlefield observation scope. `BattleView` must not read live
-/// combatant projections here — helper methods on the parent would fuse HP/hand
-/// writes into toolbar and outcome observation.
 struct BattleFieldLane: View {
     let configuration: BattleRunConfiguration
     let presentationContext: BattlePresentationContext
@@ -331,8 +326,6 @@ struct BattleFieldLane: View {
     }
 }
 
-/// Hand observation is isolated from combatant projections. Drawing or spending a
-/// card updates this lane without rebuilding the static battlefield hierarchy.
 private struct BattleHandProjectionLane: View {
     @Environment(BattleSession.self) private var battleSession
 
@@ -383,9 +376,6 @@ private struct BattleHandProjectionLane: View {
     }
 }
 
-/// Keeps cinematic observation out of `BattleView.body`. Phase changes can now
-/// insert/update the full-screen overlay without rebuilding the battlefield, hand,
-/// toolbar, and always-mounted feedback hosts behind it.
 private struct BattleCinematicLane: View {
     @Environment(BattleSession.self) private var battleSession
     let effectsVolume: Double
@@ -426,8 +416,6 @@ private struct BattleCinematicLane: View {
     }
 }
 
-/// Owns the imperative UIKit feedback bridge alongside the always-mounted hosts
-/// that consume it, instead of making the battle screen a global-cache manager.
 private struct BattleFeedbackBridgeLane: View {
     @Environment(BattleSession.self) private var battleSession
     @State private var ownerID = UUID()
@@ -455,10 +443,6 @@ private struct BattleCastPrewarmKey: Equatable {
     let artworkNames: [String]
 }
 
-/// Primes the full cast hierarchy once the first dealt card makes a cast imminent.
-/// State stays local so hand changes do not invalidate the battlefield hierarchy.
-/// Pins the full opening hand so deferred catalog warmup cannot evict imminent
-/// art, but only the first card's cast effect needs a one-frame hierarchy warmup.
 private struct BattleCastPrewarmLane: View {
     let presentation: BattlePresentationState
     @State private var artworkName: String?

@@ -15,7 +15,6 @@ enum ProgressionBracket: Equatable {
         return .late
     }
 
-    /// Target equal-level battles to advance one level.
     var targetBattlesPerLevel: Double {
         switch self {
         case .early: 1.5
@@ -27,11 +26,8 @@ enum ProgressionBracket: Equatable {
 
 public enum ExperienceScaling {
     public static let underlevelCutoff = 10
-    /// Soft ceiling on a single XP grant, as multiples of the recipient's current `requiredXP`.
     public static let maxGrantLevelsEquivalent = 3
 
-    /// Returns a multiplier in `0...1` for how much of the base experience award applies.
-    /// Enemies 10+ levels below the player grant no experience; equal or higher-level enemies grant full experience.
     public static func levelDeltaMultiplier(playerLevel: Int, enemyLevel: Int) -> Double {
         let gap = playerLevel - enemyLevel
         guard gap < underlevelCutoff else { return 0 }
@@ -55,7 +51,6 @@ public enum ExperienceScaling {
         )
     }
 
-    /// Battle XP after level-delta scaling and catch-up multiplier; zero awards stay zero.
     public static func battleAwardWithCatchUp(
         playerLevel: Int,
         enemyLevel: Int,
@@ -67,7 +62,6 @@ public enum ExperienceScaling {
         return max(1, CombatRounding.scaled(award, multiplier: catchUp))
     }
 
-    /// Equal-level battle XP for `playerLevel`, including same-role catch-up.
     public static func equalBattleAward(playerLevel: Int, highestLevel: Int) -> Int {
         battleAwardWithCatchUp(
             playerLevel: playerLevel,
@@ -76,12 +70,10 @@ public enum ExperienceScaling {
         )
     }
 
-    /// Clips a raw award to `maxGrantLevelsEquivalent` times the recipient's current required XP.
     public static func cappedAward(_ amount: Int, for progression: CombatantProgression) -> Int {
         cappedAward(amount, requiredXP: progression.requiredXP)
     }
 
-    /// Clips a raw award to `maxGrantLevelsEquivalent` times `requiredXP`.
     public static func cappedAward(_ amount: Int, requiredXP: Int) -> Int {
         guard amount > 0 else { return 0 }
         let ceiling = max(0, requiredXP) * maxGrantLevelsEquivalent
@@ -98,8 +90,6 @@ public enum ExperienceScaling {
         return CombatRounding.scaled(baseExperience, multiplier: multiplier)
     }
 
-    /// Catch-up XP multiplier. Returns 1.0 when the combatant is at or above
-    /// `highestLevel`, smoothly approaching `maxMultiplier` as the level gap grows.
     public static func catchUpMultiplier(
         for combatantLevel: Int,
         highestLevel: Int,

@@ -2,8 +2,6 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-/// Contested critical-hit chance shared by attack and restoration rolls:
-/// stat base, then trait/effect/party bonuses, soft-capped, then rolled.
 package enum CriticalChanceEngine {
     package static func rollSucceeds(
         keyword: Keyword,
@@ -34,7 +32,6 @@ package enum CriticalChanceEngine {
         return BattleChance.succeeds(probability: chance, using: &context.rng)
     }
 
-    /// Party-wide crit chance bonuses (Pack Bloodlust, Man's Best Friend, Treasure Hoard).
     private static func partyCritChanceBonus(
         actor: CombatantRuntime,
         in context: BattleState
@@ -52,8 +49,6 @@ package enum CriticalChanceEngine {
         if actor.role == .hero, companionTriggers.heroCritChanceWhileCompanionAlive > 0 {
             bonus += companionTriggers.heroCritChanceWhileCompanionAlive
         }
-        // Treasure Hoard: while the Retriever carries enough Gold, the party
-        // gains bonus Critical Hit chance.
         if companionTriggers.partyCritChanceWhileGoldAbove > 0,
            context.gold >= companionTriggers.partyCritChanceWhileGoldAbove {
             bonus += companionTriggers.partyCritChanceWhileGoldAboveBonus

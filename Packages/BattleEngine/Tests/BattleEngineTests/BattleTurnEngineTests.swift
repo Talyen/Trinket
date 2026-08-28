@@ -312,8 +312,6 @@ struct BattleTurnEngineTests {
     }
 }
 
-/// Component-level damage event and burn-igniter behavior, kept out of
-/// `BattleTurnEngineTests` to stay under the type-body-length budget.
 struct BattleTurnEngineComponentTests {
     @Test func nextHolyStrikeBurnUsesAuthoredNotDoubledPotency() throws {
         let ability = Ability(
@@ -343,8 +341,6 @@ struct BattleTurnEngineComponentTests {
             context: &context
         )
 
-        // Holy damage is doubled to 20; the igniter burn uses the authored 10,
-        // not the doubled amount — today's 4x bug would deal 20 holy + 20 burn.
         #expect(context.roster.health(for: enemy) == healthBefore - 30)
         let burnStatus = try #require(events.first { $0.kind == .status && $0.keyword == .burn })
         #expect(burnStatus.amount == 10)

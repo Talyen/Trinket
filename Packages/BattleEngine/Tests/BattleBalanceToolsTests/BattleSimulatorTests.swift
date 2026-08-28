@@ -20,8 +20,8 @@ struct BattleSimulatorTests {
             seed: 42
         )
 
-        let first = BattleSimulator.run(matchup: matchup, policy: GreedyHeuristicPolicy())
-        let second = BattleSimulator.run(matchup: matchup, policy: GreedyHeuristicPolicy())
+        let first = BattleSimulator.run(matchup: matchup, policy: .greedy)
+        let second = BattleSimulator.run(matchup: matchup, policy: .greedy)
 
         #expect(first == second)
         #expect(first.timedOut == false || first.actions > 0)

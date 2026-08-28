@@ -27,9 +27,6 @@ public final class SFXPlayer {
         playAll([id], volume: volume)
     }
 
-    /// Plays several one-shots on the same frame with a single engine/session check.
-    /// Dense multimodal stacks this with hit reactions; the hot path must stay
-    /// schedule-only (no stop / attach / decode).
     public func playAll(_ ids: [String], volume: Double) {
         guard !isDisabled else { return }
         guard volume > 0 else { return }
@@ -47,13 +44,10 @@ public final class SFXPlayer {
             nextVoiceIndexByID[id] = (voiceIndex + 1) % voices.count
             let voice = voices[voiceIndex]
             voice.node.volume = min(Float(gain * max(0, clip.volumeGain)), 1)
-            // `.interrupts` replaces any in-flight buffer without a synchronous stop().
             voice.node.scheduleBuffer(voice.buffer, at: nil, options: .interrupts)
         }
     }
 
-    /// Prepares a small overlap pool. Battle uses two players per clip so rapid
-    /// target staggers do not allocate or cut off the immediately preceding hit.
     public func warm(_ ids: [String], concurrentPlayerCount: Int = 1) {
         guard !isDisabled else { return }
         let desiredCount = max(1, concurrentPlayerCount)
@@ -105,8 +99,6 @@ public final class SFXPlayer {
                 decoded[clip.id] = buffer
             }
             await MainActor.run { [weak self] in
-                // releaseResources() may have run while decoding; dropping the
-                // merge keeps released buffers released.
                 guard let self, !Task.isCancelled else { return }
                 for (id, buffer) in decoded {
                     buffersByID[id] = buffer
@@ -123,14 +115,10 @@ public final class SFXPlayer {
             }
         }
         preparedVoicesArePlaying = false
-        // Pause the engine while retaining the prepared overlap pool for normal
-        // scene transitions. Memory-pressure callers use releaseResources().
         engine.pause()
         engineIsRunning = false
     }
 
-    /// Stops playback and releases decoded buffers and attached player nodes.
-    /// The next play lazily rebuilds the requested overlap pool.
     public func releaseResources() {
         catalogWarmTask?.cancel()
         catalogWarmTask = nil

@@ -2,16 +2,7 @@ import TrinketContent
 import TrinketCore
 @testable import BattleEngine
 
-/// Test factory for `BattleState` that produces a battle with a fixed RNG
-/// seed. The default `BattleState` initializer picks a random seed, which
-/// makes `Double.random` dodge and critical rolls inside `applyDamage`
-/// non-deterministic across runs. Tests that assert on damage amount,
-/// status application, or other outcomes gated by these checks must use
-/// this factory to avoid flakes.
 enum BattleStateTestFactory {
-    /// Builds a `BattleState` with a fixed seed so all randomness inside
-    /// the battle is reproducible. Signature mirrors `BattleState.init`
-    /// (minus the `rngSeed` argument, which is fixed here).
     static func makeBattle(
         hero: Combatant,
         companion: Combatant,
@@ -48,7 +39,6 @@ enum BattleStateTestFactory {
         )
     }
 
-    /// Seeds active effects on a combatant for unit tests.
     static func seedActiveEffects(
         _ effects: [ActiveEffect],
         for combatant: Combatant,
@@ -57,7 +47,6 @@ enum BattleStateTestFactory {
         battle.seedActiveEffects(effects, for: combatant)
     }
 
-    /// Convenient helper for card & turn tests requiring custom ability loadouts and initial mana.
     static func makeBattleWithAbilities(
         heroAbilities: [Ability] = [],
         companionAbilities: [Ability] = [],
@@ -123,9 +112,6 @@ enum BattleStateTestFactory {
         return battle
     }
 
-    /// Pipeline/handler battle with no deck bootstrap. Applies modifier max HP/mana
-    /// like the production convenience init, and sequences `nextEffectID` after
-    /// any seeded effects.
     static func makeMinimalBattle(
         hero: Combatant,
         companion: Combatant,

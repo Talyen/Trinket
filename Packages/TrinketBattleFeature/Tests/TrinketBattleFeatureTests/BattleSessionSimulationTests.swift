@@ -13,7 +13,7 @@ struct BattleSessionSimulationTests {
     @Test func victoryPresentationHoldsChromeAndLocksRetreatUntilConfiguredDelay() async throws {
         let party = BattlePartyFixtures.quickWinParty()
         let session = BattleSession(openingHandDrawStagger: 0, outcomePresentationDelayOverride: 0.05)
-        session.partyCelebrateDelayOverride = 0
+        session.partyCelebrateDelayOverride = .zero
         let (configuration, presentation) = BattleRunConfigurationTestSupport.make(
             rngSeed: 0,
             hero: party.hero,
@@ -43,7 +43,7 @@ struct BattleSessionSimulationTests {
         let party = BattlePartyFixtures.quickWinParty()
         let stage = try #require(GameContent.chapters[0].stages.first)
         let session = BattleSession(openingHandDrawStagger: 0, outcomePresentationDelayOverride: 0)
-        session.partyCelebrateDelayOverride = 0
+        session.partyCelebrateDelayOverride = .zero
         let (configuration, presentation) = BattleRunConfigurationTestSupport.make(
             runKey: BattleRunKey("journey|\(stage.id)"),
             rngSeed: 0,

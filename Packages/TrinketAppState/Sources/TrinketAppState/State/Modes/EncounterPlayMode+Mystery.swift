@@ -6,7 +6,6 @@ import TrinketFeatureContracts
 import TrinketPersistence
 
 public extension EncounterPlayMode {
-    /// Map/inspector preview; uses the same pins and pick context as `beginMysteryEncounter`.
     func previewMysteryEvent(
         origin: PlayEncounterOrigin,
         forcedEventID: String? = nil
@@ -100,7 +99,6 @@ public extension EncounterPlayMode {
         )
     }
 
-    /// Applies the single (or first) choice for the active mystery encounter.
     @discardableResult
     func resolveActiveMysteryChoice(choiceID: String? = nil) -> Bool {
         guard let mysterySession = activeMysteryEncounter else { return false }
@@ -119,7 +117,6 @@ public extension EncounterPlayMode {
         }
     }
 
-    /// Corrupts the selected inventory item at the Corruption Altar.
     @discardableResult
     func corruptActiveMysteryItem(itemID: String) -> Bool {
         guard let mysterySession = activeMysteryEncounter else { return false }
@@ -138,8 +135,6 @@ public extension EncounterPlayMode {
         }
     }
 
-    /// Runs one mystery save mutation; on persist failure marks the session and
-    /// returns false, otherwise applies and surfaces the outcome.
     private func persistMysteryResolution(
         _ mysterySession: MysteryEncounterSession,
         logging: String,
@@ -164,7 +159,6 @@ public extension EncounterPlayMode {
         mysterySession.returnToReading()
     }
 
-    /// Dismisses the corruption reveal after the player acknowledges the outcome.
     @discardableResult
     func finishActiveMysteryCorruptionReveal() -> Bool {
         guard let mysterySession = activeMysteryEncounter, mysterySession.showsCorruptionReveal else {
@@ -175,9 +169,6 @@ public extension EncounterPlayMode {
         return true
     }
 
-    /// Presents the reward/recruit beat and closes the session. Progress is
-    /// completed inside the choice mutation, so finishing never persists; a
-    /// failed save rolls the whole choice back before any beat plays.
     @discardableResult
     func finishActiveMysteryEncounter(dismiss: Bool = true) -> Bool {
         guard let mysterySession = activeMysteryEncounter else {
@@ -185,7 +176,6 @@ public extension EncounterPlayMode {
         }
         mysterySession.clearPersistFailure()
         if mysterySession.showsReward {
-            // Progress was already completed inside resolveChoice.
             if dismiss {
                 activeMysteryEncounter = nil
             }
@@ -262,8 +252,6 @@ public extension EncounterPlayMode {
         return nil
     }
 
-    /// Persists one mystery-event pin; returns the shared failure message when
-    /// the write fails or the applier reports no change.
     private func pinEvent(
         logging: String,
         pin: (inout PlayerSave) -> Bool

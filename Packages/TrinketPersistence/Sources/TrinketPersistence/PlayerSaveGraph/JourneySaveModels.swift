@@ -19,7 +19,6 @@ public final class JourneyStageProgressModel {
     public var stageID: String = ""
     public var isCompleted: Bool = false
     public var rewardsClaimed: Bool = false
-    /// Pinned non-recruit mystery event for unpinned journey stages.
     public var mysteryEventID: String?
     public var journey: JourneyProgressModel?
 

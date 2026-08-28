@@ -1,7 +1,6 @@
 import Foundation
 import TrinketCore
 
-/// Hand-authored named node modifiers for The Labyrinth.
 public enum LabyrinthCatalog {
     public static let modifiers: [LabyrinthModifierDefinition] = [
         LabyrinthModifierDefinition(

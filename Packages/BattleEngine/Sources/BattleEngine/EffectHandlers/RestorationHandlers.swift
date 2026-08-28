@@ -1,6 +1,12 @@
 import Foundation
+import os
 import TrinketContent
 import TrinketCore
+
+private let restorationLogger = Logger(
+    subsystem: "com.trinket.battle",
+    category: "RestorationHandlers"
+)
 
 struct InstantHealHandler: BattleEffectHandler {
     let kind: EffectKind = .instantHeal
@@ -208,7 +214,9 @@ struct DrawAndPlayCardsHandler: BattleEffectHandler {
                 let played = try BattleCardCombatEngine.playDrawnCard(card, context: &context)
                 events.append(contentsOf: played)
             } catch {
-                // Card play failed due to state mutation or turn constraints
+                restorationLogger.info(
+                    "Draw-and-play card \(card.id, privacy: .public) failed: \(error.localizedDescription, privacy: .public)"
+                )
             }
         }
         return events

@@ -2,17 +2,14 @@ import SwiftUI
 import TrinketCore
 import TrinketDesignSystem
 
-/// Shared full-bleed detail hero: art, on-art eyebrow/title, optional footer.
 public struct DetailHeroHeader<Art: View, Footer: View>: View {
     let eyebrow: String?
     let title: String
     var titleKeywords: Set<Keyword>
-    /// When set, shines the title in these colors instead of `titleKeywords`.
     var titleShineColors: [Color]?
     var titleAccessibilityIdentifier: String?
     let baseHeight: CGFloat
     let overscroll: CGFloat
-    /// Matches prior `.padding()` on portrait detail heroes.
     var horizontalPadding: CGFloat
     var bottomPadding: CGFloat
     @ViewBuilder let art: () -> Art

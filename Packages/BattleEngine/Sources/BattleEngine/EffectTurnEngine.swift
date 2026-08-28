@@ -28,7 +28,6 @@ package enum EffectTurnEngine {
             events.append(contentsOf: CombatTriggerEngine.turnBlock(for: combatant, in: &context))
             events.append(contentsOf: EnemyTraitEngine.turnFreeze(for: combatant, context: &context))
             events.append(contentsOf: EnemyTraitEngine.turnRandomDamageAllEnemies(for: combatant, context: &context))
-            // Purifying Aura: party debuffs expire twice as fast (extra duration or DoT decay, not a second tick).
             if participant != .enemy,
                context.roster[participant].isAlive,
                CombatTriggerEngine.partyDebuffsExpireFaster(in: context) {
@@ -37,7 +36,6 @@ package enum EffectTurnEngine {
                     for: combatant
                 )
             }
-            // Talent Freeze-buildup decay (suppressed by Persistent Frost / Glacial Grip).
             ControlMeterEngine.decayFreezeBuildup(on: combatant, in: &context)
         }
 
@@ -94,7 +92,6 @@ package enum EffectTurnEngine {
         return (events, merged)
     }
 
-    /// Extra duration/potency decay for Purifying Aura. Does not deal a second tick.
     private static func accelerateDebuffExpiration(_ effects: [ActiveEffect]) -> [ActiveEffect] {
         effects.compactMap { active in
             guard active.effect.isRemovableDebuff else { return active }

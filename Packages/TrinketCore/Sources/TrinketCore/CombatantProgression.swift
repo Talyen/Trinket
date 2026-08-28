@@ -16,7 +16,6 @@ public struct CombatantProgression: Equatable, Hashable, Codable, Sendable {
         requiredXP: requiredXP(forLevel: 1)
     )
 
-    /// Progression parked at `level` with empty XP toward the next level.
     public static func at(level: Int) -> Self {
         let clamped = max(level, 1)
         return Self(
@@ -57,12 +56,10 @@ public struct CombatantProgression: Equatable, Hashable, Codable, Sendable {
         )
     }
 
-    /// Total talent points earned based on level (1 point at each even level: 2, 4, 6, …).
     public var totalTalentPoints: Int {
         max(level, 0) / 2
     }
 
-    /// Remaining talent points given the number of already unlocked talents.
     public func availableTalentPoints(unlockedCount: Int) -> Int {
         max(totalTalentPoints - unlockedCount, 0)
     }

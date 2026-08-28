@@ -3,8 +3,6 @@ import Testing
 import TrinketContent
 import TrinketCore
 
-/// Random outcome branch resolution on card play: seeded RNG determinism
-/// and branch effect execution without manual branch selection.
 struct BattleOutcomeBranchTests {
     private func makeBattle(
         heroAbilities: [Ability],

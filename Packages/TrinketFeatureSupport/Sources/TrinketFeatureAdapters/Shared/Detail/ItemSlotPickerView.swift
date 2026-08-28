@@ -108,8 +108,6 @@ struct ItemSlotPickerView: View {
         return result
     }
 
-    /// Item IDs worn in sibling slots of the same family, so the picker can mark
-    /// them as equipped elsewhere (selecting one moves it between slots).
     private var equippedInSiblingSlotIDs: Set<String> {
         equipmentLoadout.itemIDs(inFamilyOf: slot)
             .subtracting([equipmentLoadout.itemID(for: slot)].compactMap(\.self))

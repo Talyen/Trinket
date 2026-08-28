@@ -4,8 +4,6 @@ import TrinketContent
 import TrinketCore
 @testable import BattleBalanceTools
 
-/// Progression tooling units that run with `--include-balance-sweep-tests`.
-/// trackers, player-controller leveling, hotspot classification, and report rendering.
 struct ModeProgressionToolingTests {
     @Test func modeProgressionTrackersBuildNonEmptySteps() {
         let campaign = CampaignProgressionTracker()

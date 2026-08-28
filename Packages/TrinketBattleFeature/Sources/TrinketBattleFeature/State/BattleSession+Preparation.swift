@@ -4,10 +4,6 @@ import SwiftUI
 import TrinketFeatureSupport
 
 public extension BattleSession {
-    /// Warms the prepared launch candidates or active fallback run without exposing
-    /// BattleFeature's caches and presentation primitives to app mode screens.
-    /// Pins before activation so Start Battle does not sync-decode on the
-    /// transition frame.
     func prepareBattlePresentationAssets(displayScale: CGFloat) async {
         guard lifecyclePhase == .prepared || lifecyclePhase == .active else { return }
 
@@ -46,8 +42,6 @@ public extension BattleSession {
         }
         let uniqueNames = Set(artworkNames)
         guard !Task.isCancelled else { return }
-        // Pin replacements before dropping the previous set so Start cannot
-        // sync-decode opening-hand faces during a keep-alive warmup restart.
         guard uniqueNames != preparedArtworkNames else { return }
         await PreparedArtworkCache.shared.prepareAndPin(names: artworkNames)
         guard !Task.isCancelled else {
@@ -61,17 +55,12 @@ public extension BattleSession {
         preparedArtworkNames = uniqueNames
     }
 
-    /// Releases artwork retained for the current prepared/active run.
-    /// Pins stay across keep-alive Start; owners drop them when the run is
-    /// replaced or ended.
     func releasePreparedArtworkPins() {
         guard !preparedArtworkNames.isEmpty else { return }
         PreparedArtworkCache.shared.releasePins(names: Array(preparedArtworkNames))
         preparedArtworkNames.removeAll()
     }
 
-    /// Opening-hand ability art names for a prepared run (cast faces on first play).
-    /// Peeks a copy so the prepared run keeps an empty hand for the paced deal.
     internal func preparedAbilityArtworkNames(for runKey: BattleRunKey) -> [String] {
         guard let run = preparedBattleRun(for: runKey) else { return [] }
         return openingHandArtworkNames(for: run)

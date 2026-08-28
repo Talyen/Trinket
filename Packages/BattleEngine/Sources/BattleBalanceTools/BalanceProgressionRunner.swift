@@ -4,12 +4,11 @@ import TrinketContent
 import TrinketCore
 
 public enum BalanceProgressionRunner {
-    /// Safety cap per run so a loss-heavy loop cannot run forever.
     public static let maxBattlesPerRun = 1000
 
     public static func run(
         config: BalanceSweepConfig,
-        policy: any SimulationPlayPolicy
+        policy: PlayPolicy
     ) -> (
         records: [ProgressionBattleRecord],
         hotspots: [NodeHotspotSummary],
@@ -33,7 +32,7 @@ public enum BalanceProgressionRunner {
 
     private static func simulateRun(
         config: BalanceSweepConfig,
-        policy: any SimulationPlayPolicy,
+        policy: PlayPolicy,
         runIndex: Int
     ) -> (records: [ProgressionBattleRecord], endState: PlayerProgressionState, didTruncate: Bool) {
         let runSeed = config.seed &+ UInt64(runIndex) &* 1000003

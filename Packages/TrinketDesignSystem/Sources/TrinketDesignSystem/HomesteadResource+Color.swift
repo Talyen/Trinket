@@ -2,7 +2,6 @@ import SwiftUI
 import TrinketCore
 
 public extension HomesteadResource {
-    /// Semantic tint for SF Symbol fallbacks and reward rows when raster art is absent.
     var tint: Color {
         switch self {
         case .wood:

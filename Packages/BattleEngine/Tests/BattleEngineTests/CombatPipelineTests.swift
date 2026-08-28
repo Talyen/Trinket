@@ -5,8 +5,6 @@ import TrinketCore
 import TrinketTestSupport
 
 struct CombatPipelineTests {
-    // MARK: - Helpers
-
     private func makeContext(
         targetMaxHealth: Int = 50,
         targetPrimaryStats: PrimaryStats = PrimaryStats(),
@@ -29,11 +27,7 @@ struct CombatPipelineTests {
         CombatantFixtures.combatant(id: "target", role: .enemy, maxHealth: 50)
     }
 
-    // MARK: - Dodge
-
     @Test func applyDamageDodgeRespectsChanceAndSkipFlags() throws {
-        // Player-capped defender (hero role) so contested high agi can still reach the 75% soft cap.
-        // Enemy archetype caps would clamp this below certainty.
         let stats = PrimaryStats(agility: 280)
         let target = CombatantFixtures.combatant(
             id: "target", role: .hero, maxHealth: 50, primaryStats: stats
@@ -84,8 +78,6 @@ struct CombatPipelineTests {
         try #expect(abs(chance - 0.5 / (1 + falloff * 0.5)) < 0.0001)
     }
 
-    // MARK: - Shield absorption
-
     @Test func applyDamageShieldAbsorptionPreservesSourceActorID() throws {
         let shield = ActiveEffect(
             id: 1,
@@ -105,17 +97,12 @@ struct CombatPipelineTests {
         }
     }
 
-    // MARK: - Stat and item bonuses
-
     @Test func applyDamageStatBonusAppliesForSource() throws {
-        let stats = PrimaryStats(strength: 80) // 80 / (80 + 80) = 50% bonus
+        let stats = PrimaryStats(strength: 80)
         var context = makeContext(sourcePrimaryStats: stats, seed: BattleTestFixtures.deterministicNonCriticalSeed)
         let (lost, _) = context.applyTestDamage(10, to: context.roster.enemy.combatant, keyword: .physical, sourceActorID: "source")
-        // 10 + 5 = 15
         try #expect(lost == 15)
     }
-
-    // MARK: - Prevention buildup
 
     @Test func stunAndFreezeBuildupTrackedSeparatelyFromDamage() throws {
         var context = makeContext(seed: BattleTestFixtures.deterministicNonCriticalSeed)
@@ -134,8 +121,6 @@ struct CombatPipelineTests {
         _ = try #require(stunMeter)
         _ = try #require(freezeMeter)
     }
-
-    // MARK: - DoT damage
 
     @Test(arguments: ["dot", "direct", "self"] as [String])
     func applyDamageLeechMatrix(mode: String) throws {
@@ -187,8 +172,6 @@ struct CombatPipelineTests {
             Issue.record("Unexpected leech mode \(mode)")
         }
     }
-
-    // MARK: - Prevention threshold and post-mitigation buildup
 
     @Test func preventionThresholdUsesItemMaximumHealthBonus() throws {
         let target = CombatantFixtures.combatant(id: "target", role: .enemy, maxHealth: 50)
@@ -256,7 +239,6 @@ struct CombatPipelineTests {
 
             let buildup = context.roster.enemy.activeEffects.first(where: \.effect.isControlMeter)
             let amount = buildup?.effect.controlMeterValues?.amount
-            // Toughness mitigation 3 vs 20 → remaining 17 for stun buildup
             try #expect(amount == 17)
         }
     }
@@ -303,8 +285,6 @@ struct CombatPipelineTests {
 
     @Test func guaranteedCriticalIfEnemyBuffedBypassesSoftCap() throws {
         let buff = ActiveEffect(id: 1, effect: .shield(.block, 2), remainingTurns: 6)
-        // Seed whose first crit roll is in the 0.75...1.0 band that the soft cap
-        // would reject — guaranteed path must still crit.
         var context = makeContext(targetEffects: [buff], seed: 1)
         let outcome = context.resolveDamage(
             DamageRequest(
@@ -320,8 +300,6 @@ struct CombatPipelineTests {
         )
         try #expect(outcome.isCritical)
     }
-
-    // MARK: - Pipeline ordering
 
     @Test func thornsRetaliationDoesNotRecurse() throws {
         let thorns = ActiveEffect(id: 1, effect: .thorns(5), remainingTurns: 0)
@@ -368,7 +346,6 @@ struct CombatPipelineTests {
         )
 
         let thornsTriggers = events.filter { $0.effectKind == .thornsTriggered }
-        // Defender thorns fire once; retaliation must not re-trigger attacker's thorns.
         try #expect(thornsTriggers.count == 1)
         try #expect(!context.roster.activeEffects(for: context.roster.enemy.combatant).contains {
             if case .thorns = $0.effect {

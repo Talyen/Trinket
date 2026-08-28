@@ -2,7 +2,6 @@ import TrinketContent
 import TrinketCore
 
 package extension CombatTriggerEngine {
-    /// Pinning Strike / Hamstring Shot before the enemy skip check.
     static func beforeEnemyActBleedReactions(in context: inout BattleState) -> (events: [ActionEvent], cancelled: Bool) {
         let enemy = context.enemy
         guard context.roster.enemy.isAlive else { return ([], false) }
@@ -55,7 +54,6 @@ package extension CombatTriggerEngine {
         return (events, false)
     }
 
-    /// Warning Bark / Shadow Shift: companion cancels the incoming enemy action.
     private static func companionNegateEnemyAttack(
         in context: inout BattleState
     ) -> (events: [ActionEvent], cancelled: Bool)? {
@@ -98,7 +96,6 @@ package extension CombatTriggerEngine {
         return nil
     }
 
-    /// Warning Bark, Shadow Shift, Paralytic Poison, Subzero Mist, Decoy Swap.
     static func enemyActAvoidance(in context: inout BattleState) -> (events: [ActionEvent], cancelled: Bool) {
         if let companionNegation = companionNegateEnemyAttack(in: &context) {
             return companionNegation
@@ -146,7 +143,6 @@ package extension CombatTriggerEngine {
         return (events, false)
     }
 
-    /// Paralytic Poison: a poisoned enemy may miss its action.
     private static func poisonedEnemyMiss(
         abilityTarget: Combatant,
         in context: inout BattleState

@@ -5,8 +5,6 @@ import TrinketDesignSystem
 import TrinketFeatureSupport
 import TrinketPersistence
 
-/// Explore mode hub: Spires and Labyrinth entry cards under Play.
-/// World-map chrome can replace the art treatment later without changing destinations.
 struct ExploreHubView: View {
     @Environment(PlayerSaveStore.self) private var playerSave
 

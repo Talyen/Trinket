@@ -6,11 +6,8 @@ enum BattleCardGridLayout {
     static let partyAspectRatio: CGFloat = 3.0 / 4.0
     static let outerPadding: CGFloat = 0
     static let cardSpacing: CGFloat = 12
-    /// Scales enemy + party together so the triptych clears space for the hand.
     static let combatantScale: CGFloat = 0.90
-    /// Reserved bottom band for the ability hand (art cards ~2× prior mechanical size).
     static let handReservedHeight: CGFloat = 224
-    /// Extra battlefield height reclaimed under the hand so combatants fill side gutters on typical phones.
     static let handOverlapAllowance: CGFloat = 56
 
     struct Metrics: Equatable {

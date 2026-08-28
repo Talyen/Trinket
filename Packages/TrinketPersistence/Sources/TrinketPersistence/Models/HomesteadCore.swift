@@ -35,7 +35,6 @@ public struct PlayerHomesteadState: Equatable, Hashable, Sendable {
         )
     }
 
-    /// Development-only seed used by Options' Unlock All action.
     public static var developerMaxed: Self {
         var state = testSeed
         for resource in HomesteadResource.allCases where resource != .gold {
@@ -112,7 +111,6 @@ public struct PlayerHomesteadState: Equatable, Hashable, Sendable {
             .sorted { $0.resource.rawValue < $1.resource.rawValue }
     }
 
-    /// Next date when any producing resource crosses a whole collectible unit.
     public func nextCollectibleDate(after date: Date, roster: PlayerRosterState) -> Date? {
         var projected = self
         projected.settleProduction(at: date, roster: roster)

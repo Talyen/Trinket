@@ -3,8 +3,6 @@ import TrinketAppState
 import TrinketDesignSystem
 import TrinketFeatureSupport
 
-/// Shared ScrollView + adaptive card grid chrome for Play mode hubs.
-/// Card contents and navigation stay at the call site.
 struct PlayModeHubScreen<Content: View>: View {
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 

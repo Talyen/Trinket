@@ -3,8 +3,6 @@ import TrinketContent
 import TrinketCore
 @testable import TrinketPersistence
 
-/// Bounded downward party scaling must reach Labyrinth combat rewards: the level
-/// actually fought drives both loot resolution and experience grants.
 @Suite("LabyrinthEncounterLevelOverride")
 struct LabyrinthEncounterLevelOverrideTests {
     @Test func combatLootResolvesAtProvidedEncounterLevelInsteadOfNodeDepth() throws {
@@ -37,7 +35,6 @@ struct LabyrinthEncounterLevelOverrideTests {
         #expect(explicit.gold == atDepth.gold)
         #expect(explicit.materials == atDepth.materials)
 
-        // quantityRange bands never overlap between these levels, so every roll shifts up.
         let raised = try #require(
             LabyrinthCompletion.resolveCombatLoot(
                 for: node,

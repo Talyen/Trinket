@@ -8,7 +8,6 @@ import TrinketFeatureSupport
 struct BattleAbilityCardView: View {
     let card: BattleCard
     let isPlayable: Bool
-    /// Triggered Stun/Freeze on this card's owner; drives status FX instead of dimming.
     var controlSkipKeyword: Keyword?
     let width: CGFloat
     let height: CGFloat
@@ -16,7 +15,6 @@ struct BattleAbilityCardView: View {
     let restingOffsetY: CGFloat
     let restingCenter: CGPoint
     let hapticsEnabled: Bool
-    /// When equal to `card.id`, mirrors the Auto Battle tap-lift rise.
     var autoLiftCardID: Int?
     let onInspect: () -> Void
     let onPlay: (CardActivationRequest) -> Bool
@@ -60,7 +58,6 @@ struct BattleAbilityCardView: View {
         BattleHandLayout.playDragThreshold
     }
 
-    /// Stun/Freeze overlays replace dimming as the unplayable signal.
     private var showsControlSkipEffect: Bool {
         guard let controlSkipKeyword else { return false }
         return CombatantStatusEffectKind(statusKeyword: controlSkipKeyword) != nil
@@ -86,7 +83,6 @@ struct BattleAbilityCardView: View {
                     )
             }
         }
-        // Match CardCastEffectsLayer: scale → rotate → offset/position.
         .scaleEffect(x: activeScale.width, y: activeScale.height)
         .rotationEffect(.degrees(activeRotation), anchor: .bottom)
         .rotation3DEffect(
@@ -147,8 +143,6 @@ struct BattleAbilityCardView: View {
         )
     }
 
-    /// Pop-up applied briefly when a tap starts a play, before the dissolve
-    /// takes over. Matches the overlay handoff order (applied after rotation/3D).
     private var tapLiftOffset: CGSize {
         guard isTapLifting else { return .zero }
         return CGSize(width: 0, height: -height * BattleMotion.tapLiftHeightFraction)
@@ -196,7 +190,6 @@ struct BattleAbilityCardView: View {
 
         if interactionResolution == .idle {
             withAnimation(BattleMotion.cardPress) {
-                // The state transition drives the held-card scale and shadow.
                 interactionResolution = .pressing
             }
             onInteractionChanged(true)
@@ -341,8 +334,6 @@ struct BattleAbilityCardView: View {
     }
 
     private func beginPlay() {
-        // Layout math matches the unrotated scale+offset center the cast overlay
-        // positions to (avoids per-frame geometry probe invalidation while dragging).
         let center = BattleHandLayout.releaseCenter(
             restingCenter: restingCenter,
             dragTranslation: dragTranslation
@@ -364,8 +355,6 @@ struct BattleAbilityCardView: View {
         cancelInspection()
         let hadWindUp = didAnnounceWindUp
         didAnnounceWindUp = false
-        // End parent-held state before publishing the hand mutation. Otherwise
-        // this card's onDisappear performs nested state work during sibling reflow.
         onInteractionChanged(false)
         let didPlay = onPlay(request)
         if didPlay {
@@ -396,12 +385,9 @@ private extension BattleAbilityCardView {
         let shouldLift = liftCardID == card.id
         guard shouldLift != isTapLifting else { return }
         if shouldLift {
-            // Cancel a manual tap-lift task so Auto and tap cannot double-play.
             cancelTapLift()
             announceWindUpIfNeeded()
         } else {
-            // Lift-down is visual. AutoPlayLane cancels the telegraph when play
-            // does not commit; cancelling here would yank a committed swing.
             didAnnounceWindUp = false
         }
         withAnimation(BattleMotion.tapLift) {

@@ -18,8 +18,6 @@ struct ContentView: View {
     var body: some View {
         @Bindable var shellSession = shellSession
 
-        // Keep TabView mounted during battle and hide the bar. Destroying the
-        // tab root recolds Collection / Homestead / Options after every fight.
         Group {
             if playerSave.starterSelection.phase != .complete {
                 StarterSelectionFlow(
@@ -133,8 +131,6 @@ struct ContentView: View {
                 }
             }
         }
-        // Keep the tab hosts alive during battle. Tearing TabView down recolds
-        // Collection / Homestead / Options; hiding the bar is the art-forward chrome.
         .toolbarVisibility(
             battle.lifecyclePhase == .active ? .hidden : .visible,
             for: .tabBar

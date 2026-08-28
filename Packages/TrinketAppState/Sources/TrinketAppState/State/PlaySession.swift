@@ -5,11 +5,6 @@ import TrinketCore
 import TrinketFeatureContracts
 import TrinketPersistence
 
-/// Play-tab shell and mode registry: navigation, shared battle launch, and victory routing.
-///
-/// Mode-specific flow lives on `journey`, `labyrinth`, `spires`, and `encounters`.
-/// Shared battle lifecycle glue lives on `PlayBattleLaunch` / `PlayBattleCompletion`.
-/// Save slices are read from `playerSave` — not forwarded through this type.
 @MainActor
 @Observable
 public final class PlaySession {
@@ -123,7 +118,6 @@ public final class PlaySession {
         }
     }
 
-    /// Persists victory rewards and ends the battle only when persistence succeeds.
     @discardableResult
     public func completeActiveBattle(
         _ configuration: BattleRunConfiguration,

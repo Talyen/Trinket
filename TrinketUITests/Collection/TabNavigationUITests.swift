@@ -1,7 +1,6 @@
 import TrinketFeatureSupport
 import XCTest
 
-/// Collection shelf and inventory-grid salvage. One launch covers both surfaces.
 final class TabNavigationUITests: TrinketUITestCase {
     func testSalvageRemovesShelfAndInventoryGridItemsImmediately() {
         launchApp(arguments: TestLaunchArg.allForTab("collection"))

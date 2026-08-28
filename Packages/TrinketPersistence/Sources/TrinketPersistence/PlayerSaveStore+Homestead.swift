@@ -4,7 +4,6 @@ import TrinketCore
 
 @MainActor
 public extension PlayerSaveStore {
-    /// Builds or upgrades a homestead node, updating roster unlocks in the same batch.
     func buildOrUpgradeNode(
         _ definition: HomesteadNodeDefinition,
         at date: Date = Date()

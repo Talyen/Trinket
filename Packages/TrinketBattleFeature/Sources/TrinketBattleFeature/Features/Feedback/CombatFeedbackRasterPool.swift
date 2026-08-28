@@ -26,8 +26,6 @@ struct CombatFeedbackRasterKey: Hashable {
     }
 }
 
-/// Immutable raster owned exclusively by `CombatFeedbackRasterPool` (`@MainActor`).
-/// Not Sendable: `CGImage` is not Sendable and the pool never crosses isolation.
 final class CombatFeedbackRaster {
     let key: CombatFeedbackRasterKey
     let image: CGImage
@@ -59,19 +57,13 @@ struct CombatFeedbackRasterPoolSnapshot: Equatable {
     let rasterAllocationCount: Int
 }
 
-/// Battle-scoped, bounded storage for composed feedback chips. Composition is a
-/// sub-millisecond glyph blit after atlas prewarm — cache hits stay transform-only.
 @MainActor
 final class CombatFeedbackRasterPool {
     static let shared = CombatFeedbackRasterPool()
-    /// Fits the closed vocabulary catalog plus headroom for live numeric magnitudes
-    /// during a fight. Numeric amounts stay on-demand (atlas digits are complete).
     static let defaultCapacity = 384
 
     private let capacity: Int
     private var rasters: [CombatFeedbackRasterKey: CombatFeedbackRaster] = [:]
-    /// Epoch-stamped recency: O(1) touch on the display-link hit path; eviction
-    /// scans stamps only on the miss path it already accompanies.
     private var lastUseEpoch: [CombatFeedbackRasterKey: Int] = [:]
     private var nextEpoch = 0
     private var hitCount = 0
@@ -94,7 +86,6 @@ final class CombatFeedbackRasterPool {
         self.capacity = max(1, capacity)
     }
 
-    /// Lookup-only. The display-link path prefers this before composing.
     func cachedRaster(
         for item: CombatFeedbackItem,
         layoutDirection: LayoutDirection = .leftToRight,
@@ -111,7 +102,6 @@ final class CombatFeedbackRasterPool {
         return raster
     }
 
-    /// Composes and stores a raster when missing. Warm atlas hits stay under 1 ms.
     @discardableResult
     func prepare(
         for item: CombatFeedbackItem,
@@ -207,8 +197,6 @@ final class CombatFeedbackRasterPool {
             )
             guard !Task.isCancelled, catalogWarmupGeneration == generation else { return nil }
             let catalog = CombatFeedbackRasterCatalog.closedVocabularyChips()
-            // Yield between small batches so Stage Select / Battle appear stay responsive
-            // while still finishing before the typical first card play.
             let batchSize = 8
             var index = 0
             while index < catalog.count {

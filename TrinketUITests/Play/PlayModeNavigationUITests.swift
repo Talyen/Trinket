@@ -2,7 +2,6 @@ import TrinketFeatureSupport
 import XCTest
 
 final class PlayModeNavigationUITests: TrinketUITestCase {
-    /// Explore hub opens Spires; locked spires stay inert.
     func testExploreHubOpensSpiresWithLockedSpireInert() {
         launchApp(arguments: TestLaunchArg.allUnseeded())
 
@@ -20,11 +19,9 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
         assertExists(AccessibilityID.Play.spireBeginFloor("ironVein", floor: 1))
     }
 
-    /// Labyrinth map: reachable node opens the inspector; locked nodes stay inert.
     func testLabyrinthMapNodeInspectorInteractions() {
         launchApp(arguments: TestLaunchArg.allForScreen("labyrinth-map"))
 
-        // Deep link may land on emptyState before `enter()` completes; tap Enter if needed.
         let enterButton = app.descendants(matching: .any)[AccessibilityID.Play.labyrinthEnter]
         if enterButton.waitForExistence(timeout: 3) {
             tapWhenReady(enterButton)
@@ -32,7 +29,6 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
         assertExists(AccessibilityID.Play.labyrinthMap, timeout: 20)
         let entryNode = app.descendants(matching: .any)[AccessibilityID.Play.labyrinthFloor1EntryNode]
         if !entryNode.waitForExistence(timeout: 10) {
-            // Map hex layout may need a layout pulse on cold launch.
             assertExists(AccessibilityID.Play.labyrinthMap, timeout: 5)
             app.swipeUp()
             app.swipeDown()

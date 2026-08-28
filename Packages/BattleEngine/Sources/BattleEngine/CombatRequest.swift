@@ -2,33 +2,20 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-/// Tunable damage-resolution switches for a single `DamageRequest`.
 public struct DamageOptions: Equatable, Hashable, Sendable {
     public var applyStatBonus: Bool
     public var applyItemBonus: Bool
     public var applyDodge: Bool
     public var abilityCriticalChanceBonus: Double
     public var guaranteedCriticalIfEnemyBuffed: Bool
-    /// When true, skip the crit roll and force a critical (ability next-strike buffs).
     public var guaranteedCritical: Bool
-    /// When true, retaliation damage skips reactive on-hit effects (thorns ping-pong).
     public var isRetaliation: Bool
-    /// When true, stun/freeze control meter still charges even though the hit is
-    /// flagged `isRetaliation` (enemy per-turn control damage, e.g. Frostwarden).
     public var applyControlMeter: Bool
-    /// When true, ambush trait bonus may apply on this damage (direct ability hits only).
     public var qualifiesForAmbush: Bool
-    /// When true, this is a direct attack hit (ability/enemy strike) — not DoT, retaliation, or costs.
-    /// On-hit wards (thorns, freeze-next-attacker) only fire for attack hits.
     public var isAttackHit: Bool
-    /// When true, this is a direct basic-ability attack hit (basic card played).
     public var isBasicAttackHit: Bool
-    /// When true, heal the attacker for `Effect.abilityLeechPercent` of health lost.
     public var abilityHasLeech: Bool
-    /// When true, treat as a fixed "Lose N Health" cost — exact HP, no attack pipeline.
     public var isHealthCost: Bool
-    /// When true, this hit was spawned from an on-dodge reaction. A dodge of this
-    /// hit still applies, but does not run `afterDodge` again.
     public var causedByDodge: Bool
 
     public init(
@@ -63,13 +50,11 @@ public struct DamageOptions: Equatable, Hashable, Sendable {
         self.causedByDodge = causedByDodge
     }
 
-    /// Direct ability hit: full bonuses and dodge checks. Qualifies for ambush trait bonus.
     public static let directAbilityHit = Self(
         qualifiesForAmbush: true,
         isAttackHit: true
     )
 
-    /// DoT tick: stat and item bonuses at resolution time; no dodge; not an attack hit.
     public static let doTTick = Self(
         applyStatBonus: true,
         applyItemBonus: true,
@@ -77,7 +62,6 @@ public struct DamageOptions: Equatable, Hashable, Sendable {
         isRetaliation: true
     )
 
-    /// Authored "Lose N Health" cost: exact HP loss with no dodge/crit/mitigation/ambush.
     public static let healthCost = Self(
         applyStatBonus: false,
         applyItemBonus: false,
@@ -110,7 +94,6 @@ public struct DamageOptions: Equatable, Hashable, Sendable {
     )
 }
 
-/// Describes one damage application through the combat pipeline.
 public struct DamageRequest: Equatable, Hashable, Sendable {
     public var amount: Int
     public var target: Combatant
@@ -163,20 +146,17 @@ public struct DamageRequest: Equatable, Hashable, Sendable {
     }
 }
 
-/// Controls whether `HealingEngine.resolveHeal` emits combat-log events.
 enum HealLogPolicy: Equatable, Hashable, Sendable {
     case silent
     case leech
     case instantHeal(actorName: String, abilityName: String, keyword: Keyword)
 }
 
-/// Describes one heal application.
 public struct HealRequest: Equatable, Hashable, Sendable {
     public var amount: Int
     public var target: Combatant
     public var sourceActorID: String?
     var logAs: HealLogPolicy
-    /// When true, HealingEngine may restore a combatant at 0 Health (Phoenix Gift).
     var revivesIfDead: Bool
     var skipFightPacing: Bool
 
@@ -211,6 +191,5 @@ public struct HealRequest: Equatable, Hashable, Sendable {
         self.isHoTTick = isHoTTick
     }
 
-    /// When true, this heal is a Lingering Blessing HoT tick and must not re-arm HoT.
     var isHoTTick: Bool
 }

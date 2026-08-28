@@ -4,7 +4,6 @@ import TrinketCore
 import TrinketTestSupport
 @testable import BattleEngine
 
-/// Economy injected-trigger talents: gold gain, mana triggers, spell echo, and companion spend reactions.
 struct CombatTriggerTalentResourceTests {
     @Test func prismaticSparkCanDoubleManaGain() {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
@@ -186,8 +185,6 @@ struct CombatTriggerTalentResourceTests {
 
     @Test func treasureHoardGrantsPartyCritChanceWhileCarryingEnoughGold() {
         func makeBattle(gold: Int) -> BattleState {
-            // Deterministic seed plus a large bonus: with 50+ Gold the capped roll
-            // succeeds; without it the base contested chance stays below the threshold.
             var battle = BattleStateTestFactory.makeBattle(
                 hero: BattleTestFixtures.passiveHero(),
                 companion: BattleTestFixtures.passiveCompanion(),
@@ -301,15 +298,12 @@ struct CombatTriggerTalentResourceTests {
         )
         let hero = battle.roster.hero.combatant
         let companion = battle.roster.companion.combatant
-        // 1 Gold -> 0 Block (floored, not accumulated)
         _ = battle.grantGoldEvent(1, to: hero, abilityName: "Test")
         #expect(DefensePoolEngine.blockPoints(in: battle.roster.activeEffects(for: hero)) == 0)
         #expect(DefensePoolEngine.blockPoints(in: battle.roster.activeEffects(for: companion)) == 0)
-        // 2 Gold -> 1 Block to each living party member
         _ = battle.grantGoldEvent(2, to: hero, abilityName: "Test")
         #expect(DefensePoolEngine.blockPoints(in: battle.roster.activeEffects(for: hero)) == 1)
         #expect(DefensePoolEngine.blockPoints(in: battle.roster.activeEffects(for: companion)) == 1)
-        // 3 Gold -> floor(1.5)=1 more
         _ = battle.grantGoldEvent(3, to: companion, abilityName: "Test")
         #expect(DefensePoolEngine.blockPoints(in: battle.roster.activeEffects(for: hero)) == 2)
         #expect(DefensePoolEngine.blockPoints(in: battle.roster.activeEffects(for: companion)) == 2)

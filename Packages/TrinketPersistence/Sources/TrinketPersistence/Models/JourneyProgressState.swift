@@ -5,7 +5,6 @@ public struct JourneyProgressState: Equatable, Sendable {
     public var activeStageID: String?
     public var completedStageIDs: Set<String>
     public var claimedRewardStageIDs: Set<String>
-    /// Seeded/opened journey mystery event per stage (Labyrinth-style pin).
     public var pinnedMysteryEventIDs: [String: String]
 
     public static let initial = Self(

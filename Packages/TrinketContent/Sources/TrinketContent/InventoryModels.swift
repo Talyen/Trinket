@@ -8,9 +8,7 @@ public struct InventoryItem: Identifiable, Equatable, Hashable, Sendable {
     public let rarity: Rarity
     public let displayName: String
     public let affixes: [ItemAffix]
-    /// Once true, the item cannot be corrupted again.
     public let isCorrupted: Bool
-    /// When non-nil, authoritative combat/UI powers (same order as `affixes`).
     public let affixPowers: [ItemAffixPower]?
 
     public init(
@@ -34,7 +32,6 @@ public struct InventoryItem: Identifiable, Equatable, Hashable, Sendable {
     }
 
     public func rewardInstance(for stageID: String) -> Self {
-        // Trinkets and Uniques are singleton templates: one stable instance identity.
         if isTrinket || rarity == .unique {
             return self
         }
@@ -50,7 +47,6 @@ public struct InventoryItem: Identifiable, Equatable, Hashable, Sendable {
         )
     }
 
-    /// Resolved power for an affix index — instance override when present, else catalog.
     public func resolvedPower(at affixIndex: Int) -> ItemAffixPower? {
         let power: ItemAffixPower
         if let affixPowers, affixPowers.indices.contains(affixIndex) {
@@ -91,7 +87,6 @@ public struct InventoryItem: Identifiable, Equatable, Hashable, Sendable {
         affixes.reduce(into: Set<Keyword>()) { $0.formUnion($1.keywords) }
     }
 
-    /// Unscaled stored power is at the high end of this rarity's catalog roll range.
     public func isPerfectAffix(at index: Int) -> Bool {
         guard affixes.indices.contains(index),
               let storedPowers = affixPowers,
@@ -122,7 +117,6 @@ public struct EquipmentLoadout: Equatable, Hashable, Sendable {
     ) {
         let destination = slot ?? item.baseType.defaultEquipmentSlot
         guard canEquip(item, in: destination, inventory: inventory) else { return }
-        // One inventory instance can occupy only one slot; moving re-equips.
         for occupied in ItemSlot.allCases where occupied != destination {
             if itemIDsBySlot[occupied] == item.id {
                 itemIDsBySlot[occupied] = nil
@@ -130,7 +124,6 @@ public struct EquipmentLoadout: Equatable, Hashable, Sendable {
         }
         if item.baseType.weaponKind == .twoHanded {
             if item.baseType.isRanged {
-                // Ranged two-handers (bows) keep a Quiver but clear shields/spellbooks.
                 if let secondaryID = itemIDsBySlot[.secondaryWeapon],
                    let secondary = inventory.first(where: { $0.id == secondaryID }),
                    !secondary.baseType.isQuiver {
@@ -150,7 +143,6 @@ public struct EquipmentLoadout: Equatable, Hashable, Sendable {
     ) -> Bool {
         guard item.baseType.canEquip(in: slot) else { return false }
         guard trinketBaseIsFree(item, excluding: slot, inventory: inventory) else { return false }
-        // Main-hand gate: melee weapons cannot be equipped while a Quiver is worn.
         if slot == .weapon, !item.baseType.isRanged {
             if let secondaryID = itemID(for: .secondaryWeapon),
                let secondary = inventory.first(where: { $0.id == secondaryID }),
@@ -163,14 +155,11 @@ public struct EquipmentLoadout: Equatable, Hashable, Sendable {
             let primaryID = itemID(for: .weapon),
             let primary = inventory.first(where: { $0.id == primaryID })
         else {
-            // No primary — Quiver requires a ranged primary.
             return !item.baseType.isQuiver
         }
         return Self.secondaryWeaponAllows(primary: primary.baseType, secondary: item.baseType)
     }
 
-    /// Single source for off-hand compatibility. Used by `canEquip`, `isAvailable`,
-    /// and `equip` (via `canEquip`) so ranged/Quiver/two-handed rules stay coherent.
     static func secondaryWeaponAllows(primary: ItemBaseType, secondary: ItemBaseType) -> Bool {
         if secondary.isQuiver {
             return primary.isRanged
@@ -181,8 +170,6 @@ public struct EquipmentLoadout: Equatable, Hashable, Sendable {
         return primary.weaponKind != .twoHanded
     }
 
-    /// Trinkets are unique per combatant: the same base type may be worn in
-    /// only one trinket slot, so a second copy cannot be equipped.
     private func trinketBaseIsFree(
         _ item: InventoryItem,
         excluding destination: ItemSlot,
@@ -205,16 +192,12 @@ public struct EquipmentLoadout: Equatable, Hashable, Sendable {
         else {
             return true
         }
-        // If a Quiver is equipped, availability mirrors the same rule as canEquip:
-        // only a ranged primary keeps the slot valid.
         if let secondaryID = itemID(for: .secondaryWeapon),
            let secondary = inventory.first(where: { $0.id == secondaryID }),
            secondary.baseType.isQuiver {
             return primary.baseType.isRanged
         }
         if primary.baseType.isRanged {
-            // Ranged primary keeps the slot available, but only Quiver can fill it.
-            // Report available so the UI shows the slot; canEquip filters shield attempts.
             return true
         }
         return primary.baseType.weaponKind != .twoHanded
@@ -224,9 +207,6 @@ public struct EquipmentLoadout: Equatable, Hashable, Sendable {
         itemIDsBySlot[slot] = nil
     }
 
-    /// Item IDs equipped in every slot of the same family as `slot` (same
-    /// `baseItemSlot`), including `slot` itself. Lets the item picker surface
-    /// items already worn in sibling slots so players know equipping one moves it.
     public func itemIDs(inFamilyOf slot: ItemSlot) -> Set<String> {
         Set(ItemSlot.allCases.compactMap { candidate in
             guard candidate.baseItemSlot == slot.baseItemSlot else { return nil }

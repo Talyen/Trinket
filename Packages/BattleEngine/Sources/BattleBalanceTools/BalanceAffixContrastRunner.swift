@@ -57,7 +57,7 @@ enum BalanceAffixContrastRunner {
 
     static func run(
         context: BalanceContrastContext,
-        policy: some SimulationPlayPolicy
+        policy: PlayPolicy
     ) -> [PairedContrastSummary] {
         guard !context.heroes.isEmpty,
               !context.companions.isEmpty,

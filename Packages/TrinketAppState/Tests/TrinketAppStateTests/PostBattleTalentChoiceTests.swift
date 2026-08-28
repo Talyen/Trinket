@@ -71,7 +71,6 @@ struct PostBattleTalentChoiceTests {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         let stage = try #require(GameContent.chapters[0].stages.first)
         let hero = state.playerSave.roster.activeHero
-        // Hero at level 3 with XP near level 4 and 0 talents spent (so leveling to 4 yields 2 available talent points)
         try state.playerSave.performBatchMutation { save in
             let requiredLevel3 = CombatantProgression.requiredXP(forLevel: 3)
             save.roster.progressions[hero.id] = CombatantProgression(level: 3, currentXP: requiredLevel3 - 1, requiredXP: requiredLevel3)
@@ -91,12 +90,10 @@ struct PostBattleTalentChoiceTests {
         let secondNode = row1Nodes[1]
 
         #expect(state.choosePostBattleTalent(nodeID: firstNode.id, treeID: tree.id) == .unlocked)
-        // 1 talent point still remains — hero should stay active in the post-battle queue
         #expect(state.currentPostBattleTalentCombatantID == hero.id)
         #expect(state.playerSave.roster.availableTalentPoints(for: hero.id) == 1)
 
         #expect(state.choosePostBattleTalent(nodeID: secondNode.id, treeID: tree.id) == .unlocked)
-        // All talent points spent — hero is now cleared from the queue
         #expect(state.currentPostBattleTalentCombatantID == nil)
         #expect(state.playerSave.roster.availableTalentPoints(for: hero.id) == 0)
     }

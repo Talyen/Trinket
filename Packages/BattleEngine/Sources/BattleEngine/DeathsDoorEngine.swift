@@ -2,7 +2,6 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-/// Intrinsic battle rule: hero and companion each get one Death's Door proc per battle.
 package enum DeathsDoorEngine {
     package static func applies(to combatant: Combatant) -> Bool {
         combatant.role == .hero || combatant.role == .companion
@@ -12,8 +11,6 @@ package enum DeathsDoorEngine {
         context.roster.isDeathsDoorActive(for: combatant)
     }
 
-    /// Lethal protection while Death's Door is active, or during the
-    /// end-of-round effect pass that removed it.
     package static func hasLethalProtection(
         for combatant: Combatant,
         in context: BattleState
@@ -37,8 +34,6 @@ package enum DeathsDoorEngine {
 
         let health = context.roster.health(for: combatant)
         if health == 0 {
-            // Phoenix Gift: when the Hero takes fatal damage, the Phoenix heals them
-            // for a percent of Max Health (preempts Death's Door).
             if combatant.role == .hero,
                let gift = tryPhoenixGift(on: combatant, in: &context) {
                 return gift
@@ -53,7 +48,6 @@ package enum DeathsDoorEngine {
                 clampToMinimumHP(on: combatant, in: &context)
             }
         }
-        // Corpse Explosion: on final death, deal Physical damage to the enemy.
         if context.roster.health(for: combatant) == 0,
            combatant.id != context.roster.enemy.id,
            context.roster.enemy.isAlive {
@@ -74,7 +68,6 @@ package enum DeathsDoorEngine {
         return []
     }
 
-    /// Phoenix Gift: when the Hero takes fatal damage, heal them for a percent of Max Health (once per battle).
     private static func tryPhoenixGift(
         on combatant: Combatant,
         in context: inout BattleState
@@ -108,7 +101,6 @@ package enum DeathsDoorEngine {
         ).events
     }
 
-    /// Policy C: unused trait death-revive fires before Death's Door and does not consume DD.
     private static func tryTraitDeathRevive(
         on combatant: Combatant,
         in context: inout BattleState
@@ -123,9 +115,6 @@ package enum DeathsDoorEngine {
         guard reviveHealth > 0 || reviveBlock > 0 else { return nil }
 
         let healthToRestore = max(1, reviveHealth)
-        // Direct mutation by design: a fixed-contract self-revive. Routing through
-        // HealingEngine would Wisdom/crit-scale the amount and let a debuff gate
-        // suppress death protection.
         context.roster.mutateRuntime(for: combatant) { runtime in
             runtime.hasTriggeredDeathRevive = true
             runtime.currentHealth = min(healthToRestore, runtime.maxHealth)
@@ -151,7 +140,6 @@ package enum DeathsDoorEngine {
                 abilityName: abilityName
             ))
         }
-        // Blazing Rebirth: reviving deals Burn damage to the enemy.
         if triggers.reviveDealBurnDamage > 0, context.roster.enemy.isAlive {
             events.append(contentsOf: context.applyDecayingDoT(
                 keyword: .burn,
@@ -182,7 +170,6 @@ package enum DeathsDoorEngine {
             remainingTurns: duration
         )
 
-        // Phoenix Vigor: surviving Death's Door grants +50% damage for 3 turns.
         if triggers.onSurviveDeathsDoorDamageBonusPercent > 0 {
             context.roster.mutateRuntime(for: combatant) { runtime in
                 runtime.talentDamagePercentBonus += triggers.onSurviveDeathsDoorDamageBonusPercent
@@ -214,7 +201,6 @@ package enum DeathsDoorEngine {
         return events
     }
 
-    /// Guardian Archive: when an ally hits Death's Door, the Owl heals them and cleanses.
     private static func guardianArchive(
         on combatant: Combatant,
         in context: inout BattleState
@@ -250,8 +236,6 @@ package enum DeathsDoorEngine {
         return events
     }
 
-    /// Afterglow: when the Phoenix survives Death's Door, restore 15% of each
-    /// ally's Max Health.
     private static func afterglow(
         on combatant: Combatant,
         in context: inout BattleState
@@ -285,7 +269,6 @@ package enum DeathsDoorEngine {
         return events
     }
 
-    /// Endless Legion: when Death's Door ends, restore Health once.
     static func afterDeathsDoorExpired(
         on combatant: Combatant,
         in context: inout BattleState
@@ -295,7 +278,6 @@ package enum DeathsDoorEngine {
               context.roster.health(for: combatant) > 0,
               context.claimBattleGuard(.endlessLegion, actorID: combatant.id)
         else { return [] }
-        // Floor semantics: raise Health to at least `amount` (never add on top).
         let maxHealth = context.roster.maxHealth(for: combatant)
         let currentHealth = context.roster.health(for: combatant)
         let delta = min(max(currentHealth, amount), maxHealth) - currentHealth

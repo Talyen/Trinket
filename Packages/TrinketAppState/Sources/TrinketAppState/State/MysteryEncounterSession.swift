@@ -36,7 +36,6 @@ public final class MysteryEncounterSession: Identifiable {
 
     public let stage: Stage
     public let origin: PlayEncounterOrigin
-    /// When set, completion clears a Labyrinth node instead of a journey stage.
     public var labyrinthNodeID: String? {
         origin.labyrinthNodeID
     }
@@ -77,7 +76,6 @@ public final class MysteryEncounterSession: Identifiable {
             || event.choices.contains { $0.effects.contains(.corruptItem) }
     }
 
-    /// True while the encounter is still waiting for a reading-phase choice.
     public var canResolveChoice: Bool {
         phase == .reading && !isResolvingChoice
     }
@@ -97,7 +95,6 @@ public final class MysteryEncounterSession: Identifiable {
         self.combatant = combatant
     }
 
-    /// Same resolver used by map preview and encounter open so art matches the session.
     static func resolveEvent(
         origin: PlayEncounterOrigin,
         forcedEventID: String?,
@@ -126,7 +123,6 @@ public final class MysteryEncounterSession: Identifiable {
         }
     }
 
-    /// Assembles a mystery/recruit session for a journey stage or Labyrinth node.
     static func open(
         origin: PlayEncounterOrigin,
         forcedEventID: String?,
@@ -244,7 +240,6 @@ extension MysteryEncounterSession {
         }
     }
 
-    /// Applies the chosen effects and optionally completes progress in one mutation.
     func resolveChoice(
         choiceID: String?,
         save: inout PlayerSave,
@@ -254,15 +249,11 @@ extension MysteryEncounterSession {
         guard canResolveChoice else { return .failed }
         markChoiceStarted()
 
-        /// Labyrinth economy modifiers (Bounty Mark etc.) boost this node's rewards.
         func mysteryRewardBonuses(in save: PlayerSave) -> LabyrinthModifierEffects {
             guard let labyrinthNodeID else { return .zero }
             return save.labyrinth.effects(for: labyrinthNodeID)
         }
 
-        // A `nil` choiceID is the single-choice auto-resolve path. A stale or
-        // mismatched ID must fail rather than silently fall through to the
-        // first choice and grant its rewards.
         let choice: MysteryChoice? = if let choiceID {
             event.choices.first { $0.id == choiceID }
         } else {
@@ -306,8 +297,6 @@ extension MysteryEncounterSession {
         )
 
         if !applyResult.unlockedCombatantIDs.isEmpty {
-            // Unlock + progress complete in one mutation for every origin so a
-            // replayed recruit can never double-grant the unlock rewards.
             completeProgress(self, &save)
             noteMysteryCadence(save: &save)
             return .reveal(unlockedCombatantID: applyResult.unlockedCombatantIDs[0])
@@ -321,7 +310,6 @@ extension MysteryEncounterSession {
         return .dismiss
     }
 
-    /// Corrupts the chosen inventory item, records altar encounter, and completes progress.
     func corruptSelectedItem(
         itemID: String,
         save: inout PlayerSave,

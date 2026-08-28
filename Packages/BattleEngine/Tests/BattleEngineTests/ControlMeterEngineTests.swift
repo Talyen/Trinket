@@ -128,7 +128,6 @@ struct ControlMeterEngineTests {
         let target = context.roster.enemy.combatant
         let baseThreshold = ControlMeterEngine.threshold(for: target, in: context)
 
-        // Charge well past the reduced threshold; the cap clamps at "full".
         let events = ControlMeterEngine.applyMeterCharge(
             baseThreshold,
             keyword: .stun,
@@ -182,7 +181,6 @@ struct ControlMeterEngineTests {
     }
 
     @Test func freezeExtendChanceRespectsSeed() throws {
-        // Seed 0 hits at 0.20, seed 1 misses — validates chance path, not just 0/1 endpoints.
         var hitContext = BattleTestFixtures.makePipelineContext(
             heroModifiers: .init(triggers: CombatTraitTriggers(
                 control: ControlTriggers(freezeExtendChancePercent: 0.20)
@@ -229,7 +227,6 @@ struct ControlMeterEngineTests {
     }
 
     @Test func chanceAboveOneGrantsFractionalSecondSkipDeterministically() throws {
-        // 1.5 = guaranteed 1 + 50% for second; seed 0 hits second, seed 1 misses.
         var hitContext = BattleTestFixtures.makePipelineContext(
             heroModifiers: .init(triggers: CombatTraitTriggers(
                 control: ControlTriggers(stunExtendChancePercent: 1.5)

@@ -2,14 +2,6 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-/// Builds the per-combatant effect summaries used by the detail pane and
-/// the status line. Replaces the in-line `groupedEffectSummaries` function
-/// that previously lived on `BattleState`.
-///
-/// For each keyword group, kinds are tried in `priorityOrder` and the first
-/// handler that returns a non-nil summary wins. This preserves the historical
-/// priority ordering (decaying DoTs first, then bleed, then defensive
-/// totals, then control-meter build-up, then active control effects, then cleanse).
 public enum EffectSummaryBuilder {
     private static let priorityOrder: [EffectKind] = [
         .deathsDoor,
@@ -24,8 +16,6 @@ public enum EffectSummaryBuilder {
         .controlMeter,
     ]
 
-    /// Returns an `EffectSummary` for each active effect kind/stack group.
-    /// Order follows `priorityOrder`.
     public static func build(for effects: [ActiveEffect]) -> [EffectSummary] {
         var summaries: [EffectSummary] = []
         for kind in priorityOrder {

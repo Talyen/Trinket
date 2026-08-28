@@ -6,7 +6,6 @@ import TrinketCore
 import TrinketFeatureContracts
 import TrinketPersistence
 
-/// Shared shop and mystery encounter flow for journey stages and labyrinth nodes.
 @MainActor
 @Observable
 public final class EncounterPlayMode {
@@ -18,7 +17,6 @@ public final class EncounterPlayMode {
     public var activeMysteryEncounter: MysteryEncounterSession?
     public var activeShopEncounter: ShopEncounterSession?
 
-    /// True when no shop, mystery, or battle is already in progress.
     var canBeginTransientEncounter: Bool {
         activeShopEncounter == nil
             && activeMysteryEncounter == nil
@@ -111,7 +109,6 @@ public final class EncounterPlayMode {
         activeShopEncounter = nil
     }
 
-    /// Completes an active shop encounter only after persistence succeeds.
     @discardableResult
     public func finishActiveShopEncounter() -> Bool {
         guard let shopSession = activeShopEncounter else { return false }
@@ -134,7 +131,6 @@ public final class EncounterPlayMode {
         return true
     }
 
-    /// Shared empty-shop UX after auto-complete (journey stage or labyrinth node).
     static let emptyShopClosedMessage = StageMapMessage(
         title: "Shop Closed",
         message: "The merchant has nothing left to sell. You continue on."

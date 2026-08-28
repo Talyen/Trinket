@@ -2,9 +2,6 @@ import simd
 import SwiftUI
 import TrinketCore
 
-// MARK: - Metal Shader Full-Screen Keyword Plasma Background
-
-/// Full-screen ambient fluid plasma driven by keyword affinity colors.
 public struct KeywordPlasmaBackground: View {
     let keywords: [Keyword]
     let focalYOffset: CGFloat

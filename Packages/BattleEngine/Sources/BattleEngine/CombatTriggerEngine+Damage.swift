@@ -63,7 +63,6 @@ package extension CombatTriggerEngine {
         context.dotRecursionDepth += 1
         defer { context.dotRecursionDepth -= 1 }
         var events: [ActionEvent] = []
-        // Smoke Screen: inflicting Burn grants +Dodge chance until your next turn.
         if keyword == .burn,
            let source = context.roster.combatant(for: sourceActorID) {
             let dodgeBonus = context.modifiers(for: sourceActorID).triggers.onApplyBurnDodgeChanceUntilNextTurn
@@ -91,7 +90,6 @@ package extension CombatTriggerEngine {
         return events
     }
 
-    /// Total potency of all active DoT effects of `keyword` on `combatant`.
     static func totalPotency(
         of keyword: Keyword,
         on combatant: Combatant,
@@ -122,8 +120,6 @@ package extension CombatTriggerEngine {
         if damageKeyword == .freeze, status.isBurning {
             bonus += triggers.freezeDamageWhileBurningBonus
         }
-        // Shatter is an aura: the enemy takes extra damage from party hits while Frozen.
-        // Dazed is an aura: the enemy takes extra damage from party hits while Stunned.
         if source.role != .enemy {
             let partyTriggers = context.partyTriggers
             if status.isFrozen {
@@ -145,11 +141,9 @@ package extension CombatTriggerEngine {
             }
         }
 
-        // Combatant Talent System — target-condition flat damage bonuses.
         if status.isBleeding {
             bonus += triggers.damageVsBleedingBonus
         }
-        // Combustion: attacks against Burning enemies deal bonus damage per Burn potency.
         if status.isBurning, triggers.damagePerBurnPotencyPercent > 0 {
             bonus += CombatRounding.scaled(
                 totalPotency(of: .burn, on: target, in: context),
@@ -197,8 +191,6 @@ package extension CombatTriggerEngine {
         return bonus
     }
 
-    /// Product of target-condition damage multipliers (Combatant Talent System).
-    /// Applied in `DamagePipelineResolutionSteps.applyDamageBonus`.
     static func damageMultiplier(
         for state: DamageResolutionState,
         in context: BattleState
@@ -296,7 +288,6 @@ package extension CombatTriggerEngine {
         return events
     }
 
-    /// Rimeheart: dealing Freeze damage grants Block equal to the amount dealt.
     static func afterFreezeDamageDealt(
         to _: Combatant,
         source: Combatant,
@@ -440,7 +431,6 @@ package extension CombatTriggerEngine {
                 in: &context
             ))
         }
-        // Exsanguinate: critical hits on Bleeding targets trigger all remaining Bleed ticks.
         if profile.triggers.criticalOnBleedingDetonateBleed, context.roster.health(for: enemy) > 0 {
             events.append(contentsOf: detonateBleed(on: enemy, sourceActorID: source.id, in: &context))
         }
@@ -451,7 +441,6 @@ package extension CombatTriggerEngine {
                 in: &context
             ))
         }
-        // Rend Flesh: critical hits double the duration of active Bleed effects (capped at 10 turns).
         if profile.triggers.onCritDoubleBleedDuration {
             var effects = context.roster.activeEffects(for: enemy)
             for index in effects.indices where effects[index].effect.isBleed {
@@ -459,7 +448,6 @@ package extension CombatTriggerEngine {
             }
             context.roster.setActiveEffects(effects, for: enemy)
         }
-        // Confounding Loot: critical hits against Stunned enemies drop Gold.
         if profile.triggers.criticalVsStunnedEnemyGold > 0,
            context.roster.hasControlStatus(for: enemy, keyword: .stun) {
             events.append(contentsOf: context.grantGoldEvent(
@@ -472,7 +460,6 @@ package extension CombatTriggerEngine {
         return events
     }
 
-    /// Resolves every remaining Bleed tick on `target` immediately (Exsanguinate / Cauterize).
     static func detonateBleed(
         on target: Combatant,
         sourceActorID: String,
@@ -517,7 +504,6 @@ package extension CombatTriggerEngine {
 }
 
 package extension CombatTriggerEngine {
-    /// Companion reflex: when the Hero hits a Poisoned enemy, the Companion spits extra Poison.
     static func companionSpitPoison(
         to target: Combatant,
         in context: inout BattleState

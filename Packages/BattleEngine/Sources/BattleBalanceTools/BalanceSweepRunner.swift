@@ -6,7 +6,7 @@ import TrinketCore
 public enum BalanceSweepRunner {
     public static func run(
         config: BalanceSweepConfig,
-        policy: (any SimulationPlayPolicy)? = nil,
+        policy: PlayPolicy? = nil,
         heroes: [Combatant]? = nil,
         companions: [Combatant]? = nil,
         enemies: [Enemy]? = nil
@@ -75,7 +75,7 @@ public enum BalanceSweepRunner {
 
     private static func runContrastsIfNeeded(
         config: BalanceSweepConfig,
-        policy: any SimulationPlayPolicy,
+        policy: PlayPolicy,
         heroes: [Combatant],
         companions: [Combatant],
         enemies: [Enemy]
@@ -110,7 +110,7 @@ public enum BalanceSweepRunner {
 
     private static func runProgressionIfNeeded(
         config: BalanceSweepConfig,
-        policy: any SimulationPlayPolicy
+        policy: PlayPolicy
     ) -> (
         records: [ProgressionBattleRecord],
         hotspots: [NodeHotspotSummary],
@@ -125,7 +125,7 @@ public enum BalanceSweepRunner {
 
     private static func runIdentitySweep(
         config: BalanceSweepConfig,
-        policy: any SimulationPlayPolicy,
+        policy: PlayPolicy,
         heroes: [Combatant],
         companions: [Combatant],
         enemies: [Enemy]
@@ -157,7 +157,7 @@ public enum BalanceSweepRunner {
 
     private struct IdentityBattleWork {
         var config: BalanceSweepConfig
-        var policy: any SimulationPlayPolicy
+        var policy: PlayPolicy
         var heroes: [Combatant]
         var companions: [Combatant]
         var enemies: [Enemy]

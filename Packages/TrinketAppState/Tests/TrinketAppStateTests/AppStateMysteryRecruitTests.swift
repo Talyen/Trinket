@@ -29,7 +29,6 @@ struct AppStateMysteryRecruitTests {
         #expect(session.phase == .revealing)
         #expect(session.unlockedCombatantID == "bear")
         #expect(state.playerSave.roster.isCompanionUnlocked("bear"))
-        // Recruit resolution completes journey progress in the same transaction.
         #expect(state.playerSave.journey.completedStageIDs.contains("chapter-1-stage-2"))
 
         #expect(state.encounters.finishActiveMysteryEncounter())
@@ -116,7 +115,6 @@ struct AppStateMysteryRecruitTests {
         #expect(!session.event.isRecruit)
         #expect(state.playerSave.journey.pinnedMysteryEventIDs[stage.id] == expected.id)
 
-        // Pin wins over a different pick context on later resolve.
         let pinned = GameContent.resolveJourneyMysteryEvent(
             stage: stage,
             worldSeed: state.playerSave.worldSeed,
@@ -265,7 +263,6 @@ struct AppStateMysteryRecruitTests {
         #expect(!state.playerSave.journey.completedStageIDs.contains("chapter-1-stage-2"))
         #expect(state.encounters.activeMysteryEncounter == nil)
 
-        // One successful retry persists unlock + completion atomically.
         #expect(state.journey.handleStagePrimaryAction(for: stage) == nil)
         #expect(state.playerSave.roster.isCompanionUnlocked("bear"))
         #expect(state.playerSave.journey.completedStageIDs.contains("chapter-1-stage-2"))

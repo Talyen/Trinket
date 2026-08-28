@@ -1,9 +1,6 @@
 import TrinketContent
 import TrinketCore
 
-/// Handles the combatant-talent timed debuffs (Blinding Carapace, Dazzle, Weaken Soul).
-/// They advance each turn via the default `advanceTurn` and are applied either
-/// through a card effect or directly via `BattleState.appendEffect`.
 struct TimedDebuffHandler: BattleEffectHandler {
     let kind: EffectKind
 

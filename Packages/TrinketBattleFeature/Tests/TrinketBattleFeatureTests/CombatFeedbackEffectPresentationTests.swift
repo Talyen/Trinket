@@ -4,8 +4,6 @@ import TrinketDesignSystem
 @testable import TrinketBattleFeature
 
 struct CombatFeedbackEffectPresentationTests {
-    /// Every engine effect outcome must have a presentation descriptor so new
-    /// outcomes surface here instead of silently rendering as a generic chip.
     @Test func everyEffectOutcomeHasADescriptor() {
         for outcome in ActionEvent.EffectOutcome.allCases {
             _ = CombatFeedbackEffectPresentation.descriptor(for: outcome)
@@ -13,8 +11,6 @@ struct CombatFeedbackEffectPresentationTests {
     }
 
     @Test func descriptorValuesMatchPresenterContract() {
-        // Spot-check load-bearing rows so a copy-paste slip inside the table
-        // fails here rather than rendering the wrong chip in battle.
         let heal = CombatFeedbackEffectPresentation.descriptor(for: .instantHeal)
         #expect(heal.feedbackClass == .heal)
         #expect(heal.isAdditive)
@@ -104,7 +100,6 @@ struct CombatFeedbackEffectPresentationTests {
         #expect(defaultDamage.recoveryScaleX > 0)
         #expect(defaultDamage.recoveryScaleY > 0)
 
-        // Custom empty recipe verifies safe fallback behavior without crashing
         let emptyRecipe = CombatantHitReactionRecipe(
             kind: .none,
             scaleX: [],

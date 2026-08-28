@@ -233,8 +233,6 @@ struct BattleVictorySummaryTests {
         #expect(context.goldFindPercent > 0)
         #expect(summary.rawBattleEarnedGold == earnedGold)
         #expect(summary.totalGold == expectedTotal)
-        // Display `battleGold` absorbs the homestead remainder; re-feeding it into
-        // grant APIs would apply gold-find twice.
         #expect(summary.battleGold >= summary.rawBattleEarnedGold)
         #expect(
             HomesteadEffects(

@@ -29,9 +29,6 @@ struct BattlefieldView<EnemyPane: View, HeroPane: View, CompanionPane: View>: Vi
     }
 }
 
-/// Fixed feedback anchors derived from the authored battlefield grid. This layer
-/// is a sibling of combatant panes so attack and hit-reaction transforms do not
-/// move floating combat text.
 struct BattlefieldFeedbackOverlay: View {
     @Environment(\.displayScale) private var displayScale
 

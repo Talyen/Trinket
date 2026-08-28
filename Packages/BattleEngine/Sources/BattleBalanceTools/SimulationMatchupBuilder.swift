@@ -3,7 +3,6 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-/// Assembles leveled, loadout-selected, optionally geared matchups for balance sweeps.
 public enum SimulationMatchupBuilder {
     public struct GearOverride: Equatable, Sendable {
         public var inventory: [InventoryItem]
@@ -104,7 +103,6 @@ public enum SimulationMatchupBuilder {
         )
     }
 
-    /// Random legal loadout from a combatant's choice pools.
     public static func sampleLoadout(
         for combatant: Combatant,
         using randomNumberGenerator: inout some RandomNumberGenerator
@@ -116,16 +114,12 @@ public enum SimulationMatchupBuilder {
         return AbilityLoadout(basic: basic, skill: skill, ultimate: ultimate)
     }
 
-    /// Identity and mode-progression floor: the party must bring this many
-    /// opponent-damaging cards so support-only draws are not the duration sample.
     public static let minimumPartyDamagingAbilities = 3
 
     public static func damagingAbilityCount(hero: AbilityLoadout, companion: AbilityLoadout) -> Int {
         (hero.abilities + companion.abilities).filter(\.dealsCombatDamage).count
     }
 
-    /// Resamples both loadouts until the party has at least
-    /// `minimumPartyDamagingAbilities` damaging cards, or the best of 64 draws.
     public static func samplePartyLoadouts(
         hero: Combatant,
         companion: Combatant,
@@ -180,7 +174,6 @@ public enum SimulationMatchupBuilder {
         return GearOverride(gear)
     }
 
-    /// One basic 1-affix keyword-aligned item. Returns nil when no legal piece exists.
     public static func generateStarterGear(
         for combatant: Combatant,
         loadout: AbilityLoadout,
@@ -228,9 +221,6 @@ public enum SimulationMatchupBuilder {
         )
     }
 
-    /// Spends available talent points on a legal row-gated kit.
-    /// Full catalog when points cover every node; otherwise a random legal walk.
-    /// `pointCap` limits identity early to a starter node without changing earned points.
     public static func legalTalentKit(
         for combatantID: String,
         level: Int,
@@ -259,7 +249,6 @@ public enum SimulationMatchupBuilder {
         return unlocked
     }
 
-    /// Both nodes in rows strictly below `row` in `tree` (row-gate prefix for sibling contrast).
     public static func minimalPrefix(for tree: TalentTree, throughRow row: Int) -> Set<String> {
         Set(tree.nodes.filter { $0.row < row }.map(\.id))
     }

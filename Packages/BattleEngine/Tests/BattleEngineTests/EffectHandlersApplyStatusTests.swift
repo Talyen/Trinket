@@ -5,8 +5,6 @@ import TrinketCore
 import TrinketTestSupport
 
 struct EffectHandlersApplyStatusTests {
-    // MARK: - Cleanse
-
     private enum CleanseCase {
         case specificPoison
         case allDebuffs
@@ -101,8 +99,6 @@ struct EffectHandlersApplyStatusTests {
             try #expect(remainingDebuffs.count == 1)
         }
     }
-
-    // MARK: - Purge
 
     private enum PurgeCase {
         case specificBlock

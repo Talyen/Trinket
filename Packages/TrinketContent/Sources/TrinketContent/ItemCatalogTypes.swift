@@ -49,15 +49,10 @@ public struct ItemBaseType: Identifiable, Equatable, Hashable, Sendable {
         weaponKind == .offHand ? .secondaryWeapon : slot
     }
 
-    /// Ranged two-handers (bows / crossbow) that pair with Quiver in the off-hand.
-    /// Keep in sync with `GameContentItemBases.generated.swift` two-handed weapon list.
-    /// If a new bow/crossbow base is added, add its id here or `secondaryWeaponAllows`
-    /// will incorrectly block Quiver.
     public var isRanged: Bool {
         Self.rangedBaseIDs.contains(id)
     }
 
-    /// Off-hand Quiver — the only off-hand that can be paired with a ranged two-hander.
     public var isQuiver: Bool {
         id == "quiver"
     }
@@ -71,7 +66,6 @@ public struct ItemBaseType: Identifiable, Equatable, Hashable, Sendable {
 }
 
 public extension ItemBaseType {
-    /// Neutral base-item preview used before a generated reward's rarity is rolled.
     var previewArtReference: ItemArtReference? {
         ArtCatalog.itemArtByID["\(id)-basic"] ?? ArtCatalog.itemArtByID[id]
     }
@@ -82,7 +76,6 @@ public struct ItemAffix: Identifiable, Equatable, Hashable, Sendable {
     public let title: String
     public let description: String
     public let keywords: Set<Keyword>
-    /// Marks the altar's single corruption affix; at most one affix per item carries it.
     public let isCorrupted: Bool
 
     public init(
@@ -103,8 +96,6 @@ public struct ItemAffix: Identifiable, Equatable, Hashable, Sendable {
 public struct ItemAffixPower: Codable, Equatable, Hashable, Sendable {
     public let description: String
     public let modifiers: [AffixModifier]
-    /// Held indirectly (copy-on-write box) so the ~470-field trigger struct does
-    /// not bloat every affix power built through the bulk-generated affix catalog.
     public var triggers: CombatTraitTriggers {
         get { triggerBox.value }
         set {
@@ -117,7 +108,6 @@ public struct ItemAffixPower: Codable, Equatable, Hashable, Sendable {
     }
 
     // Concurrency-Safety: `@unchecked Sendable` — COW box is mutated only while
-    // uniquely referenced; copies clone `CombatTraitTriggers`.
     private final class TriggerBox: @unchecked Sendable {
         var value: CombatTraitTriggers
         init(_ value: CombatTraitTriggers) {
@@ -206,15 +196,10 @@ public struct ItemAffixDefinition: Identifiable, Equatable, Hashable, Sendable {
         }
     }
 
-    /// Utility affixes with no damage-type keywords (mitigation / restoration / resource).
-    /// Safe to equip on any build without creating a keyword mismatch.
     public var isBuildGeneric: Bool {
         keywords.allSatisfy { $0.category != .damageType }
     }
 
-    /// `true` when every damage type in this affix is present in `bias`, or the
-    /// affix is build-generic. Hybrid damage affixes cannot introduce a
-    /// damage type outside the selected build.
     public func isAligned(withBuildKeywords bias: Set<Keyword>) -> Bool {
         if isBuildGeneric {
             return true

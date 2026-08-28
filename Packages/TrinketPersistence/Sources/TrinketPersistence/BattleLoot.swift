@@ -2,7 +2,6 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-/// Deterministic combat victory loot: 1 generated item, gold, and exactly 2 materials.
 public struct BattleLootPackage: Hashable, Sendable {
     public let item: InventoryItem
     public let gold: Int
@@ -14,7 +13,6 @@ public struct BattleLootPackage: Hashable, Sendable {
         self.materials = materials
     }
 
-    /// Display/grant DTO used by battle chrome and completion overrides.
     public var asStageReward: StageReward {
         StageReward(gold: gold, itemTemplateIDs: [], materialRewards: materials)
     }
@@ -25,7 +23,6 @@ public enum BattleLoot {
         .wood, .stone, .iron, .food, .herbs, .hide, .crystal,
     ]
 
-    /// Shared quantity band for gold and each material (L1 3–4 → L50 12–24).
     public static func quantityRange(forLevel level: Int) -> ClosedRange<Int> {
         let clamped = max(1, level)
         let minQty = 3 + (clamped * 9) / 49
@@ -78,8 +75,6 @@ public enum BattleLoot {
         return BattleLootPackage(item: item, gold: gold, materials: materials)
     }
 
-    /// Journey combat loot. Prepared battles grant this package at claim rather
-    /// than re-rolling; the seed remains for fallback completions without a live run.
     public static func resolveJourney(
         stage: Stage,
         encounterLevel: Int,
@@ -103,7 +98,6 @@ public enum BattleLoot {
         )
     }
 
-    /// Spire floor loot; optional keyword bias from the Spire.
     public static func resolveSpire(
         floor: SpireFloor,
         encounterLevel: Int,
@@ -132,7 +126,6 @@ public enum BattleLoot {
         )
     }
 
-    /// Labyrinth combat loot; incorporates world seed + node id.
     public static func resolveLabyrinth(
         node: LabyrinthNode,
         encounterLevel: Int,

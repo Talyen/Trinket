@@ -41,7 +41,6 @@ struct BattleOpeningHandTests {
             try #expect(battle.heroDeck.count == 3 - heroHandCount)
             try #expect(battle.companionDeck.count == 3 - companionHandCount)
         }
-        // The coin flip for the Skill slot must reach both owners across seeds.
         try #expect(skillOwners == [.hero, .companion])
     }
 }

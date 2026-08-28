@@ -5,7 +5,6 @@ import TrinketCore
 import TrinketFeatureContracts
 import TrinketPersistence
 
-/// Shared prepare/activate shell for mode-owned battle encounters.
 @MainActor
 struct PlayBattleEncounterCoordinator<PreparationInputs: Equatable> {
     let battle: any BattleRuntime

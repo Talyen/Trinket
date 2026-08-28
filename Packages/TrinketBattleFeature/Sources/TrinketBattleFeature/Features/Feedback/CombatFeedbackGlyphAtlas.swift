@@ -6,8 +6,6 @@ import TrinketDesignSystem
 import TrinketFeatureSupport
 import UIKit
 
-/// Prewarmed glyph store for combat feedback chips. Glyphs are baked white and
-/// tinted at compose time so the atlas keys only on font face + scale.
 @MainActor
 final class CombatFeedbackGlyphAtlas {
     static let shared = CombatFeedbackGlyphAtlas()
@@ -39,8 +37,6 @@ final class CombatFeedbackGlyphAtlas {
     }
 
     /// Concurrency-Safety: `@unchecked Sendable` — `CGImage` bitmaps are immutable
-    /// after rasterization; detached bake workers only create glyphs that the
-    /// MainActor atlas then stores.
     struct Glyph: @unchecked Sendable {
         let image: CGImage
         let width: CGFloat
@@ -77,8 +73,6 @@ final class CombatFeedbackGlyphAtlas {
     }
 
     /// Concurrency-Safety: `@unchecked Sendable` — value payload for detached bake
-    /// results; carries immutable `Glyph` bitmaps plus hashable keys back to the
-    /// MainActor atlas merge.
     enum PreparedGlyph: @unchecked Sendable {
         case symbol(SymbolKey, Glyph)
         case fragment(FragmentKey, Glyph)
@@ -144,9 +138,6 @@ final class CombatFeedbackGlyphAtlas {
         }
     }
 
-    /// Builds immutable atlas entries away from the main actor. UIKit/Core Graphics
-    /// image renderers are safe for background bitmap construction; only the final
-    /// dictionary publication returns to the actor that owns the battle-scoped cache.
     private func startBattlePresentationPreparation(
         for key: PresentationKey
     ) -> Task<PresentationKey?, Never> {
@@ -161,7 +152,6 @@ final class CombatFeedbackGlyphAtlas {
             }
             let requests = prewarmRequests(displayScaleHundredths: key.displayScaleHundredths)
             // Concurrency-Safety: detached CPU rasterization must not block
-            // MainActor; results are immutable PreparedGlyph values merged here.
             let worker = Task.detached(priority: .utility) {
                 Self.bake(requests)
             }
@@ -193,8 +183,6 @@ final class CombatFeedbackGlyphAtlas {
             Keyword.VisualStyle.beneficialStatus.symbolName,
             Keyword.VisualStyle.negativeStatus.symbolName,
         ])
-        // Every integer label can be assembled from this complete alphabet. This is
-        // both cheaper and more complete than eagerly rasterizing an arbitrary range.
         let numericFragments = CombatFeedbackChipLabel.numericAtlasFragments
         var requests: [PrewarmRequest] = []
 
@@ -218,7 +206,6 @@ final class CombatFeedbackGlyphAtlas {
                         requests.append(.fragment(key, recipe))
                     }
                 }
-                // Word fragments stay headline-sized; secondary only shrinks numerics.
                 if role == .headline {
                     for fragment in Self.wordAtlasFragments(for: typography) {
                         let key = FragmentKey(face: face, text: fragment)
@@ -232,9 +219,6 @@ final class CombatFeedbackGlyphAtlas {
         return requests
     }
 
-    /// Short word fragments still drawn next to a keyword icon.
-    /// Icon-only / dual-icon chips (dodge, Death's Door, cleanse, status, …) need
-    /// no text fragments. Numerics use `numericAtlasFragments`.
     nonisolated static func wordAtlasFragments(
         for typography: CombatFeedbackTypographyTier
     ) -> [String] {
@@ -327,7 +311,6 @@ final class CombatFeedbackGlyphAtlas {
 }
 
 private extension CombatFeedbackTypographyTier {
-    /// Sample class per tier for atlas prewarm requests.
     var representativeClass: CombatFeedbackClass {
         switch self {
         case .emphasis: .critical
@@ -352,8 +335,6 @@ enum CombatFeedbackGlyphMetrics {
             weight = .bold
         }
         let textStyle = uiTextStyle(style)
-        // Chips are baked rasters; pin to the standard type size so the atlas
-        // stays a single face per role regardless of user text settings.
         let traits = UITraitCollection(preferredContentSizeCategory: .large)
         let preferred = UIFont.preferredFont(forTextStyle: textStyle, compatibleWith: traits)
         let pointSize = preferred.pointSize * 0.90
@@ -402,7 +383,6 @@ enum CombatFeedbackGlyphMetrics {
     }
 }
 
-/// Shared display-link gate for paced prewarm (SFX-style).
 @MainActor
 enum CombatFeedbackDisplayLinkGate {
     static func waitForNextDisplayLink() async {

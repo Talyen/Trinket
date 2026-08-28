@@ -5,25 +5,17 @@ import TrinketCore
 public struct PlayerSave: Equatable, Sendable {
     public static let currentSchemaVersion = 16
 
-    /// Schema milestones referenced by load-time field mappings. When a save
-    /// field changes shape, add the matching milestone here and bump
-    /// `currentSchemaVersion`; the mappings in `PlayerSaveRoot+Mapping` and
-    /// `RosterHydration` read these gates during decode.
     public enum Schema {
-        /// 13→14 renamed equipment slots ("Trinket" → `.accessory`, etc.).
         public static let renamedItemSlots = 14
-        /// 15→16 introduced the persisted starter-selection phase.
         public static let persistedStarterSelection = 16
     }
 
     public static let corruptionAltarCooldownAfterEncounter = 6
-    /// Fixed seed for `testSeed` fixtures so Persistence tests stay deterministic.
     public static let testWorldSeed: UInt64 = 0x5445_5354
 
     public var schemaVersion: Int
     public var modifiedAt: Date
     public var sessionGeneration: UInt64
-    /// Save-scoped entropy mixed into generated shops, loot, mysteries, and maps.
     public var worldSeed: UInt64
     public var starterSelection: StarterSelectionState
     public var journey: JourneyProgressState
@@ -32,7 +24,6 @@ public struct PlayerSave: Equatable, Sendable {
     public var homestead: PlayerHomesteadState
     public var spires: PlayerSpiresState
     public var labyrinth: PlayerLabyrinthState
-    /// Mysteries remaining before Corruption Altar can roll again at full weight.
     public var corruptionAltarCooldownRemaining: Int
 
     public static var fresh: Self {
@@ -67,8 +58,6 @@ public struct PlayerSave: Equatable, Sendable {
         )
     }
 
-    /// Unlocked roster save for local development and Simulator testing.
-    /// Clears Chapter 1 so Modes unlock; leaves later chapters, Spires, and Labyrinth uncleared.
     public static var unlockedAll: Self {
         var roster = PlayerRosterState.freshStart
         roster.unlockAllCombatants(atLevel: 20)
@@ -150,7 +139,6 @@ public struct PlayerSave: Equatable, Sendable {
         return roster.gold - balanceBefore
     }
 
-    /// Settles production before granting materials and returns the amounts accepted.
     @discardableResult
     public mutating func grantMaterials(
         _ rewards: [ResourceAmount],

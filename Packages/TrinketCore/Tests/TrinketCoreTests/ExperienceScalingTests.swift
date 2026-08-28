@@ -48,8 +48,6 @@ struct ExperienceScalingTests {
             ExperienceScaling.battleAwardWithCatchUp(playerLevel: 20, enemyLevel: 5, highestLevel: 25) == 0
         )
 
-        // Pinned values, not re-derived: level-5 equal fight (25 base) × catch-up
-        // toward highest 10 (≈2.377) rounds to 59.
         try #expect(
             ExperienceScaling.battleAwardWithCatchUp(playerLevel: 5, enemyLevel: 5, highestLevel: 10)
                 == 59
@@ -57,7 +55,6 @@ struct ExperienceScalingTests {
     }
 
     @Test func equalBattleAwardMatchesEqualLevelCatchUpAward() throws {
-        // Pinned equal-level award for player 12 catching up to highest 18.
         try #expect(ExperienceScaling.equalBattleAward(playerLevel: 12, highestLevel: 18) == 201)
     }
 
@@ -71,8 +68,6 @@ struct ExperienceScalingTests {
         try #expect(ExperienceScaling.cappedAward(0, for: progression) == 0)
         try #expect(ExperienceScaling.cappedAward(-5, for: progression) == 0)
     }
-
-    // MARK: - Catch-up multiplier
 
     @Test func catchUpMultiplierCoversBaselineGrowthAndCaps() throws {
         try #expect(abs(ExperienceScaling.catchUpMultiplier(for: 10, highestLevel: 10) - 1.0) < 0.001)

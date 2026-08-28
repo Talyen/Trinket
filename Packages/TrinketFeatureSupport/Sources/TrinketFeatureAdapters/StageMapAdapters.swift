@@ -7,7 +7,6 @@ import TrinketFeatureSupport
 import TrinketPersistence
 
 public extension View {
-    /// OK-only alert presenting an optional `StageMapMessage`.
     func trinketMessageAlert(_ message: Binding<StageMapMessage?>) -> some View {
         alert(
             message.wrappedValue?.title ?? "",
@@ -28,11 +27,6 @@ public extension View {
 }
 
 public extension StageSelectRowPresentation where Item == Stage {
-    /// Campaign Stage Select rows for incomplete stages.
-    ///
-    /// Keep map artwork tied to the authored recruit event. The configured recruit
-    /// can resolve to a fallback only when the player takes the stage action;
-    /// resolving it here would change card artwork as roster state settles during navigation.
     static func stageRows(
         for chapter: Chapter,
         progress: JourneyProgressState,

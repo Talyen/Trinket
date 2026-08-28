@@ -2,9 +2,6 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-/// Shared handler for Block granted from a spent resource (all current Mana, flat
-/// or half Mana, or Gold). `convertManaToBlock` spends the Mana and runs spend-Mana
-/// reactions; the other modes only read their resource.
 struct ShieldFromResourceHandler: BattleEffectHandler {
     enum Mode: Sendable {
         case convertManaToBlock
@@ -326,7 +323,6 @@ struct AvatarHandler: BattleEffectHandler {
         )
     }
 
-    /// Fires the buff for one turn: Holy damage to the opponent plus Block for the caster.
     private func pulse(
         holyDamage: Int,
         blockPerTurn: Int,

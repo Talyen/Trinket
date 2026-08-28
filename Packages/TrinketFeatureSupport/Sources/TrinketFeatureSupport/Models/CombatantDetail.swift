@@ -1,9 +1,6 @@
 import TrinketContent
 import TrinketCore
 
-/// A read-only detail value shared by battle and collection presentations.
-/// Inventory is passed as a value snapshot so presentation code never needs to
-/// know about the persistence model that supplied it.
 public struct CombatantCardDetail: Hashable, Identifiable {
     public let combatant: Combatant
     public let progression: CombatantProgression

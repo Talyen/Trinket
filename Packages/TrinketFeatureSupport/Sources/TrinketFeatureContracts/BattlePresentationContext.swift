@@ -1,11 +1,6 @@
 import TrinketContent
 import TrinketCore
 
-/// Immutable Play-owned data required to render and resolve one battle.
-///
-/// The runtime only needs `BattleRunConfiguration` to simulate combat. This
-/// contract carries the presentation and reward data across the app/feature
-/// boundary without making either side depend on the other's state container.
 public struct BattlePresentationContext: Sendable {
     public let inventoryItems: [InventoryItem]
     public let stageReward: StageReward?

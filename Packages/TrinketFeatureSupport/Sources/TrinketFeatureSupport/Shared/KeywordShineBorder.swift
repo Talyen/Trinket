@@ -2,7 +2,6 @@ import SwiftUI
 import TrinketCore
 import TrinketDesignSystem
 
-/// Reusable traveling card-border shine for keywords, Astral items, loadout selection, and corruption marks.
 public struct KeywordShineBorder: View {
     public var colors: [Color]
     public var cornerRadius: CGFloat = TrinketDesign.Corners.card
@@ -145,7 +144,6 @@ public extension View {
         }
     }
 
-    /// Traveling border shine through arbitrary colors; freezes when `isMotionActive` is false.
     @ViewBuilder
     func colorShineBorder(
         colors: [Color]?,
@@ -167,7 +165,6 @@ public extension View {
         }
     }
 
-    /// Corruption-red selection highlight for altar targets and corrupted item cards.
     func corruptionShineBorder(lineWidth: CGFloat = 2, isMotionActive: Bool = true) -> some View {
         colorShineBorder(
             colors: CorruptionShine.borderColors,

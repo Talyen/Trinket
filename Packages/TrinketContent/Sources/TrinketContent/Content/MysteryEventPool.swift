@@ -341,7 +341,6 @@ enum MysteryEventPool {
         eventsByID[id]
     }
 
-    /// Weighted pick: Corruption Altar at 25% when chapter-eligible, inventory-eligible, and off cooldown.
     static func pickMysteryEvent(
         context: MysteryEventPickContext,
         using randomNumberGenerator: inout some RandomNumberGenerator
@@ -350,8 +349,6 @@ enum MysteryEventPool {
         let canOfferAltar = context.allowsCorruptionAltar
             && context.hasEligibleCorruptTarget
             && context.corruptionAltarCooldownRemaining == 0
-        // Always consume the altar chance draw so seeded non-altar picks stay
-        // stable when eligibility flips between map preview and open.
         let altarRoll = Int.random(
             in: 1 ... 100,
             using: &randomNumberGenerator

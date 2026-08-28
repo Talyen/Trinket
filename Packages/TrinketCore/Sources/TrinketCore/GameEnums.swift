@@ -38,13 +38,10 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Codable, Send
         }
     }
 
-    /// Keywords that can be selected by "Random damage" abilities.
     public static var damageTypes: [Self] {
         allCases.filter { $0.category == .damageType }
     }
 
-    /// Damage types and restoration heals (Health / Leech) can critical.
-    /// Mitigation, resources, and Death's Door never roll or scale critical chance.
     public var allowsCriticalHits: Bool {
         switch self {
         case .physical, .burn, .poison, .bleed, .holy, .freeze, .stun, .health, .leech:
@@ -54,7 +51,6 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Codable, Send
         }
     }
 
-    /// Player-facing status label for control effects and DoT effects. Shares styling with the parent keyword.
     public var statusAlias: String? {
         switch self {
         case .freeze: "Frozen"
@@ -77,7 +73,6 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Codable, Send
         return terms.sorted { $0.0.count > $1.0.count }
     }()
 
-    /// Returns all keywords mentioned in the provided text in appearance order without duplicates.
     public static func referenced(in text: String) -> [Self] {
         var keywordFirstIndices: [Self: String.Index] = [:]
         for (term, keyword) in styledTerms {
@@ -134,8 +129,6 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Codable, Send
     }
 }
 
-/// Affinity grouping for authored enemies. Used by talent conditions such as
-/// Bane of Evil (double Holy damage vs Undead/Corrupted).
 public enum EnemyFaction: String, CaseIterable, Identifiable, Hashable, Sendable {
     case mortal
     case beast
@@ -214,7 +207,6 @@ public enum ItemSlot: String, CaseIterable, Identifiable, Hashable, Sendable {
         rawValue
     }
 
-    /// The item catalog slot used to populate this equipment slot.
     public var baseItemSlot: Self {
         switch self {
         case .secondaryWeapon:

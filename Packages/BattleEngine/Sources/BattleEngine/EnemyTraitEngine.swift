@@ -2,7 +2,6 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-/// Passive enemy trait hooks that run during the end-of-round effect pass and damage resolution.
 package enum EnemyTraitEngine {
     package static func turnFreeze(
         for combatant: Combatant,

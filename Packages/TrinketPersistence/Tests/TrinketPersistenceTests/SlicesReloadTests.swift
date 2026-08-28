@@ -5,8 +5,6 @@ import TrinketCore
 import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
-/// Store-level reload proofs for slices whose mapping can silently clamp or
-/// fall back (spires floors, ability loadout ids).
 @MainActor
 final class SlicesReloadTests {
     let context: PersistenceTestContext
@@ -20,7 +18,6 @@ final class SlicesReloadTests {
         let firstStore = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true, persistSaveImmediately: true)
         let spire = try #require(GameContent.spires.first)
         var spires = firstStore.spires
-        // Out-of-range cleared floors clamp to the authored floor count on write.
         spires.highestClearedFloorBySpireID[spire.id.rawValue] = 9999
         firstStore.spires = spires
 
@@ -46,9 +43,6 @@ final class SlicesReloadTests {
         try #expect(persistedLoadout == loadout)
     }
 
-    /// Companions lost their Armor slot when Secondary Trinket arrived. Saves
-    /// written before that change can still carry a companion Armor row; the
-    /// store must unequip it on load while keeping the item in inventory.
     @Test func companionArmorFromOldSaveUnequipsOnReloadAndItemSurvives() throws {
         let storeURL = context.storeURL()
         let bear = try #require(GameContent.companions.first { $0.id == "bear" })
@@ -62,7 +56,6 @@ final class SlicesReloadTests {
         )
         var oldSave = PlayerSave.testSeed
         oldSave.inventory.appendUniqueItem(armor)
-        // Bypass current equip validation: pre-change saves wrote Armor directly.
         oldSave.roster.equipmentLoadouts[bear.id] = EquipmentLoadout(itemIDsBySlot: [.armor: armor.id])
 
         try SaveTestSupport.writeRoot(oldSave, to: storeURL)

@@ -23,8 +23,6 @@ struct CombatantRuntimeTests {
         )
     }
 
-    // MARK: - Initialization
-
     @Test func initialResourcesAccountForStatsAndOverrides() throws {
         let toughnessRuntime = CombatantRuntime(combatant: makeCombatant(maxHealth: 10, toughness: 5))
         try #expect(toughnessRuntime.currentHealth == 10)
@@ -56,8 +54,6 @@ struct CombatantRuntimeTests {
         let runtime = CombatantRuntime(combatant: combatant, initialActiveEffects: initial)
         try #expect(runtime.activeEffects == initial)
     }
-
-    // MARK: - takeRawDamage
 
     @Test func healthMutationRulesRespectBoundsAndBonuses() throws {
         for (maxHealth, damage, expectedLoss, expectedHealth, alive) in [
@@ -92,10 +88,6 @@ struct CombatantRuntimeTests {
         try #expect(fullRuntime.heal(5) == 0)
     }
 
-    // MARK: - heal
-
-    // MARK: - mana
-
     @Test func manaMutationRulesRespectBounds() throws {
         let combatant = Combatant(
             id: "mage",
@@ -119,8 +111,6 @@ struct CombatantRuntimeTests {
         try #expect(cappedRuntime.currentMana == 10)
     }
 
-    // MARK: - markActed
-
     @Test func markActedIncrementsActionCount() throws {
         let combatant = makeCombatant()
         var runtime = CombatantRuntime(combatant: combatant)
@@ -132,8 +122,6 @@ struct CombatantRuntimeTests {
         runtime.markActed()
         try #expect(runtime.actionCount == 2)
     }
-
-    // MARK: - Effect storage
 
     @Test func effectStorageReplacesAndFiltersByPredicate() throws {
         let combatant = makeCombatant()

@@ -2,8 +2,6 @@ import BattleEngine
 import Foundation
 import TrinketContent
 
-/// Shared battle-preparation math for every play mode: resolves a catalog
-/// enemy and scales it to the party-adjusted authored level.
 enum PlayBattlePreparation {
     static func scaledEncounter(
         enemyID: String?,

@@ -3,8 +3,6 @@ import TrinketFeatureSupport
 #if DEBUG
 import SwiftUI
 
-/// A small measurement shell around production battle UI. Finger-driven scenarios
-/// are stimulated by XCUI; component gates use the same session mutation methods.
 struct BattlePerformanceScenarioHarness: View {
     let scenario: BattlePerformanceScenario
     let battleSession: BattleSession

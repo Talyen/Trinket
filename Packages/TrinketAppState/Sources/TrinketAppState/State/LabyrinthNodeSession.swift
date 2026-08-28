@@ -1,13 +1,11 @@
 import Foundation
 import Observation
 
-/// One ally's health snapshot on a Campfire rest screen.
 public struct CampfirePartyMember: Equatable, Sendable, Identifiable {
     public let combatantID: String
     public let name: String
     public let currentHealth: Int
     public let maxHealth: Int
-    /// Health after resting: 30% of max restored, capped at max.
     public let healedHealth: Int
 
     public var id: String {
@@ -29,7 +27,6 @@ public struct CampfirePartyMember: Equatable, Sendable, Identifiable {
     }
 }
 
-/// Thin Labyrinth Campfire rest encounter (party heal preview).
 @MainActor
 @Observable
 public final class LabyrinthNodeSession: Identifiable {
@@ -54,7 +51,6 @@ public final class LabyrinthNodeSession: Identifiable {
         failureMessage = nil
     }
 
-    /// Healed health per combatant, ready to persist as run health.
     var healedRunHealthByCombatantID: [String: Int] {
         Dictionary(uniqueKeysWithValues: party.map { ($0.combatantID, $0.healedHealth) })
     }

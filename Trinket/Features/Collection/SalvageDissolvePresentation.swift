@@ -11,7 +11,6 @@ struct SalvageTransmutationEvent: Identifiable {
     let yields: [ResourceAmount]
 }
 
-/// Opens inventory salvage detail from a collection or grid card.
 struct SalvageItemButton: View {
     let item: InventoryItem
     let showsName: Bool
@@ -31,7 +30,6 @@ struct SalvageItemButton: View {
     }
 }
 
-/// Centered salvage dissolve and yield chips, independent of the departed grid cell.
 struct SalvageTransmutationLayer: View {
     let event: SalvageTransmutationEvent
     let onFinished: () -> Void

@@ -1,8 +1,6 @@
 import Foundation
 import TrinketCore
 
-/// Aggregated combat and meta bonuses from the player's active Homestead node tiers.
-/// Only the current tier of each node applies (higher tiers replace lower ones).
 public struct HomesteadEffects: Equatable, Hashable, Sendable {
     public var heroModifiers: [AffixModifier]
     public var companionModifiers: [AffixModifier]

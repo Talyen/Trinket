@@ -108,8 +108,6 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
     let buffAuraKind: CombatantBuffAuraKind?
     @ViewBuilder let artwork: () -> Artwork
 
-    /// Local trigger so KeyframeAnimator always sees a change, even when reaction
-    /// storage is ObservationIgnored and only this combatant's bridge fires.
     @State private var playToken = 0
     @State private var activeKind: CombatantHitReactionKind = .none
     @State private var latestReactionID = 0
@@ -193,11 +191,7 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
 
     private func hitReactionArtwork(_ state: CardReactionAnimationState) -> some View {
         artwork()
-            // Mask travels with the frame (art + bars): recoil/squash can
-            // leave the card slot without exposing rectangular edges.
             .clipShape(TrinketDesign.cardShape)
-            // Border after clip so the stroke is not half-masked, and rides
-            // the same scale/offset as art + bars (whole-card hop).
             .overlay {
                 cardBorder
                     .opacity(borderVisible ? 1 : 0)
@@ -258,10 +252,6 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
     }
 }
 
-/// Pre-computes hit-reaction keyframe parameters outside of `body` so each
-/// stored property is type-checked individually (O(1)) rather than as a single
-/// body expression. Without this helper, the compiler spends ~160ms solving the
-/// combined constraint set.
 private struct ReactionLayoutState {
     let recipe: CombatantHitReactionRecipe
     let impactScaleX: Double
@@ -313,7 +303,6 @@ private struct CardReactionAnimationState {
     var rotation = 0.0
 }
 
-/// Death's Door pulse owns its animation so KeyframeAnimator is not rebuilt every tick.
 private struct CombatantStatusBorderPulse: View {
     let keyword: Keyword
 

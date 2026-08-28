@@ -3,7 +3,6 @@ import TrinketContent
 import TrinketCore
 
 public enum LabyrinthCompletion {
-    /// Ensures a Labyrinth map exists for the current save (eligible recruits applied).
     public static func enter(save: inout PlayerSave) {
         save.labyrinth.ensureMap(
             seed: save.worldSeed,
@@ -11,7 +10,6 @@ public enum LabyrinthCompletion {
         )
     }
 
-    /// Non-combat node gold stipend (shop/mystery/recruit leave). Combat uses `BattleLoot`.
     public static func nonCombatGoldStipend(for node: LabyrinthNode) -> Int {
         switch node.type.canonical {
         case .shop, .mystery, .event, .craft, .recruit:
@@ -21,16 +19,13 @@ public enum LabyrinthCompletion {
         }
     }
 
-    /// Fraction of max Health restored by one Campfire rest.
     private static let campfireRestFraction = 0.3
 
-    /// Campfire rest: restores 30% of max Health (floored), capped at max.
     public static func campfireRestHealth(current: Int, maxHealth: Int) -> Int {
         let gain = Int((Double(maxHealth) * campfireRestFraction).rounded(.down))
         return min(maxHealth, current + gain)
     }
 
-    /// Stable inventory id for a node's Labyrinth find (forge or combat roll).
     public static func rewardItemID(forNodeID nodeID: String) -> String {
         "labyrinth-\(nodeID)"
     }

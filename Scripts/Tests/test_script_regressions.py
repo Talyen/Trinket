@@ -420,6 +420,46 @@ class ScriptRegressionTests(unittest.TestCase):
             )
             self.assertEqual(accepted.returncode, 0, accepted.stdout + accepted.stderr)
 
+    def test_comment_ban_rejects_inline_and_block_comments(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            fixture = Path(directory) / "CommentFixture.swift"
+            fixture.write_text(
+                "let value = 1 // inline rationale\n"
+                "/* block rationale */\n",
+                encoding="utf-8",
+            )
+
+            result = subprocess.run(
+                [str(ROOT / "Scripts" / "check-comment-ban.sh"), "--", str(fixture)],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("Comment ban violations (2)", result.stderr)
+
+    def test_comment_ban_keeps_toolchain_and_transitional_allowlist(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            fixture = Path(directory) / "AllowedCommentFixture.swift"
+            fixture.write_text(
+                "// swift-tools-version: 6.2\n"
+                "struct Probe {} // swiftlint:disable:this type_body_length - fixture\n"
+                "/// Concurrency-Safety: immutable fixture\n",
+                encoding="utf-8",
+            )
+
+            result = subprocess.run(
+                [str(ROOT / "Scripts" / "check-comment-ban.sh"), "--", str(fixture)],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
     def test_agent_invariants_cover_entropy_sleep_persistence_and_concurrency(self) -> None:
         text = (ROOT / "Scripts" / "check-agent-invariants.sh").read_text(encoding="utf-8")
         self.assertIn(r"\b(Date|UUID)\(\)", text)
@@ -1226,7 +1266,7 @@ class ScriptRegressionTests(unittest.TestCase):
             check=False,
         )
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("Docs/Skills/apple-design/SKILL.md", result.stdout)
+        self.assertIn(".agents/skills/apple-design/SKILL.md", result.stdout)
         self.assertNotIn("Docs/AgentContext/swiftui-features.md", result.stdout)
 
     def test_agent_context_routes_prepared_artwork_to_swiftui_features(self) -> None:

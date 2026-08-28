@@ -12,9 +12,6 @@ struct MysteryEffectApplierTests {
         let companion = save.roster.activeCompanion
         let heroProgressionBefore = save.roster.progression(for: hero)
         let companionProgressionBefore = save.roster.progression(for: companion)
-        // Pinned for the seeded fresh roster (knight/wolf at level 2, hero
-        // highest level 3): equal-level award 15/1.5=10 with hero catch-up
-        // round(10*1.5902)=16, with step 1 → 16 / 10.
         let expectedHeroXP = 16
         let expectedCompanionXP = 10
         var randomNumberGenerator = SeededRandomNumberGenerator(seed: 1)
@@ -106,8 +103,6 @@ struct MysteryEffectApplierTests {
         save.roster.progressions[companion.id] = .at(level: 5)
         let heroBefore = save.roster.progression(for: hero)
         let companionBefore = save.roster.progression(for: companion)
-        // Pinned: level-20 equal award 285 / 2.5 = 114;
-        // level-5 award 38 / 1.5 = 25.
         let expectedHeroXP = 114
         let expectedCompanionXP = 25
         var randomNumberGenerator = SeededRandomNumberGenerator(seed: 1)

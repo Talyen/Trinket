@@ -6,7 +6,6 @@ import TrinketCore
 import TrinketFeatureContracts
 import TrinketPersistence
 
-/// Spire climb flow: prepare/start floor battles and floor completion writes.
 @MainActor
 @Observable
 public final class SpiresPlayMode {

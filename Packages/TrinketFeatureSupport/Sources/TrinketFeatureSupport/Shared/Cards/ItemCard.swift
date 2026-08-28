@@ -14,13 +14,10 @@ public struct ItemCard<Art: View>: View {
     var showsName: Bool = true
     var reservesLabelSpace: Bool = true
     var presentation: ItemCardPresentation = .standard
-    /// When false, art is clipped only — no panel fill/stroke/shadow (shop offer tiles).
     var appliesCardSurface: Bool = true
     var isSelected = false
-    /// Fades the label out over the battle dissolve window (salvage removal).
     var fadesLabel = false
     var customShineKeywords: [Keyword]?
-    /// Color-driven shine used when no keyword shine applies.
     var customShineColors: [Color]?
     var shineLineWidth: CGFloat = 2
     var enablesAstralShine: Bool = true
@@ -59,9 +56,6 @@ public struct ItemCard<Art: View>: View {
     }
 
     private var effectiveShineKeywords: [Keyword]? {
-        // Deliberate precedence: caller-supplied keywords win even on Uniques —
-        // the equipment slot picker passes equipped affinities so a selected card
-        // shows what it grants. Only keyword-less Uniques get the ember border.
         if let customShineKeywords {
             return customShineKeywords
         }

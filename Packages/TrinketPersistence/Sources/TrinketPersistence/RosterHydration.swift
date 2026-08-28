@@ -34,8 +34,6 @@ enum RosterHydration {
         return (resolvedHeroID, resolvedCompanionID)
     }
 
-    /// Set iteration order is unstable across launches; resolve a stale active
-    /// selection to the lowest authored catalog-order unlocked combatant instead.
     private static func lowestCatalogOrderedID(
         from unlockedIDs: Set<String>,
         in catalog: [Combatant]
@@ -55,8 +53,6 @@ enum RosterHydration {
         resolvedAbilities(ids)
     }
 
-    /// Exact catalog matches only — no tier fallbacks. Decode leaves gaps for
-    /// the sanitizer's `resolveAbilityLoadouts` to fill.
     static func rawAbilityLoadouts(
         from ids: [String: AbilityLoadoutIDs]
     ) -> [String: AbilityLoadout] {
@@ -178,8 +174,6 @@ enum RosterHydration {
         return enforceUniqueEquippedItems(resolved)
     }
 
-    /// One inventory instance may only occupy one slot on a loadout. First
-    /// claim wins in `ItemSlot.allCases` order.
     static func deduplicateWithinLoadout(_ loadout: EquipmentLoadout) -> EquipmentLoadout {
         var unique = EquipmentLoadout()
         var claimedItemIDs = Set<String>()
@@ -192,8 +186,6 @@ enum RosterHydration {
         return unique
     }
 
-    /// One inventory instance may only be equipped on one combatant. First claim
-    /// wins in stable combatant-ID order; later duplicates are stripped.
     static func enforceUniqueEquippedItems(
         _ loadouts: [String: EquipmentLoadout]
     ) -> [String: EquipmentLoadout] {
@@ -212,8 +204,6 @@ enum RosterHydration {
         return unique
     }
 
-    /// Reassigns a combatant's loadout so that the target combatant wins ownership of all
-    /// newly equipped items, stripping any conflicting item IDs from all other combatants.
     static func applyLoadout(
         _ loadout: EquipmentLoadout,
         for combatantID: String,

@@ -10,7 +10,6 @@ struct ItemCorruptionTests {
         for _ in 0 ..< 40 {
             let result = try #require(ItemCorruption.corrupt(item, using: &rng))
             #expect(!result.item.affixes.isEmpty)
-            // Corruption never strips affixes, so every slot stays visibly filled.
             #expect(result.item.affixes.count >= item.affixes.count)
             #expect(result.item.isCorrupted)
             #expect(result.item.affixPowers?.count == result.item.affixes.count)
@@ -49,7 +48,6 @@ struct ItemCorruptionTests {
         let item = try makeItem(baseID: "longsword", rarity: .basic, affixCount: 2)
         var rng = SeededRandomNumberGenerator(seed: 13)
 
-        // A rarity-only roll leaves no structural or bump candidate, so a survivor is marked.
         let result = ItemCorruption.apply(kinds: [.upgradeRarity], to: item, using: &rng)
 
         #expect(result.item.rarity == .astral)
@@ -64,7 +62,6 @@ struct ItemCorruptionTests {
         let trinket = try #require(GameContent.trinketItems.first)
         #expect(!ItemCorruption.isEligibleTarget(trinket))
 
-        // Legacy corrupted items carry the flag without any marked affix and stay blocked.
         let legacyFlagged = InventoryItem(
             id: plain.id,
             baseType: plain.baseType,
@@ -75,7 +72,6 @@ struct ItemCorruptionTests {
         )
         #expect(!ItemCorruption.isEligibleTarget(legacyFlagged))
 
-        // A marked affix alone blocks re-corruption even before the flag is set.
         let markedOnly = withMarkedFirstAffix(plain)
         #expect(markedOnly.hasCorruptedAffix)
         #expect(!markedOnly.isCorrupted)
@@ -162,7 +158,6 @@ struct ItemCorruptionTests {
         #expect(reloadedItem.affixPowers?.count == reloadedItem.affixes.count)
         #expect(reloaded.currentSave.corruptionAltarCooldownRemaining == 6)
 
-        // The marked survivor must be ineligible for a second altar visit.
         #expect(!ItemCorruption.isEligibleTarget(reloadedItem))
     }
 

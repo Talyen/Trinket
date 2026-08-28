@@ -60,7 +60,6 @@ struct BattlePresentationProjectionTests {
         #expect(snapshot.ownerControlSkipKeywords.isEmpty)
         #expect(snapshot.hero.borderAccentKeyword == nil)
         #expect(snapshot.companion.borderAccentKeyword == nil)
-        // Enemy linger still accents so Shatter/Dazed feedback stays readable.
         #expect(snapshot.enemy.borderAccentKeyword == .stun)
     }
 }

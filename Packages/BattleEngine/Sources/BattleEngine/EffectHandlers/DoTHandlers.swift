@@ -9,12 +9,10 @@ struct DecayingDoTHandler: BattleEffectHandler {
     func advanceTurn(_ active: ActiveEffect, on target: Combatant, in context: inout BattleState) -> EffectTurnOutcome {
         guard matches(active.effect) else { return EffectTurnOutcome() }
         let sourceTriggers = active.sourceActorID.map { context.modifiers(for: $0).triggers }
-        // Ember Persistence / Slow Burn: the applier's Burn fades slower.
         let slowPercent = sourceTriggers?.burnDecaySlowPercent ?? 0
         let nextPotency: Int
         if keyword == .burn {
             let decayed = active.effect.potencyAfterTurn(burnDecaySlowPercent: slowPercent)
-            // Ignition Spark: Burn has a chance to increase instead of decrease.
             if let sourceTriggers, sourceTriggers.burnIncreaseChancePercent > 0,
                BattleChance.succeeds(probability: sourceTriggers.burnIncreaseChancePercent, using: &context.rng),
                let potency = active.effect.potency {
@@ -98,7 +96,6 @@ struct DecayingDoTHandler: BattleEffectHandler {
         guard let potency = effect.potency, matches(effect) else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
-        // Defeated targets are excluded by the turn engine's apply gate.
         let events = context.applyDecayingDoT(
             keyword: keyword,
             potency: potency,
@@ -132,7 +129,6 @@ struct DecayingDoTHandler: BattleEffectHandler {
         if BattleChance.succeeds(probability: chance, using: &context.rng) {
             return potency + 1
         }
-        // Lingering Toxin: Poison lasts longer by slowing its decay.
         let slowPercent = sourceTriggers?.poisonDecaySlowPercent ?? 0
         if slowPercent > 0 {
             let decrease = Effect.poisonDecayAmount(for: potency)
@@ -175,7 +171,6 @@ struct BleedHandler: BattleEffectHandler {
             ))
         }
 
-        // Taste for Blood: dealing Bleed damage arms the owner's next basic attack as a guaranteed critical.
         if let sourceTriggers, sourceTriggers.onBleedDamageNextBasicGuaranteedCrit,
            let attackerID = active.sourceActorID,
            let caster = context.roster.combatant(for: attackerID) {
@@ -183,7 +178,6 @@ struct BleedHandler: BattleEffectHandler {
         }
 
         if let sourceTriggers, let attackerID = active.sourceActorID {
-            // Armor Shred: Bleed strips Block from the target each turn.
             if sourceTriggers.bleedStripsBlockPerTurn > 0,
                let reduced = DefensePoolEngine.reduce(
                    sourceTriggers.bleedStripsBlockPerTurn,
@@ -191,7 +185,6 @@ struct BleedHandler: BattleEffectHandler {
                ) {
                 context.roster.setActiveEffects(reduced.effects, for: target)
             }
-            // Carnivore: heal the source when Bleed deals damage.
             if sourceTriggers.onBleedDamageHealSelf > 0,
                let caster = context.roster.combatant(for: attackerID) {
                 events.append(contentsOf: HealingEngine.resolveHeal(
@@ -199,7 +192,6 @@ struct BleedHandler: BattleEffectHandler {
                     in: &context
                 ).events)
             }
-            // Noxious Reaction: Bleed damage triggers an immediate Poison tick using the target's active Poison potency.
             if sourceTriggers.onBleedDamagePoisonTick > 0 {
                 let poisonPotency = context.roster.activeEffects(for: target).reduce(0) { sum, active in
                     if case let .poison(potency) = active.effect, active.remainingTurns > 0 {
@@ -248,7 +240,6 @@ struct BleedHandler: BattleEffectHandler {
         in context: inout BattleState
     ) -> EffectApplyOutcome {
         guard case let .bleed(potency) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
-        // Defeated targets are excluded by the turn engine's apply gate.
         let bleedsBefore = context.roster.activeEffects(for: target).count(where: \.effect.isBleed)
         let events = DoTApplicator.applyBleed(
             potency: potency,
@@ -257,15 +248,11 @@ struct BleedHandler: BattleEffectHandler {
             dealImmediateDamage: true,
             in: &context
         )
-        // The stack lands even when immediate damage and reactions emit nothing,
-        // so didApply must track the append, not event emptiness.
         let didApply = context.roster.activeEffects(for: target).count(where: \.effect.isBleed) > bleedsBefore
         return EffectApplyOutcome(events: events, didApply: didApply)
     }
 }
 
-/// Bloodfire-style mirror procs: a hit of one DoT keyword may immediately deal
-/// the other keyword at the same amount, chaining while successive rolls succeed.
 enum DoTMirrorCascade {
     static let maxChainDepth = ReactionScope.maxDoTMirrorChainDepth
 

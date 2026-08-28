@@ -68,7 +68,7 @@ while IFS= read -r path; do
   fi
 done < <(collect_pushed_paths | sed '/^$/d' | sort -u)
 
-echo "=== Pre-push: style (format / lint / UI / platform bans / exclusivity / agent invariants / accessibility IDs) ==="
+echo "=== Pre-push: style (format / lint / UI / platform bans / exclusivity / agent invariants / accessibility IDs / comment ban) ==="
 if (( ${#style_swift[@]} > 0 )); then
   echo "Path-scoped style on ${#style_swift[@]} Swift file(s) in the push range."
   ./Scripts/test.sh style "${style_swift[@]}"
@@ -77,6 +77,7 @@ else
   ./Scripts/check-exclusivity-footguns.sh
   ./Scripts/check-agent-invariants.sh
   ./Scripts/check-accessibility-ids.sh
+  ./Scripts/check-comment-ban.sh
 fi
 
 echo "=== Pre-push: agent push gate (generate + assert vs HEAD) ==="

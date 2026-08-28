@@ -3,7 +3,6 @@ import Testing
 import TrinketContent
 import TrinketCore
 
-/// Integration tests for cleanse abilities through card combat.
 struct CleanseIntegrationTests {
     @Test func cleanseAllRemovesDebuffsButLeavesShields() throws {
         let hero = Combatant(

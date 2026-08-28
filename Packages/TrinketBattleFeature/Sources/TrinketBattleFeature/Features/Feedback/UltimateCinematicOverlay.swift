@@ -4,9 +4,6 @@ import TrinketDesignSystem
 import TrinketFeatureSupport
 import UIKit
 
-/// Full-screen Ultimate cinematic overlay (Hero/Companion). Video-only under a
-/// diagonal split cover; unmapped casts never reach this view (session skips
-/// them like animations-disabled).
 struct UltimateCinematicOverlay: View {
     let cinematic: BattleCinematicPresentation
     let effectsVolume: Double
@@ -22,12 +19,10 @@ struct UltimateCinematicOverlay: View {
     @State private var collapseTask: Task<Void, Never>?
     @State private var fallbackHoldTask: Task<Void, Never>?
     @State private var videoRevealTask: Task<Void, Never>?
-    /// Cover style follows the phase: opening style while revealing, exit style while closing.
     @State private var activeCoverStyle: UltimateCinematicCoverStyle = .diagonalSplit
 
     var body: some View {
         ZStack {
-            // Absorbs hits for the whole presentation even when cover panels are open.
             Color.clear
                 .contentShape(Rectangle())
 
@@ -54,8 +49,6 @@ struct UltimateCinematicOverlay: View {
         .onDisappear {
             let collapseID = cinematic.id
             cancelPendingOverlayTasks()
-            // Overlay teardown (including a cancelled sleep) must not leave Auto Battle
-            // blocked on `activeCinematic`.
             onCollapseFinished(collapseID)
         }
     }
@@ -93,13 +86,11 @@ struct UltimateCinematicOverlay: View {
         )
 
         let collapseID = cinematic.id
-        // Already sealed (never opened / ready-failed): skip a dead close beat.
         if splitProgress <= 0.001 {
             onCollapseFinished(collapseID)
             return
         }
 
-        // Keep the video layer mounted while closing so ability art never flashes underneath.
         activeCoverStyle = exitStyle
         withAnimation(BattleMotion.ultimateSplitClosePlaybackAnimation) {
             splitProgress = 0
@@ -176,7 +167,6 @@ struct UltimateCinematicOverlay: View {
     }
 }
 
-/// Thin AVPlayerLayer host without system playback chrome.
 struct CinematicVideoView: UIViewRepresentable {
     let player: AVPlayer
 
@@ -193,7 +183,6 @@ struct CinematicVideoView: UIViewRepresentable {
 }
 
 final class PlayerLayerView: UIView {
-    // UIKit requires `class` (not `static`) for `layerClass` overrides.
     // swiftlint:disable:next static_over_final_class
     override class var layerClass: AnyClass {
         AVPlayerLayer.self

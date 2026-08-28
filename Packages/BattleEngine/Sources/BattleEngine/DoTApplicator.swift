@@ -2,7 +2,6 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-/// Applies Burn, Poison, and Bleed stacks through a mutation context.
 package enum DoTApplicator {
     package static func applyDecayingDoT(
         keyword: Keyword,
@@ -81,7 +80,6 @@ package enum DoTApplicator {
             ).events)
         }
 
-        // Serrated Blades / Open Wounds: applying Bleed to a Bleeding target reacts.
         let alreadyBleeding = context.roster.activeEffects(for: effectTarget).contains(where: \.effect.isBleed)
         if alreadyBleeding {
             let sourceTriggers = context.modifiers(for: sourceActorID).triggers
@@ -122,7 +120,6 @@ package enum DoTApplicator {
         return collected
     }
 
-    /// Golden Touch: the next card's status effects are doubled (consumed once).
     private static func goldenTouchPotency(
         _ potency: Int,
         sourceActorID: String,

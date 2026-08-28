@@ -1,7 +1,6 @@
 import TrinketFeatureSupport
 import XCTest
 
-/// One launch covering the four tab shells via the real tab bar.
 final class SmokeShellTests: SeededSmokeUITestCase {
     override var launchArguments: [String] {
         TestLaunchArg.allForTab("play")
@@ -46,8 +45,6 @@ final class StarterOnboardingSmokeTests: TrinketUITestCase {
         if !heroConfirm.waitForExistence(timeout: 10) {
             XCTFail("Confirm Hero not found. Tree: \(String(app.debugDescription.prefix(2500)))")
         }
-        // The carousel opens on the first combatant; Confirm must be enabled and name that
-        // combatant, never the bare-role no-selection fallback.
         XCTAssertTrue(heroConfirm.isEnabled)
         XCTAssertNotEqual(heroConfirm.label.trimmingCharacters(in: .whitespacesAndNewlines), "Confirm Hero")
         tapWhenReady(heroConfirm)
@@ -62,12 +59,10 @@ final class StarterOnboardingSmokeTests: TrinketUITestCase {
         XCTAssertNotEqual(companionConfirm.label.trimmingCharacters(in: .whitespacesAndNewlines), "Confirm Companion")
         tapWhenReady(companionConfirm)
 
-        // Onboarding completes with a crossfade to the Play hub.
         XCTAssertTrue(
             app.tabBars.firstMatch.waitForExistence(timeout: 15),
             "Tab bar did not appear after onboarding"
         )
-        // The hub's container is the stable signal; give the Play screen a moment to settle.
         _ = app.descendants(matching: .any)[AccessibilityID.Play.modesScreen].waitForExistence(timeout: 10)
     }
 }

@@ -3,17 +3,12 @@ import Foundation
 import TrinketCore
 import TrinketFeatureSupport
 
-/// Closed vocabulary for combat floating chips. The glyph atlas and composer only
-/// accept these shapes — never free-form strings on the display-link path.
 enum CombatFeedbackChipLabel: Hashable {
     static let numericAtlasFragments = ["+"] + (0 ... 9).map(String.init)
 
-    /// Numeric chip displayed as a magnitude.
     case amount(Int)
-    /// Non-numeric chip such as dodge, cleanse, or a short keyword word.
     case word(CombatFeedbackChipWord)
 
-    /// Merges two chip labels of the same shape and sign, returning nil if incompatible.
     func merging(with other: Self) -> Self? {
         switch (self, other) {
         case let (.amount(lhs), .amount(rhs)):
@@ -26,8 +21,6 @@ enum CombatFeedbackChipLabel: Hashable {
         }
     }
 
-    /// Visible chip text for numeric chips and short keyword words. Icon-only /
-    /// dual-icon chips return an empty string (see `CombatFeedbackChipPresentation`).
     var displayString: String {
         switch self {
         case let .amount(value):
@@ -37,10 +30,6 @@ enum CombatFeedbackChipLabel: Hashable {
         }
     }
 
-    /// Atlas fragments needed to render this label. Numeric chips use the complete
-    /// prewarmed digit alphabet so magnitude blits never wait on glyph baking.
-    /// Full chip rasters for specific amounts are still composed on demand (or from
-    /// the closed-vocabulary catalog for non-numeric chips).
     var atlasFragments: [String] {
         switch self {
         case .amount:
@@ -58,7 +47,6 @@ enum CombatFeedbackChipLabel: Hashable {
         String(value.magnitude)
     }
 
-    /// Chip vocabulary from the engine event — never from formatted log text.
     static func from(event: ActionEvent) -> Self? {
         if let status = statusLabel(for: event) {
             return .word(.status(status))
@@ -135,7 +123,6 @@ enum CombatFeedbackStatusLabel: String, CaseIterable, Hashable {
     case hemorrhage = "Hemorrhage"
 }
 
-/// Closed set of non-numeric chip phrases produced by battle presentation.
 enum CombatFeedbackChipWord: Hashable {
     case dodge
     case plain(Keyword)
@@ -145,7 +132,6 @@ enum CombatFeedbackChipWord: Hashable {
     case purge(Keyword)
     case status(CombatFeedbackStatusLabel)
 
-    /// Short text drawn next to the keyword icon. `nil` means icon-only or dual-icon.
     var composeText: String? {
         switch self {
         case .dodge, .cleanse, .purge, .status:

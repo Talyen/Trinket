@@ -24,7 +24,6 @@ struct LabyrinthCampfireView: View {
     @State private var contentAppeared = false
     @State private var healHapticTrigger = 0
 
-    /// Alchemy-parity pacing: the eased counter finishes first, the bar lags behind.
     private static let counterDuration = Duration.milliseconds(900)
     private static let barAnimation = Animation.easeOut(duration: 1.25)
     private static let continueDelay = Duration.milliseconds(400)
@@ -53,8 +52,6 @@ struct LabyrinthCampfireView: View {
             )
         }
     }
-
-    // MARK: - Sections
 
     private var campfireArtwork: some View {
         Group {
@@ -137,8 +134,6 @@ struct LabyrinthCampfireView: View {
         }
     }
 
-    // MARK: - Party meters
-
     private func partyMeter(_ member: CampfirePartyMember) -> some View {
         VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
             HStack(alignment: .firstTextBaseline) {
@@ -199,8 +194,6 @@ struct LabyrinthCampfireView: View {
         return CGFloat(max(0, min(member.maxHealth, displayed))) / CGFloat(member.maxHealth)
     }
 
-    // MARK: - Rest sequencing
-
     private func beginRest() {
         guard phase == .idle else { return }
         phase = .resting
@@ -243,7 +236,6 @@ struct LabyrinthCampfireView: View {
         if labyrinth.finishActiveRest() {
             dismiss()
         } else {
-            // Persist failed; reset so Rest can be tried again.
             barHealthByCombatantID = [:]
             counterHealthByCombatantID = [:]
             phase = .idle

@@ -2,7 +2,6 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-/// Hidden fight pacing: banded comeback and progress-based clock multipliers.
 package enum FightPacing {
     package enum Side: Equatable, Sendable {
         case party

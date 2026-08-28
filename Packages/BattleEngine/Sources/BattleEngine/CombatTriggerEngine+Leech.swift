@@ -27,9 +27,7 @@ package extension CombatTriggerEngine {
             ))
         }
 
-        // Combatant Talent System — on-Leech reactions against the target.
         guard let target, target.role == .enemy, context.roster.health(for: target) > 0 else { return events }
-        // Toxic Touch / Necrotic Bleed: Leech applies Poison / Bleed.
         if triggers.onLeechApplyPoison > 0 {
             events.append(contentsOf: context.applyDecayingDoT(
                 keyword: .poison,
@@ -50,7 +48,6 @@ package extension CombatTriggerEngine {
                 in: &context
             ))
         }
-        // Weaken Soul: Leech reduces the target's Strength for 2 turns.
         if triggers.onLeechReduceEnemyStrength > 0 {
             context.appendEffect(
                 .strengthReduction(

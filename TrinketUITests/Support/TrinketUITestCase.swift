@@ -23,7 +23,6 @@ enum TestLaunchArg {
         ["-launch-screen", screen]
     }
 
-    /// Fresh-save base for journeys where seeded progress would skip content.
     static func allUnseeded() -> [String] {
         [
             resetState,
@@ -47,7 +46,6 @@ enum TestLaunchArg {
         return args
     }
 
-    /// Screen tokens must match `LaunchScreen.parse` in AppTypes.
     static func allForScreen(_ screen: String, reset: Bool = true) -> [String] {
         var args = reset ? testLaunchArgs : []
         args.append(contentsOf: self.screen(screen))
@@ -85,8 +83,6 @@ enum TestLaunchArg {
     }
 
     static func allForMysteryPerformance(reset: Bool = true) -> [String] {
-        // Avoid seed-test-progress: seeded journeys can skip the mystery stage.
-        // Force a recruit event so resolve never no-ops into stage completion.
         var args: [String] = []
         if reset {
             args += [
@@ -105,8 +101,6 @@ enum TestLaunchArg {
 
     static func performanceArguments(from arguments: [String]) -> [String] {
         var result = arguments
-        // Performance runs exercise production audio. Cloud sync remains disabled because
-        // unrelated network work would reduce local repeatability.
         result.removeAll { $0 == "-disable-audio" || $0 == enableFrameMetrics }
         result.append(enableFrameMetrics)
         return result
@@ -116,9 +110,6 @@ enum TestLaunchArg {
         allForScreen("battle-victory", reset: reset)
     }
 
-    /// Play-map mid-battle exhaustive entry. Very slow ticks keep the opening
-    /// hand and combatant chrome reachable while XCTest opens the campaign and
-    /// asserts card gestures without racing into live-tick resolution.
     static func allForMidBattle() -> [String] {
         replacingBattleTickInterval("60", in: testLaunchArgs)
     }
@@ -139,10 +130,8 @@ enum TestLaunchArg {
 }
 
 class TrinketUITestCase: XCTestCase {
-    /// Deep-linked screens on CI can take a few extra seconds while the simulator warms.
     static let defaultTimeout: TimeInterval = 10
 
-    // IUO matches XCTest launch lifecycle: set in launchApp, cleared in tearDown.
     // swiftlint:disable:next implicitly_unwrapped_optional
     private(set) var app: XCUIApplication!
 
@@ -192,7 +181,6 @@ class TrinketUITestCase: XCTestCase {
         var launchArgs = arguments
         launchArgs.append(contentsOf: ["-store-name", UUID().uuidString])
         app.launchArguments = launchArgs
-        // Forward perf knobs into the app process (UITest env is not inherited by default).
         var launchEnvironment = app.launchEnvironment
         for key in ["TRINKET_PERFORMANCE_QUICK"] {
             if let value = ProcessInfo.processInfo.environment[key], !value.isEmpty {
@@ -211,7 +199,6 @@ class TrinketUITestCase: XCTestCase {
         app.descendants(matching: .any)[identifier]
     }
 
-    /// Tap a button by accessibility id, waiting for hittability and falling back to a coordinate tap.
     func tapButton(
         _ identifier: String,
         timeout: TimeInterval = defaultTimeout,
@@ -238,8 +225,6 @@ class TrinketUITestCase: XCTestCase {
         }
     }
 
-    /// Waits for an element to exist and become enabled (animated ceremonies
-    /// unlock controls after they finish). Fails via XCTFail when it never does.
     @discardableResult
     func waitForEnabled(
         _ element: XCUIElement,
@@ -365,7 +350,6 @@ class TrinketUITestCase: XCTestCase {
             line: line
         )
         if !element.exists {
-            // One reverse pass in case the list started mid-scroll.
             scrollUntilVisible(
                 element,
                 swipingUp: false,
@@ -394,8 +378,6 @@ class TrinketUITestCase: XCTestCase {
         }
     }
 
-    /// Scrolls until `element` exists (and optionally is hittable). Prefer this over
-    /// ad-hoc `swipeUp` loops when a control is in the hierarchy but covered/off-screen.
     func scrollUntilVisible(
         _ element: XCUIElement,
         swipingUp: Bool,
@@ -471,7 +453,6 @@ class TrinketUITestCase: XCTestCase {
 }
 
 extension XCUIApplication {
-    /// Shared scroll hunt used by page objects and `TrinketUITestCase` helpers.
     func scrollUntilVisible(
         _ element: XCUIElement,
         swipingUp: Bool,
@@ -492,8 +473,6 @@ extension XCUIApplication {
     }
 
     private func scrollContainer() -> XCUIElement {
-        // Prefer the frontmost tab surface. Inactive tabs often remain in the AX
-        // hierarchy; always choosing Play made Homestead scrolls miss list content.
         let candidates = [
             AccessibilityID.Screen.collection,
             AccessibilityID.Screen.homestead,

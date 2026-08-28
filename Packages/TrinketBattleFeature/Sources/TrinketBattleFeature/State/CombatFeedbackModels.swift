@@ -10,7 +10,6 @@ enum CombatFeedbackVisualRole: Equatable {
     case negativeStatus
 }
 
-/// View-facing combat feedback item produced from one or more `ActionEvent`s.
 struct CombatFeedbackItem: Identifiable, Equatable {
     let id: Int
     var sourceEventIDs: [Int]
@@ -62,7 +61,6 @@ struct CombatFeedbackItem: Identifiable, Equatable {
         self.firstScheduledAt = firstScheduledAt ?? availableAt
     }
 
-    /// Derived display string for tests and debug tooling.
     var text: String {
         label.displayString
     }
@@ -76,8 +74,6 @@ struct CombatFeedbackItem: Identifiable, Equatable {
     }
 }
 
-/// Incremental battle-to-renderer contract. Normal combat uses insert/remove;
-/// replace is reserved for diagnostics that directly seed presentation state.
 enum CombatFeedbackUpdate {
     case insert([CombatFeedbackItem])
     case update([CombatFeedbackItem])
@@ -86,13 +82,11 @@ enum CombatFeedbackUpdate {
     case reset
 }
 
-/// Card hit-reaction trigger published alongside feedback items.
 struct CombatantHitReaction: Equatable {
     let id: Int
     let kind: CombatantHitReactionKind
 }
 
-/// Whole-card attack telegraph published for enemy resolve or party card cast.
 struct CombatantAttackReaction: Equatable {
     let id: Int
     let kind: CombatantAttackReactionKind

@@ -8,7 +8,6 @@ import TrinketPersistence
 
 @MainActor
 struct PlayBattleLaunchTests {
-    /// Assembles with the default empty roster/inventory state used across these tests.
     private func makeLaunch(_ input: BattleLaunchInput) -> BattleLaunchAssembly {
         PlayBattleLaunch.assembleLaunch(
             input: input,

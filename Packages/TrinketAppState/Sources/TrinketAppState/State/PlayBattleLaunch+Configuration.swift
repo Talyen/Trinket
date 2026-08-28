@@ -5,16 +5,12 @@ import TrinketCore
 import TrinketFeatureContracts
 import TrinketPersistence
 
-/// Fully resolved battle launch: the engine configuration, the feature presentation
-/// context, and the restart-only universal modifiers.
 struct BattleLaunchAssembly {
     let configuration: BattleRunConfiguration
     let presentation: BattlePresentationContext
     let universalModifiers: [AffixModifier]
 }
 
-/// Save slices that feed battle preparation. Mode owners embed this in their
-/// preparation snapshot and re-prepare whenever the snapshot stops matching.
 struct PlayBattlePartySnapshot: Equatable {
     let roster: PlayerRosterState
     let inventory: PlayerInventoryState
@@ -30,11 +26,6 @@ struct PlayBattlePartySnapshot: Equatable {
     }
 }
 
-/// Play-orchestrated inputs that feed `PlayBattleLaunch.assembleLaunch`.
-///
-/// Mode owners and the Play shell resolve the encounter, loot, and policy, then pack
-/// them here instead of threading long positional argument lists through the launch
-/// helpers.
 struct BattleLaunchInput {
     let origin: PlayBattleOrigin?
     let hero: Combatant
@@ -209,8 +200,6 @@ extension PlayBattleLaunch {
         )
     }
 
-    /// Bakes the active party exactly as a battle launch would, for
-    /// out-of-battle health consumers like the Campfire screen.
     static func bakedActiveParty(
         rosterState: PlayerRosterState,
         inventoryState: PlayerInventoryState,
@@ -234,9 +223,6 @@ extension PlayBattleLaunch {
         guard let enemy else {
             return CombatBuild(combatant: Enemy.fallbackCombatant, modifiers: .zero)
         }
-        // Preserve the encounter combatant (already scaled by launch).
-        // Only resolve trait modifiers from the catalog entry — do not replace scaled stats
-        // with the catalog base combatant.
         if let catalogEnemy = GameContent.enemy(matching: enemy.id) {
             let catalogBuild = CombatBuildResolver.build(enemy: catalogEnemy)
             return CombatBuild(combatant: enemy, modifiers: catalogBuild.modifiers)

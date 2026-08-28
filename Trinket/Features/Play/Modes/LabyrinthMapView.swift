@@ -8,7 +8,6 @@ import TrinketFeatureSupport
 import TrinketPersistence
 
 struct LabyrinthMapView: View {
-    /// Bottom inset so the floor map clears the selected-node inspector overlay.
     private static let inspectorScrollClearance: CGFloat = 360
 
     @Environment(LabyrinthPlayMode.self) private var labyrinth
@@ -58,9 +57,6 @@ struct LabyrinthMapView: View {
                 nodeMessage = message
             }
             viewedFloor = max(1, state.currentFloorNumber)
-            // Entering a fresh map mutates `playerSave.labyrinth`; the change
-            // observer below prepares reachable battles after that mutation.
-            // Avoid doing the same preparation again in this appearance pass.
             if !enteredMap {
                 labyrinth.prepareReachableBattles()
             }

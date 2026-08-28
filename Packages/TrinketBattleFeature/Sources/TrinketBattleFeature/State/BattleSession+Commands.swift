@@ -99,14 +99,14 @@ extension BattleSession {
 
     func beginOpeningHandDeal(
         for configurationID: UUID,
-        startDelay: TimeInterval = 0
+        startDelay: Duration = .zero
     ) {
         guard hasActiveSimulation,
               engineHand.isEmpty,
               activeBattle?.id == configurationID
         else { return }
 
-        if openingHandDrawStagger <= 0 {
+        if openingHandDrawStagger <= .zero {
             let events = drawOpeningHand()
             installSimulationPresentation()
             presentationEnvironment.playSFX([SFXID.abilityDraw])
@@ -150,8 +150,8 @@ extension BattleSession {
                 guard drew else { break }
 
                 let stagger = openingHandDrawStagger
-                if stagger > 0 {
-                    try? await Task.sleep(for: .seconds(stagger))
+                if stagger > .zero {
+                    try? await Task.sleep(for: stagger)
                 }
             }
 
@@ -169,10 +169,10 @@ extension BattleSession {
 
     private func waitForOpeningHandDealStart(
         configurationID: UUID,
-        startDelay: TimeInterval
+        startDelay: Duration
     ) async -> Bool {
-        if startDelay > 0 {
-            try? await Task.sleep(for: .seconds(startDelay))
+        if startDelay > .zero {
+            try? await Task.sleep(for: startDelay)
             guard !Task.isCancelled, activeBattle?.id == configurationID else { return false }
         }
         await CombatFeedbackDisplayLinkGate.waitForNextDisplayLink()
@@ -200,7 +200,7 @@ extension BattleSession {
 
         pendingAutoEndTask = Task { @MainActor [weak self] in
             guard let self else { return }
-            try? await Task.sleep(for: .seconds(autoEndTurnDelay))
+            try? await Task.sleep(for: autoEndTurnDelay)
             guard !Task.isCancelled,
                   !isSuspendedForScenePhase,
                   canEndTurn,
@@ -210,9 +210,9 @@ extension BattleSession {
             if shouldTelegraphEnemyAttack(), let enemyID {
                 publishAttackTelegraph(.full, for: enemyID)
                 let impactDelay = enemyAttackImpactDelayOverride
-                    ?? CombatFeedbackAttackRecipes.cardAttack(for: .attack).impactDelay
-                if impactDelay > 0 {
-                    try? await Task.sleep(for: .seconds(impactDelay))
+                    ?? .seconds(CombatFeedbackAttackRecipes.cardAttack(for: .attack).impactDelay)
+                if impactDelay > .zero {
+                    try? await Task.sleep(for: impactDelay)
                     guard !Task.isCancelled,
                           !isSuspendedForScenePhase,
                           canEndTurn,
@@ -230,7 +230,7 @@ extension BattleSession {
         isManualInteractionActive: @escaping @MainActor () -> Bool,
         playCard: @escaping @MainActor (BattleCard) async -> Bool
     ) async {
-        let autoBattlePolicy = GreedyHeuristicPolicy()
+        let autoBattlePolicy = PlayPolicy.greedy
         while !Task.isCancelled, isAutoBattleEnabled {
             guard activeBattle != nil, outcome == nil else { return }
 

@@ -177,7 +177,6 @@ struct CriticalChanceBonusHandler: BattleEffectHandler {
         guard case let .criticalChanceBonus(percent, durationTurns) = effect else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
-        // Refresh replaces prior Focused stacks so combat chance matches the summary's max.
         let event = ActiveEffectMutation.replaceAndEmit(
             .criticalChanceBonus(percent, durationTurns),
             to: target,
@@ -224,7 +223,6 @@ struct RestoreManaOnHitHandler: BattleEffectHandler {
         guard case let .restoreManaOnHit(amount, durationTurns) = effect else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
-        // Mana Shield stacks: each stack restores on hit (sum matches the summary).
         context.appendEffect(.restoreManaOnHit(amount, durationTurns), to: target, sourceID: source.id, remainingTurns: durationTurns)
         let event = context.nextEvent(
             kind: .effect,

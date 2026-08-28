@@ -2,7 +2,6 @@ import Foundation
 import Testing
 import TrinketContent
 
-/// Every authored trigger-family field must be read by BattleEngine rule code.
 struct CombatTriggerFieldCoverageTests {
     @Test func everyTriggerFieldIsReadByBattleEngine() throws {
         let names = CombatTraitTriggers.allFieldNames

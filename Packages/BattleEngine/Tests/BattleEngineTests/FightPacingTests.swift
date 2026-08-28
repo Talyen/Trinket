@@ -95,7 +95,6 @@ struct FightPacingTests {
     @Test func stunBuildupIsNotDoublePacedWhenFightPacingActive() throws {
         let hero = CombatantFixtures.combatant(id: "source", role: .hero, maxHealth: 50)
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 50)
-        // High max HP keeps the control threshold above once-paced damage.
         let enemy = CombatantFixtures.combatant(id: "target", role: .enemy, maxHealth: 100)
         var context = BattleTestFixtures.makeContext(
             hero: hero,

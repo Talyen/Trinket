@@ -6,7 +6,6 @@ public enum OnArtTextEmphasis: Sendable {
 }
 
 public extension View {
-    /// Paper foreground + ink shadows for titles and eyebrows drawn over hero art.
     func trinketOnArtText(_ emphasis: OnArtTextEmphasis = .title) -> some View {
         modifier(OnArtTextModifier(emphasis: emphasis))
     }

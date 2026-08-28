@@ -1,7 +1,6 @@
 import Foundation
 import TrinketCore
 
-/// Stable identifier for a Spire climb (player-facing name lives on `SpireDefinition.title`).
 public struct SpireID: RawRepresentable, Hashable, Codable, Sendable, Identifiable {
     public let rawValue: String
 
@@ -88,12 +87,10 @@ public enum SpireAttunement: Equatable, Sendable {
         }
     }
 
-    /// Whether a combatant's ability pool includes this Spire's keyword.
     public static func matches(_ combatant: Combatant, spire: SpireDefinition) -> Bool {
         combatant.keywordProfile.contains(spire.keyword)
     }
 
-    /// Hub unlock: roster has at least one matching Hero and Companion.
     public static func canEnter(
         _ spire: SpireDefinition,
         heroes: [Combatant],
@@ -103,7 +100,6 @@ public enum SpireAttunement: Equatable, Sendable {
             && companions.contains { matches($0, spire: spire) }
     }
 
-    /// v1: Hero and Companion must each have the Spire keyword in their ability pool.
     public static func evaluate(
         hero: Combatant,
         companion: Combatant,

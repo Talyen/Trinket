@@ -48,7 +48,6 @@ public struct Stage: Identifiable, Hashable, Sendable {
         self.rewards = rewards
     }
 
-    /// Authored battle enemy, or the seeded pick for `randomBattle` stages.
     public func resolvedBattleEnemyID(worldSeed: UInt64) -> String? {
         if let enemyID = encounter.battleEnemyID {
             return enemyID
@@ -79,7 +78,6 @@ public enum StageEncounter: Hashable, Sendable {
     case mysteryEvent(eventID: String)
     case recruit(eventID: String)
 
-    /// Sentinel recruit event id: resolve from eligible companions only.
     public static let randomCompanionRecruitID = "random-companion"
 
     public var title: String {

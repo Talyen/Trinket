@@ -30,7 +30,6 @@ public extension JourneyProgressState {
         }
     }
 
-    /// Marks every stage in the given chapter complete and activates the next chapter.
     mutating func completeChapter(
         _ chapterID: String,
         in chapters: [Chapter] = GameContent.chapters

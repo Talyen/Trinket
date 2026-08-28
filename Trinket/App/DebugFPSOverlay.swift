@@ -8,7 +8,6 @@ import UIKit
 
 #if DEBUG
 
-/// Installs the XCTest frame-metrics accessibility probe when `-enable-frame-metrics` is set.
 struct DebugFPSOverlayModifier: ViewModifier {
     private var enableFrameMetrics: Bool {
         AppEnvironment.shared.enableFrameMetrics
@@ -18,8 +17,6 @@ struct DebugFPSOverlayModifier: ViewModifier {
         content
             .background {
                 if enableFrameMetrics {
-                    // UIWindow probe stays above Battle shell swaps and fullScreen covers
-                    // so XCTest can always read a live accessibility value.
                     Color.clear
                         .frame(width: 0, height: 0)
                         .onAppear {
@@ -30,13 +27,10 @@ struct DebugFPSOverlayModifier: ViewModifier {
     }
 }
 
-/// Process-wide CADisplayLink + UIWindow accessibility probes for `-enable-frame-metrics`.
 @MainActor
 final class FramePacingMetricsProbe {
     static let shared = FramePacingMetricsProbe()
 
-    /// Kept slightly inside the UI test wait so publication completes before XCTest
-    /// reads the frozen accessibility value. Shortens under `TRINKET_PERFORMANCE_QUICK=1`.
     private static var measurementSnapshotDelay: Duration {
         BattlePerformanceTiming.snapshotDelay
     }
@@ -73,7 +67,6 @@ final class FramePacingMetricsProbe {
         reset.accessibilityLabel = "Frame Metrics Reset"
         reset.addTarget(self, action: #selector(handleResetTap), for: .touchUpInside)
         reset.translatesAutoresizingMaskIntoConstraints = false
-        // Keep tappable for XCTest without stealing player hits.
         reset.backgroundColor = .clear
         resetButton = reset
 
@@ -94,8 +87,6 @@ final class FramePacingMetricsProbe {
         window.rootViewController = root
         window.isHidden = false
 
-        // Measurement publishes once, after its display link is paused. Periodic
-        // main-thread sorting would otherwise create the stalls being measured.
         monitor.start { [weak self] report in
             self?.metricsLabel?.accessibilityValue = report.accessibilityValue
         }
@@ -124,7 +115,6 @@ final class FramePacingMetricsProbe {
     private func makeWindow() -> PassThroughWindow? {
         guard let scene = activeWindowScene() else { return nil }
         let window = PassThroughWindow(windowScene: scene)
-        // Above SwiftUI fullScreen covers / sheets; below system alerts.
         window.windowLevel = .alert + 1
         window.backgroundColor = .clear
         window.isUserInteractionEnabled = true
@@ -148,11 +138,9 @@ final class FramePacingMetricsProbe {
     }
 }
 
-/// Forwards hits that miss the reset button so Battle/Mystery stay interactive.
 private final class PassThroughWindow: UIWindow {
     override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
         guard let hit = super.hitTest(point, with: event) else { return nil }
-        // Only the reset control should consume touches.
         if hit is UIControl {
             return hit
         }
@@ -169,8 +157,6 @@ private final class PassThroughWindow: UIWindow {
 
 @MainActor
 final class FramePacingMonitor: NSObject {
-    /// Survives ContentView shell swaps during `-enable-frame-metrics` UITests.
-    /// Keeps a 30s buffer so a full soak window is never clipped before snapshot.
     static let measurementShared = FramePacingMonitor(windowSeconds: 30)
 
     private struct Sample: Sendable {
@@ -178,8 +164,6 @@ final class FramePacingMonitor: NSObject {
         let expectedFrameDuration: CFTimeInterval
     }
 
-    /// Upper bound for ring-buffer sizing only. Sampling still follows CADisplayLink
-    /// at the device's real refresh rate (often 60 Hz on Simulator).
     private static let maxRefreshRate: CFTimeInterval = 120
     private static var warmupSeconds: CFTimeInterval {
         BattlePerformanceTiming.monitorWarmupSeconds
@@ -198,8 +182,6 @@ final class FramePacingMonitor: NSObject {
 
     private init(windowSeconds: CFTimeInterval) {
         self.windowSeconds = windowSeconds
-        // Oversize for ProMotion so the named window is never truncated by slot count;
-        // reports still trim to wall-clock `windowSeconds` via interval accumulation.
         capacity = max(1, Int((windowSeconds * Self.maxRefreshRate).rounded(.up)))
         storage = Array(repeating: nil, count: capacity)
     }
@@ -209,7 +191,6 @@ final class FramePacingMonitor: NSObject {
             handler = onUpdate
         }
         if let displayLink {
-            // Drop the pause gap so the next tick re-seeds interval baselines.
             previousTimestamp = 0
             displayLink.isPaused = false
             return
@@ -230,12 +211,8 @@ final class FramePacingMonitor: NSObject {
         storage = Array(repeating: nil, count: capacity)
     }
 
-    /// Freezes collection before reporting so the diagnostic publication cannot
-    /// contaminate the interval set it is reporting.
     func snapshotMeasurement() {
         displayLink?.isPaused = true
-        // Always publish — including empty — so XCTest can distinguish "snapshot
-        // fired with no samples" from "snapshot never published".
         let ordered: [Sample] = if sampleCount < capacity {
             storage.prefix(sampleCount).compactMap(\.self)
         } else {
@@ -287,7 +264,6 @@ final class FramePacingMonitor: NSObject {
         }
     }
 
-    /// Newest-first wall-clock trim so 60 Hz and 120 Hz share the same time window.
     private static func samples(inLast windowSeconds: CFTimeInterval, from ordered: [Sample]) -> [Sample] {
         guard windowSeconds > 0, !ordered.isEmpty else { return ordered }
         var total: CFTimeInterval = 0

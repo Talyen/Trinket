@@ -4,10 +4,6 @@ import Testing
 import TrinketContent
 import TrinketCore
 
-/// Integration tests that stats flow correctly through card combat.
-/// Pure formula coverage lives in `TrinketCoreTests/PrimaryStatsRulesTests`.
-/// Runtime health and heal math live in `CombatantRuntimeTests`.
-/// Control-meter threshold wiring lives in `ControlMeterIntegrationTests`.
 struct StatIntegrationTests {
     private struct DirectDamageCase: Sendable {
         let ability: Ability
@@ -49,8 +45,6 @@ struct StatIntegrationTests {
         static let wisdomHoly = Self(ability: .smite, stats: PrimaryStats(wisdom: 80), expectedAmount: 6, keyword: .holy)
     }
 
-    // MARK: - Keyword damage
-
     @Test(arguments: [
         Self.DirectDamageCase.strengthPhysical,
         .strengthStun,
@@ -76,8 +70,6 @@ struct StatIntegrationTests {
         try #expect(event.amount == testCase.expectedAmount, "Wrong damage for \(testCase.ability.name): got \(event.amount)")
         try #expect(event.keyword == testCase.keyword, "Wrong keyword for \(testCase.ability.name)")
     }
-
-    // MARK: - Wisdom
 
     @Test func wisdomIncreasesHealingAmount() throws {
         let hero = BattleTestFixtures.statHero(
@@ -108,7 +100,6 @@ struct StatIntegrationTests {
             enemy: enemyWithStats
         )
 
-        // Draw into Heal, then pin HP so catch-up-reduced enemy hits cannot leave too little missing Health.
         BattleTestFixtures.endTurns(5, on: &battle)
         battle.withEngineContext { context in
             context.roster.mutateRuntime(for: companion) { $0.currentHealth = 100 }
@@ -122,8 +113,6 @@ struct StatIntegrationTests {
         try #expect(battle.health(of: battle.hero) > beforeHeal)
         try #expect(battle.health(of: battle.hero) - beforeHeal > 3)
     }
-
-    // MARK: - Agility control meter
 
     @Test func agilityRaisesControlMeterThresholdInBattle() throws {
         let hero = BattleTestFixtures.statHero(

@@ -332,13 +332,11 @@ struct AppStateLabyrinthTests { // swiftlint:disable:this type_body_length
         }
         #expect(unlockIsIn(state.playerSave.roster, unlockID))
         #expect(state.encounters.activeMysteryEncounter?.phase == .revealing)
-        // Labyrinth recruits clear the node with the unlock so kill/relaunch cannot re-roll.
         #expect(state.playerSave.labyrinth.nodes[mysteryNodeID]?.isCleared == true)
 
         let unlockedCountAfterFirst = state.playerSave.roster.unlockedHeroIDs.count
             + state.playerSave.roster.unlockedCompanionIDs.count
 
-        // Simulate app kill before Recruit confirm: session is gone, save remains.
         let relaunched = try context.makePlaySession(playerSave: playerSave)
         #expect(relaunched.encounters.activeMysteryEncounter == nil)
         #expect(relaunched.playerSave.labyrinth.nodes[mysteryNodeID]?.isCleared == true)
@@ -357,7 +355,6 @@ struct AppStateLabyrinthTests { // swiftlint:disable:this type_body_length
         let restNodeID = try #require(LabyrinthTestSupport.firstReachableNodeID(of: .rest, in: state))
         let heroID = state.playerSave.roster.activeHeroID
 
-        // Seed mid-run wounds so the campfire has something to restore.
         var labyrinth = state.playerSave.labyrinth
         labyrinth.runHealthByCombatantID = [heroID: 3]
         state.playerSave.labyrinth = labyrinth
@@ -448,9 +445,6 @@ struct AppStateLabyrinthTests { // swiftlint:disable:this type_body_length
     }
 
     @Test func labyrinthMysteryNodesCarryExactlyOneEconomyModifier() throws {
-        /// A recruit-eligible floor can shuffle mystery out of its guaranteed
-        /// non-combat trio and roll zero of them; re-roll so the invariant below
-        /// is exercised on a real generated node.
         func hasUnclearedMysteryNode(_ session: PlaySession) -> Bool {
             session.playerSave.labyrinth.nodes.values.contains {
                 $0.type.canonical == .mystery && !$0.isCleared

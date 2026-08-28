@@ -14,9 +14,6 @@ let inventoryMappingLogger = Logger(
     category: "InventoryMapping"
 )
 private struct UnlockedCombatantValue {
-    /// Persisted role discriminators. Deliberately lowercase historical format —
-    /// do NOT switch to `Combatant.Role.rawValue` ("Hero"/"Companion"); that
-    /// would silently break decoding of every shipped save.
     static let heroRole = "hero"
     static let companionRole = "companion"
 
@@ -218,16 +215,12 @@ extension RosterModel {
 }
 
 extension RosterModel {
-    /// Decodes stored rows into typed state. Value normalization (active
-    /// selection, ability fallbacks, inventory-backed equipment) is owned by
-    /// `PlayerSaveSanitizer`, which runs over every decoded save.
     func toPlayerRosterState(
         schemaVersion: Int = PlayerSave.currentSchemaVersion
     ) -> PlayerRosterState {
         let unlocked = unlockedCombatants ?? []
         let heroIDs = Set(unlocked.filter { $0.role == UnlockedCombatantValue.heroRole }.map(\.combatantID))
         let companionIDs = Set(unlocked.filter { $0.role == UnlockedCombatantValue.companionRole }.map(\.combatantID))
-        // Last-wins folding: duplicate SwiftData child rows must not trap before sanitizer.
         let progressionValues = Dictionary(lastWins: (progressions ?? []).map {
             ($0.combatantID, CombatantProgression(level: $0.level, currentXP: $0.currentXP, requiredXP: $0.requiredXP))
         })
@@ -286,9 +279,6 @@ extension InventoryModel {
 }
 
 extension HomesteadModel {
-    /// Decodes stored rows into typed state. Value normalization (dropping gold,
-    /// negative quantities, out-of-range tiers) is owned by `PlayerSaveSanitizer`,
-    /// which runs over every decoded save.
     func toPlayerHomesteadState() -> PlayerHomesteadState {
         var resolvedResources: [HomesteadResource: Int] = [:]
         for balance in resources ?? [] {

@@ -4,11 +4,6 @@ import TrinketCore
 import TrinketDesignSystem
 import TrinketFeatureSupport
 
-/// Single source of truth mapping each engine effect outcome to its combat
-/// feedback presentation. Adding an `EffectOutcome` forces an entry here; the
-/// presenter classification, visual role, additive aggregation, status label,
-/// and chip label rule all read from this table instead of parallel switches.
-/// Table completeness is enforced by `CombatFeedbackEffectPresentationTests`.
 enum CombatFeedbackEffectPresentation {
     enum DisplayRule: Equatable {
         case visible
@@ -16,8 +11,6 @@ enum CombatFeedbackEffectPresentation {
         case hidden
     }
 
-    /// How an event's chip label is derived. `nil` means the chip renders as a
-    /// status icon driven by `statusLabel`.
     enum LabelRule {
         case amount
         case negatedAmount
@@ -33,7 +26,6 @@ enum CombatFeedbackEffectPresentation {
     struct Descriptor {
         let feedbackClass: CombatFeedbackClass
         let visualRole: CombatFeedbackVisualRole
-        /// Same-kind events merge their amounts within one action batch.
         let isAdditive: Bool
         let statusLabel: CombatFeedbackStatusLabel?
         let labelRule: LabelRule?
@@ -67,8 +59,6 @@ enum CombatFeedbackEffectPresentation {
         }
     }
 
-    /// Resolved chip layout for status-driven icons. Keeps glyph choices with the
-    /// effect presentation table instead of a parallel switch in chip rendering.
     enum StatusChipLayout: Equatable {
         case dualBeneficial(trailing: Keyword)
         case dualNegative(trailing: Keyword)

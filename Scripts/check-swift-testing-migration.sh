@@ -10,7 +10,7 @@ while IFS= read -r -d '' file; do
     continue
   fi
   violations+=("$file")
-done < <(rg -l 'import XCTest' Packages --glob '*Tests/**/*.swift' --glob '!**/TrinketUITests/**' -0 2>/dev/null || true)
+done < <(rg -l 'import XCTest|XCTestCase|XCTAssert|XCTFail|XCTUnwrap' Packages --glob '*Tests/**/*.swift' --glob '!**/TrinketUITests/**' -0 2>/dev/null || true)
 
 if ((${#violations[@]} > 0)); then
   echo "error: XCTest imports remain outside TrinketUITests:" >&2

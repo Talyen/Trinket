@@ -122,7 +122,6 @@ public struct ItemGenerator: Sendable {
 }
 
 public enum ItemRewardGenerator {
-    /// Generation knobs shared by every tier path.
     private struct RewardContext {
         let keywordBias: Set<Keyword>
         let fallbackBaseType: ItemBaseType?
@@ -163,7 +162,6 @@ public enum ItemRewardGenerator {
             if let unique = uniques.randomElement(using: &randomNumberGenerator) {
                 return unique
             }
-            // Owned-out or filtered-out Uniques degrade to the Trinket band.
             return trinketOrGenerated(
                 id: id,
                 rarity: .astral,
@@ -193,8 +191,6 @@ public enum ItemRewardGenerator {
         }
     }
 
-    /// Picks an unowned Trinket honoring pool filters; an empty pool degrades to
-    /// a generated Astral item (the old coin-flip's fall-through path).
     private static func trinketOrGenerated(
         id: String,
         rarity: Rarity,

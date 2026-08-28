@@ -1,9 +1,7 @@
 import Foundation
 import TrinketContent
 
-/// Persistent progress for Spires climbs.
 public struct PlayerSpiresState: Equatable, Sendable {
-    /// Highest cleared floor per Spire (0 = none cleared).
     public var highestClearedFloorBySpireID: [String: Int]
 
     public init(highestClearedFloorBySpireID: [String: Int] = [:]) {
@@ -29,13 +27,10 @@ public struct PlayerSpiresState: Equatable, Sendable {
         floor <= highestClearedFloor(for: spireID)
     }
 
-    /// True only for the next uncleared floor in the climb (one-clear tower), bounded by floorCount.
     public func isFloorStartable(_ floor: Int, spireID: String, floorCount: Int) -> Bool {
         floor == highestClearedFloor(for: spireID) + 1 && floor <= floorCount
     }
 
-    /// Advances highest cleared floor only for the next sequential floor.
-    /// Replays (`floor <= current`) are no-ops. Skips are ignored.
     @discardableResult
     public mutating func markFloorCleared(_ floor: Int, spireID: String) -> Bool {
         let current = highestClearedFloor(for: spireID)

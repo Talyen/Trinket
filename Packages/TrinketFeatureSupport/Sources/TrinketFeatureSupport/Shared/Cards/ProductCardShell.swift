@@ -2,7 +2,6 @@ import SwiftUI
 import TrinketCore
 import TrinketDesignSystem
 
-/// Shared 3:4 aspect ratio card layout shell for Item, Ability, Combatant, and Empty slot cards.
 @MainActor
 public struct ProductCardShell<Art: View, Label: View>: View {
     var isLocked: Bool = false
@@ -11,7 +10,6 @@ public struct ProductCardShell<Art: View, Label: View>: View {
     var showsLabel: Bool = true
     var reservesLabelSpace: Bool = true
     var shineKeywords: [Keyword]?
-    /// Color-driven shine used when no keyword shine applies.
     var shineColors: [Color]?
     var shineLineWidth: CGFloat = 2
     var accessibilityID: String?

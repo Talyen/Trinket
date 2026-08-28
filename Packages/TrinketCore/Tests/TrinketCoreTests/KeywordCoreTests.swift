@@ -49,8 +49,6 @@ struct KeywordCoreTests {
         try #expect(keywords == [.block, .stun, .holy])
         try #expect(!keywords.contains(.burn))
 
-        // Ensure shorter keyword ("Stun" 4 chars) appearing before longer keyword ("Bleed" 5 chars)
-        // is preserved in exact appearance order (not term length descending).
         let stunBeforeBleed = "Deal Stun then Bleed."
         try #expect(Keyword.referenced(in: stunBeforeBleed) == [.stun, .bleed])
 

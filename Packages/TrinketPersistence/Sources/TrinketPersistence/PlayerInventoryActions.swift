@@ -1,6 +1,4 @@
 public extension PlayerSaveStore {
-    /// Salvages an owned inventory item into Homestead materials.
-    /// Returns `nil` when persistence fails; otherwise the applier result.
     @discardableResult
     func salvageItem(id: String) -> ItemSalvageResult? {
         var result: ItemSalvageResult = .itemNotFound

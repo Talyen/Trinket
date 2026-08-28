@@ -1,7 +1,6 @@
 import TrinketContent
 import TrinketCore
 
-/// Resolves reactions from the unified trait-and-affix trigger profile.
 package enum CombatTriggerEngine {
     static func traitName(
         for combatant: Combatant,
@@ -19,7 +18,6 @@ package enum CombatTriggerEngine {
         context.modifiers(for: combatant.id).triggerAbilityName(key, fallback: fallback)
     }
 
-    /// Living hero and companion with their modifier profiles.
     static func livingAllies(
         in context: BattleState
     ) -> [(combatant: Combatant, profile: CombatModifierProfile)] {
@@ -33,7 +31,6 @@ package enum CombatTriggerEngine {
         return allies
     }
 
-    /// Modifier profiles for living hero and companion.
     static func livingAllyModifiers(in context: BattleState) -> [CombatModifierProfile] {
         livingAllies(in: context).map(\.profile)
     }
@@ -44,14 +41,12 @@ package enum CombatTriggerEngine {
         }
     }
 
-    /// Deep Freeze: frozen enemies cannot gain Block or receive healing.
     static func frozenTargetCannotBlockOrHeal(_ target: Combatant, in context: BattleState) -> Bool {
         guard target.role == .enemy else { return false }
         guard context.roster.hasControlStatus(for: target, keyword: .freeze) else { return false }
         return context.partyTriggers.frozenEnemyCannotBlockOrHeal
     }
 
-    /// Withering Flame: burn halves enemy healing and Leech.
     static func incomingHealMultiplier(for target: Combatant, in context: BattleState) -> Double {
         guard target.role == .enemy else { return 1 }
         let isBurning = context.roster.activeEffects(for: target).contains { $0.effect.keyword == .burn }
@@ -66,13 +61,11 @@ package enum CombatTriggerEngine {
         return max(0, 1 - min(1, reduction))
     }
 
-    /// True when any living ally has Purifying Aura.
     static func partyDebuffsExpireFaster(in context: BattleState) -> Bool {
         (context.roster.hero.isAlive && context.heroModifiers.triggers.partyDebuffDurationHalved)
             || (context.roster.companion.isAlive && context.companionModifiers.triggers.partyDebuffDurationHalved)
     }
 
-    /// Companion-authored `onHero*` reactions when the hero acts and the companion is alive.
     static func companionReactingToHeroTriggers(in context: BattleState) -> CombatTraitTriggers? {
         guard context.roster.companion.isAlive else { return nil }
         return context.companionModifiers.triggers

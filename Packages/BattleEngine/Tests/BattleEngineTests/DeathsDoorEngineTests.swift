@@ -167,7 +167,6 @@ struct DeathsDoorEngineTests {
     }
 
     @Test func doTTickTriggersDeathsDoor() throws {
-        // Start at 2 HP so a 3-potency tick leaves the hero at 1 HP and triggers Death's Door.
         var context = makeContext(heroHP: 2)
         let hero = context.roster.hero.combatant
         let outcome = context.resolveDoTTick(
@@ -181,8 +180,6 @@ struct DeathsDoorEngineTests {
         try #expect(context.roster.health(for: hero) == 1)
         try #expect(outcome.events.contains(effectKind: .deathsDoorTriggered, keyword: .deathsDoor))
     }
-
-    // MARK: - Endless Legion
 
     private func makeLegionContext(heroHealth: Int) -> BattleState {
         BattleTestFixtures.makeContext(

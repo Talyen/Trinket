@@ -15,7 +15,6 @@ public enum BattlePartyFixtures {
         }
     }
 
-    /// Hero with a fast basic attack, passive companion, and low-HP enemy for deterministic victory tests.
     public static func quickWinParty(
         heroAbilities: [Ability] = [.slash],
         enemyMaxHealth: Int = 1

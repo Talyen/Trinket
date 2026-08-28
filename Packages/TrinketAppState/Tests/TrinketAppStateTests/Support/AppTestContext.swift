@@ -13,9 +13,6 @@ final class AppTestContext {
     let userDefaults: UserDefaults
     private(set) var lastBattle: BattleSession?
 
-    /// Shared across `makeAppState` calls in this context so suite setup does not
-    /// reopen SwiftData for every trivial assertion. Disk + persist-immediately stay
-    /// explicit for reload-survival tests that pass their own `playerSave`.
     private var cachedPlayerSave: PlayerSaveStore?
 
     private static let defaultTestArguments = [
@@ -72,8 +69,7 @@ final class AppTestContext {
             makeBattleRuntime: { _ in battle }
         )
         lastBattle = battle as? BattleSession
-        // Unit tests expect a full hand before the next statement; skip paced deal.
-        lastBattle?.openingHandDrawStagger = 0
+        lastBattle?.openingHandDrawStagger = .zero
         return state
     }
 
@@ -87,7 +83,7 @@ final class AppTestContext {
             makeBattleRuntime: { _ in battle }
         )
         lastBattle = battle
-        battle.openingHandDrawStagger = 0
+        battle.openingHandDrawStagger = .zero
         return state
     }
 
@@ -116,8 +112,6 @@ final class AppTestContext {
         if let cachedPlayerSave, !resetState {
             return cachedPlayerSave
         }
-        // Default path is in-memory + reused. `-reset-state` opens the temp disk URL so
-        // wipe/reload assertions observe the same store file as explicit disk tests.
         let store = try PlayerSaveStore(
             storeURL: SaveTestSupport.makeStoreURL(directoryURL: directoryURL),
             disableCloudSync: true,

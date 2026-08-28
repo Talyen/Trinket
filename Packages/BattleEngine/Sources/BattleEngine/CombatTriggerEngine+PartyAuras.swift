@@ -2,7 +2,6 @@ import TrinketContent
 import TrinketCore
 
 package extension CombatTriggerEngine {
-    /// Party-aura damage from talents that may sit on the other combatant's profile.
     static func partyAuraDamageBonus(
         for state: DamageResolutionState,
         source: CombatantRuntime,
@@ -46,8 +45,6 @@ package extension CombatTriggerEngine {
         return bonus
     }
 
-    /// Enrage / Inspirational Vigor: while the talent owner is below the Health
-    /// threshold, party attacks deal bonus damage.
     private static func enrageAuraBonus(in context: BattleState) -> Int {
         var bonus = 0
         if context.roster.hero.isAlive {
@@ -75,7 +72,6 @@ package extension CombatTriggerEngine {
         return bonus
     }
 
-    /// Deadly Dose / Damnation / Intense Heat: living auras add their extra percents.
     static func partyAfflictedDamageMultiplier(
         targetIsPoisoned: Bool,
         targetIsBurning: Bool,

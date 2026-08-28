@@ -30,7 +30,6 @@ extension BattleSession {
         )
     }
 
-    /// Resolves a hand-card owner to the live combatant id for attack telegraph.
     func combatantID(for participant: BattleParticipant) -> String? {
         switch participant {
         case .hero:
@@ -50,8 +49,6 @@ extension BattleSession {
 
     func completeCinematicCollapse(expectedID: Int? = nil, at date: Date = .now) {
         guard let cinematic = spectacle.activeCinematic else { return }
-        // Ignore stale collapse tasks from a prior cinematic (unstructured sleep can outlive
-        // the overlay that started them).
         if let expectedID, cinematic.id != expectedID {
             return
         }
@@ -70,7 +67,6 @@ extension BattleSession {
         presentDeferredOutcomeIfNeeded(at: date)
     }
 
-    /// Outcome chrome (or claimed-stage auto-complete) waits until Ultimate collapse finishes.
     private func presentDeferredOutcomeIfNeeded(at date: Date) {
         switch outcome {
         case .victory:
@@ -96,8 +92,6 @@ extension BattleSession {
 
     func beginCinematicCollapse(expectedID: Int? = nil) {
         guard var cinematic = spectacle.activeCinematic, cinematic.phase != .collapsing else { return }
-        // Ignore stale auto-finish tasks from a prior overlay (fallback hold / video end
-        // can outlive the view that scheduled them).
         if let expectedID, cinematic.id != expectedID {
             return
         }
@@ -112,7 +106,6 @@ extension BattleSession {
         switch outcome {
         case .victory:
             if context.stageRewardsAlreadyClaimed {
-                // Keep the Ultimate on screen; collapse fires claimed-stage auto-complete.
                 if spectacle.activeCinematic != nil {
                     return
                 }
@@ -122,7 +115,6 @@ extension BattleSession {
             }
             guard let summary = makeVictorySummary(for: configuration, presentation: context) else { return }
             spectacle.victorySummary = summary
-            // Defer outcome chrome until Ultimate collapse so the killing blow finishes.
             if spectacle.activeCinematic == nil {
                 scheduleVictoryPresentation(after: date)
             }
@@ -146,20 +138,16 @@ extension BattleSession {
         }
     }
 
-    /// Squish/bounce living Hero + Pet cards while the enemy dissolves.
-    /// Lands on the frame after dissolve starts so KeyframeAnimator work does not
-    /// share the killing-blow chip/layout commit.
     func publishPartyCelebrateReactions(at date: Date) {
         spectacle.pendingPartyCelebrateTask?.cancel()
         spectacle.pendingPartyCelebrateTask = nil
-        let delay = partyCelebrateDelayOverride ?? 0.032
-        if delay <= 0 {
+        let delay = partyCelebrateDelayOverride ?? .seconds(0.032)
+        if delay <= .zero {
             publishPartyCelebrateReactionsNow(at: date)
             return
         }
         spectacle.pendingPartyCelebrateTask = Task { @MainActor [weak self] in
-            // One display period past dissolve start (~16 ms) plus a small settle.
-            try? await Task.sleep(for: .seconds(delay))
+            try? await Task.sleep(for: delay)
             guard let self, !Task.isCancelled else { return }
             publishPartyCelebrateReactionsNow(at: date)
             spectacle.pendingPartyCelebrateTask = nil
@@ -170,7 +158,6 @@ extension BattleSession {
         guard let heroID,
               let companionID
         else { return }
-        // Negative synthetic IDs stay clear of engine event / feedback item IDs.
         let baseID = -1 * max(1, Int(date.timeIntervalSinceReferenceDate * 1000))
         var didPublish = false
         if isHeroAlive {
@@ -199,8 +186,6 @@ extension BattleSession {
         }
     }
 
-    /// Surfaces victory chrome after a claimed-stage auto-complete persist failure so
-    /// the player can retry via Loot All instead of remaining stuck on the battlefield.
     public func presentVictoryChromeForPersistRetry() {
         guard outcome == .victory,
               let configuration = activeBattle,
@@ -257,16 +242,17 @@ extension BattleSession {
         let latestFeedbackDelay = feedback.activeItems
             .map { max(0, $0.expiresAt.timeIntervalSince(date)) }
             .max() ?? 0
-        let spectacleDelay = max(BattleMotion.outcomePresentationMinimum, latestFeedbackDelay)
+        let spectacleDelaySeconds = max(BattleMotion.outcomePresentationMinimum, latestFeedbackDelay)
             + BattleMotion.outcomePresentationPadding
+        let spectacleDelay = Duration.seconds(spectacleDelaySeconds)
         let delay = outcomePresentationDelayOverride ?? spectacleDelay
-        guard delay > 0 else {
+        guard delay > .zero else {
             show(self)
             presentationEnvironment.playSFX([sfx])
             return
         }
         spectacle.pendingOutcomePresentationTask = Task { @MainActor [weak self] in
-            try? await Task.sleep(for: .seconds(delay))
+            try? await Task.sleep(for: delay)
             guard let self, !Task.isCancelled, outcome == expected else { return }
             show(self)
             presentationEnvironment.playSFX([sfx])
@@ -298,14 +284,12 @@ extension BattleSession {
                 for: ultimate.actorID,
                 abilityID: ultimate.abilityID
             )
-            // Unmapped casts skip the overlay entirely — never full-screen ability art.
             if autoSkip || !hasVideo {
                 feedback.record(nonMilestone, at: date, environment: presentationEnvironment)
                 return
             }
             spectacle.deferredFeedbackEvents = nonMilestone
             beginCinematic(from: ultimate, at: date)
-            // Prune may have suppressed its publish; clear expired chips once.
             feedback.noteItemsChanged()
             return
         }
@@ -333,10 +317,10 @@ extension BattleSession {
     func scheduleCinematicWatchdog(expectedID: Int) {
         cancelCinematicWatchdog()
         let hold = cinematicSessionWatchdogOverride
-            ?? BattleMotion.ultimateCinematicSessionWatchdog
+            ?? .seconds(BattleMotion.ultimateCinematicSessionWatchdog)
         spectacle.pendingCinematicWatchdogTask = Task { @MainActor [weak self] in
-            if hold > 0 {
-                try? await Task.sleep(for: .seconds(hold))
+            if hold > .zero {
+                try? await Task.sleep(for: hold)
             }
             guard let self, !Task.isCancelled else { return }
             completeCinematicCollapse(expectedID: expectedID)
@@ -401,8 +385,8 @@ extension BattleSession {
         beginOpeningHandDeal(
             for: configuration.id,
             startDelay: holdOpeningHandForOverlayFade
-                ? TrinketMotion.Screen.crossfadeDuration
-                : 0
+                ? .seconds(TrinketMotion.Screen.crossfadeDuration)
+                : .zero
         )
     }
 

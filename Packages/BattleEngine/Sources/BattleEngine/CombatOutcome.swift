@@ -2,9 +2,7 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-/// Result of a combat mutation (damage, heal, leech, control meter).
 public struct CombatOutcome: Equatable {
-    /// Negative when the target lost health; positive when the target gained health.
     public var healthDelta: Int
     public var events: [ActionEvent]
     var flags: Set<CombatFlag>
@@ -36,7 +34,6 @@ public struct CombatOutcome: Equatable {
     }
 }
 
-/// Semantic markers for combat mutations. Populated from pipeline state and events.
 public enum CombatFlag: Hashable, Sendable {
     case critical
     case dodged

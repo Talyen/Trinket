@@ -3,9 +3,6 @@ import os
 import SwiftUI
 import TrinketFeatureContracts
 
-/// Signposts intentionally ship in release-like builds so Instruments can profile the
-/// same Battle effect pipeline players run. With no signpost consumer, the system log
-/// path remains lightweight.
 public enum BattleFramePacingSignposts {
     public static let subsystem = FramePacingSignpostSupport.subsystem
     static let category = "BattleEffects"

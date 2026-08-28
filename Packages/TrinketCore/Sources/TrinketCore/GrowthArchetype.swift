@@ -17,9 +17,6 @@ public enum GrowthArchetype: String, Codable, Hashable, Sendable, CaseIterable {
         }
     }
 
-    /// Level-1 primary stats for enemies of this archetype. Budget is 50.
-    /// Offsets are ±2–3 from an even 10/10/10/10/10 split. Heroes and companions
-    /// keep authored identity stats.
     public var identityPrimaryStats: PrimaryStats {
         switch self {
         case .tank:
@@ -67,7 +64,6 @@ public struct StatGrowthDelta: Equatable, Hashable, Sendable {
 }
 
 public enum StatGrowth {
-    /// Levels above identity (level 1). Level 1 returns zero growth.
     public static func levelsAboveIdentity(_ level: Int) -> Int {
         max(0, level - 1)
     }

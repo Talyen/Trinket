@@ -3,8 +3,6 @@ import TrinketCore
 import TrinketDesignSystem
 import TrinketFeatureSupport
 
-/// Resolved glyphs + optional short text for one combat floating chip.
-/// Dual-symbol chips use independent tints (e.g. purple sparkles + Bleed red).
 struct CombatFeedbackChipPresentation: Hashable {
     enum Style: Hashable {
         case keyword(Keyword)
@@ -22,7 +20,6 @@ struct CombatFeedbackChipPresentation: Hashable {
 
     let leadingStyle: Style?
     let trailingStyle: Style
-    /// Visible chip text. `nil` for icon-only / dual-icon chips.
     let text: String?
 
     static func resolve(

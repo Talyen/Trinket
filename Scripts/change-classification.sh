@@ -145,7 +145,7 @@ trinket_classify_package_swift_path() {
       ;;
     TrinketDesignSystem)
       if [[ "$path" == Packages/TrinketDesignSystem/Sources/* ]]; then
-        trinket_add_skill Docs/Skills/apple-design/SKILL.md
+        trinket_add_skill .agents/skills/apple-design/SKILL.md
       fi
       ;;
     TrinketFeatureSupport)
@@ -527,7 +527,7 @@ trinket_classify_paths() {
   fi
 
   if [[ "$TRINKET_HAS_VISUAL_UI" == true ]]; then
-    trinket_add_skill Docs/Skills/apple-design/SKILL.md
+    trinket_add_skill .agents/skills/apple-design/SKILL.md
     trinket_add_context_card Docs/AgentContext/swiftui-features.md
   fi
 

@@ -54,11 +54,9 @@ struct TalentModelsTests {
         let gatedNode = tree.nodes(forRow: row + 1)[0]
         let fullPrevious = Set(previousNodes.map(\.id))
 
-        // Partial previous row -> cannot unlock the next row.
         let partialPrevious = fullPrevious.subtracting([previousNodes[0].id])
         #expect(!tree.canUnlock(node: gatedNode, unlockedNodeIDs: partialPrevious, availablePoints: 2))
 
-        // Full previous row -> can unlock the next row.
         #expect(tree.isRowComplete(row, unlockedNodeIDs: fullPrevious))
         #expect(tree.canUnlock(node: gatedNode, unlockedNodeIDs: fullPrevious, availablePoints: 1))
     }

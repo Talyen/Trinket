@@ -17,7 +17,6 @@ public struct CombatPowerSnapshot: Equatable, Sendable {
 }
 
 public enum CombatPowerRating {
-    /// Summarizes scaled combat power from final combatant stats.
     public static func evaluate(
         maxHealth: Int,
         primaryStats: PrimaryStats,

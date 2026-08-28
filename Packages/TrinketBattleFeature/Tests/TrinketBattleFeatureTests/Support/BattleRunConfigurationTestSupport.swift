@@ -6,11 +6,6 @@ import TrinketFeatureContracts
 import TrinketTestSupport
 @testable import TrinketBattleFeature
 
-/// Direct fixture for the launch-baked battle run DTO.
-///
-/// BattleFeature tests provide every policy result explicitly. This helper only
-/// packages those values into `BattleRunConfiguration` and never resolves
-/// builds, rewards, progression, or homestead effects.
 @MainActor
 enum BattleRunConfigurationTestSupport {
     static func make(

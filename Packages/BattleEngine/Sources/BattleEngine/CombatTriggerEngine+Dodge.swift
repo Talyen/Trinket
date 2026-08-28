@@ -191,8 +191,6 @@ package extension CombatTriggerEngine {
         return events
     }
 
-    /// Dance of Blades: Dodging draws and automatically plays a card; a critical
-    /// play repeats the effect, bounded by the shared auto-play depth cap.
     private static func drawPlayCascade(
         for combatant: Combatant,
         in context: inout BattleState

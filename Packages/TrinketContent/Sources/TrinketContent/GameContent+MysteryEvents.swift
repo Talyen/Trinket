@@ -53,7 +53,6 @@ public extension GameContent {
         MysteryEventPool.pickMysteryEvent(context: context, using: &randomNumberGenerator)
     }
 
-    /// Resolves an ordinary Mystery. Recruit events are intentionally excluded.
     static func resolveMysteryEncounterEvent(
         authored: MysteryEvent?,
         context: MysteryEventPickContext = .excludingCorruptionAltar,
@@ -62,7 +61,6 @@ public extension GameContent {
         authored ?? pickMysteryEvent(context: context, using: &randomNumberGenerator)
     }
 
-    /// Authored mystery or recruit for a stage, preferring an explicit forced id.
     static func authoredMysteryOrRecruitEvent(
         forcedEventID: String? = nil,
         stage: Stage
@@ -72,8 +70,6 @@ public extension GameContent {
         } ?? stage.mysteryEvent
     }
 
-    /// Seeded journey mystery pick (stable per save + stage so map art matches the encounter).
-    /// Prefer an authored / forced event, then a save-pinned id, then the seeded pool.
     static func resolveJourneyMysteryEvent(
         stageID: String,
         worldSeed: UInt64,
@@ -98,7 +94,6 @@ public extension GameContent {
         )
     }
 
-    /// Shared journey resolve used by map art and encounter open.
     static func resolveJourneyMysteryEvent(
         stage: Stage,
         worldSeed: UInt64,
@@ -115,8 +110,6 @@ public extension GameContent {
         )
     }
 
-    /// Seeded Labyrinth mystery pick (stable per save + node so reopen does not re-roll).
-    /// Prefer a pinned `mysteryEventID` on the node when present.
     static func resolveLabyrinthMysteryEvent(
         nodeID: String,
         worldSeed: UInt64,
@@ -142,7 +135,6 @@ public extension GameContent {
         )
     }
 
-    /// Synthetic stage stub for Labyrinth shop / mystery / recruit node sessions.
     static func syntheticLabyrinthStage(
         nodeID: String,
         encounter: StageEncounter
@@ -157,7 +149,6 @@ public extension GameContent {
         )
     }
 
-    /// Non-boss enemies eligible for journey `randomBattle` stages.
     static var nonBossEnemies: [Enemy] {
         enemies.filter { !$0.isBoss }
     }
@@ -243,20 +234,14 @@ public extension GameContent {
         return recruitEncounterArtReference(for: combatant.role)
     }
 
-    /// Recruit mystery scene for a configured event id. Uses the authored combatant
-    /// role; does not run recruit resolution.
     static func recruitEncounterArtReference(forEventID eventID: String?) -> EncounterArtReference? {
         recruitEncounterArtReference(for: recruitEncounterRole(forEventID: eventID))
     }
 
-    /// Map glyph for a configured recruit event. Uses the authored combatant role;
-    /// does not run recruit resolution.
     static func recruitEncounterSymbolName(forEventID eventID: String?) -> String {
         recruitEncounterSymbolName(for: recruitEncounterRole(forEventID: eventID))
     }
 
-    /// Authored recruit role for map art and glyphs. `random-companion` is companion;
-    /// empty or unknown ids default to hero.
     private static func recruitEncounterRole(forEventID eventID: String?) -> Combatant.Role {
         if eventID == StageEncounter.randomCompanionRecruitID {
             return .companion

@@ -6,13 +6,7 @@ import TrinketFeatureContracts
 import TrinketFeatureSupport
 
 #if DEBUG
-// DEBUG playground only — do not ship lab UI.
 
-/// Options > Developer Preview Lab. Hosts a real, fully playable battle stage
-/// (production `BattleView` + a lab-owned `BattleSession`) so effects can be
-/// previewed with all real battle behaviors — floating feedback, combatant art,
-/// buff aura borders, hit reactions, outcomes. Effect controls stay behind a
-/// toolbar icon so the stage is never obstructed.
 public struct PreviewLabView: View {
     public init() {
         let enemyID = Self.defaultEnemyID
@@ -92,8 +86,6 @@ public struct PreviewLabView: View {
         .onDisappear(perform: teardown)
     }
 
-    // MARK: - Subject
-
     private var subjectSection: some View {
         Section("Subject") {
             Picker("Hero", selection: $selectedHeroID) {
@@ -124,8 +116,6 @@ public struct PreviewLabView: View {
             }
         }
     }
-
-    // MARK: - Behavior
 
     private var isCinematicClear: Bool {
         !labSession.spectacle.isShowingVictory
@@ -159,7 +149,6 @@ public struct PreviewLabView: View {
         }
     }
 
-    /// Pre-warm the selected party's mapped cinematics (Rogue Shadowstep, Knight Avatar).
     private func warmSelectedCinematics() {
         if let ultimate = PreviewLab.cinematicUltimate(for: selectedHeroID) {
             BattleCinematicPlayer.shared.warm(actorID: selectedHeroID, abilityID: ultimate.id)
@@ -207,14 +196,10 @@ private enum PreviewLab {
         )
     }
 
-    /// Combatants the lab lets you place in the companion slot. Heroes are included
-    /// so the Knight (a hero) can be previewed as the Avatar companion.
     static var companionOptions: [Combatant] {
         GameContent.heroes + GameContent.companions
     }
 
-    /// Lab loadout override: force the mapped cinematic ultimate so transition
-    /// previews are reachable regardless of which slot the combatant fills.
     static func cinematicUltimate(for combatantID: String) -> Ability? {
         switch combatantID {
         case "rogue": .shadowstep
@@ -254,8 +239,6 @@ private enum PreviewLab {
         )
     }
 
-    /// Lab subject: inflated health for extended testing time, with an optional
-    /// loadout ultimate (Rogue picks Shadowstep so its cinematic is in play).
     static func labCombatant(_ combatant: Combatant, ultimate: Ability? = nil) -> Combatant {
         let choices = ultimate.map {
             combatant.abilityChoices.withSelectedLoadout(AbilityLoadout(ultimate: $0))
@@ -274,8 +257,6 @@ private enum PreviewLab {
     }
 }
 
-/// "Ultimate Transitions" effect controls — opening and closing styles selected
-/// independently. Lives in the Preview Lab controls sheet, never on the stage.
 private struct UltimateTransitionsControls: View {
     @Bindable var config: PreviewLabConfig
 

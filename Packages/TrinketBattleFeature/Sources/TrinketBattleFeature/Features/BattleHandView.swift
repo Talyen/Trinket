@@ -5,7 +5,6 @@ import TrinketCore
 import TrinketDesignSystem
 import TrinketFeatureSupport
 
-/// Fan pose captured at pickup so hand reflow cannot retarget a held card.
 private struct HeldCardLayoutSnapshot: Equatable {
     var width: CGFloat
     var height: CGFloat
@@ -23,20 +22,15 @@ private struct HeldCardInteraction: Equatable {
 struct BattleHandView: View {
     let cards: [BattleCard]
     let isPlayable: (BattleCard) -> Bool
-    /// Triggered Stun/Freeze keyword for party owners skipping this turn.
     var ownerControlSkipKeywords: [BattleParticipant: Keyword] = [:]
     let onInspect: (BattleCard) -> Void
     let onPlay: (BattleCard, CardActivationRequest) -> Bool
     let onPlayDenied: () -> Void
     let hapticsEnabled: Bool
     let battleFrame: CGRect
-    /// When set, the matching hand card mirrors Auto Battle's tap-lift rise.
     var autoLiftCardID: Int?
-    /// Fires when any hand card press/drag begins or ends (including long-press detail).
     var onCardInteractionChanged: ((Bool) -> Void)?
-    /// Drag exceeded tap slop or tap-lift began — start party attack wind-up.
     var onAttackWindUp: ((BattleCard) -> Void)?
-    /// Card returned to hand without casting — cancel wind-up for this card's owner.
     var onAttackCancel: ((BattleCard) -> Void)?
 
     @State private var heldInteraction: HeldCardInteraction?
@@ -76,8 +70,7 @@ struct BattleHandView: View {
                 cardCount: cards.count
             )
             ZStack(alignment: .bottom) {
-                ForEach(cards) { card in
-                    let index = cards.firstIndex(where: { $0.id == card.id }) ?? 0
+                ForEach(Array(cards.enumerated()), id: \.element.id) { index, card in
                     let liveSnapshot = liveSnapshot(
                         index: index,
                         layout: layout,
@@ -103,8 +96,6 @@ struct BattleHandView: View {
                         onPlayDenied: onPlayDenied,
                         onInteractionChanged: { isActive in
                             if isActive {
-                                // Freeze the pose from the interaction start frame so later
-                                // draws / reflow cannot rewrite the held card's fan.
                                 if controlSkipKeyword == nil,
                                    heldInteraction?.cardID != card.id {
                                     heldInteraction = HeldCardInteraction(

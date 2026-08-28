@@ -149,12 +149,10 @@ struct CombatantEquipmentTests {
 
         loadout.equip(quiver, in: .secondaryWeapon, inventory: [crossbow, quiver, shield, buckler, spellbook, sword])
         try #expect(loadout.itemID(for: .secondaryWeapon) == quiver.id)
-        // Equipping a second bow keeps the quiver
         let longbow = try ItemFixtures.makeItem("longbow", id: "longbow-a")
         var loadout2 = EquipmentLoadout(itemIDsBySlot: [.weapon: crossbow.id, .secondaryWeapon: quiver.id])
         loadout2.equip(longbow, in: .weapon, inventory: [crossbow, longbow, quiver])
         try #expect(loadout2.itemID(for: .secondaryWeapon) == quiver.id)
-        // Non-ranged weapon cannot be equipped while Quiver is worn (must unequip quiver first)
         var loadout3 = EquipmentLoadout(itemIDsBySlot: [.weapon: crossbow.id, .secondaryWeapon: quiver.id])
         let maul = try ItemFixtures.makeItem("maul", id: "maul-a")
         loadout3.equip(maul, in: .weapon, inventory: [crossbow, maul, quiver])
@@ -171,7 +169,6 @@ struct CombatantEquipmentTests {
         let crossbow = try ItemFixtures.makeItem("crossbow", id: "crossbow-a")
         let sword = try ItemFixtures.makeItem("longsword", id: "sword-a")
         var loadout = EquipmentLoadout()
-        // No primary — quiver cannot be equipped
         try #expect(!loadout.canEquip(quiver, in: .secondaryWeapon, inventory: [quiver, crossbow]))
         loadout.equip(sword, in: .weapon, inventory: [sword, quiver])
         try #expect(!loadout.canEquip(quiver, in: .secondaryWeapon, inventory: [sword, quiver]))

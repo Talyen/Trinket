@@ -1,8 +1,6 @@
 import SwiftUI
 import TrinketDesignSystem
 
-/// Shared art → copy → trailing content reading stack for Mystery / Shop encounters.
-/// Session rules, offer grids, and CTAs stay at the call site.
 public struct EncounterReadingShell<Artwork: View, Copy: View, Content: View>: View {
     let artVisible: Bool
     let copyVisible: Bool

@@ -201,7 +201,7 @@ struct BattleSessionPreparationTests {
         let party = BattlePartyFixtures.quickWinParty()
         let runKey = BattleRunKey("test|prepared-overlay-context")
         let session = BattleSession(openingHandDrawStagger: 0, outcomePresentationDelayOverride: 0)
-        session.partyCelebrateDelayOverride = 0
+        session.partyCelebrateDelayOverride = .zero
         let (configuration, presentation) = BattleRunConfigurationTestSupport.make(
             runKey: runKey,
             hero: party.hero,

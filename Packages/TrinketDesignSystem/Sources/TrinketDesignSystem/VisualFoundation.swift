@@ -25,19 +25,12 @@ public enum GlassChipRole: String, CaseIterable, Sendable, Equatable {
 }
 
 public enum TypographyRole: Sendable {
-    /// Serif large title for cinematic heroes on art (Campaign, Homestead, detail heroes).
     case screenDisplay
-    /// Serif title2 for featured section names on themed surfaces.
     case sectionDisplay
-    /// SF large title for system-style screen titles (Apple-native UI chrome).
     case screenTitle
-    /// SF title2 for list/shelf section headers (Apple-native UI chrome).
     case sectionTitle
-    /// SF title3 for prominent row labels beneath section headers.
     case rowTitle
-    /// SF headline for card and row primary labels.
     case cardTitle
-    /// Small uppercase-capable label above a hero title (role, rarity, chapter index).
     case eyebrow
     case body
     case secondaryBody
@@ -47,9 +40,7 @@ public enum TypographyRole: Sendable {
     case button
     case statValue
     case navigation
-    /// Serif headline for compact journey/list row titles.
     case rowDisplay
-    /// Medium subheadline under collection/card art.
     case cardLabel
 
     var font: Font {

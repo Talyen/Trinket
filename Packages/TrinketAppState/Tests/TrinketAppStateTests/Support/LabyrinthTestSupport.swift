@@ -44,7 +44,6 @@ enum LabyrinthTestSupport {
         if let existing = firstReachableNodeID(where: { $0.type.canonical == type.canonical }, in: state) {
             return existing
         }
-        // Fallback: adapt an eligible uncompleted reachable node to ensure test determinism.
         let reachableIDs = state.playerSave.labyrinth.reachableNodeIDs()
         guard let targetID = reachableIDs.first(where: { id in
             guard let node = state.playerSave.labyrinth.node(id: id) else { return false }

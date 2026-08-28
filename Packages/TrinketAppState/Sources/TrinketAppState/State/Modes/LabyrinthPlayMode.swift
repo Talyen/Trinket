@@ -6,7 +6,6 @@ import TrinketCore
 import TrinketFeatureContracts
 import TrinketPersistence
 
-/// Labyrinth map flow: enter, node routing, Campfire rests, and node completion writes.
 @MainActor
 @Observable
 public final class LabyrinthPlayMode {
@@ -139,8 +138,6 @@ public final class LabyrinthPlayMode {
         return nil
     }
 
-    /// Bakes the active party as a battle launch would and pairs it with stored
-    /// run health, so the Campfire screen shows the same numbers battles use.
     private func campfireParty() -> [CampfirePartyMember] {
         let party = PlayBattleLaunch.bakedActiveParty(
             rosterState: playerSave.roster,
@@ -238,8 +235,6 @@ public final class LabyrinthPlayMode {
         guard battle.lifecyclePhase != .active else { return }
         let labyrinth = playerSave.labyrinth
         let inputs = preparationInputs(labyrinth: labyrinth)
-        // Same re-prepare contract as Journey/Spires: a consumed or dropped
-        // prepared run must be rebuilt even when inputs are unchanged.
         let missingPreparedRun = labyrinth.reachableNodeIDs().contains { nodeID in
             guard let node = labyrinth.node(id: nodeID), node.type.isCombat else { return false }
             return !battle.hasPreparedRun(PlayBattleOrigin.labyrinth(nodeID: nodeID).runKey)
@@ -292,7 +287,6 @@ public final class LabyrinthPlayMode {
         )
     }
 
-    /// Completes a Labyrinth node, returning a save-failure message when persistence fails.
     func completeNodeOrPersistFailure(nodeID: String) -> StageMapMessage? {
         guard completeNode(nodeID: nodeID) else {
             return StageMapMessage(
@@ -318,7 +312,6 @@ public final class LabyrinthPlayMode {
         let roster = playerSave.roster
         let resolvedHero = hero ?? roster.activeHero
         let resolvedCompanion = companion ?? roster.activeCompanion
-        // Victory health commits never store a dead party member.
         let resolvedRunHealth = partyRunHealth.map { healths in
             Dictionary(uniqueKeysWithValues: healths.map { ($0.key, max(1, $0.value)) })
         }
@@ -407,9 +400,6 @@ extension LabyrinthPlayMode {
         let origin = PlayBattleOrigin.labyrinth(nodeID: nodeID)
         return PlayBattleRoute(origin: origin) { [weak self] configuration, presentation, battleEarnedGold, materialRewards, loot in
             guard let self else { return false }
-            // Persist end-of-battle party health so wounds carry to the next fight.
-            // Commits cap at the baseline maximum: in-battle max-health growth is
-            // battle-scoped and must not survive into stored wounds.
             let runHealth = battle.finalPartyHealthByCombatantID.map { healths in
                 func capped(_ member: BattleRunConfiguration.PartyMember) -> Int? {
                     healths[member.combatant.id].map { min($0, member.baselineMaxHealth) }

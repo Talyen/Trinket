@@ -4,8 +4,6 @@ import TrinketCore
 import TrinketTestSupport
 @testable import BattleEngine
 
-/// Fae Ward: "block the first negative effect applied each turn." Pins every
-/// removable-debuff application path to the shared interception point.
 struct FaeWardTests {
     private static let faeWard = CombatModifierProfile(
         triggers: CombatTraitTriggers(cleanse: CleanseTriggers(blockFirstDebuffPerTurn: true))

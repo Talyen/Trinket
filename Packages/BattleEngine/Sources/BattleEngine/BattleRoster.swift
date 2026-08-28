@@ -7,7 +7,6 @@ public enum BattleParticipant: CaseIterable, Sendable {
     case companion
     case enemy
 
-    /// Participants in effect-pass order for each end-of-round pass.
     public static let effectTurnOrder: [Self] = [.enemy, .hero, .companion]
 
     public var isPartyMember: Bool {
@@ -18,12 +17,6 @@ public enum BattleParticipant: CaseIterable, Sendable {
     }
 }
 
-/// Collection of the three `CombatantRuntime`s participating in a battle:
-/// the hero, the companion, and the enemy. Provides dispatch by role or by
-/// `Combatant` identity.
-///
-/// The roster is the single source of truth for per-combatant mutable state
-/// (health, active effects, action counts). `BattleState` delegates to it.
 public struct BattleRoster {
     public var hero: CombatantRuntime
     public var companion: CombatantRuntime
@@ -60,14 +53,10 @@ public struct BattleRoster {
         }
     }
 
-    // MARK: - Dispatch by Combatant identity
-
-    /// Returns the runtime whose `id` matches `combatant.id`, if any.
     public func runtime(for combatant: Combatant) -> CombatantRuntime? {
         participant(for: combatant).map { self[$0] }
     }
 
-    /// Returns the runtime with the given `id`, if any.
     public func combatant(for id: String) -> CombatantRuntime? {
         if hero.id == id {
             return hero
@@ -81,13 +70,10 @@ public struct BattleRoster {
         return nil
     }
 
-    /// Replaces the runtime whose `id` matches `runtime.id`.
     public mutating func update(_ runtime: CombatantRuntime) {
         guard let participant = participant(for: runtime.combatant) else { return }
         self[participant] = runtime
     }
-
-    // MARK: - Active effects accessors
 
     public func activeEffects(for combatant: Combatant) -> [ActiveEffect] {
         runtime(for: combatant)?.activeEffects ?? []
@@ -98,8 +84,6 @@ public struct BattleRoster {
             runtime.activeEffects = effects
         }
     }
-
-    // MARK: - Health accessors
 
     public func health(for combatant: Combatant) -> Int {
         runtime(for: combatant)?.currentHealth ?? 0
@@ -113,10 +97,6 @@ public struct BattleRoster {
         runtime(for: combatant)?.maxMana ?? 0
     }
 
-    // MARK: - Targeting
-
-    /// The combatant the enemy prefers to attack: the living party member with
-    /// the highest current health, preferring the hero when both are alive and tied.
     public var enemyAttackTarget: Combatant {
         if hero.isAlive, companion.isAlive {
             return hero.currentHealth >= companion.currentHealth ? hero.combatant : companion.combatant
@@ -138,22 +118,16 @@ public struct BattleRoster {
         enemy.currentHealth == 0
     }
 
-    /// True when `combatant` has any stun/freeze meter still awaiting an
-    /// unconsumed action skip.
     public func hasPendingActionSkip(for combatant: Combatant) -> Bool {
         activeEffects(for: combatant).contains(where: \.isAwaitingActionSkip)
     }
 
-    /// True when `combatant` has a full control meter for `keyword` still
-    /// awaiting an unconsumed action skip.
     public func hasPendingActionSkip(for combatant: Combatant, keyword: Keyword) -> Bool {
         activeEffects(for: combatant).contains { activeEffect in
             activeEffect.keyword == keyword && activeEffect.isAwaitingActionSkip
         }
     }
 
-    /// True when `combatant` has a full stun/freeze meter (status active),
-    /// whether or not the action skip has already been consumed.
     public func hasControlStatus(for combatant: Combatant, keyword: Keyword) -> Bool {
         activeEffects(for: combatant).contains { activeEffect in
             activeEffect.keyword == keyword && activeEffect.effect.isActionSkipPending
@@ -164,13 +138,10 @@ public struct BattleRoster {
         activeEffects(for: combatant).contains { $0.effect.keyword == keyword }
     }
 
-    /// True when `combatant` has any full stun/freeze meter (status active).
     public func hasControlStatus(for combatant: Combatant) -> Bool {
         activeEffects(for: combatant).contains(where: \.effect.isActionSkipPending)
     }
 
-    /// Removes full stun/freeze meters that are no longer awaiting a skip
-    /// (post-consume linger), so the combatant does not look CC'd while acting.
     public mutating func clearControlStatusLinger(for combatant: Combatant) {
         let updated = activeEffects(for: combatant).filter { activeEffect in
             !(activeEffect.effect.isActionSkipPending && !activeEffect.isAwaitingActionSkip)
@@ -178,8 +149,6 @@ public struct BattleRoster {
         setActiveEffects(updated, for: combatant)
     }
 
-    /// Mutates the runtime identified by `combatant` in place. A no-op
-    /// when `combatant` is unknown.
     public mutating func mutateRuntime(for combatant: Combatant, _ body: (inout CombatantRuntime) -> Void) {
         guard let participant = participant(for: combatant) else { return }
         body(&self[participant])

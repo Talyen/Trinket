@@ -18,7 +18,7 @@ genuinely new concern. The authoritative suite inventory is the
 | Builds, triggers, talents, traits, affixes, items, trinkets | `CombatBuildResolverTests`, `TalentCatalogRoundTripTests`, `CombatTriggerFieldCoverageTests`, `CombatTriggerTalent*Tests`, `TrinketEffectTests`, `*BattleTests` |
 | Catalog ability combos | `AbilityEffectIntegrationTests` |
 | Outcome, log, event formatting | `BattleOutcomeResolverTests`, `BattleLogReducerTests`, `EffectSummaryBuilderTests` |
-| Balance simulator and sweep tooling | `BattleBalanceToolsTests` (`BattleSimulator*`, `Balance*`, `ModeProgressionToolingTests`); `GreedyHeuristicPolicyTests` stays in `BattleEngineTests` (Auto Battle) |
+| Balance simulator and sweep tooling | `BattleBalanceToolsTests` (`BattleSimulator*`, `Balance*`, `ModeProgressionToolingTests`); `PlayPolicyTests` stays in `BattleEngineTests` (Auto Battle) |
 
 ## Conventions
 

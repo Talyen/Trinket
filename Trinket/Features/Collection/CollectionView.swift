@@ -31,9 +31,6 @@ struct CollectionView: View {
             .navigationBarTitleDisplayMode(.large)
             .onAppear(perform: presentPendingLaunchRoute)
             .task(id: imminentDetailArtworkPinKey) {
-                // Shelf thumbs are launch-priority; pin the sheet's full
-                // portraits and compact ability/talent art so NSCache eviction
-                // cannot force Image(name) onto the zoom+sheet frame.
                 await refreshImminentDetailArtworkPins()
             }
             .onDisappear {

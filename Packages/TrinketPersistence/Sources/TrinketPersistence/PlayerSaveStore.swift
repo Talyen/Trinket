@@ -8,22 +8,6 @@ public enum PlayerSaveDefaults {
     public static let loggingSubsystem = "com.ryanmcintire.Trinket"
 }
 
-/// Write-through hub for the player SwiftData graph.
-///
-/// **Owns:** `ModelContainer` / `ModelContext`, deferred save + rollback,
-/// reset/seed, and slice property setters that sanitize then persist.
-///
-/// **Does not own:** pure domain rules, which stay on value types
-/// (`PlayerHomesteadState`, `PlayerRosterState`, …). Prefer slice properties
-/// (`journey` / `roster` / `inventory` / `homestead`) for single-slice reads
-/// and writes, or domain extensions on `PlayerSaveStore` (`buildOrUpgradeNode`,
-/// `salvageItem`).
-///
-/// **Where to put new persistence code:**
-/// 1. Pure domain rules → value types under `Models/`
-/// 2. Cross-slice player actions → domain extensions on `PlayerSaveStore`
-/// 3. Container open / URL / CloudKit config → `PlayerSaveStoreConfiguration`
-/// 4. Only add methods here when they are hub infrastructure (save, rollback, reset)
 @MainActor
 @Observable
 public final class PlayerSaveStore {
@@ -47,11 +31,8 @@ public final class PlayerSaveStore {
 
     public private(set) var lastPersistenceError: PlayerSavePersistenceError?
 
-    /// `true` when disk store failed and an in-memory fallback container is active.
     public private(set) var isPersistenceDegraded = false
 
-    /// `true` when the previous store was unreadable and recovery deleted it,
-    /// starting this session from a fresh save.
     public private(set) var recoveredAfterStoreDeletion = false
     public let isCloudSyncEnabled: Bool
 
@@ -89,7 +70,6 @@ public final class PlayerSaveStore {
         set { mutate { $0.labyrinth = newValue } }
     }
 
-    /// Root-level Corruption Altar cooldown — prefer this over `currentSave` for reads.
     public var corruptionAltarCooldownRemaining: Int {
         observedSave.corruptionAltarCooldownRemaining
     }
@@ -171,8 +151,6 @@ public final class PlayerSaveStore {
 
         let loadedRoot = try Self.loadOrCreateRoot(in: context, logger: logger)
         root = loadedRoot.root
-        // Decode is raw; sanitize owns value normalization. Install the clean
-        // save immediately so reads never see dirty disk rows.
         let rawSave = root.toPlayerSave()
         var sanitized = PlayerSaveSanitizer.sanitize(rawSave)
         sanitized.schemaVersion = PlayerSave.currentSchemaVersion
@@ -186,7 +164,6 @@ public final class PlayerSaveStore {
     }
 
     // Concurrency-Safety: isolated deinit runs on MainActor so cancelling the
-    // deferred save Task does not touch MainActor-isolated state from a nonisolated deinit.
     isolated deinit {
         deferredSaveTask?.cancel()
     }
@@ -223,18 +200,12 @@ public final class PlayerSaveStore {
             }
         } else {
             if pendingRollbackSnapshot == nil {
-                // Keep the last persisted snapshot across coalesced deferred mutations so a
-                // failed flush rolls back past every unsaved change, not only the latest one.
                 pendingRollbackSnapshot = snapshot
             }
             pendingRollbackSlices.formUnion(changedSlices)
         }
     }
 
-    /// Persists a batch mutation, returning `false` (with a logged message) on failure.
-    ///
-    /// Callers keep their own failure bookkeeping (mark-failed, keep the session
-    /// open, play SFX) so they never clear progress that failed to persist.
     @discardableResult
     public func persistBatch(
         logging message: String,
@@ -251,8 +222,6 @@ public final class PlayerSaveStore {
         }
     }
 
-    /// Writes any coalesced deferred mutation immediately (no yield). Call from
-    /// scene-phase teardown so progress is durable before suspension.
     public func flushPendingPersistence() {
         deferredSaveTask?.cancel()
         deferredSaveTask = nil
@@ -269,9 +238,6 @@ public final class PlayerSaveStore {
     }
 
     private func resetRoot(with save: PlayerSave) throws {
-        // Update the existing primary root in place. Delete+insert after a swallowed
-        // clear failure left duplicate `id == "primary"` rows so a later cold start
-        // could reload stale progress instead of the reset snapshot.
         let snapshot = currentSave
         let sanitized = PlayerSaveSanitizer.sanitize(save)
         root.update(from: sanitized, context: context)
@@ -294,7 +260,6 @@ public final class PlayerSaveStore {
         try resetWithIncrementedSessionGeneration(.testSeed)
     }
 
-    /// Unlocks all heroes/companions at level 20 and clears Chapter 1 (Modes unlock).
     public func unlockAllContent() throws {
         try resetWithIncrementedSessionGeneration(.unlockedAll)
     }
@@ -337,10 +302,6 @@ public final class PlayerSaveStore {
         }
     }
 
-    /// Persists semantic sanitize diffs and structural graph repairs for an
-    /// existing store. Decode is raw; compare against `root.toPlayerSave()` so
-    /// dirty rows are visible and written back — not only when child models
-    /// are missing.
     private func ensureRequiredGraph(rawSave: PlayerSave? = nil, sanitized: PlayerSave? = nil) {
         let rawSave = rawSave ?? root.toPlayerSave()
         var save = sanitized ?? PlayerSaveSanitizer.sanitize(rawSave)
@@ -446,7 +407,7 @@ private extension PlayerSaveStore {
         deferredSaveTask?.cancel()
         deferredSaveTask = Task(priority: .utility) { @MainActor [weak self] in
             do {
-                try await Task.sleep(nanoseconds: 300000000)
+                try await Task.sleep(for: .milliseconds(300))
             } catch {
                 return
             }

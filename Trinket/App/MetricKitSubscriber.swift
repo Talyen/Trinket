@@ -17,8 +17,6 @@ struct MetricKitDiagnosticSummary: Sendable {
     let periodEnd: TimeInterval
 }
 
-/// Production performance and stability diagnostics delivered by MetricKit.
-/// Complements local reproducible scenarios and Xcode Organizer reports.
 @MainActor
 final class MetricKitSubscriber: NSObject, MXMetricManagerSubscriber {
     static let shared = MetricKitSubscriber()

@@ -45,8 +45,6 @@ struct BattleRosterTests {
         )
     }
 
-    // MARK: - Dispatch by Combatant identity
-
     @Test func effectTurnOrderIsEnemyHeroCompanion() throws {
         try #expect(BattleParticipant.effectTurnOrder == [.enemy, .hero, .companion])
     }
@@ -77,8 +75,6 @@ struct BattleRosterTests {
         try #expect(roster.companion.currentHealth == roster.companion.maxHealth)
     }
 
-    // MARK: - Active effects
-
     @Test func enemyAttackTargetCoversAliveDeadAndHealthPriority() throws {
         let aliveRoster = makeRoster()
         try #expect(aliveRoster.enemyAttackTarget.id == "hero")
@@ -94,8 +90,6 @@ struct BattleRosterTests {
         let priorityRoster = BattleRoster(hero: priorityHero, companion: priorityCompanion, enemy: runtime(id: "enemy", role: .enemy))
         try #expect(priorityRoster.enemyAttackTarget.id == "companion")
     }
-
-    // MARK: - Defeat flags
 
     @Test func defeatFlagsCoverPartyAndEnemy() throws {
         var roster = makeRoster()

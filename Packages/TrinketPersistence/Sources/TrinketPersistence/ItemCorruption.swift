@@ -37,7 +37,6 @@ public enum ItemCorruptionApplyResult: Equatable, Sendable {
     case ineligible
 }
 
-/// Chaos mutation rules for the Corruption Altar mystery event.
 public enum ItemCorruption {
     public static let maxAffixCount = 5
     public static let addChancePercent = 50
@@ -151,7 +150,6 @@ public enum ItemCorruption {
             using: &randomNumberGenerator
         )
 
-        // Exactly one surviving affix carries the corruption mark.
         let corruptedIndex = corruptedMarkIndex(
             count: affixIDs.count,
             candidates: markCandidates,
@@ -196,8 +194,6 @@ public enum ItemCorruption {
         return preferred?.1 ?? Int.random(in: 0 ..< count, using: &randomNumberGenerator)
     }
 
-    /// Priority order for the item's single corruption mark: newest corruption-made
-    /// affix first, then remade, then power-shifted.
     private enum CorruptionMarkPriority: Int, Comparable {
         case added
         case replaced

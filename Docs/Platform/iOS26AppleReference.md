@@ -1,6 +1,6 @@
 # Trinket Apple API choices
 
-Official Apple sources remain authoritative. This file records **Trinket’s** forks of iOS 26 / Swift 6 APIs. Motion and materials procedure: [apple-design skill](../Skills/apple-design/SKILL.md). Chrome tokens: [TrinketDesignSystem README](../../Packages/TrinketDesignSystem/README.md). Banned legacy APIs are enforced by `./Scripts/check-platform-api-bans.sh`.
+Official Apple sources remain authoritative. This file records **Trinket’s** forks of iOS 26 / Swift 6 APIs. Motion and materials procedure: [apple-design skill](../../.agents/skills/apple-design/SKILL.md). Chrome tokens: [TrinketDesignSystem README](../../Packages/TrinketDesignSystem/README.md). Banned legacy APIs are enforced by `./Scripts/check-platform-api-bans.sh`.
 
 **Baseline:** iOS 26.0, Swift 6.0, `SWIFT_STRICT_CONCURRENCY: complete` (`project.yml`).
 

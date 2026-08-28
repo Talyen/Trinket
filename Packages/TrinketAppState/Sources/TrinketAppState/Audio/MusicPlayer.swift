@@ -29,7 +29,6 @@ final class MusicPlayer {
     }
 
     // Concurrency-Safety: isolated deinit runs on MainActor so cancelling the
-    // fade Task does not touch MainActor-isolated state from a nonisolated deinit.
     isolated deinit {
         fadeTask?.cancel()
         loadTask?.cancel()
@@ -52,7 +51,6 @@ final class MusicPlayer {
         }
     }
 
-    /// Decode and `prepareToPlay` the current route without starting playback.
     func prepare(_ request: MusicPlaybackRequest) {
         guard !isDisabled else { return }
         if currentRequest?.resumeKey == request.resumeKey {
@@ -67,16 +65,12 @@ final class MusicPlayer {
         enqueueLoad(request, startVolume: nil)
     }
 
-    /// Live slider scrubbing: adjust gain only when a player is already current.
-    /// Starts a prepared or in-flight unmute without a track-change fade.
     func setVolume(_ volume: Double) {
         guard !isDisabled else { return }
         let resolvedVolume = Float(max(0, min(volume, 1)))
 
         if let currentPlayer, let currentRequest {
             currentPlayer.volume = targetVolume(for: currentRequest, appVolume: resolvedVolume)
-            // Stop any in-flight crossfade/fade-out ramp from overwriting the scrubbed
-            // gain on its next step.
             cancelActiveFades()
             return
         }
@@ -248,8 +242,6 @@ final class MusicPlayer {
     }
 
     private func fadeOutCurrent(preservingPosition: Bool) {
-        // Already silent: keep a muted Options preload so refreshMusic does not
-        // cancel the in-flight prepare on every reconcile.
         guard currentPlayer != nil else { return }
         cancelPendingLoad()
         clearPrepared()
@@ -264,8 +256,6 @@ final class MusicPlayer {
         currentRequest = nil
 
         let duration = fadeDuration
-        // Defer stop so cancelActiveFades / deinit cannot orphan a still-playing
-        // outgoing player when the ramp Task is cancelled mid-fade.
         fadeTask = Task { @MainActor [weak self] in
             defer { oldPlayer?.stop() }
             await self?.ramp(oldPlayer: oldPlayer, newPlayer: nil, targetVolume: 0, duration: duration)
@@ -367,7 +357,6 @@ final class MusicPlayer {
 }
 
 // Concurrency-Safety: `@unchecked Sendable` — AVAudioPlayer is not Sendable;
-// this box hops a prepared instance from a detached load onto the MainActor.
 private final class LoadedMusicPlayer: @unchecked Sendable {
     let player: AVAudioPlayer
 

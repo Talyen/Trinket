@@ -72,8 +72,6 @@ public final class AppState {
         factory: ((BattleRuntimeDependencies) -> any BattleRuntime)?,
         dependencies: BootstrapDependencies
     ) -> any BattleRuntime {
-        // The app always supplies a factory; tests wrap their silent BattleSession
-        // in a factory closure.
         guard let resolved = factory?(BattleRuntimeDependencies(
             playSFX: { ids in
                 dependencies.sfxPlayer.playAll(
@@ -149,8 +147,6 @@ public final class AppState {
         }
     }
 
-    /// True when the canonical player store could not be opened normally —
-    /// either persistence fell back to in-memory or a corrupt store was reset.
     public var requiresPersistenceRecoveryAcknowledgement: Bool {
         playerSave.isPersistenceDegraded || playerSave.recoveredAfterStoreDeletion
     }
@@ -169,7 +165,6 @@ public final class AppState {
         return true
     }
 
-    /// Dev-only: unlocks all content/heroes/companions at level 20 for Simulator testing.
     @discardableResult
     public func unlockAllContent() -> Bool {
         do {
@@ -184,7 +179,6 @@ public final class AppState {
         return true
     }
 
-    /// Ends any live encounter and resets shell session after a full progress rewrite.
     private func clearTransientPlaySession() {
         play.clearTransientState()
     }
@@ -244,7 +238,6 @@ public final class AppState {
         prepareMutedMusicIfNeeded(scenePhase: scenePhase)
     }
 
-    /// Options slider scrubbing: preview gain without persisting or mute-fading until commit.
     public func applyMusicVolumeLive(_ volume: Double, scenePhase: ScenePhase) {
         if musicPlayer.canPreviewVolume {
             musicPlayer.setVolume(volume)
@@ -285,8 +278,6 @@ public final class AppState {
             musicPlayer.cancelActiveFades()
             playerSave.flushPendingPersistence()
         case .active:
-            // Cold launch lands on Play via bootstrap `selectedTab(environment:)`.
-            // Re-forcing Play on every foreground would wipe the in-session shell tab.
             play.battle.setSuspendedForScenePhase(false)
         @unknown default:
             break

@@ -5,7 +5,6 @@ import TrinketDesignSystem
 import TrinketFeatureSupport
 import UIKit
 
-/// Blits prewarmed glyphs into a single chip raster. Warm path target: under 1 ms.
 @MainActor
 enum CombatFeedbackChipComposer {
     private static let horizontalPadding: CGFloat = 4
@@ -165,7 +164,6 @@ enum CombatFeedbackChipComposer {
         return ComposedRaster(image: cgImage, pointSize: pointSize)
     }
 
-    /// LTR: leading → text → trailing. RTL mirrors that sequence.
     private static func horizontalOrigins(
         contentX: CGFloat,
         leadingWidth: CGFloat,
@@ -210,7 +208,6 @@ enum CombatFeedbackChipComposer {
         recipe: CombatFeedbackChipStyle,
         atlas: CombatFeedbackGlyphAtlas
     ) -> [CombatFeedbackGlyphAtlas.Glyph]? {
-        // Numeric chips pass digit characters; word chips pass one whole-word fragment.
         let fragments: [String] = if text.allSatisfy({ $0.isNumber || $0 == "+" }) {
             text.map(String.init)
         } else {

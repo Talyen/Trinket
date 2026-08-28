@@ -59,7 +59,6 @@ struct DoTDamageTests {
         let expectedHealthLost: Int
         switch caseKind {
         case .intellectStat:
-            // intellect 20 → 20% burn bonus on base 4 = +1 burn → total 5
             context = makeContext(sourceStats: PrimaryStats(intellect: 20))
             expectedHealthLost = 5
         case .itemDamageDealt:

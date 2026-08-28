@@ -234,7 +234,6 @@ private struct HomesteadDepositEvent: Identifiable {
     let amounts: [ResourceAmount]
 }
 
-/// Wakes Collect when any homestead resource crosses a whole unit.
 private struct HomesteadProductionSchedule: TimelineSchedule {
     let homestead: PlayerHomesteadState
     let roster: PlayerRosterState

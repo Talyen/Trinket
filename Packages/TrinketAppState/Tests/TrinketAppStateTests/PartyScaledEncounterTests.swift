@@ -16,7 +16,6 @@ struct PartyScaledEncounterTests {
         context = try AppTestContext()
     }
 
-    /// Pins the active pair to known levels so the scaling ceiling is deterministic.
     private func setPartyLevels(_ heroLevel: Int, _ companionLevel: Int, in state: PlaySession) {
         var roster = state.playerSave.roster
         roster.progressions[roster.activeHeroID] = .at(level: heroLevel)
@@ -95,8 +94,6 @@ struct PartyScaledEncounterTests {
         )
     }
 
-    /// Forces a reachable combat node to a deep authored level so the scaling ceiling
-    /// is observable. Adapts the existing node because save writes drop unknown-cluster nodes.
     private func forceDeepCombatNode(in state: PlaySession) throws -> String {
         _ = state.labyrinth.enter()
         let nodeID = try #require(LabyrinthTestSupport.firstReachableCombatNodeID(in: state))

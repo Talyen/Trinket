@@ -1,19 +1,8 @@
 import Foundation
 import TrinketCore
 
-/// Trait and affix trigger knobs authored for combat builds.
-///
-/// Held indirectly through a copy-on-write box: the many typed fields make this a
-/// multi-KB value type, so an inline layout would bloat every profile copy through
-/// the recursive damage pipeline (and overflow debug worker-thread stacks).
-///
-/// The trigger surface is grouped into thematic sub-structs (`DamageTriggers`,
-/// `BlockTriggers`, …) so each family has a small memberwise init and its own merge.
-/// `@dynamicMemberLookup` forwards those families' fields so engine reads stay
-/// `triggers.holyIgnoresBlock` without naming the family.
 @dynamicMemberLookup
 public struct CombatTraitTriggers: Codable, Sendable, Equatable, Hashable {
-    /// The COW-boxed payload: one sub-struct per trigger family.
     struct Fields: Equatable, Hashable, Sendable {
         var damage: DamageTriggers
         var attack: AttackTriggers
@@ -100,8 +89,6 @@ public struct CombatTraitTriggers: Codable, Sendable, Equatable, Hashable {
         hasher.combine(storage.value)
     }
 
-    // MARK: - Dynamic Member Lookup: Damage
-
     public subscript<T>(dynamicMember keyPath: KeyPath<DamageTriggers, T>) -> T {
         storage.value.damage[keyPath: keyPath]
     }
@@ -113,8 +100,6 @@ public struct CombatTraitTriggers: Codable, Sendable, Equatable, Hashable {
             storage.value.damage[keyPath: keyPath] = newValue
         }
     }
-
-    // MARK: - Dynamic Member Lookup: Attack
 
     public subscript<T>(dynamicMember keyPath: KeyPath<AttackTriggers, T>) -> T {
         storage.value.attack[keyPath: keyPath]
@@ -128,8 +113,6 @@ public struct CombatTraitTriggers: Codable, Sendable, Equatable, Hashable {
         }
     }
 
-    // MARK: - Dynamic Member Lookup: Block
-
     public subscript<T>(dynamicMember keyPath: KeyPath<BlockTriggers, T>) -> T {
         storage.value.block[keyPath: keyPath]
     }
@@ -141,8 +124,6 @@ public struct CombatTraitTriggers: Codable, Sendable, Equatable, Hashable {
             storage.value.block[keyPath: keyPath] = newValue
         }
     }
-
-    // MARK: - Dynamic Member Lookup: Mitigation
 
     public subscript<T>(dynamicMember keyPath: KeyPath<MitigationTriggers, T>) -> T {
         storage.value.mitigation[keyPath: keyPath]
@@ -156,8 +137,6 @@ public struct CombatTraitTriggers: Codable, Sendable, Equatable, Hashable {
         }
     }
 
-    // MARK: - Dynamic Member Lookup: DoT
-
     public subscript<T>(dynamicMember keyPath: KeyPath<DotTriggers, T>) -> T {
         storage.value.dot[keyPath: keyPath]
     }
@@ -169,8 +148,6 @@ public struct CombatTraitTriggers: Codable, Sendable, Equatable, Hashable {
             storage.value.dot[keyPath: keyPath] = newValue
         }
     }
-
-    // MARK: - Dynamic Member Lookup: Control
 
     public subscript<T>(dynamicMember keyPath: KeyPath<ControlTriggers, T>) -> T {
         storage.value.control[keyPath: keyPath]
@@ -184,8 +161,6 @@ public struct CombatTraitTriggers: Codable, Sendable, Equatable, Hashable {
         }
     }
 
-    // MARK: - Dynamic Member Lookup: Dodge
-
     public subscript<T>(dynamicMember keyPath: KeyPath<DodgeTriggers, T>) -> T {
         storage.value.dodge[keyPath: keyPath]
     }
@@ -197,8 +172,6 @@ public struct CombatTraitTriggers: Codable, Sendable, Equatable, Hashable {
             storage.value.dodge[keyPath: keyPath] = newValue
         }
     }
-
-    // MARK: - Dynamic Member Lookup: Mana
 
     public subscript<T>(dynamicMember keyPath: KeyPath<ManaTriggers, T>) -> T {
         storage.value.mana[keyPath: keyPath]
@@ -212,8 +185,6 @@ public struct CombatTraitTriggers: Codable, Sendable, Equatable, Hashable {
         }
     }
 
-    // MARK: - Dynamic Member Lookup: Gold
-
     public subscript<T>(dynamicMember keyPath: KeyPath<GoldTriggers, T>) -> T {
         storage.value.gold[keyPath: keyPath]
     }
@@ -225,8 +196,6 @@ public struct CombatTraitTriggers: Codable, Sendable, Equatable, Hashable {
             storage.value.gold[keyPath: keyPath] = newValue
         }
     }
-
-    // MARK: - Dynamic Member Lookup: Healing
 
     public subscript<T>(dynamicMember keyPath: KeyPath<HealingTriggers, T>) -> T {
         storage.value.healing[keyPath: keyPath]
@@ -240,8 +209,6 @@ public struct CombatTraitTriggers: Codable, Sendable, Equatable, Hashable {
         }
     }
 
-    // MARK: - Dynamic Member Lookup: Revival
-
     public subscript<T>(dynamicMember keyPath: KeyPath<RevivalTriggers, T>) -> T {
         storage.value.revival[keyPath: keyPath]
     }
@@ -253,8 +220,6 @@ public struct CombatTraitTriggers: Codable, Sendable, Equatable, Hashable {
             storage.value.revival[keyPath: keyPath] = newValue
         }
     }
-
-    // MARK: - Dynamic Member Lookup: Cleanse
 
     public subscript<T>(dynamicMember keyPath: KeyPath<CleanseTriggers, T>) -> T {
         storage.value.cleanse[keyPath: keyPath]
@@ -268,8 +233,6 @@ public struct CombatTraitTriggers: Codable, Sendable, Equatable, Hashable {
         }
     }
 
-    // MARK: - Dynamic Member Lookup: Enemy Turn
-
     public subscript<T>(dynamicMember keyPath: KeyPath<EnemyTurnTriggers, T>) -> T {
         storage.value.enemyTurn[keyPath: keyPath]
     }
@@ -281,8 +244,6 @@ public struct CombatTraitTriggers: Codable, Sendable, Equatable, Hashable {
             storage.value.enemyTurn[keyPath: keyPath] = newValue
         }
     }
-
-    // MARK: - Dynamic Member Lookup: On-Hit
 
     public subscript<T>(dynamicMember keyPath: KeyPath<OnHitTriggers, T>) -> T {
         storage.value.onHit[keyPath: keyPath]
@@ -298,7 +259,6 @@ public struct CombatTraitTriggers: Codable, Sendable, Equatable, Hashable {
 }
 
 public extension CombatTraitTriggers {
-    /// Every trigger-family stored property name, including defaulted fields.
     static var allFieldNames: [String] {
         DamageTriggers.fieldNames
             + AttackTriggers.fieldNames
@@ -316,7 +276,6 @@ public extension CombatTraitTriggers {
             + OnHitTriggers.fieldNames
     }
 
-    /// Trigger field names whose values differ from family defaults.
     var populatedFieldNames: [String] {
         storage.value.damage.populatedFieldNames(comparedTo: DamageTriggers())
             + storage.value.attack.populatedFieldNames(comparedTo: AttackTriggers())

@@ -12,13 +12,9 @@ struct CardDissolveThresholdMask: View {
     var cellSize: Int = 1
     var thresholdMidpoint: CGFloat = 0.46
     var thresholdContrast: CGFloat = 100
-    /// When set, distance to a center diagonal at this angle (degrees from vertical)
-    /// is treated as an additional dissolve edge (Slice death cut face).
     var cutAngleDegrees: CGFloat?
 
     var body: some View {
-        // Quantize before lookup so TimelineView ticks that share a dissolve step
-        // reuse one Equatable mask leaf instead of rebuilding Image every frame.
         let step = CardDissolveTexture.progressStep(for: progress)
         StableCardDissolveThresholdMask(
             step: step,
@@ -33,8 +29,6 @@ struct CardDissolveThresholdMask: View {
     }
 }
 
-/// Step-keyed mask leaf. Equality ignores floating progress so SwiftUI can skip
-/// redundant updates while the quantized wipe holds a single baked frame.
 private struct StableCardDissolveThresholdMask: View, Equatable {
     let step: Int
     let edgeDepthWeight: CGFloat
@@ -45,8 +39,6 @@ private struct StableCardDissolveThresholdMask: View, Equatable {
     let cutAngleDegrees: CGFloat?
 
     var body: some View {
-        // CPU-baked alpha masks avoid per-frame brightness/contrast/luminanceToAlpha.
-        // Soft-fail: if CGImage baking fails, omit the mask rather than crashing the cast.
         if let image = CardDissolveTexture.thresholdMaskImage(
             progress: CGFloat(step) / CGFloat(CardDissolveTexture.progressStepCount),
             edgeDepthWeight: edgeDepthWeight,
@@ -66,9 +58,7 @@ private struct StableCardDissolveThresholdMask: View, Equatable {
 enum CardDissolveTexture {
     private static let width = 192
     private static let height = 256
-    /// Discrete dissolve steps — enough for a smooth wipe without unique masks per frame.
     private static let progressSteps = 40
-    /// Exposed for step-stable mask views (same quantization as the bake cache).
     static var progressStepCount: Int {
         progressSteps
     }
@@ -92,7 +82,6 @@ enum CardDissolveTexture {
         let edgeDepthWeight: Int
         let noiseWeight: Int
         let cellSize: Int
-        /// Quantized cut angle; `nil` = rectangular edges only.
         let cutAngleDegrees: Int?
     }
 
@@ -103,9 +92,6 @@ enum CardDissolveTexture {
         let thresholdContrast: Int
     }
 
-    /// Shared bake cache read from the main actor (live casts) and a detached
-    /// prewarm task. Separate Mutexes keep noise resolution outside the
-    /// threshold lock so a cache miss cannot self-deadlock.
     private final class TextureCache: Sendable {
         private let noiseCache = Mutex<[NoiseCacheKey: [UInt8]]>([:])
         private let thresholdCache = Mutex<[ThresholdCacheKey: CGImage]>([:])
@@ -145,8 +131,6 @@ enum CardDissolveTexture {
             }
         }
 
-        /// Uniform-alpha stand-in so a cold cache miss never bakes 192×256 noise on
-        /// the display-link thread. Real masks replace this once `prewarm` finishes.
         func provisionalThresholdImage(progressStep: Int) -> CGImage? {
             provisionalCache.withLock { cache in
                 if let cached = cache[progressStep] {
@@ -185,10 +169,6 @@ enum CardDissolveTexture {
         return makeGrayscaleImage(pixels: bytes, width: width, height: height)
     }
 
-    /// Baked alpha mask for a quantized dissolve progress (no SwiftUI filter chain).
-    ///
-    /// Production and warm paths sync-bake on a rare cache miss so cast and
-    /// enemy-death dissolves keep the noise wipe.
     static func thresholdMaskImage(
         progress: CGFloat,
         edgeDepthWeight: CGFloat = 0.86,
@@ -226,7 +206,6 @@ enum CardDissolveTexture {
         )
     }
 
-    /// Forces a synchronous bake into the real threshold cache (prewarm / tests).
     fileprivate static func bakeThresholdMaskImage(
         progress: CGFloat,
         edgeDepthWeight: CGFloat = 0.86,
@@ -267,8 +246,6 @@ enum CardDissolveTexture {
         }
     }
 
-    /// Ensures default noise + quantized threshold masks are resident before first cast.
-    /// Work runs off the caller's actor so battle chrome can appear without a hitch.
     static func prewarm(
         edgeDepthWeight: CGFloat = 0.86,
         noiseWeight: CGFloat = 0.18,
@@ -318,7 +295,6 @@ enum CardDissolveTexture {
                 return task
             }
             // Concurrency-Safety: detached CPU baking cannot block the caller's
-            // actor. The cache is Mutex-backed and safe for concurrent reads.
             let task = Task.detached(priority: .userInitiated) {
                 _ = noiseImage(
                     edgeDepthWeight: edgeDepthWeight,
@@ -445,7 +421,6 @@ extension CardDissolveTexture {
         return pixels
     }
 
-    /// Mirrors SwiftUI brightness → contrast → luminanceToAlpha for the dissolve wipe.
     private static func makeThresholdImage(
         noise: [UInt8],
         progress: CGFloat,
@@ -455,9 +430,6 @@ extension CardDissolveTexture {
         var rgba = [UInt8](repeating: 0, count: width * height * 4)
         let brightness = Double(thresholdMidpoint) - Double(progress)
         let contrast = max(Double(thresholdContrast), 1)
-        // The threshold transform depends only on the source byte and this step's
-        // constants. Resolve its 256 possible outputs once instead of repeating
-        // floating-point brightness/contrast arithmetic for every pixel.
         let alphaByNoise = (0 ... 255).map { byte -> UInt8 in
             let normalized = Double(byte) / 255.0
             let brightened = normalized + brightness

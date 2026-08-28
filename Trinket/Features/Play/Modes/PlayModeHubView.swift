@@ -5,11 +5,6 @@ import TrinketDesignSystem
 import TrinketFeatureSupport
 import TrinketPersistence
 
-/// The Play tab's root: two broad choices with a clear visual promise.
-///
-/// Campaign remains the existing linear Chapter/Stage journey. Explore is the
-/// home for the currently available open-ended sub-modes while the future
-/// world map is being designed.
 struct PlayModeHubView: View {
     @Environment(JourneyPlayMode.self) private var journey
     @Environment(OptionsStore.self) private var options

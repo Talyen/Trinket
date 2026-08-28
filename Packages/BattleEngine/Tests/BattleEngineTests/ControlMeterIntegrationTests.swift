@@ -4,12 +4,6 @@ import TrinketContent
 import TrinketCore
 import TrinketTestSupport
 
-/// Control-meter wiring through card combat endTurn / enemy skip.
-///
-/// Pure meter math: `ControlMeterEngineTests`, `CombatPipelineTests`.
-/// Threshold formulas: `PrimaryStatsRulesTests`.
-/// Effect summaries: `EffectSummaryBuilderTests`.
-/// Turn consumption primitives: `BattleTurnEngineTests`.
 struct ControlMeterIntegrationTests {
     @Test(arguments: [Keyword.stun, Keyword.freeze])
     func actionSkipPreventsDamage(keyword: Keyword) throws {
@@ -33,7 +27,6 @@ struct ControlMeterIntegrationTests {
         let events = BattleTestFixtures.endTurn(on: &battle)
         BattleTestFixtures.assertActionSkipConsumed(events: events, actorID: enemy.id, keyword: .stun)
         try #expect(!(events.contains { $0.kind == .ability && $0.actorID == enemy.id }))
-        // Skip is consumed, but Stunned status lingers into the next player turn.
         try #expect(battle.roster.hasControlStatus(for: enemy, keyword: .stun))
         try #expect(!(battle.roster.hasPendingActionSkip(for: enemy, keyword: .stun)))
     }
@@ -49,7 +42,6 @@ struct ControlMeterIntegrationTests {
         try #expect(CombatantBorderAccent.keyword(from: battle.activeEffects(of: enemy)) == .stun)
         try #expect(battle.health(of: hero) == hero.maxHealth)
 
-        // Following player turn: status still active, no second skip queued.
         try #expect(!(battle.roster.hasPendingActionSkip(for: enemy)))
 
         let secondEnd = BattleTestFixtures.endTurn(on: &battle)
@@ -70,7 +62,6 @@ struct ControlMeterIntegrationTests {
         let enemy = BattleTestFixtures.attackingEnemy(abilities: [.slash], maxHealth: 5)
         var battle = BattleTestFixtures.standardParty(hero: hero, companion: companion, enemy: enemy)
 
-        // Play stun cards until control triggers, then end turn so enemy skip resolves.
         var events: [ActionEvent] = []
         for _ in 0 ..< 8 {
             if let play = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle) {
@@ -127,8 +118,6 @@ struct ControlMeterIntegrationTests {
             ]
         )
 
-        // Re-bootstrap skip set after seeding effects via factory (init already ran).
-        // Opening hand exists; hero should be marked skipping.
         battle.ownersSkippingThisPlayerTurn = [.hero]
         let heroCard = try #require(battle.hand.cards.first { $0.owner == .hero })
         try #expect(!battle.isCardPlayable(heroCard))
@@ -136,15 +125,11 @@ struct ControlMeterIntegrationTests {
         do {
             _ = try battle.playCard(cardID: heroCard.id)
             Issue.record("Expected ownerSkipping error")
-        } catch BattlePlayError.ownerSkipping {
-            // expected
-        }
+        } catch BattlePlayError.ownerSkipping {}
 
         let events = BattleTestFixtures.endTurn(on: &battle)
         try #expect(events.contains(effectKind: .controlActionSkipped, keyword: .stun))
         try #expect(battle.ownersSkippingThisPlayerTurn.isEmpty)
-        // Party skip is consumed once; the Stunned status drops so the hero does
-        // not look CC'd while acting on the next turn.
         try #expect(!(battle.roster.hasControlStatus(for: battle.hero, keyword: .stun)))
         try #expect(!(battle.roster.hasPendingActionSkip(for: battle.hero, keyword: .stun)))
         try #expect(battle.ownersSkippingThisPlayerTurn.isEmpty)

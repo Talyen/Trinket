@@ -3,7 +3,6 @@ import Observation
 import SwiftUI
 import TrinketDesignSystem
 
-/// Shared timing owner for victory / mystery reward reveal sequences.
 @MainActor
 @Observable
 public final class RewardRevealSequenceState {
@@ -65,7 +64,6 @@ public final class RewardRevealSequenceState {
         start(itemCount: itemCount, walletCount: walletCount)
     }
 
-    /// Snaps to the completed reveal state (e.g. onDisappear cancel).
     private func finish(walletCount: Int) {
         guard !isSequenceComplete else { return }
         visibleWalletRewardCount = walletCount

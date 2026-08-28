@@ -8,15 +8,12 @@ package extension DamagePipeline {
         in context: inout BattleState
     ) {
         context.roster.setActiveEffects(state.activeEffects, for: state.combatant)
-        // Ironhide: the defender cannot take more than `maxDamagePerHitCap` from a
-        // single enemy attack hit (DoT ticks and retaliation are uncapped).
         let cap = context.modifiers(for: state.combatant.id).triggers.maxDamagePerHitCap
         if cap > 0, state.options.isAttackHit, !state.options.isRetaliation,
            let sourceActorID = state.sourceActorID,
            context.roster.combatant(for: sourceActorID)?.role == .enemy {
             state.remaining = min(state.remaining, cap)
         }
-        // Scavenger's Cache: the Lizard spends Gold to absorb damage (1 Gold per point).
         absorbDamageWithGold(to: &state, in: &context)
         if applySacrificialGuard(to: &state, in: &context) {
             return
@@ -47,7 +44,6 @@ package extension DamagePipeline {
         }
     }
 
-    /// Scavenger's Cache: spend party Gold to absorb incoming damage (1 Gold per point, up to 5 Gold per hit).
     private static func absorbDamageWithGold(
         to state: inout DamageResolutionState,
         in context: inout BattleState
@@ -72,10 +68,6 @@ package extension DamagePipeline {
         ))
     }
 
-    /// Sacrificial Guard: the Companion intercepts a fatal Hero hit through the
-    /// normal damage pipeline (Block, Ironhide, gold absorb), then gains Block.
-    /// This runs before Phoenix Gift / Hero Death's Door because the Hero never
-    /// reaches 0 Health on this hit.
     @discardableResult
     private static func applySacrificialGuard(
         to state: inout DamageResolutionState,
@@ -112,7 +104,6 @@ package extension DamagePipeline {
         return true
     }
 
-    /// Post-hit reactions from survival talents (Grizzly Guard, Dense Bones, Soul Ward, Protective Lick).
     private static func applyTalentDamageReactions(
         defender: Combatant,
         isRetaliation: Bool,
@@ -121,7 +112,6 @@ package extension DamagePipeline {
     ) -> [ActionEvent] {
         var events: [ActionEvent] = []
         let defenderTriggers = context.modifiers(for: defender.id).triggers
-        // Grizzly Guard: Companion takes damage → Hero gains Block.
         if defender.role == .companion, context.roster.hero.isAlive,
            context.companionModifiers.triggers.onCompanionTakeDamageGrantHeroBlock > 0 {
             events.append(contentsOf: context.applyBlock(
@@ -131,7 +121,6 @@ package extension DamagePipeline {
                 abilityName: "Grizzly Guard"
             ))
         }
-        // Dense Bones: +1 Toughness per hit taken, up to a cap.
         if defenderTriggers.toughnessOnHit > 0 {
             context.roster.mutateRuntime(for: defender) { runtime in
                 if runtime.talentStatBonus.toughness < defenderTriggers.toughnessOnHitCap {
@@ -139,7 +128,6 @@ package extension DamagePipeline {
                 }
             }
         }
-        // Soul Ward: Block on enemy Health loss from an attack hit, not DoT or retaliation.
         if defender.role == .enemy, isAttackHit, !isRetaliation {
             for owner in [BattleParticipant.hero, .companion] {
                 let member = context.roster[owner]
@@ -155,7 +143,6 @@ package extension DamagePipeline {
                 }
             }
         }
-        // Bone Armor: the defender gains Block when they lose Health.
         if defenderTriggers.onSelfHealthLossGainBlock > 0 {
             events.append(contentsOf: context.applyBlock(
                 defenderTriggers.onSelfHealthLossGainBlock,
@@ -164,7 +151,6 @@ package extension DamagePipeline {
                 abilityName: "Bone Armor"
             ))
         }
-        // Protective Lick: when an ally takes damage, the Retriever heals them.
         if defender.role != .enemy {
             for owner in [BattleParticipant.hero, .companion] {
                 let member = context.roster[owner]
@@ -181,7 +167,6 @@ package extension DamagePipeline {
         return events
     }
 
-    /// Soul Sharing: Companion damage dealt leeches a portion to the Hero.
     private static func applyCompanionLeechToHero(
         lost: Int,
         defender _: Combatant,

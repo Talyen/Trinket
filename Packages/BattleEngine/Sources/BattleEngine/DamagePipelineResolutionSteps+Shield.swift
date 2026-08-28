@@ -78,14 +78,12 @@ package extension DamagePipeline {
         applyOverflowAndBreakReactions(blockBroken: blockBroken, defenderTriggers: defenderTriggers, to: &state, in: &context)
     }
 
-    /// Unbreakable overflow mitigation and block-broken reactions.
     private static func applyOverflowAndBreakReactions(
         blockBroken: Bool,
         defenderTriggers: CombatTraitTriggers,
         to state: inout DamageResolutionState,
         in context: inout BattleState
     ) {
-        // Unbreakable: damage that exceeds Block is reduced by half.
         if state.remaining > 0, defenderTriggers.postBlockOverflowDamageMultiplier != 1 {
             state.remaining = CombatRounding.scaled(
                 state.remaining,
@@ -103,14 +101,11 @@ package extension DamagePipeline {
         }
     }
 
-    /// Result of a single Block absorption event.
     private struct ShieldAbsorption {
         var absorbed: Int
         var extraRemoved: Int
     }
 
-    /// Absorbs damage into the effective Block pool, computes talent-based extra
-    /// removal, and emits the absorption event.
     private static func applyAbsorption(
         to state: inout DamageResolutionState,
         keyword: Keyword,
@@ -144,7 +139,6 @@ package extension DamagePipeline {
         return ShieldAbsorption(absorbed: absorbed, extraRemoved: extraRemoved)
     }
 
-    /// Intercede: the Hero's Block also absorbs damage dealt to the Companion.
     private static func applyIntercede(
         to state: inout DamageResolutionState,
         in context: inout BattleState
@@ -172,8 +166,6 @@ package extension DamagePipeline {
         context.roster.setActiveEffects(reduced.effects, for: context.roster.hero.combatant)
     }
 
-    /// Talent Block-ignore modifiers (Holy, Burn, Physical-ignore) reduce the
-    /// effective Block pool before absorption; fully-ignored Block stays intact.
     private static func effectiveBlockBuffer(
         buffer: Int,
         sourceTriggers: CombatTraitTriggers?,
@@ -203,7 +195,6 @@ package extension DamagePipeline {
         return effectiveBuffer
     }
 
-    /// Extra Block removal from sunder/shred talents beyond the absorbed amount.
     private static func extraBlockRemoval(
         absorbed: Int,
         buffer: Int,
@@ -215,27 +206,21 @@ package extension DamagePipeline {
         var extraRemoved = canSunder
             ? min(buffer - absorbed, CombatRounding.scaled(absorbed, multiplier: sourceTriggers?.sunderingBlockMultiplier ?? 0))
             : 0
-        // Shield Breaker: Physical attacks deal double damage to enemy Block.
         if damageKeyword == .physical, let sourceTriggers, sourceTriggers.physicalBlockBreakMultiplier > 0 {
             extraRemoved += CombatRounding.scaled(absorbed, multiplier: sourceTriggers.physicalBlockBreakMultiplier - 1)
         }
-        // Pure Radiance: Holy damage deals bonus damage against enemy Block.
         if damageKeyword == .holy, let sourceTriggers, sourceTriggers.holyBlockBreakMultiplier > 0 {
             extraRemoved += CombatRounding.scaled(absorbed, multiplier: sourceTriggers.holyBlockBreakMultiplier - 1)
         }
-        // Corrosive Venom: Poison strips Block before damaging Health.
         if damageKeyword == .poison, let sourceTriggers, sourceTriggers.poisonStripsBlockBeforeHealth > 0 {
             extraRemoved += sourceTriggers.poisonStripsBlockBeforeHealth
         }
-        // Sunder Shield: Stunned enemies lose all their active Block.
         if targetIsStunned, let sourceTriggers, sourceTriggers.stunnedEnemyLoseAllBlock {
             extraRemoved = buffer
         }
         return extraRemoved
     }
 
-    /// Reactions after a Block absorbs damage: Sun-Struck Shell, Dazzling Guard,
-    /// and Shield Shatter on broken enemy Block.
     private static func applyBlockAbsorptionReactions(
         absorbed: Int,
         blockBroken: Bool,
@@ -245,8 +230,6 @@ package extension DamagePipeline {
         in context: inout BattleState
     ) -> [ActionEvent] {
         var events: [ActionEvent] = []
-        // Sun-Struck Shell: when this combatant's Block absorbs a hit, reflect
-        // Holy damage to the attacker.
         if absorbed > 0, let attackerID = state.sourceActorID,
            let attacker = context.roster.combatant(for: attackerID),
            context.roster.health(for: attacker.combatant) > 0 {
@@ -262,7 +245,6 @@ package extension DamagePipeline {
                     )
                 ).events)
             }
-            // Dazzling Guard: blocking an attack reduces the attacker's damage for 2 turns.
             if defenderTriggers.onBlockReduceAttackerAccuracyPercent > 0 {
                 context.appendEffect(
                     .damageReductionPercent(
@@ -276,7 +258,6 @@ package extension DamagePipeline {
             }
         }
 
-        // Shield Shatter: breaking an enemy's Block deals Physical damage to them.
         if blockBroken, state.combatant.role == .enemy,
            let sourceTriggers, sourceTriggers.onEnemyBlockBrokenDealPhysical > 0,
            let attackerID = state.sourceActorID,

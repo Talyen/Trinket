@@ -14,16 +14,11 @@ public struct AppEnvironment: Sendable {
     public let disableAudio: Bool
     public let persistSaveImmediately: Bool
     public let completedStageIDs: [String]
-    /// Test-only deterministic recruit event selected for the Mystery deep link.
     public let mysteryRecruitEventID: String?
     public let storeName: String?
-    /// Test-only override of the battle auto-end cadence (UI anti-flake contract).
     public let battleTickInterval: TimeInterval?
-    /// Test-only gold balance granted after seeding (shop-purchase UI journeys).
     public let startingGold: Int?
-    /// DEBUG frame-pacing sampler + accessibility metrics node (UI soak / hitch gate).
     public let enableFrameMetrics: Bool
-    /// DEBUG-only deterministic workload driver. Presence changes stimuli, never rendering fidelity.
     public let battlePerformanceScenario: BattlePerformanceScenario?
 
     private init(
@@ -80,7 +75,6 @@ public struct AppEnvironment: Sendable {
         #else
         let battlePerformanceScenario: BattlePerformanceScenario? = nil
         #endif
-        // F1 ship posture: CloudKit off unless explicitly enabled (device + simulator).
         disableCloudSync = arguments.contains("-disable-cloud-sync")
             || arguments.contains("-reset-state")
             || isRunningTests
@@ -95,11 +89,6 @@ public struct AppEnvironment: Sendable {
             skipOnboardingCeremony: arguments.contains("-skip-onboarding-ceremony"),
             disableCloudSync: disableCloudSync,
             disableAudio: arguments.contains("-disable-audio"),
-            // Production default is immediate persistence (screen == disk). Pass
-            // -defer-persistence to restore the 300ms coalesced path for
-            // isolated tests that need to inspect pendingRollback state.
-            // Legacy -persist-save-immediately is now a no-op (still accepted
-            // by launch arg sets but ignored).
             persistSaveImmediately: !arguments.contains("-defer-persistence"),
             completedStageIDs: completedStageIDs(from: arguments),
             mysteryRecruitEventID: argumentValue(after: "-mystery-recruit-event", in: arguments),

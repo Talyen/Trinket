@@ -7,7 +7,6 @@ public enum EffectTarget: Hashable, Sendable {
     case hero
     case companion
     case lowestHealthAlly
-    /// Prefer a defeated party ally (companion first, then hero).
     case defeatedAlly
 }
 
@@ -32,12 +31,10 @@ public struct DamageComponent: Hashable, Sendable {
         self.condition = condition
     }
 
-    /// True when this component's damage number can be raised by Mana empowerment.
     public var isManaEmpowerableBurnOrFreezeDamage: Bool {
         keyword == .burn || keyword == .freeze
     }
 
-    /// Returns a copy with Burn/Freeze amount increased by `amount`; other keywords unchanged.
     public func withManaEmpowerment(_ amount: Int = 1) -> Self {
         guard isManaEmpowerableBurnOrFreezeDamage else { return self }
         return Self(
@@ -67,79 +64,48 @@ public enum Effect: Hashable, Sendable {
     case poison(Int)
     case bleed(Int)
     case controlMeter(Keyword, Int, Int)
-    /// Flat Block buffer. Stacks into a single pool; no timed duration.
     case shield(Keyword, Int)
     case instantHeal(Keyword, Int)
     case resourceGain(Keyword, Int)
-    /// Draw `Int` cards for the resolved effect target's deck (hero or companion).
     case drawCards(Int)
-    /// Draw and automatically play `Int` cards.
     case drawAndPlayCards(Int)
     case cleanse(Keyword?)
     case cleanseRandom
     case purge(Keyword?)
     case purgeRandom
-    /// Halve the target's current Block pool (floor).
     case halveShield(Keyword)
     case deathsDoor
-    /// Physical thorns stacks. Each stack deals 1 Physical on the next hit received, then expires.
     case thorns(Int)
     case marked(Int, Int)
     case criticalChanceBonus(Double, Int)
     case restoreManaOnHit(Int, Int)
-    /// Forces outgoing damage keywords to `keyword` and adds `bonus` damage for `durationTurns`.
     case damageKeywordOverride(Keyword, Int, Int)
-    /// Next outgoing Holy damage instance deals double and applies Burning, then consumes.
     case nextHolyStrike
-    /// Next outgoing damaging hit (any keyword) deals double damage, then consumes.
     case nextStrikeDouble
-    /// Next incoming attack that runs the dodge gate is a guaranteed dodge, then consumes.
     case evadeNextHit
-    /// Spend all current Mana; gain that much Block.
     case convertManaToBlock
-    /// Gain Block equal to current Mana (does not spend Mana).
     case shieldFromMana
-    /// Gain Block equal to half current Mana (floor, does not spend Mana).
     case shieldFromHalfMana
-    /// Gain Block equal to `gold / goldPerBlock` (floor).
     case shieldFromGold(goldPerBlock: Int)
-    /// Battle-long maximum Mana bonus; also restores the same amount of current Mana.
     case maximumManaBonus(Int)
-    /// Next outgoing damaging hit is a guaranteed critical, then consumes.
     case nextStrikeCritical
-    /// Next enemy attack that hits you applies Frozen once, then consumes (fires even if Block absorbs).
     case freezeNextAttacker
-    /// Deal `keyword` damage to the next attacker, then consumes (fires even if Block absorbs).
     case onHitDamage(Keyword, Int)
-    /// Cleanse all removable debuffs, then restore `healPerRemoved` Health per debuff removed.
     case cleanseHealPerDebuff(Int)
-    /// Multiply an existing DoT stack's potency (e.g. double Burn).
     case multiplyDoT(Keyword, Int)
-    /// Immediate typed damage plus end-of-round pulses for `remainingTurns` after apply.
     case recurringDamage(Keyword, Int, Int)
-    /// Self-buff: while active, deals `holyDamage` Holy damage to the opponent and
-    /// grants `blockPerTurn` Block to the caster each turn for `turns` pulses.
     case avatar(holyDamage: Int, blockPerTurn: Int, turns: Int)
-    /// Revive a defeated ally to the given Health.
     case revive(Int)
-    /// Bearer deals `percent` less outgoing damage for `turns` (Blinding Carapace).
     case damageReductionPercent(Double, Int)
-    /// Bearer deals `amount` less outgoing damage for `turns` (Dazzle).
     case damageReductionFlat(Int, Int)
-    /// Bearer's Strength is reduced by `amount` for `turns` (Weaken Soul).
     case strengthReduction(Int, Int)
-    /// Bearer takes `Int` Bleed damage the next time it attacks, then consumes.
     case hemorrhage(Int)
 
     public static let bleedDoTTurnCount = 2
-    /// Fraction of health lost healed when an ability with the Leech keyword deals damage.
     public static let abilityLeechPercent = 0.50
     public static let standardMarkedDuration = 6
     public static let standardMarkedBonus = 2
 
-    /// Burn/Poison stack for the decaying-DoT keywords. Only `.burn` and
-    /// `.poison` decay; other keywords coerce to poison, mirroring the
-    /// registry's decaying-DoT coverage.
     public static func decayingDoT(keyword: Keyword, potency: Int) -> Self {
         switch keyword {
         case .burn: .burn(potency)
@@ -199,7 +165,6 @@ public enum Effect: Hashable, Sendable {
         }
     }
 
-    /// True for Burn stacks and Burn/Freeze recurring damage numbers Mana can empower.
     public var isManaEmpowerableBurnOrFreezeDamage: Bool {
         switch self {
         case .burn:
@@ -211,7 +176,6 @@ public enum Effect: Hashable, Sendable {
         }
     }
 
-    /// Returns a copy with Burn/Freeze damage potency increased by `amount`; other effects unchanged.
     public func withManaEmpowerment(_ amount: Int = 1) -> Self {
         switch self {
         case let .burn(potency):

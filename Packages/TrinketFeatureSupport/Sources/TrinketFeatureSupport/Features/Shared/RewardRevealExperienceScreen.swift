@@ -3,7 +3,6 @@ import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
 
-/// Shared victory / mystery loot reveal: sequence lock, loot, and item-detail sheet.
 public struct RewardRevealExperienceScreen<Experience: View>: View {
     public struct Loot {
         public let items: [InventoryItem]

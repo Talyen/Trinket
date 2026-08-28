@@ -4,7 +4,6 @@ import TrinketCore
 import TrinketTestSupport
 @testable import BattleEngine
 
-/// Catalog → `CombatBuildResolver` wiring, plus live hooks that span multiple engines.
 struct TalentCatalogRoundTripTests {
     @Test func catalogBuildMatchesEveryAuthoredTalent() throws {
         var nodes = 0

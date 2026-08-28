@@ -3,7 +3,6 @@ import Testing
 import TrinketContent
 import TrinketCore
 
-/// Run-scoped health seeds battles at less than full so wounds carry between fights.
 struct BattleStateStartingHealthTests {
     private func combatant(id: String, role: Combatant.Role, maxHealth: Int) -> Combatant {
         Combatant(

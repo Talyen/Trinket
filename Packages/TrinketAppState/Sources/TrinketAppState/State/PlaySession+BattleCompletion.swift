@@ -4,16 +4,11 @@ import TrinketCore
 import TrinketFeatureContracts
 import TrinketPersistence
 
-/// Shared battle victory sequencing used by the Play shell.
-///
-/// Mode owners provide a typed completion capability at launch. This type only
-/// validates the route, invokes that capability, and coordinates dismissal.
 @MainActor
 struct PlayBattleCompletion {
     let playerSave: PlayerSaveStore
     let battle: any BattleRuntime
 
-    /// Persists victory rewards and ends the battle only when persistence succeeds.
     @discardableResult
     func completeActiveBattle(
         _ configuration: BattleRunConfiguration,
@@ -57,9 +52,6 @@ struct PlayBattleCompletion {
         return persisted
     }
 
-    /// Rebuilds the launch-baked loot package so claim grants the gold, item, and
-    /// materials victory chrome already showed. Auto-claim has no materials
-    /// argument; Continue may pass the same list from the summary.
     static func preparedLoot(
         from presentation: BattlePresentationContext?,
         materialRewards: [ResourceAmount]?

@@ -8,7 +8,6 @@ import TrinketFeatureSupport
 @Observable
 final class BattleCastPresentationState {
     private(set) var request: CardActivationRequest?
-    /// Test seam. Production uses the cast animation plus stuck slack.
     var stuckResetDelayOverride: TimeInterval?
 
     @ObservationIgnored
@@ -59,7 +58,6 @@ struct CardActivationRequest: Equatable, Identifiable {
     let rotation: CGFloat
     let verticalTilt: CGFloat
     let scale: CGFloat
-    /// Matches the hand card's 3D perspective so cast handoff does not visually jump.
     let perspective: CGFloat
     let keywords: [Keyword]
     let particleCount: Int
@@ -98,10 +96,8 @@ struct CardActivationRequest: Equatable, Identifiable {
 }
 
 struct CardActivationParticle: Equatable {
-    /// Radial omnidirectional burst vs upward-biased fireworks with staggered waves.
     enum Spread: Equatable {
         case radial
-        /// Upper hemisphere in SwiftUI space (negative Y is up), three delay waves.
         case fireworks
     }
 
@@ -152,8 +148,6 @@ struct CardActivationParticle: Equatable {
     }
 }
 
-/// All active casts share one display-linked clock. Per-request cleanup remains
-/// independently cancellable when a cast disappears early.
 struct CardCastEffectsLayer: View {
     let request: CardActivationRequest?
     let onFinished: (UUID) -> Void
@@ -169,8 +163,6 @@ struct CardCastEffectsLayer: View {
     )
 
     var body: some View {
-        // The complete SwiftUI effect tree stays mounted while idle. A play only
-        // replaces immutable request data and wakes the shared animation clock.
         TimelineView(.animation(paused: request == nil)) { timeline in
             let displayedRequest = request ?? Self.idleRequest
             let progress = request.map {
@@ -208,7 +200,6 @@ struct CardCastEffectsLayer: View {
         ) {
             BattleAbilityCardFace(artworkName: request.artworkName)
         }
-        // Match BattleAbilityCardView handoff order: scale → rotate → position.
         .scaleEffect(request.scale)
         .rotationEffect(.radians(request.rotation), anchor: .bottom)
         .rotation3DEffect(
@@ -221,8 +212,6 @@ struct CardCastEffectsLayer: View {
     }
 }
 
-/// Observation boundary for the cast request collection. Inserts and expirations
-/// invalidate only this overlay rather than the battlefield, hand, and toolbar.
 struct CardCastPresentationLane: View {
     let presentation: BattleCastPresentationState
 
@@ -234,20 +223,12 @@ struct CardCastPresentationLane: View {
 }
 
 struct CardCastEffectConfiguration {
-    /// Fraction of overall cast progress spent dissolving the card face.
     var dissolveDuration: CGFloat = 0.35
-    /// How much the card shrinks as dissolve completes.
     var dissolveShrink: CGFloat = 0.06
-    /// Outside-in bias weight for the dissolve noise field.
     var dissolveEdgeDepthWeight: CGFloat = 0.86
-    /// Random noise weight mixed into the dissolve field.
     var dissolveNoiseWeight: CGFloat = 0.18
-    /// Base grid cell size (px) for the dissolve noise field.
     var dissolveCellSize: CGFloat = 1
-    /// Brightness midpoint used by the threshold mask (`brightness(midpoint - progress)`).
-    /// Kept slightly below 0.5 so progress == 1 clears full-white center pixels past the contrast pivot.
     var dissolveThresholdMidpoint: CGFloat = 0.46
-    /// Contrast used to harden the threshold mask into a hard cut.
     var dissolveThresholdContrast: CGFloat = 100
 
     var particleDistance: CGFloat = 150
@@ -266,7 +247,6 @@ struct CardCastEffectConfiguration {
     var particleFadeExponent: CGFloat = 1.35
     var particlePathControl: CGFloat = 0.45
 
-    /// Subtle gold fireworks over the dissolving enemy portrait (same 1s window).
     static let defeatCelebration = Self(
         particleDistance: 120,
         particleDistanceVariation: 55,
@@ -314,12 +294,8 @@ struct BattleDissolveEffect<Content: View>: View {
         let cellSize = Int(configuration.dissolveCellSize.rounded())
 
         ZStack {
-            // After dissolve completes the face is fully gone — skip the filter
-            // mask chain for the remaining particle travel window.
             if dissolveProgress < 1 {
                 Group {
-                    // Progress 0 must not apply the threshold mask: step 0 still
-                    // clears edge cells, which would flash a partial wipe on mount.
                     if dissolveProgress <= 0 {
                         content
                             .frame(width: size.width, height: size.height)
@@ -340,8 +316,6 @@ struct BattleDissolveEffect<Content: View>: View {
                 }
                 .frame(width: size.width, height: size.height)
                 .scaleEffect(1 - dissolveProgress * configuration.dissolveShrink)
-                // Flatten the masked face only. Wrapping particles here forced a
-                // full offscreen re-raster of the card on every Canvas tick.
                 .compositingGroup()
             }
 
@@ -399,8 +373,6 @@ public struct BattleDissolveArtwork<Content: View>: View {
     }
 
     public var body: some View {
-        // Once dissolve finishes the art is fully gone — tear down the display
-        // clock so defeated panes do not tick for the rest of the fight.
         Group {
             if isComplete {
                 Color.clear
@@ -438,9 +410,6 @@ public struct BattleDissolveArtwork<Content: View>: View {
     }
 }
 
-/// Primes the dissolve texture cache and the live TimelineView / Canvas cast path
-/// once, then tears down. Uses a real ability card face so production first-cast
-/// does not pay card-surface + artwork + mask + particles together cold.
 public struct CardCastEffectsPrewarmView: View {
     private static let prewarmParticles = CardActivationParticle.make(
         count: BattleMotion.cardCastParticleCount
@@ -478,9 +447,6 @@ public struct CardCastEffectsPrewarmView: View {
                 BattleAbilityCardFace(artworkName: artworkName)
             }
         }
-        // A nonzero opacity ensures the render is not optimized away. Scaling
-        // happens after Canvas rasterization, so the representative workload is
-        // still prepared while remaining visually imperceptible.
         .opacity(0.001)
         .scaleEffect(0.01)
         .allowsHitTesting(false)
@@ -495,7 +461,6 @@ public struct CardCastEffectsPrewarmView: View {
                 await PreparedArtworkCache.shared.prepareAndPin(names: [artworkName])
             }
             await CardDissolveTexture.prepare()
-            // Cover mask onset (dissolveDuration fraction) plus a few particle ticks.
             try? await Task.sleep(for: .milliseconds(200))
             guard !Task.isCancelled else { return }
             onComplete()

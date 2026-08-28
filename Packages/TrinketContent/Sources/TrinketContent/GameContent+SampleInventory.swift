@@ -59,8 +59,6 @@ public extension GameContent {
         }
     }
 
-    /// Mixes a save-scoped world seed with a content salt so rolls are unique
-    /// across saves and stable for the same save + encounter.
     static func encounterSeed(_ worldSeed: UInt64, salt: String) -> UInt64 {
         worldSeed &+ stableSeed(for: salt)
     }

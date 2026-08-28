@@ -2,7 +2,6 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-/// Once-per-action or once-per-battle talent gate keyed by actor.
 public struct TalentActionGuardKey: Hashable, Sendable {
     public enum Kind: Hashable, Sendable {
         case spendCocoon
@@ -28,26 +27,13 @@ public struct TalentActionGuardKey: Hashable, Sendable {
     }
 }
 
-/// Top-level battle facade: UI calls `playCard` / `endTurn`; rule engines mutate
-/// via `package` APIs in `BattleState+*.swift`. Put effect rules in
-/// `EffectHandlers/`, shared math in existing engines, and never add
-/// catalog-specific branches here. See `Docs/AgentContext/battle.md`.
-///
-/// `events` is the append-only stream for the whole battle; method return
-/// values are the delta from that call only.
 public struct BattleState {
-    /// Seed used to initialize battle RNG. Fixed for the battle's lifetime.
     public let rngSeed: UInt64
 
-    /// When `false`, no log cache is allocated or updated during the battle.
-    /// Requires `tracksEvents` to be true — log is built from events.
     public let tracksLog: Bool
 
-    /// When `false`, action events are not retained on `events` (still returned from step APIs).
-    /// Use for bulk simulation to avoid unbounded allocation.
     public let tracksEvents: Bool
 
-    /// Unified observation mode: `.none` = no events/log, `.eventsOnly` = events but no log, `.fullLog` = both.
     public enum BattleObservationMode: Sendable {
         case none, eventsOnly, fullLog
         var tracksLog: Bool {
@@ -64,17 +50,14 @@ public struct BattleState {
         case (true, true): .fullLog
         case (false, true): .eventsOnly
         case (false, false): .none
-        case (true, false): .none // invalid, treated as none
+        case (true, false): .none
         }
     }
 
-    /// When `false`, authored combat magnitudes skip hidden `FightPacing` scaling.
-    /// Shipping battles leave this `true`.
     public var appliesFightPacing: Bool
 
     public var roster: BattleRoster
     public var rng: SeededRandomNumberGenerator
-    /// Round index. Advances once per full round (player turn + enemy turn + effect pass).
     public var turnCount: Int
     public var nextEffectID: Int
     public var nextEventID: Int
@@ -87,48 +70,31 @@ public struct BattleState {
     public var actionCount: Int
     public var hasLoggedDefeat: Bool
     public var hasLoggedPartyDefeat: Bool
-    /// Set when the enemy reaches 0 Health so defeat talents can require a critical killing blow.
     public var lastEnemyDefeatWasCritical: Bool
 
     public var phase: BattlePhase
     public var hand: BattleHand
-    /// Cards drawn while the hand was full; promote FIFO when a slot frees.
     public var handBuffer: BattleHandBuffer
     public var heroDeck: CombatDeck
     public var companionDeck: CombatDeck
-    /// Guaranteed composition slots for the opening hand, consumed in order by
-    /// `drawNextOpeningHandCard`. Built once in `bootstrapDecks`.
     public var openingHandDealPlan: [OpeningHandDraw]
     public var nextCardID: Int
-    /// Party owners whose cards are unplayable this player turn due to control skip.
     public var ownersSkippingThisPlayerTurn: Set<BattleParticipant>
     public var turnCadence: BattleTurnCadence
 
     public var additionalControlSkipsByCombatantID: [String: Int]
     public var isResolvingTalentReaction: Bool
     public var isResolvingDoTDetonation: Bool
-    /// Once-per-action guards for combatant talent thresholds (Mana Cocoon, Overcharge, Chaos Rift).
     public var talentActionGuardByActorID: [TalentActionGuardKey: Int]
-    /// Once-per-turn guards (Paralysis poison stun) keyed by `turnCount`.
     public var talentTurnGuardByActorID: [TalentActionGuardKey: Int]
-    /// Spell Echo: combatants who already echoed their first Skill this battle.
     public var skillEchoOwnersThisBattle: Set<String>
-    /// Nested damage/heal reaction depth. Values above 1 skip extra talent reactions.
     public var talentReactionDepth: Int
-    /// Nested DoT application depth to prevent infinite cascading trigger loops.
     public var dotRecursionDepth: Int
-    /// True while Arcane Burst is auto-playing a card (blocks re-entry).
     public var isResolvingAutoPlayCard: Bool
-    /// Nested `drawAndPlayCards` auto-play depth. Caps runaway chains.
-    /// Keep in sync with `ReactionScope.maxDrawAndPlayDepth` (10) — mechanics
-    /// should limit chains, cap is safety only.
     public var drawAndPlayDepth: Int = 0
-    /// Maximum nested auto-play depth; further draw-and-play effects skip drawing.
     public static let maxDrawAndPlayDepth = ReactionScope.maxDrawAndPlayDepth
-    /// Authored faction of the enemy in this battle (talent conditions such as Bane of Evil).
     public let enemyFaction: EnemyFaction
 
-    /// Party-wide triggers from living allies. Dead companions do not keep auras.
     public var partyTriggers: CombatTraitTriggers {
         CombatTriggerEngine.livingPartyTriggers(in: self)
     }
@@ -137,8 +103,6 @@ public struct BattleState {
 
     public static let defaultRNGSeed: UInt64 = 0
 
-    /// Full-state init for engine tests and simulation snapshots; production
-    /// callers use the new-battle convenience init below.
     package init(
         roster: BattleRoster,
         rng: SeededRandomNumberGenerator,
@@ -222,8 +186,6 @@ public struct BattleState {
         self.enemyFaction = enemyFaction
     }
 
-    /// New-battle convenience init. Builds the roster, then delegates to the
-    /// full-state init so field defaults stay in one place.
     public init(
         hero: Combatant,
         companion: Combatant,
@@ -299,27 +261,19 @@ public struct BattleState {
         }
     }
 
-    /// Cached combat log when `tracksLog` is `true`; otherwise empty.
     public var log: [LogEntry] {
         logProjection?.entries ?? []
     }
 
-    // MARK: - Engine context
-
-    /// Runs `body` against the battle state in place, then refreshes the log
-    /// when `tracksLog` is enabled.
     package mutating func withEngineContext<R>(_ body: (inout Self) throws -> R) rethrows -> R {
         let result = try body(&self)
         finishMutation(rebuildLog: true)
         return result
     }
 
-    /// Test helper for seeding active effects without exposing `BattleRoster`.
     package mutating func seedActiveEffects(_ effects: [ActiveEffect], for combatant: Combatant) {
         roster.setActiveEffects(effects, for: combatant)
     }
-
-    // MARK: - Card combat
 
     @discardableResult
     public mutating func playCard(
@@ -327,7 +281,6 @@ public struct BattleState {
         rebuildLog: Bool = true
     ) throws -> [ActionEvent] {
         guard !isBattleOver else { throw BattlePlayError.battleOver }
-        // Events are already appended via `nextEvent` during resolution; return value is the delta.
         let events = try BattleCardCombatEngine.playCard(
             cardID: cardID,
             context: &self
@@ -344,8 +297,6 @@ public struct BattleState {
         return events
     }
 
-    /// Fills the opening hand in one step (tests / headless). Prefer paced
-    /// `drawNextOpeningHandCard` when the UI should animate each draw.
     @discardableResult
     public mutating func drawOpeningHand(rebuildLog: Bool = true) -> [ActionEvent] {
         let events = BattleCardCombatEngine.drawOpeningHand(context: &self)
@@ -353,7 +304,6 @@ public struct BattleState {
         return events
     }
 
-    /// Draws a single opening-hand card. Returns `false` when no further draw is possible.
     @discardableResult
     public mutating func drawNextOpeningHandCard(rebuildLog: Bool = true) -> Bool {
         let drew = BattleCardCombatEngine.drawNextOpeningHandCard(context: &self)
@@ -363,7 +313,6 @@ public struct BattleState {
         return drew
     }
 
-    /// Recomputes which party owners skip card play this turn (call after paced opening deal).
     @discardableResult
     public mutating func finalizeOpeningHand(rebuildLog: Bool = true) -> [ActionEvent] {
         let events = BattleCardCombatEngine.finalizeOpeningHand(context: &self)
@@ -375,8 +324,6 @@ public struct BattleState {
         BattleCardCombatEngine.isCardPlayable(card, in: self)
     }
 
-    /// Brings `log` in sync with `events`. Creates the projection on demand when
-    /// `tracksLog` was disabled during play.
     public mutating func syncLog() {
         if logProjection == nil {
             var projection = BattleLogProjection()
@@ -387,7 +334,6 @@ public struct BattleState {
         }
     }
 
-    /// Drops the cached combat-log projection to reclaim memory. Call `syncLog()` to rebuild.
     public mutating func releaseLogProjection() {
         logProjection = nil
     }

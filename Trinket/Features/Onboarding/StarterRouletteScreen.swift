@@ -12,8 +12,6 @@ private enum StarterRouletteMotion {
     }
 }
 
-/// First-launch starter picker: a native horizontal carousel that starts on the
-/// first combatant and hands browsing and confirmation to the player.
 struct StarterRouletteScreen: View {
     @Environment(OptionsStore.self) private var options
 
@@ -76,8 +74,6 @@ struct StarterRouletteScreen: View {
         }
         .toolbarVisibility(.hidden, for: .navigationBar)
         .trinketScreenBackground()
-        // One AX container for the screen keeps the screen identifier unique
-        // instead of flooding every descendant element with it.
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(screenAccessibilityID)
         .trinketSensoryFeedback(
@@ -85,8 +81,6 @@ struct StarterRouletteScreen: View {
             trigger: selectionFeedbackTrigger,
             enabled: options.hapticsEnabled
         )
-        // A re-revealed screen (edge-swipe past the hidden nav bar) must not
-        // stay locked out of Confirm by a stale in-flight flag.
         .onAppear { isConfirming = false }
         .onChange(of: scrollEntryID) { _, newID in
             guard let newID,
@@ -110,8 +104,6 @@ struct StarterRouletteScreen: View {
         }
     }
 
-    // MARK: Header
-
     private var header: some View {
         Text("CHOOSE A \(roleName.uppercased())")
             .trinketTypography(.eyebrow)
@@ -120,16 +112,12 @@ struct StarterRouletteScreen: View {
             .padding(.top, TrinketDesign.Metrics.sectionSpacing)
     }
 
-    // MARK: Background Effect View
-
     private var activeBackgroundEffect: some View {
         KeywordPlasmaBackground(
             keywords: activeKeywords,
             isMotionActive: inspectedCombatant == nil
         )
     }
-
-    // MARK: Wheel
 
     private func wheelBand(layout: RouletteLayout) -> some View {
         ScrollView(.horizontal) {
@@ -154,30 +142,33 @@ struct StarterRouletteScreen: View {
             .combatantTreeAffinities[combatant.id]?
             .map(\.keyword)
 
-        return Button {
-            if isCentered {
+        return InspectableTapButton(
+            action: {
+                if isCentered {
+                    inspectedCombatant = combatant
+                } else {
+                    center(on: combatant)
+                }
+            },
+            longPress: {
                 inspectedCombatant = combatant
-            } else {
-                center(on: combatant)
+            },
+            label: {
+                CombatantCard(
+                    combatant: combatant,
+                    showsName: false,
+                    isSelected: isCentered
+                )
+                .keywordShineBorder(
+                    keywords: shineKeywords,
+                    cornerRadius: TrinketDesign.Corners.card,
+                    lineWidth: 2,
+                    isMotionActive: isCentered
+                )
+                .frame(width: layout.cardWidth, height: layout.cardHeight)
             }
-        } label: {
-            CombatantCard(
-                combatant: combatant,
-                showsName: false,
-                isSelected: isCentered
-            )
-            .keywordShineBorder(
-                keywords: shineKeywords,
-                cornerRadius: TrinketDesign.Corners.card,
-                lineWidth: 2,
-                isMotionActive: isCentered
-            )
-            .frame(width: layout.cardWidth, height: layout.cardHeight)
-        }
+        )
         .trinketSelectionCardButtonStyle()
-        // First-party carousel emphasis: cards shrink and dim as they leave the
-        // viewport center. Continuous with `.interactive`; no per-frame
-        // geometry transforms to fight the scroll layout.
         .scrollTransition(.interactive, axis: .horizontal) { content, transitionPhase in
             let distance = min(abs(transitionPhase.value), 1)
             return content
@@ -188,8 +179,6 @@ struct StarterRouletteScreen: View {
             AccessibilityID.Onboarding.option(role: roleName, combatantID: combatant.id)
         )
     }
-
-    // MARK: Page Indicator
 
     private var pageIndicator: some View {
         HStack(spacing: TrinketDesign.Metrics.smallSpacing) {
@@ -204,8 +193,6 @@ struct StarterRouletteScreen: View {
         .animation(TrinketMotion.Interaction.selection, value: selectedCombatant?.id)
         .padding(.top, TrinketDesign.Metrics.smallSpacing)
     }
-
-    // MARK: Name plate & Affinities
 
     private var namePlate: some View {
         VStack(spacing: TrinketDesign.Metrics.extraSmallSpacing) {
@@ -233,8 +220,6 @@ struct StarterRouletteScreen: View {
         .frame(maxWidth: .infinity, minHeight: 68)
     }
 
-    // MARK: Continue action
-
     private var continueAction: some View {
         Button("Continue", action: confirm)
             .disabled(selectedCombatant == nil || isConfirming)
@@ -243,8 +228,6 @@ struct StarterRouletteScreen: View {
             )
             .trinketCenteredPrimaryAction()
     }
-
-    // MARK: Interaction
 
     private func updateSelection(_ combatant: Combatant) {
         guard selectedCombatant?.id != combatant.id else { return }
@@ -276,8 +259,6 @@ struct StarterRouletteScreen: View {
     }
 }
 
-// MARK: Layout metrics
-
 private struct RouletteLayout {
     static let edgeScaleDrop: CGFloat = 0.08
     static let edgeDimming: CGFloat = 0.45
@@ -296,7 +277,6 @@ private struct RouletteLayout {
         cardHeight + TrinketDesign.Metrics.largeSpacing
     }
 
-    /// Leading/trailing inset that centers exactly one card in the viewport.
     var edgeMargin: CGFloat {
         max(0, (containerSize.width - cardWidth) / 2)
     }

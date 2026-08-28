@@ -10,7 +10,6 @@ enum CombatantStatusEffectKind: String, CaseIterable, Identifiable {
         self
     }
 
-    /// Maps a combatant border/status keyword to its production overlay, if any.
     init?(statusKeyword: Keyword) {
         switch statusKeyword {
         case .stun:
@@ -35,15 +34,10 @@ struct CombatantStatusEffectConfig: Equatable {
     var tintStrength: CGFloat = 0.35
     var speed: CGFloat = 1
 
-    /// Orbit radius as a fraction of the card's min dimension (Swirling Stars).
     var orbitRadius: CGFloat = 0.42
-    /// Number of orbiting stars (Swirling Stars).
     var starCount: Int = 8
-    /// Card wobble amplitude in degrees (Swirling Stars).
     var wobbleDegrees: CGFloat = 2.4
-    /// Frost opacity (Ice Crystals).
     var frostOpacity: CGFloat = 0.45
-    /// Edge frost density 0…1 (Ice Crystals).
     var crackDensity: CGFloat = 0.65
 
     static func defaults(for kind: CombatantStatusEffectKind) -> Self {
@@ -96,8 +90,6 @@ struct CombatantStatusEffectOverlay: View {
     private func swirlingStars(size: CGSize, style: Keyword.VisualStyle, phase: CGFloat) -> some View {
         let count = max(config.starCount, 1)
         let radius = min(size.width, size.height) * config.orbitRadius * 0.5
-        // Fade in once from absolute phase 0 (replay / scrub start) — never remaps per loop,
-        // so orbit + twinkle stay continuous across cycle wraps.
         let appear = min(max(phase / 0.12, 0), 1)
 
         return Canvas { context, canvasSize in
@@ -129,8 +121,6 @@ struct CombatantStatusEffectOverlay: View {
         .allowsHitTesting(false)
     }
 
-    /// Edge snowflakes plus a faint frosty veil that creeps inward from the rim
-    /// and continuously animates ambient snowflake and veil particle shimmer.
     private func iceCrystals(size: CGSize, style: Keyword.VisualStyle, phase: CGFloat) -> some View {
         let flakes = max(config.particleCount, 1)
         let encroach = min(
@@ -138,10 +128,8 @@ struct CombatantStatusEffectOverlay: View {
             1
         )
         let minDim = min(size.width, size.height)
-        // Clear center shrinks as frost encroaches from the edges.
         let clearRadius = minDim * 0.55 * (1 - encroach * (0.55 + config.crackDensity * 0.3))
         let edgeRadius = minDim * 0.78
-        // Subtle ongoing pulse after the rim is fully frosted.
         let pulse = encroach >= 1
             ? 0.88 + 0.12 * (0.5 + 0.5 * sin(phase * .pi * 2))
             : 1
@@ -164,13 +152,11 @@ struct CombatantStatusEffectOverlay: View {
                 for index in 0 ..< flakes {
                     let along = CombatantCardEffectNoise.value(index, salt: 41)
                     let edge = index % 4
-                    // Stagger so flakes densify around the rim as encroachment plays.
                     let delay = CGFloat(index) / CGFloat(flakes) * 0.72
                     let appear = min(max((encroach - delay) / 0.28, 0), 1)
                     guard appear > 0.02 else { continue }
 
                     let insetNoise = CombatantCardEffectNoise.value(index, salt: 47)
-                    // Stay near the rim; denser density pushes slightly further inward.
                     let inset = 4 + insetNoise * (6 + config.crackDensity * 10)
                     let center = switch edge {
                     case 0: CGPoint(x: along * size.width, y: inset)
@@ -228,7 +214,6 @@ private func drawStar(
     context.stroke(path, with: .color(secondary), lineWidth: 0.6)
 }
 
-/// Compact multi-petal snowflake (same family as the former Rime Bloom petals).
 private func drawSnowflake(
     in context: inout GraphicsContext,
     at center: CGPoint,
@@ -259,7 +244,6 @@ private func drawSnowflake(
         ))
         path.closeSubpath()
 
-        // Short cross-arm for a more snowflake-like silhouette.
         let mid = CGPoint(
             x: center.x + cos(angle) * radius * 0.55,
             y: center.y + sin(angle) * radius * 0.55
@@ -272,7 +256,6 @@ private func drawSnowflake(
     context.stroke(path, with: .color(secondary), lineWidth: 0.65)
 }
 
-/// Card wobble for Swirling Stars (gated so rest looks normal).
 struct CombatantStatusCardTransform: ViewModifier {
     let kind: CombatantStatusEffectKind
     let config: CombatantStatusEffectConfig
@@ -280,7 +263,6 @@ struct CombatantStatusCardTransform: ViewModifier {
 
     func body(content: Content) -> some View {
         let phase = progress * config.speed
-        // Absolute phase — no per-loop remapping, so wobble stays continuous.
         let appear = kind == .swirlingStars
             ? min(max(phase / 0.12, 0), 1)
             : 0
@@ -291,7 +273,6 @@ struct CombatantStatusCardTransform: ViewModifier {
     }
 }
 
-/// Continuous stun/freeze overlay while a status accent is active.
 struct CombatantStatusEffectPresentation<Content: View>: View {
     @Environment(BattleSession.self) private var battleSession
     let keyword: Keyword?
@@ -324,7 +305,6 @@ struct CombatantStatusEffectPresentation<Content: View>: View {
         TimelineView(
             .animation(paused: battleSession.lifecyclePhase != .active)
         ) { timeline in
-            // Status overlays keep an absolute, unbounded phase when active.
             let progress = kind.progress(
                 after: timeline.date.timeIntervalSince(startDate)
             )

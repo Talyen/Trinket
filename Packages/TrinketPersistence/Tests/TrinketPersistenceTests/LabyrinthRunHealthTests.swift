@@ -3,12 +3,9 @@ import Testing
 import TrinketContent
 @testable import TrinketPersistence
 
-/// Campfire rest math and run-scoped party health persistence.
 struct LabyrinthRunHealthTests {
     @Test func campfireRestHealthRestoresFlooredThirtyPercentCappedAtMax() {
-        // 30% of 52 floored is 15.
         #expect(LabyrinthCompletion.campfireRestHealth(current: 34, maxHealth: 52) == 49)
-        // 30% of 41 floored is 12.
         #expect(LabyrinthCompletion.campfireRestHealth(current: 0, maxHealth: 41) == 12)
         #expect(LabyrinthCompletion.campfireRestHealth(current: 90, maxHealth: 100) == 100)
         #expect(LabyrinthCompletion.campfireRestHealth(current: 100, maxHealth: 100) == 100)
@@ -91,7 +88,6 @@ struct LabyrinthRunHealthTests {
         )
         #expect(model.toPlayerLabyrinthState().runHealthByCombatantID == ["knight": 12])
 
-        // Payloads written before run health existed carry no key; decode as full health.
         let blob = try #require(model.mapPayload)
         var legacyObject = try #require(JSONSerialization.jsonObject(with: blob) as? [String: Any], "Unexpected payload shape")
         legacyObject.removeValue(forKey: "runHealthByCombatantID")

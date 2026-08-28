@@ -1,7 +1,6 @@
 import Foundation
 import TrinketCore
 
-/// Hand-authored Spires catalog (v1 damage set). Floor enemies reuse the existing enemy roster.
 enum SpireCatalog {
     static let spires: [SpireDefinition] = [
         SpireDefinition(
@@ -62,8 +61,6 @@ enum SpireCatalog {
         floors(for: spireID).first { $0.floor == floor }
     }
 
-    /// Preferred enemy IDs per Spire keyword, ordered for floors 1…n (boss last when possible).
-    /// Prefer enemies whose kits include the Spire keyword; fall back to thematic roster fills.
     private static let enemyPools: [Keyword: [String]] = [
         .physical: ["goblin", "bandit", "ogre", "living_armor", "the_iron_bear"],
         .burn: ["fire_imp", "hellhound", "fire_elemental", "pyromancer", "the_forge_golem"],

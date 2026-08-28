@@ -1,13 +1,8 @@
 import Foundation
 
-/// Level-based power multipliers for enemies after archetype growth.
 public enum EnemyPowerCurve {
-    /// Boss HP vs normal HP at the same level (double trash HP so bosses last longer).
     public static let bossHealthMultiplier = 2.00
 
-    /// L1 is the authored floor (journey opener, labyrinth depth 1). Identity early
-    /// is even L4 with a 1-point talent spend. L20 is a partial kit (~10 of 18).
-    /// L40 is full-kit scale. Keep L1 below L20 so the ramp still grows.
     private static let normalStatAnchors: [(level: Int, power: Double)] = [
         (1, 4.20),
         (20, 5.59),
@@ -20,13 +15,10 @@ public enum EnemyPowerCurve {
         (40, 18.90),
     ]
 
-    /// Primary-stat threat multiplier after archetype growth.
     public static func stats(level: Int, isBoss: Bool) -> Double {
         interpolate(max(1, level), anchors: isBoss ? bossStatAnchors : normalStatAnchors)
     }
 
-    /// Max-health multiplier after archetype growth.
-    /// Normal uses the trash stat anchors; bosses multiply that by `bossHealthMultiplier`.
     public static func health(level: Int, isBoss: Bool) -> Double {
         let base = interpolate(max(1, level), anchors: normalStatAnchors)
         return isBoss ? base * bossHealthMultiplier : base
@@ -56,7 +48,6 @@ public enum EnemyPowerCurve {
         return last.power
     }
 
-    /// Hermite smoothstep on `0...1` (clamped).
     package static func progressionSmoothstep(_ value: Double) -> Double {
         let clamped = min(max(value, 0), 1)
         return clamped * clamped * (3 - (2 * clamped))

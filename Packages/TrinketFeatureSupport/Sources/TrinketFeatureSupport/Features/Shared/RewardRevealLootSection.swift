@@ -3,7 +3,6 @@ import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
 
-/// Shared item pager + wallet reveal for victory / mystery reward screens.
 public struct RewardRevealLootSection: View {
     let items: [InventoryItem]
     let gold: Int

@@ -76,8 +76,6 @@ struct BattleSessionAppIntegrationTests {
     @Test func restartBattlePreservesLabyrinthRewardFields() throws {
         let appState = try context.makePlaySession(arguments: ["-reset-state"])
         _ = appState.labyrinth.enter()
-        // Economy modifiers (gold/XP/materials %) ride the loot path, not the
-        // battle's universal modifiers — pick a node that rolled a combat-stat one.
         let combatNodeID = try #require(
             LabyrinthTestSupport.firstReachableCombatNodeID(
                 where: { node in
@@ -171,7 +169,7 @@ struct BattleSessionAppIntegrationTests {
             outcomePresentationDelayOverride: 0,
             presentationEnvironment: .silent
         )
-        battle.partyCelebrateDelayOverride = 0
+        battle.partyCelebrateDelayOverride = .zero
         let state = try context.makePlaySession(playerSave: playerSave, battleRuntime: battle)
         let stage = try #require(GameContent.chapters[0].stages.first)
         try playerSave.performBatchMutation { save in

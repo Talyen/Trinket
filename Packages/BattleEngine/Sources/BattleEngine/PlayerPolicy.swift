@@ -2,40 +2,16 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-public protocol SimulationPlayPolicy: Sendable {
-    var id: String { get }
-    func preferredPlayableCard(in battle: BattleState) -> BattleCard?
-}
-
-/// Prefer lethal damage, then higher ability tiers, then raw direct damage.
-/// Stable `id` is recorded in balance-sweep reports.
-public struct GreedyHeuristicPolicy: SimulationPlayPolicy {
-    public static let id = "greedy-v1"
-
-    public init() {}
+public enum PlayPolicy: String, Sendable, CaseIterable {
+    case greedy = "greedy-v1"
+    case setupAware = "setup-v1"
 
     public var id: String {
-        Self.id
+        rawValue
     }
 
     public func preferredPlayableCard(in battle: BattleState) -> BattleCard? {
-        HeuristicCardScoring.preferredPlayableCard(in: battle, setupAware: false)
-    }
-}
-
-/// Same lethal/suicide guards as `GreedyHeuristicPolicy`, with extra value for
-/// applying missing DoT/control and a smaller bonus for playing into existing DoTs.
-public struct SetupAwareHeuristicPolicy: SimulationPlayPolicy {
-    public static let id = "setup-v1"
-
-    public init() {}
-
-    public var id: String {
-        Self.id
-    }
-
-    public func preferredPlayableCard(in battle: BattleState) -> BattleCard? {
-        HeuristicCardScoring.preferredPlayableCard(in: battle, setupAware: true)
+        HeuristicCardScoring.preferredPlayableCard(in: battle, setupAware: self == .setupAware)
     }
 }
 

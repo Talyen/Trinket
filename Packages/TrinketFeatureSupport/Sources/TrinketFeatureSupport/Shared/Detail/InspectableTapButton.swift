@@ -1,8 +1,5 @@
 import SwiftUI
 
-/// Tap and long-press share one control. Quick releases never complete the
-/// long-press, and every inspection presents modally, which cancels the
-/// pending lift-tap — so the actions stay distinct without tap bookkeeping.
 public struct InspectableTapButton<Label: View>: View {
     let action: () -> Void
     var longPress: (() -> Void)?

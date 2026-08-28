@@ -61,14 +61,12 @@ public enum LabyrinthMapPresentation {
         if type.canonical == .recruit {
             return GameContent.recruitEncounterSymbolName(forEventID: recruitEventID)
         }
-        // The Campfire flame is Labyrinth-only; Journey's rest stage keeps the shared symbol.
         if type.canonical == .rest {
             return "flame.fill"
         }
         return type.symbolName
     }
 
-    /// Seeded recruit scene art for map seals and inspectors; nil when the node falls back to mystery.
     public static func recruitEncounterArtReference(
         for node: LabyrinthNode,
         worldSeed: UInt64,
@@ -86,7 +84,6 @@ public enum LabyrinthMapPresentation {
         return GameContent.recruitEncounterArtReference(for: event)
     }
 
-    /// Shared destination encounter art for Labyrinth map seals and inspectors.
     public static func destinationEncounterArtID(for type: LabyrinthNodeType) -> String? {
         switch type.canonical {
         case .shop: "destination-merchant-shop"
@@ -96,8 +93,6 @@ public enum LabyrinthMapPresentation {
         }
     }
 
-    /// Pointy-top hex radius that fills `availableWidth` for
-    /// `LabyrinthMapLayout.fullColumnsAcross` columns edge-to-edge.
     public static func hexRadius(
         forAvailableWidth availableWidth: CGFloat,
         edgePad: CGFloat = 0

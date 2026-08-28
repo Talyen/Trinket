@@ -2,7 +2,6 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-/// Handler for Block pool gains.
 struct BlockBuffHandler: BattleEffectHandler {
     let kind: EffectKind = .shield
 
@@ -32,9 +31,6 @@ struct BlockBuffHandler: BattleEffectHandler {
     }
 }
 
-/// Shared handler for one-shot "next …" flag effects: any existing stack of the
-/// same kind is dropped, the flag is reapplied with zero remaining turns, and a
-/// single "applied" event is emitted.
 struct FlagEffectHandler: BattleEffectHandler {
     let flag: Effect
     let appliedEffectKind: ActionEvent.EffectOutcome

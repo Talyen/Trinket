@@ -26,8 +26,6 @@ public enum HomesteadTierConnectorState: Equatable, Sendable {
     case future
 }
 
-/// Derived presentation state for Homestead rows and the tier path.
-/// Nothing here is persisted or used by game rules.
 public struct HomesteadProjectStatus {
     public let definition: HomesteadNodeDefinition
     public let homestead: PlayerHomesteadState
@@ -57,13 +55,11 @@ public struct HomesteadProjectStatus {
         isUnlocked && isAffordable && !isComplete
     }
 
-    /// The active bonus for built projects. Unbuilt and locked projects have none.
     public var overviewEffect: HomesteadBonus? {
         guard currentTier > 0 else { return nil }
         return definition.tier(currentTier)?.bonus
     }
 
-    /// Caption under the project title on the overview row.
     public var overviewCaption: String {
         if currentTier == 0 {
             return "Not Yet Constructed"
@@ -171,7 +167,6 @@ public enum HomesteadTierCopy {
     }
 }
 
-/// Category-level construction progress for overview cards.
 public struct HomesteadCategoryProgress {
     public let builtTiers: Int
     public let totalTiers: Int

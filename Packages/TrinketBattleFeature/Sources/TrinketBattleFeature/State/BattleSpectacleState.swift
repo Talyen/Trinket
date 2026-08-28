@@ -3,7 +3,6 @@ import Foundation
 import Observation
 import TrinketFeatureSupport
 
-/// Observable cinematic and outcome lane for the active battle.
 @MainActor
 @Observable
 public final class BattleSpectacleState {

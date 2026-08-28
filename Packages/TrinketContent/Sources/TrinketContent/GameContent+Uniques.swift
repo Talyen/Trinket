@@ -2,10 +2,8 @@ import Foundation
 import TrinketCore
 
 public extension GameContent {
-    /// Authored Unique definitions before resolution against base types.
     static let uniqueDefinitions: [UniqueItemDefinition] = UniqueCatalog.definitions
 
-    /// Authored Unique items resolved against their base types with exact pinned powers.
     static let uniqueItems: [InventoryItem] = UniqueCatalog.definitions.compactMap(resolve)
 
     static let uniquesByID: [String: InventoryItem] = Dictionary(

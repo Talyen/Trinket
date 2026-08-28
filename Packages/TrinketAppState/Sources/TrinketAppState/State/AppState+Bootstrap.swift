@@ -5,8 +5,6 @@ import TrinketFeatureContracts
 import TrinketPersistence
 
 extension AppState {
-    /// Completes fixed audio setup while the launch preparation screen is visible.
-    /// Presentation-feature warmup stays at the app composition root.
     public func prepareLaunchPerformanceResources() {
         sfxPlayer.warmAllCatalog(concurrentPlayerCount: 2)
     }
@@ -55,8 +53,6 @@ extension AppState {
         let resolvedShellSession = ShellSession(selectedTab: selectedTab(environment: environment))
 
         let resolvedOptions = OptionsStore(defaults: userDefaults)
-        // Seeded UI launches hide Ultimate overlays so matched-geometry expand
-        // does not hide mid-battle chrome under the no-tap-skip policy.
         if environment.seedTestProgress {
             resolvedOptions.ultimateCinematicShowPolicy = .never
         }

@@ -4,16 +4,11 @@ import Observation
 import TrinketContent
 import TrinketFeatureSupport
 
-/// Key for a Hero/Companion-specific Ultimate cinematic. Same ability cast by a
-/// different actor resolves to a distinct video (or none).
 struct CinematicCastKey: Hashable {
     let actorID: String
     let abilityID: String
 }
 
-/// Session-scoped Ultimate cinematic player cache.
-/// Keeps AVPlayers warm so cast transitions never hitch on cold load.
-/// Video assets are optional; unmapped casts skip the cinematic overlay entirely.
 @MainActor
 @Observable
 final class BattleCinematicPlayer {
@@ -52,8 +47,6 @@ final class BattleCinematicPlayer {
         player.automaticallyWaitsToMinimizeStalling = false
         applyVolume(effectsVolume: 0, to: player, actorID: actorID, abilityID: abilityID)
         playersByCastKey[key] = player
-        // Do not preroll here — AVPlayer throws if status is not ReadyToPlay yet.
-        // Creating the item is enough to start buffering; play() seeks when cast begins.
     }
 
     func player(for actorID: String, abilityID: String) -> AVPlayer? {
@@ -76,7 +69,6 @@ final class BattleCinematicPlayer {
         return item.status == .readyToPlay
     }
 
-    /// Waits until the warmed item is `.readyToPlay`, or returns `false` on failure / missing asset.
     func whenReady(actorID: String, abilityID: String) async -> Bool {
         warm(actorID: actorID, abilityID: abilityID)
         let key = CinematicCastKey(actorID: actorID, abilityID: abilityID)

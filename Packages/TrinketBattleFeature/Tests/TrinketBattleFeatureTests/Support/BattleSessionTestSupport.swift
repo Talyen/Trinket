@@ -9,8 +9,6 @@ import TrinketTestSupport
 
 @MainActor
 enum BattleSessionTestSupport {
-    /// Matches BattleEngine's `deterministicNonCriticalSeed` so single-card plays
-    /// are not invalidated by the 5% base dodge roll at seed 0.
     static let deterministicBattleSeed: UInt64 = CombatantFixtures.deterministicBattleSeed
 
     static func makeConfiguredSession(
@@ -48,7 +46,7 @@ enum BattleSessionTestSupport {
             outcomePresentationDelayOverride: 0,
             presentationEnvironment: presentationEnvironment
         )
-        session.partyCelebrateDelayOverride = 0
+        session.partyCelebrateDelayOverride = .zero
         session.autoBattleRetryDelay = .zero
         let (configuration, presentation) = BattleRunConfigurationTestSupport.make(
             rngSeed: rngSeed,
@@ -86,7 +84,6 @@ enum BattleSessionTestSupport {
         return true
     }
 
-    /// Plays playable cards, then ends the turn, until the battle resolves or the cap is hit.
     @discardableResult
     static func driveUntilOutcome(
         _ session: BattleSession,
@@ -116,7 +113,6 @@ enum BattleSessionTestSupport {
         return session.outcome == .victory ? session.earnedGold : nil
     }
 
-    /// Cycles the hand until `abilityID` is playable (does not play it).
     @discardableResult
     static func drawUntilPlayable(
         _ abilityID: String,
@@ -152,7 +148,6 @@ enum BattleSessionTestSupport {
         return nil
     }
 
-    /// Cycles the hand until `abilityID` is playable, then plays that card.
     @discardableResult
     static func playAbility(
         _ abilityID: String,
@@ -175,7 +170,7 @@ enum BattleSessionTestSupport {
 
     static func greedyPlaySequence(from session: BattleSession) throws -> [Int] {
         var preview = try #require(session.engineState)
-        let policy = GreedyHeuristicPolicy()
+        let policy = PlayPolicy.greedy
         var ids: [Int] = []
         while let card = policy.preferredPlayableCard(in: preview) {
             ids.append(card.id)

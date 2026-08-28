@@ -43,7 +43,6 @@ public enum AccessibilityID {
     }
 
     public enum Debug {
-        /// Machine-readable frame-pacing report for performance scenarios (`-enable-frame-metrics`).
         public static let frameMetrics = "Frame Metrics"
         public static let frameMetricsReset = "Frame Metrics Reset"
         public static let battlePerformanceStart = "Battle Performance Start"
@@ -145,9 +144,7 @@ public enum AccessibilityID {
         public static let labyrinthCraftFailure = "Labyrinth Craft Failure"
         public static let labyrinthFloorMenu = "Labyrinth Floor Menu"
         public static let labyrinthNodeInspector = "Labyrinth Node Inspector"
-        /// Journey-owned floor-1 entry (cluster 1, node 0) — UITests must not scrape generated biome IDs.
         public static let labyrinthFloor1EntryNode = "Labyrinth Floor 1 Entry Node"
-        /// Journey-owned floor-1 locked node (cluster 1, node 2) at map start.
         public static let labyrinthFloor1LockedNode = "Labyrinth Floor 1 Locked Node"
 
         public static func labyrinthFloor(_ floor: Int) -> String {

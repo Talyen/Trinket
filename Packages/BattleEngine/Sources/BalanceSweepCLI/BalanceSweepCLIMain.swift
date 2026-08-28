@@ -127,7 +127,7 @@ enum BalanceSweepCLI {
         var isWorker = false
         var outputFile: String?
         var appliesFightPacing = true
-        var policyID = GreedyHeuristicPolicy.id
+        var policyID = PlayPolicy.greedy.rawValue
         var comparePolicies = false
         var heroIDs: [String] = []
         var companionIDs: [String] = []
@@ -364,7 +364,6 @@ enum BalanceSweepCLI {
     }
 }
 
-/// Disk I/O stays in the CLI entrypoint so the BattleEngine library remains pure.
 private enum BalanceSweepCLIFiles {
     struct WrittenReport {
         var findingsURL: URL

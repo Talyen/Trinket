@@ -3,7 +3,6 @@ import Testing
 import TrinketContent
 import TrinketCore
 
-/// Integration tests for Block absorption and Toughness-based inherent mitigation through card combat.
 struct MitigationIntegrationTests {
     @Test func toughnessMitigatesIncomingDamage() throws {
         let hero = BattleTestFixtures.statHero(
@@ -28,9 +27,6 @@ struct MitigationIntegrationTests {
         )
         let initial = battle.health(of: battle.hero)
 
-        // One enemy Heavy Strike: 6 damage.
-        // Toughness 15 DR% = 15 / (15 + 80) = 0.15789.
-        // 6 * (1 - 0.15789) = 5.052 → rounded to 5 damage.
         let events = BattleTestFixtures.endTurn(on: &battle)
         let damageEvent = events.first { $0.kind == .ability && $0.actorName == "Enemy" }
 
@@ -51,7 +47,6 @@ struct MitigationIntegrationTests {
             ]
         )
 
-        // Sunder's own 3 damage absorbs into Block first (10 → 7), then halves the remainder (7 → 3).
         _ = try BattleTestFixtures.playCardNamed("Sunder", owner: .companion, on: &battle)
 
         try #expect(battle.hasEnemyEffect { effect in

@@ -2,10 +2,6 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-/// The immutable combat inputs required by a battle runtime.
-///
-/// Play owns encounter, reward, audio, and presentation context separately. The
-/// runtime transports only the built combatants and deterministic engine inputs.
 public struct BattleRunConfiguration: Identifiable {
     public struct PartyMember: Equatable {
         public let combatant: Combatant
@@ -13,10 +9,7 @@ public struct BattleRunConfiguration: Identifiable {
         public let equipmentLoadout: EquipmentLoadout
         public let modifiers: CombatModifierProfile
         public let unlockedTalents: Set<String>
-        /// Seed for the runtime's current health; `nil` starts at full.
         public let startingHealth: Int?
-        /// Maximum health a fresh battle starts from. Excludes in-battle
-        /// max-health growth (e.g. Vital Armor), which is battle-scoped.
         public var baselineMaxHealth: Int {
             CombatantMaxValues.maxHealth(for: combatant, modifiers: modifiers)
         }

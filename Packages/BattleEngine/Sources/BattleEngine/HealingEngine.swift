@@ -2,7 +2,6 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-/// Healing and leech rules.
 package enum HealingEngine {
     // swiftlint:disable:next function_body_length
     static func resolveHeal(
@@ -29,7 +28,6 @@ package enum HealingEngine {
             flags.insert(crit)
         }
 
-        // Emergency Mend: healing allies below the threshold restores double.
         if let sourceTriggers,
            sourceTriggers.healingBelowHealthPercentThreshold > 0,
            context.roster.maxHealth(for: request.target) > 0,
@@ -46,7 +44,6 @@ package enum HealingEngine {
         var events: [ActionEvent] = []
         let targetTriggers = context.modifiers(for: request.target.id).triggers
 
-        // Sanguine Overflow: reaching full Health empowers the owner's next attack.
         if targetTriggers.nextAttackBonusOnFullHealth > 0,
            preHealth < maxHealth,
            context.roster.health(for: request.target) >= maxHealth {
@@ -55,9 +52,6 @@ package enum HealingEngine {
             }
         }
 
-        // Talent overheal routing: prefer the healer's conversion talents so
-        // companion overheal (Vital Infusion / Ashen Vitality / Barrier Blessing) applies
-        // to the ally they healed.
         let overflow = max(0, amount - max(0, maxHealth - preHealth))
         events.append(contentsOf: applyOverhealConversion(
             overflow: overflow,
@@ -67,7 +61,6 @@ package enum HealingEngine {
             in: &context
         ))
 
-        // Warded Roost / Protective Bloom: healing an ally grants them Block.
         if let sourceTriggers, sourceTriggers.onHealGrantBlock > 0, restored > 0 {
             let abilityName = request.sourceActorID.map {
                 context.modifiers(for: $0).triggerAbilityName("onHealGrantBlock", fallback: "Warded Roost")
@@ -79,7 +72,6 @@ package enum HealingEngine {
                 abilityName: abilityName
             ))
         }
-        // Lingering Blessing: successful heals apply a short heal-over-time.
         if restored > 0, let sourceTriggers,
            sourceTriggers.healOverTimeOnHealAmount > 0,
            sourceTriggers.healOverTimeOnHealTurns > 0,
@@ -92,7 +84,6 @@ package enum HealingEngine {
                 )
             }
         }
-        // Font of Magic: healing an ally restores Mana to the caster.
         if let sourceActorID = request.sourceActorID, let sourceTriggers,
            sourceTriggers.onHealRestoreCasterMana > 0, restored > 0,
            let caster = context.roster.combatant(for: sourceActorID),
@@ -132,8 +123,6 @@ package enum HealingEngine {
         return CombatOutcome(healthDelta: restored, events: events, flags: flags)
     }
 
-    /// Rolls Wisdom-scaled restoration crit for Health / Leech heals. Doubles the
-    /// heal amount in place when it hits. Returns `.critical` when the roll succeeds.
     private static func rollRestorationCritical(
         for request: HealRequest,
         amount: inout Int,
@@ -187,9 +176,6 @@ package enum HealingEngine {
                 gain = min(gain, max(0, cap - already))
             }
             if gain > 0 {
-                // Direct mutation by design: this is a max-health stat gain that
-                // carries current health along with it, not a heal — heal-blocking,
-                // multipliers, and reactions must not re-apply to it.
                 context.roster.mutateRuntime(for: request.target) { runtime in
                     runtime.talentMaxHealthBonus += gain
                     runtime.currentHealth = min(runtime.maxHealth, runtime.currentHealth + gain)
@@ -247,7 +233,6 @@ package enum HealingEngine {
             }
             return target
         }
-        // Ally heal: target's conversion takes priority so companion's Barrier Blessing isn't overwritten by healer's.
         if target.overhealConvertsToBlock
             || target.overhealConvertsToMaxHealth
             || target.overhealShieldCap > 0 {

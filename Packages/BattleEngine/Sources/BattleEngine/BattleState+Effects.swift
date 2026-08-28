@@ -41,8 +41,6 @@ package extension BattleState {
         ).events
     }
 
-    /// `applyOutgoingAdjustment` is false when copying an amount that already
-    /// went through outgoing Block bonus and fight pacing (Shield Bond).
     mutating func applyBlockGain(
         _ amount: Int,
         to target: Combatant,
@@ -85,10 +83,6 @@ package extension BattleState {
         return BlockGain(applied: applied, events: events)
     }
 
-    /// Fae Ward interception point: "block the first negative effect applied
-    /// each turn". Every removable-debuff application path must call this
-    /// before mutating the target's effects. Returns true when the ward
-    /// consumed the application.
     mutating func interceptDebuff(_ effect: Effect, on target: Combatant) -> Bool {
         guard effect.isRemovableDebuff,
               modifiers(for: target.id).triggers.blockFirstDebuffPerTurn,

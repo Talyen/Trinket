@@ -1,6 +1,4 @@
 public struct SeededRandomNumberGenerator: RandomNumberGenerator, Equatable, Sendable {
-    /// Original seed passed to `init(seed:)`. Preserved even when seed `0` is
-    /// remapped to a non-zero internal state for the generator algorithm.
     public let seed: UInt64
 
     private var state: UInt64

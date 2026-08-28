@@ -10,7 +10,6 @@ public enum BattlePhase: Equatable, Sendable {
 public struct BattleCard: Identifiable, Hashable, Sendable {
     public let id: Int
     public let ability: Ability
-    /// Always `.hero` or `.companion` for cards in the player's hand.
     public let owner: BattleParticipant
 
     public init(id: Int, ability: Ability, owner: BattleParticipant) {
@@ -20,7 +19,6 @@ public struct BattleCard: Identifiable, Hashable, Sendable {
     }
 }
 
-/// One guaranteed opening-hand slot: pull `tier` from `owner`'s deck.
 public struct OpeningHandDraw: Hashable, Sendable {
     public let owner: BattleParticipant
     public let tier: AbilityTier
@@ -51,8 +49,6 @@ public struct CombatDeck: Hashable, Sendable {
         return abilities.removeFirst()
     }
 
-    /// Removes and returns the first ability matching `predicate`, preserving
-    /// the order of the remaining cards.
     public mutating func drawFirst(where predicate: (Ability) -> Bool) -> Ability? {
         guard let index = abilities.firstIndex(where: predicate) else { return nil }
         return abilities.remove(at: index)
@@ -107,8 +103,6 @@ public struct BattleHand: Hashable, Sendable {
     }
 }
 
-/// Hidden FIFO queue for cards drawn while the visible hand is full.
-/// Cards wait here until a hand slot frees, then promote in draw order.
 public struct BattleHandBuffer: Hashable, Sendable {
     public private(set) var cards: [BattleCard]
 

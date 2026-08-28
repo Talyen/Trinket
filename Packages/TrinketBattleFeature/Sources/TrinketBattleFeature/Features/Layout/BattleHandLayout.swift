@@ -3,37 +3,24 @@ import TrinketContent
 import TrinketFeatureSupport
 
 enum BattleCoordinateSpace {
-    /// Shared battle-field space for hand → cast presentation handoff.
     static let field = "trinket.battle.field"
 }
 
-/// Fan layout metrics for the battle ability hand.
-///
-/// Keeps GeometryReader math out of the view layer while preserving the
-/// overlapping 3:4 card fan (no first-party SwiftUI card-fan API).
 enum BattleHandLayout {
     static let minCardWidth: CGFloat = 156
     static let maxCardWidth: CGFloat = 220
     static let aspectRatio: CGFloat = 4.0 / 3.0
     static let widthRatio: CGFloat = 0.45
     static let horizontalInset: CGFloat = 20
-    /// Horizontal stride between consecutive cards as a fraction of card width.
     static let maxOverlapRatio: CGFloat = 0.45
-    /// Degrees of fan rotation between adjacent cards.
     static let fanAngleStep: CGFloat = 9
-    /// Extra drop for outer cards in the fan.
     static let fanLiftStep: CGFloat = 10
-    /// Lifts the hand band off the bottom edge for better card visibility.
     static let bottomRise: CGFloat = 30
-    /// Drag-up distance required to play a card (1:1 with finger until release).
     static let playDragThreshold: CGFloat = 80
     static let dragMinimumDistance: CGFloat = 12
     static let playArmReleaseRatio: CGFloat = 0.72
-    /// While play-armed, horizontal drift is allowed up to this factor of upward distance.
     private static let armedHorizontalAllowance: CGFloat = 0.72
-    /// Resting vertical tuck as a fraction of card height (`height * fraction`).
     static let restingYFraction: CGFloat = 0.20
-    /// Deny-resist curve for invalid upward drags.
     private static let denyOvershootFactor: CGFloat = 1.8
     private static let denyWidthDamp: CGFloat = 0.72
     struct Metrics: Equatable {
@@ -93,8 +80,6 @@ enum BattleHandLayout {
         )
     }
 
-    /// Converts the card's direct-manipulation translation into the exact
-    /// battle-space point where a successful play effect begins.
     static func releaseCenter(restingCenter: CGPoint, dragTranslation: CGSize) -> CGPoint {
         CGPoint(
             x: restingCenter.x + dragTranslation.width,
@@ -119,8 +104,6 @@ enum BattleHandLayout {
         abs(CGFloat(index) - CGFloat(cardCount - 1) / 2) * fanLiftStep
     }
 
-    /// True once finger travel leaves the tap slop band (used so returning a
-    /// dragged card to the hand does not count as a tap).
     static func exceedsTapSlop(
         translation: CGSize,
         minimumDistance: CGFloat = dragMinimumDistance
@@ -129,7 +112,6 @@ enum BattleHandLayout {
             || abs(translation.height) >= minimumDistance
     }
 
-    /// Ability detail opens only for presses that never left the tap slop.
     static func isTapGesture(
         translation: CGSize,
         didExceedTapSlop: Bool,
@@ -139,8 +121,6 @@ enum BattleHandLayout {
         return !exceedsTapSlop(translation: translation, minimumDistance: minimumDistance)
     }
 
-    /// A stationary long press is reserved for opening card details. Once the
-    /// card leaves the slop band, the existing drag interaction owns the touch.
     static func shouldOpenAbilityDetail(
         didRecognizeLongPress: Bool,
         translation: CGSize,
@@ -167,9 +147,6 @@ enum BattleHandLayout {
             && upwardDistance > abs(release.width)
     }
 
-    /// Direct-manipulation arming uses the live translation only. Predicted
-    /// end translation is intentionally reserved for release intent/momentum,
-    /// so the readiness state does not flicker during a held drag.
     static func isPlayArmed(
         translation: CGSize,
         isPlayable: Bool,
@@ -181,7 +158,6 @@ enum BattleHandLayout {
             && upwardDistance > abs(translation.width)
     }
 
-    /// Hysteresis keeps the readiness ring stable around the threshold.
     static func shouldRemainPlayArmed(
         translation: CGSize,
         isPlayable: Bool,
@@ -196,8 +172,6 @@ enum BattleHandLayout {
             && upwardDistance > abs(translation.width) * horizontalAllowance
     }
 
-    /// Keeps invalid upward drags responsive while progressively resisting the
-    /// part of the gesture that would otherwise cross the play boundary.
     static func presentationTranslation(
         _ translation: CGSize,
         isPlayable: Bool,

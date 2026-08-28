@@ -5,8 +5,6 @@ import TrinketFeatureContracts
 import TrinketFeatureSupport
 import TrinketPersistence
 
-/// Editable roster combatant detail wired from the player save.
-/// Lives in Shared so `State/` does not construct feature/shared views.
 public struct RosterCombatantDetailView: View {
     @Environment(PlayerSaveStore.self) private var playerSave
 

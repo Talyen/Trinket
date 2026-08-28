@@ -29,7 +29,6 @@ final class PlayerSaveSanitizeOnLoadTests {
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         try #expect(store.roster.equipmentLoadout(for: knight).itemID(for: .weapon) == nil)
 
-        // Dirty homestead must not brick an unrelated journey write after load.
         var journey = store.journey
         let stageID = try #require(GameContent.chapters.first?.stages.first?.id)
         journey.completedStageIDs.insert(stageID)

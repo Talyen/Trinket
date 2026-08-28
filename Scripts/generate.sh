@@ -103,10 +103,23 @@ should_force_xcodegen() {
   if [[ "$FORCE_XCODEGEN" == true || "${TRINKET_FORCE_XCODEGEN:-0}" == "1" ]]; then
     return 0
   fi
-  # Bust cache when project.yml is newer than the XcodeGen cache (or cache missing).
   if [[ -f project.yml ]]; then
-    if [[ ! -f "$XCODEGEN_CACHE_PATH" || project.yml -nt "$XCODEGEN_CACHE_PATH" ]]; then
+    if [[ ! -f "$XCODEGEN_CACHE_PATH" ]]; then
       return 0
+    fi
+    if [[ project.yml -nt "$XCODEGEN_CACHE_PATH" ]]; then
+      return 0
+    fi
+    # Clock skew can make project.yml appear older than cache after a CI checkout;
+    # fall back to content hash so stale project.yml still triggers regeneration.
+    local current_hash=""
+    local cached_hash=""
+    if command -v shasum >/dev/null 2>&1; then
+      current_hash="$(shasum -a 256 project.yml 2>/dev/null | awk '{print $1}')"
+      cached_hash="$(cat "$XCODEGEN_CACHE_PATH.hash" 2>/dev/null || true)"
+      if [[ -n "$current_hash" && "$current_hash" != "$cached_hash" ]]; then
+        return 0
+      fi
     fi
   fi
   return 1
@@ -193,13 +206,19 @@ if [[ "$SKIP_XCODEGEN" == false ]]; then
   fi
   if should_force_xcodegen; then
     echo "Forcing XcodeGen regenerate (cache ignored)."
-    rm -f "$XCODEGEN_CACHE_PATH"
+    rm -f "$XCODEGEN_CACHE_PATH" "$XCODEGEN_CACHE_PATH.hash"
     mkdir -p "$(dirname "$XCODEGEN_CACHE_PATH")"
     xcodegen generate --cache-path "$XCODEGEN_CACHE_PATH"
+    if command -v shasum >/dev/null 2>&1; then
+      shasum -a 256 project.yml 2>/dev/null | awk '{print $1}' > "$XCODEGEN_CACHE_PATH.hash" || true
+    fi
   else
     xcodegen generate \
       --use-cache \
       --cache-path "$XCODEGEN_CACHE_PATH"
+    if command -v shasum >/dev/null 2>&1; then
+      shasum -a 256 project.yml 2>/dev/null | awk '{print $1}' > "$XCODEGEN_CACHE_PATH.hash" || true
+    fi
   fi
 fi
 

@@ -7,12 +7,8 @@ public struct AbilitySummaryGrid: View {
     let combatant: Combatant
     @Binding var loadout: AbilityLoadout
     let allowsEditing: Bool
-    /// Called by the parent when the user taps an editable ability slot. The parent owns
-    /// the navigation/presentation so no nested sheet is needed here.
     var onSelectTier: ((AbilityTier) -> Void)?
-    /// Called when viewing (not editing) and the user taps a filled ability slot.
     var onViewAbility: ((Ability) -> Void)?
-    /// Called on a filled slot long-press (editing or viewing).
     var onInspectAbility: ((Ability) -> Void)?
 
     public init(

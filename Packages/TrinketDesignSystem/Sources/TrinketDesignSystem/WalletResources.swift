@@ -101,7 +101,6 @@ public struct TrinketWalletResourcePill<Artwork: View>: View {
     }
 }
 
-/// Compact horizontal resource balance for toolbars and buy chips.
 public struct TrinketCompactResourceChip<Artwork: View>: View {
     private let amount: Int
     private let tint: Color
@@ -154,7 +153,6 @@ public struct TrinketCompactResourceChip<Artwork: View>: View {
     }
 }
 
-/// Sizes columns to fit subview widths, equalizing across columns when constrained by proposed width.
 private struct TrinketWalletGridLayout: Layout {
     var columnCount: Int
     var horizontalSpacing: CGFloat

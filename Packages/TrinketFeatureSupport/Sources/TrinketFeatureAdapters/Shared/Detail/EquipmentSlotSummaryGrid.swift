@@ -9,7 +9,6 @@ struct EquipmentSlotSummaryGrid: View {
     let equipmentLoadout: EquipmentLoadout
     let inventoryItems: [InventoryItem]
     let onSelect: ((ItemSlot) -> Void)?
-    /// Called when viewing (not editing) and the user taps a filled item slot.
     var onViewItem: ((InventoryItem) -> Void)?
 
     var body: some View {
@@ -47,7 +46,6 @@ struct EquipmentSlotSummaryGrid: View {
         }
     }
 
-    /// Rows of three slots so heroes render a second row instead of overflowing.
     private var slotRows: [[ItemSlot]] {
         let slots = role.equipmentSlots
         return stride(from: 0, to: slots.count, by: 3).map { start in

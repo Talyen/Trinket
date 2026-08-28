@@ -130,7 +130,6 @@ enum CombatFeedbackCardRecipes {
         duration: 0.24
     )
 
-    /// Soft vertical squish + hop with a 1s left-right dance tilt.
     static let celebrateCardReaction = CombatantHitReactionRecipe(
         kind: .celebrate,
         scaleX: [

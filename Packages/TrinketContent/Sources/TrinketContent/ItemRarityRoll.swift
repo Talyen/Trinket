@@ -1,7 +1,6 @@
 import Foundation
 import TrinketCore
 
-/// Outcome of a reward roll: the scarcity ladder every content class shares.
 public enum ItemDropTier: String, CaseIterable, Sendable {
     case basic
     case astral
@@ -13,13 +12,6 @@ public enum ItemDropTier: String, CaseIterable, Sendable {
     }
 }
 
-/// Unified drop-rate model across all content classes.
-///
-/// Normal content holds a 20% special budget above Basic; Boss content plays
-/// with a full 100% budget and never yields Basic. The three special tiers sit
-/// in narrow bands (Astral > Trinket > Unique scarcity). The Homestead Astral
-/// bonus widens only the Astral band by shifting Basic; Trinket and Unique
-/// shares are fixed. When shops disallow Uniques their band folds into Astral.
 public enum ItemRarityRoll {
     public static func roll(
         bossContent: Bool,
@@ -27,8 +19,6 @@ public enum ItemRarityRoll {
         allowsUnique: Bool = true,
         using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> ItemDropTier {
-        // Keep band thresholds fixed so disallowing Unique remaps that band to
-        // Astral without sliding Trinket/Astral windows down the ladder.
         let uniqueBand = bossContent ? 30 : 5
         let trinketChance = bossContent ? 30 : 7
         var astralChance = bossContent ? 40 : 8

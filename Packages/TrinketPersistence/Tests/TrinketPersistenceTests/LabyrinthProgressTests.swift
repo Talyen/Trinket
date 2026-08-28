@@ -257,8 +257,6 @@ struct LabyrinthProgressTests {
             )
         )
         let pending = pendingLoot.item
-        // Bosses never drop Basic; special tiers keep catalog identity while
-        // generated Astral loot uses the node roll id.
         #expect(pending.rarity != .basic)
         if pending.isTrinket || pending.rarity == .unique {
             #expect(pending.id == pending.templateID)
@@ -398,8 +396,6 @@ extension LabyrinthProgressTests {
             nodes: Dictionary(uniqueKeysWithValues: [center, neighborA, neighborB, distant, otherFloor].map { ($0.id, $0) })
         )
 
-        // Cleared hexes make adjacent revealed nodes reachable — distance one only,
-        // same cluster only. (Six-direction adjacency itself is owned by Content.)
         #expect(state.isNodeReachable(neighborA.id))
         #expect(state.isNodeReachable(neighborB.id))
         #expect(Set(state.reachableNodeIDs()) == Set([neighborA.id, neighborB.id]))

@@ -228,7 +228,6 @@ public final class InterleavingPlayerController {
         )
     }
 
-    /// Spires are on-level: players can leave, farm, and return. Journey and Labyrinth use earned XP.
     public func simulatedHeroLevel(for step: ModeProgressionStep) -> Int {
         step.mode == .spire ? step.enemyLevel : state.heroLevel
     }

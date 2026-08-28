@@ -4,17 +4,11 @@ import TrinketCore
 public enum MysteryEffect: Hashable, Sendable {
     case gainGold(Int)
     case gainMaterial(HomesteadResource)
-    /// Grants ~1 equal-level battle of XP to the active hero and companion.
     case gainExperience
-    /// Procedural item: rarity rolls on the normal-content ladder (never Unique),
-    /// keeping the authored base type and guaranteed affixes.
     case gainGeneratedItem(baseTypeID: String, guaranteedAffixIDs: [String] = [])
     case gainRandomItem
-    /// Unlocks a hero or companion on the player roster (idempotent at apply time).
     case unlockCombatant(String)
-    /// Opens inventory selection to corrupt one owned item.
     case corruptItem
-    /// Leaves without mutating inventory; still records altar encounter when on Corruption Altar.
     case leave
 }
 
@@ -35,7 +29,6 @@ public struct MysteryEvent: Identifiable, Hashable, Sendable {
     public let title: String
     public let narrative: String
     public let artID: String?
-    /// When set, this is a one-choice recruit encounter for that combatant.
     public let unlockCombatantID: String?
     public let choices: [MysteryChoice]
 
@@ -61,8 +54,6 @@ public struct MysteryEvent: Identifiable, Hashable, Sendable {
 }
 
 public enum MysteryItemRarity {
-    /// Normal-content drop ladder with Uniques excluded (their band folds into
-    /// Astral): themed mystery rewards must keep their authored base type and affixes.
     public static func roll(
         astralChanceBonusPercent: Int = 0,
         using randomNumberGenerator: inout some RandomNumberGenerator

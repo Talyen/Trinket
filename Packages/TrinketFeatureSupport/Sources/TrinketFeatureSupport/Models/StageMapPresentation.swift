@@ -3,7 +3,6 @@ import SwiftUI
 import TrinketContent
 import TrinketDesignSystem
 
-/// View-only data shared by linear Play surfaces such as Campaign stages and Spire floors.
 public struct StageSelectRowPresentation<Item: Identifiable>: Identifiable {
     public let item: Item
     public let isActive: Bool
@@ -68,7 +67,6 @@ public extension Stage {
         "Stage \(chapterNumber)-\(stageNumber)"
     }
 
-    /// Single card meta line: stage index plus encounter type (no type icon).
     var mapMetaLabel: String {
         "\(mapLabel) · \(encounterTypeTitle)"
     }

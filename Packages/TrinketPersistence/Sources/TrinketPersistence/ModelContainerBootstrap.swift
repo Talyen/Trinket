@@ -30,16 +30,20 @@ enum ModelContainerBootstrap {
 
             if deleteStoreOnFailure, let storeURL = storeURLForRecovery {
                 deleteStoreFiles(at: storeURL, logger: logger, logLabel: logLabel)
-                // PersistenceCheck: allow - recovery reopen after deleting a corrupt store
-                if let recovered = try? ModelContainer(
-                    for: schema,
-                    configurations: primaryConfiguration
-                ) {
+                do {
+                    let recovered = try ModelContainer(
+                        for: schema,
+                        configurations: primaryConfiguration
+                    )
                     logger.notice("Recovered \(logLabel, privacy: .public) store after deleting corrupt files.")
                     return OpenResult(
                         container: recovered,
                         usedInMemoryFallback: false,
                         recoveredAfterStoreDeletion: true
+                    )
+                } catch let recoveryError {
+                    logger.error(
+                        "Failed to recover \(logLabel, privacy: .public) store after deletion: \(recoveryError.localizedDescription, privacy: .public)"
                     )
                 }
             }

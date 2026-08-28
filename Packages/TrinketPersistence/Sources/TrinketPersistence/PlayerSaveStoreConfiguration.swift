@@ -2,8 +2,6 @@ import Foundation
 import os
 import SwiftData
 
-/// Store URL / ModelConfiguration helpers for `PlayerSaveStore`.
-/// Keeps container-open plumbing out of the save hub body.
 enum PlayerSaveStoreConfiguration {
     static func resolveStoreURL(storeName: String?, storeURL: URL?) -> URL {
         if let storeName {
@@ -37,11 +35,8 @@ enum PlayerSaveStoreConfiguration {
         } else if let storeURL {
             (ModelConfiguration(schema: schema, url: storeURL, cloudKitDatabase: .none), storeURL)
         } else if disableCloudSync {
-            // Local-only until Apple Developer Program + CloudKit container (F2).
-            // Explicit URL so corrupt-open recovery can delete/recreate the same files.
             (ModelConfiguration(schema: schema, url: finalURL, cloudKitDatabase: .none), finalURL)
         } else {
-            // Requires filled Trinket.entitlements + portal container (see CloudKitPreShipChecklist).
             (
                 ModelConfiguration(schema: schema, cloudKitDatabase: .private(cloudKitContainerIdentifier)),
                 nil
@@ -60,8 +55,6 @@ enum PlayerSaveStoreConfiguration {
             logger.error(
                 "Failed to fetch player save root: \(error.localizedDescription, privacy: .public)"
             )
-            // Fail closed: treating a read error as "no root" inserts a second primary
-            // row beside unrecovered data and can reload the wrong save on next launch.
             throw PlayerSavePersistenceError.storeUnavailable(
                 "Couldn't read saved progress from this device."
             )

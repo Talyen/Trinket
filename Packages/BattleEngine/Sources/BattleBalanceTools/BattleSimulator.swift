@@ -45,14 +45,13 @@ public struct BattleSimResult: Equatable, Codable, Sendable {
     }
 }
 
-/// Headless driver for bulk balance simulation. Avoids UI / log / event retention.
 public enum BattleSimulator {
     public static let defaultMaxRounds = 100
     public static let defaultMaxActions = 500
 
     public static func run(
         matchup: ConfiguredSimulationMatchup,
-        policy: some SimulationPlayPolicy,
+        policy: PlayPolicy,
         maxRounds: Int = defaultMaxRounds,
         maxActions: Int = defaultMaxActions,
         appliesFightPacing: Bool = true,
@@ -75,7 +74,7 @@ public enum BattleSimulator {
 
     public static func run(
         battle: inout BattleState,
-        policy: some SimulationPlayPolicy,
+        policy: PlayPolicy,
         maxRounds: Int = defaultMaxRounds,
         maxActions: Int = defaultMaxActions
     ) -> BattleSimResult {

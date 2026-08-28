@@ -4,12 +4,7 @@ import TrinketContent
 import TrinketCore
 import TrinketTestSupport
 
-/// Shared combatants, battle setup, and card-combat helpers for battle integration tests.
-/// Handler-level behavior lives in `EffectHandlersTests`.
-/// Presentation strings live in `EffectSummaryBuilderTests`.
-/// See `Packages/BattleEngine/Tests/README.md` for the full test ownership matrix.
 enum BattleTestFixtures {
-    /// Matches `BattleStateTestFactory` seed for reproducible dodge/crit rolls.
     static let deterministicNonCriticalSeed: UInt64 = CombatantFixtures.deterministicBattleSeed
 
     static func makePipelineContext(
@@ -107,8 +102,6 @@ enum BattleTestFixtures {
         )
     }
 
-    // MARK: - Control meter integration
-
     static func partyWithPendingActionSkip(
         keyword: Keyword,
         hero: Combatant? = nil,
@@ -138,16 +131,12 @@ enum BattleTestFixtures {
                 && $0.keyword == keyword
                 && $0.targetID == actorID
         }) {
-            // Skip events use the keyword as actorName; also accept target match via combatant name.
             if !events.contains(where: { $0.effectKind == .controlActionSkipped && $0.keyword == keyword }) {
                 Issue.record("Expected controlActionSkipped with keyword \(keyword) for \(actorID)")
             }
         }
     }
 
-    // MARK: - Card combat helpers
-
-    /// Plays the first playable hand card owned by `owner`. Returns emitted events, or nil if none.
     @discardableResult
     static func playFirstPlayableCard(
         owner: BattleParticipant,
@@ -161,7 +150,6 @@ enum BattleTestFixtures {
         return try battle.playCard(cardID: card.id)
     }
 
-    /// Plays the first hand card whose ability name matches `name` (optionally filtered by owner).
     @discardableResult
     static func playCardNamed(
         _ name: String,
@@ -182,7 +170,6 @@ enum BattleTestFixtures {
         battle.endTurn()
     }
 
-    /// Ends `count` player turns (each runs enemy phase + end-of-round effect pass + draw).
     @discardableResult
     static func endTurns(_ count: Int, on battle: inout BattleState) -> [ActionEvent] {
         var allEvents: [ActionEvent] = []
@@ -193,7 +180,6 @@ enum BattleTestFixtures {
         return allEvents
     }
 
-    /// Plays the first playable hero card if any, then ends the turn.
     @discardableResult
     static func playHeroCardAndEndTurn(on battle: inout BattleState) throws -> [ActionEvent] {
         var events: [ActionEvent] = []
@@ -204,7 +190,6 @@ enum BattleTestFixtures {
         return events
     }
 
-    /// Plays cards (preferring `owner`) until an ability named `abilityName` resolves, or returns nil.
     static func playUntilAbility(
         _ abilityName: String,
         owner: BattleParticipant = .hero,
@@ -217,7 +202,6 @@ enum BattleTestFixtures {
             }) {
                 return try battle.playCard(cardID: card.id)
             }
-            // Play any other playable card for this owner to cycle the deck, else end turn to redraw.
             if try playFirstPlayableCard(owner: owner, on: &battle) == nil {
                 _ = battle.endTurn()
             }
@@ -227,8 +211,6 @@ enum BattleTestFixtures {
         }
         return nil
     }
-
-    // MARK: - Stat integration
 
     static func statHero(
         id: String = "hero",
@@ -373,8 +355,6 @@ extension BattleTestFixtures {
         battle.activeEffects(of: battle.enemy).first { $0.effect.isDecayingDoT && $0.keyword == .burn }?.effect.potency
     }
 }
-
-// MARK: - Effect predicates
 
 extension Effect {
     var isControlMeter: Bool {

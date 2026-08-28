@@ -1,8 +1,6 @@
 import TrinketFeatureSupport
 import XCTest
 
-/// Smoke tests that share one launch configuration can subclass this type to avoid
-/// repeating `launchApp` in every method. Override `launchArguments` when needed.
 class SeededSmokeUITestCase: TrinketUITestCase {
     var launchArguments: [String] {
         TestLaunchArg.testLaunchArgs

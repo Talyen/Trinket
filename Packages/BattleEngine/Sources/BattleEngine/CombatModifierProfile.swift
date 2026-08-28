@@ -20,10 +20,8 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
     public var damageTakenVulnerability: [Keyword: Double]
     public var companionDamageDealtBonus: Int
     public var companionBleedDamageDealtBonus: Int
-    /// Trait/affix trigger knobs authored as `CombatTraitTriggers` — single schema, not duplicated fields.
     public var triggers: CombatTraitTriggers
     public var traitDisplayName: String?
-    /// Combat-log names for shared event-emitting trigger fields (first writer wins on merge).
     public var triggerAbilityNames: [String: String]
 
     public static let zero = Self()

@@ -55,7 +55,6 @@ public struct ThemedGearGenerator: Sendable {
         return ThemedGearBuild(inventory: inventory, loadout: loadout)
     }
 
-    /// One keyword-aligned piece (not a full slot fill). Used for early identity / early progression.
     public func generateSinglePiece(
         for combatant: Combatant,
         rarity: Rarity,

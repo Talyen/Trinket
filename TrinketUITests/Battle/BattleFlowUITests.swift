@@ -1,9 +1,6 @@
 import TrinketFeatureSupport
 import XCTest
 
-/// Mid-battle interactions share one entry via `allForMidBattle` (60s ticks),
-/// so the opening hand stays put and never races into live-tick resolution.
-/// Card play, Auto Battle, hand-drag safety, and retreat share this single UI owner.
 final class BattleFlowUITests: TrinketUITestCase {
     func testCardPlayAutoBattleHandDragSafetyAndRetreatRestoresPlay() {
         launchApp(arguments: TestLaunchArg.allForMidBattle())

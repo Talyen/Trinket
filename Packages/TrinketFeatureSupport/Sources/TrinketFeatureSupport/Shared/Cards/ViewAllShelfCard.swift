@@ -1,7 +1,6 @@
 import SwiftUI
 import TrinketDesignSystem
 
-/// Terminal "View All" action card displayed at the end of horizontal category shelves.
 @MainActor
 public struct ViewAllShelfCard: View {
     let remainingCount: Int?

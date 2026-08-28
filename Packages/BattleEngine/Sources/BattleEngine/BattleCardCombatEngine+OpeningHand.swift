@@ -3,7 +3,6 @@ import TrinketContent
 import TrinketCore
 
 extension BattleCardCombatEngine {
-    /// Removes the first `tier` ability from `owner`'s deck and deals it.
     static func dealCard(
         matching tier: AbilityTier,
         owner: BattleParticipant,
@@ -11,10 +10,6 @@ extension BattleCardCombatEngine {
     ) -> BattleCard? {
         guard context.roster[owner].isAlive, let keyPath = deckKeyPath(for: owner) else { return nil }
         guard let ability = context[keyPath: keyPath].drawFirst(where: { $0.tier == tier }) else { return nil }
-        // Planned pulls select deterministically; the legacy random-owner pick
-        // consumed one RNG draw per dealt card. Burn one here so the battle
-        // RNG stream stays aligned and seeded combat rolls keep their pinned
-        // outcomes under the new opening-hand composition.
         _ = context.rng.next()
         return deal(ability, owner: owner, context: &context)
     }
@@ -34,11 +29,6 @@ extension BattleCardCombatEngine {
         return card
     }
 
-    /// Guaranteed opening-hand slots: one Basic per living party member with a
-    /// Basic in its loadout, plus one Skill from a coin-flip owner that has one.
-    /// Slot order is shuffled so the paced deal animation varies. Uses an
-    /// offset-seeded generator so battle RNG streams stay identical to
-    /// pre-plan behavior — critical for seeded tests and simulations.
     static func makeOpeningHandDealPlan(in context: BattleState) -> [OpeningHandDraw] {
         var planRng = SeededRandomNumberGenerator(
             seed: context.rng.seed &+ 0x9E37_79B9_7F4A_7C15

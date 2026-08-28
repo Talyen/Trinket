@@ -2,7 +2,6 @@ import TrinketContent
 import TrinketCore
 
 package extension CombatTriggerEngine {
-    /// End-of-turn talent resolution (Mana Shield, Hibernation, Playful Energy, Cheer Up).
     static func atPlayerEndTurn(in context: inout BattleState) -> [ActionEvent] {
         var events: [ActionEvent] = []
         for owner in [BattleParticipant.hero, .companion] {
@@ -18,7 +17,6 @@ package extension CombatTriggerEngine {
         return events
     }
 
-    /// Mana Shield: convert unspent Mana into Block at end of turn.
     private static func endOfTurnBlockConversion(
         runtime: CombatantRuntime,
         actor: Combatant,
@@ -35,7 +33,6 @@ package extension CombatTriggerEngine {
         )
     }
 
-    /// Hoard Armor: 1 Block per N Gold carried at end of turn, capped at 5.
     private static func hoardArmorBlock(
         actor: Combatant,
         triggers: CombatTraitTriggers,
@@ -52,7 +49,6 @@ package extension CombatTriggerEngine {
         )
     }
 
-    /// End-of-turn healing talents: Hibernation, Playful Energy, Cheer Up, Campfire Comfort.
     private static func endOfTurnHealing(
         owner: BattleParticipant,
         actor: Combatant,
@@ -67,7 +63,6 @@ package extension CombatTriggerEngine {
         return events
     }
 
-    /// Hibernation: restore Health when ending the turn with Block.
     private static func hibernationHeal(
         actor: Combatant,
         triggers: CombatTraitTriggers,
@@ -84,7 +79,6 @@ package extension CombatTriggerEngine {
         )
     }
 
-    /// Playful Energy: heal both allies after enough cards were played this turn.
     private static func playfulEnergyHeal(
         owner: BattleParticipant,
         actor: Combatant,
@@ -108,7 +102,6 @@ package extension CombatTriggerEngine {
         return events
     }
 
-    /// Cheer Up: restore Health to the lowest-Health ally.
     private static func cheerUpHeal(
         actor: Combatant,
         triggers: CombatTraitTriggers,
@@ -124,7 +117,6 @@ package extension CombatTriggerEngine {
         )
     }
 
-    /// Campfire Comfort: restore Health to both allies at the end of each round.
     private static func campfireComfortHeal(
         actor: Combatant,
         triggers: CombatTraitTriggers,
