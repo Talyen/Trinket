@@ -744,10 +744,14 @@ extension AffixReactionBattleTests {
                 triggers: CombatTraitTriggers(
                     dot: DotTriggers(
                         onBurnApplyPoison: 1,
-                        onBleedDealBurnDamage: 1
+                        onBleedDealBurnDamage: 1,
+                        onBleedDealPoisonChancePercent: 1.0,
+                        onBurnDealPoisonChancePercent: 1.0,
+                        onBleedDealBurnChancePercent: 1.0
                     )
                 )
-            )
+            ),
+            seed: 0
         )
         let hero = context.roster.hero.combatant
         let enemy = context.roster.enemy.combatant
@@ -763,6 +767,75 @@ extension AffixReactionBattleTests {
         try #expect(events.contains { $0.keyword == Keyword.burn && $0.amount == 1 })
         try #expect(!context.roster.activeEffects(for: enemy).contains { $0.keyword == Keyword.burn })
         try #expect(!context.roster.activeEffects(for: enemy).contains { $0.keyword == Keyword.poison })
+    }
+
+    @Test func infectedRespectsThirtyFivePercentChance() throws {
+        var hitContext = BattleTestFixtures.makePipelineContext(
+            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
+                dot: DotTriggers(onBleedApplyPoison: 2, onBleedDealPoisonChancePercent: 0.35)
+            )),
+            seed: 0
+        )
+        let hitHero = hitContext.roster.hero.combatant
+        let hitEnemy = hitContext.roster.enemy.combatant
+        _ = CombatTriggerEngine.afterBleedApplied(to: hitEnemy, sourceActorID: hitHero.id, in: &hitContext)
+        try #expect(hitContext.roster.activeEffects(for: hitEnemy).contains { $0.keyword == .poison })
+
+        var missContext = BattleTestFixtures.makePipelineContext(
+            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
+                dot: DotTriggers(onBleedApplyPoison: 2, onBleedDealPoisonChancePercent: 0.35)
+            )),
+            seed: 1
+        )
+        let missHero = missContext.roster.hero.combatant
+        let missEnemy = missContext.roster.enemy.combatant
+        _ = CombatTriggerEngine.afterBleedApplied(to: missEnemy, sourceActorID: missHero.id, in: &missContext)
+        try #expect(!missContext.roster.activeEffects(for: missEnemy).contains { $0.keyword == .poison })
+    }
+
+    @Test func burnDetonateRespectsThirtyPercentChance() throws {
+        var hitBattle = BattleStateTestFactory.makeBattle(
+            hero: BattleTestFixtures.passiveHero(),
+            companion: BattleTestFixtures.passiveCompanion(),
+            enemy: BattleTestFixtures.silentEnemy(maxHealth: 100),
+            activeEnemyEffects: [
+                ActiveEffect(id: 1, effect: .bleed(2), remainingTurns: 2, sourceActorID: "hero"),
+                ActiveEffect(id: 2, effect: .burn(2), remainingTurns: 0, sourceActorID: "hero"),
+            ],
+            heroModifiers: .init(triggers: CombatTraitTriggers(
+                dot: DotTriggers(onBurnDamageDetonateBleedChancePercent: 0.30)
+            )),
+            rngSeed: 0,
+            dealOpeningHand: false
+        )
+        let hitEnemy = hitBattle.roster.enemy.combatant
+        _ = CombatTriggerEngine.afterDoTTick(
+            keyword: .burn, healthLost: 2, target: hitEnemy, sourceActorID: "hero", in: &hitBattle
+        )
+        try #expect(
+            !hitBattle.roster.activeEffects(for: hitEnemy).contains(where: \.effect.isBleed),
+            "30% hit should detonate and consume Bleed"
+        )
+
+        var missBattle = BattleStateTestFactory.makeBattle(
+            hero: BattleTestFixtures.passiveHero(),
+            companion: BattleTestFixtures.passiveCompanion(),
+            enemy: BattleTestFixtures.silentEnemy(maxHealth: 100),
+            activeEnemyEffects: [
+                ActiveEffect(id: 1, effect: .bleed(2), remainingTurns: 2, sourceActorID: "hero"),
+                ActiveEffect(id: 2, effect: .burn(2), remainingTurns: 0, sourceActorID: "hero"),
+            ],
+            heroModifiers: .init(triggers: CombatTraitTriggers(
+                dot: DotTriggers(onBurnDamageDetonateBleedChancePercent: 0.30)
+            )),
+            rngSeed: 1,
+            dealOpeningHand: false
+        )
+        let missEnemy = missBattle.roster.enemy.combatant
+        _ = CombatTriggerEngine.afterDoTTick(
+            keyword: .burn, healthLost: 2, target: missEnemy, sourceActorID: "hero", in: &missBattle
+        )
+        try #expect(missBattle.roster.activeEffects(for: missEnemy).contains(where: \.effect.isBleed))
     }
 
     @Test func bleedDetonationResolvesEveryRemainingTick() throws {

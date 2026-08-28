@@ -164,23 +164,21 @@ public struct EquipmentLoadout: Equatable, Hashable, Sendable {
             let primary = inventory.first(where: { $0.id == primaryID })
         else {
             // No primary — Quiver requires a ranged primary.
-            if item.baseType.isQuiver {
-                return false
-            }
-            return true
+            return !item.baseType.isQuiver
         }
-        // Quiver only with a ranged primary; shields/spellbook blocked by ranged.
-        if item.baseType.isQuiver {
-            return primary.baseType.isRanged
+        return Self.secondaryWeaponAllows(primary: primary.baseType, secondary: item.baseType)
+    }
+
+    /// Single source for off-hand compatibility. Used by `canEquip`, `isAvailable`,
+    /// and `equip` (via `canEquip`) so ranged/Quiver/two-handed rules stay coherent.
+    static func secondaryWeaponAllows(primary: ItemBaseType, secondary: ItemBaseType) -> Bool {
+        if secondary.isQuiver {
+            return primary.isRanged
         }
-        if primary.baseType.isRanged {
+        if primary.isRanged {
             return false
         }
-        // Non-ranged two-handers block any off-hand; ranged two-handers already handled above.
-        if primary.baseType.weaponKind == .twoHanded {
-            return false
-        }
-        return true
+        return primary.weaponKind != .twoHanded
     }
 
     /// Trinkets are unique per combatant: the same base type may be worn in
@@ -207,8 +205,8 @@ public struct EquipmentLoadout: Equatable, Hashable, Sendable {
         else {
             return true
         }
-        // If a Quiver is equipped, the slot is still available — but only a
-        // ranged primary keeps it valid; otherwise mirror canEquip's ranged/quiver rules.
+        // If a Quiver is equipped, availability mirrors the same rule as canEquip:
+        // only a ranged primary keeps the slot valid.
         if let secondaryID = itemID(for: .secondaryWeapon),
            let secondary = inventory.first(where: { $0.id == secondaryID }),
            secondary.baseType.isQuiver {

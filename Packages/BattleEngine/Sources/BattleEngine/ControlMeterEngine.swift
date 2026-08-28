@@ -182,18 +182,15 @@ package enum ControlMeterEngine {
             currentEffects: &currentEffects,
             in: &context
         )
-        if keyword == .freeze,
-           let sourceActorID,
-           context.modifiers(for: sourceActorID).triggers.freezeExtraActionSkips > 0 {
-            context.additionalControlSkipsByCombatantID[combatant.id, default: 0] +=
-                context.modifiers(for: sourceActorID).triggers.freezeExtraActionSkips
+        if keyword == .freeze, let sourceActorID {
+            let chance = context.modifiers(for: sourceActorID).triggers.freezeExtendChancePercent
+                + Double(context.modifiers(for: sourceActorID).triggers.freezeExtraActionSkips) * 0.20
+            applyExtendControlChance(chance, to: combatant, in: &context)
         }
-        if keyword == .stun,
-           let sourceActorID,
-           context.modifiers(for: sourceActorID).triggers.enemyStunExtraActionSkips > 0 {
-            let extra = min(1, context.modifiers(for: sourceActorID).triggers.enemyStunExtraActionSkips)
-            let current = context.additionalControlSkipsByCombatantID[combatant.id, default: 0]
-            context.additionalControlSkipsByCombatantID[combatant.id] = min(1, current + extra)
+        if keyword == .stun, let sourceActorID {
+            let chance = context.modifiers(for: sourceActorID).triggers.stunExtendChancePercent
+                + Double(context.modifiers(for: sourceActorID).triggers.enemyStunExtraActionSkips) * 0.20
+            applyExtendControlChance(chance, to: combatant, in: &context)
         }
 
         let actorName: String = if let sourceActorID, let source = context.roster.combatant(for: sourceActorID) {
@@ -263,6 +260,26 @@ package enum ControlMeterEngine {
             ))
         }
         return events
+    }
+
+    private static func applyExtendControlChance(
+        _ chance: Double,
+        to combatant: Combatant,
+        in context: inout BattleState
+    ) {
+        guard chance > 0 else { return }
+        guard BattleChance.succeeds(probability: min(1, chance), using: &context.rng) else { return }
+        context.additionalControlSkipsByCombatantID[combatant.id, default: 0] += 1
+        guard chance > 1 else { return }
+        let additional = Int(chance - 1)
+        let fractional = chance - Double(Int(chance))
+        if additional > 0 {
+            context.additionalControlSkipsByCombatantID[combatant.id, default: 0] += additional
+        }
+        if fractional > 0,
+           BattleChance.succeeds(probability: fractional, using: &context.rng) {
+            context.additionalControlSkipsByCombatantID[combatant.id, default: 0] += 1
+        }
     }
 
     private struct ControlMeterUpdate {

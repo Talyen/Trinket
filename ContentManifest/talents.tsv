@@ -15,7 +15,7 @@ knight_stun_t1_1	Heavy Flail	hammer.fill	Attacks against Stunned enemies deal 3 
 knight_stun_t1_2	Concussive Blow	bolt.horizontal.fill	Stunned enemies deal half damage on their next turn.		stunnedEnemyNextTurnDamageMultiplier:0.5
 knight_stun_t2_1	Skullcracker	bolt.fill	Critical hits add 2 Stun.		criticalApplyStunBuildup:2
 knight_stun_t2_2	Second Wind	arrow.clockwise	Draw a card when an enemy recovers from Stun.		onEnemyStunRecoverDrawCard:1
-knight_stun_t3_1	Relentless Hold	lock.fill	Stun lasts 1 additional turn on the enemy.		enemyStunExtraActionSkips:1
+knight_stun_t3_1	Relentless Hold	lock.fill	Stun has a 20% chance to last an additional turn.		stun_extend_chance_percent:0.20
 knight_stun_t3_2	Crusader's Mark	target	Stunned enemies take 5 additional damage from Holy attacks.		holyDamageVsStunnedBonus:5
 rogue_poison_t1_1	Toxic Coating	drop.fill	Critical hits apply 2 Poison.		criticalApplyPoison:2
 rogue_poison_t1_2	Lingering Toxin	allergens.fill	Poison on enemies fades 25% slower each round.		poisonDecaySlowPercent:0.25
@@ -36,7 +36,7 @@ rogue_gold_t2_2	Gold Reserves	centsign.circle.fill	Deal 1 additional damage for 
 rogue_gold_t3_1	Bounty Hunter	target	Defeating an enemy with a Critical Hit grants 10 bonus Gold.		critOnDefeatGold:10
 rogue_gold_t3_2	Golden Touch	sparkle	Gaining Gold doubles the next Poison, Bleed, or Burn you apply.		onGainGoldDoubleStatusEffectsNextCard:true
 wizard_freeze_t1_1	Persistent Frost	snowflake	Enemy Freeze does not fade between rounds.		freezeBuildupDoesNotDecay:true
-wizard_freeze_t1_2	Numbing Cold	wind.snow	Frozen enemies deal 3 less damage.		frozenEnemyDamageReductionFlat:3
+wizard_freeze_t1_2	Numbing Cold	wind.snow	Freeze has a 20% chance to last an additional turn.		freeze_extend_chance_percent:0.20
 wizard_freeze_t2_1	Thermal Shock	flame.and.bolt.fill	Burn damage against Frozen enemies deals 4 bonus Physical damage.		burnDamageVsFrozenBonusPhysical:4
 wizard_freeze_t2_2	Glacial Barrier	shield.lefthalf.filled	Gain 3 Block whenever an enemy becomes Frozen.		onEnemyFrozenGainBlock:3
 wizard_freeze_t3_1	Deep Freeze	lock.fill	Frozen enemies cannot gain Block or receive healing.		frozenEnemyCannotBlockOrHeal:true
@@ -61,7 +61,7 @@ ranger_poison_t3_1	Corrosive Venom	shield.slash.fill	Poison strips 2 Block befor
 ranger_poison_t3_2	Lethal Dose	cross.vial.fill	Poison damage is doubled against enemies below half Health.		poisonDamageBelowHealthThreshold:0.5|poisonDamageBelowHealthMultiplier:2
 ranger_burn_t1_1	Flaming Arrows	flame.fill	Critical hits apply 2 Burn.		criticalApplyBurn:2
 ranger_burn_t1_2	Slow Burn	hourglass	Enemies lose 40% less Burn at the end of each round.		burnDecaySlowPercent:0.40
-ranger_burn_t2_1	Cauterize	flame.circle.fill	Burn damage consumes Bleed to trigger its remaining damage instantly.		onBurnDamageDetonateBleed:true
+ranger_burn_t2_1	Cauterize	flame.circle.fill	Dealing Burn damage has a 30% chance to detonate remaining Bleed damage.		on_burn_damage_detonate_bleed_chance_percent:0.30
 ranger_burn_t2_2	Smoke Screen	smoke.fill	Inflicting Burn grants +10% Dodge chance until your next turn.		onApplyBurnDodgeChanceUntilNextTurn:0.10
 ranger_burn_t3_1	Scorched Earth	flame.and.bolt.fill	Companion attacks deal 2 additional damage to Burning enemies.		companionDamageVsBurningBonus:2
 ranger_burn_t3_2	Inferno Barrage	burst.fill	Your Ultimate applies 8 Burn.		ultimateAppliesBurnPotency:8
@@ -104,10 +104,10 @@ bear_physical_t3_2	Maul	mouth.fill	Physical attacks apply 1 Bleed and 1 Stun.		p
 bear_stun_t1_1	Ground Slam	hammer.fill	Physical attacks add 1 Stun.		physicalAttackFlatStunBuildup:1
 bear_stun_t1_2	Dazing Swipe	bolt.horizontal.fill	Attacks have a 25% chance to delay the enemy's turn.		attackDelayEnemyTurnChancePercent:0.25
 bear_stun_t2_1	Shockwave	waveform	Stunning an enemy deals 3 Physical damage to them.		stunDealPhysicalFlat:3
-bear_stun_t2_2	Deep Stun	lock.fill	Stun lasts 1 additional turn.		enemyStunExtraActionSkips:1
+bear_stun_t2_2	Deep Stun	lock.fill	Stun has a 20% chance to last an additional turn.		stun_extend_chance_percent:0.20
 bear_stun_t3_1	Exposed Prey	target	Stunned enemies take 50% additional damage from Hero cards.		heroDamageVsStunnedMultiplier:1.5
 bear_stun_t3_2	Seismic Roar	speaker.wave.3.fill	The first time Bear drops below half Health each battle, Stun the enemy.		onceBelowHealthPercentStunAllEnemies:true|onceBelowHealthPercentThreshold:0.5
-frost_whelp_freeze_t1_1	Permafrost	snowflake	Increase Freeze damage dealt by 2.	damage_dealt:freeze:2	
+frost_whelp_freeze_t1_1	Permafrost	snowflake	Freeze has a 20% chance to last an additional turn.		freeze_extend_chance_percent:0.20
 frost_whelp_freeze_t1_2	Chilling Scales	shield.fill	When attacked, add 2 Freeze to the attacker.		onHitAttackerFreezeBuildup:2
 frost_whelp_freeze_t2_1	Glacial Grip	lock.fill	Freeze meter on enemies does not fade.		freezeBuildupDoesNotDecay:true
 frost_whelp_freeze_t2_2	Frost Siphon	moon.stars.fill	Attacking a Frozen enemy grants 1 Mana.		onAttackFrozenEnemyGainMana:1
@@ -129,7 +129,7 @@ lizard_scout_poison_t1_1	Cold Blood	figure.run	Deal 2 Poison when you Dodge.		do
 lizard_scout_poison_t1_2	Venomous Skin	allergens.fill	Apply 2 Poison to attackers when you take damage.		onHitAttackerPoison:2
 lizard_scout_poison_t2_1	Spit Poison	drop.fill	When the Hero attacks a Poisoned enemy, apply 1 extra Poison.		onHeroAttackPoisonedEnemyApplyPoison:1
 lizard_scout_poison_t2_2	Toxiphage	heart.fill	Poison damage heals Lizard Scout for half the damage dealt.		poisonDamageLeechPercent:0.5
-lizard_scout_poison_t3_1	Paralysis	bolt.fill	Enemies with 6 or more Poison become Stunned.		poisonThresholdStunAmount:6
+lizard_scout_poison_t3_1	Paralysis	bolt.fill	Dealing Poison damage to an enemy with 6 or more Poison has a 40% chance to Stun them (once per turn).		poison_stun_chance_percent:0.40|poisonThresholdStunAmount:6
 lizard_scout_poison_t3_2	Venom Spores	leaf.fill	Poison fades 50% slower each round.		poisonDecaySlowPercent:0.50
 lizard_scout_bleed_t1_1	Barbed Tail	triangle.fill	Basic attacks apply 2 Bleed.		basicAttackApplyBleed:2
 lizard_scout_bleed_t1_2	Spiny Carapace	shield.checkered	Attackers suffer 1 Bleed for 2 turns when hitting you.		onHitAttackerBleedPotency:1|onHitAttackerBleedTurns:2
@@ -200,7 +200,7 @@ wolf_physical_t3_2	Rending Fangs	triangle.fill	Physical attacks apply 1 Bleed on
 golden_retriever_gold_t1_1	Bounty	circle.circle.fill	Gain 3 Gold when you defeat an enemy.		defeatEnemyGoldFlat:3
 golden_retriever_gold_t1_2	Dig for Treasure	sparkle	Gain 2 Gold every 3 turns.		goldEveryNTurnsInterval:3|goldEveryNTurnsAmount:2
 golden_retriever_gold_t2_1	Haggler	dollarsign.circle.fill	All Gold you gain in combat is increased by 15%.		partyGoldGainedPercent:0.15
-golden_retriever_gold_t2_2	Golden Guard	shield.fill	Gain 1 Block for every 2 Gold earned in combat.		blockPerGoldEarnedEvery:2
+golden_retriever_gold_t2_2	Golden Guard	shield.fill	Gain Block equal to half Gold gained.		gold_gain_block_percent:0.50
 golden_retriever_gold_t3_1	Fetch!	pawprint.fill	Gain 2 Gold when an enemy plays an ability.		onEnemyAbilityGold:2
 golden_retriever_gold_t3_2	Treasure Hoard	bag.fill	While you have 50 or more Gold, the party gains +10% Critical Hit chance.		partyCritChanceWhileGoldAbove:50|partyCritChanceWhileGoldAboveBonus:0.10
 golden_retriever_block_t1_1	Guardian	shield.lefthalf.filled	Absorb 2 damage whenever the Hero is attacked.		absorbHeroDamageFlat:2
@@ -258,7 +258,7 @@ mana_moth_mana_t2_2	Aetherial Flow	wind	When the Hero spends Mana, Moth's next a
 mana_moth_mana_t3_1	Prismatic Spark	sparkle	Gain a 25% chance to double all Mana gained.		manaGainDoubleChancePercent:0.25
 mana_moth_mana_t3_2	Arcane Burst	wand.and.stars	Spending 5 Mana draws and automatically plays a random card.		spendManaThresholdAutoPlayCard:5
 mana_moth_freeze_t1_1	Chilling Flutter	snowflake	Basic attacks add 2 Freeze.		basicAttackFreezeBuildup:2
-mana_moth_freeze_t1_2	Frost Guard	shield.lefthalf.filled	Gain 2 Block when attacking a Frozen enemy.		onAttackFrozenEnemyGainBlock:2
+mana_moth_freeze_t1_2	Frost Guard	shield.lefthalf.filled	Freeze has a 20% chance to last an additional turn.		freeze_extend_chance_percent:0.20
 mana_moth_freeze_t2_1	Blinding Frost	eye.slash.fill	Moth deals 25% additional damage to Frozen enemies.		damageVsFrozenMultiplier:1.25
 mana_moth_freeze_t2_2	Subzero Mist	wind.snow	Frozen enemies have a 20% chance to miss attacks against Moth.		frozenEnemyMissChanceVsCompanionPercent:0.20
 mana_moth_freeze_t3_1	Flash Freeze	lock.fill	Spending 4 or more Mana on a card instantly Freezes the enemy.		spendManaFreezeThreshold:4
@@ -295,7 +295,7 @@ shield_scarab_block_t3_1	Spiked Shell	triangle.fill	Whenever you gain Block, gai
 shield_scarab_block_t3_2	Sun-Struck Shell	sun.max.fill	When your Block is hit, deal 2 Holy damage to the attacker.		onBlockHitDealHoly:2
 shield_scarab_stun_t1_1	Sunder Shield	shield.slash.fill	Stunned enemies lose all their active Block.		stunnedEnemyLoseAllBlock:true
 shield_scarab_stun_t1_2	Heavy Slam	hammer.fill	Deal 4 additional Physical damage to Stunned enemies.		damageWhileTargetStunnedBonus:4
-shield_scarab_stun_t2_1	Prolonged Daze	lock.fill	Stuns inflicted by Scarab last 1 additional turn.		enemyStunExtraActionSkips:1
+shield_scarab_stun_t2_1	Prolonged Daze	lock.fill	Stun has a 20% chance to last an additional turn.		stun_extend_chance_percent:0.20
 shield_scarab_stun_t2_2	Seismic Impact	bolt.horizontal.fill	Enemies require 25% less Stun to be Stunned.		enemyStunThresholdReductionPercent:0.25
 shield_scarab_stun_t3_1	Quaking Carapace	waveform	Add 3 Stun to the enemy and grant 5 Block to the party every 3 turns.		everyNTurnsStunBuildupInterval:3|everyNTurnsStunBuildupAmount:3|everyNTurnsTeamBlockAmount:5
 shield_scarab_stun_t3_2	Solar Brand	flame.fill	Stunning an enemy also inflicts 2 Burn on them.		onStunEnemyApplyBurn:2

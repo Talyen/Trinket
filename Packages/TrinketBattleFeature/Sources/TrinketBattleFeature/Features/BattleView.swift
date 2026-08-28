@@ -457,6 +457,8 @@ private struct BattleCastPrewarmKey: Equatable {
 
 /// Primes the full cast hierarchy once the first dealt card makes a cast imminent.
 /// State stays local so hand changes do not invalidate the battlefield hierarchy.
+/// Pins the full opening hand so deferred catalog warmup cannot evict imminent
+/// art, but only the first card's cast effect needs a one-frame hierarchy warmup.
 private struct BattleCastPrewarmLane: View {
     let presentation: BattlePresentationState
     @State private var artworkName: String?
@@ -495,7 +497,7 @@ private struct BattleCastPrewarmLane: View {
     private var prewarmKey: BattleCastPrewarmKey {
         BattleCastPrewarmKey(
             configurationID: presentation.configurationID,
-            artworkNames: presentation.hand.compactMap(\.ability.artReference?.imageName)
+            artworkNames: presentation.hand.compactMap(\.ability.artReference?.imageName).sorted()
         )
     }
 }

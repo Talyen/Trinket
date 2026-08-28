@@ -16,7 +16,6 @@ enum TestLaunchArg {
         seedTestProgress,
         disableCloudSync,
         "-disable-audio",
-        "-persist-save-immediately",
         "-battle-tick-interval",
         "1.0",
     ]
@@ -31,7 +30,6 @@ enum TestLaunchArg {
             disableCloudSync,
             skipStarterSelection,
             "-disable-audio",
-            "-persist-save-immediately",
         ]
     }
 
@@ -95,7 +93,6 @@ enum TestLaunchArg {
                 resetState,
                 disableCloudSync,
                 skipStarterSelection,
-                "-persist-save-immediately",
                 "-battle-tick-interval",
                 "1.0",
             ]

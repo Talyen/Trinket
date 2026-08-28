@@ -41,6 +41,7 @@ public struct BlockTriggers: Equatable, Hashable, Sendable {
     public var onCompanionTakeDamageGrantHeroBlock: Int = 0
     public var startBattleBlock: Int = 0
     public var blockPerGoldEarnedEvery: Int = 0
+    public var goldGainBlockPercent: Double = 0
     public var blockPerGoldCollectedEvery: Int = 0
     public var onBurnDamageGainBlock: Int = 0
     public var onAllyBurnDamageGainBlock: Int = 0
@@ -86,6 +87,7 @@ public struct BlockTriggers: Equatable, Hashable, Sendable {
         onCompanionTakeDamageGrantHeroBlock: Int = 0,
         startBattleBlock: Int = 0,
         blockPerGoldEarnedEvery: Int = 0,
+        goldGainBlockPercent: Double = 0,
         blockPerGoldCollectedEvery: Int = 0,
         onBurnDamageGainBlock: Int = 0,
         onAllyBurnDamageGainBlock: Int = 0,
@@ -130,6 +132,7 @@ public struct BlockTriggers: Equatable, Hashable, Sendable {
         self.onCompanionTakeDamageGrantHeroBlock = onCompanionTakeDamageGrantHeroBlock
         self.startBattleBlock = startBattleBlock
         self.blockPerGoldEarnedEvery = blockPerGoldEarnedEvery
+        self.goldGainBlockPercent = goldGainBlockPercent
         self.blockPerGoldCollectedEvery = blockPerGoldCollectedEvery
         self.onBurnDamageGainBlock = onBurnDamageGainBlock
         self.onAllyBurnDamageGainBlock = onAllyBurnDamageGainBlock
@@ -178,6 +181,7 @@ extension BlockTriggers {
         onCompanionTakeDamageGrantHeroBlock += other.onCompanionTakeDamageGrantHeroBlock
         startBattleBlock += other.startBattleBlock
         blockPerGoldEarnedEvery = max(blockPerGoldEarnedEvery, other.blockPerGoldEarnedEvery)
+        goldGainBlockPercent += other.goldGainBlockPercent
         blockPerGoldCollectedEvery = max(blockPerGoldCollectedEvery, other.blockPerGoldCollectedEvery)
         onBurnDamageGainBlock += other.onBurnDamageGainBlock
         onAllyBurnDamageGainBlock += other.onAllyBurnDamageGainBlock
@@ -228,6 +232,7 @@ extension BlockTriggers {
             onCompanionTakeDamageGrantHeroBlock: values.decode(Int.self, "onCompanionTakeDamageGrantHeroBlock", default: 0),
             startBattleBlock: values.decode(Int.self, "startBattleBlock", default: 0),
             blockPerGoldEarnedEvery: values.decode(Int.self, "blockPerGoldEarnedEvery", default: 0),
+            goldGainBlockPercent: values.decode(Double.self, "goldGainBlockPercent", default: 0),
             blockPerGoldCollectedEvery: values.decode(Int.self, "blockPerGoldCollectedEvery", default: 0),
             onBurnDamageGainBlock: values.decode(Int.self, "onBurnDamageGainBlock", default: 0),
             onAllyBurnDamageGainBlock: values.decode(Int.self, "onAllyBurnDamageGainBlock", default: 0),
@@ -275,6 +280,7 @@ extension BlockTriggers {
         try container.encodeNonDefault(onCompanionTakeDamageGrantHeroBlock, "onCompanionTakeDamageGrantHeroBlock", default: 0)
         try container.encodeNonDefault(startBattleBlock, "startBattleBlock", default: 0)
         try container.encodeNonDefault(blockPerGoldEarnedEvery, "blockPerGoldEarnedEvery", default: 0)
+        try container.encodeNonDefault(goldGainBlockPercent, "goldGainBlockPercent", default: 0)
         try container.encodeNonDefault(blockPerGoldCollectedEvery, "blockPerGoldCollectedEvery", default: 0)
         try container.encodeNonDefault(onBurnDamageGainBlock, "onBurnDamageGainBlock", default: 0)
         try container.encodeNonDefault(onAllyBurnDamageGainBlock, "onAllyBurnDamageGainBlock", default: 0)

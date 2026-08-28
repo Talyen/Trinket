@@ -565,6 +565,22 @@ public enum ArtCatalog {
             imageName: "item_kite_shield_basic",
             thumbnailImageName: "item_kite_shield_basic_thumb"
         )
+        dict["leather_buckler-astral"] = ItemArtReference(
+            imageName: "item_leather_buckler_astral",
+            thumbnailImageName: "item_leather_buckler_astral_thumb"
+        )
+        dict["leather_buckler-basic"] = ItemArtReference(
+            imageName: "item_leather_buckler_basic",
+            thumbnailImageName: "item_leather_buckler_basic_thumb"
+        )
+        dict["quiver-astral"] = ItemArtReference(
+            imageName: "item_quiver_astral",
+            thumbnailImageName: "item_quiver_astral_thumb"
+        )
+        dict["quiver-basic"] = ItemArtReference(
+            imageName: "item_quiver_basic",
+            thumbnailImageName: "item_quiver_basic_thumb"
+        )
         dict["leather_armor-astral"] = ItemArtReference(
             imageName: "item_leather_armor_astral",
             thumbnailImageName: "item_leather_armor_astral_thumb"

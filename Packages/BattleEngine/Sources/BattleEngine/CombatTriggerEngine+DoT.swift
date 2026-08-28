@@ -32,7 +32,11 @@ package extension CombatTriggerEngine {
                     )
                 ).events)
             }
-            if sourceTriggers.onBurnDamageDetonateBleed, healthLost > 0 {
+            let detonateChance = sourceTriggers.onBurnDamageDetonateBleedChancePercent > 0
+                ? sourceTriggers.onBurnDamageDetonateBleedChancePercent
+                : (sourceTriggers.onBurnDamageDetonateBleed ? 1 : 0)
+            if detonateChance > 0, healthLost > 0,
+               BattleChance.succeeds(probability: min(1, detonateChance), using: &context.rng) {
                 events.append(contentsOf: detonateBleed(
                     on: target,
                     sourceActorID: sourceActorID,
@@ -72,12 +76,16 @@ package extension CombatTriggerEngine {
         in context: inout BattleState
     ) -> [ActionEvent] {
         guard keyword == .poison,
-              let sourceTriggers = sourceActorID.map({ context.modifiers(for: $0).triggers }),
+              let sourceActorID,
+              let sourceTriggers = Optional(context.modifiers(for: sourceActorID).triggers),
               sourceTriggers.poisonThresholdStunAmount > 0,
               nextPotency >= sourceTriggers.poisonThresholdStunAmount,
               target.role == .enemy,
               context.roster.health(for: target) > 0
         else { return [] }
+        let chance = sourceTriggers.poisonStunChancePercent > 0 ? sourceTriggers.poisonStunChancePercent : 1
+        guard BattleChance.succeeds(probability: min(1, chance), using: &context.rng) else { return [] }
+        guard context.claimTurnGuard(.poisonStun, actorID: sourceActorID) else { return [] }
         return ControlMeterEngine.applyMeterCharge(
             ControlMeterEngine.threshold(for: target, in: context),
             keyword: .stun,

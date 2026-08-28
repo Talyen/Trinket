@@ -50,6 +50,9 @@ public struct ItemBaseType: Identifiable, Equatable, Hashable, Sendable {
     }
 
     /// Ranged two-handers (bows / crossbow) that pair with Quiver in the off-hand.
+    /// Keep in sync with `GameContentItemBases.generated.swift` two-handed weapon list.
+    /// If a new bow/crossbow base is added, add its id here or `secondaryWeaponAllows`
+    /// will incorrectly block Quiver.
     public var isRanged: Bool {
         Self.rangedBaseIDs.contains(id)
     }

@@ -148,4 +148,114 @@ struct ControlMeterEngineTests {
         try #expect(meter.threshold == baseThreshold, "stored basis stays canonical (base)")
         try #expect(meter.amount == baseThreshold, "a full meter reads as full against its stored basis")
     }
+
+    @Test func stunExtendChanceZeroGrantsNoExtraSkip() throws {
+        var context = BattleTestFixtures.makePipelineContext(
+            heroModifiers: .init(triggers: CombatTraitTriggers(
+                control: ControlTriggers(stunExtendChancePercent: 0)
+            )),
+            seed: 0
+        )
+        let enemy = context.roster.enemy.combatant
+        let threshold = ControlMeterEngine.threshold(for: enemy, in: context)
+        _ = ControlMeterEngine.applyMeterCharge(
+            threshold, keyword: .stun, to: enemy, sourceActorID: "source",
+            applyFightPacing: false, in: &context
+        )
+        try #expect((context.additionalControlSkipsByCombatantID[enemy.id] ?? 0) == 0)
+    }
+
+    @Test func stunExtendChanceOneGuaranteesExtraSkip() throws {
+        var context = BattleTestFixtures.makePipelineContext(
+            heroModifiers: .init(triggers: CombatTraitTriggers(
+                control: ControlTriggers(stunExtendChancePercent: 1.0)
+            )),
+            seed: 0
+        )
+        let enemy = context.roster.enemy.combatant
+        let threshold = ControlMeterEngine.threshold(for: enemy, in: context)
+        _ = ControlMeterEngine.applyMeterCharge(
+            threshold, keyword: .stun, to: enemy, sourceActorID: "source",
+            applyFightPacing: false, in: &context
+        )
+        try #expect((context.additionalControlSkipsByCombatantID[enemy.id] ?? 0) == 1)
+    }
+
+    @Test func freezeExtendChanceRespectsSeed() throws {
+        // Seed 0 hits at 0.20, seed 1 misses — validates chance path, not just 0/1 endpoints.
+        var hitContext = BattleTestFixtures.makePipelineContext(
+            heroModifiers: .init(triggers: CombatTraitTriggers(
+                control: ControlTriggers(freezeExtendChancePercent: 0.20)
+            )),
+            seed: 0
+        )
+        let hitEnemy = hitContext.roster.enemy.combatant
+        _ = ControlMeterEngine.applyMeterCharge(
+            ControlMeterEngine.threshold(for: hitEnemy, in: hitContext),
+            keyword: .freeze, to: hitEnemy, sourceActorID: "source",
+            applyFightPacing: false, in: &hitContext
+        )
+        try #expect((hitContext.additionalControlSkipsByCombatantID[hitEnemy.id] ?? 0) == 1)
+
+        var missContext = BattleTestFixtures.makePipelineContext(
+            heroModifiers: .init(triggers: CombatTraitTriggers(
+                control: ControlTriggers(freezeExtendChancePercent: 0.20)
+            )),
+            seed: 1
+        )
+        let missEnemy = missContext.roster.enemy.combatant
+        _ = ControlMeterEngine.applyMeterCharge(
+            ControlMeterEngine.threshold(for: missEnemy, in: missContext),
+            keyword: .freeze, to: missEnemy, sourceActorID: "source",
+            applyFightPacing: false, in: &missContext
+        )
+        try #expect((missContext.additionalControlSkipsByCombatantID[missEnemy.id] ?? 0) == 0)
+    }
+
+    @Test func legacyFreezeExtraActionSkipsMapsToTwentyPercent() throws {
+        var context = BattleTestFixtures.makePipelineContext(
+            heroModifiers: .init(triggers: CombatTraitTriggers(
+                control: ControlTriggers(freezeExtraActionSkips: 1)
+            )),
+            seed: 0
+        )
+        let enemy = context.roster.enemy.combatant
+        _ = ControlMeterEngine.applyMeterCharge(
+            ControlMeterEngine.threshold(for: enemy, in: context),
+            keyword: .freeze, to: enemy, sourceActorID: "source",
+            applyFightPacing: false, in: &context
+        )
+        try #expect((context.additionalControlSkipsByCombatantID[enemy.id] ?? 0) == 1)
+    }
+
+    @Test func chanceAboveOneGrantsFractionalSecondSkipDeterministically() throws {
+        // 1.5 = guaranteed 1 + 50% for second; seed 0 hits second, seed 1 misses.
+        var hitContext = BattleTestFixtures.makePipelineContext(
+            heroModifiers: .init(triggers: CombatTraitTriggers(
+                control: ControlTriggers(stunExtendChancePercent: 1.5)
+            )),
+            seed: 0
+        )
+        let hitEnemy = hitContext.roster.enemy.combatant
+        _ = ControlMeterEngine.applyMeterCharge(
+            ControlMeterEngine.threshold(for: hitEnemy, in: hitContext),
+            keyword: .stun, to: hitEnemy, sourceActorID: "source",
+            applyFightPacing: false, in: &hitContext
+        )
+        try #expect((hitContext.additionalControlSkipsByCombatantID[hitEnemy.id] ?? 0) == 2)
+
+        var missContext = BattleTestFixtures.makePipelineContext(
+            heroModifiers: .init(triggers: CombatTraitTriggers(
+                control: ControlTriggers(stunExtendChancePercent: 1.5)
+            )),
+            seed: 1
+        )
+        let missEnemy = missContext.roster.enemy.combatant
+        _ = ControlMeterEngine.applyMeterCharge(
+            ControlMeterEngine.threshold(for: missEnemy, in: missContext),
+            keyword: .stun, to: missEnemy, sourceActorID: "source",
+            applyFightPacing: false, in: &missContext
+        )
+        try #expect((missContext.additionalControlSkipsByCombatantID[missEnemy.id] ?? 0) == 1)
+    }
 }

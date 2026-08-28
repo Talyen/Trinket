@@ -5,7 +5,7 @@ import TrinketCore
 enum GameContentItemBasesGenerated {
     static let itemBaseTypes: [ItemBaseType] = {
         var list = [ItemBaseType]()
-        list.reserveCapacity(51)
+        list.reserveCapacity(53)
         list.append(ItemBaseType(id: "crossbow", name: "Crossbow", slot: .weapon, weaponKind: .twoHanded, keywordAffinities: [.physical, .bleed, .poison]))
         list.append(ItemBaseType(id: "dagger", name: "Dagger", slot: .weapon, weaponKind: .oneHanded, keywordAffinities: [.physical, .poison, .bleed, .leech]))
         list.append(ItemBaseType(id: "double_axe", name: "Double Axe", slot: .weapon, weaponKind: .twoHanded, keywordAffinities: [.physical, .bleed, .leech]))
@@ -13,6 +13,8 @@ enum GameContentItemBasesGenerated {
         list.append(ItemBaseType(id: "greatsword", name: "Greatsword", slot: .weapon, weaponKind: .twoHanded, keywordAffinities: [.physical, .bleed, .stun, .holy]))
         list.append(ItemBaseType(id: "hatchet", name: "Hatchet", slot: .weapon, weaponKind: .oneHanded, keywordAffinities: [.physical, .bleed, .leech]))
         list.append(ItemBaseType(id: "kite_shield", name: "Kite Shield", slot: .weapon, weaponKind: .offHand, keywordAffinities: [.block, .stun]))
+        list.append(ItemBaseType(id: "leather_buckler", name: "Leather Buckler", slot: .weapon, weaponKind: .offHand, keywordAffinities: [.block, .dodge]))
+        list.append(ItemBaseType(id: "quiver", name: "Quiver", slot: .weapon, weaponKind: .offHand, keywordAffinities: [.physical, .bleed, .poison]))
         list.append(ItemBaseType(id: "longbow", name: "Longbow", slot: .weapon, weaponKind: .twoHanded, keywordAffinities: [.physical, .bleed, .poison]))
         list.append(ItemBaseType(id: "longsword", name: "Longsword", slot: .weapon, weaponKind: .oneHanded, keywordAffinities: [.physical, .bleed, .holy]))
         list.append(ItemBaseType(id: "mace", name: "Mace", slot: .weapon, weaponKind: .oneHanded, keywordAffinities: [.physical, .stun, .holy]))

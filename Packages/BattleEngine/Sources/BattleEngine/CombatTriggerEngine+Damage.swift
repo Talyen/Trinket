@@ -18,7 +18,11 @@ package extension CombatTriggerEngine {
         let profile = context.modifiers(for: sourceActorID)
         var events: [ActionEvent] = []
 
-        if profile.triggers.onBleedApplyPoison > 0 {
+        let bleedPoisonChance = profile.triggers.onBleedDealPoisonChancePercent > 0
+            ? profile.triggers.onBleedDealPoisonChancePercent
+            : (profile.triggers.onBleedApplyPoison > 0 ? 1 : 0)
+        if profile.triggers.onBleedApplyPoison > 0, bleedPoisonChance > 0,
+           BattleChance.succeeds(probability: min(1, bleedPoisonChance), using: &context.rng) {
             events.append(contentsOf: context.applyDecayingDoT(
                 keyword: .poison,
                 potency: profile.triggers.onBleedApplyPoison,
@@ -29,7 +33,11 @@ package extension CombatTriggerEngine {
             ))
         }
 
-        if profile.triggers.onBleedDealBurnDamage > 0 {
+        let bleedBurnChance = profile.triggers.onBleedDealBurnChancePercent > 0
+            ? profile.triggers.onBleedDealBurnChancePercent
+            : (profile.triggers.onBleedDealBurnDamage > 0 ? 1 : 0)
+        if profile.triggers.onBleedDealBurnDamage > 0, bleedBurnChance > 0,
+           BattleChance.succeeds(probability: min(1, bleedBurnChance), using: &context.rng) {
             events.append(contentsOf: DoTDamage.resolveTurnDamage(
                 basePotency: profile.triggers.onBleedDealBurnDamage,
                 keyword: .burn,
@@ -68,6 +76,10 @@ package extension CombatTriggerEngine {
         guard keyword == .burn else { return events }
         let potency = context.modifiers(for: sourceActorID).triggers.onBurnApplyPoison
         guard potency > 0 else { return events }
+        let burnPoisonChance = context.modifiers(for: sourceActorID).triggers.onBurnDealPoisonChancePercent > 0
+            ? context.modifiers(for: sourceActorID).triggers.onBurnDealPoisonChancePercent
+            : 1
+        guard BattleChance.succeeds(probability: min(1, burnPoisonChance), using: &context.rng) else { return events }
         events.append(contentsOf: context.applyDecayingDoT(
             keyword: .poison,
             potency: potency,

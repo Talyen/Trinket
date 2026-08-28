@@ -16,6 +16,7 @@ public struct TalentActionGuardKey: Hashable, Sendable {
         case seismicRoar
         case endlessLegion
         case criticalActionGold
+        case poisonStun
     }
 
     public var kind: Kind
@@ -86,6 +87,8 @@ public struct BattleState {
     public var isResolvingDoTDetonation: Bool
     /// Once-per-action guards for combatant talent thresholds (Mana Cocoon, Overcharge, Chaos Rift).
     public var talentActionGuardByActorID: [TalentActionGuardKey: Int]
+    /// Once-per-turn guards (Paralysis poison stun) keyed by `turnCount`.
+    public var talentTurnGuardByActorID: [TalentActionGuardKey: Int]
     /// Spell Echo: combatants who already echoed their first Skill this battle.
     public var skillEchoOwnersThisBattle: Set<String>
     /// Nested damage/heal reaction depth. Values above 1 skip extra talent reactions.
@@ -143,6 +146,7 @@ public struct BattleState {
         isResolvingTalentReaction: Bool = false,
         isResolvingDoTDetonation: Bool = false,
         talentActionGuardByActorID: [TalentActionGuardKey: Int] = [:],
+        talentTurnGuardByActorID: [TalentActionGuardKey: Int] = [:],
         skillEchoOwnersThisBattle: Set<String> = [],
         talentReactionDepth: Int = 0,
         dotRecursionDepth: Int = 0,
@@ -185,6 +189,7 @@ public struct BattleState {
         self.isResolvingTalentReaction = isResolvingTalentReaction
         self.isResolvingDoTDetonation = isResolvingDoTDetonation
         self.talentActionGuardByActorID = talentActionGuardByActorID
+        self.talentTurnGuardByActorID = talentTurnGuardByActorID
         self.skillEchoOwnersThisBattle = skillEchoOwnersThisBattle
         self.talentReactionDepth = talentReactionDepth
         self.dotRecursionDepth = dotRecursionDepth

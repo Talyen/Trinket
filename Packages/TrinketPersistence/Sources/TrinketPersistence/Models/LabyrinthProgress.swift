@@ -128,7 +128,10 @@ public struct PlayerLabyrinthState: Equatable, Sendable {
         if isMapPayloadUnreadable {
             // Auto-recovery path for corrupt blobs (Phase 2.2): clear the
             // unreadable flag so a fresh map can be generated instead of
-            // looping "Labyrinth Error" forever.
+            // looping "Labyrinth Error" forever. `hasMap` is normally false
+            // when unreadable (nodes empty due to decode failure), but keep
+            // the guard defensively — sanitize preserves the blob, only
+            // ensureMap is allowed to rebuild.
             isMapPayloadUnreadable = false
             if hasMap {
                 return
@@ -137,7 +140,9 @@ public struct PlayerLabyrinthState: Equatable, Sendable {
             return
         }
         let resolvedSeed: UInt64 = {
-            if let seed, seed != 0 { return seed }
+            if let seed, seed != 0 {
+                return seed
+            }
             return worldSeed
         }()
         guard resolvedSeed != 0 else { return }

@@ -101,7 +101,7 @@ enum UniqueCatalog {
                 keywords: [.burn, .bleed],
                 weight: 0,
                 basic: ItemAffixPower(
-                    description: "Burn damage has a 20% chance to also Bleed, and vice versa. Burn and Bleed damage now Leech.",
+                    description: "Dealing Burn damage has a 20% chance to deal 1 Bleed damage, and vice versa. Burn and Bleed damage gain Leech.",
                     modifiers: [],
                     triggers: CombatTraitTriggers(
                         dot: DotTriggers(
@@ -113,7 +113,7 @@ enum UniqueCatalog {
                     )
                 ),
                 astral: ItemAffixPower(
-                    description: "Burn damage has a 20% chance to also Bleed, and vice versa. Burn and Bleed damage now Leech.",
+                    description: "Dealing Burn damage has a 20% chance to deal 1 Bleed damage, and vice versa. Burn and Bleed damage gain Leech.",
                     modifiers: [],
                     triggers: CombatTraitTriggers(
                         dot: DotTriggers(

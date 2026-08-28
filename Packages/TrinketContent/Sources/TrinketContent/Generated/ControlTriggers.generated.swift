@@ -5,6 +5,8 @@ import TrinketCore
 /// The `control` trigger family of `CombatTraitTriggers`.
 public struct ControlTriggers: Equatable, Hashable, Sendable {
     public var freezeExtraActionSkips: Int = 0
+    public var freezeExtendChancePercent: Double = 0
+    public var stunExtendChancePercent: Double = 0
     public var physicalStunBuildupPercent: Double = 0
     public var holyStunBuildupPercent: Double = 0
     public var holyTriggeredStunGoldFlat: Int = 0
@@ -35,6 +37,8 @@ public struct ControlTriggers: Equatable, Hashable, Sendable {
 
     public init(
         freezeExtraActionSkips: Int = 0,
+        freezeExtendChancePercent: Double = 0,
+        stunExtendChancePercent: Double = 0,
         physicalStunBuildupPercent: Double = 0,
         holyStunBuildupPercent: Double = 0,
         holyTriggeredStunGoldFlat: Int = 0,
@@ -64,6 +68,8 @@ public struct ControlTriggers: Equatable, Hashable, Sendable {
         stunPurgeDealHolyPerEffect: Int = 0
     ) {
         self.freezeExtraActionSkips = freezeExtraActionSkips
+        self.freezeExtendChancePercent = freezeExtendChancePercent
+        self.stunExtendChancePercent = stunExtendChancePercent
         self.physicalStunBuildupPercent = physicalStunBuildupPercent
         self.holyStunBuildupPercent = holyStunBuildupPercent
         self.holyTriggeredStunGoldFlat = holyTriggeredStunGoldFlat
@@ -97,6 +103,8 @@ public struct ControlTriggers: Equatable, Hashable, Sendable {
 extension ControlTriggers {
     mutating func merge(_ other: Self) {
         freezeExtraActionSkips += other.freezeExtraActionSkips
+        freezeExtendChancePercent += other.freezeExtendChancePercent
+        stunExtendChancePercent += other.stunExtendChancePercent
         physicalStunBuildupPercent += other.physicalStunBuildupPercent
         holyStunBuildupPercent += other.holyStunBuildupPercent
         holyTriggeredStunGoldFlat += other.holyTriggeredStunGoldFlat
@@ -132,6 +140,8 @@ extension ControlTriggers {
     init(from values: DefaultingTriggerDecoder) throws {
         try self.init(
             freezeExtraActionSkips: values.decode(Int.self, "freezeExtraActionSkips", default: 0),
+            freezeExtendChancePercent: values.decode(Double.self, "freezeExtendChancePercent", default: 0),
+            stunExtendChancePercent: values.decode(Double.self, "stunExtendChancePercent", default: 0),
             physicalStunBuildupPercent: values.decode(Double.self, "physicalStunBuildupPercent", default: 0),
             holyStunBuildupPercent: values.decode(Double.self, "holyStunBuildupPercent", default: 0),
             holyTriggeredStunGoldFlat: values.decode(Int.self, "holyTriggeredStunGoldFlat", default: 0),
@@ -164,6 +174,8 @@ extension ControlTriggers {
 
     func encode(to container: inout KeyedEncodingContainer<TriggerCodingKey>) throws {
         try container.encodeNonDefault(freezeExtraActionSkips, "freezeExtraActionSkips", default: 0)
+        try container.encodeNonDefault(freezeExtendChancePercent, "freezeExtendChancePercent", default: 0)
+        try container.encodeNonDefault(stunExtendChancePercent, "stunExtendChancePercent", default: 0)
         try container.encodeNonDefault(physicalStunBuildupPercent, "physicalStunBuildupPercent", default: 0)
         try container.encodeNonDefault(holyStunBuildupPercent, "holyStunBuildupPercent", default: 0)
         try container.encodeNonDefault(holyTriggeredStunGoldFlat, "holyTriggeredStunGoldFlat", default: 0)

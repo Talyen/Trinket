@@ -10,6 +10,11 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
     public var onBleedApplyPoison: Int = 0
     public var onBurnApplyPoison: Int = 0
     public var onBleedDealBurnDamage: Int = 0
+    public var onBleedDealPoisonChancePercent: Double = 0
+    public var onBurnDealPoisonChancePercent: Double = 0
+    public var onBleedDealBurnChancePercent: Double = 0
+    public var onBurnDamageDetonateBleedChancePercent: Double = 0
+    public var poisonStunChancePercent: Double = 0
     public var freezeDamageWhileBurningBonus: Int = 0
     public var onBleedDamagePoisonTick: Int = 0
     public var onBleedAppliedToBleedingExtendTurns: Int = 0
@@ -43,6 +48,11 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
         onBleedApplyPoison: Int = 0,
         onBurnApplyPoison: Int = 0,
         onBleedDealBurnDamage: Int = 0,
+        onBleedDealPoisonChancePercent: Double = 0,
+        onBurnDealPoisonChancePercent: Double = 0,
+        onBleedDealBurnChancePercent: Double = 0,
+        onBurnDamageDetonateBleedChancePercent: Double = 0,
+        poisonStunChancePercent: Double = 0,
         freezeDamageWhileBurningBonus: Int = 0,
         onBleedDamagePoisonTick: Int = 0,
         onBleedAppliedToBleedingExtendTurns: Int = 0,
@@ -75,6 +85,11 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
         self.onBleedApplyPoison = onBleedApplyPoison
         self.onBurnApplyPoison = onBurnApplyPoison
         self.onBleedDealBurnDamage = onBleedDealBurnDamage
+        self.onBleedDealPoisonChancePercent = onBleedDealPoisonChancePercent
+        self.onBurnDealPoisonChancePercent = onBurnDealPoisonChancePercent
+        self.onBleedDealBurnChancePercent = onBleedDealBurnChancePercent
+        self.onBurnDamageDetonateBleedChancePercent = onBurnDamageDetonateBleedChancePercent
+        self.poisonStunChancePercent = poisonStunChancePercent
         self.freezeDamageWhileBurningBonus = freezeDamageWhileBurningBonus
         self.onBleedDamagePoisonTick = onBleedDamagePoisonTick
         self.onBleedAppliedToBleedingExtendTurns = onBleedAppliedToBleedingExtendTurns
@@ -111,6 +126,11 @@ extension DotTriggers {
         onBleedApplyPoison += other.onBleedApplyPoison
         onBurnApplyPoison += other.onBurnApplyPoison
         onBleedDealBurnDamage += other.onBleedDealBurnDamage
+        onBleedDealPoisonChancePercent += other.onBleedDealPoisonChancePercent
+        onBurnDealPoisonChancePercent += other.onBurnDealPoisonChancePercent
+        onBleedDealBurnChancePercent += other.onBleedDealBurnChancePercent
+        onBurnDamageDetonateBleedChancePercent += other.onBurnDamageDetonateBleedChancePercent
+        poisonStunChancePercent += other.poisonStunChancePercent
         freezeDamageWhileBurningBonus += other.freezeDamageWhileBurningBonus
         onBleedDamagePoisonTick += other.onBleedDamagePoisonTick
         onBleedAppliedToBleedingExtendTurns += other.onBleedAppliedToBleedingExtendTurns
@@ -149,6 +169,11 @@ extension DotTriggers {
             onBleedApplyPoison: values.decode(Int.self, "onBleedApplyPoison", default: 0),
             onBurnApplyPoison: values.decode(Int.self, "onBurnApplyPoison", default: 0),
             onBleedDealBurnDamage: values.decode(Int.self, "onBleedDealBurnDamage", default: 0),
+            onBleedDealPoisonChancePercent: values.decode(Double.self, "onBleedDealPoisonChancePercent", default: 0),
+            onBurnDealPoisonChancePercent: values.decode(Double.self, "onBurnDealPoisonChancePercent", default: 0),
+            onBleedDealBurnChancePercent: values.decode(Double.self, "onBleedDealBurnChancePercent", default: 0),
+            onBurnDamageDetonateBleedChancePercent: values.decode(Double.self, "onBurnDamageDetonateBleedChancePercent", default: 0),
+            poisonStunChancePercent: values.decode(Double.self, "poisonStunChancePercent", default: 0),
             freezeDamageWhileBurningBonus: values.decode(Int.self, "freezeDamageWhileBurningBonus", default: 0),
             onBleedDamagePoisonTick: values.decode(Int.self, "onBleedDamagePoisonTick", default: 0),
             onBleedAppliedToBleedingExtendTurns: values.decode(Int.self, "onBleedAppliedToBleedingExtendTurns", default: 0),
@@ -184,6 +209,11 @@ extension DotTriggers {
         try container.encodeNonDefault(onBleedApplyPoison, "onBleedApplyPoison", default: 0)
         try container.encodeNonDefault(onBurnApplyPoison, "onBurnApplyPoison", default: 0)
         try container.encodeNonDefault(onBleedDealBurnDamage, "onBleedDealBurnDamage", default: 0)
+        try container.encodeNonDefault(onBleedDealPoisonChancePercent, "onBleedDealPoisonChancePercent", default: 0)
+        try container.encodeNonDefault(onBurnDealPoisonChancePercent, "onBurnDealPoisonChancePercent", default: 0)
+        try container.encodeNonDefault(onBleedDealBurnChancePercent, "onBleedDealBurnChancePercent", default: 0)
+        try container.encodeNonDefault(onBurnDamageDetonateBleedChancePercent, "onBurnDamageDetonateBleedChancePercent", default: 0)
+        try container.encodeNonDefault(poisonStunChancePercent, "poisonStunChancePercent", default: 0)
         try container.encodeNonDefault(freezeDamageWhileBurningBonus, "freezeDamageWhileBurningBonus", default: 0)
         try container.encodeNonDefault(onBleedDamagePoisonTick, "onBleedDamagePoisonTick", default: 0)
         try container.encodeNonDefault(onBleedAppliedToBleedingExtendTurns, "onBleedAppliedToBleedingExtendTurns", default: 0)

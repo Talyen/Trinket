@@ -38,4 +38,12 @@ package extension BattleState {
         talentActionGuardByActorID[key] = 1
         return true
     }
+
+    /// Claims a once-per-turn talent guard (Paralysis). Resets when `turnCount` advances.
+    mutating func claimTurnGuard(_ kind: TalentActionGuardKey.Kind, actorID: String) -> Bool {
+        let key = TalentActionGuardKey(kind: kind, actorID: actorID)
+        guard talentTurnGuardByActorID[key] != turnCount else { return false }
+        talentTurnGuardByActorID[key] = turnCount
+        return true
+    }
 }

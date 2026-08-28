@@ -65,7 +65,6 @@ struct AppEnvironmentTests {
             "-seed-test-progress",
             "-skip-starter-selection",
             "-disable-audio",
-            "-persist-save-immediately",
             "-completed-stages", "chapter-1-stage-1,,chapter-1-stage-2,",
             "-mystery-recruit-event", "recruit-ranger",
             "-battle-tick-interval", "60",
@@ -79,6 +78,7 @@ struct AppEnvironmentTests {
         #expect(env.disableCloudSync)
         #expect(env.disableAudio)
         #expect(env.persistSaveImmediately)
+        #expect(!Self.parse(arguments: ["-defer-persistence"]).persistSaveImmediately)
         #expect(env.completedStageIDs == ["chapter-1-stage-1", "chapter-1-stage-2"])
         #expect(env.mysteryRecruitEventID == "recruit-ranger")
         #expect(env.battleTickInterval == 60)
@@ -108,7 +108,7 @@ struct AppEnvironmentTests {
         #expect(env.mysteryRecruitEventID == nil)
         #expect(env.battleTickInterval == nil)
         #expect(env.startingGold == nil)
-        #expect(!env.persistSaveImmediately)
+        #expect(env.persistSaveImmediately)
         #expect(!env.enableFrameMetrics)
         #expect(env.battlePerformanceScenario == nil)
     }

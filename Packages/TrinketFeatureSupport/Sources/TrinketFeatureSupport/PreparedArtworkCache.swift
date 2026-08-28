@@ -267,19 +267,13 @@ public final class PreparedArtworkCache {
                         pinnedImages[prepared.name] = image
                     }
                 } else {
-                    // Failed decode (cancelled task or missing asset) must not
-                    // leave a pin count without a bitmap. The owner's
-                    // releasePins will still run via defer, but we avoid
-                    // holding a zero-image pin even briefly.
-                    if pinnedImages[prepared.name] == nil,
-                       images.object(forKey: prepared.name as NSString) == nil {
-                        // Don't eagerly drop a count that another owner is
-                        // legitimately holding for a retry; just avoid
-                        // accumulating leaked counts by leaving the existing
-                        // count in place — releasePins is the owner of
-                        // lifetime. This branch is a no-op today but documents
-                        // the invariant and prevents future "pin nil" drift.
-                    }
+                    // Failed decode leaves pinCount to be cleaned by the owner's
+                    // releasePins (defer). No bitmap to pin — NSCache stays empty
+                    // and retry will re-enter decode via the !inFlightNames gate.
+                    assert(
+                        pinnedImages[prepared.name] == nil,
+                        "Failed decode must not have a pinned bitmap for \(prepared.name)"
+                    )
                 }
                 if countsTowardLaunch {
                     completedCount += 1

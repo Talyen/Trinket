@@ -742,6 +742,12 @@
         "merge": "max"
       },
       {
+        "name": "goldGainBlockPercent",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
         "name": "blockPerGoldCollectedEvery",
         "type": "Int",
         "default": "0",
@@ -952,6 +958,36 @@
         "merge": "add"
       },
       {
+        "name": "onBleedDealPoisonChancePercent",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onBurnDealPoisonChancePercent",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onBleedDealBurnChancePercent",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onBurnDamageDetonateBleedChancePercent",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "poisonStunChancePercent",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
         "name": "freezeDamageWhileBurningBonus",
         "type": "Int",
         "default": "0",
@@ -1110,6 +1146,18 @@
       {
         "name": "freezeExtraActionSkips",
         "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "freezeExtendChancePercent",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "stunExtendChancePercent",
+        "type": "Double",
         "default": "0",
         "merge": "add"
       },

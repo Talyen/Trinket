@@ -289,6 +289,32 @@ struct CombatTriggerTalentResourceTests {
         #expect(DefensePoolEngine.blockPoints(in: battle.roster.activeEffects(for: companion)) == 1)
     }
 
+    @Test func goldenGuardPercentGrantsHalfGoldFlooredPerGrant() {
+        var battle = BattleStateTestFactory.makeBattle(
+            hero: BattleTestFixtures.passiveHero(),
+            companion: BattleTestFixtures.passiveCompanion(),
+            enemy: BattleTestFixtures.silentEnemy(maxHealth: 100),
+            heroModifiers: .init(triggers: CombatTraitTriggers(block: BlockTriggers(goldGainBlockPercent: 0.50))),
+            companionModifiers: .init(triggers: CombatTraitTriggers(block: BlockTriggers(goldGainBlockPercent: 0.50))),
+            rngSeed: 0,
+            dealOpeningHand: false
+        )
+        let hero = battle.roster.hero.combatant
+        let companion = battle.roster.companion.combatant
+        // 1 Gold -> 0 Block (floored, not accumulated)
+        _ = battle.grantGoldEvent(1, to: hero, abilityName: "Test")
+        #expect(DefensePoolEngine.blockPoints(in: battle.roster.activeEffects(for: hero)) == 0)
+        #expect(DefensePoolEngine.blockPoints(in: battle.roster.activeEffects(for: companion)) == 0)
+        // 2 Gold -> 1 Block to each living party member
+        _ = battle.grantGoldEvent(2, to: hero, abilityName: "Test")
+        #expect(DefensePoolEngine.blockPoints(in: battle.roster.activeEffects(for: hero)) == 1)
+        #expect(DefensePoolEngine.blockPoints(in: battle.roster.activeEffects(for: companion)) == 1)
+        // 3 Gold -> floor(1.5)=1 more
+        _ = battle.grantGoldEvent(3, to: companion, abilityName: "Test")
+        #expect(DefensePoolEngine.blockPoints(in: battle.roster.activeEffects(for: hero)) == 2)
+        #expect(DefensePoolEngine.blockPoints(in: battle.roster.activeEffects(for: companion)) == 2)
+    }
+
     @Test func hoardArmorGrantsBlockFromCarriedGold() {
         var battle = BattleStateTestFactory.makeBattle(
             hero: BattleTestFixtures.passiveHero(),

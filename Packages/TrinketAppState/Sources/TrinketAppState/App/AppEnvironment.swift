@@ -1,5 +1,5 @@
-import Foundation
 import BattleEngine
+import Foundation
 
 public struct AppEnvironment: Sendable {
     public static let shared = load()
@@ -95,6 +95,11 @@ public struct AppEnvironment: Sendable {
             skipOnboardingCeremony: arguments.contains("-skip-onboarding-ceremony"),
             disableCloudSync: disableCloudSync,
             disableAudio: arguments.contains("-disable-audio"),
+            // Production default is immediate persistence (screen == disk). Pass
+            // -defer-persistence to restore the 300ms coalesced path for
+            // isolated tests that need to inspect pendingRollback state.
+            // Legacy -persist-save-immediately is now a no-op (still accepted
+            // by launch arg sets but ignored).
             persistSaveImmediately: !arguments.contains("-defer-persistence"),
             completedStageIDs: completedStageIDs(from: arguments),
             mysteryRecruitEventID: argumentValue(after: "-mystery-recruit-event", in: arguments),

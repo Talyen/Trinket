@@ -5,7 +5,7 @@ import TrinketCore
 enum ItemAffixCatalogGenerated {
     static let definitions: [ItemAffixDefinition] = {
         var list = [ItemAffixDefinition]()
-        list.reserveCapacity(93)
+        list.reserveCapacity(94)
         list.append(contentsOf: chunk0())
         list.append(contentsOf: chunk1())
         list.append(contentsOf: chunk2())
@@ -307,8 +307,8 @@ enum ItemAffixCatalogGenerated {
             slot: .weapon,
             keywords: [.bleed, .poison],
             weight: 8,
-            basic: ItemAffixPower(description: "Apply 1 Poison when you apply Bleed.", modifiers: [], triggers: CombatTraitTriggers(dot: DotTriggers(onBleedApplyPoison: 1))),
-            astral: ItemAffixPower(description: "Apply 2 Poison when you apply Bleed.", modifiers: [], triggers: CombatTraitTriggers(dot: DotTriggers(onBleedApplyPoison: 2)))
+            basic: ItemAffixPower(description: "Dealing Bleed damage has a 35% chance to deal 1 Poison damage.", modifiers: [], triggers: CombatTraitTriggers(dot: DotTriggers(onBleedApplyPoison: 1, onBleedDealPoisonChancePercent: 0.35))),
+            astral: ItemAffixPower(description: "Dealing Bleed damage has a 35% chance to deal 2 Poison damage.", modifiers: [], triggers: CombatTraitTriggers(dot: DotTriggers(onBleedApplyPoison: 2, onBleedDealPoisonChancePercent: 0.35)))
         )
         ]
     }
@@ -321,8 +321,8 @@ enum ItemAffixCatalogGenerated {
             slot: .weapon,
             keywords: [.burn, .poison],
             weight: 8,
-            basic: ItemAffixPower(description: "Apply 1 Poison when you apply Burn.", modifiers: [], triggers: CombatTraitTriggers(dot: DotTriggers(onBurnApplyPoison: 1))),
-            astral: ItemAffixPower(description: "Apply 2 Poison when you apply Burn.", modifiers: [], triggers: CombatTraitTriggers(dot: DotTriggers(onBurnApplyPoison: 2)))
+            basic: ItemAffixPower(description: "Dealing Burn damage has a 35% chance to deal 1 Poison damage.", modifiers: [], triggers: CombatTraitTriggers(dot: DotTriggers(onBurnApplyPoison: 1, onBurnDealPoisonChancePercent: 0.35))),
+            astral: ItemAffixPower(description: "Dealing Burn damage has a 35% chance to deal 2 Poison damage.", modifiers: [], triggers: CombatTraitTriggers(dot: DotTriggers(onBurnApplyPoison: 2, onBurnDealPoisonChancePercent: 0.35)))
         ),
         ItemAffixCatalogSupport.affix(
             id: "cauterize",
@@ -330,8 +330,8 @@ enum ItemAffixCatalogGenerated {
             slot: .weapon,
             keywords: [.bleed, .burn],
             weight: 8,
-            basic: ItemAffixPower(description: "Deal 1 Burn damage when you apply Bleed.", modifiers: [], triggers: CombatTraitTriggers(dot: DotTriggers(onBleedDealBurnDamage: 1))),
-            astral: ItemAffixPower(description: "Deal 2 Burn damage when you apply Bleed.", modifiers: [], triggers: CombatTraitTriggers(dot: DotTriggers(onBleedDealBurnDamage: 2)))
+            basic: ItemAffixPower(description: "Dealing Bleed damage has a 35% chance to deal 1 Burn damage.", modifiers: [], triggers: CombatTraitTriggers(dot: DotTriggers(onBleedDealBurnDamage: 1, onBleedDealBurnChancePercent: 0.35))),
+            astral: ItemAffixPower(description: "Dealing Bleed damage has a 35% chance to deal 2 Burn damage.", modifiers: [], triggers: CombatTraitTriggers(dot: DotTriggers(onBleedDealBurnDamage: 2, onBleedDealBurnChancePercent: 0.35)))
         ),
         ItemAffixCatalogSupport.affix(
             id: "contagion",
@@ -691,8 +691,17 @@ enum ItemAffixCatalogGenerated {
             slot: .trinket,
             keywords: [.freeze],
             weight: 1,
-            basic: ItemAffixPower(description: "Frozen enemies lose an additional action.", modifiers: [], triggers: CombatTraitTriggers(control: ControlTriggers(freezeExtraActionSkips: 1))),
-            astral: ItemAffixPower(description: "Frozen enemies lose an additional action.", modifiers: [], triggers: CombatTraitTriggers(control: ControlTriggers(freezeExtraActionSkips: 1)))
+            basic: ItemAffixPower(description: "Freeze has a 20% chance to last an additional turn.", modifiers: [], triggers: CombatTraitTriggers(control: ControlTriggers(freezeExtendChancePercent: 0.20))),
+            astral: ItemAffixPower(description: "Freeze has a 20% chance to last an additional turn.", modifiers: [], triggers: CombatTraitTriggers(control: ControlTriggers(freezeExtendChancePercent: 0.20)))
+        ),
+        ItemAffixCatalogSupport.affix(
+            id: "stunned_pocketwatch",
+            title: "Concussive Pocketwatch",
+            slot: .trinket,
+            keywords: [.stun],
+            weight: 1,
+            basic: ItemAffixPower(description: "Stun has a 20% chance to last an additional turn.", modifiers: [], triggers: CombatTraitTriggers(control: ControlTriggers(stunExtendChancePercent: 0.20))),
+            astral: ItemAffixPower(description: "Stun has a 20% chance to last an additional turn.", modifiers: [], triggers: CombatTraitTriggers(control: ControlTriggers(stunExtendChancePercent: 0.20)))
         ),
         ItemAffixCatalogSupport.affix(
             id: "groves_favor",
@@ -747,7 +756,12 @@ enum ItemAffixCatalogGenerated {
             weight: 1,
             basic: ItemAffixPower(description: "Burn cards can spend additional Mana to deal more damage.", modifiers: [], triggers: CombatTraitTriggers(mana: ManaTriggers(repeatManaEmpowerment: true))),
             astral: ItemAffixPower(description: "Burn cards can spend additional Mana to deal more damage.", modifiers: [], triggers: CombatTraitTriggers(mana: ManaTriggers(repeatManaEmpowerment: true)))
-        ),
+        )
+        ]
+    }
+
+    private static func chunk5() -> [ItemAffixDefinition] {
+        [
         ItemAffixCatalogSupport.affix(
             id: "mortar_and_pestle",
             title: "Toxic Remedy",
@@ -756,12 +770,7 @@ enum ItemAffixCatalogGenerated {
             weight: 1,
             basic: ItemAffixPower(description: "Deal Poison damage equal to half your Health restored.", modifiers: [], triggers: CombatTraitTriggers(healing: HealingTriggers(healthRestoredPoisonPercent: 0.50))),
             astral: ItemAffixPower(description: "Deal Poison damage equal to half your Health restored.", modifiers: [], triggers: CombatTraitTriggers(healing: HealingTriggers(healthRestoredPoisonPercent: 0.50)))
-        )
-        ]
-    }
-
-    private static func chunk5() -> [ItemAffixDefinition] {
-        [
+        ),
         ItemAffixCatalogSupport.affix(
             id: "obsidian_hammer",
             title: "Concussive Force",

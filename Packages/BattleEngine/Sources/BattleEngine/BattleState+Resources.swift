@@ -77,11 +77,33 @@ package extension BattleState {
         if triggers.onGainGoldDoubleStatusEffectsNextCard {
             roster.mutateRuntime(for: combatant) { $0.pendingDoubleStatusNextCard = true }
         }
-        // Golden Guard: 1 Block per N Gold earned this battle (party-wide gold).
+        // Golden Guard: Block equal to half Gold gained, floored per grant.
+        // A single Gold yields 0 Block by design (not accumulated via
+        // the legacy battle-total threshold). Legacy every-N fallback only
+        // runs when no percent trigger is present.
         if granted > 0 {
             for owner in [BattleParticipant.hero, .companion] {
                 let member = roster[owner]
                 guard member.isAlive else { continue }
+                let percent = modifiers(for: member.id).triggers.goldGainBlockPercent
+                if percent > 0 {
+                    let block = Int((Double(granted) * percent).rounded(.down))
+                    if block > 0 {
+                        events.append(contentsOf: applyBlock(
+                            block,
+                            to: member.combatant,
+                            source: member.combatant,
+                            abilityName: CombatTriggerEngine.triggerAbilityName(
+                                "goldGainBlockPercent",
+                                for: member.combatant,
+                                fallback: "Golden Guard",
+                                in: self
+                            )
+                        ))
+                    }
+                    continue
+                }
+                // Legacy fallback for saves still carrying blockPerGoldEarnedEvery.
                 let every = modifiers(for: member.id).triggers.blockPerGoldEarnedEvery
                 guard every > 0 else { continue }
                 let newlyGranted = currentEarned / every - previousEarned / every

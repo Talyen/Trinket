@@ -30,9 +30,9 @@ stunning	Stunning	accessory	stun	8	Increase Stun damage by 1.	Increase Stun dama
 manabound	Manabound	accessory	mana,burn,freeze	8	Increase Maximum Mana by 4.	Increase Maximum Mana by 8.	maximum_mana:4	maximum_mana:8
 beastbond	Beastbond	accessory	health	8	Your Companion deals 1 additional damage.	Your Companion deals 2 additional damage.	companion_damage_dealt:1	companion_damage_dealt:2
 biting	Biting	accessory	bleed,leech	8	Bleed lasts 1 additional turn.	Bleed lasts 2 additional turns.	bleed_duration:1	bleed_duration:2
-infected	Infected	weapon	bleed,poison	8	Apply 1 Poison when you apply Bleed.	Apply 2 Poison when you apply Bleed.			on_bleed_apply_poison:1	on_bleed_apply_poison:2
-ashen_wake	Ashen Wake	weapon	burn,poison	8	Apply 1 Poison when you apply Burn.	Apply 2 Poison when you apply Burn.			on_burn_apply_poison:1	on_burn_apply_poison:2
-cauterize	Cauterize	weapon	bleed,burn	8	Deal 1 Burn damage when you apply Bleed.	Deal 2 Burn damage when you apply Bleed.			on_bleed_deal_burn_damage:1	on_bleed_deal_burn_damage:2
+infected	Infected	weapon	bleed,poison	8	Dealing Bleed damage has a 35% chance to deal 1 Poison damage.	Dealing Bleed damage has a 35% chance to deal 2 Poison damage.			on_bleed_apply_poison:1|on_bleed_deal_poison_chance_percent:0.35	on_bleed_apply_poison:2|on_bleed_deal_poison_chance_percent:0.35
+ashen_wake	Ashen Wake	weapon	burn,poison	8	Dealing Burn damage has a 35% chance to deal 1 Poison damage.	Dealing Burn damage has a 35% chance to deal 2 Poison damage.			on_burn_apply_poison:1|on_burn_deal_poison_chance_percent:0.35	on_burn_apply_poison:2|on_burn_deal_poison_chance_percent:0.35
+cauterize	Cauterize	weapon	bleed,burn	8	Dealing Bleed damage has a 35% chance to deal 1 Burn damage.	Dealing Bleed damage has a 35% chance to deal 2 Burn damage.			on_bleed_deal_burn_damage:1|on_bleed_deal_burn_chance_percent:0.35	on_bleed_deal_burn_damage:2|on_bleed_deal_burn_chance_percent:0.35
 contagion	Contagion	weapon	poison	8	Poison has a 10% chance to increase instead of decreasing.	Poison has a 20% chance to increase instead of decreasing.			poison_decay_increase_chance:0.10	poison_decay_increase_chance:0.20
 shatter	Shatter	weapon	freeze	8	Deal 2 additional damage while the enemy is Frozen.	Deal 4 additional damage while the enemy is Frozen.			damage_while_target_frozen:2	damage_while_target_frozen:4
 executioners	Executioner's	weapon	physical	8	Deal 3 additional damage if the enemy is below 30% Health.	Deal 6 additional damage if the enemy is below 30% Health.			damage_below_health_percent:0.30:3	damage_below_health_percent:0.30:6
@@ -71,7 +71,8 @@ bone_charm	Blood Omen	trinket	health	1	Draw a card the first time you lose Healt
 brass_censer	Toxic Incense	trinket	holy,poison	1	Deal 1 Poison damage when you deal Holy damage.	Deal 1 Poison damage when you deal Holy damage.			on_holy_damage_poison:1	on_holy_damage_poison:1
 companions_collar	Loyal Companion	trinket	mana	1	Draw an additional Companion card each turn.	Draw an additional Companion card each turn.			companion_cards_per_turn:1	companion_cards_per_turn:1
 cutpurse_knife	Blood Money	trinket	bleed,gold	1	Gain 1 Gold when you deal Bleed damage.	Gain 1 Gold when you deal Bleed damage.			on_bleed_damage_gold:1	on_bleed_damage_gold:1
-frozen_pocketwatch	Deep Freeze	trinket	freeze	1	Frozen enemies lose an additional action.	Frozen enemies lose an additional action.			freeze_extra_action_skips:1	freeze_extra_action_skips:1
+frozen_pocketwatch	Deep Freeze	trinket	freeze	1	Freeze has a 20% chance to last an additional turn.	Freeze has a 20% chance to last an additional turn.			freeze_extend_chance_percent:0.20	freeze_extend_chance_percent:0.20
+stunned_pocketwatch	Concussive Pocketwatch	trinket	stun	1	Stun has a 20% chance to last an additional turn.	Stun has a 20% chance to last an additional turn.			stun_extend_chance_percent:0.20	stun_extend_chance_percent:0.20
 groves_favor	Verdant Renewal	trinket	health	1	Restore 2 Health each turn.	Restore 2 Health each turn.			health_per_turn:2	health_per_turn:2
 icy_heart	Cold Hunger	trinket	freeze,leech	1	Freeze damage gains Leech.	Freeze damage gains Leech.			freeze_damage_leech:true	freeze_damage_leech:true
 ironwood_buckler	Living Bulwark	trinket	block,physical	1	Gain Thorns equal to half the Block you gain.	Gain Thorns equal to half the Block you gain.			block_gain_thorns_percent:0.50	block_gain_thorns_percent:0.50

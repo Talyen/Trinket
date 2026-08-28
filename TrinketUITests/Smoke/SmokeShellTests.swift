@@ -37,7 +37,6 @@ final class StarterOnboardingSmokeTests: TrinketUITestCase {
             TestLaunchArg.disableCloudSync,
             TestLaunchArg.skipOnboardingCeremony,
             "-disable-audio",
-            "-persist-save-immediately",
         ])
 
         assertExists(AccessibilityID.Onboarding.heroScreen)

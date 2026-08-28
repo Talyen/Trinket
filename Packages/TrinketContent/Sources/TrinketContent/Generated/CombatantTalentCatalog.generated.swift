@@ -119,9 +119,9 @@ public extension CombatantTalentCatalog {
             "knight_stun_t3_1": CombatantTalentEffect(
                 name: "Relentless Hold",
                 symbolName: "lock.fill",
-                description: "Stun lasts 1 additional turn on the enemy.",
+                description: "Stun has a 20% chance to last an additional turn.",
                 modifiers: [],
-                triggers: CombatTraitTriggers(control: ControlTriggers(enemyStunExtraActionSkips: 1))
+                triggers: CombatTraitTriggers(control: ControlTriggers(stunExtendChancePercent: 0.20))
             ),
             "knight_stun_t3_2": CombatantTalentEffect(
                 name: "Crusader's Mark",
@@ -192,9 +192,9 @@ public extension CombatantTalentCatalog {
             "ranger_burn_t2_1": CombatantTalentEffect(
                 name: "Cauterize",
                 symbolName: "flame.circle.fill",
-                description: "Burn damage consumes Bleed to trigger its remaining damage instantly.",
+                description: "Dealing Burn damage has a 30% chance to detonate remaining Bleed damage.",
                 modifiers: [],
-                triggers: CombatTraitTriggers(dot: DotTriggers(onBurnDamageDetonateBleed: true))
+                triggers: CombatTraitTriggers(dot: DotTriggers(onBurnDamageDetonateBleedChancePercent: 0.30))
             ),
             "ranger_burn_t2_2": CombatantTalentEffect(
                 name: "Smoke Screen",
@@ -401,9 +401,9 @@ public extension CombatantTalentCatalog {
             "wizard_freeze_t1_2": CombatantTalentEffect(
                 name: "Numbing Cold",
                 symbolName: "wind.snow",
-                description: "Frozen enemies deal 3 less damage.",
+                description: "Freeze has a 20% chance to last an additional turn.",
                 modifiers: [],
-                triggers: CombatTraitTriggers(mitigation: MitigationTriggers(frozenEnemyDamageReductionFlat: 3))
+                triggers: CombatTraitTriggers(control: ControlTriggers(freezeExtendChancePercent: 0.20))
             ),
             "wizard_freeze_t2_1": CombatantTalentEffect(
                 name: "Thermal Shock",
@@ -886,9 +886,9 @@ public extension CombatantTalentCatalog {
             "bear_stun_t2_2": CombatantTalentEffect(
                 name: "Deep Stun",
                 symbolName: "lock.fill",
-                description: "Stun lasts 1 additional turn.",
+                description: "Stun has a 20% chance to last an additional turn.",
                 modifiers: [],
-                triggers: CombatTraitTriggers(control: ControlTriggers(enemyStunExtraActionSkips: 1))
+                triggers: CombatTraitTriggers(control: ControlTriggers(stunExtendChancePercent: 0.20))
             ),
             "bear_stun_t3_1": CombatantTalentEffect(
                 name: "Exposed Prey",
@@ -910,9 +910,9 @@ public extension CombatantTalentCatalog {
             "frost_whelp_freeze_t1_1": CombatantTalentEffect(
                 name: "Permafrost",
                 symbolName: "snowflake",
-                description: "Increase Freeze damage dealt by 2.",
-                modifiers: [.damageDealt(.freeze, 2)],
-                triggers: CombatTraitTriggers()
+                description: "Freeze has a 20% chance to last an additional turn.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(control: ControlTriggers(freezeExtendChancePercent: 0.20))
             ),
             "frost_whelp_freeze_t1_2": CombatantTalentEffect(
                 name: "Chilling Scales",
@@ -1067,9 +1067,9 @@ public extension CombatantTalentCatalog {
             "lizard_scout_poison_t3_1": CombatantTalentEffect(
                 name: "Paralysis",
                 symbolName: "bolt.fill",
-                description: "Enemies with 6 or more Poison become Stunned.",
+                description: "Dealing Poison damage to an enemy with 6 or more Poison has a 40% chance to Stun them (once per turn).",
                 modifiers: [],
-                triggers: CombatTraitTriggers(dot: DotTriggers(poisonThresholdStunAmount: 6))
+                triggers: CombatTraitTriggers(dot: DotTriggers(poisonStunChancePercent: 0.40, poisonThresholdStunAmount: 6))
             ),
             "lizard_scout_poison_t3_2": CombatantTalentEffect(
                 name: "Venom Spores",
@@ -1447,9 +1447,9 @@ public extension CombatantTalentCatalog {
             "golden_retriever_gold_t2_2": CombatantTalentEffect(
                 name: "Golden Guard",
                 symbolName: "shield.fill",
-                description: "Gain 1 Block for every 2 Gold earned in combat.",
+                description: "Gain Block equal to half Gold gained.",
                 modifiers: [],
-                triggers: CombatTraitTriggers(block: BlockTriggers(blockPerGoldEarnedEvery: 2))
+                triggers: CombatTraitTriggers(block: BlockTriggers(goldGainBlockPercent: 0.50))
             ),
             "golden_retriever_gold_t3_1": CombatantTalentEffect(
                 name: "Fetch!",
@@ -1862,9 +1862,9 @@ public extension CombatantTalentCatalog {
             "mana_moth_freeze_t1_2": CombatantTalentEffect(
                 name: "Frost Guard",
                 symbolName: "shield.lefthalf.filled",
-                description: "Gain 2 Block when attacking a Frozen enemy.",
+                description: "Freeze has a 20% chance to last an additional turn.",
                 modifiers: [],
-                triggers: CombatTraitTriggers(attack: AttackTriggers(onAttackFrozenEnemyGainBlock: 2))
+                triggers: CombatTraitTriggers(control: ControlTriggers(freezeExtendChancePercent: 0.20))
             ),
             "mana_moth_freeze_t2_1": CombatantTalentEffect(
                 name: "Blinding Frost",
@@ -2127,9 +2127,9 @@ public extension CombatantTalentCatalog {
             "shield_scarab_stun_t2_1": CombatantTalentEffect(
                 name: "Prolonged Daze",
                 symbolName: "lock.fill",
-                description: "Stuns inflicted by Scarab last 1 additional turn.",
+                description: "Stun has a 20% chance to last an additional turn.",
                 modifiers: [],
-                triggers: CombatTraitTriggers(control: ControlTriggers(enemyStunExtraActionSkips: 1))
+                triggers: CombatTraitTriggers(control: ControlTriggers(stunExtendChancePercent: 0.20))
             ),
             "shield_scarab_stun_t2_2": CombatantTalentEffect(
                 name: "Seismic Impact",

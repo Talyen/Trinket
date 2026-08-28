@@ -6,6 +6,8 @@ flail	Flail	weapon	one_handed	physical,stun,block,holy
 greatsword	Greatsword	weapon	two_handed	physical,bleed,stun,holy
 hatchet	Hatchet	weapon	one_handed	physical,bleed,leech
 kite_shield	Kite Shield	weapon	off_hand	block,stun
+leather_buckler	Leather Buckler	weapon	off_hand	block,dodge
+quiver	Quiver	weapon	off_hand	physical,bleed,poison
 longbow	Longbow	weapon	two_handed	physical,bleed,poison
 longsword	Longsword	weapon	one_handed	physical,bleed,holy
 mace	Mace	weapon	one_handed	physical,stun,holy

@@ -7,8 +7,9 @@ import TrinketPersistenceTestSupport
 
 @Suite("LabyrinthSaveRecovery")
 struct LabyrinthSaveRecoveryTests {
-    @Test func enterDoesNotRebuildUnreadableMap() {
+    @Test func enterRebuildsUnreadableMap() {
         var save = PlayerSave.fresh
+        let expectedSeed = save.worldSeed
         save.labyrinth = PlayerLabyrinthState(
             worldSeed: 55,
             hasEntered: true,
@@ -17,13 +18,12 @@ struct LabyrinthSaveRecoveryTests {
 
         LabyrinthCompletion.enter(save: &save)
 
-        // Phase 2.2 auto-recovery: unreadable + hasEntered now rebuilds
-        // instead of looping "Labyrinth Error" forever. Seed follows
-        // PlayerSave.worldSeed (canonical) so labyrinth.worldSeed may change
-        // from the manually set 55 to the save's worldSeed.
+        // Phase 2.2 auto-recovery: unreadable now rebuilds instead of looping
+        // "Labyrinth Error" forever. Seed follows PlayerSave.worldSeed
+        // (canonical save seed), not the stale labyrinth.worldSeed 55.
         #expect(save.labyrinth.hasMap)
         #expect(!save.labyrinth.isMapPayloadUnreadable)
-        #expect(save.labyrinth.worldSeed != 0)
+        #expect(save.labyrinth.worldSeed == expectedSeed)
         #expect(!save.labyrinth.nodes.isEmpty)
     }
 
@@ -59,17 +59,19 @@ struct LabyrinthSaveRecoveryTests {
         #expect(loaded.labyrinth.isMapPayloadUnreadable)
         #expect(!loaded.labyrinth.hasMap)
 
+        let expectedSeed = loaded.worldSeed
         #expect(loaded.persistBatch(logging: "enter") { save in
             LabyrinthCompletion.enter(save: &save)
         })
         // Auto-recovery on enter now rebuilds instead of preserving corrupt blob.
         #expect(!loaded.labyrinth.isMapPayloadUnreadable)
         #expect(loaded.labyrinth.hasMap)
+        #expect(loaded.labyrinth.worldSeed == expectedSeed)
 
         let reloaded = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
         #expect(!reloaded.labyrinth.isMapPayloadUnreadable)
         #expect(reloaded.labyrinth.hasMap)
-        #expect(reloaded.labyrinth.worldSeed != 0)
+        #expect(reloaded.labyrinth.worldSeed == expectedSeed)
     }
 
     @Test @MainActor func labyrinthSetterMigratesLegacyMapWithRosterRecruitEligibility() throws {

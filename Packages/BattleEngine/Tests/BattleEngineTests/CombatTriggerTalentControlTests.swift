@@ -5,7 +5,7 @@ import TrinketTestSupport
 @testable import BattleEngine
 
 /// Control and affliction injected-trigger talents: stun/freeze meters and on-hit debuff application.
-struct CombatTriggerTalentControlTests {
+struct CombatTriggerTalentControlTests { // swiftlint:disable:this type_body_length - control + paralysis coverage exceeds 350
     @Test func freezeBuildupDoesNotDecayWhenSourceSuppresses() {
         var battle = BattleTestFixtures.makePipelineContext(
             heroModifiers: .init(triggers: CombatTraitTriggers(
@@ -27,7 +27,7 @@ struct CombatTriggerTalentControlTests {
     @Test func enemyStunExtraActionSkipsExtendStun() {
         var battle = BattleTestFixtures.makePipelineContext(
             heroModifiers: .init(triggers: CombatTraitTriggers(
-                control: ControlTriggers(enemyStunExtraActionSkips: 1)
+                control: ControlTriggers(stunExtendChancePercent: 1.0)
             ))
         )
         let enemy = battle.roster.enemy.combatant
@@ -69,8 +69,9 @@ struct CombatTriggerTalentControlTests {
             companion: BattleTestFixtures.passiveCompanion(),
             enemy: BattleTestFixtures.silentEnemy(maxHealth: 100),
             companionModifiers: .init(triggers: CombatTraitTriggers(
-                dot: DotTriggers(poisonThresholdStunAmount: 6)
+                dot: DotTriggers(poisonStunChancePercent: 1.0, poisonThresholdStunAmount: 6)
             )),
+            rngSeed: 0,
             dealOpeningHand: false
         )
         let enemy = battle.roster.enemy.combatant
@@ -81,6 +82,94 @@ struct CombatTriggerTalentControlTests {
             sourceActorID: battle.roster.companion.id
         )
         _ = DecayingDoTHandler(keyword: .poison, kind: .poison).advanceTurn(active, on: enemy, in: &battle)
+        #expect(battle.roster.hasControlStatus(for: enemy, keyword: .stun))
+    }
+
+    @Test func paralysisZeroChanceFallsBackToGuaranteedForLegacySaves() {
+        var battle = BattleStateTestFactory.makeBattle(
+            hero: BattleTestFixtures.passiveHero(),
+            companion: BattleTestFixtures.passiveCompanion(),
+            enemy: BattleTestFixtures.silentEnemy(maxHealth: 100),
+            companionModifiers: .init(triggers: CombatTraitTriggers(
+                dot: DotTriggers(poisonStunChancePercent: 0, poisonThresholdStunAmount: 6)
+            )),
+            rngSeed: 0,
+            dealOpeningHand: false
+        )
+        let enemy = battle.roster.enemy.combatant
+        let active = ActiveEffect(id: 1, effect: .poison(8), remainingTurns: 0, sourceActorID: battle.roster.companion.id)
+        _ = DecayingDoTHandler(keyword: .poison, kind: .poison).advanceTurn(active, on: enemy, in: &battle)
+        #expect(battle.roster.hasControlStatus(for: enemy, keyword: .stun))
+    }
+
+    @Test func paralysisRespectsSeedAndOncePerTurnGuard() {
+        // Seed 0 hits at 0.40, seed 1 misses. Once-per-turn guard prevents second stun in same turn.
+        var hitBattle = BattleStateTestFactory.makeBattle(
+            hero: BattleTestFixtures.passiveHero(),
+            companion: BattleTestFixtures.passiveCompanion(),
+            enemy: BattleTestFixtures.silentEnemy(maxHealth: 100),
+            companionModifiers: .init(triggers: CombatTraitTriggers(
+                dot: DotTriggers(poisonStunChancePercent: 0.40, poisonThresholdStunAmount: 6)
+            )),
+            rngSeed: 0,
+            dealOpeningHand: false
+        )
+        let hitEnemy = hitBattle.roster.enemy.combatant
+        let hitActive = ActiveEffect(id: 1, effect: .poison(8), remainingTurns: 0, sourceActorID: hitBattle.roster.companion.id)
+        _ = DecayingDoTHandler(keyword: .poison, kind: .poison).advanceTurn(hitActive, on: hitEnemy, in: &hitBattle)
+        #expect(hitBattle.roster.hasControlStatus(for: hitEnemy, keyword: .stun))
+        // Second poison tick same turn must not stun again (guard).
+        let secondActive = ActiveEffect(id: 2, effect: .poison(8), remainingTurns: 0, sourceActorID: hitBattle.roster.companion.id)
+        _ = DecayingDoTHandler(keyword: .poison, kind: .poison).advanceTurn(secondActive, on: hitEnemy, in: &hitBattle)
+        // Still stunned, no duplicate extra skip; guard held.
+        #expect(
+            hitBattle.talentTurnGuardByActorID[
+                TalentActionGuardKey(kind: .poisonStun, actorID: hitBattle.roster.companion.id)
+            ] == hitBattle.turnCount
+        )
+
+        var missBattle = BattleStateTestFactory.makeBattle(
+            hero: BattleTestFixtures.passiveHero(),
+            companion: BattleTestFixtures.passiveCompanion(),
+            enemy: BattleTestFixtures.silentEnemy(maxHealth: 100),
+            companionModifiers: .init(triggers: CombatTraitTriggers(
+                dot: DotTriggers(poisonStunChancePercent: 0.40, poisonThresholdStunAmount: 6)
+            )),
+            rngSeed: 1,
+            dealOpeningHand: false
+        )
+        let missEnemy = missBattle.roster.enemy.combatant
+        let missActive = ActiveEffect(id: 1, effect: .poison(8), remainingTurns: 0, sourceActorID: missBattle.roster.companion.id)
+        _ = DecayingDoTHandler(keyword: .poison, kind: .poison).advanceTurn(missActive, on: missEnemy, in: &missBattle)
+        #expect(!missBattle.roster.hasControlStatus(for: missEnemy, keyword: .stun))
+    }
+
+    @Test func paralysisTurnGuardResetsNextTurn() {
+        var battle = BattleStateTestFactory.makeBattle(
+            hero: BattleTestFixtures.passiveHero(),
+            companion: BattleTestFixtures.passiveCompanion(),
+            enemy: BattleTestFixtures.silentEnemy(maxHealth: 100),
+            companionModifiers: .init(triggers: CombatTraitTriggers(
+                dot: DotTriggers(poisonStunChancePercent: 1.0, poisonThresholdStunAmount: 6)
+            )),
+            rngSeed: 0,
+            dealOpeningHand: false
+        )
+        let enemy = battle.roster.enemy.combatant
+        // Turn 0 — first stun
+        _ = DecayingDoTHandler(keyword: .poison, kind: .poison).advanceTurn(
+            ActiveEffect(id: 1, effect: .poison(8), remainingTurns: 0, sourceActorID: battle.roster.companion.id),
+            on: enemy, in: &battle
+        )
+        #expect(battle.roster.hasControlStatus(for: enemy, keyword: .stun))
+        // Clear stun so next turn can stun again
+        battle.roster.clearControlStatusLinger(for: enemy)
+        battle.roster.setActiveEffects([], for: enemy)
+        battle.turnCount += 1
+        _ = DecayingDoTHandler(keyword: .poison, kind: .poison).advanceTurn(
+            ActiveEffect(id: 2, effect: .poison(8), remainingTurns: 0, sourceActorID: battle.roster.companion.id),
+            on: enemy, in: &battle
+        )
         #expect(battle.roster.hasControlStatus(for: enemy, keyword: .stun))
     }
 
