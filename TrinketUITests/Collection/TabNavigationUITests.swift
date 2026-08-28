@@ -28,9 +28,9 @@ final class TabNavigationUITests: TrinketUITestCase {
         let salvagedItemID = AccessibilityID.Collection.itemCard(itemID: itemID)
         let remainingCardID = AccessibilityID.Collection.itemCard(itemID: remainingItemID)
         let salvagedItem = app.buttons[salvagedItemID]
-        scrollUntilVisible(salvagedItem, swipingUp: false, requireHittable: true, maxAttempts: 12)
+        scrollUntilVisible(salvagedItem, swipingUp: false, maxAttempts: 12, requireHittable: true)
         if !salvagedItem.exists || !salvagedItem.isHittable {
-            scrollUntilVisible(salvagedItem, swipingUp: true, requireHittable: true, maxAttempts: 12)
+            scrollUntilVisible(salvagedItem, swipingUp: true, maxAttempts: 12, requireHittable: true)
         }
 
         salvagedItem.tap()
