@@ -4,15 +4,9 @@ struct CardSurfaceModifier: ViewModifier {
     var cornerRadius: CGFloat = TrinketDesign.Corners.card
 
     func body(content: Content) -> some View {
-        let shape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-        let palette = ThemePalette.trinket
-        content
-            .background(palette.panelSurface, in: shape)
-            .shadow(color: palette.shadow.color, radius: palette.shadow.radius, y: palette.shadow.y)
-            .clipShape(shape)
-            .overlay {
-                shape.strokeBorder(palette.subtleStroke, lineWidth: 1)
-            }
+        // Single source of truth is `trinketSurface(.card)` (VisualFoundation).
+        // This modifier remains for call sites that need a custom cornerRadius override.
+        content.trinketSurface(.card)
     }
 }
 

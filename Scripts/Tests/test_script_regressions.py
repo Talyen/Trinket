@@ -607,8 +607,11 @@ class ScriptRegressionTests(unittest.TestCase):
         self.assertIn("name: Homestead", workflow)
         self.assertIn("preboot-simulator: 'true'", workflow)
         self.assertIn("skip-build: 'true'", workflow)
-        self.assertIn("sparse-checkout-cone-mode: true", workflow)
-        self.assertIn("test -f project.yml", workflow)
+        # sparse-checkout now lives in checkout-inputs composite; check either workflow or composite
+        composite = (ROOT / ".github" / "actions" / "checkout-inputs" / "action.yml").read_text(encoding="utf-8")
+        combined = workflow + composite
+        self.assertIn("sparse-checkout-cone-mode: true", combined)
+        self.assertIn("test -f project.yml", combined)
         self.assertNotIn("checkout-ci", workflow)
         self.assertIn("Smoke tests (${{ matrix.name }})", workflow)
         self.assertIn("needs.changes.outputs.infra", workflow)
@@ -619,9 +622,8 @@ class ScriptRegressionTests(unittest.TestCase):
             ROOT / ".github" / "actions" / "build-cache-key" / "action.yml"
         ).read_text(encoding="utf-8")
         self.assertIn('git rev-parse "HEAD:Raw Assets"', cache_key)
-        sparse_block = workflow.split("sparse-checkout:", 1)[1]
-        self.assertIn(".github", sparse_block)
-        self.assertNotIn("Raw Assets", sparse_block)
+        self.assertIn(".github", composite)
+        self.assertNotIn("Raw Assets", composite)
 
     def test_ci_gate_fast_skips_generation_and_style(self) -> None:
         text = (ROOT / "Scripts" / "ci-gate.sh").read_text(encoding="utf-8")

@@ -39,18 +39,7 @@ public final class PlayerSaveStore {
     private var deferredSaveTask: Task<Void, Never>?
     private var pendingRollbackSnapshot: PlayerSave?
     private var pendingRollbackSlices: PlayerSaveSlice = []
-    private var observedJourney = JourneyProgressState.initial
-    private var observedRoster = PlayerRosterState.freshStart
-    private var observedInventory = PlayerInventoryState.freshStart
-    private var observedHomestead = PlayerHomesteadState.freshStart
-    private var observedSpires = PlayerSpiresState.freshStart
-    private var observedLabyrinth = PlayerLabyrinthState.freshStart
-    private var observedSchemaVersion = PlayerSave.currentSchemaVersion
-    private var observedModifiedAt = Date.distantPast
-    private var observedSessionGeneration: UInt64 = 0
-    private var observedWorldSeed: UInt64 = 0
-    private var observedStarterSelection = StarterSelectionState.complete
-    private var observedCorruptionAltarCooldownRemaining = 0
+    private var observedSave: PlayerSave = .fresh
     private let logger = Logger(
         subsystem: PlayerSaveDefaults.loggingSubsystem,
         category: "PlayerSave"
@@ -71,50 +60,50 @@ public final class PlayerSaveStore {
     #endif
 
     public var journey: JourneyProgressState {
-        get { observedJourney }
+        get { observedSave.journey }
         set { mutate { $0.journey = newValue } }
     }
 
     public var roster: PlayerRosterState {
-        get { observedRoster }
+        get { observedSave.roster }
         set { mutate { $0.roster = newValue } }
     }
 
     public var inventory: PlayerInventoryState {
-        get { observedInventory }
+        get { observedSave.inventory }
         set { mutate { $0.inventory = newValue } }
     }
 
     public var homestead: PlayerHomesteadState {
-        get { observedHomestead }
+        get { observedSave.homestead }
         set { mutate { $0.homestead = newValue } }
     }
 
     public var spires: PlayerSpiresState {
-        get { observedSpires }
+        get { observedSave.spires }
         set { mutate { $0.spires = newValue } }
     }
 
     public var labyrinth: PlayerLabyrinthState {
-        get { observedLabyrinth }
+        get { observedSave.labyrinth }
         set { mutate { $0.labyrinth = newValue } }
     }
 
     /// Root-level Corruption Altar cooldown — prefer this over `currentSave` for reads.
     public var corruptionAltarCooldownRemaining: Int {
-        observedCorruptionAltarCooldownRemaining
+        observedSave.corruptionAltarCooldownRemaining
     }
 
     public var worldSeed: UInt64 {
-        observedWorldSeed
+        observedSave.worldSeed
     }
 
     public var starterSelection: StarterSelectionState {
-        observedStarterSelection
+        observedSave.starterSelection
     }
 
     public var currentSave: PlayerSave {
-        assembledSave()
+        observedSave
     }
 
     private let persistSaveImmediately: Bool
@@ -491,48 +480,39 @@ private extension PlayerSaveStore {
     }
 
     func assembledSave() -> PlayerSave {
-        PlayerSave(
-            schemaVersion: observedSchemaVersion,
-            modifiedAt: observedModifiedAt,
-            sessionGeneration: observedSessionGeneration,
-            worldSeed: observedWorldSeed,
-            starterSelection: observedStarterSelection,
-            journey: observedJourney,
-            roster: observedRoster,
-            inventory: observedInventory,
-            homestead: observedHomestead,
-            spires: observedSpires,
-            labyrinth: observedLabyrinth,
-            corruptionAltarCooldownRemaining: observedCorruptionAltarCooldownRemaining
-        )
+        observedSave
     }
 
     func installObservedSave(_ save: PlayerSave, slices: PlayerSaveSlice = .all) {
+        if slices == .all {
+            observedSave = save
+            return
+        }
         if slices.contains(.root) {
-            observedSchemaVersion = save.schemaVersion
-            observedModifiedAt = save.modifiedAt
-            observedSessionGeneration = save.sessionGeneration
-            observedWorldSeed = save.worldSeed
-            observedStarterSelection = save.starterSelection
-            observedCorruptionAltarCooldownRemaining = save.corruptionAltarCooldownRemaining
+            observedSave.schemaVersion = save.schemaVersion
+            observedSave.modifiedAt = save.modifiedAt
+            observedSave.sessionGeneration = save.sessionGeneration
+            observedSave.worldSeed = save.worldSeed
+            observedSave.starterSelection = save.starterSelection
+            observedSave.corruptionAltarCooldownRemaining = save.corruptionAltarCooldownRemaining
         }
         if slices.contains(.journey) {
-            observedJourney = save.journey
+            observedSave.journey = save.journey
         }
         if slices.contains(.roster) {
-            observedRoster = save.roster
+            observedSave.roster = save.roster
         }
         if slices.contains(.inventory) {
-            observedInventory = save.inventory
+            observedSave.inventory = save.inventory
         }
         if slices.contains(.homestead) {
-            observedHomestead = save.homestead
+            observedSave.homestead = save.homestead
         }
         if slices.contains(.spires) {
-            observedSpires = save.spires
+            observedSave.spires = save.spires
         }
         if slices.contains(.labyrinth) {
-            observedLabyrinth = save.labyrinth
+            observedSave.labyrinth = save.labyrinth
         }
     }
 }

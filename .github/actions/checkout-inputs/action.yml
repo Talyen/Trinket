@@ -1,0 +1,30 @@
+name: Checkout inputs
+description: Sparse-checkout Trinket inputs (excluding large media) and assert root build inputs.
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      with:
+        fetch-depth: 1
+        sparse-checkout-cone-mode: true
+        sparse-checkout: |
+          Scripts
+          Packages
+          Trinket
+          TrinketUITests
+          Trinket.xcodeproj
+          ContentManifest
+          ArtManifest
+          MusicManifest
+          SoundManifest
+          CinematicManifest
+          .github
+    - name: Assert sparse checkout kept root build inputs
+      shell: bash
+      run: |
+        set -euo pipefail
+        test -f project.yml
+        test -f Smoke.xctestplan
+        test -f FullUI.xctestplan
+        test -f BattlePerformance.xctestplan

@@ -1,7 +1,6 @@
 import BattleEngine
 import Testing
 import TrinketBattleFeature
-import BattleEngine
 import TrinketContent
 import TrinketCore
 import TrinketPersistence
