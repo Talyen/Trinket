@@ -141,52 +141,50 @@ private struct LabyrinthMapNodeSeal: View {
     let onActivate: () -> Void
     @State private var reachablePulseOpacity: Double = 0
     @State private var reachablePulseTask: Task<Void, Never>?
+    @State private var clearedSettleScale: CGFloat = 1
+    @State private var clearedSettleTask: Task<Void, Never>?
 
     private var tint: Color {
         LabyrinthMapPresentation.tint(for: type)
     }
 
-    private var displayedTint: Color {
-        visualState == .cleared ? TrinketDesign.Colors.success.opacity(0.55) : tint
-    }
-
     var body: some View {
         Button(action: onActivate) {
             ZStack {
-                LabyrinthNodeArtwork(
-                    node: node,
-                    type: type,
-                    resolvedMysteryEvent: resolvedMysteryEvent,
-                    style: .hexSeal
-                )
-                .opacity(visualState == .locked ? 0.42 : 1)
-                .clipShape(LabyrinthHexagon())
-
-                if visualState == .cleared {
-                    Image(systemName: "checkmark")
-                        .trinketTypography(type == .boss ? .sectionTitle : .rowTitle)
-                        .foregroundStyle(TrinketDesign.Colors.success)
-                        .shadow(color: TrinketDesign.Colors.Overlay.ink.opacity(0.55), radius: 2, y: 1)
-                        .transition(checkmarkTransition)
+                ZStack {
+                    LabyrinthNodeArtwork(
+                        node: node,
+                        type: type,
+                        resolvedMysteryEvent: resolvedMysteryEvent,
+                        style: .hexSeal
+                    )
+                    .saturation(visualState == .cleared ? 0 : 1)
+                    .opacity(visualState == .locked ? 0.42 : visualState == .cleared ? 0.72 : 1)
+                    if visualState == .cleared {
+                        TrinketDesign.Colors.Overlay.ink.opacity(0.32)
+                    }
                 }
+                .clipShape(LabyrinthHexagon())
+                .scaleEffect(visualState == .cleared ? 0.97 : 1)
 
                 LabyrinthHexagon()
                     .stroke(
-                        visualState == .cleared
-                            ? displayedTint
-                            : isSelected
-                            ? TrinketDesign.Colors.accent
-                            : visualState == .locked
-                            ? TrinketDesign.Colors.subtleStroke
-                            : displayedTint,
-                        lineWidth: visualState == .reachable ? 3 : 2
+                        isSelected ? TrinketDesign.Colors.accent :
+                            visualState == .cleared ? TrinketDesign.Colors.subtleStroke.opacity(0.55) :
+                            visualState == .locked ? TrinketDesign.Colors.subtleStroke : tint,
+                        lineWidth: visualState == .cleared ? 1.5 : visualState == .reachable ? 3 : 2
                     )
 
                 LabyrinthHexagon()
                     .stroke(TrinketDesign.Colors.accent, lineWidth: 3)
                     .opacity(reachablePulseOpacity)
+
+                if visualState == .cleared {
+                    clearedSeal
+                }
             }
             .frame(width: metrics.width, height: metrics.height)
+            .scaleEffect(clearedSettleScale)
             .contentShape(
                 .interaction,
                 LabyrinthHexagon().inset(by: -metrics.hitExpansion)
@@ -199,22 +197,38 @@ private struct LabyrinthMapNodeSeal: View {
         .buttonStyle(LabyrinthNodeButtonStyle(isSelected: isSelected))
         .animation(TrinketMotion.Interaction.selection, value: visualState)
         .onChange(of: visualState) { oldState, newState in
-            guard oldState != .reachable, newState == .reachable else { return }
-            reachablePulseTask?.cancel()
-            reachablePulseOpacity = 0
-            reachablePulseTask = Task { @MainActor in
-                withAnimation(.easeOut(duration: 0.12)) {
-                    reachablePulseOpacity = 0.72
+            if oldState != .reachable, newState == .reachable {
+                reachablePulseTask?.cancel()
+                reachablePulseOpacity = 0
+                reachablePulseTask = Task { @MainActor in
+                    withAnimation(.easeOut(duration: 0.12)) {
+                        reachablePulseOpacity = 0.72
+                    }
+                    try? await Task.sleep(for: .milliseconds(120))
+                    guard !Task.isCancelled else { return }
+                    withAnimation(.easeOut(duration: 0.23)) {
+                        reachablePulseOpacity = 0
+                    }
                 }
-                try? await Task.sleep(for: .milliseconds(120))
-                guard !Task.isCancelled else { return }
-                withAnimation(.easeOut(duration: 0.23)) {
-                    reachablePulseOpacity = 0
+            }
+            if oldState != .cleared, newState == .cleared {
+                clearedSettleTask?.cancel()
+                clearedSettleScale = 1
+                clearedSettleTask = Task { @MainActor in
+                    withAnimation(.spring(response: 0.22, dampingFraction: 0.72)) {
+                        clearedSettleScale = 1.08
+                    }
+                    try? await Task.sleep(for: .milliseconds(95))
+                    guard !Task.isCancelled else { return }
+                    withAnimation(.spring(response: 0.22, dampingFraction: 1)) {
+                        clearedSettleScale = 1
+                    }
                 }
             }
         }
         .onDisappear {
             reachablePulseTask?.cancel()
+            clearedSettleTask?.cancel()
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(nodeAccessibilityLabel)
@@ -242,56 +256,21 @@ private struct LabyrinthMapNodeSeal: View {
         return AccessibilityID.Play.labyrinthNode(node.id)
     }
 
-    private var checkmarkTransition: AnyTransition {
-        .scale(scale: 0.85).combined(with: .opacity)
-    }
-}
-
-private struct LabyrinthHexMetrics {
-    let radius: CGFloat
-    let hitExpansion: CGFloat = 6
-
-    var width: CGFloat {
-        radius * sqrt(3)
-    }
-
-    var height: CGFloat {
-        radius * 2
-    }
-
-    var verticalStep: CGFloat {
-        radius * 1.5
-    }
-}
-
-private struct LabyrinthHexagon: InsettableShape {
-    var insetAmount: CGFloat = 0
-
-    func path(in rect: CGRect) -> Path {
-        let rect = rect.insetBy(dx: insetAmount, dy: insetAmount)
-        let center = CGPoint(x: rect.midX, y: rect.midY)
-        let radius = min(rect.width / sqrt(3), rect.height / 2)
-        var path = Path()
-        for index in 0 ..< 6 {
-            let angle = CGFloat(index) * .pi / 3 - .pi / 2
-            let point = CGPoint(
-                x: center.x + cos(angle) * radius,
-                y: center.y + sin(angle) * radius
-            )
-            if index == 0 {
-                path.move(to: point)
-            } else {
-                path.addLine(to: point)
-            }
+    private var clearedSeal: some View {
+        ZStack {
+            Circle().fill(TrinketDesign.Colors.Overlay.paper)
+            Circle().stroke(TrinketDesign.Colors.subtleStroke, lineWidth: 1)
+            Image(systemName: "seal.fill")
+                .font(.system(size: 8, weight: .bold))
+                .foregroundStyle(TrinketDesign.Colors.Overlay.ink.opacity(0.65))
         }
-        path.closeSubpath()
-        return path
-    }
-
-    func inset(by amount: CGFloat) -> Self {
-        var copy = self
-        copy.insetAmount += amount
-        return copy
+        .frame(width: 14, height: 14)
+        .shadow(color: TrinketDesign.Colors.Overlay.ink.opacity(0.22), radius: 2, y: 1)
+        .padding(.trailing, 4)
+        .padding(.bottom, 2)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
     }
 }
 
@@ -341,11 +320,8 @@ struct LabyrinthNodeArtwork: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .clipped()
         case .hexSeal:
-            Color.clear
-                .overlay(alignment: .top) {
-                    resolvedContent
-                        .scaledToFill()
-                }
+            hexSealContent
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .clipped()
         }
     }
@@ -400,6 +376,76 @@ struct LabyrinthNodeArtwork: View {
                     .foregroundStyle(LabyrinthMapPresentation.tint(for: type))
                     .symbolRenderingMode(.hierarchical)
             }
+        }
+    }
+
+    @ViewBuilder
+    private var hexSealContent: some View {
+        if type.isCombat,
+           let enemyID = node.enemyID,
+           let enemy = GameContent.enemy(matching: enemyID),
+           let art = enemy.combatant.artReference {
+            combatFocal(art)
+        } else if type.canonical == .recruit,
+                  let art = LabyrinthMapPresentation.recruitEncounterArtReference(
+                      for: node,
+                      worldSeed: playerSave.worldSeed,
+                      unlockedHeroIDs: playerSave.roster.unlockedHeroIDs,
+                      unlockedCompanionIDs: playerSave.roster.unlockedCompanionIDs
+                  ) {
+            encounterFocal(imageName: art.imageName, thumbnailName: art.thumbnailImageName, focalPoint: ArtFocalPoint(x: 0.5, y: 0.5))
+        } else if let event = resolvedMysteryEvent, !event.isRecruit {
+            hexMysteryFocalContent(for: event)
+        } else if let artID = LabyrinthMapPresentation.destinationEncounterArtID(for: type),
+                  let art = ArtCatalog.encounterArtByID[artID] {
+            encounterFocal(imageName: art.imageName, thumbnailName: art.thumbnailImageName, focalPoint: ArtFocalPoint(x: 0.5, y: 0.5))
+        } else {
+            fallbackSymbol
+        }
+    }
+
+    @ViewBuilder
+    private func hexMysteryFocalContent(for event: MysteryEvent) -> some View {
+        if let artID = event.artID, let art = ArtCatalog.encounterArtByID[artID] {
+            encounterFocal(imageName: art.imageName, thumbnailName: art.thumbnailImageName, focalPoint: ArtFocalPoint(x: 0.5, y: 0.5))
+        } else if let artID = event.artID, let art = ArtCatalog.backgroundArtByID[artID] {
+            encounterFocal(imageName: art.imageName, thumbnailName: art.thumbnailImageName, focalPoint: art.focalPoint)
+        } else if let art = ArtCatalog.backgroundArtByID["labyrinth"] {
+            encounterFocal(imageName: art.imageName, thumbnailName: art.thumbnailImageName, focalPoint: art.focalPoint)
+        } else {
+            fallbackSymbol
+        }
+    }
+
+    private func combatFocal(_ art: CombatantArtReference) -> some View {
+        LabyrinthFocalImage(
+            imageName: art.imageName,
+            thumbnailName: art.thumbnailImageName,
+            focalPoint: art.focalPoint,
+            displaySize: .compact,
+            sourceAspect: LabyrinthNodeArtworkMetrics.combatSourceAspect,
+            zoom: LabyrinthNodeArtworkMetrics.hexFocalZoom
+        )
+    }
+
+    private func encounterFocal(imageName: String, thumbnailName: String?, focalPoint: ArtFocalPoint) -> some View {
+        LabyrinthFocalImage(
+            imageName: imageName,
+            thumbnailName: thumbnailName,
+            focalPoint: focalPoint,
+            displaySize: .compact,
+            sourceAspect: LabyrinthNodeArtworkMetrics.encounterSourceAspect,
+            zoom: LabyrinthNodeArtworkMetrics.hexFocalZoom
+        )
+    }
+
+    private var fallbackSymbol: some View {
+        ZStack {
+            LabyrinthMapPresentation.tint(for: type).opacity(0.16)
+            Image(systemName: symbolName)
+                .trinketTypography(.sectionDisplay)
+                .foregroundStyle(LabyrinthMapPresentation.tint(for: type))
+                .symbolRenderingMode(.hierarchical)
         }
     }
 }

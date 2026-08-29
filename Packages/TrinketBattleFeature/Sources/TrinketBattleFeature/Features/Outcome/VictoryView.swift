@@ -28,7 +28,7 @@ struct VictoryView: View {
             primaryActionTitle: primaryActionTitle,
             primaryActionAccessibilityIdentifier: primaryActionAccessibilityIdentifier,
             onPrimaryAction: onPrimaryAction,
-            contentTopPadding: TrinketDesign.Metrics.smallSpacing,
+            contentTopPadding: TrinketDesign.Metrics.extraSmallSpacing,
             contentStackSpacing: TrinketDesign.Metrics.largeSpacing
         ) { onExperienceBarCompleted in
             experiencePanel(onExperienceBarCompleted: onExperienceBarCompleted)

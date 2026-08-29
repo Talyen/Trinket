@@ -199,6 +199,7 @@ private struct BattlePartySlotGridView: View {
                     combatantID: combatant.id
                 )
             },
+            artworkNameProvider: { $0.artReference?.thumbnailImageName ?? $0.artReference?.imageName },
             card: { combatant, isSelected in
                 CombatantCard(
                     combatant: combatant,

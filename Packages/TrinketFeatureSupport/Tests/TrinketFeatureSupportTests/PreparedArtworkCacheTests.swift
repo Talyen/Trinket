@@ -43,6 +43,33 @@ struct PreparedArtworkCacheTests {
         #expect(cache.completedCount == 4)
     }
 
+    @Test func viewportPrepareOvertakesQueuedDeferredArtwork() async {
+        let image = UIGraphicsImageRenderer(size: CGSize(width: 4, height: 4)).image { context in
+            UIColor.red.setFill()
+            context.cgContext.fill(CGRect(x: 0, y: 0, width: 4, height: 4))
+        }
+        let deferredGate = DeferredDecodeGate()
+        let blockedStarts = DecodeStartCount()
+        let cache = PreparedArtworkCache.makeForTesting(
+            catalogNames: ["blocked-a", "blocked-b", "viewport"]
+        ) { name in
+            if name.hasPrefix("blocked-") {
+                await blockedStarts.markStarted()
+                await deferredGate.waitUntilOpen()
+            }
+            return PreparedArtwork(name: name, image: image)
+        }
+
+        await cache.prepareAll(priorityImageNames: [])
+        await blockedStarts.wait(until: 2)
+        await cache.prepare(names: ["viewport"])
+
+        #expect(cache.image(named: "viewport") != nil)
+
+        await deferredGate.open()
+        await cache.waitForDeferredWarmup()
+    }
+
     @Test func backgroundThumbnailsParticipateInDefaultWarmupCatalog() throws {
         let reference = try #require(
             ArtCatalog.backgroundArtByID.values.first { $0.thumbnailImageName != nil }
@@ -210,6 +237,29 @@ private actor DecodeStartSignal {
         }
         await withCheckedContinuation { continuation in
             waiters.append(continuation)
+        }
+    }
+}
+
+private actor DecodeStartCount {
+    private var count = 0
+    private var waiters: [(Int, CheckedContinuation<Void, Never>)] = []
+
+    func markStarted() {
+        count += 1
+        let ready = waiters.filter { count >= $0.0 }
+        waiters.removeAll { count >= $0.0 }
+        for waiter in ready {
+            waiter.1.resume()
+        }
+    }
+
+    func wait(until target: Int) async {
+        if count >= target {
+            return
+        }
+        await withCheckedContinuation { continuation in
+            waiters.append((target, continuation))
         }
     }
 }

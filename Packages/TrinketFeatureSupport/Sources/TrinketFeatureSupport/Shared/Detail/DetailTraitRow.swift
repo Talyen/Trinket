@@ -9,6 +9,8 @@ public struct DetailTraitRow: View {
     var leadingIconKeyword: Keyword?
     var titleKeywords: Set<Keyword>
     var titleShineColors: [Color]?
+    var titlePrefix: String?
+    var titlePrefixShineColors: [Color]?
 
     public init(
         title: String? = nil,
@@ -16,7 +18,9 @@ public struct DetailTraitRow: View {
         descriptionAccessibilityID: String? = nil,
         leadingIconKeyword: Keyword? = nil,
         titleKeywords: Set<Keyword> = [],
-        titleShineColors: [Color]? = nil
+        titleShineColors: [Color]? = nil,
+        titlePrefix: String? = nil,
+        titlePrefixShineColors: [Color]? = nil
     ) {
         self.title = title
         self.description = description
@@ -24,11 +28,13 @@ public struct DetailTraitRow: View {
         self.leadingIconKeyword = leadingIconKeyword
         self.titleKeywords = titleKeywords
         self.titleShineColors = titleShineColors
+        self.titlePrefix = titlePrefix
+        self.titlePrefixShineColors = titlePrefixShineColors
     }
 
     public var body: some View {
         VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
-            if let title, !title.isEmpty {
+            if !(title?.isEmpty ?? true) || !(titlePrefix?.isEmpty ?? true) {
                 HStack(alignment: .firstTextBaseline, spacing: TrinketDesign.Metrics.extraSmallSpacing) {
                     if let leadingIconKeyword {
                         Image(systemName: leadingIconKeyword.visualStyle.symbolName)
@@ -46,15 +52,28 @@ public struct DetailTraitRow: View {
         .trinketSurface(.secondary)
     }
 
-    @ViewBuilder
     private var titleText: some View {
-        let base = Text(balanced: title ?? "")
-            .trinketTypography(.cardTitle)
-            .foregroundStyle(.primary)
-        if let titleShineColors, !titleShineColors.isEmpty {
-            base.colorShine(titleShineColors)
-        } else {
-            base.keywordShine(titleKeywords)
+        HStack(alignment: .firstTextBaseline, spacing: 0) {
+            if let titlePrefix, !titlePrefix.isEmpty {
+                let prefix = Text(balanced: titlePrefix)
+                    .trinketTypography(.cardTitle)
+                    .foregroundStyle(.primary)
+                if let titlePrefixShineColors, !titlePrefixShineColors.isEmpty {
+                    prefix.colorShine(titlePrefixShineColors)
+                } else {
+                    prefix
+                }
+            }
+            if let title, !title.isEmpty {
+                let base = Text(balanced: title)
+                    .trinketTypography(.cardTitle)
+                    .foregroundStyle(.primary)
+                if let titleShineColors, !titleShineColors.isEmpty {
+                    base.colorShine(titleShineColors)
+                } else {
+                    base.keywordShine(titleKeywords)
+                }
+            }
         }
     }
 

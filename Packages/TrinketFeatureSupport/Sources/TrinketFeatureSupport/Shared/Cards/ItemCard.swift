@@ -138,7 +138,9 @@ public struct ItemCard<Art: View>: View {
             Text(balanced: item.displayName)
                 .trinketTypography(.sectionDisplay)
                 .uniqueShine(if: item.rarity == .unique)
+                .lineLimit(1)
                 .multilineTextAlignment(.center)
+                .minimumScaleFactor(0.7)
         }
         .opacity(labelOpacity)
     }

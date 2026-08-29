@@ -54,6 +54,7 @@ public final class PreparedArtworkCache {
     @ObservationIgnored private var decodedCostsByName: [String: Int] = [:]
     @ObservationIgnored private var launchWarmupNames: [String] = []
     @ObservationIgnored private var inFlightNames: Set<String> = []
+    @ObservationIgnored private var decodeWaitersByName: [String: [CheckedContinuation<Bool, Never>]] = [:]
     @ObservationIgnored private let catalogNamesProvider: () -> [String]
     @ObservationIgnored private let decodeHandler: @Sendable (String) async -> PreparedArtwork
     @ObservationIgnored private let logger = Logger(
@@ -191,61 +192,80 @@ public final class PreparedArtworkCache {
         let namesToDecode = imageNames.filter { name in
             pinnedImages[name] == nil
                 && images.object(forKey: name as NSString) == nil
-                && !inFlightNames.contains(name)
         }
         if countsTowardLaunch {
             completedCount += imageNames.count - namesToDecode.count
         }
         guard !namesToDecode.isEmpty else { return }
-        for name in namesToDecode {
-            inFlightNames.insert(name)
-        }
-        defer {
-            for name in namesToDecode {
-                inFlightNames.remove(name)
-            }
-        }
-
-        let decode = decodeHandler
-        await withTaskGroup(of: PreparedArtwork.self) { group in
+        await withTaskGroup(of: Void.self) { group in
             var iterator = namesToDecode.makeIterator()
 
             for _ in 0 ..< maximumConcurrency {
                 guard let name = iterator.next() else { break }
-                group.addTask { await decode(name) }
+                group.addTask {
+                    await self.prepareArtwork(named: name)
+                }
             }
 
-            while let prepared = await group.next() {
+            while await group.next() != nil {
                 guard !Task.isCancelled else {
                     group.cancelAll()
                     return
-                }
-                if let image = prepared.image {
-                    let decodedCost = Self.decodedCost(of: image)
-                    images.setObject(
-                        image,
-                        forKey: prepared.name as NSString,
-                        cost: decodedCost
-                    )
-                    decodedCostsByName[prepared.name] = decodedCost
-                    if pinCountsByName[prepared.name] != nil {
-                        pinnedImages[prepared.name] = image
-                    }
-                } else {
-                    assert(
-                        pinnedImages[prepared.name] == nil,
-                        "Failed decode must not have a pinned bitmap for \(prepared.name)"
-                    )
                 }
                 if countsTowardLaunch {
                     completedCount += 1
                 }
 
                 if let name = iterator.next() {
-                    group.addTask { await decode(name) }
+                    group.addTask {
+                        await self.prepareArtwork(named: name)
+                    }
                 }
                 await Task.yield()
             }
+        }
+    }
+
+    private func prepareArtwork(named name: String) async {
+        guard pinnedImages[name] == nil,
+              images.object(forKey: name as NSString) == nil
+        else {
+            return
+        }
+        if inFlightNames.contains(name) {
+            let shouldRetry = await withCheckedContinuation { continuation in
+                decodeWaitersByName[name, default: []].append(continuation)
+            }
+            if shouldRetry, !Task.isCancelled {
+                await prepareArtwork(named: name)
+            }
+            return
+        }
+
+        inFlightNames.insert(name)
+        let prepared = await decodeHandler(name)
+        let wasCancelled = Task.isCancelled
+        if let image = prepared.image, !wasCancelled {
+            let decodedCost = Self.decodedCost(of: image)
+            images.setObject(
+                image,
+                forKey: prepared.name as NSString,
+                cost: decodedCost
+            )
+            decodedCostsByName[prepared.name] = decodedCost
+            if pinCountsByName[prepared.name] != nil {
+                pinnedImages[prepared.name] = image
+            }
+        } else {
+            assert(
+                pinnedImages[prepared.name] == nil,
+                "Failed decode must not have a pinned bitmap for \(prepared.name)"
+            )
+        }
+        inFlightNames.remove(name)
+        let waiters = decodeWaitersByName.removeValue(forKey: name) ?? []
+        for waiter in waiters {
+            waiter.resume(returning: wasCancelled)
         }
     }
 

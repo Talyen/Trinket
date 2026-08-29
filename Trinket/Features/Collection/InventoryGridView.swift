@@ -39,6 +39,7 @@ struct InventoryGridView: View {
     @Environment(OptionsStore.self) private var options
     @State private var selectedFilter: InventoryFilter = .all
     @State private var salvageDetail = SalvageDetailState()
+    @State private var visibleItemIDs: Set<String> = []
 
     var body: some View {
         let inventoryState = playerSave.inventory
@@ -51,8 +52,27 @@ struct InventoryGridView: View {
             ) {
                 salvageDetail.select(item)
             }
+            .onAppear { visibleItemIDs.insert(item.id) }
+            .onDisappear { visibleItemIDs.remove(item.id) }
         } emptyView: {
             inventoryEmptyState(inventoryState: inventoryState)
+        }
+        .onChange(of: items.map(\.id)) { _, _ in
+            visibleItemIDs.formIntersection(items.lazy.map(\.id))
+        }
+        .task(id: visibleItemIDs) {
+            let snapshot = visibleItemIDs
+            try? await Task.sleep(for: ArtworkViewportPrewarm.viewportDebounceInterval)
+            guard !Task.isCancelled, snapshot == visibleItemIDs else { return }
+            let names = ArtworkViewportPrewarm.windowNames(
+                orderedItems: items,
+                visibleIDs: snapshot,
+                thumbnailName: { $0.artReference?.thumbnailImageName ?? $0.artReference?.imageName },
+                prefetchRows: ArtworkViewportPrewarm.defaultPrefetchRows,
+                estimatedColumns: ArtworkViewportPrewarm.collectionEstimatedColumns
+            )
+            guard !names.isEmpty else { return }
+            await PreparedArtworkCache.shared.prepare(names: names)
         }
         .scrollEdgeEffectStyle(.soft, for: .top)
         .navigationTitle("Inventory")

@@ -163,10 +163,18 @@ private struct PreparedAppRoot: View {
         return session
     }
 
+    private var shouldWarmHiddenTabs: Bool {
+        appState.playerSave.starterSelection.phase == .complete && !isShellWarmupComplete
+    }
+
     var body: some View {
         ZStack {
             if isResourcePreparationComplete {
                 ContentView()
+                    .environment(battleSession)
+            }
+            if shouldWarmHiddenTabs {
+                HiddenTabPrewarm(appState: appState)
                     .environment(battleSession)
             }
             if !isPreparationComplete {
@@ -207,13 +215,18 @@ private struct PreparedAppRoot: View {
                let stage = GameContent.stage(id: stageID) {
                 appState.play.journey.prepareBattle(for: stage)
             }
-            let shouldWarmTabs = appState.playerSave.starterSelection.phase == .complete
-            if shouldWarmTabs {
-                appState.shellSession.isShellWarmupActive = true
-            }
             isResourcePreparationComplete = true
-            await warmShellTabRoots()
-            appState.shellSession.isShellWarmupActive = false
+            if appState.playerSave.starterSelection.phase == .complete {
+                let secondaryTabCount = max(0, AppTab.allCases.count - 1)
+                await Task.yield()
+                await Task.yield()
+                try? await Task.sleep(for: ShellSession.tabFirstLayoutBudget)
+                for _ in 0 ..< secondaryTabCount {
+                    guard !Task.isCancelled else { return }
+                    try? await Task.sleep(for: ShellSession.secondaryTabFirstLayoutBudget)
+                }
+                await Task.yield()
+            }
             let hold = Self.minimumLaunchDisplayDuration
                 - displayedAt.duration(to: ContinuousClock.now)
             if hold > .zero {
@@ -225,27 +238,6 @@ private struct PreparedAppRoot: View {
             await Task.yield()
             artworkCache.reportMemorySnapshot(label: "interactiveRoot")
         }
-    }
-
-    private func warmShellTabRoots() async {
-        guard appState.playerSave.starterSelection.phase == .complete else { return }
-        let original = appState.shellSession.selectedTab
-        defer { appState.shellSession.selectedTab = original }
-        await Task.yield()
-        await Task.yield()
-        let originalBudget = original == .play
-            ? ShellSession.tabFirstLayoutBudget
-            : ShellSession.secondaryTabFirstLayoutBudget
-        try? await Task.sleep(for: originalBudget)
-        for tab in AppTab.allCases where tab != original {
-            guard !Task.isCancelled else { return }
-            appState.shellSession.selectedTab = tab
-            let budget = tab == .play
-                ? ShellSession.tabFirstLayoutBudget
-                : ShellSession.secondaryTabFirstLayoutBudget
-            try? await Task.sleep(for: budget)
-        }
-        await Task.yield()
     }
 
     private var shouldPrepareCastEffects: Bool {

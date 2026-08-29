@@ -17,6 +17,7 @@ private struct MysteryItemChoiceScaffold<Footer: View>: View {
     let itemAccessibilityID: (String) -> String
     let onSelectItem: (String) -> Void
     @ViewBuilder let footer: () -> Footer
+    @State private var visibleItemIDs: Set<String> = []
 
     var body: some View {
         ScrollView {
@@ -48,12 +49,34 @@ private struct MysteryItemChoiceScaffold<Footer: View>: View {
                             accessibilityID: itemAccessibilityID(item.id),
                             onSelect: { onSelectItem(item.id) }
                         )
+                        .onAppear { visibleItemIDs.insert(item.id) }
+                        .onDisappear { visibleItemIDs.remove(item.id) }
                     }
                 }
-
-                footer()
             }
             .padding(TrinketDesign.Metrics.extraLargeSpacing)
+        }
+        .safeAreaInset(edge: .bottom) {
+            footer()
+                .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+                .padding(.vertical, TrinketDesign.Metrics.mediumSpacing)
+        }
+        .onChange(of: items.map(\.id)) { _, _ in
+            visibleItemIDs.formIntersection(items.lazy.map(\.id))
+        }
+        .task(id: visibleItemIDs) {
+            let snapshot = visibleItemIDs
+            try? await Task.sleep(for: ArtworkViewportPrewarm.viewportDebounceInterval)
+            guard !Task.isCancelled, snapshot == visibleItemIDs else { return }
+            let names = ArtworkViewportPrewarm.windowNames(
+                orderedItems: items,
+                visibleIDs: snapshot,
+                thumbnailName: { $0.artReference?.thumbnailImageName ?? $0.artReference?.imageName },
+                prefetchRows: ArtworkViewportPrewarm.defaultPrefetchRows,
+                estimatedColumns: ArtworkViewportPrewarm.collectionEstimatedColumns
+            )
+            guard !names.isEmpty else { return }
+            await PreparedArtworkCache.shared.prepare(names: names)
         }
     }
 }
@@ -82,7 +105,16 @@ struct MysteryCorruptItemChoiceContent: View {
                 selectionFeedbackTrigger += 1
             },
             footer: {
-                VStack(spacing: TrinketDesign.Metrics.mediumSpacing) {
+                HStack(spacing: TrinketDesign.Metrics.mediumSpacing) {
+                    Button("Back") {
+                        onCancelCorruptSelection()
+                    }
+                    .frame(maxWidth: .infinity)
+                    .trinketSecondaryActionButton(
+                        accessibilityIdentifier: AccessibilityID.Mystery.corruptCancelButton
+                    )
+                    .disabled(session.isResolvingChoice)
+
                     Button("Corrupt") {
                         guard let selectedItemID else { return }
                         _ = onCorruptItem(selectedItemID)
@@ -92,18 +124,7 @@ struct MysteryCorruptItemChoiceContent: View {
                         tint: TrinketDesign.Colors.destructive,
                         accessibilityIdentifier: AccessibilityID.Mystery.corruptConfirmButton
                     )
-                    .trinketCenteredPrimaryAction()
                     .disabled(selectedItemID == nil || session.isResolvingChoice)
-
-                    Button("Back") {
-                        onCancelCorruptSelection()
-                    }
-                    .frame(maxWidth: .infinity)
-                    .trinketSecondaryActionButton(
-                        accessibilityIdentifier: AccessibilityID.Mystery.corruptCancelButton
-                    )
-                    .trinketCenteredPrimaryAction()
-                    .disabled(session.isResolvingChoice)
                 }
             }
         )

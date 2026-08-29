@@ -22,7 +22,7 @@ public struct TrinketWalletGrid<Content: View>: View {
             content
         }
         .padding(.horizontal, TrinketDesign.Metrics.mediumSpacing)
-        .padding(.vertical, TrinketDesign.Metrics.smallSpacing)
+        .padding(.vertical, TrinketDesign.Metrics.extraSmallSpacing)
         .trinketMaterial(.homesteadFooter)
     }
 }

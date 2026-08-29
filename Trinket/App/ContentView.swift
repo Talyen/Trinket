@@ -63,20 +63,14 @@ struct ContentView: View {
             )
         }
         .onAppear {
-            guard !shellSession.isShellWarmupActive else { return }
             appState.refreshMusic(scenePhase: scenePhase)
         }
         .onChange(of: shellSession.selectedTab) { _, newTab in
-            guard !shellSession.isShellWarmupActive else { return }
             appState.refreshMusic(scenePhase: scenePhase)
             AppFramePacingSignposts.event(
                 AppFramePacingSignposts.Name.tabSwitch,
                 detail: "tab=\(newTab.rawValue)"
             )
-        }
-        .onChange(of: shellSession.isShellWarmupActive) { _, isWarmup in
-            guard !isWarmup else { return }
-            appState.refreshMusic(scenePhase: scenePhase)
         }
         .onChange(of: battle.activeBattle?.id) { _, newValue in
             appState.reconcileShellState(

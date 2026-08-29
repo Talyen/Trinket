@@ -14,6 +14,11 @@ struct PlayView: View {
     @Environment(BattleSession.self) private var battle
     @State private var stageMessage: StageMapMessage?
     @State private var navigationPath: [PlayLaunchDestination] = []
+    let restoresPendingDestination: Bool
+
+    init(restoresPendingDestination: Bool = true) {
+        self.restoresPendingDestination = restoresPendingDestination
+    }
 
     var body: some View {
         ZStack {
@@ -29,7 +34,6 @@ struct PlayView: View {
             restorePlayDestinationIfNeeded()
         }
         .onChange(of: play.shellSession.selectedTab) { previousTab, newTab in
-            guard !play.shellSession.isShellWarmupActive else { return }
             guard newTab == .play, previousTab != .play else { return }
             guard battle.lifecyclePhase != .active else { return }
             restorePlayDestinationIfNeeded(resetForNormalEntry: true)
@@ -43,6 +47,7 @@ struct PlayView: View {
     }
 
     private func restorePlayDestinationIfNeeded(resetForNormalEntry: Bool = false) {
+        guard restoresPendingDestination else { return }
         guard battle.lifecyclePhase != .active else { return }
 
         if let destination = play.consumePendingDestination() {

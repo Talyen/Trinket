@@ -7,7 +7,6 @@ public final class ShellSession {
     public static let secondaryTabFirstLayoutBudget: Duration = .milliseconds(250)
 
     public var selectedTab: AppTab = .play
-    public var isShellWarmupActive = false
 
     public init(selectedTab: AppTab = .play) {
         self.selectedTab = selectedTab

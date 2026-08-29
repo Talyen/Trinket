@@ -11,128 +11,85 @@ struct MysteryCorruptionRevealContent: View {
     let result: ItemCorruptionResult
     let onFinish: () -> Bool
 
-    @State private var detailItem: InventoryItem?
-
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.contentMargin) {
-                VStack(alignment: .leading, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
-                    Text("Corrupted")
-                        .trinketTypography(.screenTitle)
-                        .accessibilityIdentifier(AccessibilityID.Mystery.corruptionRevealTitle)
-
+        DetailHeroScrollShell(
+            title: result.item.displayName,
+            header: { baseHeight, overscroll in
+                DetailHeroHeader(
+                    eyebrow: eyebrow(for: result.item),
+                    title: result.item.displayName,
+                    titleKeywords: Set(result.item.astralShineKeywords ?? []),
+                    titleShineColors: result.item.rarity == .unique ? UniqueShine.textColors : nil,
+                    titleAccessibilityIdentifier: AccessibilityID.Mystery.corruptionRevealTitle,
+                    baseHeight: baseHeight,
+                    overscroll: overscroll
+                ) {
+                    ItemArtwork(item: result.item)
+                }
+            },
+            bodyContent: {
+                VStack(alignment: .leading, spacing: TrinketDesign.Metrics.sectionSpacing) {
                     Text("The altar remade your \(result.item.displayName).")
                         .trinketTypography(.body)
                         .foregroundStyle(.primary)
                         .fixedSize(horizontal: false, vertical: true)
-                }
+                        .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+                        .padding(.top, TrinketDesign.Metrics.contentTopPadding)
 
-                comparisonCards
-
-                DetailSection("What Changed") {
-                    VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
-                        ForEach(Array(result.effects.enumerated()), id: \.offset) { _, effect in
-                            changeRow(effect)
+                    if !result.effects.isEmpty {
+                        DetailSection("What Changed") {
+                            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
+                                ForEach(Array(result.effects.enumerated()), id: \.offset) { _, effect in
+                                    changeRow(effect)
+                                }
+                            }
                         }
                     }
-                }
 
-                DetailSection("Traits") {
-                    VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
-                        ForEach(Array(result.item.displayedAffixes.enumerated()), id: \.element.id) { _, affix in
-                            DetailTraitRow(
-                                title: affix.title,
-                                description: affix.description,
-                                titleShineColors: affix.isCorrupted ? CorruptionShine.textColors : nil
-                            )
+                    DetailSection("Traits") {
+                        VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
+                            ForEach(Array(result.item.displayedAffixes.enumerated()), id: \.element.id) { index, affix in
+                                DetailTraitRow(
+                                    title: affix.title,
+                                    description: affix.description,
+                                    titleKeywords: result.item.isPerfectAffix(at: index) ? affix.keywords : [],
+                                    titleShineColors: uniqueAffixShineColors(for: affix),
+                                    titlePrefix: affix.isCorrupted ? "Corrupted " : nil,
+                                    titlePrefixShineColors: affix.isCorrupted ? CorruptionShine.textColors : nil
+                                )
+                            }
                         }
                     }
-                }
 
-                mysteryPersistFailureBanner(session.persistFailureMessage)
-
-                Button("Continue") {
-                    _ = onFinish()
+                    mysteryPersistFailureBanner(session.persistFailureMessage)
+                        .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
                 }
-                .frame(maxWidth: .infinity)
-                .trinketPrimaryActionButton(
-                    accessibilityIdentifier: AccessibilityID.Mystery.corruptionContinueButton
-                )
-                .trinketCenteredPrimaryAction()
             }
-            .padding(TrinketDesign.Metrics.extraLargeSpacing)
-        }
-        .sheet(item: $detailItem) { item in
-            NavigationStack {
-                ItemDetailView(item: item)
-            }
-            .trinketDetailSheet()
-        }
-    }
-
-    private var comparisonCards: some View {
-        HStack(alignment: .top, spacing: TrinketDesign.Metrics.mediumSpacing) {
-            comparisonCard(
-                label: "BEFORE",
-                item: result.originalItem,
-                accessibilityID: AccessibilityID.Mystery.corruptionBeforeCard(
-                    itemID: result.originalItem.id
-                )
-            )
-
-            comparisonCard(
-                label: "AFTER",
-                item: result.item,
-                showsCorruptionShine: true,
-                accessibilityID: AccessibilityID.Mystery.corruptionAfterCard(
-                    itemID: result.item.id
-                )
-            )
-        }
-        .frame(maxWidth: .infinity)
-    }
-
-    private func comparisonCard(
-        label: String,
-        item: InventoryItem,
-        showsCorruptionShine: Bool = false,
-        accessibilityID: String
-    ) -> some View {
-        Button {
-            detailItem = item
-        } label: {
-            VStack(spacing: TrinketDesign.Metrics.extraSmallSpacing) {
-                ItemArtwork(item: item)
-                    .aspectRatio(3.0 / 4.0, contentMode: .fit)
-                    .clipShape(TrinketDesign.cardShape)
-                    .trinketCardSurface()
-                    .colorShineBorder(
-                        colors: showsCorruptionShine ? CorruptionShine.borderColors : nil,
-                        cornerRadius: TrinketDesign.Corners.card
-                    )
-
-                VStack(spacing: TrinketDesign.Metrics.tightSpacing) {
-                    Text(label)
-                        .trinketTypography(.eyebrow)
-                        .foregroundStyle(showsCorruptionShine ? TrinketDesign.Colors.destructive : .secondary)
-
-                    Text(balanced: item.displayName)
-                        .trinketTypography(.badge)
-                        .foregroundStyle(.primary)
-                        .lineLimit(2)
-                        .multilineTextAlignment(.center)
-                        .fixedSize(horizontal: false, vertical: true)
-
-                    Text(item.rarity.label.uppercased() + (item.isCorrupted ? " · CORRUPTED" : ""))
-                        .trinketTypography(.caption)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                }
+        )
+        .safeAreaInset(edge: .bottom) {
+            Button("Continue") {
+                _ = onFinish()
             }
             .frame(maxWidth: .infinity)
+            .trinketPrimaryActionButton(
+                accessibilityIdentifier: AccessibilityID.Mystery.corruptionContinueButton
+            )
+            .trinketCenteredPrimaryAction()
+            .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+            .padding(.vertical, TrinketDesign.Metrics.mediumSpacing)
         }
-        .trinketArtworkCardButtonStyle()
-        .accessibilityIdentifier(accessibilityID)
+    }
+
+    private func eyebrow(for item: InventoryItem) -> String {
+        let tag = item.isTrinket ? "TRINKET" : item.rarity.label.uppercased()
+        return item.isCorrupted ? "\(tag) · CORRUPTED" : tag
+    }
+
+    private func uniqueAffixShineColors(for _: ItemAffix) -> [Color]? {
+        if result.item.rarity == .unique {
+            return UniqueShine.textColors
+        }
+        return nil
     }
 
     private func changeRow(_ effect: CorruptionEffectSummary) -> some View {
@@ -141,7 +98,6 @@ struct MysteryCorruptionRevealContent: View {
                 .font(.footnote.weight(.semibold))
                 .foregroundStyle(effect.tintColor ?? TrinketDesign.Colors.accent)
                 .accessibilityHidden(true)
-
             Text(effect.displayText)
                 .trinketTypography(.body)
                 .foregroundStyle(.primary)
@@ -153,16 +109,11 @@ struct MysteryCorruptionRevealContent: View {
 private extension CorruptionEffectSummary {
     var displayText: String {
         switch self {
-        case let .addedAffix(title):
-            "Gained \(title)"
-        case let .replacedAffix(from, to):
-            "Remade \(from) into \(to)"
-        case let .bumpedUp(affixTitle):
-            "Empowered \(affixTitle)"
-        case let .bumpedDown(affixTitle):
-            "Weakened \(affixTitle)"
-        case .upgradedRarity:
-            "Rose to Astral rarity"
+        case let .addedAffix(title): "Gained \(title)"
+        case let .replacedAffix(from, to): "Remade \(from) into \(to)"
+        case let .bumpedUp(affixTitle): "Empowered \(affixTitle)"
+        case let .bumpedDown(affixTitle): "Weakened \(affixTitle)"
+        case .upgradedRarity: "Rose to Astral rarity"
         }
     }
 

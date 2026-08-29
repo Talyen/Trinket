@@ -26,8 +26,9 @@ private struct CombatantBuffAuraStroke: View {
 
     var body: some View {
         let base = kind.keyword.visualStyle.color
-        TrinketDesign.cardShape
-            .strokeBorder(
+        ZStack {
+            TrinketDesign.cardShape.strokeBorder(TrinketDesign.Colors.panel, lineWidth: 2)
+            TrinketDesign.cardShape.strokeBorder(
                 AngularGradient(
                     gradient: Gradient(stops: [
                         .init(color: base.opacity(0.22), location: 0),
@@ -42,8 +43,9 @@ private struct CombatantBuffAuraStroke: View {
                 ),
                 lineWidth: 2
             )
-            .compositingGroup()
-            .shadow(color: base.opacity(0.4), radius: 8)
+        }
+        .compositingGroup()
+        .shadow(color: base.opacity(0.4), radius: 8)
     }
 }
 

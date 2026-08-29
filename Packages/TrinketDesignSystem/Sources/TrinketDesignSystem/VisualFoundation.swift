@@ -140,14 +140,14 @@ private struct SurfaceStyle {
             strokeWidth = 1
             padding = TrinketDesign.Metrics.largeSpacing
             cornerRadius = cornerRadiusOverride ?? TrinketDesign.Corners.card
-            shadow = .elevated
+            shadow = .none
         case .card:
             fill = TrinketDesign.Colors.panel
             stroke = .clear
             strokeWidth = 0
             padding = 0
             cornerRadius = cornerRadiusOverride ?? TrinketDesign.Corners.card
-            shadow = .elevated
+            shadow = .none
         case .denseRow:
             fill = TrinketDesign.Colors.surface
             stroke = .clear
