@@ -15,7 +15,8 @@ struct VictoryView: View {
             eyebrow: nil,
             title: "Victory",
             titleAccessibilityIdentifier: AccessibilityID.Battle.victory,
-            hasExperienceAwards: summary.hasExperienceAwards,
+            experienceAwards: experienceAwards,
+            experienceAccessibilityIdentifier: AccessibilityID.Battle.experience,
             loot: .init(
                 items: summary.rewardItems,
                 gold: summary.totalGold,
@@ -30,50 +31,38 @@ struct VictoryView: View {
             onPrimaryAction: onPrimaryAction,
             contentTopPadding: TrinketDesign.Metrics.extraSmallSpacing,
             contentStackSpacing: TrinketDesign.Metrics.largeSpacing,
-        ) { onExperienceBarCompleted in
-            experiencePanel(onExperienceBarCompleted: onExperienceBarCompleted)
-        }
+            emptyExperience: {
+                BattleOutcomeRewardRow(
+                    symbolName: "star",
+                    tint: .secondary,
+                    text: "No experience awarded.",
+                )
+                .frame(maxWidth: .infinity, alignment: .leading)
+            },
+        )
     }
 
-    @ViewBuilder
-    private func experiencePanel(onExperienceBarCompleted: @escaping () -> Void) -> some View {
-        if summary.hasExperienceAwards {
-            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.mediumSpacing) {
-                ExperienceBar(
-                    combatantName: summary.heroName,
-                    artworkName: summary.heroArtworkName,
-                    pre: summary.heroProgressionBefore,
-                    post: summary.heroProgressionAfter,
-                    fillColor: TrinketDesign.Colors.accentEmphasized,
-                    experienceAward: summary.experience,
-                    snapToFinal: false,
-                    onAnimationCompleted: onExperienceBarCompleted,
-                )
-                .accessibilityIdentifier("\(summary.heroName) experience bar")
-
-                ExperienceBar(
-                    combatantName: summary.companionName,
-                    artworkName: summary.companionArtworkName,
-                    pre: summary.companionProgressionBefore,
-                    post: summary.companionProgressionAfter,
-                    fillColor: TrinketDesign.Colors.accentEmphasized,
-                    experienceAward: summary.companionExperience,
-                    snapToFinal: false,
-                    onAnimationCompleted: onExperienceBarCompleted,
-                )
-                .accessibilityIdentifier("\(summary.companionName) experience bar")
-            }
-            .trinketSurface(.secondary)
-            .accessibilityIdentifier(AccessibilityID.Battle.experience)
-        } else {
-            BattleOutcomeRewardRow(
-                symbolName: "star",
-                tint: .secondary,
-                text: "No experience awarded.",
-            )
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .trinketSurface(.secondary)
-            .accessibilityIdentifier(AccessibilityID.Battle.experience)
-        }
+    private var experienceAwards: [RewardRevealExperienceAward] {
+        guard summary.hasExperienceAwards else { return [] }
+        return [
+            .init(
+                id: "hero",
+                combatantName: summary.heroName,
+                artworkName: summary.heroArtworkName,
+                progressionBefore: summary.heroProgressionBefore,
+                progressionAfter: summary.heroProgressionAfter,
+                experienceAward: summary.experience,
+                accessibilityIdentifier: "\(summary.heroName) experience bar",
+            ),
+            .init(
+                id: "companion",
+                combatantName: summary.companionName,
+                artworkName: summary.companionArtworkName,
+                progressionBefore: summary.companionProgressionBefore,
+                progressionAfter: summary.companionProgressionAfter,
+                experienceAward: summary.companionExperience,
+                accessibilityIdentifier: "\(summary.companionName) experience bar",
+            ),
+        ]
     }
 }

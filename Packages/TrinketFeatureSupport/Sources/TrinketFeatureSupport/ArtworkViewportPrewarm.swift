@@ -8,6 +8,30 @@ public enum ArtworkViewportPrewarm {
     private static let backwardPrefetchRows = 1
     public static let viewportDebounceInterval: Duration = .milliseconds(50)
 
+    public static func prewarm<Item: Identifiable>(
+        orderedItems: [Item],
+        visibleIDs: Set<Item.ID>,
+        currentVisibleIDs: (() -> Set<Item.ID>)? = nil,
+        thumbnailName: (Item) -> String?,
+        prefetchRows: Int = defaultPrefetchRows,
+        estimatedColumns: Int = collectionEstimatedColumns,
+    ) async where Item.ID: Hashable {
+        try? await Task.sleep(for: viewportDebounceInterval)
+        guard !Task.isCancelled else { return }
+        if let currentVisibleIDs, currentVisibleIDs() != visibleIDs {
+            return
+        }
+        let names = windowNames(
+            orderedItems: orderedItems,
+            visibleIDs: visibleIDs,
+            thumbnailName: thumbnailName,
+            prefetchRows: prefetchRows,
+            estimatedColumns: estimatedColumns,
+        )
+        guard !names.isEmpty else { return }
+        await PreparedArtworkCache.shared.prepare(names: names)
+    }
+
     public static func windowNames<Item: Identifiable>(
         orderedItems: [Item],
         visibleIDs: Set<Item.ID>,
@@ -18,24 +42,6 @@ public enum ArtworkViewportPrewarm {
         windowNames(
             orderedItems: orderedItems,
             visibleIndices: visibleIndices(for: orderedItems, matching: { visibleIDs.contains($0.id) }),
-            thumbnailName: thumbnailName,
-            prefetchRows: prefetchRows,
-            estimatedColumns: estimatedColumns,
-        )
-    }
-
-    public static func windowNamesByStringID<Item: Identifiable>(
-        orderedItems: [Item],
-        visibleIDStrings: Set<String>,
-        thumbnailName: (Item) -> String?,
-        prefetchRows: Int,
-        estimatedColumns: Int,
-    ) -> [String] {
-        windowNames(
-            orderedItems: orderedItems,
-            visibleIndices: visibleIndices(for: orderedItems, matching: {
-                visibleIDStrings.contains(String(describing: $0.id))
-            }),
             thumbnailName: thumbnailName,
             prefetchRows: prefetchRows,
             estimatedColumns: estimatedColumns,

@@ -36,12 +36,17 @@ struct RewardRevealSequenceStateTests {
     }
 
     @Test func `experience bars gate the reveal`() async {
-        let state = RewardRevealSequenceState(sleep: { _ in })
-        state.experienceBarCompleted(requiredCount: 2, itemCount: 0, walletCount: 1)
-        #expect(!state.isSequenceComplete)
-        state.experienceBarCompleted(requiredCount: 2, itemCount: 0, walletCount: 1)
-        #expect(await waitUntil { state.isSequenceComplete })
-        #expect(state.visibleWalletRewardCount == 1)
+        let singleAwardState = RewardRevealSequenceState(sleep: { _ in })
+        singleAwardState.experienceBarCompleted(requiredCount: 1, itemCount: 0, walletCount: 1)
+        #expect(await waitUntil { singleAwardState.isSequenceComplete })
+        #expect(singleAwardState.visibleWalletRewardCount == 1)
+
+        let twoAwardState = RewardRevealSequenceState(sleep: { _ in })
+        twoAwardState.experienceBarCompleted(requiredCount: 2, itemCount: 0, walletCount: 1)
+        #expect(!twoAwardState.isSequenceComplete)
+        twoAwardState.experienceBarCompleted(requiredCount: 2, itemCount: 0, walletCount: 1)
+        #expect(await waitUntil { twoAwardState.isSequenceComplete })
+        #expect(twoAwardState.visibleWalletRewardCount == 1)
     }
 
     private func waitUntil(

@@ -30,8 +30,10 @@ public struct CampfirePartyMember: Equatable, Sendable, Identifiable {
 @MainActor
 @Observable
 public final class LabyrinthNodeSession: Identifiable {
-    // swiftformat:disable:next modifierOrder -- SwiftLint requires isolation before access.
-    nonisolated public let id = UUID()
+    nonisolated public var id: String {
+        nodeID
+    }
+
     public let nodeID: String
     public let depth: Int
     public let party: [CampfirePartyMember]

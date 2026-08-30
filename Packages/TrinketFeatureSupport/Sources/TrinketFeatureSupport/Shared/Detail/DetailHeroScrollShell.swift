@@ -158,3 +158,23 @@ public struct DetailSection<Content: View>: View {
         }
     }
 }
+
+struct DetailPrimaryActionFooter: View {
+    let title: String
+    var accessibilityIdentifier: String?
+    var isDisabled: Bool = false
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .frame(maxWidth: .infinity)
+        }
+        .trinketPrimaryActionButton(accessibilityIdentifier: accessibilityIdentifier ?? title)
+        .trinketCenteredPrimaryAction()
+        .disabled(isDisabled)
+        .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+        .padding(.vertical, TrinketDesign.Metrics.mediumSpacing)
+        .trinketSheetChromeIgnoresDismissDrag()
+    }
+}

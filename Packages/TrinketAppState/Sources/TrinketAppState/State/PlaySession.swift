@@ -27,7 +27,13 @@ public final class PlaySession {
     private var postBattleTalentCombatantIDs: [String] = []
 
     public var currentPostBattleTalentCombatantID: String? {
-        postBattleTalentCombatantIDs.first
+        while let first = postBattleTalentCombatantIDs.first {
+            if playerSave.roster.availableTalentPoints(for: first) > 0 {
+                return first
+            }
+            postBattleTalentCombatantIDs.removeFirst()
+        }
+        return nil
     }
 
     public var isGameplayActive: Bool {
@@ -161,7 +167,7 @@ public final class PlaySession {
     }
 
     public func choosePostBattleTalent(nodeID: String, treeID: String) -> TalentUnlockResult {
-        guard let combatantID = postBattleTalentCombatantIDs.first else {
+        guard let combatantID = currentPostBattleTalentCombatantID else {
             return .unavailable
         }
         let result = playerSave.unlockTalent(
@@ -171,7 +177,7 @@ public final class PlaySession {
         )
         if result == .unlocked {
             if playerSave.roster.availableTalentPoints(for: combatantID) == 0 {
-                postBattleTalentCombatantIDs.removeFirst()
+                postBattleTalentCombatantIDs.removeAll(where: { $0 == combatantID })
             }
         }
         return result
@@ -207,9 +213,9 @@ public final class PlaySession {
         for combatants: [Combatant],
         progressionsBefore: [String: CombatantProgression],
     ) {
+        let roster = playerSave.roster
         postBattleTalentCombatantIDs = combatants.compactMap { combatant in
             guard let before = progressionsBefore[combatant.id] else { return nil }
-            let roster = playerSave.roster
             let after = roster.progression(for: combatant)
             guard after.totalTalentPoints > before.totalTalentPoints,
                   roster.availableTalentPoints(for: combatant.id) > 0

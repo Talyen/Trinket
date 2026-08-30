@@ -3,21 +3,35 @@ import TrinketContent
 import TrinketDesignSystem
 
 public struct AbilityDetailView: View {
+    private enum Action {
+        case none
+        case primaryAction(
+            title: String,
+            accessibilityID: String?,
+            onAction: () -> Void,
+        )
+    }
+
     let ability: Ability
-    var primaryActionTitle: String?
-    var primaryActionAccessibilityID: String?
-    var onPrimaryAction: (() -> Void)?
+    private let action: Action
+
+    public init(ability: Ability) {
+        self.ability = ability
+        action = .none
+    }
 
     public init(
         ability: Ability,
-        primaryActionTitle: String? = nil,
+        primaryActionTitle: String,
         primaryActionAccessibilityID: String? = nil,
-        onPrimaryAction: (() -> Void)? = nil,
+        onPrimaryAction: @escaping () -> Void,
     ) {
         self.ability = ability
-        self.primaryActionTitle = primaryActionTitle
-        self.primaryActionAccessibilityID = primaryActionAccessibilityID
-        self.onPrimaryAction = onPrimaryAction
+        action = .primaryAction(
+            title: primaryActionTitle,
+            accessibilityID: primaryActionAccessibilityID,
+            onAction: onPrimaryAction,
+        )
     }
 
     public var body: some View {
@@ -46,17 +60,12 @@ public struct AbilityDetailView: View {
             },
         )
         .safeAreaInset(edge: .bottom) {
-            if let primaryActionTitle, let onPrimaryAction {
-                Button(primaryActionTitle) {
-                    onPrimaryAction()
-                }
-                .frame(maxWidth: .infinity)
-                .trinketPrimaryActionButton()
-                .trinketCenteredPrimaryAction()
-                .accessibilityIdentifier(primaryActionAccessibilityID ?? primaryActionTitle)
-                .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-                .padding(.vertical, TrinketDesign.Metrics.mediumSpacing)
-                .trinketSheetChromeIgnoresDismissDrag()
+            if case let .primaryAction(title, accessibilityID, onAction) = action {
+                DetailPrimaryActionFooter(
+                    title: title,
+                    accessibilityIdentifier: accessibilityID,
+                    action: onAction,
+                )
             }
         }
     }

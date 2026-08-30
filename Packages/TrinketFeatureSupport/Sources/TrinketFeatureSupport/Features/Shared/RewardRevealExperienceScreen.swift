@@ -3,7 +3,37 @@ import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
 
-public struct RewardRevealExperienceScreen<Experience: View>: View {
+public struct RewardRevealExperienceAward: Identifiable, Sendable {
+    public let id: String
+    public let combatantName: String
+    public let artworkName: String?
+    public let progressionBefore: CombatantProgression
+    public let progressionAfter: CombatantProgression
+    public let experienceAward: Int
+    public let accessibilityIdentifier: String?
+
+    public init(
+        id: String,
+        combatantName: String,
+        artworkName: String? = nil,
+        progressionBefore: CombatantProgression,
+        progressionAfter: CombatantProgression,
+        experienceAward: Int,
+        accessibilityIdentifier: String? = nil,
+    ) {
+        self.id = id
+        self.combatantName = combatantName
+        self.artworkName = artworkName
+        self.progressionBefore = progressionBefore
+        self.progressionAfter = progressionAfter
+        self.experienceAward = experienceAward
+        self.accessibilityIdentifier = accessibilityIdentifier
+    }
+}
+
+public struct RewardRevealExperienceScreen<EmptyExperience: View>: View {
+    public typealias Award = RewardRevealExperienceAward
+
     public struct Loot {
         public let items: [InventoryItem]
         public let gold: Int
@@ -38,8 +68,10 @@ public struct RewardRevealExperienceScreen<Experience: View>: View {
     let eyebrow: String?
     let title: String
     let titleAccessibilityIdentifier: String
-    let hasExperienceAwards: Bool
-    let experience: (@escaping () -> Void) -> Experience
+    let experienceAwards: [Award]
+    let experienceAccessibilityIdentifier: String?
+    let experienceSpacing: CGFloat
+    let emptyExperience: () -> EmptyExperience
     let loot: Loot
     let primaryActionTitle: String
     let primaryActionAccessibilityIdentifier: String
@@ -56,20 +88,24 @@ public struct RewardRevealExperienceScreen<Experience: View>: View {
         eyebrow: String?,
         title: String,
         titleAccessibilityIdentifier: String,
-        hasExperienceAwards: Bool,
+        experienceAwards: [Award] = [],
+        experienceAccessibilityIdentifier: String? = nil,
+        experienceSpacing: CGFloat = TrinketDesign.Metrics.mediumSpacing,
         loot: Loot,
         primaryActionTitle: String,
         primaryActionAccessibilityIdentifier: String,
         onPrimaryAction: @escaping () -> Bool,
         contentTopPadding: CGFloat = TrinketDesign.Metrics.smallSpacing,
         contentStackSpacing: CGFloat = TrinketDesign.Metrics.largeSpacing,
-        @ViewBuilder experience: @escaping (@escaping () -> Void) -> Experience,
+        @ViewBuilder emptyExperience: @escaping () -> EmptyExperience,
     ) {
         self.eyebrow = eyebrow
         self.title = title
         self.titleAccessibilityIdentifier = titleAccessibilityIdentifier
-        self.hasExperienceAwards = hasExperienceAwards
-        self.experience = experience
+        self.experienceAwards = experienceAwards
+        self.experienceAccessibilityIdentifier = experienceAccessibilityIdentifier
+        self.experienceSpacing = experienceSpacing
+        self.emptyExperience = emptyExperience
         self.loot = loot
         self.primaryActionTitle = primaryActionTitle
         self.primaryActionAccessibilityIdentifier = primaryActionAccessibilityIdentifier
@@ -95,7 +131,7 @@ public struct RewardRevealExperienceScreen<Experience: View>: View {
                 titleColor: TrinketDesign.Colors.accent,
                 content: {
                     VStack(spacing: contentStackSpacing) {
-                        experience(onExperienceBarCompleted)
+                        experienceSection
                         RewardRevealLootSection(
                             items: loot.items,
                             gold: loot.gold,
@@ -131,12 +167,39 @@ public struct RewardRevealExperienceScreen<Experience: View>: View {
             if focusedItemID == nil {
                 focusedItemID = loot.items.first?.id
             }
-            if !hasExperienceAwards {
+            if experienceAwards.isEmpty {
                 revealSequence.start(itemCount: loot.items.count, walletCount: walletRewardCount)
             }
         }
         .onDisappear {
             revealSequence.cancel(walletCount: walletRewardCount)
+        }
+    }
+
+    @ViewBuilder
+    private var experienceSection: some View {
+        if !experienceAwards.isEmpty {
+            VStack(alignment: .leading, spacing: experienceSpacing) {
+                ForEach(experienceAwards) { award in
+                    ExperienceBar(
+                        combatantName: award.combatantName,
+                        artworkName: award.artworkName,
+                        pre: award.progressionBefore,
+                        post: award.progressionAfter,
+                        fillColor: TrinketDesign.Colors.accentEmphasized,
+                        experienceAward: award.experienceAward,
+                        snapToFinal: false,
+                        onAnimationCompleted: onExperienceBarCompleted,
+                    )
+                    .accessibilityIdentifier(award.accessibilityIdentifier ?? "\(award.combatantName) experience bar")
+                }
+            }
+            .trinketSurface(.secondary)
+            .accessibilityIdentifier(experienceAccessibilityIdentifier ?? "")
+        } else if EmptyExperience.self != EmptyView.self {
+            emptyExperience()
+                .trinketSurface(.secondary)
+                .accessibilityIdentifier(experienceAccessibilityIdentifier ?? "")
         }
     }
 
@@ -151,7 +214,7 @@ public struct RewardRevealExperienceScreen<Experience: View>: View {
 
     private func onExperienceBarCompleted() {
         revealSequence.experienceBarCompleted(
-            requiredCount: 2,
+            requiredCount: experienceAwards.count,
             itemCount: loot.items.count,
             walletCount: walletRewardCount,
         )
@@ -164,5 +227,38 @@ public struct RewardRevealExperienceScreen<Experience: View>: View {
 
     private var walletRewardCount: Int {
         RewardRevealLootSection.walletRewardCount(gold: loot.gold, materials: loot.materials)
+    }
+}
+
+public extension RewardRevealExperienceScreen where EmptyExperience == EmptyView {
+    init(
+        eyebrow: String?,
+        title: String,
+        titleAccessibilityIdentifier: String,
+        experienceAwards: [Award] = [],
+        experienceAccessibilityIdentifier: String? = nil,
+        experienceSpacing: CGFloat = TrinketDesign.Metrics.mediumSpacing,
+        loot: Loot,
+        primaryActionTitle: String,
+        primaryActionAccessibilityIdentifier: String,
+        onPrimaryAction: @escaping () -> Bool,
+        contentTopPadding: CGFloat = TrinketDesign.Metrics.smallSpacing,
+        contentStackSpacing: CGFloat = TrinketDesign.Metrics.largeSpacing,
+    ) {
+        self.init(
+            eyebrow: eyebrow,
+            title: title,
+            titleAccessibilityIdentifier: titleAccessibilityIdentifier,
+            experienceAwards: experienceAwards,
+            experienceAccessibilityIdentifier: experienceAccessibilityIdentifier,
+            experienceSpacing: experienceSpacing,
+            loot: loot,
+            primaryActionTitle: primaryActionTitle,
+            primaryActionAccessibilityIdentifier: primaryActionAccessibilityIdentifier,
+            onPrimaryAction: onPrimaryAction,
+            contentTopPadding: contentTopPadding,
+            contentStackSpacing: contentStackSpacing,
+            emptyExperience: { EmptyView() },
+        )
     }
 }

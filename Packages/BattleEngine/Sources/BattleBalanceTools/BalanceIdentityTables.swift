@@ -38,6 +38,7 @@ enum BalanceIdentityTables {
         let overallRate = inputs.overallRate
         let duration = durationBundle(records: records, flagRate: inputs.config.durationFlagRate)
         let entities = entityBundle(
+            tier: inputs.tier,
             decided: decided,
             ownerRates: ownerRates,
             overallRate: overallRate,
@@ -131,13 +132,14 @@ enum BalanceIdentityTables {
     }
 
     private static func entityBundle(
+        tier: SimulationPowerTier,
         decided: [BalanceBattleRecord],
         ownerRates: [String: Double],
         overallRate: Double,
         threshold: Double,
     ) -> EntityBundle {
         EntityBundle(
-            enemies: enemyMargins(records: decided),
+            enemies: enemyMargins(records: decided, tier: tier),
             abilities: partyPresenceMargins(
                 records: decided,
                 ownerRates: ownerRates,
@@ -223,6 +225,7 @@ enum BalanceIdentityTables {
 
     private static func enemyMargins(
         records: [BalanceBattleRecord],
+        tier: SimulationPowerTier,
     ) -> [WinRateSummary] {
         var buckets: [String: (wins: Int, battles: Int, boss: Bool)] = [:]
         for record in records {
@@ -238,7 +241,7 @@ enum BalanceIdentityTables {
         return buckets.sorted { $0.key < $1.key }.map { id, bucket in
             let rate = bucket.battles == 0 ? 0 : Double(bucket.wins) / Double(bucket.battles)
             let ci = BalanceStatsAggregator.wilson(wins: bucket.wins, battles: bucket.battles)
-            let band = targetBand(isBoss: bucket.boss, tier: records.first?.tier ?? .early)
+            let band = targetBand(isBoss: bucket.boss, tier: tier)
             let inBand = rate >= band.lower && rate <= band.upper
             let sampleTooLow = bucket.battles < BalanceSweepConfig.identityFlagMinBattles
             let flagged = !inBand && !sampleTooLow

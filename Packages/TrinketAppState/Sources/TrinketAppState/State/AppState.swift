@@ -214,9 +214,7 @@ public final class AppState {
             object: nil,
             queue: .main,
         ) { [weak self] _ in
-            Task { @MainActor in
-                self?.trimMemoryFootprint()
-            }
+            self?.trimMemoryFootprint()
         }
         #endif
     }

@@ -8,7 +8,7 @@ let package = Package(
     products: [
         .library(
             name: "TrinketBattleFeature",
-            targets: ["TrinketBattleFeature"]
+            targets: ["TrinketBattleFeature"],
         ),
     ],
     dependencies: [
@@ -29,7 +29,7 @@ let package = Package(
                 "TrinketDesignSystem",
                 "TrinketFeatureSupport",
                 .product(name: "TrinketFeatureContracts", package: "TrinketFeatureSupport"),
-            ]
+            ],
         ),
         .testTarget(
             name: "TrinketBattleFeatureTests",
@@ -42,7 +42,7 @@ let package = Package(
                 "TrinketFeatureSupport",
                 .product(name: "TrinketFeatureContracts", package: "TrinketFeatureSupport"),
                 .product(name: "TrinketTestSupport", package: "TrinketTestSupport"),
-            ]
+            ],
         ),
-    ]
+    ],
 )

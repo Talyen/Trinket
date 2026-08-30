@@ -200,15 +200,7 @@ public final class LabyrinthPlayMode {
         guard battle.lifecyclePhase != .active, canBeginTransientEncounter else {
             return PlayBattleLaunch.activationFailureMessage
         }
-        let activated = battleLaunch.activateCombat(
-            origin: request.origin,
-            encounter: request.encounter,
-            route: request.route,
-            loot: request.loot,
-            stageRewardsAlreadyClaimed: request.stageRewardsAlreadyClaimed,
-            universalModifiers: request.universalModifiers,
-            labyrinthModifiers: request.labyrinthModifiers,
-        )
+        let activated = battleLaunch.activateCombat(request)
         if activated {
             preparationTracker.invalidate()
             return nil
@@ -294,15 +286,7 @@ public final class LabyrinthPlayMode {
         guard let encounter = resolvedEncounter(for: node) else { return false }
         guard battle.lifecyclePhase != .active else { return false }
         let request = combatRequest(node: node, labyrinth: labyrinth, encounter: encounter, effects: effects)
-        return battleLaunch.prepareCombat(
-            origin: request.origin,
-            encounter: request.encounter,
-            route: request.route,
-            loot: request.loot,
-            stageRewardsAlreadyClaimed: request.stageRewardsAlreadyClaimed,
-            universalModifiers: request.universalModifiers,
-            labyrinthModifiers: request.labyrinthModifiers,
-        )
+        return battleLaunch.prepareCombat(request)
     }
 
     func completeNodeOrPersistFailure(nodeID: String) -> StageMapMessage? {
@@ -380,24 +364,13 @@ extension LabyrinthPlayMode {
         return modifiers
     }
 
-    private struct CombatRequest {
-        let origin: PlayBattleOrigin
-        let encounter: (combatant: Combatant, level: Int)
-        let route: PlayBattleRoute
-        let loot: BattleLootPackage?
-        let stageRewardsAlreadyClaimed: Bool
-        let universalModifiers: [AffixModifier]
-        let labyrinthModifiers: [LabyrinthModifierDefinition]
-        let preparationInputs: PreparationInputs
-    }
-
     private func combatRequest(
         node: LabyrinthNode,
         labyrinth: PlayerLabyrinthState,
         encounter: (combatant: Combatant, level: Int),
         effects: LabyrinthModifierEffects,
-    ) -> CombatRequest {
-        CombatRequest(
+    ) -> PlayCombatRequest {
+        PlayCombatRequest(
             origin: .labyrinth(nodeID: node.id),
             encounter: encounter,
             route: battleRoute(nodeID: node.id),
@@ -405,7 +378,6 @@ extension LabyrinthPlayMode {
             stageRewardsAlreadyClaimed: false,
             universalModifiers: Self.combatModifiers(from: effects),
             labyrinthModifiers: LabyrinthCatalog.modifiers(ids: node.modifierIDs),
-            preparationInputs: preparationInputs(labyrinth: labyrinth),
         )
     }
 

@@ -12,7 +12,6 @@ enum ShopEncounterOpenResult {
 @MainActor
 @Observable
 public final class ShopEncounterSession: Identifiable {
-    // swiftformat:disable:next modifierOrder -- SwiftLint requires isolation before access.
     nonisolated public var id: String {
         stage.id
     }

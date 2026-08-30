@@ -121,15 +121,7 @@ public final class SpiresPlayMode {
 
         let request = combatRequest(for: floor, encounter: encounter)
         guard battle.lifecyclePhase != .active else { return PlayBattleLaunch.activationFailureMessage }
-        let activated = battleLaunch.activateCombat(
-            origin: request.origin,
-            encounter: request.encounter,
-            route: request.route,
-            loot: request.loot,
-            stageRewardsAlreadyClaimed: request.stageRewardsAlreadyClaimed,
-            universalModifiers: request.universalModifiers,
-            labyrinthModifiers: request.labyrinthModifiers,
-        )
+        let activated = battleLaunch.activateCombat(request)
         if activated {
             preparationTracker.invalidate()
             return nil
@@ -156,41 +148,31 @@ public final class SpiresPlayMode {
         else { return }
 
         let request = combatRequest(for: floor, encounter: encounter)
+        let inputs = preparationInputs(for: floor)
         guard preparationTracker.shouldPrepare(
-            for: request.preparationInputs,
+            for: inputs,
             lifecycle: battle.lifecyclePhase,
             hasPreparedRun: battle.hasPreparedRun(request.origin.runKey),
         ) else { return }
-        let prepared = battleLaunch.prepareCombat(
-            origin: request.origin,
-            encounter: request.encounter,
-            route: request.route,
-            loot: request.loot,
-            stageRewardsAlreadyClaimed: request.stageRewardsAlreadyClaimed,
-            universalModifiers: request.universalModifiers,
-            labyrinthModifiers: request.labyrinthModifiers,
-        )
+        let prepared = battleLaunch.prepareCombat(request)
         if prepared {
-            preparationTracker.notePrepared(request.preparationInputs)
+            preparationTracker.notePrepared(inputs)
         }
     }
 
-    private struct CombatRequest {
-        let origin: PlayBattleOrigin
-        let encounter: (combatant: Combatant, level: Int)
-        let route: PlayBattleRoute
-        let loot: BattleLootPackage?
-        let stageRewardsAlreadyClaimed: Bool
-        let universalModifiers: [AffixModifier]
-        let labyrinthModifiers: [LabyrinthModifierDefinition]
-        let preparationInputs: PreparationInputs
+    private func preparationInputs(for floor: SpireFloor) -> PreparationInputs {
+        PreparationInputs(
+            spireID: floor.spireID,
+            floor: floor.floor,
+            party: PlayBattlePartySnapshot(playerSave: playerSave),
+        )
     }
 
     private func combatRequest(
         for floor: SpireFloor,
         encounter: (combatant: Combatant, level: Int),
-    ) -> CombatRequest {
-        CombatRequest(
+    ) -> PlayCombatRequest {
+        PlayCombatRequest(
             origin: .spire(spireID: floor.spireID, floor: floor.floor),
             encounter: encounter,
             route: battleRoute(spireID: floor.spireID, floor: floor.floor),
@@ -198,11 +180,6 @@ public final class SpiresPlayMode {
             stageRewardsAlreadyClaimed: false,
             universalModifiers: [],
             labyrinthModifiers: [],
-            preparationInputs: PreparationInputs(
-                spireID: floor.spireID,
-                floor: floor.floor,
-                party: PlayBattlePartySnapshot(playerSave: playerSave),
-            ),
         )
     }
 

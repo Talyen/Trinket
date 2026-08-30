@@ -11,9 +11,9 @@ enum EffectHandlersTestSupport {
         initialGold: Int = 0,
     ) -> BattleState {
         BattleStateTestFactory.makeBattle(
-            hero: hero ?? CombatantFixtures.combatant(id: "hero", role: .hero),
-            companion: companion ?? CombatantFixtures.combatant(id: "companion", role: .companion),
-            enemy: enemy ?? CombatantFixtures.combatant(id: "enemy", role: .enemy),
+            hero: hero ?? CombatantFixtures.passiveHero(),
+            companion: companion ?? CombatantFixtures.passiveCompanion(),
+            enemy: enemy ?? CombatantFixtures.passiveEnemy(),
             initialGold: initialGold,
         )
     }

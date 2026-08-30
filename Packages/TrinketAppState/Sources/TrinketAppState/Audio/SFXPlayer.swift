@@ -12,6 +12,7 @@ public final class SFXPlayer {
     private let engine = AVAudioEngine()
     private var preparedVoicesByID: [String: [PreparedSFXVoice]] = [:]
     private var buffersByID: [String: AVAudioPCMBuffer] = [:]
+    private var failedBufferIDs: Set<String> = []
     private var nextVoiceIndexByID: [String: Int] = [:]
     private var catalogWarmTask: Task<Void, Never>?
     private let logger = Logger(
@@ -100,9 +101,7 @@ public final class SFXPlayer {
             }
             await MainActor.run { [weak self] in
                 guard let self, !Task.isCancelled else { return }
-                for (id, buffer) in decoded {
-                    buffersByID[id] = buffer
-                }
+                buffersByID.merge(decoded) { _, new in new }
                 warm(ids, concurrentPlayerCount: concurrentPlayerCount)
             }
         }
@@ -131,13 +130,14 @@ public final class SFXPlayer {
         }
         preparedVoicesByID.removeAll(keepingCapacity: false)
         buffersByID.removeAll(keepingCapacity: false)
+        failedBufferIDs.removeAll(keepingCapacity: false)
         nextVoiceIndexByID.removeAll(keepingCapacity: false)
         engine.stop()
         engine.reset()
     }
 
     private func ensureReady(for ids: [String]) -> Bool {
-        let missing = ids.filter { preparedVoicesByID[$0] == nil }
+        let missing = ids.filter { preparedVoicesByID[$0] == nil && !failedBufferIDs.contains($0) }
         if !missing.isEmpty {
             warm(missing)
             return engineIsRunning
@@ -152,24 +152,29 @@ public final class SFXPlayer {
         if let buffer = buffersByID[clip.id] {
             return buffer
         }
+        if failedBufferIDs.contains(clip.id) {
+            return nil
+        }
         guard let url = Self.resourceURL(for: clip) else {
+            failedBufferIDs.insert(clip.id)
             logger.warning(
                 "Missing SFX resource: \(clip.resourceName, privacy: .public).\(clip.fileExtension, privacy: .public)",
             )
             return nil
         }
-        guard let buffer = Self.decodePCMBuffer(at: url) else { return nil }
+        guard let buffer = Self.decodePCMBuffer(at: url) else {
+            failedBufferIDs.insert(clip.id)
+            return nil
+        }
         buffersByID[clip.id] = buffer
         return buffer
     }
 
-    // swiftformat:disable:next modifierOrder
     nonisolated private static let decodeLogger = Logger(
         subsystem: AudioLogging.subsystem,
         category: "Audio",
     )
 
-    // swiftformat:disable:next modifierOrder
     nonisolated private static func decodePCMBuffer(at url: URL) -> AVAudioPCMBuffer? {
         do {
             let file = try AVAudioFile(forReading: url)
@@ -190,15 +195,12 @@ public final class SFXPlayer {
         }
     }
 
-    // swiftformat:disable:next modifierOrder
     nonisolated private static func resourceURL(for clip: SFXClip) -> URL? {
-        Bundle.main.url(forResource: clip.resourceName, withExtension: clip.fileExtension) ??
-            Bundle.main.url(forResource: clip.resourceName, withExtension: clip.fileExtension, subdirectory: "SFX") ??
-            Bundle.main.url(
-                forResource: clip.resourceName,
-                withExtension: clip.fileExtension,
-                subdirectory: "Media/SFX",
-            )
+        AudioResourceLocator.url(
+            resourceName: clip.resourceName,
+            fileExtension: clip.fileExtension,
+            subdirectory: "SFX",
+        )
     }
 
     private func configureSessionIfNeeded() {

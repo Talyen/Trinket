@@ -116,7 +116,7 @@ final class BattleCinematicPlayer {
                 object: item,
                 queue: .main,
             ) { [weak self] _ in
-                Task { @MainActor in
+                MainActor.assumeIsolated {
                     self?.clearEndObserver(for: actorID, abilityID: abilityID)
                     onEnded()
                 }
@@ -126,7 +126,7 @@ final class BattleCinematicPlayer {
                 object: item,
                 queue: .main,
             ) { [weak self] _ in
-                Task { @MainActor in
+                MainActor.assumeIsolated {
                     self?.clearEndObserver(for: actorID, abilityID: abilityID)
                     onEnded()
                 }

@@ -19,7 +19,7 @@ struct MysteryRewardContent: View {
             eyebrow: "MYSTERY",
             title: "Reward",
             titleAccessibilityIdentifier: AccessibilityID.Mystery.rewardTitle,
-            hasExperienceAwards: result.hasGrantedExperience,
+            experienceAwards: experienceAwards,
             loot: .init(
                 items: result.grantedItems,
                 gold: result.grantedGold,
@@ -34,45 +34,39 @@ struct MysteryRewardContent: View {
             onPrimaryAction: onFinish,
             contentTopPadding: TrinketDesign.Metrics.contentTopPadding + TrinketDesign.Metrics.mediumSpacing,
             contentStackSpacing: TrinketDesign.Metrics.sectionSpacing,
-        ) { onExperienceBarCompleted in
-            experiencePanel(onExperienceBarCompleted: onExperienceBarCompleted)
-        }
+        )
     }
 
-    @ViewBuilder
-    private func experiencePanel(onExperienceBarCompleted: @escaping () -> Void) -> some View {
-        if result.hasGrantedExperience {
-            let hero = playerSave.roster.activeHero
-            let companion = playerSave.roster.activeCompanion
-            if let heroProgressionBefore = result.heroProgressionBefore,
-               let heroProgressionAfter = result.heroProgressionAfter,
-               let companionProgressionBefore = result.companionProgressionBefore,
-               let companionProgressionAfter = result.companionProgressionAfter {
-                VStack(alignment: .leading, spacing: TrinketDesign.Metrics.largeSpacing) {
-                    ExperienceBar(
-                        combatantName: hero.name,
-                        artworkName: hero.artReference?.thumbnailImageName ?? hero.artReference?.imageName,
-                        pre: heroProgressionBefore,
-                        post: heroProgressionAfter,
-                        fillColor: TrinketDesign.Colors.accentEmphasized,
-                        experienceAward: result.heroGrantedExperience,
-                        snapToFinal: false,
-                        onAnimationCompleted: onExperienceBarCompleted,
-                    )
-
-                    ExperienceBar(
-                        combatantName: companion.name,
-                        artworkName: companion.artReference?.thumbnailImageName ?? companion.artReference?.imageName,
-                        pre: companionProgressionBefore,
-                        post: companionProgressionAfter,
-                        fillColor: TrinketDesign.Colors.accentEmphasized,
-                        experienceAward: result.companionGrantedExperience,
-                        snapToFinal: false,
-                        onAnimationCompleted: onExperienceBarCompleted,
-                    )
-                }
-                .trinketSurface(.secondary)
-            }
+    private var experienceAwards: [RewardRevealExperienceAward] {
+        guard result.hasGrantedExperience,
+              let heroProgressionBefore = result.heroProgressionBefore,
+              let heroProgressionAfter = result.heroProgressionAfter,
+              let companionProgressionBefore = result.companionProgressionBefore,
+              let companionProgressionAfter = result.companionProgressionAfter
+        else {
+            return []
         }
+        let hero = playerSave.roster.activeHero
+        let companion = playerSave.roster.activeCompanion
+        return [
+            .init(
+                id: "hero",
+                combatantName: hero.name,
+                artworkName: hero.artReference?.thumbnailImageName ?? hero.artReference?.imageName,
+                progressionBefore: heroProgressionBefore,
+                progressionAfter: heroProgressionAfter,
+                experienceAward: result.heroGrantedExperience,
+                accessibilityIdentifier: nil,
+            ),
+            .init(
+                id: "companion",
+                combatantName: companion.name,
+                artworkName: companion.artReference?.thumbnailImageName ?? companion.artReference?.imageName,
+                progressionBefore: companionProgressionBefore,
+                progressionAfter: companionProgressionAfter,
+                experienceAward: result.companionGrantedExperience,
+                accessibilityIdentifier: nil,
+            ),
+        ]
     }
 }

@@ -105,7 +105,7 @@ private struct SalvageTransmutationEffect: View {
 
         Group {
             if isDissolving {
-                BattleDissolveArtwork(celebratesDefeat: false) {
+                CardDissolveArtwork {
                     art
                 }
             } else {

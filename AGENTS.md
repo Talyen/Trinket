@@ -1,10 +1,8 @@
 # Trinket agent guide
 
-Portrait-first iOS fantasy turn-based card combat. SwiftUI + SPM packages under `Packages/`; Xcode project generated from `project.yml` (`./Scripts/generate.sh`). Requires Xcode 26+ — see toolchain ladder in `Scripts/README.md`.
+Portrait-first iOS fantasy turn-based card combat. SwiftUI + SPM packages under `Packages/`; Xcode project generated from `project.yml` (`./Scripts/generate.sh`). Requires Xcode 26+ — see toolchain ladder in [`Scripts/README.md`](Scripts/README.md).
 
 This file is the router + universal constraints. Nested `AGENTS.md` add local hard stops; AgentContext cards and Platform docs own domain behavior, rationale, and exact commands.
-
-Commands: [`Scripts/README.md`](Scripts/README.md) and [`Docs/Platform/Verification.md`](Docs/Platform/Verification.md). Always use explicit `--paths` with `agent-context.sh` / `handoff.sh`; `--working-tree` only when whole-tree is intentional.
 
 Active skills live in [`.agents/skills/`](.agents/skills/); durable lessons in [`.agents/knowledge/`](.agents/knowledge/) (searchable, not auto-loaded — see [knowledge/index.md](.agents/knowledge/index.md)). Load knowledge only when the task touches its concern or a skill’s PURPOSE points there. One-off failures stay in session history.
 
@@ -23,9 +21,13 @@ Write for a collaborator who knows Trinket as a game, not the file tree.
 - Keep work within the requested scope.
 - Treat checked-in project configuration as the toolchain source of truth.
 - Do not add legacy-platform compatibility or UIKit bridges when current SwiftUI provides a first-party solution.
-- Never hand-edit generated code, processed assets/resources, `.DerivedData/`, `.tools/`, or the Xcode project. Edit authored inputs and use the routed generation checks.
-- Do not drop launch or imminent artwork pins, switch first-screen art to on-demand `Image(name)`, or lower `PreparedArtworkMemoryBudget` / `NSCache.totalCostLimit` to re-target 4 GB. That pinned working set is hitch prevention: decode before the tap, pin so deferred catalog warmup cannot evict it; `NSCache` alone is not enough. Budgets are tuned for 6 GB typical — see [PerformanceInvestigationPlaybook](Docs/Platform/PerformanceInvestigationPlaybook.md) Artwork Budgets for the enforced table (`physicalMemory/24` floored to 160) and [`PreparedArtworkCache`](Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/PreparedArtworkCache.swift) for implementation; `check-artwork-budget.sh` enforces. Do not lower without product approval.
-- Keep the primary checkout on `main`. Do not create or switch branches, and do not open pull requests. Detached worktrees created by `./Scripts/agent-worktree.sh` are allowed for parallel verification. Land work by committing and pushing directly to `main` only when explicitly requested. For requested commit or release work, read `Docs/Platform/Release.md`.
+- Never hand-edit generated code, processed assets/resources, `.DerivedData/`, `.tools/`, or the Xcode project. Edit authored inputs and run `./Scripts/generate.sh`.
+- Do not drop launch or imminent artwork pins, switch first-screen art to on-demand `Image(name)`, or lower artwork memory budgets (`PreparedArtworkCache` / `NSCache.totalCostLimit`) without product approval. Enforced by `check-artwork-budget.sh`; see [PerformanceInvestigationPlaybook](Docs/Platform/PerformanceInvestigationPlaybook.md) and [`PreparedArtworkCache`](Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/PreparedArtworkCache.swift).
+- Keep the primary checkout on `main`. Do not create or switch branches, and do not open pull requests. Detached worktrees created by `./Scripts/agent-worktree.sh` are allowed for parallel verification. Land work by committing and pushing directly to `main` only when explicitly requested. For requested commit or release work, read [`Docs/Platform/Release.md`](Docs/Platform/Release.md).
+
+## Task routing
+
+Touched areas must respect their nested guides and AgentContext cards. Run `./Scripts/agent-context.sh --agent --paths <file...>` once the task's touched paths are known — it is the catalog for discovering path-specific guidance, skills, and verification plans, not a prerequisite ritual before thinking. Always use explicit `--paths`; use `--working-tree` only when whole-tree is intentional. Follow the briefing's required read contract and applicable skill routing. Rerun it when the task crosses into another area.
 
 ## Change discipline
 
@@ -35,21 +37,18 @@ Write for a collaborator who knows Trinket as a game, not the file tree.
 - Prefer smaller surface area: delete → reuse → simplify locally → parameterize a confirmed duplicate → add an abstraction.
 - Extend the module that already owns the behavior before adding a file, type, protocol, manager, helper, wrapper, or configuration object. A generic abstraction needs at least three current uses or an enforced architectural boundary; predicted future reuse is insufficient.
 - Refactors remove the replaced path. Do not leave forwarding wrappers, parallel implementations, or duplicate tests unless compatibility explicitly requires them.
+- Do not author Swift comments or leave temporary debug output. Code clarity and tests own intent; comment hygiene is enforced by `check-comment-ban.sh`.
 - Treat authored production and test surface as budgets. Unusual growth is advisory, not a license to compress code: report the necessity and the simpler alternative rejected when `./Scripts/change-budget.sh` warns.
-
-## Task routing
-
-Touched areas must respect their nested guides and AgentContext cards. Run `./Scripts/agent-context.sh --agent --paths <file...>` once the task's touched paths are known — it is the catalog for discovering path-specific guidance, skills, and verification plans, not a prerequisite ritual before thinking. Follow the briefing's required read contract and applicable skill routing. Rerun it when the task crosses into another area.
 
 ## Test and verification discipline
 
 - Verification does not imply authoring a test. Follow [`Docs/Platform/Testing.md`](Docs/Platform/Testing.md) to place consequential coverage in the cheapest existing semantic owner; that guide owns persistence reload semantics and the UI keep/drop rubric.
 - Full smoke and exhaustive UI are CI-owned post-push gates. Local simulator work is limited to routed targeted smoke classes or single-target UI debugging; reserve full local UI runs for release-time deploy verification (`test-deploy.sh`).
-- Before handoff, run path-scoped verification with `--isolate`. `./Scripts/handoff.sh --isolate --paths <file...>` is the canonical gate; add `--final` when closing a task that used an execution plan. Do not claim completion unless the routed gate passes; if a required step is unavailable, report the exact blocker or skip. Never kill foreign Xcode or Simulator processes; concurrency, worktree, lock, and diagnostics details live in `Docs/AgentContext/ci-and-project-generation.md` and `Docs/AgentContext/ci-diagnostics.md`.
+- Before handoff, run path-scoped verification with `--isolate`. `./Scripts/handoff.sh --isolate --paths <file...>` is the canonical gate; add `--final` when closing a task that used an execution plan. Do not claim completion unless the routed gate passes; if a required step is unavailable, report the exact blocker or skip. Never kill foreign Xcode or Simulator processes; concurrency, worktree, lock, and diagnostics details live in [`Docs/AgentContext/ci-and-project-generation.md`](Docs/AgentContext/ci-and-project-generation.md) and [`Docs/AgentContext/ci-diagnostics.md`](Docs/AgentContext/ci-diagnostics.md).
 - At handoff, report what changed, what verification ran, and anything intentionally left untouched. Write that in the same voice as Communication: readable without opening the diff. Example: “Enemies now pick a new target if the current one dies mid-turn. That logic lives in `BattleTurnEngine.swift`. Ran the BattleEngine tests.” Not: “Refactored `BattleTurnEngine` targeting resolution.” Include pass/fail, skips, and any change-budget justification.
 
 ## Commit and push
 
 - Commits include only task-related authored and generated files and must pass repository hooks. Path-scoped verification should be green before commit.
-- Push only when explicitly requested. Generation completeness against HEAD (`./Scripts/agent-push-gate.sh`) must be green before push; if generation changes files, review them, include them, and ensure the gate is clean. Exact commands: `Docs/Platform/Release.md`.
+- Push only when explicitly requested. Generation completeness against HEAD (`./Scripts/agent-push-gate.sh`) must be green before push; if generation changes files, review them, include them, and ensure the gate is clean. Exact commands: [`Docs/Platform/Release.md`](Docs/Platform/Release.md).
 - Hosted CI runs after a push to `main`. Do **not** require `tests / CI OK` as a GitHub **push** gate; that status is produced by the post-push run.

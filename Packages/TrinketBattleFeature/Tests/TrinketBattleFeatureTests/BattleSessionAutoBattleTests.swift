@@ -330,8 +330,8 @@ struct BattleSessionAutoBattleTests {
     }
 }
 
-// Concurrency-Safety: `@unchecked Sendable` — test probe is mutated only
-private final class AutoBattleProbe: @unchecked Sendable {
+@MainActor
+private final class AutoBattleProbe {
     var remember: Bool
     var stored: Bool
     var persistedValues: [Bool] = []

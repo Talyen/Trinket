@@ -78,15 +78,7 @@ public final class JourneyPlayMode {
 
         let request = combatRequest(for: stage, encounter: encounter)
         guard battle.lifecyclePhase != .active else { return PlayBattleLaunch.activationFailureMessage }
-        let activated = battleLaunch.activateCombat(
-            origin: request.origin,
-            encounter: request.encounter,
-            route: request.route,
-            loot: request.loot,
-            stageRewardsAlreadyClaimed: request.stageRewardsAlreadyClaimed,
-            universalModifiers: request.universalModifiers,
-            labyrinthModifiers: request.labyrinthModifiers,
-        )
+        let activated = battleLaunch.activateCombat(request)
         if activated {
             preparationTracker.invalidate()
             return nil
@@ -99,22 +91,15 @@ public final class JourneyPlayMode {
               let encounter = resolvedEncounter(for: stage)
         else { return }
         let request = combatRequest(for: stage, encounter: encounter)
+        let inputs = preparationInputs(for: stage, stageRewardsAlreadyClaimed: request.stageRewardsAlreadyClaimed)
         guard preparationTracker.shouldPrepare(
-            for: request.preparationInputs,
+            for: inputs,
             lifecycle: battle.lifecyclePhase,
             hasPreparedRun: battle.hasPreparedRun(request.origin.runKey),
         ) else { return }
-        let prepared = battleLaunch.prepareCombat(
-            origin: request.origin,
-            encounter: request.encounter,
-            route: request.route,
-            loot: request.loot,
-            stageRewardsAlreadyClaimed: request.stageRewardsAlreadyClaimed,
-            universalModifiers: request.universalModifiers,
-            labyrinthModifiers: request.labyrinthModifiers,
-        )
+        let prepared = battleLaunch.prepareCombat(request)
         if prepared {
-            preparationTracker.notePrepared(request.preparationInputs)
+            preparationTracker.notePrepared(inputs)
         }
     }
 
@@ -269,26 +254,26 @@ extension JourneyPlayMode {
         journey.hasClaimedRewards(for: stage)
     }
 
-    private struct CombatRequest {
-        let origin: PlayBattleOrigin
-        let encounter: (combatant: Combatant, level: Int)
-        let route: PlayBattleRoute
-        let loot: BattleLootPackage?
-        let stageRewardsAlreadyClaimed: Bool
-        let universalModifiers: [AffixModifier]
-        let labyrinthModifiers: [LabyrinthModifierDefinition]
-        let preparationInputs: PreparationInputs
+    private func preparationInputs(
+        for stage: Stage,
+        stageRewardsAlreadyClaimed: Bool,
+    ) -> PreparationInputs {
+        PreparationInputs(
+            stageID: stage.id,
+            party: PlayBattlePartySnapshot(playerSave: playerSave),
+            stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
+        )
     }
 
     private func combatRequest(
         for stage: Stage,
         encounter: (combatant: Combatant, level: Int),
-    ) -> CombatRequest {
+    ) -> PlayCombatRequest {
         let stageRewardsAlreadyClaimed = Self.stageRewardsAlreadyClaimed(
             for: stage,
             journey: playerSave.journey,
         )
-        return CombatRequest(
+        return PlayCombatRequest(
             origin: .journey(stageID: stage.id),
             encounter: encounter,
             route: battleRoute(stageID: stage.id),
@@ -296,11 +281,6 @@ extension JourneyPlayMode {
             stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
             universalModifiers: [],
             labyrinthModifiers: [],
-            preparationInputs: PreparationInputs(
-                stageID: stage.id,
-                party: PlayBattlePartySnapshot(playerSave: playerSave),
-                stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
-            ),
         )
     }
 

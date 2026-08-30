@@ -9,85 +9,96 @@ public enum ItemSalvageActionResult: Equatable, Sendable {
     case persistenceFailure
 }
 
-public enum ItemDetailFooter: Equatable {
-    case none
-    case purchase(
-        price: Int,
-        canAfford: Bool,
-        isDisabled: Bool,
-        titleOverride: String?,
-        accessibilityID: String,
-    )
-    case primaryAction(
-        title: String,
-        accessibilityID: String?,
-        dismissAfter: Bool,
-    )
-}
-
 public struct ItemDetailView: View {
+    private enum Action {
+        case none
+        case purchase(
+            price: Int,
+            canAfford: Bool,
+            isDisabled: Bool,
+            titleOverride: String?,
+            accessibilityID: String,
+            onPurchase: () -> Void,
+        )
+        case primaryAction(
+            title: String,
+            accessibilityID: String?,
+            onAction: () -> Void,
+        )
+        case salvage(
+            yields: [ResourceAmount],
+            equippedByName: String?,
+            onSalvage: () -> ItemSalvageActionResult,
+            onSalvageFinished: ((ItemSalvageActionResult) -> Void)?,
+        )
+    }
+
     @Environment(\.dismiss) private var dismiss
 
     let item: InventoryItem
-    let footer: ItemDetailFooter
-    var salvageYields: [ResourceAmount]?
-    var equippedByName: String?
-    var onPurchase: (() -> Void)?
-    var onPrimaryAction: (() -> Void)?
-    var onSalvage: (() -> ItemSalvageActionResult)?
-    var onSalvageFinished: ((ItemSalvageActionResult) -> Void)?
+    private let action: Action
 
     @State private var isSalvageConfirmationPresented = false
     @State private var salvageErrorMessage: String?
 
+    public init(item: InventoryItem) {
+        self.item = item
+        action = .none
+    }
+
     public init(
         item: InventoryItem,
-        purchasePrice: Int? = nil,
+        purchasePrice: Int,
         canAfford: Bool = true,
         isPurchaseDisabled: Bool = false,
         purchaseButtonTitleOverride: String? = nil,
-        onPurchase: (() -> Void)? = nil,
-        primaryActionTitle: String? = nil,
+        accessibilityIdentifier: String = AccessibilityID.Shop.detailBuyButton,
+        onPurchase: @escaping () -> Void,
+    ) {
+        self.item = item
+        action = .purchase(
+            price: purchasePrice,
+            canAfford: canAfford,
+            isDisabled: isPurchaseDisabled,
+            titleOverride: purchaseButtonTitleOverride,
+            accessibilityID: accessibilityIdentifier,
+            onPurchase: onPurchase,
+        )
+    }
+
+    public init(
+        item: InventoryItem,
+        primaryActionTitle: String,
         primaryActionAccessibilityID: String? = nil,
-        dismissAfterPrimaryAction: Bool = false,
-        onPrimaryAction: (() -> Void)? = nil,
-        salvageYields: [ResourceAmount]? = nil,
+        onPrimaryAction: @escaping () -> Void,
+    ) {
+        self.item = item
+        action = .primaryAction(
+            title: primaryActionTitle,
+            accessibilityID: primaryActionAccessibilityID,
+            onAction: onPrimaryAction,
+        )
+    }
+
+    public init(
+        item: InventoryItem,
+        salvageYields: [ResourceAmount],
         equippedByName: String? = nil,
-        onSalvage: (() -> ItemSalvageActionResult)? = nil,
+        onSalvage: @escaping () -> ItemSalvageActionResult,
         onSalvageFinished: ((ItemSalvageActionResult) -> Void)? = nil,
     ) {
         self.item = item
-        self.salvageYields = salvageYields
-        self.equippedByName = equippedByName
-        self.onPurchase = onPurchase
-        self.onPrimaryAction = onPrimaryAction
-        self.onSalvage = onSalvage
-        self.onSalvageFinished = onSalvageFinished
-
-        if let primaryActionTitle, onPrimaryAction != nil {
-            footer = .primaryAction(
-                title: primaryActionTitle,
-                accessibilityID: primaryActionAccessibilityID,
-                dismissAfter: dismissAfterPrimaryAction,
-            )
-        } else if let purchasePrice, onPurchase != nil {
-            footer = .purchase(
-                price: purchasePrice,
-                canAfford: canAfford,
-                isDisabled: isPurchaseDisabled,
-                titleOverride: purchaseButtonTitleOverride,
-                accessibilityID: AccessibilityID.Shop.detailBuyButton,
-            )
-        } else {
-            footer = .none
-        }
+        action = .salvage(
+            yields: salvageYields,
+            equippedByName: equippedByName,
+            onSalvage: onSalvage,
+            onSalvageFinished: onSalvageFinished,
+        )
     }
 
     private var showsSalvageAction: Bool {
-        !item.isTrinket
-            && item.rarity != .unique
-            && onSalvage != nil
-            && footer == .none
+        guard case .salvage = action else { return false }
+        return !item.isTrinket && item.rarity != .unique
     }
 
     public var body: some View {
@@ -148,45 +159,22 @@ public struct ItemDetailView: View {
 
     @ViewBuilder
     private var footerView: some View {
-        switch footer {
-        case .none:
+        switch action {
+        case .none, .salvage:
             EmptyView()
-        case let .primaryAction(title, accessibilityID, dismissAfter):
-            if let onPrimaryAction {
-                Button(title) {
-                    onPrimaryAction()
-                    if dismissAfter {
-                        dismiss()
-                    }
-                }
-                .frame(maxWidth: .infinity)
-                .trinketPrimaryActionButton(
-                    accessibilityIdentifier: accessibilityID ?? title,
-                )
-                .trinketCenteredPrimaryAction()
-                .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-                .padding(.vertical, TrinketDesign.Metrics.mediumSpacing)
-                .trinketSheetChromeIgnoresDismissDrag()
-            }
-        case let .purchase(price, canAfford, isDisabled, titleOverride, accessibilityID):
-            if let onPurchase {
-                Button {
-                    onPurchase()
-                } label: {
-                    Text(purchaseButtonTitle(
-                        price: price,
-                        canAfford: canAfford,
-                        titleOverride: titleOverride,
-                    ))
-                    .frame(maxWidth: .infinity)
-                }
-                .trinketPrimaryActionButton(accessibilityIdentifier: accessibilityID)
-                .trinketCenteredPrimaryAction()
-                .disabled(!canAfford || isDisabled)
-                .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-                .padding(.vertical, TrinketDesign.Metrics.mediumSpacing)
-                .trinketSheetChromeIgnoresDismissDrag()
-            }
+        case let .primaryAction(title, accessibilityID, onAction):
+            DetailPrimaryActionFooter(
+                title: title,
+                accessibilityIdentifier: accessibilityID,
+                action: onAction,
+            )
+        case let .purchase(price, canAfford, isDisabled, titleOverride, accessibilityID, onPurchase):
+            DetailPrimaryActionFooter(
+                title: purchaseButtonTitle(price: price, canAfford: canAfford, titleOverride: titleOverride),
+                accessibilityIdentifier: accessibilityID,
+                isDisabled: !canAfford || isDisabled,
+                action: onPurchase,
+            )
         }
     }
 
@@ -202,7 +190,8 @@ public struct ItemDetailView: View {
     }
 
     private var salvageConfirmationMessage: String {
-        let message = "You will receive \((salvageYields ?? []).formattedYieldList)."
+        guard case let .salvage(yields, equippedByName, _, _) = action else { return "" }
+        let message = "You will receive \(yields.formattedYieldList)."
         if let equippedByName {
             return message + " This unequips it from \(equippedByName)."
         }
@@ -210,7 +199,7 @@ public struct ItemDetailView: View {
     }
 
     private func confirmSalvage() {
-        guard let onSalvage else { return }
+        guard case let .salvage(_, _, onSalvage, onSalvageFinished) = action else { return }
         switch onSalvage() {
         case let .success(yields):
             onSalvageFinished?(.success(yields: yields))
@@ -221,10 +210,6 @@ public struct ItemDetailView: View {
         case .persistenceFailure:
             salvageErrorMessage = "Couldn't salvage this item. Try again."
         }
-    }
-
-    public static func formattedYieldList(_ yields: [ResourceAmount]) -> String {
-        yields.formattedYieldList
     }
 }
 

@@ -24,6 +24,77 @@ public enum CombatantFixtures {
         )
     }
 
+    public static func passiveCombatant(
+        id: String,
+        name: String? = nil,
+        role: Combatant.Role,
+        maxHealth: Int = 50,
+        actionIntervalTurns: Int = 100,
+        abilities: [Ability] = [],
+        primaryStats: PrimaryStats = PrimaryStats(),
+    ) -> Combatant {
+        Combatant(
+            id: id,
+            name: name ?? id.capitalized,
+            role: role,
+            maxHealth: maxHealth,
+            actionIntervalTurns: actionIntervalTurns,
+            abilities: abilities,
+            primaryStats: primaryStats,
+        )
+    }
+
+    public static func passiveHero(
+        id: String = "hero",
+        maxHealth: Int = 50,
+        actionIntervalTurns: Int = 100,
+        abilities: [Ability] = [],
+        primaryStats: PrimaryStats = PrimaryStats(),
+    ) -> Combatant {
+        combatant(
+            id: id,
+            role: .hero,
+            maxHealth: maxHealth,
+            actionIntervalTurns: actionIntervalTurns,
+            abilities: abilities,
+            primaryStats: primaryStats,
+        )
+    }
+
+    public static func passiveCompanion(
+        id: String = "companion",
+        maxHealth: Int = 50,
+        actionIntervalTurns: Int = 100,
+        abilities: [Ability] = [],
+        primaryStats: PrimaryStats = PrimaryStats(),
+    ) -> Combatant {
+        combatant(
+            id: id,
+            role: .companion,
+            maxHealth: maxHealth,
+            actionIntervalTurns: actionIntervalTurns,
+            abilities: abilities,
+            primaryStats: primaryStats,
+        )
+    }
+
+    public static func passiveEnemy(
+        id: String = "enemy",
+        maxHealth: Int = 100,
+        actionIntervalTurns: Int = 100,
+        abilities: [Ability] = [],
+        primaryStats: PrimaryStats = PrimaryStats(),
+    ) -> Combatant {
+        combatant(
+            id: id,
+            role: .enemy,
+            maxHealth: maxHealth,
+            actionIntervalTurns: actionIntervalTurns,
+            abilities: abilities,
+            primaryStats: primaryStats,
+        )
+    }
+
     public static func ability(
         id: String = "test",
         name: String = "Test",
@@ -31,6 +102,9 @@ public enum CombatantFixtures {
         directDamage: Int = 0,
         damageKeyword: Keyword = .physical,
         description: String = "Test",
+        effects: [Effect] = [],
+        targetedEffects: [TargetedEffect]? = nil,
+        criticalChanceBonus: Double = 0,
     ) -> Ability {
         Ability(
             id: id,
@@ -39,6 +113,9 @@ public enum CombatantFixtures {
             directDamage: directDamage,
             damageKeyword: damageKeyword,
             description: description,
+            effects: effects,
+            targetedEffects: targetedEffects,
+            criticalChanceBonus: criticalChanceBonus,
         )
     }
 }

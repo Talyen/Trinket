@@ -64,7 +64,6 @@ struct ItemSlotPickerView: View {
                 item: item,
                 primaryActionTitle: "Equip \(slot.displayName)",
                 primaryActionAccessibilityID: AccessibilityID.LoadoutPicker.equipItem(item.id),
-                dismissAfterPrimaryAction: true,
                 onPrimaryAction: {
                     onEquip(item)
                     selectedItem = nil

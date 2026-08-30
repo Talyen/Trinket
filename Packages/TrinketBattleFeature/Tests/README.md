@@ -12,7 +12,7 @@ dissolve, or recipe unit tests — presentation chrome is not a unit-test owner.
 | Victory summary / claimed victory | `BattleVictorySummaryTests`, `BattleClaimedVictoryTests` |
 
 Runtime-contract behavior is exercised here through `BattleSession` (see
-`Packages/TrinketBattleRuntime/README.md`); there is no separate runtime test target.
+`BattleEngine` and [`Docs/AgentContext/battle-runtime.md`](../../../Docs/AgentContext/battle-runtime.md)); there is no separate runtime test target.
 
 ## AppState launch helper vs BattleFeature DTO packer
 

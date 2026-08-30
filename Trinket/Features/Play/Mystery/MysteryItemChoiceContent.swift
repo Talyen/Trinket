@@ -65,18 +65,14 @@ private struct MysteryItemChoiceScaffold<Footer: View>: View {
             visibleItemIDs.formIntersection(items.lazy.map(\.id))
         }
         .task(id: visibleItemIDs) {
-            let snapshot = visibleItemIDs
-            try? await Task.sleep(for: ArtworkViewportPrewarm.viewportDebounceInterval)
-            guard !Task.isCancelled, snapshot == visibleItemIDs else { return }
-            let names = ArtworkViewportPrewarm.windowNames(
+            await ArtworkViewportPrewarm.prewarm(
                 orderedItems: items,
-                visibleIDs: snapshot,
+                visibleIDs: visibleItemIDs,
+                currentVisibleIDs: { visibleItemIDs },
                 thumbnailName: { $0.artReference?.thumbnailImageName ?? $0.artReference?.imageName },
                 prefetchRows: ArtworkViewportPrewarm.defaultPrefetchRows,
                 estimatedColumns: ArtworkViewportPrewarm.collectionEstimatedColumns,
             )
-            guard !names.isEmpty else { return }
-            await PreparedArtworkCache.shared.prepare(names: names)
         }
     }
 }

@@ -96,7 +96,7 @@ extension PlayBattleLaunch {
         )
         let heroMember = members.hero
         let companionMember = members.companion
-        let resolvedStageReward = input.stageReward ?? StageReward(gold: 0, itemTemplateIDs: [])
+        let resolvedStageReward = input.stageReward ?? .empty
         let enemyLevel = input.enemyEncounterLevel ?? heroMember.progression.level
         let configuration = BattleRunConfiguration(
             runKey: runKey,

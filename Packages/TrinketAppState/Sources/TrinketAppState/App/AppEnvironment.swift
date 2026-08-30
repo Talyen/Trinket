@@ -92,9 +92,7 @@ public struct AppEnvironment: Sendable {
             persistSaveImmediately: !arguments.contains("-defer-persistence"),
             completedStageIDs: completedStageIDs(from: arguments),
             mysteryRecruitEventID: argumentValue(after: "-mystery-recruit-event", in: arguments),
-            storeName: arguments.firstIndex(of: "-store-name").flatMap { idx in
-                arguments.indices.contains(idx + 1) ? arguments[idx + 1] : nil
-            },
+            storeName: argumentValue(after: "-store-name", in: arguments),
             battleTickInterval: argumentValue(after: "-battle-tick-interval", in: arguments)
                 .flatMap(TimeInterval.init),
             startingGold: argumentValue(after: "-starting-gold", in: arguments)
@@ -105,10 +103,8 @@ public struct AppEnvironment: Sendable {
     }
 
     private static func launchTab(from arguments: [String]) -> AppTab? {
-        guard let idx = arguments.firstIndex(of: "-selectedTab"),
-              arguments.indices.contains(idx + 1)
-        else { return nil }
-        let val = arguments[idx + 1].lowercased()
+        guard let raw = argumentValue(after: "-selectedTab", in: arguments) else { return nil }
+        let val = raw.lowercased()
         if val == "heroes" || val == "companions" || val == "inventory" || val == "search" {
             return .collection
         }
@@ -116,17 +112,12 @@ public struct AppEnvironment: Sendable {
     }
 
     private static func launchScreen(from arguments: [String]) -> LaunchScreen? {
-        guard let idx = arguments.firstIndex(of: "-launch-screen"),
-              arguments.indices.contains(idx + 1)
-        else { return nil }
-        return LaunchScreen.parse(arguments[idx + 1])
+        argumentValue(after: "-launch-screen", in: arguments).flatMap(LaunchScreen.parse)
     }
 
     private static func completedStageIDs(from arguments: [String]) -> [String] {
-        guard let idx = arguments.firstIndex(of: "-completed-stages"),
-              arguments.indices.contains(idx + 1)
-        else { return [] }
-        return arguments[idx + 1]
+        guard let raw = argumentValue(after: "-completed-stages", in: arguments) else { return [] }
+        return raw
             .split(separator: ",")
             .map(String.init)
             .filter { !$0.isEmpty }

@@ -151,7 +151,7 @@ struct CombatantSliceEffect<Content: View>: View {
         dissolveProgress: CGFloat,
         particles: [SliceBorderParticle],
     ) -> some View {
-        let dissolveConfig = CardCastEffectConfiguration.sliceHalfDissolve
+        let dissolveConfig = CardDissolveConfiguration.sliceHalfDissolve
         let travelPad = dissolveConfig.particleDistance
             + dissolveConfig.particleDistanceVariation
             + 40
@@ -289,8 +289,8 @@ private struct CrackSliceMask: Shape {
     }
 }
 
-private extension CardCastEffectConfiguration {
-    static let sliceHalfDissolve = CardCastEffectConfiguration(
+private extension CardDissolveConfiguration {
+    static let sliceHalfDissolve = CardDissolveConfiguration(
         dissolveDuration: 1, dissolveShrink: 0, particleDistance: 110, particleDistanceVariation: 50,
         particleDelay: 0.12, particleLifetime: 0.55, particleLifetimeVariation: 0.2, particleCurve: 0.85,
         particleOriginSpread: 1, particleSize: 3.0, particleSizeVariation: 2.6, fadeStart: 0.2,

@@ -361,7 +361,13 @@ package extension BoonCombatEngine {
                 target: target,
                 keyword: keyword,
                 sourceActorID: source.id,
-                options: .flatControlReaction,
+                options: DamageOptions(
+                    applyStatBonus: false,
+                    applyItemBonus: false,
+                    applyDodge: false,
+                    isRetaliation: false,
+                    applyControlMeter: true,
+                ),
             )).events
         default:
             return context.resolveDamage(DamageRequest(
@@ -369,7 +375,12 @@ package extension BoonCombatEngine {
                 target: target,
                 keyword: keyword,
                 sourceActorID: source.id,
-                options: .flatReaction,
+                options: DamageOptions(
+                    applyStatBonus: false,
+                    applyItemBonus: false,
+                    applyDodge: false,
+                    isRetaliation: false,
+                ),
             )).events
         }
     }

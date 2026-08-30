@@ -72,9 +72,9 @@ extension AppState {
     }
 
     func finishBootstrap(environment: AppEnvironment) {
+        installMemoryPressureHandling()
         play.seedJourneyProgress(completedStageIDs: environment.completedStageIDs, resetState: environment.resetState)
         guard playerSave.starterSelection.phase == .complete else {
-            installMemoryPressureHandling()
             return
         }
         switch environment.launchScreen {
@@ -89,8 +89,6 @@ extension AppState {
         case .heroDetail, .companionDetail, .itemDetail, .options, .labyrinth, .labyrinthMap, .none:
             break
         }
-
-        installMemoryPressureHandling()
     }
 
     private static func clearResetStateDefaults(from defaults: UserDefaults) {

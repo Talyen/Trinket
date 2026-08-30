@@ -59,16 +59,4 @@ struct ArtworkViewportPrewarmTests {
         )
         #expect(names == ["same", "other"])
     }
-
-    @Test func `string ID overload matches window logic`() {
-        let items = (0 ..< 20).map { ViewportItem(id: "\($0)", thumbnail: "thumb\($0)") }
-        let names = ArtworkViewportPrewarm.windowNamesByStringID(
-            orderedItems: items,
-            visibleIDStrings: ["3", "4"],
-            thumbnailName: { $0.thumbnail },
-            prefetchRows: 3,
-            estimatedColumns: 3,
-        )
-        #expect(names == (0 ... 13).map { "thumb\($0)" })
-    }
 }

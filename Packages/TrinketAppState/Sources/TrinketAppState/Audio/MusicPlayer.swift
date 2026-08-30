@@ -337,9 +337,11 @@ final class MusicPlayer {
     }
 
     private func resourceURL(for track: TrinketContent.MusicTrack) -> URL? {
-        Bundle.main.url(forResource: track.resourceName, withExtension: track.fileExtension) ??
-            Bundle.main.url(forResource: track.resourceName, withExtension: track.fileExtension, subdirectory: "Music") ??
-            Bundle.main.url(forResource: track.resourceName, withExtension: track.fileExtension, subdirectory: "Media/Music")
+        AudioResourceLocator.url(
+            resourceName: track.resourceName,
+            fileExtension: track.fileExtension,
+            subdirectory: "Music",
+        )
     }
 
     private func saveCurrentPosition() {

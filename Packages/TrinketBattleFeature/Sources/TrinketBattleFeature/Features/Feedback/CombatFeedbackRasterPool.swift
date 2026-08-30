@@ -197,7 +197,7 @@ final class CombatFeedbackRasterPool {
             )
             guard !Task.isCancelled, catalogWarmupGeneration == generation else { return nil }
             let catalog = CombatFeedbackRasterCatalog.closedVocabularyChips()
-            let batchSize = 8
+            let batchSize = 16
             var index = 0
             while index < catalog.count {
                 let end = min(index + batchSize, catalog.count)

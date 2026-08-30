@@ -42,6 +42,7 @@ struct BattleSimulatorSweepReportTests {
                 heroIDs: ["knight"],
                 companionIDs: ["bear"],
                 enemyIDs: ["living_armor"],
+                focusIDs: ["bash"],
             ),
         )
         #expect(report.records.isEmpty)
@@ -236,6 +237,7 @@ struct BattleSimulatorSweepReportTests {
                 heroIDs: ["knight"],
                 companionIDs: ["bear"],
                 enemyIDs: ["living_armor"],
+                focusIDs: ["knight_block_t1_1"],
             ),
         )
         #expect(!(report.talentContrasts.isEmpty))

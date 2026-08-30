@@ -7,13 +7,17 @@ import TrinketFeatureSupport
 @MainActor
 struct OptionsUltimateSkipPolicyTests {
     @Test func `default show policy is once per battle`() throws {
-        let defaults = try #require(UserDefaults(suiteName: "OptionsUltimateSkipPolicyTests.\(UUID().uuidString)"))
+        let suiteName = "OptionsUltimateSkipPolicyTests.\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suiteName))
+        defer { defaults.removePersistentDomain(forName: suiteName) }
         let options = OptionsStore(defaults: defaults)
         #expect(options.ultimateCinematicShowPolicy == .oncePerBattle)
     }
 
     @Test func `once per battle auto skips after actor presented`() throws {
-        let defaults = try #require(UserDefaults(suiteName: "OptionsUltimateSkipPolicyTests.\(UUID().uuidString)"))
+        let suiteName = "OptionsUltimateSkipPolicyTests.\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suiteName))
+        defer { defaults.removePersistentDomain(forName: suiteName) }
         let options = OptionsStore(defaults: defaults)
         options.ultimateCinematicShowPolicy = .oncePerBattle
 
@@ -45,9 +49,9 @@ struct OptionsUltimateSkipPolicyTests {
         policy: UltimateCinematicShowPolicy,
         autoSkips: Bool,
     ) throws {
-        let defaults = try #require(
-            UserDefaults(suiteName: "OptionsUltimateSkipPolicyTests.\(policy.rawValue).\(UUID().uuidString)"),
-        )
+        let suiteName = "OptionsUltimateSkipPolicyTests.\(policy.rawValue).\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suiteName))
+        defer { defaults.removePersistentDomain(forName: suiteName) }
         let options = OptionsStore(defaults: defaults)
         options.ultimateCinematicShowPolicy = policy
         #expect(

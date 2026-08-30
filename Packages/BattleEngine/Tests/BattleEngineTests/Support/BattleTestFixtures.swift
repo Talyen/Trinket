@@ -37,35 +37,34 @@ enum BattleTestFixtures {
 
     static func passiveCombatant(
         id: String,
-        name: String,
+        name: String? = nil,
         role: Combatant.Role,
         maxHealth: Int = 20,
         actionIntervalTurns: Int = 100,
     ) -> Combatant {
-        Combatant(
+        CombatantFixtures.passiveCombatant(
             id: id,
             name: name,
             role: role,
             maxHealth: maxHealth,
             actionIntervalTurns: actionIntervalTurns,
-            abilities: [],
         )
     }
 
     static func passiveHero(maxHealth: Int = 20) -> Combatant {
-        CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: maxHealth, actionIntervalTurns: 100)
+        CombatantFixtures.passiveHero(maxHealth: maxHealth)
     }
 
     static func passiveCompanion(maxHealth: Int = 20) -> Combatant {
-        CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: maxHealth, actionIntervalTurns: 100)
+        CombatantFixtures.passiveCompanion(maxHealth: maxHealth)
     }
 
     static func passiveEnemy(maxHealth: Int = 100) -> Combatant {
-        CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: maxHealth, actionIntervalTurns: 100)
+        CombatantFixtures.passiveEnemy(maxHealth: maxHealth)
     }
 
     static func silentEnemy(maxHealth: Int) -> Combatant {
-        passiveEnemy(maxHealth: maxHealth)
+        CombatantFixtures.passiveEnemy(maxHealth: maxHealth)
     }
 
     static func attackingEnemy(

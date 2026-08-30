@@ -19,56 +19,24 @@ struct PlayBattleLaunch {
     )
 
     @discardableResult
-    func activateCombat(
-        origin: PlayBattleOrigin,
-        encounter: (combatant: Combatant, level: Int),
-        route: PlayBattleRoute? = nil,
-        loot: BattleLootPackage? = nil,
-        stageRewardsAlreadyClaimed: Bool = false,
-        universalModifiers: [AffixModifier] = [],
-        labyrinthModifiers: [LabyrinthModifierDefinition] = [],
-    ) -> Bool {
+    func activateCombat(_ request: PlayCombatRequest) -> Bool {
         activateBattle(
-            makeLaunchInput(
-                origin: origin,
-                encounter: encounter,
-                loot: loot,
-                stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
-                universalModifiers: universalModifiers,
-                labyrinthModifiers: labyrinthModifiers,
-            ),
-            route: route,
+            makeLaunchInput(for: request),
+            route: request.route,
         )
     }
 
     @discardableResult
-    func prepareCombat(
-        origin: PlayBattleOrigin,
-        encounter: (combatant: Combatant, level: Int),
-        route: PlayBattleRoute? = nil,
-        loot: BattleLootPackage? = nil,
-        stageRewardsAlreadyClaimed: Bool = false,
-        universalModifiers: [AffixModifier] = [],
-        labyrinthModifiers: [LabyrinthModifierDefinition] = [],
-    ) -> Bool {
-        let launch = makeBattleLaunch(
-            makeLaunchInput(
-                origin: origin,
-                encounter: encounter,
-                loot: loot,
-                stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
-                universalModifiers: universalModifiers,
-                labyrinthModifiers: labyrinthModifiers,
-            ),
-        )
+    func prepareCombat(_ request: PlayCombatRequest) -> Bool {
+        let launch = makeBattleLaunch(makeLaunchInput(for: request))
         guard PlayBattleRoute.matches(
-            route,
+            request.route,
             runKey: launch.configuration.runKey,
             missingLog: "Missing route for prepared battle registration",
         ) else { return false }
         let prepared = battle.prepareBattleRun(launch.configuration)
         if prepared {
-            registerRunIfNeeded(launch, route: route)
+            registerRunIfNeeded(launch, route: request.route)
         } else if let runKey = launch.configuration.runKey {
             runRegistry.remove(runKey)
         }
@@ -117,27 +85,20 @@ struct PlayBattleLaunch {
         return activated
     }
 
-    private func makeLaunchInput(
-        origin: PlayBattleOrigin,
-        encounter: (combatant: Combatant, level: Int),
-        loot: BattleLootPackage?,
-        stageRewardsAlreadyClaimed: Bool,
-        universalModifiers: [AffixModifier],
-        labyrinthModifiers: [LabyrinthModifierDefinition],
-    ) -> BattleLaunchInput {
+    private func makeLaunchInput(for request: PlayCombatRequest) -> BattleLaunchInput {
         let roster = playerSave.roster
-        let startingHealths = labyrinthStartingHealths(for: origin)
+        let startingHealths = labyrinthStartingHealths(for: request.origin)
         return BattleLaunchInput(
-            origin: origin,
+            origin: request.origin,
             hero: roster.activeHero,
             companion: roster.activeCompanion,
-            enemy: encounter.combatant,
-            enemyEncounterLevel: encounter.level,
-            stageReward: loot?.asStageReward ?? .empty,
-            pendingRewardItem: loot?.item,
-            stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
-            universalModifiers: universalModifiers,
-            labyrinthModifiers: labyrinthModifiers,
+            enemy: request.encounter.combatant,
+            enemyEncounterLevel: request.encounter.level,
+            stageReward: request.loot?.asStageReward ?? .empty,
+            pendingRewardItem: request.loot?.item,
+            stageRewardsAlreadyClaimed: request.stageRewardsAlreadyClaimed,
+            universalModifiers: request.universalModifiers,
+            labyrinthModifiers: request.labyrinthModifiers,
             heroStartingHealth: startingHealths.hero,
             companionStartingHealth: startingHealths.companion,
         )
@@ -217,15 +178,7 @@ struct PlayBattleLaunch {
         )
         guard battle.restart(launch.configuration) else { return }
         shellSession.selectedTab = .play
-        if let route {
-            runRegistry.register(
-                PlayBattleRunRegistration(
-                    route: route,
-                    presentation: launch.presentation,
-                    universalModifiers: launch.universalModifiers,
-                ),
-            )
-        }
+        registerRunIfNeeded(launch, route: route)
     }
 }
 

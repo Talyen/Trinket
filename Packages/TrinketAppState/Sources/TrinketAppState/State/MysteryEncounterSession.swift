@@ -29,7 +29,6 @@ typealias MysteryProgressCompletion = (
 @MainActor
 @Observable
 public final class MysteryEncounterSession: Identifiable {
-    // swiftformat:disable:next modifierOrder -- SwiftLint requires isolation before access.
     nonisolated public var id: String {
         stage.id
     }

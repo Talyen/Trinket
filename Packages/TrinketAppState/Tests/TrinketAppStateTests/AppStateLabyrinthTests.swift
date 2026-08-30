@@ -445,34 +445,23 @@ struct AppStateLabyrinthTests { // swiftlint:disable:this type_body_length
     }
 
     @Test func `labyrinth mystery nodes carry exactly one economy modifier`() throws {
-        func hasUnclearedMysteryNode(_ session: PlaySession) -> Bool {
-            session.playerSave.labyrinth.nodes.values.contains {
-                $0.type.canonical == .mystery && !$0.isCleared
-            }
-        }
-
-        var state = try context.makePlaySession(arguments: ["-reset-state"])
+        let state = try context.makePlaySession(arguments: ["-reset-state"])
         _ = state.labyrinth.enter()
-        for _ in 0 ..< 8 where !hasUnclearedMysteryNode(state) {
-            state = try context.makePlaySession(arguments: ["-reset-state"])
-            _ = state.labyrinth.enter()
-        }
         let economyIDs: Set<LabyrinthModifierID> = [
             LabyrinthModifierID("bountyMark"),
             LabyrinthModifierID("scholarsToll"),
             LabyrinthModifierID("scavengersLuck"),
         ]
-        var checked = 0
-        for node in state.playerSave.labyrinth.nodes.values
-            where node.type.canonical == .mystery && !node.isCleared {
+        let mysteryNodes = state.playerSave.labyrinth.nodes.values
+            .filter { $0.type.canonical == .mystery && !$0.isCleared }
+        #expect(!mysteryNodes.isEmpty, "Expected at least one mystery node on the map")
+        for node in mysteryNodes {
             let ids = node.modifierIDs
             #expect(ids.count == 1)
             #expect(economyIDs.contains(ids[0]))
             let effects = state.playerSave.labyrinth.effects(for: node.id)
             #expect(effects.goldFoundPercent + effects.experienceEarnedPercent + effects.materialsFoundPercent > 0)
-            checked += 1
         }
-        #expect(checked > 0, "Expected at least one mystery node on the map")
     }
 
     @Test func `labyrinth shop nodes carry exactly one shop modifier`() throws {

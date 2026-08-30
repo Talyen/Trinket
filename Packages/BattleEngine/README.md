@@ -24,6 +24,7 @@ Products from `Package.swift`:
 | `PlayPolicy.greedy` / `.setupAware` | BattleEngine | greedy-v1 Auto Battle; setup-v1 is sweep-only |
 | `BattleSimulator` | BattleBalanceTools | Headless autoplay loop for balance sweeps |
 | `BalanceSweepRunner` | BattleBalanceTools | Stratified Monte Carlo sweep + markdown reports |
+| `BalanceProgressionRunner` / `HotspotAnalyzer` | BattleBalanceTools | Multi-mode journey simulation & difficulty hotspot analysis |
 
 ## Hand contract
 

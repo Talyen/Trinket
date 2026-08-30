@@ -12,7 +12,13 @@ enum CombatFeedbackClosedVocabulary {
         let label: CombatFeedbackChipLabel
     }
 
+    private static let staticSources: [Source] = generateSources()
+
     static func enumerateSources() -> [Source] {
+        staticSources
+    }
+
+    private static func generateSources() -> [Source] {
         var sources: [Source] = []
         for outcome in ActionEvent.EffectOutcome.allCases {
             let descriptor = CombatFeedbackEffectPresentation.descriptor(for: outcome)
@@ -50,7 +56,7 @@ enum CombatFeedbackClosedVocabulary {
         var items: [CombatFeedbackItem] = []
         var preparedAppearances: Set<PreparedAppearance> = []
         var nextID = 1
-        for source in enumerateSources() {
+        for source in staticSources {
             for role in CombatFeedbackPresentationRole.allCases {
                 let item = catalogItem(
                     from: source,
@@ -74,19 +80,12 @@ enum CombatFeedbackClosedVocabulary {
     }
 
     static func enumerateWordChips(at date: Date = .now) -> [CombatFeedbackItem] {
-        var items: [CombatFeedbackItem] = []
-        for outcome in ActionEvent.EffectOutcome.allCases {
-            for keyword in Keyword.allCases {
-                let event = catalogEvent(outcome: outcome, keyword: keyword)
-                for presented in CombatFeedbackPresenter.makeItems(from: [event], at: date) {
-                    guard case .word = presented.label else { continue }
-                    for role in CombatFeedbackPresentationRole.allCases {
-                        items.append(withPresentationRole(presented, role))
-                    }
-                }
+        enumerateItems(at: date).filter {
+            if case .word = $0.label {
+                return true
             }
+            return false
         }
-        return items
     }
 
     private struct PreparedAppearance: Hashable {
@@ -155,28 +154,6 @@ enum CombatFeedbackClosedVocabulary {
             availableAt: availableAt,
             expiresAt: expiresAt,
             reactionKind: .none,
-        )
-    }
-
-    private static func withPresentationRole(
-        _ item: CombatFeedbackItem,
-        _ role: CombatFeedbackPresentationRole,
-    ) -> CombatFeedbackItem {
-        CombatFeedbackItem(
-            id: item.id,
-            sourceEventIDs: item.sourceEventIDs,
-            actionGroupID: item.actionGroupID,
-            presentationIndex: role == .headline ? 0 : 1,
-            groupResultCount: role == .headline ? 1 : 4,
-            presentationRole: role,
-            targetID: item.targetID,
-            feedbackClass: item.feedbackClass,
-            keyword: item.keyword,
-            visualRole: item.visualRole,
-            label: item.label,
-            availableAt: item.availableAt,
-            expiresAt: item.expiresAt,
-            reactionKind: item.reactionKind,
         )
     }
 }

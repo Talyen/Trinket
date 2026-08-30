@@ -6,11 +6,7 @@ struct SliceBorderParticle: Identifiable {
     let id: Int
     let origin: CGPoint
     let direction: CGVector
-    let delayNoise: CGFloat
-    let lifetimeNoise: CGFloat
-    let distanceNoise: CGFloat
-    let sizeNoise: CGFloat
-    let fadeNoise: CGFloat
+    let motionNoise: DissolveParticleNoise
 
     static func make(count: Int, salt: Int = 0, isPrimary: Bool) -> [Self] {
         let geometry = HalfEdgeGeometry(isPrimary: isPrimary)
@@ -114,11 +110,13 @@ struct SliceBorderParticle: Identifiable {
             id: index + salt * 1000,
             origin: origin,
             direction: CGVector(dx: dx / length, dy: dy / length),
-            delayNoise: CombatantCardEffectNoise.value(index + salt, salt: 53),
-            lifetimeNoise: CombatantCardEffectNoise.value(index + salt, salt: 59),
-            distanceNoise: CombatantCardEffectNoise.value(index + salt, salt: 61),
-            sizeNoise: CombatantCardEffectNoise.value(index + salt, salt: 67),
-            fadeNoise: CombatantCardEffectNoise.value(index + salt, salt: 71),
+            motionNoise: DissolveParticleNoise(
+                distance: CombatantCardEffectNoise.value(index + salt, salt: 61),
+                delay: CombatantCardEffectNoise.value(index + salt, salt: 53),
+                lifetime: CombatantCardEffectNoise.value(index + salt, salt: 59),
+                size: CombatantCardEffectNoise.value(index + salt, salt: 67),
+                fade: CombatantCardEffectNoise.value(index + salt, salt: 71),
+            ),
         )
     }
 }
@@ -127,7 +125,7 @@ struct SliceBorderParticles: View {
     let progress: CGFloat
     let cardSize: CGSize
     let particles: [SliceBorderParticle]
-    var configuration = CardCastEffectConfiguration()
+    var configuration = CardDissolveConfiguration()
 
     var body: some View {
         Canvas { context, size in
@@ -163,35 +161,16 @@ struct SliceBorderParticles: View {
     }
 
     private func sample(for particle: SliceBorderParticle, cardOrigin: CGPoint) -> Sample {
-        let distance = configuration.particleDistance
-            + particle.distanceNoise * configuration.particleDistanceVariation
-        let delay = particle.delayNoise * configuration.particleDelay
-        let lifetime = configuration.particleLifetime
-            + particle.lifetimeNoise * configuration.particleLifetimeVariation
-        let age = min(max((progress - delay) / max(lifetime, 0.01), 0), 1)
-        let easedAge = 1 - pow(1 - age, max(configuration.particleAgeEasePower, 0.01))
+        let motion = configuration.sample(progress: progress, noise: particle.motionNoise)
         let start = CGPoint(
             x: cardOrigin.x + particle.origin.x * cardSize.width,
             y: cardOrigin.y + particle.origin.y * cardSize.height,
         )
         let center = CGPoint(
-            x: start.x + particle.direction.dx * distance * easedAge,
-            y: start.y + particle.direction.dy * distance * easedAge,
+            x: start.x + particle.direction.dx * motion.distance * motion.easedAge,
+            y: start.y + particle.direction.dy * motion.distance * motion.easedAge,
         )
-        let diameter = max(
-            0,
-            (configuration.particleSize + particle.sizeNoise * configuration.particleSizeVariation)
-                * (1 - age * configuration.particleSizeShrink),
-        )
-        let fadeStart = min(
-            max(configuration.fadeStart + particle.fadeNoise * configuration.fadeStartVariation, 0),
-            0.99,
-        )
-        let fadeProgress = max(0, (age - fadeStart) / (1 - fadeStart))
-        let opacity = progress >= delay && age < 1
-            ? pow(1 - fadeProgress, max(configuration.particleFadeExponent, 0.01))
-            : 0
-        return Sample(center: center, diameter: diameter, opacity: opacity)
+        return Sample(center: center, diameter: motion.diameter, opacity: motion.opacity)
     }
 }
 

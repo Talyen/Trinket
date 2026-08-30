@@ -10,13 +10,7 @@ private struct ShineTextModifier: ViewModifier {
         if colors.isEmpty {
             content
         } else {
-            let base = colors.first ?? Keyword.physical.visualStyle.color
-            let highlight = TrinketDesign.Colors.Overlay.paper
-            let isSingle = colors.count <= 1
-            let sweepColors: [Color] = isSingle
-                ? [base.opacity(0.85), base, highlight, base, base.opacity(0.85)]
-                : [base] + colors + colors.reversed() + [base]
-            let sweepStops = seamlessShineStops(colors: sweepColors)
+            let sweepStops = alchemyTextShineStops(colors: colors)
             TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: reduceMotion)) { context in
                 let phase = reduceMotion
                     ? 0
@@ -25,8 +19,8 @@ private struct ShineTextModifier: ViewModifier {
                     .foregroundStyle(
                         LinearGradient(
                             gradient: Gradient(stops: sweepStops),
-                            startPoint: UnitPoint(x: -phase, y: 0.5),
-                            endPoint: UnitPoint(x: 2 - phase, y: 0.5),
+                            startPoint: UnitPoint(x: phase - 1, y: 0.5),
+                            endPoint: UnitPoint(x: phase + 1, y: 0.5),
                         ),
                     )
             }
@@ -34,15 +28,22 @@ private struct ShineTextModifier: ViewModifier {
     }
 }
 
-private func seamlessShineStops(colors: [Color]) -> [Gradient.Stop] {
-    let periodSegmentCount = colors.count - 1
-    return (0 ... 1).flatMap { period in
-        colors.indices.map { index in
-            let location = (
-                Double(period) + Double(index) / Double(periodSegmentCount),
-            ) / 2
-            return Gradient.Stop(color: colors[index], location: location)
-        }
+private func alchemyTextShineColors(colors: [Color]) -> [Color] {
+    var seen = Set<Color>()
+    let uniqueColors = colors.filter { seen.insert($0).inserted }
+    guard let firstColor = uniqueColors.first else { return [] }
+
+    let band = uniqueColors + [TrinketDesign.Colors.Overlay.paper]
+    return band + band + [firstColor]
+}
+
+private func alchemyTextShineStops(colors: [Color]) -> [Gradient.Stop] {
+    let loopedColors = alchemyTextShineColors(colors: colors)
+    guard loopedColors.count > 1 else { return [] }
+
+    let finalIndex = Double(loopedColors.count - 1)
+    return loopedColors.enumerated().map { index, color in
+        Gradient.Stop(color: color, location: Double(index) / finalIndex)
     }
 }
 

@@ -269,7 +269,7 @@ enum BalanceContrastSupport {
                 samples: config.battlesPerTier,
             ),
         )
-        let pairResults = ParallelMap.map(work) { item -> ContrastPairOutcome? in
+        let pairResults = work.map { item -> ContrastPairOutcome? in
             let focus = foci[item.focusIndex]
             let seed = config.seed
                 &+ UInt64(item.tier.level) &* primes.tier

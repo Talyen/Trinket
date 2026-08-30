@@ -42,9 +42,9 @@ package enum DamagePipeline {
             applyReactiveOnHit(to: &state, in: &context)
             applyKeywordReactions(to: &state, in: &context)
             applyCriticalReaction(to: &state, in: &context)
+            state.damageEvents.append(contentsOf: BoonCombatEngine.afterDamage(state, in: &context))
         } else if state.options.applyControlMeter {
             applyControlMeter(to: &state, in: &context)
         }
-        state.damageEvents.append(contentsOf: BoonCombatEngine.afterDamage(state, in: &context))
     }
 }

@@ -16,7 +16,7 @@ music volume still routes to silence; Options prepares the muted track off the m
 thread so the Music slider can unmute immediately without a crossfade. Repeated mute
 reconciles leave that prepare in place (already-silent `update` does not cancel it). Battle SFX
 mapping stays in `TrinketBattleFeature` via `BattleRuntimeDependencies`. Production
-code depends on `TrinketBattleRuntime` and feature contracts only — never concrete
+code depends on `BattleEngine` (`BattleRuntime`) and feature contracts only — never concrete
 BattleFeature. Persistence owns save-mutation semantics; AppState decides when.
 
 ```sh

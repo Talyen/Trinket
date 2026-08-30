@@ -58,7 +58,7 @@ struct BattleCombatantPane: View {
                     artworkLayer
                 }
             } else {
-                BattleDissolveArtwork(celebratesDefeat: false) {
+                CardDissolveArtwork {
                     artworkLayer
                 }
             }
@@ -335,56 +335,5 @@ private struct CombatantStatusBorderPulseStroke: View, Animatable {
             keyword.visualStyle.color.opacity(opacity),
             lineWidth: 1,
         )
-    }
-}
-
-struct CombatManaBar: View {
-    let mana: Int
-    let maxMana: Int
-    @State private var displayedMana: Int
-    @State private var restoreGlowOpacity: Double = 0
-
-    init(mana: Int, maxMana: Int) {
-        self.mana = mana
-        self.maxMana = maxMana
-        _displayedMana = State(initialValue: mana)
-    }
-
-    var body: some View {
-        ZStack(alignment: .leading) {
-            Rectangle()
-                .fill(TrinketDesign.Colors.battleHealthTrack)
-
-            Rectangle()
-                .fill(Keyword.mana.visualStyle.color)
-                .scaleEffect(x: displayedFraction, y: 1, anchor: .leading)
-
-            Rectangle()
-                .fill(Keyword.mana.visualStyle.color)
-                .scaleEffect(x: displayedFraction, y: 1, anchor: .leading)
-                .opacity(restoreGlowOpacity)
-                .blendMode(.plusLighter)
-        }
-        .frame(maxWidth: .infinity)
-        .frame(height: TrinketDesign.Metrics.battleHealthBarHeight)
-        .clipShape(Rectangle())
-        .onChange(of: mana) { oldMana, newMana in
-            if newMana > oldMana {
-                restoreGlowOpacity = 0.36
-                withAnimation(.easeOut(duration: TrinketMotion.Interaction.manaRestoreDuration)) {
-                    displayedMana = newMana
-                    restoreGlowOpacity = 0
-                }
-            } else {
-                withAnimation(.easeOut(duration: TrinketMotion.Interaction.manaSpendDuration)) {
-                    displayedMana = newMana
-                }
-            }
-        }
-    }
-
-    private var displayedFraction: Double {
-        guard maxMana > 0 else { return 0 }
-        return min(max(Double(displayedMana) / Double(maxMana), 0), 1)
     }
 }

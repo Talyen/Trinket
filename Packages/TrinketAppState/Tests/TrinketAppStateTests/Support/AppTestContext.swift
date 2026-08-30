@@ -33,6 +33,7 @@ final class AppTestContext {
     }
 
     deinit {
+        userDefaults.removePersistentDomain(forName: suiteName)
         SaveTestSupport.removeTempDirectory(directoryURL)
     }
 

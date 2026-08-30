@@ -26,19 +26,8 @@ enum BattleSessionTestSupport {
             actionIntervalTurns: 1,
             abilities: [.slash],
         )
-        let resolvedCompanion = companion ?? CombatantFixtures.combatant(
-            id: "companion",
-            role: .companion,
-            actionIntervalTurns: 100,
-            abilities: [],
-        )
-        let resolvedEnemy = enemy ?? CombatantFixtures.combatant(
-            id: "enemy",
-            role: .enemy,
-            maxHealth: 100,
-            actionIntervalTurns: 100,
-            abilities: [],
-        )
+        let resolvedCompanion = companion ?? CombatantFixtures.passiveCompanion()
+        let resolvedEnemy = enemy ?? CombatantFixtures.passiveEnemy()
         let session = BattleSession(
             autoEndTurnDelay: autoEndTurnDelay,
             openingHandDrawStagger: 0,

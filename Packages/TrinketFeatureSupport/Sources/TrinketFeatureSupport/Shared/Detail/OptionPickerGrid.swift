@@ -14,7 +14,7 @@ public struct OptionPickerGrid<Item: Identifiable, CardView: View>: View {
     let viewportPrefetchRows: Int
     let viewportEstimatedColumns: Int
     @ViewBuilder let card: (Item, Bool) -> CardView
-    @State private var visibleIDStrings: Set<String> = []
+    @State private var visibleIDs: Set<Item.ID> = []
 
     public init(
         items: [Item],
@@ -69,35 +69,31 @@ public struct OptionPickerGrid<Item: Identifiable, CardView: View>: View {
                     .accessibilityIdentifier(accessibilityIdentifier(item))
                     .onAppear {
                         guard artworkNameProvider != nil else { return }
-                        visibleIDStrings.insert(String(describing: item.id))
+                        visibleIDs.insert(item.id)
                     }
                     .onDisappear {
                         guard artworkNameProvider != nil else { return }
-                        visibleIDStrings.remove(String(describing: item.id))
+                        visibleIDs.remove(item.id)
                     }
                 }
             }
             .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
             .padding(.vertical, TrinketDesign.Metrics.mediumSpacing)
         }
-        .onChange(of: items.map { String(describing: $0.id) }) { _, _ in
+        .onChange(of: items.map(\.id)) { _, _ in
             guard artworkNameProvider != nil else { return }
-            visibleIDStrings.formIntersection(items.lazy.map { String(describing: $0.id) })
+            visibleIDs.formIntersection(items.lazy.map(\.id))
         }
-        .task(id: visibleIDStrings) {
+        .task(id: visibleIDs) {
             guard let provider = artworkNameProvider else { return }
-            let snapshot = visibleIDStrings
-            try? await Task.sleep(for: ArtworkViewportPrewarm.viewportDebounceInterval)
-            guard !Task.isCancelled, snapshot == visibleIDStrings else { return }
-            let names = ArtworkViewportPrewarm.windowNamesByStringID(
+            await ArtworkViewportPrewarm.prewarm(
                 orderedItems: items,
-                visibleIDStrings: snapshot,
+                visibleIDs: visibleIDs,
+                currentVisibleIDs: { visibleIDs },
                 thumbnailName: provider,
                 prefetchRows: viewportPrefetchRows,
                 estimatedColumns: viewportEstimatedColumns,
             )
-            guard !names.isEmpty else { return }
-            await PreparedArtworkCache.shared.prepare(names: names)
         }
     }
 

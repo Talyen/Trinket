@@ -335,6 +335,7 @@ final class BattleFeedbackLane {
     }
 }
 
+@MainActor
 final class BattleFeedbackScheduler {
     private let pruneTimer: Timer
     private let target: FeedbackPruneTarget
@@ -366,11 +367,12 @@ final class BattleFeedbackScheduler {
         pruneTimer.invalidate()
     }
 
-    deinit {
+    isolated deinit {
         pruneTimer.invalidate()
     }
 }
 
+@MainActor
 private final class FeedbackPruneTarget: NSObject {
     private weak var lane: BattleFeedbackLane?
 
@@ -379,8 +381,6 @@ private final class FeedbackPruneTarget: NSObject {
     }
 
     @objc func fire() {
-        Task { @MainActor [weak lane] in
-            lane?.pruneTimerDidFire()
-        }
+        lane?.pruneTimerDidFire()
     }
 }

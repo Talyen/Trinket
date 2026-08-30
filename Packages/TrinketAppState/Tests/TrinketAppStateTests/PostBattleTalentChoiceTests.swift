@@ -134,4 +134,30 @@ struct PostBattleTalentChoiceTests {
         #expect(state.currentPostBattleTalentCombatantID == nil)
     }
     #endif
+
+    @Test func `spent talent points prune post battle talent choice`() throws {
+        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        let stage = try #require(GameContent.chapters[0].stages.first)
+        let hero = state.playerSave.roster.activeHero
+        try state.playerSave.performBatchMutation { save in
+            save.roster.progressions[hero.id] = CombatantProgression(
+                level: 1,
+                currentXP: 9,
+                requiredXP: 10,
+            )
+        }
+        _ = state.journey.startBattle(for: stage)
+        let configuration = try #require(state.battle.activeBattle)
+
+        #expect(state.completeActiveBattle(configuration, battleEarnedGold: 0))
+        #expect(state.currentPostBattleTalentCombatantID == hero.id)
+        #expect(state.isGameplayActive)
+
+        let tree = try #require(CombatantTalentCatalog.allConfigs[hero.id]?.trees.first)
+        let node = try #require(tree.nodes.first)
+        #expect(state.playerSave.unlockTalent(nodeID: node.id, treeID: tree.id, for: hero.id) == .unlocked)
+
+        #expect(state.currentPostBattleTalentCombatantID == nil)
+        #expect(!state.isGameplayActive)
+    }
 }

@@ -135,7 +135,7 @@ struct BattleLogReducerTests {
         try #expect(BattleLogReducer.line(for: expired) == "Hero's Death's Door fades.")
     }
 
-    @Test func `passive talent attribution log lines`() throws {
+    @Test func `passive talent attribution log lines`() {
         let blockEvent = ActionEvent(
             id: 1,
             kind: .effect,
@@ -147,7 +147,7 @@ struct BattleLogReducerTests {
             amount: 2,
             keyword: .holy,
         )
-        try #expect(BattleLogReducer.line(for: blockEvent) == "Knight gains 2 Block (Oathbound).")
+        #expect(BattleLogReducer.line(for: blockEvent) == "Knight gains 2 Block (Oathbound).")
 
         let healEvent = ActionEvent(
             id: 2,
@@ -160,7 +160,7 @@ struct BattleLogReducerTests {
             amount: 2,
             keyword: .burn,
         )
-        try #expect(BattleLogReducer.line(for: healEvent) == "Warlock restores 2 Health (Bloodfire).")
+        #expect(BattleLogReducer.line(for: healEvent) == "Warlock restores 2 Health (Bloodfire).")
 
         let thornsEvent = ActionEvent(
             id: 3,
@@ -173,7 +173,7 @@ struct BattleLogReducerTests {
             amount: 3,
             keyword: .physical,
         )
-        try #expect(BattleLogReducer.line(for: thornsEvent) == "Shield Scarab deals 3 Physical damage to Goblin (Spiked Shell).")
+        #expect(BattleLogReducer.line(for: thornsEvent) == "Shield Scarab deals 3 Physical damage to Goblin (Spiked Shell).")
 
         let cleanseEvent = ActionEvent(
             id: 4,
@@ -186,7 +186,7 @@ struct BattleLogReducerTests {
             amount: 0,
             keyword: .poison,
         )
-        try #expect(BattleLogReducer.line(for: cleanseEvent) == "Hero Cleanses Poison (Purifying Wisdom).")
+        #expect(BattleLogReducer.line(for: cleanseEvent) == "Hero Cleanses Poison (Purifying Wisdom).")
     }
 
     private func sampleEvents(includeDefeat: Bool) -> [ActionEvent] {
