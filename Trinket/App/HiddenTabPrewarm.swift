@@ -8,7 +8,6 @@ struct HiddenTabPrewarm: View {
 
     var body: some View {
         ZStack {
-            PlayView(restoresPendingDestination: false)
             NavigationStack {
                 CollectionView()
             }
