@@ -92,6 +92,7 @@ public enum Effect: Hashable, Sendable {
     case freezeNextAttacker
     case onHitDamage(Keyword, Int)
     case cleanseHealPerDebuff(Int)
+    case panacea(baseHeal: Int, healPerDebuff: Int)
     case multiplyDoT(Keyword, Int)
     case recurringDamage(Keyword, Int, Int)
     case avatar(holyDamage: Int, blockPerTurn: Int, turns: Int)
@@ -124,7 +125,7 @@ public enum Effect: Hashable, Sendable {
         case let .resourceGain(k, _): k
         case .drawCards, .drawAndPlayCards: .physical
         case let .cleanse(k?): k
-        case .cleanse(nil), .cleanseRandom, .cleanseHealPerDebuff: .cleanse
+        case .cleanse(nil), .cleanseRandom, .cleanseHealPerDebuff, .panacea: .cleanse
         case let .purge(k?): k
         case .purge(nil), .purgeRandom: .purge
         case let .halveShield(k): k
@@ -203,7 +204,7 @@ public enum Effect: Hashable, Sendable {
              .shield, .thorns, .nextHolyStrike, .nextStrikeDouble, .evadeNextHit,
              .convertManaToBlock, .shieldFromMana, .shieldFromHalfMana, .shieldFromGold, .maximumManaBonus,
              .nextStrikeCritical, .freezeNextAttacker, .onHitDamage, .multiplyDoT, .revive,
-             .cleanseHealPerDebuff, .hemorrhage:
+             .cleanseHealPerDebuff, .panacea, .hemorrhage:
             0
         }
     }
@@ -241,7 +242,7 @@ public enum Effect: Hashable, Sendable {
         case .revive:
             .defeatedAlly
         case .shield, .resourceGain, .drawCards, .drawAndPlayCards, .cleanse, .cleanseRandom,
-             .cleanseHealPerDebuff,
+             .cleanseHealPerDebuff, .panacea,
              .deathsDoor, .thorns, .criticalChanceBonus, .restoreManaOnHit,
              .damageKeywordOverride, .nextHolyStrike, .nextStrikeDouble, .evadeNextHit,
              .convertManaToBlock, .shieldFromMana, .shieldFromHalfMana, .shieldFromGold, .maximumManaBonus,

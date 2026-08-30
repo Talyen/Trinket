@@ -1,7 +1,7 @@
 import Foundation
 
 public enum EnemyPowerCurve {
-    public static let bossHealthMultiplier = 2.00
+    public static let bossHealthMultiplier = 1.75
 
     private static let normalStatAnchors: [(level: Int, power: Double)] = [
         (1, 4.20),
@@ -12,7 +12,7 @@ public enum EnemyPowerCurve {
     private static let bossStatAnchors: [(level: Int, power: Double)] = [
         (1, 5.20),
         (20, 10.77),
-        (40, 18.90),
+        (40, 24.50),
     ]
 
     public static func stats(level: Int, isBoss: Bool) -> Double {

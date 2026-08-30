@@ -206,7 +206,7 @@ struct AbilityEffectIntegrationTests {
 
         let healthAfterCast = battle.health(of: battle.enemy)
         try #expect(healthAfterCast < 100)
-        try #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.hero)) == 4)
+        try #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.hero)) == 3)
 
         let firstEndEvents = BattleTestFixtures.endTurn(on: &battle)
         let healthAfterFirstRound = battle.health(of: battle.enemy)
@@ -379,7 +379,7 @@ struct AbilityEffectIntegrationTests {
 
 private func avatarRemainingTurns(on combatant: Combatant, in battle: BattleState) -> Int? {
     battle.activeEffects(of: combatant).compactMap { active -> Int? in
-        if case .avatar(6, 4, 2) = active.effect {
+        if case .avatar = active.effect {
             return active.remainingTurns
         }
         return nil
@@ -388,6 +388,6 @@ private func avatarRemainingTurns(on combatant: Combatant, in battle: BattleStat
 
 private func avatarPulsedBlock(_ events: [ActionEvent], casterID: String) -> Bool {
     events.contains {
-        $0.effectKind == .shieldApplied && $0.targetID == casterID && $0.amount == 4
+        $0.effectKind == .shieldApplied && $0.targetID == casterID
     }
 }

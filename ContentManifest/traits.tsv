@@ -5,10 +5,10 @@ mud_elemental_trait	Mud Elemental	Physical and Poison damage taken reduced by 20
 necromancer_trait	Necromancer	10% chance to Leech. Holy damage taken increased by 30%.	damage_taken_vulnerability:holy:0.30	leech_chance:0.10
 plague_doctor_trait	Plague Doctor	Poison damage taken reduced by 30%.	damage_taken_percent:poison:0.30	
 skeleton_trait	Skeleton	Holy damage taken increased by 30%. Bleed damage taken reduced by 30%.	damage_taken_vulnerability:holy:0.30|damage_taken_percent:bleed:0.30	
-the_blight_treant_trait	The Blight Treant	Holy damage taken increased by 30%. Deals 1 Poison or Bleed damage each turn to all enemies.	damage_taken_vulnerability:holy:0.30	turn_random_damage_all_enemies:poison:bleed:1
-the_forge_golem_trait	The Forge Golem	Deals 1 Stun or Burn damage each turn to all enemies.		turn_random_damage_all_enemies:stun:burn:1
-the_frostwarden_trait	The Frostwarden	Deals 1 Freeze damage every other turn to all enemies. Burn damage taken increased by 30%.	damage_taken_vulnerability:burn:0.30	turn_freeze_all_enemies:1
-the_iron_bear_trait	The Iron Bear	Deals 1 Physical or Stun damage each turn to all enemies.		turn_random_damage_all_enemies:physical:stun:1
+the_blight_treant_trait	The Blight Treant	Holy damage taken increased by 30%. Deals 1 Poison or Bleed damage every other turn to all enemies.	damage_taken_vulnerability:holy:0.30	turn_random_damage_all_enemies:poison:bleed:1|turn_random_damage_all_enemies_interval:2
+the_forge_golem_trait	The Forge Golem	Deals 1 Stun or 1 Burn damage every other turn to all enemies.		turn_random_damage_all_enemies:stun:burn:1|turn_random_damage_all_enemies_interval:2
+the_frostwarden_trait	The Frostwarden	Deals 1 Freeze damage every other turn to all enemies. Burn damage taken increased by 30%.	damage_taken_vulnerability:burn:0.30	turn_freeze_all_enemies:1|turn_freeze_damage_all_enemies_interval:2
+the_iron_bear_trait	The Iron Bear	Deals 1 Physical or 1 Stun damage every other turn to all enemies.		turn_random_damage_all_enemies:physical:stun:1|turn_random_damage_all_enemies_interval:2
 goblin_trait	Goblin	Burn damage taken increased by 30%.	damage_taken_vulnerability:burn:0.30	
 fire_elemental_trait	Fire Elemental	Burns attackers for 1 damage when hit. Freeze damage taken increased by 30%.	damage_taken_vulnerability:freeze:0.30	on_hit_attacker_burn:1
 frost_elemental_trait	Frost Elemental	Freeze damage is increased by 1. Burn damage taken increased by 30%.	damage_dealt:freeze:1|damage_taken_vulnerability:burn:0.30	
@@ -24,12 +24,12 @@ giant_snake_trait	Giant Snake	Poison strips 1 Block before damaging Health. Free
 blood_cultist_trait	Blood Cultist	When Bleed deals damage, your next basic attack is a guaranteed Critical Hit. Holy damage taken increased by 30%.	damage_taken_vulnerability:holy:0.30	onBleedDamageNextBasicGuaranteedCrit:true
 dire_wolf_trait	Dire Wolf	Attacks against Bleeding enemies deal 1 additional damage. Physical damage taken reduced by 10%.	damage_taken_percent:physical:0.10	damageVsBleedingBonus:1
 vampire_trait	Vampire	10% chance to Leech. Reaching full Health makes your next attack deal 1 additional damage. Holy and Burn damage taken increased by 30%.	damage_taken_vulnerability:holy:0.30|damage_taken_vulnerability:burn:0.30	leech_chance:0.10|nextAttackBonusOnFullHealth:1
-the_blood_countess_trait	The Blood Countess	Holy damage taken increased by 30%. Deals 1 Bleed damage each turn to all enemies.	damage_taken_vulnerability:holy:0.30	turn_random_damage_all_enemies:bleed:bleed:1
+the_blood_countess_trait	The Blood Countess	Holy damage taken increased by 30%. Deals 1 Bleed damage every other turn to all enemies.	damage_taken_vulnerability:holy:0.30	turn_random_damage_all_enemies:bleed:bleed:1|turn_random_damage_all_enemies_interval:2
 zealot_trait	Zealot	Dealing Holy damage adds 1 Holy damage to your next attack. Bleed damage taken increased by 30%.	damage_taken_vulnerability:bleed:0.30	holyDamageNextAttackHolyBonus:1
 cleric_trait	Cleric	Dealing Holy damage restores 1 Health. Gain 1 Block at the start of each round.		holyDamageHealLowestAllyFlat:1|blockPerTurn:1
 inquisitor_trait	Inquisitor	Dealing Holy damage adds 1 Holy damage to your next attack. Bleed damage taken increased by 30%.	damage_taken_vulnerability:bleed:0.30	holyDamageNextAttackHolyBonus:1
 paladin_trait	Paladin	Gain 1 Block when you deal Stun or Holy damage. Holy damage taken reduced by 30%.	damage_taken_percent:holy:0.30	holyDamageBlockFlat:1|stunDamageBlockFlat:1
-the_seraph_trait	The Seraph	Bleed damage taken increased by 30%. Deals 1 Holy damage each turn to all enemies.	damage_taken_vulnerability:bleed:0.30	turn_random_damage_all_enemies:holy:holy:1
+the_seraph_trait	The Seraph	Bleed damage taken increased by 30%. Deals 1 Holy damage every other turn to all enemies.	damage_taken_vulnerability:bleed:0.30	turn_random_damage_all_enemies:holy:holy:1|turn_random_damage_all_enemies_interval:2
 winter_wolf_trait	Winter Wolf	Basic attacks apply 1 Freeze. Burn damage taken increased by 30%.	damage_taken_vulnerability:burn:0.30	basicAttackFreezeBuildup:1
 ice_wraith_trait	Ice Wraith	Frozen enemies deal 1 less damage. Physical damage taken reduced by 30%. Burn and Holy damage taken increased by 30%.	damage_taken_percent:physical:0.30|damage_taken_vulnerability:burn:0.30|damage_taken_vulnerability:holy:0.30	frozenEnemyDamageReductionFlat:1
 yeti_trait	Yeti	Gain 1 Block whenever an enemy becomes Frozen. Freeze damage taken reduced by 30%. Burn damage taken increased by 30%.	damage_taken_percent:freeze:0.30|damage_taken_vulnerability:burn:0.30	onEnemyFrozenGainBlock:1
@@ -37,4 +37,4 @@ banshee_trait	Banshee	Attacks against Stunned enemies deal 1 additional damage. 
 brawler_trait	Brawler	Stunned enemies deal half damage on their next turn. Bleed damage taken increased by 30%.	damage_taken_vulnerability:bleed:0.30	stunnedEnemyNextTurnDamageMultiplier:0.5
 stone_golem_trait	Stone Golem	Gain 1 Block at the start of each round. While you have Block, attacks deal 1 additional damage.		blockPerTurn:1|shieldDamageBonusWhileBlocked:1
 earth_elemental_trait	Earth Elemental	Breaking an enemy's Block deals 1 Physical damage to them. Freeze and Burn damage taken reduced by 20%.	damage_taken_percent:freeze:0.20|damage_taken_percent:burn:0.20	onEnemyBlockBrokenDealPhysical:1
-the_stone_titan_trait	The Stone Titan	Deals 1 Stun damage each turn to all enemies.		turn_random_damage_all_enemies:stun:stun:1
+the_stone_titan_trait	The Stone Titan	Deals 1 Stun damage every other turn to all enemies.		turn_random_damage_all_enemies:stun:stun:1|turn_random_damage_all_enemies_interval:2

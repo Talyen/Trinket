@@ -209,11 +209,18 @@ struct EnemyTraitBattleTests {
 
             let heroLoss = heroHealthBefore - context.roster.health(for: hero)
             let companionLoss = companionHealthBefore - context.roster.health(for: companion)
-            try #expect(
-                heroLoss + companionLoss == 3,
-                "\(enemyID) turn \(turn): hero \(heroLoss), companion \(companionLoss)",
-            )
-            try #expect(Set([heroLoss, companionLoss]) == Set([1, 2]))
+            if turn.isMultiple(of: 2) {
+                try #expect(
+                    heroLoss + companionLoss == 3,
+                    "\(enemyID) turn \(turn): hero \(heroLoss), companion \(companionLoss)",
+                )
+                try #expect(Set([heroLoss, companionLoss]) == Set([1, 2]))
+            } else {
+                try #expect(
+                    heroLoss + companionLoss == 0,
+                    "\(enemyID) turn \(turn): hero \(heroLoss), companion \(companionLoss)",
+                )
+            }
         }
     }
 

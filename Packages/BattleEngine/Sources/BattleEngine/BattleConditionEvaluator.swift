@@ -75,6 +75,27 @@ public enum BattleConditionEvaluator {
         }
     }
 
+    public static func mostDebuffedAlly(in context: BattleState) -> Combatant {
+        mostDebuffedAlly(
+            hero: context.roster.hero.combatant,
+            companion: context.roster.companion.combatant,
+            context: context,
+        )
+    }
+
+    public static func mostDebuffedAlly(
+        hero: Combatant,
+        companion: Combatant,
+        context: BattleState,
+    ) -> Combatant {
+        let heroDebuffs = context.roster.activeEffects(for: hero).count(where: \.effect.isRemovableDebuff)
+        let companionDebuffs = context.roster.activeEffects(for: companion).count(where: \.effect.isRemovableDebuff)
+        if heroDebuffs != companionDebuffs {
+            return heroDebuffs > companionDebuffs ? hero : companion
+        }
+        return lowestHealthAlly(hero: hero, companion: companion, context: context)
+    }
+
     private static func hasDebuffKeyword(
         _ keyword: Keyword,
         on combatant: Combatant,

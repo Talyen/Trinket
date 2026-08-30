@@ -5,7 +5,7 @@ enum AbilityCatalogUltimate {
     static let avatarOfJustice = Ability(
         id: "avatar-of-justice", name: "Avatar", tier: .ultimate,
         targetedEffects: [
-            TargetedEffect(.avatar(holyDamage: 6, blockPerTurn: 4, turns: 2)),
+            TargetedEffect(.avatar(holyDamage: 5, blockPerTurn: 3, turns: 2)),
         ],
     )
 
@@ -102,7 +102,7 @@ enum AbilityCatalogUltimate {
 
     static let moltenBulwark = Ability(
         id: "molten-bulwark", name: "Molten Bulwark", tier: .ultimate,
-        damageComponents: [DamageComponent(2, keyword: .burn)],
+        damageComponents: [DamageComponent(3, keyword: .burn)],
         targetedEffects: [
             TargetedEffect(.shield(.block, 4)),
             TargetedEffect(.onHitDamage(.burn, 3)),
@@ -118,8 +118,10 @@ enum AbilityCatalogUltimate {
 
     static let panaceaPotion = Ability(
         id: "panacea-potion", name: "Panacea Potion", tier: .ultimate,
-        description: "Cleanse all debuffs. Restore 1 Health for each debuff cleansed.",
-        targetedEffects: [TargetedEffect(.cleanseHealPerDebuff(1))],
+        description: "Cleanse all debuffs from an ally. Restore 3 Health plus 2 per debuff cleansed.",
+        targetedEffects: [
+            TargetedEffect(.panacea(baseHeal: 3, healPerDebuff: 2)),
+        ],
     )
 
     static let phoenixFeather = Ability(

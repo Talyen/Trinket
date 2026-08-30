@@ -136,7 +136,7 @@ struct BattleCardCombatTests {
         try #expect(battle.hand.count == BattleHand.maxSize)
         try #expect(battle.handBuffer.count == 1)
         try #expect(events.contains { $0.effectKind == .cardsDrawn && $0.amount == 2 })
-        try #expect(battle.health(of: battle.hero) == 49)
+        try #expect(battle.health(of: battle.hero) == 47)
     }
 
     @Test func `dark pact health cost ignores block`() throws {
@@ -159,7 +159,7 @@ struct BattleCardCombatTests {
 
         _ = try BattleTestFixtures.playCardNamed("Dark Pact", owner: .hero, on: &battle)
 
-        try #expect(battle.health(of: battle.hero) == 49)
+        try #expect(battle.health(of: battle.hero) == 47)
         let shield = battle.activeEffects(of: battle.hero).first {
             if case .shield = $0.effect {
                 return true

@@ -57,10 +57,10 @@ struct CombatantLevelScalerTests {
             statsMultiplier: stats,
         )
 
-        try #expect(health > stats)
+        try #expect(health < stats)
         try #expect(scaled.primaryStats == expected.primaryStats)
         try #expect(scaled.maxHealth == expected.maxHealth)
-        try #expect(scaled.maxHealth > uniformStats.maxHealth)
+        try #expect(scaled.maxHealth < uniformStats.maxHealth)
         try #expect(scaled.primaryStats == uniformStats.primaryStats)
     }
 

@@ -76,6 +76,12 @@
         "merge": "add"
       },
       {
+        "name": "turnRandomDamageAllEnemiesInterval",
+        "type": "Int",
+        "default": "2",
+        "merge": "max"
+      },
+      {
         "name": "holyDamagePoisonFlat",
         "type": "Int",
         "default": "0",
@@ -1310,6 +1316,12 @@
         "type": "Int",
         "default": "0",
         "merge": "add"
+      },
+      {
+        "name": "turnFreezeDamageAllEnemiesInterval",
+        "type": "Int",
+        "default": "2",
+        "merge": "max"
       },
       {
         "name": "stunPurgeDealHolyPerEffect",

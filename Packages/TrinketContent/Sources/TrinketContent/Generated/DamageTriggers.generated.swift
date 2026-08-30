@@ -16,6 +16,7 @@ public struct DamageTriggers: Equatable, Hashable, Sendable {
     public var turnRandomDamageAllEnemiesKeywordA: Keyword? = nil
     public var turnRandomDamageAllEnemiesKeywordB: Keyword? = nil
     public var turnRandomDamageAllEnemiesAmount: Int = 0
+    public var turnRandomDamageAllEnemiesInterval: Int = 2
     public var holyDamagePoisonFlat: Int = 0
     public var stunnedDamageMultiplier: Double = 1
     public var criticalChanceBonus: Double = 0
@@ -65,6 +66,7 @@ public struct DamageTriggers: Equatable, Hashable, Sendable {
         turnRandomDamageAllEnemiesKeywordA: Keyword? = nil,
         turnRandomDamageAllEnemiesKeywordB: Keyword? = nil,
         turnRandomDamageAllEnemiesAmount: Int = 0,
+        turnRandomDamageAllEnemiesInterval: Int = 2,
         holyDamagePoisonFlat: Int = 0,
         stunnedDamageMultiplier: Double = 1,
         criticalChanceBonus: Double = 0,
@@ -113,6 +115,7 @@ public struct DamageTriggers: Equatable, Hashable, Sendable {
         self.turnRandomDamageAllEnemiesKeywordA = turnRandomDamageAllEnemiesKeywordA
         self.turnRandomDamageAllEnemiesKeywordB = turnRandomDamageAllEnemiesKeywordB
         self.turnRandomDamageAllEnemiesAmount = turnRandomDamageAllEnemiesAmount
+        self.turnRandomDamageAllEnemiesInterval = turnRandomDamageAllEnemiesInterval
         self.holyDamagePoisonFlat = holyDamagePoisonFlat
         self.stunnedDamageMultiplier = stunnedDamageMultiplier
         self.criticalChanceBonus = criticalChanceBonus
@@ -151,7 +154,7 @@ public struct DamageTriggers: Equatable, Hashable, Sendable {
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["damageBelowHealthPercentThreshold", "damageBelowHealthPercentKeyword", "damageBelowHealthPercentBonus", "damageAfterDodgeBonus", "damageWhileTargetFrozenBonus", "damageWhileTargetStunnedBonus", "ignoreEnemyMitigationPercent", "leechIgnoresMitigation", "firstHitDoubleDamage", "turnRandomDamageAllEnemiesKeywordA", "turnRandomDamageAllEnemiesKeywordB", "turnRandomDamageAllEnemiesAmount", "holyDamagePoisonFlat", "stunnedDamageMultiplier", "criticalChanceBonus", "damageVsBleedingBonus", "damageVsPoisonedMultiplier", "damageVsBurningMultiplier", "damageVsFrozenMultiplier", "holyDamageVsStunnedOrBurningMultiplier", "holyDamageVsPoisonedOrBleedingMultiplier", "holyDamageVsStunnedBonus", "holyDamageVsUndeadOrCorruptedMultiplier", "frostDamageVsFrozenBonus", "burnDamageVsFrozenBonusPhysical", "burnDamageVsNoBlockMultiplier", "physicalDamageVsBleedingMultiplier", "damagePerMissingHealthEvery", "damagePerCarriedGoldEvery", "goldReservesDamageEvery", "goldReservesDamageCap", "damageVsLowerHealthEnemyBonus", "companionDamageVsPoisonedBonus", "companionDamageVsBurningBonus", "heroDamageVsStunnedMultiplier", "poisonDamageBelowHealthThreshold", "poisonDamageBelowHealthMultiplier", "bleedTickCritChancePercent", "burnDamageDoubleChancePercent", "partyCritChanceWhileCompanionAboveHealthThreshold", "partyCritChanceWhileCompanionAboveHealthBonus", "heroCritChanceWhileCompanionAlive", "critChancePerBleedingEnemy", "partyCritChanceWhileGoldAbove", "partyCritChanceWhileGoldAboveBonus", "partyAllStatsBonusBelowHealthThreshold", "partyAllStatsBonusBelowHealthAmount"]
+    public static let fieldNames: [String] = ["damageBelowHealthPercentThreshold", "damageBelowHealthPercentKeyword", "damageBelowHealthPercentBonus", "damageAfterDodgeBonus", "damageWhileTargetFrozenBonus", "damageWhileTargetStunnedBonus", "ignoreEnemyMitigationPercent", "leechIgnoresMitigation", "firstHitDoubleDamage", "turnRandomDamageAllEnemiesKeywordA", "turnRandomDamageAllEnemiesKeywordB", "turnRandomDamageAllEnemiesAmount", "turnRandomDamageAllEnemiesInterval", "holyDamagePoisonFlat", "stunnedDamageMultiplier", "criticalChanceBonus", "damageVsBleedingBonus", "damageVsPoisonedMultiplier", "damageVsBurningMultiplier", "damageVsFrozenMultiplier", "holyDamageVsStunnedOrBurningMultiplier", "holyDamageVsPoisonedOrBleedingMultiplier", "holyDamageVsStunnedBonus", "holyDamageVsUndeadOrCorruptedMultiplier", "frostDamageVsFrozenBonus", "burnDamageVsFrozenBonusPhysical", "burnDamageVsNoBlockMultiplier", "physicalDamageVsBleedingMultiplier", "damagePerMissingHealthEvery", "damagePerCarriedGoldEvery", "goldReservesDamageEvery", "goldReservesDamageCap", "damageVsLowerHealthEnemyBonus", "companionDamageVsPoisonedBonus", "companionDamageVsBurningBonus", "heroDamageVsStunnedMultiplier", "poisonDamageBelowHealthThreshold", "poisonDamageBelowHealthMultiplier", "bleedTickCritChancePercent", "burnDamageDoubleChancePercent", "partyCritChanceWhileCompanionAboveHealthThreshold", "partyCritChanceWhileCompanionAboveHealthBonus", "heroCritChanceWhileCompanionAlive", "critChancePerBleedingEnemy", "partyCritChanceWhileGoldAbove", "partyCritChanceWhileGoldAboveBonus", "partyAllStatsBonusBelowHealthThreshold", "partyAllStatsBonusBelowHealthAmount"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -168,6 +171,7 @@ public struct DamageTriggers: Equatable, Hashable, Sendable {
         if self.turnRandomDamageAllEnemiesKeywordA != other.turnRandomDamageAllEnemiesKeywordA { names.append("turnRandomDamageAllEnemiesKeywordA") }
         if self.turnRandomDamageAllEnemiesKeywordB != other.turnRandomDamageAllEnemiesKeywordB { names.append("turnRandomDamageAllEnemiesKeywordB") }
         if self.turnRandomDamageAllEnemiesAmount != other.turnRandomDamageAllEnemiesAmount { names.append("turnRandomDamageAllEnemiesAmount") }
+        if self.turnRandomDamageAllEnemiesInterval != other.turnRandomDamageAllEnemiesInterval { names.append("turnRandomDamageAllEnemiesInterval") }
         if self.holyDamagePoisonFlat != other.holyDamagePoisonFlat { names.append("holyDamagePoisonFlat") }
         if self.stunnedDamageMultiplier != other.stunnedDamageMultiplier { names.append("stunnedDamageMultiplier") }
         if self.criticalChanceBonus != other.criticalChanceBonus { names.append("criticalChanceBonus") }
@@ -221,6 +225,7 @@ extension DamageTriggers {
         turnRandomDamageAllEnemiesKeywordA = other.turnRandomDamageAllEnemiesKeywordA ?? turnRandomDamageAllEnemiesKeywordA
         turnRandomDamageAllEnemiesKeywordB = other.turnRandomDamageAllEnemiesKeywordB ?? turnRandomDamageAllEnemiesKeywordB
         turnRandomDamageAllEnemiesAmount += other.turnRandomDamageAllEnemiesAmount
+        turnRandomDamageAllEnemiesInterval = max(turnRandomDamageAllEnemiesInterval, other.turnRandomDamageAllEnemiesInterval)
         holyDamagePoisonFlat += other.holyDamagePoisonFlat
         stunnedDamageMultiplier *= other.stunnedDamageMultiplier
         criticalChanceBonus += other.criticalChanceBonus
@@ -275,6 +280,7 @@ extension DamageTriggers {
             turnRandomDamageAllEnemiesKeywordA: values.decode(Keyword?.self, "turnRandomDamageAllEnemiesKeywordA", default: nil),
             turnRandomDamageAllEnemiesKeywordB: values.decode(Keyword?.self, "turnRandomDamageAllEnemiesKeywordB", default: nil),
             turnRandomDamageAllEnemiesAmount: values.decode(Int.self, "turnRandomDamageAllEnemiesAmount", default: 0),
+            turnRandomDamageAllEnemiesInterval: values.decode(Int.self, "turnRandomDamageAllEnemiesInterval", default: 2),
             holyDamagePoisonFlat: values.decode(Int.self, "holyDamagePoisonFlat", default: 0),
             stunnedDamageMultiplier: values.decode(Double.self, "stunnedDamageMultiplier", default: 1),
             criticalChanceBonus: values.decode(Double.self, "criticalChanceBonus", default: 0),
@@ -326,6 +332,7 @@ extension DamageTriggers {
         try container.encodeNonDefault(turnRandomDamageAllEnemiesKeywordA, "turnRandomDamageAllEnemiesKeywordA", default: nil)
         try container.encodeNonDefault(turnRandomDamageAllEnemiesKeywordB, "turnRandomDamageAllEnemiesKeywordB", default: nil)
         try container.encodeNonDefault(turnRandomDamageAllEnemiesAmount, "turnRandomDamageAllEnemiesAmount", default: 0)
+        try container.encodeNonDefault(turnRandomDamageAllEnemiesInterval, "turnRandomDamageAllEnemiesInterval", default: 2)
         try container.encodeNonDefault(holyDamagePoisonFlat, "holyDamagePoisonFlat", default: 0)
         try container.encodeNonDefault(stunnedDamageMultiplier, "stunnedDamageMultiplier", default: 1)
         try container.encodeNonDefault(criticalChanceBonus, "criticalChanceBonus", default: 0)

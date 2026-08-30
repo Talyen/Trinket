@@ -32,6 +32,7 @@ public struct ControlTriggers: Equatable, Hashable, Sendable {
     public var onDodgeAttackerStunBuildup: Int = 0
     public var onceBelowHealthPercentThreshold: Double = 0
     public var turnFreezeDamageAllEnemies: Int = 0
+    public var turnFreezeDamageAllEnemiesInterval: Int = 2
     public var stunPurgeDealHolyPerEffect: Int = 0
 
     public init(
@@ -63,6 +64,7 @@ public struct ControlTriggers: Equatable, Hashable, Sendable {
         onDodgeAttackerStunBuildup: Int = 0,
         onceBelowHealthPercentThreshold: Double = 0,
         turnFreezeDamageAllEnemies: Int = 0,
+        turnFreezeDamageAllEnemiesInterval: Int = 2,
         stunPurgeDealHolyPerEffect: Int = 0
     ) {
         self.freezeExtraActionSkips = freezeExtraActionSkips
@@ -93,11 +95,12 @@ public struct ControlTriggers: Equatable, Hashable, Sendable {
         self.onDodgeAttackerStunBuildup = onDodgeAttackerStunBuildup
         self.onceBelowHealthPercentThreshold = onceBelowHealthPercentThreshold
         self.turnFreezeDamageAllEnemies = turnFreezeDamageAllEnemies
+        self.turnFreezeDamageAllEnemiesInterval = turnFreezeDamageAllEnemiesInterval
         self.stunPurgeDealHolyPerEffect = stunPurgeDealHolyPerEffect
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["freezeExtraActionSkips", "freezeExtendChancePercent", "stunExtendChancePercent", "physicalStunBuildupPercent", "holyStunBuildupPercent", "holyTriggeredStunGoldFlat", "frozenEnemyCannotBlockOrHeal", "enemyStunExtraActionSkips", "onEnemyStunRecoverDrawCard", "onEnemyStunRecoverApplyAfflictions", "enemyStunThresholdReductionPercent", "onStunEnemyApplyBurn", "onceBelowHealthPercentStunAllEnemies", "freezeCardsPlayedThisTurnFreezeAll", "spendManaFreezeThreshold", "everyNTurnsFreezeAllEnemiesInterval", "everyNTurnsFreezeAllEnemiesAmount", "everyNTurnsStunBuildupInterval", "everyNTurnsStunBuildupAmount", "everyNTurnsTeamBlockAmount", "enemyStunnedApplyMarked", "enemyStunnedPurgeCount", "enemyStunnedPurgeAll", "stunDealPhysicalFlat", "dodgeDealStunFlat", "onDodgeAttackerStunBuildup", "onceBelowHealthPercentThreshold", "turnFreezeDamageAllEnemies", "stunPurgeDealHolyPerEffect"]
+    public static let fieldNames: [String] = ["freezeExtraActionSkips", "freezeExtendChancePercent", "stunExtendChancePercent", "physicalStunBuildupPercent", "holyStunBuildupPercent", "holyTriggeredStunGoldFlat", "frozenEnemyCannotBlockOrHeal", "enemyStunExtraActionSkips", "onEnemyStunRecoverDrawCard", "onEnemyStunRecoverApplyAfflictions", "enemyStunThresholdReductionPercent", "onStunEnemyApplyBurn", "onceBelowHealthPercentStunAllEnemies", "freezeCardsPlayedThisTurnFreezeAll", "spendManaFreezeThreshold", "everyNTurnsFreezeAllEnemiesInterval", "everyNTurnsFreezeAllEnemiesAmount", "everyNTurnsStunBuildupInterval", "everyNTurnsStunBuildupAmount", "everyNTurnsTeamBlockAmount", "enemyStunnedApplyMarked", "enemyStunnedPurgeCount", "enemyStunnedPurgeAll", "stunDealPhysicalFlat", "dodgeDealStunFlat", "onDodgeAttackerStunBuildup", "onceBelowHealthPercentThreshold", "turnFreezeDamageAllEnemies", "turnFreezeDamageAllEnemiesInterval", "stunPurgeDealHolyPerEffect"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -130,6 +133,7 @@ public struct ControlTriggers: Equatable, Hashable, Sendable {
         if self.onDodgeAttackerStunBuildup != other.onDodgeAttackerStunBuildup { names.append("onDodgeAttackerStunBuildup") }
         if self.onceBelowHealthPercentThreshold != other.onceBelowHealthPercentThreshold { names.append("onceBelowHealthPercentThreshold") }
         if self.turnFreezeDamageAllEnemies != other.turnFreezeDamageAllEnemies { names.append("turnFreezeDamageAllEnemies") }
+        if self.turnFreezeDamageAllEnemiesInterval != other.turnFreezeDamageAllEnemiesInterval { names.append("turnFreezeDamageAllEnemiesInterval") }
         if self.stunPurgeDealHolyPerEffect != other.stunPurgeDealHolyPerEffect { names.append("stunPurgeDealHolyPerEffect") }
         return names
     }
@@ -165,6 +169,7 @@ extension ControlTriggers {
         onDodgeAttackerStunBuildup += other.onDodgeAttackerStunBuildup
         onceBelowHealthPercentThreshold = max(onceBelowHealthPercentThreshold, other.onceBelowHealthPercentThreshold)
         turnFreezeDamageAllEnemies += other.turnFreezeDamageAllEnemies
+        turnFreezeDamageAllEnemiesInterval = max(turnFreezeDamageAllEnemiesInterval, other.turnFreezeDamageAllEnemiesInterval)
         stunPurgeDealHolyPerEffect += other.stunPurgeDealHolyPerEffect
     }
 }
@@ -201,6 +206,7 @@ extension ControlTriggers {
             onDodgeAttackerStunBuildup: values.decode(Int.self, "onDodgeAttackerStunBuildup", default: 0),
             onceBelowHealthPercentThreshold: values.decode(Double.self, "onceBelowHealthPercentThreshold", default: 0),
             turnFreezeDamageAllEnemies: values.decode(Int.self, "turnFreezeDamageAllEnemies", default: 0),
+            turnFreezeDamageAllEnemiesInterval: values.decode(Int.self, "turnFreezeDamageAllEnemiesInterval", default: 2),
             stunPurgeDealHolyPerEffect: values.decode(Int.self, "stunPurgeDealHolyPerEffect", default: 0)
         )
     }
@@ -234,6 +240,7 @@ extension ControlTriggers {
         try container.encodeNonDefault(onDodgeAttackerStunBuildup, "onDodgeAttackerStunBuildup", default: 0)
         try container.encodeNonDefault(onceBelowHealthPercentThreshold, "onceBelowHealthPercentThreshold", default: 0)
         try container.encodeNonDefault(turnFreezeDamageAllEnemies, "turnFreezeDamageAllEnemies", default: 0)
+        try container.encodeNonDefault(turnFreezeDamageAllEnemiesInterval, "turnFreezeDamageAllEnemiesInterval", default: 2)
         try container.encodeNonDefault(stunPurgeDealHolyPerEffect, "stunPurgeDealHolyPerEffect", default: 0)
     }
 }

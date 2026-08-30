@@ -12,6 +12,7 @@ public enum EffectKind: Hashable, CaseIterable, Sendable {
     case drawAndPlayCards
     case cleanse
     case cleanseHealPerDebuff
+    case panacea
     case cleanseRandom
     case purge
     case purgeRandom
@@ -57,6 +58,7 @@ public extension Effect {
         case .drawAndPlayCards: .drawAndPlayCards
         case .cleanse: .cleanse
         case .cleanseHealPerDebuff: .cleanseHealPerDebuff
+        case .panacea: .panacea
         case .cleanseRandom: .cleanseRandom
         case .purge: .purge
         case .purgeRandom: .purgeRandom

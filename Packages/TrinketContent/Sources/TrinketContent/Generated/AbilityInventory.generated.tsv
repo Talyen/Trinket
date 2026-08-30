@@ -26,7 +26,7 @@ briar-shield	Briar Shield	skill	Gain 2 Block and gain 1 Thorns.
 cinderbloom	Cinderbloom	skill	Deal 3 Burn damage or deal 3 Poison damage.
 cleanse	Cleanse	skill	Cleanse a status effect and restore 3 Health.
 cold-snap	Cold Snap	skill	Deal 2 Freeze damage. Restore 1 Mana if the enemy is Frozen.
-dark-pact	Dark Pact	skill	Lose 1 Health. Draw 2 cards.
+dark-pact	Dark Pact	skill	Lose 3 Health. Draw 2 cards.
 fireball	Fireball	skill	Deal 3 Burn damage.
 frostbolt	Frostbolt	skill	Deal 3 Freeze damage.
 glacial-ward	Glacial Ward	skill	Gain 2 Block. Deal 2 Freeze damage next time you're hit.
@@ -42,11 +42,11 @@ smite	Smite	skill	Deal 4 Holy damage and Purge a positive status effect from the
 spiked-shield	Spiked Shield	skill	Gain 2 Block and gain 2 Thorns.
 steal	Steal	skill	Steal 3 Gold.
 stoneskin-potion	Stoneskin Potion	skill	Gain 4 Block.
-sunder	Sunder	skill	Deal 3 Physical damage and halve the enemy's Block.
+sunder	Sunder	skill	Deal 4 Stun damage and halve the enemy's Block.
 tithe	Tithe	skill	Deal 3 Holy damage or steal 3 Gold.
 venom-fangs	Venom Fangs	skill	Deal 2 Poison damage. Leech.
 astral-arrow	Astral Arrow	ultimate	Deal 7 Stun damage, Deal 7 Freeze damage, or deal 7 Burn damage.
-avatar-of-justice	Avatar	ultimate	Deal 6 Holy damage and gain 4 Block each turn for 2 turns.
+avatar-of-justice	Avatar	ultimate	Deal 5 Holy damage and gain 3 Block each turn for 2 turns.
 blessed-aegis	Blessed Aegis	ultimate	Gain 6 Block. Next time you're hit, Deal 6 Holy damage.
 blizzard	Blizzard	ultimate	Deal 4 Freeze damage each turn for 2 turns.
 bloodthorn	Bloodthorn	ultimate	Deal 4 Bleed damage or deal 4 Poison damage.
@@ -57,9 +57,9 @@ golden-plate	Golden Plate	ultimate	Gain 3 Block, Gold, and Thorns. Your Hero and
 hemorrhage	Hemorrhage	ultimate	Deal 4 Bleed damage and the next time they attack, they take 4 Bleed damage.
 luck-potion	Luck Potion	ultimate	Restore 7 Mana, Steal 7 Gold, or gain 7 Block.
 meteor	Meteor	ultimate	Deal 6 Burn damage and convert all your Mana into bonus Burn damage.
-molten-bulwark	Molten Bulwark	ultimate	Deal 2 Burn damage, gain 4 Block, and deal 3 Burn damage next time you're hit.
+molten-bulwark	Molten Bulwark	ultimate	Deal 3 Burn damage, gain 4 Block, and deal 3 Burn damage next time you're hit.
 pack-tactics	Pack Tactics	ultimate	Draw and play 2 cards.
-panacea-potion	Panacea Potion	ultimate	Cleanse all debuffs. Restore 1 Health for each debuff cleansed.
+panacea-potion	Panacea Potion	ultimate	Cleanse all debuffs from an ally. Restore 3 Health plus 2 per debuff cleansed.
 phoenix-feather	Phoenix Feather	ultimate	Deal 3 Burn damage and revive an Ally to 1 Health.
 shadowstep	Shadowstep	ultimate	Draw a Card. Dodge the next attack. Your next attack is a guaranteed Critical Hit.
 sunburst	Sunburst	ultimate	Deal 6 Holy damage and Restore 6 Health.

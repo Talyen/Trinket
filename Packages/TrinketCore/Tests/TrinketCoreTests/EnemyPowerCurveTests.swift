@@ -8,11 +8,11 @@ struct EnemyPowerCurveTests {
         try #expect(abs(EnemyPowerCurve.stats(level: 40, isBoss: false) - 9.30) < 0.001)
         try #expect(abs(EnemyPowerCurve.stats(level: 1, isBoss: true) - 5.20) < 0.001)
         try #expect(abs(EnemyPowerCurve.stats(level: 20, isBoss: true) - 10.77) < 0.001)
-        try #expect(abs(EnemyPowerCurve.stats(level: 40, isBoss: true) - 18.90) < 0.001)
+        try #expect(abs(EnemyPowerCurve.stats(level: 40, isBoss: true) - 24.50) < 0.001)
     }
 
-    @Test func `boss health stays double normal at every level`() throws {
-        try #expect(abs(EnemyPowerCurve.bossHealthMultiplier - 2.00) < 0.001)
+    @Test func `boss health stays at its design multiplier at every level`() throws {
+        try #expect(abs(EnemyPowerCurve.bossHealthMultiplier - 1.75) < 0.001)
         for level in 1 ... 40 {
             let normal = EnemyPowerCurve.health(level: level, isBoss: false)
             let boss = EnemyPowerCurve.health(level: level, isBoss: true)

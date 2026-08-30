@@ -4,7 +4,7 @@ import TrinketContent
 import TrinketCore
 
 struct CleanseIntegrationTests {
-    @Test func `cleanse all removes debuffs but leaves shields`() throws {
+    @Test func `panacea cleanses most debuffed and heals lowest as one action`() throws {
         let hero = Combatant(
             id: "hero",
             name: "Hero",
@@ -25,18 +25,82 @@ struct CleanseIntegrationTests {
             ],
         )
         battle.withEngineContext { context in
+            context.appliesFightPacing = false
             context.roster.mutateRuntime(for: hero) { $0.currentHealth = 10 }
+            context.roster.mutateRuntime(for: companion) { $0.currentHealth = 11 }
         }
 
-        _ = try BattleTestFixtures.playUntilAbility("Panacea Potion", on: &battle)
-
+        let events = try #require(try BattleTestFixtures.playUntilAbility("Panacea Potion", on: &battle))
         try #expect(!(battle.activeEffects(of: battle.hero)).contains(where: \.effect.isRemovableDebuff))
         try #expect(battle.hasHeroEffect {
             if case .shield = $0 {
                 return true
             }; return false
         })
-        try #expect(battle.health(of: battle.hero) == 12)
+        let heroHealth = battle.health(of: battle.hero)
+        let companionHealth = battle.health(of: battle.companion)
+        try #expect(heroHealth == 17, "hero health: \(heroHealth)")
+        try #expect(companionHealth == 11, "companion health: \(companionHealth)")
+        try #expect(events.count(where: { $0.effectKind == .instantHeal }) == 1)
+    }
+
+    @Test func `panacea cleanses most debuffed but heals lowest when split`() throws {
+        let hero = Combatant(
+            id: "hero",
+            name: "Hero",
+            role: .hero,
+            maxHealth: 20,
+            abilities: [.panaceaPotion],
+        )
+        let companion = BattleTestFixtures.passiveCompanion()
+        let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
+        var battle = BattleTestFixtures.standardParty(
+            hero: hero,
+            companion: companion,
+            enemy: enemy,
+            activeHeroEffects: [
+                ActiveEffect(id: 1, effect: .poison(4), remainingTurns: 0),
+                ActiveEffect(id: 2, effect: .burn(4), remainingTurns: 0),
+            ],
+        )
+        battle.withEngineContext { context in
+            context.appliesFightPacing = false
+            context.roster.mutateRuntime(for: hero) { $0.currentHealth = 14 }
+            context.roster.mutateRuntime(for: companion) { $0.currentHealth = 6 }
+        }
+
+        _ = try BattleTestFixtures.playUntilAbility("Panacea Potion", on: &battle)
+
+        try #expect(!(battle.activeEffects(of: battle.hero)).contains(where: \.effect.isRemovableDebuff))
+        try #expect(battle.health(of: battle.hero) == 14)
+        try #expect(battle.health(of: battle.companion) == 13)
+    }
+
+    @Test func `panacea heals base amount when no debuffs present`() throws {
+        let hero = Combatant(
+            id: "hero",
+            name: "Hero",
+            role: .hero,
+            maxHealth: 20,
+            abilities: [.panaceaPotion],
+        )
+        let companion = BattleTestFixtures.passiveCompanion()
+        let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
+        var battle = BattleTestFixtures.standardParty(
+            hero: hero,
+            companion: companion,
+            enemy: enemy,
+        )
+        battle.withEngineContext { context in
+            context.appliesFightPacing = false
+            context.roster.mutateRuntime(for: hero) { $0.currentHealth = 10 }
+            context.roster.mutateRuntime(for: companion) { $0.currentHealth = 15 }
+        }
+
+        _ = try BattleTestFixtures.playUntilAbility("Panacea Potion", on: &battle)
+
+        try #expect(battle.health(of: battle.hero) == 13)
+        try #expect(battle.health(of: battle.companion) == 15)
     }
 
     @Test func `cleanse specific keyword removes matching debuffs on use`() throws {

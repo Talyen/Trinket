@@ -51,30 +51,30 @@ enum GameContentTraitsGenerated {
         list.append(CombatantTraitDefinition(
             id: "the_blight_treant_trait",
             name: "The Blight Treant",
-            description: "Holy damage taken increased by 30%. Deals 1 Poison or Bleed damage each turn to all enemies.",
+            description: "Holy damage taken increased by 30%. Deals 1 Poison or Bleed damage every other turn to all enemies.",
             modifiers: [.damageTakenVulnerability(.holy, 0.30)],
-            triggers: CombatTraitTriggers(damage: DamageTriggers(turnRandomDamageAllEnemiesKeywordA: .poison, turnRandomDamageAllEnemiesKeywordB: .bleed, turnRandomDamageAllEnemiesAmount: 1))
+            triggers: CombatTraitTriggers(damage: DamageTriggers(turnRandomDamageAllEnemiesKeywordA: .poison, turnRandomDamageAllEnemiesKeywordB: .bleed, turnRandomDamageAllEnemiesAmount: 1, turnRandomDamageAllEnemiesInterval: 2))
         ))
         list.append(CombatantTraitDefinition(
             id: "the_forge_golem_trait",
             name: "The Forge Golem",
-            description: "Deals 1 Stun or Burn damage each turn to all enemies.",
+            description: "Deals 1 Stun or 1 Burn damage every other turn to all enemies.",
             modifiers: [],
-            triggers: CombatTraitTriggers(damage: DamageTriggers(turnRandomDamageAllEnemiesKeywordA: .stun, turnRandomDamageAllEnemiesKeywordB: .burn, turnRandomDamageAllEnemiesAmount: 1))
+            triggers: CombatTraitTriggers(damage: DamageTriggers(turnRandomDamageAllEnemiesKeywordA: .stun, turnRandomDamageAllEnemiesKeywordB: .burn, turnRandomDamageAllEnemiesAmount: 1, turnRandomDamageAllEnemiesInterval: 2))
         ))
         list.append(CombatantTraitDefinition(
             id: "the_frostwarden_trait",
             name: "The Frostwarden",
             description: "Deals 1 Freeze damage every other turn to all enemies. Burn damage taken increased by 30%.",
             modifiers: [.damageTakenVulnerability(.burn, 0.30)],
-            triggers: CombatTraitTriggers(control: ControlTriggers(turnFreezeDamageAllEnemies: 1))
+            triggers: CombatTraitTriggers(control: ControlTriggers(turnFreezeDamageAllEnemies: 1, turnFreezeDamageAllEnemiesInterval: 2))
         ))
         list.append(CombatantTraitDefinition(
             id: "the_iron_bear_trait",
             name: "The Iron Bear",
-            description: "Deals 1 Physical or Stun damage each turn to all enemies.",
+            description: "Deals 1 Physical or 1 Stun damage every other turn to all enemies.",
             modifiers: [],
-            triggers: CombatTraitTriggers(damage: DamageTriggers(turnRandomDamageAllEnemiesKeywordA: .physical, turnRandomDamageAllEnemiesKeywordB: .stun, turnRandomDamageAllEnemiesAmount: 1))
+            triggers: CombatTraitTriggers(damage: DamageTriggers(turnRandomDamageAllEnemiesKeywordA: .physical, turnRandomDamageAllEnemiesKeywordB: .stun, turnRandomDamageAllEnemiesAmount: 1, turnRandomDamageAllEnemiesInterval: 2))
         ))
         list.append(CombatantTraitDefinition(
             id: "goblin_trait",
@@ -184,9 +184,9 @@ enum GameContentTraitsGenerated {
         list.append(CombatantTraitDefinition(
             id: "the_blood_countess_trait",
             name: "The Blood Countess",
-            description: "Holy damage taken increased by 30%. Deals 1 Bleed damage each turn to all enemies.",
+            description: "Holy damage taken increased by 30%. Deals 1 Bleed damage every other turn to all enemies.",
             modifiers: [.damageTakenVulnerability(.holy, 0.30)],
-            triggers: CombatTraitTriggers(damage: DamageTriggers(turnRandomDamageAllEnemiesKeywordA: .bleed, turnRandomDamageAllEnemiesKeywordB: .bleed, turnRandomDamageAllEnemiesAmount: 1))
+            triggers: CombatTraitTriggers(damage: DamageTriggers(turnRandomDamageAllEnemiesKeywordA: .bleed, turnRandomDamageAllEnemiesKeywordB: .bleed, turnRandomDamageAllEnemiesAmount: 1, turnRandomDamageAllEnemiesInterval: 2))
         ))
         list.append(CombatantTraitDefinition(
             id: "zealot_trait",
@@ -219,9 +219,9 @@ enum GameContentTraitsGenerated {
         list.append(CombatantTraitDefinition(
             id: "the_seraph_trait",
             name: "The Seraph",
-            description: "Bleed damage taken increased by 30%. Deals 1 Holy damage each turn to all enemies.",
+            description: "Bleed damage taken increased by 30%. Deals 1 Holy damage every other turn to all enemies.",
             modifiers: [.damageTakenVulnerability(.bleed, 0.30)],
-            triggers: CombatTraitTriggers(damage: DamageTriggers(turnRandomDamageAllEnemiesKeywordA: .holy, turnRandomDamageAllEnemiesKeywordB: .holy, turnRandomDamageAllEnemiesAmount: 1))
+            triggers: CombatTraitTriggers(damage: DamageTriggers(turnRandomDamageAllEnemiesKeywordA: .holy, turnRandomDamageAllEnemiesKeywordB: .holy, turnRandomDamageAllEnemiesAmount: 1, turnRandomDamageAllEnemiesInterval: 2))
         ))
         list.append(CombatantTraitDefinition(
             id: "winter_wolf_trait",
@@ -275,9 +275,9 @@ enum GameContentTraitsGenerated {
         list.append(CombatantTraitDefinition(
             id: "the_stone_titan_trait",
             name: "The Stone Titan",
-            description: "Deals 1 Stun damage each turn to all enemies.",
+            description: "Deals 1 Stun damage every other turn to all enemies.",
             modifiers: [],
-            triggers: CombatTraitTriggers(damage: DamageTriggers(turnRandomDamageAllEnemiesKeywordA: .stun, turnRandomDamageAllEnemiesKeywordB: .stun, turnRandomDamageAllEnemiesAmount: 1))
+            triggers: CombatTraitTriggers(damage: DamageTriggers(turnRandomDamageAllEnemiesKeywordA: .stun, turnRandomDamageAllEnemiesKeywordB: .stun, turnRandomDamageAllEnemiesAmount: 1, turnRandomDamageAllEnemiesInterval: 2))
         ))
         return list
     }()

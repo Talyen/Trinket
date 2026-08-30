@@ -39,7 +39,7 @@ public enum EffectMetadata {
         case .shield:
             .init(isRemovableBuff: true)
         case .instantHeal, .resourceGain, .drawCards, .drawAndPlayCards,
-             .cleanse, .cleanseHealPerDebuff, .cleanseRandom,
+             .cleanse, .cleanseHealPerDebuff, .panacea, .cleanseRandom,
              .purge, .purgeRandom, .halveShield,
              .convertManaToBlock, .shieldFromMana, .shieldFromHalfMana, .shieldFromGold,
              .multiplyDoT, .revive:

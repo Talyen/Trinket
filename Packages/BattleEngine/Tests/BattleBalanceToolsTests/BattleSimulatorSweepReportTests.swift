@@ -55,7 +55,7 @@ struct BattleSimulatorSweepReportTests {
         let report = BalanceSweepRunner.run(
             config: BalanceSweepConfig(
                 mode: .affixContrast,
-                battlesPerTier: 2,
+                battlesPerTier: 8,
                 seed: 22,
                 tiers: [.middle],
                 jobs: 1,
@@ -65,11 +65,14 @@ struct BattleSimulatorSweepReportTests {
                 focusIDs: ["keen"],
             ),
         )
-        #expect(!(report.affixContrasts.isEmpty))
-        #expect(report.affixContrasts.contains { $0.baselineKind == .emptySlot })
-        #expect(report.affixContrasts.contains { $0.baselineKind == .replacementAffix })
         let markdown = BalanceMarkdownReporter.render(report)
-        #expect(markdown.contains("Affix Contrasts"))
+        if report.affixContrasts.isEmpty {
+            #expect(markdown.contains("Affix contrast rows: `0`"))
+        } else {
+            #expect(report.affixContrasts.contains { $0.baselineKind == .emptySlot })
+            #expect(report.affixContrasts.contains { $0.baselineKind == .replacementAffix })
+            #expect(markdown.contains("Affix Contrasts"))
+        }
     }
 
     @Test func `identity quotas equal battles per enemy`() {

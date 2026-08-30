@@ -8,10 +8,12 @@ package enum EnemyTraitEngine {
         context: inout BattleState,
     ) -> [ActionEvent] {
         let profile = context.modifiers(for: combatant.id)
+        let interval = profile.triggers.turnFreezeDamageAllEnemiesInterval
         guard profile.triggers.turnFreezeDamageAllEnemies > 0,
               context.roster.health(for: combatant) > 0,
               context.turnCount > 0,
-              context.turnCount.isMultiple(of: 2)
+              interval > 0,
+              context.turnCount.isMultiple(of: interval)
         else { return [] }
 
         return turnDamageAllEnemies(
@@ -27,10 +29,14 @@ package enum EnemyTraitEngine {
         context: inout BattleState,
     ) -> [ActionEvent] {
         let triggers = context.modifiers(for: combatant.id).triggers
+        let interval = triggers.turnRandomDamageAllEnemiesInterval
         guard triggers.turnRandomDamageAllEnemiesAmount > 0,
               let first = triggers.turnRandomDamageAllEnemiesKeywordA,
               let second = triggers.turnRandomDamageAllEnemiesKeywordB,
-              context.roster.health(for: combatant) > 0
+              context.roster.health(for: combatant) > 0,
+              context.turnCount > 0,
+              interval > 0,
+              context.turnCount.isMultiple(of: interval)
         else { return [] }
 
         let chosen = BattleChance.succeeds(probability: 0.5, using: &context.rng) ? first : second
