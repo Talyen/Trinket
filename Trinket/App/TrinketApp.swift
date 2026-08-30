@@ -196,6 +196,7 @@ private struct PreparedAppRoot: View {
         .environment(appState.play.encounters)
         .environment(appState.options)
         .environment(appState.playerSave)
+        .environment(battleSession)
         .environment(\.playSFX) { id, volume in
             appState.sfxPlayer.play(id, volume: volume)
         }

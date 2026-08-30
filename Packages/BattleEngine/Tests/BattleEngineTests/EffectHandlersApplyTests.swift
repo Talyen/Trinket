@@ -202,9 +202,15 @@ struct EffectHandlersApplyTests {
         while battle.hand.count > 1 {
             _ = battle.hand.remove(id: battle.hand.cards[0].id)
         }
+        battle.withEngineContext { context in
+            context.roster.setActiveEffects(
+                [ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTurns: 0)],
+                for: context.hero
+            )
+        }
         battle.ownersSkippingThisPlayerTurn = [.hero]
         battle.heroDeck = CombatDeck(abilities: [.slash])
-        battle.companionDeck = CombatDeck(abilities: [.smite])
+        battle.companionDeck = CombatDeck(abilities: [.smite, .bash])
         let heroDeckCount = battle.heroDeck.count
 
         let outcome = EffectHandlersTestSupport.dispatch(
@@ -225,6 +231,7 @@ struct EffectHandlersApplyTests {
         try #expect(outcome.events.contains {
             $0.kind == .abilityDamage && $0.abilityName == Ability.smite.name
         })
+        try #expect(!(outcome.events.contains { $0.kind == .ability && $0.abilityName == Ability.bash.name }))
         try #expect(battle.heroDeck.count == heroDeckCount)
     }
 

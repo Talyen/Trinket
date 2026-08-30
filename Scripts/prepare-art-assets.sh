@@ -518,6 +518,45 @@ extension ItemSlot {
         ArtCatalog.slotBackgroundArtByID[self]
     }
 }
+
+public extension ArtCatalog {
+    static let allImageNames: [String] = {
+        var names = Set<String>()
+        for reference in combatantArtByID.values {
+            names.insert(reference.imageName)
+            if let thumb = reference.thumbnailImageName { names.insert(thumb) }
+        }
+        for reference in abilityArtByID.values {
+            names.insert(reference.imageName)
+            if let thumb = reference.thumbnailImageName { names.insert(thumb) }
+        }
+        for reference in itemArtByID.values {
+            names.insert(reference.imageName)
+            if let thumb = reference.thumbnailImageName { names.insert(thumb) }
+        }
+        for reference in slotBackgroundArtByID.values {
+            names.insert(reference.imageName)
+        }
+        for reference in backgroundArtByID.values {
+            names.insert(reference.imageName)
+            if let thumb = reference.thumbnailImageName { names.insert(thumb) }
+        }
+        for reference in encounterArtByID.values {
+            names.insert(reference.imageName)
+            if let thumb = reference.thumbnailImageName { names.insert(thumb) }
+        }
+        for reference in resourceArtByID.values {
+            names.insert(reference.imageName)
+        }
+        for reference in talentArtByID.values {
+            names.insert(reference.imageName)
+            if let thumb = reference.thumbnailImageName { names.insert(thumb) }
+        }
+        return names.sorted()
+    }()
+
+    static let allImageNamesSet: Set<String> = Set(allImageNames)
+}
 SWIFT_EXTENSIONS
 } > "$generated_temp"
 

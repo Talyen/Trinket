@@ -5,16 +5,101 @@ import TrinketCore
 import TrinketTestSupport
 
 struct ControlMeterEngineTests {
-    @Test func applyBuildupTriggersControlAtThreshold() throws {
+    @Test(arguments: [Keyword.stun, Keyword.freeze])
+    func applyBuildupTriggersControlAtThreshold(keyword: Keyword) throws {
         var context = BattleTestFixtures.makePipelineContext()
+        let target = context.roster.enemy.combatant
         let events = ControlMeterEngine.applyMeterCharge(
             15,
-            keyword: .stun,
-            to: context.roster.enemy.combatant,
+            keyword: keyword,
+            to: target,
             sourceActorID: "source",
+            applyFightPacing: false,
             in: &context
         )
-        try #expect(events.contains { $0.effectKind == .controlTriggered })
+        try #expect(events.contains { $0.effectKind == .controlTriggered && $0.keyword == keyword })
+    }
+
+    @Test(arguments: [Keyword.stun, Keyword.freeze])
+    func partyMembersResistIncomingControl(keyword: Keyword) throws {
+        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 50)
+        let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 50)
+        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 50)
+        var context = BattleStateTestFactory.makeMinimalBattle(
+            hero: hero,
+            companion: companion,
+            enemy: enemy
+        )
+
+        for target in [hero, companion] {
+            _ = ControlMeterEngine.applyMeterCharge(
+                4,
+                keyword: keyword,
+                to: target,
+                sourceActorID: enemy.id,
+                applyFightPacing: false,
+                in: &context
+            )
+
+            let meter = try #require(
+                context.roster.activeEffects(for: target).first { $0.keyword == keyword }
+            )
+            let values = try #require(meter.effect.controlMeterValues)
+            try #expect(values.amount == 3)
+        }
+    }
+
+    @Test(arguments: [Keyword.stun, Keyword.freeze])
+    func enemyReceivesUnmodifiedIncomingControl(keyword: Keyword) throws {
+        var context = BattleTestFixtures.makePipelineContext()
+        let target = context.roster.enemy.combatant
+
+        _ = ControlMeterEngine.applyMeterCharge(
+            4,
+            keyword: keyword,
+            to: target,
+            sourceActorID: "source",
+            applyFightPacing: false,
+            in: &context
+        )
+
+        let meter = try #require(
+            context.roster.activeEffects(for: target).first { $0.keyword == keyword }
+        )
+        let values = try #require(meter.effect.controlMeterValues)
+        try #expect(values.amount == 4)
+    }
+
+    @Test(arguments: [Keyword.stun, Keyword.freeze])
+    func strongerExistingPartyResistanceTakesPrecedence(keyword: Keyword) throws {
+        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 50)
+        let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 50)
+        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 50)
+        let block = ActiveEffect(id: 1, effect: .shield(.block, 10), remainingTurns: 0)
+        var context = BattleStateTestFactory.makeMinimalBattle(
+            hero: hero,
+            companion: companion,
+            enemy: enemy,
+            heroEffects: [block],
+            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
+                mitigation: MitigationTriggers(blockedControlBurnResistance: 0.5)
+            ))
+        )
+
+        _ = ControlMeterEngine.applyMeterCharge(
+            4,
+            keyword: keyword,
+            to: hero,
+            sourceActorID: enemy.id,
+            applyFightPacing: false,
+            in: &context
+        )
+
+        let meter = try #require(
+            context.roster.activeEffects(for: hero).first { $0.keyword == keyword }
+        )
+        let values = try #require(meter.effect.controlMeterValues)
+        try #expect(values.amount == 2)
     }
 
     @Test func applyBuildupNoDuplicateWhenSameKeywordSkipPending() throws {

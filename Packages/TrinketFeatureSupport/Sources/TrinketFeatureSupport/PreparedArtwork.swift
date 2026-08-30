@@ -1,7 +1,23 @@
 import CoreGraphics
+import os
 import SwiftUI
 import TrinketContent
 import UIKit
+
+private let preparedArtworkFallbackLogger = Logger(
+    subsystem: "com.trinket.diagnostics",
+    category: "ArtworkCache"
+)
+
+@MainActor
+private enum PreparedArtworkFallbackDedupe {
+    static var seen: Set<String> = []
+    static func shouldLog(_ name: String) -> Bool {
+        guard !seen.contains(name) else { return false }
+        seen.insert(name)
+        return true
+    }
+}
 
 /// Concurrency-Safety: `@unchecked Sendable` — `name` is a value type and
 struct PreparedArtwork: @unchecked Sendable {
@@ -32,10 +48,14 @@ public extension Image {
     @MainActor
     static func preparedAsset(named name: String) -> Image {
         if let image = PreparedArtworkCache.shared.image(named: name) {
-            Image(uiImage: image)
-        } else {
-            Image(name)
+            return Image(uiImage: image)
         }
+        if PreparedArtworkFallbackDedupe.shouldLog(name) {
+            preparedArtworkFallbackLogger.debug(
+                "PreparedArtwork cache miss for \(name, privacy: .public) — on-demand decode will hitch"
+            )
+        }
+        return Image(name)
     }
 }
 

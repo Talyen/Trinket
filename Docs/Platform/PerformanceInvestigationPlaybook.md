@@ -109,8 +109,8 @@ first-screen set is ~1–1.3% of 6–8 GB and is the hitch defense.
 | Budget | Value | Location |
 |---|---|---|
 | `NSCache.totalCostLimit` | `min(max(physicalMemory/24, 160 MiB), 260 MiB)` (6 GB→256, 8 GB→260) | `PreparedArtworkCache.configureImageBudget()` |
-| `residentArtworkByteCount` | 320 MiB | `PreparedArtworkMemoryBudget` |
-| `steadyStateProcessByteCount` | 550 MiB | `PreparedArtworkMemoryBudget` |
+| `residentArtworkByteCount` | 320 MiB | `PreparedArtworkMemoryBudget` — diagnostic target 240 MiB in [MemoryAndEnergyInvestigation.md](MemoryAndEnergyInvestigation.md) to validate before enforcing |
+| `steadyStateProcessByteCount` | 550 MiB | `PreparedArtworkMemoryBudget` — diagnostic target 400 MiB in [MemoryAndEnergyInvestigation.md](MemoryAndEnergyInvestigation.md) to validate before enforcing |
 
 `physicalMemory/24` already adapts; the 160 floor and 260 cap are the product
 decision. If a future agent needs to support a larger catalog, raise the cap

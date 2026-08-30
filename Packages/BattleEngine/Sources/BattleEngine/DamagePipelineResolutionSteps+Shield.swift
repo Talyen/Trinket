@@ -42,6 +42,10 @@ package extension DamagePipeline {
             targetIsFrozen: targetIsFrozen,
             damageKeyword: state.damageKeyword
         )
+        if BoonCombatEngine.ignoresBlock(for: state, in: context) {
+            state.activeEffects = effects
+            return
+        }
         guard effectiveBuffer > 0, state.remaining > 0 else {
             state.activeEffects = effects
             return
@@ -73,6 +77,12 @@ package extension DamagePipeline {
             defenderTriggers: defenderTriggers,
             sourceTriggers: sourceTriggers,
             to: &state,
+            in: &context
+        ))
+        state.damageEvents.append(contentsOf: BoonCombatEngine.afterBlockedDamage(
+            absorption.absorbed,
+            defender: state.combatant,
+            attackerID: state.sourceActorID,
             in: &context
         ))
         applyOverflowAndBreakReactions(blockBroken: blockBroken, defenderTriggers: defenderTriggers, to: &state, in: &context)

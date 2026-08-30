@@ -63,7 +63,7 @@ struct CombatPipelineTests {
     @Test func enemyDodgeChanceUsesCompressedContest() throws {
         let falloff = PrimaryStats.enemyDodgeFalloffConstant
         let context = makeContext(
-            targetPrimaryStats: PrimaryStats(agility: 80),
+            targetPrimaryStats: PrimaryStats(agility: 20),
             sourcePrimaryStats: PrimaryStats(agility: 0)
         )
         var state = DamageResolutionState(
@@ -75,7 +75,8 @@ struct CombatPipelineTests {
         )
 
         let chance = DamagePipeline.dodgeChance(for: state, in: context)
-        try #expect(abs(chance - 0.5 / (1 + falloff * 0.5)) < 0.0001)
+        let expectedBase = context.roster.enemy.combatant.primaryStats.contestedDodgeChance(againstAttackerAgility: 0)
+        try #expect(abs(chance - expectedBase / (1 + falloff * expectedBase)) < 0.0001)
     }
 
     @Test func applyDamageShieldAbsorptionPreservesSourceActorID() throws {

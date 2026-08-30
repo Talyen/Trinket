@@ -202,7 +202,9 @@ private struct TrinketWalletGridLayout: Layout {
 
         let idealWidth = idealColumnWidths.reduce(0, +) + columnGaps
         let columnWidths: [CGFloat]
-        if let proposedWidth = proposal.width, proposedWidth.isFinite, proposedWidth < idealWidth {
+        if let proposedWidth = proposal.width, proposedWidth.isFinite, proposedWidth <= 1 {
+            columnWidths = idealColumnWidths
+        } else if let proposedWidth = proposal.width, proposedWidth.isFinite, proposedWidth < idealWidth {
             let equalizedWidth = max(0, (proposedWidth - columnGaps) / CGFloat(columns))
             columnWidths = Array(repeating: equalizedWidth, count: columns)
         } else {

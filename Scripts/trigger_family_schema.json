@@ -1180,12 +1180,6 @@
         "merge": "add"
       },
       {
-        "name": "freezeBuildupDoesNotDecay",
-        "type": "Bool",
-        "default": "false",
-        "merge": "or"
-      },
-      {
         "name": "frozenEnemyCannotBlockOrHeal",
         "type": "Bool",
         "default": "false",

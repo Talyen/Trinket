@@ -136,6 +136,7 @@ struct PlayBattleOverlay: View {
                     .accessibilityHidden(true)
             }
         }
+        .toolbarVisibility(isActive ? .hidden : .visible, for: .tabBar)
         .opacity(isActive ? 1 : 0)
         .animation(TrinketMotion.Screen.crossfade, value: battle.activeBattle?.id)
         .allowsHitTesting(isActive && configuration.flatMap { battlePresentationContext(for: $0) } != nil)

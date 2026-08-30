@@ -9,6 +9,7 @@ enum BattleMotion: Sendable {
     static let combatantSliceDuration: TimeInterval = 1.25
     static let combatantStatusEffectPhaseDuration: TimeInterval = 4.0
     static let combatantFreezeEncroachProgress = 0.35
+    static let combatantFreezeOnsetProgress = 0.12
 
     static var combatantFreezeEncroachDuration: TimeInterval {
         combatantStatusEffectPhaseDuration * combatantFreezeEncroachProgress

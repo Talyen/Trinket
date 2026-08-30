@@ -23,31 +23,13 @@ Run artifacts are ephemeral by default. Use the owning command's documented
 keep/cleanup switches when an investigation needs to retain a successful run;
 failed evidence remains available for triage.
 
-CI measures routed gate, build, unit, smoke, and exhaustive-UI output
-automatically. The profiler streams the command unchanged and records metadata
-only: stable label, outcome, elapsed time, displayed line/byte counts, and
-output policy. It does not retain command text or output contents, and it never
-estimates model-specific tokens. Profiles are advisory and do not change a
-verification result. Local history keeps the newest 50 sessions under the
-ignored `.DerivedData/OutputProfiles/`; CI uploads the small profile directory
-for 30 days. Raw Xcode or test logs remain diagnostic artifacts and are not
-agent output exposure unless a command prints them to the terminal.
-
-Use `TRINKET_OUTPUT_PROFILE=0` only to disable profiling while debugging the
-profiling path. `TRINKET_OUTPUT_PROFILE_DIR` selects an isolated profile
-directory for tests or local experiments; CI uses
-`.DerivedData/OutputProfiles/` by default. Reports are available with:
+CI and local verification profile output automatically (metadata only: label, outcome, elapsed, line/byte counts; no command text or contents). See [Verification and CI](../Docs/Platform/Verification.md) Output efficiency telemetry for policy, retention (50 local sessions under `.DerivedData/OutputProfiles/`, 30 days in CI), and escape hatches (`TRINKET_OUTPUT_PROFILE=0`, `TRINKET_OUTPUT_PROFILE_DIR`). Reports:
 
 ```sh
 python3 Scripts/output-profile.py report --local
 python3 Scripts/output-profile.py report --ci <artifact-dirs...>
 python3 Scripts/output-profile.py report --actionable --top 3
 ```
-
-The actionable view is intentionally bounded to three recurring hotspots. A
-weekly maintenance task uses these advisories as evidence for at most two
-bounded Audit 02/05 remediations on a clean checkout; no output-efficiency
-advisory is a correctness gate.
 
 Read these focused guides:
 

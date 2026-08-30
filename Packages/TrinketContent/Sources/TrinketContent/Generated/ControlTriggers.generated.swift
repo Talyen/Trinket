@@ -10,7 +10,6 @@ public struct ControlTriggers: Equatable, Hashable, Sendable {
     public var physicalStunBuildupPercent: Double = 0
     public var holyStunBuildupPercent: Double = 0
     public var holyTriggeredStunGoldFlat: Int = 0
-    public var freezeBuildupDoesNotDecay: Bool = false
     public var frozenEnemyCannotBlockOrHeal: Bool = false
     public var enemyStunExtraActionSkips: Int = 0
     public var onEnemyStunRecoverDrawCard: Int = 0
@@ -42,7 +41,6 @@ public struct ControlTriggers: Equatable, Hashable, Sendable {
         physicalStunBuildupPercent: Double = 0,
         holyStunBuildupPercent: Double = 0,
         holyTriggeredStunGoldFlat: Int = 0,
-        freezeBuildupDoesNotDecay: Bool = false,
         frozenEnemyCannotBlockOrHeal: Bool = false,
         enemyStunExtraActionSkips: Int = 0,
         onEnemyStunRecoverDrawCard: Int = 0,
@@ -73,7 +71,6 @@ public struct ControlTriggers: Equatable, Hashable, Sendable {
         self.physicalStunBuildupPercent = physicalStunBuildupPercent
         self.holyStunBuildupPercent = holyStunBuildupPercent
         self.holyTriggeredStunGoldFlat = holyTriggeredStunGoldFlat
-        self.freezeBuildupDoesNotDecay = freezeBuildupDoesNotDecay
         self.frozenEnemyCannotBlockOrHeal = frozenEnemyCannotBlockOrHeal
         self.enemyStunExtraActionSkips = enemyStunExtraActionSkips
         self.onEnemyStunRecoverDrawCard = onEnemyStunRecoverDrawCard
@@ -100,7 +97,7 @@ public struct ControlTriggers: Equatable, Hashable, Sendable {
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["freezeExtraActionSkips", "freezeExtendChancePercent", "stunExtendChancePercent", "physicalStunBuildupPercent", "holyStunBuildupPercent", "holyTriggeredStunGoldFlat", "freezeBuildupDoesNotDecay", "frozenEnemyCannotBlockOrHeal", "enemyStunExtraActionSkips", "onEnemyStunRecoverDrawCard", "onEnemyStunRecoverApplyAfflictions", "enemyStunThresholdReductionPercent", "onStunEnemyApplyBurn", "onceBelowHealthPercentStunAllEnemies", "freezeCardsPlayedThisTurnFreezeAll", "spendManaFreezeThreshold", "everyNTurnsFreezeAllEnemiesInterval", "everyNTurnsFreezeAllEnemiesAmount", "everyNTurnsStunBuildupInterval", "everyNTurnsStunBuildupAmount", "everyNTurnsTeamBlockAmount", "enemyStunnedApplyMarked", "enemyStunnedPurgeCount", "enemyStunnedPurgeAll", "stunDealPhysicalFlat", "dodgeDealStunFlat", "onDodgeAttackerStunBuildup", "onceBelowHealthPercentThreshold", "turnFreezeDamageAllEnemies", "stunPurgeDealHolyPerEffect"]
+    public static let fieldNames: [String] = ["freezeExtraActionSkips", "freezeExtendChancePercent", "stunExtendChancePercent", "physicalStunBuildupPercent", "holyStunBuildupPercent", "holyTriggeredStunGoldFlat", "frozenEnemyCannotBlockOrHeal", "enemyStunExtraActionSkips", "onEnemyStunRecoverDrawCard", "onEnemyStunRecoverApplyAfflictions", "enemyStunThresholdReductionPercent", "onStunEnemyApplyBurn", "onceBelowHealthPercentStunAllEnemies", "freezeCardsPlayedThisTurnFreezeAll", "spendManaFreezeThreshold", "everyNTurnsFreezeAllEnemiesInterval", "everyNTurnsFreezeAllEnemiesAmount", "everyNTurnsStunBuildupInterval", "everyNTurnsStunBuildupAmount", "everyNTurnsTeamBlockAmount", "enemyStunnedApplyMarked", "enemyStunnedPurgeCount", "enemyStunnedPurgeAll", "stunDealPhysicalFlat", "dodgeDealStunFlat", "onDodgeAttackerStunBuildup", "onceBelowHealthPercentThreshold", "turnFreezeDamageAllEnemies", "stunPurgeDealHolyPerEffect"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -111,7 +108,6 @@ public struct ControlTriggers: Equatable, Hashable, Sendable {
         if self.physicalStunBuildupPercent != other.physicalStunBuildupPercent { names.append("physicalStunBuildupPercent") }
         if self.holyStunBuildupPercent != other.holyStunBuildupPercent { names.append("holyStunBuildupPercent") }
         if self.holyTriggeredStunGoldFlat != other.holyTriggeredStunGoldFlat { names.append("holyTriggeredStunGoldFlat") }
-        if self.freezeBuildupDoesNotDecay != other.freezeBuildupDoesNotDecay { names.append("freezeBuildupDoesNotDecay") }
         if self.frozenEnemyCannotBlockOrHeal != other.frozenEnemyCannotBlockOrHeal { names.append("frozenEnemyCannotBlockOrHeal") }
         if self.enemyStunExtraActionSkips != other.enemyStunExtraActionSkips { names.append("enemyStunExtraActionSkips") }
         if self.onEnemyStunRecoverDrawCard != other.onEnemyStunRecoverDrawCard { names.append("onEnemyStunRecoverDrawCard") }
@@ -147,7 +143,6 @@ extension ControlTriggers {
         physicalStunBuildupPercent += other.physicalStunBuildupPercent
         holyStunBuildupPercent += other.holyStunBuildupPercent
         holyTriggeredStunGoldFlat += other.holyTriggeredStunGoldFlat
-        freezeBuildupDoesNotDecay = freezeBuildupDoesNotDecay || other.freezeBuildupDoesNotDecay
         frozenEnemyCannotBlockOrHeal = frozenEnemyCannotBlockOrHeal || other.frozenEnemyCannotBlockOrHeal
         enemyStunExtraActionSkips += other.enemyStunExtraActionSkips
         onEnemyStunRecoverDrawCard += other.onEnemyStunRecoverDrawCard
@@ -184,7 +179,6 @@ extension ControlTriggers {
             physicalStunBuildupPercent: values.decode(Double.self, "physicalStunBuildupPercent", default: 0),
             holyStunBuildupPercent: values.decode(Double.self, "holyStunBuildupPercent", default: 0),
             holyTriggeredStunGoldFlat: values.decode(Int.self, "holyTriggeredStunGoldFlat", default: 0),
-            freezeBuildupDoesNotDecay: values.decode(Bool.self, "freezeBuildupDoesNotDecay", default: false),
             frozenEnemyCannotBlockOrHeal: values.decode(Bool.self, "frozenEnemyCannotBlockOrHeal", default: false),
             enemyStunExtraActionSkips: values.decode(Int.self, "enemyStunExtraActionSkips", default: 0),
             onEnemyStunRecoverDrawCard: values.decode(Int.self, "onEnemyStunRecoverDrawCard", default: 0),
@@ -218,7 +212,6 @@ extension ControlTriggers {
         try container.encodeNonDefault(physicalStunBuildupPercent, "physicalStunBuildupPercent", default: 0)
         try container.encodeNonDefault(holyStunBuildupPercent, "holyStunBuildupPercent", default: 0)
         try container.encodeNonDefault(holyTriggeredStunGoldFlat, "holyTriggeredStunGoldFlat", default: 0)
-        try container.encodeNonDefault(freezeBuildupDoesNotDecay, "freezeBuildupDoesNotDecay", default: false)
         try container.encodeNonDefault(frozenEnemyCannotBlockOrHeal, "frozenEnemyCannotBlockOrHeal", default: false)
         try container.encodeNonDefault(enemyStunExtraActionSkips, "enemyStunExtraActionSkips", default: 0)
         try container.encodeNonDefault(onEnemyStunRecoverDrawCard, "onEnemyStunRecoverDrawCard", default: 0)

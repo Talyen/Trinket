@@ -137,6 +137,7 @@ public struct ItemCard<Art: View>: View {
 
             Text(balanced: item.displayName)
                 .trinketTypography(.sectionDisplay)
+                .keywordShine(item.astralShineKeywordSet)
                 .uniqueShine(if: item.rarity == .unique)
                 .lineLimit(1)
                 .multilineTextAlignment(.center)

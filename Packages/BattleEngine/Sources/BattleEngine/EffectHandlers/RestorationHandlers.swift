@@ -155,41 +155,15 @@ struct DrawAndPlayCardsHandler: BattleEffectHandler {
     private func collectDrawnCards(targetCount: Int, in context: inout BattleState) -> [BattleCard] {
         var drawnCards: [BattleCard] = []
 
-        if canDrawAndPlay(.hero, in: context),
-           let card = BattleCardCombatEngine.drawOneCard(for: .hero, context: &context) {
+        for index in 0 ..< targetCount {
+            let owner: BattleParticipant = index.isMultiple(of: 2) ? .hero : .companion
+            guard canDrawAndPlay(owner, in: context),
+                  let card = BattleCardCombatEngine.drawOneCard(for: owner, context: &context)
+            else { continue }
             drawnCards.append(card)
-        }
-
-        if drawnCards.count < targetCount, canDrawAndPlay(.companion, in: context),
-           let card = BattleCardCombatEngine.drawOneCard(for: .companion, context: &context) {
-            drawnCards.append(card)
-        }
-
-        while drawnCards.count < targetCount {
-            let drewAny = fillFallbackDraw(targetCount: targetCount, drawnCards: &drawnCards, in: &context)
-            if !drewAny {
-                break
-            }
         }
 
         return drawnCards
-    }
-
-    private func fillFallbackDraw(
-        targetCount: Int,
-        drawnCards: inout [BattleCard],
-        in context: inout BattleState
-    ) -> Bool {
-        var drewAny = false
-        for owner in [BattleParticipant.hero, .companion] {
-            guard drawnCards.count < targetCount else { break }
-            guard canDrawAndPlay(owner, in: context) else { continue }
-            if let card = BattleCardCombatEngine.drawOneCard(for: owner, context: &context) {
-                drawnCards.append(card)
-                drewAny = true
-            }
-        }
-        return drewAny
     }
 
     private func canDrawAndPlay(_ owner: BattleParticipant, in context: BattleState) -> Bool {

@@ -8,7 +8,7 @@ extension BattleCardCombatEngine {
         owner: BattleParticipant,
         context: inout BattleState
     ) -> BattleCard? {
-        guard context.roster[owner].isAlive, let keyPath = deckKeyPath(for: owner) else { return nil }
+        guard canDrawFromDeck(for: owner, in: context), let keyPath = deckKeyPath(for: owner) else { return nil }
         guard let ability = context[keyPath: keyPath].drawFirst(where: { $0.tier == tier }) else { return nil }
         _ = context.rng.next()
         return deal(ability, owner: owner, context: &context)

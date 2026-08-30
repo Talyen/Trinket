@@ -56,6 +56,7 @@ public struct BattleView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackgroundVisibility(.hidden, for: .navigationBar)
             .toolbarVisibility(.visible, for: .navigationBar)
+            .toolbarVisibility(.hidden, for: .tabBar)
             .toolbar {
                 if !battleSession.spectacle.isShowingVictory,
                    !battleSession.spectacle.isShowingDefeat,
@@ -265,6 +266,13 @@ struct BattleFieldLane: View {
                 )
                 .zIndex(10)
 
+                if let offer = presentation.pendingBoonOffer {
+                    BoonChoiceOverlay(offer: offer) { boonID in
+                        _ = battleSession.selectBoon(id: boonID)
+                    }
+                    .zIndex(15)
+                }
+
                 BattleFeedbackBridgeLane()
 
                 #if DEBUG
@@ -343,11 +351,9 @@ private struct BattleHandProjectionLane: View {
     var body: some View {
         let hand = presentation.hand
         let playableIDs = presentation.playableCardIDs
-        let ownerControlSkipKeywords = presentation.ownerControlSkipKeywords
         BattleHandView(
             cards: hand,
             isPlayable: { playableIDs.contains($0.id) },
-            ownerControlSkipKeywords: ownerControlSkipKeywords,
             onInspect: { card in
                 battleSession.presentAbilityDetail(card.ability)
             },
@@ -465,16 +471,26 @@ private struct BattleCastPrewarmLane: View {
                 else { return }
 
                 let names = prewarmKey.artworkNames
-                defer {
-                    PreparedArtworkCache.shared.releasePins(names: names)
-                }
                 await PreparedArtworkCache.shared.prepareAndPin(names: names)
                 guard !Task.isCancelled,
                       presentation.configurationID == configurationID
-                else { return }
+                else {
+                    PreparedArtworkCache.shared.releasePins(names: names)
+                    return
+                }
+                if !preparedArtworkNames.isEmpty {
+                    PreparedArtworkCache.shared.releasePins(names: preparedArtworkNames)
+                }
                 preparedConfigurationID = configurationID
                 preparedArtworkNames = names
                 artworkName = names.first
+            }
+            .onDisappear {
+                if !preparedArtworkNames.isEmpty {
+                    PreparedArtworkCache.shared.releasePins(names: preparedArtworkNames)
+                    preparedArtworkNames = []
+                    preparedConfigurationID = nil
+                }
             }
     }
 

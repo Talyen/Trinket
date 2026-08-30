@@ -5,7 +5,7 @@ import TrinketDesignSystem
 
 public extension InventoryItem {
     var astralShineKeywords: [Keyword]? {
-        guard rarity == .astral else { return nil }
+        guard isTrinket || rarity == .astral else { return nil }
         return orderedAffinityKeywords
     }
 

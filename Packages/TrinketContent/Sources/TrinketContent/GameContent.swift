@@ -4,6 +4,7 @@ import TrinketCore
 public enum GameContent {
     public static let itemBaseTypes: [ItemBaseType] = GameContentItemBasesGenerated.itemBaseTypes
     public static let itemAffixDefinitions: [ItemAffixDefinition] = ItemAffixCatalog.definitions
+    public static let boons: [BoonDefinition] = BoonCatalog.all
 
     private static let itemBaseTypesByID = Dictionary(
         uniqueKeysWithValues: itemBaseTypes.map { ($0.id, $0) }

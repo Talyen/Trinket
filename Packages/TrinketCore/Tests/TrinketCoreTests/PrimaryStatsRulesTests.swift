@@ -38,7 +38,7 @@ struct PrimaryStatsRulesTests {
 
     @Test func contestedEnemyDodgeCompressesHighDodgeWithFalloff() throws {
         let falloff = PrimaryStats.enemyDodgeFalloffConstant
-        try #expect(falloff == 4.0)
+        try #expect(falloff == 9.0)
 
         let defender = PrimaryStats(agility: 80)
         try #expect(abs(
@@ -112,15 +112,15 @@ struct PrimaryStatsRulesTests {
     }
 
     @Test func enemyArchetypeChanceCapsMatchDesign() throws {
-        try #expect(GrowthArchetype.assassin.enemyDodgeChanceCap == 0.35)
+        try #expect(GrowthArchetype.assassin.enemyDodgeChanceCap == 0.10)
         try #expect(GrowthArchetype.assassin.enemyCriticalChanceCap == 0.35)
-        try #expect(GrowthArchetype.bruiser.enemyDodgeChanceCap == 0.25)
+        try #expect(GrowthArchetype.bruiser.enemyDodgeChanceCap == 0.08)
         try #expect(GrowthArchetype.bruiser.enemyCriticalChanceCap == 0.30)
-        try #expect(GrowthArchetype.mage.enemyDodgeChanceCap == 0.15)
+        try #expect(GrowthArchetype.mage.enemyDodgeChanceCap == 0.05)
         try #expect(GrowthArchetype.mage.enemyCriticalChanceCap == 0.30)
-        try #expect(GrowthArchetype.tank.enemyDodgeChanceCap == 0.15)
+        try #expect(GrowthArchetype.tank.enemyDodgeChanceCap == 0.05)
         try #expect(GrowthArchetype.tank.enemyCriticalChanceCap == 0.20)
-        try #expect(GrowthArchetype.support.enemyDodgeChanceCap == 0.15)
+        try #expect(GrowthArchetype.support.enemyDodgeChanceCap == 0.05)
         try #expect(GrowthArchetype.support.enemyCriticalChanceCap == 0.20)
     }
 

@@ -87,6 +87,11 @@ public enum BattleSimulator {
                 timedOut = true
                 break
             }
+            if let offer = battle.pendingBoonOffer,
+               let choiceID = BoonEngine.autoSelectedChoiceID(for: offer, in: battle) {
+                battle.selectBoon(id: choiceID)
+                continue
+            }
             actions += 1
             switch policy.nextAction(in: battle) {
             case let .playCard(cardID):

@@ -1,7 +1,6 @@
 import BattleEngine
 import SwiftUI
 import TrinketContent
-import TrinketCore
 import TrinketDesignSystem
 import TrinketFeatureSupport
 
@@ -22,7 +21,6 @@ private struct HeldCardInteraction: Equatable {
 struct BattleHandView: View {
     let cards: [BattleCard]
     let isPlayable: (BattleCard) -> Bool
-    var ownerControlSkipKeywords: [BattleParticipant: Keyword] = [:]
     let onInspect: (BattleCard) -> Void
     let onPlay: (BattleCard, CardActivationRequest) -> Bool
     let onPlayDenied: () -> Void
@@ -38,7 +36,6 @@ struct BattleHandView: View {
     init(
         cards: [BattleCard],
         isPlayable: @escaping (BattleCard) -> Bool,
-        ownerControlSkipKeywords: [BattleParticipant: Keyword] = [:],
         onInspect: @escaping (BattleCard) -> Void,
         onPlay: @escaping (BattleCard, CardActivationRequest) -> Bool,
         onPlayDenied: @escaping () -> Void,
@@ -51,7 +48,6 @@ struct BattleHandView: View {
     ) {
         self.cards = cards
         self.isPlayable = isPlayable
-        self.ownerControlSkipKeywords = ownerControlSkipKeywords
         self.onInspect = onInspect
         self.onPlay = onPlay
         self.onPlayDenied = onPlayDenied
@@ -76,14 +72,12 @@ struct BattleHandView: View {
                         layout: layout,
                         containerWidth: geometry.size.width
                     )
-                    let controlSkipKeyword = ownerControlSkipKeywords[card.owner]
                     let isHeld = heldInteraction?.cardID == card.id
                     let snapshot = isHeld ? (heldInteraction?.layout ?? liveSnapshot) : liveSnapshot
 
                     BattleAbilityCardView(
                         card: card,
                         isPlayable: isPlayable(card),
-                        controlSkipKeyword: controlSkipKeyword,
                         width: snapshot.width,
                         height: snapshot.height,
                         restingRotation: snapshot.restingRotation,
@@ -96,8 +90,7 @@ struct BattleHandView: View {
                         onPlayDenied: onPlayDenied,
                         onInteractionChanged: { isActive in
                             if isActive {
-                                if controlSkipKeyword == nil,
-                                   heldInteraction?.cardID != card.id {
+                                if heldInteraction?.cardID != card.id {
                                     heldInteraction = HeldCardInteraction(
                                         cardID: card.id,
                                         layout: liveSnapshot
@@ -106,8 +99,6 @@ struct BattleHandView: View {
                                 onCardInteractionChanged?(true)
                             } else if heldInteraction?.cardID == card.id {
                                 heldInteraction = nil
-                                onCardInteractionChanged?(false)
-                            } else if controlSkipKeyword != nil {
                                 onCardInteractionChanged?(false)
                             }
                         },

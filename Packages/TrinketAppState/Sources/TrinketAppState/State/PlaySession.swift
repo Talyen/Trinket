@@ -30,6 +30,14 @@ public final class PlaySession {
         postBattleTalentCombatantIDs.first
     }
 
+    public var isGameplayActive: Bool {
+        battle.lifecyclePhase == .active
+            || currentPostBattleTalentCombatantID != nil
+            || encounters.activeMysteryEncounter != nil
+            || encounters.activeShopEncounter != nil
+            || labyrinth.activeNodeSession != nil
+    }
+
     init(
         playerSave: PlayerSaveStore,
         shellSession: ShellSession,

@@ -10,8 +10,13 @@ private struct ShineTextModifier: ViewModifier {
         if colors.isEmpty {
             content
         } else {
-            let band = colors + [TrinketDesign.Colors.Overlay.paper]
-            let looped = band + band
+            let base = colors.first ?? Keyword.physical.visualStyle.color
+            let highlight = TrinketDesign.Colors.Overlay.paper
+            let isSingle = colors.count <= 1
+            let sweepColors: [Color] = isSingle
+                ? [base.opacity(0.85), base, highlight, base, base.opacity(0.85)]
+                : [base] + colors + colors.reversed() + [base]
+            let sweepStops = seamlessShineStops(colors: sweepColors)
             TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: reduceMotion)) { context in
                 let phase = reduceMotion
                     ? 0
@@ -19,13 +24,24 @@ private struct ShineTextModifier: ViewModifier {
                 content
                     .foregroundStyle(
                         LinearGradient(
-                            colors: looped,
-                            startPoint: UnitPoint(x: phase - 1, y: 0.5),
-                            endPoint: UnitPoint(x: phase + 1, y: 0.5)
+                            gradient: Gradient(stops: sweepStops),
+                            startPoint: UnitPoint(x: -phase, y: 0.5),
+                            endPoint: UnitPoint(x: 2 - phase, y: 0.5)
                         )
                     )
-                    .shadow(color: colors[0].opacity(0.62), radius: 5)
             }
+        }
+    }
+}
+
+private func seamlessShineStops(colors: [Color]) -> [Gradient.Stop] {
+    let periodSegmentCount = colors.count - 1
+    return (0 ... 1).flatMap { period in
+        colors.indices.map { index in
+            let location = (
+                Double(period) + Double(index) / Double(periodSegmentCount)
+            ) / 2
+            return Gradient.Stop(color: colors[index], location: location)
         }
     }
 }

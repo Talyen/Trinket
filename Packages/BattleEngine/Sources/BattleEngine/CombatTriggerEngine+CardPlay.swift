@@ -13,6 +13,12 @@ package extension CombatTriggerEngine {
         var events: [ActionEvent] = []
 
         if let ability, let abilityTarget {
+            events.append(contentsOf: BoonCombatEngine.afterCardPlayed(
+                ability,
+                actor: actor,
+                target: abilityTarget,
+                in: &context
+            ))
             events.append(contentsOf: spellEchoIfNeeded(
                 ability: ability,
                 actor: actor,

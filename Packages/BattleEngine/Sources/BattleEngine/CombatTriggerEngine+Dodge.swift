@@ -11,6 +11,7 @@ package extension CombatTriggerEngine {
         let profile = context.modifiers(for: combatant.id)
         let triggers = profile.triggers
         var events: [ActionEvent] = []
+        events.append(contentsOf: BoonCombatEngine.afterDodge(by: combatant, in: &context))
 
         context.roster.mutateRuntime(for: combatant) { runtime in
             if triggers.damageAfterDodgeBonus > 0 {

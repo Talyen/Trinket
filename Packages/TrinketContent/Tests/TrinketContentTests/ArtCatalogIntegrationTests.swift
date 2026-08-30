@@ -110,6 +110,15 @@ struct ArtCatalogIntegrationTests {
                 "Missing Homestead project art for \(node.id.rawValue)"
             )
         }
+
+        #expect(
+            ArtCatalog.allImageNames.count == ArtCatalog.allImageNamesSet.count,
+            "ArtCatalog.allImageNames must be unique"
+        )
+        #expect(
+            ArtCatalog.allImageNamesSet.isSuperset(of: Set(AbilityCatalog.all.compactMap { ArtCatalog.abilityArtByID[$0.id]?.imageName })),
+            "allImageNames must contain every ability image"
+        )
     }
 
     // swiftlint:enable function_body_length

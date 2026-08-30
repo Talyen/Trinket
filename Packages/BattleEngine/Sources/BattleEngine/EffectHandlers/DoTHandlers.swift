@@ -212,7 +212,9 @@ struct BleedHandler: BattleEffectHandler {
         }
 
         var updated = active
-        updated.remainingTurns -= 1
+        if !BoonCombatEngine.preservesBleed(on: target, in: context) {
+            updated.remainingTurns -= 1
+        }
         return EffectTurnOutcome(
             events: events,
             updatedStack: updated,

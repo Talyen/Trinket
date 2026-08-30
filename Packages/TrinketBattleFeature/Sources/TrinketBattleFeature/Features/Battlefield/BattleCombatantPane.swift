@@ -47,7 +47,7 @@ struct BattleCombatantPane: View {
         }
         .trinketQuietTapButtonStyle()
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .accessibilityIdentifier("\(combatant.name) card")
+        .accessibilityIdentifier(AccessibilityID.CombatantDetail.battleCard(name: combatant.name))
     }
 
     @ViewBuilder
@@ -79,16 +79,10 @@ struct BattleCombatantPane: View {
 
     private var resourceBars: some View {
         VStack(spacing: 0) {
-            CombatHealthBar(
-                health: health,
-                maxHealth: maxHealth,
-                fillColor: TrinketDesign.Colors.battleHealth,
-                style: .battleBorder,
-                height: TrinketDesign.Metrics.battleHealthBarHeight
-            )
+            CombatResourceBar(value: health, maxValue: maxHealth, style: .healthBattle)
 
             if hasMana {
-                CombatManaBar(mana: mana, maxMana: maxMana)
+                CombatResourceBar(value: mana, maxValue: maxMana, style: .mana)
             }
         }
         .frame(maxWidth: .infinity)

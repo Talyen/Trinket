@@ -35,7 +35,7 @@ rogue_gold_t2_1	Cutpurse Cut	dollarsign.circle.fill	Attacks steal 2 Gold from th
 rogue_gold_t2_2	Gold Reserves	centsign.circle.fill	Deal 1 additional damage for every 10 Gold carried (up to +5 bonus damage).		goldReservesDamageEvery:10|goldReservesDamageCap:5
 rogue_gold_t3_1	Bounty Hunter	target	Defeating an enemy with a Critical Hit grants 10 bonus Gold.		critOnDefeatGold:10
 rogue_gold_t3_2	Golden Touch	sparkle	Gaining Gold doubles the next Poison, Bleed, or Burn you apply.		onGainGoldDoubleStatusEffectsNextCard:true
-wizard_freeze_t1_1	Persistent Frost	snowflake	Enemy Freeze does not fade between rounds.		freezeBuildupDoesNotDecay:true
+wizard_freeze_t1_1	Persistent Frost	snowflake	Deal 2 additional Freeze damage to Frozen enemies.		frostDamageVsFrozenBonus:2
 wizard_freeze_t1_2	Numbing Cold	wind.snow	Freeze has a 20% chance to last an additional turn.		freeze_extend_chance_percent:0.20
 wizard_freeze_t2_1	Thermal Shock	flame.and.bolt.fill	Burn damage against Frozen enemies deals 4 bonus Physical damage.		burnDamageVsFrozenBonusPhysical:4
 wizard_freeze_t2_2	Glacial Barrier	shield.lefthalf.filled	Gain 3 Block whenever an enemy becomes Frozen.		onEnemyFrozenGainBlock:3
@@ -109,7 +109,7 @@ bear_stun_t3_1	Exposed Prey	target	Stunned enemies take 50% additional damage fr
 bear_stun_t3_2	Seismic Roar	speaker.wave.3.fill	The first time Bear drops below half Health each battle, Stun the enemy.		onceBelowHealthPercentStunAllEnemies:true|onceBelowHealthPercentThreshold:0.5
 frost_whelp_freeze_t1_1	Permafrost	snowflake	Freeze has a 20% chance to last an additional turn.		freeze_extend_chance_percent:0.20
 frost_whelp_freeze_t1_2	Chilling Scales	shield.fill	When attacked, add 2 Freeze to the attacker.		onHitAttackerFreezeBuildup:2
-frost_whelp_freeze_t2_1	Glacial Grip	lock.fill	Freeze meter on enemies does not fade.		freezeBuildupDoesNotDecay:true
+frost_whelp_freeze_t2_1	Glacial Grip	lock.fill	Attacking a Frozen enemy grants 3 Block.		onAttackFrozenEnemyGainBlock:3
 frost_whelp_freeze_t2_2	Frost Siphon	moon.stars.fill	Attacking a Frozen enemy grants 1 Mana.		onAttackFrozenEnemyGainMana:1
 frost_whelp_freeze_t3_1	Shatter Frost	burst.fill	Frozen enemies take 25% additional damage.		damageVsFrozenMultiplier:1.25
 frost_whelp_freeze_t3_2	Freezing Gale	wind.snow	Apply 2 Freeze to the enemy every 3 turns.		everyNTurnsFreezeAllEnemiesInterval:3|everyNTurnsFreezeAllEnemiesAmount:2

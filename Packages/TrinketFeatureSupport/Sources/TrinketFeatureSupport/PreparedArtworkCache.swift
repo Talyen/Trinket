@@ -358,51 +358,6 @@ public final class PreparedArtworkCache {
     }
 
     static var defaultPresentationImageNames: [String] {
-        var names = Set<String>()
-
-        for reference in ArtCatalog.combatantArtByID.values {
-            names.insert(reference.imageName)
-            if let thumbnailImageName = reference.thumbnailImageName {
-                names.insert(thumbnailImageName)
-            }
-        }
-        for reference in ArtCatalog.abilityArtByID.values {
-            names.insert(reference.imageName)
-            if let thumbnailImageName = reference.thumbnailImageName {
-                names.insert(thumbnailImageName)
-            }
-        }
-        for reference in ArtCatalog.itemArtByID.values {
-            names.insert(reference.imageName)
-            if let thumbnailImageName = reference.thumbnailImageName {
-                names.insert(thumbnailImageName)
-            }
-        }
-        for reference in ArtCatalog.slotBackgroundArtByID.values {
-            names.insert(reference.imageName)
-        }
-        for reference in ArtCatalog.backgroundArtByID.values {
-            names.insert(reference.imageName)
-            if let thumbnailImageName = reference.thumbnailImageName {
-                names.insert(thumbnailImageName)
-            }
-        }
-        for reference in ArtCatalog.encounterArtByID.values {
-            names.insert(reference.imageName)
-            if let thumbnailImageName = reference.thumbnailImageName {
-                names.insert(thumbnailImageName)
-            }
-        }
-        for reference in ArtCatalog.resourceArtByID.values {
-            names.insert(reference.imageName)
-        }
-        for reference in ArtCatalog.talentArtByID.values {
-            names.insert(reference.imageName)
-            if let thumbnailImageName = reference.thumbnailImageName {
-                names.insert(thumbnailImageName)
-            }
-        }
-
-        return names.sorted()
+        ArtCatalog.allImageNames
     }
 }

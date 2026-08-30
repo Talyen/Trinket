@@ -26,6 +26,7 @@ One fact has one owner. Link instead of copying policy.
 | Manifest column formats | that manifest directory’s README |
 | Package public types / how to extend | that package README |
 | Agent hard stops | root and nested `AGENTS.md` only |
+| Artwork memory budgets | [Platform/PerformanceInvestigationPlaybook.md](Platform/PerformanceInvestigationPlaybook.md) Artwork Budgets + `AGENTS.md` guardrail (enforced by `check-artwork-budget.sh`) |
 | Audit procedure | [Audits/README.md](Audits/README.md) plus the cited audit file |
 
 Do not restate these elsewhere except a one-line pointer.

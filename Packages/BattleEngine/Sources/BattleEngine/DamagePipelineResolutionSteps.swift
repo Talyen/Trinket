@@ -12,6 +12,7 @@ package extension DamagePipeline {
         applyDodgeEmpoweredBonuses(to: &state, in: &context)
         applyStunnedAndTalentMultipliers(to: &state, in: &context)
         applyOneShotEmpowers(to: &state, in: &context)
+        BoonCombatEngine.modifyDamage(&state, in: &context)
         applyEnemyOutgoingReductions(to: &state, in: &context)
         state.dealt = state.remaining
     }

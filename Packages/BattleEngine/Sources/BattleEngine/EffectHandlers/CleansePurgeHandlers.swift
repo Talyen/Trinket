@@ -55,6 +55,14 @@ struct CleansePurgeHandler: BattleEffectHandler {
             keyword: removal.keyword
         )
         var events = [event]
+        if !mode.healsAfterRemoval {
+            events.append(contentsOf: BoonCombatEngine.afterPurge(
+                beforeCount - currentEffects.count,
+                source: source,
+                target: target,
+                in: &context
+            ))
+        }
         if mode.healsAfterRemoval {
             events.append(contentsOf: appendCleanseFollowUps(
                 source: source,

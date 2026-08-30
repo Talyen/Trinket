@@ -36,7 +36,6 @@ package enum EffectTurnEngine {
                     for: combatant
                 )
             }
-            ControlMeterEngine.decayFreezeBuildup(on: combatant, in: &context)
         }
 
         return events

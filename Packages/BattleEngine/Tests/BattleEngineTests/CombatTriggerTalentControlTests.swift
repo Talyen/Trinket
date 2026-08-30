@@ -5,18 +5,14 @@ import TrinketTestSupport
 @testable import BattleEngine
 
 struct CombatTriggerTalentControlTests { // swiftlint:disable:this type_body_length - control + paralysis coverage exceeds 350
-    @Test func freezeBuildupDoesNotDecayWhenSourceSuppresses() {
-        var battle = BattleTestFixtures.makePipelineContext(
-            heroModifiers: .init(triggers: CombatTraitTriggers(
-                control: ControlTriggers(freezeBuildupDoesNotDecay: true)
-            ))
-        )
+    @Test func freezeBuildupDoesNotDecay() {
+        var battle = BattleTestFixtures.makePipelineContext()
         BattleStateTestFactory.seedActiveEffects(
             [ActiveEffect(id: 1, effect: .controlMeter(.freeze, 4, 10), remainingTurns: 0, sourceActorID: "source")],
             for: battle.roster.enemy.combatant,
             on: &battle
         )
-        ControlMeterEngine.decayFreezeBuildup(on: battle.roster.enemy.combatant, in: &battle)
+        _ = BattleCardCombatEngine.endTurn(context: &battle)
         let meter = battle.roster.activeEffects(for: battle.roster.enemy.combatant)
             .compactMap(\.effect.controlMeterValues)
             .first

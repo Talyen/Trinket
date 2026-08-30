@@ -1,7 +1,8 @@
-import BattleEngine
 import Testing
 import TrinketContent
 import TrinketCore
+import TrinketTestSupport
+@testable import BattleEngine
 
 struct BattleCardCombatTests {
     private func makeBattle(

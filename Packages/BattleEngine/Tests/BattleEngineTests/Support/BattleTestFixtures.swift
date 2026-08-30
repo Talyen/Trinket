@@ -142,6 +142,9 @@ enum BattleTestFixtures {
         owner: BattleParticipant,
         on battle: inout BattleState
     ) throws -> [ActionEvent]? {
+        if let offer = battle.pendingBoonOffer, let choiceID = BoonEngine.autoSelectedChoiceID(for: offer, in: battle) {
+            _ = battle.selectBoon(id: choiceID)
+        }
         guard let card = battle.hand.cards.first(where: {
             $0.owner == owner && battle.isCardPlayable($0)
         }) else {
@@ -156,6 +159,9 @@ enum BattleTestFixtures {
         owner: BattleParticipant? = nil,
         on battle: inout BattleState
     ) throws -> [ActionEvent] {
+        if let offer = battle.pendingBoonOffer, let choiceID = BoonEngine.autoSelectedChoiceID(for: offer, in: battle) {
+            _ = battle.selectBoon(id: choiceID)
+        }
         guard let card = battle.hand.cards.first(where: {
             $0.ability.name == name && (owner == nil || $0.owner == owner)
         }) else {
@@ -167,7 +173,10 @@ enum BattleTestFixtures {
 
     @discardableResult
     static func endTurn(on battle: inout BattleState) -> [ActionEvent] {
-        battle.endTurn()
+        if let offer = battle.pendingBoonOffer, let choiceID = BoonEngine.autoSelectedChoiceID(for: offer, in: battle) {
+            _ = battle.selectBoon(id: choiceID)
+        }
+        return battle.endTurn()
     }
 
     @discardableResult

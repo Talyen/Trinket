@@ -63,27 +63,56 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Codable, Send
         }
     }
 
+    public var inflections: [String] {
+        switch self {
+        case .purge: ["Purges", "Purged", "Purging"]
+        case .block: ["Blocks", "Blocked", "Blocking"]
+        case .stun: ["Stuns", "Stunned", "Stunning"]
+        case .cleanse: ["Cleanses", "Cleansed", "Cleansing"]
+        case .dodge: ["Dodges", "Dodged", "Dodging"]
+        case .freeze: ["Freezes", "Freezing", "Frozen"]
+        case .burn: ["Burns", "Burned", "Burning"]
+        case .bleed: ["Bleeds", "Bleeding"]
+        case .poison: ["Poisons", "Poisoned", "Poisoning"]
+        case .leech: ["Leeches", "Leeched", "Leeching"]
+        case .health: ["Heals", "Healing", "Healed"]
+        case .physical, .gold, .holy, .mana, .deathsDoor: []
+        }
+    }
+
     public static let styledTerms: [(term: String, keyword: Self)] = {
         var terms: [(String, Self)] = allCases.map { ($0.rawValue, $0) }
         for keyword in allCases {
             if let alias = keyword.statusAlias {
                 terms.append((alias, keyword))
             }
+            for inflection in keyword.inflections {
+                terms.append((inflection, keyword))
+            }
         }
-        return terms.sorted { $0.0.count > $1.0.count }
+        var seen = Set<String>()
+        var unique: [(String, Self)] = []
+        for (term, keyword) in terms {
+            let lower = term.lowercased()
+            if !seen.contains(lower) {
+                seen.insert(lower)
+                unique.append((term, keyword))
+            }
+        }
+        return unique.sorted { $0.0.count > $1.0.count }
     }()
 
     public static func referenced(in text: String) -> [Self] {
         var keywordFirstIndices: [Self: String.Index] = [:]
         for (term, keyword) in styledTerms {
-            if let range = text.range(of: term, options: .caseInsensitive) {
-                if let existing = keywordFirstIndices[keyword] {
-                    if range.lowerBound < existing {
-                        keywordFirstIndices[keyword] = range.lowerBound
-                    }
-                } else {
+            let pattern = "\\b\(NSRegularExpression.escapedPattern(for: term))\\b"
+            guard let range = text.range(of: pattern, options: [.regularExpression, .caseInsensitive]) else { continue }
+            if let existing = keywordFirstIndices[keyword] {
+                if range.lowerBound < existing {
                     keywordFirstIndices[keyword] = range.lowerBound
                 }
+            } else {
+                keywordFirstIndices[keyword] = range.lowerBound
             }
         }
         return keywordFirstIndices

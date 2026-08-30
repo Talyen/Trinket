@@ -6,7 +6,7 @@ public struct VolumeOptionRow: View {
     @Binding var value: Double
     var onLiveChange: ((Double) -> Void)?
 
-    @State private var draft: Double = 0
+    @State private var draft: Double
     @State private var isEditing = false
 
     private var percentageText: String {
@@ -37,6 +37,7 @@ public struct VolumeOptionRow: View {
         self.title = title
         _value = value
         self.onLiveChange = onLiveChange
+        _draft = State(initialValue: value.wrappedValue)
     }
 
     public var body: some View {
@@ -78,11 +79,19 @@ public struct VolumeOptionRow: View {
         }
         .accessibilityIdentifier("\(title) Volume")
         .onAppear {
-            draft = value
+            var transaction = Transaction()
+            transaction.disablesAnimations = true
+            withTransaction(transaction) {
+                draft = value
+            }
         }
         .onChange(of: value) { _, newValue in
             guard !isEditing else { return }
-            draft = newValue
+            var transaction = Transaction()
+            transaction.disablesAnimations = true
+            withTransaction(transaction) {
+                draft = newValue
+            }
         }
     }
 }

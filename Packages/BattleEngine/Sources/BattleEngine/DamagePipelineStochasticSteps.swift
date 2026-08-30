@@ -27,6 +27,9 @@ package extension DamagePipeline {
            context.modifiers(for: sourceActorID).triggers.holyIgnoresBlockAndDodge {
             return
         }
+        if BoonCombatEngine.ignoresDodge(for: state, in: context) {
+            return
+        }
         let dodged: Bool
         if hasEvadeNextHit || autoDodge {
             dodged = true
@@ -142,6 +145,10 @@ package extension DamagePipeline {
         in context: inout BattleState
     ) -> Bool {
         guard let sourceActorID = state.sourceActorID else { return false }
+        if BoonCombatEngine.guaranteesCritical(for: state, in: context) {
+            applyCritical(to: &state)
+            return true
+        }
         if state.options.guaranteedCritical {
             applyCritical(to: &state)
             return true

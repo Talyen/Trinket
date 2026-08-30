@@ -204,6 +204,10 @@ struct BattleSessionAppIntegrationTests {
         var steps = 0
         while battle.outcome == nil, steps < 200 {
             steps += 1
+            if battle.pendingBoonOffer != nil {
+                _ = battle.selectAutoBoon()
+                continue
+            }
             if battle.spectacle.activeCinematic != nil {
                 battle.completeCinematicCollapse()
                 continue

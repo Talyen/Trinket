@@ -54,6 +54,9 @@ extension BattleSession {
             handleOutcomeIfNeeded(at: date)
             scheduleAutoEndIfNeeded()
             return .committed
+        } catch BattlePlayError.boonChoicePending {
+            feedback.noteItemsChanged()
+            return .rejected
         } catch {
             Self.commandLogger.error(
                 "playCard failed for card \(cardID, privacy: .public): \(error.localizedDescription, privacy: .public)"
@@ -233,6 +236,13 @@ extension BattleSession {
         let autoBattlePolicy = PlayPolicy.greedy
         while !Task.isCancelled, isAutoBattleEnabled {
             guard activeBattle != nil, outcome == nil else { return }
+
+            if pendingBoonOffer != nil {
+                try? await Task.sleep(for: .milliseconds(700))
+                guard !Task.isCancelled, isAutoBattleEnabled else { return }
+                _ = selectAutoBoon()
+                continue
+            }
 
             if isAutoBattlePresentationBlocked {
                 await waitForAutoBattleRetry()

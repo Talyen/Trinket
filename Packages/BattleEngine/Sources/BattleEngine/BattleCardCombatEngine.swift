@@ -42,8 +42,12 @@ public enum BattleCardCombatEngine {
         }
 
         let eligible = [BattleParticipant.hero, .companion].filter { owner in
-            context.roster[owner].isAlive && !deck(for: owner, in: context).isEmpty
+            context.roster[owner].isAlive
+                && !isDeckDrawBlocked(for: owner, in: context)
+                && !deck(for: owner, in: context).isEmpty
         }
+        guard !eligible.isEmpty else { return false }
+        guard context.hand.count < BattleHand.maxSize else { return false }
         guard let owner = eligible.randomElement(using: &context.rng) else { return false }
         return drawOne(owner: owner, context: &context) != nil
     }
@@ -88,7 +92,7 @@ public enum BattleCardCombatEngine {
         context: inout BattleState
     ) -> [ActionEvent] {
         let actor = ownerRuntime.combatant
-        let abilityTarget = actor.role == .enemy ? context.roster.enemyAttackTarget : context.enemy
+        let abilityTarget = BattleTargetResolver.abilityTarget(for: actor, in: context)
         var events = BattleTurnEngine.performAction(
             ability: card.ability,
             actor: actor,
@@ -241,7 +245,7 @@ public enum BattleCardCombatEngine {
             return leadingEvents
         }
 
-        let abilityTarget = context.talentAdjustedEnemyTarget
+        let abilityTarget = BattleTargetResolver.abilityTarget(for: enemy, in: context)
         let turnNumber = context.roster.enemy.actionCount + 1
         guard let ability = BattleTurnEngine.selectedEnemyAbility(for: enemy, turnNumber: turnNumber) else {
             return leadingEvents
@@ -328,7 +332,7 @@ public enum BattleCardCombatEngine {
         for owner: BattleParticipant,
         context: inout BattleState
     ) -> BattleCard? {
-        guard context.roster[owner].isAlive, let keyPath = deckKeyPath(for: owner) else { return nil }
+        guard canDrawFromDeck(for: owner, in: context), let keyPath = deckKeyPath(for: owner) else { return nil }
         guard let ability = context[keyPath: keyPath].drawFirst(where: { $0.keywords.contains(keyword) }) else {
             return nil
         }
@@ -337,9 +341,21 @@ public enum BattleCardCombatEngine {
 
     @discardableResult
     private static func drawOne(owner: BattleParticipant, context: inout BattleState) -> BattleCard? {
-        guard context.roster[owner].isAlive, let keyPath = deckKeyPath(for: owner) else { return nil }
+        guard canDrawFromDeck(for: owner, in: context), let keyPath = deckKeyPath(for: owner) else { return nil }
         guard let ability = context[keyPath: keyPath].draw() else { return nil }
         return deal(ability, owner: owner, context: &context)
+    }
+
+    static func canDrawFromDeck(for owner: BattleParticipant, in context: BattleState) -> Bool {
+        guard context.roster[owner].isAlive, deckKeyPath(for: owner) != nil else { return false }
+        return !isDeckDrawBlocked(for: owner, in: context)
+    }
+
+    static func isDeckDrawBlocked(for owner: BattleParticipant, in context: BattleState) -> Bool {
+        guard owner.isPartyMember else { return false }
+        let combatant = context.roster[owner].combatant
+        return context.roster.hasPendingActionSkip(for: combatant, keyword: .freeze)
+            || context.roster.hasPendingActionSkip(for: combatant, keyword: .stun)
     }
 
     static func deck(for owner: BattleParticipant, in context: BattleState) -> CombatDeck {

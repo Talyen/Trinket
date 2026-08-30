@@ -30,7 +30,9 @@ public extension PrimaryStats {
         )
     }
 
-    static let enemyDodgeFalloffConstant: Double = 4.0
+    static let enemyDodgeFalloffConstant: Double = 9.0
+
+    static let partyIncomingControlResistance: Double = 0.25
 
     func contestedEnemyDodgeChance(againstAttackerAgility attackerAgility: Int) -> Double {
         let base = contestedDodgeChance(againstAttackerAgility: attackerAgility)
@@ -68,9 +70,9 @@ public extension PrimaryStats {
 public extension GrowthArchetype {
     var enemyDodgeChanceCap: Double {
         switch self {
-        case .assassin: 0.35
-        case .bruiser: 0.25
-        case .mage, .tank, .support: 0.15
+        case .assassin: 0.10
+        case .bruiser: 0.08
+        case .mage, .tank, .support: 0.05
         }
     }
 

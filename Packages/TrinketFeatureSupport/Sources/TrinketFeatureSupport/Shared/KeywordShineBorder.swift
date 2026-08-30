@@ -102,10 +102,8 @@ private struct KeywordShineBorderStroke: View {
         var stops: [Gradient.Stop] = []
         for i in 0 ... count {
             let loc = Double(i) / Double(count)
-            stops.append(.init(color: looped[i].opacity(0.75), location: loc))
+            stops.append(.init(color: looped[i].opacity(0.85), location: loc))
         }
-        stops.append(.init(color: highlight, location: 0.4))
-        stops.sort { $0.location < $1.location }
         return stops
     }
 }

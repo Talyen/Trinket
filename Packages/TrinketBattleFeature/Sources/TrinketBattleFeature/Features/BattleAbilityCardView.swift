@@ -1,14 +1,12 @@
 import BattleEngine
 import SwiftUI
 import TrinketContent
-import TrinketCore
 import TrinketDesignSystem
 import TrinketFeatureSupport
 
 struct BattleAbilityCardView: View {
     let card: BattleCard
     let isPlayable: Bool
-    var controlSkipKeyword: Keyword?
     let width: CGFloat
     let height: CGFloat
     let restingRotation: CGFloat
@@ -58,81 +56,74 @@ struct BattleAbilityCardView: View {
         BattleHandLayout.playDragThreshold
     }
 
-    private var showsControlSkipEffect: Bool {
-        guard let controlSkipKeyword else { return false }
-        return CombatantStatusEffectKind(statusKeyword: controlSkipKeyword) != nil
-    }
-
     private var faceOpacity: Double {
-        isPlayable || showsControlSkipEffect ? 1 : 0.45
+        isPlayable ? 1 : 0.45
     }
 
     var body: some View {
-        CombatantStatusEffectPresentation(keyword: controlSkipKeyword) {
-            BattleAbilityCardFace(artworkName: card.ability.artReference?.imageName)
-                .equatable()
-                .frame(width: width, height: height)
-        }
-        .opacity(faceOpacity)
-        .overlay {
-            if isPlayArmed {
-                TrinketDesign.cardShape
-                    .stroke(
-                        TrinketDesign.Colors.accent.opacity(BattleMotion.cardArmedRingOpacity),
-                        lineWidth: BattleMotion.cardArmedRingLineWidth
-                    )
+        BattleAbilityCardFace(artworkName: card.ability.artReference?.imageName)
+            .equatable()
+            .frame(width: width, height: height)
+            .opacity(faceOpacity)
+            .overlay {
+                if isPlayArmed {
+                    TrinketDesign.cardShape
+                        .stroke(
+                            TrinketDesign.Colors.accent.opacity(BattleMotion.cardArmedRingOpacity),
+                            lineWidth: BattleMotion.cardArmedRingLineWidth
+                        )
+                }
             }
-        }
-        .scaleEffect(x: activeScale.width, y: activeScale.height)
-        .rotationEffect(.degrees(activeRotation), anchor: .bottom)
-        .rotation3DEffect(
-            .degrees(isDragging ? verticalTilt : 0),
-            axis: (x: 1, y: 0, z: 0),
-            anchor: .bottom,
-            perspective: BattleMotion.cardPerspective
-        )
-        .offset(activeOffset)
-        .offset(tapLiftOffset)
-        .shadow(
-            color: isDragging ? TrinketDesign.Colors.Overlay.dragShadow.opacity(0.55) : .clear,
-            radius: BattleMotion.cardHeldShadowRadius,
-            y: BattleMotion.cardHeldShadowY
-        )
-        .gesture(
-            DragGesture(minimumDistance: 0)
-                .onChanged(updateDrag)
-                .onEnded(endDrag)
-        )
-        .trinketSensoryFeedback(
-            .selection,
-            trigger: playArmFeedbackToken,
-            enabled: hapticsEnabled
-        )
-        .trinketSensoryFeedback(
-            .selection,
-            trigger: inspectFeedbackToken,
-            enabled: hapticsEnabled
-        )
-        .trinketSensoryFeedback(
-            .warning,
-            trigger: denyFeedbackToken,
-            enabled: hapticsEnabled
-        )
-        .onDisappear {
-            cancelInspection()
-            cancelTapLift()
-            onInteractionChanged(false)
-        }
-        .onAppear {
-            syncAutoLift(autoLiftCardID)
-        }
-        .onChange(of: autoLiftCardID) { _, liftCardID in
-            syncAutoLift(liftCardID)
-        }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(card.ability.name)
-        .accessibilityHint("Double tap to play this card")
-        .accessibilityIdentifier(AccessibilityID.Battle.handCard(card.ability.id))
+            .scaleEffect(x: activeScale.width, y: activeScale.height)
+            .rotationEffect(.degrees(activeRotation), anchor: .bottom)
+            .rotation3DEffect(
+                .degrees(isDragging ? verticalTilt : 0),
+                axis: (x: 1, y: 0, z: 0),
+                anchor: .bottom,
+                perspective: BattleMotion.cardPerspective
+            )
+            .offset(activeOffset)
+            .offset(tapLiftOffset)
+            .shadow(
+                color: isDragging ? TrinketDesign.Colors.Overlay.dragShadow.opacity(0.55) : .clear,
+                radius: BattleMotion.cardHeldShadowRadius,
+                y: BattleMotion.cardHeldShadowY
+            )
+            .gesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged(updateDrag)
+                    .onEnded(endDrag)
+            )
+            .trinketSensoryFeedback(
+                .selection,
+                trigger: playArmFeedbackToken,
+                enabled: hapticsEnabled
+            )
+            .trinketSensoryFeedback(
+                .selection,
+                trigger: inspectFeedbackToken,
+                enabled: hapticsEnabled
+            )
+            .trinketSensoryFeedback(
+                .warning,
+                trigger: denyFeedbackToken,
+                enabled: hapticsEnabled
+            )
+            .onDisappear {
+                cancelInspection()
+                cancelTapLift()
+                onInteractionChanged(false)
+            }
+            .onAppear {
+                syncAutoLift(autoLiftCardID)
+            }
+            .onChange(of: autoLiftCardID) { _, liftCardID in
+                syncAutoLift(liftCardID)
+            }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(card.ability.name)
+            .accessibilityHint("Double tap to play this card")
+            .accessibilityIdentifier(AccessibilityID.Battle.handCard(card.ability.id))
     }
 
     private var activeOffset: CGSize {
@@ -236,7 +227,7 @@ struct BattleAbilityCardView: View {
             if crossedDenyThreshold, !didAnnounceDeny {
                 didAnnounceDeny = true
                 denyFeedbackToken &+= 1
-                reportControlledPlayDeniedIfNeeded()
+                reportPlayDeniedIfNeeded()
             } else if !crossedDenyThreshold {
                 didAnnounceDeny = false
             }
@@ -261,7 +252,7 @@ struct BattleAbilityCardView: View {
             if isPlayable {
                 beginTapPlay()
             } else {
-                reportControlledPlayDeniedIfNeeded()
+                reportPlayDeniedIfNeeded()
                 returnDrag()
             }
             return
@@ -429,8 +420,8 @@ private extension BattleAbilityCardView {
         onAttackCancel?()
     }
 
-    func reportControlledPlayDeniedIfNeeded() {
-        guard showsControlSkipEffect, !didReportPlayDenied else { return }
+    func reportPlayDeniedIfNeeded() {
+        guard !isPlayable, !didReportPlayDenied else { return }
         didReportPlayDenied = true
         onPlayDenied()
     }

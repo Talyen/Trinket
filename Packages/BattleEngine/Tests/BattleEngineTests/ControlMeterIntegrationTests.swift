@@ -118,6 +118,10 @@ struct ControlMeterIntegrationTests {
             ]
         )
 
+        battle.nextCardID += 1
+        battle.hand = BattleHand(cards: [
+            BattleCard(id: battle.nextCardID, ability: .slash, owner: .hero),
+        ])
         battle.ownersSkippingThisPlayerTurn = [.hero]
         let heroCard = try #require(battle.hand.cards.first { $0.owner == .hero })
         try #expect(!battle.isCardPlayable(heroCard))

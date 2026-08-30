@@ -61,6 +61,12 @@ package extension CombatTriggerEngine {
     ) -> [ActionEvent] {
         let triggers = context.modifiers(for: source.id).triggers
         var events: [ActionEvent] = []
+        events.append(contentsOf: BoonCombatEngine.afterCleanse(
+            removedCount,
+            source: source,
+            target: target,
+            in: &context
+        ))
         events.append(contentsOf: cleanseShieldBonuses(
             triggers: triggers,
             source: source,

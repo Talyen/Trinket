@@ -51,8 +51,8 @@ struct CombatantStatusEffectConfig: Equatable {
             config.tintStrength = 0
         case .iceCrystals:
             config.particleCount = 12
-            config.frostOpacity = 0.75
-            config.crackDensity = 0.7
+            config.frostOpacity = 0.82
+            config.crackDensity = 0.76
             config.tintStrength = 0
         }
         return config
@@ -127,6 +127,11 @@ struct CombatantStatusEffectOverlay: View {
             max(phase / CGFloat(BattleMotion.combatantFreezeEncroachProgress), 0),
             1
         )
+        let onset = min(
+            max(phase / CGFloat(BattleMotion.combatantFreezeOnsetProgress), 0),
+            1
+        )
+        let onsetGlow = sin(onset * .pi)
         let minDim = min(size.width, size.height)
         let clearRadius = minDim * 0.55 * (1 - encroach * (0.55 + config.crackDensity * 0.3))
         let edgeRadius = minDim * 0.78
@@ -139,51 +144,83 @@ struct CombatantStatusEffectOverlay: View {
             RadialGradient(
                 colors: [
                     Color.clear,
-                    style.glowColor.opacity(0.06 * veilOpacity),
-                    style.color.opacity(0.18 * veilOpacity),
-                    style.secondaryColor.opacity(0.32 * veilOpacity),
+                    style.glowColor.opacity(0.08 * veilOpacity),
+                    style.color.opacity(0.22 * veilOpacity),
+                    style.secondaryColor.opacity(0.40 * veilOpacity),
                 ],
                 center: .center,
                 startRadius: max(clearRadius, 0),
                 endRadius: max(edgeRadius, clearRadius + 1)
             )
 
-            Canvas { context, _ in
-                for index in 0 ..< flakes {
-                    let along = CombatantCardEffectNoise.value(index, salt: 41)
-                    let edge = index % 4
-                    let delay = CGFloat(index) / CGFloat(flakes) * 0.72
-                    let appear = min(max((encroach - delay) / 0.28, 0), 1)
-                    guard appear > 0.02 else { continue }
+            TrinketDesign.cardShape
+                .strokeBorder(
+                    style.color.opacity(0.26 * veilOpacity),
+                    lineWidth: 1.25
+                )
 
-                    let insetNoise = CombatantCardEffectNoise.value(index, salt: 47)
-                    let inset = 4 + insetNoise * (6 + config.crackDensity * 10)
-                    let center = switch edge {
-                    case 0: CGPoint(x: along * size.width, y: inset)
-                    case 1: CGPoint(x: size.width - inset, y: along * size.height)
-                    case 2: CGPoint(x: along * size.width, y: size.height - inset)
-                    default: CGPoint(x: inset, y: along * size.height)
-                    }
-
-                    let twinkle: CGFloat = 0.55 + 0.45 * abs(sin(phase * .pi * 2.4 + insetNoise * .pi * 2))
-                    let breathe: CGFloat = 0.88 + 0.12 * twinkle
-                    let radiusFraction: CGFloat = minDim * (0.01 + config.crackDensity * 0.018)
-                    let radiusVariance: CGFloat = 0.7 + insetNoise * 0.5
-                    let radius: CGFloat = radiusFraction * radiusVariance * appear * breathe * config.intensity
-                    let opacityBase: CGFloat = 0.3 + 0.55 * appear * config.frostOpacity
-                    let opacity = Double(opacityBase * twinkle)
-                    drawSnowflake(
-                        in: &context,
-                        at: center,
-                        radius: radius,
-                        rotation: along * .pi + insetNoise + phase * 0.15,
-                        color: style.color.opacity(opacity * 0.7),
-                        secondary: style.secondaryColor.opacity(opacity)
+            if onsetGlow > 0.001 {
+                TrinketDesign.cardShape
+                    .strokeBorder(
+                        style.color.opacity(0.34 * Double(onsetGlow)),
+                        lineWidth: 2
                     )
-                }
+                    .blur(radius: 1.4)
             }
+
+            snowflakeLayer(
+                size: size,
+                style: style,
+                phase: phase,
+                flakes: flakes,
+                encroach: encroach
+            )
         }
         .clipShape(TrinketDesign.cardShape)
+    }
+
+    private func snowflakeLayer(
+        size: CGSize,
+        style: Keyword.VisualStyle,
+        phase: CGFloat,
+        flakes: Int,
+        encroach: CGFloat
+    ) -> some View {
+        Canvas { context, _ in
+            for index in 0 ..< flakes {
+                let along = CombatantCardEffectNoise.value(index, salt: 41)
+                let edge = index % 4
+                let delay = CGFloat(index) / CGFloat(flakes) * 0.72
+                let appear = min(max((encroach - delay) / 0.28, 0), 1)
+                guard appear > 0.02 else { continue }
+
+                let insetNoise = CombatantCardEffectNoise.value(index, salt: 47)
+                let inset = 4 + insetNoise * (6 + config.crackDensity * 10)
+                let center = switch edge {
+                case 0: CGPoint(x: along * size.width, y: inset)
+                case 1: CGPoint(x: size.width - inset, y: along * size.height)
+                case 2: CGPoint(x: along * size.width, y: size.height - inset)
+                default: CGPoint(x: inset, y: along * size.height)
+                }
+
+                let twinkle: CGFloat = 0.55 + 0.45 * abs(sin(phase * .pi * 2.4 + insetNoise * .pi * 2))
+                let breathe: CGFloat = 0.88 + 0.12 * twinkle
+                let radiusFraction: CGFloat = min(size.width, size.height)
+                    * (0.01 + config.crackDensity * 0.018)
+                let radiusVariance: CGFloat = 0.7 + insetNoise * 0.5
+                let radius: CGFloat = radiusFraction * radiusVariance * appear * breathe * config.intensity
+                let opacityBase: CGFloat = 0.3 + 0.55 * appear * config.frostOpacity
+                let opacity = Double(opacityBase * twinkle)
+                drawSnowflake(
+                    in: &context,
+                    at: center,
+                    radius: radius,
+                    rotation: along * .pi + insetNoise + phase * 0.15,
+                    color: style.color.opacity(opacity * 0.7),
+                    secondary: style.secondaryColor.opacity(opacity)
+                )
+            }
+        }
     }
 }
 
@@ -253,7 +290,7 @@ private func drawSnowflake(
         path.addLine(to: CGPoint(x: mid.x - perp.dx * arm, y: mid.y - perp.dy * arm))
     }
     context.fill(path, with: .color(color))
-    context.stroke(path, with: .color(secondary), lineWidth: 0.65)
+    context.stroke(path, with: .color(secondary), lineWidth: 0.8)
 }
 
 struct CombatantStatusCardTransform: ViewModifier {
@@ -303,7 +340,7 @@ struct CombatantStatusEffectPresentation<Content: View>: View {
         config: CombatantStatusEffectConfig
     ) -> some View {
         TimelineView(
-            .animation(paused: battleSession.lifecyclePhase != .active)
+            .animation(minimumInterval: 1.0 / 30.0, paused: battleSession.lifecyclePhase != .active)
         ) { timeline in
             let progress = kind.progress(
                 after: timeline.date.timeIntervalSince(startDate)

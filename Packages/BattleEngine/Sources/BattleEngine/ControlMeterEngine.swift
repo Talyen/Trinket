@@ -28,7 +28,11 @@ package enum ControlMeterEngine {
                 ? targetTriggers.blockedControlBurnResistance
                 : 0
             let lichboneResistance = keyword == .stun ? targetTriggers.afflictionResistance : 0
-            let controlResistance = max(steadfastResistance, lichboneResistance)
+            let partyResistance: Double = switch combatant.role {
+            case .hero, .companion: PrimaryStats.partyIncomingControlResistance
+            case .enemy: 0
+            }
+            let controlResistance = 1 - (1 - partyResistance) * (1 - steadfastResistance) * (1 - lichboneResistance)
             if controlResistance > 0 {
                 adjustedAmount = CombatRounding.scaled(adjustedAmount, multiplier: 1 - min(1, controlResistance))
             }
@@ -95,40 +99,6 @@ package enum ControlMeterEngine {
         )
     }
 
-    private static let freezeDecayPercent = 25
-
-    package static func decayFreezeBuildup(
-        on combatant: Combatant,
-        in context: inout BattleState
-    ) {
-        var effects = context.roster.activeEffects(for: combatant)
-        var changed = false
-        for index in effects.indices {
-            guard case let .controlMeter(kw, amount, threshold) = effects[index].effect,
-                  kw == .freeze,
-                  amount > 0,
-                  amount < threshold
-            else { continue }
-            if let sourceID = effects[index].sourceActorID,
-               context.modifiers(for: sourceID).triggers.freezeBuildupDoesNotDecay {
-                continue
-            }
-            let decayed = max(0, amount - amount * Self.freezeDecayPercent / 100)
-            if decayed != amount {
-                effects[index] = ActiveEffect(
-                    id: effects[index].id,
-                    effect: .controlMeter(.freeze, decayed, threshold),
-                    remainingTurns: effects[index].remainingTurns,
-                    sourceActorID: effects[index].sourceActorID
-                )
-                changed = true
-            }
-        }
-        if changed {
-            context.roster.setActiveEffects(effects, for: combatant)
-        }
-    }
-
     private static func existingMeterAmount(
         at existingIndex: Int?,
         in currentEffects: [ActiveEffect]
@@ -169,6 +139,11 @@ package enum ControlMeterEngine {
             currentEffects: &currentEffects,
             in: &context
         )
+        if keyword == .freeze || keyword == .stun,
+           let owner = context.roster.participant(for: combatant),
+           owner.isPartyMember {
+            BattleCardCombatEngine.purgeControlledOwnerCards(for: owner, context: &context)
+        }
         if keyword == .freeze, let sourceActorID {
             let chance = context.modifiers(for: sourceActorID).triggers.freezeExtendChancePercent
                 + Double(context.modifiers(for: sourceActorID).triggers.freezeExtraActionSkips) * 0.20
@@ -202,6 +177,12 @@ package enum ControlMeterEngine {
         if keyword == .stun, combatant.id == context.roster.enemy.id {
             events.append(contentsOf: CombatTriggerEngine.afterEnemyStunned(in: &context))
         }
+        events.append(contentsOf: BoonCombatEngine.afterControl(
+            keyword,
+            target: combatant,
+            sourceActorID: sourceActorID,
+            in: &context
+        ))
         if keyword == .freeze,
            combatant.role == .enemy,
            let sourceActorID,

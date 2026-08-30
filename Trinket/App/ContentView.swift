@@ -125,9 +125,6 @@ struct ContentView: View {
                 }
             }
         }
-        .toolbarVisibility(
-            battle.lifecyclePhase == .active ? .hidden : .visible,
-            for: .tabBar
-        )
+
     }
 }

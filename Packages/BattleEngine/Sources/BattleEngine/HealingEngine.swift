@@ -53,6 +53,15 @@ package enum HealingEngine {
         }
 
         let overflow = max(0, amount - max(0, maxHealth - preHealth))
+        if overflow > 0,
+           let sourceActorID = request.sourceActorID,
+           let source = context.roster.combatant(for: sourceActorID) {
+            events.append(contentsOf: BoonCombatEngine.afterOverheal(
+                source: source.combatant,
+                target: request.target,
+                in: &context
+            ))
+        }
         events.append(contentsOf: applyOverhealConversion(
             overflow: overflow,
             request: request,

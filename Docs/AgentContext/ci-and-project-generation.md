@@ -10,7 +10,7 @@ Preview an unfamiliar route with `./Scripts/handoff.sh --dry-run --isolate --pat
 
 ## Key exceptions
 
-- **Agent isolation (`--isolate`)**: `handoff.sh --isolate --paths …` shares the simulator-slot environment from `Scripts/run-env.sh` (`Trinket Agent N` in Simulator.app, `.DerivedData/runs/agent-N/`, `TMPDIR`, `TRINKET_RUN_ID`). Use `--working-tree` only for an intentional whole-tree gate. Human `run` / non-isolate tests use **Trinket Run**. Run-env self-clean reclaims non-empty Preview sims (shutdown Booted), enforces one Booted managed sim, and age-prunes bulky build artifacts. xcode-runner wall/idle watchdogs kill host xcodebuild trees only (no `simctl`).
+- **Agent isolation (`--isolate`)**: Use `--isolate` for all agent verification; see [SimulatorOperations.md](../Platform/SimulatorOperations.md) for pool (`Trinket Agent N` vs `Trinket Run`), `RESULTS_DIR` (`runs/agent-N`), lease, and watchdog rules. Use `--working-tree` only for an intentional whole-tree gate.
 - **Generation freshness**: Verify stamps `$RESULTS_DIR/.last-generate.stamp` with a porcelain sidecar. Idempotent asserts skip redundant regenerates when fresh against input mtimes and porcelain state.
 - **Push gates**: Pre-push runs path-scoped style, then `./Scripts/agent-push-gate.sh` (generation completeness), then path-scoped package tests for pushed packages. Landing policy is owned by root `AGENTS.md` and [Verification.md](../Platform/Verification.md).
 - **Environment & pinning**: `generate.sh` exports `LC_ALL=C` and pins `DEVELOPER_DIR` + `SDKROOT` to Xcode's macOS SDK. `--force-xcodegen` bypasses cache. Pinned tools require `TRINKET_REQUIRE_PINNED_TOOLS=1`. CI selects Xcode from `Scripts/tool-versions.env` (`XCODE_VERSION`).

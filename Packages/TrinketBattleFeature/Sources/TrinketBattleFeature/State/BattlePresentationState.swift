@@ -22,8 +22,8 @@ struct BattlePresentationSnapshot: Equatable {
     let enemy: BattleCombatantPresentation
     let hand: [BattleCard]
     let playableCardIDs: Set<Int>
-    let ownerControlSkipKeywords: [BattleParticipant: Keyword]
     let isBattleOver: Bool
+    let pendingBoonOffer: BoonOffer?
 
     init(configurationID: UUID, state: borrowing BattleState) {
         self.configurationID = configurationID
@@ -34,11 +34,8 @@ struct BattlePresentationSnapshot: Equatable {
         enemy = Self.combatant(state.enemy, effects: state.activeEffects(of: state.enemy), in: state)
         hand = state.hand.cards
         playableCardIDs = Set(hand.filter { state.isCardPlayable($0) }.map(\.id))
-        ownerControlSkipKeywords = Self.ownerControlSkipKeywords(
-            heroEffects: heroEffects,
-            companionEffects: companionEffects
-        )
         isBattleOver = state.isBattleOver
+        pendingBoonOffer = state.pendingBoonOffer
     }
 
     private static func combatant(
@@ -59,20 +56,6 @@ struct BattlePresentationSnapshot: Equatable {
             buffAuraKind: CombatantBuffAura.kind(from: effects)
         )
     }
-
-    private static func ownerControlSkipKeywords(
-        heroEffects: [ActiveEffect],
-        companionEffects: [ActiveEffect]
-    ) -> [BattleParticipant: Keyword] {
-        var keywords: [BattleParticipant: Keyword] = [:]
-        if let control = heroEffects.first(where: \.isAwaitingActionSkip) {
-            keywords[.hero] = control.keyword
-        }
-        if let control = companionEffects.first(where: \.isAwaitingActionSkip) {
-            keywords[.companion] = control.keyword
-        }
-        return keywords
-    }
 }
 
 @MainActor
@@ -84,8 +67,8 @@ final class BattlePresentationState {
     private(set) var enemy: BattleCombatantPresentation?
     private(set) var hand: [BattleCard] = []
     private(set) var playableCardIDs: Set<Int> = []
-    private(set) var ownerControlSkipKeywords: [BattleParticipant: Keyword] = [:]
     private(set) var isBattleOver = false
+    private(set) var pendingBoonOffer: BoonOffer?
 
     func install(_ snapshot: BattlePresentationSnapshot) {
         if configurationID != snapshot.configurationID {
@@ -106,11 +89,11 @@ final class BattlePresentationState {
         if playableCardIDs != snapshot.playableCardIDs {
             playableCardIDs = snapshot.playableCardIDs
         }
-        if ownerControlSkipKeywords != snapshot.ownerControlSkipKeywords {
-            ownerControlSkipKeywords = snapshot.ownerControlSkipKeywords
-        }
         if isBattleOver != snapshot.isBattleOver {
             isBattleOver = snapshot.isBattleOver
+        }
+        if pendingBoonOffer != snapshot.pendingBoonOffer {
+            pendingBoonOffer = snapshot.pendingBoonOffer
         }
     }
 
@@ -121,8 +104,8 @@ final class BattlePresentationState {
         enemy = nil
         hand = []
         playableCardIDs = []
-        ownerControlSkipKeywords = [:]
         isBattleOver = false
+        pendingBoonOffer = nil
     }
 }
 

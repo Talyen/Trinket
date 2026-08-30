@@ -394,9 +394,9 @@ public extension CombatantTalentCatalog {
             "wizard_freeze_t1_1": CombatantTalentEffect(
                 name: "Persistent Frost",
                 symbolName: "snowflake",
-                description: "Enemy Freeze does not fade between rounds.",
+                description: "Deal 2 additional Freeze damage to Frozen enemies.",
                 modifiers: [],
-                triggers: CombatTraitTriggers(control: ControlTriggers(freezeBuildupDoesNotDecay: true))
+                triggers: CombatTraitTriggers(damage: DamageTriggers(frostDamageVsFrozenBonus: 2))
             ),
             "wizard_freeze_t1_2": CombatantTalentEffect(
                 name: "Numbing Cold",
@@ -924,9 +924,9 @@ public extension CombatantTalentCatalog {
             "frost_whelp_freeze_t2_1": CombatantTalentEffect(
                 name: "Glacial Grip",
                 symbolName: "lock.fill",
-                description: "Freeze meter on enemies does not fade.",
+                description: "Attacking a Frozen enemy grants 3 Block.",
                 modifiers: [],
-                triggers: CombatTraitTriggers(control: ControlTriggers(freezeBuildupDoesNotDecay: true))
+                triggers: CombatTraitTriggers(attack: AttackTriggers(onAttackFrozenEnemyGainBlock: 3))
             ),
             "frost_whelp_freeze_t2_2": CombatantTalentEffect(
                 name: "Frost Siphon",

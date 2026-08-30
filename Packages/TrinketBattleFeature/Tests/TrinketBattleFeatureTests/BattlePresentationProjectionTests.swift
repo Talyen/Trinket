@@ -6,7 +6,7 @@ import TrinketTestSupport
 @testable import TrinketBattleFeature
 
 struct BattlePresentationProjectionTests {
-    @Test func projectsTriggeredStunAndFreezeForPartyOwners() {
+    @Test func projectsTriggeredStunAndFreezeForPartyCombatants() {
         let state = BattleState(
             hero: CombatantFixtures.combatant(id: "hero", role: .hero),
             companion: CombatantFixtures.combatant(id: "companion", role: .companion),
@@ -20,11 +20,11 @@ struct BattlePresentationProjectionTests {
         )
         let snapshot = BattlePresentationSnapshot(configurationID: UUID(), state: state)
 
-        #expect(snapshot.ownerControlSkipKeywords[.hero] == .stun)
-        #expect(snapshot.ownerControlSkipKeywords[.companion] == .freeze)
+        #expect(snapshot.hero.borderAccentKeyword == .stun)
+        #expect(snapshot.companion.borderAccentKeyword == .freeze)
     }
 
-    @Test func ignoresControlBuildUpAndDeathsDoorAlone() {
+    @Test func ignoresControlBuildUpButProjectsDeathsDoor() {
         let state = BattleState(
             hero: CombatantFixtures.combatant(id: "hero", role: .hero),
             companion: CombatantFixtures.combatant(id: "companion", role: .companion),
@@ -36,7 +36,7 @@ struct BattlePresentationProjectionTests {
         )
         let snapshot = BattlePresentationSnapshot(configurationID: UUID(), state: state)
 
-        #expect(snapshot.ownerControlSkipKeywords.isEmpty)
+        #expect(snapshot.hero.borderAccentKeyword == .deathsDoor)
     }
 
     @Test func ignoresPartyControlStatusLingerForHandAndBorder() {
@@ -57,7 +57,6 @@ struct BattlePresentationProjectionTests {
         )
         let snapshot = BattlePresentationSnapshot(configurationID: UUID(), state: state)
 
-        #expect(snapshot.ownerControlSkipKeywords.isEmpty)
         #expect(snapshot.hero.borderAccentKeyword == nil)
         #expect(snapshot.companion.borderAccentKeyword == nil)
         #expect(snapshot.enemy.borderAccentKeyword == .stun)

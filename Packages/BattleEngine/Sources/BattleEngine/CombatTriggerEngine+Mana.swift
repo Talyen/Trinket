@@ -39,6 +39,7 @@ package extension CombatTriggerEngine {
         let triggers = profile.triggers
         var events: [ActionEvent] = []
         events.append(contentsOf: drawAfterSpendMana(by: actor, in: &context))
+        events.append(contentsOf: BoonCombatEngine.afterManaSpent(amountSpent, by: actor, in: &context))
 
         if triggers.spendManaBlockFlat > 0 {
             events.append(contentsOf: context.applyBlock(

@@ -1,0 +1,9 @@
+# Generated from smoke suite — do not hand-edit. Update via Scripts/prepare-assets.sh --kind fullui or mirror Scripts/README.md FullUI drift check.
+BattleFlowUITests
+MysteryRecruitUITests
+PlayMapUITests
+PlayModeNavigationUITests
+ShopFlowUITests
+TabNavigationUITests
+HeroDetailAbilityPickerUITests
+HomesteadNodeDetailUITests
