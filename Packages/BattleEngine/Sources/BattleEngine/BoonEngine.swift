@@ -1,7 +1,7 @@
 import TrinketContent
 import TrinketCore
 
-package enum BoonEngine {
+public enum BoonEngine {
     private static let seedSalt: UInt64 = 0xB00A_75C0_50D2_25E1
     static let maxRecursionDepth = 8
 
@@ -111,7 +111,9 @@ package enum BoonEngine {
         return offer.choices.max { lhs, rhs in
             let left = lhs.boon.category.keywords.reduce(0) { $0 + affinityCounts[$1, default: 0] }
             let right = rhs.boon.category.keywords.reduce(0) { $0 + affinityCounts[$1, default: 0] }
-            if left != right { return left < right }
+            if left != right {
+                return left < right
+            }
             return lhs.id > rhs.id
         }?.id
     }

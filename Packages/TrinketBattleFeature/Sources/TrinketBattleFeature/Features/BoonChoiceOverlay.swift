@@ -85,7 +85,9 @@ struct BoonChoiceOverlay: View {
                 )
             )
         }
-        if !measured.isEmpty { return measured }
+        if !measured.isEmpty {
+            return measured
+        }
         let fallbackY: [CGFloat] = [0.42, 0.62]
         return offer.choices.enumerated().compactMap { index, choice in
             guard index < fallbackY.count else { return nil }
