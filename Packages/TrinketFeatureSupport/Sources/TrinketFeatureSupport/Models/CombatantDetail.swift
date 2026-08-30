@@ -25,7 +25,7 @@ public struct CombatantCardDetail: Hashable, Identifiable {
         health: Int? = nil,
         mana: Int? = nil,
         activeEffectSummaries: [EffectSummary] = [],
-        labyrinthModifiers: [LabyrinthModifierDefinition] = []
+        labyrinthModifiers: [LabyrinthModifierDefinition] = [],
     ) {
         self.combatant = combatant
         self.progression = progression

@@ -5,7 +5,7 @@ import TrinketCore
 package extension DamagePipeline {
     static func applyCriticalBlockSteal(
         to state: inout DamageResolutionState,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) {
         guard state.isCritical,
               state.combatant.role == .enemy,
@@ -19,13 +19,13 @@ package extension DamagePipeline {
             enemyBlock,
             to: source.combatant,
             source: source.combatant,
-            abilityName: "Master Thief"
+            abilityName: "Master Thief",
         ))
     }
 
     static func applyLeech(
         to state: inout DamageResolutionState,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) {
         guard state.healthLost > 0,
               let sourceActorID = state.sourceActorID,
@@ -38,14 +38,14 @@ package extension DamagePipeline {
             blockedAmount: state.blockedAmount,
             abilityHasLeech: state.options.abilityHasLeech,
             damageKeyword: state.damageKeyword,
-            in: &context
+            in: &context,
         )
         state.damageEvents.append(contentsOf: leechOutcome.events)
     }
 
     static func applyKeywordReactions(
         to state: inout DamageResolutionState,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) {
         guard state.healthLost > 0,
               let keyword = state.damageKeyword,
@@ -58,26 +58,26 @@ package extension DamagePipeline {
                 to: state.combatant,
                 source: source.combatant,
                 isAttackHit: state.options.isAttackHit,
-                in: &context
+                in: &context,
             ))
         case .stun:
             state.damageEvents.append(contentsOf: CombatTriggerEngine.afterStunDamageDealt(
                 to: state.combatant,
                 source: source.combatant,
-                in: &context
+                in: &context,
             ))
         case .burn:
             state.damageEvents.append(contentsOf: CombatTriggerEngine.afterBurnDamageDealt(
                 to: state.combatant,
                 source: source.combatant,
-                in: &context
+                in: &context,
             ))
         case .freeze:
             state.damageEvents.append(contentsOf: CombatTriggerEngine.afterFreezeDamageDealt(
                 to: state.combatant,
                 source: source.combatant,
                 amount: state.healthLost,
-                in: &context
+                in: &context,
             ))
         default:
             break
@@ -86,7 +86,7 @@ package extension DamagePipeline {
 
     static func applyTalentDamageApplications(
         to state: inout DamageResolutionState,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) {
         guard let sourceRuntime = state.partySource(in: context),
               let keyword = state.damageKeyword
@@ -99,7 +99,7 @@ package extension DamagePipeline {
             state.damageEvents.append(contentsOf: context.grantGoldEvent(
                 triggers.bleedDamageGoldFlat,
                 to: source,
-                abilityName: "Cutpurse Knife"
+                abilityName: "Cutpurse Knife",
             ))
         }
 
@@ -109,7 +109,7 @@ package extension DamagePipeline {
                 source: source,
                 sourceActorID: sourceActorID,
                 triggers: triggers,
-                in: &context
+                in: &context,
             )
         }
 
@@ -120,7 +120,7 @@ package extension DamagePipeline {
             sourceActorID: sourceActorID,
             triggers: triggers,
             keyword: keyword,
-            in: &context
+            in: &context,
         )
         applyTalentAttackApplications(
             to: &state,
@@ -128,7 +128,7 @@ package extension DamagePipeline {
             sourceActorID: sourceActorID,
             triggers: triggers,
             keyword: keyword,
-            in: &context
+            in: &context,
         )
     }
 
@@ -138,12 +138,12 @@ package extension DamagePipeline {
         sourceActorID: String,
         triggers: CombatTraitTriggers,
         keyword: Keyword,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) {
         if keyword == .physical, state.buildupDamage > 0, triggers.physicalStunBuildupPercent > 0 {
             let buildup = CombatRounding.scaled(
                 state.buildupDamage,
-                multiplier: triggers.physicalStunBuildupPercent
+                multiplier: triggers.physicalStunBuildupPercent,
             )
             state.damageEvents.append(contentsOf: ControlMeterEngine.applyMeterCharge(
                 buildup,
@@ -151,20 +151,20 @@ package extension DamagePipeline {
                 to: state.combatant,
                 sourceActorID: sourceActorID,
                 applyFightPacing: false,
-                in: &context
+                in: &context,
             ))
         }
         if keyword == .physical, state.buildupDamage > 0, triggers.physicalDamageBlockPercent > 0 {
             let block = CombatRounding.scaled(
                 state.buildupDamage,
-                multiplier: triggers.physicalDamageBlockPercent
+                multiplier: triggers.physicalDamageBlockPercent,
             )
             if block > 0 {
                 state.damageEvents.append(contentsOf: context.applyBlock(
                     block,
                     to: source,
                     source: source,
-                    abilityName: "Vanguard's Crest"
+                    abilityName: "Vanguard's Crest",
                 ))
             }
         }
@@ -176,7 +176,7 @@ package extension DamagePipeline {
         sourceActorID: String,
         triggers: CombatTraitTriggers,
         keyword: Keyword,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) {
         let target = state.combatant
         let targetAlive = context.roster.health(for: target) > 0
@@ -187,7 +187,7 @@ package extension DamagePipeline {
             sourceActorID: sourceActorID,
             triggers: triggers,
             keyword: keyword,
-            in: &context
+            in: &context,
         )
         applyBasicAttackApplications(to: &state, source: source, sourceActorID: sourceActorID, triggers: triggers, in: &context)
         applyTargetStateReactions(
@@ -195,7 +195,7 @@ package extension DamagePipeline {
             source: source,
             sourceActorID: sourceActorID,
             triggers: triggers,
-            in: &context
+            in: &context,
         )
         applyRandomOnHitApplications(
             to: &state,
@@ -204,7 +204,7 @@ package extension DamagePipeline {
             triggers: triggers,
             target: target,
             targetAlive: targetAlive,
-            in: &context
+            in: &context,
         )
     }
 
@@ -214,7 +214,7 @@ package extension DamagePipeline {
         sourceActorID: String,
         triggers: CombatTraitTriggers,
         keyword: Keyword,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) {
         applyRangedAndPhysicalAfflictions(
             to: &state,
@@ -222,7 +222,7 @@ package extension DamagePipeline {
             sourceActorID: sourceActorID,
             triggers: triggers,
             keyword: keyword,
-            in: &context
+            in: &context,
         )
         applyHolyAfflictions(to: &state, sourceActorID: sourceActorID, triggers: triggers, keyword: keyword, in: &context)
     }
@@ -233,7 +233,7 @@ package extension DamagePipeline {
         sourceActorID: String,
         triggers: CombatTraitTriggers,
         keyword: Keyword,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) {
         let target = state.combatant
         let targetAlive = context.roster.health(for: target) > 0
@@ -244,7 +244,7 @@ package extension DamagePipeline {
                 to: target,
                 sourceActorID: sourceActorID,
                 dealImmediateDamage: false,
-                suppressAffixReactions: true
+                suppressAffixReactions: true,
             ))
         }
         if triggers.physicalAttackApplyBleed > 0, keyword == .physical, targetAlive {
@@ -254,7 +254,7 @@ package extension DamagePipeline {
                 sourceActorID: sourceActorID,
                 dealImmediateDamage: false,
                 suppressAffixReactions: true,
-                in: &context
+                in: &context,
             ))
         }
         if triggers.physicalAttackApplyBleedAndStun > 0, keyword == .physical, targetAlive {
@@ -264,7 +264,7 @@ package extension DamagePipeline {
                 sourceActorID: sourceActorID,
                 dealImmediateDamage: false,
                 suppressAffixReactions: true,
-                in: &context
+                in: &context,
             ))
             state.damageEvents.append(contentsOf: ControlMeterEngine.applyMeterCharge(
                 triggers.physicalAttackApplyBleedAndStun,
@@ -272,7 +272,7 @@ package extension DamagePipeline {
                 to: target,
                 sourceActorID: sourceActorID,
                 applyFightPacing: false,
-                in: &context
+                in: &context,
             ))
         }
         if triggers.physicalAttackFlatStunBuildup > 0, keyword == .physical, targetAlive {
@@ -282,7 +282,7 @@ package extension DamagePipeline {
                 to: target,
                 sourceActorID: sourceActorID,
                 applyFightPacing: false,
-                in: &context
+                in: &context,
             ))
         }
         if triggers.onPhysicalDamageGainBlock > 0, keyword == .physical {
@@ -290,7 +290,7 @@ package extension DamagePipeline {
                 triggers.onPhysicalDamageGainBlock,
                 to: source,
                 source: source,
-                abilityName: "Bone Shield"
+                abilityName: "Bone Shield",
             ))
         }
     }
@@ -300,7 +300,7 @@ package extension DamagePipeline {
         sourceActorID: String,
         triggers: CombatTraitTriggers,
         keyword: Keyword,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) {
         let target = state.combatant
         guard keyword == .holy, context.roster.health(for: target) > 0, triggers.holyAttackApplyBurnAndStunBuildup > 0 else { return }
@@ -310,7 +310,7 @@ package extension DamagePipeline {
             to: target,
             sourceActorID: sourceActorID,
             dealImmediateDamage: false,
-            suppressAffixReactions: true
+            suppressAffixReactions: true,
         ))
         state.damageEvents.append(contentsOf: ControlMeterEngine.applyMeterCharge(
             triggers.holyAttackApplyBurnAndStunBuildup,
@@ -318,7 +318,7 @@ package extension DamagePipeline {
             to: target,
             sourceActorID: sourceActorID,
             applyFightPacing: false,
-            in: &context
+            in: &context,
         ))
     }
 
@@ -327,7 +327,7 @@ package extension DamagePipeline {
         source: Combatant,
         sourceActorID: String,
         triggers: CombatTraitTriggers,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) {
         guard state.options.isBasicAttackHit, context.roster.health(for: state.combatant) > 0 else { return }
         let target = state.combatant
@@ -338,7 +338,7 @@ package extension DamagePipeline {
                 sourceActorID: sourceActorID,
                 dealImmediateDamage: false,
                 suppressAffixReactions: true,
-                in: &context
+                in: &context,
             ))
         }
         if triggers.basicAttackFreezeBuildup > 0 {
@@ -348,14 +348,14 @@ package extension DamagePipeline {
                 to: target,
                 sourceActorID: sourceActorID,
                 applyFightPacing: false,
-                in: &context
+                in: &context,
             ))
         }
         if triggers.basicAttackStealGold > 0 {
             state.damageEvents.append(contentsOf: context.grantGoldEvent(
                 triggers.basicAttackStealGold,
                 to: source,
-                abilityName: "Snatch"
+                abilityName: "Snatch",
             ))
         }
     }
@@ -365,7 +365,7 @@ package extension DamagePipeline {
         source: Combatant,
         sourceActorID _: String,
         triggers: CombatTraitTriggers,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) {
         let target = state.combatant
         let targetAlive = context.roster.health(for: target) > 0
@@ -376,14 +376,14 @@ package extension DamagePipeline {
             state.damageEvents.append(contentsOf: context.grantGoldEvent(
                 triggers.onAttackStealGold,
                 to: source,
-                abilityName: "Pickpocket"
+                abilityName: "Pickpocket",
             ))
         }
         if triggers.onAttackFrozenEnemyGainMana > 0, targetIsFrozen {
             state.damageEvents.append(contentsOf: context.restoreManaEmitting(
                 triggers.onAttackFrozenEnemyGainMana,
                 to: source,
-                abilityName: "Frost Siphon"
+                abilityName: "Frost Siphon",
             ))
         }
         if triggers.onAttackFrozenEnemyGainBlock > 0, targetIsFrozen {
@@ -391,14 +391,14 @@ package extension DamagePipeline {
                 triggers.onAttackFrozenEnemyGainBlock,
                 to: source,
                 source: source,
-                abilityName: "Frost Guard"
+                abilityName: "Frost Guard",
             ))
         }
         if triggers.onAttackStunnedEnemyGold > 0, targetIsStunned {
             state.damageEvents.append(contentsOf: context.grantGoldEvent(
                 triggers.onAttackStunnedEnemyGold,
                 to: source,
-                abilityName: "Disorienting Strike"
+                abilityName: "Disorienting Strike",
             ))
         }
         if triggers.onAttackStunnedEnemyBlock > 0, targetIsStunned {
@@ -406,13 +406,13 @@ package extension DamagePipeline {
                 triggers.onAttackStunnedEnemyBlock,
                 to: source,
                 source: source,
-                abilityName: "Disorienting Strike"
+                abilityName: "Disorienting Strike",
             ))
         }
         if source.role == .hero, targetIsPoisoned, targetAlive {
             state.damageEvents.append(contentsOf: CombatTriggerEngine.companionSpitPoison(
                 to: target,
-                in: &context
+                in: &context,
             ))
         }
     }
@@ -424,7 +424,7 @@ package extension DamagePipeline {
         triggers: CombatTraitTriggers,
         target: Combatant,
         targetAlive: Bool,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) {
         if triggers.directHitBleedChancePercent > 0, targetAlive,
            BattleChance.succeeds(probability: triggers.directHitBleedChancePercent, using: &context.rng) {
@@ -434,7 +434,7 @@ package extension DamagePipeline {
                 sourceActorID: sourceActorID,
                 dealImmediateDamage: false,
                 suppressAffixReactions: true,
-                in: &context
+                in: &context,
             ))
         }
         if triggers.attackApplyBleed > 0, state.options.qualifiesForAmbush, targetAlive {
@@ -444,7 +444,7 @@ package extension DamagePipeline {
                 sourceActorID: sourceActorID,
                 dealImmediateDamage: false,
                 suppressAffixReactions: true,
-                in: &context
+                in: &context,
             ))
         }
         if triggers.attackBurstChancePercent > 0, targetAlive,
@@ -457,8 +457,8 @@ package extension DamagePipeline {
                         target: target,
                         keyword: .physical,
                         sourceActorID: sourceActorID,
-                        options: .flatReaction
-                    )
+                        options: .flatReaction,
+                    ),
                 ).events)
             }
             let burstBlock = max(0, triggers.attackBurstBlock)
@@ -467,7 +467,7 @@ package extension DamagePipeline {
                     burstBlock,
                     to: source,
                     source: source,
-                    abilityName: "Bone Burst"
+                    abilityName: "Bone Burst",
                 ))
             }
         }
@@ -475,7 +475,7 @@ package extension DamagePipeline {
 
     static func applyCriticalReaction(
         to state: inout DamageResolutionState,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) {
         guard state.isCritical,
               state.healthLost > 0,
@@ -485,13 +485,13 @@ package extension DamagePipeline {
         state.damageEvents.append(contentsOf: CombatTriggerEngine.afterCriticalHit(
             to: state.combatant,
             source: source.combatant,
-            in: &context
+            in: &context,
         ))
     }
 
     static func applyControlMeter(
         to state: inout DamageResolutionState,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) {
         guard state.buildupDamage > 0,
               let damageKeyword = state.damageKeyword,
@@ -505,7 +505,7 @@ package extension DamagePipeline {
             to: state.combatant,
             sourceActorID: state.sourceActorID,
             applyFightPacing: false,
-            in: &context
+            in: &context,
         ))
     }
 }

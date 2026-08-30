@@ -7,7 +7,7 @@ public enum CombatantLevelScaler {
         let levelsAbove = StatGrowth.levelsAboveIdentity(level)
         let growth = StatGrowth.playerGrowth(
             archetype: combatant.growthArchetype,
-            levelsAbove: levelsAbove
+            levelsAbove: levelsAbove,
         )
         return scaledCombatant(combatant, growth: growth)
     }
@@ -16,7 +16,7 @@ public enum CombatantLevelScaler {
         let levelsAbove = StatGrowth.levelsAboveIdentity(level)
         let growth = StatGrowth.enemyGrowth(
             archetype: enemy.combatant.growthArchetype,
-            levelsAbove: levelsAbove
+            levelsAbove: levelsAbove,
         )
         let scaled = scaledCombatant(enemy.combatant, growth: growth)
         let powered = StatGrowth.applyPowerMultiplier(
@@ -24,7 +24,7 @@ public enum CombatantLevelScaler {
             maxMana: scaled.maxMana,
             primaryStats: scaled.primaryStats,
             healthMultiplier: EnemyPowerCurve.health(level: level, isBoss: enemy.isBoss),
-            statsMultiplier: EnemyPowerCurve.stats(level: level, isBoss: enemy.isBoss)
+            statsMultiplier: EnemyPowerCurve.stats(level: level, isBoss: enemy.isBoss),
         )
         return Combatant(
             id: scaled.id,
@@ -35,7 +35,7 @@ public enum CombatantLevelScaler {
             actionIntervalTurns: scaled.actionIntervalTurns,
             abilityChoices: scaled.abilityChoices,
             primaryStats: powered.primaryStats,
-            growthArchetype: scaled.growthArchetype
+            growthArchetype: scaled.growthArchetype,
         )
     }
 
@@ -44,7 +44,7 @@ public enum CombatantLevelScaler {
         return CombatPowerRating.evaluate(
             maxHealth: scaled.maxHealth,
             primaryStats: scaled.primaryStats,
-            level: level
+            level: level,
         )
     }
 
@@ -53,7 +53,7 @@ public enum CombatantLevelScaler {
             maxHealth: combatant.maxHealth,
             maxMana: combatant.maxMana,
             primaryStats: combatant.primaryStats,
-            growth: growth
+            growth: growth,
         )
         return Combatant(
             id: combatant.id,
@@ -64,7 +64,7 @@ public enum CombatantLevelScaler {
             actionIntervalTurns: combatant.actionIntervalTurns,
             abilityChoices: combatant.abilityChoices,
             primaryStats: scaled.primaryStats,
-            growthArchetype: combatant.growthArchetype
+            growthArchetype: combatant.growthArchetype,
         )
     }
 }

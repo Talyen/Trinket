@@ -2,7 +2,7 @@ import Testing
 @testable import TrinketContent
 
 struct JourneyCatalogTests {
-    @Test func authoredStagesHaveEmptyStageRewards() throws {
+    @Test func `authored stages have empty stage rewards`() throws {
         for chapter in GameContent.chapters {
             for stage in chapter.stages {
                 try #expect(stage.rewards == .empty, "\(stage.id) should not author StageReward")
@@ -10,7 +10,7 @@ struct JourneyCatalogTests {
         }
     }
 
-    @Test func everyChapterHasSequentialStagesWithUniqueIDs() throws {
+    @Test func `every chapter has sequential stages with unique I ds`() throws {
         for chapter in GameContent.chapters {
             for (index, stage) in chapter.stages.enumerated() {
                 try #expect(stage.stageNumber == index + 1, "\(stage.id)")
@@ -23,7 +23,7 @@ struct JourneyCatalogTests {
         }
     }
 
-    @Test func chapterEncounterCadenceMatchesStructuralInvariants() throws {
+    @Test func `chapter encounter cadence matches structural invariants`() throws {
         for chapter in GameContent.chapters {
             let stages = chapter.stages
             try #require(stages.count > 7)

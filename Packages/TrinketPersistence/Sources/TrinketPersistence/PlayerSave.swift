@@ -38,7 +38,7 @@ public struct PlayerSave: Equatable, Sendable {
             inventory: .freshStart,
             homestead: .freshStart,
             spires: .freshStart,
-            labyrinth: .freshStart
+            labyrinth: .freshStart,
         )
     }
 
@@ -54,7 +54,7 @@ public struct PlayerSave: Equatable, Sendable {
             inventory: .testSeed,
             homestead: .testSeed,
             spires: .testSeed,
-            labyrinth: .testSeed
+            labyrinth: .testSeed,
         )
     }
 
@@ -77,7 +77,7 @@ public struct PlayerSave: Equatable, Sendable {
             inventory: .testSeed,
             homestead: .developerMaxed,
             spires: .freshStart,
-            labyrinth: .freshStart
+            labyrinth: .freshStart,
         )
     }
 
@@ -93,7 +93,7 @@ public struct PlayerSave: Equatable, Sendable {
         homestead: PlayerHomesteadState = .freshStart,
         spires: PlayerSpiresState = .freshStart,
         labyrinth: PlayerLabyrinthState = .freshStart,
-        corruptionAltarCooldownRemaining: Int = 0
+        corruptionAltarCooldownRemaining: Int = 0,
     ) {
         self.schemaVersion = schemaVersion
         self.modifiedAt = modifiedAt
@@ -142,7 +142,7 @@ public struct PlayerSave: Equatable, Sendable {
     @discardableResult
     public mutating func grantMaterials(
         _ rewards: [ResourceAmount],
-        at date: Date = Date()
+        at date: Date = Date(),
     ) -> [ResourceAmount] {
         guard !rewards.isEmpty else { return [] }
         homestead.settleProduction(at: date, roster: roster)

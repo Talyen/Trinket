@@ -4,14 +4,14 @@ import TrinketCore
 
 public enum BattleLogReducer {
     public static func entries(
-        from events: [ActionEvent]
+        from events: [ActionEvent],
     ) -> [LogEntry] {
         entries(from: events, startingAt: 0)
     }
 
     public static func entries(
         from events: [ActionEvent],
-        startingAt startIndex: Int
+        startingAt startIndex: Int,
     ) -> [LogEntry] {
         guard startIndex < events.count else { return [] }
         var result: [LogEntry] = []
@@ -36,7 +36,7 @@ public enum BattleLogReducer {
                 dealt: event.amount,
                 damageKeyword: event.keyword,
                 targetName: event.targetName,
-                appliedEffectSummaries: event.appliedEffectSummaries
+                appliedEffectSummaries: event.appliedEffectSummaries,
             )
         case .abilityDamage:
             return nil
@@ -92,7 +92,7 @@ public enum BattleLogReducer {
         dealt: Int,
         damageKeyword: Keyword,
         targetName: String,
-        appliedEffectSummaries: [String]
+        appliedEffectSummaries: [String],
     ) -> String {
         let hadDamage = dealt > 0
         let hadEffects = !appliedEffectSummaries.isEmpty

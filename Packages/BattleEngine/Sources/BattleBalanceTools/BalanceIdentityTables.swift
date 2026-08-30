@@ -24,14 +24,14 @@ enum BalanceIdentityTables {
         makeTierStats(
             inputs: inputs,
             ownerRates: inputs.heroRates.merging(inputs.companionRates) { lhs, _ in lhs },
-            threshold: inputs.config.peerDeltaFlagThreshold
+            threshold: inputs.config.peerDeltaFlagThreshold,
         )
     }
 
     private static func makeTierStats(
         inputs: IdentityTierInputs,
         ownerRates: [String: Double],
-        threshold: Double
+        threshold: Double,
     ) -> BalanceTierStats {
         let decided = inputs.decided
         let records = inputs.records
@@ -41,7 +41,7 @@ enum BalanceIdentityTables {
             decided: decided,
             ownerRates: ownerRates,
             overallRate: overallRate,
-            threshold: threshold
+            threshold: threshold,
         )
         return BalanceTierStats(
             tier: inputs.tier,
@@ -60,26 +60,26 @@ enum BalanceIdentityTables {
                 records: decided.filter { !$0.isBoss },
                 id: \.heroID,
                 peerRate: overallRate,
-                threshold: threshold
+                threshold: threshold,
             ),
             heroesBoss: BalanceIdentityMargins.ownerMargins(
                 records: decided.filter(\.isBoss),
                 id: \.heroID,
                 peerRate: overallRate,
-                threshold: threshold
+                threshold: threshold,
             ),
             companions: inputs.companionOverall,
             companionsTrash: BalanceIdentityMargins.ownerMargins(
                 records: decided.filter { !$0.isBoss },
                 id: \.companionID,
                 peerRate: overallRate,
-                threshold: threshold
+                threshold: threshold,
             ),
             companionsBoss: BalanceIdentityMargins.ownerMargins(
                 records: decided.filter(\.isBoss),
                 id: \.companionID,
                 peerRate: overallRate,
-                threshold: threshold
+                threshold: threshold,
             ),
             enemies: entities.enemies,
             abilities: entities.abilities,
@@ -88,7 +88,7 @@ enum BalanceIdentityTables {
             enemyTraits: entities.enemyTraits,
             affixes: entities.affixes,
             heroCompanionCells: entities.heroCompanionCells,
-            heroEnemyCells: entities.heroEnemyCells
+            heroEnemyCells: entities.heroEnemyCells,
         )
     }
 
@@ -100,22 +100,22 @@ enum BalanceIdentityTables {
 
     private static func durationBundle(
         records: [BalanceBattleRecord],
-        flagRate: Double
+        flagRate: Double,
     ) -> DurationBundle {
         DurationBundle(
             trash: BalanceDurationAggregation.durationStats(
                 records.filter { !$0.isBoss },
                 minRounds: BalanceDurationThresholds.trashMinRounds,
                 maxRounds: BalanceDurationThresholds.trashMaxRounds,
-                flagRate: flagRate
+                flagRate: flagRate,
             ),
             boss: BalanceDurationAggregation.durationStats(
                 records.filter(\.isBoss),
                 minRounds: BalanceDurationThresholds.bossMinRounds,
                 maxRounds: BalanceDurationThresholds.bossMaxRounds,
-                flagRate: flagRate
+                flagRate: flagRate,
             ),
-            enemies: BalanceDurationAggregation.enemyDurationTable(records, flagRate: flagRate)
+            enemies: BalanceDurationAggregation.enemyDurationTable(records, flagRate: flagRate),
         )
     }
 
@@ -134,14 +134,14 @@ enum BalanceIdentityTables {
         decided: [BalanceBattleRecord],
         ownerRates: [String: Double],
         overallRate: Double,
-        threshold: Double
+        threshold: Double,
     ) -> EntityBundle {
         EntityBundle(
             enemies: enemyMargins(records: decided),
             abilities: partyPresenceMargins(
                 records: decided,
                 ownerRates: ownerRates,
-                threshold: threshold
+                threshold: threshold,
             ) { record in
                 record.heroAbilityIDs.map { (record.heroID, $0) }
                     + record.companionAbilityIDs.map { (record.companionID, $0) }
@@ -149,7 +149,7 @@ enum BalanceIdentityTables {
             talents: partyPresenceMargins(
                 records: decided,
                 ownerRates: ownerRates,
-                threshold: threshold
+                threshold: threshold,
             ) { record in
                 record.heroTalentIDs.map { (record.heroID, $0) }
                     + record.companionTalentIDs.map { (record.companionID, $0) }
@@ -158,18 +158,18 @@ enum BalanceIdentityTables {
                 records: decided,
                 ids: \.enemyAbilityIDs,
                 peerRate: overallRate,
-                threshold: threshold
+                threshold: threshold,
             ),
             enemyTraits: opponentMargins(
                 records: decided,
                 ids: { [$0.enemyTraitID] },
                 peerRate: overallRate,
-                threshold: threshold
+                threshold: threshold,
             ),
             affixes: partyPresenceMargins(
                 records: decided,
                 ownerRates: ownerRates,
-                threshold: threshold
+                threshold: threshold,
             ) { record in
                 record.heroAffixIDs.map { (record.heroID, $0) }
                     + record.companionAffixIDs.map { (record.companionID, $0) }
@@ -179,15 +179,15 @@ enum BalanceIdentityTables {
                 left: \.heroID,
                 right: \.companionID,
                 peerRate: overallRate,
-                threshold: threshold
+                threshold: threshold,
             ),
             heroEnemyCells: BalanceIdentityMargins.flaggedPairCells(
                 records: decided,
                 left: \.heroID,
                 right: \.enemyID,
                 peerRate: overallRate,
-                threshold: threshold
-            )
+                threshold: threshold,
+            ),
         )
     }
 
@@ -195,13 +195,13 @@ enum BalanceIdentityTables {
         records: [BalanceBattleRecord],
         ownerRates: [String: Double],
         threshold: Double,
-        ownerAndIDs: (BalanceBattleRecord) -> [(String, String)]
+        ownerAndIDs: (BalanceBattleRecord) -> [(String, String)],
     ) -> [WinRateSummary] {
         BalanceIdentityMargins.withinOwnerMargins(
             records: records,
             ownerAndIDs: ownerAndIDs,
             ownerRates: ownerRates,
-            threshold: threshold
+            threshold: threshold,
         )
     }
 
@@ -209,7 +209,7 @@ enum BalanceIdentityTables {
         records: [BalanceBattleRecord],
         ids: (BalanceBattleRecord) -> [String],
         peerRate: Double,
-        threshold: Double
+        threshold: Double,
     ) -> [WinRateSummary] {
         BalanceIdentityMargins.margin(
             records: records,
@@ -217,12 +217,12 @@ enum BalanceIdentityTables {
             peerRate: peerRate,
             threshold: threshold,
             positiveFlag: "EASY",
-            negativeFlag: "HARD"
+            negativeFlag: "HARD",
         )
     }
 
     private static func enemyMargins(
-        records: [BalanceBattleRecord]
+        records: [BalanceBattleRecord],
     ) -> [WinRateSummary] {
         var buckets: [String: (wins: Int, battles: Int, boss: Bool)] = [:]
         for record in records {
@@ -258,7 +258,7 @@ enum BalanceIdentityTables {
                 deltaVsPeer: rate - ((band.lower + band.upper) / 2),
                 flagged: flagged,
                 flagReason: reason,
-                sampleTooLow: sampleTooLow
+                sampleTooLow: sampleTooLow,
             )
         }
         .sorted { lhs, rhs in
@@ -271,7 +271,7 @@ enum BalanceIdentityTables {
 
     private static func targetBand(
         isBoss: Bool,
-        tier: SimulationPowerTier
+        tier: SimulationPowerTier,
     ) -> (lower: Double, upper: Double) {
         if isBoss {
             return (0.70, 0.80)

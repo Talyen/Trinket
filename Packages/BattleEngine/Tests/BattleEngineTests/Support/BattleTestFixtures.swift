@@ -15,23 +15,23 @@ enum BattleTestFixtures {
         heroModifiers: CombatModifierProfile = .zero,
         companionModifiers: CombatModifierProfile = .zero,
         enemyModifiers: CombatModifierProfile = .zero,
-        seed: UInt64 = deterministicNonCriticalSeed
+        seed: UInt64 = deterministicNonCriticalSeed,
     ) -> BattleState {
         BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.combatant(
                 id: "source", role: .hero, maxHealth: 50,
-                primaryStats: sourcePrimaryStats
+                primaryStats: sourcePrimaryStats,
             ),
             companion: CombatantFixtures.combatant(id: "companion", role: .companion),
             enemy: CombatantFixtures.combatant(
                 id: "target", role: .enemy, maxHealth: targetMaxHealth,
-                primaryStats: targetPrimaryStats
+                primaryStats: targetPrimaryStats,
             ),
             enemyEffects: targetEffects,
             heroModifiers: heroModifiers,
             companionModifiers: companionModifiers,
             enemyModifiers: enemyModifiers,
-            rngSeed: seed
+            rngSeed: seed,
         )
     }
 
@@ -40,7 +40,7 @@ enum BattleTestFixtures {
         name: String,
         role: Combatant.Role,
         maxHealth: Int = 20,
-        actionIntervalTurns: Int = 100
+        actionIntervalTurns: Int = 100,
     ) -> Combatant {
         Combatant(
             id: id,
@@ -48,7 +48,7 @@ enum BattleTestFixtures {
             role: role,
             maxHealth: maxHealth,
             actionIntervalTurns: actionIntervalTurns,
-            abilities: []
+            abilities: [],
         )
     }
 
@@ -71,14 +71,14 @@ enum BattleTestFixtures {
     static func attackingEnemy(
         abilities: [Ability],
         maxHealth: Int = 100,
-        actionIntervalTurns: Int? = nil
+        actionIntervalTurns: Int? = nil,
     ) -> Combatant {
         CombatantFixtures.combatant(
             id: "enemy",
             role: .enemy,
             maxHealth: maxHealth,
             actionIntervalTurns: actionIntervalTurns,
-            abilities: abilities
+            abilities: abilities,
         )
     }
 
@@ -89,7 +89,7 @@ enum BattleTestFixtures {
         activeHeroEffects: [ActiveEffect] = [],
         activeEnemyEffects: [ActiveEffect] = [],
         activeCompanionEffects: [ActiveEffect] = [],
-        initialGold: Int = 0
+        initialGold: Int = 0,
     ) -> BattleState {
         BattleStateTestFactory.makeBattle(
             hero: hero,
@@ -98,7 +98,7 @@ enum BattleTestFixtures {
             activeEnemyEffects: activeEnemyEffects,
             activeHeroEffects: activeHeroEffects,
             activeCompanionEffects: activeCompanionEffects,
-            initialGold: initialGold
+            initialGold: initialGold,
         )
     }
 
@@ -106,7 +106,7 @@ enum BattleTestFixtures {
         keyword: Keyword,
         hero: Combatant? = nil,
         companion: Combatant? = nil,
-        enemy: Combatant? = nil
+        enemy: Combatant? = nil,
     ) -> BattleState {
         let resolvedHero = hero ?? passiveCombatant(id: "hero", name: "Hero", role: .hero)
         let resolvedCompanion = companion ?? passiveCompanion()
@@ -117,14 +117,14 @@ enum BattleTestFixtures {
             enemy: resolvedEnemy,
             activeEnemyEffects: [
                 ActiveEffect(id: 1, effect: .controlMeter(keyword, 1, 1), remainingTurns: 0),
-            ]
+            ],
         )
     }
 
     static func assertActionSkipConsumed(
         events: [ActionEvent],
         actorID: String,
-        keyword: Keyword
+        keyword: Keyword,
     ) {
         if !events.contains(where: {
             $0.effectKind == .controlActionSkipped
@@ -140,7 +140,7 @@ enum BattleTestFixtures {
     @discardableResult
     static func playFirstPlayableCard(
         owner: BattleParticipant,
-        on battle: inout BattleState
+        on battle: inout BattleState,
     ) throws -> [ActionEvent]? {
         if let offer = battle.pendingBoonOffer, let choiceID = BoonEngine.autoSelectedChoiceID(for: offer, in: battle) {
             _ = battle.selectBoon(id: choiceID)
@@ -157,7 +157,7 @@ enum BattleTestFixtures {
     static func playCardNamed(
         _ name: String,
         owner: BattleParticipant? = nil,
-        on battle: inout BattleState
+        on battle: inout BattleState,
     ) throws -> [ActionEvent] {
         if let offer = battle.pendingBoonOffer, let choiceID = BoonEngine.autoSelectedChoiceID(for: offer, in: battle) {
             _ = battle.selectBoon(id: choiceID)
@@ -203,7 +203,7 @@ enum BattleTestFixtures {
         _ abilityName: String,
         owner: BattleParticipant = .hero,
         on battle: inout BattleState,
-        maxRounds: Int = 20
+        maxRounds: Int = 20,
     ) throws -> [ActionEvent]? {
         for _ in 0 ..< maxRounds {
             if let card = battle.hand.cards.first(where: {
@@ -226,7 +226,7 @@ enum BattleTestFixtures {
         abilities: [Ability],
         stats: PrimaryStats = PrimaryStats(),
         maxHealth: Int = 20,
-        actionIntervalTurns: Int = 2
+        actionIntervalTurns: Int = 2,
     ) -> Combatant {
         CombatantFixtures.combatant(
             id: id,
@@ -234,20 +234,20 @@ enum BattleTestFixtures {
             maxHealth: maxHealth,
             actionIntervalTurns: actionIntervalTurns,
             abilities: abilities,
-            primaryStats: stats
+            primaryStats: stats,
         )
     }
 
     static func statBattle(
         hero: Combatant,
-        enemy: Combatant? = nil
+        enemy: Combatant? = nil,
     ) -> BattleState {
         standardParty(
             hero: hero,
             companion: passiveCompanion(),
             enemy: enemy ?? passiveCombatant(
-                id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, actionIntervalTurns: 100
-            )
+                id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, actionIntervalTurns: 100,
+            ),
         )
     }
 
@@ -273,7 +273,7 @@ enum BattleTestFixtures {
         enemyModifiers: CombatModifierProfile = .zero,
         seed: UInt64 = Self.deterministicNonCriticalSeed,
         nextEffectID: Int? = nil,
-        nextEventID: Int = 0
+        nextEventID: Int = 0,
     ) -> BattleState {
         BattleStateTestFactory.makeMinimalBattle(
             hero: hero,
@@ -293,7 +293,7 @@ enum BattleTestFixtures {
             enemyModifiers: enemyModifiers,
             rngSeed: seed,
             nextEffectID: nextEffectID,
-            nextEventID: nextEventID
+            nextEventID: nextEventID,
         )
     }
 }
@@ -313,7 +313,7 @@ extension BattleTestFixtures {
             combatant: combatant,
             equipmentLoadout: EquipmentLoadout(),
             inventory: [],
-            unlockedTalents: Set(talents)
+            unlockedTalents: Set(talents),
         )
     }
 
@@ -322,13 +322,13 @@ extension BattleTestFixtures {
         abilityName: String,
         source: Combatant,
         target: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> EffectApplyOutcome {
         let ability = Ability(
             id: "test-\(abilityName)",
             name: abilityName,
             tier: .basic,
-            targetedEffects: [TargetedEffect(effect)]
+            targetedEffects: [TargetedEffect(effect)],
         )
         guard let handler = EffectHandlers.handler(for: effect.kind) else {
             preconditionFailure("Missing handler for \(effect.kind)")
@@ -338,7 +338,7 @@ extension BattleTestFixtures {
             ability: ability,
             source: source,
             target: target,
-            in: &context
+            in: &context,
         )
     }
 

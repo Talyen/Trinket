@@ -13,7 +13,7 @@ public struct HomesteadResourceWallet: View {
     public init(
         homestead: PlayerHomesteadState,
         roster: PlayerRosterState,
-        walletAnimationNamespace: Namespace.ID? = nil
+        walletAnimationNamespace: Namespace.ID? = nil,
     ) {
         self.homestead = homestead
         self.roster = roster
@@ -28,8 +28,8 @@ public struct HomesteadResourceWallet: View {
                     amount: homestead.balance(for: resource, roster: roster),
                     increaseAnimationDelay: min(
                         Double(index) * TrinketMotion.Interaction.walletIncreaseDelayStep,
-                        TrinketMotion.Interaction.walletIncreaseMaximumDelay
-                    )
+                        TrinketMotion.Interaction.walletIncreaseMaximumDelay,
+                    ),
                 ) {
                     walletArtwork(for: resource)
                 }
@@ -45,7 +45,7 @@ public struct HomesteadResourceWallet: View {
             artwork.matchedGeometryEffect(
                 id: resource.walletAnimationID,
                 in: walletAnimationNamespace,
-                isSource: false
+                isSource: false,
             )
         } else {
             artwork

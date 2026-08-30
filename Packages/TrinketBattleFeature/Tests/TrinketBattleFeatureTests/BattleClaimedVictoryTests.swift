@@ -7,7 +7,7 @@ import TrinketTestSupport
 
 @MainActor
 struct BattleClaimedVictoryTests {
-    @Test func claimedVictoryIsDeliveredOnceWhenHandlerInstallsLate() {
+    @Test func `claimed victory is delivered once when handler installs late`() {
         let party = BattlePartyFixtures.quickWinParty()
         let session = BattleSession(openingHandDrawStagger: 0, outcomePresentationDelayOverride: 0)
         session.partyCelebrateDelayOverride = .zero
@@ -16,7 +16,7 @@ struct BattleClaimedVictoryTests {
             hero: party.hero,
             companion: party.companion,
             enemy: party.enemy,
-            stageRewardsAlreadyClaimed: true
+            stageRewardsAlreadyClaimed: true,
         )
         _ = session.activate(configuration)
         session.installPresentationContext(presentation)
@@ -33,7 +33,7 @@ struct BattleClaimedVictoryTests {
         #expect(claimedVictories.first?.earnedGold == earnedGold)
     }
 
-    @Test func claimedVictoryDeliveryResetsForRestart() {
+    @Test func `claimed victory delivery resets for restart`() {
         let party = BattlePartyFixtures.quickWinParty()
         let session = BattleSession(openingHandDrawStagger: 0, outcomePresentationDelayOverride: 0)
         session.partyCelebrateDelayOverride = .zero
@@ -42,7 +42,7 @@ struct BattleClaimedVictoryTests {
             hero: party.hero,
             companion: party.companion,
             enemy: party.enemy,
-            stageRewardsAlreadyClaimed: true
+            stageRewardsAlreadyClaimed: true,
         )
         _ = session.activate(first.configuration)
         session.installPresentationContext(first.presentation)
@@ -58,7 +58,7 @@ struct BattleClaimedVictoryTests {
             hero: party.hero,
             companion: party.companion,
             enemy: party.enemy,
-            stageRewardsAlreadyClaimed: true
+            stageRewardsAlreadyClaimed: true,
         )
         _ = session.restart(second.configuration)
         session.installPresentationContext(second.presentation)

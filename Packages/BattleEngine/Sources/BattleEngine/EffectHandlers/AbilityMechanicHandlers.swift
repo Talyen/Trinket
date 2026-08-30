@@ -25,7 +25,7 @@ struct ShieldFromResourceHandler: BattleEffectHandler {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> EffectApplyOutcome {
         guard effect.kind == kind else {
             return EffectApplyOutcome(events: [], didApply: false)
@@ -69,14 +69,14 @@ struct ShieldFromResourceHandler: BattleEffectHandler {
             block,
             to: target,
             source: source,
-            abilityName: ability.name
+            abilityName: ability.name,
         )
         var events: [ActionEvent] = []
         if mode.spendsMana {
             events = CombatTriggerEngine.afterSpendMana(
                 by: target,
                 amountSpent: spentAmount,
-                in: &context
+                in: &context,
             )
         }
         events.append(contentsOf: applied)
@@ -103,7 +103,7 @@ struct MaximumManaBonusHandler: BattleEffectHandler {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> EffectApplyOutcome {
         guard case let .maximumManaBonus(amount) = effect, amount > 0 else {
             return EffectApplyOutcome(events: [], didApply: false)
@@ -112,11 +112,11 @@ struct MaximumManaBonusHandler: BattleEffectHandler {
             .maximumManaBonus(amount),
             to: target,
             sourceID: source.id,
-            remainingTurns: 0
+            remainingTurns: 0,
         )
         let restored = context.restoreMana(
             context.paced(amount, sourceActorID: source.id),
-            to: target
+            to: target,
         )
         let event = context.nextEvent(
             kind: .effect,
@@ -125,7 +125,7 @@ struct MaximumManaBonusHandler: BattleEffectHandler {
             abilityName: ability.name,
             target: target,
             amount: max(amount, restored),
-            keyword: .mana
+            keyword: .mana,
         )
         var events = [event]
         if restored > 0 {
@@ -143,7 +143,7 @@ struct MultiplyDoTHandler: BattleEffectHandler {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> EffectApplyOutcome {
         guard case let .multiplyDoT(keyword, factor) = effect, factor > 1 else {
             return EffectApplyOutcome(events: [], didApply: false)
@@ -174,7 +174,7 @@ struct MultiplyDoTHandler: BattleEffectHandler {
             abilityName: ability.name,
             target: target,
             amount: multiplied,
-            keyword: keyword
+            keyword: keyword,
         )
         return EffectApplyOutcome(events: [event], didApply: true)
     }
@@ -189,7 +189,7 @@ struct RecurringDamageHandler: BattleEffectHandler {
         else { return nil }
         return EffectSummary(
             keyword: keyword,
-            text: "\(damageKeyword.rawValue): Deals \(potency) \(damageKeyword.rawValue) damage each turn, \(BattleTiming.remainingDurationLabel(turns: active.remainingTurns))."
+            text: "\(damageKeyword.rawValue): Deals \(potency) \(damageKeyword.rawValue) damage each turn, \(BattleTiming.remainingDurationLabel(turns: active.remainingTurns)).",
         )
     }
 
@@ -198,7 +198,7 @@ struct RecurringDamageHandler: BattleEffectHandler {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> EffectApplyOutcome {
         guard case let .recurringDamage(keyword, potency, turns) = effect, potency > 0, turns > 0 else {
             return EffectApplyOutcome(events: [], didApply: false)
@@ -208,7 +208,7 @@ struct RecurringDamageHandler: BattleEffectHandler {
             keyword: keyword,
             target: target,
             sourceActorID: source.id,
-            in: &context
+            in: &context,
         ).events
         events.append(ActiveEffectMutation.replaceAndEmit(
             .recurringDamage(keyword, potency, turns),
@@ -222,7 +222,7 @@ struct RecurringDamageHandler: BattleEffectHandler {
                 }
                 return false
             },
-            event: (.recurringDamageApplied, potency, keyword)
+            event: (.recurringDamageApplied, potency, keyword),
         ))
         return EffectApplyOutcome(events: events, didApply: true)
     }
@@ -230,7 +230,7 @@ struct RecurringDamageHandler: BattleEffectHandler {
     func advanceTurn(
         _ active: ActiveEffect,
         on target: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> EffectTurnOutcome {
         guard case let .recurringDamage(keyword, potency, _) = active.effect,
               active.remainingTurns > 0
@@ -243,14 +243,14 @@ struct RecurringDamageHandler: BattleEffectHandler {
             keyword: keyword,
             target: target,
             sourceActorID: sourceID,
-            in: &context
+            in: &context,
         ).events
         var updated = active
         updated.remainingTurns -= 1
         return EffectTurnOutcome(
             events: events,
             updatedStack: updated,
-            removeAfter: updated.remainingTurns <= 0
+            removeAfter: updated.remainingTurns <= 0,
         )
     }
 }
@@ -264,7 +264,7 @@ struct AvatarHandler: BattleEffectHandler {
         else { return nil }
         return EffectSummary(
             keyword: keyword,
-            text: "Avatar: Deals \(holyDamage) Holy damage and gains \(blockPerTurn) Block each turn, \(BattleTiming.remainingDurationLabel(turns: active.remainingTurns))."
+            text: "Avatar: Deals \(holyDamage) Holy damage and gains \(blockPerTurn) Block each turn, \(BattleTiming.remainingDurationLabel(turns: active.remainingTurns)).",
         )
     }
 
@@ -273,7 +273,7 @@ struct AvatarHandler: BattleEffectHandler {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> EffectApplyOutcome {
         guard case let .avatar(holyDamage, blockPerTurn, turns) = effect,
               holyDamage > 0, blockPerTurn > 0, turns > 0
@@ -284,7 +284,7 @@ struct AvatarHandler: BattleEffectHandler {
             holyDamage: holyDamage,
             blockPerTurn: blockPerTurn,
             from: target,
-            in: &context
+            in: &context,
         )
         events.append(ActiveEffectMutation.replaceAndEmit(
             .avatar(holyDamage: holyDamage, blockPerTurn: blockPerTurn, turns: turns),
@@ -293,7 +293,7 @@ struct AvatarHandler: BattleEffectHandler {
             ability: ability,
             in: &context,
             replacing: { $0.kind == .avatar },
-            event: (.avatarApplied, holyDamage, .holy)
+            event: (.avatarApplied, holyDamage, .holy),
         ))
         return EffectApplyOutcome(events: events, didApply: true)
     }
@@ -301,7 +301,7 @@ struct AvatarHandler: BattleEffectHandler {
     func advanceTurn(
         _ active: ActiveEffect,
         on target: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> EffectTurnOutcome {
         guard case let .avatar(holyDamage, blockPerTurn, _) = active.effect,
               active.remainingTurns > 0
@@ -312,14 +312,14 @@ struct AvatarHandler: BattleEffectHandler {
             holyDamage: holyDamage,
             blockPerTurn: blockPerTurn,
             from: target,
-            in: &context
+            in: &context,
         )
         var updated = active
         updated.remainingTurns -= 1
         return EffectTurnOutcome(
             events: events,
             updatedStack: updated,
-            removeAfter: updated.remainingTurns <= 0
+            removeAfter: updated.remainingTurns <= 0,
         )
     }
 
@@ -327,7 +327,7 @@ struct AvatarHandler: BattleEffectHandler {
         holyDamage: Int,
         blockPerTurn: Int,
         from caster: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         let opponent: Combatant = caster.role == .enemy ? context.hero : context.enemy
         var events = DoTDamage.resolveTurnDamage(
@@ -335,14 +335,14 @@ struct AvatarHandler: BattleEffectHandler {
             keyword: .holy,
             target: opponent,
             sourceActorID: caster.id,
-            in: &context
+            in: &context,
         ).events
         let applied = DefensePoolEngine.add(
             blockPerTurn,
             to: caster,
             keyword: .block,
             sourceActorID: caster.id,
-            in: &context
+            in: &context,
         )
         if applied > 0 {
             events.append(context.nextEvent(
@@ -352,7 +352,7 @@ struct AvatarHandler: BattleEffectHandler {
                 abilityName: "Avatar",
                 target: caster,
                 amount: applied,
-                keyword: .block
+                keyword: .block,
             ))
         }
         return events
@@ -367,7 +367,7 @@ struct ReviveHandler: BattleEffectHandler {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> EffectApplyOutcome {
         guard case let .revive(health) = effect, health > 0 else {
             return EffectApplyOutcome(events: [], didApply: false)
@@ -387,7 +387,7 @@ struct ReviveHandler: BattleEffectHandler {
             abilityName: ability.name,
             target: target,
             amount: revivedHealth,
-            keyword: .health
+            keyword: .health,
         )
         return EffectApplyOutcome(events: [event], didApply: true)
     }

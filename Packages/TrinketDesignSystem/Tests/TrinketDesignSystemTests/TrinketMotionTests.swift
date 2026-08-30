@@ -2,7 +2,7 @@ import Testing
 @testable import TrinketDesignSystem
 
 struct TrinketMotionTests {
-    @Test func shinePhaseAdvancesLinearlyAndWraps() {
+    @Test func `shine phase advances linearly and wraps`() {
         let period = TrinketMotion.Shine.loopPeriod
 
         #expect(TrinketMotion.Shine.phase(at: 0) == 0)

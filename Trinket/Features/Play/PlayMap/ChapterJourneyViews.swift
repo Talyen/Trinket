@@ -22,7 +22,7 @@ struct StageSelectList<Item: Identifiable, Artwork: View, PartyPickerSheet: View
                     onArtworkTap: { onArtworkTap(presentation.item) },
                     onPrimaryAction: { onPrimaryAction(presentation.item) },
                     artwork: { artwork(presentation.item, presentation.isActive) },
-                    partyPickerSheet: { partyPickerSheet(presentation.item) }
+                    partyPickerSheet: { partyPickerSheet(presentation.item) },
                 )
             }
         }
@@ -48,7 +48,7 @@ private struct StageSelectRow<Item: Identifiable, Artwork: View, PartyPickerShee
                     onArtworkTap: onArtworkTap,
                     onPrimaryAction: onPrimaryAction,
                     artwork: artwork,
-                    partyPickerSheet: partyPickerSheet
+                    partyPickerSheet: partyPickerSheet,
                 )
             } else {
                 compactRow

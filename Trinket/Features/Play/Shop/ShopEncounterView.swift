@@ -74,7 +74,7 @@ struct ShopEncounterView: View {
                     .tint(TrinketDesign.Colors.encounterShop)
                     .accessibilityIdentifier(AccessibilityID.Shop.leaveButton)
                     .padding(.top, TrinketDesign.Metrics.extraSmallSpacing)
-                }
+                },
             )
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .trinketScreenBackground()
@@ -98,7 +98,7 @@ struct ShopEncounterView: View {
                     purchaseButtonTitleOverride: session.isSoldOut(offer.id) ? "Sold Out" : nil,
                     onPurchase: {
                         attemptPurchase(offerID: offer.id, dismissDetail: true)
-                    }
+                    },
                 )
             }
             .trinketDetailSheet()
@@ -107,18 +107,18 @@ struct ShopEncounterView: View {
             EncounterReadingEntrance.present(
                 artAppeared: $artAppeared,
                 copyAppeared: $contentAppeared,
-                trailingAppeared: $offersAppeared
+                trailingAppeared: $offersAppeared,
             )
         }
         .trinketSensoryFeedback(
             .success,
             trigger: purchaseFeedbackTrigger,
-            enabled: options.hapticsEnabled
+            enabled: options.hapticsEnabled,
         )
         .trinketSensoryFeedback(
             .error,
             trigger: purchaseErrorFeedbackTrigger,
-            enabled: options.hapticsEnabled
+            enabled: options.hapticsEnabled,
         )
     }
 
@@ -135,7 +135,7 @@ struct ShopEncounterView: View {
         TrinketCompactResourceChip(
             amount: playerSave.roster.gold,
             tint: HomesteadResource.gold.tint,
-            animationTrigger: purchaseFeedbackTrigger
+            animationTrigger: purchaseFeedbackTrigger,
         ) {
             HomesteadResourceArtwork(resource: .gold)
         }
@@ -152,7 +152,7 @@ struct ShopEncounterView: View {
                         item: offer.item,
                         showsName: false,
                         accessibilityID: AccessibilityID.Shop.offerCard(offerID: offer.id),
-                        onSelect: { selectedOffer = offer }
+                        onSelect: { selectedOffer = offer },
                     )
 
                     Button {

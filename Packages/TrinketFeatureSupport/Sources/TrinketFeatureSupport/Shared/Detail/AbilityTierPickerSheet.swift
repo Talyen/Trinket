@@ -15,7 +15,7 @@ public struct AbilityTierPickerSheet: View {
         combatant: Combatant,
         tier: AbilityTier,
         selectedAbilityID: String?,
-        onSelectAbility: @escaping (Ability) -> Void
+        onSelectAbility: @escaping (Ability) -> Void,
     ) {
         self.combatant = combatant
         self.tier = tier
@@ -52,9 +52,9 @@ public struct AbilityTierPickerSheet: View {
                     ability: ability,
                     isSelected: isSelected,
                     shineKeywords: isSelected ? equippedKeywords : nil,
-                    shineLineWidth: 3
+                    shineLineWidth: 3,
                 )
-            }
+            },
         )
         .accessibilityIdentifier(AccessibilityID.LoadoutPicker.abilityGrid(tier.rawValue))
         .navigationTitle(tier.rawValue)
@@ -67,7 +67,7 @@ public struct AbilityTierPickerSheet: View {
                 onPrimaryAction: {
                     onSelectAbility(ability)
                     selectedAbility = nil
-                }
+                },
             )
         }
     }

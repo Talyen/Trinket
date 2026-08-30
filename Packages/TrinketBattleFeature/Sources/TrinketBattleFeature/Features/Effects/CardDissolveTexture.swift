@@ -23,7 +23,7 @@ struct CardDissolveThresholdMask: View {
             cellSize: cellSize,
             thresholdMidpoint: thresholdMidpoint,
             thresholdContrast: thresholdContrast,
-            cutAngleDegrees: cutAngleDegrees
+            cutAngleDegrees: cutAngleDegrees,
         )
         .equatable()
     }
@@ -46,7 +46,7 @@ private struct StableCardDissolveThresholdMask: View, Equatable {
             cellSize: cellSize,
             thresholdMidpoint: thresholdMidpoint,
             thresholdContrast: thresholdContrast,
-            cutAngleDegrees: cutAngleDegrees
+            cutAngleDegrees: cutAngleDegrees,
         ) {
             Image(decorative: image, scale: 1)
                 .resizable()
@@ -69,7 +69,7 @@ enum CardDissolveTexture {
     static func progressStep(for progress: CGFloat) -> Int {
         min(
             progressSteps,
-            max(0, Int((min(max(progress, 0), 1) * CGFloat(progressSteps)).rounded()))
+            max(0, Int((min(max(progress, 0), 1) * CGFloat(progressSteps)).rounded())),
         )
     }
 
@@ -99,7 +99,7 @@ enum CardDissolveTexture {
 
         func noiseBytes(
             key: NoiseCacheKey,
-            make: () -> [UInt8]
+            make: () -> [UInt8],
         ) -> [UInt8] {
             noiseCache.withLock { cache in
                 if let cached = cache[key] {
@@ -117,7 +117,7 @@ enum CardDissolveTexture {
 
         func thresholdImage(
             key: ThresholdCacheKey,
-            make: () -> CGImage?
+            make: () -> CGImage?,
         ) -> CGImage? {
             thresholdCache.withLock { cache in
                 if let cached = cache[key] {
@@ -138,8 +138,8 @@ enum CardDissolveTexture {
                 }
                 let alpha = UInt8(
                     clamping: Int(
-                        ((1 - Double(progressStep) / Double(progressSteps)) * 255).rounded()
-                    )
+                        ((1 - Double(progressStep) / Double(progressSteps)) * 255).rounded(),
+                    ),
                 )
                 var rgba = [UInt8](repeating: 255, count: width * height * 4)
                 for index in 0 ..< (width * height) {
@@ -158,13 +158,13 @@ enum CardDissolveTexture {
         edgeDepthWeight: CGFloat = 0.86,
         noiseWeight: CGFloat = 0.18,
         cellSize: Int = 1,
-        cutAngleDegrees: CGFloat? = nil
+        cutAngleDegrees: CGFloat? = nil,
     ) -> CGImage? {
         let bytes = noiseBytes(
             edgeDepthWeight: edgeDepthWeight,
             noiseWeight: noiseWeight,
             cellSize: cellSize,
-            cutAngleDegrees: cutAngleDegrees
+            cutAngleDegrees: cutAngleDegrees,
         )
         return makeGrayscaleImage(pixels: bytes, width: width, height: height)
     }
@@ -176,21 +176,21 @@ enum CardDissolveTexture {
         cellSize: Int = 1,
         thresholdMidpoint: CGFloat = 0.46,
         thresholdContrast: CGFloat = 100,
-        cutAngleDegrees: CGFloat? = nil
+        cutAngleDegrees: CGFloat? = nil,
     ) -> CGImage? {
         let clampedCell = max(1, min(cellSize, 16))
         let noiseKey = noiseCacheKey(
             edgeDepthWeight: edgeDepthWeight,
             noiseWeight: noiseWeight,
             cellSize: clampedCell,
-            cutAngleDegrees: cutAngleDegrees
+            cutAngleDegrees: cutAngleDegrees,
         )
         let step = progressStep(for: progress)
         let key = ThresholdCacheKey(
             noise: noiseKey,
             progressStep: step,
             thresholdMidpoint: quantize(thresholdMidpoint),
-            thresholdContrast: Int(thresholdContrast.rounded())
+            thresholdContrast: Int(thresholdContrast.rounded()),
         )
         if let cached = cache.cachedThresholdImage(key: key) {
             return cached
@@ -202,7 +202,7 @@ enum CardDissolveTexture {
             cellSize: clampedCell,
             thresholdMidpoint: thresholdMidpoint,
             thresholdContrast: thresholdContrast,
-            cutAngleDegrees: cutAngleDegrees
+            cutAngleDegrees: cutAngleDegrees,
         )
     }
 
@@ -213,27 +213,27 @@ enum CardDissolveTexture {
         cellSize: Int = 1,
         thresholdMidpoint: CGFloat = 0.46,
         thresholdContrast: CGFloat = 100,
-        cutAngleDegrees: CGFloat? = nil
+        cutAngleDegrees: CGFloat? = nil,
     ) -> CGImage? {
         let clampedCell = max(1, min(cellSize, 16))
         let noiseKey = noiseCacheKey(
             edgeDepthWeight: edgeDepthWeight,
             noiseWeight: noiseWeight,
             cellSize: clampedCell,
-            cutAngleDegrees: cutAngleDegrees
+            cutAngleDegrees: cutAngleDegrees,
         )
         let step = progressStep(for: progress)
         let key = ThresholdCacheKey(
             noise: noiseKey,
             progressStep: step,
             thresholdMidpoint: quantize(thresholdMidpoint),
-            thresholdContrast: Int(thresholdContrast.rounded())
+            thresholdContrast: Int(thresholdContrast.rounded()),
         )
         let noise = noiseBytes(
             edgeDepthWeight: edgeDepthWeight,
             noiseWeight: noiseWeight,
             cellSize: clampedCell,
-            cutAngleDegrees: cutAngleDegrees
+            cutAngleDegrees: cutAngleDegrees,
         )
         let steppedProgress = CGFloat(step) / CGFloat(progressSteps)
         return cache.thresholdImage(key: key) {
@@ -241,7 +241,7 @@ enum CardDissolveTexture {
                 noise: noise,
                 progress: steppedProgress,
                 thresholdMidpoint: thresholdMidpoint,
-                thresholdContrast: thresholdContrast
+                thresholdContrast: thresholdContrast,
             )
         }
     }
@@ -250,13 +250,13 @@ enum CardDissolveTexture {
         edgeDepthWeight: CGFloat = 0.86,
         noiseWeight: CGFloat = 0.18,
         cellSize: Int = 1,
-        cutAngleDegrees: CGFloat? = nil
+        cutAngleDegrees: CGFloat? = nil,
     ) {
         _ = prewarmTask(
             edgeDepthWeight: edgeDepthWeight,
             noiseWeight: noiseWeight,
             cellSize: cellSize,
-            cutAngleDegrees: cutAngleDegrees
+            cutAngleDegrees: cutAngleDegrees,
         )
     }
 
@@ -264,13 +264,13 @@ enum CardDissolveTexture {
         edgeDepthWeight: CGFloat = 0.86,
         noiseWeight: CGFloat = 0.18,
         cellSize: Int = 1,
-        cutAngleDegrees: CGFloat? = nil
+        cutAngleDegrees: CGFloat? = nil,
     ) async {
         guard let task = prewarmTask(
             edgeDepthWeight: edgeDepthWeight,
             noiseWeight: noiseWeight,
             cellSize: cellSize,
-            cutAngleDegrees: cutAngleDegrees
+            cutAngleDegrees: cutAngleDegrees,
         ) else { return }
         await task.value
     }
@@ -279,13 +279,13 @@ enum CardDissolveTexture {
         edgeDepthWeight: CGFloat,
         noiseWeight: CGFloat,
         cellSize: Int,
-        cutAngleDegrees: CGFloat?
+        cutAngleDegrees: CGFloat?,
     ) -> Task<Void, Never>? {
         let key = noiseCacheKey(
             edgeDepthWeight: edgeDepthWeight,
             noiseWeight: noiseWeight,
             cellSize: max(1, min(cellSize, 16)),
-            cutAngleDegrees: cutAngleDegrees
+            cutAngleDegrees: cutAngleDegrees,
         )
         return prewarmState.withLock { state in
             if state.prepared.contains(key) {
@@ -300,7 +300,7 @@ enum CardDissolveTexture {
                     edgeDepthWeight: edgeDepthWeight,
                     noiseWeight: noiseWeight,
                     cellSize: cellSize,
-                    cutAngleDegrees: cutAngleDegrees
+                    cutAngleDegrees: cutAngleDegrees,
                 )
                 for step in 0 ... progressSteps {
                     let progress = CGFloat(step) / CGFloat(progressSteps)
@@ -309,7 +309,7 @@ enum CardDissolveTexture {
                         edgeDepthWeight: edgeDepthWeight,
                         noiseWeight: noiseWeight,
                         cellSize: cellSize,
-                        cutAngleDegrees: cutAngleDegrees
+                        cutAngleDegrees: cutAngleDegrees,
                     )
                 }
                 prewarmState.withLock { state in
@@ -328,13 +328,13 @@ extension CardDissolveTexture {
         edgeDepthWeight: CGFloat,
         noiseWeight: CGFloat,
         cellSize: Int,
-        cutAngleDegrees: CGFloat?
+        cutAngleDegrees: CGFloat?,
     ) -> NoiseCacheKey {
         NoiseCacheKey(
             edgeDepthWeight: quantize(edgeDepthWeight),
             noiseWeight: quantize(noiseWeight),
             cellSize: cellSize,
-            cutAngleDegrees: cutAngleDegrees.map { Int($0.rounded()) }
+            cutAngleDegrees: cutAngleDegrees.map { Int($0.rounded()) },
         )
     }
 
@@ -342,21 +342,21 @@ extension CardDissolveTexture {
         edgeDepthWeight: CGFloat,
         noiseWeight: CGFloat,
         cellSize: Int,
-        cutAngleDegrees: CGFloat?
+        cutAngleDegrees: CGFloat?,
     ) -> [UInt8] {
         let clampedCell = max(1, min(cellSize, 16))
         let key = noiseCacheKey(
             edgeDepthWeight: edgeDepthWeight,
             noiseWeight: noiseWeight,
             cellSize: clampedCell,
-            cutAngleDegrees: cutAngleDegrees
+            cutAngleDegrees: cutAngleDegrees,
         )
         return cache.noiseBytes(key: key) {
             makeNoiseBytes(
                 edgeDepthWeight: edgeDepthWeight,
                 noiseWeight: noiseWeight,
                 cellSize: clampedCell,
-                cutAngleDegrees: cutAngleDegrees
+                cutAngleDegrees: cutAngleDegrees,
             )
         }
     }
@@ -369,7 +369,7 @@ extension CardDissolveTexture {
         edgeDepthWeight: CGFloat,
         noiseWeight: CGFloat,
         cellSize: Int,
-        cutAngleDegrees: CGFloat?
+        cutAngleDegrees: CGFloat?,
     ) -> [UInt8] {
         var pixels = [UInt8](repeating: 0, count: width * height)
         let columns = max(1, width / cellSize)
@@ -387,17 +387,17 @@ extension CardDissolveTexture {
             for column in 0 ..< columns {
                 let midpoint = CGPoint(
                     x: (CGFloat(column) + 0.5) * CGFloat(cellSize),
-                    y: (CGFloat(row) + 0.5) * CGFloat(cellSize)
+                    y: (CGFloat(row) + 0.5) * CGFloat(cellSize),
                 )
                 let inset = min(
                     min(midpoint.x, CGFloat(width) - midpoint.x),
-                    min(midpoint.y, CGFloat(height) - midpoint.y)
+                    min(midpoint.y, CGFloat(height) - midpoint.y),
                 )
                 let edgeInset: CGFloat
                 if let cutNormal {
                     let cutDistance = abs(
                         (midpoint.x - center.x) * cutNormal.dx
-                            + (midpoint.y - center.y) * cutNormal.dy
+                            + (midpoint.y - center.y) * cutNormal.dy,
                     )
                     edgeInset = min(inset, cutDistance)
                 } else {
@@ -405,7 +405,7 @@ extension CardDissolveTexture {
                 }
                 let edgeDepth = max(0, edgeInset / maximumInset)
                 let noise = CombatFeedbackLayout.unitNoise(
-                    seed: column &* 12989 &+ row &* 78233
+                    seed: column &* 12989 &+ row &* 78233,
                 )
                 let threshold = min(edgeDepth * depthWeight + noise * noiseAmount, 1)
                 let byte = UInt8(clamping: Int((threshold * 255).rounded()))
@@ -425,7 +425,7 @@ extension CardDissolveTexture {
         noise: [UInt8],
         progress: CGFloat,
         thresholdMidpoint: CGFloat,
-        thresholdContrast: CGFloat
+        thresholdContrast: CGFloat,
     ) -> CGImage? {
         var rgba = [UInt8](repeating: 0, count: width * height * 4)
         let brightness = Double(thresholdMidpoint) - Double(progress)
@@ -463,7 +463,7 @@ extension CardDissolveTexture {
             provider: provider,
             decode: nil,
             shouldInterpolate: false,
-            intent: .defaultIntent
+            intent: .defaultIntent,
         )
     }
 
@@ -483,7 +483,7 @@ extension CardDissolveTexture {
             provider: provider,
             decode: nil,
             shouldInterpolate: false,
-            intent: .defaultIntent
+            intent: .defaultIntent,
         )
     }
 }

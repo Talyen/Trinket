@@ -19,7 +19,7 @@ public struct RosterCombatantDetailView: View {
         combatantID: String,
         hapticsEnabled: Bool,
         effectsVolume: Double,
-        hidesNavigationBar: Bool = false
+        hidesNavigationBar: Bool = false,
     ) {
         self.kind = kind
         self.combatantID = combatantID
@@ -40,7 +40,7 @@ public struct RosterCombatantDetailView: View {
                         persistRoster {
                             $0.setLoadout(newValue, for: combatant)
                         }
-                    }
+                    },
                 ),
                 equipmentLoadout: Binding(
                     get: { playerSave.roster.equipmentLoadout(for: combatant) },
@@ -48,13 +48,13 @@ public struct RosterCombatantDetailView: View {
                         persistRoster {
                             $0.setEquipmentLoadout(newValue, for: combatant)
                         }
-                    }
+                    },
                 ),
                 inventoryItems: Binding(
                     get: { playerSave.inventory.items },
                     set: { newItems in
                         playerSave.inventory.items = newItems
-                    }
+                    },
                 ),
                 unlockedTalents: Binding(
                     get: { playerSave.roster.unlockedTalents(for: combatant) },
@@ -62,7 +62,7 @@ public struct RosterCombatantDetailView: View {
                         persistRoster {
                             $0.setUnlockedTalents(newTalents, for: combatant)
                         }
-                    }
+                    },
                 ),
                 allowsEditing: playerSave.roster.isUnlocked(combatant),
                 hapticsEnabled: hapticsEnabled,
@@ -77,12 +77,12 @@ public struct RosterCombatantDetailView: View {
                     persistRoster {
                         $0.resetTalents(for: combatant.id)
                     }
-                }
+                },
             )
         } else {
             ContentUnavailableView(
                 kind == .hero ? "Hero Not Found" : "Companion Not Found",
-                systemImage: "questionmark.circle"
+                systemImage: "questionmark.circle",
             )
             .accessibilityIdentifier("Combatant Not Found")
         }

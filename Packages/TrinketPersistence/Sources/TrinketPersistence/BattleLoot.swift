@@ -40,7 +40,7 @@ public enum BattleLoot {
         goldFoundPercent: Int = 0,
         materialsFoundPercent: Int = 0,
         astralChanceBonusPercent: Int = 0,
-        using randomNumberGenerator: inout some RandomNumberGenerator
+        using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> BattleLootPackage {
         let range = quantityRange(forLevel: encounterLevel)
         let multiplier = enemyIsBoss ? 2 : 1
@@ -52,7 +52,7 @@ public enum BattleLoot {
             count: 2,
             range: range,
             quantityMultiplier: multiplier,
-            using: &randomNumberGenerator
+            using: &randomNumberGenerator,
         )
         materials = materials.map {
             ResourceAmount($0.resource, CombatRounding.scaled($0.quantity, byPercent: materialsFoundPercent))
@@ -61,7 +61,7 @@ public enum BattleLoot {
         let tier = ItemRarityRoll.roll(
             bossContent: enemyIsBoss,
             astralChanceBonusPercent: astralChanceBonusPercent,
-            using: &randomNumberGenerator
+            using: &randomNumberGenerator,
         )
         let item = ItemRewardGenerator.generate(
             id: itemID,
@@ -69,7 +69,7 @@ public enum BattleLoot {
             ownedTrinketIDs: ownedTrinketIDs,
             ownedUniqueIDs: ownedUniqueIDs,
             keywordBias: keywordBias,
-            using: &randomNumberGenerator
+            using: &randomNumberGenerator,
         )
 
         return BattleLootPackage(item: item, gold: gold, materials: materials)
@@ -82,10 +82,10 @@ public enum BattleLoot {
         worldSeed: UInt64,
         ownedTrinketIDs: Set<String> = [],
         ownedUniqueIDs: Set<String>,
-        astralChanceBonusPercent: Int = 0
+        astralChanceBonusPercent: Int = 0,
     ) -> BattleLootPackage {
         var rng = SeededRandomNumberGenerator(
-            seed: GameContent.encounterSeed(worldSeed, salt: "battle-loot-journey-\(stage.id)")
+            seed: GameContent.encounterSeed(worldSeed, salt: "battle-loot-journey-\(stage.id)"),
         )
         return resolve(
             encounterLevel: encounterLevel,
@@ -94,7 +94,7 @@ public enum BattleLoot {
             ownedTrinketIDs: ownedTrinketIDs,
             ownedUniqueIDs: ownedUniqueIDs,
             astralChanceBonusPercent: astralChanceBonusPercent,
-            using: &rng
+            using: &rng,
         )
     }
 
@@ -106,13 +106,13 @@ public enum BattleLoot {
         keywordBias: Set<Keyword> = [],
         ownedTrinketIDs: Set<String> = [],
         ownedUniqueIDs: Set<String>,
-        astralChanceBonusPercent: Int = 0
+        astralChanceBonusPercent: Int = 0,
     ) -> BattleLootPackage {
         var rng = SeededRandomNumberGenerator(
             seed: GameContent.encounterSeed(
                 worldSeed,
-                salt: "battle-loot-spire-\(floor.spireID.rawValue)-\(floor.floor)"
-            )
+                salt: "battle-loot-spire-\(floor.spireID.rawValue)-\(floor.floor)",
+            ),
         )
         return resolve(
             encounterLevel: encounterLevel,
@@ -122,7 +122,7 @@ public enum BattleLoot {
             ownedTrinketIDs: ownedTrinketIDs,
             ownedUniqueIDs: ownedUniqueIDs,
             astralChanceBonusPercent: astralChanceBonusPercent,
-            using: &rng
+            using: &rng,
         )
     }
 
@@ -134,10 +134,10 @@ public enum BattleLoot {
         worldSeed: UInt64,
         ownedTrinketIDs: Set<String> = [],
         ownedUniqueIDs: Set<String>,
-        astralChanceBonusPercent: Int = 0
+        astralChanceBonusPercent: Int = 0,
     ) -> BattleLootPackage {
         var rng = SeededRandomNumberGenerator(
-            seed: GameContent.encounterSeed(worldSeed, salt: "battle-loot-labyrinth-\(node.id)")
+            seed: GameContent.encounterSeed(worldSeed, salt: "battle-loot-labyrinth-\(node.id)"),
         )
         return resolve(
             encounterLevel: encounterLevel,
@@ -149,7 +149,7 @@ public enum BattleLoot {
             goldFoundPercent: effects.goldFoundPercent,
             materialsFoundPercent: effects.materialsFoundPercent,
             astralChanceBonusPercent: astralChanceBonusPercent,
-            using: &rng
+            using: &rng,
         )
     }
 
@@ -157,7 +157,7 @@ public enum BattleLoot {
         count: Int,
         range: ClosedRange<Int>,
         quantityMultiplier: Int,
-        using randomNumberGenerator: inout some RandomNumberGenerator
+        using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> [ResourceAmount] {
         var pool = materialResources
         var picked: [ResourceAmount] = []

@@ -18,7 +18,7 @@ enum CombatFeedbackAttackRecipes {
         offsetY: [.init(value: 0, duration: 0.01)],
         rotation: [.init(value: 0, duration: 0.01, usesSpring: false)],
         impactDelay: 0,
-        duration: 0.01
+        duration: 0.01,
     )
 
     static let lungeCardAttack = CombatantAttackReactionRecipe(
@@ -49,6 +49,6 @@ enum CombatFeedbackAttackRecipes {
             .init(value: 0, duration: 0.45, usesSpring: false),
         ],
         impactDelay: 0.55,
-        duration: 1.0
+        duration: 1.0,
     )
 }

@@ -6,7 +6,7 @@ import TrinketTestSupport
 
 struct ControlMeterIntegrationTests {
     @Test(arguments: [Keyword.stun, Keyword.freeze])
-    func actionSkipPreventsDamage(keyword: Keyword) throws {
+    func `action skip prevents damage`(keyword: Keyword) throws {
         var battle = BattleTestFixtures.partyWithPendingActionSkip(keyword: keyword)
         let hero = battle.hero
         let events = BattleTestFixtures.endTurn(on: &battle)
@@ -14,11 +14,11 @@ struct ControlMeterIntegrationTests {
         try #expect(battle.health(of: hero) == hero.maxHealth, "keyword=\(keyword)")
         try #expect(
             events.contains(effectKind: .controlActionSkipped, keyword: keyword),
-            "keyword=\(keyword)"
+            "keyword=\(keyword)",
         )
     }
 
-    @Test func actionSkipConsumesOnEnemyTurn() throws {
+    @Test func `action skip consumes on enemy turn`() throws {
         var battle = BattleTestFixtures.partyWithPendingActionSkip(keyword: .stun)
         let enemy = battle.enemy
 
@@ -31,7 +31,7 @@ struct ControlMeterIntegrationTests {
         try #expect(!(battle.roster.hasPendingActionSkip(for: enemy, keyword: .stun)))
     }
 
-    @Test func stunStatusLingersThroughFollowingPlayerTurnWithoutSecondSkip() throws {
+    @Test func `stun status lingers through following player turn without second skip`() throws {
         var battle = BattleTestFixtures.partyWithPendingActionSkip(keyword: .stun)
         let enemy = battle.enemy
         let hero = battle.hero
@@ -51,12 +51,12 @@ struct ControlMeterIntegrationTests {
         try #expect(battle.health(of: hero) < hero.maxHealth)
     }
 
-    @Test func stunDamageBuildsMeterTriggersAndSkipsNextAction() throws {
+    @Test func `stun damage builds meter triggers and skips next action`() throws {
         let hero = CombatantFixtures.combatant(
             id: "hero",
             role: .hero,
             actionIntervalTurns: 1,
-            abilities: [CombatantFixtures.ability(id: "test-stun", name: "Test Stun", directDamage: 1, damageKeyword: .stun)]
+            abilities: [CombatantFixtures.ability(id: "test-stun", name: "Test Stun", directDamage: 1, damageKeyword: .stun)],
         )
         let companion = BattleTestFixtures.passiveCompanion()
         let enemy = BattleTestFixtures.attackingEnemy(abilities: [.slash], maxHealth: 5)
@@ -80,13 +80,13 @@ struct ControlMeterIntegrationTests {
         try #expect(battle.health(of: battle.hero) == hero.maxHealth)
     }
 
-    @Test func shieldBashAppliesStunSkipAndBlock() throws {
+    @Test func `shield bash applies stun skip and block`() throws {
         let hero = Combatant(
             id: "hero",
             name: "Hero",
             role: .hero,
             maxHealth: 20,
-            abilities: [.shieldBash]
+            abilities: [.shieldBash],
         )
         let companion = BattleTestFixtures.passiveCompanion()
         let enemy = BattleTestFixtures.attackingEnemy(abilities: [.slash], maxHealth: 5)
@@ -105,7 +105,7 @@ struct ControlMeterIntegrationTests {
         try #expect(battle.health(of: battle.hero) == hero.maxHealth)
     }
 
-    @Test func partyOwnerSkipBlocksCardPlayThenClearsOnEndTurn() throws {
+    @Test func `party owner skip blocks card play then clears on end turn`() throws {
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [.slash])
         let companion = BattleTestFixtures.passiveCompanion()
         let enemy = BattleTestFixtures.silentEnemy(maxHealth: 100)
@@ -115,7 +115,7 @@ struct ControlMeterIntegrationTests {
             enemy: enemy,
             activeHeroEffects: [
                 ActiveEffect(id: 1, effect: .controlMeter(.stun, 1, 1), remainingTurns: 0),
-            ]
+            ],
         )
 
         battle.nextCardID += 1
@@ -139,7 +139,7 @@ struct ControlMeterIntegrationTests {
         try #expect(battle.ownersSkippingThisPlayerTurn.isEmpty)
     }
 
-    @Test func shatterAndDazedApplyDuringControlStatusLinger() throws {
+    @Test func `shatter and dazed apply during control status linger`() throws {
         let jab = Ability(id: "jab", name: "Jab", tier: .basic, directDamage: 1, damageKeyword: .physical)
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [jab])
         let companion = BattleTestFixtures.passiveCompanion()
@@ -153,14 +153,14 @@ struct ControlMeterIntegrationTests {
                 ActiveEffect(
                     id: 1,
                     effect: .controlMeter(.freeze, 1, 1),
-                    remainingTurns: BattleTiming.controlStatusLingerTurns
+                    remainingTurns: BattleTiming.controlStatusLingerTurns,
                 ),
             ],
             heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
                 damage: DamageTriggers(
-                    damageWhileTargetFrozenBonus: 2
-                )
-            ))
+                    damageWhileTargetFrozenBonus: 2,
+                ),
+            )),
         )
         try #expect(!(frozenBattle.roster.hasPendingActionSkip(for: frozenBattle.enemy, keyword: .freeze)))
         try #expect(frozenBattle.roster.hasControlStatus(for: frozenBattle.enemy, keyword: .freeze))
@@ -175,14 +175,14 @@ struct ControlMeterIntegrationTests {
                 ActiveEffect(
                     id: 1,
                     effect: .controlMeter(.stun, 1, 1),
-                    remainingTurns: BattleTiming.controlStatusLingerTurns
+                    remainingTurns: BattleTiming.controlStatusLingerTurns,
                 ),
             ],
             heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
                 damage: DamageTriggers(
-                    damageWhileTargetStunnedBonus: 1
-                )
-            ))
+                    damageWhileTargetStunnedBonus: 1,
+                ),
+            )),
         )
         try #expect(!(stunnedBattle.roster.hasPendingActionSkip(for: stunnedBattle.enemy, keyword: .stun)))
         try #expect(stunnedBattle.roster.hasControlStatus(for: stunnedBattle.enemy, keyword: .stun))

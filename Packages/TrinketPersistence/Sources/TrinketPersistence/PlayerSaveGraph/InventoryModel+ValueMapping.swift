@@ -18,7 +18,7 @@ extension InventoryModel {
     private static func restoredItem(from item: InventoryItemModel) -> InventoryItem? {
         guard let baseType = GameContent.itemBaseType(matching: item.baseTypeID) else {
             inventoryMappingLogger.error(
-                "Dropping inventory item \(item.id, privacy: .public) with unknown base type \(item.baseTypeID, privacy: .public)"
+                "Dropping inventory item \(item.id, privacy: .public) with unknown base type \(item.baseTypeID, privacy: .public)",
             )
             return nil
         }
@@ -36,7 +36,7 @@ extension InventoryModel {
                     title: affix.title,
                     description: affix.affixDescription,
                     keywords: keywords,
-                    isCorrupted: affix.isCorrupted
+                    isCorrupted: affix.isCorrupted,
                 )
             }
         let affixPowers: [ItemAffixPower]? = {
@@ -45,7 +45,7 @@ extension InventoryModel {
                 return try ItemAffixPowerCoding.decode(data)
             } catch {
                 inventoryMappingLogger.error(
-                    "Failed to decode affix powers for inventory item \(item.id, privacy: .public): \(error.localizedDescription, privacy: .public)"
+                    "Failed to decode affix powers for inventory item \(item.id, privacy: .public): \(error.localizedDescription, privacy: .public)",
                 )
                 return nil
             }
@@ -58,7 +58,7 @@ extension InventoryModel {
             displayName: item.displayName,
             affixes: affixes,
             isCorrupted: item.isCorrupted,
-            affixPowers: affixPowers
+            affixPowers: affixPowers,
         )
         guard baseType.slot == .trinket,
               let authored = GameContent.itemTemplate(matching: item.templateID)
@@ -73,7 +73,7 @@ extension InventoryModel {
             displayName: authored.displayName,
             affixes: authored.affixes,
             isCorrupted: persistedItem.isCorrupted,
-            affixPowers: persistedItem.affixPowers
+            affixPowers: persistedItem.affixPowers,
         )
     }
 }

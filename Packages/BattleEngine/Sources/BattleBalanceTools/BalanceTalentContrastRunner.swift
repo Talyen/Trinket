@@ -35,7 +35,7 @@ enum BalanceTalentContrastRunner {
                         focusID: nodes[0].id,
                         siblingID: nodes[1].id,
                         prefix: SimulationMatchupBuilder.minimalPrefix(for: tree, throughRow: row),
-                        treeKeyword: tree.keyword
+                        treeKeyword: tree.keyword,
                     )
                 }
             }
@@ -74,10 +74,10 @@ enum BalanceTalentContrastRunner {
             siblingFoci(
                 heroes: roster.heroes,
                 companions: roster.companions,
-                focusIDs: config.focusIDs
+                focusIDs: config.focusIDs,
             ).count,
             tiers: config.tiers.count,
-            samples: config.battlesPerTier
+            samples: config.battlesPerTier,
         )
     }
 
@@ -87,10 +87,10 @@ enum BalanceTalentContrastRunner {
             kitFoci(
                 heroes: roster.heroes,
                 companions: roster.companions,
-                focusIDs: config.focusIDs
+                focusIDs: config.focusIDs,
             ).count,
             tiers: config.tiers.count,
-            samples: config.battlesPerTier
+            samples: config.battlesPerTier,
         )
     }
 
@@ -100,7 +100,7 @@ enum BalanceTalentContrastRunner {
 
     static func run(
         context: BalanceContrastContext,
-        policy: PlayPolicy
+        policy: PlayPolicy,
     ) -> (sibling: [PairedContrastSummary], kit: [PairedContrastSummary]) {
         guard !context.heroes.isEmpty,
               !context.companions.isEmpty,
@@ -109,23 +109,23 @@ enum BalanceTalentContrastRunner {
 
         return (
             runSiblingSweep(context: context, policy: policy),
-            runKitSweep(context: context, policy: policy)
+            runKitSweep(context: context, policy: policy),
         )
     }
 
     private static func runSiblingSweep(
         context: BalanceContrastContext,
-        policy: PlayPolicy
+        policy: PlayPolicy,
     ) -> [PairedContrastSummary] {
         let foci = siblingFoci(
             heroes: context.heroes,
             companions: context.companions,
-            focusIDs: context.config.focusIDs
+            focusIDs: context.config.focusIDs,
         )
         guard !foci.isEmpty else { return [] }
         guard let sliced = context.config.withLocalSlice(
             regionStart: 0,
-            regionCount: siblingWorkCount(config: context.config)
+            regionCount: siblingWorkCount(config: context.config),
         ) else { return [] }
         var slicedContext = context
         slicedContext.config = sliced
@@ -139,7 +139,7 @@ enum BalanceTalentContrastRunner {
                     baselineID: $0.siblingID,
                     ownerID: $0.owner.id,
                     baselineKind: .sibling,
-                    nonCombat: $0.treeKeyword == .gold
+                    nonCombat: $0.treeKeyword == .gold,
                 )
             },
             primes: (tier: 700031, pair: 173),
@@ -152,26 +152,26 @@ enum BalanceTalentContrastRunner {
                     tier: tier,
                     pairIndex: pairIndex,
                     context: context,
-                    pairSeed: seed
+                    pairSeed: seed,
                 )
             },
-            policy: policy
+            policy: policy,
         )
     }
 
     private static func runKitSweep(
         context: BalanceContrastContext,
-        policy: PlayPolicy
+        policy: PlayPolicy,
     ) -> [PairedContrastSummary] {
         let foci = kitFoci(
             heroes: context.heroes,
             companions: context.companions,
-            focusIDs: context.config.focusIDs
+            focusIDs: context.config.focusIDs,
         )
         guard !foci.isEmpty else { return [] }
         guard let sliced = context.config.withLocalSlice(
             regionStart: siblingWorkCount(config: context.config),
-            regionCount: kitWorkCount(config: context.config)
+            regionCount: kitWorkCount(config: context.config),
         ) else { return [] }
         var slicedContext = context
         slicedContext.config = sliced
@@ -185,7 +185,7 @@ enum BalanceTalentContrastRunner {
                     baselineID: "none",
                     ownerID: $0.owner.id,
                     baselineKind: .fullKit,
-                    nonCombat: false
+                    nonCombat: false,
                 )
             },
             primes: (tier: 700041, pair: 179),
@@ -198,10 +198,10 @@ enum BalanceTalentContrastRunner {
                     tier: tier,
                     pairIndex: pairIndex,
                     context: context,
-                    pairSeed: seed
+                    pairSeed: seed,
                 )
             },
-            policy: policy
+            policy: policy,
         )
     }
 
@@ -212,25 +212,25 @@ enum BalanceTalentContrastRunner {
         tier: SimulationPowerTier,
         pairIndex: Int,
         context: BalanceContrastContext,
-        pairSeed: UInt64
+        pairSeed: UInt64,
     ) -> (withEntity: ConfiguredSimulationMatchup, withBaseline: ConfiguredSimulationMatchup) {
         var rng = SeededRandomNumberGenerator(seed: pairSeed)
         let partner = BalanceContrastSupport.pickPartner(
             for: owner,
             from: context,
-            using: &rng
+            using: &rng,
         )
         let enemy = BalanceContrastSupport.roundRobinEnemy(
             enemies: context.enemies,
-            pairIndex: pairIndex
+            pairIndex: pairIndex,
         )
         let ownerLoadout = SimulationMatchupBuilder.sampleLoadout(
             for: owner,
-            using: &rng
+            using: &rng,
         )
         let partnerLoadout = SimulationMatchupBuilder.sampleLoadout(
             for: partner,
-            using: &rng
+            using: &rng,
         )
         let gears = BalanceContrastSupport.sharedGear(
             owner: owner,
@@ -238,7 +238,7 @@ enum BalanceTalentContrastRunner {
             ownerLoadout: ownerLoadout,
             partnerLoadout: partnerLoadout,
             tier: tier,
-            pairSeed: pairSeed
+            pairSeed: pairSeed,
         )
         return BalanceContrastSupport.buildOwnerTalentPair(
             base: .init(
@@ -250,10 +250,10 @@ enum BalanceTalentContrastRunner {
                 partnerGear: gears.partner,
                 enemy: enemy,
                 tier: tier,
-                seed: pairSeed
+                seed: pairSeed,
             ),
             entityOwnerTalents: entityTalents,
-            baselineOwnerTalents: baselineTalents
+            baselineOwnerTalents: baselineTalents,
         )
     }
 }

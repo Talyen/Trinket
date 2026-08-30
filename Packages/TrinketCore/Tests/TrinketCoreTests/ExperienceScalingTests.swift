@@ -2,22 +2,22 @@ import Testing
 import TrinketCore
 
 struct ExperienceScalingTests {
-    @Test func adjustedAwardCoversLevelBoundaries() throws {
+    @Test func `adjusted award covers level boundaries`() throws {
         try #expect(
-            ExperienceScaling.adjustedAward(baseExperience: 50, playerLevel: 10, enemyLevel: 10) == 50
+            ExperienceScaling.adjustedAward(baseExperience: 50, playerLevel: 10, enemyLevel: 10) == 50,
         )
         try #expect(
-            ExperienceScaling.adjustedAward(baseExperience: 50, playerLevel: 8, enemyLevel: 12) == 50
+            ExperienceScaling.adjustedAward(baseExperience: 50, playerLevel: 8, enemyLevel: 12) == 50,
         )
         try #expect(
-            ExperienceScaling.adjustedAward(baseExperience: 50, playerLevel: 20, enemyLevel: 10) == 0
+            ExperienceScaling.adjustedAward(baseExperience: 50, playerLevel: 20, enemyLevel: 10) == 0,
         )
         try #expect(
-            ExperienceScaling.adjustedAward(baseExperience: 50, playerLevel: 20, enemyLevel: 5) == 0
+            ExperienceScaling.adjustedAward(baseExperience: 50, playerLevel: 20, enemyLevel: 5) == 0,
         )
     }
 
-    @Test func underlevelGapScalesSmoothly() throws {
+    @Test func `underlevel gap scales smoothly`() throws {
         let halfway = ExperienceScaling.adjustedAward(baseExperience: 100, playerLevel: 15, enemyLevel: 10)
         try #expect(halfway > 0)
         try #expect(halfway < 100)
@@ -26,7 +26,7 @@ struct ExperienceScalingTests {
         try #expect(nearEqual > halfway)
     }
 
-    @Test func baseBattleAwardTargetsEarlyMidAndLateProgression() throws {
+    @Test func `base battle award targets early mid and late progression`() throws {
         let award = ExperienceScaling.baseBattleAward(forPlayerLevel: 1)
         try #expect(award == 7)
         try #expect(abs((
@@ -40,25 +40,25 @@ struct ExperienceScalingTests {
         }
     }
 
-    @Test func battleAwardAppliesLevelDeltaAndCatchUpMultiplier() throws {
+    @Test func `battle award applies level delta and catch up multiplier`() throws {
         try #expect(ExperienceScaling.battleAward(playerLevel: 20, enemyLevel: 5) == 0)
         try #expect(ExperienceScaling.battleAward(playerLevel: 5, enemyLevel: 5) == 25)
 
         try #expect(
-            ExperienceScaling.battleAwardWithCatchUp(playerLevel: 20, enemyLevel: 5, highestLevel: 25) == 0
+            ExperienceScaling.battleAwardWithCatchUp(playerLevel: 20, enemyLevel: 5, highestLevel: 25) == 0,
         )
 
         try #expect(
             ExperienceScaling.battleAwardWithCatchUp(playerLevel: 5, enemyLevel: 5, highestLevel: 10)
-                == 59
+                == 59,
         )
     }
 
-    @Test func equalBattleAwardMatchesEqualLevelCatchUpAward() throws {
+    @Test func `equal battle award matches equal level catch up award`() throws {
         try #expect(ExperienceScaling.equalBattleAward(playerLevel: 12, highestLevel: 18) == 201)
     }
 
-    @Test func cappedAwardClipsAtThreeTimesRequiredXP() throws {
+    @Test func `capped award clips at three times required XP`() throws {
         let progression = CombatantProgression.at(level: 1)
         let ceiling = progression.requiredXP * ExperienceScaling.maxGrantLevelsEquivalent
         try #expect(ceiling == 30)
@@ -69,7 +69,7 @@ struct ExperienceScalingTests {
         try #expect(ExperienceScaling.cappedAward(-5, for: progression) == 0)
     }
 
-    @Test func catchUpMultiplierCoversBaselineGrowthAndCaps() throws {
+    @Test func `catch up multiplier covers baseline growth and caps`() throws {
         try #expect(abs(ExperienceScaling.catchUpMultiplier(for: 10, highestLevel: 10) - 1.0) < 0.001)
         try #expect(abs(ExperienceScaling.catchUpMultiplier(for: 20, highestLevel: 15) - 1.0) < 0.001)
         let gap1 = ExperienceScaling.catchUpMultiplier(for: 9, highestLevel: 10)

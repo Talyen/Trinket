@@ -43,7 +43,7 @@ public struct CombatTraitTriggers: Codable, Sendable, Equatable, Hashable {
             revival: RevivalTriggers(),
             cleanse: CleanseTriggers(),
             enemyTurn: EnemyTurnTriggers(),
-            onHit: OnHitTriggers()
+            onHit: OnHitTriggers(),
         ))
     }
 
@@ -61,7 +61,7 @@ public struct CombatTraitTriggers: Codable, Sendable, Equatable, Hashable {
         revival: RevivalTriggers = RevivalTriggers(),
         cleanse: CleanseTriggers = CleanseTriggers(),
         enemyTurn: EnemyTurnTriggers = EnemyTurnTriggers(),
-        onHit: OnHitTriggers = OnHitTriggers()
+        onHit: OnHitTriggers = OnHitTriggers(),
     ) {
         storage = CopyOnWriteBox(Fields(
             damage: damage,
@@ -77,7 +77,7 @@ public struct CombatTraitTriggers: Codable, Sendable, Equatable, Hashable {
             revival: revival,
             cleanse: cleanse,
             enemyTurn: enemyTurn,
-            onHit: onHit
+            onHit: onHit,
         ))
     }
 

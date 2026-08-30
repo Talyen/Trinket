@@ -124,10 +124,10 @@ struct LabyrinthMapView: View {
                     selectedNodeID: selectedNodeID,
                     availableWidth: max(
                         1,
-                        proxy.size.width - 2 * TrinketDesign.Metrics.contentMargin
+                        proxy.size.width - 2 * TrinketDesign.Metrics.contentMargin,
                     ),
                     onSelectNode: { selectedNodeID = $0 },
-                    onDismissSelection: { selectedNodeID = nil }
+                    onDismissSelection: { selectedNodeID = nil },
                 )
                 .id(cluster.id)
                 .transition(.opacity.combined(with: .offset(y: 12)))
@@ -137,7 +137,7 @@ struct LabyrinthMapView: View {
                     .bottom,
                     selectedNode == nil
                         ? TrinketDesign.Metrics.extraLargeSpacing
-                        : Self.inspectorScrollClearance
+                        : Self.inspectorScrollClearance,
                 )
             }
             .scrollIndicators(.hidden)
@@ -149,7 +149,7 @@ struct LabyrinthMapView: View {
                 LabyrinthNodeInspector(
                     node: selectedNode,
                     state: state,
-                    onMessage: { nodeMessage = $0 }
+                    onMessage: { nodeMessage = $0 },
                 )
                 .frame(maxWidth: 340)
                 .padding(.bottom, TrinketDesign.Metrics.smallSpacing)
@@ -161,7 +161,7 @@ struct LabyrinthMapView: View {
         .trinketSensoryFeedback(
             .selection,
             trigger: selectedNodeID,
-            enabled: options.hapticsEnabled
+            enabled: options.hapticsEnabled,
         )
     }
 

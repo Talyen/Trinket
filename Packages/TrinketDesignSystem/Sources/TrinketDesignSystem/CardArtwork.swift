@@ -7,7 +7,7 @@ public struct CardArtworkSurfaceModifier: ViewModifier {
             .overlay {
                 TrinketDesign.cardShape.strokeBorder(
                     TrinketDesign.Colors.subtleStroke,
-                    lineWidth: 1
+                    lineWidth: 1,
                 )
             }
     }

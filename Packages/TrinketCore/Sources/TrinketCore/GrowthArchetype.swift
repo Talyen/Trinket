@@ -51,7 +51,7 @@ public struct StatGrowthDelta: Equatable, Hashable, Sendable {
         intellect: Int = 0,
         wisdom: Int = 0,
         maxHealth: Int = 0,
-        maxMana: Int = 0
+        maxMana: Int = 0,
     ) {
         self.strength = strength
         self.agility = agility
@@ -75,7 +75,7 @@ public enum StatGrowth {
 
     public static func playerGrowth(
         archetype: GrowthArchetype,
-        levelsAbove: Int
+        levelsAbove: Int,
     ) -> StatGrowthDelta {
         guard levelsAbove > 0 else { return .zero }
 
@@ -112,7 +112,7 @@ public enum StatGrowth {
 
     public static func enemyGrowth(
         archetype: GrowthArchetype,
-        levelsAbove: Int
+        levelsAbove: Int,
     ) -> StatGrowthDelta {
         guard levelsAbove > 0 else { return .zero }
         var growth = playerGrowth(archetype: archetype, levelsAbove: levelsAbove)
@@ -126,7 +126,7 @@ public enum StatGrowth {
         maxMana: Int,
         primaryStats: PrimaryStats,
         healthMultiplier: Double,
-        statsMultiplier: Double
+        statsMultiplier: Double,
     ) -> (maxHealth: Int, maxMana: Int, primaryStats: PrimaryStats) {
         guard healthMultiplier != 1.0 || statsMultiplier != 1.0 else {
             return (maxHealth, maxMana, primaryStats)
@@ -139,8 +139,8 @@ public enum StatGrowth {
                 agility: CombatRounding.scaled(primaryStats.agility, multiplier: statsMultiplier),
                 toughness: CombatRounding.scaled(primaryStats.toughness, multiplier: statsMultiplier),
                 intellect: CombatRounding.scaled(primaryStats.intellect, multiplier: statsMultiplier),
-                wisdom: CombatRounding.scaled(primaryStats.wisdom, multiplier: statsMultiplier)
-            )
+                wisdom: CombatRounding.scaled(primaryStats.wisdom, multiplier: statsMultiplier),
+            ),
         )
     }
 
@@ -148,7 +148,7 @@ public enum StatGrowth {
         maxHealth: Int,
         maxMana: Int,
         primaryStats: PrimaryStats,
-        growth: StatGrowthDelta
+        growth: StatGrowthDelta,
     ) -> (maxHealth: Int, maxMana: Int, primaryStats: PrimaryStats) {
         (
             maxHealth: maxHealth + growth.maxHealth,
@@ -158,8 +158,8 @@ public enum StatGrowth {
                 agility: primaryStats.agility + growth.agility,
                 toughness: primaryStats.toughness + growth.toughness,
                 intellect: primaryStats.intellect + growth.intellect,
-                wisdom: primaryStats.wisdom + growth.wisdom
-            )
+                wisdom: primaryStats.wisdom + growth.wisdom,
+            ),
         )
     }
 }

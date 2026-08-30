@@ -4,7 +4,7 @@ import TrinketContent
 import TrinketCore
 
 struct CombatBuildResolverTests {
-    @Test func equippedDamageAffixesAggregateIntoModifierProfile() throws {
+    @Test func `equipped damage affixes aggregate into modifier profile`() throws {
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         let baseType = try #require(GameContent.itemBaseTypes.first { $0.id == "longsword" })
         let keen = try #require(GameContent.itemAffixDefinitions.first { $0.id == "keen" })
@@ -15,7 +15,7 @@ struct CombatBuildResolverTests {
             baseType: baseType,
             rarity: .astral,
             displayName: baseType.name,
-            affixes: [keen.resolved(for: .astral), serrated.resolved(for: .astral)]
+            affixes: [keen.resolved(for: .astral), serrated.resolved(for: .astral)],
         )
 
         var loadout = EquipmentLoadout()
@@ -24,14 +24,14 @@ struct CombatBuildResolverTests {
         let build = CombatBuildResolver.build(
             combatant: knight,
             equipmentLoadout: loadout,
-            inventory: [item]
+            inventory: [item],
         )
 
         try #expect(build.modifiers.damageDealtBonus[.physical] == 3)
         try #expect(build.modifiers.damageDealtBonus[.bleed] == 2)
     }
 
-    @Test func multipleEquippedItemsStackModifiers() throws {
+    @Test func `multiple equipped items stack modifiers`() throws {
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         let weaponType = try #require(GameContent.itemBaseTypes.first { $0.id == "longsword" })
         let armorType = try #require(GameContent.itemBaseTypes.first { $0.id == "plate_armor" })
@@ -43,14 +43,14 @@ struct CombatBuildResolverTests {
             baseType: weaponType,
             rarity: .basic,
             displayName: weaponType.name,
-            affixes: []
+            affixes: [],
         )
         let armor = InventoryItem(
             id: "armor",
             baseType: armorType,
             rarity: .basic,
             displayName: armorType.name,
-            affixes: [hale.resolved(for: .basic), bulwark.resolved(for: .basic)]
+            affixes: [hale.resolved(for: .basic), bulwark.resolved(for: .basic)],
         )
 
         var loadout = EquipmentLoadout()
@@ -60,7 +60,7 @@ struct CombatBuildResolverTests {
         let build = CombatBuildResolver.build(
             combatant: knight,
             equipmentLoadout: loadout,
-            inventory: [weapon, armor]
+            inventory: [weapon, armor],
         )
 
         try #expect(build.modifiers.maximumHealthBonus == 6)
@@ -68,7 +68,7 @@ struct CombatBuildResolverTests {
         try #expect(build.effectiveMaxHealth == knight.maxHealth + 6)
     }
 
-    @Test func enemyTraitsMergeIntoEnemyBuildProfile() throws {
+    @Test func `enemy traits merge into enemy build profile`() throws {
         let livingArmor = try #require(GameContent.enemies.first { $0.id == "living_armor" })
         let build = CombatBuildResolver.build(enemy: livingArmor)
 
@@ -77,13 +77,13 @@ struct CombatBuildResolverTests {
         try #expect(build.modifiers.traitDisplayName == "Living Armor")
     }
 
-    @Test func corruptedInstancePowersOverrideCatalogValues() throws {
+    @Test func `corrupted instance powers override catalog values`() throws {
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         let baseType = try #require(GameContent.itemBaseTypes.first { $0.id == "greatsword" })
         let keen = try #require(GameContent.itemAffixDefinitions.first { $0.id == "keen" })
         let overridden = ItemAffixPower(
             description: "Increase Physical damage by 9.",
-            modifiers: [.damageDealt(.physical, 9)]
+            modifiers: [.damageDealt(.physical, 9)],
         )
         let item = InventoryItem(
             id: "corrupted-greatsword",
@@ -92,7 +92,7 @@ struct CombatBuildResolverTests {
             displayName: baseType.name,
             affixes: [keen.resolved(for: .basic)],
             isCorrupted: true,
-            affixPowers: [overridden]
+            affixPowers: [overridden],
         )
 
         var loadout = EquipmentLoadout()
@@ -100,30 +100,30 @@ struct CombatBuildResolverTests {
         let build = CombatBuildResolver.build(
             combatant: knight,
             equipmentLoadout: loadout,
-            inventory: [item]
+            inventory: [item],
         )
         try #expect(build.modifiers.damageDealtBonus[.physical] == 18)
     }
 
-    @Test func enemyEffectiveStatsIncludeProfileStatBonuses() throws {
+    @Test func `enemy effective stats include profile stat bonuses`() throws {
         let baseCombatant = Combatant(
             id: "test-enemy",
             name: "Test Enemy",
             role: .enemy,
             maxHealth: 50,
             abilities: [],
-            primaryStats: PrimaryStats(strength: 10, agility: 12, toughness: 8, intellect: 5, wisdom: 6)
+            primaryStats: PrimaryStats(strength: 10, agility: 12, toughness: 8, intellect: 5, wisdom: 6),
         )
         let enemy = Enemy(
             combatant: baseCombatant,
             traitID: "",
-            isBoss: false
+            isBoss: false,
         )
         let build = CombatBuildResolver.build(enemy: enemy)
         try #expect(build.combatant.primaryStats == baseCombatant.primaryStats)
     }
 
-    @Test func equippedAffixWritesTriggerAbilityNameFromTitle() throws {
+    @Test func `equipped affix writes trigger ability name from title`() throws {
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         let payday = try #require(GameContent.itemAffixDefinitions.first { $0.id == "payday" })
         let baseType = try #require(GameContent.itemBaseTypes.first { $0.slot == .accessory })
@@ -132,19 +132,19 @@ struct CombatBuildResolverTests {
             baseType: baseType,
             rarity: .basic,
             displayName: baseType.name,
-            affixes: [payday.resolved(for: .basic)]
+            affixes: [payday.resolved(for: .basic)],
         )
         var loadout = EquipmentLoadout()
         loadout.equip(item, inventory: [item])
         let build = CombatBuildResolver.build(
             combatant: knight,
             equipmentLoadout: loadout,
-            inventory: [item]
+            inventory: [item],
         )
         try #expect(build.modifiers.triggerAbilityName("dodgeGoldFlat", fallback: "") == "Payday")
     }
 
-    @Test func equippedAffixTitleWinsSharedTriggerFieldOverTalent() throws {
+    @Test func `equipped affix title wins shared trigger field over talent`() throws {
         let fox = try #require(GameContent.companions.first { $0.id == "fox" })
         let payday = try #require(GameContent.itemAffixDefinitions.first { $0.id == "payday" })
         let baseType = try #require(GameContent.itemBaseTypes.first { $0.slot == .accessory })
@@ -153,7 +153,7 @@ struct CombatBuildResolverTests {
             baseType: baseType,
             rarity: .basic,
             displayName: baseType.name,
-            affixes: [payday.resolved(for: .basic)]
+            affixes: [payday.resolved(for: .basic)],
         )
         var loadout = EquipmentLoadout()
         loadout.equip(item, inventory: [item])
@@ -161,7 +161,7 @@ struct CombatBuildResolverTests {
             combatant: fox,
             equipmentLoadout: loadout,
             inventory: [item],
-            unlockedTalents: ["fox_gold_t1_1"]
+            unlockedTalents: ["fox_gold_t1_1"],
         )
         try #expect(build.modifiers.triggerAbilityName("dodgeGoldFlat", fallback: "") == "Payday")
         try #expect(build.modifiers.triggers.dodgeGoldFlat == 3)

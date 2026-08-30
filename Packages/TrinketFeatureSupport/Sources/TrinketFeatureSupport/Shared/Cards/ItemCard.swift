@@ -38,7 +38,7 @@ public struct ItemCard<Art: View>: View {
         customShineColors: [Color]? = nil,
         shineLineWidth: CGFloat = 2,
         enablesAstralShine: Bool = true,
-        @ViewBuilder art: @escaping () -> Art
+        @ViewBuilder art: @escaping () -> Art,
     ) {
         self.item = item
         self.showsAffixCount = showsAffixCount
@@ -90,7 +90,7 @@ public struct ItemCard<Art: View>: View {
                 case .reveal:
                     revealLabel
                 }
-            }
+            },
         )
         .onAppear {
             guard fadesLabel else { return }
@@ -160,7 +160,7 @@ public extension ItemCard where Art == ItemArtwork {
         customShineKeywords: [Keyword]? = nil,
         customShineColors: [Color]? = nil,
         shineLineWidth: CGFloat = 2,
-        enablesAstralShine: Bool = true
+        enablesAstralShine: Bool = true,
     ) {
         self.init(
             item: item,
@@ -174,7 +174,7 @@ public extension ItemCard where Art == ItemArtwork {
             customShineKeywords: customShineKeywords,
             customShineColors: customShineColors,
             shineLineWidth: shineLineWidth,
-            enablesAstralShine: enablesAstralShine
+            enablesAstralShine: enablesAstralShine,
         ) {
             ItemArtwork(item: item, variant: .thumbnail)
         }

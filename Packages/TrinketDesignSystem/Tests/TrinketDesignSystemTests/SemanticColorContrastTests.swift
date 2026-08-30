@@ -19,7 +19,7 @@ struct SemanticColorContrastTests {
     ]
 
     @Test(arguments: semanticForegroundNames)
-    func semanticForegroundMeetsContrastInDarkEnvironment(colorName: String) throws {
+    func `semantic foreground meets contrast in dark environment`(colorName: String) throws {
         let canvas = try darkResolvedSRGB("ThemeCanvas")
         let color = try darkResolvedSRGB(colorName)
         #expect(contrastRatio(color, canvas) >= 4.5)
@@ -42,7 +42,7 @@ private func darkResolvedSRGB(_ name: String) throws -> (red: Double, green: Dou
 
 private func contrastRatio(
     _ lhs: (red: Double, green: Double, blue: Double),
-    _ rhs: (red: Double, green: Double, blue: Double)
+    _ rhs: (red: Double, green: Double, blue: Double),
 ) -> Double {
     let lighter = max(relativeLuminance(lhs), relativeLuminance(rhs))
     let darker = min(relativeLuminance(lhs), relativeLuminance(rhs))

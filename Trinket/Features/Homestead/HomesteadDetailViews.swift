@@ -31,7 +31,7 @@ struct HomesteadNodeDetailView: View {
             title: definition.title,
             homestead: homestead,
             roster: roster,
-            bottomPadding: TrinketDesign.Metrics.extraLargeSpacing
+            bottomPadding: TrinketDesign.Metrics.extraLargeSpacing,
         ) {
             HomesteadBuildingArtwork(definition: definition, variant: .full)
                 .saturation(status.isUnlocked ? 1 : 0)
@@ -41,24 +41,24 @@ struct HomesteadNodeDetailView: View {
             HomesteadTierPath(
                 definition: definition,
                 status: status,
-                onBuild: buildOrUpgrade
+                onBuild: buildOrUpgrade,
             )
         }
         .accessibilityIdentifier(AccessibilityID.Homestead.nodeDetail(title: definition.title))
         .appFramePacingSignpost(
             AppFramePacingSignposts.Name.navigationPush,
-            isActive: true
+            isActive: true,
         )
         .onAppear {
             AppFramePacingSignposts.event(
                 AppFramePacingSignposts.Name.navigationPush,
-                detail: "homestead=\(definition.id)"
+                detail: "homestead=\(definition.id)",
             )
         }
         .trinketSensoryFeedback(
             .success,
             trigger: build.upgradeEventCount,
-            enabled: options.hapticsEnabled
+            enabled: options.hapticsEnabled,
         )
         .homesteadBuildErrorAlert(build: $build)
     }

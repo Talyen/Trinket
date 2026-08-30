@@ -9,7 +9,7 @@ public enum SpireCompletion {
         worldSeed: UInt64,
         ownedTrinketIDs: Set<String> = [],
         ownedUniqueIDs: Set<String> = [],
-        astralChanceBonusPercent: Int = 0
+        astralChanceBonusPercent: Int = 0,
     ) -> BattleLootPackage {
         let level = encounterLevel ?? EncounterLevelResolver.spireEnemyLevel(for: floor)
         let enemyIsBoss = GameContent.enemy(matching: floor.enemyID)?.isBoss == true
@@ -25,7 +25,7 @@ public enum SpireCompletion {
             keywordBias: keywordBias,
             ownedTrinketIDs: ownedTrinketIDs,
             ownedUniqueIDs: ownedUniqueIDs,
-            astralChanceBonusPercent: astralChanceBonusPercent
+            astralChanceBonusPercent: astralChanceBonusPercent,
         )
     }
 
@@ -38,7 +38,7 @@ public enum SpireCompletion {
         rewardItem: InventoryItem? = nil,
         loot: BattleLootPackage? = nil,
         enemyEncounterLevel: Int? = nil,
-        save: inout PlayerSave
+        save: inout PlayerSave,
     ) {
         let spireID = floor.spireID.rawValue
         let floorCount = GameContent.spire(id: floor.spireID)?.floorCount ?? floor.floor
@@ -48,7 +48,7 @@ public enum SpireCompletion {
         guard save.spires.isFloorStartable(
             floor.floor,
             spireID: spireID,
-            floorCount: floorCount
+            floorCount: floorCount,
         ) else {
             return
         }
@@ -56,7 +56,7 @@ public enum SpireCompletion {
         let encounterLevel = enemyEncounterLevel
             ?? EncounterLevelResolver.partyAdjusted(
                 EncounterLevelResolver.spireEnemyLevel(for: floor),
-                partyAverageLevel: save.roster.activePartyAverageLevel
+                partyAverageLevel: save.roster.activePartyAverageLevel,
             )
         let resolvedLoot = loot ?? resolveLoot(
             for: floor,
@@ -64,7 +64,7 @@ public enum SpireCompletion {
             worldSeed: save.worldSeed,
             ownedTrinketIDs: save.inventory.ownedTrinketIDs,
             ownedUniqueIDs: save.inventory.ownedUniqueIDs,
-            astralChanceBonusPercent: save.homestead.effects.astralChanceBonusPercent
+            astralChanceBonusPercent: save.homestead.effects.astralChanceBonusPercent,
         )
         StageCompletion.grantVictoryRewards(
             hero: hero,
@@ -74,7 +74,7 @@ public enum SpireCompletion {
             battleEarnedGold: battleEarnedGold,
             materials: materialRewards ?? resolvedLoot.materials,
             item: rewardItem ?? resolvedLoot.item,
-            save: &save
+            save: &save,
         )
 
         save.spires.markFloorCleared(floor.floor, spireID: spireID)

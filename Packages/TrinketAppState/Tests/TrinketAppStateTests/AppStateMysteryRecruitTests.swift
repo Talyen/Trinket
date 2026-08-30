@@ -16,7 +16,7 @@ struct AppStateMysteryRecruitTests {
         context = try AppTestContext()
     }
 
-    @Test func mysteryRecruitStageOpensEncounterAndUnlocksOnWelcome() throws {
+    @Test func `mystery recruit stage opens encounter and unlocks on welcome`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         let stage = try #require(GameContent.stage(id: "chapter-1-stage-2"))
 
@@ -38,7 +38,7 @@ struct AppStateMysteryRecruitTests {
         #expect(!state.encounters.finishActiveMysteryEncounter())
     }
 
-    @Test func recruitStagePreviewMatchesOpenedEncounter() throws {
+    @Test func `recruit stage preview matches opened encounter`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         let stage = try #require(GameContent.stage(id: "chapter-1-stage-2"))
         let preview = try #require(state.journey.previewMysteryEvent(for: stage))
@@ -49,7 +49,7 @@ struct AppStateMysteryRecruitTests {
         #expect(session.event.id == preview.id)
     }
 
-    @Test func finishRevealWithoutDismissKeepsSessionForSeal() throws {
+    @Test func `finish reveal without dismiss keeps session for seal`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         let stage = try #require(GameContent.stage(id: "chapter-1-stage-2"))
         #expect(state.journey.handleStagePrimaryAction(for: stage) == nil)
@@ -62,13 +62,13 @@ struct AppStateMysteryRecruitTests {
         #expect(state.encounters.activeMysteryEncounter == nil)
     }
 
-    @Test func completedRosterTurnsRecruitStageIntoMystery() throws {
+    @Test func `completed roster turns recruit stage into mystery`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state", "-seed-test-progress"])
         let completedStage = try #require(GameContent.stage(id: "chapter-1-stage-1"))
         #expect(state.journey.persistStageCompletions(
             [completedStage],
             hero: state.playerSave.roster.activeHero,
-            companion: state.playerSave.roster.activeCompanion
+            companion: state.playerSave.roster.activeCompanion,
         ))
 
         let stage = try #require(GameContent.stage(id: "chapter-1-stage-2"))
@@ -78,7 +78,7 @@ struct AppStateMysteryRecruitTests {
         #expect(!state.playerSave.journey.completedStageIDs.contains("chapter-1-stage-2"))
     }
 
-    @Test func unlockedAuthoredRecruitSubstitutesLockedCombatant() throws {
+    @Test func `unlocked authored recruit substitutes locked combatant`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         var roster = state.playerSave.roster
         roster.unlockedHeroIDs = [PlayerRosterState.starterHeroID, "ranger"]
@@ -92,7 +92,7 @@ struct AppStateMysteryRecruitTests {
         #expect(session.unlockedCombatantID == session.event.unlockCombatantID)
     }
 
-    @Test func journeyMysteryOpenMatchesSeededMapResolve() throws {
+    @Test func `journey mystery open matches seeded map resolve`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         let stage = try #require(GameContent.stage(id: "chapter-1-stage-4"))
         #expect(stage.encounter.mysteryEventID == nil)
@@ -101,12 +101,12 @@ struct AppStateMysteryRecruitTests {
             chapterNumber: stage.chapterNumber,
             inventory: state.playerSave.inventory,
             corruptionAltarCooldownRemaining: state.playerSave.currentSave
-                .corruptionAltarCooldownRemaining
+                .corruptionAltarCooldownRemaining,
         )
         let expected = GameContent.resolveJourneyMysteryEvent(
             stage: stage,
             worldSeed: state.playerSave.worldSeed,
-            context: pickContext
+            context: pickContext,
         )
 
         #expect(state.journey.beginMysteryEncounter(for: stage) == nil)
@@ -122,14 +122,14 @@ struct AppStateMysteryRecruitTests {
             context: .journey(
                 chapterNumber: 2,
                 inventory: state.playerSave.inventory,
-                corruptionAltarCooldownRemaining: 0
-            )
+                corruptionAltarCooldownRemaining: 0,
+            ),
         )
         #expect(pinned.id == expected.id)
     }
 
     #if DEBUG
-    @Test func journeyMysteryPinFailureDoesNotOpenEncounter() throws {
+    @Test func `journey mystery pin failure does not open encounter`() throws {
         let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
         let state = try context.makePlaySession(playerSave: playerSave)
         let stage = try #require(GameContent.stage(id: "chapter-1-stage-4"))
@@ -143,7 +143,7 @@ struct AppStateMysteryRecruitTests {
     }
     #endif
 
-    @Test func staleChoiceIDFailsWithoutCompletingProgress() throws {
+    @Test func `stale choice ID fails without completing progress`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         let event = try #require(GameContent.mysteryEvent(matching: "hidden-cache"))
         let stage = Stage(
@@ -152,12 +152,12 @@ struct AppStateMysteryRecruitTests {
             chapterNumber: 1,
             stageNumber: 99,
             encounter: .mysteryEvent(eventID: event.id),
-            rewards: .empty
+            rewards: .empty,
         )
         state.encounters.activeMysteryEncounter = MysteryEncounterSession(
             origin: .journey(stage: stage),
             event: event,
-            combatant: nil
+            combatant: nil,
         )
         let goldBefore = state.playerSave.roster.gold
 
@@ -170,7 +170,7 @@ struct AppStateMysteryRecruitTests {
         #expect(state.playerSave.roster.gold == goldBefore)
     }
 
-    @Test func mysteryExperiencePreviewMatchesHeroAndCompanionAwards() throws {
+    @Test func `mystery experience preview matches hero and companion awards`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         var roster = state.playerSave.roster
         roster.progressions[roster.activeHeroID] = .at(level: 20)
@@ -183,18 +183,18 @@ struct AppStateMysteryRecruitTests {
 
         let expectedHero = MysteryEffectApplier.experienceAward(
             for: roster.progression(for: roster.activeHero),
-            highestLevel: roster.highestHeroLevel
+            highestLevel: roster.highestHeroLevel,
         )
         let expectedCompanion = MysteryEffectApplier.experienceAward(
             for: roster.progression(for: roster.activeCompanion),
-            highestLevel: roster.highestCompanionLevel
+            highestLevel: roster.highestCompanionLevel,
         )
         #expect(session.previewHeroExperienceAward == expectedHero)
         #expect(session.previewCompanionExperienceAward == expectedCompanion)
         #expect(expectedHero != expectedCompanion)
     }
 
-    @Test func leaveChoiceDismissesEncounterAndCompletesProgress() throws {
+    @Test func `leave choice dismisses encounter and completes progress`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         let event = try #require(GameContent.mysteryEvent(matching: GameContent.corruptionAltarEventID))
         attachMysterySession(event: event, to: state)
@@ -203,7 +203,7 @@ struct AppStateMysteryRecruitTests {
         #expect(state.encounters.activeMysteryEncounter == nil)
     }
 
-    @Test func corruptChoiceWithNoEligibleItemsFailsWithBanner() throws {
+    @Test func `corrupt choice with no eligible items fails with banner`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         state.playerSave.inventory = .freshStart
         let event = try #require(GameContent.mysteryEvent(matching: GameContent.corruptionAltarEventID))
@@ -218,7 +218,7 @@ struct AppStateMysteryRecruitTests {
     }
 
     #if DEBUG
-    @Test func resolveActiveMysteryChoiceRollsBackEffectsWhenPersistFails() throws {
+    @Test func `resolve active mystery choice rolls back effects when persist fails`() throws {
         let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
         let state = try context.makePlaySession(arguments: ["-reset-state"], playerSave: playerSave)
         let event = try #require(GameContent.mysteryEvent(matching: "hidden-cache"))
@@ -228,12 +228,12 @@ struct AppStateMysteryRecruitTests {
             chapterNumber: 1,
             stageNumber: 99,
             encounter: .mysteryEvent(eventID: event.id),
-            rewards: .empty
+            rewards: .empty,
         )
         state.encounters.activeMysteryEncounter = MysteryEncounterSession(
             origin: .journey(stage: stage),
             event: event,
-            combatant: nil
+            combatant: nil,
         )
 
         let goldBefore = state.playerSave.roster.gold
@@ -252,7 +252,7 @@ struct AppStateMysteryRecruitTests {
         #expect(state.playerSave.roster.gold == goldBefore + 20)
     }
 
-    @Test func recruitPersistFailureRollsBackUnlockAndProgressTogether() throws {
+    @Test func `recruit persist failure rolls back unlock and progress together`() throws {
         let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
         let state = try context.makePlaySession(arguments: ["-reset-state"], playerSave: playerSave)
         let stage = try #require(GameContent.stage(id: "chapter-1-stage-2"))
@@ -269,7 +269,7 @@ struct AppStateMysteryRecruitTests {
         #expect(state.encounters.finishActiveMysteryEncounter())
     }
 
-    @Test func finishActiveMysteryEncounterIgnoresReadingPhase() throws {
+    @Test func `finish active mystery encounter ignores reading phase`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         let event = try #require(GameContent.mysteryEvent(matching: "hidden-cache"))
         let stage = Stage(
@@ -278,12 +278,12 @@ struct AppStateMysteryRecruitTests {
             chapterNumber: 1,
             stageNumber: 99,
             encounter: .mysteryEvent(eventID: event.id),
-            rewards: .empty
+            rewards: .empty,
         )
         state.encounters.activeMysteryEncounter = MysteryEncounterSession(
             origin: .journey(stage: stage),
             event: event,
-            combatant: nil
+            combatant: nil,
         )
 
         #expect(!state.encounters.finishActiveMysteryEncounter())
@@ -291,7 +291,7 @@ struct AppStateMysteryRecruitTests {
         #expect(!state.playerSave.journey.completedStageIDs.contains(stage.id))
     }
 
-    @Test func recruitAutoResolvePersistFailureReturnsMessage() throws {
+    @Test func `recruit auto resolve persist failure returns message`() throws {
         let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
         let state = try context.makePlaySession(arguments: ["-reset-state"], playerSave: playerSave)
         let stage = try #require(GameContent.stage(id: "chapter-1-stage-2"))
@@ -307,7 +307,7 @@ struct AppStateMysteryRecruitTests {
     @discardableResult
     private func attachMysterySession(
         event: MysteryEvent,
-        to state: PlaySession
+        to state: PlaySession,
     ) -> MysteryEncounterSession {
         let stage = Stage(
             id: "audit-mystery-\(event.id)",
@@ -315,12 +315,12 @@ struct AppStateMysteryRecruitTests {
             chapterNumber: 1,
             stageNumber: 99,
             encounter: .mysteryEvent(eventID: event.id),
-            rewards: .empty
+            rewards: .empty,
         )
         let session = MysteryEncounterSession(
             origin: .journey(stage: stage),
             event: event,
-            combatant: nil
+            combatant: nil,
         )
         state.encounters.activeMysteryEncounter = session
         return session

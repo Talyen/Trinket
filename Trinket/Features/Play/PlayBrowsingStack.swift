@@ -22,7 +22,7 @@ struct PlayBrowsingStack: View {
         NavigationStack(path: $navigationPath) {
             PlayModeHubView(
                 onOpenCampaign: { openMode(.campaign) },
-                onOpenExplore: { openMode(.explore) }
+                onOpenExplore: { openMode(.explore) },
             )
             .navigationDestination(for: PlayLaunchDestination.self) { destination in
                 destinationView(for: destination)
@@ -36,7 +36,7 @@ struct PlayBrowsingStack: View {
         case .campaign:
             ChapterStageSelectView(
                 onStageTap: handleStageTap,
-                onEnemyTap: showEnemyDetails(for:)
+                onEnemyTap: showEnemyDetails(for:),
             )
         case .explore:
             ExploreHubView()
@@ -57,17 +57,17 @@ struct PlayBrowsingStack: View {
     private func handleStageTap(_ stage: Stage) {
         if playerSave.journey.isActive(stage) {
             let interval = AppFramePacingSignposts.signposter.beginInterval(
-                AppFramePacingSignposts.Name.stageSelectBattleActivate
+                AppFramePacingSignposts.Name.stageSelectBattleActivate,
             )
             defer {
                 AppFramePacingSignposts.signposter.endInterval(
                     AppFramePacingSignposts.Name.stageSelectBattleActivate,
-                    interval
+                    interval,
                 )
             }
             AppFramePacingSignposts.event(
                 AppFramePacingSignposts.Name.stageSelectBattleActivate,
-                detail: "stage=\(stage.id)"
+                detail: "stage=\(stage.id)",
             )
             if let message = journey.handleStagePrimaryAction(for: stage) {
                 stageMessage = message
@@ -84,7 +84,7 @@ struct PlayBrowsingStack: View {
         guard let encounter = journey.resolvedEncounter(for: stage) else { return nil }
 
         return CombatantCardDetail(
-            combatant: encounter.combatant
+            combatant: encounter.combatant,
         )
     }
 }
@@ -116,7 +116,7 @@ struct PlayBattleOverlay: View {
                         completeVictory: { summary in
                             completeVictory(
                                 configuration: configuration,
-                                summary: summary
+                                summary: summary,
                             )
                         },
                         restartBattle: { [weak play] in
@@ -125,7 +125,7 @@ struct PlayBattleOverlay: View {
                         retreat: { [weak play] in
                             play?.endBattleReturningToOrigin()
                         },
-                        performanceScenario: AppEnvironment.shared.battlePerformanceScenario
+                        performanceScenario: AppEnvironment.shared.battlePerformanceScenario,
                     )
                 } else {
                     Color.clear
@@ -160,7 +160,7 @@ struct PlayBattleOverlay: View {
         BattlePresentationTaskKey(
             overlayConfigurationID: battle.overlayBattleConfiguration?.id,
             preparedRevision: battle.preparedBattlePresentationRevision,
-            displayScale: displayScale
+            displayScale: displayScale,
         )
     }
 
@@ -184,7 +184,7 @@ struct PlayBattleOverlay: View {
     }
 
     private func battlePresentationContext(
-        for configuration: BattleRunConfiguration
+        for configuration: BattleRunConfiguration,
     ) -> BattlePresentationContext? {
         guard let runKey = configuration.runKey else { return .empty }
         return play.battlePresentation(for: runKey)
@@ -193,12 +193,12 @@ struct PlayBattleOverlay: View {
     private func installClaimedVictoryHandler() {
         let failureMessage = $stageMessage
         battle.installClaimedVictoryHandler(
-            ownerID: claimedVictoryHandlerOwnerID
+            ownerID: claimedVictoryHandlerOwnerID,
         ) { [weak play, weak battle] configuration, earnedGold in
             guard let play, let battle else { return }
             let didPersist = play.completeActiveBattle(
                 configuration,
-                battleEarnedGold: earnedGold
+                battleEarnedGold: earnedGold,
             )
             if !didPersist {
                 battle.presentVictoryChromeForPersistRetry()
@@ -209,12 +209,12 @@ struct PlayBattleOverlay: View {
 
     private func completeVictory(
         configuration: BattleRunConfiguration,
-        summary: BattleVictorySummary
+        summary: BattleVictorySummary,
     ) -> Bool {
         let didPersist = play.completeActiveBattle(
             configuration,
             battleEarnedGold: summary.rawBattleEarnedGold,
-            materialRewards: summary.materialRewards
+            materialRewards: summary.materialRewards,
         )
         if !didPersist {
             stageMessage = Self.persistenceFailureMessage
@@ -224,7 +224,7 @@ struct PlayBattleOverlay: View {
 
     private static let persistenceFailureMessage = StageMapMessage(
         title: "Couldn't Save Progress",
-        message: "Your victory was not saved. Stay on this screen and try Continue again."
+        message: "Your victory was not saved. Stay on this screen and try Continue again.",
     )
 }
 
@@ -244,8 +244,8 @@ struct PlaySessionPresentationModifier: ViewModifier {
                         if !isPresented {
                             play.dismissPostBattleTalentChoice()
                         }
-                    }
-                )
+                    },
+                ),
             ) {
                 PostBattleTalentChoiceView()
             }
@@ -265,12 +265,12 @@ private struct PlayBattleOverlaySheetsModifier: ViewModifier {
                 .trinketDetailSheet()
                 .appFramePacingSignpost(
                     AppFramePacingSignposts.Name.sheetPresent,
-                    isActive: true
+                    isActive: true,
                 )
                 .onAppear {
                     AppFramePacingSignposts.event(
                         AppFramePacingSignposts.Name.sheetPresent,
-                        detail: "enemyDetail=\(detail.id)"
+                        detail: "enemyDetail=\(detail.id)",
                     )
                 }
             })
@@ -306,7 +306,7 @@ private struct PlayEncounterCoversModifier: ViewModifier {
                     session: session,
                     onLeave: {
                         _ = encounters.finishActiveShopEncounter()
-                    }
+                    },
                 )
                 .interactiveDismissDisabled()
             }

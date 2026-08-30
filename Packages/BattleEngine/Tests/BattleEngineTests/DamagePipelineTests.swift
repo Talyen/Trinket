@@ -7,7 +7,7 @@ import TrinketTestSupport
 struct DamagePipelineTests {
     private func makeContext(
         seed: UInt64 = BattleTestFixtures.deterministicNonCriticalSeed,
-        heroModifiers: CombatModifierProfile = .zero
+        heroModifiers: CombatModifierProfile = .zero,
     ) -> BattleState {
         let target = CombatantFixtures.combatant(id: "target", role: .enemy, maxHealth: 50)
         let source = CombatantFixtures.combatant(id: "source", role: .hero, maxHealth: 50)
@@ -17,22 +17,22 @@ struct DamagePipelineTests {
             enemy: target,
             heroModifiers: heroModifiers,
             rngSeed: seed,
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
     }
 
-    @Test func healthCostIgnoresDamagePrevention() throws {
+    @Test func `health cost ignores damage prevention`() throws {
         var context = makeContext(
             seed: BattleTestFixtures.deterministicNonCriticalSeed,
             heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
-                gold: GoldTriggers(goldAbsorbsDamage: true)
-            ))
+                gold: GoldTriggers(goldAbsorbsDamage: true),
+            )),
         )
         let hero = context.roster.hero.combatant
         context.gold = 5
         context.roster.setActiveEffects(
             [ActiveEffect(id: 1, effect: .shield(.block, 20), remainingTurns: 6)],
-            for: hero
+            for: hero,
         )
         let healthBefore = context.roster.health(for: hero)
 
@@ -42,8 +42,8 @@ struct DamagePipelineTests {
                 target: hero,
                 keyword: .physical,
                 sourceActorID: hero.id,
-                options: .healthCost
-            )
+                options: .healthCost,
+            ),
         )
 
         try #expect(outcome.healthLost == 2)
@@ -67,9 +67,9 @@ struct DamagePipelineTests {
             companion: CombatantFixtures.combatant(id: "guard", role: .companion, maxHealth: 20),
             enemy: CombatantFixtures.combatant(id: "fatal-target", role: .enemy),
             companionModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
-                block: BlockTriggers(companionFatalDamageRedirectBlock: 10)
+                block: BlockTriggers(companionFatalDamageRedirectBlock: 10),
             )),
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         let fatalHero = fatalContext.roster.hero.combatant
         let companion = fatalContext.roster.companion.combatant
@@ -80,7 +80,7 @@ struct DamagePipelineTests {
             target: fatalHero,
             keyword: .physical,
             sourceActorID: fatalHero.id,
-            options: .healthCost
+            options: .healthCost,
         ))
 
         try #expect(fatalOutcome.healthLost == 2)
@@ -89,12 +89,12 @@ struct DamagePipelineTests {
         try #expect(fatalContext.roster.health(for: companion) == companionHealth)
     }
 
-    @Test func evadeNextHitForcesDodgeAndConsumesBuff() throws {
+    @Test func `evade next hit forces dodge and consumes buff`() throws {
         var context = makeContext(seed: 1)
         let target = context.roster.enemy.combatant
         context.roster.setActiveEffects(
             [ActiveEffect(id: 1, effect: .evadeNextHit, remainingTurns: 0)],
-            for: target
+            for: target,
         )
         let healthBefore = context.roster.health(for: target)
 
@@ -103,8 +103,8 @@ struct DamagePipelineTests {
                 amount: 10,
                 target: target,
                 keyword: .physical,
-                sourceActorID: "source"
-            )
+                sourceActorID: "source",
+            ),
         )
 
         try #expect(outcome.healthLost == 0)
@@ -117,13 +117,13 @@ struct DamagePipelineTests {
         }))
     }
 
-    @Test func nextStrikeCriticalDoesNotAffectDoTTicks() throws {
+    @Test func `next strike critical does not affect do T ticks`() throws {
         var context = makeContext(seed: 1)
         let source = context.roster.hero.combatant
         let target = context.roster.enemy.combatant
         context.roster.setActiveEffects(
             [ActiveEffect(id: 1, effect: .nextStrikeCritical, remainingTurns: 0)],
-            for: source
+            for: source,
         )
 
         let outcome = context.resolveDamage(
@@ -131,8 +131,8 @@ struct DamagePipelineTests {
                 amount: 4,
                 target: target,
                 keyword: .burn,
-                sourceActorID: source.id
-            )
+                sourceActorID: source.id,
+            ),
         )
 
         try #expect(!outcome.isCritical)
@@ -144,7 +144,7 @@ struct DamagePipelineTests {
         })
     }
 
-    @Test func freezeNextAttackerIgnoresDoTAndFiresOnBlockedAttack() throws {
+    @Test func `freeze next attacker ignores do T and fires on blocked attack`() throws {
         var context = makeContext(seed: 1)
         let defender = context.roster.enemy.combatant
         let attacker = context.roster.hero.combatant
@@ -153,7 +153,7 @@ struct DamagePipelineTests {
                 ActiveEffect(id: 1, effect: .freezeNextAttacker, remainingTurns: 0),
                 ActiveEffect(id: 2, effect: .shield(.block, 50), remainingTurns: 0),
             ],
-            for: defender
+            for: defender,
         )
 
         _ = context.resolveDamage(
@@ -161,8 +161,8 @@ struct DamagePipelineTests {
                 amount: 3,
                 target: defender,
                 keyword: .burn,
-                sourceActorID: attacker.id
-            )
+                sourceActorID: attacker.id,
+            ),
         )
         try #expect(context.roster.activeEffects(for: defender).contains {
             if case .freezeNextAttacker = $0.effect {
@@ -183,8 +183,8 @@ struct DamagePipelineTests {
                 amount: 10,
                 target: defender,
                 keyword: .physical,
-                sourceActorID: attacker.id
-            )
+                sourceActorID: attacker.id,
+            ),
         )
         try #expect(context.roster.health(for: defender) == healthBefore)
         try #expect(!(context.roster.activeEffects(for: defender).contains {
@@ -201,7 +201,7 @@ struct DamagePipelineTests {
         })
     }
 
-    @Test func freezeOnHitDealsFreezeRetaliationOnBlockedAttack() throws {
+    @Test func `freeze on hit deals freeze retaliation on blocked attack`() throws {
         var context = makeContext(seed: 2)
         let defender = context.roster.enemy.combatant
         let attacker = context.roster.hero.combatant
@@ -210,7 +210,7 @@ struct DamagePipelineTests {
                 ActiveEffect(id: 1, effect: .onHitDamage(.freeze, 2), remainingTurns: 0),
                 ActiveEffect(id: 2, effect: .shield(.block, 50), remainingTurns: 0),
             ],
-            for: defender
+            for: defender,
         )
 
         let attackerHealthBefore = context.roster.health(for: attacker)
@@ -220,8 +220,8 @@ struct DamagePipelineTests {
                 amount: 10,
                 target: defender,
                 keyword: .physical,
-                sourceActorID: attacker.id
-            )
+                sourceActorID: attacker.id,
+            ),
         )
         try #expect(context.roster.health(for: defender) == healthBefore)
         try #expect(context.roster.health(for: attacker) == attackerHealthBefore - 2)
@@ -233,7 +233,7 @@ struct DamagePipelineTests {
         }))
     }
 
-    @Test func onHitDamageRetaliatesWithTheWardKeyword() throws {
+    @Test func `on hit damage retaliates with the ward keyword`() throws {
         var context = makeContext(seed: 2)
         let defender = context.roster.enemy.combatant
         let attacker = context.roster.hero.combatant
@@ -242,7 +242,7 @@ struct DamagePipelineTests {
                 ActiveEffect(id: 1, effect: .onHitDamage(.holy, 6), remainingTurns: 0),
                 ActiveEffect(id: 2, effect: .shield(.block, 50), remainingTurns: 0),
             ],
-            for: defender
+            for: defender,
         )
 
         let attackerHealthBefore = context.roster.health(for: attacker)
@@ -251,13 +251,13 @@ struct DamagePipelineTests {
                 amount: 10,
                 target: defender,
                 keyword: .physical,
-                sourceActorID: attacker.id
-            )
+                sourceActorID: attacker.id,
+            ),
         )
         try #expect(context.roster.health(for: attacker) == attackerHealthBefore - 6)
     }
 
-    @Test func stackedOnHitWardsBothConsumeAndCanKill() throws {
+    @Test func `stacked on hit wards both consume and can kill`() throws {
         var context = makeContext(seed: 2)
         let defender = context.roster.enemy.combatant
         let attacker = context.roster.hero.combatant
@@ -267,7 +267,7 @@ struct DamagePipelineTests {
                 ActiveEffect(id: 2, effect: .onHitDamage(.bleed, 4), remainingTurns: 0),
                 ActiveEffect(id: 3, effect: .shield(.block, 50), remainingTurns: 0),
             ],
-            for: defender
+            for: defender,
         )
         let attackerHealthBefore = context.roster.health(for: attacker)
         _ = context.resolveDamage(
@@ -275,8 +275,8 @@ struct DamagePipelineTests {
                 amount: 10,
                 target: defender,
                 keyword: .physical,
-                sourceActorID: attacker.id
-            )
+                sourceActorID: attacker.id,
+            ),
         )
         try #expect(context.roster.health(for: attacker) == attackerHealthBefore - 24)
         try #expect(!(context.roster.activeEffects(for: defender).contains {
@@ -287,7 +287,7 @@ struct DamagePipelineTests {
         }))
     }
 
-    @Test func damageAfterDodgeSurvivesDoTTickAndAppliesOnDirectHit() throws {
+    @Test func `damage after dodge survives do T tick and applies on direct hit`() throws {
         let heroCombatant = Combatant(
             id: "hero",
             name: "Hero",
@@ -299,16 +299,16 @@ struct DamagePipelineTests {
                     name: "Strike",
                     tier: .basic,
                     directDamage: 1,
-                    damageKeyword: .physical
+                    damageKeyword: .physical,
                 ),
-            ]
+            ],
         )
         let enemyCombatant = BattleTestFixtures.passiveEnemy(maxHealth: 100)
         var context = BattleTestFixtures.makeContext(
             hero: heroCombatant,
             companion: BattleTestFixtures.passiveCompanion(),
             enemy: enemyCombatant,
-            seed: 2
+            seed: 2,
         )
         context.roster.mutateRuntime(for: heroCombatant) { $0.pendingDamageAfterDodge = 3 }
 
@@ -317,7 +317,7 @@ struct DamagePipelineTests {
             keyword: .burn,
             target: enemyCombatant,
             sourceActorID: heroCombatant.id,
-            in: &context
+            in: &context,
         ).healthLost
         try #expect(dotLost == 1)
         try #expect(context.roster.runtime(for: heroCombatant)?.pendingDamageAfterDodge == 3)
@@ -333,15 +333,15 @@ struct DamagePipelineTests {
                     applyItemBonus: true,
                     applyDodge: false,
                     qualifiesForAmbush: true,
-                    isAttackHit: true
-                )
-            )
+                    isAttackHit: true,
+                ),
+            ),
         ).healthLost
         try #expect(directLost == 4)
         try #expect(context.roster.runtime(for: heroCombatant)?.pendingDamageAfterDodge == 0)
     }
 
-    @Test func poisonDamagePercentScalesDamageAfterFlatBonuses() throws {
+    @Test func `poison damage percent scales damage after flat bonuses`() throws {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero)
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy)
@@ -355,14 +355,14 @@ struct DamagePipelineTests {
             ]),
             seed: 0,
             nextEffectID: 0,
-            nextEventID: 0
+            nextEventID: 0,
         )
 
         let outcome = context.resolveDamage(.doTTick(
             amount: 10,
             target: enemy,
             keyword: .poison,
-            sourceActorID: hero.id
+            sourceActorID: hero.id,
         ))
 
         try #expect(outcome.healthLost == 14)
@@ -370,7 +370,7 @@ struct DamagePipelineTests {
 }
 
 struct EnemyOutgoingReductionDamageTests {
-    @Test func frozenEnemyDealsReducedDamage() throws {
+    @Test func `frozen enemy deals reduced damage`() throws {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 50)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 50)
         var context = BattleStateTestFactory.makeBattle(
@@ -381,23 +381,23 @@ struct EnemyOutgoingReductionDamageTests {
                 ActiveEffect(
                     id: 1,
                     effect: .controlMeter(.freeze, 1, 1),
-                    remainingTurns: BattleTiming.controlStatusLingerTurns
+                    remainingTurns: BattleTiming.controlStatusLingerTurns,
                 ),
             ],
             heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
-                mitigation: MitigationTriggers(frozenEnemyDamageReductionFlat: 3)
+                mitigation: MitigationTriggers(frozenEnemyDamageReductionFlat: 3),
             )),
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
 
         let outcome = context.resolveDamage(
-            DamageRequest(amount: 10, target: hero, keyword: .physical, sourceActorID: "enemy")
+            DamageRequest(amount: 10, target: hero, keyword: .physical, sourceActorID: "enemy"),
         )
 
         try #expect(outcome.healthLost == 7)
     }
 
-    @Test func debuffedAttackingEnemyHasDamageReduced() throws {
+    @Test func `debuffed attacking enemy has damage reduced`() throws {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 50)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 50)
         var context = BattleStateTestFactory.makeBattle(
@@ -407,17 +407,17 @@ struct EnemyOutgoingReductionDamageTests {
             activeEnemyEffects: [
                 ActiveEffect(id: 1, effect: .damageReductionPercent(0.25, 2), remainingTurns: 2),
             ],
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
 
         let outcome = context.resolveDamage(
-            DamageRequest(amount: 10, target: hero, keyword: .physical, sourceActorID: "enemy")
+            DamageRequest(amount: 10, target: hero, keyword: .physical, sourceActorID: "enemy"),
         )
 
         try #expect(outcome.healthLost == 8)
     }
 
-    @Test func frozenHeroDoesNotReduceIncomingEnemyDamage() throws {
+    @Test func `frozen hero does not reduce incoming enemy damage`() throws {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 50)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 50)
         var context = BattleStateTestFactory.makeBattle(
@@ -428,17 +428,17 @@ struct EnemyOutgoingReductionDamageTests {
                 ActiveEffect(
                     id: 1,
                     effect: .controlMeter(.freeze, 1, 1),
-                    remainingTurns: BattleTiming.controlStatusLingerTurns
+                    remainingTurns: BattleTiming.controlStatusLingerTurns,
                 ),
             ],
             heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
-                mitigation: MitigationTriggers(frozenEnemyDamageReductionFlat: 3)
+                mitigation: MitigationTriggers(frozenEnemyDamageReductionFlat: 3),
             )),
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
 
         let outcome = context.resolveDamage(
-            DamageRequest(amount: 10, target: hero, keyword: .physical, sourceActorID: "enemy")
+            DamageRequest(amount: 10, target: hero, keyword: .physical, sourceActorID: "enemy"),
         )
 
         try #expect(outcome.healthLost == 10)

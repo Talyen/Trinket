@@ -31,7 +31,7 @@ public struct Combatant: Identifiable, Hashable, Sendable {
         actionIntervalTurns: Int? = nil,
         abilityChoices: AbilityChoices,
         primaryStats: PrimaryStats = PrimaryStats(),
-        growthArchetype: GrowthArchetype = .bruiser
+        growthArchetype: GrowthArchetype = .bruiser,
     ) {
         self.id = id
         self.name = name
@@ -53,7 +53,7 @@ public struct Combatant: Identifiable, Hashable, Sendable {
         actionIntervalTurns: Int? = nil,
         abilities: [Ability],
         primaryStats: PrimaryStats = PrimaryStats(),
-        growthArchetype: GrowthArchetype = .bruiser
+        growthArchetype: GrowthArchetype = .bruiser,
     ) {
         self.init(
             id: id,
@@ -64,7 +64,7 @@ public struct Combatant: Identifiable, Hashable, Sendable {
             actionIntervalTurns: actionIntervalTurns,
             abilityChoices: AbilityChoices(abilities: abilities),
             primaryStats: primaryStats,
-            growthArchetype: growthArchetype
+            growthArchetype: growthArchetype,
         )
     }
 
@@ -90,7 +90,7 @@ public struct Combatant: Identifiable, Hashable, Sendable {
 
     private func replacing(
         abilityChoices: AbilityChoices? = nil,
-        primaryStats: PrimaryStats? = nil
+        primaryStats: PrimaryStats? = nil,
     ) -> Self {
         Self(
             id: id,
@@ -101,7 +101,7 @@ public struct Combatant: Identifiable, Hashable, Sendable {
             actionIntervalTurns: actionIntervalTurns,
             abilityChoices: abilityChoices ?? self.abilityChoices,
             primaryStats: primaryStats ?? self.primaryStats,
-            growthArchetype: growthArchetype
+            growthArchetype: growthArchetype,
         )
     }
 }

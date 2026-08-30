@@ -83,7 +83,7 @@ public struct PlayerRosterState: Equatable, Sendable {
         progressions: [String: CombatantProgression],
         equipmentLoadouts: [String: EquipmentLoadout],
         unlockedTalents: [String: Set<String>] = [:],
-        gold: Int = 0
+        gold: Int = 0,
     ) {
         self.activeHeroID = activeHeroID
         self.activeCompanionID = activeCompanionID
@@ -108,7 +108,7 @@ public struct PlayerRosterState: Equatable, Sendable {
                 starterCompanionID: .initial,
             ],
             equipmentLoadouts: [:],
-            unlockedTalents: [:]
+            unlockedTalents: [:],
         )
     }
 
@@ -144,7 +144,7 @@ public struct PlayerRosterState: Equatable, Sendable {
                 "wolf": EquipmentLoadout(itemIDsBySlot: [
                     .accessory: "sapphire_amulet-basic",
                 ]),
-            ]
+            ],
         )
     }
 
@@ -217,7 +217,7 @@ public struct PlayerRosterState: Equatable, Sendable {
         equipmentLoadouts = RosterHydration.applyLoadout(
             loadout,
             for: combatant.id,
-            in: equipmentLoadouts
+            in: equipmentLoadouts,
         )
     }
 
@@ -280,7 +280,7 @@ public struct PlayerRosterState: Equatable, Sendable {
     private mutating func unlock(
         id combatantID: String,
         catalog: [Combatant],
-        into unlockedIDs: inout Set<String>
+        into unlockedIDs: inout Set<String>,
     ) -> Bool {
         guard catalog.contains(where: { $0.id == combatantID }) else { return false }
         let inserted = unlockedIDs.insert(combatantID).inserted
@@ -330,13 +330,13 @@ public struct PlayerRosterState: Equatable, Sendable {
 
     public var heroes: [Combatant] {
         battleConfiguredCombatants(
-            GameContent.heroes.filter { isUnlocked($0) }
+            GameContent.heroes.filter { isUnlocked($0) },
         )
     }
 
     public var companions: [Combatant] {
         battleConfiguredCombatants(
-            GameContent.companions.filter { isUnlocked($0) }
+            GameContent.companions.filter { isUnlocked($0) },
         )
     }
 

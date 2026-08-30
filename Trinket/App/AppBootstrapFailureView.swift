@@ -9,7 +9,7 @@ struct AppBootstrapFailureView: View {
         ContentUnavailableView(
             "Can't Open Trinket",
             systemImage: "exclamationmark.triangle",
-            description: Text(message)
+            description: Text(message),
         )
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .preferredColorScheme(.dark)

@@ -13,7 +13,7 @@ public struct CombatantTalentEffect: Sendable {
         symbolName: String = "",
         description: String,
         modifiers: [AffixModifier] = [],
-        triggers: CombatTraitTriggers = CombatTraitTriggers()
+        triggers: CombatTraitTriggers = CombatTraitTriggers(),
     ) {
         self.name = name
         self.symbolName = symbolName
@@ -180,8 +180,8 @@ public enum CombatantTalentCatalog {
                         keyword: keyword,
                         row: row,
                         symbolName: signature.symbolName.isEmpty ? nil : signature.symbolName,
-                        description: signature.description
-                    )
+                        description: signature.description,
+                    ),
                 )
             }
         }

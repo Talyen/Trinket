@@ -5,7 +5,7 @@ import TrinketCore
 import TrinketTestSupport
 
 struct EffectHandlersApplyTests {
-    @Test func registryCoversEveryEffectKind() throws {
+    @Test func `registry covers every effect kind`() throws {
         try #expect(Set(EffectHandlers.all.keys) == Set(EffectKind.allCases))
         for kind in EffectKind.allCases {
             let handler = try #require(EffectHandlers.all[kind], "Missing handler for \(kind)")
@@ -14,12 +14,12 @@ struct EffectHandlersApplyTests {
         }
     }
 
-    @Test func everyAbilityCatalogEffectHasAHandler() throws {
+    @Test func `every ability catalog effect has A handler`() throws {
         for ability in AbilityCatalog.all {
             for effect in Self.effects(in: ability) {
                 try #expect(
                     EffectHandlers.all[effect.kind] != nil,
-                    "\(ability.id) is missing a handler for \(effect.kind)"
+                    "\(ability.id) is missing a handler for \(effect.kind)",
                 )
             }
         }
@@ -35,7 +35,7 @@ struct EffectHandlersApplyTests {
         return result
     }
 
-    @Test func burnHandlerAppliesBurnEffect() throws {
+    @Test func `burn handler applies burn effect`() throws {
         var battle = EffectHandlersTestSupport.makeBattle()
         let enemy = battle.enemy
         let outcome = EffectHandlersTestSupport.dispatch(
@@ -43,20 +43,20 @@ struct EffectHandlersApplyTests {
             ability: CombatantFixtures.ability(),
             source: battle.hero,
             target: enemy,
-            battle: &battle
+            battle: &battle,
         )
         try #expect(outcome.didApply)
         try #expect(battle.activeEffects(of: battle.enemy).contains { $0.effect.isDecayingDoT && $0.keyword == .burn })
     }
 
-    @Test func shieldHandlerAppliesAndEmitsEvents() throws {
+    @Test func `shield handler applies and emits events`() throws {
         var battle = EffectHandlersTestSupport.makeBattle()
         let outcome = EffectHandlersTestSupport.dispatch(
             .shield(.block, 5),
             ability: CombatantFixtures.ability(),
             source: battle.hero,
             target: battle.hero,
-            battle: &battle
+            battle: &battle,
         )
         try #expect(outcome.didApply)
         try #expect(battle.activeEffects(of: battle.hero).contains { ae in
@@ -68,14 +68,14 @@ struct EffectHandlersApplyTests {
         try #expect(outcome.events.contains { $0.effectKind == .shieldApplied && $0.amount == 5 })
     }
 
-    @Test func drawCardsHandlerDrawsIntoHandAndEmitsEvent() throws {
+    @Test func `draw cards handler draws into hand and emits event`() throws {
         var battle = EffectHandlersTestSupport.makeBattle(
             hero: CombatantFixtures.combatant(
                 id: "hero",
                 role: .hero,
                 maxHealth: 50,
-                abilities: [.slash, .heal, .smite, .darkPact]
-            )
+                abilities: [.slash, .heal, .smite, .darkPact],
+            ),
         )
         battle.heroDeck.putOnBottom(.smite)
         battle.heroDeck.putOnBottom(.heal)
@@ -88,7 +88,7 @@ struct EffectHandlersApplyTests {
             ability: .darkPact,
             source: battle.hero,
             target: battle.hero,
-            battle: &battle
+            battle: &battle,
         )
         try #expect(outcome.didApply)
         try #expect(battle.hand.count == handBefore + 2)
@@ -96,20 +96,20 @@ struct EffectHandlersApplyTests {
         try #expect(outcome.events.contains { $0.effectKind == .cardsDrawn && $0.amount == 2 })
     }
 
-    @Test func drawAndPlayCardsHandlerDrawsAndPlaysHeroAndCompanionCards() throws {
+    @Test func `draw and play cards handler draws and plays hero and companion cards`() throws {
         var battle = EffectHandlersTestSupport.makeBattle(
             hero: CombatantFixtures.combatant(
                 id: "hero",
                 role: .hero,
                 maxHealth: 50,
-                abilities: [.slash, .heal]
+                abilities: [.slash, .heal],
             ),
             companion: CombatantFixtures.combatant(
                 id: "companion",
                 role: .companion,
                 maxHealth: 50,
-                abilities: [.smite]
-            )
+                abilities: [.smite],
+            ),
         )
         while battle.hand.count > 1 {
             _ = battle.hand.remove(id: battle.hand.cards[0].id)
@@ -121,7 +121,7 @@ struct EffectHandlersApplyTests {
             id: "pack-tactics",
             name: "Pack Tactics",
             tier: .ultimate,
-            targetedEffects: [TargetedEffect(.drawAndPlayCards(2))]
+            targetedEffects: [TargetedEffect(.drawAndPlayCards(2))],
         )
 
         let outcome = EffectHandlersTestSupport.dispatch(
@@ -129,7 +129,7 @@ struct EffectHandlersApplyTests {
             ability: packTactics,
             source: battle.hero,
             target: battle.hero,
-            battle: &battle
+            battle: &battle,
         )
 
         try #expect(outcome.didApply)
@@ -137,20 +137,20 @@ struct EffectHandlersApplyTests {
         try #expect(outcome.events.contains { $0.kind == .abilityDamage })
     }
 
-    @Test func drawAndPlayCardsHandlerPlaysBufferedCardWhenHandIsFull() throws {
+    @Test func `draw and play cards handler plays buffered card when hand is full`() throws {
         var battle = EffectHandlersTestSupport.makeBattle(
             hero: CombatantFixtures.combatant(
                 id: "hero",
                 role: .hero,
                 maxHealth: 50,
-                abilities: [.heal]
+                abilities: [.heal],
             ),
             companion: CombatantFixtures.combatant(
                 id: "companion",
                 role: .companion,
                 maxHealth: 50,
-                abilities: []
-            )
+                abilities: [],
+            ),
         )
         while battle.hand.count < BattleHand.maxSize {
             battle.nextCardID += 1
@@ -164,7 +164,7 @@ struct EffectHandlersApplyTests {
             id: "pack-tactics",
             name: "Pack Tactics",
             tier: .ultimate,
-            targetedEffects: [TargetedEffect(.drawAndPlayCards(1))]
+            targetedEffects: [TargetedEffect(.drawAndPlayCards(1))],
         )
 
         let outcome = EffectHandlersTestSupport.dispatch(
@@ -172,7 +172,7 @@ struct EffectHandlersApplyTests {
             ability: packTactics,
             source: battle.hero,
             target: battle.hero,
-            battle: &battle
+            battle: &battle,
         )
 
         try #expect(outcome.didApply)
@@ -184,20 +184,20 @@ struct EffectHandlersApplyTests {
         try #expect(battle.handBuffer.isEmpty)
     }
 
-    @Test func drawAndPlayCardsHandlerSkipsStunnedOwnerAndPlaysCompanion() throws {
+    @Test func `draw and play cards handler skips stunned owner and plays companion`() throws {
         var battle = EffectHandlersTestSupport.makeBattle(
             hero: CombatantFixtures.combatant(
                 id: "hero",
                 role: .hero,
                 maxHealth: 50,
-                abilities: [.slash]
+                abilities: [.slash],
             ),
             companion: CombatantFixtures.combatant(
                 id: "companion",
                 role: .companion,
                 maxHealth: 50,
-                abilities: [.smite]
-            )
+                abilities: [.smite],
+            ),
         )
         while battle.hand.count > 1 {
             _ = battle.hand.remove(id: battle.hand.cards[0].id)
@@ -205,7 +205,7 @@ struct EffectHandlersApplyTests {
         battle.withEngineContext { context in
             context.roster.setActiveEffects(
                 [ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTurns: 0)],
-                for: context.hero
+                for: context.hero,
             )
         }
         battle.ownersSkippingThisPlayerTurn = [.hero]
@@ -219,11 +219,11 @@ struct EffectHandlersApplyTests {
                 id: "pack-tactics",
                 name: "Pack Tactics",
                 tier: .ultimate,
-                targetedEffects: [TargetedEffect(.drawAndPlayCards(2))]
+                targetedEffects: [TargetedEffect(.drawAndPlayCards(2))],
             ),
             source: battle.hero,
             target: battle.hero,
-            battle: &battle
+            battle: &battle,
         )
 
         try #expect(outcome.didApply)
@@ -235,26 +235,26 @@ struct EffectHandlersApplyTests {
         try #expect(battle.heroDeck.count == heroDeckCount)
     }
 
-    @Test func drawAndPlayCardsDoesNotReplayNestedDrawAndPlayForever() throws {
+    @Test func `draw and play cards does not replay nested draw and play forever`() throws {
         let packTactics = Ability(
             id: "pack-tactics",
             name: "Pack Tactics",
             tier: .ultimate,
-            targetedEffects: [TargetedEffect(.drawAndPlayCards(2))]
+            targetedEffects: [TargetedEffect(.drawAndPlayCards(2))],
         )
         var battle = EffectHandlersTestSupport.makeBattle(
             hero: CombatantFixtures.combatant(
                 id: "hero",
                 role: .hero,
                 maxHealth: 50,
-                abilities: [packTactics]
+                abilities: [packTactics],
             ),
             companion: CombatantFixtures.combatant(
                 id: "companion",
                 role: .companion,
                 maxHealth: 50,
-                abilities: [packTactics]
-            )
+                abilities: [packTactics],
+            ),
         )
         while battle.hand.count > 1 {
             _ = battle.hand.remove(id: battle.hand.cards[0].id)
@@ -267,27 +267,27 @@ struct EffectHandlersApplyTests {
             ability: packTactics,
             source: battle.hero,
             target: battle.hero,
-            battle: &battle
+            battle: &battle,
         )
 
         try #expect(outcome.didApply)
         try #expect(battle.drawAndPlayDepth == 0)
     }
 
-    @Test func drawAndPlayDepthCapDoesNotLeaveUnplayedDrawnCards() throws {
+    @Test func `draw and play depth cap does not leave unplayed drawn cards`() throws {
         let packTactics = Ability(
             id: "pack-tactics",
             name: "Pack Tactics",
             tier: .ultimate,
-            targetedEffects: [TargetedEffect(.drawAndPlayCards(2))]
+            targetedEffects: [TargetedEffect(.drawAndPlayCards(2))],
         )
         var battle = EffectHandlersTestSupport.makeBattle(
             hero: CombatantFixtures.combatant(
                 id: "hero",
                 role: .hero,
                 maxHealth: 50,
-                abilities: [packTactics]
-            )
+                abilities: [packTactics],
+            ),
         )
         while !battle.hand.isEmpty {
             _ = battle.hand.remove(id: battle.hand.cards[0].id)
@@ -302,7 +302,7 @@ struct EffectHandlersApplyTests {
             ability: packTactics,
             source: battle.hero,
             target: battle.hero,
-            battle: &battle
+            battle: &battle,
         )
 
         let idsAfter = Set(battle.hand.cards.map(\.id)).union(battle.handBuffer.cards.map(\.id))
@@ -312,14 +312,14 @@ struct EffectHandlersApplyTests {
         try #expect(battle.drawAndPlayDepth == BattleState.maxDrawAndPlayDepth)
     }
 
-    @Test func drawCardsHandlerOverflowGoesToBuffer() throws {
+    @Test func `draw cards handler overflow goes to buffer`() throws {
         var battle = EffectHandlersTestSupport.makeBattle(
             hero: CombatantFixtures.combatant(
                 id: "hero",
                 role: .hero,
                 maxHealth: 50,
-                abilities: [.slash, .heal, .smite]
-            )
+                abilities: [.slash, .heal, .smite],
+            ),
         )
         battle.heroDeck.putOnBottom(.smite)
         battle.heroDeck.putOnBottom(.heal)
@@ -334,7 +334,7 @@ struct EffectHandlersApplyTests {
             ability: .darkPact,
             source: battle.hero,
             target: battle.hero,
-            battle: &battle
+            battle: &battle,
         )
         try #expect(outcome.didApply)
         try #expect(battle.hand.count == BattleHand.maxSize)
@@ -342,20 +342,20 @@ struct EffectHandlersApplyTests {
         try #expect(outcome.events.contains { $0.effectKind == .cardsDrawn && $0.amount == 2 })
     }
 
-    @Test func cleanseWithoutDebuffsDoesNotApply() throws {
+    @Test func `cleanse without debuffs does not apply`() throws {
         var battle = EffectHandlersTestSupport.makeBattle()
         let outcome = EffectHandlersTestSupport.dispatch(
             .cleanse(.poison),
             ability: CombatantFixtures.ability(),
             source: battle.hero,
             target: battle.hero,
-            battle: &battle
+            battle: &battle,
         )
         try #expect(!(outcome.didApply))
         try #expect(outcome.events.isEmpty)
     }
 
-    @Test func resourceGainHandlerAddsGold() throws {
+    @Test func `resource gain handler adds gold`() throws {
         var battle = EffectHandlersTestSupport.makeBattle(initialGold: 10)
         let resourceEffect: Effect = .resourceGain(.gold, 3)
         let outcome = EffectHandlersTestSupport.dispatch(
@@ -363,7 +363,7 @@ struct EffectHandlersApplyTests {
             ability: CombatantFixtures.ability(),
             source: battle.hero,
             target: battle.hero,
-            battle: &battle
+            battle: &battle,
         )
         try #expect(outcome.didApply)
         try #expect(battle.gold == 13)

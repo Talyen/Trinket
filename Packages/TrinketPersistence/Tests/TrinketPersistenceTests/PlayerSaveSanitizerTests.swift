@@ -4,7 +4,7 @@ import TrinketCore
 @testable import TrinketPersistence
 
 struct PlayerSaveSanitizerTests {
-    @Test func sanitizeInventoryRemovesDuplicateItemIDs() throws {
+    @Test func `sanitize inventory removes duplicate item I ds`() throws {
         let baseType = try #require(GameContent.itemBaseTypes.first)
         let duplicate = InventoryItem(
             id: "shared-id",
@@ -12,7 +12,7 @@ struct PlayerSaveSanitizerTests {
             baseType: baseType,
             rarity: .basic,
             displayName: "First",
-            affixes: []
+            affixes: [],
         )
         let unique = InventoryItem(
             id: "unique-id",
@@ -20,7 +20,7 @@ struct PlayerSaveSanitizerTests {
             baseType: baseType,
             rarity: .basic,
             displayName: "Second",
-            affixes: []
+            affixes: [],
         )
         let inventory = PlayerInventoryState(items: [duplicate, duplicate, unique])
 
@@ -29,7 +29,7 @@ struct PlayerSaveSanitizerTests {
         try #expect(sanitized.items.map(\.id) == ["shared-id", "unique-id"])
     }
 
-    @Test func sanitizeHomesteadPreservesLargeNonnegativeMaterialBalances() throws {
+    @Test func `sanitize homestead preserves large nonnegative material balances`() throws {
         let homestead = PlayerHomesteadState(
             resources: [
                 .wood: 1500,
@@ -37,7 +37,7 @@ struct PlayerSaveSanitizerTests {
                 .food: 40,
                 .gold: 99,
             ],
-            nodeTiers: [.wheatField: 1]
+            nodeTiers: [.wheatField: 1],
         )
 
         let sanitized = PlayerSaveSanitizer.sanitizeHomestead(homestead)
@@ -49,7 +49,7 @@ struct PlayerSaveSanitizerTests {
         try #expect(sanitized.nodeTiers[.wheatField] == 1)
     }
 
-    @Test func sanitizeJourneyClampsInvalidStageAndChapterIDs() throws {
+    @Test func `sanitize journey clamps invalid stage and chapter I ds`() throws {
         var journey = JourneyProgressState.initial
         journey.activeChapterID = "missing-chapter"
         journey.activeStageID = "missing-stage"
@@ -70,7 +70,7 @@ struct PlayerSaveSanitizerTests {
         try #expect(sanitized.pinnedMysteryEventIDs == ["chapter-1-stage-5": "mana-berries"])
     }
 
-    @Test func sanitizeJourneyAlignsActiveChapterWithActiveStage() throws {
+    @Test func `sanitize journey aligns active chapter with active stage`() throws {
         var journey = JourneyProgressState.initial
         journey.activeChapterID = "chapter-2"
         journey.activeStageID = "chapter-1-stage-2"
@@ -82,7 +82,7 @@ struct PlayerSaveSanitizerTests {
         try #expect(sanitized.activeChapterID == "chapter-1")
     }
 
-    @Test func sanitizeJourneyAdvancesLegacyClearedChapter() throws {
+    @Test func `sanitize journey advances legacy cleared chapter`() throws {
         var journey = JourneyProgressState.initial
         journey.activeChapterID = "chapter-1"
         journey.activeStageID = nil
@@ -94,7 +94,7 @@ struct PlayerSaveSanitizerTests {
         try #expect(sanitized.activeStageID == "chapter-2-stage-1")
     }
 
-    @Test func sanitizeJourneyMarksClaimedStagesAsCompleted() throws {
+    @Test func `sanitize journey marks claimed stages as completed`() throws {
         var journey = JourneyProgressState.initial
         journey.claimedRewardStageIDs.insert("chapter-1-stage-1")
 
@@ -104,7 +104,7 @@ struct PlayerSaveSanitizerTests {
         try #expect(sanitized.claimedRewardStageIDs.contains("chapter-1-stage-1"))
     }
 
-    @Test func sanitizeRosterFiltersInvalidUnlockIDs() throws {
+    @Test func `sanitize roster filters invalid unlock I ds`() throws {
         let roster = PlayerRosterState(
             activeHeroID: PlayerRosterState.starterHeroID,
             activeCompanionID: PlayerRosterState.starterCompanionID,
@@ -113,7 +113,7 @@ struct PlayerSaveSanitizerTests {
             abilityLoadouts: [:],
             progressions: [:],
             equipmentLoadouts: [:],
-            gold: 0
+            gold: 0,
         )
 
         let sanitized = PlayerSaveSanitizer.sanitizeRoster(roster, inventory: .freshStart)
@@ -122,7 +122,7 @@ struct PlayerSaveSanitizerTests {
         try #expect(sanitized.unlockedCompanionIDs == [PlayerRosterState.starterCompanionID])
     }
 
-    @Test func sanitizeRosterClampsGoldBalance() throws {
+    @Test func `sanitize roster clamps gold balance`() throws {
         var roster = PlayerRosterState.testSeed
         roster.gold = PlayerRosterState.maxGoldBalance + 1
 
@@ -131,7 +131,7 @@ struct PlayerSaveSanitizerTests {
         try #expect(sanitized.gold == PlayerRosterState.maxGoldBalance)
     }
 
-    @Test func sanitizeRosterFallsBackToStartersWhenUnlocksEmpty() throws {
+    @Test func `sanitize roster falls back to starters when unlocks empty`() throws {
         let roster = PlayerRosterState(
             activeHeroID: "wizard",
             activeCompanionID: "wolf",
@@ -140,7 +140,7 @@ struct PlayerSaveSanitizerTests {
             abilityLoadouts: [:],
             progressions: [:],
             equipmentLoadouts: [:],
-            gold: 0
+            gold: 0,
         )
 
         let sanitized = PlayerSaveSanitizer.sanitizeRoster(roster, inventory: .freshStart)
@@ -151,7 +151,7 @@ struct PlayerSaveSanitizerTests {
         try #expect(sanitized.activeCompanionID == PlayerRosterState.starterCompanionID)
     }
 
-    @Test func sanitizeRosterStripsUnknownCombatantAbilityLoadouts() throws {
+    @Test func `sanitize roster strips unknown combatant ability loadouts`() throws {
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         var unknownLoadout = knight.abilityLoadout
         if let skill = knight.abilityChoices.abilities(for: .skill).first {
@@ -168,7 +168,7 @@ struct PlayerSaveSanitizerTests {
             ],
             progressions: [:],
             equipmentLoadouts: [:],
-            gold: 0
+            gold: 0,
         )
 
         let sanitized = PlayerSaveSanitizer.sanitizeRoster(roster, inventory: .freshStart)
@@ -176,14 +176,14 @@ struct PlayerSaveSanitizerTests {
         try #expect(Set(sanitized.abilityLoadouts.keys) == ["knight"])
     }
 
-    @Test func sanitizeRosterResolvesInvalidAbilityIDs() throws {
+    @Test func `sanitize roster resolves invalid ability I ds`() throws {
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         var invalidLoadout = knight.abilityLoadout
         let missingAbility = Ability(
             id: "missing-ability",
             name: "Missing",
             tier: .skill,
-            description: "Missing"
+            description: "Missing",
         )
         invalidLoadout = invalidLoadout.selecting(missingAbility)
         let roster = PlayerRosterState(
@@ -194,30 +194,30 @@ struct PlayerSaveSanitizerTests {
             abilityLoadouts: ["knight": invalidLoadout],
             progressions: [:],
             equipmentLoadouts: [:],
-            gold: 0
+            gold: 0,
         )
 
         let sanitized = PlayerSaveSanitizer.sanitizeRoster(roster, inventory: .freshStart)
 
         try #expect(
-            sanitized.loadout(for: knight).skill?.id == knight.abilityLoadout.skill?.id
+            sanitized.loadout(for: knight).skill?.id == knight.abilityLoadout.skill?.id,
         )
     }
 
-    @Test func sanitizeRosterRemapsRenamedUltimateIDs() throws {
+    @Test func `sanitize roster remaps renamed ultimate I ds`() throws {
         let ranger = try #require(GameContent.heroes.first { $0.id == "ranger" })
         let owl = try #require(GameContent.companions.first { $0.id == "library_owl" })
         let concussiveShot = Ability(
             id: "concussive-shot",
             name: "Concussive Shot",
             tier: .ultimate,
-            description: "Legacy"
+            description: "Legacy",
         )
         let crystalBulwark = Ability(
             id: "crystal-bulwark",
             name: "Crystal Bulwark",
             tier: .ultimate,
-            description: "Legacy"
+            description: "Legacy",
         )
         let roster = PlayerRosterState(
             activeHeroID: PlayerRosterState.starterHeroID,
@@ -230,7 +230,7 @@ struct PlayerSaveSanitizerTests {
             ],
             progressions: [:],
             equipmentLoadouts: [:],
-            gold: 0
+            gold: 0,
         )
 
         let sanitized = PlayerSaveSanitizer.sanitizeRoster(roster, inventory: .freshStart)
@@ -240,20 +240,20 @@ struct PlayerSaveSanitizerTests {
         try #expect(sanitized.loadout(for: ranger).ultimate?.id != "pack-tactics")
     }
 
-    @Test func sanitizeRosterRemapsRetiredBasicIDs() throws {
+    @Test func `sanitize roster remaps retired basic I ds`() throws {
         let moth = try #require(GameContent.companions.first { $0.id == "mana_moth" })
         let owl = try #require(GameContent.companions.first { $0.id == "library_owl" })
         let manaCrystals = Ability(
             id: "mana-crystals",
             name: "Mana Crystals",
             tier: .basic,
-            description: "Legacy"
+            description: "Legacy",
         )
         let wiseFrost = Ability(
             id: "wise-frost",
             name: "Wise Frost",
             tier: .basic,
-            description: "Legacy"
+            description: "Legacy",
         )
         let roster = PlayerRosterState(
             activeHeroID: PlayerRosterState.starterHeroID,
@@ -266,7 +266,7 @@ struct PlayerSaveSanitizerTests {
             ],
             progressions: [:],
             equipmentLoadouts: [:],
-            gold: 0
+            gold: 0,
         )
 
         let sanitized = PlayerSaveSanitizer.sanitizeRoster(roster, inventory: .freshStart)
@@ -276,7 +276,7 @@ struct PlayerSaveSanitizerTests {
         try #expect(sanitized.loadout(for: moth).basic?.id != "mana-berries")
     }
 
-    @Test func sanitizeRosterPrunesMissingEquipmentItems() throws {
+    @Test func `sanitize roster prunes missing equipment items`() throws {
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         let baseType = try #require(GameContent.itemBaseTypes.first { $0.slot == .weapon })
         let weapon = InventoryItem(
@@ -285,7 +285,7 @@ struct PlayerSaveSanitizerTests {
             baseType: baseType,
             rarity: .basic,
             displayName: "Test Sword",
-            affixes: []
+            affixes: [],
         )
         let roster = PlayerRosterState(
             activeHeroID: PlayerRosterState.starterHeroID,
@@ -297,7 +297,7 @@ struct PlayerSaveSanitizerTests {
             equipmentLoadouts: [
                 "knight": EquipmentLoadout(itemIDsBySlot: [.weapon: "missing-item"]),
             ],
-            gold: 0
+            gold: 0,
         )
         var save = PlayerSave.fresh
         save.inventory = PlayerInventoryState(items: [weapon])
@@ -309,7 +309,7 @@ struct PlayerSaveSanitizerTests {
         try #expect(sanitized.inventory.items.map(\.id) == ["weapon-id"])
     }
 
-    @Test func sanitizeRosterStripsWeaponSlotFromCompanions() throws {
+    @Test func `sanitize roster strips weapon slot from companions`() throws {
         let bear = try #require(GameContent.companions.first { $0.id == "bear" })
         let weaponBase = try #require(GameContent.itemBaseTypes.first { $0.slot == .weapon })
         let trinketBase = try #require(GameContent.itemBaseTypes.first { $0.slot == .trinket })
@@ -319,7 +319,7 @@ struct PlayerSaveSanitizerTests {
             baseType: weaponBase,
             rarity: .basic,
             displayName: "Test Sword",
-            affixes: []
+            affixes: [],
         )
         let trinket = InventoryItem(
             id: "trinket-id",
@@ -327,7 +327,7 @@ struct PlayerSaveSanitizerTests {
             baseType: trinketBase,
             rarity: .basic,
             displayName: "Test Ring",
-            affixes: []
+            affixes: [],
         )
         let roster = PlayerRosterState(
             activeHeroID: PlayerRosterState.starterHeroID,
@@ -342,7 +342,7 @@ struct PlayerSaveSanitizerTests {
                     .trinket: trinket.id,
                 ]),
             ],
-            gold: 0
+            gold: 0,
         )
         var save = PlayerSave.fresh
         save.inventory = PlayerInventoryState(items: [weapon, trinket])
@@ -355,7 +355,7 @@ struct PlayerSaveSanitizerTests {
         try #expect(loadout.itemID(for: .trinket) == trinket.id)
     }
 
-    @Test func sanitizeRosterStripsDuplicateItemAcrossCombatants() throws {
+    @Test func `sanitize roster strips duplicate item across combatants`() throws {
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         let wizard = try #require(GameContent.heroes.first { $0.id == "wizard" })
         let wand = try #require(PlayerInventoryState.testSeed.item(matching: "wand-basic"))
@@ -370,7 +370,7 @@ struct PlayerSaveSanitizerTests {
                 knight.id: EquipmentLoadout(itemIDsBySlot: [.weapon: wand.id]),
                 wizard.id: EquipmentLoadout(itemIDsBySlot: [.weapon: wand.id]),
             ],
-            gold: 0
+            gold: 0,
         )
         var save = PlayerSave.fresh
         save.inventory = PlayerInventoryState.testSeed
@@ -382,7 +382,7 @@ struct PlayerSaveSanitizerTests {
         try #expect(sanitized.roster.equipmentLoadout(for: wizard).itemID(for: .weapon) == nil)
     }
 
-    @Test func sanitizeFullPipelineCombinesInventoryAndRoster() throws {
+    @Test func `sanitize full pipeline combines inventory and roster`() throws {
         let baseType = try #require(GameContent.itemBaseTypes.first)
         let item = InventoryItem(
             id: "item-id",
@@ -390,7 +390,7 @@ struct PlayerSaveSanitizerTests {
             baseType: baseType,
             rarity: .basic,
             displayName: "Duplicate",
-            affixes: []
+            affixes: [],
         )
         var save = PlayerSave.fresh
         save.inventory = PlayerInventoryState(items: [item, item])
@@ -404,7 +404,7 @@ struct PlayerSaveSanitizerTests {
 }
 
 struct PlayerSaveSanitizerAbilityCollisionTests {
-    @Test func sanitizeRosterKeepsLiveSkillThatSharesLegacyRemapID() throws {
+    @Test func `sanitize roster keeps live skill that shares legacy remap ID`() throws {
         let wizard = try #require(GameContent.heroes.first { $0.id == "wizard" })
         let glacialWard = try #require(wizard.abilityChoices.skills.first { $0.id == "glacial-ward" })
         let blizzard = try #require(wizard.abilityChoices.ultimates.first { $0.id == "blizzard" })
@@ -418,7 +418,7 @@ struct PlayerSaveSanitizerAbilityCollisionTests {
             abilityLoadouts: ["wizard": loadout],
             progressions: [:],
             equipmentLoadouts: [:],
-            gold: 0
+            gold: 0,
         )
 
         let sanitized = PlayerSaveSanitizer.sanitizeRoster(roster, inventory: .freshStart)
@@ -429,14 +429,14 @@ struct PlayerSaveSanitizerAbilityCollisionTests {
 }
 
 struct PlayerSaveSanitizerHomesteadTierTests {
-    @Test func sanitizeHomesteadClampsAndDropsInvalidNodeTiers() throws {
+    @Test func `sanitize homestead clamps and drops invalid node tiers`() throws {
         let maxWheat = try #require(HomesteadNodeCatalog.maxTierByNodeID[.wheatField])
         let homestead = PlayerHomesteadState(
             resources: [:],
             nodeTiers: [
                 .wheatField: maxWheat + 4,
                 .herbGarden: -2,
-            ]
+            ],
         )
 
         let sanitized = PlayerSaveSanitizer.sanitizeHomestead(homestead)
@@ -447,28 +447,28 @@ struct PlayerSaveSanitizerHomesteadTierTests {
 }
 
 struct PlayerSaveSanitizerProgressionTests {
-    @Test func sanitizeProgressionsClampsCorruptLevelsAndXP() {
+    @Test func `sanitize progressions clamps corrupt levels and XP`() {
         let sanitized = PlayerSaveSanitizer.sanitizeProgressions(
             [
                 "knight": CombatantProgression(level: 0, currentXP: -5, requiredXP: 0),
                 "rogue": CombatantProgression(level: 3, currentXP: 10000, requiredXP: 1),
             ],
-            validCombatantIDs: ["knight", "rogue"]
+            validCombatantIDs: ["knight", "rogue"],
         )
 
         #expect(sanitized["knight"] == CombatantProgression(
             level: 1,
             currentXP: 0,
-            requiredXP: CombatantProgression.requiredXP(forLevel: 1)
+            requiredXP: CombatantProgression.requiredXP(forLevel: 1),
         ))
         #expect(sanitized["rogue"] == CombatantProgression(
             level: 3,
             currentXP: CombatantProgression.requiredXP(forLevel: 3),
-            requiredXP: CombatantProgression.requiredXP(forLevel: 3)
+            requiredXP: CombatantProgression.requiredXP(forLevel: 3),
         ))
     }
 
-    @Test func sanitizeProgressionsPrunesUnknownCombatants() {
+    @Test func `sanitize progressions prunes unknown combatants`() {
         let valid = CombatantProgression.at(level: 2)
 
         let sanitized = PlayerSaveSanitizer.sanitizeProgressions(
@@ -476,18 +476,18 @@ struct PlayerSaveSanitizerProgressionTests {
                 "knight": valid,
                 "missing-combatant": CombatantProgression.at(level: 7),
             ],
-            validCombatantIDs: ["knight"]
+            validCombatantIDs: ["knight"],
         )
 
         #expect(sanitized == ["knight": valid])
     }
 
-    @Test func sanitizeRosterClampsCorruptProgressionSoMutationCannotBrick() throws {
+    @Test func `sanitize roster clamps corrupt progression so mutation cannot brick`() throws {
         var roster = PlayerRosterState.freshStart
         roster.progressions[PlayerRosterState.starterHeroID] = CombatantProgression(
             level: -4,
             currentXP: -100,
-            requiredXP: 0
+            requiredXP: 0,
         )
 
         let sanitized = PlayerSaveSanitizer.sanitizeRoster(roster, inventory: .freshStart)
@@ -500,14 +500,14 @@ struct PlayerSaveSanitizerProgressionTests {
 }
 
 struct PlayerSaveSanitizerTalentIDTests {
-    @Test func sanitizeUnlockedTalentsRemapsRogueDodgeAndWhelpStunIDs() {
+    @Test func `sanitize unlocked talents remaps rogue dodge and whelp stun I ds`() {
         let sanitized = PlayerSaveSanitizer.sanitizeUnlockedTalents(
             [
                 "rogue": ["rogue_dodge_t1_1", "rogue_gold_t1_2"],
                 "frost_whelp": ["frost_whelp_stun_t2_1"],
                 "knight": ["knight_block_t1_1"],
             ],
-            validCombatantIDs: ["rogue", "frost_whelp", "knight"]
+            validCombatantIDs: ["rogue", "frost_whelp", "knight"],
         )
         #expect(sanitized["rogue"]?.contains("rogue_gold_t1_1") == true)
         #expect(sanitized["rogue"]?.contains("rogue_gold_t1_2") == true)
@@ -515,7 +515,7 @@ struct PlayerSaveSanitizerTalentIDTests {
         #expect(sanitized["knight"] == ["knight_block_t1_1"])
     }
 
-    @Test func sanitizeUnlockedTalentsCapsOverBudgetUnlocksToLevelPoints() {
+    @Test func `sanitize unlocked talents caps over budget unlocks to level points`() {
         var roster = PlayerRosterState.freshStart
         roster.progressions["knight"] = .at(level: 2)
         roster.unlockedTalents["knight"] = [
@@ -528,7 +528,7 @@ struct PlayerSaveSanitizerTalentIDTests {
         #expect(sanitized.unlockedTalents["knight"] == ["knight_stun_t1_1"])
     }
 
-    @Test func sanitizeUnlockedTalentsDropsUnlocksWhenBudgetIsZero() {
+    @Test func `sanitize unlocked talents drops unlocks when budget is zero`() {
         var roster = PlayerRosterState.freshStart
         roster.progressions["knight"] = .at(level: 1)
         roster.unlockedTalents["knight"] = ["knight_block_t1_1", "knight_holy_t1_1"]

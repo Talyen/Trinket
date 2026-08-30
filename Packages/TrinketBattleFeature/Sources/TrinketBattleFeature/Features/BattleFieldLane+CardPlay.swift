@@ -49,24 +49,24 @@ extension BattleFieldLane {
 
     private func activationRequest(
         for card: BattleCard,
-        battleSize: CGSize
+        battleSize: CGSize,
     ) -> CardActivationRequest? {
         let hand = battleSession.hand
         guard let index = hand.firstIndex(where: { $0.id == card.id }) else { return nil }
 
         let metrics = BattleHandLayout.metrics(
             containerWidth: battleSize.width,
-            cardCount: hand.count
+            cardCount: hand.count,
         )
         let restingCenter = BattleHandLayout.restingCenter(
             index: index,
             metrics: metrics,
             cardCount: hand.count,
-            containerFrame: CGRect(origin: .zero, size: battleSize)
+            containerFrame: CGRect(origin: .zero, size: battleSize),
         )
         let center = CGPoint(
             x: restingCenter.x,
-            y: restingCenter.y - metrics.cardHeight * BattleMotion.tapLiftHeightFraction
+            y: restingCenter.y - metrics.cardHeight * BattleMotion.tapLiftHeightFraction,
         )
 
         return CardActivationRequest(
@@ -75,12 +75,12 @@ extension BattleFieldLane {
             size: CGSize(width: metrics.cardWidth, height: metrics.cardHeight),
             rotation: BattleHandLayout.rotation(
                 index: index,
-                cardCount: hand.count
+                cardCount: hand.count,
             ) * .pi / 180,
             verticalTilt: 0,
             scale: 1,
             perspective: BattleMotion.cardPerspective,
-            keywords: card.ability.keywords
+            keywords: card.ability.keywords,
         )
     }
 }

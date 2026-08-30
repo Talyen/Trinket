@@ -19,7 +19,7 @@ public struct BattleRuntimeDependencies {
         rememberAutoBattlePreference: { false },
         autoBattleEnabled: { false },
         setAutoBattleEnabled: { _ in },
-        shouldAutoSkipUltimateCinematic: { _, _ in false }
+        shouldAutoSkipUltimateCinematic: { _, _ in false },
     )
 
     public init(
@@ -30,7 +30,7 @@ public struct BattleRuntimeDependencies {
         rememberAutoBattlePreference: @escaping () -> Bool = { false },
         autoBattleEnabled: @escaping () -> Bool = { false },
         setAutoBattleEnabled: @escaping (Bool) -> Void = { _ in },
-        shouldAutoSkipUltimateCinematic: @escaping (String, Set<String>) -> Bool
+        shouldAutoSkipUltimateCinematic: @escaping (String, Set<String>) -> Bool,
     ) {
         self.playSFX = playSFX
         self.warmSFX = warmSFX

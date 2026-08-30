@@ -9,7 +9,7 @@ struct DeathsDoorHandler: BattleEffectHandler {
         guard !stacks.isEmpty else { return nil }
         return EffectSummary(
             keyword: keyword,
-            text: "Death's Door: Immune to fatal damage while active."
+            text: "Death's Door: Immune to fatal damage while active.",
         )
     }
 
@@ -18,7 +18,7 @@ struct DeathsDoorHandler: BattleEffectHandler {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        in _: inout BattleState
+        in _: inout BattleState,
     ) -> EffectApplyOutcome {
         _ = effect; _ = ability; _ = source; _ = target
         return EffectApplyOutcome(events: [], didApply: false)
@@ -27,7 +27,7 @@ struct DeathsDoorHandler: BattleEffectHandler {
     func advanceTurn(
         _ active: ActiveEffect,
         on target: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> EffectTurnOutcome {
         var updated = active
         updated.remainingTurns -= 1
@@ -42,7 +42,7 @@ struct DeathsDoorHandler: BattleEffectHandler {
                 abilityName: Keyword.deathsDoor.rawValue,
                 target: target,
                 amount: 0,
-                keyword: .deathsDoor
+                keyword: .deathsDoor,
             )
             var events = [event]
             events.append(contentsOf: DeathsDoorEngine.afterDeathsDoorExpired(on: target, in: &context))

@@ -26,31 +26,31 @@ struct CombatFeedbackChipPresentation: Hashable {
         label: CombatFeedbackChipLabel,
         keyword: Keyword,
         visualRole: CombatFeedbackVisualRole,
-        feedbackClass: CombatFeedbackClass
+        feedbackClass: CombatFeedbackClass,
     ) -> Self {
         switch label {
         case .amount:
             let style = trailingStyle(
                 keyword: keyword,
                 visualRole: visualRole,
-                feedbackClass: feedbackClass
+                feedbackClass: feedbackClass,
             )
             return Self(
                 leadingStyle: nil,
                 trailingStyle: style,
-                text: label.displayString
+                text: label.displayString,
             )
         case let .word(word):
             return resolveWord(
                 word,
-                keyword: keyword
+                keyword: keyword,
             )
         }
     }
 
     private static func resolveWord(
         _ word: CombatFeedbackChipWord,
-        keyword: Keyword
+        keyword: Keyword,
     ) -> Self {
         switch word {
         case .dodge:
@@ -76,18 +76,18 @@ struct CombatFeedbackChipPresentation: Hashable {
 
     private static func textAndIcon(
         trailing: Style,
-        text: String
+        text: String,
     ) -> Self {
         Self(
             leadingStyle: nil,
             trailingStyle: trailing,
-            text: text
+            text: text,
         )
     }
 
     private static func resolveStatus(
         _ status: CombatFeedbackStatusLabel,
-        keyword: Keyword
+        keyword: Keyword,
     ) -> Self {
         CombatFeedbackEffectPresentation.chipPresentation(for: status, keyword: keyword)
     }
@@ -96,25 +96,25 @@ struct CombatFeedbackChipPresentation: Hashable {
         Self(
             leadingStyle: nil,
             trailingStyle: trailing,
-            text: nil
+            text: nil,
         )
     }
 
     static func dualAction(
         leading: Style,
-        trailing: Style
+        trailing: Style,
     ) -> Self {
         Self(
             leadingStyle: leading,
             trailingStyle: trailing,
-            text: nil
+            text: nil,
         )
     }
 
     private static func trailingStyle(
         keyword: Keyword,
         visualRole: CombatFeedbackVisualRole,
-        feedbackClass: CombatFeedbackClass
+        feedbackClass: CombatFeedbackClass,
     ) -> Style {
         switch visualRole {
         case .beneficialStatus:
@@ -143,7 +143,7 @@ extension CombatFeedbackItem {
             label: label,
             keyword: keyword,
             visualRole: visualRole,
-            feedbackClass: feedbackClass
+            feedbackClass: feedbackClass,
         )
     }
 }

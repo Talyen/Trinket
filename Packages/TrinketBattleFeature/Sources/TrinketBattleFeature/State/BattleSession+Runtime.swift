@@ -84,7 +84,7 @@ extension BattleSession {
         return VictoryInput(
             earnedGold: engineState.earnedGold,
             heroName: engineState.hero.name,
-            companionName: engineState.companion.name
+            companionName: engineState.companion.name,
         )
     }
 
@@ -210,7 +210,7 @@ extension BattleSession {
         releasePreparedArtworkPins()
         preparedBattleRunsByKey[runKey] = PreparedBattleRun(
             configuration: configuration,
-            state: makeBattleState(from: configuration)
+            state: makeBattleState(from: configuration),
         )
         preparedBattlePresentationRevision += 1
         lifecyclePhase = .prepared
@@ -240,7 +240,7 @@ extension BattleSession {
         runKey: BattleRunKey,
         heroID: String,
         companionID: String,
-        enemyID: String?
+        enemyID: String?,
     ) -> Bool {
         guard activeBattle == nil,
               let preparedBattleRun = preparedBattleRunsByKey[runKey],
@@ -252,7 +252,7 @@ extension BattleSession {
         engineState = preparedBattleRun.state
         activatePresentation(
             for: preparedBattleRun.configuration,
-            presentation: presentationContext
+            presentation: presentationContext,
         )
         preparedBattleRunsByKey.removeValue(forKey: runKey)
         return true
@@ -266,7 +266,7 @@ extension BattleSession {
     @discardableResult
     public func activate(
         _ configuration: BattleRunConfiguration,
-        presentation: BattlePresentationContext?
+        presentation: BattlePresentationContext?,
     ) -> Bool {
         guard activeBattle == nil else { return false }
         preparedBattleRunsByKey.removeAll(keepingCapacity: true)
@@ -284,7 +284,7 @@ extension BattleSession {
     @discardableResult
     public func restart(
         _ configuration: BattleRunConfiguration,
-        presentation: BattlePresentationContext?
+        presentation: BattlePresentationContext?,
     ) -> Bool {
         guard activeBattle != nil else { return false }
         preparedBattleRunsByKey.removeAll(keepingCapacity: true)
@@ -325,7 +325,7 @@ extension BattleSession {
 
     private func activatePresentation(
         for configuration: BattleRunConfiguration,
-        presentation: BattlePresentationContext? = nil
+        presentation: BattlePresentationContext? = nil,
     ) {
         installActiveBattle(configuration, presentation: presentation)
     }
@@ -343,7 +343,7 @@ extension BattleSession {
             enemyFaction: configuration.enemyFaction,
             rngSeed: configuration.rngSeed,
             tracksLog: false,
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
     }
 }

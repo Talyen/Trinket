@@ -2,14 +2,14 @@ import Testing
 @testable import TrinketCore
 
 struct StatGrowthTests {
-    @Test func playerGrowthCoversBaselineHealthAndArchetypes() throws {
+    @Test func `player growth covers baseline health and archetypes`() throws {
         let growth = StatGrowth.playerGrowth(archetype: .tank, levelsAbove: 0)
         try #expect(growth == .zero)
         let assassinGrowth = StatGrowth.playerGrowth(archetype: .assassin, levelsAbove: 4)
         try #expect(assassinGrowth.maxHealth == 4)
     }
 
-    @Test func mageGrowthAddsIntellectAndOptionalManaByRole() throws {
+    @Test func `mage growth adds intellect and optional mana by role`() throws {
         let player = StatGrowth.playerGrowth(archetype: .mage, levelsAbove: 5)
         try #expect(player.intellect == 5)
         try #expect(player.maxMana == 2)
@@ -19,7 +19,7 @@ struct StatGrowthTests {
         try #expect(enemy.intellect == 5)
     }
 
-    @Test func enemyGrowthMatchesPlayerPrimariesWithNoFlatHealth() throws {
+    @Test func `enemy growth matches player primaries with no flat health`() throws {
         let player = StatGrowth.playerGrowth(archetype: .bruiser, levelsAbove: 4)
         let enemy = StatGrowth.enemyGrowth(archetype: .bruiser, levelsAbove: 4)
         try #expect(enemy.strength == player.strength)
@@ -32,33 +32,33 @@ struct StatGrowthTests {
         try #expect(enemy.maxHealth == 0)
     }
 
-    @Test func applyPowerMultiplierScalesHealthAndStats() throws {
+    @Test func `apply power multiplier scales health and stats`() throws {
         let stats = PrimaryStats(strength: 10, agility: 8, toughness: 12, intellect: 6, wisdom: 14)
         let applied = StatGrowth.applyPowerMultiplier(
             maxHealth: 12,
             maxMana: 0,
             primaryStats: stats,
             healthMultiplier: 2.0,
-            statsMultiplier: 2.0
+            statsMultiplier: 2.0,
         )
         try #expect(applied.maxHealth == 24)
         try #expect(applied.primaryStats.strength == 20)
         try #expect(applied.primaryStats.toughness == 24)
     }
 
-    @Test func applyMergesGrowthIntoStats() throws {
+    @Test func `apply merges growth into stats`() throws {
         let applied = StatGrowth.apply(
             maxHealth: 14,
             maxMana: 8,
             primaryStats: PrimaryStats(strength: 2, agility: 4, toughness: 3, intellect: 10, wisdom: 3),
-            growth: StatGrowthDelta(intellect: 2, maxHealth: 3, maxMana: 1)
+            growth: StatGrowthDelta(intellect: 2, maxHealth: 3, maxMana: 1),
         )
         try #expect(applied.maxHealth == 17)
         try #expect(applied.maxMana == 9)
         try #expect(applied.primaryStats.intellect == 12)
     }
 
-    @Test func identityPrimaryStatsUseASharedBudgetAndEmphasizeTheArchetype() throws {
+    @Test func `identity primary stats use A shared budget and emphasize the archetype`() throws {
         for archetype in GrowthArchetype.allCases {
             let stats = archetype.identityPrimaryStats
             let total = stats.strength + stats.agility + stats.toughness + stats.intellect + stats.wisdom

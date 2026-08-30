@@ -60,7 +60,7 @@ public struct CombatDeck: Hashable, Sendable {
 
     public static func shuffled(
         from loadout: AbilityLoadout,
-        rng: inout SeededRandomNumberGenerator
+        rng: inout SeededRandomNumberGenerator,
     ) -> Self {
         var abilities = loadout.abilities
         abilities.shuffle(using: &rng)

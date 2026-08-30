@@ -3,7 +3,7 @@ import TrinketContent
 import TrinketCore
 
 struct AbilityLoadoutTests {
-    @Test func selectingReplacesAbilityInMatchingTier() throws {
+    @Test func `selecting replaces ability in matching tier`() throws {
         let loadout = AbilityLoadout(basic: .bash, skill: .smite, ultimate: .blessedAegis)
 
         let updated = loadout.selecting(.shieldBash)
@@ -13,7 +13,7 @@ struct AbilityLoadoutTests {
         try #expect(updated.ultimate?.id == "blessed-aegis")
     }
 
-    @Test func abilityChoicesFallsBackWhenSelectedAbilityMissingFromPool() throws {
+    @Test func `ability choices falls back when selected ability missing from pool`() throws {
         let choices = AbilityChoices(
             basics: [.bash, .shieldBash],
             skills: [.smite, .spikedShield],
@@ -21,8 +21,8 @@ struct AbilityLoadoutTests {
             selected: AbilityLoadout(
                 basic: .bash,
                 skill: Ability(id: "missing", name: "Missing", tier: .skill, directDamage: 0, description: "Missing"),
-                ultimate: .blessedAegis
-            )
+                ultimate: .blessedAegis,
+            ),
         )
 
         try #expect(choices.selected.skill?.id == "smite")

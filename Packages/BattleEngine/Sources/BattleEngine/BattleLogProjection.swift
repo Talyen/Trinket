@@ -22,7 +22,7 @@ public struct BattleLogProjection {
 
         entries.append(contentsOf: BattleLogReducer.entries(
             from: events,
-            startingAt: loggedEventCount
+            startingAt: loggedEventCount,
         ))
         loggedEventCount = events.count
     }

@@ -23,7 +23,7 @@ enum MysteryChoiceOutcome: Equatable {
 
 typealias MysteryProgressCompletion = (
     MysteryEncounterSession,
-    inout PlayerSave
+    inout PlayerSave,
 ) -> Void
 
 @MainActor
@@ -83,13 +83,13 @@ public final class MysteryEncounterSession: Identifiable {
     public init(
         origin: PlayEncounterOrigin,
         event: MysteryEvent,
-        combatant: Combatant?
+        combatant: Combatant?,
     ) {
         self.origin = origin
         stage = origin.resolvedStage(
             labyrinthEncounter: event.isRecruit
                 ? .recruit(eventID: event.id)
-                : .mysteryEvent(eventID: event.id)
+                : .mysteryEvent(eventID: event.id),
         )
         self.event = event
         self.combatant = combatant
@@ -101,7 +101,7 @@ public final class MysteryEncounterSession: Identifiable {
         worldSeed: UInt64,
         pickContext: MysteryEventPickContext = .excludingCorruptionAltar,
         pinnedLabyrinthEventID: String? = nil,
-        pinnedJourneyEventID: String? = nil
+        pinnedJourneyEventID: String? = nil,
     ) -> MysteryEvent {
         switch origin {
         case let .labyrinth(nodeID):
@@ -110,7 +110,7 @@ public final class MysteryEncounterSession: Identifiable {
                 worldSeed: worldSeed,
                 forcedEventID: forcedEventID,
                 pinnedEventID: pinnedLabyrinthEventID,
-                context: pickContext
+                context: pickContext,
             )
         case let .journey(stage):
             GameContent.resolveJourneyMysteryEvent(
@@ -118,7 +118,7 @@ public final class MysteryEncounterSession: Identifiable {
                 worldSeed: worldSeed,
                 forcedEventID: forcedEventID,
                 pinnedEventID: pinnedJourneyEventID,
-                context: pickContext
+                context: pickContext,
             )
         }
     }
@@ -129,7 +129,7 @@ public final class MysteryEncounterSession: Identifiable {
         worldSeed: UInt64,
         pickContext: MysteryEventPickContext = .excludingCorruptionAltar,
         pinnedLabyrinthEventID: String? = nil,
-        pinnedJourneyEventID: String? = nil
+        pinnedJourneyEventID: String? = nil,
     ) -> (session: MysteryEncounterSession, resolvedEventID: String) {
         let event = resolveEvent(
             origin: origin,
@@ -137,12 +137,12 @@ public final class MysteryEncounterSession: Identifiable {
             worldSeed: worldSeed,
             pickContext: pickContext,
             pinnedLabyrinthEventID: pinnedLabyrinthEventID,
-            pinnedJourneyEventID: pinnedJourneyEventID
+            pinnedJourneyEventID: pinnedJourneyEventID,
         )
         let session = MysteryEncounterSession(
             origin: origin,
             event: event,
-            combatant: GameContent.combatant(forMysteryEvent: event)
+            combatant: GameContent.combatant(forMysteryEvent: event),
         )
         return (session, event.id)
     }
@@ -151,7 +151,7 @@ public final class MysteryEncounterSession: Identifiable {
         let level = MysteryEffectApplier.resolvedEncounterLevel(
             stage: stage,
             labyrinthNodeID: labyrinthNodeID,
-            save: save
+            save: save,
         )
         previewMaterialQuantity = MysteryEffectApplier.materialQuantity(forLevel: level)
         let experiencePercent = labyrinthNodeID.map {
@@ -161,16 +161,16 @@ public final class MysteryEncounterSession: Identifiable {
         previewHeroExperienceAward = CombatRounding.scaled(
             MysteryEffectApplier.experienceAward(
                 for: roster.progression(for: roster.activeHero),
-                highestLevel: roster.highestHeroLevel
+                highestLevel: roster.highestHeroLevel,
             ),
-            byPercent: experiencePercent
+            byPercent: experiencePercent,
         )
         previewCompanionExperienceAward = CombatRounding.scaled(
             MysteryEffectApplier.experienceAward(
                 for: roster.progression(for: roster.activeCompanion),
-                highestLevel: roster.highestCompanionLevel
+                highestLevel: roster.highestCompanionLevel,
             ),
-            byPercent: experiencePercent
+            byPercent: experiencePercent,
         )
     }
 }
@@ -244,7 +244,7 @@ extension MysteryEncounterSession {
         choiceID: String?,
         save: inout PlayerSave,
         using randomNumberGenerator: inout some RandomNumberGenerator,
-        completeProgress: MysteryProgressCompletion
+        completeProgress: MysteryProgressCompletion,
     ) -> MysteryChoiceOutcome {
         guard canResolveChoice else { return .failed }
         markChoiceStarted()
@@ -287,13 +287,13 @@ extension MysteryEncounterSession {
             encounterLevel: MysteryEffectApplier.resolvedEncounterLevel(
                 stage: stage,
                 labyrinthNodeID: labyrinthNodeID,
-                save: save
+                save: save,
             ),
             save: &save,
             using: &randomNumberGenerator,
             goldFoundPercent: rewardBonuses.goldFoundPercent,
             experienceEarnedPercent: rewardBonuses.experienceEarnedPercent,
-            materialsFoundPercent: rewardBonuses.materialsFoundPercent
+            materialsFoundPercent: rewardBonuses.materialsFoundPercent,
         )
 
         if !applyResult.unlockedCombatantIDs.isEmpty {
@@ -314,7 +314,7 @@ extension MysteryEncounterSession {
         itemID: String,
         save: inout PlayerSave,
         using randomNumberGenerator: inout some RandomNumberGenerator,
-        completeProgress: MysteryProgressCompletion
+        completeProgress: MysteryProgressCompletion,
     ) -> MysteryChoiceOutcome {
         guard phase == .selectingCorruptItem else { return .failed }
         guard !isResolvingChoice else { return .failed }
@@ -324,7 +324,7 @@ extension MysteryEncounterSession {
         let apply = ItemCorruptionApplier.corrupt(
             itemID: itemID,
             save: &save,
-            using: &randomNumberGenerator
+            using: &randomNumberGenerator,
         )
         guard case let .success(result) = apply else {
             markResolvedWithoutReveal()

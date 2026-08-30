@@ -63,8 +63,8 @@ final class MysteryRecruitCeremonyState {
 
         try? await clock.sleep(
             for: .seconds(
-                MysteryCeremonyMotion.unmaskResponse * MysteryCeremonyMotion.bloomPeakFraction
-            )
+                MysteryCeremonyMotion.unmaskResponse * MysteryCeremonyMotion.bloomPeakFraction,
+            ),
         )
         guard !Task.isCancelled else { return }
         onUnmaskPeak()
@@ -75,8 +75,8 @@ final class MysteryRecruitCeremonyState {
 
         try? await clock.sleep(
             for: .seconds(
-                MysteryCeremonyMotion.unmaskResponse * (1 - MysteryCeremonyMotion.bloomPeakFraction)
-            )
+                MysteryCeremonyMotion.unmaskResponse * (1 - MysteryCeremonyMotion.bloomPeakFraction),
+            ),
         )
         guard !Task.isCancelled else { return }
         try? await clock.sleep(for: .seconds(MysteryCeremonyMotion.chromeAfterUnmask))
@@ -135,8 +135,8 @@ final class MysteryRecruitCeremonyState {
                 for: .seconds(
                     MysteryCeremonyMotion.sealResponse
                         + MysteryCeremonyMotion.sealHoldBeforeDismiss
-                        - MysteryCeremonyMotion.sealArtPeakDelay
-                )
+                        - MysteryCeremonyMotion.sealArtPeakDelay,
+                ),
             )
             guard !Task.isCancelled else { return }
             finishSeal()

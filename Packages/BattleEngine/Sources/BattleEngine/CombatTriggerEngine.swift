@@ -4,7 +4,7 @@ import TrinketCore
 package enum CombatTriggerEngine {
     static func traitName(
         for combatant: Combatant,
-        in context: BattleState
+        in context: BattleState,
     ) -> String {
         context.modifiers(for: combatant.id).traitDisplayName ?? "Trait"
     }
@@ -13,13 +13,13 @@ package enum CombatTriggerEngine {
         _ key: String,
         for combatant: Combatant,
         fallback: String,
-        in context: BattleState
+        in context: BattleState,
     ) -> String {
         context.modifiers(for: combatant.id).triggerAbilityName(key, fallback: fallback)
     }
 
     static func livingAllies(
-        in context: BattleState
+        in context: BattleState,
     ) -> [(combatant: Combatant, profile: CombatModifierProfile)] {
         var allies: [(combatant: Combatant, profile: CombatModifierProfile)] = []
         if context.roster.hero.isAlive {
@@ -75,7 +75,7 @@ package enum CombatTriggerEngine {
         amount: Int,
         source: Combatant,
         target: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> CombatOutcome {
         guard amount > 0 else { return .empty }
         return HealingEngine.resolveHeal(
@@ -86,10 +86,10 @@ package enum CombatTriggerEngine {
                 logAs: .instantHeal(
                     actorName: source.name,
                     abilityName: traitName(for: source, in: context),
-                    keyword: .health
-                )
+                    keyword: .health,
+                ),
             ),
-            in: &context
+            in: &context,
         )
     }
 }

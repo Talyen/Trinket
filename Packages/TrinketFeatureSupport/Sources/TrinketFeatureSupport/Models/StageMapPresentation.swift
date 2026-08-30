@@ -41,7 +41,7 @@ public struct StageSelectRowPresentation<Item: Identifiable>: Identifiable {
         artworkAccessibilityID: String,
         actionAccessibilityID: String,
         activeDetailAccessibilityID: String,
-        partyControlAccessibilityID: String
+        partyControlAccessibilityID: String,
     ) {
         self.item = item
         self.isActive = isActive

@@ -18,7 +18,7 @@ public extension PlayerSaveStore {
         return persistBatch(logging: "Failed to save starter Hero") { save in
             save.starterSelection = StarterSelectionState(
                 phase: .chooseCompanion,
-                heroID: heroID
+                heroID: heroID,
             )
         }
     }
@@ -42,7 +42,7 @@ public extension PlayerSaveStore {
                 progressions: [heroID: .initial, companionID: .initial],
                 equipmentLoadouts: [:],
                 unlockedTalents: [:],
-                gold: save.roster.gold
+                gold: save.roster.gold,
             )
             save.starterSelection = .complete
         }
@@ -51,7 +51,7 @@ public extension PlayerSaveStore {
     @discardableResult
     func mutateRoster(
         logging message: String = "Failed to persist roster edits",
-        _ update: (inout PlayerRosterState) -> Void
+        _ update: (inout PlayerRosterState) -> Void,
     ) -> Bool {
         persistBatch(logging: message) { save in
             var roster = save.roster
@@ -63,7 +63,7 @@ public extension PlayerSaveStore {
     func unlockTalent(
         nodeID: String,
         treeID: String,
-        for combatantID: String
+        for combatantID: String,
     ) -> TalentUnlockResult {
         guard let config = CombatantTalentCatalog.allConfigs[combatantID],
               let tree = config.trees.first(where: { $0.id == treeID }),
@@ -75,14 +75,14 @@ public extension PlayerSaveStore {
         guard tree.canUnlock(
             node: node,
             unlockedNodeIDs: unlocked,
-            availablePoints: points
+            availablePoints: points,
         ) else { return .unavailable }
 
         let persisted = mutateRoster(logging: "Failed to unlock talent") { roster in
             _ = roster.unlockTalent(
                 node: node,
                 inTree: tree,
-                for: combatantID
+                for: combatantID,
             )
         }
         return persisted ? .unlocked : .persistenceFailed

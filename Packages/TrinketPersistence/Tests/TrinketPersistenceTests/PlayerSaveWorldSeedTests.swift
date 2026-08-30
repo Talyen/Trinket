@@ -3,7 +3,7 @@ import TrinketContent
 @testable import TrinketPersistence
 
 struct PlayerSaveWorldSeedTests {
-    @Test func freshSaveAllocatesNonZeroNonFallbackWorldSeed() {
+    @Test func `fresh save allocates non zero non fallback world seed`() {
         let first = PlayerSave.fresh
         let second = PlayerSave.fresh
         #expect(first.worldSeed != 0)
@@ -12,7 +12,7 @@ struct PlayerSaveWorldSeedTests {
         #expect(first.worldSeed != second.worldSeed)
     }
 
-    @Test func sanitizeAssignsWorldSeedWhenMissingAndNoMap() {
+    @Test func `sanitize assigns world seed when missing and no map`() {
         var save = PlayerSave.fresh
         save.worldSeed = 0
         save.labyrinth = .freshStart
@@ -24,7 +24,7 @@ struct PlayerSaveWorldSeedTests {
         #expect(sanitized.labyrinth.worldSeed == sanitized.worldSeed)
     }
 
-    @Test func sanitizeAdoptsExistingLabyrinthSeedWhenSaveSeedIsMissing() {
+    @Test func `sanitize adopts existing labyrinth seed when save seed is missing`() {
         var save = PlayerSave.fresh
         save.worldSeed = 0
         save.labyrinth.ensureMap(seed: 55)
@@ -36,12 +36,12 @@ struct PlayerSaveWorldSeedTests {
         #expect(sanitized.labyrinth.hasMap)
     }
 
-    @Test func sanitizeDoesNotOverwriteUnreadableMapWorldSeed() {
+    @Test func `sanitize does not overwrite unreadable map world seed`() {
         var save = PlayerSave.fresh
         save.labyrinth = PlayerLabyrinthState(
             worldSeed: 55,
             hasEntered: true,
-            isMapPayloadUnreadable: true
+            isMapPayloadUnreadable: true,
         )
 
         let sanitized = PlayerSaveSanitizer.sanitize(save)

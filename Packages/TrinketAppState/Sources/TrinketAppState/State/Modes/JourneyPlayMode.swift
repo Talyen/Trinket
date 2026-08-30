@@ -19,25 +19,18 @@ public final class JourneyPlayMode {
     public let battle: any BattleRuntime
     private let battleLaunch: PlayBattleLaunch
     private let encounters: EncounterPlayMode
-    private var encounterCoordinator: PlayBattleEncounterCoordinator<PreparationInputs>
+    private var preparationTracker = PlayBattlePreparationTracker<PreparationInputs>()
 
     init(
         playerSave: PlayerSaveStore,
         battle: any BattleRuntime,
         battleLaunch: PlayBattleLaunch,
-        encounters: EncounterPlayMode
+        encounters: EncounterPlayMode,
     ) {
         self.playerSave = playerSave
         self.battle = battle
         self.battleLaunch = battleLaunch
         self.encounters = encounters
-        encounterCoordinator = PlayBattleEncounterCoordinator(
-            battle: battle,
-            battleLaunch: battleLaunch,
-            canBeginTransientEncounter: { [weak encounters] in
-                encounters?.canBeginTransientEncounter ?? false
-            }
-        )
     }
 
     public var playChapter: Chapter {
@@ -53,7 +46,7 @@ public final class JourneyPlayMode {
         materialRewards: [ResourceAmount]? = nil,
         rewardItem: InventoryItem? = nil,
         loot: BattleLootPackage? = nil,
-        enemyEncounterLevel: Int? = nil
+        enemyEncounterLevel: Int? = nil,
     ) -> Bool {
         persistStageCompletions(
             [stage],
@@ -63,7 +56,7 @@ public final class JourneyPlayMode {
             materialRewards: materialRewards,
             rewardItem: rewardItem,
             loot: loot,
-            enemyEncounterLevel: enemyEncounterLevel
+            enemyEncounterLevel: enemyEncounterLevel,
         )
     }
 
@@ -71,7 +64,7 @@ public final class JourneyPlayMode {
         Self.resolvedEncounter(
             for: stage,
             worldSeed: playerSave.worldSeed,
-            partyAverageLevel: playerSave.roster.activePartyAverageLevel
+            partyAverageLevel: playerSave.roster.activePartyAverageLevel,
         )
     }
 
@@ -83,25 +76,56 @@ public final class JourneyPlayMode {
             return StageMapMessage(title: "Encounter Missing", message: "This stage is not ready yet.")
         }
 
-        let activated = encounterCoordinator.activateBattle(combatRequest(for: stage, encounter: encounter))
-        return encounterCoordinator.activationFailureMessageIfNeeded(activated)
+        let request = combatRequest(for: stage, encounter: encounter)
+        guard battle.lifecyclePhase != .active else { return PlayBattleLaunch.activationFailureMessage }
+        let activated = battleLaunch.activateCombat(
+            origin: request.origin,
+            encounter: request.encounter,
+            route: request.route,
+            loot: request.loot,
+            stageRewardsAlreadyClaimed: request.stageRewardsAlreadyClaimed,
+            universalModifiers: request.universalModifiers,
+            labyrinthModifiers: request.labyrinthModifiers,
+        )
+        if activated {
+            preparationTracker.invalidate()
+            return nil
+        }
+        return PlayBattleLaunch.activationFailureMessage
     }
 
     public func prepareBattle(for stage: Stage) {
         guard battle.lifecyclePhase != .active,
               let encounter = resolvedEncounter(for: stage)
         else { return }
-        encounterCoordinator.prepareBattle(combatRequest(for: stage, encounter: encounter))
+        let request = combatRequest(for: stage, encounter: encounter)
+        guard preparationTracker.shouldPrepare(
+            for: request.preparationInputs,
+            lifecycle: battle.lifecyclePhase,
+            hasPreparedRun: battle.hasPreparedRun(request.origin.runKey),
+        ) else { return }
+        let prepared = battleLaunch.prepareCombat(
+            origin: request.origin,
+            encounter: request.encounter,
+            route: request.route,
+            loot: request.loot,
+            stageRewardsAlreadyClaimed: request.stageRewardsAlreadyClaimed,
+            universalModifiers: request.universalModifiers,
+            labyrinthModifiers: request.labyrinthModifiers,
+        )
+        if prepared {
+            preparationTracker.notePrepared(request.preparationInputs)
+        }
     }
 
     @discardableResult
     func beginMysteryEncounter(
         for stage: Stage,
-        forcedEventID: String? = nil
+        forcedEventID: String? = nil,
     ) -> StageMapMessage? {
         encounters.beginMysteryEncounter(
             origin: .journey(stage: stage),
-            forcedEventID: forcedEventID
+            forcedEventID: forcedEventID,
         )
     }
 
@@ -116,14 +140,14 @@ public final class JourneyPlayMode {
         case .recruit:
             return beginMysteryEncounter(
                 for: resolvedStage,
-                forcedEventID: resolvedStage.encounter.recruitEventID
+                forcedEventID: resolvedStage.encounter.recruitEventID,
             )
         case .shop:
             return PlayShopEncounterRouting.handle(
                 encounters: encounters,
                 origin: .journey(stage: resolvedStage),
                 identifier: resolvedStage.id,
-                onAutoComplete: { completeStageOrPersistFailure(resolvedStage) }
+                onAutoComplete: { completeStageOrPersistFailure(resolvedStage) },
             )
         case .rest:
             return completeStageOrPersistFailure(resolvedStage)
@@ -138,7 +162,7 @@ public final class JourneyPlayMode {
         case .recruit:
             return encounters.previewMysteryEvent(
                 origin: .journey(stage: resolved),
-                forcedEventID: resolved.encounter.recruitEventID
+                forcedEventID: resolved.encounter.recruitEventID,
             )
         default:
             return nil
@@ -151,7 +175,7 @@ public final class JourneyPlayMode {
             stage,
             worldSeed: playerSave.worldSeed,
             unlockedHeroIDs: roster.unlockedHeroIDs,
-            unlockedCompanionIDs: roster.unlockedCompanionIDs
+            unlockedCompanionIDs: roster.unlockedCompanionIDs,
         )
     }
 
@@ -160,11 +184,11 @@ public final class JourneyPlayMode {
         guard completeStage(
             stage,
             hero: roster.activeHero,
-            companion: roster.activeCompanion
+            companion: roster.activeCompanion,
         ) else {
             return StageMapMessage(
                 title: "Couldn't Save Progress",
-                message: "This stage wasn't saved. Try again."
+                message: "This stage wasn't saved. Try again.",
             )
         }
         return nil
@@ -180,7 +204,7 @@ public final class JourneyPlayMode {
         rewardItem: InventoryItem? = nil,
         resetJourney: Bool = false,
         loot: BattleLootPackage? = nil,
-        enemyEncounterLevel: Int? = nil
+        enemyEncounterLevel: Int? = nil,
     ) -> Bool {
         guard !stages.isEmpty else { return false }
 
@@ -200,7 +224,7 @@ public final class JourneyPlayMode {
                     loot: isLast ? loot : nil,
                     enemyEncounterLevel: enemyEncounterLevel,
                     in: GameContent.chapters,
-                    save: &save
+                    save: &save,
                 )
             }
         }
@@ -211,20 +235,20 @@ extension JourneyPlayMode {
     static func resolvedEncounter(
         for stage: Stage,
         worldSeed: UInt64,
-        partyAverageLevel: Int
+        partyAverageLevel: Int,
     ) -> (combatant: Combatant, level: Int)? {
         guard let chapter = GameContent.chapters.first(where: { $0.id == stage.chapterID })
         else { return nil }
         return PlayBattlePreparation.scaledEncounter(
             enemyID: stage.resolvedBattleEnemyID(worldSeed: worldSeed),
             authoredLevel: EncounterLevelResolver.journeyEnemyLevel(for: stage, in: chapter),
-            partyAverageLevel: partyAverageLevel
+            partyAverageLevel: partyAverageLevel,
         )
     }
 
     private func battleLoot(
         for stage: Stage,
-        encounter: (combatant: Combatant, level: Int)
+        encounter: (combatant: Combatant, level: Int),
     ) -> BattleLootPackage? {
         guard stage.encounter.isCombat else { return nil }
         return BattleLoot.resolveJourney(
@@ -234,26 +258,37 @@ extension JourneyPlayMode {
             worldSeed: playerSave.worldSeed,
             ownedTrinketIDs: playerSave.inventory.ownedTrinketIDs,
             ownedUniqueIDs: playerSave.inventory.ownedUniqueIDs,
-            astralChanceBonusPercent: playerSave.homestead.effects.astralChanceBonusPercent
+            astralChanceBonusPercent: playerSave.homestead.effects.astralChanceBonusPercent,
         )
     }
 
     static func stageRewardsAlreadyClaimed(
         for stage: Stage,
-        journey: JourneyProgressState
+        journey: JourneyProgressState,
     ) -> Bool {
         journey.hasClaimedRewards(for: stage)
     }
 
+    private struct CombatRequest {
+        let origin: PlayBattleOrigin
+        let encounter: (combatant: Combatant, level: Int)
+        let route: PlayBattleRoute
+        let loot: BattleLootPackage?
+        let stageRewardsAlreadyClaimed: Bool
+        let universalModifiers: [AffixModifier]
+        let labyrinthModifiers: [LabyrinthModifierDefinition]
+        let preparationInputs: PreparationInputs
+    }
+
     private func combatRequest(
         for stage: Stage,
-        encounter: (combatant: Combatant, level: Int)
-    ) -> PlayBattleEncounterCoordinator<PreparationInputs>.CombatRequest {
+        encounter: (combatant: Combatant, level: Int),
+    ) -> CombatRequest {
         let stageRewardsAlreadyClaimed = Self.stageRewardsAlreadyClaimed(
             for: stage,
-            journey: playerSave.journey
+            journey: playerSave.journey,
         )
-        return PlayBattleEncounterCoordinator<PreparationInputs>.CombatRequest(
+        return CombatRequest(
             origin: .journey(stageID: stage.id),
             encounter: encounter,
             route: battleRoute(stageID: stage.id),
@@ -264,8 +299,8 @@ extension JourneyPlayMode {
             preparationInputs: PreparationInputs(
                 stageID: stage.id,
                 party: PlayBattlePartySnapshot(playerSave: playerSave),
-                stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed
-            )
+                stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
+            ),
         )
     }
 
@@ -281,7 +316,7 @@ extension JourneyPlayMode {
                 materialRewards: materialRewards,
                 rewardItem: presentation?.pendingRewardItem,
                 loot: loot,
-                enemyEncounterLevel: configuration.enemyEncounterLevel
+                enemyEncounterLevel: configuration.enemyEncounterLevel,
             )
         }
     }

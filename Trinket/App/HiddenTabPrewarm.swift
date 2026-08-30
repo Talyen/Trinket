@@ -23,11 +23,11 @@ struct HiddenTabPrewarm: View {
                     playToggleSFX: { isEnabled, volume in
                         appState.sfxPlayer.play(
                             isEnabled ? SFXID.uiToggleOn : SFXID.uiToggleOff,
-                            volume: volume
+                            volume: volume,
                         )
                     },
                     resetGameplayProgress: appState.resetGameplayProgress,
-                    unlockAllContent: appState.unlockAllContent
+                    unlockAllContent: appState.unlockAllContent,
                 )
             }
         }

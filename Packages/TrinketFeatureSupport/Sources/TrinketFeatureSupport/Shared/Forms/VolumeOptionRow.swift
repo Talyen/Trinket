@@ -32,7 +32,7 @@ public struct VolumeOptionRow: View {
     public init(
         title: String,
         value: Binding<Double>,
-        onLiveChange: ((Double) -> Void)? = nil
+        onLiveChange: ((Double) -> Void)? = nil,
     ) {
         self.title = title
         _value = value
@@ -70,7 +70,7 @@ public struct VolumeOptionRow: View {
                         isEditing = false
                         value = draft
                     }
-                }
+                },
             )
             .onChange(of: draft) { _, newValue in
                 guard isEditing else { return }

@@ -17,7 +17,7 @@ struct EffectSummaryBuilderTests {
         .shield,
         .deathsDoor,
     ])
-    private func singleKeywordSummary(caseKind: SingleKeywordCase) throws {
+    private func `single keyword summary`(caseKind: SingleKeywordCase) throws {
         let effects: [ActiveEffect]
         let expectedText: String
         let expectedKeyword: Keyword?
@@ -42,7 +42,7 @@ struct EffectSummaryBuilderTests {
                 ActiveEffect(
                     id: 1,
                     effect: .deathsDoor,
-                    remainingTurns: BattleTiming.deathsDoorDurationTurns
+                    remainingTurns: BattleTiming.deathsDoorDurationTurns,
                 ),
             ]
             expectedText = "Death's Door: Immune to fatal damage while active."
@@ -57,7 +57,7 @@ struct EffectSummaryBuilderTests {
         }
     }
 
-    @Test func stunBuildupAndTriggeredSummaries() throws {
+    @Test func `stun buildup and triggered summaries`() throws {
         let buildup = EffectSummaryBuilder.build(for: [
             ActiveEffect(id: 1, effect: .controlMeter(.stun, 3, 10), remainingTurns: 0),
         ])
@@ -74,7 +74,7 @@ struct EffectSummaryBuilderTests {
         try #expect(lingered.first?.text == "Stunned: Recovering from Stun.")
     }
 
-    @Test func avatarSelfBuffSummary() throws {
+    @Test func `avatar self buff summary`() throws {
         let summaries = EffectSummaryBuilder.build(for: [
             ActiveEffect(id: 1, effect: .avatar(holyDamage: 6, blockPerTurn: 4, turns: 1), remainingTurns: 1),
         ])
@@ -82,11 +82,11 @@ struct EffectSummaryBuilderTests {
         try #expect(summaries.first?.text == "Avatar: Deals 6 Holy damage and gains 4 Block each turn, 1 turn left.")
     }
 
-    @Test func emptyEffectsProducesEmptySummaries() throws {
+    @Test func `empty effects produces empty summaries`() throws {
         try #expect(EffectSummaryBuilder.build(for: []).isEmpty)
     }
 
-    @Test func multipleKeywordsYieldMultipleSummaries() throws {
+    @Test func `multiple keywords yield multiple summaries`() throws {
         let effects = [
             ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTurns: 6),
             ActiveEffect(id: 2, effect: .burn(2), remainingTurns: 3),
@@ -97,7 +97,7 @@ struct EffectSummaryBuilderTests {
         try #expect(summaries.contains { $0.keyword == .burn })
     }
 
-    @Test func multipleDistinctEffectsSharingSameKeywordAllAppear() throws {
+    @Test func `multiple distinct effects sharing same keyword all appear`() throws {
         let effects = [
             ActiveEffect(id: 1, effect: .thorns(3), remainingTurns: 0),
             ActiveEffect(id: 2, effect: .marked(2, 4), remainingTurns: 4),
@@ -114,7 +114,7 @@ struct EffectSummaryBuilderTests {
         try #expect(summaries.contains { $0.text.contains("Weakened: Outgoing damage reduced by 25%") })
     }
 
-    @Test func timedDebuffsAndFlagEffectsProduceFormattedSummaries() throws {
+    @Test func `timed debuffs and flag effects produce formatted summaries`() throws {
         let effects = [
             ActiveEffect(id: 1, effect: .nextHolyStrike, remainingTurns: 0),
             ActiveEffect(id: 2, effect: .evadeNextHit, remainingTurns: 0),
@@ -135,7 +135,7 @@ struct EffectSummaryBuilderTests {
         try #expect(summaries.contains { $0.text.contains("Hemorrhage: Takes 4 Bleed damage") })
     }
 
-    @Test func borderAuraEffectsAllGenerateActiveEffectSummaries() throws {
+    @Test func `border aura effects all generate active effect summaries`() throws {
         let auraEffects: [(Effect, String)] = [
             (.nextStrikeDouble, "Double Strike"),
             (.evadeNextHit, "Evasion"),

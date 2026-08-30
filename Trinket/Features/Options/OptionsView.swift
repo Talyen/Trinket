@@ -38,12 +38,12 @@ struct OptionsView: View {
                     value: $options.musicVolume,
                     onLiveChange: { volume in
                         applyMusicVolumeLive(volume, scenePhase)
-                    }
+                    },
                 )
 
                 VolumeOptionRow(
                     title: "Sound Effects",
-                    value: $options.effectsVolume
+                    value: $options.effectsVolume,
                 )
 
                 Toggle(isOn: $options.hapticsEnabled) {
@@ -115,7 +115,7 @@ struct OptionsView: View {
         .accessibilityIdentifier(AccessibilityID.Screen.options)
         .alert(
             "Reset Game Progress?",
-            isPresented: $isResetConfirmationPresented
+            isPresented: $isResetConfirmationPresented,
         ) {
             Button("Reset Game Progress", role: .destructive) {
                 if !resetGameplayProgress() {
@@ -129,7 +129,7 @@ struct OptionsView: View {
                 This permanently clears your Campaign stages, Explore runs, Heroes and Companions, \
                 Items, and Homestead upgrades on this device. You'll choose a new starter Hero again. \
                 Options settings are kept.
-                """
+                """,
             )
         }
         .trinketFailureAlert("Action Failed", message: $actionErrorMessage)

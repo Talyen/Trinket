@@ -17,15 +17,15 @@ struct CombatantSliceEffectConfig: Equatable {
 
     static let productionLeftParticles = SliceBorderParticle.make(
         count: max(production.particleCount / 2, 16),
-        isPrimary: true
+        isPrimary: true,
     )
     static let productionRightParticles = SliceBorderParticle.make(
         count: max(production.particleCount / 2, 16),
         salt: 40,
-        isPrimary: false
+        isPrimary: false,
     )
     static let productionCutParticles = SliceCutParticle.make(
-        count: max(production.particleCount, 32)
+        count: max(production.particleCount, 32),
     )
 }
 
@@ -41,12 +41,12 @@ struct CombatantSliceEffect<Content: View>: View {
         .allowsHitTesting(false)
         .onAppear {
             CardDissolveTexture.prewarm(
-                cutAngleDegrees: CombatantSliceGeometry.angleDegrees
+                cutAngleDegrees: CombatantSliceGeometry.angleDegrees,
             )
         }
         .task {
             await CardDissolveTexture.prepare(
-                cutAngleDegrees: CombatantSliceGeometry.angleDegrees
+                cutAngleDegrees: CombatantSliceGeometry.angleDegrees,
             )
         }
     }
@@ -89,11 +89,11 @@ struct CombatantSliceEffect<Content: View>: View {
                 size: size,
                 isPrimary: true,
                 dissolveProgress: dissolveEased,
-                particles: leftParticles
+                particles: leftParticles,
             )
             .offset(
                 x: -normal.dx * gap / 2,
-                y: -normal.dy * gap / 2 - lift
+                y: -normal.dy * gap / 2 - lift,
             )
             .rotationEffect(.degrees(-twist), anchor: .center)
 
@@ -101,11 +101,11 @@ struct CombatantSliceEffect<Content: View>: View {
                 size: size,
                 isPrimary: false,
                 dissolveProgress: dissolveEased,
-                particles: rightParticles
+                particles: rightParticles,
             )
             .offset(
                 x: normal.dx * gap / 2,
-                y: normal.dy * gap / 2 + lift
+                y: normal.dy * gap / 2 + lift,
             )
             .rotationEffect(.degrees(twist), anchor: .center)
 
@@ -114,7 +114,7 @@ struct CombatantSliceEffect<Content: View>: View {
             SliceCutParticles(
                 crackProgress: crackT,
                 cardSize: size,
-                particles: cutParticles
+                particles: cutParticles,
             )
         }
         .frame(width: size.width, height: size.height)
@@ -124,7 +124,7 @@ struct CombatantSliceEffect<Content: View>: View {
     private func sliceFlashOverlay(
         size: CGSize,
         progress p: CGFloat,
-        delay: CGFloat
+        delay: CGFloat,
     ) -> some View {
         let drawDuration = min(max(config.crackDrawDuration, 0.001), max(delay, 0.001))
         let draw = min(max(p / drawDuration, 0), 1)
@@ -137,7 +137,7 @@ struct CombatantSliceEffect<Content: View>: View {
                     in: &context,
                     size: canvasSize,
                     drawProgress: draw,
-                    intensity: CGFloat(lineOpacity)
+                    intensity: CGFloat(lineOpacity),
                 )
             }
             .frame(width: size.width, height: size.height)
@@ -149,7 +149,7 @@ struct CombatantSliceEffect<Content: View>: View {
         size: CGSize,
         isPrimary: Bool,
         dissolveProgress: CGFloat,
-        particles: [SliceBorderParticle]
+        particles: [SliceBorderParticle],
     ) -> some View {
         let dissolveConfig = CardCastEffectConfiguration.sliceHalfDissolve
         let travelPad = dissolveConfig.particleDistance
@@ -172,7 +172,7 @@ struct CombatantSliceEffect<Content: View>: View {
                         cellSize: Int(dissolveConfig.dissolveCellSize.rounded()),
                         thresholdMidpoint: dissolveConfig.dissolveThresholdMidpoint,
                         thresholdContrast: dissolveConfig.dissolveThresholdContrast,
-                        cutAngleDegrees: CombatantSliceGeometry.angleDegrees
+                        cutAngleDegrees: CombatantSliceGeometry.angleDegrees,
                     )
                 }
                 .compositingGroup()
@@ -183,7 +183,7 @@ struct CombatantSliceEffect<Content: View>: View {
                     progress: dissolveProgress,
                     cardSize: size,
                     particles: particles,
-                    configuration: dissolveConfig
+                    configuration: dissolveConfig,
                 )
                 .frame(width: size.width + travelPad * 2, height: size.height + travelPad * 2)
             }
@@ -197,7 +197,7 @@ struct CombatantSliceEffect<Content: View>: View {
             .clipShape(TrinketDesign.cardShape)
             .mask(
                 CrackSliceMask(isPrimary: isPrimary)
-                    .frame(width: size.width, height: size.height)
+                    .frame(width: size.width, height: size.height),
             )
     }
 }
@@ -211,7 +211,7 @@ struct BattleSliceArtwork<Content: View>: View {
 
     init(
         config: CombatantSliceEffectConfig = .production,
-        @ViewBuilder content: () -> Content
+        @ViewBuilder content: () -> Content,
     ) {
         self.config = config
         self.content = content()
@@ -227,13 +227,13 @@ struct BattleSliceArtwork<Content: View>: View {
                         max(
                             timeline.date.timeIntervalSince(startDate)
                                 / BattleMotion.combatantSliceDuration,
-                            0
+                            0,
                         ),
-                        1
+                        1,
                     )
                     CombatantSliceEffect(
                         config: config,
-                        progress: CGFloat(progress)
+                        progress: CGFloat(progress),
                     ) {
                         content
                     }
@@ -266,7 +266,7 @@ private struct CrackSliceMask: Shape {
     func path(in rect: CGRect) -> Path {
         let normal = CGVector(
             dx: cos(CombatantSliceGeometry.angleRadians),
-            dy: -sin(CombatantSliceGeometry.angleRadians)
+            dy: -sin(CombatantSliceGeometry.angleRadians),
         )
         let extent = max(rect.width, rect.height) * 2.2
         let sign: CGFloat = isPrimary ? -1 : 1
@@ -294,7 +294,7 @@ private extension CardCastEffectConfiguration {
         dissolveDuration: 1, dissolveShrink: 0, particleDistance: 110, particleDistanceVariation: 50,
         particleDelay: 0.12, particleLifetime: 0.55, particleLifetimeVariation: 0.2, particleCurve: 0.85,
         particleOriginSpread: 1, particleSize: 3.0, particleSizeVariation: 2.6, fadeStart: 0.2,
-        particleAgeEasePower: 1.8, particleSizeShrink: 0.4, particleFadeExponent: 1.3, particlePathControl: 0.35
+        particleAgeEasePower: 1.8, particleSizeShrink: 0.4, particleFadeExponent: 1.3, particlePathControl: 0.35,
     )
 }
 
@@ -302,7 +302,7 @@ private func drawSliceLine(
     in context: inout GraphicsContext,
     size: CGSize,
     drawProgress: CGFloat,
-    intensity: CGFloat
+    intensity: CGFloat,
 ) {
     let lead = min(max(drawProgress, 0), 1)
     let pixels = CombatantSliceCrack.polylinePoints(toFraction: lead, size: size)
@@ -320,18 +320,18 @@ private func drawSliceLine(
         style: StrokeStyle(
             lineWidth: 2.6 * stableIntensity,
             lineCap: .round,
-            lineJoin: .round
-        )
+            lineJoin: .round,
+        ),
     )
     let tipRadius = 2.2 * stableIntensity
     let tipRect = CGRect(
         x: tip.x - tipRadius,
         y: tip.y - tipRadius,
         width: tipRadius * 2,
-        height: tipRadius * 2
+        height: tipRadius * 2,
     )
     context.fill(
         Path(ellipseIn: tipRect),
-        with: .color(TrinketDesign.Colors.battleSliceCrack.opacity(Double(intensity)))
+        with: .color(TrinketDesign.Colors.battleSliceCrack.opacity(Double(intensity))),
     )
 }

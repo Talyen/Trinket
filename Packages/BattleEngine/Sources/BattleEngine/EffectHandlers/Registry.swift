@@ -30,21 +30,21 @@ public enum EffectHandlers {
             appliedEffectKind: .nextHolyStrikeApplied,
             amount: 0,
             keyword: .holy,
-            summaryText: EffectMetadata.requiredBattleSummaryPhrase(for: .nextHolyStrike)
+            summaryText: EffectMetadata.requiredBattleSummaryPhrase(for: .nextHolyStrike),
         ),
         .nextStrikeDouble: FlagEffectHandler(
             flag: .nextStrikeDouble,
             appliedEffectKind: .nextStrikeDoubleApplied,
             amount: 0,
             keyword: .physical,
-            summaryText: EffectMetadata.requiredBattleSummaryPhrase(for: .nextStrikeDouble)
+            summaryText: EffectMetadata.requiredBattleSummaryPhrase(for: .nextStrikeDouble),
         ),
         .evadeNextHit: FlagEffectHandler(
             flag: .evadeNextHit,
             appliedEffectKind: .evadeNextHitApplied,
             amount: 0,
             keyword: .dodge,
-            summaryText: EffectMetadata.requiredBattleSummaryPhrase(for: .evadeNextHit)
+            summaryText: EffectMetadata.requiredBattleSummaryPhrase(for: .evadeNextHit),
         ),
         .convertManaToBlock: ShieldFromResourceHandler(mode: .convertManaToBlock, kind: .convertManaToBlock),
         .shieldFromMana: ShieldFromResourceHandler(mode: .shieldFromMana, kind: .shieldFromMana),
@@ -56,14 +56,14 @@ public enum EffectHandlers {
             appliedEffectKind: .criticalChanceApplied,
             amount: 100,
             keyword: .physical,
-            summaryText: EffectMetadata.requiredBattleSummaryPhrase(for: .nextStrikeCritical)
+            summaryText: EffectMetadata.requiredBattleSummaryPhrase(for: .nextStrikeCritical),
         ),
         .freezeNextAttacker: FlagEffectHandler(
             flag: .freezeNextAttacker,
             appliedEffectKind: .controlApplied,
             amount: 0,
             keyword: .freeze,
-            summaryText: EffectMetadata.requiredBattleSummaryPhrase(for: .freezeNextAttacker)
+            summaryText: EffectMetadata.requiredBattleSummaryPhrase(for: .freezeNextAttacker),
         ),
         .onHitDamage: OnHitDamageHandler(),
         .multiplyDoT: MultiplyDoTHandler(),

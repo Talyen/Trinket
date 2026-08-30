@@ -16,7 +16,7 @@ package extension BattleState {
         keyword: Keyword,
         appliedEffectSummaries: [String] = [],
         milestone: ActionEvent.Milestone? = nil,
-        isCritical: Bool = false
+        isCritical: Bool = false,
     ) -> ActionEvent {
         nextEventID += 1
         let event = ActionEvent(
@@ -35,7 +35,7 @@ package extension BattleState {
             keyword: keyword,
             appliedEffectSummaries: appliedEffectSummaries,
             milestone: milestone,
-            isCritical: isCritical
+            isCritical: isCritical,
         )
         if tracksEvents {
             events.append(event)
@@ -51,7 +51,7 @@ package extension BattleState {
             target: enemy,
             amount: 0,
             keyword: .physical,
-            milestone: milestone
+            milestone: milestone,
         )
     }
 

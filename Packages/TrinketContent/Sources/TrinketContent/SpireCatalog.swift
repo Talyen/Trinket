@@ -7,43 +7,43 @@ enum SpireCatalog {
             id: .ironVein,
             title: "Iron Vein",
             epithet: "Strike without ornament",
-            keyword: .physical
+            keyword: .physical,
         ),
         SpireDefinition(
             id: .cinderSpire,
             title: "Cinder Spire",
             epithet: "Heat that refuses to die",
-            keyword: .burn
+            keyword: .burn,
         ),
         SpireDefinition(
             id: .serpentHollow,
             title: "Serpent Hollow",
             epithet: "Slow certainty",
-            keyword: .poison
+            keyword: .poison,
         ),
         SpireDefinition(
             id: .sanguineCourt,
             title: "Sanguine Court",
             epithet: "Every cut remembers",
-            keyword: .bleed
+            keyword: .bleed,
         ),
         SpireDefinition(
             id: .aureateChoir,
             title: "Aureate Choir",
             epithet: "Light that judges",
-            keyword: .holy
+            keyword: .holy,
         ),
         SpireDefinition(
             id: .rimeVault,
             title: "Rime Vault",
             epithet: "Stillness that binds",
-            keyword: .freeze
+            keyword: .freeze,
         ),
         SpireDefinition(
             id: .resonanceHall,
             title: "Resonance Hall",
             epithet: "One blow that stops the world",
-            keyword: .stun
+            keyword: .stun,
         ),
     ]
 
@@ -87,8 +87,8 @@ enum SpireCatalog {
                     SpireFloor(
                         spireID: spire.id,
                         floor: floorIndex,
-                        enemyID: enemyID
-                    )
+                        enemyID: enemyID,
+                    ),
                 )
             }
             result[spire.id] = floors

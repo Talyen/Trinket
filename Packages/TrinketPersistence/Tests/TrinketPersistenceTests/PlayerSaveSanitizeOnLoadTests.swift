@@ -14,12 +14,12 @@ final class PlayerSaveSanitizeOnLoadTests {
         context = try PersistenceTestContext()
     }
 
-    @Test func ensureRequiredGraphPersistsSemanticSanitizeDiffs() throws {
+    @Test func `ensure required graph persists semantic sanitize diffs`() throws {
         let storeURL = context.storeURL()
         var dirty = PlayerSave.testSeed
         dirty.homestead.resources[.wood] = -12
         dirty.roster.equipmentLoadouts["knight"] = EquipmentLoadout(
-            itemIDsBySlot: [.weapon: "ghost-sword"]
+            itemIDsBySlot: [.weapon: "ghost-sword"],
         )
 
         try SaveTestSupport.writeRoot(dirty, to: storeURL)

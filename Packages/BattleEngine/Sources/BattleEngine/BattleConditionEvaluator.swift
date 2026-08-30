@@ -9,7 +9,7 @@ public enum BattleConditionEvaluator {
         enemy: Combatant,
         hero: Combatant,
         companion: Combatant,
-        context: BattleState
+        context: BattleState,
     ) -> Bool {
         switch condition {
         case .enemyBleeding:
@@ -34,8 +34,10 @@ public enum BattleConditionEvaluator {
         case .allyBelowHalfHealth:
             let heroHealth = context.roster.health(for: hero)
             let companionHealth = context.roster.health(for: companion)
-            let heroMax = context.roster.runtime(for: hero)?.maxHealth ?? hero.maxHealth
-            let companionMax = context.roster.runtime(for: companion)?.maxHealth ?? companion.maxHealth
+            let heroMaxHealth = context.roster.maxHealth(for: hero)
+            let companionMaxHealth = context.roster.maxHealth(for: companion)
+            let heroMax = heroMaxHealth > 0 ? heroMaxHealth : hero.maxHealth
+            let companionMax = companionMaxHealth > 0 ? companionMaxHealth : companion.maxHealth
             return (heroHealth > 0 && heroHealth * 2 < heroMax) || (companionHealth > 0 && companionHealth * 2 < companionMax)
         case .enemyHasBuff:
             return context.roster.activeEffects(for: enemy).contains(where: \.effect.isRemovableBuff)
@@ -48,14 +50,14 @@ public enum BattleConditionEvaluator {
         lowestHealthAlly(
             hero: context.roster.hero.combatant,
             companion: context.roster.companion.combatant,
-            context: context
+            context: context,
         )
     }
 
     public static func lowestHealthAlly(
         hero: Combatant,
         companion: Combatant,
-        context: BattleState
+        context: BattleState,
     ) -> Combatant {
         let heroHealth = context.roster.health(for: hero)
         let companionHealth = context.roster.health(for: companion)
@@ -76,7 +78,7 @@ public enum BattleConditionEvaluator {
     private static func hasDebuffKeyword(
         _ keyword: Keyword,
         on combatant: Combatant,
-        in context: BattleState
+        in context: BattleState,
     ) -> Bool {
         context.roster.activeEffects(for: combatant).contains { active in
             guard active.effect.keyword == keyword else { return false }
@@ -94,7 +96,7 @@ public enum BattleConditionEvaluator {
     private static func hasPendingControl(
         _ keyword: Keyword,
         on combatant: Combatant,
-        in context: BattleState
+        in context: BattleState,
     ) -> Bool {
         context.roster.activeEffects(for: combatant).contains { active in
             guard case let .controlMeter(meterKeyword, amount, threshold) = active.effect else { return false }

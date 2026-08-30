@@ -107,7 +107,7 @@ public struct BalanceTierStats: Sendable {
 public enum BalanceStatsAggregator {
     public static func summarize(
         report: BalanceSweepReport,
-        records: [BalanceBattleRecord]? = nil
+        records: [BalanceBattleRecord]? = nil,
     ) -> [BalanceTierStats] {
         let source = records ?? report.records
         let recordsByTier = Dictionary(grouping: source, by: \.tier)
@@ -115,7 +115,7 @@ public enum BalanceStatsAggregator {
             summarizeTier(
                 tier: tier,
                 records: recordsByTier[tier] ?? [],
-                config: report.config
+                config: report.config,
             )
         }
     }
@@ -123,7 +123,7 @@ public enum BalanceStatsAggregator {
     private static func summarizeTier(
         tier: SimulationPowerTier,
         records: [BalanceBattleRecord],
-        config: BalanceSweepConfig
+        config: BalanceSweepConfig,
     ) -> BalanceTierStats {
         let decided = records.filter(\.result.isDecided)
         let timeoutCount = records.count { $0.result.timedOut }
@@ -143,14 +143,14 @@ public enum BalanceStatsAggregator {
             records: decided,
             id: \.heroID,
             peerRate: overallRate,
-            threshold: threshold
+            threshold: threshold,
         )
         let heroRates = Dictionary(uniqueKeysWithValues: heroOverall.map { ($0.id, $0.winRate) })
         let companionOverall = BalanceIdentityMargins.ownerMargins(
             records: decided,
             id: \.companionID,
             peerRate: overallRate,
-            threshold: threshold
+            threshold: threshold,
         )
         let companionRates = Dictionary(uniqueKeysWithValues: companionOverall.map { ($0.id, $0.winRate) })
 
@@ -170,8 +170,8 @@ public enum BalanceStatsAggregator {
                 heroOverall: heroOverall,
                 companionOverall: companionOverall,
                 heroRates: heroRates,
-                companionRates: companionRates
-            )
+                companionRates: companionRates,
+            ),
         )
     }
 

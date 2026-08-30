@@ -21,8 +21,8 @@ package extension CombatTriggerEngine {
                     target: enemy,
                     keyword: .physical,
                     sourceActorID: source.id,
-                    options: .flatReaction
-                )
+                    options: .flatReaction,
+                ),
             ).events
             guard context.roster.enemy.isAlive else { return (events, true) }
         }
@@ -43,11 +43,11 @@ package extension CombatTriggerEngine {
                     "bleedingEnemyActionSkipChancePercent",
                     for: source,
                     fallback: "Hamstring Shot",
-                    in: context
+                    in: context,
                 ),
                 target: enemy,
                 amount: 0,
-                keyword: .bleed
+                keyword: .bleed,
             ))
             return (events, true)
         }
@@ -55,7 +55,7 @@ package extension CombatTriggerEngine {
     }
 
     private static func companionNegateEnemyAttack(
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> (events: [ActionEvent], cancelled: Bool)? {
         let companion = context.roster.companion
         guard companion.isAlive else { return nil }
@@ -66,7 +66,7 @@ package extension CombatTriggerEngine {
             let negated = companionTriggers.negateFirstEnemyAttack
                 || BattleChance.succeeds(
                     probability: companionTriggers.negateFirstEnemyAttackChance,
-                    using: &context.rng
+                    using: &context.rng,
                 )
             if negated {
                 let abilityName = companionTriggers.negateFirstEnemyAttack
@@ -74,13 +74,13 @@ package extension CombatTriggerEngine {
                         "negateFirstEnemyAttack",
                         for: companion.combatant,
                         fallback: "Warning Bark",
-                        in: context
+                        in: context,
                     )
                     : triggerAbilityName(
                         "negateFirstEnemyAttackChance",
                         for: companion.combatant,
                         fallback: "Shadow Shift",
-                        in: context
+                        in: context,
                     )
                 return ([context.nextEvent(
                     kind: .effect,
@@ -89,7 +89,7 @@ package extension CombatTriggerEngine {
                     abilityName: abilityName,
                     target: context.roster.enemy.combatant,
                     amount: 0,
-                    keyword: .dodge
+                    keyword: .dodge,
                 )], true)
             }
         }
@@ -113,7 +113,7 @@ package extension CombatTriggerEngine {
            context.companionModifiers.triggers.frozenEnemyMissChanceVsCompanionPercent > 0,
            BattleChance.succeeds(
                probability: context.companionModifiers.triggers.frozenEnemyMissChanceVsCompanionPercent,
-               using: &context.rng
+               using: &context.rng,
            ) {
             events.append(context.nextEvent(
                 kind: .effect,
@@ -123,11 +123,11 @@ package extension CombatTriggerEngine {
                     "frozenEnemyMissChanceVsCompanionPercent",
                     for: context.roster.companion.combatant,
                     fallback: "Subzero Mist",
-                    in: context
+                    in: context,
                 ),
                 target: abilityTarget,
                 amount: 0,
-                keyword: .dodge
+                keyword: .dodge,
             ))
             return (events, true)
         }
@@ -136,7 +136,7 @@ package extension CombatTriggerEngine {
            context.companionModifiers.triggers.swapAndDodgeForHeroChance > 0,
            BattleChance.succeeds(
                probability: context.companionModifiers.triggers.swapAndDodgeForHeroChance,
-               using: &context.rng
+               using: &context.rng,
            ) {
             context.prependEffect(.evadeNextHit, to: context.roster.hero.combatant, remainingTurns: 0)
         }
@@ -145,7 +145,7 @@ package extension CombatTriggerEngine {
 
     private static func poisonedEnemyMiss(
         abilityTarget: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> (events: [ActionEvent], cancelled: Bool)? {
         let enemy = context.enemy
         guard context.roster.hasAffliction(.poison, on: enemy) else {
@@ -169,11 +169,11 @@ package extension CombatTriggerEngine {
                 "poisonedEnemyMissChancePercent",
                 for: source,
                 fallback: "Paralytic Poison",
-                in: context
+                in: context,
             ),
             target: abilityTarget,
             amount: 0,
-            keyword: .dodge
+            keyword: .dodge,
         )], true)
     }
 
@@ -189,8 +189,8 @@ package extension CombatTriggerEngine {
                     "onEnemyAbilityGold",
                     for: context.roster.companion.combatant,
                     fallback: "Fetch!",
-                    in: context
-                )
+                    in: context,
+                ),
             ))
         }
         return events
@@ -212,9 +212,9 @@ package extension CombatTriggerEngine {
                         "onEnemyStunRecoverDrawCard",
                         for: member.combatant,
                         fallback: "Second Wind",
-                        in: context
+                        in: context,
                     ),
-                    in: &context
+                    in: &context,
                 ))
             }
             if triggers.onEnemyStunRecoverApplyAfflictions > 0, context.roster.health(for: enemy) > 0 {
@@ -225,7 +225,7 @@ package extension CombatTriggerEngine {
                     to: enemy,
                     sourceActorID: member.id,
                     dealImmediateDamage: false,
-                    suppressAffixReactions: true
+                    suppressAffixReactions: true,
                 ))
                 events.append(contentsOf: context.applyDecayingDoT(
                     keyword: .burn,
@@ -233,7 +233,7 @@ package extension CombatTriggerEngine {
                     to: enemy,
                     sourceActorID: member.id,
                     dealImmediateDamage: false,
-                    suppressAffixReactions: true
+                    suppressAffixReactions: true,
                 ))
                 events.append(contentsOf: DoTApplicator.applyBleed(
                     potency: potency,
@@ -241,7 +241,7 @@ package extension CombatTriggerEngine {
                     sourceActorID: member.id,
                     dealImmediateDamage: false,
                     suppressAffixReactions: true,
-                    in: &context
+                    in: &context,
                 ))
             }
         }

@@ -13,11 +13,11 @@ struct PlayBattleLaunchTests {
             input: input,
             rngSeed: 0,
             rosterState: .testSeed,
-            inventoryState: .testSeed
+            inventoryState: .testSeed,
         )
     }
 
-    @Test func randomBattleResolvesDeterministicNonBossEncounter() throws {
+    @Test func `random battle resolves deterministic non boss encounter`() throws {
         let stage = try #require(
             GameContent.chapters
                 .flatMap(\.stages)
@@ -26,10 +26,10 @@ struct PlayBattleLaunchTests {
                         return true
                     }
                     return false
-                }
+                },
         )
         let encounter = try #require(
-            JourneyPlayMode.resolvedEncounter(for: stage, worldSeed: 0, partyAverageLevel: 9999)
+            JourneyPlayMode.resolvedEncounter(for: stage, worldSeed: 0, partyAverageLevel: 9999),
         )
         let expectedEnemyID = try #require(stage.resolvedBattleEnemyID(worldSeed: 0))
 
@@ -39,12 +39,12 @@ struct PlayBattleLaunchTests {
         #expect(stage.encounter.battleEnemyID == nil)
 
         let again = try #require(
-            JourneyPlayMode.resolvedEncounter(for: stage, worldSeed: 0, partyAverageLevel: 9999)
+            JourneyPlayMode.resolvedEncounter(for: stage, worldSeed: 0, partyAverageLevel: 9999),
         )
         #expect(again.combatant.id == encounter.combatant.id)
     }
 
-    @Test func assembleAppliesUniversalDamageModifierToEnemyOnly() throws {
+    @Test func `assemble applies universal damage modifier to enemy only`() throws {
         let hero = try #require(GameContent.heroes.first)
         let companion = try #require(GameContent.companions.first)
         let enemy = try #require(GameContent.enemies.first?.combatant)
@@ -55,11 +55,11 @@ struct PlayBattleLaunchTests {
                 hero: hero,
                 companion: companion,
                 enemy: enemy,
-                universalModifiers: [modifier]
+                universalModifiers: [modifier],
             ),
             rngSeed: 0,
             rosterState: .testSeed,
-            inventoryState: .testSeed
+            inventoryState: .testSeed,
         )
 
         let configuration = launch.configuration
@@ -69,7 +69,7 @@ struct PlayBattleLaunchTests {
         #expect(configuration.enemyModifiers.damageDealtBonus(for: .burn) == 1)
     }
 
-    @Test func assembleCarriesLabyrinthModifiersOnPresentation() throws {
+    @Test func `assemble carries labyrinth modifiers on presentation`() throws {
         let hero = try #require(GameContent.heroes.first)
         let companion = try #require(GameContent.companions.first)
         let enemy = try #require(GameContent.enemies.first?.combatant)
@@ -82,17 +82,17 @@ struct PlayBattleLaunchTests {
                 hero: hero,
                 companion: companion,
                 enemy: enemy,
-                labyrinthModifiers: modifiers
+                labyrinthModifiers: modifiers,
             ),
             rngSeed: 0,
             rosterState: .testSeed,
-            inventoryState: .testSeed
+            inventoryState: .testSeed,
         )
 
         #expect(launch.presentation.labyrinthModifiers == modifiers)
     }
 
-    @Test func assembleBakesGoldFindAndClaimedStagePolicy() throws {
+    @Test func `assemble bakes gold find and claimed stage policy`() throws {
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         let wolf = try #require(GameContent.companions.first { $0.id == "wolf" })
         let stage = try #require(GameContent.chapters[0].stages.first)
@@ -105,7 +105,7 @@ struct PlayBattleLaunchTests {
                 hero: knight,
                 companion: wolf,
                 enemy: enemy,
-                stageRewardsAlreadyClaimed: true
+                stageRewardsAlreadyClaimed: true,
             ),
             runKey: BattleRunKey("journey|\(stage.id)"),
             rngSeed: 0,
@@ -113,7 +113,7 @@ struct PlayBattleLaunchTests {
             inventoryState: .testSeed,
             homesteadState: homestead,
             hasProgressionRewards: true,
-            musicStageID: stage.id
+            musicStageID: stage.id,
         )
 
         #expect(launch.presentation.goldFindPercent == homestead.effects.goldFindPercent)
@@ -121,7 +121,7 @@ struct PlayBattleLaunchTests {
         #expect(launch.presentation.stageRewardsAlreadyClaimed)
     }
 
-    @Test func assemblePreservesPreScaledEnemyStats() throws {
+    @Test func `assemble preserves pre scaled enemy stats`() throws {
         let chapter = try #require(GameContent.chapters.first)
         let battleStages = chapter.stages.filter(\.encounter.isCombat)
         let stage = try #require(battleStages.last)
@@ -139,14 +139,14 @@ struct PlayBattleLaunchTests {
                 hero: knight,
                 companion: wolf,
                 enemy: scaledEnemy,
-                enemyEncounterLevel: encounterLevel
+                enemyEncounterLevel: encounterLevel,
             ),
             runKey: BattleRunKey("journey|\(stage.id)"),
             rngSeed: 0,
             rosterState: .testSeed,
             inventoryState: .testSeed,
             hasProgressionRewards: true,
-            musicStageID: stage.id
+            musicStageID: stage.id,
         ).configuration
 
         let enemy = try #require(configuration.enemy)
@@ -155,13 +155,13 @@ struct PlayBattleLaunchTests {
         #expect(configuration.enemyEncounterLevel == encounterLevel)
     }
 
-    @Test func assembleBakesExperienceAndMaterialAwards() throws {
+    @Test func `assemble bakes experience and material awards`() throws {
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         let wolf = try #require(GameContent.companions.first { $0.id == "wolf" })
         let stageReward = StageReward(
             gold: 12,
             itemTemplateIDs: [],
-            materialRewards: [ResourceAmount(.wood, 8), ResourceAmount(.stone, 3)]
+            materialRewards: [ResourceAmount(.wood, 8), ResourceAmount(.stone, 3)],
         )
 
         let launch = PlayBattleLaunch.assembleLaunch(
@@ -169,12 +169,12 @@ struct PlayBattleLaunchTests {
                 hero: knight,
                 companion: wolf,
                 enemyEncounterLevel: 2,
-                stageReward: stageReward
+                stageReward: stageReward,
             ),
             rngSeed: 0,
             rosterState: .testSeed,
             inventoryState: .testSeed,
-            hasProgressionRewards: true
+            hasProgressionRewards: true,
         )
 
         #expect(launch.presentation.heroExperienceAward > 0)
@@ -182,7 +182,7 @@ struct PlayBattleLaunchTests {
         #expect(launch.presentation.materialRewards == stageReward.materialRewards)
     }
 
-    @Test func assembleResolvesRewardItemsFromPendingOrStagePolicy() throws {
+    @Test func `assemble resolves reward items from pending or stage policy`() throws {
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         let wolf = try #require(GameContent.companions.first { $0.id == "wolf" })
         let enemy = try #require(GameContent.enemies.first?.combatant)
@@ -193,7 +193,7 @@ struct PlayBattleLaunchTests {
             baseType: baseType,
             rarity: .basic,
             displayName: "Pending Find",
-            affixes: []
+            affixes: [],
         )
 
         let withPending = makeLaunch(
@@ -202,13 +202,13 @@ struct PlayBattleLaunchTests {
                 companion: wolf,
                 enemy: enemy,
                 stageReward: StageReward(gold: 10, itemTemplateIDs: ["shortsword-basic"]),
-                pendingRewardItem: pendingItem
-            )
+                pendingRewardItem: pendingItem,
+            ),
         )
         #expect(withPending.presentation.rewardItems == [pendingItem])
 
         let noPendingNilStage = makeLaunch(
-            BattleLaunchInput(hero: knight, companion: wolf, enemy: enemy)
+            BattleLaunchInput(hero: knight, companion: wolf, enemy: enemy),
         )
         #expect(noPendingNilStage.presentation.rewardItems.isEmpty)
 
@@ -217,8 +217,8 @@ struct PlayBattleLaunchTests {
                 hero: knight,
                 companion: wolf,
                 enemy: enemy,
-                stageReward: StageReward(gold: 0, itemTemplateIDs: [])
-            )
+                stageReward: StageReward(gold: 0, itemTemplateIDs: []),
+            ),
         )
         #expect(noPendingEmptyStage.presentation.rewardItems.isEmpty)
 
@@ -228,8 +228,8 @@ struct PlayBattleLaunchTests {
                 hero: knight,
                 companion: wolf,
                 enemy: enemy,
-                stageReward: StageReward(gold: 10, itemTemplateIDs: ["shortsword-basic"])
-            )
+                stageReward: StageReward(gold: 10, itemTemplateIDs: ["shortsword-basic"]),
+            ),
         )
         #expect(fromStage.presentation.rewardItems == [template])
     }

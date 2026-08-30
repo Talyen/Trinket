@@ -18,7 +18,7 @@ public extension CombatTraitTriggers {
             revival: RevivalTriggers(from: values),
             cleanse: CleanseTriggers(from: values),
             enemyTurn: EnemyTurnTriggers(from: values),
-            onHit: OnHitTriggers(from: values)
+            onHit: OnHitTriggers(from: values),
         )
     }
 

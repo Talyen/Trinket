@@ -103,7 +103,7 @@ struct StageBattlePartyPickerSheet: View {
         .trinketSensoryFeedback(
             .selection,
             trigger: selectionFeedbackTrigger,
-            enabled: options.hapticsEnabled
+            enabled: options.hapticsEnabled,
         )
         .trinketFailureAlert("Couldn't Save Progress", message: $persistError)
     }
@@ -111,7 +111,7 @@ struct StageBattlePartyPickerSheet: View {
     private func partyShelf(for slot: BattlePartySlot) -> some View {
         let allCombatants = orderedCombatants(for: slot)
         let shelfCombatants = Array(
-            allCombatants.prefix(TrinketDesign.Metrics.collectionShelfPreviewLimit)
+            allCombatants.prefix(TrinketDesign.Metrics.collectionShelfPreviewLimit),
         )
 
         return CategoryBrowseShelf(
@@ -119,7 +119,7 @@ struct StageBattlePartyPickerSheet: View {
             sectionAccessibilityIdentifier: AccessibilityID.Play.battlePartyShelf(for: slot.title),
             shelfContentIdentity: shelfCombatants.map(\.id).joined(separator: ","),
             shelfAnimation: TrinketMotion.Interaction.progressArrival,
-            totalCount: allCombatants.count
+            totalCount: allCombatants.count,
         ) {
             BattlePartySlotGridView(slot: slot, spire: spire)
         } content: {
@@ -140,7 +140,7 @@ struct StageBattlePartyPickerSheet: View {
             CombatantCard(
                 combatant: combatant,
                 showsName: false,
-                isSelected: selected
+                isSelected: selected,
             )
             .collectionShelfCardWidth()
         }
@@ -149,8 +149,8 @@ struct StageBattlePartyPickerSheet: View {
         .accessibilityIdentifier(
             AccessibilityID.Play.battlePartyOption(
                 for: slot.title,
-                combatantID: combatant.id
-            )
+                combatantID: combatant.id,
+            ),
         )
     }
 
@@ -196,23 +196,23 @@ private struct BattlePartySlotGridView: View {
             accessibilityIdentifier: { combatant in
                 AccessibilityID.Play.battlePartyOption(
                     for: slot.title,
-                    combatantID: combatant.id
+                    combatantID: combatant.id,
                 )
             },
             artworkNameProvider: { $0.artReference?.thumbnailImageName ?? $0.artReference?.imageName },
             card: { combatant, isSelected in
                 CombatantCard(
                     combatant: combatant,
-                    isSelected: isSelected
+                    isSelected: isSelected,
                 )
-            }
+            },
         )
         .navigationTitle(slot.sectionTitle)
         .navigationBarTitleDisplayMode(.inline)
         .trinketSensoryFeedback(
             .selection,
             trigger: selectionFeedbackTrigger,
-            enabled: options.hapticsEnabled
+            enabled: options.hapticsEnabled,
         )
         .trinketFailureAlert("Couldn't Save Progress", message: $persistError)
     }

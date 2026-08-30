@@ -48,7 +48,7 @@ public extension GameContent {
 
     static func pickMysteryEvent(
         context: MysteryEventPickContext = .excludingCorruptionAltar,
-        using randomNumberGenerator: inout some RandomNumberGenerator
+        using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> MysteryEvent {
         MysteryEventPool.pickMysteryEvent(context: context, using: &randomNumberGenerator)
     }
@@ -56,14 +56,14 @@ public extension GameContent {
     static func resolveMysteryEncounterEvent(
         authored: MysteryEvent?,
         context: MysteryEventPickContext = .excludingCorruptionAltar,
-        using randomNumberGenerator: inout some RandomNumberGenerator
+        using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> MysteryEvent {
         authored ?? pickMysteryEvent(context: context, using: &randomNumberGenerator)
     }
 
     static func authoredMysteryOrRecruitEvent(
         forcedEventID: String? = nil,
-        stage: Stage
+        stage: Stage,
     ) -> MysteryEvent? {
         forcedEventID.flatMap {
             mysteryEvent(matching: $0) ?? recruitEvent(matching: $0)
@@ -75,7 +75,7 @@ public extension GameContent {
         worldSeed: UInt64,
         authored: MysteryEvent?,
         pinnedEventID: String? = nil,
-        context: MysteryEventPickContext = .excludingCorruptionAltar
+        context: MysteryEventPickContext = .excludingCorruptionAltar,
     ) -> MysteryEvent {
         if let authored {
             return authored
@@ -85,12 +85,12 @@ public extension GameContent {
             return pinned
         }
         var randomNumberGenerator = SeededRandomNumberGenerator(
-            seed: encounterSeed(worldSeed, salt: "journey-mystery-\(stageID)")
+            seed: encounterSeed(worldSeed, salt: "journey-mystery-\(stageID)"),
         )
         return resolveMysteryEncounterEvent(
             authored: nil,
             context: context,
-            using: &randomNumberGenerator
+            using: &randomNumberGenerator,
         )
     }
 
@@ -99,14 +99,14 @@ public extension GameContent {
         worldSeed: UInt64,
         forcedEventID: String? = nil,
         pinnedEventID: String? = nil,
-        context: MysteryEventPickContext = .excludingCorruptionAltar
+        context: MysteryEventPickContext = .excludingCorruptionAltar,
     ) -> MysteryEvent {
         resolveJourneyMysteryEvent(
             stageID: stage.id,
             worldSeed: worldSeed,
             authored: authoredMysteryOrRecruitEvent(forcedEventID: forcedEventID, stage: stage),
             pinnedEventID: pinnedEventID,
-            context: context
+            context: context,
         )
     }
 
@@ -115,7 +115,7 @@ public extension GameContent {
         worldSeed: UInt64,
         forcedEventID: String?,
         pinnedEventID: String? = nil,
-        context: MysteryEventPickContext = .excludingCorruptionAltar
+        context: MysteryEventPickContext = .excludingCorruptionAltar,
     ) -> MysteryEvent {
         if let forcedEventID,
            let forced = mysteryEvent(matching: forcedEventID) ?? recruitEvent(matching: forcedEventID) {
@@ -126,18 +126,18 @@ public extension GameContent {
             return pinned
         }
         var randomNumberGenerator = SeededRandomNumberGenerator(
-            seed: encounterSeed(worldSeed, salt: "labyrinth-mystery-\(nodeID)")
+            seed: encounterSeed(worldSeed, salt: "labyrinth-mystery-\(nodeID)"),
         )
         return resolveMysteryEncounterEvent(
             authored: nil,
             context: context,
-            using: &randomNumberGenerator
+            using: &randomNumberGenerator,
         )
     }
 
     static func syntheticLabyrinthStage(
         nodeID: String,
-        encounter: StageEncounter
+        encounter: StageEncounter,
     ) -> Stage {
         Stage(
             id: nodeID,
@@ -145,7 +145,7 @@ public extension GameContent {
             chapterNumber: 0,
             stageNumber: 0,
             encounter: encounter,
-            rewards: .empty
+            rewards: .empty,
         )
     }
 
@@ -155,7 +155,7 @@ public extension GameContent {
 
     static func pickRandomNonBossEnemyID(forStageID stageID: String, worldSeed: UInt64) -> String? {
         var randomNumberGenerator = SeededRandomNumberGenerator(
-            seed: encounterSeed(worldSeed, salt: "random-battle-\(stageID)")
+            seed: encounterSeed(worldSeed, salt: "random-battle-\(stageID)"),
         )
         return nonBossEnemies
             .map(\.id)
@@ -167,14 +167,14 @@ public extension GameContent {
         encounterID: String,
         worldSeed: UInt64,
         unlockedHeroIDs: Set<String>,
-        unlockedCompanionIDs: Set<String>
+        unlockedCompanionIDs: Set<String>,
     ) -> RecruitEncounterResolution {
         let roleFilter: Combatant.Role? =
             configuredEventID == StageEncounter.randomCompanionRecruitID ? .companion : nil
         let eligible = RecruitEventPool.eligible(
             unlockedHeroIDs: unlockedHeroIDs,
             unlockedCompanionIDs: unlockedCompanionIDs,
-            role: roleFilter
+            role: roleFilter,
         )
         let configuredID = configuredEventID.flatMap { id -> String? in
             guard !id.isEmpty, id != StageEncounter.randomCompanionRecruitID else { return nil }
@@ -187,7 +187,7 @@ public extension GameContent {
         }
 
         var randomNumberGenerator = SeededRandomNumberGenerator(
-            seed: encounterSeed(worldSeed, salt: "recruit-resolution-\(encounterID)")
+            seed: encounterSeed(worldSeed, salt: "recruit-resolution-\(encounterID)"),
         )
         if let recruit = eligible.randomElement(using: &randomNumberGenerator) {
             return .recruit(recruit)
@@ -199,7 +199,7 @@ public extension GameContent {
         _ stage: Stage,
         worldSeed: UInt64,
         unlockedHeroIDs: Set<String>,
-        unlockedCompanionIDs: Set<String>
+        unlockedCompanionIDs: Set<String>,
     ) -> Stage {
         guard case .recruit = stage.encounter else { return stage }
         let resolution = resolveRecruitEncounter(
@@ -207,7 +207,7 @@ public extension GameContent {
             encounterID: stage.id,
             worldSeed: worldSeed,
             unlockedHeroIDs: unlockedHeroIDs,
-            unlockedCompanionIDs: unlockedCompanionIDs
+            unlockedCompanionIDs: unlockedCompanionIDs,
         )
         return Stage(
             id: stage.id,
@@ -215,7 +215,7 @@ public extension GameContent {
             chapterNumber: stage.chapterNumber,
             stageNumber: stage.stageNumber,
             encounter: resolution.stageEncounter,
-            rewards: stage.rewards
+            rewards: stage.rewards,
         )
     }
 

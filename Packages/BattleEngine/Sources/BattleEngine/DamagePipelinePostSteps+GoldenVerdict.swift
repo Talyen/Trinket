@@ -7,12 +7,12 @@ package extension DamagePipeline {
         source: Combatant,
         sourceActorID: String,
         triggers: CombatTraitTriggers,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) {
         guard state.buildupDamage > 0, triggers.holyStunBuildupPercent > 0 else { return }
         let buildup = CombatRounding.scaled(
             state.buildupDamage,
-            multiplier: triggers.holyStunBuildupPercent
+            multiplier: triggers.holyStunBuildupPercent,
         )
         let stunEvents = ControlMeterEngine.applyMeterCharge(
             buildup,
@@ -20,7 +20,7 @@ package extension DamagePipeline {
             to: state.combatant,
             sourceActorID: sourceActorID,
             applyFightPacing: false,
-            in: &context
+            in: &context,
         )
         state.damageEvents.append(contentsOf: stunEvents)
         guard triggers.holyTriggeredStunGoldFlat > 0,
@@ -35,8 +35,8 @@ package extension DamagePipeline {
                 "holyTriggeredStunGoldFlat",
                 for: source,
                 fallback: "Golden Verdict",
-                in: context
-            )
+                in: context,
+            ),
         ))
     }
 }

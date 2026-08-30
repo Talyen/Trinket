@@ -2,7 +2,7 @@ import Testing
 @testable import BattleEngine
 
 struct BattleChanceTests {
-    @Test func probabilityEndpointsDoNotDependOnRandomEndpoint() {
+    @Test func `probability endpoints do not depend on random endpoint`() {
         var maximum = EndpointRandomNumberGenerator(value: .max)
         var minimum = EndpointRandomNumberGenerator(value: .min)
 

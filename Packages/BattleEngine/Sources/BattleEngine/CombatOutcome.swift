@@ -10,7 +10,7 @@ public struct CombatOutcome: Equatable {
     public init(
         healthDelta: Int = 0,
         events: [ActionEvent] = [],
-        flags: Set<CombatFlag> = []
+        flags: Set<CombatFlag> = [],
     ) {
         self.healthDelta = healthDelta
         self.events = events
@@ -63,7 +63,7 @@ extension CombatOutcome {
         return CombatOutcome(
             healthDelta: -state.healthLost,
             events: state.damageEvents,
-            flags: flags
+            flags: flags,
         )
     }
 }

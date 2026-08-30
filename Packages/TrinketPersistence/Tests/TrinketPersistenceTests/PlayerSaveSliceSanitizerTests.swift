@@ -18,7 +18,7 @@ struct PlayerSaveSliceSanitizerTests {
         .roster,
         .labyrinth,
     ])
-    private func sliceScopedSanitizeMatchesFullSanitize(_ sliceCase: SliceEqualityCase) throws {
+    private func `slice scoped sanitize matches full sanitize`(_ sliceCase: SliceEqualityCase) throws {
         var save = PlayerSave.fresh
         let slice: PlayerSaveSlice
         var labyrinthNodeID: String?
@@ -35,7 +35,7 @@ struct PlayerSaveSliceSanitizerTests {
                     baseType: weaponBase,
                     rarity: .basic,
                     displayName: "Test Sword",
-                    affixes: []
+                    affixes: [],
                 ),
             ])
             slice = .inventory
@@ -54,7 +54,7 @@ struct PlayerSaveSliceSanitizerTests {
                 clusterID: node.clusterID,
                 outgoingIDs: node.outgoingIDs,
                 isCleared: node.isCleared,
-                isRevealed: true
+                isRevealed: true,
             )
             slice = .labyrinth
             labyrinthNodeID = nodeID
@@ -63,7 +63,7 @@ struct PlayerSaveSliceSanitizerTests {
         let full = PlayerSaveSanitizer.sanitize(save)
         let scoped = PlayerSaveSanitizer.sanitize(
             save,
-            changedSlices: .sanitizeTargets(for: slice)
+            changedSlices: .sanitizeTargets(for: slice),
         )
 
         #expect(full == scoped)
@@ -72,13 +72,13 @@ struct PlayerSaveSliceSanitizerTests {
         }
     }
 
-    @Test func inventoryAndRosterSanitizeTargetsDoNotExpandToLabyrinth() {
+    @Test func `inventory and roster sanitize targets do not expand to labyrinth`() {
         #expect(PlayerSaveSlice.sanitizeTargets(for: [.inventory]) == [.inventory, .roster])
         #expect(PlayerSaveSlice.sanitizeTargets(for: [.roster]) == [.roster])
         #expect(PlayerSaveSlice.sanitizeTargets(for: [.labyrinth]) == [.labyrinth])
     }
 
-    @Test func rosterSanitizeLeavesLabyrinthNodesForExplicitLabyrinthSlice() {
+    @Test func `roster sanitize leaves labyrinth nodes for explicit labyrinth slice`() {
         var save = PlayerSave.fresh
         save.labyrinth.ensureMap(seed: 4)
         let nodeID = save.labyrinth.reachableNodeIDs().first ?? save.labyrinth.nodes.keys.min()
@@ -94,21 +94,21 @@ struct PlayerSaveSliceSanitizerTests {
             clusterID: node.clusterID,
             outgoingIDs: node.outgoingIDs,
             isCleared: node.isCleared,
-            isRevealed: true
+            isRevealed: true,
         )
         save.roster.gold = 40
 
         let full = PlayerSaveSanitizer.sanitize(save)
         let rosterExpanded = PlayerSaveSanitizer.sanitize(
             save,
-            changedSlices: .sanitizeTargets(for: [.roster])
+            changedSlices: .sanitizeTargets(for: [.roster]),
         )
 
         #expect(full.labyrinth.nodes[nodeID]?.type == .mystery)
         #expect(rosterExpanded.labyrinth.nodes[nodeID]?.type == .event)
     }
 
-    @Test func persistTargetsIncludeLabyrinthSeedPinAfterHomesteadMutation() {
+    @Test func `persist targets include labyrinth seed pin after homestead mutation`() {
         var snapshot = PlayerSave.fresh
         snapshot.labyrinth.worldSeed = 0
         var candidate = snapshot
@@ -120,7 +120,7 @@ struct PlayerSaveSliceSanitizerTests {
         let changedSlices = PlayerSaveSlice.changed(
             between: snapshot,
             and: candidate,
-            within: PlayerSaveSlice.persistTargets(for: sanitizeSlices)
+            within: PlayerSaveSlice.persistTargets(for: sanitizeSlices),
         )
 
         #expect(mutationSlices == .homestead)
@@ -129,13 +129,13 @@ struct PlayerSaveSliceSanitizerTests {
         #expect(changedSlices.contains(.labyrinth))
     }
 
-    @Test @MainActor func homesteadMutationPersistsSanitizerLabyrinthWorldSeedPin() throws {
+    @Test @MainActor func `homestead mutation persists sanitizer labyrinth world seed pin`() throws {
         let context = try PersistenceTestContext()
         let storeURL = context.storeURL()
         let store = try PlayerSaveStore(
             storeURL: storeURL,
             disableCloudSync: true,
-            persistSaveImmediately: true
+            persistSaveImmediately: true,
         )
         var snapshot = store.currentSave
         snapshot.labyrinth.worldSeed = 0

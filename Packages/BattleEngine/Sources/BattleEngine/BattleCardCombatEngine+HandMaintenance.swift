@@ -5,7 +5,7 @@ import TrinketCore
 extension BattleCardCombatEngine {
     static func purgeControlledOwnerCards(
         for owner: BattleParticipant,
-        context: inout BattleState
+        context: inout BattleState,
     ) {
         guard owner.isPartyMember else { return }
 

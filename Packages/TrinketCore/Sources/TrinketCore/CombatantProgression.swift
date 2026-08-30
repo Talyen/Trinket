@@ -13,7 +13,7 @@ public struct CombatantProgression: Equatable, Hashable, Codable, Sendable {
     public static let initial = Self(
         level: 1,
         currentXP: 0,
-        requiredXP: requiredXP(forLevel: 1)
+        requiredXP: requiredXP(forLevel: 1),
     )
 
     public static func at(level: Int) -> Self {
@@ -21,7 +21,7 @@ public struct CombatantProgression: Equatable, Hashable, Codable, Sendable {
         return Self(
             level: clamped,
             currentXP: 0,
-            requiredXP: requiredXP(forLevel: clamped)
+            requiredXP: requiredXP(forLevel: clamped),
         )
     }
 
@@ -52,7 +52,7 @@ public struct CombatantProgression: Equatable, Hashable, Codable, Sendable {
         return Self(
             level: nextLevel,
             currentXP: nextXP,
-            requiredXP: nextRequiredXP
+            requiredXP: nextRequiredXP,
         )
     }
 

@@ -46,7 +46,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         companionBleedDamageDealtBonus: Int = 0,
         triggers: CombatTraitTriggers = CombatTraitTriggers(),
         traitDisplayName: String? = nil,
-        triggerAbilityNames: [String: String] = [:]
+        triggerAbilityNames: [String: String] = [:],
     ) {
         self.statBonuses = statBonuses
         self.maximumHealthBonus = maximumHealthBonus

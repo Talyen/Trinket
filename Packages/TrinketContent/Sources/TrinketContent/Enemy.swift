@@ -13,7 +13,7 @@ public struct Enemy: Identifiable, Hashable, Sendable {
         combatant: Combatant,
         traitID: String,
         isBoss: Bool = false,
-        faction: EnemyFaction = .mortal
+        faction: EnemyFaction = .mortal,
     ) {
         self.combatant = combatant
         self.traitID = traitID
@@ -40,7 +40,7 @@ public struct Enemy: Identifiable, Hashable, Sendable {
             role: .enemy,
             maxHealth: fallbackMaxHealth,
             abilities: [.slash],
-            growthArchetype: .bruiser
+            growthArchetype: .bruiser,
         )
     }
 }

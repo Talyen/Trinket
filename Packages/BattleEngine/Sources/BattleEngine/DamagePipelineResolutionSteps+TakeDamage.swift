@@ -5,7 +5,7 @@ import TrinketCore
 package extension DamagePipeline {
     static func applyTakeDamage(
         to state: inout DamageResolutionState,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) {
         context.roster.setActiveEffects(state.activeEffects, for: state.combatant)
         let cap = context.modifiers(for: state.combatant.id).triggers.maxDamagePerHitCap
@@ -27,26 +27,26 @@ package extension DamagePipeline {
         if lost > 0 {
             state.damageEvents.append(contentsOf: CombatTriggerEngine.afterHealthDropped(
                 target: state.combatant,
-                in: &context
+                in: &context,
             ))
             state.damageEvents.append(contentsOf: applyTalentDamageReactions(
                 defender: state.combatant,
                 isRetaliation: state.options.isRetaliation,
                 isAttackHit: state.options.isAttackHit,
-                in: &context
+                in: &context,
             ))
             state.damageEvents.append(contentsOf: applyCompanionLeechToHero(
                 lost: lost,
                 defender: state.combatant,
                 sourceActorID: state.sourceActorID,
-                in: &context
+                in: &context,
             ))
         }
     }
 
     private static func absorbDamageWithGold(
         to state: inout DamageResolutionState,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) {
         guard !state.options.isHealthCost,
               state.remaining > 0,
@@ -64,14 +64,14 @@ package extension DamagePipeline {
             abilityName: "Scavenger's Cache",
             target: state.combatant,
             amount: absorbed,
-            keyword: .gold
+            keyword: .gold,
         ))
     }
 
     @discardableResult
     private static func applySacrificialGuard(
         to state: inout DamageResolutionState,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> Bool {
         guard !state.options.isHealthCost,
               state.combatant.role == .hero,
@@ -88,15 +88,15 @@ package extension DamagePipeline {
                 target: companion,
                 keyword: state.damageKeyword ?? .physical,
                 sourceActorID: state.sourceActorID,
-                options: .flatReaction
-            )
+                options: .flatReaction,
+            ),
         ).events)
         if context.roster.companion.isAlive, !context.roster.isDeathsDoorActive(for: companion) {
             state.damageEvents.append(contentsOf: context.applyBlock(
                 context.companionModifiers.triggers.companionFatalDamageRedirectBlock,
                 to: companion,
                 source: companion,
-                abilityName: "Sacrificial Guard"
+                abilityName: "Sacrificial Guard",
             ))
         }
         state.remaining = 0
@@ -108,7 +108,7 @@ package extension DamagePipeline {
         defender: Combatant,
         isRetaliation: Bool,
         isAttackHit: Bool,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         var events: [ActionEvent] = []
         let defenderTriggers = context.modifiers(for: defender.id).triggers
@@ -118,7 +118,7 @@ package extension DamagePipeline {
                 context.companionModifiers.triggers.onCompanionTakeDamageGrantHeroBlock,
                 to: context.roster.hero.combatant,
                 source: context.roster.companion.combatant,
-                abilityName: "Grizzly Guard"
+                abilityName: "Grizzly Guard",
             ))
         }
         if defenderTriggers.toughnessOnHit > 0 {
@@ -138,7 +138,7 @@ package extension DamagePipeline {
                         amount,
                         to: member.combatant,
                         source: member.combatant,
-                        abilityName: "Soul Ward"
+                        abilityName: "Soul Ward",
                     ))
                 }
             }
@@ -148,7 +148,7 @@ package extension DamagePipeline {
                 defenderTriggers.onSelfHealthLossGainBlock,
                 to: defender,
                 source: defender,
-                abilityName: "Bone Armor"
+                abilityName: "Bone Armor",
             ))
         }
         if defender.role != .enemy {
@@ -159,7 +159,7 @@ package extension DamagePipeline {
                 if amount > 0 {
                     events.append(contentsOf: HealingEngine.resolveHeal(
                         HealRequest(amount: amount, target: defender, sourceActorID: member.id),
-                        in: &context
+                        in: &context,
                     ).events)
                 }
             }
@@ -171,7 +171,7 @@ package extension DamagePipeline {
         lost: Int,
         defender _: Combatant,
         sourceActorID: String?,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         guard let sourceActorID,
               let source = context.roster.combatant(for: sourceActorID),
@@ -187,7 +187,7 @@ package extension DamagePipeline {
             target: context.roster.hero.combatant,
             source: source.combatant,
             abilityName: "Soul Sharing",
-            keyword: .leech
+            keyword: .leech,
         )
     }
 }

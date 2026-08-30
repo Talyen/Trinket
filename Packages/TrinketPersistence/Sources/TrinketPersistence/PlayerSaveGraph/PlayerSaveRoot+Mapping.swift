@@ -17,7 +17,7 @@ struct PlayerSaveSlice: OptionSet {
     static func changed(
         between snapshot: PlayerSave,
         and candidate: PlayerSave,
-        within candidates: Self = .all
+        within candidates: Self = .all,
     ) -> Self {
         var slices: Self = []
         if candidates.contains(.root) {
@@ -65,7 +65,7 @@ struct PlayerSaveSlice: OptionSet {
 
     static func prepareCandidate(
         from snapshot: PlayerSave,
-        update: (inout PlayerSave) -> Void
+        update: (inout PlayerSave) -> Void,
     ) throws -> (candidate: PlayerSave, changedSlices: Self) {
         var candidate = snapshot
         update(&candidate)
@@ -76,7 +76,7 @@ struct PlayerSaveSlice: OptionSet {
         var changedSlices = changed(
             between: snapshot,
             and: candidate,
-            within: persistTargets(for: sanitizeSlices)
+            within: persistTargets(for: sanitizeSlices),
         )
         try PlayerSaveSanitizer.validate(candidate)
         if !changedSlices.isEmpty {
@@ -107,7 +107,7 @@ public extension PlayerSaveRoot {
             homestead: homestead?.toPlayerHomesteadState() ?? .freshStart,
             spires: spires?.toPlayerSpiresState() ?? .freshStart,
             labyrinth: labyrinth?.toPlayerLabyrinthState() ?? .freshStart,
-            corruptionAltarCooldownRemaining: corruptionAltarCooldownRemaining
+            corruptionAltarCooldownRemaining: corruptionAltarCooldownRemaining,
         )
     }
 }
@@ -238,7 +238,7 @@ private extension PlayerSaveRoot {
 
 private func hasDuplicateKeys<Element, Key: Hashable>(
     _ values: [Element],
-    key: (Element) -> Key
+    key: (Element) -> Key,
 ) -> Bool {
     var seen: Set<Key> = []
     return values.contains { !seen.insert(key($0)).inserted }

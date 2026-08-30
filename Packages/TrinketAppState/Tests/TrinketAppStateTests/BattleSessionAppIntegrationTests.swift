@@ -15,7 +15,7 @@ struct BattleSessionAppIntegrationTests {
         context = try AppTestContext()
     }
 
-    @Test func startBattleIgnoresRequestWhenBattleAlreadyActive() throws {
+    @Test func `start battle ignores request when battle already active`() throws {
         let appState = try context.makePlaySession()
         let stage = try #require(GameContent.chapters[0].stages.first)
         _ = appState.journey.startBattle(for: stage)
@@ -27,7 +27,7 @@ struct BattleSessionAppIntegrationTests {
         #expect(appState.battle.activeBattle?.id == firstBattleID)
     }
 
-    @Test func restartBattleRefreshesProgressionFromRosterWhenRosterUpdated() throws {
+    @Test func `restart battle refreshes progression from roster when roster updated`() throws {
         let appState = try context.makePlaySession()
         let stage = try #require(GameContent.chapters[0].stages.first)
         _ = appState.journey.startBattle(for: stage)
@@ -42,7 +42,7 @@ struct BattleSessionAppIntegrationTests {
         #expect(appState.battle.activeBattle?.hero.progression.currentXP == 3)
     }
 
-    @Test func startBattleReturnsMessageWhenEnemyMissing() throws {
+    @Test func `start battle returns message when enemy missing`() throws {
         let appState = try context.makePlaySession()
         let brokenStage = Stage(
             id: "test-missing-enemy",
@@ -50,7 +50,7 @@ struct BattleSessionAppIntegrationTests {
             chapterNumber: 1,
             stageNumber: 99,
             encounter: .battle(enemyID: "missing-enemy"),
-            rewards: .empty
+            rewards: .empty,
         )
 
         let message = appState.journey.startBattle(for: brokenStage)
@@ -59,7 +59,7 @@ struct BattleSessionAppIntegrationTests {
         #expect(appState.battle.activeBattle == nil)
     }
 
-    @Test func restartBattleRebuildsActiveConfigurationWhenBattleActive() throws {
+    @Test func `restart battle rebuilds active configuration when battle active`() throws {
         let appState = try context.makePlaySession()
         let stage = try #require(GameContent.chapters[0].stages.first)
         _ = appState.journey.startBattle(for: stage)
@@ -73,7 +73,7 @@ struct BattleSessionAppIntegrationTests {
         #expect(restarted.id != original.id)
     }
 
-    @Test func restartBattlePreservesLabyrinthRewardFields() throws {
+    @Test func `restart battle preserves labyrinth reward fields`() throws {
         let appState = try context.makePlaySession(arguments: ["-reset-state"])
         _ = appState.labyrinth.enter()
         let combatNodeID = try #require(
@@ -85,8 +85,8 @@ struct BattleSessionAppIntegrationTests {
                         || effects.blockGainedBonus != 0
                         || effects.leechGainedPercent != 0
                 },
-                in: appState
-            )
+                in: appState,
+            ),
         )
         #expect(appState.labyrinth.startBattle(nodeID: combatNodeID) == nil)
         let original = try #require(appState.battle.activeBattle)
@@ -106,14 +106,14 @@ struct BattleSessionAppIntegrationTests {
         let restartedPresentation = try #require(appState.battlePresentation(for: restarted.runKey))
         #expect(restarted.runKey == PlayBattleOrigin.labyrinth(nodeID: combatNodeID).runKey)
         #expect(
-            appState.battleUniversalModifiers(for: restarted.runKey) == originalUniversalModifiers
+            appState.battleUniversalModifiers(for: restarted.runKey) == originalUniversalModifiers,
         )
         #expect(restartedPresentation.pendingRewardItem == originalPresentation.pendingRewardItem)
         #expect(restartedPresentation.rewardItems == originalPresentation.rewardItems)
         #expect(restarted.id != original.id)
     }
 
-    @Test func clearingTransientStateRemovesTheWholeBattleRunRecord() throws {
+    @Test func `clearing transient state removes the whole battle run record`() throws {
         let appState = try context.makePlaySession()
         let stage = try #require(GameContent.chapters[0].stages.first)
         _ = appState.journey.startBattle(for: stage)
@@ -129,7 +129,7 @@ struct BattleSessionAppIntegrationTests {
         #expect(appState.battle.activeBattle == nil)
     }
 
-    @Test func activatingPreparedBattleKeepsSiblingPreparedRuns() throws {
+    @Test func `activating prepared battle keeps sibling prepared runs`() throws {
         let appState = try context.makePlaySession()
         let combatStages = GameContent.chapters
             .flatMap(\.stages)
@@ -156,18 +156,18 @@ struct BattleSessionAppIntegrationTests {
     }
 
     #if DEBUG
-    @Test func claimedVictoryPersistFailurePresentsVictoryChrome() throws {
+    @Test func `claimed victory persist failure presents victory chrome`() throws {
         let playerSave = try PlayerSaveStore(
             disableCloudSync: true,
             inMemoryOnly: true,
-            persistSaveImmediately: true
+            persistSaveImmediately: true,
         )
         let battle = BattleSession(
             autoEndTurnDelay: 0,
             openingHandDrawStagger: 0,
             enemyAttackImpactDelayOverride: 0,
             outcomePresentationDelayOverride: 0,
-            presentationEnvironment: .silent
+            presentationEnvironment: .silent,
         )
         battle.partyCelebrateDelayOverride = .zero
         let state = try context.makePlaySession(playerSave: playerSave, battleRuntime: battle)
@@ -183,7 +183,7 @@ struct BattleSessionAppIntegrationTests {
             playerSave.forcesNextSaveFailure = true
             let didPersist = state.completeActiveBattle(
                 configuration,
-                battleEarnedGold: max(earnedGold, 5)
+                battleEarnedGold: max(earnedGold, 5),
             )
             if !didPersist {
                 battle.presentVictoryChromeForPersistRetry()

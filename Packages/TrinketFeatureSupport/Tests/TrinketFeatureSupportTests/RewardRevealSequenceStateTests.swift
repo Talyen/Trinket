@@ -4,7 +4,7 @@ import Testing
 
 @MainActor
 struct RewardRevealSequenceStateTests {
-    @Test func startCompletesWalletAndItemReveal() async {
+    @Test func `start completes wallet and item reveal`() async {
         let state = RewardRevealSequenceState(sleep: { _ in })
         state.start(itemCount: 1, walletCount: 2)
         #expect(await waitUntil { state.isSequenceComplete })
@@ -12,7 +12,7 @@ struct RewardRevealSequenceStateTests {
         #expect(state.visibleWalletRewardCount == 2)
     }
 
-    @Test func startIsIdempotent() async {
+    @Test func `start is idempotent`() async {
         let state = RewardRevealSequenceState(sleep: { _ in })
         state.start(itemCount: 1, walletCount: 1)
         #expect(await waitUntil { state.isSequenceComplete })
@@ -20,7 +20,7 @@ struct RewardRevealSequenceStateTests {
         #expect(state.visibleWalletRewardCount == 1)
     }
 
-    @Test func cancelFinishesAStartedSequence() async {
+    @Test func `cancel finishes A started sequence`() async {
         let state = RewardRevealSequenceState(sleep: { _ in
             while !Task.isCancelled {
                 await Task.yield()
@@ -35,7 +35,7 @@ struct RewardRevealSequenceStateTests {
         #expect(state.visibleWalletRewardCount == 2)
     }
 
-    @Test func experienceBarsGateTheReveal() async {
+    @Test func `experience bars gate the reveal`() async {
         let state = RewardRevealSequenceState(sleep: { _ in })
         state.experienceBarCompleted(requiredCount: 2, itemCount: 0, walletCount: 1)
         #expect(!state.isSequenceComplete)
@@ -46,7 +46,7 @@ struct RewardRevealSequenceStateTests {
 
     private func waitUntil(
         timeout: Duration = .seconds(1),
-        condition: @escaping @MainActor () -> Bool
+        condition: @escaping @MainActor () -> Bool,
     ) async -> Bool {
         let deadline = ContinuousClock.now.advanced(by: timeout)
         while !condition() {

@@ -14,7 +14,7 @@ struct HomesteadBuildControl {
     mutating func perform(
         _ definition: HomesteadNodeDefinition,
         saveStore: PlayerSaveStore,
-        onSuccess: (HomesteadNodeID) -> Void = { _ in }
+        onSuccess: (HomesteadNodeID) -> Void = { _ in },
     ) {
         switch saveStore.buildOrUpgradeNode(definition) {
         case .success:
@@ -38,7 +38,7 @@ struct HomesteadCollectionControl {
     mutating func perform(
         saveStore: PlayerSaveStore,
         at date: Date,
-        onSuccess: ([ResourceAmount]) -> Void = { _ in }
+        onSuccess: ([ResourceAmount]) -> Void = { _ in },
     ) {
         switch saveStore.collectProduction(at: date) {
         case let .success(amounts):
@@ -64,8 +64,8 @@ extension View {
                     if !$0 {
                         build.wrappedValue.error = nil
                     }
-                }
-            )
+                },
+            ),
         ) {
             Button("OK", role: .cancel) {}
         } message: {
@@ -82,8 +82,8 @@ extension View {
                     if !$0 {
                         collection.wrappedValue.error = nil
                     }
-                }
-            )
+                },
+            ),
         ) {
             Button("OK", role: .cancel) {}
         } message: {

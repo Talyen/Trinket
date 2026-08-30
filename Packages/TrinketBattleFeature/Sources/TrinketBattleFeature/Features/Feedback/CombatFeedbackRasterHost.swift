@@ -16,7 +16,7 @@ struct CombatFeedbackRasterSlot: View {
             combatantID: combatantID,
             cardHeight: cardHeight,
             layoutDirection: layoutDirection,
-            displayScale: displayScale
+            displayScale: displayScale,
         )
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -35,7 +35,7 @@ private struct CombatFeedbackRasterHost: UIViewRepresentable {
             view,
             combatantID: combatantID,
             layoutDirection: layoutDirection,
-            displayScale: displayScale
+            displayScale: displayScale,
         )
         return view
     }
@@ -46,7 +46,7 @@ private struct CombatFeedbackRasterHost: UIViewRepresentable {
             uiView,
             combatantID: combatantID,
             layoutDirection: layoutDirection,
-            displayScale: displayScale
+            displayScale: displayScale,
         )
     }
 
@@ -64,7 +64,7 @@ final class CombatFeedbackRasterUIView: UIView {
         init(
             layer: CALayer,
             item: CombatFeedbackItem,
-            rasterIdentity: ObjectIdentifier
+            rasterIdentity: ObjectIdentifier,
         ) {
             self.layer = layer
             self.item = item
@@ -73,7 +73,7 @@ final class CombatFeedbackRasterUIView: UIView {
     }
 
     static let preallocatedSlotCount = Int(ceil(
-        BattleMotion.chipDisplayDuration / BattleMotion.feedbackStreamStagger
+        BattleMotion.chipDisplayDuration / BattleMotion.feedbackStreamStagger,
     )) + 1
 
     private var layersByID: [Int: ChipLayer] = [:]
@@ -110,12 +110,12 @@ final class CombatFeedbackRasterUIView: UIView {
     @MainActor
     func apply(chips: [(item: CombatFeedbackItem, raster: CombatFeedbackRaster?)]) {
         let intervalState = BattleFramePacingSignposts.signposter.beginInterval(
-            BattleFramePacingSignposts.Name.chipHostApply
+            BattleFramePacingSignposts.Name.chipHostApply,
         )
         defer {
             BattleFramePacingSignposts.signposter.endInterval(
                 BattleFramePacingSignposts.Name.chipHostApply,
-                intervalState
+                intervalState,
             )
         }
 
@@ -167,14 +167,14 @@ final class CombatFeedbackRasterUIView: UIView {
             sampledState(
                 for: chipLayer.item,
                 chipHeight: chipLayer.layer.bounds.height,
-                at: date
+                at: date,
             )
         }
         let verticalOffsets = Self.packedVerticalOffsets(
             desired: states.map { CGFloat($0.verticalOffset) },
             scaledHeights: zip(orderedLayers, states).map { chipLayer, state in
                 chipLayer.layer.bounds.height * CGFloat(state.scale)
-            }
+            },
         )
 
         withLayerActionsDisabled {
@@ -192,7 +192,7 @@ final class CombatFeedbackRasterUIView: UIView {
     static func packedVerticalOffsets(
         desired: [CGFloat],
         scaledHeights: [CGFloat],
-        gap: CGFloat = CombatFeedbackLayout.streamGap
+        gap: CGFloat = CombatFeedbackLayout.streamGap,
     ) -> [CGFloat] {
         guard desired.count == scaledHeights.count, desired.count > 1 else {
             return desired
@@ -219,28 +219,28 @@ final class CombatFeedbackRasterUIView: UIView {
     private func sampledState(
         for item: CombatFeedbackItem,
         chipHeight: CGFloat,
-        at date: Date
+        at date: Date,
     ) -> CombatFeedbackAnimationState {
         let travelDistance = BattleMotion.chipTravelDistance(
             cardHeight: cardHeight,
-            chipHeight: chipHeight
+            chipHeight: chipHeight,
         )
         return CombatFeedbackMotionSampler.state(
             for: item,
             travelDistance: travelDistance,
-            at: date
+            at: date,
         )
     }
 
     private func compositorPose(
         for item: CombatFeedbackItem,
         chipSize: CGSize,
-        at date: Date
+        at date: Date,
     ) -> (transform: CATransform3D, opacity: Double) {
         let state = sampledState(
             for: item,
             chipHeight: chipSize.height,
-            at: date
+            at: date,
         )
         let transform = CGAffineTransform.identity
             .translatedBy(x: 0, y: state.verticalOffset)
@@ -261,7 +261,7 @@ final class CombatFeedbackRasterUIView: UIView {
         let pose = compositorPose(
             for: item,
             chipSize: raster.pointSize,
-            at: .now
+            at: .now,
         )
         withLayerActionsDisabled {
             chipLayer.contents = raster.image
@@ -281,7 +281,7 @@ final class CombatFeedbackRasterUIView: UIView {
         layersByID[item.id] = ChipLayer(
             layer: chipLayer,
             item: item,
-            rasterIdentity: rasterID
+            rasterIdentity: rasterID,
         )
     }
 

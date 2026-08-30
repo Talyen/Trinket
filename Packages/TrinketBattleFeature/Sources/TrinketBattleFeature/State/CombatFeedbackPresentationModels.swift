@@ -73,7 +73,7 @@ struct CombatFeedbackChipStyle: Sendable, Equatable {
         return Self(
             feedbackClass: feedbackClass,
             fontWeight: tier.fontWeight,
-            textStyle: tier.textStyle
+            textStyle: tier.textStyle,
         )
     }
 }
@@ -104,7 +104,7 @@ struct CombatantHitReactionRecipe: Sendable, Equatable {
         offsetX: [CombatFeedbackKeyframeSample],
         offsetY: [CombatFeedbackKeyframeSample],
         rotation: [CombatFeedbackKeyframeSample] = [],
-        duration: TimeInterval
+        duration: TimeInterval,
     ) {
         self.kind = kind
         self.scaleX = scaleX
@@ -180,7 +180,7 @@ struct CombatantAttackPose: Sendable, Equatable {
         scaleY: Double = 1,
         offsetX: Double = 0,
         offsetY: Double = 0,
-        rotation: Double = 0
+        rotation: Double = 0,
     ) {
         self.scaleX = scaleX
         self.scaleY = scaleY
@@ -226,7 +226,7 @@ struct CombatantAttackReactionRecipe: Sendable, Equatable {
         offsetY: [CombatFeedbackKeyframeSample],
         rotation: [CombatFeedbackKeyframeSample] = [],
         impactDelay: TimeInterval,
-        duration: TimeInterval
+        duration: TimeInterval,
     ) {
         self.kind = kind
         self.scaleX = scaleX
@@ -268,7 +268,7 @@ struct CombatantAttackReactionRecipe: Sendable, Equatable {
             scaleY: scaleY[safe: index]?.value ?? 1,
             offsetX: offsetX[safe: index]?.value ?? 0,
             offsetY: aim.aimedOffsetY(offsetY[safe: index]?.value ?? 0),
-            rotation: rotation[safe: index]?.value ?? 0
+            rotation: rotation[safe: index]?.value ?? 0,
         )
     }
 }
@@ -290,7 +290,7 @@ enum CombatantHitRecoilDirection: String, CaseIterable, Sendable, Equatable {
     @inlinable
     func impactScales(
         scaleX: Double,
-        scaleY: Double
+        scaleY: Double,
     ) -> (x: Double, y: Double) {
         switch self {
         case .up:

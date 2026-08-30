@@ -27,12 +27,12 @@ struct MysteryUnlockContent: View {
                     .trinketSensoryFeedback(
                         .success,
                         trigger: ceremony.unmaskFeedbackTrigger,
-                        enabled: options.hapticsEnabled
+                        enabled: options.hapticsEnabled,
                     )
                     .trinketSensoryFeedback(
                         .success,
                         trigger: ceremony.sealFeedbackTrigger,
-                        enabled: options.hapticsEnabled
+                        enabled: options.hapticsEnabled,
                     )
                     .onAppear {
                         ceremony.start {
@@ -66,8 +66,8 @@ struct MysteryUnlockContent: View {
                             onSelectDetail(
                                 CombatantDetailContext(
                                     kind: combatant.role == .companion ? .companion : .hero,
-                                    combatantID: combatant.id
-                                )
+                                    combatantID: combatant.id,
+                                ),
                             )
                         } label: {
                             recruitPortrait(combatant: combatant)
@@ -90,7 +90,7 @@ struct MysteryUnlockContent: View {
                 isPrimaryActionDisabled: !ceremony.isOffered,
                 onPrimaryAction: confirmRecruit,
                 pinsPrimaryActionToBottom: false,
-                primaryActionOpacity: ceremony.recruitOpacity
+                primaryActionOpacity: ceremony.recruitOpacity,
             )
         }
     }
@@ -111,13 +111,13 @@ struct MysteryUnlockContent: View {
         .padding(.vertical, TrinketDesign.Metrics.smallSpacing)
         .background(
             Capsule()
-                .fill(TrinketDesign.Colors.accent)
+                .fill(TrinketDesign.Colors.accent),
         )
         .opacity(ceremony.checkOpacity)
         .scaleEffect(ceremony.sealBadgeScale)
         .offset(
             x: -TrinketDesign.Metrics.mediumSpacing,
-            y: -TrinketDesign.Metrics.mediumSpacing
+            y: -TrinketDesign.Metrics.mediumSpacing,
         )
         .accessibilityHidden(ceremony.checkOpacity < 1)
     }
@@ -140,7 +140,7 @@ struct MysteryUnlockContent: View {
                     ],
                     center: .center,
                     startRadius: 12,
-                    endRadius: 220
+                    endRadius: 220,
                 )
                 .allowsHitTesting(false)
             }

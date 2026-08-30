@@ -9,13 +9,13 @@ import TrinketFeatureSupport
 extension BattleSession {
     private static let commandLogger = Logger(
         subsystem: "com.trinket.battle",
-        category: "BattleSession"
+        category: "BattleSession",
     )
 
     @discardableResult
     func playCard(
         cardID: Int,
-        at date: Date = .now
+        at date: Date = .now,
     ) -> BattleCardPlayResolution {
         cancelPendingAutoEnd()
         feedback.pruneExpired(at: date, notifyPresentation: false)
@@ -33,7 +33,7 @@ extension BattleSession {
 
         do {
             let events = try measurePlayCardInterval(
-                BattleFramePacingSignposts.Name.playCardEngine
+                BattleFramePacingSignposts.Name.playCardEngine,
             ) {
                 try playEngineCard(cardID: cardID)
             }
@@ -42,12 +42,12 @@ extension BattleSession {
             }
 
             measurePlayCardInterval(
-                BattleFramePacingSignposts.Name.playCardProjection
+                BattleFramePacingSignposts.Name.playCardProjection,
             ) {
                 installSimulationPresentation()
             }
             measurePlayCardInterval(
-                BattleFramePacingSignposts.Name.playCardFeedback
+                BattleFramePacingSignposts.Name.playCardFeedback,
             ) {
                 presentResolvedEvents(events, at: date)
             }
@@ -59,11 +59,11 @@ extension BattleSession {
             return .rejected
         } catch {
             Self.commandLogger.error(
-                "playCard failed for card \(cardID, privacy: .public): \(error.localizedDescription, privacy: .public)"
+                "playCard failed for card \(cardID, privacy: .public): \(error.localizedDescription, privacy: .public)",
             )
             BattleFramePacingSignposts.event(
                 BattleFramePacingSignposts.Name.playCardRejected,
-                detail: "cardID=\(cardID)"
+                detail: "cardID=\(cardID)",
             )
             feedback.noteItemsChanged()
             return .rejected
@@ -79,12 +79,12 @@ extension BattleSession {
         }
 
         let transitionInterval = BattleFramePacingSignposts.signposter.beginInterval(
-            BattleFramePacingSignposts.Name.turnTransition
+            BattleFramePacingSignposts.Name.turnTransition,
         )
         defer {
             BattleFramePacingSignposts.signposter.endInterval(
                 BattleFramePacingSignposts.Name.turnTransition,
-                transitionInterval
+                transitionInterval,
             )
         }
 
@@ -102,7 +102,7 @@ extension BattleSession {
 
     func beginOpeningHandDeal(
         for configurationID: UUID,
-        startDelay: Duration = .zero
+        startDelay: Duration = .zero,
     ) {
         guard hasActiveSimulation,
               engineHand.isEmpty,
@@ -132,7 +132,7 @@ extension BattleSession {
 
             guard await waitForOpeningHandDealStart(
                 configurationID: configurationID,
-                startDelay: startDelay
+                startDelay: startDelay,
             ) else { return }
 
             presentationEnvironment.playSFX([SFXID.abilityDraw])
@@ -172,7 +172,7 @@ extension BattleSession {
 
     private func waitForOpeningHandDealStart(
         configurationID: UUID,
-        startDelay: Duration
+        startDelay: Duration,
     ) async -> Bool {
         if startDelay > .zero {
             try? await Task.sleep(for: startDelay)
@@ -231,7 +231,7 @@ extension BattleSession {
     func driveAutoBattle(
         isCardCastActive: @escaping @MainActor () -> Bool,
         isManualInteractionActive: @escaping @MainActor () -> Bool,
-        playCard: @escaping @MainActor (BattleCard) async -> Bool
+        playCard: @escaping @MainActor (BattleCard) async -> Bool,
     ) async {
         let autoBattlePolicy = PlayPolicy.greedy
         while !Task.isCancelled, isAutoBattleEnabled {
@@ -288,7 +288,7 @@ extension BattleSession {
     }
 
     private func waitWhileAutoBattleBlocked(
-        isBlocked: @MainActor () -> Bool
+        isBlocked: @MainActor () -> Bool,
     ) async {
         while !Task.isCancelled, isAutoBattleEnabled, isBlocked() {
             await waitForAutoBattleRetry()
@@ -305,7 +305,7 @@ extension BattleSession {
 
     private func measurePlayCardInterval<Result>(
         _ name: StaticString,
-        _ operation: () throws -> Result
+        _ operation: () throws -> Result,
     ) rethrows -> Result {
         let interval = BattleFramePacingSignposts.signposter.beginInterval(name)
         defer {

@@ -10,7 +10,7 @@ struct HalveShieldHandler: BattleEffectHandler {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> EffectApplyOutcome {
         guard case let .halveShield(keyword) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
         guard DefensePoolEngine.halveBlock(on: target, in: &context) else {
@@ -23,7 +23,7 @@ struct HalveShieldHandler: BattleEffectHandler {
             abilityName: ability.name,
             target: target,
             amount: 0,
-            keyword: keyword
+            keyword: keyword,
         )
         return EffectApplyOutcome(events: [event], didApply: true)
     }
@@ -50,14 +50,14 @@ struct ControlMeterHandler: BattleEffectHandler {
         let alias = keyword.statusAlias ?? keyword.rawValue
         return EffectSummary(
             keyword: keyword,
-            text: "\(keyword.rawValue) Build-up: \(values.amount)/\(values.threshold) toward \(alias)."
+            text: "\(keyword.rawValue) Build-up: \(values.amount)/\(values.threshold) toward \(alias).",
         )
     }
 
     func advanceTurn(
         _ active: ActiveEffect,
         on target: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> EffectTurnOutcome {
         _ = target
         _ = context
@@ -66,7 +66,7 @@ struct ControlMeterHandler: BattleEffectHandler {
         updated.remainingTurns -= 1
         return EffectTurnOutcome(
             updatedStack: updated,
-            removeAfter: updated.remainingTurns <= 0
+            removeAfter: updated.remainingTurns <= 0,
         )
     }
 
@@ -75,7 +75,7 @@ struct ControlMeterHandler: BattleEffectHandler {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> EffectApplyOutcome {
         guard case let .controlMeter(keyword, amount, _) = effect else {
             return EffectApplyOutcome(events: [], didApply: false)
@@ -89,7 +89,7 @@ struct ControlMeterHandler: BattleEffectHandler {
             keyword: keyword,
             to: target,
             sourceActorID: source.id,
-            in: &context
+            in: &context,
         )
         _ = ability
         let didApply = !events.isEmpty || context.roster.activeEffects(for: target) != effectsBefore

@@ -9,7 +9,7 @@ public enum BalanceSweepRunner {
         policy: PlayPolicy? = nil,
         heroes: [Combatant]? = nil,
         companions: [Combatant]? = nil,
-        enemies: [Enemy]? = nil
+        enemies: [Enemy]? = nil,
     ) -> BalanceSweepReport {
         let roster = config.resolvedRoster
         let resolvedHeroes = heroes ?? roster.heroes
@@ -25,7 +25,7 @@ public enum BalanceSweepRunner {
                 policy: resolvedPolicy,
                 heroes: resolvedHeroes,
                 companions: resolvedCompanions,
-                enemies: resolvedEnemies
+                enemies: resolvedEnemies,
             )
             : []
         let comparedRecords: [BalanceBattleRecord]
@@ -38,7 +38,7 @@ public enum BalanceSweepRunner {
                 policy: other,
                 heroes: resolvedHeroes,
                 companions: resolvedCompanions,
-                enemies: resolvedEnemies
+                enemies: resolvedEnemies,
             )
         } else {
             comparedPolicyID = nil
@@ -49,7 +49,7 @@ public enum BalanceSweepRunner {
             policy: resolvedPolicy,
             heroes: resolvedHeroes,
             companions: resolvedCompanions,
-            enemies: resolvedEnemies
+            enemies: resolvedEnemies,
         )
         let progression = runProgressionIfNeeded(config: config, policy: resolvedPolicy)
 
@@ -69,7 +69,7 @@ public enum BalanceSweepRunner {
             progressionPlayerStates: progression.playerStates,
             progressionTruncatedRuns: progression.truncatedRuns,
             elapsedSeconds: Double(elapsed.components.seconds)
-                + Double(elapsed.components.attoseconds) / 1e18
+                + Double(elapsed.components.attoseconds) / 1e18,
         )
     }
 
@@ -78,12 +78,12 @@ public enum BalanceSweepRunner {
         policy: PlayPolicy,
         heroes: [Combatant],
         companions: [Combatant],
-        enemies: [Enemy]
+        enemies: [Enemy],
     ) -> (
         ability: [PairedContrastSummary],
         affix: [PairedContrastSummary],
         talent: [PairedContrastSummary],
-        talentKit: [PairedContrastSummary]
+        talentKit: [PairedContrastSummary],
     ) {
         let runAbility = config.mode == .abilityContrast || config.mode == .all
         let runAffix = config.mode == .affixContrast || config.mode == .all
@@ -94,7 +94,7 @@ public enum BalanceSweepRunner {
             config: config,
             heroes: heroes,
             companions: companions,
-            enemies: enemies
+            enemies: enemies,
         )
         let ability = runAbility
             ? BalanceAbilityContrastRunner.run(context: contrastContext, policy: policy)
@@ -110,12 +110,12 @@ public enum BalanceSweepRunner {
 
     private static func runProgressionIfNeeded(
         config: BalanceSweepConfig,
-        policy: PlayPolicy
+        policy: PlayPolicy,
     ) -> (
         records: [ProgressionBattleRecord],
         hotspots: [NodeHotspotSummary],
         playerStates: [PlayerProgressionState],
-        truncatedRuns: Int
+        truncatedRuns: Int,
     ) {
         guard config.mode == .modeProgression || config.mode == .all else {
             return ([], [], [], 0)
@@ -128,7 +128,7 @@ public enum BalanceSweepRunner {
         policy: PlayPolicy,
         heroes: [Combatant],
         companions: [Combatant],
-        enemies: [Enemy]
+        enemies: [Enemy],
     ) -> [BalanceBattleRecord] {
         let work: [(SimulationPowerTier, Int, Int)] = config.sliceWork(
             config.tiers.flatMap { tier in
@@ -137,7 +137,7 @@ public enum BalanceSweepRunner {
                         (tier, enemyIndex, sample)
                     }
                 }
-            }
+            },
         )
         return ParallelMap.map(work) { entry in
             simulateIdentityBattle(
@@ -149,8 +149,8 @@ public enum BalanceSweepRunner {
                     enemies: enemies,
                     tier: entry.0,
                     enemyIndex: entry.1,
-                    sampleIndex: entry.2
-                )
+                    sampleIndex: entry.2,
+                ),
             )
         }
     }
@@ -185,7 +185,7 @@ public enum BalanceSweepRunner {
         let partyLoadouts = SimulationMatchupBuilder.samplePartyLoadouts(
             hero: hero,
             companion: companion,
-            using: &rng
+            using: &rng,
         )
         let heroLoadout = partyLoadouts.hero
         let companionLoadout = partyLoadouts.companion
@@ -195,7 +195,7 @@ public enum BalanceSweepRunner {
             heroLoadout: heroLoadout,
             companionLoadout: companionLoadout,
             tier: work.tier,
-            rng: &rng
+            rng: &rng,
         )
         let matchup = SimulationMatchupBuilder.build(
             hero: hero,
@@ -209,7 +209,7 @@ public enum BalanceSweepRunner {
             heroGear: starter.heroGear,
             companionGear: starter.companionGear,
             heroTalents: starter.heroTalents,
-            companionTalents: starter.companionTalents
+            companionTalents: starter.companionTalents,
         )
 
         let result = BattleSimulator.run(
@@ -217,7 +217,7 @@ public enum BalanceSweepRunner {
             policy: work.policy,
             maxRounds: config.maxRounds,
             maxActions: config.maxActions,
-            appliesFightPacing: config.appliesFightPacing
+            appliesFightPacing: config.appliesFightPacing,
         )
         return makeIdentityRecord(
             IdentityRecordParts(
@@ -227,8 +227,8 @@ public enum BalanceSweepRunner {
                 enemy: enemy,
                 matchup: matchup,
                 battleSeed: battleSeed,
-                result: result
-            )
+                result: result,
+            ),
         )
     }
 
@@ -245,7 +245,7 @@ public enum BalanceSweepRunner {
         heroLoadout: AbilityLoadout,
         companionLoadout: AbilityLoadout,
         tier: SimulationPowerTier,
-        rng: inout some RandomNumberGenerator
+        rng: inout some RandomNumberGenerator,
     ) -> IdentityStarterLoadout {
         IdentityStarterLoadout(
             heroGear: SimulationMatchupBuilder.generateStarterGearIfNeeded(
@@ -253,27 +253,27 @@ public enum BalanceSweepRunner {
                 loadout: heroLoadout,
                 tier: tier,
                 idPrefix: "sim-hero",
-                using: &rng
+                using: &rng,
             ),
             companionGear: SimulationMatchupBuilder.generateStarterGearIfNeeded(
                 for: companion,
                 loadout: companionLoadout,
                 tier: tier,
                 idPrefix: "sim-companion",
-                using: &rng
+                using: &rng,
             ),
             heroTalents: SimulationMatchupBuilder.legalTalentKit(
                 for: hero.id,
                 level: tier.level,
                 pointCap: tier.identityTalentPointCap,
-                using: &rng
+                using: &rng,
             ),
             companionTalents: SimulationMatchupBuilder.legalTalentKit(
                 for: companion.id,
                 level: tier.level,
                 pointCap: tier.identityTalentPointCap,
-                using: &rng
-            )
+                using: &rng,
+            ),
         )
     }
 
@@ -307,7 +307,7 @@ public enum BalanceSweepRunner {
             companionTalentIDs: matchup.context.companionTalentIDs,
             seed: parts.battleSeed,
             policyID: parts.work.policy.id,
-            result: parts.result
+            result: parts.result,
         )
     }
 }
@@ -315,7 +315,7 @@ public enum BalanceSweepRunner {
 enum ParallelMap {
     static func map<Input: Sendable, Output: Sendable>(
         _ inputs: [Input],
-        transform: @escaping @Sendable (Input) -> Output
+        transform: @escaping @Sendable (Input) -> Output,
     ) -> [Output] {
         guard !inputs.isEmpty else { return [] }
         var results: [Output] = []

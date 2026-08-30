@@ -38,14 +38,14 @@ enum BalanceAbilityContrastRunner {
         let fociCount = foci(
             heroes: roster.heroes,
             companions: roster.companions,
-            focusIDs: config.focusIDs
+            focusIDs: config.focusIDs,
         ).count
         return fociCount * config.tiers.count * config.battlesPerTier
     }
 
     static func run(
         context: BalanceContrastContext,
-        policy: PlayPolicy
+        policy: PlayPolicy,
     ) -> [PairedContrastSummary] {
         guard !context.heroes.isEmpty,
               !context.companions.isEmpty,
@@ -55,7 +55,7 @@ enum BalanceAbilityContrastRunner {
         let foci = foci(
             heroes: context.heroes,
             companions: context.companions,
-            focusIDs: context.config.focusIDs
+            focusIDs: context.config.focusIDs,
         )
         guard !foci.isEmpty else { return [] }
 
@@ -69,7 +69,7 @@ enum BalanceAbilityContrastRunner {
                     baselineID: $0.sibling.id,
                     ownerID: $0.owner.id,
                     baselineKind: .sibling,
-                    nonCombat: false
+                    nonCombat: false,
                 )
             },
             primes: (tier: 900011, pair: 131),
@@ -79,10 +79,10 @@ enum BalanceAbilityContrastRunner {
                     tier: tier,
                     pairIndex: pairIndex,
                     context: context,
-                    pairSeed: seed
+                    pairSeed: seed,
                 )
             },
-            policy: policy
+            policy: policy,
         )
     }
 
@@ -91,25 +91,25 @@ enum BalanceAbilityContrastRunner {
         tier: SimulationPowerTier,
         pairIndex: Int,
         context: BalanceContrastContext,
-        pairSeed: UInt64
+        pairSeed: UInt64,
     ) -> (withEntity: ConfiguredSimulationMatchup, withBaseline: ConfiguredSimulationMatchup) {
         var rng = SeededRandomNumberGenerator(seed: pairSeed)
         let partner = BalanceContrastSupport.pickPartner(
             for: focus.owner,
             from: context,
-            using: &rng
+            using: &rng,
         )
         let enemy = BalanceContrastSupport.roundRobinEnemy(
             enemies: context.enemies,
-            pairIndex: pairIndex
+            pairIndex: pairIndex,
         )
         let ownerBase = SimulationMatchupBuilder.sampleLoadout(
             for: focus.owner,
-            using: &rng
+            using: &rng,
         )
         let partnerLoadout = SimulationMatchupBuilder.sampleLoadout(
             for: partner,
-            using: &rng
+            using: &rng,
         )
         let focusLoadout = ownerBase.selecting(focus.focus)
         let siblingLoadout = ownerBase.selecting(focus.sibling)
@@ -119,7 +119,7 @@ enum BalanceAbilityContrastRunner {
             ownerLoadout: focusLoadout,
             partnerLoadout: partnerLoadout,
             tier: tier,
-            pairSeed: pairSeed
+            pairSeed: pairSeed,
         )
         return (
             BalanceContrastSupport.buildMatchup(
@@ -132,8 +132,8 @@ enum BalanceAbilityContrastRunner {
                     partnerGear: gears.partner,
                     enemy: enemy,
                     tier: tier,
-                    seed: pairSeed
-                )
+                    seed: pairSeed,
+                ),
             ),
             BalanceContrastSupport.buildMatchup(
                 .init(
@@ -145,9 +145,9 @@ enum BalanceAbilityContrastRunner {
                     partnerGear: gears.partner,
                     enemy: enemy,
                     tier: tier,
-                    seed: pairSeed
-                )
-            )
+                    seed: pairSeed,
+                ),
+            ),
         )
     }
 }

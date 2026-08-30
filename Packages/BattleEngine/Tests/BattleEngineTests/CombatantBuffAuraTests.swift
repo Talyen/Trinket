@@ -3,11 +3,11 @@ import Testing
 import TrinketCore
 
 struct CombatantBuffAuraTests {
-    @Test func emptyEffectsYieldNoAura() {
+    @Test func `empty effects yield no aura`() {
         #expect(CombatantBuffAura.kind(from: []) == nil)
     }
 
-    @Test func ignoresUnrelatedBuffsAndControl() {
+    @Test func `ignores unrelated buffs and control`() {
         let effects = [
             ActiveEffect(id: 1, effect: .shield(.block, 10), remainingTurns: 6),
             ActiveEffect(id: 2, effect: .controlMeter(.stun, 10, 10), remainingTurns: 0),
@@ -32,14 +32,14 @@ struct CombatantBuffAuraTests {
         (.recurringDamage(.freeze, 3, 2), .blizzard),
         (.recurringDamage(.stun, 4, 2), .earthquake),
     ])
-    func singleQualifyingEffectYieldsAura(effect: Effect, expected: CombatantBuffAuraKind) {
+    func `single qualifying effect yields aura`(effect: Effect, expected: CombatantBuffAuraKind) {
         let effects = [
             ActiveEffect(id: 1, effect: effect, remainingTurns: 0),
         ]
         #expect(CombatantBuffAura.kind(from: effects) == expected)
     }
 
-    @Test func eitherShadowstepFlagIsEnough() {
+    @Test func `either shadowstep flag is enough`() {
         let both = [
             ActiveEffect(id: 1, effect: .nextStrikeDouble, remainingTurns: 0),
             ActiveEffect(id: 2, effect: .evadeNextHit, remainingTurns: 0),
@@ -47,14 +47,14 @@ struct CombatantBuffAuraTests {
         #expect(CombatantBuffAura.kind(from: both) == .shadowstep)
     }
 
-    @Test func zeroThornsYieldsNoAura() {
+    @Test func `zero thorns yields no aura`() {
         let effects = [
             ActiveEffect(id: 1, effect: .thorns(0), remainingTurns: 0),
         ]
         #expect(CombatantBuffAura.kind(from: effects) == nil)
     }
 
-    @Test func burnAndHolyRecurringDamageYieldNoAura() {
+    @Test func `burn and holy recurring damage yield no aura`() {
         let effects = [
             ActiveEffect(id: 1, effect: .recurringDamage(.burn, 3, 2), remainingTurns: 2),
             ActiveEffect(id: 2, effect: .recurringDamage(.holy, 6, 1), remainingTurns: 1),
@@ -62,7 +62,7 @@ struct CombatantBuffAuraTests {
         #expect(CombatantBuffAura.kind(from: effects) == nil)
     }
 
-    @Test func priorityHierarchy() {
+    @Test func `priority hierarchy`() {
         let effects = [
             ActiveEffect(id: 1, effect: .recurringDamage(.stun, 4, 2), remainingTurns: 2),
             ActiveEffect(id: 2, effect: .recurringDamage(.freeze, 3, 2), remainingTurns: 2),

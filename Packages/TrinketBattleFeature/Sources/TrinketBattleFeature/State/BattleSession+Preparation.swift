@@ -20,7 +20,7 @@ public extension BattleSession {
                 heroActorID: run.configuration.hero.combatant.id,
                 heroUltimateID: run.configuration.hero.combatant.abilityLoadout.ultimate?.id,
                 companionActorID: run.configuration.companion.combatant.id,
-                companionUltimateID: run.configuration.companion.combatant.abilityLoadout.ultimate?.id
+                companionUltimateID: run.configuration.companion.combatant.abilityLoadout.ultimate?.id,
             )
         }
 
@@ -29,7 +29,7 @@ public extension BattleSession {
                 heroActorID: activeConfiguration.hero.combatant.id,
                 heroUltimateID: activeConfiguration.hero.combatant.abilityLoadout.ultimate?.id,
                 companionActorID: activeConfiguration.companion.combatant.id,
-                companionUltimateID: activeConfiguration.companion.combatant.abilityLoadout.ultimate?.id
+                companionUltimateID: activeConfiguration.companion.combatant.abilityLoadout.ultimate?.id,
             )
         }
 

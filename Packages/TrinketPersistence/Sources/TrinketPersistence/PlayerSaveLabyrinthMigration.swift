@@ -5,7 +5,7 @@ import TrinketCore
 extension PlayerSaveSanitizer {
     static func sanitizeLabyrinth(
         _ labyrinth: PlayerLabyrinthState,
-        eligibleRecruitEventIDs: [String] = []
+        eligibleRecruitEventIDs: [String] = [],
     ) -> PlayerLabyrinthState {
         if labyrinth.isMapPayloadUnreadable {
             return labyrinth
@@ -18,7 +18,7 @@ extension PlayerSaveSanitizer {
            sanitized.mapVersion < LabyrinthGenerator.currentMapVersion {
             sanitized = regeneratedLabyrinth(
                 from: sanitized,
-                eligibleRecruitEventIDs: eligibleRecruitEventIDs
+                eligibleRecruitEventIDs: eligibleRecruitEventIDs,
             )
         }
 
@@ -26,7 +26,7 @@ extension PlayerSaveSanitizer {
             LabyrinthCluster(
                 id: cluster.id,
                 depthBand: max(0, cluster.depthBand),
-                nodeIDs: cluster.nodeIDs
+                nodeIDs: cluster.nodeIDs,
             )
         }
 
@@ -41,14 +41,14 @@ extension PlayerSaveSanitizer {
                 node,
                 existingNodes: existingNodes,
                 cluster: sanitized.cluster(id: node.clusterID),
-                worldSeed: sanitized.worldSeed
+                worldSeed: sanitized.worldSeed,
             )
         }
 
         if sanitized.hasEntered, sanitized.nodes.isEmpty {
             sanitized.ensureMap(
                 seed: sanitized.worldSeed == 0 ? nil : sanitized.worldSeed,
-                eligibleRecruitEventIDs: eligibleRecruitEventIDs
+                eligibleRecruitEventIDs: eligibleRecruitEventIDs,
             )
         }
         sanitized.mapVersion = LabyrinthGenerator.currentMapVersion
@@ -57,14 +57,14 @@ extension PlayerSaveSanitizer {
 
     private static func regeneratedLabyrinth(
         from legacy: PlayerLabyrinthState,
-        eligibleRecruitEventIDs: [String]
+        eligibleRecruitEventIDs: [String],
     ) -> PlayerLabyrinthState {
         let floorCount = max(1, legacy.currentFloorNumber)
         let seed = legacy.worldSeed == 0 ? LabyrinthGenerator.fallbackWorldSeed : legacy.worldSeed
         let generated = LabyrinthGenerator.makeMap(
             seed: seed,
             floorCount: floorCount,
-            eligibleRecruitEventIDs: eligibleRecruitEventIDs
+            eligibleRecruitEventIDs: eligibleRecruitEventIDs,
         )
         var nodes = generated.nodes
         migrateLegacyFloorProgress(from: legacy, clusters: generated.clusters, nodes: &nodes)
@@ -82,7 +82,7 @@ extension PlayerSaveSanitizer {
                 mysteryEventID: legacyNode.mysteryEventID ?? generatedNode.mysteryEventID,
                 outgoingIDs: generatedNode.outgoingIDs,
                 isCleared: generatedNode.isCleared || legacyNode.isCleared,
-                isRevealed: generatedNode.isRevealed || legacyNode.isRevealed
+                isRevealed: generatedNode.isRevealed || legacyNode.isRevealed,
             )
         }
         ensureHistoricalFloorAccess(floorCount: floorCount, clusters: generated.clusters, nodes: &nodes)
@@ -92,12 +92,12 @@ extension PlayerSaveSanitizer {
             hasEntered: legacy.hasEntered,
             clusters: generated.clusters,
             nodes: nodes,
-            runHealthByCombatantID: legacy.runHealthByCombatantID
+            runHealthByCombatantID: legacy.runHealthByCombatantID,
         )
     }
 
     private static func migrateLegacyFloorProgress(
-        from legacy: PlayerLabyrinthState, clusters: [LabyrinthCluster], nodes: inout [String: LabyrinthNode]
+        from legacy: PlayerLabyrinthState, clusters: [LabyrinthCluster], nodes: inout [String: LabyrinthNode],
     ) {
         for cluster in clusters where cluster.depthBand > 0 {
             guard let legacyCluster = legacy.clusters.first(where: { $0.depthBand == cluster.depthBand }),
@@ -130,7 +130,7 @@ extension PlayerSaveSanitizer {
     private static func ensureHistoricalFloorAccess(
         floorCount: Int,
         clusters: [LabyrinthCluster],
-        nodes: inout [String: LabyrinthNode]
+        nodes: inout [String: LabyrinthNode],
     ) {
         guard floorCount > 1 else { return }
         for floor in 1 ..< floorCount {
@@ -142,7 +142,7 @@ extension PlayerSaveSanitizer {
                 from: entryID,
                 to: bossID,
                 nodeIDs: cluster.nodeIDs,
-                nodes: nodes
+                nodes: nodes,
             ) {
                 guard var node = nodes[nodeID] else { break }
                 node.isCleared = true
@@ -155,7 +155,7 @@ extension PlayerSaveSanitizer {
         _ node: LabyrinthNode,
         existingNodes: [String: LabyrinthNode],
         cluster: LabyrinthCluster?,
-        worldSeed: UInt64
+        worldSeed: UInt64,
     ) -> LabyrinthNode {
         let depth = max(0, node.depth)
         let type: LabyrinthNodeType = if node.type == .entrance || node.type.rawValue == "gate", depth > 0 {
@@ -180,19 +180,19 @@ extension PlayerSaveSanitizer {
                 enemyID: enemyID,
                 existingModifierIDs: node.modifierIDs,
                 worldSeed: worldSeed,
-                nodeID: node.id
+                nodeID: node.id,
             ),
             recruitEventID: node.recruitEventID,
             mysteryEventID: node.mysteryEventID,
             outgoingIDs: node.outgoingIDs.filter { existingNodes[$0] != nil },
             isCleared: node.isCleared,
-            isRevealed: depth > 0 || node.isRevealed
+            isRevealed: depth > 0 || node.isRevealed,
         )
     }
 
     private static func legacyGridPosition(
         for node: LabyrinthNode,
-        in cluster: LabyrinthCluster?
+        in cluster: LabyrinthCluster?,
     ) -> LabyrinthGridPosition {
         guard let cluster,
               let index = cluster.nodeIDs.firstIndex(of: node.id)
@@ -207,7 +207,7 @@ extension PlayerSaveSanitizer {
         from sourceID: String,
         to targetID: String,
         nodeIDs: [String],
-        nodes: [String: LabyrinthNode]
+        nodes: [String: LabyrinthNode],
     ) -> [String] {
         var frontier = [sourceID]
         var nextIndex = 0

@@ -8,7 +8,7 @@ public extension GameContent {
     static let enemies: [Enemy] = GameContentEnemies.enemies
 
     private static let combatantsByID: [String: Combatant] = Dictionary(
-        uniqueKeysWithValues: combatants.map { ($0.id, $0) }
+        uniqueKeysWithValues: combatants.map { ($0.id, $0) },
     )
 
     static var starterHeroes: [Combatant] {

@@ -20,7 +20,7 @@ public struct DetailTraitRow: View {
         titleKeywords: Set<Keyword> = [],
         titleShineColors: [Color]? = nil,
         titlePrefix: String? = nil,
-        titlePrefixShineColors: [Color]? = nil
+        titlePrefixShineColors: [Color]? = nil,
     ) {
         self.title = title
         self.description = description

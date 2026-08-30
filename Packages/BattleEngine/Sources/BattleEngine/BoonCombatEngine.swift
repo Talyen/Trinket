@@ -86,7 +86,7 @@ package enum BoonCombatEngine {
                     keyword: result,
                     target: state.combatant,
                     source: source.combatant,
-                    in: &context
+                    in: &context,
                 )
             case let .damageGrantsPartyBlock(required) where keyword == required:
                 events += grantPartyBlock(state.buildupDamage, source: source.combatant, name: active.boon.name, in: &context)
@@ -95,7 +95,7 @@ package enum BoonCombatEngine {
                     state.buildupDamage,
                     to: source.combatant,
                     source: source.combatant,
-                    abilityName: active.boon.name
+                    abilityName: active.boon.name,
                 )
             case .freezeDamageStealsBlock where keyword == .freeze:
                 events += stealEnemyBlock(state.blockedAmount, source: source.combatant, name: active.boon.name, in: &context)
@@ -120,7 +120,7 @@ package enum BoonCombatEngine {
                         for: owner,
                         actor: source.combatant,
                         abilityName: active.boon.name,
-                        in: &context
+                        in: &context,
                     )
                 }
             case let .criticalGrantsDodge(required) where state.isCritical && keyword == required:
@@ -138,7 +138,7 @@ package enum BoonCombatEngine {
         _ amount: Int,
         defender: Combatant,
         attackerID: String?,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         guard amount > 0, defender.role != .enemy,
               let attackerID,
@@ -165,7 +165,7 @@ package enum BoonCombatEngine {
         _ keyword: Keyword,
         target: Combatant,
         sourceActorID: String?,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         guard target.role == .enemy,
               let sourceActorID,
@@ -333,7 +333,7 @@ package extension BoonCombatEngine {
         keyword: Keyword,
         target: Combatant,
         source: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         guard amount > 0, context.roster.health(for: target) > 0 else { return [] }
         switch keyword {
@@ -344,7 +344,7 @@ package extension BoonCombatEngine {
                 to: target,
                 sourceActorID: source.id,
                 dealImmediateDamage: true,
-                suppressAffixReactions: true
+                suppressAffixReactions: true,
             )
         case .bleed:
             return DoTApplicator.applyBleed(
@@ -353,7 +353,7 @@ package extension BoonCombatEngine {
                 sourceActorID: source.id,
                 dealImmediateDamage: true,
                 suppressAffixReactions: true,
-                in: &context
+                in: &context,
             )
         case .stun, .freeze:
             return context.resolveDamage(DamageRequest(
@@ -361,7 +361,7 @@ package extension BoonCombatEngine {
                 target: target,
                 keyword: keyword,
                 sourceActorID: source.id,
-                options: .flatControlReaction
+                options: .flatControlReaction,
             )).events
         default:
             return context.resolveDamage(DamageRequest(
@@ -369,7 +369,7 @@ package extension BoonCombatEngine {
                 target: target,
                 keyword: keyword,
                 sourceActorID: source.id,
-                options: .flatReaction
+                options: .flatReaction,
             )).events
         }
     }
@@ -392,7 +392,7 @@ package extension BoonCombatEngine {
         from target: Combatant,
         source: Combatant,
         name: String,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> (count: Int, events: [ActionEvent]) {
         var effects = context.roster.activeEffects(for: target)
         let count = effects.count(where: { $0.effect.isRemovableBuff })
@@ -408,8 +408,8 @@ package extension BoonCombatEngine {
                 abilityName: name,
                 target: target,
                 amount: count,
-                keyword: .purge
-            )]
+                keyword: .purge,
+            )],
         )
     }
 
@@ -417,7 +417,7 @@ package extension BoonCombatEngine {
         _ keyword: Keyword,
         on target: Combatant,
         source: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         if keyword == .bleed {
             return CombatTriggerEngine.detonateBleed(on: target, sourceActorID: source.id, in: &context)
@@ -432,7 +432,7 @@ package extension BoonCombatEngine {
                 keyword: keyword,
                 target: target,
                 sourceActorID: source.id,
-                in: &context
+                in: &context,
             ).events
         }
     }
@@ -441,7 +441,7 @@ package extension BoonCombatEngine {
         _ count: Int,
         target: Combatant,
         source: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         guard count > 0 else { return [] }
         return context.activeBoons.flatMap { active -> [ActionEvent] in
@@ -469,7 +469,7 @@ package extension BoonCombatEngine {
             abilityName: name,
             target: actor,
             amount: 1,
-            keyword: keyword
+            keyword: keyword,
         )]
     }
 

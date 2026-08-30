@@ -22,7 +22,7 @@ public struct DamageComponent: Hashable, Sendable {
         keyword: Keyword = .physical,
         target: EffectTarget = .abilityTarget,
         bonusAmount: Int = 0,
-        condition: DamageCondition? = nil
+        condition: DamageCondition? = nil,
     ) {
         self.amount = amount
         self.keyword = keyword
@@ -42,7 +42,7 @@ public struct DamageComponent: Hashable, Sendable {
             keyword: keyword,
             target: target,
             bonusAmount: bonusAmount > 0 ? bonusAmount + amount : 0,
-            condition: condition
+            condition: condition,
         )
     }
 }

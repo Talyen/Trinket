@@ -9,7 +9,7 @@ import TrinketPersistence
 @testable import TrinketFeatureSupport
 
 struct PresentationModelTests {
-    @Test func itemDetailYieldListFormatting() {
+    @Test func `item detail yield list formatting`() {
         let empty: [ResourceAmount] = []
         #expect(empty.formattedYieldList == "nothing")
 
@@ -30,13 +30,13 @@ struct PresentationModelTests {
         #expect(triple.formattedYieldList == "50 Gold, 10 Wood, and 5 Herbs")
     }
 
-    @Test func homesteadCategoryProgressAggregatesBuiltAndTotalTiers() {
+    @Test func `homestead category progress aggregates built and total tiers`() {
         let homestead = PlayerHomesteadState(
             resources: [:],
             nodeTiers: [
                 .wheatField: 2,
                 .chickenCoop: 1,
-            ]
+            ],
         )
         let farmingProgress = HomesteadCategoryProgress(category: .farming, homestead: homestead)
         #expect(farmingProgress.builtTiers == 3)
@@ -44,7 +44,7 @@ struct PresentationModelTests {
         #expect(farmingProgress.subtitle == "3 / \(farmingProgress.totalTiers)")
     }
 
-    @Test func homesteadTierCopyFormatsRomanNumerals() {
+    @Test func `homestead tier copy formats roman numerals`() {
         #expect(HomesteadTierCopy.title(for: 1, nodeTitle: "Node") == "Node I")
         #expect(HomesteadTierCopy.title(for: 2, nodeTitle: "Node") == "Node II")
         #expect(HomesteadTierCopy.title(for: 3, nodeTitle: "Node") == "Node III")
@@ -52,7 +52,7 @@ struct PresentationModelTests {
         #expect(HomesteadTierCopy.title(for: 5, nodeTitle: "Node") == "Node 5")
     }
 
-    @Test func heroHeaderLayoutSizingPoliciesAndMetrics() {
+    @Test func `hero header layout sizing policies and metrics`() {
         let portraitHeight = HeroHeaderLayout.HeightPolicy.portrait.height(forWidth: 300)
         #expect(portraitHeight == 400)
 
@@ -81,7 +81,7 @@ struct PresentationModelTests {
         #expect(metrics.offsetY == -25)
     }
 
-    @Test func labyrinthHexRadiusAndDestinationArt() {
+    @Test func `labyrinth hex radius and destination art`() {
         let radius = LabyrinthMapPresentation.hexRadius(forAvailableWidth: 346.41016, edgePad: 0)
         #expect(radius > 0)
 
@@ -90,14 +90,14 @@ struct PresentationModelTests {
         #expect(LabyrinthMapPresentation.destinationEncounterArtID(for: .battle) == nil)
     }
 
-    @Test func stageEncounterAndStagePresentationProperties() {
+    @Test func `stage encounter and stage presentation properties`() {
         let stage = Stage(
             id: "test-stage",
             chapterID: "chapter-1",
             chapterNumber: 1,
             stageNumber: 3,
             encounter: .shop,
-            rewards: .empty
+            rewards: .empty,
         )
         #expect(stage.mapLabel == "Stage 1-3")
         #expect(stage.mapMetaLabel == "Stage 1-3 · Shop")
@@ -106,7 +106,7 @@ struct PresentationModelTests {
         #expect(StageEncounter.battle(enemyID: "enemy").mapTint == StageEncounter.randomBattle.mapTint)
     }
 
-    @Test func featureContractsAndContexts() {
+    @Test func `feature contracts and contexts`() {
         let heroContext = CombatantDetailContext(kind: .hero, combatantID: "hero_paladin")
         #expect(heroContext.id == "hero-hero_paladin")
 

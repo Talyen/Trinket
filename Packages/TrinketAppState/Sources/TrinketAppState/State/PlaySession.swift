@@ -45,7 +45,7 @@ public final class PlaySession {
         options: OptionsStore,
         sfxPlayer: SFXPlayer,
         pendingDestination: PlayLaunchDestination?,
-        battlePerformanceScenario: BattlePerformanceScenario? = nil
+        battlePerformanceScenario: BattlePerformanceScenario? = nil,
     ) {
         self.playerSave = playerSave
         self.shellSession = shellSession
@@ -62,34 +62,34 @@ public final class PlaySession {
             shellSession: shellSession,
             battle: battle,
             runRegistry: registry,
-            battlePerformanceScenario: battlePerformanceScenario
+            battlePerformanceScenario: battlePerformanceScenario,
         )
         let encounters = EncounterPlayMode(
             playerSave: playerSave,
             battle: battle,
             options: options,
-            sfxPlayer: sfxPlayer
+            sfxPlayer: sfxPlayer,
         )
         let journey = JourneyPlayMode(
             playerSave: playerSave,
             battle: battle,
             battleLaunch: battleLaunch,
-            encounters: encounters
+            encounters: encounters,
         )
         let labyrinth = LabyrinthPlayMode(
             playerSave: playerSave,
             battle: battle,
             battleLaunch: battleLaunch,
-            encounters: encounters
+            encounters: encounters,
         )
         let spires = SpiresPlayMode(
             playerSave: playerSave,
             battle: battle,
-            battleLaunch: battleLaunch
+            battleLaunch: battleLaunch,
         )
         let battleCompletion = PlayBattleCompletion(
             playerSave: playerSave,
-            battle: battle
+            battle: battle,
         )
         self.battleLaunch = battleLaunch
         self.journey = journey
@@ -130,13 +130,13 @@ public final class PlaySession {
     public func completeActiveBattle(
         _ configuration: BattleRunConfiguration,
         battleEarnedGold: Int,
-        materialRewards: [ResourceAmount]? = nil
+        materialRewards: [ResourceAmount]? = nil,
     ) -> Bool {
         let combatants = [configuration.hero.combatant, configuration.companion.combatant]
         let progressionsBefore = Dictionary(
             uniqueKeysWithValues: combatants.map { combatant in
                 (combatant.id, playerSave.roster.progression(for: combatant))
-            }
+            },
         )
         let persisted = battleCompletion.completeActiveBattle(
             configuration,
@@ -147,12 +147,12 @@ public final class PlaySession {
             onPersisted: { [weak self] in
                 self?.queuePostBattleTalentChoices(
                     for: combatants,
-                    progressionsBefore: progressionsBefore
+                    progressionsBefore: progressionsBefore,
                 )
             },
             queueReturnToOrigin: { [weak self] origin in
                 self?.queueReturnToBattleOrigin(from: origin)
-            }
+            },
         )
         if persisted, let runKey = configuration.runKey {
             battleRunRegistry.remove(runKey)
@@ -167,7 +167,7 @@ public final class PlaySession {
         let result = playerSave.unlockTalent(
             nodeID: nodeID,
             treeID: treeID,
-            for: combatantID
+            for: combatantID,
         )
         if result == .unlocked {
             if playerSave.roster.availableTalentPoints(for: combatantID) == 0 {
@@ -205,7 +205,7 @@ public final class PlaySession {
 
     private func queuePostBattleTalentChoices(
         for combatants: [Combatant],
-        progressionsBefore: [String: CombatantProgression]
+        progressionsBefore: [String: CombatantProgression],
     ) {
         postBattleTalentCombatantIDs = combatants.compactMap { combatant in
             guard let before = progressionsBefore[combatant.id] else { return nil }

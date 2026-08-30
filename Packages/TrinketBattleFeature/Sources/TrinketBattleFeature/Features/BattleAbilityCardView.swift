@@ -70,7 +70,7 @@ struct BattleAbilityCardView: View {
                     TrinketDesign.cardShape
                         .stroke(
                             TrinketDesign.Colors.accent.opacity(BattleMotion.cardArmedRingOpacity),
-                            lineWidth: BattleMotion.cardArmedRingLineWidth
+                            lineWidth: BattleMotion.cardArmedRingLineWidth,
                         )
                 }
             }
@@ -80,34 +80,34 @@ struct BattleAbilityCardView: View {
                 .degrees(isDragging ? verticalTilt : 0),
                 axis: (x: 1, y: 0, z: 0),
                 anchor: .bottom,
-                perspective: BattleMotion.cardPerspective
+                perspective: BattleMotion.cardPerspective,
             )
             .offset(activeOffset)
             .offset(tapLiftOffset)
             .shadow(
                 color: isDragging ? TrinketDesign.Colors.Overlay.dragShadow.opacity(0.55) : .clear,
                 radius: BattleMotion.cardHeldShadowRadius,
-                y: BattleMotion.cardHeldShadowY
+                y: BattleMotion.cardHeldShadowY,
             )
             .gesture(
                 DragGesture(minimumDistance: 0)
                     .onChanged(updateDrag)
-                    .onEnded(endDrag)
+                    .onEnded(endDrag),
             )
             .trinketSensoryFeedback(
                 .selection,
                 trigger: playArmFeedbackToken,
-                enabled: hapticsEnabled
+                enabled: hapticsEnabled,
             )
             .trinketSensoryFeedback(
                 .selection,
                 trigger: inspectFeedbackToken,
-                enabled: hapticsEnabled
+                enabled: hapticsEnabled,
             )
             .trinketSensoryFeedback(
                 .warning,
                 trigger: denyFeedbackToken,
-                enabled: hapticsEnabled
+                enabled: hapticsEnabled,
             )
             .onDisappear {
                 cancelInspection()
@@ -130,7 +130,7 @@ struct BattleAbilityCardView: View {
         let resting = restingTranslation
         return CGSize(
             width: resting.width + (isDragging ? dragTranslation.width : 0),
-            height: resting.height + (isDragging ? dragTranslation.height : 0)
+            height: resting.height + (isDragging ? dragTranslation.height : 0),
         )
     }
 
@@ -149,7 +149,7 @@ struct BattleAbilityCardView: View {
             translation: dragTranslation,
             predictedEndTranslation: predictedEndTranslation,
             cardWidth: width,
-            maximumDegrees: BattleMotion.cardHeldTiltDegrees
+            maximumDegrees: BattleMotion.cardHeldTiltDegrees,
         )
     }
 
@@ -157,9 +157,9 @@ struct BattleAbilityCardView: View {
         min(
             max(
                 Double(-dragTranslation.height / height) * BattleMotion.cardVerticalTiltGain,
-                -BattleMotion.cardVerticalTiltClamp
+                -BattleMotion.cardVerticalTiltClamp,
             ),
-            BattleMotion.cardVerticalTiltClamp
+            BattleMotion.cardVerticalTiltClamp,
         )
     }
 
@@ -189,7 +189,7 @@ struct BattleAbilityCardView: View {
         if !didExceedTapSlop,
            BattleHandLayout.exceedsTapSlop(
                translation: value.translation,
-               minimumDistance: BattleHandLayout.dragMinimumDistance
+               minimumDistance: BattleHandLayout.dragMinimumDistance,
            ) {
             didExceedTapSlop = true
             cancelInspection()
@@ -199,7 +199,7 @@ struct BattleAbilityCardView: View {
         dragTranslation = BattleHandLayout.presentationTranslation(
             value.translation,
             isPlayable: isPlayable,
-            threshold: playDragThreshold
+            threshold: playDragThreshold,
         )
         predictedEndTranslation = value.predictedEndTranslation
 
@@ -207,7 +207,7 @@ struct BattleAbilityCardView: View {
             translation: value.translation,
             isPlayable: isPlayable,
             threshold: playDragThreshold,
-            currentlyArmed: isPlayArmed
+            currentlyArmed: isPlayArmed,
         )
         if armed != isPlayArmed {
             if armed {
@@ -246,7 +246,7 @@ struct BattleAbilityCardView: View {
         let isTap = BattleHandLayout.isTapGesture(
             translation: value.translation,
             didExceedTapSlop: didExceedTapSlop,
-            minimumDistance: BattleHandLayout.dragMinimumDistance
+            minimumDistance: BattleHandLayout.dragMinimumDistance,
         )
         if isTap {
             if isPlayable {
@@ -262,7 +262,7 @@ struct BattleAbilityCardView: View {
             translation: value.translation,
             predictedEndTranslation: value.predictedEndTranslation,
             isPlayable: isPlayable,
-            threshold: playDragThreshold
+            threshold: playDragThreshold,
         )
         if shouldPlay {
             beginPlay()
@@ -277,7 +277,7 @@ struct BattleAbilityCardView: View {
                   didRecognizeLongPress: true,
                   translation: dragTranslation,
                   didExceedTapSlop: didExceedTapSlop,
-                  minimumDistance: BattleHandLayout.dragMinimumDistance
+                  minimumDistance: BattleHandLayout.dragMinimumDistance,
               )
         else { return }
 
@@ -327,7 +327,7 @@ struct BattleAbilityCardView: View {
     private func beginPlay() {
         let center = BattleHandLayout.releaseCenter(
             restingCenter: restingCenter,
-            dragTranslation: dragTranslation
+            dragTranslation: dragTranslation,
         )
         let request = CardActivationRequest(
             artworkName: card.ability.artReference?.imageName,
@@ -337,7 +337,7 @@ struct BattleAbilityCardView: View {
             verticalTilt: CGFloat(verticalTilt),
             scale: heldScale.width,
             perspective: BattleMotion.cardPerspective,
-            keywords: card.ability.keywords
+            keywords: card.ability.keywords,
         )
         publishPlay(request)
     }
@@ -391,14 +391,14 @@ private extension BattleAbilityCardView {
             artworkName: card.ability.artReference?.imageName,
             center: CGPoint(
                 x: restingCenter.x + tapLiftOffset.width,
-                y: restingCenter.y + tapLiftOffset.height
+                y: restingCenter.y + tapLiftOffset.height,
             ),
             size: CGSize(width: width, height: height),
             rotation: restingRotation * .pi / 180,
             verticalTilt: 0,
             scale: 1,
             perspective: BattleMotion.cardPerspective,
-            keywords: card.ability.keywords
+            keywords: card.ability.keywords,
         )
         publishPlay(request)
     }

@@ -6,7 +6,7 @@ import TrinketCore
 package enum EffectTurnEngine {
     private static let logger = Logger(
         subsystem: "com.ryanmcintire.Trinket",
-        category: "EffectTurnEngine"
+        category: "EffectTurnEngine",
     )
 
     package static func advanceAll(context: inout BattleState) -> [ActionEvent] {
@@ -14,14 +14,12 @@ package enum EffectTurnEngine {
 
         for participant in BattleParticipant.effectTurnOrder {
             let combatant = context.roster[participant].combatant
-            if participant != .enemy {
-                guard context.roster[participant].isAlive else { continue }
-            }
+            guard context.roster[participant].isAlive else { continue }
 
             let result = advanceEffects(
                 context.roster.activeEffects(for: combatant),
                 target: combatant,
-                context: &context
+                context: &context,
             )
             context.roster.setActiveEffects(result.updated, for: combatant)
             events.append(contentsOf: result.events)
@@ -33,7 +31,7 @@ package enum EffectTurnEngine {
                CombatTriggerEngine.partyDebuffsExpireFaster(in: context) {
                 context.roster.setActiveEffects(
                     accelerateDebuffExpiration(context.roster.activeEffects(for: combatant)),
-                    for: combatant
+                    for: combatant,
                 )
             }
         }
@@ -44,7 +42,7 @@ package enum EffectTurnEngine {
     package static func advanceEffects(
         _ effects: [ActiveEffect],
         target: Combatant,
-        context: inout BattleState
+        context: inout BattleState,
     ) -> (events: [ActionEvent], updated: [ActiveEffect]) {
         var events: [ActionEvent] = []
         var turnOutcomes: [Int: (updatedStack: ActiveEffect?, removeAfter: Bool)] = [:]
@@ -57,7 +55,7 @@ package enum EffectTurnEngine {
             guard context.roster.health(for: target) > 0 else { break }
             guard let handler = EffectHandlers.all[activeEffect.effect.kind] else {
                 logger.error(
-                    "Missing effect handler for turn of \(String(describing: activeEffect.effect.kind), privacy: .public)"
+                    "Missing effect handler for turn of \(String(describing: activeEffect.effect.kind), privacy: .public)",
                 )
                 continue
             }

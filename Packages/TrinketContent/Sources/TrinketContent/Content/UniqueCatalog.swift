@@ -29,24 +29,24 @@ enum UniqueCatalog {
                     modifiers: [],
                     triggers: CombatTraitTriggers(
                         control: ControlTriggers(
-                            stunPurgeDealHolyPerEffect: 2
-                        )
-                    )
+                            stunPurgeDealHolyPerEffect: 2,
+                        ),
+                    ),
                 ),
                 astral: ItemAffixPower(
                     description: "Purge all beneficial status effects when you Stun an enemy. Deal 2 Holy damage for each effect removed.",
                     modifiers: [],
                     triggers: CombatTraitTriggers(
                         control: ControlTriggers(
-                            stunPurgeDealHolyPerEffect: 2
-                        )
-                    )
-                )
+                            stunPurgeDealHolyPerEffect: 2,
+                        ),
+                    ),
+                ),
             )),
             .catalog(id: "dazed"),
             .catalog(id: "concussive"),
             .catalog(id: "sentinel"),
-        ]
+        ],
     )
 
     private static let danceOfBlades = UniqueItemDefinition(
@@ -64,21 +64,21 @@ enum UniqueCatalog {
                     description: "When you Dodge, immediately draw and play a card. If it's a Critical Hit, repeat this effect.",
                     modifiers: [],
                     triggers: CombatTraitTriggers(
-                        dodge: DodgeTriggers(onDodgeDrawAndPlayCardChainOnCrit: true)
-                    )
+                        dodge: DodgeTriggers(onDodgeDrawAndPlayCardChainOnCrit: true),
+                    ),
                 ),
                 astral: ItemAffixPower(
                     description: "When you Dodge, immediately draw and play a card. If it's a Critical Hit, repeat this effect.",
                     modifiers: [],
                     triggers: CombatTraitTriggers(
-                        dodge: DodgeTriggers(onDodgeDrawAndPlayCardChainOnCrit: true)
-                    )
-                )
+                        dodge: DodgeTriggers(onDodgeDrawAndPlayCardChainOnCrit: true),
+                    ),
+                ),
             )),
             .catalog(id: "riposte"),
             .catalog(id: "untouchable"),
             .catalog(id: "sidestep"),
-        ]
+        ],
     )
 
     private static let bloodfireSignet = UniqueItemDefinition(
@@ -100,9 +100,9 @@ enum UniqueCatalog {
                             burnProcsBleedChancePercent: 0.20,
                             bleedProcsBurnChancePercent: 0.20,
                             burnDamageLeech: true,
-                            bleedDamageLeech: true
-                        )
-                    )
+                            bleedDamageLeech: true,
+                        ),
+                    ),
                 ),
                 astral: ItemAffixPower(
                     description: "Dealing Burn damage has a 20% chance to deal 1 Bleed damage, and vice versa. Burn and Bleed damage gain Leech.",
@@ -112,15 +112,15 @@ enum UniqueCatalog {
                             burnProcsBleedChancePercent: 0.20,
                             bleedProcsBurnChancePercent: 0.20,
                             burnDamageLeech: true,
-                            bleedDamageLeech: true
-                        )
-                    )
-                )
+                            bleedDamageLeech: true,
+                        ),
+                    ),
+                ),
             )),
             .catalog(id: "biting"),
             .catalog(id: "vampiric"),
             .catalog(id: "bloodstone"),
-        ]
+        ],
     )
 
     private static let rimeheartLocket = UniqueItemDefinition(
@@ -139,17 +139,17 @@ enum UniqueCatalog {
                     modifiers: [],
                     triggers: CombatTraitTriggers(
                         block: BlockTriggers(freezeDamageGrantsBlock: true),
-                        mana: ManaTriggers(onFreezeEnemyGainManaEqualBlock: true)
-                    )
+                        mana: ManaTriggers(onFreezeEnemyGainManaEqualBlock: true),
+                    ),
                 ),
                 astral: ItemAffixPower(
                     description: "Dealing Freeze damage grants that amount of Block. Gain Mana equal to your Block when you Freeze an enemy.",
                     modifiers: [],
                     triggers: CombatTraitTriggers(
                         block: BlockTriggers(freezeDamageGrantsBlock: true),
-                        mana: ManaTriggers(onFreezeEnemyGainManaEqualBlock: true)
-                    )
-                )
+                        mana: ManaTriggers(onFreezeEnemyGainManaEqualBlock: true),
+                    ),
+                ),
             )),
             .catalog(id: "rime"),
             .catalog(id: "aetherward"),
@@ -161,14 +161,14 @@ enum UniqueCatalog {
                 weight: 0,
                 basic: ItemAffixPower(
                     description: "Increase Maximum Mana by 8.",
-                    modifiers: [.maximumMana(8)]
+                    modifiers: [.maximumMana(8)],
                 ),
                 astral: ItemAffixPower(
                     description: "Increase Maximum Mana by 8.",
-                    modifiers: [.maximumMana(8)]
-                )
+                    modifiers: [.maximumMana(8)],
+                ),
             )),
-        ]
+        ],
     )
 
     private static let blackfletch = UniqueItemDefinition(
@@ -186,21 +186,21 @@ enum UniqueCatalog {
                     description: "Critical Hits detonate and consume all remaining Bleed and Poison damage.",
                     modifiers: [],
                     triggers: CombatTraitTriggers(
-                        dot: DotTriggers(criticalDetonateBleedAndPoison: true)
-                    )
+                        dot: DotTriggers(criticalDetonateBleedAndPoison: true),
+                    ),
                 ),
                 astral: ItemAffixPower(
                     description: "Critical Hits detonate and consume all remaining Bleed and Poison damage.",
                     modifiers: [],
                     triggers: CombatTraitTriggers(
-                        dot: DotTriggers(criticalDetonateBleedAndPoison: true)
-                    )
-                )
+                        dot: DotTriggers(criticalDetonateBleedAndPoison: true),
+                    ),
+                ),
             )),
             .catalog(id: "infected"),
             .catalog(id: "lingering"),
             .catalog(id: "contagion"),
-        ]
+        ],
     )
 
     private static let twinCasting = UniqueItemDefinition(
@@ -218,21 +218,21 @@ enum UniqueCatalog {
                     description: "After you spend Mana to empower a Burn card, draw a Freeze card, and vice versa.",
                     modifiers: [],
                     triggers: CombatTraitTriggers(
-                        mana: ManaTriggers(empoweredElementDrawOpposite: true)
-                    )
+                        mana: ManaTriggers(empoweredElementDrawOpposite: true),
+                    ),
                 ),
                 astral: ItemAffixPower(
                     description: "After you spend Mana to empower a Burn card, draw a Freeze card, and vice versa.",
                     modifiers: [],
                     triggers: CombatTraitTriggers(
-                        mana: ManaTriggers(empoweredElementDrawOpposite: true)
-                    )
-                )
+                        mana: ManaTriggers(empoweredElementDrawOpposite: true),
+                    ),
+                ),
             )),
             .catalog(id: "smoldering"),
             .catalog(id: "glacial"),
             .catalog(id: "channeled"),
-        ]
+        ],
     )
 
     private static let saintfallPlate = UniqueItemDefinition(
@@ -250,21 +250,21 @@ enum UniqueCatalog {
                     description: "The first time each round your Block is broken, deal 6 Holy and 6 Stun damage to the attacker, then restore 6 Health.",
                     modifiers: [],
                     triggers: CombatTraitTriggers(
-                        block: BlockTriggers(blockBrokenSaintfallPower: 6)
-                    )
+                        block: BlockTriggers(blockBrokenSaintfallPower: 6),
+                    ),
                 ),
                 astral: ItemAffixPower(
                     description: "The first time each round your Block is broken, deal 6 Holy and 6 Stun damage to the attacker, then restore 6 Health.",
                     modifiers: [],
                     triggers: CombatTraitTriggers(
-                        block: BlockTriggers(blockBrokenSaintfallPower: 6)
-                    )
-                )
+                        block: BlockTriggers(blockBrokenSaintfallPower: 6),
+                    ),
+                ),
             )),
             .catalog(id: "bulwark"),
             .catalog(id: "sanctum"),
             .catalog(id: "vital"),
-        ]
+        ],
     )
 
     private static let goldenVerdict = UniqueItemDefinition(
@@ -284,9 +284,9 @@ enum UniqueCatalog {
                     triggers: CombatTraitTriggers(
                         control: ControlTriggers(
                             holyStunBuildupPercent: 1,
-                            holyTriggeredStunGoldFlat: 1
-                        )
-                    )
+                            holyTriggeredStunGoldFlat: 1,
+                        ),
+                    ),
                 ),
                 astral: ItemAffixPower(
                     description: "Holy damage builds an equal amount of Stun. When this Stuns an enemy, gain 1 Gold.",
@@ -294,14 +294,14 @@ enum UniqueCatalog {
                     triggers: CombatTraitTriggers(
                         control: ControlTriggers(
                             holyStunBuildupPercent: 1,
-                            holyTriggeredStunGoldFlat: 1
-                        )
-                    )
-                )
+                            holyTriggeredStunGoldFlat: 1,
+                        ),
+                    ),
+                ),
             )),
             .catalog(id: "stunning"),
             .catalog(id: "lucky"),
             .catalog(id: "absolving"),
-        ]
+        ],
     )
 }

@@ -6,12 +6,12 @@ import TrinketTestSupport
 
 struct FaeWardTests {
     private static let faeWard = CombatModifierProfile(
-        triggers: CombatTraitTriggers(cleanse: CleanseTriggers(blockFirstDebuffPerTurn: true))
+        triggers: CombatTraitTriggers(cleanse: CleanseTriggers(blockFirstDebuffPerTurn: true)),
     )
 
     private func makeWardedHeroBattle(
         heroModifiers: CombatModifierProfile = Self.faeWard,
-        enemyModifiers: CombatModifierProfile = .zero
+        enemyModifiers: CombatModifierProfile = .zero,
     ) -> BattleState {
         BattleStateTestFactory.makeBattle(
             hero: BattleTestFixtures.passiveHero(maxHealth: 50),
@@ -19,11 +19,11 @@ struct FaeWardTests {
             enemy: BattleTestFixtures.silentEnemy(maxHealth: 100),
             heroModifiers: heroModifiers,
             enemyModifiers: enemyModifiers,
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
     }
 
-    @Test func decayingBurnIsBlockedOnce() {
+    @Test func `decaying burn is blocked once`() {
         var battle = makeWardedHeroBattle()
         _ = DoTApplicator.applyDecayingDoT(
             keyword: .burn,
@@ -32,12 +32,12 @@ struct FaeWardTests {
             sourceActorID: battle.roster.enemy.id,
             dealImmediateDamage: false,
             suppressAffixReactions: true,
-            in: &battle
+            in: &battle,
         )
         #expect(burnPotency(on: battle.roster.hero.combatant, in: battle) == nil)
     }
 
-    @Test func poisonStackIsBlockedOnce() {
+    @Test func `poison stack is blocked once`() {
         var battle = makeWardedHeroBattle()
         _ = DoTApplicator.applyDecayingDoT(
             keyword: .poison,
@@ -46,14 +46,14 @@ struct FaeWardTests {
             sourceActorID: battle.roster.enemy.id,
             dealImmediateDamage: false,
             suppressAffixReactions: true,
-            in: &battle
+            in: &battle,
         )
         let poisons = battle.roster.activeEffects(for: battle.roster.hero.combatant)
             .filter { $0.effect.keyword == .poison }
         #expect(poisons.isEmpty)
     }
 
-    @Test func bleedIsStillBlockedOnce() {
+    @Test func `bleed is still blocked once`() {
         var battle = makeWardedHeroBattle()
         _ = DoTApplicator.applyBleed(
             potency: 3,
@@ -61,14 +61,14 @@ struct FaeWardTests {
             sourceActorID: battle.roster.enemy.id,
             dealImmediateDamage: false,
             suppressAffixReactions: true,
-            in: &battle
+            in: &battle,
         )
         let bleeds = battle.roster.activeEffects(for: battle.roster.hero.combatant)
             .filter(\.effect.isBleed)
         #expect(bleeds.isEmpty)
     }
 
-    @Test func stunMeterChargeIsBlockedOnce() {
+    @Test func `stun meter charge is blocked once`() {
         var battle = makeWardedHeroBattle()
         let events = ControlMeterEngine.applyMeterCharge(
             3,
@@ -76,7 +76,7 @@ struct FaeWardTests {
             to: battle.roster.hero.combatant,
             sourceActorID: battle.roster.enemy.id,
             applyFightPacing: false,
-            in: &battle
+            in: &battle,
         )
         #expect(events.isEmpty)
         let meters = battle.roster.activeEffects(for: battle.roster.hero.combatant)
@@ -84,12 +84,12 @@ struct FaeWardTests {
         #expect(meters.isEmpty)
     }
 
-    @Test func markedFromStunReactionIsBlockedOnce() {
+    @Test func `marked from stun reaction is blocked once`() {
         var battle = makeWardedHeroBattle(
             heroModifiers: .init(triggers: CombatTraitTriggers(
-                control: ControlTriggers(enemyStunnedApplyMarked: true)
+                control: ControlTriggers(enemyStunnedApplyMarked: true),
             )),
-            enemyModifiers: Self.faeWard
+            enemyModifiers: Self.faeWard,
         )
         let events = CombatTriggerEngine.afterEnemyStunned(in: &battle)
         #expect(!events.contains(where: { $0.effectKind == .markedApplied }))
@@ -102,7 +102,7 @@ struct FaeWardTests {
         #expect(!marks)
     }
 
-    @Test func secondNegativeEffectSameTurnLandsAfterWardConsumed() {
+    @Test func `second negative effect same turn lands after ward consumed`() {
         var battle = makeWardedHeroBattle()
         _ = DoTApplicator.applyDecayingDoT(
             keyword: .burn,
@@ -111,7 +111,7 @@ struct FaeWardTests {
             sourceActorID: battle.roster.enemy.id,
             dealImmediateDamage: false,
             suppressAffixReactions: true,
-            in: &battle
+            in: &battle,
         )
         _ = DoTApplicator.applyDecayingDoT(
             keyword: .poison,
@@ -120,14 +120,14 @@ struct FaeWardTests {
             sourceActorID: battle.roster.enemy.id,
             dealImmediateDamage: false,
             suppressAffixReactions: true,
-            in: &battle
+            in: &battle,
         )
         let effects = battle.roster.activeEffects(for: battle.roster.hero.combatant)
         #expect(!effects.contains(where: { $0.effect.keyword == .burn }))
         #expect(effects.contains { $0.effect.keyword == .poison })
     }
 
-    @Test func combatantWithoutWardKeepsTakingDebuffs() {
+    @Test func `combatant without ward keeps taking debuffs`() {
         var battle = makeWardedHeroBattle(heroModifiers: .zero)
         _ = DoTApplicator.applyDecayingDoT(
             keyword: .burn,
@@ -136,7 +136,7 @@ struct FaeWardTests {
             sourceActorID: battle.roster.enemy.id,
             dealImmediateDamage: false,
             suppressAffixReactions: true,
-            in: &battle
+            in: &battle,
         )
         #expect(burnPotency(on: battle.roster.hero.combatant, in: battle) == 3)
     }

@@ -6,7 +6,7 @@ import TrinketCore
 public extension PlayerSaveStore {
     func buildOrUpgradeNode(
         _ definition: HomesteadNodeDefinition,
-        at date: Date = Date()
+        at date: Date = Date(),
     ) -> HomesteadBuildResult {
         let homesteadState = homestead
         let rosterState = roster

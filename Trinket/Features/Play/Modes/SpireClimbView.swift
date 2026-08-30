@@ -59,14 +59,14 @@ struct SpireClimbView: View {
         let rows = StageSelectRowPresentation<SpireFloor>.spireRows(
             for: spire,
             floors: floors,
-            progress: playerSave.spires
+            progress: playerSave.spires,
         )
 
         return StageSelectScreen(
             eyebrow: "SPIRE",
             title: spire.title,
             subtitle: nil,
-            titleAccessibilityIdentifier: AccessibilityID.Play.spireTitle(spire.id.rawValue)
+            titleAccessibilityIdentifier: AccessibilityID.Play.spireTitle(spire.id.rawValue),
         ) {
             spireHeroArtwork(for: spire)
         } content: {
@@ -89,12 +89,12 @@ struct SpireClimbView: View {
                             SpireFloorArtwork(
                                 floor: floor,
                                 tint: spire.keyword.visualStyle.color,
-                                prefersThumbnail: !isActive
+                                prefersThumbnail: !isActive,
                             )
                         },
                         partyPickerSheet: { _ in
                             StageBattlePartyPickerSheet(spire: spire)
-                        }
+                        },
                     )
                 }
             }
@@ -121,7 +121,7 @@ struct SpireClimbView: View {
             buttonTitle: "Back to The Spires",
             tint: spire.keyword.visualStyle.color,
             accessibilityIdentifier: AccessibilityID.Play.spireCompletionBack(spire.id.rawValue),
-            onBack: { dismiss() }
+            onBack: { dismiss() },
         )
     }
 
@@ -129,7 +129,7 @@ struct SpireClimbView: View {
         SpireAttunement.evaluate(
             hero: playerSave.roster.activeHero,
             companion: playerSave.roster.activeCompanion,
-            spire: spire
+            spire: spire,
         ).isReady
     }
 
@@ -137,15 +137,15 @@ struct SpireClimbView: View {
         guard let encounter = spires.resolvedEncounter(for: floor) else { return }
         presentPlayCombatantDetail(
             CombatantCardDetail(
-                combatant: encounter.combatant
-            )
+                combatant: encounter.combatant,
+            ),
         )
     }
 
     private func prepareActiveFloorBattle() {
         guard let floor = GameContent.spireFloor(
             spireID: spireID,
-            floor: activeFloorNumber
+            floor: activeFloorNumber,
         ) else { return }
         spires.prepareBattle(for: floor)
     }

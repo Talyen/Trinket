@@ -5,7 +5,7 @@ import TrinketCore
 @testable import BattleBalanceTools
 
 struct ModeProgressionToolingTests {
-    @Test func modeProgressionTrackersBuildNonEmptySteps() {
+    @Test func `mode progression trackers build non empty steps`() {
         let campaign = CampaignProgressionTracker()
         let spire = SpireProgressionTracker()
         let labyrinth = LabyrinthProgressionTracker()
@@ -20,7 +20,7 @@ struct ModeProgressionToolingTests {
         #expect(Set(spire.steps.map(\.id)).count == spire.steps.count)
     }
 
-    @Test func interleavingPlayerControllerGainsXPAndLevelsUp() {
+    @Test func `interleaving player controller gains XP and levels up`() {
         let controller = InterleavingPlayerController()
         let initialLevel = controller.state.heroLevel
 
@@ -33,7 +33,7 @@ struct ModeProgressionToolingTests {
             displayTitle: "Stage 1-1",
             enemyID: "goblin",
             enemyLevel: 5,
-            isBoss: false
+            isBoss: false,
         )
 
         for _ in 0 ..< 10 {
@@ -45,7 +45,7 @@ struct ModeProgressionToolingTests {
         #expect(controller.state.battlesWon == 10)
     }
 
-    @Test func hotspotAnalyzerClassifiesEnvelopes() throws {
+    @Test func `hotspot analyzer classifies envelopes`() throws {
         let step = ModeProgressionStep(
             id: "step-1",
             mode: .campaign,
@@ -55,7 +55,7 @@ struct ModeProgressionToolingTests {
             displayTitle: "Stage 1",
             enemyID: "goblin",
             enemyLevel: 5,
-            isBoss: false
+            isBoss: false,
         )
 
         let overtunedRecords = (0 ..< 8).map { index in
@@ -70,8 +70,8 @@ struct ModeProgressionToolingTests {
                     actions: 20,
                     timedOut: false,
                     partyHPRemainingFraction: 0,
-                    enemyHPRemainingFraction: 0.8
-                )
+                    enemyHPRemainingFraction: 0.8,
+                ),
             )
         }
 
@@ -81,9 +81,9 @@ struct ModeProgressionToolingTests {
         #expect(summary.isFlagged == true)
     }
 
-    @Test func progressionMatchupSpendsLegalTalentsAtCurrentLevel() {
+    @Test func `progression matchup spends legal talents at current level`() {
         let controller = InterleavingPlayerController(
-            initialState: PlayerProgressionState(heroLevel: 20, companionLevel: 20)
+            initialState: PlayerProgressionState(heroLevel: 20, companionLevel: 20),
         )
         let step = ModeProgressionStep(
             id: "test-step",
@@ -94,7 +94,7 @@ struct ModeProgressionToolingTests {
             displayTitle: "Stage 1-1",
             enemyID: "living_armor",
             enemyLevel: 20,
-            isBoss: false
+            isBoss: false,
         )
         let matchup = controller.makeMatchup(for: step, seed: 11)
         let budget = CombatantProgression.at(level: 20).totalTalentPoints
@@ -102,9 +102,9 @@ struct ModeProgressionToolingTests {
         #expect(matchup.context.companionTalentIDs.count == budget)
     }
 
-    @Test func progressionEarlyCampaignMatchupUsesStarterGear() {
+    @Test func `progression early campaign matchup uses starter gear`() {
         let controller = InterleavingPlayerController(
-            initialState: PlayerProgressionState(heroLevel: 2, companionLevel: 2)
+            initialState: PlayerProgressionState(heroLevel: 2, companionLevel: 2),
         )
         let step = ModeProgressionStep(
             id: "test-step",
@@ -115,7 +115,7 @@ struct ModeProgressionToolingTests {
             displayTitle: "Stage 1-1",
             enemyID: "slime",
             enemyLevel: 1,
-            isBoss: false
+            isBoss: false,
         )
         let matchup = controller.makeMatchup(for: step, seed: 11)
         #expect(matchup.context.heroTalentIDs.count == 1)
@@ -124,7 +124,7 @@ struct ModeProgressionToolingTests {
         #expect(matchup.context.companionAffixIDs.count == 1)
     }
 
-    @Test func progressionSpireMatchupIsOnLevel() throws {
+    @Test func `progression spire matchup is on level`() throws {
         let controller = InterleavingPlayerController()
         let step = ModeProgressionStep(
             id: "spire-step",
@@ -135,7 +135,7 @@ struct ModeProgressionToolingTests {
             displayTitle: "Resonance Hall Floor 10",
             enemyID: "the_forge_golem",
             enemyLevel: 20,
-            isBoss: true
+            isBoss: true,
         )
         let matchup = controller.makeMatchup(for: step, seed: 11)
         #expect(controller.simulatedHeroLevel(for: step) == 20)
@@ -149,9 +149,9 @@ struct ModeProgressionToolingTests {
         #expect(matchup.enemy.maxHealth == scaledEnemy.maxHealth)
     }
 
-    @Test func spireWinAwardsEqualLevelXPAtSaveLevel() {
+    @Test func `spire win awards equal level XP at save level`() {
         let controller = InterleavingPlayerController(
-            initialState: PlayerProgressionState(heroLevel: 20, companionLevel: 20)
+            initialState: PlayerProgressionState(heroLevel: 20, companionLevel: 20),
         )
         let step = ModeProgressionStep(
             id: "spire-step",
@@ -162,30 +162,30 @@ struct ModeProgressionToolingTests {
             displayTitle: "Iron Vein Floor 1",
             enemyID: "goblin",
             enemyLevel: 2,
-            isBoss: false
+            isBoss: false,
         )
         let equalAward = ExperienceScaling.battleAwardWithCatchUp(
             playerLevel: 20,
             enemyLevel: 20,
-            highestLevel: 20
+            highestLevel: 20,
         )
         let underleveledEnemyAward = ExperienceScaling.battleAwardWithCatchUp(
             playerLevel: 20,
             enemyLevel: 2,
-            highestLevel: 20
+            highestLevel: 20,
         )
         #expect(equalAward != underleveledEnemyAward)
         let expectedHeroProgression = CombatantProgression(
             level: 20,
             currentXP: 0,
-            requiredXP: CombatantProgression.requiredXP(forLevel: 20)
+            requiredXP: CombatantProgression.requiredXP(forLevel: 20),
         ).addingExperience(equalAward)
         controller.recordOutcome(step: step, won: true)
         #expect(controller.state.heroLevel == expectedHeroProgression.level)
         #expect(controller.state.heroXP == expectedHeroProgression.currentXP)
     }
 
-    @Test func modeProgressionReportFormatterRendersSummary() {
+    @Test func `mode progression report formatter renders summary`() {
         let report = BalanceSweepReport(
             config: BalanceSweepConfig(mode: .modeProgression, battlesPerTier: 2, jobs: 1),
             policyID: "greedy-v1",
@@ -193,7 +193,7 @@ struct ModeProgressionToolingTests {
                 PlayerProgressionState(heroLevel: 4, companionLevel: 3),
                 PlayerProgressionState(heroLevel: 5, companionLevel: 4),
             ],
-            elapsedSeconds: 1
+            elapsedSeconds: 1,
         )
         let markdown = BalanceMarkdownReporter.render(report)
         #expect(markdown.contains("# Multi-Mode Progression & Hotspot Balance Report"))
@@ -201,12 +201,12 @@ struct ModeProgressionToolingTests {
         #expect(markdown.contains("**Simulated Runs**: 2"))
     }
 
-    @Test func modeAllMarkdownIncludesProgression() {
+    @Test func `mode all markdown includes progression`() {
         let report = BalanceSweepReport(
             config: BalanceSweepConfig(mode: .all, battlesPerTier: 1, tiers: [.early], jobs: 1),
             policyID: "greedy-v1",
             progressionPlayerStates: [PlayerProgressionState()],
-            elapsedSeconds: 0
+            elapsedSeconds: 0,
         )
         let markdown = BalanceMarkdownReporter.render(report)
         #expect(markdown.contains("# Balance Sweep Report"))

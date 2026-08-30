@@ -71,7 +71,7 @@ enum BalanceContrastFlags {
         entityID: String,
         baselineID: String,
         ownerID: String,
-        baselineKind: ContrastBaselineKind
+        baselineKind: ContrastBaselineKind,
     ) -> String {
         "\(tier.rawValue)|\(entityID)|\(baselineID)|\(ownerID)|\(baselineKind.rawValue)"
     }
@@ -100,7 +100,7 @@ enum BalanceContrastFlags {
         let means = ContrastMeans(
             partyHP: acc.decidedPairs == 0 ? 0 : meanDeltaPartyHP,
             enemyHP: acc.decidedPairs == 0 ? 0 : meanDeltaEnemyHP,
-            rounds: acc.decidedPairs == 0 ? 0 : meanDeltaRounds
+            rounds: acc.decidedPairs == 0 ? 0 : meanDeltaRounds,
         )
         let flags = contrastFlags(
             acc: acc,
@@ -108,7 +108,7 @@ enum BalanceContrastFlags {
             lift: lift,
             means: means,
             wrFlag: wrFlag,
-            comfortFlag: comfortFlag
+            comfortFlag: comfortFlag,
         )
         return PairedContrastSummary(
             entityID: acc.entityID,
@@ -130,7 +130,7 @@ enum BalanceContrastFlags {
             meanDeltaRounds: means.rounds,
             flagged: flags.flagged,
             flagReason: flags.reason,
-            nonCombat: acc.nonCombat
+            nonCombat: acc.nonCombat,
         )
     }
 
@@ -146,7 +146,7 @@ enum BalanceContrastFlags {
         lift: Double,
         means: ContrastMeans,
         wrFlag: Bool,
-        comfortFlag: Bool
+        comfortFlag: Bool,
     ) -> (flagged: Bool, reason: String?) {
         if acc.nonCombat {
             return (false, "NONCOMBAT")

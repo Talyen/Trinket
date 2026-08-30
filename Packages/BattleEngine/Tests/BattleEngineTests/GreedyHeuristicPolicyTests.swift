@@ -5,12 +5,12 @@ import TrinketCore
 @testable import BattleEngine
 
 struct PlayPolicyTests {
-    @Test func prefersLethalCardOverWeakerLeftmostCard() {
+    @Test func `prefers lethal card over weaker leftmost card`() {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: [],
             companionAbilities: [],
             enemyMaxHealth: 5,
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         battle.hand = BattleHand()
         battle.handBuffer = BattleHandBuffer()
@@ -23,9 +23,9 @@ struct PlayPolicyTests {
                 name: "Chip",
                 tier: .basic,
                 directDamage: 1,
-                description: "Chip"
+                description: "Chip",
             ),
-            owner: .hero
+            owner: .hero,
         )
         battle.hand.append(weak)
 
@@ -37,9 +37,9 @@ struct PlayPolicyTests {
                 name: "Execute",
                 tier: .basic,
                 directDamage: 5,
-                description: "Execute"
+                description: "Execute",
             ),
-            owner: .hero
+            owner: .hero,
         )
         battle.hand.append(lethal)
 
@@ -48,12 +48,12 @@ struct PlayPolicyTests {
         #expect(battle.hand.cards.first?.id == weak.id)
     }
 
-    @Test func setupPolicyPrefersApplyingMissingDotOverChipDamage() {
+    @Test func `setup policy prefers applying missing dot over chip damage`() {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: [],
             companionAbilities: [],
             enemyMaxHealth: 40,
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         battle.hand = BattleHand()
         battle.handBuffer = BattleHandBuffer()
@@ -66,9 +66,9 @@ struct PlayPolicyTests {
                 name: "Chip",
                 tier: .basic,
                 directDamage: 2,
-                description: "Chip"
+                description: "Chip",
             ),
-            owner: .hero
+            owner: .hero,
         )
         battle.hand.append(chip)
 
@@ -81,9 +81,9 @@ struct PlayPolicyTests {
                 tier: .basic,
                 directDamage: 0,
                 description: "Poison",
-                effects: [.poison(4)]
+                effects: [.poison(4)],
             ),
-            owner: .hero
+            owner: .hero,
         )
         battle.hand.append(poison)
 
@@ -91,7 +91,7 @@ struct PlayPolicyTests {
         #expect(chosen?.id == poison.id)
     }
 
-    @Test func simulationPoliciesMakeRejectsUnknownIDs() {
+    @Test func `simulation policies make rejects unknown I ds`() {
         #expect(SimulationPolicies.make(id: PlayPolicy.greedy.rawValue)?.id == PlayPolicy.greedy.rawValue)
         #expect(SimulationPolicies.make(id: PlayPolicy.setupAware.rawValue)?.id == PlayPolicy.setupAware.rawValue)
         #expect(SimulationPolicies.make(id: "setup-v2") == nil)

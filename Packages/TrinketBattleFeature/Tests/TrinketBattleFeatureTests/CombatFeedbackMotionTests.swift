@@ -5,7 +5,7 @@ import Testing
 @testable import TrinketBattleFeature
 
 struct CombatFeedbackMotionTests {
-    @Test func typographyTiersMatchFeedbackClasses() {
+    @Test func `typography tiers match feedback classes`() {
         #expect(CombatFeedbackClass.critical.typographyTier == .emphasis)
         #expect(CombatFeedbackClass.deathsDoor.typographyTier == .emphasis)
         #expect(CombatFeedbackClass.directDamage.typographyTier == .normal)
@@ -21,7 +21,7 @@ struct CombatFeedbackMotionTests {
         #expect(damageStyle.textStyle == .title)
     }
 
-    @Test func hitRecoilDirectionCalculatesOffsetsAndScales() {
+    @Test func `hit recoil direction calculates offsets and scales`() {
         let up = CombatantHitRecoilDirection.up
         let down = CombatantHitRecoilDirection.down
 
@@ -37,7 +37,7 @@ struct CombatFeedbackMotionTests {
         #expect(downScales.y == 1.1)
     }
 
-    @Test func combatFeedbackUnitNoiseIsBoundedAndDeterministic() {
+    @Test func `combat feedback unit noise is bounded and deterministic`() {
         for seed in [0, 1, 42, 100, 9999, -5] {
             let noise1 = CombatFeedbackLayout.unitNoise(seed: seed)
             let noise2 = CombatFeedbackLayout.unitNoise(seed: seed)
@@ -46,30 +46,30 @@ struct CombatFeedbackMotionTests {
         }
     }
 
-    @Test func alchemyPopMotionProgressLifecycle() {
+    @Test func `alchemy pop motion progress lifecycle`() {
         #expect(BattleMotion.chipMotionProgress(elapsed: 0) == 0)
         #expect(BattleMotion.chipMotionProgress(elapsed: BattleMotion.alchemyHoldEndTime) == 0)
         let midProgress = BattleMotion.chipMotionProgress(
-            elapsed: BattleMotion.alchemyHoldEndTime + 0.225
+            elapsed: BattleMotion.alchemyHoldEndTime + 0.225,
         )
         #expect(midProgress > 0 && midProgress < 1)
         let fullProgress = BattleMotion.chipMotionProgress(
-            elapsed: BattleMotion.alchemyPopDisplayDuration + 0.1
+            elapsed: BattleMotion.alchemyPopDisplayDuration + 0.1,
         )
         #expect(fullProgress == 1.0)
     }
 
-    @Test func alchemyPopScaleAndOpacityPhases() {
+    @Test func `alchemy pop scale and opacity phases`() {
         #expect(BattleMotion.chipScale(elapsed: 0) == BattleMotion.alchemyPopStartScale)
         #expect(
             abs(BattleMotion.chipScale(elapsed: BattleMotion.alchemyPopPeakTime) - BattleMotion
-                .alchemyPopOvershootScale) < 0.001
+                .alchemyPopOvershootScale) < 0.001,
         )
         #expect(BattleMotion.chipOpacity(elapsed: 0) == 1.0)
         #expect(BattleMotion.chipOpacity(elapsed: BattleMotion.alchemyPopDisplayDuration) == 0.0)
     }
 
-    @Test func chipTravelDistanceClampsToSafeBounds() {
+    @Test func `chip travel distance clamps to safe bounds`() {
         let cardHeight: CGFloat = 200
         let chipHeight: CGFloat = 30
         let distance = BattleMotion.chipTravelDistance(cardHeight: cardHeight, chipHeight: chipHeight)

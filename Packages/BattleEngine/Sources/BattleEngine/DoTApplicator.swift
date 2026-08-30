@@ -10,7 +10,7 @@ package enum DoTApplicator {
         sourceActorID: String,
         dealImmediateDamage: Bool,
         suppressAffixReactions: Bool = false,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         guard context.roster.health(for: effectTarget) > 0, potency > 0 else { return [] }
 
@@ -23,7 +23,7 @@ package enum DoTApplicator {
                 keyword: keyword,
                 target: effectTarget,
                 sourceActorID: sourceActorID,
-                in: &context
+                in: &context,
             ).events)
         }
 
@@ -40,8 +40,8 @@ package enum DoTApplicator {
                     id: context.consumeNextEffectID(),
                     effect: appliedEffect,
                     remainingTurns: 0,
-                    sourceActorID: sourceActorID
-                )
+                    sourceActorID: sourceActorID,
+                ),
             )
         }
         context.roster.setActiveEffects(currentEffects, for: effectTarget)
@@ -50,7 +50,7 @@ package enum DoTApplicator {
                 keyword: keyword,
                 to: effectTarget,
                 sourceActorID: sourceActorID,
-                in: &context
+                in: &context,
             ))
         }
         return collected
@@ -63,7 +63,7 @@ package enum DoTApplicator {
         dealImmediateDamage: Bool,
         suppressAffixReactions: Bool = false,
         durationTurns: Int? = nil,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         guard context.roster.health(for: effectTarget) > 0, potency > 0 else { return [] }
 
@@ -76,7 +76,7 @@ package enum DoTApplicator {
                 keyword: .bleed,
                 target: effectTarget,
                 sourceActorID: sourceActorID,
-                in: &context
+                in: &context,
             ).events)
         }
 
@@ -88,7 +88,7 @@ package enum DoTApplicator {
                 for index in effects.indices where effects[index].effect.isBleed {
                     effects[index].remainingTurns = min(
                         5,
-                        effects[index].remainingTurns + sourceTriggers.onBleedAppliedToBleedingExtendTurns
+                        effects[index].remainingTurns + sourceTriggers.onBleedAppliedToBleedingExtendTurns,
                     )
                 }
                 context.roster.setActiveEffects(effects, for: effectTarget)
@@ -99,7 +99,7 @@ package enum DoTApplicator {
                     keyword: .bleed,
                     target: effectTarget,
                     sourceActorID: sourceActorID,
-                    in: &context
+                    in: &context,
                 ).events)
             }
         }
@@ -108,13 +108,13 @@ package enum DoTApplicator {
             .bleed(resolvedPotency),
             to: effectTarget,
             sourceID: sourceActorID,
-            remainingTurns: durationTurns ?? (Effect.bleedDoTTurnCount + context.modifiers(for: sourceActorID).bleedDurationBonus)
+            remainingTurns: durationTurns ?? (Effect.bleedDoTTurnCount + context.modifiers(for: sourceActorID).bleedDurationBonus),
         )
         if !suppressAffixReactions {
             collected.append(contentsOf: CombatTriggerEngine.afterBleedApplied(
                 to: effectTarget,
                 sourceActorID: sourceActorID,
-                in: &context
+                in: &context,
             ))
         }
         return collected
@@ -123,13 +123,19 @@ package enum DoTApplicator {
     private static func goldenTouchPotency(
         _ potency: Int,
         sourceActorID: String,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> Int {
         guard let source = context.roster.combatant(for: sourceActorID),
-              let runtime = context.roster.runtime(for: source.combatant),
-              runtime.pendingDoubleStatusNextCard
+              let runtime = context.roster.runtime(for: source.combatant)
         else { return potency }
-        context.roster.mutateRuntime(for: source.combatant) { $0.pendingDoubleStatusNextCard = false }
+        if runtime.goldenTouchActiveThisCard {
+            return potency * 2
+        }
+        guard runtime.pendingDoubleStatusNextCard else { return potency }
+        context.roster.mutateRuntime(for: source.combatant) {
+            $0.pendingDoubleStatusNextCard = false
+            $0.goldenTouchActiveThisCard = true
+        }
         return potency * 2
     }
 }

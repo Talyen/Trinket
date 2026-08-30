@@ -58,7 +58,7 @@ public enum ItemCorruption {
 
     public static func corrupt(
         _ item: InventoryItem,
-        using randomNumberGenerator: inout some RandomNumberGenerator
+        using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> ItemCorruptionResult? {
         guard isEligibleTarget(item) else { return nil }
 
@@ -68,7 +68,7 @@ public enum ItemCorruption {
 
     static func rollEffectKinds(
         for item: InventoryItem,
-        using randomNumberGenerator: inout some RandomNumberGenerator
+        using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> Set<CorruptionEffectKind> {
         let eligible = eligibleKinds(for: item)
         var selected = Set<CorruptionEffectKind>()
@@ -118,7 +118,7 @@ public enum ItemCorruption {
     static func apply(
         kinds: Set<CorruptionEffectKind>,
         to item: InventoryItem,
-        using randomNumberGenerator: inout some RandomNumberGenerator
+        using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> ItemCorruptionResult {
         var affixIDs = item.affixes.map(\.id)
         var summaries: [CorruptionEffectSummary] = []
@@ -130,7 +130,7 @@ public enum ItemCorruption {
             affixIDs: &affixIDs,
             summaries: &summaries,
             markCandidates: &markCandidates,
-            using: &randomNumberGenerator
+            using: &randomNumberGenerator,
         )
 
         if rarity == .basic, kinds.contains(.upgradeRarity) || affixIDs.count >= 3 {
@@ -147,13 +147,13 @@ public enum ItemCorruption {
             affixIDs: affixIDs,
             summaries: &summaries,
             markCandidates: &markCandidates,
-            using: &randomNumberGenerator
+            using: &randomNumberGenerator,
         )
 
         let corruptedIndex = corruptedMarkIndex(
             count: affixIDs.count,
             candidates: markCandidates,
-            using: &randomNumberGenerator
+            using: &randomNumberGenerator,
         )
 
         let affixes: [ItemAffix] = zip(affixIDs.indices, affixIDs).compactMap { index, id in
@@ -165,7 +165,7 @@ public enum ItemCorruption {
                 title: definition.title,
                 description: powers[index].description,
                 keywords: definition.keywords,
-                isCorrupted: index == corruptedIndex
+                isCorrupted: index == corruptedIndex,
             )
         }
 
@@ -177,7 +177,7 @@ public enum ItemCorruption {
             displayName: item.displayName,
             affixes: affixes,
             isCorrupted: true,
-            affixPowers: powers
+            affixPowers: powers,
         )
         return ItemCorruptionResult(originalItem: item, item: mutated, effects: summaries)
     }
@@ -185,7 +185,7 @@ public enum ItemCorruption {
     private static func corruptedMarkIndex(
         count: Int,
         candidates: [(CorruptionMarkPriority, Int)],
-        using randomNumberGenerator: inout some RandomNumberGenerator
+        using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> Int? {
         guard count > 0 else { return nil }
         let preferred = candidates
@@ -210,7 +210,7 @@ public enum ItemCorruption {
         affixIDs: inout [String],
         summaries: inout [CorruptionEffectSummary],
         markCandidates: inout [(CorruptionMarkPriority, Int)],
-        using randomNumberGenerator: inout some RandomNumberGenerator
+        using randomNumberGenerator: inout some RandomNumberGenerator,
     ) {
         let catalog = GameContent.itemAffixDefinitions
         if kinds.contains(.replaceAffix), !affixIDs.isEmpty {
@@ -241,14 +241,14 @@ public enum ItemCorruption {
         affixIDs: [String],
         summaries: inout [CorruptionEffectSummary],
         markCandidates: inout [(CorruptionMarkPriority, Int)],
-        using randomNumberGenerator: inout some RandomNumberGenerator
+        using randomNumberGenerator: inout some RandomNumberGenerator,
     ) {
         if kinds.contains(.bumpUp),
            let bump = ItemAffixPower.applyBump(
                direction: .up,
                to: &powers,
                affixIDs: affixIDs,
-               using: &randomNumberGenerator
+               using: &randomNumberGenerator,
            ) {
             summaries.append(.bumpedUp(affixTitle: bump.title))
             markCandidates.append((.empowered, bump.affixIndex))
@@ -258,7 +258,7 @@ public enum ItemCorruption {
                direction: .down,
                to: &powers,
                affixIDs: affixIDs,
-               using: &randomNumberGenerator
+               using: &randomNumberGenerator,
            ) {
             summaries.append(.bumpedDown(affixTitle: bump.title))
             markCandidates.append((.weakened, bump.affixIndex))
@@ -276,7 +276,7 @@ public enum ItemCorruption {
 
     private static func weightedPick(
         from pool: [ItemAffixDefinition],
-        using randomNumberGenerator: inout some RandomNumberGenerator
+        using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> ItemAffixDefinition? {
         guard !pool.isEmpty else { return nil }
         let total = pool.reduce(0) { $0 + max(0, $1.weight) }
@@ -296,7 +296,7 @@ public enum ItemCorruptionApplier {
     public static func corrupt(
         itemID: String,
         save: inout PlayerSave,
-        using randomNumberGenerator: inout some RandomNumberGenerator
+        using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> ItemCorruptionApplyResult {
         guard let index = save.inventory.items.firstIndex(where: { $0.id == itemID }) else {
             return .itemNotFound

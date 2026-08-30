@@ -15,7 +15,7 @@ extension BattleState {
         isRetaliation: Bool = false,
         abilityCriticalChanceBonus: Double = 0,
         guaranteedCriticalIfEnemyBuffed: Bool = false,
-        abilityHasLeech: Bool = false
+        abilityHasLeech: Bool = false,
     ) -> (healthLost: Int, events: [ActionEvent]) {
         let outcome = resolveDamage(
             DamageRequest(
@@ -31,9 +31,9 @@ extension BattleState {
                     guaranteedCriticalIfEnemyBuffed: guaranteedCriticalIfEnemyBuffed,
                     isRetaliation: isRetaliation,
                     isAttackHit: !isRetaliation,
-                    abilityHasLeech: abilityHasLeech
-                )
-            )
+                    abilityHasLeech: abilityHasLeech,
+                ),
+            ),
         )
         return (outcome.healthLost, outcome.events)
     }
@@ -47,13 +47,13 @@ extension BattleState {
         _ amount: Int,
         keyword: Keyword,
         to target: Combatant,
-        sourceActorID: String?
+        sourceActorID: String?,
     ) -> (healthLost: Int, events: [ActionEvent]) {
         let outcome = resolveDoTTick(
             basePotency: amount,
             keyword: keyword,
             target: target,
-            sourceActorID: sourceActorID
+            sourceActorID: sourceActorID,
         )
         return (outcome.healthLost, outcome.events)
     }

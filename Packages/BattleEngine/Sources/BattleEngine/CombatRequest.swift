@@ -32,7 +32,7 @@ public struct DamageOptions: Equatable, Hashable, Sendable {
         isBasicAttackHit: Bool = false,
         abilityHasLeech: Bool = false,
         isHealthCost: Bool = false,
-        causedByDodge: Bool = false
+        causedByDodge: Bool = false,
     ) {
         self.applyStatBonus = applyStatBonus
         self.applyItemBonus = applyItemBonus
@@ -52,28 +52,28 @@ public struct DamageOptions: Equatable, Hashable, Sendable {
 
     public static let directAbilityHit = Self(
         qualifiesForAmbush: true,
-        isAttackHit: true
+        isAttackHit: true,
     )
 
     public static let doTTick = Self(
         applyStatBonus: true,
         applyItemBonus: true,
         applyDodge: false,
-        isRetaliation: true
+        isRetaliation: true,
     )
 
     public static let healthCost = Self(
         applyStatBonus: false,
         applyItemBonus: false,
         applyDodge: false,
-        isHealthCost: true
+        isHealthCost: true,
     )
 
     package static let flatReaction = Self(
         applyStatBonus: false,
         applyItemBonus: false,
         applyDodge: false,
-        isRetaliation: true
+        isRetaliation: true,
     )
 
     package static let flatControlReaction = Self(
@@ -81,7 +81,7 @@ public struct DamageOptions: Equatable, Hashable, Sendable {
         applyItemBonus: false,
         applyDodge: false,
         isRetaliation: true,
-        applyControlMeter: true
+        applyControlMeter: true,
     )
 
     package static let dodgeTriggeredControlReaction = Self(
@@ -90,7 +90,7 @@ public struct DamageOptions: Equatable, Hashable, Sendable {
         applyDodge: true,
         isRetaliation: true,
         applyControlMeter: true,
-        causedByDodge: true
+        causedByDodge: true,
     )
 }
 
@@ -106,7 +106,7 @@ public struct DamageRequest: Equatable, Hashable, Sendable {
         target: Combatant,
         keyword: Keyword? = nil,
         sourceActorID: String? = nil,
-        options: DamageOptions = .directAbilityHit
+        options: DamageOptions = .directAbilityHit,
     ) {
         self.amount = amount
         self.target = target
@@ -119,14 +119,14 @@ public struct DamageRequest: Equatable, Hashable, Sendable {
         amount: Int,
         target: Combatant,
         keyword: Keyword,
-        sourceActorID: String
+        sourceActorID: String,
     ) -> Self {
         Self(
             amount: amount,
             target: target,
             keyword: keyword,
             sourceActorID: sourceActorID,
-            options: DamageOptions(qualifiesForAmbush: true, isAttackHit: true)
+            options: DamageOptions(qualifiesForAmbush: true, isAttackHit: true),
         )
     }
 
@@ -134,14 +134,14 @@ public struct DamageRequest: Equatable, Hashable, Sendable {
         amount: Int,
         target: Combatant,
         keyword: Keyword,
-        sourceActorID: String?
+        sourceActorID: String?,
     ) -> Self {
         Self(
             amount: amount,
             target: target,
             keyword: keyword,
             sourceActorID: sourceActorID,
-            options: .doTTick
+            options: .doTTick,
         )
     }
 }
@@ -163,13 +163,13 @@ public struct HealRequest: Equatable, Hashable, Sendable {
     public init(
         amount: Int,
         target: Combatant,
-        sourceActorID: String? = nil
+        sourceActorID: String? = nil,
     ) {
         self.init(
             amount: amount,
             target: target,
             sourceActorID: sourceActorID,
-            logAs: .silent
+            logAs: .silent,
         )
     }
 
@@ -180,7 +180,7 @@ public struct HealRequest: Equatable, Hashable, Sendable {
         logAs: HealLogPolicy,
         revivesIfDead: Bool = false,
         skipFightPacing: Bool = false,
-        isHoTTick: Bool = false
+        isHoTTick: Bool = false,
     ) {
         self.amount = amount
         self.target = target

@@ -20,7 +20,7 @@ enum AbilityDescriptionFormatter {
             name: "branch",
             tier: .basic,
             damageComponents: branch.damageComponents,
-            targetedEffects: branch.targetedEffects
+            targetedEffects: branch.targetedEffects,
         )
         let text = formatFixed(ability)
         return text.hasSuffix(".") ? String(text.dropLast()) : text
@@ -68,7 +68,7 @@ enum AbilityDescriptionFormatter {
     }
 
     private static func formatEnemyDamage(
-        _ components: [DamageComponent]
+        _ components: [DamageComponent],
     ) -> [String] {
         var clauses: [String] = []
         for component in components {

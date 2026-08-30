@@ -36,7 +36,7 @@ public final class ShopEncounterSession: Identifiable {
         origin: PlayEncounterOrigin,
         offers: [ShopOffer],
         visitToken: String = UUID().uuidString,
-        greeting: String = "Welcome, traveler. Take a look at what I've got."
+        greeting: String = "Welcome, traveler. Take a look at what I've got.",
     ) {
         self.origin = origin
         stage = origin.resolvedStage(labyrinthEncounter: .shop)
@@ -51,7 +51,7 @@ public final class ShopEncounterSession: Identifiable {
         ownedTrinketIDs: Set<String>,
         astralChanceBonusPercent: Int,
         allAstral: Bool = false,
-        priceDiscountPercent: Int = 0
+        priceDiscountPercent: Int = 0,
     ) -> ShopEncounterOpenResult {
         if case let .journey(stage) = origin {
             guard case .shop = stage.encounter else { return .unavailable }
@@ -59,7 +59,7 @@ public final class ShopEncounterSession: Identifiable {
         let resolvedStage = origin.resolvedStage(labyrinthEncounter: .shop)
 
         var randomNumberGenerator = SeededRandomNumberGenerator(
-            seed: ShopOfferGenerator.seed(worldSeed: worldSeed, forStageID: resolvedStage.id)
+            seed: ShopOfferGenerator.seed(worldSeed: worldSeed, forStageID: resolvedStage.id),
         )
         let offers = ShopOfferGenerator.generateOffers(
             stageID: resolvedStage.id,
@@ -67,14 +67,14 @@ public final class ShopEncounterSession: Identifiable {
             astralChanceBonusPercent: astralChanceBonusPercent,
             allAstral: allAstral,
             priceDiscountPercent: priceDiscountPercent,
-            using: &randomNumberGenerator
+            using: &randomNumberGenerator,
         )
         guard !offers.isEmpty else {
             return .autoCompleted
         }
         return .opened(ShopEncounterSession(
             origin: origin,
-            offers: offers
+            offers: offers,
         ))
     }
 

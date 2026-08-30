@@ -10,7 +10,7 @@ enum EffectRemoval {
 
     static func removeRandomDebuff(
         from effects: inout [ActiveEffect],
-        using rng: inout SeededRandomNumberGenerator
+        using rng: inout SeededRandomNumberGenerator,
     ) -> Keyword? {
         removeRandom(from: &effects, using: &rng) { $0.effect.isRemovableDebuff }
     }
@@ -22,7 +22,7 @@ enum EffectRemoval {
 
     static func removeRandomBuff(
         from effects: inout [ActiveEffect],
-        using rng: inout SeededRandomNumberGenerator
+        using rng: inout SeededRandomNumberGenerator,
     ) -> Keyword? {
         removeRandom(from: &effects, using: &rng) { $0.effect.isRemovableBuff }
     }
@@ -31,7 +31,7 @@ enum EffectRemoval {
         from effects: inout [ActiveEffect],
         count: Int,
         removeAll: Bool,
-        using rng: inout SeededRandomNumberGenerator
+        using rng: inout SeededRandomNumberGenerator,
     ) -> [Keyword] {
         if removeAll {
             return removeBuffs(from: &effects, keyword: nil) ? [.purge] : []
@@ -49,7 +49,7 @@ enum EffectRemoval {
     private static func removeMatching(
         from effects: inout [ActiveEffect],
         keyword: Keyword?,
-        where matches: (ActiveEffect) -> Bool
+        where matches: (ActiveEffect) -> Bool,
     ) -> Bool {
         let before = effects.count
         if let keyword {
@@ -63,7 +63,7 @@ enum EffectRemoval {
     private static func removeRandom(
         from effects: inout [ActiveEffect],
         using rng: inout SeededRandomNumberGenerator,
-        where matches: (ActiveEffect) -> Bool
+        where matches: (ActiveEffect) -> Bool,
     ) -> Keyword? {
         let candidates = effects.filter(matches)
         guard let removed = candidates.randomElement(using: &rng) else { return nil }
@@ -85,7 +85,7 @@ enum ActiveEffectMutation {
     static func removeMatching(
         from target: Combatant,
         in context: inout BattleState,
-        where matches: (Effect) -> Bool
+        where matches: (Effect) -> Bool,
     ) {
         var effects = context.roster.activeEffects(for: target)
         effects.removeAll { matches($0.effect) }
@@ -99,7 +99,7 @@ enum ActiveEffectMutation {
         ability: Ability,
         in context: inout BattleState,
         replacing matches: (Effect) -> Bool,
-        event: (kind: ActionEvent.EffectOutcome, amount: Int, keyword: Keyword)
+        event: (kind: ActionEvent.EffectOutcome, amount: Int, keyword: Keyword),
     ) -> ActionEvent {
         removeMatching(from: target, in: &context, where: matches)
         context.appendEffect(effect, to: target, sourceID: source.id, remainingTurns: effect.durationTurns)
@@ -110,7 +110,7 @@ enum ActiveEffectMutation {
             abilityName: ability.name,
             target: target,
             amount: event.amount,
-            keyword: event.keyword
+            keyword: event.keyword,
         )
     }
 }

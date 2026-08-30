@@ -5,14 +5,14 @@ import TrinketCore
 @testable import TrinketPersistence
 
 struct BattleLootTests {
-    @Test func quantityRangeEndpoints() {
+    @Test func `quantity range endpoints`() {
         #expect(BattleLoot.quantityRange(forLevel: 1) == 3 ... 4)
         #expect(BattleLoot.quantityRange(forLevel: 24) == 7 ... 13)
         #expect(BattleLoot.quantityRange(forLevel: 48) == 11 ... 23)
         #expect(BattleLoot.quantityRange(forLevel: 50) == 12 ... 24)
     }
 
-    @Test func resolveAlwaysGrantsOneItemTwoDistinctMaterialsAndGold() {
+    @Test func `resolve always grants one item two distinct materials and gold`() {
         var rng = SeededRandomNumberGenerator(seed: 42)
         let package = BattleLoot.resolve(
             encounterLevel: 1,
@@ -20,7 +20,7 @@ struct BattleLootTests {
             itemID: "test-loot",
             ownedTrinketIDs: [],
             ownedUniqueIDs: [],
-            using: &rng
+            using: &rng,
         )
         let isCatalogIdentity = package.item.isTrinket || package.item.rarity == .unique
         #expect(isCatalogIdentity || package.item.id == "test-loot")
@@ -36,7 +36,7 @@ struct BattleLootTests {
         }
     }
 
-    @Test func bossGrantsSpecialTierAndDoublesCurrency() {
+    @Test func `boss grants special tier and doubles currency`() {
         var rng = SeededRandomNumberGenerator(seed: 99)
         let package = BattleLoot.resolve(
             encounterLevel: 1,
@@ -44,7 +44,7 @@ struct BattleLootTests {
             itemID: "boss-loot",
             ownedTrinketIDs: [],
             ownedUniqueIDs: [],
-            using: &rng
+            using: &rng,
         )
         switch package.item.rarity {
         case .unique, .astral:
@@ -60,7 +60,7 @@ struct BattleLootTests {
 
     private static let ladderDraws: UInt64 = 100
 
-    @Test func normalDropLadderMatchesAuthoredBands() {
+    @Test func `normal drop ladder matches authored bands`() {
         var uniqueCount = 0
         var trinketCount = 0
         var astralCount = 0
@@ -80,7 +80,7 @@ struct BattleLootTests {
         #expect(basicCount >= 65)
     }
 
-    @Test func bossDropLadderMatchesAuthoredBands() {
+    @Test func `boss drop ladder matches authored bands`() {
         var uniqueCount = 0
         var trinketCount = 0
         var astralCount = 0
@@ -98,7 +98,7 @@ struct BattleLootTests {
         #expect((27 ... 54).contains(astralCount))
     }
 
-    @Test func disallowingUniquesFoldsTheirBandIntoAstral() {
+    @Test func `disallowing uniques folds their band into astral`() {
         var uniqueAllowed = 0
         var trinketAllowed = 0
         var astralAllowed = 0
@@ -127,7 +127,7 @@ struct BattleLootTests {
         #expect(uniqueAllowed > 0)
     }
 
-    @Test func journeyLootIsSeedStable() throws {
+    @Test func `journey loot is seed stable`() throws {
         let stage = try #require(GameContent.stage(id: "chapter-1-stage-1"))
         let first = BattleLoot.resolveJourney(
             stage: stage,
@@ -135,7 +135,7 @@ struct BattleLootTests {
             enemyIsBoss: false,
             worldSeed: 8,
             ownedTrinketIDs: [],
-            ownedUniqueIDs: []
+            ownedUniqueIDs: [],
         )
         let second = BattleLoot.resolveJourney(
             stage: stage,
@@ -143,7 +143,7 @@ struct BattleLootTests {
             enemyIsBoss: false,
             worldSeed: 8,
             ownedTrinketIDs: [],
-            ownedUniqueIDs: []
+            ownedUniqueIDs: [],
         )
         #expect(first == second)
 
@@ -153,12 +153,12 @@ struct BattleLootTests {
             enemyIsBoss: false,
             worldSeed: 9,
             ownedTrinketIDs: [],
-            ownedUniqueIDs: []
+            ownedUniqueIDs: [],
         )
         #expect(first != otherWorld)
     }
 
-    @Test func bossJourneyLootIsNeverBasic() throws {
+    @Test func `boss journey loot is never basic`() throws {
         let stage = try #require(GameContent.stage(id: "chapter-1-stage-10"))
         let package = BattleLoot.resolveJourney(
             stage: stage,
@@ -166,7 +166,7 @@ struct BattleLootTests {
             enemyIsBoss: true,
             worldSeed: 8,
             ownedTrinketIDs: [],
-            ownedUniqueIDs: []
+            ownedUniqueIDs: [],
         )
         switch package.item.rarity {
         case .unique, .astral:
@@ -176,7 +176,7 @@ struct BattleLootTests {
         }
     }
 
-    @Test func homesteadAstralChanceAppliesToJourneyAndSpireBattleLoot() throws {
+    @Test func `homestead astral chance applies to journey and spire battle loot`() throws {
         let stage = try #require(GameContent.stage(id: "chapter-1-stage-1"))
         let journeyLoot = BattleLoot.resolveJourney(
             stage: stage,
@@ -185,7 +185,7 @@ struct BattleLootTests {
             worldSeed: 8,
             ownedTrinketIDs: [],
             ownedUniqueIDs: [],
-            astralChanceBonusPercent: 100
+            astralChanceBonusPercent: 100,
         )
         #expect(journeyLoot.item.rarity == .astral)
 
@@ -195,7 +195,7 @@ struct BattleLootTests {
             worldSeed: 8,
             ownedTrinketIDs: [],
             ownedUniqueIDs: [],
-            astralChanceBonusPercent: 100
+            astralChanceBonusPercent: 100,
         )
         #expect(spireLoot.item.rarity == .astral)
     }

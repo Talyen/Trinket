@@ -10,7 +10,7 @@ public enum FramePacingSignpostSupport {
             log: log,
             name: name,
             "%{public}@",
-            detail as NSString
+            detail as NSString,
         )
     }
 }

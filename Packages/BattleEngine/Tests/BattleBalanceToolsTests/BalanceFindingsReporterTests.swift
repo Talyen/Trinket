@@ -3,7 +3,7 @@ import Testing
 @testable import BattleBalanceTools
 
 struct BalanceFindingsReporterTests {
-    @Test func findingsOmitPresenceTablesAndIncludeFlaggedEnemy() {
+    @Test func `findings omit presence tables and include flagged enemy`() {
         var records: [BalanceBattleRecord] = []
         for index in 0 ..< 10 {
             records.append(identityRecord(
@@ -11,21 +11,21 @@ struct BalanceFindingsReporterTests {
                 isBoss: false,
                 abilities: ["caustic-jab", "panacea-potion"],
                 win: true,
-                seed: UInt64(index)
+                seed: UInt64(index),
             ))
             records.append(identityRecord(
                 enemyID: "the_forge_golem",
                 isBoss: true,
                 abilities: ["bash", "molten-bulwark"],
                 win: false,
-                seed: UInt64(index + 20)
+                seed: UInt64(index + 20),
             ))
         }
         let report = BalanceSweepReport(
             config: BalanceSweepConfig(mode: .identity, battlesPerTier: 10, tiers: [.early], jobs: 1),
             policyID: "greedy-v1",
             records: records,
-            elapsedSeconds: 0
+            elapsedSeconds: 0,
         )
         let findings = BalanceFindingsReporter.render(report)
         let full = BalanceMarkdownReporter.render(report)
@@ -39,7 +39,7 @@ struct BalanceFindingsReporterTests {
         #expect(full.contains("Party Abilities (within owner)"))
     }
 
-    @Test func findingsListFlaggedContrastsWithoutFullTables() {
+    @Test func `findings list flagged contrasts without full tables`() {
         let contrast = PairedContrastSummary(
             entityID: "cinderbloom",
             baselineID: "fireball",
@@ -54,18 +54,18 @@ struct BalanceFindingsReporterTests {
             baselineOnlyWins: 0,
             lift: 0.1875,
             flagged: true,
-            flagReason: "HIGH"
+            flagReason: "HIGH",
         )
         let report = BalanceSweepReport(
             config: BalanceSweepConfig(
                 mode: .abilityContrast,
                 battlesPerTier: 32,
                 tiers: [.early],
-                jobs: 1
+                jobs: 1,
             ),
             policyID: "greedy-v1",
             abilityContrasts: [contrast],
-            elapsedSeconds: 0
+            elapsedSeconds: 0,
         )
         let findings = BalanceFindingsReporter.render(report)
         #expect(findings.contains("`cinderbloom`"))
@@ -74,7 +74,7 @@ struct BalanceFindingsReporterTests {
         #expect(!findings.contains("Ability Contrasts (paired lift vs sibling choice)"))
     }
 
-    @Test func findingsListProgressionHotspotsWithoutNodeCensus() {
+    @Test func `findings list progression hotspots without node census`() {
         let step = ModeProgressionStep(
             id: "stage-3-10",
             mode: .campaign,
@@ -84,7 +84,7 @@ struct BalanceFindingsReporterTests {
             displayTitle: "Stage 3-10",
             enemyID: "the_forge_golem",
             enemyLevel: 15,
-            isBoss: true
+            isBoss: true,
         )
         let flagged = NodeHotspotSummary(
             step: step,
@@ -97,7 +97,7 @@ struct BalanceFindingsReporterTests {
             averageEnemyLevel: 15,
             averageEnemyPowerRating: 892,
             status: .overtuned,
-            flagReason: "Win rate 50.0% below 80%"
+            flagReason: "Win rate 50.0% below 80%",
         )
         let smoothStep = ModeProgressionStep(
             id: "stage-1-1",
@@ -108,7 +108,7 @@ struct BalanceFindingsReporterTests {
             displayTitle: "Stage 1-1",
             enemyID: "slime",
             enemyLevel: 1,
-            isBoss: false
+            isBoss: false,
         )
         let smooth = NodeHotspotSummary(
             step: smoothStep,
@@ -120,14 +120,14 @@ struct BalanceFindingsReporterTests {
             averagePlayerLevel: 1,
             averageEnemyLevel: 1,
             averageEnemyPowerRating: 273,
-            status: .smooth
+            status: .smooth,
         )
         let report = BalanceSweepReport(
             config: BalanceSweepConfig(mode: .modeProgression, battlesPerTier: 32, jobs: 1),
             policyID: "greedy-v1",
             progressionHotspots: [flagged, smooth],
             progressionPlayerStates: [PlayerProgressionState()],
-            elapsedSeconds: 0
+            elapsedSeconds: 0,
         )
         let findings = BalanceFindingsReporter.render(report)
         let full = BalanceMarkdownReporter.render(report)
@@ -137,7 +137,7 @@ struct BalanceFindingsReporterTests {
         #expect(full.contains("Campaign Progression Detail"))
     }
 
-    @Test func findingsIncludeComparedPolicyWinRate() {
+    @Test func `findings include compared policy win rate`() {
         var records: [BalanceBattleRecord] = []
         var compared: [BalanceBattleRecord] = []
         for index in 0 ..< 8 {
@@ -146,14 +146,14 @@ struct BalanceFindingsReporterTests {
                 isBoss: false,
                 abilities: ["bash"],
                 win: index < 4,
-                seed: UInt64(index)
+                seed: UInt64(index),
             ))
             compared.append(identityRecord(
                 enemyID: "slime",
                 isBoss: false,
                 abilities: ["bash"],
                 win: true,
-                seed: UInt64(index + 40)
+                seed: UInt64(index + 40),
             ))
         }
         let report = BalanceSweepReport(
@@ -162,7 +162,7 @@ struct BalanceFindingsReporterTests {
             records: records,
             comparedPolicyID: "optimal-v1",
             comparedRecords: compared,
-            elapsedSeconds: 0
+            elapsedSeconds: 0,
         )
         let findings = BalanceFindingsReporter.render(report)
         #expect(findings.contains("Compared policy: `optimal-v1`"))
@@ -175,7 +175,7 @@ struct BalanceFindingsReporterTests {
         isBoss: Bool,
         abilities: [String],
         win: Bool,
-        seed: UInt64
+        seed: UInt64,
     ) -> BalanceBattleRecord {
         BalanceBattleRecord(
             tier: .early,
@@ -198,8 +198,8 @@ struct BalanceFindingsReporterTests {
                 actions: 12,
                 timedOut: false,
                 partyHPRemainingFraction: win ? 0.8 : 0,
-                enemyHPRemainingFraction: win ? 0 : 0.7
-            )
+                enemyHPRemainingFraction: win ? 0 : 0.7,
+            ),
         )
     }
 }

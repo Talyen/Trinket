@@ -27,8 +27,8 @@ public enum SaveTestSupport {
             configurations: ModelConfiguration(
                 schema: schema,
                 url: storeURL,
-                cloudKitDatabase: .none
-            )
+                cloudKitDatabase: .none,
+            ),
         )
         return ModelContext(container)
     }
@@ -38,7 +38,7 @@ public enum SaveTestSupport {
         try PlayerSaveStore(
             storeURL: makeStoreURL(directoryURL: directoryURL),
             disableCloudSync: true,
-            persistSaveImmediately: persistImmediately
+            persistSaveImmediately: persistImmediately,
         )
     }
 
@@ -49,7 +49,7 @@ public enum SaveTestSupport {
             worldSeed: PlayerSave.testWorldSeed,
             journey: .initial,
             roster: .freshStart,
-            inventory: .freshStart
+            inventory: .freshStart,
         )
         save.roster.gold = gold
         return save
@@ -59,7 +59,7 @@ public enum SaveTestSupport {
         roster: PlayerRosterState = .testSeed,
         inventory: PlayerInventoryState = PlayerInventoryState(items: []),
         homestead: PlayerHomesteadState = .freshStart,
-        journey: JourneyProgressState = .initial
+        journey: JourneyProgressState = .initial,
     ) -> PlayerSave {
         PlayerSave(
             schemaVersion: PlayerSave.currentSchemaVersion,
@@ -69,7 +69,7 @@ public enum SaveTestSupport {
             journey: journey,
             roster: roster,
             inventory: inventory,
-            homestead: homestead
+            homestead: homestead,
         )
     }
 
@@ -77,15 +77,15 @@ public enum SaveTestSupport {
         _ save: PlayerSave,
         to storeURL: URL,
         schema: Schema = PlayerSaveGraph.schema,
-        additionalInserts: ((ModelContext) throws -> Void)? = nil
+        additionalInserts: ((ModelContext) throws -> Void)? = nil,
     ) throws {
         let container = try ModelContainer(
             for: schema,
             configurations: ModelConfiguration(
                 schema: schema,
                 url: storeURL,
-                cloudKitDatabase: .none
-            )
+                cloudKitDatabase: .none,
+            ),
         )
         let context = ModelContext(container)
         context.insert(PlayerSaveRoot(save: save))
@@ -98,7 +98,7 @@ public enum SaveTestSupport {
         rarity: Rarity,
         id: String? = nil,
         templateID: String? = nil,
-        seed: UInt64 = 11
+        seed: UInt64 = 11,
     ) throws -> InventoryItem {
         guard let baseType = GameContent.itemBaseTypes.first(where: { $0.id == baseID }) else {
             throw PlayerSavePersistenceError.invalidSave("Unknown item base \(baseID)")
@@ -109,7 +109,7 @@ public enum SaveTestSupport {
             templateID: templateID ?? "\(baseID)-\(rarity.rawValue)",
             baseType: baseType,
             rarity: rarity,
-            using: &randomNumberGenerator
+            using: &randomNumberGenerator,
         )
     }
 }

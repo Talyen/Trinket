@@ -24,7 +24,7 @@ struct HomesteadHeroScreen<HeroArt: View, WalletBottomContent: View, Body: View>
         bottomPadding: CGFloat = TrinketDesign.Metrics.tabBarContentClearance,
         @ViewBuilder heroArt: @escaping () -> HeroArt,
         @ViewBuilder walletBottomContent: @escaping () -> WalletBottomContent,
-        @ViewBuilder bodyContent: @escaping () -> Body
+        @ViewBuilder bodyContent: @escaping () -> Body,
     ) {
         self.title = title
         self.homestead = homestead
@@ -39,14 +39,14 @@ struct HomesteadHeroScreen<HeroArt: View, WalletBottomContent: View, Body: View>
     var body: some View {
         DetailHeroScrollShell(
             title: title,
-            heroHeightPolicy: .cinematicLandscape
+            heroHeightPolicy: .cinematicLandscape,
         ) { baseHeight, overscroll in
             DetailHeroHeader(
                 title: title,
                 baseHeight: baseHeight,
                 overscroll: overscroll,
                 horizontalPadding: TrinketDesign.Metrics.contentMargin,
-                bottomPadding: TrinketDesign.Metrics.largeSpacing
+                bottomPadding: TrinketDesign.Metrics.largeSpacing,
             ) {
                 heroArt()
             }
@@ -55,7 +55,7 @@ struct HomesteadHeroScreen<HeroArt: View, WalletBottomContent: View, Body: View>
                 HomesteadResourceWallet(
                     homestead: homestead,
                     roster: roster,
-                    walletAnimationNamespace: walletAnimationNamespace
+                    walletAnimationNamespace: walletAnimationNamespace,
                 )
                 .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
 
@@ -77,7 +77,7 @@ extension HomesteadHeroScreen where WalletBottomContent == EmptyView {
         walletAnimationNamespace: Namespace.ID? = nil,
         bottomPadding: CGFloat = TrinketDesign.Metrics.tabBarContentClearance,
         @ViewBuilder heroArt: @escaping () -> HeroArt,
-        @ViewBuilder bodyContent: @escaping () -> Body
+        @ViewBuilder bodyContent: @escaping () -> Body,
     ) {
         self.title = title
         self.homestead = homestead

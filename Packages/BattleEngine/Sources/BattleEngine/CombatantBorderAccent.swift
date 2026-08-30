@@ -4,7 +4,7 @@ import TrinketCore
 public enum CombatantBorderAccent: Sendable {
     public static func keyword(
         from effects: [ActiveEffect],
-        controlAccentRequiresPendingSkip: Bool = false
+        controlAccentRequiresPendingSkip: Bool = false,
     ) -> Keyword? {
         if effects.contains(where: { $0.effect.kind == .deathsDoor }) {
             return .deathsDoor

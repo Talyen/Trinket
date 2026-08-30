@@ -20,7 +20,7 @@ package extension CombatTriggerEngine {
     private static func endOfTurnBlockConversion(
         runtime: CombatantRuntime,
         actor: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         let triggers = context.modifiers(for: actor.id).triggers
         guard triggers.unspentManaConvertsToBlock, runtime.maxMana > 0, runtime.currentMana > 0 else { return [] }
@@ -29,14 +29,14 @@ package extension CombatTriggerEngine {
             converted,
             to: actor,
             source: actor,
-            abilityName: triggerAbilityName("unspentManaConvertsToBlock", for: actor, fallback: "Mana Shield", in: context)
+            abilityName: triggerAbilityName("unspentManaConvertsToBlock", for: actor, fallback: "Mana Shield", in: context),
         )
     }
 
     private static func hoardArmorBlock(
         actor: Combatant,
         triggers: CombatTraitTriggers,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         guard triggers.blockPerGoldCollectedEvery > 0, context.gold > 0 else { return [] }
         let block = min(5, context.gold / triggers.blockPerGoldCollectedEvery)
@@ -45,7 +45,7 @@ package extension CombatTriggerEngine {
             block,
             to: actor,
             source: actor,
-            abilityName: triggerAbilityName("blockPerGoldCollectedEvery", for: actor, fallback: "Hoard Armor", in: context)
+            abilityName: triggerAbilityName("blockPerGoldCollectedEvery", for: actor, fallback: "Hoard Armor", in: context),
         )
     }
 
@@ -53,7 +53,7 @@ package extension CombatTriggerEngine {
         owner: BattleParticipant,
         actor: Combatant,
         triggers: CombatTraitTriggers,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         var events: [ActionEvent] = []
         events.append(contentsOf: hibernationHeal(actor: actor, triggers: triggers, in: &context))
@@ -66,7 +66,7 @@ package extension CombatTriggerEngine {
     private static func hibernationHeal(
         actor: Combatant,
         triggers: CombatTraitTriggers,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         guard triggers.endTurnWithBlockHealFlat > 0,
               DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: actor)) > 0
@@ -75,7 +75,7 @@ package extension CombatTriggerEngine {
             amount: triggers.endTurnWithBlockHealFlat,
             target: actor,
             source: actor,
-            abilityName: triggerAbilityName("endTurnWithBlockHealFlat", for: actor, fallback: "Hibernation", in: context)
+            abilityName: triggerAbilityName("endTurnWithBlockHealFlat", for: actor, fallback: "Hibernation", in: context),
         )
     }
 
@@ -83,7 +83,7 @@ package extension CombatTriggerEngine {
         owner: BattleParticipant,
         actor: Combatant,
         triggers: CombatTraitTriggers,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         guard triggers.cardsPlayedHealPartyThreshold > 0,
               (context.turnCadence.cardsPlayed[owner] ?? 0) >= triggers.cardsPlayedHealPartyThreshold
@@ -96,7 +96,7 @@ package extension CombatTriggerEngine {
                 amount: triggers.cardsPlayedHealPartyAmount,
                 target: member.combatant,
                 source: actor,
-                abilityName: triggerAbilityName("cardsPlayedHealPartyThreshold", for: actor, fallback: "Playful Energy", in: context)
+                abilityName: triggerAbilityName("cardsPlayedHealPartyThreshold", for: actor, fallback: "Playful Energy", in: context),
             ))
         }
         return events
@@ -105,7 +105,7 @@ package extension CombatTriggerEngine {
     private static func cheerUpHeal(
         actor: Combatant,
         triggers: CombatTraitTriggers,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         guard triggers.endOfTurnHealLowestAlly > 0 else { return [] }
         let lowest = BattleConditionEvaluator.lowestHealthAlly(in: context)
@@ -113,14 +113,14 @@ package extension CombatTriggerEngine {
             amount: triggers.endOfTurnHealLowestAlly,
             target: lowest,
             source: actor,
-            abilityName: triggerAbilityName("endOfTurnHealLowestAlly", for: actor, fallback: "Cheer Up", in: context)
+            abilityName: triggerAbilityName("endOfTurnHealLowestAlly", for: actor, fallback: "Cheer Up", in: context),
         )
     }
 
     private static func campfireComfortHeal(
         actor: Combatant,
         triggers: CombatTraitTriggers,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         guard triggers.partyRegenPerRound > 0 else { return [] }
         var events: [ActionEvent] = []
@@ -131,7 +131,7 @@ package extension CombatTriggerEngine {
                 amount: triggers.partyRegenPerRound,
                 target: member.combatant,
                 source: actor,
-                abilityName: triggerAbilityName("partyRegenPerRound", for: actor, fallback: "Campfire Comfort", in: context)
+                abilityName: triggerAbilityName("partyRegenPerRound", for: actor, fallback: "Campfire Comfort", in: context),
             ))
         }
         return events

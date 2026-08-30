@@ -51,13 +51,13 @@ struct PostBattleTalentChoiceView: View {
 
     private func treeSelection(
         combatant: Combatant,
-        config: CombatantTalentConfig
+        config: CombatantTalentConfig,
     ) -> some View {
         DetailHeroScrollShell(title: combatant.name) { baseHeight, overscroll in
             DetailHeroHeader(
                 title: combatant.name,
                 baseHeight: baseHeight,
-                overscroll: overscroll
+                overscroll: overscroll,
             ) {
                 CombatantArtwork(combatant: combatant)
             } footer: {
@@ -87,7 +87,7 @@ struct PostBattleTalentChoiceView: View {
             progression: playerSave.roster.progression(for: combatant),
             unlockedTalents: Binding(
                 get: { playerSave.roster.unlockedTalents(for: combatant.id) },
-                set: { _ in }
+                set: { _ in },
             ),
             initialSelectedNodeID: legalNodes(in: tree, combatantID: combatant.id).first?.id,
             showsReset: false,
@@ -96,7 +96,7 @@ struct PostBattleTalentChoiceView: View {
             onUnlockTalent: { node, tree in
                 choose(node: node, tree: tree)
             },
-            onResetTalents: {}
+            onResetTalents: {},
         )
         .toolbar {
             closeToolbarItem
@@ -114,7 +114,7 @@ struct PostBattleTalentChoiceView: View {
                 caption: choiceCountLabel(nodes.count),
                 isLocked: nodes.isEmpty,
                 showsShine: !nodes.isEmpty,
-                accessibilityID: AccessibilityID.TalentChoice.tree(id: tree.id)
+                accessibilityID: AccessibilityID.TalentChoice.tree(id: tree.id),
             )
         }
         .trinketQuietTapButtonStyle()
@@ -129,7 +129,7 @@ struct PostBattleTalentChoiceView: View {
             tree.canUnlock(
                 node: $0,
                 unlockedNodeIDs: unlocked,
-                availablePoints: points
+                availablePoints: points,
             )
         }
     }
@@ -148,7 +148,7 @@ struct PostBattleTalentChoiceView: View {
     private var treeColumns: [GridItem] {
         Array(
             repeating: GridItem(.flexible(), spacing: TrinketDesign.Metrics.smallSpacing),
-            count: 3
+            count: 3,
         )
     }
 

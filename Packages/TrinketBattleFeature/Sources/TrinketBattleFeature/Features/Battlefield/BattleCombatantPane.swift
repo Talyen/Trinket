@@ -25,7 +25,7 @@ struct BattleCombatantPane: View {
         Button(action: onCombatantTap) {
             CombatantAttackLane(
                 combatantID: combatant.id,
-                aim: CombatantAttackAim.aim(isPartyMember: recoilDirection == .down)
+                aim: CombatantAttackAim.aim(isPartyMember: recoilDirection == .down),
             ) {
                 CombatantHitReactionLane(
                     combatantID: combatant.id,
@@ -33,7 +33,7 @@ struct BattleCombatantPane: View {
                     recoilDirection: recoilDirection,
                     borderVisible: !isDefeated,
                     borderAccentKeyword: borderAccentKeyword,
-                    buffAuraKind: buffAuraKind
+                    buffAuraKind: buffAuraKind,
                 ) {
                     ZStack(alignment: .bottom) {
                         artworkPresentation
@@ -113,7 +113,7 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
             .trinketSensoryFeedback(
                 reactionFeedback(for: activeKind == .none ? nil : activeKind),
                 trigger: playToken,
-                enabled: hapticsEnabled
+                enabled: hapticsEnabled,
             )
             .onAppear {
                 installHitReactionBridge()
@@ -130,11 +130,11 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
     private func hitReactionAnimator() -> some View {
         let layout = ReactionLayoutState(
             activeKind: activeKind,
-            recoilDirection: recoilDirection
+            recoilDirection: recoilDirection,
         )
         return KeyframeAnimator(
             initialValue: CardReactionAnimationState(),
-            trigger: playToken
+            trigger: playToken,
         ) { state in
             hitReactionArtwork(state)
         } keyframes: { _ in
@@ -142,24 +142,24 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
                 SpringKeyframe(
                     layout.impactScaleX,
                     duration: layout.impactDuration,
-                    spring: .snappy(duration: layout.impactDuration)
+                    spring: .snappy(duration: layout.impactDuration),
                 )
                 SpringKeyframe(
                     layout.recoveryScaleX,
                     duration: layout.recoveryDuration,
-                    spring: .bouncy(duration: layout.recoveryDuration)
+                    spring: .bouncy(duration: layout.recoveryDuration),
                 )
             }
             KeyframeTrack(\.scaleY) {
                 SpringKeyframe(
                     layout.impactScaleY,
                     duration: layout.impactDuration,
-                    spring: .snappy(duration: layout.impactDuration)
+                    spring: .snappy(duration: layout.impactDuration),
                 )
                 SpringKeyframe(
                     layout.recoveryScaleY,
                     duration: layout.recoveryDuration,
-                    spring: .bouncy(duration: layout.recoveryDuration)
+                    spring: .bouncy(duration: layout.recoveryDuration),
                 )
             }
             KeyframeTrack(\.offsetX) {
@@ -204,7 +204,7 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
         } else {
             TrinketDesign.cardShape.strokeBorder(
                 TrinketDesign.Colors.subtleStroke,
-                lineWidth: 1
+                lineWidth: 1,
             )
         }
     }
@@ -212,7 +212,7 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
     private func installHitReactionBridge() {
         battleSession.feedback.installHitReactionBridge(
             ownerID: reactionBridgeOwnerID,
-            combatantID: combatantID
+            combatantID: combatantID,
         ) { reaction in
             adoptReaction(reaction)
         }
@@ -263,7 +263,7 @@ private struct ReactionLayoutState {
         let reactionRecipe = CombatFeedbackCardRecipes.cardReaction(for: activeKind)
         let defaultOffset = CGSize(
             width: CGFloat(reactionRecipe.rawImpactOffsetX),
-            height: CGFloat(reactionRecipe.rawImpactOffsetY)
+            height: CGFloat(reactionRecipe.rawImpactOffsetY),
         )
         let isVerticalImpact = activeKind == .damage || activeKind == .critical
         let recipeScaleX: Double = reactionRecipe.rawImpactScaleX
@@ -305,12 +305,12 @@ private struct CombatantStatusBorderPulse: View {
     var body: some View {
         CombatantStatusBorderPulseStroke(
             keyword: keyword,
-            pulseAmount: pulseAmount
+            pulseAmount: pulseAmount,
         )
         .onAppear {
             pulseAmount = 0
             withAnimation(
-                BattleMotion.statusBorderPulse.repeatForever(autoreverses: true)
+                BattleMotion.statusBorderPulse.repeatForever(autoreverses: true),
             ) {
                 pulseAmount = 1
             }
@@ -333,7 +333,7 @@ private struct CombatantStatusBorderPulseStroke: View, Animatable {
         let opacity = dim + (1 - dim) * pulseAmount
         TrinketDesign.cardShape.strokeBorder(
             keyword.visualStyle.color.opacity(opacity),
-            lineWidth: 1
+            lineWidth: 1,
         )
     }
 }

@@ -18,7 +18,7 @@ struct AppStateLabyrinthTests { // swiftlint:disable:this type_body_length
         context = try AppTestContext()
     }
 
-    @Test func enterLabyrinthCreatesMapAndReusesItOnRepeat() throws {
+    @Test func `enter labyrinth creates map and reuses it on repeat`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         let message = state.labyrinth.enter()
         #expect(message == nil)
@@ -32,12 +32,12 @@ struct AppStateLabyrinthTests { // swiftlint:disable:this type_body_length
         #expect(state.playerSave.labyrinth == firstMap)
     }
 
-    @Test func enterUnreadableMapReturnsErrorAndDoesNotRegenerate() throws {
+    @Test func `enter unreadable map returns error and does not regenerate`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         state.playerSave.labyrinth = PlayerLabyrinthState(
             worldSeed: 55,
             hasEntered: true,
-            isMapPayloadUnreadable: true
+            isMapPayloadUnreadable: true,
         )
 
         let message = try #require(state.labyrinth.enter())
@@ -47,7 +47,7 @@ struct AppStateLabyrinthTests { // swiftlint:disable:this type_body_length
         #expect(state.playerSave.labyrinth.worldSeed == 55)
     }
 
-    @Test func unchangedLabyrinthInputsReusePreparedBattles() throws {
+    @Test func `unchanged labyrinth inputs reuse prepared battles`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         _ = state.labyrinth.enter()
         _ = try #require(LabyrinthTestSupport.firstReachableCombatNodeID(in: state))
@@ -61,7 +61,7 @@ struct AppStateLabyrinthTests { // swiftlint:disable:this type_body_length
         #expect(battle.preparedBattlePresentationRevision == preparedRevision)
     }
 
-    @Test func relevantLabyrinthInputChangeReplacesPreparedBattles() throws {
+    @Test func `relevant labyrinth input change replaces prepared battles`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         _ = state.labyrinth.enter()
         _ = try #require(LabyrinthTestSupport.firstReachableCombatNodeID(in: state))
@@ -77,7 +77,7 @@ struct AppStateLabyrinthTests { // swiftlint:disable:this type_body_length
         #expect(battle.preparedBattlePresentationRevision > preparedRevision)
     }
 
-    @Test func returningFromBattlePreparesUnchangedLabyrinthInputsAgain() throws {
+    @Test func `returning from battle prepares unchanged labyrinth inputs again`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         _ = state.labyrinth.enter()
         let combatNodeID = try #require(LabyrinthTestSupport.firstReachableCombatNodeID(in: state))
@@ -93,7 +93,7 @@ struct AppStateLabyrinthTests { // swiftlint:disable:this type_body_length
         #expect(battle.preparedBattlePresentationRevision > preparedRevision)
     }
 
-    @Test func labyrinthPrepareDropsUnreachableCombatRuns() throws {
+    @Test func `labyrinth prepare drops unreachable combat runs`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         _ = state.labyrinth.enter()
         let combatNodeID = try #require(LabyrinthTestSupport.firstReachableCombatNodeID(in: state))
@@ -113,12 +113,12 @@ struct AppStateLabyrinthTests { // swiftlint:disable:this type_body_length
                     return nil
                 }
                 return PlayBattleOrigin.labyrinth(nodeID: nodeID).runKey
-            }
+            },
         )
         #expect(remainingKeys == reachableCombatKeys)
     }
 
-    @Test func labyrinthPrepareRebuildsWipedJourneyRun() throws {
+    @Test func `labyrinth prepare rebuilds wiped journey run`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         let stage = try #require(GameContent.chapters[0].stages.first)
         let journeyKey = PlayBattleOrigin.journey(stageID: stage.id).runKey
@@ -138,7 +138,7 @@ struct AppStateLabyrinthTests { // swiftlint:disable:this type_body_length
         #expect(state.battlePresentation(for: journeyKey) != nil)
     }
 
-    @Test func startLabyrinthBattleSetsConfigurationAndInMemoryOrigin() throws {
+    @Test func `start labyrinth battle sets configuration and in memory origin`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         _ = state.labyrinth.enter()
         let combatNodeID = try #require(LabyrinthTestSupport.firstReachableCombatNodeID(in: state))
@@ -155,7 +155,7 @@ struct AppStateLabyrinthTests { // swiftlint:disable:this type_body_length
         #expect(battle.runKey == PlayBattleOrigin.labyrinth(nodeID: combatNodeID).runKey)
     }
 
-    @Test func completeActiveBattleClearsLabyrinthNode() throws {
+    @Test func `complete active battle clears labyrinth node`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         _ = state.labyrinth.enter()
         let combatNodeID = try #require(LabyrinthTestSupport.firstReachableCombatNodeID(in: state))
@@ -167,7 +167,7 @@ struct AppStateLabyrinthTests { // swiftlint:disable:this type_body_length
     }
 
     @Test(arguments: [LabyrinthNodeType.shop, .mystery, .rest])
-    func labyrinthEncounterFinishClearsNode(nodeType: LabyrinthNodeType) throws {
+    func `labyrinth encounter finish clears node`(nodeType: LabyrinthNodeType) throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         _ = state.labyrinth.enter()
         let nodeID = try #require(LabyrinthTestSupport.firstReachableNodeID(of: nodeType, in: state))
@@ -209,7 +209,7 @@ struct AppStateLabyrinthTests { // swiftlint:disable:this type_body_length
         #expect(state.playerSave.labyrinth.nodes[nodeID]?.isCleared == true)
     }
 
-    @Test func finishLabyrinthMysteryIgnoresReadingPhase() throws {
+    @Test func `finish labyrinth mystery ignores reading phase`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         _ = state.labyrinth.enter()
         let nodeID = try #require(LabyrinthTestSupport.firstReachableNodeID(of: .mystery, in: state))
@@ -223,7 +223,7 @@ struct AppStateLabyrinthTests { // swiftlint:disable:this type_body_length
         #expect(state.playerSave.labyrinth.nodes[nodeID]?.isCleared == false)
     }
 
-    @Test func shopEncounterCompletesJourneyOriginFromEncounterOwner() throws {
+    @Test func `shop encounter completes journey origin from encounter owner`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         let stage = try #require(GameContent.stage(id: "chapter-2-stage-8"))
 
@@ -233,7 +233,7 @@ struct AppStateLabyrinthTests { // swiftlint:disable:this type_body_length
         #expect(state.encounters.activeShopEncounter == nil)
     }
 
-    @Test func recruitNodeUsesConcealedRecruitEvent() throws {
+    @Test func `recruit node uses concealed recruit event`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         _ = state.labyrinth.enter()
         let event = try #require(GameContent.recruitEvents.first(where: { event in
@@ -248,7 +248,7 @@ struct AppStateLabyrinthTests { // swiftlint:disable:this type_body_length
         #expect(state.encounters.activeMysteryEncounter?.event.isRecruit == true)
     }
 
-    @Test func recruitNodeFallsBackToMysteryOnlyForCompletedRoster() throws {
+    @Test func `recruit node falls back to mystery only for completed roster`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         _ = state.labyrinth.enter()
         let nodeID = try #require(LabyrinthTestSupport.installRecruitNode(eventID: "recruit-bear", in: state))
@@ -258,7 +258,7 @@ struct AppStateLabyrinthTests { // swiftlint:disable:this type_body_length
         #expect(state.encounters.activeMysteryEncounter?.event.isRecruit == false)
     }
 
-    @Test func recruitNodePreviewFallsBackToMysteryEventWhenPoolIsExhausted() throws {
+    @Test func `recruit node preview falls back to mystery event when pool is exhausted`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         _ = state.labyrinth.enter()
         let nodeID = try #require(LabyrinthTestSupport.installRecruitNode(eventID: "recruit-bear", in: state))
@@ -271,7 +271,7 @@ struct AppStateLabyrinthTests { // swiftlint:disable:this type_body_length
 
     #if DEBUG
     @Test(arguments: ["shop", "rest"] as [String])
-    func labyrinthEncounterFinishKeepsSessionOpenWhenPersistFails(kind: String) throws {
+    func `labyrinth encounter finish keeps session open when persist fails`(kind: String) throws {
         let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
         let state = try context.makePlaySession(arguments: ["-reset-state"], playerSave: playerSave)
         _ = state.labyrinth.enter()
@@ -311,7 +311,7 @@ struct AppStateLabyrinthTests { // swiftlint:disable:this type_body_length
     }
     #endif
 
-    @Test func labyrinthMysteryRecruitClearsNodeOnUnlockSoRelaunchCannotDoubleGrant() throws {
+    @Test func `labyrinth mystery recruit clears node on unlock so relaunch cannot double grant`() throws {
         let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
         let state = try context.makePlaySession(arguments: ["-reset-state"], playerSave: playerSave)
         _ = state.labyrinth.enter()
@@ -349,7 +349,7 @@ struct AppStateLabyrinthTests { // swiftlint:disable:this type_body_length
         #expect(unlockedCountAfterRelaunch == unlockedCountAfterFirst)
     }
 
-    @Test func labyrinthCampfirePreviewsHealAndFinishingPersistsIt() throws {
+    @Test func `labyrinth campfire previews heal and finishing persists it`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         _ = state.labyrinth.enter()
         let restNodeID = try #require(LabyrinthTestSupport.firstReachableNodeID(of: .rest, in: state))
@@ -369,7 +369,7 @@ struct AppStateLabyrinthTests { // swiftlint:disable:this type_body_length
         #expect(heroMember.maxHealth > 3)
         #expect(
             heroMember.healedHealth
-                == LabyrinthCompletion.campfireRestHealth(current: 3, maxHealth: heroMember.maxHealth)
+                == LabyrinthCompletion.campfireRestHealth(current: 3, maxHealth: heroMember.maxHealth),
         )
         #expect(heroMember.healedHealth > 3)
 
@@ -380,12 +380,12 @@ struct AppStateLabyrinthTests { // swiftlint:disable:this type_body_length
         #expect(state.playerSave.labyrinth.runHealthByCombatantID == healed)
     }
 
-    @Test func startBattleDoesNotActivateWhileCampfireRestIsOpen() throws {
+    @Test func `start battle does not activate while campfire rest is open`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         _ = state.labyrinth.enter()
         let restNodeID = try #require(LabyrinthTestSupport.firstReachableNodeID(of: .rest, in: state))
         let combatNodeID = try #require(
-            state.playerSave.labyrinth.nodes.values.first(where: \.type.isCombat)?.id
+            state.playerSave.labyrinth.nodes.values.first(where: \.type.isCombat)?.id,
         )
 
         #expect(state.labyrinth.beginRest(nodeID: restNodeID) == nil)
@@ -396,7 +396,7 @@ struct AppStateLabyrinthTests { // swiftlint:disable:this type_body_length
         #expect(state.labyrinth.activeNodeSession?.nodeID == restNodeID)
     }
 
-    @Test func completingLabyrinthBattleCommitsPartyRunHealth() throws {
+    @Test func `completing labyrinth battle commits party run health`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         _ = state.labyrinth.enter()
         let combatNodeID = try #require(LabyrinthTestSupport.firstReachableCombatNodeID(in: state))
@@ -408,12 +408,12 @@ struct AppStateLabyrinthTests { // swiftlint:disable:this type_body_length
         let runHealth = state.playerSave.labyrinth.runHealthByCombatantID
         #expect(
             Set(runHealth.keys)
-                == Set([configuration.hero.combatant.id, configuration.companion.combatant.id])
+                == Set([configuration.hero.combatant.id, configuration.companion.combatant.id]),
         )
         #expect(runHealth.values.allSatisfy { $0 >= 1 })
     }
 
-    @Test func completeNodeClampsVictoryRunHealthAboveZero() throws {
+    @Test func `complete node clamps victory run health above zero`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         _ = state.labyrinth.enter()
         let combatNodeID = try #require(LabyrinthTestSupport.firstReachableCombatNodeID(in: state))
@@ -421,14 +421,14 @@ struct AppStateLabyrinthTests { // swiftlint:disable:this type_body_length
         #expect(
             state.labyrinth.completeNode(
                 nodeID: combatNodeID,
-                partyRunHealth: ["knight": 0]
-            )
+                partyRunHealth: ["knight": 0],
+            ),
         )
 
         #expect(state.playerSave.labyrinth.runHealthByCombatantID == ["knight": 1])
     }
 
-    @Test func changedRunHealthReplacesPreparedLabyrinthBattles() throws {
+    @Test func `changed run health replaces prepared labyrinth battles`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         _ = state.labyrinth.enter()
         _ = try #require(LabyrinthTestSupport.firstReachableCombatNodeID(in: state))
@@ -444,7 +444,7 @@ struct AppStateLabyrinthTests { // swiftlint:disable:this type_body_length
         #expect(battle.preparedBattlePresentationRevision > preparedRevision)
     }
 
-    @Test func labyrinthMysteryNodesCarryExactlyOneEconomyModifier() throws {
+    @Test func `labyrinth mystery nodes carry exactly one economy modifier`() throws {
         func hasUnclearedMysteryNode(_ session: PlaySession) -> Bool {
             session.playerSave.labyrinth.nodes.values.contains {
                 $0.type.canonical == .mystery && !$0.isCleared
@@ -475,7 +475,7 @@ struct AppStateLabyrinthTests { // swiftlint:disable:this type_body_length
         #expect(checked > 0, "Expected at least one mystery node on the map")
     }
 
-    @Test func labyrinthShopNodesCarryExactlyOneShopModifier() throws {
+    @Test func `labyrinth shop nodes carry exactly one shop modifier`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         _ = state.labyrinth.enter()
         let shopIDs: Set<LabyrinthModifierID> = [
@@ -489,7 +489,7 @@ struct AppStateLabyrinthTests { // swiftlint:disable:this type_body_length
         }
     }
 
-    @Test func legacyEventNodeRoutesToMystery() throws {
+    @Test func `legacy event node routes to mystery`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         _ = state.labyrinth.enter()
         let reachableID = try #require(state.playerSave.labyrinth.reachableNodeIDs().first)
@@ -503,7 +503,7 @@ struct AppStateLabyrinthTests { // swiftlint:disable:this type_body_length
             clusterID: node.clusterID,
             outgoingIDs: node.outgoingIDs,
             isCleared: false,
-            isRevealed: true
+            isRevealed: true,
         )
         labyrinth.nodes[reachableID] = node
         state.playerSave.labyrinth = labyrinth
@@ -512,11 +512,11 @@ struct AppStateLabyrinthTests { // swiftlint:disable:this type_body_length
         #expect(state.encounters.activeMysteryEncounter?.labyrinthNodeID == reachableID)
     }
 
-    @Test func missingLabyrinthNodePinFailsClosed() throws {
+    @Test func `missing labyrinth node pin fails closed`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         _ = state.labyrinth.enter()
         let message = try #require(
-            state.encounters.beginMysteryEncounter(origin: .labyrinth(nodeID: "missing-node"))
+            state.encounters.beginMysteryEncounter(origin: .labyrinth(nodeID: "missing-node")),
         )
         #expect(message.title == "Couldn't Save Progress")
         #expect(state.encounters.activeMysteryEncounter == nil)

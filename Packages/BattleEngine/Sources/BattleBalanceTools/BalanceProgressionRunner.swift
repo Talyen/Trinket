@@ -8,12 +8,12 @@ public enum BalanceProgressionRunner {
 
     public static func run(
         config: BalanceSweepConfig,
-        policy: PlayPolicy
+        policy: PlayPolicy,
     ) -> (
         records: [ProgressionBattleRecord],
         hotspots: [NodeHotspotSummary],
         playerStates: [PlayerProgressionState],
-        truncatedRuns: Int
+        truncatedRuns: Int,
     ) {
         let totalRuns = max(1, config.battlesPerTier)
         let work = config.sliceWork(Array(0 ..< totalRuns))
@@ -33,7 +33,7 @@ public enum BalanceProgressionRunner {
     private static func simulateRun(
         config: BalanceSweepConfig,
         policy: PlayPolicy,
-        runIndex: Int
+        runIndex: Int,
     ) -> (records: [ProgressionBattleRecord], endState: PlayerProgressionState, didTruncate: Bool) {
         let runSeed = config.seed &+ UInt64(runIndex) &* 1000003
         let roster = config.resolvedRoster
@@ -55,21 +55,21 @@ public enum BalanceProgressionRunner {
                 policy: policy,
                 maxRounds: config.maxRounds,
                 maxActions: config.maxActions,
-                appliesFightPacing: config.appliesFightPacing
+                appliesFightPacing: config.appliesFightPacing,
             )
 
             let recordedPlayerLevel = Int(
                 ((
                     Double(controller.simulatedHeroLevel(for: step))
                         + Double(controller.simulatedCompanionLevel(for: step))
-                ) / 2.0).rounded()
+                ) / 2.0).rounded(),
             )
             let record = ProgressionBattleRecord(
                 step: step,
                 playerLevel: recordedPlayerLevel,
                 enemyLevel: step.enemyLevel,
                 seed: battleSeed,
-                result: result
+                result: result,
             )
             records.append(record)
 

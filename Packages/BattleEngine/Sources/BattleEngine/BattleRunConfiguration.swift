@@ -20,7 +20,7 @@ public struct BattleRunConfiguration: Identifiable {
             equipmentLoadout: EquipmentLoadout,
             modifiers: CombatModifierProfile,
             unlockedTalents: Set<String> = [],
-            startingHealth: Int? = nil
+            startingHealth: Int? = nil,
         ) {
             self.combatant = combatant
             self.progression = progression
@@ -50,7 +50,7 @@ public struct BattleRunConfiguration: Identifiable {
         enemy: Combatant? = nil,
         enemyEncounterLevel: Int? = nil,
         enemyModifiers: CombatModifierProfile,
-        enemyFaction: EnemyFaction = .mortal
+        enemyFaction: EnemyFaction = .mortal,
     ) {
         self.runKey = runKey
         self.rngSeed = rngSeed

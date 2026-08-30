@@ -94,7 +94,7 @@ public final class BattleSession: BattleRuntime {
         outcomePresentationDelayOverride: TimeInterval? = nil,
         partyCelebrateDelayOverride: TimeInterval? = nil,
         cinematicSessionWatchdogOverride: TimeInterval? = nil,
-        presentationEnvironment: BattleRuntimeDependencies = .silent
+        presentationEnvironment: BattleRuntimeDependencies = .silent,
     ) {
         self.autoEndTurnDelay = .seconds(autoEndTurnDelay)
         self.openingHandDrawStagger = openingHandDrawStagger.map { .seconds($0) } ?? .seconds(BattleMotion.cardDrawStagger)
@@ -104,12 +104,12 @@ public final class BattleSession: BattleRuntime {
         self.cinematicSessionWatchdogOverride = cinematicSessionWatchdogOverride.map { .seconds($0) }
         self.presentationEnvironment = presentationEnvironment
         isAutoBattleEnabled = Self.preferredAutoBattleEnabled(
-            from: presentationEnvironment
+            from: presentationEnvironment,
         )
     }
 
     static func preferredAutoBattleEnabled(
-        from presentationEnvironment: BattleRuntimeDependencies
+        from presentationEnvironment: BattleRuntimeDependencies,
     ) -> Bool {
         presentationEnvironment.rememberAutoBattlePreference()
             && presentationEnvironment.autoBattleEnabled()
@@ -119,7 +119,7 @@ public final class BattleSession: BattleRuntime {
         guard let engineState else { return nil }
         return BattleSimulationOutcome.resolve(
             isPartyDefeated: engineState.isPartyDefeated,
-            isEnemyDefeated: engineState.isEnemyDefeated
+            isEnemyDefeated: engineState.isEnemyDefeated,
         )
     }
 
@@ -162,7 +162,7 @@ public final class BattleSession: BattleRuntime {
 
     func makeVictorySummary(
         for configuration: BattleRunConfiguration,
-        presentation: BattlePresentationContext
+        presentation: BattlePresentationContext,
     ) -> BattleVictorySummary? {
         guard let input = victoryInput else { return nil }
         return BattleVictorySummary.make(
@@ -170,7 +170,7 @@ public final class BattleSession: BattleRuntime {
             presentation: presentation,
             earnedGold: input.earnedGold,
             heroName: input.heroName,
-            companionName: input.companionName
+            companionName: input.companionName,
         )
     }
 
@@ -198,7 +198,7 @@ public final class BattleSession: BattleRuntime {
             combatant: combatant,
             health: engineState.health(of: combatant),
             mana: engineState.mana(of: combatant),
-            activeEffectSummaries: summaries
+            activeEffectSummaries: summaries,
         )
     }
 
@@ -218,7 +218,7 @@ public final class BattleSession: BattleRuntime {
 
     public func installClaimedVictoryHandler(
         ownerID: UUID,
-        _ handler: @escaping (BattleRunConfiguration, Int) -> Void
+        _ handler: @escaping (BattleRunConfiguration, Int) -> Void,
     ) {
         claimedVictoryHandlerOwnerID = ownerID
         claimedVictoryHandler = handler
@@ -258,7 +258,7 @@ public final class BattleSession: BattleRuntime {
 
     func installActiveBattle(
         _ configuration: BattleRunConfiguration,
-        presentation: BattlePresentationContext? = nil
+        presentation: BattlePresentationContext? = nil,
     ) {
         let holdOpeningHandForOverlayFade = activeBattle == nil
         activeBattle = configuration
@@ -266,7 +266,7 @@ public final class BattleSession: BattleRuntime {
         lifecyclePhase = .active
         resetRun(
             from: configuration,
-            holdOpeningHandForOverlayFade: holdOpeningHandForOverlayFade
+            holdOpeningHandForOverlayFade: holdOpeningHandForOverlayFade,
         )
     }
 
@@ -308,14 +308,14 @@ public final class BattleSession: BattleRuntime {
         heroActorID: String?,
         heroUltimateID: String?,
         companionActorID: String?,
-        companionUltimateID: String?
+        companionUltimateID: String?,
     ) {
         presentationEnvironment.warmSFX(SFXID.battlePrewarmIDs, 2)
         BattleCinematicPlayer.shared.warmLoadout(
             heroActorID: heroActorID,
             heroUltimateID: heroUltimateID,
             companionActorID: companionActorID,
-            companionUltimateID: companionUltimateID
+            companionUltimateID: companionUltimateID,
         )
     }
 

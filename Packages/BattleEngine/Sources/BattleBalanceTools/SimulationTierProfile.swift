@@ -86,7 +86,7 @@ public struct SimulationBuildContext: Equatable, Hashable, Sendable {
         heroAffixIDs: [String] = [],
         companionAffixIDs: [String] = [],
         heroTalentIDs: [String] = [],
-        companionTalentIDs: [String] = []
+        companionTalentIDs: [String] = [],
     ) {
         self.tier = tier
         self.heroLoadout = heroLoadout
@@ -120,7 +120,7 @@ public struct ConfiguredSimulationMatchup: Equatable, Sendable {
         enemyModifiers: CombatModifierProfile = .zero,
         context: SimulationBuildContext,
         enemyID: String,
-        isBoss: Bool
+        isBoss: Bool,
     ) {
         self.hero = hero
         self.companion = companion

@@ -56,7 +56,7 @@ public struct BoonDefinition: Identifiable, Hashable, Sendable {
         name: String,
         category: BoonCategory,
         description: String,
-        effect: BoonEffect
+        effect: BoonEffect,
     ) {
         self.id = id
         self.name = name

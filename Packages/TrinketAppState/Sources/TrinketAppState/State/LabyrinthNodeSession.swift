@@ -17,7 +17,7 @@ public struct CampfirePartyMember: Equatable, Sendable, Identifiable {
         name: String,
         currentHealth: Int,
         maxHealth: Int,
-        healedHealth: Int
+        healedHealth: Int,
     ) {
         self.combatantID = combatantID
         self.name = name

@@ -23,7 +23,7 @@ struct CombatHealthBar: View {
         maxHealth: Int,
         fillColor: Color,
         style: Style = .standard,
-        height: CGFloat = TrinketDesign.Metrics.statBarHeight
+        height: CGFloat = TrinketDesign.Metrics.statBarHeight,
     ) {
         self.health = health
         self.maxHealth = maxHealth

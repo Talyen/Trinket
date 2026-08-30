@@ -7,7 +7,7 @@ package extension CombatTriggerEngine {
         target: Combatant,
         count: Int,
         abilityName: String,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         guard count > 0, context.roster.health(for: target) > 0 else { return [] }
         var events: [ActionEvent] = []
@@ -15,7 +15,7 @@ package extension CombatTriggerEngine {
             var effects = context.roster.activeEffects(for: target)
             guard let removedKeyword = EffectRemoval.removeRandomDebuff(
                 from: &effects,
-                using: &context.rng
+                using: &context.rng,
             ) else { break }
             context.roster.setActiveEffects(effects, for: target)
             events.append(context.nextEvent(
@@ -25,27 +25,27 @@ package extension CombatTriggerEngine {
                 abilityName: abilityName,
                 target: target,
                 amount: 0,
-                keyword: removedKeyword
+                keyword: removedKeyword,
             ))
             events.append(contentsOf: healAfterCleanse(
                 source: source,
                 target: target,
-                in: &context
+                in: &context,
             ).events)
             events.append(contentsOf: healWearerAfterCleanse(
                 source: source,
-                in: &context
+                in: &context,
             ).events)
             events.append(contentsOf: drawAfterCleanse(
                 source: source,
-                in: &context
+                in: &context,
             ))
             events.append(contentsOf: afterCleansePerformed(
                 source: source,
                 target: target,
                 removedKeyword: removedKeyword,
                 removedCount: 1,
-                in: &context
+                in: &context,
             ))
         }
         return events
@@ -57,7 +57,7 @@ package extension CombatTriggerEngine {
         removedKeyword: Keyword,
         removedCount: Int,
         allowMassCleanse: Bool = true,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         let triggers = context.modifiers(for: source.id).triggers
         var events: [ActionEvent] = []
@@ -65,28 +65,28 @@ package extension CombatTriggerEngine {
             removedCount,
             source: source,
             target: target,
-            in: &context
+            in: &context,
         ))
         events.append(contentsOf: cleanseShieldBonuses(
             triggers: triggers,
             source: source,
             target: target,
             removedCount: removedCount,
-            in: &context
+            in: &context,
         ))
         events.append(contentsOf: cleanseEnemyReactions(
             triggers: triggers,
             source: source,
             removedKeyword: removedKeyword,
             removedCount: removedCount,
-            in: &context
+            in: &context,
         ))
         if allowMassCleanse {
             events.append(contentsOf: cleansePartyReactions(
                 triggers: triggers,
                 source: source,
                 target: target,
-                in: &context
+                in: &context,
             ))
         }
         return events
@@ -97,7 +97,7 @@ package extension CombatTriggerEngine {
         source: Combatant,
         target: Combatant,
         removedCount: Int,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         var events: [ActionEvent] = []
         if triggers.cleanseBlockPerStack > 0, removedCount > 0 {
@@ -105,7 +105,7 @@ package extension CombatTriggerEngine {
                 triggers.cleanseBlockPerStack * removedCount,
                 to: target,
                 source: source,
-                abilityName: triggerAbilityName("cleanseBlockPerStack", for: source, fallback: "Spellbreak Shield", in: context)
+                abilityName: triggerAbilityName("cleanseBlockPerStack", for: source, fallback: "Spellbreak Shield", in: context),
             ))
         }
         if triggers.cleansePartyBlock > 0 {
@@ -116,7 +116,7 @@ package extension CombatTriggerEngine {
                     triggers.cleansePartyBlock,
                     to: member.combatant,
                     source: source,
-                    abilityName: triggerAbilityName("cleansePartyBlock", for: source, fallback: "Cleansing Ward", in: context)
+                    abilityName: triggerAbilityName("cleansePartyBlock", for: source, fallback: "Cleansing Ward", in: context),
                 ))
             }
         }
@@ -128,7 +128,7 @@ package extension CombatTriggerEngine {
         source: Combatant,
         removedKeyword: Keyword,
         removedCount: Int,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         var events: [ActionEvent] = []
         events.append(contentsOf: dispelMagicPurge(triggers: triggers, source: source, in: &context))
@@ -137,7 +137,7 @@ package extension CombatTriggerEngine {
             source: source,
             removedKeyword: removedKeyword,
             removedCount: removedCount,
-            in: &context
+            in: &context,
         ))
         events.append(contentsOf: reflectiveWardReflect(triggers: triggers, source: source, removedKeyword: removedKeyword, in: &context))
         return events
@@ -146,7 +146,7 @@ package extension CombatTriggerEngine {
     private static func dispelMagicPurge(
         triggers: CombatTraitTriggers,
         source: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         guard triggers.cleanseAlsoPurgesEnemyBuffs > 0, context.roster.enemy.isAlive else { return [] }
         var enemyEffects = context.roster.activeEffects(for: context.roster.enemy.combatant)
@@ -154,7 +154,7 @@ package extension CombatTriggerEngine {
             from: &enemyEffects,
             count: triggers.cleanseAlsoPurgesEnemyBuffs,
             removeAll: false,
-            using: &context.rng
+            using: &context.rng,
         )
         guard !removedBuffs.isEmpty else { return [] }
         context.roster.setActiveEffects(enemyEffects, for: context.roster.enemy.combatant)
@@ -165,7 +165,7 @@ package extension CombatTriggerEngine {
             abilityName: triggerAbilityName("cleanseAlsoPurgesEnemyBuffs", for: source, fallback: "Dispel Magic", in: context),
             target: context.roster.enemy.combatant,
             amount: 0,
-            keyword: removedBuffs[0]
+            keyword: removedBuffs[0],
         )]
     }
 
@@ -174,7 +174,7 @@ package extension CombatTriggerEngine {
         source: Combatant,
         removedKeyword: Keyword,
         removedCount: Int,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         guard triggers.onCleansePoisonDealDamagePerStack > 0, removedKeyword == .poison,
               removedCount > 0, context.roster.enemy.isAlive,
@@ -186,8 +186,8 @@ package extension CombatTriggerEngine {
                 target: context.roster.enemy.combatant,
                 keyword: .physical,
                 sourceActorID: source.id,
-                options: .flatReaction
-            )
+                options: .flatReaction,
+            ),
         ).events
     }
 
@@ -195,7 +195,7 @@ package extension CombatTriggerEngine {
         triggers: CombatTraitTriggers,
         source: Combatant,
         removedKeyword: Keyword,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         guard triggers.cleanseReflectDebuffToEnemy, context.roster.enemy.isAlive,
               context.roster.health(for: context.roster.enemy.combatant) > 0,
@@ -208,7 +208,7 @@ package extension CombatTriggerEngine {
                 sourceActorID: source.id,
                 dealImmediateDamage: false,
                 suppressAffixReactions: true,
-                in: &context
+                in: &context,
             )
         }
         return context.applyDecayingDoT(
@@ -217,7 +217,7 @@ package extension CombatTriggerEngine {
             to: context.roster.enemy.combatant,
             sourceActorID: source.id,
             dealImmediateDamage: false,
-            suppressAffixReactions: true
+            suppressAffixReactions: true,
         )
     }
 
@@ -225,7 +225,7 @@ package extension CombatTriggerEngine {
         triggers: CombatTraitTriggers,
         source: Combatant,
         target: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         if triggers.cleanseDodgeChanceBonus > 0 {
             let duration = max(1, triggers.cleanseDodgeChanceBonusTurns)
@@ -247,7 +247,7 @@ package extension CombatTriggerEngine {
             "cleanseAffectsBothHeroAndCompanion",
             for: source,
             fallback: "Mass Cleanse",
-            in: context
+            in: context,
         )
         var countsByKeyword: [Keyword: Int] = [:]
         for debuff in removedDebuffs {
@@ -262,7 +262,7 @@ package extension CombatTriggerEngine {
                 abilityName: abilityName,
                 target: other,
                 amount: 0,
-                keyword: keyword
+                keyword: keyword,
             ))
             events.append(contentsOf: afterCleansePerformed(
                 source: source,
@@ -270,7 +270,7 @@ package extension CombatTriggerEngine {
                 removedKeyword: keyword,
                 removedCount: count,
                 allowMassCleanse: false,
-                in: &context
+                in: &context,
             ))
         }
         return events
@@ -279,31 +279,31 @@ package extension CombatTriggerEngine {
     static func healAfterCleanse(
         source: Combatant,
         target: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> CombatOutcome {
         resolveBonusHeal(
             amount: context.modifiers(for: source.id).triggers.cleanseBonusHeal,
             source: source,
             target: target,
-            in: &context
+            in: &context,
         )
     }
 
     static func healWearerAfterCleanse(
         source: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> CombatOutcome {
         resolveBonusHeal(
             amount: context.modifiers(for: source.id).triggers.cleanseSelfHeal,
             source: source,
             target: source,
-            in: &context
+            in: &context,
         )
     }
 
     static func drawAfterCleanse(
         source: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         let count = context.modifiers(for: source.id).triggers.cleanseBonusDraw
         guard count > 0 else { return [] }
@@ -319,7 +319,7 @@ package extension CombatTriggerEngine {
             abilityName: triggerAbilityName("cleanseBonusDraw", for: source, fallback: traitName(for: source, in: context), in: context),
             target: source,
             amount: drawn,
-            keyword: .physical
+            keyword: .physical,
         )]
     }
 }

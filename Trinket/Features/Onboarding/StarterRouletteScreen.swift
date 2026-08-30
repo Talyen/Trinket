@@ -31,7 +31,7 @@ struct StarterRouletteScreen: View {
         roleName: String,
         combatants: [Combatant],
         screenAccessibilityID: String,
-        onConfirm: @escaping (String) -> Bool
+        onConfirm: @escaping (String) -> Bool,
     ) {
         self.roleName = roleName
         self.combatants = combatants
@@ -79,7 +79,7 @@ struct StarterRouletteScreen: View {
         .trinketSensoryFeedback(
             .selection,
             trigger: selectionFeedbackTrigger,
-            enabled: options.hapticsEnabled
+            enabled: options.hapticsEnabled,
         )
         .onAppear { isConfirming = false }
         .onChange(of: scrollEntryID) { _, newID in
@@ -97,7 +97,7 @@ struct StarterRouletteScreen: View {
             NavigationStack {
                 CombatantDetailPane(snapshot: CombatantCardDetail(combatant: combatant))
                     .accessibilityIdentifier(
-                        AccessibilityID.Onboarding.detail(combatantID: combatant.id)
+                        AccessibilityID.Onboarding.detail(combatantID: combatant.id),
                     )
             }
             .trinketDetailSheet()
@@ -115,7 +115,7 @@ struct StarterRouletteScreen: View {
     private var activeBackgroundEffect: some View {
         KeywordPlasmaBackground(
             keywords: activeKeywords,
-            isMotionActive: inspectedCombatant == nil
+            isMotionActive: inspectedCombatant == nil,
         )
     }
 
@@ -157,16 +157,16 @@ struct StarterRouletteScreen: View {
                 CombatantCard(
                     combatant: combatant,
                     showsName: false,
-                    isSelected: isCentered
+                    isSelected: isCentered,
                 )
                 .keywordShineBorder(
                     keywords: shineKeywords,
                     cornerRadius: TrinketDesign.Corners.card,
                     lineWidth: 2,
-                    isMotionActive: isCentered
+                    isMotionActive: isCentered,
                 )
                 .frame(width: layout.cardWidth, height: layout.cardHeight)
-            }
+            },
         )
         .trinketSelectionCardButtonStyle()
         .scrollTransition(.interactive, axis: .horizontal) { content, transitionPhase in
@@ -176,7 +176,7 @@ struct StarterRouletteScreen: View {
                 .opacity(1 - distance * RouletteLayout.edgeDimming)
         }
         .accessibilityIdentifier(
-            AccessibilityID.Onboarding.option(role: roleName, combatantID: combatant.id)
+            AccessibilityID.Onboarding.option(role: roleName, combatantID: combatant.id),
         )
     }
 
@@ -224,7 +224,7 @@ struct StarterRouletteScreen: View {
         Button("Continue", action: confirm)
             .disabled(selectedCombatant == nil || isConfirming)
             .trinketPrimaryActionButton(
-                accessibilityIdentifier: AccessibilityID.Onboarding.confirm(role: roleName)
+                accessibilityIdentifier: AccessibilityID.Onboarding.confirm(role: roleName),
             )
             .trinketCenteredPrimaryAction()
     }

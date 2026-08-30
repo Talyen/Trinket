@@ -72,7 +72,7 @@ public enum BalanceSweepWorkPlan {
         return modes.flatMap { mode in
             chunkRanges(
                 workCount: workCount(for: mode, config: config),
-                chunkSize: chunkSize(for: mode)
+                chunkSize: chunkSize(for: mode),
             ).map { range in
                 BalanceSweepWorkerJob(mode: mode, offset: range.offset, limit: range.limit)
             }

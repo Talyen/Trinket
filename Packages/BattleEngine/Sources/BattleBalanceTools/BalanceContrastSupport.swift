@@ -29,7 +29,7 @@ enum BalanceContrastSupport {
     static func workItems(
         fociCount: Int,
         tiers: [SimulationPowerTier],
-        samples: Int
+        samples: Int,
     ) -> [BalanceContrastWorkItem] {
         guard fociCount > 0, samples > 0 else { return [] }
         var items: [BalanceContrastWorkItem] = []
@@ -41,8 +41,8 @@ enum BalanceContrastSupport {
                         BalanceContrastWorkItem(
                             focusIndex: focusIndex,
                             tier: tier,
-                            pairIndex: pairIndex
-                        )
+                            pairIndex: pairIndex,
+                        ),
                     )
                 }
             }
@@ -53,7 +53,7 @@ enum BalanceContrastSupport {
     static func aggregate(
         foci: [(entityID: String, baselineID: String, ownerID: String, baselineKind: ContrastBaselineKind, nonCombat: Bool)],
         pairResults: [ContrastPairOutcome],
-        config: BalanceSweepConfig
+        config: BalanceSweepConfig,
     ) -> [PairedContrastSummary] {
         var buckets: [String: BalanceContrastFlags.ContrastAcc] = [:]
         for result in pairResults {
@@ -63,7 +63,7 @@ enum BalanceContrastSupport {
                 entityID: focus.entityID,
                 baselineID: focus.baselineID,
                 ownerID: focus.ownerID,
-                baselineKind: focus.baselineKind
+                baselineKind: focus.baselineKind,
             )
             var bucket = buckets[key] ?? BalanceContrastFlags.ContrastAcc(
                 entityID: focus.entityID,
@@ -71,7 +71,7 @@ enum BalanceContrastSupport {
                 ownerID: focus.ownerID,
                 tier: result.tier,
                 baselineKind: focus.baselineKind,
-                nonCombat: focus.nonCombat
+                nonCombat: focus.nonCombat,
             )
             bucket.accumulate(entity: result.entity, baseline: result.baseline)
             buckets[key] = bucket
@@ -83,7 +83,7 @@ enum BalanceContrastSupport {
 
     static func mergeSummaries(
         _ summaries: [PairedContrastSummary],
-        config: BalanceSweepConfig
+        config: BalanceSweepConfig,
     ) -> [PairedContrastSummary] {
         var buckets: [String: BalanceContrastFlags.ContrastAcc] = [:]
         for row in summaries {
@@ -92,7 +92,7 @@ enum BalanceContrastSupport {
                 entityID: row.entityID,
                 baselineID: row.baselineID,
                 ownerID: row.ownerID,
-                baselineKind: row.baselineKind
+                baselineKind: row.baselineKind,
             )
             var bucket = buckets[key] ?? BalanceContrastFlags.ContrastAcc(
                 entityID: row.entityID,
@@ -100,7 +100,7 @@ enum BalanceContrastSupport {
                 ownerID: row.ownerID,
                 tier: row.tier,
                 baselineKind: row.baselineKind,
-                nonCombat: row.nonCombat
+                nonCombat: row.nonCombat,
             )
             bucket.merge(row)
             buckets[key] = bucket
@@ -121,7 +121,7 @@ enum BalanceContrastSupport {
     static func pickPartner(
         for owner: Combatant,
         from context: BalanceContrastContext,
-        using randomNumberGenerator: inout some RandomNumberGenerator
+        using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> Combatant {
         let partnerPool = owner.role == .hero ? context.companions : context.heroes
         guard let partner = partnerPool.randomElement(using: &randomNumberGenerator) else {
@@ -138,7 +138,7 @@ enum BalanceContrastSupport {
         heroGear: SimulationMatchupBuilder.GearOverride?,
         companionGear: SimulationMatchupBuilder.GearOverride?,
         heroTalents: Set<String>,
-        companionTalents: Set<String>
+        companionTalents: Set<String>,
     ) {
         if parts.owner.role == .hero {
             return (
@@ -149,7 +149,7 @@ enum BalanceContrastSupport {
                 parts.ownerGear,
                 parts.partnerGear,
                 parts.ownerTalents,
-                parts.partnerTalents
+                parts.partnerTalents,
             )
         }
         return (
@@ -160,7 +160,7 @@ enum BalanceContrastSupport {
             parts.partnerGear,
             parts.ownerGear,
             parts.partnerTalents,
-            parts.ownerTalents
+            parts.ownerTalents,
         )
     }
 
@@ -191,14 +191,14 @@ enum BalanceContrastSupport {
             heroGear: roles.heroGear,
             companionGear: roles.companionGear,
             heroTalents: roles.heroTalents,
-            companionTalents: roles.companionTalents
+            companionTalents: roles.companionTalents,
         )
     }
 
     static func buildOwnerGearPair(
         base: MatchupParts,
         entityOwnerGear: SimulationMatchupBuilder.GearOverride?,
-        baselineOwnerGear: SimulationMatchupBuilder.GearOverride?
+        baselineOwnerGear: SimulationMatchupBuilder.GearOverride?,
     ) -> (withEntity: ConfiguredSimulationMatchup, withBaseline: ConfiguredSimulationMatchup) {
         var withEntity = base
         withEntity.ownerGear = entityOwnerGear
@@ -210,7 +210,7 @@ enum BalanceContrastSupport {
     static func buildOwnerTalentPair(
         base: MatchupParts,
         entityOwnerTalents: Set<String>,
-        baselineOwnerTalents: Set<String>
+        baselineOwnerTalents: Set<String>,
     ) -> (withEntity: ConfiguredSimulationMatchup, withBaseline: ConfiguredSimulationMatchup) {
         var withEntity = base
         withEntity.ownerTalents = entityOwnerTalents
@@ -224,7 +224,7 @@ enum BalanceContrastSupport {
         policy: PlayPolicy,
         maxRounds: Int,
         maxActions: Int,
-        appliesFightPacing: Bool
+        appliesFightPacing: Bool,
     ) -> (entity: BattleSimResult, baseline: BattleSimResult) {
         (
             BattleSimulator.run(
@@ -232,15 +232,15 @@ enum BalanceContrastSupport {
                 policy: policy,
                 maxRounds: maxRounds,
                 maxActions: maxActions,
-                appliesFightPacing: appliesFightPacing
+                appliesFightPacing: appliesFightPacing,
             ),
             BattleSimulator.run(
                 matchup: matchups.withBaseline,
                 policy: policy,
                 maxRounds: maxRounds,
                 maxActions: maxActions,
-                appliesFightPacing: appliesFightPacing
-            )
+                appliesFightPacing: appliesFightPacing,
+            ),
         )
     }
 
@@ -253,11 +253,11 @@ enum BalanceContrastSupport {
             baselineID: String,
             ownerID: String,
             baselineKind: ContrastBaselineKind,
-            nonCombat: Bool
+            nonCombat: Bool,
         ),
         primes: (tier: UInt64, pair: UInt64),
         makePair: @escaping @Sendable (Focus, SimulationPowerTier, Int, UInt64) -> Pair?,
-        policy: PlayPolicy
+        policy: PlayPolicy,
     ) -> [PairedContrastSummary] {
         guard !foci.isEmpty, !tiers.isEmpty else { return [] }
         let config = context.config
@@ -266,8 +266,8 @@ enum BalanceContrastSupport {
             workItems(
                 fociCount: foci.count,
                 tiers: tiers,
-                samples: config.battlesPerTier
-            )
+                samples: config.battlesPerTier,
+            ),
         )
         let pairResults = ParallelMap.map(work) { item -> ContrastPairOutcome? in
             let focus = foci[item.focusIndex]
@@ -281,20 +281,20 @@ enum BalanceContrastSupport {
                 policy: policy,
                 maxRounds: config.maxRounds,
                 maxActions: config.maxActions,
-                appliesFightPacing: config.appliesFightPacing
+                appliesFightPacing: config.appliesFightPacing,
             )
             return ContrastPairOutcome(
                 focusIndex: item.focusIndex,
                 tier: item.tier,
                 entity: outcome.entity,
-                baseline: outcome.baseline
+                baseline: outcome.baseline,
             )
         }
 
         return aggregate(
             foci: foci.map(summarize),
             pairResults: pairResults.compactMap(\.self),
-            config: config
+            config: config,
         )
     }
 
@@ -309,7 +309,7 @@ enum BalanceContrastSupport {
         ownerLoadout: AbilityLoadout,
         partnerLoadout: AbilityLoadout,
         tier: SimulationPowerTier,
-        pairSeed: UInt64
+        pairSeed: UInt64,
     ) -> (owner: SimulationMatchupBuilder.GearOverride?, partner: SimulationMatchupBuilder.GearOverride?) {
         let sharedBias = owner.keywordProfile.union(partner.keywordProfile)
         var gearRNG = SeededRandomNumberGenerator(seed: pairSeed &+ 17)
@@ -319,15 +319,15 @@ enum BalanceContrastSupport {
                 tier: tier,
                 keywordBias: sharedBias,
                 idPrefix: "contrast-owner",
-                using: &gearRNG
+                using: &gearRNG,
             ),
             SimulationMatchupBuilder.generateAlignedGear(
                 for: partner.withAbilityLoadoutPreservingEmptyTiers(partnerLoadout),
                 tier: tier,
                 keywordBias: sharedBias,
                 idPrefix: "contrast-partner",
-                using: &gearRNG
-            )
+                using: &gearRNG,
+            ),
         )
     }
 }

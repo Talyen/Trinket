@@ -69,7 +69,7 @@ final class AppPerformanceUITests: TrinketUITestCase {
         homestead.assertLoaded()
         homestead.openFarmingCategoryAndRevealWheatFieldNode()
         let detail = app.descendants(matching: .any)[
-            AccessibilityID.Homestead.nodeDetail(title: "Wheat Field")
+            AccessibilityID.Homestead.nodeDetail(title: "Wheat Field"),
         ]
         let isShowingDetail = detail.exists
         let node = app.descendants(matching: .any)[AccessibilityID.Homestead.node(title: "Wheat Field")]
@@ -131,7 +131,7 @@ final class AppPerformanceUITests: TrinketUITestCase {
     func test06StageSelectBattleStart() {
         let arguments = TestLaunchArg.replacingBattleTickInterval(
             "60",
-            in: TestLaunchArg.allForAppPerformance()
+            in: TestLaunchArg.allForAppPerformance(),
         )
         launchApp(arguments: arguments)
         play.openCampaign()
@@ -139,7 +139,7 @@ final class AppPerformanceUITests: TrinketUITestCase {
         let stageAction = button(AccessibilityID.Play.stageAction(chapter: 1, stage: 1))
         XCTAssertTrue(stageAction.waitForExistence(timeout: Self.defaultTimeout))
         let stageActionCoordinate = stageAction.coordinate(
-            withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)
+            withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5),
         )
 
         run(scenario: "stage-select-battle-transition") {
@@ -205,10 +205,10 @@ final class AppPerformanceUITests: TrinketUITestCase {
         XCTAssertEqual(
             XCTWaiter().wait(
                 for: [XCTNSPredicateExpectation(predicate: settled, object: metrics)],
-                timeout: Self.reportSettleTimeout
+                timeout: Self.reportSettleTimeout,
             ),
             .completed,
-            "No measured frame report was captured for \(scenario); last=\(metrics.value ?? "nil")"
+            "No measured frame report was captured for \(scenario); last=\(metrics.value ?? "nil")",
         )
 
         let liveMetrics = app.descendants(matching: .any)[AccessibilityID.Debug.frameMetrics]
@@ -224,7 +224,7 @@ final class AppPerformanceUITests: TrinketUITestCase {
             scenario: scenario,
             suite: "app",
             iteration: iteration,
-            in: self
+            in: self,
         )
     }
 }

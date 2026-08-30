@@ -3,7 +3,7 @@ import TrinketCore
 @testable import TrinketContent
 
 struct CombatantTalentCatalogTests {
-    @Test func allCombatantsHaveThreeKeywordsAndSixNodesPerTree() {
+    @Test func `all combatants have three keywords and six nodes per tree`() {
         let combatants = GameContent.heroes + GameContent.companions
         for combatant in combatants {
             let config = CombatantTalentCatalog.config(for: combatant.id)
@@ -19,14 +19,14 @@ struct CombatantTalentCatalogTests {
         }
     }
 
-    @Test func keywordAffinitiesMatchCatalogDictionary() {
+    @Test func `keyword affinities match catalog dictionary`() {
         for (combatantID, affinities) in CombatantTalentCatalog.combatantTreeAffinities {
             let config = CombatantTalentCatalog.config(for: combatantID)
             #expect(config.trees.map(\.keyword) == affinities.map(\.keyword))
         }
     }
 
-    @Test func authoredTalentNodeIDsMatchGeneratedTrees() {
+    @Test func `authored talent node I ds match generated trees`() {
         let authoredIDs = Set(CombatantTalentCatalog.signatureTalents.keys)
         var generatedIDs = Set<String>()
         for combatantID in CombatantTalentCatalog.combatantTreeAffinities.keys {
@@ -36,7 +36,7 @@ struct CombatantTalentCatalogTests {
         #expect(authoredIDs == generatedIDs)
     }
 
-    @Test func noPlaceholderTalentNodesRemain() {
+    @Test func `no placeholder talent nodes remain`() {
         for combatantID in CombatantTalentCatalog.combatantTreeAffinities.keys {
             let config = CombatantTalentCatalog.config(for: combatantID)
             for tree in config.trees {
@@ -50,7 +50,7 @@ struct CombatantTalentCatalogTests {
         }
     }
 
-    @Test func allTalentNodesHaveAuthoredSymbols() {
+    @Test func `all talent nodes have authored symbols`() {
         for combatantID in CombatantTalentCatalog.combatantTreeAffinities.keys {
             let config = CombatantTalentCatalog.config(for: combatantID)
             for tree in config.trees {
@@ -66,7 +66,7 @@ struct CombatantTalentCatalogTests {
         }
     }
 
-    @Test func talentDisplayNamesAreUnique() {
+    @Test func `talent display names are unique`() {
         var names: [String: String] = [:]
         for combatantID in CombatantTalentCatalog.combatantTreeAffinities.keys {
             let config = CombatantTalentCatalog.config(for: combatantID)
@@ -79,12 +79,12 @@ struct CombatantTalentCatalogTests {
         }
     }
 
-    @Test func catalogAuthoredTriggersResolve() {
+    @Test func `catalog authored triggers resolve`() {
         let t = CombatantTalentCatalog.signatureTalents["lizard_scout_poison_t1_1"]?.triggers
         #expect(t?.dodgeApplyPoison == 2)
     }
 
-    @Test func sunderingAndHolyBlockBreakMatchTreeKeywords() {
+    @Test func `sundering and holy block break match tree keywords`() {
         for combatantID in CombatantTalentCatalog.combatantTreeAffinities.keys {
             let config = CombatantTalentCatalog.config(for: combatantID)
             for tree in config.trees {
@@ -94,7 +94,7 @@ struct CombatantTalentCatalogTests {
                     if (triggers?.sunderingBlockMultiplier ?? 0) != 0 {
                         #expect(
                             node.keyword == .physical || node.keyword == .stun,
-                            "sunderingBlockMultiplier on \(node.id) (\(node.keyword))"
+                            "sunderingBlockMultiplier on \(node.id) (\(node.keyword))",
                         )
                     }
                     if (triggers?.holyBlockBreakMultiplier ?? 1) != 1 {
@@ -105,22 +105,22 @@ struct CombatantTalentCatalogTests {
         }
     }
 
-    @Test func everyAuthoredTalentHasMechanics() {
+    @Test func `every authored talent has mechanics`() {
         for (id, effect) in CombatantTalentCatalog.signatureTalents {
             #expect(
                 !effect.modifiers.isEmpty || effect.triggers != CombatTraitTriggers(),
-                "inert talent \(id) (\(effect.name))"
+                "inert talent \(id) (\(effect.name))",
             )
         }
     }
 
-    @Test func triggerFamilyFieldNamesAreUnique() {
+    @Test func `trigger family field names are unique`() {
         let names = CombatTraitTriggers.allFieldNames
         #expect(!names.isEmpty)
         #expect(Set(names).count == names.count)
     }
 
-    @Test func boolTalentFlagsSurviveMergeIntoEmptyProfile() {
+    @Test func `bool talent flags survive merge into empty profile`() {
         var merged = CombatTraitTriggers()
         merged.merge(CombatTraitTriggers(gold: GoldTriggers(goldDoubledWhileFullHealth: true)))
         merged.merge(CombatTraitTriggers(attack: AttackTriggers(criticalPurgeAll: true)))
@@ -128,7 +128,7 @@ struct CombatantTalentCatalogTests {
         #expect(merged.criticalPurgeAll)
     }
 
-    @Test func starterEligibilityMatchesEveryHeroAndCompanionInCatalogOrder() {
+    @Test func `starter eligibility matches every hero and companion in catalog order`() {
         #expect(GameContent.starterHeroes == GameContent.heroes)
         #expect(GameContent.starterHeroIDs == GameContent.heroes.map(\.id))
         #expect(GameContent.starterCompanions == GameContent.companions)
@@ -141,7 +141,7 @@ struct CombatantTalentCatalogTests {
         }
     }
 
-    @Test func treeAffinityKeysMatchHeroAndCompanionRoster() {
+    @Test func `tree affinity keys match hero and companion roster`() {
         let rosterIDs = Set((GameContent.heroes + GameContent.companions).map(\.id))
         #expect(Set(CombatantTalentCatalog.combatantTreeAffinities.keys) == rosterIDs)
     }

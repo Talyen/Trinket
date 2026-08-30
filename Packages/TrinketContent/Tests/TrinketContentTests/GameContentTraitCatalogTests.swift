@@ -3,21 +3,21 @@ import TrinketCore
 @testable import TrinketContent
 
 struct GameContentTraitCatalogTests {
-    @Test func everyEnemyReferencesKnownTrait() throws {
+    @Test func `every enemy references known trait`() throws {
         let traitIDs = Set(GameContent.traits.map(\.id))
         for enemy in GameContent.enemies {
             try #expect(traitIDs.contains(enemy.traitID), "\(enemy.name) trait")
         }
     }
 
-    @Test func traitDescriptionsAreNonEmpty() throws {
+    @Test func `trait descriptions are non empty`() throws {
         for trait in GameContent.traits {
             try #expect(!trait.name.isEmpty, "Trait \(trait.id) needs a name")
             try #expect(!trait.description.isEmpty, "Trait \(trait.id) needs a description")
         }
     }
 
-    @Test func bossesHaveNoDamageTakenPercentResists() throws {
+    @Test func `bosses have no damage taken percent resists`() throws {
         for enemy in GameContent.enemies where enemy.isBoss {
             let trait = try #require(GameContent.trait(for: enemy))
             let resists = trait.modifiers.contains { modifier in
@@ -32,12 +32,12 @@ struct GameContentTraitCatalogTests {
         }
     }
 
-    @Test func necromancerLeechChanceIsTenPercent() throws {
+    @Test func `necromancer leech chance is ten percent`() throws {
         let necromancer = try #require(GameContent.traits.first { $0.id == "necromancer_trait" })
         try #expect(necromancer.triggers.leechChancePercent == 0.10)
     }
 
-    @Test func enemyVulnerabilitiesAreThirtyPercent() throws {
+    @Test func `enemy vulnerabilities are thirty percent`() throws {
         for trait in GameContent.traits {
             for modifier in trait.modifiers {
                 if case let .damageTakenVulnerability(_, amount) = modifier {
@@ -47,7 +47,7 @@ struct GameContentTraitCatalogTests {
         }
     }
 
-    @Test func bossDamageAurasMatchTypedIdentity() throws {
+    @Test func `boss damage auras match typed identity`() throws {
         let golem = try #require(GameContent.traits.first { $0.id == "the_forge_golem_trait" })
         try #expect(golem.triggers.turnRandomDamageAllEnemiesKeywordA == .stun)
         try #expect(golem.triggers.turnRandomDamageAllEnemiesKeywordB == .burn)

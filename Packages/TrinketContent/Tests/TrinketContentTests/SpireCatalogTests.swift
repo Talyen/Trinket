@@ -4,7 +4,7 @@ import TrinketCore
 
 @Suite("SpireCatalog")
 struct SpireCatalogTests {
-    @Test func damageSpiresAreAuthored() throws {
+    @Test func `damage spires are authored`() throws {
         try #expect(!GameContent.spires.isEmpty)
         let ids = GameContent.spires.map(\.id)
         try #expect(Set(ids).count == ids.count)
@@ -16,7 +16,7 @@ struct SpireCatalogTests {
         }
     }
 
-    @Test func floorsResolveExistingEnemies() throws {
+    @Test func `floors resolve existing enemies`() throws {
         for spire in GameContent.spires {
             for floor in GameContent.spireFloors(for: spire.id) {
                 try #expect(GameContent.enemy(matching: floor.enemyID) != nil, "Missing enemy \(floor.enemyID)")
@@ -26,7 +26,7 @@ struct SpireCatalogTests {
         }
     }
 
-    @Test func attunementRequiresMatchingAbilityKeywords() throws {
+    @Test func `attunement requires matching ability keywords`() throws {
         let ironVein = try #require(GameContent.spire(id: .ironVein))
         let rogue = try #require(GameContent.heroes.first { $0.id == "rogue" })
         let bear = try #require(GameContent.companions.first { $0.id == "bear" })
@@ -36,19 +36,19 @@ struct SpireCatalogTests {
         try #expect(SpireAttunement.matches(bear, spire: ironVein))
         try #expect(!SpireAttunement.matches(frostWhelp, spire: ironVein))
         try #expect(
-            SpireAttunement.canEnter(ironVein, heroes: [rogue], companions: [bear, frostWhelp])
+            SpireAttunement.canEnter(ironVein, heroes: [rogue], companions: [bear, frostWhelp]),
         )
         try #expect(
-            !SpireAttunement.canEnter(ironVein, heroes: [rogue], companions: [frostWhelp])
+            !SpireAttunement.canEnter(ironVein, heroes: [rogue], companions: [frostWhelp]),
         )
         try #expect(SpireAttunement.evaluate(hero: rogue, companion: bear, spire: ironVein) == .ready)
         try #expect(
             SpireAttunement.evaluate(hero: rogue, companion: frostWhelp, spire: ironVein)
-                == .missingCompanionAffinity
+                == .missingCompanionAffinity,
         )
     }
 
-    @Test func everySpireHasAttunableHeroAndCompanion() throws {
+    @Test func `every spire has attunable hero and companion`() throws {
         for spire in GameContent.spires {
             let heroes = GameContent.heroes.filter { SpireAttunement.matches($0, spire: spire) }
             let companions = GameContent.companions.filter {
@@ -60,9 +60,9 @@ struct SpireCatalogTests {
                 SpireAttunement.canEnter(
                     spire,
                     heroes: GameContent.heroes,
-                    companions: GameContent.companions
+                    companions: GameContent.companions,
                 ),
-                "\(spire.title) needs roster unlock from catalog Heroes and Companions"
+                "\(spire.title) needs roster unlock from catalog Heroes and Companions",
             )
             let ready = heroes.contains { hero in
                 companions.contains { companion in

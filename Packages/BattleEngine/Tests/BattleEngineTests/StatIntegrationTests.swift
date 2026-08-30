@@ -15,32 +15,32 @@ struct StatIntegrationTests {
             ability: .slash,
             stats: PrimaryStats(strength: 80),
             expectedAmount: 3,
-            keyword: .physical
+            keyword: .physical,
         )
         static let strengthStun = Self(ability: .bash, stats: PrimaryStats(strength: 80), expectedAmount: 3, keyword: .stun)
         static let zeroStrengthPhysical = Self(
             ability: .slash,
             stats: PrimaryStats(strength: 0),
             expectedAmount: 2,
-            keyword: .physical
+            keyword: .physical,
         )
         static let intellectBurn = Self(
             ability: .fireball,
             stats: PrimaryStats(intellect: 80),
             expectedAmount: 5,
-            keyword: .burn
+            keyword: .burn,
         )
         static let intellectFreeze = Self(
             ability: .frostbolt,
             stats: PrimaryStats(intellect: 80),
             expectedAmount: 5,
-            keyword: .freeze
+            keyword: .freeze,
         )
         static let wisdomPoison = Self(
             ability: .poisonDagger,
             stats: PrimaryStats(wisdom: 80),
             expectedAmount: 3,
-            keyword: .poison
+            keyword: .poison,
         )
         static let wisdomHoly = Self(ability: .smite, stats: PrimaryStats(wisdom: 80), expectedAmount: 6, keyword: .holy)
     }
@@ -54,37 +54,37 @@ struct StatIntegrationTests {
         .wisdomPoison,
         .wisdomHoly,
     ])
-    private func statBonusAppliedToDirectDamageKeywords(_ testCase: DirectDamageCase) throws {
+    private func `stat bonus applied to direct damage keywords`(_ testCase: DirectDamageCase) throws {
         let hero = BattleTestFixtures.statHero(abilities: [testCase.ability], stats: testCase.stats)
         var battle = BattleTestFixtures.statBattle(hero: hero)
 
         let events = try #require(
             try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle),
-            "Expected ability event for \(testCase.ability.name)"
+            "Expected ability event for \(testCase.ability.name)",
         )
         let event = try #require(
             BattleTestFixtures.firstAbilityEvent(in: events),
-            "Expected ability event for \(testCase.ability.name)"
+            "Expected ability event for \(testCase.ability.name)",
         )
 
         try #expect(event.amount == testCase.expectedAmount, "Wrong damage for \(testCase.ability.name): got \(event.amount)")
         try #expect(event.keyword == testCase.keyword, "Wrong keyword for \(testCase.ability.name)")
     }
 
-    @Test func wisdomIncreasesHealingAmount() throws {
+    @Test func `wisdom increases healing amount`() throws {
         let hero = BattleTestFixtures.statHero(
             abilities: [.heal],
             stats: PrimaryStats(wisdom: 10),
-            maxHealth: 100
+            maxHealth: 100,
         )
         let companion = BattleTestFixtures.passiveCombatant(
             id: "companion",
             name: "Companion",
             role: .companion,
-            maxHealth: 100
+            maxHealth: 100,
         )
         let enemy = BattleTestFixtures.attackingEnemy(
-            abilities: [.slash]
+            abilities: [.slash],
         )
         let enemyWithStats = Combatant(
             id: enemy.id,
@@ -92,12 +92,12 @@ struct StatIntegrationTests {
             role: enemy.role,
             maxHealth: enemy.maxHealth,
             abilities: enemy.abilities,
-            primaryStats: PrimaryStats(strength: 0)
+            primaryStats: PrimaryStats(strength: 0),
         )
         var battle = BattleTestFixtures.standardParty(
             hero: hero,
             companion: companion,
-            enemy: enemyWithStats
+            enemy: enemyWithStats,
         )
 
         BattleTestFixtures.endTurns(5, on: &battle)
@@ -114,11 +114,11 @@ struct StatIntegrationTests {
         try #expect(battle.health(of: battle.hero) - beforeHeal > 3)
     }
 
-    @Test func agilityRaisesControlMeterThresholdInBattle() throws {
+    @Test func `agility raises control meter threshold in battle`() throws {
         let hero = BattleTestFixtures.statHero(
             abilities: [],
             stats: PrimaryStats(agility: 20, toughness: 1),
-            maxHealth: 100
+            maxHealth: 100,
         )
         let enemy = Combatant(
             id: "enemy",
@@ -126,7 +126,7 @@ struct StatIntegrationTests {
             role: .enemy,
             maxHealth: 100,
             abilities: [.bash],
-            primaryStats: PrimaryStats(strength: 0)
+            primaryStats: PrimaryStats(strength: 0),
         )
         var battle = BattleTestFixtures.statBattle(hero: hero, enemy: enemy)
 

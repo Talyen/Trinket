@@ -13,7 +13,7 @@ struct CombatantBuffAuraBorder: View {
                 kind: kind,
                 angle: isMotionActive
                     ? TrinketMotion.Shine.phase(at: context.date.timeIntervalSinceReferenceDate) * 360
-                    : 0
+                    : 0,
             )
         }
         .allowsHitTesting(false)
@@ -39,9 +39,9 @@ private struct CombatantBuffAuraStroke: View {
                         .init(color: base.opacity(0.22), location: 1),
                     ]),
                     center: .center,
-                    angle: .degrees(angle)
+                    angle: .degrees(angle),
                 ),
-                lineWidth: 2
+                lineWidth: 2,
             )
         }
         .compositingGroup()
@@ -74,7 +74,7 @@ struct CombatantBuffAuraLane: View {
             isMotionActive: battleSession.lifecyclePhase == .active
                 && battleSession.spectacle.activeCinematic == nil
                 && !battleSession.spectacle.isShowingVictory
-                && !battleSession.spectacle.isShowingDefeat
+                && !battleSession.spectacle.isShowingDefeat,
         )
     }
 }

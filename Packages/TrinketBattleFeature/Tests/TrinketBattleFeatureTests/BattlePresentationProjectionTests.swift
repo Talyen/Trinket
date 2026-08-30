@@ -6,7 +6,7 @@ import TrinketTestSupport
 @testable import TrinketBattleFeature
 
 struct BattlePresentationProjectionTests {
-    @Test func projectsTriggeredStunAndFreezeForPartyCombatants() {
+    @Test func `projects triggered stun and freeze for party combatants`() {
         let state = BattleState(
             hero: CombatantFixtures.combatant(id: "hero", role: .hero),
             companion: CombatantFixtures.combatant(id: "companion", role: .companion),
@@ -16,7 +16,7 @@ struct BattlePresentationProjectionTests {
             activeCompanionEffects: [
                 ActiveEffect(id: 2, effect: .controlMeter(.freeze, 10, 10), remainingTurns: 0),
             ],
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         let snapshot = BattlePresentationSnapshot(configurationID: UUID(), state: state)
 
@@ -24,7 +24,7 @@ struct BattlePresentationProjectionTests {
         #expect(snapshot.companion.borderAccentKeyword == .freeze)
     }
 
-    @Test func ignoresControlBuildUpButProjectsDeathsDoor() {
+    @Test func `ignores control build up but projects deaths door`() {
         let state = BattleState(
             hero: CombatantFixtures.combatant(id: "hero", role: .hero),
             companion: CombatantFixtures.combatant(id: "companion", role: .companion),
@@ -32,14 +32,14 @@ struct BattlePresentationProjectionTests {
                 ActiveEffect(id: 1, effect: .controlMeter(.stun, 4, 10), remainingTurns: 0),
                 ActiveEffect(id: 2, effect: .deathsDoor, remainingTurns: 4),
             ],
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         let snapshot = BattlePresentationSnapshot(configurationID: UUID(), state: state)
 
         #expect(snapshot.hero.borderAccentKeyword == .deathsDoor)
     }
 
-    @Test func ignoresPartyControlStatusLingerForHandAndBorder() {
+    @Test func `ignores party control status linger for hand and border`() {
         let state = BattleState(
             hero: CombatantFixtures.combatant(id: "hero", role: .hero),
             companion: CombatantFixtures.combatant(id: "companion", role: .companion),
@@ -53,7 +53,7 @@ struct BattlePresentationProjectionTests {
             activeCompanionEffects: [
                 ActiveEffect(id: 2, effect: .controlMeter(.freeze, 10, 10), remainingTurns: 1),
             ],
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         let snapshot = BattlePresentationSnapshot(configurationID: UUID(), state: state)
 

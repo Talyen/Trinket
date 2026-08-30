@@ -12,13 +12,13 @@ final class PlayerHomesteadStoreTests {
         context = try PersistenceTestContext()
     }
 
-    @Test func buildOrUpgradeNodePersistsHomesteadAndRosterThroughHub() throws {
+    @Test func `build or upgrade node persists homestead and roster through hub`() throws {
         let storeURL = context.storeURL()
         let firstStore = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true, persistSaveImmediately: true)
         let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
         firstStore.homestead = PlayerHomesteadState(
             resources: [.wood: 20, .herbs: 10],
-            nodeTiers: [:]
+            nodeTiers: [:],
         )
         var roster = firstStore.roster
         roster.gold = 4
@@ -35,7 +35,7 @@ final class PlayerHomesteadStoreTests {
         try #expect(reloaded.homestead.resources[.herbs] == 5)
     }
 
-    @Test func buildOrUpgradeNodeReturnsInsufficientResourcesWithoutMutating() throws {
+    @Test func `build or upgrade node returns insufficient resources without mutating`() throws {
         let store = try context.makeSaveStore()
         let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
         store.homestead = PlayerHomesteadState(resources: [:], nodeTiers: [:])
@@ -45,13 +45,13 @@ final class PlayerHomesteadStoreTests {
         try #expect(store.homestead.tier(for: .wheatField) == 0)
     }
 
-    @Test func buildOrUpgradeNodeReturnsNotAvailableWhenMaxTier() throws {
+    @Test func `build or upgrade node returns not available when max tier`() throws {
         let store = try context.makeSaveStore()
         let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
         let maxTier = try #require(definition.tiers.map(\.tier).max())
         store.homestead = PlayerHomesteadState(
             resources: [.wood: 99, .herbs: 99],
-            nodeTiers: [.wheatField: maxTier]
+            nodeTiers: [.wheatField: maxTier],
         )
 
         let result = store.buildOrUpgradeNode(definition)
@@ -59,7 +59,7 @@ final class PlayerHomesteadStoreTests {
         try #expect(store.homestead.tier(for: .wheatField) == maxTier)
     }
 
-    @Test func collectProductionPersistsPendingMaterialsAndTimestamp() throws {
+    @Test func `collect production persists pending materials and timestamp`() throws {
         let storeURL = context.storeURL()
         let firstStore = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true, persistSaveImmediately: true)
         let start = Date(timeIntervalSince1970: 0)
@@ -67,7 +67,7 @@ final class PlayerHomesteadStoreTests {
         firstStore.homestead = PlayerHomesteadState(
             resources: [:],
             nodeTiers: [.wheatField: 1, .wishingWell: 1],
-            lastProductionAt: start
+            lastProductionAt: start,
         )
         var roster = firstStore.roster
         roster.gold = 900
@@ -86,7 +86,7 @@ final class PlayerHomesteadStoreTests {
         try #expect(reloaded.homestead.lastProductionAt == collectionDate)
     }
 
-    @Test func buildSettlesProductionBeforeChangingNodeTier() throws {
+    @Test func `build settles production before changing node tier`() throws {
         let store = try context.makeSaveStore()
         let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
         let start = Date(timeIntervalSince1970: 0)
@@ -94,7 +94,7 @@ final class PlayerHomesteadStoreTests {
         store.homestead = PlayerHomesteadState(
             resources: [.wood: 20, .herbs: 20],
             nodeTiers: [.wheatField: 1],
-            lastProductionAt: start
+            lastProductionAt: start,
         )
 
         let result = store.buildOrUpgradeNode(definition, at: upgradeDate)

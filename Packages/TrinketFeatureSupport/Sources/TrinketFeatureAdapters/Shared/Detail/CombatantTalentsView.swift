@@ -30,7 +30,7 @@ public struct CombatantTalentsView: View {
         nodeAccessibilityIdentifier: @escaping (String) -> String = AccessibilityID.CombatantDetail.talentsNode,
         unlockAccessibilityIdentifier: String = AccessibilityID.CombatantDetail.talentsUnlockButton,
         onUnlockTalent: @escaping (TalentNode, TalentTree) -> Void,
-        onResetTalents: @escaping () -> Void
+        onResetTalents: @escaping () -> Void,
     ) {
         self.tree = tree
         self.progression = progression
@@ -49,7 +49,7 @@ public struct CombatantTalentsView: View {
         } ?? defaultInitialID
 
         _selectedNodeID = State(
-            initialValue: initialID
+            initialValue: initialID,
         )
     }
 
@@ -74,7 +74,7 @@ public struct CombatantTalentsView: View {
                 eyebrow: "TALENTS",
                 title: tree.name,
                 baseHeight: baseHeight,
-                overscroll: overscroll
+                overscroll: overscroll,
             ) {
                 talentArtwork
             }
@@ -132,7 +132,7 @@ public struct CombatantTalentsView: View {
             PlaceholderArtwork(
                 tree.keyword.visualStyle,
                 iconPointSize: 64,
-                relativeTo: .largeTitle
+                relativeTo: .largeTitle,
             )
         }
     }
@@ -189,23 +189,23 @@ public struct CombatantTalentsView: View {
             .frame(height: 104)
             .background(
                 RoundedRectangle(cornerRadius: TrinketDesign.Corners.card, style: .continuous)
-                    .fill(TrinketDesign.Colors.panel)
+                    .fill(TrinketDesign.Colors.panel),
             )
             .overlay(
                 RoundedRectangle(cornerRadius: TrinketDesign.Corners.card, style: .continuous)
                     .stroke(
                         isSelected ? .clear : (isUnlocked ? style.color.opacity(0.4) : .clear),
-                        lineWidth: 1
-                    )
+                        lineWidth: 1,
+                    ),
             )
             .keywordShineBorder(
                 keywords: isSelected ? referencedKeywords(for: node) : nil,
                 cornerRadius: TrinketDesign.Corners.card,
-                lineWidth: 2
+                lineWidth: 2,
             )
             .shadow(
                 color: isSelected ? style.glowColor.opacity(0.4) : .clear,
-                radius: 8
+                radius: 8,
             )
             .saturation(isRowLocked ? 0.35 : 1.0)
             .opacity(isRowLocked ? 0.65 : 1.0)
@@ -229,7 +229,7 @@ public struct CombatantTalentsView: View {
                 let canUnlock = allowsEditing && tree.canUnlock(
                     node: selectedNode,
                     unlockedNodeIDs: unlockedTalents,
-                    availablePoints: availablePoints
+                    availablePoints: availablePoints,
                 )
                 let style = selectedNode.keyword.visualStyle
                 let symbolName = selectedNode.symbolName ?? style.symbolName
@@ -252,7 +252,7 @@ public struct CombatantTalentsView: View {
                 unlockButton(
                     for: selectedNode,
                     isUnlocked: isUnlocked,
-                    canUnlock: canUnlock
+                    canUnlock: canUnlock,
                 )
             }
         }
@@ -267,13 +267,13 @@ public struct CombatantTalentsView: View {
             }
             .frame(maxWidth: .infinity)
             .trinketPrimaryActionButton(
-                accessibilityIdentifier: unlockAccessibilityIdentifier
+                accessibilityIdentifier: unlockAccessibilityIdentifier,
             )
         } else {
             Button(title) {}
                 .frame(maxWidth: .infinity)
                 .trinketSecondaryActionButton(
-                    accessibilityIdentifier: unlockAccessibilityIdentifier
+                    accessibilityIdentifier: unlockAccessibilityIdentifier,
                 )
                 .disabled(true)
         }

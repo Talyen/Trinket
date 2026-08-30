@@ -16,8 +16,8 @@ public extension View {
                     if !isPresented {
                         message.wrappedValue = nil
                     }
-                }
-            )
+                },
+            ),
         ) {
             Button("OK", role: .cancel) {}
         } message: {
@@ -30,7 +30,7 @@ public extension StageSelectRowPresentation where Item == Stage {
     static func stageRows(
         for chapter: Chapter,
         progress: JourneyProgressState,
-        worldSeed: UInt64
+        worldSeed: UInt64,
     ) -> [Self] {
         chapter.stages
             .filter { !progress.isCompleted($0) }
@@ -49,15 +49,15 @@ public extension StageSelectRowPresentation where Item == Stage {
                     isArtworkInteractive: stage.encounter.isCombat,
                     rowAccessibilityID: AccessibilityID.Play.stageRow(
                         chapter: stage.chapterNumber,
-                        stage: stage.stageNumber
+                        stage: stage.stageNumber,
                     ),
                     artworkAccessibilityID: artworkAccessibilityID(for: stage),
                     actionAccessibilityID: AccessibilityID.Play.stageAction(
                         chapter: stage.chapterNumber,
-                        stage: stage.stageNumber
+                        stage: stage.stageNumber,
                     ),
                     activeDetailAccessibilityID: AccessibilityID.Play.activeStageDetail,
-                    partyControlAccessibilityID: AccessibilityID.Play.stagePartyControl
+                    partyControlAccessibilityID: AccessibilityID.Play.stagePartyControl,
                 )
             }
     }
@@ -66,24 +66,24 @@ public extension StageSelectRowPresentation where Item == Stage {
         if stage.encounter.isCombat {
             return AccessibilityID.Play.enemyArt(
                 chapter: stage.chapterNumber,
-                stage: stage.stageNumber
+                stage: stage.stageNumber,
             )
         }
         if case .mysteryEvent = stage.encounter {
             return AccessibilityID.Play.mysteryArt(
                 chapter: stage.chapterNumber,
-                stage: stage.stageNumber
+                stage: stage.stageNumber,
             )
         }
         if stage.encounter.eventID != nil {
             return AccessibilityID.Play.mysteryArt(
                 chapter: stage.chapterNumber,
-                stage: stage.stageNumber
+                stage: stage.stageNumber,
             )
         }
         return AccessibilityID.Play.encounterArt(
             chapter: stage.chapterNumber,
-            stage: stage.stageNumber
+            stage: stage.stageNumber,
         )
     }
 }
@@ -92,14 +92,14 @@ public extension StageSelectRowPresentation where Item == SpireFloor {
     static func spireRows(
         for spire: SpireDefinition,
         floors: [SpireFloor],
-        progress: PlayerSpiresState
+        progress: PlayerSpiresState,
     ) -> [Self] {
         let highestCleared = progress.highestClearedFloor(for: spire.id.rawValue)
         guard highestCleared < spire.floorCount else { return [] }
 
         let activeFloor = progress.activeFloor(
             for: spire.id.rawValue,
-            floorCount: spire.floorCount
+            floorCount: spire.floorCount,
         )
 
         return floors.compactMap { floor in
@@ -124,22 +124,22 @@ public extension StageSelectRowPresentation where Item == SpireFloor {
                 isArtworkInteractive: true,
                 rowAccessibilityID: AccessibilityID.Play.spireFloor(
                     spire.id.rawValue,
-                    floor: floor.floor
+                    floor: floor.floor,
                 ),
                 artworkAccessibilityID: AccessibilityID.Play.spireFloorEnemyArt(
                     spire.id.rawValue,
-                    floor: floor.floor
+                    floor: floor.floor,
                 ),
                 actionAccessibilityID: AccessibilityID.Play.spireBeginFloor(
                     spire.id.rawValue,
-                    floor: floor.floor
+                    floor: floor.floor,
                 ),
                 activeDetailAccessibilityID: AccessibilityID.Play.spireActiveFloorDetail(
-                    spire.id.rawValue
+                    spire.id.rawValue,
                 ),
                 partyControlAccessibilityID: AccessibilityID.Play.spirePartyControl(
-                    spire.id.rawValue
-                )
+                    spire.id.rawValue,
+                ),
             )
         }
     }
@@ -148,17 +148,17 @@ public extension StageSelectRowPresentation where Item == SpireFloor {
 public extension [SpireDefinition] {
     func orderedForSpiresHub(
         progress: PlayerSpiresState,
-        isUnlocked: (SpireDefinition) -> Bool
+        isUnlocked: (SpireDefinition) -> Bool,
     ) -> [SpireDefinition] {
         enumerated()
             .sorted { left, right in
                 let leftCleared = Swift.min(
                     progress.highestClearedFloor(for: left.element.id.rawValue),
-                    left.element.floorCount
+                    left.element.floorCount,
                 )
                 let rightCleared = Swift.min(
                     progress.highestClearedFloor(for: right.element.id.rawValue),
-                    right.element.floorCount
+                    right.element.floorCount,
                 )
                 if leftCleared != rightCleared {
                     return leftCleared > rightCleared
@@ -181,7 +181,7 @@ public extension StageSelectRowPresentation where Item == LabyrinthNode {
         for node: LabyrinthNode,
         type: LabyrinthNodeType,
         title: String,
-        isArtworkInteractive: Bool
+        isArtworkInteractive: Bool,
     ) -> Self {
         let mapLabel = "Floor \(node.depth)"
         return Self(
@@ -193,7 +193,7 @@ public extension StageSelectRowPresentation where Item == LabyrinthNode {
             encounterTypeTitle: type.title,
             symbolName: LabyrinthMapPresentation.symbolName(
                 for: type,
-                recruitEventID: node.recruitEventID
+                recruitEventID: node.recruitEventID,
             ),
             tint: LabyrinthMapPresentation.tint(for: type),
             primaryActionTitle: LabyrinthMapPresentation.actionTitle(for: node, type: type),
@@ -203,7 +203,7 @@ public extension StageSelectRowPresentation where Item == LabyrinthNode {
             artworkAccessibilityID: AccessibilityID.Play.labyrinthNodeArtwork(node.id),
             actionAccessibilityID: AccessibilityID.Play.labyrinthInspectorAction(node.id),
             activeDetailAccessibilityID: AccessibilityID.Play.labyrinthNodeInspector,
-            partyControlAccessibilityID: AccessibilityID.Play.labyrinthPartyControl(nodeID: node.id)
+            partyControlAccessibilityID: AccessibilityID.Play.labyrinthPartyControl(nodeID: node.id),
         )
     }
 }

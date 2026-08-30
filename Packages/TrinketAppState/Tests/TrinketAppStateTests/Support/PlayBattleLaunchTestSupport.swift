@@ -13,7 +13,7 @@ enum PlayBattleLaunchTestSupport {
     static func setActiveParty(
         heroID: String,
         companionID: String,
-        in state: PlaySession
+        in state: PlaySession,
     ) throws {
         var roster = state.playerSave.roster
         let hero = try #require(GameContent.heroes.first { $0.id == heroID })
@@ -40,7 +40,7 @@ enum PlayBattleLaunchTestSupport {
         experienceBonusPercent: Int = 0,
         pendingRewardItem: InventoryItem? = nil,
         stageRewardsAlreadyClaimed: Bool = false,
-        universalModifiers: [AffixModifier] = []
+        universalModifiers: [AffixModifier] = [],
     ) throws -> BattleRunConfiguration {
         PlayBattleLaunch.assembleLaunch(
             input: BattleLaunchInput(
@@ -53,7 +53,7 @@ enum PlayBattleLaunchTestSupport {
                 experienceBonusPercent: experienceBonusPercent,
                 pendingRewardItem: pendingRewardItem,
                 stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
-                universalModifiers: universalModifiers
+                universalModifiers: universalModifiers,
             ),
             runKey: runKey ?? origin?.runKey,
             rngSeed: rngSeed,
@@ -62,7 +62,7 @@ enum PlayBattleLaunchTestSupport {
             homesteadState: homestead,
             defeatPrimaryAction: origin?.defeatPrimaryAction ?? .restart,
             hasProgressionRewards: runKey != nil || origin != nil,
-            musicStageID: origin?.musicStageID
+            musicStageID: origin?.musicStageID,
         ).configuration
     }
 }

@@ -41,7 +41,7 @@ struct BattlePresentationSnapshot: Equatable {
     private static func combatant(
         _ combatant: Combatant,
         effects: [ActiveEffect],
-        in state: borrowing BattleState
+        in state: borrowing BattleState,
     ) -> BattleCombatantPresentation {
         BattleCombatantPresentation(
             combatant: combatant,
@@ -51,9 +51,9 @@ struct BattlePresentationSnapshot: Equatable {
             maxMana: state.maxMana(of: combatant),
             borderAccentKeyword: CombatantBorderAccent.keyword(
                 from: effects,
-                controlAccentRequiresPendingSkip: combatant.role != .enemy
+                controlAccentRequiresPendingSkip: combatant.role != .enemy,
             ),
-            buffAuraKind: CombatantBuffAura.kind(from: effects)
+            buffAuraKind: CombatantBuffAura.kind(from: effects),
         )
     }
 }

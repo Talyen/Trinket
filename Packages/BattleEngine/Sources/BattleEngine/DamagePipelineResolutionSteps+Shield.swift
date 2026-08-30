@@ -6,11 +6,11 @@ package extension DamagePipeline {
     // swiftlint:disable:next function_body_length
     static func applyShieldAbsorption(
         to state: inout DamageResolutionState,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) {
         assert(
             state.buildupDamage == state.remaining || state.remaining == 0,
-            "buildupDamage invariant before shield: buildup \(state.buildupDamage) != remaining \(state.remaining)"
+            "buildupDamage invariant before shield: buildup \(state.buildupDamage) != remaining \(state.remaining)",
         )
         var effects = context.roster.activeEffects(for: state.combatant)
 
@@ -40,7 +40,7 @@ package extension DamagePipeline {
             sourceTriggers: sourceTriggers,
             targetIsStunned: targetIsStunned,
             targetIsFrozen: targetIsFrozen,
-            damageKeyword: state.damageKeyword
+            damageKeyword: state.damageKeyword,
         )
         if BoonCombatEngine.ignoresBlock(for: state, in: context) {
             state.activeEffects = effects
@@ -58,13 +58,13 @@ package extension DamagePipeline {
             effectiveBuffer: effectiveBuffer,
             sourceTriggers: sourceTriggers,
             targetIsStunned: targetIsStunned,
-            in: &context
+            in: &context,
         )
 
         var blockBroken = false
         if let reduced = DefensePoolEngine.reduce(
             absorption.absorbed + absorption.extraRemoved,
-            in: effects
+            in: effects,
         ) {
             effects = reduced.effects
             blockBroken = reduced.broken
@@ -77,13 +77,13 @@ package extension DamagePipeline {
             defenderTriggers: defenderTriggers,
             sourceTriggers: sourceTriggers,
             to: &state,
-            in: &context
+            in: &context,
         ))
         state.damageEvents.append(contentsOf: BoonCombatEngine.afterBlockedDamage(
             absorption.absorbed,
             defender: state.combatant,
             attackerID: state.sourceActorID,
-            in: &context
+            in: &context,
         ))
         applyOverflowAndBreakReactions(blockBroken: blockBroken, defenderTriggers: defenderTriggers, to: &state, in: &context)
     }
@@ -92,12 +92,12 @@ package extension DamagePipeline {
         blockBroken: Bool,
         defenderTriggers: CombatTraitTriggers,
         to state: inout DamageResolutionState,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) {
         if state.remaining > 0, defenderTriggers.postBlockOverflowDamageMultiplier != 1 {
             state.remaining = CombatRounding.scaled(
                 state.remaining,
-                multiplier: defenderTriggers.postBlockOverflowDamageMultiplier
+                multiplier: defenderTriggers.postBlockOverflowDamageMultiplier,
             )
         }
 
@@ -105,7 +105,7 @@ package extension DamagePipeline {
             state.damageEvents.append(contentsOf: CombatTriggerEngine.afterBlockBroken(
                 on: state.combatant,
                 attackerID: state.sourceActorID,
-                in: &context
+                in: &context,
             ))
             state.activeEffects = context.roster.activeEffects(for: state.combatant)
         }
@@ -123,7 +123,7 @@ package extension DamagePipeline {
         effectiveBuffer: Int,
         sourceTriggers: CombatTraitTriggers?,
         targetIsStunned: Bool,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> ShieldAbsorption {
         let absorbed = min(state.remaining, effectiveBuffer)
         state.remaining -= absorbed
@@ -133,7 +133,7 @@ package extension DamagePipeline {
             buffer: buffer,
             sourceTriggers: sourceTriggers,
             targetIsStunned: targetIsStunned,
-            damageKeyword: state.damageKeyword
+            damageKeyword: state.damageKeyword,
         )
         state.damageEvents.append(context.nextEvent(
             kind: .effect,
@@ -144,14 +144,14 @@ package extension DamagePipeline {
             amount: absorbed,
             keyword: keyword,
             appliedEffectSummaries: [],
-            milestone: nil
+            milestone: nil,
         ))
         return ShieldAbsorption(absorbed: absorbed, extraRemoved: extraRemoved)
     }
 
     private static func applyIntercede(
         to state: inout DamageResolutionState,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) {
         guard state.combatant.role == .companion,
               state.remaining > 0,
@@ -171,7 +171,7 @@ package extension DamagePipeline {
             abilityName: "Intercede",
             target: context.roster.hero.combatant,
             amount: heroAbsorbed,
-            keyword: reduced.keyword
+            keyword: reduced.keyword,
         ))
         context.roster.setActiveEffects(reduced.effects, for: context.roster.hero.combatant)
     }
@@ -181,14 +181,14 @@ package extension DamagePipeline {
         sourceTriggers: CombatTraitTriggers?,
         targetIsStunned: Bool,
         targetIsFrozen: Bool,
-        damageKeyword: Keyword?
+        damageKeyword: Keyword?,
     ) -> Int {
         var effectiveBuffer = buffer
         if let sourceTriggers {
             if damageKeyword == .physical, sourceTriggers.physicalBlockIgnorePercent > 0 {
                 effectiveBuffer = CombatRounding.scaled(
                     buffer,
-                    multiplier: 1 - min(1, sourceTriggers.physicalBlockIgnorePercent)
+                    multiplier: 1 - min(1, sourceTriggers.physicalBlockIgnorePercent),
                 )
             }
             if damageKeyword == .physical, sourceTriggers.physicalIgnoresBlockVsStunnedOrFrozen,
@@ -210,7 +210,7 @@ package extension DamagePipeline {
         buffer: Int,
         sourceTriggers: CombatTraitTriggers?,
         targetIsStunned: Bool,
-        damageKeyword: Keyword?
+        damageKeyword: Keyword?,
     ) -> Int {
         let canSunder = damageKeyword == .physical || damageKeyword == .stun
         var extraRemoved = canSunder
@@ -237,7 +237,7 @@ package extension DamagePipeline {
         defenderTriggers: CombatTraitTriggers,
         sourceTriggers: CombatTraitTriggers?,
         to state: inout DamageResolutionState,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         var events: [ActionEvent] = []
         if absorbed > 0, let attackerID = state.sourceActorID,
@@ -251,19 +251,19 @@ package extension DamagePipeline {
                         target: attacker.combatant,
                         keyword: .holy,
                         sourceActorID: state.combatant.id,
-                        options: .flatReaction
-                    )
+                        options: .flatReaction,
+                    ),
                 ).events)
             }
             if defenderTriggers.onBlockReduceAttackerAccuracyPercent > 0 {
                 context.appendEffect(
                     .damageReductionPercent(
                         Double(defenderTriggers.onBlockReduceAttackerAccuracyPercent) / 100,
-                        defenderTriggers.onBlockReduceAttackerAccuracyTurns
+                        defenderTriggers.onBlockReduceAttackerAccuracyTurns,
                     ),
                     to: attacker.combatant,
                     sourceID: state.combatant.id,
-                    remainingTurns: defenderTriggers.onBlockReduceAttackerAccuracyTurns
+                    remainingTurns: defenderTriggers.onBlockReduceAttackerAccuracyTurns,
                 )
             }
         }
@@ -278,8 +278,8 @@ package extension DamagePipeline {
                     target: state.combatant,
                     keyword: .physical,
                     sourceActorID: attackerID,
-                    options: .flatReaction
-                )
+                    options: .flatReaction,
+                ),
             ).events)
             state.activeEffects = context.roster.activeEffects(for: state.combatant)
         }

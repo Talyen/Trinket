@@ -16,7 +16,7 @@ public struct UniqueItemDefinition: Identifiable, Sendable {
         id: String,
         displayName: String,
         baseTypeID: String,
-        affixes: [UniqueAffixSource]
+        affixes: [UniqueAffixSource],
     ) {
         self.id = id
         self.displayName = displayName

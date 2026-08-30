@@ -23,81 +23,81 @@ public extension Keyword {
 
         public static let physical = Self(
             color: DesignAssetColors.named("KeywordPhysical"),
-            symbolName: "burst.fill"
+            symbolName: "burst.fill",
         )
         public static let burn = Self(
             color: DesignAssetColors.named("KeywordBurn"),
             secondaryColor: DesignAssetColors.named("KeywordPhysical"),
-            symbolName: "flame.fill"
+            symbolName: "flame.fill",
         )
         public static let stun = Self(
             color: DesignAssetColors.named("KeywordStun"),
             symbolName: "bolt.fill",
-            prefersDarkForeground: true
+            prefersDarkForeground: true,
         )
         public static let block = Self(
             color: DesignAssetColors.named("KeywordBlock"),
-            symbolName: "shield.fill"
+            symbolName: "shield.fill",
         )
         public static let health = Self(
             color: DesignAssetColors.named("KeywordHealth"),
             secondaryColor: TrinketDesign.Colors.health,
-            symbolName: "heart.fill"
+            symbolName: "heart.fill",
         )
         public static let gold = Self(
             color: DesignAssetColors.named("KeywordGold"),
             symbolName: "circle.circle.fill",
-            prefersDarkForeground: true
+            prefersDarkForeground: true,
         )
         public static let holy = Self(
             color: DesignAssetColors.named("KeywordHoly"),
             symbolName: "sun.max.fill",
-            prefersDarkForeground: true
+            prefersDarkForeground: true,
         )
         public static let poison = Self(
             color: DesignAssetColors.named("KeywordPoison"),
-            symbolName: "drop.fill"
+            symbolName: "drop.fill",
         )
         public static let bleed = Self(
             color: DesignAssetColors.named("KeywordBleed"),
-            symbolName: "drop.fill"
+            symbolName: "drop.fill",
         )
         public static let leech = Self(
             color: DesignAssetColors.named("KeywordLeech"),
-            symbolName: "drop"
+            symbolName: "drop",
         )
         public static let freeze = Self(
             color: DesignAssetColors.named("KeywordFreeze"),
             symbolName: "snowflake",
-            prefersDarkForeground: true
+            prefersDarkForeground: true,
         )
         public static let dodge = Self(
             color: DesignAssetColors.named("KeywordDodge"),
-            symbolName: "figure.run"
+            symbolName: "figure.run",
         )
         public static let purge = Self(
             color: DesignAssetColors.named("KeywordPurge"),
-            symbolName: "shield.slash.fill"
+            symbolName: "shield.slash.fill",
         )
         public static let cleanse = Self(
             color: DesignAssetColors.named("KeywordCleanse"),
-            symbolName: "sparkles"
+            symbolName: "sparkles",
         )
         public static let mana = Self(
             color: DesignAssetColors.named("KeywordMana"),
-            symbolName: "moon.stars.fill"
+            symbolName: "moon.stars.fill",
         )
         public static let deathsDoor = Self(
             color: DesignAssetColors.named("KeywordDeathsDoor"),
-            symbolName: "hourglass.bottomhalf.filled"
+            symbolName: "hourglass.bottomhalf.filled",
         )
         public static let beneficialStatus = Self(
             color: TrinketDesign.Colors.success,
-            symbolName: "arrowshape.up.fill"
+            symbolName: "arrowshape.up.fill",
         )
         public static let negativeStatus = Self(
             color: TrinketDesign.Colors.destructive,
-            symbolName: "arrowshape.down.fill"
+            symbolName: "arrowshape.down.fill",
         )
     }
 

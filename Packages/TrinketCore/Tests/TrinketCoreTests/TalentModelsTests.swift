@@ -10,14 +10,14 @@ struct TalentModelsTests {
                     name: "Talent \(row).\(index)",
                     keyword: keyword,
                     row: row,
-                    description: "Placeholder description for row \(row) node \(index)."
+                    description: "Placeholder description for row \(row) node \(index).",
                 )
             }
         }
         return TalentTree(keyword: keyword, nodes: nodes)
     }
 
-    @Test func progressionCalculatesTalentPointsCorrectly() {
+    @Test func `progression calculates talent points correctly`() {
         let level1 = CombatantProgression.at(level: 1)
         #expect(level1.totalTalentPoints == 0)
         #expect(level1.availableTalentPoints(unlockedCount: 0) == 0)
@@ -38,7 +38,7 @@ struct TalentModelsTests {
         #expect(CombatantProgression.at(level: 40).totalTalentPoints == 20)
     }
 
-    @Test func tier1NodesCanBeUnlockedWithPoints() {
+    @Test func `tier 1 nodes can be unlocked with points`() {
         let tree = makeSampleTree()
         let t1Node = tree.nodes(forRow: 1)[0]
 
@@ -48,7 +48,7 @@ struct TalentModelsTests {
     }
 
     @Test(arguments: [1, 2])
-    func rowNPlusOneRequiresAllRowNNodesUnlocked(row: Int) {
+    func `row N plus one requires all row N nodes unlocked`(row: Int) {
         let tree = makeSampleTree()
         let previousNodes = tree.nodes(forRow: row)
         let gatedNode = tree.nodes(forRow: row + 1)[0]
@@ -61,7 +61,7 @@ struct TalentModelsTests {
         #expect(tree.canUnlock(node: gatedNode, unlockedNodeIDs: fullPrevious, availablePoints: 1))
     }
 
-    @Test func combatantConfigLooksUpNodesAndTrees() {
+    @Test func `combatant config looks up nodes and trees`() {
         let tree1 = makeSampleTree(keyword: .poison)
         let tree2 = makeSampleTree(keyword: .bleed)
         let config = CombatantTalentConfig(combatantID: "rogue", trees: [tree1, tree2])
@@ -75,7 +75,7 @@ struct TalentModelsTests {
         #expect(config.node(matching: "non_existent") == nil)
     }
 
-    @Test func configCapsOverBudgetUnlocksToRowLegalPrefix() {
+    @Test func `config caps over budget unlocks to row legal prefix`() {
         let poison = makeSampleTree(keyword: .poison)
         let bleed = makeSampleTree(keyword: .bleed)
         let config = CombatantTalentConfig(combatantID: "rogue", trees: [poison, bleed])

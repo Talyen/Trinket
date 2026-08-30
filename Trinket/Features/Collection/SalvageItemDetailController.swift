@@ -16,12 +16,12 @@ struct SalvageDetailState {
 
     mutating func salvageFinished(
         result: ItemSalvageActionResult,
-        item: InventoryItem
+        item: InventoryItem,
     ) {
         if case let .success(yields) = result {
             transmutationEvent = SalvageTransmutationEvent(
                 item: item,
-                yields: yields
+                yields: yields,
             )
             salvageSuccessCount += 1
         }
@@ -52,12 +52,12 @@ struct SalvageItemDetailSheet: View {
         .trinketDetailSheet()
         .appFramePacingSignpost(
             AppFramePacingSignposts.Name.sheetPresent,
-            isActive: true
+            isActive: true,
         )
         .onAppear {
             AppFramePacingSignposts.event(
                 AppFramePacingSignposts.Name.sheetPresent,
-                detail: "collectionItem=\(item.id)"
+                detail: "collectionItem=\(item.id)",
             )
         }
     }

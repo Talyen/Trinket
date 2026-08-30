@@ -5,7 +5,7 @@ import TrinketCore
 package extension DamagePipeline {
     static func applyDodgeGate(
         to state: inout DamageResolutionState,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) {
         guard state.options.applyDodge,
               state.amount > 0,
@@ -57,21 +57,21 @@ package extension DamagePipeline {
             amount: 0,
             keyword: .dodge,
             appliedEffectSummaries: [],
-            milestone: nil
+            milestone: nil,
         ))
         state.isDodged = true
         if !autoDodge, !state.options.causedByDodge {
             state.damageEvents.append(contentsOf: CombatTriggerEngine.afterDodge(
                 by: state.combatant,
                 attackerID: state.sourceActorID,
-                in: &context
+                in: &context,
             ))
         }
     }
 
     static func dodgeChance(
         for state: DamageResolutionState,
-        in context: BattleState
+        in context: BattleState,
     ) -> Double {
         let attackerAgility = state.sourceActorID
             .flatMap { context.roster.combatant(for: $0) }?
@@ -79,11 +79,11 @@ package extension DamagePipeline {
 
         let baseChance: Double = if state.combatant.role == .enemy {
             state.combatant.primaryStats.contestedEnemyDodgeChance(
-                againstAttackerAgility: attackerAgility
+                againstAttackerAgility: attackerAgility,
             )
         } else {
             state.combatant.primaryStats.contestedDodgeChance(
-                againstAttackerAgility: attackerAgility
+                againstAttackerAgility: attackerAgility,
             )
         }
         var chance = baseChance
@@ -113,7 +113,7 @@ package extension DamagePipeline {
 
     static func applyCriticalGate(
         to state: inout DamageResolutionState,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) {
         guard !state.options.isRetaliation || state.options.isAttackHit,
               state.amount > 0,
@@ -133,7 +133,7 @@ package extension DamagePipeline {
             defender: state.combatant,
             abilityBonus: state.options.abilityCriticalChanceBonus,
             countsBleedingDefender: true,
-            in: &context
+            in: &context,
         )
         else { return }
         applyCritical(to: &state)
@@ -142,7 +142,7 @@ package extension DamagePipeline {
     private static func resolveGuaranteedCrit(
         to state: inout DamageResolutionState,
         actor: CombatantRuntime,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> Bool {
         guard let sourceActorID = state.sourceActorID else { return false }
         if BoonCombatEngine.guaranteesCritical(for: state, in: context) {

@@ -10,7 +10,7 @@ import UIKit
 
 let appStateLogger = Logger(
     subsystem: PlayerSaveDefaults.loggingSubsystem,
-    category: "AppState"
+    category: "AppState",
 )
 
 @MainActor
@@ -34,7 +34,7 @@ public final class AppState {
         environment: AppEnvironment = .shared,
         playerSave: PlayerSaveStore? = nil,
         userDefaults: UserDefaults? = nil,
-        makeBattleRuntime: ((BattleRuntimeDependencies) -> any BattleRuntime)? = nil
+        makeBattleRuntime: ((BattleRuntimeDependencies) -> any BattleRuntime)? = nil,
     ) throws {
         self.environment = environment
         let resolvedDefaults = userDefaults ?? .standard
@@ -42,7 +42,7 @@ public final class AppState {
         let dependencies = try Self.makeBootstrapDependencies(
             environment: environment,
             playerSave: playerSave,
-            userDefaults: resolvedDefaults
+            userDefaults: resolvedDefaults,
         )
 
         self.playerSave = dependencies.playerSave
@@ -54,7 +54,7 @@ public final class AppState {
 
         let resolvedBattle = Self.resolveBattleRuntime(
             factory: makeBattleRuntime,
-            dependencies: dependencies
+            dependencies: dependencies,
         )
         play = PlaySession(
             playerSave: dependencies.playerSave,
@@ -63,26 +63,26 @@ public final class AppState {
             options: dependencies.options,
             sfxPlayer: dependencies.sfxPlayer,
             pendingDestination: dependencies.pendingPlayDestination,
-            battlePerformanceScenario: environment.battlePerformanceScenario
+            battlePerformanceScenario: environment.battlePerformanceScenario,
         )
         finishBootstrap(environment: environment)
     }
 
     private static func resolveBattleRuntime(
         factory: ((BattleRuntimeDependencies) -> any BattleRuntime)?,
-        dependencies: BootstrapDependencies
+        dependencies: BootstrapDependencies,
     ) -> any BattleRuntime {
         guard let resolved = factory?(BattleRuntimeDependencies(
             playSFX: { ids in
                 dependencies.sfxPlayer.playAll(
                     ids,
-                    volume: dependencies.options.effectsVolume
+                    volume: dependencies.options.effectsVolume,
                 )
             },
             warmSFX: { ids, concurrentPlayerCount in
                 dependencies.sfxPlayer.warm(
                     ids,
-                    concurrentPlayerCount: concurrentPlayerCount
+                    concurrentPlayerCount: concurrentPlayerCount,
                 )
             },
             hapticsEnabled: {
@@ -103,12 +103,12 @@ public final class AppState {
             shouldAutoSkipUltimateCinematic: { actorID, presentedActors in
                 dependencies.options.shouldAutoSkipUltimateCinematic(
                     actorID: actorID,
-                    actorsWhoPresentedThisBattle: presentedActors
+                    actorsWhoPresentedThisBattle: presentedActors,
                 )
-            }
+            },
         )) else {
             preconditionFailure(
-                "AppState requires a battle runtime. Pass `makeBattleRuntime`."
+                "AppState requires a battle runtime. Pass `makeBattleRuntime`.",
             )
         }
         return resolved
@@ -157,7 +157,7 @@ public final class AppState {
             try playerSave.resetGameplayProgress()
         } catch {
             appStateLogger.error(
-                "Failed to reset gameplay progress: \(error.localizedDescription, privacy: .public)"
+                "Failed to reset gameplay progress: \(error.localizedDescription, privacy: .public)",
             )
             return false
         }
@@ -171,7 +171,7 @@ public final class AppState {
             try playerSave.unlockAllContent()
         } catch {
             appStateLogger.error(
-                "Failed to unlock all content: \(error.localizedDescription, privacy: .public)"
+                "Failed to unlock all content: \(error.localizedDescription, privacy: .public)",
             )
             return false
         }
@@ -212,7 +212,7 @@ public final class AppState {
         memoryPressureObserver = NotificationCenter.default.addObserver(
             forName: UIApplication.didReceiveMemoryWarningNotification,
             object: nil,
-            queue: .main
+            queue: .main,
         ) { [weak self] _ in
             Task { @MainActor in
                 self?.trimMemoryFootprint()
@@ -233,7 +233,7 @@ public final class AppState {
         let volume = volumeOverride ?? options.musicVolume
         musicPlayer.update(
             route: musicRoute(scenePhase: scenePhase, musicVolume: volume),
-            volume: volume
+            volume: volume,
         )
         prepareMutedMusicIfNeeded(scenePhase: scenePhase)
     }
@@ -262,7 +262,7 @@ public final class AppState {
             activeBattle: play.battle.activeBattle,
             battleStageID: play.battlePresentation(for: play.battle.activeBattle?.runKey)?.musicStageID,
             sceneIsActive: scenePhase == .active,
-            musicVolume: musicVolume
+            musicVolume: musicVolume,
         )
     }
 

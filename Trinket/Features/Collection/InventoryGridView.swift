@@ -48,7 +48,7 @@ struct InventoryGridView: View {
         CollectionGridShell(items: items) { item in
             SalvageItemButton(
                 item: item,
-                showsName: true
+                showsName: true,
             ) {
                 salvageDetail.select(item)
             }
@@ -69,7 +69,7 @@ struct InventoryGridView: View {
                 visibleIDs: snapshot,
                 thumbnailName: { $0.artReference?.thumbnailImageName ?? $0.artReference?.imageName },
                 prefetchRows: ArtworkViewportPrewarm.defaultPrefetchRows,
-                estimatedColumns: ArtworkViewportPrewarm.collectionEstimatedColumns
+                estimatedColumns: ArtworkViewportPrewarm.collectionEstimatedColumns,
             )
             guard !names.isEmpty else { return }
             await PreparedArtworkCache.shared.prepare(names: names)
@@ -96,7 +96,7 @@ struct InventoryGridView: View {
         }
         .salvageInventoryPresentation(
             salvageDetail: $salvageDetail,
-            hapticsEnabled: options.hapticsEnabled
+            hapticsEnabled: options.hapticsEnabled,
         )
     }
 
@@ -114,14 +114,14 @@ struct InventoryGridView: View {
             ContentUnavailableView(
                 "No Matching Items",
                 systemImage: "line.3.horizontal.decrease",
-                description: Text("Try a different filter.")
+                description: Text("Try a different filter."),
             )
             .accessibilityIdentifier(AccessibilityID.Collection.inventoryNoResults)
         } else {
             ContentUnavailableView(
                 "No Items Yet",
                 systemImage: "shippingbox",
-                description: Text("Complete stages to earn gear for your heroes.")
+                description: Text("Complete stages to earn gear for your heroes."),
             )
             .accessibilityIdentifier(AccessibilityID.Collection.inventoryEmptyState)
         }
@@ -133,7 +133,7 @@ extension ItemDetailView {
     static func inventorySalvageDetail(
         item: InventoryItem,
         saveStore: PlayerSaveStore,
-        onFinished: @escaping (ItemSalvageActionResult) -> Void
+        onFinished: @escaping (ItemSalvageActionResult) -> Void,
     ) -> Self {
         let isOwned = saveStore.inventory.items.contains { $0.id == item.id }
         guard isOwned else {
@@ -162,7 +162,7 @@ extension ItemDetailView {
                     return .persistenceFailure
                 }
             },
-            onSalvageFinished: onFinished
+            onSalvageFinished: onFinished,
         )
     }
 }

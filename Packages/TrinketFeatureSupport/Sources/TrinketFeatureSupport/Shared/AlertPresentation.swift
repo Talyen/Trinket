@@ -10,8 +10,8 @@ public extension View {
                     if !isPresented {
                         message.wrappedValue = nil
                     }
-                }
-            )
+                },
+            ),
         ) {
             Button("OK", role: .cancel) {}
         } message: {

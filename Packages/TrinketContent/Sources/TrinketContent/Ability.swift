@@ -10,7 +10,7 @@ public struct AbilityOutcomeBranch: Hashable, Sendable {
         damageComponents: [DamageComponent] = [],
         targetedEffects: [TargetedEffect]? = nil,
         effects: [Effect] = [],
-        randomizeDamageKeywords: Bool = false
+        randomizeDamageKeywords: Bool = false,
     ) {
         self.damageComponents = damageComponents
         if let targetedEffects {
@@ -51,7 +51,7 @@ public struct Ability: Identifiable, Hashable, Sendable {
         criticalChanceBonus: Double = 0,
         guaranteedCriticalIfEnemyBuffed: Bool = false,
         hasLeech: Bool = false,
-        repeatsManaEmpowerment: Bool = false
+        repeatsManaEmpowerment: Bool = false,
     ) {
         self.id = id
         self.name = name
@@ -83,7 +83,7 @@ public struct Ability: Identifiable, Hashable, Sendable {
         criticalChanceBonus: Double = 0,
         guaranteedCriticalIfEnemyBuffed: Bool = false,
         hasLeech: Bool = false,
-        repeatsManaEmpowerment: Bool = false
+        repeatsManaEmpowerment: Bool = false,
     ) {
         let components = directDamage > 0
             ? [DamageComponent(directDamage, keyword: damageKeyword)]
@@ -100,7 +100,7 @@ public struct Ability: Identifiable, Hashable, Sendable {
             criticalChanceBonus: criticalChanceBonus,
             guaranteedCriticalIfEnemyBuffed: guaranteedCriticalIfEnemyBuffed,
             hasLeech: hasLeech,
-            repeatsManaEmpowerment: repeatsManaEmpowerment
+            repeatsManaEmpowerment: repeatsManaEmpowerment,
         )
     }
 
@@ -157,7 +157,7 @@ public struct Ability: Identifiable, Hashable, Sendable {
     }
 
     public func resolvingOutcomeBranch(
-        using rng: inout some RandomNumberGenerator
+        using rng: inout some RandomNumberGenerator,
     ) -> Self {
         guard let branches = outcomeBranches, !branches.isEmpty else {
             return self
@@ -168,7 +168,7 @@ public struct Ability: Identifiable, Hashable, Sendable {
 
     private func resolving(
         branch: AbilityOutcomeBranch,
-        using rng: inout some RandomNumberGenerator
+        using rng: inout some RandomNumberGenerator,
     ) -> Self {
         var components = branch.damageComponents
         if branch.randomizeDamageKeywords {
@@ -180,7 +180,7 @@ public struct Ability: Identifiable, Hashable, Sendable {
                     keyword: keyword,
                     target: component.target,
                     bonusAmount: component.bonusAmount,
-                    condition: component.condition
+                    condition: component.condition,
                 )
             }
         }
@@ -196,7 +196,7 @@ public struct Ability: Identifiable, Hashable, Sendable {
             criticalChanceBonus: criticalChanceBonus,
             guaranteedCriticalIfEnemyBuffed: guaranteedCriticalIfEnemyBuffed,
             hasLeech: hasLeech,
-            repeatsManaEmpowerment: repeatsManaEmpowerment
+            repeatsManaEmpowerment: repeatsManaEmpowerment,
         )
     }
 
@@ -224,14 +224,14 @@ public struct Ability: Identifiable, Hashable, Sendable {
                 TargetedEffect(
                     targeted.effect.withManaEmpowerment(amount),
                     target: targeted.target,
-                    condition: targeted.condition
+                    condition: targeted.condition,
                 )
             },
             outcomeBranches: nil,
             criticalChanceBonus: criticalChanceBonus,
             guaranteedCriticalIfEnemyBuffed: guaranteedCriticalIfEnemyBuffed,
             hasLeech: hasLeech,
-            repeatsManaEmpowerment: repeatsManaEmpowerment
+            repeatsManaEmpowerment: repeatsManaEmpowerment,
         )
     }
 }

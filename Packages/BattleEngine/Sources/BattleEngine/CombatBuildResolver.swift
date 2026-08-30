@@ -8,7 +8,7 @@ public enum CombatBuildResolver {
         equipmentLoadout: EquipmentLoadout,
         inventory: [InventoryItem],
         unlockedTalents: Set<String> = [],
-        additionalModifiers: [AffixModifier] = []
+        additionalModifiers: [AffixModifier] = [],
     ) -> CombatBuild {
         let inventoryByID = Dictionary(inventory.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
         let equippedItems = combatant.role.equipmentSlots.compactMap { slot -> InventoryItem? in
@@ -32,7 +32,7 @@ public enum CombatBuildResolver {
     }
 
     public static func build(
-        enemy: Enemy
+        enemy: Enemy,
     ) -> CombatBuild {
         var profile = CombatModifierProfile.zero
         if let trait = GameContent.trait(for: enemy) {
@@ -48,7 +48,7 @@ public enum CombatBuildResolver {
 
     private static func makeBuiltCombatant(
         from combatant: Combatant,
-        effectiveStats: PrimaryStats
+        effectiveStats: PrimaryStats,
     ) -> Combatant {
         Combatant(
             id: combatant.id,
@@ -59,12 +59,12 @@ public enum CombatBuildResolver {
             actionIntervalTurns: combatant.actionIntervalTurns,
             abilityChoices: combatant.abilityChoices,
             primaryStats: effectiveStats,
-            growthArchetype: combatant.growthArchetype
+            growthArchetype: combatant.growthArchetype,
         )
     }
 
     private static func affixProfile(
-        for item: InventoryItem
+        for item: InventoryItem,
     ) -> CombatModifierProfile {
         item.affixes.enumerated().reduce(into: CombatModifierProfile.zero) { partial, element in
             let (index, affix) = element

@@ -16,7 +16,7 @@ struct AppStateShopEncounterTests {
         context = try AppTestContext()
     }
 
-    @Test func shopStageOpensEncounterWithOffers() throws {
+    @Test func `shop stage opens encounter with offers`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         let stage = try #require(GameContent.stage(id: "chapter-2-stage-8"))
 
@@ -28,7 +28,7 @@ struct AppStateShopEncounterTests {
         #expect(state.playerSave.journey.activeStageID == "chapter-1-stage-1")
     }
 
-    @Test func reopeningShopAfterPurchaseDoesNotBurnGoldOnSameOffer() throws {
+    @Test func `reopening shop after purchase does not burn gold on same offer`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         let stage = try #require(GameContent.stage(id: "chapter-2-stage-8"))
         #expect(state.journey.handleStagePrimaryAction(for: stage) == nil)
@@ -58,7 +58,7 @@ struct AppStateShopEncounterTests {
         #expect(ownedIDs.count == itemsAfterFirst + 1)
     }
 
-    @Test func finishShopEncounterCompletesStageWithoutFreeItemReward() throws {
+    @Test func `finish shop encounter completes stage without free item reward`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         let stage = try #require(GameContent.stage(id: "chapter-2-stage-8"))
         #expect(stage.rewards.itemTemplateIDs.isEmpty)
@@ -78,7 +78,7 @@ struct AppStateShopEncounterTests {
         #expect(state.playerSave.inventory.items.count == itemsBefore)
     }
 
-    @Test func mysteryEncounterDoesNotOpenWhileShopIsActive() throws {
+    @Test func `mystery encounter does not open while shop is active`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         let shopStage = try #require(GameContent.stage(id: "chapter-2-stage-8"))
         let mysteryStage = try #require(GameContent.stage(id: "chapter-1-stage-2"))
@@ -87,13 +87,13 @@ struct AppStateShopEncounterTests {
         #expect(state.encounters.activeShopEncounter != nil)
 
         #expect(
-            state.journey.beginMysteryEncounter(for: mysteryStage) == nil
+            state.journey.beginMysteryEncounter(for: mysteryStage) == nil,
         )
         #expect(state.encounters.activeMysteryEncounter == nil)
         #expect(state.encounters.activeShopEncounter != nil)
     }
 
-    @Test func startBattleDoesNotActivateWhileShopIsOpen() throws {
+    @Test func `start battle does not activate while shop is open`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         let shopStage = try #require(GameContent.stage(id: "chapter-2-stage-8"))
         let battleStage = GameContent.chapters[0].stages.first(where: \.encounter.isCombat)
@@ -108,7 +108,7 @@ struct AppStateShopEncounterTests {
     }
 
     #if DEBUG
-    @Test func finishShopEncounterSurfacesLeaveFailureWhenPersistFails() throws {
+    @Test func `finish shop encounter surfaces leave failure when persist fails`() throws {
         let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
         let state = try context.makePlaySession(arguments: ["-reset-state"], playerSave: playerSave)
         let stage = try #require(GameContent.stage(id: "chapter-2-stage-8"))

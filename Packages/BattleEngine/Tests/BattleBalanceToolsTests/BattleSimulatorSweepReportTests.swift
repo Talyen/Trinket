@@ -6,7 +6,7 @@ import TrinketCore
 
 @Suite(.serialized)
 struct BattleSimulatorSweepReportTests {
-    @Test func parallelIdentityMatchesSequentialOutcomes() {
+    @Test func `parallel identity matches sequential outcomes`() {
         let sequential = BalanceSweepRunner.run(
             config: BalanceSweepConfig(
                 mode: .identity,
@@ -14,8 +14,8 @@ struct BattleSimulatorSweepReportTests {
                 seed: 11,
                 tiers: [.early],
                 jobs: 1,
-                enemyIDs: ["living_armor"]
-            )
+                enemyIDs: ["living_armor"],
+            ),
         )
         let parallel = BalanceSweepRunner.run(
             config: BalanceSweepConfig(
@@ -24,14 +24,14 @@ struct BattleSimulatorSweepReportTests {
                 seed: 11,
                 tiers: [.early],
                 jobs: 4,
-                enemyIDs: ["living_armor"]
-            )
+                enemyIDs: ["living_armor"],
+            ),
         )
         #expect(sequential.records.map(\.result) == parallel.records.map(\.result))
         #expect(sequential.records.map(\.seed) == parallel.records.map(\.seed))
     }
 
-    @Test func abilityContrastProducesLiftRows() {
+    @Test func `ability contrast produces lift rows`() {
         let report = BalanceSweepRunner.run(
             config: BalanceSweepConfig(
                 mode: .abilityContrast,
@@ -41,8 +41,8 @@ struct BattleSimulatorSweepReportTests {
                 jobs: 1,
                 heroIDs: ["knight"],
                 companionIDs: ["bear"],
-                enemyIDs: ["living_armor"]
-            )
+                enemyIDs: ["living_armor"],
+            ),
         )
         #expect(report.records.isEmpty)
         #expect(!(report.abilityContrasts.isEmpty))
@@ -50,7 +50,7 @@ struct BattleSimulatorSweepReportTests {
         #expect(markdown.contains("Ability Contrasts"))
     }
 
-    @Test func affixContrastProducesLiftRowsOnMidTier() {
+    @Test func `affix contrast produces lift rows on mid tier`() {
         let report = BalanceSweepRunner.run(
             config: BalanceSweepConfig(
                 mode: .affixContrast,
@@ -61,8 +61,8 @@ struct BattleSimulatorSweepReportTests {
                 heroIDs: ["knight"],
                 companionIDs: ["bear"],
                 enemyIDs: ["living_armor"],
-                focusIDs: ["keen"]
-            )
+                focusIDs: ["keen"],
+            ),
         )
         #expect(!(report.affixContrasts.isEmpty))
         #expect(report.affixContrasts.contains { $0.baselineKind == .emptySlot })
@@ -71,7 +71,7 @@ struct BattleSimulatorSweepReportTests {
         #expect(markdown.contains("Affix Contrasts"))
     }
 
-    @Test func identityQuotasEqualBattlesPerEnemy() {
+    @Test func `identity quotas equal battles per enemy`() {
         let report = BalanceSweepRunner.run(
             config: BalanceSweepConfig(
                 mode: .identity,
@@ -79,8 +79,8 @@ struct BattleSimulatorSweepReportTests {
                 seed: 9,
                 tiers: [.early],
                 jobs: 1,
-                enemyIDs: ["living_armor", "mimic"]
-            )
+                enemyIDs: ["living_armor", "mimic"],
+            ),
         )
         #expect(report.records.count == 6)
         let byEnemy = Dictionary(grouping: report.records, by: \.enemyID)
@@ -88,14 +88,14 @@ struct BattleSimulatorSweepReportTests {
         #expect(byEnemy["mimic"]?.count == 3)
     }
 
-    @Test func identityWorkSlicesConcatenateToFullSweep() {
+    @Test func `identity work slices concatenate to full sweep`() {
         let config = BalanceSweepConfig(
             mode: .identity,
             battlesPerTier: 8,
             seed: 11,
             tiers: [.early],
             jobs: 1,
-            enemyIDs: ["living_armor"]
+            enemyIDs: ["living_armor"],
         )
         let full = BalanceSweepRunner.run(config: config)
         let first = BalanceSweepRunner.run(
@@ -107,8 +107,8 @@ struct BattleSimulatorSweepReportTests {
                 jobs: 1,
                 workOffset: 0,
                 workLimit: 4,
-                enemyIDs: ["living_armor"]
-            )
+                enemyIDs: ["living_armor"],
+            ),
         )
         let second = BalanceSweepRunner.run(
             config: BalanceSweepConfig(
@@ -119,14 +119,14 @@ struct BattleSimulatorSweepReportTests {
                 jobs: 1,
                 workOffset: 4,
                 workLimit: 4,
-                enemyIDs: ["living_armor"]
-            )
+                enemyIDs: ["living_armor"],
+            ),
         )
         let merged = BalanceSweepReport.merged(
             [first, second],
             config: config,
             policyID: full.policyID,
-            elapsedSeconds: 0
+            elapsedSeconds: 0,
         )
         #expect(first.records.count == 4)
         #expect(second.records.count == 4)
@@ -134,7 +134,7 @@ struct BattleSimulatorSweepReportTests {
         #expect(merged.records.map(\.seed) == full.records.map(\.seed))
     }
 
-    @Test func identityEarlySpendsOneTalentAndOneStarterItem() {
+    @Test func `identity early spends one talent and one starter item`() {
         let early = BalanceSweepRunner.run(
             config: BalanceSweepConfig(
                 mode: .identity,
@@ -142,8 +142,8 @@ struct BattleSimulatorSweepReportTests {
                 seed: 4,
                 tiers: [.early],
                 jobs: 1,
-                enemyIDs: ["living_armor"]
-            )
+                enemyIDs: ["living_armor"],
+            ),
         )
         #expect(early.records.count == 2)
         #expect(SimulationPowerTier.early.identityTalentPointCap == 1)
@@ -163,8 +163,8 @@ struct BattleSimulatorSweepReportTests {
                 seed: 5,
                 tiers: [.middle],
                 jobs: 1,
-                enemyIDs: ["living_armor"]
-            )
+                enemyIDs: ["living_armor"],
+            ),
         )
         #expect(middle.records.count == 1)
         let middleRecord = middle.records[0]
@@ -181,8 +181,8 @@ struct BattleSimulatorSweepReportTests {
                 seed: 6,
                 tiers: [.lateGame],
                 jobs: 1,
-                enemyIDs: ["living_armor"]
-            )
+                enemyIDs: ["living_armor"],
+            ),
         )
         #expect(late.records.count == 1)
         let lateRecord = late.records[0]
@@ -204,7 +204,7 @@ struct BattleSimulatorSweepReportTests {
         }
     }
 
-    @Test func talentContrastProducesSiblingAndKitLiftRows() {
+    @Test func `talent contrast produces sibling and kit lift rows`() {
         let report = BalanceSweepRunner.run(
             config: BalanceSweepConfig(
                 mode: .talentContrast,
@@ -215,8 +215,8 @@ struct BattleSimulatorSweepReportTests {
                 heroIDs: ["knight"],
                 companionIDs: ["bear"],
                 enemyIDs: ["living_armor"],
-                focusIDs: ["knight_block_t1_1"]
-            )
+                focusIDs: ["knight_block_t1_1"],
+            ),
         )
         #expect(report.records.isEmpty)
         #expect(!(report.talentContrasts.isEmpty))
@@ -225,7 +225,7 @@ struct BattleSimulatorSweepReportTests {
         #expect(markdown.contains("Talent Contrasts (paired lift vs sibling in the same row)"))
     }
 
-    @Test func talentContrastRunsRowOneAtEarlyAndSkipsFullKit() {
+    @Test func `talent contrast runs row one at early and skips full kit`() {
         let report = BalanceSweepRunner.run(
             config: BalanceSweepConfig(
                 mode: .talentContrast,
@@ -235,15 +235,15 @@ struct BattleSimulatorSweepReportTests {
                 jobs: 1,
                 heroIDs: ["knight"],
                 companionIDs: ["bear"],
-                enemyIDs: ["living_armor"]
-            )
+                enemyIDs: ["living_armor"],
+            ),
         )
         #expect(!(report.talentContrasts.isEmpty))
         #expect(report.talentContrasts.allSatisfy { $0.tier == .early })
         #expect(report.talentKitContrasts.isEmpty)
     }
 
-    @Test func identitySweepProducesMarkdownWithSecondaryMetrics() {
+    @Test func `identity sweep produces markdown with secondary metrics`() {
         let report = BalanceSweepRunner.run(
             config: BalanceSweepConfig(
                 mode: .identity,
@@ -251,8 +251,8 @@ struct BattleSimulatorSweepReportTests {
                 seed: 3,
                 tiers: [.early],
                 jobs: 1,
-                enemyIDs: ["living_armor"]
-            )
+                enemyIDs: ["living_armor"],
+            ),
         )
         #expect(report.records.count == 4)
         let markdown = BalanceMarkdownReporter.render(report)

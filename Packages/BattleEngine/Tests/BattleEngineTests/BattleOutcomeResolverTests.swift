@@ -10,16 +10,16 @@ struct BattleOutcomeResolverTests {
     ]
 
     @Test(arguments: cases)
-    func resolvesPartyAndEnemyDefeatCombinations(
+    func `resolves party and enemy defeat combinations`(
         isPartyDefeated: Bool,
         isEnemyDefeated: Bool,
-        expected: BattleSimulationOutcome?
+        expected: BattleSimulationOutcome?,
     ) throws {
         try #expect(
             BattleSimulationOutcome.resolve(
                 isPartyDefeated: isPartyDefeated,
-                isEnemyDefeated: isEnemyDefeated
-            ) == expected
+                isEnemyDefeated: isEnemyDefeated,
+            ) == expected,
         )
     }
 }

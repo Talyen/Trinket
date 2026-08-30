@@ -94,7 +94,7 @@ final class FramePacingMetricsProbe {
         resetObserver = NotificationCenter.default.addObserver(
             forName: FramePacingMeasurementControl.reset,
             object: nil,
-            queue: .main
+            queue: .main,
         ) { [weak self] _ in
             Task { @MainActor in
                 self?.resetMeasurement()
@@ -224,7 +224,7 @@ final class FramePacingMonitor: NSObject {
         } else {
             FramePacingAnalyzer.report(
                 intervals: samples.map(\.interval),
-                expectedFrameDurations: samples.map(\.expectedFrameDuration)
+                expectedFrameDurations: samples.map(\.expectedFrameDuration),
             )
         }
         handler?(report)
@@ -257,7 +257,7 @@ final class FramePacingMonitor: NSObject {
         if timestamp - startTimestamp >= Self.warmupSeconds {
             storage[nextWriteIndex] = Sample(
                 interval: interval,
-                expectedFrameDuration: expectedFrameDuration
+                expectedFrameDuration: expectedFrameDuration,
             )
             nextWriteIndex = (nextWriteIndex + 1) % capacity
             sampleCount = min(sampleCount + 1, capacity)

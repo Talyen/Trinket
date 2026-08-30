@@ -9,7 +9,7 @@ struct DeathsDoorEngineTests {
         heroHP: Int = 10,
         companionHP: Int = 10,
         enemyHP: Int = 50,
-        heroModifiers: CombatModifierProfile = .zero
+        heroModifiers: CombatModifierProfile = .zero,
     ) -> BattleState {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 50)
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 50)
@@ -18,7 +18,7 @@ struct DeathsDoorEngineTests {
             hero: hero,
             companion: companion,
             enemy: enemy,
-            heroModifiers: heroModifiers
+            heroModifiers: heroModifiers,
         )
         battle.roster.hero.currentHealth = heroHP
         battle.roster.companion.currentHealth = companionHP
@@ -26,7 +26,7 @@ struct DeathsDoorEngineTests {
         return battle
     }
 
-    @Test func triggerOnFirstLethalHit() throws {
+    @Test func `trigger on first lethal hit`() throws {
         var context = makeContext(heroHP: 5)
         let hero = context.roster.hero.combatant
         let (lost, events) = context.applyTestDamage(
@@ -34,7 +34,7 @@ struct DeathsDoorEngineTests {
             to: hero,
             applyStatBonus: false,
             applyItemBonus: false,
-            applyDodge: false
+            applyDodge: false,
         )
 
         try #expect(lost == 5)
@@ -42,12 +42,12 @@ struct DeathsDoorEngineTests {
         try #expect(context.roster.hasConsumedDeathsDoor(for: hero))
         try #expect(context.roster.isDeathsDoorActive(for: hero))
         try #expect(
-            context.roster.activeEffects(for: hero).first?.remainingTurns == BattleTiming.deathsDoorDurationTurns
+            context.roster.activeEffects(for: hero).first?.remainingTurns == BattleTiming.deathsDoorDurationTurns,
         )
         try #expect(events.contains(effectKind: .deathsDoorTriggered, keyword: .deathsDoor))
     }
 
-    @Test func enemyNeverTriggers() throws {
+    @Test func `enemy never triggers`() throws {
         var context = makeContext(enemyHP: 5)
         let enemy = context.roster.enemy.combatant
         _ = context.applyTestDamage(
@@ -55,14 +55,14 @@ struct DeathsDoorEngineTests {
             to: enemy,
             applyStatBonus: false,
             applyItemBonus: false,
-            applyDodge: false
+            applyDodge: false,
         )
 
         try #expect(context.roster.health(for: enemy) == 0)
         try #expect(!(context.roster.isDeathsDoorActive(for: enemy)))
     }
 
-    @Test func protectionClampsToOneWhileActive() throws {
+    @Test func `protection clamps to one while active`() throws {
         var context = makeContext(heroHP: 5)
         let hero = context.roster.hero.combatant
         _ = context.applyTestDamage(5, to: hero, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
@@ -72,7 +72,7 @@ struct DeathsDoorEngineTests {
         try #expect(context.roster.isDeathsDoorActive(for: hero))
     }
 
-    @Test func expiryRoundDoTDoesNotKill() throws {
+    @Test func `expiry round do T does not kill`() throws {
         var context = makeContext(heroHP: 5)
         let hero = context.roster.hero.combatant
         _ = context.applyTestDamage(5, to: hero, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
@@ -91,7 +91,7 @@ struct DeathsDoorEngineTests {
         try #expect(context.roster.runtime(for: hero)?.deathsDoorExpiredAtTurn == nil)
     }
 
-    @Test func doTKillsOnTheRoundAfterDeathsDoorExpires() throws {
+    @Test func `do T kills on the round after deaths door expires`() throws {
         var context = makeContext(heroHP: 5)
         let hero = context.roster.hero.combatant
         _ = context.applyTestDamage(5, to: hero, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
@@ -109,17 +109,17 @@ struct DeathsDoorEngineTests {
         try #expect(!(context.roster.hero.isAlive))
     }
 
-    @Test func secondWindDoesNotPreemptDeathsDoorOnLethalHit() throws {
+    @Test func `second wind does not preempt deaths door on lethal hit`() throws {
         var context = makeContext(
             heroHP: 5,
             heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
                 control: ControlTriggers(
-                    onceBelowHealthPercentThreshold: 0.25
+                    onceBelowHealthPercentThreshold: 0.25,
                 ),
                 healing: HealingTriggers(
-                    onceBelowHealthPercentHeal: 3
-                )
-            ))
+                    onceBelowHealthPercentHeal: 3,
+                ),
+            )),
         )
         let hero = context.roster.hero.combatant
         let (_, events) = context.applyTestDamage(
@@ -127,7 +127,7 @@ struct DeathsDoorEngineTests {
             to: hero,
             applyStatBonus: false,
             applyItemBonus: false,
-            applyDodge: false
+            applyDodge: false,
         )
 
         try #expect(context.roster.health(for: hero) == 1)
@@ -137,7 +137,7 @@ struct DeathsDoorEngineTests {
         try #expect(!(context.roster.runtime(for: hero)?.hasTriggeredSecondWind ?? true))
     }
 
-    @Test func heroAndCompanionProcIndependently() throws {
+    @Test func `hero and companion proc independently`() throws {
         var context = makeContext(heroHP: 3, companionHP: 3)
         let hero = context.roster.hero.combatant
         let companion = context.roster.companion.combatant
@@ -151,12 +151,12 @@ struct DeathsDoorEngineTests {
         try #expect(context.roster.isDeathsDoorActive(for: companion))
     }
 
-    @Test func effectInsertedAtFrontOfActiveEffects() throws {
+    @Test func `effect inserted at front of active effects`() throws {
         var context = makeContext(heroHP: 5)
         let hero = context.roster.hero.combatant
         context.roster.setActiveEffects(
             [ActiveEffect(id: 1, effect: .burn(2), remainingTurns: 0)],
-            for: hero
+            for: hero,
         )
 
         _ = context.applyTestDamage(5, to: hero, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
@@ -166,14 +166,14 @@ struct DeathsDoorEngineTests {
         try #expect(effects.first?.effect.kind == .deathsDoor)
     }
 
-    @Test func doTTickTriggersDeathsDoor() throws {
+    @Test func `do T tick triggers deaths door`() throws {
         var context = makeContext(heroHP: 2)
         let hero = context.roster.hero.combatant
         let outcome = context.resolveDoTTick(
             basePotency: 3,
             keyword: .burn,
             target: hero,
-            sourceActorID: "enemy"
+            sourceActorID: "enemy",
         )
 
         try #expect(outcome.healthLost > 0)
@@ -188,12 +188,12 @@ struct DeathsDoorEngineTests {
             enemy: BattleTestFixtures.passiveEnemy(),
             heroHealth: heroHealth,
             heroModifiers: CombatModifierProfile(
-                triggers: CombatTraitTriggers(revival: RevivalTriggers(deathsDoorExpiredHealFlat: 10))
-            )
+                triggers: CombatTraitTriggers(revival: RevivalTriggers(deathsDoorExpiredHealFlat: 10)),
+            ),
         )
     }
 
-    @Test func endlessLegionRaisesHealthToFloorExactly() throws {
+    @Test func `endless legion raises health to floor exactly`() throws {
         var context = makeLegionContext(heroHealth: 3)
         let hero = context.roster.hero.combatant
 
@@ -203,7 +203,7 @@ struct DeathsDoorEngineTests {
         try #expect(events.contains { $0.effectKind == .instantHeal && $0.amount == 7 })
     }
 
-    @Test func endlessLegionDoesNothingAtOrAboveFloor() throws {
+    @Test func `endless legion does nothing at or above floor`() throws {
         var context = makeLegionContext(heroHealth: 12)
         let hero = context.roster.hero.combatant
 

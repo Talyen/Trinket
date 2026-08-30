@@ -3,16 +3,16 @@ import Testing
 @testable import TrinketFeatureSupport
 
 struct FramePacingAnalyzerTests {
-    @Test func emptyIntervalsYieldEmptyReport() {
+    @Test func `empty intervals yield empty report`() {
         let report = FramePacingAnalyzer.report(intervals: [], expectedFrameDurations: [])
         #expect(report == .empty)
     }
 
-    @Test func steadySixtyHzHasNoDeadlineMisses() {
+    @Test func `steady sixty hz has no deadline misses`() {
         let intervals = Array(repeating: 1.0 / 60.0, count: 1000)
         let report = FramePacingAnalyzer.report(
             intervals: intervals,
-            expectedFrameDurations: Array(repeating: 1.0 / 60.0, count: intervals.count)
+            expectedFrameDurations: Array(repeating: 1.0 / 60.0, count: intervals.count),
         )
 
         #expect(report.sampleCount == 1000)
@@ -26,14 +26,14 @@ struct FramePacingAnalyzerTests {
         #expect(abs(report.onePercentLowFPS - 60) < 0.01)
     }
 
-    @Test func missedFramesAndSevereStallsAreRefreshNormalized() {
+    @Test func `missed frames and severe stalls are refresh normalized`() {
         var intervals = Array(repeating: 1.0 / 120.0, count: 990)
         intervals += Array(repeating: 2.0 / 120.0, count: 9)
         intervals.append(4.0 / 120.0)
 
         let report = FramePacingAnalyzer.report(
             intervals: intervals,
-            expectedFrameDurations: Array(repeating: 1.0 / 120.0, count: intervals.count)
+            expectedFrameDurations: Array(repeating: 1.0 / 120.0, count: intervals.count),
         )
 
         #expect(abs(report.expectedFPS - 120) < 0.01)
@@ -47,18 +47,18 @@ struct FramePacingAnalyzerTests {
         #expect(report.onePercentLowFPS < 120)
     }
 
-    @Test func subHalfPeriodJitterDoesNotCountAsADeadlineMiss() {
+    @Test func `sub half period jitter does not count as A deadline miss`() {
         let period = 1.0 / 60.0
         let report = FramePacingAnalyzer.report(
             intervals: [period, period * 1.49, period],
-            expectedFrameDurations: Array(repeating: period, count: 3)
+            expectedFrameDurations: Array(repeating: period, count: 3),
         )
 
         #expect(report.missedDeadlineCount == 0)
         #expect(report.estimatedMissedFrameCount == 0)
     }
 
-    @Test func accessibilityValueRoundTripsTheCurrentSchema() {
+    @Test func `accessibility value round trips the current schema`() {
         let report = FramePacingReport(
             sampleCount: 120,
             expectedFPS: 60,
@@ -70,7 +70,7 @@ struct FramePacingAnalyzerTests {
             missedDeadlineCount: 2,
             estimatedMissedFrameCount: 3,
             severeStallCount: 1,
-            missedDeadlineRatio: 0.01667
+            missedDeadlineRatio: 0.01667,
         )
         let parsed = FramePacingReport.parseAccessibilityValue(report.accessibilityValue)
         #expect(parsed?.accessibilityValue == report.accessibilityValue)

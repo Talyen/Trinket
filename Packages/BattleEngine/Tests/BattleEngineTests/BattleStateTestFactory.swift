@@ -18,7 +18,7 @@ enum BattleStateTestFactory {
         rngSeed: UInt64 = BattleTestFixtures.deterministicNonCriticalSeed,
         tracksLog: Bool = false,
         tracksEvents: Bool = true,
-        dealOpeningHand: Bool = true
+        dealOpeningHand: Bool = true,
     ) -> BattleState {
         BattleState(
             hero: hero,
@@ -35,14 +35,14 @@ enum BattleStateTestFactory {
             rngSeed: rngSeed,
             tracksLog: tracksLog,
             tracksEvents: tracksEvents,
-            dealOpeningHand: dealOpeningHand
+            dealOpeningHand: dealOpeningHand,
         )
     }
 
     static func seedActiveEffects(
         _ effects: [ActiveEffect],
         for combatant: Combatant,
-        on battle: inout BattleState
+        on battle: inout BattleState,
     ) {
         battle.seedActiveEffects(effects, for: combatant)
     }
@@ -63,7 +63,7 @@ enum BattleStateTestFactory {
         companionModifiers: CombatModifierProfile = .zero,
         rngSeed: UInt64 = BattleTestFixtures.deterministicNonCriticalSeed,
         tracksLog: Bool = false,
-        dealOpeningHand: Bool = true
+        dealOpeningHand: Bool = true,
     ) -> BattleState {
         let hero = Combatant(
             id: "hero",
@@ -71,7 +71,7 @@ enum BattleStateTestFactory {
             role: .hero,
             maxHealth: heroMaxHealth,
             maxMana: heroMaxMana,
-            abilities: heroAbilities
+            abilities: heroAbilities,
         )
         let companion = Combatant(
             id: "companion",
@@ -79,14 +79,14 @@ enum BattleStateTestFactory {
             role: .companion,
             maxHealth: companionMaxHealth,
             maxMana: companionMaxMana,
-            abilities: companionAbilities
+            abilities: companionAbilities,
         )
         let enemy = Combatant(
             id: "enemy",
             name: "Enemy",
             role: .enemy,
             maxHealth: enemyMaxHealth,
-            abilities: enemyAbilities
+            abilities: enemyAbilities,
         )
         var battle = makeBattle(
             hero: hero,
@@ -97,7 +97,7 @@ enum BattleStateTestFactory {
             companionModifiers: companionModifiers,
             rngSeed: rngSeed,
             tracksLog: tracksLog,
-            dealOpeningHand: dealOpeningHand
+            dealOpeningHand: dealOpeningHand,
         )
         if let heroMana {
             battle.withEngineContext { context in
@@ -130,12 +130,12 @@ enum BattleStateTestFactory {
         enemyModifiers: CombatModifierProfile = .zero,
         rngSeed: UInt64 = BattleTestFixtures.deterministicNonCriticalSeed,
         nextEffectID: Int? = nil,
-        nextEventID: Int = 0
+        nextEventID: Int = 0,
     ) -> BattleState {
         let maxExistingEffectID = max(
             heroEffects.map(\.id).max() ?? 0,
             companionEffects.map(\.id).max() ?? 0,
-            enemyEffects.map(\.id).max() ?? 0
+            enemyEffects.map(\.id).max() ?? 0,
         )
         return BattleState(
             roster: BattleRoster(
@@ -145,7 +145,7 @@ enum BattleStateTestFactory {
                     initialMana: heroMana,
                     initialActiveEffects: heroEffects,
                     maximumHealthBonus: heroModifiers.maximumHealthBonus,
-                    maximumManaBonus: heroModifiers.maximumManaBonus
+                    maximumManaBonus: heroModifiers.maximumManaBonus,
                 ),
                 companion: CombatantRuntime(
                     combatant: companion,
@@ -153,14 +153,14 @@ enum BattleStateTestFactory {
                     initialMana: companionMana,
                     initialActiveEffects: companionEffects,
                     maximumHealthBonus: companionModifiers.maximumHealthBonus,
-                    maximumManaBonus: companionModifiers.maximumManaBonus
+                    maximumManaBonus: companionModifiers.maximumManaBonus,
                 ),
                 enemy: CombatantRuntime(
                     combatant: enemy,
                     initialHealth: enemyHealth,
                     initialMana: enemyMana,
-                    initialActiveEffects: enemyEffects
-                )
+                    initialActiveEffects: enemyEffects,
+                ),
             ),
             rng: SeededRandomNumberGenerator(seed: rngSeed),
             nextEffectID: nextEffectID ?? maxExistingEffectID + 1,
@@ -170,7 +170,7 @@ enum BattleStateTestFactory {
             initialGold: 0,
             heroModifiers: heroModifiers,
             companionModifiers: companionModifiers,
-            enemyModifiers: enemyModifiers
+            enemyModifiers: enemyModifiers,
         )
     }
 }

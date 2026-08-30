@@ -6,7 +6,7 @@ import TrinketCore
 @testable import BattleBalanceTools
 
 struct BalanceSweepOrchestrationTests {
-    @Test func workPlanChunksCoverExactCount() {
+    @Test func `work plan chunks cover exact count`() {
         let ranges = BalanceSweepWorkPlan.chunkRanges(workCount: 34, chunkSize: 16)
         #expect(ranges.map(\.offset) == [0, 16, 32])
         #expect(ranges.map(\.limit) == [16, 16, 2])
@@ -15,15 +15,15 @@ struct BalanceSweepOrchestrationTests {
                 mode: .identity,
                 battlesPerTier: 20,
                 tiers: SimulationPowerTier.allCases,
-                enemyIDs: ["living_armor"]
-            )
+                enemyIDs: ["living_armor"],
+            ),
         )
         #expect(jobs.count == 4)
         #expect(jobs.allSatisfy { $0.mode == .identity })
         #expect(jobs.map(\.limit).reduce(0, +) == 60)
     }
 
-    @Test func contrastSliceMergeRecomputesLiftAndFlags() {
+    @Test func `contrast slice merge recomputes lift and flags`() {
         let config = BalanceSweepConfig(mode: .abilityContrast, battlesPerTier: 8, seed: 1, jobs: 1)
         let first = PairedContrastSummary(
             entityID: "a",
@@ -36,7 +36,7 @@ struct BalanceSweepOrchestrationTests {
             winsWithBaseline: 0,
             entityOnlyWins: 4,
             lift: 1,
-            flagged: false
+            flagged: false,
         )
         let second = PairedContrastSummary(
             entityID: "a",
@@ -49,7 +49,7 @@ struct BalanceSweepOrchestrationTests {
             winsWithBaseline: 0,
             entityOnlyWins: 4,
             lift: 1,
-            flagged: false
+            flagged: false,
         )
         let merged = BalanceSweepReport.merged(
             [
@@ -58,7 +58,7 @@ struct BalanceSweepOrchestrationTests {
             ],
             config: config,
             policyID: "greedy-v1",
-            elapsedSeconds: 0
+            elapsedSeconds: 0,
         )
         let row = merged.abilityContrasts[0]
         #expect(merged.abilityContrasts.count == 1)
@@ -69,14 +69,14 @@ struct BalanceSweepOrchestrationTests {
         #expect(row.flagReason == "HIGH")
     }
 
-    @Test func contrastComfortDeltasIgnoreTimeoutPairs() {
+    @Test func `contrast comfort deltas ignore timeout pairs`() {
         var acc = BalanceContrastFlags.ContrastAcc(
             entityID: "a",
             baselineID: "b",
             ownerID: "hero",
             tier: .early,
             baselineKind: .sibling,
-            nonCombat: false
+            nonCombat: false,
         )
         let timeout = BattleSimResult(
             outcome: .defeat,
@@ -84,7 +84,7 @@ struct BalanceSweepOrchestrationTests {
             actions: 500,
             timedOut: true,
             partyHPRemainingFraction: 0.9,
-            enemyHPRemainingFraction: 0.1
+            enemyHPRemainingFraction: 0.1,
         )
         let decided = BattleSimResult(
             outcome: .victory,
@@ -92,7 +92,7 @@ struct BalanceSweepOrchestrationTests {
             actions: 10,
             timedOut: false,
             partyHPRemainingFraction: 0.5,
-            enemyHPRemainingFraction: 0
+            enemyHPRemainingFraction: 0,
         )
         acc.accumulate(entity: timeout, baseline: decided)
         for _ in 0 ..< 8 {
@@ -100,7 +100,7 @@ struct BalanceSweepOrchestrationTests {
         }
         let summary = BalanceContrastFlags.makeSummary(
             acc,
-            config: BalanceSweepConfig(mode: .abilityContrast, battlesPerTier: 8, jobs: 1)
+            config: BalanceSweepConfig(mode: .abilityContrast, battlesPerTier: 8, jobs: 1),
         )
         #expect(summary.pairs == 9)
         #expect(summary.decidedPairs == 8)
@@ -109,23 +109,23 @@ struct BalanceSweepOrchestrationTests {
         #expect(summary.flagReason != "GLASS")
     }
 
-    @Test func unknownRosterFiltersResolveEmpty() {
+    @Test func `unknown roster filters resolve empty`() {
         let roster = BalanceSweepConfig(
             mode: .identity,
             battlesPerTier: 1,
-            heroIDs: ["missing-hero"]
+            heroIDs: ["missing-hero"],
         ).resolvedRoster
         #expect(roster.heroes.isEmpty)
     }
 
-    @Test func sweepReportJSONRoundTrips() throws {
+    @Test func `sweep report JSON round trips`() throws {
         let config = BalanceSweepConfig(
             mode: .identity,
             battlesPerTier: 1,
             seed: 3,
             tiers: [.early],
             jobs: 1,
-            enemyIDs: ["living_armor"]
+            enemyIDs: ["living_armor"],
         )
         let report = BalanceSweepReport(
             config: config,
@@ -152,11 +152,11 @@ struct BalanceSweepOrchestrationTests {
                         actions: 4,
                         timedOut: false,
                         partyHPRemainingFraction: 0.8,
-                        enemyHPRemainingFraction: 0
-                    )
+                        enemyHPRemainingFraction: 0,
+                    ),
                 ),
             ],
-            elapsedSeconds: 0.01
+            elapsedSeconds: 0.01,
         )
         let data = try JSONEncoder().encode(report)
         let decoded = try JSONDecoder().decode(BalanceSweepReport.self, from: data)
@@ -164,24 +164,24 @@ struct BalanceSweepOrchestrationTests {
         #expect(decoded.records.map(\.result) == report.records.map(\.result))
     }
 
-    @Test func abilityContrastWorkCountIsFociTimesSamplesTimesTiers() {
+    @Test func `ability contrast work count is foci times samples times tiers`() {
         let config = BalanceSweepConfig(
             mode: .abilityContrast,
             battlesPerTier: 3,
             tiers: [.early],
             heroIDs: ["knight"],
-            companionIDs: ["bear"]
+            companionIDs: ["bear"],
         )
         let foci = BalanceAbilityContrastRunner.foci(
             heroes: config.resolvedRoster.heroes,
             companions: config.resolvedRoster.companions,
-            focusIDs: []
+            focusIDs: [],
         )
         #expect(BalanceAbilityContrastRunner.workCount(config: config) == foci.count * 3)
         #expect(foci.count == 6)
     }
 
-    @Test func affixContrastWorkPlanCountsOnlyGearTiers() {
+    @Test func `affix contrast work plan counts only gear tiers`() {
         let mixed = BalanceSweepWorkPlan.workerJobs(
             config: BalanceSweepConfig(
                 mode: .affixContrast,
@@ -189,8 +189,8 @@ struct BalanceSweepOrchestrationTests {
                 tiers: SimulationPowerTier.allCases,
                 heroIDs: ["knight"],
                 companionIDs: ["bear"],
-                focusIDs: ["keen"]
-            )
+                focusIDs: ["keen"],
+            ),
         )
         #expect(mixed.map(\.limit).reduce(0, +) == BalanceAffixContrastRunner.workCount(
             config: BalanceSweepConfig(
@@ -199,28 +199,28 @@ struct BalanceSweepOrchestrationTests {
                 tiers: SimulationPowerTier.allCases,
                 heroIDs: ["knight"],
                 companionIDs: ["bear"],
-                focusIDs: ["keen"]
-            )
+                focusIDs: ["keen"],
+            ),
         ))
 
         let earlyOnly = BalanceSweepWorkPlan.workerJobs(
             config: BalanceSweepConfig(
                 mode: .affixContrast,
                 battlesPerTier: 10,
-                tiers: [.early]
-            )
+                tiers: [.early],
+            ),
         )
         #expect(earlyOnly.isEmpty)
     }
 
-    @Test func identityWinRateExcludesTimeouts() {
+    @Test func `identity win rate excludes timeouts`() {
         let timeout = BattleSimResult(
             outcome: .defeat,
             rounds: 100,
             actions: 500,
             timedOut: true,
             partyHPRemainingFraction: 0.5,
-            enemyHPRemainingFraction: 0.5
+            enemyHPRemainingFraction: 0.5,
         )
         let win = BattleSimResult(
             outcome: .victory,
@@ -228,7 +228,7 @@ struct BalanceSweepOrchestrationTests {
             actions: 10,
             timedOut: false,
             partyHPRemainingFraction: 0.8,
-            enemyHPRemainingFraction: 0
+            enemyHPRemainingFraction: 0,
         )
         func record(_ result: BattleSimResult, seed: UInt64) -> BalanceBattleRecord {
             BalanceBattleRecord(
@@ -248,14 +248,14 @@ struct BalanceSweepOrchestrationTests {
                 companionTalentIDs: [],
                 seed: seed,
                 policyID: "greedy-v1",
-                result: result
+                result: result,
             )
         }
         let report = BalanceSweepReport(
             config: BalanceSweepConfig(mode: .identity, battlesPerTier: 2, tiers: [.early], jobs: 1),
             policyID: "greedy-v1",
             records: [record(timeout, seed: 1), record(win, seed: 2)],
-            elapsedSeconds: 0
+            elapsedSeconds: 0,
         )
         let stats = BalanceStatsAggregator.summarize(report: report)[0]
         #expect(stats.timeouts == 1)
@@ -264,7 +264,7 @@ struct BalanceSweepOrchestrationTests {
         #expect(stats.heroes.first?.winRate == 1)
     }
 
-    @Test func wilsonIntervalContainsPointEstimate() {
+    @Test func `wilson interval contains point estimate`() {
         let ci = BalanceStatsAggregator.wilson(wins: 80, battles: 100)
         #expect(ci.low <= 0.80)
         #expect(ci.high >= 0.80)

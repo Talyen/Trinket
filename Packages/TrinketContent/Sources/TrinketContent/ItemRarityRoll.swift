@@ -17,7 +17,7 @@ public enum ItemRarityRoll {
         bossContent: Bool,
         astralChanceBonusPercent: Int = 0,
         allowsUnique: Bool = true,
-        using randomNumberGenerator: inout some RandomNumberGenerator
+        using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> ItemDropTier {
         let uniqueBand = bossContent ? 30 : 5
         let trinketChance = bossContent ? 30 : 7

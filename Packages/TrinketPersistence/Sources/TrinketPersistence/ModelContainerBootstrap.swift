@@ -15,17 +15,17 @@ enum ModelContainerBootstrap {
         logger: Logger,
         logLabel: String,
         storeURLForRecovery: URL? = nil,
-        deleteStoreOnFailure: Bool = true
+        deleteStoreOnFailure: Bool = true,
     ) throws -> OpenResult {
         do {
             let container = try ModelContainer(
                 for: schema,
-                configurations: primaryConfiguration
+                configurations: primaryConfiguration,
             )
             return OpenResult(container: container, usedInMemoryFallback: false, recoveredAfterStoreDeletion: false)
         } catch {
             logger.error(
-                "Failed to open \(logLabel, privacy: .public) store: \(error.localizedDescription, privacy: .public)"
+                "Failed to open \(logLabel, privacy: .public) store: \(error.localizedDescription, privacy: .public)",
             )
 
             if deleteStoreOnFailure, let storeURL = storeURLForRecovery {
@@ -33,17 +33,17 @@ enum ModelContainerBootstrap {
                 do {
                     let recovered = try ModelContainer(
                         for: schema,
-                        configurations: primaryConfiguration
+                        configurations: primaryConfiguration,
                     )
                     logger.notice("Recovered \(logLabel, privacy: .public) store after deleting corrupt files.")
                     return OpenResult(
                         container: recovered,
                         usedInMemoryFallback: false,
-                        recoveredAfterStoreDeletion: true
+                        recoveredAfterStoreDeletion: true,
                     )
                 } catch let recoveryError {
                     logger.error(
-                        "Failed to recover \(logLabel, privacy: .public) store after deletion: \(recoveryError.localizedDescription, privacy: .public)"
+                        "Failed to recover \(logLabel, privacy: .public) store after deletion: \(recoveryError.localizedDescription, privacy: .public)",
                     )
                 }
             }
@@ -52,16 +52,16 @@ enum ModelContainerBootstrap {
             do {
                 let container = try ModelContainer(
                     for: schema,
-                    configurations: fallbackConfig
+                    configurations: fallbackConfig,
                 )
                 logger.notice("\(logLabel, privacy: .public) store opened in-memory fallback.")
                 return OpenResult(container: container, usedInMemoryFallback: true, recoveredAfterStoreDeletion: false)
             } catch let fallbackError {
                 logger.fault(
-                    "Failed to open in-memory fallback for \(logLabel, privacy: .public): \(fallbackError.localizedDescription, privacy: .public)"
+                    "Failed to open in-memory fallback for \(logLabel, privacy: .public): \(fallbackError.localizedDescription, privacy: .public)",
                 )
                 throw PlayerSavePersistenceError.storeUnavailable(
-                    "Could not open \(logLabel) persistence (\(fallbackError.localizedDescription))."
+                    "Could not open \(logLabel) persistence (\(fallbackError.localizedDescription)).",
                 )
             }
         }
@@ -82,7 +82,7 @@ enum ModelContainerBootstrap {
                 try FileManager.default.removeItem(at: candidate)
             } catch {
                 logger.error(
-                    "Failed to delete \(logLabel, privacy: .public) store file \(candidate.lastPathComponent, privacy: .public): \(error.localizedDescription, privacy: .public)"
+                    "Failed to delete \(logLabel, privacy: .public) store file \(candidate.lastPathComponent, privacy: .public): \(error.localizedDescription, privacy: .public)",
                 )
             }
         }

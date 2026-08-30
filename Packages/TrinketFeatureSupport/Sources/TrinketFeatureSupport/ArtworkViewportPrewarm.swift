@@ -13,14 +13,14 @@ public enum ArtworkViewportPrewarm {
         visibleIDs: Set<Item.ID>,
         thumbnailName: (Item) -> String?,
         prefetchRows: Int,
-        estimatedColumns: Int
+        estimatedColumns: Int,
     ) -> [String] where Item.ID: Hashable {
         windowNames(
             orderedItems: orderedItems,
             visibleIndices: visibleIndices(for: orderedItems, matching: { visibleIDs.contains($0.id) }),
             thumbnailName: thumbnailName,
             prefetchRows: prefetchRows,
-            estimatedColumns: estimatedColumns
+            estimatedColumns: estimatedColumns,
         )
     }
 
@@ -29,7 +29,7 @@ public enum ArtworkViewportPrewarm {
         visibleIDStrings: Set<String>,
         thumbnailName: (Item) -> String?,
         prefetchRows: Int,
-        estimatedColumns: Int
+        estimatedColumns: Int,
     ) -> [String] {
         windowNames(
             orderedItems: orderedItems,
@@ -38,7 +38,7 @@ public enum ArtworkViewportPrewarm {
             }),
             thumbnailName: thumbnailName,
             prefetchRows: prefetchRows,
-            estimatedColumns: estimatedColumns
+            estimatedColumns: estimatedColumns,
         )
     }
 
@@ -47,7 +47,7 @@ public enum ArtworkViewportPrewarm {
         visibleIndices: [Int],
         thumbnailName: (Item) -> String?,
         prefetchRows: Int,
-        estimatedColumns: Int
+        estimatedColumns: Int,
     ) -> [String] {
         guard !orderedItems.isEmpty else { return [] }
         guard let minVisible = visibleIndices.min(), let maxVisible = visibleIndices.max() else {
@@ -55,7 +55,7 @@ public enum ArtworkViewportPrewarm {
                 orderedItems: orderedItems,
                 thumbnailName: thumbnailName,
                 prefetchRows: prefetchRows,
-                estimatedColumns: estimatedColumns
+                estimatedColumns: estimatedColumns,
             )
         }
         let forwardCount = prefetchRows * estimatedColumns
@@ -69,7 +69,7 @@ public enum ArtworkViewportPrewarm {
         orderedItems: [Item],
         thumbnailName: (Item) -> String?,
         prefetchRows: Int,
-        estimatedColumns: Int
+        estimatedColumns: Int,
     ) -> [String] {
         let initialCount = min(orderedItems.count, prefetchRows * estimatedColumns * 2)
         return dedupedNames(for: orderedItems.prefix(initialCount), thumbnailName: thumbnailName)
@@ -77,14 +77,14 @@ public enum ArtworkViewportPrewarm {
 
     private static func visibleIndices<Item: Identifiable>(
         for orderedItems: [Item],
-        matching predicate: (Item) -> Bool
+        matching predicate: (Item) -> Bool,
     ) -> [Int] {
         orderedItems.enumerated().compactMap { predicate($0.element) ? $0.offset : nil }
     }
 
     private static func dedupedNames<Item>(
         for window: some Sequence<Item>,
-        thumbnailName: (Item) -> String?
+        thumbnailName: (Item) -> String?,
     ) -> [String] {
         var seen = Set<String>()
         var result: [String] = []

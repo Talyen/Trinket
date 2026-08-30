@@ -10,13 +10,13 @@ struct BattleMechanicsTests {
         companion: Combatant,
         enemy: Combatant,
         heroMana: Int? = nil,
-        enemyEffects: [ActiveEffect] = []
+        enemyEffects: [ActiveEffect] = [],
     ) -> BattleState {
         var battle = BattleStateTestFactory.makeBattle(
             hero: hero,
             companion: companion,
             enemy: enemy,
-            activeEnemyEffects: enemyEffects
+            activeEnemyEffects: enemyEffects,
         )
         if let heroMana {
             battle.roster.hero.currentMana = heroMana
@@ -24,7 +24,7 @@ struct BattleMechanicsTests {
         return battle
     }
 
-    @Test func markedBonusAddsDamageAndConsumesMark() throws {
+    @Test func `marked bonus adds damage and consumes mark`() throws {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 20)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30)
@@ -32,11 +32,11 @@ struct BattleMechanicsTests {
             hero: hero,
             companion: companion,
             enemy: enemy,
-            enemyEffects: [ActiveEffect(id: 1, effect: .marked(2, 6), remainingTurns: 6, sourceActorID: hero.id)]
+            enemyEffects: [ActiveEffect(id: 1, effect: .marked(2, 6), remainingTurns: 6, sourceActorID: hero.id)],
         )
 
         let dotOutcome = context.resolveDamage(
-            .doTTick(amount: 3, target: enemy, keyword: .burn, sourceActorID: hero.id)
+            .doTTick(amount: 3, target: enemy, keyword: .burn, sourceActorID: hero.id),
         )
 
         try #expect(dotOutcome.healthLost == 3)
@@ -48,7 +48,7 @@ struct BattleMechanicsTests {
         })
 
         let attackOutcome = context.resolveDamage(
-            .directAbilityHit(amount: 3, target: enemy, keyword: .physical, sourceActorID: hero.id)
+            .directAbilityHit(amount: 3, target: enemy, keyword: .physical, sourceActorID: hero.id),
         )
 
         try #expect(attackOutcome.healthLost == 5)
@@ -58,18 +58,18 @@ struct BattleMechanicsTests {
                     return true
                 }
                 return false
-            }
+            },
         )
     }
 
-    @Test func predatorsFocusAppliesCriticalChanceBonus() throws {
+    @Test func `predators focus applies critical chance bonus`() throws {
         let baseWolf = try #require(GameContent.companions.first { $0.id == "wolf" })
         let wolf = baseWolf.withAbilityLoadout(
             AbilityLoadout(
                 basic: baseWolf.abilityLoadout.basic,
                 skill: .predatorsFocus,
-                ultimate: baseWolf.abilityLoadout.ultimate
-            )
+                ultimate: baseWolf.abilityLoadout.ultimate,
+            ),
         )
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30)
@@ -80,7 +80,7 @@ struct BattleMechanicsTests {
             ability: ability,
             actor: wolf,
             abilityTarget: context.enemy,
-            context: &context
+            context: &context,
         )
 
         try #expect(
@@ -89,16 +89,16 @@ struct BattleMechanicsTests {
                     return true
                 }
                 return false
-            }
+            },
         )
     }
 
-    @Test func nextStrikeCriticalGuaranteesCritAndConsumes() throws {
+    @Test func `next strike critical guarantees crit and consumes`() throws {
         let ability = Ability(
             id: "test-crit-strike",
             name: "Test Crit Strike",
             tier: .basic,
-            damageComponents: [DamageComponent(2, keyword: .physical)]
+            damageComponents: [DamageComponent(2, keyword: .physical)],
         )
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [ability])
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
@@ -109,13 +109,13 @@ struct BattleMechanicsTests {
             enemy: enemy,
             heroEffects: [ActiveEffect(id: 1, effect: .nextStrikeCritical, remainingTurns: 0)],
             nextEffectID: 2,
-            nextEventID: 0
+            nextEventID: 0,
         )
         let events = BattleTurnEngine.performAction(
             ability: ability,
             actor: hero,
             abilityTarget: context.enemy,
-            context: &context
+            context: &context,
         )
 
         let damageEvent = try #require(events.first { $0.kind == .abilityDamage })
@@ -128,7 +128,7 @@ struct BattleMechanicsTests {
         }))
     }
 
-    @Test func markedConsumedWhenFullyShielded() throws {
+    @Test func `marked consumed when fully shielded`() throws {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30)
         let shield = ActiveEffect(id: 1, effect: .shield(.block, 50), remainingTurns: 6, sourceActorID: hero.id)
@@ -139,11 +139,11 @@ struct BattleMechanicsTests {
             companion: CombatantFixtures.combatant(id: "companion", role: .companion),
             enemy: enemy,
             enemyEffects: [shield, mark],
-            nextEffectID: 3
+            nextEffectID: 3,
         )
 
         let outcome = context.resolveDamage(
-            DamageRequest.directAbilityHit(amount: 3, target: enemy, keyword: .physical, sourceActorID: hero.id)
+            DamageRequest.directAbilityHit(amount: 3, target: enemy, keyword: .physical, sourceActorID: hero.id),
         )
 
         try #expect(outcome.healthLost == 0)
@@ -152,7 +152,7 @@ struct BattleMechanicsTests {
                 if case .marked = $0.effect {
                     return true
                 }; return false
-            }
+            },
         )
         try #expect(outcome.events.contains { $0.effectKind == .markedConsumed })
     }

@@ -13,7 +13,7 @@ package enum DeathsDoorEngine {
 
     package static func hasLethalProtection(
         for combatant: Combatant,
-        in context: BattleState
+        in context: BattleState,
     ) -> Bool {
         if isActive(for: combatant, in: context) {
             return true
@@ -28,7 +28,7 @@ package enum DeathsDoorEngine {
 
     package static func resolveAfterDamage(
         to combatant: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         guard applies(to: combatant) else { return [] }
 
@@ -59,8 +59,8 @@ package enum DeathsDoorEngine {
                         target: context.roster.enemy.combatant,
                         keyword: .physical,
                         sourceActorID: combatant.id,
-                        options: .flatReaction
-                    )
+                        options: .flatReaction,
+                    ),
                 )
                 return outcome.events
             }
@@ -70,7 +70,7 @@ package enum DeathsDoorEngine {
 
     private static func tryPhoenixGift(
         on combatant: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent]? {
         let companionTriggers = context.companionModifiers.triggers
         guard combatant.role == .hero,
@@ -92,18 +92,18 @@ package enum DeathsDoorEngine {
                 logAs: .instantHeal(
                     actorName: context.roster.companion.name,
                     abilityName: "Phoenix Gift",
-                    keyword: .health
+                    keyword: .health,
                 ),
                 revivesIfDead: true,
-                skipFightPacing: true
+                skipFightPacing: true,
             ),
-            in: &context
+            in: &context,
         ).events
     }
 
     private static func tryTraitDeathRevive(
         on combatant: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent]? {
         guard let runtime = context.roster.runtime(for: combatant),
               !runtime.hasTriggeredDeathRevive
@@ -129,7 +129,7 @@ package enum DeathsDoorEngine {
                 abilityName: abilityName,
                 target: combatant,
                 amount: min(healthToRestore, context.roster.maxHealth(for: combatant)),
-                keyword: .health
+                keyword: .health,
             ),
         ]
         if reviveBlock > 0 {
@@ -137,7 +137,7 @@ package enum DeathsDoorEngine {
                 reviveBlock,
                 to: combatant,
                 source: combatant,
-                abilityName: abilityName
+                abilityName: abilityName,
             ))
         }
         if triggers.reviveDealBurnDamage > 0, context.roster.enemy.isAlive {
@@ -147,7 +147,7 @@ package enum DeathsDoorEngine {
                 to: context.roster.enemy.combatant,
                 sourceActorID: combatant.id,
                 dealImmediateDamage: true,
-                suppressAffixReactions: true
+                suppressAffixReactions: true,
             ))
         }
         return events
@@ -155,7 +155,7 @@ package enum DeathsDoorEngine {
 
     private static func trigger(
         on combatant: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         context.roster.mutateRuntime(for: combatant) { runtime in
             runtime.hasConsumedDeathsDoor = true
@@ -167,7 +167,7 @@ package enum DeathsDoorEngine {
         context.prependEffect(
             .deathsDoor,
             to: combatant,
-            remainingTurns: duration
+            remainingTurns: duration,
         )
 
         if triggers.onSurviveDeathsDoorDamageBonusPercent > 0 {
@@ -184,7 +184,7 @@ package enum DeathsDoorEngine {
             abilityName: Keyword.deathsDoor.rawValue,
             target: combatant,
             amount: 0,
-            keyword: .deathsDoor
+            keyword: .deathsDoor,
         )
         var events = [event]
         let blockAmount = triggers.blockOnDeathsDoor
@@ -193,7 +193,7 @@ package enum DeathsDoorEngine {
                 blockAmount,
                 to: combatant,
                 source: combatant,
-                abilityName: "Deathgrip"
+                abilityName: "Deathgrip",
             ))
         }
         events.append(contentsOf: guardianArchive(on: combatant, in: &context))
@@ -203,7 +203,7 @@ package enum DeathsDoorEngine {
 
     private static func guardianArchive(
         on combatant: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         let companionTriggers = context.companionModifiers.triggers
         guard combatant.role == .hero,
@@ -214,7 +214,7 @@ package enum DeathsDoorEngine {
             amount: companionTriggers.onAllyDeathsDoorHealAndCleanse,
             target: combatant,
             source: context.roster.companion.combatant,
-            abilityName: "Guardian Archive"
+            abilityName: "Guardian Archive",
         )
         var effects = context.roster.activeEffects(for: combatant)
         var removedKeywords: [Keyword] = []
@@ -230,7 +230,7 @@ package enum DeathsDoorEngine {
                 abilityName: "Guardian Archive",
                 target: combatant,
                 amount: 0,
-                keyword: keyword
+                keyword: keyword,
             )
         })
         return events
@@ -238,7 +238,7 @@ package enum DeathsDoorEngine {
 
     private static func afterglow(
         on combatant: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         let companionTriggers = context.companionModifiers.triggers
         guard combatant.role == .companion, companionTriggers.surviveDeathsDoorPartyHealPercent > 0 else {
@@ -259,11 +259,11 @@ package enum DeathsDoorEngine {
                     logAs: .instantHeal(
                         actorName: combatant.name,
                         abilityName: "Afterglow",
-                        keyword: .health
+                        keyword: .health,
                     ),
-                    skipFightPacing: true
+                    skipFightPacing: true,
                 ),
-                in: &context
+                in: &context,
             ).events)
         }
         return events
@@ -271,7 +271,7 @@ package enum DeathsDoorEngine {
 
     static func afterDeathsDoorExpired(
         on combatant: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         let amount = context.modifiers(for: combatant.id).triggers.deathsDoorExpiredHealFlat
         guard amount > 0,
@@ -290,17 +290,17 @@ package enum DeathsDoorEngine {
                 logAs: .instantHeal(
                     actorName: combatant.name,
                     abilityName: "Endless Legion",
-                    keyword: .health
+                    keyword: .health,
                 ),
-                skipFightPacing: true
+                skipFightPacing: true,
             ),
-            in: &context
+            in: &context,
         ).events
     }
 
     private static func clampToMinimumHP(
         on combatant: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) {
         context.roster.mutateRuntime(for: combatant) { runtime in
             runtime.currentHealth = max(1, runtime.currentHealth)

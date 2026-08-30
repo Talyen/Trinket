@@ -17,7 +17,7 @@ public struct ItemGenerator: Sendable {
         keywordBias: Set<Keyword> = [],
         requireBuildAlignment: Bool = false,
         guaranteedAffixIDs: [String] = [],
-        using randomNumberGenerator: inout some RandomNumberGenerator
+        using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> InventoryItem {
         let eligibleAffixes = affixDefinitions.filter { definition in
             guard definition.slot == baseType.slot,
@@ -43,7 +43,7 @@ public struct ItemGenerator: Sendable {
             remainingPool,
             count: remainingCount,
             keywordBias: keywordBias,
-            using: &randomNumberGenerator
+            using: &randomNumberGenerator,
         )
 
         return InventoryItem(
@@ -57,13 +57,13 @@ public struct ItemGenerator: Sendable {
                 let catalog = definition.power(for: rarity)
                 guard definition.basic != definition.astral else { return catalog }
                 return catalog.rolled(using: &randomNumberGenerator)
-            }
+            },
         )
     }
 
     public static func affixCount(
         for rarity: Rarity,
-        using randomNumberGenerator: inout some RandomNumberGenerator
+        using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> Int {
         let roll = Int.random(in: 1 ... 100, using: &randomNumberGenerator)
 
@@ -81,7 +81,7 @@ public struct ItemGenerator: Sendable {
         _ definitions: [ItemAffixDefinition],
         count: Int,
         keywordBias: Set<Keyword> = [],
-        using randomNumberGenerator: inout some RandomNumberGenerator
+        using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> [ItemAffixDefinition] {
         var pool = definitions
         var selected: [ItemAffixDefinition] = []
@@ -111,7 +111,7 @@ public struct ItemGenerator: Sendable {
 
     private static func adjustedWeight(
         for definition: ItemAffixDefinition,
-        keywordBias: Set<Keyword>
+        keywordBias: Set<Keyword>,
     ) -> Int {
         let baseWeight = max(0, definition.weight)
         guard baseWeight > 0, !keywordBias.isEmpty else { return baseWeight }
@@ -142,14 +142,14 @@ public enum ItemRewardGenerator {
         guaranteedAffixIDs: [String] = [],
         baseTypes: [ItemBaseType] = GameContent.itemBaseTypes,
         itemGenerator: ItemGenerator = ItemGenerator(),
-        using randomNumberGenerator: inout some RandomNumberGenerator
+        using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> InventoryItem {
         let context = RewardContext(
             keywordBias: keywordBias,
             fallbackBaseType: fallbackBaseType,
             guaranteedAffixIDs: guaranteedAffixIDs,
             baseTypes: baseTypes,
-            itemGenerator: itemGenerator
+            itemGenerator: itemGenerator,
         )
         switch tier {
         case .unique:
@@ -169,7 +169,7 @@ public enum ItemRewardGenerator {
                 reservedTrinketIDs: reservedTrinketIDs,
                 eligibleTrinketIDs: eligibleTrinketIDs,
                 context: context,
-                using: &randomNumberGenerator
+                using: &randomNumberGenerator,
             )
         case .trinket:
             return trinketOrGenerated(
@@ -179,14 +179,14 @@ public enum ItemRewardGenerator {
                 reservedTrinketIDs: reservedTrinketIDs,
                 eligibleTrinketIDs: eligibleTrinketIDs,
                 context: context,
-                using: &randomNumberGenerator
+                using: &randomNumberGenerator,
             )
         case .astral, .basic:
             return generated(
                 id: id,
                 rarity: tier == .astral ? .astral : .basic,
                 context: context,
-                using: &randomNumberGenerator
+                using: &randomNumberGenerator,
             )
         }
     }
@@ -198,7 +198,7 @@ public enum ItemRewardGenerator {
         reservedTrinketIDs: Set<String>,
         eligibleTrinketIDs: Set<String>?,
         context: RewardContext,
-        using randomNumberGenerator: inout some RandomNumberGenerator
+        using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> InventoryItem {
         var trinkets = GameContent.trinketItems.filter {
             !ownedTrinketIDs.contains($0.templateID)
@@ -220,7 +220,7 @@ public enum ItemRewardGenerator {
         id: String,
         rarity: Rarity,
         context: RewardContext,
-        using randomNumberGenerator: inout some RandomNumberGenerator
+        using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> InventoryItem {
         let normalBases = context.fallbackBaseType.map { [$0] }
             ?? context.baseTypes.filter { $0.slot != .trinket }
@@ -237,7 +237,7 @@ public enum ItemRewardGenerator {
             rarity: rarity,
             keywordBias: context.keywordBias,
             guaranteedAffixIDs: context.guaranteedAffixIDs,
-            using: &randomNumberGenerator
+            using: &randomNumberGenerator,
         )
     }
 }

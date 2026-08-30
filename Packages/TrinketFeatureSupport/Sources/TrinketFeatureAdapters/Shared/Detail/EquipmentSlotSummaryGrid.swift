@@ -32,15 +32,15 @@ struct EquipmentSlotSummaryGrid: View {
                             ItemCard(
                                 item: item,
                                 showsAffixCount: false,
-                                reservesLabelSpace: false
+                                reservesLabelSpace: false,
                             )
                         } else {
                             EmptyItemSlotCard(
                                 slot: slot,
-                                reservesLabelSpace: false
+                                reservesLabelSpace: false,
                             )
                         }
-                    }
+                    },
                 )
             }
         }

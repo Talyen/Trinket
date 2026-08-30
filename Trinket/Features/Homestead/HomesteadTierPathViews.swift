@@ -36,7 +36,7 @@ struct HomesteadTierPath: View {
                     connectorBeforeFill: beforeFill(for: index),
                     connectorAfterFill: afterFill(for: index),
                     settleScale: settlingTier == tier.tier ? settleScale : 1,
-                    onBuild: onBuild
+                    onBuild: onBuild,
                 )
             }
         }
@@ -80,7 +80,7 @@ struct HomesteadTierPath: View {
 
     private func connectors(for index: Int) -> (
         before: HomesteadTierConnectorState?,
-        after: HomesteadTierConnectorState?
+        after: HomesteadTierConnectorState?,
     ) {
         var pair = status.tierPathConnectors(for: index)
         if let fillingTier {
@@ -131,7 +131,7 @@ struct HomesteadTierPath: View {
             upperFill = 1
         }
         withAnimation(
-            HomesteadMotion.connectorFill.delay(HomesteadMotion.connectorFillStagger)
+            HomesteadMotion.connectorFill.delay(HomesteadMotion.connectorFillStagger),
         ) {
             lowerFill = 1
         }
@@ -166,7 +166,7 @@ struct HomesteadTierNode: View {
     let status: HomesteadProjectStatus
     let connectors: (
         before: HomesteadTierConnectorState?,
-        after: HomesteadTierConnectorState?
+        after: HomesteadTierConnectorState?,
     )
     var connectorBeforeFill: CGFloat?
     var connectorAfterFill: CGFloat?
@@ -216,7 +216,7 @@ struct HomesteadTierNode: View {
                 connectorBefore: connectors.before,
                 connectorAfter: connectors.after,
                 connectorBeforeFill: connectorBeforeFill,
-                connectorAfterFill: connectorAfterFill
+                connectorAfterFill: connectorAfterFill,
             ) {
                 tierNodeChrome
                     .scaleEffect(settleScale)
@@ -247,7 +247,7 @@ struct HomesteadTierNode: View {
     private var tierNodeChrome: some View {
         HomesteadTierNodeChrome(
             stroke: nodeStroke,
-            emphasized: isActionable
+            emphasized: isActionable,
         ) {
             nodeGlyph
         }
@@ -265,7 +265,7 @@ struct HomesteadTierNode: View {
                 .contentTransition(.symbolEffect(.replace))
                 .symbolEffect(
                     .bounce.up,
-                    value: isActionable
+                    value: isActionable,
                 )
         case .completed:
             Image(systemName: "checkmark")
@@ -341,7 +341,7 @@ struct HomesteadTierCostLabel: View {
                     HomesteadResourceArtwork(resource: amount.resource)
                         .frame(
                             width: TrinketDesign.Metrics.walletResourceArtworkSize,
-                            height: TrinketDesign.Metrics.walletResourceArtworkSize
+                            height: TrinketDesign.Metrics.walletResourceArtworkSize,
                         )
                     Text("\(amount.quantity)")
                         .trinketTypography(.statValue)
@@ -349,7 +349,7 @@ struct HomesteadTierCostLabel: View {
                         .foregroundStyle(
                             status.hasEnough(amount)
                                 ? Color.primary
-                                : TrinketDesign.Colors.destructive
+                                : TrinketDesign.Colors.destructive,
                         )
                 }
             }

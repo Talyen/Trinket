@@ -25,7 +25,7 @@ struct HomesteadPresentationTests {
         .upgradeNotReady,
         .completed,
     ])
-    func projectLifecycleExposesExpectedRowAndTierPath(caseKind: LifecycleCase) throws {
+    func `project lifecycle exposes expected row and tier path`(caseKind: LifecycleCase) throws {
         switch caseKind {
         case .lockedPrerequisite:
             try assertLockedPrerequisiteLifecycle()
@@ -58,7 +58,7 @@ struct HomesteadPresentationTests {
         let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
         let status = makeStatus(
             definition: definition,
-            homestead: PlayerHomesteadState(resources: [.wood: 5, .herbs: 5], nodeTiers: [:])
+            homestead: PlayerHomesteadState(resources: [.wood: 5, .herbs: 5], nodeTiers: [:]),
         )
         #expect(status.rowState == .unbuilt(affordable: true))
         #expect(status.overviewEffect == nil)
@@ -76,7 +76,7 @@ struct HomesteadPresentationTests {
         let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
         let status = makeStatus(
             definition: definition,
-            homestead: PlayerHomesteadState(resources: [:], nodeTiers: [.wheatField: 1])
+            homestead: PlayerHomesteadState(resources: [:], nodeTiers: [.wheatField: 1]),
         )
         #expect(status.rowState == .built)
         let activeBonus = try #require(definition.tier(1)?.bonus)
@@ -90,9 +90,9 @@ struct HomesteadPresentationTests {
             definition: definition,
             homestead: PlayerHomesteadState(
                 resources: [.wood: 15, .herbs: 15],
-                nodeTiers: [.wheatField: 1]
+                nodeTiers: [.wheatField: 1],
             ),
-            gold: 14
+            gold: 14,
         )
         let secondTier = try #require(definition.tier(2))
         #expect(status.rowState == .upgradeReady)
@@ -103,7 +103,7 @@ struct HomesteadPresentationTests {
         let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
         let status = makeStatus(
             definition: definition,
-            homestead: PlayerHomesteadState(resources: [:], nodeTiers: [.wheatField: 1])
+            homestead: PlayerHomesteadState(resources: [:], nodeTiers: [.wheatField: 1]),
         )
         let secondTier = try #require(definition.tier(2))
         #expect(status.rowState == .built)
@@ -114,7 +114,7 @@ struct HomesteadPresentationTests {
         let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
         let status = makeStatus(
             definition: definition,
-            homestead: PlayerHomesteadState(resources: [:], nodeTiers: [.wheatField: 4])
+            homestead: PlayerHomesteadState(resources: [:], nodeTiers: [.wheatField: 4]),
         )
         #expect(status.rowState == .completed)
         let activeBonus = try #require(definition.tier(4)?.bonus)
@@ -122,13 +122,13 @@ struct HomesteadPresentationTests {
         #expect(!status.canBuildOrUpgrade)
     }
 
-    @Test func tierPathMapsCurrentTiersZeroThroughFour() throws {
+    @Test func `tier path maps current tiers zero through four`() throws {
         let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
         let tiers = try #require(definition.tiers.count == 4 ? definition.tiers : nil)
 
         let tierZero = makeStatus(
             definition: definition,
-            homestead: PlayerHomesteadState(resources: [.wood: 5, .herbs: 5], nodeTiers: [:])
+            homestead: PlayerHomesteadState(resources: [.wood: 5, .herbs: 5], nodeTiers: [:]),
         )
         #expect(tierZero.tierPathState(for: tiers[0]) == .next(affordable: true))
         #expect(tierZero.tierPathState(for: tiers[1]) == .future)
@@ -136,39 +136,39 @@ struct HomesteadPresentationTests {
 
         let tierOne = makeStatus(
             definition: definition,
-            homestead: PlayerHomesteadState(resources: [:], nodeTiers: [.wheatField: 1])
+            homestead: PlayerHomesteadState(resources: [:], nodeTiers: [.wheatField: 1]),
         )
         #expect(tierOne.tierPathState(for: tiers[0]) == .completed)
         #expect(tierOne.tierPathState(for: tiers[1]) == .next(affordable: false))
 
         let tierTwo = makeStatus(
             definition: definition,
-            homestead: PlayerHomesteadState(resources: [:], nodeTiers: [.wheatField: 2])
+            homestead: PlayerHomesteadState(resources: [:], nodeTiers: [.wheatField: 2]),
         )
         #expect(tierTwo.tierPathState(for: tiers[1]) == .completed)
         #expect(tierTwo.tierPathState(for: tiers[2]) == .next(affordable: false))
 
         let tierThree = makeStatus(
             definition: definition,
-            homestead: PlayerHomesteadState(resources: [:], nodeTiers: [.wheatField: 3])
+            homestead: PlayerHomesteadState(resources: [:], nodeTiers: [.wheatField: 3]),
         )
         #expect(tierThree.tierPathState(for: tiers[2]) == .completed)
         #expect(tierThree.tierPathState(for: tiers[3]) == .next(affordable: false))
 
         let tierFour = makeStatus(
             definition: definition,
-            homestead: PlayerHomesteadState(resources: [:], nodeTiers: [.wheatField: 4])
+            homestead: PlayerHomesteadState(resources: [:], nodeTiers: [.wheatField: 4]),
         )
         #expect(tierFour.tierPathState(for: tiers[3]) == .completed)
     }
 
-    @Test func tierPathConnectorsMatchStageSelectProgressFrontier() throws {
+    @Test func `tier path connectors match stage select progress frontier`() throws {
         let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
         #expect(definition.tiers.count == 4)
 
         let mid = makeStatus(
             definition: definition,
-            homestead: PlayerHomesteadState(resources: [:], nodeTiers: [.wheatField: 1])
+            homestead: PlayerHomesteadState(resources: [:], nodeTiers: [.wheatField: 1]),
         )
         let first = mid.tierPathConnectors(for: 0)
         let second = mid.tierPathConnectors(for: 1)
@@ -186,7 +186,7 @@ struct HomesteadPresentationTests {
 
         let advanced = makeStatus(
             definition: definition,
-            homestead: PlayerHomesteadState(resources: [:], nodeTiers: [.wheatField: 2])
+            homestead: PlayerHomesteadState(resources: [:], nodeTiers: [.wheatField: 2]),
         )
         let completed = advanced.tierPathConnectors(for: 1)
         let frontier = advanced.tierPathConnectors(for: 2)
@@ -198,7 +198,7 @@ struct HomesteadPresentationTests {
     private func makeStatus(
         definition: HomesteadNodeDefinition,
         homestead: PlayerHomesteadState,
-        gold: Int = 0
+        gold: Int = 0,
     ) -> HomesteadProjectStatus {
         var roster = PlayerRosterState.freshStart
         roster.gold = gold

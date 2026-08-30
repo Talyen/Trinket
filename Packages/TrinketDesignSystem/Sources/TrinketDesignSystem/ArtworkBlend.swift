@@ -49,7 +49,7 @@ private struct BottomArtworkBlend: View {
                 .init(color: color, location: 1),
             ],
             startPoint: .top,
-            endPoint: .bottom
+            endPoint: .bottom,
         )
     }
 }

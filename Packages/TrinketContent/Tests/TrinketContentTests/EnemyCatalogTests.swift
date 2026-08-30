@@ -13,7 +13,7 @@ struct EnemyCatalogTests {
         "the_stone_titan",
     ]
 
-    @Test func enemyCatalogInvariants() throws {
+    @Test func `enemy catalog invariants`() throws {
         for enemy in GameContent.enemies {
             if Self.bossIDs.contains(enemy.id) {
                 try #expect(enemy.isBoss, "\(enemy.name) should be a boss")
@@ -30,12 +30,12 @@ struct EnemyCatalogTests {
             try #require(loadout.ultimate != nil, "\(enemy.name) should have an ultimate ability")
             try #expect(
                 enemy.combatant.primaryStats == enemy.combatant.growthArchetype.identityPrimaryStats,
-                "\(enemy.name) should use its archetype identity stats"
+                "\(enemy.name) should use its archetype identity stats",
             )
         }
     }
 
-    @Test func specialEnemyLoadoutsMatchTheirArchetypes() throws {
+    @Test func `special enemy loadouts match their archetypes`() throws {
         let mimic = try #require(GameContent.enemies.first { $0.id == "mimic" })
         try #expect(mimic.combatant.abilityLoadout.basic == .fangs)
         try #expect(mimic.combatant.abilityLoadout.skill == .acidPotion)
@@ -58,7 +58,7 @@ struct EnemyCatalogTests {
         try #expect(livingArmor.combatant.abilityLoadout.ultimate == .thornMail)
     }
 
-    @Test func idsAreUniqueAcrossCombatants() throws {
+    @Test func `ids are unique across combatants`() throws {
         let allIDs = Set(GameContent.heroes.map(\.id))
             .union(GameContent.companions.map(\.id))
             .union(GameContent.enemies.map(\.id))
@@ -66,18 +66,18 @@ struct EnemyCatalogTests {
         try #expect(allIDs.count == combinedCount, "Hero, companion, and enemy IDs must be globally unique")
     }
 
-    @Test func averagePlayerBaseHealthExceedsNormalEnemyBaseHealth() throws {
+    @Test func `average player base health exceeds normal enemy base health`() throws {
         let heroAverage = Double(GameContent.heroes.map(\.maxHealth).reduce(0, +)) / Double(GameContent.heroes.count)
         let companionAverage = Double(GameContent.companions.map(\.maxHealth).reduce(0, +)) / Double(GameContent.companions.count)
         let enemyAverage = Double(
-            GameContent.enemies.filter { !$0.isBoss }.map(\.maxHealth).reduce(0, +)
+            GameContent.enemies.filter { !$0.isBoss }.map(\.maxHealth).reduce(0, +),
         ) / Double(GameContent.enemies.count(where: { !$0.isBoss }))
 
         try #expect(heroAverage > enemyAverage)
         try #expect(companionAverage > enemyAverage)
     }
 
-    @Test func authoredFactionsMatchEncounterFantasy() throws {
+    @Test func `authored factions match encounter fantasy`() throws {
         let skeleton = try #require(GameContent.enemy(matching: "skeleton"))
         let necromancer = try #require(GameContent.enemy(matching: "necromancer"))
         let treant = try #require(GameContent.enemy(matching: "the_blight_treant"))
@@ -88,7 +88,7 @@ struct EnemyCatalogTests {
         try #expect(golem.faction == .construct)
     }
 
-    @Test func enemyMatchingLookupReturnsExpectedEnemy() throws {
+    @Test func `enemy matching lookup returns expected enemy`() throws {
         for enemy in GameContent.enemies {
             let found = try #require(GameContent.enemy(matching: enemy.id))
             try #expect(found.id == enemy.id)

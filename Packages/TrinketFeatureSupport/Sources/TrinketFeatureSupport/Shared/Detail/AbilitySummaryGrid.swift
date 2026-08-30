@@ -17,7 +17,7 @@ public struct AbilitySummaryGrid: View {
         allowsEditing: Bool,
         onSelectTier: ((AbilityTier) -> Void)? = nil,
         onViewAbility: ((Ability) -> Void)? = nil,
-        onInspectAbility: ((Ability) -> Void)? = nil
+        onInspectAbility: ((Ability) -> Void)? = nil,
     ) {
         self.combatant = combatant
         _loadout = loadout
@@ -50,7 +50,7 @@ public struct AbilitySummaryGrid: View {
                 } else {
                     EmptyAbilitySlotCard(tier: tier)
                 }
-            }
+            },
         )
         .id(combatant.id)
     }

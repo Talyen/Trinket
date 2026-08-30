@@ -5,7 +5,7 @@ import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
 struct ItemSalvageApplierTests {
-    @Test func yieldsMatchSlotAndRarityTable() throws {
+    @Test func `yields match slot and rarity table`() throws {
         let basicWeapon = try SaveTestSupport.makeGeneratedItem(baseID: "longsword", rarity: .basic)
         let astralTrinket = try SaveTestSupport.makeGeneratedItem(baseID: "sapphire_ring", rarity: .astral)
         let basicArmor = try SaveTestSupport.makeGeneratedItem(baseID: "leather_armor", rarity: .basic)
@@ -24,13 +24,13 @@ struct ItemSalvageApplierTests {
         ])
     }
 
-    @Test @MainActor func salvageRemovesItemGrantsMaterialsAndPersists() throws {
+    @Test @MainActor func `salvage removes item grants materials and persists`() throws {
         let context = try PersistenceTestContext()
         let store = try context.makeSaveStore()
         let item = try SaveTestSupport.makeGeneratedItem(
             baseID: "longsword",
             rarity: .basic,
-            id: "salvage-sword"
+            id: "salvage-sword",
         )
         var save = store.currentSave
         save.inventory.items = [item]
@@ -52,23 +52,23 @@ struct ItemSalvageApplierTests {
 
         let reloaded = try PlayerSaveStore(
             storeURL: context.storeURL(),
-            disableCloudSync: true
+            disableCloudSync: true,
         )
         #expect(reloaded.inventory.items.isEmpty)
         #expect(reloaded.homestead.resources[.iron] == 8)
         #expect(reloaded.homestead.resources[.wood] == 4)
     }
 
-    @Test func salvageUnequipsItemFromLoadouts() throws {
+    @Test func `salvage unequips item from loadouts`() throws {
         var save = SaveTestSupport.makeSave(modifiedAt: .now)
         let item = try SaveTestSupport.makeGeneratedItem(
             baseID: "longsword",
             rarity: .basic,
-            id: "equipped-sword"
+            id: "equipped-sword",
         )
         save.inventory.items = [item]
         save.roster.equipmentLoadouts["knight"] = EquipmentLoadout(
-            itemIDsBySlot: [.weapon: item.id]
+            itemIDsBySlot: [.weapon: item.id],
         )
 
         let result = ItemSalvageApplier.salvage(itemID: item.id, save: &save)
@@ -83,7 +83,7 @@ struct ItemSalvageApplierTests {
         #expect(save.homestead.resources[.wood] == 4)
     }
 
-    @Test func unknownItemLeavesSaveUnchanged() throws {
+    @Test func `unknown item leaves save unchanged`() throws {
         var save = SaveTestSupport.makeSave(modifiedAt: .now)
         let item = try SaveTestSupport.makeGeneratedItem(baseID: "longsword", rarity: .basic, id: "keep-me")
         save.inventory.items = [item]
@@ -96,7 +96,7 @@ struct ItemSalvageApplierTests {
         #expect(save == before)
     }
 
-    @Test func trinketsCannotBeSalvaged() throws {
+    @Test func `trinkets cannot be salvaged`() throws {
         let trinket = try #require(GameContent.trinketItems.first)
         var save = SaveTestSupport.makeSave(modifiedAt: .now)
         save.inventory.items = [trinket]
@@ -108,7 +108,7 @@ struct ItemSalvageApplierTests {
         #expect(save == before)
     }
 
-    @Test func uniquesCannotBeSalvaged() throws {
+    @Test func `uniques cannot be salvaged`() throws {
         let unique = try #require(GameContent.unique(matching: "bloodfire_signet"))
         var save = SaveTestSupport.makeSave()
         save.inventory.items = [unique]
@@ -120,7 +120,7 @@ struct ItemSalvageApplierTests {
         #expect(save == before)
     }
 
-    @Test func salvageGrantsFullYieldBeyondLegacyMaterialCap() throws {
+    @Test func `salvage grants full yield beyond legacy material cap`() throws {
         var save = SaveTestSupport.makeSave(modifiedAt: .now)
         let item = try SaveTestSupport.makeGeneratedItem(baseID: "longsword", rarity: .basic, id: "cap-sword")
         save.inventory.items = [item]

@@ -29,7 +29,7 @@ public struct BattleView: View {
         completeVictory: @escaping (BattleVictorySummary) -> Bool,
         restartBattle: @escaping () -> Void,
         retreat: @escaping () -> Void,
-        performanceScenario: BattlePerformanceScenario? = nil
+        performanceScenario: BattlePerformanceScenario? = nil,
     ) {
         self.configuration = configuration
         self.presentationContext = presentationContext
@@ -73,7 +73,7 @@ public struct BattleView: View {
             }
             .alert(
                 "Retreat from this battle?",
-                isPresented: $isConfirmingRetreat
+                isPresented: $isConfirmingRetreat,
             ) {
                 Button("Retreat", role: .destructive) {
                     battleSession.playPresentationSFX(SFXID.uiCancel)
@@ -128,7 +128,7 @@ public struct BattleView: View {
                     primaryActionAccessibilityIdentifier: hasStageProgression
                         ? AccessibilityID.Battle.continueButton
                         : AccessibilityID.Battle.battleAgainButton,
-                    onPrimaryAction: { completeVictoryPrimaryAction(summary: victorySummary) }
+                    onPrimaryAction: { completeVictoryPrimaryAction(summary: victorySummary) },
                 )
                 .transition(.opacity)
             } else if battleSession.spectacle.isShowingDefeat {
@@ -140,7 +140,7 @@ public struct BattleView: View {
                         onPrimaryAction: {
                             retreat()
                             return true
-                        }
+                        },
                     )
                     .transition(.opacity)
                 case .restart:
@@ -149,7 +149,7 @@ public struct BattleView: View {
                         onPrimaryAction: {
                             restartBattle()
                             return true
-                        }
+                        },
                     )
                     .transition(.opacity)
                 }
@@ -160,7 +160,7 @@ public struct BattleView: View {
                     battleSession: battleSession,
                     interactionState: interactionState,
                     castPresentation: castPresentation,
-                    performanceScenario: debugPerformanceScenario
+                    performanceScenario: debugPerformanceScenario,
                 )
                 .transition(.opacity)
             }
@@ -202,7 +202,7 @@ struct BattleFieldLane: View {
             let layout = BattleCardGridLayout.metrics(in: geometry.size)
             let anchors = BattleCardGridLayout.feedbackAnchors(
                 containerWidth: geometry.size.width,
-                layout: layout
+                layout: layout,
             )
             let presentation = battleSession.presentation
             let hapticsEnabled = battleSession.hapticsEnabled
@@ -214,21 +214,21 @@ struct BattleFieldLane: View {
                         presentation: presentation,
                         role: .enemy,
                         hapticsEnabled: hapticsEnabled,
-                        onCombatantTap: showDetails(for:)
+                        onCombatantTap: showDetails(for:),
                     ),
                     heroPane: BattleCombatantProjectionPane(
                         presentation: presentation,
                         role: .hero,
                         hapticsEnabled: hapticsEnabled,
-                        onCombatantTap: showDetails(for:)
+                        onCombatantTap: showDetails(for:),
                     ),
                     companionPane: BattleCombatantProjectionPane(
                         presentation: presentation,
                         role: .companion,
                         hapticsEnabled: hapticsEnabled,
-                        onCombatantTap: showDetails(for:)
+                        onCombatantTap: showDetails(for:),
                     ),
-                    interactionState: interactionState
+                    interactionState: interactionState,
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
 
@@ -237,7 +237,7 @@ struct BattleFieldLane: View {
                     anchors: anchors,
                     enemyID: configuration.enemy?.id,
                     heroID: configuration.hero.combatant.id,
-                    companionID: configuration.companion.combatant.id
+                    companionID: configuration.companion.combatant.id,
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
 
@@ -249,7 +249,7 @@ struct BattleFieldLane: View {
                     onPlay: playCard(_:request:),
                     onInteractionChanged: updateCombatantTapSuppression(_:),
                     onAttackWindUp: beginPartyAttackWindUp(for:),
-                    onAttackCancel: cancelPartyAttack(for:)
+                    onAttackCancel: cancelPartyAttack(for:),
                 )
                 .frame(height: BattleCardGridLayout.handReservedHeight)
                 .offset(y: -BattleHandLayout.bottomRise)
@@ -262,7 +262,7 @@ struct BattleFieldLane: View {
                     .zIndex(2)
 
                 BattleCinematicLane(
-                    effectsVolume: battleSession.effectsVolume
+                    effectsVolume: battleSession.effectsVolume,
                 )
                 .zIndex(10)
 
@@ -281,7 +281,7 @@ struct BattleFieldLane: View {
                         scenario: scenario,
                         battleSession: battleSession,
                         battleSize: geometry.size,
-                        castPresentation: castPresentation
+                        castPresentation: castPresentation,
                     )
                     .zIndex(20)
                 }
@@ -295,7 +295,7 @@ struct BattleFieldLane: View {
                     isManualInteractionActive: { interactionState.blocksCombatantTaps },
                     playCard: { card in
                         await playCardWithTapLift(card, battleSize: geometry.size)
-                    }
+                    },
                 )
             }
         }
@@ -324,8 +324,8 @@ struct BattleFieldLane: View {
                 activeEffectSummaries: combatantReadModel.activeEffectSummaries,
                 labyrinthModifiers: combatant.role == .enemy
                     ? presentationContext.labyrinthModifiers
-                    : []
-            )
+                    : [],
+            ),
         )
     }
 
@@ -372,12 +372,12 @@ private struct BattleHandProjectionLane: View {
             autoLiftCardID: interactionState.autoLiftCardID,
             onCardInteractionChanged: onInteractionChanged,
             onAttackWindUp: onAttackWindUp,
-            onAttackCancel: onAttackCancel
+            onAttackCancel: onAttackCancel,
         )
         .trinketSensoryFeedback(
             .impact(weight: .medium),
             trigger: cardPlayFeedbackToken,
-            enabled: hapticsEnabled
+            enabled: hapticsEnabled,
         )
     }
 }
@@ -399,7 +399,7 @@ private struct BattleCinematicLane: View {
                 },
                 onCollapseFinished: { cinematicID in
                     battleSession.completeCinematicCollapse(expectedID: cinematicID)
-                }
+                },
             )
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
@@ -433,7 +433,7 @@ private struct BattleFeedbackBridgeLane: View {
             .onAppear {
                 battleSession.feedback.installBridge(
                     ownerID: ownerID,
-                    onChange: CombatFeedbackChipBridge.publish
+                    onChange: CombatFeedbackChipBridge.publish,
                 )
                 battleSession.feedback.prepareScheduler()
                 CombatFeedbackRasterUIView.prewarmMotionClock()
@@ -497,7 +497,7 @@ private struct BattleCastPrewarmLane: View {
     private var prewarmKey: BattleCastPrewarmKey {
         BattleCastPrewarmKey(
             configurationID: presentation.configurationID,
-            artworkNames: presentation.hand.compactMap(\.ability.artReference?.imageName).sorted()
+            artworkNames: presentation.hand.compactMap(\.ability.artReference?.imageName).sorted(),
         )
     }
 }

@@ -10,18 +10,18 @@ struct BattleStateStartingHealthTests {
             name: id.capitalized,
             role: role,
             maxHealth: maxHealth,
-            abilities: []
+            abilities: [],
         )
     }
 
-    @Test func battleStateSeedsPartyStartingHealth() {
+    @Test func `battle state seeds party starting health`() {
         let state = BattleState(
             hero: combatant(id: "hero", role: .hero, maxHealth: 50),
             companion: combatant(id: "companion", role: .companion, maxHealth: 40),
             enemy: combatant(id: "enemy", role: .enemy, maxHealth: 30),
             heroStartingHealth: 17,
             companionStartingHealth: 9,
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
 
         #expect(state.roster.hero.currentHealth == 17)
@@ -29,12 +29,12 @@ struct BattleStateStartingHealthTests {
         #expect(state.roster.enemy.currentHealth == 30)
     }
 
-    @Test func battleStateDefaultsPartyToFullHealth() {
+    @Test func `battle state defaults party to full health`() {
         let state = BattleState(
             hero: combatant(id: "hero", role: .hero, maxHealth: 50),
             companion: combatant(id: "companion", role: .companion, maxHealth: 40),
             enemy: combatant(id: "enemy", role: .enemy, maxHealth: 30),
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
 
         #expect(state.roster.hero.currentHealth == 50)

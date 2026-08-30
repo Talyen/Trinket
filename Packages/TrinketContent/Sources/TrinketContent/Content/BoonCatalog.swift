@@ -24,14 +24,14 @@ public enum BoonCatalog {
             "Lightning Rod",
             thunderwall,
             "Stunning an enemy doubles the party's Block.",
-            .controlDoublesPartyBlock(.stun)
+            .controlDoublesPartyBlock(.stun),
         ),
         boon(
             "seismic-reversal",
             "Seismic Reversal",
             thunderwall,
             "Blocked damage is returned as Stun damage.",
-            .blockedDamageReturned(.stun)
+            .blockedDamageReturned(.stun),
         ),
         boon("sunwall", "Sunwall", hallowedBastion, "Holy damage grants equal Block to the party.", .damageGrantsPartyBlock(.holy)),
         boon(
@@ -39,21 +39,21 @@ public enum BoonCatalog {
             "Unbroken Vow",
             hallowedBastion,
             "Block lets Holy damage ignore Block and Dodge.",
-            .damageIgnoresBlockAndDodgeWhileBlocked(.holy)
+            .damageIgnoresBlockAndDodgeWhileBlocked(.holy),
         ),
         boon(
             "stored-impact",
             "Stored Impact",
             kineticArsenal,
             "Blocked damage empowers your next Physical attack.",
-            .storedBlockedDamage(.physical)
+            .storedBlockedDamage(.physical),
         ),
         boon(
             "battering-ram",
             "Battering Ram",
             kineticArsenal,
             "Physical attacks consume Block for equal bonus damage.",
-            .consumeBlockForBonusDamage(.physical)
+            .consumeBlockForBonusDamage(.physical),
         ),
         boon("interdict", "Interdict", judgment, "Holy damage Purges all positive enemy effects.", .damagePurgesAll(.holy)),
         boon("crownfall", "Crownfall", judgment, "Purging deals 3 Holy damage per effect.", .purgeDealsDamage(keyword: .holy, amount: 3)),
@@ -62,28 +62,28 @@ public enum BoonCatalog {
             "Toxic Transfusion",
             venomsteel,
             "Physical damage deals half as much Poison damage.",
-            .mirroredDamage(source: .physical, result: .poison, multiplier: 0.5)
+            .mirroredDamage(source: .physical, result: .poison, multiplier: 0.5),
         ),
         boon(
             "pressure-point",
             "Pressure Point",
             venomsteel,
             "Critical Hits against Poisoned enemies deal double Physical damage.",
-            .criticalDamageMultiplier(keyword: .physical, targetStatus: .poison, multiplier: 2)
+            .criticalDamageMultiplier(keyword: .physical, targetStatus: .poison, multiplier: 2),
         ),
         boon(
             "bounty-blade",
             "Bounty Blade",
             mercenaryEdge,
             "Critical Hits grant 3 Gold and draw a card.",
-            .criticalGoldAndDraw(gold: 3, cards: 1)
+            .criticalGoldAndDraw(gold: 3, cards: 1),
         ),
         boon(
             "war-chest",
             "War Chest",
             mercenaryEdge,
             "50 Gold guarantees Physical Critical Hits.",
-            .goldGuaranteesCritical(keyword: .physical, threshold: 50)
+            .goldGuaranteesCritical(keyword: .physical, threshold: 50),
         ),
         boon("closed-circuit", "Closed Circuit", stormcraft, "Spending Mana deals equal Stun damage.", .manaSpentDealsDamage(.stun)),
         boon("eye-of-the-storm", "Eye of the Storm", stormcraft, "Stun damage restores equal Mana.", .damageRestoresMana(.stun)),
@@ -92,21 +92,21 @@ public enum BoonCatalog {
             "Nerve Agent",
             neuroshock,
             "Poison damage deals half as much Stun damage.",
-            .mirroredDamage(source: .poison, result: .stun, multiplier: 0.5)
+            .mirroredDamage(source: .poison, result: .stun, multiplier: 0.5),
         ),
         boon(
             "toxic-coma",
             "Toxic Coma",
             neuroshock,
             "Stunned enemies take double Poison damage.",
-            .statusDamageMultiplier(status: .stun, damage: .poison, multiplier: 2)
+            .statusDamageMultiplier(status: .stun, damage: .poison, multiplier: 2),
         ),
         boon(
             "shatterpoint",
             "Shatterpoint",
             crimsonRime,
             "Freeze damage detonates and consumes all Bleed.",
-            .damageDetonates(damage: .freeze, effect: .bleed, requiresCritical: false)
+            .damageDetonates(damage: .freeze, effect: .bleed, requiresCritical: false),
         ),
         boon("cryostasis", "Cryostasis", crimsonRime, "Bleed never expires on Frozen enemies.", .preserveBleedWhileFrozen),
         boon(
@@ -114,14 +114,14 @@ public enum BoonCatalog {
             "Cross-Contamination",
             septicWounds,
             "Bleed damage deals half as much Poison damage.",
-            .mirroredDamage(source: .bleed, result: .poison, multiplier: 0.5)
+            .mirroredDamage(source: .bleed, result: .poison, multiplier: 0.5),
         ),
         boon(
             "septicemia",
             "Septicemia",
             septicWounds,
             "Poisoned enemies take double Bleed damage.",
-            .statusDamageMultiplier(status: .poison, damage: .bleed, multiplier: 2)
+            .statusDamageMultiplier(status: .poison, damage: .bleed, multiplier: 2),
         ),
         boon("phantom-counter", "Phantom Counter", shadowsteel, "Dodging draws and plays a Physical card.", .dodgeDrawsAndPlays(.physical)),
         boon(
@@ -129,7 +129,7 @@ public enum BoonCatalog {
             "Perfect Tempo",
             shadowsteel,
             "Physical Critical Hits make you Dodge the next attack.",
-            .criticalGrantsDodge(.physical)
+            .criticalGrantsDodge(.physical),
         ),
         boon("purifying-waters", "Purifying Waters", renewal, "Cleansing restores 4 Health per effect.", .cleanseRestoresHealth(4)),
         boon("clean-slate", "Clean Slate", renewal, "Overhealing Cleanses one effect.", .overhealCleanses),
@@ -138,49 +138,49 @@ public enum BoonCatalog {
             "Firebrand",
             cinderstrike,
             "Physical damage deals half as much Burn damage.",
-            .mirroredDamage(source: .physical, result: .burn, multiplier: 0.5)
+            .mirroredDamage(source: .physical, result: .burn, multiplier: 0.5),
         ),
         boon(
             "backdraft",
             "Backdraft",
             cinderstrike,
             "Critical Hits detonate and consume all Burn.",
-            .damageDetonates(damage: .physical, effect: .burn, requiresCritical: true)
+            .damageDetonates(damage: .physical, effect: .burn, requiresCritical: true),
         ),
         boon(
             "ashen-arsenal",
             "Ashen Arsenal",
             cinderstrike,
             "Burn damage draws a Physical card.",
-            .damageDrawsCard(damage: .burn, card: .physical)
+            .damageDrawsCard(damage: .burn, card: .physical),
         ),
         boon(
             "furnace-rhythm",
             "Furnace Rhythm",
             cinderstrike,
             "Burn cards make the next Physical card play twice.",
-            .cardPrimesRepeat(trigger: .burn, repeated: .physical)
+            .cardPrimesRepeat(trigger: .burn, repeated: .physical),
         ),
         boon(
             "butchers-ledger",
             "Butcher's Ledger",
             bloodcraft,
             "Physical damage deals half as much Bleed damage.",
-            .mirroredDamage(source: .physical, result: .bleed, multiplier: 0.5)
+            .mirroredDamage(source: .physical, result: .bleed, multiplier: 0.5),
         ),
         boon(
             "arterial-cascade",
             "Arterial Cascade",
             bloodcraft,
             "Physical Critical Hits detonate and consume all Bleed.",
-            .damageDetonates(damage: .physical, effect: .bleed, requiresCritical: true)
+            .damageDetonates(damage: .physical, effect: .bleed, requiresCritical: true),
         ),
         boon(
             "bloodrush",
             "Bloodrush",
             bloodcraft,
             "Bleed damage draws a Physical card.",
-            .damageDrawsCard(damage: .bleed, card: .physical)
+            .damageDrawsCard(damage: .bleed, card: .physical),
         ),
         boon("redline", "Redline", bloodcraft, "Physical Critical Hits double Bleed duration.", .criticalDoublesBleedDuration(.physical)),
         boon("cold-storage", "Cold Storage", rimeguard, "Freeze damage grants equal Block.", .damageGrantsBlock(.freeze)),
@@ -190,42 +190,42 @@ public enum BoonCatalog {
             "Icebound Exchange",
             rimeguard,
             "Freeze damage steals enemy Block for the party.",
-            .freezeDamageStealsBlock
+            .freezeDamageStealsBlock,
         ),
         boon(
             "glacial-reprieve",
             "Glacial Reprieve",
             rimeguard,
             "Blocked damage is returned as Freeze damage.",
-            .blockedDamageReturned(.freeze)
+            .blockedDamageReturned(.freeze),
         ),
         boon(
             "steam-explosion",
             "Steam Explosion",
             thermalFracture,
             "Freeze damage detonates and consumes all Burn.",
-            .damageDetonates(damage: .freeze, effect: .burn, requiresCritical: false)
+            .damageDetonates(damage: .freeze, effect: .burn, requiresCritical: false),
         ),
         boon(
             "frostfire",
             "Frostfire",
             thermalFracture,
             "Burn damage deals half as much Freeze damage.",
-            .mirroredDamage(source: .burn, result: .freeze, multiplier: 0.5)
+            .mirroredDamage(source: .burn, result: .freeze, multiplier: 0.5),
         ),
         boon(
             "elemental-paradox",
             "Elemental Paradox",
             thermalFracture,
             "Burning enemies take double Freeze damage.",
-            .statusDamageMultiplier(status: .burn, damage: .freeze, multiplier: 2)
+            .statusDamageMultiplier(status: .burn, damage: .freeze, multiplier: 2),
         ),
         boon(
             "temper-cycle",
             "Temper Cycle",
             thermalFracture,
             "Burn cards make the next Freeze card play twice.",
-            .cardPrimesRepeat(trigger: .burn, repeated: .freeze)
+            .cardPrimesRepeat(trigger: .burn, repeated: .freeze),
         ),
     ]
 
@@ -238,7 +238,7 @@ public enum BoonCatalog {
         _ name: String,
         _ category: BoonCategory,
         _ description: String,
-        _ effect: BoonEffect
+        _ effect: BoonEffect,
     ) -> BoonDefinition {
         BoonDefinition(id: id, name: name, category: category, description: description, effect: effect)
     }

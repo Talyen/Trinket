@@ -26,8 +26,8 @@ private struct ShineTextModifier: ViewModifier {
                         LinearGradient(
                             gradient: Gradient(stops: sweepStops),
                             startPoint: UnitPoint(x: -phase, y: 0.5),
-                            endPoint: UnitPoint(x: 2 - phase, y: 0.5)
-                        )
+                            endPoint: UnitPoint(x: 2 - phase, y: 0.5),
+                        ),
                     )
             }
         }
@@ -39,7 +39,7 @@ private func seamlessShineStops(colors: [Color]) -> [Gradient.Stop] {
     return (0 ... 1).flatMap { period in
         colors.indices.map { index in
             let location = (
-                Double(period) + Double(index) / Double(periodSegmentCount)
+                Double(period) + Double(index) / Double(periodSegmentCount),
             ) / 2
             return Gradient.Stop(color: colors[index], location: location)
         }

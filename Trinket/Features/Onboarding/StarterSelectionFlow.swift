@@ -19,7 +19,7 @@ struct StarterSelectionFlow: View {
     init(
         initialSelection: StarterSelectionState,
         confirmHero: @escaping (String) -> Bool,
-        confirmCompanion: @escaping (String) -> Bool
+        confirmCompanion: @escaping (String) -> Bool,
     ) {
         _path = State(initialValue: initialSelection.phase == .chooseCompanion ? [.companion] : [])
         _selectedHeroID = State(initialValue: initialSelection.heroID)
@@ -33,14 +33,14 @@ struct StarterSelectionFlow: View {
                 roleName: "Hero",
                 combatants: GameContent.starterHeroes,
                 screenAccessibilityID: AccessibilityID.Onboarding.heroScreen,
-                onConfirm: confirmSelectedHero
+                onConfirm: confirmSelectedHero,
             )
             .navigationDestination(for: Destination.self) { _ in
                 StarterRouletteScreen(
                     roleName: "Companion",
                     combatants: GameContent.starterCompanions,
                     screenAccessibilityID: AccessibilityID.Onboarding.companionScreen,
-                    onConfirm: confirmSelectedCompanion
+                    onConfirm: confirmSelectedCompanion,
                 )
             }
         }

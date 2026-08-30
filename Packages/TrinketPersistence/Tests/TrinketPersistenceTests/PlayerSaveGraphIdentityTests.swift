@@ -14,7 +14,7 @@ final class PlayerSaveGraphIdentityTests {
         context = try PersistenceTestContext()
     }
 
-    @Test func unrelatedSliceWritePreservesInventoryAndRosterRowIdentity() throws {
+    @Test func `unrelated slice write preserves inventory and roster row identity`() throws {
         let storeURL = context.storeURL()
         let store = try makeStore(at: storeURL)
         try store.applyTestSeed()
@@ -30,7 +30,7 @@ final class PlayerSaveGraphIdentityTests {
         try #expect(after.rosterProgressions == before.rosterProgressions)
     }
 
-    @Test func inventoryReconciliationPreservesUnchangedRowsAndOrdering() throws {
+    @Test func `inventory reconciliation preserves unchanged rows and ordering`() throws {
         let storeURL = context.storeURL()
         let store = try makeStore(at: storeURL)
         try store.applyTestSeed()
@@ -57,11 +57,11 @@ final class PlayerSaveGraphIdentityTests {
         try #expect(reloaded.inventory.items.first?.displayName == "\(changedItem.displayName) +1")
     }
 
-    @Test func inventoryOnlyMutationPersistsSanitizedLoadoutRemoval() throws {
+    @Test func `inventory only mutation persists sanitized loadout removal`() throws {
         let storeURL = context.storeURL()
         let store = try makeStore(at: storeURL)
         let item = try #require(GameContent.itemTemplate(matching: "shortsword-basic")).rewardInstance(
-            for: "chapter-1-stage-1"
+            for: "chapter-1-stage-1",
         )
         try store.performBatchMutation { save in
             save.inventory.items.append(item)
@@ -83,7 +83,7 @@ final class PlayerSaveGraphIdentityTests {
         try PlayerSaveStore(
             storeURL: storeURL,
             disableCloudSync: true,
-            persistSaveImmediately: true
+            persistSaveImmediately: true,
         )
     }
 
@@ -100,7 +100,7 @@ final class PlayerSaveGraphIdentityTests {
             }),
             rosterProgressions: Dictionary(uniqueKeysWithValues: rosterProgressions.map {
                 ($0.combatantID, $0.persistentModelID)
-            })
+            }),
         )
     }
 }
@@ -120,7 +120,7 @@ private extension InventoryItem {
             displayName: name,
             affixes: affixes,
             isCorrupted: isCorrupted,
-            affixPowers: affixPowers
+            affixPowers: affixPowers,
         )
     }
 }

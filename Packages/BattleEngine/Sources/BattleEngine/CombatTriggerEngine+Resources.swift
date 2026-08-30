@@ -12,7 +12,7 @@ package extension CombatTriggerEngine {
                 events.append(contentsOf: context.grantGoldEvent(
                     amount,
                     to: hero,
-                    abilityName: triggerAbilityName("defeatEnemyGoldFlat", for: hero, fallback: "Bounty", in: context)
+                    abilityName: triggerAbilityName("defeatEnemyGoldFlat", for: hero, fallback: "Bounty", in: context),
                 ))
             }
         }
@@ -24,7 +24,7 @@ package extension CombatTriggerEngine {
                 events.append(contentsOf: context.grantGoldEvent(
                     amount,
                     to: companion,
-                    abilityName: triggerAbilityName("defeatEnemyGoldFlat", for: companion, fallback: "Bounty", in: context)
+                    abilityName: triggerAbilityName("defeatEnemyGoldFlat", for: companion, fallback: "Bounty", in: context),
                 ))
             }
         }
@@ -37,7 +37,7 @@ package extension CombatTriggerEngine {
 
     private static func afterEnemyDefeatedReactions(
         for owner: BattleParticipant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         let runtime = context.roster[owner]
         guard runtime.isAlive else { return [] }
@@ -48,7 +48,7 @@ package extension CombatTriggerEngine {
             events.append(contentsOf: critOnDefeatRewards(
                 triggers: triggers,
                 actor: actor,
-                in: &context
+                in: &context,
             ))
         }
         return events
@@ -57,14 +57,14 @@ package extension CombatTriggerEngine {
     private static func critOnDefeatRewards(
         triggers: CombatTraitTriggers,
         actor: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         var events: [ActionEvent] = []
         if triggers.critOnDefeatGold > 0 {
             events.append(contentsOf: context.grantGoldEvent(
                 triggers.critOnDefeatGold,
                 to: actor,
-                abilityName: triggerAbilityName("critOnDefeatGold", for: actor, fallback: "Bounty Hunter", in: context)
+                abilityName: triggerAbilityName("critOnDefeatGold", for: actor, fallback: "Bounty Hunter", in: context),
             ))
         }
         return events
@@ -78,7 +78,7 @@ package extension CombatTriggerEngine {
                 events.append(contentsOf: context.grantGoldEvent(
                     triggers.victoryGoldFlat,
                     to: actor,
-                    abilityName: triggerAbilityName("victoryGoldFlat", for: actor, fallback: "Smuggler's Map", in: context)
+                    abilityName: triggerAbilityName("victoryGoldFlat", for: actor, fallback: "Smuggler's Map", in: context),
                 ))
             }
             if triggers.victoryGoldCoin {
@@ -86,7 +86,7 @@ package extension CombatTriggerEngine {
                     events.append(contentsOf: context.grantGoldEvent(
                         7,
                         to: actor,
-                        abilityName: triggerAbilityName("victoryGoldCoin", for: actor, fallback: "Wishing Well Coin", in: context)
+                        abilityName: triggerAbilityName("victoryGoldCoin", for: actor, fallback: "Wishing Well Coin", in: context),
                     ))
                 } else {
                     let loss = min(3, max(0, context.gold))
@@ -99,7 +99,7 @@ package extension CombatTriggerEngine {
                         abilityName: triggerAbilityName("victoryGoldCoin", for: actor, fallback: "Wishing Well Coin", in: context),
                         target: actor,
                         amount: -loss,
-                        keyword: .gold
+                        keyword: .gold,
                     ))
                 }
             }
@@ -109,13 +109,13 @@ package extension CombatTriggerEngine {
 
     static func healSelfAfterGoldGain(
         source: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> CombatOutcome {
         resolveBonusHeal(
             amount: context.modifiers(for: source.id).triggers.gainGoldBonusHealSelf,
             source: source,
             target: source,
-            in: &context
+            in: &context,
         )
     }
 }

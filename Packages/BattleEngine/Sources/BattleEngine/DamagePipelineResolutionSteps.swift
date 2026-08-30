@@ -5,7 +5,7 @@ import TrinketCore
 package extension DamagePipeline {
     static func applyDamageBonus(
         to state: inout DamageResolutionState,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) {
         applyStatAndItemBonus(to: &state, in: &context)
         applyPercentBonus(to: &state, in: &context)
@@ -19,7 +19,7 @@ package extension DamagePipeline {
 
     private static func applyStatAndItemBonus(
         to state: inout DamageResolutionState,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) {
         if let sourceActorID = state.sourceActorID,
            let damageKeyword = state.damageKeyword,
@@ -31,7 +31,7 @@ package extension DamagePipeline {
                 ? outgoingDamageBonus(
                     for: sourceActorID,
                     keyword: damageKeyword,
-                    in: context
+                    in: context,
                 )
                 : 0
             if state.options.isAttackHit,
@@ -52,7 +52,7 @@ package extension DamagePipeline {
 
     private static func applyPercentBonus(
         to state: inout DamageResolutionState,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) {
         guard state.options.applyItemBonus,
               let sourceActorID = state.sourceActorID,
@@ -67,7 +67,7 @@ package extension DamagePipeline {
 
     private static func applyDodgeEmpoweredBonuses(
         to state: inout DamageResolutionState,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) {
         guard state.options.isAttackHit,
               let sourceActorID = state.sourceActorID,
@@ -85,7 +85,7 @@ package extension DamagePipeline {
         if runtime.pendingCardDamagePercent > 0 {
             state.remaining = CombatRounding.scaled(
                 state.remaining,
-                multiplier: 1 + runtime.pendingCardDamagePercent
+                multiplier: 1 + runtime.pendingCardDamagePercent,
             )
             context.roster.mutateRuntime(for: source.combatant) { $0.pendingCardDamagePercent = 0 }
         }
@@ -96,14 +96,14 @@ package extension DamagePipeline {
         if runtime.talentDamagePercentBonus > 0, context.turnCount < runtime.talentDamagePercentUntilTurn {
             state.remaining = CombatRounding.scaled(
                 state.remaining,
-                multiplier: 1 + runtime.talentDamagePercentBonus
+                multiplier: 1 + runtime.talentDamagePercentBonus,
             )
         }
     }
 
     private static func applyStunnedAndTalentMultipliers(
         to state: inout DamageResolutionState,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) {
         if state.options.isAttackHit,
            let sourceActorID = state.sourceActorID,
@@ -125,14 +125,14 @@ package extension DamagePipeline {
 
     private static func appendAfflictedAuraLogEvents(
         to state: inout DamageResolutionState,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) {
         guard let source = state.partySource(in: context) else { return }
         let target = state.combatant
         let names = CombatTriggerEngine.partyAfflictedDamageAuras(
             targetIsPoisoned: state.targetStatus.isPoisoned,
             targetIsBurning: state.targetStatus.isBurning,
-            in: context
+            in: context,
         ).abilityNames
         for name in names {
             state.damageEvents.append(context.nextEvent(
@@ -141,14 +141,14 @@ package extension DamagePipeline {
                 abilityName: name,
                 target: target,
                 amount: 0,
-                keyword: state.damageKeyword ?? .physical
+                keyword: state.damageKeyword ?? .physical,
             ))
         }
     }
 
     private static func applyOneShotEmpowers(
         to state: inout DamageResolutionState,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) {
         guard state.options.isAttackHit,
               let sourceActorID = state.sourceActorID,
@@ -174,7 +174,7 @@ package extension DamagePipeline {
 
     private static func applyEnemyOutgoingReductions(
         to state: inout DamageResolutionState,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) {
         guard state.sourceActorID == context.roster.enemy.id else { return }
         let enemy = context.roster.enemy.combatant
@@ -219,7 +219,7 @@ package extension DamagePipeline {
 
     static func applyFightPacing(
         to state: inout DamageResolutionState,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) {
         guard state.remaining > 0 else { return }
         state.remaining = context.paced(state.remaining, sourceActorID: state.sourceActorID)
@@ -229,7 +229,7 @@ package extension DamagePipeline {
     static func outgoingDamageBonus(
         for sourceActorID: String,
         keyword: Keyword,
-        in context: BattleState
+        in context: BattleState,
     ) -> Int {
         let profile = context.modifiers(for: sourceActorID)
         var bonus = profile.damageDealtBonus(for: keyword)
@@ -247,7 +247,7 @@ package extension DamagePipeline {
 
     static func applyMarkedBonus(
         to state: inout DamageResolutionState,
-        in _: inout BattleState
+        in _: inout BattleState,
     ) {
         guard state.options.isAttackHit, state.sourceActorID != nil else { return }
         for active in state.activeEffects {
@@ -262,7 +262,7 @@ package extension DamagePipeline {
 
     static func applyItemReduction(
         to state: inout DamageResolutionState,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) {
         guard state.remaining > 0 else {
             state.buildupDamage = 0
@@ -305,7 +305,7 @@ package extension DamagePipeline {
 
     static func applyCriticalMultiply(
         to state: inout DamageResolutionState,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) {
         guard state.isCritical, state.remaining > 0 else {
             state.buildupDamage = state.remaining
@@ -324,14 +324,14 @@ package extension DamagePipeline {
     // swiftlint:disable:next function_body_length
     static func applyMitigation(
         to state: inout DamageResolutionState,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) {
         guard state.remaining > 0 else { return }
 
         let profile = context.modifiers(for: state.combatant.id)
         let defenderTriggers = profile.triggers
         var effectivePercent = DefensePoolEngine.effectiveToughnessMitigationPercent(
-            for: state.combatant
+            for: state.combatant,
         )
         if let sourceActorID = state.sourceActorID {
             let sourceProfile = context.modifiers(for: sourceActorID)
@@ -392,13 +392,13 @@ package extension DamagePipeline {
         state.buildupDamage = state.remaining
         assert(
             state.buildupDamage == state.remaining,
-            "buildupDamage invariant: \(state.buildupDamage) != remaining \(state.remaining) after applyMitigation"
+            "buildupDamage invariant: \(state.buildupDamage) != remaining \(state.remaining) after applyMitigation",
         )
     }
 
     static func applyMarkedConsume(
         to state: inout DamageResolutionState,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) {
         guard state.markedBonusApplied else { return }
 
@@ -424,17 +424,17 @@ package extension DamagePipeline {
             abilityName: "Marked",
             target: state.combatant,
             amount: bonus,
-            keyword: .physical
+            keyword: .physical,
         ))
     }
 
     static func applyDeathsDoor(
         to state: inout DamageResolutionState,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) {
         state.damageEvents.append(contentsOf: DeathsDoorEngine.resolveAfterDamage(
             to: state.combatant,
-            in: &context
+            in: &context,
         ))
     }
 }

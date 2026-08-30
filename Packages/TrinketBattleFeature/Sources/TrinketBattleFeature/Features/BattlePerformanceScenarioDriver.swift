@@ -69,7 +69,7 @@ struct BattlePerformanceScenarioDriver {
     private func activationRequest(for card: BattleCard) -> CardActivationRequest {
         let size = CGSize(
             width: min(132, battleSize.width * 0.34),
-            height: min(184, battleSize.width * 0.47)
+            height: min(184, battleSize.width * 0.47),
         )
         return CardActivationRequest(
             artworkName: card.ability.artReference?.imageName,
@@ -78,7 +78,7 @@ struct BattlePerformanceScenarioDriver {
             rotation: 0,
             verticalTilt: 0,
             scale: 1,
-            keywords: card.ability.keywords
+            keywords: card.ability.keywords,
         )
     }
 
@@ -99,7 +99,7 @@ struct BattlePerformanceScenarioDriver {
                 targetID: target.id,
                 targetName: target.name,
                 amount: 8 + index,
-                keyword: keywords[index % keywords.count]
+                keyword: keywords[index % keywords.count],
             )
         }
     }
@@ -108,13 +108,13 @@ struct BattlePerformanceScenarioDriver {
 @MainActor
 func battlePerformancePrimeChipHostPipeline(
     scenario: BattlePerformanceScenario,
-    battleSession: BattleSession
+    battleSession: BattleSession,
 ) async {
     guard scenario != .handDragCancel, scenario != .engineHand else { return }
     let date = Date.now
     battleSession.feedback.record(
         BattlePerformanceScenarioDriver.feedbackEvents(in: battleSession),
-        at: date
+        at: date,
     )
     try? await Task.sleep(for: .milliseconds(200))
     battleSession.feedback.clear()

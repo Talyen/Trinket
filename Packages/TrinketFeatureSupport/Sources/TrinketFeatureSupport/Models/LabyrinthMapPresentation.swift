@@ -13,7 +13,7 @@ public enum LabyrinthMapPresentation {
         for node: LabyrinthNode,
         worldSeed: UInt64,
         unlockedHeroIDs: Set<String>,
-        unlockedCompanionIDs: Set<String>
+        unlockedCompanionIDs: Set<String>,
     ) -> LabyrinthNodeType {
         guard node.type.canonical == .recruit else { return node.type.canonical }
         let resolution = GameContent.resolveRecruitEncounter(
@@ -21,7 +21,7 @@ public enum LabyrinthMapPresentation {
             encounterID: node.id,
             worldSeed: worldSeed,
             unlockedHeroIDs: unlockedHeroIDs,
-            unlockedCompanionIDs: unlockedCompanionIDs
+            unlockedCompanionIDs: unlockedCompanionIDs,
         )
         if case .mystery = resolution {
             return .mystery
@@ -31,7 +31,7 @@ public enum LabyrinthMapPresentation {
 
     public static func actionTitle(
         for _: LabyrinthNode,
-        type: LabyrinthNodeType
+        type: LabyrinthNodeType,
     ) -> String {
         switch type.canonical {
         case .battle: "Battle"
@@ -56,7 +56,7 @@ public enum LabyrinthMapPresentation {
 
     public static func symbolName(
         for type: LabyrinthNodeType,
-        recruitEventID: String?
+        recruitEventID: String?,
     ) -> String {
         if type.canonical == .recruit {
             return GameContent.recruitEncounterSymbolName(forEventID: recruitEventID)
@@ -71,14 +71,14 @@ public enum LabyrinthMapPresentation {
         for node: LabyrinthNode,
         worldSeed: UInt64,
         unlockedHeroIDs: Set<String>,
-        unlockedCompanionIDs: Set<String>
+        unlockedCompanionIDs: Set<String>,
     ) -> EncounterArtReference? {
         let resolution = GameContent.resolveRecruitEncounter(
             configuredEventID: node.recruitEventID,
             encounterID: node.id,
             worldSeed: worldSeed,
             unlockedHeroIDs: unlockedHeroIDs,
-            unlockedCompanionIDs: unlockedCompanionIDs
+            unlockedCompanionIDs: unlockedCompanionIDs,
         )
         guard case let .recruit(event) = resolution else { return nil }
         return GameContent.recruitEncounterArtReference(for: event)
@@ -95,7 +95,7 @@ public enum LabyrinthMapPresentation {
 
     public static func hexRadius(
         forAvailableWidth availableWidth: CGFloat,
-        edgePad: CGFloat = 0
+        edgePad: CGFloat = 0,
     ) -> CGFloat {
         let usableWidth = max(1, availableWidth - edgePad * 2)
         let columns = CGFloat(LabyrinthMapLayout.fullColumnsAcross)

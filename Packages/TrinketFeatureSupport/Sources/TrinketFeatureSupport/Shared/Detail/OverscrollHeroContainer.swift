@@ -15,7 +15,7 @@ struct OverscrollHeroContainer<Art: View, Overlay: View>: View {
         alignment: Alignment = .bottomLeading,
         artworkBlend: ArtworkBlend = .none,
         @ViewBuilder art: @escaping () -> Art,
-        @ViewBuilder overlay: @escaping () -> Overlay
+        @ViewBuilder overlay: @escaping () -> Overlay,
     ) {
         self.baseHeight = baseHeight
         self.overscroll = overscroll

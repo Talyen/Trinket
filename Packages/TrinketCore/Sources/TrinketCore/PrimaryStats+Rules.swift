@@ -26,7 +26,7 @@ public extension PrimaryStats {
     func contestedDodgeChance(againstAttackerAgility attackerAgility: Int) -> Double {
         max(
             0,
-            Self.diminishingReturnsPercent(for: agility) - Self.diminishingReturnsPercent(for: attackerAgility)
+            Self.diminishingReturnsPercent(for: agility) - Self.diminishingReturnsPercent(for: attackerAgility),
         )
     }
 
@@ -50,7 +50,7 @@ public extension PrimaryStats {
 
     func contestedCriticalChance(
         for keyword: Keyword,
-        againstDefenderToughness defenderToughness: Int
+        againstDefenderToughness defenderToughness: Int,
     ) -> Double {
         guard keyword.allowsCriticalHits else { return 0 }
         let attackCurve: Double = switch keyword {

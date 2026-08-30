@@ -57,7 +57,7 @@ public final class RewardRevealSequenceState {
     public func experienceBarCompleted(
         requiredCount: Int,
         itemCount: Int,
-        walletCount: Int
+        walletCount: Int,
     ) {
         completedExperienceBarCount += 1
         guard completedExperienceBarCount >= requiredCount else { return }

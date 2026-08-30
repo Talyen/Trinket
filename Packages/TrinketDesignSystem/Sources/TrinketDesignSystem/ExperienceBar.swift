@@ -38,7 +38,7 @@ public struct ExperienceBar: View {
         fillColor: Color,
         experienceAward: Int? = nil,
         snapToFinal: Bool = false,
-        onAnimationCompleted: @escaping () -> Void = {}
+        onAnimationCompleted: @escaping () -> Void = {},
     ) {
         self.combatantName = combatantName
         self.artworkName = artworkName
@@ -207,7 +207,7 @@ public struct ExperienceBar: View {
                 to: segment,
                 duration: segmentDuration,
                 stepCount: stepCount,
-                clock: clock
+                clock: clock,
             )
             guard !Task.isCancelled else { return }
             if segment.levelsGained > 0 {
@@ -222,7 +222,7 @@ public struct ExperienceBar: View {
         to segment: Segment,
         duration: TimeInterval,
         stepCount: Int,
-        clock: SuspendingClock
+        clock: SuspendingClock,
     ) async {
         let startFraction = segment.startFraction
         let endFraction = segment.endFraction
@@ -272,7 +272,7 @@ public struct ExperienceBar: View {
     // swiftlint:disable:next modifier_order
     public nonisolated static func segments(
         from pre: CombatantProgression,
-        to post: CombatantProgression
+        to post: CombatantProgression,
     ) -> [Segment] {
         if pre == post {
             return []
@@ -285,7 +285,7 @@ public struct ExperienceBar: View {
                 endXP: post.currentXP,
                 levelsGained: 0,
                 newLevel: post.level,
-                newRequiredXP: post.requiredXP
+                newRequiredXP: post.requiredXP,
             )]
         }
 
@@ -297,7 +297,7 @@ public struct ExperienceBar: View {
             endXP: pre.requiredXP,
             levelsGained: 1,
             newLevel: pre.level + 1,
-            newRequiredXP: CombatantProgression.requiredXP(forLevel: pre.level + 1)
+            newRequiredXP: CombatantProgression.requiredXP(forLevel: pre.level + 1),
         ))
 
         var nextLevel = pre.level + 1
@@ -311,7 +311,7 @@ public struct ExperienceBar: View {
                 endXP: nextRequiredXP,
                 levelsGained: 1,
                 newLevel: upcomingLevel,
-                newRequiredXP: upcomingRequiredXP
+                newRequiredXP: upcomingRequiredXP,
             ))
             nextLevel = upcomingLevel
             nextRequiredXP = upcomingRequiredXP
@@ -323,7 +323,7 @@ public struct ExperienceBar: View {
             endXP: post.currentXP,
             levelsGained: 0,
             newLevel: post.level,
-            newRequiredXP: post.requiredXP
+            newRequiredXP: post.requiredXP,
         ))
 
         return segments

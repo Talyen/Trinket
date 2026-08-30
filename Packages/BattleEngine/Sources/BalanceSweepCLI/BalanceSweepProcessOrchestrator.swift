@@ -5,7 +5,7 @@ import Foundation
 enum BalanceSweepProcessOrchestrator {
     static func run(
         config: BalanceSweepConfig,
-        executablePath: String
+        executablePath: String,
     ) throws -> BalanceSweepReport {
         let jobs = BalanceSweepWorkPlan.workerJobs(config: config)
         let started = ContinuousClock.now
@@ -19,7 +19,7 @@ enum BalanceSweepProcessOrchestrator {
             """
             Spawning \(jobs.count) worker process(es), \
             \(config.resolvedJobs) at a time …\n
-            """.utf8
+            """.utf8,
         ))
 
         var slices: [BalanceSweepReport] = []
@@ -33,7 +33,7 @@ enum BalanceSweepProcessOrchestrator {
                 config: config,
                 executablePath: executablePath,
                 tempRoot: tempRoot,
-                chunkIndex: &chunkIndex
+                chunkIndex: &chunkIndex,
             )
             slices.append(contentsOf: waveSlices)
             nextIndex = waveEnd
@@ -46,7 +46,7 @@ enum BalanceSweepProcessOrchestrator {
             slices,
             config: unsliced(config),
             policyID: slices.first?.policyID ?? "greedy-v1",
-            elapsedSeconds: elapsedSeconds
+            elapsedSeconds: elapsedSeconds,
         )
     }
 
@@ -55,7 +55,7 @@ enum BalanceSweepProcessOrchestrator {
         config: BalanceSweepConfig,
         executablePath: String,
         tempRoot: URL,
-        chunkIndex: inout Int
+        chunkIndex: inout Int,
     ) throws -> [BalanceSweepReport] {
         var launched: [(process: Process, output: URL)] = []
         launched.reserveCapacity(jobs.count)
@@ -67,7 +67,7 @@ enum BalanceSweepProcessOrchestrator {
             process.arguments = workerArguments(
                 parent: config,
                 job: job,
-                outputFile: output.path
+                outputFile: output.path,
             )
             process.standardOutput = FileHandle.nullDevice
             try process.run()
@@ -93,7 +93,7 @@ enum BalanceSweepProcessOrchestrator {
     static func workerArguments(
         parent: BalanceSweepConfig,
         job: BalanceSweepWorkerJob,
-        outputFile: String
+        outputFile: String,
     ) -> [String] {
         var args = [
             "--worker",

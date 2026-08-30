@@ -22,7 +22,7 @@ package extension BattleState {
             combatant: resolved.target,
             sourceActorID: resolved.sourceActorID,
             damageKeyword: resolved.keyword,
-            options: resolved.options
+            options: resolved.options,
         )
         state.activeEffects = roster.activeEffects(for: request.target)
 
@@ -39,14 +39,14 @@ package extension BattleState {
         _ amount: Int,
         keyword: Keyword,
         to combatant: Combatant,
-        sourceActorID: String?
+        sourceActorID: String?,
     ) -> [ActionEvent] {
         ControlMeterEngine.applyMeterCharge(
             amount,
             keyword: keyword,
             to: combatant,
             sourceActorID: sourceActorID,
-            in: &self
+            in: &self,
         )
     }
 
@@ -54,14 +54,14 @@ package extension BattleState {
         basePotency: Int,
         keyword: Keyword,
         target: Combatant,
-        sourceActorID: String?
+        sourceActorID: String?,
     ) -> CombatOutcome {
         DoTDamage.resolveTurnDamage(
             basePotency: basePotency,
             keyword: keyword,
             target: target,
             sourceActorID: sourceActorID,
-            in: &self
+            in: &self,
         )
     }
 
@@ -71,7 +71,7 @@ package extension BattleState {
         to effectTarget: Combatant,
         sourceActorID: String,
         dealImmediateDamage: Bool,
-        suppressAffixReactions: Bool = false
+        suppressAffixReactions: Bool = false,
     ) -> [ActionEvent] {
         DoTApplicator.applyDecayingDoT(
             keyword: keyword,
@@ -80,7 +80,7 @@ package extension BattleState {
             sourceActorID: sourceActorID,
             dealImmediateDamage: dealImmediateDamage,
             suppressAffixReactions: suppressAffixReactions,
-            in: &self
+            in: &self,
         )
     }
 }

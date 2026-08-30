@@ -44,7 +44,7 @@ struct BattleHandView: View {
         autoLiftCardID: Int? = nil,
         onCardInteractionChanged: ((Bool) -> Void)? = nil,
         onAttackWindUp: ((BattleCard) -> Void)? = nil,
-        onAttackCancel: ((BattleCard) -> Void)? = nil
+        onAttackCancel: ((BattleCard) -> Void)? = nil,
     ) {
         self.cards = cards
         self.isPlayable = isPlayable
@@ -63,14 +63,14 @@ struct BattleHandView: View {
         GeometryReader { geometry in
             let layout = BattleHandLayout.metrics(
                 containerWidth: geometry.size.width,
-                cardCount: cards.count
+                cardCount: cards.count,
             )
             ZStack(alignment: .bottom) {
                 ForEach(Array(cards.enumerated()), id: \.element.id) { index, card in
                     let liveSnapshot = liveSnapshot(
                         index: index,
                         layout: layout,
-                        containerWidth: geometry.size.width
+                        containerWidth: geometry.size.width,
                     )
                     let isHeld = heldInteraction?.cardID == card.id
                     let snapshot = isHeld ? (heldInteraction?.layout ?? liveSnapshot) : liveSnapshot
@@ -93,7 +93,7 @@ struct BattleHandView: View {
                                 if heldInteraction?.cardID != card.id {
                                     heldInteraction = HeldCardInteraction(
                                         cardID: card.id,
-                                        layout: liveSnapshot
+                                        layout: liveSnapshot,
                                     )
                                 }
                                 onCardInteractionChanged?(true)
@@ -103,7 +103,7 @@ struct BattleHandView: View {
                             }
                         },
                         onAttackWindUp: { onAttackWindUp?(card) },
-                        onAttackCancel: { onAttackCancel?(card) }
+                        onAttackCancel: { onAttackCancel?(card) },
                     )
                     .offset(x: snapshot.fanOffsetX)
                     .zIndex(isHeld ? 100 : Double(index))
@@ -114,13 +114,13 @@ struct BattleHandView: View {
                                 x: card.owner == .hero
                                     ? -BattleMotion.dealInsertOffset
                                     : BattleMotion.dealInsertOffset,
-                                y: BattleMotion.dealInsertOffset
+                                y: BattleMotion.dealInsertOffset,
                             )
                             .combined(with: .opacity)
                             .combined(with: .scale(scale: BattleMotion.dealInsertScale))
                             .animation(BattleMotion.deal),
-                            removal: .identity
-                        )
+                            removal: .identity,
+                        ),
                     )
                 }
             }
@@ -134,30 +134,30 @@ struct BattleHandView: View {
     private func liveSnapshot(
         index: Int,
         layout: BattleHandLayout.Metrics,
-        containerWidth: CGFloat
+        containerWidth: CGFloat,
     ) -> HeldCardLayoutSnapshot {
         HeldCardLayoutSnapshot(
             width: layout.cardWidth,
             height: layout.cardHeight,
             restingRotation: BattleHandLayout.rotation(
                 index: index,
-                cardCount: cards.count
+                cardCount: cards.count,
             ),
             restingOffsetY: BattleHandLayout.restingOffsetY(
                 index: index,
-                cardCount: cards.count
+                cardCount: cards.count,
             ),
             restingCenter: BattleHandLayout.restingCenter(
                 index: index,
                 metrics: layout,
                 cardCount: cards.count,
-                containerFrame: battleFrame
+                containerFrame: battleFrame,
             ),
             fanOffsetX: BattleHandLayout.cardOffsetX(
                 index: index,
                 metrics: layout,
-                containerWidth: containerWidth
-            )
+                containerWidth: containerWidth,
+            ),
         )
     }
 }

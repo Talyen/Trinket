@@ -15,7 +15,7 @@ struct EnemyTraitBattleTests {
         companion: Combatant,
         enemyBuild: CombatBuild,
         heroModifiers: CombatModifierProfile = .zero,
-        companionModifiers: CombatModifierProfile = .zero
+        companionModifiers: CombatModifierProfile = .zero,
     ) -> BattleState {
         BattleTestFixtures.makeContext(
             hero: hero,
@@ -23,11 +23,11 @@ struct EnemyTraitBattleTests {
             enemy: enemyBuild.combatant,
             heroModifiers: heroModifiers,
             companionModifiers: companionModifiers,
-            enemyModifiers: enemyBuild.modifiers
+            enemyModifiers: enemyBuild.modifiers,
         )
     }
 
-    @Test func skeletonTakesExtraHolyDamage() throws {
+    @Test func `skeleton takes extra holy damage`() throws {
         let skeleton = try enemyBuild(id: "skeleton")
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 20)
@@ -35,10 +35,10 @@ struct EnemyTraitBattleTests {
         var holyContext = makeContext(hero: hero, companion: companion, enemyBuild: skeleton)
 
         let physical = physicalContext.resolveDamage(
-            .directAbilityHit(amount: 10, target: skeleton.combatant, keyword: .physical, sourceActorID: hero.id)
+            .directAbilityHit(amount: 10, target: skeleton.combatant, keyword: .physical, sourceActorID: hero.id),
         )
         let holy = holyContext.resolveDamage(
-            .directAbilityHit(amount: 10, target: skeleton.combatant, keyword: .holy, sourceActorID: hero.id)
+            .directAbilityHit(amount: 10, target: skeleton.combatant, keyword: .holy, sourceActorID: hero.id),
         )
 
         let drPercent = skeleton.combatant.primaryStats.toughnessMitigationPercent
@@ -50,7 +50,7 @@ struct EnemyTraitBattleTests {
         try #expect(holy.healthLost > physical.healthLost)
     }
 
-    @Test func frostwardenFreezeAuraSkipsOddRounds() throws {
+    @Test func `frostwarden freeze aura skips odd rounds`() throws {
         let frostwarden = try enemyBuild(id: "the_frostwarden")
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 20)
@@ -77,7 +77,7 @@ struct EnemyTraitBattleTests {
         try #expect(evenMeter)
     }
 
-    @Test func frostwardenFreezeDamageChargesControlMeterAndTriggersSkip() throws {
+    @Test func `frostwarden freeze damage charges control meter and triggers skip`() throws {
         let frostwarden = try enemyBuild(id: "the_frostwarden")
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 20)
@@ -102,17 +102,17 @@ struct EnemyTraitBattleTests {
         #expect(events.contains { $0.effectKind == .controlTriggered })
     }
 
-    @Test func mimicDoubleDamageOnFirstAttack() throws {
+    @Test func `mimic double damage on first attack`() throws {
         let mimic = try enemyBuild(id: "mimic")
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 30)
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 30)
         var context = makeContext(hero: hero, companion: companion, enemyBuild: mimic)
 
         let first = context.resolveDamage(
-            .directAbilityHit(amount: 2, target: hero, keyword: .physical, sourceActorID: mimic.combatant.id)
+            .directAbilityHit(amount: 2, target: hero, keyword: .physical, sourceActorID: mimic.combatant.id),
         )
         let second = context.resolveDamage(
-            .directAbilityHit(amount: 2, target: hero, keyword: .physical, sourceActorID: mimic.combatant.id)
+            .directAbilityHit(amount: 2, target: hero, keyword: .physical, sourceActorID: mimic.combatant.id),
         )
 
         let strengthPercent = mimic.combatant.primaryStats.statDamageBonusPercent(keyword: .physical)
@@ -122,7 +122,7 @@ struct EnemyTraitBattleTests {
         try #expect(second.healthLost == baseDamage)
     }
 
-    @Test func damageTakenReductionReducesMatchingKeyword() throws {
+    @Test func `damage taken reduction reduces matching keyword`() throws {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 20)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30)
@@ -130,12 +130,12 @@ struct EnemyTraitBattleTests {
             hero: hero,
             companion: companion,
             enemy: enemy,
-            enemyModifiers: CombatModifierProfile(damageTakenReduction: [.bleed: 0.3])
+            enemyModifiers: CombatModifierProfile(damageTakenReduction: [.bleed: 0.3]),
         )
         var baselineContext = BattleTestFixtures.makeContext(
             hero: hero,
             companion: companion,
-            enemy: enemy
+            enemy: enemy,
         )
 
         let reduced = reducedContext.resolveDamage(
@@ -144,8 +144,8 @@ struct EnemyTraitBattleTests {
                 target: enemy,
                 keyword: .bleed,
                 sourceActorID: hero.id,
-                options: DamageOptions(applyStatBonus: false, applyItemBonus: false, applyDodge: false)
-            )
+                options: DamageOptions(applyStatBonus: false, applyItemBonus: false, applyDodge: false),
+            ),
         )
         let baseline = baselineContext.resolveDamage(
             DamageRequest(
@@ -153,8 +153,8 @@ struct EnemyTraitBattleTests {
                 target: enemy,
                 keyword: .bleed,
                 sourceActorID: hero.id,
-                options: DamageOptions(applyStatBonus: false, applyItemBonus: false, applyDodge: false)
-            )
+                options: DamageOptions(applyStatBonus: false, applyItemBonus: false, applyDodge: false),
+            ),
         )
 
         try #expect(reduced.healthLost == CombatRounding.scaled(10, multiplier: 0.7))
@@ -162,28 +162,28 @@ struct EnemyTraitBattleTests {
         try #expect(reduced.healthLost < baseline.healthLost)
     }
 
-    @Test func randomBossDamageAurasRollOnceForBothPartyMembers() throws {
+    @Test func `random boss damage auras roll once for both party members`() throws {
         try assertRandomBossDamageAura(
             enemyID: "the_forge_golem",
             firstKeyword: .stun,
-            secondKeyword: .burn
+            secondKeyword: .burn,
         )
         try assertRandomBossDamageAura(
             enemyID: "the_blight_treant",
             firstKeyword: .poison,
-            secondKeyword: .bleed
+            secondKeyword: .bleed,
         )
         try assertRandomBossDamageAura(
             enemyID: "the_iron_bear",
             firstKeyword: .physical,
-            secondKeyword: .stun
+            secondKeyword: .stun,
         )
     }
 
     private func assertRandomBossDamageAura(
         enemyID: String,
         firstKeyword: Keyword,
-        secondKeyword: Keyword
+        secondKeyword: Keyword,
     ) throws {
         let boss = try enemyBuild(id: enemyID)
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 99)
@@ -193,11 +193,11 @@ struct EnemyTraitBattleTests {
             companion: companion,
             enemyBuild: boss,
             heroModifiers: CombatModifierProfile(
-                damageTakenVulnerability: [firstKeyword: 1.0]
+                damageTakenVulnerability: [firstKeyword: 1.0],
             ),
             companionModifiers: CombatModifierProfile(
-                damageTakenVulnerability: [secondKeyword: 1.0]
-            )
+                damageTakenVulnerability: [secondKeyword: 1.0],
+            ),
         )
 
         context.appliesFightPacing = false
@@ -211,13 +211,13 @@ struct EnemyTraitBattleTests {
             let companionLoss = companionHealthBefore - context.roster.health(for: companion)
             try #expect(
                 heroLoss + companionLoss == 3,
-                "\(enemyID) turn \(turn): hero \(heroLoss), companion \(companionLoss)"
+                "\(enemyID) turn \(turn): hero \(heroLoss), companion \(companionLoss)",
             )
             try #expect(Set([heroLoss, companionLoss]) == Set([1, 2]))
         }
     }
 
-    @Test func frostwardenFreezeAuraDoesNotRampOutgoingFreezeDamage() throws {
+    @Test func `frostwarden freeze aura does not ramp outgoing freeze damage`() throws {
         let frostwarden = try enemyBuild(id: "the_frostwarden")
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 99)
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 99)
@@ -227,17 +227,17 @@ struct EnemyTraitBattleTests {
         let freezeBonus = DamagePipeline.outgoingDamageBonus(
             for: frostwarden.combatant.id,
             keyword: .freeze,
-            in: context
+            in: context,
         )
         let burnBonus = DamagePipeline.outgoingDamageBonus(
             for: frostwarden.combatant.id,
             keyword: .burn,
-            in: context
+            in: context,
         )
         let physicalBonus = DamagePipeline.outgoingDamageBonus(
             for: frostwarden.combatant.id,
             keyword: .physical,
-            in: context
+            in: context,
         )
         try #expect(freezeBonus == 0)
         try #expect(burnBonus == 0)

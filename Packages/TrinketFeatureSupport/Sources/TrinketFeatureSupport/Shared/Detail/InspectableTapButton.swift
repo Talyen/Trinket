@@ -10,7 +10,7 @@ public struct InspectableTapButton<Label: View>: View {
         action: @escaping () -> Void,
         longPress: (() -> Void)? = nil,
         isDisabled: Bool = false,
-        @ViewBuilder label: @escaping () -> Label
+        @ViewBuilder label: @escaping () -> Label,
     ) {
         self.action = action
         self.longPress = longPress
@@ -35,7 +35,7 @@ private struct InspectLongPressModifier: ViewModifier {
             content
                 .simultaneousGesture(
                     LongPressGesture(minimumDuration: 0.5)
-                        .onEnded { _ in longPress() }
+                        .onEnded { _ in longPress() },
                 )
         } else {
             content

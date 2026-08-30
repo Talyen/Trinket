@@ -26,7 +26,7 @@ public final class JourneyStageProgressModel {
         stageID: String = "",
         isCompleted: Bool = false,
         rewardsClaimed: Bool = false,
-        mysteryEventID: String? = nil
+        mysteryEventID: String? = nil,
     ) {
         self.stageID = stageID
         self.isCompleted = isCompleted
@@ -47,7 +47,7 @@ extension JourneyProgressModel {
             activeStageID: activeStageID,
             completedStageIDs: Set(stageModels.filter(\.isCompleted).map(\.stageID)),
             claimedRewardStageIDs: Set(stageModels.filter(\.rewardsClaimed).map(\.stageID)),
-            pinnedMysteryEventIDs: pinned
+            pinnedMysteryEventIDs: pinned,
         )
     }
 
@@ -69,7 +69,7 @@ extension JourneyProgressModel {
                 model.rewardsClaimed = state.claimedRewardStageIDs.contains(stageID)
                 model.mysteryEventID = state.pinnedMysteryEventIDs[stageID]
             },
-            context: context
+            context: context,
         )
         stages?.linkEach(to: self, parent: \.journey)
     }

@@ -37,7 +37,7 @@ public struct SpireDefinition: Identifiable, Hashable, Sendable {
         title: String,
         epithet: String,
         keyword: Keyword,
-        floorCount: Int = 20
+        floorCount: Int = 20,
     ) {
         self.id = id
         self.title = title
@@ -59,7 +59,7 @@ public struct SpireFloor: Identifiable, Hashable, Sendable {
     public init(
         spireID: SpireID,
         floor: Int,
-        enemyID: String
+        enemyID: String,
     ) {
         self.spireID = spireID
         self.floor = floor
@@ -94,7 +94,7 @@ public enum SpireAttunement: Equatable, Sendable {
     public static func canEnter(
         _ spire: SpireDefinition,
         heroes: [Combatant],
-        companions: [Combatant]
+        companions: [Combatant],
     ) -> Bool {
         heroes.contains { matches($0, spire: spire) }
             && companions.contains { matches($0, spire: spire) }
@@ -103,7 +103,7 @@ public enum SpireAttunement: Equatable, Sendable {
     public static func evaluate(
         hero: Combatant,
         companion: Combatant,
-        spire: SpireDefinition
+        spire: SpireDefinition,
     ) -> Self {
         if !matches(hero, spire: spire) {
             return .missingHeroAffinity

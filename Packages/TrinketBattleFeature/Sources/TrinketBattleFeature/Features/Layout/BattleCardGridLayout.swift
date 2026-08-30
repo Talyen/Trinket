@@ -33,7 +33,7 @@ enum BattleCardGridLayout {
         return FeedbackAnchors(
             enemy: CGPoint(x: centerX, y: layout.enemySize.height / 2),
             hero: CGPoint(x: centerX - partyCenterOffset, y: partyCenterY),
-            companion: CGPoint(x: centerX + partyCenterOffset, y: partyCenterY)
+            companion: CGPoint(x: centerX + partyCenterOffset, y: partyCenterY),
         )
     }
 
@@ -41,7 +41,7 @@ enum BattleCardGridLayout {
         let innerWidth = max(containerSize.width - 2 * outerPadding, 0)
         let innerHeight = max(
             containerSize.height - 2 * outerPadding - handReservedHeight + handOverlapAllowance,
-            0
+            0,
         )
         guard innerWidth > 0, innerHeight > 0 else {
             return Metrics(
@@ -49,7 +49,7 @@ enum BattleCardGridLayout {
                 partySize: .zero,
                 outerPadding: outerPadding,
                 cardSpacing: cardSpacing,
-                handReservedHeight: handReservedHeight
+                handReservedHeight: handReservedHeight,
             )
         }
 
@@ -60,7 +60,7 @@ enum BattleCardGridLayout {
             ) / (
                 2 / enemyAspectRatio + 1 / partyAspectRatio
             ),
-            0
+            0,
         )
         let fullPartyWidth = min(maxPartyWidthForAvailableWidth, maxPartyWidthForAvailableHeight)
         let fullPartyRowWidth = min(innerWidth, 2 * fullPartyWidth + cardSpacing)
@@ -73,7 +73,7 @@ enum BattleCardGridLayout {
             partySize: CGSize(width: partyWidth, height: partyHeight),
             outerPadding: outerPadding,
             cardSpacing: cardSpacing,
-            handReservedHeight: handReservedHeight
+            handReservedHeight: handReservedHeight,
         )
     }
 }

@@ -12,7 +12,7 @@ struct BattleScreen {
 
     var handCards: XCUIElementQuery {
         app.descendants(matching: .any).matching(
-            NSPredicate(format: "identifier BEGINSWITH %@", "Battle Hand Card ")
+            NSPredicate(format: "identifier BEGINSWITH %@", "Battle Hand Card "),
         )
     }
 
@@ -43,7 +43,7 @@ struct BattleScreen {
     func assertPresented(
         timeout: TimeInterval = TrinketUITestCase.defaultTimeout,
         file: StaticString = #file,
-        line: UInt = #line
+        line: UInt = #line,
     ) {
         let handChrome = app.descendants(matching: .any)
             .matching(identifier: AccessibilityID.Battle.hand)
@@ -55,14 +55,14 @@ struct BattleScreen {
             victory.waitForExistence(timeout: 1),
             "Battle chrome not found",
             file: file,
-            line: line
+            line: line,
         )
     }
 
     func assertActive(
         timeout: TimeInterval = TrinketUITestCase.defaultTimeout,
         file: StaticString = #file,
-        line: UInt = #line
+        line: UInt = #line,
     ) {
         let handChrome = app.descendants(matching: .any)
             .matching(identifier: AccessibilityID.Battle.hand)
@@ -71,7 +71,7 @@ struct BattleScreen {
             handChrome.waitForExistence(timeout: timeout),
             "Battle hand chrome not found",
             file: file,
-            line: line
+            line: line,
         )
     }
 

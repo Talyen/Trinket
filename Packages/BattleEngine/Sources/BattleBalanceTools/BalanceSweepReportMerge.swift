@@ -5,7 +5,7 @@ public extension BalanceSweepReport {
         _ slices: [BalanceSweepReport],
         config: BalanceSweepConfig,
         policyID: String,
-        elapsedSeconds: Double
+        elapsedSeconds: Double,
     ) -> BalanceSweepReport {
         let progressionRecords = slices.flatMap(\.progressionRecords)
         return BalanceSweepReport(
@@ -16,25 +16,25 @@ public extension BalanceSweepReport {
             comparedRecords: slices.flatMap(\.comparedRecords),
             abilityContrasts: BalanceContrastSupport.mergeSummaries(
                 slices.flatMap(\.abilityContrasts),
-                config: config
+                config: config,
             ),
             affixContrasts: BalanceContrastSupport.mergeSummaries(
                 slices.flatMap(\.affixContrasts),
-                config: config
+                config: config,
             ),
             talentContrasts: BalanceContrastSupport.mergeSummaries(
                 slices.flatMap(\.talentContrasts),
-                config: config
+                config: config,
             ),
             talentKitContrasts: BalanceContrastSupport.mergeSummaries(
                 slices.flatMap(\.talentKitContrasts),
-                config: config
+                config: config,
             ),
             progressionHotspots: HotspotAnalyzer.analyze(records: progressionRecords),
             progressionRecords: progressionRecords,
             progressionPlayerStates: slices.flatMap(\.progressionPlayerStates),
             progressionTruncatedRuns: slices.reduce(0) { $0 + $1.progressionTruncatedRuns },
-            elapsedSeconds: elapsedSeconds
+            elapsedSeconds: elapsedSeconds,
         )
     }
 }

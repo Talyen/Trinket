@@ -61,7 +61,7 @@ final class StarterOnboardingSmokeTests: TrinketUITestCase {
 
         XCTAssertTrue(
             app.tabBars.firstMatch.waitForExistence(timeout: 20),
-            "Tab bar did not appear after onboarding"
+            "Tab bar did not appear after onboarding",
         )
         _ = app.descendants(matching: .any)[AccessibilityID.Play.modesScreen].waitForExistence(timeout: 20)
     }

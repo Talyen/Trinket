@@ -12,7 +12,7 @@ public struct CombatantCard: View {
         combatant: Combatant,
         isLocked: Bool = false,
         showsName: Bool = true,
-        isSelected: Bool = false
+        isSelected: Bool = false,
     ) {
         self.combatant = combatant
         self.isLocked = isLocked
@@ -34,7 +34,7 @@ public struct CombatantCard: View {
                     .foregroundStyle(isLocked ? .secondary : .primary)
                     .lineLimit(2)
                     .multilineTextAlignment(.center)
-            }
+            },
         )
     }
 }
@@ -51,7 +51,7 @@ public struct CollectionCombatantButton: View {
         isLocked: Bool,
         cardWidth: CGFloat? = 130,
         showsName: Bool = true,
-        onSelect: @escaping () -> Void
+        onSelect: @escaping () -> Void,
     ) {
         self.combatant = combatant
         self.isLocked = isLocked
@@ -65,7 +65,7 @@ public struct CollectionCombatantButton: View {
             CombatantCard(
                 combatant: combatant,
                 isLocked: isLocked,
-                showsName: showsName
+                showsName: showsName,
             )
             .frame(width: cardWidth)
         }

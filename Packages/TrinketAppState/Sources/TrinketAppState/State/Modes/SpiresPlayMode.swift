@@ -18,37 +18,33 @@ public final class SpiresPlayMode {
     public let playerSave: PlayerSaveStore
     public let battle: any BattleRuntime
     private let battleLaunch: PlayBattleLaunch
-    private var encounterCoordinator: PlayBattleEncounterCoordinator<PreparationInputs>
+    private var preparationTracker = PlayBattlePreparationTracker<PreparationInputs>()
 
     init(
         playerSave: PlayerSaveStore,
         battle: any BattleRuntime,
-        battleLaunch: PlayBattleLaunch
+        battleLaunch: PlayBattleLaunch,
     ) {
         self.playerSave = playerSave
         self.battle = battle
         self.battleLaunch = battleLaunch
-        encounterCoordinator = PlayBattleEncounterCoordinator(
-            battle: battle,
-            battleLaunch: battleLaunch
-        )
     }
 
     public func resolvedEncounter(for floor: SpireFloor) -> (combatant: Combatant, level: Int)? {
         Self.resolvedEncounter(
             for: floor,
-            partyAverageLevel: playerSave.roster.activePartyAverageLevel
+            partyAverageLevel: playerSave.roster.activePartyAverageLevel,
         )
     }
 
     static func resolvedEncounter(
         for floor: SpireFloor,
-        partyAverageLevel: Int
+        partyAverageLevel: Int,
     ) -> (combatant: Combatant, level: Int)? {
         PlayBattlePreparation.scaledEncounter(
             enemyID: floor.enemyID,
             authoredLevel: EncounterLevelResolver.spireEnemyLevel(for: floor),
-            partyAverageLevel: partyAverageLevel
+            partyAverageLevel: partyAverageLevel,
         )
     }
 
@@ -59,7 +55,7 @@ public final class SpiresPlayMode {
             worldSeed: playerSave.worldSeed,
             ownedTrinketIDs: playerSave.inventory.ownedTrinketIDs,
             ownedUniqueIDs: playerSave.inventory.ownedUniqueIDs,
-            astralChanceBonusPercent: playerSave.homestead.effects.astralChanceBonusPercent
+            astralChanceBonusPercent: playerSave.homestead.effects.astralChanceBonusPercent,
         )
     }
 
@@ -77,7 +73,7 @@ public final class SpiresPlayMode {
                 materialRewards: materialRewards,
                 rewardItem: presentation?.pendingRewardItem,
                 loot: loot,
-                enemyEncounterLevel: configuration.enemyEncounterLevel
+                enemyEncounterLevel: configuration.enemyEncounterLevel,
             )
         }
     }
@@ -96,24 +92,24 @@ public final class SpiresPlayMode {
         guard spires.isFloorStartable(
             floor.floor,
             spireID: floor.spireID.rawValue,
-            floorCount: spire.floorCount
+            floorCount: spire.floorCount,
         ) else {
             if spires.isFloorCleared(floor.floor, spireID: floor.spireID.rawValue) {
                 return StageMapMessage(
                     title: "Floor Cleared",
-                    message: "This floor is already complete."
+                    message: "This floor is already complete.",
                 )
             }
             return StageMapMessage(
                 title: "Floor Locked",
-                message: "Clear earlier floors first."
+                message: "Clear earlier floors first.",
             )
         }
 
         let attunement = SpireAttunement.evaluate(
             hero: roster.activeHero,
             companion: roster.activeCompanion,
-            spire: spire
+            spire: spire,
         )
         guard attunement.isReady else {
             return StageMapMessage(title: "Not Attuned", message: attunement.message)
@@ -123,8 +119,22 @@ public final class SpiresPlayMode {
             return StageMapMessage(title: "Encounter Missing", message: "This floor is not ready yet.")
         }
 
-        let activated = encounterCoordinator.activateBattle(combatRequest(for: floor, encounter: encounter))
-        return encounterCoordinator.activationFailureMessageIfNeeded(activated)
+        let request = combatRequest(for: floor, encounter: encounter)
+        guard battle.lifecyclePhase != .active else { return PlayBattleLaunch.activationFailureMessage }
+        let activated = battleLaunch.activateCombat(
+            origin: request.origin,
+            encounter: request.encounter,
+            route: request.route,
+            loot: request.loot,
+            stageRewardsAlreadyClaimed: request.stageRewardsAlreadyClaimed,
+            universalModifiers: request.universalModifiers,
+            labyrinthModifiers: request.labyrinthModifiers,
+        )
+        if activated {
+            preparationTracker.invalidate()
+            return nil
+        }
+        return PlayBattleLaunch.activationFailureMessage
     }
 
     public func prepareBattle(for floor: SpireFloor) {
@@ -135,24 +145,52 @@ public final class SpiresPlayMode {
               spires.isFloorStartable(
                   floor.floor,
                   spireID: floor.spireID.rawValue,
-                  floorCount: spire.floorCount
+                  floorCount: spire.floorCount,
               ),
               SpireAttunement.evaluate(
                   hero: roster.activeHero,
                   companion: roster.activeCompanion,
-                  spire: spire
+                  spire: spire,
               ).isReady,
               let encounter = resolvedEncounter(for: floor)
         else { return }
 
-        encounterCoordinator.prepareBattle(combatRequest(for: floor, encounter: encounter))
+        let request = combatRequest(for: floor, encounter: encounter)
+        guard preparationTracker.shouldPrepare(
+            for: request.preparationInputs,
+            lifecycle: battle.lifecyclePhase,
+            hasPreparedRun: battle.hasPreparedRun(request.origin.runKey),
+        ) else { return }
+        let prepared = battleLaunch.prepareCombat(
+            origin: request.origin,
+            encounter: request.encounter,
+            route: request.route,
+            loot: request.loot,
+            stageRewardsAlreadyClaimed: request.stageRewardsAlreadyClaimed,
+            universalModifiers: request.universalModifiers,
+            labyrinthModifiers: request.labyrinthModifiers,
+        )
+        if prepared {
+            preparationTracker.notePrepared(request.preparationInputs)
+        }
+    }
+
+    private struct CombatRequest {
+        let origin: PlayBattleOrigin
+        let encounter: (combatant: Combatant, level: Int)
+        let route: PlayBattleRoute
+        let loot: BattleLootPackage?
+        let stageRewardsAlreadyClaimed: Bool
+        let universalModifiers: [AffixModifier]
+        let labyrinthModifiers: [LabyrinthModifierDefinition]
+        let preparationInputs: PreparationInputs
     }
 
     private func combatRequest(
         for floor: SpireFloor,
-        encounter: (combatant: Combatant, level: Int)
-    ) -> PlayBattleEncounterCoordinator<PreparationInputs>.CombatRequest {
-        PlayBattleEncounterCoordinator<PreparationInputs>.CombatRequest(
+        encounter: (combatant: Combatant, level: Int),
+    ) -> CombatRequest {
+        CombatRequest(
             origin: .spire(spireID: floor.spireID, floor: floor.floor),
             encounter: encounter,
             route: battleRoute(spireID: floor.spireID, floor: floor.floor),
@@ -163,8 +201,8 @@ public final class SpiresPlayMode {
             preparationInputs: PreparationInputs(
                 spireID: floor.spireID,
                 floor: floor.floor,
-                party: PlayBattlePartySnapshot(playerSave: playerSave)
-            )
+                party: PlayBattlePartySnapshot(playerSave: playerSave),
+            ),
         )
     }
 
@@ -177,7 +215,7 @@ public final class SpiresPlayMode {
         materialRewards: [ResourceAmount]? = nil,
         rewardItem: InventoryItem? = nil,
         loot: BattleLootPackage? = nil,
-        enemyEncounterLevel: Int? = nil
+        enemyEncounterLevel: Int? = nil,
     ) -> Bool {
         playerSave.persistBatch(logging: "Failed to persist Spire floor") { save in
             SpireCompletion.complete(
@@ -189,7 +227,7 @@ public final class SpiresPlayMode {
                 rewardItem: rewardItem,
                 loot: loot,
                 enemyEncounterLevel: enemyEncounterLevel,
-                save: &save
+                save: &save,
             )
         }
     }

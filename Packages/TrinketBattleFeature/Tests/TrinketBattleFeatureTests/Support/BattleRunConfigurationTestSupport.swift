@@ -34,7 +34,7 @@ enum BattleRunConfigurationTestSupport {
         musicStageID: String? = nil,
         heroExperienceAward: Int = 0,
         companionExperienceAward: Int = 0,
-        materialRewards: [ResourceAmount] = []
+        materialRewards: [ResourceAmount] = [],
     ) -> (configuration: BattleRunConfiguration, presentation: BattlePresentationContext) {
         let configuration = BattleRunConfiguration(
             runKey: runKey,
@@ -43,17 +43,17 @@ enum BattleRunConfigurationTestSupport {
                 combatant: hero,
                 progression: heroProgression,
                 equipmentLoadout: heroEquipmentLoadout,
-                modifiers: heroModifiers
+                modifiers: heroModifiers,
             ),
             companion: BattleRunConfiguration.PartyMember(
                 combatant: companion,
                 progression: companionProgression,
                 equipmentLoadout: companionEquipmentLoadout,
-                modifiers: companionModifiers
+                modifiers: companionModifiers,
             ),
             enemy: enemy ?? Enemy.fallbackCombatant,
             enemyEncounterLevel: enemyEncounterLevel,
-            enemyModifiers: enemyModifiers
+            enemyModifiers: enemyModifiers,
         )
         let presentation = BattlePresentationContext(
             inventoryItems: inventoryItems,
@@ -68,7 +68,7 @@ enum BattleRunConfigurationTestSupport {
             musicStageID: musicStageID,
             heroExperienceAward: heroExperienceAward,
             companionExperienceAward: companionExperienceAward,
-            materialRewards: materialRewards
+            materialRewards: materialRewards,
         )
         return (configuration, presentation)
     }

@@ -13,7 +13,7 @@ package extension BattleState {
             side: side,
             isBoss: FightPacing.isBossEnemy(in: self),
             metrics: metrics,
-            in: self
+            in: self,
         )
         guard multiplier != 1 else { return amount }
         return CombatRounding.scaled(amount, multiplier: multiplier)

@@ -17,19 +17,19 @@ struct LabyrinthProgressTests {
             enemyID: "the_frostwarden",
             depth: 3,
             clusterID: "labyrinth-test",
-            isRevealed: true
+            isRevealed: true,
         )
         return save
     }
 
-    @Test func ensureMapWithoutSeedDoesNotUseFallback() {
+    @Test func `ensure map without seed does not use fallback`() {
         var state = PlayerLabyrinthState.freshStart
         state.ensureMap()
         #expect(!state.hasMap)
         #expect(state.worldSeed == 0)
     }
 
-    @Test func ensureMapCreatesReachableNodes() {
+    @Test func `ensure map creates reachable nodes`() {
         var state = PlayerLabyrinthState.freshStart
         state.ensureMap(seed: 99)
         #expect(state.hasMap)
@@ -37,7 +37,7 @@ struct LabyrinthProgressTests {
         #expect(!state.reachableNodeIDs().isEmpty)
     }
 
-    @Test func markClearedExpandsPastBossAndKeepsEarlierNodes() throws {
+    @Test func `mark cleared expands past boss and keeps earlier nodes`() throws {
         var state = PlayerLabyrinthState.freshStart
         state.ensureMap(seed: 21)
         var boss = try #require(state.nodes.values.first(where: { $0.type == .boss && $0.depth == 1 }), "Missing floor-1 boss")
@@ -63,14 +63,14 @@ struct LabyrinthProgressTests {
         }
     }
 
-    @Test func sanitizeMigratesLegacyFloorLayoutGateAndModifiers() throws {
+    @Test func `sanitize migrates legacy floor layout gate and modifiers`() throws {
         let generated = LabyrinthGenerator.makeMap(seed: 9, floorCount: 3)
         var legacy = PlayerLabyrinthState(
             worldSeed: 9,
             mapVersion: 2,
             hasEntered: true,
             clusters: generated.clusters,
-            nodes: generated.nodes
+            nodes: generated.nodes,
         )
         let thirdFloor = try #require(legacy.clusters.first { $0.depthBand == 3 })
         let clearedID = try #require(thirdFloor.nodeIDs.first)
@@ -87,7 +87,7 @@ struct LabyrinthProgressTests {
             recruitEventID: cleared.recruitEventID,
             outgoingIDs: cleared.outgoingIDs,
             isCleared: true,
-            isRevealed: true
+            isRevealed: true,
         )
 
         let sanitized = PlayerSaveSanitizer.sanitizeLabyrinth(legacy)
@@ -107,13 +107,13 @@ struct LabyrinthProgressTests {
                     from: entryID,
                     to: bossID,
                     nodeIDs: cluster.nodeIDs,
-                    state: sanitized
-                )
+                    state: sanitized,
+                ),
             )
         }
     }
 
-    @Test @MainActor func labyrinthPersistsThroughStore() throws {
+    @Test @MainActor func `labyrinth persists through store`() throws {
         let directory = try SaveTestSupport.makeTempDirectory(prefix: "labyrinth-progress")
         defer { SaveTestSupport.removeTempDirectory(directory) }
 
@@ -132,7 +132,7 @@ struct LabyrinthProgressTests {
         #expect(second.labyrinth.runHealthByCombatantID == ["knight": 11, "wolf": 6])
     }
 
-    @Test func completionGrantsGoldAndClearsNode() throws {
+    @Test func `completion grants gold and clears node`() throws {
         var save = PlayerSave.fresh
         save.labyrinth.ensureMap(seed: 17)
         let nodeID = try #require(save.labyrinth.reachableNodeIDs().first)
@@ -141,33 +141,33 @@ struct LabyrinthProgressTests {
             nodeID: nodeID,
             hero: save.roster.activeHero,
             companion: save.roster.activeCompanion,
-            save: &save
+            save: &save,
         )
         #expect(save.labyrinth.nodes[nodeID]?.isCleared == true)
         #expect(save.roster.gold >= goldBefore)
     }
 
     @Test(arguments: [false, true])
-    func completionGrantsBattleExperienceOnlyForCombatNodes(isCombat: Bool) throws {
+    func `completion grants battle experience only for combat nodes`(isCombat: Bool) throws {
         var save = PlayerSave.fresh
         if isCombat {
             save.labyrinth.ensureMap(seed: 31)
             let combatID = try #require(
                 save.labyrinth.reachableNodeIDs().first(where: {
                     save.labyrinth.nodes[$0]?.type.isCombat == true
-                })
+                }),
             )
             let heroXPBefore = save.roster.progression(for: save.roster.activeHero)
             LabyrinthCompletion.complete(
                 nodeID: combatID,
                 hero: save.roster.activeHero,
                 companion: save.roster.activeCompanion,
-                save: &save
+                save: &save,
             )
             let heroXPAfter = save.roster.progression(for: save.roster.activeHero)
             #expect(
                 heroXPAfter.level > heroXPBefore.level
-                    || heroXPAfter.currentXP > heroXPBefore.currentXP
+                    || heroXPAfter.currentXP > heroXPBefore.currentXP,
             )
         } else {
             save.labyrinth.ensureMap(seed: 23)
@@ -180,7 +180,7 @@ struct LabyrinthProgressTests {
                 clusterID: "audit",
                 outgoingIDs: [],
                 isCleared: false,
-                isRevealed: true
+                isRevealed: true,
             )
             if var entrance = save.labyrinth.nodes[LabyrinthGenerator.entranceNodeID] {
                 entrance.outgoingIDs.append(restID)
@@ -193,7 +193,7 @@ struct LabyrinthProgressTests {
                 nodeID: restID,
                 hero: save.roster.activeHero,
                 companion: save.roster.activeCompanion,
-                save: &save
+                save: &save,
             )
             #expect(save.labyrinth.nodes[restID]?.isCleared == true)
             #expect(save.roster.progression(for: save.roster.activeHero) == heroXPBefore)
@@ -201,13 +201,13 @@ struct LabyrinthProgressTests {
         }
     }
 
-    @Test func labyrinthEconomyModifiersScaleCombatLoot() {
+    @Test func `labyrinth economy modifiers scale combat loot`() {
         let node = LabyrinthNode(
             id: "econ-node",
             type: .battle,
             enemyID: "goblin_scout",
             depth: 2,
-            clusterID: "econ"
+            clusterID: "econ",
         )
         let resolve: (LabyrinthModifierEffects) -> BattleLootPackage = { effects in
             BattleLoot.resolveLabyrinth(
@@ -217,7 +217,7 @@ struct LabyrinthProgressTests {
                 effects: effects,
                 worldSeed: 5,
                 ownedTrinketIDs: [],
-                ownedUniqueIDs: []
+                ownedUniqueIDs: [],
             )
         }
 
@@ -226,13 +226,13 @@ struct LabyrinthProgressTests {
         #expect(!base.materials.isEmpty)
 
         let bounty = resolve(LabyrinthModifierEffects.combining(
-            LabyrinthCatalog.modifiers(ids: [LabyrinthModifierID("bountyMark")])
+            LabyrinthCatalog.modifiers(ids: [LabyrinthModifierID("bountyMark")]),
         ))
         #expect(bounty.gold == base.gold + (base.gold * 25) / 100)
         #expect(bounty.materials == base.materials)
 
         let scavenger = resolve(LabyrinthModifierEffects.combining(
-            LabyrinthCatalog.modifiers(ids: [LabyrinthModifierID("scavengersLuck")])
+            LabyrinthCatalog.modifiers(ids: [LabyrinthModifierID("scavengersLuck")]),
         ))
         #expect(scavenger.gold == base.gold)
         for (boosted, original) in zip(scavenger.materials, base.materials) {
@@ -241,7 +241,7 @@ struct LabyrinthProgressTests {
         }
     }
 
-    @Test func pendingCombatRewardItemMatchesCompletionGrantForBoss() throws {
+    @Test func `pending combat reward item matches completion grant for boss`() throws {
         var save = makeWardenSave(seed: 41)
         let bossID = "labyrinth-test-warden-41"
         let boss = try #require(save.labyrinth.nodes[bossID])
@@ -253,8 +253,8 @@ struct LabyrinthProgressTests {
                 effects: effects,
                 worldSeed: save.labyrinth.worldSeed,
                 ownedTrinketIDs: save.inventory.ownedTrinketIDs,
-                ownedUniqueIDs: save.inventory.ownedUniqueIDs
-            )
+                ownedUniqueIDs: save.inventory.ownedUniqueIDs,
+            ),
         )
         let pending = pendingLoot.item
         #expect(pending.rarity != .basic)
@@ -270,13 +270,13 @@ struct LabyrinthProgressTests {
             hero: save.roster.activeHero,
             companion: save.roster.activeCompanion,
             rewardItem: pending,
-            save: &save
+            save: &save,
         )
         #expect(save.inventory.items.contains(where: { $0.id == pending.id }))
         #expect(save.inventory.items.count(where: { $0.id == pending.id }) == 1)
     }
 
-    @Test func mapUpdatePreservesPriorPayloadWhenReencodingSameState() throws {
+    @Test func `map update preserves prior payload when reencoding same state`() throws {
         let model = LabyrinthProgressModel()
         var state = PlayerLabyrinthState.freshStart
         state.ensureMap(seed: 77)
@@ -294,7 +294,7 @@ struct LabyrinthProgressTests {
         #expect(reloaded.worldSeed == 77)
     }
 
-    @Test func labyrinthHydrationToleratesDuplicateNodeIDs() throws {
+    @Test func `labyrinth hydration tolerates duplicate node I ds`() throws {
         let model = LabyrinthProgressModel()
         model.worldSeed = 9
         model.hasEntered = true
@@ -304,7 +304,7 @@ struct LabyrinthProgressTests {
             enemyID: "slime",
             depth: 1,
             clusterID: "cluster",
-            isRevealed: true
+            isRevealed: true,
         )
         let second = LabyrinthNode(
             id: "dup-node",
@@ -312,10 +312,10 @@ struct LabyrinthProgressTests {
             enemyID: "skeleton",
             depth: 1,
             clusterID: "cluster",
-            isRevealed: true
+            isRevealed: true,
         )
         model.mapPayload = try JSONEncoder().encode(
-            LabyrinthMapPayload(clusters: [], nodes: [first, second])
+            LabyrinthMapPayload(clusters: [], nodes: [first, second]),
         )
 
         let loaded = model.toPlayerLabyrinthState()
@@ -329,7 +329,7 @@ private extension LabyrinthProgressTests {
         from sourceID: String,
         to targetID: String,
         nodeIDs: [String],
-        state: PlayerLabyrinthState
+        state: PlayerLabyrinthState,
     ) -> Bool {
         var reached = Set([sourceID])
         var frontier = [sourceID]
@@ -349,7 +349,7 @@ private extension LabyrinthProgressTests {
 }
 
 extension LabyrinthProgressTests {
-    @Test func clearedHexMakesAdjacentNeighborsReachable() {
+    @Test func `cleared hex makes adjacent neighbors reachable`() {
         let center = LabyrinthNode(
             id: "center",
             type: .battle,
@@ -357,7 +357,7 @@ extension LabyrinthProgressTests {
             clusterID: "floor",
             gridPosition: LabyrinthGridPosition(row: 1, column: 0),
             isCleared: true,
-            isRevealed: true
+            isRevealed: true,
         )
         let neighborA = LabyrinthNode(
             id: "neighbor-a",
@@ -365,7 +365,7 @@ extension LabyrinthProgressTests {
             depth: 1,
             clusterID: "floor",
             gridPosition: LabyrinthGridPosition(row: 1, column: -1),
-            isRevealed: true
+            isRevealed: true,
         )
         let neighborB = LabyrinthNode(
             id: "neighbor-b",
@@ -373,7 +373,7 @@ extension LabyrinthProgressTests {
             depth: 1,
             clusterID: "floor",
             gridPosition: LabyrinthGridPosition(row: 0, column: 1),
-            isRevealed: true
+            isRevealed: true,
         )
         let distant = LabyrinthNode(
             id: "distant",
@@ -381,7 +381,7 @@ extension LabyrinthProgressTests {
             depth: 1,
             clusterID: "floor",
             gridPosition: LabyrinthGridPosition(row: 3, column: 0),
-            isRevealed: true
+            isRevealed: true,
         )
         let otherFloor = LabyrinthNode(
             id: "other-floor",
@@ -389,11 +389,11 @@ extension LabyrinthProgressTests {
             depth: 2,
             clusterID: "other-floor",
             gridPosition: LabyrinthGridPosition(row: 1, column: 1),
-            isRevealed: true
+            isRevealed: true,
         )
         let state = PlayerLabyrinthState(
             hasEntered: true,
-            nodes: Dictionary(uniqueKeysWithValues: [center, neighborA, neighborB, distant, otherFloor].map { ($0.id, $0) })
+            nodes: Dictionary(uniqueKeysWithValues: [center, neighborA, neighborB, distant, otherFloor].map { ($0.id, $0) }),
         )
 
         #expect(state.isNodeReachable(neighborA.id))
@@ -405,7 +405,7 @@ extension LabyrinthProgressTests {
 }
 
 extension LabyrinthProgressTests {
-    @Test func corruptMapPayloadKeepsBlobAndDoesNotSanitizeRebuild() {
+    @Test func `corrupt map payload keeps blob and does not sanitize rebuild`() {
         let model = LabyrinthProgressModel()
         model.worldSeed = 55
         model.hasEntered = true
@@ -429,20 +429,20 @@ extension LabyrinthProgressTests {
         #expect(model.mapPayload == corruptBlob)
     }
 
-    @Test func sanitizePreservesPinnedMysteryOnMapVersionBump() throws {
+    @Test func `sanitize preserves pinned mystery on map version bump`() throws {
         let generated = LabyrinthGenerator.makeMap(seed: 9, floorCount: 3)
         var legacy = PlayerLabyrinthState(
             worldSeed: 9,
             mapVersion: 2,
             hasEntered: true,
             clusters: generated.clusters,
-            nodes: generated.nodes
+            nodes: generated.nodes,
         )
         let currentFloor = try #require(legacy.clusters.map(\.depthBand).max())
         let mysteryID = try #require(
             legacy.nodes.values.first {
                 $0.type.canonical == .mystery && $0.depth == currentFloor
-            }?.id
+            }?.id,
         )
         var mystery = try #require(legacy.nodes[mysteryID])
         mystery.mysteryEventID = "hidden-cache"

@@ -23,14 +23,14 @@ enum CombatFeedbackChipComposer {
         presentationRole: CombatFeedbackPresentationRole = .headline,
         layoutDirection: LayoutDirection = .leftToRight,
         displayScale: CGFloat,
-        atlas: CombatFeedbackGlyphAtlas = .shared
+        atlas: CombatFeedbackGlyphAtlas = .shared,
     ) -> ComposedRaster? {
         let recipe = CombatFeedbackChipStyle.forClass(feedbackClass)
         let scale = max(1, displayScale)
         let face = CombatFeedbackGlyphAtlas.Face(
             feedbackClass: feedbackClass,
             presentationRole: presentationRole,
-            displayScaleHundredths: Int((scale * 100).rounded())
+            displayScaleHundredths: Int((scale * 100).rounded()),
         )
 
         var leadingGlyph: CombatFeedbackGlyphAtlas.Glyph?
@@ -38,7 +38,7 @@ enum CombatFeedbackChipComposer {
             guard let glyph = atlas.symbol(
                 named: leadingStyle.symbolName,
                 face: face,
-                recipe: recipe
+                recipe: recipe,
             ) else {
                 return nil
             }
@@ -49,7 +49,7 @@ enum CombatFeedbackChipComposer {
         guard let trailingGlyph = atlas.symbol(
             named: trailingStyle.symbolName,
             face: face,
-            recipe: recipe
+            recipe: recipe,
         ) else {
             return nil
         }
@@ -60,7 +60,7 @@ enum CombatFeedbackChipComposer {
                 for: text,
                 face: face,
                 recipe: recipe,
-                atlas: atlas
+                atlas: atlas,
             ) else {
                 return nil
             }
@@ -74,18 +74,18 @@ enum CombatFeedbackChipComposer {
                 // UIStyleCheck: allow - CoreGraphics compose needs UIKit colors bridged from semantic roles.
                 (
                     $0,
-                    UIColor((presentation.leadingStyle ?? presentation.trailingStyle).visualStyle.color)
+                    UIColor((presentation.leadingStyle ?? presentation.trailingStyle).visualStyle.color),
                 )
             },
             trailing: (
                 trailingGlyph,
                 // UIStyleCheck: allow - CoreGraphics compose needs UIKit colors bridged from semantic roles.
-                UIColor(trailingStyle.color)
+                UIColor(trailingStyle.color),
             ),
             textGlyphs: renderedText,
             textTint: UIColor(trailingStyle.color),
             layoutDirection: layoutDirection,
-            displayScale: scale
+            displayScale: scale,
         )
     }
 
@@ -95,7 +95,7 @@ enum CombatFeedbackChipComposer {
         textGlyphs: [CombatFeedbackGlyphAtlas.Glyph],
         textTint: UIColor,
         layoutDirection: LayoutDirection,
-        displayScale: CGFloat
+        displayScale: CGFloat,
     ) -> ComposedRaster? {
         let textWidth = textGlyphs.reduce(CGFloat(0)) { $0 + $1.width }
         let textHeight = textGlyphs.map(\.height).max() ?? 0
@@ -108,7 +108,7 @@ enum CombatFeedbackChipComposer {
         let contentHeight = max(leading?.0.height ?? 0, trailing.0.height, textHeight)
         let pointSize = CGSize(
             width: ceil(contentWidth + horizontalPadding * 2),
-            height: ceil(contentHeight + verticalPadding * 2 + shadowOffsetY)
+            height: ceil(contentHeight + verticalPadding * 2 + shadowOffsetY),
         )
 
         let format = UIGraphicsImageRendererFormat()
@@ -124,20 +124,20 @@ enum CombatFeedbackChipComposer {
                 leadingWidth: leadingWidth,
                 textWidth: textWidth,
                 trailingWidth: trailingWidth,
-                layoutDirection: layoutDirection
+                layoutDirection: layoutDirection,
             )
 
             let context = UIGraphicsGetCurrentContext()
             context?.setShadow(
                 offset: CGSize(width: 0, height: shadowOffsetY),
                 blur: 0,
-                color: shadow.cgColor
+                color: shadow.cgColor,
             )
 
             if let leading {
                 let origin = CGPoint(
                     x: origins.leadingX,
-                    y: contentOrigin.y + (contentHeight - leading.0.height) / 2
+                    y: contentOrigin.y + (contentHeight - leading.0.height) / 2,
                 )
                 draw(glyph: leading.0, at: origin, tint: leading.1, displayScale: displayScale)
             }
@@ -146,7 +146,7 @@ enum CombatFeedbackChipComposer {
             for glyph in textGlyphs {
                 let origin = CGPoint(
                     x: textX,
-                    y: contentOrigin.y + (contentHeight - glyph.height) / 2
+                    y: contentOrigin.y + (contentHeight - glyph.height) / 2,
                 )
                 draw(glyph: glyph, at: origin, tint: textTint, displayScale: displayScale)
                 textX += glyph.width
@@ -154,7 +154,7 @@ enum CombatFeedbackChipComposer {
 
             let trailingOrigin = CGPoint(
                 x: origins.trailingX,
-                y: contentOrigin.y + (contentHeight - trailing.0.height) / 2
+                y: contentOrigin.y + (contentHeight - trailing.0.height) / 2,
             )
             draw(glyph: trailing.0, at: trailingOrigin, tint: trailing.1, displayScale: displayScale)
             context?.setShadow(offset: .zero, blur: 0, color: nil)
@@ -169,7 +169,7 @@ enum CombatFeedbackChipComposer {
         leadingWidth: CGFloat,
         textWidth: CGFloat,
         trailingWidth: CGFloat,
-        layoutDirection: LayoutDirection
+        layoutDirection: LayoutDirection,
     ) -> (leadingX: CGFloat, textX: CGFloat, trailingX: CGFloat) {
         let leadingPresent = leadingWidth > 0
         let textPresent = textWidth > 0
@@ -206,7 +206,7 @@ enum CombatFeedbackChipComposer {
         for text: String,
         face: CombatFeedbackGlyphAtlas.Face,
         recipe: CombatFeedbackChipStyle,
-        atlas: CombatFeedbackGlyphAtlas
+        atlas: CombatFeedbackGlyphAtlas,
     ) -> [CombatFeedbackGlyphAtlas.Glyph]? {
         let fragments: [String] = if text.allSatisfy({ $0.isNumber || $0 == "+" }) {
             text.map(String.init)
@@ -228,7 +228,7 @@ enum CombatFeedbackChipComposer {
         glyph: CombatFeedbackGlyphAtlas.Glyph,
         at origin: CGPoint,
         tint: UIColor,
-        displayScale: CGFloat
+        displayScale: CGFloat,
     ) {
         let rect = CGRect(origin: origin, size: CGSize(width: glyph.width, height: glyph.height))
         let tinted = UIImage(cgImage: glyph.image, scale: displayScale, orientation: .up)

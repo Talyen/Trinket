@@ -10,11 +10,11 @@ enum CombatantSliceCrack {
 
     private static let along = CGVector(
         dx: sin(CombatantSliceGeometry.angleRadians),
-        dy: cos(CombatantSliceGeometry.angleRadians)
+        dy: cos(CombatantSliceGeometry.angleRadians),
     )
     private static let normal = CGVector(
         dx: cos(CombatantSliceGeometry.angleRadians),
-        dy: -sin(CombatantSliceGeometry.angleRadians)
+        dy: -sin(CombatantSliceGeometry.angleRadians),
     )
 
     static let points: [CGPoint] = {
@@ -63,7 +63,7 @@ enum CombatantSliceCrack {
                 let local = end > start ? (target - start) / (end - start) : 0
                 return CGPoint(
                     x: a.x + (b.x - a.x) * local,
-                    y: a.y + (b.y - a.y) * local
+                    y: a.y + (b.y - a.y) * local,
                 )
             }
         }
@@ -92,7 +92,7 @@ enum CombatantSliceCrack {
                 let local = segmentLength > 0 ? remaining / segmentLength : 0
                 result.append(CGPoint(
                     x: (a.x + (b.x - a.x) * local) * size.width,
-                    y: (a.y + (b.y - a.y) * local) * size.height
+                    y: (a.y + (b.y - a.y) * local) * size.height,
                 ))
                 break
             }
@@ -170,14 +170,14 @@ enum CombatantSliceCrack {
     private static func basePoint(aspectOffset d: CGFloat) -> CGPoint {
         CGPoint(
             x: 0.5 + along.dx * d / aspectWidth,
-            y: 0.5 + along.dy * d / aspectHeight
+            y: 0.5 + along.dy * d / aspectHeight,
         )
     }
 
     private static func offsetPoint(aspectOffset d: CGFloat, perpendicular: CGFloat) -> CGPoint {
         CGPoint(
             x: 0.5 + (along.dx * d + normal.dx * perpendicular) / aspectWidth,
-            y: 0.5 + (along.dy * d + normal.dy * perpendicular) / aspectHeight
+            y: 0.5 + (along.dy * d + normal.dy * perpendicular) / aspectHeight,
         )
     }
 

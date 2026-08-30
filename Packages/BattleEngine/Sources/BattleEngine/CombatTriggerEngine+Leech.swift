@@ -5,7 +5,7 @@ package extension CombatTriggerEngine {
     static func afterLeech(
         by actor: Combatant,
         target: Combatant?,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         let profile = context.modifiers(for: actor.id)
         let triggers = profile.triggers
@@ -15,7 +15,7 @@ package extension CombatTriggerEngine {
             events.append(contentsOf: context.restoreManaEmitting(
                 context.paced(triggers.leechRestoreManaFlat, sourceActorID: actor.id),
                 to: actor,
-                abilityName: triggerAbilityName("leechRestoreManaFlat", for: actor, fallback: "Siphoning", in: context)
+                abilityName: triggerAbilityName("leechRestoreManaFlat", for: actor, fallback: "Siphoning", in: context),
             ))
         }
 
@@ -23,7 +23,7 @@ package extension CombatTriggerEngine {
             events.append(contentsOf: context.grantGoldEvent(
                 triggers.leechGoldFlat,
                 to: actor,
-                abilityName: triggerAbilityName("leechGoldFlat", for: actor, fallback: "Blood Price", in: context)
+                abilityName: triggerAbilityName("leechGoldFlat", for: actor, fallback: "Blood Price", in: context),
             ))
         }
 
@@ -35,7 +35,7 @@ package extension CombatTriggerEngine {
                 to: target,
                 sourceActorID: actor.id,
                 dealImmediateDamage: false,
-                suppressAffixReactions: true
+                suppressAffixReactions: true,
             ))
         }
         if triggers.onLeechApplyBleed > 0 {
@@ -45,18 +45,18 @@ package extension CombatTriggerEngine {
                 sourceActorID: actor.id,
                 dealImmediateDamage: false,
                 suppressAffixReactions: true,
-                in: &context
+                in: &context,
             ))
         }
         if triggers.onLeechReduceEnemyStrength > 0 {
             context.appendEffect(
                 .strengthReduction(
                     triggers.onLeechReduceEnemyStrength,
-                    triggers.onLeechReduceEnemyStrengthTurns
+                    triggers.onLeechReduceEnemyStrengthTurns,
                 ),
                 to: target,
                 sourceID: actor.id,
-                remainingTurns: triggers.onLeechReduceEnemyStrengthTurns
+                remainingTurns: triggers.onLeechReduceEnemyStrengthTurns,
             )
         }
 
@@ -65,7 +65,7 @@ package extension CombatTriggerEngine {
 
     static func shareHeroLeechWithCompanion(
         restored: Int,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         let percent = min(max(context.heroModifiers.triggers.companionLeechSharePercent, 0), 1)
         guard restored > 0,
@@ -81,8 +81,8 @@ package extension CombatTriggerEngine {
                 "companionLeechSharePercent",
                 for: context.roster.hero.combatant,
                 fallback: "Symbiosis",
-                in: context
-            )
+                in: context,
+            ),
         )
     }
 }

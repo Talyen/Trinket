@@ -2,12 +2,12 @@ import Testing
 @testable import TrinketFeatureSupport
 
 struct PreparedArtworkMemoryBudgetTests {
-    @Test func budgetsMatch6GBTypicalTargets() {
+    @Test func `budgets match 6 GB typical targets`() {
         #expect(PreparedArtworkMemoryBudget.residentArtworkByteCount == 320 * 1024 * 1024)
         #expect(PreparedArtworkMemoryBudget.steadyStateProcessByteCount == 550 * 1024 * 1024)
     }
 
-    @Test func cacheBudgetUses260MiBCapWith160MiBFloor() {
+    @Test func `cache budget uses 260 mi B cap with 160 mi B floor`() {
         let limit6GB = PreparedArtworkCache.totalCostLimit(forPhysicalMemory: 6 * 1024 * 1024 * 1024)
         #expect(limit6GB == 256 * 1024 * 1024)
 

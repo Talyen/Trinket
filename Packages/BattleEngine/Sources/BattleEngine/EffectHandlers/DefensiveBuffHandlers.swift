@@ -16,7 +16,7 @@ struct BlockBuffHandler: BattleEffectHandler {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> EffectApplyOutcome {
         guard case let .shield(_, amount) = effect else {
             return EffectApplyOutcome(events: [], didApply: false)
@@ -25,7 +25,7 @@ struct BlockBuffHandler: BattleEffectHandler {
             amount,
             to: target,
             source: source,
-            abilityName: ability.name
+            abilityName: ability.name,
         )
         return EffectApplyOutcome(events: gain.applied > 0 ? gain.events : [], didApply: gain.applied > 0)
     }
@@ -52,7 +52,7 @@ struct FlagEffectHandler: BattleEffectHandler {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> EffectApplyOutcome {
         guard effect == flag else {
             return EffectApplyOutcome(events: [], didApply: false)
@@ -64,7 +64,7 @@ struct FlagEffectHandler: BattleEffectHandler {
             ability: ability,
             in: &context,
             replacing: { $0 == flag },
-            event: (appliedEffectKind, amount, keyword)
+            event: (appliedEffectKind, amount, keyword),
         )
         return EffectApplyOutcome(events: [event], didApply: true)
     }

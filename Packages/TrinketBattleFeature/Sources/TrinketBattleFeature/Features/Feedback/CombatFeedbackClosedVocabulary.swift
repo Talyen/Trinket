@@ -24,11 +24,11 @@ enum CombatFeedbackClosedVocabulary {
                 let event = catalogEvent(outcome: outcome, keyword: keyword)
                 for item in CombatFeedbackPresenter.makeItems(
                     from: [event],
-                    at: Date(timeIntervalSince1970: 0)
+                    at: Date(timeIntervalSince1970: 0),
                 ) {
                     let appearance = ResolvedAppearance(
                         typography: item.feedbackClass.typographyTier,
-                        presentation: item.chipPresentation
+                        presentation: item.chipPresentation,
                     )
                     guard seenAppearances.insert(appearance).inserted else { continue }
                     sources.append(
@@ -36,8 +36,8 @@ enum CombatFeedbackClosedVocabulary {
                             feedbackClass: item.feedbackClass,
                             keyword: item.keyword,
                             visualRole: item.visualRole,
-                            label: item.label
-                        )
+                            label: item.label,
+                        ),
                     )
                 }
             }
@@ -57,12 +57,12 @@ enum CombatFeedbackClosedVocabulary {
                     id: nextID,
                     presentationRole: role,
                     availableAt: date,
-                    expiresAt: expiresAt
+                    expiresAt: expiresAt,
                 )
                 let appearance = PreparedAppearance(
                     typography: item.feedbackClass.typographyTier,
                     presentationRole: role,
-                    presentation: item.chipPresentation
+                    presentation: item.chipPresentation,
                 )
                 if preparedAppearances.insert(appearance).inserted {
                     items.append(item)
@@ -101,7 +101,7 @@ enum CombatFeedbackClosedVocabulary {
     }
 
     private static func isClosedVocabulary(
-        _ descriptor: CombatFeedbackEffectPresentation.Descriptor
+        _ descriptor: CombatFeedbackEffectPresentation.Descriptor,
     ) -> Bool {
         if descriptor.statusLabel != nil {
             return true
@@ -117,7 +117,7 @@ enum CombatFeedbackClosedVocabulary {
 
     private static func catalogEvent(
         outcome: ActionEvent.EffectOutcome,
-        keyword: Keyword
+        keyword: Keyword,
     ) -> ActionEvent {
         ActionEvent(
             id: 1,
@@ -129,7 +129,7 @@ enum CombatFeedbackClosedVocabulary {
             targetID: "catalog",
             targetName: "Catalog",
             amount: 1,
-            keyword: keyword
+            keyword: keyword,
         )
     }
 
@@ -138,7 +138,7 @@ enum CombatFeedbackClosedVocabulary {
         id: Int,
         presentationRole: CombatFeedbackPresentationRole,
         availableAt: Date,
-        expiresAt: Date
+        expiresAt: Date,
     ) -> CombatFeedbackItem {
         CombatFeedbackItem(
             id: id,
@@ -154,13 +154,13 @@ enum CombatFeedbackClosedVocabulary {
             label: source.label,
             availableAt: availableAt,
             expiresAt: expiresAt,
-            reactionKind: .none
+            reactionKind: .none,
         )
     }
 
     private static func withPresentationRole(
         _ item: CombatFeedbackItem,
-        _ role: CombatFeedbackPresentationRole
+        _ role: CombatFeedbackPresentationRole,
     ) -> CombatFeedbackItem {
         CombatFeedbackItem(
             id: item.id,
@@ -176,7 +176,7 @@ enum CombatFeedbackClosedVocabulary {
             label: item.label,
             availableAt: item.availableAt,
             expiresAt: item.expiresAt,
-            reactionKind: item.reactionKind
+            reactionKind: item.reactionKind,
         )
     }
 }

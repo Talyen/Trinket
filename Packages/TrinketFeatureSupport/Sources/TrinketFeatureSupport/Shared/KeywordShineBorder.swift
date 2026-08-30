@@ -12,7 +12,7 @@ public struct KeywordShineBorder: View {
         keywords: [Keyword],
         cornerRadius: CGFloat = TrinketDesign.Corners.card,
         lineWidth: CGFloat = 2,
-        isMotionActive: Bool = true
+        isMotionActive: Bool = true,
     ) {
         colors = keywords.map(\.visualStyle.color)
         self.cornerRadius = cornerRadius
@@ -24,7 +24,7 @@ public struct KeywordShineBorder: View {
         colors: [Color],
         cornerRadius: CGFloat = TrinketDesign.Corners.card,
         lineWidth: CGFloat = 2,
-        isMotionActive: Bool = true
+        isMotionActive: Bool = true,
     ) {
         self.colors = colors
         self.cornerRadius = cornerRadius
@@ -40,7 +40,7 @@ public struct KeywordShineBorder: View {
                 cornerRadius: cornerRadius,
                 lineWidth: lineWidth,
                 angle: angle,
-                motionEnabled: isMotionActive
+                motionEnabled: isMotionActive,
             )
         }
         .allowsHitTesting(false)
@@ -65,9 +65,9 @@ private struct KeywordShineBorderStroke: View {
                     AngularGradient(
                         gradient: Gradient(stops: stops),
                         center: .center,
-                        angle: .degrees(angle)
+                        angle: .degrees(angle),
                     ),
-                    lineWidth: lineWidth
+                    lineWidth: lineWidth,
                 )
         }
         .compositingGroup()
@@ -114,14 +114,14 @@ public extension View {
         keywords: [Keyword]?,
         cornerRadius: CGFloat = TrinketDesign.Corners.card,
         lineWidth: CGFloat = 2,
-        isMotionActive: Bool = true
+        isMotionActive: Bool = true,
     ) -> some View {
         if let keywords, !keywords.isEmpty {
             colorShineBorder(
                 colors: keywords.map(\.visualStyle.color),
                 cornerRadius: cornerRadius,
                 lineWidth: lineWidth,
-                isMotionActive: isMotionActive
+                isMotionActive: isMotionActive,
             )
         } else {
             self
@@ -133,14 +133,14 @@ public extension View {
         keyword: Keyword?,
         cornerRadius: CGFloat = TrinketDesign.Corners.card,
         lineWidth: CGFloat = 2,
-        isMotionActive: Bool = true
+        isMotionActive: Bool = true,
     ) -> some View {
         if let keyword {
             keywordShineBorder(
                 keywords: [keyword],
                 cornerRadius: cornerRadius,
                 lineWidth: lineWidth,
-                isMotionActive: isMotionActive
+                isMotionActive: isMotionActive,
             )
         } else {
             self
@@ -152,7 +152,7 @@ public extension View {
         colors: [Color]?,
         cornerRadius: CGFloat = TrinketDesign.Corners.card,
         lineWidth: CGFloat = 2,
-        isMotionActive: Bool = true
+        isMotionActive: Bool = true,
     ) -> some View {
         if let colors, !colors.isEmpty {
             overlay {
@@ -160,7 +160,7 @@ public extension View {
                     colors: colors,
                     cornerRadius: cornerRadius,
                     lineWidth: lineWidth,
-                    isMotionActive: isMotionActive
+                    isMotionActive: isMotionActive,
                 )
             }
         } else {
@@ -173,7 +173,7 @@ public extension View {
             colors: CorruptionShine.borderColors,
             cornerRadius: TrinketDesign.Corners.card,
             lineWidth: lineWidth,
-            isMotionActive: isMotionActive
+            isMotionActive: isMotionActive,
         )
     }
 }

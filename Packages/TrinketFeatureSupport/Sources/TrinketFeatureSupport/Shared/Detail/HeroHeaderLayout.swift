@@ -40,7 +40,7 @@ public enum HeroHeaderLayout {
     static func overscrollMetrics(baseHeight: CGFloat, overscroll: CGFloat) -> OverscrollMetrics {
         OverscrollMetrics(
             height: baseHeight + overscroll,
-            offsetY: -overscroll
+            offsetY: -overscroll,
         )
     }
 }

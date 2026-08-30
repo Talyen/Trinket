@@ -7,13 +7,13 @@ import TrinketPersistenceTestSupport
 
 @Suite("LabyrinthSaveRecovery")
 struct LabyrinthSaveRecoveryTests {
-    @Test func enterRebuildsUnreadableMap() {
+    @Test func `enter rebuilds unreadable map`() {
         var save = PlayerSave.fresh
         let expectedSeed = save.worldSeed
         save.labyrinth = PlayerLabyrinthState(
             worldSeed: 55,
             hasEntered: true,
-            isMapPayloadUnreadable: true
+            isMapPayloadUnreadable: true,
         )
 
         LabyrinthCompletion.enter(save: &save)
@@ -24,7 +24,7 @@ struct LabyrinthSaveRecoveryTests {
         #expect(!save.labyrinth.nodes.isEmpty)
     }
 
-    @Test @MainActor func storeReloadThenEnterPreservesCorruptMapBlob() throws {
+    @Test @MainActor func `store reload then enter preserves corrupt map blob`() throws {
         let directory = try SaveTestSupport.makeTempDirectory(prefix: "labyrinth-corrupt-enter")
         defer { SaveTestSupport.removeTempDirectory(directory) }
         let storeURL = SaveTestSupport.makeStoreURL(directoryURL: directory)
@@ -34,7 +34,7 @@ struct LabyrinthSaveRecoveryTests {
             let store = try PlayerSaveStore(
                 storeURL: storeURL,
                 disableCloudSync: true,
-                persistSaveImmediately: true
+                persistSaveImmediately: true,
             )
             store.labyrinth = PlayerLabyrinthState(worldSeed: 55, hasEntered: true)
         }
@@ -51,7 +51,7 @@ struct LabyrinthSaveRecoveryTests {
         let loaded = try PlayerSaveStore(
             storeURL: storeURL,
             disableCloudSync: true,
-            persistSaveImmediately: true
+            persistSaveImmediately: true,
         )
         #expect(loaded.labyrinth.isMapPayloadUnreadable)
         #expect(!loaded.labyrinth.hasMap)
@@ -70,7 +70,7 @@ struct LabyrinthSaveRecoveryTests {
         #expect(reloaded.labyrinth.worldSeed == expectedSeed)
     }
 
-    @Test @MainActor func labyrinthSetterMigratesLegacyMapWithRosterRecruitEligibility() throws {
+    @Test @MainActor func `labyrinth setter migrates legacy map with roster recruit eligibility`() throws {
         let directory = try SaveTestSupport.makeTempDirectory(prefix: "labyrinth-setter-recruits")
         defer { SaveTestSupport.removeTempDirectory(directory) }
         let store = try SaveTestSupport.makeSaveStore(directoryURL: directory)
@@ -80,14 +80,14 @@ struct LabyrinthSaveRecoveryTests {
         let generated = LabyrinthGenerator.makeMap(
             seed: 9,
             floorCount: 1,
-            eligibleRecruitEventIDs: recruitIDs
+            eligibleRecruitEventIDs: recruitIDs,
         )
         let legacy = PlayerLabyrinthState(
             worldSeed: 9,
             mapVersion: 2,
             hasEntered: true,
             clusters: generated.clusters,
-            nodes: generated.nodes
+            nodes: generated.nodes,
         )
         try #require(legacy.nodes.values.contains { $0.type == .recruit || $0.recruitEventID != nil })
 

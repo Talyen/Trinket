@@ -54,8 +54,8 @@ public struct TrinketRarityLabel: View {
                 LinearGradient(
                     colors: premiumColors,
                     startPoint: UnitPoint(x: shinePhase ? 1.35 : -0.35, y: 0.5),
-                    endPoint: UnitPoint(x: shinePhase ? 2.35 : 0.65, y: 0.5)
-                )
+                    endPoint: UnitPoint(x: shinePhase ? 2.35 : 0.65, y: 0.5),
+                ),
             )
             .shadow(color: premiumShadowColor.opacity(0.62), radius: 6)
             .task {

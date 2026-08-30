@@ -5,7 +5,7 @@ import TrinketCore
 
 @Suite("LabyrinthCatalog")
 struct LabyrinthCatalogTests {
-    @Test func modifiersAreAuthoredWithPlayerFacingContent() {
+    @Test func `modifiers are authored with player facing content`() {
         #expect(!GameContent.labyrinthModifiers.isEmpty)
         for modifier in GameContent.labyrinthModifiers {
             #expect(!modifier.title.isEmpty)
@@ -14,7 +14,7 @@ struct LabyrinthCatalogTests {
         }
     }
 
-    @Test func generatorIsDeterministicForSeed() {
+    @Test func `generator is deterministic for seed`() {
         let first = LabyrinthGenerator.makeInitialMap(seed: 42)
         let second = LabyrinthGenerator.makeInitialMap(seed: 42)
         #expect(first.clusters.map(\.id) == second.clusters.map(\.id))
@@ -24,7 +24,7 @@ struct LabyrinthCatalogTests {
         }
     }
 
-    @Test func initialMapHasReachableEntryFromEntrance() {
+    @Test func `initial map has reachable entry from entrance`() {
         let generated = LabyrinthGenerator.makeInitialMap(seed: 7)
         let entrance = generated.nodes[LabyrinthGenerator.entranceNodeID]
         #expect(entrance?.isCleared == true)
@@ -34,7 +34,7 @@ struct LabyrinthCatalogTests {
         }
     }
 
-    @Test func expandBeyondBossAppendsNextFloor() throws {
+    @Test func `expand beyond boss appends next floor`() throws {
         let generated = LabyrinthGenerator.makeInitialMap(seed: 11)
         var clusters = generated.clusters
         var nodes = generated.nodes
@@ -46,20 +46,20 @@ struct LabyrinthCatalogTests {
             bossNodeID: boss.id,
             clusters: &clusters,
             nodes: &nodes,
-            seed: 11
+            seed: 11,
         )
         #expect(clusters.contains { $0.depthBand == 2 })
         #expect(!(nodes[boss.id]?.outgoingIDs.isEmpty ?? true))
     }
 
-    @Test func modifierEffectsCombineDamageAndRewardBonuses() throws {
+    @Test func `modifier effects combine damage and reward bonuses`() throws {
         let iron = try #require(GameContent.labyrinthModifier(id: LabyrinthModifierID("ironPressure")))
         let effects = LabyrinthModifierEffects.combining([iron])
         #expect(effects.damageDealtBonus == [.physical: 1])
         #expect(effects.shopDiscountPercent == 0)
     }
 
-    @Test func shopNodesResolveOneShopModifier() {
+    @Test func `shop nodes resolve one shop modifier`() {
         let shopPool = LabyrinthCatalog.modifiers.filter { $0.applies(to: .shop) }
         #expect(!shopPool.isEmpty)
         #expect(shopPool.contains(where: { $0.id == LabyrinthModifierID("shopDiscount") }))
@@ -76,7 +76,7 @@ struct LabyrinthCatalogTests {
         }
     }
 
-    @Test func mysteryNodesResolveExactlyOneEconomyModifier() {
+    @Test func `mystery nodes resolve exactly one economy modifier`() {
         let economyIDs: Set<LabyrinthModifierID> = [
             LabyrinthModifierID("bountyMark"),
             LabyrinthModifierID("scholarsToll"),
@@ -93,7 +93,7 @@ struct LabyrinthCatalogTests {
         #expect(pool.allSatisfy { economyIDs.contains($0.id) || $0.applies(to: .mystery) })
     }
 
-    @Test func combatModifiersMatchEnemyAbilityKeywords() {
+    @Test func `combat modifiers match enemy ability keywords`() {
         for enemy in GameContent.enemies {
             for nodeType in [LabyrinthNodeType.battle, LabyrinthNodeType.boss] {
                 let pool = LabyrinthCatalog.combatModifiers(for: enemy.id, nodeType: nodeType)
@@ -105,7 +105,7 @@ struct LabyrinthCatalogTests {
         }
     }
 
-    @Test func generatedCombatModifiersAlignWithNodeEnemies() {
+    @Test func `generated combat modifiers align with node enemies`() {
         for seed in 0 ..< 20 {
             let generated = LabyrinthGenerator.makeInitialMap(seed: UInt64(seed))
             for node in generated.nodes.values where node.type.isCombat {
@@ -120,18 +120,18 @@ struct LabyrinthCatalogTests {
         }
     }
 
-    @Test func generatorDoesNotEmitEventNodes() {
+    @Test func `generator does not emit event nodes`() {
         for seed in [1, 7, 42, 99, 1001] as [UInt64] {
             let generated = LabyrinthGenerator.makeInitialMap(seed: seed)
             #expect(generated.nodes.values.allSatisfy { $0.type != .event })
         }
     }
 
-    @Test func eventTypeCanonicalizesToMystery() {
+    @Test func `event type canonicalizes to mystery`() {
         #expect(LabyrinthNodeType.event.canonical == .mystery)
     }
 
-    @Test func gridPositionAdjacencyMatchesSixHexNeighbors() {
+    @Test func `grid position adjacency matches six hex neighbors`() {
         let center = LabyrinthGridPosition(row: 1, column: 0)
         let neighbors = [
             LabyrinthGridPosition(row: 1, column: -1),
@@ -148,7 +148,7 @@ struct LabyrinthCatalogTests {
         #expect(!center.isAdjacent(to: distant))
     }
 
-    @Test func gridPositionOrderingIsRowMajor() {
+    @Test func `grid position ordering is row major`() {
         let positions = [
             LabyrinthGridPosition(row: 2, column: 0),
             LabyrinthGridPosition(row: 1, column: 1),
@@ -160,10 +160,10 @@ struct LabyrinthCatalogTests {
         ])
     }
 
-    @Test func legacyEliteNodeTypeDecodesAsBattle() throws {
+    @Test func `legacy elite node type decodes as battle`() throws {
         let legacy = try JSONDecoder().decode(
             LabyrinthNodeType.self,
-            from: Data(#""elite""#.utf8)
+            from: Data(#""elite""#.utf8),
         )
         #expect(legacy == .battle)
 
@@ -171,14 +171,14 @@ struct LabyrinthCatalogTests {
         #expect(String(data: encoded, encoding: .utf8) == #""battle""#)
     }
 
-    @Test func modifierCatalogHasUniqueIDsAndNonEmptyCopy() {
+    @Test func `modifier catalog has unique I ds and non empty copy`() {
         let modifiers = GameContent.labyrinthModifiers
         #expect(!modifiers.isEmpty)
         #expect(Set(modifiers.map(\.id)).count == modifiers.count)
         #expect(modifiers.allSatisfy { !$0.title.isEmpty && !$0.effect.description.isEmpty })
     }
 
-    @Test func floorShapeStaysWithinPlanBounds() {
+    @Test func `floor shape stays within plan bounds`() {
         var layoutSignatures = Set<String>()
         var observedCycleCounts = Set<Int>()
 
@@ -235,7 +235,7 @@ struct LabyrinthCatalogTests {
         let projectedColumns = positions.map(\.projectedHalfColumn)
         #expect(
             (projectedColumns.max() ?? 0) - (projectedColumns.min() ?? 0)
-                <= LabyrinthMapLayout.maxProjectedSpan
+                <= LabyrinthMapLayout.maxProjectedSpan,
         )
         let neighborsByID = Dictionary(uniqueKeysWithValues: nodes.map { node in
             (node.id, nodes.filter { node.id != $0.id && node.isAdjacent(to: $0) }.map(\.id))
@@ -258,11 +258,11 @@ struct LabyrinthCatalogTests {
         #expect(cycleCount == 0 || cycleCount == 1)
         return (
             positions.map { "\($0.row):\($0.column)" }.joined(separator: "|"),
-            cycleCount
+            cycleCount,
         )
     }
 
-    @Test func recruitNodesRequireEligibleEvent() {
+    @Test func `recruit nodes require eligible event`() {
         let withoutRecruit = LabyrinthGenerator.makeInitialMap(seed: 14)
         #expect(withoutRecruit.nodes.values.allSatisfy { $0.type != .recruit })
 
@@ -270,7 +270,7 @@ struct LabyrinthCatalogTests {
         for seed in 0 ..< 16 {
             let withRecruit = LabyrinthGenerator.makeInitialMap(
                 seed: UInt64(seed),
-                eligibleRecruitEventIDs: ["recruit-test-event"]
+                eligibleRecruitEventIDs: ["recruit-test-event"],
             )
             for node in withRecruit.nodes.values where node.type == .recruit {
                 foundRecruit = true

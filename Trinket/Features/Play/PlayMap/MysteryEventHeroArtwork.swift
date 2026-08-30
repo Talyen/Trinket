@@ -12,7 +12,7 @@ struct MysteryEventHeroArtwork: View {
         if let artID = event.artID, let art = ArtCatalog.encounterArtByID[artID] {
             Image.preparedAsset(
                 art,
-                displaySize: preferThumbnail ? .compact : .full
+                displaySize: preferThumbnail ? .compact : .full,
             )
             .resizable()
             .scaledToFill()

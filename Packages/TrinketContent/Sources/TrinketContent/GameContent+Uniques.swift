@@ -7,7 +7,7 @@ public extension GameContent {
     static let uniqueItems: [InventoryItem] = UniqueCatalog.definitions.compactMap(resolve)
 
     static let uniquesByID: [String: InventoryItem] = Dictionary(
-        uniqueKeysWithValues: uniqueItems.map { ($0.id, $0) }
+        uniqueKeysWithValues: uniqueItems.map { ($0.id, $0) },
     )
 
     static func unique(matching id: String) -> InventoryItem? {
@@ -33,7 +33,7 @@ public extension GameContent {
                     id: bespoke.id,
                     title: bespoke.title,
                     description: bespoke.astral.description,
-                    keywords: bespoke.keywords
+                    keywords: bespoke.keywords,
                 ))
                 powers.append(bespoke.astral)
             }
@@ -45,7 +45,7 @@ public extension GameContent {
             rarity: .unique,
             displayName: definition.displayName,
             affixes: affixViews,
-            affixPowers: powers
+            affixPowers: powers,
         )
     }
 }

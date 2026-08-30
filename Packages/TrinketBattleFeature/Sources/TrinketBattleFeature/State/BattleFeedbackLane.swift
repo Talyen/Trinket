@@ -27,19 +27,19 @@ final class BattleFeedbackLane {
     @ObservationIgnored
     private var bridges: [(
         ownerID: UUID,
-        onChange: (CombatFeedbackUpdate) -> Void
+        onChange: (CombatFeedbackUpdate) -> Void,
     )] = []
     @ObservationIgnored
     private var hitReactionBridges: [(
         ownerID: UUID,
         combatantID: String,
-        onChange: (CombatantHitReaction?) -> Void
+        onChange: (CombatantHitReaction?) -> Void,
     )] = []
     @ObservationIgnored
     private var attackReactionBridges: [(
         ownerID: UUID,
         combatantID: String,
-        onChange: (CombatantAttackReaction?) -> Void
+        onChange: (CombatantAttackReaction?) -> Void,
     )] = []
 
     var latestExpiry: Date? {
@@ -48,7 +48,7 @@ final class BattleFeedbackLane {
 
     func installBridge(
         ownerID: UUID,
-        onChange: @escaping (CombatFeedbackUpdate) -> Void
+        onChange: @escaping (CombatFeedbackUpdate) -> Void,
     ) {
         bridges.removeAll { $0.ownerID == ownerID }
         bridges.append((ownerID, onChange))
@@ -61,7 +61,7 @@ final class BattleFeedbackLane {
     func installHitReactionBridge(
         ownerID: UUID,
         combatantID: String,
-        onChange: @escaping (CombatantHitReaction?) -> Void
+        onChange: @escaping (CombatantHitReaction?) -> Void,
     ) {
         hitReactionBridges.removeAll { $0.ownerID == ownerID }
         hitReactionBridges.append((ownerID, combatantID, onChange))
@@ -75,7 +75,7 @@ final class BattleFeedbackLane {
     func installAttackReactionBridge(
         ownerID: UUID,
         combatantID: String,
-        onChange: @escaping (CombatantAttackReaction?) -> Void
+        onChange: @escaping (CombatantAttackReaction?) -> Void,
     ) {
         attackReactionBridges.removeAll { $0.ownerID == ownerID }
         attackReactionBridges.append((ownerID, combatantID, onChange))
@@ -122,7 +122,7 @@ final class BattleFeedbackLane {
     func record(
         _ events: [ActionEvent],
         at date: Date = .now,
-        environment: BattleRuntimeDependencies = .silent
+        environment: BattleRuntimeDependencies = .silent,
     ) {
         for event in events {
             eventRecordedAt[event.id] = date
@@ -276,11 +276,11 @@ final class BattleFeedbackLane {
 
     private func schedule(
         _ item: CombatFeedbackItem,
-        at date: Date
+        at date: Date,
     ) -> CombatFeedbackItem {
         let start = max(date, nextVisualStartByTarget[item.targetID] ?? .distantPast)
         nextVisualStartByTarget[item.targetID] = start.addingTimeInterval(
-            BattleMotion.feedbackStreamStagger
+            BattleMotion.feedbackStreamStagger,
         )
         return item.scheduled(at: start)
     }
@@ -312,7 +312,7 @@ final class BattleFeedbackLane {
 
     private func applyMultimodalPresentation(
         for due: [CombatFeedbackItem],
-        environment: BattleRuntimeDependencies
+        environment: BattleRuntimeDependencies,
     ) {
         guard !due.isEmpty else { return }
 
@@ -325,7 +325,7 @@ final class BattleFeedbackLane {
             && reactedActionIDs.insert(item.actionGroupID).inserted {
             hitReactionsByTargetID[item.targetID] = CombatantHitReaction(
                 id: item.id,
-                kind: item.reactionKind
+                kind: item.reactionKind,
             )
             reactedTargetIDs.insert(item.targetID)
         }
@@ -347,7 +347,7 @@ final class BattleFeedbackScheduler {
             target: target,
             selector: #selector(FeedbackPruneTarget.fire),
             userInfo: nil,
-            repeats: false
+            repeats: false,
         )
         pruneTimer.fireDate = .distantFuture
         RunLoop.main.add(pruneTimer, forMode: .common)

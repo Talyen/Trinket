@@ -16,7 +16,7 @@ struct AppStateTests {
         context = try AppTestContext()
     }
 
-    @Test func defaultInitSelectsPlayTabWithFreshSave() throws {
+    @Test func `default init selects play tab with fresh save`() throws {
         let state = try context.makeAppState(environment: context.makeEnvironment())
 
         #expect(state.selectedTab == .play)
@@ -27,7 +27,7 @@ struct AppStateTests {
         #expect(state.playerSave.starterSelection == .complete)
     }
 
-    @Test func starterSelectionCompletesWithChosenPartyAndQueuesCampaign() throws {
+    @Test func `starter selection completes with chosen party and queues campaign`() throws {
         let state = try context.makeAppState(environment: context.makeOnboardingEnvironment())
 
         #expect(state.confirmStarterHero("wizard"))
@@ -42,16 +42,16 @@ struct AppStateTests {
         #expect(state.play.consumePendingDestination() == .campaign)
     }
 
-    @Test func playSessionUsesTheCompositionRuntimeInstance() throws {
+    @Test func `play session uses the composition runtime instance`() throws {
         let state = try context.makeAppState(environment: context.makeEnvironment())
         let battle = try #require(context.lastBattle)
 
         #expect(state.play.battle === battle)
     }
 
-    @Test func launchTabOverridesDefaultTabAndSurvivesForeground() throws {
+    @Test func `launch tab overrides default tab and survives foreground`() throws {
         let state = try context.makeAppState(
-            environment: context.makeEnvironment(arguments: ["-selectedTab", "homestead"])
+            environment: context.makeEnvironment(arguments: ["-selectedTab", "homestead"]),
         )
 
         #expect(state.selectedTab == .homestead)
@@ -66,9 +66,9 @@ struct AppStateTests {
         #expect(try context.makeAppState().selectedTab == .play)
     }
 
-    @Test func scenePhaseSuspendsAndResumesBattleAutoEnd() throws {
+    @Test func `scene phase suspends and resumes battle auto end`() throws {
         let state = try context.makeAppState(
-            environment: context.makeEnvironment(arguments: ["-launch-screen", "battle"])
+            environment: context.makeEnvironment(arguments: ["-launch-screen", "battle"]),
         )
         #expect(state.play.battle.activeBattle != nil)
         #expect(!state.play.battle.isSuspendedForScenePhase)
@@ -83,12 +83,12 @@ struct AppStateTests {
         #expect(!state.play.battle.isSuspendedForScenePhase)
     }
 
-    @Test func scenePhaseFlushesDeferredPlayerSaveSynchronously() throws {
+    @Test func `scene phase flushes deferred player save synchronously`() throws {
         let storeURL = SaveTestSupport.makeStoreURL(directoryURL: context.directoryURL)
         let playerSave = try PlayerSaveStore(
             storeURL: storeURL,
             disableCloudSync: true,
-            persistSaveImmediately: false
+            persistSaveImmediately: false,
         )
         let state = try context.makeAppState(playerSave: playerSave)
         let goldBefore = state.playerSave.roster.gold
@@ -103,9 +103,9 @@ struct AppStateTests {
         #expect(playerSave.lastPersistenceError == nil)
     }
 
-    @Test func collectionDetailLaunchScreensMapToCollectionPresentations() throws {
+    @Test func `collection detail launch screens map to collection presentations`() throws {
         let state = try context.makeAppState(
-            environment: context.makeEnvironment(arguments: ["-launch-screen", "hero:knight"])
+            environment: context.makeEnvironment(arguments: ["-launch-screen", "hero:knight"]),
         )
 
         #expect(state.selectedTab == .collection)
@@ -116,11 +116,11 @@ struct AppStateTests {
         assertCollectionDetail(
             detail,
             kind: .hero,
-            combatantID: "knight"
+            combatantID: "knight",
         )
 
         let companionState = try context.makeAppState(
-            environment: context.makeEnvironment(arguments: ["-launch-screen", "companion:wolf"])
+            environment: context.makeEnvironment(arguments: ["-launch-screen", "companion:wolf"]),
         )
 
         #expect(companionState.selectedTab == .collection)
@@ -131,11 +131,11 @@ struct AppStateTests {
         assertCollectionDetail(
             detail,
             kind: .companion,
-            combatantID: "wolf"
+            combatantID: "wolf",
         )
 
         let itemState = try context.makeAppState(
-            environment: context.makeEnvironment(arguments: ["-launch-screen", "item:shortsword-basic"])
+            environment: context.makeEnvironment(arguments: ["-launch-screen", "item:shortsword-basic"]),
         )
 
         #expect(itemState.selectedTab == .collection)
@@ -153,7 +153,7 @@ struct AppStateTests {
         "mystery",
         "options",
     ])
-    func launchScreensRouteToExpectedPlayOrOptionsState(screen: String) throws {
+    func `launch screens route to expected play or options state`(screen: String) throws {
         var arguments = ["-launch-screen", screen]
         if screen == "shop" {
             arguments = ["-reset-state", "-seed-test-progress"] + arguments
@@ -161,7 +161,7 @@ struct AppStateTests {
             arguments = ["-reset-state"] + arguments
         }
         let state = try context.makeAppState(
-            environment: context.makeEnvironment(arguments: arguments)
+            environment: context.makeEnvironment(arguments: arguments),
         )
 
         switch screen {
@@ -189,20 +189,20 @@ struct AppStateTests {
         }
     }
 
-    @Test func resetStateWipesPersistedSave() throws {
+    @Test func `reset state wipes persisted save`() throws {
         let storeURL = SaveTestSupport.makeStoreURL(directoryURL: context.directoryURL)
         do {
             var save = PlayerSave.fresh
             save.roster.gold = 99
             let firstStore = try PlayerSaveStore(
                 storeURL: storeURL,
-                disableCloudSync: true
+                disableCloudSync: true,
             )
             try firstStore.performBatchMutation { $0 = save }
         }
 
         let state = try context.makeAppState(
-            environment: context.makeEnvironment(arguments: ["-reset-state"])
+            environment: context.makeEnvironment(arguments: ["-reset-state"]),
         )
 
         #expect(state.playerSave.roster == .freshStart)
@@ -210,14 +210,14 @@ struct AppStateTests {
 
         let reloadedStore = try PlayerSaveStore(
             storeURL: storeURL,
-            disableCloudSync: true
+            disableCloudSync: true,
         )
         #expect(reloadedStore.roster == .freshStart)
     }
 
-    @Test func seedTestProgressAppliesDeterministicBaseline() throws {
+    @Test func `seed test progress applies deterministic baseline`() throws {
         let state = try context.makeAppState(
-            environment: context.makeEnvironment(arguments: ["-seed-test-progress"])
+            environment: context.makeEnvironment(arguments: ["-seed-test-progress"]),
         )
 
         #expect(state.playerSave.roster == .testSeed)
@@ -228,12 +228,12 @@ struct AppStateTests {
         (stageIDs: "chapter-1-stage-1", known: true),
         (stageIDs: "missing-stage", known: false),
     ])
-    func completedStagesLaunchArgAdvancesKnownIDsAndIgnoresUnknown(
+    func `completed stages launch arg advances known I ds and ignores unknown`(
         stageIDs: String,
-        known: Bool
+        known: Bool,
     ) throws {
         let state = try context.makeAppState(
-            environment: context.makeEnvironment(arguments: ["-completed-stages", stageIDs])
+            environment: context.makeEnvironment(arguments: ["-completed-stages", stageIDs]),
         )
 
         if known {
@@ -248,12 +248,12 @@ struct AppStateTests {
         _ detail: CombatantDetailContext?,
         kind: CombatantDetailContext.Kind,
         combatantID: String,
-        location: SourceLocation = #_sourceLocation
+        location: SourceLocation = #_sourceLocation,
     ) {
         guard let detail else {
             Issue.record(
                 "Expected collection detail context",
-                sourceLocation: location
+                sourceLocation: location,
             )
             return
         }

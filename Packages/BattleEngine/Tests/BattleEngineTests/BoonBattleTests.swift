@@ -4,12 +4,12 @@ import TrinketCore
 @testable import BattleEngine
 
 struct BoonBattleTests {
-    @Test func offerUsesOnlyPartyAffinitiesAndSelectedBoonsDoNotRepeat() throws {
+    @Test func `offer uses only party affinities and selected boons do not repeat`() throws {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: [.slash],
             companionAbilities: [.fireArrow],
             enemyMaxHealth: 100,
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
 
         battle.withEngineContext { context in
@@ -29,11 +29,11 @@ struct BoonBattleTests {
         try #expect(battle.pendingBoonOffer?.choices.contains(where: { $0.id == selectedID }) == false)
     }
 
-    @Test func physicalPoisonBoonDealsPoisonDamageAndCreatesPoison() throws {
+    @Test func `physical poison boon deals poison damage and creates poison`() throws {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: [.slash],
             enemyMaxHealth: 100,
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         let boon = try #require(BoonCatalog.boon(id: "toxic-transfusion"))
         battle.activeBoons = [ActiveBoon(boon: boon)]
@@ -44,7 +44,7 @@ struct BoonBattleTests {
                 target: context.enemy,
                 keyword: .physical,
                 sourceActorID: context.hero.id,
-                options: DamageOptions(applyStatBonus: false, applyItemBonus: false, applyDodge: false)
+                options: DamageOptions(applyStatBonus: false, applyItemBonus: false, applyDodge: false),
             ))
         }
 
@@ -52,13 +52,13 @@ struct BoonBattleTests {
         try #expect(battle.activeEffects(of: battle.enemy).contains { $0.effect.keyword == Keyword.poison })
     }
 
-    @Test func criticalDetonationsIgnoreNormalHitsThenConsumeTheStatusOnCritical() throws {
+    @Test func `critical detonations ignore normal hits then consume the status on critical`() throws {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(enemyMaxHealth: 100, dealOpeningHand: false)
         battle.activeBoons = try [activeBoon("backdraft")]
         BattleStateTestFactory.seedActiveEffects(
             [ActiveEffect(id: 1, effect: .burn(6), remainingTurns: 0, sourceActorID: battle.hero.id)],
             for: battle.enemy,
-            on: &battle
+            on: &battle,
         )
 
         resolveDamage(1, keyword: .physical, guaranteedCritical: false, in: &battle)
@@ -72,13 +72,13 @@ struct BoonBattleTests {
         try #expect(!battle.activeEffects(of: battle.enemy).contains { $0.effect.keyword == .burn })
     }
 
-    @Test func unconditionalDetonationConsumesBurnWithoutReapplyingIt() throws {
+    @Test func `unconditional detonation consumes burn without reapplying it`() throws {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(enemyMaxHealth: 100, dealOpeningHand: false)
         battle.activeBoons = try [activeBoon("steam-explosion")]
         BattleStateTestFactory.seedActiveEffects(
             [ActiveEffect(id: 1, effect: .burn(5), remainingTurns: 0, sourceActorID: battle.hero.id)],
             for: battle.enemy,
-            on: &battle
+            on: &battle,
         )
 
         resolveDamage(2, keyword: .freeze, in: &battle)
@@ -87,13 +87,13 @@ struct BoonBattleTests {
         try #expect(!battle.activeEffects(of: battle.enemy).contains { $0.effect.keyword == .burn })
     }
 
-    @Test func blockedHolyDamageBypassesDodgeAndBlockWhileSourceHasBlock() throws {
+    @Test func `blocked holy damage bypasses dodge and block while source has block`() throws {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(enemyMaxHealth: 100, dealOpeningHand: false)
         battle.activeBoons = try [activeBoon("unbroken-vow")]
         BattleStateTestFactory.seedActiveEffects(
             [ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTurns: 0)],
             for: battle.hero,
-            on: &battle
+            on: &battle,
         )
         BattleStateTestFactory.seedActiveEffects(
             [
@@ -101,7 +101,7 @@ struct BoonBattleTests {
                 ActiveEffect(id: 3, effect: .evadeNextHit, remainingTurns: 0),
             ],
             for: battle.enemy,
-            on: &battle
+            on: &battle,
         )
 
         resolveDamage(10, keyword: .holy, applyDodge: true, in: &battle)
@@ -111,13 +111,13 @@ struct BoonBattleTests {
         try #expect(battle.activeEffects(of: battle.enemy).contains { $0.effect == .evadeNextHit })
     }
 
-    @Test func manaAndCleanseBoonsResolveTheirResourceReactions() throws {
+    @Test func `mana and cleanse boons resolve their resource reactions`() throws {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroMaxHealth: 50,
             enemyMaxHealth: 100,
             heroMaxMana: 10,
             heroMana: 0,
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         battle.appliesFightPacing = false
         battle.activeBoons = try [activeBoon("closed-circuit"), activeBoon("eye-of-the-storm"), activeBoon("purifying-waters")]
@@ -132,13 +132,13 @@ struct BoonBattleTests {
         try #expect(battle.health(of: battle.hero) == 38)
     }
 
-    @Test func overhealCleansesOneDebuffWithoutRecursing() throws {
+    @Test func `overheal cleanses one debuff without recursing`() throws {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false)
         battle.activeBoons = try [activeBoon("clean-slate"), activeBoon("purifying-waters")]
         BattleStateTestFactory.seedActiveEffects(
             [ActiveEffect(id: 1, effect: .bleed(2), remainingTurns: 2, sourceActorID: battle.enemy.id)],
             for: battle.hero,
-            on: &battle
+            on: &battle,
         )
 
         battle.withEngineContext { context in
@@ -149,7 +149,7 @@ struct BoonBattleTests {
         try #expect(battle.boonRuntime.resolvingBoonIDs.isEmpty)
     }
 
-    @Test func primedRepeatPlaysTheMatchingCardOnceAndClearsItsGuard() throws {
+    @Test func `primed repeat plays the matching card once and clears its guard`() throws {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(enemyMaxHealth: 100, dealOpeningHand: false)
         battle.activeBoons = try [activeBoon("furnace-rhythm")]
         battle.withEngineContext { context in
@@ -163,7 +163,7 @@ struct BoonBattleTests {
         try #expect(battle.boonRuntime.resolvingBoonIDs.isEmpty)
     }
 
-    @Test func partialFreezeBuildupDoesNotDecayAtTurnEnd() throws {
+    @Test func `partial freeze buildup does not decay at turn end`() throws {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false)
         battle.withEngineContext { context in
             _ = ControlMeterEngine.applyMeterCharge(
@@ -172,7 +172,7 @@ struct BoonBattleTests {
                 to: context.enemy,
                 sourceActorID: context.hero.id,
                 applyFightPacing: false,
-                in: &context
+                in: &context,
             )
         }
         let before = battle.activeEffects(of: battle.enemy)
@@ -191,7 +191,7 @@ struct BoonBattleTests {
         keyword: Keyword,
         applyDodge: Bool = false,
         guaranteedCritical: Bool = false,
-        in battle: inout BattleState
+        in battle: inout BattleState,
     ) {
         battle.withEngineContext { context in
             _ = context.resolveDamage(DamageRequest(
@@ -203,8 +203,8 @@ struct BoonBattleTests {
                     applyStatBonus: false,
                     applyItemBonus: false,
                     applyDodge: applyDodge,
-                    guaranteedCritical: guaranteedCritical
-                )
+                    guaranteedCritical: guaranteedCritical,
+                ),
             ))
         }
     }

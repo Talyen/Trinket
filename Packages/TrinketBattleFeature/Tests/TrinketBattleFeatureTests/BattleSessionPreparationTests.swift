@@ -10,13 +10,13 @@ import TrinketTestSupport
 
 @MainActor
 struct BattleSessionPreparationTests {
-    @Test func lifecycleTransitionsUpdateEngineAndPresentationAtomically() {
+    @Test func `lifecycle transitions update engine and presentation atomically`() {
         let party = BattlePartyFixtures.quickWinParty()
         let session = BattleSession(openingHandDrawStagger: 0)
         let (configuration, _) = BattleRunConfigurationTestSupport.make(
             hero: party.hero,
             companion: party.companion,
-            enemy: party.enemy
+            enemy: party.enemy,
         )
 
         #expect(session.activate(configuration))
@@ -33,7 +33,7 @@ struct BattleSessionPreparationTests {
         #expect(session.presentation.configurationID == nil)
     }
 
-    @Test func preparedBattlePresentationRevisionChangesOnlyForReplacedRuns() {
+    @Test func `prepared battle presentation revision changes only for replaced runs`() {
         let party = BattlePartyFixtures.quickWinParty()
         let runKey = BattleRunKey("test|prepared-run")
         let session = BattleSession(openingHandDrawStagger: 0)
@@ -41,7 +41,7 @@ struct BattleSessionPreparationTests {
             runKey: runKey,
             hero: party.hero,
             companion: party.companion,
-            enemy: party.enemy
+            enemy: party.enemy,
         )
 
         #expect(session.prepareBattleRun(configuration))
@@ -56,13 +56,13 @@ struct BattleSessionPreparationTests {
             rngSeed: 1,
             hero: party.hero,
             companion: party.companion,
-            enemy: party.enemy
+            enemy: party.enemy,
         )
         #expect(session.prepareBattleRun(replacement))
         #expect(session.preparedBattlePresentationRevision == initialRevision + 1)
     }
 
-    @Test func activatePreparedBattleInstallsThePreparedEngineSnapshot() {
+    @Test func `activate prepared battle installs the prepared engine snapshot`() {
         let party = BattlePartyFixtures.quickWinParty()
         let session = BattleSession(openingHandDrawStagger: 0)
         let runKey = BattleRunKey("test|prepared-activate")
@@ -71,7 +71,7 @@ struct BattleSessionPreparationTests {
             rngSeed: 17,
             hero: party.hero,
             companion: party.companion,
-            enemy: party.enemy
+            enemy: party.enemy,
         )
 
         #expect(session.prepareBattleRun(configuration))
@@ -80,8 +80,8 @@ struct BattleSessionPreparationTests {
                 runKey: runKey,
                 heroID: party.hero.id,
                 companionID: party.companion.id,
-                enemyID: party.enemy.id
-            )
+                enemyID: party.enemy.id,
+            ),
         )
         #expect(session.activeBattle?.id == configuration.id)
         #expect(session.activeBattle?.rngSeed == 17)
@@ -92,7 +92,7 @@ struct BattleSessionPreparationTests {
         #expect(session.presentation.configurationID == configuration.id)
     }
 
-    @Test func prepareInstallsOverlayPresentationForASingleRun() {
+    @Test func `prepare installs overlay presentation for A single run`() {
         let party = BattlePartyFixtures.quickWinParty()
         let runKey = BattleRunKey("test|prepared-overlay")
         let session = BattleSession(openingHandDrawStagger: 0)
@@ -100,7 +100,7 @@ struct BattleSessionPreparationTests {
             runKey: runKey,
             hero: party.hero,
             companion: party.companion,
-            enemy: party.enemy
+            enemy: party.enemy,
         )
 
         #expect(session.prepareBattleRun(configuration))
@@ -111,21 +111,21 @@ struct BattleSessionPreparationTests {
         #expect(session.lifecyclePhase == .prepared)
     }
 
-    @Test func overlayBattleConfigurationRequiresASinglePreparedRun() {
+    @Test func `overlay battle configuration requires A single prepared run`() {
         let party = BattlePartyFixtures.quickWinParty()
         let session = BattleSession(openingHandDrawStagger: 0)
         let (first, _) = BattleRunConfigurationTestSupport.make(
             runKey: BattleRunKey("test|prepared-overlay-a"),
             hero: party.hero,
             companion: party.companion,
-            enemy: party.enemy
+            enemy: party.enemy,
         )
         let (second, _) = BattleRunConfigurationTestSupport.make(
             runKey: BattleRunKey("test|prepared-overlay-b"),
             rngSeed: 1,
             hero: party.hero,
             companion: party.companion,
-            enemy: party.enemy
+            enemy: party.enemy,
         )
 
         #expect(session.prepareBattleRun(first))
@@ -134,7 +134,7 @@ struct BattleSessionPreparationTests {
         #expect(session.overlayBattleConfiguration == nil)
     }
 
-    @Test func activatePreparedBattleKeepsOverlayConfigurationIdentity() {
+    @Test func `activate prepared battle keeps overlay configuration identity`() {
         let party = BattlePartyFixtures.quickWinParty()
         let runKey = BattleRunKey("test|prepared-overlay-activate")
         let session = BattleSession(openingHandDrawStagger: 0)
@@ -142,7 +142,7 @@ struct BattleSessionPreparationTests {
             runKey: runKey,
             hero: party.hero,
             companion: party.companion,
-            enemy: party.enemy
+            enemy: party.enemy,
         )
 
         #expect(session.prepareBattleRun(configuration))
@@ -154,8 +154,8 @@ struct BattleSessionPreparationTests {
                 runKey: runKey,
                 heroID: party.hero.id,
                 companionID: party.companion.id,
-                enemyID: party.enemy.id
-            )
+                enemyID: party.enemy.id,
+            ),
         )
         #expect(session.overlayBattleConfiguration?.id == overlayID)
         #expect(session.activeBattle?.id == overlayID)
@@ -163,7 +163,7 @@ struct BattleSessionPreparationTests {
         #expect(session.preparedBattlePresentationRevision == preparedRevision)
     }
 
-    @Test func preparedActivationHoldsOpeningHandDealUntilOverlayFadeCompletes() async throws {
+    @Test func `prepared activation holds opening hand deal until overlay fade completes`() async throws {
         let party = BattlePartyFixtures.quickWinParty(heroAbilities: [.slash, .heal, .smite])
         let session = BattleSession(openingHandDrawStagger: 0.01)
         let runKey = BattleRunKey("test|prepared-overlay-deal-hold")
@@ -171,7 +171,7 @@ struct BattleSessionPreparationTests {
             runKey: runKey,
             hero: party.hero,
             companion: party.companion,
-            enemy: party.enemy
+            enemy: party.enemy,
         )
 
         #expect(session.prepareBattleRun(configuration))
@@ -180,14 +180,14 @@ struct BattleSessionPreparationTests {
                 runKey: runKey,
                 heroID: party.hero.id,
                 companionID: party.companion.id,
-                enemyID: party.enemy.id
-            )
+                enemyID: party.enemy.id,
+            ),
         )
 
         #expect(session.hand.isEmpty)
         #expect(session.isDealingOpeningHand)
         let dealtDuringFade = try await BattleSessionTestSupport.waitUntil(
-            timeout: .milliseconds(100)
+            timeout: .milliseconds(100),
         ) {
             !session.hand.isEmpty
         }
@@ -197,7 +197,7 @@ struct BattleSessionPreparationTests {
         #expect(try await BattleSessionTestSupport.waitUntil { !session.isDealingOpeningHand })
     }
 
-    @Test func activatePreparedBattleKeepsOverlayPresentationContextForSkipCombat() {
+    @Test func `activate prepared battle keeps overlay presentation context for skip combat`() {
         let party = BattlePartyFixtures.quickWinParty()
         let runKey = BattleRunKey("test|prepared-overlay-context")
         let session = BattleSession(openingHandDrawStagger: 0, outcomePresentationDelayOverride: 0)
@@ -207,7 +207,7 @@ struct BattleSessionPreparationTests {
             hero: party.hero,
             companion: party.companion,
             enemy: party.enemy,
-            hasProgressionRewards: true
+            hasProgressionRewards: true,
         )
 
         #expect(session.prepareBattleRun(configuration))
@@ -218,8 +218,8 @@ struct BattleSessionPreparationTests {
                 runKey: runKey,
                 heroID: party.hero.id,
                 companionID: party.companion.id,
-                enemyID: party.enemy.id
-            )
+                enemyID: party.enemy.id,
+            ),
         )
         #expect(session.presentationContext != nil)
 
@@ -230,24 +230,24 @@ struct BattleSessionPreparationTests {
         #endif
     }
 
-    @Test func replacementOpeningHandDealRetainsTaskOwnershipAfterCancellation() async throws {
+    @Test func `replacement opening hand deal retains task ownership after cancellation`() async throws {
         let party = BattlePartyFixtures.quickWinParty(heroAbilities: [.slash, .heal, .smite])
         let expectedOpeningHandCount = min(
             BattleHand.maxSize,
             party.hero.abilityLoadout.abilities.count
-                + party.companion.abilityLoadout.abilities.count
+                + party.companion.abilityLoadout.abilities.count,
         )
         let session = BattleSession(openingHandDrawStagger: 0.05)
         let (initialConfiguration, _) = BattleRunConfigurationTestSupport.make(
             hero: party.hero,
             companion: party.companion,
-            enemy: party.enemy
+            enemy: party.enemy,
         )
         let (replacementConfiguration, _) = BattleRunConfigurationTestSupport.make(
             rngSeed: 1,
             hero: party.hero,
             companion: party.companion,
-            enemy: party.enemy
+            enemy: party.enemy,
         )
 
         #expect(session.activate(initialConfiguration))

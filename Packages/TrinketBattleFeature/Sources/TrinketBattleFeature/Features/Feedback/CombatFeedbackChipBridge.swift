@@ -22,7 +22,7 @@ enum CombatFeedbackChipBridge {
         _ view: CombatFeedbackRasterUIView,
         combatantID: String,
         layoutDirection: LayoutDirection,
-        displayScale: CGFloat
+        displayScale: CGFloat,
     ) {
         let key = ObjectIdentifier(view)
         let previous = hosts[key]
@@ -35,7 +35,7 @@ enum CombatFeedbackChipBridge {
             view: view,
             combatantID: combatantID,
             layoutDirection: layoutDirection,
-            displayScale: displayScale
+            displayScale: displayScale,
         )
         if metadataChanged {
             refresh(hostKey: key)
@@ -48,12 +48,12 @@ enum CombatFeedbackChipBridge {
 
     static func publish(_ update: CombatFeedbackUpdate) {
         let intervalState = BattleFramePacingSignposts.signposter.beginInterval(
-            BattleFramePacingSignposts.Name.chipPublish
+            BattleFramePacingSignposts.Name.chipPublish,
         )
         defer {
             BattleFramePacingSignposts.signposter.endInterval(
                 BattleFramePacingSignposts.Name.chipPublish,
-                intervalState
+                intervalState,
             )
         }
 
@@ -126,7 +126,7 @@ enum CombatFeedbackChipBridge {
                 target: availabilityTimerTarget,
                 selector: #selector(AvailabilityTimerTarget.fire),
                 userInfo: nil,
-                repeats: false
+                repeats: false,
             )
             timer.fireDate = .distantFuture
             RunLoop.main.add(timer, forMode: .common)
@@ -149,12 +149,12 @@ enum CombatFeedbackChipBridge {
     private static func refreshHosts(for targetIDs: Set<String>) {
         guard !targetIDs.isEmpty else { return }
         let intervalState = BattleFramePacingSignposts.signposter.beginInterval(
-            BattleFramePacingSignposts.Name.chipFlush
+            BattleFramePacingSignposts.Name.chipFlush,
         )
         defer {
             BattleFramePacingSignposts.signposter.endInterval(
                 BattleFramePacingSignposts.Name.chipFlush,
-                intervalState
+                intervalState,
             )
         }
         for key in Array(hosts.keys) where hosts[key].map({ targetIDs.contains($0.combatantID) }) == true {
@@ -185,7 +185,7 @@ enum CombatFeedbackChipBridge {
             if let raster = CombatFeedbackRasterPool.shared.cachedRaster(
                 for: item,
                 layoutDirection: entry.layoutDirection,
-                displayScale: entry.displayScale
+                displayScale: entry.displayScale,
             ) {
                 chips.append((item: item, raster: raster))
             } else {
@@ -197,7 +197,7 @@ enum CombatFeedbackChipBridge {
                 if let raster = CombatFeedbackRasterPool.shared.prepare(
                     for: item,
                     layoutDirection: entry.layoutDirection,
-                    displayScale: entry.displayScale
+                    displayScale: entry.displayScale,
                 ) {
                     chips.append((item: item, raster: raster))
                 }

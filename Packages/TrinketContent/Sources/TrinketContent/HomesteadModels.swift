@@ -33,7 +33,7 @@ public struct HomesteadTierCombatBonus: Equatable, Hashable, Sendable {
         heroModifiers: [AffixModifier] = [],
         companionModifiers: [AffixModifier] = [],
         astralChanceBonusPercent: Int = 0,
-        goldFindPercent: Int = 0
+        goldFindPercent: Int = 0,
     ) {
         self.heroModifiers = heroModifiers
         self.companionModifiers = companionModifiers
@@ -54,7 +54,7 @@ public struct HomesteadNodeTier: Hashable, Sendable {
         cost: [ResourceAmount],
         bonus: HomesteadBonus,
         combatBonus: HomesteadTierCombatBonus = .empty,
-        production: ResourceAmount? = nil
+        production: ResourceAmount? = nil,
     ) {
         self.tier = tier
         self.cost = cost
@@ -80,7 +80,7 @@ public struct HomesteadNodeDefinition: Identifiable, Hashable, Sendable {
         symbolName: String,
         category: HomesteadNodeCategory,
         prerequisites: [HomesteadNodeRequirement],
-        tiers: [HomesteadNodeTier]
+        tiers: [HomesteadNodeTier],
     ) {
         self.id = id
         self.title = title
@@ -103,6 +103,6 @@ public struct HomesteadNodeDefinition: Identifiable, Hashable, Sendable {
 public enum HomesteadNodeCatalog {
     public static let maxTierByNodeID: [HomesteadNodeID: Int] = Dictionary(uniqueKeysWithValues: GameContent.homesteadNodes.map { (
         $0.id,
-        $0.maxTier
+        $0.maxTier,
     ) })
 }

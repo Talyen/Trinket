@@ -3,7 +3,7 @@ import TrinketCore
 
 private func recruit(
     id: String,
-    combatantID: String
+    combatantID: String,
 ) -> MysteryEvent {
     MysteryEvent(
         id: id,
@@ -15,9 +15,9 @@ private func recruit(
             MysteryChoice(
                 id: "recruit",
                 label: "",
-                effects: [.unlockCombatant(combatantID)]
+                effects: [.unlockCombatant(combatantID)],
             ),
-        ]
+        ],
     )
 }
 
@@ -25,75 +25,75 @@ enum RecruitEventPool {
     static let all: [MysteryEvent] = [
         recruit(
             id: "recruit-knight",
-            combatantID: "knight"
+            combatantID: "knight",
         ),
         recruit(
             id: "recruit-bear",
-            combatantID: "bear"
+            combatantID: "bear",
         ),
         recruit(
             id: "recruit-ranger",
-            combatantID: "ranger"
+            combatantID: "ranger",
         ),
         recruit(
             id: "recruit-rogue",
-            combatantID: "rogue"
+            combatantID: "rogue",
         ),
         recruit(
             id: "recruit-wizard",
-            combatantID: "wizard"
+            combatantID: "wizard",
         ),
         recruit(
             id: "recruit-warlock",
-            combatantID: "warlock"
+            combatantID: "warlock",
         ),
         recruit(
             id: "recruit-frost-whelp",
-            combatantID: "frost_whelp"
+            combatantID: "frost_whelp",
         ),
         recruit(
             id: "recruit-lizard-scout",
-            combatantID: "lizard_scout"
+            combatantID: "lizard_scout",
         ),
         recruit(
             id: "recruit-panther",
-            combatantID: "panther"
+            combatantID: "panther",
         ),
         recruit(
             id: "recruit-phoenix",
-            combatantID: "phoenix"
+            combatantID: "phoenix",
         ),
         recruit(
             id: "recruit-wolf",
-            combatantID: "wolf"
+            combatantID: "wolf",
         ),
         recruit(
             id: "recruit-golden-retriever",
-            combatantID: "golden_retriever"
+            combatantID: "golden_retriever",
         ),
         recruit(
             id: "recruit-library-owl",
-            combatantID: "library_owl"
+            combatantID: "library_owl",
         ),
         recruit(
             id: "recruit-risen-skeleton",
-            combatantID: "risen_skeleton"
+            combatantID: "risen_skeleton",
         ),
         recruit(
             id: "recruit-mana-moth",
-            combatantID: "mana_moth"
+            combatantID: "mana_moth",
         ),
         recruit(
             id: "recruit-pixie",
-            combatantID: "pixie"
+            combatantID: "pixie",
         ),
         recruit(
             id: "recruit-shield-scarab",
-            combatantID: "shield_scarab"
+            combatantID: "shield_scarab",
         ),
         recruit(
             id: "recruit-fox",
-            combatantID: "fox"
+            combatantID: "fox",
         ),
     ]
 
@@ -108,7 +108,7 @@ enum RecruitEventPool {
     static func eligible(
         unlockedHeroIDs: Set<String>,
         unlockedCompanionIDs: Set<String>,
-        role: Combatant.Role? = nil
+        role: Combatant.Role? = nil,
     ) -> [MysteryEvent] {
         all.filter { event in
             guard let combatantID = event.unlockCombatantID else { return false }

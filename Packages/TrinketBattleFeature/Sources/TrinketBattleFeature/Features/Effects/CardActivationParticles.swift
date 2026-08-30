@@ -20,13 +20,13 @@ struct CardActivationParticles: View {
                     x: sample.center.x - sample.diameter / 2,
                     y: sample.center.y - sample.diameter / 2,
                     width: sample.diameter,
-                    height: sample.diameter
+                    height: sample.diameter,
                 )
                 var particleContext = context
                 particleContext.opacity = sample.opacity
                 particleContext.fill(
                     Path(ellipseIn: rect),
-                    with: .color(keywordColor(for: particle))
+                    with: .color(keywordColor(for: particle)),
                 )
             }
         }
@@ -53,16 +53,16 @@ struct CardActivationParticles: View {
             vector: particle.vector,
             distance: distance,
             curve: curve,
-            progress: easedAge
+            progress: easedAge,
         )
         let diameter = max(
             0,
             (configuration.particleSize + particle.sizeNoise * configuration.particleSizeVariation)
-                * (1 - age * configuration.particleSizeShrink)
+                * (1 - age * configuration.particleSizeShrink),
         )
         let fadeStart = min(
             max(configuration.fadeStart + particle.fadeNoise * configuration.fadeStartVariation, 0),
-            0.99
+            0.99,
         )
         let fadeProgress = max(0, (age - fadeStart) / (1 - fadeStart))
         let opacity = progress >= delay && age < 1
@@ -81,7 +81,7 @@ struct CardActivationParticles: View {
             x: size.width / 2 + (particle.originXNoise - 0.5)
                 * cardSize.width * configuration.particleOriginSpread,
             y: size.height / 2 + (particle.originYNoise - 0.5)
-                * cardSize.height * configuration.particleOriginSpread
+                * cardSize.height * configuration.particleOriginSpread,
         )
     }
 
@@ -90,17 +90,17 @@ struct CardActivationParticles: View {
         vector: CGVector,
         distance: CGFloat,
         curve: CGFloat,
-        progress: CGFloat
+        progress: CGFloat,
     ) -> CGPoint {
         let perpendicular = CGVector(dx: -vector.dy, dy: vector.dx)
         let pathControl = min(max(configuration.particlePathControl, 0), 1)
         let end = CGPoint(
             x: origin.x + vector.dx * distance,
-            y: origin.y + vector.dy * distance
+            y: origin.y + vector.dy * distance,
         )
         let control = CGPoint(
             x: origin.x + vector.dx * distance * pathControl + perpendicular.dx * curve,
-            y: origin.y + vector.dy * distance * pathControl + perpendicular.dy * curve
+            y: origin.y + vector.dy * distance * pathControl + perpendicular.dy * curve,
         )
         let remaining = 1 - progress
         return CGPoint(
@@ -109,7 +109,7 @@ struct CardActivationParticles: View {
                 + progress * progress * end.x,
             y: remaining * remaining * origin.y
                 + 2 * remaining * progress * control.y
-                + progress * progress * end.y
+                + progress * progress * end.y,
         )
     }
 }

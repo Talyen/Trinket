@@ -14,7 +14,7 @@ enum PlayerSaveStoreConfiguration {
     static func cleanStoreFiles(at url: URL) {
         let logger = Logger(
             subsystem: PlayerSaveDefaults.loggingSubsystem,
-            category: "StoreCleanup"
+            category: "StoreCleanup",
         )
         ModelContainerBootstrap.deleteStoreFiles(at: url, logger: logger, logLabel: "player save")
     }
@@ -26,7 +26,7 @@ enum PlayerSaveStoreConfiguration {
         storeURL: URL?,
         disableCloudSync: Bool,
         inMemoryOnly: Bool,
-        cloudKitContainerIdentifier: String
+        cloudKitContainerIdentifier: String,
     ) -> (config: ModelConfiguration, recoveryURL: URL?) {
         if inMemoryOnly {
             (ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none), nil)
@@ -39,24 +39,24 @@ enum PlayerSaveStoreConfiguration {
         } else {
             (
                 ModelConfiguration(schema: schema, cloudKitDatabase: .private(cloudKitContainerIdentifier)),
-                nil
+                nil,
             )
         }
     }
 
     static func fetchRoot(in context: ModelContext, logger: Logger) throws -> PlayerSaveRoot? {
         let descriptor = FetchDescriptor<PlayerSaveRoot>(
-            predicate: #Predicate { $0.id == "primary" }
+            predicate: #Predicate { $0.id == "primary" },
         )
         let primaries: [PlayerSaveRoot]
         do {
             primaries = try context.fetch(descriptor)
         } catch {
             logger.error(
-                "Failed to fetch player save root: \(error.localizedDescription, privacy: .public)"
+                "Failed to fetch player save root: \(error.localizedDescription, privacy: .public)",
             )
             throw PlayerSavePersistenceError.storeUnavailable(
-                "Couldn't read saved progress from this device."
+                "Couldn't read saved progress from this device.",
             )
         }
         guard let keeper = primaries.max(by: Self.isOlderPrimary(_:than:)) else {
@@ -65,7 +65,7 @@ enum PlayerSaveStoreConfiguration {
         let extras = primaries.filter { $0 !== keeper }
         guard !extras.isEmpty else { return keeper }
         logger.notice(
-            "Dropped \(extras.count, privacy: .public) duplicate player save roots; kept the newest primary."
+            "Dropped \(extras.count, privacy: .public) duplicate player save roots; kept the newest primary.",
         )
         for extra in extras {
             context.delete(extra)
@@ -74,7 +74,7 @@ enum PlayerSaveStoreConfiguration {
             try context.save()
         } catch {
             logger.error(
-                "Failed to drop duplicate player save roots: \(error.localizedDescription, privacy: .public)"
+                "Failed to drop duplicate player save roots: \(error.localizedDescription, privacy: .public)",
             )
             throw PlayerSavePersistenceError.writeFailed
         }
@@ -97,7 +97,7 @@ enum PlayerSaveStoreConfiguration {
             try context.save()
         } catch {
             logger.error(
-                "Failed to clear player save during reset: \(error.localizedDescription, privacy: .public)"
+                "Failed to clear player save during reset: \(error.localizedDescription, privacy: .public)",
             )
             throw PlayerSavePersistenceError.writeFailed
         }

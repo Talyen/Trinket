@@ -4,14 +4,14 @@ import TrinketContent
 import TrinketCore
 
 struct RestorationIntegrationTests {
-    @Test func instantHealRestoresHealth() throws {
+    @Test func `instant heal restores health`() throws {
         let heal = Ability(
             id: "heal",
             name: "Heal",
             tier: .basic,
             directDamage: 0,
             description: "Restore 3 Health.",
-            effects: [.instantHeal(.health, 3)]
+            effects: [.instantHeal(.health, 3)],
         )
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 10, abilities: [heal])
         let companion = BattleTestFixtures.passiveCompanion()
@@ -22,7 +22,7 @@ struct RestorationIntegrationTests {
             enemy: enemy,
             activeHeroEffects: [
                 ActiveEffect(id: 1, effect: .burn(4), remainingTurns: 0),
-            ]
+            ],
         )
 
         _ = BattleTestFixtures.endTurn(on: &battle)
@@ -34,14 +34,14 @@ struct RestorationIntegrationTests {
         try #expect(events.contains { $0.effectKind == .instantHeal && $0.amount > 0 })
     }
 
-    @Test func leechHealsAttackerOnDamageDealt() throws {
+    @Test func `leech heals attacker on damage dealt`() throws {
         let leechSlash = Ability(
             id: "leech-slash",
             name: "Leech Slash",
             tier: .basic,
             directDamage: 2,
             damageKeyword: .physical,
-            hasLeech: true
+            hasLeech: true,
         )
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 10, abilities: [leechSlash])
         let companion = BattleTestFixtures.passiveCompanion()
@@ -52,7 +52,7 @@ struct RestorationIntegrationTests {
             enemy: enemy,
             activeHeroEffects: [
                 ActiveEffect(id: 1, effect: .burn(5), remainingTurns: 0),
-            ]
+            ],
         )
 
         _ = BattleTestFixtures.endTurn(on: &battle)
@@ -64,20 +64,20 @@ struct RestorationIntegrationTests {
         try #expect(events.contains { $0.effectKind == .leechHeal && $0.keyword == .leech && $0.amount > 0 })
     }
 
-    @Test func enemyInstantHealRestoresHealthWhenBelowMax() throws {
+    @Test func `enemy instant heal restores health when below max`() throws {
         let selfHeal = Ability(
             id: "self-heal",
             name: "Self Heal",
             tier: .basic,
             directDamage: 0,
             description: "Restore 5 Health.",
-            effects: [.instantHeal(.health, 5)]
+            effects: [.instantHeal(.health, 5)],
         )
         let hero = BattleTestFixtures.passiveCombatant(id: "hero", name: "Hero", role: .hero)
         let companion = BattleTestFixtures.passiveCompanion()
         let enemy = Combatant(
             id: "enemy", name: "Enemy", role: .enemy, maxHealth: 20,
-            abilities: [selfHeal]
+            abilities: [selfHeal],
         )
         var battle = BattleTestFixtures.standardParty(
             hero: hero,
@@ -85,7 +85,7 @@ struct RestorationIntegrationTests {
             enemy: enemy,
             activeEnemyEffects: [
                 ActiveEffect(id: 1, effect: .burn(4), remainingTurns: 0),
-            ]
+            ],
         )
 
         battle.withEngineContext { context in

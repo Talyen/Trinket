@@ -23,7 +23,7 @@ enum CombatantStatusEffectKind: String, CaseIterable, Identifiable {
 
     func progress(after elapsed: TimeInterval) -> CGFloat {
         CGFloat(
-            elapsed / BattleMotion.combatantStatusEffectPhaseDuration
+            elapsed / BattleMotion.combatantStatusEffectPhaseDuration,
         )
     }
 }
@@ -103,7 +103,7 @@ struct CombatantStatusEffectOverlay: View {
                 let radial = radius * (0.85 + noise * 0.3)
                 let point = CGPoint(
                     x: center.x + cos(angle) * radial,
-                    y: center.y + sin(angle) * radial
+                    y: center.y + sin(angle) * radial,
                 )
                 let starSize = (4 + noise * 5) * config.intensity
                 let twinkle = 0.45 + 0.55 * abs(sin(phase * .pi * 4 + noise * .pi * 2))
@@ -113,7 +113,7 @@ struct CombatantStatusEffectOverlay: View {
                     at: point,
                     size: starSize,
                     color: style.color.opacity(opacity),
-                    secondary: style.secondaryColor.opacity(opacity * 0.7)
+                    secondary: style.secondaryColor.opacity(opacity * 0.7),
                 )
             }
         }
@@ -125,11 +125,11 @@ struct CombatantStatusEffectOverlay: View {
         let flakes = max(config.particleCount, 1)
         let encroach = min(
             max(phase / CGFloat(BattleMotion.combatantFreezeEncroachProgress), 0),
-            1
+            1,
         )
         let onset = min(
             max(phase / CGFloat(BattleMotion.combatantFreezeOnsetProgress), 0),
-            1
+            1,
         )
         let onsetGlow = sin(onset * .pi)
         let minDim = min(size.width, size.height)
@@ -150,20 +150,20 @@ struct CombatantStatusEffectOverlay: View {
                 ],
                 center: .center,
                 startRadius: max(clearRadius, 0),
-                endRadius: max(edgeRadius, clearRadius + 1)
+                endRadius: max(edgeRadius, clearRadius + 1),
             )
 
             TrinketDesign.cardShape
                 .strokeBorder(
                     style.color.opacity(0.26 * veilOpacity),
-                    lineWidth: 1.25
+                    lineWidth: 1.25,
                 )
 
             if onsetGlow > 0.001 {
                 TrinketDesign.cardShape
                     .strokeBorder(
                         style.color.opacity(0.34 * Double(onsetGlow)),
-                        lineWidth: 2
+                        lineWidth: 2,
                     )
                     .blur(radius: 1.4)
             }
@@ -173,7 +173,7 @@ struct CombatantStatusEffectOverlay: View {
                 style: style,
                 phase: phase,
                 flakes: flakes,
-                encroach: encroach
+                encroach: encroach,
             )
         }
         .clipShape(TrinketDesign.cardShape)
@@ -184,7 +184,7 @@ struct CombatantStatusEffectOverlay: View {
         style: Keyword.VisualStyle,
         phase: CGFloat,
         flakes: Int,
-        encroach: CGFloat
+        encroach: CGFloat,
     ) -> some View {
         Canvas { context, _ in
             for index in 0 ..< flakes {
@@ -217,7 +217,7 @@ struct CombatantStatusEffectOverlay: View {
                     radius: radius,
                     rotation: along * .pi + insetNoise + phase * 0.15,
                     color: style.color.opacity(opacity * 0.7),
-                    secondary: style.secondaryColor.opacity(opacity)
+                    secondary: style.secondaryColor.opacity(opacity),
                 )
             }
         }
@@ -229,7 +229,7 @@ private func drawStar(
     at point: CGPoint,
     size: CGFloat,
     color: Color,
-    secondary: Color
+    secondary: Color,
 ) {
     var path = Path()
     let spikes = 4
@@ -238,7 +238,7 @@ private func drawStar(
         let radius = i.isMultiple(of: 2) ? size : size * 0.38
         let p = CGPoint(
             x: point.x + cos(angle) * radius,
-            y: point.y + sin(angle) * radius
+            y: point.y + sin(angle) * radius,
         )
         if i == 0 {
             path.move(to: p)
@@ -257,7 +257,7 @@ private func drawSnowflake(
     radius: CGFloat,
     rotation: CGFloat,
     color: Color,
-    secondary: Color
+    secondary: Color,
 ) {
     let petals = 6
     var path = Path()
@@ -265,25 +265,25 @@ private func drawSnowflake(
         let angle = CGFloat(petal) / CGFloat(petals) * .pi * 2 + rotation
         let tip = CGPoint(
             x: center.x + cos(angle) * radius,
-            y: center.y + sin(angle) * radius
+            y: center.y + sin(angle) * radius,
         )
         let side = radius * 0.28
         let perp = CGVector(dx: -sin(angle), dy: cos(angle))
         path.move(to: center)
         path.addLine(to: CGPoint(
             x: tip.x + perp.dx * side,
-            y: tip.y + perp.dy * side
+            y: tip.y + perp.dy * side,
         ))
         path.addLine(to: tip)
         path.addLine(to: CGPoint(
             x: tip.x - perp.dx * side,
-            y: tip.y - perp.dy * side
+            y: tip.y - perp.dy * side,
         ))
         path.closeSubpath()
 
         let mid = CGPoint(
             x: center.x + cos(angle) * radius * 0.55,
-            y: center.y + sin(angle) * radius * 0.55
+            y: center.y + sin(angle) * radius * 0.55,
         )
         let arm = radius * 0.22
         path.move(to: CGPoint(x: mid.x + perp.dx * arm, y: mid.y + perp.dy * arm))
@@ -319,7 +319,7 @@ struct CombatantStatusEffectPresentation<Content: View>: View {
 
     init(
         keyword: Keyword?,
-        @ViewBuilder content: () -> Content
+        @ViewBuilder content: () -> Content,
     ) {
         self.keyword = keyword
         self.content = content()
@@ -337,27 +337,27 @@ struct CombatantStatusEffectPresentation<Content: View>: View {
 
     private func animatedOverlay(
         kind: CombatantStatusEffectKind,
-        config: CombatantStatusEffectConfig
+        config: CombatantStatusEffectConfig,
     ) -> some View {
         TimelineView(
-            .animation(minimumInterval: 1.0 / 30.0, paused: battleSession.lifecyclePhase != .active)
+            .animation(minimumInterval: 1.0 / 30.0, paused: battleSession.lifecyclePhase != .active),
         ) { timeline in
             let progress = kind.progress(
-                after: timeline.date.timeIntervalSince(startDate)
+                after: timeline.date.timeIntervalSince(startDate),
             )
             content
                 .modifier(
                     CombatantStatusCardTransform(
                         kind: kind,
                         config: config,
-                        progress: progress
-                    )
+                        progress: progress,
+                    ),
                 )
                 .overlay {
                     CombatantStatusEffectOverlay(
                         kind: kind,
                         config: config,
-                        progress: progress
+                        progress: progress,
                     )
                 }
         }

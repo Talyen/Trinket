@@ -7,12 +7,12 @@ import TrinketFeatureSupport
 
 @MainActor
 struct MusicPlayerRoutingTests {
-    @Test func menuRoutePlaysMenuTrackWhenNoEncounterIsActive() throws {
+    @Test func `menu route plays menu track when no encounter is active`() throws {
         let route = MusicRoute.resolve(
             selectedTab: .play,
             activeBattle: nil,
             sceneIsActive: true,
-            musicVolume: 0.75
+            musicVolume: 0.75,
         )
 
         let request = try trackRequest(from: route)
@@ -25,15 +25,15 @@ struct MusicPlayerRoutingTests {
             enemyID: "skeleton",
             expectedTrackKind: MusicTrackKind.battle,
             expectedContext: MusicTrackKind.battle,
-            expectedTrackID: nil as String?
+            expectedTrackID: nil as String?,
         ),
         (enemyID: "the_blight_treant", expectedTrackKind: .boss, expectedContext: .boss, expectedTrackID: "boss_blight_treant"),
     ])
-    func activeBattlePlaysExpectedTrack(
+    func `active battle plays expected track`(
         enemyID: String,
         expectedTrackKind: MusicTrackKind,
         expectedContext: MusicTrackKind,
-        expectedTrackID: String?
+        expectedTrackID: String?,
     ) throws {
         let stageID = enemyID == "skeleton" ? "chapter-1-stage-1" : "chapter-1-stage-10"
         let battle = try PlayBattleLaunchTestSupport.make(
@@ -41,7 +41,7 @@ struct MusicPlayerRoutingTests {
             rngSeed: 0,
             hero: GameContent.heroes[0],
             companion: GameContent.companions[0],
-            enemy: GameContent.enemy(matching: enemyID)?.combatant
+            enemy: GameContent.enemy(matching: enemyID)?.combatant,
         )
 
         let route = MusicRoute.resolve(
@@ -49,7 +49,7 @@ struct MusicPlayerRoutingTests {
             activeBattle: battle,
             battleStageID: stageID,
             sceneIsActive: true,
-            musicVolume: 0.75
+            musicVolume: 0.75,
         )
 
         let request = try trackRequest(from: route)
@@ -63,13 +63,13 @@ struct MusicPlayerRoutingTests {
         }
     }
 
-    @Test func leavingPlayReturnsToMenuEvenWithActiveBattle() throws {
+    @Test func `leaving play returns to menu even with active battle`() throws {
         let battle = try PlayBattleLaunchTestSupport.make(
             origin: .journey(stageID: "chapter-1-stage-10"),
             rngSeed: 0,
             hero: GameContent.heroes[0],
             companion: GameContent.companions[0],
-            enemy: GameContent.enemy(matching: "the_blight_treant")?.combatant
+            enemy: GameContent.enemy(matching: "the_blight_treant")?.combatant,
         )
 
         let route = MusicRoute.resolve(
@@ -77,7 +77,7 @@ struct MusicPlayerRoutingTests {
             activeBattle: battle,
             battleStageID: "chapter-1-stage-10",
             sceneIsActive: true,
-            musicVolume: 0.75
+            musicVolume: 0.75,
         )
 
         let request = try trackRequest(from: route)
@@ -89,12 +89,12 @@ struct MusicPlayerRoutingTests {
         (sceneIsActive: false, musicVolume: 0.75),
         (sceneIsActive: true, musicVolume: 0.0),
     ])
-    func silencePreservesPositionWhenSceneInactiveOrMuted(sceneIsActive: Bool, musicVolume: Double) {
+    func `silence preserves position when scene inactive or muted`(sceneIsActive: Bool, musicVolume: Double) {
         let route = MusicRoute.resolve(
             selectedTab: .play,
             activeBattle: nil,
             sceneIsActive: sceneIsActive,
-            musicVolume: musicVolume
+            musicVolume: musicVolume,
         )
 
         #expect(route == .silence(preservingPosition: true))

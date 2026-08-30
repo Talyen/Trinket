@@ -11,14 +11,14 @@ public struct HomesteadEffects: Equatable, Hashable, Sendable {
         heroModifiers: [],
         companionModifiers: [],
         astralChanceBonusPercent: 0,
-        goldFindPercent: 0
+        goldFindPercent: 0,
     )
 
     public init(
         heroModifiers: [AffixModifier],
         companionModifiers: [AffixModifier],
         astralChanceBonusPercent: Int,
-        goldFindPercent: Int
+        goldFindPercent: Int,
     ) {
         self.heroModifiers = heroModifiers
         self.companionModifiers = companionModifiers

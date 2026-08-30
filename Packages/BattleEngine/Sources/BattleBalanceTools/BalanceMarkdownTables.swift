@@ -5,7 +5,7 @@ enum BalanceMarkdownTables {
     static func appendIdentityTier(
         _ tierStats: BalanceTierStats,
         compared: BalanceTierStats?,
-        into lines: inout [String]
+        into lines: inout [String],
     ) {
         lines.append("## \(tierStats.tier.displayName)")
         lines.append("")
@@ -21,7 +21,7 @@ enum BalanceMarkdownTables {
             tierStats.timeouts,
             tierStats.averageRounds,
             tierStats.averagePartyHPOnWin * 100,
-            tierStats.averageEnemyHPOnLoss * 100
+            tierStats.averageEnemyHPOnLoss * 100,
         )
         if let compared {
             let comparedPct = compared.decidedBattles == 0
@@ -43,13 +43,13 @@ enum BalanceMarkdownTables {
             title: "Party Abilities (within owner)",
             summaries: tierStats.abilities,
             into: &lines,
-            flaggedPlusTop: 25
+            flaggedPlusTop: 25,
         )
         appendSection(
             title: "Talents (within owner)",
             summaries: tierStats.talents,
             into: &lines,
-            flaggedPlusTop: 25
+            flaggedPlusTop: 25,
         )
         appendSection(title: "Enemy Abilities", summaries: tierStats.enemyAbilities, into: &lines, flaggedPlusTop: 25)
         appendSection(title: "Enemy Traits", summaries: tierStats.enemyTraits, into: &lines)
@@ -58,7 +58,7 @@ enum BalanceMarkdownTables {
                 title: "Item Affixes (within owner)",
                 summaries: tierStats.affixes,
                 into: &lines,
-                flaggedPlusTop: 25
+                flaggedPlusTop: 25,
             )
         }
         appendPairSection(title: "Hero × companion (flagged)", cells: tierStats.heroCompanionCells, into: &lines)
@@ -71,22 +71,22 @@ enum BalanceMarkdownTables {
         lines.append("")
         lines.append(
             "| Bucket | Goal | n | SHORT% | LONG% | Avg rounds | "
-                + "Avg when SHORT | Avg when LONG | Max rounds | Worst enemy | Flag |"
+                + "Avg when SHORT | Avg when LONG | Max rounds | Worst enemy | Flag |",
         )
         lines.append(
-            "|---|---:|---:|---:|---:|---:|---:|---:|---:|---|---|"
+            "|---|---:|---:|---:|---:|---:|---:|---:|---:|---|---|",
         )
         appendDurationRow(
             label: "trash",
             goalBand: BalanceDurationThresholds.trashGoalBand,
             stats: tierStats.trashDuration,
-            into: &lines
+            into: &lines,
         )
         appendDurationRow(
             label: "boss",
             goalBand: BalanceDurationThresholds.bossGoalBand,
             stats: tierStats.bossDuration,
-            into: &lines
+            into: &lines,
         )
         lines.append("")
     }
@@ -95,7 +95,7 @@ enum BalanceMarkdownTables {
         label: String,
         goalBand: String,
         stats: BalanceDurationBucketStats,
-        into lines: inout [String]
+        into lines: inout [String],
     ) {
         let flag = stats.flagged ? "⚠ \(stats.flagReason ?? "")" : ""
         let worst = stats.worstEnemyID.map { "`\($0)`" } ?? "—"
@@ -111,13 +111,13 @@ enum BalanceMarkdownTables {
             stats.averageRoundsWhenLong,
             stats.maxRounds,
             worst,
-            flag
+            flag,
         ))
     }
 
     static func appendEnemyDurationSection(
         _ stats: [BalanceEnemyDurationStats],
-        into lines: inout [String]
+        into lines: inout [String],
     ) {
         guard !stats.isEmpty else { return }
         lines.append("### Enemy duration")
@@ -131,7 +131,7 @@ enum BalanceMarkdownTables {
                 row.battles,
                 row.averageRounds,
                 row.shortRate * 100,
-                row.longRate * 100
+                row.longRate * 100,
             ))
         }
         lines.append("")
@@ -140,12 +140,12 @@ enum BalanceMarkdownTables {
     static func appendContrasts(
         title: String,
         summaries: [PairedContrastSummary],
-        into lines: inout [String]
+        into lines: inout [String],
     ) {
         lines.append("## \(title)")
         lines.append("")
         lines.append(
-            "| Entity | Baseline | Kind | Owner | Tier | Entity% | Baseline% | Lift | ΔHP | Δrounds | n | decided | Flag |"
+            "| Entity | Baseline | Kind | Owner | Tier | Entity% | Baseline% | Lift | ΔHP | Δrounds | n | decided | Flag |",
         )
         lines.append("|---|---|---|---|---|---:|---:|---:|---:|---:|---:|---:|---|")
         let flagged = summaries.filter(\.flagged)
@@ -167,7 +167,7 @@ enum BalanceMarkdownTables {
                 row.meanDeltaRounds,
                 row.pairs,
                 row.decidedPairs,
-                flag
+                flag,
             ))
         }
         lines.append("")
@@ -177,7 +177,7 @@ enum BalanceMarkdownTables {
         title: String,
         summaries: [WinRateSummary],
         into lines: inout [String],
-        flaggedPlusTop: Int? = nil
+        flaggedPlusTop: Int? = nil,
     ) {
         guard !summaries.isEmpty else { return }
         lines.append("### \(title)")
@@ -204,7 +204,7 @@ enum BalanceMarkdownTables {
                 row.wilsonHigh * 100,
                 row.battles,
                 row.deltaVsPeer * 100,
-                flag
+                flag,
             ))
         }
         lines.append("")
@@ -213,7 +213,7 @@ enum BalanceMarkdownTables {
     static func appendPairSection(
         title: String,
         cells: [PairCellSummary],
-        into lines: inout [String]
+        into lines: inout [String],
     ) {
         guard !cells.isEmpty else { return }
         lines.append("### \(title)")
@@ -228,7 +228,7 @@ enum BalanceMarkdownTables {
                 row.winRate * 100,
                 row.battles,
                 row.deltaVsPeer * 100,
-                row.flagReason ?? ""
+                row.flagReason ?? "",
             ))
         }
         lines.append("")
@@ -237,7 +237,7 @@ enum BalanceMarkdownTables {
     static func appendUnderNAppendix(
         tiers: [BalanceTierStats],
         report: BalanceSweepReport,
-        into lines: inout [String]
+        into lines: inout [String],
     ) {
         var identityLow: [WinRateSummary] = []
         for tier in tiers {

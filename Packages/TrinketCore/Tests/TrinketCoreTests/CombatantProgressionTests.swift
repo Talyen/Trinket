@@ -3,16 +3,16 @@ import TrinketCore
 
 struct CombatantProgressionTests {
     @Test(arguments: [(1, 10), (2, 15), (3, 22), (6, 47)])
-    private func requiredXPFollowsQuadraticCurve(level: Int, expectedXP: Int) throws {
+    private func `required XP follows quadratic curve`(level: Int, expectedXP: Int) throws {
         try #expect(CombatantProgression.requiredXP(forLevel: level) == expectedXP)
     }
 
-    @Test func requiredXPDefaultsToTheLevelOneCurve() throws {
+    @Test func `required XP defaults to the level one curve`() throws {
         try #expect(CombatantProgression.requiredXP(forLevel: 0) == 10)
         try #expect(CombatantProgression.initial.requiredXP == 10)
     }
 
-    @Test func addingExperienceHandlesSingleAndMultipleLevelUps() throws {
+    @Test func `adding experience handles single and multiple level ups`() throws {
         let progression = CombatantProgression(level: 1, currentXP: 9, requiredXP: 10)
         let leveled = progression.addingExperience(2)
         try #expect(leveled.level == 2)
@@ -24,13 +24,13 @@ struct CombatantProgressionTests {
         try #expect(leveledMultiple.requiredXP == 22)
     }
 
-    @Test func addingNonPositiveExperienceIsNoOp() throws {
+    @Test func `adding non positive experience is no op`() throws {
         let progression = CombatantProgression(level: 2, currentXP: 4, requiredXP: 15)
         try #expect(progression.addingExperience(0) == progression)
         try #expect(progression.addingExperience(-1) == progression)
     }
 
-    @Test func progressFractionClampsAndHandlesZeroRequired() throws {
+    @Test func `progress fraction clamps and handles zero required`() throws {
         let empty = CombatantProgression(level: 1, currentXP: 0, requiredXP: 10)
         let half = CombatantProgression(level: 1, currentXP: 5, requiredXP: 10)
         let full = CombatantProgression(level: 1, currentXP: 10, requiredXP: 10)
@@ -44,7 +44,7 @@ struct CombatantProgressionTests {
         try #expect(abs((zeroRequired.progressFraction) - 0) < 0.001)
     }
 
-    @Test func atLevelBuildsEmptyProgressTowardNextLevel() throws {
+    @Test func `at level builds empty progress toward next level`() throws {
         let mid = CombatantProgression.at(level: 20)
         try #expect(mid.level == 20)
         try #expect(mid.currentXP == 0)

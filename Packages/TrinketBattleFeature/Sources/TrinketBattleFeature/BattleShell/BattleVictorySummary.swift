@@ -35,7 +35,7 @@ public struct BattleVictorySummary: Equatable {
         presentation: BattlePresentationContext,
         earnedGold: Int,
         heroName: String,
-        companionName: String
+        companionName: String,
     ) -> Self {
         let stageReward = presentation.stageReward ?? StageReward(gold: 0, itemTemplateIDs: [])
         let heroXP = presentation.heroExperienceAward
@@ -47,12 +47,12 @@ public struct BattleVictorySummary: Equatable {
             heroModifiers: [],
             companionModifiers: [],
             astralChanceBonusPercent: 0,
-            goldFindPercent: presentation.goldFindPercent
+            goldFindPercent: presentation.goldFindPercent,
         )
         let totalGold = max(
             0,
             effects.adjustedGold(stageReward.gold + max(0, rawBattleEarnedGold))
-                + min(0, rawBattleEarnedGold)
+                + min(0, rawBattleEarnedGold),
         )
         let stageGold = min(stageReward.gold, totalGold)
         let battleGold = max(0, totalGold - stageGold)
@@ -72,7 +72,7 @@ public struct BattleVictorySummary: Equatable {
             heroProgressionBefore: configuration.hero.progression,
             heroProgressionAfter: heroAfter,
             companionProgressionBefore: configuration.companion.progression,
-            companionProgressionAfter: companionAfter
+            companionProgressionAfter: companionAfter,
         )
     }
 }

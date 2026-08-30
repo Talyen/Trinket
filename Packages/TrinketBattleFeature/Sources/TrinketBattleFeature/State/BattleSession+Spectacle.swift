@@ -21,12 +21,12 @@ extension BattleSession {
 
     func publishAttackTelegraph(
         _ phase: CombatantAttackPhase,
-        for combatantID: String
+        for combatantID: String,
     ) {
         spectacle.nextID += 1
         publishAttackReaction(
             CombatantAttackReaction(id: spectacle.nextID, kind: .attack, phase: phase),
-            for: combatantID
+            for: combatantID,
         )
     }
 
@@ -55,7 +55,7 @@ extension BattleSession {
         cancelCinematicWatchdog()
         BattleCinematicPlayer.shared.pause(
             actorID: cinematic.actorID,
-            abilityID: cinematic.abilityID
+            abilityID: cinematic.abilityID,
         )
         spectacle.actorsWhoPresentedUltimateThisBattle.insert(cinematic.actorID)
         spectacle.activeCinematic = nil
@@ -132,7 +132,7 @@ extension BattleSession {
         scheduleOutcomePresentation(
             after: date,
             expected: .victory,
-            sfx: SFXID.victory
+            sfx: SFXID.victory,
         ) { session in
             session.spectacle.isShowingVictory = true
         }
@@ -163,14 +163,14 @@ extension BattleSession {
         if isHeroAlive {
             feedback.hitReactionsByTargetID[heroID] = CombatantHitReaction(
                 id: baseID,
-                kind: .celebrate
+                kind: .celebrate,
             )
             didPublish = true
         }
         if isCompanionAlive {
             feedback.hitReactionsByTargetID[companionID] = CombatantHitReaction(
                 id: baseID &- 1,
-                kind: .celebrate
+                kind: .celebrate,
             )
             didPublish = true
         }
@@ -223,7 +223,7 @@ extension BattleSession {
         scheduleOutcomePresentation(
             after: date,
             expected: .defeat,
-            sfx: SFXID.defeat
+            sfx: SFXID.defeat,
         ) { session in
             session.spectacle.isShowingDefeat = true
         }
@@ -233,7 +233,7 @@ extension BattleSession {
         after date: Date,
         expected: BattleSimulationOutcome,
         sfx: String,
-        show: @escaping @MainActor (BattleSession) -> Void
+        show: @escaping @MainActor (BattleSession) -> Void,
     ) {
         if spectacle.pendingOutcomePresentationTask != nil, outcome == expected {
             return
@@ -273,16 +273,16 @@ extension BattleSession {
             BattleSpectaclePolicy.shouldPresentUltimateCinematic(
                 for: $0,
                 heroID: heroID,
-                companionID: companionID
+                companionID: companionID,
             )
         }) {
             let autoSkip = presentationEnvironment.shouldAutoSkipUltimateCinematic(
                 ultimate.actorID,
-                spectacle.actorsWhoPresentedUltimateThisBattle
+                spectacle.actorsWhoPresentedUltimateThisBattle,
             )
             let hasVideo = BattleCinematicPlayer.shared.hasVideo(
                 for: ultimate.actorID,
-                abilityID: ultimate.abilityID
+                abilityID: ultimate.abilityID,
             )
             if autoSkip || !hasVideo {
                 feedback.record(nonMilestone, at: date, environment: presentationEnvironment)
@@ -308,7 +308,7 @@ extension BattleSession {
             abilityName: event.abilityName,
             keyword: event.keyword,
             phase: .expanding,
-            startedAt: date
+            startedAt: date,
         )
         BattleCinematicPlayer.shared.warm(actorID: event.actorID, abilityID: event.abilityID)
         scheduleCinematicWatchdog(expectedID: cinematicID)
@@ -359,7 +359,7 @@ extension BattleSession {
 
     func resetRun(
         from configuration: BattleRunConfiguration,
-        holdOpeningHandForOverlayFade: Bool = false
+        holdOpeningHandForOverlayFade: Bool = false,
     ) {
         cancelPendingAutoEnd()
         cancelOpeningHandDeal()
@@ -386,7 +386,7 @@ extension BattleSession {
             for: configuration.id,
             startDelay: holdOpeningHandForOverlayFade
                 ? .seconds(TrinketMotion.Screen.crossfadeDuration)
-                : .zero
+                : .zero,
         )
     }
 

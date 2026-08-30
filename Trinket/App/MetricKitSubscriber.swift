@@ -42,7 +42,7 @@ final class MetricKitSubscriber: NSObject, MXMetricManagerSubscriber {
             let hitchRatio = animation.hitchTimeRatio
             Task { @MainActor in
                 self.logger.info(
-                    "MXAnimationMetric hitchTimeRatio=\(String(describing: hitchRatio), privacy: .public)"
+                    "MXAnimationMetric hitchTimeRatio=\(String(describing: hitchRatio), privacy: .public)",
                 )
             }
         }
@@ -59,7 +59,7 @@ final class MetricKitSubscriber: NSObject, MXMetricManagerSubscriber {
     }
 
     nonisolated static func summaries(
-        for payload: MXDiagnosticPayload
+        for payload: MXDiagnosticPayload,
     ) -> [MetricKitDiagnosticSummary] {
         let periodStart = payload.timeStampBegin.timeIntervalSince1970
         let periodEnd = payload.timeStampEnd.timeIntervalSince1970
@@ -68,31 +68,31 @@ final class MetricKitSubscriber: NSObject, MXMetricManagerSubscriber {
             MetricKitDiagnosticSummary(
                 kind: .crash(
                     signal: diagnostic.signal?.intValue,
-                    terminationReason: diagnostic.terminationReason
+                    terminationReason: diagnostic.terminationReason,
                 ),
                 applicationVersion: diagnostic.applicationVersion,
                 periodStart: periodStart,
-                periodEnd: periodEnd
+                periodEnd: periodEnd,
             )
         }
         let hangs = (payload.hangDiagnostics ?? []).map { diagnostic in
             MetricKitDiagnosticSummary(
                 kind: .hang(
-                    durationSeconds: diagnostic.hangDuration.converted(to: .seconds).value
+                    durationSeconds: diagnostic.hangDuration.converted(to: .seconds).value,
                 ),
                 applicationVersion: diagnostic.applicationVersion,
                 periodStart: periodStart,
-                periodEnd: periodEnd
+                periodEnd: periodEnd,
             )
         }
         let diskWrites = (payload.diskWriteExceptionDiagnostics ?? []).map { diagnostic in
             MetricKitDiagnosticSummary(
                 kind: .diskWrite(
-                    totalMegabytes: diagnostic.totalWritesCaused.converted(to: .megabytes).value
+                    totalMegabytes: diagnostic.totalWritesCaused.converted(to: .megabytes).value,
                 ),
                 applicationVersion: diagnostic.applicationVersion,
                 periodStart: periodStart,
-                periodEnd: periodEnd
+                periodEnd: periodEnd,
             )
         }
         return crashes + hangs + diskWrites
@@ -108,7 +108,7 @@ final class MetricKitSubscriber: NSObject, MXMetricManagerSubscriber {
                 periodEnd=\(summary.periodEnd, privacy: .public) \
                 signal=\(signal.map(String.init) ?? "unknown", privacy: .public) \
                 terminationReason=\(terminationReason ?? "unknown", privacy: .private)
-                """
+                """,
             )
         case let .hang(durationSeconds):
             logger.error(
@@ -117,7 +117,7 @@ final class MetricKitSubscriber: NSObject, MXMetricManagerSubscriber {
                 periodStart=\(summary.periodStart, privacy: .public) \
                 periodEnd=\(summary.periodEnd, privacy: .public) \
                 durationSeconds=\(durationSeconds, privacy: .public)
-                """
+                """,
             )
         case let .diskWrite(totalMegabytes):
             logger.error(
@@ -126,7 +126,7 @@ final class MetricKitSubscriber: NSObject, MXMetricManagerSubscriber {
                 periodStart=\(summary.periodStart, privacy: .public) \
                 periodEnd=\(summary.periodEnd, privacy: .public) \
                 totalMegabytes=\(totalMegabytes, privacy: .public)
-                """
+                """,
             )
         }
     }

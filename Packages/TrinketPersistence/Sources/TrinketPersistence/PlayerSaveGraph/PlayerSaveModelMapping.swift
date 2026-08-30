@@ -6,12 +6,12 @@ import TrinketCore
 
 private let labyrinthMapLogger = Logger(
     subsystem: PlayerSaveDefaults.loggingSubsystem,
-    category: "LabyrinthMapPayload"
+    category: "LabyrinthMapPayload",
 )
 
 let inventoryMappingLogger = Logger(
     subsystem: PlayerSaveDefaults.loggingSubsystem,
-    category: "InventoryMapping"
+    category: "InventoryMapping",
 )
 private struct UnlockedCombatantValue {
     static let heroRole = "hero"
@@ -34,7 +34,7 @@ extension RosterModel {
     private func updateEquipmentLoadout(
         _ model: EquipmentLoadoutModel,
         from value: EquipmentLoadoutValue,
-        context: ModelContext?
+        context: ModelContext?,
     ) {
         model.combatantID = value.combatantID
         let slots = value.loadout.itemIDsBySlot
@@ -50,7 +50,7 @@ extension RosterModel {
                 slotModel.slotID = slot.slotID
                 slotModel.itemID = slot.itemID
             },
-            context: context
+            context: context,
         )
         model.slots?.linkEach(to: model, parent: \.loadout)
     }
@@ -80,7 +80,7 @@ extension InventoryItemModel {
                 model.isCorrupted = value.affix.isCorrupted
                 model.sortIndex = value.index
             },
-            context: context
+            context: context,
         )
         affixes?.linkEach(to: self, parent: \.item)
     }
@@ -114,7 +114,7 @@ extension RosterModel {
                 model.combatantID = value.combatantID
                 model.role = value.role
             },
-            context: context
+            context: context,
         )
         unlockedCombatants?.linkEach(to: self, parent: \.roster)
     }
@@ -133,7 +133,7 @@ extension RosterModel {
                 model.currentXP = value.value.currentXP
                 model.requiredXP = value.value.requiredXP
             },
-            context: context
+            context: context,
         )
         progressions?.linkEach(to: self, parent: \.roster)
     }
@@ -152,7 +152,7 @@ extension RosterModel {
                 model.skillID = value.value.skill?.id
                 model.ultimateID = value.value.ultimate?.id
             },
-            context: context
+            context: context,
         )
         abilityLoadouts?.linkEach(to: self, parent: \.roster)
     }
@@ -170,7 +170,7 @@ extension RosterModel {
             update: { model, value in
                 self.updateTalentLoadout(model, from: value, context: context)
             },
-            context: context
+            context: context,
         )
         talentLoadouts?.linkEach(to: self, parent: \.roster)
     }
@@ -178,7 +178,7 @@ extension RosterModel {
     private func updateTalentLoadout(
         _ model: TalentLoadoutModel,
         from value: (combatantID: String, nodeIDs: [String]),
-        context: ModelContext?
+        context: ModelContext?,
     ) {
         model.combatantID = value.combatantID
         model.unlockedNodes = reconcileModels(
@@ -190,7 +190,7 @@ extension RosterModel {
             update: { unlockModel, nodeID in
                 unlockModel.nodeID = nodeID
             },
-            context: context
+            context: context,
         )
         model.unlockedNodes?.linkEach(to: model, parent: \.loadout)
     }
@@ -208,7 +208,7 @@ extension RosterModel {
             update: { model, value in
                 self.updateEquipmentLoadout(model, from: value, context: context)
             },
-            context: context
+            context: context,
         )
         equipmentLoadouts?.linkEach(to: self, parent: \.roster)
     }
@@ -216,7 +216,7 @@ extension RosterModel {
 
 extension RosterModel {
     func toPlayerRosterState(
-        schemaVersion: Int = PlayerSave.currentSchemaVersion
+        schemaVersion: Int = PlayerSave.currentSchemaVersion,
     ) -> PlayerRosterState {
         let unlocked = unlockedCombatants ?? []
         let heroIDs = Set(unlocked.filter { $0.role == UnlockedCombatantValue.heroRole }.map(\.combatantID))
@@ -235,10 +235,10 @@ extension RosterModel {
                     let resolvedSlot = RosterHydration.resolveEquipmentSlot(
                         slot.slotID,
                         schemaVersion: schemaVersion,
-                        isHero: isHero
+                        isHero: isHero,
                     )
                     return resolvedSlot.map { ($0, slot.itemID) }
-                }))
+                })),
             )
         })
         let talentValues = Dictionary(lastWins: (talentLoadouts ?? []).map { loadoutModel in
@@ -254,7 +254,7 @@ extension RosterModel {
             progressions: progressionValues,
             equipmentLoadouts: equipmentValues,
             unlockedTalents: talentValues,
-            gold: gold
+            gold: gold,
         )
     }
 }
@@ -272,7 +272,7 @@ extension InventoryModel {
                 model.update(from: value.item, context: context)
                 model.sortIndex = value.index
             },
-            context: context
+            context: context,
         )
         items?.linkEach(to: self, parent: \.inventory)
     }
@@ -299,7 +299,7 @@ extension HomesteadModel {
             resources: resolvedResources,
             nodeTiers: resolvedNodeTiers,
             pendingProduction: resolvedPendingProduction,
-            lastProductionAt: lastProductionAt
+            lastProductionAt: lastProductionAt,
         )
     }
 
@@ -319,7 +319,7 @@ extension HomesteadModel {
                 model.resourceID = value.resourceID
                 model.quantity = value.quantity
             },
-            context: context
+            context: context,
         )
         resources?.linkEach(to: self, parent: \.homestead)
 
@@ -337,7 +337,7 @@ extension HomesteadModel {
                 model.resourceID = value.resourceID
                 model.quantity = value.quantity
             },
-            context: context
+            context: context,
         )
         pendingProduction?.linkEach(to: self, parent: \.homestead)
 
@@ -354,7 +354,7 @@ extension HomesteadModel {
                 model.nodeID = value.nodeID
                 model.tier = value.tier
             },
-            context: context
+            context: context,
         )
         nodeTiers?.linkEach(to: self, parent: \.homestead)
     }
@@ -382,7 +382,7 @@ extension SpiresProgressModel {
                 model.spireID = value.key
                 model.highestClearedFloor = max(0, value.value)
             },
-            context: context
+            context: context,
         )
         floors?.linkEach(to: self, parent: \.spires)
     }
@@ -397,7 +397,7 @@ extension LabyrinthProgressModel {
                 mapVersion: mapVersion,
                 hasEntered: hasEntered,
                 clusters: [],
-                nodes: [:]
+                nodes: [:],
             )
         case let .decoded(payload):
             PlayerLabyrinthState(
@@ -406,7 +406,7 @@ extension LabyrinthProgressModel {
                 hasEntered: hasEntered,
                 clusters: payload.clusters,
                 nodes: Dictionary(lastWins: payload.nodes.map { ($0.id, $0) }),
-                runHealthByCombatantID: payload.runHealthByCombatantID
+                runHealthByCombatantID: payload.runHealthByCombatantID,
             )
         case .unreadable:
             PlayerLabyrinthState(
@@ -415,7 +415,7 @@ extension LabyrinthProgressModel {
                 hasEntered: hasEntered,
                 clusters: [],
                 nodes: [:],
-                isMapPayloadUnreadable: true
+                isMapPayloadUnreadable: true,
             )
         }
     }
@@ -430,13 +430,13 @@ extension LabyrinthProgressModel {
         let payload = LabyrinthMapPayload(
             clusters: state.clusters,
             nodes: Array(state.nodes.values).sorted { $0.id < $1.id },
-            runHealthByCombatantID: state.runHealthByCombatantID
+            runHealthByCombatantID: state.runHealthByCombatantID,
         )
         do {
             mapPayload = try JSONEncoder().encode(payload)
         } catch {
             labyrinthMapLogger.error(
-                "Failed to encode labyrinth map payload: \(error.localizedDescription, privacy: .public)"
+                "Failed to encode labyrinth map payload: \(error.localizedDescription, privacy: .public)",
             )
         }
     }
@@ -455,7 +455,7 @@ extension LabyrinthProgressModel {
             return try .decoded(JSONDecoder().decode(LabyrinthMapPayload.self, from: mapPayload))
         } catch {
             labyrinthMapLogger.error(
-                "Failed to decode labyrinth map payload; keeping stored blob: \(error.localizedDescription, privacy: .public)"
+                "Failed to decode labyrinth map payload; keeping stored blob: \(error.localizedDescription, privacy: .public)",
             )
             return .unreadable
         }
@@ -465,7 +465,7 @@ extension LabyrinthProgressModel {
 extension Array {
     func linkEach<Parent>(
         to parent: Parent,
-        parent keyPath: ReferenceWritableKeyPath<Element, Parent?>
+        parent keyPath: ReferenceWritableKeyPath<Element, Parent?>,
     ) {
         forEach { $0[keyPath: keyPath] = parent }
     }
@@ -478,7 +478,7 @@ func reconcileModels<Model: PersistentModel, Value, Key: Hashable>(
     valueKey: (Value) -> Key,
     make: (Value) -> Model,
     update: (Model, Value) -> Void,
-    context: ModelContext?
+    context: ModelContext?,
 ) -> [Model] {
     var modelsByKey = [Key: Model](minimumCapacity: existing.count)
     for model in existing {

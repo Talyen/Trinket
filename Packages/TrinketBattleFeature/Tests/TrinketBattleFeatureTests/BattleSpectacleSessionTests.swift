@@ -11,13 +11,13 @@ import TrinketTestSupport
 @MainActor
 struct BattleSpectacleSessionTests {
     @Test(arguments: [false, true])
-    func unmappedUltimateKillingBlowPresentsVictoryWithoutCinematic(
-        alreadyClaimed: Bool
+    func `unmapped ultimate killing blow presents victory without cinematic`(
+        alreadyClaimed: Bool,
     ) throws {
         let hero = CombatantFixtures.combatant(
             id: "hero",
             role: .hero,
-            abilities: [.bloodthorn]
+            abilities: [.bloodthorn],
         )
         let session = try BattleSessionTestSupport.makeConfiguredSession(
             hero: hero,
@@ -26,9 +26,9 @@ struct BattleSpectacleSessionTests {
                 id: "enemy",
                 role: .enemy,
                 maxHealth: 3,
-                abilities: []
+                abilities: [],
             ),
-            stageRewardsAlreadyClaimed: alreadyClaimed
+            stageRewardsAlreadyClaimed: alreadyClaimed,
         )
         var deliveryCount = 0
         session.installClaimedVictoryHandler(ownerID: UUID()) { _, _ in
@@ -38,7 +38,7 @@ struct BattleSpectacleSessionTests {
         _ = BattleSessionTestSupport.playAbility(
             Ability.bloodthorn.id,
             on: session,
-            at: now
+            at: now,
         )
 
         #expect(session.outcome == .victory)
@@ -54,11 +54,11 @@ struct BattleSpectacleSessionTests {
         }
     }
 
-    @Test func unmappedUltimateSkipsCinematicAndRecordsFeedback() throws {
+    @Test func `unmapped ultimate skips cinematic and records feedback`() throws {
         let hero = CombatantFixtures.combatant(
             id: "hero",
             role: .hero,
-            abilities: [.slash, .fireball, .bloodthorn]
+            abilities: [.slash, .fireball, .bloodthorn],
         )
         let session = try BattleSessionTestSupport.makeConfiguredSession(
             hero: hero,
@@ -67,32 +67,32 @@ struct BattleSpectacleSessionTests {
                 id: "enemy",
                 role: .enemy,
                 maxHealth: 500,
-                abilities: []
-            )
+                abilities: [],
+            ),
         )
         let now = Date()
         let ultimate = try #require(
             BattleSessionTestSupport.drawUntilPlayable(
                 Ability.bloodthorn.id,
                 on: session,
-                at: now
-            )
+                at: now,
+            ),
         )
         let beforeFeedbackCount = session.feedback.activeItems.count
         _ = session.playCard(
             cardID: ultimate.id,
-            at: now
+            at: now,
         )
 
         #expect(session.spectacle.activeCinematic == nil)
         #expect(session.feedback.activeItems.count > beforeFeedbackCount)
     }
 
-    @Test func playingMappedHeroUltimateDefersFeedbackUntilCinematicCompletes() throws {
+    @Test func `playing mapped hero ultimate defers feedback until cinematic completes`() throws {
         let hero = CombatantFixtures.combatant(
             id: "knight",
             role: .hero,
-            abilities: [.slash, .fireball, .avatarOfJustice]
+            abilities: [.slash, .fireball, .avatarOfJustice],
         )
         let session = try BattleSessionTestSupport.makeConfiguredSession(
             hero: hero,
@@ -101,21 +101,21 @@ struct BattleSpectacleSessionTests {
                 id: "enemy",
                 role: .enemy,
                 maxHealth: 500,
-                abilities: []
-            )
+                abilities: [],
+            ),
         )
         let now = Date()
         let ultimate = try #require(
             BattleSessionTestSupport.drawUntilPlayable(
                 Ability.avatarOfJustice.id,
                 on: session,
-                at: now
-            )
+                at: now,
+            ),
         )
         let beforeFeedbackCount = session.feedback.activeItems.count
         _ = session.playCard(
             cardID: ultimate.id,
-            at: now
+            at: now,
         )
 
         let cinematic = try #require(session.spectacle.activeCinematic)
@@ -143,11 +143,11 @@ struct BattleSpectacleSessionTests {
         }
     }
 
-    @Test func cinematicSessionWatchdogClearsStuckUltimateOverlay() async throws {
+    @Test func `cinematic session watchdog clears stuck ultimate overlay`() async throws {
         let hero = CombatantFixtures.combatant(
             id: "knight",
             role: .hero,
-            abilities: [.slash, .fireball, .avatarOfJustice]
+            abilities: [.slash, .fireball, .avatarOfJustice],
         )
         let session = try BattleSessionTestSupport.makeConfiguredSession(
             hero: hero,
@@ -156,8 +156,8 @@ struct BattleSpectacleSessionTests {
                 id: "enemy",
                 role: .enemy,
                 maxHealth: 500,
-                abilities: []
-            )
+                abilities: [],
+            ),
         )
         session.cinematicSessionWatchdogOverride = .milliseconds(50)
         let now = Date()
@@ -165,24 +165,24 @@ struct BattleSpectacleSessionTests {
             BattleSessionTestSupport.drawUntilPlayable(
                 Ability.avatarOfJustice.id,
                 on: session,
-                at: now
-            )
+                at: now,
+            ),
         )
         _ = session.playCard(cardID: ultimate.id, at: now)
         #expect(session.spectacle.activeCinematic != nil)
         #expect(
             try await BattleSessionTestSupport.waitUntil {
                 session.spectacle.activeCinematic == nil
-            }
+            },
         )
         #expect(session.canEndTurn)
     }
 
-    @Test func alwaysPolicyAutoSkipsUltimateCinematic() throws {
+    @Test func `always policy auto skips ultimate cinematic`() throws {
         let hero = CombatantFixtures.combatant(
             id: "knight",
             role: .hero,
-            abilities: [.slash, .fireball, .avatarOfJustice]
+            abilities: [.slash, .fireball, .avatarOfJustice],
         )
         let session = try BattleSessionTestSupport.makeConfiguredSession(
             hero: hero,
@@ -191,11 +191,11 @@ struct BattleSpectacleSessionTests {
                 id: "enemy",
                 role: .enemy,
                 maxHealth: 500,
-                abilities: []
+                abilities: [],
             ),
             presentationEnvironment: BattleSessionTestSupport.presentationEnvironment(
-                shouldAutoSkipUltimateCinematic: { _, _ in true }
-            )
+                shouldAutoSkipUltimateCinematic: { _, _ in true },
+            ),
         )
 
         let now = Date()
@@ -203,24 +203,24 @@ struct BattleSpectacleSessionTests {
             BattleSessionTestSupport.drawUntilPlayable(
                 Ability.avatarOfJustice.id,
                 on: session,
-                at: now
-            )
+                at: now,
+            ),
         )
         let beforeFeedbackCount = session.feedback.activeItems.count
         _ = session.playCard(
             cardID: ultimate.id,
-            at: now
+            at: now,
         )
 
         #expect(session.spectacle.activeCinematic == nil)
         #expect(session.feedback.activeItems.count > beforeFeedbackCount)
     }
 
-    @Test func oncePerBattleShowsHeroUltimateOnceThenAutoSkips() throws {
+    @Test func `once per battle shows hero ultimate once then auto skips`() throws {
         let hero = CombatantFixtures.combatant(
             id: "knight",
             role: .hero,
-            abilities: [.slash, .fireball, .avatarOfJustice]
+            abilities: [.slash, .fireball, .avatarOfJustice],
         )
         let session = try BattleSessionTestSupport.makeConfiguredSession(
             hero: hero,
@@ -229,20 +229,20 @@ struct BattleSpectacleSessionTests {
                 id: "enemy",
                 role: .enemy,
                 maxHealth: 2000,
-                abilities: []
+                abilities: [],
             ),
             presentationEnvironment: BattleSessionTestSupport.presentationEnvironment(
                 shouldAutoSkipUltimateCinematic: { actorID, presentedActors in
                     presentedActors.contains(actorID)
-                }
-            )
+                },
+            ),
         )
 
         let firstUltimateAt = Date()
         _ = BattleSessionTestSupport.playAbility(
             Ability.avatarOfJustice.id,
             on: session,
-            at: firstUltimateAt
+            at: firstUltimateAt,
         )
         #expect(session.spectacle.activeCinematic?.actorID == "knight")
         session.markCinematicPlaying()
@@ -254,41 +254,41 @@ struct BattleSpectacleSessionTests {
             BattleSessionTestSupport.drawUntilPlayable(
                 Ability.avatarOfJustice.id,
                 on: session,
-                at: secondUltimateAt
-            )
+                at: secondUltimateAt,
+            ),
         )
         let playAt = secondUltimateAt.addingTimeInterval(5)
         session.feedback.pruneExpired(at: playAt, notifyPresentation: false)
         let feedbackBefore = session.feedback.activeItems.count
         _ = session.playCard(
             cardID: secondUltimate.id,
-            at: playAt
+            at: playAt,
         )
         #expect(session.spectacle.activeCinematic == nil)
         #expect(session.feedback.activeItems.count > feedbackBefore)
     }
 
-    @Test func enemyUltimateDoesNotPresentCinematic() throws {
+    @Test func `enemy ultimate does not present cinematic`() throws {
         let enemy = CombatantFixtures.combatant(
             id: "enemy",
             role: .enemy,
             maxHealth: 200,
-            abilities: [.slash, .fireball, .bloodthorn]
+            abilities: [.slash, .fireball, .bloodthorn],
         )
         let session = try BattleSessionTestSupport.makeConfiguredSession(
             hero: CombatantFixtures.combatant(
                 id: "hero",
                 role: .hero,
                 maxHealth: 200,
-                abilities: []
+                abilities: [],
             ),
             companion: CombatantFixtures.combatant(
                 id: "companion",
                 role: .companion,
                 maxHealth: 200,
-                abilities: []
+                abilities: [],
             ),
-            enemy: enemy
+            enemy: enemy,
         )
 
         for _ in 0 ..< 6 {
@@ -298,11 +298,11 @@ struct BattleSpectacleSessionTests {
         #expect(session.spectacle.activeCinematic == nil)
     }
 
-    @Test func beginCinematicCollapseIgnoresStaleExpectedID() throws {
+    @Test func `begin cinematic collapse ignores stale expected ID`() throws {
         let hero = CombatantFixtures.combatant(
             id: "knight",
             role: .hero,
-            abilities: [.slash, .fireball, .avatarOfJustice]
+            abilities: [.slash, .fireball, .avatarOfJustice],
         )
         let session = try BattleSessionTestSupport.makeConfiguredSession(
             hero: hero,
@@ -311,20 +311,20 @@ struct BattleSpectacleSessionTests {
                 id: "enemy",
                 role: .enemy,
                 maxHealth: 500,
-                abilities: []
-            )
+                abilities: [],
+            ),
         )
         let now = Date()
         let ultimate = try #require(
             BattleSessionTestSupport.drawUntilPlayable(
                 Ability.avatarOfJustice.id,
                 on: session,
-                at: now
-            )
+                at: now,
+            ),
         )
         _ = session.playCard(
             cardID: ultimate.id,
-            at: now
+            at: now,
         )
 
         let cinematic = try #require(session.spectacle.activeCinematic)
@@ -338,7 +338,7 @@ struct BattleSpectacleSessionTests {
         #expect(session.spectacle.activeCinematic?.phase == .collapsing)
     }
 
-    @Test func clearAllPresentationCancelsPendingCelebration() {
+    @Test func `clear all presentation cancels pending celebration`() {
         let session = BattleSession(outcomePresentationDelayOverride: 60)
         session.partyCelebrateDelayOverride = .seconds(60)
 

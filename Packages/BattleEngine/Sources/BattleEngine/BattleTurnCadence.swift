@@ -17,7 +17,7 @@ public struct BattleTurnCadence: Equatable, Hashable, Sendable {
         burnManaRestored: [BattleParticipant: Int] = [:],
         spendManaDrawOwners: Set<BattleParticipant> = [],
         healthLossDrawOwners: Set<BattleParticipant> = [],
-        goldDrawOwners: Set<BattleParticipant> = []
+        goldDrawOwners: Set<BattleParticipant> = [],
     ) {
         self.cardsPlayed = cardsPlayed
         self.skillCardsPlayed = skillCardsPlayed

@@ -16,7 +16,7 @@ struct RewardItemRevealCard: View {
         ItemCard(
             item: item,
             showsAffixCount: false,
-            presentation: .reveal
+            presentation: .reveal,
         ) {
             ItemArtwork(item: item)
         }

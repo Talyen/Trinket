@@ -62,7 +62,7 @@ public struct LabyrinthModifierDefinition: Identifiable, Hashable, Sendable {
         id: LabyrinthModifierID,
         title: String,
         effect: LabyrinthModifierEffect,
-        nodeTypes: Set<LabyrinthNodeType>
+        nodeTypes: Set<LabyrinthNodeType>,
     ) {
         self.id = id
         self.title = title
@@ -119,7 +119,7 @@ public enum LabyrinthNodeType: String, Hashable, Sendable, CaseIterable, Codable
         guard let value = Self(rawValue: rawValue) else {
             throw DecodingError.dataCorruptedError(
                 in: container,
-                debugDescription: "Unknown Labyrinth node type: \(rawValue)"
+                debugDescription: "Unknown Labyrinth node type: \(rawValue)",
             )
         }
         self = value
@@ -234,7 +234,7 @@ public struct LabyrinthNode: Identifiable, Hashable, Codable, Sendable {
         mysteryEventID: String? = nil,
         outgoingIDs: [String] = [],
         isCleared: Bool = false,
-        isRevealed: Bool = false
+        isRevealed: Bool = false,
     ) {
         self.id = id
         self.type = type
@@ -280,7 +280,7 @@ public struct LabyrinthCluster: Identifiable, Hashable, Codable, Sendable {
     public init(
         id: String,
         depthBand: Int,
-        nodeIDs: [String]
+        nodeIDs: [String],
     ) {
         self.id = id
         self.depthBand = depthBand
@@ -308,7 +308,7 @@ public struct LabyrinthModifierEffects: Equatable, Sendable {
         experienceEarnedPercent: 0,
         materialsFoundPercent: 0,
         shopDiscountPercent: 0,
-        astralShopOffers: false
+        astralShopOffers: false,
     )
 
     public init(
@@ -320,7 +320,7 @@ public struct LabyrinthModifierEffects: Equatable, Sendable {
         experienceEarnedPercent: Int = 0,
         materialsFoundPercent: Int = 0,
         shopDiscountPercent: Int = 0,
-        astralShopOffers: Bool = false
+        astralShopOffers: Bool = false,
     ) {
         self.damageDealtBonus = damageDealtBonus
         self.damageTakenReduction = damageTakenReduction

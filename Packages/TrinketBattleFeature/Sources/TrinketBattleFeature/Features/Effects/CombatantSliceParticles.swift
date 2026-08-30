@@ -26,15 +26,15 @@ struct SliceBorderParticle: Identifiable {
             guard let sample = edgeSample(
                 edge: (index + salt) % 5,
                 along: CombatantCardEffectNoise.value(index + salt, salt: 13),
-                geometry: geometry
+                geometry: geometry,
             ) else { continue }
             particles.append(
                 makeParticle(
                     index: index,
                     salt: salt,
                     origin: sample.origin,
-                    outward: sample.outward
-                )
+                    outward: sample.outward,
+                ),
             )
         }
         return particles
@@ -56,7 +56,7 @@ struct SliceBorderParticle: Identifiable {
     private static func edgeSample(
         edge: Int,
         along: CGFloat,
-        geometry: HalfEdgeGeometry
+        geometry: HalfEdgeGeometry,
     ) -> EdgeSample? {
         if edge == 4 {
             let origin = CombatantSliceCrack.point(atFraction: along)
@@ -68,8 +68,8 @@ struct SliceBorderParticle: Identifiable {
                 origin: origin,
                 outward: CGVector(
                     dx: tangent.dy * geometry.halfSign,
-                    dy: -tangent.dx * geometry.halfSign
-                )
+                    dy: -tangent.dx * geometry.halfSign,
+                ),
             )
         }
 
@@ -97,7 +97,7 @@ struct SliceBorderParticle: Identifiable {
         index: Int,
         salt: Int,
         origin: CGPoint,
-        outward: CGVector
+        outward: CGVector,
     ) -> Self {
         let tangent = CGVector(dx: -outward.dy, dy: outward.dx)
         let spray = (CombatantCardEffectNoise.value(index + salt, salt: 29) - 0.5) * 1.6
@@ -118,7 +118,7 @@ struct SliceBorderParticle: Identifiable {
             lifetimeNoise: CombatantCardEffectNoise.value(index + salt, salt: 59),
             distanceNoise: CombatantCardEffectNoise.value(index + salt, salt: 61),
             sizeNoise: CombatantCardEffectNoise.value(index + salt, salt: 67),
-            fadeNoise: CombatantCardEffectNoise.value(index + salt, salt: 71)
+            fadeNoise: CombatantCardEffectNoise.value(index + salt, salt: 71),
         )
     }
 }
@@ -133,7 +133,7 @@ struct SliceBorderParticles: View {
         Canvas { context, size in
             let origin = CGPoint(
                 x: (size.width - cardSize.width) * 0.5,
-                y: (size.height - cardSize.height) * 0.5
+                y: (size.height - cardSize.height) * 0.5,
             )
             let color = TrinketDesign.Colors.battleSliceSpark
             for particle in particles {
@@ -143,13 +143,13 @@ struct SliceBorderParticles: View {
                     x: sample.center.x - sample.diameter / 2,
                     y: sample.center.y - sample.diameter / 2,
                     width: sample.diameter,
-                    height: sample.diameter
+                    height: sample.diameter,
                 )
                 var particleContext = context
                 particleContext.opacity = sample.opacity
                 particleContext.fill(
                     Path(ellipseIn: rect),
-                    with: .color(color)
+                    with: .color(color),
                 )
             }
         }
@@ -172,20 +172,20 @@ struct SliceBorderParticles: View {
         let easedAge = 1 - pow(1 - age, max(configuration.particleAgeEasePower, 0.01))
         let start = CGPoint(
             x: cardOrigin.x + particle.origin.x * cardSize.width,
-            y: cardOrigin.y + particle.origin.y * cardSize.height
+            y: cardOrigin.y + particle.origin.y * cardSize.height,
         )
         let center = CGPoint(
             x: start.x + particle.direction.dx * distance * easedAge,
-            y: start.y + particle.direction.dy * distance * easedAge
+            y: start.y + particle.direction.dy * distance * easedAge,
         )
         let diameter = max(
             0,
             (configuration.particleSize + particle.sizeNoise * configuration.particleSizeVariation)
-                * (1 - age * configuration.particleSizeShrink)
+                * (1 - age * configuration.particleSizeShrink),
         )
         let fadeStart = min(
             max(configuration.fadeStart + particle.fadeNoise * configuration.fadeStartVariation, 0),
-            0.99
+            0.99,
         )
         let fadeProgress = max(0, (age - fadeStart) / (1 - fadeStart))
         let opacity = progress >= delay && age < 1
@@ -216,7 +216,7 @@ struct SliceCutParticle: Identifiable {
             let lifetime = 0.35 + CombatantCardEffectNoise.value(index, salt: 139) * 0.35
             return Self(
                 id: index, linePosition: pos, side: side, sprayAngle: spray,
-                delay: delay, speed: speed, size: size, lifetime: lifetime
+                delay: delay, speed: speed, size: size, lifetime: lifetime,
             )
         }
     }
@@ -255,13 +255,13 @@ struct SliceCutParticles: View {
                     x: posX - diameter / 2,
                     y: posY - diameter / 2,
                     width: diameter,
-                    height: diameter
+                    height: diameter,
                 )
                 var particleContext = context
                 particleContext.opacity = opacity
                 particleContext.fill(
                     Path(ellipseIn: rect),
-                    with: .color(color)
+                    with: .color(color),
                 )
             }
         }

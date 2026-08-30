@@ -35,7 +35,7 @@ struct DefaultingTriggerDecoder {
     func decode<Value: Decodable>(
         _ type: Value.Type,
         _ key: String,
-        default defaultValue: Value
+        default defaultValue: Value,
     ) throws -> Value {
         try values.decodeIfPresent(type, forKey: TriggerCodingKey(key)) ?? defaultValue
     }
@@ -45,7 +45,7 @@ extension KeyedEncodingContainer where K == TriggerCodingKey {
     mutating func encodeNonDefault<Value: Encodable & Equatable>(
         _ value: Value,
         _ key: String,
-        default defaultValue: Value
+        default defaultValue: Value,
     ) throws {
         guard value != defaultValue else { return }
         try encode(value, forKey: TriggerCodingKey(key))

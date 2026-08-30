@@ -21,7 +21,7 @@ struct SalvageItemButton: View {
             ItemCard(
                 item: item,
                 showsAffixCount: false,
-                showsName: showsName
+                showsName: showsName,
             )
         }
         .trinketQuietTapButtonStyle()
@@ -63,7 +63,7 @@ private struct SalvageTransmutationEffect: View {
                         HomesteadResourceArtwork(resource: yield.resource)
                             .frame(
                                 width: TrinketDesign.Metrics.walletResourceArtworkSize,
-                                height: TrinketDesign.Metrics.walletResourceArtworkSize
+                                height: TrinketDesign.Metrics.walletResourceArtworkSize,
                             )
                         Text("+\(yield.quantity)")
                             .trinketTypography(.statValue)
@@ -73,19 +73,19 @@ private struct SalvageTransmutationEffect: View {
                     .padding(TrinketDesign.Metrics.smallSpacing)
                     .trinketMaterial(
                         .subtleOverlay,
-                        cornerRadius: TrinketDesign.Corners.card
+                        cornerRadius: TrinketDesign.Corners.card,
                     )
                     .shadow(
                         color: yield.resource.tint.opacity(0.28),
-                        radius: TrinketDesign.Metrics.smallSpacing
+                        radius: TrinketDesign.Metrics.smallSpacing,
                     )
                     .scaleEffect(showsMaterials ? 1 : 0.55)
                     .opacity(showsMaterials && !materialsDeparted ? 1 : 0)
                     .animation(
                         TrinketMotion.Reward.reveal.delay(
-                            Double(index) * TrinketMotion.Reward.resourceStagger
+                            Double(index) * TrinketMotion.Reward.resourceStagger,
                         ),
-                        value: showsMaterials
+                        value: showsMaterials,
                     )
                     .animation(TrinketMotion.Content.fade, value: materialsDeparted)
                 }

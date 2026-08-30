@@ -54,7 +54,7 @@ struct BattleLaunchInput {
         universalModifiers: [AffixModifier] = [],
         labyrinthModifiers: [LabyrinthModifierDefinition] = [],
         heroStartingHealth: Int? = nil,
-        companionStartingHealth: Int? = nil
+        companionStartingHealth: Int? = nil,
     ) {
         self.origin = origin
         self.hero = hero
@@ -82,7 +82,7 @@ extension PlayBattleLaunch {
         homesteadState: PlayerHomesteadState = .freshStart,
         defeatPrimaryAction: BattleDefeatPrimaryAction = .restart,
         hasProgressionRewards: Bool = false,
-        musicStageID: String? = nil
+        musicStageID: String? = nil,
     ) -> BattleLaunchAssembly {
         let enemyBuild = resolvedEnemyBuild(enemy: input.enemy)
         var enemyModifiers = enemyBuild.modifiers
@@ -92,7 +92,7 @@ extension PlayBattleLaunch {
             input: input,
             homesteadEffects: homesteadEffects,
             rosterState: rosterState,
-            inventoryState: inventoryState
+            inventoryState: inventoryState,
         )
         let heroMember = members.hero
         let companionMember = members.companion
@@ -106,14 +106,14 @@ extension PlayBattleLaunch {
             enemy: enemyBuild.combatant,
             enemyEncounterLevel: input.enemyEncounterLevel,
             enemyModifiers: enemyModifiers,
-            enemyFaction: GameContent.enemy(matching: input.enemy?.id ?? "")?.faction ?? .mortal
+            enemyFaction: GameContent.enemy(matching: input.enemy?.id ?? "")?.faction ?? .mortal,
         )
         let presentation = BattlePresentationContext(
             inventoryItems: inventoryState.items,
             stageReward: input.stageReward,
             rewardItems: resolvedRewardItems(
                 stageReward: input.stageReward,
-                pendingRewardItem: input.pendingRewardItem
+                pendingRewardItem: input.pendingRewardItem,
             ),
             pendingRewardItem: input.pendingRewardItem,
             experienceBonusPercent: input.experienceBonusPercent,
@@ -126,21 +126,21 @@ extension PlayBattleLaunch {
                 playerLevel: heroMember.progression.level,
                 enemyLevel: enemyLevel,
                 highestLevel: rosterState.highestHeroLevel,
-                xpPercent: input.experienceBonusPercent
+                xpPercent: input.experienceBonusPercent,
             ),
             companionExperienceAward: StageCompletion.battleExperienceAward(
                 playerLevel: companionMember.progression.level,
                 enemyLevel: enemyLevel,
                 highestLevel: rosterState.highestCompanionLevel,
-                xpPercent: input.experienceBonusPercent
+                xpPercent: input.experienceBonusPercent,
             ),
             materialRewards: StageCompletion.resolvedMaterialRewards(stageReward: resolvedStageReward),
-            labyrinthModifiers: input.labyrinthModifiers
+            labyrinthModifiers: input.labyrinthModifiers,
         )
         return BattleLaunchAssembly(
             configuration: configuration,
             presentation: presentation,
-            universalModifiers: input.universalModifiers
+            universalModifiers: input.universalModifiers,
         )
     }
 
@@ -148,7 +148,7 @@ extension PlayBattleLaunch {
         input: BattleLaunchInput,
         homesteadEffects: HomesteadEffects,
         rosterState: PlayerRosterState,
-        inventoryState: PlayerInventoryState
+        inventoryState: PlayerInventoryState,
     ) -> (hero: BattleRunConfiguration.PartyMember, companion: BattleRunConfiguration.PartyMember) {
         (
             partyMember(
@@ -156,15 +156,15 @@ extension PlayBattleLaunch {
                 startingHealth: input.heroStartingHealth,
                 rosterState: rosterState,
                 inventoryState: inventoryState,
-                additionalModifiers: homesteadEffects.heroModifiers
+                additionalModifiers: homesteadEffects.heroModifiers,
             ),
             partyMember(
                 combatant: input.companion,
                 startingHealth: input.companionStartingHealth,
                 rosterState: rosterState,
                 inventoryState: inventoryState,
-                additionalModifiers: homesteadEffects.companionModifiers
-            )
+                additionalModifiers: homesteadEffects.companionModifiers,
+            ),
         )
     }
 
@@ -173,7 +173,7 @@ extension PlayBattleLaunch {
         startingHealth: Int?,
         rosterState: PlayerRosterState,
         inventoryState: PlayerInventoryState,
-        additionalModifiers: [AffixModifier] = []
+        additionalModifiers: [AffixModifier] = [],
     ) -> BattleRunConfiguration.PartyMember {
         let progression = rosterState.progression(for: combatant)
         let equipmentLoadout = rosterState.equipmentLoadout(for: combatant)
@@ -181,12 +181,12 @@ extension PlayBattleLaunch {
         let build = CombatBuildResolver.build(
             combatant: CombatantLevelScaler.scale(
                 combatant: combatant,
-                level: progression.level
+                level: progression.level,
             ),
             equipmentLoadout: equipmentLoadout,
             inventory: inventoryState.items,
             unlockedTalents: unlockedTalents,
-            additionalModifiers: additionalModifiers
+            additionalModifiers: additionalModifiers,
         )
         return BattleRunConfiguration.PartyMember(
             combatant: build.combatant,
@@ -196,29 +196,29 @@ extension PlayBattleLaunch {
             unlockedTalents: unlockedTalents,
             startingHealth: startingHealth.map {
                 min(max(1, $0), build.effectiveMaxHealth)
-            }
+            },
         )
     }
 
     static func bakedActiveParty(
         rosterState: PlayerRosterState,
         inventoryState: PlayerInventoryState,
-        homesteadState: PlayerHomesteadState
+        homesteadState: PlayerHomesteadState,
     ) -> (hero: BattleRunConfiguration.PartyMember, companion: BattleRunConfiguration.PartyMember) {
         let input = BattleLaunchInput(
             hero: rosterState.activeHero,
-            companion: rosterState.activeCompanion
+            companion: rosterState.activeCompanion,
         )
         return makePartyMembers(
             input: input,
             homesteadEffects: homesteadState.effects,
             rosterState: rosterState,
-            inventoryState: inventoryState
+            inventoryState: inventoryState,
         )
     }
 
     private static func resolvedEnemyBuild(
-        enemy: Combatant?
+        enemy: Combatant?,
     ) -> CombatBuild {
         guard let enemy else {
             return CombatBuild(combatant: Enemy.fallbackCombatant, modifiers: .zero)
@@ -232,7 +232,7 @@ extension PlayBattleLaunch {
 
     private static func resolvedRewardItems(
         stageReward: StageReward?,
-        pendingRewardItem: InventoryItem?
+        pendingRewardItem: InventoryItem?,
     ) -> [InventoryItem] {
         if let pendingRewardItem {
             return [pendingRewardItem]

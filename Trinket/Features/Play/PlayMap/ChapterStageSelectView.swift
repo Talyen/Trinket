@@ -17,7 +17,7 @@ struct StageSelectScreen<HeroArt: View, Content: View>: View {
     var body: some View {
         DetailHeroScrollShell(
             title: title,
-            heroHeightPolicy: .cinematicLandscape
+            heroHeightPolicy: .cinematicLandscape,
         ) { baseHeight, overscroll in
             DetailHeroHeader(
                 eyebrow: eyebrow,
@@ -26,7 +26,7 @@ struct StageSelectScreen<HeroArt: View, Content: View>: View {
                 baseHeight: baseHeight,
                 overscroll: overscroll,
                 horizontalPadding: TrinketDesign.Metrics.contentMargin,
-                bottomPadding: TrinketDesign.Metrics.largeSpacing
+                bottomPadding: TrinketDesign.Metrics.largeSpacing,
             ) {
                 heroArt()
             } footer: {
@@ -55,14 +55,14 @@ struct StageSelectCompletionPanel: View {
             ContentUnavailableView(
                 title,
                 systemImage: "checkmark.seal.fill",
-                description: Text(description)
+                description: Text(description),
             )
 
             Button(buttonTitle, action: onBack)
                 .frame(maxWidth: .infinity)
                 .trinketPrimaryActionButton(
                     tint: tint,
-                    accessibilityIdentifier: accessibilityIdentifier
+                    accessibilityIdentifier: accessibilityIdentifier,
                 )
                 .trinketCenteredPrimaryAction()
         }
@@ -88,7 +88,7 @@ struct StageSelectPrepareDependency: Equatable {
         return Self(
             runKey: stageID,
             playerSave: playerSave,
-            stageRewardsAlreadyClaimed: playerSave.journey.hasClaimedRewards(for: stage)
+            stageRewardsAlreadyClaimed: playerSave.journey.hasClaimedRewards(for: stage),
         )
     }
 
@@ -110,7 +110,7 @@ struct StageSelectPrepareDependency: Equatable {
     private init(
         runKey: String,
         playerSave: PlayerSaveStore,
-        stageRewardsAlreadyClaimed: Bool = false
+        stageRewardsAlreadyClaimed: Bool = false,
     ) {
         self.runKey = runKey
         roster = playerSave.roster
@@ -137,7 +137,7 @@ struct ChapterStageSelectView: View {
         StageSelectRowPresentation.stageRows(
             for: chapter,
             progress: playerSave.journey,
-            worldSeed: playerSave.worldSeed
+            worldSeed: playerSave.worldSeed,
         )
     }
 
@@ -151,8 +151,8 @@ struct ChapterStageSelectView: View {
             title: chapter.title,
             subtitle: nil,
             titleAccessibilityIdentifier: AccessibilityID.Play.chapterTitle(
-                number: chapter.number
-            )
+                number: chapter.number,
+            ),
         ) {
             if let art = ArtCatalog.backgroundArtByID[chapter.id]
                 ?? ArtCatalog.backgroundArtByID["chapter-1"] {
@@ -178,12 +178,12 @@ struct ChapterStageSelectView: View {
                                 stage: stage,
                                 resolvedMysteryEvent: journey.previewMysteryEvent(for: stage),
                                 worldSeed: playerSave.worldSeed,
-                                prefersThumbnail: !isActive
+                                prefersThumbnail: !isActive,
                             )
                         },
                         partyPickerSheet: { _ in
                             StageBattlePartyPickerSheet()
-                        }
+                        },
                     )
                 }
             }
@@ -193,7 +193,7 @@ struct ChapterStageSelectView: View {
         .overlay(alignment: .topLeading) {
             Text("Chapter \(chapter.number)")
                 .accessibilityIdentifier(
-                    AccessibilityID.Play.chapterHeader(number: chapter.number)
+                    AccessibilityID.Play.chapterHeader(number: chapter.number),
                 )
                 .frame(width: 0, height: 0)
                 .opacity(0)
@@ -210,7 +210,7 @@ struct ChapterStageSelectView: View {
             buttonTitle: "Back to Play",
             tint: chapter.theme.tint,
             accessibilityIdentifier: AccessibilityID.Play.campaignCompletionBack,
-            onBack: { dismiss() }
+            onBack: { dismiss() },
         )
     }
 

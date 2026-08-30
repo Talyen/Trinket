@@ -50,7 +50,7 @@ struct HomesteadProjectRow: View {
             HomesteadBuildingArtwork(definition: definition, variant: .thumbnail)
                 .frame(
                     width: HomesteadProjectRowMetrics.artworkWidth,
-                    height: HomesteadProjectRowMetrics.artworkHeight
+                    height: HomesteadProjectRowMetrics.artworkHeight,
                 )
                 .saturation(isLocked ? 0.42 : 1)
                 .opacity(isLocked ? 0.72 : 1)
@@ -82,7 +82,7 @@ struct HomesteadProjectRow: View {
                     .symbolRenderingMode(.hierarchical)
                     .symbolEffect(
                         .bounce.up,
-                        value: status.canBuildOrUpgrade
+                        value: status.canBuildOrUpgrade,
                     )
                     .frame(width: 22, height: 22)
                     .padding(.leading, TrinketDesign.Metrics.tightSpacing)
@@ -121,9 +121,9 @@ struct HomesteadProjectSection: View {
                         status: HomesteadProjectStatus(
                             definition: definition,
                             homestead: homestead,
-                            roster: roster
+                            roster: roster,
                         ),
-                        zoomNamespace: zoomNamespace
+                        zoomNamespace: zoomNamespace,
                     )
 
                     if index < definitions.count - 1 {

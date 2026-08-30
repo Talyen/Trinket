@@ -6,7 +6,7 @@ package enum HealingEngine {
     // swiftlint:disable:next function_body_length
     static func resolveHeal(
         _ request: HealRequest,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> CombatOutcome {
         guard context.roster.health(for: request.target) > 0 || request.revivesIfDead else { return .empty }
         if CombatTriggerEngine.frozenTargetCannotBlockOrHeal(request.target, in: context) {
@@ -17,7 +17,7 @@ package enum HealingEngine {
         var amount = request.amount + bonus
         amount = CombatRounding.scaled(
             amount,
-            multiplier: CombatTriggerEngine.incomingHealMultiplier(for: request.target, in: context)
+            multiplier: CombatTriggerEngine.incomingHealMultiplier(for: request.target, in: context),
         )
         if request.logAs != .leech, let sourceActorID = request.sourceActorID, !request.skipFightPacing {
             amount = context.paced(amount, sourceActorID: sourceActorID)
@@ -59,7 +59,7 @@ package enum HealingEngine {
             events.append(contentsOf: BoonCombatEngine.afterOverheal(
                 source: source.combatant,
                 target: request.target,
-                in: &context
+                in: &context,
             ))
         }
         events.append(contentsOf: applyOverhealConversion(
@@ -67,7 +67,7 @@ package enum HealingEngine {
             request: request,
             sourceTriggers: sourceTriggers,
             targetTriggers: targetTriggers,
-            in: &context
+            in: &context,
         ))
 
         if let sourceTriggers, sourceTriggers.onHealGrantBlock > 0, restored > 0 {
@@ -78,7 +78,7 @@ package enum HealingEngine {
                 sourceTriggers.onHealGrantBlock,
                 to: request.target,
                 source: request.target,
-                abilityName: abilityName
+                abilityName: abilityName,
             ))
         }
         if restored > 0, let sourceTriggers,
@@ -89,7 +89,7 @@ package enum HealingEngine {
                 $0.healOverTimeAmount = sourceTriggers.healOverTimeOnHealAmount
                 $0.healOverTimeTurnsRemaining = max(
                     $0.healOverTimeTurnsRemaining,
-                    sourceTriggers.healOverTimeOnHealTurns
+                    sourceTriggers.healOverTimeOnHealTurns,
                 )
             }
         }
@@ -100,7 +100,7 @@ package enum HealingEngine {
             events.append(contentsOf: context.restoreManaEmitting(
                 sourceTriggers.onHealRestoreCasterMana,
                 to: caster.combatant,
-                abilityName: "Font of Magic"
+                abilityName: "Font of Magic",
             ))
         }
 
@@ -117,15 +117,15 @@ package enum HealingEngine {
                     target: request.target,
                     amount: restored,
                     keyword: keyword,
-                    isCritical: flags.contains(.critical)
-                )
+                    isCritical: flags.contains(.critical),
+                ),
             )
         }
         if restored > 0 {
             events.append(contentsOf: CombatTriggerEngine.afterHealthRestored(
                 restored,
                 to: request.target,
-                in: &context
+                in: &context,
             ))
         }
 
@@ -135,7 +135,7 @@ package enum HealingEngine {
     private static func rollRestorationCritical(
         for request: HealRequest,
         amount: inout Int,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> CombatFlag? {
         guard amount > 0,
               let sourceActorID = request.sourceActorID,
@@ -157,7 +157,7 @@ package enum HealingEngine {
             keyword: critKeyword,
             actorID: sourceActorID,
             defender: request.target,
-            in: &context
+            in: &context,
         )
         else { return nil }
 
@@ -170,7 +170,7 @@ package enum HealingEngine {
         request: HealRequest,
         sourceTriggers: CombatTraitTriggers?,
         targetTriggers: CombatTraitTriggers,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         guard overflow > 0 else { return [] }
         var events: [ActionEvent] = []
@@ -197,7 +197,7 @@ package enum HealingEngine {
                 overflowRemaining,
                 to: request.target,
                 source: request.target,
-                abilityName: "Barrier Blessing"
+                abilityName: "Barrier Blessing",
             ))
         } else if !conversion.overhealConvertsToMaxHealth, conversion.overhealShieldCap > 0 {
             let shield = min(overflowRemaining, conversion.overhealShieldCap)
@@ -205,7 +205,7 @@ package enum HealingEngine {
                 shield,
                 to: request.target,
                 source: request.target,
-                abilityName: "Aether Shield"
+                abilityName: "Aether Shield",
             ))
         }
         if request.logAs == .leech,
@@ -230,7 +230,7 @@ package enum HealingEngine {
     private static func overhealConversionTriggers(
         source: CombatTraitTriggers?,
         target: CombatTraitTriggers,
-        request: HealRequest
+        request: HealRequest,
     ) -> CombatTraitTriggers {
         let isSelfHeal = request.sourceActorID == request.target.id
         if isSelfHeal {

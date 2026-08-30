@@ -5,7 +5,7 @@ import TrinketCore
 @testable import BattleBalanceTools
 
 struct BattleSimulatorTests {
-    @Test func greedyPolicyReachesOutcomeDeterministically() throws {
+    @Test func `greedy policy reaches outcome deterministically`() throws {
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let companion = try #require(GameContent.companions.first)
         let enemy = try #require(GameContent.enemies.first)
@@ -17,7 +17,7 @@ struct BattleSimulatorTests {
             tier: .early,
             heroLoadout: hero.abilityLoadout,
             companionLoadout: companion.abilityLoadout,
-            seed: 42
+            seed: 42,
         )
 
         let first = BattleSimulator.run(matchup: matchup, policy: .greedy)
@@ -27,7 +27,7 @@ struct BattleSimulatorTests {
         #expect(first.timedOut == false || first.actions > 0)
     }
 
-    @Test func tracksEventsFalseKeepsEventLogEmpty() throws {
+    @Test func `tracks events false keeps event log empty`() throws {
         let hero = try #require(GameContent.heroes.first)
         let companion = try #require(GameContent.companions.first)
         let enemy = try #require(GameContent.enemies.first { !$0.isBoss })
@@ -37,7 +37,7 @@ struct BattleSimulatorTests {
             enemy: enemy.combatant,
             rngSeed: 7,
             tracksLog: false,
-            tracksEvents: false
+            tracksEvents: false,
         )
         #expect(battle.events.isEmpty)
 
@@ -50,7 +50,7 @@ struct BattleSimulatorTests {
         #expect(battle.events.isEmpty)
     }
 
-    @Test func midTierGearUsesBuildAlignedAffixesOnly() throws {
+    @Test func `mid tier gear uses build aligned affixes only`() throws {
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let companion = try #require(GameContent.companions.first)
         let enemy = try #require(GameContent.enemies.first)
@@ -61,12 +61,12 @@ struct BattleSimulatorTests {
             tier: .middle,
             heroLoadout: hero.abilityLoadout,
             companionLoadout: companion.abilityLoadout,
-            seed: 99
+            seed: 99,
         )
 
         let buildKeywords = Set(matchup.context.heroLoadout.abilities.flatMap(\.keywords))
         let definitions = Dictionary(
-            uniqueKeysWithValues: GameContent.itemAffixDefinitions.map { ($0.id, $0) }
+            uniqueKeysWithValues: GameContent.itemAffixDefinitions.map { ($0.id, $0) },
         )
         for affixID in matchup.context.heroAffixIDs {
             let definition = try #require(definitions[affixID])
@@ -75,7 +75,7 @@ struct BattleSimulatorTests {
         #expect(!(matchup.context.heroAffixIDs.isEmpty))
     }
 
-    @Test func sampleLoadoutIncludesAllTiersByDefault() throws {
+    @Test func `sample loadout includes all tiers by default`() throws {
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         var rng = SeededRandomNumberGenerator(seed: 5)
         let loadout = SimulationMatchupBuilder.sampleLoadout(for: hero, using: &rng)
@@ -84,34 +84,34 @@ struct BattleSimulatorTests {
         #expect(loadout.skill != nil)
     }
 
-    @Test func samplePartyLoadoutsMeetDamagingFloor() throws {
+    @Test func `sample party loadouts meet damaging floor`() throws {
         for hero in GameContent.heroes {
             for companion in GameContent.companions {
                 var rng = SeededRandomNumberGenerator(seed: 11)
                 let pair = SimulationMatchupBuilder.samplePartyLoadouts(
                     hero: hero,
                     companion: companion,
-                    using: &rng
+                    using: &rng,
                 )
                 let count = SimulationMatchupBuilder.damagingAbilityCount(
                     hero: pair.hero,
-                    companion: pair.companion
+                    companion: pair.companion,
                 )
                 try #expect(
                     count >= SimulationMatchupBuilder.minimumPartyDamagingAbilities,
-                    "\(hero.id)+\(companion.id) damaging count \(count)"
+                    "\(hero.id)+\(companion.id) damaging count \(count)",
                 )
             }
         }
 
         let supportHeavy = SimulationMatchupBuilder.damagingAbilityCount(
             hero: AbilityLoadout(basic: .block, skill: .smite, ultimate: .moltenBulwark),
-            companion: AbilityLoadout(basic: .apple, skill: .heal, ultimate: .panaceaPotion)
+            companion: AbilityLoadout(basic: .apple, skill: .heal, ultimate: .panaceaPotion),
         )
         try #expect(supportHeavy < SimulationMatchupBuilder.minimumPartyDamagingAbilities)
     }
 
-    @Test func matchupBuilderAppliesUnlockedTalentsToCombatBuild() throws {
+    @Test func `matchup builder applies unlocked talents to combat build`() throws {
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let companion = try #require(GameContent.companions.first)
         let enemy = try #require(GameContent.enemies.first)
@@ -123,7 +123,7 @@ struct BattleSimulatorTests {
             heroLoadout: hero.abilityLoadout,
             companionLoadout: companion.abilityLoadout,
             seed: 7,
-            heroTalents: ["knight_block_t1_1"]
+            heroTalents: ["knight_block_t1_1"],
         )
         let withoutTalent = SimulationMatchupBuilder.build(
             hero: hero,
@@ -132,7 +132,7 @@ struct BattleSimulatorTests {
             tier: .early,
             heroLoadout: hero.abilityLoadout,
             companionLoadout: companion.abilityLoadout,
-            seed: 7
+            seed: 7,
         )
         #expect(withTalent.heroModifiers.triggers.blockPerTurn == 2)
         #expect(withoutTalent.heroModifiers.triggers.blockPerTurn == 0)
@@ -140,11 +140,11 @@ struct BattleSimulatorTests {
         #expect(withoutTalent.context.heroTalentIDs.isEmpty)
     }
 
-    @Test func talentKitContrastIsLegalOnlyWhenPointsCoverCatalog() throws {
+    @Test func `talent kit contrast is legal only when points cover catalog`() throws {
         let owner = try #require(GameContent.heroes.first { $0.id == "knight" })
         let focus = BalanceTalentContrastRunner.KitFocus(
             owner: owner,
-            kit: CombatantTalentCatalog.validNodeIDs(for: owner.id)
+            kit: CombatantTalentCatalog.validNodeIDs(for: owner.id),
         )
         #expect(!BalanceTalentContrastRunner.isKitLegal(focus: focus, tier: .early))
         #expect(!BalanceTalentContrastRunner.isKitLegal(focus: focus, tier: .middle))

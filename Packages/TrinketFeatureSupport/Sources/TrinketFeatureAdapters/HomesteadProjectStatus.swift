@@ -95,7 +95,7 @@ public struct HomesteadProjectStatus {
 
     public func tierPathConnectors(for tierIndex: Int) -> (
         before: HomesteadTierConnectorState?,
-        after: HomesteadTierConnectorState?
+        after: HomesteadTierConnectorState?,
     ) {
         let tierCount = definition.tiers.count
         let before = tierIndex == 0
@@ -146,7 +146,7 @@ public struct HomesteadProjectStatus {
     public init(
         definition: HomesteadNodeDefinition,
         homestead: PlayerHomesteadState,
-        roster: PlayerRosterState
+        roster: PlayerRosterState,
     ) {
         self.definition = definition
         self.homestead = homestead

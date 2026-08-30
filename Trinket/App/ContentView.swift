@@ -23,7 +23,7 @@ struct ContentView: View {
                 StarterSelectionFlow(
                     initialSelection: playerSave.starterSelection,
                     confirmHero: appState.confirmStarterHero,
-                    confirmCompanion: appState.completeStarterSelection
+                    confirmCompanion: appState.completeStarterSelection,
                 )
                 .transition(.opacity)
             } else {
@@ -35,7 +35,7 @@ struct ContentView: View {
         .trinketSensoryFeedback(
             .success,
             trigger: playerSave.starterSelection.phase == .complete,
-            enabled: appState.options.hapticsEnabled
+            enabled: appState.options.hapticsEnabled,
         )
         .tint(TrinketDesign.Colors.accent)
         .preferredColorScheme(.dark)
@@ -50,8 +50,8 @@ struct ContentView: View {
                     if !isPresented {
                         didAcknowledgePersistenceRecovery = true
                     }
-                }
-            )
+                },
+            ),
         ) {
             Button("Continue") {
                 didAcknowledgePersistenceRecovery = true
@@ -59,7 +59,7 @@ struct ContentView: View {
         } message: {
             Text(
                 appState.persistenceStatusMessage
-                    ?? "Saved progress could not be opened normally. Check Options → Progress Status."
+                    ?? "Saved progress could not be opened normally. Check Options → Progress Status.",
             )
         }
         .onAppear {
@@ -69,13 +69,13 @@ struct ContentView: View {
             appState.refreshMusic(scenePhase: scenePhase)
             AppFramePacingSignposts.event(
                 AppFramePacingSignposts.Name.tabSwitch,
-                detail: "tab=\(newTab.rawValue)"
+                detail: "tab=\(newTab.rawValue)",
             )
         }
         .onChange(of: battle.activeBattle?.id) { _, newValue in
             appState.reconcileShellState(
                 .activeBattleChanged(started: newValue != nil),
-                scenePhase: scenePhase
+                scenePhase: scenePhase,
             )
         }
         .onChange(of: appState.options.musicVolume) { _, _ in
@@ -116,11 +116,11 @@ struct ContentView: View {
                         playToggleSFX: { isEnabled, volume in
                             appState.sfxPlayer.play(
                                 isEnabled ? SFXID.uiToggleOn : SFXID.uiToggleOff,
-                                volume: volume
+                                volume: volume,
                             )
                         },
                         resetGameplayProgress: appState.resetGameplayProgress,
-                        unlockAllContent: appState.unlockAllContent
+                        unlockAllContent: appState.unlockAllContent,
                     )
                 }
             }

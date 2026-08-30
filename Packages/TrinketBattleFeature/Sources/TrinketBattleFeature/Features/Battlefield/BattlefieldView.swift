@@ -43,17 +43,17 @@ struct BattlefieldFeedbackOverlay: View {
             feedbackSlot(
                 combatantID: enemyID,
                 size: layout.enemySize,
-                center: anchors.enemy
+                center: anchors.enemy,
             )
             feedbackSlot(
                 combatantID: heroID,
                 size: layout.partySize,
-                center: anchors.hero
+                center: anchors.hero,
             )
             feedbackSlot(
                 combatantID: companionID,
                 size: layout.partySize,
-                center: anchors.companion
+                center: anchors.companion,
             )
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -64,13 +64,13 @@ struct BattlefieldFeedbackOverlay: View {
     private func feedbackSlot(
         combatantID: String?,
         size: CGSize,
-        center: CGPoint
+        center: CGPoint,
     ) -> some View {
         if let combatantID {
             CombatFeedbackRasterSlot(
                 combatantID: combatantID,
                 cardHeight: size.height,
-                displayScale: displayScale
+                displayScale: displayScale,
             )
             .frame(width: size.width, height: size.height)
             .position(center)

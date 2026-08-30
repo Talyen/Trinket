@@ -8,13 +8,13 @@ final class TabNavigationUITests: TrinketUITestCase {
 
         assertSalvageRemovesItemImmediately(
             itemID: "crossbow-basic",
-            remainingItemID: "crossbow-astral"
+            remainingItemID: "crossbow-astral",
         )
 
         tapButton(AccessibilityID.Collection.inventoryCategory)
         assertSalvageRemovesItemImmediately(
             itemID: "mace-basic",
-            remainingItemID: "mace-astral"
+            remainingItemID: "mace-astral",
         )
     }
 
@@ -22,7 +22,7 @@ final class TabNavigationUITests: TrinketUITestCase {
         itemID: String,
         remainingItemID: String,
         file: StaticString = #file,
-        line: UInt = #line
+        line: UInt = #line,
     ) {
         let salvagedItemID = AccessibilityID.Collection.itemCard(itemID: itemID)
         let remainingCardID = AccessibilityID.Collection.itemCard(itemID: remainingItemID)

@@ -29,7 +29,7 @@ struct HomesteadView: View {
         HomesteadHeroScreen(
             title: "Homestead",
             homestead: homestead,
-            roster: roster
+            roster: roster,
         ) {
             if let art = ArtCatalog.backgroundArtByID["homestead"]
                 ?? ArtCatalog.backgroundArtByID["wheatField"] {
@@ -42,7 +42,7 @@ struct HomesteadView: View {
         } bodyContent: {
             LazyVGrid(
                 columns: TrinketDesign.Metrics.hubGridItems(for: horizontalSizeClass),
-                spacing: TrinketDesign.Metrics.largeSpacing
+                spacing: TrinketDesign.Metrics.largeSpacing,
             ) {
                 ForEach(HomesteadNodeCategory.allCases) { category in
                     categoryCard(category)
@@ -62,7 +62,7 @@ struct HomesteadView: View {
         .trinketSensoryFeedback(
             .success,
             trigger: collection.collectionEventCount,
-            enabled: options.hapticsEnabled
+            enabled: options.hapticsEnabled,
         )
     }
 
@@ -87,16 +87,16 @@ struct HomesteadView: View {
                         }
                         .disabled(
                             playerSave.isCloudSyncEnabled
-                                || depositEvent != nil
+                                || depositEvent != nil,
                         )
                         .trinketPrimaryActionButton(
-                            accessibilityIdentifier: AccessibilityID.Homestead.collectButton
+                            accessibilityIdentifier: AccessibilityID.Homestead.collectButton,
                         )
                         .shadow(
                             color: HomesteadResource.gold.tint.opacity(
-                                playerSave.isCloudSyncEnabled ? 0 : 0.22
+                                playerSave.isCloudSyncEnabled ? 0 : 0.22,
                             ),
-                            radius: TrinketDesign.Metrics.mediumSpacing
+                            radius: TrinketDesign.Metrics.mediumSpacing,
                         )
                         Spacer(minLength: 0)
                     }
@@ -117,9 +117,9 @@ struct HomesteadView: View {
                         .opacity(isDepositLaunching ? 0 : 1)
                         .shadow(
                             color: HomesteadResource.gold.tint.opacity(
-                                isDepositLaunching ? 0 : 0.22
+                                isDepositLaunching ? 0 : 0.22,
                             ),
-                            radius: TrinketDesign.Metrics.mediumSpacing
+                            radius: TrinketDesign.Metrics.mediumSpacing,
                         )
                         .allowsHitTesting(false)
                         Spacer(minLength: 0)
@@ -146,28 +146,28 @@ struct HomesteadView: View {
 
     private func collectResourceIcons(
         _ amounts: [ResourceAmount],
-        drawsAttention: Bool = false
+        drawsAttention: Bool = false,
     ) -> some View {
         HStack(spacing: -TrinketDesign.Metrics.largeSpacing) {
             ForEach(Array(amounts.enumerated()), id: \.offset) { index, amount in
                 HomesteadResourceArtwork(resource: amount.resource)
                     .frame(
                         width: TrinketDesign.Metrics.walletResourceArtworkSize,
-                        height: TrinketDesign.Metrics.walletResourceArtworkSize
+                        height: TrinketDesign.Metrics.walletResourceArtworkSize,
                     )
                     .offset(y: drawsAttention && isIconAttentionRaised ? -2 : 0)
                     .scaleEffect(drawsAttention && isIconAttentionRaised ? 1.05 : 1)
                     .shadow(
                         color: HomesteadResource.gold.tint.opacity(
-                            drawsAttention && isIconAttentionRaised ? 0.18 : 0
+                            drawsAttention && isIconAttentionRaised ? 0.18 : 0,
                         ),
-                        radius: TrinketDesign.Metrics.tightSpacing
+                        radius: TrinketDesign.Metrics.tightSpacing,
                     )
                     .animation(
                         HomesteadMotion.tierCompletion.delay(
-                            Double(index) * TrinketMotion.Reward.resourceStagger
+                            Double(index) * TrinketMotion.Reward.resourceStagger,
                         ),
-                        value: isIconAttentionRaised
+                        value: isIconAttentionRaised,
                     )
             }
         }
@@ -221,7 +221,7 @@ struct HomesteadView: View {
                 subtitle: progress.subtitle,
                 symbolName: "hammer.fill",
                 artID: category.artID,
-                fallbackArtID: category.artID
+                fallbackArtID: category.artID,
             )
         }
         .trinketArtworkCardButtonStyle()

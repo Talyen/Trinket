@@ -27,7 +27,7 @@ struct HomesteadScreen {
     func assertLoaded(
         timeout: TimeInterval = TrinketUITestCase.defaultTimeout,
         file: StaticString = #file,
-        line: UInt = #line
+        line: UInt = #line,
     ) {
         let element = app.descendants(matching: .any)[AccessibilityID.Screen.homestead]
         XCTAssertTrue(element.waitForExistence(timeout: timeout), "Homestead screen not found", file: file, line: line)
@@ -37,7 +37,7 @@ struct HomesteadScreen {
         named title: String,
         timeout: TimeInterval = TrinketUITestCase.defaultTimeout,
         file: StaticString = #file,
-        line: UInt = #line
+        line: UInt = #line,
     ) {
         let element = app.descendants(matching: .any)[AccessibilityID.Homestead.nodeDetail(title: title)]
         XCTAssertTrue(element.waitForExistence(timeout: timeout), "\(title) homestead detail not found", file: file, line: line)
@@ -52,7 +52,7 @@ struct HomesteadScreen {
         app.scrollUntilVisible(
             app.descendants(matching: .any)[AccessibilityID.Homestead.node(title: "Wheat Field")],
             swipingUp: true,
-            maxAttempts: 10
+            maxAttempts: 10,
         )
     }
 }
@@ -63,7 +63,7 @@ struct OptionsScreen {
     func assertLoaded(
         timeout: TimeInterval = TrinketUITestCase.defaultTimeout,
         file: StaticString = #file,
-        line: UInt = #line
+        line: UInt = #line,
     ) {
         let element = app.descendants(matching: .any)[AccessibilityID.Screen.options]
         XCTAssertTrue(element.waitForExistence(timeout: timeout), "Options screen not found", file: file, line: line)

@@ -71,7 +71,7 @@ enum CombatFeedbackChipLabel: Hashable {
 
     private static func from(
         effectKind: ActionEvent.EffectOutcome,
-        event: ActionEvent
+        event: ActionEvent,
     ) -> Self? {
         guard let rule = CombatFeedbackEffectPresentation.descriptor(for: effectKind).labelRule else {
             return nil

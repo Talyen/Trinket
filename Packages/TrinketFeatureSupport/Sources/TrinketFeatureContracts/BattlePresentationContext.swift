@@ -31,7 +31,7 @@ public struct BattlePresentationContext: Sendable {
         heroExperienceAward: Int,
         companionExperienceAward: Int,
         materialRewards: [ResourceAmount],
-        labyrinthModifiers: [LabyrinthModifierDefinition] = []
+        labyrinthModifiers: [LabyrinthModifierDefinition] = [],
     ) {
         self.inventoryItems = inventoryItems
         self.stageReward = stageReward
@@ -63,6 +63,6 @@ public struct BattlePresentationContext: Sendable {
         heroExperienceAward: 0,
         companionExperienceAward: 0,
         materialRewards: [],
-        labyrinthModifiers: []
+        labyrinthModifiers: [],
     )
 }

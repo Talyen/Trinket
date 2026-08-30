@@ -5,29 +5,29 @@ import TrinketTestSupport
 @testable import BattleEngine
 
 struct CombatTriggerTalentResourceTests {
-    @Test func prismaticSparkCanDoubleManaGain() {
+    @Test func `prismatic spark can double mana gain`() {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             companionMaxMana: 6,
             companionMana: 0,
             companionModifiers: .init(triggers: CombatTraitTriggers(
-                mana: ManaTriggers(manaGainDoubleChancePercent: 1)
+                mana: ManaTriggers(manaGainDoubleChancePercent: 1),
             )),
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         let restored = battle.restoreMana(1, to: battle.roster.companion.combatant)
         #expect(restored == 2)
     }
 
-    @Test func goldReservesCapsBonusDamageAtFive() {
+    @Test func `gold reserves caps bonus damage at five`() {
         var battle = BattleStateTestFactory.makeBattle(
             hero: BattleTestFixtures.passiveHero(),
             companion: BattleTestFixtures.passiveCompanion(),
             enemy: BattleTestFixtures.silentEnemy(maxHealth: 100),
             initialGold: 100,
             heroModifiers: .init(triggers: CombatTraitTriggers(
-                damage: DamageTriggers(goldReservesDamageEvery: 10, goldReservesDamageCap: 5)
+                damage: DamageTriggers(goldReservesDamageEvery: 10, goldReservesDamageCap: 5),
             )),
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         let outcome = battle.resolveDamage(
             DamageRequest(
@@ -35,13 +35,13 @@ struct CombatTriggerTalentResourceTests {
                 target: battle.roster.enemy.combatant,
                 keyword: .physical,
                 sourceActorID: battle.roster.hero.id,
-                options: DamageOptions(applyStatBonus: false, applyItemBonus: true, applyDodge: false)
-            )
+                options: DamageOptions(applyStatBonus: false, applyItemBonus: true, applyDodge: false),
+            ),
         )
         #expect(outcome.healthLost == 9)
     }
 
-    @Test func spellEchoPlaysTheFirstSkillOncePerBattle() throws {
+    @Test func `spell echo plays the first skill once per battle`() throws {
         let poke = Ability(id: "poke", name: "Poke", tier: .skill, directDamage: 1)
         let jab = Ability(id: "jab", name: "Jab", tier: .skill, directDamage: 1)
         var battle = BattleStateTestFactory.makeBattle(
@@ -49,9 +49,9 @@ struct CombatTriggerTalentResourceTests {
             companion: BattleTestFixtures.passiveCompanion(),
             enemy: BattleTestFixtures.silentEnemy(maxHealth: 40),
             heroModifiers: .init(triggers: CombatTraitTriggers(
-                mana: ManaTriggers(firstSkillCardPlaysTwicePerBattle: true)
+                mana: ManaTriggers(firstSkillCardPlaysTwicePerBattle: true),
             )),
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         battle.nextCardID += 1
         battle.hand.append(BattleCard(id: battle.nextCardID, ability: poke, owner: .hero))
@@ -68,20 +68,20 @@ struct CombatTriggerTalentResourceTests {
         #expect(battle.skillEchoOwnersThisBattle.contains(battle.roster.hero.id))
     }
 
-    @Test func feintStrikeEmpowersLivingPartyNextCard() {
+    @Test func `feint strike empowers living party next card`() {
         var battle = BattleStateTestFactory.makeBattle(
             hero: BattleTestFixtures.passiveHero(maxHealth: 50),
             companion: BattleTestFixtures.passiveCompanion(maxHealth: 20),
             enemy: BattleTestFixtures.silentEnemy(maxHealth: 100),
             companionModifiers: .init(triggers: CombatTraitTriggers(
-                dodge: DodgeTriggers(onDodgePartyNextCardDamageBonus: 2)
+                dodge: DodgeTriggers(onDodgePartyNextCardDamageBonus: 2),
             )),
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         _ = CombatTriggerEngine.afterDodge(
             by: battle.roster.companion.combatant,
             attackerID: battle.roster.enemy.id,
-            in: &battle
+            in: &battle,
         )
         #expect(battle.roster.runtime(for: battle.roster.companion.combatant)?.pendingCardDamageBonus == 2)
         #expect(battle.roster.runtime(for: battle.roster.hero.combatant)?.pendingCardDamageBonus == 2)
@@ -94,77 +94,77 @@ struct CombatTriggerTalentResourceTests {
         _ = CombatTriggerEngine.afterDodge(
             by: battle.roster.companion.combatant,
             attackerID: battle.roster.enemy.id,
-            in: &battle
+            in: &battle,
         )
         #expect(battle.roster.runtime(for: battle.roster.companion.combatant)?.pendingCardDamageBonus == 2)
         #expect(battle.roster.runtime(for: battle.roster.hero.combatant)?.pendingCardDamageBonus == 0)
     }
 
-    @Test func manaAbsorptionGrantsCompanionBlockWhenHeroSpendsMana() {
+    @Test func `mana absorption grants companion block when hero spends mana`() {
         var battle = BattleStateTestFactory.makeBattle(
             hero: BattleTestFixtures.passiveHero(maxHealth: 50),
             companion: BattleTestFixtures.passiveCompanion(maxHealth: 20),
             enemy: BattleTestFixtures.silentEnemy(maxHealth: 100),
             companionModifiers: .init(triggers: CombatTraitTriggers(
-                mana: ManaTriggers(onHeroSpendManaGainBlock: 2)
+                mana: ManaTriggers(onHeroSpendManaGainBlock: 2),
             )),
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         _ = CombatTriggerEngine.afterSpendMana(
             by: battle.roster.hero.combatant,
             amountSpent: 3,
-            in: &battle
+            in: &battle,
         )
         #expect(DefensePoolEngine.blockPoints(
-            in: battle.roster.activeEffects(for: battle.roster.companion.combatant)
+            in: battle.roster.activeEffects(for: battle.roster.companion.combatant),
         ) == 2)
         #expect(DefensePoolEngine.blockPoints(
-            in: battle.roster.activeEffects(for: battle.roster.hero.combatant)
+            in: battle.roster.activeEffects(for: battle.roster.hero.combatant),
         ) == 0)
     }
 
-    @Test func aetherialFlowBuffsCompanionNextAttackWhenHeroSpendsMana() {
+    @Test func `aetherial flow buffs companion next attack when hero spends mana`() {
         var battle = BattleStateTestFactory.makeBattle(
             hero: BattleTestFixtures.passiveHero(maxHealth: 50),
             companion: BattleTestFixtures.passiveCompanion(maxHealth: 20),
             enemy: BattleTestFixtures.silentEnemy(maxHealth: 100),
             companionModifiers: .init(triggers: CombatTraitTriggers(
-                attack: AttackTriggers(onHeroSpendManaCompanionNextAttackBonus: 2)
+                attack: AttackTriggers(onHeroSpendManaCompanionNextAttackBonus: 2),
             )),
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         _ = CombatTriggerEngine.afterSpendMana(
             by: battle.roster.hero.combatant,
             amountSpent: 1,
-            in: &battle
+            in: &battle,
         )
         #expect(battle.roster.runtime(for: battle.roster.companion.combatant)?.pendingCardDamageBonus == 2)
         #expect(battle.roster.runtime(for: battle.roster.hero.combatant)?.pendingCardDamageBonus == 0)
     }
 
-    @Test func hagglerBoostsAllPartyGoldGain() {
+    @Test func `haggler boosts all party gold gain`() {
         var battle = BattleStateTestFactory.makeBattle(
             hero: BattleTestFixtures.passiveHero(),
             companion: BattleTestFixtures.passiveCompanion(),
             enemy: BattleTestFixtures.silentEnemy(maxHealth: 100),
             companionModifiers: .init(triggers: CombatTraitTriggers(
-                gold: GoldTriggers(partyGoldGainedPercent: 0.15)
+                gold: GoldTriggers(partyGoldGainedPercent: 0.15),
             )),
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         battle.addGold(20, sourceActorID: battle.roster.hero.id)
         #expect(battle.gold == 23)
     }
 
-    @Test func flawlessBountyDoublesGoldWhileCompanionAtFullHealth() {
+    @Test func `flawless bounty doubles gold while companion at full health`() {
         var battle = BattleStateTestFactory.makeBattle(
             hero: BattleTestFixtures.passiveHero(),
             companion: BattleTestFixtures.passiveCompanion(maxHealth: 20),
             enemy: BattleTestFixtures.silentEnemy(maxHealth: 100),
             companionModifiers: .init(triggers: CombatTraitTriggers(
-                gold: GoldTriggers(goldDoubledWhileFullHealth: true)
+                gold: GoldTriggers(goldDoubledWhileFullHealth: true),
             )),
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         battle.addGold(10, sourceActorID: battle.roster.hero.id)
         #expect(battle.gold == 20)
@@ -174,16 +174,16 @@ struct CombatTriggerTalentResourceTests {
             companion: BattleTestFixtures.passiveCompanion(maxHealth: 20),
             enemy: BattleTestFixtures.silentEnemy(maxHealth: 100),
             companionModifiers: .init(triggers: CombatTraitTriggers(
-                gold: GoldTriggers(goldDoubledWhileFullHealth: true)
+                gold: GoldTriggers(goldDoubledWhileFullHealth: true),
             )),
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         woundedBattle.roster.mutateRuntime(for: woundedBattle.roster.companion.combatant) { $0.currentHealth = 10 }
         woundedBattle.addGold(10, sourceActorID: woundedBattle.roster.hero.id)
         #expect(woundedBattle.gold == 10)
     }
 
-    @Test func treasureHoardGrantsPartyCritChanceWhileCarryingEnoughGold() {
+    @Test func `treasure hoard grants party crit chance while carrying enough gold`() {
         func makeBattle(gold: Int) -> BattleState {
             var battle = BattleStateTestFactory.makeBattle(
                 hero: BattleTestFixtures.passiveHero(),
@@ -192,10 +192,10 @@ struct CombatTriggerTalentResourceTests {
                 companionModifiers: .init(triggers: CombatTraitTriggers(
                     damage: DamageTriggers(
                         partyCritChanceWhileGoldAbove: 50,
-                        partyCritChanceWhileGoldAboveBonus: 1.0
-                    )
+                        partyCritChanceWhileGoldAboveBonus: 1.0,
+                    ),
                 )),
-                dealOpeningHand: false
+                dealOpeningHand: false,
             )
             battle.gold = gold
             return battle
@@ -208,8 +208,8 @@ struct CombatTriggerTalentResourceTests {
                 target: richBattle.roster.enemy.combatant,
                 keyword: .physical,
                 sourceActorID: richBattle.roster.hero.id,
-                options: DamageOptions(applyStatBonus: false, applyItemBonus: false, applyDodge: false)
-            )
+                options: DamageOptions(applyStatBonus: false, applyItemBonus: false, applyDodge: false),
+            ),
         )
         let poorOutcome = poorBattle.resolveDamage(
             DamageRequest(
@@ -217,28 +217,28 @@ struct CombatTriggerTalentResourceTests {
                 target: poorBattle.roster.enemy.combatant,
                 keyword: .physical,
                 sourceActorID: poorBattle.roster.hero.id,
-                options: DamageOptions(applyStatBonus: false, applyItemBonus: false, applyDodge: false)
-            )
+                options: DamageOptions(applyStatBonus: false, applyItemBonus: false, applyDodge: false),
+            ),
         )
         #expect(richOutcome.isCritical)
         #expect(!poorOutcome.isCritical)
     }
 
-    @Test func thiefStealsEnemyBlockOnCriticalHit() {
+    @Test func `thief steals enemy block on critical hit`() {
         var battle = BattleStateTestFactory.makeBattle(
             hero: BattleTestFixtures.passiveHero(maxHealth: 50),
             companion: BattleTestFixtures.passiveCompanion(maxHealth: 20),
             enemy: BattleTestFixtures.silentEnemy(maxHealth: 100),
             companionModifiers: .init(triggers: CombatTraitTriggers(
-                attack: AttackTriggers(critStealEnemyBlock: true)
+                attack: AttackTriggers(critStealEnemyBlock: true),
             )),
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         _ = battle.applyBlock(
             5,
             to: battle.roster.enemy.combatant,
             source: battle.roster.enemy.combatant,
-            abilityName: "Test"
+            abilityName: "Test",
         )
         let companion = battle.roster.companion.combatant
         let outcome = battle.resolveDamage(
@@ -251,16 +251,16 @@ struct CombatTriggerTalentResourceTests {
                     applyStatBonus: false,
                     applyItemBonus: false,
                     applyDodge: false,
-                    guaranteedCritical: true
-                )
-            )
+                    guaranteedCritical: true,
+                ),
+            ),
         )
         #expect(outcome.healthLost > 0)
         #expect(DefensePoolEngine.blockPoints(in: battle.roster.activeEffects(for: battle.roster.enemy.combatant)) == 0)
         #expect(DefensePoolEngine.blockPoints(in: battle.roster.activeEffects(for: companion)) == 5)
     }
 
-    @Test func goldenGuardGrantsBlockWhenPartyGoldCrossesEveryThreshold() {
+    @Test func `golden guard grants block when party gold crosses every threshold`() {
         let guardTriggers = CombatTraitTriggers(block: BlockTriggers(blockPerGoldEarnedEvery: 3))
         var battle = BattleStateTestFactory.makeBattle(
             hero: BattleTestFixtures.passiveHero(),
@@ -269,10 +269,10 @@ struct CombatTriggerTalentResourceTests {
             initialGold: 1,
             heroModifiers: .init(
                 goldGainedBonus: 1,
-                triggers: guardTriggers
+                triggers: guardTriggers,
             ),
             companionModifiers: .init(triggers: guardTriggers),
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         let hero = battle.roster.hero.combatant
         let companion = battle.roster.companion.combatant
@@ -286,7 +286,7 @@ struct CombatTriggerTalentResourceTests {
         #expect(DefensePoolEngine.blockPoints(in: battle.roster.activeEffects(for: companion)) == 1)
     }
 
-    @Test func goldenGuardPercentGrantsHalfGoldFlooredPerGrant() {
+    @Test func `golden guard percent grants half gold floored per grant`() {
         var battle = BattleStateTestFactory.makeBattle(
             hero: BattleTestFixtures.passiveHero(),
             companion: BattleTestFixtures.passiveCompanion(),
@@ -294,7 +294,7 @@ struct CombatTriggerTalentResourceTests {
             heroModifiers: .init(triggers: CombatTraitTriggers(block: BlockTriggers(goldGainBlockPercent: 0.50))),
             companionModifiers: .init(triggers: CombatTraitTriggers(block: BlockTriggers(goldGainBlockPercent: 0.50))),
             rngSeed: 0,
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         let hero = battle.roster.hero.combatant
         let companion = battle.roster.companion.combatant
@@ -309,31 +309,31 @@ struct CombatTriggerTalentResourceTests {
         #expect(DefensePoolEngine.blockPoints(in: battle.roster.activeEffects(for: companion)) == 2)
     }
 
-    @Test func hoardArmorGrantsBlockFromCarriedGold() {
+    @Test func `hoard armor grants block from carried gold`() {
         var battle = BattleStateTestFactory.makeBattle(
             hero: BattleTestFixtures.passiveHero(),
             companion: BattleTestFixtures.passiveCompanion(),
             enemy: BattleTestFixtures.silentEnemy(maxHealth: 100),
             initialGold: 10,
             companionModifiers: .init(triggers: CombatTraitTriggers(
-                block: BlockTriggers(blockPerGoldCollectedEvery: 5)
+                block: BlockTriggers(blockPerGoldCollectedEvery: 5),
             )),
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         _ = CombatTriggerEngine.atPlayerEndTurn(in: &battle)
         #expect(DefensePoolEngine.blockPoints(in: battle.roster.activeEffects(for: battle.roster.companion.combatant)) == 2)
         #expect(DefensePoolEngine.blockPoints(in: battle.roster.activeEffects(for: battle.roster.hero.combatant)) == 0)
     }
 
-    @Test func campfireComfortRestoresEachAllyAtEndOfRound() {
+    @Test func `campfire comfort restores each ally at end of round`() {
         var battle = BattleStateTestFactory.makeBattle(
             hero: BattleTestFixtures.passiveHero(maxHealth: 20),
             companion: BattleTestFixtures.passiveCompanion(maxHealth: 20),
             enemy: BattleTestFixtures.silentEnemy(maxHealth: 100),
             companionModifiers: .init(triggers: CombatTraitTriggers(
-                healing: HealingTriggers(partyRegenPerRound: 1)
+                healing: HealingTriggers(partyRegenPerRound: 1),
             )),
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         battle.roster.mutateRuntime(for: battle.roster.hero.combatant) { $0.currentHealth = 10 }
         battle.roster.mutateRuntime(for: battle.roster.companion.combatant) { $0.currentHealth = 10 }
@@ -342,23 +342,23 @@ struct CombatTriggerTalentResourceTests {
         #expect(battle.roster.health(for: battle.roster.companion.combatant) == 11)
     }
 
-    @Test func fontOfMagicDoesNotRestoreManaWhenHealingSelf() {
+    @Test func `font of magic does not restore mana when healing self`() {
         let hero = Combatant(
             id: "hero",
             name: "Hero",
             role: .hero,
             maxHealth: 20,
             maxMana: 5,
-            abilities: []
+            abilities: [],
         )
         var battle = BattleStateTestFactory.makeBattle(
             hero: hero,
             companion: BattleTestFixtures.passiveCompanion(),
             enemy: BattleTestFixtures.silentEnemy(maxHealth: 40),
             heroModifiers: .init(triggers: CombatTraitTriggers(
-                healing: HealingTriggers(onHealRestoreCasterMana: 1)
+                healing: HealingTriggers(onHealRestoreCasterMana: 1),
             )),
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         battle.roster.mutateRuntime(for: hero) {
             $0.currentHealth = 10

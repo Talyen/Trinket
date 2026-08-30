@@ -5,7 +5,7 @@ import TrinketCore
 package extension DamagePipeline {
     static func applyReactiveOnHit(
         to state: inout DamageResolutionState,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) {
         guard !state.isDodged, !state.options.isRetaliation, let sourceActorID = state.sourceActorID else { return }
         guard let attacker = context.roster.combatant(for: sourceActorID) else { return }
@@ -20,7 +20,7 @@ package extension DamagePipeline {
             applyEnemyTraitReactions(
                 to: &state,
                 sourceActorID: sourceActorID,
-                in: &context
+                in: &context,
             )
             applyOnHitAttackerWards(to: &state, attacker: attacker, in: &context)
             applyManaShieldOnHit(to: &state, in: &context)
@@ -35,7 +35,7 @@ package extension DamagePipeline {
         to state: inout DamageResolutionState,
         attacker: CombatantRuntime,
         sourceActorID: String,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) {
         guard state.options.isAttackHit,
               let runtime = context.roster.runtime(for: attacker.combatant),
@@ -49,32 +49,32 @@ package extension DamagePipeline {
             sourceActorID: sourceActorID,
             dealImmediateDamage: false,
             suppressAffixReactions: true,
-            in: &context
+            in: &context,
         ))
     }
 
     private static func applyEnemyTraitReactions(
         to state: inout DamageResolutionState,
         sourceActorID: String,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) {
         state.damageEvents.append(contentsOf: EnemyTraitEngine.traitThornsDamage(
             damageTaken: state.healthLost,
             defender: state.combatant,
             attackerID: sourceActorID,
-            in: &context
+            in: &context,
         ))
         state.damageEvents.append(contentsOf: EnemyTraitEngine.traitAttackerBurn(
             defender: state.combatant,
             attackerID: sourceActorID,
-            in: &context
+            in: &context,
         ))
     }
 
     private static func applyOnHitAttackerWards(
         to state: inout DamageResolutionState,
         attacker: CombatantRuntime,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) {
         let defenderTriggers = context.modifiers(for: state.combatant.id).triggers
         if defenderTriggers.onHitAttackerFreezeBuildup > 0, context.roster.health(for: attacker.combatant) > 0 {
@@ -84,7 +84,7 @@ package extension DamagePipeline {
                 to: attacker.combatant,
                 sourceActorID: state.combatant.id,
                 applyFightPacing: false,
-                in: &context
+                in: &context,
             ))
         }
         if defenderTriggers.onHitAttackerPoison > 0, context.roster.health(for: attacker.combatant) > 0 {
@@ -94,7 +94,7 @@ package extension DamagePipeline {
                 to: attacker.combatant,
                 sourceActorID: state.combatant.id,
                 dealImmediateDamage: false,
-                suppressAffixReactions: true
+                suppressAffixReactions: true,
             ))
         }
         if defenderTriggers.onHitAttackerBleedPotency > 0, context.roster.health(for: attacker.combatant) > 0 {
@@ -107,7 +107,7 @@ package extension DamagePipeline {
                 durationTurns: defenderTriggers.onHitAttackerBleedTurns > 0
                     ? defenderTriggers.onHitAttackerBleedTurns
                     : nil,
-                in: &context
+                in: &context,
             ))
         }
         if defenderTriggers.onHitAttackerHoly > 0, context.roster.health(for: attacker.combatant) > 0 {
@@ -117,15 +117,15 @@ package extension DamagePipeline {
                     target: attacker.combatant,
                     keyword: .holy,
                     sourceActorID: state.combatant.id,
-                    options: .flatReaction
-                )
+                    options: .flatReaction,
+                ),
             ).events)
         }
     }
 
     private static func applyManaShieldOnHit(
         to state: inout DamageResolutionState,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) {
         let activeEffects = context.roster.activeEffects(for: state.combatant)
         for active in activeEffects {
@@ -140,11 +140,11 @@ package extension DamagePipeline {
                 abilityName: "Mana Shield",
                 target: state.combatant,
                 amount: restored,
-                keyword: .mana
+                keyword: .mana,
             ))
             state.damageEvents.append(contentsOf: CombatTriggerEngine.afterGainMana(
                 by: state.combatant,
-                in: &context
+                in: &context,
             ))
         }
     }
@@ -175,7 +175,7 @@ package extension DamagePipeline {
     private static func applyOnHitWards(
         to state: inout DamageResolutionState,
         attacker: CombatantRuntime,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) {
         let wards = onHitWardTotals(from: context.roster.activeEffects(for: state.combatant))
 
@@ -192,7 +192,7 @@ package extension DamagePipeline {
                 abilityName: "Thorns",
                 attacker: attacker,
                 to: &state,
-                in: &context
+                in: &context,
             )
         }
 
@@ -209,7 +209,7 @@ package extension DamagePipeline {
                 abilityName: keyword == .freeze ? "Glacial Ward" : "\(keyword.rawValue) Ward",
                 attacker: attacker,
                 to: &state,
-                in: &context
+                in: &context,
             )
         }
 
@@ -226,7 +226,7 @@ package extension DamagePipeline {
             keyword: .freeze,
             to: attacker.combatant,
             sourceActorID: state.combatant.id,
-            in: &context
+            in: &context,
         ))
     }
 
@@ -236,7 +236,7 @@ package extension DamagePipeline {
         abilityName: String,
         attacker: CombatantRuntime,
         to state: inout DamageResolutionState,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) {
         guard amount > 0 else { return }
         let outcome = context.resolveDamage(
@@ -245,8 +245,8 @@ package extension DamagePipeline {
                 target: attacker.combatant,
                 keyword: keyword,
                 sourceActorID: state.combatant.id,
-                options: .flatReaction
-            )
+                options: .flatReaction,
+            ),
         )
         var retaliationEvents = outcome.events
         if let lastIndex = retaliationEvents.indices.last {
@@ -255,7 +255,7 @@ package extension DamagePipeline {
                 effectKind: .thornsTriggered,
                 actorID: state.combatant.id,
                 actorName: state.combatant.name,
-                abilityName: abilityName
+                abilityName: abilityName,
             )
         } else if outcome.healthLost > 0 {
             retaliationEvents.append(context.nextEvent(
@@ -265,7 +265,7 @@ package extension DamagePipeline {
                 abilityName: abilityName,
                 target: attacker.combatant,
                 amount: outcome.healthLost,
-                keyword: keyword
+                keyword: keyword,
             ))
         }
         state.damageEvents.append(contentsOf: retaliationEvents)

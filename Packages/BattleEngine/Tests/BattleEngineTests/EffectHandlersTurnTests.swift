@@ -4,7 +4,7 @@ import TrinketContent
 import TrinketCore
 
 struct EffectHandlersTurnTests {
-    @Test func decayingDoTTicksUseSemanticDecayRules() throws {
+    @Test func `decaying do T ticks use semantic decay rules`() throws {
         for (potency, expectedPotency, removes) in [(4, 2, false), (2, 1, false), (1, 0, true)] {
             var battle = EffectHandlersTestSupport.makeBattle()
             let burn = ActiveEffect(id: 1, effect: .burn(potency), remainingTurns: 0, sourceActorID: "hero")
@@ -37,7 +37,7 @@ struct EffectHandlersTurnTests {
         try #expect(expiredOutcome.updatedStack == nil)
     }
 
-    @Test func burnDecaySlowTalentSlowsBurnAppliedByItsOwner() throws {
+    @Test func `burn decay slow talent slows burn applied by its owner`() throws {
         var battle = EffectHandlersTestSupport.makeBattle()
         let burn = ActiveEffect(id: 1, effect: .burn(10), remainingTurns: 2, sourceActorID: "hero")
         let baseline = EffectHandlersTestSupport.dispatchTick(burn, target: battle.enemy, battle: &battle)
@@ -46,15 +46,15 @@ struct EffectHandlersTurnTests {
         var slowedBattle = BattleTestFixtures.makePipelineContext(
             heroModifiers: CombatModifierProfile(
                 triggers: CombatTraitTriggers(
-                    dot: DotTriggers(burnDecaySlowPercent: 0.4)
-                )
-            )
+                    dot: DotTriggers(burnDecaySlowPercent: 0.4),
+                ),
+            ),
         )
         let slowedBurn = ActiveEffect(id: 1, effect: .burn(10), remainingTurns: 2, sourceActorID: "source")
         let slowed = EffectHandlersTestSupport.dispatchTick(
             slowedBurn,
             target: slowedBattle.roster.enemy.combatant,
-            battle: &slowedBattle
+            battle: &slowedBattle,
         )
         try #expect(slowed.updatedStack?.effect.potency == 7)
     }
@@ -62,7 +62,7 @@ struct EffectHandlersTurnTests {
     @Test(arguments: [
         Effect.shield(.block, 5),
     ])
-    func durationlessMitigationTicksLeaveStacksUntouched(effect: Effect) throws {
+    func `durationless mitigation ticks leave stacks untouched`(effect: Effect) throws {
         var battle = EffectHandlersTestSupport.makeBattle()
         let stack = ActiveEffect(id: 1, effect: effect, remainingTurns: 0, sourceActorID: "hero")
         let outcome = EffectHandlersTestSupport.dispatchTick(stack, target: battle.enemy, battle: &battle)

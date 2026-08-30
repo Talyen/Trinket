@@ -15,7 +15,7 @@ public struct ProgressionBattleRecord: Equatable, Codable, Sendable {
         playerLevel: Int,
         enemyLevel: Int,
         seed: UInt64,
-        result: BattleSimResult
+        result: BattleSimResult,
     ) {
         self.step = step
         self.playerLevel = playerLevel
@@ -65,7 +65,7 @@ public struct NodeHotspotSummary: Equatable, Codable, Sendable {
         averageEnemyLevel: Double,
         averageEnemyPowerRating: Double,
         status: HotspotStatus,
-        flagReason: String? = nil
+        flagReason: String? = nil,
     ) {
         self.step = step
         self.battles = battles
@@ -141,7 +141,7 @@ public enum HotspotAnalyzer {
                 averageEnemyLevel: avgEnemy,
                 averageEnemyPowerRating: avgPowerRating,
                 status: status,
-                flagReason: reason
+                flagReason: reason,
             )
         }
 
@@ -158,7 +158,7 @@ public enum HotspotAnalyzer {
 
     private static func averageEnemyPowerRating(
         for step: ModeProgressionStep,
-        averageEnemyLevel: Double
+        averageEnemyLevel: Double,
     ) -> Double {
         guard let enemy = GameContent.enemy(matching: step.enemyID) else { return 0 }
         let level = max(1, Int(averageEnemyLevel.rounded()))

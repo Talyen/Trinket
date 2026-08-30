@@ -10,7 +10,7 @@ public struct MysteryEventPickContext: Equatable, Sendable {
     public init(
         allowsCorruptionAltar: Bool,
         hasEligibleCorruptTarget: Bool,
-        corruptionAltarCooldownRemaining: Int
+        corruptionAltarCooldownRemaining: Int,
     ) {
         self.allowsCorruptionAltar = allowsCorruptionAltar
         self.hasEligibleCorruptTarget = hasEligibleCorruptTarget
@@ -20,6 +20,6 @@ public struct MysteryEventPickContext: Equatable, Sendable {
     public static let excludingCorruptionAltar = Self(
         allowsCorruptionAltar: false,
         hasEligibleCorruptTarget: false,
-        corruptionAltarCooldownRemaining: 0
+        corruptionAltarCooldownRemaining: 0,
     )
 }

@@ -16,12 +16,12 @@ public enum ItemDetailFooter: Equatable {
         canAfford: Bool,
         isDisabled: Bool,
         titleOverride: String?,
-        accessibilityID: String
+        accessibilityID: String,
     )
     case primaryAction(
         title: String,
         accessibilityID: String?,
-        dismissAfter: Bool
+        dismissAfter: Bool,
     )
 }
 
@@ -54,7 +54,7 @@ public struct ItemDetailView: View {
         salvageYields: [ResourceAmount]? = nil,
         equippedByName: String? = nil,
         onSalvage: (() -> ItemSalvageActionResult)? = nil,
-        onSalvageFinished: ((ItemSalvageActionResult) -> Void)? = nil
+        onSalvageFinished: ((ItemSalvageActionResult) -> Void)? = nil,
     ) {
         self.item = item
         self.salvageYields = salvageYields
@@ -68,7 +68,7 @@ public struct ItemDetailView: View {
             footer = .primaryAction(
                 title: primaryActionTitle,
                 accessibilityID: primaryActionAccessibilityID,
-                dismissAfter: dismissAfterPrimaryAction
+                dismissAfter: dismissAfterPrimaryAction,
             )
         } else if let purchasePrice, onPurchase != nil {
             footer = .purchase(
@@ -76,7 +76,7 @@ public struct ItemDetailView: View {
                 canAfford: canAfford,
                 isDisabled: isPurchaseDisabled,
                 titleOverride: purchaseButtonTitleOverride,
-                accessibilityID: AccessibilityID.Shop.detailBuyButton
+                accessibilityID: AccessibilityID.Shop.detailBuyButton,
             )
         } else {
             footer = .none
@@ -100,7 +100,7 @@ public struct ItemDetailView: View {
                     titleKeywords: Set(item.astralShineKeywords ?? []),
                     titleShineColors: item.rarity == .unique ? UniqueShine.textColors : nil,
                     baseHeight: $0,
-                    overscroll: $1
+                    overscroll: $1,
                 ) {
                     ItemArtwork(item: item)
                 }
@@ -110,16 +110,16 @@ public struct ItemDetailView: View {
                 ItemDetailContent(
                     item: item,
                     showsSalvageAction: showsSalvageAction,
-                    onSalvageTapped: { isSalvageConfirmationPresented = true }
+                    onSalvageTapped: { isSalvageConfirmationPresented = true },
                 )
-            }
+            },
         )
         .safeAreaInset(edge: .bottom) {
             footerView
         }
         .alert(
             "Salvage \(item.displayName)?",
-            isPresented: $isSalvageConfirmationPresented
+            isPresented: $isSalvageConfirmationPresented,
         ) {
             Button("Salvage", role: .destructive) {
                 confirmSalvage()
@@ -137,8 +137,8 @@ public struct ItemDetailView: View {
                     if !$0 {
                         salvageErrorMessage = nil
                     }
-                }
-            )
+                },
+            ),
         ) {
             Button("OK", role: .cancel) {}
         } message: {
@@ -161,7 +161,7 @@ public struct ItemDetailView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .trinketPrimaryActionButton(
-                    accessibilityIdentifier: accessibilityID ?? title
+                    accessibilityIdentifier: accessibilityID ?? title,
                 )
                 .trinketCenteredPrimaryAction()
                 .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
@@ -176,7 +176,7 @@ public struct ItemDetailView: View {
                     Text(purchaseButtonTitle(
                         price: price,
                         canAfford: canAfford,
-                        titleOverride: titleOverride
+                        titleOverride: titleOverride,
                     ))
                     .frame(maxWidth: .infinity)
                 }
@@ -193,7 +193,7 @@ public struct ItemDetailView: View {
     private func purchaseButtonTitle(
         price: Int,
         canAfford: Bool,
-        titleOverride: String?
+        titleOverride: String?,
     ) -> String {
         if let titleOverride {
             return titleOverride
@@ -253,7 +253,7 @@ struct ItemDetailContent: View {
                         title: affix.title,
                         description: affix.description,
                         titleKeywords: item.isPerfectAffix(at: index) ? affix.keywords : [],
-                        titleShineColors: uniqueAffixShineColors(affix)
+                        titleShineColors: uniqueAffixShineColors(affix),
                     )
                 }
             }
@@ -266,7 +266,7 @@ struct ItemDetailContent: View {
             .frame(maxWidth: .infinity)
             .trinketSecondaryActionButton(
                 tint: TrinketDesign.Colors.destructive,
-                accessibilityIdentifier: AccessibilityID.Collection.salvageButton
+                accessibilityIdentifier: AccessibilityID.Collection.salvageButton,
             )
             .padding(.top, TrinketDesign.Metrics.sectionSpacing)
         }

@@ -22,7 +22,7 @@ struct LabyrinthNodeInspector: View {
             for: node,
             worldSeed: playerSave.worldSeed,
             unlockedHeroIDs: playerSave.roster.unlockedHeroIDs,
-            unlockedCompanionIDs: playerSave.roster.unlockedCompanionIDs
+            unlockedCompanionIDs: playerSave.roster.unlockedCompanionIDs,
         )
     }
 
@@ -31,7 +31,7 @@ struct LabyrinthNodeInspector: View {
             for: node,
             type: type,
             title: subjectTitle,
-            isArtworkInteractive: enemyDetail != nil
+            isArtworkInteractive: enemyDetail != nil,
         )
     }
 
@@ -54,7 +54,7 @@ struct LabyrinthNodeInspector: View {
                     node: node,
                     type: type,
                     resolvedMysteryEvent: labyrinth.previewMysteryEvent(for: node),
-                    style: .inspector
+                    style: .inspector,
                 )
             },
             partyPickerSheet: {
@@ -62,7 +62,7 @@ struct LabyrinthNodeInspector: View {
             },
             artworkAccessory: {
                 modifierArtworkCaption
-            }
+            },
         )
         .accessibilityIdentifier(AccessibilityID.Play.labyrinthNodeInspector)
     }
@@ -81,7 +81,7 @@ struct LabyrinthNodeInspector: View {
         }
         return CombatantCardDetail(
             combatant: encounter.combatant,
-            labyrinthModifiers: LabyrinthCatalog.modifiers(ids: node.modifierIDs)
+            labyrinthModifiers: LabyrinthCatalog.modifiers(ids: node.modifierIDs),
         )
     }
 
@@ -121,7 +121,7 @@ struct LabyrinthNodeInspector: View {
                         TrinketDesign.Colors.Overlay.ink.opacity(0.82),
                     ],
                     startPoint: .top,
-                    endPoint: .bottom
+                    endPoint: .bottom,
                 )
             }
             .allowsHitTesting(false)

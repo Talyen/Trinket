@@ -19,7 +19,7 @@ public struct InventoryItem: Identifiable, Equatable, Hashable, Sendable {
         displayName: String,
         affixes: [ItemAffix],
         isCorrupted: Bool = false,
-        affixPowers: [ItemAffixPower]? = nil
+        affixPowers: [ItemAffixPower]? = nil,
     ) {
         self.id = id
         self.templateID = templateID ?? id
@@ -43,7 +43,7 @@ public struct InventoryItem: Identifiable, Equatable, Hashable, Sendable {
             displayName: displayName,
             affixes: affixes,
             isCorrupted: isCorrupted,
-            affixPowers: affixPowers
+            affixPowers: affixPowers,
         )
     }
 
@@ -70,7 +70,7 @@ public struct InventoryItem: Identifiable, Equatable, Hashable, Sendable {
                 title: affix.title,
                 description: power.description,
                 keywords: affix.keywords,
-                isCorrupted: affix.isCorrupted
+                isCorrupted: affix.isCorrupted,
             )
         }
     }
@@ -113,7 +113,7 @@ public struct EquipmentLoadout: Equatable, Hashable, Sendable {
     public mutating func equip(
         _ item: InventoryItem,
         in slot: ItemSlot? = nil,
-        inventory: [InventoryItem]
+        inventory: [InventoryItem],
     ) {
         let destination = slot ?? item.baseType.defaultEquipmentSlot
         guard canEquip(item, in: destination, inventory: inventory) else { return }
@@ -139,7 +139,7 @@ public struct EquipmentLoadout: Equatable, Hashable, Sendable {
     public func canEquip(
         _ item: InventoryItem,
         in slot: ItemSlot,
-        inventory: [InventoryItem]
+        inventory: [InventoryItem],
     ) -> Bool {
         guard item.baseType.canEquip(in: slot) else { return false }
         guard trinketBaseIsFree(item, excluding: slot, inventory: inventory) else { return false }
@@ -173,7 +173,7 @@ public struct EquipmentLoadout: Equatable, Hashable, Sendable {
     private func trinketBaseIsFree(
         _ item: InventoryItem,
         excluding destination: ItemSlot,
-        inventory: [InventoryItem]
+        inventory: [InventoryItem],
     ) -> Bool {
         guard item.isTrinket else { return true }
         return itemIDs(inFamilyOf: destination).allSatisfy { siblingID in

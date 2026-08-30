@@ -10,7 +10,7 @@ struct FightPacingTests {
         companionHP: Int = 50,
         enemyHP: Int = 50,
         turnCount: Int = 0,
-        enemyID: String = "goblin"
+        enemyID: String = "goblin",
     ) -> BattleState {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 50)
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 50)
@@ -24,13 +24,13 @@ struct FightPacingTests {
             enemyHealth: enemyHP,
             seed: 0,
             nextEffectID: 0,
-            nextEventID: 0
+            nextEventID: 0,
         )
         context.turnCount = turnCount
         return context
     }
 
-    @Test func evenHealthyFightHasNoBonuses() throws {
+    @Test func `even healthy fight has no bonuses`() throws {
         let context = makeContext(heroHP: 50, companionHP: 50, enemyHP: 50, turnCount: 1)
         let isBoss = FightPacing.isBossEnemy(in: context)
         try #expect(FightPacing.comebackMultiplier(side: .party, isBoss: isBoss, in: context) == 1.0)
@@ -38,13 +38,13 @@ struct FightPacingTests {
         try #expect(FightPacing.clockMultiplier(isBoss: isBoss, in: context) == 1.0)
     }
 
-    @Test func pacedReturnsAuthoredAmountWhenFightPacingDisabled() {
+    @Test func `paced returns authored amount when fight pacing disabled`() {
         var context = makeContext(heroHP: 15, companionHP: 15, enemyHP: 45, turnCount: 8)
         context.appliesFightPacing = false
         #expect(context.paced(10, sourceActorID: context.hero.id) == 10)
     }
 
-    @Test func partyBehindGrantsPartyComebackAtLeastTenPercent() throws {
+    @Test func `party behind grants party comeback at least ten percent`() throws {
         let context = makeContext(heroHP: 15, companionHP: 15, enemyHP: 45, turnCount: 4)
         let isBoss = FightPacing.isBossEnemy(in: context)
         let partyMult = FightPacing.comebackMultiplier(side: .party, isBoss: isBoss, in: context)
@@ -53,7 +53,7 @@ struct FightPacingTests {
         try #expect(enemyMult == 1.0)
     }
 
-    @Test func enemyBehindGrantsEnemyComebackAtLeastTenPercent() throws {
+    @Test func `enemy behind grants enemy comeback at least ten percent`() throws {
         let context = makeContext(heroHP: 45, companionHP: 45, enemyHP: 10, turnCount: 4)
         let isBoss = FightPacing.isBossEnemy(in: context)
         let partyMult = FightPacing.comebackMultiplier(side: .party, isBoss: isBoss, in: context)
@@ -62,37 +62,37 @@ struct FightPacingTests {
         try #expect(enemyMult >= 1.10)
     }
 
-    @Test func stalledFightActivatesClockEarly() throws {
+    @Test func `stalled fight activates clock early`() throws {
         let context = makeContext(heroHP: 48, companionHP: 48, enemyHP: 48, turnCount: 8, enemyID: "the_blight_treant")
         let isBoss = FightPacing.isBossEnemy(in: context)
         let clock = FightPacing.clockMultiplier(isBoss: isBoss, in: context)
         try #expect(clock >= 1.10)
     }
 
-    @Test func fastFightStaysOffClock() throws {
+    @Test func `fast fight stays off clock`() throws {
         let context = makeContext(heroHP: 30, companionHP: 30, enemyHP: 10, turnCount: 6, enemyID: "the_blight_treant")
         try #expect(FightPacing.clockMultiplier(isBoss: FightPacing.isBossEnemy(in: context), in: context) == 1.0)
     }
 
-    @Test func turnBackstopEscalatesPastMaxRounds() throws {
+    @Test func `turn backstop escalates past max rounds`() throws {
         let context = makeContext(heroHP: 30, companionHP: 30, enemyHP: 25, turnCount: 24, enemyID: "the_blight_treant")
         let isBoss = FightPacing.isBossEnemy(in: context)
         let clock = FightPacing.clockMultiplier(isBoss: isBoss, in: context)
         try #expect(clock >= 1.10)
     }
 
-    @Test func pacedScalesAuthoredDamageForPartySource() throws {
+    @Test func `paced scales authored damage for party source`() throws {
         var context = makeContext(heroHP: 15, companionHP: 15, enemyHP: 45, turnCount: 8, enemyID: "the_blight_treant")
         let scaled = context.paced(10, sourceActorID: "hero")
         try #expect(scaled > 10)
     }
 
-    @Test func pacedLeavesUnattributedAmountsUnchanged() throws {
+    @Test func `paced leaves unattributed amounts unchanged`() throws {
         let context = makeContext(heroHP: 15, companionHP: 15, enemyHP: 45, turnCount: 8)
         try #expect(context.paced(10, sourceActorID: nil) == 10)
     }
 
-    @Test func stunBuildupIsNotDoublePacedWhenFightPacingActive() throws {
+    @Test func `stun buildup is not double paced when fight pacing active`() throws {
         let hero = CombatantFixtures.combatant(id: "source", role: .hero, maxHealth: 50)
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 50)
         let enemy = CombatantFixtures.combatant(id: "target", role: .enemy, maxHealth: 100)
@@ -105,7 +105,7 @@ struct FightPacingTests {
             enemyHealth: 100,
             seed: BattleTestFixtures.deterministicNonCriticalSeed,
             nextEffectID: 0,
-            nextEventID: 0
+            nextEventID: 0,
         )
         context.turnCount = 8
 
@@ -125,7 +125,7 @@ struct FightPacingTests {
             sourceActorID: "source",
             applyStatBonus: false,
             applyItemBonus: false,
-            applyDodge: false
+            applyDodge: false,
         )
 
         let amount = context.roster.enemy.activeEffects

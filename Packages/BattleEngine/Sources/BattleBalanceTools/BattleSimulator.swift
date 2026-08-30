@@ -23,7 +23,7 @@ public struct BattleSimResult: Equatable, Codable, Sendable {
         enemyHPRemainingFraction: Double,
         heroHPRemainingFraction: Double = 0,
         companionHPRemainingFraction: Double = 0,
-        peakActionEvents: Int = 0
+        peakActionEvents: Int = 0,
     ) {
         self.outcome = outcome
         self.rounds = rounds
@@ -55,7 +55,7 @@ public enum BattleSimulator {
         maxRounds: Int = defaultMaxRounds,
         maxActions: Int = defaultMaxActions,
         appliesFightPacing: Bool = true,
-        tracksEvents: Bool = false
+        tracksEvents: Bool = false,
     ) -> BattleSimResult {
         var battle = BattleState(
             hero: matchup.hero,
@@ -67,7 +67,7 @@ public enum BattleSimulator {
             rngSeed: matchup.context.seed,
             tracksLog: false,
             tracksEvents: tracksEvents,
-            appliesFightPacing: appliesFightPacing
+            appliesFightPacing: appliesFightPacing,
         )
         return run(battle: &battle, policy: policy, maxRounds: maxRounds, maxActions: maxActions)
     }
@@ -76,7 +76,7 @@ public enum BattleSimulator {
         battle: inout BattleState,
         policy: PlayPolicy,
         maxRounds: Int = defaultMaxRounds,
-        maxActions: Int = defaultMaxActions
+        maxActions: Int = defaultMaxActions,
     ) -> BattleSimResult {
         var actions = 0
         var timedOut = false
@@ -111,7 +111,7 @@ public enum BattleSimulator {
 
         let outcome = BattleSimulationOutcome.resolve(
             isPartyDefeated: battle.isPartyDefeated,
-            isEnemyDefeated: battle.isEnemyDefeated
+            isEnemyDefeated: battle.isEnemyDefeated,
         ) ?? .defeat
 
         return BattleSimResult(
@@ -123,7 +123,7 @@ public enum BattleSimulator {
             enemyHPRemainingFraction: enemyHPFraction(in: battle),
             heroHPRemainingFraction: combatantHPFraction(battle.hero, in: battle),
             companionHPRemainingFraction: combatantHPFraction(battle.companion, in: battle),
-            peakActionEvents: peakActionEvents
+            peakActionEvents: peakActionEvents,
         )
     }
 

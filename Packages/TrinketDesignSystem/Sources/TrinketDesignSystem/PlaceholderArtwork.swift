@@ -11,14 +11,14 @@ public struct PlaceholderArtwork: View {
             color: style.color,
             symbolName: style.symbolName,
             iconPointSize: TrinketDesign.Metrics.cardPlaceholderIconPointSize,
-            relativeTo: .title
+            relativeTo: .title,
         )
     }
 
     public init(
         _ style: TrinketDesign.CardPlaceholderStyle,
         iconPointSize: CGFloat,
-        relativeTo textStyle: Font.TextStyle
+        relativeTo textStyle: Font.TextStyle,
     ) {
         self.init(color: style.color, symbolName: style.symbolName, iconPointSize: iconPointSize, relativeTo: textStyle)
     }
@@ -28,14 +28,14 @@ public struct PlaceholderArtwork: View {
             color: style.color,
             symbolName: style.symbolName,
             iconPointSize: TrinketDesign.Metrics.cardPlaceholderIconPointSize,
-            relativeTo: .title
+            relativeTo: .title,
         )
     }
 
     public init(
         _ style: Keyword.VisualStyle,
         iconPointSize: CGFloat,
-        relativeTo textStyle: Font.TextStyle
+        relativeTo textStyle: Font.TextStyle,
     ) {
         self.init(color: style.color, symbolName: style.symbolName, iconPointSize: iconPointSize, relativeTo: textStyle)
     }
@@ -44,7 +44,7 @@ public struct PlaceholderArtwork: View {
         color: Color,
         symbolName: String,
         iconPointSize: CGFloat,
-        relativeTo textStyle: Font.TextStyle
+        relativeTo textStyle: Font.TextStyle,
     ) {
         self.color = color
         self.symbolName = symbolName

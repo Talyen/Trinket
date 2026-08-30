@@ -6,7 +6,7 @@ package extension CombatTriggerEngine {
     static func afterDodge(
         by combatant: Combatant,
         attackerID: String?,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         let profile = context.modifiers(for: combatant.id)
         let triggers = profile.triggers
@@ -51,7 +51,7 @@ package extension CombatTriggerEngine {
             events.append(contentsOf: context.grantGoldEvent(
                 triggers.dodgeGoldFlat,
                 to: combatant,
-                abilityName: triggerAbilityName("dodgeGoldFlat", for: combatant, fallback: "Payday", in: context)
+                abilityName: triggerAbilityName("dodgeGoldFlat", for: combatant, fallback: "Payday", in: context),
             ))
         }
 
@@ -60,7 +60,7 @@ package extension CombatTriggerEngine {
                 triggers.dodgeBlockFlat,
                 to: combatant,
                 source: combatant,
-                abilityName: triggerAbilityName("dodgeBlockFlat", for: combatant, fallback: "Untouchable", in: context)
+                abilityName: triggerAbilityName("dodgeBlockFlat", for: combatant, fallback: "Untouchable", in: context),
             ))
         }
 
@@ -69,7 +69,7 @@ package extension CombatTriggerEngine {
                 triggers.onDodgeGrantHeroBlock,
                 to: context.roster.hero.combatant,
                 source: combatant,
-                abilityName: triggerAbilityName("onDodgeGrantHeroBlock", for: combatant, fallback: "Aerial Cover", in: context)
+                abilityName: triggerAbilityName("onDodgeGrantHeroBlock", for: combatant, fallback: "Aerial Cover", in: context),
             ))
         }
 
@@ -80,7 +80,7 @@ package extension CombatTriggerEngine {
                 events.append(contentsOf: context.restoreManaEmitting(
                     triggers.onDodgePartyMana,
                     to: member.combatant,
-                    abilityName: triggerAbilityName("onDodgePartyMana", for: combatant, fallback: "Dodge", in: context)
+                    abilityName: triggerAbilityName("onDodgePartyMana", for: combatant, fallback: "Dodge", in: context),
                 ))
             }
         }
@@ -89,7 +89,7 @@ package extension CombatTriggerEngine {
             let drawn = BattleCardCombatEngine.drawCards(
                 count: triggers.onDodgeDrawCardForHero,
                 for: .hero,
-                context: &context
+                context: &context,
             )
             if drawn > 0 {
                 events.append(context.nextEvent(
@@ -99,7 +99,7 @@ package extension CombatTriggerEngine {
                     abilityName: triggerAbilityName("onDodgeDrawCardForHero", for: combatant, fallback: "Tailwind", in: context),
                     target: context.roster.hero.combatant,
                     amount: drawn,
-                    keyword: .physical
+                    keyword: .physical,
                 ))
             }
         }
@@ -117,7 +117,7 @@ package extension CombatTriggerEngine {
                 potency: triggers.dodgeApplyPoison,
                 to: context.roster.enemy.combatant,
                 sourceActorID: combatant.id,
-                dealImmediateDamage: true
+                dealImmediateDamage: true,
             ))
         }
 
@@ -138,8 +138,8 @@ package extension CombatTriggerEngine {
                         target: target,
                         keyword: .physical,
                         sourceActorID: combatant.id,
-                        options: .flatReaction
-                    )
+                        options: .flatReaction,
+                    ),
                 ).events)
             }
             if triggers.onDodgeCounterBasicAttack {
@@ -151,8 +151,8 @@ package extension CombatTriggerEngine {
                             target: target,
                             keyword: .physical,
                             sourceActorID: combatant.id,
-                            options: .flatReaction
-                        )
+                            options: .flatReaction,
+                        ),
                     ).events)
                 }
             }
@@ -164,7 +164,7 @@ package extension CombatTriggerEngine {
                         to: target,
                         sourceActorID: combatant.id,
                         dealImmediateDamage: false,
-                        suppressAffixReactions: true
+                        suppressAffixReactions: true,
                     ))
                 } else {
                     events.append(contentsOf: DoTApplicator.applyBleed(
@@ -173,7 +173,7 @@ package extension CombatTriggerEngine {
                         sourceActorID: combatant.id,
                         dealImmediateDamage: false,
                         suppressAffixReactions: true,
-                        in: &context
+                        in: &context,
                     ))
                 }
             }
@@ -184,7 +184,7 @@ package extension CombatTriggerEngine {
                     to: target,
                     sourceActorID: combatant.id,
                     applyFightPacing: false,
-                    in: &context
+                    in: &context,
                 ))
             }
         }
@@ -194,7 +194,7 @@ package extension CombatTriggerEngine {
 
     private static func drawPlayCascade(
         for combatant: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         guard context.roster.health(for: combatant) > 0 else { return [] }
         let cascadeAbility = combatant.abilityLoadout.basic
@@ -206,7 +206,7 @@ package extension CombatTriggerEngine {
                 ability: cascadeAbility,
                 source: combatant,
                 target: combatant,
-                in: &context
+                in: &context,
             )
             guard played.didApply else { break }
             events.append(contentsOf: played.events)
@@ -218,21 +218,21 @@ package extension CombatTriggerEngine {
     private static func applySidestepHeal(
         for combatant: Combatant,
         profile: CombatModifierProfile,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         guard profile.triggers.dodgeHealFlat > 0 else { return [] }
         return context.healEmitting(
             amount: profile.triggers.dodgeHealFlat,
             target: combatant,
             source: combatant,
-            abilityName: triggerAbilityName("dodgeHealFlat", for: combatant, fallback: "Sidestep", in: context)
+            abilityName: triggerAbilityName("dodgeHealFlat", for: combatant, fallback: "Sidestep", in: context),
         )
     }
 
     private static func applyWhiplashStun(
         for combatant: Combatant,
         profile: CombatModifierProfile,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         guard profile.triggers.dodgeDealStunFlat > 0, context.roster.enemy.isAlive else { return [] }
         let enemy = context.roster.enemy.combatant
@@ -244,8 +244,8 @@ package extension CombatTriggerEngine {
                 target: enemy,
                 keyword: .stun,
                 sourceActorID: combatant.id,
-                options: .dodgeTriggeredControlReaction
-            )
+                options: .dodgeTriggeredControlReaction,
+            ),
         )
         var events = outcome.events.map { event in
             event.keyword == .stun ? event.with(abilityName: name) : event
@@ -257,7 +257,7 @@ package extension CombatTriggerEngine {
                 abilityName: name,
                 target: enemy,
                 amount: outcome.healthLost,
-                keyword: .stun
+                keyword: .stun,
             ))
         }
         return events

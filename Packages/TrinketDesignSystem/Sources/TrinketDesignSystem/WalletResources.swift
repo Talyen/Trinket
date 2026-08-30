@@ -7,7 +7,7 @@ public struct TrinketWalletGrid<Content: View>: View {
 
     public init(
         columnCount: Int = 4,
-        @ViewBuilder content: () -> Content
+        @ViewBuilder content: () -> Content,
     ) {
         self.columnCount = max(1, columnCount)
         self.content = content()
@@ -17,7 +17,7 @@ public struct TrinketWalletGrid<Content: View>: View {
         TrinketWalletGridLayout(
             columnCount: columnCount,
             horizontalSpacing: TrinketDesign.Metrics.mediumSpacing,
-            verticalSpacing: TrinketDesign.Metrics.smallSpacing
+            verticalSpacing: TrinketDesign.Metrics.smallSpacing,
         ) {
             content
         }
@@ -47,7 +47,7 @@ public struct TrinketWalletResourcePill<Artwork: View>: View {
         amount: Int,
         showsIncreasePrefix: Bool = false,
         increaseAnimationDelay: TimeInterval = 0,
-        @ViewBuilder artwork: () -> Artwork
+        @ViewBuilder artwork: () -> Artwork,
     ) {
         self.title = title
         self.amount = amount
@@ -61,7 +61,7 @@ public struct TrinketWalletResourcePill<Artwork: View>: View {
             artwork
                 .frame(
                     width: TrinketDesign.Metrics.walletResourceArtworkSize,
-                    height: TrinketDesign.Metrics.walletResourceArtworkSize
+                    height: TrinketDesign.Metrics.walletResourceArtworkSize,
                 )
 
             VStack(alignment: .leading, spacing: TrinketDesign.Metrics.tightSpacing) {
@@ -81,7 +81,7 @@ public struct TrinketWalletResourcePill<Artwork: View>: View {
         }
         .frame(
             minHeight: TrinketDesign.Metrics.walletResourceRowMinHeight,
-            alignment: .leading
+            alignment: .leading,
         )
         .animation(TrinketMotion.Interaction.walletIncrease, value: amount)
         .keyframeAnimator(initialValue: CGFloat(1), trigger: increaseAnimationTrigger) { content, scale in
@@ -90,7 +90,7 @@ public struct TrinketWalletResourcePill<Artwork: View>: View {
             LinearKeyframe(1, duration: increaseAnimationDelay)
             CubicKeyframe(
                 TrinketMotion.Interaction.walletIncreaseScale,
-                duration: 0.08
+                duration: 0.08,
             )
             SpringKeyframe(1, duration: 0.18, spring: .smooth)
         }
@@ -117,7 +117,7 @@ public struct TrinketCompactResourceChip<Artwork: View>: View {
         amount: Int,
         tint: Color,
         animationTrigger: Int = 0,
-        @ViewBuilder artwork: () -> Artwork
+        @ViewBuilder artwork: () -> Artwork,
     ) {
         self.amount = amount
         self.tint = tint
@@ -130,11 +130,11 @@ public struct TrinketCompactResourceChip<Artwork: View>: View {
             artwork
                 .frame(
                     width: TrinketDesign.Metrics.compactResourceArtworkSize,
-                    height: TrinketDesign.Metrics.compactResourceArtworkSize
+                    height: TrinketDesign.Metrics.compactResourceArtworkSize,
                 )
                 .keyframeAnimator(
                     initialValue: CGFloat(1),
-                    trigger: animationTrigger
+                    trigger: animationTrigger,
                 ) { content, scale in
                     content.scaleEffect(scale)
                 } keyframes: { _ in
@@ -166,14 +166,14 @@ private struct TrinketWalletGridLayout: Layout {
         in bounds: CGRect,
         proposal _: ProposedViewSize,
         subviews: Subviews,
-        cache _: inout ()
+        cache _: inout (),
     ) {
         let placed = arrangement(proposal: ProposedViewSize(bounds.size), subviews: subviews)
         for (index, subview) in subviews.enumerated() {
             let frame = placed.frames[index]
             subview.place(
                 at: CGPoint(x: bounds.minX + frame.minX, y: bounds.minY + frame.minY),
-                proposal: ProposedViewSize(frame.size)
+                proposal: ProposedViewSize(frame.size),
             )
         }
     }

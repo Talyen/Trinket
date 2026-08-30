@@ -26,7 +26,7 @@ public struct PlayerLabyrinthState: Equatable, Sendable {
         clusters: [LabyrinthCluster] = [],
         nodes: [String: LabyrinthNode] = [:],
         runHealthByCombatantID: [String: Int] = [:],
-        isMapPayloadUnreadable: Bool = false
+        isMapPayloadUnreadable: Bool = false,
     ) {
         self.worldSeed = worldSeed
         self.mapVersion = mapVersion
@@ -116,7 +116,7 @@ public struct PlayerLabyrinthState: Equatable, Sendable {
 
     public mutating func ensureMap(
         seed: UInt64? = nil,
-        eligibleRecruitEventIDs: [String] = []
+        eligibleRecruitEventIDs: [String] = [],
     ) {
         if isMapPayloadUnreadable {
             isMapPayloadUnreadable = false
@@ -135,7 +135,7 @@ public struct PlayerLabyrinthState: Equatable, Sendable {
         guard resolvedSeed != 0 else { return }
         let generated = LabyrinthGenerator.makeInitialMap(
             seed: resolvedSeed,
-            eligibleRecruitEventIDs: eligibleRecruitEventIDs
+            eligibleRecruitEventIDs: eligibleRecruitEventIDs,
         )
         worldSeed = resolvedSeed
         clusters = generated.clusters
@@ -148,7 +148,7 @@ public struct PlayerLabyrinthState: Equatable, Sendable {
 
     public mutating func markCleared(
         nodeID: String,
-        eligibleRecruitEventIDs: [String] = []
+        eligibleRecruitEventIDs: [String] = [],
     ) {
         guard var node = nodes[nodeID], !node.isCleared else { return }
         node.isCleared = true
@@ -161,7 +161,7 @@ public struct PlayerLabyrinthState: Equatable, Sendable {
                 clusters: &clusters,
                 nodes: &nodes,
                 seed: worldSeed,
-                eligibleRecruitEventIDs: eligibleRecruitEventIDs
+                eligibleRecruitEventIDs: eligibleRecruitEventIDs,
             )
         }
     }

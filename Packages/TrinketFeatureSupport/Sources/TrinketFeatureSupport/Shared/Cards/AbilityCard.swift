@@ -41,7 +41,7 @@ struct AbilityChoiceCard: View {
                         .lineLimit(2)
                         .multilineTextAlignment(.center)
                 }
-            }
+            },
         )
     }
 }

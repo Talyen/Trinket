@@ -36,7 +36,7 @@ enum BalanceAffixContrastRunner {
                         definition: definition,
                         owner: owner,
                         baseType: baseType,
-                        baselineKind: .replacementAffix
+                        baselineKind: .replacementAffix,
                     ),
                 ]
             }
@@ -49,7 +49,7 @@ enum BalanceAffixContrastRunner {
         let fociCount = foci(
             heroes: roster.heroes,
             companions: roster.companions,
-            focusIDs: config.focusIDs
+            focusIDs: config.focusIDs,
         ).count
         let tiers = config.tiers.filter(\.includesGear)
         return fociCount * tiers.count * config.battlesPerTier
@@ -57,7 +57,7 @@ enum BalanceAffixContrastRunner {
 
     static func run(
         context: BalanceContrastContext,
-        policy: PlayPolicy
+        policy: PlayPolicy,
     ) -> [PairedContrastSummary] {
         guard !context.heroes.isEmpty,
               !context.companions.isEmpty,
@@ -67,7 +67,7 @@ enum BalanceAffixContrastRunner {
         let foci = foci(
             heroes: context.heroes,
             companions: context.companions,
-            focusIDs: context.config.focusIDs
+            focusIDs: context.config.focusIDs,
         )
         guard !foci.isEmpty else { return [] }
 
@@ -84,7 +84,7 @@ enum BalanceAffixContrastRunner {
                     baselineID: baselineID,
                     ownerID: $0.owner.id,
                     baselineKind: $0.baselineKind,
-                    nonCombat: false
+                    nonCombat: false,
                 )
             },
             primes: (tier: 800021, pair: 151),
@@ -94,10 +94,10 @@ enum BalanceAffixContrastRunner {
                     tier: tier,
                     pairIndex: pairIndex,
                     context: context,
-                    pairSeed: seed
+                    pairSeed: seed,
                 )
             },
-            policy: policy
+            policy: policy,
         )
     }
 
@@ -106,31 +106,31 @@ enum BalanceAffixContrastRunner {
         tier: SimulationPowerTier,
         pairIndex: Int,
         context: BalanceContrastContext,
-        pairSeed: UInt64
+        pairSeed: UInt64,
     ) -> (withEntity: ConfiguredSimulationMatchup, withBaseline: ConfiguredSimulationMatchup) {
         var rng = SeededRandomNumberGenerator(seed: pairSeed)
         let partner = BalanceContrastSupport.pickPartner(
             for: focus.owner,
             from: context,
-            using: &rng
+            using: &rng,
         )
         let enemy = BalanceContrastSupport.roundRobinEnemy(
             enemies: context.enemies,
-            pairIndex: pairIndex
+            pairIndex: pairIndex,
         )
         let ownerLoadout = SimulationMatchupBuilder.sampleLoadout(
             for: focus.owner,
-            using: &rng
+            using: &rng,
         )
         let partnerLoadout = SimulationMatchupBuilder.sampleLoadout(
             for: partner,
-            using: &rng
+            using: &rng,
         )
         let gears = makeAffixGearPair(
             focus: focus,
             tier: tier,
             ownerLoadout: ownerLoadout,
-            pairSeed: pairSeed
+            pairSeed: pairSeed,
         )
         var fillRNG = SeededRandomNumberGenerator(seed: pairSeed &+ 41)
         let partnerGear = SimulationMatchupBuilder.generateAlignedGear(
@@ -138,7 +138,7 @@ enum BalanceAffixContrastRunner {
             tier: tier,
             keywordBias: partner.keywordProfile,
             idPrefix: "contrast-partner",
-            using: &fillRNG
+            using: &fillRNG,
         )
         return BalanceContrastSupport.buildOwnerGearPair(
             base: .init(
@@ -150,10 +150,10 @@ enum BalanceAffixContrastRunner {
                 partnerGear: partnerGear,
                 enemy: enemy,
                 tier: tier,
-                seed: pairSeed
+                seed: pairSeed,
             ),
             entityOwnerGear: gears.withAffix,
-            baselineOwnerGear: gears.baseline
+            baselineOwnerGear: gears.baseline,
         )
     }
 
@@ -161,7 +161,7 @@ enum BalanceAffixContrastRunner {
         focus: Focus,
         tier: SimulationPowerTier,
         ownerLoadout: AbilityLoadout,
-        pairSeed: UInt64
+        pairSeed: UInt64,
     ) -> (withAffix: SimulationMatchupBuilder.GearOverride, baseline: SimulationMatchupBuilder.GearOverride) {
         let rarity = tier.rarity ?? .basic
         let affixCount = max(1, tier.fixedAffixCount ?? 1)
@@ -175,14 +175,14 @@ enum BalanceAffixContrastRunner {
             keywordBias: bias,
             requireBuildAlignment: true,
             guaranteedAffixIDs: [focus.definition.id],
-            using: &itemRNG
+            using: &itemRNG,
         )
         let baselineItem = generateBaselineItem(
             focus: focus,
             rarity: rarity,
             affixCount: affixCount,
             bias: bias,
-            using: &itemRNG
+            using: &itemRNG,
         )
         let slot = focus.owner.role.equipmentSlots.first {
             $0.baseItemSlot == focus.definition.slot
@@ -194,7 +194,7 @@ enum BalanceAffixContrastRunner {
         precondition(
             withLoadout.itemID(for: slot) == withAffixItem.id
                 && baselineLoadout.itemID(for: slot) == baselineItem.id,
-            "Affix contrast items must equip in their protected slot"
+            "Affix contrast items must equip in their protected slot",
         )
         var fillRNG = SeededRandomNumberGenerator(seed: pairSeed &+ 41)
         let filler = SimulationMatchupBuilder.generateAlignedGear(
@@ -202,19 +202,19 @@ enum BalanceAffixContrastRunner {
             tier: tier,
             keywordBias: bias,
             idPrefix: "contrast-fill",
-            using: &fillRNG
+            using: &fillRNG,
         )
         return (
             mergeGear(
                 primary: .init(inventory: [withAffixItem], loadout: withLoadout),
                 filler: filler,
-                protectedSlot: slot
+                protectedSlot: slot,
             ),
             mergeGear(
                 primary: .init(inventory: [baselineItem], loadout: baselineLoadout),
                 filler: filler,
-                protectedSlot: slot
-            )
+                protectedSlot: slot,
+            ),
         )
     }
 
@@ -223,7 +223,7 @@ enum BalanceAffixContrastRunner {
         rarity: Rarity,
         affixCount: Int,
         bias: Set<Keyword>,
-        using itemRNG: inout SeededRandomNumberGenerator
+        using itemRNG: inout SeededRandomNumberGenerator,
     ) -> InventoryItem {
         if focus.baselineKind == .emptySlot {
             return ItemGenerator().generate(
@@ -233,11 +233,11 @@ enum BalanceAffixContrastRunner {
                 fixedAffixCount: 0,
                 keywordBias: bias,
                 requireBuildAlignment: true,
-                using: &itemRNG
+                using: &itemRNG,
             )
         }
         return ItemGenerator(
-            affixDefinitions: GameContent.itemAffixDefinitions.filter { $0.id != focus.definition.id }
+            affixDefinitions: GameContent.itemAffixDefinitions.filter { $0.id != focus.definition.id },
         ).generate(
             id: "contrast-baseline-\(focus.definition.id)",
             baseType: focus.baseType,
@@ -245,14 +245,14 @@ enum BalanceAffixContrastRunner {
             fixedAffixCount: affixCount,
             keywordBias: bias,
             requireBuildAlignment: true,
-            using: &itemRNG
+            using: &itemRNG,
         )
     }
 
     private static func mergeGear(
         primary: SimulationMatchupBuilder.GearOverride,
         filler: SimulationMatchupBuilder.GearOverride?,
-        protectedSlot: ItemSlot
+        protectedSlot: ItemSlot,
     ) -> SimulationMatchupBuilder.GearOverride {
         guard let filler else { return primary }
         var inventory = primary.inventory

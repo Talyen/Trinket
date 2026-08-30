@@ -24,7 +24,7 @@ struct PlayView: View {
         ZStack {
             PlayBrowsingStack(
                 navigationPath: $navigationPath,
-                stageMessage: $stageMessage
+                stageMessage: $stageMessage,
             )
             PlayBattleOverlay(stageMessage: $stageMessage)
         }

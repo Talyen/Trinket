@@ -7,7 +7,7 @@ struct PlayScreen {
     func assertLoaded(
         timeout: TimeInterval = TrinketUITestCase.defaultTimeout,
         file: StaticString = #file,
-        line: UInt = #line
+        line: UInt = #line,
     ) {
         let element = app.descendants(matching: .any)[AccessibilityID.Play.modesScreen]
         XCTAssertTrue(element.waitForExistence(timeout: timeout), "Play mode screen not found", file: file, line: line)
@@ -16,7 +16,7 @@ struct PlayScreen {
     func assertModeHub(
         timeout: TimeInterval = TrinketUITestCase.defaultTimeout,
         file: StaticString = #file,
-        line: UInt = #line
+        line: UInt = #line,
     ) {
         assertLoaded(timeout: timeout, file: file, line: line)
     }
@@ -25,7 +25,7 @@ struct PlayScreen {
         number: Int = 1,
         timeout: TimeInterval = TrinketUITestCase.defaultTimeout,
         file: StaticString = #file,
-        line: UInt = #line
+        line: UInt = #line,
     ) {
         let element = app.descendants(matching: .any)[AccessibilityID.Play.chapterHeader(number: number)]
         XCTAssertTrue(element.waitForExistence(timeout: timeout), "Campaign Chapter \(number) not found", file: file, line: line)
@@ -67,7 +67,7 @@ struct PlayScreen {
         _ identifier: String,
         timeout: TimeInterval = TrinketUITestCase.defaultTimeout,
         file: StaticString = #file,
-        line: UInt = #line
+        line: UInt = #line,
     ) {
         let element = app.descendants(matching: .any)[identifier]
         XCTAssertTrue(element.waitForExistence(timeout: timeout), "Element '\(identifier)' not found", file: file, line: line)

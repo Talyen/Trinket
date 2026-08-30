@@ -13,7 +13,7 @@ struct PostBattleTalentChoiceTests {
         context = try AppTestContext()
     }
 
-    @Test func victoryQueuesOnlyCombatantWhoEarnedTalentPoint() throws {
+    @Test func `victory queues only combatant who earned talent point`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         let stage = try #require(GameContent.chapters[0].stages.first)
         let hero = state.playerSave.roster.activeHero
@@ -22,7 +22,7 @@ struct PostBattleTalentChoiceTests {
             save.roster.progressions[hero.id] = CombatantProgression(
                 level: 1,
                 currentXP: 9,
-                requiredXP: 10
+                requiredXP: 10,
             )
             save.roster.progressions[companion.id] = .initial
         }
@@ -41,7 +41,7 @@ struct PostBattleTalentChoiceTests {
         #expect(state.playerSave.roster.unlockedTalents(for: hero.id) == [node.id])
     }
 
-    @Test func victoryQueuesHeroThenCompanionWhenBothEarnTalentPoint() throws {
+    @Test func `victory queues hero then companion when both earn talent point`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         let stage = try #require(GameContent.chapters[0].stages.first)
         let hero = state.playerSave.roster.activeHero
@@ -67,7 +67,7 @@ struct PostBattleTalentChoiceTests {
         #expect(state.playerSave.roster.unlockedTalents(for: companion.id).isEmpty)
     }
 
-    @Test func victoryAllowsAllocatingMultipleTalentPoints() throws {
+    @Test func `victory allows allocating multiple talent points`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         let stage = try #require(GameContent.chapters[0].stages.first)
         let hero = state.playerSave.roster.activeHero
@@ -98,7 +98,7 @@ struct PostBattleTalentChoiceTests {
         #expect(state.playerSave.roster.availableTalentPoints(for: hero.id) == 0)
     }
 
-    @Test func victoryDoesNotQueueOldUnspentTalentPoint() throws {
+    @Test func `victory does not queue old unspent talent point`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         let stage = try #require(GameContent.chapters[0].stages.first)
         let hero = state.playerSave.roster.activeHero
@@ -114,7 +114,7 @@ struct PostBattleTalentChoiceTests {
     }
 
     #if DEBUG
-    @Test func failedBattleSaveDoesNotQueueTalentChoice() throws {
+    @Test func `failed battle save does not queue talent choice`() throws {
         let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
         let state = try context.makePlaySession(playerSave: playerSave)
         let stage = try #require(GameContent.chapters[0].stages.first)
@@ -123,7 +123,7 @@ struct PostBattleTalentChoiceTests {
             save.roster.progressions[hero.id] = CombatantProgression(
                 level: 1,
                 currentXP: 9,
-                requiredXP: 10
+                requiredXP: 10,
             )
         }
         _ = state.journey.startBattle(for: stage)

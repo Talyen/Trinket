@@ -38,7 +38,7 @@ public struct ModeProgressionStep: Identifiable, Equatable, Hashable, Codable, S
         enemyID: String,
         enemyLevel: Int,
         isBoss: Bool,
-        keywordBias: Keyword? = nil
+        keywordBias: Keyword? = nil,
     ) {
         self.id = id
         self.mode = mode
@@ -75,7 +75,7 @@ public struct CampaignProgressionTracker: Sendable {
                     displayTitle: "Stage \(chapter.number)-\(stage.stageNumber)",
                     enemyID: enemy.id,
                     enemyLevel: enemyLevel,
-                    isBoss: enemy.isBoss
+                    isBoss: enemy.isBoss,
                 )
                 result.append(step)
             }
@@ -104,7 +104,7 @@ public struct SpireProgressionTracker: Sendable {
                     enemyID: floor.enemyID,
                     enemyLevel: enemyLevel,
                     isBoss: isBoss,
-                    keywordBias: spire.keyword
+                    keywordBias: spire.keyword,
                 )
                 result.append(step)
             }
@@ -136,7 +136,7 @@ public struct LabyrinthProgressionTracker: Sendable {
                 displayTitle: "Depth \(depth)",
                 enemyID: enemyID,
                 enemyLevel: max(1, depth),
-                isBoss: isBoss
+                isBoss: isBoss,
             )
             result.append(step)
         }

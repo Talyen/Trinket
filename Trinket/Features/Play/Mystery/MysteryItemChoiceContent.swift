@@ -37,7 +37,7 @@ private struct MysteryItemChoiceScaffold<Footer: View>: View {
 
                 LazyVGrid(
                     columns: TrinketDesign.Metrics.collectionGridItems,
-                    spacing: TrinketDesign.Metrics.largeSpacing
+                    spacing: TrinketDesign.Metrics.largeSpacing,
                 ) {
                     ForEach(items) { item in
                         EncounterItemTile(
@@ -47,7 +47,7 @@ private struct MysteryItemChoiceScaffold<Footer: View>: View {
                             selectionShineColors: CorruptionShine.borderColors,
                             isDisabled: isDisabled,
                             accessibilityID: itemAccessibilityID(item.id),
-                            onSelect: { onSelectItem(item.id) }
+                            onSelect: { onSelectItem(item.id) },
                         )
                         .onAppear { visibleItemIDs.insert(item.id) }
                         .onDisappear { visibleItemIDs.remove(item.id) }
@@ -73,7 +73,7 @@ private struct MysteryItemChoiceScaffold<Footer: View>: View {
                 visibleIDs: snapshot,
                 thumbnailName: { $0.artReference?.thumbnailImageName ?? $0.artReference?.imageName },
                 prefetchRows: ArtworkViewportPrewarm.defaultPrefetchRows,
-                estimatedColumns: ArtworkViewportPrewarm.collectionEstimatedColumns
+                estimatedColumns: ArtworkViewportPrewarm.collectionEstimatedColumns,
             )
             guard !names.isEmpty else { return }
             await PreparedArtworkCache.shared.prepare(names: names)
@@ -111,7 +111,7 @@ struct MysteryCorruptItemChoiceContent: View {
                     }
                     .frame(maxWidth: .infinity)
                     .trinketSecondaryActionButton(
-                        accessibilityIdentifier: AccessibilityID.Mystery.corruptCancelButton
+                        accessibilityIdentifier: AccessibilityID.Mystery.corruptCancelButton,
                     )
                     .disabled(session.isResolvingChoice)
 
@@ -122,16 +122,16 @@ struct MysteryCorruptItemChoiceContent: View {
                     .frame(maxWidth: .infinity)
                     .trinketPrimaryActionButton(
                         tint: TrinketDesign.Colors.destructive,
-                        accessibilityIdentifier: AccessibilityID.Mystery.corruptConfirmButton
+                        accessibilityIdentifier: AccessibilityID.Mystery.corruptConfirmButton,
                     )
                     .disabled(selectedItemID == nil || session.isResolvingChoice)
                 }
-            }
+            },
         )
         .trinketSensoryFeedback(
             .selection,
             trigger: selectionFeedbackTrigger,
-            enabled: options.hapticsEnabled
+            enabled: options.hapticsEnabled,
         )
         .animation(TrinketMotion.Interaction.selection, value: selectedItemID)
     }

@@ -34,20 +34,20 @@ struct MysteryChoiceCard: View {
             .contentShape(Rectangle())
             .background(
                 TrinketDesign.Colors.panel.opacity(isSelected ? 0.9 : 0.72),
-                in: TrinketDesign.cardShape
+                in: TrinketDesign.cardShape,
             )
             .trinketMaterial(.subtleOverlay)
             .overlay {
                 TrinketDesign.cardShape
                     .strokeBorder(
                         isSelected ? TrinketDesign.Colors.accent : TrinketDesign.Colors.subtleStroke,
-                        lineWidth: isSelected ? 1.5 : 1
+                        lineWidth: isSelected ? 1.5 : 1,
                     )
             }
             .shadow(
                 color: isSelected ? TrinketDesign.Colors.accent.opacity(0.2) : .clear,
                 radius: 10,
-                y: 2
+                y: 2,
             )
         }
         .trinketSelectionCardButtonStyle()
@@ -79,12 +79,12 @@ struct MysteryChoiceCard: View {
                 GridItem(
                     .adaptive(
                         minimum: TrinketDesign.Metrics.mysteryRewardArtworkSize * 2.5,
-                        maximum: 200
+                        maximum: 200,
                     ),
-                    spacing: TrinketDesign.Metrics.smallSpacing
+                    spacing: TrinketDesign.Metrics.smallSpacing,
                 ),
             ],
-            spacing: TrinketDesign.Metrics.smallSpacing
+            spacing: TrinketDesign.Metrics.smallSpacing,
         ) {
             ForEach(Array(choice.effects.enumerated()), id: \.offset) { _, effect in
                 reward(for: effect)
@@ -100,7 +100,7 @@ struct MysteryChoiceCard: View {
                 title: "Gold",
                 value: "+\(playerSave.homestead.effects.adjustedGold(amount))",
                 resource: .gold,
-                tint: HomesteadResource.gold.tint
+                tint: HomesteadResource.gold.tint,
             )
 
         case let .gainMaterial(resource):
@@ -108,7 +108,7 @@ struct MysteryChoiceCard: View {
                 title: resource.displayName,
                 value: "+\(materialQuantity)",
                 resource: resource,
-                tint: resource.tint
+                tint: resource.tint,
             )
 
         case .gainExperience:
@@ -121,7 +121,7 @@ struct MysteryChoiceCard: View {
                 title: "Experience",
                 value: valueText,
                 systemIcon: "sparkles",
-                tint: TrinketDesign.Colors.arcane
+                tint: TrinketDesign.Colors.arcane,
             )
 
         case let .gainGeneratedItem(baseTypeID, guaranteedAffixIDs):
@@ -132,7 +132,7 @@ struct MysteryChoiceCard: View {
                 title: "Random Item",
                 value: nil,
                 systemIcon: "shippingbox.fill",
-                tint: TrinketDesign.Colors.encounterEvent
+                tint: TrinketDesign.Colors.encounterEvent,
             )
 
         case let .unlockCombatant(combatantID):
@@ -140,7 +140,7 @@ struct MysteryChoiceCard: View {
                 title: combatantName(id: combatantID),
                 value: "Unlock",
                 systemIcon: "person.crop.circle.badge.plus",
-                tint: TrinketDesign.Colors.accent
+                tint: TrinketDesign.Colors.accent,
             )
 
         case .corruptItem:
@@ -148,7 +148,7 @@ struct MysteryChoiceCard: View {
                 title: "Corrupt Item",
                 value: "Risk",
                 systemIcon: "flame.fill",
-                tint: TrinketDesign.Colors.destructive
+                tint: TrinketDesign.Colors.destructive,
             )
 
         case .leave:
@@ -156,7 +156,7 @@ struct MysteryChoiceCard: View {
                 title: "Walk Away",
                 value: "Safe",
                 systemIcon: "figure.walk",
-                tint: .secondary
+                tint: .secondary,
             )
         }
     }
@@ -166,14 +166,14 @@ struct MysteryChoiceCard: View {
         value: String? = nil,
         resource: HomesteadResource? = nil,
         systemIcon: String? = nil,
-        tint: Color
+        tint: Color,
     ) -> some View {
         HStack(spacing: TrinketDesign.Metrics.mediumSpacing) {
             if let resource {
                 HomesteadResourceArtwork(resource: resource)
                     .frame(
                         width: TrinketDesign.Metrics.mysteryRewardArtworkSize,
-                        height: TrinketDesign.Metrics.mysteryRewardArtworkSize
+                        height: TrinketDesign.Metrics.mysteryRewardArtworkSize,
                     )
             } else if let systemIcon {
                 Image(systemName: systemIcon)
@@ -181,7 +181,7 @@ struct MysteryChoiceCard: View {
                     .foregroundStyle(tint)
                     .frame(
                         width: TrinketDesign.Metrics.mysteryRewardArtworkSize,
-                        height: TrinketDesign.Metrics.mysteryRewardArtworkSize
+                        height: TrinketDesign.Metrics.mysteryRewardArtworkSize,
                     )
             }
 
@@ -208,7 +208,7 @@ struct MysteryChoiceCard: View {
         .frame(
             maxWidth: .infinity,
             minHeight: TrinketDesign.Metrics.mysteryRewardRowMinHeight,
-            alignment: .leading
+            alignment: .leading,
         )
     }
 
@@ -217,13 +217,13 @@ struct MysteryChoiceCard: View {
             title: generatedItemRewardText(baseTypeID: baseTypeID, guaranteedAffixIDs: affixIDs),
             value: nil,
             systemIcon: "gift.fill",
-            tint: HomesteadResource.gold.tint
+            tint: HomesteadResource.gold.tint,
         )
     }
 
     private func generatedItemRewardText(
         baseTypeID: String,
-        guaranteedAffixIDs: [String]
+        guaranteedAffixIDs: [String],
     ) -> String {
         let baseName = GameContent.itemBaseTypes.first { $0.id == baseTypeID }?.name ?? "Item"
         let affixTitles = guaranteedAffixIDs.compactMap { id in

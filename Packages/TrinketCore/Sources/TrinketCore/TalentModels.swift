@@ -14,7 +14,7 @@ public struct TalentNode: Identifiable, Hashable, Codable, Sendable {
         keyword: Keyword,
         row: Int = 1,
         symbolName: String? = nil,
-        description: String
+        description: String,
     ) {
         self.id = id
         self.name = name
@@ -107,7 +107,7 @@ public struct CombatantTalentConfig: Identifiable, Hashable, Codable, Sendable {
                     guard tree.canUnlock(
                         node: node,
                         unlockedNodeIDs: kept,
-                        availablePoints: remaining
+                        availablePoints: remaining,
                     ) else { continue }
                     kept.insert(node.id)
                 }

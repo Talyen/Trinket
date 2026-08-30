@@ -17,7 +17,7 @@ enum BalanceIdentityMargins {
         records: [BalanceBattleRecord],
         id: KeyPath<BalanceBattleRecord, String>,
         peerRate: Double,
-        threshold: Double
+        threshold: Double,
     ) -> [WinRateSummary] {
         margin(records: records, ids: { [$0[keyPath: id]] }, peerRate: peerRate, threshold: threshold)
     }
@@ -29,7 +29,7 @@ enum BalanceIdentityMargins {
         threshold: Double,
         positiveFlag: String = "HIGH",
         negativeFlag: String = "LOW",
-        ownerID: String? = nil
+        ownerID: String? = nil,
     ) -> [WinRateSummary] {
         var buckets: [String: (wins: Int, battles: Int)] = [:]
         for record in records {
@@ -52,8 +52,8 @@ enum BalanceIdentityMargins {
                     peerRate: peerRate,
                     threshold: threshold,
                     positiveFlag: positiveFlag,
-                    negativeFlag: negativeFlag
-                )
+                    negativeFlag: negativeFlag,
+                ),
             )
         }
         .sorted { lhs, rhs in
@@ -68,7 +68,7 @@ enum BalanceIdentityMargins {
         records: [BalanceBattleRecord],
         ownerAndIDs: (BalanceBattleRecord) -> [(String, String)],
         ownerRates: [String: Double],
-        threshold: Double
+        threshold: Double,
     ) -> [WinRateSummary] {
         var buckets: [String: (owner: String, id: String, wins: Int, battles: Int)] = [:]
         for record in records {
@@ -92,8 +92,8 @@ enum BalanceIdentityMargins {
                     peerRate: ownerRates[bucket.owner] ?? 0,
                     threshold: threshold,
                     positiveFlag: "HIGH",
-                    negativeFlag: "LOW"
-                )
+                    negativeFlag: "LOW",
+                ),
             )
         }
         .sorted { lhs, rhs in
@@ -109,7 +109,7 @@ enum BalanceIdentityMargins {
         left: KeyPath<BalanceBattleRecord, String>,
         right: KeyPath<BalanceBattleRecord, String>,
         peerRate: Double,
-        threshold: Double
+        threshold: Double,
     ) -> [PairCellSummary] {
         var buckets: [String: (left: String, right: String, wins: Int, battles: Int)] = [:]
         for record in records {
@@ -138,7 +138,7 @@ enum BalanceIdentityMargins {
                 winRate: rate,
                 deltaVsPeer: delta,
                 flagged: true,
-                flagReason: delta > 0 ? "HIGH" : "LOW"
+                flagReason: delta > 0 ? "HIGH" : "LOW",
             )
         }
         .sorted { abs($0.deltaVsPeer) > abs($1.deltaVsPeer) }
@@ -162,7 +162,7 @@ enum BalanceIdentityMargins {
             deltaVsPeer: delta,
             flagged: flagged,
             flagReason: flagged ? (delta > 0 ? spec.positiveFlag : spec.negativeFlag) : nil,
-            sampleTooLow: sampleTooLow
+            sampleTooLow: sampleTooLow,
         )
     }
 }

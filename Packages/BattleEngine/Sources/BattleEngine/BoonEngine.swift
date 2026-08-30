@@ -106,7 +106,7 @@ public enum BoonEngine {
     public static func autoSelectedChoiceID(for offer: BoonOffer, in context: BattleState) -> String? {
         let affinityCounts = Dictionary(
             grouping: (context.hero.abilityLoadout.abilities + context.companion.abilityLoadout.abilities).flatMap(\.keywords),
-            by: { $0 }
+            by: { $0 },
         ).mapValues(\.count)
         return offer.choices.max { lhs, rhs in
             let left = lhs.boon.category.keywords.reduce(0) { $0 + affinityCounts[$1, default: 0] }
@@ -131,7 +131,7 @@ public enum BoonEngine {
     private static func choice(
         for boon: BoonDefinition,
         unavailableArtwork: Set<String>,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> BoonChoice {
         let categoryKeywords = Set(boon.category.keywords)
         var candidates: [(name: String, overlap: Int)] = artworkByKeywordOverlap.compactMap { entry in

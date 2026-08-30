@@ -17,7 +17,7 @@ struct BattleFeedbackLaneTests {
         isCritical: Bool = false,
         actionID: Int? = nil,
         abilityID: String = "slash",
-        abilityName: String = "Slash"
+        abilityName: String = "Slash",
     ) -> ActionEvent {
         BattleSessionTestSupport.makeActionEvent(
             id: id,
@@ -29,11 +29,11 @@ struct BattleFeedbackLaneTests {
             isCritical: isCritical,
             actionID: actionID,
             abilityID: abilityID,
-            abilityName: abilityName
+            abilityName: abilityName,
         )
     }
 
-    @Test @MainActor func absorbsActiveOnScreenChipsInPlaceWithLifetimeReset() {
+    @Test @MainActor func `absorbs active on screen chips in place with lifetime reset`() {
         let lane = BattleFeedbackLane()
         let start = Date(timeIntervalSince1970: 1000)
         var updates: [CombatFeedbackUpdate] = []
@@ -44,7 +44,7 @@ struct BattleFeedbackLaneTests {
             warmSFX: { _, _ in },
             hapticsEnabled: { false },
             effectsVolume: { 1 },
-            shouldAutoSkipUltimateCinematic: { _, _ in false }
+            shouldAutoSkipUltimateCinematic: { _, _ in false },
         )
         let event1 = makeEvent(id: 1, kind: .abilityDamage, amount: 4, keyword: .burn)
         lane.record([event1], at: start, environment: environment)
@@ -70,7 +70,7 @@ struct BattleFeedbackLaneTests {
         }
     }
 
-    @Test @MainActor func doesNotAbsorbAChipBeforeItBecomesAvailable() {
+    @Test @MainActor func `does not absorb A chip before it becomes available`() {
         let lane = BattleFeedbackLane()
         let start = Date(timeIntervalSince1970: 1000)
         lane.record(
@@ -78,20 +78,20 @@ struct BattleFeedbackLaneTests {
                 makeEvent(id: 1, kind: .status, amount: 2, keyword: .physical),
                 makeEvent(id: 2, kind: .status, amount: 4, keyword: .burn),
             ],
-            at: start
+            at: start,
         )
         let queuedBurn = lane.activeItems.first { $0.id == 2 }
         #expect(queuedBurn?.availableAt == start.addingTimeInterval(BattleMotion.feedbackStreamStagger))
 
         lane.record(
             [makeEvent(id: 3, kind: .status, amount: 3, keyword: .burn)],
-            at: start.addingTimeInterval(0.01)
+            at: start.addingTimeInterval(0.01),
         )
 
         #expect(lane.activeItems.count(where: { $0.keyword == .burn }) == 2)
     }
 
-    @Test @MainActor func absorbsStaggeredChipWithinLifetimeFromFirstVisibility() throws {
+    @Test @MainActor func `absorbs staggered chip within lifetime from first visibility`() throws {
         let lane = BattleFeedbackLane()
         let start = Date(timeIntervalSince1970: 1000)
         let target = "enemy"
@@ -104,10 +104,10 @@ struct BattleFeedbackLaneTests {
                     amount: 1,
                     keyword: .burn,
                     targetID: target,
-                    actionID: eventID
+                    actionID: eventID,
                 )
             },
-            at: start
+            at: start,
         )
 
         let lastChip = try #require(lane.activeItems.last)
@@ -118,7 +118,7 @@ struct BattleFeedbackLaneTests {
         let mergeTime = visibleAt.addingTimeInterval(0.08)
         lane.record(
             [makeEvent(id: 11, kind: .abilityDamage, amount: 2, keyword: .burn, targetID: target, actionID: 11)],
-            at: mergeTime
+            at: mergeTime,
         )
 
         #expect(lane.activeItems.count == 10)

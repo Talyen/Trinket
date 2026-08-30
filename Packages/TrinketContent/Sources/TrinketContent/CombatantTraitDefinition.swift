@@ -13,7 +13,7 @@ public struct CombatantTraitDefinition: Equatable, Hashable, Sendable, Identifia
         name: String,
         description: String,
         modifiers: [AffixModifier] = [],
-        triggers: CombatTraitTriggers = CombatTraitTriggers()
+        triggers: CombatTraitTriggers = CombatTraitTriggers(),
     ) {
         self.id = id
         self.name = name

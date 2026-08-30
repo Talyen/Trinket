@@ -18,7 +18,7 @@ struct PlayModeHubView: View {
     var body: some View {
         PlayModeHubScreen(
             title: "Play",
-            accessibilityIdentifier: AccessibilityID.Play.modesScreen
+            accessibilityIdentifier: AccessibilityID.Play.modesScreen,
         ) {
             modeCard(.campaign)
             modeCard(.explore)
@@ -26,7 +26,7 @@ struct PlayModeHubView: View {
         .trinketSensoryFeedback(
             .selection,
             trigger: committedSelection,
-            enabled: options.hapticsEnabled
+            enabled: options.hapticsEnabled,
         )
     }
 
@@ -45,7 +45,7 @@ struct PlayModeHubView: View {
                 subtitle: subtitle(for: mode),
                 symbolName: mode.symbolName,
                 artID: mode.artID,
-                fallbackArtID: mode.fallbackArtID
+                fallbackArtID: mode.fallbackArtID,
             )
         }
         .trinketArtworkCardButtonStyle()
@@ -161,7 +161,7 @@ struct PlayModeArtworkCard: View {
         .shadow(
             color: TrinketDesign.Colors.Overlay.ink.opacity(0.42),
             radius: 12,
-            y: 6
+            y: 6,
         )
     }
 }

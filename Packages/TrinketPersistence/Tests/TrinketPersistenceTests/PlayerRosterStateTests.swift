@@ -4,13 +4,13 @@ import TrinketCore
 @testable import TrinketPersistence
 
 struct PlayerRosterStateTests {
-    @Test func setLoadoutOverridesDefaultAbilityChoices() throws {
+    @Test func `set loadout overrides default ability choices`() throws {
         var roster = PlayerRosterState.testSeed
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         let customLoadout = AbilityLoadout(
             basic: .bash,
             skill: .smite,
-            ultimate: .avatarOfJustice
+            ultimate: .avatarOfJustice,
         )
 
         roster.setLoadout(customLoadout, for: knight)
@@ -20,13 +20,13 @@ struct PlayerRosterStateTests {
         try #expect(configured.abilityLoadout.ultimate?.id == "avatar-of-justice")
     }
 
-    @Test func battleConfiguredCombatantIncludesAllPlayerAbilityTiersByDefault() throws {
+    @Test func `battle configured combatant includes all player ability tiers by default`() throws {
         var roster = PlayerRosterState.freshStart
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         let customLoadout = AbilityLoadout(
             basic: .block,
             skill: .sunder,
-            ultimate: .moltenBulwark
+            ultimate: .moltenBulwark,
         )
 
         roster.setLoadout(customLoadout, for: knight)
@@ -39,7 +39,7 @@ struct PlayerRosterStateTests {
         try #expect(configured.abilities.map(\.id) == ["block", "sunder", "molten-bulwark"])
     }
 
-    @Test func battleConfiguredCombatantDoesNotFilterEnemyAbilities() throws {
+    @Test func `battle configured combatant does not filter enemy abilities`() throws {
         let roster = PlayerRosterState.freshStart
         let enemy = try #require(GameContent.enemies.first?.combatant)
         let configured = roster.battleConfiguredCombatant(enemy)
@@ -48,7 +48,7 @@ struct PlayerRosterStateTests {
         try #expect(configured.abilityLoadout.ultimate?.tier == .ultimate)
     }
 
-    @Test func setActiveCombatantsIgnoresLockedEntriesOnFreshStart() throws {
+    @Test func `set active combatants ignores locked entries on fresh start`() throws {
         var roster = PlayerRosterState.freshStart
         let wizard = try #require(GameContent.heroes.first { $0.id == "wizard" })
         let bear = try #require(GameContent.companions.first { $0.id == "bear" })
@@ -59,7 +59,7 @@ struct PlayerRosterStateTests {
         try #expect(roster.activeCompanionID == PlayerRosterState.starterCompanionID)
     }
 
-    @Test func goldMutationAndSpendRespectBounds() throws {
+    @Test func `gold mutation and spend respect bounds`() throws {
         var roster = PlayerRosterState.testSeed
         roster.gold = 25
 
@@ -90,7 +90,7 @@ struct PlayerRosterStateTests {
         #expect(roster.gold == 10)
     }
 
-    @Test func signedGoldDeltaCannotReduceBalanceBelowZero() {
+    @Test func `signed gold delta cannot reduce balance below zero`() {
         var save = PlayerSave.fresh
         save.roster.gold = 2
 
@@ -100,7 +100,7 @@ struct PlayerRosterStateTests {
         #expect(save.roster.gold == 0)
     }
 
-    @Test func equipmentLoadoutEquipAndUnequip() throws {
+    @Test func `equipment loadout equip and unequip`() throws {
         let item = try #require(PlayerInventoryState.testSeed.item(matching: "wand-basic"))
         var loadout = EquipmentLoadout()
 
@@ -111,7 +111,7 @@ struct PlayerRosterStateTests {
         try #expect(loadout.itemID(for: .weapon) == nil)
     }
 
-    @Test func unequipByItemIDRemovesItemFromAllLoadouts() {
+    @Test func `unequip by item ID removes item from all loadouts`() {
         var roster = PlayerRosterState.freshStart
         var loadout1 = EquipmentLoadout()
         loadout1.itemIDsBySlot[.weapon] = "test-sword"
@@ -130,7 +130,7 @@ struct PlayerRosterStateTests {
         #expect(!nonExistent)
     }
 
-    @Test func equippedCombatantNameResolvesCatalogName() throws {
+    @Test func `equipped combatant name resolves catalog name`() throws {
         var roster = PlayerRosterState.freshStart
         var loadout = EquipmentLoadout()
         loadout.itemIDsBySlot[.weapon] = "test-sword"
@@ -142,7 +142,7 @@ struct PlayerRosterStateTests {
         #expect(roster.equippedCombatantID(for: "missing") == nil)
     }
 
-    @Test func legacyTrinketSlotsMigrateToAccessorySlotsAndUnequipRemovedSlots() throws {
+    @Test func `legacy trinket slots migrate to accessory slots and unequip removed slots`() throws {
         let heroLoadout = EquipmentLoadoutModel(combatantID: "knight")
         heroLoadout.slots = [
             EquipmentSlotModel(slotID: "Trinket", itemID: "hero-primary"),
@@ -168,7 +168,7 @@ struct PlayerRosterStateTests {
         try #expect(!companion.itemIDsBySlot.values.contains("companion-secondary"))
     }
 
-    @Test func setEquipmentLoadoutEnforcesUniqueItemOwnership() throws {
+    @Test func `set equipment loadout enforces unique item ownership`() throws {
         var roster = PlayerRosterState.testSeed
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         let wizard = try #require(GameContent.heroes.first { $0.id == "wizard" })
@@ -196,7 +196,7 @@ struct PlayerRosterStateTests {
         try #expect(stored.itemID(for: .trinket) == nil)
     }
 
-    @Test func highestLevelsFilterByRoleAndDefaultToOne() throws {
+    @Test func `highest levels filter by role and default to one`() throws {
         var roster = PlayerRosterState.testSeed
         roster.progressions["knight"] = CombatantProgression(level: 8, currentXP: 0, requiredXP: 100)
         roster.progressions["wizard"] = CombatantProgression(level: 12, currentXP: 0, requiredXP: 100)
@@ -211,7 +211,7 @@ struct PlayerRosterStateTests {
         try #expect(freshRoster.highestCompanionLevel == 15)
     }
 
-    @Test func collectionCombatantsPlaceUnlockedEntriesFirstAndSortThemByLevel() throws {
+    @Test func `collection combatants place unlocked entries first and sort them by level`() throws {
         var roster = PlayerRosterState.freshStart
         let ranger = try #require(GameContent.heroes.first { $0.id == "ranger" })
         let wizard = try #require(GameContent.heroes.first { $0.id == "wizard" })
@@ -221,7 +221,7 @@ struct PlayerRosterStateTests {
         roster.progressions[PlayerRosterState.starterHeroID] = CombatantProgression(
             level: 2,
             currentXP: 0,
-            requiredXP: 100
+            requiredXP: 100,
         )
         roster.progressions[ranger.id] = CombatantProgression(level: 8, currentXP: 0, requiredXP: 100)
         roster.progressions[wizard.id] = CombatantProgression(level: 12, currentXP: 0, requiredXP: 100)
@@ -238,7 +238,7 @@ struct PlayerRosterStateTests {
         try #expect(companionIDs.dropFirst(2).allSatisfy { !roster.unlockedCompanionIDs.contains($0) })
     }
 
-    @Test func unlockCombatantsSeedsProgressionAndIgnoresInvalidIDs() throws {
+    @Test func `unlock combatants seeds progression and ignores invalid I ds`() throws {
         var roster = PlayerRosterState.freshStart
         let rogue = try #require(GameContent.heroes.first { $0.id == "rogue" })
         let bear = try #require(GameContent.companions.first { $0.id == "bear" })
@@ -264,7 +264,7 @@ struct PlayerRosterStateTests {
         try #expect(unlockedEnemy == false)
     }
 
-    @Test func unlockAllCombatantsGrantsCatalogAtRequestedLevel() throws {
+    @Test func `unlock all combatants grants catalog at requested level`() throws {
         var roster = PlayerRosterState.freshStart
         roster.unlockAllCombatants(atLevel: 20)
 
@@ -280,7 +280,7 @@ struct PlayerRosterStateTests {
         try #expect(roster.highestCompanionLevel == 20)
     }
 
-    @Test func addRewardItemIgnoresDuplicateID() throws {
+    @Test func `add reward item ignores duplicate ID`() throws {
         let template = try #require(GameContent.itemTemplate(matching: "shortsword-basic"))
         let stage = GameContent.chapters[0].stages[0]
         var inventory = PlayerInventoryState.freshStart
@@ -292,7 +292,7 @@ struct PlayerRosterStateTests {
         try #expect(inventory.items.first?.id == "chapter-1-stage-1-shortsword-basic")
     }
 
-    @Test func unlockTalentRespectsPointsAndRowGates() throws {
+    @Test func `unlock talent respects points and row gates`() throws {
         var roster = PlayerRosterState.freshStart
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         let tree = try #require(CombatantTalentCatalog.config(for: knight.id).trees.first)
@@ -327,7 +327,7 @@ struct PlayerRosterStateTests {
         #expect(roster.availableTalentPoints(for: knight.id) == 0)
     }
 
-    @Test func activePartyAverageLevelFloorsTheMidpoint() throws {
+    @Test func `active party average level floors the midpoint`() throws {
         var roster = PlayerRosterState.freshStart
         let hero = try #require(GameContent.heroes.first { $0.id == roster.activeHeroID })
         let companion = try #require(GameContent.companions.first { $0.id == roster.activeCompanionID })

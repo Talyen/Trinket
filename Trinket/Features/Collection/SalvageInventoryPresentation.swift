@@ -13,7 +13,7 @@ private struct SalvageInventoryPresentationModifier: ViewModifier {
                 SalvageItemDetailSheet(item: item) { result in
                     salvageDetail.salvageFinished(
                         result: result,
-                        item: item
+                        item: item,
                     )
                 }
             }
@@ -27,7 +27,7 @@ private struct SalvageInventoryPresentationModifier: ViewModifier {
             .trinketSensoryFeedback(
                 .success,
                 trigger: salvageDetail.salvageSuccessCount,
-                enabled: hapticsEnabled
+                enabled: hapticsEnabled,
             )
     }
 }
@@ -35,13 +35,13 @@ private struct SalvageInventoryPresentationModifier: ViewModifier {
 extension View {
     func salvageInventoryPresentation(
         salvageDetail: Binding<SalvageDetailState>,
-        hapticsEnabled: Bool
+        hapticsEnabled: Bool,
     ) -> some View {
         modifier(
             SalvageInventoryPresentationModifier(
                 salvageDetail: salvageDetail,
-                hapticsEnabled: hapticsEnabled
-            )
+                hapticsEnabled: hapticsEnabled,
+            ),
         )
     }
 }

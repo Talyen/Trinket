@@ -39,7 +39,7 @@ struct DecayingDoTHandler: BattleEffectHandler {
                     keyword: keyword,
                     target: target,
                     sourceActorID: active.sourceActorID,
-                    in: &context
+                    in: &context,
                 )
                 events.append(contentsOf: outcome.events)
                 events.append(contentsOf: CombatTriggerEngine.afterDoTTick(
@@ -47,7 +47,7 @@ struct DecayingDoTHandler: BattleEffectHandler {
                     healthLost: outcome.healthLost,
                     target: target,
                     sourceActorID: active.sourceActorID,
-                    in: &context
+                    in: &context,
                 ))
             }
             events.append(contentsOf: CombatTriggerEngine.afterDecayingDoTTurn(
@@ -55,7 +55,7 @@ struct DecayingDoTHandler: BattleEffectHandler {
                 nextPotency: nextPotency,
                 target: target,
                 sourceActorID: active.sourceActorID,
-                in: &context
+                in: &context,
             ))
             var updated = active
             updated.effect = Effect.decayingDoT(keyword: keyword, potency: nextPotency)
@@ -82,7 +82,7 @@ struct DecayingDoTHandler: BattleEffectHandler {
         let alias = keyword.statusAlias ?? keyword.rawValue
         return EffectSummary(
             keyword: keyword,
-            text: "\(alias): Takes \(total) \(keyword.rawValue) damage each turn, \(decayDescription)."
+            text: "\(alias): Takes \(total) \(keyword.rawValue) damage each turn, \(decayDescription).",
         )
     }
 
@@ -91,7 +91,7 @@ struct DecayingDoTHandler: BattleEffectHandler {
         ability _: Ability,
         source: Combatant,
         target: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> EffectApplyOutcome {
         guard let potency = effect.potency, matches(effect) else {
             return EffectApplyOutcome(events: [], didApply: false)
@@ -101,7 +101,7 @@ struct DecayingDoTHandler: BattleEffectHandler {
             potency: potency,
             to: target,
             sourceActorID: source.id,
-            dealImmediateDamage: true
+            dealImmediateDamage: true,
         )
         return EffectApplyOutcome(events: events, didApply: true)
     }
@@ -116,7 +116,7 @@ struct DecayingDoTHandler: BattleEffectHandler {
     private func poisonPotencyAfterTurn(
         _ active: ActiveEffect,
         sourceTriggers: CombatTraitTriggers?,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> Int {
         guard case let .poison(potency) = active.effect else {
             return active.effect.potencyAfterTurn()
@@ -158,7 +158,7 @@ struct BleedHandler: BattleEffectHandler {
             keyword: .bleed,
             target: target,
             sourceActorID: active.sourceActorID,
-            in: &context
+            in: &context,
         )
         var events = tickOutcome.events
         if let attackerID = active.sourceActorID {
@@ -167,7 +167,7 @@ struct BleedHandler: BattleEffectHandler {
                 initialHealthLost: tickOutcome.healthLost,
                 target: target,
                 sourceActorID: attackerID,
-                in: &context
+                in: &context,
             ))
         }
 
@@ -181,7 +181,7 @@ struct BleedHandler: BattleEffectHandler {
             if sourceTriggers.bleedStripsBlockPerTurn > 0,
                let reduced = DefensePoolEngine.reduce(
                    sourceTriggers.bleedStripsBlockPerTurn,
-                   in: context.roster.activeEffects(for: target)
+                   in: context.roster.activeEffects(for: target),
                ) {
                 context.roster.setActiveEffects(reduced.effects, for: target)
             }
@@ -189,7 +189,7 @@ struct BleedHandler: BattleEffectHandler {
                let caster = context.roster.combatant(for: attackerID) {
                 events.append(contentsOf: HealingEngine.resolveHeal(
                     HealRequest(amount: sourceTriggers.onBleedDamageHealSelf, target: caster.combatant, sourceActorID: attackerID),
-                    in: &context
+                    in: &context,
                 ).events)
             }
             if sourceTriggers.onBleedDamagePoisonTick > 0 {
@@ -205,7 +205,7 @@ struct BleedHandler: BattleEffectHandler {
                         keyword: .poison,
                         target: target,
                         sourceActorID: attackerID,
-                        in: &context
+                        in: &context,
                     ).events)
                 }
             }
@@ -218,7 +218,7 @@ struct BleedHandler: BattleEffectHandler {
         return EffectTurnOutcome(
             events: events,
             updatedStack: updated,
-            removeAfter: updated.remainingTurns <= 0
+            removeAfter: updated.remainingTurns <= 0,
         )
     }
 
@@ -239,7 +239,7 @@ struct BleedHandler: BattleEffectHandler {
         ability _: Ability,
         source: Combatant,
         target: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> EffectApplyOutcome {
         guard case let .bleed(potency) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
         let bleedsBefore = context.roster.activeEffects(for: target).count(where: \.effect.isBleed)
@@ -248,7 +248,7 @@ struct BleedHandler: BattleEffectHandler {
             to: target,
             sourceActorID: source.id,
             dealImmediateDamage: true,
-            in: &context
+            in: &context,
         )
         let didApply = context.roster.activeEffects(for: target).count(where: \.effect.isBleed) > bleedsBefore
         return EffectApplyOutcome(events: events, didApply: didApply)
@@ -263,7 +263,7 @@ enum DoTMirrorCascade {
         initialHealthLost: Int,
         target: Combatant,
         sourceActorID: String,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         var events: [ActionEvent] = []
         var currentKeyword = keyword
@@ -283,7 +283,7 @@ enum DoTMirrorCascade {
                 keyword: mirrored,
                 target: target,
                 sourceActorID: sourceActorID,
-                in: &context
+                in: &context,
             )
             events.append(contentsOf: outcome.events)
             currentKeyword = mirrored

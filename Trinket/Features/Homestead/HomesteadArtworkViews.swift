@@ -17,7 +17,7 @@ struct HomesteadBuildingArtwork: View {
         HomesteadFocalArtwork(
             art: art,
             displaySize: variant == .thumbnail ? .compact : .full,
-            interpolation: variant == .thumbnail ? .low : .medium
+            interpolation: variant == .thumbnail ? .low : .medium,
         )
         .clipShape(RoundedRectangle(cornerRadius: TrinketDesign.Corners.card, style: .continuous))
     }
@@ -40,7 +40,7 @@ struct HomesteadFocalArtwork: View {
     init(
         art: BackgroundArtReference,
         displaySize: Image.PreparedArtworkDisplaySize = .full,
-        interpolation: Image.Interpolation = .medium
+        interpolation: Image.Interpolation = .medium,
     ) {
         self.art = art
         self.displaySize = displaySize

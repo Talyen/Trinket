@@ -17,14 +17,14 @@ struct PlayBattleCompletion {
         route: PlayBattleRoute?,
         presentation: BattlePresentationContext?,
         onPersisted: () -> Void,
-        queueReturnToOrigin: (PlayBattleOrigin?) -> Void
+        queueReturnToOrigin: (PlayBattleOrigin?) -> Void,
     ) -> Bool {
         guard battle.lifecyclePhase == .active else { return false }
 
         guard PlayBattleRoute.matches(
             route,
             runKey: configuration.runKey,
-            missingLog: "Missing route for active battle completion"
+            missingLog: "Missing route for active battle completion",
         ) else {
             return false
         }
@@ -37,7 +37,7 @@ struct PlayBattleCompletion {
         let origin = route?.origin
         let loot = Self.preparedLoot(
             from: presentation,
-            materialRewards: materialRewards
+            materialRewards: materialRewards,
         )
         let persisted = if let route {
             route.complete(configuration, presentation, battleEarnedGold, materialRewards, loot)
@@ -54,13 +54,13 @@ struct PlayBattleCompletion {
 
     static func preparedLoot(
         from presentation: BattlePresentationContext?,
-        materialRewards: [ResourceAmount]?
+        materialRewards: [ResourceAmount]?,
     ) -> BattleLootPackage? {
         guard let presentation, let item = presentation.pendingRewardItem else { return nil }
         return BattleLootPackage(
             item: item,
             gold: presentation.stageReward?.gold ?? 0,
-            materials: materialRewards ?? presentation.materialRewards
+            materials: materialRewards ?? presentation.materialRewards,
         )
     }
 

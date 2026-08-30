@@ -4,7 +4,7 @@ import TrinketContent
 import TrinketCore
 
 struct BattleLogReducerTests {
-    @Test func lineForActionFormatsRepresentativeCases() throws {
+    @Test func `line for action formats representative cases`() throws {
         try #expect(
             BattleLogReducer.lineForAction(
                 actorName: "Hero",
@@ -12,8 +12,8 @@ struct BattleLogReducerTests {
                 dealt: 0,
                 damageKeyword: .physical,
                 targetName: "Enemy",
-                appliedEffectSummaries: []
-            ) == "Hero uses Block."
+                appliedEffectSummaries: [],
+            ) == "Hero uses Block.",
         )
         try #expect(
             BattleLogReducer.lineForAction(
@@ -22,8 +22,8 @@ struct BattleLogReducerTests {
                 dealt: 3,
                 damageKeyword: .physical,
                 targetName: "Enemy",
-                appliedEffectSummaries: []
-            ) == "Hero uses Slash for 3 Physical damage to Enemy."
+                appliedEffectSummaries: [],
+            ) == "Hero uses Slash for 3 Physical damage to Enemy.",
         )
         try #expect(
             BattleLogReducer.lineForAction(
@@ -32,8 +32,8 @@ struct BattleLogReducerTests {
                 dealt: 0,
                 damageKeyword: .holy,
                 targetName: "Hero",
-                appliedEffectSummaries: ["restore 3 Health"]
-            ) == "Hero uses Smite on Hero and restore 3 Health."
+                appliedEffectSummaries: ["restore 3 Health"],
+            ) == "Hero uses Smite on Hero and restore 3 Health.",
         )
         try #expect(
             BattleLogReducer.lineForAction(
@@ -42,8 +42,8 @@ struct BattleLogReducerTests {
                 dealt: 3,
                 damageKeyword: .burn,
                 targetName: "Enemy",
-                appliedEffectSummaries: ["applies Burning"]
-            ) == "Hero uses Fireball for 3 Burn damage to Enemy and applies Burning."
+                appliedEffectSummaries: ["applies Burning"],
+            ) == "Hero uses Fireball for 3 Burn damage to Enemy and applies Burning.",
         )
         try #expect(
             BattleLogReducer.lineForAction(
@@ -52,12 +52,12 @@ struct BattleLogReducerTests {
                 dealt: 0,
                 damageKeyword: .burn,
                 targetName: "Enemy",
-                appliedEffectSummaries: ["applies Burning", "gain Block"]
-            ) == "Hero uses Heat Wave on Enemy and applies Burning, gain Block."
+                appliedEffectSummaries: ["applies Burning", "gain Block"],
+            ) == "Hero uses Heat Wave on Enemy and applies Burning, gain Block.",
         )
     }
 
-    @Test func entriesReduceMilestonesStatusAndAbilityEvents() throws {
+    @Test func `entries reduce milestones status and ability events`() throws {
         let events = sampleEvents(includeDefeat: true)
         let entries = BattleLogReducer.entries(from: events)
         try #expect(entries.map(\.text) == [
@@ -68,7 +68,7 @@ struct BattleLogReducerTests {
         ])
     }
 
-    @Test func incrementalEntriesAndProjectionMatchFullReduce() throws {
+    @Test func `incremental entries and projection match full reduce`() throws {
         let events = sampleEvents(includeDefeat: false)
 
         let full = BattleLogReducer.entries(from: events)
@@ -82,7 +82,7 @@ struct BattleLogReducerTests {
         try #expect(projection.entries == BattleLogProjection.entries(from: events))
     }
 
-    @Test func battleStartLogUsesNamesCapturedByEvent() throws {
+    @Test func `battle start log uses names captured by event`() throws {
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 10, abilities: [])
         let companion = Combatant(id: "companion", name: "Companion", role: .companion, maxHealth: 10, abilities: [])
         let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 10, abilities: [])
@@ -91,14 +91,14 @@ struct BattleLogReducerTests {
             name: "Replacement Enemy",
             role: .enemy,
             maxHealth: 10,
-            abilities: []
+            abilities: [],
         )
         var battle = BattleState(
             hero: hero,
             companion: companion,
             enemy: enemy,
             tracksLog: false,
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
 
         battle.roster.enemy = CombatantRuntime(combatant: replacementEnemy)
@@ -107,7 +107,7 @@ struct BattleLogReducerTests {
         try #expect(battle.log.first?.text == "Hero and Companion face Enemy.")
     }
 
-    @Test func deathsDoorLogLines() throws {
+    @Test func `deaths door log lines`() throws {
         let triggered = ActionEvent(
             id: 1,
             kind: .effect,
@@ -117,7 +117,7 @@ struct BattleLogReducerTests {
             targetID: "hero",
             targetName: "Hero",
             amount: 0,
-            keyword: .deathsDoor
+            keyword: .deathsDoor,
         )
         try #expect(BattleLogReducer.line(for: triggered) == "Hero is on Death's Door.")
 
@@ -130,12 +130,12 @@ struct BattleLogReducerTests {
             targetID: "hero",
             targetName: "Hero",
             amount: 0,
-            keyword: .deathsDoor
+            keyword: .deathsDoor,
         )
         try #expect(BattleLogReducer.line(for: expired) == "Hero's Death's Door fades.")
     }
 
-    @Test func passiveTalentAttributionLogLines() throws {
+    @Test func `passive talent attribution log lines`() throws {
         let blockEvent = ActionEvent(
             id: 1,
             kind: .effect,
@@ -145,7 +145,7 @@ struct BattleLogReducerTests {
             targetID: "hero",
             targetName: "Knight",
             amount: 2,
-            keyword: .holy
+            keyword: .holy,
         )
         try #expect(BattleLogReducer.line(for: blockEvent) == "Knight gains 2 Block (Oathbound).")
 
@@ -158,7 +158,7 @@ struct BattleLogReducerTests {
             targetID: "hero",
             targetName: "Warlock",
             amount: 2,
-            keyword: .burn
+            keyword: .burn,
         )
         try #expect(BattleLogReducer.line(for: healEvent) == "Warlock restores 2 Health (Bloodfire).")
 
@@ -171,7 +171,7 @@ struct BattleLogReducerTests {
             targetID: "enemy",
             targetName: "Goblin",
             amount: 3,
-            keyword: .physical
+            keyword: .physical,
         )
         try #expect(BattleLogReducer.line(for: thornsEvent) == "Shield Scarab deals 3 Physical damage to Goblin (Spiked Shell).")
 
@@ -184,7 +184,7 @@ struct BattleLogReducerTests {
             targetID: "hero",
             targetName: "Hero",
             amount: 0,
-            keyword: .poison
+            keyword: .poison,
         )
         try #expect(BattleLogReducer.line(for: cleanseEvent) == "Hero Cleanses Poison (Purifying Wisdom).")
     }
@@ -201,7 +201,7 @@ struct BattleLogReducerTests {
                 targetName: "Enemy",
                 amount: 0,
                 keyword: .physical,
-                milestone: .battleStarted(heroName: "Hero", companionName: "Companion")
+                milestone: .battleStarted(heroName: "Hero", companionName: "Companion"),
             ),
             ActionEvent(
                 id: 2,
@@ -211,7 +211,7 @@ struct BattleLogReducerTests {
                 targetID: enemyID,
                 targetName: "Enemy",
                 amount: 3,
-                keyword: .physical
+                keyword: .physical,
             ),
             ActionEvent(
                 id: 3,
@@ -221,7 +221,7 @@ struct BattleLogReducerTests {
                 targetID: enemyID,
                 targetName: "Enemy",
                 amount: 2,
-                keyword: .burn
+                keyword: .burn,
             ),
         ]
         if includeDefeat {
@@ -235,8 +235,8 @@ struct BattleLogReducerTests {
                     targetName: "Enemy",
                     amount: 0,
                     keyword: .physical,
-                    milestone: .enemyDefeated
-                )
+                    milestone: .enemyDefeated,
+                ),
             )
         }
         return events

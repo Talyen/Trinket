@@ -14,7 +14,7 @@ struct TrinketEffectTests {
         enemyHealth: Int = 100,
         heroMana: Int = 0,
         initialGold: Int = 0,
-        seed: UInt64 = BattleTestFixtures.deterministicNonCriticalSeed
+        seed: UInt64 = BattleTestFixtures.deterministicNonCriticalSeed,
     ) -> BattleState {
         BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: heroAbilities,
@@ -28,19 +28,19 @@ struct TrinketEffectTests {
             companionModifiers: CombatModifierProfile(triggers: companionTriggers),
             rngSeed: seed,
             tracksLog: false,
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
     }
 
-    @Test func meteoriteRepeatsNativeManaEmpowerment() throws {
+    @Test func `meteorite repeats native mana empowerment`() throws {
         var battle = makeBattle(
             heroTriggers: CombatTraitTriggers(
                 mana: ManaTriggers(
-                    repeatManaEmpowerment: true
-                )
+                    repeatManaEmpowerment: true,
+                ),
             ),
             heroAbilities: [.fireball],
-            heroMana: 8
+            heroMana: 8,
         )
         battle.drawOpeningHand()
         battle.withEngineContext { context in
@@ -54,14 +54,14 @@ struct TrinketEffectTests {
         try #expect(events.contains { $0.kind == .ability && $0.amount == 5 })
     }
 
-    @Test func physicalTrinketsBuildStunAndGrantBlock() throws {
+    @Test func `physical trinkets build stun and grant block`() throws {
         let triggers = CombatTraitTriggers(
             block: BlockTriggers(
-                physicalDamageBlockPercent: 0.5
+                physicalDamageBlockPercent: 0.5,
             ),
             control: ControlTriggers(
-                physicalStunBuildupPercent: 1
-            )
+                physicalStunBuildupPercent: 1,
+            ),
         )
         var battle = makeBattle(heroTriggers: triggers)
 
@@ -70,7 +70,7 @@ struct TrinketEffectTests {
                 amount: 6,
                 target: context.roster.enemy.combatant,
                 keyword: .physical,
-                sourceActorID: context.roster.hero.id
+                sourceActorID: context.roster.hero.id,
             ))
         }
 
@@ -86,16 +86,16 @@ struct TrinketEffectTests {
         })
     }
 
-    @Test func sunderingRemovesDoubleBlockWithoutSpillingIntoHealth() throws {
+    @Test func `sundering removes double block without spilling into health`() throws {
         var battle = makeBattle(heroTriggers: CombatTraitTriggers(
             block: BlockTriggers(
-                sunderingBlockMultiplier: 1
-            )
+                sunderingBlockMultiplier: 1,
+            ),
         ))
         battle.withEngineContext { context in
             context.roster.setActiveEffects(
                 [ActiveEffect(id: 1, effect: .shield(.block, 10), remainingTurns: 0)],
-                for: context.roster.enemy.combatant
+                for: context.roster.enemy.combatant,
             )
         }
         let healthBefore = battle.health(of: battle.enemy)
@@ -105,7 +105,7 @@ struct TrinketEffectTests {
                 amount: 6,
                 target: context.roster.enemy.combatant,
                 keyword: .physical,
-                sourceActorID: context.roster.hero.id
+                sourceActorID: context.roster.hero.id,
             ))
         }
 
@@ -120,11 +120,11 @@ struct TrinketEffectTests {
         })
     }
 
-    @Test func poisonDamageGainsStandardLeech() {
+    @Test func `poison damage gains standard leech`() {
         var battle = makeBattle(heroTriggers: CombatTraitTriggers(
             dot: DotTriggers(
-                poisonDamageLeech: true
-            )
+                poisonDamageLeech: true,
+            ),
         ))
         battle.withEngineContext { context in
             context.roster.mutateRuntime(for: context.roster.hero.combatant) { $0.currentHealth = 30 }
@@ -135,7 +135,7 @@ struct TrinketEffectTests {
                 amount: 10,
                 target: context.roster.enemy.combatant,
                 keyword: .poison,
-                sourceActorID: context.roster.hero.id
+                sourceActorID: context.roster.hero.id,
             ))
         }
 
@@ -145,11 +145,11 @@ struct TrinketEffectTests {
     }
 
     @Test(arguments: [(block: 10, thorns: 5), (block: 3, thorns: 2)])
-    func blockGainCreatesConsumableThorns(block: Int, thorns: Int) throws {
+    func `block gain creates consumable thorns`(block: Int, thorns: Int) throws {
         var battle = makeBattle(heroTriggers: CombatTraitTriggers(
             block: BlockTriggers(
-                blockGainThornsPercent: 0.5
-            )
+                blockGainThornsPercent: 0.5,
+            ),
         ))
 
         let outcome = EffectHandlersTestSupport.dispatch(
@@ -157,7 +157,7 @@ struct TrinketEffectTests {
             ability: .block,
             source: battle.hero,
             target: battle.hero,
-            battle: &battle
+            battle: &battle,
         )
 
         try #expect(outcome.didApply)
@@ -167,13 +167,13 @@ struct TrinketEffectTests {
         })
     }
 
-    @Test func pacedOpeningHandRecordsTurnStartTrinketEvents() throws {
+    @Test func `paced opening hand records turn start trinket events`() throws {
         var battle = makeBattle(
             heroTriggers: CombatTraitTriggers(
                 gold: GoldTriggers(
-                    goldPerTurn: 1
-                )
-            )
+                    goldPerTurn: 1,
+                ),
+            ),
         )
         while battle.drawNextOpeningHandCard(rebuildLog: false) {}
 
@@ -184,20 +184,20 @@ struct TrinketEffectTests {
         try #expect(battle.earnedGold == 1)
     }
 
-    @Test func turnStartTrinketsApplyToTheirWearers() throws {
+    @Test func `turn start trinkets apply to their wearers`() throws {
         let heroTriggers = CombatTraitTriggers(
             gold: GoldTriggers(
-                goldPerTurn: 1
+                goldPerTurn: 1,
             ),
             healing: HealingTriggers(
-                healthPerTurn: 2
-            )
+                healthPerTurn: 2,
+            ),
         )
         let companionTriggers = CombatTraitTriggers(
             mana: ManaTriggers(
                 drawEveryOtherTurn: 1,
-                companionCardsPerTurn: 1
-            )
+                companionCardsPerTurn: 1,
+            ),
         )
         var battle = makeBattle(heroTriggers: heroTriggers, companionTriggers: companionTriggers)
         battle.withEngineContext { context in
@@ -213,15 +213,15 @@ struct TrinketEffectTests {
         try #expect(events.filter { $0.effectKind == .cardsDrawn }.reduce(0) { $0 + $1.amount } == 2)
     }
 
-    @Test func resonantChimesTriggersOnSecondWearerCard() throws {
+    @Test func `resonant chimes triggers on second wearer card`() throws {
         var battle = makeBattle(
             heroTriggers: CombatTraitTriggers(
                 mana: ManaTriggers(
                     cardsPlayedManaThreshold: 2,
-                    cardsPlayedManaFlat: 1
-                )
+                    cardsPlayedManaFlat: 1,
+                ),
             ),
-            heroMana: 0
+            heroMana: 0,
         )
 
         let first = battle.withEngineContext { context in
@@ -236,14 +236,14 @@ struct TrinketEffectTests {
         try #expect(battle.mana(of: battle.hero) == 1)
     }
 
-    @Test func playfulEnergyHealsPartyAfterThreeCompanionCardsWithoutManaAffix() {
+    @Test func `playful energy heals party after three companion cards without mana affix`() {
         var battle = makeBattle(
             companionTriggers: CombatTraitTriggers(
                 healing: HealingTriggers(
                     cardsPlayedHealPartyThreshold: 3,
-                    cardsPlayedHealPartyAmount: 2
-                )
-            )
+                    cardsPlayedHealPartyAmount: 2,
+                ),
+            ),
         )
         battle.withEngineContext { context in
             context.roster.mutateRuntime(for: context.roster.hero.combatant) { $0.currentHealth = 10 }
@@ -262,11 +262,11 @@ struct TrinketEffectTests {
     }
 
     @Test(arguments: [(restored: 8, rawDamage: 4), (restored: 3, rawDamage: 2)])
-    func mortarAndPestleDealsHalfRestoredHealthAsPoison(restored: Int, rawDamage: Int) {
+    func `mortar and pestle deals half restored health as poison`(restored: Int, rawDamage: Int) {
         var battle = makeBattle(heroTriggers: CombatTraitTriggers(
             healing: HealingTriggers(
-                healthRestoredPoisonPercent: 0.5
-            )
+                healthRestoredPoisonPercent: 0.5,
+            ),
         ))
         let expectedDamage = battle.withEngineContext {
             $0.paced(rawDamage, sourceActorID: $0.roster.hero.id)
@@ -277,18 +277,18 @@ struct TrinketEffectTests {
             CombatTriggerEngine.afterHealthRestored(
                 restored,
                 to: context.roster.hero.combatant,
-                in: &context
+                in: &context,
             )
         }
 
         #expect(battle.health(of: battle.enemy) == healthBefore - expectedDamage)
     }
 
-    @Test func frozenPocketwatchQueuesSecondActionSkip() throws {
+    @Test func `frozen pocketwatch queues second action skip`() throws {
         var battle = makeBattle(heroTriggers: CombatTraitTriggers(
             control: ControlTriggers(
-                freezeExtraActionSkips: 1
-            )
+                freezeExtraActionSkips: 1,
+            ),
         ))
         battle.withEngineContext { context in
             _ = ControlMeterEngine.applyMeterCharge(
@@ -296,7 +296,7 @@ struct TrinketEffectTests {
                 keyword: .freeze,
                 to: context.roster.enemy.combatant,
                 sourceActorID: context.roster.hero.id,
-                in: &context
+                in: &context,
             )
         }
 
@@ -311,11 +311,11 @@ struct TrinketEffectTests {
         try #expect(!battle.withEngineContext { $0.roster.hasPendingActionSkip(for: $0.roster.enemy.combatant) })
     }
 
-    @Test func victoryTrinketsResolveIntoBattleGold() throws {
+    @Test func `victory trinkets resolve into battle gold`() throws {
         var battle = makeBattle(heroTriggers: CombatTraitTriggers(
             gold: GoldTriggers(
-                victoryGoldFlat: 4
-            )
+                victoryGoldFlat: 4,
+            ),
         ))
 
         let events = battle.withEngineContext { context in
@@ -335,17 +335,17 @@ struct TrinketEffectTests {
     }
 
     @Test(arguments: [Self.WishingWellCase.deductsFullPenalty, .clampsToAvailableGold])
-    private func wishingWellCoinMissDeductsGold(_ testCase: WishingWellCase) throws {
+    private func `wishing well coin miss deducts gold`(_ testCase: WishingWellCase) throws {
         var foundMiss = false
         for seed in UInt64(0) ..< 32 {
             var battle = makeBattle(
                 heroTriggers: CombatTraitTriggers(
                     gold: GoldTriggers(
-                        victoryGoldCoin: true
-                    )
+                        victoryGoldCoin: true,
+                    ),
                 ),
                 initialGold: testCase.initialGold,
-                seed: seed
+                seed: seed,
             )
             let events = battle.withEngineContext { context in
                 CombatTriggerEngine.afterVictory(in: &context)
@@ -364,26 +364,26 @@ struct TrinketEffectTests {
         try #expect(foundMiss)
     }
 
-    @Test func sinEatersLanternHealsTheWearerWhenCleansingAnAlly() throws {
+    @Test func `sin eaters lantern heals the wearer when cleansing an ally`() throws {
         let cleanseCompanion = Ability(
             id: "cleanse-companion",
             name: "Cleanse Companion",
             tier: .basic,
-            targetedEffects: [TargetedEffect(.cleanse(.poison), target: .companion)]
+            targetedEffects: [TargetedEffect(.cleanse(.poison), target: .companion)],
         )
         var battle = makeBattle(
             heroTriggers: CombatTraitTriggers(
                 healing: HealingTriggers(
-                    cleanseSelfHeal: 6
-                )
+                    cleanseSelfHeal: 6,
+                ),
             ),
-            heroAbilities: [cleanseCompanion]
+            heroAbilities: [cleanseCompanion],
         )
         battle.withEngineContext { context in
             context.roster.mutateRuntime(for: context.roster.hero.combatant) { $0.currentHealth = 30 }
             context.roster.setActiveEffects(
                 [ActiveEffect(id: 1, effect: .poison(2), remainingTurns: 0)],
-                for: context.roster.companion.combatant
+                for: context.roster.companion.combatant,
             )
         }
         battle.drawOpeningHand()

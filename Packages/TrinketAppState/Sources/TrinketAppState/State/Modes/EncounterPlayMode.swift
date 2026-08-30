@@ -27,7 +27,7 @@ public final class EncounterPlayMode {
         playerSave: PlayerSaveStore,
         battle: any BattleRuntime,
         options: OptionsStore,
-        sfxPlayer: SFXPlayer
+        sfxPlayer: SFXPlayer,
     ) {
         self.playerSave = playerSave
         self.battle = battle
@@ -37,7 +37,7 @@ public final class EncounterPlayMode {
 
     @discardableResult
     func beginShopEncounter(
-        origin: PlayEncounterOrigin
+        origin: PlayEncounterOrigin,
     ) -> ShopEncounterOpenResult {
         guard canBeginTransientEncounter else { return .unavailable }
 
@@ -50,7 +50,7 @@ public final class EncounterPlayMode {
             ownedTrinketIDs: playerSave.inventory.ownedTrinketIDs,
             astralChanceBonusPercent: playerSave.homestead.effects.astralChanceBonusPercent,
             allAstral: nodeEffects.astralShopOffers,
-            priceDiscountPercent: nodeEffects.shopDiscountPercent
+            priceDiscountPercent: nodeEffects.shopDiscountPercent,
         ) {
         case let .opened(shopSession):
             activeShopEncounter = shopSession
@@ -80,7 +80,7 @@ public final class EncounterPlayMode {
                 offer: offer,
                 visitToken: shopSession.visitToken,
                 stageID: shopSession.stage.id,
-                save: &save
+                save: &save,
             )
         }) else {
             shopSession.markPurchaseFailed(message: "Purchase failed. Try again.")
@@ -94,7 +94,7 @@ public final class EncounterPlayMode {
             return true
         case .insufficientGold, .alreadyOwned:
             shopSession.markPurchaseFailed(
-                message: purchaseResult?.failureMessage ?? "Purchase failed."
+                message: purchaseResult?.failureMessage ?? "Purchase failed.",
             )
             sfxPlayer.play(SFXID.uiDeny, volume: options.effectsVolume)
             return false
@@ -121,7 +121,7 @@ public final class EncounterPlayMode {
                 hero: save.roster.activeHero,
                 companion: save.roster.activeCompanion,
                 in: GameContent.chapters,
-                save: &save
+                save: &save,
             )
         }) else {
             shopSession.markPersistFailed("Couldn't save progress. Stay here and try Leave Shop again.")
@@ -133,12 +133,12 @@ public final class EncounterPlayMode {
 
     static let emptyShopClosedMessage = StageMapMessage(
         title: "Shop Closed",
-        message: "The merchant has nothing left to sell. You continue on."
+        message: "The merchant has nothing left to sell. You continue on.",
     )
 
     func emptyShopClosedMessage(identifier: String) -> StageMapMessage {
         appStateLogger.error(
-            "Shop \(identifier, privacy: .public) produced no offers; completing encounter."
+            "Shop \(identifier, privacy: .public) produced no offers; completing encounter.",
         )
         return Self.emptyShopClosedMessage
     }

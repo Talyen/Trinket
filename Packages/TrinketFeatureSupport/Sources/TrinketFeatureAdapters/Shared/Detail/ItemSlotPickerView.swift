@@ -39,7 +39,7 @@ struct ItemSlotPickerView: View {
                             showsAffixCount: false,
                             isSelected: isSelected,
                             customShineKeywords: isSelected ? selectedShineKeywords : shineKeywords,
-                            shineLineWidth: isSelected ? 3 : 1.5
+                            shineLineWidth: isSelected ? 3 : 1.5,
                         )
                         .overlay(alignment: .topTrailing) {
                             if equippedInSiblingSlotIDs.contains(item.id) {
@@ -52,7 +52,7 @@ struct ItemSlotPickerView: View {
                                     .padding(TrinketDesign.Metrics.tightSpacing)
                             }
                         }
-                    }
+                    },
                 )
                 .accessibilityIdentifier(AccessibilityID.LoadoutPicker.itemGrid(slot.displayName))
             }
@@ -68,7 +68,7 @@ struct ItemSlotPickerView: View {
                 onPrimaryAction: {
                     onEquip(item)
                     selectedItem = nil
-                }
+                },
             )
         }
         .onAppear {

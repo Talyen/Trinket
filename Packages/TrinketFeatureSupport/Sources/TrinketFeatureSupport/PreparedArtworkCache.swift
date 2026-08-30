@@ -13,7 +13,7 @@ struct LaunchArtworkWarmupPlan: Equatable {
         let priority = Set(priorityImageNames)
         return Self(
             priorityNames: catalogNames.filter { priority.contains($0) },
-            deferredNames: catalogNames.filter { !priority.contains($0) }
+            deferredNames: catalogNames.filter { !priority.contains($0) },
         )
     }
 }
@@ -59,7 +59,7 @@ public final class PreparedArtworkCache {
     @ObservationIgnored private let decodeHandler: @Sendable (String) async -> PreparedArtwork
     @ObservationIgnored private let logger = Logger(
         subsystem: "com.trinket.diagnostics",
-        category: "ArtworkCache"
+        category: "ArtworkCache",
     )
 
     private init() {
@@ -70,7 +70,7 @@ public final class PreparedArtworkCache {
 
     private init(
         catalogNamesProvider: @escaping () -> [String],
-        decodeHandler: @escaping @Sendable (String) async -> PreparedArtwork
+        decodeHandler: @escaping @Sendable (String) async -> PreparedArtwork,
     ) {
         self.catalogNamesProvider = catalogNamesProvider
         self.decodeHandler = decodeHandler
@@ -82,7 +82,7 @@ public final class PreparedArtworkCache {
         let limit = Self.totalCostLimit(forPhysicalMemory: physicalMemory)
         assert(
             limit >= 160 * 1024 * 1024,
-            "PreparedArtworkCache totalCostLimit must not drop below 160 MiB hitch budget"
+            "PreparedArtworkCache totalCostLimit must not drop below 160 MiB hitch budget",
         )
         images.totalCostLimit = limit
     }
@@ -94,11 +94,11 @@ public final class PreparedArtworkCache {
 
     static func makeForTesting(
         catalogNames: [String],
-        decode: @escaping @Sendable (String) async -> PreparedArtwork = { PreparedArtwork(name: $0, image: nil) }
+        decode: @escaping @Sendable (String) async -> PreparedArtwork = { PreparedArtwork(name: $0, image: nil) },
     ) -> PreparedArtworkCache {
         PreparedArtworkCache(
             catalogNamesProvider: { catalogNames },
-            decodeHandler: decode
+            decodeHandler: decode,
         )
     }
 
@@ -151,7 +151,7 @@ public final class PreparedArtworkCache {
 
         let plan = LaunchArtworkWarmupPlan.make(
             priorityImageNames: priorityImageNames,
-            catalogNames: catalogNamesProvider()
+            catalogNames: catalogNamesProvider(),
         )
         launchWarmupNames = plan.priorityNames + plan.deferredNames
         totalCount = max(plan.priorityNames.count + plan.deferredNames.count, 1)
@@ -187,7 +187,7 @@ public final class PreparedArtworkCache {
     private func decode(
         _ imageNames: [String],
         maximumConcurrency: Int,
-        countsTowardLaunch: Bool
+        countsTowardLaunch: Bool,
     ) async {
         let namesToDecode = imageNames.filter { name in
             pinnedImages[name] == nil
@@ -250,7 +250,7 @@ public final class PreparedArtworkCache {
             images.setObject(
                 image,
                 forKey: prepared.name as NSString,
-                cost: decodedCost
+                cost: decodedCost,
             )
             decodedCostsByName[prepared.name] = decodedCost
             if pinCountsByName[prepared.name] != nil {
@@ -259,7 +259,7 @@ public final class PreparedArtworkCache {
         } else {
             assert(
                 pinnedImages[prepared.name] == nil,
-                "Failed decode must not have a pinned bitmap for \(prepared.name)"
+                "Failed decode must not have a pinned bitmap for \(prepared.name)",
             )
         }
         inFlightNames.remove(name)
@@ -293,7 +293,7 @@ public final class PreparedArtworkCache {
             residentCount: residentCount,
             residentByteCount: residentByteCount,
             pinnedCount: pinnedCount,
-            pinnedByteCount: pinnedByteCount
+            pinnedByteCount: pinnedByteCount,
         )
     }
 
@@ -322,7 +322,7 @@ public final class PreparedArtworkCache {
     private static func processPhysicalFootprintByteCount() -> Int {
         var information = task_vm_info_data_t()
         var count = mach_msg_type_number_t(
-            MemoryLayout<task_vm_info_data_t>.size / MemoryLayout<integer_t>.size
+            MemoryLayout<task_vm_info_data_t>.size / MemoryLayout<integer_t>.size,
         )
         let result = withUnsafeMutablePointer(to: &information) { pointer in
             pointer.withMemoryRebound(to: integer_t.self, capacity: Int(count)) { rebound in
@@ -330,7 +330,7 @@ public final class PreparedArtworkCache {
                     mach_task_self_,
                     task_flavor_t(TASK_VM_INFO),
                     rebound,
-                    &count
+                    &count,
                 )
             }
         }

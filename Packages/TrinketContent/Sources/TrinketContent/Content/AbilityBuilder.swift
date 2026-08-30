@@ -10,7 +10,7 @@ enum AbilityBuilder {
         keyword: Keyword = .physical,
         description: String? = nil,
         extras: [TargetedEffect] = [],
-        hasLeech: Bool = false
+        hasLeech: Bool = false,
     ) -> Ability {
         let damageComponents = amount > 0 ? [DamageComponent(amount, keyword: keyword)] : []
         return Ability(
@@ -20,7 +20,7 @@ enum AbilityBuilder {
             description: description,
             damageComponents: damageComponents,
             targetedEffects: extras,
-            hasLeech: hasLeech
+            hasLeech: hasLeech,
         )
     }
 
@@ -30,7 +30,7 @@ enum AbilityBuilder {
         tier: AbilityTier,
         effects: [Effect],
         description: String? = nil,
-        hasLeech: Bool = false
+        hasLeech: Bool = false,
     ) -> Ability {
         Ability(
             id: id,
@@ -38,7 +38,7 @@ enum AbilityBuilder {
             tier: tier,
             description: description,
             targetedEffects: effects.map { TargetedEffect($0) },
-            hasLeech: hasLeech
+            hasLeech: hasLeech,
         )
     }
 
@@ -49,7 +49,7 @@ enum AbilityBuilder {
         damageComponents: [DamageComponent],
         effects: [TargetedEffect] = [],
         description: String? = nil,
-        hasLeech: Bool = false
+        hasLeech: Bool = false,
     ) -> Ability {
         Ability(
             id: id,
@@ -58,7 +58,7 @@ enum AbilityBuilder {
             description: description,
             damageComponents: damageComponents,
             targetedEffects: effects,
-            hasLeech: hasLeech
+            hasLeech: hasLeech,
         )
     }
 }

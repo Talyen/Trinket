@@ -13,14 +13,14 @@ struct BattleStateTests {
         GameContent.companions.first { $0.id == "wolf" } ?? GameContent.companions[0]
     }
 
-    @Test func combatantAccessorsFollowRosterDefinitions() throws {
+    @Test func `combatant accessors follow roster definitions`() throws {
         let hero = BattleTestFixtures.passiveCombatant(id: "hero", name: "Hero", role: .hero)
         let companion = BattleTestFixtures.passiveCompanion()
         let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy)
         let replacementEnemy = BattleTestFixtures.passiveCombatant(
             id: "replacement-enemy",
             name: "Replacement Enemy",
-            role: .enemy
+            role: .enemy,
         )
         var battle = BattleStateTestFactory.makeBattle(hero: hero, companion: companion, enemy: enemy)
 
@@ -29,7 +29,7 @@ struct BattleStateTests {
         try #expect(battle.enemy == replacementEnemy)
     }
 
-    @Test func partyNotDefeatedWhenOneMemberOnDeathsDoor() throws {
+    @Test func `party not defeated when one member on deaths door`() throws {
         let hero = BattleTestFixtures.passiveCombatant(id: "hero", name: "Hero", role: .hero, maxHealth: 5)
         let companion = BattleTestFixtures.passiveCompanion(maxHealth: 1)
         let enemy = BattleTestFixtures.attackingEnemy(abilities: [.slash], maxHealth: 100)
@@ -49,7 +49,7 @@ struct BattleStateTests {
         try #expect(!(battle.isPartyDefeated))
     }
 
-    @Test func partyDefeatWhenBothDeathsDoorConsumedAndExpired() throws {
+    @Test func `party defeat when both deaths door consumed and expired`() throws {
         let hero = BattleTestFixtures.passiveCombatant(id: "hero", name: "Hero", role: .hero, maxHealth: 3)
         let companion = BattleTestFixtures.passiveCompanion(maxHealth: 3)
         let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
@@ -75,13 +75,13 @@ struct BattleStateTests {
         try #expect(battle.isPartyDefeated)
     }
 
-    @Test func battleGoldTracksInitialBalanceAndResourceGains() throws {
+    @Test func `battle gold tracks initial balance and resource gains`() throws {
         let goldHero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [.steal])
         var battle = BattleStateTestFactory.makeBattle(
             hero: goldHero,
             companion: BattleTestFixtures.passiveCompanion(),
             enemy: defaultEnemy,
-            initialGold: 10
+            initialGold: 10,
         )
         _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
         try #expect(battle.gold == 13)
@@ -90,13 +90,13 @@ struct BattleStateTests {
             hero: goldHero,
             companion: BattleTestFixtures.passiveCompanion(),
             enemy: defaultEnemy,
-            initialGold: 5
+            initialGold: 5,
         )
         _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &initialGoldBattle)
         try #expect(initialGoldBattle.earnedGold == initialGoldBattle.gold - 5)
     }
 
-    @Test func cardCombatDefeatWhenPartyObliterated() throws {
+    @Test func `card combat defeat when party obliterated`() throws {
         let fragile = Combatant(id: "fragile", name: "Fragile", role: .hero, maxHealth: 1, abilities: [])
         let observer = Combatant(id: "observer", name: "Observer", role: .companion, maxHealth: 1, abilities: [])
         let enemy = Combatant(id: "strong", name: "Strong", role: .enemy, maxHealth: 100, abilities: [.slash])
@@ -110,14 +110,14 @@ struct BattleStateTests {
         try #expect(battle.phase == .ended)
     }
 
-    @Test func seededEffectsDoNotCollideWithNewEffectIDs() throws {
+    @Test func `seeded effects do not collide with new effect I ds`() throws {
         var battle = BattleStateTestFactory.makeBattle(
             hero: GameContent.heroes[0],
             companion: wolfCompanion,
             enemy: defaultEnemy,
             activeEnemyEffects: [
                 ActiveEffect(id: 1, effect: .burn(2), remainingTurns: 0),
-            ]
+            ],
         )
         let source = battle.hero
         let target = battle.enemy
@@ -126,7 +126,7 @@ struct BattleStateTests {
             ability: CombatantFixtures.ability(),
             source: source,
             target: target,
-            battle: &battle
+            battle: &battle,
         )
         try #expect(outcome.didApply)
         let ids = battle.activeEffects(of: battle.enemy).map(\.id)
@@ -135,7 +135,7 @@ struct BattleStateTests {
         try #expect(ids.contains(2))
     }
 
-    @Test func battleEndsWhenHeroKillsEnemyWithoutFurtherPlays() throws {
+    @Test func `battle ends when hero kills enemy without further plays`() throws {
         let finisher = Ability(id: "finisher", name: "Finisher", tier: .basic, directDamage: 1, description: "Finisher")
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [finisher])
         let companion = Combatant(id: "companion", name: "Companion", role: .companion, maxHealth: 20, abilities: [.bash])
@@ -152,27 +152,27 @@ struct BattleStateTests {
         try #expect(after.isEmpty)
     }
 
-    @Test func faustianBargainSelfDamageDoesNotWipePartyWhenCompanionSurvives() throws {
+    @Test func `faustian bargain self damage does not wipe party when companion survives`() throws {
         let hero = Combatant(
             id: "warlock",
             name: "Warlock",
             role: .hero,
             maxHealth: 3,
-            abilities: [.faustianBargain]
+            abilities: [.faustianBargain],
         )
         let companion = Combatant(
             id: "companion",
             name: "Companion",
             role: .companion,
             maxHealth: 20,
-            abilities: []
+            abilities: [],
         )
         let enemy = Combatant(
             id: "enemy",
             name: "Enemy",
             role: .enemy,
             maxHealth: 50,
-            abilities: []
+            abilities: [],
         )
         var battle = BattleStateTestFactory.makeBattle(hero: hero, companion: companion, enemy: enemy)
 
@@ -184,7 +184,7 @@ struct BattleStateTests {
         try #expect(!(battle.isEnemyDefeated))
     }
 
-    @Test func turnCadenceTracksAndResetsState() throws {
+    @Test func `turn cadence tracks and resets state`() throws {
         var cadence = BattleTurnCadence()
         cadence.cardsPlayed[.hero] = 2
         cadence.skillCardsPlayed[.hero] = 1

@@ -12,7 +12,7 @@ final class PlayMapUITests: TrinketUITestCase {
 
         let heroOptionID = AccessibilityID.Play.battlePartyOption(
             for: "Hero",
-            combatantID: "rogue"
+            combatantID: "rogue",
         )
         assertExists(heroOptionID)
         button(heroOptionID).tap()

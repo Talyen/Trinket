@@ -34,7 +34,7 @@ struct LabyrinthCampfireView: View {
             copyVisible: contentAppeared,
             artwork: { campfireArtwork },
             copy: { campfireCopy },
-            content: { campfireContent }
+            content: { campfireContent },
         )
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .trinketScreenBackground()
@@ -43,12 +43,12 @@ struct LabyrinthCampfireView: View {
         .trinketSensoryFeedback(
             .success,
             trigger: healHapticTrigger,
-            enabled: options.hapticsEnabled
+            enabled: options.hapticsEnabled,
         )
         .onAppear {
             EncounterReadingEntrance.present(
                 artAppeared: $artAppeared,
-                copyAppeared: $contentAppeared
+                copyAppeared: $contentAppeared,
             )
         }
     }
@@ -147,7 +147,7 @@ struct LabyrinthCampfireView: View {
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel(
-            "\(member.name): \(displayedCounter(member)) of \(member.maxHealth) Health"
+            "\(member.name): \(displayedCounter(member)) of \(member.maxHealth) Health",
         )
     }
 
@@ -218,7 +218,7 @@ struct LabyrinthCampfireView: View {
                     counterHealthByCombatantID[member.combatantID] = Int(
                         (Double(member.currentHealth)
                             + Double(member.healedHealth - member.currentHealth) * eased
-                        ).rounded()
+                        ).rounded(),
                     )
                 }
             }

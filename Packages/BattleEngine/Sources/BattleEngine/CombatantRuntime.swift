@@ -35,6 +35,7 @@ public struct CombatantRuntime: Hashable {
         public var pendingBasicGuaranteedCrit: Bool = false
         public var pendingAttackBonusOnFullHealth: Int = 0
         public var pendingDoubleStatusNextCard: Bool = false
+        public var goldenTouchActiveThisCard: Bool = false
         public var manaSpentThisCardPlay: Int = 0
 
         public init() {}
@@ -109,7 +110,7 @@ public struct CombatantRuntime: Hashable {
         hasTriggeredFirstHitBonus: Bool = false,
         hasTriggeredSecondWind: Bool = false,
         hasTriggeredDeathRevive: Bool = false,
-        hasTriggeredPhoenixGift: Bool = false
+        hasTriggeredPhoenixGift: Bool = false,
     ) {
         self.combatant = combatant
         self.maximumHealthBonus = maximumHealthBonus

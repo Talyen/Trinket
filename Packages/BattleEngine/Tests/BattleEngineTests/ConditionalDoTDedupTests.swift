@@ -5,11 +5,11 @@ import TrinketCore
 import TrinketTestSupport
 
 struct ConditionalDoTDedupTests {
-    @Test func damageComponentAppliesDoTStackWithoutImmediateTick() throws {
+    @Test func `damage component applies do T stack without immediate tick`() throws {
         let hero = CombatantFixtures.combatant(
             id: "hero",
             role: .hero,
-            abilities: [.kindling]
+            abilities: [.kindling],
         )
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy)
@@ -18,7 +18,7 @@ struct ConditionalDoTDedupTests {
             companion: companion,
             enemy: enemy,
             rngSeed: BattleTestFixtures.deterministicNonCriticalSeed,
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         let startingHealth = context.roster.health(for: enemy)
 
@@ -26,7 +26,7 @@ struct ConditionalDoTDedupTests {
             ability: .kindling,
             actor: hero,
             abilityTarget: enemy,
-            context: &context
+            context: &context,
         )
 
         try #expect(context.roster.activeEffects(for: enemy).contains { $0.effect.keyword == .burn })

@@ -42,7 +42,7 @@ public struct MysteryEvent: Identifiable, Hashable, Sendable {
         narrative: String,
         artID: String?,
         unlockCombatantID: String? = nil,
-        choices: [MysteryChoice]
+        choices: [MysteryChoice],
     ) {
         self.id = id
         self.title = title
@@ -56,13 +56,13 @@ public struct MysteryEvent: Identifiable, Hashable, Sendable {
 public enum MysteryItemRarity {
     public static func roll(
         astralChanceBonusPercent: Int = 0,
-        using randomNumberGenerator: inout some RandomNumberGenerator
+        using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> ItemDropTier {
         ItemRarityRoll.roll(
             bossContent: false,
             astralChanceBonusPercent: astralChanceBonusPercent,
             allowsUnique: false,
-            using: &randomNumberGenerator
+            using: &randomNumberGenerator,
         )
     }
 }

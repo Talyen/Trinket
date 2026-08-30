@@ -52,7 +52,7 @@ enum CombatFeedbackPresenter {
 
     static func makeItems(
         from events: [ActionEvent],
-        at date: Date
+        at date: Date,
     ) -> [CombatFeedbackItem] {
         let filteredSources = filterDisplayable(events).enumerated().map { order, event in
             PreparedSource(event: event, sourceEventIDs: [event.id], originalOrder: order)
@@ -90,7 +90,7 @@ enum CombatFeedbackPresenter {
                     groupResultCount: groupResultCount,
                     presentationRole: presentationRole(
                         index: presentationIndex,
-                        groupResultCount: groupResultCount
+                        groupResultCount: groupResultCount,
                     ),
                     targetID: prepared.targetID,
                     feedbackClass: prepared.feedbackClass,
@@ -99,7 +99,7 @@ enum CombatFeedbackPresenter {
                     label: prepared.label,
                     availableAt: availableAt,
                     expiresAt: expiresAt,
-                    reactionKind: prepared.reactionKind
+                    reactionKind: prepared.reactionKind,
                 )
             }
         }
@@ -107,7 +107,7 @@ enum CombatFeedbackPresenter {
 
     private static func presentationRole(
         index: Int,
-        groupResultCount: Int
+        groupResultCount: Int,
     ) -> CombatFeedbackPresentationRole {
         if groupResultCount <= 3 {
             return .headline
@@ -185,7 +185,7 @@ enum CombatFeedbackPresenter {
                 result[index] = PreparedSource(
                     event: existing.event.with(amount: existing.event.amount + source.event.amount),
                     sourceEventIDs: existing.sourceEventIDs + source.sourceEventIDs,
-                    originalOrder: min(existing.originalOrder, source.originalOrder)
+                    originalOrder: min(existing.originalOrder, source.originalOrder),
                 )
             } else {
                 keyIndices[key] = result.count
@@ -216,7 +216,7 @@ enum CombatFeedbackPresenter {
             keyword: event.keyword,
             family: family,
             isCritical: event.isCritical,
-            isNegative: event.amount < 0
+            isNegative: event.amount < 0,
         )
     }
 
@@ -238,7 +238,7 @@ enum CombatFeedbackPresenter {
             keyword: event.keyword,
             visualRole: visualRole(for: event),
             label: label,
-            reactionKind: reactionKind(for: feedbackClass)
+            reactionKind: reactionKind(for: feedbackClass),
         )
     }
 

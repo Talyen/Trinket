@@ -7,7 +7,7 @@ package extension CombatTriggerEngine {
         healthLost: Int,
         target: Combatant,
         sourceActorID: String?,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         guard let sourceActorID else { return [] }
         let sourceTriggers = context.modifiers(for: sourceActorID).triggers
@@ -18,7 +18,7 @@ package extension CombatTriggerEngine {
                 initialHealthLost: healthLost,
                 target: target,
                 sourceActorID: sourceActorID,
-                in: &context
+                in: &context,
             ))
             if sourceTriggers.onBurnTickHolyDamage > 0 {
                 events.append(contentsOf: context.resolveDamage(
@@ -27,8 +27,8 @@ package extension CombatTriggerEngine {
                         target: target,
                         keyword: .holy,
                         sourceActorID: sourceActorID,
-                        options: .flatReaction
-                    )
+                        options: .flatReaction,
+                    ),
                 ).events)
             }
             let detonateChance = sourceTriggers.onBurnDamageDetonateBleedChancePercent > 0
@@ -39,7 +39,7 @@ package extension CombatTriggerEngine {
                 events.append(contentsOf: detonateBleed(
                     on: target,
                     sourceActorID: sourceActorID,
-                    in: &context
+                    in: &context,
                 ))
             }
             if sourceTriggers.onBurnDamageRestoreManaFlat > 0,
@@ -47,7 +47,7 @@ package extension CombatTriggerEngine {
                 events.append(contentsOf: restoreManaFromBurnTick(
                     sourceActorID: sourceActorID,
                     sourceTriggers: sourceTriggers,
-                    in: &context
+                    in: &context,
                 ))
             }
         }
@@ -59,7 +59,7 @@ package extension CombatTriggerEngine {
             if leech > 0 {
                 events.append(contentsOf: HealingEngine.resolveHeal(
                     HealRequest(amount: leech, target: caster.combatant, sourceActorID: sourceActorID),
-                    in: &context
+                    in: &context,
                 ).events)
             }
         }
@@ -71,7 +71,7 @@ package extension CombatTriggerEngine {
         nextPotency: Int,
         target: Combatant,
         sourceActorID: String?,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         guard keyword == .poison,
               let sourceActorID,
@@ -90,14 +90,14 @@ package extension CombatTriggerEngine {
             to: target,
             sourceActorID: sourceActorID,
             applyFightPacing: false,
-            in: &context
+            in: &context,
         )
     }
 
     private static func restoreManaFromBurnTick(
         sourceActorID: String,
         sourceTriggers: CombatTraitTriggers,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         guard let caster = context.roster.combatant(for: sourceActorID),
               let participant = context.roster.participant(for: caster.combatant)
@@ -107,7 +107,7 @@ package extension CombatTriggerEngine {
         guard cap <= 0 || already < cap else { return [] }
         let toRestore = min(
             sourceTriggers.onBurnDamageRestoreManaFlat,
-            cap > 0 ? cap - already : sourceTriggers.onBurnDamageRestoreManaFlat
+            cap > 0 ? cap - already : sourceTriggers.onBurnDamageRestoreManaFlat,
         )
         let restored = context.restoreMana(toRestore, to: caster.combatant)
         guard restored > 0 else { return [] }
@@ -120,11 +120,11 @@ package extension CombatTriggerEngine {
                 "onBurnDamageRestoreManaFlat",
                 for: caster.combatant,
                 fallback: "Pyromancer's Spark",
-                in: context
+                in: context,
             ),
             target: caster.combatant,
             amount: restored,
-            keyword: .mana
+            keyword: .mana,
         )]
         events.append(contentsOf: afterGainMana(by: caster.combatant, in: &context))
         return events
@@ -133,7 +133,7 @@ package extension CombatTriggerEngine {
     static func detonateBleedAndPoison(
         on target: Combatant,
         sourceActorID: String,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         guard !context.isResolvingDoTDetonation else { return [] }
         context.isResolvingDoTDetonation = true
@@ -154,7 +154,7 @@ package extension CombatTriggerEngine {
             currentEffects.filter { active in
                 !active.effect.isBleed && active.effect.keyword != .poison
             },
-            for: target
+            for: target,
         )
 
         var events: [ActionEvent] = []
@@ -165,7 +165,7 @@ package extension CombatTriggerEngine {
                     keyword: .bleed,
                     target: target,
                     sourceActorID: sourceActorID,
-                    in: &context
+                    in: &context,
                 ).events)
             }
         }
@@ -179,7 +179,7 @@ package extension CombatTriggerEngine {
                 keyword: .poison,
                 target: target,
                 sourceActorID: sourceActorID,
-                in: &context
+                in: &context,
             ).events)
         }
         return events

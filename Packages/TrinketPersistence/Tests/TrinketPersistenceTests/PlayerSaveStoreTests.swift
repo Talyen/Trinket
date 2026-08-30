@@ -14,7 +14,7 @@ final class PlayerSaveStoreTests {
         context = try PersistenceTestContext()
     }
 
-    @Test func playerSavePersistsJourneyRosterInventoryAndHomestead() throws {
+    @Test func `player save persists journey roster inventory and homestead`() throws {
         let storeURL = context.storeURL()
         let firstStore = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true, persistSaveImmediately: true)
         firstStore.grantGold(42)
@@ -36,12 +36,12 @@ final class PlayerSaveStoreTests {
         try #expect(secondStore.worldSeed != 0)
     }
 
-    @Test func materialBalancesAboveLegacyCapSurviveReload() throws {
+    @Test func `material balances above legacy cap survive reload`() throws {
         let storeURL = context.storeURL()
         let firstStore = try PlayerSaveStore(
             storeURL: storeURL,
             disableCloudSync: true,
-            persistSaveImmediately: true
+            persistSaveImmediately: true,
         )
         var homestead = firstStore.homestead
         homestead.resources[.wood] = 12345
@@ -52,7 +52,7 @@ final class PlayerSaveStoreTests {
         try #expect(reloaded.homestead.resources[.wood] == 12345)
     }
 
-    @Test func versionedStoreAdoptsCurrentUnversionedSchema() throws {
+    @Test func `versioned store adopts current unversioned schema`() throws {
         let storeURL = context.storeURL()
         let legacySchema = Schema(PlayerSaveSchema.models)
         try SaveTestSupport.writeRoot(.testSeed, to: storeURL, schema: legacySchema)
@@ -65,7 +65,7 @@ final class PlayerSaveStoreTests {
         try #expect(!versionedStore.isPersistenceDegraded)
     }
 
-    @Test func corruptStoreRecoversByDeletingAndRecreating() throws {
+    @Test func `corrupt store recovers by deleting and recreating`() throws {
         let storeURL = context.storeURL()
         let originalData = Data("not-a-sqlite-store".utf8)
         try originalData.write(to: storeURL)
@@ -88,12 +88,12 @@ final class PlayerSaveStoreTests {
         #expect(reloaded.lastPersistenceError == nil)
     }
 
-    @Test func mutateRosterPersistsThroughHub() throws {
+    @Test func `mutate roster persists through hub`() throws {
         let storeURL = context.storeURL()
         let firstStore = try PlayerSaveStore(
             storeURL: storeURL,
             disableCloudSync: true,
-            persistSaveImmediately: true
+            persistSaveImmediately: true,
         )
         let persisted = firstStore.mutateRoster {
             $0.gold = 17
@@ -105,7 +105,7 @@ final class PlayerSaveStoreTests {
         try #expect(reloaded.roster.gold == 17)
     }
 
-    @Test func untouchedLabyrinthSurvivesGoldOnlyMutation() throws {
+    @Test func `untouched labyrinth survives gold only mutation`() throws {
         let storeURL = context.storeURL()
         let store = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true, persistSaveImmediately: true)
         var labyrinth = PlayerLabyrinthState.freshStart
@@ -122,7 +122,7 @@ final class PlayerSaveStoreTests {
         try #expect(reloaded.labyrinth == labyrinthBefore)
     }
 
-    @Test func swiftDataGraphStoresIndependentRecords() throws {
+    @Test func `swift data graph stores independent records`() throws {
         let storeURL = context.storeURL()
         let store = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true, persistSaveImmediately: true)
         store.grantGold(5)
@@ -145,7 +145,7 @@ final class PlayerSaveStoreTests {
         })
     }
 
-    @Test func resetGameplayProgressRestoresFreshStart() throws {
+    @Test func `reset gameplay progress restores fresh start`() throws {
         let store = try context.makeSaveStore()
         store.grantGold(99)
         let template = try #require(GameContent.itemTemplate(matching: "shortsword-basic"))
@@ -162,12 +162,12 @@ final class PlayerSaveStoreTests {
         try #expect(store.currentSave.sessionGeneration == 1)
     }
 
-    @Test func unlockAllContentUnlocksRosterAndClearsChapterOne() throws {
+    @Test func `unlock all content unlocks roster and clears chapter one`() throws {
         let storeURL = context.storeURL()
         let store = try PlayerSaveStore(
             storeURL: storeURL,
             disableCloudSync: true,
-            persistSaveImmediately: true
+            persistSaveImmediately: true,
         )
         try store.unlockAllContent()
 
@@ -210,7 +210,7 @@ final class PlayerSaveStoreTests {
         try #expect(reloaded.homestead.pendingProduction[.gold] == 10)
     }
 
-    @Test func noopBatchMutationDoesNotBumpModifiedAt() throws {
+    @Test func `noop batch mutation does not bump modified at`() throws {
         let store = try context.makeSaveStore()
         let before = store.currentSave.modifiedAt
 
@@ -223,7 +223,7 @@ final class PlayerSaveStoreTests {
         ("negative-xp", true),
         ("schema-version", false),
     ])
-    func validateRejectsCorruptSaveFields(mode: String, expectsMessageContainsXP: Bool) throws {
+    func `validate rejects corrupt save fields`(mode: String, expectsMessageContainsXP: Bool) throws {
         var save = PlayerSave.fresh
         switch mode {
         case "negative-xp":
@@ -247,12 +247,12 @@ final class PlayerSaveStoreTests {
         }
     }
 
-    @Test func flushPendingPersistencePersistsDeferredMutationThroughReload() throws {
+    @Test func `flush pending persistence persists deferred mutation through reload`() throws {
         let storeURL = context.storeURL()
         let store = try PlayerSaveStore(
             storeURL: storeURL,
             disableCloudSync: true,
-            persistSaveImmediately: false
+            persistSaveImmediately: false,
         )
         store.grantGold(19)
         try #expect(store.roster.gold == 19)
@@ -264,7 +264,7 @@ final class PlayerSaveStoreTests {
         try #expect(store.lastPersistenceError == nil)
     }
 
-    @Test func performBatchMutationPreservesStateWhenValidationFails() throws {
+    @Test func `perform batch mutation preserves state when validation fails`() throws {
         let store = try context.makeSaveStore()
         store.grantGold(25)
         let snapshot = store.currentSave
@@ -281,7 +281,7 @@ final class PlayerSaveStoreTests {
     }
 
     #if DEBUG
-    @Test func performBatchMutationRollsBackInMemoryStateWhenSaveFails() throws {
+    @Test func `perform batch mutation rolls back in memory state when save fails`() throws {
         let store = try context.makeSaveStore()
         store.grantGold(10)
         store.forcesNextSaveFailure = true
@@ -300,12 +300,12 @@ final class PlayerSaveStoreTests {
         try #expect(store.lastPersistenceError == .writeFailed)
     }
 
-    @Test func ensureRequiredGraphRollsBackWhenSaveFails() throws {
+    @Test func `ensure required graph rolls back when save fails`() throws {
         let storeURL = context.storeURL()
         let store = try PlayerSaveStore(
             storeURL: storeURL,
             disableCloudSync: true,
-            persistSaveImmediately: true
+            persistSaveImmediately: true,
         )
         store.grantGold(10)
         let snapshot = store.currentSave
@@ -323,12 +323,12 @@ final class PlayerSaveStoreTests {
         try #expect(!reloaded.isPersistenceDegraded)
     }
 
-    @Test func resetGameplayProgressRollsBackWhenSaveFails() throws {
+    @Test func `reset gameplay progress rolls back when save fails`() throws {
         let storeURL = context.storeURL()
         let store = try PlayerSaveStore(
             storeURL: storeURL,
             disableCloudSync: true,
-            persistSaveImmediately: true
+            persistSaveImmediately: true,
         )
         store.grantGold(10)
         let snapshot = store.currentSave
@@ -351,12 +351,12 @@ final class PlayerSaveStoreTests {
     }
 
     @Test(arguments: [[20, 30], [30]])
-    func deferredFlushRollsBackToLastPersistedSnapshot(deferredGold: [Int]) throws {
+    func `deferred flush rolls back to last persisted snapshot`(deferredGold: [Int]) throws {
         let storeURL = context.storeURL()
         let store = try PlayerSaveStore(
             storeURL: storeURL,
             disableCloudSync: true,
-            persistSaveImmediately: false
+            persistSaveImmediately: false,
         )
         try store.performBatchMutation({ save in
             save.roster.gold = 10
@@ -380,7 +380,7 @@ final class PlayerSaveStoreTests {
         try #expect(reloaded.roster.gold == 10)
     }
 
-    @Test func persistBatchReturnsFalseAndRollsBackWhenSaveFails() throws {
+    @Test func `persist batch returns false and rolls back when save fails`() throws {
         let store = try context.makeSaveStore()
         store.grantGold(10)
         store.forcesNextSaveFailure = true
@@ -398,12 +398,12 @@ final class PlayerSaveStoreTests {
 
 #if DEBUG
 extension PlayerSaveStoreTests {
-    @Test func immediatePersistRetiresDeferredRollbackSoALaterFlushFailureKeepsSavedProgress() throws {
+    @Test func `immediate persist retires deferred rollback so A later flush failure keeps saved progress`() throws {
         let storeURL = context.storeURL()
         let store = try PlayerSaveStore(
             storeURL: storeURL,
             disableCloudSync: true,
-            persistSaveImmediately: false
+            persistSaveImmediately: false,
         )
         try store.performBatchMutation({ save in
             save.roster.gold = 10
@@ -480,7 +480,7 @@ struct PlayerSaveSchemaMigrationTests {
         context = try PersistenceTestContext()
     }
 
-    @Test func storeMigratesWhenCurrentSchemaRemovesAnEntity() throws {
+    @Test func `store migrates when current schema removes an entity`() throws {
         let storeURL = context.storeURL()
         let legacySchema = Schema(PlayerSaveSchema.models + [LegacyPrimaryStatsRow.self])
         try SaveTestSupport.writeRoot(.testSeed, to: storeURL, schema: legacySchema) { context in

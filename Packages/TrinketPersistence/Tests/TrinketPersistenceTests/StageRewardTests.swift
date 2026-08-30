@@ -14,7 +14,7 @@ struct StageRewardTests {
         chapter.stages[0]
     }
 
-    @Test func completingBattleStageGrantsBattleLootGoldXPAndItem() throws {
+    @Test func `completing battle stage grants battle loot gold XP and item`() throws {
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
         var save = SaveTestSupport.makeSave()
@@ -26,7 +26,7 @@ struct StageRewardTests {
             enemyIsBoss: false,
             worldSeed: PlayerSave.testWorldSeed,
             ownedTrinketIDs: [],
-            ownedUniqueIDs: []
+            ownedUniqueIDs: [],
         )
 
         StageCompletion.complete(
@@ -36,7 +36,7 @@ struct StageRewardTests {
             battleEarnedGold: battleEarnedGold,
             loot: loot,
             in: GameContent.chapters,
-            save: &save
+            save: &save,
         )
 
         try #expect(save.roster.gold == loot.gold + battleEarnedGold)
@@ -46,15 +46,15 @@ struct StageRewardTests {
             StageCompletion.battleExperienceAward(
                 playerLevel: heroLevel,
                 enemyLevel: encounterLevel,
-                highestLevel: PlayerRosterState.testSeed.highestHeroLevel
-            )
+                highestLevel: PlayerRosterState.testSeed.highestHeroLevel,
+            ),
         )
         let expectedCompanionProgression = PlayerRosterState.testSeed.progression(for: companion).addingExperience(
             StageCompletion.battleExperienceAward(
                 playerLevel: companionLevel,
                 enemyLevel: encounterLevel,
-                highestLevel: PlayerRosterState.testSeed.highestCompanionLevel
-            )
+                highestLevel: PlayerRosterState.testSeed.highestCompanionLevel,
+            ),
         )
         try #expect(save.roster.progression(for: hero) == expectedHeroProgression)
         try #expect(save.roster.progression(for: companion) == expectedCompanionProgression)
@@ -68,12 +68,12 @@ struct StageRewardTests {
         try #expect(save.journey.activeStageID == "chapter-1-stage-2")
     }
 
-    @Test func wishingWellIncreasesGrantedGold() throws {
+    @Test func `wishing well increases granted gold`() throws {
         var save = SaveTestSupport.makeSave(
             homestead: PlayerHomesteadState(
                 resources: [:],
-                nodeTiers: [.wishingWell: 2]
-            )
+                nodeTiers: [.wishingWell: 2],
+            ),
         )
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
@@ -85,7 +85,7 @@ struct StageRewardTests {
             enemyIsBoss: false,
             worldSeed: PlayerSave.testWorldSeed,
             ownedTrinketIDs: [],
-            ownedUniqueIDs: []
+            ownedUniqueIDs: [],
         )
 
         StageCompletion.claimRewardsIfNeeded(
@@ -94,7 +94,7 @@ struct StageRewardTests {
             companion: companion,
             battleEarnedGold: 0,
             loot: loot,
-            save: &save
+            save: &save,
         )
 
         let expected = startingGold + HomesteadEffects.from(nodeTiers: [.wishingWell: 2])
@@ -102,7 +102,7 @@ struct StageRewardTests {
         try #expect(save.roster.gold == expected)
     }
 
-    @Test func completingStageTwiceDoesNotDoubleRewards() throws {
+    @Test func `completing stage twice does not double rewards`() throws {
         var save = SaveTestSupport.makeSave()
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
@@ -112,7 +112,7 @@ struct StageRewardTests {
             hero: hero,
             companion: companion,
             in: GameContent.chapters,
-            save: &save
+            save: &save,
         )
         let goldAfterFirst = save.roster.gold
         let heroXPAfterFirst = save.roster.progression(for: hero).currentXP
@@ -122,7 +122,7 @@ struct StageRewardTests {
             for: firstStage,
             hero: hero,
             companion: companion,
-            save: &save
+            save: &save,
         )
 
         try #expect(save.roster.gold == goldAfterFirst)
@@ -130,7 +130,7 @@ struct StageRewardTests {
         try #expect(save.inventory.items.count == itemCountAfterFirst)
     }
 
-    @Test func claimedStageReplayStillBanksBattleEarnedGold() throws {
+    @Test func `claimed stage replay still banks battle earned gold`() throws {
         var save = SaveTestSupport.makeSave()
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
@@ -140,7 +140,7 @@ struct StageRewardTests {
             enemyIsBoss: false,
             worldSeed: PlayerSave.testWorldSeed,
             ownedTrinketIDs: [],
-            ownedUniqueIDs: []
+            ownedUniqueIDs: [],
         )
 
         StageCompletion.complete(
@@ -150,7 +150,7 @@ struct StageRewardTests {
             battleEarnedGold: 4,
             loot: loot,
             in: GameContent.chapters,
-            save: &save
+            save: &save,
         )
         let goldAfterFirst = save.roster.gold
 
@@ -161,14 +161,14 @@ struct StageRewardTests {
             battleEarnedGold: 2,
             loot: loot,
             in: GameContent.chapters,
-            save: &save
+            save: &save,
         )
 
         try #expect(save.roster.gold == goldAfterFirst + 2)
         try #expect(save.inventory.items.count(where: { $0.id == loot.item.id }) == 1)
     }
 
-    @Test func completingStageAdvancesJourney() throws {
+    @Test func `completing stage advances journey`() throws {
         var save = SaveTestSupport.makeSave(inventory: .testSeed)
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
@@ -178,14 +178,14 @@ struct StageRewardTests {
             hero: hero,
             companion: companion,
             in: GameContent.chapters,
-            save: &save
+            save: &save,
         )
 
         try #expect(save.journey.isActive(chapter.stages[1]))
         try #expect(!(save.journey.isActive(firstStage)))
     }
 
-    @Test func nonBattleStagesGrantAuthoredRewardsWithoutExperience() throws {
+    @Test func `non battle stages grant authored rewards without experience`() throws {
         var save = SaveTestSupport.makeSave()
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
@@ -196,14 +196,14 @@ struct StageRewardTests {
             chapterNumber: 1,
             stageNumber: 99,
             encounter: .rest,
-            rewards: StageReward(gold: 10, itemTemplateIDs: [], materialRewards: [ResourceAmount(.wood, 2)])
+            rewards: StageReward(gold: 10, itemTemplateIDs: [], materialRewards: [ResourceAmount(.wood, 2)]),
         )
 
         StageCompletion.claimRewardsIfNeeded(
             for: restStage,
             hero: hero,
             companion: companion,
-            save: &save
+            save: &save,
         )
 
         try #expect(save.roster.gold == 10)
@@ -212,7 +212,7 @@ struct StageRewardTests {
         try #expect(save.journey.hasClaimedRewards(for: restStage))
     }
 
-    @Test func scaledExperienceGrantsNothingWhenEnemyIsFarBelowPlayer() throws {
+    @Test func `scaled experience grants nothing when enemy is far below player`() throws {
         var save = SaveTestSupport.makeSave()
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
@@ -224,21 +224,21 @@ struct StageRewardTests {
             hero: hero,
             companion: companion,
             enemyEncounterLevel: 5,
-            save: &save
+            save: &save,
         )
 
         try #expect(save.roster.progression(for: hero).currentXP == heroXPBefore)
         try #expect(save.roster.progression(for: companion).currentXP > 0)
     }
 
-    @Test func stageCompletionPrefersProvidedEnemyLevelOverAuthoredDerivation() throws {
+    @Test func `stage completion prefers provided enemy level over authored derivation`() throws {
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
         let battleStages = GameContent.chapters.flatMap(\.stages).filter(\.encounter.isCombat)
         let deepStage = try #require(
             battleStages.last {
                 StageCompletion.resolvedEncounterLevel(for: $0, in: GameContent.chapters) > 3
-            }
+            },
         )
 
         var defaulted = SaveTestSupport.makeSave()
@@ -248,7 +248,7 @@ struct StageRewardTests {
             hero: hero,
             companion: companion,
             in: GameContent.chapters,
-            save: &defaulted
+            save: &defaulted,
         )
         let defaultedHeroXP = defaulted.roster.progression(for: hero).currentXP
 
@@ -260,7 +260,7 @@ struct StageRewardTests {
             companion: companion,
             enemyEncounterLevel: 1,
             in: GameContent.chapters,
-            save: &lowered
+            save: &lowered,
         )
         let loweredHeroXP = lowered.roster.progression(for: hero).currentXP
 
@@ -269,12 +269,12 @@ struct StageRewardTests {
         #expect(loweredHeroXP < defaultedHeroXP)
     }
 
-    @Test func claimRewardsBanksBattleGoldWhenStageAlreadyClaimed() throws {
+    @Test func `claim rewards banks battle gold when stage already claimed`() throws {
         var save = SaveTestSupport.makeSave(
             homestead: PlayerHomesteadState(
                 resources: [:],
-                nodeTiers: [.wishingWell: 2]
-            )
+                nodeTiers: [.wishingWell: 2],
+            ),
         )
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
@@ -284,7 +284,7 @@ struct StageRewardTests {
             hero: hero,
             companion: companion,
             battleEarnedGold: 0,
-            save: &save
+            save: &save,
         )
         let goldAfterClaim = save.roster.gold
         let heroXPAfterClaim = save.roster.progression(for: hero).currentXP
@@ -293,7 +293,7 @@ struct StageRewardTests {
         let expectedBattleGrant = StageCompletion.resolvedGoldReward(
             stageGold: 0,
             battleEarnedGold: battleEarnedGold,
-            homestead: save.homestead
+            homestead: save.homestead,
         )
 
         StageCompletion.claimRewardsIfNeeded(
@@ -301,7 +301,7 @@ struct StageRewardTests {
             hero: hero,
             companion: companion,
             battleEarnedGold: battleEarnedGold,
-            save: &save
+            save: &save,
         )
 
         try #expect(save.roster.gold == goldAfterClaim + expectedBattleGrant)
@@ -310,24 +310,24 @@ struct StageRewardTests {
         try #expect(save.journey.hasClaimedRewards(for: firstStage))
     }
 
-    @Test func resolvedGoldRewardDoesNotGoNegative() {
+    @Test func `resolved gold reward does not go negative`() {
         #expect(
             StageCompletion.resolvedGoldReward(
                 stageGold: 0,
                 battleEarnedGold: -3,
-                goldFindPercent: 0
-            ) == 0
+                goldFindPercent: 0,
+            ) == 0,
         )
         #expect(
             StageCompletion.resolvedGoldReward(
                 stageGold: 10,
                 battleEarnedGold: -3,
-                goldFindPercent: 0
-            ) == 7
+                goldFindPercent: 0,
+            ) == 7,
         )
     }
 
-    @Test func claimRewardsUsesPrecomputedMaterialRewards() throws {
+    @Test func `claim rewards uses precomputed material rewards`() throws {
         var save = SaveTestSupport.makeSave()
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
@@ -338,7 +338,7 @@ struct StageRewardTests {
             hero: hero,
             companion: companion,
             materialRewards: overrides,
-            save: &save
+            save: &save,
         )
 
         try #expect(save.homestead.resources[.crystal] == 7)

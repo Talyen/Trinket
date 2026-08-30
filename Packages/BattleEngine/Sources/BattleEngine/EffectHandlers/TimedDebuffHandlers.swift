@@ -9,7 +9,7 @@ struct TimedDebuffHandler: BattleEffectHandler {
         ability _: Ability,
         source: Combatant,
         target: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> EffectApplyOutcome {
         context.appendEffect(effect, to: target, sourceID: source.id, remainingTurns: effect.durationTurns)
         return EffectApplyOutcome(events: [], didApply: true)
@@ -26,17 +26,17 @@ struct TimedDebuffHandler: BattleEffectHandler {
             let percentInt = Int((percent * 100).rounded())
             return EffectSummary(
                 keyword: keyword,
-                text: "Weakened: Outgoing damage reduced by \(percentInt)%\(durationSuffix)."
+                text: "Weakened: Outgoing damage reduced by \(percentInt)%\(durationSuffix).",
             )
         case let .damageReductionFlat(amount, _):
             return EffectSummary(
                 keyword: keyword,
-                text: "Dazzled: Outgoing damage reduced by \(amount)\(durationSuffix)."
+                text: "Dazzled: Outgoing damage reduced by \(amount)\(durationSuffix).",
             )
         case let .strengthReduction(amount, _):
             return EffectSummary(
                 keyword: keyword,
-                text: "Weakened Soul: Strength reduced by \(amount)\(durationSuffix)."
+                text: "Weakened Soul: Strength reduced by \(amount)\(durationSuffix).",
             )
         default:
             return nil

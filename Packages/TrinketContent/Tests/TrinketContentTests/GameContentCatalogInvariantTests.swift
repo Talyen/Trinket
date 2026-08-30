@@ -2,12 +2,12 @@ import Testing
 @testable import TrinketContent
 
 struct GameContentCatalogInvariantTests {
-    @Test func itemBaseIDsAreUnique() throws {
+    @Test func `item base I ds are unique`() throws {
         let ids = GameContent.itemBaseTypes.map(\.id)
         try #expect(ids.count == Set(ids).count)
     }
 
-    @Test func catalogIDsAreUnique() throws {
+    @Test func `catalog I ds are unique`() throws {
         let catalogs: [[String]] = [
             GameContent.itemAffixDefinitions.map(\.id),
             GameContent.traits.map(\.id),
@@ -18,25 +18,25 @@ struct GameContentCatalogInvariantTests {
         }
     }
 
-    @Test func battlePrewarmSFXResolveInCatalog() throws {
+    @Test func `battle prewarm SFX resolve in catalog`() throws {
         for id in SFXID.battlePrewarmIDs {
             _ = try #require(SFXCatalog.clipsByID[id], "Missing prewarm SFX id \(id)")
         }
     }
 
-    @Test func everyStageReferencesKnownEncounterContent() throws {
+    @Test func `every stage references known encounter content`() throws {
         let enemyIDs = Set(GameContent.enemies.map(\.id))
         for stage in GameContent.chapters.flatMap(\.stages) {
             if let enemyID = stage.encounter.battleEnemyID {
                 try #expect(
                     enemyIDs.contains(enemyID),
-                    "Stage \(stage.id) references unknown enemy \(enemyID)"
+                    "Stage \(stage.id) references unknown enemy \(enemyID)",
                 )
             }
             if let eventID = stage.encounter.mysteryEventID {
                 _ = try #require(
                     GameContent.mysteryEvent(matching: eventID),
-                    "Stage \(stage.id) references unknown mystery event \(eventID)"
+                    "Stage \(stage.id) references unknown mystery event \(eventID)",
                 )
             }
             if let eventID = stage.encounter.recruitEventID,
@@ -44,7 +44,7 @@ struct GameContentCatalogInvariantTests {
                eventID != StageEncounter.randomCompanionRecruitID {
                 let event = try #require(
                     GameContent.recruitEvent(matching: eventID),
-                    "Stage \(stage.id) references unknown recruit event \(eventID)"
+                    "Stage \(stage.id) references unknown recruit event \(eventID)",
                 )
                 _ = try #require(GameContent.combatant(forMysteryEvent: event))
             }

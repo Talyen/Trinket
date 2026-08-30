@@ -32,7 +32,7 @@ public extension JourneyProgressState {
 
     mutating func completeChapter(
         _ chapterID: String,
-        in chapters: [Chapter] = GameContent.chapters
+        in chapters: [Chapter] = GameContent.chapters,
     ) {
         guard let chapter = chapters.first(where: { $0.id == chapterID }),
               let lastStage = chapter.stages.last

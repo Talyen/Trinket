@@ -31,7 +31,7 @@ public struct RewardRevealLootSection: View {
         visibleWalletRewardCount: Int,
         spacing: CGFloat = TrinketDesign.Metrics.largeSpacing,
         focusedItemID: Binding<String?>,
-        onSelectItem: @escaping (InventoryItem) -> Void
+        onSelectItem: @escaping (InventoryItem) -> Void,
     ) {
         self.items = items
         self.gold = gold
@@ -89,13 +89,13 @@ public struct RewardRevealLootSection: View {
         if rewardCount > 0 {
             let goldOffset = gold > 0 ? 1 : 0
             TrinketWalletGrid(
-                columnCount: min(4, max(1, rewardCount))
+                columnCount: min(4, max(1, rewardCount)),
             ) {
                 if gold > 0 {
                     TrinketWalletResourcePill(
                         title: "Gold",
                         amount: gold,
-                        showsIncreasePrefix: showsIncreasePrefix
+                        showsIncreasePrefix: showsIncreasePrefix,
                     ) {
                         HomesteadResourceArtwork(resource: .gold)
                     }
@@ -106,7 +106,7 @@ public struct RewardRevealLootSection: View {
                     TrinketWalletResourcePill(
                         title: reward.resource.displayName,
                         amount: reward.quantity,
-                        showsIncreasePrefix: showsIncreasePrefix
+                        showsIncreasePrefix: showsIncreasePrefix,
                     ) {
                         HomesteadResourceArtwork(resource: reward.resource)
                     }

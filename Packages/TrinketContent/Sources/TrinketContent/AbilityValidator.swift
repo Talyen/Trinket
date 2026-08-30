@@ -55,14 +55,14 @@ enum AbilityValidator {
                 if !allyTargets.contains(targetedEffect.target) {
                     issues.append(Issue(
                         abilityID: ability.id,
-                        message: "cleanse effects must target allies (.actor, .hero, or .companion)"
+                        message: "cleanse effects must target allies (.actor, .hero, or .companion)",
                     ))
                 }
             case .purge, .purgeRandom:
                 if !enemyTargets.contains(targetedEffect.target) {
                     issues.append(Issue(
                         abilityID: ability.id,
-                        message: "purge effects must target enemies (.abilityTarget or .enemy)"
+                        message: "purge effects must target enemies (.abilityTarget or .enemy)",
                     ))
                 }
             default:
@@ -117,7 +117,7 @@ enum AbilityValidator {
 
         return Issue(
             abilityID: abilityID,
-            message: "enemy damage total \(total) is unusual for \(tier.rawValue) tier"
+            message: "enemy damage total \(total) is unusual for \(tier.rawValue) tier",
         )
     }
 
@@ -143,7 +143,7 @@ enum AbilityValidator {
             guard component.condition != nil, component.bonusAmount == 0 else { return nil }
             return Issue(
                 abilityID: ability.id,
-                message: "damage condition requires bonusAmount > 0 (amount always applies)"
+                message: "damage condition requires bonusAmount > 0 (amount always applies)",
             )
         }
     }

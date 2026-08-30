@@ -33,7 +33,7 @@ public extension PlayerRosterState {
     mutating func unlockTalent(
         node: TalentNode,
         inTree tree: TalentTree,
-        for combatantID: String
+        for combatantID: String,
     ) -> Bool {
         var currentUnlocked = unlockedTalents(for: combatantID)
         let points = availableTalentPoints(for: combatantID)

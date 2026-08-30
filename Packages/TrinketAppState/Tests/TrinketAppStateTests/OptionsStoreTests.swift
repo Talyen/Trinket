@@ -11,7 +11,7 @@ struct OptionsStoreTests {
         context = try AppTestContext()
     }
 
-    @Test func clearsStaleAutoBattleWhenRememberIsOffOnLoad() {
+    @Test func `clears stale auto battle when remember is off on load`() {
         context.userDefaults.set(true, forKey: OptionsStore.autoBattleEnabledKey)
 
         let store = OptionsStore(defaults: context.userDefaults)
@@ -21,7 +21,7 @@ struct OptionsStoreTests {
         #expect(!context.userDefaults.bool(forKey: OptionsStore.autoBattleEnabledKey))
     }
 
-    @Test func turningRememberOffClearsAutoBattle() {
+    @Test func `turning remember off clears auto battle`() {
         let store = OptionsStore(defaults: context.userDefaults)
         store.rememberAutoBattlePreference = true
         store.autoBattleEnabled = true

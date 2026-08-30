@@ -6,7 +6,7 @@ enum BalanceDurationAggregation {
         _ records: [BalanceBattleRecord],
         minRounds: Int,
         maxRounds: Int,
-        flagRate: Double
+        flagRate: Double,
     ) -> BalanceDurationBucketStats {
         guard !records.isEmpty else {
             return BalanceDurationBucketStats(
@@ -19,7 +19,7 @@ enum BalanceDurationAggregation {
                 maxRounds: 0,
                 worstEnemyID: nil,
                 flagged: false,
-                flagReason: nil
+                flagReason: nil,
             )
         }
         var acc = DurationAcc()
@@ -55,7 +55,7 @@ enum BalanceDurationAggregation {
             maxRounds: acc.maxRoundsValue,
             worstEnemyID: worstEnemyID,
             flagged: !flags.isEmpty,
-            flagReason: flags.isEmpty ? nil : flags.joined(separator: " ")
+            flagReason: flags.isEmpty ? nil : flags.joined(separator: " "),
         )
     }
 
@@ -71,7 +71,7 @@ enum BalanceDurationAggregation {
         mutating func accumulate(
             _ records: [BalanceBattleRecord],
             minRounds: Int,
-            maxRounds: Int
+            maxRounds: Int,
         ) {
             for record in records {
                 let rounds = record.result.rounds
@@ -96,7 +96,7 @@ enum BalanceDurationAggregation {
 
     static func enemyDurationTable(
         _ records: [BalanceBattleRecord],
-        flagRate _: Double
+        flagRate _: Double,
     ) -> [BalanceEnemyDurationStats] {
         let grouped = Dictionary(grouping: records, by: \.enemyID)
         return grouped.keys.sorted().compactMap { enemyID -> BalanceEnemyDurationStats? in
@@ -118,7 +118,7 @@ enum BalanceDurationAggregation {
                 battles: recs.count,
                 averageRounds: avg,
                 shortRate: Double(short) / Double(recs.count),
-                longRate: Double(long) / Double(recs.count)
+                longRate: Double(long) / Double(recs.count),
             )
         }
     }

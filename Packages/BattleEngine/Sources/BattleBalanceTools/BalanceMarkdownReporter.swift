@@ -10,7 +10,7 @@ public enum BalanceMarkdownReporter {
                 records: report.progressionRecords,
                 playerStates: report.progressionPlayerStates,
                 truncatedRuns: report.progressionTruncatedRuns,
-                elapsedSeconds: report.elapsedSeconds
+                elapsedSeconds: report.elapsedSeconds,
             )
         }
         var body = renderIdentityOrContrast(report)
@@ -22,7 +22,7 @@ public enum BalanceMarkdownReporter {
                 records: report.progressionRecords,
                 playerStates: report.progressionPlayerStates,
                 truncatedRuns: report.progressionTruncatedRuns,
-                elapsedSeconds: report.elapsedSeconds
+                elapsedSeconds: report.elapsedSeconds,
             )
         }
         return body
@@ -38,7 +38,7 @@ public enum BalanceMarkdownReporter {
                 BalanceMarkdownTables.appendIdentityTier(
                     tierStats,
                     compared: comparedStats(report, tier: tierStats.tier),
-                    into: &lines
+                    into: &lines,
                 )
             }
         }
@@ -47,7 +47,7 @@ public enum BalanceMarkdownReporter {
             BalanceMarkdownTables.appendContrasts(
                 title: "Ability Contrasts (paired lift vs sibling choice)",
                 summaries: report.abilityContrasts,
-                into: &lines
+                into: &lines,
             )
         }
 
@@ -55,7 +55,7 @@ public enum BalanceMarkdownReporter {
             BalanceMarkdownTables.appendContrasts(
                 title: "Affix Contrasts (empty-slot and replacement-affix baselines)",
                 summaries: report.affixContrasts,
-                into: &lines
+                into: &lines,
             )
         }
 
@@ -63,7 +63,7 @@ public enum BalanceMarkdownReporter {
             BalanceMarkdownTables.appendContrasts(
                 title: "Talent Contrasts (paired lift vs sibling in the same row)",
                 summaries: report.talentContrasts,
-                into: &lines
+                into: &lines,
             )
         }
 
@@ -71,7 +71,7 @@ public enum BalanceMarkdownReporter {
             BalanceMarkdownTables.appendContrasts(
                 title: "Talent Kit Contrasts (full kit vs none, legal point budget only)",
                 summaries: report.talentKitContrasts,
-                into: &lines
+                into: &lines,
             )
         }
 
@@ -110,7 +110,7 @@ public enum BalanceMarkdownReporter {
         lines.append("- Fight pacing: `\(report.config.appliesFightPacing ? "on" : "off")`")
         lines.append("- Identity battles: `\(report.records.count)`")
         lines.append(
-            "- Expected n/tier: enemies `\(expectedEnemyN)`, heroes ~`\(expectedHeroN)`, companions ~`\(expectedCompanionN)`, contrast pairs/focus `\(samples)`"
+            "- Expected n/tier: enemies `\(expectedEnemyN)`, heroes ~`\(expectedHeroN)`, companions ~`\(expectedCompanionN)`, contrast pairs/focus `\(samples)`",
         )
         lines.append("- Ability contrast rows: `\(report.abilityContrasts.count)`")
         lines.append("- Affix contrast rows: `\(report.affixContrasts.count)`")
@@ -120,16 +120,16 @@ public enum BalanceMarkdownReporter {
         if report.elapsedSeconds > 0, !report.records.isEmpty {
             lines.append(String(
                 format: "- Identity throughput: `%.1f` battles/sec",
-                Double(report.records.count) / report.elapsedSeconds
+                Double(report.records.count) / report.elapsedSeconds,
             ))
         }
         lines.append("- Peer Δ / lift flag threshold: `\(Int(report.config.peerDeltaFlagThreshold * 100)) pp`")
         lines.append(
-            "- Duration goal bands: trash `\(BalanceDurationThresholds.trashGoalBand)` rounds, boss `\(BalanceDurationThresholds.bossGoalBand)` rounds; flag when SHORT% or LONG% ≥ \(Int(report.config.durationFlagRate * 100))%."
+            "- Duration goal bands: trash `\(BalanceDurationThresholds.trashGoalBand)` rounds, boss `\(BalanceDurationThresholds.bossGoalBand)` rounds; flag when SHORT% or LONG% ≥ \(Int(report.config.durationFlagRate * 100))%.",
         )
         if samples < BalanceSweepConfig.contrastFlagMinPairs {
             lines.append(
-                "- Warning: samples < \(BalanceSweepConfig.contrastFlagMinPairs); contrast flags are disabled."
+                "- Warning: samples < \(BalanceSweepConfig.contrastFlagMinPairs); contrast flags are disabled.",
             )
         }
         lines.append("")
@@ -143,26 +143,26 @@ public enum BalanceMarkdownReporter {
         lines.append(
             "- Identity spends available talent points (1 per even level) on a legal kit: "
                 + "early a 1-node spend at L4 plus one basic aligned item, middle a partial spend, late the full 18-node kit. "
-                + "The early→middle cliff includes level, gear, and talents."
+                + "The early→middle cliff includes level, gear, and talents.",
         )
         lines.append(
-            "- Enemy ability/trait rows are presence margins (opposing kit); ⚠ EASY / ⚠ HARD are player win rate vs tier peer."
+            "- Enemy ability/trait rows are presence margins (opposing kit); ⚠ EASY / ⚠ HARD are player win rate vs tier peer.",
         )
         lines.append("- Contrast lifts hold partner/enemy/gear/loadout fixed and swap only the focus entity.")
         lines.append("- Ability and affix contrasts keep talents empty so those lifts stay isolated.")
         lines.append(
             "- Talent sibling contrasts swap one row choice (minimal legal prefix in that tree) only when the tier's talent points cover the prefix. "
-                + "Kit contrasts run only when points cover the full catalog (late)."
+                + "Kit contrasts run only when points cover the full catalog (late).",
         )
         lines.append("- Affix contrasts report empty-slot and replacement-affix baselines separately.")
         lines.append("- Gold and other economy talents are marked NONCOMBAT and never flagged LOW.")
         lines.append(
             "- Enemy power uses `EnemyPowerCurve` (L1/L20/L40): trash shares HP/stat multipliers; "
-                + "boss HP is 2x trash; L1 boss stats are 5.2 (L20/L40 10.77/18.90)."
+                + "boss HP is 2x trash; L1 boss stats are 5.2 (L20/L40 10.77/18.90).",
         )
         lines.append(
             "- Fight pacing is \(report.config.appliesFightPacing ? "ON" : "OFF") "
-                + "for this sweep (`--pacing off` measures raw kit power)."
+                + "for this sweep (`--pacing off` measures raw kit power).",
         )
         lines.append("")
     }

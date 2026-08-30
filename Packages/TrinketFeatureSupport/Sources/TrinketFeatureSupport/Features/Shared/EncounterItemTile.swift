@@ -19,7 +19,7 @@ public struct EncounterItemTile: View {
         selectionShineColors: [Color]? = nil,
         isDisabled: Bool = false,
         accessibilityID: String? = nil,
-        onSelect: @escaping () -> Void
+        onSelect: @escaping () -> Void,
     ) {
         self.item = item
         self.showsName = showsName
@@ -39,7 +39,7 @@ public struct EncounterItemTile: View {
                     showsName: false,
                     appliesCardSurface: false,
                     isSelected: isSelected,
-                    customShineColors: isSelected ? selectionShineColors : nil
+                    customShineColors: isSelected ? selectionShineColors : nil,
                 )
 
                 if showsName {

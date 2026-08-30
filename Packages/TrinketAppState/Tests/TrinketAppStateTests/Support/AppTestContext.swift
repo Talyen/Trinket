@@ -45,7 +45,7 @@ final class AppTestContext {
     func makeOnboardingEnvironment() -> AppEnvironment {
         AppEnvironment.parse(
             arguments: ["-disable-cloud-sync", "-disable-audio"],
-            environment: [:]
+            environment: [:],
         )
     }
 
@@ -54,11 +54,11 @@ final class AppTestContext {
         arguments: [String] = [],
         environment: [String: String] = [:],
         playerSave: PlayerSaveStore? = nil,
-        battleRuntime: (any BattleRuntime)? = nil
+        battleRuntime: (any BattleRuntime)? = nil,
     ) throws -> AppState {
         let parsed = AppEnvironment.parse(
             arguments: Self.defaultTestArguments + arguments,
-            environment: environment
+            environment: environment,
         )
         let battle: any BattleRuntime = battleRuntime ?? BattleSession(presentationEnvironment: .silent)
         let resolvedSave = try playerSave ?? sharedPlayerSave(resetState: parsed.resetState)
@@ -66,7 +66,7 @@ final class AppTestContext {
             environment: parsed,
             playerSave: resolvedSave,
             userDefaults: userDefaults,
-            makeBattleRuntime: { _ in battle }
+            makeBattleRuntime: { _ in battle },
         )
         lastBattle = battle as? BattleSession
         lastBattle?.openingHandDrawStagger = .zero
@@ -80,7 +80,7 @@ final class AppTestContext {
             environment: environment,
             playerSave: sharedPlayerSave(resetState: environment.resetState),
             userDefaults: userDefaults,
-            makeBattleRuntime: { _ in battle }
+            makeBattleRuntime: { _ in battle },
         )
         lastBattle = battle
         battle.openingHandDrawStagger = .zero
@@ -92,13 +92,13 @@ final class AppTestContext {
         arguments: [String] = [],
         environment: [String: String] = [:],
         playerSave: PlayerSaveStore? = nil,
-        battleRuntime: (any BattleRuntime)? = nil
+        battleRuntime: (any BattleRuntime)? = nil,
     ) throws -> PlaySession {
         try makeAppState(
             arguments: arguments,
             environment: environment,
             playerSave: playerSave,
-            battleRuntime: battleRuntime
+            battleRuntime: battleRuntime,
         ).play
     }
 
@@ -117,7 +117,7 @@ final class AppTestContext {
             disableCloudSync: true,
             resetState: resetState,
             inMemoryOnly: !resetState,
-            persistSaveImmediately: resetState
+            persistSaveImmediately: resetState,
         )
         if !resetState {
             cachedPlayerSave = store

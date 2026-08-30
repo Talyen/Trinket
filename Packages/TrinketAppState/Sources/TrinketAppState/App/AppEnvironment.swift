@@ -37,7 +37,7 @@ public struct AppEnvironment: Sendable {
         battleTickInterval: TimeInterval?,
         startingGold: Int?,
         enableFrameMetrics: Bool,
-        battlePerformanceScenario: BattlePerformanceScenario?
+        battlePerformanceScenario: BattlePerformanceScenario?,
     ) {
         self.launchTab = launchTab
         self.launchScreen = launchScreen
@@ -60,7 +60,7 @@ public struct AppEnvironment: Sendable {
     private static func load() -> Self {
         parse(
             arguments: ProcessInfo.processInfo.arguments,
-            environment: ProcessInfo.processInfo.environment
+            environment: ProcessInfo.processInfo.environment,
         )
     }
 
@@ -70,7 +70,7 @@ public struct AppEnvironment: Sendable {
         #if DEBUG
         let battlePerformanceScenario = argumentValue(
             after: "-battle-performance-scenario",
-            in: arguments
+            in: arguments,
         ).flatMap(BattlePerformanceScenario.init(rawValue:))
         #else
         let battlePerformanceScenario: BattlePerformanceScenario? = nil
@@ -100,7 +100,7 @@ public struct AppEnvironment: Sendable {
             startingGold: argumentValue(after: "-starting-gold", in: arguments)
                 .flatMap(Int.init),
             enableFrameMetrics: arguments.contains("-enable-frame-metrics"),
-            battlePerformanceScenario: battlePerformanceScenario
+            battlePerformanceScenario: battlePerformanceScenario,
         )
     }
 

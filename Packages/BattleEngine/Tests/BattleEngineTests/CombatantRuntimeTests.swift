@@ -10,7 +10,7 @@ struct CombatantRuntimeTests {
         maxHealth: Int = 20,
         actionIntervalTurns: Int? = nil,
         toughness: Int = 0,
-        agility: Int = 0
+        agility: Int = 0,
     ) -> Combatant {
         Combatant(
             id: id,
@@ -19,18 +19,18 @@ struct CombatantRuntimeTests {
             maxHealth: maxHealth,
             actionIntervalTurns: actionIntervalTurns,
             abilities: [],
-            primaryStats: PrimaryStats(agility: agility, toughness: toughness)
+            primaryStats: PrimaryStats(agility: agility, toughness: toughness),
         )
     }
 
-    @Test func initialResourcesAccountForStatsAndOverrides() throws {
+    @Test func `initial resources account for stats and overrides`() throws {
         let toughnessRuntime = CombatantRuntime(combatant: makeCombatant(maxHealth: 10, toughness: 5))
         try #expect(toughnessRuntime.currentHealth == 10)
         try #expect(toughnessRuntime.maxHealth == 10)
 
         let overrideRuntime = CombatantRuntime(
             combatant: makeCombatant(maxHealth: 20, toughness: 0),
-            initialHealth: 7
+            initialHealth: 7,
         )
         try #expect(overrideRuntime.currentHealth == 7)
 
@@ -41,21 +41,21 @@ struct CombatantRuntimeTests {
             maxHealth: 20,
             maxMana: 10,
             abilities: [],
-            primaryStats: PrimaryStats(intellect: 5)
+            primaryStats: PrimaryStats(intellect: 5),
         )
         let manaRuntime = CombatantRuntime(combatant: mage)
         try #expect(manaRuntime.currentMana == 11)
         try #expect(manaRuntime.maxMana == 11)
     }
 
-    @Test func initialActiveEffectsAreStored() throws {
+    @Test func `initial active effects are stored`() throws {
         let combatant = makeCombatant()
         let initial = [ActiveEffect(id: 1, effect: .burn(3), remainingTurns: 0)]
         let runtime = CombatantRuntime(combatant: combatant, initialActiveEffects: initial)
         try #expect(runtime.activeEffects == initial)
     }
 
-    @Test func healthMutationRulesRespectBoundsAndBonuses() throws {
+    @Test func `health mutation rules respect bounds and bonuses`() throws {
         for (maxHealth, damage, expectedLoss, expectedHealth, alive) in [
             (10, 3, 3, 7, true),
             (5, 100, 5, 0, false),
@@ -78,7 +78,7 @@ struct CombatantRuntimeTests {
             role: .hero,
             maxHealth: 20,
             abilities: [],
-            primaryStats: PrimaryStats(wisdom: 80)
+            primaryStats: PrimaryStats(wisdom: 80),
         ))
         _ = wisdomRuntime.takeRawDamage(15)
         try #expect(wisdomRuntime.heal(10) == 15)
@@ -88,14 +88,14 @@ struct CombatantRuntimeTests {
         try #expect(fullRuntime.heal(5) == 0)
     }
 
-    @Test func manaMutationRulesRespectBounds() throws {
+    @Test func `mana mutation rules respect bounds`() throws {
         let combatant = Combatant(
             id: "mage",
             name: "Mage",
             role: .hero,
             maxHealth: 20,
             maxMana: 10,
-            abilities: []
+            abilities: [],
         )
         var runtime = CombatantRuntime(combatant: combatant)
         let spent = runtime.spendMana(4)
@@ -111,7 +111,7 @@ struct CombatantRuntimeTests {
         try #expect(cappedRuntime.currentMana == 10)
     }
 
-    @Test func markActedIncrementsActionCount() throws {
+    @Test func `mark acted increments action count`() throws {
         let combatant = makeCombatant()
         var runtime = CombatantRuntime(combatant: combatant)
         try #expect(runtime.actionCount == 0)
@@ -123,7 +123,7 @@ struct CombatantRuntimeTests {
         try #expect(runtime.actionCount == 2)
     }
 
-    @Test func effectStorageReplacesAndFiltersByPredicate() throws {
+    @Test func `effect storage replaces and filters by predicate`() throws {
         let combatant = makeCombatant()
         var runtime = CombatantRuntime(combatant: combatant)
         runtime.setEffects([

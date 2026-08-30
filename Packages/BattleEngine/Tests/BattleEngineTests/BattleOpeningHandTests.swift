@@ -7,22 +7,22 @@ struct BattleOpeningHandTests {
     private func makeBattle(
         heroAbilities: [Ability],
         companionAbilities: [Ability],
-        rngSeed: UInt64
+        rngSeed: UInt64,
     ) -> BattleState {
         BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: heroAbilities,
             companionAbilities: companionAbilities,
-            rngSeed: rngSeed
+            rngSeed: rngSeed,
         )
     }
 
-    @Test func openingHandGuaranteesBasicPerOwnerPlusOneSkill() throws {
+    @Test func `opening hand guarantees basic per owner plus one skill`() throws {
         var skillOwners: Set<BattleParticipant> = []
         for seed: UInt64 in 0 ..< 24 {
             let battle = makeBattle(
                 heroAbilities: [.maul, .smite, .hemorrhage],
                 companionAbilities: [.bash, .serratedEdge, .bloodthorn],
-                rngSeed: seed
+                rngSeed: seed,
             )
             #expect(battle.hand.count == BattleHand.maxSize)
             try #expect(battle.handBuffer.isEmpty)

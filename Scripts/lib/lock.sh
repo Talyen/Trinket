@@ -16,7 +16,7 @@ trinket_dir_lock_acquire() {
 
   # Expand now so the EXIT trap captures the current lock path/pid (locals are gone at trap time).
   # shellcheck disable=SC2064
-  trap "trinket_dir_lock_release \"$lock_dir\" \"$$\"" EXIT INT TERM
+  trap "trinket_dir_lock_release \"$lock_dir\" \"${BASHPID:-$$}\"" EXIT INT TERM
 
   while ! mkdir "$lock_dir" 2>/dev/null; do
     lock_pid=""
@@ -36,7 +36,7 @@ trinket_dir_lock_acquire() {
     fi
     sleep 1
   done
-  printf '%s\n' "$$" > "$lock_dir/pid"
+  printf '%s\n' "${BASHPID:-$$}" > "$lock_dir/pid"
 }
 
 trinket_dir_lock_release() {

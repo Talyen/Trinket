@@ -18,33 +18,33 @@ enum BattleSessionTestSupport {
         enemy: Combatant? = nil,
         autoEndTurnDelay: TimeInterval = 0.01,
         presentationEnvironment: BattleRuntimeDependencies = .silent,
-        stageRewardsAlreadyClaimed: Bool = false
+        stageRewardsAlreadyClaimed: Bool = false,
     ) throws -> BattleSession {
         let resolvedHero = hero ?? CombatantFixtures.combatant(
             id: "hero",
             role: .hero,
             actionIntervalTurns: 1,
-            abilities: [.slash]
+            abilities: [.slash],
         )
         let resolvedCompanion = companion ?? CombatantFixtures.combatant(
             id: "companion",
             role: .companion,
             actionIntervalTurns: 100,
-            abilities: []
+            abilities: [],
         )
         let resolvedEnemy = enemy ?? CombatantFixtures.combatant(
             id: "enemy",
             role: .enemy,
             maxHealth: 100,
             actionIntervalTurns: 100,
-            abilities: []
+            abilities: [],
         )
         let session = BattleSession(
             autoEndTurnDelay: autoEndTurnDelay,
             openingHandDrawStagger: 0,
             enemyAttackImpactDelayOverride: 0,
             outcomePresentationDelayOverride: 0,
-            presentationEnvironment: presentationEnvironment
+            presentationEnvironment: presentationEnvironment,
         )
         session.partyCelebrateDelayOverride = .zero
         session.autoBattleRetryDelay = .zero
@@ -53,7 +53,7 @@ enum BattleSessionTestSupport {
             hero: resolvedHero,
             companion: resolvedCompanion,
             enemy: resolvedEnemy,
-            stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed
+            stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
         )
         _ = session.activate(configuration)
         session.installPresentationContext(presentation)
@@ -61,20 +61,20 @@ enum BattleSessionTestSupport {
     }
 
     static func presentationEnvironment(
-        shouldAutoSkipUltimateCinematic: @escaping (String, Set<String>) -> Bool
+        shouldAutoSkipUltimateCinematic: @escaping (String, Set<String>) -> Bool,
     ) -> BattleRuntimeDependencies {
         BattleRuntimeDependencies(
             playSFX: { _ in },
             warmSFX: { _, _ in },
             hapticsEnabled: { false },
             effectsVolume: { 0 },
-            shouldAutoSkipUltimateCinematic: shouldAutoSkipUltimateCinematic
+            shouldAutoSkipUltimateCinematic: shouldAutoSkipUltimateCinematic,
         )
     }
 
     static func waitUntil(
         timeout: Duration = .seconds(2),
-        condition: @escaping @MainActor () -> Bool
+        condition: @escaping @MainActor () -> Bool,
     ) async throws -> Bool {
         let deadline = ContinuousClock.now.advanced(by: timeout)
         while !condition() {
@@ -88,7 +88,7 @@ enum BattleSessionTestSupport {
     static func driveUntilOutcome(
         _ session: BattleSession,
         at date: Date = .now,
-        maxActions: Int = 200
+        maxActions: Int = 200,
     ) -> Int? {
         var actions = 0
         while session.outcome == nil, actions < maxActions {
@@ -100,7 +100,7 @@ enum BattleSessionTestSupport {
             if let card = session.hand.first(where: { session.isCardPlayable($0) }) {
                 _ = session.playCard(
                     cardID: card.id,
-                    at: date
+                    at: date,
                 )
                 continue
             }
@@ -118,7 +118,7 @@ enum BattleSessionTestSupport {
         _ abilityID: String,
         on session: BattleSession,
         at date: Date = .now,
-        maxActions: Int = 40
+        maxActions: Int = 40,
     ) -> BattleCard? {
         var actions = 0
         while session.outcome == nil, actions < maxActions {
@@ -135,7 +135,7 @@ enum BattleSessionTestSupport {
             if let other = session.hand.first(where: { session.isCardPlayable($0) }) {
                 _ = session.playCard(
                     cardID: other.id,
-                    at: date
+                    at: date,
                 )
                 continue
             }
@@ -153,17 +153,17 @@ enum BattleSessionTestSupport {
         _ abilityID: String,
         on session: BattleSession,
         at date: Date = .now,
-        maxActions: Int = 40
+        maxActions: Int = 40,
     ) -> Int? {
         guard let card = drawUntilPlayable(
             abilityID,
             on: session,
             at: date,
-            maxActions: maxActions
+            maxActions: maxActions,
         ) else { return nil }
         _ = session.playCard(
             cardID: card.id,
-            at: date
+            at: date,
         )
         return session.outcome == .victory ? session.earnedGold : nil
     }
@@ -183,13 +183,13 @@ enum BattleSessionTestSupport {
         session: BattleSession,
         isCardCastActive: @escaping @MainActor () -> Bool = { false },
         isManualInteractionActive: @escaping @MainActor () -> Bool = { false },
-        playCard: @escaping @MainActor (BattleCard) async -> Bool
+        playCard: @escaping @MainActor (BattleCard) async -> Bool,
     ) async {
         session.isAutoBattleEnabled = true
         await session.driveAutoBattle(
             isCardCastActive: isCardCastActive,
             isManualInteractionActive: isManualInteractionActive,
-            playCard: playCard
+            playCard: playCard,
         )
     }
 
@@ -203,7 +203,7 @@ enum BattleSessionTestSupport {
         isCritical: Bool = false,
         actionID: Int? = nil,
         abilityID: String = "slash",
-        abilityName: String = "Slash"
+        abilityName: String = "Slash",
     ) -> ActionEvent {
         ActionEvent(
             id: id,
@@ -218,7 +218,7 @@ enum BattleSessionTestSupport {
             targetName: targetID.capitalized,
             amount: amount,
             keyword: keyword,
-            isCritical: isCritical
+            isCritical: isCritical,
         )
     }
 }

@@ -11,7 +11,7 @@ import TrinketPersistence
 
 private let trinketAppLogger = Logger(
     subsystem: PlayerSaveDefaults.loggingSubsystem,
-    category: "TrinketApp"
+    category: "TrinketApp",
 )
 
 @main
@@ -24,36 +24,36 @@ struct TrinketApp: App {
         let makeBattleRuntime: (BattleRuntimeDependencies) -> any BattleRuntime = { dependencies in
             BattleSession(
                 autoEndTurnDelay: environment.battleTickInterval ?? 0.4,
-                presentationEnvironment: dependencies
+                presentationEnvironment: dependencies,
             )
         }
 
         do {
             let state = try AppState(
                 environment: environment,
-                makeBattleRuntime: makeBattleRuntime
+                makeBattleRuntime: makeBattleRuntime,
             )
             _appState = State(initialValue: state)
         } catch {
             assertionFailure("AppState bootstrap failed: \(error)")
             trinketAppLogger.error(
-                "AppState bootstrap failed: \(error.localizedDescription, privacy: .public)"
+                "AppState bootstrap failed: \(error.localizedDescription, privacy: .public)",
             )
             do {
                 let fallbackSave = try PlayerSaveStore(inMemoryOnly: true)
                 let state = try AppState(
                     environment: environment,
                     playerSave: fallbackSave,
-                    makeBattleRuntime: makeBattleRuntime
+                    makeBattleRuntime: makeBattleRuntime,
                 )
                 _appState = State(initialValue: state)
             } catch {
                 trinketAppLogger.fault(
-                    "AppState in-memory fallback failed: \(error.localizedDescription, privacy: .public)"
+                    "AppState in-memory fallback failed: \(error.localizedDescription, privacy: .public)",
                 )
                 _appState = State(initialValue: nil)
                 _bootstrapFailureMessage = State(
-                    initialValue: "Progress storage could not be started on this device. Try freeing space or reinstalling, then launch again."
+                    initialValue: "Progress storage could not be started on this device. Try freeing space or reinstalling, then launch again.",
                 )
             }
         }
@@ -64,12 +64,12 @@ struct TrinketApp: App {
             if let appState {
                 PreparedAppRoot(
                     appState: appState,
-                    priorityImageNames: priorityImageNames(for: appState)
+                    priorityImageNames: priorityImageNames(for: appState),
                 )
             } else {
                 AppBootstrapFailureView(
                     message: bootstrapFailureMessage
-                        ?? "Progress storage could not be started on this device."
+                        ?? "Progress storage could not be started on this device.",
                 )
             }
         }
@@ -90,7 +90,7 @@ struct TrinketApp: App {
             [reference.imageName, reference.thumbnailImageName].compactMap(\.self)
         } ?? []
         return Array(
-            Set(activeParty + starterChoices + enemyNames + rootTabImageNames(for: appState))
+            Set(activeParty + starterChoices + enemyNames + rootTabImageNames(for: appState)),
         ).sorted()
     }
 
@@ -101,7 +101,7 @@ struct TrinketApp: App {
 
         let collectionCombatants = (
             Array(roster.collectionHeroes.prefix(shelfLimit))
-                + Array(roster.collectionCompanions.prefix(shelfLimit))
+                + Array(roster.collectionCompanions.prefix(shelfLimit)),
         ).compactMap { $0.artReference?.thumbnailImageName }
         let collectionDetail = CollectionView.imminentDetailArtworkNames(roster: roster)
         let collectionItems = inventory.items.prefix(shelfLimit).compactMap {
@@ -119,11 +119,11 @@ struct TrinketApp: App {
         let chapter = appState.play.journey.playChapter
         let campaignHero = (
             ArtCatalog.backgroundArtByID[chapter.id]
-                ?? ArtCatalog.backgroundArtByID["chapter-1"]
+                ?? ArtCatalog.backgroundArtByID["chapter-1"],
         )?.imageName
         let campaignRows = chapter.stages.flatMap { stage -> [String] in
             if let combatant = stage.encounterCombatantArtReference(
-                worldSeed: appState.playerSave.worldSeed
+                worldSeed: appState.playerSave.worldSeed,
             ) {
                 return [combatant.imageName, combatant.thumbnailImageName].compactMap(\.self)
             }

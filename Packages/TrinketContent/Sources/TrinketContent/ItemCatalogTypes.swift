@@ -19,7 +19,7 @@ public struct ItemBaseType: Identifiable, Equatable, Hashable, Sendable {
         name: String,
         slot: ItemSlot,
         weaponKind: WeaponKind? = nil,
-        keywordAffinities: Set<Keyword>
+        keywordAffinities: Set<Keyword>,
     ) {
         self.id = id
         self.name = name
@@ -83,7 +83,7 @@ public struct ItemAffix: Identifiable, Equatable, Hashable, Sendable {
         title: String,
         description: String,
         keywords: Set<Keyword>,
-        isCorrupted: Bool = false
+        isCorrupted: Bool = false,
     ) {
         self.id = id
         self.title = title
@@ -120,7 +120,7 @@ public struct ItemAffixPower: Codable, Equatable, Hashable, Sendable {
     public init(
         description: String,
         modifiers: [AffixModifier],
-        triggers: CombatTraitTriggers = CombatTraitTriggers()
+        triggers: CombatTraitTriggers = CombatTraitTriggers(),
     ) {
         self.description = description
         self.modifiers = modifiers
@@ -176,7 +176,7 @@ public struct ItemAffixDefinition: Identifiable, Equatable, Hashable, Sendable {
         keywords: Set<Keyword>,
         weight: Int,
         basic: ItemAffixPower,
-        astral: ItemAffixPower
+        astral: ItemAffixPower,
     ) {
         self.id = id
         self.title = title
@@ -215,7 +215,7 @@ public struct ItemAffixDefinition: Identifiable, Equatable, Hashable, Sendable {
             id: id,
             title: title,
             description: power.description,
-            keywords: keywords
+            keywords: keywords,
         )
     }
 }

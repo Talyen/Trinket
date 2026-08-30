@@ -21,7 +21,7 @@ struct ThornsHandler: BattleEffectHandler {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> EffectApplyOutcome {
         guard case let .thorns(amount) = effect, amount > 0 else {
             return EffectApplyOutcome(events: [], didApply: false)
@@ -40,7 +40,7 @@ struct ThornsHandler: BattleEffectHandler {
             ability: ability,
             in: &context,
             replacing: { $0.kind == .thorns },
-            event: (.thornsApplied, total, .physical)
+            event: (.thornsApplied, total, .physical),
         )
         return EffectApplyOutcome(events: [event], didApply: true)
     }
@@ -66,7 +66,7 @@ struct OnHitDamageHandler: BattleEffectHandler {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> EffectApplyOutcome {
         guard case let .onHitDamage(keyword, amount) = effect, amount > 0 else {
             return EffectApplyOutcome(events: [], didApply: false)
@@ -83,7 +83,7 @@ struct OnHitDamageHandler: BattleEffectHandler {
                 }
                 return false
             },
-            event: (.wardApplied, amount, keyword)
+            event: (.wardApplied, amount, keyword),
         )
         return EffectApplyOutcome(events: [event], didApply: true)
     }
@@ -110,12 +110,12 @@ struct MarkedHandler: BattleEffectHandler {
             if maxTicks > 0 {
                 return EffectSummary(
                     keyword: keyword,
-                    text: "Marked: Takes +\(bonus) damage from attacks, \(BattleTiming.remainingDurationLabel(turns: maxTicks))."
+                    text: "Marked: Takes +\(bonus) damage from attacks, \(BattleTiming.remainingDurationLabel(turns: maxTicks)).",
                 )
             }
             return EffectSummary(
                 keyword: keyword,
-                text: "Marked: Takes +\(bonus) damage from attacks."
+                text: "Marked: Takes +\(bonus) damage from attacks.",
             )
         }
         return EffectSummary(keyword: keyword, text: "Marked: Takes extra damage from attacks.")
@@ -126,7 +126,7 @@ struct MarkedHandler: BattleEffectHandler {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> EffectApplyOutcome {
         guard case let .marked(bonus, durationTurns) = effect else {
             return EffectApplyOutcome(events: [], didApply: false)
@@ -138,7 +138,7 @@ struct MarkedHandler: BattleEffectHandler {
             ability: ability,
             in: &context,
             replacing: { $0.kind == .marked },
-            event: (.markedApplied, bonus, .physical)
+            event: (.markedApplied, bonus, .physical),
         )
         return EffectApplyOutcome(events: [event], didApply: true)
     }
@@ -163,7 +163,7 @@ struct CriticalChanceBonusHandler: BattleEffectHandler {
         }
         return EffectSummary(
             keyword: keyword,
-            text: "Focused: Increases Critical chance by +\(Int(percent * 100))%, \(BattleTiming.remainingDurationLabel(turns: maxTicks))."
+            text: "Focused: Increases Critical chance by +\(Int(percent * 100))%, \(BattleTiming.remainingDurationLabel(turns: maxTicks)).",
         )
     }
 
@@ -172,7 +172,7 @@ struct CriticalChanceBonusHandler: BattleEffectHandler {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> EffectApplyOutcome {
         guard case let .criticalChanceBonus(percent, durationTurns) = effect else {
             return EffectApplyOutcome(events: [], didApply: false)
@@ -184,7 +184,7 @@ struct CriticalChanceBonusHandler: BattleEffectHandler {
             ability: ability,
             in: &context,
             replacing: { $0.kind == .criticalChanceBonus },
-            event: (.criticalChanceApplied, Int(percent * 100), .physical)
+            event: (.criticalChanceApplied, Int(percent * 100), .physical),
         )
         return EffectApplyOutcome(events: [event], didApply: true)
     }
@@ -209,7 +209,7 @@ struct RestoreManaOnHitHandler: BattleEffectHandler {
         }
         return EffectSummary(
             keyword: keyword,
-            text: "Mana Shield: Restores \(amount) Mana when hit, \(BattleTiming.remainingDurationLabel(turns: maxTicks))."
+            text: "Mana Shield: Restores \(amount) Mana when hit, \(BattleTiming.remainingDurationLabel(turns: maxTicks)).",
         )
     }
 
@@ -218,7 +218,7 @@ struct RestoreManaOnHitHandler: BattleEffectHandler {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> EffectApplyOutcome {
         guard case let .restoreManaOnHit(amount, durationTurns) = effect else {
             return EffectApplyOutcome(events: [], didApply: false)
@@ -231,7 +231,7 @@ struct RestoreManaOnHitHandler: BattleEffectHandler {
             abilityName: ability.name,
             target: target,
             amount: amount,
-            keyword: .mana
+            keyword: .mana,
         )
         return EffectApplyOutcome(events: [event], didApply: true)
     }
@@ -252,7 +252,7 @@ struct DamageKeywordOverrideHandler: BattleEffectHandler {
         }
         return EffectSummary(
             keyword: keyword,
-            text: "Consecrated: Attacks deal \(overrideKeyword.rawValue) damage (+\(bonus)), \(BattleTiming.remainingDurationLabel(turns: maxTicks))."
+            text: "Consecrated: Attacks deal \(overrideKeyword.rawValue) damage (+\(bonus)), \(BattleTiming.remainingDurationLabel(turns: maxTicks)).",
         )
     }
 
@@ -261,7 +261,7 @@ struct DamageKeywordOverrideHandler: BattleEffectHandler {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> EffectApplyOutcome {
         guard case let .damageKeywordOverride(keyword, bonus, durationTurns) = effect else {
             return EffectApplyOutcome(events: [], didApply: false)
@@ -273,7 +273,7 @@ struct DamageKeywordOverrideHandler: BattleEffectHandler {
             ability: ability,
             in: &context,
             replacing: { $0.kind == .damageKeywordOverride },
-            event: (.damageKeywordOverrideApplied, bonus, keyword)
+            event: (.damageKeywordOverrideApplied, bonus, keyword),
         )
         return EffectApplyOutcome(events: [event], didApply: true)
     }
@@ -298,7 +298,7 @@ struct HemorrhageHandler: BattleEffectHandler {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> EffectApplyOutcome {
         guard case let .hemorrhage(amount) = effect, amount > 0 else {
             return EffectApplyOutcome(events: [], didApply: false)
@@ -310,7 +310,7 @@ struct HemorrhageHandler: BattleEffectHandler {
             ability: ability,
             in: &context,
             replacing: { $0.kind == .hemorrhage },
-            event: (.hemorrhageApplied, amount, .bleed)
+            event: (.hemorrhageApplied, amount, .bleed),
         )
         return EffectApplyOutcome(events: [event], didApply: true)
     }

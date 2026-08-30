@@ -14,7 +14,7 @@ public final class PlayerSaveStore {
     public static let cloudKitContainerIdentifier = "iCloud.com.ryanmcintire.Trinket"
     private static let performanceSignposter = OSSignposter(
         subsystem: PlayerSaveDefaults.loggingSubsystem,
-        category: "PersistencePerformance"
+        category: "PersistencePerformance",
     )
 
     private let container: ModelContainer
@@ -26,7 +26,7 @@ public final class PlayerSaveStore {
     private var observedSave: PlayerSave = .fresh
     private let logger = Logger(
         subsystem: PlayerSaveDefaults.loggingSubsystem,
-        category: "PlayerSave"
+        category: "PlayerSave",
     )
 
     public private(set) var lastPersistenceError: PlayerSavePersistenceError?
@@ -94,7 +94,7 @@ public final class PlayerSaveStore {
         disableCloudSync: Bool = false,
         resetState: Bool = false,
         inMemoryOnly: Bool = false,
-        persistSaveImmediately: Bool = true
+        persistSaveImmediately: Bool = true,
     ) throws {
         let bootstrapInterval = Self.performanceSignposter.beginInterval("PlayerSaveBootstrap")
         defer {
@@ -119,27 +119,27 @@ public final class PlayerSaveStore {
             storeURL: storeURL,
             disableCloudSync: disableCloudSync,
             inMemoryOnly: inMemoryOnly,
-            cloudKitContainerIdentifier: Self.cloudKitContainerIdentifier
+            cloudKitContainerIdentifier: Self.cloudKitContainerIdentifier,
         )
 
         let openResult = try Self.openContainer(
             schema: schema,
             configuration: resolved.config,
             recoveryURL: resolved.recoveryURL,
-            logger: logger
+            logger: logger,
         )
         container = openResult.container
         isCloudSyncEnabled = requestedCloudSync && !openResult.usedInMemoryFallback
         if openResult.usedInMemoryFallback {
             isPersistenceDegraded = true
             lastPersistenceError = .storeUnavailable(
-                "Couldn't open on-device save storage. Progress is kept in memory until you restart after freeing space."
+                "Couldn't open on-device save storage. Progress is kept in memory until you restart after freeing space.",
             )
         }
         if openResult.recoveredAfterStoreDeletion {
             recoveredAfterStoreDeletion = true
             lastPersistenceError = .storeUnavailable(
-                "Saved progress was unreadable and couldn't be repaired, so a fresh start was created."
+                "Saved progress was unreadable and couldn't be repaired, so a fresh start was created.",
             )
         }
         context = ModelContext(container)
@@ -170,7 +170,7 @@ public final class PlayerSaveStore {
 
     public func performBatchMutation(
         _ update: (inout PlayerSave) -> Void,
-        persistImmediately: Bool = true
+        persistImmediately: Bool = true,
     ) throws {
         let mutationInterval = Self.performanceSignposter.beginInterval("PlayerSaveMutation")
         defer {
@@ -209,14 +209,14 @@ public final class PlayerSaveStore {
     @discardableResult
     public func persistBatch(
         logging message: String,
-        _ mutation: (inout PlayerSave) -> Void
+        _ mutation: (inout PlayerSave) -> Void,
     ) -> Bool {
         do {
             try performBatchMutation(mutation)
             return true
         } catch {
             logger.error(
-                "\(message, privacy: .public): \(error.localizedDescription, privacy: .public)"
+                "\(message, privacy: .public): \(error.localizedDescription, privacy: .public)",
             )
             return false
         }
@@ -326,7 +326,7 @@ public final class PlayerSaveStore {
             installObservedSave(observedSnapshot)
             lastPersistenceError = .writeFailed
             logger.error(
-                "Failed to persist sanitized player graph: \(error.localizedDescription, privacy: .public)"
+                "Failed to persist sanitized player graph: \(error.localizedDescription, privacy: .public)",
             )
         }
     }
@@ -352,7 +352,7 @@ private extension PlayerSaveStore {
         schema: Schema,
         configuration: ModelConfiguration,
         recoveryURL: URL?,
-        logger: Logger
+        logger: Logger,
     ) throws -> ModelContainerBootstrap.OpenResult {
         let interval = performanceSignposter.beginInterval("ModelContainerOpen")
         defer {
@@ -364,13 +364,13 @@ private extension PlayerSaveStore {
             logger: logger,
             logLabel: "player save",
             storeURLForRecovery: recoveryURL,
-            deleteStoreOnFailure: true
+            deleteStoreOnFailure: true,
         )
     }
 
     static func loadOrCreateRoot(
         in context: ModelContext,
-        logger: Logger
+        logger: Logger,
     ) throws -> (root: PlayerSaveRoot, wasExisting: Bool, initialSaveFailed: Bool) {
         let interval = performanceSignposter.beginInterval("PlayerSaveRootLoad")
         defer {
@@ -386,7 +386,7 @@ private extension PlayerSaveStore {
             return (root, false, false)
         } catch {
             logger.error(
-                "Failed to save initial player save root: \(error.localizedDescription, privacy: .public)"
+                "Failed to save initial player save root: \(error.localizedDescription, privacy: .public)",
             )
             return (root, false, true)
         }
@@ -394,7 +394,7 @@ private extension PlayerSaveStore {
 
     func measured<Result>(
         _ name: StaticString,
-        operation: () throws -> Result
+        operation: () throws -> Result,
     ) rethrows -> Result {
         let interval = Self.performanceSignposter.beginInterval(name)
         defer {
@@ -420,7 +420,7 @@ private extension PlayerSaveStore {
                 rollbackPendingMutationIfNeeded()
                 lastPersistenceError = .writeFailed
                 logger.error(
-                    "Failed to persist deferred player graph mutation: \(error.localizedDescription, privacy: .public)"
+                    "Failed to persist deferred player graph mutation: \(error.localizedDescription, privacy: .public)",
                 )
             }
         }

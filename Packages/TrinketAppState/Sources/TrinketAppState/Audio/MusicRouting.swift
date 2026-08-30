@@ -18,7 +18,7 @@ struct MusicPlaybackRequest: Equatable {
         track: MusicTrack,
         contextKind: MusicTrackKind,
         stageID: String?,
-        enemyID: String?
+        enemyID: String?,
     ) -> Self {
         Self(
             track: track,
@@ -26,9 +26,9 @@ struct MusicPlaybackRequest: Equatable {
                 contextKind: contextKind,
                 stageID: stageID,
                 enemyID: enemyID,
-                trackID: track.id
+                trackID: track.id,
             ),
-            shouldResume: true
+            shouldResume: true,
         )
     }
 }
@@ -42,7 +42,7 @@ enum MusicRoute: Equatable {
         activeBattle: BattleRunConfiguration?,
         battleStageID: String? = nil,
         sceneIsActive: Bool,
-        musicVolume: Double
+        musicVolume: Double,
     ) -> Self {
         guard sceneIsActive, musicVolume > 0 else {
             return .silence(preservingPosition: true)
@@ -71,8 +71,8 @@ enum MusicRoute: Equatable {
                 track: track,
                 contextKind: .menu,
                 stageID: nil,
-                enemyID: nil
-            )
+                enemyID: nil,
+            ),
         )
     }
 
@@ -84,8 +84,8 @@ enum MusicRoute: Equatable {
                     track: bossTrack,
                     contextKind: .boss,
                     stageID: stageID,
-                    enemyID: enemyID
-                )
+                    enemyID: enemyID,
+                ),
             )
         }
 
@@ -98,8 +98,8 @@ enum MusicRoute: Equatable {
                 track: track,
                 contextKind: .battle,
                 stageID: stageID,
-                enemyID: enemyID
-            )
+                enemyID: enemyID,
+            ),
         )
     }
 

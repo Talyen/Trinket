@@ -14,7 +14,7 @@ struct PlayModeHubScreen<Content: View>: View {
         ScrollView {
             LazyVGrid(
                 columns: TrinketDesign.Metrics.hubGridItems(for: horizontalSizeClass),
-                spacing: TrinketDesign.Metrics.largeSpacing
+                spacing: TrinketDesign.Metrics.largeSpacing,
             ) {
                 content()
             }

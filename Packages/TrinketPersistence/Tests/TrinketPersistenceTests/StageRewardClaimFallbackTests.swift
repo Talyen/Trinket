@@ -12,7 +12,7 @@ struct StageRewardClaimFallbackTests {
     }
 
     @Test(arguments: [ClaimFallbackMode.journey, .spire])
-    func claimFallbackUsesPartyAdjustedEncounterLevel(mode: ClaimFallbackMode) throws {
+    func `claim fallback uses party adjusted encounter level`(mode: ClaimFallbackMode) throws {
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
 
@@ -25,7 +25,7 @@ struct StageRewardClaimFallbackTests {
             hero: hero,
             companion: companion,
             save: &pinned,
-            enemyEncounterLevel: level
+            enemyEncounterLevel: level,
         )
         let pinnedXP = pinned.roster.progression(for: hero).currentXP
 
@@ -37,7 +37,7 @@ struct StageRewardClaimFallbackTests {
             hero: hero,
             companion: companion,
             save: &fallback,
-            enemyEncounterLevel: nil
+            enemyEncounterLevel: nil,
         )
 
         try assertModeExpectations(mode: mode, level: level)
@@ -49,7 +49,7 @@ struct StageRewardClaimFallbackTests {
         hero: Combatant,
         companion: Combatant,
         save: inout PlayerSave,
-        enemyEncounterLevel: Int?
+        enemyEncounterLevel: Int?,
     ) throws {
         switch mode {
         case .journey:
@@ -60,12 +60,12 @@ struct StageRewardClaimFallbackTests {
                 companion: companion,
                 enemyEncounterLevel: enemyEncounterLevel,
                 in: GameContent.chapters,
-                save: &save
+                save: &save,
             )
         case .spire:
             let spire = try #require(GameContent.spire(id: .ironVein))
             let topFloor = try #require(
-                GameContent.spireFloor(spireID: .ironVein, floor: spire.floorCount)
+                GameContent.spireFloor(spireID: .ironVein, floor: spire.floorCount),
             )
             for floor in 1 ..< spire.floorCount {
                 _ = save.spires.markFloorCleared(floor, spireID: SpireID.ironVein.rawValue)
@@ -75,7 +75,7 @@ struct StageRewardClaimFallbackTests {
                 hero: hero,
                 companion: companion,
                 enemyEncounterLevel: enemyEncounterLevel,
-                save: &save
+                save: &save,
             )
         }
     }
@@ -89,7 +89,7 @@ struct StageRewardClaimFallbackTests {
             let topFloor = try ironVeinTopFloor()
             return EncounterLevelResolver.partyAdjusted(
                 EncounterLevelResolver.spireEnemyLevel(for: topFloor),
-                partyAverageLevel: save.roster.activePartyAverageLevel
+                partyAverageLevel: save.roster.activePartyAverageLevel,
             )
         }
     }
@@ -109,7 +109,7 @@ struct StageRewardClaimFallbackTests {
             GameContent.chapters.flatMap(\.stages).last(where: {
                 $0.encounter.isCombat
                     && StageCompletion.resolvedEncounterLevel(for: $0, in: GameContent.chapters) > 5
-            })
+            }),
         )
     }
 

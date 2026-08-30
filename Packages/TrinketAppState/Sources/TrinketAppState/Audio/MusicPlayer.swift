@@ -20,7 +20,7 @@ final class MusicPlayer {
     private var hasConfiguredSession = false
     private let logger = Logger(
         subsystem: AudioLogging.subsystem,
-        category: "Audio"
+        category: "Audio",
     )
 
     init(isDisabled: Bool, fadeDuration: TimeInterval = 0.9) {
@@ -81,7 +81,7 @@ final class MusicPlayer {
                 preparedPlayer,
                 request: preparedRequest,
                 volume: resolvedVolume,
-                shouldCrossfade: false
+                shouldCrossfade: false,
             )
             clearPrepared()
         }
@@ -125,7 +125,7 @@ final class MusicPlayer {
                 preparedPlayer,
                 request: request,
                 volume: volume,
-                shouldCrossfade: false
+                shouldCrossfade: false,
             )
             clearPrepared()
             return
@@ -143,7 +143,7 @@ final class MusicPlayer {
     private func enqueueLoad(_ request: MusicPlaybackRequest, startVolume: Float?) {
         guard let url = resourceURL(for: request.track) else {
             logger.warning(
-                "Missing music resource: \(request.track.resourceName, privacy: .public).\(request.track.fileExtension, privacy: .public)"
+                "Missing music resource: \(request.track.resourceName, privacy: .public).\(request.track.fileExtension, privacy: .public)",
             )
             return
         }
@@ -167,7 +167,7 @@ final class MusicPlayer {
     private func attachLoadedPlayer(
         _ loaded: LoadedMusicPlayer?,
         request: MusicPlaybackRequest,
-        generation: Int
+        generation: Int,
     ) {
         guard generation == loadGeneration else {
             loaded?.player.stop()
@@ -181,7 +181,7 @@ final class MusicPlayer {
 
         guard let loaded else {
             logger.error(
-                "Unable to load music resource \(request.track.resourceName, privacy: .public).\(request.track.fileExtension, privacy: .public)"
+                "Unable to load music resource \(request.track.resourceName, privacy: .public).\(request.track.fileExtension, privacy: .public)",
             )
             return
         }
@@ -199,7 +199,7 @@ final class MusicPlayer {
                 loaded.player,
                 request: request,
                 volume: startVolume,
-                shouldCrossfade: currentPlayer != nil
+                shouldCrossfade: currentPlayer != nil,
             )
             return
         }
@@ -220,7 +220,7 @@ final class MusicPlayer {
         _ player: AVAudioPlayer,
         request: MusicPlaybackRequest,
         volume: Float,
-        shouldCrossfade: Bool
+        shouldCrossfade: Bool,
     ) {
         configureSessionIfNeeded()
         applyResumePosition(player, request: request)
@@ -275,7 +275,7 @@ final class MusicPlayer {
                 oldPlayer: oldPlayer,
                 newPlayer: newPlayer,
                 targetVolume: targetVolume,
-                duration: duration
+                duration: duration,
             )
         }
     }
@@ -284,7 +284,7 @@ final class MusicPlayer {
         oldPlayer: AVAudioPlayer?,
         newPlayer: AVAudioPlayer?,
         targetVolume: Float,
-        duration: TimeInterval
+        duration: TimeInterval,
     ) async {
         let steps = 18
         let oldStartVolume = oldPlayer?.volume ?? 0

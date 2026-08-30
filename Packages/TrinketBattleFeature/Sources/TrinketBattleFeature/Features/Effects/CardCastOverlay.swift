@@ -74,7 +74,7 @@ struct CardActivationRequest: Equatable, Identifiable {
         scale: CGFloat,
         perspective: CGFloat = 0.35,
         keywords: [Keyword],
-        particleCount: Int = BattleMotion.cardCastParticleCount
+        particleCount: Int = BattleMotion.cardCastParticleCount,
     ) {
         self.id = id
         self.startedAt = startedAt
@@ -129,7 +129,7 @@ struct CardActivationParticle: Equatable {
                 min(
                     1,
                     CGFloat(index % waveCount) / CGFloat(waveCount)
-                        + dissolveNoise(column: index, row: 61) * (1 / CGFloat(waveCount))
+                        + dissolveNoise(column: index, row: 61) * (1 / CGFloat(waveCount)),
                 )
             }
             return Self(
@@ -142,7 +142,7 @@ struct CardActivationParticle: Equatable {
                 curveNoise: dissolveNoise(column: index, row: 83),
                 sizeNoise: dissolveNoise(column: index, row: 79),
                 fadeNoise: dissolveNoise(column: index, row: 101),
-                colorNoise: dissolveNoise(column: index, row: 109)
+                colorNoise: dissolveNoise(column: index, row: 109),
             )
         }
     }
@@ -159,7 +159,7 @@ struct CardCastEffectsLayer: View {
         rotation: 0,
         verticalTilt: 0,
         scale: 1,
-        keywords: [.physical]
+        keywords: [.physical],
     )
 
     var body: some View {
@@ -187,7 +187,7 @@ struct CardCastEffectsLayer: View {
         .allowsHitTesting(false)
         .battleFramePacingSignpost(
             BattleFramePacingSignposts.Name.cardCast,
-            isActive: request != nil
+            isActive: request != nil,
         )
     }
 
@@ -196,7 +196,7 @@ struct CardCastEffectsLayer: View {
             progress: progress,
             keywords: request.keywords,
             size: request.size,
-            particles: request.particles
+            particles: request.particles,
         ) {
             BattleAbilityCardFace(artworkName: request.artworkName)
         }
@@ -206,7 +206,7 @@ struct CardCastEffectsLayer: View {
             .degrees(request.verticalTilt),
             axis: (x: 1, y: 0, z: 0),
             anchor: .bottom,
-            perspective: request.perspective
+            perspective: request.perspective,
         )
         .position(x: request.center.x, y: request.center.y)
     }
@@ -261,7 +261,7 @@ struct CardCastEffectConfiguration {
         particleAgeEasePower: 2.10,
         particleSizeShrink: 0.50,
         particleFadeExponent: 1.55,
-        particlePathControl: 0.32
+        particlePathControl: 0.32,
     )
 }
 
@@ -279,7 +279,7 @@ struct BattleDissolveEffect<Content: View>: View {
         size: CGSize,
         particles: [CardActivationParticle],
         configuration: CardCastEffectConfiguration = CardCastEffectConfiguration(),
-        @ViewBuilder content: () -> Content
+        @ViewBuilder content: () -> Content,
     ) {
         self.progress = progress
         self.keywords = keywords
@@ -309,7 +309,7 @@ struct BattleDissolveEffect<Content: View>: View {
                                     noiseWeight: configuration.dissolveNoiseWeight,
                                     cellSize: cellSize,
                                     thresholdMidpoint: configuration.dissolveThresholdMidpoint,
-                                    thresholdContrast: configuration.dissolveThresholdContrast
+                                    thresholdContrast: configuration.dissolveThresholdContrast,
                                 )
                             }
                     }
@@ -328,7 +328,7 @@ struct BattleDissolveEffect<Content: View>: View {
                     keywords: keywords,
                     cardSize: size,
                     particles: particles,
-                    configuration: configuration
+                    configuration: configuration,
                 )
                 .frame(width: size.width + travelPad * 2, height: size.height + travelPad * 2)
             }
@@ -356,7 +356,7 @@ public struct BattleDissolveArtwork<Content: View>: View {
     public init(
         celebratesDefeat: Bool = false,
         onFinished: (() -> Void)? = nil,
-        @ViewBuilder content: () -> Content
+        @ViewBuilder content: () -> Content,
     ) {
         self.celebratesDefeat = celebratesDefeat
         self.onFinished = onFinished
@@ -380,7 +380,7 @@ public struct BattleDissolveArtwork<Content: View>: View {
                 TimelineView(.animation) { timeline in
                     GeometryReader { geometry in
                         let progress = cardActivationProgress(
-                            elapsed: timeline.date.timeIntervalSince(startDate)
+                            elapsed: timeline.date.timeIntervalSince(startDate),
                         )
 
                         BattleDissolveEffect(
@@ -388,7 +388,7 @@ public struct BattleDissolveArtwork<Content: View>: View {
                             keywords: keywords,
                             size: geometry.size,
                             particles: particles,
-                            configuration: configuration
+                            configuration: configuration,
                         ) {
                             content
                         }
@@ -412,7 +412,7 @@ public struct BattleDissolveArtwork<Content: View>: View {
 
 public struct CardCastEffectsPrewarmView: View {
     private static let prewarmParticles = CardActivationParticle.make(
-        count: BattleMotion.cardCastParticleCount
+        count: BattleMotion.cardCastParticleCount,
     )
 
     public var artworkName: String? = "ability_bash"
@@ -427,7 +427,7 @@ public struct CardCastEffectsPrewarmView: View {
 
     public init(
         artworkName: String? = "ability_bash",
-        onComplete: @escaping () -> Void
+        onComplete: @escaping () -> Void,
     ) {
         self.artworkName = artworkName
         self.onComplete = onComplete
@@ -436,13 +436,13 @@ public struct CardCastEffectsPrewarmView: View {
     public var body: some View {
         TimelineView(.animation) { timeline in
             let progress = cardActivationProgress(
-                elapsed: timeline.date.timeIntervalSince(startDate)
+                elapsed: timeline.date.timeIntervalSince(startDate),
             )
             BattleDissolveEffect(
                 progress: progress,
                 keywords: [.physical],
                 size: cardSize,
-                particles: particles
+                particles: particles,
             ) {
                 BattleAbilityCardFace(artworkName: artworkName)
             }

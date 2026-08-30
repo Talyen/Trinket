@@ -8,7 +8,7 @@ package extension CombatTriggerEngine {
         damageKeyword: Keyword,
         targetIsPoisoned: Bool,
         targetIsBurning: Bool,
-        in context: BattleState
+        in context: BattleState,
     ) -> Int {
         var bonus = 0
         bonus += enrageAuraBonus(in: context)
@@ -75,19 +75,19 @@ package extension CombatTriggerEngine {
     static func partyAfflictedDamageMultiplier(
         targetIsPoisoned: Bool,
         targetIsBurning: Bool,
-        in context: BattleState
+        in context: BattleState,
     ) -> Double {
         partyAfflictedDamageAuras(
             targetIsPoisoned: targetIsPoisoned,
             targetIsBurning: targetIsBurning,
-            in: context
+            in: context,
         ).multiplier
     }
 
     static func partyAfflictedDamageAuras(
         targetIsPoisoned: Bool,
         targetIsBurning: Bool,
-        in context: BattleState
+        in context: BattleState,
     ) -> (multiplier: Double, abilityNames: [String]) {
         var excess = 0.0
         var names: [String] = []
@@ -98,7 +98,7 @@ package extension CombatTriggerEngine {
                     key: "damageVsPoisonedMultiplier",
                     profile: profile,
                     excess: &excess,
-                    names: &names
+                    names: &names,
                 )
             }
             if targetIsBurning {
@@ -107,7 +107,7 @@ package extension CombatTriggerEngine {
                     key: "damageVsBurningMultiplier",
                     profile: profile,
                     excess: &excess,
-                    names: &names
+                    names: &names,
                 )
             }
         }
@@ -119,7 +119,7 @@ package extension CombatTriggerEngine {
         key: String,
         profile: CombatModifierProfile,
         excess: inout Double,
-        names: inout [String]
+        names: inout [String],
     ) {
         guard multiplier > 1 else { return }
         excess += multiplier - 1

@@ -23,13 +23,13 @@ struct VictoryView: View {
                 showsIncreasePrefix: true,
                 emptyMessage: "No additional rewards.",
                 itemAccessibilityID: AccessibilityID.Battle.rewardItem,
-                lootAccessibilityIdentifier: AccessibilityID.Battle.rewards
+                lootAccessibilityIdentifier: AccessibilityID.Battle.rewards,
             ),
             primaryActionTitle: primaryActionTitle,
             primaryActionAccessibilityIdentifier: primaryActionAccessibilityIdentifier,
             onPrimaryAction: onPrimaryAction,
             contentTopPadding: TrinketDesign.Metrics.extraSmallSpacing,
-            contentStackSpacing: TrinketDesign.Metrics.largeSpacing
+            contentStackSpacing: TrinketDesign.Metrics.largeSpacing,
         ) { onExperienceBarCompleted in
             experiencePanel(onExperienceBarCompleted: onExperienceBarCompleted)
         }
@@ -47,7 +47,7 @@ struct VictoryView: View {
                     fillColor: TrinketDesign.Colors.accentEmphasized,
                     experienceAward: summary.experience,
                     snapToFinal: false,
-                    onAnimationCompleted: onExperienceBarCompleted
+                    onAnimationCompleted: onExperienceBarCompleted,
                 )
                 .accessibilityIdentifier("\(summary.heroName) experience bar")
 
@@ -59,7 +59,7 @@ struct VictoryView: View {
                     fillColor: TrinketDesign.Colors.accentEmphasized,
                     experienceAward: summary.companionExperience,
                     snapToFinal: false,
-                    onAnimationCompleted: onExperienceBarCompleted
+                    onAnimationCompleted: onExperienceBarCompleted,
                 )
                 .accessibilityIdentifier("\(summary.companionName) experience bar")
             }
@@ -69,7 +69,7 @@ struct VictoryView: View {
             BattleOutcomeRewardRow(
                 symbolName: "star",
                 tint: .secondary,
-                text: "No experience awarded."
+                text: "No experience awarded.",
             )
             .frame(maxWidth: .infinity, alignment: .leading)
             .trinketSurface(.secondary)

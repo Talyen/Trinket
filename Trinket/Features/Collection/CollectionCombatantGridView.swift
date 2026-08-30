@@ -34,11 +34,11 @@ struct CollectionCombatantGridView: View {
             CollectionCombatantButton(
                 combatant: combatant,
                 isLocked: !playerSave.roster.isUnlocked(combatant),
-                cardWidth: nil
+                cardWidth: nil,
             ) {
                 selectedCombatant = CombatantDetailContext(
                     kind: kind,
-                    combatantID: combatant.id
+                    combatantID: combatant.id,
                 )
             }
             .matchedTransitionSource(id: combatant.id, in: zoomNamespace)
@@ -46,7 +46,7 @@ struct CollectionCombatantGridView: View {
             ContentUnavailableView(
                 "Nothing to Collect",
                 systemImage: "person.3",
-                description: Text("Unlock heroes and companions by progressing through the journey.")
+                description: Text("Unlock heroes and companions by progressing through the journey."),
             )
             .accessibilityIdentifier("Collection combatants empty state")
         }
@@ -58,7 +58,7 @@ struct CollectionCombatantGridView: View {
                     kind: context.kind,
                     combatantID: context.combatantID,
                     hapticsEnabled: options.hapticsEnabled,
-                    effectsVolume: options.effectsVolume
+                    effectsVolume: options.effectsVolume,
                 )
             }
             .navigationTransition(.zoom(sourceID: context.combatantID, in: zoomNamespace))

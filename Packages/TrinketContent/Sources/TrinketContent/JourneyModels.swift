@@ -38,7 +38,7 @@ public struct Stage: Identifiable, Hashable, Sendable {
         chapterNumber: Int,
         stageNumber: Int,
         encounter: StageEncounter,
-        rewards: StageReward
+        rewards: StageReward,
     ) {
         self.id = id
         self.chapterID = chapterID

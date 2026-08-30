@@ -12,7 +12,7 @@ struct UniqueSignatureTriggerTests {
         Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: maxHealth, abilities: [])
     }
 
-    @Test func burnTickProcsEqualBleedDamage() throws {
+    @Test func `burn tick procs equal bleed damage`() throws {
         var battle = BattleStateTestFactory.makeBattle(
             hero: hero(),
             companion: BattleTestFixtures.passiveCompanion(),
@@ -21,8 +21,8 @@ struct UniqueSignatureTriggerTests {
                 ActiveEffect(id: 1, effect: .burn(6), remainingTurns: 2, sourceActorID: "hero"),
             ],
             heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
-                dot: DotTriggers(burnProcsBleedChancePercent: 1.0)
-            ))
+                dot: DotTriggers(burnProcsBleedChancePercent: 1.0),
+            )),
         )
 
         _ = BattleTestFixtures.endTurn(on: &battle)
@@ -31,7 +31,7 @@ struct UniqueSignatureTriggerTests {
         #expect(!battle.activeEffects(of: battle.enemy).contains { $0.keyword == .bleed })
     }
 
-    @Test func bleedTickProcsBurnAndChainCapsAtDepth() throws {
+    @Test func `bleed tick procs burn and chain caps at depth`() throws {
         var battle = BattleStateTestFactory.makeBattle(
             hero: hero(),
             companion: BattleTestFixtures.passiveCompanion(),
@@ -42,9 +42,9 @@ struct UniqueSignatureTriggerTests {
             heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
                 dot: DotTriggers(
                     burnProcsBleedChancePercent: 1.0,
-                    bleedProcsBurnChancePercent: 1.0
-                )
-            ))
+                    bleedProcsBurnChancePercent: 1.0,
+                ),
+            )),
         )
 
         _ = BattleTestFixtures.endTurn(on: &battle)
@@ -52,14 +52,14 @@ struct UniqueSignatureTriggerTests {
         try #expect(battle.health(of: battle.enemy) == 100 - 6)
     }
 
-    @Test func mirrorProcsStayOffWithoutChances() throws {
+    @Test func `mirror procs stay off without chances`() throws {
         var battle = BattleStateTestFactory.makeBattle(
             hero: hero(),
             companion: BattleTestFixtures.passiveCompanion(),
             enemy: BattleTestFixtures.passiveEnemy(),
             activeEnemyEffects: [
                 ActiveEffect(id: 1, effect: .burn(3), remainingTurns: 2, sourceActorID: "hero"),
-            ]
+            ],
         )
 
         _ = BattleTestFixtures.endTurn(on: &battle)
@@ -67,11 +67,11 @@ struct UniqueSignatureTriggerTests {
         try #expect(battle.health(of: battle.enemy) == 100 - 1)
     }
 
-    @Test func burnDamageGainsStandardLeech() {
+    @Test func `burn damage gains standard leech`() {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
-                dot: DotTriggers(burnDamageLeech: true)
-            ))
+                dot: DotTriggers(burnDamageLeech: true),
+            )),
         )
         battle.withEngineContext { context in
             context.roster.mutateRuntime(for: context.roster.hero.combatant) { $0.currentHealth = 30 }
@@ -82,7 +82,7 @@ struct UniqueSignatureTriggerTests {
                 amount: 10,
                 target: context.roster.enemy.combatant,
                 keyword: .burn,
-                sourceActorID: context.roster.hero.id
+                sourceActorID: context.roster.hero.id,
             ))
         }
 
@@ -91,11 +91,11 @@ struct UniqueSignatureTriggerTests {
         #expect(battle.health(of: battle.hero) == 30 + expectedHealing)
     }
 
-    @Test func bleedDamageGainsStandardLeech() {
+    @Test func `bleed damage gains standard leech`() {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
-                dot: DotTriggers(bleedDamageLeech: true)
-            ))
+                dot: DotTriggers(bleedDamageLeech: true),
+            )),
         )
         battle.withEngineContext { context in
             context.roster.mutateRuntime(for: context.roster.hero.combatant) { $0.currentHealth = 30 }
@@ -106,7 +106,7 @@ struct UniqueSignatureTriggerTests {
                 amount: 10,
                 target: context.roster.enemy.combatant,
                 keyword: .bleed,
-                sourceActorID: context.roster.hero.id
+                sourceActorID: context.roster.hero.id,
             ))
         }
 
@@ -115,7 +115,7 @@ struct UniqueSignatureTriggerTests {
         #expect(battle.health(of: battle.hero) == 30 + expectedHealing)
     }
 
-    @Test func wardbreakerPurgesAllAndDealsHolyPerRemovedEffect() throws {
+    @Test func `wardbreaker purges all and deals holy per removed effect`() throws {
         var battle = BattleStateTestFactory.makeBattle(
             hero: hero(),
             companion: BattleTestFixtures.passiveCompanion(),
@@ -125,8 +125,8 @@ struct UniqueSignatureTriggerTests {
                 ActiveEffect(id: 2, effect: .thorns(2), remainingTurns: 6),
             ],
             heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
-                control: ControlTriggers(stunPurgeDealHolyPerEffect: 2)
-            ))
+                control: ControlTriggers(stunPurgeDealHolyPerEffect: 2),
+            )),
         )
 
         let events = battle.withEngineContext { context in
@@ -137,7 +137,7 @@ struct UniqueSignatureTriggerTests {
         #expect(events.contains { $0.effectKind == .purgeApplied })
     }
 
-    @Test func wardbreakerHolyIgnoresAttackerBonusesAndMitigatesOnce() throws {
+    @Test func `wardbreaker holy ignores attacker bonuses and mitigates once`() throws {
         var battle = BattleStateTestFactory.makeBattle(
             hero: Combatant(
                 id: "hero",
@@ -145,7 +145,7 @@ struct UniqueSignatureTriggerTests {
                 role: .hero,
                 maxHealth: 20,
                 abilities: [],
-                primaryStats: PrimaryStats(wisdom: 60)
+                primaryStats: PrimaryStats(wisdom: 60),
             ),
             companion: BattleTestFixtures.passiveCompanion(),
             enemy: BattleTestFixtures.passiveEnemy(),
@@ -154,11 +154,11 @@ struct UniqueSignatureTriggerTests {
                 ActiveEffect(id: 2, effect: .thorns(2), remainingTurns: 6),
             ],
             heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
-                control: ControlTriggers(stunPurgeDealHolyPerEffect: 2)
+                control: ControlTriggers(stunPurgeDealHolyPerEffect: 2),
             )),
             enemyModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
-                mitigation: MitigationTriggers(passiveMitigationFlat: 1)
-            ))
+                mitigation: MitigationTriggers(passiveMitigationFlat: 1),
+            )),
         )
 
         battle.withEngineContext { context in
@@ -168,14 +168,14 @@ struct UniqueSignatureTriggerTests {
         try #expect(battle.health(of: battle.enemy) == 100 - 3)
     }
 
-    @Test func freezeDamageGrantsEqualBlock() throws {
+    @Test func `freeze damage grants equal block`() throws {
         var battle = BattleStateTestFactory.makeBattle(
             hero: hero(),
             companion: BattleTestFixtures.passiveCompanion(),
             enemy: BattleTestFixtures.passiveEnemy(),
             heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
-                block: BlockTriggers(freezeDamageGrantsBlock: true)
-            ))
+                block: BlockTriggers(freezeDamageGrantsBlock: true),
+            )),
         )
 
         let outcome = battle.withEngineContext { context in
@@ -183,7 +183,7 @@ struct UniqueSignatureTriggerTests {
                 amount: 4,
                 target: context.roster.enemy.combatant,
                 keyword: .freeze,
-                sourceActorID: context.roster.hero.id
+                sourceActorID: context.roster.hero.id,
             ))
         }
 
@@ -197,17 +197,17 @@ struct UniqueSignatureTriggerTests {
         #expect(block != nil)
     }
 
-    @Test func freezeBlockUsesPostMitigationHealthLost() throws {
+    @Test func `freeze block uses post mitigation health lost`() throws {
         var battle = BattleStateTestFactory.makeBattle(
             hero: hero(),
             companion: BattleTestFixtures.passiveCompanion(),
             enemy: BattleTestFixtures.passiveEnemy(),
             heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
-                block: BlockTriggers(freezeDamageGrantsBlock: true)
+                block: BlockTriggers(freezeDamageGrantsBlock: true),
             )),
             enemyModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
-                mitigation: MitigationTriggers(passiveMitigationFlat: 1)
-            ))
+                mitigation: MitigationTriggers(passiveMitigationFlat: 1),
+            )),
         )
 
         let outcome = battle.withEngineContext { context in
@@ -215,7 +215,7 @@ struct UniqueSignatureTriggerTests {
                 amount: 5,
                 target: context.roster.enemy.combatant,
                 keyword: .freeze,
-                sourceActorID: context.roster.hero.id
+                sourceActorID: context.roster.hero.id,
             ))
         }
 
@@ -229,33 +229,33 @@ struct UniqueSignatureTriggerTests {
         #expect(block != nil)
     }
 
-    @Test func danceOfBladesDrawsAndPlaysOnDodge() {
+    @Test func `dance of blades draws and plays on dodge`() {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: [.slash],
             heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
-                dodge: DodgeTriggers(onDodgeDrawAndPlayCardChainOnCrit: true)
+                dodge: DodgeTriggers(onDodgeDrawAndPlayCardChainOnCrit: true),
             )),
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
 
         let events = battle.withEngineContext { context -> [ActionEvent] in
             CombatTriggerEngine.afterDodge(
                 by: context.roster.hero.combatant,
                 attackerID: context.roster.enemy.id,
-                in: &context
+                in: &context,
             )
         }
 
         #expect(events.contains { $0.effectKind == .cardsDrawn && $0.amount == 1 })
     }
 
-    @Test func danceOfBladesStopsWhenNothingCanBeDrawn() {
+    @Test func `dance of blades stops when nothing can be drawn`() {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: [.slash],
             heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
-                dodge: DodgeTriggers(onDodgeDrawAndPlayCardChainOnCrit: true)
+                dodge: DodgeTriggers(onDodgeDrawAndPlayCardChainOnCrit: true),
             )),
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         battle.withEngineContext { context in
             context.heroDeck = CombatDeck()
@@ -265,14 +265,14 @@ struct UniqueSignatureTriggerTests {
             CombatTriggerEngine.afterDodge(
                 by: context.roster.hero.combatant,
                 attackerID: context.roster.enemy.id,
-                in: &context
+                in: &context,
             )
         }
 
         #expect(!events.contains { $0.effectKind == .cardsDrawn })
     }
 
-    @Test func freezingEnemyGrantsManaEqualToBlock() {
+    @Test func `freezing enemy grants mana equal to block`() {
         var battle = BattleStateTestFactory.makeBattle(
             hero: Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, maxMana: 10, abilities: []),
             companion: BattleTestFixtures.passiveCompanion(),
@@ -281,9 +281,9 @@ struct UniqueSignatureTriggerTests {
                 ActiveEffect(id: 1, effect: .shield(.block, 7), remainingTurns: 6),
             ],
             heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
-                mana: ManaTriggers(onFreezeEnemyGainManaEqualBlock: true)
+                mana: ManaTriggers(onFreezeEnemyGainManaEqualBlock: true),
             )),
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         battle.withEngineContext { context in
             context.roster.mutateRuntime(for: context.roster.hero.combatant) { $0.currentMana = 0 }
@@ -297,7 +297,7 @@ struct UniqueSignatureTriggerTests {
                 to: context.roster.enemy.combatant,
                 sourceActorID: context.roster.hero.id,
                 applyFightPacing: false,
-                in: &context
+                in: &context,
             )
         }
 
@@ -306,7 +306,7 @@ struct UniqueSignatureTriggerTests {
         #expect(battle.roster.runtime(for: battle.hero)?.currentMana == 7)
     }
 
-    @Test func blackfletchDetonatesProjectedBleedAndPoisonWithoutGrowthRolls() throws {
+    @Test func `blackfletch detonates projected bleed and poison without growth rolls`() throws {
         var battle = BattleStateTestFactory.makeBattle(
             hero: hero(),
             companion: BattleTestFixtures.passiveCompanion(),
@@ -319,16 +319,16 @@ struct UniqueSignatureTriggerTests {
             heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
                 dot: DotTriggers(
                     poisonDecayIncreaseChance: 1,
-                    criticalDetonateBleedAndPoison: true
-                )
-            ))
+                    criticalDetonateBleedAndPoison: true,
+                ),
+            )),
         )
 
         battle.withEngineContext { context in
             _ = CombatTriggerEngine.afterCriticalHit(
                 to: context.roster.enemy.combatant,
                 source: context.roster.hero.combatant,
-                in: &context
+                in: &context,
             )
         }
 
@@ -338,21 +338,21 @@ struct UniqueSignatureTriggerTests {
         })
     }
 
-    @Test func blackfletchDoesNothingWithoutBleedOrPoison() throws {
+    @Test func `blackfletch does nothing without bleed or poison`() throws {
         var battle = BattleStateTestFactory.makeBattle(
             hero: hero(),
             companion: BattleTestFixtures.passiveCompanion(),
             enemy: BattleTestFixtures.passiveEnemy(),
             heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
-                dot: DotTriggers(criticalDetonateBleedAndPoison: true)
-            ))
+                dot: DotTriggers(criticalDetonateBleedAndPoison: true),
+            )),
         )
 
         let events = battle.withEngineContext { context in
             CombatTriggerEngine.afterCriticalHit(
                 to: context.roster.enemy.combatant,
                 source: context.roster.hero.combatant,
-                in: &context
+                in: &context,
             )
         }
 
@@ -360,15 +360,15 @@ struct UniqueSignatureTriggerTests {
         #expect(events.isEmpty)
     }
 
-    @Test func twinCastingDrawsOppositeElementOncePerEmpoweredCard() {
+    @Test func `twin casting draws opposite element once per empowered card`() {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: [],
             heroMaxMana: 9,
             heroMana: 9,
             heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
-                mana: ManaTriggers(empoweredElementDrawOpposite: true)
+                mana: ManaTriggers(empoweredElementDrawOpposite: true),
             )),
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         battle.withEngineContext { context in
             context.heroDeck = CombatDeck(abilities: [.slash, .frostbolt, .blizzard])
@@ -379,7 +379,7 @@ struct UniqueSignatureTriggerTests {
             BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
                 for: &meteor,
                 actor: context.roster.hero.combatant,
-                context: &context
+                context: &context,
             )
         }
 
@@ -388,15 +388,15 @@ struct UniqueSignatureTriggerTests {
         #expect(battle.heroDeck.abilities.map(\.id) == [Ability.slash.id, Ability.blizzard.id])
     }
 
-    @Test func twinCastingDrawsBurnAfterEmpoweredFreezeAndToleratesNoMatch() {
+    @Test func `twin casting draws burn after empowered freeze and tolerates no match`() {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: [],
             heroMaxMana: 6,
             heroMana: 6,
             heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
-                mana: ManaTriggers(empoweredElementDrawOpposite: true)
+                mana: ManaTriggers(empoweredElementDrawOpposite: true),
             )),
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         battle.withEngineContext { context in
             context.heroDeck = CombatDeck(abilities: [.slash, .fireball])
@@ -406,7 +406,7 @@ struct UniqueSignatureTriggerTests {
             _ = BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
                 for: &frostbolt,
                 actor: context.roster.hero.combatant,
-                context: &context
+                context: &context,
             )
         }
         #expect(battle.hand.cards.map(\.ability.id) == [Ability.fireball.id])
@@ -416,21 +416,21 @@ struct UniqueSignatureTriggerTests {
             BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
                 for: &secondFrostbolt,
                 actor: context.roster.hero.combatant,
-                context: &context
+                context: &context,
             )
         }
         #expect(!events.contains { $0.effectKind == .cardsDrawn })
     }
 
-    @Test func twinCastingUsesNormalHandOverflow() {
+    @Test func `twin casting uses normal hand overflow`() {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: [],
             heroMaxMana: 3,
             heroMana: 3,
             heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
-                mana: ManaTriggers(empoweredElementDrawOpposite: true)
+                mana: ManaTriggers(empoweredElementDrawOpposite: true),
             )),
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         for ability in [Ability.slash, .heal, .smite] {
             battle.nextCardID += 1
@@ -445,7 +445,7 @@ struct UniqueSignatureTriggerTests {
             _ = BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
                 for: &meteor,
                 actor: context.roster.hero.combatant,
-                context: &context
+                context: &context,
             )
         }
 
@@ -453,23 +453,23 @@ struct UniqueSignatureTriggerTests {
         #expect(battle.handBuffer.cards.map(\.ability.id) == [Ability.frostbolt.id])
     }
 
-    @Test func saintfallRetaliatesHealsAndResetsNextRound() {
+    @Test func `saintfall retaliates heals and resets next round`() {
         let modifiers = CombatModifierProfile(
             healthRestoredBonus: 3,
             blockGainedBonus: 5,
             triggers: CombatTraitTriggers(
                 block: BlockTriggers(
                     blockBrokenSaintfallPower: 6,
-                    holyDamageBlockFlat: 2
-                )
-            )
+                    holyDamageBlockFlat: 2,
+                ),
+            ),
         )
         var battle = BattleStateTestFactory.makeBattle(
             hero: hero(maxHealth: 50),
             companion: BattleTestFixtures.passiveCompanion(),
             enemy: BattleTestFixtures.passiveEnemy(),
             activeHeroEffects: [ActiveEffect(id: 1, effect: .shield(.block, 1), remainingTurns: 0)],
-            heroModifiers: modifiers
+            heroModifiers: modifiers,
         )
         battle.appliesFightPacing = false
         battle.withEngineContext { context in
@@ -478,7 +478,7 @@ struct UniqueSignatureTriggerTests {
                 amount: 2,
                 target: context.roster.hero.combatant,
                 keyword: .physical,
-                sourceActorID: context.roster.enemy.id
+                sourceActorID: context.roster.enemy.id,
             ))
         }
 
@@ -494,7 +494,7 @@ struct UniqueSignatureTriggerTests {
                 amount: 8,
                 target: context.roster.hero.combatant,
                 keyword: .physical,
-                sourceActorID: context.roster.enemy.id
+                sourceActorID: context.roster.enemy.id,
             ))
         }
         let secondEnemyHealth = battle.health(of: battle.enemy)
@@ -504,20 +504,20 @@ struct UniqueSignatureTriggerTests {
             _ = CombatTriggerEngine.atPlayerTurnStart(in: &context)
             context.roster.setActiveEffects(
                 [ActiveEffect(id: 2, effect: .shield(.block, 1), remainingTurns: 0)],
-                for: context.roster.hero.combatant
+                for: context.roster.hero.combatant,
             )
             _ = context.resolveDamage(.directAbilityHit(
                 amount: 2,
                 target: context.roster.hero.combatant,
                 keyword: .physical,
-                sourceActorID: context.roster.enemy.id
+                sourceActorID: context.roster.enemy.id,
             ))
         }
         let resetEnemyHealth = battle.health(of: battle.enemy)
         #expect(resetEnemyHealth == 76)
     }
 
-    @Test func goldenVerdictBuildsStunWithoutExtraHealthDamageAndPaysModifiedGold() throws {
+    @Test func `golden verdict builds stun without extra health damage and pays modified gold`() throws {
         var battle = BattleStateTestFactory.makeBattle(
             hero: hero(),
             companion: BattleTestFixtures.passiveCompanion(),
@@ -527,10 +527,10 @@ struct UniqueSignatureTriggerTests {
                 triggers: CombatTraitTriggers(
                     control: ControlTriggers(
                         holyStunBuildupPercent: 1,
-                        holyTriggeredStunGoldFlat: 1
-                    )
-                )
-            )
+                        holyTriggeredStunGoldFlat: 1,
+                    ),
+                ),
+            ),
         )
         let threshold = battle.withEngineContext { context in
             ControlMeterEngine.threshold(for: context.roster.enemy.combatant, in: context)
@@ -542,7 +542,7 @@ struct UniqueSignatureTriggerTests {
                 amount: threshold - 1,
                 target: context.roster.enemy.combatant,
                 keyword: .holy,
-                sourceActorID: context.roster.hero.id
+                sourceActorID: context.roster.hero.id,
             ))
         }
         let buildup = battle.activeEffects(of: battle.enemy).first {
@@ -559,7 +559,7 @@ struct UniqueSignatureTriggerTests {
                 amount: 1,
                 target: context.roster.enemy.combatant,
                 keyword: .holy,
-                sourceActorID: context.roster.hero.id
+                sourceActorID: context.roster.hero.id,
             ))
         }
 

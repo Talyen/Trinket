@@ -22,7 +22,7 @@ extension AppState {
     static func makeBootstrapDependencies(
         environment: AppEnvironment,
         playerSave: PlayerSaveStore?,
-        userDefaults: UserDefaults
+        userDefaults: UserDefaults,
     ) throws -> BootstrapDependencies {
         if environment.resetState {
             clearResetStateDefaults(from: userDefaults)
@@ -33,7 +33,7 @@ extension AppState {
             disableCloudSync: environment.disableCloudSync,
             resetState: environment.resetState,
             inMemoryOnly: environment.resetState && environment.storeName == nil,
-            persistSaveImmediately: environment.persistSaveImmediately
+            persistSaveImmediately: environment.persistSaveImmediately,
         )
         if environment.seedTestProgress {
             try resolvedPlayerSave.applyTestSeed()
@@ -67,7 +67,7 @@ extension AppState {
             sfxPlayer: SFXPlayer(isDisabled: environment.disableAudio),
             options: resolvedOptions,
             pendingCollectionPresentation: launchCollection,
-            pendingPlayDestination: launchPlay
+            pendingPlayDestination: launchPlay,
         )
     }
 
@@ -108,7 +108,7 @@ private extension PlaySession {
         guard !completedStageIDs.isEmpty else { return }
 
         let stagesByID = Dictionary(
-            uniqueKeysWithValues: GameContent.stages.map { ($0.id, $0) }
+            uniqueKeysWithValues: GameContent.stages.map { ($0.id, $0) },
         )
         let stages = completedStageIDs.compactMap { stagesByID[$0] }
         guard !stages.isEmpty else { return }
@@ -118,7 +118,7 @@ private extension PlaySession {
             stages,
             hero: roster.activeHero,
             companion: roster.activeCompanion,
-            resetJourney: resetState
+            resetJourney: resetState,
         )
     }
 
@@ -136,7 +136,7 @@ private extension PlaySession {
         guard let stage = GameContent.stage(id: AppState.launchMysteryStageID) else { return }
         _ = journey.beginMysteryEncounter(
             for: stage,
-            forcedEventID: recruitEventID
+            forcedEventID: recruitEventID,
         )
     }
 }
@@ -168,7 +168,7 @@ private extension AppState {
     }
 
     private static func launchCollectionPresentation(
-        for launchScreen: LaunchScreen?
+        for launchScreen: LaunchScreen?,
     ) -> LaunchPresentation? {
         switch launchScreen {
         case let .heroDetail(id):
@@ -183,7 +183,7 @@ private extension AppState {
     }
 
     private static func launchPlayDestination(
-        for launchScreen: LaunchScreen?
+        for launchScreen: LaunchScreen?,
     ) -> PlayLaunchDestination? {
         switch launchScreen {
         case .labyrinth, .labyrinthMap:

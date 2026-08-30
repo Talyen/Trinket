@@ -10,7 +10,7 @@ import TrinketTestSupport
 
 @MainActor
 struct BattleSessionSimulationTests {
-    @Test func victoryPresentationHoldsChromeAndLocksRetreatUntilConfiguredDelay() async throws {
+    @Test func `victory presentation holds chrome and locks retreat until configured delay`() async throws {
         let party = BattlePartyFixtures.quickWinParty()
         let session = BattleSession(openingHandDrawStagger: 0, outcomePresentationDelayOverride: 0.05)
         session.partyCelebrateDelayOverride = .zero
@@ -18,7 +18,7 @@ struct BattleSessionSimulationTests {
             rngSeed: 0,
             hero: party.hero,
             companion: party.companion,
-            enemy: party.enemy
+            enemy: party.enemy,
         )
         _ = session.activate(configuration, presentation: presentation)
 
@@ -39,7 +39,7 @@ struct BattleSessionSimulationTests {
         #expect(!session.canRetreat)
     }
 
-    @Test func claimedStageRewardsAutoCompleteThenPersistRetryRestoresLootChrome() throws {
+    @Test func `claimed stage rewards auto complete then persist retry restores loot chrome`() throws {
         let party = BattlePartyFixtures.quickWinParty()
         let stage = try #require(GameContent.chapters[0].stages.first)
         let session = BattleSession(openingHandDrawStagger: 0, outcomePresentationDelayOverride: 0)
@@ -52,7 +52,7 @@ struct BattleSessionSimulationTests {
             enemy: party.enemy,
             stageRewardsAlreadyClaimed: true,
             hasProgressionRewards: true,
-            musicStageID: stage.id
+            musicStageID: stage.id,
         )
         _ = session.activate(configuration)
         session.installPresentationContext(presentation)
@@ -74,7 +74,7 @@ struct BattleSessionSimulationTests {
         #expect(!session.canRetreat)
     }
 
-    @Test func clearOutcomePresentationResetsVictoryAndDefeatFlagsWhenCleared() {
+    @Test func `clear outcome presentation resets victory and defeat flags when cleared`() {
         let session = BattleSession(openingHandDrawStagger: 0)
         session.spectacle.isShowingVictory = true
         session.spectacle.isShowingDefeat = true
@@ -93,7 +93,7 @@ struct BattleSessionSimulationTests {
             heroProgressionBefore: .initial,
             heroProgressionAfter: .initial,
             companionProgressionBefore: .initial,
-            companionProgressionAfter: .initial
+            companionProgressionAfter: .initial,
         )
 
         session.clearOutcomePresentation()
@@ -103,7 +103,7 @@ struct BattleSessionSimulationTests {
         #expect(session.spectacle.victorySummary == nil)
     }
 
-    @Test func playCardAppendsFeedbackItemsWhenCardPlays() throws {
+    @Test func `play card appends feedback items when card plays`() throws {
         let session = try BattleSessionTestSupport.makeConfiguredSession()
         let card = try #require(session.hand.first(where: { session.isCardPlayable($0) }))
 
@@ -115,22 +115,22 @@ struct BattleSessionSimulationTests {
         #expect(recordedIDs.isDisjoint(with: milestoneIDs))
     }
 
-    @Test func playCardDistinguishesSuccessfulNonVictoryFromRejection() throws {
+    @Test func `play card distinguishes successful non victory from rejection`() throws {
         let session = try BattleSessionTestSupport.makeConfiguredSession()
         let card = try #require(session.hand.first(where: { session.isCardPlayable($0) }))
 
         let committed = session.playCard(
-            cardID: card.id
+            cardID: card.id,
         )
         let rejected = session.playCard(
-            cardID: Int.max
+            cardID: Int.max,
         )
 
         #expect(committed == .committed)
         #expect(rejected == .rejected)
     }
 
-    @Test func presentationProjectionTracksSimulationWithoutExposingLogStorage() throws {
+    @Test func `presentation projection tracks simulation without exposing log storage`() throws {
         let session = try BattleSessionTestSupport.makeConfiguredSession()
         let configurationID = try #require(session.activeBattle?.id)
         let initialEnemyHealth = try #require(session.presentation.enemy?.health)
@@ -151,14 +151,14 @@ struct BattleSessionSimulationTests {
         #expect(session.presentation.hand.isEmpty)
     }
 
-    @Test func endTurnExcludesMilestonesFromFeedbackWhenBattleEnds() throws {
+    @Test func `end turn excludes milestones from feedback when battle ends`() throws {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 1, abilities: [])
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 1, abilities: [])
         let enemy = CombatantFixtures.combatant(
             id: "enemy",
             role: .enemy,
             maxHealth: 100,
-            abilities: [.slash]
+            abilities: [.slash],
         )
         let session = try BattleSessionTestSupport.makeConfiguredSession(hero: hero, companion: companion, enemy: enemy)
 
@@ -173,12 +173,12 @@ struct BattleSessionSimulationTests {
         #expect(session.spectacle.deferredFeedbackEvents.allSatisfy { $0.kind != .milestone })
     }
 
-    @Test func resetClearsFeedbackAndRebuildsStateWhenResetCalled() throws {
+    @Test func `reset clears feedback and rebuilds state when reset called`() throws {
         let party = BattlePartyFixtures.quickWinParty(enemyMaxHealth: 100)
         let session = try BattleSessionTestSupport.makeConfiguredSession(
             hero: party.hero,
             companion: party.companion,
-            enemy: party.enemy
+            enemy: party.enemy,
         )
         let card = try #require(session.hand.first(where: { session.isCardPlayable($0) }))
 
@@ -191,7 +191,7 @@ struct BattleSessionSimulationTests {
             rngSeed: BattleSessionTestSupport.deterministicBattleSeed,
             hero: party.hero,
             companion: party.companion,
-            enemy: party.enemy
+            enemy: party.enemy,
         ).configuration)
 
         #expect(session.feedback.activeItems.isEmpty)
@@ -200,7 +200,7 @@ struct BattleSessionSimulationTests {
         #expect(resetState.health(of: resetState.hero) == party.hero.maxHealth)
     }
 
-    @Test func consolidatedFeedbackRemoveAndExpireClearsSources() throws {
+    @Test func `consolidated feedback remove and expire clears sources`() throws {
         let session = BattleSession(openingHandDrawStagger: 0)
         let now = Date(timeIntervalSince1970: 100)
         session.feedback.record(
@@ -208,7 +208,7 @@ struct BattleSessionSimulationTests {
                 feedbackEvent(id: 1, amount: 1),
                 feedbackEvent(id: 2, amount: 2),
             ],
-            at: now
+            at: now,
         )
 
         #expect(session.feedback.activeItems.count == 1)
@@ -222,7 +222,7 @@ struct BattleSessionSimulationTests {
                 feedbackEvent(id: 3, amount: 1),
                 feedbackEvent(id: 4, amount: 2),
             ],
-            at: now
+            at: now,
         )
         let item = try #require(session.feedback.activeItems.first)
         session.feedback.pruneExpired(at: item.availableAt)
@@ -232,7 +232,7 @@ struct BattleSessionSimulationTests {
         #expect(session.feedback.eventRecordedAt.isEmpty)
     }
 
-    @Test func feedbackBridgeUninstallIsOwnerScoped() {
+    @Test func `feedback bridge uninstall is owner scoped`() {
         let session = BattleSession(openingHandDrawStagger: 0)
         let survivingOwnerID = UUID()
         let departingOwnerID = UUID()
@@ -256,7 +256,7 @@ struct BattleSessionSimulationTests {
         #expect(receivedUpdates.count == 2)
     }
 
-    @Test func resetPreservesEnemyModifiersWhenBattleReset() throws {
+    @Test func `reset preserves enemy modifiers when battle reset`() throws {
         let enemy = try #require(GameContent.enemy(matching: "skeleton"))
         let enemyModifiers = CombatModifierProfile(modifiers: [
             .damageTakenVulnerability(.holy, 0.30),
@@ -267,7 +267,7 @@ struct BattleSessionSimulationTests {
             hero: CombatantFixtures.combatant(id: "hero", role: .hero),
             companion: CombatantFixtures.combatant(id: "companion", role: .companion),
             enemy: enemy.combatant,
-            enemyModifiers: enemyModifiers
+            enemyModifiers: enemyModifiers,
         )
         let session = BattleSession(openingHandDrawStagger: 0)
         _ = session.activate(configuration)
@@ -277,22 +277,22 @@ struct BattleSessionSimulationTests {
             hero: CombatantFixtures.combatant(id: "hero", role: .hero),
             companion: CombatantFixtures.combatant(id: "companion", role: .companion),
             enemy: enemy.combatant,
-            enemyModifiers: enemyModifiers
+            enemyModifiers: enemyModifiers,
         ).configuration)
 
         #expect(
             (session.engineState?.modifiers(for: enemy.combatant.id)
-                .damageTakenVulnerability(for: .holy) ?? 0) > 0
+                .damageTakenVulnerability(for: .holy) ?? 0) > 0,
         )
     }
 
-    @Test func autoEndTurnFiresOnlyWhenHandIsExhausted() async throws {
+    @Test func `auto end turn fires only when hand is exhausted`() async throws {
         let session = try BattleSessionTestSupport.makeConfiguredSession()
         #expect(session.hasPlayableCard)
 
         while let card = session.hand.first(where: { session.isCardPlayable($0) }) {
             let resolution = session.playCard(
-                cardID: card.id
+                cardID: card.id,
             )
             if resolution == .rejected || session.outcome != nil {
                 return
@@ -308,7 +308,7 @@ struct BattleSessionSimulationTests {
         #expect(session.engineState?.turnCount == tickBefore + 1)
     }
 
-    @Test func trimMemoryFootprintReleasesBattleLogProjection() throws {
+    @Test func `trim memory footprint releases battle log projection`() throws {
         let session = try BattleSessionTestSupport.makeConfiguredSession()
         let card = try #require(session.hand.first(where: { session.isCardPlayable($0) }))
         _ = session.playCard(cardID: card.id)
@@ -321,7 +321,7 @@ struct BattleSessionSimulationTests {
         #expect(!(session.engineState?.events.isEmpty ?? true))
     }
 
-    @Test func trimMemoryFootprintKeepsPreparedArtworkPinNamesWhilePrepared() {
+    @Test func `trim memory footprint keeps prepared artwork pin names while prepared`() {
         let session = BattleSession(openingHandDrawStagger: 0)
         session.lifecyclePhase = .prepared
         session.preparedArtworkNames = ["opening-hand-art"]
@@ -331,7 +331,7 @@ struct BattleSessionSimulationTests {
         #expect(session.preparedArtworkNames == ["opening-hand-art"])
     }
 
-    @Test func trimMemoryFootprintReleasesPreparedArtworkPinNamesWhenIdle() {
+    @Test func `trim memory footprint releases prepared artwork pin names when idle`() {
         let session = BattleSession(openingHandDrawStagger: 0)
         session.lifecyclePhase = .idle
         session.preparedArtworkNames = ["opening-hand-art"]
@@ -345,7 +345,7 @@ struct BattleSessionSimulationTests {
         id: Int,
         amount: Int,
         keyword: Keyword = .bleed,
-        targetID: String = "enemy"
+        targetID: String = "enemy",
     ) -> ActionEvent {
         ActionEvent(
             id: id,
@@ -357,7 +357,7 @@ struct BattleSessionSimulationTests {
             targetID: targetID,
             targetName: targetID.capitalized,
             amount: amount,
-            keyword: keyword
+            keyword: keyword,
         )
     }
 }
@@ -373,7 +373,7 @@ private func waitForAutoEndTurn(_ session: BattleSession, after tickBefore: Int)
 }
 
 extension BattleSessionSimulationTests {
-    @Test func hitAndAttackReactionBridgesNotifyOnlyTheMatchingCombatant() {
+    @Test func `hit and attack reaction bridges notify only the matching combatant`() {
         let session = BattleSession(openingHandDrawStagger: 0)
         let heroOwner = UUID()
         let enemyOwner = UUID()

@@ -5,12 +5,12 @@ import TrinketTestSupport
 @testable import BattleEngine
 
 struct CombatTriggerTalentControlTests { // swiftlint:disable:this type_body_length - control + paralysis coverage exceeds 350
-    @Test func freezeBuildupDoesNotDecay() {
+    @Test func `freeze buildup does not decay`() {
         var battle = BattleTestFixtures.makePipelineContext()
         BattleStateTestFactory.seedActiveEffects(
             [ActiveEffect(id: 1, effect: .controlMeter(.freeze, 4, 10), remainingTurns: 0, sourceActorID: "source")],
             for: battle.roster.enemy.combatant,
-            on: &battle
+            on: &battle,
         )
         _ = BattleCardCombatEngine.endTurn(context: &battle)
         let meter = battle.roster.activeEffects(for: battle.roster.enemy.combatant)
@@ -19,11 +19,11 @@ struct CombatTriggerTalentControlTests { // swiftlint:disable:this type_body_len
         #expect(meter?.amount == 4)
     }
 
-    @Test func enemyStunExtraActionSkipsExtendStun() {
+    @Test func `enemy stun extra action skips extend stun`() {
         var battle = BattleTestFixtures.makePipelineContext(
             heroModifiers: .init(triggers: CombatTraitTriggers(
-                control: ControlTriggers(stunExtendChancePercent: 1.0)
-            ))
+                control: ControlTriggers(stunExtendChancePercent: 1.0),
+            )),
         )
         let enemy = battle.roster.enemy.combatant
         let threshold = ControlMeterEngine.threshold(for: enemy, in: battle)
@@ -33,12 +33,12 @@ struct CombatTriggerTalentControlTests { // swiftlint:disable:this type_body_len
             to: enemy,
             sourceActorID: "source",
             applyFightPacing: false,
-            in: &battle
+            in: &battle,
         )
         #expect((battle.additionalControlSkipsByCombatantID[enemy.id] ?? 0) == 1)
     }
 
-    @Test func seismicRoarStunsEnemyWhenCompanionDropsBelowHalf() {
+    @Test func `seismic roar stuns enemy when companion drops below half`() {
         var battle = BattleStateTestFactory.makeBattle(
             hero: BattleTestFixtures.passiveHero(maxHealth: 50),
             companion: BattleTestFixtures.passiveCompanion(maxHealth: 20),
@@ -46,50 +46,50 @@ struct CombatTriggerTalentControlTests { // swiftlint:disable:this type_body_len
             companionModifiers: .init(triggers: CombatTraitTriggers(
                 control: ControlTriggers(
                     onceBelowHealthPercentStunAllEnemies: true,
-                    onceBelowHealthPercentThreshold: 0.5
-                )
+                    onceBelowHealthPercentThreshold: 0.5,
+                ),
             )),
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         let companion = battle.roster.companion.combatant
         _ = battle.resolveDamage(
-            DamageRequest(amount: 11, target: companion, keyword: .physical, sourceActorID: "enemy")
+            DamageRequest(amount: 11, target: companion, keyword: .physical, sourceActorID: "enemy"),
         )
         #expect(battle.roster.hasControlStatus(for: battle.roster.enemy.combatant, keyword: .stun))
     }
 
-    @Test func paralysisStunsEnemyWithEnoughPoison() {
+    @Test func `paralysis stuns enemy with enough poison`() {
         var battle = BattleStateTestFactory.makeBattle(
             hero: BattleTestFixtures.passiveHero(),
             companion: BattleTestFixtures.passiveCompanion(),
             enemy: BattleTestFixtures.silentEnemy(maxHealth: 100),
             companionModifiers: .init(triggers: CombatTraitTriggers(
-                dot: DotTriggers(poisonStunChancePercent: 1.0, poisonThresholdStunAmount: 6)
+                dot: DotTriggers(poisonStunChancePercent: 1.0, poisonThresholdStunAmount: 6),
             )),
             rngSeed: 0,
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         let enemy = battle.roster.enemy.combatant
         let active = ActiveEffect(
             id: 1,
             effect: .poison(8),
             remainingTurns: 0,
-            sourceActorID: battle.roster.companion.id
+            sourceActorID: battle.roster.companion.id,
         )
         _ = DecayingDoTHandler(keyword: .poison, kind: .poison).advanceTurn(active, on: enemy, in: &battle)
         #expect(battle.roster.hasControlStatus(for: enemy, keyword: .stun))
     }
 
-    @Test func paralysisZeroChanceFallsBackToGuaranteedForLegacySaves() {
+    @Test func `paralysis zero chance falls back to guaranteed for legacy saves`() {
         var battle = BattleStateTestFactory.makeBattle(
             hero: BattleTestFixtures.passiveHero(),
             companion: BattleTestFixtures.passiveCompanion(),
             enemy: BattleTestFixtures.silentEnemy(maxHealth: 100),
             companionModifiers: .init(triggers: CombatTraitTriggers(
-                dot: DotTriggers(poisonStunChancePercent: 0, poisonThresholdStunAmount: 6)
+                dot: DotTriggers(poisonStunChancePercent: 0, poisonThresholdStunAmount: 6),
             )),
             rngSeed: 0,
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         let enemy = battle.roster.enemy.combatant
         let active = ActiveEffect(id: 1, effect: .poison(8), remainingTurns: 0, sourceActorID: battle.roster.companion.id)
@@ -97,16 +97,16 @@ struct CombatTriggerTalentControlTests { // swiftlint:disable:this type_body_len
         #expect(battle.roster.hasControlStatus(for: enemy, keyword: .stun))
     }
 
-    @Test func paralysisRespectsSeedAndOncePerTurnGuard() {
+    @Test func `paralysis respects seed and once per turn guard`() {
         var hitBattle = BattleStateTestFactory.makeBattle(
             hero: BattleTestFixtures.passiveHero(),
             companion: BattleTestFixtures.passiveCompanion(),
             enemy: BattleTestFixtures.silentEnemy(maxHealth: 100),
             companionModifiers: .init(triggers: CombatTraitTriggers(
-                dot: DotTriggers(poisonStunChancePercent: 0.40, poisonThresholdStunAmount: 6)
+                dot: DotTriggers(poisonStunChancePercent: 0.40, poisonThresholdStunAmount: 6),
             )),
             rngSeed: 0,
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         let hitEnemy = hitBattle.roster.enemy.combatant
         let hitActive = ActiveEffect(id: 1, effect: .poison(8), remainingTurns: 0, sourceActorID: hitBattle.roster.companion.id)
@@ -116,8 +116,8 @@ struct CombatTriggerTalentControlTests { // swiftlint:disable:this type_body_len
         _ = DecayingDoTHandler(keyword: .poison, kind: .poison).advanceTurn(secondActive, on: hitEnemy, in: &hitBattle)
         #expect(
             hitBattle.talentTurnGuardByActorID[
-                TalentActionGuardKey(kind: .poisonStun, actorID: hitBattle.roster.companion.id)
-            ] == hitBattle.turnCount
+                TalentActionGuardKey(kind: .poisonStun, actorID: hitBattle.roster.companion.id),
+            ] == hitBattle.turnCount,
         )
 
         var missBattle = BattleStateTestFactory.makeBattle(
@@ -125,10 +125,10 @@ struct CombatTriggerTalentControlTests { // swiftlint:disable:this type_body_len
             companion: BattleTestFixtures.passiveCompanion(),
             enemy: BattleTestFixtures.silentEnemy(maxHealth: 100),
             companionModifiers: .init(triggers: CombatTraitTriggers(
-                dot: DotTriggers(poisonStunChancePercent: 0.40, poisonThresholdStunAmount: 6)
+                dot: DotTriggers(poisonStunChancePercent: 0.40, poisonThresholdStunAmount: 6),
             )),
             rngSeed: 1,
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         let missEnemy = missBattle.roster.enemy.combatant
         let missActive = ActiveEffect(id: 1, effect: .poison(8), remainingTurns: 0, sourceActorID: missBattle.roster.companion.id)
@@ -136,21 +136,21 @@ struct CombatTriggerTalentControlTests { // swiftlint:disable:this type_body_len
         #expect(!missBattle.roster.hasControlStatus(for: missEnemy, keyword: .stun))
     }
 
-    @Test func paralysisTurnGuardResetsNextTurn() {
+    @Test func `paralysis turn guard resets next turn`() {
         var battle = BattleStateTestFactory.makeBattle(
             hero: BattleTestFixtures.passiveHero(),
             companion: BattleTestFixtures.passiveCompanion(),
             enemy: BattleTestFixtures.silentEnemy(maxHealth: 100),
             companionModifiers: .init(triggers: CombatTraitTriggers(
-                dot: DotTriggers(poisonStunChancePercent: 1.0, poisonThresholdStunAmount: 6)
+                dot: DotTriggers(poisonStunChancePercent: 1.0, poisonThresholdStunAmount: 6),
             )),
             rngSeed: 0,
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         let enemy = battle.roster.enemy.combatant
         _ = DecayingDoTHandler(keyword: .poison, kind: .poison).advanceTurn(
             ActiveEffect(id: 1, effect: .poison(8), remainingTurns: 0, sourceActorID: battle.roster.companion.id),
-            on: enemy, in: &battle
+            on: enemy, in: &battle,
         )
         #expect(battle.roster.hasControlStatus(for: enemy, keyword: .stun))
         battle.roster.clearControlStatusLinger(for: enemy)
@@ -158,35 +158,35 @@ struct CombatTriggerTalentControlTests { // swiftlint:disable:this type_body_len
         battle.turnCount += 1
         _ = DecayingDoTHandler(keyword: .poison, kind: .poison).advanceTurn(
             ActiveEffect(id: 2, effect: .poison(8), remainingTurns: 0, sourceActorID: battle.roster.companion.id),
-            on: enemy, in: &battle
+            on: enemy, in: &battle,
         )
         #expect(battle.roster.hasControlStatus(for: enemy, keyword: .stun))
     }
 
-    @Test func venomousSkinPoisonsAttacker() {
+    @Test func `venomous skin poisons attacker`() {
         var battle = BattleStateTestFactory.makeBattle(
             hero: BattleTestFixtures.passiveHero(maxHealth: 50),
             companion: BattleTestFixtures.passiveCompanion(maxHealth: 20),
             enemy: BattleTestFixtures.silentEnemy(maxHealth: 100),
             companionModifiers: .init(triggers: CombatTraitTriggers(
-                onHit: OnHitTriggers(onHitAttackerPoison: 1)
+                onHit: OnHitTriggers(onHitAttackerPoison: 1),
             )),
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         let companion = battle.roster.companion.combatant
         _ = battle.resolveDamage(
-            DamageRequest(amount: 3, target: companion, keyword: .physical, sourceActorID: "enemy")
+            DamageRequest(amount: 3, target: companion, keyword: .physical, sourceActorID: "enemy"),
         )
         let poisoned = battle.roster.activeEffects(for: battle.roster.enemy.combatant)
             .contains { $0.effect.keyword == .poison }
         #expect(poisoned)
     }
 
-    @Test func blindingLightAppliesEvadeToTargetNotAttacker() {
+    @Test func `blinding light applies evade to target not attacker`() {
         var battle = BattleTestFixtures.makePipelineContext(
             heroModifiers: .init(triggers: CombatTraitTriggers(
-                mitigation: MitigationTriggers(holyDamageTargetMissNextAttack: true)
-            ))
+                mitigation: MitigationTriggers(holyDamageTargetMissNextAttack: true),
+            )),
         )
         _ = battle.resolveDamage(DamageRequest(
             amount: 1,
@@ -197,8 +197,8 @@ struct CombatTriggerTalentControlTests { // swiftlint:disable:this type_body_len
                 applyStatBonus: false,
                 applyItemBonus: false,
                 applyDodge: false,
-                isAttackHit: true
-            )
+                isAttackHit: true,
+            ),
         ))
         let enemyHasEvade = battle.roster.activeEffects(for: battle.roster.enemy.combatant).contains {
             if case .evadeNextHit = $0.effect {
@@ -216,7 +216,7 @@ struct CombatTriggerTalentControlTests { // swiftlint:disable:this type_body_len
         #expect(!heroHasEvade)
     }
 
-    @Test func pinningStrikeAndParalyticPoisonRequireLivingOwner() {
+    @Test func `pinning strike and paralytic poison require living owner`() {
         func bleedBattle(heroAlive: Bool) -> BattleState {
             var battle = BattleStateTestFactory.makeBattle(
                 hero: BattleTestFixtures.passiveHero(maxHealth: 50),
@@ -224,9 +224,9 @@ struct CombatTriggerTalentControlTests { // swiftlint:disable:this type_body_len
                 enemy: BattleTestFixtures.silentEnemy(maxHealth: 40),
                 activeEnemyEffects: [ActiveEffect(id: 1, effect: .bleed(2), remainingTurns: 0)],
                 heroModifiers: .init(triggers: CombatTraitTriggers(
-                    mitigation: MitigationTriggers(bleedingEnemyAttackDealDamage: 5)
+                    mitigation: MitigationTriggers(bleedingEnemyAttackDealDamage: 5),
                 )),
-                dealOpeningHand: false
+                dealOpeningHand: false,
             )
             if !heroAlive {
                 battle.roster.mutateRuntime(for: battle.roster.hero.combatant) { $0.currentHealth = 0 }
@@ -249,9 +249,9 @@ struct CombatTriggerTalentControlTests { // swiftlint:disable:this type_body_len
                 enemy: BattleTestFixtures.silentEnemy(maxHealth: 40),
                 activeEnemyEffects: [ActiveEffect(id: 1, effect: .poison(2), remainingTurns: 0)],
                 heroModifiers: .init(triggers: CombatTraitTriggers(
-                    mitigation: MitigationTriggers(poisonedEnemyMissChancePercent: 1)
+                    mitigation: MitigationTriggers(poisonedEnemyMissChancePercent: 1),
                 )),
-                dealOpeningHand: false
+                dealOpeningHand: false,
             )
             if !heroAlive {
                 battle.roster.mutateRuntime(for: battle.roster.hero.combatant) { $0.currentHealth = 0 }
@@ -266,21 +266,21 @@ struct CombatTriggerTalentControlTests { // swiftlint:disable:this type_body_len
         #expect(!CombatTriggerEngine.enemyActAvoidance(in: &deadMiss).cancelled)
     }
 
-    @Test func frozenCannotBlockAuraRequiresLivingOwner() {
+    @Test func `frozen cannot block aura requires living owner`() {
         func makeBattle() -> BattleState {
             var battle = BattleStateTestFactory.makeBattle(
                 hero: BattleTestFixtures.passiveHero(),
                 companion: BattleTestFixtures.passiveCompanion(),
                 enemy: BattleTestFixtures.silentEnemy(maxHealth: 40),
                 companionModifiers: .init(triggers: CombatTraitTriggers(
-                    control: ControlTriggers(frozenEnemyCannotBlockOrHeal: true)
+                    control: ControlTriggers(frozenEnemyCannotBlockOrHeal: true),
                 )),
-                dealOpeningHand: false
+                dealOpeningHand: false,
             )
             BattleStateTestFactory.seedActiveEffects(
                 [ActiveEffect(id: 1, effect: .controlMeter(.freeze, 10, 10), remainingTurns: 0)],
                 for: battle.roster.enemy.combatant,
-                on: &battle
+                on: &battle,
             )
             return battle
         }
@@ -290,7 +290,7 @@ struct CombatTriggerTalentControlTests { // swiftlint:disable:this type_body_len
             4,
             to: livingOwner.roster.enemy.combatant,
             source: livingOwner.roster.hero.combatant,
-            abilityName: "Test"
+            abilityName: "Test",
         )
         #expect(blocked.isEmpty)
 
@@ -300,15 +300,15 @@ struct CombatTriggerTalentControlTests { // swiftlint:disable:this type_body_len
             4,
             to: deadOwner.roster.enemy.combatant,
             source: deadOwner.roster.hero.combatant,
-            abilityName: "Test"
+            abilityName: "Test",
         )
         #expect(!applied.isEmpty)
         #expect(DefensePoolEngine.blockPoints(
-            in: deadOwner.roster.activeEffects(for: deadOwner.roster.enemy.combatant)
+            in: deadOwner.roster.activeEffects(for: deadOwner.roster.enemy.combatant),
         ) > 0)
     }
 
-    @Test func hexingRuneAppliesAfflictionOnlyWhenHeroSpendsMana() {
+    @Test func `hexing rune applies affliction only when hero spends mana`() {
         func enemyIsAfflicted(_ battle: BattleState) -> Bool {
             battle.roster.activeEffects(for: battle.roster.enemy.combatant).contains {
                 $0.effect.keyword == .bleed || $0.effect.keyword == .burn || $0.effect.keyword == .poison
@@ -320,14 +320,14 @@ struct CombatTriggerTalentControlTests { // swiftlint:disable:this type_body_len
             companion: BattleTestFixtures.passiveCompanion(maxHealth: 20),
             enemy: BattleTestFixtures.silentEnemy(maxHealth: 100),
             companionModifiers: .init(triggers: CombatTraitTriggers(
-                mana: ManaTriggers(onHeroSpendManaApplyRandomAffliction: true)
+                mana: ManaTriggers(onHeroSpendManaApplyRandomAffliction: true),
             )),
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         _ = CombatTriggerEngine.afterSpendMana(
             by: companionSpend.roster.companion.combatant,
             amountSpent: 2,
-            in: &companionSpend
+            in: &companionSpend,
         )
         #expect(!enemyIsAfflicted(companionSpend))
 
@@ -336,32 +336,32 @@ struct CombatTriggerTalentControlTests { // swiftlint:disable:this type_body_len
             companion: BattleTestFixtures.passiveCompanion(maxHealth: 20),
             enemy: BattleTestFixtures.silentEnemy(maxHealth: 100),
             heroModifiers: .init(triggers: CombatTraitTriggers(
-                mana: ManaTriggers(onHeroSpendManaApplyRandomAffliction: true)
+                mana: ManaTriggers(onHeroSpendManaApplyRandomAffliction: true),
             )),
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         _ = CombatTriggerEngine.afterSpendMana(
             by: heroSpend.roster.hero.combatant,
             amountSpent: 2,
-            in: &heroSpend
+            in: &heroSpend,
         )
         #expect(enemyIsAfflicted(heroSpend))
     }
 
-    @Test func spitPoisonAppliesFromCompanionWhenHeroAttacksPoisonedEnemy() {
+    @Test func `spit poison applies from companion when hero attacks poisoned enemy`() {
         var battle = BattleStateTestFactory.makeBattle(
             hero: BattleTestFixtures.passiveHero(maxHealth: 50),
             companion: BattleTestFixtures.passiveCompanion(maxHealth: 20),
             enemy: BattleTestFixtures.silentEnemy(maxHealth: 100),
             companionModifiers: .init(triggers: CombatTraitTriggers(
-                attack: AttackTriggers(onHeroAttackPoisonedEnemyApplyPoison: 1)
+                attack: AttackTriggers(onHeroAttackPoisonedEnemyApplyPoison: 1),
             )),
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         BattleStateTestFactory.seedActiveEffects(
             [ActiveEffect(id: 1, effect: .poison(3), remainingTurns: 2)],
             for: battle.roster.enemy.combatant,
-            on: &battle
+            on: &battle,
         )
         _ = battle.resolveDamage(
             DamageRequest(
@@ -373,9 +373,9 @@ struct CombatTriggerTalentControlTests { // swiftlint:disable:this type_body_len
                     applyStatBonus: false,
                     applyItemBonus: true,
                     applyDodge: false,
-                    isAttackHit: true
-                )
-            )
+                    isAttackHit: true,
+                ),
+            ),
         )
         let poisons = battle.roster.activeEffects(for: battle.roster.enemy.combatant)
             .filter { $0.effect.keyword == .poison }
@@ -383,26 +383,26 @@ struct CombatTriggerTalentControlTests { // swiftlint:disable:this type_body_len
     }
 
     // swiftlint:disable:next function_body_length
-    @Test func harvestEssenceIgnoresDoTAndRetaliation() {
+    @Test func `harvest essence ignores do T and retaliation`() {
         let harvest = CombatModifierProfile(triggers: CombatTraitTriggers(
-            block: BlockTriggers(onAnyHealthLossGainBlock: 1)
+            block: BlockTriggers(onAnyHealthLossGainBlock: 1),
         ))
         var dotBattle = BattleStateTestFactory.makeBattle(
             hero: BattleTestFixtures.passiveHero(),
             companion: BattleTestFixtures.passiveCompanion(),
             enemy: BattleTestFixtures.silentEnemy(maxHealth: 40),
             heroModifiers: harvest,
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         _ = dotBattle.applyDecayingDoT(
             keyword: .poison,
             potency: 3,
             to: dotBattle.roster.enemy.combatant,
             sourceActorID: dotBattle.roster.hero.id,
-            dealImmediateDamage: true
+            dealImmediateDamage: true,
         )
         #expect(DefensePoolEngine.blockPoints(
-            in: dotBattle.roster.activeEffects(for: dotBattle.roster.hero.combatant)
+            in: dotBattle.roster.activeEffects(for: dotBattle.roster.hero.combatant),
         ) == 0)
 
         var hitBattle = BattleStateTestFactory.makeBattle(
@@ -410,7 +410,7 @@ struct CombatTriggerTalentControlTests { // swiftlint:disable:this type_body_len
             companion: BattleTestFixtures.passiveCompanion(),
             enemy: BattleTestFixtures.silentEnemy(maxHealth: 40),
             heroModifiers: harvest,
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         _ = hitBattle.resolveDamage(
             DamageRequest(
@@ -422,12 +422,12 @@ struct CombatTriggerTalentControlTests { // swiftlint:disable:this type_body_len
                     applyStatBonus: false,
                     applyItemBonus: false,
                     applyDodge: false,
-                    isAttackHit: true
-                )
-            )
+                    isAttackHit: true,
+                ),
+            ),
         )
         #expect(DefensePoolEngine.blockPoints(
-            in: hitBattle.roster.activeEffects(for: hitBattle.roster.hero.combatant)
+            in: hitBattle.roster.activeEffects(for: hitBattle.roster.hero.combatant),
         ) == 1)
 
         var retaliation = BattleStateTestFactory.makeBattle(
@@ -435,7 +435,7 @@ struct CombatTriggerTalentControlTests { // swiftlint:disable:this type_body_len
             companion: BattleTestFixtures.passiveCompanion(),
             enemy: BattleTestFixtures.silentEnemy(maxHealth: 40),
             heroModifiers: harvest,
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         _ = retaliation.resolveDamage(
             DamageRequest(
@@ -448,12 +448,12 @@ struct CombatTriggerTalentControlTests { // swiftlint:disable:this type_body_len
                     applyItemBonus: false,
                     applyDodge: false,
                     isRetaliation: true,
-                    isAttackHit: true
-                )
-            )
+                    isAttackHit: true,
+                ),
+            ),
         )
         #expect(DefensePoolEngine.blockPoints(
-            in: retaliation.roster.activeEffects(for: retaliation.roster.hero.combatant)
+            in: retaliation.roster.activeEffects(for: retaliation.roster.hero.combatant),
         ) == 0)
     }
 }

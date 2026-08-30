@@ -89,7 +89,7 @@ public enum TrinketDesign {
             [
                 GridItem(
                     .adaptive(minimum: collectionGridMinimum, maximum: collectionGridMaximum),
-                    spacing: largeSpacing
+                    spacing: largeSpacing,
                 ),
             ]
         }
@@ -98,7 +98,7 @@ public enum TrinketDesign {
             [
                 GridItem(
                     .adaptive(minimum: partyPickerGridMinimum, maximum: partyPickerGridMaximum),
-                    spacing: largeSpacing
+                    spacing: largeSpacing,
                 ),
             ]
         }
@@ -126,23 +126,23 @@ public enum TrinketDesign {
 
         public static let hero = Self(
             color: DesignAssetColors.named("PlaceholderHero"),
-            symbolName: "person.fill"
+            symbolName: "person.fill",
         )
         public static let companion = Self(
             color: DesignAssetColors.named("PlaceholderCompanion"),
-            symbolName: "pawprint.fill"
+            symbolName: "pawprint.fill",
         )
         public static let enemy = Self(
             color: DesignAssetColors.named("PlaceholderEnemy"),
-            symbolName: "flame.fill"
+            symbolName: "flame.fill",
         )
         public static let item = Self(
             color: DesignAssetColors.named("PlaceholderItem"),
-            symbolName: "shippingbox.fill"
+            symbolName: "shippingbox.fill",
         )
         public static let ability = Self(
             color: DesignAssetColors.named("PlaceholderAbility"),
-            symbolName: "bolt.fill"
+            symbolName: "bolt.fill",
         )
     }
 }

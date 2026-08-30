@@ -23,7 +23,7 @@ public struct CategoryBrowseShelf<Destination: View, Content: View>: View {
         totalCount: Int? = nil,
         previewLimit: Int = TrinketDesign.Metrics.collectionShelfPreviewLimit,
         @ViewBuilder destination: @escaping () -> Destination,
-        @ViewBuilder content: @escaping () -> Content
+        @ViewBuilder content: @escaping () -> Content,
     ) {
         self.title = title
         self.linkAccessibilityIdentifier = linkAccessibilityIdentifier
@@ -76,7 +76,7 @@ public struct CategoryBrowseShelf<Destination: View, Content: View>: View {
                     } label: {
                         ViewAllShelfCard(
                             remainingCount: totalCount - previewLimit,
-                            accessibilityIdentifier: AccessibilityID.Collection.viewAllCard(category: title)
+                            accessibilityIdentifier: AccessibilityID.Collection.viewAllCard(category: title),
                         )
                     }
                     .trinketQuietTapButtonStyle()
@@ -89,7 +89,7 @@ public struct CategoryBrowseShelf<Destination: View, Content: View>: View {
         .contentMargins(
             .horizontal,
             TrinketDesign.Metrics.collectionShelfHorizontalMargin,
-            for: .scrollContent
+            for: .scrollContent,
         )
         .scrollTargetBehavior(.viewAligned)
     }

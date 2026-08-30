@@ -9,7 +9,7 @@ public struct AbilityLoadout: Hashable, Sendable {
     public init(
         basic: Ability? = nil,
         skill: Ability? = nil,
-        ultimate: Ability? = nil
+        ultimate: Ability? = nil,
     ) {
         self.basic = basic
         self.skill = skill
@@ -54,7 +54,7 @@ public struct AbilityChoices: Hashable, Sendable {
         skills: [Ability],
         ultimates: [Ability],
         selected: AbilityLoadout? = nil,
-        fillsMissingSelections: Bool = true
+        fillsMissingSelections: Bool = true,
     ) {
         self.basics = basics
         self.skills = skills
@@ -62,7 +62,7 @@ public struct AbilityChoices: Hashable, Sendable {
         let defaultLoadout = AbilityLoadout(
             basic: basics.first,
             skill: skills.first,
-            ultimate: ultimates.first
+            ultimate: ultimates.first,
         )
         let selectedLoadout = selected ?? defaultLoadout
         self.selected = Self.resolvedLoadout(
@@ -70,7 +70,7 @@ public struct AbilityChoices: Hashable, Sendable {
             basics: basics,
             skills: skills,
             ultimates: ultimates,
-            fillsMissingSelections: fillsMissingSelections
+            fillsMissingSelections: fillsMissingSelections,
         )
     }
 
@@ -78,7 +78,7 @@ public struct AbilityChoices: Hashable, Sendable {
         self.init(
             basics: abilities.filter { $0.tier == .basic },
             skills: abilities.filter { $0.tier == .skill },
-            ultimates: abilities.filter { $0.tier == .ultimate }
+            ultimates: abilities.filter { $0.tier == .ultimate },
         )
     }
 
@@ -98,7 +98,7 @@ public struct AbilityChoices: Hashable, Sendable {
             basics: basics,
             skills: skills,
             ultimates: ultimates,
-            selected: loadout
+            selected: loadout,
         )
     }
 
@@ -108,7 +108,7 @@ public struct AbilityChoices: Hashable, Sendable {
             skills: skills,
             ultimates: ultimates,
             selected: loadout,
-            fillsMissingSelections: false
+            fillsMissingSelections: false,
         )
     }
 
@@ -117,19 +117,19 @@ public struct AbilityChoices: Hashable, Sendable {
         basics: [Ability],
         skills: [Ability],
         ultimates: [Ability],
-        fillsMissingSelections: Bool
+        fillsMissingSelections: Bool,
     ) -> AbilityLoadout {
         AbilityLoadout(
             basic: selectedAbility(loadout.basic, in: basics, fillIfMissing: fillsMissingSelections),
             skill: selectedAbility(loadout.skill, in: skills, fillIfMissing: fillsMissingSelections),
-            ultimate: selectedAbility(loadout.ultimate, in: ultimates, fillIfMissing: fillsMissingSelections)
+            ultimate: selectedAbility(loadout.ultimate, in: ultimates, fillIfMissing: fillsMissingSelections),
         )
     }
 
     private static func selectedAbility(
         _ ability: Ability?,
         in choices: [Ability],
-        fillIfMissing: Bool
+        fillIfMissing: Bool,
     ) -> Ability? {
         guard let ability else {
             return fillIfMissing ? choices.first : nil

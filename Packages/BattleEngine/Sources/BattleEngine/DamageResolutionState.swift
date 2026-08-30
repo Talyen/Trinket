@@ -95,7 +95,7 @@ package struct DamageResolutionState {
         combatant: Combatant,
         sourceActorID: String?,
         damageKeyword: Keyword?,
-        options: DamageOptions
+        options: DamageOptions,
     ) {
         self.amount = amount
         self.combatant = combatant

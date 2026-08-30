@@ -22,7 +22,7 @@ public struct CombatantArtwork: View {
             if let artReference = combatant.artReference {
                 Image.preparedAsset(
                     artReference,
-                    displaySize: variant == .card ? .compact : .full
+                    displaySize: variant == .card ? .compact : .full,
                 )
                 .resizable()
                 .interpolation(interpolation)

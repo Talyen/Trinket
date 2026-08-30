@@ -86,7 +86,7 @@ public struct ActionEvent: Identifiable, Equatable {
         keyword: Keyword,
         appliedEffectSummaries: [String] = [],
         milestone: Milestone? = nil,
-        isCritical: Bool = false
+        isCritical: Bool = false,
     ) {
         self.id = id
         self.actionID = actionID
@@ -119,7 +119,7 @@ public struct ActionEvent: Identifiable, Equatable {
         actorID: String? = nil,
         actorName: String? = nil,
         abilityName: String? = nil,
-        amount: Int? = nil
+        amount: Int? = nil,
     ) -> Self {
         Self(
             id: id,
@@ -137,7 +137,7 @@ public struct ActionEvent: Identifiable, Equatable {
             keyword: keyword,
             appliedEffectSummaries: appliedEffectSummaries,
             milestone: milestone,
-            isCritical: isCritical
+            isCritical: isCritical,
         )
     }
 }

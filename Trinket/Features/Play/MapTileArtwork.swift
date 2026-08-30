@@ -8,7 +8,7 @@ struct MapTileArtwork: View {
     var body: some View {
         Image.preparedAsset(
             art,
-            displaySize: prefersThumbnail ? .compact : .full
+            displaySize: prefersThumbnail ? .compact : .full,
         )
         .resizable()
         .scaledToFill()

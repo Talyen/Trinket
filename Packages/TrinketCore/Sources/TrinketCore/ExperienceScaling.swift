@@ -47,14 +47,14 @@ public enum ExperienceScaling {
         adjustedAward(
             baseExperience: baseBattleAward(forPlayerLevel: playerLevel),
             playerLevel: playerLevel,
-            enemyLevel: enemyLevel
+            enemyLevel: enemyLevel,
         )
     }
 
     public static func battleAwardWithCatchUp(
         playerLevel: Int,
         enemyLevel: Int,
-        highestLevel: Int
+        highestLevel: Int,
     ) -> Int {
         let award = battleAward(playerLevel: playerLevel, enemyLevel: enemyLevel)
         guard award > 0 else { return 0 }
@@ -66,7 +66,7 @@ public enum ExperienceScaling {
         battleAwardWithCatchUp(
             playerLevel: playerLevel,
             enemyLevel: playerLevel,
-            highestLevel: highestLevel
+            highestLevel: highestLevel,
         )
     }
 
@@ -83,7 +83,7 @@ public enum ExperienceScaling {
     public static func adjustedAward(
         baseExperience: Int,
         playerLevel: Int,
-        enemyLevel: Int
+        enemyLevel: Int,
     ) -> Int {
         guard baseExperience > 0 else { return 0 }
         let multiplier = levelDeltaMultiplier(playerLevel: playerLevel, enemyLevel: enemyLevel)
@@ -93,7 +93,7 @@ public enum ExperienceScaling {
     public static func catchUpMultiplier(
         for combatantLevel: Int,
         highestLevel: Int,
-        maxMultiplier: Double = 2.5
+        maxMultiplier: Double = 2.5,
     ) -> Double {
         let gap = max(0, highestLevel - combatantLevel)
         guard gap > 0 else { return 1.0 }

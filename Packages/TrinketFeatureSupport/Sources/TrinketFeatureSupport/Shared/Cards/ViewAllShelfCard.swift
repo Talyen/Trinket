@@ -8,7 +8,7 @@ public struct ViewAllShelfCard: View {
 
     public init(
         remainingCount: Int? = nil,
-        accessibilityIdentifier: String? = nil
+        accessibilityIdentifier: String? = nil,
     ) {
         self.remainingCount = remainingCount
         self.accessibilityIdentifier = accessibilityIdentifier
@@ -19,7 +19,7 @@ public struct ViewAllShelfCard: View {
             appliesCardSurface: true,
             showsLabel: false,
             reservesLabelSpace: false,
-            accessibilityID: accessibilityIdentifier
+            accessibilityID: accessibilityIdentifier,
         ) {
             VStack(spacing: TrinketDesign.Metrics.smallSpacing) {
                 Image(systemName: "square.grid.2x2.fill")

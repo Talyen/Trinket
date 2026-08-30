@@ -4,7 +4,7 @@ import TrinketCore
 @testable import TrinketPersistence
 
 struct InventoryModelMappingTests {
-    @Test func persistedTrinketRefreshesFromAuthoredCatalog() throws {
+    @Test func `persisted trinket refreshes from authored catalog`() throws {
         let staleItem = InventoryItemModel()
         staleItem.id = "owned-meteorite"
         staleItem.templateID = "meteorite"
@@ -15,7 +15,7 @@ struct InventoryModelMappingTests {
             id: "dormant_meteorite",
             title: "Dormant",
             description: "Placeholder.",
-            keywords: [.burn]
+            keywords: [.burn],
         ))]
         let model = InventoryModel()
         model.items = [staleItem]

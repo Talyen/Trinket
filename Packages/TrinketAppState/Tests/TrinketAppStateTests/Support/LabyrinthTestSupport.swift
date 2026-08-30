@@ -12,7 +12,7 @@ enum LabyrinthTestSupport {
 
     static func firstReachableCombatNodeID(
         where matches: (LabyrinthNode) -> Bool,
-        in state: PlaySession
+        in state: PlaySession,
     ) -> String? {
         firstReachableNodeID(where: { $0.type.isCombat && matches($0) }, in: state)
     }
@@ -31,7 +31,7 @@ enum LabyrinthTestSupport {
             modifierIDs: node.modifierIDs,
             recruitEventID: eventID,
             outgoingIDs: node.outgoingIDs,
-            isRevealed: true
+            isRevealed: true,
         )
         state.playerSave.labyrinth = labyrinth
         return nodeID
@@ -39,7 +39,7 @@ enum LabyrinthTestSupport {
 
     static func firstReachableNodeID(
         of type: LabyrinthNodeType,
-        in state: PlaySession
+        in state: PlaySession,
     ) -> String? {
         if let existing = firstReachableNodeID(where: { $0.type.canonical == type.canonical }, in: state) {
             return existing
@@ -70,7 +70,7 @@ enum LabyrinthTestSupport {
             mysteryEventID: nil,
             outgoingIDs: existingNode.outgoingIDs,
             isCleared: existingNode.isCleared,
-            isRevealed: existingNode.isRevealed
+            isRevealed: existingNode.isRevealed,
         )
         var labyrinth = state.playerSave.labyrinth
         labyrinth.nodes[targetID] = updatedNode
@@ -80,7 +80,7 @@ enum LabyrinthTestSupport {
 
     private static func firstReachableNodeID(
         where matches: (LabyrinthNode) -> Bool,
-        in state: PlaySession
+        in state: PlaySession,
     ) -> String? {
         for _ in 0 ..< maximumAdvanceCount {
             let reachableNodeIDs = state.playerSave.labyrinth.reachableNodeIDs()

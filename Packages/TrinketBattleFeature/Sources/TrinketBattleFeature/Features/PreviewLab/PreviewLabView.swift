@@ -15,11 +15,11 @@ public struct PreviewLabView: View {
         let configuration = PreviewLab.makeConfiguration(
             enemyID: enemyID,
             heroID: heroID,
-            companionID: companionID
+            companionID: companionID,
         )
         let session = BattleSession(
             openingHandDrawStagger: 0,
-            presentationEnvironment: PreviewLab.dependencies
+            presentationEnvironment: PreviewLab.dependencies,
         )
         _ = session.activate(configuration)
         _labSession = State(initialValue: session)
@@ -46,7 +46,7 @@ public struct PreviewLabView: View {
             battleSession: labSession,
             completeVictory: { _ in false },
             restartBattle: restart,
-            retreat: { dismiss() }
+            retreat: { dismiss() },
         )
         .toolbar {
             if isCinematicClear {
@@ -140,7 +140,7 @@ public struct PreviewLabView: View {
         configuration = PreviewLab.makeConfiguration(
             enemyID: selectedEnemyID,
             heroID: selectedHeroID,
-            companionID: selectedCompanionID
+            companionID: selectedCompanionID,
         )
         _ = labSession.restart(configuration)
         warmSelectedCinematics()
@@ -192,7 +192,7 @@ private enum PreviewLab {
             warmSFX: { _, _ in },
             hapticsEnabled: { false },
             effectsVolume: { 1 },
-            shouldAutoSkipUltimateCinematic: { _, _ in false }
+            shouldAutoSkipUltimateCinematic: { _, _ in false },
         )
     }
 
@@ -211,7 +211,7 @@ private enum PreviewLab {
     static func makeConfiguration(
         enemyID: String,
         heroID: String,
-        companionID: String
+        companionID: String,
     ) -> BattleRunConfiguration {
         let hero = GameContent.heroes.first { $0.id == heroID } ?? GameContent.heroes.first
         let companion = companionOptions.first { $0.id == companionID } ?? GameContent.companions.first
@@ -224,18 +224,18 @@ private enum PreviewLab {
                     ?? Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: []),
                 progression: .initial,
                 equipmentLoadout: .init(),
-                modifiers: .zero
+                modifiers: .zero,
             ),
             companion: BattleRunConfiguration.PartyMember(
                 combatant: companion.map { labCombatant($0, ultimate: cinematicUltimate(for: companionID)) }
                     ?? Combatant(id: "companion", name: "Companion", role: .companion, maxHealth: 20, abilities: []),
                 progression: .initial,
                 equipmentLoadout: .init(),
-                modifiers: .zero
+                modifiers: .zero,
             ),
             enemy: enemy.map { labCombatant($0.combatant) },
             enemyEncounterLevel: nil,
-            enemyModifiers: .zero
+            enemyModifiers: .zero,
         )
     }
 
@@ -252,7 +252,7 @@ private enum PreviewLab {
             actionIntervalTurns: combatant.actionIntervalTurns,
             abilityChoices: choices,
             primaryStats: combatant.primaryStats,
-            growthArchetype: combatant.growthArchetype
+            growthArchetype: combatant.growthArchetype,
         )
     }
 }

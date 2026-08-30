@@ -6,12 +6,12 @@ import TrinketCore
 public enum BattleTurnEngine {
     private static let logger = Logger(
         subsystem: "com.ryanmcintire.Trinket",
-        category: "BattleTurnEngine"
+        category: "BattleTurnEngine",
     )
 
     public static func consumeActionSkip(
         for actor: Combatant,
-        context: inout BattleState
+        context: inout BattleState,
     ) -> [ActionEvent] {
         var keyword: Keyword?
 
@@ -41,7 +41,7 @@ public enum BattleTurnEngine {
             abilityName: keyword.statusAlias ?? keyword.rawValue,
             target: actor,
             amount: 0,
-            keyword: keyword
+            keyword: keyword,
         )
         var events = [event]
 
@@ -57,16 +57,16 @@ public enum BattleTurnEngine {
         ability: Ability,
         actor: Combatant,
         abilityTarget: Combatant,
-        context: inout BattleState
+        context: inout BattleState,
     ) -> [ActionEvent] {
         var events: [ActionEvent] = []
         var resolvedAbility = ability.resolvingOutcomeBranch(
-            using: &context.rng
+            using: &context.rng,
         )
         events.append(contentsOf: spendManaToEmpowerBurnOrFreezeIfNeeded(
             for: &resolvedAbility,
             actor: actor,
-            context: &context
+            context: &context,
         ))
         events.append(contentsOf: consumeHemorrhageIfActive(for: actor, in: &context))
 
@@ -74,7 +74,7 @@ public enum BattleTurnEngine {
             ability: resolvedAbility,
             actor: actor,
             abilityTarget: abilityTarget,
-            context: &context
+            context: &context,
         )
         events.append(contentsOf: damageOutcome.events)
 
@@ -83,7 +83,7 @@ public enum BattleTurnEngine {
             actor: actor,
             abilityTarget: abilityTarget,
             context: &context,
-            events: &events
+            events: &events,
         )
 
         let logKeyword = damageOutcome.logDamageKeyword ?? resolvedAbility.logDamageKeyword
@@ -99,8 +99,8 @@ public enum BattleTurnEngine {
                 target: abilityTarget,
                 amount: damageOutcome.totalDealt,
                 keyword: logKeyword,
-                appliedEffectSummaries: appliedEffectLogs
-            )
+                appliedEffectSummaries: appliedEffectLogs,
+            ),
         )
 
         recordAction(for: actor, context: &context)
@@ -149,7 +149,7 @@ extension BattleTurnEngine {
         ability: Ability,
         actor: Combatant,
         abilityTarget: Combatant,
-        context: inout BattleState
+        context: inout BattleState,
     ) -> DamageComponentOutcome {
         var events: [ActionEvent] = []
         var resolvedComponents: [ResolvedDamageComponent] = []
@@ -161,7 +161,7 @@ extension BattleTurnEngine {
                 component.target,
                 actor: actor,
                 abilityTarget: abilityTarget,
-                context: context
+                context: context,
             )
 
             var amount = component.amount
@@ -172,7 +172,7 @@ extension BattleTurnEngine {
                    enemy: context.enemy,
                    hero: context.hero,
                    companion: context.companion,
-                   context: context
+                   context: context,
                ) {
                 amount += component.bonusAmount
             }
@@ -218,9 +218,9 @@ extension BattleTurnEngine {
                             qualifiesForAmbush: true,
                             isAttackHit: true,
                             isBasicAttackHit: ability.tier == .basic,
-                            abilityHasLeech: ability.hasLeech
-                        )
-                )
+                            abilityHasLeech: ability.hasLeech,
+                        ),
+                ),
             )
             let dealt = damageOutcome.healthLost
             let damageEvents = damageOutcome.events
@@ -235,7 +235,7 @@ extension BattleTurnEngine {
                 target: damageTarget,
                 amount: dealt,
                 keyword: damageKeyword,
-                isCritical: damageOutcome.flags.contains(.critical)
+                isCritical: damageOutcome.flags.contains(.critical),
             )
             events.append(componentEvent)
             resolvedComponents.append(ResolvedDamageComponent(
@@ -243,7 +243,7 @@ extension BattleTurnEngine {
                 targetID: damageTarget.id,
                 healthLost: dealt,
                 keyword: damageKeyword,
-                isCritical: componentEvent.isCritical
+                isCritical: componentEvent.isCritical,
             ))
 
             if shouldConsumeNextHolyStrike {
@@ -253,7 +253,7 @@ extension BattleTurnEngine {
                     potency: holyStrikeBurnPotency,
                     to: damageTarget,
                     sourceActorID: actor.id,
-                    dealImmediateDamage: true
+                    dealImmediateDamage: true,
                 ))
             } else if shouldConsumeNextStrikeDouble {
                 removeActiveEffect(for: actor, in: &context) { $0 == .nextStrikeDouble }
@@ -267,7 +267,7 @@ extension BattleTurnEngine {
                     potency: amount,
                     to: damageTarget,
                     sourceActorID: actor.id,
-                    context: &context
+                    context: &context,
                 ))
             }
         }
@@ -275,7 +275,7 @@ extension BattleTurnEngine {
         return DamageComponentOutcome(
             events: events,
             resolvedComponents: resolvedComponents,
-            logDamageKeyword: logDamageKeyword
+            logDamageKeyword: logDamageKeyword,
         )
     }
 
@@ -284,7 +284,7 @@ extension BattleTurnEngine {
         potency: Int,
         to target: Combatant,
         sourceActorID: String,
-        context: inout BattleState
+        context: inout BattleState,
     ) -> [ActionEvent] {
         switch keyword {
         case .burn, .poison:
@@ -293,7 +293,7 @@ extension BattleTurnEngine {
                 potency: potency,
                 to: target,
                 sourceActorID: sourceActorID,
-                dealImmediateDamage: false
+                dealImmediateDamage: false,
             )
         case .bleed:
             DoTApplicator.applyBleed(
@@ -301,7 +301,7 @@ extension BattleTurnEngine {
                 to: target,
                 sourceActorID: sourceActorID,
                 dealImmediateDamage: false,
-                in: &context
+                in: &context,
             )
         default:
             []
@@ -310,7 +310,7 @@ extension BattleTurnEngine {
 
     private static func activeDamageKeywordOverride(
         for actor: Combatant,
-        in context: BattleState
+        in context: BattleState,
     ) -> (keyword: Keyword, bonus: Int)? {
         for active in context.roster.activeEffects(for: actor) where active.remainingTurns > 0 {
             if case let .damageKeywordOverride(keyword, bonus, _) = active.effect {
@@ -323,7 +323,7 @@ extension BattleTurnEngine {
     private static func hasActiveEffect(
         for actor: Combatant,
         in context: BattleState,
-        where matches: (Effect) -> Bool
+        where matches: (Effect) -> Bool,
     ) -> Bool {
         context.roster.activeEffects(for: actor).contains { matches($0.effect) }
     }
@@ -331,14 +331,14 @@ extension BattleTurnEngine {
     private static func removeActiveEffect(
         for actor: Combatant,
         in context: inout BattleState,
-        where matches: (Effect) -> Bool
+        where matches: (Effect) -> Bool,
     ) {
         ActiveEffectMutation.removeMatching(from: actor, in: &context, where: matches)
     }
 
     private static func consumeHemorrhageIfActive(
         for actor: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         var hemorrhageDamage: Int?
         for active in context.roster.activeEffects(for: actor) {
@@ -360,8 +360,8 @@ extension BattleTurnEngine {
                 target: actor,
                 keyword: .bleed,
                 sourceActorID: actor.id,
-                options: .flatReaction
-            )
+                options: .flatReaction,
+            ),
         )
         var hemorrhageEvents = hemorrhageOutcome.events
         if let lastIndex = hemorrhageEvents.indices.last {
@@ -370,7 +370,7 @@ extension BattleTurnEngine {
                 effectKind: .hemorrhageTriggered,
                 actorID: actor.id,
                 actorName: actor.name,
-                abilityName: "Hemorrhage"
+                abilityName: "Hemorrhage",
             )
         } else if hemorrhageOutcome.healthLost > 0 {
             hemorrhageEvents.append(context.nextEvent(
@@ -381,7 +381,7 @@ extension BattleTurnEngine {
                 abilityName: "Hemorrhage",
                 target: actor,
                 amount: hemorrhageOutcome.healthLost,
-                keyword: .bleed
+                keyword: .bleed,
             ))
         }
         return hemorrhageEvents
@@ -392,7 +392,7 @@ extension BattleTurnEngine {
         actor: Combatant,
         abilityTarget: Combatant,
         context: inout BattleState,
-        events: inout [ActionEvent]
+        events: inout [ActionEvent],
     ) -> [String] {
         var appliedEffectLogs: [String] = []
         for targetedEffect in ability.targetedEffects {
@@ -403,7 +403,7 @@ extension BattleTurnEngine {
                    enemy: context.enemy,
                    hero: context.hero,
                    companion: context.companion,
-                   context: context
+                   context: context,
                ) {
                 continue
             }
@@ -413,7 +413,7 @@ extension BattleTurnEngine {
                 targetedEffect.target,
                 actor: actor,
                 abilityTarget: abilityTarget,
-                context: context
+                context: context,
             )
 
             if shouldSkipEffectOnDefeatedTarget(effect, target: effectTarget, actor: actor, context: context) {
@@ -429,7 +429,7 @@ extension BattleTurnEngine {
                 ability: ability,
                 source: actor,
                 target: effectTarget,
-                in: &context
+                in: &context,
             )
             events.append(contentsOf: outcome.events)
             if outcome.didApply {
@@ -443,7 +443,7 @@ extension BattleTurnEngine {
         _ effect: Effect,
         target: Combatant,
         actor _: Combatant,
-        context: BattleState
+        context: BattleState,
     ) -> Bool {
         guard context.roster.health(for: target) <= 0 else { return false }
         return !effect.canApplyToDefeatedTarget
@@ -451,7 +451,7 @@ extension BattleTurnEngine {
 
     private static func recordAction(
         for actor: Combatant,
-        context: inout BattleState
+        context: inout BattleState,
     ) {
         context.actionCount += 1
         context.roster.mutateRuntime(for: actor) { runtime in
@@ -463,7 +463,7 @@ extension BattleTurnEngine {
         _ target: EffectTarget,
         actor: Combatant,
         abilityTarget: Combatant,
-        context: BattleState
+        context: BattleState,
     ) -> Combatant {
         BattleTargetResolver.effectTarget(target, actor: actor, abilityTarget: abilityTarget, in: context)
     }

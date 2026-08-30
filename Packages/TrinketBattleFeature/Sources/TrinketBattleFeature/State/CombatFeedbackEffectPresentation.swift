@@ -37,7 +37,7 @@ enum CombatFeedbackEffectPresentation {
             isAdditive: Bool = false,
             statusLabel: CombatFeedbackStatusLabel? = nil,
             labelRule: LabelRule? = nil,
-            displayRule: DisplayRule = .visible
+            displayRule: DisplayRule = .visible,
         ) {
             self.feedbackClass = feedbackClass
             self.visualRole = visualRole
@@ -83,7 +83,7 @@ enum CombatFeedbackEffectPresentation {
 
     static func chipPresentation(
         for status: CombatFeedbackStatusLabel,
-        keyword: Keyword
+        keyword: Keyword,
     ) -> CombatFeedbackChipPresentation {
         guard let layout = statusChipLayouts[status] else {
             preconditionFailure("Every status label needs chip layout metadata; missing \(status)")
@@ -98,14 +98,14 @@ enum CombatFeedbackEffectPresentation {
             .resource,
             isAdditive: true,
             labelRule: .amount,
-            displayRule: .positiveAmountOnly
+            displayRule: .positiveAmountOnly,
         ),
         .manaShieldTriggered: Descriptor(.resource, isAdditive: true, labelRule: .amount),
         .cardsDrawn: Descriptor(
             .resource,
             isAdditive: true,
             labelRule: .amount,
-            displayRule: .hidden
+            displayRule: .hidden,
         ),
         .shieldApplied: Descriptor(.buff, isAdditive: true, labelRule: .amount),
         .shieldAbsorbed: Descriptor(.block, isAdditive: true, labelRule: .negatedAmount),
@@ -151,17 +151,17 @@ private extension CombatFeedbackEffectPresentation.StatusChipLayout {
         case let .dualBeneficial(trailing):
             CombatFeedbackChipPresentation.dualAction(
                 leading: .beneficialStatus,
-                trailing: .keyword(trailing)
+                trailing: .keyword(trailing),
             )
         case let .dualNegative(trailing):
             CombatFeedbackChipPresentation.dualAction(
                 leading: .negativeStatus,
-                trailing: .keyword(trailing)
+                trailing: .keyword(trailing),
             )
         case .dualBeneficialEventKeyword:
             CombatFeedbackChipPresentation.dualAction(
                 leading: .beneficialStatus,
-                trailing: .keyword(keyword)
+                trailing: .keyword(keyword),
             )
         case .iconOnlyNegative:
             CombatFeedbackChipPresentation.iconOnly(trailing: .negativeStatus)

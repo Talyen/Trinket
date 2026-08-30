@@ -7,7 +7,7 @@ package extension CombatTriggerEngine {
         to enemy: Combatant,
         source: Combatant,
         isAttackHit: Bool = true,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         let profile = context.modifiers(for: source.id)
         var events: [ActionEvent] = []
@@ -17,7 +17,7 @@ package extension CombatTriggerEngine {
                 profile.triggers.holyDamageBlockFlat,
                 to: source,
                 source: source,
-                abilityName: triggerAbilityName("holyDamageBlockFlat", for: source, fallback: "Sanctum", in: context)
+                abilityName: triggerAbilityName("holyDamageBlockFlat", for: source, fallback: "Sanctum", in: context),
             ))
         }
 
@@ -27,7 +27,7 @@ package extension CombatTriggerEngine {
                 target: source,
                 count: profile.triggers.holyDamageCleanseCount,
                 abilityName: triggerAbilityName("holyDamageCleanseCount", for: source, fallback: "Absolving", in: context),
-                in: &context
+                in: &context,
             ))
         }
 
@@ -36,7 +36,7 @@ package extension CombatTriggerEngine {
                 amount: profile.triggers.holyDamageHealFlat,
                 target: source,
                 source: source,
-                abilityName: triggerAbilityName("holyDamageHealFlat", for: source, fallback: "Beacon", in: context)
+                abilityName: triggerAbilityName("holyDamageHealFlat", for: source, fallback: "Beacon", in: context),
             ))
         }
 
@@ -46,13 +46,13 @@ package extension CombatTriggerEngine {
                 "holyDamageHealLowestAllyFlat",
                 for: source,
                 fallback: "Divine Blessing",
-                in: context
+                in: context,
             )
             events.append(contentsOf: context.healEmitting(
                 amount: profile.triggers.holyDamageHealLowestAllyFlat,
                 target: lowest,
                 source: source,
-                abilityName: blessingName
+                abilityName: blessingName,
             ))
         }
         if profile.triggers.holyDamageHealHeroFlat > 0, context.roster.hero.isAlive {
@@ -60,7 +60,7 @@ package extension CombatTriggerEngine {
                 amount: profile.triggers.holyDamageHealHeroFlat,
                 target: context.roster.hero.combatant,
                 source: source,
-                abilityName: triggerAbilityName("holyDamageHealHeroFlat", for: source, fallback: "Sun Glyph", in: context)
+                abilityName: triggerAbilityName("holyDamageHealHeroFlat", for: source, fallback: "Sun Glyph", in: context),
             ))
         }
 
@@ -68,7 +68,7 @@ package extension CombatTriggerEngine {
             events.append(contentsOf: context.restoreManaEmitting(
                 profile.triggers.onHolyDamageRestoreMana,
                 to: source,
-                abilityName: triggerAbilityName("onHolyDamageRestoreMana", for: source, fallback: "Radiant Wisdom", in: context)
+                abilityName: triggerAbilityName("onHolyDamageRestoreMana", for: source, fallback: "Radiant Wisdom", in: context),
             ))
         }
         if profile.triggers.holyDamageNextHitBonus > 0 {
@@ -91,7 +91,7 @@ package extension CombatTriggerEngine {
                 .damageReductionFlat(profile.triggers.holyDamageReduceTargetDamage, 1),
                 to: enemy,
                 sourceID: source.id,
-                remainingTurns: 1
+                remainingTurns: 1,
             )
         }
         if profile.triggers.holyDamagePurgeAll, context.roster.health(for: enemy) > 0 {
@@ -101,7 +101,7 @@ package extension CombatTriggerEngine {
                 abilityName: triggerAbilityName("holyDamagePurgeAll", for: source, fallback: "Purifying Light", in: context),
                 count: 0,
                 purgeAll: true,
-                in: &context
+                in: &context,
             ))
         }
         if profile.triggers.onHolyDamagePartyBlock > 0 {
@@ -112,7 +112,7 @@ package extension CombatTriggerEngine {
                     profile.triggers.onHolyDamagePartyBlock,
                     to: member.combatant,
                     source: source,
-                    abilityName: triggerAbilityName("onHolyDamagePartyBlock", for: source, fallback: "Radiant Barrier", in: context)
+                    abilityName: triggerAbilityName("onHolyDamagePartyBlock", for: source, fallback: "Radiant Barrier", in: context),
                 ))
             }
         }
@@ -124,7 +124,7 @@ package extension CombatTriggerEngine {
                 abilityName: triggerAbilityName("holyDamagePurgeCount", for: source, fallback: "Nullifying", in: context),
                 count: profile.triggers.holyDamagePurgeCount,
                 purgeAll: false,
-                in: &context
+                in: &context,
             ))
         }
 
@@ -135,8 +135,8 @@ package extension CombatTriggerEngine {
                     target: enemy,
                     keyword: .poison,
                     sourceActorID: source.id,
-                    options: .flatReaction
-                )
+                    options: .flatReaction,
+                ),
             ).events)
         }
 

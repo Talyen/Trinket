@@ -22,7 +22,7 @@ enum CombatFeedbackCardRecipes {
         scaleY: [.init(value: 1.0, duration: 0.01)],
         offsetX: [.init(value: 0, duration: 0.01)],
         offsetY: [.init(value: 0, duration: 0.01)],
-        duration: 0.01
+        duration: 0.01,
     )
 
     static let damageCardReaction = CombatantHitReactionRecipe(
@@ -43,7 +43,7 @@ enum CombatFeedbackCardRecipes {
             .init(value: 0, duration: 0.08),
             .init(value: 0, duration: 0.16),
         ],
-        duration: 0.24
+        duration: 0.24,
     )
 
     static let criticalCardReaction = CombatantHitReactionRecipe(
@@ -64,7 +64,7 @@ enum CombatFeedbackCardRecipes {
             .init(value: 0, duration: 0.08),
             .init(value: 0, duration: 0.18),
         ],
-        duration: 0.26
+        duration: 0.26,
     )
 
     static let blockCardReaction = CombatantHitReactionRecipe(
@@ -85,7 +85,7 @@ enum CombatFeedbackCardRecipes {
             .init(value: 0, duration: 0.08),
             .init(value: 0, duration: 0.18),
         ],
-        duration: 0.28
+        duration: 0.28,
     )
 
     static let healCardReaction = CombatantHitReactionRecipe(
@@ -106,7 +106,7 @@ enum CombatFeedbackCardRecipes {
             .init(value: 0, duration: 0.1),
             .init(value: 0, duration: 0.16),
         ],
-        duration: 0.26
+        duration: 0.26,
     )
 
     static let dodgeCardReaction = CombatantHitReactionRecipe(
@@ -127,7 +127,7 @@ enum CombatFeedbackCardRecipes {
             .init(value: 0, duration: 0.08),
             .init(value: 0, duration: 0.16),
         ],
-        duration: 0.24
+        duration: 0.24,
     )
 
     static let celebrateCardReaction = CombatantHitReactionRecipe(
@@ -160,6 +160,6 @@ enum CombatFeedbackCardRecipes {
             .init(value: -2, duration: 0.1, usesSpring: false),
             .init(value: 0, duration: 0.1, usesSpring: false),
         ],
-        duration: 1.0
+        duration: 1.0,
     )
 }

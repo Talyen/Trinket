@@ -9,12 +9,12 @@ package enum CriticalChanceEngine {
         defender: Combatant,
         abilityBonus: Double = 0,
         countsBleedingDefender: Bool = false,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> Bool {
         guard let actor = context.roster.combatant(for: actorID) else { return false }
         var chance = actor.primaryStats.contestedCriticalChance(
             for: keyword,
-            againstDefenderToughness: defender.primaryStats.toughness
+            againstDefenderToughness: defender.primaryStats.toughness,
         )
         chance += abilityBonus
         chance += context.modifiers(for: actorID).triggers.criticalChanceBonus
@@ -34,7 +34,7 @@ package enum CriticalChanceEngine {
 
     private static func partyCritChanceBonus(
         actor: CombatantRuntime,
-        in context: BattleState
+        in context: BattleState,
     ) -> Double {
         guard actor.role != .enemy, context.roster.companion.isAlive else { return 0 }
         let companionTriggers = context.companionModifiers.triggers

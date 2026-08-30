@@ -3,7 +3,7 @@ import Testing
 import TrinketContent
 
 struct CombatTriggerFieldCoverageTests {
-    @Test func everyTriggerFieldIsReadByBattleEngine() throws {
+    @Test func `every trigger field is read by battle engine`() throws {
         let names = CombatTraitTriggers.allFieldNames
         try #expect(!names.isEmpty)
         try #expect(Set(names).count == names.count, "duplicate trigger field names: \(duplicateNames(names))")
@@ -31,9 +31,9 @@ struct CombatTriggerFieldCoverageTests {
         let enumerator = try #require(
             FileManager.default.enumerator(
                 at: engineDirectory,
-                includingPropertiesForKeys: nil
+                includingPropertiesForKeys: nil,
             ),
-            "BattleEngine sources missing at \(engineDirectory.path)"
+            "BattleEngine sources missing at \(engineDirectory.path)",
         )
         var files: [URL] = []
         while let item = enumerator.nextObject() as? URL {

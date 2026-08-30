@@ -18,7 +18,7 @@ public struct PlayerProgressionState: Equatable, Codable, Sendable {
         companionXP: Int = 0,
         totalBattles: Int = 0,
         battlesWon: Int = 0,
-        modeBounces: Int = 0
+        modeBounces: Int = 0,
     ) {
         self.heroLevel = max(1, heroLevel)
         self.heroXP = max(0, heroXP)
@@ -55,7 +55,7 @@ public final class InterleavingPlayerController {
         campaignTracker: CampaignProgressionTracker = CampaignProgressionTracker(),
         spireTracker: SpireProgressionTracker = SpireProgressionTracker(),
         labyrinthTracker: LabyrinthProgressionTracker = LabyrinthProgressionTracker(),
-        initialState: PlayerProgressionState = PlayerProgressionState()
+        initialState: PlayerProgressionState = PlayerProgressionState(),
     ) {
         self.hero = hero
         self.companion = companion
@@ -120,24 +120,24 @@ public final class InterleavingPlayerController {
             let heroAward = ExperienceScaling.battleAwardWithCatchUp(
                 playerLevel: state.heroLevel,
                 enemyLevel: heroXPEnemyLevel,
-                highestLevel: highestLevel
+                highestLevel: highestLevel,
             )
             let companionAward = ExperienceScaling.battleAwardWithCatchUp(
                 playerLevel: state.companionLevel,
                 enemyLevel: companionXPEnemyLevel,
-                highestLevel: highestLevel
+                highestLevel: highestLevel,
             )
 
             let heroProg = CombatantProgression(
                 level: state.heroLevel,
                 currentXP: state.heroXP,
-                requiredXP: CombatantProgression.requiredXP(forLevel: state.heroLevel)
+                requiredXP: CombatantProgression.requiredXP(forLevel: state.heroLevel),
             ).addingExperience(heroAward)
 
             let companionProg = CombatantProgression(
                 level: state.companionLevel,
                 currentXP: state.companionXP,
-                requiredXP: CombatantProgression.requiredXP(forLevel: state.companionLevel)
+                requiredXP: CombatantProgression.requiredXP(forLevel: state.companionLevel),
             ).addingExperience(companionAward)
 
             state.heroLevel = heroProg.level
@@ -161,7 +161,7 @@ public final class InterleavingPlayerController {
 
     public func makeMatchup(
         for step: ModeProgressionStep,
-        seed: UInt64
+        seed: UInt64,
     ) -> ConfiguredSimulationMatchup {
         var rng = SeededRandomNumberGenerator(seed: seed)
 
@@ -170,7 +170,7 @@ public final class InterleavingPlayerController {
         let partyLoadouts = SimulationMatchupBuilder.samplePartyLoadouts(
             hero: hero,
             companion: companion,
-            using: &rng
+            using: &rng,
         )
         let heroLoadout = partyLoadouts.hero
         let companionLoadout = partyLoadouts.companion
@@ -183,12 +183,12 @@ public final class InterleavingPlayerController {
         let heroTalents = SimulationMatchupBuilder.legalTalentKit(
             for: hero.id,
             level: heroLevel,
-            using: &rng
+            using: &rng,
         )
         let companionTalents = SimulationMatchupBuilder.legalTalentKit(
             for: companion.id,
             level: companionLevel,
-            using: &rng
+            using: &rng,
         )
         let heroGear = SimulationMatchupBuilder.generateStarterGearIfNeeded(
             for: hero,
@@ -197,7 +197,7 @@ public final class InterleavingPlayerController {
             level: heroLevel,
             idPrefix: "prog-hero",
             gearKeywordBias: keywordBias,
-            using: &rng
+            using: &rng,
         )
         let companionGear = SimulationMatchupBuilder.generateStarterGearIfNeeded(
             for: companion,
@@ -206,7 +206,7 @@ public final class InterleavingPlayerController {
             level: companionLevel,
             idPrefix: "prog-companion",
             gearKeywordBias: keywordBias,
-            using: &rng
+            using: &rng,
         )
 
         return SimulationMatchupBuilder.build(
@@ -224,7 +224,7 @@ public final class InterleavingPlayerController {
             companionGear: companionGear,
             heroTalents: heroTalents,
             companionTalents: companionTalents,
-            gearKeywordBias: keywordBias
+            gearKeywordBias: keywordBias,
         )
     }
 

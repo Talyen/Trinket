@@ -5,7 +5,7 @@ package extension CombatTriggerEngine {
     static func drawOppositeElement(
         afterEmpowering keyword: Keyword,
         by actor: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         guard context.modifiers(for: actor.id).triggers.empoweredElementDrawOpposite,
               let owner = context.roster.participant(for: actor),
@@ -15,7 +15,7 @@ package extension CombatTriggerEngine {
         guard BattleCardCombatEngine.drawFirstCard(
             matching: opposite,
             for: owner,
-            context: &context
+            context: &context,
         ) != nil else { return [] }
         return [context.nextEvent(
             kind: .effect,
@@ -25,11 +25,11 @@ package extension CombatTriggerEngine {
                 "empoweredElementDrawOpposite",
                 for: actor,
                 fallback: "Twin Casting",
-                in: context
+                in: context,
             ),
             target: actor,
             amount: 1,
-            keyword: .physical
+            keyword: .physical,
         )]
     }
 
@@ -46,7 +46,7 @@ package extension CombatTriggerEngine {
                 triggers.spendManaBlockFlat,
                 to: actor,
                 source: actor,
-                abilityName: triggerAbilityName("spendManaBlockFlat", for: actor, fallback: "Aetherward", in: context)
+                abilityName: triggerAbilityName("spendManaBlockFlat", for: actor, fallback: "Aetherward", in: context),
             ))
         }
 
@@ -60,8 +60,8 @@ package extension CombatTriggerEngine {
                         "onHeroSpendManaGainBlock",
                         for: context.roster.companion.combatant,
                         fallback: "Mana Absorption",
-                        in: context
-                    )
+                        in: context,
+                    ),
                 ))
             }
             if companionTriggers.onHeroSpendManaCompanionNextAttackBonus > 0 {
@@ -80,8 +80,8 @@ package extension CombatTriggerEngine {
                     "spendManaRefundChancePercent",
                     for: actor,
                     fallback: "Mana Flow",
-                    in: context
-                )
+                    in: context,
+                ),
             ))
         }
 
@@ -93,7 +93,7 @@ package extension CombatTriggerEngine {
                 to: context.roster.enemy.combatant,
                 sourceActorID: actor.id,
                 dealImmediateDamage: false,
-                suppressAffixReactions: true
+                suppressAffixReactions: true,
             ))
         }
 
@@ -107,7 +107,7 @@ package extension CombatTriggerEngine {
                     sourceActorID: actor.id,
                     dealImmediateDamage: false,
                     suppressAffixReactions: true,
-                    in: &context
+                    in: &context,
                 ))
             } else {
                 events.append(contentsOf: context.applyDecayingDoT(
@@ -116,7 +116,7 @@ package extension CombatTriggerEngine {
                     to: context.roster.enemy.combatant,
                     sourceActorID: actor.id,
                     dealImmediateDamage: false,
-                    suppressAffixReactions: true
+                    suppressAffixReactions: true,
                 ))
             }
         }
@@ -133,8 +133,8 @@ package extension CombatTriggerEngine {
                         "spendManaThresholdBlockThreshold",
                         for: actor,
                         fallback: "Mana Cocoon",
-                        in: context
-                    )
+                        in: context,
+                    ),
                 ))
             }
             if triggers.spendManaThresholdBlockHealth > 0 {
@@ -146,8 +146,8 @@ package extension CombatTriggerEngine {
                         "spendManaThresholdBlockThreshold",
                         for: actor,
                         fallback: "Mana Cocoon",
-                        in: context
-                    )
+                        in: context,
+                    ),
                 ))
             }
         }
@@ -171,9 +171,9 @@ package extension CombatTriggerEngine {
                     "spendManaThresholdCleanseCount",
                     for: actor,
                     fallback: "Arcane Cleansing",
-                    in: context
+                    in: context,
                 ),
-                in: &context
+                in: &context,
             ))
         }
         let chaosRiftMet = triggers.spendManaChaosRiftThreshold > 0
@@ -190,8 +190,8 @@ package extension CombatTriggerEngine {
                         target: context.roster.enemy.combatant,
                         keyword: keyword,
                         sourceActorID: actor.id,
-                        options: .flatReaction
-                    )
+                        options: .flatReaction,
+                    ),
                 ).events)
             }
         }
@@ -205,7 +205,7 @@ package extension CombatTriggerEngine {
                 keyword: .freeze,
                 to: context.roster.enemy.combatant,
                 sourceActorID: actor.id,
-                in: &context
+                in: &context,
             ))
         }
 
@@ -226,8 +226,8 @@ package extension CombatTriggerEngine {
                     "onReachZeroManaRestoreMana",
                     for: actor,
                     fallback: "Dark Recovery",
-                    in: context
-                )
+                    in: context,
+                ),
             ))
         }
 
@@ -249,11 +249,11 @@ package extension CombatTriggerEngine {
                         tier: .basic,
                         directDamage: 0,
                         damageKeyword: .physical,
-                        description: ""
+                        description: "",
                     ),
                     source: actor,
                     target: actor,
-                    in: &context
+                    in: &context,
                 )
                 events.append(contentsOf: outcome.events)
             }
@@ -268,7 +268,7 @@ package extension CombatTriggerEngine {
                     potency: randomDoT,
                     to: enemy,
                     sourceActorID: actor.id,
-                    dealImmediateDamage: true
+                    dealImmediateDamage: true,
                 ))
             } else {
                 events.append(contentsOf: ControlMeterEngine.applyMeterCharge(
@@ -277,7 +277,7 @@ package extension CombatTriggerEngine {
                     to: enemy,
                     sourceActorID: actor.id,
                     applyFightPacing: false,
-                    in: &context
+                    in: &context,
                 ))
             }
         }
@@ -294,7 +294,7 @@ package extension CombatTriggerEngine {
                 amount,
                 to: actor,
                 source: actor,
-                abilityName: triggerAbilityName("gainManaBlockFlat", for: actor, fallback: "Arcane Ward", in: context)
+                abilityName: triggerAbilityName("gainManaBlockFlat", for: actor, fallback: "Arcane Ward", in: context),
             ))
         }
         if triggers.onGainManaHealFlat > 0 {
@@ -306,8 +306,8 @@ package extension CombatTriggerEngine {
                     "onGainManaHealFlat",
                     for: actor,
                     fallback: "Life Tap",
-                    in: context
-                )
+                    in: context,
+                ),
             ))
         }
         return events

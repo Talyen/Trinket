@@ -11,7 +11,7 @@ public enum CombatantFixtures {
         maxHealth: Int = 50,
         actionIntervalTurns: Int? = nil,
         abilities: [Ability] = [],
-        primaryStats: PrimaryStats = PrimaryStats()
+        primaryStats: PrimaryStats = PrimaryStats(),
     ) -> Combatant {
         Combatant(
             id: id,
@@ -20,7 +20,7 @@ public enum CombatantFixtures {
             maxHealth: maxHealth,
             actionIntervalTurns: actionIntervalTurns,
             abilities: abilities,
-            primaryStats: primaryStats
+            primaryStats: primaryStats,
         )
     }
 
@@ -30,7 +30,7 @@ public enum CombatantFixtures {
         tier: AbilityTier = .basic,
         directDamage: Int = 0,
         damageKeyword: Keyword = .physical,
-        description: String = "Test"
+        description: String = "Test",
     ) -> Ability {
         Ability(
             id: id,
@@ -38,7 +38,7 @@ public enum CombatantFixtures {
             tier: tier,
             directDamage: directDamage,
             damageKeyword: damageKeyword,
-            description: description
+            description: description,
         )
     }
 }

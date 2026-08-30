@@ -21,7 +21,7 @@ struct LabyrinthFloorMap: View {
 
     private var metrics: LabyrinthHexMetrics {
         LabyrinthHexMetrics(
-            radius: LabyrinthMapPresentation.hexRadius(forAvailableWidth: availableWidth)
+            radius: LabyrinthMapPresentation.hexRadius(forAvailableWidth: availableWidth),
         )
     }
 
@@ -48,14 +48,14 @@ struct LabyrinthFloorMap: View {
                     for: node,
                     worldSeed: playerSave.worldSeed,
                     unlockedHeroIDs: roster.unlockedHeroIDs,
-                    unlockedCompanionIDs: roster.unlockedCompanionIDs
+                    unlockedCompanionIDs: roster.unlockedCompanionIDs,
                 ),
                 position: point(
                     for: node,
                     horizontalCenter: horizontalCenter,
-                    metrics: metrics
+                    metrics: metrics,
                 ),
-                renderPriority: node.id == selectedNodeID ? 2 : visualState == .reachable ? 1 : 0
+                renderPriority: node.id == selectedNodeID ? 2 : visualState == .reachable ? 1 : 0,
             )
         }.sorted {
             $0.renderPriority < $1.renderPriority
@@ -85,7 +85,7 @@ struct LabyrinthFloorMap: View {
                         } else {
                             onDismissSelection()
                         }
-                    }
+                    },
                 )
                 .position(presentation.position)
             }
@@ -95,7 +95,7 @@ struct LabyrinthFloorMap: View {
 
     private func projectedX(
         for node: LabyrinthNode,
-        metrics: LabyrinthHexMetrics
+        metrics: LabyrinthHexMetrics,
     ) -> CGFloat {
         let position = node.gridPosition ?? LabyrinthGridPosition(row: 0, column: 0)
         return metrics.radius * sqrt(3) * (
@@ -106,14 +106,14 @@ struct LabyrinthFloorMap: View {
     private func point(
         for node: LabyrinthNode,
         horizontalCenter: CGFloat,
-        metrics: LabyrinthHexMetrics
+        metrics: LabyrinthHexMetrics,
     ) -> CGPoint {
         let position = node.gridPosition ?? LabyrinthGridPosition(row: 0, column: 0)
         return CGPoint(
             x: availableWidth / 2 + (
                 projectedX(for: node, metrics: metrics) - horizontalCenter
             ),
-            y: CGFloat(position.row) * metrics.verticalStep + metrics.height / 2 + metrics.hitExpansion
+            y: CGFloat(position.row) * metrics.verticalStep + metrics.height / 2 + metrics.hitExpansion,
         )
     }
 }
@@ -156,7 +156,7 @@ private struct LabyrinthMapNodeSeal: View {
                         node: node,
                         type: type,
                         resolvedMysteryEvent: resolvedMysteryEvent,
-                        style: .hexSeal
+                        style: .hexSeal,
                     )
                     .saturation(visualState == .cleared ? 0 : 1)
                     .opacity(visualState == .locked ? 0.42 : visualState == .cleared ? 0.72 : 1)
@@ -172,7 +172,7 @@ private struct LabyrinthMapNodeSeal: View {
                         isSelected ? TrinketDesign.Colors.accent :
                             visualState == .cleared ? TrinketDesign.Colors.subtleStroke.opacity(0.55) :
                             visualState == .locked ? TrinketDesign.Colors.subtleStroke : tint,
-                        lineWidth: visualState == .cleared ? 1.5 : visualState == .reachable ? 3 : 2
+                        lineWidth: visualState == .cleared ? 1.5 : visualState == .reachable ? 3 : 2,
                     )
 
                 LabyrinthHexagon()
@@ -187,11 +187,11 @@ private struct LabyrinthMapNodeSeal: View {
             .scaleEffect(clearedSettleScale)
             .contentShape(
                 .interaction,
-                LabyrinthHexagon().inset(by: -metrics.hitExpansion)
+                LabyrinthHexagon().inset(by: -metrics.hitExpansion),
             )
             .frame(
                 width: metrics.width + 2 * metrics.hitExpansion,
-                height: metrics.height + 2 * metrics.hitExpansion
+                height: metrics.height + 2 * metrics.hitExpansion,
             )
         }
         .buttonStyle(LabyrinthNodeButtonStyle(isSelected: isSelected))
@@ -280,13 +280,13 @@ private struct LabyrinthNodeButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .scaleEffect(
-                configuration.isPressed ? 0.97 : (isSelected ? 1.035 : 1)
+                configuration.isPressed ? 0.97 : (isSelected ? 1.035 : 1),
             )
             .offset(y: isSelected && !configuration.isPressed ? -2 : 0)
             .shadow(
                 color: TrinketDesign.Colors.Overlay.dragShadow.opacity(isSelected ? 1 : 0),
                 radius: isSelected ? 8 : 0,
-                y: isSelected ? 5 : 0
+                y: isSelected ? 5 : 0,
             )
             .animation(LabyrinthMapMotion.selection, value: configuration.isPressed)
             .animation(LabyrinthMapMotion.selection, value: isSelected)
@@ -309,7 +309,7 @@ struct LabyrinthNodeArtwork: View {
     private var symbolName: String {
         LabyrinthMapPresentation.symbolName(
             for: type,
-            recruitEventID: node.recruitEventID
+            recruitEventID: node.recruitEventID,
         )
     }
 
@@ -337,18 +337,18 @@ struct LabyrinthNodeArtwork: View {
            let enemy = GameContent.enemy(matching: enemyID) {
             CombatantArtwork(
                 combatant: enemy.combatant,
-                variant: prefersThumbnail ? .card : .battle
+                variant: prefersThumbnail ? .card : .battle,
             )
         } else if type.canonical == .recruit,
                   let art = LabyrinthMapPresentation.recruitEncounterArtReference(
                       for: node,
                       worldSeed: playerSave.worldSeed,
                       unlockedHeroIDs: playerSave.roster.unlockedHeroIDs,
-                      unlockedCompanionIDs: playerSave.roster.unlockedCompanionIDs
+                      unlockedCompanionIDs: playerSave.roster.unlockedCompanionIDs,
                   ) {
             Image.preparedAsset(
                 art,
-                displaySize: prefersThumbnail ? .compact : .full
+                displaySize: prefersThumbnail ? .compact : .full,
             )
             .resizable()
             .scaledToFill()
@@ -357,13 +357,13 @@ struct LabyrinthNodeArtwork: View {
             MysteryEventHeroArtwork(
                 event: event,
                 chapterID: "labyrinth",
-                preferThumbnail: prefersThumbnail
+                preferThumbnail: prefersThumbnail,
             )
         } else if let artID = LabyrinthMapPresentation.destinationEncounterArtID(for: type),
                   let art = ArtCatalog.encounterArtByID[artID] {
             Image.preparedAsset(
                 art,
-                displaySize: prefersThumbnail ? .compact : .full
+                displaySize: prefersThumbnail ? .compact : .full,
             )
             .resizable()
             .scaledToFill()
@@ -391,7 +391,7 @@ struct LabyrinthNodeArtwork: View {
                       for: node,
                       worldSeed: playerSave.worldSeed,
                       unlockedHeroIDs: playerSave.roster.unlockedHeroIDs,
-                      unlockedCompanionIDs: playerSave.roster.unlockedCompanionIDs
+                      unlockedCompanionIDs: playerSave.roster.unlockedCompanionIDs,
                   ) {
             encounterFocal(imageName: art.imageName, thumbnailName: art.thumbnailImageName, focalPoint: ArtFocalPoint(x: 0.5, y: 0.5))
         } else if let event = resolvedMysteryEvent, !event.isRecruit {
@@ -424,7 +424,7 @@ struct LabyrinthNodeArtwork: View {
             focalPoint: art.focalPoint,
             displaySize: .compact,
             sourceAspect: LabyrinthNodeArtworkMetrics.combatSourceAspect,
-            zoom: LabyrinthNodeArtworkMetrics.hexFocalZoom
+            zoom: LabyrinthNodeArtworkMetrics.hexFocalZoom,
         )
     }
 
@@ -435,7 +435,7 @@ struct LabyrinthNodeArtwork: View {
             focalPoint: focalPoint,
             displaySize: .compact,
             sourceAspect: LabyrinthNodeArtworkMetrics.encounterSourceAspect,
-            zoom: LabyrinthNodeArtworkMetrics.hexFocalZoom
+            zoom: LabyrinthNodeArtworkMetrics.hexFocalZoom,
         )
     }
 

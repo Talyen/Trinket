@@ -94,7 +94,7 @@ public final class OptionsStore {
 
     public func shouldAutoSkipUltimateCinematic(
         actorID: String,
-        actorsWhoPresentedThisBattle: Set<String>
+        actorsWhoPresentedThisBattle: Set<String>,
     ) -> Bool {
         switch ultimateCinematicShowPolicy {
         case .always:

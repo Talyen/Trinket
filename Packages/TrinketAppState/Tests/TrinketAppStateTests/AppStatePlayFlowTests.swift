@@ -18,7 +18,7 @@ struct AppStatePlayFlowTests {
         context = try AppTestContext()
     }
 
-    @Test func preparedJourneyBattleActivatesConfigurationAndState() throws {
+    @Test func `prepared journey battle activates configuration and state`() throws {
         let state = try context.makePlaySession()
         let stage = try #require(GameContent.chapters[0].stages.first)
         let battle = try #require(context.lastBattle)
@@ -38,7 +38,7 @@ struct AppStatePlayFlowTests {
         #expect(battle.preparedBattlePresentationRevision == preparedRevision)
     }
 
-    @Test func unchangedJourneyInputsReuseLaunchPreparedBattle() throws {
+    @Test func `unchanged journey inputs reuse launch prepared battle`() throws {
         let state = try context.makePlaySession()
         let stage = try #require(GameContent.chapters[0].stages.first)
         let battle = try #require(context.lastBattle)
@@ -51,7 +51,7 @@ struct AppStatePlayFlowTests {
         #expect(battle.preparedBattlePresentationRevision == preparedRevision)
     }
 
-    @Test func journeyRewardClaimChangeReplacesLaunchPreparedBattle() throws {
+    @Test func `journey reward claim change replaces launch prepared battle`() throws {
         let state = try context.makePlaySession()
         let stage = try #require(GameContent.chapters[0].stages.first)
         let battle = try #require(context.lastBattle)
@@ -70,12 +70,12 @@ struct AppStatePlayFlowTests {
         #expect(state.battlePresentation(for: runKey)?.stageRewardsAlreadyClaimed == true)
     }
 
-    @Test func changingCompanionRePreparesJourneyBattle() throws {
+    @Test func `changing companion re prepares journey battle`() throws {
         let state = try context.makePlaySession()
         let stage = try #require(GameContent.chapters[0].stages.first)
         let battle = try #require(context.lastBattle)
         let otherCompanion = try #require(
-            GameContent.companions.first { $0.id != state.playerSave.roster.activeCompanionID }
+            GameContent.companions.first { $0.id != state.playerSave.roster.activeCompanionID },
         )
 
         state.journey.prepareBattle(for: stage)
@@ -90,7 +90,7 @@ struct AppStatePlayFlowTests {
         #expect(battle.preparedBattlePresentationRevision == preparedRevision + 1)
     }
 
-    @Test func freshJourneyBattleActivationSelectsPlayTab() throws {
+    @Test func `fresh journey battle activation selects play tab`() throws {
         let state = try context.makePlaySession()
         let stage = try #require(GameContent.chapters[0].stages.first)
         state.shellSession.selectedTab = .options
@@ -102,12 +102,12 @@ struct AppStatePlayFlowTests {
     }
 
     @Test(arguments: ["journey", "spire", "labyrinth"] as [String])
-    func battleActivationFailureShowsUnavailableMessage(mode: String) throws {
+    func `battle activation failure shows unavailable message`(mode: String) throws {
         let runtime = RejectingBattleRuntime()
         let arguments = mode == "labyrinth" ? ["-reset-state"] : []
         let state = try context.makePlaySession(
             arguments: arguments,
-            battleRuntime: runtime
+            battleRuntime: runtime,
         )
 
         let message: StageMapMessage?
@@ -132,7 +132,7 @@ struct AppStatePlayFlowTests {
         #expect(state.battle.activeBattle == nil)
     }
 
-    @Test func failedPreparedJourneyActivationRetainsPreparedInputs() throws {
+    @Test func `failed prepared journey activation retains prepared inputs`() throws {
         let runtime = PreparedThenRejectingBattleRuntime()
         let state = try context.makePlaySession(battleRuntime: runtime)
         let stage = try #require(GameContent.chapters[0].stages.first)
@@ -153,13 +153,13 @@ struct AppStatePlayFlowTests {
         #expect(state.battlePresentation(for: runKey) != nil)
     }
 
-    @Test func mismatchedPreparedJourneyActivationDoesNotStartAFreshBattle() throws {
+    @Test func `mismatched prepared journey activation does not start A fresh battle`() throws {
         let state = try context.makePlaySession()
         let stage = try #require(GameContent.chapters[0].stages.first)
         let runKey = PlayBattleOrigin.journey(stageID: stage.id).runKey
         let battle = try #require(context.lastBattle)
         let otherCompanion = try #require(
-            GameContent.companions.first { $0.id != state.playerSave.roster.activeCompanionID }
+            GameContent.companions.first { $0.id != state.playerSave.roster.activeCompanionID },
         )
 
         state.journey.prepareBattle(for: stage)
@@ -177,7 +177,7 @@ struct AppStatePlayFlowTests {
         #expect(state.battlePresentation(for: runKey) != nil)
     }
 
-    @Test func completeActiveBattleWithStageCompletesJourneyIdempotently() throws {
+    @Test func `complete active battle with stage completes journey idempotently`() throws {
         let state = try context.makePlaySession()
         let stage = try #require(GameContent.chapters[0].stages.first)
         _ = state.journey.startBattle(for: stage)
@@ -187,7 +187,7 @@ struct AppStatePlayFlowTests {
         let expectedGold = StageCompletion.resolvedGoldReward(
             stageGold: presentation.stageReward?.gold ?? 0,
             battleEarnedGold: 5,
-            homestead: state.playerSave.homestead
+            homestead: state.playerSave.homestead,
         )
 
         state.completeActiveBattle(configuration, battleEarnedGold: 5)
@@ -206,14 +206,14 @@ struct AppStatePlayFlowTests {
         #expect(state.playerSave.roster.gold == initialGold + expectedGold)
     }
 
-    @Test func completeActiveBattleWithoutStageGrantsGoldOnly() throws {
+    @Test func `complete active battle without stage grants gold only`() throws {
         let state = try context.makePlaySession()
         let enemy = try #require(GameContent.enemies.first?.combatant)
         let configuration = try PlayBattleLaunchTestSupport.make(
             rngSeed: 0,
             hero: state.playerSave.roster.activeHero,
             companion: state.playerSave.roster.activeCompanion,
-            enemy: enemy
+            enemy: enemy,
         )
         _ = state.battle.activate(configuration)
         let journeyBefore = state.playerSave.journey
@@ -226,7 +226,7 @@ struct AppStatePlayFlowTests {
         #expect(state.playerSave.roster.gold == initialGold + 10)
     }
 
-    @Test func completeActiveBattleWithoutStageRespectsPendingGoldReservation() throws {
+    @Test func `complete active battle without stage respects pending gold reservation`() throws {
         let state = try context.makePlaySession()
         var save = state.playerSave.currentSave
         save.roster.gold = PlayerRosterState.maxGoldBalance - 4
@@ -238,7 +238,7 @@ struct AppStatePlayFlowTests {
             rngSeed: 0,
             hero: state.playerSave.roster.activeHero,
             companion: state.playerSave.roster.activeCompanion,
-            enemy: enemy
+            enemy: enemy,
         )
         _ = state.battle.activate(configuration)
 
@@ -248,7 +248,7 @@ struct AppStatePlayFlowTests {
         #expect(state.playerSave.homestead.pendingProduction[.gold] == 1)
     }
 
-    @Test func unknownBattleRouteFailsClosedWithoutGrantingGold() throws {
+    @Test func `unknown battle route fails closed without granting gold`() throws {
         let state = try context.makePlaySession()
         let enemy = try #require(GameContent.enemies.first?.combatant)
         let configuration = try PlayBattleLaunchTestSupport.make(
@@ -256,7 +256,7 @@ struct AppStatePlayFlowTests {
             rngSeed: 0,
             hero: state.playerSave.roster.activeHero,
             companion: state.playerSave.roster.activeCompanion,
-            enemy: enemy
+            enemy: enemy,
         )
         _ = state.battle.activate(configuration)
         let initialGold = state.playerSave.roster.gold
@@ -270,7 +270,7 @@ struct AppStatePlayFlowTests {
 
     #if DEBUG
     @Test(arguments: ["persist", "missing-stage", "missing-spire"] as [String])
-    func completeActiveBattleKeepsBattleOpenOnFailure(mode: String) throws {
+    func `complete active battle keeps battle open on failure`(mode: String) throws {
         switch mode {
         case "persist":
             let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
@@ -293,7 +293,7 @@ struct AppStatePlayFlowTests {
                 rngSeed: 0,
                 hero: state.playerSave.roster.activeHero,
                 companion: state.playerSave.roster.activeCompanion,
-                enemy: enemy
+                enemy: enemy,
             )
             _ = state.battle.activate(configuration)
             let goldBefore = state.playerSave.roster.gold
@@ -311,7 +311,7 @@ struct AppStatePlayFlowTests {
                 rngSeed: 0,
                 hero: state.playerSave.roster.activeHero,
                 companion: state.playerSave.roster.activeCompanion,
-                enemy: enemy
+                enemy: enemy,
             )
             _ = state.battle.activate(configuration)
 
@@ -325,7 +325,7 @@ struct AppStatePlayFlowTests {
     }
     #endif
 
-    @Test func unlockAllContentClearsActiveBattleAndPreservesTab() throws {
+    @Test func `unlock all content clears active battle and preserves tab`() throws {
         let state = try context.makeAppState()
         let stage = try #require(GameContent.chapters[0].stages.first)
         _ = state.play.journey.startBattle(for: stage)
@@ -337,7 +337,7 @@ struct AppStatePlayFlowTests {
     }
 
     @Test(arguments: ["journey", "spire", "labyrinth"] as [String])
-    func endBattleReturningToOriginQueuesExpectedDeepLink(origin: String) throws {
+    func `end battle returning to origin queues expected deep link`(origin: String) throws {
         switch origin {
         case "journey":
             let state = try context.makePlaySession()
@@ -380,7 +380,7 @@ struct AppStatePlayFlowTests {
         }
     }
 
-    @Test func completeActiveBattleQueuesSpireReturnDestination() throws {
+    @Test func `complete active battle queues spire return destination`() throws {
         let state = try makeProgressedStateForReturnTests(context)
         try attunePhysicalPartyForReturnTests(on: state)
 
@@ -392,7 +392,7 @@ struct AppStatePlayFlowTests {
         #expect(state.consumePendingDestination() == .spireClimb(.ironVein))
     }
 
-    @Test func completeActiveBattleGoldMatchesVictorySummaryWhenHomesteadBonusActive() throws {
+    @Test func `complete active battle gold matches victory summary when homestead bonus active`() throws {
         let state = try context.makePlaySession()
         var homestead = state.playerSave.homestead
         homestead.nodeTiers[.wishingWell] = 2
@@ -407,18 +407,18 @@ struct AppStatePlayFlowTests {
         let expectedTotal = StageCompletion.resolvedGoldReward(
             stageGold: presentation.stageReward?.gold ?? 0,
             battleEarnedGold: rawBattleEarnedGold,
-            homestead: state.playerSave.homestead
+            homestead: state.playerSave.homestead,
         )
         let initialGold = state.playerSave.roster.gold
 
         #expect(state.completeActiveBattle(
             configuration,
-            battleEarnedGold: rawBattleEarnedGold
+            battleEarnedGold: rawBattleEarnedGold,
         ))
         #expect(state.playerSave.roster.gold == initialGold + expectedTotal)
     }
 
-    @Test func presentBattleLogShowsLogWithoutChangingTabs() throws {
+    @Test func `present battle log shows log without changing tabs`() throws {
         let state = try context.makePlaySession()
         let stage = try #require(GameContent.chapters[0].stages.first)
         _ = state.journey.startBattle(for: stage)
@@ -469,7 +469,7 @@ private class RejectingBattleRuntime: BattleRuntime {
         runKey _: BattleRunKey,
         heroID _: String,
         companionID _: String,
-        enemyID _: String?
+        enemyID _: String?,
     ) -> Bool {
         false
     }
@@ -512,7 +512,7 @@ private final class PreparedThenRejectingBattleRuntime: RejectingBattleRuntime {
         runKey _: BattleRunKey,
         heroID _: String,
         companionID _: String,
-        enemyID _: String?
+        enemyID _: String?,
     ) -> Bool {
         guard !shouldRejectActivation, let preparedConfiguration else { return false }
         self.preparedConfiguration = nil

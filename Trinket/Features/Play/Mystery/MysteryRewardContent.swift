@@ -27,13 +27,13 @@ struct MysteryRewardContent: View {
                 showsIncreasePrefix: false,
                 emptyMessage: nil,
                 itemAccessibilityID: AccessibilityID.Mystery.rewardItem,
-                lootSpacing: TrinketDesign.Metrics.sectionSpacing
+                lootSpacing: TrinketDesign.Metrics.sectionSpacing,
             ),
             primaryActionTitle: "Loot All",
             primaryActionAccessibilityIdentifier: AccessibilityID.Mystery.continueButton,
             onPrimaryAction: onFinish,
             contentTopPadding: TrinketDesign.Metrics.contentTopPadding + TrinketDesign.Metrics.mediumSpacing,
-            contentStackSpacing: TrinketDesign.Metrics.sectionSpacing
+            contentStackSpacing: TrinketDesign.Metrics.sectionSpacing,
         ) { onExperienceBarCompleted in
             experiencePanel(onExperienceBarCompleted: onExperienceBarCompleted)
         }
@@ -57,7 +57,7 @@ struct MysteryRewardContent: View {
                         fillColor: TrinketDesign.Colors.accentEmphasized,
                         experienceAward: result.heroGrantedExperience,
                         snapToFinal: false,
-                        onAnimationCompleted: onExperienceBarCompleted
+                        onAnimationCompleted: onExperienceBarCompleted,
                     )
 
                     ExperienceBar(
@@ -68,7 +68,7 @@ struct MysteryRewardContent: View {
                         fillColor: TrinketDesign.Colors.accentEmphasized,
                         experienceAward: result.companionGrantedExperience,
                         snapToFinal: false,
-                        onAnimationCompleted: onExperienceBarCompleted
+                        onAnimationCompleted: onExperienceBarCompleted,
                     )
                 }
                 .trinketSurface(.secondary)

@@ -11,7 +11,7 @@ struct ExploreHubView: View {
     var body: some View {
         PlayModeHubScreen(
             title: "Explore",
-            accessibilityIdentifier: AccessibilityID.Play.exploreHub
+            accessibilityIdentifier: AccessibilityID.Play.exploreHub,
         ) {
             NavigationLink(value: PlayLaunchDestination.spiresHub) {
                 PlayModeArtworkCard(
@@ -19,7 +19,7 @@ struct ExploreHubView: View {
                     subtitle: spiresProgressSubtitle,
                     symbolName: nil,
                     artID: "gameModeSpires",
-                    fallbackArtID: "gameModeExplore"
+                    fallbackArtID: "gameModeExplore",
                 )
             }
             .accessibilityIdentifier(AccessibilityID.Play.spiresModeCard)
@@ -31,7 +31,7 @@ struct ExploreHubView: View {
                     subtitle: "Floor \(max(1, playerSave.labyrinth.currentFloorNumber))",
                     symbolName: nil,
                     artID: "gameModeLabyrinth",
-                    fallbackArtID: "gameModeExplore"
+                    fallbackArtID: "gameModeExplore",
                 )
             }
             .accessibilityIdentifier(AccessibilityID.Play.labyrinthModeCard)
@@ -46,7 +46,7 @@ struct ExploreHubView: View {
         let clearedFloors = GameContent.spires.reduce(0) { partialResult, spire in
             partialResult + min(
                 playerSave.spires.highestClearedFloor(for: spire.id.rawValue),
-                spire.floorCount
+                spire.floorCount,
             )
         }
         return "\(clearedFloors) / \(totalFloors) Floors"

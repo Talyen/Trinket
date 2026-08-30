@@ -8,7 +8,7 @@ struct ItemModifierBattleTests {
         (affixID: "keen", abilityID: "slash"),
         (affixID: "serrated", abilityID: "fangs"),
     ])
-    func equippedDamageAffixIncreasesCardDamage(affixID: String, abilityID: String) throws {
+    func `equipped damage affix increases card damage`(affixID: String, abilityID: String) throws {
         let affix = try #require(GameContent.itemAffixDefinitions.first { $0.id == affixID })
         let ability = try #require(GameContent.ability(id: abilityID))
         let modifiers = CombatModifierProfile(modifiers: affix.basic.modifiers)
@@ -18,7 +18,7 @@ struct ItemModifierBattleTests {
             name: "Hero",
             role: .hero,
             maxHealth: 20,
-            abilities: [ability]
+            abilities: [ability],
         )
         let companion = Combatant(id: "companion", name: "Companion", role: .companion, maxHealth: 20, abilities: [])
         let enemy = Combatant(
@@ -26,14 +26,14 @@ struct ItemModifierBattleTests {
             name: "Enemy",
             role: .enemy,
             maxHealth: 100,
-            abilities: []
+            abilities: [],
         )
 
         var battle = BattleStateTestFactory.makeBattle(
             hero: hero,
             companion: companion,
             enemy: enemy,
-            heroModifiers: modifiers
+            heroModifiers: modifiers,
         )
 
         _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
@@ -41,7 +41,7 @@ struct ItemModifierBattleTests {
         try #expect(100 - battle.health(of: battle.enemy) == (abilityID == "slash" ? 3 : 2))
     }
 
-    @Test func equippedMaximumHealthAffixIncreasesStartingHealth() throws {
+    @Test func `equipped maximum health affix increases starting health`() throws {
         let hale = try #require(GameContent.itemAffixDefinitions.first { $0.id == "hale" })
         let modifiers = CombatModifierProfile(modifiers: hale.basic.modifiers)
 
@@ -51,7 +51,7 @@ struct ItemModifierBattleTests {
             role: .hero,
             maxHealth: 10,
             abilities: [],
-            primaryStats: PrimaryStats(toughness: 0)
+            primaryStats: PrimaryStats(toughness: 0),
         )
         let companion = Combatant(id: "companion", name: "Companion", role: .companion, maxHealth: 10, abilities: [])
         let enemy = Combatant(
@@ -59,14 +59,14 @@ struct ItemModifierBattleTests {
             name: "Enemy",
             role: .enemy,
             maxHealth: 10,
-            abilities: []
+            abilities: [],
         )
 
         let battle = BattleStateTestFactory.makeBattle(
             hero: hero,
             companion: companion,
             enemy: enemy,
-            heroModifiers: modifiers
+            heroModifiers: modifiers,
         )
 
         try #expect(battle.health(of: battle.hero) == 16)

@@ -6,7 +6,7 @@ import TrinketPersistenceTestSupport
 
 @Suite("SpiresProgress")
 struct SpiresProgressTests {
-    @Test func freshStartIsUncleared() {
+    @Test func `fresh start is uncleared`() {
         let state = PlayerSpiresState.freshStart
         #expect(state.highestClearedFloor(for: SpireID.ironVein.rawValue) == 0)
         #expect(state.activeFloor(for: SpireID.ironVein.rawValue, floorCount: 10) == 1)
@@ -17,7 +17,7 @@ struct SpiresProgressTests {
         #expect(!state.isFloorStartable(11, spireID: SpireID.ironVein.rawValue, floorCount: 10))
     }
 
-    @Test func sequentialClearsAdvanceActiveFloor() {
+    @Test func `sequential clears advance active floor`() {
         var state = PlayerSpiresState.freshStart
         let clearedFirst = state.markFloorCleared(1, spireID: SpireID.ironVein.rawValue)
         #expect(clearedFirst)
@@ -35,7 +35,7 @@ struct SpiresProgressTests {
         #expect(state.highestClearedFloor(for: SpireID.ironVein.rawValue) == 1)
     }
 
-    @Test func startableFloorStopsAtTowerHeight() {
+    @Test func `startable floor stops at tower height`() {
         var state = PlayerSpiresState.freshStart
         let floorCount = 3
         let spireID = SpireID.ironVein.rawValue
@@ -48,7 +48,7 @@ struct SpiresProgressTests {
         #expect(!state.isFloorStartable(floorCount + 1, spireID: spireID, floorCount: floorCount))
     }
 
-    @Test func completionHonorsOverriddenEncounterLevelForExperience() throws {
+    @Test func `completion honors overridden encounter level for experience`() throws {
         let spire = try #require(GameContent.spire(id: .ironVein))
         let topFloor = try #require(GameContent.spireFloor(spireID: .ironVein, floor: spire.floorCount))
         let authoredLevel = EncounterLevelResolver.spireEnemyLevel(for: topFloor)
@@ -68,7 +68,7 @@ struct SpiresProgressTests {
                 hero: hero,
                 companion: attempt.roster.activeCompanion,
                 enemyEncounterLevel: enemyEncounterLevel,
-                save: &attempt
+                save: &attempt,
             )
             return attempt.roster.progression(for: hero).currentXP - before.currentXP
         }

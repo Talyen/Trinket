@@ -5,7 +5,7 @@ import TrinketCore
 
 private let sanitizerLogger = Logger(
     subsystem: "com.ryanmcintire.Trinket",
-    category: "PlayerSaveSanitizer"
+    category: "PlayerSaveSanitizer",
 )
 
 enum PlayerSaveSanitizer {
@@ -38,7 +38,7 @@ enum PlayerSaveSanitizer {
         if changedSlices.contains(.labyrinth) {
             sanitized.labyrinth = sanitizeLabyrinth(
                 sanitized.labyrinth,
-                eligibleRecruitEventIDs: sanitized.roster.eligibleRecruitEventIDs
+                eligibleRecruitEventIDs: sanitized.roster.eligibleRecruitEventIDs,
             )
         }
         return sanitized
@@ -73,22 +73,22 @@ enum PlayerSaveSanitizer {
     }
 
     private static func validateProgressions(
-        in progressions: [String: CombatantProgression]
+        in progressions: [String: CombatantProgression],
     ) throws {
         for (combatantID, progression) in progressions {
             guard progression.level >= 1 else {
                 throw PlayerSavePersistenceError.invalidSave(
-                    "Combatant \(combatantID) level must be at least 1."
+                    "Combatant \(combatantID) level must be at least 1.",
                 )
             }
             guard progression.currentXP >= 0 else {
                 throw PlayerSavePersistenceError.invalidSave(
-                    "Combatant \(combatantID) current XP cannot be negative."
+                    "Combatant \(combatantID) current XP cannot be negative.",
                 )
             }
             guard progression.requiredXP > 0 else {
                 throw PlayerSavePersistenceError.invalidSave(
-                    "Combatant \(combatantID) required XP must be positive."
+                    "Combatant \(combatantID) required XP must be positive.",
                 )
             }
         }
@@ -102,7 +102,7 @@ enum PlayerSaveSanitizer {
 
     static func sanitizeJourney(
         _ journey: JourneyProgressState,
-        chapters: [Chapter]? = nil
+        chapters: [Chapter]? = nil,
     ) -> JourneyProgressState {
         let activeChapters = chapters ?? GameContent.chapters
         let validChapterIDs: Set<String>
@@ -174,7 +174,7 @@ enum PlayerSaveSanitizer {
                     return (resource, min(quantity, Double(PlayerRosterState.maxGoldBalance)))
                 }
                 return (resource, quantity)
-            }
+            },
         )
         if sanitized.pendingProduction.count != beforePending {
             sanitizerLogger.info("Sanitized homestead: dropped invalid pending production")
@@ -184,7 +184,7 @@ enum PlayerSaveSanitizer {
             uniqueKeysWithValues: homestead.resources.compactMap { resource, quantity in
                 guard resource != .gold else { return nil }
                 return (resource, max(0, quantity))
-            }
+            },
         )
         if hadGoldResource {
             sanitizerLogger.notice("Sanitized homestead: dropped gold from resources (roster owns gold)")
@@ -193,7 +193,7 @@ enum PlayerSaveSanitizer {
             uniqueKeysWithValues: homestead.nodeTiers.compactMap { nodeID, tier in
                 guard let maxTier = HomesteadNodeCatalog.maxTierByNodeID[nodeID] else { return nil }
                 return (nodeID, min(max(tier, 0), maxTier))
-            }
+            },
         )
         return sanitized
     }
@@ -220,7 +220,7 @@ enum PlayerSaveSanitizer {
         _ roster: PlayerRosterState,
         inventory: PlayerInventoryState,
         heroIDs: Set<String> = Self.defaultHeroIDs,
-        companionIDs: Set<String> = Self.defaultCompanionIDs
+        companionIDs: Set<String> = Self.defaultCompanionIDs,
     ) -> PlayerRosterState {
         let inventoryItemIDs = Set(inventory.items.map(\.id))
         let validHeroIDs = heroIDs
@@ -244,7 +244,7 @@ enum PlayerSaveSanitizer {
             activeHeroID: sanitized.activeHeroID,
             activeCompanionID: sanitized.activeCompanionID,
             unlockedHeroIDs: sanitized.unlockedHeroIDs,
-            unlockedCompanionIDs: sanitized.unlockedCompanionIDs
+            unlockedCompanionIDs: sanitized.unlockedCompanionIDs,
         )
         sanitized.activeHeroID = resolvedHeroID
         sanitized.activeCompanionID = resolvedCompanionID
@@ -252,22 +252,22 @@ enum PlayerSaveSanitizer {
         sanitized.equipmentLoadouts = RosterHydration.resolveEquipmentLoadouts(
             from: roster.equipmentLoadouts,
             inventoryItemIDs: inventoryItemIDs,
-            inventoryItems: inventory.items
+            inventoryItems: inventory.items,
         )
 
         sanitized.abilityLoadouts = RosterHydration.resolveAbilityLoadouts(
-            from: roster.abilityLoadouts
+            from: roster.abilityLoadouts,
         )
 
         sanitized.progressions = sanitizeProgressions(
             roster.progressions,
-            validCombatantIDs: validHeroIDs.union(validCompanionIDs)
+            validCombatantIDs: validHeroIDs.union(validCompanionIDs),
         )
 
         sanitized.unlockedTalents = sanitizeUnlockedTalents(
             roster.unlockedTalents,
             validCombatantIDs: validHeroIDs.union(validCompanionIDs),
-            progressions: sanitized.progressions
+            progressions: sanitized.progressions,
         )
 
         return sanitized
@@ -276,7 +276,7 @@ enum PlayerSaveSanitizer {
     static func sanitizeUnlockedTalents(
         _ talents: [String: Set<String>],
         validCombatantIDs: Set<String>,
-        progressions: [String: CombatantProgression] = [:]
+        progressions: [String: CombatantProgression] = [:],
     ) -> [String: Set<String>] {
         var sanitized: [String: Set<String>] = [:]
         for (combatantID, nodeIDs) in talents {
@@ -297,7 +297,7 @@ enum PlayerSaveSanitizer {
 
     static func sanitizeProgressions(
         _ progressions: [String: CombatantProgression],
-        validCombatantIDs: Set<String>
+        validCombatantIDs: Set<String>,
     ) -> [String: CombatantProgression] {
         var sanitized: [String: CombatantProgression] = [:]
         for (combatantID, progression) in progressions {
@@ -308,7 +308,7 @@ enum PlayerSaveSanitizer {
             sanitized[combatantID] = CombatantProgression(
                 level: level,
                 currentXP: currentXP,
-                requiredXP: requiredXP
+                requiredXP: requiredXP,
             )
         }
         return sanitized
@@ -316,7 +316,7 @@ enum PlayerSaveSanitizer {
 
     static func sanitizeSpires(
         _ spires: PlayerSpiresState,
-        catalog: [SpireDefinition] = GameContent.spires
+        catalog: [SpireDefinition] = GameContent.spires,
     ) -> PlayerSpiresState {
         let validIDs = Set(catalog.map(\.id.rawValue))
         let floorCounts = Dictionary(uniqueKeysWithValues: catalog.map { ($0.id.rawValue, $0.floorCount) })
@@ -337,7 +337,7 @@ private func validateEncodedAffixPowers(_ inventory: PlayerInventoryState) throw
             _ = try ItemAffixPowerCoding.encode(powers)
         } catch {
             throw PlayerSavePersistenceError.invalidSave(
-                "Inventory item \(item.id) affix powers could not be encoded."
+                "Inventory item \(item.id) affix powers could not be encoded.",
             )
         }
     }

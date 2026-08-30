@@ -6,7 +6,7 @@ import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
 struct TalentPersistenceTests {
-    @Test func saveSanitizerFiltersInvalidCombatantsAndTalents() {
+    @Test func `save sanitizer filters invalid combatants and talents`() {
         var roster = PlayerRosterState.freshStart
         roster.progressions["knight"] = .at(level: 2)
         roster.unlockedTalents["knight"] = ["knight_block_t1_1", "invalid_node_id"]
@@ -17,7 +17,7 @@ struct TalentPersistenceTests {
         #expect(sanitized.unlockedTalents["invalid_combatant"] == nil)
     }
 
-    @Test @MainActor func talentLoadoutsSurvivePlayerSaveStoreRoundTrip() throws {
+    @Test @MainActor func `talent loadouts survive player save store round trip`() throws {
         let context = try PersistenceTestContext()
         let storeURL = context.storeURL()
         let firstStore = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true, persistSaveImmediately: true)
@@ -36,20 +36,20 @@ struct TalentPersistenceTests {
 
         let secondStore = try PlayerSaveStore(
             storeURL: storeURL,
-            disableCloudSync: true
+            disableCloudSync: true,
         )
 
         #expect(secondStore.currentSave.roster.unlockedTalents["knight"] == knightTalents)
         #expect(secondStore.currentSave.roster.unlockedTalents["rogue"] == rogueTalents)
     }
 
-    @Test @MainActor func unlockingTalentThroughStoreSurvivesReload() throws {
+    @Test @MainActor func `unlocking talent through store survives reload`() throws {
         let context = try PersistenceTestContext()
         let storeURL = context.storeURL()
         let store = try PlayerSaveStore(
             storeURL: storeURL,
             disableCloudSync: true,
-            persistSaveImmediately: true
+            persistSaveImmediately: true,
         )
         try store.performBatchMutation { save in
             save.roster.progressions["knight"] = .at(level: 2)
@@ -63,7 +63,7 @@ struct TalentPersistenceTests {
         #expect(reloaded.roster.unlockedTalents(for: "knight") == [node.id])
     }
 
-    @Test @MainActor func storeRejectsUnavailableTalentWithoutMutation() throws {
+    @Test @MainActor func `store rejects unavailable talent without mutation`() throws {
         let store = try PlayerSaveStore(inMemoryOnly: true, persistSaveImmediately: true)
         let knightTree = try #require(CombatantTalentCatalog.allConfigs["knight"]?.trees.first)
         let knightNode = try #require(knightTree.nodes.first)
@@ -73,21 +73,21 @@ struct TalentPersistenceTests {
             store.unlockTalent(
                 nodeID: knightNode.id,
                 treeID: knightTree.id,
-                for: "knight"
-            ) == .unavailable
+                for: "knight",
+            ) == .unavailable,
         )
         #expect(
             store.unlockTalent(
                 nodeID: knightNode.id,
                 treeID: rogueTree.id,
-                for: "knight"
-            ) == .unavailable
+                for: "knight",
+            ) == .unavailable,
         )
         #expect(store.roster.unlockedTalents(for: "knight").isEmpty)
     }
 
     #if DEBUG
-    @Test @MainActor func failedTalentSaveRollsBackUnlock() throws {
+    @Test @MainActor func `failed talent save rolls back unlock`() throws {
         let store = try PlayerSaveStore(inMemoryOnly: true, persistSaveImmediately: true)
         try store.performBatchMutation { save in
             save.roster.progressions["knight"] = .at(level: 2)
@@ -100,8 +100,8 @@ struct TalentPersistenceTests {
             store.unlockTalent(
                 nodeID: node.id,
                 treeID: tree.id,
-                for: "knight"
-            ) == .persistenceFailed
+                for: "knight",
+            ) == .persistenceFailed,
         )
         #expect(store.roster.unlockedTalents(for: "knight").isEmpty)
     }

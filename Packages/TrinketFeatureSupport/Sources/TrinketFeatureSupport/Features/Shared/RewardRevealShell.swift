@@ -43,7 +43,7 @@ public struct RewardRevealShell<Content: View>: View {
         contentTopPadding: CGFloat = TrinketDesign.Metrics.contentTopPadding,
         contentStackSpacing: CGFloat = TrinketDesign.Metrics.sectionSpacing,
         pinsPrimaryActionToBottom: Bool = true,
-        primaryActionOpacity: Double = 1
+        primaryActionOpacity: Double = 1,
     ) {
         self.eyebrow = eyebrow
         self.eyebrowAccessibilityIdentifier = eyebrowAccessibilityIdentifier
@@ -130,7 +130,7 @@ public struct RewardRevealShell<Content: View>: View {
                                 TrinketDesign.Colors.canvas.opacity(0.88),
                             ],
                             startPoint: .top,
-                            endPoint: .bottom
+                            endPoint: .bottom,
                         )
                         .frame(height: 28)
                         .offset(y: -28)

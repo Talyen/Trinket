@@ -23,7 +23,7 @@ public struct KeywordPlasmaBackground: View {
     public init(
         keywords: [Keyword],
         focalYOffset: CGFloat = 75,
-        isMotionActive: Bool = true
+        isMotionActive: Bool = true,
     ) {
         self.keywords = keywords
         self.focalYOffset = focalYOffset
@@ -33,7 +33,7 @@ public struct KeywordPlasmaBackground: View {
 
     public init(
         sources: [Source],
-        isMotionActive: Bool = true
+        isMotionActive: Bool = true,
     ) {
         precondition(sources.count <= 2, "KeywordPlasmaBackground supports at most 2 sources")
         keywords = []
@@ -60,7 +60,7 @@ public struct KeywordPlasmaBackground: View {
                 let colors = colors(for: keywords)
                 let focalCenter = CGPoint(
                     x: geometry.size.width / 2,
-                    y: geometry.size.height / 2 - focalYOffset
+                    y: geometry.size.height / 2 - focalYOffset,
                 )
                 let size = float2(Float(geometry.size.width), Float(geometry.size.height))
                 let center = float2(Float(focalCenter.x), Float(focalCenter.y))
@@ -73,8 +73,8 @@ public struct KeywordPlasmaBackground: View {
                             .float(time),
                             .color(colors.primary),
                             .color(colors.secondary),
-                            .float2(center.x, center.y)
-                        )
+                            .float2(center.x, center.y),
+                        ),
                     )
                     .blendMode(.plusLighter)
                     .frame(width: geometry.size.width, height: geometry.size.height)
@@ -113,8 +113,8 @@ public struct KeywordPlasmaBackground: View {
                                 .float2(firstCenter.x, firstCenter.y),
                                 .color(secondColors.primary),
                                 .color(secondColors.secondary),
-                                .float2(secondCenter.x, secondCenter.y)
-                            )
+                                .float2(secondCenter.x, secondCenter.y),
+                            ),
                         )
                         .blendMode(.plusLighter)
                         .frame(width: geometry.size.width, height: geometry.size.height)
@@ -141,7 +141,7 @@ public struct KeywordPlasmaBackground: View {
     private func center(for source: Source, in size: CGSize) -> float2 {
         float2(
             Float(source.focalPoint.x * size.width),
-            Float(source.focalPoint.y * size.height)
+            Float(source.focalPoint.y * size.height),
         )
     }
 }

@@ -38,7 +38,7 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
         tapWhenReady(entryNode)
         assertExists(AccessibilityID.Play.labyrinthNodeInspector, timeout: 15)
         let inspectorAction = app.descendants(matching: .any).matching(
-            NSPredicate(format: "identifier BEGINSWITH %@", AccessibilityID.Play.labyrinthInspectorAction(""))
+            NSPredicate(format: "identifier BEGINSWITH %@", AccessibilityID.Play.labyrinthInspectorAction("")),
         ).firstMatch
         assertExists(inspectorAction, timeout: 10)
 

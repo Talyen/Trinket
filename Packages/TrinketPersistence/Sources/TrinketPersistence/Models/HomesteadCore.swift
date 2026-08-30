@@ -31,7 +31,7 @@ public struct PlayerHomesteadState: Equatable, Hashable, Sendable {
                 .herbGarden: 1,
                 .chickenCoop: 1,
             ],
-            lastProductionAt: deterministicSeedProductionDate
+            lastProductionAt: deterministicSeedProductionDate,
         )
     }
 
@@ -63,7 +63,7 @@ public struct PlayerHomesteadState: Equatable, Hashable, Sendable {
         resources: [HomesteadResource: Int],
         nodeTiers: [HomesteadNodeID: Int],
         pendingProduction: [HomesteadResource: Double] = [:],
-        lastProductionAt: Date
+        lastProductionAt: Date,
     ) {
         self.resources = resources
         self.nodeTiers = nodeTiers
@@ -94,7 +94,7 @@ public struct PlayerHomesteadState: Equatable, Hashable, Sendable {
 
     public func pendingProductionAmounts(
         at date: Date,
-        roster: PlayerRosterState
+        roster: PlayerRosterState,
     ) -> [ResourceAmount] {
         var projected = self
         projected.settleProduction(at: date, roster: roster)
@@ -103,7 +103,7 @@ public struct PlayerHomesteadState: Equatable, Hashable, Sendable {
                 let quantity = projected.collectibleQuantity(
                     for: resource,
                     pending: amount,
-                    roster: roster
+                    roster: roster,
                 )
                 guard quantity > 0 else { return nil }
                 return ResourceAmount(resource, quantity)
@@ -145,14 +145,14 @@ public struct PlayerHomesteadState: Equatable, Hashable, Sendable {
     func collectibleQuantity(
         for resource: HomesteadResource,
         pending amount: Double,
-        roster: PlayerRosterState
+        roster: PlayerRosterState,
     ) -> Int {
         let available = Int(amount.rounded(.down))
         guard available > 0 else { return 0 }
         if resource == .gold {
             return min(
                 available,
-                max(0, PlayerRosterState.maxGoldBalance - balance(for: .gold, roster: roster))
+                max(0, PlayerRosterState.maxGoldBalance - balance(for: .gold, roster: roster)),
             )
         }
         return available
@@ -161,7 +161,7 @@ public struct PlayerHomesteadState: Equatable, Hashable, Sendable {
     @discardableResult
     public mutating func collectProduction(
         at date: Date,
-        roster: inout PlayerRosterState
+        roster: inout PlayerRosterState,
     ) -> [ResourceAmount] {
         settleProduction(at: date, roster: roster)
 

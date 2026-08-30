@@ -10,12 +10,12 @@ struct StarterSelectionTests {
         context = try PersistenceTestContext()
     }
 
-    @Test func draftAndChosenPartySurviveReload() throws {
+    @Test func `draft and chosen party survive reload`() throws {
         let storeURL = context.storeURL()
         let firstStore = try PlayerSaveStore(
             storeURL: storeURL,
             disableCloudSync: true,
-            persistSaveImmediately: true
+            persistSaveImmediately: true,
         )
 
         #expect(firstStore.starterSelection == .fresh)
@@ -24,7 +24,7 @@ struct StarterSelectionTests {
         let resumedStore = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
         #expect(
             resumedStore.starterSelection
-                == StarterSelectionState(phase: .chooseCompanion, heroID: "warlock")
+                == StarterSelectionState(phase: .chooseCompanion, heroID: "warlock"),
         )
         #expect(resumedStore.completeStarterSelection(companionID: "pixie"))
 
@@ -40,7 +40,7 @@ struct StarterSelectionTests {
         ])
     }
 
-    @Test func preStarterSelectionSaveIsGrandfatheredPastOnboarding() {
+    @Test func `pre starter selection save is grandfathered past onboarding`() {
         let root = PlayerSaveRoot(save: .fresh)
         root.schemaVersion = 15
         root.starterSelectionPhaseRawValue = StarterSelectionPhase.chooseHero.rawValue
@@ -48,7 +48,7 @@ struct StarterSelectionTests {
         #expect(root.toPlayerSave().starterSelection == .complete)
     }
 
-    @Test func invalidDraftsNormalizeAndCompletedSelectionCannotReopen() throws {
+    @Test func `invalid drafts normalize and completed selection cannot reopen`() throws {
         #expect(StarterSelectionState(phase: .chooseCompanion) == .fresh)
         #expect(StarterSelectionState(phase: .chooseCompanion, heroID: "enemy") == .fresh)
         #expect(StarterSelectionState(phase: .chooseHero, heroID: "knight") == .fresh)

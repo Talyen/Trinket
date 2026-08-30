@@ -6,13 +6,13 @@ import TrinketTestSupport
 
 struct EffectHandlersApplyBuffDebuffTests {
     @Test(arguments: [true, false])
-    func halveShieldHandlerAppliesOnlyWhenBlockPresent(seedBlock: Bool) throws {
+    func `halve shield handler applies only when block present`(seedBlock: Bool) throws {
         var battle = EffectHandlersTestSupport.makeBattle()
         if seedBlock {
             BattleStateTestFactory.seedActiveEffects(
                 [ActiveEffect(id: 1, effect: .shield(.block, 3), remainingTurns: 0)],
                 for: battle.enemy,
-                on: &battle
+                on: &battle,
             )
         }
         let outcome = EffectHandlersTestSupport.dispatch(
@@ -20,7 +20,7 @@ struct EffectHandlersApplyBuffDebuffTests {
             ability: CombatantFixtures.ability(),
             source: battle.hero,
             target: battle.enemy,
-            battle: &battle
+            battle: &battle,
         )
         if seedBlock {
             try #expect(outcome.didApply)
@@ -37,14 +37,14 @@ struct EffectHandlersApplyBuffDebuffTests {
         }
     }
 
-    @Test func doTEffectsCannotApplyToDefeatedTargets() {
+    @Test func `do T effects cannot apply to defeated targets`() {
         #expect(!Effect.burn(3).canApplyToDefeatedTarget)
         #expect(!Effect.poison(3).canApplyToDefeatedTarget)
         #expect(!Effect.bleed(3).canApplyToDefeatedTarget)
         #expect(!Effect.controlMeter(.freeze, 1, 1).canApplyToDefeatedTarget)
     }
 
-    @Test func cardCombatNoOpHandlersDoNotApply() throws {
+    @Test func `card combat no op handlers do not apply`() throws {
         do {
             var battle = EffectHandlersTestSupport.makeBattle()
             let outcome = EffectHandlersTestSupport.dispatch(
@@ -52,21 +52,21 @@ struct EffectHandlersApplyBuffDebuffTests {
                 ability: CombatantFixtures.ability(),
                 source: battle.hero,
                 target: battle.hero,
-                battle: &battle
+                battle: &battle,
             )
             try #expect(!(outcome.didApply))
             try #expect(outcome.events.isEmpty)
         }
     }
 
-    @Test func thornsHandlerAppliesThornsAndEmitsEvent() throws {
+    @Test func `thorns handler applies thorns and emits event`() throws {
         var battle = EffectHandlersTestSupport.makeBattle()
         let outcome = EffectHandlersTestSupport.dispatch(
             .thorns(5),
             ability: CombatantFixtures.ability(),
             source: battle.hero,
             target: battle.hero,
-            battle: &battle
+            battle: &battle,
         )
         try #expect(outcome.didApply)
         try #expect(battle.activeEffects(of: battle.hero).contains { active in
@@ -80,14 +80,14 @@ struct EffectHandlersApplyBuffDebuffTests {
         })
     }
 
-    @Test func markedHandlerAppliesAndReplacesInsteadOfStacking() throws {
+    @Test func `marked handler applies and replaces instead of stacking`() throws {
         var battle = EffectHandlersTestSupport.makeBattle()
         let first = EffectHandlersTestSupport.dispatch(
             .marked(Effect.standardMarkedBonus, Effect.standardMarkedDuration),
             ability: CombatantFixtures.ability(),
             source: battle.hero,
             target: battle.enemy,
-            battle: &battle
+            battle: &battle,
         )
         try #expect(first.didApply)
         try #expect(battle.activeEffects(of: battle.enemy).contains { active in
@@ -107,7 +107,7 @@ struct EffectHandlersApplyBuffDebuffTests {
             ability: CombatantFixtures.ability(),
             source: battle.hero,
             target: battle.enemy,
-            battle: &battle
+            battle: &battle,
         )
         try #expect(outcome.didApply)
         let marks = battle.activeEffects(of: battle.enemy).filter {
@@ -125,7 +125,7 @@ struct EffectHandlersApplyBuffDebuffTests {
         })
     }
 
-    @Test func criticalChanceBonusReapplyRefreshesSingleStack() throws {
+    @Test func `critical chance bonus reapply refreshes single stack`() throws {
         var battle = EffectHandlersTestSupport.makeBattle()
         let ability = CombatantFixtures.ability()
         let first = EffectHandlersTestSupport.dispatch(
@@ -133,7 +133,7 @@ struct EffectHandlersApplyBuffDebuffTests {
             ability: ability,
             source: battle.hero,
             target: battle.hero,
-            battle: &battle
+            battle: &battle,
         )
         try #expect(first.didApply)
         let second = EffectHandlersTestSupport.dispatch(
@@ -141,7 +141,7 @@ struct EffectHandlersApplyBuffDebuffTests {
             ability: ability,
             source: battle.hero,
             target: battle.hero,
-            battle: &battle
+            battle: &battle,
         )
         try #expect(second.didApply)
         let focused = battle.activeEffects(of: battle.hero).filter {
@@ -162,14 +162,14 @@ struct EffectHandlersApplyBuffDebuffTests {
         })
     }
 
-    @Test func restoreManaOnHitHandlerAppliesStackAndEmitsEvent() throws {
+    @Test func `restore mana on hit handler applies stack and emits event`() throws {
         var battle = EffectHandlersTestSupport.makeBattle()
         let outcome = EffectHandlersTestSupport.dispatch(
             .restoreManaOnHit(3, 6),
             ability: CombatantFixtures.ability(),
             source: battle.hero,
             target: battle.hero,
-            battle: &battle
+            battle: &battle,
         )
         try #expect(outcome.didApply)
         try #expect(battle.activeEffects(of: battle.hero).contains { active in
@@ -183,7 +183,7 @@ struct EffectHandlersApplyBuffDebuffTests {
         })
     }
 
-    @Test func restoreManaOnHitRecastStacksOnTopOfExistingShield() throws {
+    @Test func `restore mana on hit recast stacks on top of existing shield`() throws {
         var battle = EffectHandlersTestSupport.makeBattle()
         let ability = CombatantFixtures.ability()
         _ = EffectHandlersTestSupport.dispatch(
@@ -191,14 +191,14 @@ struct EffectHandlersApplyBuffDebuffTests {
             ability: ability,
             source: battle.hero,
             target: battle.hero,
-            battle: &battle
+            battle: &battle,
         )
         let second = EffectHandlersTestSupport.dispatch(
             .restoreManaOnHit(5, 4),
             ability: ability,
             source: battle.hero,
             target: battle.hero,
-            battle: &battle
+            battle: &battle,
         )
         try #expect(second.didApply)
         let shields = battle.activeEffects(of: battle.hero).filter {
@@ -216,14 +216,14 @@ struct EffectHandlersApplyBuffDebuffTests {
         })
     }
 
-    @Test func damageKeywordOverrideHandlerAppliesStackAndEmitsEvent() throws {
+    @Test func `damage keyword override handler applies stack and emits event`() throws {
         var battle = EffectHandlersTestSupport.makeBattle()
         let outcome = EffectHandlersTestSupport.dispatch(
             .damageKeywordOverride(.holy, 3, 6),
             ability: CombatantFixtures.ability(),
             source: battle.hero,
             target: battle.hero,
-            battle: &battle
+            battle: &battle,
         )
         try #expect(outcome.didApply)
         try #expect(battle.activeEffects(of: battle.hero).contains { active in
@@ -237,14 +237,14 @@ struct EffectHandlersApplyBuffDebuffTests {
         })
     }
 
-    @Test func nextStrikeDoubleHandlerAppliesAndEmitsEvent() throws {
+    @Test func `next strike double handler applies and emits event`() throws {
         var battle = EffectHandlersTestSupport.makeBattle()
         let outcome = EffectHandlersTestSupport.dispatch(
             .nextStrikeDouble,
             ability: CombatantFixtures.ability(),
             source: battle.hero,
             target: battle.hero,
-            battle: &battle
+            battle: &battle,
         )
         try #expect(outcome.didApply)
         try #expect(battle.activeEffects(of: battle.hero).contains { active in
@@ -256,14 +256,14 @@ struct EffectHandlersApplyBuffDebuffTests {
         try #expect(outcome.events.contains { $0.effectKind == .nextStrikeDoubleApplied })
     }
 
-    @Test func evadeNextHitHandlerAppliesAndEmitsEvent() throws {
+    @Test func `evade next hit handler applies and emits event`() throws {
         var battle = EffectHandlersTestSupport.makeBattle()
         let outcome = EffectHandlersTestSupport.dispatch(
             .evadeNextHit,
             ability: CombatantFixtures.ability(),
             source: battle.hero,
             target: battle.hero,
-            battle: &battle
+            battle: &battle,
         )
         try #expect(outcome.didApply)
         try #expect(battle.activeEffects(of: battle.hero).contains { active in

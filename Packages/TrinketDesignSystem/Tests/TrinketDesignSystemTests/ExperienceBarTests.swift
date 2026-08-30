@@ -7,28 +7,28 @@ struct ExperienceBarTests {
         (
             pre: CombatantProgression(level: 2, currentXP: 3, requiredXP: 15),
             post: CombatantProgression(level: 2, currentXP: 3, requiredXP: 15),
-            expectedCount: 0
+            expectedCount: 0,
         ),
         (
             pre: CombatantProgression(level: 2, currentXP: 3, requiredXP: 15),
             post: CombatantProgression(level: 2, currentXP: 6, requiredXP: 15),
-            expectedCount: 1
+            expectedCount: 1,
         ),
         (
             pre: CombatantProgression(level: 2, currentXP: 14, requiredXP: 15),
             post: CombatantProgression(level: 3, currentXP: 1, requiredXP: 22),
-            expectedCount: 2
+            expectedCount: 2,
         ),
         (
             pre: CombatantProgression(level: 1, currentXP: 9, requiredXP: 10),
             post: CombatantProgression(level: 1, currentXP: 9, requiredXP: 10).addingExperience(20),
-            expectedCount: 3
+            expectedCount: 3,
         ),
     ])
-    func experienceSegmentsCoverProgressionCases(
+    func `experience segments cover progression cases`(
         pre: CombatantProgression,
         post: CombatantProgression,
-        expectedCount: Int
+        expectedCount: Int,
     ) throws {
         let segments = ExperienceBar.segments(from: pre, to: post)
         try #expect(segments.count == expectedCount)
@@ -81,7 +81,7 @@ struct ExperienceBarTests {
         try #expect(segments[2].endXP == 4)
     }
 
-    @Test func levelChainsMatchAddingExperience() throws {
+    @Test func `level chains match adding experience`() throws {
         let pre = CombatantProgression(level: 3, currentXP: 14, requiredXP: 22)
         let delta = 33
         let post = pre.addingExperience(delta)
@@ -92,10 +92,10 @@ struct ExperienceBarTests {
     }
 
     @Test(arguments: [1, 2, 3, 20])
-    func animationStepsStayWithinTheUsefulFrameBudget(segmentCount: Int) {
+    func `animation steps stay within the useful frame budget`(segmentCount: Int) {
         let stepCounts = ExperienceBar.stepCounts(forSegmentCount: segmentCount)
         let frameBudget = Int(
-            ExperienceBar.animationBudget * Double(ExperienceBar.animationFramesPerSecond)
+            ExperienceBar.animationBudget * Double(ExperienceBar.animationFramesPerSecond),
         )
 
         #expect(stepCounts.count == segmentCount)

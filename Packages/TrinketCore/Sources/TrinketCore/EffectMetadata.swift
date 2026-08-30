@@ -14,7 +14,7 @@ public struct EffectBehaviorMetadata: Sendable, Equatable {
         advancesEachTurn: Bool = false,
         isInstant: Bool = false,
         isDecayingDoT: Bool = false,
-        isBleed: Bool = false
+        isBleed: Bool = false,
     ) {
         self.isRemovableDebuff = isRemovableDebuff
         self.isRemovableBuff = isRemovableBuff

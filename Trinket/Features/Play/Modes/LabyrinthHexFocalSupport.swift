@@ -36,7 +36,7 @@ struct LabyrinthHexagon: InsettableShape {
             let angle = CGFloat(index) * .pi / 3 - .pi / 2
             let point = CGPoint(
                 x: center.x + cos(angle) * radius,
-                y: center.y + sin(angle) * radius
+                y: center.y + sin(angle) * radius,
             )
             if index == 0 {
                 path.move(to: point)

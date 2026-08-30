@@ -45,7 +45,7 @@ public struct CombatantDetailPane: View {
             combatant: combatant,
             equipmentLoadout: equipmentLoadout,
             inventory: inventoryItems,
-            unlockedTalents: unlockedTalents
+            unlockedTalents: unlockedTalents,
         )
     }
 
@@ -61,13 +61,13 @@ public struct CombatantDetailPane: View {
 
         DetailHeroScrollShell(
             title: combatant.name,
-            hidesNavigationBar: hidesNavigationBar
+            hidesNavigationBar: hidesNavigationBar,
         ) { baseHeight, overscroll in
             DetailHeroHeader(
                 eyebrow: combatant.role.rawValue.uppercased(),
                 title: combatant.name,
                 baseHeight: baseHeight,
-                overscroll: overscroll
+                overscroll: overscroll,
             ) {
                 CombatantArtwork(combatant: combatant)
             } footer: {
@@ -92,7 +92,7 @@ public struct CombatantDetailPane: View {
                 slot: slot,
                 equipmentLoadout: equipmentLoadout,
                 inventoryItems: inventoryItems,
-                onEquip: { equip($0, in: slot) }
+                onEquip: { equip($0, in: slot) },
             )
         }
         .navigationDestination(item: $selectedAbilityTier) { tier in
@@ -100,7 +100,7 @@ public struct CombatantDetailPane: View {
                 combatant: combatant,
                 tier: tier,
                 selectedAbilityID: loadout.ability(for: tier)?.id,
-                onSelectAbility: select
+                onSelectAbility: select,
             )
         }
         .navigationDestination(item: $viewingAbility) { wrapper in
@@ -120,13 +120,13 @@ public struct CombatantDetailPane: View {
                 },
                 onResetTalents: {
                     onResetTalents?()
-                }
+                },
             )
         }
         .trinketSensoryFeedback(
             .selection,
             trigger: selectionFeedbackTrigger,
-            enabled: hapticsEnabled
+            enabled: hapticsEnabled,
         )
     }
 
@@ -138,7 +138,7 @@ public struct CombatantDetailPane: View {
             traitSection(
                 traits: enemyTraits,
                 sectionID: AccessibilityID.CombatantDetail.enemyTraitsSection,
-                descriptionID: AccessibilityID.CombatantDetail.enemyTraitDescription
+                descriptionID: AccessibilityID.CombatantDetail.enemyTraitDescription,
             )
         }
 
@@ -161,7 +161,7 @@ public struct CombatantDetailPane: View {
                 allowsEditing: allowsEditing,
                 onSelectTier: allowsEditing ? { selectedAbilityTier = $0 } : nil,
                 onViewAbility: allowsEditing ? nil : { viewingAbility = ViewOnlyAbility(ability: $0) },
-                onInspectAbility: { viewingAbility = ViewOnlyAbility(ability: $0) }
+                onInspectAbility: { viewingAbility = ViewOnlyAbility(ability: $0) },
             )
             .padding(.vertical, TrinketDesign.Metrics.extraSmallSpacing)
         }
@@ -173,7 +173,7 @@ public struct CombatantDetailPane: View {
                     equipmentLoadout: equipmentLoadout,
                     inventoryItems: inventoryItems,
                     onSelect: allowsEditing ? { selectedItemSlot = $0 } : nil,
-                    onViewItem: allowsEditing ? nil : { viewingItem = $0 }
+                    onViewItem: allowsEditing ? nil : { viewingItem = $0 },
                 )
                 .padding(.vertical, TrinketDesign.Metrics.extraSmallSpacing)
             }
@@ -187,12 +187,12 @@ public struct CombatantDetailPane: View {
                     statRow(
                         "Health",
                         value: "\(currentHealth(for: combatBuild))/\(combatBuild.effectiveMaxHealth)",
-                        accessibilityIdentifier: AccessibilityID.CombatantDetail.healthStat
+                        accessibilityIdentifier: AccessibilityID.CombatantDetail.healthStat,
                     )
                     if combatant.role != .enemy, combatBuild.effectiveMaxMana > 0 {
                         statRow(
                             "Mana",
-                            value: "\(currentMana(for: combatBuild))/\(combatBuild.effectiveMaxMana)"
+                            value: "\(currentMana(for: combatBuild))/\(combatBuild.effectiveMaxMana)",
                         )
                     }
                 }
@@ -216,7 +216,7 @@ public struct CombatantDetailPane: View {
                     DetailTraitRow(
                         title: parts.title,
                         description: parts.description,
-                        leadingIconKeyword: summary.keyword
+                        leadingIconKeyword: summary.keyword,
                     )
                 }
             }
@@ -226,14 +226,14 @@ public struct CombatantDetailPane: View {
     private var labyrinthModifiersSection: some View {
         DetailSection(
             "Labyrinth",
-            sectionID: AccessibilityID.CombatantDetail.labyrinthModifiersSection
+            sectionID: AccessibilityID.CombatantDetail.labyrinthModifiersSection,
         ) {
             VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
                 ForEach(labyrinthModifiers) { modifier in
                     DetailTraitRow(
                         title: modifier.title,
                         description: detailDescription(modifier.effect.description),
-                        descriptionAccessibilityID: AccessibilityID.CombatantDetail.labyrinthModifierDescription
+                        descriptionAccessibilityID: AccessibilityID.CombatantDetail.labyrinthModifierDescription,
                     )
                 }
             }
@@ -243,7 +243,7 @@ public struct CombatantDetailPane: View {
     private func traitSection(
         traits: [CombatantTraitDefinition],
         sectionID: String,
-        descriptionID: String
+        descriptionID: String,
     ) -> some View {
         DetailSection("Traits", sectionID: sectionID) {
             VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
@@ -251,7 +251,7 @@ public struct CombatantDetailPane: View {
                     DetailTraitRow(
                         title: trait.name,
                         description: detailDescription(trait.description),
-                        descriptionAccessibilityID: descriptionID
+                        descriptionAccessibilityID: descriptionID,
                     )
                 }
             }
@@ -349,7 +349,7 @@ private extension CombatantDetailPane {
                 tree: tree,
                 caption: "\(unlockedCount)/\(tree.nodes.count)",
                 showsShine: hasUnallocatedPoints,
-                accessibilityID: AccessibilityID.CombatantDetail.talentsNode(id: tree.keyword.rawValue)
+                accessibilityID: AccessibilityID.CombatantDetail.talentsNode(id: tree.keyword.rawValue),
             )
         }
         .trinketQuietTapButtonStyle()
@@ -359,7 +359,7 @@ private extension CombatantDetailPane {
 public extension CombatantDetailPane {
     init(
         snapshot: CombatantCardDetail,
-        hidesNavigationBar: Bool = false
+        hidesNavigationBar: Bool = false,
     ) {
         self.init(
             combatant: snapshot.combatant,
@@ -375,7 +375,7 @@ public extension CombatantDetailPane {
             battleMana: snapshot.mana,
             activeEffectSummaries: snapshot.activeEffectSummaries,
             labyrinthModifiers: snapshot.labyrinthModifiers,
-            hidesNavigationBar: hidesNavigationBar
+            hidesNavigationBar: hidesNavigationBar,
         )
     }
 }

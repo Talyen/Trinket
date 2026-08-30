@@ -20,7 +20,7 @@ public struct SlotSummaryGrid<Slot: Identifiable, CardView: View>: View {
         onView: ((Slot) -> Void)?,
         onLongPress: ((Slot) -> Void)? = nil,
         accessibilityIdentifier: @escaping (Slot) -> String,
-        @ViewBuilder card: @escaping (Slot) -> CardView
+        @ViewBuilder card: @escaping (Slot) -> CardView,
     ) {
         self.slots = slots
         self.isLocked = isLocked
@@ -54,13 +54,13 @@ public struct SlotSummaryGrid<Slot: Identifiable, CardView: View>: View {
         _ slot: Slot,
         locked: Bool,
         action: @escaping () -> Void,
-        inspectFilled: Bool
+        inspectFilled: Bool,
     ) -> some View {
         InspectableTapButton(
             action: action,
             longPress: inspectAction(for: slot, locked: locked, filled: inspectFilled),
             isDisabled: locked,
-            label: { card(slot) }
+            label: { card(slot) },
         )
         .trinketQuietTapButtonStyle()
         .frame(maxWidth: .infinity, alignment: .top)

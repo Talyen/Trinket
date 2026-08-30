@@ -66,7 +66,7 @@ private enum HeuristicCardScoring {
     private static func effectScore(
         ability: Ability,
         enemyEffects: [ActiveEffect],
-        setupAware: Bool
+        setupAware: Bool,
     ) -> Int {
         var value = 0
         for targeted in ability.targetedEffects {
@@ -78,7 +78,7 @@ private enum HeuristicCardScoring {
     private static func effectValue(
         _ effect: Effect,
         enemyEffects: [ActiveEffect],
-        setupAware: Bool
+        setupAware: Bool,
     ) -> Int {
         switch effect {
         case let .drawCards(count):
@@ -114,7 +114,7 @@ private enum HeuristicCardScoring {
         amount: Int,
         keyword: Keyword,
         enemyEffects: [ActiveEffect],
-        setupAware: Bool
+        setupAware: Bool,
     ) -> Int {
         guard setupAware else { return amount * 2 }
         let hasDot = enemyEffects.contains { $0.effect.keyword == keyword }

@@ -3,7 +3,7 @@ import Testing
 import TrinketContent
 
 struct ItemAffixCatalogTests {
-    @Test func combatReactionAffixIDsResolveToCatalogTitles() throws {
+    @Test func `combat reaction affix I ds resolve to catalog titles`() throws {
         let ids = [
             "absolving", "aetherward", "arcane_ward", "beacon", "blood_price",
             "bounty", "branding", "cascading", "disrupting", "nullifying",
@@ -17,7 +17,7 @@ struct ItemAffixCatalogTests {
         }
     }
 
-    @Test func nestedAffixReactionsAreIgnoredInFavorOfFlatKeys() throws {
+    @Test func `nested affix reactions are ignored in favor of flat keys`() throws {
         let data = Data(#"[{"description":"Flat","modifiers":[],"triggers":{"gainManaBlockFlat":2}}]"#.utf8)
 
         let powers = try ItemAffixPowerCoding.decode(data)
@@ -27,14 +27,14 @@ struct ItemAffixCatalogTests {
         try #expect(power.triggers.dodgeDealStunFlat == 0)
     }
 
-    @Test func eachAffixHasPositiveWeightAndKeywords() throws {
+    @Test func `each affix has positive weight and keywords`() throws {
         for definition in GameContent.itemAffixDefinitions {
             try #expect(definition.weight > 0, "\(definition.id) should have positive weight")
             try #expect(!definition.keywords.isEmpty, "\(definition.id)) should declare keywords")
         }
     }
 
-    @Test func itemAffixesDoNotGrantPrimaryStats() {
+    @Test func `item affixes do not grant primary stats`() {
         for definition in GameContent.itemAffixDefinitions {
             for power in [definition.basic, definition.astral] {
                 for modifier in power.modifiers {
@@ -49,7 +49,7 @@ struct ItemAffixCatalogTests {
         }
     }
 
-    @Test func eachAffixDefinesBasicAndAstralPowers() throws {
+    @Test func `each affix defines basic and astral powers`() throws {
         for definition in GameContent.itemAffixDefinitions {
             try #expect(!definition.basic.description.isEmpty, "\(definition.id)) basic description")
             try #expect(!definition.astral.description.isEmpty, "\(definition.id)) astral description")
@@ -62,17 +62,17 @@ struct ItemAffixCatalogTests {
             try #expect(
                 !definition.basic.modifiers.isEmpty || definition.basic.triggers != CombatTraitTriggers(
                 ),
-                "\(definition.id)) basic power"
+                "\(definition.id)) basic power",
             )
             try #expect(
                 !definition.astral.modifiers.isEmpty || definition.astral.triggers != CombatTraitTriggers(
                 ),
-                "\(definition.id)) astral power"
+                "\(definition.id)) astral power",
             )
         }
     }
 
-    @Test func eachItemBaseTypeHasEligibleAffixPool() throws {
+    @Test func `each item base type has eligible affix pool`() throws {
         for baseType in GameContent.itemBaseTypes {
             let eligible = GameContent.itemAffixDefinitions.filter { definition in
                 definition.slot == baseType.slot &&
@@ -82,7 +82,7 @@ struct ItemAffixCatalogTests {
         }
     }
 
-    @Test func twoHandedPowerScalingDoublesMagnitudesWithoutThresholdsOrCaps() throws {
+    @Test func `two handed power scaling doubles magnitudes without thresholds or caps`() throws {
         let executioners = try #require(GameContent.itemAffixDefinition(matching: "executioners"))
         let symbiosis = try #require(GameContent.itemAffixDefinition(matching: "symbiosis"))
         let item = try ItemFixtures.makeItem(
@@ -93,7 +93,7 @@ struct ItemAffixCatalogTests {
                 executioners.resolved(for: .astral),
                 symbiosis.resolved(for: .astral),
             ],
-            affixPowers: [executioners.astral, symbiosis.astral]
+            affixPowers: [executioners.astral, symbiosis.astral],
         )
 
         let executionPower = try #require(item.resolvedPower(at: 0))
@@ -110,7 +110,7 @@ struct ItemAffixCatalogTests {
         ])
     }
 
-    @Test func keywordAffixesKeepTypedDefinitions() throws {
+    @Test func `keyword affixes keep typed definitions`() throws {
         let byID = Dictionary(uniqueKeysWithValues: GameContent.itemAffixDefinitions.map { ($0.id, $0) })
 
         let bloodstone = try #require(byID["bloodstone"])

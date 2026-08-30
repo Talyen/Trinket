@@ -6,20 +6,20 @@ import TrinketTestSupport
 
 struct ControlStatusHandMaintenanceTests {
     @Test(arguments: [Keyword.freeze, Keyword.stun])
-    func controlTriggerPurgesOwnerCardsAndPromotesSurvivingBuffer(keyword: Keyword) throws {
+    func `control trigger purges owner cards and promotes surviving buffer`(keyword: Keyword) throws {
         var battle = BattleStateTestFactory.makeBattle(
             hero: CombatantFixtures.combatant(
                 id: "hero",
                 role: .hero,
-                abilities: [.slash, .heal, .smite]
+                abilities: [.slash, .heal, .smite],
             ),
             companion: CombatantFixtures.combatant(
                 id: "companion",
                 role: .companion,
-                abilities: [.bash, .fangs]
+                abilities: [.bash, .fangs],
             ),
             enemy: CombatantFixtures.combatant(id: "enemy", role: .enemy),
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         battle.heroDeck = CombatDeck(abilities: [.darkPact])
         battle.hand = BattleHand(cards: [
@@ -35,7 +35,7 @@ struct ControlStatusHandMaintenanceTests {
             ability: .slash,
             source: battle.enemy,
             target: battle.hero,
-            battle: &battle
+            battle: &battle,
         )
 
         try #expect(outcome.didApply)
@@ -43,7 +43,7 @@ struct ControlStatusHandMaintenanceTests {
         try #expect(battle.handBuffer.isEmpty)
         try #expect(
             battle.heroDeck.abilities.map(\.id)
-                == [Ability.darkPact.id, Ability.slash.id, Ability.heal.id, Ability.smite.id]
+                == [Ability.darkPact.id, Ability.slash.id, Ability.heal.id, Ability.smite.id],
         )
         try #expect(outcome.events.contains { $0.effectKind == .controlTriggered && $0.keyword == keyword })
     }

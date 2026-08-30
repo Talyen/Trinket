@@ -32,14 +32,14 @@ struct CleansePurgeHandler: BattleEffectHandler {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> EffectApplyOutcome {
         var currentEffects = context.roster.activeEffects(for: target)
         let beforeCount = currentEffects.count
         guard let removal = removeMatching(
             effect,
             from: &currentEffects,
-            rng: &context.rng
+            rng: &context.rng,
         ) else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
@@ -52,7 +52,7 @@ struct CleansePurgeHandler: BattleEffectHandler {
             abilityName: ability.name,
             target: target,
             amount: 0,
-            keyword: removal.keyword
+            keyword: removal.keyword,
         )
         var events = [event]
         if !mode.healsAfterRemoval {
@@ -60,7 +60,7 @@ struct CleansePurgeHandler: BattleEffectHandler {
                 beforeCount - currentEffects.count,
                 source: source,
                 target: target,
-                in: &context
+                in: &context,
             ))
         }
         if mode.healsAfterRemoval {
@@ -71,7 +71,7 @@ struct CleansePurgeHandler: BattleEffectHandler {
                 removedKeyword: removal.keyword,
                 removedCount: beforeCount - currentEffects.count,
                 healPerRemoved: removal.healPerRemoved,
-                in: &context
+                in: &context,
             ))
         }
         return EffectApplyOutcome(events: events, didApply: true)
@@ -85,7 +85,7 @@ struct CleansePurgeHandler: BattleEffectHandler {
     private func removeMatching(
         _ effect: Effect,
         from currentEffects: inout [ActiveEffect],
-        rng: inout SeededRandomNumberGenerator
+        rng: inout SeededRandomNumberGenerator,
     ) -> Removal? {
         switch mode {
         case .cleanse:
@@ -129,7 +129,7 @@ struct CleansePurgeHandler: BattleEffectHandler {
         removedKeyword: Keyword,
         removedCount: Int,
         healPerRemoved: Int,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         var events: [ActionEvent] = []
         if healPerRemoved > 0, removedCount > 0 {
@@ -138,28 +138,28 @@ struct CleansePurgeHandler: BattleEffectHandler {
                 amount: amount,
                 target: target,
                 source: source,
-                abilityName: abilityName
+                abilityName: abilityName,
             ))
         }
         events.append(contentsOf: CombatTriggerEngine.healAfterCleanse(
             source: source,
             target: target,
-            in: &context
+            in: &context,
         ).events)
         events.append(contentsOf: CombatTriggerEngine.healWearerAfterCleanse(
             source: source,
-            in: &context
+            in: &context,
         ).events)
         events.append(contentsOf: CombatTriggerEngine.drawAfterCleanse(
             source: source,
-            in: &context
+            in: &context,
         ))
         events.append(contentsOf: CombatTriggerEngine.afterCleansePerformed(
             source: source,
             target: target,
             removedKeyword: removedKeyword,
             removedCount: removedCount,
-            in: &context
+            in: &context,
         ))
         return events
     }

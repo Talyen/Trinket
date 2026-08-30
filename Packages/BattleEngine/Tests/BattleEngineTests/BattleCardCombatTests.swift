@@ -12,7 +12,7 @@ struct BattleCardCombatTests {
         enemyMaxHealth: Int = 100,
         heroMaxMana: Int = 0,
         heroMana: Int? = nil,
-        rngSeed: UInt64 = BattleTestFixtures.deterministicNonCriticalSeed
+        rngSeed: UInt64 = BattleTestFixtures.deterministicNonCriticalSeed,
     ) -> BattleState {
         BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: heroAbilities,
@@ -21,14 +21,14 @@ struct BattleCardCombatTests {
             enemyMaxHealth: enemyMaxHealth,
             heroMaxMana: heroMaxMana,
             heroMana: heroMana,
-            rngSeed: rngSeed
+            rngSeed: rngSeed,
         )
     }
 
-    @Test func openingHandDrawsThreeCardsFromRandomOwners() throws {
+    @Test func `opening hand draws three cards from random owners`() throws {
         let battle = makeBattle(
             heroAbilities: [.slash, .heal, .smite],
-            companionAbilities: [.bash, .fangs, .bloodthorn]
+            companionAbilities: [.bash, .fangs, .bloodthorn],
         )
         try #expect(battle.hand.count == BattleHand.maxSize)
         try #expect(battle.handBuffer.isEmpty)
@@ -42,27 +42,27 @@ struct BattleCardCombatTests {
         try #expect(battle.companionDeck.count == battle.companion.abilityLoadout.abilities.count - companionDrawn)
     }
 
-    @Test func pacedOpeningHandMatchesImmediateDrawForSameSeed() throws {
+    @Test func `paced opening hand matches immediate draw for same seed`() throws {
         let hero = Combatant(
             id: "hero",
             name: "Hero",
             role: .hero,
             maxHealth: 50,
-            abilities: [.slash, .heal, .smite]
+            abilities: [.slash, .heal, .smite],
         )
         let companion = Combatant(
             id: "companion",
             name: "Companion",
             role: .companion,
             maxHealth: 50,
-            abilities: [.bash, .fangs, .bloodthorn]
+            abilities: [.bash, .fangs, .bloodthorn],
         )
         let enemy = Combatant(
             id: "enemy",
             name: "Enemy",
             role: .enemy,
             maxHealth: 100,
-            abilities: []
+            abilities: [],
         )
         let seed: UInt64 = 42
         let immediate = BattleState(
@@ -70,7 +70,7 @@ struct BattleCardCombatTests {
             companion: companion,
             enemy: enemy,
             rngSeed: seed,
-            tracksLog: false
+            tracksLog: false,
         )
         var paced = BattleState(
             hero: hero,
@@ -78,7 +78,7 @@ struct BattleCardCombatTests {
             enemy: enemy,
             rngSeed: seed,
             tracksLog: false,
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         try #expect(paced.hand.isEmpty)
 
@@ -94,10 +94,10 @@ struct BattleCardCombatTests {
         try #expect(paced.ownersSkippingThisPlayerTurn == immediate.ownersSkippingThisPlayerTurn)
     }
 
-    @Test func playPutsCardOnBottomOfOwnerDeck() throws {
+    @Test func `play puts card on bottom of owner deck`() throws {
         var battle = makeBattle(
             heroAbilities: [.slash, .heal, .smite],
-            companionAbilities: [.bash, .fangs, .bloodthorn]
+            companionAbilities: [.bash, .fangs, .bloodthorn],
         )
         battle.hand = BattleHand()
         battle.handBuffer = BattleHandBuffer()
@@ -113,11 +113,11 @@ struct BattleCardCombatTests {
         try #expect(battle.heroDeck.abilities.last?.id == Ability.slash.id)
     }
 
-    @Test func darkPactDrawsTwoCardsForOwner() throws {
+    @Test func `dark pact draws two cards for owner`() throws {
         var battle = makeBattle(
             heroAbilities: [.darkPact, .slash, .heal, .smite],
             companionAbilities: [.bash, .fangs, .bloodthorn],
-            enemyMaxHealth: 500
+            enemyMaxHealth: 500,
         )
         battle.heroDeck.putOnBottom(.heal)
         battle.heroDeck.putOnBottom(.smite)
@@ -139,17 +139,17 @@ struct BattleCardCombatTests {
         try #expect(battle.health(of: battle.hero) == 49)
     }
 
-    @Test func darkPactHealthCostIgnoresBlock() throws {
+    @Test func `dark pact health cost ignores block`() throws {
         var battle = makeBattle(
             heroAbilities: [.darkPact, .slash, .heal, .smite],
-            enemyMaxHealth: 500
+            enemyMaxHealth: 500,
         )
         battle.heroDeck.putOnBottom(.heal)
         battle.heroDeck.putOnBottom(.smite)
         battle.withEngineContext { context in
             context.roster.setActiveEffects(
                 [ActiveEffect(id: 1, effect: .shield(.block, 20), remainingTurns: 6)],
-                for: context.roster.hero.combatant
+                for: context.roster.hero.combatant,
             )
         }
         battle.hand = BattleHand()
@@ -173,18 +173,18 @@ struct BattleCardCombatTests {
         try #expect(buffer == 20)
     }
 
-    @Test func endTurnAtFullHandDrawsIntoBuffer() throws {
+    @Test func `end turn at full hand draws into buffer`() throws {
         var battle = makeBattle(
             heroAbilities: [.slash, .heal, .smite],
             companionAbilities: [.bash, .fangs, .bloodthorn],
             enemyAbilities: [],
-            enemyMaxHealth: 500
+            enemyMaxHealth: 500,
         )
         while battle.hand.count < BattleHand.maxSize {
             battle.nextCardID += 1
             let owner: BattleParticipant = battle.hand.count.isMultiple(of: 2) ? .hero : .companion
             battle.hand.append(
-                BattleCard(id: battle.nextCardID, ability: .slash, owner: owner)
+                BattleCard(id: battle.nextCardID, ability: .slash, owner: owner),
             )
         }
         battle.heroDeck.putOnBottom(.slash)
@@ -198,11 +198,11 @@ struct BattleCardCombatTests {
         try #expect(battle.handBuffer.count == 2)
     }
 
-    @Test func playingCardPromotesOldestBufferedCardFIFO() throws {
+    @Test func `playing card promotes oldest buffered card FIFO`() throws {
         var battle = makeBattle(
             heroAbilities: [.slash, .heal, .smite],
             companionAbilities: [.bash, .fangs, .bloodthorn],
-            enemyMaxHealth: 500
+            enemyMaxHealth: 500,
         )
         battle.hand = BattleHand()
         battle.handBuffer = BattleHandBuffer()
@@ -227,11 +227,11 @@ struct BattleCardCombatTests {
         try #expect(battle.handBuffer.cards.first?.ability.id == Ability.bloodthorn.id)
     }
 
-    @Test func automaticOpenSlotGoesToOwnerWithFewerCards() throws {
+    @Test func `automatic open slot goes to owner with fewer cards`() throws {
         var battle = makeBattle(
             heroAbilities: [.slash, .heal, .smite],
             companionAbilities: [.bash, .fangs, .bloodthorn],
-            enemyMaxHealth: 500
+            enemyMaxHealth: 500,
         )
         battle.hand = BattleHand()
         battle.handBuffer = BattleHandBuffer()
@@ -253,14 +253,14 @@ struct BattleCardCombatTests {
     }
 
     @Test(arguments: [(0, BattleParticipant.companion), (1, BattleParticipant.hero)])
-    func automaticOpenSlotAlternatesTiedOwnerByRound(
+    func `automatic open slot alternates tied owner by round`(
         startingRound: Int,
-        expectedOwner: BattleParticipant
+        expectedOwner: BattleParticipant,
     ) throws {
         var battle = makeBattle(
             heroAbilities: [.slash, .heal, .smite],
             companionAbilities: [.bash, .fangs, .bloodthorn],
-            enemyMaxHealth: 500
+            enemyMaxHealth: 500,
         )
         battle.turnCount = startingRound
         battle.hand = BattleHand()
@@ -279,16 +279,16 @@ struct BattleCardCombatTests {
         try #expect(battle.handBuffer.count == 1)
     }
 
-    @Test func endOfRoundAdvancesEffectsOnce() throws {
+    @Test func `end of round advances effects once`() throws {
         var battle = makeBattle(
             heroAbilities: [],
             companionAbilities: [],
-            enemyAbilities: []
+            enemyAbilities: [],
         )
         battle.withEngineContext { context in
             context.roster.setActiveEffects(
                 [ActiveEffect(id: 1, effect: .burn(4), remainingTurns: 0)],
-                for: context.enemy
+                for: context.enemy,
             )
         }
         let before = battle.health(of: battle.enemy)
@@ -299,7 +299,7 @@ struct BattleCardCombatTests {
         try #expect(battle.health(of: battle.enemy) < before)
     }
 
-    @Test func deadOwnerCardsAreUnplayable() throws {
+    @Test func `dead owner cards are unplayable`() throws {
         var battle = makeBattle(heroAbilities: [.slash], companionAbilities: [.bash])
         battle.withEngineContext { context in
             context.roster.mutateRuntime(for: context.hero) { $0.currentHealth = 0 }
@@ -316,23 +316,23 @@ struct BattleCardCombatTests {
         try #expect(battle.isCardPlayable(companionCard))
     }
 
-    @Test func playedCardReturnsToDeckAfterEffectsSoDrawCannotFetchIt() throws {
+    @Test func `played card returns to deck after effects so draw cannot fetch it`() throws {
         var battle = BattleStateTestFactory.makeBattle(
             hero: Combatant(
                 id: "hero",
                 name: "Hero",
                 role: .hero,
                 maxHealth: 50,
-                abilities: [.packTactics]
+                abilities: [.packTactics],
             ),
             companion: Combatant(
                 id: "companion",
                 name: "Companion",
                 role: .companion,
                 maxHealth: 50,
-                abilities: [.slash]
+                abilities: [.slash],
             ),
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         battle.heroDeck = CombatDeck()
         battle.companionDeck = CombatDeck(abilities: [.slash])

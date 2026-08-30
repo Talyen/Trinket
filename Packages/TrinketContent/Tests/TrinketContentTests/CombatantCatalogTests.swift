@@ -3,24 +3,24 @@ import TrinketContent
 import TrinketCore
 
 struct CombatantCatalogTests {
-    @Test func homesteadNodeIDsAreUnique() throws {
+    @Test func `homestead node I ds are unique`() throws {
         let ids = GameContent.homesteadNodes.map(\.id)
         try #expect(Set(ids).count == ids.count)
     }
 
-    @Test func homesteadPrerequisitesReferenceKnownNodes() throws {
+    @Test func `homestead prerequisites reference known nodes`() throws {
         let knownIDs = Set(GameContent.homesteadNodes.map(\.id))
         for node in GameContent.homesteadNodes {
             for requirement in node.prerequisites {
                 try #expect(
                     knownIDs.contains(requirement.nodeID),
-                    "Node \(node.id) references unknown prerequisite \(requirement.nodeID)"
+                    "Node \(node.id) references unknown prerequisite \(requirement.nodeID)",
                 )
             }
         }
     }
 
-    @Test func homesteadTiersStrengthenEffectsAndStayPartyScoped() throws {
+    @Test func `homestead tiers strengthen effects and stay party scoped`() throws {
         for node in GameContent.homesteadNodes {
             let nodeID = node.id
             let tier1 = HomesteadEffects.from(nodeTiers: [nodeID: 1])
@@ -48,7 +48,7 @@ struct CombatantCatalogTests {
                 try #expect(tier1.companionModifiers.count == 1)
                 try #expect(tier4.companionModifiers.count == 1)
                 try #expect(
-                    tier4.companionModifiers[0].numericValue > tier1.companionModifiers[0].numericValue
+                    tier4.companionModifiers[0].numericValue > tier1.companionModifiers[0].numericValue,
                 )
             default:
                 try #expect(tier1.heroModifiers == tier1.companionModifiers)
@@ -62,7 +62,7 @@ struct CombatantCatalogTests {
         }
     }
 
-    @Test func homesteadCombatBonusesMatchAuthoredTierValues() {
+    @Test func `homestead combat bonuses match authored tier values`() {
         let culinary = HomesteadEffects.from(nodeTiers: [.culinaryArts: 1])
         #expect(culinary.heroModifiers == [.damageTakenPercent(.burn, 0.10)])
         #expect(culinary.companionModifiers == culinary.heroModifiers)
@@ -91,7 +91,7 @@ struct CombatantCatalogTests {
         #expect(agility.companionModifiers == [.agility(4)])
     }
 
-    @Test func playerCombatantsHaveCompleteAbilityChoicesAndLoadouts() throws {
+    @Test func `player combatants have complete ability choices and loadouts`() throws {
         for combatant in GameContent.heroes + GameContent.companions {
             try #expect(!combatant.abilityChoices.basics.isEmpty, "\(combatant.name) should have basic choices")
             try #expect(!combatant.abilityChoices.skills.isEmpty, "\(combatant.name) should have skill choices")
@@ -102,7 +102,7 @@ struct CombatantCatalogTests {
         }
     }
 
-    @Test func playerCombatantsUseBaselinePrimaryStatBudget() throws {
+    @Test func `player combatants use baseline primary stat budget`() throws {
         for combatant in GameContent.heroes + GameContent.companions {
             let stats = combatant.primaryStats
             let total = stats.strength + stats.agility + stats.toughness + stats.intellect + stats.wisdom

@@ -44,7 +44,7 @@ struct CollectionView: View {
             }
             .salvageInventoryPresentation(
                 salvageDetail: $salvageDetail,
-                hapticsEnabled: options.hapticsEnabled
+                hapticsEnabled: options.hapticsEnabled,
             )
             .sheet(item: $selectedCombatant) { context in
                 NavigationStack {
@@ -52,19 +52,19 @@ struct CollectionView: View {
                         kind: context.kind,
                         combatantID: context.combatantID,
                         hapticsEnabled: options.hapticsEnabled,
-                        effectsVolume: options.effectsVolume
+                        effectsVolume: options.effectsVolume,
                     )
                 }
                 .navigationTransition(.zoom(sourceID: context.combatantID, in: zoomNamespace))
                 .trinketDetailSheet()
                 .appFramePacingSignpost(
                     AppFramePacingSignposts.Name.sheetPresent,
-                    isActive: true
+                    isActive: true,
                 )
                 .onAppear {
                     AppFramePacingSignposts.event(
                         AppFramePacingSignposts.Name.sheetPresent,
-                        detail: "collectionCombatant=\(context.combatantID)"
+                        detail: "collectionCombatant=\(context.combatantID)",
                     )
                 }
             }
@@ -87,7 +87,7 @@ struct CollectionView: View {
                     kind: .hero,
                     combatants: Array(heroes.prefix(shelfLimit)),
                     totalCount: heroes.count,
-                    roster: rosterState
+                    roster: rosterState,
                 )
 
                 combatantCategorySection(
@@ -96,21 +96,21 @@ struct CollectionView: View {
                     kind: .companion,
                     combatants: Array(companions.prefix(shelfLimit)),
                     totalCount: companions.count,
-                    roster: rosterState
+                    roster: rosterState,
                 )
 
                 if !inventoryState.items.isEmpty {
                     CategoryBrowseShelf(
                         title: "Inventory",
                         linkAccessibilityIdentifier: AccessibilityID.Collection.inventoryCategory,
-                        totalCount: inventoryState.items.count
+                        totalCount: inventoryState.items.count,
                     ) {
                         InventoryGridView()
                     } content: {
                         ForEach(shelfItems) { item in
                             SalvageItemButton(
                                 item: item,
-                                showsName: false
+                                showsName: false,
                             ) {
                                 salvageDetail.select(item)
                             }
@@ -190,12 +190,12 @@ struct CollectionView: View {
         kind: CombatantDetailContext.Kind,
         combatants: [Combatant],
         totalCount: Int,
-        roster: PlayerRosterState
+        roster: PlayerRosterState,
     ) -> some View {
         CategoryBrowseShelf(
             title: title,
             linkAccessibilityIdentifier: accessibilityIdentifier,
-            totalCount: totalCount
+            totalCount: totalCount,
         ) {
             CollectionCombatantGridView(kind: kind)
         } content: {
@@ -204,7 +204,7 @@ struct CollectionView: View {
                     combatant: combatant,
                     isLocked: !roster.isUnlocked(combatant),
                     cardWidth: nil,
-                    showsName: false
+                    showsName: false,
                 ) {
                     selectedCombatant = CombatantDetailContext(kind: kind, combatantID: combatant.id)
                 }

@@ -5,7 +5,7 @@ import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
 struct UniqueItemRuleTests {
-    @Test @MainActor func uniqueSurvivesSaveRoundTripWithPinnedPowers() throws {
+    @Test @MainActor func `unique survives save round trip with pinned powers`() throws {
         let unique = try #require(GameContent.unique(matching: "wardbreaker"))
         let context = try PersistenceTestContext()
         let store = try context.makeSaveStore()
@@ -15,10 +15,10 @@ struct UniqueItemRuleTests {
 
         let reloaded = try PlayerSaveStore(
             storeURL: context.storeURL(),
-            disableCloudSync: true
+            disableCloudSync: true,
         )
         let restored = try #require(
-            reloaded.inventory.items.first { $0.templateID == unique.templateID }
+            reloaded.inventory.items.first { $0.templateID == unique.templateID },
         )
         #expect(restored.rarity == .unique)
         #expect(restored.displayName == unique.displayName)
@@ -27,7 +27,7 @@ struct UniqueItemRuleTests {
         #expect(reloaded.inventory.ownedUniqueIDs == [unique.templateID])
     }
 
-    @Test func corruptionEligibilityExcludesUniques() {
+    @Test func `corruption eligibility excludes uniques`() {
         for item in GameContent.uniqueItems {
             #expect(!ItemCorruption.isEligibleTarget(item), Comment(rawValue: item.id))
         }

@@ -18,7 +18,7 @@ struct AppEnvironmentTests {
             ("not-a-tab", nil),
         ]
 
-    @Test func tabAccessibilityIDsMatchDisplayNames() {
+    @Test func `tab accessibility I ds match display names`() {
         #expect(AccessibilityID.Tab.play == AppTab.play.displayName)
         #expect(AccessibilityID.Tab.collection == AppTab.collection.displayName)
         #expect(AccessibilityID.Tab.homestead == AppTab.homestead.displayName)
@@ -26,26 +26,26 @@ struct AppEnvironmentTests {
     }
 
     @Test(arguments: selectedTabCases)
-    func selectedTabParsesKnownTabsAliasesAndInvalidInput(rawValue: String, expected: AppTab?) {
+    func `selected tab parses known tabs aliases and invalid input`(rawValue: String, expected: AppTab?) {
         let env = Self.parse(arguments: ["-selectedTab", rawValue])
         #expect(env.launchTab == expected)
     }
 
-    @Test func launchScreenParsingCoversDetailsModesAndBoundaries() {
+    @Test func `launch screen parsing covers details modes and boundaries`() {
         #expect(
-            Self.parse(arguments: ["-launch-screen", "hero:knight"]).launchScreen == .heroDetail("knight")
+            Self.parse(arguments: ["-launch-screen", "hero:knight"]).launchScreen == .heroDetail("knight"),
         )
         #expect(
-            Self.parse(arguments: ["-launch-screen", "companion:bear"]).launchScreen == .companionDetail("bear")
+            Self.parse(arguments: ["-launch-screen", "companion:bear"]).launchScreen == .companionDetail("bear"),
         )
         #expect(
             Self.parse(arguments: ["-launch-screen", "item:longsword-basic"]).launchScreen
-                == .itemDetail("longsword-basic")
+                == .itemDetail("longsword-basic"),
         )
         #expect(Self.parse(arguments: ["-launch-screen", "options"]).launchScreen == .options)
         #expect(Self.parse(arguments: ["-launch-screen", "battle"]).launchScreen == .battle)
         #expect(
-            Self.parse(arguments: ["-launch-screen", "battle-victory"]).launchScreen == .battleVictory
+            Self.parse(arguments: ["-launch-screen", "battle-victory"]).launchScreen == .battleVictory,
         )
         #expect(Self.parse(arguments: ["-launch-screen", "shop"]).launchScreen == .shop)
         #expect(Self.parse(arguments: ["-launch-screen", "mystery"]).launchScreen == .mystery)
@@ -58,7 +58,7 @@ struct AppEnvironmentTests {
         #expect(Self.parse(arguments: ["-launch-screen", "::"]).launchScreen == nil)
     }
 
-    @Test func commandLineFlagsParseAsSemanticGroups() {
+    @Test func `command line flags parse as semantic groups`() {
         let env = Self.parse(arguments: [
             "-reset-state",
             "-seed-test-progress",
@@ -87,13 +87,13 @@ struct AppEnvironmentTests {
 
         #expect(!Self.parse(arguments: ["-enable-cloud-sync"]).disableCloudSync)
         #expect(
-            Self.parse(arguments: ["-battle-performance-scenario", "unknown"]).battlePerformanceScenario == nil
+            Self.parse(arguments: ["-battle-performance-scenario", "unknown"]).battlePerformanceScenario == nil,
         )
         #expect(Self.parse(arguments: ["-battle-tick-interval", "nope"]).battleTickInterval == nil)
         #expect(Self.parse(arguments: ["-starting-gold", "nope"]).startingGold == nil)
     }
 
-    @Test func noFlagsYieldsDefaultEnvironment() {
+    @Test func `no flags yields default environment`() {
         let env = Self.parse(arguments: [])
 
         #expect(env.launchTab == nil)
@@ -114,7 +114,7 @@ struct AppEnvironmentTests {
 
     private static func parse(
         arguments: [String],
-        environment: [String: String]? = nil
+        environment: [String: String]? = nil,
     ) -> AppEnvironment {
         AppEnvironment.parse(arguments: arguments, environment: environment ?? emptyEnvironment)
     }

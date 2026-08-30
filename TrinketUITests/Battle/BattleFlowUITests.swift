@@ -17,18 +17,18 @@ final class BattleFlowUITests: TrinketUITestCase {
         let origin = dragCard.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
         origin.press(
             forDuration: 0.05,
-            thenDragTo: origin.withOffset(CGVector(dx: 0, dy: -240))
+            thenDragTo: origin.withOffset(CGVector(dx: 0, dy: -240)),
         )
         XCTAssertTrue(
             waitForCardCount(cards, droppingFrom: dragCountBefore),
-            "A successful drag play must remove one card"
+            "A successful drag play must remove one card",
         )
 
         let autoCountBefore = cards.count
         battle.autoBattleToggle.tap()
         XCTAssertTrue(
             waitForCardCountBelow(cards, autoCountBefore),
-            "Auto Battle must reduce the hand"
+            "Auto Battle must reduce the hand",
         )
         battle.autoBattleToggle.tap()
 
@@ -41,7 +41,7 @@ final class BattleFlowUITests: TrinketUITestCase {
         let detailHeader = combatantDetail.header(for: "Knight")
         XCTAssertFalse(
             detailHeader.waitForExistence(timeout: 1),
-            "Releasing a hand-card drag on a combatant must not open details"
+            "Releasing a hand-card drag on a combatant must not open details",
         )
 
         battle.openCombatantCard(named: "Knight")
@@ -57,7 +57,7 @@ final class BattleFlowUITests: TrinketUITestCase {
 
         XCTAssertTrue(
             app.tabBars.buttons[AccessibilityID.Tab.play].waitForExistence(timeout: Self.defaultTimeout),
-            "Tab bar should return after retreat"
+            "Tab bar should return after retreat",
         )
         play.assertCampaignLoaded(number: 1)
     }

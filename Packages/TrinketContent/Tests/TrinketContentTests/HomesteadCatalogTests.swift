@@ -3,7 +3,7 @@ import TrinketCore
 @testable import TrinketContent
 
 struct HomesteadCatalogTests {
-    @Test func productionNodesHaveFourTiersOfOneIncreasingResource() throws {
+    @Test func `production nodes have four tiers of one increasing resource`() throws {
         for node in GameContent.homesteadNodes {
             try #expect(node.maxTier == 4, "\(node.title) should have four tiers")
         }
@@ -22,7 +22,7 @@ struct HomesteadCatalogTests {
             let quantities = productions.map(\.quantity)
             try #expect(
                 zip(quantities, quantities.dropFirst()).allSatisfy { $0 < $1 },
-                "\(definition.id)"
+                "\(definition.id)",
             )
         }
     }

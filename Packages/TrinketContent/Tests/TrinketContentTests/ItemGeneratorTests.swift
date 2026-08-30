@@ -7,10 +7,10 @@ struct ItemGeneratorTests {
         (baseTypeID: "longsword", rarity: Rarity.basic, range: 1 ... 2),
         (baseTypeID: "ruby_ring", rarity: .astral, range: 3 ... 4),
     ])
-    func itemsRollAffixCountsInRarityRange(
+    func `items roll affix counts in rarity range`(
         baseTypeID: String,
         rarity: Rarity,
-        range: ClosedRange<Int>
+        range: ClosedRange<Int>,
     ) throws {
         let baseType = try #require(GameContent.itemBaseTypes.first { $0.id == baseTypeID })
         let counts = generatedAffixCounts(baseType: baseType, rarity: rarity, seedRange: 1 ... 120)
@@ -20,7 +20,7 @@ struct ItemGeneratorTests {
         try #expect(counts.contains(range.upperBound))
     }
 
-    @Test func generatedItemsDoNotDuplicateAffixes() throws {
+    @Test func `generated items do not duplicate affixes`() throws {
         let baseType = try ItemFixtures.baseType("plate_armor")
         var randomNumberGenerator = SeededRandomNumberGenerator(seed: 42)
 
@@ -28,13 +28,13 @@ struct ItemGeneratorTests {
             id: "test-plate",
             baseType: baseType,
             rarity: .astral,
-            using: &randomNumberGenerator
+            using: &randomNumberGenerator,
         )
 
         try #expect(Set(item.affixes.map(\.id)).count == item.affixes.count)
     }
 
-    @Test func generatedAffixesMatchSlotAndAnyKeywordAffinity() throws {
+    @Test func `generated affixes match slot and any keyword affinity`() throws {
         let baseType = try ItemFixtures.baseType("plate_armor")
         var randomNumberGenerator = SeededRandomNumberGenerator(seed: 99)
 
@@ -42,7 +42,7 @@ struct ItemGeneratorTests {
             id: "test-plate",
             baseType: baseType,
             rarity: .astral,
-            using: &randomNumberGenerator
+            using: &randomNumberGenerator,
         )
 
         for affix in item.affixes {
@@ -52,7 +52,7 @@ struct ItemGeneratorTests {
         }
     }
 
-    @Test func everyBaseTypeHasEnoughEligibleAffixesForAstralMaximum() throws {
+    @Test func `every base type has enough eligible affixes for astral maximum`() throws {
         for baseType in GameContent.itemBaseTypes where baseType.slot != .trinket {
             let eligibleAffixes = GameContent.itemAffixDefinitions.filter { definition in
                 definition.slot == baseType.slot &&
@@ -63,7 +63,7 @@ struct ItemGeneratorTests {
         }
     }
 
-    @Test func trinketsAreAuthoredAstralSingletons() throws {
+    @Test func `trinkets are authored astral singletons`() throws {
         let trinkets = GameContent.trinketItems
 
         try #expect(!trinkets.isEmpty)
@@ -80,7 +80,7 @@ struct ItemGeneratorTests {
         }
     }
 
-    @Test func trinketTierAlwaysYieldsAnUnownedTrinketWhenPoolRemains() throws {
+    @Test func `trinket tier always yields an unowned trinket when pool remains`() throws {
         let rewards = (1 ... 40).map { seed in
             var randomNumberGenerator = SeededRandomNumberGenerator(seed: UInt64(seed))
             return ItemRewardGenerator.generate(
@@ -88,14 +88,14 @@ struct ItemGeneratorTests {
                 tier: .trinket,
                 ownedTrinketIDs: [],
                 ownedUniqueIDs: [],
-                using: &randomNumberGenerator
+                using: &randomNumberGenerator,
             )
         }
 
         try #expect(rewards.allSatisfy { $0.isTrinket && GameContent.trinketItems.contains($0) })
     }
 
-    @Test func uniqueTierYieldsCatalogUniquesAndDegradesToTrinketsWhenOwned() throws {
+    @Test func `unique tier yields catalog uniques and degrades to trinkets when owned`() throws {
         let uniques = (1 ... 12).map { seed in
             var randomNumberGenerator = SeededRandomNumberGenerator(seed: UInt64(seed))
             return ItemRewardGenerator.generate(
@@ -103,7 +103,7 @@ struct ItemGeneratorTests {
                 tier: .unique,
                 ownedTrinketIDs: [],
                 ownedUniqueIDs: [],
-                using: &randomNumberGenerator
+                using: &randomNumberGenerator,
             )
         }
         try #expect(uniques.allSatisfy { GameContent.uniqueItems.contains($0) })
@@ -115,12 +115,12 @@ struct ItemGeneratorTests {
             tier: .unique,
             ownedTrinketIDs: [],
             ownedUniqueIDs: allOwned,
-            using: &degradedGenerator
+            using: &degradedGenerator,
         )
         try #expect(degraded.isTrinket)
     }
 
-    @Test func astralRewardsExcludeOwnedAndKeywordIneligibleTrinkets() throws {
+    @Test func `astral rewards exclude owned and keyword ineligible trinkets`() throws {
         let poisonTrinketIDs = Set(GameContent.trinketItems.filter {
             $0.keywords.contains(.poison)
         }.map(\.templateID))
@@ -133,7 +133,7 @@ struct ItemGeneratorTests {
                 ownedTrinketIDs: [],
                 ownedUniqueIDs: [],
                 keywordBias: [.poison],
-                using: &biasedRandomNumberGenerator
+                using: &biasedRandomNumberGenerator,
             )
             if biasedReward.isTrinket {
                 try #expect(poisonTrinketIDs.contains(biasedReward.templateID))
@@ -146,13 +146,13 @@ struct ItemGeneratorTests {
                 ownedTrinketIDs: poisonTrinketIDs,
                 ownedUniqueIDs: [],
                 keywordBias: [.poison],
-                using: &exhaustedRandomNumberGenerator
+                using: &exhaustedRandomNumberGenerator,
             )
             try #expect(!exhaustedReward.isTrinket)
         }
     }
 
-    @Test func seededGenerationIsReproducible() throws {
+    @Test func `seeded generation is reproducible`() throws {
         let baseType = try ItemFixtures.baseType("emerald_ring")
         var firstRandomNumberGenerator = SeededRandomNumberGenerator(seed: 123)
         var secondRandomNumberGenerator = SeededRandomNumberGenerator(seed: 123)
@@ -161,19 +161,19 @@ struct ItemGeneratorTests {
             id: "first",
             baseType: baseType,
             rarity: .astral,
-            using: &firstRandomNumberGenerator
+            using: &firstRandomNumberGenerator,
         )
         let secondItem = ItemGenerator().generate(
             id: "first",
             baseType: baseType,
             rarity: .astral,
-            using: &secondRandomNumberGenerator
+            using: &secondRandomNumberGenerator,
         )
 
         try #expect(firstItem == secondItem)
     }
 
-    @Test func astralAffixesResolveStrongerThanBasicAffixes() throws {
+    @Test func `astral affixes resolve stronger than basic affixes`() throws {
         for definition in GameContent.itemAffixDefinitions {
             if definition.slot == .trinket {
                 continue
@@ -186,7 +186,7 @@ struct ItemGeneratorTests {
         }
     }
 
-    @Test func guaranteedAffixIDsAreAlwaysIncluded() throws {
+    @Test func `guaranteed affix I ds are always included`() throws {
         let baseType = try ItemFixtures.baseType("sapphire_ring")
         var randomNumberGenerator = SeededRandomNumberGenerator(seed: 7)
 
@@ -195,14 +195,14 @@ struct ItemGeneratorTests {
             baseType: baseType,
             rarity: .basic,
             guaranteedAffixIDs: ["manabound"],
-            using: &randomNumberGenerator
+            using: &randomNumberGenerator,
         )
 
         try #expect(item.affixes.contains { $0.id == "manabound" })
         try #expect(item.affixes.count >= 1)
     }
 
-    @Test func generatedItemsPersistRolledAffixPowersInRarityRange() throws {
+    @Test func `generated items persist rolled affix powers in rarity range`() throws {
         let baseType = try ItemFixtures.baseType("longsword")
         for seed in UInt64(1) ... 40 {
             var rng = SeededRandomNumberGenerator(seed: seed)
@@ -210,7 +210,7 @@ struct ItemGeneratorTests {
                 id: "rolled-\(seed)",
                 baseType: baseType,
                 rarity: .basic,
-                using: &rng
+                using: &rng,
             )
             let powers = try #require(item.affixPowers)
             try #expect(powers.count == item.affixes.count)
@@ -229,7 +229,7 @@ struct ItemGeneratorTests {
                         try #expect(allowed.contains { abs($0 - storedModifier.numericValue) < 1e-9 })
                     } else {
                         let range = ItemAffixMagnitudeRoll.integerRange(
-                            around: Int(catalogModifier.numericValue.rounded())
+                            around: Int(catalogModifier.numericValue.rounded()),
                         )
                         try #expect(range.contains(Int(storedModifier.numericValue.rounded())))
                     }
@@ -240,7 +240,7 @@ struct ItemGeneratorTests {
         }
     }
 
-    @Test func mysteryItemRarityRollsBasicEightyPercent() throws {
+    @Test func `mystery item rarity rolls basic eighty percent`() throws {
         var basicCount = 0
         for seed in UInt64(1) ... 24 {
             var randomNumberGenerator = SeededRandomNumberGenerator(seed: seed)
@@ -251,7 +251,7 @@ struct ItemGeneratorTests {
         try #expect((14 ... 22).contains(basicCount))
     }
 
-    @Test func mysteryItemRarityNeverRollsUniqueTier() {
+    @Test func `mystery item rarity never rolls unique tier`() {
         for seed in UInt64(1) ... 50 {
             var randomNumberGenerator = SeededRandomNumberGenerator(seed: seed)
             let tier = MysteryItemRarity.roll(astralChanceBonusPercent: 50, using: &randomNumberGenerator)
@@ -262,7 +262,7 @@ struct ItemGeneratorTests {
     private func generatedAffixCounts(
         baseType: ItemBaseType,
         rarity: Rarity,
-        seedRange: ClosedRange<UInt64>
+        seedRange: ClosedRange<UInt64>,
     ) -> [Int] {
         seedRange.map { seed in
             var randomNumberGenerator = SeededRandomNumberGenerator(seed: seed)
@@ -271,7 +271,7 @@ struct ItemGeneratorTests {
                     id: "test-\(seed)",
                     baseType: baseType,
                     rarity: rarity,
-                    using: &randomNumberGenerator
+                    using: &randomNumberGenerator,
                 )
                 .affixes
                 .count

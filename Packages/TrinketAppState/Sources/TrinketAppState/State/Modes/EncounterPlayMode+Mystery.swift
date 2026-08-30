@@ -8,7 +8,7 @@ import TrinketPersistence
 public extension EncounterPlayMode {
     func previewMysteryEvent(
         origin: PlayEncounterOrigin,
-        forcedEventID: String? = nil
+        forcedEventID: String? = nil,
     ) -> MysteryEvent {
         let inputs = mysteryPickInputs(origin: origin)
         return MysteryEncounterSession.resolveEvent(
@@ -17,14 +17,14 @@ public extension EncounterPlayMode {
             worldSeed: playerSave.worldSeed,
             pickContext: inputs.pickContext,
             pinnedLabyrinthEventID: inputs.pinnedLabyrinthEventID,
-            pinnedJourneyEventID: inputs.pinnedJourneyEventID
+            pinnedJourneyEventID: inputs.pinnedJourneyEventID,
         )
     }
 
     @discardableResult
     func beginMysteryEncounter(
         origin: PlayEncounterOrigin,
-        forcedEventID: String? = nil
+        forcedEventID: String? = nil,
     ) -> StageMapMessage? {
         guard canBeginTransientEncounter else { return nil }
 
@@ -39,7 +39,7 @@ public extension EncounterPlayMode {
             worldSeed: playerSave.worldSeed,
             pickContext: pickContext,
             pinnedLabyrinthEventID: pinnedLabyrinthEventID,
-            pinnedJourneyEventID: pinnedJourneyEventID
+            pinnedJourneyEventID: pinnedJourneyEventID,
         )
 
         if let pinFailure = pinMysteryEventIfNeeded(
@@ -47,7 +47,7 @@ public extension EncounterPlayMode {
             resolvedEventID: opened.resolvedEventID,
             isRecruit: opened.session.event.isRecruit,
             pinnedLabyrinthEventID: pinnedLabyrinthEventID,
-            pinnedJourneyEventID: pinnedJourneyEventID
+            pinnedJourneyEventID: pinnedJourneyEventID,
         ) {
             return pinFailure
         }
@@ -62,7 +62,7 @@ public extension EncounterPlayMode {
                 activeMysteryEncounter = nil
                 return StageMapMessage(
                     title: Self.mysteryPinFailureMessage.title,
-                    message: detail
+                    message: detail,
                 )
             }
         }
@@ -70,13 +70,13 @@ public extension EncounterPlayMode {
     }
 
     private func mysteryEventPickContext(
-        origin: PlayEncounterOrigin
+        origin: PlayEncounterOrigin,
     ) -> MysteryEventPickContext {
         let cooldown = playerSave.currentSave.corruptionAltarCooldownRemaining
         if origin.labyrinthNodeID != nil {
             return .labyrinth(
                 inventory: playerSave.inventory,
-                corruptionAltarCooldownRemaining: cooldown
+                corruptionAltarCooldownRemaining: cooldown,
             )
         }
         guard let stage = origin.stage else {
@@ -85,17 +85,17 @@ public extension EncounterPlayMode {
         return .journey(
             chapterNumber: stage.chapterNumber,
             inventory: playerSave.inventory,
-            corruptionAltarCooldownRemaining: cooldown
+            corruptionAltarCooldownRemaining: cooldown,
         )
     }
 
     private func mysteryPickInputs(
-        origin: PlayEncounterOrigin
+        origin: PlayEncounterOrigin,
     ) -> (pickContext: MysteryEventPickContext, pinnedLabyrinthEventID: String?, pinnedJourneyEventID: String?) {
         (
             mysteryEventPickContext(origin: origin),
             origin.labyrinthNodeID.flatMap { playerSave.labyrinth.nodes[$0]?.mysteryEventID },
-            origin.stage.flatMap { playerSave.journey.pinnedMysteryEventIDs[$0.id] }
+            origin.stage.flatMap { playerSave.journey.pinnedMysteryEventIDs[$0.id] },
         )
     }
 
@@ -112,7 +112,7 @@ public extension EncounterPlayMode {
                 choiceID: choiceID,
                 save: &save,
                 using: &rng,
-                completeProgress: Self.completeMysteryProgress
+                completeProgress: Self.completeMysteryProgress,
             )
         }
     }
@@ -130,7 +130,7 @@ public extension EncounterPlayMode {
                 itemID: itemID,
                 save: &save,
                 using: &rng,
-                completeProgress: Self.completeMysteryProgress
+                completeProgress: Self.completeMysteryProgress,
             )
         }
     }
@@ -138,7 +138,7 @@ public extension EncounterPlayMode {
     private func persistMysteryResolution(
         _ mysterySession: MysteryEncounterSession,
         logging: String,
-        mutate: (inout PlayerSave, inout SystemRandomNumberGenerator) -> MysteryChoiceOutcome
+        mutate: (inout PlayerSave, inout SystemRandomNumberGenerator) -> MysteryChoiceOutcome,
     ) -> Bool {
         var outcome = MysteryChoiceOutcome.failed
         guard playerSave.persistBatch(logging: logging, { save in
@@ -198,7 +198,7 @@ public extension EncounterPlayMode {
     @discardableResult
     internal func applyMysteryOutcome(
         _ outcome: MysteryChoiceOutcome,
-        session mysterySession: MysteryEncounterSession
+        session mysterySession: MysteryEncounterSession,
     ) -> Bool {
         switch outcome {
         case .failed:
@@ -225,7 +225,7 @@ public extension EncounterPlayMode {
         resolvedEventID: String,
         isRecruit: Bool,
         pinnedLabyrinthEventID: String?,
-        pinnedJourneyEventID: String?
+        pinnedJourneyEventID: String?,
     ) -> StageMapMessage? {
         guard !isRecruit else { return nil }
 
@@ -234,7 +234,7 @@ public extension EncounterPlayMode {
                 MysteryEventPinApplier.pinLabyrinthEvent(
                     nodeID: labyrinthNodeID,
                     eventID: resolvedEventID,
-                    save: &save
+                    save: &save,
                 )
             }
         }
@@ -244,7 +244,7 @@ public extension EncounterPlayMode {
                 MysteryEventPinApplier.pinJourneyEvent(
                     stageID: stage.id,
                     eventID: resolvedEventID,
-                    save: &save
+                    save: &save,
                 )
             }
         }
@@ -254,7 +254,7 @@ public extension EncounterPlayMode {
 
     private func pinEvent(
         logging: String,
-        pin: (inout PlayerSave) -> Bool
+        pin: (inout PlayerSave) -> Bool,
     ) -> StageMapMessage? {
         var didPinEvent = false
         let didPersist = playerSave.persistBatch(logging: logging) { save in
@@ -265,7 +265,7 @@ public extension EncounterPlayMode {
 
     private static func completeMysteryProgress(
         _ session: MysteryEncounterSession,
-        save: inout PlayerSave
+        save: inout PlayerSave,
     ) {
         StageCompletion.completeEncounter(
             stage: session.stage,
@@ -273,12 +273,12 @@ public extension EncounterPlayMode {
             hero: save.roster.activeHero,
             companion: save.roster.activeCompanion,
             in: GameContent.chapters,
-            save: &save
+            save: &save,
         )
     }
 
     private static let mysteryPinFailureMessage = StageMapMessage(
         title: "Couldn't Save Progress",
-        message: "This event was not saved. Stay here and try again."
+        message: "This event was not saved. Stay here and try again.",
     )
 }

@@ -23,12 +23,12 @@ public protocol BattleEffectHandler: Sendable {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> EffectApplyOutcome
     func advanceTurn(
         _ active: ActiveEffect,
         on target: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> EffectTurnOutcome
     func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary?
 }
@@ -37,7 +37,7 @@ public extension BattleEffectHandler {
     func advanceTurn(
         _ active: ActiveEffect,
         on target: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> EffectTurnOutcome {
         _ = target; _ = context
         guard active.effect.advancesEachTurn else { return EffectTurnOutcome() }
@@ -45,7 +45,7 @@ public extension BattleEffectHandler {
         updated.remainingTurns -= 1
         return EffectTurnOutcome(
             updatedStack: updated,
-            removeAfter: updated.remainingTurns <= 0
+            removeAfter: updated.remainingTurns <= 0,
         )
     }
 

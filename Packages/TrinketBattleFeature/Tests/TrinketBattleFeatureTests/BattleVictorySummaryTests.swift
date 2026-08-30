@@ -9,7 +9,7 @@ import TrinketTestSupport
 
 @MainActor
 struct BattleVictorySummaryTests {
-    @Test func launchPreviewPresentsVictoryFromAnActivatedConfiguration() throws {
+    @Test func `launch preview presents victory from an activated configuration`() throws {
         let party = BattlePartyFixtures.quickWinParty()
         let (configuration, context) = BattleRunConfigurationTestSupport.make(
             hero: party.hero,
@@ -17,7 +17,7 @@ struct BattleVictorySummaryTests {
             enemy: party.enemy,
             stageReward: StageReward(gold: 12, itemTemplateIDs: []),
             heroExperienceAward: 17,
-            companionExperienceAward: 9
+            companionExperienceAward: 9,
         )
         let session = BattleSession(openingHandDrawStagger: 0)
         _ = session.activate(configuration, presentation: context)
@@ -31,13 +31,13 @@ struct BattleVictorySummaryTests {
         #expect(summary.stageGold == 12)
     }
 
-    @Test func restartWithoutPresentationClearsPriorContext() {
+    @Test func `restart without presentation clears prior context`() {
         let party = BattlePartyFixtures.quickWinParty()
         let first = BattleRunConfigurationTestSupport.make(
             hero: party.hero,
             companion: party.companion,
             enemy: party.enemy,
-            stageRewardsAlreadyClaimed: true
+            stageRewardsAlreadyClaimed: true,
         )
         let session = BattleSession(openingHandDrawStagger: 0)
         _ = session.activate(first.configuration, presentation: first.presentation)
@@ -47,7 +47,7 @@ struct BattleVictorySummaryTests {
             rngSeed: BattleSessionTestSupport.deterministicBattleSeed &+ 1,
             hero: party.hero,
             companion: party.companion,
-            enemy: party.enemy
+            enemy: party.enemy,
         )
         _ = session.restart(second.configuration)
         #expect(session.presentationContext == nil)
@@ -60,7 +60,7 @@ struct BattleVictorySummaryTests {
     }
 
     @Test(arguments: BakedVictoryAwardCase.allCases)
-    func makeVictorySummaryUsesBakedAwards(_ awardCase: BakedVictoryAwardCase) throws {
+    func `make victory summary uses baked awards`(_ awardCase: BakedVictoryAwardCase) throws {
         switch awardCase {
         case .stageRewardsAndLoot:
             try assertStageRewardsAndLootSummary()
@@ -78,7 +78,7 @@ struct BattleVictorySummaryTests {
             id: "enemy",
             role: .enemy,
             maxHealth: 1,
-            abilities: []
+            abilities: [],
         )
         return (hero, companion, enemy)
     }
@@ -108,7 +108,7 @@ struct BattleVictorySummaryTests {
             materialRewards: [
                 ResourceAmount(.wood, 8),
                 ResourceAmount(.stone, 3),
-            ]
+            ],
         )
         let summary = try makeDrivenVictorySummary(configuration: configuration, context: context)
         #expect(summary.stageGold == 12)
@@ -139,7 +139,7 @@ struct BattleVictorySummaryTests {
             companionProgression: CombatantProgression(level: 1, currentXP: 0, requiredXP: 10),
             stageReward: StageReward(gold: 0, itemTemplateIDs: []),
             heroExperienceAward: 0,
-            companionExperienceAward: 2
+            companionExperienceAward: 2,
         )
         let summary = try makeDrivenVictorySummary(configuration: configuration, context: context)
         #expect(summary.experience == 0)
@@ -158,7 +158,7 @@ struct BattleVictorySummaryTests {
             baseType: baseType,
             rarity: .basic,
             displayName: "Audit Find",
-            affixes: []
+            affixes: [],
         )
         let (configuration, context) = BattleRunConfigurationTestSupport.make(
             runKey: BattleRunKey("labyrinth|audit-node"),
@@ -175,7 +175,7 @@ struct BattleVictorySummaryTests {
             defeatPrimaryAction: .retreat,
             hasProgressionRewards: true,
             heroExperienceAward: 4,
-            companionExperienceAward: 4
+            companionExperienceAward: 4,
         )
         let summary = try makeDrivenVictorySummary(configuration: configuration, context: context)
         #expect(summary.experience == 4)
@@ -186,7 +186,7 @@ struct BattleVictorySummaryTests {
 
     private func makeDrivenVictorySummary(
         configuration: BattleRunConfiguration,
-        context: BattlePresentationContext
+        context: BattlePresentationContext,
     ) throws -> BattleVictorySummary {
         let session = BattleSession(openingHandDrawStagger: 0)
         _ = session.activate(configuration)
@@ -195,18 +195,18 @@ struct BattleVictorySummaryTests {
         return try #require(session.makeVictorySummary(for: configuration, presentation: context))
     }
 
-    @Test func makeVictorySummaryKeepsRawBattleGoldSeparateFromHomesteadDisplaySplit() throws {
+    @Test func `make victory summary keeps raw battle gold separate from homestead display split`() throws {
         let hero = CombatantFixtures.combatant(
             id: "hero",
             role: .hero,
-            abilities: [.slash]
+            abilities: [.slash],
         )
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion, abilities: [])
         let enemy = CombatantFixtures.combatant(
             id: "enemy",
             role: .enemy,
             maxHealth: 1,
-            abilities: []
+            abilities: [],
         )
         let (configuration, context) = BattleRunConfigurationTestSupport.make(
             rngSeed: 0,
@@ -214,7 +214,7 @@ struct BattleVictorySummaryTests {
             companion: companion,
             enemy: enemy,
             stageReward: StageReward(gold: 100, itemTemplateIDs: []),
-            goldFindPercent: 10
+            goldFindPercent: 10,
         )
         let session = BattleSession(openingHandDrawStagger: 0)
         _ = session.activate(configuration)
@@ -228,7 +228,7 @@ struct BattleVictorySummaryTests {
             heroModifiers: [],
             companionModifiers: [],
             astralChanceBonusPercent: 0,
-            goldFindPercent: context.goldFindPercent
+            goldFindPercent: context.goldFindPercent,
         ).adjustedGold(100 + earnedGold)
         #expect(context.goldFindPercent > 0)
         #expect(summary.rawBattleEarnedGold == earnedGold)
@@ -239,8 +239,8 @@ struct BattleVictorySummaryTests {
                 heroModifiers: [],
                 companionModifiers: [],
                 astralChanceBonusPercent: 0,
-                goldFindPercent: context.goldFindPercent
-            ).adjustedGold(100 + summary.battleGold) > expectedTotal
+                goldFindPercent: context.goldFindPercent,
+            ).adjustedGold(100 + summary.battleGold) > expectedTotal,
         )
     }
 }

@@ -6,20 +6,20 @@ private func ev(
     title: String,
     narrative: String,
     artID: String?,
-    choices: [(id: String, label: String, effects: [MysteryEffect])]
+    choices: [(id: String, label: String, effects: [MysteryEffect])],
 ) -> MysteryEvent {
     MysteryEvent(
         id: id,
         title: title,
         narrative: narrative,
         artID: artID,
-        choices: choices.map { MysteryChoice(id: $0.id, label: $0.label, effects: $0.effects) }
+        choices: choices.map { MysteryChoice(id: $0.id, label: $0.label, effects: $0.effects) },
     )
 }
 
 private func generatedItem(
     _ baseTypeID: String,
-    guaranteedAffixIDs: [String] = []
+    guaranteedAffixIDs: [String] = [],
 ) -> MysteryEffect {
     .gainGeneratedItem(baseTypeID: baseTypeID, guaranteedAffixIDs: guaranteedAffixIDs)
 }
@@ -37,7 +37,7 @@ enum MysteryEventPool {
                     generatedItem("sapphire_ring", guaranteedAffixIDs: ["manabound"]),
                 ]),
                 ("gather-crystals", "Gather Crystals", [.gainExperience, .gainMaterial(.crystal)]),
-            ]
+            ],
         ),
         ev(
             id: "enchanted-spring",
@@ -50,7 +50,7 @@ enum MysteryEventPool {
                     generatedItem("icy_heart"),
                     .gainMaterial(.crystal),
                 ]),
-            ]
+            ],
         ),
         ev(
             id: "fungal-grotto",
@@ -63,7 +63,7 @@ enum MysteryEventPool {
                     generatedItem("emerald_ring"),
                 ]),
                 ("collect-crystals", "Collect Crystals", [.gainExperience, .gainMaterial(.crystal)]),
-            ]
+            ],
         ),
         ev(
             id: "wisdom-tree",
@@ -73,7 +73,7 @@ enum MysteryEventPool {
             choices: [
                 ("collect-branches", "Collect Branches", [.gainExperience, .gainMaterial(.wood)]),
                 ("forage-herbs", "Forage Herbs", [.gainExperience, .gainMaterial(.herbs)]),
-            ]
+            ],
         ),
         ev(
             id: "fairy-ring",
@@ -86,7 +86,7 @@ enum MysteryEventPool {
                     generatedItem("parasitic_bloom"),
                     .gainMaterial(.herbs),
                 ]),
-            ]
+            ],
         ),
         ev(
             id: "ancient-altar",
@@ -99,7 +99,7 @@ enum MysteryEventPool {
                     generatedItem("topaz_amulet"),
                     .gainMaterial(.crystal),
                 ]),
-            ]
+            ],
         ),
         ev(
             id: "hidden-cache",
@@ -109,7 +109,7 @@ enum MysteryEventPool {
             choices: [
                 ("take-coinpurse", "Take the Coinpurse", [.gainGold(20), .gainMaterial(.hide)]),
                 ("claim-blade", "Claim the Blade", [generatedItem("dagger"), .gainMaterial(.hide)]),
-            ]
+            ],
         ),
         ev(
             id: "overgrown-temple",
@@ -119,7 +119,7 @@ enum MysteryEventPool {
             choices: [
                 ("search-the-crypt", "Search the Crypt", [.gainRandomItem, .gainGold(20)]),
                 ("take-a-tile", "Take a Tile", [.gainExperience, .gainMaterial(.stone)]),
-            ]
+            ],
         ),
         ev(
             id: "abandoned-study",
@@ -132,7 +132,7 @@ enum MysteryEventPool {
                     .gainMaterial(.wood),
                 ]),
                 ("take-the-quill", "Take the Quill", [.gainExperience, generatedItem("runic_quill")]),
-            ]
+            ],
         ),
         ev(
             id: "mysterious-tome",
@@ -148,7 +148,7 @@ enum MysteryEventPool {
                     .gainExperience,
                     generatedItem("spellbook"),
                 ]),
-            ]
+            ],
         ),
         ev(
             id: "crystal-geode",
@@ -161,7 +161,7 @@ enum MysteryEventPool {
                     generatedItem("sapphire_ring", guaranteedAffixIDs: ["manabound"]),
                 ]),
                 ("take-the-shell", "Take the Shell", [.gainExperience, .gainMaterial(.stone)]),
-            ]
+            ],
         ),
         ev(
             id: "meteorite-crash",
@@ -174,7 +174,7 @@ enum MysteryEventPool {
                     .gainMaterial(.iron),
                 ]),
                 ("search-the-crater", "Search the Crater", [.gainExperience, .gainMaterial(.stone)]),
-            ]
+            ],
         ),
         ev(
             id: "forgotten-hoard",
@@ -187,7 +187,7 @@ enum MysteryEventPool {
                     .gainMaterial(.iron),
                 ]),
                 ("claim-the-shield", "Claim the Shield", [generatedItem("kite_shield"), .gainGold(30)]),
-            ]
+            ],
         ),
         ev(
             id: "sacred-grove",
@@ -200,7 +200,7 @@ enum MysteryEventPool {
                     generatedItem("emerald_ring"),
                     .gainMaterial(.wood),
                 ]),
-            ]
+            ],
         ),
         ev(
             id: "mountain-pass",
@@ -213,7 +213,7 @@ enum MysteryEventPool {
                     .gainMaterial(.iron),
                 ]),
                 ("gather-herbs", "Gather Herbs", [.gainExperience, .gainMaterial(.herbs)]),
-            ]
+            ],
         ),
         ev(
             id: "murky-pond",
@@ -223,7 +223,7 @@ enum MysteryEventPool {
             choices: [
                 ("catch-fish", "Catch Fish", [.gainExperience, .gainMaterial(.food)]),
                 ("pull-the-reeds", "Pull the Reeds", [.gainExperience, .gainMaterial(.herbs)]),
-            ]
+            ],
         ),
         ev(
             id: "necromancers-offer",
@@ -236,7 +236,7 @@ enum MysteryEventPool {
                     generatedItem("bone_charm"),
                     .gainMaterial(.crystal),
                 ]),
-            ]
+            ],
         ),
         ev(
             id: "medicinal-herb-garden",
@@ -252,7 +252,7 @@ enum MysteryEventPool {
                     .gainExperience,
                     generatedItem("tattered_pages"),
                 ]),
-            ]
+            ],
         ),
         ev(
             id: "crystal-garden",
@@ -268,7 +268,7 @@ enum MysteryEventPool {
                     .gainExperience,
                     generatedItem("resonant_chimes"),
                 ]),
-            ]
+            ],
         ),
         ev(
             id: "hunters-lodge",
@@ -281,7 +281,7 @@ enum MysteryEventPool {
                     generatedItem("hatchet"),
                     .gainMaterial(.hide),
                 ]),
-            ]
+            ],
         ),
         ev(
             id: "roadside-censer",
@@ -291,7 +291,7 @@ enum MysteryEventPool {
             choices: [
                 ("gather-incense", "Gather Incense", [.gainExperience, .gainMaterial(.herbs)]),
                 ("claim-censer", "Claim the Censer", [generatedItem("brass_censer"), .gainGold(20)]),
-            ]
+            ],
         ),
         ev(
             id: "the-phoenix",
@@ -304,7 +304,7 @@ enum MysteryEventPool {
                     .gainMaterial(.hide),
                 ]),
                 ("take-the-brand", "Take the Brand", [generatedItem("staff"), .gainMaterial(.wood)]),
-            ]
+            ],
         ),
         ev(
             id: "the-wolf",
@@ -317,7 +317,7 @@ enum MysteryEventPool {
                     generatedItem("recurve_bow"),
                     .gainMaterial(.food),
                 ]),
-            ]
+            ],
         ),
         ev(
             id: Self.corruptionAltarID,
@@ -327,14 +327,14 @@ enum MysteryEventPool {
             choices: [
                 ("corrupt-item", "Corrupt an Item", [.corruptItem]),
                 ("leave", "Leave", [.leave]),
-            ]
+            ],
         ),
     ]
 
     static let corruptionAltarID = "corruption-altar"
 
     private static let eventsByID: [String: MysteryEvent] = Dictionary(
-        uniqueKeysWithValues: all.map { ($0.id, $0) }
+        uniqueKeysWithValues: all.map { ($0.id, $0) },
     )
 
     static func event(matching id: String) -> MysteryEvent? {
@@ -343,7 +343,7 @@ enum MysteryEventPool {
 
     static func pickMysteryEvent(
         context: MysteryEventPickContext,
-        using randomNumberGenerator: inout some RandomNumberGenerator
+        using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> MysteryEvent {
         let nonAltar = all.filter { $0.id != corruptionAltarID }
         let canOfferAltar = context.allowsCorruptionAltar
@@ -351,7 +351,7 @@ enum MysteryEventPool {
             && context.corruptionAltarCooldownRemaining == 0
         let altarRoll = Int.random(
             in: 1 ... 100,
-            using: &randomNumberGenerator
+            using: &randomNumberGenerator,
         )
         if canOfferAltar,
            altarRoll <= MysteryEventPickContext.corruptionAltarReadyChancePercent,

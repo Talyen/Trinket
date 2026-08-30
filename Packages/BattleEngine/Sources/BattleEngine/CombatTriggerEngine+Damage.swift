@@ -6,7 +6,7 @@ package extension CombatTriggerEngine {
     static func afterBleedApplied(
         to target: Combatant,
         sourceActorID: String,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         guard context.roster.combatant(for: sourceActorID) != nil else { return [] }
         guard context.dotRecursionDepth < ReactionScope.maxDotRecursionDepth else {
@@ -29,7 +29,7 @@ package extension CombatTriggerEngine {
                 to: target,
                 sourceActorID: sourceActorID,
                 dealImmediateDamage: true,
-                suppressAffixReactions: true
+                suppressAffixReactions: true,
             ))
         }
 
@@ -43,7 +43,7 @@ package extension CombatTriggerEngine {
                 keyword: .burn,
                 target: target,
                 sourceActorID: sourceActorID,
-                in: &context
+                in: &context,
             ).events)
         }
 
@@ -54,7 +54,7 @@ package extension CombatTriggerEngine {
         keyword: Keyword,
         to target: Combatant,
         sourceActorID: String,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         guard context.dotRecursionDepth < ReactionScope.maxDotRecursionDepth else {
             ReactionScope.capHit(site: "afterDecayingDoTApplied", depth: context.dotRecursionDepth)
@@ -85,7 +85,7 @@ package extension CombatTriggerEngine {
             to: target,
             sourceActorID: sourceActorID,
             dealImmediateDamage: true,
-            suppressAffixReactions: true
+            suppressAffixReactions: true,
         ))
         return events
     }
@@ -93,7 +93,7 @@ package extension CombatTriggerEngine {
     static func totalPotency(
         of keyword: Keyword,
         on combatant: Combatant,
-        in context: BattleState
+        in context: BattleState,
     ) -> Int {
         context.roster.activeEffects(for: combatant).reduce(0) { sum, active in
             sum + (active.effect.keyword == keyword ? (active.effect.potency ?? 0) : 0)
@@ -103,7 +103,7 @@ package extension CombatTriggerEngine {
     // swiftlint:disable:next function_body_length cyclomatic_complexity
     static func damageBonus(
         for state: DamageResolutionState,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> Int {
         guard let sourceActorID = state.sourceActorID,
               let damageKeyword = state.damageKeyword,
@@ -147,7 +147,7 @@ package extension CombatTriggerEngine {
         if status.isBurning, triggers.damagePerBurnPotencyPercent > 0 {
             bonus += CombatRounding.scaled(
                 totalPotency(of: .burn, on: target, in: context),
-                multiplier: triggers.damagePerBurnPotencyPercent
+                multiplier: triggers.damagePerBurnPotencyPercent,
             )
         }
         bonus += partyAuraDamageBonus(
@@ -156,7 +156,7 @@ package extension CombatTriggerEngine {
             damageKeyword: damageKeyword,
             targetIsPoisoned: status.isPoisoned,
             targetIsBurning: status.isBurning,
-            in: context
+            in: context,
         )
         if damageKeyword == .holy, status.isStunned {
             bonus += triggers.holyDamageVsStunnedBonus
@@ -193,7 +193,7 @@ package extension CombatTriggerEngine {
 
     static func damageMultiplier(
         for state: DamageResolutionState,
-        in context: BattleState
+        in context: BattleState,
     ) -> Double {
         guard let sourceActorID = state.sourceActorID,
               let damageKeyword = state.damageKeyword,
@@ -215,7 +215,7 @@ package extension CombatTriggerEngine {
             multiplier *= partyAfflictedDamageMultiplier(
                 targetIsPoisoned: status.isPoisoned,
                 targetIsBurning: status.isBurning,
-                in: context
+                in: context,
             )
         } else {
             if status.isPoisoned {
@@ -257,7 +257,7 @@ package extension CombatTriggerEngine {
     static func afterStunDamageDealt(
         to _: Combatant,
         source: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         let amount = context.modifiers(for: source.id).triggers.stunDamageBlockFlat
         guard amount > 0 else { return [] }
@@ -265,14 +265,14 @@ package extension CombatTriggerEngine {
             amount,
             to: source,
             source: source,
-            abilityName: triggerAbilityName("stunDamageBlockFlat", for: source, fallback: "Oathbound", in: context)
+            abilityName: triggerAbilityName("stunDamageBlockFlat", for: source, fallback: "Oathbound", in: context),
         )
     }
 
     static func afterBurnDamageDealt(
         to _: Combatant,
         source: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         let triggers = context.modifiers(for: source.id).triggers
         var events = burnDamageHeals(triggers: triggers, source: source, in: &context)
@@ -281,7 +281,7 @@ package extension CombatTriggerEngine {
                 triggers.onBurnDamageGainBlock,
                 to: source,
                 source: source,
-                abilityName: triggerAbilityName("onBurnDamageGainBlock", for: source, fallback: "Flame Shield", in: context)
+                abilityName: triggerAbilityName("onBurnDamageGainBlock", for: source, fallback: "Flame Shield", in: context),
             ))
         }
         events.append(contentsOf: emberShieldIfNeeded(source: source, in: &context))
@@ -292,7 +292,7 @@ package extension CombatTriggerEngine {
         to _: Combatant,
         source: Combatant,
         amount: Int,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         let triggers = context.modifiers(for: source.id).triggers
         guard triggers.freezeDamageGrantsBlock, amount > 0 else { return [] }
@@ -300,14 +300,14 @@ package extension CombatTriggerEngine {
             amount,
             to: source,
             source: source,
-            abilityName: triggerAbilityName("freezeDamageGrantsBlock", for: source, fallback: "Rimeheart", in: context)
+            abilityName: triggerAbilityName("freezeDamageGrantsBlock", for: source, fallback: "Rimeheart", in: context),
         )
     }
 
     private static func burnDamageHeals(
         triggers: CombatTraitTriggers,
         source: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         var events: [ActionEvent] = []
         if triggers.burnDamageHealFlat > 0 {
@@ -319,8 +319,8 @@ package extension CombatTriggerEngine {
                     "burnDamageHealFlat",
                     for: source,
                     fallback: "Bloodfire",
-                    in: context
-                )
+                    in: context,
+                ),
             ))
         }
         if triggers.onBurnDamageHealLowestAllyFlat > 0 {
@@ -333,8 +333,8 @@ package extension CombatTriggerEngine {
                     "onBurnDamageHealLowestAllyFlat",
                     for: source,
                     fallback: "Healing Flames",
-                    in: context
-                )
+                    in: context,
+                ),
             ))
         }
         return events
@@ -342,7 +342,7 @@ package extension CombatTriggerEngine {
 
     private static func emberShieldIfNeeded(
         source: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         guard source.role != .enemy,
               context.roster.companion.isAlive,
@@ -357,8 +357,8 @@ package extension CombatTriggerEngine {
                 "onAllyBurnDamageGainBlock",
                 for: context.roster.companion.combatant,
                 fallback: "Ember Shield",
-                in: context
-            )
+                in: context,
+            ),
         )
     }
 
@@ -366,7 +366,7 @@ package extension CombatTriggerEngine {
     static func afterCriticalHit(
         to enemy: Combatant,
         source: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         guard source.role != .enemy else { return [] }
         let profile = context.modifiers(for: source.id)
@@ -377,18 +377,18 @@ package extension CombatTriggerEngine {
                 profile.triggers.criticalPurgeAll ? "criticalPurgeAll" : "criticalPurgeCount",
                 for: source,
                 fallback: "Unmaking",
-                in: context
+                in: context,
             ),
             count: profile.triggers.criticalPurgeCount,
             purgeAll: profile.triggers.criticalPurgeAll,
-            in: &context
+            in: &context,
         )
 
         if profile.triggers.criticalGoldFlat > 0 {
             events.append(contentsOf: context.grantGoldEvent(
                 profile.triggers.criticalGoldFlat,
                 to: source,
-                abilityName: triggerAbilityName("criticalGoldFlat", for: source, fallback: "Cutpurse", in: context)
+                abilityName: triggerAbilityName("criticalGoldFlat", for: source, fallback: "Cutpurse", in: context),
             ))
         }
 
@@ -397,7 +397,7 @@ package extension CombatTriggerEngine {
             events.append(contentsOf: context.grantGoldEvent(
                 profile.triggers.criticalActionGoldFlat,
                 to: source,
-                abilityName: triggerAbilityName("criticalActionGoldFlat", for: source, fallback: "Lucky Clover", in: context)
+                abilityName: triggerAbilityName("criticalActionGoldFlat", for: source, fallback: "Lucky Clover", in: context),
             ))
         }
 
@@ -408,7 +408,7 @@ package extension CombatTriggerEngine {
                 to: enemy,
                 sourceActorID: source.id,
                 dealImmediateDamage: false,
-                suppressAffixReactions: true
+                suppressAffixReactions: true,
             ))
         }
         if profile.triggers.criticalApplyBurn > 0, context.roster.health(for: enemy) > 0 {
@@ -418,7 +418,7 @@ package extension CombatTriggerEngine {
                 to: enemy,
                 sourceActorID: source.id,
                 dealImmediateDamage: false,
-                suppressAffixReactions: true
+                suppressAffixReactions: true,
             ))
         }
         if profile.triggers.criticalApplyStunBuildup > 0, context.roster.health(for: enemy) > 0 {
@@ -428,7 +428,7 @@ package extension CombatTriggerEngine {
                 to: enemy,
                 sourceActorID: source.id,
                 applyFightPacing: false,
-                in: &context
+                in: &context,
             ))
         }
         if profile.triggers.criticalOnBleedingDetonateBleed, context.roster.health(for: enemy) > 0 {
@@ -438,7 +438,7 @@ package extension CombatTriggerEngine {
             events.append(contentsOf: detonateBleedAndPoison(
                 on: enemy,
                 sourceActorID: source.id,
-                in: &context
+                in: &context,
             ))
         }
         if profile.triggers.onCritDoubleBleedDuration {
@@ -453,7 +453,7 @@ package extension CombatTriggerEngine {
             events.append(contentsOf: context.grantGoldEvent(
                 profile.triggers.criticalVsStunnedEnemyGold,
                 to: source,
-                abilityName: triggerAbilityName("criticalVsStunnedEnemyGold", for: source, fallback: "Confounding Loot", in: context)
+                abilityName: triggerAbilityName("criticalVsStunnedEnemyGold", for: source, fallback: "Confounding Loot", in: context),
             ))
         }
 
@@ -463,7 +463,7 @@ package extension CombatTriggerEngine {
     static func detonateBleed(
         on target: Combatant,
         sourceActorID: String,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         guard !context.isResolvingDoTDetonation else { return [] }
         context.isResolvingDoTDetonation = true
@@ -495,7 +495,7 @@ package extension CombatTriggerEngine {
                     keyword: .bleed,
                     target: target,
                     sourceActorID: sourceActorID,
-                    in: &context
+                    in: &context,
                 ).events)
             }
         }
@@ -506,7 +506,7 @@ package extension CombatTriggerEngine {
 package extension CombatTriggerEngine {
     static func companionSpitPoison(
         to target: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         guard let companionTriggers = companionReactingToHeroTriggers(in: context),
               companionTriggers.onHeroAttackPoisonedEnemyApplyPoison > 0
@@ -517,7 +517,7 @@ package extension CombatTriggerEngine {
             to: target,
             sourceActorID: context.roster.companion.id,
             dealImmediateDamage: false,
-            suppressAffixReactions: true
+            suppressAffixReactions: true,
         )
     }
 }

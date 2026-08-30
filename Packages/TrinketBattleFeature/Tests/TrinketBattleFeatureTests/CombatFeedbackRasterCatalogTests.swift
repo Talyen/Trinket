@@ -7,7 +7,7 @@ import TrinketDesignSystem
 @testable import TrinketBattleFeature
 
 struct CombatFeedbackRasterCatalogTests {
-    @Test func everyClosedVocabularyLivePresentationMapsToAWarmedKey() {
+    @Test func `every closed vocabulary live presentation maps to A warmed key`() {
         let date = Date(timeIntervalSince1970: 1)
         let layoutDirection = LayoutDirection.leftToRight
         let displayScale: CGFloat = 3
@@ -16,20 +16,20 @@ struct CombatFeedbackRasterCatalogTests {
                 CombatFeedbackRasterKey(
                     item: $0,
                     layoutDirection: layoutDirection,
-                    displayScale: displayScale
+                    displayScale: displayScale,
                 )
-            }
+            },
         )
 
         for item in CombatFeedbackClosedVocabulary.enumerateWordChips(at: date) {
             let key = CombatFeedbackRasterKey(
                 item: item,
                 layoutDirection: layoutDirection,
-                displayScale: displayScale
+                displayScale: displayScale,
             )
             #expect(
                 warmed.contains(key),
-                "missing warmup for \(item.feedbackClass) \(item.label) \(item.keyword)"
+                "missing warmup for \(item.feedbackClass) \(item.label) \(item.keyword)",
             )
         }
     }

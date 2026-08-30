@@ -5,7 +5,7 @@ import TrinketCore
 package enum DamagePipeline {
     package static func run(
         state: inout DamageResolutionState,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) {
         if state.options.isHealthCost {
             state.remaining = state.amount

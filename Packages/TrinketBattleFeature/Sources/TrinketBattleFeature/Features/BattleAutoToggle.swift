@@ -10,7 +10,7 @@ struct BattleAutoToggle: View {
         Toggle(isOn: $observedSession.isAutoBattleEnabled) {
             Label(
                 "Auto",
-                systemImage: "arrow.trianglehead.2.clockwise.rotate.90"
+                systemImage: "arrow.trianglehead.2.clockwise.rotate.90",
             )
         }
         // UIStyleCheck: allow - Native Toggle button semantics provide the toolbar's standard on/off control.

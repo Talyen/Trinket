@@ -32,17 +32,17 @@ enum BattleHandLayout {
 
     static func metrics(
         containerWidth: CGFloat,
-        cardCount: Int
+        cardCount: Int,
     ) -> Metrics {
         let cardWidth = min(
             maxCardWidth,
-            max(minCardWidth, containerWidth * widthRatio)
+            max(minCardWidth, containerWidth * widthRatio),
         )
         let cardHeight = cardWidth * aspectRatio
         let overlap: CGFloat = cardCount > 1
             ? min(
                 cardWidth * maxOverlapRatio,
-                (containerWidth - cardWidth - horizontalInset * 2) / CGFloat(cardCount - 1)
+                (containerWidth - cardWidth - horizontalInset * 2) / CGFloat(cardCount - 1),
             )
             : 0
         let totalWidth = cardWidth + overlap * CGFloat(max(cardCount - 1, 0))
@@ -51,7 +51,7 @@ enum BattleHandLayout {
             cardWidth: cardWidth,
             cardHeight: cardHeight,
             overlap: overlap,
-            startX: startX
+            startX: startX,
         )
     }
 
@@ -63,34 +63,34 @@ enum BattleHandLayout {
         index: Int,
         metrics: Metrics,
         cardCount: Int,
-        containerFrame: CGRect
+        containerFrame: CGRect,
     ) -> CGPoint {
         let baseOffsetY = metrics.cardHeight * restingYFraction
             + restingOffsetY(
                 index: index,
-                cardCount: cardCount
+                cardCount: cardCount,
             )
         return CGPoint(
             x: containerFrame.midX + cardOffsetX(
                 index: index,
                 metrics: metrics,
-                containerWidth: containerFrame.width
+                containerWidth: containerFrame.width,
             ),
-            y: containerFrame.maxY - bottomRise - metrics.cardHeight / 2 + baseOffsetY
+            y: containerFrame.maxY - bottomRise - metrics.cardHeight / 2 + baseOffsetY,
         )
     }
 
     static func releaseCenter(restingCenter: CGPoint, dragTranslation: CGSize) -> CGPoint {
         CGPoint(
             x: restingCenter.x + dragTranslation.width,
-            y: restingCenter.y + dragTranslation.height
+            y: restingCenter.y + dragTranslation.height,
         )
     }
 
     static func rotation(
         index: Int,
         cardCount: Int,
-        fanAngleStep: CGFloat = Self.fanAngleStep
+        fanAngleStep: CGFloat = Self.fanAngleStep,
     ) -> CGFloat {
         guard cardCount > 1 else { return 0 }
         return (CGFloat(index) - CGFloat(cardCount - 1) / 2) * fanAngleStep
@@ -99,14 +99,14 @@ enum BattleHandLayout {
     static func restingOffsetY(
         index: Int,
         cardCount: Int,
-        fanLiftStep: CGFloat = Self.fanLiftStep
+        fanLiftStep: CGFloat = Self.fanLiftStep,
     ) -> CGFloat {
         abs(CGFloat(index) - CGFloat(cardCount - 1) / 2) * fanLiftStep
     }
 
     static func exceedsTapSlop(
         translation: CGSize,
-        minimumDistance: CGFloat = dragMinimumDistance
+        minimumDistance: CGFloat = dragMinimumDistance,
     ) -> Bool {
         abs(translation.width) >= minimumDistance
             || abs(translation.height) >= minimumDistance
@@ -115,7 +115,7 @@ enum BattleHandLayout {
     static func isTapGesture(
         translation: CGSize,
         didExceedTapSlop: Bool,
-        minimumDistance: CGFloat = dragMinimumDistance
+        minimumDistance: CGFloat = dragMinimumDistance,
     ) -> Bool {
         guard !didExceedTapSlop else { return false }
         return !exceedsTapSlop(translation: translation, minimumDistance: minimumDistance)
@@ -125,7 +125,7 @@ enum BattleHandLayout {
         didRecognizeLongPress: Bool,
         translation: CGSize,
         didExceedTapSlop: Bool,
-        minimumDistance: CGFloat = dragMinimumDistance
+        minimumDistance: CGFloat = dragMinimumDistance,
     ) -> Bool {
         didRecognizeLongPress
             && !didExceedTapSlop
@@ -136,7 +136,7 @@ enum BattleHandLayout {
         translation: CGSize,
         predictedEndTranslation: CGSize,
         isPlayable: Bool,
-        threshold: CGFloat = playDragThreshold
+        threshold: CGFloat = playDragThreshold,
     ) -> Bool {
         guard isPlayable else { return false }
         let release = predictedEndTranslation.height < translation.height
@@ -150,7 +150,7 @@ enum BattleHandLayout {
     static func isPlayArmed(
         translation: CGSize,
         isPlayable: Bool,
-        threshold: CGFloat = playDragThreshold
+        threshold: CGFloat = playDragThreshold,
     ) -> Bool {
         guard isPlayable else { return false }
         let upwardDistance = -translation.height
@@ -162,7 +162,7 @@ enum BattleHandLayout {
         translation: CGSize,
         isPlayable: Bool,
         threshold: CGFloat = playDragThreshold,
-        currentlyArmed: Bool
+        currentlyArmed: Bool,
     ) -> Bool {
         guard isPlayable else { return false }
         let upwardDistance = -translation.height
@@ -175,7 +175,7 @@ enum BattleHandLayout {
     static func presentationTranslation(
         _ translation: CGSize,
         isPlayable: Bool,
-        threshold: CGFloat = playDragThreshold
+        threshold: CGFloat = playDragThreshold,
     ) -> CGSize {
         guard !isPlayable, translation.height < 0 else { return translation }
         let upwardDistance = -translation.height
@@ -184,7 +184,7 @@ enum BattleHandLayout {
         let resistedOvershoot = overshoot * threshold / (threshold + overshoot * denyOvershootFactor)
         return CGSize(
             width: translation.width * denyWidthDamp,
-            height: -(threshold + resistedOvershoot)
+            height: -(threshold + resistedOvershoot),
         )
     }
 
@@ -192,7 +192,7 @@ enum BattleHandLayout {
         translation: CGSize,
         predictedEndTranslation _: CGSize,
         cardWidth: CGFloat,
-        maximumDegrees: Double
+        maximumDegrees: Double,
     ) -> Double {
         guard cardWidth > 0 else { return 0 }
         let positionLean = Double(translation.width / cardWidth) * maximumDegrees

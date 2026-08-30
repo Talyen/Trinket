@@ -8,7 +8,7 @@ package enum DoTDamage {
         keyword: Keyword,
         target: Combatant,
         sourceActorID: String?,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> CombatOutcome {
         guard basePotency > 0 else { return .empty }
 
@@ -17,8 +17,8 @@ package enum DoTDamage {
                 amount: basePotency,
                 target: target,
                 keyword: keyword,
-                sourceActorID: sourceActorID
-            )
+                sourceActorID: sourceActorID,
+            ),
         )
         guard damageOutcome.healthLost > 0 else { return damageOutcome }
 
@@ -29,12 +29,12 @@ package enum DoTDamage {
             abilityName: keyword.rawValue,
             target: target,
             amount: damageOutcome.healthLost,
-            keyword: keyword
+            keyword: keyword,
         )
         return CombatOutcome(
             healthDelta: damageOutcome.healthDelta,
             events: damageOutcome.events + [statusEvent],
-            flags: damageOutcome.flags
+            flags: damageOutcome.flags,
         )
     }
 }

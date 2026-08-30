@@ -4,13 +4,13 @@ import TrinketContent
 import TrinketCore
 
 struct AbilityEffectIntegrationTests {
-    @Test func blackjackChoosesStunDamageOrGold() throws {
+    @Test func `blackjack chooses stun damage or gold`() throws {
         let hero = Combatant(
             id: "hero",
             name: "Hero",
             role: .hero,
             maxHealth: 20,
-            abilities: [.blackjack]
+            abilities: [.blackjack],
         )
         let companion = BattleTestFixtures.passiveCompanion()
         let enemy = BattleTestFixtures.silentEnemy(maxHealth: 100)
@@ -23,14 +23,14 @@ struct AbilityEffectIntegrationTests {
         try #expect(stoleGold != dealtStun)
     }
 
-    @Test func poisonEffectAppliesThroughTargetedEffects() throws {
+    @Test func `poison effect applies through targeted effects`() throws {
         let poisonAbility = Ability(
             id: "legacy",
             name: "Legacy",
             tier: .basic,
             directDamage: 1,
             description: "Legacy",
-            targetedEffects: [TargetedEffect(.poison(2))]
+            targetedEffects: [TargetedEffect(.poison(2))],
         )
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 10, abilities: [poisonAbility])
         let companion = BattleTestFixtures.passiveCompanion()
@@ -42,14 +42,14 @@ struct AbilityEffectIntegrationTests {
         try #expect(battle.activeEffects(of: battle.enemy).contains { $0.keyword == .poison })
     }
 
-    @Test func doTComponentDoesNotLandWhenDamageComponentDefeatsTarget() throws {
+    @Test func `do T component does not land when damage component defeats target`() throws {
         let lethal = Ability(
             id: "lethal",
             name: "Lethal Cut",
             tier: .basic,
             directDamage: 100,
             description: "Lethal",
-            targetedEffects: [TargetedEffect(.bleed(3))]
+            targetedEffects: [TargetedEffect(.bleed(3))],
         )
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [lethal])
         let companion = BattleTestFixtures.passiveCompanion()
@@ -62,13 +62,13 @@ struct AbilityEffectIntegrationTests {
         try #expect(!battle.activeEffects(of: battle.enemy).contains(where: \.effect.isBleed))
     }
 
-    @Test func bloodthornDealsComponentDamageAndAppliesDoTs() throws {
+    @Test func `bloodthorn deals component damage and applies do ts`() throws {
         let hero = Combatant(
             id: "hero",
             name: "Hero",
             role: .hero,
             maxHealth: 20,
-            abilities: [.bloodthorn]
+            abilities: [.bloodthorn],
         )
         let companion = BattleTestFixtures.passiveCompanion()
         let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
@@ -79,7 +79,7 @@ struct AbilityEffectIntegrationTests {
 
         _ = try #require(
             try BattleTestFixtures.playUntilAbility("Bloodthorn", on: &battle),
-            "Expected Bloodthorn to resolve in battle"
+            "Expected Bloodthorn to resolve in battle",
         )
 
         try #expect(battle.health(of: battle.enemy) == 95)
@@ -99,7 +99,7 @@ struct AbilityEffectIntegrationTests {
         try #expect(battle.health(of: battle.hero) == 13)
     }
 
-    @Test func cleanseRandomRemovesOneDebuffAndHeals() throws {
+    @Test func `cleanse random removes one debuff and heals`() throws {
         let mend = Ability(
             id: "mend",
             name: "Mend",
@@ -108,14 +108,14 @@ struct AbilityEffectIntegrationTests {
             targetedEffects: [
                 TargetedEffect(.instantHeal(.health, 2)),
                 TargetedEffect(.cleanseRandom),
-            ]
+            ],
         )
         let hero = Combatant(
             id: "hero",
             name: "Hero",
             role: .hero,
             maxHealth: 10,
-            abilities: [mend]
+            abilities: [mend],
         )
         let companion = BattleTestFixtures.passiveCompanion()
         let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy)
@@ -126,7 +126,7 @@ struct AbilityEffectIntegrationTests {
             activeHeroEffects: [
                 ActiveEffect(id: 1, effect: .burn(4), remainingTurns: 0),
                 ActiveEffect(id: 2, effect: .poison(4), remainingTurns: 0),
-            ]
+            ],
         )
 
         _ = BattleTestFixtures.endTurn(on: &battle)
@@ -134,27 +134,27 @@ struct AbilityEffectIntegrationTests {
 
         let events = try #require(
             try BattleTestFixtures.playUntilAbility("Mend", on: &battle),
-            "Expected Mend to resolve in battle"
+            "Expected Mend to resolve in battle",
         )
         try #expect(events.contains { $0.effectKind == .instantHeal && $0.keyword == .health })
         try #expect(battle.activeEffects(of: battle.hero).filter(ActiveEffect.isDebuff).count == 1)
     }
 
-    @Test func damageKeywordOverrideRewritesOutgoingDamageToHolyWithBonus() throws {
+    @Test func `damage keyword override rewrites outgoing damage to holy with bonus`() throws {
         let strike = Ability(
             id: "strike",
             name: "Strike",
             tier: .basic,
             directDamage: 2,
             damageKeyword: .physical,
-            description: "Strike"
+            description: "Strike",
         )
         let hero = Combatant(
             id: "hero",
             name: "Hero",
             role: .hero,
             maxHealth: 20,
-            abilities: [strike]
+            abilities: [strike],
         )
         let companion = BattleTestFixtures.passiveCompanion()
         let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
@@ -164,12 +164,12 @@ struct AbilityEffectIntegrationTests {
             enemy: enemy,
             activeHeroEffects: [
                 ActiveEffect(id: 1, effect: .damageKeywordOverride(.holy, 3, 6), remainingTurns: 6),
-            ]
+            ],
         )
 
         let events = try #require(
             try BattleTestFixtures.playUntilAbility("Strike", on: &battle),
-            "Expected Strike to resolve in battle"
+            "Expected Strike to resolve in battle",
         )
         let abilityEvent = try #require(events.first { $0.kind == .ability && $0.abilityName == "Strike" })
         try #expect(abilityEvent.keyword == .holy)
@@ -177,13 +177,13 @@ struct AbilityEffectIntegrationTests {
         try #expect(battle.health(of: battle.enemy) <= 95)
     }
 
-    @Test func avatarOfJusticeAppliesBuffPulsesHolyAndBlockThenExpires() throws {
+    @Test func `avatar of justice applies buff pulses holy and block then expires`() throws {
         let hero = Combatant(
             id: "hero",
             name: "Hero",
             role: .hero,
             maxHealth: 20,
-            abilities: [.avatarOfJustice]
+            abilities: [.avatarOfJustice],
         )
         let companion = BattleTestFixtures.passiveCompanion()
         let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
@@ -191,7 +191,7 @@ struct AbilityEffectIntegrationTests {
 
         _ = try #require(
             try BattleTestFixtures.playUntilAbility("Avatar", on: &battle),
-            "Expected Avatar to resolve in battle"
+            "Expected Avatar to resolve in battle",
         )
 
         try #expect(avatarRemainingTurns(on: battle.hero, in: battle) == 2)
@@ -220,13 +220,13 @@ struct AbilityEffectIntegrationTests {
         try #expect(avatarRemainingTurns(on: battle.hero, in: battle) == nil)
     }
 
-    @Test func pounceDoublesStunOnlyOnTheOpeningTurn() throws {
+    @Test func `pounce doubles stun only on the opening turn`() throws {
         let hero = Combatant(
             id: "hero",
             name: "Hero",
             role: .hero,
             maxHealth: 20,
-            abilities: [.pounce]
+            abilities: [.pounce],
         )
         let companion = BattleTestFixtures.passiveCompanion()
         let enemy = BattleTestFixtures.silentEnemy(maxHealth: 100)
@@ -244,13 +244,13 @@ struct AbilityEffectIntegrationTests {
         try #expect(secondHit == 3)
     }
 
-    @Test func combustionDoublesOnlyWhenEnemyAlreadyBurning() throws {
+    @Test func `combustion doubles only when enemy already burning`() throws {
         let hero = Combatant(
             id: "hero",
             name: "Hero",
             role: .hero,
             maxHealth: 20,
-            abilities: [.combustion]
+            abilities: [.combustion],
         )
         let companion = BattleTestFixtures.passiveCompanion()
         let enemy = BattleTestFixtures.silentEnemy(maxHealth: 100)
@@ -265,7 +265,7 @@ struct AbilityEffectIntegrationTests {
             hero: hero,
             companion: companion,
             enemy: enemy,
-            activeEnemyEffects: [ActiveEffect(id: 1, effect: .burn(2), remainingTurns: 0)]
+            activeEnemyEffects: [ActiveEffect(id: 1, effect: .burn(2), remainingTurns: 0)],
         )
         let burningEvents = try BattleTestFixtures.playCardNamed("Combustion", owner: .hero, on: &burning)
         let burningHit = try #require(burningEvents.first { $0.kind == .ability && $0.abilityName == "Combustion" }?.amount)
@@ -273,13 +273,13 @@ struct AbilityEffectIntegrationTests {
         try #expect(BattleTestFixtures.burnPotency(on: burning) == 10)
     }
 
-    @Test func hemorrhageAppliesDebuffToEnemyAndDamagesEnemyWhenItAttacks() throws {
+    @Test func `hemorrhage applies debuff to enemy and damages enemy when it attacks`() throws {
         let hero = Combatant(
             id: "hero",
             name: "Hero",
             role: .hero,
             maxHealth: 20,
-            abilities: [.hemorrhage]
+            abilities: [.hemorrhage],
         )
         let companion = BattleTestFixtures.passiveCompanion()
         let enemy = Combatant(
@@ -287,7 +287,7 @@ struct AbilityEffectIntegrationTests {
             name: "Enemy",
             role: .enemy,
             maxHealth: 100,
-            abilities: [.slash]
+            abilities: [.slash],
         )
         var battle = BattleTestFixtures.standardParty(hero: hero, companion: companion, enemy: enemy)
 
@@ -333,13 +333,13 @@ struct AbilityEffectIntegrationTests {
         })
     }
 
-    @Test func hemorrhageDamagesEnemyWhenItPerformsNonDamagingAction() throws {
+    @Test func `hemorrhage damages enemy when it performs non damaging action`() throws {
         let hero = Combatant(
             id: "hero",
             name: "Hero",
             role: .hero,
             maxHealth: 20,
-            abilities: [.hemorrhage]
+            abilities: [.hemorrhage],
         )
         let companion = BattleTestFixtures.passiveCompanion()
         let enemy = Combatant(
@@ -347,7 +347,7 @@ struct AbilityEffectIntegrationTests {
             name: "Enemy",
             role: .enemy,
             maxHealth: 100,
-            abilities: [.block]
+            abilities: [.block],
         )
         var battle = BattleTestFixtures.standardParty(hero: hero, companion: companion, enemy: enemy)
 

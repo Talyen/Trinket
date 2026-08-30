@@ -6,7 +6,7 @@ package extension CombatTriggerEngine {
         ability: Ability? = nil,
         by actor: Combatant,
         abilityTarget: Combatant? = nil,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         guard let owner = context.roster.participant(for: actor), owner.isPartyMember else { return [] }
         let triggers = context.modifiers(for: actor.id).triggers
@@ -17,14 +17,14 @@ package extension CombatTriggerEngine {
                 ability,
                 actor: actor,
                 target: abilityTarget,
-                in: &context
+                in: &context,
             ))
             events.append(contentsOf: spellEchoIfNeeded(
                 ability: ability,
                 actor: actor,
                 owner: owner,
                 abilityTarget: abilityTarget,
-                in: &context
+                in: &context,
             ))
             events.append(contentsOf: scholarlySmiteIfNeeded(ability: ability, actor: actor, in: &context))
             events.append(contentsOf: infernoBarrageIfNeeded(ability: ability, actor: actor, triggers: triggers, in: &context))
@@ -33,7 +33,7 @@ package extension CombatTriggerEngine {
                 actor: actor,
                 owner: owner,
                 triggers: triggers,
-                in: &context
+                in: &context,
             ))
         }
 
@@ -56,8 +56,8 @@ package extension CombatTriggerEngine {
                 "cardsPlayedManaThreshold",
                 for: actor,
                 fallback: "Resonant Chimes",
-                in: context
-            )
+                in: context,
+            ),
         ))
         return events
     }
@@ -67,7 +67,7 @@ package extension CombatTriggerEngine {
         actor: Combatant,
         owner: BattleParticipant,
         abilityTarget: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         guard ability.tier == .skill else { return [] }
         let skillCount = context.turnCadence.skillCardsPlayed[owner, default: 0] + 1
@@ -81,14 +81,14 @@ package extension CombatTriggerEngine {
             ability: ability,
             actor: actor,
             abilityTarget: abilityTarget,
-            context: &context
+            context: &context,
         )
     }
 
     private static func scholarlySmiteIfNeeded(
         ability: Ability,
         actor: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         guard actor.role == .hero, ability.keywords.contains(.holy),
               let companionTriggers = companionReactingToHeroTriggers(in: context),
@@ -104,9 +104,9 @@ package extension CombatTriggerEngine {
                 options: DamageOptions(
                     applyStatBonus: false,
                     applyItemBonus: true,
-                    applyDodge: false
-                )
-            )
+                    applyDodge: false,
+                ),
+            ),
         ).events
     }
 
@@ -114,7 +114,7 @@ package extension CombatTriggerEngine {
         ability: Ability,
         actor: Combatant,
         triggers: CombatTraitTriggers,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         guard ability.tier == .ultimate,
               triggers.ultimateAppliesBurnPotency > 0,
@@ -126,7 +126,7 @@ package extension CombatTriggerEngine {
             to: context.roster.enemy.combatant,
             sourceActorID: actor.id,
             dealImmediateDamage: false,
-            suppressAffixReactions: true
+            suppressAffixReactions: true,
         )
     }
 
@@ -135,7 +135,7 @@ package extension CombatTriggerEngine {
         actor: Combatant,
         owner: BattleParticipant,
         triggers: CombatTraitTriggers,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         guard ability.keywords.contains(.freeze) else { return [] }
         let freezeCount = context.turnCadence.freezeCardsPlayed[owner, default: 0] + 1
@@ -149,7 +149,7 @@ package extension CombatTriggerEngine {
             to: context.roster.enemy.combatant,
             sourceActorID: actor.id,
             applyFightPacing: false,
-            in: &context
+            in: &context,
         )
     }
 
@@ -162,7 +162,7 @@ package extension CombatTriggerEngine {
             for: owner,
             actor: actor,
             abilityName: triggerAbilityName("drawOnSpendMana", for: actor, fallback: "Runic Quill", in: context),
-            in: &context
+            in: &context,
         )
     }
 
@@ -175,14 +175,14 @@ package extension CombatTriggerEngine {
             for: owner,
             actor: actor,
             abilityName: triggerAbilityName("drawOnHealthLoss", for: actor, fallback: "Bone Charm", in: context),
-            in: &context
+            in: &context,
         )
     }
 
     static func afterHealthRestored(
         _ amount: Int,
         to actor: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         let percent = context.modifiers(for: actor.id).triggers.healthRestoredPoisonPercent
         guard amount > 0, percent > 0, context.roster.enemy.isAlive, !context.isResolvingTalentReaction else {
@@ -198,8 +198,8 @@ package extension CombatTriggerEngine {
                 target: context.roster.enemy.combatant,
                 keyword: .poison,
                 sourceActorID: actor.id,
-                options: .flatReaction
-            )
+                options: .flatReaction,
+            ),
         ).events
     }
 
@@ -208,7 +208,7 @@ package extension CombatTriggerEngine {
         for owner: BattleParticipant,
         actor: Combatant,
         abilityName: String,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         let drawn = BattleCardCombatEngine.drawCards(count: count, for: owner, context: &context)
         guard drawn > 0 else { return [] }
@@ -219,7 +219,7 @@ package extension CombatTriggerEngine {
             abilityName: abilityName,
             target: actor,
             amount: drawn,
-            keyword: .physical
+            keyword: .physical,
         )]
     }
 }

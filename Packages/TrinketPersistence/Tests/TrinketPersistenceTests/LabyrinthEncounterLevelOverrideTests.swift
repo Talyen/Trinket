@@ -5,13 +5,13 @@ import TrinketCore
 
 @Suite("LabyrinthEncounterLevelOverride")
 struct LabyrinthEncounterLevelOverrideTests {
-    @Test func combatLootResolvesAtProvidedEncounterLevelInsteadOfNodeDepth() throws {
+    @Test func `combat loot resolves at provided encounter level instead of node depth`() throws {
         let node = LabyrinthNode(
             id: "level-override-node",
             type: .battle,
             enemyID: "goblin",
             depth: 2,
-            clusterID: "labyrinth-test"
+            clusterID: "labyrinth-test",
         )
         let atDepth = try #require(
             LabyrinthCompletion.resolveCombatLoot(
@@ -19,8 +19,8 @@ struct LabyrinthEncounterLevelOverrideTests {
                 effects: .zero,
                 worldSeed: 5,
                 ownedTrinketIDs: [],
-                ownedUniqueIDs: []
-            )
+                ownedUniqueIDs: [],
+            ),
         )
         let explicit = try #require(
             LabyrinthCompletion.resolveCombatLoot(
@@ -29,8 +29,8 @@ struct LabyrinthEncounterLevelOverrideTests {
                 encounterLevel: 2,
                 worldSeed: 5,
                 ownedTrinketIDs: [],
-                ownedUniqueIDs: []
-            )
+                ownedUniqueIDs: [],
+            ),
         )
         #expect(explicit.gold == atDepth.gold)
         #expect(explicit.materials == atDepth.materials)
@@ -42,8 +42,8 @@ struct LabyrinthEncounterLevelOverrideTests {
                 encounterLevel: 40,
                 worldSeed: 5,
                 ownedTrinketIDs: [],
-                ownedUniqueIDs: []
-            )
+                ownedUniqueIDs: [],
+            ),
         )
         for (boosted, base) in zip(raised.materials, atDepth.materials) {
             #expect(boosted.resource == base.resource)
@@ -52,7 +52,7 @@ struct LabyrinthEncounterLevelOverrideTests {
         #expect(raised.gold > atDepth.gold)
     }
 
-    @Test func combatCompletionHonorsOverriddenEncounterLevelForExperience() {
+    @Test func `combat completion honors overridden encounter level for experience`() {
         func grantedHeroXP(enemyEncounterLevel: Int?) -> Int {
             var save = PlayerSave.fresh
             save.labyrinth.ensureMap(seed: 31)
@@ -63,7 +63,7 @@ struct LabyrinthEncounterLevelOverrideTests {
                 enemyID: "goblin",
                 depth: 20,
                 clusterID: "labyrinth-test",
-                isRevealed: true
+                isRevealed: true,
             )
             let hero = save.roster.activeHero
             save.roster.progressions[hero.id] = CombatantProgression(level: 20, currentXP: 0, requiredXP: 500)
@@ -73,7 +73,7 @@ struct LabyrinthEncounterLevelOverrideTests {
                 hero: hero,
                 companion: save.roster.activeCompanion,
                 enemyEncounterLevel: enemyEncounterLevel,
-                save: &save
+                save: &save,
             )
             return save.roster.progression(for: hero).currentXP - before.currentXP
         }

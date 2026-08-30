@@ -23,7 +23,7 @@ public enum ShopPurchaseApplier {
     public static func inventoryInstanceID(
         stageID: String,
         offerID: String,
-        visitToken: String
+        visitToken: String,
     ) -> String {
         "\(stageID)-shop-\(offerID)-\(visitToken)"
     }
@@ -32,12 +32,12 @@ public enum ShopPurchaseApplier {
         offer: ShopOffer,
         visitToken: String,
         stageID: String,
-        save: inout PlayerSave
+        save: inout PlayerSave,
     ) -> ShopPurchaseResult {
         let instanceID = inventoryInstanceID(
             stageID: stageID,
             offerID: offer.id,
-            visitToken: visitToken
+            visitToken: visitToken,
         )
         let itemID = offer.item.isTrinket ? offer.item.id : instanceID
         guard offer.price >= 0 else {
@@ -62,7 +62,7 @@ public enum ShopPurchaseApplier {
             displayName: offer.item.displayName,
             affixes: offer.item.affixes,
             isCorrupted: offer.item.isCorrupted,
-            affixPowers: offer.item.affixPowers
+            affixPowers: offer.item.affixPowers,
         )
         save.inventory.items.append(purchased)
         return .success(purchased)

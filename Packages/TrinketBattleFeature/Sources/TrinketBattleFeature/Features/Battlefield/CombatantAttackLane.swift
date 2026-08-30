@@ -34,7 +34,7 @@ struct CombatantAttackLane<Content: View>: View {
     private func installAttackReactionBridge() {
         battleSession.feedback.installAttackReactionBridge(
             ownerID: attackBridgeOwnerID,
-            combatantID: combatantID
+            combatantID: combatantID,
         ) { reaction in
             adoptReaction(reaction)
         }
@@ -83,7 +83,7 @@ struct CombatantAttackLane<Content: View>: View {
 
     private func runSwingThenRecover(
         recipe: CombatantAttackReactionRecipe,
-        generation: Int
+        generation: Int,
     ) {
         withAnimation(.snappy(duration: recipe.swingDuration)) {
             pose = recipe.swingPose(aim: aim)

@@ -5,7 +5,7 @@ import TrinketCore
 
 private let restorationLogger = Logger(
     subsystem: "com.trinket.battle",
-    category: "RestorationHandlers"
+    category: "RestorationHandlers",
 )
 
 struct InstantHealHandler: BattleEffectHandler {
@@ -16,7 +16,7 @@ struct InstantHealHandler: BattleEffectHandler {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> EffectApplyOutcome {
         guard case let .instantHeal(keyword, amount) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
         let outcome = HealingEngine.resolveHeal(
@@ -27,10 +27,10 @@ struct InstantHealHandler: BattleEffectHandler {
                 logAs: .instantHeal(
                     actorName: source.name,
                     abilityName: ability.name,
-                    keyword: keyword
-                )
+                    keyword: keyword,
+                ),
             ),
-            in: &context
+            in: &context,
         )
         guard outcome.healthRestored > 0 else {
             return EffectApplyOutcome(events: [], didApply: false)
@@ -47,14 +47,14 @@ struct ResourceGainHandler: BattleEffectHandler {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> EffectApplyOutcome {
         guard case let .resourceGain(keyword, amount) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
         switch keyword {
         case .mana:
             let restored = context.restoreMana(
                 context.paced(amount, sourceActorID: source.id),
-                to: target
+                to: target,
             )
             let event = context.nextEvent(
                 kind: .effect,
@@ -63,7 +63,7 @@ struct ResourceGainHandler: BattleEffectHandler {
                 abilityName: ability.name,
                 target: target,
                 amount: restored,
-                keyword: keyword
+                keyword: keyword,
             )
             var events = [event]
             if restored > 0 {
@@ -73,7 +73,7 @@ struct ResourceGainHandler: BattleEffectHandler {
         case .gold:
             return EffectApplyOutcome(
                 events: context.grantGoldEvent(amount, to: source, abilityName: ability.name),
-                didApply: true
+                didApply: true,
             )
         default:
             return EffectApplyOutcome(events: [], didApply: false)
@@ -89,7 +89,7 @@ struct DrawCardsHandler: BattleEffectHandler {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> EffectApplyOutcome {
         guard case let .drawCards(count) = effect, count > 0 else {
             return EffectApplyOutcome(events: [], didApply: false)
@@ -109,7 +109,7 @@ struct DrawCardsHandler: BattleEffectHandler {
             abilityName: ability.name,
             target: drawTarget,
             amount: drawn,
-            keyword: .physical
+            keyword: .physical,
         )
         return EffectApplyOutcome(events: [event], didApply: true)
     }
@@ -123,7 +123,7 @@ struct DrawAndPlayCardsHandler: BattleEffectHandler {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> EffectApplyOutcome {
         guard case let .drawAndPlayCards(count) = effect, count > 0 else {
             return EffectApplyOutcome(events: [], didApply: false)
@@ -145,7 +145,7 @@ struct DrawAndPlayCardsHandler: BattleEffectHandler {
                 abilityName: ability.name,
                 target: target,
                 amount: drawnCards.count,
-                keyword: .physical
+                keyword: .physical,
             ),
         ]
         events.append(contentsOf: autoPlayDrawnCards(drawnCards, in: &context))
@@ -175,7 +175,7 @@ struct DrawAndPlayCardsHandler: BattleEffectHandler {
 
     private func autoPlayDrawnCards(
         _ drawnCards: [BattleCard],
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         context.drawAndPlayDepth += 1
         defer { context.drawAndPlayDepth -= 1 }
@@ -189,7 +189,7 @@ struct DrawAndPlayCardsHandler: BattleEffectHandler {
                 events.append(contentsOf: played)
             } catch {
                 restorationLogger.info(
-                    "Draw-and-play card \(card.id, privacy: .public) failed: \(error.localizedDescription, privacy: .public)"
+                    "Draw-and-play card \(card.id, privacy: .public) failed: \(error.localizedDescription, privacy: .public)",
                 )
             }
         }

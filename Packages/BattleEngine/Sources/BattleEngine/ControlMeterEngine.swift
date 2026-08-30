@@ -9,7 +9,7 @@ package enum ControlMeterEngine {
         to combatant: Combatant,
         sourceActorID: String?,
         applyFightPacing: Bool = true,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         guard amount > 0, context.roster.health(for: combatant) > 0 else { return [] }
         if context.roster.hasControlStatus(for: combatant, keyword: keyword) {
@@ -44,7 +44,7 @@ package enum ControlMeterEngine {
                                          context.modifiers(for: sourceActorID).triggers.enemyStunThresholdReductionPercent > 0 {
             CombatRounding.scaled(
                 threshold,
-                multiplier: 1 - min(1, context.modifiers(for: sourceActorID).triggers.enemyStunThresholdReductionPercent)
+                multiplier: 1 - min(1, context.modifiers(for: sourceActorID).triggers.enemyStunThresholdReductionPercent),
             )
         } else {
             threshold
@@ -52,7 +52,7 @@ package enum ControlMeterEngine {
         var currentEffects = context.roster.activeEffects(for: combatant)
         guard !context.interceptDebuff(
             .controlMeter(keyword, adjustedAmount, effectiveThreshold),
-            on: combatant
+            on: combatant,
         ) else { return [] }
         let existingIndex = currentEffects.firstIndex { activeEffect in
             if case let .controlMeter(k, _, _) = activeEffect.effect, k == keyword {
@@ -71,10 +71,10 @@ package enum ControlMeterEngine {
                     combatant: combatant,
                     sourceActorID: sourceActorID,
                     existingIndex: existingIndex,
-                    baseThreshold: threshold
+                    baseThreshold: threshold,
                 ),
                 currentEffects: &currentEffects,
-                in: &context
+                in: &context,
             )
         }
 
@@ -85,23 +85,23 @@ package enum ControlMeterEngine {
                 threshold: threshold,
                 combatant: combatant,
                 sourceActorID: sourceActorID,
-                existingIndex: existingIndex
+                existingIndex: existingIndex,
             ),
             currentEffects: &currentEffects,
-            in: &context
+            in: &context,
         )
         return []
     }
 
     package static func threshold(for combatant: Combatant, in context: BattleState) -> Int {
         combatant.primaryStats.controlMeterThreshold(
-            baseMaxHealth: context.roster.maxHealth(for: combatant)
+            baseMaxHealth: context.roster.maxHealth(for: combatant),
         )
     }
 
     private static func existingMeterAmount(
         at existingIndex: Int?,
-        in currentEffects: [ActiveEffect]
+        in currentEffects: [ActiveEffect],
     ) -> Int {
         guard let existingIndex,
               case let .controlMeter(_, amount, _) = currentEffects[existingIndex].effect
@@ -121,7 +121,7 @@ package enum ControlMeterEngine {
     private static func applyThresholdReached(
         _ thresholdContext: ControlMeterThresholdContext,
         currentEffects: inout [ActiveEffect],
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         let keyword = thresholdContext.keyword
         let combatant = thresholdContext.combatant
@@ -134,10 +134,10 @@ package enum ControlMeterEngine {
                 threshold: thresholdContext.baseThreshold,
                 combatant: combatant,
                 sourceActorID: sourceActorID,
-                existingIndex: thresholdContext.existingIndex
+                existingIndex: thresholdContext.existingIndex,
             ),
             currentEffects: &currentEffects,
-            in: &context
+            in: &context,
         )
         if keyword == .freeze || keyword == .stun,
            let owner = context.roster.participant(for: combatant),
@@ -171,7 +171,7 @@ package enum ControlMeterEngine {
                 amount: 0,
                 keyword: keyword,
                 appliedEffectSummaries: [],
-                milestone: nil
+                milestone: nil,
             ),
         ]
         if keyword == .stun, combatant.id == context.roster.enemy.id {
@@ -181,7 +181,7 @@ package enum ControlMeterEngine {
             keyword,
             target: combatant,
             sourceActorID: sourceActorID,
-            in: &context
+            in: &context,
         ))
         if keyword == .freeze,
            combatant.role == .enemy,
@@ -192,7 +192,7 @@ package enum ControlMeterEngine {
                 context.modifiers(for: sourceActorID).triggers.onEnemyFrozenGainBlock,
                 to: source.combatant,
                 source: source.combatant,
-                abilityName: "Glacial Barrier"
+                abilityName: "Glacial Barrier",
             ))
         }
         if keyword == .freeze,
@@ -206,7 +206,7 @@ package enum ControlMeterEngine {
                 events.append(contentsOf: context.restoreManaEmitting(
                     currentBlock,
                     to: owner,
-                    abilityName: "Rimeheart"
+                    abilityName: "Rimeheart",
                 ))
             }
         }
@@ -221,7 +221,7 @@ package enum ControlMeterEngine {
                 to: combatant,
                 sourceActorID: sourceActorID,
                 dealImmediateDamage: false,
-                suppressAffixReactions: true
+                suppressAffixReactions: true,
             ))
         }
         return events
@@ -230,7 +230,7 @@ package enum ControlMeterEngine {
     private static func applyExtendControlChance(
         _ chance: Double,
         to combatant: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) {
         guard chance > 0 else { return }
         guard BattleChance.succeeds(probability: min(1, chance), using: &context.rng) else { return }
@@ -259,7 +259,7 @@ package enum ControlMeterEngine {
     private static func updateBuildup(
         _ update: ControlMeterUpdate,
         currentEffects: inout [ActiveEffect],
-        in context: inout BattleState
+        in context: inout BattleState,
     ) {
         let buildup = Effect.controlMeter(update.keyword, update.newAmount, update.threshold)
         if let existingIndex = update.existingIndex {
@@ -267,7 +267,7 @@ package enum ControlMeterEngine {
                 id: currentEffects[existingIndex].id,
                 effect: buildup,
                 remainingTurns: currentEffects[existingIndex].remainingTurns,
-                sourceActorID: currentEffects[existingIndex].sourceActorID
+                sourceActorID: currentEffects[existingIndex].sourceActorID,
             )
         } else {
             currentEffects.append(
@@ -275,8 +275,8 @@ package enum ControlMeterEngine {
                     id: context.consumeNextEffectID(),
                     effect: buildup,
                     remainingTurns: 0,
-                    sourceActorID: update.sourceActorID
-                )
+                    sourceActorID: update.sourceActorID,
+                ),
             )
         }
         context.roster.setActiveEffects(currentEffects, for: update.combatant)

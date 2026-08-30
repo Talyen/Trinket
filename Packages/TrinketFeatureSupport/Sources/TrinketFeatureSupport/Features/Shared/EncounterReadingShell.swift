@@ -13,7 +13,7 @@ public struct EncounterReadingShell<Artwork: View, Copy: View, Content: View>: V
         copyVisible: Bool,
         @ViewBuilder artwork: @escaping () -> Artwork,
         @ViewBuilder copy: @escaping () -> Copy,
-        @ViewBuilder content: @escaping () -> Content
+        @ViewBuilder content: @escaping () -> Content,
     ) {
         self.artVisible = artVisible
         self.copyVisible = copyVisible
@@ -45,7 +45,7 @@ public enum EncounterReadingEntrance {
     public static func present(
         artAppeared: Binding<Bool>,
         copyAppeared: Binding<Bool>,
-        trailingAppeared: Binding<Bool>? = nil
+        trailingAppeared: Binding<Bool>? = nil,
     ) {
         withAnimation(TrinketMotion.Content.entrance) {
             artAppeared.wrappedValue = true
@@ -55,7 +55,7 @@ public enum EncounterReadingEntrance {
         }
         if let trailingAppeared {
             withAnimation(
-                TrinketMotion.Content.entrance.delay(TrinketMotion.Content.secondEntranceDelay)
+                TrinketMotion.Content.entrance.delay(TrinketMotion.Content.secondEntranceDelay),
             ) {
                 trailingAppeared.wrappedValue = true
             }

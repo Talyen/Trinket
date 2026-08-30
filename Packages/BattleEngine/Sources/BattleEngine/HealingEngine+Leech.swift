@@ -11,7 +11,7 @@ package extension HealingEngine {
         blockedAmount: Int = 0,
         abilityHasLeech: Bool = false,
         damageKeyword: Keyword? = nil,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> CombatOutcome {
         guard damage > 0,
               let actor = context.roster.combatant(for: sourceActorID),
@@ -53,7 +53,7 @@ package extension HealingEngine {
         restored += profile.leechHealingBonus
         restored = CombatRounding.scaled(
             restored,
-            multiplier: CombatTriggerEngine.incomingHealMultiplier(for: actorCombatant, in: context)
+            multiplier: CombatTriggerEngine.incomingHealMultiplier(for: actorCombatant, in: context),
         )
         if let target, profile.triggers.leechBonusHealVsLowHealthEnemies > 0,
            context.roster.maxHealth(for: target) > 0,
@@ -82,9 +82,9 @@ package extension HealingEngine {
                     amount: restored,
                     target: context.roster.companion.combatant,
                     sourceActorID: sourceActorID,
-                    logAs: .leech
+                    logAs: .leech,
                 ),
-                in: &context
+                in: &context,
             )
             guard healOutcome.healthRestored > 0 else { return .empty }
             actualRestored = healOutcome.healthRestored
@@ -99,7 +99,7 @@ package extension HealingEngine {
                 keyword: .leech,
                 appliedEffectSummaries: [],
                 milestone: nil,
-                isCritical: healOutcome.isCritical
+                isCritical: healOutcome.isCritical,
             ))
         } else {
             let healOutcome = resolveHeal(
@@ -107,9 +107,9 @@ package extension HealingEngine {
                     amount: restored,
                     target: actorCombatant,
                     sourceActorID: sourceActorID,
-                    logAs: .leech
+                    logAs: .leech,
                 ),
-                in: &context
+                in: &context,
             )
             guard healOutcome.healthRestored > 0 else { return .empty }
             actualRestored = healOutcome.healthRestored
@@ -124,24 +124,24 @@ package extension HealingEngine {
                 keyword: .leech,
                 appliedEffectSummaries: [],
                 milestone: nil,
-                isCritical: healOutcome.isCritical
+                isCritical: healOutcome.isCritical,
             ))
             if actorCombatant.id == context.roster.hero.id {
                 events.append(contentsOf: CombatTriggerEngine.shareHeroLeechWithCompanion(
                     restored: actualRestored,
-                    in: &context
+                    in: &context,
                 ))
             }
             if actorCombatant.role == .companion, context.roster.hero.isAlive,
                profile.triggers.leechSharesToHeroPercent > 0 {
                 let share = CombatRounding.scaled(
                     actualRestored,
-                    multiplier: min(1, max(0, profile.triggers.leechSharesToHeroPercent))
+                    multiplier: min(1, max(0, profile.triggers.leechSharesToHeroPercent)),
                 )
                 if share > 0 {
                     events.append(contentsOf: Self.resolveHeal(
                         HealRequest(amount: share, target: context.roster.hero.combatant, sourceActorID: sourceActorID),
-                        in: &context
+                        in: &context,
                     ).events)
                 }
             }
@@ -150,7 +150,7 @@ package extension HealingEngine {
                 events.append(contentsOf: context.restoreManaEmitting(
                     profile.triggers.onCompanionLeechRestoreHeroMana,
                     to: context.roster.hero.combatant,
-                    abilityName: "Vitality Infusion"
+                    abilityName: "Vitality Infusion",
                 ))
             }
         }

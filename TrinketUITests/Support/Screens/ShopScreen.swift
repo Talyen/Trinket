@@ -6,7 +6,7 @@ struct ShopScreen {
 
     var offerCards: XCUIElementQuery {
         app.buttons.matching(
-            NSPredicate(format: "identifier ENDSWITH %@", " shop offer")
+            NSPredicate(format: "identifier ENDSWITH %@", " shop offer"),
         )
     }
 
@@ -21,7 +21,7 @@ struct ShopScreen {
     func assertLoaded(
         timeout: TimeInterval = TrinketUITestCase.defaultTimeout,
         file: StaticString = #file,
-        line: UInt = #line
+        line: UInt = #line,
     ) {
         let element = app.buttons[AccessibilityID.Shop.encounterTitle]
         XCTAssertTrue(element.waitForExistence(timeout: timeout), "Shop screen not found", file: file, line: line)

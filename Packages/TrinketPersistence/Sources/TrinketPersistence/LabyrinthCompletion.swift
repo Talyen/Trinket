@@ -6,7 +6,7 @@ public enum LabyrinthCompletion {
     public static func enter(save: inout PlayerSave) {
         save.labyrinth.ensureMap(
             seed: save.worldSeed,
-            eligibleRecruitEventIDs: save.roster.eligibleRecruitEventIDs
+            eligibleRecruitEventIDs: save.roster.eligibleRecruitEventIDs,
         )
     }
 
@@ -37,7 +37,7 @@ public enum LabyrinthCompletion {
         worldSeed: UInt64,
         ownedTrinketIDs: Set<String> = [],
         ownedUniqueIDs: Set<String>,
-        astralChanceBonusPercent: Int = 0
+        astralChanceBonusPercent: Int = 0,
     ) -> BattleLootPackage? {
         guard node.type.isCombat else { return nil }
         let level = encounterLevel ?? EncounterLevelResolver.labyrinthEnemyLevel(for: node)
@@ -50,7 +50,7 @@ public enum LabyrinthCompletion {
             worldSeed: worldSeed,
             ownedTrinketIDs: ownedTrinketIDs,
             ownedUniqueIDs: ownedUniqueIDs,
-            astralChanceBonusPercent: astralChanceBonusPercent
+            astralChanceBonusPercent: astralChanceBonusPercent,
         )
     }
 
@@ -64,12 +64,12 @@ public enum LabyrinthCompletion {
         loot: BattleLootPackage? = nil,
         enemyEncounterLevel: Int? = nil,
         partyRunHealth: [String: Int]? = nil,
-        save: inout PlayerSave
+        save: inout PlayerSave,
     ) {
         let eligibleRecruitEventIDs = save.roster.eligibleRecruitEventIDs
         save.labyrinth.ensureMap(
             seed: save.worldSeed,
-            eligibleRecruitEventIDs: eligibleRecruitEventIDs
+            eligibleRecruitEventIDs: eligibleRecruitEventIDs,
         )
         guard let node = save.labyrinth.node(id: nodeID), !node.isCleared else { return }
 
@@ -77,7 +77,7 @@ public enum LabyrinthCompletion {
         let encounterLevel = enemyEncounterLevel
             ?? EncounterLevelResolver.partyAdjusted(
                 EncounterLevelResolver.labyrinthEnemyLevel(for: node),
-                partyAverageLevel: save.roster.activePartyAverageLevel
+                partyAverageLevel: save.roster.activePartyAverageLevel,
             )
 
         if node.type.isCombat {
@@ -88,7 +88,7 @@ public enum LabyrinthCompletion {
                 worldSeed: save.worldSeed,
                 ownedTrinketIDs: save.inventory.ownedTrinketIDs,
                 ownedUniqueIDs: save.inventory.ownedUniqueIDs,
-                astralChanceBonusPercent: save.homestead.effects.astralChanceBonusPercent
+                astralChanceBonusPercent: save.homestead.effects.astralChanceBonusPercent,
             )
             StageCompletion.grantVictoryRewards(
                 hero: hero,
@@ -99,7 +99,7 @@ public enum LabyrinthCompletion {
                 xpPercent: effects.experienceEarnedPercent,
                 materials: materialRewards ?? resolvedLoot?.materials ?? [],
                 item: rewardItem ?? resolvedLoot?.item,
-                save: &save
+                save: &save,
             )
         } else {
             StageCompletion.grantVictoryRewards(
@@ -111,7 +111,7 @@ public enum LabyrinthCompletion {
                 grantsCombatExperience: false,
                 materials: materialRewards ?? [],
                 item: rewardItem,
-                save: &save
+                save: &save,
             )
         }
 
@@ -121,7 +121,7 @@ public enum LabyrinthCompletion {
 
         save.labyrinth.markCleared(
             nodeID: nodeID,
-            eligibleRecruitEventIDs: eligibleRecruitEventIDs
+            eligibleRecruitEventIDs: eligibleRecruitEventIDs,
         )
     }
 }

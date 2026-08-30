@@ -5,7 +5,7 @@ package extension CombatTriggerEngine {
     static func afterBlockBroken(
         on target: Combatant,
         attackerID: String?,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         let profile = context.modifiers(for: target.id)
         var events: [ActionEvent] = []
@@ -14,7 +14,7 @@ package extension CombatTriggerEngine {
                 profile.triggers.blockBrokenBlockFlat,
                 to: target,
                 source: target,
-                abilityName: triggerAbilityName("blockBrokenBlockFlat", for: target, fallback: "Cascading", in: context)
+                abilityName: triggerAbilityName("blockBrokenBlockFlat", for: target, fallback: "Cascading", in: context),
             ))
         }
 
@@ -22,7 +22,7 @@ package extension CombatTriggerEngine {
             on: target,
             attackerID: attackerID,
             power: profile.triggers.blockBrokenSaintfallPower,
-            in: &context
+            in: &context,
         ))
         return events
     }
@@ -37,7 +37,7 @@ package extension CombatTriggerEngine {
 
     private static func afterEnemyStunnedReactions(
         for owner: BattleParticipant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         let runtime = context.roster[owner]
         guard runtime.isAlive else { return [] }
@@ -62,8 +62,8 @@ package extension CombatTriggerEngine {
                     target: enemy,
                     keyword: .physical,
                     sourceActorID: actor.id,
-                    options: .flatReaction
-                )
+                    options: .flatReaction,
+                ),
             ).events)
         }
 
@@ -73,7 +73,7 @@ package extension CombatTriggerEngine {
                 sourceActorID: actor.id,
                 actorName: actor.name,
                 abilityName: triggerAbilityName("enemyStunnedApplyMarked", for: actor, fallback: "Branding", in: context),
-                in: &context
+                in: &context,
             ))
         }
 
@@ -83,7 +83,7 @@ package extension CombatTriggerEngine {
                     perEffectHolyDamage: triggers.stunPurgeDealHolyPerEffect,
                     actor: actor,
                     enemy: enemy,
-                    in: &context
+                    in: &context,
                 ))
             } else {
                 events.append(contentsOf: applyPurge(
@@ -93,11 +93,11 @@ package extension CombatTriggerEngine {
                         triggers.enemyStunnedPurgeAll ? "enemyStunnedPurgeAll" : "enemyStunnedPurgeCount",
                         for: actor,
                         fallback: "Disrupting",
-                        in: context
+                        in: context,
                     ),
                     count: triggers.enemyStunnedPurgeCount,
                     purgeAll: triggers.enemyStunnedPurgeAll,
-                    in: &context
+                    in: &context,
                 ))
             }
         }
@@ -108,7 +108,7 @@ package extension CombatTriggerEngine {
         perEffectHolyDamage: Int,
         actor: Combatant,
         enemy: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         let removableCount = context.roster.activeEffects(for: enemy)
             .filter(\.effect.isRemovableBuff)
@@ -119,7 +119,7 @@ package extension CombatTriggerEngine {
             abilityName: triggerAbilityName("stunPurgeDealHolyPerEffect", for: actor, fallback: "Disrupting", in: context),
             count: 0,
             purgeAll: true,
-            in: &context
+            in: &context,
         )
         if removableCount > 0, context.roster.health(for: enemy) > 0 {
             events.append(contentsOf: context.resolveDamage(
@@ -128,8 +128,8 @@ package extension CombatTriggerEngine {
                     target: enemy,
                     keyword: .holy,
                     sourceActorID: actor.id,
-                    options: .flatReaction
-                )
+                    options: .flatReaction,
+                ),
             ).events)
         }
         return events
@@ -137,7 +137,7 @@ package extension CombatTriggerEngine {
 
     static func afterHealthDropped(
         target: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         let profile = context.modifiers(for: target.id)
         var events = drawAfterHealthLoss(by: target, in: &context)
@@ -156,7 +156,7 @@ package extension CombatTriggerEngine {
                 to: context.roster.enemy.combatant,
                 sourceActorID: target.id,
                 applyFightPacing: false,
-                in: &context
+                in: &context,
             ))
         }
         guard profile.triggers.onceBelowHealthPercentThreshold > 0,
@@ -181,7 +181,7 @@ package extension CombatTriggerEngine {
             amount: profile.triggers.onceBelowHealthPercentHeal,
             target: target,
             source: target,
-            abilityName: triggerAbilityName("onceBelowHealthPercentHeal", for: target, fallback: "Second Wind", in: context)
+            abilityName: triggerAbilityName("onceBelowHealthPercentHeal", for: target, fallback: "Second Wind", in: context),
         ))
         return events
     }
@@ -192,7 +192,7 @@ package extension CombatTriggerEngine {
         abilityName: String,
         count: Int,
         purgeAll: Bool,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         guard purgeAll || count > 0 else { return [] }
         var enemyEffects = context.roster.activeEffects(for: target)
@@ -200,7 +200,7 @@ package extension CombatTriggerEngine {
             from: &enemyEffects,
             count: count,
             removeAll: purgeAll,
-            using: &context.rng
+            using: &context.rng,
         )
         guard !removedKeywords.isEmpty else { return [] }
         context.roster.setActiveEffects(enemyEffects, for: target)
@@ -212,7 +212,7 @@ package extension CombatTriggerEngine {
                 abilityName: abilityName,
                 target: target,
                 amount: 0,
-                keyword: keyword
+                keyword: keyword,
             )
         }
     }
@@ -222,7 +222,7 @@ package extension CombatTriggerEngine {
         sourceActorID: String,
         actorName: String,
         abilityName: String,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         let markedEffect = Effect.marked(Effect.standardMarkedBonus, Effect.standardMarkedDuration)
         guard !context.interceptDebuff(markedEffect, on: target) else { return [] }
@@ -238,8 +238,8 @@ package extension CombatTriggerEngine {
                 id: context.consumeNextEffectID(),
                 effect: markedEffect,
                 remainingTurns: Effect.standardMarkedDuration,
-                sourceActorID: sourceActorID
-            )
+                sourceActorID: sourceActorID,
+            ),
         )
         context.roster.setActiveEffects(effects, for: target)
         return [context.nextEvent(
@@ -249,7 +249,7 @@ package extension CombatTriggerEngine {
             abilityName: abilityName,
             target: target,
             amount: Effect.standardMarkedBonus,
-            keyword: .physical
+            keyword: .physical,
         )]
     }
 }

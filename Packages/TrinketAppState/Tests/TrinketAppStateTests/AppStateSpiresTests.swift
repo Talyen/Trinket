@@ -17,7 +17,7 @@ struct AppStateSpiresTests {
         context = try AppTestContext()
     }
 
-    @Test func startSpireBattleSucceedsForFreshAndAttunedParties() throws {
+    @Test func `start spire battle succeeds for fresh and attuned parties`() throws {
         let state = try context.makePlaySession()
         let floor = try #require(GameContent.spireFloor(spireID: .ironVein, floor: 1))
         let message = state.spires.startBattle(for: floor)
@@ -27,7 +27,7 @@ struct AppStateSpiresTests {
         #expect(state.battlePresentation(for: state.battle.activeBattle?.runKey)?.pendingRewardItem != nil)
     }
 
-    @Test func unchangedSpireInputsReusePreparedBattle() throws {
+    @Test func `unchanged spire inputs reuse prepared battle`() throws {
         let state = try context.makePlaySession()
         let floor = try #require(GameContent.spireFloor(spireID: .ironVein, floor: 1))
         let battle = try #require(context.lastBattle)
@@ -40,7 +40,7 @@ struct AppStateSpiresTests {
         #expect(battle.lifecyclePhase == .prepared)
     }
 
-    @Test func startSpireBattleRequiresAttunement() throws {
+    @Test func `start spire battle requires attunement`() throws {
         let state = try context.makePlaySession()
         try PlayBattleLaunchTestSupport.setActiveParty(heroID: "rogue", companionID: "frost_whelp", in: state)
 
@@ -50,11 +50,11 @@ struct AppStateSpiresTests {
         #expect(state.battle.activeBattle == nil)
     }
 
-    @Test func startSpireBattleAllowsNonIronSpireAtFreshProgress() throws {
+    @Test func `start spire battle allows non iron spire at fresh progress`() throws {
         let spire = try #require(GameContent.spire(id: .cinderSpire))
         let hero = try #require(GameContent.heroes.first { $0.keywordProfile.contains(spire.keyword) })
         let companion = try #require(
-            GameContent.companions.first { $0.keywordProfile.contains(spire.keyword) }
+            GameContent.companions.first { $0.keywordProfile.contains(spire.keyword) },
         )
         let state = try context.makePlaySession()
         try PlayBattleLaunchTestSupport.setActiveParty(heroID: hero.id, companionID: companion.id, in: state)
@@ -64,7 +64,7 @@ struct AppStateSpiresTests {
         #expect(state.battle.activeBattle?.runKey == PlayBattleOrigin.spire(spireID: spire.id, floor: 1).runKey)
     }
 
-    @Test func startSpireBattleRejectsLockedAndClearedFloors() throws {
+    @Test func `start spire battle rejects locked and cleared floors`() throws {
         let state = try context.makePlaySession()
         let hero = state.playerSave.roster.activeHero
         let companion = state.playerSave.roster.activeCompanion
@@ -74,7 +74,7 @@ struct AppStateSpiresTests {
             state.spires.completeFloor(
                 spireFloor,
                 hero: hero,
-                companion: companion
+                companion: companion,
             )
         }
 

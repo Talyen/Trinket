@@ -18,7 +18,7 @@ final class CombatFeedbackGlyphAtlas {
         init(
             feedbackClass: CombatFeedbackClass,
             presentationRole: CombatFeedbackPresentationRole = .headline,
-            displayScaleHundredths: Int
+            displayScaleHundredths: Int,
         ) {
             typography = feedbackClass.typographyTier
             self.presentationRole = presentationRole
@@ -28,7 +28,7 @@ final class CombatFeedbackGlyphAtlas {
         init(
             typography: CombatFeedbackTypographyTier,
             presentationRole: CombatFeedbackPresentationRole = .headline,
-            displayScaleHundredths: Int
+            displayScaleHundredths: Int,
         ) {
             self.typography = typography
             self.presentationRole = presentationRole
@@ -95,7 +95,7 @@ final class CombatFeedbackGlyphAtlas {
     func symbol(
         named symbolName: String,
         face: Face,
-        recipe: CombatFeedbackChipStyle
+        recipe: CombatFeedbackChipStyle,
     ) -> Glyph? {
         let key = SymbolKey(face: face, symbolName: symbolName)
         if let glyph = symbols[key] {
@@ -111,7 +111,7 @@ final class CombatFeedbackGlyphAtlas {
     func fragment(
         _ text: String,
         face: Face,
-        recipe: CombatFeedbackChipStyle
+        recipe: CombatFeedbackChipStyle,
     ) -> Glyph? {
         let key = FragmentKey(face: face, text: text)
         if let glyph = fragments[key] {
@@ -125,7 +125,7 @@ final class CombatFeedbackGlyphAtlas {
     }
 
     func prepareBattlePresentationAndWait(
-        displayScale: CGFloat
+        displayScale: CGFloat,
     ) async {
         let key = PresentationKey(displayScale: displayScale)
         while !preparedPresentationKeys.contains(key) {
@@ -139,7 +139,7 @@ final class CombatFeedbackGlyphAtlas {
     }
 
     private func startBattlePresentationPreparation(
-        for key: PresentationKey
+        for key: PresentationKey,
     ) -> Task<PresentationKey?, Never> {
         prewarmGeneration &+= 1
         let generation = prewarmGeneration
@@ -177,7 +177,7 @@ final class CombatFeedbackGlyphAtlas {
     }
 
     private func prewarmRequests(
-        displayScaleHundredths: Int
+        displayScaleHundredths: Int,
     ) -> [PrewarmRequest] {
         let symbolNames = Set(Keyword.allCases.map(\.visualStyle.symbolName)).union([
             Keyword.VisualStyle.beneficialStatus.symbolName,
@@ -192,7 +192,7 @@ final class CombatFeedbackGlyphAtlas {
                 let face = Face(
                     typography: typography,
                     presentationRole: role,
-                    displayScaleHundredths: displayScaleHundredths
+                    displayScaleHundredths: displayScaleHundredths,
                 )
                 for symbolName in symbolNames {
                     let key = SymbolKey(face: face, symbolName: symbolName)
@@ -220,7 +220,7 @@ final class CombatFeedbackGlyphAtlas {
     }
 
     nonisolated static func wordAtlasFragments(
-        for typography: CombatFeedbackTypographyTier
+        for typography: CombatFeedbackTypographyTier,
     ) -> [String] {
         CombatFeedbackRasterCatalog.wordAtlasFragments(for: typography)
     }
@@ -242,16 +242,16 @@ final class CombatFeedbackGlyphAtlas {
     nonisolated static func bakeSymbol(
         named symbolName: String,
         face: Face,
-        recipe: CombatFeedbackChipStyle
+        recipe: CombatFeedbackChipStyle,
     ) -> Glyph? {
         let font = CombatFeedbackGlyphMetrics.uiFont(
             recipe: recipe,
-            presentationRole: face.presentationRole
+            presentationRole: face.presentationRole,
         )
         let config = UIImage.SymbolConfiguration(font: font)
         guard let image = UIImage(
             systemName: symbolName,
-            withConfiguration: config
+            withConfiguration: config,
         )?.withTintColor(.white, renderingMode: .alwaysOriginal) else {
             return nil
         }
@@ -261,11 +261,11 @@ final class CombatFeedbackGlyphAtlas {
     nonisolated static func bakeFragment(
         _ text: String,
         face: Face,
-        recipe: CombatFeedbackChipStyle
+        recipe: CombatFeedbackChipStyle,
     ) -> Glyph? {
         let font = CombatFeedbackGlyphMetrics.uiFont(
             recipe: recipe,
-            presentationRole: face.presentationRole
+            presentationRole: face.presentationRole,
         )
         let attributes: [NSAttributedString.Key: Any] = [
             .font: font,
@@ -293,7 +293,7 @@ final class CombatFeedbackGlyphAtlas {
 
     nonisolated static func rasterize(
         image: UIImage,
-        displayScaleHundredths: Int
+        displayScaleHundredths: Int,
     ) -> Glyph? {
         let size = image.size
         guard size.width > 0, size.height > 0 else { return nil }
@@ -322,7 +322,7 @@ private extension CombatFeedbackTypographyTier {
 enum CombatFeedbackGlyphMetrics {
     static func uiFont(
         recipe: CombatFeedbackChipStyle,
-        presentationRole: CombatFeedbackPresentationRole = .headline
+        presentationRole: CombatFeedbackPresentationRole = .headline,
     ) -> UIFont {
         let style: Font.TextStyle
         let weight: Font.Weight
@@ -389,7 +389,7 @@ enum CombatFeedbackDisplayLinkGate {
         await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
             let link = CADisplayLink(
                 target: DisplayLinkResumeBox(continuation: continuation),
-                selector: #selector(DisplayLinkResumeBox.fire)
+                selector: #selector(DisplayLinkResumeBox.fire),
             )
             link.add(to: .main, forMode: .common)
             DisplayLinkResumeBox.retain(link)

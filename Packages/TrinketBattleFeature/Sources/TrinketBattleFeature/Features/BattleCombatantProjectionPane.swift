@@ -48,7 +48,7 @@ struct BattleCombatantProjectionPane: View {
                 buffAuraKind: snapshot.buffAuraKind,
                 hapticsEnabled: hapticsEnabled,
                 recoilDirection: role == .enemy ? .up : .down,
-                onCombatantTap: { onCombatantTap(snapshot.combatant) }
+                onCombatantTap: { onCombatantTap(snapshot.combatant) },
             )
         }
     }

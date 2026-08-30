@@ -9,7 +9,7 @@ enum PerformanceReportRecorder {
         suite: String,
         iteration: Int,
         metadata: [String: String] = [:],
-        in testCase: XCTestCase
+        in testCase: XCTestCase,
     ) {
         let environment = ProcessInfo.processInfo.environment
         var object: [String: Any] = [

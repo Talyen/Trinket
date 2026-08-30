@@ -34,7 +34,7 @@ struct PartyScaledEncounterTests {
         return try #require(GameContent.spireFloor(spireID: .ironVein, floor: spire.floorCount))
     }
 
-    @Test func journeyEncounterScalesDownToPartyCeiling() throws {
+    @Test func `journey encounter scales down to party ceiling`() throws {
         let state = try context.makePlaySession()
         setPartyLevels(3, 2, in: state)
         let chapter = try #require(GameContent.chapters.last)
@@ -52,7 +52,7 @@ struct PartyScaledEncounterTests {
         #expect(enemy.maxHealth == expectedStats.maxHealth)
     }
 
-    @Test func journeyEncounterKeepsAuthoredLevelWhenPartyIsAhead() throws {
+    @Test func `journey encounter keeps authored level when party is ahead`() throws {
         let state = try context.makePlaySession()
         setPartyLevels(60, 60, in: state)
         let chapter = try #require(GameContent.chapters.last)
@@ -62,11 +62,11 @@ struct PartyScaledEncounterTests {
         let configuration = try #require(state.battle.activeBattle)
         #expect(
             configuration.enemyEncounterLevel
-                == EncounterLevelResolver.journeyEnemyLevel(for: stage, in: chapter)
+                == EncounterLevelResolver.journeyEnemyLevel(for: stage, in: chapter),
         )
     }
 
-    @Test func spireEncounterScalesDownToPartyCeiling() throws {
+    @Test func `spire encounter scales down to party ceiling`() throws {
         let state = try context.makePlaySession()
         let topFloor = try unlockSpireThroughPenultimateFloor(in: state)
         setPartyLevels(3, 2, in: state)
@@ -82,7 +82,7 @@ struct PartyScaledEncounterTests {
         #expect(enemy.maxHealth == expectedStats.maxHealth)
     }
 
-    @Test func spireEncounterKeepsAuthoredLevelWhenPartyIsAhead() throws {
+    @Test func `spire encounter keeps authored level when party is ahead`() throws {
         let state = try context.makePlaySession()
         let topFloor = try unlockSpireThroughPenultimateFloor(in: state)
         setPartyLevels(60, 60, in: state)
@@ -90,7 +90,7 @@ struct PartyScaledEncounterTests {
         #expect(state.spires.startBattle(for: topFloor) == nil)
         let configuration = try #require(state.battle.activeBattle)
         #expect(
-            configuration.enemyEncounterLevel == EncounterLevelResolver.spireEnemyLevel(for: topFloor)
+            configuration.enemyEncounterLevel == EncounterLevelResolver.spireEnemyLevel(for: topFloor),
         )
     }
 
@@ -110,7 +110,7 @@ struct PartyScaledEncounterTests {
             mysteryEventID: nil,
             outgoingIDs: node.outgoingIDs,
             isCleared: false,
-            isRevealed: true
+            isRevealed: true,
         )
         var labyrinth = state.playerSave.labyrinth
         labyrinth.nodes[nodeID] = deepened
@@ -118,7 +118,7 @@ struct PartyScaledEncounterTests {
         return nodeID
     }
 
-    @Test func labyrinthEncounterScalesDownToPartyCeiling() throws {
+    @Test func `labyrinth encounter scales down to party ceiling`() throws {
         let state = try context.makePlaySession()
         setPartyLevels(3, 2, in: state)
         let nodeID = try forceDeepCombatNode(in: state)
@@ -128,7 +128,7 @@ struct PartyScaledEncounterTests {
         #expect(configuration.enemyEncounterLevel == 5)
     }
 
-    @Test func labyrinthEncounterKeepsAuthoredLevelWhenPartyIsAhead() throws {
+    @Test func `labyrinth encounter keeps authored level when party is ahead`() throws {
         let state = try context.makePlaySession()
         setPartyLevels(60, 60, in: state)
         let nodeID = try forceDeepCombatNode(in: state)

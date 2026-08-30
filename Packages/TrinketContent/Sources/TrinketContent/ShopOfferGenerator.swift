@@ -29,7 +29,7 @@ public enum ShopOfferGenerator {
         astralChanceBonusPercent: Int = 0,
         allAstral: Bool = false,
         priceDiscountPercent: Int = 0,
-        using randomNumberGenerator: inout some RandomNumberGenerator
+        using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> [ShopOffer] {
         guard count > 0, !baseTypes.isEmpty else { return [] }
 
@@ -45,7 +45,7 @@ public enum ShopOfferGenerator {
             } else {
                 MysteryItemRarity.roll(
                     astralChanceBonusPercent: astralChanceBonusPercent,
-                    using: &randomNumberGenerator
+                    using: &randomNumberGenerator,
                 )
             }
             let priceRarity: Rarity = tier == .basic ? .basic : .astral
@@ -65,7 +65,7 @@ public enum ShopOfferGenerator {
                 reservedTrinketIDs: reservedTrinketIDs,
                 baseTypes: baseTypes,
                 itemGenerator: itemGenerator,
-                using: &randomNumberGenerator
+                using: &randomNumberGenerator,
             )
             if item.isTrinket {
                 reservedTrinketIDs.insert(item.templateID)

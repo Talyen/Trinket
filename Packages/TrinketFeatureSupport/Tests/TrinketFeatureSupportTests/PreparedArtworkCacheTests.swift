@@ -5,20 +5,20 @@ import UIKit
 
 @MainActor
 struct PreparedArtworkCacheTests {
-    @Test func warmupPlanPutsPriorityNamesFirstAndPreservesCatalogOrder() {
+    @Test func `warmup plan puts priority names first and preserves catalog order`() {
         let plan = LaunchArtworkWarmupPlan.make(
             priorityImageNames: ["hero", "enemy", "missing"],
-            catalogNames: ["a", "enemy", "b", "hero", "c"]
+            catalogNames: ["a", "enemy", "b", "hero", "c"],
         )
 
         #expect(plan.priorityNames == ["enemy", "hero"])
         #expect(plan.deferredNames == ["a", "b", "c"])
     }
 
-    @Test func prepareAllReleasesLaunchBeforeDeferredCatalogFinishes() async {
+    @Test func `prepare all releases launch before deferred catalog finishes`() async {
         let deferredGate = DeferredDecodeGate()
         let cache = PreparedArtworkCache.makeForTesting(
-            catalogNames: ["priority-a", "priority-b", "deferred-a", "deferred-b"]
+            catalogNames: ["priority-a", "priority-b", "deferred-a", "deferred-b"],
         ) { name in
             if name.hasPrefix("deferred-") {
                 await deferredGate.waitUntilOpen()
@@ -43,7 +43,7 @@ struct PreparedArtworkCacheTests {
         #expect(cache.completedCount == 4)
     }
 
-    @Test func viewportPrepareOvertakesQueuedDeferredArtwork() async {
+    @Test func `viewport prepare overtakes queued deferred artwork`() async {
         let image = UIGraphicsImageRenderer(size: CGSize(width: 4, height: 4)).image { context in
             UIColor.red.setFill()
             context.cgContext.fill(CGRect(x: 0, y: 0, width: 4, height: 4))
@@ -51,7 +51,7 @@ struct PreparedArtworkCacheTests {
         let deferredGate = DeferredDecodeGate()
         let blockedStarts = DecodeStartCount()
         let cache = PreparedArtworkCache.makeForTesting(
-            catalogNames: ["blocked-a", "blocked-b", "viewport"]
+            catalogNames: ["blocked-a", "blocked-b", "viewport"],
         ) { name in
             if name.hasPrefix("blocked-") {
                 await blockedStarts.markStarted()
@@ -70,9 +70,9 @@ struct PreparedArtworkCacheTests {
         await cache.waitForDeferredWarmup()
     }
 
-    @Test func backgroundThumbnailsParticipateInDefaultWarmupCatalog() throws {
+    @Test func `background thumbnails participate in default warmup catalog`() throws {
         let reference = try #require(
-            ArtCatalog.backgroundArtByID.values.first { $0.thumbnailImageName != nil }
+            ArtCatalog.backgroundArtByID.values.first { $0.thumbnailImageName != nil },
         )
         let thumbnail = try #require(reference.thumbnailImageName)
 
@@ -80,7 +80,7 @@ struct PreparedArtworkCacheTests {
         #expect(PreparedArtworkCache.defaultPresentationImageNames.contains(thumbnail))
     }
 
-    @Test func launchWarmupSnapshotReportsResidentAndPinnedDecodedImages() async {
+    @Test func `launch warmup snapshot reports resident and pinned decoded images`() async {
         let image = UIGraphicsImageRenderer(size: CGSize(width: 4, height: 4)).image { context in
             UIColor.red.setFill()
             context.cgContext.fill(CGRect(x: 0, y: 0, width: 4, height: 4))
@@ -90,7 +90,7 @@ struct PreparedArtworkCacheTests {
             "deferred": PreparedArtwork(name: "deferred", image: image),
         ]
         let cache = PreparedArtworkCache.makeForTesting(
-            catalogNames: ["priority", "deferred"]
+            catalogNames: ["priority", "deferred"],
         ) { name in
             preparedByName[name] ?? PreparedArtwork(name: name, image: nil)
         }
@@ -107,7 +107,7 @@ struct PreparedArtworkCacheTests {
         #expect(snapshot.pinnedByteCount > 0)
     }
 
-    @Test func prepareAndPinRetriesArtworkThatIsNotResident() async {
+    @Test func `prepare and pin retries artwork that is not resident`() async {
         let image = UIGraphicsImageRenderer(size: CGSize(width: 4, height: 4)).image { context in
             UIColor.red.setFill()
             context.cgContext.fill(CGRect(x: 0, y: 0, width: 4, height: 4))
@@ -133,7 +133,7 @@ struct PreparedArtworkCacheTests {
         #expect(cache.launchWarmupSnapshot().pinnedCount == 0)
     }
 
-    @Test func overlappingPinsRemainResidentUntilEveryOwnerReleases() async {
+    @Test func `overlapping pins remain resident until every owner releases`() async {
         let image = UIGraphicsImageRenderer(size: CGSize(width: 4, height: 4)).image { context in
             UIColor.red.setFill()
             context.cgContext.fill(CGRect(x: 0, y: 0, width: 4, height: 4))
@@ -157,7 +157,7 @@ struct PreparedArtworkCacheTests {
         #expect(cache.launchWarmupSnapshot().pinnedCount == 0)
     }
 
-    @Test func releasingPinsDuringDecodeDoesNotLeakAPin() async {
+    @Test func `releasing pins during decode does not leak A pin`() async {
         let image = UIGraphicsImageRenderer(size: CGSize(width: 4, height: 4)).image { context in
             UIColor.red.setFill()
             context.cgContext.fill(CGRect(x: 0, y: 0, width: 4, height: 4))

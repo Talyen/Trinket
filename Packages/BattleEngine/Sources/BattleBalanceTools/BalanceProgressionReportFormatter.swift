@@ -9,7 +9,7 @@ public enum BalanceProgressionReportFormatter {
         records: [ProgressionBattleRecord],
         playerStates: [PlayerProgressionState],
         truncatedRuns: Int = 0,
-        elapsedSeconds: Double
+        elapsedSeconds: Double,
     ) -> String {
         var lines: [String] = []
         appendHeader(
@@ -18,7 +18,7 @@ public enum BalanceProgressionReportFormatter {
             playerStates: playerStates,
             truncatedRuns: truncatedRuns,
             elapsedSeconds: elapsedSeconds,
-            into: &lines
+            into: &lines,
         )
         appendSummary(hotspots: hotspots, playerStates: playerStates, into: &lines)
         appendFlaggedHotspots(hotspots.filter(\.isFlagged), into: &lines)
@@ -32,7 +32,7 @@ public enum BalanceProgressionReportFormatter {
         playerStates: [PlayerProgressionState],
         truncatedRuns: Int,
         elapsedSeconds: Double,
-        into lines: inout [String]
+        into lines: inout [String],
     ) {
         lines.append("# Multi-Mode Progression & Hotspot Balance Report")
         lines.append("")
@@ -43,7 +43,7 @@ public enum BalanceProgressionReportFormatter {
         lines.append("- **Elapsed Time**: \(String(format: "%.2f", elapsedSeconds))s")
         if truncatedRuns > 0 {
             lines.append(
-                "- **Truncated Runs**: \(truncatedRuns) (hit \(BalanceProgressionRunner.maxBattlesPerRun)-battle safety cap before completion)"
+                "- **Truncated Runs**: \(truncatedRuns) (hit \(BalanceProgressionRunner.maxBattlesPerRun)-battle safety cap before completion)",
             )
         }
         lines.append("")
@@ -52,7 +52,7 @@ public enum BalanceProgressionReportFormatter {
     private static func appendSummary(
         hotspots: [NodeHotspotSummary],
         playerStates: [PlayerProgressionState],
-        into lines: inout [String]
+        into lines: inout [String],
     ) {
         let avgEndLevel = playerStates.isEmpty
             ? 0
@@ -73,13 +73,13 @@ public enum BalanceProgressionReportFormatter {
 
     private static func appendFlaggedHotspots(
         _ flaggedHotspots: [NodeHotspotSummary],
-        into lines: inout [String]
+        into lines: inout [String],
     ) {
         if flaggedHotspots.isEmpty {
             lines.append("## Difficulty Hotspots")
             lines.append("")
             lines.append(
-                "No difficulty hotspots flagged. All node win rates fall within the 80% – 95% design envelope."
+                "No difficulty hotspots flagged. All node win rates fall within the 80% – 95% design envelope.",
             )
             lines.append("")
             return
@@ -96,7 +96,7 @@ public enum BalanceProgressionReportFormatter {
             let powerRating = String(format: "%.0f", hotspot.averageEnemyPowerRating)
             let reason = hotspot.flagReason ?? "-"
             lines.append(
-                "| \(hotspot.step.mode.displayName) | \(hotspot.step.containerTitle) | \(hotspot.step.displayTitle) | \(hotspot.step.enemyID) | \(winPct) | \(playerLevel) | \(enemyLevel) | \(powerRating) | **\(hotspot.status.displayName)** | \(reason) |"
+                "| \(hotspot.step.mode.displayName) | \(hotspot.step.containerTitle) | \(hotspot.step.displayTitle) | \(hotspot.step.enemyID) | \(winPct) | \(playerLevel) | \(enemyLevel) | \(powerRating) | **\(hotspot.status.displayName)** | \(reason) |",
             )
         }
         lines.append("")
@@ -104,7 +104,7 @@ public enum BalanceProgressionReportFormatter {
 
     private static func appendModeDetails(
         hotspots: [NodeHotspotSummary],
-        into lines: inout [String]
+        into lines: inout [String],
     ) {
         for mode in SimulationGameMode.allCases {
             let modeHotspots = hotspots.filter { $0.step.mode == mode }
@@ -119,13 +119,13 @@ public enum BalanceProgressionReportFormatter {
                 let confidence = String(
                     format: "%.1f-%.1f%%",
                     hotspot.wilsonLow * 100,
-                    hotspot.wilsonHigh * 100
+                    hotspot.wilsonHigh * 100,
                 )
                 let playerLevel = String(format: "%.1f", hotspot.averagePlayerLevel)
                 let enemyLevel = String(format: "%.1f", hotspot.averageEnemyLevel)
                 let powerRating = String(format: "%.0f", hotspot.averageEnemyPowerRating)
                 lines.append(
-                    "| \(hotspot.step.containerTitle) | \(hotspot.step.displayTitle) | \(hotspot.step.enemyID) | \(winPct) | \(confidence) | \(playerLevel) | \(enemyLevel) | \(powerRating) | \(hotspot.status.displayName) |"
+                    "| \(hotspot.step.containerTitle) | \(hotspot.step.displayTitle) | \(hotspot.step.enemyID) | \(winPct) | \(confidence) | \(playerLevel) | \(enemyLevel) | \(powerRating) | \(hotspot.status.displayName) |",
                 )
             }
             lines.append("")

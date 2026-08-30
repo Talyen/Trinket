@@ -6,7 +6,7 @@ public enum EncounterLevelResolver {
 
     public static func partyAdjusted(
         _ authoredLevel: Int,
-        partyAverageLevel: Int
+        partyAverageLevel: Int,
     ) -> Int {
         min(authoredLevel, partyAverageLevel + downwardPartyOffset)
     }

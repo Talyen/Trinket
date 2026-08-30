@@ -17,28 +17,28 @@ public enum BattlePartyFixtures {
 
     public static func quickWinParty(
         heroAbilities: [Ability] = [.slash],
-        enemyMaxHealth: Int = 1
+        enemyMaxHealth: Int = 1,
     ) -> QuickWinParty {
         QuickWinParty(
             hero: CombatantFixtures.combatant(
                 id: "hero",
                 role: .hero,
                 actionIntervalTurns: 1,
-                abilities: heroAbilities
+                abilities: heroAbilities,
             ),
             companion: CombatantFixtures.combatant(
                 id: "companion",
                 role: .companion,
                 actionIntervalTurns: 100,
-                abilities: []
+                abilities: [],
             ),
             enemy: CombatantFixtures.combatant(
                 id: "enemy",
                 role: .enemy,
                 maxHealth: enemyMaxHealth,
                 actionIntervalTurns: 100,
-                abilities: []
-            )
+                abilities: [],
+            ),
         )
     }
 }

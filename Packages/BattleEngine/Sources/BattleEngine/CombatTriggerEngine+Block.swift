@@ -5,7 +5,7 @@ package extension CombatTriggerEngine {
     static func afterBlockGained(
         _ amount: Int,
         by actor: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         guard amount > 0 else { return [] }
         let triggers = context.modifiers(for: actor.id).triggers
@@ -15,7 +15,7 @@ package extension CombatTriggerEngine {
             amount: amount,
             triggers: triggers,
             actor: actor,
-            in: &context
+            in: &context,
         ))
         return events
     }
@@ -24,7 +24,7 @@ package extension CombatTriggerEngine {
         amount: Int,
         triggers: CombatTraitTriggers,
         actor: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         let gained = CombatRounding.scaled(amount, multiplier: triggers.blockGainThornsPercent)
         guard gained > 0 else { return [] }
@@ -46,7 +46,7 @@ package extension CombatTriggerEngine {
             id: context.consumeNextEffectID(),
             effect: .thorns(total),
             remainingTurns: 0,
-            sourceActorID: actor.id
+            sourceActorID: actor.id,
         ))
         context.roster.setActiveEffects(effects, for: actor)
         return [context.nextEvent(
@@ -57,11 +57,11 @@ package extension CombatTriggerEngine {
                 "blockGainThornsPercent",
                 for: actor,
                 fallback: "Thorns",
-                in: context
+                in: context,
             ),
             target: actor,
             amount: total,
-            keyword: .physical
+            keyword: .physical,
         )]
     }
 
@@ -69,7 +69,7 @@ package extension CombatTriggerEngine {
         amount: Int,
         triggers: CombatTraitTriggers,
         actor: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) {
         guard triggers.blockGainedMaxHealthEvery > 0 else { return }
         context.roster.mutateRuntime(for: actor) { runtime in
@@ -90,7 +90,7 @@ package extension CombatTriggerEngine {
         amount: Int,
         triggers: CombatTraitTriggers,
         actor: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         guard actor.role == .companion,
               triggers.companionBlockSharesToHeroPercent > 0,
@@ -98,7 +98,7 @@ package extension CombatTriggerEngine {
         else { return [] }
         let share = CombatRounding.scaled(
             amount,
-            multiplier: min(1, max(0, triggers.companionBlockSharesToHeroPercent))
+            multiplier: min(1, max(0, triggers.companionBlockSharesToHeroPercent)),
         )
         guard share > 0 else { return [] }
         return context.applyBlock(
@@ -109,9 +109,9 @@ package extension CombatTriggerEngine {
                 "companionBlockSharesToHeroPercent",
                 for: actor,
                 fallback: "Shield Bond",
-                in: context
+                in: context,
             ),
-            applyOutgoingAdjustment: false
+            applyOutgoingAdjustment: false,
         )
     }
 
@@ -119,7 +119,7 @@ package extension CombatTriggerEngine {
         on target: Combatant,
         attackerID: String?,
         power: Int,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         guard power > 0,
               let attackerID,
@@ -138,8 +138,8 @@ package extension CombatTriggerEngine {
                     target: attacker.combatant,
                     keyword: keyword,
                     sourceActorID: target.id,
-                    options: .flatControlReaction
-                )
+                    options: .flatControlReaction,
+                ),
             )
             events.append(contentsOf: outcome.events)
             if keyword == .holy, outcome.healthLost > 0 {
@@ -147,7 +147,7 @@ package extension CombatTriggerEngine {
                     to: attacker.combatant,
                     source: target,
                     isAttackHit: false,
-                    in: &context
+                    in: &context,
                 ))
             }
         }
@@ -159,8 +159,8 @@ package extension CombatTriggerEngine {
                 "blockBrokenSaintfallPower",
                 for: target,
                 fallback: "Saintfall",
-                in: context
-            )
+                in: context,
+            ),
         ))
         return events
     }

@@ -20,7 +20,7 @@ struct LockedCardEffectModifier: ViewModifier {
 
     init(
         isLocked: Bool,
-        cornerRadius: CGFloat = TrinketDesign.Corners.card
+        cornerRadius: CGFloat = TrinketDesign.Corners.card,
     ) {
         self.isLocked = isLocked
         self.cornerRadius = cornerRadius
@@ -38,7 +38,7 @@ struct LockedCardEffectModifier: ViewModifier {
                 .compositingGroup()
                 .blur(
                     radius: Self.lockedBlurRadius,
-                    opaque: true
+                    opaque: true,
                 )
                 .clipShape(clipShape)
                 .disabled(true)
@@ -127,7 +127,7 @@ struct PrimaryActionButtonModifier: ViewModifier {
             tint: tint,
             labelColor: labelColor,
             isProminent: true,
-            accessibilityIdentifier: accessibilityIdentifier
+            accessibilityIdentifier: accessibilityIdentifier,
         ))
     }
 }
@@ -143,7 +143,7 @@ struct SecondaryActionButtonModifier: ViewModifier {
             tint: tint,
             labelColor: nil,
             isProminent: false,
-            accessibilityIdentifier: accessibilityIdentifier
+            accessibilityIdentifier: accessibilityIdentifier,
         ))
     }
 }
@@ -184,12 +184,12 @@ public extension View {
     func trinketArtworkPickerSelectionBorder(
         isSelected: Bool,
         color: Color = TrinketDesign.Colors.accent,
-        lineWidth: CGFloat = 3
+        lineWidth: CGFloat = 3,
     ) -> some View {
         overlay {
             TrinketDesign.cardShape.strokeBorder(
                 isSelected ? color : .clear,
-                lineWidth: isSelected ? lineWidth : 0
+                lineWidth: isSelected ? lineWidth : 0,
             )
         }
     }
@@ -200,7 +200,7 @@ public extension View {
 
     func trinketLockedCardEffect(
         isLocked: Bool,
-        cornerRadius: CGFloat = TrinketDesign.Corners.card
+        cornerRadius: CGFloat = TrinketDesign.Corners.card,
     ) -> some View {
         modifier(LockedCardEffectModifier(isLocked: isLocked, cornerRadius: cornerRadius))
     }
@@ -213,13 +213,13 @@ public extension View {
         controlSize: ControlSize = .large,
         tint: Color = TrinketDesign.Colors.accent,
         labelColor: Color = TrinketDesign.Colors.canvas,
-        accessibilityIdentifier: String? = nil
+        accessibilityIdentifier: String? = nil,
     ) -> some View {
         modifier(PrimaryActionButtonModifier(
             controlSize: controlSize,
             tint: tint,
             labelColor: labelColor,
-            accessibilityIdentifier: accessibilityIdentifier
+            accessibilityIdentifier: accessibilityIdentifier,
         ))
     }
 
@@ -233,12 +233,12 @@ public extension View {
     func trinketSecondaryActionButton(
         controlSize: ControlSize = .large,
         tint: Color = TrinketDesign.Colors.accent,
-        accessibilityIdentifier: String? = nil
+        accessibilityIdentifier: String? = nil,
     ) -> some View {
         modifier(SecondaryActionButtonModifier(
             controlSize: controlSize,
             tint: tint,
-            accessibilityIdentifier: accessibilityIdentifier
+            accessibilityIdentifier: accessibilityIdentifier,
         ))
     }
 
@@ -248,20 +248,20 @@ public extension View {
 
     func trinketArtworkCardButtonStyle() -> some View {
         buttonStyle(TrinketPressButtonStyle(
-            pressedScale: TrinketMotion.Interaction.artworkCardPressedScale
+            pressedScale: TrinketMotion.Interaction.artworkCardPressedScale,
         ))
     }
 
     func trinketSelectionCardButtonStyle() -> some View {
         buttonStyle(TrinketPressButtonStyle(
-            pressedScale: TrinketMotion.Interaction.selectionCardPressedScale
+            pressedScale: TrinketMotion.Interaction.selectionCardPressedScale,
         ))
     }
 
     func trinketSensoryFeedback(
         _ feedback: SensoryFeedback,
         trigger: some Equatable,
-        enabled: Bool
+        enabled: Bool,
     ) -> some View {
         sensoryFeedback(feedback, trigger: trigger) { _, _ in enabled }
     }
@@ -269,7 +269,7 @@ public extension View {
     @ViewBuilder
     func optionalMatchedTransitionSource<ID: Hashable>(
         id: ID,
-        in namespace: Namespace.ID?
+        in namespace: Namespace.ID?,
     ) -> some View {
         if let namespace {
             matchedTransitionSource(id: id, in: namespace)

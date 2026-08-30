@@ -4,11 +4,11 @@ import TrinketCore
 
 struct ArtCatalogIntegrationTests {
     // swiftlint:disable function_body_length - one catalog invariant owns all art-reference domains
-    @Test func catalogAndContentArtReferencesResolveAcrossAllDomains() throws {
+    @Test func `catalog and content art references resolve across all domains`() throws {
         for ability in AbilityCatalog.all {
             _ = try #require(
                 ability.artReference,
-                "Missing art for ability id \(ability.id)"
+                "Missing art for ability id \(ability.id)",
             )
         }
 
@@ -17,28 +17,28 @@ struct ArtCatalogIntegrationTests {
         let unknownArtIDs = artIDs.subtracting(catalogIDs)
         try #expect(
             unknownArtIDs.isEmpty,
-            "Art catalog references unknown ability IDs: \(unknownArtIDs.sorted())"
+            "Art catalog references unknown ability IDs: \(unknownArtIDs.sorted())",
         )
 
         let referenced = referencedAbilityIDs()
         for id in referenced {
             _ = try #require(
                 AbilityCatalog.ability(id: id),
-                "GameContent references unknown ability id \(id)"
+                "GameContent references unknown ability id \(id)",
             )
         }
 
         for hero in GameContent.heroes {
             _ = try #require(
                 ArtCatalog.combatantArtByID[hero.id],
-                "\(hero.name) should have an art reference in the catalog"
+                "\(hero.name) should have an art reference in the catalog",
             )
         }
 
         for companion in GameContent.companions {
             _ = try #require(
                 ArtCatalog.combatantArtByID[companion.id],
-                "\(companion.name) should have an art reference in the catalog"
+                "\(companion.name) should have an art reference in the catalog",
             )
         }
 
@@ -46,7 +46,7 @@ struct ArtCatalogIntegrationTests {
         for enemy in GameContent.enemies where campaignEnemyIDs.contains(enemy.id) {
             _ = try #require(
                 ArtCatalog.combatantArtByID[enemy.id],
-                "\(enemy.name) should have an art reference in the catalog"
+                "\(enemy.name) should have an art reference in the catalog",
             )
         }
 
@@ -55,11 +55,11 @@ struct ArtCatalogIntegrationTests {
                 guard let artID = GameContent.encounterArtID(for: stage) else { continue }
                 _ = try #require(
                     ArtCatalog.encounterArtByID[artID],
-                    "Stage \(stage.id) references missing encounter art \(artID)"
+                    "Stage \(stage.id) references missing encounter art \(artID)",
                 )
                 try #expect(
                     !(GameContent.encounterArtTitle(for: stage)?.isEmpty ?? true),
-                    "Encounter art title should be set when art id is set for \(stage.id)"
+                    "Encounter art title should be set when art id is set for \(stage.id)",
                 )
             }
         }
@@ -67,25 +67,25 @@ struct ArtCatalogIntegrationTests {
         for item in GameContent.sampleInventoryItems {
             _ = try #require(
                 item.artReference,
-                "Missing art for inventory template \(item.templateID)"
+                "Missing art for inventory template \(item.templateID)",
             )
         }
 
         for baseType in GameContent.itemBaseTypes {
             _ = try #require(
                 baseType.previewArtReference,
-                "Missing base preview art for item base \(baseType.id)"
+                "Missing base preview art for item base \(baseType.id)",
             )
         }
 
         for item in GameContent.uniqueItems {
             let art = try #require(
                 item.artReference,
-                "Missing art for unique item \(item.templateID)"
+                "Missing art for unique item \(item.templateID)",
             )
             #expect(
                 art == item.baseType.previewArtReference,
-                "Unique item \(item.templateID) should use base item art"
+                "Unique item \(item.templateID) should use base item art",
             )
         }
 
@@ -94,36 +94,36 @@ struct ArtCatalogIntegrationTests {
         #expect(rewarded.id != rewarded.templateID)
         _ = try #require(
             rewarded.artReference,
-            "Missing art after rewardInstance for \(rewarded.templateID)"
+            "Missing art after rewardInstance for \(rewarded.templateID)",
         )
 
         for resource in HomesteadResource.allCases {
             _ = try #require(
                 ArtCatalog.resourceArtByID[resource.rawValue],
-                "Missing Homestead resource art for \(resource.rawValue)"
+                "Missing Homestead resource art for \(resource.rawValue)",
             )
         }
 
         for node in GameContent.homesteadNodes {
             _ = try #require(
                 ArtCatalog.backgroundArtByID[node.id.rawValue],
-                "Missing Homestead project art for \(node.id.rawValue)"
+                "Missing Homestead project art for \(node.id.rawValue)",
             )
         }
 
         #expect(
             ArtCatalog.allImageNames.count == ArtCatalog.allImageNamesSet.count,
-            "ArtCatalog.allImageNames must be unique"
+            "ArtCatalog.allImageNames must be unique",
         )
         #expect(
             ArtCatalog.allImageNamesSet.isSuperset(of: Set(AbilityCatalog.all.compactMap { ArtCatalog.abilityArtByID[$0.id]?.imageName })),
-            "allImageNames must contain every ability image"
+            "allImageNames must contain every ability image",
         )
     }
 
     // swiftlint:enable function_body_length
 
-    @Test func backgroundFocalPointsAreNormalized() {
+    @Test func `background focal points are normalized`() {
         for art in ArtCatalog.backgroundArtByID.values {
             #expect((0 ... 1).contains(art.focalPoint.x))
             #expect((0 ... 1).contains(art.focalPoint.y))

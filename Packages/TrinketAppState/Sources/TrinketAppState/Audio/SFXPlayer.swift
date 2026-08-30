@@ -16,7 +16,7 @@ public final class SFXPlayer {
     private var catalogWarmTask: Task<Void, Never>?
     private let logger = Logger(
         subsystem: AudioLogging.subsystem,
-        category: "Audio"
+        category: "Audio",
     )
 
     public init(isDisabled: Bool) {
@@ -154,7 +154,7 @@ public final class SFXPlayer {
         }
         guard let url = Self.resourceURL(for: clip) else {
             logger.warning(
-                "Missing SFX resource: \(clip.resourceName, privacy: .public).\(clip.fileExtension, privacy: .public)"
+                "Missing SFX resource: \(clip.resourceName, privacy: .public).\(clip.fileExtension, privacy: .public)",
             )
             return nil
         }
@@ -166,7 +166,7 @@ public final class SFXPlayer {
     // swiftformat:disable:next modifierOrder
     nonisolated private static let decodeLogger = Logger(
         subsystem: AudioLogging.subsystem,
-        category: "Audio"
+        category: "Audio",
     )
 
     // swiftformat:disable:next modifierOrder
@@ -177,14 +177,14 @@ public final class SFXPlayer {
                   file.length <= AVAudioFramePosition(AVAudioFrameCount.max),
                   let buffer = AVAudioPCMBuffer(
                       pcmFormat: file.processingFormat,
-                      frameCapacity: AVAudioFrameCount(file.length)
+                      frameCapacity: AVAudioFrameCount(file.length),
                   )
             else { return nil }
             try file.read(into: buffer)
             return buffer
         } catch {
             decodeLogger.error(
-                "Unable to decode SFX resource \(url.lastPathComponent, privacy: .public): \(error.localizedDescription, privacy: .public)"
+                "Unable to decode SFX resource \(url.lastPathComponent, privacy: .public): \(error.localizedDescription, privacy: .public)",
             )
             return nil
         }
@@ -197,7 +197,7 @@ public final class SFXPlayer {
             Bundle.main.url(
                 forResource: clip.resourceName,
                 withExtension: clip.fileExtension,
-                subdirectory: "Media/SFX"
+                subdirectory: "Media/SFX",
             )
     }
 
@@ -221,7 +221,7 @@ public final class SFXPlayer {
         } catch {
             engineIsRunning = false
             logger.error(
-                "Unable to start SFX engine: \(error.localizedDescription, privacy: .public)"
+                "Unable to start SFX engine: \(error.localizedDescription, privacy: .public)",
             )
             return false
         }

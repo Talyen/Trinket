@@ -13,7 +13,7 @@ final class SlicesReloadTests {
         context = try PersistenceTestContext()
     }
 
-    @Test func spiresFloorClampSurvivesReload() throws {
+    @Test func `spires floor clamp survives reload`() throws {
         let storeURL = context.storeURL()
         let firstStore = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true, persistSaveImmediately: true)
         let spire = try #require(GameContent.spires.first)
@@ -26,7 +26,7 @@ final class SlicesReloadTests {
         try #expect(reloaded.spires.highestClearedFloor(for: spire.id.rawValue) == spire.floorCount)
     }
 
-    @Test func customAbilityLoadoutSurvivesReload() throws {
+    @Test func `custom ability loadout survives reload`() throws {
         let storeURL = context.storeURL()
         let firstStore = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true, persistSaveImmediately: true)
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
@@ -43,7 +43,7 @@ final class SlicesReloadTests {
         try #expect(persistedLoadout == loadout)
     }
 
-    @Test func companionArmorFromOldSaveUnequipsOnReloadAndItemSurvives() throws {
+    @Test func `companion armor from old save unequips on reload and item survives`() throws {
         let storeURL = context.storeURL()
         let bear = try #require(GameContent.companions.first { $0.id == "bear" })
         let leatherBase = try #require(GameContent.itemBaseTypes.first { $0.id == "leather_armor" })
@@ -52,7 +52,7 @@ final class SlicesReloadTests {
             baseType: leatherBase,
             rarity: .basic,
             displayName: "Leather Armor",
-            affixes: []
+            affixes: [],
         )
         var oldSave = PlayerSave.testSeed
         oldSave.inventory.appendUniqueItem(armor)
@@ -66,7 +66,7 @@ final class SlicesReloadTests {
         try #expect(companionLoadout.itemID(for: .armor) == nil, "removed companion slot must not survive reload")
         try #expect(
             reloaded.inventory.item(matching: armor.id) != nil,
-            "unequipped gear returns to inventory rather than being dropped"
+            "unequipped gear returns to inventory rather than being dropped",
         )
     }
 }

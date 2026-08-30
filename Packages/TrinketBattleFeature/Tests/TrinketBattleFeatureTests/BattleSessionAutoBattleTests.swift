@@ -9,7 +9,7 @@ import TrinketTestSupport
 
 @MainActor
 struct BattleSessionAutoBattleTests {
-    @Test func autoBattlePlaysCardsInGreedyOrderUntilDisabled() async throws {
+    @Test func `auto battle plays cards in greedy order until disabled`() async throws {
         let session = try BattleSessionTestSupport.makeConfiguredSession()
         let expectedCardIDs = try BattleSessionTestSupport.greedyPlaySequence(from: session)
         var playedCardIDs: [Int] = []
@@ -27,7 +27,7 @@ struct BattleSessionAutoBattleTests {
         #expect(playedCardIDs == expectedCardIDs)
     }
 
-    @Test func autoBattleRetriesAfterARejectedPlayInsteadOfStopping() async throws {
+    @Test func `auto battle retries after A rejected play instead of stopping`() async throws {
         let session = try BattleSessionTestSupport.makeConfiguredSession()
         let expectedCardIDs = try BattleSessionTestSupport.greedyPlaySequence(from: session)
         var playAttempts = 0
@@ -57,7 +57,7 @@ struct BattleSessionAutoBattleTests {
     }
 
     @Test(arguments: [ResumeGate.manualInteraction, .cardCast])
-    private func autoBattleResumesAfterGateClears(gate: ResumeGate) async throws {
+    private func `auto battle resumes after gate clears`(gate: ResumeGate) async throws {
         let session = try BattleSessionTestSupport.makeConfiguredSession()
         var remainingBlocks = 3
         var playedCardIDs: [Int] = []
@@ -79,7 +79,7 @@ struct BattleSessionAutoBattleTests {
                     remainingBlocks -= 1
                     return true
                 },
-                playCard: playCard
+                playCard: playCard,
             )
         case .cardCast:
             await BattleSessionTestSupport.driveAutoBattleUntilStopped(
@@ -89,7 +89,7 @@ struct BattleSessionAutoBattleTests {
                     remainingBlocks -= 1
                     return true
                 },
-                playCard: playCard
+                playCard: playCard,
             )
         }
 
@@ -97,7 +97,7 @@ struct BattleSessionAutoBattleTests {
         #expect(remainingBlocks == 0)
     }
 
-    @Test func autoBattleDoesNotPlayWhileAbilityOverlayIsOpenAfterCastWait() async throws {
+    @Test func `auto battle does not play while ability overlay is open after cast wait`() async throws {
         let session = try BattleSessionTestSupport.makeConfiguredSession()
         var remainingCastBlocks = 2
         var playedCardIDs: [Int] = []
@@ -118,7 +118,7 @@ struct BattleSessionAutoBattleTests {
                     playedCardIDs.append(card.id)
                     session.isAutoBattleEnabled = false
                     return true
-                }
+                },
             )
         }
 
@@ -132,7 +132,7 @@ struct BattleSessionAutoBattleTests {
         _ = await driver.result
     }
 
-    @Test func autoBattleDoesNotPlayDuringSustainedManualInteraction() async throws {
+    @Test func `auto battle does not play during sustained manual interaction`() async throws {
         let session = try BattleSessionTestSupport.makeConfiguredSession()
         var interacting = true
         var interactionChecks = 0
@@ -152,7 +152,7 @@ struct BattleSessionAutoBattleTests {
                     playedCardIDs.append(card.id)
                     session.isAutoBattleEnabled = false
                     return true
-                }
+                },
             )
         }
 
@@ -164,7 +164,7 @@ struct BattleSessionAutoBattleTests {
         _ = await driver.result
     }
 
-    @Test func autoBattleResumesAfterStuckCastRequestClears() async throws {
+    @Test func `auto battle resumes after stuck cast request clears`() async throws {
         let session = try BattleSessionTestSupport.makeConfiguredSession()
         let castPresentation = BattleCastPresentationState()
         castPresentation.stuckResetDelayOverride = 0.02
@@ -176,8 +176,8 @@ struct BattleSessionAutoBattleTests {
                 rotation: 0,
                 verticalTilt: 0,
                 scale: 1,
-                keywords: [.physical]
-            )
+                keywords: [.physical],
+            ),
         )
         var playedCardIDs: [Int] = []
 
@@ -191,14 +191,14 @@ struct BattleSessionAutoBattleTests {
                 playedCardIDs.append(card.id)
                 session.isAutoBattleEnabled = false
                 return true
-            }
+            },
         )
 
         #expect(castPresentation.request == nil)
         #expect(!playedCardIDs.isEmpty)
     }
 
-    @Test func autoBattleReturnsWhenBattleIsMissing() async throws {
+    @Test func `auto battle returns when battle is missing`() async throws {
         let session = try BattleSessionTestSupport.makeConfiguredSession()
         session.endBattle()
         session.isAutoBattleEnabled = true
@@ -206,32 +206,32 @@ struct BattleSessionAutoBattleTests {
         await session.driveAutoBattle(
             isCardCastActive: { false },
             isManualInteractionActive: { false },
-            playCard: { _ in false }
+            playCard: { _ in false },
         )
     }
 
-    @Test func autoBattleResumesAfterCinematicClears() async throws {
+    @Test func `auto battle resumes after cinematic clears`() async throws {
         let session = try BattleSessionTestSupport.makeConfiguredSession(
             hero: CombatantFixtures.combatant(
                 id: "knight",
                 role: .hero,
-                abilities: [.slash, .fireball, .avatarOfJustice]
+                abilities: [.slash, .fireball, .avatarOfJustice],
             ),
             enemy: CombatantFixtures.combatant(
                 id: "enemy",
                 role: .enemy,
                 maxHealth: 500,
                 actionIntervalTurns: 100,
-                abilities: []
-            )
+                abilities: [],
+            ),
         )
         let now = Date()
         let ultimate = try #require(
             BattleSessionTestSupport.drawUntilPlayable(
                 Ability.avatarOfJustice.id,
                 on: session,
-                at: now
-            )
+                at: now,
+            ),
         )
         _ = session.playCard(cardID: ultimate.id, at: now)
         #expect(session.spectacle.activeCinematic != nil)
@@ -248,7 +248,7 @@ struct BattleSessionAutoBattleTests {
                     playedAfterCinematic += 1
                     session.isAutoBattleEnabled = false
                     return true
-                }
+                },
             )
         }
 
@@ -256,7 +256,7 @@ struct BattleSessionAutoBattleTests {
         #expect(
             try await BattleSessionTestSupport.waitUntil(timeout: .milliseconds(80)) {
                 playedAfterCinematic > 0
-            } == false
+            } == false,
         )
 
         session.completeCinematicCollapse(at: now.addingTimeInterval(1))
@@ -264,10 +264,10 @@ struct BattleSessionAutoBattleTests {
         _ = await driver.result
     }
 
-    @Test func autoBattleResetsOffOnNewBattleWhenRememberIsOff() throws {
+    @Test func `auto battle resets off on new battle when remember is off`() throws {
         let probe = AutoBattleProbe(remember: false, stored: false)
         let session = try BattleSessionTestSupport.makeConfiguredSession(
-            presentationEnvironment: autoBattleEnvironment(probe: probe)
+            presentationEnvironment: autoBattleEnvironment(probe: probe),
         )
         let firstConfiguration = try #require(session.activeBattle)
 
@@ -280,7 +280,7 @@ struct BattleSessionAutoBattleTests {
             rngSeed: BattleSessionTestSupport.deterministicBattleSeed &+ 1,
             hero: firstConfiguration.hero.combatant,
             companion: firstConfiguration.companion.combatant,
-            enemy: firstConfiguration.enemy
+            enemy: firstConfiguration.enemy,
         )
         #expect(session.activate(nextConfiguration))
 
@@ -288,10 +288,10 @@ struct BattleSessionAutoBattleTests {
         #expect(probe.persistedValues.isEmpty)
     }
 
-    @Test func autoBattleRestoresAndPersistsWhenRememberIsOn() throws {
+    @Test func `auto battle restores and persists when remember is on`() throws {
         let probe = AutoBattleProbe(remember: true, stored: true)
         let session = try BattleSessionTestSupport.makeConfiguredSession(
-            presentationEnvironment: autoBattleEnvironment(probe: probe)
+            presentationEnvironment: autoBattleEnvironment(probe: probe),
         )
         #expect(session.isAutoBattleEnabled)
 
@@ -309,21 +309,21 @@ struct BattleSessionAutoBattleTests {
                 id: "hero",
                 role: .hero,
                 actionIntervalTurns: 1,
-                abilities: [.slash]
+                abilities: [.slash],
             ),
             companion: CombatantFixtures.combatant(
                 id: "companion",
                 role: .companion,
                 actionIntervalTurns: 100,
-                abilities: []
+                abilities: [],
             ),
             enemy: CombatantFixtures.combatant(
                 id: "enemy",
                 role: .enemy,
                 maxHealth: 100,
                 actionIntervalTurns: 100,
-                abilities: []
-            )
+                abilities: [],
+            ),
         )
         #expect(session.activate(nextConfiguration))
         #expect(session.isAutoBattleEnabled)
@@ -355,6 +355,6 @@ private func autoBattleEnvironment(probe: AutoBattleProbe) -> BattleRuntimeDepen
             probe.stored = value
             probe.persistedValues.append(value)
         },
-        shouldAutoSkipUltimateCinematic: { _, _ in false }
+        shouldAutoSkipUltimateCinematic: { _, _ in false },
     )
 }

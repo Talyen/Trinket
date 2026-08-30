@@ -2,14 +2,14 @@ import Testing
 import TrinketCore
 
 struct EffectModelTests {
-    @Test func representativeEffectProperties() throws {
+    @Test func `representative effect properties`() throws {
         try #expect(Effect.burn(4).potencyAfterTurn() == 2)
         try #expect(Effect.bleed(3).isBleed)
         try #expect(Effect.instantHeal(.health, 5).isInstant)
         try #expect(Effect.drawCards(2).isInstant)
     }
 
-    @Test func avatarEffectModelsSelfBuffPulse() throws {
+    @Test func `avatar effect models self buff pulse`() throws {
         let avatar = Effect.avatar(holyDamage: 6, blockPerTurn: 4, turns: 1)
         try #expect(avatar.keyword == .holy)
         try #expect(avatar.potency == 6)
@@ -25,13 +25,13 @@ struct EffectModelTests {
         try #expect(avatar.kind == .avatar)
     }
 
-    @Test func damageAndStrengthReductionDefaultToAbilityTarget() {
+    @Test func `damage and strength reduction default to ability target`() {
         #expect(Effect.defaultTarget(for: .damageReductionPercent(0.25, 2)) == .abilityTarget)
         #expect(Effect.defaultTarget(for: .damageReductionFlat(3, 1)) == .abilityTarget)
         #expect(Effect.defaultTarget(for: .strengthReduction(2, 3)) == .abilityTarget)
     }
 
-    @Test func manaEmpowermentRaisesBurnAndFreezeDamageNumbersOnly() throws {
+    @Test func `mana empowerment raises burn and freeze damage numbers only`() throws {
         try #expect(Effect.burn(2).isManaEmpowerableBurnOrFreezeDamage)
         try #expect(Effect.recurringDamage(.freeze, 2, 2).isManaEmpowerableBurnOrFreezeDamage)
         try #expect(!Effect.poison(2).isManaEmpowerableBurnOrFreezeDamage)
@@ -39,7 +39,7 @@ struct EffectModelTests {
         try #expect(Effect.burn(2).withManaEmpowerment() == .burn(3))
         try #expect(
             Effect.recurringDamage(.freeze, 2, 2).withManaEmpowerment()
-                == .recurringDamage(.freeze, 3, 2)
+                == .recurringDamage(.freeze, 3, 2),
         )
         try #expect(Effect.poison(2).withManaEmpowerment() == .poison(2))
         try #expect(DamageComponent(2, keyword: .burn).withManaEmpowerment().amount == 3)
@@ -48,13 +48,13 @@ struct EffectModelTests {
             4,
             keyword: .burn,
             bonusAmount: 4,
-            condition: .enemyBurning
+            condition: .enemyBurning,
         ).withManaEmpowerment()
         try #expect(empoweredBonus.amount == 5)
         try #expect(empoweredBonus.bonusAmount == 5)
     }
 
-    @Test func effectClassificationFlagsMatchDefinitions() throws {
+    @Test func `effect classification flags match definitions`() throws {
         try #expect(Effect.burn(1).isRemovableDebuff)
         try #expect(Effect.poison(1).isRemovableDebuff)
         try #expect(Effect.bleed(1).isRemovableDebuff)
@@ -94,13 +94,13 @@ struct EffectModelTests {
         try #expect(!(Effect.halveShield(.block)).advancesEachTurn)
     }
 
-    @Test func everyEffectKindHasBehaviorMetadata() {
+    @Test func `every effect kind has behavior metadata`() {
         for kind in EffectKind.allCases {
             _ = EffectMetadata.behavior(for: kind)
         }
     }
 
-    @Test func representativeEffectsHaveNonEmptyApplyPhrases() {
+    @Test func `representative effects have non empty apply phrases`() {
         let sampleEffects: [Effect] = [
             .burn(2),
             .poison(3),
@@ -158,7 +158,7 @@ struct EffectModelTests {
         }
     }
 
-    @Test func flagEffectSummaryPhrasesAreRegistered() {
+    @Test func `flag effect summary phrases are registered`() {
         for kind in [EffectKind.nextHolyStrike, .nextStrikeDouble, .evadeNextHit, .nextStrikeCritical, .freezeNextAttacker] {
             #expect(!EffectMetadata.requiredBattleSummaryPhrase(for: kind).isEmpty)
             #expect(EffectMetadata.battleSummaryPhrase(for: kind) != nil)

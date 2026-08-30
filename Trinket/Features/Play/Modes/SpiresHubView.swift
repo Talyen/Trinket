@@ -12,7 +12,7 @@ struct SpiresHubView: View {
     var body: some View {
         PlayModeHubScreen(
             title: "The Spires",
-            accessibilityIdentifier: AccessibilityID.Play.spiresHub
+            accessibilityIdentifier: AccessibilityID.Play.spiresHub,
         ) {
             ForEach(orderedSpires) { spire in
                 spireCard(spire)
@@ -33,7 +33,7 @@ struct SpiresHubView: View {
                 symbolName: nil,
                 artID: "spire-\(spire.id.rawValue)",
                 fallbackArtID: "gameModeExplore",
-                isLocked: isLocked
+                isLocked: isLocked,
             )
         }
         .disabled(isLocked)
@@ -49,7 +49,7 @@ struct SpiresHubView: View {
         SpireAttunement.canEnter(
             spire,
             heroes: playerSave.roster.heroes,
-            companions: playerSave.roster.companions
+            companions: playerSave.roster.companions,
         )
     }
 
@@ -60,7 +60,7 @@ struct SpiresHubView: View {
 
         let clearedFloors = min(
             playerSave.spires.highestClearedFloor(for: spire.id.rawValue),
-            spire.floorCount
+            spire.floorCount,
         )
         return "\(clearedFloors) / \(spire.floorCount) Floors"
     }

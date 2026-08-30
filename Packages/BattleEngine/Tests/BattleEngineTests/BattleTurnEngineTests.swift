@@ -7,18 +7,18 @@ import TrinketTestSupport
 struct BattleTurnEngineTests {
     private func makeContext(
         actorEffects: [ActiveEffect] = [],
-        seed: UInt64 = BattleTestFixtures.deterministicNonCriticalSeed
+        seed: UInt64 = BattleTestFixtures.deterministicNonCriticalSeed,
     ) -> BattleState {
         let hero = CombatantFixtures.combatant(
             id: "hero",
             role: .hero,
-            abilities: [.slash]
+            abilities: [.slash],
         )
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
         let enemy = CombatantFixtures.combatant(
             id: "enemy",
             role: .enemy,
-            abilities: [.slash]
+            abilities: [.slash],
         )
         return BattleStateTestFactory.makeBattle(
             hero: hero,
@@ -26,11 +26,11 @@ struct BattleTurnEngineTests {
             enemy: enemy,
             activeEnemyEffects: actorEffects,
             rngSeed: seed,
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
     }
 
-    @Test func consumeActionSkipEmitsEventLingersStatusAndRecordsAction() throws {
+    @Test func `consume action skip emits event lingers status and records action`() throws {
         var context = makeContext(actorEffects: [
             ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTurns: 0),
         ])
@@ -49,7 +49,7 @@ struct BattleTurnEngineTests {
         try #expect(context.actionCount == 1)
     }
 
-    @Test func performActionResolvesWhenNoSkipPending() throws {
+    @Test func `perform action resolves when no skip pending`() throws {
         var context = makeContext()
         let enemy = context.roster.enemy.combatant
         let ability = try #require(enemy.abilityLoadout.basic)
@@ -58,19 +58,19 @@ struct BattleTurnEngineTests {
             ability: ability,
             actor: enemy,
             abilityTarget: context.roster.enemyAttackTarget,
-            context: &context
+            context: &context,
         )
 
         try #expect(events.contains { $0.kind == .ability })
         try #expect(!(events.contains { $0.effectKind == .controlActionSkipped }))
     }
 
-    @Test func deathgripGrantsBlockWhenEnteringDeathsDoor() throws {
+    @Test func `deathgrip grants block when entering deaths door`() throws {
         let hero = CombatantFixtures.combatant(
             id: "hero",
             role: .hero,
             maxHealth: 50,
-            abilities: [.slash]
+            abilities: [.slash],
         )
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy)
@@ -81,11 +81,11 @@ struct BattleTurnEngineTests {
             heroHealth: 5,
             heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
                 healing: HealingTriggers(
-                    blockOnDeathsDoor: 8
-                )
+                    blockOnDeathsDoor: 8,
+                ),
             )),
             seed: 0,
-            nextEventID: 0
+            nextEventID: 0,
         )
 
         let (_, events) = context.applyTestDamage(
@@ -93,7 +93,7 @@ struct BattleTurnEngineTests {
             to: hero,
             applyStatBonus: false,
             applyItemBonus: false,
-            applyDodge: false
+            applyDodge: false,
         )
 
         try #expect(events.contains { $0.effectKind == .deathsDoorTriggered })
@@ -106,11 +106,11 @@ struct BattleTurnEngineTests {
                     return keyword == .block && points == expectedBlock
                 }
                 return false
-            }
+            },
         )
     }
 
-    @Test func abilityEventIncludesActorAbilityAndTier() throws {
+    @Test func `ability event includes actor ability and tier`() throws {
         var context = makeContext()
         let enemy = context.roster.enemy.combatant
         let ability = try #require(enemy.abilityLoadout.basic)
@@ -119,7 +119,7 @@ struct BattleTurnEngineTests {
             ability: ability,
             actor: enemy,
             abilityTarget: context.roster.enemyAttackTarget,
-            context: &context
+            context: &context,
         )
         let abilityEvent = try #require(events.first { $0.kind == .ability })
 
@@ -129,12 +129,12 @@ struct BattleTurnEngineTests {
         #expect(abilityEvent.abilityTier == Ability.slash.tier)
     }
 
-    @Test func nextStrikeDoubleDoublesOutgoingDamageAndConsumes() throws {
+    @Test func `next strike double doubles outgoing damage and consumes`() throws {
         let ability = Ability(
             id: "test-strike",
             name: "Test Strike",
             tier: .basic,
-            damageComponents: [DamageComponent(2, keyword: .physical)]
+            damageComponents: [DamageComponent(2, keyword: .physical)],
         )
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [ability])
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
@@ -146,7 +146,7 @@ struct BattleTurnEngineTests {
             heroEffects: [ActiveEffect(id: 1, effect: .nextStrikeDouble, remainingTurns: 0)],
             seed: BattleTestFixtures.deterministicNonCriticalSeed,
             nextEffectID: 2,
-            nextEventID: 0
+            nextEventID: 0,
         )
         let healthBefore = context.roster.health(for: enemy)
 
@@ -154,7 +154,7 @@ struct BattleTurnEngineTests {
             ability: ability,
             actor: hero,
             abilityTarget: context.enemy,
-            context: &context
+            context: &context,
         )
 
         let damageEvent = try #require(events.first { $0.kind == .abilityDamage })
@@ -168,7 +168,7 @@ struct BattleTurnEngineTests {
         }))
     }
 
-    @Test func mixedDamageComponentsEmitExactFeedbackEventsAndOneLogSummary() {
+    @Test func `mixed damage components emit exact feedback events and one log summary`() {
         let ability = Ability(
             id: "mixed-strike",
             name: "Mixed Strike",
@@ -176,7 +176,7 @@ struct BattleTurnEngineTests {
             damageComponents: [
                 DamageComponent(2, keyword: .physical),
                 DamageComponent(2, keyword: .burn),
-            ]
+            ],
         )
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [ability])
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
@@ -186,13 +186,13 @@ struct BattleTurnEngineTests {
             companion: companion,
             enemy: enemy,
             seed: BattleTestFixtures.deterministicNonCriticalSeed,
-            nextEventID: 0
+            nextEventID: 0,
         )
         let events = BattleTurnEngine.performAction(
             ability: ability,
             actor: hero,
             abilityTarget: context.enemy,
-            context: &context
+            context: &context,
         )
 
         let components = events.filter { $0.kind == .abilityDamage }
@@ -204,13 +204,13 @@ struct BattleTurnEngineTests {
         #expect(BattleLogReducer.entries(from: events).count == 1)
     }
 
-    @Test func criticalMetadataBelongsToExactDamageComponent() throws {
+    @Test func `critical metadata belongs to exact damage component`() throws {
         let ability = Ability(
             id: "critical-strike",
             name: "Critical Strike",
             tier: .basic,
             directDamage: 3,
-            guaranteedCriticalIfEnemyBuffed: true
+            guaranteedCriticalIfEnemyBuffed: true,
         )
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [ability])
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
@@ -223,13 +223,13 @@ struct BattleTurnEngineTests {
                 ActiveEffect(id: 1, effect: .shield(.block, 1), remainingTurns: 2),
             ],
             seed: BattleTestFixtures.deterministicNonCriticalSeed,
-            nextEventID: 0
+            nextEventID: 0,
         )
         let events = BattleTurnEngine.performAction(
             ability: ability,
             actor: hero,
             abilityTarget: context.enemy,
-            context: &context
+            context: &context,
         )
 
         let component = try #require(events.first { $0.kind == .abilityDamage })
@@ -238,38 +238,38 @@ struct BattleTurnEngineTests {
     }
 
     @Test(arguments: [true, false])
-    func performActionAfterLethalHitSkipsCorpseEffectsButStillGrantsGold(grantGold: Bool) throws {
+    func `perform action after lethal hit skips corpse effects but still grants gold`(grantGold: Bool) throws {
         let ability = Ability(
             id: grantGold ? "kill-gold" : "kill-mark",
             name: grantGold ? "Kill Gold" : "Kill Mark",
             tier: .basic,
             directDamage: 100,
             damageKeyword: .physical,
-            effects: grantGold ? [.resourceGain(.gold, 3)] : [.marked(2, 4)]
+            effects: grantGold ? [.resourceGain(.gold, 3)] : [.marked(2, 4)],
         )
         let hero = CombatantFixtures.combatant(
             id: "hero",
             role: .hero,
-            abilities: [ability]
+            abilities: [ability],
         )
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
         let enemy = CombatantFixtures.combatant(
             id: "enemy",
             role: .enemy,
-            maxHealth: 5
+            maxHealth: 5,
         )
         var context = BattleTestFixtures.makeContext(
             hero: hero,
             companion: companion,
             enemy: enemy,
             seed: 0,
-            nextEventID: 0
+            nextEventID: 0,
         )
         let events = BattleTurnEngine.performAction(
             ability: ability,
             actor: hero,
             abilityTarget: context.enemy,
-            context: &context
+            context: &context,
         )
 
         try #expect(context.roster.health(for: enemy) == 0)
@@ -289,7 +289,7 @@ struct BattleTurnEngineTests {
         }
     }
 
-    @Test func preferredTierFollowsEnemyCadence() throws {
+    @Test func `preferred tier follows enemy cadence`() throws {
         try #expect(BattleTurnEngine.preferredTier(for: 1) == .basic)
         try #expect(BattleTurnEngine.preferredTier(for: 2) == .basic)
         try #expect(BattleTurnEngine.preferredTier(for: 3) == .skill)
@@ -305,7 +305,7 @@ struct BattleTurnEngineTests {
             name: "Enemy",
             role: .enemy,
             maxHealth: 30,
-            abilities: [basic, skill, ultimate]
+            abilities: [basic, skill, ultimate],
         )
         try #expect(BattleTurnEngine.selectedEnemyAbility(for: enemy, turnNumber: 3)?.id == skill.id)
         try #expect(BattleTurnEngine.selectedEnemyAbility(for: enemy, turnNumber: 6)?.id == ultimate.id)
@@ -313,12 +313,12 @@ struct BattleTurnEngineTests {
 }
 
 struct BattleTurnEngineComponentTests {
-    @Test func nextHolyStrikeBurnUsesAuthoredNotDoubledPotency() throws {
+    @Test func `next holy strike burn uses authored not doubled potency`() throws {
         let ability = Ability(
             id: "holy-strike",
             name: "Holy Strike",
             tier: .basic,
-            damageComponents: [DamageComponent(10, keyword: .holy)]
+            damageComponents: [DamageComponent(10, keyword: .holy)],
         )
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [ability])
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
@@ -330,7 +330,7 @@ struct BattleTurnEngineComponentTests {
             heroEffects: [ActiveEffect(id: 1, effect: .nextHolyStrike, remainingTurns: 0)],
             seed: BattleTestFixtures.deterministicNonCriticalSeed,
             nextEffectID: 2,
-            nextEventID: 0
+            nextEventID: 0,
         )
         let healthBefore = context.roster.health(for: enemy)
 
@@ -338,7 +338,7 @@ struct BattleTurnEngineComponentTests {
             ability: ability,
             actor: hero,
             abilityTarget: context.enemy,
-            context: &context
+            context: &context,
         )
 
         #expect(context.roster.health(for: enemy) == healthBefore - 30)
@@ -348,7 +348,7 @@ struct BattleTurnEngineComponentTests {
         #expect(burnStack.effect.potency == 10)
     }
 
-    @Test func multiTargetComponentsEmitAbilityDamageForEveryResolvedTargetAndSumInSummary() throws {
+    @Test func `multi target components emit ability damage for every resolved target and sum in summary`() throws {
         let ability = Ability(
             id: "sweep",
             name: "Sweep",
@@ -356,7 +356,7 @@ struct BattleTurnEngineComponentTests {
             damageComponents: [
                 DamageComponent(2, keyword: .physical),
                 DamageComponent(3, keyword: .physical, target: .enemy),
-            ]
+            ],
         )
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [ability])
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
@@ -366,14 +366,14 @@ struct BattleTurnEngineComponentTests {
             companion: companion,
             enemy: enemy,
             seed: BattleTestFixtures.deterministicNonCriticalSeed,
-            nextEventID: 0
+            nextEventID: 0,
         )
 
         let events = BattleTurnEngine.performAction(
             ability: ability,
             actor: hero,
             abilityTarget: context.enemy,
-            context: &context
+            context: &context,
         )
 
         let components = events.filter { $0.kind == .abilityDamage }
@@ -383,12 +383,12 @@ struct BattleTurnEngineComponentTests {
         #expect(summary.amount == 5)
     }
 
-    @Test func turnCadenceResetsAllParticipantsIncludingEnemy() throws {
+    @Test func `turn cadence resets all participants including enemy`() throws {
         var context = BattleStateTestFactory.makeBattle(
             hero: CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [.slash]),
             companion: CombatantFixtures.combatant(id: "companion", role: .companion),
             enemy: CombatantFixtures.combatant(id: "enemy", role: .enemy, abilities: [.slash]),
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         for participant in BattleParticipant.allCases {
             context.roster.mutateRuntime(for: context.roster[participant].combatant) { runtime in
@@ -404,12 +404,12 @@ struct BattleTurnEngineComponentTests {
         }
     }
 
-    @Test func manaEmpowermentTerminatesSafelyWithZeroCost() throws {
+    @Test func `mana empowerment terminates safely with zero cost`() throws {
         let burnAbility = Ability(
             id: "flame-burst",
             name: "Flame Burst",
             tier: .basic,
-            damageComponents: [DamageComponent(5, keyword: .burn)]
+            damageComponents: [DamageComponent(5, keyword: .burn)],
         )
         let hero = Combatant(
             id: "hero",
@@ -417,7 +417,7 @@ struct BattleTurnEngineComponentTests {
             role: .hero,
             maxHealth: 50,
             maxMana: 10,
-            abilities: [burnAbility]
+            abilities: [burnAbility],
         )
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy)
@@ -429,11 +429,11 @@ struct BattleTurnEngineComponentTests {
                 triggers: CombatTraitTriggers(
                     mana: ManaTriggers(
                         repeatManaEmpowerment: true,
-                        empowermentCostReduction: 10
-                    )
-                )
+                        empowermentCostReduction: 10,
+                    ),
+                ),
             ),
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         context.roster.mutateRuntime(for: hero) {
             $0.currentMana = 5
@@ -442,7 +442,7 @@ struct BattleTurnEngineComponentTests {
             ability: burnAbility,
             actor: hero,
             abilityTarget: enemy,
-            context: &context
+            context: &context,
         )
         try #expect(context.roster.runtime(for: hero)?.currentMana == 5)
         let summary = try #require(events.first { $0.kind == .ability })

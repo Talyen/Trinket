@@ -12,7 +12,7 @@ public extension ItemAffixPower {
                 in: description,
                 from: modifier.numericValue,
                 to: scaled.numericValue,
-                isPercent: modifier.isPercent
+                isPercent: modifier.isPercent,
             )
             return scaled
         }
@@ -21,7 +21,7 @@ public extension ItemAffixPower {
                 in: description,
                 from: old,
                 to: new,
-                isPercent: isPercent
+                isPercent: isPercent,
             )
         }
         return Self(description: description, modifiers: scaledModifiers, triggers: scaledTriggers)
@@ -44,20 +44,20 @@ public extension ItemAffixPower {
                     in: description,
                     from: modifier.numericValue,
                     to: newValue,
-                    isPercent: true
+                    isPercent: true,
                 )
                 return modifier.mapPercent { _ in newValue }
             }
             let old = Int(modifier.numericValue.rounded())
             let newValue = Int.random(
                 in: ItemAffixMagnitudeRoll.integerRange(around: old),
-                using: &randomNumberGenerator
+                using: &randomNumberGenerator,
             )
             description = Self.replacingMagnitude(
                 in: description,
                 from: Double(old),
                 to: Double(newValue),
-                isPercent: false
+                isPercent: false,
             )
             return modifier.mapInt { _ in newValue }
         }
@@ -66,7 +66,7 @@ public extension ItemAffixPower {
                 in: description,
                 from: old,
                 to: new,
-                isPercent: isPercent
+                isPercent: isPercent,
             )
         }
         return Self(description: description, modifiers: rolledModifiers, triggers: rolledTriggers)
@@ -84,7 +84,7 @@ public extension ItemAffixPower {
                 }
             } else {
                 let maximum = ItemAffixMagnitudeRoll.integerRange(
-                    around: Int(catalogModifier.numericValue.rounded())
+                    around: Int(catalogModifier.numericValue.rounded()),
                 ).upperBound
                 if Int(modifiers[index].numericValue.rounded()) < maximum {
                     return false
@@ -127,7 +127,7 @@ public extension ItemAffixPower {
             guard modifiers.indices.contains(index),
                   let bumpedModifier = modifiers[index].bumped(
                       intDelta: direction.intDelta,
-                      percentDelta: direction.percentDelta
+                      percentDelta: direction.percentDelta,
                   ) else {
                 return self
             }
@@ -138,7 +138,7 @@ public extension ItemAffixPower {
                 in: description,
                 from: old,
                 to: new,
-                isPercent: modifiers[index].isPercent
+                isPercent: modifiers[index].isPercent,
             )
 
         case let .trigger(index):
@@ -149,7 +149,7 @@ public extension ItemAffixPower {
                     in: description,
                     from: old,
                     to: new,
-                    isPercent: isPercent
+                    isPercent: isPercent,
                 )
             }
         }
@@ -165,7 +165,7 @@ public extension ItemAffixPower {
         direction: ItemAffixPowerBumpDirection,
         to powers: inout [ItemAffixPower],
         affixIDs: [String],
-        using randomNumberGenerator: inout some RandomNumberGenerator
+        using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> (title: String, affixIndex: Int)? {
         var candidates: [(powerIndex: Int, target: BumpTarget)] = []
         for (powerIndex, power) in powers.enumerated() {
@@ -186,7 +186,7 @@ public extension ItemAffixPower {
         in description: String,
         from old: Double,
         to new: Double,
-        isPercent: Bool
+        isPercent: Bool,
     ) -> String {
         let oldText = isPercent ? "\(Int((old * 100).rounded()))%" : "\(Int(old.rounded()))"
         let newText = isPercent ? "\(Int((new * 100).rounded()))%" : "\(Int(new.rounded()))"
@@ -251,7 +251,7 @@ private extension CombatTraitTriggers {
     mutating func scale(
         _ keyPath: WritableKeyPath<Self, Int>,
         by multiplier: Int,
-        record: (Double, Double, Bool) -> Void
+        record: (Double, Double, Bool) -> Void,
     ) {
         let old = self[keyPath: keyPath]
         guard old != 0 else { return }
@@ -263,7 +263,7 @@ private extension CombatTraitTriggers {
     mutating func scale(
         _ keyPath: WritableKeyPath<Self, Double>,
         by multiplier: Int,
-        record: (Double, Double, Bool) -> Void
+        record: (Double, Double, Bool) -> Void,
     ) {
         let old = self[keyPath: keyPath]
         guard old != 0 else { return }
@@ -285,7 +285,7 @@ private extension CombatTraitTriggers {
 
     func scalingAffixMagnitudes(
         by multiplier: Int,
-        record: (Double, Double, Bool) -> Void
+        record: (Double, Double, Bool) -> Void,
     ) -> Self {
         var scaled = self
         for field in Self.affixMagnitudeFields {
@@ -301,7 +301,7 @@ private extension CombatTraitTriggers {
 
     func rollingAffixMagnitudes(
         using randomNumberGenerator: inout some RandomNumberGenerator,
-        record: (Double, Double, Bool) -> Void
+        record: (Double, Double, Bool) -> Void,
     ) -> Self {
         var rolled = self
         for field in Self.affixMagnitudeFields {
@@ -311,7 +311,7 @@ private extension CombatTraitTriggers {
                 guard old != 0 else { continue }
                 let new = Int.random(
                     in: ItemAffixMagnitudeRoll.integerRange(around: old),
-                    using: &randomNumberGenerator
+                    using: &randomNumberGenerator,
                 )
                 rolled[keyPath: keyPath] = new
                 record(Double(old), Double(new), false)
@@ -374,7 +374,7 @@ private extension CombatTraitTriggers {
         func bump(
             in triggers: inout CombatTraitTriggers,
             direction: ItemAffixPowerBumpDirection,
-            record: (Double, Double, Bool) -> Void
+            record: (Double, Double, Bool) -> Void,
         ) {
             switch self {
             case let .int(keyPath):

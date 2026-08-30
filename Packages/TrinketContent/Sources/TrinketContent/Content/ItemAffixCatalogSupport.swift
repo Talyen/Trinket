@@ -9,7 +9,7 @@ enum ItemAffixCatalogSupport {
         keywords: [Keyword],
         weight: Int,
         basic: ItemAffixPower,
-        astral: ItemAffixPower
+        astral: ItemAffixPower,
     ) -> ItemAffixDefinition {
         ItemAffixDefinition(
             id: id,
@@ -18,7 +18,7 @@ enum ItemAffixCatalogSupport {
             keywords: Set(keywords),
             weight: weight,
             basic: basic,
-            astral: astral
+            astral: astral,
         )
     }
 }

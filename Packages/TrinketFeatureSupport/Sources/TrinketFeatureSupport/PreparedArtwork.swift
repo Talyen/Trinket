@@ -6,7 +6,7 @@ import UIKit
 
 private let preparedArtworkFallbackLogger = Logger(
     subsystem: "com.trinket.diagnostics",
-    category: "ArtworkCache"
+    category: "ArtworkCache",
 )
 
 @MainActor
@@ -34,7 +34,7 @@ public extension Image {
     @MainActor
     static func preparedAsset(
         _ reference: some PreparedArtworkReference,
-        displaySize: PreparedArtworkDisplaySize
+        displaySize: PreparedArtworkDisplaySize,
     ) -> Image {
         let name = switch displaySize {
         case .compact:
@@ -52,7 +52,7 @@ public extension Image {
         }
         if PreparedArtworkFallbackDedupe.shouldLog(name) {
             preparedArtworkFallbackLogger.debug(
-                "PreparedArtwork cache miss for \(name, privacy: .public) — on-demand decode will hitch"
+                "PreparedArtwork cache miss for \(name, privacy: .public) — on-demand decode will hitch",
             )
         }
         return Image(name)

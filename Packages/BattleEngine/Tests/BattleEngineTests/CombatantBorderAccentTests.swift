@@ -3,11 +3,11 @@ import Testing
 import TrinketCore
 
 struct CombatantBorderAccentTests {
-    @Test func emptyEffectsYieldNoAccent() {
+    @Test func `empty effects yield no accent`() {
         #expect(CombatantBorderAccent.keyword(from: []) == nil)
     }
 
-    @Test func ignoresBuffsControlBuildUpAndDoTs() {
+    @Test func `ignores buffs control build up and do ts`() {
         let effects = [
             ActiveEffect(id: 1, effect: .shield(.block, 10), remainingTurns: 6),
             ActiveEffect(id: 2, effect: .thorns(1), remainingTurns: 4),
@@ -20,7 +20,7 @@ struct CombatantBorderAccentTests {
         #expect(CombatantBorderAccent.keyword(from: effects) == nil)
     }
 
-    @Test func deathsDoorOutranksTriggeredControl() {
+    @Test func `deaths door outranks triggered control`() {
         let effects = [
             ActiveEffect(id: 1, effect: .burn(4), remainingTurns: 0),
             ActiveEffect(id: 2, effect: .controlMeter(.stun, 10, 10), remainingTurns: 0),
@@ -30,7 +30,7 @@ struct CombatantBorderAccentTests {
         #expect(CombatantBorderAccent.keyword(from: effects) == .deathsDoor)
     }
 
-    @Test func triggeredControlYieldsAccent() {
+    @Test func `triggered control yields accent`() {
         let effects = [
             ActiveEffect(id: 1, effect: .poison(4), remainingTurns: 0),
             ActiveEffect(id: 2, effect: .controlMeter(.freeze, 10, 10), remainingTurns: 0),
@@ -39,7 +39,7 @@ struct CombatantBorderAccentTests {
         #expect(CombatantBorderAccent.keyword(from: effects) == .freeze)
     }
 
-    @Test func controlStatusLingerAccentsUnlessPendingSkipRequired() {
+    @Test func `control status linger accents unless pending skip required`() {
         let linger = [
             ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTurns: 1),
         ]
@@ -47,8 +47,8 @@ struct CombatantBorderAccentTests {
         #expect(
             CombatantBorderAccent.keyword(
                 from: linger,
-                controlAccentRequiresPendingSkip: true
-            ) == nil
+                controlAccentRequiresPendingSkip: true,
+            ) == nil,
         )
     }
 }

@@ -20,7 +20,7 @@ struct BoonChoiceOverlay: View {
 
                 KeywordPlasmaBackground(
                     sources: plasmaSources(in: geometry.size),
-                    isMotionActive: true
+                    isMotionActive: true,
                 )
 
                 VStack(spacing: 20) {
@@ -33,7 +33,7 @@ struct BoonChoiceOverlay: View {
                                 isSelected: committingChoiceID == choice.id,
                                 isOtherSelected: committingChoiceID != nil && committingChoiceID != choice.id,
                                 onCenterChange: { updateCenter($0, for: choice.id) },
-                                onSelect: { handleSelect(choice.id) }
+                                onSelect: { handleSelect(choice.id) },
                             )
                         }
                     }
@@ -81,8 +81,8 @@ struct BoonChoiceOverlay: View {
                 keywords: choice.boon.category.keywords,
                 focalPoint: UnitPoint(
                     x: center.x / size.width,
-                    y: center.y / size.height
-                )
+                    y: center.y / size.height,
+                ),
             )
         }
         if !measured.isEmpty {
@@ -93,7 +93,7 @@ struct BoonChoiceOverlay: View {
             guard index < fallbackY.count else { return nil }
             return KeywordPlasmaBackground.Source(
                 keywords: choice.boon.category.keywords,
-                focalPoint: UnitPoint(x: 0.5, y: fallbackY[index])
+                focalPoint: UnitPoint(x: 0.5, y: fallbackY[index]),
             )
         }
     }
@@ -136,7 +136,7 @@ private struct BoonChoiceCard: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(
                 .ultraThinMaterial,
-                in: RoundedRectangle(cornerRadius: 18, style: .continuous)
+                in: RoundedRectangle(cornerRadius: 18, style: .continuous),
             )
             .background {
                 RoundedRectangle(cornerRadius: 18, style: .continuous)
@@ -147,8 +147,8 @@ private struct BoonChoiceCard: View {
                                 TrinketDesign.Colors.Overlay.ink.opacity(0.50),
                             ],
                             startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
+                            endPoint: .bottomTrailing,
+                        ),
                     )
             }
             .overlay {
@@ -156,11 +156,11 @@ private struct BoonChoiceCard: View {
                     keywords: Array(choice.boon.category.keywords),
                     cornerRadius: 18,
                     lineWidth: isSelected ? 2.5 : 1.4,
-                    isMotionActive: true
+                    isMotionActive: true,
                 )
                 .shadow(
                     color: primaryKeywordColor.opacity(isSelected ? 0.9 : 0.25),
-                    radius: isSelected ? 16 : 6
+                    radius: isSelected ? 16 : 6,
                 )
             }
         }

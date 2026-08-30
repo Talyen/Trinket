@@ -14,7 +14,7 @@ public extension GameContent {
                 baseType: base,
                 rarity: .astral,
                 displayName: base.name,
-                affixes: [definition.resolved(for: .astral)]
+                affixes: [definition.resolved(for: .astral)],
             )
         }
 
@@ -25,13 +25,13 @@ public extension GameContent {
                 .filter { $0 != .unique }
                 .map { rarity in
                     var randomNumberGenerator = SeededRandomNumberGenerator(
-                        seed: stableSeed(for: "\(base.id)-\(rarity.rawValue)")
+                        seed: stableSeed(for: "\(base.id)-\(rarity.rawValue)"),
                     )
                     return ItemGenerator().generate(
                         id: "\(base.id)-\(rarity.rawValue)",
                         baseType: base,
                         rarity: rarity,
-                        using: &randomNumberGenerator
+                        using: &randomNumberGenerator,
                     )
                 }
         }

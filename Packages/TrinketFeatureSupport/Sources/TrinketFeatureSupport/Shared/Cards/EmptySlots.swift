@@ -19,7 +19,7 @@ struct EmptyAbilitySlotCard: View {
                     .foregroundStyle(.secondary)
                     .lineLimit(2)
                     .multilineTextAlignment(.center)
-            }
+            },
         )
     }
 }
@@ -53,7 +53,7 @@ public struct EmptyItemSlotCard: View {
                     .foregroundStyle(.secondary)
                     .lineLimit(2)
                     .multilineTextAlignment(.center)
-            }
+            },
         )
     }
 }

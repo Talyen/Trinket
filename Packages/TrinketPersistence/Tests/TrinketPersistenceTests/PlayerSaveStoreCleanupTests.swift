@@ -12,13 +12,13 @@ final class PlayerSaveStoreCleanupTests {
         context = try PersistenceTestContext()
     }
 
-    @Test func cleanStoreFilesDeletesSqliteSidecars() throws {
+    @Test func `clean store files deletes sqlite sidecars`() throws {
         let storeURL = context.storeURL()
         do {
             _ = try PlayerSaveStore(
                 storeURL: storeURL,
                 disableCloudSync: true,
-                persistSaveImmediately: true
+                persistSaveImmediately: true,
             )
         }
         let walURL = storeURL.deletingPathExtension().appendingPathExtension("sqlite-wal")
@@ -33,13 +33,13 @@ final class PlayerSaveStoreCleanupTests {
         try #expect(!FileManager.default.fileExists(atPath: shmURL.path))
     }
 
-    @Test func resetStateTrueWipesPriorProgress() throws {
+    @Test func `reset state true wipes prior progress`() throws {
         let storeURL = context.storeURL()
         do {
             let store = try PlayerSaveStore(
                 storeURL: storeURL,
                 disableCloudSync: true,
-                persistSaveImmediately: true
+                persistSaveImmediately: true,
             )
             var roster = store.roster
             roster.gold = 99
@@ -50,7 +50,7 @@ final class PlayerSaveStoreCleanupTests {
             storeURL: storeURL,
             disableCloudSync: true,
             resetState: true,
-            persistSaveImmediately: true
+            persistSaveImmediately: true,
         )
 
         let reloaded = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
@@ -58,13 +58,13 @@ final class PlayerSaveStoreCleanupTests {
         try #expect(primaryRootCount(at: storeURL) == 1)
     }
 
-    @Test func duplicatePrimaryRootsKeepTheNewestOnOpen() throws {
+    @Test func `duplicate primary roots keep the newest on open`() throws {
         let storeURL = context.storeURL()
         do {
             let firstStore = try PlayerSaveStore(
                 storeURL: storeURL,
                 disableCloudSync: true,
-                persistSaveImmediately: true
+                persistSaveImmediately: true,
             )
             var roster = firstStore.roster
             roster.gold = 99
@@ -82,14 +82,14 @@ final class PlayerSaveStoreCleanupTests {
         try #expect(primaryRootCount(at: storeURL) == 1)
     }
 
-    @Test func duplicatePrimaryRootsWithEqualModifiedAtKeepHigherSessionGeneration() throws {
+    @Test func `duplicate primary roots with equal modified at keep higher session generation`() throws {
         let storeURL = context.storeURL()
         let timestamp = Date()
         do {
             let firstStore = try PlayerSaveStore(
                 storeURL: storeURL,
                 disableCloudSync: true,
-                persistSaveImmediately: true
+                persistSaveImmediately: true,
             )
             var roster = firstStore.roster
             roster.gold = 99
@@ -98,7 +98,7 @@ final class PlayerSaveStoreCleanupTests {
 
         let sideContext = try SaveTestSupport.makeSideContext(storeURL: storeURL)
         let primaries = try sideContext.fetch(
-            FetchDescriptor<PlayerSaveRoot>(predicate: #Predicate { $0.id == "primary" })
+            FetchDescriptor<PlayerSaveRoot>(predicate: #Predicate { $0.id == "primary" }),
         )
         let keeper = try #require(primaries.first)
         keeper.modifiedAt = timestamp
@@ -119,7 +119,7 @@ final class PlayerSaveStoreCleanupTests {
     private func primaryRootCount(at storeURL: URL) throws -> Int {
         let sideContext = try SaveTestSupport.makeSideContext(storeURL: storeURL)
         return try sideContext.fetch(
-            FetchDescriptor<PlayerSaveRoot>(predicate: #Predicate { $0.id == "primary" })
+            FetchDescriptor<PlayerSaveRoot>(predicate: #Predicate { $0.id == "primary" }),
         ).count
     }
 }

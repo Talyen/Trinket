@@ -21,7 +21,7 @@ public protocol BattleRuntime: AnyObject {
         runKey: BattleRunKey,
         heroID: String,
         companionID: String,
-        enemyID: String?
+        enemyID: String?,
     ) -> Bool
     @discardableResult
     func activate(_ configuration: BattleRunConfiguration) -> Bool

@@ -12,7 +12,7 @@ struct CombatantDetailScreen {
         for name: String,
         timeout: TimeInterval = TrinketUITestCase.defaultTimeout,
         file: StaticString = #file,
-        line: UInt = #line
+        line: UInt = #line,
     ) {
         let element = header(for: name)
         XCTAssertTrue(element.waitForExistence(timeout: timeout), "\(name) detail header not found", file: file, line: line)

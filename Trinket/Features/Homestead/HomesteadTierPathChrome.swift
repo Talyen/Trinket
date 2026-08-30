@@ -30,7 +30,7 @@ struct HomesteadTierNodeChrome<Glyph: View>: View {
             Circle()
                 .strokeBorder(
                     stroke,
-                    lineWidth: HomesteadTierNodeMetrics.strokeWidth(emphasized: emphasized)
+                    lineWidth: HomesteadTierNodeMetrics.strokeWidth(emphasized: emphasized),
                 )
 
             glyph
@@ -51,7 +51,7 @@ struct HomesteadTierPathRail<Node: View>: View {
         connectorAfter: HomesteadTierConnectorState?,
         connectorBeforeFill: CGFloat? = nil,
         connectorAfterFill: CGFloat? = nil,
-        @ViewBuilder node: () -> Node
+        @ViewBuilder node: () -> Node,
     ) {
         self.connectorBefore = connectorBefore
         self.connectorAfter = connectorAfter
@@ -80,7 +80,7 @@ struct HomesteadTierPathRail<Node: View>: View {
                 node
                     .frame(
                         width: HomesteadTierNodeMetrics.size,
-                        height: HomesteadTierNodeMetrics.size
+                        height: HomesteadTierNodeMetrics.size,
                     )
                     .offset(y: centerY - nodeRadius)
             }
@@ -93,7 +93,7 @@ struct HomesteadTierPathRail<Node: View>: View {
     @ViewBuilder
     private func connector(
         _ state: HomesteadTierConnectorState,
-        completedFill: CGFloat?
+        completedFill: CGFloat?,
     ) -> some View {
         let width: CGFloat = state == .future ? 2 : 2.5
         if state == .completed, let completedFill {

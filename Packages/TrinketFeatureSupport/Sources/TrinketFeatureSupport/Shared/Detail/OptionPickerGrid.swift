@@ -27,7 +27,7 @@ public struct OptionPickerGrid<Item: Identifiable, CardView: View>: View {
         artworkNameProvider: ((Item) -> String?)? = nil,
         viewportPrefetchRows: Int = ArtworkViewportPrewarm.defaultPrefetchRows,
         viewportEstimatedColumns: Int = ArtworkViewportPrewarm.partyPickerEstimatedColumns,
-        @ViewBuilder card: @escaping (Item, Bool) -> CardView
+        @ViewBuilder card: @escaping (Item, Bool) -> CardView,
     ) {
         self.items = items
         self.isSelected = isSelected
@@ -46,7 +46,7 @@ public struct OptionPickerGrid<Item: Identifiable, CardView: View>: View {
         ScrollView {
             LazyVGrid(
                 columns: TrinketDesign.Metrics.partyPickerGridItems,
-                spacing: TrinketDesign.Metrics.largeSpacing
+                spacing: TrinketDesign.Metrics.largeSpacing,
             ) {
                 ForEach(items) { item in
                     let eligible = isEligible(item)
@@ -62,7 +62,7 @@ public struct OptionPickerGrid<Item: Identifiable, CardView: View>: View {
                         label: {
                             card(item, selected)
                                 .opacity(eligible ? 1.0 : 0.4)
-                        }
+                        },
                     )
                     .trinketSelectionCardButtonStyle()
                     .optionalMatchedTransitionSource(id: item.id, in: zoomNamespace)
@@ -94,7 +94,7 @@ public struct OptionPickerGrid<Item: Identifiable, CardView: View>: View {
                 visibleIDStrings: snapshot,
                 thumbnailName: provider,
                 prefetchRows: viewportPrefetchRows,
-                estimatedColumns: viewportEstimatedColumns
+                estimatedColumns: viewportEstimatedColumns,
             )
             guard !names.isEmpty else { return }
             await PreparedArtworkCache.shared.prepare(names: names)

@@ -10,7 +10,7 @@ public enum BattleTargetResolver {
         _ target: EffectTarget,
         actor: Combatant,
         abilityTarget: Combatant,
-        in context: BattleState
+        in context: BattleState,
     ) -> Combatant {
         switch target {
         case .abilityTarget:

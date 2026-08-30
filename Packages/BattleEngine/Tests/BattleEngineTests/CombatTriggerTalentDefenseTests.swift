@@ -5,65 +5,65 @@ import TrinketTestSupport
 @testable import BattleEngine
 
 struct CombatTriggerTalentDefenseTests {
-    @Test func bulwarkFortressReducesHeroDamageWhileCompanionBlocked() {
+    @Test func `bulwark fortress reduces hero damage while companion blocked`() {
         var battle = BattleStateTestFactory.makeBattle(
             hero: BattleTestFixtures.passiveHero(maxHealth: 50),
             companion: BattleTestFixtures.passiveCompanion(maxHealth: 20),
             enemy: BattleTestFixtures.silentEnemy(maxHealth: 100),
             companionModifiers: .init(triggers: CombatTraitTriggers(
-                block: BlockTriggers(companionBlockProtectsHeroPercent: 0.5)
+                block: BlockTriggers(companionBlockProtectsHeroPercent: 0.5),
             )),
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         _ = battle.applyBlock(
             5,
             to: battle.roster.companion.combatant,
             source: battle.roster.companion.combatant,
-            abilityName: "Test"
+            abilityName: "Test",
         )
         let hero = battle.roster.hero.combatant
         let outcome = battle.resolveDamage(
-            DamageRequest(amount: 10, target: hero, keyword: .physical, sourceActorID: "enemy")
+            DamageRequest(amount: 10, target: hero, keyword: .physical, sourceActorID: "enemy"),
         )
         #expect(outcome.healthLost == 5)
     }
 
-    @Test func ironhideCapsDamagePerHit() {
+    @Test func `ironhide caps damage per hit`() {
         var battle = BattleStateTestFactory.makeBattle(
             hero: BattleTestFixtures.passiveHero(maxHealth: 50),
             companion: BattleTestFixtures.passiveCompanion(maxHealth: 20),
             enemy: BattleTestFixtures.silentEnemy(maxHealth: 100),
             companionModifiers: .init(triggers: CombatTraitTriggers(
-                block: BlockTriggers(maxDamagePerHitCap: 10)
+                block: BlockTriggers(maxDamagePerHitCap: 10),
             )),
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         let companion = battle.roster.companion.combatant
         let outcome = battle.resolveDamage(
-            DamageRequest(amount: 16, target: companion, keyword: .physical, sourceActorID: "enemy")
+            DamageRequest(amount: 16, target: companion, keyword: .physical, sourceActorID: "enemy"),
         )
         #expect(outcome.healthLost == 10)
     }
 
-    @Test func counterPounceCountersWhenDodging() {
+    @Test func `counter pounce counters when dodging`() {
         var battle = BattleStateTestFactory.makeBattle(
             hero: BattleTestFixtures.passiveHero(maxHealth: 50),
             companion: BattleTestFixtures.passiveCompanion(maxHealth: 20),
             enemy: BattleTestFixtures.silentEnemy(maxHealth: 100),
             companionModifiers: .init(triggers: CombatTraitTriggers(
-                dodge: DodgeTriggers(onDodgeCounterDamage: 3)
+                dodge: DodgeTriggers(onDodgeCounterDamage: 3),
             )),
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         _ = CombatTriggerEngine.afterDodge(
             by: battle.roster.companion.combatant,
             attackerID: battle.roster.enemy.id,
-            in: &battle
+            in: &battle,
         )
         #expect(battle.roster.health(for: battle.roster.enemy.combatant) == 97)
     }
 
-    @Test func shieldBondSharesBlockToHero() {
+    @Test func `shield bond shares block to hero`() {
         var battle = BattleStateTestFactory.makeBattle(
             hero: BattleTestFixtures.passiveHero(maxHealth: 50),
             companion: BattleTestFixtures.passiveCompanion(maxHealth: 20),
@@ -71,23 +71,23 @@ struct CombatTriggerTalentDefenseTests {
             companionModifiers: .init(
                 blockGainedBonus: 2,
                 triggers: CombatTraitTriggers(
-                    block: BlockTriggers(companionBlockSharesToHeroPercent: 1)
-                )
+                    block: BlockTriggers(companionBlockSharesToHeroPercent: 1),
+                ),
             ),
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         let outcome = EffectHandlersTestSupport.dispatch(
             .shield(.block, 4),
             ability: .block,
             source: battle.roster.companion.combatant,
             target: battle.roster.companion.combatant,
-            battle: &battle
+            battle: &battle,
         )
         let companionBlock = DefensePoolEngine.blockPoints(
-            in: battle.roster.activeEffects(for: battle.roster.companion.combatant)
+            in: battle.roster.activeEffects(for: battle.roster.companion.combatant),
         )
         let heroBlock = DefensePoolEngine.blockPoints(
-            in: battle.roster.activeEffects(for: battle.roster.hero.combatant)
+            in: battle.roster.activeEffects(for: battle.roster.hero.combatant),
         )
         #expect(companionBlock == 6)
         #expect(heroBlock == 6)
@@ -96,28 +96,28 @@ struct CombatTriggerTalentDefenseTests {
         })
     }
 
-    @Test func shieldBondSharedBlockGrantsHeroThorns() {
+    @Test func `shield bond shared block grants hero thorns`() {
         var battle = BattleStateTestFactory.makeBattle(
             hero: BattleTestFixtures.passiveHero(maxHealth: 50),
             companion: BattleTestFixtures.passiveCompanion(maxHealth: 20),
             enemy: BattleTestFixtures.silentEnemy(maxHealth: 100),
             heroModifiers: .init(triggers: CombatTraitTriggers(
-                block: BlockTriggers(blockGainThornsPercent: 0.5)
+                block: BlockTriggers(blockGainThornsPercent: 0.5),
             )),
             companionModifiers: .init(triggers: CombatTraitTriggers(
-                block: BlockTriggers(companionBlockSharesToHeroPercent: 1)
+                block: BlockTriggers(companionBlockSharesToHeroPercent: 1),
             )),
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         _ = EffectHandlersTestSupport.dispatch(
             .shield(.block, 4),
             ability: .block,
             source: battle.roster.companion.combatant,
             target: battle.roster.companion.combatant,
-            battle: &battle
+            battle: &battle,
         )
         let heroBlock = DefensePoolEngine.blockPoints(
-            in: battle.roster.activeEffects(for: battle.roster.hero.combatant)
+            in: battle.roster.activeEffects(for: battle.roster.hero.combatant),
         )
         #expect(heroBlock == 4)
         #expect(battle.roster.activeEffects(for: battle.roster.hero.combatant).contains {
@@ -126,7 +126,7 @@ struct CombatTriggerTalentDefenseTests {
         })
     }
 
-    @Test func blindingCarapaceDebuffsAttackerAfterBlocking() {
+    @Test func `blinding carapace debuffs attacker after blocking`() {
         var battle = BattleStateTestFactory.makeBattle(
             hero: BattleTestFixtures.passiveHero(maxHealth: 50),
             companion: BattleTestFixtures.passiveCompanion(maxHealth: 50),
@@ -134,19 +134,19 @@ struct CombatTriggerTalentDefenseTests {
             companionModifiers: .init(triggers: CombatTraitTriggers(
                 block: BlockTriggers(
                     onBlockReduceAttackerAccuracyPercent: 25,
-                    onBlockReduceAttackerAccuracyTurns: 2
-                )
+                    onBlockReduceAttackerAccuracyTurns: 2,
+                ),
             )),
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         _ = battle.applyBlock(
             10,
             to: battle.roster.companion.combatant,
             source: battle.roster.companion.combatant,
-            abilityName: "Test"
+            abilityName: "Test",
         )
         _ = battle.resolveDamage(
-            DamageRequest(amount: 10, target: battle.roster.companion.combatant, keyword: .physical, sourceActorID: "enemy")
+            DamageRequest(amount: 10, target: battle.roster.companion.combatant, keyword: .physical, sourceActorID: "enemy"),
         )
         let hasDebuff = battle.roster.activeEffects(for: battle.roster.enemy.combatant).contains { active in
             if case .damageReductionPercent = active.effect {
@@ -157,23 +157,23 @@ struct CombatTriggerTalentDefenseTests {
         #expect(hasDebuff)
     }
 
-    @Test func armorPierceIgnoresMitigationForLeechOnly() {
+    @Test func `armor pierce ignores mitigation for leech only`() {
         let toughEnemy = Combatant(
             id: "enemy",
             name: "Enemy",
             role: .enemy,
             maxHealth: 40,
             abilities: [],
-            primaryStats: PrimaryStats(toughness: 80)
+            primaryStats: PrimaryStats(toughness: 80),
         )
         var battle = BattleStateTestFactory.makeBattle(
             hero: BattleTestFixtures.passiveHero(),
             companion: BattleTestFixtures.passiveCompanion(),
             enemy: toughEnemy,
             heroModifiers: .init(triggers: CombatTraitTriggers(
-                damage: DamageTriggers(leechIgnoresMitigation: true)
+                damage: DamageTriggers(leechIgnoresMitigation: true),
             )),
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         let physical = battle.resolveDamage(
             DamageRequest(
@@ -181,8 +181,8 @@ struct CombatTriggerTalentDefenseTests {
                 target: battle.roster.enemy.combatant,
                 keyword: .physical,
                 sourceActorID: battle.roster.hero.id,
-                options: DamageOptions(applyStatBonus: false, applyDodge: false)
-            )
+                options: DamageOptions(applyStatBonus: false, applyDodge: false),
+            ),
         )
         let leech = battle.resolveDamage(
             DamageRequest(
@@ -190,30 +190,30 @@ struct CombatTriggerTalentDefenseTests {
                 target: battle.roster.enemy.combatant,
                 keyword: .leech,
                 sourceActorID: battle.roster.hero.id,
-                options: DamageOptions(applyStatBonus: false, applyDodge: false)
-            )
+                options: DamageOptions(applyStatBonus: false, applyDodge: false),
+            ),
         )
         #expect(physical.healthLost == 5)
         #expect(leech.healthLost == 10)
     }
 
-    @Test func ironhideDoesNotCapDotDamage() {
+    @Test func `ironhide does not cap dot damage`() {
         let ironhideProfile = CombatModifierProfile(triggers: CombatTraitTriggers(
-            block: BlockTriggers(maxDamagePerHitCap: 10)
+            block: BlockTriggers(maxDamagePerHitCap: 10),
         ))
         var battle = BattleStateTestFactory.makeBattle(
             hero: BattleTestFixtures.passiveHero(maxHealth: 50),
             companion: BattleTestFixtures.passiveCompanion(),
             enemy: BattleTestFixtures.silentEnemy(maxHealth: 40),
             heroModifiers: ironhideProfile,
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         let attackOutcome = battle.resolveDamage(DamageRequest(
             amount: 20,
             target: battle.roster.hero.combatant,
             keyword: .physical,
             sourceActorID: battle.roster.enemy.id,
-            options: DamageOptions(applyStatBonus: false, applyItemBonus: false, applyDodge: false, isAttackHit: true)
+            options: DamageOptions(applyStatBonus: false, applyItemBonus: false, applyDodge: false, isAttackHit: true),
         ))
         #expect(attackOutcome.healthLost == 10)
 
@@ -222,43 +222,43 @@ struct CombatTriggerTalentDefenseTests {
             target: battle.roster.hero.combatant,
             keyword: .bleed,
             sourceActorID: battle.roster.enemy.id,
-            options: DamageOptions(applyStatBonus: false, applyItemBonus: false, applyDodge: false, isAttackHit: false)
+            options: DamageOptions(applyStatBonus: false, applyItemBonus: false, applyDodge: false, isAttackHit: false),
         ))
         #expect(dotOutcome.healthLost == 20)
     }
 
-    @Test func blockPerTurnDoesNotRequireDeathsDoor() {
+    @Test func `block per turn does not require deaths door`() {
         var battle = BattleStateTestFactory.makeBattle(
             hero: BattleTestFixtures.passiveHero(),
             companion: BattleTestFixtures.passiveCompanion(),
             enemy: BattleTestFixtures.silentEnemy(maxHealth: 40),
             companionModifiers: .init(triggers: CombatTraitTriggers(
                 block: BlockTriggers(blockPerTurn: 2),
-                revival: RevivalTriggers(guaranteedCritWhileOnDeathsDoor: true)
+                revival: RevivalTriggers(guaranteedCritWhileOnDeathsDoor: true),
             )),
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         _ = EffectTurnEngine.advanceAll(context: &battle)
         #expect(DefensePoolEngine.blockPoints(
-            in: battle.roster.activeEffects(for: battle.roster.companion.combatant)
+            in: battle.roster.activeEffects(for: battle.roster.companion.combatant),
         ) == 2)
     }
 
-    @Test func sacrificialGuardRedirectsThroughCompanionBlock() {
+    @Test func `sacrificial guard redirects through companion block`() {
         var battle = BattleStateTestFactory.makeBattle(
             hero: BattleTestFixtures.passiveHero(maxHealth: 8),
             companion: BattleTestFixtures.passiveCompanion(maxHealth: 30),
             enemy: BattleTestFixtures.silentEnemy(maxHealth: 100),
             companionModifiers: .init(triggers: CombatTraitTriggers(
-                block: BlockTriggers(companionFatalDamageRedirectBlock: 10)
+                block: BlockTriggers(companionFatalDamageRedirectBlock: 10),
             )),
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         _ = battle.applyBlock(
             20,
             to: battle.roster.companion.combatant,
             source: battle.roster.companion.combatant,
-            abilityName: "Test"
+            abilityName: "Test",
         )
         let outcome = battle.resolveDamage(
             DamageRequest(
@@ -266,27 +266,27 @@ struct CombatTriggerTalentDefenseTests {
                 target: battle.roster.hero.combatant,
                 keyword: .physical,
                 sourceActorID: battle.roster.enemy.id,
-                options: DamageOptions(applyStatBonus: false, applyItemBonus: false, applyDodge: false)
-            )
+                options: DamageOptions(applyStatBonus: false, applyItemBonus: false, applyDodge: false),
+            ),
         )
         #expect(outcome.healthLost == 0)
         #expect(battle.roster.health(for: battle.roster.hero.combatant) == 8)
         #expect(battle.roster.health(for: battle.roster.companion.combatant) == 30)
         let companionBlock = DefensePoolEngine.blockPoints(
-            in: battle.roster.activeEffects(for: battle.roster.companion.combatant)
+            in: battle.roster.activeEffects(for: battle.roster.companion.combatant),
         )
         #expect(companionBlock == 18)
     }
 
-    @Test func scavengersCacheSpendsGoldToAbsorbDamage() {
+    @Test func `scavengers cache spends gold to absorb damage`() {
         var battle = BattleStateTestFactory.makeBattle(
             hero: BattleTestFixtures.passiveHero(maxHealth: 50),
             companion: BattleTestFixtures.passiveCompanion(maxHealth: 20),
             enemy: BattleTestFixtures.silentEnemy(maxHealth: 100),
             companionModifiers: .init(triggers: CombatTraitTriggers(
-                gold: GoldTriggers(goldAbsorbsDamage: true)
+                gold: GoldTriggers(goldAbsorbsDamage: true),
             )),
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         battle.gold = 5
         let companion = battle.roster.companion.combatant
@@ -296,22 +296,22 @@ struct CombatTriggerTalentDefenseTests {
                 target: companion,
                 keyword: .physical,
                 sourceActorID: "enemy",
-                options: DamageOptions(applyStatBonus: false, applyItemBonus: false, applyDodge: false)
-            )
+                options: DamageOptions(applyStatBonus: false, applyItemBonus: false, applyDodge: false),
+            ),
         )
         #expect(outcome.healthLost == 0)
         #expect(battle.gold == 1)
     }
 
-    @Test func scavengersCacheCapsAbsorptionAtFivePerHit() {
+    @Test func `scavengers cache caps absorption at five per hit`() {
         var battle = BattleStateTestFactory.makeBattle(
             hero: BattleTestFixtures.passiveHero(maxHealth: 50),
             companion: BattleTestFixtures.passiveCompanion(maxHealth: 20),
             enemy: BattleTestFixtures.silentEnemy(maxHealth: 100),
             companionModifiers: .init(triggers: CombatTraitTriggers(
-                gold: GoldTriggers(goldAbsorbsDamage: true)
+                gold: GoldTriggers(goldAbsorbsDamage: true),
             )),
-            dealOpeningHand: false
+            dealOpeningHand: false,
         )
         battle.gold = 20
         let companion = battle.roster.companion.combatant
@@ -321,14 +321,14 @@ struct CombatTriggerTalentDefenseTests {
                 target: companion,
                 keyword: .physical,
                 sourceActorID: "enemy",
-                options: DamageOptions(applyStatBonus: false, applyItemBonus: false, applyDodge: false)
-            )
+                options: DamageOptions(applyStatBonus: false, applyItemBonus: false, applyDodge: false),
+            ),
         )
         #expect(outcome.healthLost == 7)
         #expect(battle.gold == 15)
     }
 
-    @Test func thickHideReducesDamageTaken() throws {
+    @Test func `thick hide reduces damage taken`() throws {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 20)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30)
@@ -339,10 +339,10 @@ struct CombatTriggerTalentDefenseTests {
             companionModifiers: CombatModifierProfile(
                 triggers: CombatTraitTriggers(
                     mitigation: MitigationTriggers(
-                        passiveMitigationFlat: 1
-                    )
-                )
-            )
+                        passiveMitigationFlat: 1,
+                    ),
+                ),
+            ),
         )
         context.roster.mutateRuntime(for: companion) { $0.currentHealth = 15 }
         _ = context.resolveDamage(
@@ -351,8 +351,8 @@ struct CombatTriggerTalentDefenseTests {
                 target: companion,
                 keyword: .physical,
                 sourceActorID: enemy.id,
-                options: DamageOptions(applyStatBonus: false, applyItemBonus: false, applyDodge: false)
-            )
+                options: DamageOptions(applyStatBonus: false, applyItemBonus: false, applyDodge: false),
+            ),
         )
 
         try #expect(context.roster.health(for: companion) == 11)

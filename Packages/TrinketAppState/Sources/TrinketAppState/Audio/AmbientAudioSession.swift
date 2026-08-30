@@ -16,7 +16,7 @@ enum AmbientAudioSession {
             try session.setActive(true)
         } catch {
             logger.error(
-                "Unable to configure audio session: \(error.localizedDescription, privacy: .public)"
+                "Unable to configure audio session: \(error.localizedDescription, privacy: .public)",
             )
         }
         configured = true

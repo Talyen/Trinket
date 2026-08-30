@@ -4,13 +4,13 @@ import TrinketDesignSystem
 @testable import TrinketBattleFeature
 
 struct CombatFeedbackEffectPresentationTests {
-    @Test func everyEffectOutcomeHasADescriptor() {
+    @Test func `every effect outcome has A descriptor`() {
         for outcome in ActionEvent.EffectOutcome.allCases {
             _ = CombatFeedbackEffectPresentation.descriptor(for: outcome)
         }
     }
 
-    @Test func descriptorValuesMatchPresenterContract() {
+    @Test func `descriptor values match presenter contract`() {
         let heal = CombatFeedbackEffectPresentation.descriptor(for: .instantHeal)
         #expect(heal.feedbackClass == .heal)
         #expect(heal.isAdditive)
@@ -50,19 +50,19 @@ struct CombatFeedbackEffectPresentationTests {
         #expect(amplified.labelRule == .triggeredKeyword)
     }
 
-    @Test func descriptorDisplayRulesMatchVisibilityPolicy() {
+    @Test func `descriptor display rules match visibility policy`() {
         #expect(
-            CombatFeedbackEffectPresentation.descriptor(for: .cardsDrawn).displayRule == .hidden
+            CombatFeedbackEffectPresentation.descriptor(for: .cardsDrawn).displayRule == .hidden,
         )
         #expect(
-            CombatFeedbackEffectPresentation.descriptor(for: .controlApplied).displayRule == .hidden
+            CombatFeedbackEffectPresentation.descriptor(for: .controlApplied).displayRule == .hidden,
         )
         #expect(
-            CombatFeedbackEffectPresentation.descriptor(for: .leechApplied).displayRule == .hidden
+            CombatFeedbackEffectPresentation.descriptor(for: .leechApplied).displayRule == .hidden,
         )
         #expect(
             CombatFeedbackEffectPresentation.descriptor(for: .resourceGain).displayRule
-                == .positiveAmountOnly
+                == .positiveAmountOnly,
         )
         #expect(CombatFeedbackEffectPresentation.descriptor(for: .instantHeal).displayRule == .visible)
 
@@ -73,11 +73,11 @@ struct CombatFeedbackEffectPresentationTests {
         #expect(!CombatFeedbackEffectPresentation.descriptor(for: .cardsDrawn).shouldDisplay(amount: 2))
     }
 
-    @Test func everyStatusLabelResolvesChipPresentation() {
+    @Test func `every status label resolves chip presentation`() {
         for status in CombatFeedbackStatusLabel.allCases {
             let presentation = CombatFeedbackEffectPresentation.chipPresentation(
                 for: status,
-                keyword: .physical
+                keyword: .physical,
             )
             #expect(presentation.trailingStyle != .beneficialStatus || presentation.leadingStyle != nil)
         }
@@ -91,7 +91,7 @@ struct CombatFeedbackEffectPresentationTests {
         #expect(marked.text == nil)
     }
 
-    @Test func hitReactionRecipeComputedPropertiesAndFallbacks() {
+    @Test func `hit reaction recipe computed properties and fallbacks`() {
         let defaultDamage = CombatFeedbackCardRecipes.cardReaction(for: .damage)
         #expect(defaultDamage.impactDuration > 0)
         #expect(defaultDamage.recoveryDuration > 0)
@@ -106,7 +106,7 @@ struct CombatFeedbackEffectPresentationTests {
             scaleY: [],
             offsetX: [],
             offsetY: [],
-            duration: 0.24
+            duration: 0.24,
         )
         #expect(emptyRecipe.impactDuration == 0.08)
         #expect(emptyRecipe.recoveryDuration == 0.16)

@@ -14,14 +14,14 @@ enum CombatFeedbackMotionSampler {
     static func state(
         for item: CombatFeedbackItem,
         travelDistance: CGFloat,
-        at date: Date
+        at date: Date,
     ) -> CombatFeedbackAnimationState {
         let elapsed = max(0, date.timeIntervalSince(item.availableAt))
         return CombatFeedbackAnimationState(
             opacity: BattleMotion.chipOpacity(elapsed: elapsed),
             verticalOffset: -Double(travelDistance)
                 * BattleMotion.chipMotionProgress(elapsed: elapsed),
-            scale: Double(BattleMotion.chipScale(elapsed: elapsed))
+            scale: Double(BattleMotion.chipScale(elapsed: elapsed)),
         )
     }
 }

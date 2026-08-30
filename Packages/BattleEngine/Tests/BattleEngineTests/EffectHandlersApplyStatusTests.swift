@@ -18,7 +18,7 @@ struct EffectHandlersApplyStatusTests {
         .stunPrevention,
         .randomOneOfTwo,
     ])
-    private func cleanseModesRemoveExpectedDebuffs(caseKind: CleanseCase) throws {
+    private func `cleanse modes remove expected debuffs`(caseKind: CleanseCase) throws {
         var battle = EffectHandlersTestSupport.makeBattle()
         let effect = seedCleanseCase(caseKind, battle: &battle)
 
@@ -27,7 +27,7 @@ struct EffectHandlersApplyStatusTests {
             ability: CombatantFixtures.ability(),
             source: battle.hero,
             target: battle.hero,
-            battle: &battle
+            battle: &battle,
         )
         try #expect(outcome.didApply)
         try assertCleanseOutcome(caseKind, battle: battle, outcome: outcome)
@@ -39,7 +39,7 @@ struct EffectHandlersApplyStatusTests {
             BattleStateTestFactory.seedActiveEffects(
                 [ActiveEffect(id: 1, effect: .poison(4), remainingTurns: 0)],
                 for: battle.hero,
-                on: &battle
+                on: &battle,
             )
             return .cleanse(.poison)
         case .allDebuffs:
@@ -50,14 +50,14 @@ struct EffectHandlersApplyStatusTests {
                     ActiveEffect(id: 3, effect: .shield(.block, 5), remainingTurns: 6),
                 ],
                 for: battle.hero,
-                on: &battle
+                on: &battle,
             )
             return .cleanse(nil)
         case .stunPrevention:
             BattleStateTestFactory.seedActiveEffects(
                 [ActiveEffect(id: 1, effect: .controlMeter(.stun, 5, 10), remainingTurns: 0)],
                 for: battle.hero,
-                on: &battle
+                on: &battle,
             )
             return .cleanse(.stun)
         case .randomOneOfTwo:
@@ -67,7 +67,7 @@ struct EffectHandlersApplyStatusTests {
                     ActiveEffect(id: 2, effect: .burn(4), remainingTurns: 0),
                 ],
                 for: battle.hero,
-                on: &battle
+                on: &battle,
             )
             return .cleanseRandom
         }
@@ -76,7 +76,7 @@ struct EffectHandlersApplyStatusTests {
     private func assertCleanseOutcome(
         _ caseKind: CleanseCase,
         battle: BattleState,
-        outcome: EffectApplyOutcome
+        outcome: EffectApplyOutcome,
     ) throws {
         switch caseKind {
         case .specificPoison:
@@ -111,7 +111,7 @@ struct EffectHandlersApplyStatusTests {
         .allBuffsLeaveDebuffs,
         .randomOneOfTwo,
     ])
-    private func purgeModesRemoveExpectedBuffs(caseKind: PurgeCase) throws {
+    private func `purge modes remove expected buffs`(caseKind: PurgeCase) throws {
         var battle = EffectHandlersTestSupport.makeBattle()
         let effect = seedPurgeCase(caseKind, battle: &battle)
 
@@ -120,7 +120,7 @@ struct EffectHandlersApplyStatusTests {
             ability: CombatantFixtures.ability(),
             source: battle.hero,
             target: battle.enemy,
-            battle: &battle
+            battle: &battle,
         )
         try #expect(outcome.didApply)
         try assertPurgeOutcome(caseKind, battle: battle, outcome: outcome)
@@ -135,7 +135,7 @@ struct EffectHandlersApplyStatusTests {
                     ActiveEffect(id: 2, effect: .thorns(3), remainingTurns: 0),
                 ],
                 for: battle.enemy,
-                on: &battle
+                on: &battle,
             )
             return .purge(.block)
         case .allBuffsLeaveDebuffs:
@@ -145,7 +145,7 @@ struct EffectHandlersApplyStatusTests {
                     ActiveEffect(id: 2, effect: .poison(4), remainingTurns: 0),
                 ],
                 for: battle.enemy,
-                on: &battle
+                on: &battle,
             )
             return .purge(nil)
         case .randomOneOfTwo:
@@ -155,7 +155,7 @@ struct EffectHandlersApplyStatusTests {
                     ActiveEffect(id: 2, effect: .thorns(3), remainingTurns: 0),
                 ],
                 for: battle.enemy,
-                on: &battle
+                on: &battle,
             )
             return .purgeRandom
         }
@@ -164,7 +164,7 @@ struct EffectHandlersApplyStatusTests {
     private func assertPurgeOutcome(
         _ caseKind: PurgeCase,
         battle: BattleState,
-        outcome: EffectApplyOutcome
+        outcome: EffectApplyOutcome,
     ) throws {
         switch caseKind {
         case .specificBlock:

@@ -9,7 +9,7 @@ struct StageSelectActiveCard<
     Item: Identifiable,
     Artwork: View,
     PartyPickerSheet: View,
-    ArtworkAccessory: View
+    ArtworkAccessory: View,
 >: View {
     @Environment(OptionsStore.self) private var options
     @Environment(\.isBattleActive) private var isBattleActive
@@ -33,7 +33,7 @@ struct StageSelectActiveCard<
         onPrimaryAction: @escaping () -> Void,
         @ViewBuilder artwork: @escaping () -> Artwork,
         @ViewBuilder partyPickerSheet: @escaping () -> PartyPickerSheet,
-        @ViewBuilder artworkAccessory: @escaping () -> ArtworkAccessory
+        @ViewBuilder artworkAccessory: @escaping () -> ArtworkAccessory,
     ) {
         self.presentation = presentation
         self.isPrimaryActionDisabled = isPrimaryActionDisabled
@@ -161,13 +161,13 @@ struct StageSelectActiveCard<
             controlSize: .regular,
             tint: presentation.tint,
             labelColor: TrinketDesign.Colors.Overlay.paper,
-            accessibilityIdentifier: presentation.actionAccessibilityID
+            accessibilityIdentifier: presentation.actionAccessibilityID,
         )
         .disabled(isPrimaryActionDisabled)
         .trinketSensoryFeedback(
             .selection,
             trigger: actionFeedbackTrigger,
-            enabled: options.hapticsEnabled
+            enabled: options.hapticsEnabled,
         )
     }
 
@@ -196,7 +196,7 @@ extension StageSelectActiveCard where ArtworkAccessory == EmptyView {
         onArtworkTap: @escaping () -> Void,
         onPrimaryAction: @escaping () -> Void,
         @ViewBuilder artwork: @escaping () -> Artwork,
-        @ViewBuilder partyPickerSheet: @escaping () -> PartyPickerSheet
+        @ViewBuilder partyPickerSheet: @escaping () -> PartyPickerSheet,
     ) {
         self.init(
             presentation: presentation,
@@ -205,7 +205,7 @@ extension StageSelectActiveCard where ArtworkAccessory == EmptyView {
             onPrimaryAction: onPrimaryAction,
             artwork: artwork,
             partyPickerSheet: partyPickerSheet,
-            artworkAccessory: { EmptyView() }
+            artworkAccessory: { EmptyView() },
         )
     }
 }

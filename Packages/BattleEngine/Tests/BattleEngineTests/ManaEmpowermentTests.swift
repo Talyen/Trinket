@@ -12,7 +12,7 @@ struct ManaEmpowermentTests {
         heroMana: Int? = nil,
         companionMaxMana: Int = 0,
         companionMana: Int? = nil,
-        heroModifiers: CombatModifierProfile = .zero
+        heroModifiers: CombatModifierProfile = .zero,
     ) -> BattleState {
         BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: heroAbilities,
@@ -22,7 +22,7 @@ struct ManaEmpowermentTests {
             heroMana: heroMana,
             companionMaxMana: companionMaxMana,
             companionMana: companionMana,
-            heroModifiers: heroModifiers
+            heroModifiers: heroModifiers,
         )
     }
 
@@ -48,11 +48,11 @@ struct ManaEmpowermentTests {
     }
 
     @Test(arguments: [Self.FireballCase.fullPool, .largePool, .partialPool, .emptyPool])
-    private func fireballEmpowersOnlyWhenThreeManaIsSpent(_ testCase: FireballCase) throws {
+    private func `fireball empowers only when three mana is spent`(_ testCase: FireballCase) throws {
         var battle = makeBattle(
             heroAbilities: [.fireball],
             heroMaxMana: testCase.heroMaxMana,
-            heroMana: testCase.heroMana
+            heroMana: testCase.heroMana,
         )
         let card = try #require(battle.hand.cards.first { $0.ability.id == Ability.fireball.id })
         let events = try battle.playCard(cardID: card.id)
@@ -63,11 +63,11 @@ struct ManaEmpowermentTests {
         try #expect(BattleTestFixtures.burnPotency(on: battle) == testCase.expectedDamage)
     }
 
-    @Test func freezeAbilitySpendsThreeManaForBonusDamage() throws {
+    @Test func `freeze ability spends three mana for bonus damage`() throws {
         var battle = makeBattle(
             heroAbilities: [.frostbolt],
             heroMaxMana: 4,
-            heroMana: 4
+            heroMana: 4,
         )
         let card = try #require(battle.hand.cards.first { $0.ability.id == Ability.frostbolt.id })
         let events = try battle.playCard(cardID: card.id)
@@ -77,11 +77,11 @@ struct ManaEmpowermentTests {
         try #expect(abilityEvent.amount == 4)
     }
 
-    @Test func blizzardStoresEmpoweredRecurringFreezePotency() throws {
+    @Test func `blizzard stores empowered recurring freeze potency`() throws {
         var battle = makeBattle(
             heroAbilities: [.blizzard],
             heroMaxMana: 3,
-            heroMana: 3
+            heroMana: 3,
         )
         let card = try #require(battle.hand.cards.first { $0.ability.id == Ability.blizzard.id })
         _ = try battle.playCard(cardID: card.id)
@@ -90,20 +90,20 @@ struct ManaEmpowermentTests {
         try #expect(recurringFreezePotency(on: battle) == 5)
     }
 
-    @Test func burnBranchSpendsManaPoisonBranchDoesNot() throws {
+    @Test func `burn branch spends mana poison branch does not`() throws {
         let burnOnly = Ability(
             id: "burn-only",
             name: "Burn Only",
             tier: .basic,
             damageComponents: [DamageComponent(2, keyword: .burn)],
-            targetedEffects: [TargetedEffect(.burn(2))]
+            targetedEffects: [TargetedEffect(.burn(2))],
         )
         let poisonOnly = Ability(
             id: "poison-only",
             name: "Poison Only",
             tier: .basic,
             damageComponents: [DamageComponent(2, keyword: .poison)],
-            targetedEffects: [TargetedEffect(.poison(2))]
+            targetedEffects: [TargetedEffect(.poison(2))],
         )
 
         var burnBattle = makeBattle(heroAbilities: [burnOnly], heroMaxMana: 3, heroMana: 3)
@@ -117,11 +117,11 @@ struct ManaEmpowermentTests {
         try #expect(poisonBattle.mana(of: poisonBattle.hero) == 3)
     }
 
-    @Test func multiBurnNumbersSpendOnlyThreeMana() throws {
+    @Test func `multi burn numbers spend only three mana`() throws {
         var battle = makeBattle(
             heroAbilities: [.fireArrow],
             heroMaxMana: 4,
-            heroMana: 4
+            heroMana: 4,
         )
         let card = try #require(battle.hand.cards.first { $0.ability.id == Ability.fireArrow.id })
         let events = try battle.playCard(cardID: card.id)
@@ -132,7 +132,7 @@ struct ManaEmpowermentTests {
         try #expect(BattleTestFixtures.burnPotency(on: battle) == 2)
     }
 
-    @Test func manaRegeneratesAtStartOfPlayerTurnForManaUsers() throws {
+    @Test func `mana regenerates at start of player turn for mana users`() throws {
         var battle = makeBattle(
             heroAbilities: [.slash],
             companionAbilities: [.bash],
@@ -140,7 +140,7 @@ struct ManaEmpowermentTests {
             heroMaxMana: 5,
             heroMana: 2,
             companionMaxMana: 4,
-            companionMana: 1
+            companionMana: 1,
         )
         let events = battle.endTurn()
 
@@ -149,12 +149,12 @@ struct ManaEmpowermentTests {
         try #expect(events.count(where: { $0.effectKind == .resourceGain && $0.keyword == .mana }) == 2)
     }
 
-    @Test func manaDoesNotRegenerateWithoutManaPool() throws {
+    @Test func `mana does not regenerate without mana pool`() throws {
         var battle = makeBattle(
             heroAbilities: [.slash],
             companionAbilities: [.bash],
             heroMaxMana: 0,
-            companionMaxMana: 0
+            companionMaxMana: 0,
         )
         let events = battle.endTurn()
 
@@ -163,16 +163,16 @@ struct ManaEmpowermentTests {
         try #expect(!events.contains { $0.effectKind == .resourceGain && $0.keyword == .mana })
     }
 
-    @Test func aetherwardTriggersOnManaEmpowerSpend() throws {
+    @Test func `aetherward triggers on mana empower spend`() throws {
         var battle = makeBattle(
             heroAbilities: [.frostbolt],
             heroMaxMana: 3,
             heroMana: 3,
             heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
                 mana: ManaTriggers(
-                    spendManaBlockFlat: 2
-                )
-            ))
+                    spendManaBlockFlat: 2,
+                ),
+            )),
         )
         let card = try #require(battle.hand.cards.first { $0.ability.id == Ability.frostbolt.id })
         let events = try battle.playCard(cardID: card.id)
@@ -181,19 +181,19 @@ struct ManaEmpowermentTests {
         try #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 2)
     }
 
-    @Test func manaShieldSpendsRemainingManaAfterEmpower() throws {
+    @Test func `mana shield spends remaining mana after empower`() throws {
         var battle = makeBattle(
             heroAbilities: [.kindling, .manaShield],
             companionAbilities: [.bash],
             heroMaxMana: 5,
-            heroMana: 5
+            heroMana: 5,
         )
         let kindling = try #require(battle.hand.cards.first { $0.ability.id == Ability.kindling.id })
         _ = try battle.playCard(cardID: kindling.id)
         try #expect(battle.mana(of: battle.hero) == 2)
 
         let shieldCard = try #require(
-            battle.hand.cards.first { $0.ability.id == Ability.manaShield.id && $0.owner == .hero }
+            battle.hand.cards.first { $0.ability.id == Ability.manaShield.id && $0.owner == .hero },
         )
         let manaBeforeShield = battle.mana(of: battle.hero)
         let events = try battle.playCard(cardID: shieldCard.id)

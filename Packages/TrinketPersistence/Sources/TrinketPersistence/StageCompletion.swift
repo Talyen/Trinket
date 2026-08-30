@@ -7,19 +7,19 @@ public enum StageCompletion {
         playerLevel: Int,
         enemyLevel: Int,
         highestLevel: Int,
-        xpPercent: Int = 0
+        xpPercent: Int = 0,
     ) -> Int {
         let raw = adjustedExperienceAward(
             ExperienceScaling.battleAwardWithCatchUp(
                 playerLevel: playerLevel,
                 enemyLevel: enemyLevel,
-                highestLevel: highestLevel
+                highestLevel: highestLevel,
             ),
-            xpPercent: xpPercent
+            xpPercent: xpPercent,
         )
         return ExperienceScaling.cappedAward(
             raw,
-            requiredXP: CombatantProgression.requiredXP(forLevel: playerLevel)
+            requiredXP: CombatantProgression.requiredXP(forLevel: playerLevel),
         )
     }
 
@@ -31,7 +31,7 @@ public enum StageCompletion {
         enemyLevel: Int,
         to combatant: Combatant,
         roster: inout PlayerRosterState,
-        xpPercent: Int = 0
+        xpPercent: Int = 0,
     ) {
         let playerLevel = roster.progression(for: combatant).level
         let highestLevel = combatant.role == .hero
@@ -41,14 +41,14 @@ public enum StageCompletion {
             playerLevel: playerLevel,
             enemyLevel: enemyLevel,
             highestLevel: highestLevel,
-            xpPercent: xpPercent
+            xpPercent: xpPercent,
         )
         roster.grantExperience(award, to: combatant)
     }
 
     public static func resolvedMaterialRewards(
         stageReward: StageReward,
-        override: [ResourceAmount]? = nil
+        override: [ResourceAmount]? = nil,
     ) -> [ResourceAmount] {
         override ?? stageReward.materialRewards.filter { $0.resource != .gold && $0.quantity > 0 }
     }
@@ -56,30 +56,30 @@ public enum StageCompletion {
     public static func resolvedGoldReward(
         stageGold: Int,
         battleEarnedGold: Int,
-        goldFindPercent: Int
+        goldFindPercent: Int,
     ) -> Int {
         let effects = HomesteadEffects(
             heroModifiers: [],
             companionModifiers: [],
             astralChanceBonusPercent: 0,
-            goldFindPercent: goldFindPercent
+            goldFindPercent: goldFindPercent,
         )
         return max(
             0,
             effects.adjustedGold(stageGold + max(0, battleEarnedGold))
-                + min(0, battleEarnedGold)
+                + min(0, battleEarnedGold),
         )
     }
 
     public static func resolvedGoldReward(
         stageGold: Int,
         battleEarnedGold: Int,
-        homestead: PlayerHomesteadState
+        homestead: PlayerHomesteadState,
     ) -> Int {
         resolvedGoldReward(
             stageGold: stageGold,
             battleEarnedGold: battleEarnedGold,
-            goldFindPercent: homestead.effects.goldFindPercent
+            goldFindPercent: homestead.effects.goldFindPercent,
         )
     }
 
@@ -94,7 +94,7 @@ public enum StageCompletion {
         for stage: Stage,
         labyrinthNodeID: String? = nil,
         in chapters: [Chapter] = GameContent.chapters,
-        save: PlayerSave
+        save: PlayerSave,
     ) -> Int {
         let authoredLevel = if let labyrinthNodeID, let node = save.labyrinth.nodes[labyrinthNodeID] {
             EncounterLevelResolver.labyrinthEnemyLevel(for: node)
@@ -103,7 +103,7 @@ public enum StageCompletion {
         }
         return EncounterLevelResolver.partyAdjusted(
             authoredLevel,
-            partyAverageLevel: save.roster.activePartyAverageLevel
+            partyAverageLevel: save.roster.activePartyAverageLevel,
         )
     }
 
@@ -117,14 +117,14 @@ public enum StageCompletion {
         xpPercent: Int = 0,
         materials: [ResourceAmount],
         item: InventoryItem?,
-        save: inout PlayerSave
+        save: inout PlayerSave,
     ) {
         save.applyGoldDelta(
             resolvedGoldReward(
                 stageGold: stageGold,
                 battleEarnedGold: battleEarnedGold,
-                homestead: save.homestead
-            )
+                homestead: save.homestead,
+            ),
         )
         if grantsCombatExperience {
             grantBattleExperience(enemyLevel: encounterLevel, to: hero, roster: &save.roster, xpPercent: xpPercent)
@@ -146,7 +146,7 @@ public enum StageCompletion {
         loot: BattleLootPackage? = nil,
         enemyEncounterLevel: Int? = nil,
         in chapters: [Chapter],
-        save: inout PlayerSave
+        save: inout PlayerSave,
     ) {
         claimRewardsIfNeeded(
             for: stage,
@@ -157,7 +157,7 @@ public enum StageCompletion {
             rewardItem: rewardItem,
             loot: loot,
             enemyEncounterLevel: enemyEncounterLevel,
-            save: &save
+            save: &save,
         )
         if !save.journey.isCompleted(stage) {
             save.journey.complete(stage, in: chapters)
@@ -170,14 +170,14 @@ public enum StageCompletion {
         hero: Combatant,
         companion: Combatant,
         in chapters: [Chapter],
-        save: inout PlayerSave
+        save: inout PlayerSave,
     ) {
         if let labyrinthNodeID {
             LabyrinthCompletion.complete(
                 nodeID: labyrinthNodeID,
                 hero: hero,
                 companion: companion,
-                save: &save
+                save: &save,
             )
             return
         }
@@ -186,7 +186,7 @@ public enum StageCompletion {
             hero: hero,
             companion: companion,
             in: chapters,
-            save: &save
+            save: &save,
         )
     }
 
@@ -199,7 +199,7 @@ public enum StageCompletion {
         rewardItem: InventoryItem? = nil,
         loot: BattleLootPackage? = nil,
         enemyEncounterLevel: Int? = nil,
-        save: inout PlayerSave
+        save: inout PlayerSave,
     ) {
         guard !save.journey.hasClaimedRewards(for: stage) else {
             if battleEarnedGold != 0 {
@@ -207,8 +207,8 @@ public enum StageCompletion {
                     resolvedGoldReward(
                         stageGold: 0,
                         battleEarnedGold: battleEarnedGold,
-                        homestead: save.homestead
-                    )
+                        homestead: save.homestead,
+                    ),
                 )
             }
             return
@@ -235,7 +235,7 @@ public enum StageCompletion {
                 worldSeed: save.worldSeed,
                 ownedTrinketIDs: save.inventory.ownedTrinketIDs,
                 ownedUniqueIDs: save.inventory.ownedUniqueIDs,
-                astralChanceBonusPercent: save.homestead.effects.astralChanceBonusPercent
+                astralChanceBonusPercent: save.homestead.effects.astralChanceBonusPercent,
             )
         }()
 
@@ -258,7 +258,7 @@ public enum StageCompletion {
                 ?? resolvedLoot?.materials
                 ?? resolvedMaterialRewards(stageReward: stage.rewards),
             item: item,
-            save: &save
+            save: &save,
         )
         if item == nil {
             grantAuthoredItems(for: stage, worldSeed: save.worldSeed, inventory: &save.inventory)
@@ -270,7 +270,7 @@ public enum StageCompletion {
     private static func grantAuthoredItems(
         for stage: Stage,
         worldSeed: UInt64,
-        inventory: inout PlayerInventoryState
+        inventory: inout PlayerInventoryState,
     ) {
         for templateID in stage.rewards.itemTemplateIDs {
             guard let template = GameContent.itemTemplate(matching: templateID) else { continue }
@@ -278,8 +278,8 @@ public enum StageCompletion {
                 var randomNumberGenerator = SeededRandomNumberGenerator(
                     seed: GameContent.encounterSeed(
                         worldSeed,
-                        salt: "authored-stage-item-\(stage.id)-\(templateID)"
-                    )
+                        salt: "authored-stage-item-\(stage.id)-\(templateID)",
+                    ),
                 )
                 let eligibleTrinkets = GameContent.trinketItems.filter {
                     !inventory.ownedTrinketIDs.contains($0.templateID)

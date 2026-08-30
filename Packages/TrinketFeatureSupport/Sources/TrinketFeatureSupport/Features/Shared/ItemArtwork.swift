@@ -15,7 +15,7 @@ public struct ItemArtwork: View {
     public init(
         item: InventoryItem,
         variant: Variant = .full,
-        contentMode: ContentMode = .fill
+        contentMode: ContentMode = .fill,
     ) {
         self.item = item
         self.variant = variant

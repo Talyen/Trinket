@@ -23,16 +23,16 @@ enum BalanceSweepCLI {
                 Running balance sweep mode=\(parsed.config.mode.rawValue) \
                 samples=\(parsed.config.battlesPerTier)/identity-enemy seed=\(parsed.config.seed) \
                 jobs=\(parsed.config.resolvedJobs) pacing=\(parsed.config.appliesFightPacing ? "on" : "off") …
-                """.utf8
+                """.utf8,
             ))
             if parsed.deprecatedBattlesPerTier {
                 FileHandle.standardError.write(Data(
-                    "--battles-per-tier is deprecated; it is an alias for --samples (n per enemy / pairs per focus).\n".utf8
+                    "--battles-per-tier is deprecated; it is an alias for --samples (n per enemy / pairs per focus).\n".utf8,
                 ))
             }
             if parsed.config.battlesPerTier < BalanceSweepConfig.contrastFlagMinPairs {
                 FileHandle.standardError.write(Data(
-                    "warning: samples < \(BalanceSweepConfig.contrastFlagMinPairs); contrast flags are disabled.\n".utf8
+                    "warning: samples < \(BalanceSweepConfig.contrastFlagMinPairs); contrast flags are disabled.\n".utf8,
                 ))
             }
 
@@ -40,7 +40,7 @@ enum BalanceSweepCLI {
             #if os(macOS)
             report = try BalanceSweepProcessOrchestrator.run(
                 config: parsed.config,
-                executablePath: CommandLine.arguments[0]
+                executablePath: CommandLine.arguments[0],
             )
             #else
             report = BalanceSweepRunner.run(config: parsed.config)
@@ -53,7 +53,7 @@ enum BalanceSweepCLI {
                 findings: findings,
                 fullMarkdown: fullMarkdown,
                 report: report,
-                toDirectory: parsed.config.outputDirectory
+                toDirectory: parsed.config.outputDirectory,
             )
             print(findings)
             BalanceSweepCLIFiles.announce(written)
@@ -264,7 +264,7 @@ enum BalanceSweepCLI {
                 heroIDs: heroIDs,
                 companionIDs: companionIDs,
                 enemyIDs: enemyIDs,
-                focusIDs: focusIDs
+                focusIDs: focusIDs,
             )
             let roster = config.resolvedRoster
             if roster.heroes.isEmpty || roster.companions.isEmpty || roster.enemies.isEmpty {
@@ -275,7 +275,7 @@ enum BalanceSweepCLI {
                 isWorker: isWorker,
                 outputFile: outputFile,
                 deprecatedBattlesPerTier: deprecatedBattlesPerTier,
-                writeFullMarkdown: writeFullMarkdown
+                writeFullMarkdown: writeFullMarkdown,
             )
         }
     }
@@ -315,7 +315,7 @@ enum BalanceSweepCLI {
     private static func stringValue(
         after flag: String,
         in arguments: [String],
-        index: inout Int
+        index: inout Int,
     ) throws -> String {
         index += 1
         guard index < arguments.count else { throw CLIError.missingValue(flag) }
@@ -325,7 +325,7 @@ enum BalanceSweepCLI {
     private static func csvValue(
         after flag: String,
         in arguments: [String],
-        index: inout Int
+        index: inout Int,
     ) throws -> [String] {
         try stringValue(after: flag, in: arguments, index: &index)
             .split(separator: ",")
@@ -336,7 +336,7 @@ enum BalanceSweepCLI {
     private static func intValue(
         after flag: String,
         in arguments: [String],
-        index: inout Int
+        index: inout Int,
     ) throws -> Int {
         let raw = try stringValue(after: flag, in: arguments, index: &index)
         guard let value = Int(raw), value > 0 else { throw CLIError.invalidInt(flag, raw) }
@@ -346,7 +346,7 @@ enum BalanceSweepCLI {
     private static func nonNegativeIntValue(
         after flag: String,
         in arguments: [String],
-        index: inout Int
+        index: inout Int,
     ) throws -> Int {
         let raw = try stringValue(after: flag, in: arguments, index: &index)
         guard let value = Int(raw), value >= 0 else { throw CLIError.invalidInt(flag, raw) }
@@ -356,7 +356,7 @@ enum BalanceSweepCLI {
     private static func uintValue(
         after flag: String,
         in arguments: [String],
-        index: inout Int
+        index: inout Int,
     ) throws -> UInt64 {
         let raw = try stringValue(after: flag, in: arguments, index: &index)
         guard let value = UInt64(raw) else { throw CLIError.invalidInt(flag, raw) }
@@ -375,7 +375,7 @@ private enum BalanceSweepCLIFiles {
         fullMarkdown: String?,
         report: BalanceSweepReport,
         toDirectory directoryPath: String,
-        fileManager: FileManager = .default
+        fileManager: FileManager = .default,
     ) throws -> WrittenReport {
         let directory = URL(fileURLWithPath: directoryPath, isDirectory: true)
         try fileManager.createDirectory(at: directory, withIntermediateDirectories: true)
@@ -406,7 +406,7 @@ private enum BalanceSweepCLIFiles {
             FileHandle.standardError.write(Data("Wrote \(fullURL.path)\n".utf8))
         } else {
             FileHandle.standardError.write(Data(
-                "full markdown omitted (pass --full-markdown)\n".utf8
+                "full markdown omitted (pass --full-markdown)\n".utf8,
             ))
         }
     }

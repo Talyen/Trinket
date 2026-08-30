@@ -26,7 +26,7 @@ public struct FramePacingReport: Equatable, Sendable {
         missedDeadlineCount: 0,
         estimatedMissedFrameCount: 0,
         severeStallCount: 0,
-        missedDeadlineRatio: 0
+        missedDeadlineRatio: 0,
     )
 
     public init(
@@ -40,7 +40,7 @@ public struct FramePacingReport: Equatable, Sendable {
         missedDeadlineCount: Int,
         estimatedMissedFrameCount: Int,
         severeStallCount: Int,
-        missedDeadlineRatio: Double
+        missedDeadlineRatio: Double,
     ) {
         self.sampleCount = sampleCount
         self.expectedFPS = expectedFPS
@@ -69,7 +69,7 @@ public struct FramePacingReport: Equatable, Sendable {
             missedDeadlineCount,
             estimatedMissedFrameCount,
             severeStallCount,
-            missedDeadlineRatio
+            missedDeadlineRatio,
         )
     }
 
@@ -107,7 +107,7 @@ public struct FramePacingReport: Equatable, Sendable {
             missedDeadlineCount: missedDeadlineCount,
             estimatedMissedFrameCount: estimatedMissedFrameCount,
             severeStallCount: severeStallCount,
-            missedDeadlineRatio: missedDeadlineRatio
+            missedDeadlineRatio: missedDeadlineRatio,
         )
     }
 }
@@ -118,7 +118,7 @@ public enum FramePacingAnalyzer {
 
     public static func report(
         intervals: [CFTimeInterval],
-        expectedFrameDurations: [CFTimeInterval]
+        expectedFrameDurations: [CFTimeInterval],
     ) -> FramePacingReport {
         guard !intervals.isEmpty else { return .empty }
 
@@ -149,7 +149,7 @@ public enum FramePacingAnalyzer {
             missedDeadlineCount: missedDeadlineCount,
             estimatedMissedFrameCount: estimatedMissedFrameCount,
             severeStallCount: sorted.count { $0 >= severeStallThreshold },
-            missedDeadlineRatio: Double(missedDeadlineCount) / Double(sorted.count)
+            missedDeadlineRatio: Double(missedDeadlineCount) / Double(sorted.count),
         )
     }
 
@@ -173,7 +173,7 @@ public enum FramePacingAnalyzer {
 
     private static func lowFPS(
         _ sorted: [CFTimeInterval],
-        worstFraction: Double
+        worstFraction: Double,
     ) -> Double {
         guard !sorted.isEmpty else { return 0 }
         let count = min(sorted.count, max(1, Int((Double(sorted.count) * worstFraction).rounded(.up))))

@@ -21,7 +21,7 @@ struct LabyrinthMapPayload: Codable, Equatable {
     init(
         clusters: [LabyrinthCluster],
         nodes: [LabyrinthNode],
-        runHealthByCombatantID: [String: Int] = [:]
+        runHealthByCombatantID: [String: Int] = [:],
     ) {
         self.clusters = clusters
         self.nodes = nodes
@@ -34,7 +34,7 @@ struct LabyrinthMapPayload: Codable, Equatable {
         nodes = try container.decode([LabyrinthNode].self, forKey: .nodes)
         runHealthByCombatantID = try container.decodeIfPresent(
             [String: Int].self,
-            forKey: .runHealthByCombatantID
+            forKey: .runHealthByCombatantID,
         ) ?? [:]
     }
 }

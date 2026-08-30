@@ -6,11 +6,11 @@ public enum BattleCardCombatEngine {
     public static func bootstrapDecks(context: inout BattleState) {
         context.heroDeck = CombatDeck.shuffled(
             from: context.hero.abilityLoadout,
-            rng: &context.rng
+            rng: &context.rng,
         )
         context.companionDeck = CombatDeck.shuffled(
             from: context.companion.abilityLoadout,
-            rng: &context.rng
+            rng: &context.rng,
         )
         context.hand = BattleHand()
         context.handBuffer = BattleHandBuffer()
@@ -61,7 +61,7 @@ public enum BattleCardCombatEngine {
     @discardableResult
     public static func playCard(
         cardID: Int,
-        context: inout BattleState
+        context: inout BattleState,
     ) throws -> [ActionEvent] {
         guard let card = context.hand.card(id: cardID) else { throw BattlePlayError.cardNotInHand }
         return try playDrawnCard(card, context: &context)
@@ -69,7 +69,7 @@ public enum BattleCardCombatEngine {
 
     static func playDrawnCard(
         _ card: BattleCard,
-        context: inout BattleState
+        context: inout BattleState,
     ) throws -> [ActionEvent] {
         guard !context.isBattleOver else { throw BattlePlayError.battleOver }
         guard context.phase == .playerTurn else { throw BattlePlayError.notPlayerTurn }
@@ -89,7 +89,7 @@ public enum BattleCardCombatEngine {
     private static func resolvePlayedCard(
         _ card: BattleCard,
         ownerRuntime: CombatantRuntime,
-        context: inout BattleState
+        context: inout BattleState,
     ) -> [ActionEvent] {
         let actor = ownerRuntime.combatant
         let abilityTarget = BattleTargetResolver.abilityTarget(for: actor, in: context)
@@ -97,14 +97,17 @@ public enum BattleCardCombatEngine {
             ability: card.ability,
             actor: actor,
             abilityTarget: abilityTarget,
-            context: &context
+            context: &context,
         )
         events.append(contentsOf: CombatTriggerEngine.afterCardPlayed(
             ability: card.ability,
             by: actor,
             abilityTarget: abilityTarget,
-            in: &context
+            in: &context,
         ))
+        if context.roster.runtime(for: actor)?.goldenTouchActiveThisCard == true {
+            context.roster.mutateRuntime(for: actor) { $0.goldenTouchActiveThisCard = false }
+        }
         putAbilityOnBottom(card.ability, owner: card.owner, context: &context)
         discardDefeatedOwnerCards(context: &context)
         promoteFromBuffer(context: &context)
@@ -117,7 +120,7 @@ public enum BattleCardCombatEngine {
 
     @discardableResult
     public static func endTurn(
-        context: inout BattleState
+        context: inout BattleState,
     ) -> [ActionEvent] {
         guard !context.isBattleOver, context.phase == .playerTurn else {
             return []
@@ -130,7 +133,7 @@ public enum BattleCardCombatEngine {
             if context.roster.hasPendingActionSkip(for: combatant) {
                 events.append(contentsOf: BattleTurnEngine.consumeActionSkip(
                     for: combatant,
-                    context: &context
+                    context: &context,
                 ))
             }
         }
@@ -181,7 +184,7 @@ public enum BattleCardCombatEngine {
     }
 
     private static func restoreManaAtPlayerTurnStart(
-        context: inout BattleState
+        context: inout BattleState,
     ) -> [ActionEvent] {
         var events: [ActionEvent] = []
         for owner in [BattleParticipant.hero, .companion] {
@@ -191,7 +194,7 @@ public enum BattleCardCombatEngine {
             events.append(contentsOf: context.restoreManaEmitting(
                 1,
                 to: combatant,
-                abilityName: Keyword.mana.rawValue
+                abilityName: Keyword.mana.rawValue,
             ))
         }
         return events
@@ -208,7 +211,7 @@ public enum BattleCardCombatEngine {
     public static func drawCards(
         count: Int,
         for owner: BattleParticipant,
-        context: inout BattleState
+        context: inout BattleState,
     ) -> Int {
         var drawn = 0
         for _ in 0 ..< count {
@@ -222,7 +225,7 @@ public enum BattleCardCombatEngine {
     }
 
     private static func resolveEnemyTurn(
-        context: inout BattleState
+        context: inout BattleState,
     ) -> [ActionEvent] {
         let enemy = context.enemy
         guard context.roster.enemy.isAlive else { return [] }
@@ -254,9 +257,12 @@ public enum BattleCardCombatEngine {
             ability: ability,
             actor: enemy,
             abilityTarget: abilityTarget,
-            context: &context
+            context: &context,
         )
         events.append(contentsOf: CombatTriggerEngine.afterEnemyAbility(in: &context))
+        if context.roster.runtime(for: enemy)?.goldenTouchActiveThisCard == true {
+            context.roster.mutateRuntime(for: enemy) { $0.goldenTouchActiveThisCard = false }
+        }
         return leadingEvents + events
     }
 
@@ -274,7 +280,7 @@ public enum BattleCardCombatEngine {
     private static func drawCardsBalanced(
         heroCount: Int,
         companionCount: Int,
-        context: inout BattleState
+        context: inout BattleState,
     ) {
         var remaining: [BattleParticipant: Int] = [.hero: heroCount, .companion: companionCount]
         let tieWinner: BattleParticipant = context.turnCount.isMultiple(of: 2) ? .hero : .companion
@@ -330,7 +336,7 @@ public enum BattleCardCombatEngine {
     static func drawFirstCard(
         matching keyword: Keyword,
         for owner: BattleParticipant,
-        context: inout BattleState
+        context: inout BattleState,
     ) -> BattleCard? {
         guard canDrawFromDeck(for: owner, in: context), let keyPath = deckKeyPath(for: owner) else { return nil }
         guard let ability = context[keyPath: keyPath].drawFirst(where: { $0.keywords.contains(keyword) }) else {
@@ -366,7 +372,7 @@ public enum BattleCardCombatEngine {
     static func putAbilityOnBottom(
         _ ability: Ability,
         owner: BattleParticipant,
-        context: inout BattleState
+        context: inout BattleState,
     ) {
         guard let keyPath = deckKeyPath(for: owner) else { return }
         context[keyPath: keyPath].putOnBottom(ability)

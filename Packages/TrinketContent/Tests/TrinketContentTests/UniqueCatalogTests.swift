@@ -3,7 +3,7 @@ import TrinketContent
 import TrinketCore
 
 struct UniqueCatalogTests {
-    @Test func uniquesResolveForEveryDefinition() throws {
+    @Test func `uniques resolve for every definition`() throws {
         try #expect(GameContent.uniqueItems.count == GameContent.uniqueDefinitions.count)
         for definition in GameContent.uniqueDefinitions {
             let item = try #require(GameContent.unique(matching: definition.id))
@@ -12,7 +12,7 @@ struct UniqueCatalogTests {
         }
     }
 
-    @Test func oneUniquePerBaseTypeAcrossSlots() {
+    @Test func `one unique per base type across slots`() {
         let baseIDs = GameContent.uniqueItems.map(\.baseType.id)
         #expect(Set(baseIDs).count == baseIDs.count)
 
@@ -20,18 +20,18 @@ struct UniqueCatalogTests {
         #expect(slots == [.weapon, .armor, .accessory])
     }
 
-    @Test func uniqueAffixKeywordsStayWithinBaseAffinities() {
+    @Test func `unique affix keywords stay within base affinities`() {
         for item in GameContent.uniqueItems {
             for affix in item.affixes {
                 #expect(
                     affix.keywords.isSubset(of: item.baseType.keywordAffinities),
-                    "\(item.id): \(affix.id) keywords outside \(item.baseType.id) affinities"
+                    "\(item.id): \(affix.id) keywords outside \(item.baseType.id) affinities",
                 )
             }
         }
     }
 
-    @Test func uniquesPinExactPowersAndStableIdentity() throws {
+    @Test func `uniques pin exact powers and stable identity`() throws {
         for item in GameContent.uniqueItems {
             let powers = try #require(item.affixPowers)
             #expect(powers.count == item.affixes.count)
@@ -43,7 +43,7 @@ struct UniqueCatalogTests {
         }
     }
 
-    @Test func catalogSupportsReferenceExistingDefinitions() {
+    @Test func `catalog supports reference existing definitions`() {
         for definition in GameContent.uniqueDefinitions {
             for source in definition.affixes {
                 if case let .catalog(id) = source {
@@ -53,7 +53,7 @@ struct UniqueCatalogTests {
         }
     }
 
-    @Test func bespokeSignaturesNeverEnterTheRandomPool() {
+    @Test func `bespoke signatures never enter the random pool`() {
         let poolIDs = Set(GameContent.itemAffixDefinitions.map(\.id))
         for definition in GameContent.uniqueDefinitions {
             for source in definition.affixes {
@@ -64,14 +64,14 @@ struct UniqueCatalogTests {
         }
     }
 
-    @Test func everySignatureHasSupportingAstralMaxAffixes() throws {
+    @Test func `every signature has supporting astral max affixes`() throws {
         for item in GameContent.uniqueItems {
             try #expect(item.affixes.count == 4, Comment(rawValue: item.id))
             #expect(item.affixPowers?.count == item.affixes.count)
         }
     }
 
-    @Test func newUniquePackagesResolveExactly() throws {
+    @Test func `new unique packages resolve exactly`() throws {
         let expected: [String: (base: String, affixes: [String])] = [
             "blackfletch": ("crossbow", ["blackfletch", "infected", "lingering", "contagion"]),
             "twin_casting": ("staff", ["twin_casting", "smoldering", "glacial", "channeled"]),
@@ -86,7 +86,7 @@ struct UniqueCatalogTests {
         }
     }
 
-    @Test func staffAndChanneledUseManaOnlyElementalAffinity() throws {
+    @Test func `staff and channeled use mana only elemental affinity`() throws {
         let staff = try #require(GameContent.itemBaseType(matching: "staff"))
         #expect(staff.keywordAffinities == [.burn, .freeze, .mana])
 
@@ -97,7 +97,7 @@ struct UniqueCatalogTests {
         #expect(channeled.astral.modifiers == [.maximumMana(8)])
     }
 
-    @Test func basicAstralUniqueAndTrinketCatalogsDoNotOverlap() {
+    @Test func `basic astral unique and trinket catalogs do not overlap`() {
         #expect(GameContent.uniqueItems.allSatisfy { !$0.isTrinket && $0.rarity == .unique })
         #expect(GameContent.sampleInventoryItems.allSatisfy { !$0.isTrinket && $0.rarity != .unique })
         #expect(GameContent.trinketItems.allSatisfy { $0.isTrinket && $0.rarity != .unique })
@@ -110,12 +110,12 @@ struct UniqueCatalogTests {
         #expect(sampleIDs.isDisjoint(with: uniqueIDs))
     }
 
-    @Test func uniqueItemsUseBaseItemArtwork() throws {
+    @Test func `unique items use base item artwork`() throws {
         for item in GameContent.uniqueItems {
             let art = try #require(item.artReference, "Unique item \(item.id) should have an art reference")
             #expect(
                 art == item.baseType.previewArtReference,
-                "Unique item \(item.id) art (\(art.imageName)) must match base type \(item.baseType.id) art"
+                "Unique item \(item.id) art (\(art.imageName)) must match base type \(item.baseType.id) art",
             )
         }
     }

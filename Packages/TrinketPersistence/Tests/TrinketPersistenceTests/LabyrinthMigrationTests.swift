@@ -3,7 +3,7 @@ import TrinketContent
 @testable import TrinketPersistence
 
 struct LabyrinthMigrationTests {
-    @Test func preservesCurrentFloorProgressAcrossVersionFourNodeIDs() throws {
+    @Test func `preserves current floor progress across version four node I ds`() throws {
         let legacy = try makeVersionFourState(seed: 9, clearedNodeCount: 2)
 
         let sanitized = PlayerSaveSanitizer.sanitizeLabyrinth(legacy)
@@ -14,7 +14,7 @@ struct LabyrinthMigrationTests {
         #expect(migratedFloor.nodeIDs.allSatisfy { !$0.contains("ironGalleries") })
     }
 
-    @Test func preservesRunHealthAcrossMapVersionRegeneration() throws {
+    @Test func `preserves run health across map version regeneration`() throws {
         var legacy = try makeVersionFourState(seed: 9, clearedNodeCount: 2)
         legacy.runHealthByCombatantID = ["knight": 7, "wolf": 4]
 
@@ -26,7 +26,7 @@ struct LabyrinthMigrationTests {
 
     private func makeVersionFourState(
         seed: UInt64,
-        clearedNodeCount: Int
+        clearedNodeCount: Int,
     ) throws -> PlayerLabyrinthState {
         let generated = LabyrinthGenerator.makeInitialMap(seed: seed)
         let floor = try #require(generated.clusters.first { $0.depthBand == 1 })
@@ -50,8 +50,8 @@ struct LabyrinthMigrationTests {
                     mysteryEventID: node.mysteryEventID,
                     outgoingIDs: node.outgoingIDs.compactMap { renamedIDs[$0] },
                     isCleared: index < clearedNodeCount,
-                    isRevealed: node.isRevealed
-                )
+                    isRevealed: node.isRevealed,
+                ),
             )
         }
         var nodes = Dictionary(uniqueKeysWithValues: nodeEntries)
@@ -64,7 +64,7 @@ struct LabyrinthMigrationTests {
             gridPosition: LabyrinthGridPosition(row: 0, column: 1),
             outgoingIDs: [legacyEntryID],
             isCleared: true,
-            isRevealed: true
+            isRevealed: true,
         )
         return PlayerLabyrinthState(
             worldSeed: seed,
@@ -74,15 +74,15 @@ struct LabyrinthMigrationTests {
                 LabyrinthCluster(
                     id: LabyrinthGenerator.entranceClusterID,
                     depthBand: 0,
-                    nodeIDs: [LabyrinthGenerator.entranceNodeID]
+                    nodeIDs: [LabyrinthGenerator.entranceNodeID],
                 ),
                 LabyrinthCluster(
                     id: clusterID,
                     depthBand: 1,
-                    nodeIDs: floor.nodeIDs.compactMap { renamedIDs[$0] }
+                    nodeIDs: floor.nodeIDs.compactMap { renamedIDs[$0] },
                 ),
             ],
-            nodes: nodes
+            nodes: nodes,
         )
     }
 }

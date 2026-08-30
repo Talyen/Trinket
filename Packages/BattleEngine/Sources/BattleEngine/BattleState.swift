@@ -153,7 +153,7 @@ public struct BattleState {
         enemyFaction: EnemyFaction = .mortal,
         tracksLog: Bool = false,
         tracksEvents: Bool = true,
-        appliesFightPacing: Bool = true
+        appliesFightPacing: Bool = true,
     ) {
         precondition(!(tracksLog && !tracksEvents), "tracksLog requires tracksEvents")
         rngSeed = rng.seed
@@ -222,14 +222,14 @@ public struct BattleState {
         tracksLog: Bool = true,
         tracksEvents: Bool = true,
         dealOpeningHand: Bool = true,
-        appliesFightPacing: Bool = true
+        appliesFightPacing: Bool = true,
     ) {
         let resolvedEnemy = enemy ?? Enemy.fallbackCombatant
         let seed = rngSeed ?? Self.defaultRNGSeed
         let maxExistingEffectID = max(
             activeEnemyEffects.map(\.id).max() ?? 0,
             activeHeroEffects.map(\.id).max() ?? 0,
-            activeCompanionEffects.map(\.id).max() ?? 0
+            activeCompanionEffects.map(\.id).max() ?? 0,
         )
         self.init(
             roster: BattleRoster(
@@ -238,16 +238,16 @@ public struct BattleState {
                     initialHealth: heroStartingHealth,
                     initialActiveEffects: activeHeroEffects,
                     maximumHealthBonus: heroModifiers.maximumHealthBonus,
-                    maximumManaBonus: heroModifiers.maximumManaBonus
+                    maximumManaBonus: heroModifiers.maximumManaBonus,
                 ),
                 companion: CombatantRuntime(
                     combatant: companion,
                     initialHealth: companionStartingHealth,
                     initialActiveEffects: activeCompanionEffects,
                     maximumHealthBonus: companionModifiers.maximumHealthBonus,
-                    maximumManaBonus: companionModifiers.maximumManaBonus
+                    maximumManaBonus: companionModifiers.maximumManaBonus,
                 ),
-                enemy: CombatantRuntime(combatant: resolvedEnemy, initialActiveEffects: activeEnemyEffects)
+                enemy: CombatantRuntime(combatant: resolvedEnemy, initialActiveEffects: activeEnemyEffects),
             ),
             rng: SeededRandomNumberGenerator(seed: seed),
             nextEffectID: maxExistingEffectID + 1,
@@ -261,7 +261,7 @@ public struct BattleState {
             enemyFaction: enemyFaction,
             tracksLog: tracksLog,
             tracksEvents: tracksEvents,
-            appliesFightPacing: appliesFightPacing
+            appliesFightPacing: appliesFightPacing,
         )
 
         _ = appendMilestone(.battleStarted(heroName: hero.name, companionName: companion.name))
@@ -296,13 +296,13 @@ public struct BattleState {
     @discardableResult
     public mutating func playCard(
         cardID: Int,
-        rebuildLog: Bool = true
+        rebuildLog: Bool = true,
     ) throws -> [ActionEvent] {
         guard !isBattleOver else { throw BattlePlayError.battleOver }
         guard !hasPendingBoonOffer else { throw BattlePlayError.boonChoicePending }
         let events = try BattleCardCombatEngine.playCard(
             cardID: cardID,
-            context: &self
+            context: &self,
         )
         BoonEngine.enqueueCrossedThresholds(in: &self)
         finishMutation(rebuildLog: rebuildLog)

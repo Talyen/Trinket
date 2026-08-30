@@ -25,7 +25,7 @@ final class BattleCinematicPlayer {
         heroActorID: String?,
         heroUltimateID: String?,
         companionActorID: String?,
-        companionUltimateID: String?
+        companionUltimateID: String?,
     ) {
         if let heroActorID, let heroUltimateID {
             warm(actorID: heroActorID, abilityID: heroUltimateID)
@@ -104,7 +104,7 @@ final class BattleCinematicPlayer {
         abilityID: String,
         effectsVolume: Double,
         rate: Float = 1,
-        onEnded: @escaping @MainActor () -> Void
+        onEnded: @escaping @MainActor () -> Void,
     ) {
         let key = CinematicCastKey(actorID: actorID, abilityID: abilityID)
         guard let player = player(for: actorID, abilityID: abilityID) else { return }
@@ -114,7 +114,7 @@ final class BattleCinematicPlayer {
             let endObserver = NotificationCenter.default.addObserver(
                 forName: .AVPlayerItemDidPlayToEndTime,
                 object: item,
-                queue: .main
+                queue: .main,
             ) { [weak self] _ in
                 Task { @MainActor in
                     self?.clearEndObserver(for: actorID, abilityID: abilityID)
@@ -124,7 +124,7 @@ final class BattleCinematicPlayer {
             let failObserver = NotificationCenter.default.addObserver(
                 forName: .AVPlayerItemFailedToPlayToEndTime,
                 object: item,
-                queue: .main
+                queue: .main,
             ) { [weak self] _ in
                 Task { @MainActor in
                     self?.clearEndObserver(for: actorID, abilityID: abilityID)

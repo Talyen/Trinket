@@ -5,7 +5,7 @@ import TrinketTestSupport
 @testable import BattleEngine
 
 struct BattleConditionEvaluatorTests {
-    @Test func lowestHealthAllyPrefersLivingCombatantWhenHeroIsDefeated() throws {
+    @Test func `lowest health ally prefers living combatant when hero is defeated`() throws {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 20)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30)
@@ -13,7 +13,7 @@ struct BattleConditionEvaluatorTests {
             hero: hero,
             companion: companion,
             enemy: enemy,
-            seed: 0
+            seed: 0,
         )
         context.roster.mutateRuntime(for: hero) { $0.currentHealth = 0 }
         context.roster.mutateRuntime(for: companion) { $0.currentHealth = 8 }
@@ -21,13 +21,13 @@ struct BattleConditionEvaluatorTests {
         let target = BattleConditionEvaluator.lowestHealthAlly(
             hero: hero,
             companion: companion,
-            context: context
+            context: context,
         )
 
         try #expect(target.id == companion.id)
     }
 
-    @Test func enemyBleedingRequiresActiveBleedStack() throws {
+    @Test func `enemy bleeding requires active bleed stack`() throws {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero)
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy)
@@ -37,7 +37,7 @@ struct BattleConditionEvaluatorTests {
             companion: companion,
             enemy: enemy,
             enemyEffects: [expiredBleed],
-            seed: 0
+            seed: 0,
         )
 
         try #expect(!BattleConditionEvaluator.isMet(
@@ -46,7 +46,7 @@ struct BattleConditionEvaluatorTests {
             enemy: enemy,
             hero: hero,
             companion: companion,
-            context: context
+            context: context,
         ))
     }
 }

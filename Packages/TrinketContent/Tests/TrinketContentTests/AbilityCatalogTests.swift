@@ -3,27 +3,27 @@ import TrinketCore
 @testable import TrinketContent
 
 struct AbilityCatalogTests {
-    @Test func catalogIDsAreUniqueAndUnknownLookupReturnsNil() throws {
+    @Test func `catalog I ds are unique and unknown lookup returns nil`() throws {
         let ids = AbilityCatalog.all.map(\.id)
         try #expect(
             Set(ids).count == ids.count,
-            "Duplicate ability IDs: \(Dictionary(grouping: ids, by: { $0 }).filter { $1.count > 1 }.keys)"
+            "Duplicate ability IDs: \(Dictionary(grouping: ids, by: { $0 }).filter { $1.count > 1 }.keys)",
         )
         try #expect(AbilityCatalog.ability(id: "missing-ability") == nil)
     }
 
-    @Test func catalogPassesValidation() throws {
+    @Test func `catalog passes validation`() throws {
         let issues = AbilityValidator.validateCatalog()
         try #expect(issues.isEmpty, "\(issues.map(\.description).joined(separator: "\n"))")
     }
 
-    @Test func directHitBuilderDoesNotAddTargetedDoT() throws {
+    @Test func `direct hit builder does not add targeted do T`() throws {
         let ability = AbilityBuilder.directHit(
             id: "burn-hit",
             name: "Burn Hit",
             tier: .skill,
             amount: 3,
-            keyword: .burn
+            keyword: .burn,
         )
         try #expect(ability.damageComponents == [DamageComponent(3, keyword: .burn)])
         try #expect(ability.targetedEffects.isEmpty)
@@ -34,14 +34,14 @@ struct AbilityCatalogTests {
             name: "Bleed Hit",
             tier: .basic,
             amount: 2,
-            keyword: .bleed
+            keyword: .bleed,
         )
         try #expect(bleedHit.damageComponents == [DamageComponent(2, keyword: .bleed)])
         try #expect(bleedHit.targetedEffects.isEmpty)
         try #expect(bleedHit.summary == "Deal 2 Bleed damage.")
     }
 
-    @Test func empoweredByManaRaisesBurnAndFreezeNumbers() throws {
+    @Test func `empowered by mana raises burn and freeze numbers`() throws {
         let empowered = Ability.fireArrow.empoweredByMana()
         try #expect(Ability.fireArrow.hasManaEmpowerableBurnOrFreezeDamage)
         try #expect(empowered.damageComponents == [
@@ -52,21 +52,21 @@ struct AbilityCatalogTests {
         try #expect(Ability.slash.empoweredByMana() == Ability.slash)
         try #expect(
             Ability.blizzard.empoweredByMana().targetedEffects
-                == [TargetedEffect(.recurringDamage(.freeze, 5, 2))]
+                == [TargetedEffect(.recurringDamage(.freeze, 5, 2))],
         )
     }
 
-    @Test func buffOnlyBuilderProducesGeneratedDescription() throws {
+    @Test func `buff only builder produces generated description`() throws {
         let ability = AbilityBuilder.buffOnly(
             id: "block",
             name: "Block",
             tier: .basic,
-            effects: [.shield(.block, 2)]
+            effects: [.shield(.block, 2)],
         )
         try #expect(ability.summary == "Gain 2 Block.")
     }
 
-    @Test func multiDamageBuilderFormatsSummary() throws {
+    @Test func `multi damage builder formats summary`() throws {
         let ability = AbilityBuilder.multiDamage(
             id: "bloodthorn",
             name: "Bloodthorn",
@@ -74,14 +74,14 @@ struct AbilityCatalogTests {
             damageComponents: [
                 DamageComponent(2, keyword: .bleed),
                 DamageComponent(2, keyword: .poison),
-            ]
+            ],
         )
         try #expect(
-            ability.summary == "Deal 2 Bleed damage and deal 2 Poison damage."
+            ability.summary == "Deal 2 Bleed damage and deal 2 Poison damage.",
         )
     }
 
-    @Test func representativeAbilitiesKeepTypedContracts() throws {
+    @Test func `representative abilities keep typed contracts`() throws {
         try #expect(!Ability.hemorrhage.hasLeech)
         try #expect(Ability.hemorrhage.criticalChanceBonus == 0)
         try #expect(Ability.hemorrhage.targetedEffects == [
@@ -96,11 +96,11 @@ struct AbilityCatalogTests {
         try #expect(Ability.fangs.hasLeech)
     }
 
-    @Test func glacialWardIsSkillWithBlockAndFreezeRetaliation() throws {
+    @Test func `glacial ward is skill with block and freeze retaliation`() throws {
         try #expect(Ability.glacialWard.tier == .skill)
     }
 
-    @Test func astralArrowOffersStunFreezeOrBurnBranches() throws {
+    @Test func `astral arrow offers stun freeze or burn branches`() throws {
         let ability = try #require(AbilityCatalog.ability(id: "astral-arrow"))
         let branches = try #require(ability.outcomeBranches)
         try #expect(branches.count == 3)
@@ -114,16 +114,16 @@ struct AbilityCatalogTests {
         try #expect(ranger.abilityChoices.ultimates.map(\.id).contains("astral-arrow"))
     }
 
-    @Test func descriptionOverridesAreAllowlisted() throws {
+    @Test func `description overrides are allowlisted`() throws {
         for ability in AbilityCatalog.all where ability.descriptionOverride != nil {
             try #expect(
                 AbilityValidator.descriptionOverrideIDs.contains(ability.id),
-                "\(ability.id) should not carry a manual description override"
+                "\(ability.id) should not carry a manual description override",
             )
         }
     }
 
-    @Test func dealsCombatDamageCountsOpponentHitsNotHealsOrBlock() throws {
+    @Test func `deals combat damage counts opponent hits not heals or block`() throws {
         try #expect(Ability.bash.dealsCombatDamage)
         try #expect(Ability.blizzard.dealsCombatDamage)
         try #expect(Ability.sunburst.dealsCombatDamage)
@@ -135,35 +135,35 @@ struct AbilityCatalogTests {
         try #expect(!Ability.packTactics.dealsCombatDamage)
     }
 
-    @Test func validatorRejectsDamageConditionWithoutBonusAmount() throws {
+    @Test func `validator rejects damage condition without bonus amount`() throws {
         let ability = Ability(
             id: "bad-pounce",
             name: "Bad Pounce",
             tier: .skill,
             damageComponents: [
                 DamageComponent(3, keyword: .stun, condition: .firstTurn),
-            ]
+            ],
         )
         let issues = AbilityValidator.validate(ability)
         try #expect(issues.contains { $0.message.contains("bonusAmount") })
     }
 
-    @Test func validatorRejectsPurgeOnAllyInOutcomeBranch() throws {
+    @Test func `validator rejects purge on ally in outcome branch`() throws {
         let ability = Ability(
             id: "bad-branch-purge",
             name: "Bad Branch Purge",
             tier: .skill,
             outcomeBranches: [
                 AbilityOutcomeBranch(
-                    targetedEffects: [TargetedEffect(.purgeRandom, target: .actor)]
+                    targetedEffects: [TargetedEffect(.purgeRandom, target: .actor)],
                 ),
-            ]
+            ],
         )
         let issues = AbilityValidator.validate(ability)
         try #expect(issues.contains { $0.message.contains("purge effects must target enemies") })
     }
 
-    @Test func resolvingOutcomeBranchPicksBranchUsingRNG() {
+    @Test func `resolving outcome branch picks branch using RNG`() {
         var rng = SeededRandomNumberGenerator(seed: 42)
         let resolvedTithe = Ability.tithe.resolvingOutcomeBranch(using: &rng)
         #expect(resolvedTithe.outcomeBranches == nil)
@@ -173,7 +173,7 @@ struct AbilityCatalogTests {
         #expect(resolvedSlash.damageComponents == Ability.slash.damageComponents)
     }
 
-    @Test func resolvingOutcomeBranchPreservesSharedAbilityClauses() {
+    @Test func `resolving outcome branch preserves shared ability clauses`() {
         var rng = SeededRandomNumberGenerator(seed: 42)
         let resolvedBloodthorn = Ability.bloodthorn.resolvingOutcomeBranch(using: &rng)
         #expect(resolvedBloodthorn.hasLeech)

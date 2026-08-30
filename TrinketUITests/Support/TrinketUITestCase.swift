@@ -68,7 +68,7 @@ enum TestLaunchArg {
 
     static func allForBattlePerformance(
         _ scenario: String,
-        reset: Bool = true
+        reset: Bool = true,
     ) -> [String] {
         var args = performanceArguments(from: allForBattle(reset: reset))
         args += ["-battle-performance-scenario", scenario]
@@ -203,7 +203,7 @@ class TrinketUITestCase: XCTestCase {
         _ identifier: String,
         timeout: TimeInterval = defaultTimeout,
         file: StaticString = #file,
-        line: UInt = #line
+        line: UInt = #line,
     ) {
         let element = button(identifier)
         guard element.waitForExistence(timeout: timeout) else {
@@ -230,7 +230,7 @@ class TrinketUITestCase: XCTestCase {
         _ element: XCUIElement,
         timeout: TimeInterval = 10,
         file: StaticString = #file,
-        line: UInt = #line
+        line: UInt = #line,
     ) -> Bool {
         let deadline = Date().addingTimeInterval(timeout)
         while Date() < deadline {
@@ -250,7 +250,7 @@ class TrinketUITestCase: XCTestCase {
         _ identifier: String,
         timeout: TimeInterval = defaultTimeout,
         file: StaticString = #file,
-        line: UInt = #line
+        line: UInt = #line,
     ) {
         let element = button(identifier)
         guard element.waitForExistence(timeout: timeout) else {
@@ -263,7 +263,7 @@ class TrinketUITestCase: XCTestCase {
         _ identifier: String,
         timeout: TimeInterval = defaultTimeout,
         file: StaticString = #file,
-        line: UInt = #line
+        line: UInt = #line,
     ) {
         let element = app.descendants(matching: .any)[identifier]
         guard element.waitForExistence(timeout: timeout) else {
@@ -276,7 +276,7 @@ class TrinketUITestCase: XCTestCase {
         _ element: XCUIElement,
         timeout: TimeInterval = defaultTimeout,
         file: StaticString = #file,
-        line: UInt = #line
+        line: UInt = #line,
     ) {
         guard element.waitForExistence(timeout: timeout) else {
             fail(missingElementMessage("Element not found"), file: file, line: line)
@@ -294,7 +294,7 @@ class TrinketUITestCase: XCTestCase {
             let normalizedIdentifier = identifier.replacingOccurrences(
                 of: #"\s+"#,
                 with: " ",
-                options: .regularExpression
+                options: .regularExpression,
             )
             let entry = "\(String(describing: element.elementType))[\(normalizedIdentifier)]"
             guard seen.insert(entry).inserted else { continue }
@@ -322,7 +322,7 @@ class TrinketUITestCase: XCTestCase {
         _ identifier: String,
         timeout: TimeInterval = defaultTimeout,
         file: StaticString = #file,
-        line: UInt = #line
+        line: UInt = #line,
     ) {
         let element = app.descendants(matching: .any)[identifier]
         if element.exists {
@@ -338,7 +338,7 @@ class TrinketUITestCase: XCTestCase {
         maxAttempts: Int = 8,
         requireHittable: Bool = false,
         file: StaticString = #file,
-        line: UInt = #line
+        line: UInt = #line,
     ) {
         let element = app.descendants(matching: .any)[identifier]
         scrollUntilVisible(
@@ -347,7 +347,7 @@ class TrinketUITestCase: XCTestCase {
             maxAttempts: maxAttempts,
             requireHittable: requireHittable,
             file: file,
-            line: line
+            line: line,
         )
         if !element.exists {
             scrollUntilVisible(
@@ -356,7 +356,7 @@ class TrinketUITestCase: XCTestCase {
                 maxAttempts: max(3, maxAttempts / 2),
                 requireHittable: requireHittable,
                 file: file,
-                line: line
+                line: line,
             )
         }
         guard element.exists else {
@@ -384,13 +384,13 @@ class TrinketUITestCase: XCTestCase {
         maxAttempts: Int = 6,
         requireHittable: Bool = false,
         file _: StaticString = #file,
-        line _: UInt = #line
+        line _: UInt = #line,
     ) {
         app.scrollUntilVisible(
             element,
             swipingUp: swipingUp,
             maxAttempts: maxAttempts,
-            requireHittable: requireHittable
+            requireHittable: requireHittable,
         )
     }
 
@@ -457,7 +457,7 @@ extension XCUIApplication {
         _ element: XCUIElement,
         swipingUp: Bool,
         maxAttempts: Int = 8,
-        requireHittable: Bool = false
+        requireHittable: Bool = false,
     ) {
         for _ in 0 ..< maxAttempts {
             if element.exists, !requireHittable || element.isHittable {

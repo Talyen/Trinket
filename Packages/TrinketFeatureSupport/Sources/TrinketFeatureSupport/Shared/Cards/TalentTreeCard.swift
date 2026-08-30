@@ -15,7 +15,7 @@ public struct TalentTreeCard: View {
         caption: String,
         isLocked: Bool = false,
         showsShine: Bool = true,
-        accessibilityID: String? = nil
+        accessibilityID: String? = nil,
     ) {
         self.tree = tree
         self.caption = caption
@@ -50,7 +50,7 @@ public struct TalentTreeCard: View {
                         .trinketTypography(.badge)
                         .foregroundStyle(.tertiary)
                 }
-            }
+            },
         )
     }
 }

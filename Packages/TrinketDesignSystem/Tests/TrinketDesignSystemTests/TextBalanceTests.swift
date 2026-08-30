@@ -28,7 +28,7 @@ struct TextBalanceTests {
         .multipleInterWordSpaces,
         .onlyWhitespace,
     ])
-    private func trinketBalancedBindsOnlyTheLastSpace(_ testCase: BalanceCase) {
+    private func `trinket balanced binds only the last space`(_ testCase: BalanceCase) {
         #expect(testCase.input.trinketBalanced() == testCase.expected)
     }
 }

@@ -36,7 +36,7 @@ public enum SimulationMatchupBuilder {
         heroTalents: Set<String> = [],
         companionTalents: Set<String> = [],
         gearKeywordBias: Set<Keyword>? = nil,
-        gearGenerator: ThemedGearGenerator = ThemedGearGenerator()
+        gearGenerator: ThemedGearGenerator = ThemedGearGenerator(),
     ) -> ConfiguredSimulationMatchup {
         var rng = SeededRandomNumberGenerator(seed: seed)
         let resolvedHeroLevel = heroLevel ?? tier.level
@@ -50,7 +50,7 @@ public enum SimulationMatchupBuilder {
             gearOverride: heroGear,
             unlockedTalents: heroTalents,
             gearKeywordBias: gearKeywordBias,
-            gearGenerator: gearGenerator
+            gearGenerator: gearGenerator,
         )
         let companionRequest = PartyPrepareRequest(
             progression: Self.progression(level: resolvedCompanionLevel),
@@ -59,20 +59,20 @@ public enum SimulationMatchupBuilder {
             gearOverride: companionGear,
             unlockedTalents: companionTalents,
             gearKeywordBias: gearKeywordBias,
-            gearGenerator: gearGenerator
+            gearGenerator: gearGenerator,
         )
 
         let heroPrepared = preparePartyMember(
             hero,
             loadout: heroLoadout,
             request: heroRequest,
-            using: &rng
+            using: &rng,
         )
         let companionPrepared = preparePartyMember(
             companion,
             loadout: companionLoadout,
             request: companionRequest,
-            using: &rng
+            using: &rng,
         )
 
         let scaledEnemy = CombatantLevelScaler.scale(enemy: enemy, level: resolvedEnemyLevel)
@@ -87,7 +87,7 @@ public enum SimulationMatchupBuilder {
             heroAffixIDs: heroPrepared.affixIDs,
             companionAffixIDs: companionPrepared.affixIDs,
             heroTalentIDs: heroTalents.sorted(),
-            companionTalentIDs: companionTalents.sorted()
+            companionTalentIDs: companionTalents.sorted(),
         )
 
         return ConfiguredSimulationMatchup(
@@ -99,13 +99,13 @@ public enum SimulationMatchupBuilder {
             enemyModifiers: enemyBuild.modifiers,
             context: context,
             enemyID: enemy.id,
-            isBoss: enemy.isBoss
+            isBoss: enemy.isBoss,
         )
     }
 
     public static func sampleLoadout(
         for combatant: Combatant,
-        using randomNumberGenerator: inout some RandomNumberGenerator
+        using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> AbilityLoadout {
         let choices = combatant.abilityChoices
         let basic = choices.basics.randomElement(using: &randomNumberGenerator)
@@ -124,7 +124,7 @@ public enum SimulationMatchupBuilder {
         hero: Combatant,
         companion: Combatant,
         minimumDamagingAbilities: Int = minimumPartyDamagingAbilities,
-        using randomNumberGenerator: inout some RandomNumberGenerator
+        using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> (hero: AbilityLoadout, companion: AbilityLoadout) {
         var bestHero = sampleLoadout(for: hero, using: &randomNumberGenerator)
         var bestCompanion = sampleLoadout(for: companion, using: &randomNumberGenerator)
@@ -154,7 +154,7 @@ public enum SimulationMatchupBuilder {
         keywordBias: Set<Keyword>,
         idPrefix: String,
         gearGenerator: ThemedGearGenerator = ThemedGearGenerator(),
-        using randomNumberGenerator: inout some RandomNumberGenerator
+        using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> GearOverride? {
         guard tier.includesGear,
               let rarity = tier.rarity,
@@ -169,7 +169,7 @@ public enum SimulationMatchupBuilder {
             idPrefix: idPrefix,
             keywordBias: keywordBias,
             requireBuildAlignment: true,
-            using: &randomNumberGenerator
+            using: &randomNumberGenerator,
         )
         return GearOverride(gear)
     }
@@ -181,7 +181,7 @@ public enum SimulationMatchupBuilder {
         idPrefix: String,
         gearKeywordBias: Set<Keyword>? = nil,
         gearGenerator: ThemedGearGenerator = ThemedGearGenerator(),
-        using randomNumberGenerator: inout some RandomNumberGenerator
+        using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> GearOverride? {
         let withLoadout = combatant.withAbilityLoadoutPreservingEmptyTiers(loadout)
         let scaled = CombatantLevelScaler.scale(combatant: withLoadout, level: level)
@@ -193,7 +193,7 @@ public enum SimulationMatchupBuilder {
             idPrefix: idPrefix,
             keywordBias: bias,
             requireBuildAlignment: true,
-            using: &randomNumberGenerator
+            using: &randomNumberGenerator,
         )
         guard !build.inventory.isEmpty else { return nil }
         return GearOverride(build)
@@ -207,7 +207,7 @@ public enum SimulationMatchupBuilder {
         idPrefix: String,
         gearKeywordBias: Set<Keyword>? = nil,
         gearGenerator: ThemedGearGenerator = ThemedGearGenerator(),
-        using randomNumberGenerator: inout some RandomNumberGenerator
+        using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> GearOverride? {
         guard tier.usesStarterGear else { return nil }
         return generateStarterGear(
@@ -217,7 +217,7 @@ public enum SimulationMatchupBuilder {
             idPrefix: idPrefix,
             gearKeywordBias: gearKeywordBias,
             gearGenerator: gearGenerator,
-            using: &randomNumberGenerator
+            using: &randomNumberGenerator,
         )
     }
 
@@ -225,7 +225,7 @@ public enum SimulationMatchupBuilder {
         for combatantID: String,
         level: Int,
         pointCap: Int? = nil,
-        using randomNumberGenerator: inout some RandomNumberGenerator
+        using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> Set<String> {
         let nodes = CombatantTalentCatalog.validNodeIDs(for: combatantID)
         let earned = CombatantProgression.at(level: level).totalTalentPoints
@@ -257,7 +257,7 @@ public enum SimulationMatchupBuilder {
         CombatantProgression(
             level: level,
             currentXP: 0,
-            requiredXP: CombatantProgression.requiredXP(forLevel: level)
+            requiredXP: CombatantProgression.requiredXP(forLevel: level),
         )
     }
 
@@ -288,7 +288,7 @@ public enum SimulationMatchupBuilder {
         _ combatant: Combatant,
         loadout: AbilityLoadout,
         request: PartyPrepareRequest,
-        using randomNumberGenerator: inout some RandomNumberGenerator
+        using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> PreparedPartyMember {
         let withLoadout = combatant.withAbilityLoadoutPreservingEmptyTiers(loadout)
         let scaled = CombatantLevelScaler.scale(combatant: withLoadout, level: request.progression.level)
@@ -299,7 +299,7 @@ public enum SimulationMatchupBuilder {
                 combatant: scaled,
                 equipmentLoadout: sanitized,
                 inventory: gearOverride.inventory,
-                unlockedTalents: request.unlockedTalents
+                unlockedTalents: request.unlockedTalents,
             )
             let affixIDs = gearOverride.inventory.flatMap { $0.affixes.map(\.id) }
             return PreparedPartyMember(build: build, loadout: loadout, affixIDs: affixIDs)
@@ -313,7 +313,7 @@ public enum SimulationMatchupBuilder {
                 combatant: scaled,
                 equipmentLoadout: EquipmentLoadout(),
                 inventory: [],
-                unlockedTalents: request.unlockedTalents
+                unlockedTalents: request.unlockedTalents,
             )
             return PreparedPartyMember(build: build, loadout: loadout, affixIDs: [])
         }
@@ -326,14 +326,14 @@ public enum SimulationMatchupBuilder {
             idPrefix: request.idPrefix,
             keywordBias: buildKeywords,
             requireBuildAlignment: true,
-            using: &randomNumberGenerator
+            using: &randomNumberGenerator,
         )
         let sanitized = gear.loadout.sanitized(for: scaled, inventory: gear.inventory)
         let build = CombatBuildResolver.build(
             combatant: scaled,
             equipmentLoadout: sanitized,
             inventory: gear.inventory,
-            unlockedTalents: request.unlockedTalents
+            unlockedTalents: request.unlockedTalents,
         )
         let affixIDs = gear.inventory.flatMap { $0.affixes.map(\.id) }
         return PreparedPartyMember(build: build, loadout: loadout, affixIDs: affixIDs)

@@ -8,7 +8,7 @@ struct EffectTurnEngineTests {
     private func makeContext(
         heroHP: Int = 50,
         enemyHP: Int = 50,
-        enemyEffects: [ActiveEffect] = []
+        enemyEffects: [ActiveEffect] = [],
     ) -> BattleState {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 50)
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 50)
@@ -17,19 +17,19 @@ struct EffectTurnEngineTests {
             hero: hero,
             companion: companion,
             enemy: enemy,
-            activeEnemyEffects: enemyEffects
+            activeEnemyEffects: enemyEffects,
         )
         battle.roster.hero.currentHealth = heroHP
         battle.roster.enemy.currentHealth = enemyHP
         return battle
     }
 
-    @Test func doTTickPreservesShieldDepletionThroughTickAll() throws {
+    @Test func `do T tick preserves shield depletion through tick all`() throws {
         let shield = ActiveEffect(
             id: 1,
             effect: .shield(.block, 5),
             remainingTurns: 5,
-            sourceActorID: "caster"
+            sourceActorID: "caster",
         )
         let burn = ActiveEffect(id: 2, effect: .burn(4), remainingTurns: 0)
         var context = makeContext(enemyHP: 50, enemyEffects: [shield, burn])
@@ -38,7 +38,7 @@ struct EffectTurnEngineTests {
         let result = EffectTurnEngine.advanceEffects(
             context.roster.activeEffects(for: enemy),
             target: enemy,
-            context: &context
+            context: &context,
         )
         context.roster.setActiveEffects(result.updated, for: enemy)
 
@@ -50,7 +50,7 @@ struct EffectTurnEngineTests {
         try #expect(context.roster.health(for: enemy) == 50)
     }
 
-    @Test func doTTickPreservesDeathsDoorThroughTickAll() throws {
+    @Test func `do T tick preserves deaths door through tick all`() throws {
         let burn = ActiveEffect(id: 1, effect: .burn(3), remainingTurns: 0)
         var context = makeContext(heroHP: 1, enemyEffects: [])
         let hero = context.roster.hero.combatant
@@ -59,7 +59,7 @@ struct EffectTurnEngineTests {
         let result = EffectTurnEngine.advanceEffects(
             context.roster.activeEffects(for: hero),
             target: hero,
-            context: &context
+            context: &context,
         )
         context.roster.setActiveEffects(result.updated, for: hero)
 
@@ -67,7 +67,7 @@ struct EffectTurnEngineTests {
         try #expect(context.roster.isDeathsDoorActive(for: hero))
         try #expect(
             context.roster.activeEffects(for: hero).contains { $0.effect.kind == .deathsDoor },
-            "Death's Door inserted during DoT damage should survive effect-pass write-back"
+            "Death's Door inserted during DoT damage should survive effect-pass write-back",
         )
     }
 }

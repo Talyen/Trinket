@@ -24,28 +24,28 @@ struct MysteryEncounterView: View {
                     unlockedID: unlockedID,
                     onSelectDetail: { selectedDetail = $0 },
                     onFinish: { encounters.finishActiveMysteryEncounter(dismiss: false) },
-                    onDismiss: { encounters.dismissActiveMysteryEncounter() }
+                    onDismiss: { encounters.dismissActiveMysteryEncounter() },
                 )
                 .transition(.opacity)
             } else if session.showsReward, let result = session.applyResult {
                 MysteryRewardContent(
                     session: session,
                     result: result,
-                    onFinish: { encounters.finishActiveMysteryEncounter() }
+                    onFinish: { encounters.finishActiveMysteryEncounter() },
                 )
                 .transition(.opacity)
             } else if session.showsCorruptionReveal, let result = session.corruptionResult {
                 MysteryCorruptionRevealContent(
                     session: session,
                     result: result,
-                    onFinish: { encounters.finishActiveMysteryCorruptionReveal() }
+                    onFinish: { encounters.finishActiveMysteryCorruptionReveal() },
                 )
                 .transition(.opacity)
             } else if session.showsCorruptItemChoice {
                 MysteryCorruptItemChoiceContent(
                     session: session,
                     onCorruptItem: { encounters.corruptActiveMysteryItem(itemID: $0) },
-                    onCancelCorruptSelection: { encounters.cancelActiveMysteryCorruptSelection() }
+                    onCancelCorruptSelection: { encounters.cancelActiveMysteryCorruptSelection() },
                 )
                 .transition(.opacity)
             } else {
@@ -63,7 +63,7 @@ struct MysteryEncounterView: View {
                     combatantID: context.combatantID,
                     hapticsEnabled: options.hapticsEnabled,
                     effectsVolume: options.effectsVolume,
-                    hidesNavigationBar: false
+                    hidesNavigationBar: false,
                 )
             }
             .trinketDetailSheet()
@@ -98,7 +98,7 @@ struct MysteryEncounterView: View {
         DetailHeroScrollShell(
             title: session.event.title,
             heroHeightPolicy: .cinematicLandscape,
-            hidesNavigationBar: true
+            hidesNavigationBar: true,
         ) { baseHeight, overscroll in
             DetailHeroHeader(
                 eyebrow: "MYSTERY",
@@ -107,7 +107,7 @@ struct MysteryEncounterView: View {
                 baseHeight: baseHeight,
                 overscroll: overscroll,
                 horizontalPadding: TrinketDesign.Metrics.contentMargin,
-                bottomPadding: TrinketDesign.Metrics.largeSpacing
+                bottomPadding: TrinketDesign.Metrics.largeSpacing,
             ) {
                 heroArtwork
             }
@@ -154,7 +154,7 @@ struct MysteryEncounterView: View {
                     isDisabled: session.isResolvingChoice,
                     materialQuantity: session.previewMaterialQuantity,
                     heroExperienceAward: session.previewHeroExperienceAward,
-                    companionExperienceAward: session.previewCompanionExperienceAward
+                    companionExperienceAward: session.previewCompanionExperienceAward,
                 ) {
                     guard selectedChoiceID != choice.id else { return }
                     selectedChoiceID = choice.id
@@ -165,7 +165,7 @@ struct MysteryEncounterView: View {
         .trinketSensoryFeedback(
             .selection,
             trigger: choiceFeedbackTrigger,
-            enabled: options.hapticsEnabled
+            enabled: options.hapticsEnabled,
         )
     }
 
@@ -178,7 +178,7 @@ struct MysteryEncounterView: View {
                 .frame(maxWidth: .infinity)
         }
         .trinketPrimaryActionButton(
-            accessibilityIdentifier: AccessibilityID.Mystery.confirmChoiceButton
+            accessibilityIdentifier: AccessibilityID.Mystery.confirmChoiceButton,
         )
         .trinketCenteredPrimaryAction()
         .disabled(selectedChoiceID == nil || session.isResolvingChoice)
@@ -194,7 +194,7 @@ struct MysteryEncounterView: View {
 @ViewBuilder
 func mysteryPersistFailureBanner(
     _ message: String?,
-    centered: Bool = false
+    centered: Bool = false,
 ) -> some View {
     if let message {
         Text(message)

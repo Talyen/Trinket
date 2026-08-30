@@ -16,7 +16,7 @@ struct CombatFeedbackRasterKey: Hashable {
     init(
         item: CombatFeedbackItem,
         layoutDirection: LayoutDirection,
-        displayScale: CGFloat
+        displayScale: CGFloat,
     ) {
         typography = item.feedbackClass.typographyTier
         presentationRole = item.presentationRole
@@ -36,7 +36,7 @@ final class CombatFeedbackRaster {
         key: CombatFeedbackRasterKey,
         image: CGImage,
         pointSize: CGSize,
-        displayScale: CGFloat
+        displayScale: CGFloat,
     ) {
         self.key = key
         self.image = image
@@ -89,12 +89,12 @@ final class CombatFeedbackRasterPool {
     func cachedRaster(
         for item: CombatFeedbackItem,
         layoutDirection: LayoutDirection = .leftToRight,
-        displayScale: CGFloat
+        displayScale: CGFloat,
     ) -> CombatFeedbackRaster? {
         let key = makeKey(
             for: item,
             layoutDirection: layoutDirection,
-            displayScale: displayScale
+            displayScale: displayScale,
         )
         guard let raster = rasters[key] else { return nil }
         hitCount += 1
@@ -106,13 +106,13 @@ final class CombatFeedbackRasterPool {
     func prepare(
         for item: CombatFeedbackItem,
         layoutDirection: LayoutDirection = .leftToRight,
-        displayScale: CGFloat
+        displayScale: CGFloat,
     ) -> CombatFeedbackRaster? {
         let scale = max(1, displayScale)
         let key = makeKey(
             for: item,
             layoutDirection: layoutDirection,
-            displayScale: scale
+            displayScale: scale,
         )
         if let raster = rasters[key] {
             hitCount += 1
@@ -130,12 +130,12 @@ final class CombatFeedbackRasterPool {
         }
 
         let intervalState = BattleFramePacingSignposts.signposter.beginInterval(
-            BattleFramePacingSignposts.Name.feedbackRasterBuild
+            BattleFramePacingSignposts.Name.feedbackRasterBuild,
         )
         defer {
             BattleFramePacingSignposts.signposter.endInterval(
                 BattleFramePacingSignposts.Name.feedbackRasterBuild,
-                intervalState
+                intervalState,
             )
         }
 
@@ -144,7 +144,7 @@ final class CombatFeedbackRasterPool {
             feedbackClass: item.feedbackClass,
             presentationRole: item.presentationRole,
             layoutDirection: layoutDirection,
-            displayScale: scale
+            displayScale: scale,
         ) else {
             return nil
         }
@@ -153,7 +153,7 @@ final class CombatFeedbackRasterPool {
             key: key,
             image: composed.image,
             pointSize: composed.pointSize,
-            displayScale: scale
+            displayScale: scale,
         )
         buildCount += 1
         rasterAllocationCount += 1
@@ -173,7 +173,7 @@ final class CombatFeedbackRasterPool {
             guard preparedCatalogKey != key else { return }
             let completedKey = await startCatalogWarmup(
                 for: key,
-                displayScale: scale
+                displayScale: scale,
             ).value
             guard !Task.isCancelled, completedKey != nil else { return }
         }
@@ -181,7 +181,7 @@ final class CombatFeedbackRasterPool {
 
     private func startCatalogWarmup(
         for key: CombatFeedbackGlyphAtlas.PresentationKey,
-        displayScale: CGFloat
+        displayScale: CGFloat,
     ) -> Task<CombatFeedbackGlyphAtlas.PresentationKey?, Never> {
         catalogWarmupGeneration &+= 1
         let generation = catalogWarmupGeneration
@@ -193,7 +193,7 @@ final class CombatFeedbackRasterPool {
                 }
             }
             await CombatFeedbackGlyphAtlas.shared.prepareBattlePresentationAndWait(
-                displayScale: displayScale
+                displayScale: displayScale,
             )
             guard !Task.isCancelled, catalogWarmupGeneration == generation else { return nil }
             let catalog = CombatFeedbackRasterCatalog.closedVocabularyChips()
@@ -204,7 +204,7 @@ final class CombatFeedbackRasterPool {
                 for item in catalog[index ..< end] {
                     _ = prepare(
                         for: item,
-                        displayScale: displayScale
+                        displayScale: displayScale,
                     )
                 }
                 index = end
@@ -216,7 +216,7 @@ final class CombatFeedbackRasterPool {
         }
         pendingCatalogWarmup = PendingCatalogWarmup(
             generation: generation,
-            task: task
+            task: task,
         )
         return task
     }
@@ -252,19 +252,19 @@ final class CombatFeedbackRasterPool {
             evictionCount: evictionCount,
             unexpectedClosedVocabularyBuildCount: unexpectedClosedVocabularyBuildCount,
             numericMissCount: numericMissCount,
-            rasterAllocationCount: rasterAllocationCount
+            rasterAllocationCount: rasterAllocationCount,
         )
     }
 
     private func makeKey(
         for item: CombatFeedbackItem,
         layoutDirection: LayoutDirection,
-        displayScale: CGFloat
+        displayScale: CGFloat,
     ) -> CombatFeedbackRasterKey {
         CombatFeedbackRasterKey(
             item: item,
             layoutDirection: layoutDirection,
-            displayScale: displayScale
+            displayScale: displayScale,
         )
     }
 

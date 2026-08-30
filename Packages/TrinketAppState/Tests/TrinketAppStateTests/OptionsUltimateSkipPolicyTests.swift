@@ -6,13 +6,13 @@ import TrinketFeatureSupport
 
 @MainActor
 struct OptionsUltimateSkipPolicyTests {
-    @Test func defaultShowPolicyIsOncePerBattle() throws {
+    @Test func `default show policy is once per battle`() throws {
         let defaults = try #require(UserDefaults(suiteName: "OptionsUltimateSkipPolicyTests.\(UUID().uuidString)"))
         let options = OptionsStore(defaults: defaults)
         #expect(options.ultimateCinematicShowPolicy == .oncePerBattle)
     }
 
-    @Test func oncePerBattleAutoSkipsAfterActorPresented() throws {
+    @Test func `once per battle auto skips after actor presented`() throws {
         let defaults = try #require(UserDefaults(suiteName: "OptionsUltimateSkipPolicyTests.\(UUID().uuidString)"))
         let options = OptionsStore(defaults: defaults)
         options.ultimateCinematicShowPolicy = .oncePerBattle
@@ -20,20 +20,20 @@ struct OptionsUltimateSkipPolicyTests {
         #expect(
             options.shouldAutoSkipUltimateCinematic(
                 actorID: "hero",
-                actorsWhoPresentedThisBattle: []
-            ) == false
+                actorsWhoPresentedThisBattle: [],
+            ) == false,
         )
         #expect(
             options.shouldAutoSkipUltimateCinematic(
                 actorID: "hero",
-                actorsWhoPresentedThisBattle: ["hero"]
-            )
+                actorsWhoPresentedThisBattle: ["hero"],
+            ),
         )
         #expect(
             options.shouldAutoSkipUltimateCinematic(
                 actorID: "companion",
-                actorsWhoPresentedThisBattle: ["hero"]
-            ) == false
+                actorsWhoPresentedThisBattle: ["hero"],
+            ) == false,
         )
     }
 
@@ -41,26 +41,26 @@ struct OptionsUltimateSkipPolicyTests {
         (UltimateCinematicShowPolicy.always, false),
         (.never, true),
     ])
-    func alwaysAndNeverPoliciesControlAutoSkip(
+    func `always and never policies control auto skip`(
         policy: UltimateCinematicShowPolicy,
-        autoSkips: Bool
+        autoSkips: Bool,
     ) throws {
         let defaults = try #require(
-            UserDefaults(suiteName: "OptionsUltimateSkipPolicyTests.\(policy.rawValue).\(UUID().uuidString)")
+            UserDefaults(suiteName: "OptionsUltimateSkipPolicyTests.\(policy.rawValue).\(UUID().uuidString)"),
         )
         let options = OptionsStore(defaults: defaults)
         options.ultimateCinematicShowPolicy = policy
         #expect(
             options.shouldAutoSkipUltimateCinematic(
                 actorID: "hero",
-                actorsWhoPresentedThisBattle: []
-            ) == autoSkips
+                actorsWhoPresentedThisBattle: [],
+            ) == autoSkips,
         )
         #expect(
             options.shouldAutoSkipUltimateCinematic(
                 actorID: "hero",
-                actorsWhoPresentedThisBattle: ["hero"]
-            ) == autoSkips
+                actorsWhoPresentedThisBattle: ["hero"],
+            ) == autoSkips,
         )
     }
 }

@@ -11,7 +11,7 @@ struct JourneyProgressTests {
         GameContent.chapters[0]
     }
 
-    @Test func completingStageUnlocksExactlyNextStage() throws {
+    @Test func `completing stage unlocks exactly next stage`() throws {
         var progress = JourneyProgressState.initial
         let firstStage = chapter.stages[0]
         let secondStage = chapter.stages[1]
@@ -26,7 +26,7 @@ struct JourneyProgressTests {
         try #expect(!(progress.isActive(chapter.stages[4])))
     }
 
-    @Test func rewardsCanOnlyBeClaimedOncePerStage() throws {
+    @Test func `rewards can only be claimed once per stage`() throws {
         var progress = JourneyProgressState.initial
         let firstStage = chapter.stages[0]
 
@@ -38,7 +38,7 @@ struct JourneyProgressTests {
         try #expect(progress.claimedRewardStageIDs.count == 1)
     }
 
-    @Test func itemRewardCreatesUniqueInstance() throws {
+    @Test func `item reward creates unique instance`() throws {
         var inventory = PlayerInventoryState.testSeed
         let stage = chapter.stages[0]
         let template = try #require(GameContent.itemTemplate(matching: "shortsword-basic"))
@@ -51,7 +51,7 @@ struct JourneyProgressTests {
         try #expect((1 ... 2).contains(rewardItem.affixes.count))
     }
 
-    @Test func chapterCompletionAutomaticallyAdvancesToNextChapter() throws {
+    @Test func `chapter completion automatically advances to next chapter`() throws {
         var progress = JourneyProgressState.initial
 
         for stage in chapter.stages {
@@ -62,7 +62,7 @@ struct JourneyProgressTests {
         try #expect(progress.activeChapterID == "chapter-2")
     }
 
-    @Test func completeChapterMarksOnlyThatChapterDone() throws {
+    @Test func `complete chapter marks only that chapter done`() throws {
         var progress = JourneyProgressState.initial
         progress.completeChapter("chapter-1")
 
@@ -74,14 +74,14 @@ struct JourneyProgressTests {
         try #expect(progress.activeChapterID == "chapter-2")
     }
 
-    @Test func nextStageReturnsNilAfterFinalStage() throws {
+    @Test func `next stage returns nil after final stage`() throws {
         let finalChapter = try #require(GameContent.chapters.last)
         let finalStage = try #require(finalChapter.stages.last)
 
         try #expect(JourneyProgressState.nextStage(after: finalStage, in: GameContent.chapters) == nil)
     }
 
-    @Test func nextStageCrossesIntoFollowingChapter() throws {
+    @Test func `next stage crosses into following chapter`() throws {
         let chapterOneFinal = try #require(chapter.stages.last)
         let next = try #require(JourneyProgressState.nextStage(after: chapterOneFinal, in: GameContent.chapters))
 
@@ -89,7 +89,7 @@ struct JourneyProgressTests {
         try #expect(next.id == "chapter-2-stage-1")
     }
 
-    @Test @MainActor func journeyPersistsProgress() throws {
+    @Test @MainActor func `journey persists progress`() throws {
         let directoryURL = try SaveTestSupport.makeTempDirectory(prefix: "JourneyProgressTests")
         defer { SaveTestSupport.removeTempDirectory(directoryURL) }
 
@@ -103,7 +103,7 @@ struct JourneyProgressTests {
         try #expect(secondSaveStore.journey.completedStageIDs.contains("chapter-1-stage-1"))
     }
 
-    @Test @MainActor func journeyPersistsPinnedMysteryEventIDs() throws {
+    @Test @MainActor func `journey persists pinned mystery event I ds`() throws {
         let directoryURL = try SaveTestSupport.makeTempDirectory(prefix: "JourneyPinTests")
         defer { SaveTestSupport.removeTempDirectory(directoryURL) }
 
@@ -115,11 +115,11 @@ struct JourneyProgressTests {
 
         let secondSaveStore = try SaveTestSupport.makeSaveStore(directoryURL: directoryURL)
         try #expect(
-            secondSaveStore.journey.pinnedMysteryEventIDs["chapter-1-stage-5"] == event.id
+            secondSaveStore.journey.pinnedMysteryEventIDs["chapter-1-stage-5"] == event.id,
         )
     }
 
-    @Test @MainActor func startupRepairsDuplicateJourneyStageRows() throws {
+    @Test @MainActor func `startup repairs duplicate journey stage rows`() throws {
         let directoryURL = try SaveTestSupport.makeTempDirectory(prefix: "JourneyDuplicateStageTests")
         defer { SaveTestSupport.removeTempDirectory(directoryURL) }
         let storeURL = SaveTestSupport.makeStoreURL(directoryURL: directoryURL)
@@ -135,12 +135,12 @@ struct JourneyProgressTests {
             let completed = JourneyStageProgressModel(
                 stageID: stageID,
                 isCompleted: true,
-                mysteryEventID: eventID
+                mysteryEventID: eventID,
             )
             let claimed = JourneyStageProgressModel(
                 stageID: stageID,
                 rewardsClaimed: true,
-                mysteryEventID: eventID
+                mysteryEventID: eventID,
             )
             completed.journey = journey
             claimed.journey = journey

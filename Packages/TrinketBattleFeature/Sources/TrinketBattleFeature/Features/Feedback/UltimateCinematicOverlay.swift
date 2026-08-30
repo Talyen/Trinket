@@ -36,7 +36,7 @@ struct UltimateCinematicOverlay: View {
         .accessibilityIdentifier("Ultimate Cinematic \(cinematic.abilityName)")
         .battleFramePacingSignpost(
             BattleFramePacingSignposts.Name.ultimateCinematic,
-            isActive: true
+            isActive: true,
         )
         .onAppear {
             runEnter()
@@ -58,7 +58,7 @@ struct UltimateCinematicOverlay: View {
             ZStack {
                 if showVideo, let player = BattleCinematicPlayer.shared.player(
                     for: cinematic.actorID,
-                    abilityID: cinematic.abilityID
+                    abilityID: cinematic.abilityID,
                 ) {
                     CinematicVideoView(player: player)
                 }
@@ -82,7 +82,7 @@ struct UltimateCinematicOverlay: View {
         videoRevealTask = nil
         BattleCinematicPlayer.shared.pause(
             actorID: cinematic.actorID,
-            abilityID: cinematic.abilityID
+            abilityID: cinematic.abilityID,
         )
 
         let collapseID = cinematic.id
@@ -111,7 +111,7 @@ struct UltimateCinematicOverlay: View {
         let cinematicID = cinematic.id
         guard BattleCinematicPlayer.shared.hasVideo(
             for: actorID,
-            abilityID: abilityID
+            abilityID: abilityID,
         ) else {
             onAutoFinish(cinematicID)
             return
@@ -120,7 +120,7 @@ struct UltimateCinematicOverlay: View {
         videoRevealTask = Task { @MainActor in
             let ready = await BattleCinematicPlayer.shared.whenReady(
                 actorID: actorID,
-                abilityID: abilityID
+                abilityID: abilityID,
             )
             guard !Task.isCancelled, !didFinish else { return }
             guard ready else {
@@ -132,7 +132,7 @@ struct UltimateCinematicOverlay: View {
                 actorID: actorID,
                 abilityID: abilityID,
                 effectsVolume: effectsVolume,
-                rate: Float(BattleMotion.ultimateCinematicPlaybackSpeed)
+                rate: Float(BattleMotion.ultimateCinematicPlaybackSpeed),
             ) {
                 guard !didFinish else { return }
                 onAutoFinish(cinematicID)

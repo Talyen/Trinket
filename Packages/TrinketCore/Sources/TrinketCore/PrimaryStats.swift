@@ -12,7 +12,7 @@ public struct PrimaryStats: Equatable, Hashable, Codable, Sendable {
         agility: Int = 0,
         toughness: Int = 0,
         intellect: Int = 0,
-        wisdom: Int = 0
+        wisdom: Int = 0,
     ) {
         self.strength = strength
         self.agility = agility

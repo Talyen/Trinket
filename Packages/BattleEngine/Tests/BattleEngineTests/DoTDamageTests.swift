@@ -14,32 +14,32 @@ struct DoTDamageTests {
         sourceStats: PrimaryStats = PrimaryStats(),
         targetStats: PrimaryStats = PrimaryStats(),
         heroModifiers: CombatModifierProfile = .zero,
-        seed: UInt64 = BattleTestFixtures.deterministicNonCriticalSeed
+        seed: UInt64 = BattleTestFixtures.deterministicNonCriticalSeed,
     ) -> BattleState {
         BattleTestFixtures.makePipelineContext(
             targetMaxHealth: 100,
             targetPrimaryStats: targetStats,
             sourcePrimaryStats: sourceStats,
             heroModifiers: heroModifiers,
-            seed: seed
+            seed: seed,
         )
     }
 
-    @Test func resolveTurnDamageAppliesTargetToughnessMitigation() {
+    @Test func `resolve turn damage applies target toughness mitigation`() {
         var context = makeContext(targetStats: PrimaryStats(toughness: 50))
         let outcome = DoTDamage.resolveTurnDamage(
             basePotency: 4,
             keyword: .burn,
             target: context.roster.enemy.combatant,
             sourceActorID: "source",
-            in: &context
+            in: &context,
         )
 
         #expect(outcome.healthLost == 2)
         #expect(outcome.events.contains { $0.kind == .status && $0.amount == 2 })
     }
 
-    @Test func resolveTurnDamageStoresBasePotencyOnStack() throws {
+    @Test func `resolve turn damage stores base potency on stack`() throws {
         var context = makeContext()
         _ = DoTApplicator.applyDecayingDoT(
             keyword: .burn,
@@ -47,14 +47,14 @@ struct DoTDamageTests {
             to: context.roster.enemy.combatant,
             sourceActorID: "source",
             dealImmediateDamage: false,
-            in: &context
+            in: &context,
         )
         let potency = context.roster.enemy.activeEffects.first { $0.keyword == .burn }?.effect.potency
         try #expect(potency == 4)
     }
 
     @Test(arguments: [TickBonusCase.intellectStat, .itemDamageDealt])
-    private func resolveTurnDamageAppliesDamageBonuses(caseKind: TickBonusCase) throws {
+    private func `resolve turn damage applies damage bonuses`(caseKind: TickBonusCase) throws {
         let context: BattleState
         let expectedHealthLost: Int
         switch caseKind {
@@ -74,7 +74,7 @@ struct DoTDamageTests {
             keyword: .burn,
             target: mutable.roster.enemy.combatant,
             sourceActorID: "source",
-            in: &mutable
+            in: &mutable,
         )
         try #expect(outcome.healthLost == expectedHealthLost)
         if case .intellectStat = caseKind {
@@ -82,14 +82,14 @@ struct DoTDamageTests {
         }
     }
 
-    @Test func resolveTurnDamageIncludesStatusEventWhenDamageDealt() throws {
+    @Test func `resolve turn damage includes status event when damage dealt`() throws {
         var context = makeContext()
         let outcome = DoTDamage.resolveTurnDamage(
             basePotency: 5,
             keyword: .burn,
             target: context.roster.enemy.combatant,
             sourceActorID: "source",
-            in: &context
+            in: &context,
         )
         try #expect(outcome.events.contains { $0.kind == .status && $0.keyword == .burn })
     }

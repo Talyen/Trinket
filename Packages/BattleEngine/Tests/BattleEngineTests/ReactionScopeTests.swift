@@ -4,7 +4,7 @@ import TrinketCore
 @testable import BattleEngine
 
 struct ReactionScopeTests {
-    @Test func talentReactionDepthCapsAt10AndRestores() {
+    @Test func `talent reaction depth caps at 10 and restores`() {
         var state = BattleTestFixtures.makePipelineContext()
         let target = state.roster.enemy.combatant
         state.talentReactionDepth = ReactionScope.maxTalentReactionDepth
@@ -13,14 +13,14 @@ struct ReactionScopeTests {
             target: target,
             keyword: .physical,
             sourceActorID: state.roster.hero.combatant.id,
-            options: DamageOptions()
+            options: DamageOptions(),
         )
         let outcome = state.resolveDamage(request)
         #expect(outcome.events.isEmpty)
         #expect(state.talentReactionDepth == ReactionScope.maxTalentReactionDepth)
     }
 
-    @Test func dotRecursionDepthCapsAt10() {
+    @Test func `dot recursion depth caps at 10`() {
         var state = BattleTestFixtures.makePipelineContext()
         let target = state.roster.enemy.combatant
         state.dotRecursionDepth = ReactionScope.maxDotRecursionDepth
@@ -34,13 +34,13 @@ struct ReactionScopeTests {
             keyword: .burn,
             to: target,
             sourceActorID: state.roster.hero.combatant.id,
-            in: &state2
+            in: &state2,
         )
         #expect(events2.isEmpty)
         #expect(state2.dotRecursionDepth == ReactionScope.maxDotRecursionDepth)
     }
 
-    @Test func dotRecursionAllowsTenAndTruncatesEleventh() {
+    @Test func `dot recursion allows ten and truncates eleventh`() {
         var state = BattleTestFixtures.makePipelineContext()
         let target = state.roster.enemy.combatant
         state.dotRecursionDepth = ReactionScope.maxDotRecursionDepth - 1
@@ -48,18 +48,18 @@ struct ReactionScopeTests {
             keyword: .poison,
             to: target,
             sourceActorID: state.roster.hero.combatant.id,
-            in: &state
+            in: &state,
         )
         #expect(allowed.isEmpty)
         #expect(state.dotRecursionDepth == ReactionScope.maxDotRecursionDepth - 1)
     }
 
-    @Test func buildupDamageInvariantHoldsForBlockedHit() {
+    @Test func `buildup damage invariant holds for blocked hit`() {
         let hero = BattleTestFixtures.passiveHero(maxHealth: 100)
         var state = BattleTestFixtures.makeContext(
             hero: hero,
             companion: BattleTestFixtures.passiveCompanion(),
-            enemy: BattleTestFixtures.passiveEnemy(maxHealth: 100)
+            enemy: BattleTestFixtures.passiveEnemy(maxHealth: 100),
         )
         let target = state.roster.hero.combatant
         state.seedActiveEffects([ActiveEffect(id: 1, effect: .shield(.block, 999), remainingTurns: 2)], for: target)
@@ -68,7 +68,7 @@ struct ReactionScopeTests {
             target: target,
             keyword: .physical,
             sourceActorID: state.roster.enemy.combatant.id,
-            options: DamageOptions()
+            options: DamageOptions(),
         )
         let outcome = state.resolveDamage(request)
         #expect(outcome.healthLost == 0)

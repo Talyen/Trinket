@@ -22,7 +22,7 @@ struct MysteryCorruptionRevealContent: View {
                     titleShineColors: result.item.rarity == .unique ? UniqueShine.textColors : nil,
                     titleAccessibilityIdentifier: AccessibilityID.Mystery.corruptionRevealTitle,
                     baseHeight: baseHeight,
-                    overscroll: overscroll
+                    overscroll: overscroll,
                 ) {
                     ItemArtwork(item: result.item)
                 }
@@ -55,7 +55,7 @@ struct MysteryCorruptionRevealContent: View {
                                     titleKeywords: result.item.isPerfectAffix(at: index) ? affix.keywords : [],
                                     titleShineColors: uniqueAffixShineColors(for: affix),
                                     titlePrefix: affix.isCorrupted ? "Corrupted " : nil,
-                                    titlePrefixShineColors: affix.isCorrupted ? CorruptionShine.textColors : nil
+                                    titlePrefixShineColors: affix.isCorrupted ? CorruptionShine.textColors : nil,
                                 )
                             }
                         }
@@ -64,7 +64,7 @@ struct MysteryCorruptionRevealContent: View {
                     mysteryPersistFailureBanner(session.persistFailureMessage)
                         .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
                 }
-            }
+            },
         )
         .safeAreaInset(edge: .bottom) {
             Button("Continue") {
@@ -72,7 +72,7 @@ struct MysteryCorruptionRevealContent: View {
             }
             .frame(maxWidth: .infinity)
             .trinketPrimaryActionButton(
-                accessibilityIdentifier: AccessibilityID.Mystery.corruptionContinueButton
+                accessibilityIdentifier: AccessibilityID.Mystery.corruptionContinueButton,
             )
             .trinketCenteredPrimaryAction()
             .padding(.horizontal, TrinketDesign.Metrics.contentMargin)

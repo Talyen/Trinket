@@ -34,7 +34,7 @@ package enum FightPacing {
             targetRounds: 7.5,
             maxRounds: 10,
             burnFractionAtTarget: 0.50,
-            backstopSpan: 4
+            backstopSpan: 4,
         )
 
         static let boss = Self(
@@ -49,7 +49,7 @@ package enum FightPacing {
             targetRounds: 15.0,
             maxRounds: 20,
             burnFractionAtTarget: 0.50,
-            backstopSpan: 4
+            backstopSpan: 4,
         )
     }
 
@@ -78,11 +78,11 @@ package enum FightPacing {
     package static func poolMetrics(in context: BattleState) -> PoolMetrics {
         let partyMax = max(
             1,
-            context.roster.maxHealth(for: context.hero) + context.roster.maxHealth(for: context.companion)
+            context.roster.maxHealth(for: context.hero) + context.roster.maxHealth(for: context.companion),
         )
         let partyCurrent = max(
             0,
-            context.roster.health(for: context.hero) + context.roster.health(for: context.companion)
+            context.roster.health(for: context.hero) + context.roster.health(for: context.companion),
         )
         let enemyMax = max(1, context.roster.maxHealth(for: context.enemy))
         let enemyCurrent = max(0, context.roster.health(for: context.enemy))
@@ -91,7 +91,7 @@ package enum FightPacing {
         return PoolMetrics(
             partyFraction: Double(partyCurrent) / Double(partyMax),
             enemyFraction: Double(enemyCurrent) / Double(enemyMax),
-            actualBurnFraction: Double(totalMax - totalCurrent) / Double(totalMax)
+            actualBurnFraction: Double(totalMax - totalCurrent) / Double(totalMax),
         )
     }
 
@@ -103,7 +103,7 @@ package enum FightPacing {
         side: Side,
         isBoss: Bool,
         metrics: PoolMetrics,
-        in context: BattleState
+        in context: BattleState,
     ) -> Double {
         clockMultiplier(isBoss: isBoss, metrics: metrics, in: context)
             * comebackMultiplier(side: side, isBoss: isBoss, metrics: metrics, in: context)
@@ -117,7 +117,7 @@ package enum FightPacing {
         side: Side,
         isBoss: Bool,
         metrics: PoolMetrics,
-        in _: BattleState
+        in _: BattleState,
     ) -> Double {
         let pacingConfig = Self.config(isBoss: isBoss)
         let hpDelta = metrics.partyFraction - metrics.enemyFraction
@@ -133,7 +133,7 @@ package enum FightPacing {
         let bonus = bandedBonus(
             severity: severity,
             min: pacingConfig.comebackMin,
-            max: pacingConfig.comebackMax
+            max: pacingConfig.comebackMax,
         )
         return 1 + bonus
     }
@@ -145,13 +145,13 @@ package enum FightPacing {
     package static func clockMultiplier(
         isBoss: Bool,
         metrics: PoolMetrics,
-        in context: BattleState
+        in context: BattleState,
     ) -> Double {
         let pacingConfig = Self.config(isBoss: isBoss)
         let scheduleBonus = scheduleClockBonus(
             metrics: metrics,
             turn: context.turnCount,
-            config: pacingConfig
+            config: pacingConfig,
         )
         let backstopBonus = turnBackstopBonus(in: context, config: pacingConfig)
         return 1 + max(scheduleBonus, backstopBonus)

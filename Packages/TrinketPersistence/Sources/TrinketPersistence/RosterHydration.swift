@@ -6,7 +6,7 @@ enum RosterHydration {
     static func resolveEquipmentSlot(
         _ rawValue: String,
         schemaVersion: Int,
-        isHero: Bool
+        isHero: Bool,
     ) -> ItemSlot? {
         guard schemaVersion < PlayerSave.Schema.renamedItemSlots else { return ItemSlot(rawValue: rawValue) }
         return switch rawValue {
@@ -21,7 +21,7 @@ enum RosterHydration {
         activeHeroID: String,
         activeCompanionID: String,
         unlockedHeroIDs: Set<String>,
-        unlockedCompanionIDs: Set<String>
+        unlockedCompanionIDs: Set<String>,
     ) -> (activeHeroID: String, activeCompanionID: String) {
         let resolvedHeroID = unlockedHeroIDs.contains(activeHeroID)
             ? activeHeroID
@@ -36,25 +36,25 @@ enum RosterHydration {
 
     private static func lowestCatalogOrderedID(
         from unlockedIDs: Set<String>,
-        in catalog: [Combatant]
+        in catalog: [Combatant],
     ) -> String? {
         catalog.first { unlockedIDs.contains($0.id) }?.id
     }
 
     static func resolveAbilityLoadouts(
-        from loadouts: [String: AbilityLoadout]
+        from loadouts: [String: AbilityLoadout],
     ) -> [String: AbilityLoadout] {
         resolvedAbilities(loadouts.mapValues(rawIDs(of:)))
     }
 
     static func resolveAbilityLoadouts(
-        from ids: [String: AbilityLoadoutIDs]
+        from ids: [String: AbilityLoadoutIDs],
     ) -> [String: AbilityLoadout] {
         resolvedAbilities(ids)
     }
 
     static func rawAbilityLoadouts(
-        from ids: [String: AbilityLoadoutIDs]
+        from ids: [String: AbilityLoadoutIDs],
     ) -> [String: AbilityLoadout] {
         var resolved: [String: AbilityLoadout] = [:]
         for (combatantID, loadoutIDs) in ids {
@@ -63,7 +63,7 @@ enum RosterHydration {
             resolved[combatantID] = AbilityLoadout(
                 basic: exactAbility(loadoutIDs.basicID, choices: choices.abilities(for: .basic)),
                 skill: exactAbility(loadoutIDs.skillID, choices: choices.abilities(for: .skill)),
-                ultimate: exactAbility(loadoutIDs.ultimateID, choices: choices.abilities(for: .ultimate))
+                ultimate: exactAbility(loadoutIDs.ultimateID, choices: choices.abilities(for: .ultimate)),
             )
         }
         return resolved
@@ -81,7 +81,7 @@ enum RosterHydration {
     }
 
     private static func resolvedAbilities(
-        _ loadouts: [String: AbilityLoadoutIDs]
+        _ loadouts: [String: AbilityLoadoutIDs],
     ) -> [String: AbilityLoadout] {
         var resolved: [String: AbilityLoadout] = [:]
         for (combatantID, ids) in loadouts {
@@ -89,7 +89,7 @@ enum RosterHydration {
             resolved[combatantID] = resolvedLoadout(
                 ids,
                 defaults: combatant.abilityLoadout,
-                choices: combatant.abilityChoices
+                choices: combatant.abilityChoices,
             )
         }
         return resolved
@@ -98,12 +98,12 @@ enum RosterHydration {
     private static func resolvedLoadout(
         _ ids: AbilityLoadoutIDs,
         defaults: AbilityLoadout,
-        choices: AbilityChoices
+        choices: AbilityChoices,
     ) -> AbilityLoadout {
         AbilityLoadout(
             basic: resolvedAbility(ids.basicID, tier: .basic, fallback: defaults.basic, choices: choices),
             skill: resolvedAbility(ids.skillID, tier: .skill, fallback: defaults.skill, choices: choices),
-            ultimate: resolvedAbility(ids.ultimateID, tier: .ultimate, fallback: defaults.ultimate, choices: choices)
+            ultimate: resolvedAbility(ids.ultimateID, tier: .ultimate, fallback: defaults.ultimate, choices: choices),
         )
     }
 
@@ -111,7 +111,7 @@ enum RosterHydration {
         _ id: String?,
         tier: AbilityTier,
         fallback: Ability?,
-        choices: AbilityChoices
+        choices: AbilityChoices,
     ) -> Ability? {
         guard let id else { return fallback }
         let tierChoices = choices.abilities(for: tier)
@@ -139,7 +139,7 @@ enum RosterHydration {
         _ loadout: EquipmentLoadout,
         inventoryItemIDs: Set<String>,
         combatant: Combatant? = nil,
-        inventoryItems: [InventoryItem]? = nil
+        inventoryItems: [InventoryItem]? = nil,
     ) -> EquipmentLoadout {
         var resolvedItems: [ItemSlot: String] = [:]
         for (slot, itemID) in loadout.itemIDsBySlot {
@@ -156,7 +156,7 @@ enum RosterHydration {
     static func resolveEquipmentLoadouts(
         from loadouts: [String: EquipmentLoadout],
         inventoryItemIDs: Set<String>,
-        inventoryItems: [InventoryItem]? = nil
+        inventoryItems: [InventoryItem]? = nil,
     ) -> [String: EquipmentLoadout] {
         var resolved: [String: EquipmentLoadout] = [:]
         for (combatantID, loadout) in loadouts {
@@ -168,7 +168,7 @@ enum RosterHydration {
                 loadout,
                 inventoryItemIDs: inventoryItemIDs,
                 combatant: combatant,
-                inventoryItems: inventoryItems
+                inventoryItems: inventoryItems,
             )
         }
         return enforceUniqueEquippedItems(resolved)
@@ -187,7 +187,7 @@ enum RosterHydration {
     }
 
     static func enforceUniqueEquippedItems(
-        _ loadouts: [String: EquipmentLoadout]
+        _ loadouts: [String: EquipmentLoadout],
     ) -> [String: EquipmentLoadout] {
         var claimedItemIDs = Set<String>()
         var unique: [String: EquipmentLoadout] = [:]
@@ -207,7 +207,7 @@ enum RosterHydration {
     static func applyLoadout(
         _ loadout: EquipmentLoadout,
         for combatantID: String,
-        in loadouts: [String: EquipmentLoadout]
+        in loadouts: [String: EquipmentLoadout],
     ) -> [String: EquipmentLoadout] {
         let resolved = deduplicateWithinLoadout(loadout)
         let newlyEquipped = Set(resolved.itemIDsBySlot.values)

@@ -3,7 +3,7 @@ import TrinketContent
 import TrinketCore
 
 struct ThemedGearGeneratorTests {
-    @Test func generatesFixedAffixCountPerSlot() throws {
+    @Test func `generates fixed affix count per slot`() throws {
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         var rng = SeededRandomNumberGenerator(seed: 99)
         let generator = ThemedGearGenerator()
@@ -13,7 +13,7 @@ struct ThemedGearGeneratorTests {
             rarity: .basic,
             fixedAffixCount: 1,
             idPrefix: "themed",
-            using: &rng
+            using: &rng,
         )
 
         let primaryID = try #require(build.loadout.itemID(for: .weapon))
@@ -28,7 +28,7 @@ struct ThemedGearGeneratorTests {
             == (primary.baseType.weaponKind != .twoHanded))
     }
 
-    @Test func generatesSingleAlignedPiece() throws {
+    @Test func `generates single aligned piece`() throws {
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         var rng = SeededRandomNumberGenerator(seed: 44)
         let build = ThemedGearGenerator().generateSinglePiece(
@@ -38,19 +38,19 @@ struct ThemedGearGeneratorTests {
             idPrefix: "starter",
             keywordBias: Set(knight.abilities.flatMap(\.keywords)),
             requireBuildAlignment: true,
-            using: &rng
+            using: &rng,
         )
         try #expect(build.inventory.count == 1)
         try #expect(build.inventory[0].affixes.count == 1)
         try #expect(build.loadout.itemIDsBySlot.count == 1)
     }
 
-    @Test func keywordProfileIncludesAbilityKeywords() throws {
+    @Test func `keyword profile includes ability keywords`() throws {
         let wizard = try #require(GameContent.heroes.first { $0.id == "wizard" })
         try #expect(wizard.keywordProfile.contains(.burn))
     }
 
-    @Test func fixedAffixCountOverrideInItemGenerator() throws {
+    @Test func `fixed affix count override in item generator`() throws {
         let baseType = try ItemFixtures.baseType("longsword")
         var rng = SeededRandomNumberGenerator(seed: 12)
 
@@ -60,13 +60,13 @@ struct ThemedGearGeneratorTests {
             rarity: .basic,
             fixedAffixCount: 1,
             keywordBias: [.physical],
-            using: &rng
+            using: &rng,
         )
 
         try #expect(item.affixes.count == 1)
     }
 
-    @Test func requireBuildAlignmentRejectsMismatchedDamageAffixes() throws {
+    @Test func `require build alignment rejects mismatched damage affixes`() throws {
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         let bias = Set(knight.abilityLoadout.abilities.flatMap(\.keywords))
         #expect(!bias.contains(.poison))
@@ -79,11 +79,11 @@ struct ThemedGearGeneratorTests {
             idPrefix: "aligned",
             keywordBias: bias,
             requireBuildAlignment: true,
-            using: &rng
+            using: &rng,
         )
 
         let definitions = Dictionary(
-            uniqueKeysWithValues: GameContent.itemAffixDefinitions.map { ($0.id, $0) }
+            uniqueKeysWithValues: GameContent.itemAffixDefinitions.map { ($0.id, $0) },
         )
         for item in build.inventory {
             for affix in item.affixes {

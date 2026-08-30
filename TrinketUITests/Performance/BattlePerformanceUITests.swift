@@ -56,7 +56,7 @@ final class BattlePerformanceUITests: TrinketUITestCase {
         tapWhenReady(start)
         XCTAssertTrue(
             waitForStatus(status, prefix: "measuring:\(scenario)"),
-            "Scenario did not enter its measurement window: \(status.value ?? "missing")"
+            "Scenario did not enter its measurement window: \(status.value ?? "missing")",
         )
         perform(gesture)
         RunLoop.current.run(until: Date().addingTimeInterval(Self.scenarioDuration))
@@ -64,7 +64,7 @@ final class BattlePerformanceUITests: TrinketUITestCase {
         let scenarioStatus = status.value as? String ?? ""
         XCTAssertTrue(
             scenarioStatus.hasPrefix("complete:\(scenario):"),
-            "Scenario did not complete: \(scenarioStatus)"
+            "Scenario did not complete: \(scenarioStatus)",
         )
         validate(gesture)
         guard let payload = metrics.value as? String,
@@ -82,7 +82,7 @@ final class BattlePerformanceUITests: TrinketUITestCase {
             suite: "battle",
             iteration: iteration,
             metadata: ["scenarioStatus": scenarioStatus],
-            in: self
+            in: self,
         )
     }
 
@@ -127,13 +127,13 @@ final class BattlePerformanceUITests: TrinketUITestCase {
         case let .play(_, initialCardCount):
             XCTAssertTrue(
                 waitUntil { self.handCards().count == initialCardCount - 1 },
-                "A successful release did not remove exactly one card"
+                "A successful release did not remove exactly one card",
             )
         case let .cancel(_, initialCardCount):
             XCTAssertEqual(
                 handCards().count,
                 initialCardCount,
-                "Cancel gestures changed hand membership"
+                "Cancel gestures changed hand membership",
             )
         }
     }
@@ -145,7 +145,7 @@ final class BattlePerformanceUITests: TrinketUITestCase {
     private func screenCoordinate(for element: XCUIElement) -> XCUICoordinate {
         let frame = element.frame
         return app.coordinate(withNormalizedOffset: .zero).withOffset(
-            CGVector(dx: frame.midX, dy: frame.midY)
+            CGVector(dx: frame.midX, dy: frame.midY),
         )
     }
 
@@ -156,7 +156,7 @@ final class BattlePerformanceUITests: TrinketUITestCase {
     private func waitForStatus(
         _ element: XCUIElement,
         prefix: String,
-        timeout: TimeInterval = 4
+        timeout: TimeInterval = 4,
     ) -> Bool {
         waitUntil(timeout: timeout) { (element.value as? String)?.hasPrefix(prefix) == true }
     }

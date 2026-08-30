@@ -29,7 +29,7 @@ struct HomesteadCategoryView: View {
         HomesteadHeroScreen(
             title: category.rawValue,
             homestead: homestead,
-            roster: roster
+            roster: roster,
         ) {
             categoryHeroArt
         } bodyContent: {
@@ -39,7 +39,7 @@ struct HomesteadCategoryView: View {
                 homestead: homestead,
                 roster: roster,
                 zoomNamespace: zoomNamespace,
-                showsCategoryHeader: false
+                showsCategoryHeader: false,
             )
         }
         .navigationDestination(for: HomesteadNodeDefinition.self) { definition in

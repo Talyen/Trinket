@@ -11,7 +11,7 @@ package extension BattleState {
     mutating func grantGoldEvent(
         _ amount: Int,
         to combatant: Combatant,
-        abilityName: String
+        abilityName: String,
     ) -> [ActionEvent] {
         let granted = goldGranted(for: amount, sourceActorID: combatant.id)
         let previousEarned = max(0, gold - initialGold)
@@ -24,11 +24,11 @@ package extension BattleState {
             abilityName: abilityName,
             target: combatant,
             amount: granted,
-            keyword: .gold
+            keyword: .gold,
         )]
         events.append(contentsOf: CombatTriggerEngine.healSelfAfterGoldGain(
             source: combatant,
-            in: &self
+            in: &self,
         ).events)
 
         let triggers = modifiers(for: combatant.id).triggers
@@ -46,11 +46,11 @@ package extension BattleState {
                         "onGainGoldDrawCardOncePerTurn",
                         for: combatant,
                         fallback: "Golden Opportunity",
-                        in: self
+                        in: self,
                     ),
                     target: combatant,
                     amount: drawn,
-                    keyword: .physical
+                    keyword: .physical,
                 ))
             }
         }
@@ -66,8 +66,8 @@ package extension BattleState {
                         "onGainGoldHealParty",
                         for: combatant,
                         fallback: "Golden Recovery",
-                        in: self
-                    )
+                        in: self,
+                    ),
                 ))
             }
         }
@@ -90,8 +90,8 @@ package extension BattleState {
                                 "goldGainBlockPercent",
                                 for: member.combatant,
                                 fallback: "Golden Guard",
-                                in: self
-                            )
+                                in: self,
+                            ),
                         ))
                     }
                     continue
@@ -108,8 +108,8 @@ package extension BattleState {
                             "blockPerGoldEarnedEvery",
                             for: member.combatant,
                             fallback: "Golden Guard",
-                            in: self
-                        )
+                            in: self,
+                        ),
                     ))
                 }
             }
@@ -152,7 +152,7 @@ package extension BattleState {
         _ amount: Int,
         to combatant: Combatant,
         abilityName: String,
-        actorName: String? = nil
+        actorName: String? = nil,
     ) -> [ActionEvent] {
         let restored = restoreMana(amount, to: combatant)
         guard restored > 0 else { return [] }
@@ -164,7 +164,7 @@ package extension BattleState {
             abilityName: abilityName,
             target: combatant,
             amount: restored,
-            keyword: .mana
+            keyword: .mana,
         ))
         events.append(contentsOf: CombatTriggerEngine.afterGainMana(by: combatant, in: &self))
         return events
@@ -175,16 +175,16 @@ package extension BattleState {
         target: Combatant,
         source: Combatant,
         abilityName: String,
-        keyword: Keyword = .health
+        keyword: Keyword = .health,
     ) -> [ActionEvent] {
         let outcome = HealingEngine.resolveHeal(
             HealRequest(
                 amount: amount,
                 target: target,
                 sourceActorID: source.id,
-                logAs: .instantHeal(actorName: source.name, abilityName: abilityName, keyword: keyword)
+                logAs: .instantHeal(actorName: source.name, abilityName: abilityName, keyword: keyword),
             ),
-            in: &self
+            in: &self,
         )
         return outcome.events
     }
@@ -206,7 +206,7 @@ public extension BattleTurnEngine {
     static func spendManaToEmpowerBurnOrFreezeIfNeeded(
         for ability: inout Ability,
         actor: Combatant,
-        context: inout BattleState
+        context: inout BattleState,
     ) -> [ActionEvent] {
         guard ability.hasManaEmpowerableBurnOrFreezeDamage else { return [] }
         let empoweredKeyword = ability.damageComponents.first(where: \.isManaEmpowerableBurnOrFreezeDamage)?.keyword
@@ -237,14 +237,14 @@ public extension BattleTurnEngine {
             events.append(contentsOf: CombatTriggerEngine.afterSpendMana(
                 by: actor,
                 amountSpent: spent,
-                in: &context
+                in: &context,
             ))
         }
         if purchases > 0, let empoweredKeyword {
             events.append(contentsOf: CombatTriggerEngine.drawOppositeElement(
                 afterEmpowering: empoweredKeyword,
                 by: actor,
-                in: &context
+                in: &context,
             ))
         }
         return events

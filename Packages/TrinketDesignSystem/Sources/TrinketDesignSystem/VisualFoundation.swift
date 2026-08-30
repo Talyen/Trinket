@@ -200,7 +200,7 @@ private struct SurfaceShadow {
     static let elevated = Self(
         color: TrinketDesign.Colors.Overlay.ink.opacity(0.18),
         radius: 12,
-        y: 5
+        y: 5,
     )
 }
 
@@ -213,7 +213,7 @@ struct MaterialRoleModifier: ViewModifier {
         case let .glass(glass):
             content.modifier(TrinketGlassBackgroundModifier(
                 glass: glass,
-                shape: shape
+                shape: shape,
             ))
         case .ultraThinMaterial:
             content
@@ -278,7 +278,7 @@ struct GlassChipModifier: ViewModifier {
             }
             .modifier(TrinketGlassBackgroundModifier(
                 glass: .regular,
-                shape: Capsule(style: .continuous)
+                shape: Capsule(style: .continuous),
             ))
     }
 }
@@ -307,18 +307,18 @@ public extension View {
     func trinketSurface(
         _ role: SurfaceRole,
         isPressed: Bool = false,
-        cornerRadiusOverride: CGFloat? = nil
+        cornerRadiusOverride: CGFloat? = nil,
     ) -> some View {
         modifier(SurfaceModifier(role: role, isPressed: isPressed, cornerRadiusOverride: cornerRadiusOverride))
     }
 
     func trinketMaterial(
         _ role: MaterialRole,
-        cornerRadius: CGFloat = TrinketDesign.Corners.card
+        cornerRadius: CGFloat = TrinketDesign.Corners.card,
     ) -> some View {
         modifier(MaterialRoleModifier(
             role: role,
-            shape: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+            shape: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous),
         ))
     }
 

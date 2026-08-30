@@ -72,7 +72,7 @@ public struct BalanceSweepConfig: Equatable, Codable, Sendable {
         focusIDs: [String] = [],
         durationFlagRate: Double = Self.durationFlagRateDefault,
         comfortHPThreshold: Double = Self.comfortHPThresholdDefault,
-        comfortRoundThreshold: Double = Self.comfortRoundThresholdDefault
+        comfortRoundThreshold: Double = Self.comfortRoundThresholdDefault,
     ) {
         self.mode = mode
         self.battlesPerTier = max(1, battlesPerTier)
@@ -206,7 +206,7 @@ public struct BalanceBattleRecord: Equatable, Codable, Sendable {
         companionTalentIDs: [String],
         seed: UInt64,
         policyID: String,
-        result: BattleSimResult
+        result: BattleSimResult,
     ) {
         self.tier = tier
         self.heroID = heroID
@@ -278,7 +278,7 @@ public struct PairedContrastSummary: Equatable, Codable, Sendable {
         meanDeltaRounds: Double = 0,
         flagged: Bool,
         flagReason: String? = nil,
-        nonCombat: Bool = false
+        nonCombat: Bool = false,
     ) {
         self.entityID = entityID
         self.baselineID = baselineID
@@ -333,7 +333,7 @@ public struct BalanceSweepReport: Codable, Sendable {
         progressionRecords: [ProgressionBattleRecord] = [],
         progressionPlayerStates: [PlayerProgressionState] = [],
         progressionTruncatedRuns: Int = 0,
-        elapsedSeconds: Double
+        elapsedSeconds: Double,
     ) {
         self.config = config
         self.policyID = policyID

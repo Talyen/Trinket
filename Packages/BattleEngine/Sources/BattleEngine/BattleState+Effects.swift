@@ -18,7 +18,7 @@ package extension BattleState {
         switch effect {
         case let .shield(keyword, buffer):
             return .shield(
-                keyword, buffer + profile.blockGainedBonus
+                keyword, buffer + profile.blockGainedBonus,
             )
         default:
             return effect
@@ -30,14 +30,14 @@ package extension BattleState {
         to target: Combatant,
         source: Combatant,
         abilityName: String,
-        applyOutgoingAdjustment: Bool = true
+        applyOutgoingAdjustment: Bool = true,
     ) -> [ActionEvent] {
         applyBlockGain(
             amount,
             to: target,
             source: source,
             abilityName: abilityName,
-            applyOutgoingAdjustment: applyOutgoingAdjustment
+            applyOutgoingAdjustment: applyOutgoingAdjustment,
         ).events
     }
 
@@ -46,7 +46,7 @@ package extension BattleState {
         to target: Combatant,
         source: Combatant,
         abilityName: String,
-        applyOutgoingAdjustment: Bool = true
+        applyOutgoingAdjustment: Bool = true,
     ) -> BlockGain {
         if CombatTriggerEngine.frozenTargetCannotBlockOrHeal(target, in: self) {
             return BlockGain(applied: 0, events: [])
@@ -64,7 +64,7 @@ package extension BattleState {
             keyword: keyword,
             sourceActorID: source.id,
             applyFightPacing: applyOutgoingAdjustment,
-            in: &self
+            in: &self,
         )
         var events = [nextEvent(
             kind: .effect,
@@ -73,12 +73,12 @@ package extension BattleState {
             abilityName: abilityName,
             target: target,
             amount: applied,
-            keyword: keyword
+            keyword: keyword,
         )]
         events.append(contentsOf: CombatTriggerEngine.afterBlockGained(
             applied,
             by: target,
-            in: &self
+            in: &self,
         ))
         return BlockGain(applied: applied, events: events)
     }
@@ -96,7 +96,7 @@ package extension BattleState {
         _ effect: Effect,
         to target: Combatant,
         sourceID: String,
-        remainingTurns: Int
+        remainingTurns: Int,
     ) {
         guard !interceptDebuff(effect, on: target) else { return }
         let effectID = consumeNextEffectID()
@@ -106,8 +106,8 @@ package extension BattleState {
                     id: effectID,
                     effect: effect,
                     remainingTurns: remainingTurns,
-                    sourceActorID: sourceID
-                )
+                    sourceActorID: sourceID,
+                ),
             )
         }
     }
@@ -116,7 +116,7 @@ package extension BattleState {
         _ effect: Effect,
         to target: Combatant,
         sourceID: String? = nil,
-        remainingTurns: Int
+        remainingTurns: Int,
     ) {
         let effectID = consumeNextEffectID()
         roster.mutateRuntime(for: target) { runtime in
@@ -125,9 +125,9 @@ package extension BattleState {
                     id: effectID,
                     effect: effect,
                     remainingTurns: remainingTurns,
-                    sourceActorID: sourceID
+                    sourceActorID: sourceID,
                 ),
-                at: 0
+                at: 0,
             )
         }
     }

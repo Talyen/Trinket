@@ -5,7 +5,7 @@ import TrinketCore
 package enum EnemyTraitEngine {
     package static func turnFreeze(
         for combatant: Combatant,
-        context: inout BattleState
+        context: inout BattleState,
     ) -> [ActionEvent] {
         let profile = context.modifiers(for: combatant.id)
         guard profile.triggers.turnFreezeDamageAllEnemies > 0,
@@ -18,13 +18,13 @@ package enum EnemyTraitEngine {
             amount: profile.triggers.turnFreezeDamageAllEnemies,
             keyword: .freeze,
             source: combatant,
-            context: &context
+            context: &context,
         )
     }
 
     package static func turnRandomDamageAllEnemies(
         for combatant: Combatant,
-        context: inout BattleState
+        context: inout BattleState,
     ) -> [ActionEvent] {
         let triggers = context.modifiers(for: combatant.id).triggers
         guard triggers.turnRandomDamageAllEnemiesAmount > 0,
@@ -38,7 +38,7 @@ package enum EnemyTraitEngine {
             amount: triggers.turnRandomDamageAllEnemiesAmount,
             keyword: chosen,
             source: combatant,
-            context: &context
+            context: &context,
         )
     }
 
@@ -46,7 +46,7 @@ package enum EnemyTraitEngine {
         amount: Int,
         keyword: Keyword,
         source: Combatant,
-        context: inout BattleState
+        context: inout BattleState,
     ) -> [ActionEvent] {
         var events: [ActionEvent] = []
         for targetRuntime in [context.roster.hero, context.roster.companion] where targetRuntime.isAlive {
@@ -58,8 +58,8 @@ package enum EnemyTraitEngine {
                     sourceActorID: source.id,
                     options: keyword == .stun || keyword == .freeze
                         ? .flatControlReaction
-                        : .flatReaction
-                )
+                        : .flatReaction,
+                ),
             )
             events.append(contentsOf: outcome.events)
         }
@@ -69,7 +69,7 @@ package enum EnemyTraitEngine {
     package static func traitAttackerBurn(
         defender: Combatant,
         attackerID: String,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         let profile = context.modifiers(for: defender.id)
         guard profile.triggers.onHitAttackerBurn > 0,
@@ -83,7 +83,7 @@ package enum EnemyTraitEngine {
             sourceActorID: defender.id,
             dealImmediateDamage: false,
             suppressAffixReactions: true,
-            in: &context
+            in: &context,
         )
     }
 
@@ -91,7 +91,7 @@ package enum EnemyTraitEngine {
         damageTaken: Int,
         defender: Combatant,
         attackerID: String,
-        in context: inout BattleState
+        in context: inout BattleState,
     ) -> [ActionEvent] {
         let profile = context.modifiers(for: defender.id)
         guard profile.triggers.thornsPercent > 0, damageTaken > 0,
@@ -105,15 +105,15 @@ package enum EnemyTraitEngine {
                 target: attacker,
                 keyword: .physical,
                 sourceActorID: defender.id,
-                options: .flatReaction
-            )
+                options: .flatReaction,
+            ),
         )
         let events = outcome.events.map { event in
             event.with(
                 effectKind: .thornsTriggered,
                 actorID: defender.id,
                 actorName: defender.name,
-                abilityName: CombatTriggerEngine.traitName(for: defender, in: context)
+                abilityName: CombatTriggerEngine.traitName(for: defender, in: context),
             )
         }
         if events.isEmpty, outcome.healthLost > 0 {
@@ -124,7 +124,7 @@ package enum EnemyTraitEngine {
                 abilityName: CombatTriggerEngine.traitName(for: defender, in: context),
                 target: attacker,
                 amount: outcome.healthLost,
-                keyword: .physical
+                keyword: .physical,
             )]
         }
         return events

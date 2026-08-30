@@ -42,7 +42,7 @@ struct CombatFeedbackItem: Identifiable, Equatable {
         availableAt: Date,
         expiresAt: Date,
         reactionKind: CombatantHitReactionKind,
-        firstScheduledAt: Date? = nil
+        firstScheduledAt: Date? = nil,
     ) {
         self.id = id
         self.sourceEventIDs = sourceEventIDs

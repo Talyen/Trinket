@@ -5,7 +5,7 @@ import TrinketPersistence
 import TrinketPersistenceTestSupport
 
 struct ShopPurchaseApplierTests {
-    @Test func purchaseSpendsGoldAndGrantsItem() throws {
+    @Test func `purchase spends gold and grants item`() throws {
         var save = SaveTestSupport.makeSave(modifiedAt: .now, gold: 100)
         let offer = try makeOffer(price: 28)
         let initialItemCount = save.inventory.items.count
@@ -15,7 +15,7 @@ struct ShopPurchaseApplierTests {
             offer: offer,
             visitToken: visitToken,
             stageID: "chapter-2-stage-8",
-            save: &save
+            save: &save,
         )
 
         guard case let .success(item) = result else {
@@ -29,12 +29,12 @@ struct ShopPurchaseApplierTests {
             item.id == ShopPurchaseApplier.inventoryInstanceID(
                 stageID: "chapter-2-stage-8",
                 offerID: offer.id,
-                visitToken: visitToken
-            )
+                visitToken: visitToken,
+            ),
         )
     }
 
-    @Test func purchaseFailsWithoutSpendingWhenGoldIsInsufficient() throws {
+    @Test func `purchase fails without spending when gold is insufficient`() throws {
         var save = SaveTestSupport.makeSave(modifiedAt: .now, gold: 10)
         let offer = try makeOffer(price: 28)
         let initialItems = save.inventory.items
@@ -43,7 +43,7 @@ struct ShopPurchaseApplierTests {
             offer: offer,
             visitToken: "visit-a",
             stageID: "chapter-2-stage-8",
-            save: &save
+            save: &save,
         )
 
         #expect(result == .insufficientGold)
@@ -51,7 +51,7 @@ struct ShopPurchaseApplierTests {
         #expect(save.inventory.items == initialItems)
     }
 
-    @Test func purchaseFailsWhenOfferPriceIsNegative() throws {
+    @Test func `purchase fails when offer price is negative`() throws {
         var save = SaveTestSupport.makeSave(modifiedAt: .now, gold: 50)
         let offer = try makeOffer(price: -20)
 
@@ -59,14 +59,14 @@ struct ShopPurchaseApplierTests {
             offer: offer,
             visitToken: "visit-a",
             stageID: "chapter-2-stage-8",
-            save: &save
+            save: &save,
         )
 
         #expect(result == .insufficientGold)
         #expect(save.roster.gold == 50)
     }
 
-    @Test func repeatedPurchaseOfSameOfferInSameVisitIsAlreadyOwned() throws {
+    @Test func `repeated purchase of same offer in same visit is already owned`() throws {
         var save = SaveTestSupport.makeSave(modifiedAt: .now, gold: 200)
         let offer = try makeOffer(price: 20)
         let visitToken = "visit-a"
@@ -75,13 +75,13 @@ struct ShopPurchaseApplierTests {
             offer: offer,
             visitToken: visitToken,
             stageID: "chapter-2-stage-8",
-            save: &save
+            save: &save,
         )
         let second = ShopPurchaseApplier.purchase(
             offer: offer,
             visitToken: visitToken,
             stageID: "chapter-2-stage-8",
-            save: &save
+            save: &save,
         )
 
         guard case .success = first else {
@@ -93,7 +93,7 @@ struct ShopPurchaseApplierTests {
         #expect(save.inventory.items.count == 1)
     }
 
-    @Test func differentVisitTokensMintDistinctInstanceIDs() throws {
+    @Test func `different visit tokens mint distinct instance I ds`() throws {
         var save = SaveTestSupport.makeSave(modifiedAt: .now, gold: 200)
         let offer = try makeOffer(price: 20)
 
@@ -101,13 +101,13 @@ struct ShopPurchaseApplierTests {
             offer: offer,
             visitToken: "visit-a",
             stageID: "chapter-2-stage-8",
-            save: &save
+            save: &save,
         )
         let second = ShopPurchaseApplier.purchase(
             offer: offer,
             visitToken: "visit-b",
             stageID: "chapter-2-stage-8",
-            save: &save
+            save: &save,
         )
 
         guard case let .success(firstItem) = first,
@@ -121,7 +121,7 @@ struct ShopPurchaseApplierTests {
         #expect(save.inventory.items.count == 2)
     }
 
-    @Test func trinketCannotBePurchasedMoreThanOnce() throws {
+    @Test func `trinket cannot be purchased more than once`() throws {
         let trinket = try #require(GameContent.trinketItems.first)
         var save = SaveTestSupport.makeSave(modifiedAt: .now, gold: 200)
         let firstOffer = ShopOffer(id: "trinket-offer-a", item: trinket, price: 20)
@@ -131,13 +131,13 @@ struct ShopPurchaseApplierTests {
             offer: firstOffer,
             visitToken: "visit-a",
             stageID: "chapter-2-stage-8",
-            save: &save
+            save: &save,
         )
         let second = ShopPurchaseApplier.purchase(
             offer: secondOffer,
             visitToken: "visit-b",
             stageID: "chapter-2-stage-8",
-            save: &save
+            save: &save,
         )
 
         guard case let .success(purchased) = first else {
@@ -150,7 +150,7 @@ struct ShopPurchaseApplierTests {
         #expect(save.inventory.items == [trinket])
     }
 
-    @Test @MainActor func campaignAppliersSurviveStoreReload() throws {
+    @Test @MainActor func `campaign appliers survive store reload`() throws {
         let context = try PersistenceTestContext()
         let store = try context.makeSaveStore()
         let stage = GameContent.chapters[0].stages[0]
@@ -161,7 +161,7 @@ struct ShopPurchaseApplierTests {
             encounterLevel: EncounterLevelResolver.journeyEnemyLevel(for: stage, in: GameContent.chapters[0]),
             enemyIsBoss: false,
             worldSeed: store.currentSave.worldSeed,
-            ownedUniqueIDs: []
+            ownedUniqueIDs: [],
         )
         let offer = try makeOffer(price: 28)
         var rng = SeededRandomNumberGenerator(seed: 1)
@@ -174,13 +174,13 @@ struct ShopPurchaseApplierTests {
                 companion: companion,
                 loot: loot,
                 in: GameContent.chapters,
-                save: &save
+                save: &save,
             )
             _ = ShopPurchaseApplier.purchase(
                 offer: offer,
                 visitToken: "visit-reload",
                 stageID: "chapter-2-stage-8",
-                save: &save
+                save: &save,
             )
             _ = MysteryEffectApplier.apply(
                 [.gainMaterial(.herbs)],
@@ -188,7 +188,7 @@ struct ShopPurchaseApplierTests {
                 choiceID: "harvest",
                 encounterLevel: 1,
                 save: &save,
-                using: &rng
+                using: &rng,
             )
         }
         let gold = store.roster.gold
@@ -209,7 +209,7 @@ struct ShopPurchaseApplierTests {
             rarity: .basic,
             id: "chapter-2-stage-8-offer-0",
             templateID: "longsword-basic",
-            seed: 7
+            seed: 7,
         )
         return ShopOffer(id: "chapter-2-stage-8-offer-0", item: item, price: price)
     }

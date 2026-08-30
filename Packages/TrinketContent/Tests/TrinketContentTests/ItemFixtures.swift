@@ -12,7 +12,7 @@ enum ItemFixtures {
         id: String? = nil,
         rarity: Rarity = .basic,
         affixes: [ItemAffix] = [],
-        affixPowers: [ItemAffixPower]? = nil
+        affixPowers: [ItemAffixPower]? = nil,
     ) throws -> InventoryItem {
         let base = try baseType(baseID)
         return InventoryItem(
@@ -21,7 +21,7 @@ enum ItemFixtures {
             rarity: rarity,
             displayName: base.name,
             affixes: affixes,
-            affixPowers: affixPowers
+            affixPowers: affixPowers,
         )
     }
 }

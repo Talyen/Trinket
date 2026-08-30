@@ -8,7 +8,7 @@ public struct CombatPowerSnapshot: Equatable, Sendable {
     public init(
         level: Int,
         maxHealth: Int,
-        rating: Int
+        rating: Int,
     ) {
         self.level = level
         self.maxHealth = maxHealth
@@ -20,12 +20,12 @@ public enum CombatPowerRating {
     public static func evaluate(
         maxHealth: Int,
         primaryStats: PrimaryStats,
-        level: Int
+        level: Int,
     ) -> CombatPowerSnapshot {
         CombatPowerSnapshot(
             level: level,
             maxHealth: maxHealth,
-            rating: maxHealth + primaryStats.total
+            rating: maxHealth + primaryStats.total,
         )
     }
 }

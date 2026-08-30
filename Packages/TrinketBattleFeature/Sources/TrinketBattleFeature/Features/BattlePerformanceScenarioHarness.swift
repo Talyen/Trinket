@@ -35,7 +35,7 @@ struct BattlePerformanceScenarioHarness: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .battleFramePacingSignpost(
             BattleFramePacingSignposts.Name.performanceScenario,
-            isActive: status.hasPrefix("measuring:")
+            isActive: status.hasPrefix("measuring:"),
         )
         .onDisappear {
             task?.cancel()
@@ -54,12 +54,12 @@ struct BattlePerformanceScenarioHarness: View {
             scenario: scenario,
             battleSession: battleSession,
             battleSize: battleSize,
-            castPresentation: castPresentation
+            castPresentation: castPresentation,
         )
         task = Task { @MainActor in
             await battlePerformancePrimeChipHostPipeline(
                 scenario: scenario,
-                battleSession: battleSession
+                battleSession: battleSession,
             )
             NotificationCenter.default.post(name: FramePacingMeasurementControl.reset, object: nil)
             try? await Task.sleep(for: BattlePerformanceTiming.harnessWarmup)

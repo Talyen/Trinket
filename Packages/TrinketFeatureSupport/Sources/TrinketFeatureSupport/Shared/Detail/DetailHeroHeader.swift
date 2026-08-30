@@ -26,7 +26,7 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
         horizontalPadding: CGFloat = TrinketDesign.Metrics.largeSpacing,
         bottomPadding: CGFloat = TrinketDesign.Metrics.largeSpacing,
         @ViewBuilder art: @escaping () -> Art,
-        @ViewBuilder footer: @escaping () -> Footer
+        @ViewBuilder footer: @escaping () -> Footer,
     ) {
         self.eyebrow = eyebrow
         self.title = title
@@ -46,7 +46,7 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
             baseHeight: baseHeight,
             overscroll: overscroll,
             alignment: .topLeading,
-            artworkBlend: .bottom(into: .canvas)
+            artworkBlend: .bottom(into: .canvas),
         ) {
             art()
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -108,7 +108,7 @@ public extension DetailHeroHeader where Footer == EmptyView {
         overscroll: CGFloat,
         horizontalPadding: CGFloat = TrinketDesign.Metrics.largeSpacing,
         bottomPadding: CGFloat = TrinketDesign.Metrics.largeSpacing,
-        @ViewBuilder art: @escaping () -> Art
+        @ViewBuilder art: @escaping () -> Art,
     ) {
         self.eyebrow = eyebrow
         self.title = title

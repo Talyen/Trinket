@@ -10,10 +10,10 @@ public enum LabyrinthGenerator {
 
     public static func makeInitialMap(
         seed: UInt64 = 0,
-        eligibleRecruitEventIDs: [String] = []
+        eligibleRecruitEventIDs: [String] = [],
     ) -> (
         clusters: [LabyrinthCluster],
-        nodes: [String: LabyrinthNode]
+        nodes: [String: LabyrinthNode],
     ) {
         let resolvedSeed = seed == 0 ? fallbackWorldSeed : seed
         var rng = SeededRandomNumberGenerator(seed: resolvedSeed)
@@ -22,7 +22,7 @@ public enum LabyrinthGenerator {
             previousBossEnemyID: nil,
             worldSeed: resolvedSeed,
             eligibleRecruitEventIDs: eligibleRecruitEventIDs,
-            using: &rng
+            using: &rng,
         )
         var nodes = Dictionary(uniqueKeysWithValues: first.nodes.map { ($0.id, $0) })
         let entrance = LabyrinthNode(
@@ -33,7 +33,7 @@ public enum LabyrinthGenerator {
             gridPosition: LabyrinthGridPosition(row: 0, column: 1),
             outgoingIDs: first.entryNodeIDs,
             isCleared: true,
-            isRevealed: true
+            isRevealed: true,
         )
         nodes[entrance.id] = entrance
         return (
@@ -41,25 +41,25 @@ public enum LabyrinthGenerator {
                 LabyrinthCluster(
                     id: entranceClusterID,
                     depthBand: 0,
-                    nodeIDs: [entrance.id]
+                    nodeIDs: [entrance.id],
                 ),
                 first.cluster,
             ],
-            nodes
+            nodes,
         )
     }
 
     public static func makeMap(
         seed: UInt64,
         floorCount: Int,
-        eligibleRecruitEventIDs: [String] = []
+        eligibleRecruitEventIDs: [String] = [],
     ) -> (
         clusters: [LabyrinthCluster],
-        nodes: [String: LabyrinthNode]
+        nodes: [String: LabyrinthNode],
     ) {
         var generated = makeInitialMap(
             seed: seed,
-            eligibleRecruitEventIDs: eligibleRecruitEventIDs
+            eligibleRecruitEventIDs: eligibleRecruitEventIDs,
         )
         guard floorCount > 1 else { return generated }
 
@@ -79,7 +79,7 @@ public enum LabyrinthGenerator {
                 clusters: &generated.clusters,
                 nodes: &generated.nodes,
                 seed: seed,
-                eligibleRecruitEventIDs: eligibleRecruitEventIDs
+                eligibleRecruitEventIDs: eligibleRecruitEventIDs,
             )
         }
         return generated
@@ -90,7 +90,7 @@ public enum LabyrinthGenerator {
         clusters: inout [LabyrinthCluster],
         nodes: inout [String: LabyrinthNode],
         seed: UInt64,
-        eligibleRecruitEventIDs: [String] = []
+        eligibleRecruitEventIDs: [String] = [],
     ) {
         guard var boss = nodes[bossNodeID], boss.type.canonical == .boss, boss.isCleared else { return }
         guard boss.outgoingIDs.isEmpty else { return }
@@ -99,14 +99,14 @@ public enum LabyrinthGenerator {
         let previousBossEnemyID = boss.enemyID
         let resolvedSeed = seed == 0 ? fallbackWorldSeed : seed
         var rng = SeededRandomNumberGenerator(
-            seed: resolvedSeed &+ UInt64(nextFloor) &* 1000003 &+ GameContent.stableSeed(for: bossNodeID)
+            seed: resolvedSeed &+ UInt64(nextFloor) &* 1000003 &+ GameContent.stableSeed(for: bossNodeID),
         )
         let generated = generateFloor(
             number: nextFloor,
             previousBossEnemyID: previousBossEnemyID,
             worldSeed: resolvedSeed,
             eligibleRecruitEventIDs: eligibleRecruitEventIDs,
-            using: &rng
+            using: &rng,
         )
         clusters.append(generated.cluster)
         for node in generated.nodes {
@@ -157,7 +157,7 @@ public enum LabyrinthGenerator {
                             layouts.append(
                                 [entrance]
                                     + middle.sorted(by: LabyrinthGridPosition.isOrderedBefore)
-                                    + [boss]
+                                    + [boss],
                             )
                         }
                     }
@@ -173,19 +173,19 @@ public enum LabyrinthGenerator {
         previousBossEnemyID: String?,
         worldSeed: UInt64,
         eligibleRecruitEventIDs: [String],
-        using rng: inout some RandomNumberGenerator
+        using rng: inout some RandomNumberGenerator,
     ) -> GeneratedFloor {
         let clusterID = "labyrinth-cluster-\(number)"
         let count = Int.random(in: 7 ... 9, using: &rng)
         let types = plannedTypes(
             count: count,
             hasEligibleRecruit: !eligibleRecruitEventIDs.isEmpty,
-            using: &rng
+            using: &rng,
         )
         var remainingRecruitIDs = eligibleRecruitEventIDs.shuffled(using: &rng)
         let bossEnemyID = LabyrinthCatalog.pickBossEnemyID(
             excluding: previousBossEnemyID,
-            using: &rng
+            using: &rng,
         )
         let payloads = types.enumerated().map { index, type in
             let nodeID = "\(clusterID)-n\(index)"
@@ -205,9 +205,9 @@ public enum LabyrinthGenerator {
                     for: type,
                     enemyID: enemyID,
                     worldSeed: worldSeed,
-                    nodeID: nodeID
+                    nodeID: nodeID,
                 ),
-                recruitEventID: recruitEventID
+                recruitEventID: recruitEventID,
             )
         }
         let positions = gridPositions(nodeCount: count, using: &rng)
@@ -221,20 +221,20 @@ public enum LabyrinthGenerator {
                 gridPosition: positions[index],
                 modifierIDs: payload.modifierIDs,
                 recruitEventID: payload.recruitEventID,
-                isRevealed: true
+                isRevealed: true,
             )
         }
         let cluster = LabyrinthCluster(
             id: clusterID,
             depthBand: number,
-            nodeIDs: nodes.map(\.id)
+            nodeIDs: nodes.map(\.id),
         )
         return GeneratedFloor(cluster: cluster, nodes: nodes, entryNodeIDs: [nodes[0].id])
     }
 
     private static func gridPositions(
         nodeCount: Int,
-        using rng: inout some RandomNumberGenerator
+        using rng: inout some RandomNumberGenerator,
     ) -> [LabyrinthGridPosition] {
         let closesLoop = Int.random(in: 0 ..< 5, using: &rng) == 0
         let key = LayoutKey(nodeCount: nodeCount, closesLoop: closesLoop)
@@ -250,14 +250,14 @@ public enum LabyrinthGenerator {
             guard (projectedColumn - row).isMultiple(of: 2) else { return nil }
             return LabyrinthGridPosition(
                 row: row,
-                column: (projectedColumn - row) / 2
+                column: (projectedColumn - row) / 2,
             )
         }
     }
 
     private static func combinations(
         of positions: [LabyrinthGridPosition],
-        choosing count: Int
+        choosing count: Int,
     ) -> [[LabyrinthGridPosition]] {
         guard count > 0 else { return [[]] }
         guard positions.count >= count else { return [] }
@@ -285,7 +285,7 @@ public enum LabyrinthGenerator {
 
     private static func isValidFloorShape(
         _ positions: [LabyrinthGridPosition],
-        closesLoop: Bool
+        closesLoop: Bool,
     ) -> Bool {
         let degrees = positions.map { source in
             positions.count(where: { target in
@@ -315,7 +315,7 @@ public enum LabyrinthGenerator {
     private static func plannedTypes(
         count: Int,
         hasEligibleRecruit: Bool,
-        using rng: inout some RandomNumberGenerator
+        using rng: inout some RandomNumberGenerator,
     ) -> [LabyrinthNodeType] {
         var nonCombat: [LabyrinthNodeType] = [.shop, .rest, .mystery]
         if hasEligibleRecruit {

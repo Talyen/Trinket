@@ -14,7 +14,7 @@ public enum BalanceFindingsReporter {
         lines.append(
             "Win rates are under `\(report.policyID)` autoplay; "
                 + "see `Packages/BattleEngine/README.md`. "
-                + "Drill-down: JSON sidecar or `--full-markdown`."
+                + "Drill-down: JSON sidecar or `--full-markdown`.",
         )
         lines.append("")
         return lines.joined(separator: "\n")
@@ -60,12 +60,12 @@ public enum BalanceFindingsReporter {
                     tier.battles,
                     winPct,
                     tier.timeouts,
-                    tier.averageRounds
+                    tier.averageRounds,
                 )
                 if let comparedID = report.comparedPolicyID, !report.comparedRecords.isEmpty {
                     let comparedTiers = BalanceStatsAggregator.summarize(
                         report: report,
-                        records: report.comparedRecords
+                        records: report.comparedRecords,
                     )
                     if let compared = comparedTiers.first(where: { $0.tier == tier.tier }) {
                         let comparedPct = compared.decidedBattles == 0
@@ -75,7 +75,7 @@ public enum BalanceFindingsReporter {
                             format: " · `%@` %.1f%% win (Δ%+.1f)",
                             comparedID,
                             comparedPct,
-                            comparedPct - winPct
+                            comparedPct - winPct,
                         )
                     }
                 }
@@ -87,7 +87,7 @@ public enum BalanceFindingsReporter {
             let flagged = report.progressionHotspots.filter(\.isFlagged).count
             lines.append(
                 "- Progression nodes: `\(report.progressionHotspots.count)`, "
-                    + "hotspots: `\(flagged)`, runs: `\(report.progressionPlayerStates.count)`"
+                    + "hotspots: `\(flagged)`, runs: `\(report.progressionPlayerStates.count)`",
             )
             lines.append("")
         }
@@ -142,28 +142,28 @@ public enum BalanceFindingsReporter {
             split: tier.heroesBoss,
             kind: "hero",
             vs: "bosses",
-            tier: tier.tier
+            tier: tier.tier,
         ))
         findings.append(contentsOf: collapsedSplit(
             split: tier.companionsBoss,
             kind: "companion",
             vs: "bosses",
-            tier: tier.tier
+            tier: tier.tier,
         ))
         let flaggedIDs = Set(
-            (tier.heroes + tier.companions + tier.enemies).filter(\.flagged).map(\.id)
+            (tier.heroes + tier.companions + tier.enemies).filter(\.flagged).map(\.id),
         )
         findings.append(contentsOf: pairingFindings(
             tier.heroCompanionCells,
             flaggedIDs: flaggedIDs,
             labels: ("hero", "companion"),
-            tier: tier.tier
+            tier: tier.tier,
         ))
         findings.append(contentsOf: pairingFindings(
             tier.heroEnemyCells,
             flaggedIDs: flaggedIDs,
             labels: ("hero", "enemy"),
-            tier: tier.tier
+            tier: tier.tier,
         ))
         return findings
     }
@@ -172,7 +172,7 @@ public enum BalanceFindingsReporter {
         _ rows: [WinRateSummary],
         kind: String,
         tier: SimulationPowerTier,
-        records: [BalanceBattleRecord] = []
+        records: [BalanceBattleRecord] = [],
     ) -> [Finding] {
         rows.filter(\.flagged).map { row in
             let why = if kind == "enemy" {
@@ -193,8 +193,8 @@ public enum BalanceFindingsReporter {
                     row.wilsonHigh * 100,
                     row.battles,
                     row.deltaVsPeer * 100,
-                    why
-                )
+                    why,
+                ),
             )
         }
     }
@@ -203,7 +203,7 @@ public enum BalanceFindingsReporter {
         split: [WinRateSummary],
         kind: String,
         vs: String,
-        tier: SimulationPowerTier
+        tier: SimulationPowerTier,
     ) -> [Finding] {
         let flagged = split.filter(\.flagged)
         guard flagged.count >= 2, flagged.count == split.count else { return [] }
@@ -224,8 +224,8 @@ public enum BalanceFindingsReporter {
                     reason,
                     minRate,
                     maxRate,
-                    flagged.first?.battles ?? 0
-                )
+                    flagged.first?.battles ?? 0,
+                ),
             ),
         ]
     }
@@ -233,7 +233,7 @@ public enum BalanceFindingsReporter {
     private static func durationFinding(
         _ bucket: BalanceDurationBucketStats,
         bucket name: String,
-        tier: SimulationPowerTier
+        tier: SimulationPowerTier,
     ) -> [Finding] {
         guard bucket.flagged else { return [] }
         let worst = bucket.worstEnemyID.map { "`\($0)`" } ?? "—"
@@ -248,8 +248,8 @@ public enum BalanceFindingsReporter {
                     bucket.shortRate * 100,
                     bucket.longRate * 100,
                     bucket.averageRounds,
-                    worst
-                )
+                    worst,
+                ),
             ),
         ]
     }
@@ -258,7 +258,7 @@ public enum BalanceFindingsReporter {
         _ cells: [PairCellSummary],
         flaggedIDs: Set<String>,
         labels: (String, String),
-        tier: SimulationPowerTier
+        tier: SimulationPowerTier,
     ) -> [Finding] {
         let explained = cells.filter { flaggedIDs.contains($0.leftID) || flaggedIDs.contains($0.rightID) }
             .sorted { abs($0.deltaVsPeer) > abs($1.deltaVsPeer) }
@@ -275,8 +275,8 @@ public enum BalanceFindingsReporter {
                     cell.flagReason ?? "",
                     cell.winRate * 100,
                     cell.battles,
-                    cell.deltaVsPeer * 100
-                )
+                    cell.deltaVsPeer * 100,
+                ),
             )
         }
     }
@@ -299,13 +299,13 @@ public enum BalanceFindingsReporter {
                     row.lift * 100,
                     row.meanDeltaPartyHP,
                     row.meanDeltaRounds,
-                    row.decidedPairs
-                )
+                    row.decidedPairs,
+                ),
             )
         }
         if extra > 0 {
             findings.append(
-                Finding(score: 0, line: "\(extra) more flagged \(kind) contrasts; see JSON.")
+                Finding(score: 0, line: "\(extra) more flagged \(kind) contrasts; see JSON."),
             )
         }
         return findings
@@ -334,8 +334,8 @@ public enum BalanceFindingsReporter {
                     hotspot.wilsonHigh * 100,
                     hotspot.averagePlayerLevel,
                     hotspot.averageEnemyLevel,
-                    hotspot.flagReason ?? ""
-                )
+                    hotspot.flagReason ?? "",
+                ),
             )
         }
     }

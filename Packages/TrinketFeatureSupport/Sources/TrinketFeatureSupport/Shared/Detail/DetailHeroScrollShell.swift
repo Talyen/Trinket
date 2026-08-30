@@ -17,7 +17,7 @@ public struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
         heroHeightPolicy: HeroHeaderLayout.HeightPolicy = .portrait,
         hidesNavigationBar: Bool = false,
         @ViewBuilder header: @escaping (_ baseHeight: CGFloat, _ overscroll: CGFloat) -> Header,
-        @ViewBuilder bodyContent: @escaping () -> BodyContent
+        @ViewBuilder bodyContent: @escaping () -> BodyContent,
     ) {
         self.title = title
         self.heroHeightPolicy = heroHeightPolicy
@@ -32,7 +32,7 @@ public struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
                 VStack(spacing: 0) {
                     DetailScrollPresentationHeader(
                         presentation: scrollPresentation,
-                        header: header
+                        header: header,
                     )
 
                     VStack(alignment: .leading, spacing: 0) {
@@ -55,9 +55,9 @@ public struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
                     headerBaseHeight: headerBaseHeight,
                     heroOverscroll: HeroHeaderLayout.overscroll(
                         contentOffsetY: geometry.contentOffset.y,
-                        topInset: topInset
+                        topInset: topInset,
                     ),
-                    titleOpacity: min(max((offsetY - threshold) / 32, 0), 1)
+                    titleOpacity: min(max((offsetY - threshold) / 32, 0), 1),
                 )
             } action: { _, newPresentation in
                 guard scrollPresentation != newPresentation else { return }
@@ -86,7 +86,7 @@ public struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
                     ToolbarItem(placement: .principal) {
                         DetailScrollNavigationTitle(
                             title: title,
-                            presentation: scrollPresentation
+                            presentation: scrollPresentation,
                         )
                     }
                     .sharedBackgroundVisibility(.hidden)
@@ -100,7 +100,7 @@ private struct ScrollPresentation: Equatable {
         Self(
             headerBaseHeight: HeroHeaderLayout.minimumHeaderHeight,
             heroOverscroll: 0,
-            titleOpacity: 0
+            titleOpacity: 0,
         )
     }
 
@@ -137,7 +137,7 @@ public struct DetailSection<Content: View>: View {
     public init(
         _ title: String,
         sectionID: String? = nil,
-        @ViewBuilder content: @escaping () -> Content
+        @ViewBuilder content: @escaping () -> Content,
     ) {
         self.title = title
         self.sectionID = sectionID

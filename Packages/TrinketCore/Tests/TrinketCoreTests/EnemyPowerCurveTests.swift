@@ -2,7 +2,7 @@ import Testing
 @testable import TrinketCore
 
 struct EnemyPowerCurveTests {
-    @Test func statAnchorsMatchDesignTargets() throws {
+    @Test func `stat anchors match design targets`() throws {
         try #expect(abs(EnemyPowerCurve.stats(level: 1, isBoss: false) - 4.20) < 0.001)
         try #expect(abs(EnemyPowerCurve.stats(level: 20, isBoss: false) - 5.59) < 0.001)
         try #expect(abs(EnemyPowerCurve.stats(level: 40, isBoss: false) - 9.30) < 0.001)
@@ -11,7 +11,7 @@ struct EnemyPowerCurveTests {
         try #expect(abs(EnemyPowerCurve.stats(level: 40, isBoss: true) - 18.90) < 0.001)
     }
 
-    @Test func bossHealthStaysDoubleNormalAtEveryLevel() throws {
+    @Test func `boss health stays double normal at every level`() throws {
         try #expect(abs(EnemyPowerCurve.bossHealthMultiplier - 2.00) < 0.001)
         for level in 1 ... 40 {
             let normal = EnemyPowerCurve.health(level: level, isBoss: false)
@@ -20,13 +20,13 @@ struct EnemyPowerCurveTests {
         }
     }
 
-    @Test func trashHealthMatchesTrashStats() throws {
+    @Test func `trash health matches trash stats`() throws {
         try #expect(EnemyPowerCurve.health(level: 1, isBoss: false) == EnemyPowerCurve.stats(level: 1, isBoss: false))
         try #expect(EnemyPowerCurve.health(level: 20, isBoss: false) == EnemyPowerCurve.stats(level: 20, isBoss: false))
         try #expect(EnemyPowerCurve.health(level: 40, isBoss: false) == EnemyPowerCurve.stats(level: 40, isBoss: false))
     }
 
-    @Test func curveIsContinuousAcrossBracketBoundaries() throws {
+    @Test func `curve is continuous across bracket boundaries`() throws {
         let beforeTwenty = EnemyPowerCurve.stats(level: 19, isBoss: false)
         let atTwenty = EnemyPowerCurve.stats(level: 20, isBoss: false)
         let afterTwenty = EnemyPowerCurve.stats(level: 21, isBoss: false)

@@ -6,7 +6,7 @@ extension BattleCardCombatEngine {
     static func dealCard(
         matching tier: AbilityTier,
         owner: BattleParticipant,
-        context: inout BattleState
+        context: inout BattleState,
     ) -> BattleCard? {
         guard canDrawFromDeck(for: owner, in: context), let keyPath = deckKeyPath(for: owner) else { return nil }
         guard let ability = context[keyPath: keyPath].drawFirst(where: { $0.tier == tier }) else { return nil }
@@ -17,7 +17,7 @@ extension BattleCardCombatEngine {
     static func deal(
         _ ability: Ability,
         owner: BattleParticipant,
-        context: inout BattleState
+        context: inout BattleState,
     ) -> BattleCard {
         context.nextCardID += 1
         let card = BattleCard(id: context.nextCardID, ability: ability, owner: owner)
@@ -31,7 +31,7 @@ extension BattleCardCombatEngine {
 
     static func makeOpeningHandDealPlan(in context: BattleState) -> [OpeningHandDraw] {
         var planRng = SeededRandomNumberGenerator(
-            seed: context.rng.seed &+ 0x9E37_79B9_7F4A_7C15
+            seed: context.rng.seed &+ 0x9E37_79B9_7F4A_7C15,
         )
         func hasTier(_ tier: AbilityTier, for owner: BattleParticipant) -> Bool {
             context.roster[owner].combatant.abilityLoadout.ability(for: tier) != nil

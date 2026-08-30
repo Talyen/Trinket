@@ -22,7 +22,7 @@ public struct RewardRevealExperienceScreen<Experience: View>: View {
             emptyMessage: String?,
             itemAccessibilityID: @escaping (String) -> String,
             lootAccessibilityIdentifier: String? = nil,
-            lootSpacing: CGFloat = TrinketDesign.Metrics.largeSpacing
+            lootSpacing: CGFloat = TrinketDesign.Metrics.largeSpacing,
         ) {
             self.items = items
             self.gold = gold
@@ -63,7 +63,7 @@ public struct RewardRevealExperienceScreen<Experience: View>: View {
         onPrimaryAction: @escaping () -> Bool,
         contentTopPadding: CGFloat = TrinketDesign.Metrics.smallSpacing,
         contentStackSpacing: CGFloat = TrinketDesign.Metrics.largeSpacing,
-        @ViewBuilder experience: @escaping (@escaping () -> Void) -> Experience
+        @ViewBuilder experience: @escaping (@escaping () -> Void) -> Experience,
     ) {
         self.eyebrow = eyebrow
         self.title = title
@@ -83,7 +83,7 @@ public struct RewardRevealExperienceScreen<Experience: View>: View {
         ZStack {
             KeywordPlasmaBackground(
                 keywords: focusedPlasmaKeywords,
-                isMotionActive: selectedRewardItem == nil
+                isMotionActive: selectedRewardItem == nil,
             )
 
             RewardRevealShell(
@@ -107,7 +107,7 @@ public struct RewardRevealExperienceScreen<Experience: View>: View {
                             visibleWalletRewardCount: revealSequence.visibleWalletRewardCount,
                             spacing: loot.lootSpacing,
                             focusedItemID: $focusedItemID,
-                            onSelectItem: { selectedRewardItem = $0 }
+                            onSelectItem: { selectedRewardItem = $0 },
                         )
                         .accessibilityIdentifier(loot.lootAccessibilityIdentifier ?? titleAccessibilityIdentifier)
                     }
@@ -118,7 +118,7 @@ public struct RewardRevealExperienceScreen<Experience: View>: View {
                 onPrimaryAction: complete,
                 contentTopPadding: contentTopPadding,
                 contentStackSpacing: contentStackSpacing,
-                pinsPrimaryActionToBottom: false
+                pinsPrimaryActionToBottom: false,
             )
         }
         .sheet(item: $selectedRewardItem) { item in
@@ -153,7 +153,7 @@ public struct RewardRevealExperienceScreen<Experience: View>: View {
         revealSequence.experienceBarCompleted(
             requiredCount: 2,
             itemCount: loot.items.count,
-            walletCount: walletRewardCount
+            walletCount: walletRewardCount,
         )
     }
 

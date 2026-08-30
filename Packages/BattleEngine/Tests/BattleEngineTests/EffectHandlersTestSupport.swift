@@ -8,13 +8,13 @@ enum EffectHandlersTestSupport {
         hero: Combatant? = nil,
         companion: Combatant? = nil,
         enemy: Combatant? = nil,
-        initialGold: Int = 0
+        initialGold: Int = 0,
     ) -> BattleState {
         BattleStateTestFactory.makeBattle(
             hero: hero ?? CombatantFixtures.combatant(id: "hero", role: .hero),
             companion: companion ?? CombatantFixtures.combatant(id: "companion", role: .companion),
             enemy: enemy ?? CombatantFixtures.combatant(id: "enemy", role: .enemy),
-            initialGold: initialGold
+            initialGold: initialGold,
         )
     }
 
@@ -23,7 +23,7 @@ enum EffectHandlersTestSupport {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        battle: inout BattleState
+        battle: inout BattleState,
     ) -> EffectApplyOutcome {
         guard let handler = EffectHandlers.handler(for: effect.kind) else {
             preconditionFailure("Missing handler for \(effect.kind)")
@@ -34,7 +34,7 @@ enum EffectHandlersTestSupport {
                 ability: ability,
                 source: source,
                 target: target,
-                in: &context
+                in: &context,
             )
         }
     }
@@ -42,7 +42,7 @@ enum EffectHandlersTestSupport {
     static func dispatchTick(
         _ active: ActiveEffect,
         target: Combatant,
-        battle: inout BattleState
+        battle: inout BattleState,
     ) -> EffectTurnOutcome {
         guard let handler = EffectHandlers.handler(for: active.effect.kind) else {
             preconditionFailure("Missing handler for \(active.effect.kind)")

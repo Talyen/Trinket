@@ -12,7 +12,7 @@ public struct AbilityDetailView: View {
         ability: Ability,
         primaryActionTitle: String? = nil,
         primaryActionAccessibilityID: String? = nil,
-        onPrimaryAction: (() -> Void)? = nil
+        onPrimaryAction: (() -> Void)? = nil,
     ) {
         self.ability = ability
         self.primaryActionTitle = primaryActionTitle
@@ -28,7 +28,7 @@ public struct AbilityDetailView: View {
                     eyebrow: ability.tier.rawValue.uppercased(),
                     title: ability.name,
                     baseHeight: baseHeight,
-                    overscroll: overscroll
+                    overscroll: overscroll,
                 ) {
                     abilityArtwork
                 }
@@ -37,13 +37,13 @@ public struct AbilityDetailView: View {
             bodyContent: {
                 DetailSection(
                     "Traits",
-                    sectionID: AccessibilityID.Battle.abilityDetailEffect
+                    sectionID: AccessibilityID.Battle.abilityDetailEffect,
                 ) {
                     VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
                         DetailTraitRow(description: ability.summary)
                     }
                 }
-            }
+            },
         )
         .safeAreaInset(edge: .bottom) {
             if let primaryActionTitle, let onPrimaryAction {

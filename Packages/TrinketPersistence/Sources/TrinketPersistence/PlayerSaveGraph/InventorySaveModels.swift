@@ -41,7 +41,7 @@ public final class InventoryItemModel {
                 affixPowersJSON = try ItemAffixPowerCoding.encode(powers)
             } catch {
                 inventoryMappingLogger.error(
-                    "Failed to encode affix powers for inventory item \(item.id, privacy: .public): \(error.localizedDescription, privacy: .public)"
+                    "Failed to encode affix powers for inventory item \(item.id, privacy: .public): \(error.localizedDescription, privacy: .public)",
                 )
                 affixPowersJSON = nil
             }

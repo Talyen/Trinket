@@ -27,7 +27,7 @@ public struct ProductCardShell<Art: View, Label: View>: View {
         shineLineWidth: CGFloat = 2,
         accessibilityID: String? = nil,
         @ViewBuilder art: @escaping () -> Art,
-        @ViewBuilder label: @escaping () -> Label = { EmptyView() }
+        @ViewBuilder label: @escaping () -> Label = { EmptyView() },
     ) {
         self.isLocked = isLocked
         self.isSelected = isSelected
@@ -87,12 +87,12 @@ public struct ProductCardShell<Art: View, Label: View>: View {
         }
         .trinketArtworkPickerSelectionBorder(
             isSelected: isSelected,
-            lineWidth: 1.5
+            lineWidth: 1.5,
         )
         .colorShineBorder(
             colors: borderShineColors,
             cornerRadius: TrinketDesign.Corners.card,
-            lineWidth: shineLineWidth
+            lineWidth: shineLineWidth,
         )
         .animation(TrinketMotion.Interaction.selection, value: isSelected)
     }
