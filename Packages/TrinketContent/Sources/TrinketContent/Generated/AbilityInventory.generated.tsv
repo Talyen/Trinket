@@ -42,7 +42,7 @@ smite	Smite	skill	Deal 4 Holy damage and Purge a positive status effect from the
 spiked-shield	Spiked Shield	skill	Gain 2 Block and gain 2 Thorns.
 steal	Steal	skill	Steal 3 Gold.
 stoneskin-potion	Stoneskin Potion	skill	Gain 4 Block.
-sunder	Sunder	skill	Deal 4 Stun damage and halve the enemy's Block.
+sunder	Sunder	skill	Deal 4 Physical damage and halve the enemy's Block.
 tithe	Tithe	skill	Deal 3 Holy damage or steal 3 Gold.
 venom-fangs	Venom Fangs	skill	Deal 2 Poison damage. Leech.
 astral-arrow	Astral Arrow	ultimate	Deal 7 Stun damage, Deal 7 Freeze damage, or deal 7 Burn damage.

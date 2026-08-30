@@ -174,7 +174,7 @@ enum AbilityCatalogSkill {
         id: "sunder",
         name: "Sunder",
         tier: .skill,
-        damageComponents: [DamageComponent(4, keyword: .stun)],
+        damageComponents: [DamageComponent(4, keyword: .physical)],
         targetedEffects: [TargetedEffect(.halveShield(.block), target: .enemy)],
     )
 
