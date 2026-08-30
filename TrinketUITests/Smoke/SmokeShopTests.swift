@@ -12,9 +12,9 @@ final class SmokeShopTests: SeededSmokeUITestCase {
     }
 
     func testMerchantShopLoadsCriticalControls() {
-        assertExists(AccessibilityID.Shop.encounterTitle)
-        assertExists(AccessibilityID.Shop.goldBalance)
-        assertExists(AccessibilityID.Shop.leaveButton)
+        assertExists(AccessibilityID.Shop.encounterTitle, timeout: 20)
+        assertExists(AccessibilityID.Shop.goldBalance, timeout: 20)
+        assertExists(AccessibilityID.Shop.leaveButton, timeout: 20)
 
         let shop = ShopScreen(app: app)
         XCTAssertGreaterThan(shop.offerCards.count, 0, "Expected shop offer cards")

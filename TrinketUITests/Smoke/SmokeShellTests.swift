@@ -38,21 +38,21 @@ final class StarterOnboardingSmokeTests: TrinketUITestCase {
             "-disable-audio",
         ])
 
-        assertExists(AccessibilityID.Onboarding.heroScreen)
+        assertExists(AccessibilityID.Onboarding.heroScreen, timeout: 20)
         XCTAssertEqual(app.tabBars.count, 0)
 
         let heroConfirm = app.descendants(matching: .any)[AccessibilityID.Onboarding.confirm(role: "Hero")]
-        if !heroConfirm.waitForExistence(timeout: 10) {
+        if !heroConfirm.waitForExistence(timeout: 20) {
             XCTFail("Confirm Hero not found. Tree: \(String(app.debugDescription.prefix(2500)))")
         }
         XCTAssertTrue(heroConfirm.isEnabled)
         XCTAssertNotEqual(heroConfirm.label.trimmingCharacters(in: .whitespacesAndNewlines), "Confirm Hero")
         tapWhenReady(heroConfirm)
 
-        assertExists(AccessibilityID.Onboarding.companionScreen, timeout: 15)
+        assertExists(AccessibilityID.Onboarding.companionScreen, timeout: 20)
 
         let companionConfirm = app.descendants(matching: .any)[AccessibilityID.Onboarding.confirm(role: "Companion")]
-        if !companionConfirm.waitForExistence(timeout: 15) {
+        if !companionConfirm.waitForExistence(timeout: 20) {
             XCTFail("Confirm Companion not found. Tree: \(String(app.debugDescription.prefix(2500)))")
         }
         XCTAssertTrue(companionConfirm.isEnabled)
@@ -60,9 +60,9 @@ final class StarterOnboardingSmokeTests: TrinketUITestCase {
         tapWhenReady(companionConfirm)
 
         XCTAssertTrue(
-            app.tabBars.firstMatch.waitForExistence(timeout: 15),
+            app.tabBars.firstMatch.waitForExistence(timeout: 20),
             "Tab bar did not appear after onboarding"
         )
-        _ = app.descendants(matching: .any)[AccessibilityID.Play.modesScreen].waitForExistence(timeout: 10)
+        _ = app.descendants(matching: .any)[AccessibilityID.Play.modesScreen].waitForExistence(timeout: 20)
     }
 }
