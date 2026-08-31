@@ -129,6 +129,27 @@ public extension CombatantTalentCatalog {
                 description: "Stunned enemies take 5 additional damage from Holy attacks.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(damage: DamageTriggers(holyDamageVsStunnedBonus: 5))
+            ),
+            "knight_stun_t4_1": CombatantTalentEffect(
+                name: "Lightning Rod",
+                symbolName: "bolt.fill",
+                description: "Stunning an enemy doubles the party's Block.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(control: ControlTriggers(lightningRod: true))
+            ),
+            "knight_holy_t4_1": CombatantTalentEffect(
+                name: "Sunwall",
+                symbolName: "sun.max.fill",
+                description: "Holy damage grants equal Block to the party.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(block: BlockTriggers(sunwall: true))
+            ),
+            "knight_block_t4_1": CombatantTalentEffect(
+                name: "Cold Storage",
+                symbolName: "snowflake",
+                description: "Freeze damage grants equal Block.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(block: BlockTriggers(freezeDamageGrantsBlock: true))
             )
     ]
 
@@ -258,6 +279,27 @@ public extension CombatantTalentCatalog {
                 description: "Gain +15% Critical Hit chance against Bleeding enemies.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(damage: DamageTriggers(critChancePerBleedingEnemy: 0.15))
+            ),
+            "ranger_poison_t4_1": CombatantTalentEffect(
+                name: "Toxic Transfusion",
+                symbolName: "drop.fill",
+                description: "Physical damage deals half as much Poison damage.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(damage: DamageTriggers(toxicTransfusion: true))
+            ),
+            "ranger_bleed_t4_1": CombatantTalentEffect(
+                name: "Shatterpoint",
+                symbolName: "snowflake",
+                description: "Freeze damage detonates and consumes all Bleed.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(dot: DotTriggers(shatterpoint: true))
+            ),
+            "ranger_burn_t4_1": CombatantTalentEffect(
+                name: "Firebrand",
+                symbolName: "flame.fill",
+                description: "Physical damage deals half as much Burn damage.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(damage: DamageTriggers(firebrand: true))
             )
     ]
 
@@ -387,6 +429,27 @@ public extension CombatantTalentCatalog {
                 description: "Gaining Gold doubles the next Poison, Bleed, or Burn you apply.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(gold: GoldTriggers(onGainGoldDoubleStatusEffectsNextCard: true))
+            ),
+            "rogue_gold_t4_1": CombatantTalentEffect(
+                name: "Bounty Blade",
+                symbolName: "dollarsign.circle.fill",
+                description: "Critical Hits grant 3 Gold and draw a card.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(gold: GoldTriggers(bountyBlade: true))
+            ),
+            "rogue_poison_t4_1": CombatantTalentEffect(
+                name: "Nerve Agent",
+                symbolName: "allergens.fill",
+                description: "Poison damage deals half as much Stun damage.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(damage: DamageTriggers(nerveAgent: true))
+            ),
+            "rogue_bleed_t4_1": CombatantTalentEffect(
+                name: "Cryostasis",
+                symbolName: "snowflake",
+                description: "Bleed never expires on Frozen enemies.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(dot: DotTriggers(cryostasis: true))
             )
     ]
 
@@ -516,6 +579,27 @@ public extension CombatantTalentCatalog {
                 description: "Your first Skill each battle plays twice.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(mana: ManaTriggers(firstSkillCardPlaysTwicePerBattle: true))
+            ),
+            "wizard_mana_t4_1": CombatantTalentEffect(
+                name: "Closed Circuit",
+                symbolName: "bolt.horizontal.fill",
+                description: "Spending Mana deals equal Stun damage.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(mana: ManaTriggers(closedCircuit: true))
+            ),
+            "wizard_burn_t4_1": CombatantTalentEffect(
+                name: "Backdraft",
+                symbolName: "flame.fill",
+                description: "Critical Hits detonate and consume all Burn.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(dot: DotTriggers(backdraft: true))
+            ),
+            "wizard_freeze_t4_1": CombatantTalentEffect(
+                name: "Glacial Reprieve",
+                symbolName: "snowflake",
+                description: "Blocked damage is returned as Freeze damage.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(block: BlockTriggers(glacialReprieve: true))
             )
     ]
 
@@ -645,6 +729,27 @@ public extension CombatantTalentCatalog {
                 description: "Gaining Mana restores 2 Health.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(mana: ManaTriggers(onGainManaHealFlat: 2))
+            ),
+            "warlock_mana_t4_1": CombatantTalentEffect(
+                name: "Eye of the Storm",
+                symbolName: "wind.snow",
+                description: "Stun damage restores equal Mana.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(mana: ManaTriggers(eyeOfTheStorm: true))
+            ),
+            "warlock_burn_t4_1": CombatantTalentEffect(
+                name: "Ashen Arsenal",
+                symbolName: "flame.fill",
+                description: "Burn damage draws a Physical card.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(dot: DotTriggers(ashenArsenal: true))
+            ),
+            "warlock_burn_t4_2": CombatantTalentEffect(
+                name: "Temper Cycle",
+                symbolName: "flame.fill",
+                description: "Burn cards make the next Freeze card play twice.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(mana: ManaTriggers(temperCycle: true))
             )
     ]
 
@@ -774,6 +879,34 @@ public extension CombatantTalentCatalog {
                 description: "Physical attacks apply 1 Bleed on hit.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(attack: AttackTriggers(physicalAttackApplyBleed: 1))
+            ),
+            "wolf_physical_t4_1": CombatantTalentEffect(
+                name: "Stored Impact",
+                symbolName: "shield.fill",
+                description: "Blocked damage empowers your next Physical attack.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(block: BlockTriggers(storedImpact: true))
+            ),
+            "wolf_bleed_t4_1": CombatantTalentEffect(
+                name: "Septicemia",
+                symbolName: "drop.triangle.fill",
+                description: "Poisoned enemies take double Bleed damage.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(damage: DamageTriggers(septicemia: true))
+            ),
+            "wolf_dodge_t4_1": CombatantTalentEffect(
+                name: "Phantom Counter",
+                symbolName: "figure.run",
+                description: "Dodging draws and plays a Physical card.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(dodge: DodgeTriggers(phantomCounter: true))
+            ),
+            "wolf_bleed_t4_2": CombatantTalentEffect(
+                name: "Bloodrush",
+                symbolName: "drop.fill",
+                description: "Bleed damage draws a Physical card.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(dot: DotTriggers(bloodrush: true))
             )
     ]
 
@@ -903,6 +1036,27 @@ public extension CombatantTalentCatalog {
                 description: "The first time Bear drops below half Health each battle, Stun the enemy.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(control: ControlTriggers(onceBelowHealthPercentStunAllEnemies: true, onceBelowHealthPercentThreshold: 0.5))
+            ),
+            "bear_stun_t4_1": CombatantTalentEffect(
+                name: "Seismic Reversal",
+                symbolName: "bolt.horizontal.fill",
+                description: "Blocked damage is returned as Stun damage.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(block: BlockTriggers(seismicReversal: true))
+            ),
+            "bear_physical_t4_1": CombatantTalentEffect(
+                name: "Battering Ram",
+                symbolName: "hammer.fill",
+                description: "Physical attacks consume Block for equal bonus damage.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(damage: DamageTriggers(batteringRam: true))
+            ),
+            "bear_block_t4_1": CombatantTalentEffect(
+                name: "Avalanche Guard",
+                symbolName: "snowflake",
+                description: "Freezing an enemy doubles party Block.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(control: ControlTriggers(avalancheGuard: true))
             )
     ]
 
@@ -1032,6 +1186,13 @@ public extension CombatantTalentCatalog {
                 description: "Each Dodge restores 1 Mana to you and the Hero.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(dodge: DodgeTriggers(onDodgePartyMana: 1))
+            ),
+            "frost_whelp_freeze_t4_1": CombatantTalentEffect(
+                name: "Elemental Paradox",
+                symbolName: "snowflake",
+                description: "Burning enemies take double Freeze damage.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(damage: DamageTriggers(elementalParadox: true))
             )
     ]
 
@@ -1161,6 +1322,27 @@ public extension CombatantTalentCatalog {
                 description: "Deal 1 bonus damage for every 20 Gold carried.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(damage: DamageTriggers(damagePerCarriedGoldEvery: 20))
+            ),
+            "lizard_scout_poison_t4_1": CombatantTalentEffect(
+                name: "Toxic Coma",
+                symbolName: "bolt.fill",
+                description: "Stunned enemies take double Poison damage.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(damage: DamageTriggers(toxicComa: true))
+            ),
+            "lizard_scout_poison_t4_2": CombatantTalentEffect(
+                name: "Cross-Contamination",
+                symbolName: "drop.fill",
+                description: "Bleed damage deals half as much Poison damage.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(dot: DotTriggers(crossContamination: true))
+            ),
+            "lizard_scout_bleed_t4_1": CombatantTalentEffect(
+                name: "Butcher's Ledger",
+                symbolName: "drop.triangle.fill",
+                description: "Physical damage deals half as much Bleed damage.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(damage: DamageTriggers(butchersLedger: true))
             )
     ]
 
@@ -1290,6 +1472,20 @@ public extension CombatantTalentCatalog {
                 description: "After Dodging, strike from hiding: your next attack deals double damage.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(dodge: DodgeTriggers(nextAttackDoubleAfterDodge: true))
+            ),
+            "panther_bleed_t4_1": CombatantTalentEffect(
+                name: "Arterial Cascade",
+                symbolName: "drop.triangle.fill",
+                description: "Physical Critical Hits detonate and consume all Bleed.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(dot: DotTriggers(arterialCascade: true))
+            ),
+            "panther_bleed_t4_2": CombatantTalentEffect(
+                name: "Redline",
+                symbolName: "drop.triangle.fill",
+                description: "Physical Critical Hits double Bleed duration.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(dot: DotTriggers(onCritDoubleBleedDuration: true))
             )
     ]
 
@@ -1419,6 +1615,20 @@ public extension CombatantTalentCatalog {
                 description: "Gain +50% Dodge chance and debuff immunity while on Death's Door.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(revival: RevivalTriggers(deathsDoorDodgeAndDebuffImmunity: true))
+            ),
+            "phoenix_health_t4_1": CombatantTalentEffect(
+                name: "Clean Slate",
+                symbolName: "cross.fill",
+                description: "Overhealing Cleanses one effect.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(healing: HealingTriggers(cleanSlate: true))
+            ),
+            "phoenix_burn_t4_1": CombatantTalentEffect(
+                name: "Furnace Rhythm",
+                symbolName: "flame.fill",
+                description: "Burn cards make the next Physical card play twice.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(mana: ManaTriggers(furnaceRhythm: true))
             )
     ]
 
@@ -1548,6 +1758,20 @@ public extension CombatantTalentCatalog {
                 description: "When an ally takes damage, heal them for 1 Health.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(mitigation: MitigationTriggers(onAllyDamageHeal: 1))
+            ),
+            "golden_retriever_gold_t4_1": CombatantTalentEffect(
+                name: "War Chest",
+                symbolName: "bag.fill",
+                description: "50 Gold guarantees Physical Critical Hits.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(damage: DamageTriggers(warChest: true))
+            ),
+            "golden_retriever_block_t4_1": CombatantTalentEffect(
+                name: "Icebound Exchange",
+                symbolName: "snowflake",
+                description: "Freeze damage steals enemy Block for the party.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(block: BlockTriggers(iceboundExchange: true))
             )
     ]
 
@@ -1677,6 +1901,13 @@ public extension CombatantTalentCatalog {
                 description: "Healing an ally restores 1 Mana to the caster.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(healing: HealingTriggers(onHealRestoreCasterMana: 1))
+            ),
+            "library_owl_holy_t4_1": CombatantTalentEffect(
+                name: "Interdict",
+                symbolName: "cross.fill",
+                description: "Holy damage Purges all positive enemy effects.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(cleanse: CleanseTriggers(holyDamagePurgeAll: true))
             )
     ]
 
@@ -1806,6 +2037,13 @@ public extension CombatantTalentCatalog {
                 description: "Take 50% less damage from Bleed and Poison, and resist 50% of incoming Stun.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(mitigation: MitigationTriggers(afflictionResistance: 0.5))
+            ),
+            "risen_skeleton_physical_t4_1": CombatantTalentEffect(
+                name: "Pressure Point",
+                symbolName: "target",
+                description: "Critical Hits against Poisoned enemies deal double Physical damage.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(damage: DamageTriggers(pressurePoint: true))
             )
     ]
 
@@ -1935,6 +2173,20 @@ public extension CombatantTalentCatalog {
                 description: "Burning enemies take 1 Holy damage each time Burn deals damage.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(dot: DotTriggers(onBurnTickHolyDamage: 1))
+            ),
+            "mana_moth_burn_t4_1": CombatantTalentEffect(
+                name: "Steam Explosion",
+                symbolName: "burst.fill",
+                description: "Freeze damage detonates and consumes all Burn.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(dot: DotTriggers(steamExplosion: true))
+            ),
+            "mana_moth_burn_t4_2": CombatantTalentEffect(
+                name: "Frostfire",
+                symbolName: "flame.fill",
+                description: "Burn damage deals half as much Freeze damage.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(damage: DamageTriggers(frostfire: true))
             )
     ]
 
@@ -2064,6 +2316,20 @@ public extension CombatantTalentCatalog {
                 description: "Dealing Holy damage restores 2 Health to the lowest Health ally.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(healing: HealingTriggers(holyDamageHealLowestAllyFlat: 2))
+            ),
+            "pixie_holy_t4_1": CombatantTalentEffect(
+                name: "Unbroken Vow",
+                symbolName: "sun.max.fill",
+                description: "Block lets Holy damage ignore Block and Dodge.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(block: BlockTriggers(unbrokenVow: true))
+            ),
+            "pixie_cleanse_t4_1": CombatantTalentEffect(
+                name: "Purifying Waters",
+                symbolName: "drop.fill",
+                description: "Cleansing restores 4 Health per effect.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(healing: HealingTriggers(purifyingWaters: true))
             )
     ]
 
@@ -2193,6 +2459,13 @@ public extension CombatantTalentCatalog {
                 description: "Holy damage deals double damage to Poisoned or Bleeding targets.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(damage: DamageTriggers(holyDamageVsPoisonedOrBleedingMultiplier: 2))
+            ),
+            "shield_scarab_holy_t4_1": CombatantTalentEffect(
+                name: "Crownfall",
+                symbolName: "crown.fill",
+                description: "Purging deals 3 Holy damage per effect.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(cleanse: CleanseTriggers(crownfall: true))
             )
     ]
 
@@ -2322,12 +2595,19 @@ public extension CombatantTalentCatalog {
                 description: "Critical hits against Stunned enemies cause them to drop 3 Gold.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(gold: GoldTriggers(criticalVsStunnedEnemyGold: 3))
+            ),
+            "fox_dodge_t4_1": CombatantTalentEffect(
+                name: "Perfect Tempo",
+                symbolName: "bolt.fill",
+                description: "Physical Critical Hits make you Dodge the next attack.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(dodge: DodgeTriggers(perfectTempo: true))
             )
     ]
 
     static let signatureTalents: [String: CombatantTalentEffect] = {
         var combined: [String: CombatantTalentEffect] = [:]
-        combined.reserveCapacity(324)
+        combined.reserveCapacity(364)
         for group in [
             knightTalents,
             rangerTalents,

@@ -11,7 +11,6 @@ package extension CombatTriggerEngine {
         let profile = context.modifiers(for: combatant.id)
         let triggers = profile.triggers
         var events: [ActionEvent] = []
-        events.append(contentsOf: BoonCombatEngine.afterDodge(by: combatant, in: &context))
 
         context.roster.mutateRuntime(for: combatant) { runtime in
             if triggers.damageAfterDodgeBonus > 0 {
@@ -187,6 +186,17 @@ package extension CombatTriggerEngine {
                     in: &context,
                 ))
             }
+        }
+
+        if triggers.phantomCounter,
+           context.talentReactionDepth < ReactionScope.maxTalentReactionDepth,
+           context.drawAndPlayDepth < BattleState.maxDrawAndPlayDepth,
+           !context.isResolvingAutoPlayCard,
+           let owner = context.roster.participant(for: combatant),
+           let card = BattleCardCombatEngine.drawFirstCard(matching: .physical, for: owner, context: &context) {
+            context.talentReactionDepth += 1
+            defer { context.talentReactionDepth -= 1 }
+            events.append(contentsOf: (try? BattleCardCombatEngine.playDrawnCard(card, context: &context)) ?? [])
         }
 
         return events

@@ -131,12 +131,15 @@ struct CleansePurgeHandler: BattleEffectHandler {
             keyword: targetKeyword ?? .purge,
         )
         var events = [event]
-        events.append(contentsOf: BoonCombatEngine.afterPurge(
-            removed.count,
-            source: source,
-            target: target,
-            in: &context,
-        ))
+        if CombatTriggerEngine.livingPartyTriggers(in: context).crownfall {
+            events.append(contentsOf: context.resolveDamage(DamageRequest(
+                amount: removed.count * 3,
+                target: target,
+                keyword: .holy,
+                sourceActorID: source.id,
+                options: .flatReaction,
+            )).events)
+        }
         return EffectApplyOutcome(events: events, didApply: true)
     }
 
@@ -161,12 +164,15 @@ struct CleansePurgeHandler: BattleEffectHandler {
             keyword: keyword,
         )
         var events = [event]
-        events.append(contentsOf: BoonCombatEngine.afterPurge(
-            1,
-            source: source,
-            target: target,
-            in: &context,
-        ))
+        if CombatTriggerEngine.livingPartyTriggers(in: context).crownfall {
+            events.append(contentsOf: context.resolveDamage(DamageRequest(
+                amount: 3,
+                target: target,
+                keyword: .holy,
+                sourceActorID: source.id,
+                options: .flatReaction,
+            )).events)
+        }
         return EffectApplyOutcome(events: events, didApply: true)
     }
 }

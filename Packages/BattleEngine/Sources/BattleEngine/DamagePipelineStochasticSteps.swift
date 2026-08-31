@@ -3,6 +3,7 @@ import TrinketContent
 import TrinketCore
 
 package extension DamagePipeline {
+    // swiftlint:disable:next function_body_length - dodge gate handles block ignore + retaliation
     static func applyDodgeGate(
         to state: inout DamageResolutionState,
         in context: inout BattleState,
@@ -23,12 +24,17 @@ package extension DamagePipeline {
         let autoDodge = profile.triggers.autoDodgeAfterFirstHitPerTurn
             && (context.roster.runtime(for: state.combatant)?.hasTakenAttackHitThisTurn ?? false)
         if let damageKeyword = state.damageKeyword, damageKeyword == .holy,
-           let sourceActorID = state.sourceActorID,
-           context.modifiers(for: sourceActorID).triggers.holyIgnoresBlockAndDodge {
-            return
-        }
-        if BoonCombatEngine.ignoresDodge(for: state, in: context) {
-            return
+           let sourceActorID = state.sourceActorID {
+            let srcTriggers = context.modifiers(for: sourceActorID).triggers
+            if srcTriggers.holyIgnoresBlockAndDodge {
+                return
+            }
+            let partyUnbroken = CombatTriggerEngine.livingPartyTriggers(in: context).unbrokenVow
+            if srcTriggers.unbrokenVow || partyUnbroken,
+               let src = context.roster.combatant(for: sourceActorID),
+               DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: src.combatant)) > 0 {
+                return
+            }
         }
         let dodged: Bool
         if hasEvadeNextHit || autoDodge {
@@ -145,10 +151,6 @@ package extension DamagePipeline {
         in context: inout BattleState,
     ) -> Bool {
         guard let sourceActorID = state.sourceActorID else { return false }
-        if BoonCombatEngine.guaranteesCritical(for: state, in: context) {
-            applyCritical(to: &state)
-            return true
-        }
         if state.options.guaranteedCritical {
             applyCritical(to: &state)
             return true
@@ -178,6 +180,12 @@ package extension DamagePipeline {
         }
         if context.roster.isDeathsDoorActive(for: actor.combatant),
            context.modifiers(for: sourceActorID).triggers.guaranteedCritWhileOnDeathsDoor {
+            applyCritical(to: &state)
+            return true
+        }
+        if context.modifiers(for: sourceActorID).triggers.warChest,
+           state.damageKeyword == .physical,
+           context.gold >= 50 {
             applyCritical(to: &state)
             return true
         }

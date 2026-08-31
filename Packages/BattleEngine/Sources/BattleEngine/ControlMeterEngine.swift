@@ -177,9 +177,9 @@ package enum ControlMeterEngine {
         if keyword == .stun, combatant.id == context.roster.enemy.id {
             events.append(contentsOf: CombatTriggerEngine.afterEnemyStunned(in: &context))
         }
-        events.append(contentsOf: BoonCombatEngine.afterControl(
-            keyword,
-            target: combatant,
+        events.append(contentsOf: applyTalentControlBonus(
+            keyword: keyword,
+            combatant: combatant,
             sourceActorID: sourceActorID,
             in: &context,
         ))
@@ -245,6 +245,46 @@ package enum ControlMeterEngine {
            BattleChance.succeeds(probability: fractional, using: &context.rng) {
             context.additionalControlSkipsByCombatantID[combatant.id, default: 0] += 1
         }
+    }
+
+    private static func applyTalentControlBonus(
+        keyword: Keyword,
+        combatant: Combatant,
+        sourceActorID: String?,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        guard combatant.role == .enemy, let sourceActorID,
+              let source = context.roster.combatant(for: sourceActorID), source.role != .enemy
+        else { return [] }
+        let partyTriggers = CombatTriggerEngine.livingPartyTriggers(in: context)
+        var events: [ActionEvent] = []
+        if keyword == .stun, partyTriggers.lightningRod {
+            for owner in [BattleParticipant.hero, .companion] {
+                let member = context.roster[owner]
+                let block = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: member.combatant))
+                guard member.isAlive, block > 0 else { continue }
+                events.append(contentsOf: context.applyBlock(
+                    block,
+                    to: member.combatant,
+                    source: source.combatant,
+                    abilityName: "Lightning Rod",
+                ))
+            }
+        }
+        if keyword == .freeze, partyTriggers.avalancheGuard {
+            for owner in [BattleParticipant.hero, .companion] {
+                let member = context.roster[owner]
+                let block = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: member.combatant))
+                guard member.isAlive, block > 0 else { continue }
+                events.append(contentsOf: context.applyBlock(
+                    block,
+                    to: member.combatant,
+                    source: source.combatant,
+                    abilityName: "Avalanche Guard",
+                ))
+            }
+        }
+        return events
     }
 
     private struct ControlMeterUpdate {

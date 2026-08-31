@@ -341,11 +341,6 @@ public enum AccessibilityID {
         public static let defeatPrimaryButton = "Defeat Primary Button"
         public static let abilityDetail = "Battle Ability Detail"
         public static let abilityDetailEffect = "Battle Ability Detail Effect"
-        public static let boonChoice = "Battle Boon Choice"
-
-        public static func boon(_ boonID: String) -> String {
-            "Battle Boon \(boonID)"
-        }
 
         public static func handCard(_ abilityID: String) -> String {
             "Battle Hand Card \(abilityID)"

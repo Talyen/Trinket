@@ -204,10 +204,6 @@ struct BattleSessionAppIntegrationTests {
         var steps = 0
         while battle.outcome == nil, steps < 200 {
             steps += 1
-            if battle.pendingBoonOffer != nil {
-                _ = battle.selectAutoBoon()
-                continue
-            }
             if let card = battle.hand.first(where: { battle.isCardPlayable($0) }) {
                 _ = battle.playCard(cardID: card.id)
                 continue

@@ -32,6 +32,8 @@ public struct DodgeTriggers: Equatable, Hashable, Sendable {
     public var redirectSingleTargetAttacksToHero: Bool = false
     public var untargetableAboveHealthPercent: Double = 0
     public var onDodgeDrawAndPlayCardChainOnCrit: Bool = false
+    public var phantomCounter: Bool = false
+    public var perfectTempo: Bool = false
 
     public init(
         dodgeChanceBonus: Double = 0,
@@ -61,7 +63,9 @@ public struct DodgeTriggers: Equatable, Hashable, Sendable {
         swapAndDodgeForHeroChance: Double = 0,
         redirectSingleTargetAttacksToHero: Bool = false,
         untargetableAboveHealthPercent: Double = 0,
-        onDodgeDrawAndPlayCardChainOnCrit: Bool = false
+        onDodgeDrawAndPlayCardChainOnCrit: Bool = false,
+        phantomCounter: Bool = false,
+        perfectTempo: Bool = false
     ) {
         self.dodgeChanceBonus = dodgeChanceBonus
         self.dodgeBlockFlat = dodgeBlockFlat
@@ -91,10 +95,12 @@ public struct DodgeTriggers: Equatable, Hashable, Sendable {
         self.redirectSingleTargetAttacksToHero = redirectSingleTargetAttacksToHero
         self.untargetableAboveHealthPercent = untargetableAboveHealthPercent
         self.onDodgeDrawAndPlayCardChainOnCrit = onDodgeDrawAndPlayCardChainOnCrit
+        self.phantomCounter = phantomCounter
+        self.perfectTempo = perfectTempo
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["dodgeChanceBonus", "dodgeBlockFlat", "dodgeApplyPoison", "dodgeGoldFlat", "dodgeHealFlat", "dodgeChanceBelowHealthPercentThreshold", "dodgeChanceBelowHealthPercentBonus", "onDodgeDrawCardForHero", "nextAttackDoubleAfterDodge", "onDodgeDelayAttackerTurn", "onDodgeGrantHeroBlock", "onDodgePartyMana", "onDodgeCounterDamage", "onDodgeCounterBasicAttack", "critMultiplierPerDodge", "onDodgeNextPartyHitGuaranteedCritical", "onCompanionDodgeGrantHeroDodgePercent", "autoDodgeAfterFirstHitPerTurn", "nextAttackBleedAfterDodge", "onDodgeApplyPoisonOrBleed", "onDodgePartyNextCardDamageBonus", "onApplyBurnDodgeChanceUntilNextTurn", "dodgeChanceVsBleedingEnemiesBonus", "firstAttackGuaranteedCritical", "swapAndDodgeForHeroChance", "redirectSingleTargetAttacksToHero", "untargetableAboveHealthPercent", "onDodgeDrawAndPlayCardChainOnCrit"]
+    public static let fieldNames: [String] = ["dodgeChanceBonus", "dodgeBlockFlat", "dodgeApplyPoison", "dodgeGoldFlat", "dodgeHealFlat", "dodgeChanceBelowHealthPercentThreshold", "dodgeChanceBelowHealthPercentBonus", "onDodgeDrawCardForHero", "nextAttackDoubleAfterDodge", "onDodgeDelayAttackerTurn", "onDodgeGrantHeroBlock", "onDodgePartyMana", "onDodgeCounterDamage", "onDodgeCounterBasicAttack", "critMultiplierPerDodge", "onDodgeNextPartyHitGuaranteedCritical", "onCompanionDodgeGrantHeroDodgePercent", "autoDodgeAfterFirstHitPerTurn", "nextAttackBleedAfterDodge", "onDodgeApplyPoisonOrBleed", "onDodgePartyNextCardDamageBonus", "onApplyBurnDodgeChanceUntilNextTurn", "dodgeChanceVsBleedingEnemiesBonus", "firstAttackGuaranteedCritical", "swapAndDodgeForHeroChance", "redirectSingleTargetAttacksToHero", "untargetableAboveHealthPercent", "onDodgeDrawAndPlayCardChainOnCrit", "phantomCounter", "perfectTempo"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -127,6 +133,8 @@ public struct DodgeTriggers: Equatable, Hashable, Sendable {
         if self.redirectSingleTargetAttacksToHero != other.redirectSingleTargetAttacksToHero { names.append("redirectSingleTargetAttacksToHero") }
         if self.untargetableAboveHealthPercent != other.untargetableAboveHealthPercent { names.append("untargetableAboveHealthPercent") }
         if self.onDodgeDrawAndPlayCardChainOnCrit != other.onDodgeDrawAndPlayCardChainOnCrit { names.append("onDodgeDrawAndPlayCardChainOnCrit") }
+        if self.phantomCounter != other.phantomCounter { names.append("phantomCounter") }
+        if self.perfectTempo != other.perfectTempo { names.append("perfectTempo") }
         return names
     }
 }
@@ -161,6 +169,8 @@ extension DodgeTriggers {
         redirectSingleTargetAttacksToHero = redirectSingleTargetAttacksToHero || other.redirectSingleTargetAttacksToHero
         untargetableAboveHealthPercent = max(untargetableAboveHealthPercent, other.untargetableAboveHealthPercent)
         onDodgeDrawAndPlayCardChainOnCrit = onDodgeDrawAndPlayCardChainOnCrit || other.onDodgeDrawAndPlayCardChainOnCrit
+        phantomCounter = phantomCounter || other.phantomCounter
+        perfectTempo = perfectTempo || other.perfectTempo
     }
 }
 
@@ -195,7 +205,9 @@ extension DodgeTriggers {
             swapAndDodgeForHeroChance: values.decode(Double.self, "swapAndDodgeForHeroChance", default: 0),
             redirectSingleTargetAttacksToHero: values.decode(Bool.self, "redirectSingleTargetAttacksToHero", default: false),
             untargetableAboveHealthPercent: values.decode(Double.self, "untargetableAboveHealthPercent", default: 0),
-            onDodgeDrawAndPlayCardChainOnCrit: values.decode(Bool.self, "onDodgeDrawAndPlayCardChainOnCrit", default: false)
+            onDodgeDrawAndPlayCardChainOnCrit: values.decode(Bool.self, "onDodgeDrawAndPlayCardChainOnCrit", default: false),
+            phantomCounter: values.decode(Bool.self, "phantomCounter", default: false),
+            perfectTempo: values.decode(Bool.self, "perfectTempo", default: false)
         )
     }
 
@@ -228,5 +240,7 @@ extension DodgeTriggers {
         try container.encodeNonDefault(redirectSingleTargetAttacksToHero, "redirectSingleTargetAttacksToHero", default: false)
         try container.encodeNonDefault(untargetableAboveHealthPercent, "untargetableAboveHealthPercent", default: 0)
         try container.encodeNonDefault(onDodgeDrawAndPlayCardChainOnCrit, "onDodgeDrawAndPlayCardChainOnCrit", default: false)
+        try container.encodeNonDefault(phantomCounter, "phantomCounter", default: false)
+        try container.encodeNonDefault(perfectTempo, "perfectTempo", default: false)
     }
 }

@@ -323,3 +323,43 @@ fox_stun_t2_1	Disorienting Strike	hammer.fill	Attacking a Stunned enemy grants 2
 fox_stun_t2_2	Chaos Manipulation	dice.fill	Fox deals 50% additional damage to Stunned enemies.		stunnedDamageMultiplier:1.50
 fox_stun_t3_1	Affliction Burst	allergens.fill	When an enemy recovers from Stun, they suffer 2 Bleed, 2 Poison, and 2 Burn.		onEnemyStunRecoverApplyAfflictions:2
 fox_stun_t3_2	Confounding Loot	dollarsign.circle.fill	Critical hits against Stunned enemies cause them to drop 3 Gold.		criticalVsStunnedEnemyGold:3
+knight_stun_t4_1	Lightning Rod	bolt.fill	Stunning an enemy doubles the party's Block.		lightningRod:true
+bear_stun_t4_1	Seismic Reversal	bolt.horizontal.fill	Blocked damage is returned as Stun damage.		seismicReversal:true
+knight_holy_t4_1	Sunwall	sun.max.fill	Holy damage grants equal Block to the party.		sunwall:true
+pixie_holy_t4_1	Unbroken Vow	sun.max.fill	Block lets Holy damage ignore Block and Dodge.		unbrokenVow:true
+wolf_physical_t4_1	Stored Impact	shield.fill	Blocked damage empowers your next Physical attack.		storedImpact:true
+bear_physical_t4_1	Battering Ram	hammer.fill	Physical attacks consume Block for equal bonus damage.		batteringRam:true
+library_owl_holy_t4_1	Interdict	cross.fill	Holy damage Purges all positive enemy effects.		holyDamagePurgeAll:true
+shield_scarab_holy_t4_1	Crownfall	crown.fill	Purging deals 3 Holy damage per effect.		crownfall:true
+ranger_poison_t4_1	Toxic Transfusion	drop.fill	Physical damage deals half as much Poison damage.		toxicTransfusion:true
+risen_skeleton_physical_t4_1	Pressure Point	target	Critical Hits against Poisoned enemies deal double Physical damage.		pressurePoint:true
+rogue_gold_t4_1	Bounty Blade	dollarsign.circle.fill	Critical Hits grant 3 Gold and draw a card.		bountyBlade:true
+golden_retriever_gold_t4_1	War Chest	bag.fill	50 Gold guarantees Physical Critical Hits.		warChest:true
+wizard_mana_t4_1	Closed Circuit	bolt.horizontal.fill	Spending Mana deals equal Stun damage.		closedCircuit:true
+warlock_mana_t4_1	Eye of the Storm	wind.snow	Stun damage restores equal Mana.		eyeOfTheStorm:true
+rogue_poison_t4_1	Nerve Agent	allergens.fill	Poison damage deals half as much Stun damage.		nerveAgent:true
+lizard_scout_poison_t4_1	Toxic Coma	bolt.fill	Stunned enemies take double Poison damage.		toxicComa:true
+ranger_bleed_t4_1	Shatterpoint	snowflake	Freeze damage detonates and consumes all Bleed.		shatterpoint:true
+rogue_bleed_t4_1	Cryostasis	snowflake	Bleed never expires on Frozen enemies.		cryostasis:true
+lizard_scout_poison_t4_2	Cross-Contamination	drop.fill	Bleed damage deals half as much Poison damage.		crossContamination:true
+wolf_bleed_t4_1	Septicemia	drop.triangle.fill	Poisoned enemies take double Bleed damage.		septicemia:true
+wolf_dodge_t4_1	Phantom Counter	figure.run	Dodging draws and plays a Physical card.		phantomCounter:true
+fox_dodge_t4_1	Perfect Tempo	bolt.fill	Physical Critical Hits make you Dodge the next attack.		perfectTempo:true
+pixie_cleanse_t4_1	Purifying Waters	drop.fill	Cleansing restores 4 Health per effect.		purifyingWaters:true
+phoenix_health_t4_1	Clean Slate	cross.fill	Overhealing Cleanses one effect.		cleanSlate:true
+ranger_burn_t4_1	Firebrand	flame.fill	Physical damage deals half as much Burn damage.		firebrand:true
+wizard_burn_t4_1	Backdraft	flame.fill	Critical Hits detonate and consume all Burn.		backdraft:true
+warlock_burn_t4_1	Ashen Arsenal	flame.fill	Burn damage draws a Physical card.		ashenArsenal:true
+phoenix_burn_t4_1	Furnace Rhythm	flame.fill	Burn cards make the next Physical card play twice.		furnaceRhythm:true
+lizard_scout_bleed_t4_1	Butcher's Ledger	drop.triangle.fill	Physical damage deals half as much Bleed damage.		butchersLedger:true
+panther_bleed_t4_1	Arterial Cascade	drop.triangle.fill	Physical Critical Hits detonate and consume all Bleed.		arterialCascade:true
+wolf_bleed_t4_2	Bloodrush	drop.fill	Bleed damage draws a Physical card.		bloodrush:true
+panther_bleed_t4_2	Redline	drop.triangle.fill	Physical Critical Hits double Bleed duration.		onCritDoubleBleedDuration:true
+knight_block_t4_1	Cold Storage	snowflake	Freeze damage grants equal Block.		freezeDamageGrantsBlock:true
+bear_block_t4_1	Avalanche Guard	snowflake	Freezing an enemy doubles party Block.		avalancheGuard:true
+golden_retriever_block_t4_1	Icebound Exchange	snowflake	Freeze damage steals enemy Block for the party.		iceboundExchange:true
+wizard_freeze_t4_1	Glacial Reprieve	snowflake	Blocked damage is returned as Freeze damage.		glacialReprieve:true
+mana_moth_burn_t4_1	Steam Explosion	burst.fill	Freeze damage detonates and consumes all Burn.		steamExplosion:true
+mana_moth_burn_t4_2	Frostfire	flame.fill	Burn damage deals half as much Freeze damage.		frostfire:true
+frost_whelp_freeze_t4_1	Elemental Paradox	snowflake	Burning enemies take double Freeze damage.		elementalParadox:true
+warlock_burn_t4_2	Temper Cycle	flame.fill	Burn cards make the next Freeze card play twice.		temperCycle:true

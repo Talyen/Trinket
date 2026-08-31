@@ -190,11 +190,13 @@ struct BattleSimulatorSweepReportTests {
         )
         #expect(late.records.count == 1)
         let lateRecord = late.records[0]
-        let lateBudget = CombatantTalentCatalog.validNodeIDs(for: lateRecord.heroID).count
-        #expect(lateRecord.heroTalentIDs.count == lateBudget)
-        #expect(lateRecord.companionTalentIDs.count == CombatantTalentCatalog.validNodeIDs(for: lateRecord.companionID).count)
-        #expect(Set(lateRecord.heroTalentIDs) == CombatantTalentCatalog.validNodeIDs(for: lateRecord.heroID))
-        #expect(Set(lateRecord.companionTalentIDs) == CombatantTalentCatalog.validNodeIDs(for: lateRecord.companionID))
+        let lateBudget = CombatantProgression.at(level: SimulationPowerTier.lateGame.level).totalTalentPoints
+        #expect(lateRecord.heroTalentIDs.count <= min(lateBudget, CombatantTalentCatalog.validNodeIDs(for: lateRecord.heroID).count))
+        #expect(lateRecord.heroTalentIDs.count >= 18)
+        #expect(lateRecord.companionTalentIDs.count <= min(lateBudget, CombatantTalentCatalog.validNodeIDs(for: lateRecord.companionID).count))
+        #expect(lateRecord.companionTalentIDs.count >= 18)
+        expectLegalTalentSpend(Set(lateRecord.heroTalentIDs), combatantID: lateRecord.heroID)
+        expectLegalTalentSpend(Set(lateRecord.companionTalentIDs), combatantID: lateRecord.companionID)
     }
 
     private func expectLegalTalentSpend(_ ids: Set<String>, combatantID: String) {

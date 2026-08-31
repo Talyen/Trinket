@@ -40,6 +40,14 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
     public var bleedProcsBurnChancePercent: Double = 0
     public var burnDamageLeech: Bool = false
     public var bleedDamageLeech: Bool = false
+    public var shatterpoint: Bool = false
+    public var cryostasis: Bool = false
+    public var crossContamination: Bool = false
+    public var backdraft: Bool = false
+    public var ashenArsenal: Bool = false
+    public var arterialCascade: Bool = false
+    public var bloodrush: Bool = false
+    public var steamExplosion: Bool = false
 
     public init(
         burnDecaySlowPercent: Double = 0,
@@ -77,7 +85,15 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
         burnProcsBleedChancePercent: Double = 0,
         bleedProcsBurnChancePercent: Double = 0,
         burnDamageLeech: Bool = false,
-        bleedDamageLeech: Bool = false
+        bleedDamageLeech: Bool = false,
+        shatterpoint: Bool = false,
+        cryostasis: Bool = false,
+        crossContamination: Bool = false,
+        backdraft: Bool = false,
+        ashenArsenal: Bool = false,
+        arterialCascade: Bool = false,
+        bloodrush: Bool = false,
+        steamExplosion: Bool = false
     ) {
         self.burnDecaySlowPercent = burnDecaySlowPercent
         self.poisonDecaySlowPercent = poisonDecaySlowPercent
@@ -115,10 +131,18 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
         self.bleedProcsBurnChancePercent = bleedProcsBurnChancePercent
         self.burnDamageLeech = burnDamageLeech
         self.bleedDamageLeech = bleedDamageLeech
+        self.shatterpoint = shatterpoint
+        self.cryostasis = cryostasis
+        self.crossContamination = crossContamination
+        self.backdraft = backdraft
+        self.ashenArsenal = ashenArsenal
+        self.arterialCascade = arterialCascade
+        self.bloodrush = bloodrush
+        self.steamExplosion = steamExplosion
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["burnDecaySlowPercent", "poisonDecaySlowPercent", "poisonDecayIncreaseChance", "onBleedApplyPoison", "onBurnApplyPoison", "onBleedDealBurnDamage", "onBleedDealPoisonChancePercent", "onBurnDealPoisonChancePercent", "onBleedDealBurnChancePercent", "onBurnDamageDetonateBleedChancePercent", "poisonStunChancePercent", "freezeDamageWhileBurningBonus", "onBleedDamagePoisonTick", "onBleedAppliedToBleedingExtendTurns", "onBleedAppliedToBleedingDealDamage", "bleedsIgnoreMitigation", "onBleedDamageHealSelf", "onBurnTickHolyDamage", "burnTicksTwicePerTurn", "damagePerBurnPotencyPercent", "burnIncreaseChancePercent", "poisonThresholdStunAmount", "poisonDamageLeechPercent", "onCritDoubleBleedDuration", "criticalOnBleedingDetonateBleed", "criticalDetonateBleedAndPoison", "onBurnDamageDetonateBleed", "freezeDamageLeech", "poisonDamageLeech", "bleedDamageGoldFlat", "burnDamageManaRestoreThreshold", "onBurnDamageRestoreManaPerTurnCap", "burnProcsBleedChancePercent", "bleedProcsBurnChancePercent", "burnDamageLeech", "bleedDamageLeech"]
+    public static let fieldNames: [String] = ["burnDecaySlowPercent", "poisonDecaySlowPercent", "poisonDecayIncreaseChance", "onBleedApplyPoison", "onBurnApplyPoison", "onBleedDealBurnDamage", "onBleedDealPoisonChancePercent", "onBurnDealPoisonChancePercent", "onBleedDealBurnChancePercent", "onBurnDamageDetonateBleedChancePercent", "poisonStunChancePercent", "freezeDamageWhileBurningBonus", "onBleedDamagePoisonTick", "onBleedAppliedToBleedingExtendTurns", "onBleedAppliedToBleedingDealDamage", "bleedsIgnoreMitigation", "onBleedDamageHealSelf", "onBurnTickHolyDamage", "burnTicksTwicePerTurn", "damagePerBurnPotencyPercent", "burnIncreaseChancePercent", "poisonThresholdStunAmount", "poisonDamageLeechPercent", "onCritDoubleBleedDuration", "criticalOnBleedingDetonateBleed", "criticalDetonateBleedAndPoison", "onBurnDamageDetonateBleed", "freezeDamageLeech", "poisonDamageLeech", "bleedDamageGoldFlat", "burnDamageManaRestoreThreshold", "onBurnDamageRestoreManaPerTurnCap", "burnProcsBleedChancePercent", "bleedProcsBurnChancePercent", "burnDamageLeech", "bleedDamageLeech", "shatterpoint", "cryostasis", "crossContamination", "backdraft", "ashenArsenal", "arterialCascade", "bloodrush", "steamExplosion"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -159,6 +183,14 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
         if self.bleedProcsBurnChancePercent != other.bleedProcsBurnChancePercent { names.append("bleedProcsBurnChancePercent") }
         if self.burnDamageLeech != other.burnDamageLeech { names.append("burnDamageLeech") }
         if self.bleedDamageLeech != other.bleedDamageLeech { names.append("bleedDamageLeech") }
+        if self.shatterpoint != other.shatterpoint { names.append("shatterpoint") }
+        if self.cryostasis != other.cryostasis { names.append("cryostasis") }
+        if self.crossContamination != other.crossContamination { names.append("crossContamination") }
+        if self.backdraft != other.backdraft { names.append("backdraft") }
+        if self.ashenArsenal != other.ashenArsenal { names.append("ashenArsenal") }
+        if self.arterialCascade != other.arterialCascade { names.append("arterialCascade") }
+        if self.bloodrush != other.bloodrush { names.append("bloodrush") }
+        if self.steamExplosion != other.steamExplosion { names.append("steamExplosion") }
         return names
     }
 }
@@ -201,6 +233,14 @@ extension DotTriggers {
         bleedProcsBurnChancePercent += other.bleedProcsBurnChancePercent
         burnDamageLeech = burnDamageLeech || other.burnDamageLeech
         bleedDamageLeech = bleedDamageLeech || other.bleedDamageLeech
+        shatterpoint = shatterpoint || other.shatterpoint
+        cryostasis = cryostasis || other.cryostasis
+        crossContamination = crossContamination || other.crossContamination
+        backdraft = backdraft || other.backdraft
+        ashenArsenal = ashenArsenal || other.ashenArsenal
+        arterialCascade = arterialCascade || other.arterialCascade
+        bloodrush = bloodrush || other.bloodrush
+        steamExplosion = steamExplosion || other.steamExplosion
     }
 }
 
@@ -243,7 +283,15 @@ extension DotTriggers {
             burnProcsBleedChancePercent: values.decode(Double.self, "burnProcsBleedChancePercent", default: 0),
             bleedProcsBurnChancePercent: values.decode(Double.self, "bleedProcsBurnChancePercent", default: 0),
             burnDamageLeech: values.decode(Bool.self, "burnDamageLeech", default: false),
-            bleedDamageLeech: values.decode(Bool.self, "bleedDamageLeech", default: false)
+            bleedDamageLeech: values.decode(Bool.self, "bleedDamageLeech", default: false),
+            shatterpoint: values.decode(Bool.self, "shatterpoint", default: false),
+            cryostasis: values.decode(Bool.self, "cryostasis", default: false),
+            crossContamination: values.decode(Bool.self, "crossContamination", default: false),
+            backdraft: values.decode(Bool.self, "backdraft", default: false),
+            ashenArsenal: values.decode(Bool.self, "ashenArsenal", default: false),
+            arterialCascade: values.decode(Bool.self, "arterialCascade", default: false),
+            bloodrush: values.decode(Bool.self, "bloodrush", default: false),
+            steamExplosion: values.decode(Bool.self, "steamExplosion", default: false)
         )
     }
 
@@ -284,5 +332,13 @@ extension DotTriggers {
         try container.encodeNonDefault(bleedProcsBurnChancePercent, "bleedProcsBurnChancePercent", default: 0)
         try container.encodeNonDefault(burnDamageLeech, "burnDamageLeech", default: false)
         try container.encodeNonDefault(bleedDamageLeech, "bleedDamageLeech", default: false)
+        try container.encodeNonDefault(shatterpoint, "shatterpoint", default: false)
+        try container.encodeNonDefault(cryostasis, "cryostasis", default: false)
+        try container.encodeNonDefault(crossContamination, "crossContamination", default: false)
+        try container.encodeNonDefault(backdraft, "backdraft", default: false)
+        try container.encodeNonDefault(ashenArsenal, "ashenArsenal", default: false)
+        try container.encodeNonDefault(arterialCascade, "arterialCascade", default: false)
+        try container.encodeNonDefault(bloodrush, "bloodrush", default: false)
+        try container.encodeNonDefault(steamExplosion, "steamExplosion", default: false)
     }
 }

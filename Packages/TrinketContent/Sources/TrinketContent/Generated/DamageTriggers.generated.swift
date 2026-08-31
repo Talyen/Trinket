@@ -52,6 +52,17 @@ public struct DamageTriggers: Equatable, Hashable, Sendable {
     public var partyCritChanceWhileGoldAboveBonus: Double = 0
     public var partyAllStatsBonusBelowHealthThreshold: Double = 0
     public var partyAllStatsBonusBelowHealthAmount: Int = 0
+    public var batteringRam: Bool = false
+    public var toxicTransfusion: Bool = false
+    public var pressurePoint: Bool = false
+    public var warChest: Bool = false
+    public var nerveAgent: Bool = false
+    public var toxicComa: Bool = false
+    public var septicemia: Bool = false
+    public var firebrand: Bool = false
+    public var butchersLedger: Bool = false
+    public var frostfire: Bool = false
+    public var elementalParadox: Bool = false
 
     public init(
         damageBelowHealthPercentThreshold: Double = 0,
@@ -101,7 +112,18 @@ public struct DamageTriggers: Equatable, Hashable, Sendable {
         partyCritChanceWhileGoldAbove: Int = 0,
         partyCritChanceWhileGoldAboveBonus: Double = 0,
         partyAllStatsBonusBelowHealthThreshold: Double = 0,
-        partyAllStatsBonusBelowHealthAmount: Int = 0
+        partyAllStatsBonusBelowHealthAmount: Int = 0,
+        batteringRam: Bool = false,
+        toxicTransfusion: Bool = false,
+        pressurePoint: Bool = false,
+        warChest: Bool = false,
+        nerveAgent: Bool = false,
+        toxicComa: Bool = false,
+        septicemia: Bool = false,
+        firebrand: Bool = false,
+        butchersLedger: Bool = false,
+        frostfire: Bool = false,
+        elementalParadox: Bool = false
     ) {
         self.damageBelowHealthPercentThreshold = damageBelowHealthPercentThreshold
         self.damageBelowHealthPercentKeyword = damageBelowHealthPercentKeyword
@@ -151,10 +173,21 @@ public struct DamageTriggers: Equatable, Hashable, Sendable {
         self.partyCritChanceWhileGoldAboveBonus = partyCritChanceWhileGoldAboveBonus
         self.partyAllStatsBonusBelowHealthThreshold = partyAllStatsBonusBelowHealthThreshold
         self.partyAllStatsBonusBelowHealthAmount = partyAllStatsBonusBelowHealthAmount
+        self.batteringRam = batteringRam
+        self.toxicTransfusion = toxicTransfusion
+        self.pressurePoint = pressurePoint
+        self.warChest = warChest
+        self.nerveAgent = nerveAgent
+        self.toxicComa = toxicComa
+        self.septicemia = septicemia
+        self.firebrand = firebrand
+        self.butchersLedger = butchersLedger
+        self.frostfire = frostfire
+        self.elementalParadox = elementalParadox
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["damageBelowHealthPercentThreshold", "damageBelowHealthPercentKeyword", "damageBelowHealthPercentBonus", "damageAfterDodgeBonus", "damageWhileTargetFrozenBonus", "damageWhileTargetStunnedBonus", "ignoreEnemyMitigationPercent", "leechIgnoresMitigation", "firstHitDoubleDamage", "turnRandomDamageAllEnemiesKeywordA", "turnRandomDamageAllEnemiesKeywordB", "turnRandomDamageAllEnemiesAmount", "turnRandomDamageAllEnemiesInterval", "holyDamagePoisonFlat", "stunnedDamageMultiplier", "criticalChanceBonus", "damageVsBleedingBonus", "damageVsPoisonedMultiplier", "damageVsBurningMultiplier", "damageVsFrozenMultiplier", "holyDamageVsStunnedOrBurningMultiplier", "holyDamageVsPoisonedOrBleedingMultiplier", "holyDamageVsStunnedBonus", "holyDamageVsUndeadOrCorruptedMultiplier", "frostDamageVsFrozenBonus", "burnDamageVsFrozenBonusPhysical", "burnDamageVsNoBlockMultiplier", "physicalDamageVsBleedingMultiplier", "damagePerMissingHealthEvery", "damagePerCarriedGoldEvery", "goldReservesDamageEvery", "goldReservesDamageCap", "damageVsLowerHealthEnemyBonus", "companionDamageVsPoisonedBonus", "companionDamageVsBurningBonus", "heroDamageVsStunnedMultiplier", "poisonDamageBelowHealthThreshold", "poisonDamageBelowHealthMultiplier", "bleedTickCritChancePercent", "burnDamageDoubleChancePercent", "partyCritChanceWhileCompanionAboveHealthThreshold", "partyCritChanceWhileCompanionAboveHealthBonus", "heroCritChanceWhileCompanionAlive", "critChancePerBleedingEnemy", "partyCritChanceWhileGoldAbove", "partyCritChanceWhileGoldAboveBonus", "partyAllStatsBonusBelowHealthThreshold", "partyAllStatsBonusBelowHealthAmount"]
+    public static let fieldNames: [String] = ["damageBelowHealthPercentThreshold", "damageBelowHealthPercentKeyword", "damageBelowHealthPercentBonus", "damageAfterDodgeBonus", "damageWhileTargetFrozenBonus", "damageWhileTargetStunnedBonus", "ignoreEnemyMitigationPercent", "leechIgnoresMitigation", "firstHitDoubleDamage", "turnRandomDamageAllEnemiesKeywordA", "turnRandomDamageAllEnemiesKeywordB", "turnRandomDamageAllEnemiesAmount", "turnRandomDamageAllEnemiesInterval", "holyDamagePoisonFlat", "stunnedDamageMultiplier", "criticalChanceBonus", "damageVsBleedingBonus", "damageVsPoisonedMultiplier", "damageVsBurningMultiplier", "damageVsFrozenMultiplier", "holyDamageVsStunnedOrBurningMultiplier", "holyDamageVsPoisonedOrBleedingMultiplier", "holyDamageVsStunnedBonus", "holyDamageVsUndeadOrCorruptedMultiplier", "frostDamageVsFrozenBonus", "burnDamageVsFrozenBonusPhysical", "burnDamageVsNoBlockMultiplier", "physicalDamageVsBleedingMultiplier", "damagePerMissingHealthEvery", "damagePerCarriedGoldEvery", "goldReservesDamageEvery", "goldReservesDamageCap", "damageVsLowerHealthEnemyBonus", "companionDamageVsPoisonedBonus", "companionDamageVsBurningBonus", "heroDamageVsStunnedMultiplier", "poisonDamageBelowHealthThreshold", "poisonDamageBelowHealthMultiplier", "bleedTickCritChancePercent", "burnDamageDoubleChancePercent", "partyCritChanceWhileCompanionAboveHealthThreshold", "partyCritChanceWhileCompanionAboveHealthBonus", "heroCritChanceWhileCompanionAlive", "critChancePerBleedingEnemy", "partyCritChanceWhileGoldAbove", "partyCritChanceWhileGoldAboveBonus", "partyAllStatsBonusBelowHealthThreshold", "partyAllStatsBonusBelowHealthAmount", "batteringRam", "toxicTransfusion", "pressurePoint", "warChest", "nerveAgent", "toxicComa", "septicemia", "firebrand", "butchersLedger", "frostfire", "elementalParadox"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -207,6 +240,17 @@ public struct DamageTriggers: Equatable, Hashable, Sendable {
         if self.partyCritChanceWhileGoldAboveBonus != other.partyCritChanceWhileGoldAboveBonus { names.append("partyCritChanceWhileGoldAboveBonus") }
         if self.partyAllStatsBonusBelowHealthThreshold != other.partyAllStatsBonusBelowHealthThreshold { names.append("partyAllStatsBonusBelowHealthThreshold") }
         if self.partyAllStatsBonusBelowHealthAmount != other.partyAllStatsBonusBelowHealthAmount { names.append("partyAllStatsBonusBelowHealthAmount") }
+        if self.batteringRam != other.batteringRam { names.append("batteringRam") }
+        if self.toxicTransfusion != other.toxicTransfusion { names.append("toxicTransfusion") }
+        if self.pressurePoint != other.pressurePoint { names.append("pressurePoint") }
+        if self.warChest != other.warChest { names.append("warChest") }
+        if self.nerveAgent != other.nerveAgent { names.append("nerveAgent") }
+        if self.toxicComa != other.toxicComa { names.append("toxicComa") }
+        if self.septicemia != other.septicemia { names.append("septicemia") }
+        if self.firebrand != other.firebrand { names.append("firebrand") }
+        if self.butchersLedger != other.butchersLedger { names.append("butchersLedger") }
+        if self.frostfire != other.frostfire { names.append("frostfire") }
+        if self.elementalParadox != other.elementalParadox { names.append("elementalParadox") }
         return names
     }
 }
@@ -261,6 +305,17 @@ extension DamageTriggers {
         partyCritChanceWhileGoldAboveBonus += other.partyCritChanceWhileGoldAboveBonus
         partyAllStatsBonusBelowHealthThreshold = max(partyAllStatsBonusBelowHealthThreshold, other.partyAllStatsBonusBelowHealthThreshold)
         partyAllStatsBonusBelowHealthAmount += other.partyAllStatsBonusBelowHealthAmount
+        batteringRam = batteringRam || other.batteringRam
+        toxicTransfusion = toxicTransfusion || other.toxicTransfusion
+        pressurePoint = pressurePoint || other.pressurePoint
+        warChest = warChest || other.warChest
+        nerveAgent = nerveAgent || other.nerveAgent
+        toxicComa = toxicComa || other.toxicComa
+        septicemia = septicemia || other.septicemia
+        firebrand = firebrand || other.firebrand
+        butchersLedger = butchersLedger || other.butchersLedger
+        frostfire = frostfire || other.frostfire
+        elementalParadox = elementalParadox || other.elementalParadox
     }
 }
 
@@ -315,7 +370,18 @@ extension DamageTriggers {
             partyCritChanceWhileGoldAbove: values.decode(Int.self, "partyCritChanceWhileGoldAbove", default: 0),
             partyCritChanceWhileGoldAboveBonus: values.decode(Double.self, "partyCritChanceWhileGoldAboveBonus", default: 0),
             partyAllStatsBonusBelowHealthThreshold: values.decode(Double.self, "partyAllStatsBonusBelowHealthThreshold", default: 0),
-            partyAllStatsBonusBelowHealthAmount: values.decode(Int.self, "partyAllStatsBonusBelowHealthAmount", default: 0)
+            partyAllStatsBonusBelowHealthAmount: values.decode(Int.self, "partyAllStatsBonusBelowHealthAmount", default: 0),
+            batteringRam: values.decode(Bool.self, "batteringRam", default: false),
+            toxicTransfusion: values.decode(Bool.self, "toxicTransfusion", default: false),
+            pressurePoint: values.decode(Bool.self, "pressurePoint", default: false),
+            warChest: values.decode(Bool.self, "warChest", default: false),
+            nerveAgent: values.decode(Bool.self, "nerveAgent", default: false),
+            toxicComa: values.decode(Bool.self, "toxicComa", default: false),
+            septicemia: values.decode(Bool.self, "septicemia", default: false),
+            firebrand: values.decode(Bool.self, "firebrand", default: false),
+            butchersLedger: values.decode(Bool.self, "butchersLedger", default: false),
+            frostfire: values.decode(Bool.self, "frostfire", default: false),
+            elementalParadox: values.decode(Bool.self, "elementalParadox", default: false)
         )
     }
 
@@ -368,5 +434,16 @@ extension DamageTriggers {
         try container.encodeNonDefault(partyCritChanceWhileGoldAboveBonus, "partyCritChanceWhileGoldAboveBonus", default: 0)
         try container.encodeNonDefault(partyAllStatsBonusBelowHealthThreshold, "partyAllStatsBonusBelowHealthThreshold", default: 0)
         try container.encodeNonDefault(partyAllStatsBonusBelowHealthAmount, "partyAllStatsBonusBelowHealthAmount", default: 0)
+        try container.encodeNonDefault(batteringRam, "batteringRam", default: false)
+        try container.encodeNonDefault(toxicTransfusion, "toxicTransfusion", default: false)
+        try container.encodeNonDefault(pressurePoint, "pressurePoint", default: false)
+        try container.encodeNonDefault(warChest, "warChest", default: false)
+        try container.encodeNonDefault(nerveAgent, "nerveAgent", default: false)
+        try container.encodeNonDefault(toxicComa, "toxicComa", default: false)
+        try container.encodeNonDefault(septicemia, "septicemia", default: false)
+        try container.encodeNonDefault(firebrand, "firebrand", default: false)
+        try container.encodeNonDefault(butchersLedger, "butchersLedger", default: false)
+        try container.encodeNonDefault(frostfire, "frostfire", default: false)
+        try container.encodeNonDefault(elementalParadox, "elementalParadox", default: false)
     }
 }

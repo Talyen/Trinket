@@ -11,10 +11,12 @@ struct CombatantTalentCatalogTests {
             #expect(config.trees.count == 3)
             for tree in config.trees {
                 #expect(!tree.name.isEmpty)
-                #expect(tree.nodes.count == 6)
+                #expect(tree.nodes.count >= 6)
                 #expect(tree.nodes(forRow: 1).count == 2)
                 #expect(tree.nodes(forRow: 2).count == 2)
                 #expect(tree.nodes(forRow: 3).count == 2)
+                #expect(tree.nodes(forRow: 4).count <= 2)
+                #expect(tree.nodes(forRow: 5).count <= 2)
             }
         }
     }

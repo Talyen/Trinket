@@ -164,16 +164,24 @@ public enum CombatantTalentCatalog {
 
     private static func makeTree(combatantID: String, name: String, keyword: Keyword) -> TalentTree {
         var nodes = [TalentNode]()
-        nodes.reserveCapacity(6)
+        nodes.reserveCapacity(10)
 
         let kwSlug = keyword.rawValue.lowercased().filter { $0.isLetter || $0.isNumber }
-        for row in 1 ... 3 {
+        for row in 1 ... 5 {
+            var rowNodes: [TalentNode] = []
             for col in 1 ... 2 {
                 let nodeID = "\(combatantID)_\(kwSlug)_t\(row)_\(col)"
                 guard let signature = signatureTalents[nodeID] else {
-                    preconditionFailure("Missing authored talent \(nodeID)")
+                    #if DEBUG
+                    if row <= 3 {
+                        assertionFailure(
+                            "Missing authored talent \(nodeID) for \(combatantID) \(keyword.rawValue), check ContentManifest/talents.tsv",
+                        )
+                    }
+                    #endif
+                    continue
                 }
-                nodes.append(
+                rowNodes.append(
                     TalentNode(
                         id: nodeID,
                         name: signature.name,
@@ -183,6 +191,12 @@ public enum CombatantTalentCatalog {
                         description: signature.description,
                     ),
                 )
+            }
+            if row <= 3 {
+                precondition(rowNodes.count == 2, "Missing authored talent row \(row) for \(combatantID) \(keyword.rawValue)")
+                nodes.append(contentsOf: rowNodes)
+            } else if !rowNodes.isEmpty {
+                nodes.append(contentsOf: rowNodes)
             }
         }
 

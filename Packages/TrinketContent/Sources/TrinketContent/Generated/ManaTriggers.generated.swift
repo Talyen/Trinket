@@ -42,6 +42,10 @@ public struct ManaTriggers: Equatable, Hashable, Sendable {
     public var drawOnHealthLoss: Int = 0
     public var companionCardsPerTurn: Int = 0
     public var onFreezeEnemyGainManaEqualBlock: Bool = false
+    public var closedCircuit: Bool = false
+    public var eyeOfTheStorm: Bool = false
+    public var furnaceRhythm: Bool = false
+    public var temperCycle: Bool = false
 
     public init(
         spendManaBlockFlat: Int = 0,
@@ -81,7 +85,11 @@ public struct ManaTriggers: Equatable, Hashable, Sendable {
         drawEveryOtherTurn: Int = 0,
         drawOnHealthLoss: Int = 0,
         companionCardsPerTurn: Int = 0,
-        onFreezeEnemyGainManaEqualBlock: Bool = false
+        onFreezeEnemyGainManaEqualBlock: Bool = false,
+        closedCircuit: Bool = false,
+        eyeOfTheStorm: Bool = false,
+        furnaceRhythm: Bool = false,
+        temperCycle: Bool = false
     ) {
         self.spendManaBlockFlat = spendManaBlockFlat
         self.empoweredElementDrawOpposite = empoweredElementDrawOpposite
@@ -121,10 +129,14 @@ public struct ManaTriggers: Equatable, Hashable, Sendable {
         self.drawOnHealthLoss = drawOnHealthLoss
         self.companionCardsPerTurn = companionCardsPerTurn
         self.onFreezeEnemyGainManaEqualBlock = onFreezeEnemyGainManaEqualBlock
+        self.closedCircuit = closedCircuit
+        self.eyeOfTheStorm = eyeOfTheStorm
+        self.furnaceRhythm = furnaceRhythm
+        self.temperCycle = temperCycle
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["spendManaBlockFlat", "empoweredElementDrawOpposite", "spendManaRandomDoTFlat", "gainManaBlockFlat", "leechRestoreManaFlat", "drawOnSpendMana", "repeatManaEmpowerment", "unspentManaConvertsToBlock", "spendManaThresholdCleanseCount", "spendManaEmpowerNextCardThreshold", "nextCardEmpowerPercent", "startTurnFullManaDrawCards", "firstSkillCardPlaysTwicePerBattle", "onReachZeroManaRestoreMana", "spendManaChaosRiftThreshold", "spendManaChaosRiftDamage", "onGainManaHealFlat", "startBattleBonusMana", "spendManaDamageBonusPerMana", "onHeroSpendManaGainBlock", "spendManaRefundChancePercent", "empowermentCostReduction", "healingEmpowermentCostReduction", "bonusManaOnTurns", "spendManaThresholdBlockThreshold", "spendManaThresholdBlockBlock", "spendManaThresholdBlockHealth", "manaGainDoubleChancePercent", "spendManaThresholdAutoPlayCard", "onSpendManaBurnBurningEnemies", "onHeroSpendManaApplyRandomAffliction", "cardsPlayedManaThreshold", "cardsPlayedManaFlat", "onBurnDamageRestoreManaFlat", "drawEveryOtherTurn", "drawOnHealthLoss", "companionCardsPerTurn", "onFreezeEnemyGainManaEqualBlock"]
+    public static let fieldNames: [String] = ["spendManaBlockFlat", "empoweredElementDrawOpposite", "spendManaRandomDoTFlat", "gainManaBlockFlat", "leechRestoreManaFlat", "drawOnSpendMana", "repeatManaEmpowerment", "unspentManaConvertsToBlock", "spendManaThresholdCleanseCount", "spendManaEmpowerNextCardThreshold", "nextCardEmpowerPercent", "startTurnFullManaDrawCards", "firstSkillCardPlaysTwicePerBattle", "onReachZeroManaRestoreMana", "spendManaChaosRiftThreshold", "spendManaChaosRiftDamage", "onGainManaHealFlat", "startBattleBonusMana", "spendManaDamageBonusPerMana", "onHeroSpendManaGainBlock", "spendManaRefundChancePercent", "empowermentCostReduction", "healingEmpowermentCostReduction", "bonusManaOnTurns", "spendManaThresholdBlockThreshold", "spendManaThresholdBlockBlock", "spendManaThresholdBlockHealth", "manaGainDoubleChancePercent", "spendManaThresholdAutoPlayCard", "onSpendManaBurnBurningEnemies", "onHeroSpendManaApplyRandomAffliction", "cardsPlayedManaThreshold", "cardsPlayedManaFlat", "onBurnDamageRestoreManaFlat", "drawEveryOtherTurn", "drawOnHealthLoss", "companionCardsPerTurn", "onFreezeEnemyGainManaEqualBlock", "closedCircuit", "eyeOfTheStorm", "furnaceRhythm", "temperCycle"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -167,6 +179,10 @@ public struct ManaTriggers: Equatable, Hashable, Sendable {
         if self.drawOnHealthLoss != other.drawOnHealthLoss { names.append("drawOnHealthLoss") }
         if self.companionCardsPerTurn != other.companionCardsPerTurn { names.append("companionCardsPerTurn") }
         if self.onFreezeEnemyGainManaEqualBlock != other.onFreezeEnemyGainManaEqualBlock { names.append("onFreezeEnemyGainManaEqualBlock") }
+        if self.closedCircuit != other.closedCircuit { names.append("closedCircuit") }
+        if self.eyeOfTheStorm != other.eyeOfTheStorm { names.append("eyeOfTheStorm") }
+        if self.furnaceRhythm != other.furnaceRhythm { names.append("furnaceRhythm") }
+        if self.temperCycle != other.temperCycle { names.append("temperCycle") }
         return names
     }
 }
@@ -211,6 +227,10 @@ extension ManaTriggers {
         drawOnHealthLoss += other.drawOnHealthLoss
         companionCardsPerTurn += other.companionCardsPerTurn
         onFreezeEnemyGainManaEqualBlock = onFreezeEnemyGainManaEqualBlock || other.onFreezeEnemyGainManaEqualBlock
+        closedCircuit = closedCircuit || other.closedCircuit
+        eyeOfTheStorm = eyeOfTheStorm || other.eyeOfTheStorm
+        furnaceRhythm = furnaceRhythm || other.furnaceRhythm
+        temperCycle = temperCycle || other.temperCycle
     }
 }
 
@@ -255,7 +275,11 @@ extension ManaTriggers {
             drawEveryOtherTurn: values.decode(Int.self, "drawEveryOtherTurn", default: 0),
             drawOnHealthLoss: values.decode(Int.self, "drawOnHealthLoss", default: 0),
             companionCardsPerTurn: values.decode(Int.self, "companionCardsPerTurn", default: 0),
-            onFreezeEnemyGainManaEqualBlock: values.decode(Bool.self, "onFreezeEnemyGainManaEqualBlock", default: false)
+            onFreezeEnemyGainManaEqualBlock: values.decode(Bool.self, "onFreezeEnemyGainManaEqualBlock", default: false),
+            closedCircuit: values.decode(Bool.self, "closedCircuit", default: false),
+            eyeOfTheStorm: values.decode(Bool.self, "eyeOfTheStorm", default: false),
+            furnaceRhythm: values.decode(Bool.self, "furnaceRhythm", default: false),
+            temperCycle: values.decode(Bool.self, "temperCycle", default: false)
         )
     }
 
@@ -298,5 +322,9 @@ extension ManaTriggers {
         try container.encodeNonDefault(drawOnHealthLoss, "drawOnHealthLoss", default: 0)
         try container.encodeNonDefault(companionCardsPerTurn, "companionCardsPerTurn", default: 0)
         try container.encodeNonDefault(onFreezeEnemyGainManaEqualBlock, "onFreezeEnemyGainManaEqualBlock", default: false)
+        try container.encodeNonDefault(closedCircuit, "closedCircuit", default: false)
+        try container.encodeNonDefault(eyeOfTheStorm, "eyeOfTheStorm", default: false)
+        try container.encodeNonDefault(furnaceRhythm, "furnaceRhythm", default: false)
+        try container.encodeNonDefault(temperCycle, "temperCycle", default: false)
     }
 }

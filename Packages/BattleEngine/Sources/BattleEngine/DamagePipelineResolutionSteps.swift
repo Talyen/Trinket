@@ -12,7 +12,6 @@ package extension DamagePipeline {
         applyDodgeEmpoweredBonuses(to: &state, in: &context)
         applyStunnedAndTalentMultipliers(to: &state, in: &context)
         applyOneShotEmpowers(to: &state, in: &context)
-        BoonCombatEngine.modifyDamage(&state, in: &context)
         applyEnemyOutgoingReductions(to: &state, in: &context)
         state.dealt = state.remaining
     }
@@ -120,6 +119,68 @@ package extension DamagePipeline {
                 state.remaining = CombatRounding.scaled(state.remaining, multiplier: talentMultiplier)
                 appendAfflictedAuraLogEvents(to: &state, in: &context)
             }
+        }
+        applyTalentStatusMultipliers(to: &state, in: &context)
+        applyTalentBlockConsumption(to: &state, in: &context)
+    }
+
+    private static func applyTalentStatusMultipliers(
+        to state: inout DamageResolutionState,
+        in context: inout BattleState,
+    ) {
+        guard let keyword = state.damageKeyword,
+              let sourceActorID = state.sourceActorID,
+              state.combatant.role == .enemy
+        else { return }
+        let triggers = context.modifiers(for: sourceActorID).triggers
+        if keyword == .physical, state.isCritical, state.targetStatus.isPoisoned, triggers.pressurePoint {
+            state.remaining = CombatRounding.scaled(state.remaining, multiplier: 2)
+        }
+        if keyword == .poison, state.targetStatus.isStunned, triggers.toxicComa {
+            state.remaining = CombatRounding.scaled(state.remaining, multiplier: 2)
+        }
+        if keyword == .bleed, state.targetStatus.isPoisoned, triggers.septicemia {
+            state.remaining = CombatRounding.scaled(state.remaining, multiplier: 2)
+        }
+        if keyword == .freeze, state.targetStatus.isBurning, triggers.elementalParadox {
+            state.remaining = CombatRounding.scaled(state.remaining, multiplier: 2)
+        }
+    }
+
+    private static func applyTalentBlockConsumption(
+        to state: inout DamageResolutionState,
+        in context: inout BattleState,
+    ) {
+        guard let keyword = state.damageKeyword, keyword == .physical,
+              let sourceActorID = state.sourceActorID,
+              let source = context.roster.combatant(for: sourceActorID),
+              state.combatant.role == .enemy
+        else { return }
+        let triggers = context.modifiers(for: sourceActorID).triggers
+        let partyTriggers = CombatTriggerEngine.livingPartyTriggers(in: context)
+        if triggers.batteringRam {
+            let block = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: source.combatant))
+            if block > 0, let reduced = DefensePoolEngine.reduce(block, in: context.roster.activeEffects(for: source.combatant)) {
+                context.roster.setActiveEffects(reduced.effects, for: source.combatant)
+                state.remaining += reduced.absorbed
+            }
+        }
+        var stored = 0
+        if partyTriggers.storedImpact {
+            for owner in [BattleParticipant.hero, .companion] {
+                let member = context.roster[owner]
+                if let val = context.storedBlockedDamageByActorID.removeValue(forKey: member.id) {
+                    stored += val
+                }
+            }
+            if let extra = context.storedBlockedDamageByActorID.removeValue(forKey: source.id) {
+                stored += extra
+            }
+        } else if triggers.storedImpact {
+            stored += context.storedBlockedDamageByActorID.removeValue(forKey: source.id) ?? 0
+        }
+        if stored > 0 {
+            state.remaining += stored
         }
     }
 

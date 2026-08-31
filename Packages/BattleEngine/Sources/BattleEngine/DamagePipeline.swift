@@ -36,13 +36,13 @@ package enum DamagePipeline {
 
         applyLeech(to: &state, in: &context)
         applyTalentDamageApplications(to: &state, in: &context)
+        applyTalentMirroredReactions(to: &state, in: &context)
 
         if !state.options.isRetaliation {
             applyControlMeter(to: &state, in: &context)
             applyReactiveOnHit(to: &state, in: &context)
             applyKeywordReactions(to: &state, in: &context)
             applyCriticalReaction(to: &state, in: &context)
-            state.damageEvents.append(contentsOf: BoonCombatEngine.afterDamage(state, in: &context))
         } else if state.options.applyControlMeter {
             applyControlMeter(to: &state, in: &context)
         }

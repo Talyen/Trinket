@@ -41,11 +41,9 @@ package extension DamagePipeline {
             targetIsStunned: targetIsStunned,
             targetIsFrozen: targetIsFrozen,
             damageKeyword: state.damageKeyword,
+            sourceActorID: state.sourceActorID,
+            context: context,
         )
-        if BoonCombatEngine.ignoresBlock(for: state, in: context) {
-            state.activeEffects = effects
-            return
-        }
         guard effectiveBuffer > 0, state.remaining > 0 else {
             state.activeEffects = effects
             return
@@ -79,8 +77,8 @@ package extension DamagePipeline {
             to: &state,
             in: &context,
         ))
-        state.damageEvents.append(contentsOf: BoonCombatEngine.afterBlockedDamage(
-            absorption.absorbed,
+        state.damageEvents.append(contentsOf: handleTalentBlockedDamage(
+            absorbed: absorption.absorbed,
             defender: state.combatant,
             attackerID: state.sourceActorID,
             in: &context,
@@ -182,6 +180,8 @@ package extension DamagePipeline {
         targetIsStunned: Bool,
         targetIsFrozen: Bool,
         damageKeyword: Keyword?,
+        sourceActorID: String? = nil,
+        context: BattleState? = nil,
     ) -> Int {
         var effectiveBuffer = buffer
         if let sourceTriggers {
@@ -198,11 +198,108 @@ package extension DamagePipeline {
             if damageKeyword == .holy, sourceTriggers.holyIgnoresBlock || sourceTriggers.holyIgnoresBlockAndDodge {
                 effectiveBuffer = 0
             }
+            if damageKeyword == .holy, let sourceActorID, let ctx = context {
+                let partyUnbroken = CombatTriggerEngine.livingPartyTriggers(in: ctx).unbrokenVow
+                let sourceUnbroken = sourceTriggers.unbrokenVow
+                if sourceUnbroken || partyUnbroken,
+                   let src = ctx.roster.combatant(for: sourceActorID),
+                   DefensePoolEngine.blockPoints(in: ctx.roster.activeEffects(for: src.combatant)) > 0 {
+                    effectiveBuffer = 0
+                }
+            }
             if damageKeyword == .burn, sourceTriggers.burnIgnoresBlockAndMitigation {
                 effectiveBuffer = 0
             }
         }
         return effectiveBuffer
+    }
+
+    static func handleTalentBlockedDamage(
+        absorbed: Int,
+        defender: Combatant,
+        attackerID: String?,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        guard absorbed > 0, defender.role != .enemy, let attackerID,
+              let attacker = context.roster.combatant(for: attackerID)
+        else { return [] }
+        var events: [ActionEvent] = []
+        if defenderTriggersContainStoredImpact(in: context, defender: defender) {
+            context.storedBlockedDamageByActorID[defender.id, default: 0] += absorbed
+        }
+        if hasSeismicReversal(in: context, defender: defender) {
+            events.append(contentsOf: dealTalentDamage(
+                absorbed,
+                keyword: .stun,
+                target: attacker.combatant,
+                source: defender,
+                in: &context,
+            ))
+        }
+        if hasGlacialReprieve(in: context, defender: defender) {
+            events.append(contentsOf: dealTalentDamage(
+                absorbed,
+                keyword: .freeze,
+                target: attacker.combatant,
+                source: defender,
+                in: &context,
+            ))
+        }
+        return events
+    }
+
+    private static func defenderTriggersContainStoredImpact(in context: BattleState, defender: Combatant) -> Bool {
+        context.modifiers(for: defender.id).triggers.storedImpact
+            || CombatTriggerEngine.livingPartyTriggers(in: context).storedImpact
+    }
+
+    private static func hasSeismicReversal(in context: BattleState, defender: Combatant) -> Bool {
+        context.modifiers(for: defender.id).triggers.seismicReversal
+            || CombatTriggerEngine.livingPartyTriggers(in: context).seismicReversal
+    }
+
+    private static func hasGlacialReprieve(in context: BattleState, defender: Combatant) -> Bool {
+        context.modifiers(for: defender.id).triggers.glacialReprieve
+            || CombatTriggerEngine.livingPartyTriggers(in: context).glacialReprieve
+    }
+
+    private static func dealTalentDamage(
+        _ amount: Int,
+        keyword: Keyword,
+        target: Combatant,
+        source: Combatant,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        guard amount > 0, context.roster.health(for: target) > 0 else { return [] }
+        switch keyword {
+        case .stun, .freeze:
+            return context.resolveDamage(DamageRequest(
+                amount: amount,
+                target: target,
+                keyword: keyword,
+                sourceActorID: source.id,
+                options: DamageOptions(
+                    applyStatBonus: false,
+                    applyItemBonus: false,
+                    applyDodge: false,
+                    isRetaliation: true,
+                    applyControlMeter: true,
+                ),
+            )).events
+        default:
+            return context.resolveDamage(DamageRequest(
+                amount: amount,
+                target: target,
+                keyword: keyword,
+                sourceActorID: source.id,
+                options: DamageOptions(
+                    applyStatBonus: false,
+                    applyItemBonus: false,
+                    applyDodge: false,
+                    isRetaliation: true,
+                ),
+            )).events
+        }
     }
 
     private static func extraBlockRemoval(

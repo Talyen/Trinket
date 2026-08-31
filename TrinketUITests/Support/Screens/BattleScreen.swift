@@ -16,12 +16,6 @@ struct BattleScreen {
         )
     }
 
-    var boonChoices: XCUIElementQuery {
-        app.buttons.matching(
-            NSPredicate(format: "identifier BEGINSWITH %@", "Battle Boon "),
-        )
-    }
-
     var victory: XCUIElement {
         app.descendants(matching: .any)[AccessibilityID.Battle.victory]
     }
@@ -89,25 +83,4 @@ struct BattleScreen {
         actionsMenu.tap()
     }
 
-    func selectFirstBoon(
-        timeout: TimeInterval = TrinketUITestCase.defaultTimeout,
-        file: StaticString = #file,
-        line: UInt = #line,
-    ) {
-        let choice = boonChoices.firstMatch
-        XCTAssertTrue(
-            choice.waitForExistence(timeout: timeout),
-            "Starting boon choice not found",
-            file: file,
-            line: line,
-        )
-        choice.tap()
-        XCTAssertTrue(
-            app.descendants(matching: .any)[AccessibilityID.Battle.boonChoice]
-                .waitForNonExistence(timeout: timeout),
-            "Starting boon choice did not dismiss",
-            file: file,
-            line: line,
-        )
-    }
 }

@@ -48,6 +48,8 @@ public struct HealingTriggers: Equatable, Hashable, Sendable {
     public var companionDamageLeechesToHeroPercent: Double = 0
     public var leechOnBlockDamage: Bool = false
     public var partyRegenPerRound: Int = 0
+    public var purifyingWaters: Bool = false
+    public var cleanSlate: Bool = false
 
     public init(
         cleanseSelfHeal: Int = 0,
@@ -93,7 +95,9 @@ public struct HealingTriggers: Equatable, Hashable, Sendable {
         onLeechReduceEnemyStrengthTurns: Int = 0,
         companionDamageLeechesToHeroPercent: Double = 0,
         leechOnBlockDamage: Bool = false,
-        partyRegenPerRound: Int = 0
+        partyRegenPerRound: Int = 0,
+        purifyingWaters: Bool = false,
+        cleanSlate: Bool = false
     ) {
         self.cleanseSelfHeal = cleanseSelfHeal
         self.cleanseBonusHeal = cleanseBonusHeal
@@ -139,10 +143,12 @@ public struct HealingTriggers: Equatable, Hashable, Sendable {
         self.companionDamageLeechesToHeroPercent = companionDamageLeechesToHeroPercent
         self.leechOnBlockDamage = leechOnBlockDamage
         self.partyRegenPerRound = partyRegenPerRound
+        self.purifyingWaters = purifyingWaters
+        self.cleanSlate = cleanSlate
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["cleanseSelfHeal", "cleanseBonusHeal", "onceBelowHealthPercentHeal", "blockOnDeathsDoor", "holyDamageHealFlat", "burnDamageHealFlat", "healthRestoredPoisonPercent", "healthPerTurn", "overhealConvertsToBlock", "overhealConvertsToMaxHealth", "overhealConvertsToMaxHealthCap", "overhealConvertsToMaxHealthPerEvent", "overhealShieldCap", "leechOverhealTransfersToCompanion", "leechSharesToHeroPercent", "onCompanionLeechRestoreHeroMana", "leechHealingVsAfflictedMultiplier", "leechPercentVsLowHealthEnemies", "leechBonusHealVsLowHealthEnemies", "leechChancePercent", "healingBelowHealthPercentThreshold", "healingBelowHealthPercentMultiplier", "healOverTimeOnHealTurns", "healOverTimeOnHealAmount", "onHealGrantBlock", "onHealRestoreCasterMana", "holyDamageHealLowestAllyFlat", "holyDamageHealHeroFlat", "endTurnWithBlockHealFlat", "endOfTurnHealLowestAlly", "cardsPlayedHealPartyThreshold", "cardsPlayedHealPartyAmount", "healthRegenFirstTurnsAmount", "healthRegenFirstTurnsDuration", "healthRegenAboveHalfHealth", "onBurnDamageHealLowestAllyFlat", "companionLeechSharePercent", "onLeechApplyPoison", "onLeechApplyBleed", "onLeechReduceEnemyStrength", "onLeechReduceEnemyStrengthTurns", "companionDamageLeechesToHeroPercent", "leechOnBlockDamage", "partyRegenPerRound"]
+    public static let fieldNames: [String] = ["cleanseSelfHeal", "cleanseBonusHeal", "onceBelowHealthPercentHeal", "blockOnDeathsDoor", "holyDamageHealFlat", "burnDamageHealFlat", "healthRestoredPoisonPercent", "healthPerTurn", "overhealConvertsToBlock", "overhealConvertsToMaxHealth", "overhealConvertsToMaxHealthCap", "overhealConvertsToMaxHealthPerEvent", "overhealShieldCap", "leechOverhealTransfersToCompanion", "leechSharesToHeroPercent", "onCompanionLeechRestoreHeroMana", "leechHealingVsAfflictedMultiplier", "leechPercentVsLowHealthEnemies", "leechBonusHealVsLowHealthEnemies", "leechChancePercent", "healingBelowHealthPercentThreshold", "healingBelowHealthPercentMultiplier", "healOverTimeOnHealTurns", "healOverTimeOnHealAmount", "onHealGrantBlock", "onHealRestoreCasterMana", "holyDamageHealLowestAllyFlat", "holyDamageHealHeroFlat", "endTurnWithBlockHealFlat", "endOfTurnHealLowestAlly", "cardsPlayedHealPartyThreshold", "cardsPlayedHealPartyAmount", "healthRegenFirstTurnsAmount", "healthRegenFirstTurnsDuration", "healthRegenAboveHalfHealth", "onBurnDamageHealLowestAllyFlat", "companionLeechSharePercent", "onLeechApplyPoison", "onLeechApplyBleed", "onLeechReduceEnemyStrength", "onLeechReduceEnemyStrengthTurns", "companionDamageLeechesToHeroPercent", "leechOnBlockDamage", "partyRegenPerRound", "purifyingWaters", "cleanSlate"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -191,6 +197,8 @@ public struct HealingTriggers: Equatable, Hashable, Sendable {
         if self.companionDamageLeechesToHeroPercent != other.companionDamageLeechesToHeroPercent { names.append("companionDamageLeechesToHeroPercent") }
         if self.leechOnBlockDamage != other.leechOnBlockDamage { names.append("leechOnBlockDamage") }
         if self.partyRegenPerRound != other.partyRegenPerRound { names.append("partyRegenPerRound") }
+        if self.purifyingWaters != other.purifyingWaters { names.append("purifyingWaters") }
+        if self.cleanSlate != other.cleanSlate { names.append("cleanSlate") }
         return names
     }
 }
@@ -241,6 +249,8 @@ extension HealingTriggers {
         companionDamageLeechesToHeroPercent += other.companionDamageLeechesToHeroPercent
         leechOnBlockDamage = leechOnBlockDamage || other.leechOnBlockDamage
         partyRegenPerRound += other.partyRegenPerRound
+        purifyingWaters = purifyingWaters || other.purifyingWaters
+        cleanSlate = cleanSlate || other.cleanSlate
     }
 }
 
@@ -291,7 +301,9 @@ extension HealingTriggers {
             onLeechReduceEnemyStrengthTurns: values.decode(Int.self, "onLeechReduceEnemyStrengthTurns", default: 0),
             companionDamageLeechesToHeroPercent: values.decode(Double.self, "companionDamageLeechesToHeroPercent", default: 0),
             leechOnBlockDamage: values.decode(Bool.self, "leechOnBlockDamage", default: false),
-            partyRegenPerRound: values.decode(Int.self, "partyRegenPerRound", default: 0)
+            partyRegenPerRound: values.decode(Int.self, "partyRegenPerRound", default: 0),
+            purifyingWaters: values.decode(Bool.self, "purifyingWaters", default: false),
+            cleanSlate: values.decode(Bool.self, "cleanSlate", default: false)
         )
     }
 
@@ -340,5 +352,7 @@ extension HealingTriggers {
         try container.encodeNonDefault(companionDamageLeechesToHeroPercent, "companionDamageLeechesToHeroPercent", default: 0)
         try container.encodeNonDefault(leechOnBlockDamage, "leechOnBlockDamage", default: false)
         try container.encodeNonDefault(partyRegenPerRound, "partyRegenPerRound", default: 0)
+        try container.encodeNonDefault(purifyingWaters, "purifyingWaters", default: false)
+        try container.encodeNonDefault(cleanSlate, "cleanSlate", default: false)
     }
 }

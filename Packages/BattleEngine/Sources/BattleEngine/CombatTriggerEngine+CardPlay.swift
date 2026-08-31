@@ -13,12 +13,6 @@ package extension CombatTriggerEngine {
         var events: [ActionEvent] = []
 
         if let ability, let abilityTarget {
-            events.append(contentsOf: BoonCombatEngine.afterCardPlayed(
-                ability,
-                actor: actor,
-                target: abilityTarget,
-                in: &context,
-            ))
             events.append(contentsOf: spellEchoIfNeeded(
                 ability: ability,
                 actor: actor,
@@ -35,6 +29,8 @@ package extension CombatTriggerEngine {
                 triggers: triggers,
                 in: &context,
             ))
+            events.append(contentsOf: talentPrimeIfNeeded(ability: ability, actor: actor, abilityTarget: abilityTarget, in: &context))
+            events.append(contentsOf: talentRepeatIfNeeded(ability: ability, actor: actor, abilityTarget: abilityTarget, in: &context))
         }
 
         let count = context.turnCadence.cardsPlayed[owner, default: 0] + 1
@@ -151,6 +147,51 @@ package extension CombatTriggerEngine {
             applyFightPacing: false,
             in: &context,
         )
+    }
+
+    private static func talentPrimeIfNeeded(
+        ability: Ability,
+        actor: Combatant,
+        abilityTarget _: Combatant,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        guard context.talentReactionDepth < ReactionScope.maxTalentReactionDepth,
+              !context.isResolvingAutoPlayCard else { return [] }
+        let triggers = context.modifiers(for: actor.id).triggers
+        if ability.keywords.contains(.burn) {
+            if triggers.furnaceRhythm {
+                context.primedRepeatKeywords.insert(.physical)
+            }
+            if triggers.temperCycle {
+                context.primedRepeatKeywords.insert(.freeze)
+            }
+        }
+        return []
+    }
+
+    private static func talentRepeatIfNeeded(
+        ability: Ability,
+        actor: Combatant,
+        abilityTarget: Combatant,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        guard context.talentReactionDepth < ReactionScope.maxTalentReactionDepth,
+              !context.isResolvingAutoPlayCard
+        else { return [] }
+        let triggers = context.modifiers(for: actor.id).triggers
+        if ability.keywords.contains(.physical), triggers.furnaceRhythm,
+           context.primedRepeatKeywords.remove(.physical) != nil {
+            context.talentReactionDepth += 1
+            defer { context.talentReactionDepth -= 1 }
+            return BattleTurnEngine.performAction(ability: ability, actor: actor, abilityTarget: abilityTarget, context: &context)
+        }
+        if ability.keywords.contains(.freeze), triggers.temperCycle,
+           context.primedRepeatKeywords.remove(.freeze) != nil {
+            context.talentReactionDepth += 1
+            defer { context.talentReactionDepth -= 1 }
+            return BattleTurnEngine.performAction(ability: ability, actor: actor, abilityTarget: abilityTarget, context: &context)
+        }
+        return []
     }
 
     static func drawAfterSpendMana(by actor: Combatant, in context: inout BattleState) -> [ActionEvent] {

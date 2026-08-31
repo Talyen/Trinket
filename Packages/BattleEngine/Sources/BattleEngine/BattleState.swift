@@ -16,6 +16,7 @@ public struct TalentActionGuardKey: Hashable, Sendable {
         case endlessLegion
         case criticalActionGold
         case poisonStun
+        case cleanSlate
     }
 
     public var kind: Kind
@@ -58,7 +59,6 @@ public struct BattleState {
 
     public var roster: BattleRoster
     public var rng: SeededRandomNumberGenerator
-    public var boonRNG: SeededRandomNumberGenerator
     public var turnCount: Int
     public var nextEffectID: Int
     public var nextEventID: Int
@@ -92,13 +92,10 @@ public struct BattleState {
     public var dotRecursionDepth: Int
     public var isResolvingAutoPlayCard: Bool
     public var drawAndPlayDepth: Int = 0
-    public var activeBoons: [ActiveBoon]
-    public var pendingBoonOffer: BoonOffer?
-    public var hasOfferedStartBoon: Bool
-    public var usedBoonArtworkNames: Set<String>
-    public var boonRuntime: BoonRuntime
     public static let maxDrawAndPlayDepth = ReactionScope.maxDrawAndPlayDepth
     public let enemyFaction: EnemyFaction
+    public var storedBlockedDamageByActorID: [String: Int] = [:]
+    public var primedRepeatKeywords: Set<Keyword> = []
 
     public var partyTriggers: CombatTraitTriggers {
         CombatTriggerEngine.livingPartyTriggers(in: self)
@@ -111,7 +108,6 @@ public struct BattleState {
     package init(
         roster: BattleRoster,
         rng: SeededRandomNumberGenerator,
-        boonRNG: SeededRandomNumberGenerator? = nil,
         turnCount: Int = 0,
         nextEffectID: Int,
         nextEventID: Int,
@@ -143,11 +139,6 @@ public struct BattleState {
         dotRecursionDepth: Int = 0,
         isResolvingAutoPlayCard: Bool = false,
         drawAndPlayDepth: Int = 0,
-        activeBoons: [ActiveBoon] = [],
-        pendingBoonOffer: BoonOffer? = nil,
-        hasOfferedStartBoon: Bool = false,
-        usedBoonArtworkNames: Set<String> = [],
-        boonRuntime: BoonRuntime = BoonRuntime(),
         enemyFaction: EnemyFaction = .mortal,
         tracksLog: Bool = false,
         tracksEvents: Bool = true,
@@ -160,7 +151,6 @@ public struct BattleState {
         self.appliesFightPacing = appliesFightPacing
         self.roster = roster
         self.rng = rng
-        self.boonRNG = boonRNG ?? BoonEngine.makeRNG(forking: rng)
         self.turnCount = turnCount
         self.nextEffectID = nextEffectID
         self.nextEventID = nextEventID
@@ -192,11 +182,6 @@ public struct BattleState {
         self.dotRecursionDepth = dotRecursionDepth
         self.isResolvingAutoPlayCard = isResolvingAutoPlayCard
         self.drawAndPlayDepth = drawAndPlayDepth
-        self.activeBoons = activeBoons
-        self.pendingBoonOffer = pendingBoonOffer
-        self.hasOfferedStartBoon = hasOfferedStartBoon
-        self.usedBoonArtworkNames = usedBoonArtworkNames
-        self.boonRuntime = boonRuntime
 
         self.enemyFaction = enemyFaction
     }
@@ -296,7 +281,6 @@ public struct BattleState {
         rebuildLog: Bool = true,
     ) throws -> [ActionEvent] {
         guard !isBattleOver else { throw BattlePlayError.battleOver }
-        guard !hasPendingBoonOffer else { throw BattlePlayError.boonChoicePending }
         let events = try BattleCardCombatEngine.playCard(
             cardID: cardID,
             context: &self,
@@ -308,7 +292,6 @@ public struct BattleState {
     @discardableResult
     public mutating func endTurn(rebuildLog: Bool = true) -> [ActionEvent] {
         guard !isBattleOver else { return [] }
-        guard !hasPendingBoonOffer else { return [] }
         let events = BattleCardCombatEngine.endTurn(context: &self)
         finishMutation(rebuildLog: rebuildLog)
         return events
@@ -338,7 +321,7 @@ public struct BattleState {
     }
 
     public func isCardPlayable(_ card: BattleCard) -> Bool {
-        !hasPendingBoonOffer && BattleCardCombatEngine.isCardPlayable(card, in: self)
+        BattleCardCombatEngine.isCardPlayable(card, in: self)
     }
 
     public mutating func syncLog() {

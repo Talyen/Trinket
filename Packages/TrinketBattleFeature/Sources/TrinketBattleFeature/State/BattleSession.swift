@@ -129,7 +129,6 @@ public final class BattleSession: BattleRuntime {
 
     var canEndTurn: Bool {
         engineState?.phase == .playerTurn && !(engineState?.isBattleOver ?? true)
-            && pendingBoonOffer == nil
             && hasActiveSimulation
             && !isDealingOpeningHand
             && !spectacle.isShowingVictory && !spectacle.isShowingDefeat
@@ -184,15 +183,7 @@ public final class BattleSession: BattleRuntime {
 
     func combatantReadModel(for combatant: Combatant) -> CombatantReadModel? {
         guard let engineState else { return nil }
-        var summaries = engineState.effectSummaries(of: combatant)
-        if combatant.role != .enemy {
-            var seen = Set<String>()
-            for active in engineState.activeBoons where seen.insert(active.id).inserted {
-                for keyword in Set(active.boon.category.keywords) {
-                    summaries.append(EffectSummary(keyword: keyword, text: "\(active.boon.name): \(active.boon.description)"))
-                }
-            }
-        }
+        let summaries = engineState.effectSummaries(of: combatant)
         return CombatantReadModel(
             combatant: combatant,
             health: engineState.health(of: combatant),

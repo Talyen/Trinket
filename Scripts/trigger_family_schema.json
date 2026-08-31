@@ -290,6 +290,72 @@
         "type": "Int",
         "default": "0",
         "merge": "add"
+      },
+      {
+        "name": "batteringRam",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "toxicTransfusion",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "pressurePoint",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "warChest",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "nerveAgent",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "toxicComa",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "septicemia",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "firebrand",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "butchersLedger",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "frostfire",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "elementalParadox",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
       }
     ]
   },
@@ -788,6 +854,42 @@
         "type": "Bool",
         "default": "false",
         "merge": "or"
+      },
+      {
+        "name": "seismicReversal",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "sunwall",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "unbrokenVow",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "storedImpact",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "iceboundExchange",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "glacialReprieve",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
       }
     ]
   },
@@ -1142,6 +1244,54 @@
         "type": "Bool",
         "default": "false",
         "merge": "or"
+      },
+      {
+        "name": "shatterpoint",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "cryostasis",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "crossContamination",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "backdraft",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "ashenArsenal",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "arterialCascade",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "bloodrush",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "steamExplosion",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
       }
     ]
   },
@@ -1328,6 +1478,18 @@
         "type": "Int",
         "default": "0",
         "merge": "add"
+      },
+      {
+        "name": "lightningRod",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "avalancheGuard",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
       }
     ]
   },
@@ -1499,6 +1661,18 @@
       },
       {
         "name": "onDodgeDrawAndPlayCardChainOnCrit",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "phantomCounter",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "perfectTempo",
         "type": "Bool",
         "default": "false",
         "merge": "or"
@@ -1736,6 +1910,30 @@
         "type": "Bool",
         "default": "false",
         "merge": "or"
+      },
+      {
+        "name": "closedCircuit",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "eyeOfTheStorm",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "furnaceRhythm",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "temperCycle",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
       }
     ]
   },
@@ -1859,6 +2057,12 @@
       },
       {
         "name": "onGainGoldDoubleStatusEffectsNextCard",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "bountyBlade",
         "type": "Bool",
         "default": "false",
         "merge": "or"
@@ -2132,6 +2336,18 @@
         "type": "Int",
         "default": "0",
         "merge": "add"
+      },
+      {
+        "name": "purifyingWaters",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "cleanSlate",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
       }
     ]
   },
@@ -2306,6 +2522,12 @@
         "type": "Int",
         "default": "0",
         "merge": "add"
+      },
+      {
+        "name": "crownfall",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
       }
     ]
   },

@@ -19,9 +19,8 @@ enum BattleStateTestFactory {
         tracksLog: Bool = false,
         tracksEvents: Bool = true,
         dealOpeningHand: Bool = true,
-        skipStartBoon: Bool = true,
     ) -> BattleState {
-        var battle = BattleState(
+        BattleState(
             hero: hero,
             companion: companion,
             enemy: enemy,
@@ -38,15 +37,10 @@ enum BattleStateTestFactory {
             tracksEvents: tracksEvents,
             dealOpeningHand: dealOpeningHand,
         )
-        if skipStartBoon, battle.pendingBoonOffer != nil {
-            battle.pendingBoonOffer = nil
-        }
-        return battle
     }
 
-    static func drawOpeningHandWithoutStartBoon(on battle: inout BattleState) {
+    static func drawOpeningHand(on battle: inout BattleState) {
         battle.drawOpeningHand()
-        battle.pendingBoonOffer = nil
     }
 
     static func seedActiveEffects(
@@ -74,7 +68,6 @@ enum BattleStateTestFactory {
         rngSeed: UInt64 = BattleTestFixtures.deterministicNonCriticalSeed,
         tracksLog: Bool = false,
         dealOpeningHand: Bool = true,
-        skipStartBoon: Bool = true,
     ) -> BattleState {
         let hero = Combatant(
             id: "hero",
@@ -109,7 +102,6 @@ enum BattleStateTestFactory {
             rngSeed: rngSeed,
             tracksLog: tracksLog,
             dealOpeningHand: dealOpeningHand,
-            skipStartBoon: skipStartBoon,
         )
         if let heroMana {
             battle.withEngineContext { context in

@@ -212,7 +212,7 @@ struct BleedHandler: BattleEffectHandler {
         }
 
         var updated = active
-        if !BoonCombatEngine.preservesBleed(on: target, in: context) {
+        if !shouldPreserveBleed(on: target, in: context) {
             updated.remainingTurns -= 1
         }
         return EffectTurnOutcome(
@@ -252,6 +252,11 @@ struct BleedHandler: BattleEffectHandler {
         )
         let didApply = context.roster.activeEffects(for: target).count(where: \.effect.isBleed) > bleedsBefore
         return EffectApplyOutcome(events: events, didApply: didApply)
+    }
+
+    private func shouldPreserveBleed(on target: Combatant, in context: BattleState) -> Bool {
+        context.roster.hasControlStatus(for: target, keyword: .freeze)
+            && CombatTriggerEngine.livingPartyTriggers(in: context).cryostasis
     }
 }
 

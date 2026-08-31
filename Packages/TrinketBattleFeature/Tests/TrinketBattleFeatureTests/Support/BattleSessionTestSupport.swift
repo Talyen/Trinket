@@ -19,7 +19,6 @@ enum BattleSessionTestSupport {
         autoEndTurnDelay: TimeInterval = 0.01,
         presentationEnvironment: BattleRuntimeDependencies = .silent,
         stageRewardsAlreadyClaimed: Bool = false,
-        autoSelectStartBoon: Bool = true,
     ) throws -> BattleSession {
         let resolvedHero = hero ?? CombatantFixtures.combatant(
             id: "hero",
@@ -47,10 +46,6 @@ enum BattleSessionTestSupport {
         )
         _ = session.activate(configuration)
         session.installPresentationContext(presentation)
-        if autoSelectStartBoon,
-           let boonID = session.presentation.pendingBoonOffer?.choices.first?.id {
-            try #require(session.selectBoon(id: boonID))
-        }
         return session
     }
 
@@ -87,10 +82,6 @@ enum BattleSessionTestSupport {
         var actions = 0
         while session.outcome == nil, actions < maxActions {
             actions += 1
-            if let boonID = session.presentation.pendingBoonOffer?.choices.first?.id {
-                guard session.selectBoon(id: boonID) else { break }
-                continue
-            }
             if let card = session.hand.first(where: { session.isCardPlayable($0) }) {
                 _ = session.playCard(
                     cardID: card.id,
@@ -117,10 +108,6 @@ enum BattleSessionTestSupport {
         var actions = 0
         while session.outcome == nil, actions < maxActions {
             actions += 1
-            if let boonID = session.presentation.pendingBoonOffer?.choices.first?.id {
-                guard session.selectBoon(id: boonID) else { break }
-                continue
-            }
             if let card = session.hand.first(where: {
                 $0.ability.id == abilityID && session.isCardPlayable($0)
             }) {

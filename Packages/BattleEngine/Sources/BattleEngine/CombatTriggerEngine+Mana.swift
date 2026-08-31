@@ -39,7 +39,6 @@ package extension CombatTriggerEngine {
         let triggers = profile.triggers
         var events: [ActionEvent] = []
         events.append(contentsOf: drawAfterSpendMana(by: actor, in: &context))
-        events.append(contentsOf: BoonCombatEngine.afterManaSpent(amountSpent, by: actor, in: &context))
 
         if triggers.spendManaBlockFlat > 0 {
             events.append(contentsOf: context.applyBlock(
@@ -229,6 +228,16 @@ package extension CombatTriggerEngine {
                     in: context,
                 ),
             ))
+        }
+
+        if triggers.closedCircuit, amountSpent > 0, context.roster.enemy.isAlive {
+            events.append(contentsOf: context.resolveDamage(DamageRequest(
+                amount: amountSpent,
+                target: context.roster.enemy.combatant,
+                keyword: .stun,
+                sourceActorID: actor.id,
+                options: .flatReaction,
+            )).events)
         }
 
         if triggers.spendManaThresholdAutoPlayCard > 0, !context.isResolvingAutoPlayCard {

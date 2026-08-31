@@ -55,14 +55,6 @@ extension BattleSession {
         engineState?.hand.cards ?? []
     }
 
-    var pendingBoonOffer: BoonOffer? {
-        engineState?.pendingBoonOffer
-    }
-
-    var activeBoons: [ActiveBoon] {
-        engineState?.activeBoons ?? []
-    }
-
     public var finalPartyHealthByCombatantID: [String: Int]? {
         guard let engineState else { return nil }
         return [
@@ -205,23 +197,6 @@ extension BattleSession {
         let events = engineState.endTurn(rebuildLog: false)
         self.engineState = engineState
         return events
-    }
-
-    @discardableResult
-    func selectBoon(id: String) -> Bool {
-        guard var engineState, engineState.selectBoon(id: id) else { return false }
-        self.engineState = engineState
-        installSimulationPresentation()
-        scheduleAutoEndIfNeeded()
-        return true
-    }
-
-    @discardableResult
-    func selectAutoBoon() -> Bool {
-        guard let offer = pendingBoonOffer, let engineState,
-              let choiceID = BoonEngine.autoSelectedChoiceID(for: offer, in: engineState)
-        else { return false }
-        return selectBoon(id: choiceID)
     }
 
     func syncEngineLog() {

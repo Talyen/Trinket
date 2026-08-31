@@ -195,9 +195,6 @@ struct BattleFieldLane: View {
     let castPresentation: BattleCastPresentationState
     var performanceScenario: BattlePerformanceScenario?
 
-    @State private var boonBurst: BoonSelectionBurstState?
-    @State private var boonBurstHapticToken = 0
-
     var body: some View {
         GeometryReader { geometry in
             let layout = BattleCardGridLayout.metrics(in: geometry.size)
@@ -262,29 +259,6 @@ struct BattleFieldLane: View {
                 BattleCastPrewarmLane(presentation: presentation)
                     .zIndex(2)
 
-                if let offer = presentation.pendingBoonOffer {
-                    BoonChoiceOverlay(
-                        offer: offer,
-                        onSelect: { boonID in
-                            _ = battleSession.selectBoon(id: boonID)
-                        },
-                        onCommit: { choice, focal in
-                            triggerBoonBurst(for: choice, focalPoint: focal)
-                        },
-                    )
-                    .zIndex(15)
-                }
-
-                if let burst = boonBurst {
-                    BoonSelectionBurstView(state: burst)
-                        .zIndex(16)
-                        .task(id: burst.id) {
-                            try? await Task.sleep(for: .milliseconds(700))
-                            guard !Task.isCancelled else { return }
-                            boonBurst = nil
-                        }
-                }
-
                 BattleFeedbackBridgeLane()
 
                 #if DEBUG
@@ -300,11 +274,6 @@ struct BattleFieldLane: View {
                 #endif
             }
             .coordinateSpace(.named(BattleCoordinateSpace.field))
-            .trinketSensoryFeedback(
-                .impact(weight: .medium),
-                trigger: boonBurstHapticToken,
-                enabled: hapticsEnabled,
-            )
             .task(id: autoBattleTaskID) {
                 interactionState.suppressCombatantTaps = false
                 await battleSession.driveAutoBattle(
@@ -348,12 +317,6 @@ struct BattleFieldLane: View {
 
     private func updateCombatantTapSuppression(_ isHandInteracting: Bool) {
         interactionState.suppressCombatantTaps = isHandInteracting
-    }
-
-    private func triggerBoonBurst(for choice: BoonChoice, focalPoint: UnitPoint) {
-        battleSession.playPresentationSFX(SFXID.buff)
-        boonBurstHapticToken &+= 1
-        boonBurst = BoonSelectionBurstState(keywords: choice.boon.category.keywords, focalPoint: focalPoint)
     }
 }
 

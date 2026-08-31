@@ -48,6 +48,12 @@ public struct BlockTriggers: Equatable, Hashable, Sendable {
     public var onHolyDamagePartyBlock: Int = 0
     public var physicalDamageBlockPercent: Double = 0
     public var freezeDamageGrantsBlock: Bool = false
+    public var seismicReversal: Bool = false
+    public var sunwall: Bool = false
+    public var unbrokenVow: Bool = false
+    public var storedImpact: Bool = false
+    public var iceboundExchange: Bool = false
+    public var glacialReprieve: Bool = false
 
     public init(
         blockBrokenBlockFlat: Int = 0,
@@ -93,7 +99,13 @@ public struct BlockTriggers: Equatable, Hashable, Sendable {
         onAllyBurnDamageGainBlock: Int = 0,
         onHolyDamagePartyBlock: Int = 0,
         physicalDamageBlockPercent: Double = 0,
-        freezeDamageGrantsBlock: Bool = false
+        freezeDamageGrantsBlock: Bool = false,
+        seismicReversal: Bool = false,
+        sunwall: Bool = false,
+        unbrokenVow: Bool = false,
+        storedImpact: Bool = false,
+        iceboundExchange: Bool = false,
+        glacialReprieve: Bool = false
     ) {
         self.blockBrokenBlockFlat = blockBrokenBlockFlat
         self.blockBrokenSaintfallPower = blockBrokenSaintfallPower
@@ -139,10 +151,16 @@ public struct BlockTriggers: Equatable, Hashable, Sendable {
         self.onHolyDamagePartyBlock = onHolyDamagePartyBlock
         self.physicalDamageBlockPercent = physicalDamageBlockPercent
         self.freezeDamageGrantsBlock = freezeDamageGrantsBlock
+        self.seismicReversal = seismicReversal
+        self.sunwall = sunwall
+        self.unbrokenVow = unbrokenVow
+        self.storedImpact = storedImpact
+        self.iceboundExchange = iceboundExchange
+        self.glacialReprieve = glacialReprieve
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["blockBrokenBlockFlat", "blockBrokenSaintfallPower", "holyDamageBlockFlat", "stunDamageBlockFlat", "blockPerTurn", "blockGainThornsPercent", "sunderingBlockMultiplier", "blockRetainsThreeQuarters", "blockAbsorbsCompanionDamage", "onEnemyBlockBrokenDealPhysical", "postBlockOverflowDamageMultiplier", "maxDamagePerHitCap", "blockGainedMaxHealthEvery", "shieldDamageBonusWhileBlocked", "physicalBlockBreakMultiplier", "holyBlockBreakMultiplier", "physicalBlockIgnorePercent", "physicalIgnoresBlockVsStunnedOrFrozen", "stunnedEnemyLoseAllBlock", "holyIgnoresBlock", "holyIgnoresBlockAndDodge", "burnIgnoresBlockAndMitigation", "poisonStripsBlockBeforeHealth", "bleedStripsBlockPerTurn", "spellDamageTakenReductionWhileBlocked", "companionBlockSharesToHeroPercent", "onBlockHitDealHoly", "onBlockReduceAttackerAccuracyPercent", "onBlockReduceAttackerAccuracyTurns", "companionBlockProtectsHeroPercent", "onAnyHealthLossGainBlock", "onSelfHealthLossGainBlock", "companionFatalDamageRedirectBlock", "onEnemyFrozenGainBlock", "onCompanionTakeDamageGrantHeroBlock", "startBattleBlock", "blockPerGoldEarnedEvery", "goldGainBlockPercent", "blockPerGoldCollectedEvery", "onBurnDamageGainBlock", "onAllyBurnDamageGainBlock", "onHolyDamagePartyBlock", "physicalDamageBlockPercent", "freezeDamageGrantsBlock"]
+    public static let fieldNames: [String] = ["blockBrokenBlockFlat", "blockBrokenSaintfallPower", "holyDamageBlockFlat", "stunDamageBlockFlat", "blockPerTurn", "blockGainThornsPercent", "sunderingBlockMultiplier", "blockRetainsThreeQuarters", "blockAbsorbsCompanionDamage", "onEnemyBlockBrokenDealPhysical", "postBlockOverflowDamageMultiplier", "maxDamagePerHitCap", "blockGainedMaxHealthEvery", "shieldDamageBonusWhileBlocked", "physicalBlockBreakMultiplier", "holyBlockBreakMultiplier", "physicalBlockIgnorePercent", "physicalIgnoresBlockVsStunnedOrFrozen", "stunnedEnemyLoseAllBlock", "holyIgnoresBlock", "holyIgnoresBlockAndDodge", "burnIgnoresBlockAndMitigation", "poisonStripsBlockBeforeHealth", "bleedStripsBlockPerTurn", "spellDamageTakenReductionWhileBlocked", "companionBlockSharesToHeroPercent", "onBlockHitDealHoly", "onBlockReduceAttackerAccuracyPercent", "onBlockReduceAttackerAccuracyTurns", "companionBlockProtectsHeroPercent", "onAnyHealthLossGainBlock", "onSelfHealthLossGainBlock", "companionFatalDamageRedirectBlock", "onEnemyFrozenGainBlock", "onCompanionTakeDamageGrantHeroBlock", "startBattleBlock", "blockPerGoldEarnedEvery", "goldGainBlockPercent", "blockPerGoldCollectedEvery", "onBurnDamageGainBlock", "onAllyBurnDamageGainBlock", "onHolyDamagePartyBlock", "physicalDamageBlockPercent", "freezeDamageGrantsBlock", "seismicReversal", "sunwall", "unbrokenVow", "storedImpact", "iceboundExchange", "glacialReprieve"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -191,6 +209,12 @@ public struct BlockTriggers: Equatable, Hashable, Sendable {
         if self.onHolyDamagePartyBlock != other.onHolyDamagePartyBlock { names.append("onHolyDamagePartyBlock") }
         if self.physicalDamageBlockPercent != other.physicalDamageBlockPercent { names.append("physicalDamageBlockPercent") }
         if self.freezeDamageGrantsBlock != other.freezeDamageGrantsBlock { names.append("freezeDamageGrantsBlock") }
+        if self.seismicReversal != other.seismicReversal { names.append("seismicReversal") }
+        if self.sunwall != other.sunwall { names.append("sunwall") }
+        if self.unbrokenVow != other.unbrokenVow { names.append("unbrokenVow") }
+        if self.storedImpact != other.storedImpact { names.append("storedImpact") }
+        if self.iceboundExchange != other.iceboundExchange { names.append("iceboundExchange") }
+        if self.glacialReprieve != other.glacialReprieve { names.append("glacialReprieve") }
         return names
     }
 }
@@ -241,6 +265,12 @@ extension BlockTriggers {
         onHolyDamagePartyBlock += other.onHolyDamagePartyBlock
         physicalDamageBlockPercent += other.physicalDamageBlockPercent
         freezeDamageGrantsBlock = freezeDamageGrantsBlock || other.freezeDamageGrantsBlock
+        seismicReversal = seismicReversal || other.seismicReversal
+        sunwall = sunwall || other.sunwall
+        unbrokenVow = unbrokenVow || other.unbrokenVow
+        storedImpact = storedImpact || other.storedImpact
+        iceboundExchange = iceboundExchange || other.iceboundExchange
+        glacialReprieve = glacialReprieve || other.glacialReprieve
     }
 }
 
@@ -291,7 +321,13 @@ extension BlockTriggers {
             onAllyBurnDamageGainBlock: values.decode(Int.self, "onAllyBurnDamageGainBlock", default: 0),
             onHolyDamagePartyBlock: values.decode(Int.self, "onHolyDamagePartyBlock", default: 0),
             physicalDamageBlockPercent: values.decode(Double.self, "physicalDamageBlockPercent", default: 0),
-            freezeDamageGrantsBlock: values.decode(Bool.self, "freezeDamageGrantsBlock", default: false)
+            freezeDamageGrantsBlock: values.decode(Bool.self, "freezeDamageGrantsBlock", default: false),
+            seismicReversal: values.decode(Bool.self, "seismicReversal", default: false),
+            sunwall: values.decode(Bool.self, "sunwall", default: false),
+            unbrokenVow: values.decode(Bool.self, "unbrokenVow", default: false),
+            storedImpact: values.decode(Bool.self, "storedImpact", default: false),
+            iceboundExchange: values.decode(Bool.self, "iceboundExchange", default: false),
+            glacialReprieve: values.decode(Bool.self, "glacialReprieve", default: false)
         )
     }
 
@@ -340,5 +376,11 @@ extension BlockTriggers {
         try container.encodeNonDefault(onHolyDamagePartyBlock, "onHolyDamagePartyBlock", default: 0)
         try container.encodeNonDefault(physicalDamageBlockPercent, "physicalDamageBlockPercent", default: 0)
         try container.encodeNonDefault(freezeDamageGrantsBlock, "freezeDamageGrantsBlock", default: false)
+        try container.encodeNonDefault(seismicReversal, "seismicReversal", default: false)
+        try container.encodeNonDefault(sunwall, "sunwall", default: false)
+        try container.encodeNonDefault(unbrokenVow, "unbrokenVow", default: false)
+        try container.encodeNonDefault(storedImpact, "storedImpact", default: false)
+        try container.encodeNonDefault(iceboundExchange, "iceboundExchange", default: false)
+        try container.encodeNonDefault(glacialReprieve, "glacialReprieve", default: false)
     }
 }

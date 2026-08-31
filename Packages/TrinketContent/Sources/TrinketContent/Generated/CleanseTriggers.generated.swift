@@ -19,6 +19,7 @@ public struct CleanseTriggers: Equatable, Hashable, Sendable {
     public var blockFirstDebuffPerTurn: Bool = false
     public var partyDebuffDurationHalved: Bool = false
     public var onCleansePoisonDealDamagePerStack: Int = 0
+    public var crownfall: Bool = false
 
     public init(
         cleanseBonusDraw: Int = 0,
@@ -35,7 +36,8 @@ public struct CleanseTriggers: Equatable, Hashable, Sendable {
         cleansePartyBlock: Int = 0,
         blockFirstDebuffPerTurn: Bool = false,
         partyDebuffDurationHalved: Bool = false,
-        onCleansePoisonDealDamagePerStack: Int = 0
+        onCleansePoisonDealDamagePerStack: Int = 0,
+        crownfall: Bool = false
     ) {
         self.cleanseBonusDraw = cleanseBonusDraw
         self.holyDamageCleanseCount = holyDamageCleanseCount
@@ -52,10 +54,11 @@ public struct CleanseTriggers: Equatable, Hashable, Sendable {
         self.blockFirstDebuffPerTurn = blockFirstDebuffPerTurn
         self.partyDebuffDurationHalved = partyDebuffDurationHalved
         self.onCleansePoisonDealDamagePerStack = onCleansePoisonDealDamagePerStack
+        self.crownfall = crownfall
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["cleanseBonusDraw", "holyDamageCleanseCount", "holyDamagePurgeCount", "holyDamagePurgeAll", "cleanseBlockPerStack", "cleanseAffectsBothHeroAndCompanion", "cleanseReflectDebuffToEnemy", "autoCleanseTeamPerTurn", "cleanseAlsoPurgesEnemyBuffs", "cleanseDodgeChanceBonus", "cleanseDodgeChanceBonusTurns", "cleansePartyBlock", "blockFirstDebuffPerTurn", "partyDebuffDurationHalved", "onCleansePoisonDealDamagePerStack"]
+    public static let fieldNames: [String] = ["cleanseBonusDraw", "holyDamageCleanseCount", "holyDamagePurgeCount", "holyDamagePurgeAll", "cleanseBlockPerStack", "cleanseAffectsBothHeroAndCompanion", "cleanseReflectDebuffToEnemy", "autoCleanseTeamPerTurn", "cleanseAlsoPurgesEnemyBuffs", "cleanseDodgeChanceBonus", "cleanseDodgeChanceBonusTurns", "cleansePartyBlock", "blockFirstDebuffPerTurn", "partyDebuffDurationHalved", "onCleansePoisonDealDamagePerStack", "crownfall"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -75,6 +78,7 @@ public struct CleanseTriggers: Equatable, Hashable, Sendable {
         if self.blockFirstDebuffPerTurn != other.blockFirstDebuffPerTurn { names.append("blockFirstDebuffPerTurn") }
         if self.partyDebuffDurationHalved != other.partyDebuffDurationHalved { names.append("partyDebuffDurationHalved") }
         if self.onCleansePoisonDealDamagePerStack != other.onCleansePoisonDealDamagePerStack { names.append("onCleansePoisonDealDamagePerStack") }
+        if self.crownfall != other.crownfall { names.append("crownfall") }
         return names
     }
 }
@@ -96,6 +100,7 @@ extension CleanseTriggers {
         blockFirstDebuffPerTurn = blockFirstDebuffPerTurn || other.blockFirstDebuffPerTurn
         partyDebuffDurationHalved = partyDebuffDurationHalved || other.partyDebuffDurationHalved
         onCleansePoisonDealDamagePerStack += other.onCleansePoisonDealDamagePerStack
+        crownfall = crownfall || other.crownfall
     }
 }
 
@@ -117,7 +122,8 @@ extension CleanseTriggers {
             cleansePartyBlock: values.decode(Int.self, "cleansePartyBlock", default: 0),
             blockFirstDebuffPerTurn: values.decode(Bool.self, "blockFirstDebuffPerTurn", default: false),
             partyDebuffDurationHalved: values.decode(Bool.self, "partyDebuffDurationHalved", default: false),
-            onCleansePoisonDealDamagePerStack: values.decode(Int.self, "onCleansePoisonDealDamagePerStack", default: 0)
+            onCleansePoisonDealDamagePerStack: values.decode(Int.self, "onCleansePoisonDealDamagePerStack", default: 0),
+            crownfall: values.decode(Bool.self, "crownfall", default: false)
         )
     }
 
@@ -137,5 +143,6 @@ extension CleanseTriggers {
         try container.encodeNonDefault(blockFirstDebuffPerTurn, "blockFirstDebuffPerTurn", default: false)
         try container.encodeNonDefault(partyDebuffDurationHalved, "partyDebuffDurationHalved", default: false)
         try container.encodeNonDefault(onCleansePoisonDealDamagePerStack, "onCleansePoisonDealDamagePerStack", default: 0)
+        try container.encodeNonDefault(crownfall, "crownfall", default: false)
     }
 }

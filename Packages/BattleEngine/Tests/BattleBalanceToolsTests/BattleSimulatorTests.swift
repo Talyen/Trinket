@@ -142,12 +142,19 @@ struct BattleSimulatorTests {
 
     @Test func `talent kit contrast is legal only when points cover catalog`() throws {
         let owner = try #require(GameContent.heroes.first { $0.id == "knight" })
+        let valid = CombatantTalentCatalog.validNodeIDs(for: owner.id)
+        let lateBudget = CombatantProgression.at(level: SimulationPowerTier.lateGame.level).totalTalentPoints
+        let kit = Set(valid.prefix(min(valid.count, lateBudget)))
         let focus = BalanceTalentContrastRunner.KitFocus(
             owner: owner,
-            kit: CombatantTalentCatalog.validNodeIDs(for: owner.id),
+            kit: kit,
         )
         #expect(!BalanceTalentContrastRunner.isKitLegal(focus: focus, tier: .early))
-        #expect(!BalanceTalentContrastRunner.isKitLegal(focus: focus, tier: .middle))
+        #expect(CombatantProgression.at(level: SimulationPowerTier.middle.level).totalTalentPoints >= kit.count
+            ? BalanceTalentContrastRunner.isKitLegal(focus: focus, tier: .middle)
+            : !BalanceTalentContrastRunner.isKitLegal(focus: focus, tier: .middle))
         #expect(BalanceTalentContrastRunner.isKitLegal(focus: focus, tier: .lateGame))
+        let fullFocus = BalanceTalentContrastRunner.KitFocus(owner: owner, kit: valid)
+        #expect(!BalanceTalentContrastRunner.isKitLegal(focus: fullFocus, tier: .early))
     }
 }

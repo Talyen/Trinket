@@ -8,7 +8,6 @@ final class BattleFlowUITests: TrinketUITestCase {
         play.startBattle(chapter: 1, stage: 1)
 
         battle.assertActive()
-        battle.selectFirstBoon()
 
         let cards = battle.handCards
         let inspectedCard = cards.firstMatch

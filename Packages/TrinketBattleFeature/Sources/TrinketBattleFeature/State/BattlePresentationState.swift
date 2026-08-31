@@ -24,7 +24,6 @@ struct BattlePresentationSnapshot: Equatable {
     let hand: [BattleCard]
     let playableCardIDs: Set<Int>
     let isBattleOver: Bool
-    let pendingBoonOffer: BoonOffer?
 
     init(configurationID: UUID, state: borrowing BattleState, isEnemyTurnActive: Bool = false) {
         self.configurationID = configurationID
@@ -55,7 +54,6 @@ struct BattlePresentationSnapshot: Equatable {
             ? []
             : Set(hand.filter { state.isCardPlayable($0) }.map(\.id))
         isBattleOver = state.isBattleOver
-        pendingBoonOffer = state.pendingBoonOffer
     }
 
     private static func combatant(
@@ -90,7 +88,6 @@ final class BattlePresentationState {
     private(set) var hand: [BattleCard] = []
     private(set) var playableCardIDs: Set<Int> = []
     private(set) var isBattleOver = false
-    private(set) var pendingBoonOffer: BoonOffer?
 
     func install(_ snapshot: BattlePresentationSnapshot) {
         if configurationID != snapshot.configurationID {
@@ -114,9 +111,6 @@ final class BattlePresentationState {
         if isBattleOver != snapshot.isBattleOver {
             isBattleOver = snapshot.isBattleOver
         }
-        if pendingBoonOffer != snapshot.pendingBoonOffer {
-            pendingBoonOffer = snapshot.pendingBoonOffer
-        }
     }
 
     func clear() {
@@ -127,7 +121,6 @@ final class BattlePresentationState {
         hand = []
         playableCardIDs = []
         isBattleOver = false
-        pendingBoonOffer = nil
     }
 }
 
