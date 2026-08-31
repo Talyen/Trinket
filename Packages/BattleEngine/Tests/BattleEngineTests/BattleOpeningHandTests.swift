@@ -25,7 +25,7 @@ struct BattleOpeningHandTests {
                 rngSeed: seed,
             )
             #expect(battle.hand.count == BattleHand.maxSize)
-            try #expect(battle.handBuffer.isEmpty)
+            try #expect(battle.hand.buffer.isEmpty)
 
             let heroBasics = battle.hand.cards.filter { $0.owner == .hero && $0.ability.tier == .basic }
             let companionBasics = battle.hand.cards.filter { $0.owner == .companion && $0.ability.tier == .basic }

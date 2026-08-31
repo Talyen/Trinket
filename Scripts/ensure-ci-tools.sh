@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Install pinned SwiftFormat / SwiftLint into .tools/ (gitignored).
+# Install pinned CI tools into .tools/ (gitignored).
 # Prefer these over Homebrew so CI and local gates share exact versions.
 set -euo pipefail
 
@@ -8,7 +8,34 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 source "$ROOT/Scripts/tool-versions.env"
 
 TOOLS_DIR="$ROOT/.tools"
-mkdir -p "$TOOLS_DIR"
+
+usage() {
+  cat <<'USAGE'
+Usage: ./Scripts/ensure-ci-tools.sh [--check]
+
+Install the pinned CI tools into .tools. Pass --check to validate the existing
+tools, versions, and checksum metadata without downloading or changing files.
+USAGE
+}
+
+mode="install"
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --check)
+      mode="check"
+      ;;
+    --help|-h)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "Unknown argument: $1" >&2
+      usage >&2
+      exit 1
+      ;;
+  esac
+  shift
+done
 
 sha256_file() {
   shasum -a 256 "$1" | awk '{print $1}'
@@ -141,6 +168,7 @@ install_xcodegen() {
   local bin="$TOOLS_DIR/xcodegen"
   local install_dir="$TOOLS_DIR/xcodegen-$XCODEGEN_VERSION"
   local real_bin="$install_dir/bin/xcodegen"
+  local marker="$TOOLS_DIR/.xcodegen.sha256"
 
   write_xcodegen_wrapper() {
     # XcodeGen resolves SettingPresets from argv[0]/../share/xcodegen. A plain
@@ -155,7 +183,10 @@ EOF
     chmod +x "$bin"
   }
 
-  if [[ -x "$real_bin" ]] && [[ "$("$real_bin" --version 2>/dev/null | awk '{print $NF}' || true)" == "$XCODEGEN_VERSION" ]]; then
+  if [[ -x "$real_bin" && -f "$marker" ]] \
+    && [[ "$(awk -F= '$1 == "archive" { print $2; exit }' "$marker")" == "$XCODEGEN_SHA256" ]] \
+    && [[ "$(awk -F= '$1 == "binary" { print $2; exit }' "$marker")" == "$(sha256_file "$real_bin")" ]] \
+    && [[ "$("$real_bin" --version 2>/dev/null | awk '{print $NF}' || true)" == "$XCODEGEN_VERSION" ]]; then
     write_xcodegen_wrapper
     return 0
   fi
@@ -179,14 +210,12 @@ EOF
     echo "XcodeGen version mismatch after install: expected $XCODEGEN_VERSION, found $actual" >&2
     exit 1
   fi
+  printf 'archive=%s\nbinary=%s\n' "$XCODEGEN_SHA256" "$(sha256_file "$real_bin")" > "$marker"
 }
 
 install_ripgrep() {
   local bin="$TOOLS_DIR/rg"
-  if [[ -x "$bin" ]] && [[ "$("$bin" --version 2>/dev/null | head -n 1 | awk '{print $2}' || true)" == "$RIPGREP_VERSION" ]]; then
-    return 0
-  fi
-
+  local marker="$TOOLS_DIR/.rg.sha256"
   local target checksum tmpdir archive candidate
   case "$os-$arch" in
     darwin-arm64 | darwin-aarch64)
@@ -211,6 +240,13 @@ install_ripgrep() {
       ;;
   esac
 
+  if [[ -x "$bin" && -f "$marker" ]] \
+    && [[ "$(awk -F= '$1 == "archive" { print $2; exit }' "$marker")" == "$checksum" ]] \
+    && [[ "$(awk -F= '$1 == "binary" { print $2; exit }' "$marker")" == "$(sha256_file "$bin")" ]] \
+    && [[ "$("$bin" --version 2>/dev/null | head -n 1 | awk '{print $2}' || true)" == "$RIPGREP_VERSION" ]]; then
+    return 0
+  fi
+
   tmpdir="$(mktemp -d)"
   archive="$tmpdir/ripgrep.tar.gz"
   curl -fsSL "https://github.com/BurntSushi/ripgrep/releases/download/${RIPGREP_VERSION}/ripgrep-${RIPGREP_VERSION}-${target}.tar.gz" -o "$archive"
@@ -224,6 +260,7 @@ install_ripgrep() {
     exit 1
   fi
   install -m 755 "$candidate" "$bin"
+  printf 'archive=%s\nbinary=%s\n' "$checksum" "$(sha256_file "$bin")" > "$marker"
   rm -rf "$tmpdir"
 }
 
@@ -233,6 +270,130 @@ install_xcbeautify() {
   [[ "$os" == "darwin" ]] || return 0
   install_zip_tool xcbeautify "$XCBEAUTIFY_VERSION" cpisciotta/xcbeautify --version xcbeautify
 }
+
+expected_archive_checksum() {
+  local tool="$1"
+  case "$tool" in
+    swiftformat|swiftlint|xcbeautify)
+      zip_tool_archive "$tool"
+      printf '%s' "$ARCHIVE_CHECKSUM"
+      ;;
+    xcodegen)
+      printf '%s' "$XCODEGEN_SHA256"
+      ;;
+    rg)
+      case "$os-$arch" in
+        darwin-arm64 | darwin-aarch64) printf '%s' "$RIPGREP_DARWIN_ARM64_SHA256" ;;
+        darwin-x86_64 | darwin-amd64) printf '%s' "$RIPGREP_DARWIN_X86_64_SHA256" ;;
+        linux-arm64 | linux-aarch64) printf '%s' "$RIPGREP_LINUX_ARM64_SHA256" ;;
+        linux-x86_64 | linux-amd64) printf '%s' "$RIPGREP_LINUX_X86_64_SHA256" ;;
+        *) return 1 ;;
+      esac
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+check_binary() {
+  local name="$1" bin="$2" expected="$3" actual=""
+  if [[ ! -e "$bin" ]]; then
+    echo "Missing pinned tool: $bin" >&2
+    return 1
+  fi
+  if [[ ! -x "$bin" ]]; then
+    echo "Pinned tool is not executable: $bin" >&2
+    return 1
+  fi
+
+  case "$name" in
+    swiftformat|xcodegen|xcbeautify)
+      actual="$("$bin" --version 2>/dev/null || true)"
+      if [[ "$name" == xcodegen ]]; then
+        actual="$(awk '{print $NF}' <<< "$actual")"
+      fi
+      ;;
+    swiftlint)
+      actual="$("$bin" version 2>/dev/null || true)"
+      ;;
+    rg)
+      actual="$("$bin" --version 2>/dev/null | head -n 1 | awk '{print $2}' || true)"
+      ;;
+  esac
+  if [[ "$actual" != "$expected" ]]; then
+    echo "$name version mismatch: expected $expected, found ${actual:-unavailable}" >&2
+    return 1
+  fi
+  return 0
+}
+
+check_checksum_metadata() {
+  local name="$1" bin="$2"
+  local marker="$TOOLS_DIR/.$name.sha256" expected_archive
+  if [[ ! -f "$marker" ]]; then
+    echo "Missing checksum metadata: $marker" >&2
+    return 1
+  fi
+  expected_archive="$(expected_archive_checksum "$name" 2>/dev/null || true)"
+  if [[ -z "$expected_archive" ]]; then
+    echo "Unable to determine expected archive checksum for $name on $os/$arch" >&2
+    return 1
+  fi
+  if [[ "$(awk -F= '$1 == "archive" { print $2; exit }' "$marker")" != "$expected_archive" ]]; then
+    echo "$name archive checksum metadata does not match the pinned release" >&2
+    return 1
+  fi
+  local recorded_binary
+  recorded_binary="$(awk -F= '$1 == "binary" { print $2; exit }' "$marker")"
+  if [[ -z "$recorded_binary" || ! -f "$bin" || "$recorded_binary" != "$(sha256_file "$bin")" ]]; then
+    echo "$name binary checksum metadata does not match the installed binary" >&2
+    return 1
+  fi
+  return 0
+}
+
+check_tools() {
+  local failures=0
+  local -a required=(swiftformat swiftlint rg)
+  local name bin expected
+  for name in "${required[@]}"; do
+    case "$name" in
+      swiftformat) bin="$TOOLS_DIR/swiftformat"; expected="$SWIFTFORMAT_VERSION" ;;
+      swiftlint) bin="$TOOLS_DIR/swiftlint"; expected="$SWIFTLINT_VERSION" ;;
+      rg) bin="$TOOLS_DIR/rg"; expected="$RIPGREP_VERSION" ;;
+    esac
+    if ! check_binary "$name" "$bin" "$expected" || ! check_checksum_metadata "$name" "$bin"; then
+      failures=$((failures + 1))
+    fi
+  done
+
+  if [[ "$os" == darwin ]]; then
+    local xcodegen_real_bin="$TOOLS_DIR/xcodegen-$XCODEGEN_VERSION/bin/xcodegen"
+    if ! check_binary xcodegen "$TOOLS_DIR/xcodegen" "$XCODEGEN_VERSION" \
+      || ! check_binary xcodegen "$xcodegen_real_bin" "$XCODEGEN_VERSION" \
+      || ! check_checksum_metadata xcodegen "$xcodegen_real_bin"; then
+      failures=$((failures + 1))
+    fi
+    if ! check_binary xcbeautify "$TOOLS_DIR/xcbeautify" "$XCBEAUTIFY_VERSION" \
+      || ! check_checksum_metadata xcbeautify "$TOOLS_DIR/xcbeautify"; then
+      failures=$((failures + 1))
+    fi
+  fi
+
+  if (( failures > 0 )); then
+    echo "Pinned CI tool check failed ($failures tool(s))." >&2
+    return 1
+  fi
+  echo "Pinned CI tools verified (versions, executability, and checksums)."
+}
+
+if [[ "$mode" == check ]]; then
+  check_tools
+  exit $?
+fi
+
+mkdir -p "$TOOLS_DIR"
 
 install_swiftformat
 install_swiftlint

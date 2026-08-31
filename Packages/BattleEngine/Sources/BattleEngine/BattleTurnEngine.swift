@@ -157,11 +157,11 @@ extension BattleTurnEngine {
         let keywordOverride = activeDamageKeywordOverride(for: actor, in: context)
 
         for component in ability.damageComponents {
-            let damageTarget = resolveEffectTarget(
+            let damageTarget = BattleTargetResolver.effectTarget(
                 component.target,
                 actor: actor,
                 abilityTarget: abilityTarget,
-                context: context,
+                in: context,
             )
 
             var amount = component.amount
@@ -169,10 +169,7 @@ extension BattleTurnEngine {
                BattleConditionEvaluator.isMet(
                    condition,
                    actor: actor,
-                   enemy: context.enemy,
-                   hero: context.hero,
-                   companion: context.companion,
-                   context: context,
+                   in: context,
                ) {
                 amount += component.bonusAmount
             }
@@ -400,20 +397,17 @@ extension BattleTurnEngine {
                !BattleConditionEvaluator.isMet(
                    condition,
                    actor: actor,
-                   enemy: context.enemy,
-                   hero: context.hero,
-                   companion: context.companion,
-                   context: context,
+                   in: context,
                ) {
                 continue
             }
 
             let effect = targetedEffect.effect
-            let effectTarget = resolveEffectTarget(
+            let effectTarget = BattleTargetResolver.effectTarget(
                 targetedEffect.target,
                 actor: actor,
                 abilityTarget: abilityTarget,
-                context: context,
+                in: context,
             )
 
             if shouldSkipEffectOnDefeatedTarget(effect, target: effectTarget, actor: actor, context: context) {
@@ -457,14 +451,5 @@ extension BattleTurnEngine {
         context.roster.mutateRuntime(for: actor) { runtime in
             runtime.markActed()
         }
-    }
-
-    private static func resolveEffectTarget(
-        _ target: EffectTarget,
-        actor: Combatant,
-        abilityTarget: Combatant,
-        context: BattleState,
-    ) -> Combatant {
-        BattleTargetResolver.effectTarget(target, actor: actor, abilityTarget: abilityTarget, in: context)
     }
 }

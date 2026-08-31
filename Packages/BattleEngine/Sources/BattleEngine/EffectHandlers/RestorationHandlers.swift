@@ -158,7 +158,7 @@ struct DrawAndPlayCardsHandler: BattleEffectHandler {
         for index in 0 ..< targetCount {
             let owner: BattleParticipant = index.isMultiple(of: 2) ? .hero : .companion
             guard canDrawAndPlay(owner, in: context),
-                  let card = BattleCardCombatEngine.drawOneCard(for: owner, context: &context)
+                  let card = BattleCardCombatEngine.drawOne(for: owner, context: &context)
             else { continue }
             drawnCards.append(card)
         }

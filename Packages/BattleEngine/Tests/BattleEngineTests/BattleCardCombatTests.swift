@@ -31,7 +31,7 @@ struct BattleCardCombatTests {
             companionAbilities: [.bash, .fangs, .bloodthorn],
         )
         try #expect(battle.hand.count == BattleHand.maxSize)
-        try #expect(battle.handBuffer.isEmpty)
+        try #expect(battle.hand.buffer.isEmpty)
         try #expect(battle.phase == .playerTurn)
 
         let heroDrawn = battle.hand.cards.count(where: { $0.owner == .hero })
@@ -100,7 +100,6 @@ struct BattleCardCombatTests {
             companionAbilities: [.bash, .fangs, .bloodthorn],
         )
         battle.hand = BattleHand()
-        battle.handBuffer = BattleHandBuffer()
         battle.nextCardID += 1
         let card = BattleCard(id: battle.nextCardID, ability: .slash, owner: .hero)
         battle.hand.append(card)
@@ -123,7 +122,6 @@ struct BattleCardCombatTests {
         battle.heroDeck.putOnBottom(.smite)
 
         battle.hand = BattleHand()
-        battle.handBuffer = BattleHandBuffer()
         battle.nextCardID += 1
         battle.hand.append(BattleCard(id: battle.nextCardID, ability: .darkPact, owner: .hero))
         battle.nextCardID += 1
@@ -134,7 +132,7 @@ struct BattleCardCombatTests {
         let events = try BattleTestFixtures.playCardNamed("Dark Pact", owner: .hero, on: &battle)
 
         try #expect(battle.hand.count == BattleHand.maxSize)
-        try #expect(battle.handBuffer.count == 1)
+        try #expect(battle.hand.bufferCount == 1)
         try #expect(events.contains { $0.effectKind == .cardsDrawn && $0.amount == 2 })
         try #expect(battle.health(of: battle.hero) == 47)
     }
@@ -153,7 +151,6 @@ struct BattleCardCombatTests {
             )
         }
         battle.hand = BattleHand()
-        battle.handBuffer = BattleHandBuffer()
         battle.nextCardID += 1
         battle.hand.append(BattleCard(id: battle.nextCardID, ability: .darkPact, owner: .hero))
 
@@ -190,12 +187,12 @@ struct BattleCardCombatTests {
         battle.heroDeck.putOnBottom(.slash)
         battle.companionDeck.putOnBottom(.bash)
         try #expect(battle.hand.count == BattleHand.maxSize)
-        try #expect(battle.handBuffer.isEmpty)
+        try #expect(battle.hand.buffer.isEmpty)
 
         let countAtCap = battle.hand.count
         _ = battle.endTurn()
         try #expect(battle.hand.count == countAtCap)
-        try #expect(battle.handBuffer.count == 2)
+        try #expect(battle.hand.bufferCount == 2)
     }
 
     @Test func `playing card promotes oldest buffered card FIFO`() throws {
@@ -205,26 +202,41 @@ struct BattleCardCombatTests {
             enemyMaxHealth: 500,
         )
         battle.hand = BattleHand()
-        battle.handBuffer = BattleHandBuffer()
         battle.nextCardID += 1
         let firstBuffered = BattleCard(id: battle.nextCardID, ability: .fangs, owner: .companion)
-        battle.handBuffer.enqueue(firstBuffered)
         battle.nextCardID += 1
-        battle.handBuffer.enqueue(BattleCard(id: battle.nextCardID, ability: .bloodthorn, owner: .companion))
+        let secondBuffered = BattleCard(id: battle.nextCardID, ability: .bloodthorn, owner: .companion)
         battle.nextCardID += 1
         battle.hand.append(BattleCard(id: battle.nextCardID, ability: .slash, owner: .hero))
         battle.nextCardID += 1
         battle.hand.append(BattleCard(id: battle.nextCardID, ability: .heal, owner: .hero))
         battle.nextCardID += 1
         battle.hand.append(BattleCard(id: battle.nextCardID, ability: .smite, owner: .hero))
+        battle.hand.append(firstBuffered)
+        battle.hand.append(secondBuffered)
 
         let played = try #require(battle.hand.cards.first { $0.ability.id == Ability.slash.id })
         _ = try battle.playCard(cardID: played.id)
 
         try #expect(battle.hand.count == BattleHand.maxSize)
         try #expect(battle.hand.cards.contains { $0.id == firstBuffered.id })
-        try #expect(battle.handBuffer.count == 1)
-        try #expect(battle.handBuffer.cards.first?.ability.id == Ability.bloodthorn.id)
+        try #expect(battle.hand.bufferCount == 1)
+        try #expect(battle.hand.buffer.first?.ability.id == Ability.bloodthorn.id)
+    }
+
+    @Test func `public card play rejects buffered card`() throws {
+        var battle = makeBattle(heroAbilities: [.slash], companionAbilities: [.bash], enemyMaxHealth: 500)
+        let visible = BattleCard(id: 1, ability: .slash, owner: .hero)
+        let buffered = BattleCard(id: 2, ability: .smite, owner: .hero)
+        battle.hand = BattleHand(cards: [visible], buffer: [buffered])
+
+        do {
+            _ = try battle.playCard(cardID: buffered.id)
+            Issue.record("Expected buffered card to remain hidden from public play")
+        } catch BattlePlayError.cardNotInHand {}
+
+        try #expect(battle.hand.buffer == [buffered])
+        try #expect(battle.hand.cards == [visible])
     }
 
     @Test func `automatic open slot goes to owner with fewer cards`() throws {
@@ -234,7 +246,6 @@ struct BattleCardCombatTests {
             enemyMaxHealth: 500,
         )
         battle.hand = BattleHand()
-        battle.handBuffer = BattleHandBuffer()
         battle.nextCardID += 1
         battle.hand.append(BattleCard(id: battle.nextCardID, ability: .slash, owner: .hero))
         battle.nextCardID += 1
@@ -248,8 +259,8 @@ struct BattleCardCombatTests {
         try #expect(battle.hand.cards.count { $0.owner == .hero } == 2)
         try #expect(battle.hand.cards.count { $0.owner == .companion } == 1)
         try #expect(battle.hand.cards.last?.owner == .companion)
-        try #expect(battle.handBuffer.count == 1)
-        try #expect(battle.handBuffer.cards.first?.owner == .hero)
+        try #expect(battle.hand.bufferCount == 1)
+        try #expect(battle.hand.buffer.first?.owner == .hero)
     }
 
     @Test(arguments: [(0, BattleParticipant.companion), (1, BattleParticipant.hero)])
@@ -264,7 +275,6 @@ struct BattleCardCombatTests {
         )
         battle.turnCount = startingRound
         battle.hand = BattleHand()
-        battle.handBuffer = BattleHandBuffer()
         battle.nextCardID += 1
         battle.hand.append(BattleCard(id: battle.nextCardID, ability: .slash, owner: .hero))
         battle.nextCardID += 1
@@ -276,7 +286,7 @@ struct BattleCardCombatTests {
 
         try #expect(battle.hand.count == BattleHand.maxSize)
         try #expect(battle.hand.cards.last?.owner == expectedOwner)
-        try #expect(battle.handBuffer.count == 1)
+        try #expect(battle.hand.bufferCount == 1)
     }
 
     @Test func `end of round advances effects once`() throws {

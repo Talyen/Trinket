@@ -72,16 +72,30 @@ public struct BattleHand: Hashable, Sendable {
     public static let maxSize = 3
 
     public private(set) var cards: [BattleCard]
+    public private(set) var buffer: [BattleCard]
 
-    public init(cards: [BattleCard] = []) {
+    public init(cards: [BattleCard] = [], buffer: [BattleCard] = []) {
         self.cards = cards
+        self.buffer = buffer
     }
 
     public var count: Int {
         cards.count
     }
 
+    public var bufferCount: Int {
+        buffer.count
+    }
+
+    public var totalCount: Int {
+        cards.count + buffer.count
+    }
+
     public var isEmpty: Bool {
+        cards.isEmpty && buffer.isEmpty
+    }
+
+    public var visibleIsEmpty: Bool {
         cards.isEmpty
     }
 
@@ -94,42 +108,66 @@ public struct BattleHand: Hashable, Sendable {
         return cards.remove(at: index)
     }
 
+    mutating func removeFromAnyLocation(id: Int) -> BattleCard? {
+        if let card = remove(id: id) {
+            return card
+        }
+        guard let index = buffer.firstIndex(where: { $0.id == id }) else { return nil }
+        return buffer.remove(at: index)
+    }
+
     public mutating func append(_ card: BattleCard) {
-        cards.append(card)
+        if isFull {
+            buffer.append(card)
+        } else {
+            cards.append(card)
+        }
+    }
+
+    @discardableResult
+    public mutating func removeAll(where predicate: (BattleCard) -> Bool) -> [BattleCard] {
+        var removed: [BattleCard] = []
+        var survivingCards: [BattleCard] = []
+        for card in cards {
+            if predicate(card) {
+                removed.append(card)
+            } else {
+                survivingCards.append(card)
+            }
+        }
+        cards = survivingCards
+
+        var survivingBuffer: [BattleCard] = []
+        for card in buffer {
+            if predicate(card) {
+                removed.append(card)
+            } else {
+                survivingBuffer.append(card)
+            }
+        }
+        buffer = survivingBuffer
+        return removed
+    }
+
+    @discardableResult
+    public mutating func promoteFromBuffer(
+        isOwnerAlive: (BattleParticipant) -> Bool,
+    ) -> [BattleCard] {
+        guard !buffer.isEmpty else { return [] }
+        var discarded: [BattleCard] = []
+        while !isFull, !buffer.isEmpty {
+            let card = buffer.removeFirst()
+            if isOwnerAlive(card.owner) {
+                cards.append(card)
+            } else {
+                discarded.append(card)
+            }
+        }
+        return discarded
     }
 
     public var isFull: Bool {
         cards.count >= Self.maxSize
-    }
-}
-
-public struct BattleHandBuffer: Hashable, Sendable {
-    public private(set) var cards: [BattleCard]
-
-    public init(cards: [BattleCard] = []) {
-        self.cards = cards
-    }
-
-    public var count: Int {
-        cards.count
-    }
-
-    public var isEmpty: Bool {
-        cards.isEmpty
-    }
-
-    public mutating func enqueue(_ card: BattleCard) {
-        cards.append(card)
-    }
-
-    public mutating func dequeue() -> BattleCard? {
-        guard !cards.isEmpty else { return nil }
-        return cards.removeFirst()
-    }
-
-    public mutating func remove(id: Int) -> BattleCard? {
-        guard let index = cards.firstIndex(where: { $0.id == id }) else { return nil }
-        return cards.remove(at: index)
     }
 }
 

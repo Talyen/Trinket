@@ -17,58 +17,31 @@ struct PanaceaHandler: BattleEffectHandler {
         }
         let cleanseTarget = BattleConditionEvaluator.mostDebuffedAlly(in: context)
         var cleanseEffects = context.roster.activeEffects(for: cleanseTarget)
-        let beforeCount = cleanseEffects.count
-        guard EffectRemoval.removeDebuffs(from: &cleanseEffects, keyword: nil) else {
-            var events: [ActionEvent] = []
+        let removedDebuffs = EffectRemoval.removeDebuffs(from: &cleanseEffects, keyword: nil)
+        guard !removedDebuffs.isEmpty else {
             let healTarget = BattleConditionEvaluator.lowestHealthAlly(in: context)
-            events.append(contentsOf: context.healEmitting(
-                amount: baseHeal,
-                target: healTarget,
-                source: source,
-                abilityName: ability.name,
-            ))
-            return EffectApplyOutcome(events: events, didApply: true)
+            return EffectApplyOutcome(
+                events: context.healEmitting(
+                    amount: baseHeal,
+                    target: healTarget,
+                    source: source,
+                    abilityName: ability.name,
+                ),
+                didApply: true,
+            )
         }
         context.roster.setActiveEffects(cleanseEffects, for: cleanseTarget)
-        let removedCount = beforeCount - cleanseEffects.count
-        let healAmount = baseHeal + healPerDebuff * removedCount
+        let healAmount = baseHeal + healPerDebuff * removedDebuffs.count
         let healTarget = BattleConditionEvaluator.lowestHealthAlly(in: context)
-        var events: [ActionEvent] = []
-        events.append(context.nextEvent(
-            kind: .effect,
-            effectKind: .cleanseApplied,
-            actorName: source.name,
+        let events = CleanseEventBuilder.events(
+            removed: removedDebuffs,
             abilityName: ability.name,
-            target: cleanseTarget,
-            amount: 0,
-            keyword: .health,
-        ))
-        events.append(contentsOf: context.healEmitting(
-            amount: healAmount,
-            target: healTarget,
-            source: source,
-            abilityName: ability.name,
-        ))
-        events.append(contentsOf: CombatTriggerEngine.healAfterCleanse(
             source: source,
             target: cleanseTarget,
+            healAmount: healAmount,
+            healTarget: healTarget,
             in: &context,
-        ).events)
-        events.append(contentsOf: CombatTriggerEngine.healWearerAfterCleanse(
-            source: source,
-            in: &context,
-        ).events)
-        events.append(contentsOf: CombatTriggerEngine.drawAfterCleanse(
-            source: source,
-            in: &context,
-        ))
-        events.append(contentsOf: CombatTriggerEngine.afterCleansePerformed(
-            source: source,
-            target: cleanseTarget,
-            removedKeyword: .health,
-            removedCount: removedCount,
-            in: &context,
-        ))
+        )
         return EffectApplyOutcome(events: events, didApply: true)
     }
 }

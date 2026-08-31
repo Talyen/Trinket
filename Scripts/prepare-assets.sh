@@ -10,32 +10,38 @@ kind="all"
 if [[ $# -ge 1 ]]; then
   case "$1" in
     --kind)
-      kind="${2:-all}"
+      if [[ -z "${2:-}" ]]; then
+        echo "--kind requires an argument (art|cinematic|music|sfx|app-icon|all)" >&2
+        exit 2
+      fi
+      kind="$2"
       ;;
-    art|cinematic|music|sfx|all)
+    art|cinematic|music|sfx|app-icon|all)
       kind="$1"
       ;;
     --help|-h)
-      echo "Usage: $0 [--kind art|cinematic|music|sfx|all]"
+      echo "Usage: $0 [--kind art|cinematic|music|sfx|app-icon|all]"
       exit 0
       ;;
     *)
-      echo "Unknown arg '$1' (expected --kind art|cinematic|music|sfx|all or art|cinematic|music|sfx|all)" >&2
+      echo "Unknown arg '$1' (expected --kind art|cinematic|music|sfx|app-icon|all or art|cinematic|music|sfx|app-icon|all)" >&2
       exit 1
       ;;
   esac
 fi
 
 case "$kind" in
-  art) Scripts/prepare-art-assets.sh ;;
-  cinematic) Scripts/prepare-cinematic-assets.sh ;;
-  music) Scripts/prepare-music-assets.sh ;;
-  sfx) Scripts/prepare-sfx-assets.sh ;;
+  art) echo "=== Preparing art ==="; Scripts/prepare-art-assets.sh ;;
+  cinematic) echo "=== Preparing cinematic ==="; Scripts/prepare-cinematic-assets.sh ;;
+  music) echo "=== Preparing music ==="; Scripts/prepare-music-assets.sh ;;
+  sfx) echo "=== Preparing sfx ==="; Scripts/prepare-sfx-assets.sh ;;
+  app-icon) echo "=== Preparing app-icon ==="; Scripts/prepare-app-icon.sh ;;
   all)
-    Scripts/prepare-art-assets.sh
-    Scripts/prepare-cinematic-assets.sh
-    Scripts/prepare-music-assets.sh
-    Scripts/prepare-sfx-assets.sh
+    echo "=== Preparing art ==="; Scripts/prepare-art-assets.sh
+    echo "=== Preparing cinematic ==="; Scripts/prepare-cinematic-assets.sh
+    echo "=== Preparing music ==="; Scripts/prepare-music-assets.sh
+    echo "=== Preparing sfx ==="; Scripts/prepare-sfx-assets.sh
+    echo "=== Preparing app-icon ==="; Scripts/prepare-app-icon.sh
     ;;
   *)
     echo "Unknown kind '$kind'" >&2; exit 1

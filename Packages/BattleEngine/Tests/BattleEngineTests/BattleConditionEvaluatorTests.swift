@@ -43,10 +43,7 @@ struct BattleConditionEvaluatorTests {
         try #expect(!BattleConditionEvaluator.isMet(
             .enemyBleeding,
             actor: hero,
-            enemy: enemy,
-            hero: hero,
-            companion: companion,
-            context: context,
+            in: context,
         ))
     }
 }

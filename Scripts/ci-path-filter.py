@@ -63,11 +63,7 @@ ASSET_INCLUDES = (
     "SoundManifest/**",
     "CinematicManifest/**",
     "Raw Assets/**",
-    "Scripts/prepare-art-assets.sh",
-    "Scripts/prepare-music-assets.sh",
-    "Scripts/prepare-sfx-assets.sh",
-    "Scripts/prepare-cinematic-assets.sh",
-    "Scripts/prepare-app-icon.sh",
+    "Scripts/prepare-*.sh",
 )
 
 

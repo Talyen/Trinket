@@ -22,13 +22,17 @@ struct ControlStatusHandMaintenanceTests {
             dealOpeningHand: false,
         )
         battle.heroDeck = CombatDeck(abilities: [.darkPact])
-        battle.hand = BattleHand(cards: [
-            BattleCard(id: 1, ability: .slash, owner: .hero),
-            BattleCard(id: 2, ability: .bash, owner: .companion),
-            BattleCard(id: 3, ability: .heal, owner: .hero),
-        ])
-        battle.handBuffer.enqueue(BattleCard(id: 4, ability: .smite, owner: .hero))
-        battle.handBuffer.enqueue(BattleCard(id: 5, ability: .fangs, owner: .companion))
+        battle.hand = BattleHand(
+            cards: [
+                BattleCard(id: 1, ability: .slash, owner: .hero),
+                BattleCard(id: 2, ability: .bash, owner: .companion),
+                BattleCard(id: 3, ability: .heal, owner: .hero),
+            ],
+            buffer: [
+                BattleCard(id: 4, ability: .smite, owner: .hero),
+                BattleCard(id: 5, ability: .fangs, owner: .companion),
+            ],
+        )
 
         let outcome = EffectHandlersTestSupport.dispatch(
             .controlMeter(keyword, 20, 10),
@@ -40,7 +44,7 @@ struct ControlStatusHandMaintenanceTests {
 
         try #expect(outcome.didApply)
         try #expect(battle.hand.cards.map(\.ability.id) == [Ability.bash.id, Ability.fangs.id])
-        try #expect(battle.handBuffer.isEmpty)
+        try #expect(battle.hand.buffer.isEmpty)
         try #expect(
             battle.heroDeck.abilities.map(\.id)
                 == [Ability.darkPact.id, Ability.slash.id, Ability.heal.id, Ability.smite.id],

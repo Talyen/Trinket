@@ -45,8 +45,12 @@ package enum ReactionScope {
     }
 
     private static var isRunningTests: Bool {
-        NSClassFromString("XCTestCase") != nil || NSClassFromString("XCTest") != nil
+        NSClassFromString("XCTestCase") != nil
+            || NSClassFromString("XCTest") != nil
             || ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+            || ProcessInfo.processInfo.environment["XCTestBundlePath"] != nil
+            || ProcessInfo.processInfo.environment["SWIFT_TESTING_ENTRY_POINT"] != nil
+            || ProcessInfo.processInfo.arguments.contains(where: { $0.contains("Testing") || $0.contains("xctest") })
     }
 }
 

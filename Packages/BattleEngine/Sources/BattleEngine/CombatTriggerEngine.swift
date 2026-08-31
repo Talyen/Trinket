@@ -92,4 +92,18 @@ package enum CombatTriggerEngine {
             in: &context,
         )
     }
+
+    static func withDoTRecursionScope(
+        site: String,
+        context: inout BattleState,
+        perform: (inout BattleState) -> [ActionEvent],
+    ) -> [ActionEvent] {
+        guard context.dotRecursionDepth < ReactionScope.maxDotRecursionDepth else {
+            ReactionScope.capHit(site: site, depth: context.dotRecursionDepth)
+            return []
+        }
+        context.dotRecursionDepth += 1
+        defer { context.dotRecursionDepth -= 1 }
+        return perform(&context)
+    }
 }

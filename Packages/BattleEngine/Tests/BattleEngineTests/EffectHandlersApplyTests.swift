@@ -92,7 +92,7 @@ struct EffectHandlersApplyTests {
         )
         try #expect(outcome.didApply)
         try #expect(battle.hand.count == handBefore + 2)
-        try #expect(battle.handBuffer.isEmpty)
+        try #expect(battle.hand.buffer.isEmpty)
         try #expect(outcome.events.contains { $0.effectKind == .cardsDrawn && $0.amount == 2 })
     }
 
@@ -108,7 +108,7 @@ struct EffectHandlersApplyTests {
                 id: "companion",
                 role: .companion,
                 maxHealth: 50,
-                abilities: [.smite],
+                abilities: [.bash, .smite],
             ),
         )
         while battle.hand.count > 1 {
@@ -134,7 +134,9 @@ struct EffectHandlersApplyTests {
 
         try #expect(outcome.didApply)
         try #expect(outcome.events.contains { $0.effectKind == .cardsDrawn && $0.amount == 2 })
-        try #expect(outcome.events.contains { $0.kind == .abilityDamage })
+        try #expect(outcome.events.contains {
+            $0.kind == .abilityDamage && $0.abilityName == Ability.slash.name
+        })
     }
 
     @Test func `draw and play cards handler plays buffered card when hand is full`() throws {
@@ -181,7 +183,7 @@ struct EffectHandlersApplyTests {
             $0.kind == .abilityDamage && $0.abilityName == Ability.slash.name
         })
         try #expect(Set(battle.hand.cards.map(\.id)) == preexistingHandIDs)
-        try #expect(battle.handBuffer.isEmpty)
+        try #expect(battle.hand.buffer.isEmpty)
     }
 
     @Test func `draw and play cards handler skips stunned owner and plays companion`() throws {
@@ -294,7 +296,7 @@ struct EffectHandlersApplyTests {
         }
         battle.heroDeck = CombatDeck(abilities: [packTactics, packTactics])
         battle.drawAndPlayDepth = BattleState.maxDrawAndPlayDepth
-        let idsBefore = Set(battle.hand.cards.map(\.id)).union(battle.handBuffer.cards.map(\.id))
+        let idsBefore = Set(battle.hand.cards.map(\.id)).union(battle.hand.buffer.map(\.id))
         let heroDeckCount = battle.heroDeck.count
 
         let outcome = EffectHandlersTestSupport.dispatch(
@@ -305,7 +307,7 @@ struct EffectHandlersApplyTests {
             battle: &battle,
         )
 
-        let idsAfter = Set(battle.hand.cards.map(\.id)).union(battle.handBuffer.cards.map(\.id))
+        let idsAfter = Set(battle.hand.cards.map(\.id)).union(battle.hand.buffer.map(\.id))
         try #expect(!outcome.didApply)
         try #expect(idsAfter == idsBefore)
         try #expect(battle.heroDeck.count == heroDeckCount)
@@ -327,7 +329,7 @@ struct EffectHandlersApplyTests {
             battle.nextCardID += 1
             battle.hand.append(BattleCard(id: battle.nextCardID, ability: .slash, owner: .hero))
         }
-        try #expect(battle.handBuffer.isEmpty)
+        try #expect(battle.hand.buffer.isEmpty)
 
         let outcome = EffectHandlersTestSupport.dispatch(
             .drawCards(2),
@@ -338,7 +340,7 @@ struct EffectHandlersApplyTests {
         )
         try #expect(outcome.didApply)
         try #expect(battle.hand.count == BattleHand.maxSize)
-        try #expect(battle.handBuffer.count == 2)
+        try #expect(battle.hand.bufferCount == 2)
         try #expect(outcome.events.contains { $0.effectKind == .cardsDrawn && $0.amount == 2 })
     }
 

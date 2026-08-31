@@ -92,24 +92,42 @@ package extension BattleState {
         return true
     }
 
+    mutating func insertEffect(
+        _ effect: Effect,
+        to target: Combatant,
+        sourceID: String? = nil,
+        remainingTurns: Int,
+        at index: Int? = nil,
+    ) {
+        guard !interceptDebuff(effect, on: target) else { return }
+        let effectID = consumeNextEffectID()
+        let activeEffect = ActiveEffect(
+            id: effectID,
+            effect: effect,
+            remainingTurns: remainingTurns,
+            sourceActorID: sourceID,
+        )
+        roster.mutateRuntime(for: target) { runtime in
+            if let index {
+                runtime.activeEffects.insert(activeEffect, at: index)
+            } else {
+                runtime.activeEffects.append(activeEffect)
+            }
+        }
+    }
+
     mutating func appendEffect(
         _ effect: Effect,
         to target: Combatant,
         sourceID: String,
         remainingTurns: Int,
     ) {
-        guard !interceptDebuff(effect, on: target) else { return }
-        let effectID = consumeNextEffectID()
-        roster.mutateRuntime(for: target) { runtime in
-            runtime.activeEffects.append(
-                ActiveEffect(
-                    id: effectID,
-                    effect: effect,
-                    remainingTurns: remainingTurns,
-                    sourceActorID: sourceID,
-                ),
-            )
-        }
+        insertEffect(
+            effect,
+            to: target,
+            sourceID: sourceID,
+            remainingTurns: remainingTurns,
+        )
     }
 
     mutating func prependEffect(
@@ -118,17 +136,12 @@ package extension BattleState {
         sourceID: String? = nil,
         remainingTurns: Int,
     ) {
-        let effectID = consumeNextEffectID()
-        roster.mutateRuntime(for: target) { runtime in
-            runtime.activeEffects.insert(
-                ActiveEffect(
-                    id: effectID,
-                    effect: effect,
-                    remainingTurns: remainingTurns,
-                    sourceActorID: sourceID,
-                ),
-                at: 0,
-            )
-        }
+        insertEffect(
+            effect,
+            to: target,
+            sourceID: sourceID,
+            remainingTurns: remainingTurns,
+            at: 0,
+        )
     }
 }

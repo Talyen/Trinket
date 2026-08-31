@@ -54,9 +54,7 @@ public extension PlayerSaveStore {
         _ update: (inout PlayerRosterState) -> Void,
     ) -> Bool {
         persistBatch(logging: message) { save in
-            var roster = save.roster
-            update(&roster)
-            save.roster = roster
+            update(&save.roster)
         }
     }
 

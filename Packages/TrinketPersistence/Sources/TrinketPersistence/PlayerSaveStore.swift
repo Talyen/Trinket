@@ -450,12 +450,7 @@ private extension PlayerSaveStore {
             return
         }
         if slices.contains(.root) {
-            observedSave.schemaVersion = save.schemaVersion
-            observedSave.modifiedAt = save.modifiedAt
-            observedSave.sessionGeneration = save.sessionGeneration
-            observedSave.worldSeed = save.worldSeed
-            observedSave.starterSelection = save.starterSelection
-            observedSave.corruptionAltarCooldownRemaining = save.corruptionAltarCooldownRemaining
+            observedSave.applyRootFields(from: save)
         }
         if slices.contains(.journey) {
             observedSave.journey = save.journey

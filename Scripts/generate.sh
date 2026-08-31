@@ -132,7 +132,7 @@ Usage: ./Scripts/generate.sh [options]
 Runs manifest validation, content codegen, optional asset pipelines, and XcodeGen.
 
 Options:
-  --assets          Also run art, music, SFX, and cinematic asset pipelines (slow; for manifest edits)
+  --assets          Also run art, music, SFX, cinematic, and app-icon asset pipelines (slow; for manifest edits)
   --force-xcodegen  Ignore XcodeGen cache and rewrite project.pbxproj (matches CI assert)
   --skip-xcodegen   Skip XcodeGen (content/asset codegen only)
   -h, --help        Show this help
@@ -180,19 +180,8 @@ echo "=== Generating content catalogs ==="
 python3 Scripts/content_codegen.py
 
 if [[ "$INCLUDE_ASSETS" == true ]]; then
-  asset_pipelines=(
-    prepare-art-assets.sh
-    prepare-music-assets.sh
-    prepare-sfx-assets.sh
-    prepare-cinematic-assets.sh
-    prepare-app-icon.sh
-  )
-  for pipeline in "${asset_pipelines[@]}"; do
-    label="${pipeline#prepare-}"
-    label="${label%.sh}"
-    echo "=== Preparing $label ==="
-    "./Scripts/$pipeline"
-  done
+  echo "=== Preparing media assets ==="
+  ./Scripts/prepare-assets.sh --kind all
 fi
 
 if [[ "$SKIP_XCODEGEN" == false ]]; then

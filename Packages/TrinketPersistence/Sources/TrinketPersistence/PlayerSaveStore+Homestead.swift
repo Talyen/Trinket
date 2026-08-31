@@ -21,12 +21,8 @@ public extension PlayerSaveStore {
 
         var didUpgrade = false
         guard persistBatch(logging: "Failed to build or upgrade homestead node", { save in
-            var homestead = save.homestead
-            var rosterState = save.roster
-            homestead.settleProduction(at: date, roster: rosterState)
-            guard homestead.buildOrUpgrade(definition, roster: &rosterState) else { return }
-            save.homestead = homestead
-            save.roster = rosterState
+            save.homestead.settleProduction(at: date, roster: save.roster)
+            guard save.homestead.buildOrUpgrade(definition, roster: &save.roster) else { return }
             didUpgrade = true
         }) else {
             return .persistFailed
@@ -38,11 +34,7 @@ public extension PlayerSaveStore {
         guard !isCloudSyncEnabled else { return .cloudSyncUnsupported }
         var collected: [ResourceAmount] = []
         guard persistBatch(logging: "Failed to collect homestead production", { save in
-            var homestead = save.homestead
-            var roster = save.roster
-            collected = homestead.collectProduction(at: date, roster: &roster)
-            save.homestead = homestead
-            save.roster = roster
+            collected = save.homestead.collectProduction(at: date, roster: &save.roster)
         }) else {
             return .persistFailed
         }

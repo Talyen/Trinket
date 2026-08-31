@@ -118,7 +118,7 @@ final class AppTestContext {
             disableCloudSync: true,
             resetState: resetState,
             inMemoryOnly: !resetState,
-            persistSaveImmediately: resetState,
+            persistSaveImmediately: true,
         )
         if !resetState {
             cachedPlayerSave = store

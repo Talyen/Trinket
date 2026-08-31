@@ -4,7 +4,7 @@ import TrinketCore
 
 enum EffectRemoval {
     @discardableResult
-    static func removeDebuffs(from effects: inout [ActiveEffect], keyword: Keyword?) -> Bool {
+    static func removeDebuffs(from effects: inout [ActiveEffect], keyword: Keyword?) -> [ActiveEffect] {
         removeMatching(from: &effects, keyword: keyword) { $0.effect.isRemovableDebuff }
     }
 
@@ -16,7 +16,7 @@ enum EffectRemoval {
     }
 
     @discardableResult
-    static func removeBuffs(from effects: inout [ActiveEffect], keyword: Keyword?) -> Bool {
+    static func removeBuffs(from effects: inout [ActiveEffect], keyword: Keyword?) -> [ActiveEffect] {
         removeMatching(from: &effects, keyword: keyword) { $0.effect.isRemovableBuff }
     }
 
@@ -34,7 +34,7 @@ enum EffectRemoval {
         using rng: inout SeededRandomNumberGenerator,
     ) -> [Keyword] {
         if removeAll {
-            return removeBuffs(from: &effects, keyword: nil) ? [.purge] : []
+            return removeBuffs(from: &effects, keyword: nil).map(\.keyword)
         }
 
         var removed: [Keyword] = []
@@ -50,14 +50,19 @@ enum EffectRemoval {
         from effects: inout [ActiveEffect],
         keyword: Keyword?,
         where matches: (ActiveEffect) -> Bool,
-    ) -> Bool {
-        let before = effects.count
-        if let keyword {
-            effects.removeAll { $0.keyword == keyword && matches($0) }
-        } else {
-            effects.removeAll(where: matches)
+    ) -> [ActiveEffect] {
+        var removed: [ActiveEffect] = []
+        var remaining: [ActiveEffect] = []
+        for effect in effects {
+            let isMatch = matches(effect) && (keyword == nil || effect.keyword == keyword)
+            if isMatch {
+                removed.append(effect)
+            } else {
+                remaining.append(effect)
+            }
         }
-        return effects.count < before
+        effects = remaining
+        return removed
     }
 
     private static func removeRandom(
@@ -78,6 +83,61 @@ enum TimedBuffSummary {
             guard let baseDuration = duration(active.effect) else { return nil }
             return active.remainingTurns > 0 ? active.remainingTurns : baseDuration
         }.min() ?? 0
+    }
+}
+
+enum CleanseEventBuilder {
+    static func events(
+        removed: [ActiveEffect],
+        abilityName: String,
+        source: Combatant,
+        target: Combatant,
+        healAmount: Int? = nil,
+        healTarget: Combatant? = nil,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        var countsByKeyword: [Keyword: Int] = [:]
+        for item in removed {
+            countsByKeyword[item.keyword, default: 0] += 1
+        }
+        var events: [ActionEvent] = []
+        for (keyword, _) in countsByKeyword.sorted(by: { $0.key.rawValue < $1.key.rawValue }) {
+            events.append(context.nextEvent(
+                kind: .effect,
+                effectKind: .cleanseApplied,
+                actorName: source.name,
+                abilityName: abilityName,
+                target: target,
+                amount: 0,
+                keyword: keyword,
+            ))
+        }
+        if let healAmount, let healTarget, healAmount > 0 {
+            events.append(contentsOf: context.healEmitting(
+                amount: healAmount,
+                target: healTarget,
+                source: source,
+                abilityName: abilityName,
+            ))
+        }
+        events.append(contentsOf: CombatTriggerEngine.healAfterCleanse(source: source, target: target, in: &context).events)
+        events.append(contentsOf: CombatTriggerEngine.healWearerAfterCleanse(source: source, in: &context).events)
+        events.append(contentsOf: CombatTriggerEngine.drawAfterCleanse(source: source, in: &context))
+        events.append(contentsOf: CombatTriggerEngine.afterCleanseAction(
+            source: source,
+            target: target,
+            removedCount: removed.count,
+            in: &context,
+        ))
+        for (keyword, count) in countsByKeyword.sorted(by: { $0.key.rawValue < $1.key.rawValue }) {
+            events.append(contentsOf: CombatTriggerEngine.afterCleanseKeywordReaction(
+                source: source,
+                removedKeyword: keyword,
+                removedCount: count,
+                in: &context,
+            ))
+        }
+        return events
     }
 }
 

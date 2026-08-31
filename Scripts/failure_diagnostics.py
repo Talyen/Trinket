@@ -34,6 +34,7 @@ except ModuleNotFoundError:
 # yields file, line, and message for most failures. Cap enrichment to bound bad-run latency.
 MAX_TEST_DETAIL_FETCHES = 5
 ACCESSIBILITY_SNAPSHOT_MARKER = "Accessibility snapshot:"
+_DISPLAY_PATH_CACHE: dict[str, str] = {}
 
 
 def _load_infrastructure_pattern() -> str:
@@ -86,7 +87,11 @@ def _normalise_path(path: str) -> str:
 
 
 def _display_path(path: str) -> str:
+    cached = _DISPLAY_PATH_CACHE.get(path)
+    if cached is not None:
+        return cached
     if not path:
+        _DISPLAY_PATH_CACHE[path] = ""
         return ""
     candidate = Path(path).expanduser()
     if not candidate.is_absolute() and not candidate.exists():
@@ -106,9 +111,11 @@ def _display_path(path: str) -> str:
     absolute = _normalise_path(str(candidate))
     try:
         relative = os.path.relpath(absolute, Path.cwd())
-        return relative if not relative.startswith("..") else absolute
+        display = relative if not relative.startswith("..") else absolute
     except OSError:
-        return absolute
+        display = absolute
+    _DISPLAY_PATH_CACHE[path] = display
+    return display
 
 
 def _issue_priority(issue: DiagnosticIssue) -> tuple[int, int, int, int]:

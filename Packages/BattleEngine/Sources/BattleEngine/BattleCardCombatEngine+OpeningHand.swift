@@ -21,11 +21,7 @@ extension BattleCardCombatEngine {
     ) -> BattleCard {
         context.nextCardID += 1
         let card = BattleCard(id: context.nextCardID, ability: ability, owner: owner)
-        if context.hand.isFull {
-            context.handBuffer.enqueue(card)
-        } else {
-            context.hand.append(card)
-        }
+        context.hand.append(card)
         return card
     }
 

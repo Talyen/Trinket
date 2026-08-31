@@ -15,7 +15,7 @@ Products from `Package.swift`:
 | Type | Target | Role |
 |------|--------|------|
 | `BattleState` | BattleEngine | Mutable simulation state; `playCard` / `endTurn` drive combat |
-| `BattleCard` / `BattleHand` / `BattleHandBuffer` / `CombatDeck` | BattleEngine | Player ability cards drawn from Hero/Companion loadout decks; overflow waits in a hidden FIFO buffer |
+| `BattleCard` / `BattleHand` / `CombatDeck` | BattleEngine | Player ability cards drawn from Hero/Companion loadout decks; overflow waits in hand buffer |
 | `BattleCardCombatEngine` | BattleEngine | Opening draw, play resolution, enemy turn, end-of-round effect pass |
 | `BattleEffectHandler` | BattleEngine | Protocol for effect application and turn-advance logic |
 | `EffectHandlers` | BattleEngine | Registry of all handlers, keyed by `EffectKind` |
@@ -28,7 +28,7 @@ Products from `Package.swift`:
 
 ## Hand contract
 
-Visible hand caps at **three** cards (`BattleHand.maxSize`); overflow draws enqueue a hidden FIFO `BattleHandBuffer` and promote after effects / end-turn draws. Played cards return to the bottom of that owner’s deck **after** the card’s effects and on-play triggers finish, so a draw during resolve cannot fetch the card still being played.
+Visible hand caps at **three** cards (`BattleHand.maxSize`); overflow draws enqueue a hidden FIFO buffer in `BattleHand` and promote after effects / end-turn draws. Played cards return to the bottom of that owner’s deck **after** the card’s effects and on-play triggers finish, so a draw during resolve cannot fetch the card still being played.
 
 Presentation layout (3:4 art, no top chrome, health anchors): [TrinketBattleFeature README](../TrinketBattleFeature/README.md).
 

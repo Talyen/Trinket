@@ -406,10 +406,10 @@ package extension BoonCombatEngine {
         in context: inout BattleState,
     ) -> (count: Int, events: [ActionEvent]) {
         var effects = context.roster.activeEffects(for: target)
-        let count = effects.count(where: { $0.effect.isRemovableBuff })
-        guard count > 0 else { return (0, []) }
-        _ = EffectRemoval.removeBuffs(from: &effects, keyword: nil)
+        let removed = EffectRemoval.removeBuffs(from: &effects, keyword: nil)
+        guard !removed.isEmpty else { return (0, []) }
         context.roster.setActiveEffects(effects, for: target)
+        let count = removed.count
         return (
             count,
             [context.nextEvent(
@@ -467,11 +467,11 @@ package extension BoonCombatEngine {
 
     private static func drawCard(_ keyword: Keyword, for actor: Combatant, name: String, in context: inout BattleState) -> [ActionEvent] {
         guard let owner = context.roster.participant(for: actor) else { return [] }
-        let beforeCount = context.hand.count + context.handBuffer.count
+        let beforeCount = context.hand.totalCount
         guard BattleCardCombatEngine.drawFirstCard(matching: keyword, for: owner, context: &context) != nil else {
             return []
         }
-        let afterCount = context.hand.count + context.handBuffer.count
+        let afterCount = context.hand.totalCount
         guard afterCount > beforeCount else { return [] }
         return [context.nextEvent(
             kind: .effect,

@@ -75,7 +75,6 @@ public struct BattleState {
 
     public var phase: BattlePhase
     public var hand: BattleHand
-    public var handBuffer: BattleHandBuffer
     public var heroDeck: CombatDeck
     public var companionDeck: CombatDeck
     public var openingHandDealPlan: [OpeningHandDraw]
@@ -128,7 +127,6 @@ public struct BattleState {
         lastEnemyDefeatWasCritical: Bool = false,
         phase: BattlePhase = .playerTurn,
         hand: BattleHand = BattleHand(),
-        handBuffer: BattleHandBuffer = BattleHandBuffer(),
         heroDeck: CombatDeck = CombatDeck(),
         companionDeck: CombatDeck = CombatDeck(),
         openingHandDealPlan: [OpeningHandDraw] = [],
@@ -178,7 +176,6 @@ public struct BattleState {
         self.lastEnemyDefeatWasCritical = lastEnemyDefeatWasCritical
         self.phase = phase
         self.hand = hand
-        self.handBuffer = handBuffer
         self.heroDeck = heroDeck
         self.companionDeck = companionDeck
         self.openingHandDealPlan = openingHandDealPlan

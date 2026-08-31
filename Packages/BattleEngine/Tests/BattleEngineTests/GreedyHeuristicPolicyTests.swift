@@ -13,7 +13,6 @@ struct PlayPolicyTests {
             dealOpeningHand: false,
         )
         battle.hand = BattleHand()
-        battle.handBuffer = BattleHandBuffer()
 
         battle.nextCardID += 1
         let weak = BattleCard(
@@ -56,7 +55,6 @@ struct PlayPolicyTests {
             dealOpeningHand: false,
         )
         battle.hand = BattleHand()
-        battle.handBuffer = BattleHandBuffer()
 
         battle.nextCardID += 1
         let chip = BattleCard(

@@ -445,8 +445,9 @@ struct AppStateLabyrinthTests { // swiftlint:disable:this type_body_length
     }
 
     @Test func `labyrinth mystery nodes carry exactly one economy modifier`() throws {
-        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        let state = try context.makePlaySession(arguments: ["-test-seed", "-reset-state"])
         _ = state.labyrinth.enter()
+        _ = try #require(LabyrinthTestSupport.firstReachableNodeID(of: .mystery, in: state))
         let economyIDs: Set<LabyrinthModifierID> = [
             LabyrinthModifierID("bountyMark"),
             LabyrinthModifierID("scholarsToll"),

@@ -340,7 +340,11 @@ struct CombatantStatusEffectPresentation<Content: View>: View {
         config: CombatantStatusEffectConfig,
     ) -> some View {
         TimelineView(
-            .animation(minimumInterval: 1.0 / 30.0, paused: battleSession.lifecyclePhase != .active),
+            .animation(
+                minimumInterval: 1.0 / 30.0,
+                paused: battleSession.lifecyclePhase != .active
+                    || battleSession.isSuspendedForScenePhase,
+            ),
         ) { timeline in
             let progress = kind.progress(
                 after: timeline.date.timeIntervalSince(startDate),

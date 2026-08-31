@@ -109,6 +109,15 @@ public struct PlayerSave: Equatable, Sendable {
         self.corruptionAltarCooldownRemaining = max(0, corruptionAltarCooldownRemaining)
     }
 
+    public mutating func applyRootFields(from other: Self) {
+        schemaVersion = other.schemaVersion
+        modifiedAt = other.modifiedAt
+        sessionGeneration = other.sessionGeneration
+        worldSeed = other.worldSeed
+        starterSelection = other.starterSelection
+        corruptionAltarCooldownRemaining = max(0, other.corruptionAltarCooldownRemaining)
+    }
+
     public static func makeWorldSeed() -> UInt64 {
         var seed: UInt64
         repeat {

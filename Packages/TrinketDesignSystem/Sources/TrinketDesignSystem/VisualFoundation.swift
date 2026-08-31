@@ -45,8 +45,8 @@ public enum TypographyRole: Sendable {
 
     var font: Font {
         switch self {
-        case .screenDisplay: .largeTitle.weight(.semibold)
-        case .sectionDisplay: .title2.weight(.semibold)
+        case .screenDisplay: .system(.largeTitle, design: .serif).weight(.semibold)
+        case .sectionDisplay: .system(.title2, design: .serif).weight(.semibold)
         case .screenTitle: .largeTitle.weight(.bold)
         case .sectionTitle: .title2.weight(.semibold)
         case .rowTitle: .title3.weight(.semibold)

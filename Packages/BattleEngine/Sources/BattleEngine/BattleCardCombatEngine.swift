@@ -13,7 +13,6 @@ public enum BattleCardCombatEngine {
             rng: &context.rng,
         )
         context.hand = BattleHand()
-        context.handBuffer = BattleHandBuffer()
         context.openingHandDealPlan = makeOpeningHandDealPlan(in: context)
         context.phase = .playerTurn
         context.ownersSkippingThisPlayerTurn = []
@@ -49,7 +48,7 @@ public enum BattleCardCombatEngine {
         guard !eligible.isEmpty else { return false }
         guard context.hand.count < BattleHand.maxSize else { return false }
         guard let owner = eligible.randomElement(using: &context.rng) else { return false }
-        return drawOne(owner: owner, context: &context) != nil
+        return drawOne(for: owner, context: &context) != nil
     }
 
     @discardableResult
@@ -68,12 +67,13 @@ public enum BattleCardCombatEngine {
         context: inout BattleState,
     ) throws -> [ActionEvent] {
         guard let card = context.hand.card(id: cardID) else { throw BattlePlayError.cardNotInHand }
-        return try playDrawnCard(card, context: &context)
+        return try playDrawnCard(card, context: &context, allowBufferedRemoval: false)
     }
 
     static func playDrawnCard(
         _ card: BattleCard,
         context: inout BattleState,
+        allowBufferedRemoval: Bool = true,
     ) throws -> [ActionEvent] {
         guard !context.isBattleOver else { throw BattlePlayError.battleOver }
         guard context.phase == .playerTurn else { throw BattlePlayError.notPlayerTurn }
@@ -82,10 +82,13 @@ public enum BattleCardCombatEngine {
         guard !context.ownersSkippingThisPlayerTurn.contains(card.owner) else {
             throw BattlePlayError.ownerSkipping
         }
-        if context.hand.remove(id: card.id) == nil {
-            guard context.handBuffer.remove(id: card.id) != nil else {
-                throw BattlePlayError.cardNotInHand
-            }
+        let removed: BattleCard? = if allowBufferedRemoval {
+            context.hand.removeFromAnyLocation(id: card.id)
+        } else {
+            context.hand.remove(id: card.id)
+        }
+        guard removed != nil else {
+            throw BattlePlayError.cardNotInHand
         }
         return resolvePlayedCard(card, ownerRuntime: ownerRuntime, context: &context)
     }
@@ -219,7 +222,7 @@ public enum BattleCardCombatEngine {
     ) -> Int {
         var drawn = 0
         for _ in 0 ..< count {
-            if drawOne(owner: owner, context: &context) != nil {
+            if drawOne(for: owner, context: &context) != nil {
                 drawn += 1
             } else {
                 break
@@ -311,7 +314,7 @@ public enum BattleCardCombatEngine {
 
             remaining[owner, default: 0] -= 1
             let wasFull = context.hand.isFull
-            if let card = drawOne(owner: owner, context: &context) {
+            if let card = drawOne(for: owner, context: &context) {
                 if !wasFull {
                     if card.owner == .hero {
                         heroHandCount += 1
@@ -325,16 +328,19 @@ public enum BattleCardCombatEngine {
         }
     }
 
-    static func drawOneCard(for owner: BattleParticipant, context: inout BattleState) -> BattleCard? {
-        drawOne(owner: owner, context: &context)
-    }
-
     static func deckKeyPath(for owner: BattleParticipant) -> WritableKeyPath<BattleState, CombatDeck>? {
         switch owner {
         case .hero: \.heroDeck
         case .companion: \.companionDeck
         case .enemy: nil
         }
+    }
+
+    @discardableResult
+    static func drawOne(for owner: BattleParticipant, context: inout BattleState) -> BattleCard? {
+        guard canDrawFromDeck(for: owner, in: context), let keyPath = deckKeyPath(for: owner) else { return nil }
+        guard let ability = context[keyPath: keyPath].draw() else { return nil }
+        return deal(ability, owner: owner, context: &context)
     }
 
     static func drawFirstCard(
@@ -346,13 +352,6 @@ public enum BattleCardCombatEngine {
         guard let ability = context[keyPath: keyPath].drawFirst(where: { $0.keywords.contains(keyword) }) else {
             return nil
         }
-        return deal(ability, owner: owner, context: &context)
-    }
-
-    @discardableResult
-    private static func drawOne(owner: BattleParticipant, context: inout BattleState) -> BattleCard? {
-        guard canDrawFromDeck(for: owner, in: context), let keyPath = deckKeyPath(for: owner) else { return nil }
-        guard let ability = context[keyPath: keyPath].draw() else { return nil }
         return deal(ability, owner: owner, context: &context)
     }
 

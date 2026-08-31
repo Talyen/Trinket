@@ -9,45 +9,41 @@ package extension CombatTriggerEngine {
         in context: inout BattleState,
     ) -> [ActionEvent] {
         guard context.roster.combatant(for: sourceActorID) != nil else { return [] }
-        guard context.dotRecursionDepth < ReactionScope.maxDotRecursionDepth else {
-            ReactionScope.capHit(site: "afterBleedApplied", depth: context.dotRecursionDepth)
-            return []
-        }
-        context.dotRecursionDepth += 1
-        defer { context.dotRecursionDepth -= 1 }
-        let profile = context.modifiers(for: sourceActorID)
-        var events: [ActionEvent] = []
+        return withDoTRecursionScope(site: "afterBleedApplied", context: &context) { context in
+            let profile = context.modifiers(for: sourceActorID)
+            var events: [ActionEvent] = []
 
-        let bleedPoisonChance = profile.triggers.onBleedDealPoisonChancePercent > 0
-            ? profile.triggers.onBleedDealPoisonChancePercent
-            : (profile.triggers.onBleedApplyPoison > 0 ? 1 : 0)
-        if profile.triggers.onBleedApplyPoison > 0, bleedPoisonChance > 0,
-           BattleChance.succeeds(probability: min(1, bleedPoisonChance), using: &context.rng) {
-            events.append(contentsOf: context.applyDecayingDoT(
-                keyword: .poison,
-                potency: profile.triggers.onBleedApplyPoison,
-                to: target,
-                sourceActorID: sourceActorID,
-                dealImmediateDamage: true,
-                suppressAffixReactions: true,
-            ))
-        }
+            let bleedPoisonChance = profile.triggers.onBleedDealPoisonChancePercent > 0
+                ? profile.triggers.onBleedDealPoisonChancePercent
+                : (profile.triggers.onBleedApplyPoison > 0 ? 1 : 0)
+            if profile.triggers.onBleedApplyPoison > 0, bleedPoisonChance > 0,
+               BattleChance.succeeds(probability: min(1, bleedPoisonChance), using: &context.rng) {
+                events.append(contentsOf: context.applyDecayingDoT(
+                    keyword: .poison,
+                    potency: profile.triggers.onBleedApplyPoison,
+                    to: target,
+                    sourceActorID: sourceActorID,
+                    dealImmediateDamage: true,
+                    suppressAffixReactions: true,
+                ))
+            }
 
-        let bleedBurnChance = profile.triggers.onBleedDealBurnChancePercent > 0
-            ? profile.triggers.onBleedDealBurnChancePercent
-            : (profile.triggers.onBleedDealBurnDamage > 0 ? 1 : 0)
-        if profile.triggers.onBleedDealBurnDamage > 0, bleedBurnChance > 0,
-           BattleChance.succeeds(probability: min(1, bleedBurnChance), using: &context.rng) {
-            events.append(contentsOf: DoTDamage.resolveTurnDamage(
-                basePotency: profile.triggers.onBleedDealBurnDamage,
-                keyword: .burn,
-                target: target,
-                sourceActorID: sourceActorID,
-                in: &context,
-            ).events)
-        }
+            let bleedBurnChance = profile.triggers.onBleedDealBurnChancePercent > 0
+                ? profile.triggers.onBleedDealBurnChancePercent
+                : (profile.triggers.onBleedDealBurnDamage > 0 ? 1 : 0)
+            if profile.triggers.onBleedDealBurnDamage > 0, bleedBurnChance > 0,
+               BattleChance.succeeds(probability: min(1, bleedBurnChance), using: &context.rng) {
+                events.append(contentsOf: DoTDamage.resolveTurnDamage(
+                    basePotency: profile.triggers.onBleedDealBurnDamage,
+                    keyword: .burn,
+                    target: target,
+                    sourceActorID: sourceActorID,
+                    in: &context,
+                ).events)
+            }
 
-        return events
+            return events
+        }
     }
 
     static func afterDecayingDoTApplied(
@@ -56,38 +52,34 @@ package extension CombatTriggerEngine {
         sourceActorID: String,
         in context: inout BattleState,
     ) -> [ActionEvent] {
-        guard context.dotRecursionDepth < ReactionScope.maxDotRecursionDepth else {
-            ReactionScope.capHit(site: "afterDecayingDoTApplied", depth: context.dotRecursionDepth)
-            return []
-        }
-        context.dotRecursionDepth += 1
-        defer { context.dotRecursionDepth -= 1 }
-        var events: [ActionEvent] = []
-        if keyword == .burn,
-           let source = context.roster.combatant(for: sourceActorID) {
-            let dodgeBonus = context.modifiers(for: sourceActorID).triggers.onApplyBurnDodgeChanceUntilNextTurn
-            if dodgeBonus > 0 {
-                context.roster.mutateRuntime(for: source.combatant) {
-                    $0.bonusDodgeUntilNextTurn += dodgeBonus
+        withDoTRecursionScope(site: "afterDecayingDoTApplied", context: &context) { context in
+            var events: [ActionEvent] = []
+            if keyword == .burn,
+               let source = context.roster.combatant(for: sourceActorID) {
+                let dodgeBonus = context.modifiers(for: sourceActorID).triggers.onApplyBurnDodgeChanceUntilNextTurn
+                if dodgeBonus > 0 {
+                    context.roster.mutateRuntime(for: source.combatant) {
+                        $0.bonusDodgeUntilNextTurn += dodgeBonus
+                    }
                 }
             }
+            guard keyword == .burn else { return events }
+            let potency = context.modifiers(for: sourceActorID).triggers.onBurnApplyPoison
+            guard potency > 0 else { return events }
+            let burnPoisonChance = context.modifiers(for: sourceActorID).triggers.onBurnDealPoisonChancePercent > 0
+                ? context.modifiers(for: sourceActorID).triggers.onBurnDealPoisonChancePercent
+                : 1
+            guard BattleChance.succeeds(probability: min(1, burnPoisonChance), using: &context.rng) else { return events }
+            events.append(contentsOf: context.applyDecayingDoT(
+                keyword: .poison,
+                potency: potency,
+                to: target,
+                sourceActorID: sourceActorID,
+                dealImmediateDamage: true,
+                suppressAffixReactions: true,
+            ))
+            return events
         }
-        guard keyword == .burn else { return events }
-        let potency = context.modifiers(for: sourceActorID).triggers.onBurnApplyPoison
-        guard potency > 0 else { return events }
-        let burnPoisonChance = context.modifiers(for: sourceActorID).triggers.onBurnDealPoisonChancePercent > 0
-            ? context.modifiers(for: sourceActorID).triggers.onBurnDealPoisonChancePercent
-            : 1
-        guard BattleChance.succeeds(probability: min(1, burnPoisonChance), using: &context.rng) else { return events }
-        events.append(contentsOf: context.applyDecayingDoT(
-            keyword: .poison,
-            potency: potency,
-            to: target,
-            sourceActorID: sourceActorID,
-            dealImmediateDamage: true,
-            suppressAffixReactions: true,
-        ))
-        return events
     }
 
     static func totalPotency(

@@ -36,8 +36,7 @@ public struct CardArtworkPlaceholder: View {
             Image(systemName: style.symbolName)
                 // UIStyleCheck: allow - SF Symbol glyph sizing, not copy
                 .font(.system(size: TrinketDesign.Metrics.cardPlaceholderIconPointSize))
-                // UIStyleCheck: allow - placeholder glyph needs white contrast
-                .foregroundStyle(Color(white: 1).opacity(0.85))
+                .foregroundStyle(TrinketDesign.Colors.Overlay.paper.opacity(0.85))
         }
         .cardArtworkSurface()
     }

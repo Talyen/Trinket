@@ -450,7 +450,7 @@ struct UniqueSignatureTriggerTests {
         }
 
         #expect(battle.hand.count == BattleHand.maxSize)
-        #expect(battle.handBuffer.cards.map(\.ability.id) == [Ability.frostbolt.id])
+        #expect(battle.hand.buffer.map(\.ability.id) == [Ability.frostbolt.id])
     }
 
     @Test func `saintfall retaliates heals and resets next round`() {

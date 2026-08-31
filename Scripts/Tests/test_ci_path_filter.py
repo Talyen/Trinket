@@ -59,9 +59,20 @@ class CIPathFilterTests(unittest.TestCase):
         match = self.filter.is_asset_path
         self.assertTrue(match("ArtManifest/curated-assets.tsv"))
         self.assertTrue(match("Raw Assets/Art/foo.png"))
-        self.assertTrue(match("Scripts/prepare-art-assets.sh"))
+        prepare_scripts = sorted((ROOT / "Scripts").glob("prepare-*.sh"))
+        self.assertGreater(len(prepare_scripts), 0)
+        for script in prepare_scripts:
+            with self.subTest(script=script.name):
+                self.assertTrue(match(str(script.relative_to(ROOT))))
+        self.assertTrue(match("Scripts/prepare-app-icon.sh"))
         self.assertFalse(match("Scripts/lint-analyze.sh"))
         self.assertFalse(match("Trinket/App/TrinketApp.swift"))
+
+    def test_prepare_assets_is_asset_and_infra(self) -> None:
+        code, assets, infra = self.filter.classify(["Scripts/prepare-assets.sh"])
+        self.assertFalse(code)
+        self.assertTrue(assets)
+        self.assertTrue(infra)
 
     def test_classify_docs_only_is_false(self) -> None:
         code, assets, infra = self.filter.classify(
