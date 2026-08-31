@@ -9,8 +9,7 @@ public final class BattleSpectacleState {
     public var isShowingVictory = false
     public var isShowingDefeat = false
     public var victorySummary: BattleVictorySummary?
-    var activeCinematic: BattleCinematicPresentation?
-    var deferredFeedbackEvents: [ActionEvent] = []
+    var ultimateHighlightsByActorID: [String: BattleUltimateInFramePresentation] = [:]
     var nextID = 0
     var actorsWhoPresentedUltimateThisBattle: Set<String> = []
 
@@ -19,5 +18,5 @@ public final class BattleSpectacleState {
     @ObservationIgnored
     var pendingPartyCelebrateTask: Task<Void, Never>?
     @ObservationIgnored
-    var pendingCinematicWatchdogTask: Task<Void, Never>?
+    var pendingUltimateHighlightTasksByActorID: [String: Task<Void, Never>] = [:]
 }

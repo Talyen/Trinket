@@ -55,9 +55,6 @@ public final class BattleSession: BattleRuntime {
     public var openingHandDrawStagger: Duration
 
     var autoBattleRetryDelay: Duration = .milliseconds(50)
-    @ObservationIgnored
-    var cinematicSessionWatchdogOverride: Duration?
-
     let autoEndTurnDelay: Duration
     let enemyAttackImpactDelayOverride: Duration?
     @ObservationIgnored
@@ -70,6 +67,11 @@ public final class BattleSession: BattleRuntime {
     var preparedArtworkNames: Set<String> = []
 
     public internal(set) var isDealingOpeningHand = false
+    var isEnemyTurnActive = false
+    @ObservationIgnored
+    var enemyTurnGeneration = 0
+    @ObservationIgnored
+    var pendingEnemyTurnResetTask: Task<Void, Never>?
 
     var hasPendingAutoEnd: Bool {
         pendingAutoEndTask != nil
@@ -93,7 +95,6 @@ public final class BattleSession: BattleRuntime {
         enemyAttackImpactDelayOverride: TimeInterval? = nil,
         outcomePresentationDelayOverride: TimeInterval? = nil,
         partyCelebrateDelayOverride: TimeInterval? = nil,
-        cinematicSessionWatchdogOverride: TimeInterval? = nil,
         presentationEnvironment: BattleRuntimeDependencies = .silent,
     ) {
         self.autoEndTurnDelay = .seconds(autoEndTurnDelay)
@@ -101,7 +102,6 @@ public final class BattleSession: BattleRuntime {
         self.enemyAttackImpactDelayOverride = enemyAttackImpactDelayOverride.map { .seconds($0) }
         self.outcomePresentationDelayOverride = outcomePresentationDelayOverride.map { .seconds($0) }
         self.partyCelebrateDelayOverride = partyCelebrateDelayOverride.map { .seconds($0) }
-        self.cinematicSessionWatchdogOverride = cinematicSessionWatchdogOverride.map { .seconds($0) }
         self.presentationEnvironment = presentationEnvironment
         isAutoBattleEnabled = Self.preferredAutoBattleEnabled(
             from: presentationEnvironment,
@@ -132,7 +132,6 @@ public final class BattleSession: BattleRuntime {
             && pendingBoonOffer == nil
             && hasActiveSimulation
             && !isDealingOpeningHand
-            && spectacle.activeCinematic == nil
             && !spectacle.isShowingVictory && !spectacle.isShowingDefeat
     }
 
@@ -213,7 +212,6 @@ public final class BattleSession: BattleRuntime {
         }
     }
 
-    var previewLabConfig: PreviewLabConfig?
     #endif
 
     public func installClaimedVictoryHandler(

@@ -35,6 +35,7 @@ struct BattleAbilityCardView: View {
     @State private var didReportPlayDenied = false
     @State private var isTapLifting = false
     @State private var tapLiftTask: Task<Void, Never>?
+    @GestureState private var isGestureActive = false
 
     private enum InteractionResolution {
         case idle
@@ -91,6 +92,9 @@ struct BattleAbilityCardView: View {
             )
             .gesture(
                 DragGesture(minimumDistance: 0)
+                    .updating($isGestureActive) { _, isActive, _ in
+                        isActive = true
+                    }
                     .onChanged(updateDrag)
                     .onEnded(endDrag),
             )
@@ -119,6 +123,10 @@ struct BattleAbilityCardView: View {
             }
             .onChange(of: autoLiftCardID) { _, liftCardID in
                 syncAutoLift(liftCardID)
+            }
+            .onChange(of: isGestureActive) { wasActive, isActive in
+                guard wasActive, !isActive, interactionResolution != .idle else { return }
+                returnDrag()
             }
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(card.ability.name)
@@ -236,9 +244,7 @@ struct BattleAbilityCardView: View {
 
     private func endDrag(_ value: DragGesture.Value) {
         guard interactionResolution != .inspecting else {
-            cancelInspection()
-            interactionResolution = .idle
-            onInteractionChanged(false)
+            returnDrag()
             return
         }
         cancelInspection()
@@ -320,6 +326,7 @@ struct BattleAbilityCardView: View {
             didExceedTapSlop = false
             isTapLifting = false
         }
+        didAnnounceDeny = false
         didReportPlayDenied = false
         cancelTapLift()
     }
@@ -346,6 +353,7 @@ struct BattleAbilityCardView: View {
         cancelInspection()
         let hadWindUp = didAnnounceWindUp
         didAnnounceWindUp = false
+        interactionResolution = .idle
         onInteractionChanged(false)
         let didPlay = onPlay(request)
         if didPlay {
@@ -360,6 +368,8 @@ struct BattleAbilityCardView: View {
 private extension BattleAbilityCardView {
     func beginTapPlay() {
         guard tapLiftTask == nil else { return }
+        interactionResolution = .idle
+        onInteractionChanged(false)
         announceWindUpIfNeeded()
         withAnimation(BattleMotion.tapLift) {
             isTapLifting = true

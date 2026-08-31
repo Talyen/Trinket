@@ -178,10 +178,6 @@ private struct LabyrinthMapNodeSeal: View {
                 LabyrinthHexagon()
                     .stroke(TrinketDesign.Colors.accent, lineWidth: 3)
                     .opacity(reachablePulseOpacity)
-
-                if visualState == .cleared {
-                    clearedSeal
-                }
             }
             .frame(width: metrics.width, height: metrics.height)
             .scaleEffect(clearedSettleScale)
@@ -254,24 +250,6 @@ private struct LabyrinthMapNodeSeal: View {
             return AccessibilityID.Play.labyrinthFloor1LockedNode
         }
         return AccessibilityID.Play.labyrinthNode(node.id)
-    }
-
-    private var clearedSeal: some View {
-        ZStack {
-            Circle().fill(TrinketDesign.Colors.Overlay.paper)
-            Circle().stroke(TrinketDesign.Colors.subtleStroke, lineWidth: 1)
-            Image(systemName: "seal.fill")
-                // UIStyleCheck: allow - SF Symbol glyph sizing, not copy
-                .font(.system(size: 8, weight: .bold))
-                .foregroundStyle(TrinketDesign.Colors.Overlay.ink.opacity(0.65))
-        }
-        .frame(width: 14, height: 14)
-        .shadow(color: TrinketDesign.Colors.Overlay.ink.opacity(0.22), radius: 2, y: 1)
-        .padding(.trailing, 4)
-        .padding(.bottom, 2)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
-        .allowsHitTesting(false)
-        .accessibilityHidden(true)
     }
 }
 

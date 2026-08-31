@@ -2,25 +2,18 @@ import BattleEngine
 import Foundation
 import TrinketCore
 
-struct BattleCinematicPresentation: Equatable, Identifiable {
-    enum Phase: Equatable {
-        case expanding
-        case playing
-        case collapsing
-    }
-
+struct BattleUltimateInFramePresentation: Equatable, Identifiable {
     let id: Int
     let actorID: String
     let actorName: String
     let abilityID: String
     let abilityName: String
     let keyword: Keyword
-    var phase: Phase
     let startedAt: Date
 }
 
 enum BattleSpectaclePolicy {
-    static func shouldPresentUltimateCinematic(for event: ActionEvent, heroID: String, companionID: String) -> Bool {
+    static func shouldPresentUltimateHighlight(for event: ActionEvent, heroID: String, companionID: String) -> Bool {
         guard event.kind == .ability, event.abilityTier == .ultimate else { return false }
         return event.actorID == heroID || event.actorID == companionID
     }

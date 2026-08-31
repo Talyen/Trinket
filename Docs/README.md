@@ -25,8 +25,18 @@ One fact has one owner. Link instead of copying policy.
 | Cross-package battle / persistence / content | matching [AgentContext](AgentContext/) card |
 | Manifest column formats | that manifest directory’s README |
 | Package public types / how to extend | that package README |
-| Agent hard stops | root and nested `AGENTS.md` only |
+| Agent workflow and safety hard stops | root and nested `AGENTS.md` |
 | Artwork memory budgets | [Platform/PerformanceInvestigationPlaybook.md](Platform/PerformanceInvestigationPlaybook.md) Artwork Budgets + `AGENTS.md` guardrail (enforced by `check-artwork-budget.sh`) |
 | Audit procedure | [Audits/README.md](Audits/README.md) plus the cited audit file |
 
 Do not restate these elsewhere except a one-line pointer.
+
+## Policy precedence
+
+When guidance overlaps, use the narrowest applicable owner. Root `AGENTS.md`
+sets repository-wide agent behavior and safety; nested `AGENTS.md` files add
+path-local hard stops. Product and Platform documents define standing product
+and engineering policy. AgentContext cards and package READMEs define the
+current ownership and implementation contract for their scope. Checked-in
+configuration and enforcement scripts are authoritative for executable
+mechanics; update the owning prose when those mechanics change.

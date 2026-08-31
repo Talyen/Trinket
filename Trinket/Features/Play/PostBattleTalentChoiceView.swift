@@ -53,11 +53,10 @@ struct PostBattleTalentChoiceView: View {
         combatant: Combatant,
         config: CombatantTalentConfig,
     ) -> some View {
-        DetailHeroScrollShell(title: combatant.name) { baseHeight, overscroll in
+        DetailHeroScrollShell(title: combatant.name) { baseHeight in
             DetailHeroHeader(
                 title: combatant.name,
                 baseHeight: baseHeight,
-                overscroll: overscroll,
             ) {
                 CombatantArtwork(combatant: combatant)
             } footer: {

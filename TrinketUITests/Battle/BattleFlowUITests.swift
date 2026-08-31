@@ -2,15 +2,28 @@ import TrinketFeatureSupport
 import XCTest
 
 final class BattleFlowUITests: TrinketUITestCase {
-    func testCardPlayAutoBattleHandDragSafetyAndRetreatRestoresPlay() {
+    func testCardInspectionPlayAutoBattleHandDragSafetyAndRetreatRestoresPlay() {
         launchApp(arguments: TestLaunchArg.allForMidBattle())
         play.openCampaign()
         play.startBattle(chapter: 1, stage: 1)
 
         battle.assertActive()
-        assertExists(battle.hand)
+        battle.selectFirstBoon()
 
         let cards = battle.handCards
+        let inspectedCard = cards.firstMatch
+        XCTAssertTrue(inspectedCard.waitForExistence(timeout: Self.defaultTimeout))
+        let inspectCountBefore = cards.count
+        inspectedCard.press(forDuration: 0.7)
+        assertExists(AccessibilityID.Battle.abilityDetail)
+        XCTAssertEqual(cards.count, inspectCountBefore, "Inspecting a card must not play it")
+        dismissSheet()
+        inspectedCard.tap()
+        XCTAssertTrue(
+            waitForCardCount(cards, droppingFrom: inspectCountBefore),
+            "The first tap after dismissing ability details must play the card",
+        )
+
         let dragCard = cards.firstMatch
         XCTAssertTrue(dragCard.waitForExistence(timeout: Self.defaultTimeout))
         let dragCountBefore = cards.count

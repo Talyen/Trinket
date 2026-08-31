@@ -31,6 +31,7 @@ public struct CombatantDetailPane: View {
     @State private var viewingItem: InventoryItem?
     @State private var selectedTalentTree: TalentTree?
     @State private var selectionFeedbackTrigger = 0
+    @State private var pinnedDetailArtwork: [String] = []
 
     private struct ViewOnlyAbility: Hashable, Identifiable {
         let ability: Ability
@@ -62,12 +63,11 @@ public struct CombatantDetailPane: View {
         DetailHeroScrollShell(
             title: combatant.name,
             hidesNavigationBar: hidesNavigationBar,
-        ) { baseHeight, overscroll in
+        ) { baseHeight in
             DetailHeroHeader(
                 eyebrow: combatant.role.rawValue.uppercased(),
                 title: combatant.name,
                 baseHeight: baseHeight,
-                overscroll: overscroll,
             ) {
                 CombatantArtwork(combatant: combatant)
             } footer: {
@@ -128,14 +128,88 @@ public struct CombatantDetailPane: View {
             trigger: selectionFeedbackTrigger,
             enabled: hapticsEnabled,
         )
+        .task(id: detailArtworkPinKey) {
+            await refreshDetailArtworkPins()
+        }
+        .onDisappear {
+            PreparedArtworkCache.shared.releasePins(names: pinnedDetailArtwork)
+            pinnedDetailArtwork = []
+        }
+    }
+
+    private var detailArtworkPinKey: [String] {
+        Set(detailArtworkNames()).sorted()
+    }
+
+    private func detailArtworkNames() -> [String] {
+        var names: [String] = []
+        if let fullName = combatant.artReference?.imageName {
+            names.append(fullName)
+        }
+        if let thumb = combatant.artReference?.thumbnailImageName {
+            names.append(thumb)
+        }
+        let configured = GameContent.combatant(matching: combatant.id) ?? combatant
+        for ability in configured.abilities {
+            if let ref = ability.artReference {
+                names.append(ref.thumbnailImageName ?? ref.imageName)
+            }
+        }
+        for tier in AbilityTier.allCases {
+            if let ability = loadout.ability(for: tier), let ref = ability.artReference {
+                names.append(ref.thumbnailImageName ?? ref.imageName)
+            }
+        }
+        for tree in CombatantTalentCatalog.config(for: combatant.id).trees {
+            if let ref = tree.keyword.artReference {
+                names.append(ref.thumbnailImageName ?? ref.imageName)
+            }
+        }
+        for itemID in equipmentLoadout.itemIDsBySlot.values {
+            if let item = inventoryItems.first(where: { $0.id == itemID }),
+               let ref = item.artReference {
+                names.append(ref.thumbnailImageName ?? ref.imageName)
+            }
+        }
+        for item in inventoryItems.prefix(12) {
+            if let ref = item.artReference {
+                names.append(ref.thumbnailImageName ?? ref.imageName)
+            }
+        }
+        return names
+    }
+
+    private func refreshDetailArtworkPins() async {
+        let next = Set(detailArtworkNames()).sorted()
+        let previous = Set(pinnedDetailArtwork)
+        let added = Set(next).subtracting(previous)
+        let removed = previous.subtracting(next)
+        if !added.isEmpty {
+            let addedNames = Array(added)
+            await PreparedArtworkCache.shared.prepareAndPin(names: addedNames)
+            guard !Task.isCancelled else {
+                PreparedArtworkCache.shared.releasePins(names: addedNames)
+                return
+            }
+        }
+        guard !Task.isCancelled else { return }
+        if !removed.isEmpty {
+            PreparedArtworkCache.shared.releasePins(names: Array(removed))
+        }
+        pinnedDetailArtwork = next
     }
 
     @ViewBuilder
     private func combatantDetailBody(combatBuild: CombatBuild) -> some View {
-        statsSection(combatBuild: combatBuild)
+        CombatantStatsSection(
+            combatBuild: combatBuild,
+            combatantRole: combatant.role,
+            battleHealth: battleHealth,
+            battleMana: battleMana,
+        )
 
         if !enemyTraits.isEmpty {
-            traitSection(
+            CombatantTraitsSection(
                 traits: enemyTraits,
                 sectionID: AccessibilityID.CombatantDetail.enemyTraitsSection,
                 descriptionID: AccessibilityID.CombatantDetail.enemyTraitDescription,
@@ -143,15 +217,20 @@ public struct CombatantDetailPane: View {
         }
 
         if !labyrinthModifiers.isEmpty {
-            labyrinthModifiersSection
+            CombatantLabyrinthSection(labyrinthModifiers: labyrinthModifiers)
         }
 
         if !activeEffectSummaries.isEmpty {
-            activeEffectsSection
+            CombatantActiveEffectsSection(summaries: activeEffectSummaries)
         }
 
         if combatant.role != .enemy {
-            talentsSection
+            CombatantTalentsSection(
+                combatantID: combatant.id,
+                progression: progression,
+                unlockedTalents: unlockedTalents,
+                onSelectTree: { selectedTalentTree = $0 },
+            )
         }
 
         DetailSection("Abilities") {
@@ -180,92 +259,6 @@ public struct CombatantDetailPane: View {
         }
     }
 
-    private func statsSection(combatBuild: CombatBuild) -> some View {
-        DetailSection("Stats", sectionID: AccessibilityID.CombatantDetail.statsSection) {
-            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
-                statCard {
-                    statRow(
-                        "Health",
-                        value: "\(currentHealth(for: combatBuild))/\(combatBuild.effectiveMaxHealth)",
-                        accessibilityIdentifier: AccessibilityID.CombatantDetail.healthStat,
-                    )
-                    if combatant.role != .enemy, combatBuild.effectiveMaxMana > 0 {
-                        statRow(
-                            "Mana",
-                            value: "\(currentMana(for: combatBuild))/\(combatBuild.effectiveMaxMana)",
-                        )
-                    }
-                }
-
-                statCard {
-                    statRow("Strength", value: "\(combatBuild.combatant.primaryStats.strength)")
-                    statRow("Agility", value: "\(combatBuild.combatant.primaryStats.agility)")
-                    statRow("Toughness", value: "\(combatBuild.combatant.primaryStats.toughness)")
-                    statRow("Intellect", value: "\(combatBuild.combatant.primaryStats.intellect)")
-                    statRow("Wisdom", value: "\(combatBuild.combatant.primaryStats.wisdom)")
-                }
-            }
-        }
-    }
-
-    private var activeEffectsSection: some View {
-        DetailSection("Active Effects") {
-            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
-                ForEach(activeEffectSummaries) { summary in
-                    let parts = activeEffectCardParts(for: summary)
-                    DetailTraitRow(
-                        title: parts.title,
-                        description: parts.description,
-                        leadingIconKeyword: summary.keyword,
-                    )
-                }
-            }
-        }
-    }
-
-    private var labyrinthModifiersSection: some View {
-        DetailSection(
-            "Labyrinth",
-            sectionID: AccessibilityID.CombatantDetail.labyrinthModifiersSection,
-        ) {
-            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
-                ForEach(labyrinthModifiers) { modifier in
-                    DetailTraitRow(
-                        title: modifier.title,
-                        description: detailDescription(modifier.effect.description),
-                        descriptionAccessibilityID: AccessibilityID.CombatantDetail.labyrinthModifierDescription,
-                    )
-                }
-            }
-        }
-    }
-
-    private func traitSection(
-        traits: [CombatantTraitDefinition],
-        sectionID: String,
-        descriptionID: String,
-    ) -> some View {
-        DetailSection("Traits", sectionID: sectionID) {
-            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
-                ForEach(traits) { trait in
-                    DetailTraitRow(
-                        title: trait.name,
-                        description: detailDescription(trait.description),
-                        descriptionAccessibilityID: descriptionID,
-                    )
-                }
-            }
-        }
-    }
-
-    private func currentHealth(for combatBuild: CombatBuild) -> Int {
-        battleHealth ?? combatBuild.effectiveMaxHealth
-    }
-
-    private func currentMana(for combatBuild: CombatBuild) -> Int {
-        battleMana ?? combatBuild.effectiveMaxMana
-    }
-
     private func select(_ ability: Ability) {
         loadout = loadout.selecting(ability)
         selectionFeedbackTrigger += 1
@@ -284,75 +277,6 @@ public struct CombatantDetailPane: View {
             await Task.yield()
             selectedItemSlot = nil
         }
-    }
-
-    private func statRow(_ title: String, value: String, accessibilityIdentifier: String? = nil) -> some View {
-        LabeledContent {
-            Text(value)
-                .trinketTypography(.statValue)
-                .foregroundStyle(.secondary)
-                .contentTransition(.numericText())
-                .animation(TrinketMotion.Interaction.selection, value: value)
-        } label: {
-            Text(title)
-                .trinketTypography(.body)
-                .foregroundStyle(.primary)
-        }
-        .accessibilityIdentifier(accessibilityIdentifier ?? title)
-    }
-
-    private func statCard(@ViewBuilder content: () -> some View) -> some View {
-        VStack(alignment: .leading, spacing: TrinketDesign.Metrics.extraSmallSpacing) {
-            content()
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .trinketSurface(.secondary)
-    }
-
-    private func activeEffectCardParts(for summary: EffectSummary) -> (title: String, description: String) {
-        if let separator = summary.text.range(of: ": ") {
-            let title = String(summary.text[..<separator.lowerBound])
-            let description = String(summary.text[separator.upperBound...])
-            return (detailDescription(title), detailDescription(description))
-        }
-        return (detailDescription(summary.text), detailDescription(summary.keyword.rulesText))
-    }
-
-    private func detailDescription(_ text: String) -> String {
-        text.hasSuffix(".") ? String(text.dropLast()) : text
-    }
-}
-
-private extension CombatantDetailPane {
-    var talentsSection: some View {
-        let config = CombatantTalentCatalog.config(for: combatant.id)
-        let available = progression.availableTalentPoints(unlockedCount: unlockedTalents.count)
-
-        return DetailSection("Talents", sectionID: AccessibilityID.CombatantDetail.talentsSection) {
-            HStack(spacing: TrinketDesign.Metrics.smallSpacing) {
-                ForEach(config.trees) { tree in
-                    talentTreeCard(tree: tree, availablePoints: available)
-                }
-            }
-            .padding(.vertical, TrinketDesign.Metrics.extraSmallSpacing)
-        }
-    }
-
-    func talentTreeCard(tree: TalentTree, availablePoints: Int) -> some View {
-        let hasUnallocatedPoints = availablePoints > 0
-        let unlockedCount = tree.nodes.count(where: { unlockedTalents.contains($0.id) })
-
-        return Button {
-            selectedTalentTree = tree
-        } label: {
-            TalentTreeCard(
-                tree: tree,
-                caption: "\(unlockedCount)/\(tree.nodes.count)",
-                showsShine: hasUnallocatedPoints,
-                accessibilityID: AccessibilityID.CombatantDetail.talentsNode(id: tree.keyword.rawValue),
-            )
-        }
-        .trinketQuietTapButtonStyle()
     }
 }
 

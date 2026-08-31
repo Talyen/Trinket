@@ -41,62 +41,11 @@ extension BattleSession {
         }
     }
 
-    func markCinematicPlaying() {
-        guard var cinematic = spectacle.activeCinematic, cinematic.phase == .expanding else { return }
-        cinematic.phase = .playing
-        spectacle.activeCinematic = cinematic
-    }
-
-    func completeCinematicCollapse(expectedID: Int? = nil, at date: Date = .now) {
-        guard let cinematic = spectacle.activeCinematic else { return }
-        if let expectedID, cinematic.id != expectedID {
-            return
-        }
-        cancelCinematicWatchdog()
-        BattleCinematicPlayer.shared.pause(
-            actorID: cinematic.actorID,
-            abilityID: cinematic.abilityID,
-        )
-        spectacle.actorsWhoPresentedUltimateThisBattle.insert(cinematic.actorID)
-        spectacle.activeCinematic = nil
-        let deferred = spectacle.deferredFeedbackEvents
-        if !spectacle.deferredFeedbackEvents.isEmpty {
-            spectacle.deferredFeedbackEvents = []
-        }
-        feedback.record(deferred, at: date, environment: presentationEnvironment)
-        presentDeferredOutcomeIfNeeded(at: date)
-    }
-
-    private func presentDeferredOutcomeIfNeeded(at date: Date) {
-        switch outcome {
-        case .victory:
-            if presentationContext?.stageRewardsAlreadyClaimed == true {
-                publishPartyCelebrateReactions(at: date)
-                deliverClaimedVictoryIfNeeded()
-                return
-            }
-            if spectacle.victorySummary != nil, !spectacle.isShowingVictory {
-                scheduleVictoryPresentation(after: date)
-                return
-            }
-        case .defeat:
-            if !spectacle.isShowingDefeat {
-                scheduleDefeatPresentation(after: date)
-                return
-            }
-        case .none:
-            break
-        }
-        scheduleAutoEndIfNeeded()
-    }
-
-    func beginCinematicCollapse(expectedID: Int? = nil) {
-        guard var cinematic = spectacle.activeCinematic, cinematic.phase != .collapsing else { return }
-        if let expectedID, cinematic.id != expectedID {
-            return
-        }
-        cinematic.phase = .collapsing
-        spectacle.activeCinematic = cinematic
+    func clearUltimateHighlight(for actorID: String) {
+        spectacle.pendingUltimateHighlightTasksByActorID[actorID]?.cancel()
+        spectacle.pendingUltimateHighlightTasksByActorID[actorID] = nil
+        spectacle.ultimateHighlightsByActorID[actorID] = nil
+        BattleCinematicPlayer.shared.pause(actorID: actorID, abilityID: "")
     }
 
     func handleOutcomeIfNeeded(at date: Date) {
@@ -106,22 +55,15 @@ extension BattleSession {
         switch outcome {
         case .victory:
             if context.stageRewardsAlreadyClaimed {
-                if spectacle.activeCinematic != nil {
-                    return
-                }
                 publishPartyCelebrateReactions(at: date)
                 deliverClaimedVictoryIfNeeded()
                 return
             }
             guard let summary = makeVictorySummary(for: configuration, presentation: context) else { return }
             spectacle.victorySummary = summary
-            if spectacle.activeCinematic == nil {
-                scheduleVictoryPresentation(after: date)
-            }
+            scheduleVictoryPresentation(after: date)
         case .defeat:
-            if spectacle.activeCinematic == nil {
-                scheduleDefeatPresentation(after: date)
-            }
+            scheduleDefeatPresentation(after: date)
         case .none:
             break
         }
@@ -262,74 +204,60 @@ extension BattleSession {
 
     func presentResolvedEvents(_ events: [ActionEvent], at date: Date) {
         let nonMilestone = events.filter { $0.kind != .milestone }
+        feedback.record(nonMilestone, at: date, environment: presentationEnvironment)
         guard let heroID,
               let companionID
-        else {
-            feedback.record(nonMilestone, at: date, environment: presentationEnvironment)
-            return
-        }
-
+        else { return }
         if let ultimate = nonMilestone.first(where: {
-            BattleSpectaclePolicy.shouldPresentUltimateCinematic(
+            BattleSpectaclePolicy.shouldPresentUltimateHighlight(
                 for: $0,
                 heroID: heroID,
                 companionID: companionID,
             )
         }) {
-            let autoSkip = presentationEnvironment.shouldAutoSkipUltimateCinematic(
-                ultimate.actorID,
-                spectacle.actorsWhoPresentedUltimateThisBattle,
-            )
-            let hasVideo = BattleCinematicPlayer.shared.hasVideo(
-                for: ultimate.actorID,
-                abilityID: ultimate.abilityID,
-            )
-            if autoSkip || !hasVideo {
-                feedback.record(nonMilestone, at: date, environment: presentationEnvironment)
-                return
-            }
-            spectacle.deferredFeedbackEvents = nonMilestone
-            beginCinematic(from: ultimate, at: date)
-            feedback.noteItemsChanged()
-            return
+            triggerUltimateInFrameHighlight(from: ultimate, at: date)
         }
-
-        feedback.record(nonMilestone, at: date, environment: presentationEnvironment)
     }
 
-    func beginCinematic(from event: ActionEvent, at date: Date) {
+    func triggerUltimateInFrameHighlight(from event: ActionEvent, at date: Date) {
+        let autoSkip = presentationEnvironment.shouldAutoSkipUltimateCinematic(
+            event.actorID,
+            spectacle.actorsWhoPresentedUltimateThisBattle,
+        )
+        if autoSkip {
+            return
+        }
+        spectacle.actorsWhoPresentedUltimateThisBattle.insert(event.actorID)
         spectacle.nextID += 1
-        let cinematicID = spectacle.nextID
-        spectacle.activeCinematic = BattleCinematicPresentation(
-            id: cinematicID,
+        let highlightID = spectacle.nextID
+        let highlight = BattleUltimateInFramePresentation(
+            id: highlightID,
             actorID: event.actorID,
             actorName: event.actorName,
             abilityID: event.abilityID,
             abilityName: event.abilityName,
             keyword: event.keyword,
-            phase: .expanding,
             startedAt: date,
         )
+        spectacle.pendingUltimateHighlightTasksByActorID[event.actorID]?.cancel()
+        spectacle.ultimateHighlightsByActorID[event.actorID] = highlight
         BattleCinematicPlayer.shared.warm(actorID: event.actorID, abilityID: event.abilityID)
-        scheduleCinematicWatchdog(expectedID: cinematicID)
-    }
-
-    func scheduleCinematicWatchdog(expectedID: Int) {
-        cancelCinematicWatchdog()
-        let hold = cinematicSessionWatchdogOverride
-            ?? .seconds(BattleMotion.ultimateCinematicSessionWatchdog)
-        spectacle.pendingCinematicWatchdogTask = Task { @MainActor [weak self] in
-            if hold > .zero {
-                try? await Task.sleep(for: hold)
-            }
+        let hold = BattleMotion.ultimateInFrameDuration
+        spectacle.pendingUltimateHighlightTasksByActorID[event.actorID] = Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .seconds(hold))
             guard let self, !Task.isCancelled else { return }
-            completeCinematicCollapse(expectedID: expectedID)
+            if spectacle.ultimateHighlightsByActorID[event.actorID]?.id == highlightID {
+                spectacle.ultimateHighlightsByActorID[event.actorID] = nil
+            }
+            spectacle.pendingUltimateHighlightTasksByActorID[event.actorID] = nil
         }
     }
 
-    func cancelCinematicWatchdog() {
-        spectacle.pendingCinematicWatchdogTask?.cancel()
-        spectacle.pendingCinematicWatchdogTask = nil
+    func cancelUltimateHighlightWatchdogs() {
+        for task in spectacle.pendingUltimateHighlightTasksByActorID.values {
+            task.cancel()
+        }
+        spectacle.pendingUltimateHighlightTasksByActorID.removeAll()
     }
 
     func clearAllPresentation() {
@@ -344,11 +272,10 @@ extension BattleSession {
     func clearSpectacle(releaseCinematicPlayers: Bool = true) {
         spectacle.pendingPartyCelebrateTask?.cancel()
         spectacle.pendingPartyCelebrateTask = nil
-        cancelCinematicWatchdog()
-        if spectacle.activeCinematic != nil {
-            spectacle.activeCinematic = nil
+        cancelUltimateHighlightWatchdogs()
+        if !spectacle.ultimateHighlightsByActorID.isEmpty {
+            spectacle.ultimateHighlightsByActorID = [:]
         }
-        spectacle.deferredFeedbackEvents = []
         if !spectacle.actorsWhoPresentedUltimateThisBattle.isEmpty {
             spectacle.actorsWhoPresentedUltimateThisBattle = []
         }
@@ -362,6 +289,8 @@ extension BattleSession {
         holdOpeningHandForOverlayFade: Bool = false,
     ) {
         cancelPendingAutoEnd()
+        cancelPendingEnemyTurnReset()
+        isEnemyTurnActive = false
         cancelOpeningHandDeal()
         deliveredClaimedVictoryConfigurationID = nil
         installSimulationPresentation()
@@ -392,6 +321,8 @@ extension BattleSession {
 
     func clearRunState() {
         cancelPendingAutoEnd()
+        cancelPendingEnemyTurnReset()
+        isEnemyTurnActive = false
         cancelOpeningHandDeal()
         deliveredClaimedVictoryConfigurationID = nil
         presentation.clear()

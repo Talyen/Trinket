@@ -40,11 +40,10 @@ struct HomesteadHeroScreen<HeroArt: View, WalletBottomContent: View, Body: View>
         DetailHeroScrollShell(
             title: title,
             heroHeightPolicy: .cinematicLandscape,
-        ) { baseHeight, overscroll in
+        ) { baseHeight in
             DetailHeroHeader(
                 title: title,
                 baseHeight: baseHeight,
-                overscroll: overscroll,
                 horizontalPadding: TrinketDesign.Metrics.contentMargin,
                 bottomPadding: TrinketDesign.Metrics.largeSpacing,
             ) {

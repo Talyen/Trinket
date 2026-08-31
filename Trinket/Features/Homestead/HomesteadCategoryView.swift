@@ -12,6 +12,7 @@ struct HomesteadCategoryView: View {
 
     @Environment(PlayerSaveStore.self) private var playerSave
     @Namespace private var zoomNamespace
+    @State private var pinnedHomesteadArtwork: [String] = []
 
     private var homestead: PlayerHomesteadState {
         playerSave.homestead
@@ -46,6 +47,56 @@ struct HomesteadCategoryView: View {
             HomesteadNodeDetailView(definition: definition)
                 .navigationTransition(.zoom(sourceID: definition.id, in: zoomNamespace))
         }
+        .task(id: imminentHomesteadArtworkKey) {
+            await refreshImminentHomesteadArtworkPins()
+        }
+        .onDisappear {
+            PreparedArtworkCache.shared.releasePins(names: pinnedHomesteadArtwork)
+            pinnedHomesteadArtwork = []
+        }
+    }
+
+    private var imminentHomesteadArtworkKey: [String] {
+        Self.imminentHomesteadArtworkNames(for: definitions).sorted()
+    }
+
+    static func imminentHomesteadArtworkNames(for definitions: [HomesteadNodeDefinition]) -> [String] {
+        var names: [String] = []
+        for definition in definitions {
+            if let art = ArtCatalog.backgroundArtByID[definition.id.rawValue] {
+                names.append(art.imageName)
+                if let thumb = art.thumbnailImageName {
+                    names.append(thumb)
+                }
+            }
+        }
+        if let hero = ArtCatalog.backgroundArtByID[definitions.first?.category.artID ?? ""] {
+            names.append(hero.imageName)
+            if let thumb = hero.thumbnailImageName {
+                names.append(thumb)
+            }
+        }
+        return names
+    }
+
+    private func refreshImminentHomesteadArtworkPins() async {
+        let next = Array(Set(Self.imminentHomesteadArtworkNames(for: definitions))).sorted()
+        let previous = Set(pinnedHomesteadArtwork)
+        let added = Set(next).subtracting(previous)
+        let removed = previous.subtracting(Set(next))
+        if !added.isEmpty {
+            let addedNames = Array(added)
+            await PreparedArtworkCache.shared.prepareAndPin(names: addedNames)
+            guard !Task.isCancelled else {
+                PreparedArtworkCache.shared.releasePins(names: addedNames)
+                return
+            }
+        }
+        guard !Task.isCancelled else { return }
+        if !removed.isEmpty {
+            PreparedArtworkCache.shared.releasePins(names: Array(removed))
+        }
+        pinnedHomesteadArtwork = next
     }
 
     @ViewBuilder

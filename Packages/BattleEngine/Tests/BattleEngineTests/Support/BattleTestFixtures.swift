@@ -183,7 +183,7 @@ enum BattleTestFixtures {
         var allEvents: [ActionEvent] = []
         for _ in 0 ..< count {
             guard !battle.isBattleOver else { break }
-            allEvents.append(contentsOf: battle.endTurn())
+            allEvents.append(contentsOf: endTurn(on: &battle))
         }
         return allEvents
     }
@@ -205,13 +205,16 @@ enum BattleTestFixtures {
         maxRounds: Int = 20,
     ) throws -> [ActionEvent]? {
         for _ in 0 ..< maxRounds {
+            if let offer = battle.pendingBoonOffer, let choiceID = BoonEngine.autoSelectedChoiceID(for: offer, in: battle) {
+                _ = battle.selectBoon(id: choiceID)
+            }
             if let card = battle.hand.cards.first(where: {
                 $0.ability.name == abilityName && $0.owner == owner && battle.isCardPlayable($0)
             }) {
                 return try battle.playCard(cardID: card.id)
             }
             if try playFirstPlayableCard(owner: owner, on: &battle) == nil {
-                _ = battle.endTurn()
+                _ = endTurn(on: &battle)
             }
             if battle.isBattleOver {
                 break

@@ -27,12 +27,10 @@ public struct PreviewLabView: View {
         _selectedEnemyID = State(initialValue: enemyID)
         _selectedHeroID = State(initialValue: heroID)
         _selectedCompanionID = State(initialValue: companionID)
-        _config = State(initialValue: PreviewLabConfig())
     }
 
     @Environment(\.dismiss) private var dismiss
     @State private var labSession: BattleSession
-    @State private var config: PreviewLabConfig
     @State private var configuration: BattleRunConfiguration
     @State private var selectedEnemyID: String
     @State private var selectedHeroID: String
@@ -63,7 +61,6 @@ public struct PreviewLabView: View {
         .sheet(isPresented: $isControlsPresented) {
             NavigationStack {
                 Form {
-                    UltimateTransitionsControls(config: config)
                     subjectSection
                 }
                 .navigationTitle("Preview Lab")
@@ -120,11 +117,9 @@ public struct PreviewLabView: View {
     private var isCinematicClear: Bool {
         !labSession.spectacle.isShowingVictory
             && !labSession.spectacle.isShowingDefeat
-            && labSession.spectacle.activeCinematic == nil
     }
 
     private func prepare() {
-        labSession.previewLabConfig = config
         warmSelectedCinematics()
         Task { @MainActor in
             await warmArtwork()
@@ -257,30 +252,4 @@ private enum PreviewLab {
     }
 }
 
-private struct UltimateTransitionsControls: View {
-    @Bindable var config: PreviewLabConfig
-
-    var body: some View {
-        Section {
-            Text("Ultimate Transitions")
-                .fontWeight(.semibold)
-
-            Picker("Opening", selection: $config.openingStyle) {
-                ForEach(UltimateCinematicCoverStyle.allCases) { style in
-                    Text(style.title).tag(style)
-                }
-            }
-            .pickerStyle(.segmented)
-
-            Picker("Closing", selection: $config.closingStyle) {
-                ForEach(UltimateCinematicCoverStyle.allCases) { style in
-                    Text(style.title).tag(style)
-                }
-            }
-            .pickerStyle(.segmented)
-        } header: {
-            Text("Effects")
-        }
-    }
-}
 #endif

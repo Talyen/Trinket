@@ -59,15 +59,13 @@ public struct BattleView: View {
             .toolbarVisibility(.hidden, for: .tabBar)
             .toolbar {
                 if !battleSession.spectacle.isShowingVictory,
-                   !battleSession.spectacle.isShowingDefeat,
-                   battleSession.spectacle.activeCinematic == nil {
+                   !battleSession.spectacle.isShowingDefeat {
                     ToolbarItemGroup(placement: .topBarTrailing) {
                         BattleAutoToggle(battleSession: battleSession)
                         battleActionsMenu(canRetreat: battleSession.canRetreat)
                     }
                 }
             }
-            .statusBarHidden(battleSession.spectacle.activeCinematic != nil)
             .onChange(of: configuration.id) { _, _ in
                 castPresentation.reset()
             }
@@ -264,11 +262,6 @@ struct BattleFieldLane: View {
                 BattleCastPrewarmLane(presentation: presentation)
                     .zIndex(2)
 
-                BattleCinematicLane(
-                    effectsVolume: battleSession.effectsVolume,
-                )
-                .zIndex(10)
-
                 if let offer = presentation.pendingBoonOffer {
                     BoonChoiceOverlay(
                         offer: offer,
@@ -409,46 +402,6 @@ private struct BattleHandProjectionLane: View {
             trigger: cardPlayFeedbackToken,
             enabled: hapticsEnabled,
         )
-    }
-}
-
-private struct BattleCinematicLane: View {
-    @Environment(BattleSession.self) private var battleSession
-    let effectsVolume: Double
-
-    var body: some View {
-        if let cinematic = battleSession.spectacle.activeCinematic {
-            UltimateCinematicOverlay(
-                cinematic: cinematic,
-                effectsVolume: effectsVolume,
-                openingStyle: openingStyle,
-                exitStyle: closingStyle,
-                onPlaying: { battleSession.markCinematicPlaying() },
-                onAutoFinish: { cinematicID in
-                    battleSession.beginCinematicCollapse(expectedID: cinematicID)
-                },
-                onCollapseFinished: { cinematicID in
-                    battleSession.completeCinematicCollapse(expectedID: cinematicID)
-                },
-            )
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-        }
-    }
-
-    private var openingStyle: UltimateCinematicCoverStyle {
-        #if DEBUG
-        battleSession.previewLabConfig?.openingStyle ?? .fade
-        #else
-        .fade
-        #endif
-    }
-
-    private var closingStyle: UltimateCinematicCoverStyle {
-        #if DEBUG
-        battleSession.previewLabConfig?.closingStyle ?? .fade
-        #else
-        .fade
-        #endif
     }
 }
 

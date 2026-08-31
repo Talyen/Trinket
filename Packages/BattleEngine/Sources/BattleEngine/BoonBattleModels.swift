@@ -1,11 +1,6 @@
 import TrinketContent
 import TrinketCore
 
-public enum BoonThreshold: Int, CaseIterable, Hashable, Sendable {
-    case eightyPercent = 80
-    case half = 50
-}
-
 public struct BoonChoice: Identifiable, Hashable, Sendable {
     public let boon: BoonDefinition
     public let artworkName: String?
@@ -21,17 +16,14 @@ public struct BoonChoice: Identifiable, Hashable, Sendable {
 }
 
 public struct BoonOffer: Identifiable, Hashable, Sendable {
-    public let threshold: BoonThreshold
     public let choices: [BoonChoice]
 
     public var id: String {
-        let sortedIDs = choices.map(\.id).sorted().joined(separator: "-")
-        return "\(threshold.rawValue)-\(sortedIDs)"
+        choices.map(\.id).sorted().joined(separator: "-")
     }
 
-    public init(threshold: BoonThreshold, choices: [BoonChoice]) {
-        precondition(choices.count == 2)
-        self.threshold = threshold
+    public init(choices: [BoonChoice]) {
+        precondition(choices.count == 3)
         self.choices = choices
     }
 }

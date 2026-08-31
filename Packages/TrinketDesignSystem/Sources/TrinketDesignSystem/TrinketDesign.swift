@@ -61,6 +61,7 @@ public enum TrinketDesign {
         public static let mysteryRewardRowMinHeight: CGFloat = 48
         public static let statBarHeight: CGFloat = 7
         public static let battleHealthBarHeight: CGFloat = 3
+        public static let battleHealthBarActiveHeight: CGFloat = 7
         public static let contentMargin: CGFloat = 20
         public static let singlePrimaryActionWidthFraction: CGFloat = 0.5
         public static let contentTopPadding: CGFloat = 24

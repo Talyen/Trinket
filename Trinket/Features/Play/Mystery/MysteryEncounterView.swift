@@ -99,13 +99,12 @@ struct MysteryEncounterView: View {
             title: session.event.title,
             heroHeightPolicy: .cinematicLandscape,
             hidesNavigationBar: true,
-        ) { baseHeight, overscroll in
+        ) { baseHeight in
             DetailHeroHeader(
                 eyebrow: "MYSTERY",
                 title: session.event.title,
                 titleAccessibilityIdentifier: AccessibilityID.Mystery.encounterTitle,
                 baseHeight: baseHeight,
-                overscroll: overscroll,
                 horizontalPadding: TrinketDesign.Metrics.contentMargin,
                 bottomPadding: TrinketDesign.Metrics.largeSpacing,
             ) {

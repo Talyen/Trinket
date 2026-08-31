@@ -201,14 +201,24 @@ private struct TrinketWalletGridLayout: Layout {
         }
 
         let idealWidth = idealColumnWidths.reduce(0, +) + columnGaps
+        let minimumColumnWidth = TrinketDesign.Metrics.walletResourceArtworkSize + TrinketDesign.Metrics.smallSpacing + 16
+        let minimumArtworkColumnWidth = TrinketDesign.Metrics.walletResourceArtworkSize + TrinketDesign.Metrics.smallSpacing
         let columnWidths: [CGFloat]
         if let proposedWidth = proposal.width, proposedWidth.isFinite, proposedWidth <= 1 {
-            columnWidths = idealColumnWidths
+            columnWidths = idealColumnWidths.map { max($0, minimumColumnWidth) }
         } else if let proposedWidth = proposal.width, proposedWidth.isFinite, proposedWidth < idealWidth {
-            let equalizedWidth = max(0, (proposedWidth - columnGaps) / CGFloat(columns))
-            columnWidths = Array(repeating: equalizedWidth, count: columns)
+            let equalizedWidth = max(
+                minimumArtworkColumnWidth,
+                (proposedWidth - columnGaps) / CGFloat(columns),
+            )
+            let clampedEqualized = max(minimumColumnWidth, equalizedWidth)
+            if clampedEqualized * CGFloat(columns) + columnGaps <= proposedWidth + 0.5 {
+                columnWidths = Array(repeating: clampedEqualized, count: columns)
+            } else {
+                columnWidths = Array(repeating: equalizedWidth, count: columns)
+            }
         } else {
-            columnWidths = idealColumnWidths
+            columnWidths = idealColumnWidths.map { max($0, minimumColumnWidth) }
         }
 
         var rowHeights = Array(repeating: CGFloat(0), count: rows)

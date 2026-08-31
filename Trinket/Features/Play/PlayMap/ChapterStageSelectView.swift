@@ -18,13 +18,12 @@ struct StageSelectScreen<HeroArt: View, Content: View>: View {
         DetailHeroScrollShell(
             title: title,
             heroHeightPolicy: .cinematicLandscape,
-        ) { baseHeight, overscroll in
+        ) { baseHeight in
             DetailHeroHeader(
                 eyebrow: eyebrow,
                 title: title,
                 titleAccessibilityIdentifier: titleAccessibilityIdentifier,
                 baseHeight: baseHeight,
-                overscroll: overscroll,
                 horizontalPadding: TrinketDesign.Metrics.contentMargin,
                 bottomPadding: TrinketDesign.Metrics.largeSpacing,
             ) {

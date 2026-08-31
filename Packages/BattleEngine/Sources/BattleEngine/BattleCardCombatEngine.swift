@@ -55,6 +55,10 @@ public enum BattleCardCombatEngine {
     @discardableResult
     public static func finalizeOpeningHand(context: inout BattleState) -> [ActionEvent] {
         context.ownersSkippingThisPlayerTurn = skippingOwners(in: context)
+        if !context.hasOfferedStartBoon, !context.isBattleOver {
+            context.hasOfferedStartBoon = true
+            context.pendingBoonOffer = BoonEngine.makeOffer(in: &context)
+        }
         return CombatTriggerEngine.atPlayerTurnStart(in: &context)
     }
 

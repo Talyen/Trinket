@@ -15,45 +15,22 @@ public enum BoonEngine {
         return SeededRandomNumberGenerator(seed: forkSeed ^ seedSalt ^ 0x9E37_79B9_7F4A_7C15)
     }
 
-    static func enqueueCrossedThresholds(in context: inout BattleState) {
-        guard !context.isBattleOver else { return }
-        let maximum = context.maxHealth(of: context.enemy)
-        guard maximum > 0 else { return }
-        let health = context.health(of: context.enemy)
-        guard health > 0 else { return }
-
-        for threshold in BoonThreshold.allCases.sorted(by: { $0.rawValue > $1.rawValue }) {
-            guard !context.crossedBoonThresholds.contains(threshold),
-                  health * 100 <= maximum * threshold.rawValue
-            else { continue }
-            if let offer = makeOffer(for: threshold, in: &context) {
-                context.crossedBoonThresholds.insert(threshold)
-                context.boonOffers.append(offer)
-            } else {
-                let remaining = BoonCatalog.all.count - context.activeBoons.count
-                if remaining < 2 {
-                    context.crossedBoonThresholds.insert(threshold)
-                }
-            }
-        }
-    }
-
     static func isEligible(_ boon: BoonDefinition, affinities: Set<Keyword>) -> Bool {
         Set(boon.category.keywords).isSubset(of: affinities)
     }
 
-    static func makeOffer(for threshold: BoonThreshold, in context: inout BattleState) -> BoonOffer? {
+    static func makeOffer(in context: inout BattleState) -> BoonOffer? {
         let affinities = partyAffinities(in: context)
         let selected = Set(context.activeBoons.map(\.id))
         let unselected = BoonCatalog.all.filter { !selected.contains($0.id) }
         let strictEligible = unselected.filter { Set($0.category.keywords).isSubset(of: affinities) }
         let relaxedEligible = unselected.filter { !Set($0.category.keywords).isDisjoint(with: affinities) }
         var eligible: [BoonDefinition]
-        if strictEligible.count >= 2 {
+        if strictEligible.count >= 3 {
             eligible = strictEligible
-        } else if relaxedEligible.count >= 2 {
+        } else if relaxedEligible.count >= 3 {
             eligible = relaxedEligible
-        } else if unselected.count >= 2 {
+        } else if unselected.count >= 3 {
             eligible = unselected
         } else {
             return nil
@@ -61,7 +38,7 @@ public enum BoonEngine {
 
         eligible.shuffle(using: &context.boonRNG)
         var picked: [BoonDefinition] = []
-        while picked.count < 2, !eligible.isEmpty {
+        while picked.count < 3, !eligible.isEmpty {
             guard let next = eligible.first(where: { candidate in
                 !picked.contains(where: { $0.category.id == candidate.category.id })
             }) ?? eligible.first else { break }
@@ -69,7 +46,7 @@ public enum BoonEngine {
             eligible.removeAll(where: { $0.id == next.id })
         }
 
-        guard picked.count == 2 else { return nil }
+        guard picked.count == 3 else { return nil }
 
         var unavailableArtwork = context.usedBoonArtworkNames
         var choices: [BoonChoice] = []
@@ -81,21 +58,15 @@ public enum BoonEngine {
             choices.append(ch)
         }
         context.usedBoonArtworkNames.formUnion(choices.compactMap(\.artworkName))
-        return BoonOffer(threshold: threshold, choices: choices)
+        return BoonOffer(choices: choices)
     }
 
     static func select(_ boonID: String, in context: inout BattleState) -> Bool {
-        guard let offer = context.boonOffers.first,
+        guard let offer = context.pendingBoonOffer,
               let choice = offer.choices.first(where: { $0.id == boonID })
         else { return false }
-        let queuedThresholds = Array(context.boonOffers.dropFirst().map(\.threshold))
         context.activeBoons.append(ActiveBoon(boon: choice.boon))
-        context.boonOffers.removeAll(keepingCapacity: true)
-        for threshold in queuedThresholds {
-            if let refreshed = makeOffer(for: threshold, in: &context) {
-                context.boonOffers.append(refreshed)
-            }
-        }
+        context.pendingBoonOffer = nil
         return true
     }
 
@@ -158,10 +129,6 @@ public enum BoonEngine {
 }
 
 public extension BattleState {
-    var pendingBoonOffer: BoonOffer? {
-        boonOffers.first
-    }
-
     var hasPendingBoonOffer: Bool {
         pendingBoonOffer != nil
     }

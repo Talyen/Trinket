@@ -6,6 +6,7 @@ import TrinketDesignSystem
 import TrinketFeatureSupport
 
 struct BattleCombatantPane: View {
+    @Environment(BattleSession.self) private var battleSession
     let combatant: Combatant
     let health: Int
     let maxHealth: Int
@@ -15,6 +16,7 @@ struct BattleCombatantPane: View {
     let buffAuraKind: CombatantBuffAuraKind?
     let hapticsEnabled: Bool
     let recoilDirection: CombatantHitRecoilDirection
+    let isActiveTurn: Bool
     let onCombatantTap: () -> Void
 
     private var hasMana: Bool {
@@ -74,15 +76,31 @@ struct BattleCombatantPane: View {
     }
 
     private var artworkLayer: some View {
-        CombatantArtwork(combatant: combatant, variant: .battle)
+        ZStack {
+            CombatantArtwork(combatant: combatant, variant: .battle)
+            if let highlight = battleSession.spectacle
+                .ultimateHighlightsByActorID[combatant.id] {
+                UltimateInFrameView(highlight: highlight, effectsVolume: battleSession.effectsVolume)
+                    .transition(.opacity)
+            }
+        }
+        .animation(
+            .easeInOut(duration: BattleMotion.ultimateInFrameFadeDuration),
+            value: battleSession.spectacle.ultimateHighlightsByActorID[combatant.id]?.id,
+        )
     }
 
     private var resourceBars: some View {
         VStack(spacing: 0) {
-            CombatResourceBar(value: health, maxValue: maxHealth, style: .healthBattle)
+            CombatResourceBar(
+                value: health,
+                maxValue: maxHealth,
+                style: .healthBattle,
+                isActive: isActiveTurn,
+            )
 
             if hasMana {
-                CombatResourceBar(value: mana, maxValue: maxMana, style: .mana)
+                CombatResourceBar(value: mana, maxValue: maxMana, style: .mana, isActive: isActiveTurn)
             }
         }
         .frame(maxWidth: .infinity)

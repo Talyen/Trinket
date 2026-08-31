@@ -94,8 +94,8 @@ public struct BattleState {
     public var isResolvingAutoPlayCard: Bool
     public var drawAndPlayDepth: Int = 0
     public var activeBoons: [ActiveBoon]
-    public var boonOffers: [BoonOffer]
-    public var crossedBoonThresholds: Set<BoonThreshold>
+    public var pendingBoonOffer: BoonOffer?
+    public var hasOfferedStartBoon: Bool
     public var usedBoonArtworkNames: Set<String>
     public var boonRuntime: BoonRuntime
     public static let maxDrawAndPlayDepth = ReactionScope.maxDrawAndPlayDepth
@@ -146,8 +146,8 @@ public struct BattleState {
         isResolvingAutoPlayCard: Bool = false,
         drawAndPlayDepth: Int = 0,
         activeBoons: [ActiveBoon] = [],
-        boonOffers: [BoonOffer] = [],
-        crossedBoonThresholds: Set<BoonThreshold> = [],
+        pendingBoonOffer: BoonOffer? = nil,
+        hasOfferedStartBoon: Bool = false,
         usedBoonArtworkNames: Set<String> = [],
         boonRuntime: BoonRuntime = BoonRuntime(),
         enemyFaction: EnemyFaction = .mortal,
@@ -196,8 +196,8 @@ public struct BattleState {
         self.isResolvingAutoPlayCard = isResolvingAutoPlayCard
         self.drawAndPlayDepth = drawAndPlayDepth
         self.activeBoons = activeBoons
-        self.boonOffers = boonOffers
-        self.crossedBoonThresholds = crossedBoonThresholds
+        self.pendingBoonOffer = pendingBoonOffer
+        self.hasOfferedStartBoon = hasOfferedStartBoon
         self.usedBoonArtworkNames = usedBoonArtworkNames
         self.boonRuntime = boonRuntime
 
@@ -304,7 +304,6 @@ public struct BattleState {
             cardID: cardID,
             context: &self,
         )
-        BoonEngine.enqueueCrossedThresholds(in: &self)
         finishMutation(rebuildLog: rebuildLog)
         return events
     }
@@ -314,7 +313,6 @@ public struct BattleState {
         guard !isBattleOver else { return [] }
         guard !hasPendingBoonOffer else { return [] }
         let events = BattleCardCombatEngine.endTurn(context: &self)
-        BoonEngine.enqueueCrossedThresholds(in: &self)
         finishMutation(rebuildLog: rebuildLog)
         return events
     }

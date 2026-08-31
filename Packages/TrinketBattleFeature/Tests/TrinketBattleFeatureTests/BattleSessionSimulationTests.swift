@@ -170,7 +170,6 @@ struct BattleSessionSimulationTests {
         let recordedIDs = Set(session.feedback.eventRecordedAt.keys)
         let milestoneIDs = Set((session.engineState?.events ?? []).filter { $0.kind == .milestone }.map(\.id))
         #expect(recordedIDs.isDisjoint(with: milestoneIDs))
-        #expect(session.spectacle.deferredFeedbackEvents.allSatisfy { $0.kind != .milestone })
     }
 
     @Test func `reset clears feedback and rebuilds state when reset called`() throws {

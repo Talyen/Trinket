@@ -19,8 +19,8 @@ extension BattleSession {
     ) -> BattleCardPlayResolution {
         cancelPendingAutoEnd()
         feedback.pruneExpired(at: date, notifyPresentation: false)
-        guard spectacle.activeCinematic == nil,
-              !spectacle.isShowingVictory,
+        finishEnemyTurnPresentation()
+        guard !spectacle.isShowingVictory,
               !spectacle.isShowingDefeat,
               !isDealingOpeningHand,
               hasActiveSimulation,
@@ -73,6 +73,7 @@ extension BattleSession {
     func endTurn(at date: Date = .now) {
         cancelPendingAutoEnd()
         feedback.pruneExpired(at: date, notifyPresentation: false)
+        finishEnemyTurnPresentation()
         guard canEndTurn, hasActiveSimulation, !isSuspendedForScenePhase else {
             feedback.noteItemsChanged()
             return
@@ -88,6 +89,7 @@ extension BattleSession {
             )
         }
 
+        beginEnemyTurnIfNeeded()
         let events = endEngineTurn()
         if hasActiveSimulation {
             installSimulationPresentation()
@@ -97,6 +99,13 @@ extension BattleSession {
         }
         presentResolvedEvents(events, at: date)
         handleOutcomeIfNeeded(at: date)
+        if isBattleOver || outcome != nil {
+            cancelPendingEnemyTurnReset()
+            isEnemyTurnActive = false
+            installSimulationPresentation()
+        } else {
+            scheduleEnemyTurnReset(after: date)
+        }
         scheduleAutoEndIfNeeded()
     }
 
@@ -211,6 +220,7 @@ extension BattleSession {
             else { return }
 
             if shouldTelegraphEnemyAttack(), let enemyID {
+                beginEnemyTurnIfNeeded()
                 publishAttackTelegraph(.full, for: enemyID)
                 let impactDelay = enemyAttackImpactDelayOverride
                     ?? .seconds(CombatFeedbackAttackRecipes.cardAttack(for: .attack).impactDelay)
@@ -220,7 +230,14 @@ extension BattleSession {
                           !isSuspendedForScenePhase,
                           canEndTurn,
                           !hasPlayableCard
-                    else { return }
+                    else {
+                        if Task.isCancelled {
+                            cancelPendingEnemyTurnReset()
+                            isEnemyTurnActive = false
+                            installSimulationPresentation()
+                        }
+                        return
+                    }
                 }
             }
 

@@ -1,6 +1,7 @@
 import CoreGraphics
 import QuartzCore
 import SwiftUI
+import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
 import TrinketFeatureSupport
@@ -248,6 +249,10 @@ final class CombatFeedbackGlyphAtlas {
             recipe: recipe,
             presentationRole: face.presentationRole,
         )
+        if symbolName == Keyword.gold.visualStyle.symbolName,
+           let goldImage = goldArtworkImage(targetHeight: font.lineHeight) {
+            return rasterize(image: goldImage, displayScaleHundredths: face.displayScaleHundredths)
+        }
         let config = UIImage.SymbolConfiguration(font: font)
         guard let image = UIImage(
             systemName: symbolName,
@@ -256,6 +261,28 @@ final class CombatFeedbackGlyphAtlas {
             return nil
         }
         return rasterize(image: image, displayScaleHundredths: face.displayScaleHundredths)
+    }
+
+    nonisolated private static func goldArtworkImage(targetHeight: CGFloat) -> UIImage? {
+        let imageName = ArtCatalog.resourceArtByID[HomesteadResource.gold.rawValue]?.imageName
+            ?? "resource_homestead_gold"
+        guard let base = UIImage(named: imageName, in: .main, compatibleWith: nil)
+            ?? UIImage(named: imageName)
+        else {
+            return nil
+        }
+        let height = max(1, targetHeight)
+        let scale = height / max(1, base.size.height)
+        let width = base.size.width * scale
+        let size = CGSize(width: ceil(width), height: ceil(height))
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        format.opaque = false
+        let renderer = UIGraphicsImageRenderer(size: size, format: format)
+        let rendered = renderer.image { _ in
+            base.draw(in: CGRect(origin: .zero, size: size))
+        }
+        return rendered.withTintColor(.white, renderingMode: .alwaysOriginal)
     }
 
     nonisolated static func bakeFragment(

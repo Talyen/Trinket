@@ -4,29 +4,114 @@ import TrinketCore
 @testable import BattleEngine
 
 struct BoonBattleTests {
-    @Test func `offer uses only party affinities and selected boons do not repeat`() throws {
+    @Test func `start-of-combat offer generates exactly three choices on opening hand finalization`() throws {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: [.slash],
             companionAbilities: [.fireArrow],
             enemyMaxHealth: 100,
             dealOpeningHand: false,
         )
+        #expect(battle.pendingBoonOffer == nil)
+        battle.finalizeOpeningHand()
+        let offer = try #require(battle.pendingBoonOffer)
+        try #expect(offer.choices.count == 3)
+        try #expect(offer.id == offer.choices.map(\.id).sorted().joined(separator: "-"))
+        try #expect(Set(offer.choices.map(\.id)).count == 3)
+        try #expect(battle.hasOfferedStartBoon)
+    }
 
-        battle.withEngineContext { context in
-            context.roster.mutateRuntime(for: context.enemy) { $0.currentHealth = 20 }
-            BoonEngine.enqueueCrossedThresholds(in: &context)
-        }
-
-        let firstOffer = try #require(battle.pendingBoonOffer)
-        try #expect(firstOffer.threshold == BoonThreshold.eightyPercent)
-        try #expect(firstOffer.choices.allSatisfy {
+    @Test func `start-of-combat offer prefers distinct categories and falls back to reusing`() throws {
+        var diverse = BattleStateTestFactory.makeBattleWithAbilities(
+            heroAbilities: [.slash],
+            companionAbilities: [.fireArrow],
+            enemyMaxHealth: 100,
+            dealOpeningHand: false,
+        )
+        diverse.finalizeOpeningHand()
+        let diverseOffer = try #require(diverse.pendingBoonOffer)
+        try #expect(diverseOffer.choices.count == 3)
+        try #expect(diverseOffer.choices.allSatisfy {
             Set<Keyword>($0.boon.category.keywords).isSubset(of: Set<Keyword>([.physical, .burn]))
         })
-        let selectedID = firstOffer.choices[0].id
+        try #expect(Set(diverseOffer.choices.map(\.id)).count == 3)
+
+        let wideHero = [
+            Ability(id: "wide-physical", name: "Wide Physical", tier: .basic, damageComponents: [DamageComponent(1, keyword: .physical)]),
+            Ability(id: "wide-holy", name: "Wide Holy", tier: .basic, damageComponents: [DamageComponent(1, keyword: .holy)]),
+            Ability(id: "wide-burn", name: "Wide Burn", tier: .basic, damageComponents: [DamageComponent(1, keyword: .burn)]),
+            Ability(id: "wide-block", name: "Wide Block", tier: .basic, targetedEffects: [TargetedEffect(.shield(.block, 1))]),
+            Ability(id: "wide-stun", name: "Wide Stun", tier: .basic, damageComponents: [DamageComponent(1, keyword: .stun)]),
+        ]
+        var diverseMulti = BattleStateTestFactory.makeBattleWithAbilities(
+            heroAbilities: wideHero,
+            companionAbilities: [],
+            enemyMaxHealth: 100,
+            dealOpeningHand: false,
+        )
+        diverseMulti.finalizeOpeningHand()
+        let multiOffer = try #require(diverseMulti.pendingBoonOffer)
+        try #expect(multiOffer.choices.count == 3)
+        try #expect(Set(multiOffer.choices.map(\.id)).count == 3)
+        try #expect(Set(multiOffer.choices.map(\.boon.category.id)).count == 3)
+
+        var limited = BattleStateTestFactory.makeBattleWithAbilities(
+            heroAbilities: [.slash],
+            companionAbilities: [.slash],
+            enemyMaxHealth: 100,
+            dealOpeningHand: false,
+        )
+        let blocked = BoonCatalog.all.filter { $0.category.id != "physical-bleed" }
+        limited.activeBoons = blocked.prefix(37).map { ActiveBoon(boon: $0) }
+        limited.finalizeOpeningHand()
+        let limitedOffer = try #require(limited.pendingBoonOffer)
+        try #expect(limitedOffer.choices.count == 3)
+        try #expect(Set(limitedOffer.choices.map(\.id)).count == 3)
+    }
+
+    @Test func `selecting a boon activates it and clears the offer`() throws {
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            heroAbilities: [.slash],
+            companionAbilities: [.fireArrow],
+            enemyMaxHealth: 100,
+            dealOpeningHand: false,
+        )
+        battle.finalizeOpeningHand()
+        let offer = try #require(battle.pendingBoonOffer)
+        let selectedID = offer.choices[0].id
         try #expect(battle.selectBoon(id: selectedID))
         try #expect(battle.activeBoons.map(\.id) == [selectedID])
-        try #expect(battle.pendingBoonOffer?.threshold == BoonThreshold.half)
-        try #expect(battle.pendingBoonOffer?.choices.contains(where: { $0.id == selectedID }) == false)
+        try #expect(battle.pendingBoonOffer == nil)
+        try #expect(battle.hasOfferedStartBoon)
+    }
+
+    @Test func `subsequent events do not regenerate the start boon`() throws {
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            heroAbilities: [.slash],
+            companionAbilities: [.fireArrow],
+            enemyMaxHealth: 100,
+            dealOpeningHand: false,
+        )
+        battle.finalizeOpeningHand()
+        let offer = try #require(battle.pendingBoonOffer)
+        let selectedID = offer.choices[0].id
+        _ = battle.selectBoon(id: selectedID)
+
+        _ = battle.endTurn()
+        try #expect(battle.pendingBoonOffer == nil)
+
+        battle.withEngineContext { context in
+            context.roster.mutateRuntime(for: context.enemy) { $0.currentHealth = 10 }
+        }
+        try #expect(battle.pendingBoonOffer == nil)
+
+        battle.finalizeOpeningHand()
+        try #expect(battle.pendingBoonOffer == nil)
+
+        if let card = battle.hand.cards.first {
+            _ = try? battle.playCard(cardID: card.id)
+        }
+        try #expect(battle.pendingBoonOffer == nil)
+        try #expect(battle.hasOfferedStartBoon)
     }
 
     @Test func `physical poison boon deals poison damage and creates poison`() throws {

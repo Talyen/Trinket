@@ -150,13 +150,7 @@ Keep `BattleState` and `PlayerSaveStore` as thin facades. Keep `AppState` as com
 
 `BattleState` public API is reads + `playCard` / `endTurn` / log lifecycle. Engine mutations are `package` in `BattleState+*.swift`.
 
-## Deferred improvements
+## Deferred architecture seams
 
-Do not start these without a concrete forcing function:
-
-| Deferral | Why wait |
-|----------|----------|
-| Split `TrinketContent` into catalogs vs procedural systems | Same package is intentional until a third consumer forces the seam |
-| Split `TrinketFeatureSupport` by product domain | Shared UI layer is intentional until a domain folder has an independent consumer |
-| CloudKit enablement | Local-only until Developer Program + [CloudKitPreShipChecklist.md](CloudKitPreShipChecklist.md) |
-| Further Battle presentation splitting | Simulation, projection, feedback, and spectacle already have distinct owners |
+Do not begin a deferred split or platform expansion without the concrete forcing
+function recorded in the [architecture deferrals knowledge pattern](../../.agents/knowledge/patterns/architecture-deferred-seams.md).

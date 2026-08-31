@@ -210,7 +210,7 @@ struct BattleSessionAutoBattleTests {
         )
     }
 
-    @Test func `auto battle resumes after cinematic clears`() async throws {
+    @Test func `auto battle continues during in-frame ultimate highlight`() async throws {
         let session = try BattleSessionTestSupport.makeConfiguredSession(
             hero: CombatantFixtures.combatant(
                 id: "knight",
@@ -234,9 +234,10 @@ struct BattleSessionAutoBattleTests {
             ),
         )
         _ = session.playCard(cardID: ultimate.id, at: now)
-        #expect(session.spectacle.activeCinematic != nil)
+        #expect(session.spectacle.ultimateHighlightsByActorID["knight"] != nil)
+        #expect(session.canEndTurn)
 
-        var playedAfterCinematic = 0
+        var playedAfterHighlight = 0
         session.isAutoBattleEnabled = true
         let driver = Task { @MainActor in
             await session.driveAutoBattle(
@@ -245,23 +246,18 @@ struct BattleSessionAutoBattleTests {
                 playCard: { card in
                     let resolution = session.playCard(cardID: card.id)
                     guard resolution.didCommit else { return false }
-                    playedAfterCinematic += 1
+                    playedAfterHighlight += 1
                     session.isAutoBattleEnabled = false
                     return true
                 },
             )
         }
 
-        #expect(session.spectacle.activeCinematic != nil)
-        #expect(
-            try await BattleSessionTestSupport.waitUntil(timeout: .milliseconds(80)) {
-                playedAfterCinematic > 0
-            } == false,
-        )
-
-        session.completeCinematicCollapse(at: now.addingTimeInterval(1))
-        #expect(try await BattleSessionTestSupport.waitUntil { playedAfterCinematic > 0 })
+        #expect(try await BattleSessionTestSupport.waitUntil(timeout: .milliseconds(300)) {
+            playedAfterHighlight > 0
+        })
         _ = await driver.result
+        #expect(session.spectacle.ultimateHighlightsByActorID["knight"] != nil || playedAfterHighlight > 0)
     }
 
     @Test func `auto battle resets off on new battle when remember is off`() throws {

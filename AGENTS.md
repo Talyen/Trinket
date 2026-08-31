@@ -21,7 +21,7 @@ Write for a collaborator who knows Trinket as a game, not the file tree.
 - Preserve existing work. Do not clean, revert, or overwrite unrelated changes, and never stage or commit them.
 - Keep work within the requested scope.
 - Treat checked-in project configuration as the toolchain source of truth.
-- Do not add legacy-platform compatibility or UIKit bridges when current SwiftUI provides a first-party solution.
+- Do not add legacy-platform compatibility or UIKit bridges for feature chrome when current SwiftUI provides a first-party solution. Existing measured UIKit feedback infrastructure is an owned exception; extend it only through its package guide.
 - Never hand-edit generated code, processed assets/resources, `.DerivedData/`, `.tools/`, or the Xcode project. Edit authored inputs and run `./Scripts/generate.sh`.
 - Do not drop launch or imminent artwork pins, switch first-screen art to on-demand `Image(name)`, or lower artwork memory budgets (`PreparedArtworkCache` / `NSCache.totalCostLimit`) without product approval. Enforced by `check-artwork-budget.sh`; see [PerformanceInvestigationPlaybook](Docs/Platform/PerformanceInvestigationPlaybook.md) and [`PreparedArtworkCache`](Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/PreparedArtworkCache.swift).
 - Keep the primary checkout on `main`. Do not create or switch branches, and do not open pull requests. Detached worktrees created by `./Scripts/agent-worktree.sh` are allowed for parallel verification. Land work by committing and pushing directly to `main` only when explicitly requested. For requested commit or release work, read [`Docs/Platform/Release.md`](Docs/Platform/Release.md).
@@ -38,7 +38,7 @@ Touched areas must respect their nested guides and AgentContext cards. Run `./Sc
 - Prefer the most pragmatic surface, ordered as delete → reuse → simplify locally → parameterize a confirmed duplicate → add an abstraction. Choose the step that best fits the long-term ownership and removes the root cause, not automatically the shortest step; a larger step that eliminates the defect class is preferred over a narrower local patch.
 - Extend the module that already owns the behavior before adding a file, type, protocol, manager, helper, wrapper, or configuration object. A generic abstraction needs at least three current uses or an enforced architectural boundary; predicted future reuse is insufficient.
 - Refactors remove the replaced path. Do not leave forwarding wrappers, parallel implementations, or duplicate tests unless compatibility explicitly requires them.
-- Do not author Swift comments or leave temporary debug output. Code clarity and tests own intent; comment hygiene is enforced by `check-comment-ban.sh`.
+- Do not author explanatory Swift comments or leave temporary debug output. Narrow checker-approved `*Check: allow - reason` annotations are the only exception; comment hygiene is enforced by `check-comment-ban.sh`.
 - Treat authored production and test surface as budgets. Unusual growth is advisory, not a license to compress code: report the necessity and the simpler alternative rejected when `./Scripts/change-budget.sh` warns.
 
 ## Test and verification discipline

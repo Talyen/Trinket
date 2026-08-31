@@ -23,13 +23,33 @@ Run artifacts are ephemeral by default. Use the owning command's documented
 keep/cleanup switches when an investigation needs to retain a successful run;
 failed evidence remains available for triage.
 
-CI and local verification profile output automatically (metadata only: label, outcome, elapsed, line/byte counts; no command text or contents). See [Verification and CI](../Docs/Platform/Verification.md) Output efficiency telemetry for policy, retention (50 local sessions under `.DerivedData/OutputProfiles/`, 30 days in CI), and escape hatches (`TRINKET_OUTPUT_PROFILE=0`, `TRINKET_OUTPUT_PROFILE_DIR`). Reports:
+## Output profiling
+
+CI and local verification profile output automatically. Profiling is metadata-only
+(label, outcome, elapsed time, and displayed line/byte counts); command arguments
+and output contents are not retained. Reports are advisory and do not fail a
+correctness gate. Normal verification stays quiet; the profiler owns the
+thresholds for sustained or materially excessive output, and CI surfaces at most
+three ranked advisories.
+
+The profile directory is retained separately from diagnostic artifacts: 50 local
+sessions under `.DerivedData/OutputProfiles/` and 30 days in CI. Raw Xcode/test
+logs remain agent-visible only when a command prints them, not merely because
+they exist in a diagnostic artifact.
+
+Use these reports when investigating a local or hosted trend:
 
 ```sh
 python3 Scripts/output-profile.py report --local
 python3 Scripts/output-profile.py report --ci <artifact-dirs...>
 python3 Scripts/output-profile.py report --actionable --top 3
 ```
+
+`TRINKET_OUTPUT_PROFILE=0` is a debugging escape hatch. Set
+`TRINKET_OUTPUT_PROFILE_DIR` when an isolated test needs a different metadata
+directory. The recurring maintenance task consumes actionable evidence, edits
+only a clean checkout, and leaves verified bounded changes uncommitted for
+review.
 
 Read these focused guides:
 

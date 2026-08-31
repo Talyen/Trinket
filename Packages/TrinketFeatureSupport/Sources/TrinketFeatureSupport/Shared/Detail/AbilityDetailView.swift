@@ -37,12 +37,11 @@ public struct AbilityDetailView: View {
     public var body: some View {
         DetailHeroScrollShell(
             title: ability.name,
-            header: { baseHeight, overscroll in
+            header: { baseHeight in
                 DetailHeroHeader(
                     eyebrow: ability.tier.rawValue.uppercased(),
                     title: ability.name,
                     baseHeight: baseHeight,
-                    overscroll: overscroll,
                 ) {
                     abilityArtwork
                 }

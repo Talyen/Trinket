@@ -42,7 +42,7 @@ struct TrinketEffectTests {
             heroAbilities: [.fireball],
             heroMana: 8,
         )
-        battle.drawOpeningHand()
+        BattleStateTestFactory.drawOpeningHandWithoutStartBoon(on: &battle)
         battle.withEngineContext { context in
             context.roster.mutateRuntime(for: context.roster.hero.combatant) { $0.currentMana = 8 }
         }
@@ -386,7 +386,7 @@ struct TrinketEffectTests {
                 for: context.roster.companion.combatant,
             )
         }
-        battle.drawOpeningHand()
+        BattleStateTestFactory.drawOpeningHandWithoutStartBoon(on: &battle)
         let card = try #require(battle.hand.cards.first { $0.ability.id == "cleanse-companion" })
 
         _ = try battle.playCard(cardID: card.id)

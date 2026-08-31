@@ -90,10 +90,54 @@ extension BattleSession {
 
     func presentationSnapshot() -> BattlePresentationSnapshot? {
         if let activeBattle {
-            return engineState?.battlePresentationSnapshot(configurationID: activeBattle.id)
+            return engineState?.battlePresentationSnapshot(
+                configurationID: activeBattle.id,
+                isEnemyTurnActive: isEnemyTurnActive,
+            )
         }
         guard let run = singlePreparedBattleRun else { return nil }
-        return run.state.battlePresentationSnapshot(configurationID: run.configuration.id)
+        return run.state.battlePresentationSnapshot(
+            configurationID: run.configuration.id,
+            isEnemyTurnActive: isEnemyTurnActive,
+        )
+    }
+
+    func beginEnemyTurnIfNeeded() {
+        guard !isEnemyTurnActive else { return }
+        enemyTurnGeneration &+= 1
+        pendingEnemyTurnResetTask?.cancel()
+        pendingEnemyTurnResetTask = nil
+        isEnemyTurnActive = true
+        installSimulationPresentation()
+    }
+
+    func scheduleEnemyTurnReset(after date: Date = .now) {
+        let generation = enemyTurnGeneration
+        let feedbackDelay = feedback.latestExpiry.map {
+            max(0, $0.timeIntervalSince(date))
+        } ?? 0
+        let resetDelay = max(0.26, feedbackDelay)
+        pendingEnemyTurnResetTask?.cancel()
+        pendingEnemyTurnResetTask = Task { @MainActor [weak self] in
+            guard let self else { return }
+            try? await Task.sleep(for: .seconds(resetDelay))
+            guard !Task.isCancelled, enemyTurnGeneration == generation else { return }
+            isEnemyTurnActive = false
+            pendingEnemyTurnResetTask = nil
+            installSimulationPresentation()
+        }
+    }
+
+    func cancelPendingEnemyTurnReset() {
+        pendingEnemyTurnResetTask?.cancel()
+        pendingEnemyTurnResetTask = nil
+    }
+
+    func finishEnemyTurnPresentation() {
+        guard isEnemyTurnActive else { return }
+        cancelPendingEnemyTurnReset()
+        isEnemyTurnActive = false
+        installSimulationPresentation()
     }
 
     public var overlayBattleConfiguration: BattleRunConfiguration? {
@@ -308,6 +352,7 @@ extension BattleSession {
         isSuspendedForScenePhase = suspended
         if suspended {
             cancelPendingAutoEnd()
+            finishEnemyTurnPresentation()
         } else {
             scheduleAutoEndIfNeeded()
         }

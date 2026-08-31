@@ -50,7 +50,13 @@ struct PlayScreen {
 
     func openCampaign() {
         openModeHub()
-        app.buttons[AccessibilityID.Play.campaignModeCard].tap()
+        let campaign = app.buttons[AccessibilityID.Play.campaignModeCard]
+        XCTAssertTrue(
+            campaign.waitForExistence(timeout: TrinketUITestCase.defaultTimeout),
+            "Campaign control not found",
+        )
+        campaign.tap()
+        assertCampaignLoaded()
     }
 
     func openExplore() {

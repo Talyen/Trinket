@@ -30,12 +30,9 @@ journeys use UI smoke/deploy only when the keep/drop rubric below applies.
 Prefer `TrinketTestSupport` (`CombatantFixtures`, battle parties). Save harnesses live
 in `TrinketPersistence`'s `TrinketPersistenceTestSupport` target—not in `TrinketTestSupport`—so TestSupport stays
 Persistence-free. App suites use `AppTestContext`; Persistence uses
-`PersistenceTestContext`. Battle RNG: always
-`BattleStateTestFactory.makeBattle(...)` with the factory default seed
-(`CombatantFixtures.deterministicBattleSeed`). Pipeline tests that must skip
-deck bootstrap use `makeMinimalBattle`. Use explicit seeds only for RNG
-edge cases; seed `0` can invalidate dodge-sensitive assertions. Dispatch via
-`EffectHandlers.all`.
+`PersistenceTestContext`. Package-specific fixture, RNG, and handler-dispatch
+conventions belong in the owning package's test README; do not duplicate them
+here.
 
 ## Unit conventions
 

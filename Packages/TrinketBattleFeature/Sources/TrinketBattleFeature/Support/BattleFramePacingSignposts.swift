@@ -15,7 +15,6 @@ public enum BattleFramePacingSignposts {
         static let chipFlush: StaticString = "ChipFlush"
         static let chipHostApply: StaticString = "ChipHostApply"
         static let feedbackRasterBuild: StaticString = "FeedbackRasterBuild"
-        static let ultimateCinematic: StaticString = "UltimateCinematic"
         static let playCardEngine: StaticString = "PlayCardEngine"
         static let playCardProjection: StaticString = "PlayCardProjection"
         static let playCardFeedback: StaticString = "PlayCardFeedback"

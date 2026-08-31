@@ -22,9 +22,13 @@ genuinely new concern. The authoritative suite inventory is the
 
 ## Conventions
 
-- Use `BattleStateTestFactory.makeBattle(...)` for deterministic RNG.
+- Use `BattleStateTestFactory.makeBattle(...)` with its factory default seed
+  (`CombatantFixtures.deterministicBattleSeed`) for deterministic RNG. Use
+  explicit seeds only for RNG edge cases; seed `0` can invalidate
+  dodge-sensitive assertions.
 - Use `BattleStateTestFactory.makeMinimalBattle(...)` (or `BattleTestFixtures.makePipelineContext` / `makeContext`) for pipeline tests that must skip deck bootstrap.
 - Prefer `BattleTestFixtures` helpers (`playFirstPlayableCard`, `endTurn`, …).
+- Dispatch effects through `EffectHandlers.all`.
 - Public facade: reads + `playCard` / `endTurn` / log lifecycle. Engine mutations are `package`.
 
 ```sh

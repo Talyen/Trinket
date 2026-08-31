@@ -67,5 +67,6 @@ struct HomesteadFocalArtwork: View {
                 .offset(x: offsetX, y: offsetY)
         }
         .clipped()
+        .allowsHitTesting(false)
     }
 }

@@ -65,31 +65,13 @@ enum BattleMotion: Sendable {
         .spring(response: 0.34, dampingFraction: 0.92)
     }
 
-    static let ultimateVideoWatchdog: TimeInterval = 12.0
-    static let ultimateCinematicSessionWatchdog: TimeInterval = 20.0
     static let scrimFade: TimeInterval = 0.2
-    static let ultimateSplitOpen: TimeInterval = 0.5
-    static let ultimateSplitClose: TimeInterval = 0.38
+    static let ultimateInFrameDuration: TimeInterval = 3.0
+    static let ultimateInFrameFadeDuration: TimeInterval = 0.25
     static let ultimateCinematicPlaybackSpeed = 1.2
 
-    static var ultimateSplitOpenAtPlayback: TimeInterval {
-        ultimateSplitOpen / ultimateCinematicPlaybackSpeed
-    }
-
-    static var ultimateSplitCloseAtPlayback: TimeInterval {
-        ultimateSplitClose / ultimateCinematicPlaybackSpeed
-    }
-
-    static var ultimateSplitOpenPlaybackAnimation: Animation {
-        .easeInOut(duration: ultimateSplitOpenAtPlayback)
-    }
-
-    static var ultimateSplitClosePlaybackAnimation: Animation {
-        .easeInOut(duration: ultimateSplitCloseAtPlayback)
-    }
-
     static let chipDisplayDuration: TimeInterval = alchemyPopDisplayDuration
-    static let alchemyPopDisplayDuration: TimeInterval = 0.73
+    static let alchemyPopDisplayDuration: TimeInterval = 0.95
     static let feedbackStreamStagger: TimeInterval = 0.126
     static let chipTravelFraction: CGFloat = 0.48
     static let chipTopClearance: CGFloat = 4

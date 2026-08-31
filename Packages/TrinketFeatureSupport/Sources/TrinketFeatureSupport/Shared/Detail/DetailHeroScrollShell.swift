@@ -6,17 +6,17 @@ public struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
     let title: String
     let heroHeightPolicy: HeroHeaderLayout.HeightPolicy
     var hidesNavigationBar = false
-    @ViewBuilder let header: (_ baseHeight: CGFloat, _ overscroll: CGFloat) -> Header
+    @ViewBuilder let header: (_ baseHeight: CGFloat) -> Header
     @ViewBuilder let bodyContent: () -> BodyContent
 
-    @State private var scrollPresentation = ScrollPresentation.initial
     @State private var showsPinnedScrollEdgeEffect = false
+    @State private var titleOpacity: CGFloat = 0
 
     public init(
         title: String,
         heroHeightPolicy: HeroHeaderLayout.HeightPolicy = .portrait,
         hidesNavigationBar: Bool = false,
-        @ViewBuilder header: @escaping (_ baseHeight: CGFloat, _ overscroll: CGFloat) -> Header,
+        @ViewBuilder header: @escaping (_ baseHeight: CGFloat) -> Header,
         @ViewBuilder bodyContent: @escaping () -> BodyContent,
     ) {
         self.title = title
@@ -30,8 +30,8 @@ public struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
         navigationBarConfigured {
             ScrollView {
                 VStack(spacing: 0) {
-                    DetailScrollPresentationHeader(
-                        presentation: scrollPresentation,
+                    DetailHeroHeaderContainer(
+                        heroHeightPolicy: heroHeightPolicy,
                         header: header,
                     )
 
@@ -46,24 +46,17 @@ public struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
             .scrollBounceBehavior(.always)
             .scrollEdgeEffectHidden(!showsPinnedScrollEdgeEffect, for: .top)
             .scrollEdgeEffectStyle(.soft, for: .top)
-            .onScrollGeometryChange(for: ScrollPresentation.self) { geometry in
+            .onScrollGeometryChange(for: CGFloat.self) { geometry in
                 let topInset = geometry.contentInsets.top
                 let headerBaseHeight = heroHeightPolicy.height(forWidth: geometry.containerSize.width)
                 let threshold = headerBaseHeight - topInset - 44
                 let offsetY = geometry.contentOffset.y + topInset
-                return ScrollPresentation(
-                    headerBaseHeight: headerBaseHeight,
-                    heroOverscroll: HeroHeaderLayout.overscroll(
-                        contentOffsetY: geometry.contentOffset.y,
-                        topInset: topInset,
-                    ),
-                    titleOpacity: min(max((offsetY - threshold) / 32, 0), 1),
-                )
-            } action: { _, newPresentation in
-                guard scrollPresentation != newPresentation else { return }
-                scrollPresentation = newPresentation
-
-                let isPinned = newPresentation.titleOpacity >= 0.5
+                return min(max((offsetY - threshold) / 32, 0), 1)
+            } action: { _, newOpacity in
+                if titleOpacity != newOpacity {
+                    titleOpacity = newOpacity
+                }
+                let isPinned = newOpacity >= 0.5
                 if showsPinnedScrollEdgeEffect != isPinned {
                     showsPinnedScrollEdgeEffect = isPinned
                 }
@@ -86,7 +79,7 @@ public struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
                     ToolbarItem(placement: .principal) {
                         DetailScrollNavigationTitle(
                             title: title,
-                            presentation: scrollPresentation,
+                            opacity: titleOpacity,
                         )
                     }
                     .sharedBackgroundVisibility(.hidden)
@@ -95,37 +88,31 @@ public struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
     }
 }
 
-private struct ScrollPresentation: Equatable {
-    static var initial: Self {
-        Self(
-            headerBaseHeight: HeroHeaderLayout.minimumHeaderHeight,
-            heroOverscroll: 0,
-            titleOpacity: 0,
-        )
-    }
-
-    var headerBaseHeight: CGFloat
-    var heroOverscroll: CGFloat
-    var titleOpacity: CGFloat
-}
-
-private struct DetailScrollPresentationHeader<Header: View>: View {
-    let presentation: ScrollPresentation
-    @ViewBuilder let header: (_ baseHeight: CGFloat, _ overscroll: CGFloat) -> Header
+private struct DetailHeroHeaderContainer<Header: View>: View {
+    let heroHeightPolicy: HeroHeaderLayout.HeightPolicy
+    @ViewBuilder let header: (_ baseHeight: CGFloat) -> Header
+    @State private var headerBaseHeight: CGFloat = HeroHeaderLayout.minimumHeaderHeight
 
     var body: some View {
-        header(presentation.headerBaseHeight, presentation.heroOverscroll)
+        header(headerBaseHeight)
+            .onScrollGeometryChange(for: CGFloat.self) { geometry in
+                heroHeightPolicy.height(forWidth: geometry.containerSize.width)
+            } action: { _, newHeight in
+                if headerBaseHeight != newHeight {
+                    headerBaseHeight = newHeight
+                }
+            }
     }
 }
 
 private struct DetailScrollNavigationTitle: View {
     let title: String
-    let presentation: ScrollPresentation
+    let opacity: CGFloat
 
     var body: some View {
         Text(title)
             .trinketTypography(.navigation)
-            .opacity(presentation.titleOpacity)
+            .opacity(opacity)
     }
 }
 

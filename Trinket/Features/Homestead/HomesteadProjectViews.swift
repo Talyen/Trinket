@@ -23,7 +23,7 @@ private enum HomesteadProjectRowMetrics {
 struct HomesteadProjectRow: View {
     let definition: HomesteadNodeDefinition
     let status: HomesteadProjectStatus
-    var zoomNamespace: Namespace.ID?
+    var zoomNamespace: Namespace.ID
 
     private var isLocked: Bool {
         if case .prerequisiteLocked = status.rowState {
@@ -39,7 +39,7 @@ struct HomesteadProjectRow: View {
     var body: some View {
         NavigationLink(value: definition) {
             rowContent
-                .optionalMatchedTransitionSource(id: definition.id, in: zoomNamespace)
+                .matchedTransitionSource(id: definition.id, in: zoomNamespace)
         }
         .trinketQuietTapButtonStyle()
         .accessibilityIdentifier(AccessibilityID.Homestead.node(title: definition.title))
@@ -101,7 +101,7 @@ struct HomesteadProjectSection: View {
     let definitions: [HomesteadNodeDefinition]
     let homestead: PlayerHomesteadState
     let roster: PlayerRosterState
-    var zoomNamespace: Namespace.ID?
+    var zoomNamespace: Namespace.ID
     var showsCategoryHeader = true
 
     var body: some View {
@@ -114,7 +114,7 @@ struct HomesteadProjectSection: View {
                     .accessibilityIdentifier(AccessibilityID.Homestead.category(category.rawValue))
             }
 
-            LazyVStack(spacing: 0) {
+            VStack(spacing: 0) {
                 ForEach(Array(definitions.enumerated()), id: \.element.id) { index, definition in
                     HomesteadProjectRow(
                         definition: definition,

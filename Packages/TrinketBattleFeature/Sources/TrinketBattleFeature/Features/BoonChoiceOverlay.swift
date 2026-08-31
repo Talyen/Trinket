@@ -11,6 +11,7 @@ struct BoonChoiceOverlay: View {
     @State private var committingChoiceID: String?
     @State private var isRevealed = false
     @State private var choiceCenters: [String: CGPoint] = [:]
+    @State private var selectionTask: Task<Void, Never>?
 
     var body: some View {
         GeometryReader { geometry in
@@ -52,6 +53,10 @@ struct BoonChoiceOverlay: View {
                 isRevealed = true
             }
         }
+        .onDisappear {
+            selectionTask?.cancel()
+            selectionTask = nil
+        }
         .transition(.opacity)
         .id(offer.id)
         .accessibilityIdentifier(AccessibilityID.Battle.boonChoice)
@@ -67,8 +72,10 @@ struct BoonChoiceOverlay: View {
         withAnimation(TrinketMotion.Interaction.selection) {
             committingChoiceID = choiceID
         }
-        Task { @MainActor in
+        selectionTask?.cancel()
+        selectionTask = Task { @MainActor in
             try? await Task.sleep(for: .milliseconds(220))
+            guard !Task.isCancelled else { return }
             onSelect(choiceID)
         }
     }
@@ -77,7 +84,7 @@ struct BoonChoiceOverlay: View {
         if size.width > 0, size.height > 0, let center = choiceCenters[choiceID] {
             return UnitPoint(x: center.x / size.width, y: center.y / size.height)
         }
-        let fallbackY: [CGFloat] = [0.42, 0.62]
+        let fallbackY: [CGFloat] = [0.32, 0.50, 0.68]
         if let index = offer.choices.firstIndex(where: { $0.id == choiceID }),
            index < fallbackY.count {
             return UnitPoint(x: 0.5, y: fallbackY[index])
@@ -103,16 +110,27 @@ struct BoonChoiceOverlay: View {
             )
         }
         if !measured.isEmpty {
-            return measured
+            return supportedPlasmaSources(measured)
         }
-        let fallbackY: [CGFloat] = [0.42, 0.62]
-        return offer.choices.enumerated().compactMap { index, choice in
+        let fallbackY: [CGFloat] = [0.32, 0.50, 0.68]
+        let fallback: [KeywordPlasmaBackground.Source] = offer.choices.enumerated().compactMap { index, choice in
             guard index < fallbackY.count else { return nil }
             return KeywordPlasmaBackground.Source(
                 keywords: choice.boon.category.keywords,
                 focalPoint: UnitPoint(x: 0.5, y: fallbackY[index]),
             )
         }
+        return supportedPlasmaSources(fallback)
+    }
+
+    private func supportedPlasmaSources(
+        _ sources: [KeywordPlasmaBackground.Source],
+    ) -> [KeywordPlasmaBackground.Source] {
+        guard sources.count > 2,
+              let first = sources.first,
+              let last = sources.last
+        else { return sources }
+        return [first, last]
     }
 
     private var header: some View {

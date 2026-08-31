@@ -178,7 +178,11 @@ struct ShopEncounterView: View {
                 Text("Sold")
             } else {
                 Text("Buy")
-                Image(systemName: Keyword.gold.visualStyle.symbolName)
+                HomesteadResourceArtwork(resource: .gold)
+                    .frame(
+                        width: TrinketDesign.Metrics.compactResourceArtworkSize * 0.8,
+                        height: TrinketDesign.Metrics.compactResourceArtworkSize * 0.8,
+                    )
                 Text("\(offer.price)")
                     .monospacedDigit()
             }

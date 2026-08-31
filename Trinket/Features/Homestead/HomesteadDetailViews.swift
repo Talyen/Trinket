@@ -11,6 +11,7 @@ struct HomesteadNodeDetailView: View {
     @Environment(PlayerSaveStore.self) private var playerSave
     @Environment(OptionsStore.self) private var options
     @State private var build = HomesteadBuildControl()
+    @State private var pinnedArtwork: [String] = []
 
     let definition: HomesteadNodeDefinition
 
@@ -61,6 +62,38 @@ struct HomesteadNodeDetailView: View {
             enabled: options.hapticsEnabled,
         )
         .homesteadBuildErrorAlert(build: $build)
+        .task(id: artworkPinKey) {
+            await refreshArtworkPins()
+        }
+        .onDisappear {
+            PreparedArtworkCache.shared.releasePins(names: pinnedArtwork)
+            pinnedArtwork = []
+        }
+    }
+
+    private var artworkPinKey: [String] {
+        guard let art = ArtCatalog.backgroundArtByID[definition.id.rawValue] else { return [] }
+        return [art.imageName, art.thumbnailImageName].compactMap(\.self)
+    }
+
+    private func refreshArtworkPins() async {
+        let next = Array(Set(artworkPinKey)).sorted()
+        let previous = Set(pinnedArtwork)
+        let added = Set(next).subtracting(previous)
+        let removed = previous.subtracting(Set(next))
+        if !added.isEmpty {
+            let addedNames = Array(added)
+            await PreparedArtworkCache.shared.prepareAndPin(names: addedNames)
+            guard !Task.isCancelled else {
+                PreparedArtworkCache.shared.releasePins(names: addedNames)
+                return
+            }
+        }
+        guard !Task.isCancelled else { return }
+        if !removed.isEmpty {
+            PreparedArtworkCache.shared.releasePins(names: Array(removed))
+        }
+        pinnedArtwork = next
     }
 
     private func buildOrUpgrade() {

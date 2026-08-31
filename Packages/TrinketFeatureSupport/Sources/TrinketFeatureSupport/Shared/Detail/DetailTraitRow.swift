@@ -37,11 +37,17 @@ public struct DetailTraitRow: View {
             if !(title?.isEmpty ?? true) || !(titlePrefix?.isEmpty ?? true) {
                 HStack(alignment: .firstTextBaseline, spacing: TrinketDesign.Metrics.extraSmallSpacing) {
                     if let leadingIconKeyword {
-                        Image(systemName: leadingIconKeyword.visualStyle.symbolName)
-                            // UIStyleCheck: allow - SF Symbol glyph sizing, not copy
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(leadingIconKeyword.visualStyle.color)
-                            .accessibilityHidden(true)
+                        if leadingIconKeyword == .gold {
+                            HomesteadResourceArtwork(resource: .gold)
+                                .frame(width: 18, height: 18)
+                                .accessibilityHidden(true)
+                        } else {
+                            Image(systemName: leadingIconKeyword.visualStyle.symbolName)
+                                // UIStyleCheck: allow - SF Symbol glyph sizing, not copy
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(leadingIconKeyword.visualStyle.color)
+                                .accessibilityHidden(true)
+                        }
                     }
                     titleText
                 }

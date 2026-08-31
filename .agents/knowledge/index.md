@@ -22,6 +22,7 @@ Patterns support merging, marking `superseded` / `obsolete`, and preserving reje
 |---|---|---|---|
 | [artwork-working-set](patterns/artwork-working-set.md) | active | high | Launch art, `PreparedArtwork*`, `NSCache` budget, hitch/memory work |
 | [module-dag-containment](patterns/module-dag-containment.md) | active | high | Adding imports, `Package.swift` deps, new hubs or cross-package moves |
+| [architecture-deferred-seams](patterns/architecture-deferred-seams.md) | active | medium | Proposing package splits, new platform sync, or further Battle presentation boundaries |
 
 ## Skill impact
 

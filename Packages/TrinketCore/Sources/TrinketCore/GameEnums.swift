@@ -102,17 +102,26 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Codable, Send
         return unique.sorted { $0.0.count > $1.0.count }
     }()
 
-    public static func referenced(in text: String) -> [Self] {
-        var keywordFirstIndices: [Self: String.Index] = [:]
-        for (term, keyword) in styledTerms {
+    public static let styledRegexes: [(regex: NSRegularExpression, keyword: Self)] =
+        styledTerms.compactMap { term, keyword in
             let pattern = "\\b\(NSRegularExpression.escapedPattern(for: term))\\b"
-            guard let range = text.range(of: pattern, options: [.regularExpression, .caseInsensitive]) else { continue }
+            guard let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]) else { return nil }
+            return (regex, keyword)
+        }
+
+    public static func referenced(in text: String) -> [Self] {
+        var keywordFirstIndices: [Self: Int] = [:]
+        let nsText = text as NSString
+        let fullRange = NSRange(location: 0, length: nsText.length)
+        for (regex, keyword) in styledRegexes {
+            guard let match = regex.firstMatch(in: text, options: [], range: fullRange) else { continue }
+            let location = match.range.location
             if let existing = keywordFirstIndices[keyword] {
-                if range.lowerBound < existing {
-                    keywordFirstIndices[keyword] = range.lowerBound
+                if location < existing {
+                    keywordFirstIndices[keyword] = location
                 }
             } else {
-                keywordFirstIndices[keyword] = range.lowerBound
+                keywordFirstIndices[keyword] = location
             }
         }
         return keywordFirstIndices

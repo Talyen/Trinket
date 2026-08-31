@@ -104,14 +104,13 @@ public struct ItemDetailView: View {
     public var body: some View {
         DetailHeroScrollShell(
             title: item.displayName,
-            header: {
+            header: { baseHeight in
                 DetailHeroHeader(
                     eyebrow: ItemDetailContent.eyebrow(for: item),
                     title: item.displayName,
                     titleKeywords: Set(item.astralShineKeywords ?? []),
                     titleShineColors: item.rarity == .unique ? UniqueShine.textColors : nil,
-                    baseHeight: $0,
-                    overscroll: $1,
+                    baseHeight: baseHeight,
                 ) {
                     ItemArtwork(item: item)
                 }

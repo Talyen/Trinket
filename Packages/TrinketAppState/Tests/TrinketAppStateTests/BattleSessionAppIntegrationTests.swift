@@ -208,10 +208,6 @@ struct BattleSessionAppIntegrationTests {
                 _ = battle.selectAutoBoon()
                 continue
             }
-            if battle.spectacle.activeCinematic != nil {
-                battle.completeCinematicCollapse()
-                continue
-            }
             if let card = battle.hand.first(where: { battle.isCardPlayable($0) }) {
                 _ = battle.playCard(cardID: card.id)
                 continue
@@ -221,9 +217,6 @@ struct BattleSessionAppIntegrationTests {
                 continue
             }
             break
-        }
-        if battle.spectacle.activeCinematic != nil {
-            battle.completeCinematicCollapse()
         }
         battle.handleOutcomeIfNeeded(at: .now)
     }

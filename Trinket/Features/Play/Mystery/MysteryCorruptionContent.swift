@@ -14,7 +14,7 @@ struct MysteryCorruptionRevealContent: View {
     var body: some View {
         DetailHeroScrollShell(
             title: result.item.displayName,
-            header: { baseHeight, overscroll in
+            header: { baseHeight in
                 DetailHeroHeader(
                     eyebrow: eyebrow(for: result.item),
                     title: result.item.displayName,
@@ -22,7 +22,6 @@ struct MysteryCorruptionRevealContent: View {
                     titleShineColors: result.item.rarity == .unique ? UniqueShine.textColors : nil,
                     titleAccessibilityIdentifier: AccessibilityID.Mystery.corruptionRevealTitle,
                     baseHeight: baseHeight,
-                    overscroll: overscroll,
                 ) {
                     ItemArtwork(item: result.item)
                 }

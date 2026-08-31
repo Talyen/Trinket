@@ -69,12 +69,11 @@ public struct CombatantTalentsView: View {
     }
 
     public var body: some View {
-        DetailHeroScrollShell(title: tree.name, heroHeightPolicy: .cinematicLandscape) { baseHeight, overscroll in
+        DetailHeroScrollShell(title: tree.name, heroHeightPolicy: .cinematicLandscape) { baseHeight in
             DetailHeroHeader(
                 eyebrow: "TALENTS",
                 title: tree.name,
                 baseHeight: baseHeight,
-                overscroll: overscroll,
             ) {
                 talentArtwork
             }

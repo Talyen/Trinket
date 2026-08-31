@@ -9,7 +9,6 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
     var titleShineColors: [Color]?
     var titleAccessibilityIdentifier: String?
     let baseHeight: CGFloat
-    let overscroll: CGFloat
     var horizontalPadding: CGFloat
     var bottomPadding: CGFloat
     @ViewBuilder let art: () -> Art
@@ -22,7 +21,6 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
         titleShineColors: [Color]? = nil,
         titleAccessibilityIdentifier: String? = nil,
         baseHeight: CGFloat,
-        overscroll: CGFloat,
         horizontalPadding: CGFloat = TrinketDesign.Metrics.largeSpacing,
         bottomPadding: CGFloat = TrinketDesign.Metrics.largeSpacing,
         @ViewBuilder art: @escaping () -> Art,
@@ -34,7 +32,6 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
         self.titleShineColors = titleShineColors
         self.titleAccessibilityIdentifier = titleAccessibilityIdentifier
         self.baseHeight = baseHeight
-        self.overscroll = overscroll
         self.horizontalPadding = horizontalPadding
         self.bottomPadding = bottomPadding
         self.art = art
@@ -44,7 +41,6 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
     public var body: some View {
         OverscrollHeroContainer(
             baseHeight: baseHeight,
-            overscroll: overscroll,
             alignment: .topLeading,
             artworkBlend: .bottom(into: .canvas),
         ) {
@@ -105,7 +101,6 @@ public extension DetailHeroHeader where Footer == EmptyView {
         titleShineColors: [Color]? = nil,
         titleAccessibilityIdentifier: String? = nil,
         baseHeight: CGFloat,
-        overscroll: CGFloat,
         horizontalPadding: CGFloat = TrinketDesign.Metrics.largeSpacing,
         bottomPadding: CGFloat = TrinketDesign.Metrics.largeSpacing,
         @ViewBuilder art: @escaping () -> Art,
@@ -116,7 +111,6 @@ public extension DetailHeroHeader where Footer == EmptyView {
         self.titleShineColors = titleShineColors
         self.titleAccessibilityIdentifier = titleAccessibilityIdentifier
         self.baseHeight = baseHeight
-        self.overscroll = overscroll
         self.horizontalPadding = horizontalPadding
         self.bottomPadding = bottomPadding
         self.art = art
