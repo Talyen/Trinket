@@ -56,6 +56,7 @@ public struct PlaceholderArtwork: View {
             color.opacity(0.18)
 
             Image(systemName: symbolName)
+                // UIStyleCheck: allow - SF Symbol glyph sizing, not copy
                 .font(.system(size: iconSize, weight: .semibold))
                 .foregroundStyle(color)
                 .symbolRenderingMode(.hierarchical)

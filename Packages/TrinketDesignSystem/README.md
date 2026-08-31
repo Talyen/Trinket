@@ -47,7 +47,7 @@ Use `.trinketTypography(_:)` for all readable text. Do not call raw `.font(...)`
 
 | Role family | Typeface | Use for |
 |---|---|---|
-| `*Display` (`screenDisplay`, `sectionDisplay`, `rowDisplay`) | Serif (New York) | Branded heroes and journey names on art |
+| `*Display` (`screenDisplay`, `sectionDisplay`, `rowDisplay`) | SF Pro | Heroes and journey names on art |
 | `*Title` (`screenTitle`, `sectionTitle`, `cardTitle`) | SF Pro | Apple-native UI chrome, lists, shelves |
 | `eyebrow` | SF caption bold | Label **above** a hero title (chapter, role, rarity) |
 | Body / caption / badge / button / statValue / … | SF Pro | Supporting copy and controls |

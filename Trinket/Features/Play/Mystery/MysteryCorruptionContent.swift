@@ -95,6 +95,7 @@ struct MysteryCorruptionRevealContent: View {
     private func changeRow(_ effect: CorruptionEffectSummary) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: TrinketDesign.Metrics.smallSpacing) {
             Image(systemName: effect.symbolName)
+                // UIStyleCheck: allow - SF Symbol glyph sizing, not copy
                 .font(.footnote.weight(.semibold))
                 .foregroundStyle(effect.tintColor ?? TrinketDesign.Colors.accent)
                 .accessibilityHidden(true)

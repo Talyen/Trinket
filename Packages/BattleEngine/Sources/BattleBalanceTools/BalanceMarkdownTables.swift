@@ -98,7 +98,7 @@ enum BalanceMarkdownTables {
         into lines: inout [String],
     ) {
         let flag = stats.flagged ? "⚠ \(stats.flagReason ?? "")" : ""
-        let worst = stats.worstEnemyID.map { "`\($0)`" } ?? "—"
+        let worst = stats.worstEnemyID.map { "`\($0)`" } ?? "-"
         lines.append(String(
             format: "| %@ | %@ | %d | %.1f%% | %.1f%% | %.1f | %.1f | %.1f | %d | %@ | %@ |",
             label,
@@ -194,7 +194,7 @@ enum BalanceMarkdownTables {
         }
         for row in rows {
             let flag = row.flagged ? "⚠ \(row.flagReason ?? "")" : ""
-            let owner = row.ownerID.map { "`\($0)`" } ?? "—"
+            let owner = row.ownerID.map { "`\($0)`" } ?? "-"
             lines.append(String(
                 format: "| `%@` | %@ | %.1f%% | [%.1f–%.1f] | %d | %+.1f pp | %@ |",
                 row.id,
@@ -263,7 +263,7 @@ enum BalanceMarkdownTables {
             lines.append("| ID | Owner | n |")
             lines.append("|---|---|---:|")
             for row in identityLow.prefix(40) {
-                let owner = row.ownerID.map { "`\($0)`" } ?? "—"
+                let owner = row.ownerID.map { "`\($0)`" } ?? "-"
                 lines.append("| `\(row.id)` | \(owner) | \(row.battles) |")
             }
             lines.append("")

@@ -52,7 +52,7 @@ public extension Image {
         }
         if PreparedArtworkFallbackDedupe.shouldLog(name) {
             preparedArtworkFallbackLogger.debug(
-                "PreparedArtwork cache miss for \(name, privacy: .public) — on-demand decode will hitch",
+                "PreparedArtwork cache miss for \(name, privacy: .public): on-demand decode will hitch",
             )
         }
         return Image(name)

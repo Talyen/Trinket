@@ -53,6 +53,7 @@ struct LockedCardEffectModifier: ViewModifier {
     private var lockBadgeOverlay: some View {
         let ink = TrinketDesign.Colors.Overlay.ink
         return Image(systemName: "lock.fill")
+            // UIStyleCheck: allow - SF Symbol glyph sizing, not copy
             .font(.system(size: lockIconSize))
             .symbolRenderingMode(.monochrome)
             .foregroundStyle(TrinketDesign.Colors.Overlay.paper)

@@ -270,7 +270,7 @@ private struct RouletteLayout {
     }
 
     var cardHeight: CGFloat {
-        cardWidth * 1.42
+        cardWidth * 4.0 / 3.0
     }
 
     var bandHeight: CGFloat {

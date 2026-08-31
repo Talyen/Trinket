@@ -177,6 +177,7 @@ struct MysteryChoiceCard: View {
                     )
             } else if let systemIcon {
                 Image(systemName: systemIcon)
+                    // UIStyleCheck: allow - SF Symbol glyph sizing, not copy
                     .font(.title2.weight(.semibold))
                     .foregroundStyle(tint)
                     .frame(

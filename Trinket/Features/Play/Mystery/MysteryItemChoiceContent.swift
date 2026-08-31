@@ -89,7 +89,7 @@ struct MysteryCorruptItemChoiceContent: View {
         MysteryItemChoiceScaffold(
             title: "Offer an Item",
             titleAccessibilityIdentifier: AccessibilityID.Mystery.corruptItemTitle,
-            narrative: "Choose gear to corrupt. The altar remakes it once — forever.",
+            narrative: "Choose gear to corrupt. The altar remakes it once, forever.",
             persistFailureMessage: session.persistFailureMessage,
             items: session.corruptibleItems,
             selectedItemID: selectedItemID,

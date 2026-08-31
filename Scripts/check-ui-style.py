@@ -87,6 +87,8 @@ PATTERNS: list[tuple[str, re.Pattern[str]]] = [
         re.compile(r'Color\s*\(\s*"[^"]+"\s*,\s*bundle:\s*\.main'),
     ),
     ("app-bundle named color", re.compile(r'Color\s*\(\s*"[^"]+"\s*\)')),
+    ("serif typeface (use SF Pro)", re.compile(r"design:\s*\.serif|\.withDesign\(\.serif|withDesign\(\s*\.serif")),
+    ("raw SwiftUI font (use trinketTypography)", re.compile(r"\.font\(")),
 ]
 
 FRAME_RE = re.compile(r"\.frame\((width|height|minWidth|minHeight):")

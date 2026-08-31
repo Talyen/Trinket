@@ -10,7 +10,7 @@ Do **not** build an autonomous benchmark harness. Prefer objective signals via e
 - `boundaries` pass (`check-module-boundaries.sh`)
 - no unexpected warnings
 - task requirements satisfied
-- minimal unnecessary diff
+- no unrelated diff (pragmatic shape may be larger than the narrowest patch)
 
 ## Using evals
 

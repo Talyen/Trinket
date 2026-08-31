@@ -7,6 +7,7 @@ import TrinketFeatureSupport
 struct BoonChoiceOverlay: View {
     let offer: BoonOffer
     let onSelect: (String) -> Void
+    var onCommit: ((BoonChoice, UnitPoint) -> Void)?
     @State private var committingChoiceID: String?
     @State private var isRevealed = false
     @State private var choiceCenters: [String: CGPoint] = [:]
@@ -33,7 +34,7 @@ struct BoonChoiceOverlay: View {
                                 isSelected: committingChoiceID == choice.id,
                                 isOtherSelected: committingChoiceID != nil && committingChoiceID != choice.id,
                                 onCenterChange: { updateCenter($0, for: choice.id) },
-                                onSelect: { handleSelect(choice.id) },
+                                onSelect: { handleSelect(choice.id, in: geometry.size) },
                             )
                         }
                     }
@@ -57,8 +58,12 @@ struct BoonChoiceOverlay: View {
         .accessibilityElement(children: .contain)
     }
 
-    private func handleSelect(_ choiceID: String) {
+    private func handleSelect(_ choiceID: String, in size: CGSize) {
         guard committingChoiceID == nil else { return }
+        if let choice = offer.choices.first(where: { $0.id == choiceID }) {
+            let focal = focalPoint(for: choiceID, size: size)
+            onCommit?(choice, focal)
+        }
         withAnimation(TrinketMotion.Interaction.selection) {
             committingChoiceID = choiceID
         }
@@ -66,6 +71,18 @@ struct BoonChoiceOverlay: View {
             try? await Task.sleep(for: .milliseconds(220))
             onSelect(choiceID)
         }
+    }
+
+    private func focalPoint(for choiceID: String, size: CGSize) -> UnitPoint {
+        if size.width > 0, size.height > 0, let center = choiceCenters[choiceID] {
+            return UnitPoint(x: center.x / size.width, y: center.y / size.height)
+        }
+        let fallbackY: [CGFloat] = [0.42, 0.62]
+        if let index = offer.choices.firstIndex(where: { $0.id == choiceID }),
+           index < fallbackY.count {
+            return UnitPoint(x: 0.5, y: fallbackY[index])
+        }
+        return UnitPoint(x: 0.5, y: 0.5)
     }
 
     private func updateCenter(_ center: CGPoint, for choiceID: String) {
@@ -118,7 +135,7 @@ private struct BoonChoiceCard: View {
         Button(action: onSelect) {
             VStack(alignment: .leading, spacing: 8) {
                 Text(choice.boon.name)
-                    .font(.system(size: 20, weight: .heavy, design: .serif))
+                    .trinketTypography(.sectionTitle)
                     .keywordShine(Set(choice.boon.category.keywords))
                     .lineLimit(2)
                     .minimumScaleFactor(0.85)

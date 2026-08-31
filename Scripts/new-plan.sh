@@ -49,7 +49,7 @@ Describe the user-visible outcome and the bounded implementation scope.
 ## Plan
 
 - [ ] Record the baseline and relevant constraints.
-- [ ] Implement the smallest complete change.
+- [ ] Implement the most pragmatic complete change — the cleanest architectural shape that fully satisfies the objective, not the narrowest diff.
 - [ ] Add or extend only consequential coverage.
 - [ ] Run path-scoped verification.
 - [ ] Mark the work complete, move this file to \`Docs/Plans/Archived/\`, and report verification.

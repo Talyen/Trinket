@@ -13,7 +13,7 @@ work; the focused references own the detailed procedure and API examples.
 
 - **Activate when**: Authoring, polishing, or redesigning player-facing SwiftUI views, gesture pipelines, or design system components.
 - **Do NOT activate when**: Performing localized SwiftUI bug fixes, logic or state refactoring, or non-visual changes.
-- **Change Discipline Priority**: Deliver the smallest change that satisfies the request (`AGENTS.md`). Do not add unrequested animations, materials, or visual polish during routine maintenance or bug fixes. Minimal diff discipline overrides design polish when in conflict.
+- **Change Discipline Priority**: Deliver the most pragmatic architectural change that satisfies the request (`AGENTS.md`) — prefer the cleanest long-term shape over the narrowest diff. Do not add unrequested animations, materials, or visual polish during routine maintenance or bug fixes. Pragmatic shape overrides minimal-diff discipline when in conflict — a well-owned larger change is preferred over a narrow workaround that leaves structural debt.
 
 ## Route by work
 

@@ -62,7 +62,7 @@ public final class LabyrinthPlayMode {
         if playerSave.labyrinth.isMapPayloadUnreadable {
             return StageMapMessage(
                 title: "Labyrinth Error",
-                message: "Couldn't read the Labyrinth map. Progress is preserved — try again later.",
+                message: "Couldn't read the Labyrinth map. Progress is preserved. Try again later.",
             )
         }
         guard playerSave.persistBatch(logging: "Failed to enter Labyrinth", { save in

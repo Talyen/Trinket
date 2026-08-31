@@ -45,8 +45,8 @@ public enum TypographyRole: Sendable {
 
     var font: Font {
         switch self {
-        case .screenDisplay: .system(.largeTitle, design: .serif).weight(.semibold)
-        case .sectionDisplay: .system(.title2, design: .serif).weight(.semibold)
+        case .screenDisplay: .largeTitle.weight(.semibold)
+        case .sectionDisplay: .title2.weight(.semibold)
         case .screenTitle: .largeTitle.weight(.bold)
         case .sectionTitle: .title2.weight(.semibold)
         case .rowTitle: .title3.weight(.semibold)
@@ -60,7 +60,7 @@ public enum TypographyRole: Sendable {
         case .button: .body.weight(.semibold)
         case .statValue: .body.monospacedDigit().weight(.semibold)
         case .navigation: .headline.weight(.semibold)
-        case .rowDisplay: .system(.headline, design: .serif).weight(.semibold)
+        case .rowDisplay: .headline.weight(.semibold)
         case .cardLabel: .subheadline.weight(.medium)
         }
     }

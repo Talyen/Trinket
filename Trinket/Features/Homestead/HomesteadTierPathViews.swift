@@ -259,6 +259,7 @@ struct HomesteadTierNode: View {
         switch glyphKind {
         case .action:
             Image(systemName: "arrowshape.up.fill")
+                // UIStyleCheck: allow - SF Symbol glyph sizing, not copy
                 .font(glyphFont)
                 .foregroundStyle(TrinketDesign.Colors.accent)
                 .symbolRenderingMode(.hierarchical)
@@ -269,17 +270,20 @@ struct HomesteadTierNode: View {
                 )
         case .completed:
             Image(systemName: "checkmark")
+                // UIStyleCheck: allow - SF Symbol glyph sizing, not copy
                 .font(glyphFont)
                 .foregroundStyle(TrinketDesign.Colors.success)
                 .contentTransition(.symbolEffect(.replace))
                 .symbolEffect(.bounce, value: chromeState)
         case .locked:
             Image(systemName: "lock.fill")
+                // UIStyleCheck: allow - SF Symbol glyph sizing, not copy
                 .font(glyphFont)
                 .foregroundStyle(.secondary)
                 .contentTransition(.symbolEffect(.replace))
         case .theme:
             Image(systemName: definition.symbolName)
+                // UIStyleCheck: allow - SF Symbol glyph sizing, not copy
                 .font(glyphFont)
                 .foregroundStyle(nodeForeground)
                 .symbolRenderingMode(.hierarchical)

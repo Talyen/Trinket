@@ -25,9 +25,9 @@ struct BattlePerformanceScenarioHarness: View {
             .accessibilityIdentifier(AccessibilityID.Debug.battlePerformanceStart)
 
             Text(status)
+                // UIStyleCheck: allow - Hidden status probe exists only for performance automation.
                 .font(.system(size: 1))
                 .foregroundStyle(.clear)
-                // UIStyleCheck: allow - Hidden status probe exists only for performance automation.
                 .frame(width: 1, height: 1)
                 .accessibilityIdentifier(AccessibilityID.Debug.battlePerformanceStatus)
                 .accessibilityValue(status)

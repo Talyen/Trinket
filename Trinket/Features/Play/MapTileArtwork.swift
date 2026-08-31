@@ -26,6 +26,7 @@ struct MapTilePlaceholder: View {
         ZStack {
             tint.opacity(0.14)
             Image(systemName: symbolName)
+                // UIStyleCheck: allow - SF Symbol glyph sizing, not copy
                 .font(.system(size: iconSize, weight: .semibold))
                 .foregroundStyle(tint)
                 .symbolRenderingMode(.hierarchical)

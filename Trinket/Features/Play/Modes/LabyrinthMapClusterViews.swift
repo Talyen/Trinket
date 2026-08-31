@@ -261,6 +261,7 @@ private struct LabyrinthMapNodeSeal: View {
             Circle().fill(TrinketDesign.Colors.Overlay.paper)
             Circle().stroke(TrinketDesign.Colors.subtleStroke, lineWidth: 1)
             Image(systemName: "seal.fill")
+                // UIStyleCheck: allow - SF Symbol glyph sizing, not copy
                 .font(.system(size: 8, weight: .bold))
                 .foregroundStyle(TrinketDesign.Colors.Overlay.ink.opacity(0.65))
         }

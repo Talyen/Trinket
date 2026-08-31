@@ -36,10 +36,10 @@ package enum ReactionScope {
     package static let logger = Logger(subsystem: "com.trinket.battle", category: "ReactionScope")
 
     package static func capHit(site: String, depth: Int) {
-        logger.fault("ReactionScope: \(site, privacy: .public) hit cap 10 at depth \(depth, privacy: .public) — possible infinite loop")
+        logger.fault("ReactionScope: \(site, privacy: .public) hit cap 10 at depth \(depth, privacy: .public): possible infinite loop")
         #if DEBUG
         if !isRunningTests {
-            assertionFailure("ReactionScope: \(site) hit cap 10 — possible infinite loop")
+            assertionFailure("ReactionScope: \(site) hit cap 10: possible infinite loop")
         }
         #endif
     }

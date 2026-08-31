@@ -31,12 +31,12 @@ private struct CombatantBuffAuraStroke: View {
             TrinketDesign.cardShape.strokeBorder(
                 AngularGradient(
                     gradient: Gradient(stops: [
-                        .init(color: base.opacity(0.22), location: 0),
-                        .init(color: base.opacity(0.65), location: 0.28),
-                        .init(color: TrinketDesign.Colors.Overlay.paper.opacity(0.95), location: 0.4),
-                        .init(color: base.opacity(0.9), location: 0.5),
-                        .init(color: base.opacity(0.28), location: 0.72),
-                        .init(color: base.opacity(0.22), location: 1),
+                        .init(color: base, location: 0),
+                        .init(color: base, location: 0.28),
+                        .init(color: TrinketDesign.Colors.Overlay.paper, location: 0.4),
+                        .init(color: base, location: 0.5),
+                        .init(color: base, location: 0.72),
+                        .init(color: base, location: 1),
                     ]),
                     center: .center,
                     angle: .degrees(angle),

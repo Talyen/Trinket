@@ -11,9 +11,9 @@ import TrinketPersistence
 
 struct PlayView: View {
     @Environment(PlaySession.self) private var play
+    @Environment(ShellSession.self) private var shellSession
     @Environment(BattleSession.self) private var battle
     @State private var stageMessage: StageMapMessage?
-    @State private var navigationPath: [PlayLaunchDestination] = []
     let restoresPendingDestination: Bool
 
     init(restoresPendingDestination: Bool = true) {
@@ -21,9 +21,11 @@ struct PlayView: View {
     }
 
     var body: some View {
+        @Bindable var shellSession = shellSession
+
         ZStack {
             PlayBrowsingStack(
-                navigationPath: $navigationPath,
+                navigationPath: $shellSession.playPath,
                 stageMessage: $stageMessage,
             )
             PlayBattleOverlay(stageMessage: $stageMessage)
@@ -36,7 +38,7 @@ struct PlayView: View {
         .onChange(of: play.shellSession.selectedTab) { previousTab, newTab in
             guard newTab == .play, previousTab != .play else { return }
             guard battle.lifecyclePhase != .active else { return }
-            restorePlayDestinationIfNeeded(resetForNormalEntry: true)
+            restorePlayDestinationIfNeeded()
         }
         .onChange(of: battle.activeBattle?.id) { _, newID in
             if newID == nil {
@@ -46,22 +48,17 @@ struct PlayView: View {
         .modifier(PlaySessionPresentationModifier(stageMessage: $stageMessage))
     }
 
-    private func restorePlayDestinationIfNeeded(resetForNormalEntry: Bool = false) {
+    private func restorePlayDestinationIfNeeded() {
         guard restoresPendingDestination else { return }
         guard battle.lifecyclePhase != .active else { return }
 
         if let destination = play.consumePendingDestination() {
             apply(destination)
-            return
-        }
-
-        if resetForNormalEntry {
-            navigationPath.removeAll()
         }
     }
 
     private func apply(_ destination: PlayLaunchDestination) {
-        navigationPath = switch destination {
+        shellSession.playPath = switch destination {
         case .campaign:
             [.campaign]
         case .explore:

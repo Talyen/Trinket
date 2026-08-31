@@ -38,6 +38,7 @@ public struct DetailTraitRow: View {
                 HStack(alignment: .firstTextBaseline, spacing: TrinketDesign.Metrics.extraSmallSpacing) {
                     if let leadingIconKeyword {
                         Image(systemName: leadingIconKeyword.visualStyle.symbolName)
+                            // UIStyleCheck: allow - SF Symbol glyph sizing, not copy
                             .font(.subheadline.weight(.semibold))
                             .foregroundStyle(leadingIconKeyword.visualStyle.color)
                             .accessibilityHidden(true)

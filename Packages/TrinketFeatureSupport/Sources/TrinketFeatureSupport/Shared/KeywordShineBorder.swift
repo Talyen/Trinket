@@ -75,24 +75,24 @@ private struct KeywordShineBorderStroke: View {
 
     private func gradientStops(for colors: [Color]) -> [Gradient.Stop] {
         let list = colors.isEmpty ? [Keyword.physical.visualStyle.color] : colors
-        let highlight = TrinketDesign.Colors.Overlay.paper.opacity(0.95)
+        let highlight = TrinketDesign.Colors.Overlay.paper
 
         if list.count == 1 {
             let base = list[0]
             if !motionEnabled {
                 return [
-                    .init(color: base.opacity(0.7), location: 0),
-                    .init(color: base.opacity(0.85), location: 0.5),
-                    .init(color: base.opacity(0.7), location: 1),
+                    .init(color: base, location: 0),
+                    .init(color: base, location: 0.5),
+                    .init(color: base, location: 1),
                 ]
             }
             return [
-                .init(color: base.opacity(0.22), location: 0),
-                .init(color: base.opacity(0.65), location: 0.28),
+                .init(color: base, location: 0),
+                .init(color: base, location: 0.28),
                 .init(color: highlight, location: 0.4),
-                .init(color: base.opacity(0.9), location: 0.5),
-                .init(color: base.opacity(0.28), location: 0.72),
-                .init(color: base.opacity(0.22), location: 1),
+                .init(color: base, location: 0.5),
+                .init(color: base, location: 0.72),
+                .init(color: base, location: 1),
             ]
         }
 
@@ -102,7 +102,7 @@ private struct KeywordShineBorderStroke: View {
         var stops: [Gradient.Stop] = []
         for i in 0 ... count {
             let loc = Double(i) / Double(count)
-            stops.append(.init(color: looped[i].opacity(0.85), location: loc))
+            stops.append(.init(color: looped[i], location: loc))
         }
         return stops
     }

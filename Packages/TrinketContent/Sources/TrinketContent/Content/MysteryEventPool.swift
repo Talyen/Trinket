@@ -137,7 +137,7 @@ enum MysteryEventPool {
         ev(
             id: "mysterious-tome",
             title: "Mysterious Tome",
-            narrative: "A leather-bound book floats above a pedestal, loose pages turning on their own. Its binding is splitting, as if it has been waiting to be read — or repaired.",
+            narrative: "A leather-bound book floats above a pedestal, loose pages turning on their own. Its binding is splitting, as if it has been waiting to be read or repaired.",
             artID: "mystery-mysterious-tome",
             choices: [
                 ("take-the-pages", "Take the Pages", [
@@ -309,7 +309,7 @@ enum MysteryEventPool {
         ev(
             id: "the-wolf",
             title: "The Wolf",
-            narrative: "A grey wolf steps from the treeline, watching you with amber eyes. It does not flee — only waits, then leads you toward a den of hides and a hunter's cache of food and a bow.",
+            narrative: "A grey wolf steps from the treeline, watching you with amber eyes. It does not flee. It only waits, then leads you toward a den of hides and a hunter's cache of food and a bow.",
             artID: "mystery-the-wolf",
             choices: [
                 ("search-the-den", "Search the Den", [.gainExperience, .gainMaterial(.hide)]),
@@ -322,7 +322,7 @@ enum MysteryEventPool {
         ev(
             id: Self.corruptionAltarID,
             title: "Corruption Altar",
-            narrative: "A cracked stone altar bleeds violet light from its seams. Offer an item and the altar remakes it without mercy — for better or worse — then seals it as Corrupted forever. You may also walk away untouched.",
+            narrative: "A cracked stone altar bleeds violet light from its seams. Offer an item and the altar remakes it without mercy, for better or worse, then seals it as Corrupted forever. You may also walk away untouched.",
             artID: "destination-corruption-altar",
             choices: [
                 ("corrupt-item", "Corrupt an Item", [.corruptItem]),

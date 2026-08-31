@@ -87,7 +87,20 @@ struct ContentView: View {
     }
 
     private func tabRoot(selection: Binding<AppTab>) -> some View {
-        TabView(selection: selection) {
+        let intercepting = Binding<AppTab>(
+            get: { selection.wrappedValue },
+            set: { newTab in
+                let oldTab = selection.wrappedValue
+                if newTab == oldTab {
+                    guard newTab != .play || battle.lifecyclePhase != .active else { return }
+                    withAnimation { shellSession.popToRoot(newTab) }
+                } else {
+                    selection.wrappedValue = newTab
+                }
+            },
+        )
+
+        return TabView(selection: intercepting) {
             Tab(AppTab.play.displayName, systemImage: AppTab.play.symbolName, value: AppTab.play) {
                 PlayView()
             }
@@ -98,12 +111,14 @@ struct ContentView: View {
                         appState.consumePendingCollectionPresentation()
                     }
                 }
+                .id(shellSession.collectionStackID)
             }
 
             Tab(AppTab.homestead.displayName, systemImage: AppTab.homestead.symbolName, value: AppTab.homestead) {
                 NavigationStack {
                     HomesteadView()
                 }
+                .id(shellSession.homesteadStackID)
             }
 
             Tab(AppTab.options.displayName, systemImage: AppTab.options.symbolName, value: AppTab.options) {
@@ -123,6 +138,7 @@ struct ContentView: View {
                         unlockAllContent: appState.unlockAllContent,
                     )
                 }
+                .id(shellSession.optionsStackID)
             }
         }
     }

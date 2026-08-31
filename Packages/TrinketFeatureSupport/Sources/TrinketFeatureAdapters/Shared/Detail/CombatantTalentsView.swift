@@ -107,7 +107,8 @@ public struct CombatantTalentsView: View {
                     Button("Reset") {
                         onResetTalents()
                     }
-                    .font(.footnote.weight(.semibold))
+                    .trinketTypography(.footnote)
+                    .fontWeight(.semibold)
                     .foregroundStyle(TrinketDesign.Colors.accent)
                     .accessibilityIdentifier(AccessibilityID.CombatantDetail.talentsResetButton)
                 }

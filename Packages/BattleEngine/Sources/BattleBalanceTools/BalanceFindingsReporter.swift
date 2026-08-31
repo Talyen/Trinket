@@ -236,7 +236,7 @@ public enum BalanceFindingsReporter {
         tier: SimulationPowerTier,
     ) -> [Finding] {
         guard bucket.flagged else { return [] }
-        let worst = bucket.worstEnemyID.map { "`\($0)`" } ?? "—"
+        let worst = bucket.worstEnemyID.map { "`\($0)`" } ?? "-"
         return [
             Finding(
                 score: max(bucket.shortRate, bucket.longRate),

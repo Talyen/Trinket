@@ -8,8 +8,8 @@ Every finding must state:
 
 - Candidate and confirming evidence
 - User or maintenance impact
-- **Preferred remedy**, favoring smaller surface: delete → reuse → simplify locally → parameterize a confirmed duplicate → add an abstraction
-- **Why this size**: why it is simpler than both a smaller patch that leaves the cause and a larger abstraction that adds unnecessary surface
+- **Preferred remedy**, favoring the most pragmatic surface — the cleanest long-term ownership, ordered as delete → reuse → simplify locally → parameterize a confirmed duplicate → add an abstraction. Choose the rung that best fits the architecture, not automatically the shortest.
+- **Why this size**: why it is the most pragmatic fit compared to both a smaller patch that leaves the cause and a larger abstraction that adds unnecessary surface
 - Expected authored production/test LOC, declaration, and file/type direction (exact estimates are unnecessary; identify increase, neutral move, or reduction)
 - Matching verification
 
@@ -40,7 +40,7 @@ Unless the cited audit explicitly owns the behavior, do not change player-facing
 
 ### Right-size policy
 
-Prefer the smallest remedy that removes the confirmed cause. Related hits may justify one cohesive change, but shared ownership alone does not justify a new seam or framework.
+Prefer the most pragmatic remedy that fully removes the confirmed cause — the cleanest architectural fit, not the narrowest diff. A cohesive change that restores the correct owner and removes the replaced surface is preferred over a minimal patch that papers over the root cause. Related hits may justify one cohesive change, but shared ownership alone does not justify a new seam or framework.
 
 - **Ship in-pass:** confirmed bounded fixes that fully address the finding and do not paper over a larger root cause. They may span files or packages when they restore an owner already prescribed by Architecture, remove one cohesive cluster, migrate every affected caller, and have bounded verification.
 - **Propose and stop:** a new architectural boundary or package, a player-facing product-policy decision, a live wire-format or compatibility migration, or a high-risk rewrite that is difficult to reverse or verify as one bounded change. Present the proposal, record it in [Proposals.md](Proposals.md), and wait for approval. Size alone does not force a proposal when the remedy follows an existing owner and can be phased safely.
