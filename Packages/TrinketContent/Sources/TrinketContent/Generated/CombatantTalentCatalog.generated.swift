@@ -185,9 +185,9 @@ public extension CombatantTalentCatalog {
             "ranger_burn_t1_2": CombatantTalentEffect(
                 name: "Slow Burn",
                 symbolName: "hourglass",
-                description: "Enemies lose 40% less Burn at the end of each round.",
+                description: "Enemies lose 20% less Burn at the end of each round.",
                 modifiers: [],
-                triggers: CombatTraitTriggers(dot: DotTriggers(burnDecaySlowPercent: 0.40))
+                triggers: CombatTraitTriggers(dot: DotTriggers(burnDecaySlowPercent: 0.20))
             ),
             "ranger_burn_t2_1": CombatantTalentEffect(
                 name: "Cauterize",
@@ -1925,9 +1925,9 @@ public extension CombatantTalentCatalog {
             "mana_moth_burn_t3_1": CombatantTalentEffect(
                 name: "Ember Persistence",
                 symbolName: "hourglass",
-                description: "Burn effects fade 50% slower each round.",
+                description: "Enemies lose 20% less Burn at the end of each round.",
                 modifiers: [],
-                triggers: CombatTraitTriggers(dot: DotTriggers(burnDecaySlowPercent: 0.5))
+                triggers: CombatTraitTriggers(dot: DotTriggers(burnDecaySlowPercent: 0.20))
             ),
             "mana_moth_burn_t3_2": CombatantTalentEffect(
                 name: "Cinder Halo",

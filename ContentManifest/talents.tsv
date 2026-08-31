@@ -60,7 +60,7 @@ ranger_poison_t2_2	Toxic Backlash	exclamationmark.triangle.fill	When Poison is C
 ranger_poison_t3_1	Corrosive Venom	shield.slash.fill	Poison strips 2 Block before damaging Health.		poisonStripsBlockBeforeHealth:2
 ranger_poison_t3_2	Lethal Dose	cross.vial.fill	Poison damage is doubled against enemies below half Health.		poisonDamageBelowHealthThreshold:0.5|poisonDamageBelowHealthMultiplier:2
 ranger_burn_t1_1	Flaming Arrows	flame.fill	Critical hits apply 2 Burn.		criticalApplyBurn:2
-ranger_burn_t1_2	Slow Burn	hourglass	Enemies lose 40% less Burn at the end of each round.		burnDecaySlowPercent:0.40
+ranger_burn_t1_2	Slow Burn	hourglass	Enemies lose 20% less Burn at the end of each round.		burnDecaySlowPercent:0.20
 ranger_burn_t2_1	Cauterize	flame.circle.fill	Dealing Burn damage has a 30% chance to detonate remaining Bleed damage.		on_burn_damage_detonate_bleed_chance_percent:0.30
 ranger_burn_t2_2	Smoke Screen	smoke.fill	Inflicting Burn grants +10% Dodge chance until your next turn.		onApplyBurnDodgeChanceUntilNextTurn:0.10
 ranger_burn_t3_1	Scorched Earth	flame.and.bolt.fill	Companion attacks deal 2 additional damage to Burning enemies.		companionDamageVsBurningBonus:2
@@ -267,7 +267,7 @@ mana_moth_burn_t1_1	Ember Shield	flame.fill	Gain 2 Block whenever an ally deals 
 mana_moth_burn_t1_2	Moth to Flame	moon.stars.fill	Gain 1 Mana whenever Burn deals damage (up to 2 per turn).		onBurnDamageRestoreManaPerTurnCap:2|onBurnDamageRestoreManaFlat:1
 mana_moth_burn_t2_1	Critical Burn	flame.circle.fill	Burn damage has a 30% chance to deal double damage.		burnDamageDoubleChancePercent:0.30
 mana_moth_burn_t2_2	Combustion	burst.fill	Your attacks against Burning enemies deal bonus damage equal to half their current Burn.		damagePerBurnPotencyPercent:0.5
-mana_moth_burn_t3_1	Ember Persistence	hourglass	Burn effects fade 50% slower each round.		burnDecaySlowPercent:0.5
+mana_moth_burn_t3_1	Ember Persistence	hourglass	Enemies lose 20% less Burn at the end of each round.		burnDecaySlowPercent:0.20
 mana_moth_burn_t3_2	Cinder Halo	sun.max.fill	Burning enemies take 1 Holy damage each time Burn deals damage.		onBurnTickHolyDamage:1
 pixie_cleanse_t1_1	Fae Mending	sparkles	Restore 2 Health to yourself when you Cleanse.		cleanseSelfHeal:2
 pixie_cleanse_t1_2	Dispel Magic	wand.and.rays	Cleanse effects also Purge 1 positive buff from the enemy.		cleanseAlsoPurgesEnemyBuffs:1
