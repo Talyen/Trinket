@@ -1,8 +1,8 @@
 ---
 type: execution-plan
-status: active
+status: cancelled
 created: 2026-08-27
-updated: 2026-08-27
+updated: 2026-09-01
 expires: 2026-09-10
 ---
 
@@ -48,3 +48,10 @@ Each phase lands via `handoff.sh --isolate --paths <touched>` + `ci-gate.sh --fa
 
 ## Notes
 Durable rules fold into `Docs/Platform/*`, package `README.md`, or `AGENTS.md` on completion. Move to `Docs/Plans/Archived/` with `status: complete` when done.
+
+## Disposition
+
+Completed work remains in the repository. The deferred frozen-mystery, artwork,
+codegen, build-avoidance, feedback, and measured damage-pipeline candidates were
+triaged into `SimplificationFollowup.md`; the overlapping remainder is
+superseded and ready for archival.

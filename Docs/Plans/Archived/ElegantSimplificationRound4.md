@@ -1,8 +1,8 @@
 ---
 type: execution-plan
-status: active
+status: cancelled
 created: 2026-08-29
-updated: 2026-08-29
+updated: 2026-09-01
 expires: 2026-09-12
 ---
 
@@ -72,3 +72,11 @@ Full `test.sh unit` before push.
 
 Fold durable rules into `Docs/Platform/*` on completion. Move to `Docs/Plans/Archived/`
 with `status: complete` when done.
+
+## Disposition
+
+The generated artwork catalog foundation, target resolver, hand-buffer
+consolidation, asset-kind dispatch, FullUI drift guard, and sunder parity work
+landed after this plan was written. Residual candidates were reviewed and the
+small confirmed set moved to `SimplificationFollowup.md`; this broad plan is
+superseded and ready for archival.
