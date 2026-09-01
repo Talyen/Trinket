@@ -95,24 +95,6 @@ private struct HeroHeaderScrollMetrics: Equatable {
     let titleOpacity: CGFloat
 }
 
-@available(*, deprecated, message: "DetailHeroHeaderContainer merged into DetailHeroScrollShell")
-private struct DetailHeroHeaderContainer<Header: View>: View {
-    let heroHeightPolicy: HeroHeaderLayout.HeightPolicy
-    @ViewBuilder let header: (_ baseHeight: CGFloat) -> Header
-    @State private var headerBaseHeight: CGFloat = HeroHeaderLayout.minimumHeaderHeight
-
-    var body: some View {
-        header(headerBaseHeight)
-            .onScrollGeometryChange(for: CGFloat.self) { geometry in
-                heroHeightPolicy.height(forWidth: geometry.containerSize.width)
-            } action: { _, newHeight in
-                if headerBaseHeight != newHeight {
-                    headerBaseHeight = newHeight
-                }
-            }
-    }
-}
-
 private struct DetailScrollNavigationTitle: View {
     let title: String
     let opacity: CGFloat

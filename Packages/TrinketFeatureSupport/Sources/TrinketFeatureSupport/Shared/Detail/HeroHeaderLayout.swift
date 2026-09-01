@@ -25,11 +25,6 @@ public enum HeroHeaderLayout {
         let offsetY: CGFloat
     }
 
-    @available(*, deprecated, renamed: "HeightPolicy.portrait.height(forWidth:)")
-    static func headerHeight(forWidth width: CGFloat) -> CGFloat {
-        HeightPolicy.portrait.height(forWidth: width)
-    }
-
     static var scrimHeight: CGFloat {
         minimumHeaderHeight * (140.0 / 300.0)
     }
