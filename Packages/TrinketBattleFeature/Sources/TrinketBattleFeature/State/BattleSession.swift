@@ -87,6 +87,9 @@ public final class BattleSession: BattleRuntime {
     @ObservationIgnored
     var partyCelebrateDelayOverride: Duration?
 
+    @ObservationIgnored
+    var ultimateInFrameDurationOverride: Duration?
+
     public static let autoEndTurnDelay: Duration = .milliseconds(400)
 
     public init(
@@ -95,6 +98,7 @@ public final class BattleSession: BattleRuntime {
         enemyAttackImpactDelayOverride: TimeInterval? = nil,
         outcomePresentationDelayOverride: TimeInterval? = nil,
         partyCelebrateDelayOverride: TimeInterval? = nil,
+        ultimateInFrameDurationOverride: TimeInterval? = nil,
         presentationEnvironment: BattleRuntimeDependencies = .silent,
     ) {
         self.autoEndTurnDelay = .seconds(autoEndTurnDelay)
@@ -102,6 +106,7 @@ public final class BattleSession: BattleRuntime {
         self.enemyAttackImpactDelayOverride = enemyAttackImpactDelayOverride.map { .seconds($0) }
         self.outcomePresentationDelayOverride = outcomePresentationDelayOverride.map { .seconds($0) }
         self.partyCelebrateDelayOverride = partyCelebrateDelayOverride.map { .seconds($0) }
+        self.ultimateInFrameDurationOverride = ultimateInFrameDurationOverride.map { .seconds($0) }
         self.presentationEnvironment = presentationEnvironment
         isAutoBattleEnabled = Self.preferredAutoBattleEnabled(
             from: presentationEnvironment,

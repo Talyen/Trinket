@@ -246,9 +246,9 @@ extension BattleSession {
         spectacle.pendingUltimateHighlightTasksByActorID[event.actorID]?.cancel()
         spectacle.ultimateHighlightsByActorID[event.actorID] = highlight
         BattleCinematicPlayer.shared.warm(actorID: event.actorID, abilityID: event.abilityID)
-        let hold = BattleMotion.ultimateInFrameDuration
+        let hold = ultimateInFrameDurationOverride ?? .seconds(BattleMotion.ultimateInFrameDuration)
         spectacle.pendingUltimateHighlightTasksByActorID[event.actorID] = Task { @MainActor [weak self] in
-            try? await Task.sleep(for: .seconds(hold))
+            try? await Task.sleep(for: hold)
             guard let self, !Task.isCancelled else { return }
             if spectacle.ultimateHighlightsByActorID[event.actorID]?.id == highlightID {
                 spectacle.ultimateHighlightsByActorID[event.actorID] = nil

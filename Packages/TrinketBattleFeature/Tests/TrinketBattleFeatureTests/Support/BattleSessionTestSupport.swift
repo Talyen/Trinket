@@ -17,6 +17,7 @@ enum BattleSessionTestSupport {
         companion: Combatant? = nil,
         enemy: Combatant? = nil,
         autoEndTurnDelay: TimeInterval = 0.01,
+        ultimateInFrameDurationOverride: TimeInterval? = nil,
         presentationEnvironment: BattleRuntimeDependencies = .silent,
         stageRewardsAlreadyClaimed: Bool = false,
     ) throws -> BattleSession {
@@ -33,6 +34,7 @@ enum BattleSessionTestSupport {
             openingHandDrawStagger: 0,
             enemyAttackImpactDelayOverride: 0,
             outcomePresentationDelayOverride: 0,
+            ultimateInFrameDurationOverride: ultimateInFrameDurationOverride,
             presentationEnvironment: presentationEnvironment,
         )
         session.partyCelebrateDelayOverride = .zero

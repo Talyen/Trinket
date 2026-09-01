@@ -16,7 +16,7 @@ Routine passes inventory candidates from changes since this commit (see README r
 
 | Baseline commit | Set after |
 |-----------------|-----------|
-| `59cef613` | Full Audits 02/05 pass plus agent-output baseline (implementation remains in the working tree) |
+| `5bc03803` | Full Audits 01–17 pass with bounded findings landed in audit commits |
 
 ## Open proposals
 
