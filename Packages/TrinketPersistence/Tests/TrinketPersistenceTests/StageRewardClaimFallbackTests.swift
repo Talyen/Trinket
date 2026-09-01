@@ -6,7 +6,7 @@ import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
 struct StageRewardClaimFallbackTests {
-    enum ClaimFallbackMode: String, Sendable {
+    enum ClaimFallbackMode: String {
         case journey
         case spire
     }

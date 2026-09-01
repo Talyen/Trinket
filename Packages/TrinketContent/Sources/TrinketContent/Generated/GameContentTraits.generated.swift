@@ -128,9 +128,9 @@ enum GameContentTraitsGenerated {
         list.append(CombatantTraitDefinition(
             id: "fire_imp_trait",
             name: "Fire Imp",
-            description: "Critical hits apply 1 Burn. Freeze damage taken increased by 30%.",
+            description: "Freeze damage taken increased by 30%.",
             modifiers: [.damageTakenVulnerability(.freeze, 0.30)],
-            triggers: CombatTraitTriggers(attack: AttackTriggers(criticalApplyBurn: 1))
+            triggers: CombatTraitTriggers()
         ))
         list.append(CombatantTraitDefinition(
             id: "hellhound_trait",
@@ -163,9 +163,9 @@ enum GameContentTraitsGenerated {
         list.append(CombatantTraitDefinition(
             id: "blood_cultist_trait",
             name: "Blood Cultist",
-            description: "When Bleed deals damage, your next basic attack is a guaranteed Critical Hit. Holy damage taken increased by 30%.",
+            description: "Holy damage taken increased by 30%.",
             modifiers: [.damageTakenVulnerability(.holy, 0.30)],
-            triggers: CombatTraitTriggers(attack: AttackTriggers(onBleedDamageNextBasicGuaranteedCrit: true))
+            triggers: CombatTraitTriggers()
         ))
         list.append(CombatantTraitDefinition(
             id: "dire_wolf_trait",

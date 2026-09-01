@@ -53,7 +53,7 @@ struct BattleVictorySummaryTests {
         #expect(session.presentationContext == nil)
     }
 
-    enum BakedVictoryAwardCase: String, CaseIterable, Sendable {
+    enum BakedVictoryAwardCase: String, CaseIterable {
         case stageRewardsAndLoot
         case companionOnlyAward
         case bakedAwardsIgnoreExperienceBonus

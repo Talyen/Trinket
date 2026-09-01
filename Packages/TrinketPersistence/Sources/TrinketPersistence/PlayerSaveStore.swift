@@ -105,22 +105,19 @@ public final class PlayerSaveStore {
             && !inMemoryOnly
             && storeName == nil
             && storeURL == nil
-        let finalURL = PlayerSaveStoreConfiguration.resolveStoreURL(storeName: storeName, storeURL: storeURL)
-
-        if resetState, !inMemoryOnly {
-            PlayerSaveStoreConfiguration.cleanStoreFiles(at: finalURL)
-        }
-
         let schema = PlayerSaveGraph.schema
-        let resolved = PlayerSaveStoreConfiguration.resolveConfiguration(
+        let resolved = PlayerSaveStoreConfiguration.resolveStore(
             schema: schema,
-            finalURL: finalURL,
             storeName: storeName,
             storeURL: storeURL,
             disableCloudSync: disableCloudSync,
             inMemoryOnly: inMemoryOnly,
             cloudKitContainerIdentifier: Self.cloudKitContainerIdentifier,
         )
+
+        if resetState, !inMemoryOnly {
+            PlayerSaveStoreConfiguration.cleanStoreFiles(at: resolved.finalURL)
+        }
 
         let openResult = try Self.openContainer(
             schema: schema,
@@ -175,15 +172,11 @@ public final class PlayerSaveStore {
         defer {
             Self.performanceSignposter.endInterval("PlayerSaveMutation", mutationInterval)
         }
-        let snapshot = measured("SnapshotProjection") { currentSave }
-        let (candidate, changedSlices) = try measured("MutationPreparation") {
-            try PlayerSaveSlice.prepareCandidate(from: snapshot, update: update)
-        }
+        let snapshot = currentSave
+        let (candidate, changedSlices) = try PlayerSaveSlice.prepareCandidate(from: snapshot, update: update)
         guard !changedSlices.isEmpty else { return }
-        measured("GraphApply") {
-            root.apply(candidate, slices: changedSlices, context: context)
-            installObservedSave(candidate, slices: changedSlices)
-        }
+        root.apply(candidate, slices: changedSlices, context: context)
+        installObservedSave(candidate, slices: changedSlices)
 
         if persistImmediately {
             do {
@@ -191,8 +184,8 @@ public final class PlayerSaveStore {
                 clearPendingDeferredPersistence()
                 lastPersistenceError = nil
             } catch {
-                root.apply(snapshot, slices: changedSlices, context: context)
-                installObservedSave(snapshot, slices: changedSlices)
+                root.update(from: snapshot, context: context)
+                installObservedSave(snapshot)
                 lastPersistenceError = .writeFailed
                 logger.error("Failed to save SwiftData player graph: \(error.localizedDescription, privacy: .public)")
                 throw PlayerSavePersistenceError.writeFailed
@@ -315,13 +308,13 @@ public final class PlayerSaveStore {
             save.modifiedAt = Date()
         }
 
-        let observedSnapshot = assembledSave()
+        let observedSnapshot = observedSave
         root.apply(save, slices: repairSlices, context: context)
         installObservedSave(save, slices: repairSlices)
         do {
             try saveGraph()
         } catch {
-            root.apply(rawSave, slices: repairSlices, context: context)
+            root.update(from: observedSnapshot, context: context)
             installObservedSave(observedSnapshot)
             lastPersistenceError = .writeFailed
             logger.error(
@@ -395,11 +388,15 @@ private extension PlayerSaveStore {
         _ name: StaticString,
         operation: () throws -> Result,
     ) rethrows -> Result {
+        #if DEBUG
         let interval = Self.performanceSignposter.beginInterval(name)
         defer {
             Self.performanceSignposter.endInterval(name, interval)
         }
         return try operation()
+        #else
+        return try operation()
+        #endif
     }
 
     func scheduleDeferredSave() {
@@ -427,8 +424,8 @@ private extension PlayerSaveStore {
 
     func rollbackPendingMutationIfNeeded() {
         guard let pendingRollbackSnapshot else { return }
-        root.apply(pendingRollbackSnapshot, slices: pendingRollbackSlices, context: context)
-        installObservedSave(pendingRollbackSnapshot, slices: pendingRollbackSlices)
+        root.update(from: pendingRollbackSnapshot, context: context)
+        installObservedSave(pendingRollbackSnapshot)
         clearPendingDeferredPersistence()
     }
 
@@ -437,10 +434,6 @@ private extension PlayerSaveStore {
         deferredSaveTask = nil
         pendingRollbackSnapshot = nil
         pendingRollbackSlices = []
-    }
-
-    func assembledSave() -> PlayerSave {
-        observedSave
     }
 
     func installObservedSave(_ save: PlayerSave, slices: PlayerSaveSlice = .all) {

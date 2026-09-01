@@ -6,7 +6,7 @@ Before retuning combat or persistence behavior, check `Docs/Product/Decisions.md
 
 Headless balance sweeps: `Packages/BattleEngine/README.md` and `./Scripts/balance-sweep.sh`. Default stdout and `.md` are a findings brief; read that, not the JSON dump. `--full-markdown` writes the old table report. `--samples` is n per identity enemy and pairs per contrast focus.
 
-Enemy scaling uses `EnemyPowerCurve` (curve anchors live there) after archetype growth. Trash uses one curve for HP and stats. Tune encounter level first, then curve anchors, then per-enemy stat shape.
+Combatants have only HP and optional Mana; player leveling is +1 HP per level and +1 Mana every two levels if they have Mana. Heroes and companions have 10% base Crit and Dodge (additive, capped at 75%); enemies have 0% Crit/Dodge and cannot gain guaranteed crit, evade, or trait modifiers. Stun/Freeze thresholds are 20% of max HP rounded via `CombatRounding` (min 1) with 25% party incoming control resistance. Enemy scaling uses `EnemyPowerCurve` with four smoothstep curves (normal HP, boss HP, normal raw damage %, boss raw damage % at L1/20/40, clamped beyond). Universal outgoing/incoming damage percents (e.g., Chicken Coop/Pasture and enemy raw damage) stack additively and round via `CombatRounding`. Tune encounter level first, then the four curve anchors, then per-enemy HP only for outliers across ≥2 tiers.
 
 Hidden fight pacing (`FightPacing`) band-scales authored combat magnitudes via comeback and a progress-based clock. Passive turn-start mana drip is excluded. Percentage multipliers on combat integers round via `CombatRounding` (nearest integer, ties to even); integer division semantics remain truncating division.
 

@@ -69,12 +69,13 @@ enum ModelContainerBootstrap {
 
     static func deleteStoreFiles(at url: URL, logger: Logger, logLabel: String) {
         let base = url.deletingPathExtension()
+        let ext = url.pathExtension
+        let shmExtension = ext.isEmpty ? "shm" : "\(ext)-shm"
+        let walExtension = ext.isEmpty ? "wal" : "\(ext)-wal"
         let candidates = [
             url,
-            base.appendingPathExtension("store-shm"),
-            base.appendingPathExtension("store-wal"),
-            base.appendingPathExtension("sqlite-shm"),
-            base.appendingPathExtension("sqlite-wal"),
+            base.appendingPathExtension(shmExtension),
+            base.appendingPathExtension(walExtension),
         ]
         for candidate in candidates {
             guard FileManager.default.fileExists(atPath: candidate.path) else { continue }

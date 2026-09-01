@@ -35,7 +35,7 @@ struct ManaEmpowermentTests {
         }?.effect.potency
     }
 
-    private struct FireballCase: Sendable {
+    private struct FireballCase {
         let heroMaxMana: Int
         let heroMana: Int
         let expectedManaAfter: Int

@@ -3,7 +3,7 @@ import Foundation
 import SwiftUI
 import TrinketCore
 
-enum CombatFeedbackClass: String, CaseIterable, Sendable, Equatable {
+enum CombatFeedbackClass: String, CaseIterable, Equatable {
     case directDamage
     case critical
     case dot
@@ -16,12 +16,12 @@ enum CombatFeedbackClass: String, CaseIterable, Sendable, Equatable {
     case deathsDoor
 }
 
-enum CombatFeedbackPresentationRole: String, CaseIterable, Sendable, Equatable {
+enum CombatFeedbackPresentationRole: String, CaseIterable, Equatable {
     case headline
     case secondary
 }
 
-struct CombatFeedbackKeyframeSample: Sendable, Equatable {
+struct CombatFeedbackKeyframeSample: Equatable {
     let value: Double
     let duration: TimeInterval
     let usesSpring: Bool
@@ -33,7 +33,7 @@ struct CombatFeedbackKeyframeSample: Sendable, Equatable {
     }
 }
 
-enum CombatFeedbackTypographyTier: Hashable, CaseIterable, Sendable {
+enum CombatFeedbackTypographyTier: Hashable, CaseIterable {
     case emphasis
     case normal
 
@@ -63,7 +63,7 @@ extension CombatFeedbackClass {
     }
 }
 
-struct CombatFeedbackChipStyle: Sendable, Equatable {
+struct CombatFeedbackChipStyle: Equatable {
     let feedbackClass: CombatFeedbackClass
     let fontWeight: Font.Weight
     let textStyle: Font.TextStyle
@@ -78,7 +78,7 @@ struct CombatFeedbackChipStyle: Sendable, Equatable {
     }
 }
 
-enum CombatantHitReactionKind: String, CaseIterable, Sendable, Equatable {
+enum CombatantHitReactionKind: String, CaseIterable, Equatable {
     case none
     case damage
     case critical
@@ -88,7 +88,7 @@ enum CombatantHitReactionKind: String, CaseIterable, Sendable, Equatable {
     case celebrate
 }
 
-struct CombatantHitReactionRecipe: Sendable, Equatable {
+struct CombatantHitReactionRecipe: Equatable {
     let kind: CombatantHitReactionKind
     let scaleX: [CombatFeedbackKeyframeSample]
     let scaleY: [CombatFeedbackKeyframeSample]
@@ -156,19 +156,19 @@ struct CombatantHitReactionRecipe: Sendable, Equatable {
     }
 }
 
-enum CombatantAttackReactionKind: String, CaseIterable, Sendable, Equatable {
+enum CombatantAttackReactionKind: String, CaseIterable, Equatable {
     case none
     case attack
 }
 
-enum CombatantAttackPhase: String, CaseIterable, Sendable, Equatable {
+enum CombatantAttackPhase: String, CaseIterable, Equatable {
     case windUp
     case swing
     case cancel
     case full
 }
 
-struct CombatantAttackPose: Sendable, Equatable {
+struct CombatantAttackPose: Equatable {
     var scaleX: Double
     var scaleY: Double
     var offsetX: Double
@@ -192,7 +192,7 @@ struct CombatantAttackPose: Sendable, Equatable {
     static let rest = Self()
 }
 
-enum CombatantAttackAim: String, CaseIterable, Sendable, Equatable {
+enum CombatantAttackAim: String, CaseIterable, Equatable {
     case towardParty
     case towardEnemy
 
@@ -208,7 +208,7 @@ enum CombatantAttackAim: String, CaseIterable, Sendable, Equatable {
     }
 }
 
-struct CombatantAttackReactionRecipe: Sendable, Equatable {
+struct CombatantAttackReactionRecipe: Equatable {
     let kind: CombatantAttackReactionKind
     let scaleX: [CombatFeedbackKeyframeSample]
     let scaleY: [CombatFeedbackKeyframeSample]
@@ -273,7 +273,7 @@ struct CombatantAttackReactionRecipe: Sendable, Equatable {
     }
 }
 
-enum CombatantHitRecoilDirection: String, CaseIterable, Sendable, Equatable {
+enum CombatantHitRecoilDirection: String, CaseIterable, Equatable {
     case up
     case down
 
@@ -301,7 +301,7 @@ enum CombatantHitRecoilDirection: String, CaseIterable, Sendable, Equatable {
     }
 }
 
-enum CombatFeedbackLayout: Sendable {
+enum CombatFeedbackLayout {
     static let streamGap: CGFloat = 4
 
     @inlinable

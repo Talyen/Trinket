@@ -47,51 +47,6 @@ struct CombatantStatsSection: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .trinketSurface(.secondary)
-
-                VStack(alignment: .leading, spacing: TrinketDesign.Spacing.extraSmall) {
-                    LabeledContent {
-                        Text("\(combatBuild.combatant.primaryStats.strength)")
-                            .trinketTypography(.statValue)
-                            .foregroundStyle(.secondary)
-                            .contentTransition(.numericText())
-                    } label: {
-                        Text("Strength").trinketTypography(.body).foregroundStyle(.primary)
-                    }
-                    LabeledContent {
-                        Text("\(combatBuild.combatant.primaryStats.agility)")
-                            .trinketTypography(.statValue)
-                            .foregroundStyle(.secondary)
-                            .contentTransition(.numericText())
-                    } label: {
-                        Text("Agility").trinketTypography(.body).foregroundStyle(.primary)
-                    }
-                    LabeledContent {
-                        Text("\(combatBuild.combatant.primaryStats.toughness)")
-                            .trinketTypography(.statValue)
-                            .foregroundStyle(.secondary)
-                            .contentTransition(.numericText())
-                    } label: {
-                        Text("Toughness").trinketTypography(.body).foregroundStyle(.primary)
-                    }
-                    LabeledContent {
-                        Text("\(combatBuild.combatant.primaryStats.intellect)")
-                            .trinketTypography(.statValue)
-                            .foregroundStyle(.secondary)
-                            .contentTransition(.numericText())
-                    } label: {
-                        Text("Intellect").trinketTypography(.body).foregroundStyle(.primary)
-                    }
-                    LabeledContent {
-                        Text("\(combatBuild.combatant.primaryStats.wisdom)")
-                            .trinketTypography(.statValue)
-                            .foregroundStyle(.secondary)
-                            .contentTransition(.numericText())
-                    } label: {
-                        Text("Wisdom").trinketTypography(.body).foregroundStyle(.primary)
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .trinketSurface(.secondary)
             }
         }
     }

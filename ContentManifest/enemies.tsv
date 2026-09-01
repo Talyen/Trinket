@@ -1,40 +1,40 @@
-id	name	max_health	is_boss	growth_archetype	abilities	trait_id	faction
-living_armor	Living Armor	15	false	tank	slash,sunder,thornMail	living_armor_trait	construct
-mimic	Mimic	14	false	assassin	fangs,acidPotion,hemorrhage	mimic_trait	beast
-mud_elemental	Mud Elemental	15	false	tank	bash,sunder,thornMail	mud_elemental_trait	elemental
-necromancer	Necromancer	14	false	mage	rendingSlash,bloodOffering,hemorrhage	necromancer_trait	undead
-plague_doctor	Plague Doctor	13	false	support	causticJab,poisonDagger,bloodthorn	plague_doctor_trait	mortal
-skeleton	Skeleton	14	false	bruiser	slash,sunder,hemorrhage	skeleton_trait	undead
-the_blight_treant	The Blight Treant	15	true	tank	causticJab,briarShield,bloodthorn	the_blight_treant_trait	corrupted
-the_forge_golem	The Forge Golem	15	true	bruiser	bash,sunder,moltenBulwark	the_forge_golem_trait	construct
-the_frostwarden	The Frostwarden	14	true	mage	rayOfFrost,glacialWard,blizzard	the_frostwarden_trait	elemental
-the_iron_bear	The Iron Bear	15	true	bruiser	bash,sunder,thornMail	the_iron_bear_trait	beast
-goblin	Goblin	13	false	assassin	stab,serratedEdge,astralArrow	goblin_trait	mortal
-fire_elemental	Fire Elemental	13	false	mage	kindling,fireball,combustion	fire_elemental_trait	elemental
-frost_elemental	Frost Elemental	14	false	mage	rayOfFrost,glacialWard,blizzard	frost_elemental_trait	elemental
-slime	Slime	15	false	tank	causticJab,acidPotion,bloodthorn	slime_trait	beast
-will_o_wisp	Will-o-Wisp	13	false	mage	iceShot,frostbolt,blizzard	will_o_wisp_trait	elemental
-bandit	Bandit	13	false	assassin	stab,serratedEdge,shadowstep	bandit_trait	mortal
-ogre	Ogre	15	false	bruiser	slash,sunder,thornMail	ogre_trait	mortal
-fire_imp	Fire Imp	13	false	assassin	kindling,fireball,combustion	fire_imp_trait	corrupted
-hellhound	Hellhound	14	false	bruiser	kindling,pounce,moltenBulwark	hellhound_trait	beast
-pyromancer	Pyromancer	13	false	mage	kindling,fireball,meteor	pyromancer_trait	mortal
-giant_spider	Giant Spider	14	false	assassin	causticJab,venomFangs,bloodthorn	giant_spider_trait	beast
-giant_snake	Giant Snake	14	false	assassin	causticJab,venomFangs,bloodthorn	giant_snake_trait	beast
-blood_cultist	Blood Cultist	13	false	mage	rendingSlash,bloodOffering,hemorrhage	blood_cultist_trait	mortal
-dire_wolf	Dire Wolf	14	false	bruiser	fangs,serratedEdge,packTactics	dire_wolf_trait	beast
-vampire	Vampire	14	false	assassin	fangs,darkPact,hemorrhage	vampire_trait	undead
-the_blood_countess	The Blood Countess	15	true	mage	rendingSlash,bloodOffering,hemorrhage	the_blood_countess_trait	undead
-zealot	Zealot	14	false	bruiser	slash,smite,avatarOfJustice	zealot_trait	mortal
-cleric	Cleric	13	false	support	shieldBash,smite,sunburst	cleric_trait	mortal
-inquisitor	Inquisitor	14	false	assassin	stab,smite,sunburst	inquisitor_trait	mortal
-paladin	Paladin	15	false	tank	shieldBash,smite,blessedAegis	paladin_trait	mortal
-the_seraph	The Seraph	15	true	mage	slash,smite,sunburst	the_seraph_trait	mortal
-winter_wolf	Winter Wolf	14	false	assassin	fangs,coldSnap,packTactics	winter_wolf_trait	beast
-ice_wraith	Ice Wraith	13	false	mage	rayOfFrost,frostbolt,blizzard	ice_wraith_trait	undead
-yeti	Yeti	15	false	tank	bash,glacialWard,blizzard	yeti_trait	beast
-banshee	Banshee	13	false	mage	bash,darkPact,earthquake	banshee_trait	undead
-brawler	Brawler	14	false	bruiser	bash,sunder,earthquake	brawler_trait	mortal
-stone_golem	Stone Golem	15	false	tank	shieldBash,stoneskinPotion,earthquake	stone_golem_trait	construct
-earth_elemental	Earth Elemental	15	false	tank	bash,sunder,earthquake	earth_elemental_trait	elemental
-the_stone_titan	The Stone Titan	15	true	tank	bash,sunder,earthquake	the_stone_titan_trait	construct
+id	name	max_health	is_boss	abilities	trait_id	faction
+living_armor	Living Armor	15	false	slash,sunder,thornMail	living_armor_trait	construct
+mimic	Mimic	14	false	fangs,acidPotion,hemorrhage	mimic_trait	beast
+mud_elemental	Mud Elemental	15	false	bash,sunder,thornMail	mud_elemental_trait	elemental
+necromancer	Necromancer	14	false	rendingSlash,bloodOffering,hemorrhage	necromancer_trait	undead
+plague_doctor	Plague Doctor	13	false	causticJab,poisonDagger,bloodthorn	plague_doctor_trait	mortal
+skeleton	Skeleton	14	false	slash,sunder,hemorrhage	skeleton_trait	undead
+the_blight_treant	The Blight Treant	15	true	causticJab,briarShield,bloodthorn	the_blight_treant_trait	corrupted
+the_forge_golem	The Forge Golem	15	true	bash,sunder,moltenBulwark	the_forge_golem_trait	construct
+the_frostwarden	The Frostwarden	14	true	rayOfFrost,glacialWard,blizzard	the_frostwarden_trait	elemental
+the_iron_bear	The Iron Bear	15	true	bash,sunder,thornMail	the_iron_bear_trait	beast
+goblin	Goblin	13	false	stab,serratedEdge,astralArrow	goblin_trait	mortal
+fire_elemental	Fire Elemental	13	false	kindling,fireball,combustion	fire_elemental_trait	elemental
+frost_elemental	Frost Elemental	14	false	rayOfFrost,glacialWard,blizzard	frost_elemental_trait	elemental
+slime	Slime	15	false	causticJab,acidPotion,bloodthorn	slime_trait	beast
+will_o_wisp	Will-o-Wisp	13	false	iceShot,frostbolt,blizzard	will_o_wisp_trait	elemental
+bandit	Bandit	13	false	stab,serratedEdge,shadowstep	bandit_trait	mortal
+ogre	Ogre	15	false	slash,sunder,thornMail	ogre_trait	mortal
+fire_imp	Fire Imp	13	false	kindling,fireball,combustion	fire_imp_trait	corrupted
+hellhound	Hellhound	14	false	kindling,pounce,moltenBulwark	hellhound_trait	beast
+pyromancer	Pyromancer	13	false	kindling,fireball,meteor	pyromancer_trait	mortal
+giant_spider	Giant Spider	14	false	causticJab,venomFangs,bloodthorn	giant_spider_trait	beast
+giant_snake	Giant Snake	14	false	causticJab,venomFangs,bloodthorn	giant_snake_trait	beast
+blood_cultist	Blood Cultist	13	false	rendingSlash,bloodOffering,hemorrhage	blood_cultist_trait	mortal
+dire_wolf	Dire Wolf	14	false	fangs,serratedEdge,packTactics	dire_wolf_trait	beast
+vampire	Vampire	14	false	fangs,darkPact,hemorrhage	vampire_trait	undead
+the_blood_countess	The Blood Countess	15	true	rendingSlash,bloodOffering,hemorrhage	the_blood_countess_trait	undead
+zealot	Zealot	14	false	slash,smite,avatarOfJustice	zealot_trait	mortal
+cleric	Cleric	13	false	shieldBash,smite,sunburst	cleric_trait	mortal
+inquisitor	Inquisitor	14	false	stab,smite,sunburst	inquisitor_trait	mortal
+paladin	Paladin	15	false	shieldBash,smite,blessedAegis	paladin_trait	mortal
+the_seraph	The Seraph	15	true	slash,smite,sunburst	the_seraph_trait	mortal
+winter_wolf	Winter Wolf	14	false	fangs,coldSnap,packTactics	winter_wolf_trait	beast
+ice_wraith	Ice Wraith	13	false	rayOfFrost,frostbolt,blizzard	ice_wraith_trait	undead
+yeti	Yeti	15	false	bash,glacialWard,blizzard	yeti_trait	beast
+banshee	Banshee	13	false	bash,darkPact,earthquake	banshee_trait	undead
+brawler	Brawler	14	false	bash,sunder,earthquake	brawler_trait	mortal
+stone_golem	Stone Golem	15	false	shieldBash,stoneskinPotion,earthquake	stone_golem_trait	construct
+earth_elemental	Earth Elemental	15	false	bash,sunder,earthquake	earth_elemental_trait	elemental
+the_stone_titan	The Stone Titan	15	true	bash,sunder,earthquake	the_stone_titan_trait	construct

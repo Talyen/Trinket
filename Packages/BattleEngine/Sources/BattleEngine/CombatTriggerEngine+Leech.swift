@@ -50,7 +50,7 @@ package extension CombatTriggerEngine {
         }
         if triggers.onLeechReduceEnemyStrength > 0 {
             context.appendEffect(
-                .strengthReduction(
+                .damageReductionFlat(
                     triggers.onLeechReduceEnemyStrength,
                     triggers.onLeechReduceEnemyStrengthTurns,
                 ),

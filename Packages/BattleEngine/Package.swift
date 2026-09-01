@@ -11,15 +11,15 @@ let package = Package(
     products: [
         .library(
             name: "BattleEngine",
-            targets: ["BattleEngine"]
+            targets: ["BattleEngine"],
         ),
         .library(
             name: "BattleBalanceTools",
-            targets: ["BattleBalanceTools"]
+            targets: ["BattleBalanceTools"],
         ),
         .executable(
             name: "BalanceSweepCLI",
-            targets: ["BalanceSweepCLI"]
+            targets: ["BalanceSweepCLI"],
         ),
     ],
     dependencies: [
@@ -30,16 +30,16 @@ let package = Package(
     targets: [
         .target(
             name: "BattleEngine",
-            dependencies: ["TrinketCore", "TrinketContent"]
+            dependencies: ["TrinketCore", "TrinketContent"],
         ),
         .target(
             name: "BattleBalanceTools",
             dependencies: ["BattleEngine", "TrinketCore", "TrinketContent"],
-            path: "Sources/BattleBalanceTools"
+            path: "Sources/BattleBalanceTools",
         ),
         .executableTarget(
             name: "BalanceSweepCLI",
-            dependencies: ["BattleBalanceTools", "BattleEngine", "TrinketContent"]
+            dependencies: ["BattleBalanceTools", "BattleEngine", "TrinketContent"],
         ),
         .testTarget(
             name: "BattleEngineTests",
@@ -49,7 +49,7 @@ let package = Package(
                 "TrinketCore",
                 "TrinketContent",
                 .product(name: "TrinketTestSupport", package: "TrinketTestSupport"),
-            ]
+            ],
         ),
         .testTarget(
             name: "BattleBalanceToolsTests",
@@ -59,7 +59,7 @@ let package = Package(
                 "TrinketCore",
                 "TrinketContent",
             ],
-            path: "Tests/BattleBalanceToolsTests"
+            path: "Tests/BattleBalanceToolsTests",
         ),
-    ]
+    ],
 )

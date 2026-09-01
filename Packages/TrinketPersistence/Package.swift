@@ -11,11 +11,11 @@ let package = Package(
     products: [
         .library(
             name: "TrinketPersistence",
-            targets: ["TrinketPersistence"]
+            targets: ["TrinketPersistence"],
         ),
         .library(
             name: "TrinketPersistenceTestSupport",
-            targets: ["TrinketPersistenceTestSupport"]
+            targets: ["TrinketPersistenceTestSupport"],
         ),
     ],
     dependencies: [
@@ -25,11 +25,11 @@ let package = Package(
     targets: [
         .target(
             name: "TrinketPersistence",
-            dependencies: ["TrinketCore", "TrinketContent"]
+            dependencies: ["TrinketCore", "TrinketContent"],
         ),
         .target(
             name: "TrinketPersistenceTestSupport",
-            dependencies: ["TrinketPersistence", "TrinketContent", "TrinketCore"]
+            dependencies: ["TrinketPersistence", "TrinketContent", "TrinketCore"],
         ),
         .testTarget(
             name: "TrinketPersistenceTests",
@@ -38,7 +38,7 @@ let package = Package(
                 "TrinketCore",
                 "TrinketContent",
                 "TrinketPersistenceTestSupport",
-            ]
+            ],
         ),
-    ]
+    ],
 )

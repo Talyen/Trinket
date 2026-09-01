@@ -136,7 +136,17 @@ public struct ItemAffixPower: Codable, Equatable, Hashable, Sendable {
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         description = try container.decode(String.self, forKey: .description)
-        modifiers = try container.decode([AffixModifier].self, forKey: .modifiers)
+        struct Failable: Decodable {
+            let value: AffixModifier?
+            init(from decoder: Decoder) throws {
+                value = try? AffixModifier(from: decoder)
+            }
+        }
+        if let wrappers = try? container.decode([Failable].self, forKey: .modifiers) {
+            modifiers = wrappers.compactMap(\.value)
+        } else {
+            modifiers = (try? container.decode([AffixModifier].self, forKey: .modifiers)) ?? []
+        }
         triggerBox = try TriggerBox(container.decode(CombatTraitTriggers.self, forKey: .triggers))
     }
 

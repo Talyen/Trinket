@@ -4,9 +4,6 @@ import TrinketCore
 
 public extension AffixModifier {
     func apply(to profile: inout CombatModifierProfile) {
-        if applyPrimaryStat(to: &profile) {
-            return
-        }
         if applyMaximumStat(to: &profile) {
             return
         }
@@ -14,24 +11,6 @@ public extension AffixModifier {
             return
         }
         applyDurationBonus(to: &profile)
-    }
-
-    private func applyPrimaryStat(to profile: inout CombatModifierProfile) -> Bool {
-        switch self {
-        case let .strength(amount):
-            profile.statBonuses.strength += amount
-        case let .agility(amount):
-            profile.statBonuses.agility += amount
-        case let .toughness(amount):
-            profile.statBonuses.toughness += amount
-        case let .intellect(amount):
-            profile.statBonuses.intellect += amount
-        case let .wisdom(amount):
-            profile.statBonuses.wisdom += amount
-        default:
-            return false
-        }
-        return true
     }
 
     private func applyMaximumStat(to profile: inout CombatModifierProfile) -> Bool {
@@ -46,6 +25,7 @@ public extension AffixModifier {
         return true
     }
 
+    // swiftlint:disable:next cyclomatic_complexity
     private func applyCombatBonus(to profile: inout CombatModifierProfile) -> Bool {
         switch self {
         case let .damageDealt(keyword, amount):
@@ -74,6 +54,12 @@ public extension AffixModifier {
             profile.companionDamageDealtBonus += amount
         case let .companionBleedDamageDealt(amount):
             profile.companionBleedDamageDealtBonus += amount
+        case let .outgoingDamagePercent(amount):
+            profile.outgoingDamagePercent += amount
+        case let .incomingDamageReductionPercent(amount):
+            profile.incomingDamageReductionPercent += amount
+        case let .dodgeChanceBonus(amount):
+            profile.triggers.dodgeChanceBonus += amount
         default:
             return false
         }

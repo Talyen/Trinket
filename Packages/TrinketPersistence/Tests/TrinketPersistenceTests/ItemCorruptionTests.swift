@@ -254,7 +254,7 @@ struct ItemCorruptionTests {
 
     @Test func `minimum integer and percent values cannot bump down`() {
         var powers = [
-            ItemAffixPower(description: "Gain 1 Strength.", modifiers: [.strength(1)]),
+            ItemAffixPower(description: "Gain 1 Strength.", modifiers: [.maximumHealth(1)]),
             ItemAffixPower(description: "Gain 1% more Gold.", modifiers: [.goldGainedPercent(0.01)]),
         ]
         let original = powers
@@ -263,7 +263,7 @@ struct ItemCorruptionTests {
         let title = ItemAffixPower.applyBump(
             direction: .down,
             to: &powers,
-            affixIDs: ["strength", "gold"],
+            affixIDs: ["hale", "gold"],
             using: &rng,
         )?.title
 
@@ -273,7 +273,7 @@ struct ItemCorruptionTests {
 
     @Test func `bump modifier up and down updates both power and description`() {
         var powers = [
-            ItemAffixPower(description: "Gain 5 Strength.", modifiers: [.strength(5)]),
+            ItemAffixPower(description: "Gain 5 Strength.", modifiers: [.maximumHealth(5)]),
             ItemAffixPower(description: "Gain 10% more Gold.", modifiers: [.goldGainedPercent(0.10)]),
         ]
         var rng = SeededRandomNumberGenerator(seed: 12)
@@ -281,7 +281,7 @@ struct ItemCorruptionTests {
         let titleUp = ItemAffixPower.applyBump(
             direction: .up,
             to: &powers,
-            affixIDs: ["strength", "gold"],
+            affixIDs: ["hale", "gold"],
             using: &rng,
         )?.title
         #expect(titleUp != nil)
@@ -289,7 +289,7 @@ struct ItemCorruptionTests {
         let titleDown = ItemAffixPower.applyBump(
             direction: .down,
             to: &powers,
-            affixIDs: ["strength", "gold"],
+            affixIDs: ["hale", "gold"],
             using: &rng,
         )?.title
         #expect(titleDown != nil)
@@ -299,7 +299,7 @@ struct ItemCorruptionTests {
         var powers = [
             ItemAffixPower(
                 description: "Gain 20 Strength when below 20% Health.",
-                modifiers: [.strength(20)],
+                modifiers: [.maximumHealth(20)],
             ),
         ]
         var rng = SeededRandomNumberGenerator(seed: 0)
@@ -307,12 +307,12 @@ struct ItemCorruptionTests {
         let title = ItemAffixPower.applyBump(
             direction: .up,
             to: &powers,
-            affixIDs: ["strength"],
+            affixIDs: ["hale"],
             using: &rng,
         )?.title
 
         #expect(title != nil)
-        #expect(powers[0].modifiers == [.strength(21)])
+        #expect(powers[0].modifiers == [.maximumHealth(21)])
         #expect(powers[0].description == "Gain 21 Strength when below 20% Health.")
     }
 

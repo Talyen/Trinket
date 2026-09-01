@@ -99,7 +99,6 @@ public enum Effect: Hashable, Sendable {
     case revive(Int)
     case damageReductionPercent(Double, Int)
     case damageReductionFlat(Int, Int)
-    case strengthReduction(Int, Int)
     case hemorrhage(Int)
 
     public static let bleedDoTTurnCount = 2
@@ -149,7 +148,6 @@ public enum Effect: Hashable, Sendable {
         case .revive: .health
         case .damageReductionPercent: .physical
         case .damageReductionFlat: .physical
-        case .strengthReduction: .physical
         case .hemorrhage: .bleed
         }
     }
@@ -198,7 +196,7 @@ public enum Effect: Hashable, Sendable {
         case let .damageKeywordOverride(_, _, d): d
         case let .recurringDamage(_, _, d): d
         case let .avatar(_, _, d): d
-        case let .damageReductionPercent(_, d), let .damageReductionFlat(_, d), let .strengthReduction(_, d): d
+        case let .damageReductionPercent(_, d), let .damageReductionFlat(_, d): d
         case .burn, .poison, .instantHeal, .resourceGain, .drawCards, .drawAndPlayCards, .cleanse, .cleanseRandom,
              .purge, .purgeRandom, .halveShield, .controlMeter, .deathsDoor,
              .shield, .thorns, .nextHolyStrike, .nextStrikeDouble, .evadeNextHit,
@@ -235,7 +233,7 @@ public enum Effect: Hashable, Sendable {
         switch effect {
         case .burn, .poison, .bleed, .controlMeter, .halveShield, .purge, .purgeRandom, .marked,
              .multiplyDoT, .recurringDamage, .hemorrhage,
-             .damageReductionPercent, .damageReductionFlat, .strengthReduction:
+             .damageReductionPercent, .damageReductionFlat:
             .abilityTarget
         case .instantHeal:
             .lowestHealthAlly

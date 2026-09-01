@@ -28,7 +28,6 @@ struct EffectModelTests {
     @Test func `damage and strength reduction default to ability target`() {
         #expect(Effect.defaultTarget(for: .damageReductionPercent(0.25, 2)) == .abilityTarget)
         #expect(Effect.defaultTarget(for: .damageReductionFlat(3, 1)) == .abilityTarget)
-        #expect(Effect.defaultTarget(for: .strengthReduction(2, 3)) == .abilityTarget)
     }
 
     @Test func `mana empowerment raises burn and freeze damage numbers only`() throws {
@@ -150,7 +149,6 @@ struct EffectModelTests {
             .revive(10),
             .damageReductionPercent(0.20, 2),
             .damageReductionFlat(3, 2),
-            .strengthReduction(2, 2),
             .hemorrhage(5),
         ]
         for effect in sampleEffects {

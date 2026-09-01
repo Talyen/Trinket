@@ -75,8 +75,8 @@ public enum SimulationMatchupBuilder {
             using: &rng,
         )
 
-        let scaledEnemy = CombatantLevelScaler.scale(enemy: enemy, level: resolvedEnemyLevel)
-        let enemyBuild = CombatBuildResolver.build(enemy: enemy)
+        let enemyBuild = CombatBuildResolver.build(enemy: enemy, level: resolvedEnemyLevel)
+        let scaledEnemy = enemyBuild.combatant
 
         let context = SimulationBuildContext(
             tier: tier,

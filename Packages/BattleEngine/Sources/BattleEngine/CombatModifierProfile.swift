@@ -3,7 +3,6 @@ import TrinketContent
 import TrinketCore
 
 public struct CombatModifierProfile: Equatable, Hashable, Sendable {
-    public var statBonuses: PrimaryStats
     public var maximumHealthBonus: Int
     public var maximumManaBonus: Int
     public var damageDealtBonus: [Keyword: Int]
@@ -20,6 +19,8 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
     public var damageTakenVulnerability: [Keyword: Double]
     public var companionDamageDealtBonus: Int
     public var companionBleedDamageDealtBonus: Int
+    public var outgoingDamagePercent: Double
+    public var incomingDamageReductionPercent: Double
     public var triggers: CombatTraitTriggers
     public var traitDisplayName: String?
     public var triggerAbilityNames: [String: String]
@@ -27,7 +28,6 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
     public static let zero = Self()
 
     public init(
-        statBonuses: PrimaryStats = PrimaryStats(),
         maximumHealthBonus: Int = 0,
         maximumManaBonus: Int = 0,
         damageDealtBonus: [Keyword: Int] = [:],
@@ -44,11 +44,12 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         damageTakenVulnerability: [Keyword: Double] = [:],
         companionDamageDealtBonus: Int = 0,
         companionBleedDamageDealtBonus: Int = 0,
+        outgoingDamagePercent: Double = 0,
+        incomingDamageReductionPercent: Double = 0,
         triggers: CombatTraitTriggers = CombatTraitTriggers(),
         traitDisplayName: String? = nil,
         triggerAbilityNames: [String: String] = [:],
     ) {
-        self.statBonuses = statBonuses
         self.maximumHealthBonus = maximumHealthBonus
         self.maximumManaBonus = maximumManaBonus
         self.damageDealtBonus = damageDealtBonus
@@ -65,6 +66,8 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         self.damageTakenVulnerability = damageTakenVulnerability
         self.companionDamageDealtBonus = companionDamageDealtBonus
         self.companionBleedDamageDealtBonus = companionBleedDamageDealtBonus
+        self.outgoingDamagePercent = outgoingDamagePercent
+        self.incomingDamageReductionPercent = incomingDamageReductionPercent
         self.triggers = triggers
         self.traitDisplayName = traitDisplayName
         self.triggerAbilityNames = triggerAbilityNames
@@ -82,7 +85,6 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
     }
 
     public mutating func merge(_ other: Self) {
-        statBonuses.merge(other.statBonuses)
         maximumHealthBonus += other.maximumHealthBonus
         maximumManaBonus += other.maximumManaBonus
         for (keyword, amount) in other.damageDealtBonus {
@@ -107,6 +109,8 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         }
         companionDamageDealtBonus += other.companionDamageDealtBonus
         companionBleedDamageDealtBonus += other.companionBleedDamageDealtBonus
+        outgoingDamagePercent += other.outgoingDamagePercent
+        incomingDamageReductionPercent += other.incomingDamageReductionPercent
         triggers.merge(other.triggers)
         if traitDisplayName == nil {
             traitDisplayName = other.traitDisplayName
@@ -176,7 +180,7 @@ public enum CombatantMaxValues {
 
     public static func maxMana(for combatant: Combatant, modifiers: CombatModifierProfile) -> Int {
         guard combatant.hasMana else { return 0 }
-        return combatant.maxMana + (combatant.primaryStats.intellect / 5) + modifiers.maximumManaBonus
+        return combatant.maxMana + modifiers.maximumManaBonus
     }
 
     public static func maxHealth(for combatant: Combatant, flatBonus: Int, talentBonus: Int = 0) -> Int {
@@ -185,23 +189,7 @@ public enum CombatantMaxValues {
 
     public static func maxMana(for combatant: Combatant, flatBonus: Int, effectBonus: Int = 0) -> Int {
         guard combatant.hasMana else { return 0 }
-        return combatant.maxMana + (combatant.primaryStats.intellect / 5) + flatBonus + effectBonus
-    }
-}
-
-public extension PrimaryStats {
-    mutating func merge(_ other: PrimaryStats) {
-        strength += other.strength
-        agility += other.agility
-        toughness += other.toughness
-        intellect += other.intellect
-        wisdom += other.wisdom
-    }
-
-    func merged(with other: PrimaryStats) -> PrimaryStats {
-        var copy = self
-        copy.merge(other)
-        return copy
+        return combatant.maxMana + flatBonus + effectBonus
     }
 }
 

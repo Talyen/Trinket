@@ -35,11 +35,12 @@ extension PlayerSaveSanitizer {
             validClusterIDs.contains(node.clusterID) || node.id == LabyrinthGenerator.entranceNodeID
         }
 
+        let validNodeIDs = Set(sanitized.nodes.keys)
         let existingNodes = sanitized.nodes
         for (id, node) in existingNodes {
             sanitized.nodes[id] = sanitizedLabyrinthNode(
                 node,
-                existingNodes: existingNodes,
+                validNodeIDs: validNodeIDs,
                 cluster: sanitized.cluster(id: node.clusterID),
                 worldSeed: sanitized.worldSeed,
             )
@@ -51,7 +52,9 @@ extension PlayerSaveSanitizer {
                 eligibleRecruitEventIDs: eligibleRecruitEventIDs,
             )
         }
-        sanitized.mapVersion = LabyrinthGenerator.currentMapVersion
+        if sanitized.hasMap {
+            sanitized.mapVersion = LabyrinthGenerator.currentMapVersion
+        }
         return sanitized
     }
 
@@ -127,6 +130,8 @@ extension PlayerSaveSanitizer {
         }
     }
 
+    private static let labyrinthGridColumns = 3
+
     private static func ensureHistoricalFloorAccess(
         floorCount: Int,
         clusters: [LabyrinthCluster],
@@ -136,7 +141,7 @@ extension PlayerSaveSanitizer {
         for floor in 1 ..< floorCount {
             guard let cluster = clusters.first(where: { $0.depthBand == floor }),
                   let entryID = cluster.nodeIDs.first,
-                  let bossID = cluster.nodeIDs.last
+                  let bossID = cluster.nodeIDs.first(where: { nodes[$0]?.type.canonical == .boss }) ?? cluster.nodeIDs.last
             else { continue }
             for nodeID in adjacentPath(
                 from: entryID,
@@ -153,7 +158,7 @@ extension PlayerSaveSanitizer {
 
     private static func sanitizedLabyrinthNode(
         _ node: LabyrinthNode,
-        existingNodes: [String: LabyrinthNode],
+        validNodeIDs: Set<String>,
         cluster: LabyrinthCluster?,
         worldSeed: UInt64,
     ) -> LabyrinthNode {
@@ -184,7 +189,7 @@ extension PlayerSaveSanitizer {
             ),
             recruitEventID: node.recruitEventID,
             mysteryEventID: node.mysteryEventID,
-            outgoingIDs: node.outgoingIDs.filter { existingNodes[$0] != nil },
+            outgoingIDs: node.outgoingIDs.filter { validNodeIDs.contains($0) },
             isCleared: node.isCleared,
             isRevealed: depth > 0 || node.isRevealed,
         )
@@ -198,9 +203,9 @@ extension PlayerSaveSanitizer {
               let index = cluster.nodeIDs.firstIndex(of: node.id)
         else { return LabyrinthGridPosition(row: 0, column: 1) }
         if index == cluster.nodeIDs.count - 1 {
-            return LabyrinthGridPosition(row: max(1, (index + 1) / 3), column: 1)
+            return LabyrinthGridPosition(row: max(1, (index + 1) / labyrinthGridColumns), column: 1)
         }
-        return LabyrinthGridPosition(row: index / 3, column: index % 3)
+        return LabyrinthGridPosition(row: index / labyrinthGridColumns, column: index % labyrinthGridColumns)
     }
 
     private static func adjacentPath(
@@ -213,7 +218,7 @@ extension PlayerSaveSanitizer {
         var nextIndex = 0
         var predecessor: [String: String] = [:]
         var visited: Set<String> = [sourceID]
-        let candidateNodes: [(id: String, node: LabyrinthNode)] = nodeIDs.sorted().compactMap { id in
+        let candidateNodes: [(id: String, node: LabyrinthNode)] = nodeIDs.compactMap { id in
             nodes[id].map { (id, $0) }
         }
 

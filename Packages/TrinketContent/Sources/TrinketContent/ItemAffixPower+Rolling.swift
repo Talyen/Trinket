@@ -356,7 +356,7 @@ private extension CombatTraitTriggers {
         return true
     }
 
-    enum AffixMagnitudeField: Sendable {
+    enum AffixMagnitudeField {
         case int(WritableKeyPath<CombatTraitTriggers, Int> & Sendable)
         case percent(WritableKeyPath<CombatTraitTriggers, Double> & Sendable)
 

@@ -10,7 +10,6 @@ public struct CombatantRuntime: Hashable {
         public var keywordDamageRamp: [Keyword: Int] = [:]
         public var talentLeechOverhealDamageBonus: Int = 0
         public var totalBlockGainedThisCombat: Int = 0
-        public var talentStatBonus: PrimaryStats = .init()
         public var talentCritMultiplierBonus: Double = 0.0
         public var hasNegatedFirstEnemyAttack: Bool = false
 
@@ -37,6 +36,8 @@ public struct CombatantRuntime: Hashable {
         public var pendingDoubleStatusNextCard: Bool = false
         public var goldenTouchActiveThisCard: Bool = false
         public var manaSpentThisCardPlay: Int = 0
+        public var flatDamageReductionBonus: Int = 0
+        public var flatDamageReductionCap: Int = 4
 
         public init() {}
 
@@ -154,17 +155,6 @@ public struct CombatantRuntime: Hashable {
         return CombatantMaxValues.maxMana(for: combatant, flatBonus: maximumManaBonus, effectBonus: effectBonus)
     }
 
-    public var primaryStats: PrimaryStats {
-        var merged = combatant.primaryStats
-        merged.merge(self.talentStatBonus)
-        for active in activeEffects {
-            if case let .strengthReduction(amount, _) = active.effect {
-                merged.strength -= amount
-            }
-        }
-        return merged
-    }
-
     public var abilityLoadout: AbilityLoadout {
         combatant.abilityLoadout
     }
@@ -197,12 +187,9 @@ public struct CombatantRuntime: Hashable {
     }
 
     public mutating func heal(_ amount: Int) -> Int {
-        let wisdomPercent = PrimaryStats.diminishingReturnsPercent(for: primaryStats.wisdom)
-        let wisdomBonus = CombatRounding.scaled(amount, multiplier: wisdomPercent)
-        let total = amount + wisdomBonus
         let cachedMaxHealth = maxHealth
         let space = max(0, cachedMaxHealth - currentHealth)
-        let actual = min(total, space)
+        let actual = min(amount, space)
         currentHealth += actual
         return actual
     }

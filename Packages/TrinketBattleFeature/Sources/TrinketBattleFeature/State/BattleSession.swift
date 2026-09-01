@@ -7,7 +7,7 @@ import TrinketDesignSystem
 import TrinketFeatureContracts
 import TrinketFeatureSupport
 
-enum BattleCardPlayResolution: Equatable, Sendable {
+enum BattleCardPlayResolution: Equatable {
     case rejected
     case committed
 

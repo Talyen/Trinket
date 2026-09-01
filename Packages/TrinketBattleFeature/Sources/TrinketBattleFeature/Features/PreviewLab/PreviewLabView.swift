@@ -246,8 +246,6 @@ private enum PreviewLab {
             maxMana: combatant.maxMana,
             actionIntervalTurns: combatant.actionIntervalTurns,
             abilityChoices: choices,
-            primaryStats: combatant.primaryStats,
-            growthArchetype: combatant.growthArchetype,
         )
     }
 }

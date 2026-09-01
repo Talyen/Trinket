@@ -656,7 +656,7 @@ public extension CombatantTalentCatalog {
             "warlock_leech_t1_2": CombatantTalentEffect(
                 name: "Armor Pierce",
                 symbolName: "drop.triangle.fill",
-                description: "Leech damage ignores the enemy's Toughness.",
+                description: "Leech ignores enemy damage reduction.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(damage: DamageTriggers(leechIgnoresMitigation: true))
             ),

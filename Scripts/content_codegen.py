@@ -139,15 +139,9 @@ class CombatantRow:
     role: str
     max_health: str
     max_mana: str
-    growth_archetype: str
     basics: str
     skills: str
     ultimates: str
-    strength: str
-    agility: str
-    toughness: str
-    intellect: str
-    wisdom: str
 
 
 @dataclass
@@ -156,7 +150,6 @@ class EnemyRow:
     name: str
     max_health: str
     is_boss: str
-    growth_archetype: str
     abilities: str
     trait_id: str
     faction: str
@@ -279,15 +272,9 @@ def parse_combatant_rows() -> list[CombatantRow]:
             "role",
             "max_health",
             "max_mana",
-            "growth_archetype",
             "basics",
             "skills",
             "ultimates",
-            "strength",
-            "agility",
-            "toughness",
-            "intellect",
-            "wisdom",
         ],
         CombatantRow,
     )
@@ -302,7 +289,6 @@ def parse_enemy_rows() -> list[EnemyRow]:
             "name",
             "max_health",
             "is_boss",
-            "growth_archetype",
             "abilities",
             "trait_id",
             "faction",
@@ -352,11 +338,6 @@ def parse_modifier_tokens(raw: str) -> list[str]:
 
 
 _MODIFIER_SIMPLE: dict[str, str] = {
-    "strength": ".strength",
-    "agility": ".agility",
-    "toughness": ".toughness",
-    "intellect": ".intellect",
-    "wisdom": ".wisdom",
     "maximum_health": ".maximumHealth",
     "health_restored": ".healthRestored",
     "leech_gained_percent": ".leechGainedPercent",
@@ -369,6 +350,9 @@ _MODIFIER_SIMPLE: dict[str, str] = {
     "maximum_mana": ".maximumMana",
     "companion_bleed_damage_dealt": ".companionBleedDamageDealt",
     "poison_damage_dealt_percent": ".poisonDamageDealtPercent",
+    "outgoing_damage_percent": ".outgoingDamagePercent",
+    "incoming_damage_reduction_percent": ".incomingDamageReductionPercent",
+    "dodge_chance_bonus": ".dodgeChanceBonus",
 }
 
 def modifier_token_to_swift(token: str) -> str:
@@ -742,10 +726,7 @@ def ability_symbols_swift(raw: str) -> str:
 
 
 def primary_stats_swift(row: CombatantRow) -> str:
-    return (
-        f"PrimaryStats(strength: {row.strength}, agility: {row.agility}, "
-        f"toughness: {row.toughness}, intellect: {row.intellect}, wisdom: {row.wisdom})"
-    )
+    return "PrimaryStats()"
 
 
 def _validate_snake_id(label: str, value: str, row_id: str) -> None:
@@ -801,15 +782,11 @@ def validate_combatant_rows(
         _require_non_empty("combatant name", row.name, row.id)
         if row.role not in VALID_ROLES:
             raise ValueError(f"Invalid combatant role '{row.role}' for {row.id}")
-        if row.growth_archetype not in VALID_GROWTH_ARCHETYPES:
-            raise ValueError(f"Invalid growth archetype '{row.growth_archetype}' for {row.id}")
 
         _validate_positive_int("max_health", row.max_health, row.id)
         if int(row.max_health) < 6:
             raise ValueError(f"max_health for {row.id} must be at least 6")
         _validate_positive_int("max_mana", row.max_mana, row.id)
-        for stat in ("strength", "agility", "toughness", "intellect", "wisdom"):
-            _validate_positive_int(stat, getattr(row, stat), row.id)
 
         _validate_ability_symbols(row.basics, row.id, ability_symbols, expected_count=2)
         _validate_ability_symbols(row.skills, row.id, ability_symbols, expected_count=2)
@@ -832,8 +809,6 @@ def validate_enemy_rows(
         _require_non_empty("enemy name", row.name, row.id)
         if row.is_boss not in {"true", "false"}:
             raise ValueError(f"is_boss for {row.id} must be true or false")
-        if row.growth_archetype not in VALID_GROWTH_ARCHETYPES:
-            raise ValueError(f"Invalid growth archetype '{row.growth_archetype}' for {row.id}")
 
         if not row.max_health.isdigit():
             raise ValueError(f"max_health for {row.id} must be an integer")
@@ -862,9 +837,7 @@ def render_party_combatant(row: CombatantRow) -> str:
                 basics: {ability_symbols_swift(row.basics)},
                 skills: {ability_symbols_swift(row.skills)},
                 ultimates: {ability_symbols_swift(row.ultimates)}
-            ),
-            primaryStats: {primary_stats_swift(row)},
-            growthArchetype: .{row.growth_archetype}
+            )
         )"""
 
 
@@ -878,9 +851,7 @@ def render_enemy(row: EnemyRow) -> str:
     return (
         f"        Enemy(combatant: Combatant(id: \"{swift_escape(row.id)}\", "
         f"name: \"{swift_escape(row.name)}\", role: .enemy, maxHealth: {row.max_health}, "
-        f"abilities: {ability_symbols_swift(row.abilities)}, "
-        f"primaryStats: GrowthArchetype.{row.growth_archetype}.identityPrimaryStats, "
-        f"growthArchetype: .{row.growth_archetype}), "
+        f"abilities: {ability_symbols_swift(row.abilities)}), "
         f"traitID: \"{swift_escape(row.trait_id)}\"{flag_clause})"
     )
 

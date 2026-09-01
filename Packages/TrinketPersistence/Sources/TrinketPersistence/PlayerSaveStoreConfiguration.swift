@@ -3,6 +3,12 @@ import os
 import SwiftData
 
 enum PlayerSaveStoreConfiguration {
+    struct ResolvedStore {
+        let config: ModelConfiguration
+        let recoveryURL: URL?
+        let finalURL: URL
+    }
+
     static func resolveStoreURL(storeName: String?, storeURL: URL?) -> URL {
         if let storeName {
             URL.applicationSupportDirectory.appending(path: "\(storeName).store")
@@ -19,29 +25,54 @@ enum PlayerSaveStoreConfiguration {
         ModelContainerBootstrap.deleteStoreFiles(at: url, logger: logger, logLabel: "player save")
     }
 
+    static func resolveStore(
+        schema: Schema,
+        storeName: String?,
+        storeURL: URL?,
+        disableCloudSync: Bool,
+        inMemoryOnly: Bool,
+        cloudKitContainerIdentifier: String,
+    ) -> ResolvedStore {
+        let finalURL = resolveStoreURL(storeName: storeName, storeURL: storeURL)
+        let resolved: (ModelConfiguration, URL?) = {
+            if inMemoryOnly {
+                return (ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none), nil)
+            }
+            if storeName != nil {
+                return (ModelConfiguration(schema: schema, url: finalURL, cloudKitDatabase: .none), finalURL)
+            }
+            if let storeURL {
+                return (ModelConfiguration(schema: schema, url: storeURL, cloudKitDatabase: .none), storeURL)
+            }
+            if disableCloudSync {
+                return (ModelConfiguration(schema: schema, url: finalURL, cloudKitDatabase: .none), finalURL)
+            }
+            return (
+                ModelConfiguration(schema: schema, cloudKitDatabase: .private(cloudKitContainerIdentifier)),
+                nil,
+            )
+        }()
+        return ResolvedStore(config: resolved.0, recoveryURL: resolved.1, finalURL: finalURL)
+    }
+
     static func resolveConfiguration(
         schema: Schema,
-        finalURL: URL,
+        finalURL _: URL,
         storeName: String?,
         storeURL: URL?,
         disableCloudSync: Bool,
         inMemoryOnly: Bool,
         cloudKitContainerIdentifier: String,
     ) -> (config: ModelConfiguration, recoveryURL: URL?) {
-        if inMemoryOnly {
-            (ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none), nil)
-        } else if storeName != nil {
-            (ModelConfiguration(schema: schema, url: finalURL, cloudKitDatabase: .none), finalURL)
-        } else if let storeURL {
-            (ModelConfiguration(schema: schema, url: storeURL, cloudKitDatabase: .none), storeURL)
-        } else if disableCloudSync {
-            (ModelConfiguration(schema: schema, url: finalURL, cloudKitDatabase: .none), finalURL)
-        } else {
-            (
-                ModelConfiguration(schema: schema, cloudKitDatabase: .private(cloudKitContainerIdentifier)),
-                nil,
-            )
-        }
+        let resolved = resolveStore(
+            schema: schema,
+            storeName: storeName,
+            storeURL: storeURL,
+            disableCloudSync: disableCloudSync,
+            inMemoryOnly: inMemoryOnly,
+            cloudKitContainerIdentifier: cloudKitContainerIdentifier,
+        )
+        return (resolved.config, resolved.recoveryURL)
     }
 
     static func fetchRoot(in context: ModelContext, logger: Logger) throws -> PlayerSaveRoot? {

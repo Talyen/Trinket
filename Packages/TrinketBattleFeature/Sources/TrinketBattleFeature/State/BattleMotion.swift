@@ -3,7 +3,7 @@ import Foundation
 import SwiftUI
 import TrinketDesignSystem
 
-enum BattleMotion: Sendable {
+enum BattleMotion {
     static let cardActivationDuration = TrinketMotion.Content.cardDissolveDuration
     static let cardActivationStuckSlack: TimeInterval = 0.35
     static let combatantSliceDuration: TimeInterval = 1.25

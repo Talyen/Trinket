@@ -301,7 +301,7 @@ struct TalentCatalogRoundTripTests {
         try #expect(context.roster.hasConsumedDeathsDoor(for: build.combatant))
     }
 
-    private struct HealGrantBlockCase: Sendable {
+    private struct HealGrantBlockCase {
         let combatantID: String
         let talentID: String
         let abilityName: String

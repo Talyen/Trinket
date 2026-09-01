@@ -15,9 +15,7 @@ enum GameContentRosterGenerated {
                 basics: [.bash, .block],
                 skills: [.smite, .sunder],
                 ultimates: [.avatarOfJustice, .moltenBulwark]
-            ),
-            primaryStats: PrimaryStats(strength: 11, agility: 9, toughness: 12, intellect: 7, wisdom: 11),
-            growthArchetype: .tank
+            )
         ))
         list.append(Combatant(
             id: "ranger",
@@ -28,9 +26,7 @@ enum GameContentRosterGenerated {
                 basics: [.venomArrow, .fireArrow],
                 skills: [.sapArrow, .bountyShot],
                 ultimates: [.packTactics, .astralArrow]
-            ),
-            primaryStats: PrimaryStats(strength: 10, agility: 12, toughness: 9, intellect: 7, wisdom: 12),
-            growthArchetype: .assassin
+            )
         ))
         list.append(Combatant(
             id: "rogue",
@@ -41,9 +37,7 @@ enum GameContentRosterGenerated {
                 basics: [.stab, .blackjack],
                 skills: [.poisonDagger, .serratedEdge],
                 ultimates: [.hemorrhage, .shadowstep]
-            ),
-            primaryStats: PrimaryStats(strength: 9, agility: 13, toughness: 9, intellect: 8, wisdom: 11),
-            growthArchetype: .assassin
+            )
         ))
         list.append(Combatant(
             id: "wizard",
@@ -55,9 +49,7 @@ enum GameContentRosterGenerated {
                 basics: [.manaBerries, .rayOfFrost],
                 skills: [.fireball, .glacialWard],
                 ultimates: [.meteor, .blizzard]
-            ),
-            primaryStats: PrimaryStats(strength: 7, agility: 9, toughness: 8, intellect: 14, wisdom: 12),
-            growthArchetype: .mage
+            )
         ))
         list.append(Combatant(
             id: "warlock",
@@ -69,9 +61,7 @@ enum GameContentRosterGenerated {
                 basics: [.kindling, .fangs],
                 skills: [.bloodOffering, .darkPact],
                 ultimates: [.combustion, .faustianBargain]
-            ),
-            primaryStats: PrimaryStats(strength: 8, agility: 9, toughness: 8, intellect: 13, wisdom: 12),
-            growthArchetype: .mage
+            )
         ))
         return list
     }()
@@ -88,9 +78,7 @@ enum GameContentRosterGenerated {
                 basics: [.fangs, .rendingSlash],
                 skills: [.pounce, .predatorsFocus],
                 ultimates: [.packTactics, .hemorrhage]
-            ),
-            primaryStats: PrimaryStats(strength: 10, agility: 12, toughness: 10, intellect: 7, wisdom: 11),
-            growthArchetype: .assassin
+            )
         ))
         list.append(Combatant(
             id: "bear",
@@ -101,9 +89,7 @@ enum GameContentRosterGenerated {
                 basics: [.maul, .fangs],
                 skills: [.briarShield, .sunder],
                 ultimates: [.earthquake, .thornMail]
-            ),
-            primaryStats: PrimaryStats(strength: 11, agility: 9, toughness: 12, intellect: 7, wisdom: 11),
-            growthArchetype: .tank
+            )
         ))
         list.append(Combatant(
             id: "frost_whelp",
@@ -115,9 +101,7 @@ enum GameContentRosterGenerated {
                 basics: [.rayOfFrost, .iceShot],
                 skills: [.frostbolt, .coldSnap],
                 ultimates: [.blizzard, .astralArrow]
-            ),
-            primaryStats: PrimaryStats(strength: 7, agility: 10, toughness: 8, intellect: 14, wisdom: 11),
-            growthArchetype: .mage
+            )
         ))
         list.append(Combatant(
             id: "lizard_scout",
@@ -128,9 +112,7 @@ enum GameContentRosterGenerated {
                 basics: [.stab, .blackjack],
                 skills: [.serratedEdge, .poisonDagger],
                 ultimates: [.hemorrhage, .steal]
-            ),
-            primaryStats: PrimaryStats(strength: 9, agility: 12, toughness: 9, intellect: 9, wisdom: 11),
-            growthArchetype: .assassin
+            )
         ))
         list.append(Combatant(
             id: "panther",
@@ -141,9 +123,7 @@ enum GameContentRosterGenerated {
                 basics: [.rendingSlash, .fangs],
                 skills: [.pounce, .venomFangs],
                 ultimates: [.shadowstep, .bloodthorn]
-            ),
-            primaryStats: PrimaryStats(strength: 12, agility: 12, toughness: 10, intellect: 8, wisdom: 8),
-            growthArchetype: .bruiser
+            )
         ))
         list.append(Combatant(
             id: "phoenix",
@@ -155,9 +135,7 @@ enum GameContentRosterGenerated {
                 basics: [.kindling, .fireArrow],
                 skills: [.fireball, .cinderbloom],
                 ultimates: [.phoenixFeather, .combustion]
-            ),
-            primaryStats: PrimaryStats(strength: 7, agility: 10, toughness: 8, intellect: 13, wisdom: 12),
-            growthArchetype: .mage
+            )
         ))
         list.append(Combatant(
             id: "golden_retriever",
@@ -168,9 +146,7 @@ enum GameContentRosterGenerated {
                 basics: [.apple, .sniffOut],
                 skills: [.stoneskinPotion, .tithe],
                 ultimates: [.luckPotion, .goldenPlate]
-            ),
-            primaryStats: PrimaryStats(strength: 8, agility: 9, toughness: 11, intellect: 8, wisdom: 14),
-            growthArchetype: .support
+            )
         ))
         list.append(Combatant(
             id: "library_owl",
@@ -182,9 +158,7 @@ enum GameContentRosterGenerated {
                 basics: [.apple, .stargaze],
                 skills: [.heal, .cleanse],
                 ultimates: [.panaceaPotion, .sunburst]
-            ),
-            primaryStats: PrimaryStats(strength: 7, agility: 9, toughness: 9, intellect: 12, wisdom: 13),
-            growthArchetype: .support
+            )
         ))
         list.append(Combatant(
             id: "risen_skeleton",
@@ -195,9 +169,7 @@ enum GameContentRosterGenerated {
                 basics: [.slash, .block],
                 skills: [.darkPact, .sunder],
                 ultimates: [.faustianBargain, .hemorrhage]
-            ),
-            primaryStats: PrimaryStats(strength: 12, agility: 10, toughness: 11, intellect: 9, wisdom: 8),
-            growthArchetype: .bruiser
+            )
         ))
         list.append(Combatant(
             id: "mana_moth",
@@ -209,9 +181,7 @@ enum GameContentRosterGenerated {
                 basics: [.manaBerries, .pixieDust],
                 skills: [.manaPotion, .manaShield],
                 ultimates: [.meteor, .blizzard]
-            ),
-            primaryStats: PrimaryStats(strength: 8, agility: 10, toughness: 8, intellect: 13, wisdom: 11),
-            growthArchetype: .mage
+            )
         ))
         list.append(Combatant(
             id: "pixie",
@@ -223,9 +193,7 @@ enum GameContentRosterGenerated {
                 basics: [.pixieDust, .manaBerries],
                 skills: [.cleanse, .heal],
                 ultimates: [.panaceaPotion, .sunburst]
-            ),
-            primaryStats: PrimaryStats(strength: 7, agility: 11, toughness: 8, intellect: 11, wisdom: 13),
-            growthArchetype: .support
+            )
         ))
         list.append(Combatant(
             id: "shield_scarab",
@@ -236,9 +204,7 @@ enum GameContentRosterGenerated {
                 basics: [.block, .shieldBash],
                 skills: [.spikedShield, .stoneskinPotion],
                 ultimates: [.thornMail, .blessedAegis]
-            ),
-            primaryStats: PrimaryStats(strength: 10, agility: 9, toughness: 14, intellect: 7, wisdom: 10),
-            growthArchetype: .tank
+            )
         ))
         list.append(Combatant(
             id: "fox",
@@ -249,9 +215,7 @@ enum GameContentRosterGenerated {
                 basics: [.sniffOut, .fangs],
                 skills: [.steal, .pounce],
                 ultimates: [.shadowstep, .luckPotion]
-            ),
-            primaryStats: PrimaryStats(strength: 9, agility: 13, toughness: 9, intellect: 8, wisdom: 11),
-            growthArchetype: .assassin
+            )
         ))
         return list
     }()

@@ -11,16 +11,16 @@ let package = Package(
     products: [
         .library(
             name: "TrinketCore",
-            targets: ["TrinketCore"]
+            targets: ["TrinketCore"],
         ),
     ],
     targets: [
         .target(
-            name: "TrinketCore"
+            name: "TrinketCore",
         ),
         .testTarget(
             name: "TrinketCoreTests",
-            dependencies: ["TrinketCore"]
+            dependencies: ["TrinketCore"],
         ),
-    ]
+    ],
 )

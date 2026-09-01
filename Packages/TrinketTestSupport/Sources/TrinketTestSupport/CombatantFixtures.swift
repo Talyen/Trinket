@@ -14,7 +14,6 @@ public enum CombatantFixtures {
         maxMana: Int = 0,
         actionIntervalTurns: Int? = nil,
         abilities: [Ability] = [],
-        primaryStats: PrimaryStats = PrimaryStats(),
     ) -> Combatant {
         Combatant(
             id: id,
@@ -24,7 +23,6 @@ public enum CombatantFixtures {
             maxMana: maxMana,
             actionIntervalTurns: actionIntervalTurns,
             abilities: abilities,
-            primaryStats: primaryStats,
         )
     }
 
@@ -34,7 +32,6 @@ public enum CombatantFixtures {
         maxMana: Int = 0,
         actionIntervalTurns: Int = passiveTurnInterval,
         abilities: [Ability] = [],
-        primaryStats: PrimaryStats = PrimaryStats(),
     ) -> Combatant {
         combatant(
             id: id,
@@ -43,7 +40,6 @@ public enum CombatantFixtures {
             maxMana: maxMana,
             actionIntervalTurns: actionIntervalTurns,
             abilities: abilities,
-            primaryStats: primaryStats,
         )
     }
 
@@ -53,7 +49,6 @@ public enum CombatantFixtures {
         maxMana: Int = 0,
         actionIntervalTurns: Int = passiveTurnInterval,
         abilities: [Ability] = [],
-        primaryStats: PrimaryStats = PrimaryStats(),
     ) -> Combatant {
         combatant(
             id: id,
@@ -62,7 +57,6 @@ public enum CombatantFixtures {
             maxMana: maxMana,
             actionIntervalTurns: actionIntervalTurns,
             abilities: abilities,
-            primaryStats: primaryStats,
         )
     }
 
@@ -72,7 +66,6 @@ public enum CombatantFixtures {
         maxMana: Int = 0,
         actionIntervalTurns: Int = passiveTurnInterval,
         abilities: [Ability] = [],
-        primaryStats: PrimaryStats = PrimaryStats(),
     ) -> Combatant {
         combatant(
             id: id,
@@ -81,7 +74,6 @@ public enum CombatantFixtures {
             maxMana: maxMana,
             actionIntervalTurns: actionIntervalTurns,
             abilities: abilities,
-            primaryStats: primaryStats,
         )
     }
 

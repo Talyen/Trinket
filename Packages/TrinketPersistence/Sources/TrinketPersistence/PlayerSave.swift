@@ -131,8 +131,8 @@ public struct PlayerSave: Equatable, Sendable {
         guard amount > 0 else { return 0 }
         homestead.settleProduction(at: date, roster: roster)
         let balanceBefore = roster.gold
-        let reserved = Int(ceil(homestead.pendingProduction[.gold, default: 0]))
-        let available = max(0, PlayerRosterState.maxGoldBalance - roster.gold - reserved)
+        let reserved = PlayerRosterState.reservedGold(from: homestead.pendingProduction)
+        let available = PlayerRosterState.availableGoldCapacity(gold: roster.gold, reservedGold: reserved)
         roster.grantGold(min(amount, available))
         return roster.gold - balanceBefore
     }

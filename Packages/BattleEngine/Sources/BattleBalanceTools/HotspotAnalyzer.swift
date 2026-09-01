@@ -162,6 +162,7 @@ public enum HotspotAnalyzer {
     ) -> Double {
         guard let enemy = GameContent.enemy(matching: step.enemyID) else { return 0 }
         let level = max(1, Int(averageEnemyLevel.rounded()))
-        return Double(CombatantLevelScaler.powerRating(for: enemy, level: level).rating)
+        let snapshot = CombatantLevelScaler.powerRating(for: enemy, level: level)
+        return Double(snapshot.maxHealth) * (1 + snapshot.rawDamagePercent)
     }
 }

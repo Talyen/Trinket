@@ -11,11 +11,11 @@ let package = Package(
     products: [
         .library(
             name: "TrinketContent",
-            targets: ["TrinketContent"]
+            targets: ["TrinketContent"],
         ),
         .executable(
             name: "AbilityInventoryDump",
-            targets: ["AbilityInventoryDump"]
+            targets: ["AbilityInventoryDump"],
         ),
     ],
     dependencies: [
@@ -32,15 +32,15 @@ let package = Package(
                 "Generated/MusicSourceHashes.generated.tsv",
                 "Generated/SFXSourceHashes.generated.tsv",
                 "Generated/UltimateCinematicSourceHashes.generated.tsv",
-            ]
+            ],
         ),
         .executableTarget(
             name: "AbilityInventoryDump",
-            dependencies: ["TrinketContent"]
+            dependencies: ["TrinketContent"],
         ),
         .testTarget(
             name: "TrinketContentTests",
-            dependencies: ["TrinketContent", "TrinketCore"]
+            dependencies: ["TrinketContent", "TrinketCore"],
         ),
-    ]
+    ],
 )

@@ -8,15 +8,15 @@ let package = Package(
     products: [
         .library(
             name: "TrinketFeatureContracts",
-            targets: ["TrinketFeatureContracts"]
+            targets: ["TrinketFeatureContracts"],
         ),
         .library(
             name: "TrinketFeatureSupport",
-            targets: ["TrinketFeatureSupport"]
+            targets: ["TrinketFeatureSupport"],
         ),
         .library(
             name: "TrinketFeatureAdapters",
-            targets: ["TrinketFeatureAdapters"]
+            targets: ["TrinketFeatureAdapters"],
         ),
     ],
     dependencies: [
@@ -32,7 +32,7 @@ let package = Package(
             dependencies: [
                 "TrinketContent",
                 "TrinketCore",
-            ]
+            ],
         ),
         .target(
             name: "TrinketFeatureSupport",
@@ -40,7 +40,7 @@ let package = Package(
                 "TrinketCore",
                 "TrinketContent",
                 "TrinketDesignSystem",
-            ]
+            ],
         ),
         .target(
             name: "TrinketFeatureAdapters",
@@ -53,7 +53,7 @@ let package = Package(
                 "TrinketPersistence",
                 "TrinketDesignSystem",
             ],
-            path: "Sources/TrinketFeatureAdapters"
+            path: "Sources/TrinketFeatureAdapters",
         ),
         .testTarget(
             name: "TrinketFeatureSupportTests",
@@ -63,7 +63,7 @@ let package = Package(
                 "TrinketCore",
                 "TrinketContent",
                 "TrinketPersistence",
-            ]
+            ],
         ),
-    ]
+    ],
 )

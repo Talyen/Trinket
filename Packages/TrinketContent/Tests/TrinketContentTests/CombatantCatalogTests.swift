@@ -88,7 +88,7 @@ struct CombatantCatalogTests {
 
         let agility = HomesteadEffects.from(nodeTiers: [.agilityTraining: 2])
         #expect(agility.heroModifiers.isEmpty)
-        #expect(agility.companionModifiers == [.agility(4)])
+        #expect(agility.companionModifiers == [.dodgeChanceBonus(0.04)])
     }
 
     @Test func `player combatants have complete ability choices and loadouts`() throws {
@@ -102,11 +102,10 @@ struct CombatantCatalogTests {
         }
     }
 
-    @Test func `player combatants use baseline primary stat budget`() throws {
+    @Test func `player combatants have valid health and mana`() throws {
         for combatant in GameContent.heroes + GameContent.companions {
-            let stats = combatant.primaryStats
-            let total = stats.strength + stats.agility + stats.toughness + stats.intellect + stats.wisdom
-            try #expect(total == 50, "\(combatant.name) primary stats should sum to 50, got \(total)")
+            try #expect(combatant.maxHealth >= 6, "\(combatant.name) should have at least 6 health")
+            try #expect(combatant.maxMana >= 0, "\(combatant.name) should have non-negative mana")
         }
     }
 }

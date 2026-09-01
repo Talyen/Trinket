@@ -10,7 +10,7 @@ struct CorruptionAltarPickTests {
         #expect(event.choices.contains { $0.effects.contains(.leave) })
     }
 
-    private struct AltarIneligibleCase: Sendable {
+    private struct AltarIneligibleCase {
         let allowsAltar: Bool
         let hasEligibleCorruptTarget: Bool
         let cooldownRemaining: Int

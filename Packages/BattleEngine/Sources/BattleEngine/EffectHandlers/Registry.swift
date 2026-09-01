@@ -73,7 +73,6 @@ public enum EffectHandlers {
         .revive: ReviveHandler(),
         .damageReductionPercent: TimedDebuffHandler(kind: .damageReductionPercent),
         .damageReductionFlat: TimedDebuffHandler(kind: .damageReductionFlat),
-        .strengthReduction: TimedDebuffHandler(kind: .strengthReduction),
         .hemorrhage: HemorrhageHandler(),
     ]
 

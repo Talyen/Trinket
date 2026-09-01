@@ -2,11 +2,6 @@ import Foundation
 import TrinketCore
 
 public enum AffixModifier: Equatable, Hashable, Codable, Sendable {
-    case strength(Int)
-    case agility(Int)
-    case toughness(Int)
-    case intellect(Int)
-    case wisdom(Int)
     case maximumHealth(Int)
     case maximumMana(Int)
     case damageDealt(Keyword, Int)
@@ -23,6 +18,9 @@ public enum AffixModifier: Equatable, Hashable, Codable, Sendable {
     case damageTakenVulnerability(Keyword, Double)
     case companionDamageDealt(Int)
     case companionBleedDamageDealt(Int)
+    case outgoingDamagePercent(Double)
+    case incomingDamageReductionPercent(Double)
+    case dodgeChanceBonus(Double)
 }
 
 public extension AffixModifier {
@@ -32,7 +30,10 @@ public extension AffixModifier {
              .leechGainedPercent,
              .goldGainedPercent,
              .damageTakenPercent,
-             .damageTakenVulnerability:
+             .damageTakenVulnerability,
+             .outgoingDamagePercent,
+             .incomingDamageReductionPercent,
+             .dodgeChanceBonus:
             true
         default:
             false
@@ -41,12 +42,7 @@ public extension AffixModifier {
 
     var numericValue: Double {
         switch self {
-        case let .strength(v),
-             let .agility(v),
-             let .toughness(v),
-             let .intellect(v),
-             let .wisdom(v),
-             let .maximumHealth(v),
+        case let .maximumHealth(v),
              let .maximumMana(v),
              let .damageDealt(_, v),
              let .healthRestored(v),
@@ -62,19 +58,16 @@ public extension AffixModifier {
              let .leechGainedPercent(v),
              let .goldGainedPercent(v),
              let .damageTakenPercent(_, v),
-             let .damageTakenVulnerability(_, v):
+             let .damageTakenVulnerability(_, v),
+             let .outgoingDamagePercent(v),
+             let .incomingDamageReductionPercent(v),
+             let .dodgeChanceBonus(v):
             v
         }
     }
 
-    // swiftlint:disable:next cyclomatic_complexity
     func mapInt(_ transform: (Int) -> Int) -> AffixModifier {
         switch self {
-        case let .strength(v): .strength(transform(v))
-        case let .agility(v): .agility(transform(v))
-        case let .toughness(v): .toughness(transform(v))
-        case let .intellect(v): .intellect(transform(v))
-        case let .wisdom(v): .wisdom(transform(v))
         case let .maximumHealth(v): .maximumHealth(transform(v))
         case let .maximumMana(v): .maximumMana(transform(v))
         case let .damageDealt(kw, v): .damageDealt(kw, transform(v))
@@ -97,6 +90,9 @@ public extension AffixModifier {
         case let .goldGainedPercent(v): .goldGainedPercent(transform(v))
         case let .damageTakenPercent(kw, v): .damageTakenPercent(kw, transform(v))
         case let .damageTakenVulnerability(kw, v): .damageTakenVulnerability(kw, transform(v))
+        case let .outgoingDamagePercent(v): .outgoingDamagePercent(transform(v))
+        case let .incomingDamageReductionPercent(v): .incomingDamageReductionPercent(transform(v))
+        case let .dodgeChanceBonus(v): .dodgeChanceBonus(transform(v))
         default: self
         }
     }

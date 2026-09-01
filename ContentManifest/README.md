@@ -103,29 +103,27 @@ Roster catalogs are manifest-driven via `combatants.tsv` and `enemies.tsv`. Hand
 Tab-separated columns:
 
 ```text
-id	name	role	max_health	max_mana	growth_archetype	basics	skills	ultimates	strength	agility	toughness	intellect	wisdom
+id	name	role	max_health	max_mana	basics	skills	ultimates
 ```
 
 - `role`: `hero` or `companion`.
-- `max_mana`: `0` when unused.
+- `max_mana`: `0` when unused; combatants with `max_mana > 0` gain +1 Mana every two levels.
 - `basics` / `skills` / `ultimates`: comma-separated ability symbols (two choices per tier).
-- Stats are non-negative integers.
-- Primary-stat budget: `strength + agility + toughness + intellect + wisdom` must equal **50**; `CombatantCatalogTests` fails on any other total.
+- Player leveling is +1 HP per level above 1; authored `max_health`/`max_mana` are level-1 values.
 
 ### Enemies (`ContentManifest/enemies.tsv`)
 
 Tab-separated columns:
 
 ```text
-id	name	max_health	is_boss	growth_archetype	abilities	trait_id	faction
+id	name	max_health	is_boss	abilities	trait_id	faction
 ```
 
-- `max_health`: `default` uses `Enemy.defaultMaxHealth`, or an explicit integer.
+- `max_health`: `default` uses `Enemy.defaultMaxHealth`, or an explicit integer; scaled at encounter level via `EnemyPowerCurve` normal/boss HP curves.
 - `is_boss`: `true` or `false`.
 - `faction`: `mortal`, `beast`, `elemental`, `construct`, `undead`, or `corrupted`.
 - `abilities`: comma-separated ability symbols (basic, skill, ultimate — exactly three).
-- Enemy primary stats come from `GrowthArchetype.identityPrimaryStats` (budget 50). Do not author per-enemy Strength/Agility/Toughness/Intellect/Wisdom.
-- Boss difficulty comes from `is_boss` plus `EnemyPowerCurve` anchors at encounter level; curve anchors live in `Packages/TrinketCore/Sources/TrinketCore/EnemyPowerCurve.swift`.
+- Enemy damage scales via `EnemyPowerCurve` raw damage % curves (normal/boss at L1/20/40, smoothstep, clamped). Enemies have 0% Crit/Dodge and cannot gain guaranteed crit, evade, or trait crit/dodge effects.
 
 ### Homestead nodes (`ContentManifest/homestead_nodes.tsv`)
 
@@ -139,7 +137,7 @@ node_id	title	summary	symbol_name	category	prerequisites	tier	cost	bonus_title	b
 - `category`: `farming`, `crafting`, `alchemy`, `training`, or `arcana`.
 - `prerequisites`: pipe-separated `nodeID` or `nodeID:tier` tokens.
 - `cost`: pipe-separated `resource:amount` tokens (e.g. `wood:10|stone:4`).
-- `modifiers`: affix-token combat bonuses for that tier. Default scope is hero and companion; prefix `hero.` / `companion.` to target one side. Homestead-only tokens: `astral_chance:N`, `gold_find:N`.
+- `modifiers`: affix-token combat bonuses for that tier. Default scope is hero and companion; prefix `hero.` / `companion.` to target one side. Combat tokens include `outgoing_damage_percent:0.02`, `incoming_damage_reduction_percent:0.02`, `dodge_chance_bonus:0.02` (all additive, rounded via `CombatRounding`). Homestead-only tokens: `astral_chance:N`, `gold_find:N`.
 - One row per tier; node metadata must match across tiers for the same `node_id`.
 
 Homestead catalogs are manifest-driven via `homestead_nodes.tsv`. Hand-written homestead Swift files are thin wrappers over generated output.

@@ -51,7 +51,7 @@ struct BattleSessionAutoBattleTests {
         #expect(playedCardIDs == expectedCardIDs)
     }
 
-    private enum ResumeGate: Sendable {
+    private enum ResumeGate {
         case manualInteraction
         case cardCast
     }

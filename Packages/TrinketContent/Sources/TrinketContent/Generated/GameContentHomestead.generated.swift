@@ -118,40 +118,40 @@ enum GameContentHomesteadGenerated {
                     tier: 1,
                     cost: [ResourceAmount(.wood, 4), ResourceAmount(.food, 6)],
                     bonus: HomesteadBonus(
-                        title: "Strength",
-                        description: "Increase Strength by 2\nProduces 1 Food per day"
+                        title: "Party Damage",
+                        description: "Increase Party Damage by 2%\nProduces 1 Food per day"
                     ),
-                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.strength(2)], companionModifiers: [.strength(2)]),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.outgoingDamagePercent(0.02)], companionModifiers: [.outgoingDamagePercent(0.02)]),
                     production: ResourceAmount(.food, 1)
                 ),
                 HomesteadNodeTier(
                     tier: 2,
                     cost: [ResourceAmount(.wood, 8), ResourceAmount(.food, 12)],
                     bonus: HomesteadBonus(
-                        title: "Strength",
-                        description: "Increase Strength by 4\nProduces 2 Food per day"
+                        title: "Party Damage",
+                        description: "Increase Party Damage by 4%\nProduces 2 Food per day"
                     ),
-                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.strength(4)], companionModifiers: [.strength(4)]),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.outgoingDamagePercent(0.04)], companionModifiers: [.outgoingDamagePercent(0.04)]),
                     production: ResourceAmount(.food, 2)
                 ),
                 HomesteadNodeTier(
                     tier: 3,
                     cost: [ResourceAmount(.wood, 16), ResourceAmount(.food, 24)],
                     bonus: HomesteadBonus(
-                        title: "Strength",
-                        description: "Increase Strength by 6\nProduces 3 Food per day"
+                        title: "Party Damage",
+                        description: "Increase Party Damage by 6%\nProduces 3 Food per day"
                     ),
-                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.strength(6)], companionModifiers: [.strength(6)]),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.outgoingDamagePercent(0.06)], companionModifiers: [.outgoingDamagePercent(0.06)]),
                     production: ResourceAmount(.food, 3)
                 ),
                 HomesteadNodeTier(
                     tier: 4,
                     cost: [ResourceAmount(.wood, 32), ResourceAmount(.food, 48)],
                     bonus: HomesteadBonus(
-                        title: "Strength",
-                        description: "Increase Strength by 8\nProduces 4 Food per day"
+                        title: "Party Damage",
+                        description: "Increase Party Damage by 8%\nProduces 4 Food per day"
                     ),
-                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.strength(8)], companionModifiers: [.strength(8)]),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.outgoingDamagePercent(0.08)], companionModifiers: [.outgoingDamagePercent(0.08)]),
                     production: ResourceAmount(.food, 4)
                 )
             ]
@@ -168,40 +168,40 @@ enum GameContentHomesteadGenerated {
                     tier: 1,
                     cost: [ResourceAmount(.wood, 4), ResourceAmount(.food, 6)],
                     bonus: HomesteadBonus(
-                        title: "Toughness",
-                        description: "Increase Toughness by 2\nProduces 1 Food per day"
+                        title: "Damage Reduction",
+                        description: "Reduce Party Damage Taken by 2%\nProduces 1 Food per day"
                     ),
-                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.toughness(2)], companionModifiers: [.toughness(2)]),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.incomingDamageReductionPercent(0.02)], companionModifiers: [.incomingDamageReductionPercent(0.02)]),
                     production: ResourceAmount(.food, 1)
                 ),
                 HomesteadNodeTier(
                     tier: 2,
                     cost: [ResourceAmount(.wood, 8), ResourceAmount(.food, 12)],
                     bonus: HomesteadBonus(
-                        title: "Toughness",
-                        description: "Increase Toughness by 4\nProduces 2 Food per day"
+                        title: "Damage Reduction",
+                        description: "Reduce Party Damage Taken by 4%\nProduces 2 Food per day"
                     ),
-                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.toughness(4)], companionModifiers: [.toughness(4)]),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.incomingDamageReductionPercent(0.04)], companionModifiers: [.incomingDamageReductionPercent(0.04)]),
                     production: ResourceAmount(.food, 2)
                 ),
                 HomesteadNodeTier(
                     tier: 3,
                     cost: [ResourceAmount(.wood, 16), ResourceAmount(.food, 24)],
                     bonus: HomesteadBonus(
-                        title: "Toughness",
-                        description: "Increase Toughness by 6\nProduces 3 Food per day"
+                        title: "Damage Reduction",
+                        description: "Reduce Party Damage Taken by 6%\nProduces 3 Food per day"
                     ),
-                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.toughness(6)], companionModifiers: [.toughness(6)]),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.incomingDamageReductionPercent(0.06)], companionModifiers: [.incomingDamageReductionPercent(0.06)]),
                     production: ResourceAmount(.food, 3)
                 ),
                 HomesteadNodeTier(
                     tier: 4,
                     cost: [ResourceAmount(.wood, 32), ResourceAmount(.food, 48)],
                     bonus: HomesteadBonus(
-                        title: "Toughness",
-                        description: "Increase Toughness by 8\nProduces 4 Food per day"
+                        title: "Damage Reduction",
+                        description: "Reduce Party Damage Taken by 8%\nProduces 4 Food per day"
                     ),
-                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.toughness(8)], companionModifiers: [.toughness(8)]),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.incomingDamageReductionPercent(0.08)], companionModifiers: [.incomingDamageReductionPercent(0.08)]),
                     production: ResourceAmount(.food, 4)
                 )
             ]
@@ -553,36 +553,36 @@ enum GameContentHomesteadGenerated {
                     cost: [ResourceAmount(.food, 4), ResourceAmount(.hide, 6)],
                     bonus: HomesteadBonus(
                         title: "Companion Agility",
-                        description: "Increase Companion Agility by 2"
+                        description: "Increase Companion Dodge by 2%"
                     ),
-                    combatBonus: HomesteadTierCombatBonus(companionModifiers: [.agility(2)])
+                    combatBonus: HomesteadTierCombatBonus(companionModifiers: [.dodgeChanceBonus(0.02)])
                 ),
                 HomesteadNodeTier(
                     tier: 2,
                     cost: [ResourceAmount(.food, 8), ResourceAmount(.hide, 12)],
                     bonus: HomesteadBonus(
                         title: "Companion Agility",
-                        description: "Increase Companion Agility by 4"
+                        description: "Increase Companion Dodge by 4%"
                     ),
-                    combatBonus: HomesteadTierCombatBonus(companionModifiers: [.agility(4)])
+                    combatBonus: HomesteadTierCombatBonus(companionModifiers: [.dodgeChanceBonus(0.04)])
                 ),
                 HomesteadNodeTier(
                     tier: 3,
                     cost: [ResourceAmount(.food, 16), ResourceAmount(.hide, 24)],
                     bonus: HomesteadBonus(
                         title: "Companion Agility",
-                        description: "Increase Companion Agility by 6"
+                        description: "Increase Companion Dodge by 6%"
                     ),
-                    combatBonus: HomesteadTierCombatBonus(companionModifiers: [.agility(6)])
+                    combatBonus: HomesteadTierCombatBonus(companionModifiers: [.dodgeChanceBonus(0.06)])
                 ),
                 HomesteadNodeTier(
                     tier: 4,
                     cost: [ResourceAmount(.food, 32), ResourceAmount(.hide, 48)],
                     bonus: HomesteadBonus(
                         title: "Companion Agility",
-                        description: "Increase Companion Agility by 8"
+                        description: "Increase Companion Dodge by 8%"
                     ),
-                    combatBonus: HomesteadTierCombatBonus(companionModifiers: [.agility(8)])
+                    combatBonus: HomesteadTierCombatBonus(companionModifiers: [.dodgeChanceBonus(0.08)])
                 )
             ]
         ))

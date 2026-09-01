@@ -29,7 +29,7 @@ package enum ControlMeterEngine {
                 : 0
             let lichboneResistance = keyword == .stun ? targetTriggers.afflictionResistance : 0
             let partyResistance: Double = switch combatant.role {
-            case .hero, .companion: PrimaryStats.partyIncomingControlResistance
+            case .hero, .companion: 0.25
             case .enemy: 0
             }
             let controlResistance = 1 - (1 - partyResistance) * (1 - steadfastResistance) * (1 - lichboneResistance)
@@ -94,9 +94,8 @@ package enum ControlMeterEngine {
     }
 
     package static func threshold(for combatant: Combatant, in context: BattleState) -> Int {
-        combatant.primaryStats.controlMeterThreshold(
-            baseMaxHealth: context.roster.maxHealth(for: combatant),
-        )
+        let maxHealth = context.roster.maxHealth(for: combatant)
+        return max(1, CombatRounding.rounded(Double(maxHealth) * 0.20))
     }
 
     private static func existingMeterAmount(

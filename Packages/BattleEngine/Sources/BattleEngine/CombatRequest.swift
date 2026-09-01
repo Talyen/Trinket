@@ -146,7 +146,7 @@ public struct DamageRequest: Equatable, Hashable, Sendable {
     }
 }
 
-enum HealLogPolicy: Equatable, Hashable, Sendable {
+enum HealLogPolicy: Equatable, Hashable {
     case silent
     case leech
     case instantHeal(actorName: String, abilityName: String, keyword: Keyword)

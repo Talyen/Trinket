@@ -321,6 +321,18 @@ public struct PlayerRosterState: Equatable, Sendable {
         min(max(amount, 0), maxGoldBalance)
     }
 
+    public static func reservedGold(from pendingProduction: [HomesteadResource: Double]) -> Int {
+        Int(pendingProduction[.gold, default: 0])
+    }
+
+    public static func availableGoldCapacity(gold: Int, reservedGold: Int) -> Int {
+        max(0, maxGoldBalance - gold - reservedGold)
+    }
+
+    public static func cappedPendingGold(_ amount: Double) -> Double {
+        min(max(amount, 0), Double(maxGoldBalance))
+    }
+
     @discardableResult
     public mutating func spendGold(_ amount: Int) -> Bool {
         guard amount > 0, gold >= amount else { return false }

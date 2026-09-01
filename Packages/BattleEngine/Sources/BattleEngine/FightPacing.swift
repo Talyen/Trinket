@@ -3,12 +3,12 @@ import TrinketContent
 import TrinketCore
 
 package enum FightPacing {
-    package enum Side: Equatable, Sendable {
+    package enum Side: Equatable {
         case party
         case enemy
     }
 
-    package struct Config: Equatable, Sendable {
+    package struct Config: Equatable {
         var evenThreshold: Double
         var maxDelta: Double
         var comebackMin: Double
@@ -53,7 +53,7 @@ package enum FightPacing {
         )
     }
 
-    package struct PoolMetrics: Equatable, Sendable {
+    package struct PoolMetrics: Equatable {
         var partyFraction: Double
         var enemyFraction: Double
         var actualBurnFraction: Double

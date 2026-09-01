@@ -9,9 +9,7 @@ enum BattleTestFixtures {
 
     static func makePipelineContext(
         targetMaxHealth: Int = 50,
-        targetPrimaryStats: PrimaryStats = PrimaryStats(),
         targetEffects: [ActiveEffect] = [],
-        sourcePrimaryStats: PrimaryStats = PrimaryStats(),
         heroModifiers: CombatModifierProfile = .zero,
         companionModifiers: CombatModifierProfile = .zero,
         enemyModifiers: CombatModifierProfile = .zero,
@@ -20,12 +18,10 @@ enum BattleTestFixtures {
         BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.combatant(
                 id: "source", role: .hero, maxHealth: 50,
-                primaryStats: sourcePrimaryStats,
             ),
             companion: CombatantFixtures.combatant(id: "companion", role: .companion),
             enemy: CombatantFixtures.combatant(
                 id: "target", role: .enemy, maxHealth: targetMaxHealth,
-                primaryStats: targetPrimaryStats,
             ),
             enemyEffects: targetEffects,
             heroModifiers: heroModifiers,
@@ -214,7 +210,6 @@ enum BattleTestFixtures {
     static func statHero(
         id: String = "hero",
         abilities: [Ability],
-        stats: PrimaryStats = PrimaryStats(),
         maxHealth: Int = 20,
         actionIntervalTurns: Int = 2,
     ) -> Combatant {
@@ -224,7 +219,6 @@ enum BattleTestFixtures {
             maxHealth: maxHealth,
             actionIntervalTurns: actionIntervalTurns,
             abilities: abilities,
-            primaryStats: stats,
         )
     }
 

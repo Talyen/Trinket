@@ -164,8 +164,6 @@ public enum EffectPresentation {
             "reduces damage dealt by \(Int((percent * 100).rounded()))% \(durationPhrase(turns: durationTurns))"
         case let .damageReductionFlat(amount, durationTurns):
             "reduces damage dealt by \(amount) \(durationPhrase(turns: durationTurns))"
-        case let .strengthReduction(amount, durationTurns):
-            "reduces Strength by \(amount) \(durationPhrase(turns: durationTurns))"
         default:
             nil
         }

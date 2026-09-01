@@ -18,7 +18,7 @@ struct LaunchArtworkWarmupPlan: Equatable {
     }
 }
 
-struct PreparedArtworkCacheSnapshot: Equatable, Sendable {
+struct PreparedArtworkCacheSnapshot: Equatable {
     let requestedCount: Int
     let residentCount: Int
     let residentByteCount: Int

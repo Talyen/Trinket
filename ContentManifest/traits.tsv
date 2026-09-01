@@ -16,12 +16,12 @@ slime_trait	Slime	Physical and Poison damage taken reduced by 10%.	damage_taken_
 will_o_wisp_trait	Will-o'-Wisp	Physical and Freeze damage taken reduced by 30%.	damage_taken_percent:physical:0.30|damage_taken_percent:freeze:0.30	
 bandit_trait	Bandit	Deals double damage on the first attack. Holy damage taken increased by 30%.	damage_taken_vulnerability:holy:0.30	first_hit_double_damage:1
 ogre_trait	Ogre	Physical attacks deal double damage to enemy Block. Holy damage taken increased by 30%.	damage_taken_vulnerability:holy:0.30	physicalBlockBreakMultiplier:2.0
-fire_imp_trait	Fire Imp	Critical hits apply 1 Burn. Freeze damage taken increased by 30%.	damage_taken_vulnerability:freeze:0.30	criticalApplyBurn:1
+fire_imp_trait	Fire Imp	Freeze damage taken increased by 30%.	damage_taken_vulnerability:freeze:0.30	
 hellhound_trait	Hellhound	Attacks against Burning enemies deal 25% additional damage. Freeze damage taken increased by 30%.	damage_taken_vulnerability:freeze:0.30	damageVsBurningMultiplier:1.25
 pyromancer_trait	Pyromancer	Burn damage ignores all enemy Block and damage reduction. Freeze damage taken increased by 30%.	damage_taken_vulnerability:freeze:0.30	burnIgnoresBlockAndMitigation:true
 giant_spider_trait	Giant Spider	Attacks apply 1 Poison. Burn damage taken increased by 30%.	damage_taken_vulnerability:burn:0.30	attacksApplyPoison:1
 giant_snake_trait	Giant Snake	Poison strips 1 Block before damaging Health. Freeze damage taken increased by 30%.	damage_taken_vulnerability:freeze:0.30	poisonStripsBlockBeforeHealth:1
-blood_cultist_trait	Blood Cultist	When Bleed deals damage, your next basic attack is a guaranteed Critical Hit. Holy damage taken increased by 30%.	damage_taken_vulnerability:holy:0.30	onBleedDamageNextBasicGuaranteedCrit:true
+blood_cultist_trait	Blood Cultist	Holy damage taken increased by 30%.	damage_taken_vulnerability:holy:0.30	
 dire_wolf_trait	Dire Wolf	Attacks against Bleeding enemies deal 1 additional damage. Physical damage taken reduced by 10%.	damage_taken_percent:physical:0.10	damageVsBleedingBonus:1
 vampire_trait	Vampire	10% chance to Leech. Reaching full Health makes your next attack deal 1 additional damage. Holy and Burn damage taken increased by 30%.	damage_taken_vulnerability:holy:0.30|damage_taken_vulnerability:burn:0.30	leech_chance:0.10|nextAttackBonusOnFullHealth:1
 the_blood_countess_trait	The Blood Countess	Holy damage taken increased by 30%. Deals 1 Bleed damage every other turn to all enemies.	damage_taken_vulnerability:holy:0.30	turn_random_damage_all_enemies:bleed:bleed:1|turn_random_damage_all_enemies_interval:2

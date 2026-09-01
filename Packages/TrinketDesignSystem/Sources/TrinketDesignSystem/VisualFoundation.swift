@@ -60,7 +60,7 @@ public enum TypographyRole: Sendable {
         case .button: .body.weight(.semibold)
         case .statValue: .body.monospacedDigit().weight(.semibold)
         case .navigation: .headline.weight(.semibold)
-        case .rowDisplay: .headline.weight(.semibold)
+        case .rowDisplay: .system(.headline, design: .serif).weight(.semibold)
         case .cardLabel: .subheadline.weight(.medium)
         }
     }

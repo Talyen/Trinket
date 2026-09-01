@@ -3,7 +3,7 @@ import TrinketCore
 
 @dynamicMemberLookup
 public struct CombatTraitTriggers: Codable, Sendable, Equatable, Hashable {
-    struct Fields: Equatable, Hashable, Sendable {
+    struct Fields: Equatable, Hashable {
         var damage: DamageTriggers
         var attack: AttackTriggers
         var block: BlockTriggers

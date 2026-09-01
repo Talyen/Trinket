@@ -139,7 +139,7 @@ extension PlayerSaveRoot {
 
     private var rosterHasDuplicateChildren: Bool {
         guard let roster else { return false }
-        return hasDuplicateKeys(roster.unlockedCombatants ?? []) { "\($0.role):\($0.combatantID)" }
+        return hasDuplicateKeys(roster.unlockedCombatants ?? [], key: \.compositeKey)
             || hasDuplicateKeys(roster.progressions ?? [], key: \.combatantID)
             || hasDuplicateKeys(roster.abilityLoadouts ?? [], key: \.combatantID)
             || hasDuplicateKeys(roster.equipmentLoadouts ?? [], key: \.combatantID)

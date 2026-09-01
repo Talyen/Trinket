@@ -7,7 +7,7 @@ package extension DamagePipeline {
         to state: inout DamageResolutionState,
         in context: inout BattleState,
     ) {
-        applyStatAndItemBonus(to: &state, in: &context)
+        applyBaseAndScaledDamage(to: &state, in: &context)
         applyPercentBonus(to: &state, in: &context)
         applyDodgeEmpoweredBonuses(to: &state, in: &context)
         applyStunnedAndTalentMultipliers(to: &state, in: &context)
@@ -16,7 +16,7 @@ package extension DamagePipeline {
         state.dealt = state.remaining
     }
 
-    private static func applyStatAndItemBonus(
+    private static func applyBaseAndScaledDamage(
         to state: inout DamageResolutionState,
         in context: inout BattleState,
     ) {
@@ -24,7 +24,7 @@ package extension DamagePipeline {
            let damageKeyword = state.damageKeyword,
            let actor = context.roster.combatant(for: sourceActorID) {
             state.statBonus = state.options.applyStatBonus
-                ? CombatRounding.scaled(state.amount, multiplier: actor.primaryStats.statDamageBonusPercent(keyword: damageKeyword))
+                ? CombatRounding.scaled(state.amount, multiplier: context.modifiers(for: sourceActorID).outgoingDamagePercent)
                 : 0
             state.itemBonus = state.options.applyItemBonus
                 ? outgoingDamageBonus(
@@ -278,6 +278,24 @@ package extension DamagePipeline {
         state.remaining = max(0, CombatRounding.scaled(state.remaining, multiplier: reductionMultiplier) - reductionFlat)
     }
 
+    private static func shouldIgnorePercentageReduction(state: DamageResolutionState, context: BattleState) -> Bool {
+        guard let sourceActorID = state.sourceActorID else { return false }
+        let sourceProfile = context.modifiers(for: sourceActorID)
+        if state.damageKeyword == .leech, sourceProfile.triggers.leechIgnoresMitigation {
+            return true
+        }
+        if state.damageKeyword == .burn, sourceProfile.triggers.burnIgnoresBlockAndMitigation {
+            return true
+        }
+        if state.damageKeyword == .bleed, sourceProfile.triggers.bleedsIgnoreMitigation {
+            return true
+        }
+        if sourceProfile.triggers.ignoreEnemyMitigationPercent > 0, state.combatant.role == .enemy {
+            return true
+        }
+        return false
+    }
+
     static func applyFightPacing(
         to state: inout DamageResolutionState,
         in context: inout BattleState,
@@ -338,9 +356,11 @@ package extension DamagePipeline {
         if flatReduction > 0 {
             state.remaining = max(0, state.remaining - flatReduction)
         }
-        let reduction = min(1, profile.damageTakenReduction(for: damageKeyword))
-        if reduction > 0 {
-            state.remaining = CombatRounding.scaled(state.remaining, multiplier: 1 - reduction)
+        let reduction = min(1, profile.damageTakenReduction(for: damageKeyword) + profile.incomingDamageReductionPercent)
+        let ignores = shouldIgnorePercentageReduction(state: state, context: context)
+        let effectiveReduction = ignores ? 0 : reduction
+        if effectiveReduction > 0 {
+            state.remaining = CombatRounding.scaled(state.remaining, multiplier: 1 - effectiveReduction)
         }
         let vulnerability = profile.damageTakenVulnerability(for: damageKeyword)
         if vulnerability > 0 {
@@ -358,7 +378,7 @@ package extension DamagePipeline {
            DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: state.combatant)) > 0 {
             talentResistance = max(talentResistance, defenderTriggers.blockedControlBurnResistance)
         }
-        if talentResistance > 0 {
+        if talentResistance > 0, !ignores {
             state.remaining = CombatRounding.scaled(state.remaining, multiplier: 1 - min(1, talentResistance))
         }
         state.buildupDamage = state.remaining
@@ -382,7 +402,6 @@ package extension DamagePipeline {
         state.buildupDamage = state.remaining
     }
 
-    // swiftlint:disable:next function_body_length
     static func applyMitigation(
         to state: inout DamageResolutionState,
         in context: inout BattleState,
@@ -391,29 +410,6 @@ package extension DamagePipeline {
 
         let profile = context.modifiers(for: state.combatant.id)
         let defenderTriggers = profile.triggers
-        var effectivePercent = DefensePoolEngine.effectiveToughnessMitigationPercent(
-            for: state.combatant,
-        )
-        if let sourceActorID = state.sourceActorID {
-            let sourceProfile = context.modifiers(for: sourceActorID)
-            let ignorePercent = min(1, sourceProfile.triggers.ignoreEnemyMitigationPercent)
-            if ignorePercent > 0 {
-                effectivePercent *= (1 - ignorePercent)
-            }
-            if state.damageKeyword == .leech,
-               sourceProfile.triggers.leechIgnoresMitigation {
-                effectivePercent = 0
-            }
-            if state.damageKeyword == .burn,
-               sourceProfile.triggers.burnIgnoresBlockAndMitigation {
-                effectivePercent = 0
-            }
-            if state.damageKeyword == .bleed,
-               sourceProfile.triggers.bleedsIgnoreMitigation {
-                effectivePercent = 0
-            }
-        }
-
         var remaining = state.remaining
         if defenderTriggers.passiveMitigationFlat > 0 {
             remaining = max(0, remaining - defenderTriggers.passiveMitigationFlat)
@@ -445,8 +441,9 @@ package extension DamagePipeline {
             remaining = max(0, remaining - runtime.currentMana / defenderTriggers.damageReductionPerUnspentManaEvery)
         }
 
-        if effectivePercent > 0 {
-            remaining = CombatRounding.scaled(remaining, multiplier: 1.0 - effectivePercent)
+        let flatReductionBonus = context.roster.runtime(for: state.combatant)?.flatDamageReductionBonus ?? 0
+        if flatReductionBonus > 0 {
+            remaining = max(0, remaining - flatReductionBonus)
         }
 
         state.remaining = remaining

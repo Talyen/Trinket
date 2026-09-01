@@ -3,7 +3,7 @@ import Testing
 @testable import TrinketContent
 
 struct UltimateCinematicCatalogTests {
-    private struct CinematicCase: Sendable {
+    private struct CinematicCase {
         let actorID: String
         let abilityID: String
         let expectedVideoName: String?

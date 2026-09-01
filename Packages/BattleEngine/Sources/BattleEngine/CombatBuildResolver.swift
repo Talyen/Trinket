@@ -25,10 +25,7 @@ public enum CombatBuildResolver {
         }
         profile.merge(additionalModifiers)
 
-        let effectiveStats = combatant.primaryStats.merged(with: profile.statBonuses)
-        let builtCombatant = makeBuiltCombatant(from: combatant, effectiveStats: effectiveStats)
-
-        return CombatBuild(combatant: builtCombatant, modifiers: profile)
+        return CombatBuild(combatant: combatant, modifiers: profile)
     }
 
     public static func build(
@@ -40,27 +37,23 @@ public enum CombatBuildResolver {
             profile.traitDisplayName = trait.name
         }
 
-        let effectiveStats = enemy.combatant.primaryStats.merged(with: profile.statBonuses)
-        let builtCombatant = makeBuiltCombatant(from: enemy.combatant, effectiveStats: effectiveStats)
-
-        return CombatBuild(combatant: builtCombatant, modifiers: profile)
+        return CombatBuild(combatant: enemy.combatant, modifiers: profile)
     }
 
-    private static func makeBuiltCombatant(
-        from combatant: Combatant,
-        effectiveStats: PrimaryStats,
-    ) -> Combatant {
-        Combatant(
-            id: combatant.id,
-            name: combatant.name,
-            role: combatant.role,
-            maxHealth: combatant.maxHealth,
-            maxMana: combatant.maxMana,
-            actionIntervalTurns: combatant.actionIntervalTurns,
-            abilityChoices: combatant.abilityChoices,
-            primaryStats: effectiveStats,
-            growthArchetype: combatant.growthArchetype,
-        )
+    public static func build(
+        enemy: Enemy,
+        level: Int,
+    ) -> CombatBuild {
+        var profile = CombatModifierProfile.zero
+        if let trait = GameContent.trait(for: enemy) {
+            trait.apply(to: &profile)
+            profile.traitDisplayName = trait.name
+        }
+        profile.outgoingDamagePercent += EnemyPowerCurve.rawDamagePercent(level: level, isBoss: enemy.isBoss)
+
+        let scaledCombatant = CombatantLevelScaler.scale(enemy: enemy, level: level)
+
+        return CombatBuild(combatant: scaledCombatant, modifiers: profile)
     }
 
     private static func affixProfile(

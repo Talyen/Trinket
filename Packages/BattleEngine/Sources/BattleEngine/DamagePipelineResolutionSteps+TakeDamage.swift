@@ -123,8 +123,8 @@ package extension DamagePipeline {
         }
         if defenderTriggers.toughnessOnHit > 0 {
             context.roster.mutateRuntime(for: defender) { runtime in
-                if runtime.talentStatBonus.toughness < defenderTriggers.toughnessOnHitCap {
-                    runtime.talentStatBonus.toughness += defenderTriggers.toughnessOnHit
+                if runtime.flatDamageReductionBonus < defenderTriggers.toughnessOnHitCap {
+                    runtime.flatDamageReductionBonus += defenderTriggers.toughnessOnHit
                 }
             }
         }

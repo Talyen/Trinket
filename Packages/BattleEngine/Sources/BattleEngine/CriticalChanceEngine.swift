@@ -4,7 +4,7 @@ import TrinketCore
 
 package enum CriticalChanceEngine {
     package static func rollSucceeds(
-        keyword: Keyword,
+        keyword _: Keyword,
         actorID: String,
         defender: Combatant,
         abilityBonus: Double = 0,
@@ -12,10 +12,10 @@ package enum CriticalChanceEngine {
         in context: inout BattleState,
     ) -> Bool {
         guard let actor = context.roster.combatant(for: actorID) else { return false }
-        var chance = actor.primaryStats.contestedCriticalChance(
-            for: keyword,
-            againstDefenderToughness: defender.primaryStats.toughness,
-        )
+        if actor.role == .enemy {
+            return false
+        }
+        var chance = 0.10
         chance += abilityBonus
         chance += context.modifiers(for: actorID).triggers.criticalChanceBonus
         chance += partyCritChanceBonus(actor: actor, in: context)
@@ -28,7 +28,7 @@ package enum CriticalChanceEngine {
                 chance += bonus
             }
         }
-        chance = min(DamagePipeline.criticalChanceCap(for: actor.combatant), max(0, chance))
+        chance = min(0.75, max(0, chance))
         return BattleChance.succeeds(probability: chance, using: &context.rng)
     }
 

@@ -2,7 +2,7 @@ import Testing
 @testable import TrinketDesignSystem
 
 struct TextBalanceTests {
-    private struct BalanceCase: Sendable {
+    private struct BalanceCase {
         let input: String
         let expected: String
 

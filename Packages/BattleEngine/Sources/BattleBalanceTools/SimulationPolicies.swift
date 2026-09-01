@@ -1,7 +1,7 @@
 import BattleEngine
 import Foundation
 
-package enum SimAction: Equatable, Sendable {
+package enum SimAction: Equatable {
     case playCard(id: Int)
     case endTurn
 }

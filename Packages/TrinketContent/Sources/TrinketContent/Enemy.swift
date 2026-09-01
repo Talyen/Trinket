@@ -40,7 +40,6 @@ public struct Enemy: Identifiable, Hashable, Sendable {
             role: .enemy,
             maxHealth: fallbackMaxHealth,
             abilities: [.slash],
-            growthArchetype: .bruiser,
         )
     }
 }

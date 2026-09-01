@@ -50,12 +50,6 @@ package enum DefensePoolEngine {
         return ShieldPoolReduction(effects: updated, keyword: keyword, absorbed: absorbed, broken: broken)
     }
 
-    package static func effectiveToughnessMitigationPercent(
-        for combatant: Combatant,
-    ) -> Double {
-        max(0.0, min(1.0, combatant.primaryStats.toughnessMitigationPercent))
-    }
-
     @discardableResult
     package static func add(
         _ amount: Int,

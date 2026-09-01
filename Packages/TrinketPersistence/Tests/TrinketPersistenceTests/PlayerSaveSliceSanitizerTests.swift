@@ -5,7 +5,7 @@ import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
 struct PlayerSaveSliceSanitizerTests {
-    private enum SliceEqualityCase: String, Sendable {
+    private enum SliceEqualityCase: String {
         case homestead
         case inventory
         case roster

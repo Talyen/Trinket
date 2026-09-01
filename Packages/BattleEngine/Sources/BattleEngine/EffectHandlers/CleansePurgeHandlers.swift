@@ -3,7 +3,7 @@ import TrinketContent
 import TrinketCore
 
 struct CleansePurgeHandler: BattleEffectHandler {
-    enum Mode: Sendable {
+    enum Mode {
         case cleanse
         case cleanseRandom
         case purge

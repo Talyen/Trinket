@@ -15,8 +15,6 @@ public struct Combatant: Identifiable, Hashable, Sendable {
     public let maxMana: Int
     public let actionIntervalTurns: Int?
     public let abilityChoices: AbilityChoices
-    public let primaryStats: PrimaryStats
-    public let growthArchetype: GrowthArchetype
 
     public var hasMana: Bool {
         maxMana > 0
@@ -30,8 +28,6 @@ public struct Combatant: Identifiable, Hashable, Sendable {
         maxMana: Int = 0,
         actionIntervalTurns: Int? = nil,
         abilityChoices: AbilityChoices,
-        primaryStats: PrimaryStats = PrimaryStats(),
-        growthArchetype: GrowthArchetype = .bruiser,
     ) {
         self.id = id
         self.name = name
@@ -40,8 +36,6 @@ public struct Combatant: Identifiable, Hashable, Sendable {
         self.maxMana = maxMana
         self.actionIntervalTurns = actionIntervalTurns
         self.abilityChoices = abilityChoices
-        self.primaryStats = primaryStats
-        self.growthArchetype = growthArchetype
     }
 
     public init(
@@ -52,8 +46,6 @@ public struct Combatant: Identifiable, Hashable, Sendable {
         maxMana: Int = 0,
         actionIntervalTurns: Int? = nil,
         abilities: [Ability],
-        primaryStats: PrimaryStats = PrimaryStats(),
-        growthArchetype: GrowthArchetype = .bruiser,
     ) {
         self.init(
             id: id,
@@ -63,8 +55,6 @@ public struct Combatant: Identifiable, Hashable, Sendable {
             maxMana: maxMana,
             actionIntervalTurns: actionIntervalTurns,
             abilityChoices: AbilityChoices(abilities: abilities),
-            primaryStats: primaryStats,
-            growthArchetype: growthArchetype,
         )
     }
 
@@ -84,13 +74,8 @@ public struct Combatant: Identifiable, Hashable, Sendable {
         replacing(abilityChoices: abilityChoices.withSelectedLoadoutPreservingEmptyTiers(loadout))
     }
 
-    public func withPrimaryStats(_ primaryStats: PrimaryStats) -> Self {
-        replacing(primaryStats: primaryStats)
-    }
-
     private func replacing(
         abilityChoices: AbilityChoices? = nil,
-        primaryStats: PrimaryStats? = nil,
     ) -> Self {
         Self(
             id: id,
@@ -100,8 +85,6 @@ public struct Combatant: Identifiable, Hashable, Sendable {
             maxMana: maxMana,
             actionIntervalTurns: actionIntervalTurns,
             abilityChoices: abilityChoices ?? self.abilityChoices,
-            primaryStats: primaryStats ?? self.primaryStats,
-            growthArchetype: growthArchetype,
         )
     }
 }

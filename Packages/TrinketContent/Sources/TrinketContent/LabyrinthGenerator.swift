@@ -131,7 +131,7 @@ public enum LabyrinthGenerator {
         let entryNodeIDs: [String]
     }
 
-    private struct LayoutKey: Hashable, Sendable {
+    private struct LayoutKey: Hashable {
         let nodeCount: Int
         let closesLoop: Bool
     }

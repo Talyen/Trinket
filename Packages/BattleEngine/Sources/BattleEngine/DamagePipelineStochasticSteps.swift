@@ -1,9 +1,10 @@
+// swiftformat:disable:all
 import Foundation
 import TrinketContent
 import TrinketCore
 
 package extension DamagePipeline {
-    // swiftlint:disable:next function_body_length - dodge gate handles block ignore + retaliation
+    // swiftlint:disable:next function_body_length
     static func applyDodgeGate(
         to state: inout DamageResolutionState,
         in context: inout BattleState,
@@ -12,8 +13,12 @@ package extension DamagePipeline {
               state.amount > 0,
               context.roster.health(for: state.combatant) > 0,
               state.sourceActorID != nil
-        else { return }
-
+        else {
+            return
+        }
+        if state.combatant.role == .enemy {
+            return
+        }
         let hasEvadeNextHit = context.roster.activeEffects(for: state.combatant).contains {
             if case .evadeNextHit = $0.effect {
                 return true
@@ -43,8 +48,9 @@ package extension DamagePipeline {
             let chance = dodgeChance(for: state, in: context)
             dodged = BattleChance.succeeds(probability: chance, using: &context.rng)
         }
-        guard dodged else { return }
-
+        guard dodged else {
+            return
+        }
         if hasEvadeNextHit {
             ActiveEffectMutation.removeMatching(from: state.combatant, in: &context) {
                 if case .evadeNextHit = $0 {
@@ -53,7 +59,6 @@ package extension DamagePipeline {
                 return false
             }
         }
-
         state.damageEvents.append(context.nextEvent(
             kind: .effect,
             effectKind: .dodgeApplied,
@@ -79,20 +84,10 @@ package extension DamagePipeline {
         for state: DamageResolutionState,
         in context: BattleState,
     ) -> Double {
-        let attackerAgility = state.sourceActorID
-            .flatMap { context.roster.combatant(for: $0) }?
-            .primaryStats.agility ?? 0
-
-        let baseChance: Double = if state.combatant.role == .enemy {
-            state.combatant.primaryStats.contestedEnemyDodgeChance(
-                againstAttackerAgility: attackerAgility,
-            )
-        } else {
-            state.combatant.primaryStats.contestedDodgeChance(
-                againstAttackerAgility: attackerAgility,
-            )
+        if state.combatant.role == .enemy {
+            return 0
         }
-        var chance = baseChance
+        var chance = 0.10
         let profile = context.modifiers(for: state.combatant.id)
         chance += profile.triggers.dodgeChanceBonus
         chance += context.roster.runtime(for: state.combatant)?.bonusDodgeUntilNextTurn ?? 0
@@ -102,7 +97,9 @@ package extension DamagePipeline {
         }
         if let attackerID = state.sourceActorID,
            let attacker = context.roster.combatant(for: attackerID),
-           context.roster.activeEffects(for: attacker.combatant).contains(where: { $0.effect.keyword == .bleed }) {
+           context.roster.activeEffects(for: attacker.combatant).contains(where: {
+               $0.effect.keyword == .bleed
+           }) {
             chance += profile.triggers.dodgeChanceVsBleedingEnemiesBonus
         }
         if profile.triggers.dodgeChanceBelowHealthPercentThreshold > 0,
@@ -114,7 +111,7 @@ package extension DamagePipeline {
                 chance += profile.triggers.dodgeChanceBelowHealthPercentBonus
             }
         }
-        return min(dodgeChanceCap(for: state.combatant), max(0, chance))
+        return min(0.75, max(0, chance))
     }
 
     static func applyCriticalGate(
@@ -127,12 +124,15 @@ package extension DamagePipeline {
               let damageKeyword = state.damageKeyword,
               damageKeyword.allowsCriticalHits,
               let actor = context.roster.combatant(for: sourceActorID)
-        else { return }
-
+        else {
+            return
+        }
+        if actor.role == .enemy {
+            return
+        }
         if resolveGuaranteedCrit(to: &state, actor: actor, in: &context) {
             return
         }
-
         guard CriticalChanceEngine.rollSucceeds(
             keyword: damageKeyword,
             actorID: sourceActorID,
@@ -141,69 +141,93 @@ package extension DamagePipeline {
             countsBleedingDefender: true,
             in: &context,
         )
-        else { return }
+        else {
+            return
+        }
         applyCritical(to: &state)
     }
 
+    // swiftlint:disable:next function_body_length
     private static func resolveGuaranteedCrit(
         to state: inout DamageResolutionState,
         actor: CombatantRuntime,
         in context: inout BattleState,
     ) -> Bool {
-        guard let sourceActorID = state.sourceActorID else { return false }
+        guard let sourceActorID = state.sourceActorID else {
+            return false
+        }
         if state.options.guaranteedCritical {
+            if actor.role == .enemy {
+                return false
+            }
             applyCritical(to: &state)
             return true
         }
         if state.options.guaranteedCriticalIfEnemyBuffed,
            context.roster.activeEffects(for: state.combatant).contains(where: \.effect.isRemovableBuff) {
+            if actor.role == .enemy {
+                return false
+            }
             applyCritical(to: &state)
             return true
         }
         if state.options.isAttackHit,
            context.modifiers(for: sourceActorID).triggers.firstAttackGuaranteedCritical,
            context.claimBattleGuard(.surpriseStrike, actorID: actor.combatant.id) {
+            if actor.role == .enemy {
+                return false
+            }
             applyCritical(to: &state)
             return true
         }
         if state.options.isAttackHit,
            context.roster.runtime(for: actor.combatant)?.pendingGuaranteedCriticalAfterDodge == true {
-            context.roster.mutateRuntime(for: actor.combatant) { $0.pendingGuaranteedCriticalAfterDodge = false }
+            context.roster.mutateRuntime(for: actor.combatant) {
+                $0.pendingGuaranteedCriticalAfterDodge = false
+            }
+            if actor.role == .enemy {
+                return false
+            }
             applyCritical(to: &state)
             return true
         }
         if state.options.isAttackHit, state.options.isBasicAttackHit,
            context.roster.runtime(for: actor.combatant)?.pendingBasicGuaranteedCrit == true {
-            context.roster.mutateRuntime(for: actor.combatant) { $0.pendingBasicGuaranteedCrit = false }
+            context.roster.mutateRuntime(for: actor.combatant) {
+                $0.pendingBasicGuaranteedCrit = false
+            }
+            if actor.role == .enemy {
+                return false
+            }
             applyCritical(to: &state)
             return true
         }
         if context.roster.isDeathsDoorActive(for: actor.combatant),
            context.modifiers(for: sourceActorID).triggers.guaranteedCritWhileOnDeathsDoor {
+            if actor.role == .enemy {
+                return false
+            }
             applyCritical(to: &state)
             return true
         }
         if context.modifiers(for: sourceActorID).triggers.warChest,
            state.damageKeyword == .physical,
            context.gold >= 50 {
+            if actor.role == .enemy {
+                return false
+            }
             applyCritical(to: &state)
             return true
         }
         return false
     }
 
-    static func dodgeChanceCap(for combatant: Combatant) -> Double {
-        guard combatant.role == .enemy else {
-            return PrimaryStats.playerChanceCap
-        }
-        return combatant.growthArchetype.enemyDodgeChanceCap
+    static func dodgeChanceCap(for _: Combatant) -> Double {
+        0.75
     }
 
-    static func criticalChanceCap(for combatant: Combatant) -> Double {
-        guard combatant.role == .enemy else {
-            return PrimaryStats.playerChanceCap
-        }
-        return combatant.growthArchetype.enemyCriticalChanceCap
+    static func criticalChanceCap(for _: Combatant) -> Double {
+        0.75
     }
 
     private static func applyCritical(to state: inout DamageResolutionState) {

@@ -3,7 +3,7 @@ import TrinketContent
 import TrinketCore
 
 struct ShieldFromResourceHandler: BattleEffectHandler {
-    enum Mode: Sendable {
+    enum Mode {
         case convertManaToBlock
         case shieldFromMana
         case shieldFromHalfMana

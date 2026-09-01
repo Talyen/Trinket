@@ -159,7 +159,7 @@ private final class PassThroughWindow: UIWindow {
 final class FramePacingMonitor: NSObject {
     static let measurementShared = FramePacingMonitor(windowSeconds: 30)
 
-    private struct Sample: Sendable {
+    private struct Sample {
         let interval: CFTimeInterval
         let expectedFrameDuration: CFTimeInterval
     }

@@ -52,7 +52,7 @@ public enum EffectMetadata {
         case .maximumManaBonus:
             .init(isRemovableBuff: true, isInstant: true)
         case .marked, .recurringDamage, .damageReductionPercent,
-             .damageReductionFlat, .strengthReduction:
+             .damageReductionFlat:
             .init(isRemovableDebuff: true, advancesEachTurn: true)
         case .criticalChanceBonus, .restoreManaOnHit, .damageKeywordOverride, .avatar:
             .init(isRemovableBuff: true, advancesEachTurn: true)

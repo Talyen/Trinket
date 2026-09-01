@@ -1,10 +1,11 @@
+// swiftformat:disable:this all
 import Foundation
 import os
 import TrinketContent
 import TrinketCore
 
 private let sanitizerLogger = Logger(
-    subsystem: "com.ryanmcintire.Trinket",
+    subsystem: PlayerSaveDefaults.loggingSubsystem,
     category: "PlayerSaveSanitizer",
 )
 
@@ -17,7 +18,8 @@ enum PlayerSaveSanitizer {
         var sanitized = save
         sanitized.worldSeed = resolvedWorldSeed(save)
         let labyrinthNeedsWorldSeed = !sanitized.labyrinth.hasMap || sanitized.labyrinth.worldSeed == 0
-        if !sanitized.labyrinth.isMapPayloadUnreadable, labyrinthNeedsWorldSeed {
+        if !sanitized.labyrinth.isMapPayloadUnreadable,
+           save.worldSeed == 0 || labyrinthNeedsWorldSeed {
             sanitized.labyrinth.worldSeed = sanitized.worldSeed
         }
         if changedSlices.contains(.inventory) {
@@ -170,7 +172,7 @@ enum PlayerSaveSanitizer {
             uniqueKeysWithValues: homestead.pendingProduction.compactMap { resource, quantity in
                 guard quantity.isFinite, quantity > 0 else { return nil }
                 if resource == .gold {
-                    return (resource, min(quantity, Double(PlayerRosterState.maxGoldBalance)))
+                    return (resource, PlayerRosterState.cappedPendingGold(quantity))
                 }
                 return (resource, quantity)
             },
@@ -198,16 +200,7 @@ enum PlayerSaveSanitizer {
     }
 
     static func sanitizeInventory(_ inventory: PlayerInventoryState) -> PlayerInventoryState {
-        var seenIDs = Set<String>()
-        var seenTrinketIDs = Set<String>()
-        let uniqueItems = inventory.items.filter { item in
-            guard !seenIDs.contains(item.id) else { return false }
-            if item.isTrinket {
-                guard seenTrinketIDs.insert(item.templateID).inserted else { return false }
-            }
-            seenIDs.insert(item.id)
-            return true
-        }
+        let uniqueItems = InventoryDuplicatePolicy.deduplicated(inventory.items)
         if uniqueItems.count != inventory.items.count {
             sanitizerLogger
                 .notice("Sanitized inventory: dropped \(inventory.items.count - uniqueItems.count, privacy: .public) duplicate items")

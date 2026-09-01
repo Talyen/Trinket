@@ -84,9 +84,6 @@ extension PlayBattleLaunch {
         hasProgressionRewards: Bool = false,
         musicStageID: String? = nil,
     ) -> BattleLaunchAssembly {
-        let enemyBuild = resolvedEnemyBuild(enemy: input.enemy)
-        var enemyModifiers = enemyBuild.modifiers
-        enemyModifiers.merge(input.universalModifiers)
         let homesteadEffects = homesteadState.effects
         let members = makePartyMembers(
             input: input,
@@ -98,6 +95,9 @@ extension PlayBattleLaunch {
         let companionMember = members.companion
         let resolvedStageReward = input.stageReward ?? .empty
         let enemyLevel = input.enemyEncounterLevel ?? heroMember.progression.level
+        let enemyBuild = resolvedEnemyBuild(enemy: input.enemy, level: enemyLevel)
+        var enemyModifiers = enemyBuild.modifiers
+        enemyModifiers.merge(input.universalModifiers)
         let configuration = BattleRunConfiguration(
             runKey: runKey,
             rngSeed: rngSeed,
@@ -219,15 +219,18 @@ extension PlayBattleLaunch {
 
     private static func resolvedEnemyBuild(
         enemy: Combatant?,
+        level: Int,
     ) -> CombatBuild {
         guard let enemy else {
             return CombatBuild(combatant: Enemy.fallbackCombatant, modifiers: .zero)
         }
         if let catalogEnemy = GameContent.enemy(matching: enemy.id) {
-            let catalogBuild = CombatBuildResolver.build(enemy: catalogEnemy)
+            let catalogBuild = CombatBuildResolver.build(enemy: catalogEnemy, level: level)
             return CombatBuild(combatant: enemy, modifiers: catalogBuild.modifiers)
         }
-        return CombatBuild(combatant: enemy, modifiers: .zero)
+        var fallbackModifiers = CombatModifierProfile.zero
+        fallbackModifiers.outgoingDamagePercent = EnemyPowerCurve.rawDamagePercent(level: level, isBoss: false)
+        return CombatBuild(combatant: enemy, modifiers: fallbackModifiers)
     }
 
     private static func resolvedRewardItems(

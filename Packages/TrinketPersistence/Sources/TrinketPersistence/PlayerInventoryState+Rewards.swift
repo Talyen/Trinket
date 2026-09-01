@@ -7,9 +7,7 @@ public extension PlayerInventoryState {
     }
 
     mutating func appendUniqueItem(_ item: InventoryItem) {
-        guard !items.contains(where: {
-            $0.id == item.id || (item.isTrinket && $0.isTrinket && $0.templateID == item.templateID)
-        }) else { return }
+        guard !InventoryDuplicatePolicy.containsDuplicate(of: item, in: items) else { return }
         items.append(item)
     }
 

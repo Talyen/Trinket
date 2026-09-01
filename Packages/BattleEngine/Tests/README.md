@@ -12,7 +12,7 @@ genuinely new concern. The authoritative suite inventory is the
 | Concern | Suite family |
 |---------|--------------|
 | Handler apply / status / turn advance | `EffectHandlers*Tests`, `EffectTurnEngineTests` |
-| Damage pipeline steps, DoT math | `DamagePipelineTests`, `CombatPipelineTests`, `DoT*Tests` |
+| Damage pipeline steps, DoT math | `CombatPipelineTests`, `DoT*Tests` |
 | Engine cadence, fight pacing, control states | `BattleTurnEngineTests`, `FightPacingTests`, `ControlMeter*Tests`, `DeathsDoorEngineTests` |
 | Cross-boundary card combat | `BattleCardCombatTests` plus `*IntegrationTests` |
 | Builds, triggers, talents, traits, affixes, items, trinkets | `CombatBuildResolverTests`, `TalentCatalogRoundTripTests`, `CombatTriggerFieldCoverageTests`, `CombatTriggerTalent*Tests`, `TrinketEffectTests`, `*BattleTests` |

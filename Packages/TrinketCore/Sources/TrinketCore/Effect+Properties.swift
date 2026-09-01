@@ -40,7 +40,6 @@ public enum EffectKind: Hashable, CaseIterable, Sendable {
     case revive
     case damageReductionPercent
     case damageReductionFlat
-    case strengthReduction
     case hemorrhage
 }
 
@@ -86,7 +85,6 @@ public extension Effect {
         case .revive: .revive
         case .damageReductionPercent: .damageReductionPercent
         case .damageReductionFlat: .damageReductionFlat
-        case .strengthReduction: .strengthReduction
         case .hemorrhage: .hemorrhage
         }
     }

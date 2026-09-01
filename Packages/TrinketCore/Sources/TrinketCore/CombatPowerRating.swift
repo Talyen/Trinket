@@ -3,29 +3,29 @@ import Foundation
 public struct CombatPowerSnapshot: Equatable, Sendable {
     public let level: Int
     public let maxHealth: Int
-    public let rating: Int
+    public let rawDamagePercent: Double
 
     public init(
         level: Int,
         maxHealth: Int,
-        rating: Int,
+        rawDamagePercent: Double,
     ) {
         self.level = level
         self.maxHealth = maxHealth
-        self.rating = rating
+        self.rawDamagePercent = rawDamagePercent
     }
 }
 
 public enum CombatPowerRating {
     public static func evaluate(
         maxHealth: Int,
-        primaryStats: PrimaryStats,
+        rawDamagePercent: Double,
         level: Int,
     ) -> CombatPowerSnapshot {
         CombatPowerSnapshot(
             level: level,
             maxHealth: maxHealth,
-            rating: maxHealth + primaryStats.total,
+            rawDamagePercent: rawDamagePercent,
         )
     }
 }

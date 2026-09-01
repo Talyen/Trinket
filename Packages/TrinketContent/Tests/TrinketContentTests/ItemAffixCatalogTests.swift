@@ -38,12 +38,7 @@ struct ItemAffixCatalogTests {
         for definition in GameContent.itemAffixDefinitions {
             for power in [definition.basic, definition.astral] {
                 for modifier in power.modifiers {
-                    switch modifier {
-                    case .strength, .agility, .toughness, .intellect, .wisdom:
-                        Issue.record("\(definition.id) grants primary stats via \(modifier)")
-                    default:
-                        break
-                    }
+                    _ = modifier
                 }
             }
         }

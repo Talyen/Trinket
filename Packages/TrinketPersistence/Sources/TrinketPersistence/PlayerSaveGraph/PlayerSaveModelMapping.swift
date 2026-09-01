@@ -84,6 +84,23 @@ extension InventoryItemModel {
         )
         affixes?.linkEach(to: self, parent: \.item)
     }
+
+    func updateWithoutContext(from item: InventoryItem) {
+        id = item.id
+        templateID = item.templateID
+        baseTypeID = item.baseType.id
+        rarityID = item.rarity.rawValue
+        displayName = item.displayName
+        isCorrupted = item.isCorrupted
+        applyAffixPowers(from: item)
+        affixes = item.affixes.enumerated().map { index, affix in
+            let model = ItemAffixModel(affix: affix)
+            model.sortIndex = index
+            model.keywordRawValues = affix.keywords.map(\.rawValue).sorted()
+            return model
+        }
+        affixes?.linkEach(to: self, parent: \.item)
+    }
 }
 
 extension RosterModel {
@@ -107,7 +124,7 @@ extension RosterModel {
         unlockedCombatants = reconcileModels(
             existing: unlockedCombatants ?? [],
             values: unlockedValues,
-            existingKey: { "\($0.role):\($0.combatantID)" },
+            existingKey: \UnlockedCombatantModel.compositeKey,
             valueKey: { $0.key },
             make: { UnlockedCombatantModel(combatantID: $0.combatantID, role: $0.role) },
             update: { model, value in
@@ -267,7 +284,7 @@ extension InventoryModel {
             values: values,
             existingKey: \.id,
             valueKey: { $0.item.id },
-            make: { InventoryItemModel(item: $0.item) },
+            make: { _ in InventoryItemModel() },
             update: { model, value in
                 model.update(from: value.item, context: context)
                 model.sortIndex = value.index

@@ -78,7 +78,7 @@ warlock_burn_t2_2	Soul Burn	moon.stars.fill	Restore 1 Mana whenever Burn deals 4
 warlock_burn_t3_1	Damnation	exclamationmark.triangle.fill	Burning enemies take 25% additional damage from all sources.		damageVsBurningMultiplier:1.25
 warlock_burn_t3_2	Raging Inferno	flame.circle.fill	Burn ticks twice per turn on the enemy.		burnTicksTwicePerTurn:true
 warlock_leech_t1_1	Vampiric Touch	hand.raised.fill	Your Leech heals you even when striking enemy Block.		leechOnBlockDamage:true
-warlock_leech_t1_2	Armor Pierce	drop.triangle.fill	Leech damage ignores the enemy's Toughness.		leechIgnoresMitigation:true
+warlock_leech_t1_2	Armor Pierce	drop.triangle.fill	Leech ignores enemy damage reduction.		leechIgnoresMitigation:true
 warlock_leech_t2_1	Blood Link	arrow.triangle.swap	Overhealing from Leech is transferred to your Companion.		leechOverhealTransfersToCompanion:true
 warlock_leech_t2_2	Soul Drain	moon.fill	Leeching Health restores 1 Mana.		leechRestoreManaFlat:1
 warlock_leech_t3_1	Sanguine Overflow	cross.fill	Reaching full Health makes your next attack deal 6 additional damage.		nextAttackBonusOnFullHealth:6

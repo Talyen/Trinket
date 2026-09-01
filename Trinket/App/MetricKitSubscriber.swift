@@ -4,8 +4,8 @@ import os
 import TrinketAppState
 import TrinketFeatureSupport
 
-struct MetricKitDiagnosticSummary: Sendable {
-    enum Kind: Sendable {
+struct MetricKitDiagnosticSummary {
+    enum Kind {
         case crash(signal: Int?, terminationReason: String?)
         case hang(durationSeconds: Double)
         case diskWrite(totalMegabytes: Double)

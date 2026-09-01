@@ -10,7 +10,7 @@ let package = Package(
     products: [
         .library(
             name: "TrinketDesignSystem",
-            targets: ["TrinketDesignSystem"]
+            targets: ["TrinketDesignSystem"],
         ),
     ],
     dependencies: [
@@ -22,11 +22,11 @@ let package = Package(
             dependencies: ["TrinketCore"],
             resources: [
                 .process("Resources"),
-            ]
+            ],
         ),
         .testTarget(
             name: "TrinketDesignSystemTests",
-            dependencies: ["TrinketDesignSystem", "TrinketCore"]
+            dependencies: ["TrinketDesignSystem", "TrinketCore"],
         ),
-    ]
+    ],
 )

@@ -8,30 +8,37 @@ public extension PlayerSaveStore {
         _ definition: HomesteadNodeDefinition,
         at date: Date = Date(),
     ) -> HomesteadBuildResult {
-        let homesteadState = homestead
-        let rosterState = roster
-        guard homesteadState.isUnlocked(definition),
-              let tier = homesteadState.nextTier(for: definition)
+        guard homestead.isUnlocked(definition),
+              homestead.nextTier(for: definition) != nil
         else {
             return .notAvailable
         }
-        guard homesteadState.canAfford(tier, roster: rosterState) else {
-            return .insufficientResources
-        }
 
-        var didUpgrade = false
+        var buildResult: HomesteadBuildResult = .notAvailable
         guard persistBatch(logging: "Failed to build or upgrade homestead node", { save in
             save.homestead.settleProduction(at: date, roster: save.roster)
-            guard save.homestead.buildOrUpgrade(definition, roster: &save.roster) else { return }
-            didUpgrade = true
+            guard let tier = save.homestead.nextTier(for: definition),
+                  save.homestead.isUnlocked(definition)
+            else {
+                buildResult = .notAvailable
+                return
+            }
+            guard save.homestead.canAfford(tier, roster: save.roster) else {
+                buildResult = .insufficientResources
+                return
+            }
+            guard save.homestead.buildOrUpgrade(definition, roster: &save.roster) else {
+                buildResult = .notAvailable
+                return
+            }
+            buildResult = .success
         }) else {
             return .persistFailed
         }
-        return didUpgrade ? .success : .notAvailable
+        return buildResult
     }
 
     func collectProduction(at date: Date = Date()) -> HomesteadCollectionResult {
-        guard !isCloudSyncEnabled else { return .cloudSyncUnsupported }
         var collected: [ResourceAmount] = []
         guard persistBatch(logging: "Failed to collect homestead production", { save in
             collected = save.homestead.collectProduction(at: date, roster: &save.roster)

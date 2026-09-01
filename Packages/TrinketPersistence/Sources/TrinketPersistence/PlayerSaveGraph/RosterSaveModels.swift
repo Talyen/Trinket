@@ -53,6 +53,10 @@ public final class UnlockedCombatantModel {
     public var role: String = ""
     public var roster: RosterModel?
 
+    public var compositeKey: String {
+        "\(role):\(combatantID)"
+    }
+
     public init(combatantID: String = "", role: String = "") {
         self.combatantID = combatantID
         self.role = role

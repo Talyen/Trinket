@@ -33,11 +33,6 @@ struct TimedDebuffHandler: BattleEffectHandler {
                 keyword: keyword,
                 text: "Dazzled: Outgoing damage reduced by \(amount)\(durationSuffix).",
             )
-        case let .strengthReduction(amount, _):
-            return EffectSummary(
-                keyword: keyword,
-                text: "Weakened Soul: Strength reduced by \(amount)\(durationSuffix).",
-            )
         default:
             return nil
         }
