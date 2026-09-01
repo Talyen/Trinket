@@ -56,7 +56,7 @@ struct ControlMeterIntegrationTests {
             id: "hero",
             role: .hero,
             actionIntervalTurns: 1,
-            abilities: [CombatantFixtures.ability(id: "test-stun", name: "Test Stun", directDamage: 1, damageKeyword: .stun)],
+            abilities: [Ability(id: "test-stun", name: "Test Stun", tier: .basic, directDamage: 1, damageKeyword: .stun)],
         )
         let companion = BattleTestFixtures.passiveCompanion()
         let enemy = BattleTestFixtures.attackingEnemy(abilities: [.slash], maxHealth: 5)

@@ -24,8 +24,8 @@ struct StageSelectScreen<HeroArt: View, Content: View>: View {
                 title: title,
                 titleAccessibilityIdentifier: titleAccessibilityIdentifier,
                 baseHeight: baseHeight,
-                horizontalPadding: TrinketDesign.Metrics.contentMargin,
-                bottomPadding: TrinketDesign.Metrics.largeSpacing,
+                horizontalPadding: TrinketDesign.Layout.contentMargin,
+                bottomPadding: TrinketDesign.Spacing.large,
             ) {
                 heroArt()
             } footer: {
@@ -50,7 +50,7 @@ struct StageSelectCompletionPanel: View {
     let onBack: () -> Void
 
     var body: some View {
-        VStack(spacing: TrinketDesign.Metrics.largeSpacing) {
+        VStack(spacing: TrinketDesign.Spacing.large) {
             ContentUnavailableView(
                 title,
                 systemImage: "checkmark.seal.fill",
@@ -65,8 +65,8 @@ struct StageSelectCompletionPanel: View {
                 )
                 .trinketCenteredPrimaryAction()
         }
-        .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-        .padding(.vertical, TrinketDesign.Metrics.largeSpacing)
+        .padding(.horizontal, TrinketDesign.Layout.contentMargin)
+        .padding(.vertical, TrinketDesign.Spacing.large)
     }
 }
 
@@ -186,7 +186,7 @@ struct ChapterStageSelectView: View {
                     )
                 }
             }
-            .padding(.bottom, TrinketDesign.Metrics.compactTabBarContentClearance)
+            .padding(.bottom, TrinketDesign.Layout.compactTabBarContentClearance)
         }
         .accessibilityIdentifier(AccessibilityID.Screen.play)
         .overlay(alignment: .topLeading) {

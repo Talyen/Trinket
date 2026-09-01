@@ -70,7 +70,8 @@ public enum ItemCorruption {
         for item: InventoryItem,
         using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> Set<CorruptionEffectKind> {
-        let eligible = eligibleKinds(for: item)
+        let eligibleKinds = eligibleKinds(for: item)
+        let eligible = CorruptionEffectKind.allCases.filter(eligibleKinds.contains)
         var selected = Set<CorruptionEffectKind>()
         for kind in eligible {
             let chance = chancePercent(for: kind)
@@ -127,6 +128,7 @@ public enum ItemCorruption {
 
         applyStructuralEffects(
             kinds: kinds,
+            baseType: item.baseType,
             affixIDs: &affixIDs,
             summaries: &summaries,
             markCandidates: &markCandidates,
@@ -207,12 +209,13 @@ public enum ItemCorruption {
 
     private static func applyStructuralEffects(
         kinds: Set<CorruptionEffectKind>,
+        baseType: ItemBaseType,
         affixIDs: inout [String],
         summaries: inout [CorruptionEffectSummary],
         markCandidates: inout [(CorruptionMarkPriority, Int)],
         using randomNumberGenerator: inout some RandomNumberGenerator,
     ) {
-        let catalog = GameContent.itemAffixDefinitions
+        let catalog = GameContent.itemAffixDefinitions.filter { $0.isEligible(for: baseType) }
         if kinds.contains(.replaceAffix), !affixIDs.isEmpty {
             let index = Int.random(in: 0 ..< affixIDs.count, using: &randomNumberGenerator)
             let fromID = affixIDs[index]

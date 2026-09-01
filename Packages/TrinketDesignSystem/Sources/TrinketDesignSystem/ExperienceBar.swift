@@ -57,17 +57,17 @@ public struct ExperienceBar: View {
     }
 
     public var body: some View {
-        HStack(spacing: TrinketDesign.Metrics.mediumSpacing) {
+        HStack(spacing: TrinketDesign.Spacing.medium) {
             if let artworkName {
                 circularPortrait(artworkName: artworkName)
             }
 
-            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
-                HStack(alignment: .firstTextBaseline, spacing: TrinketDesign.Metrics.smallSpacing) {
+            VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
+                HStack(alignment: .firstTextBaseline, spacing: TrinketDesign.Spacing.small) {
                     Text(combatantName)
                         .trinketTypography(.cardLabel)
 
-                    Spacer(minLength: TrinketDesign.Metrics.smallSpacing)
+                    Spacer(minLength: TrinketDesign.Spacing.small)
 
                     if let experienceAward, experienceAward > 0, showsExperienceAward {
                         Text("+\(experienceAward) XP")
@@ -100,11 +100,11 @@ public struct ExperienceBar: View {
                             }
                     }
                 }
-                .frame(height: TrinketDesign.Metrics.statBarHeight)
+                .frame(height: TrinketDesign.Bars.statHeight)
 
                 HStack {
                     Text("Level \(displayedLevel)")
-                    Spacer(minLength: TrinketDesign.Metrics.smallSpacing)
+                    Spacer(minLength: TrinketDesign.Spacing.small)
                     Text("\(displayedXP) / \(displayedRequiredXP) XP")
                         .monospacedDigit()
                         .contentTransition(.numericText())

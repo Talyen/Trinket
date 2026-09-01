@@ -1,6 +1,6 @@
 import Foundation
 
-public struct FramePacingReport: Equatable, Sendable {
+public struct FramePacingReport: Equatable, Sendable, Codable {
     public static let schemaVersion = 5
 
     public var sampleCount: Int
@@ -56,7 +56,13 @@ public struct FramePacingReport: Equatable, Sendable {
     }
 
     public var accessibilityValue: String {
-        String(
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys]
+        if let data = try? encoder.encode(self),
+           let json = String(data: data, encoding: .utf8) {
+            return "schema=\(Self.schemaVersion);json=\(json)"
+        }
+        return String(
             format: "schema=%d;samples=%d;expectedFPS=%.2f;avgFPS=%.2f;p95Ms=%.2f;p99Ms=%.2f;oneLowFPS=%.2f;maxMs=%.2f;missed=%d;estimatedMissed=%d;severe=%d;missedRatio=%.5f",
             Self.schemaVersion,
             sampleCount,
@@ -74,6 +80,13 @@ public struct FramePacingReport: Equatable, Sendable {
     }
 
     public static func parseAccessibilityValue(_ value: String) -> Self? {
+        if let jsonStart = value.range(of: "json=") {
+            let json = String(value[jsonStart.upperBound...])
+            if let data = json.data(using: .utf8),
+               let decoded = try? JSONDecoder().decode(Self.self, from: data) {
+                return decoded
+            }
+        }
         var map: [String: String] = [:]
         for part in value.split(separator: ";") {
             let pair = part.split(separator: "=", maxSplits: 1)
@@ -122,6 +135,12 @@ public enum FramePacingAnalyzer {
     ) -> FramePacingReport {
         guard !intervals.isEmpty else { return .empty }
 
+        if !expectedFrameDurations.isEmpty {
+            assert(
+                intervals.count == expectedFrameDurations.count || expectedFrameDurations.count == 1,
+                "FramePacingAnalyzer.report expected intervals and expectedFrameDurations to correspond; got \(intervals.count) vs \(expectedFrameDurations.count)",
+            )
+        }
         let validExpectedDurations = expectedFrameDurations.filter { $0 > 0 && $0.isFinite }
         let expectedFrameDuration = median(validExpectedDurations)
         guard expectedFrameDuration > 0 else { return .empty }

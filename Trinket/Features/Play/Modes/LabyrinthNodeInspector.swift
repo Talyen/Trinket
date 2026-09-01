@@ -92,10 +92,10 @@ struct LabyrinthNodeInspector: View {
     @ViewBuilder
     private var modifierArtworkCaption: some View {
         if !modifiers.isEmpty {
-            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
+            VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
                 ForEach(modifiers) { modifier in
-                    VStack(alignment: .leading, spacing: TrinketDesign.Metrics.tightSpacing) {
-                        HStack(spacing: TrinketDesign.Metrics.smallSpacing) {
+                    VStack(alignment: .leading, spacing: TrinketDesign.Spacing.tight) {
+                        HStack(spacing: TrinketDesign.Spacing.small) {
                             Image(systemName: modifierSymbolName(for: modifier))
                                 .symbolRenderingMode(.hierarchical)
                             Text(modifier.title.uppercased())
@@ -110,9 +110,9 @@ struct LabyrinthNodeInspector: View {
                     }
                 }
             }
-            .padding(.horizontal, TrinketDesign.Metrics.mediumSpacing)
-            .padding(.top, TrinketDesign.Metrics.extraLargeSpacing)
-            .padding(.bottom, TrinketDesign.Metrics.mediumSpacing)
+            .padding(.horizontal, TrinketDesign.Spacing.medium)
+            .padding(.top, TrinketDesign.Spacing.extraLarge)
+            .padding(.bottom, TrinketDesign.Spacing.medium)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background {
                 LinearGradient(

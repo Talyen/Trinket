@@ -41,7 +41,7 @@ struct HomesteadTierPath: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .top)
-        .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+        .padding(.horizontal, TrinketDesign.Layout.contentMargin)
         .accessibilityIdentifier(AccessibilityID.Homestead.tierPath)
         .onAppear {
             seedRevealIfNeeded(through: status.currentTier)
@@ -211,7 +211,7 @@ struct HomesteadTierNode: View {
     }
 
     private var rowContent: some View {
-        HStack(alignment: .center, spacing: TrinketDesign.Metrics.largeSpacing) {
+        HStack(alignment: .center, spacing: TrinketDesign.Spacing.large) {
             HomesteadTierPathRail(
                 connectorBefore: connectors.before,
                 connectorAfter: connectors.after,
@@ -223,7 +223,7 @@ struct HomesteadTierNode: View {
             }
             .frame(width: HomesteadTierNodeMetrics.railWidth)
 
-            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.extraSmallSpacing) {
+            VStack(alignment: .leading, spacing: TrinketDesign.Spacing.extraSmall) {
                 Text(tierTitle)
                     .trinketTypography(.sectionDisplay)
                     .foregroundStyle(nodeForeground)
@@ -237,7 +237,7 @@ struct HomesteadTierNode: View {
                     HomesteadTierCostLabel(cost: tier.cost, status: status)
                 }
             }
-            .padding(.vertical, TrinketDesign.Metrics.sectionHeaderSpacing)
+            .padding(.vertical, TrinketDesign.Layout.sectionHeaderSpacing)
 
             Spacer(minLength: 0)
         }
@@ -339,9 +339,9 @@ struct HomesteadTierCostLabel: View {
     let status: HomesteadProjectStatus
 
     var body: some View {
-        HStack(spacing: TrinketDesign.Metrics.smallSpacing) {
+        HStack(spacing: TrinketDesign.Spacing.small) {
             ForEach(cost) { amount in
-                HStack(spacing: TrinketDesign.Metrics.smallSpacing) {
+                HStack(spacing: TrinketDesign.Spacing.small) {
                     HomesteadResourceArtwork(resource: amount.resource)
                         .frame(
                             width: TrinketDesign.Metrics.walletResourceArtworkSize,

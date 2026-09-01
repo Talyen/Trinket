@@ -20,7 +20,7 @@ enum EffectHandlersTestSupport {
 
     static func dispatch(
         _ effect: Effect,
-        ability: Ability,
+        ability: Ability = Ability(id: "test", name: "Test", tier: .basic),
         source: Combatant,
         target: Combatant,
         battle: inout BattleState,

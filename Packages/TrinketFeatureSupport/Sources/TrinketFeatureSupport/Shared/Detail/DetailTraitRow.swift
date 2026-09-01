@@ -33,9 +33,9 @@ public struct DetailTraitRow: View {
     }
 
     public var body: some View {
-        VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
+        VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
             if !(title?.isEmpty ?? true) || !(titlePrefix?.isEmpty ?? true) {
-                HStack(alignment: .firstTextBaseline, spacing: TrinketDesign.Metrics.extraSmallSpacing) {
+                HStack(alignment: .firstTextBaseline, spacing: TrinketDesign.Spacing.extraSmall) {
                     if let leadingIconKeyword {
                         if leadingIconKeyword == .gold {
                             HomesteadResourceArtwork(resource: .gold)

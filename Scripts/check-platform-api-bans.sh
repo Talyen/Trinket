@@ -11,6 +11,21 @@ if [[ -z "$SYSTEM_COLORS" ]]; then
   exit 1
 fi
 
+# Verify .swiftlint.yml contains all system colors from system-colors.txt in its custom rules
+if [[ -f .swiftlint.yml ]]; then
+  if ! grep -q -E "banned_system_color_literal" .swiftlint.yml; then
+    echo "check-platform-api-bans: .swiftlint.yml is missing banned_system_color_literal rule" >&2
+    exit 1
+  fi
+  while IFS= read -r color; do
+    [[ -z "$color" || "$color" =~ ^# ]] && continue
+    if ! grep -q "\b$color\b" .swiftlint.yml; then
+      echo "check-platform-api-bans: .swiftlint.yml is missing system color token '$color' from Scripts/config/system-colors.txt" >&2
+      exit 1
+    fi
+  done < Scripts/config/system-colors.txt
+fi
+
 violations=()
 
 # Match whole identifiers / attributes; skip comments by scanning code-ish lines lightly.

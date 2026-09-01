@@ -131,9 +131,9 @@ struct PlayModeArtworkCard: View {
             }
             .trinketLockedCardEffect(isLocked: isLocked)
 
-            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
+            VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
                 if let subtitle {
-                    HStack(alignment: .firstTextBaseline, spacing: TrinketDesign.Metrics.smallSpacing) {
+                    HStack(alignment: .firstTextBaseline, spacing: TrinketDesign.Spacing.small) {
                         if let symbolName {
                             Image(systemName: symbolName)
                                 .trinketTypography(.eyebrow)
@@ -151,7 +151,7 @@ struct PlayModeArtworkCard: View {
                     .trinketOnArtText(.title)
                     .lineLimit(1)
             }
-            .padding(TrinketDesign.Metrics.largeSpacing)
+            .padding(TrinketDesign.Spacing.large)
         }
         .aspectRatio(1.35, contentMode: .fit)
         .clipShape(TrinketDesign.cardShape)

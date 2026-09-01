@@ -231,7 +231,7 @@ struct ItemDetailContent: View {
 
     var body: some View {
         DetailSection("Traits") {
-            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
+            VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
                 ForEach(Array(item.displayedAffixes.enumerated()), id: \.element.id) { index, affix in
                     DetailTraitRow(
                         title: affix.title,
@@ -252,7 +252,7 @@ struct ItemDetailContent: View {
                 tint: TrinketDesign.Colors.destructive,
                 accessibilityIdentifier: AccessibilityID.Collection.salvageButton,
             )
-            .padding(.top, TrinketDesign.Metrics.sectionSpacing)
+            .padding(.top, TrinketDesign.Layout.sectionSpacing)
         }
     }
 }

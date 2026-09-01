@@ -44,6 +44,7 @@ if (( ${#PATHS[@]} > 0 )); then
     [[ -n "$kept_path" ]] || continue
     LINT_TARGETS+=("$kept_path")
   done < <(python3 - "$PWD" "${PATHS[@]}" <<'PY'
+import fnmatch
 import sys
 from pathlib import Path
 
@@ -68,7 +69,12 @@ for path in paths:
     skip = False
     for entry in excluded:
         entry_n = entry.replace("\\", "/").lstrip("./")
-        if normalized == entry_n or normalized.startswith(entry_n.rstrip("/") + "/"):
+        if (
+            normalized == entry_n
+            or normalized.startswith(entry_n.rstrip("/") + "/")
+            or fnmatch.fnmatch(normalized, entry_n)
+            or fnmatch.fnmatch(normalized, entry_n.rstrip("/") + "/*")
+        ):
             skip = True
             break
     if not skip:

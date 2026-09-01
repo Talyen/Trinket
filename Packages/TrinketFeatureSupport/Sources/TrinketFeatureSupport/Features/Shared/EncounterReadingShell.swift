@@ -24,7 +24,7 @@ public struct EncounterReadingShell<Artwork: View, Copy: View, Content: View>: V
 
     public var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.contentMargin) {
+            VStack(alignment: .leading, spacing: TrinketDesign.Layout.contentMargin) {
                 artwork()
                     .opacity(artVisible ? 1 : 0)
                     .scaleEffect(artVisible ? 1 : 0.94)
@@ -35,7 +35,7 @@ public struct EncounterReadingShell<Artwork: View, Copy: View, Content: View>: V
 
                 content()
             }
-            .padding(TrinketDesign.Metrics.extraLargeSpacing)
+            .padding(TrinketDesign.Spacing.extraLarge)
         }
     }
 }

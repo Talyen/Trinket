@@ -24,7 +24,6 @@ struct EffectHandlersApplyStatusTests {
 
         let outcome = EffectHandlersTestSupport.dispatch(
             effect,
-            ability: CombatantFixtures.ability(),
             source: battle.hero,
             target: battle.hero,
             battle: &battle,
@@ -117,7 +116,6 @@ struct EffectHandlersApplyStatusTests {
 
         let outcome = EffectHandlersTestSupport.dispatch(
             effect,
-            ability: CombatantFixtures.ability(),
             source: battle.hero,
             target: battle.enemy,
             battle: &battle,

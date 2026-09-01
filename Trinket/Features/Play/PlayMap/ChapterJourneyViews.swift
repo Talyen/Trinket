@@ -26,8 +26,8 @@ struct StageSelectList<Item: Identifiable, Artwork: View, PartyPickerSheet: View
                 )
             }
         }
-        .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-        .padding(.vertical, TrinketDesign.Metrics.mediumSpacing)
+        .padding(.horizontal, TrinketDesign.Layout.contentMargin)
+        .padding(.vertical, TrinketDesign.Spacing.medium)
     }
 }
 
@@ -55,18 +55,18 @@ private struct StageSelectRow<Item: Identifiable, Artwork: View, PartyPickerShee
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.vertical, TrinketDesign.Metrics.extraSmallSpacing)
+        .padding(.vertical, TrinketDesign.Spacing.extraSmall)
         .accessibilityIdentifier(presentation.rowAccessibilityID)
     }
 
     private var compactRow: some View {
-        HStack(spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
+        HStack(spacing: TrinketDesign.Layout.sectionHeaderSpacing) {
             artwork()
                 // UIStyleCheck: allow - Fixed 4:3 thumbnail keeps a linear path compact.
                 .frame(width: 74, height: 55.5)
                 .clipShape(TrinketDesign.cardShape)
 
-            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.tightSpacing) {
+            VStack(alignment: .leading, spacing: TrinketDesign.Spacing.tight) {
                 Text(presentation.title)
                     .trinketTypography(.rowDisplay)
                     .foregroundStyle(.primary)
@@ -75,7 +75,7 @@ private struct StageSelectRow<Item: Identifiable, Artwork: View, PartyPickerShee
                 StageSelectMetaLine(presentation: presentation)
             }
 
-            Spacer(minLength: TrinketDesign.Metrics.extraSmallSpacing)
+            Spacer(minLength: TrinketDesign.Spacing.extraSmall)
         }
         .frame(minHeight: 68)
         .trinketSurface(.denseRow)

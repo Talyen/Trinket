@@ -4,6 +4,45 @@ import TrinketCore
 @testable import TrinketPersistence
 
 struct ItemCorruptionTests {
+    @Test func `effect rolls follow authored order for fixed seed`() throws {
+        let item = try makeItem(baseID: "longsword", rarity: .basic, affixCount: 2)
+        var rng = SeededRandomNumberGenerator(seed: 123)
+
+        let kinds = ItemCorruption.rollEffectKinds(for: item, using: &rng)
+
+        #expect(kinds == [.replaceAffix, .upgradeRarity])
+    }
+
+    @Test func `empty effect roll falls back through authored order`() throws {
+        let item = try makeItem(baseID: "longsword", rarity: .basic, affixCount: 2)
+        var rng = MaximumRandomNumberGenerator()
+
+        let kinds = ItemCorruption.rollEffectKinds(for: item, using: &rng)
+
+        #expect(kinds == [.upgradeRarity])
+    }
+
+    @Test func `structural effects preserve base item eligibility`() throws {
+        let item = try makeItem(baseID: "longsword", rarity: .basic, affixCount: 2)
+
+        for kind in [CorruptionEffectKind.addAffix, .replaceAffix] {
+            for seed in UInt64(1) ... 64 {
+                var rng = SeededRandomNumberGenerator(seed: seed)
+                let result = ItemCorruption.apply(kinds: [kind], to: item, using: &rng)
+                let expectedCount = kind == .addAffix ? item.affixes.count + 1 : item.affixes.count
+
+                #expect(result.item.affixes.count == expectedCount)
+                #expect(Set(result.item.affixes.map(\.id)).count == result.item.affixes.count)
+                #expect(result.item.affixes.count(where: \.isCorrupted) == 1)
+                for affix in result.item.affixes {
+                    let definition = try #require(GameContent.itemAffixDefinition(matching: affix.id))
+                    #expect(definition.slot == item.baseType.slot)
+                    #expect(!definition.keywords.isDisjoint(with: item.baseType.keywordAffinities))
+                }
+            }
+        }
+    }
+
     @Test func `never produces zero affix items`() throws {
         let item = try makeItem(baseID: "longsword", rarity: .basic, affixCount: 1)
         var rng = SeededRandomNumberGenerator(seed: 42)
@@ -326,6 +365,12 @@ struct ItemCorruptionTests {
         _ = ItemAffixPower.applyBump(direction: .up, to: &pctPowers, affixIDs: ["test_thorns"], using: &rng)
         #expect(abs(pctPowers[0].triggers.thornsPercent - 0.26) < 0.001)
         #expect(pctPowers[0].description == "Gain 26% Thorns.")
+    }
+}
+
+private struct MaximumRandomNumberGenerator: RandomNumberGenerator {
+    mutating func next() -> UInt64 {
+        .max
     }
 }
 

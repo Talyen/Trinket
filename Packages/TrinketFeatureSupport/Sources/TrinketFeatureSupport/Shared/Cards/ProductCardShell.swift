@@ -9,8 +9,7 @@ public struct ProductCardShell<Art: View, Label: View>: View {
     var appliesCardSurface: Bool = true
     var showsLabel: Bool = true
     var reservesLabelSpace: Bool = true
-    var shineKeywords: [Keyword]?
-    var shineColors: [Color]?
+    var shine: Shine = .none
     var shineLineWidth: CGFloat = 2
     var accessibilityID: String?
     @ViewBuilder let art: () -> Art
@@ -22,6 +21,7 @@ public struct ProductCardShell<Art: View, Label: View>: View {
         appliesCardSurface: Bool = true,
         showsLabel: Bool = true,
         reservesLabelSpace: Bool = true,
+        shine: Shine = .none,
         shineKeywords: [Keyword]? = nil,
         shineColors: [Color]? = nil,
         shineLineWidth: CGFloat = 2,
@@ -34,8 +34,15 @@ public struct ProductCardShell<Art: View, Label: View>: View {
         self.appliesCardSurface = appliesCardSurface
         self.showsLabel = showsLabel
         self.reservesLabelSpace = reservesLabelSpace
-        self.shineKeywords = shineKeywords
-        self.shineColors = shineColors
+        if shine != .none {
+            self.shine = shine
+        } else if let shineKeywords, !shineKeywords.isEmpty {
+            self.shine = .keywords(shineKeywords)
+        } else if let shineColors, !shineColors.isEmpty {
+            self.shine = .colors(shineColors)
+        } else {
+            self.shine = .none
+        }
         self.shineLineWidth = shineLineWidth
         self.accessibilityID = accessibilityID
         self.art = art
@@ -43,12 +50,12 @@ public struct ProductCardShell<Art: View, Label: View>: View {
     }
 
     public var body: some View {
-        VStack(spacing: TrinketDesign.Metrics.smallSpacing) {
+        VStack(spacing: TrinketDesign.Spacing.small) {
             artTile
 
             if showsLabel {
                 label()
-                    .padding(.horizontal, TrinketDesign.Metrics.extraSmallSpacing)
+                    .padding(.horizontal, TrinketDesign.Spacing.extraSmall)
                     .trinketCardLabelSpace(reservesLabelSpace)
             }
         }
@@ -56,13 +63,7 @@ public struct ProductCardShell<Art: View, Label: View>: View {
     }
 
     private var borderShineColors: [Color]? {
-        if let shineKeywords, !shineKeywords.isEmpty {
-            return shineKeywords.map(\.visualStyle.color)
-        }
-        if let shineColors, !shineColors.isEmpty {
-            return shineColors
-        }
-        return nil
+        shine.borderColors
     }
 
     @ViewBuilder

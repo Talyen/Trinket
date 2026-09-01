@@ -41,14 +41,14 @@ struct HomesteadView: View {
             collectionSection
         } bodyContent: {
             LazyVGrid(
-                columns: TrinketDesign.Metrics.hubGridItems(for: horizontalSizeClass),
-                spacing: TrinketDesign.Metrics.largeSpacing,
+                columns: TrinketDesign.Layout.hubGridItems(for: horizontalSizeClass),
+                spacing: TrinketDesign.Spacing.large,
             ) {
                 ForEach(HomesteadNodeCategory.allCases) { category in
                     categoryCard(category)
                 }
             }
-            .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+            .padding(.horizontal, TrinketDesign.Layout.contentMargin)
         }
         .navigationDestination(for: HomesteadNodeCategory.self) { category in
             HomesteadCategoryView(category: category)
@@ -71,7 +71,7 @@ struct HomesteadView: View {
             let pending = homestead.pendingProductionAmounts(at: context.date, roster: roster)
             Group {
                 if !pending.isEmpty {
-                    HStack(spacing: TrinketDesign.Metrics.largeSpacing) {
+                    HStack(spacing: TrinketDesign.Spacing.large) {
                         Spacer(minLength: 0)
                         if playerSave.isCloudSyncEnabled {
                             Text("Unavailable with cloud sync")
@@ -96,12 +96,12 @@ struct HomesteadView: View {
                             color: HomesteadResource.gold.tint.opacity(
                                 playerSave.isCloudSyncEnabled ? 0 : 0.22,
                             ),
-                            radius: TrinketDesign.Metrics.mediumSpacing,
+                            radius: TrinketDesign.Spacing.medium,
                         )
                         Spacer(minLength: 0)
                     }
                 } else if let depositEvent {
-                    HStack(spacing: TrinketDesign.Metrics.largeSpacing) {
+                    HStack(spacing: TrinketDesign.Spacing.large) {
                         Spacer(minLength: 0)
                         collectResourceIcons(depositEvent.amounts)
                             .offset(y: isDepositLaunching ? -depositTravelDistance : 0)
@@ -119,14 +119,14 @@ struct HomesteadView: View {
                             color: HomesteadResource.gold.tint.opacity(
                                 isDepositLaunching ? 0 : 0.22,
                             ),
-                            radius: TrinketDesign.Metrics.mediumSpacing,
+                            radius: TrinketDesign.Spacing.medium,
                         )
                         .allowsHitTesting(false)
                         Spacer(minLength: 0)
                     }
                 }
             }
-            .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+            .padding(.horizontal, TrinketDesign.Layout.contentMargin)
         }
     }
 
@@ -141,14 +141,14 @@ struct HomesteadView: View {
     }
 
     private var depositTravelDistance: CGFloat {
-        TrinketDesign.Metrics.walletResourceArtworkSize + TrinketDesign.Metrics.extraLargeSpacing
+        TrinketDesign.Metrics.walletResourceArtworkSize + TrinketDesign.Spacing.extraLarge
     }
 
     private func collectResourceIcons(
         _ amounts: [ResourceAmount],
         drawsAttention: Bool = false,
     ) -> some View {
-        HStack(spacing: -TrinketDesign.Metrics.largeSpacing) {
+        HStack(spacing: -TrinketDesign.Spacing.large) {
             ForEach(Array(amounts.enumerated()), id: \.offset) { index, amount in
                 HomesteadResourceArtwork(resource: amount.resource)
                     .frame(
@@ -161,7 +161,7 @@ struct HomesteadView: View {
                         color: HomesteadResource.gold.tint.opacity(
                             drawsAttention && isIconAttentionRaised ? 0.18 : 0,
                         ),
-                        radius: TrinketDesign.Metrics.tightSpacing,
+                        radius: TrinketDesign.Spacing.tight,
                     )
                     .animation(
                         HomesteadMotion.tierCompletion.delay(

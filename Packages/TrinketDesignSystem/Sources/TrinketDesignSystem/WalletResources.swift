@@ -1,14 +1,17 @@
 import SwiftUI
 import TrinketCore
 
+private extension Int {
+    var walletDisplayString: String {
+        self >= 100000 ? formatted(.number.notation(.compactName)) : formatted()
+    }
+}
+
 public struct TrinketWalletGrid<Content: View>: View {
     private let columnCount: Int
     private let content: Content
 
-    public init(
-        columnCount: Int = 4,
-        @ViewBuilder content: () -> Content,
-    ) {
+    public init(columnCount: Int = 4, @ViewBuilder content: () -> Content) {
         self.columnCount = max(1, columnCount)
         self.content = content()
     }
@@ -16,14 +19,12 @@ public struct TrinketWalletGrid<Content: View>: View {
     public var body: some View {
         TrinketWalletGridLayout(
             columnCount: columnCount,
-            horizontalSpacing: TrinketDesign.Metrics.mediumSpacing,
-            verticalSpacing: TrinketDesign.Metrics.smallSpacing,
-        ) {
-            content
-        }
-        .padding(.horizontal, TrinketDesign.Metrics.mediumSpacing)
-        .padding(.vertical, TrinketDesign.Metrics.extraSmallSpacing)
-        .trinketMaterial(.homesteadFooter)
+            horizontalSpacing: TrinketDesign.Spacing.medium,
+            verticalSpacing: TrinketDesign.Spacing.small,
+        ) { content }
+            .padding(.horizontal, TrinketDesign.Spacing.medium)
+            .padding(.vertical, TrinketDesign.Spacing.extraSmall)
+            .trinketMaterial(.homesteadFooter)
     }
 }
 
@@ -36,9 +37,7 @@ public struct TrinketWalletResourcePill<Artwork: View>: View {
     @State private var increaseAnimationTrigger = 0
 
     private var displayedAmount: String {
-        let value = amount >= 100000
-            ? amount.formatted(.number.notation(.compactName))
-            : amount.formatted()
+        let value = amount.walletDisplayString
         return showsIncreasePrefix ? "+\(value)" : value
     }
 
@@ -57,41 +56,23 @@ public struct TrinketWalletResourcePill<Artwork: View>: View {
     }
 
     public var body: some View {
-        HStack(spacing: TrinketDesign.Metrics.smallSpacing) {
-            artwork
-                .frame(
-                    width: TrinketDesign.Metrics.walletResourceArtworkSize,
-                    height: TrinketDesign.Metrics.walletResourceArtworkSize,
-                )
+        HStack(spacing: TrinketDesign.Spacing.small) {
+            artwork.frame(width: TrinketDesign.Metrics.walletResourceArtworkSize, height: TrinketDesign.Metrics.walletResourceArtworkSize)
 
-            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.tightSpacing) {
-                Text(title)
-                    .trinketTypography(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.76)
+            VStack(alignment: .leading, spacing: TrinketDesign.Spacing.tight) {
+                Text(title).trinketTypography(.caption).foregroundStyle(.secondary).lineLimit(1).minimumScaleFactor(0.76)
 
-                Text(displayedAmount)
-                    .trinketTypography(.statValue)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.7)
-                    .allowsTightening(true)
+                Text(displayedAmount).trinketTypography(.statValue).lineLimit(1).minimumScaleFactor(0.7).allowsTightening(true)
                     .contentTransition(.numericText())
             }
         }
-        .frame(
-            minHeight: TrinketDesign.Metrics.walletResourceRowMinHeight,
-            alignment: .leading,
-        )
+        .frame(minHeight: TrinketDesign.Metrics.walletResourceRowMinHeight, alignment: .leading)
         .animation(TrinketMotion.Interaction.walletIncrease, value: amount)
         .keyframeAnimator(initialValue: CGFloat(1), trigger: increaseAnimationTrigger) { content, scale in
             content.scaleEffect(scale)
         } keyframes: { _ in
             LinearKeyframe(1, duration: increaseAnimationDelay)
-            CubicKeyframe(
-                TrinketMotion.Interaction.walletIncreaseScale,
-                duration: 0.08,
-            )
+            CubicKeyframe(TrinketMotion.Interaction.walletIncreaseScale, duration: 0.08)
             SpringKeyframe(1, duration: 0.18, spring: .smooth)
         }
         .onChange(of: amount) { oldAmount, newAmount in
@@ -108,17 +89,10 @@ public struct TrinketCompactResourceChip<Artwork: View>: View {
     private let artwork: Artwork
 
     private var displayedAmount: String {
-        amount >= 100000
-            ? amount.formatted(.number.notation(.compactName))
-            : amount.formatted()
+        amount.walletDisplayString
     }
 
-    public init(
-        amount: Int,
-        tint: Color,
-        animationTrigger: Int = 0,
-        @ViewBuilder artwork: () -> Artwork,
-    ) {
+    public init(amount: Int, tint: Color, animationTrigger: Int = 0, @ViewBuilder artwork: () -> Artwork) {
         self.amount = amount
         self.tint = tint
         self.animationTrigger = animationTrigger
@@ -126,25 +100,17 @@ public struct TrinketCompactResourceChip<Artwork: View>: View {
     }
 
     public var body: some View {
-        HStack(spacing: TrinketDesign.Metrics.smallSpacing) {
+        HStack(spacing: TrinketDesign.Spacing.small) {
             artwork
-                .frame(
-                    width: TrinketDesign.Metrics.compactResourceArtworkSize,
-                    height: TrinketDesign.Metrics.compactResourceArtworkSize,
-                )
-                .keyframeAnimator(
-                    initialValue: CGFloat(1),
-                    trigger: animationTrigger,
-                ) { content, scale in
+                .frame(width: TrinketDesign.Metrics.compactResourceArtworkSize, height: TrinketDesign.Metrics.compactResourceArtworkSize)
+                .keyframeAnimator(initialValue: CGFloat(1), trigger: animationTrigger) { content, scale in
                     content.scaleEffect(scale)
                 } keyframes: { _ in
-                    CubicKeyframe(1.08, duration: 0.08)
+                    CubicKeyframe(TrinketMotion.Interaction.walletIncreaseScale, duration: 0.08)
                     SpringKeyframe(1, duration: 0.18, spring: .smooth)
                 }
 
-            Text(displayedAmount)
-                .monospacedDigit()
-                .contentTransition(.numericText())
+            Text(displayedAmount).monospacedDigit().contentTransition(.numericText())
         }
         .trinketTypography(.button)
         .foregroundStyle(tint)
@@ -162,19 +128,11 @@ private struct TrinketWalletGridLayout: Layout {
         arrangement(proposal: proposal, subviews: subviews).size
     }
 
-    func placeSubviews(
-        in bounds: CGRect,
-        proposal _: ProposedViewSize,
-        subviews: Subviews,
-        cache _: inout (),
-    ) {
+    func placeSubviews(in bounds: CGRect, proposal _: ProposedViewSize, subviews: Subviews, cache _: inout ()) {
         let placed = arrangement(proposal: ProposedViewSize(bounds.size), subviews: subviews)
         for (index, subview) in subviews.enumerated() {
             let frame = placed.frames[index]
-            subview.place(
-                at: CGPoint(x: bounds.minX + frame.minX, y: bounds.minY + frame.minY),
-                proposal: ProposedViewSize(frame.size),
-            )
+            subview.place(at: CGPoint(x: bounds.minX + frame.minX, y: bounds.minY + frame.minY), proposal: ProposedViewSize(frame.size))
         }
     }
 
@@ -185,9 +143,7 @@ private struct TrinketWalletGridLayout: Layout {
 
     private func arrangement(proposal: ProposedViewSize, subviews: Subviews) -> Arrangement {
         let itemCount = subviews.count
-        guard itemCount > 0 else {
-            return Arrangement(size: .zero, frames: [])
-        }
+        guard itemCount > 0 else { return Arrangement(size: .zero, frames: []) }
 
         let columns = max(1, min(columnCount, itemCount))
         let rows = (itemCount + columns - 1) / columns
@@ -201,16 +157,15 @@ private struct TrinketWalletGridLayout: Layout {
         }
 
         let idealWidth = idealColumnWidths.reduce(0, +) + columnGaps
-        let minimumColumnWidth = TrinketDesign.Metrics.walletResourceArtworkSize + TrinketDesign.Metrics.smallSpacing + 16
-        let minimumArtworkColumnWidth = TrinketDesign.Metrics.walletResourceArtworkSize + TrinketDesign.Metrics.smallSpacing
+        let minimumColumnWidth = TrinketDesign.Metrics.walletResourceArtworkSize + TrinketDesign.Spacing.small + 16
+        let minimumArtworkColumnWidth = TrinketDesign.Metrics.walletResourceArtworkSize + TrinketDesign.Spacing.small
+        let isUnspecified = proposal.width == nil || proposal.width?.isInfinite == true || (proposal.width ?? 0) < 10
+
         let columnWidths: [CGFloat]
-        if let proposedWidth = proposal.width, proposedWidth.isFinite, proposedWidth <= 1 {
+        if isUnspecified {
             columnWidths = idealColumnWidths.map { max($0, minimumColumnWidth) }
         } else if let proposedWidth = proposal.width, proposedWidth.isFinite, proposedWidth < idealWidth {
-            let equalizedWidth = max(
-                minimumArtworkColumnWidth,
-                (proposedWidth - columnGaps) / CGFloat(columns),
-            )
+            let equalizedWidth = max(minimumArtworkColumnWidth, (proposedWidth - columnGaps) / CGFloat(columns))
             let clampedEqualized = max(minimumColumnWidth, equalizedWidth)
             if clampedEqualized * CGFloat(columns) + columnGaps <= proposedWidth + 0.5 {
                 columnWidths = Array(repeating: clampedEqualized, count: columns)

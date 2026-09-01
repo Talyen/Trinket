@@ -65,14 +65,14 @@ struct PostBattleTalentChoiceView: View {
                     .trinketOnArtText(.eyebrow)
             }
         } bodyContent: {
-            LazyVGrid(columns: treeColumns, spacing: TrinketDesign.Metrics.smallSpacing) {
+            LazyVGrid(columns: treeColumns, spacing: TrinketDesign.Spacing.small) {
                 ForEach(config.trees) { tree in
                     talentTreeButton(tree, combatantID: combatant.id)
                 }
             }
-            .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-            .padding(.top, TrinketDesign.Metrics.mediumSpacing)
-            .padding(.bottom, TrinketDesign.Metrics.largeSpacing)
+            .padding(.horizontal, TrinketDesign.Layout.contentMargin)
+            .padding(.top, TrinketDesign.Spacing.medium)
+            .padding(.bottom, TrinketDesign.Spacing.large)
         }
         .toolbar {
             closeToolbarItem
@@ -146,7 +146,7 @@ struct PostBattleTalentChoiceView: View {
 
     private var treeColumns: [GridItem] {
         Array(
-            repeating: GridItem(.flexible(), spacing: TrinketDesign.Metrics.smallSpacing),
+            repeating: GridItem(.flexible(), spacing: TrinketDesign.Spacing.small),
             count: 3,
         )
     }

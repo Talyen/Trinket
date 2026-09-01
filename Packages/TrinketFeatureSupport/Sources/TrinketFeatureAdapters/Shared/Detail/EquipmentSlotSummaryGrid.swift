@@ -12,7 +12,7 @@ struct EquipmentSlotSummaryGrid: View {
     var onViewItem: ((InventoryItem) -> Void)?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
+        VStack(alignment: .leading, spacing: TrinketDesign.Layout.sectionHeaderSpacing) {
             ForEach(slotRows, id: \.self) { row in
                 SlotSummaryGrid(
                     slots: row,

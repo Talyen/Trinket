@@ -45,8 +45,8 @@ public struct OptionPickerGrid<Item: Identifiable, CardView: View>: View {
     public var body: some View {
         ScrollView {
             LazyVGrid(
-                columns: TrinketDesign.Metrics.partyPickerGridItems,
-                spacing: TrinketDesign.Metrics.largeSpacing,
+                columns: TrinketDesign.Layout.partyPickerGridItems,
+                spacing: TrinketDesign.Spacing.large,
             ) {
                 ForEach(items) { item in
                     let eligible = isEligible(item)
@@ -77,8 +77,8 @@ public struct OptionPickerGrid<Item: Identifiable, CardView: View>: View {
                     }
                 }
             }
-            .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-            .padding(.vertical, TrinketDesign.Metrics.mediumSpacing)
+            .padding(.horizontal, TrinketDesign.Layout.contentMargin)
+            .padding(.vertical, TrinketDesign.Spacing.medium)
         }
         .onChange(of: items.map(\.id)) { _, _ in
             guard artworkNameProvider != nil else { return }

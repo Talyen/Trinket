@@ -17,7 +17,6 @@ struct EffectHandlersApplyBuffDebuffTests {
         }
         let outcome = EffectHandlersTestSupport.dispatch(
             .halveShield(.block),
-            ability: CombatantFixtures.ability(),
             source: battle.hero,
             target: battle.enemy,
             battle: &battle,
@@ -49,7 +48,6 @@ struct EffectHandlersApplyBuffDebuffTests {
             var battle = EffectHandlersTestSupport.makeBattle()
             let outcome = EffectHandlersTestSupport.dispatch(
                 .deathsDoor,
-                ability: CombatantFixtures.ability(),
                 source: battle.hero,
                 target: battle.hero,
                 battle: &battle,
@@ -63,7 +61,6 @@ struct EffectHandlersApplyBuffDebuffTests {
         var battle = EffectHandlersTestSupport.makeBattle()
         let outcome = EffectHandlersTestSupport.dispatch(
             .thorns(5),
-            ability: CombatantFixtures.ability(),
             source: battle.hero,
             target: battle.hero,
             battle: &battle,
@@ -84,7 +81,6 @@ struct EffectHandlersApplyBuffDebuffTests {
         var battle = EffectHandlersTestSupport.makeBattle()
         let first = EffectHandlersTestSupport.dispatch(
             .marked(Effect.standardMarkedBonus, Effect.standardMarkedDuration),
-            ability: CombatantFixtures.ability(),
             source: battle.hero,
             target: battle.enemy,
             battle: &battle,
@@ -104,7 +100,6 @@ struct EffectHandlersApplyBuffDebuffTests {
 
         let outcome = EffectHandlersTestSupport.dispatch(
             .marked(5, Effect.standardMarkedDuration),
-            ability: CombatantFixtures.ability(),
             source: battle.hero,
             target: battle.enemy,
             battle: &battle,
@@ -127,10 +122,8 @@ struct EffectHandlersApplyBuffDebuffTests {
 
     @Test func `critical chance bonus reapply refreshes single stack`() throws {
         var battle = EffectHandlersTestSupport.makeBattle()
-        let ability = CombatantFixtures.ability()
         let first = EffectHandlersTestSupport.dispatch(
             .criticalChanceBonus(0.15, 6),
-            ability: ability,
             source: battle.hero,
             target: battle.hero,
             battle: &battle,
@@ -138,7 +131,6 @@ struct EffectHandlersApplyBuffDebuffTests {
         try #expect(first.didApply)
         let second = EffectHandlersTestSupport.dispatch(
             .criticalChanceBonus(0.20, 4),
-            ability: ability,
             source: battle.hero,
             target: battle.hero,
             battle: &battle,
@@ -166,7 +158,6 @@ struct EffectHandlersApplyBuffDebuffTests {
         var battle = EffectHandlersTestSupport.makeBattle()
         let outcome = EffectHandlersTestSupport.dispatch(
             .restoreManaOnHit(3, 6),
-            ability: CombatantFixtures.ability(),
             source: battle.hero,
             target: battle.hero,
             battle: &battle,
@@ -185,17 +176,14 @@ struct EffectHandlersApplyBuffDebuffTests {
 
     @Test func `restore mana on hit recast stacks on top of existing shield`() throws {
         var battle = EffectHandlersTestSupport.makeBattle()
-        let ability = CombatantFixtures.ability()
         _ = EffectHandlersTestSupport.dispatch(
             .restoreManaOnHit(3, 6),
-            ability: ability,
             source: battle.hero,
             target: battle.hero,
             battle: &battle,
         )
         let second = EffectHandlersTestSupport.dispatch(
             .restoreManaOnHit(5, 4),
-            ability: ability,
             source: battle.hero,
             target: battle.hero,
             battle: &battle,
@@ -220,7 +208,6 @@ struct EffectHandlersApplyBuffDebuffTests {
         var battle = EffectHandlersTestSupport.makeBattle()
         let outcome = EffectHandlersTestSupport.dispatch(
             .damageKeywordOverride(.holy, 3, 6),
-            ability: CombatantFixtures.ability(),
             source: battle.hero,
             target: battle.hero,
             battle: &battle,
@@ -241,7 +228,6 @@ struct EffectHandlersApplyBuffDebuffTests {
         var battle = EffectHandlersTestSupport.makeBattle()
         let outcome = EffectHandlersTestSupport.dispatch(
             .nextStrikeDouble,
-            ability: CombatantFixtures.ability(),
             source: battle.hero,
             target: battle.hero,
             battle: &battle,
@@ -260,7 +246,6 @@ struct EffectHandlersApplyBuffDebuffTests {
         var battle = EffectHandlersTestSupport.makeBattle()
         let outcome = EffectHandlersTestSupport.dispatch(
             .evadeNextHit,
-            ability: CombatantFixtures.ability(),
             source: battle.hero,
             target: battle.hero,
             battle: &battle,

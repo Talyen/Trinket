@@ -27,19 +27,13 @@ public struct CombatantDetailPane: View {
 
     @State private var selectedItemSlot: ItemSlot?
     @State private var selectedAbilityTier: AbilityTier?
-    @State private var viewingAbility: ViewOnlyAbility?
+    @State private var viewingAbility: Ability?
     @State private var viewingItem: InventoryItem?
     @State private var selectedTalentTree: TalentTree?
     @State private var selectionFeedbackTrigger = 0
     @State private var pinnedDetailArtwork: [String] = []
 
-    private struct ViewOnlyAbility: Hashable, Identifiable {
-        let ability: Ability
-
-        var id: String {
-            ability.id
-        }
-    }
+    private static let pinnedInventoryArtworkLimit = 12
 
     private var combatBuild: CombatBuild {
         CombatBuildResolver.build(
@@ -103,8 +97,8 @@ public struct CombatantDetailPane: View {
                 onSelectAbility: select,
             )
         }
-        .navigationDestination(item: $viewingAbility) { wrapper in
-            AbilityDetailView(ability: wrapper.ability)
+        .navigationDestination(item: $viewingAbility) { ability in
+            AbilityDetailView(ability: ability)
         }
         .navigationDestination(item: $viewingItem) { item in
             ItemDetailView(item: item)
@@ -171,7 +165,7 @@ public struct CombatantDetailPane: View {
                 names.append(ref.thumbnailImageName ?? ref.imageName)
             }
         }
-        for item in inventoryItems.prefix(12) {
+        for item in inventoryItems.prefix(Self.pinnedInventoryArtworkLimit) {
             if let ref = item.artReference {
                 names.append(ref.thumbnailImageName ?? ref.imageName)
             }
@@ -239,10 +233,10 @@ public struct CombatantDetailPane: View {
                 loadout: $loadout,
                 allowsEditing: allowsEditing,
                 onSelectTier: allowsEditing ? { selectedAbilityTier = $0 } : nil,
-                onViewAbility: allowsEditing ? nil : { viewingAbility = ViewOnlyAbility(ability: $0) },
-                onInspectAbility: { viewingAbility = ViewOnlyAbility(ability: $0) },
+                onViewAbility: allowsEditing ? nil : { viewingAbility = $0 },
+                onInspectAbility: { viewingAbility = $0 },
             )
-            .padding(.vertical, TrinketDesign.Metrics.extraSmallSpacing)
+            .padding(.vertical, TrinketDesign.Spacing.extraSmall)
         }
 
         if combatant.role != .enemy {
@@ -254,7 +248,7 @@ public struct CombatantDetailPane: View {
                     onSelect: allowsEditing ? { selectedItemSlot = $0 } : nil,
                     onViewItem: allowsEditing ? nil : { viewingItem = $0 },
                 )
-                .padding(.vertical, TrinketDesign.Metrics.extraSmallSpacing)
+                .padding(.vertical, TrinketDesign.Spacing.extraSmall)
             }
         }
     }

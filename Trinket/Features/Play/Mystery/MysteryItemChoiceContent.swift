@@ -21,8 +21,8 @@ private struct MysteryItemChoiceScaffold<Footer: View>: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.contentMargin) {
-                VStack(alignment: .leading, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
+            VStack(alignment: .leading, spacing: TrinketDesign.Layout.contentMargin) {
+                VStack(alignment: .leading, spacing: TrinketDesign.Layout.sectionHeaderSpacing) {
                     Text(title)
                         .trinketTypography(.screenTitle)
                         .accessibilityIdentifier(titleAccessibilityIdentifier)
@@ -36,8 +36,8 @@ private struct MysteryItemChoiceScaffold<Footer: View>: View {
                 }
 
                 LazyVGrid(
-                    columns: TrinketDesign.Metrics.collectionGridItems,
-                    spacing: TrinketDesign.Metrics.largeSpacing,
+                    columns: TrinketDesign.Layout.collectionGridItems,
+                    spacing: TrinketDesign.Spacing.large,
                 ) {
                     ForEach(items) { item in
                         EncounterItemTile(
@@ -54,12 +54,12 @@ private struct MysteryItemChoiceScaffold<Footer: View>: View {
                     }
                 }
             }
-            .padding(TrinketDesign.Metrics.extraLargeSpacing)
+            .padding(TrinketDesign.Spacing.extraLarge)
         }
         .safeAreaInset(edge: .bottom) {
             footer()
-                .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-                .padding(.vertical, TrinketDesign.Metrics.mediumSpacing)
+                .padding(.horizontal, TrinketDesign.Layout.contentMargin)
+                .padding(.vertical, TrinketDesign.Spacing.medium)
         }
         .onChange(of: items.map(\.id)) { _, _ in
             visibleItemIDs.formIntersection(items.lazy.map(\.id))
@@ -101,7 +101,7 @@ struct MysteryCorruptItemChoiceContent: View {
                 selectionFeedbackTrigger += 1
             },
             footer: {
-                HStack(spacing: TrinketDesign.Metrics.mediumSpacing) {
+                HStack(spacing: TrinketDesign.Spacing.medium) {
                     Button("Back") {
                         onCancelCorruptSelection()
                     }

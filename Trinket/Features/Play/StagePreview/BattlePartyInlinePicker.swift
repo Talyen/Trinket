@@ -79,12 +79,12 @@ struct StageBattlePartyPickerSheet: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: TrinketDesign.Metrics.sectionSpacing) {
+                VStack(spacing: TrinketDesign.Layout.sectionSpacing) {
                     partyShelf(for: .hero)
                     partyShelf(for: .companion)
                 }
-                .padding(.top, TrinketDesign.Metrics.compactContentTopPadding)
-                .padding(.bottom, TrinketDesign.Metrics.sectionSpacing)
+                .padding(.top, TrinketDesign.Layout.compactContentTopPadding)
+                .padding(.bottom, TrinketDesign.Layout.sectionSpacing)
             }
             .navigationTitle("Party")
             .navigationBarTitleDisplayMode(.inline)
@@ -111,7 +111,7 @@ struct StageBattlePartyPickerSheet: View {
     private func partyShelf(for slot: BattlePartySlot) -> some View {
         let allCombatants = orderedCombatants(for: slot)
         let shelfCombatants = Array(
-            allCombatants.prefix(TrinketDesign.Metrics.collectionShelfPreviewLimit),
+            allCombatants.prefix(TrinketDesign.Layout.collectionShelfPreviewLimit),
         )
 
         return CategoryBrowseShelf(

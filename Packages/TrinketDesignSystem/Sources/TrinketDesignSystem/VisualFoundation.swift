@@ -68,17 +68,13 @@ public enum TypographyRole: Sendable {
 
 struct TrinketScreenBackground: View {
     var body: some View {
-        TrinketDesign.Colors.canvas
-            .ignoresSafeArea()
+        TrinketDesign.Colors.canvas.ignoresSafeArea()
     }
 }
 
 struct ScreenBackgroundModifier: ViewModifier {
     func body(content: Content) -> some View {
-        content
-            .background {
-                TrinketScreenBackground()
-            }
+        content.background { TrinketScreenBackground() }
     }
 }
 
@@ -95,17 +91,24 @@ struct SurfaceModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         let style = SurfaceStyle(role: role, cornerRadiusOverride: cornerRadiusOverride)
-
         content
             .padding(style.padding)
             .background(style.fill, in: style.shape)
-            .overlay {
-                style.shape
-                    .stroke(style.stroke, lineWidth: style.strokeWidth)
-            }
-            .shadow(color: style.shadow.color, radius: style.shadow.radius, y: style.shadow.y)
-            .opacity(role == .disabled ? 0.72 : 1)
+            .overlay { style.shape.stroke(style.stroke, lineWidth: style.strokeWidth) }
+            .modifier(SurfaceShadowModifier(shadow: style.shadow))
+            .opacity(role == .disabled ? TrinketDesign.Opacity.secondary : 1)
             .scaleEffect(isPressed ? 0.98 : 1)
+    }
+}
+
+private struct SurfaceShadowModifier: ViewModifier {
+    let shadow: SurfaceShadow
+    func body(content: Content) -> some View {
+        if shadow.radius > 0 {
+            content.shadow(color: shadow.color, radius: shadow.radius, y: shadow.y)
+        } else {
+            content
+        }
     }
 }
 
@@ -117,78 +120,95 @@ private struct SurfaceStyle {
     let cornerRadius: CGFloat
     let shadow: SurfaceShadow
 
-    // swiftlint:disable:next function_body_length
     init(role: SurfaceRole, cornerRadiusOverride: CGFloat? = nil) {
-        switch role {
-        case .base:
-            fill = TrinketDesign.Colors.panel
-            stroke = TrinketDesign.Colors.subtleStroke
-            strokeWidth = 1
-            padding = TrinketDesign.Metrics.largeSpacing
-            cornerRadius = cornerRadiusOverride ?? TrinketDesign.Corners.card
-            shadow = .none
-        case .secondary:
-            fill = TrinketDesign.Colors.surface
-            stroke = TrinketDesign.Colors.subtleStroke.opacity(0.7)
-            strokeWidth = 1
-            padding = TrinketDesign.Metrics.largeSpacing
-            cornerRadius = cornerRadiusOverride ?? TrinketDesign.Corners.card
-            shadow = .none
-        case .elevated:
-            fill = TrinketDesign.Colors.elevated
-            stroke = TrinketDesign.Colors.subtleStroke
-            strokeWidth = 1
-            padding = TrinketDesign.Metrics.largeSpacing
-            cornerRadius = cornerRadiusOverride ?? TrinketDesign.Corners.card
-            shadow = .none
-        case .card:
-            fill = TrinketDesign.Colors.panel
-            stroke = .clear
-            strokeWidth = 0
-            padding = 0
-            cornerRadius = cornerRadiusOverride ?? TrinketDesign.Corners.card
-            shadow = .none
-        case .denseRow:
-            fill = TrinketDesign.Colors.surface
-            stroke = .clear
-            strokeWidth = 0
-            padding = TrinketDesign.Metrics.mediumSpacing
-            cornerRadius = cornerRadiusOverride ?? TrinketDesign.Corners.card
-            shadow = .none
-        case .selected:
-            fill = TrinketDesign.Colors.elevated
-            stroke = TrinketDesign.Colors.accent.opacity(0.72)
-            strokeWidth = 1.5
-            padding = TrinketDesign.Metrics.largeSpacing
-            cornerRadius = cornerRadiusOverride ?? TrinketDesign.Corners.card
-            shadow = SurfaceShadow(color: TrinketDesign.Colors.accent.opacity(0.18), radius: 10, y: 2)
-        case .disabled:
-            fill = TrinketDesign.Colors.surface
-            stroke = TrinketDesign.Colors.subtleStroke.opacity(0.45)
-            strokeWidth = 1
-            padding = TrinketDesign.Metrics.largeSpacing
-            cornerRadius = cornerRadiusOverride ?? TrinketDesign.Corners.card
-            shadow = .none
-        case .warning:
-            fill = TrinketDesign.Colors.warning.opacity(0.12)
-            stroke = TrinketDesign.Colors.warning.opacity(0.65)
-            strokeWidth = 1
-            padding = TrinketDesign.Metrics.largeSpacing
-            cornerRadius = cornerRadiusOverride ?? TrinketDesign.Corners.card
-            shadow = .none
-        case .reward:
-            fill = TrinketDesign.Colors.elevated
-            stroke = TrinketDesign.Colors.accent.opacity(0.70)
-            strokeWidth = 1.25
-            padding = TrinketDesign.Metrics.largeSpacing
-            cornerRadius = cornerRadiusOverride ?? TrinketDesign.Corners.card
-            shadow = SurfaceShadow(color: TrinketDesign.Colors.accent.opacity(0.20), radius: 14, y: 4)
-        }
+        let spec = Self.specs[role, default: Self.fallbackSpec]
+        fill = spec.fill
+        stroke = spec.stroke
+        strokeWidth = spec.strokeWidth
+        padding = spec.padding
+        cornerRadius = cornerRadiusOverride ?? TrinketDesign.Corners.card
+        shadow = spec.shadow
     }
 
     var shape: RoundedRectangle {
         RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
     }
+
+    private struct Spec {
+        let fill: Color
+        let stroke: Color
+        let strokeWidth: CGFloat
+        let padding: CGFloat
+        let shadow: SurfaceShadow
+    }
+
+    private static let fallbackSpec = Spec(
+        fill: TrinketDesign.Colors.panel,
+        stroke: TrinketDesign.Colors.subtleStroke,
+        strokeWidth: 1,
+        padding: TrinketDesign.Spacing.large,
+        shadow: .none,
+    )
+
+    private static let specs: [SurfaceRole: Spec] = [
+        .base: Spec(
+            fill: TrinketDesign.Colors.panel,
+            stroke: TrinketDesign.Colors.subtleStroke,
+            strokeWidth: 1,
+            padding: TrinketDesign.Spacing.large,
+            shadow: .none,
+        ),
+        .secondary: Spec(
+            fill: TrinketDesign.Colors.surface,
+            stroke: TrinketDesign.Colors.subtleStroke.opacity(0.7),
+            strokeWidth: 1,
+            padding: TrinketDesign.Spacing.large,
+            shadow: .none,
+        ),
+        .elevated: Spec(
+            fill: TrinketDesign.Colors.elevated,
+            stroke: TrinketDesign.Colors.subtleStroke,
+            strokeWidth: 1,
+            padding: TrinketDesign.Spacing.large,
+            shadow: .none,
+        ),
+        .card: Spec(fill: TrinketDesign.Colors.panel, stroke: .clear, strokeWidth: 0, padding: 0, shadow: .none),
+        .denseRow: Spec(
+            fill: TrinketDesign.Colors.surface,
+            stroke: .clear,
+            strokeWidth: 0,
+            padding: TrinketDesign.Spacing.medium,
+            shadow: .none,
+        ),
+        .selected: Spec(
+            fill: TrinketDesign.Colors.elevated,
+            stroke: TrinketDesign.Colors.accent.opacity(TrinketDesign.Opacity.secondary),
+            strokeWidth: 1.5,
+            padding: TrinketDesign.Spacing.large,
+            shadow: SurfaceShadow(color: TrinketDesign.Colors.accent.opacity(0.18), radius: 10, y: 2),
+        ),
+        .disabled: Spec(
+            fill: TrinketDesign.Colors.surface,
+            stroke: TrinketDesign.Colors.subtleStroke.opacity(0.45),
+            strokeWidth: 1,
+            padding: TrinketDesign.Spacing.large,
+            shadow: .none,
+        ),
+        .warning: Spec(
+            fill: TrinketDesign.Colors.warning.opacity(0.12),
+            stroke: TrinketDesign.Colors.warning.opacity(0.65),
+            strokeWidth: 1,
+            padding: TrinketDesign.Spacing.large,
+            shadow: .none,
+        ),
+        .reward: Spec(
+            fill: TrinketDesign.Colors.elevated,
+            stroke: TrinketDesign.Colors.accent.opacity(0.70),
+            strokeWidth: 1.25,
+            padding: TrinketDesign.Spacing.large,
+            shadow: SurfaceShadow(color: TrinketDesign.Colors.accent.opacity(0.20), radius: 14, y: 4),
+        ),
+    ]
 }
 
 private struct SurfaceShadow {
@@ -197,11 +217,6 @@ private struct SurfaceShadow {
     let y: CGFloat
 
     static let none = Self(color: .clear, radius: 0, y: 0)
-    static let elevated = Self(
-        color: TrinketDesign.Colors.Overlay.ink.opacity(0.18),
-        radius: 12,
-        y: 5,
-    )
 }
 
 struct MaterialRoleModifier: ViewModifier {
@@ -211,16 +226,11 @@ struct MaterialRoleModifier: ViewModifier {
     func body(content: Content) -> some View {
         switch MaterialRoleStyle(role: role) {
         case let .glass(glass):
-            content.modifier(TrinketGlassBackgroundModifier(
-                glass: glass,
-                shape: shape,
-            ))
+            content.modifier(TrinketGlassBackgroundModifier(glass: glass, shape: shape))
         case .ultraThinMaterial:
             content
                 .background(.ultraThinMaterial, in: shape)
-                .overlay {
-                    shape.stroke(TrinketDesign.Colors.subtleStroke, lineWidth: 1)
-                }
+                .overlay { shape.stroke(TrinketDesign.Colors.subtleStroke, lineWidth: 1) }
         }
     }
 }
@@ -246,8 +256,7 @@ struct TrinketGlassBackgroundModifier<S: Shape>: ViewModifier {
     let shape: S
 
     func body(content: Content) -> some View {
-        content
-            .glassEffect(glass, in: shape)
+        content.glassEffect(glass, in: shape)
     }
 }
 
@@ -272,29 +281,25 @@ struct GlassChipModifier: ViewModifier {
             .padding(.vertical, role.verticalPadding)
             .overlay {
                 if role == .emphasis {
-                    Capsule(style: .continuous)
-                        .strokeBorder(Color.primary.opacity(0.22), lineWidth: 1)
+                    Capsule(style: .continuous).strokeBorder(Color.primary.opacity(0.22), lineWidth: 1)
                 }
             }
-            .modifier(TrinketGlassBackgroundModifier(
-                glass: .regular,
-                shape: Capsule(style: .continuous),
-            ))
+            .modifier(TrinketGlassBackgroundModifier(glass: .regular, shape: Capsule(style: .continuous)))
     }
 }
 
 extension GlassChipRole {
     var horizontalPadding: CGFloat {
         switch self {
-        case .standard: TrinketDesign.Metrics.chipPaddingHorizontal
-        case .emphasis: TrinketDesign.Metrics.chipEmphasisPaddingHorizontal
+        case .standard: TrinketDesign.Layout.chipPaddingHorizontal
+        case .emphasis: TrinketDesign.Layout.chipEmphasisPaddingHorizontal
         }
     }
 
     var verticalPadding: CGFloat {
         switch self {
-        case .standard: TrinketDesign.Metrics.chipPaddingVertical
-        case .emphasis: TrinketDesign.Metrics.chipEmphasisPaddingVertical
+        case .standard: TrinketDesign.Layout.chipPaddingVertical
+        case .emphasis: TrinketDesign.Layout.chipEmphasisPaddingVertical
         }
     }
 }
@@ -304,11 +309,7 @@ public extension View {
         modifier(ScreenBackgroundModifier())
     }
 
-    func trinketSurface(
-        _ role: SurfaceRole,
-        isPressed: Bool = false,
-        cornerRadiusOverride: CGFloat? = nil,
-    ) -> some View {
+    func trinketSurface(_ role: SurfaceRole, isPressed: Bool = false, cornerRadiusOverride: CGFloat? = nil) -> some View {
         modifier(SurfaceModifier(role: role, isPressed: isPressed, cornerRadiusOverride: cornerRadiusOverride))
     }
 
@@ -316,10 +317,11 @@ public extension View {
         _ role: MaterialRole,
         cornerRadius: CGFloat = TrinketDesign.Corners.card,
     ) -> some View {
-        modifier(MaterialRoleModifier(
-            role: role,
-            shape: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous),
-        ))
+        let shape = cornerRadius == TrinketDesign.Corners.card ? TrinketDesign.cardShape : RoundedRectangle(
+            cornerRadius: cornerRadius,
+            style: .continuous,
+        )
+        return modifier(MaterialRoleModifier(role: role, shape: shape))
     }
 
     func trinketTypography(_ role: TypographyRole) -> some View {
@@ -328,5 +330,14 @@ public extension View {
 
     func trinketGlassChip(_ role: GlassChipRole = .standard) -> some View {
         modifier(GlassChipModifier(role: role))
+    }
+
+    func collectionShelfCardWidth() -> some View {
+        containerRelativeFrame(.horizontal) { length, _ in
+            let margin = TrinketDesign.Layout.collectionShelfHorizontalMargin
+            let spacing = TrinketDesign.Layout.collectionShelfCardSpacing
+            let peek = TrinketDesign.Layout.collectionShelfPeekRatio
+            return (length - 2 * margin - spacing) / (1.75 + peek)
+        }
     }
 }

@@ -40,7 +40,6 @@ struct EffectHandlersApplyTests {
         let enemy = battle.enemy
         let outcome = EffectHandlersTestSupport.dispatch(
             .burn(3),
-            ability: CombatantFixtures.ability(),
             source: battle.hero,
             target: enemy,
             battle: &battle,
@@ -53,7 +52,6 @@ struct EffectHandlersApplyTests {
         var battle = EffectHandlersTestSupport.makeBattle()
         let outcome = EffectHandlersTestSupport.dispatch(
             .shield(.block, 5),
-            ability: CombatantFixtures.ability(),
             source: battle.hero,
             target: battle.hero,
             battle: &battle,
@@ -348,7 +346,6 @@ struct EffectHandlersApplyTests {
         var battle = EffectHandlersTestSupport.makeBattle()
         let outcome = EffectHandlersTestSupport.dispatch(
             .cleanse(.poison),
-            ability: CombatantFixtures.ability(),
             source: battle.hero,
             target: battle.hero,
             battle: &battle,
@@ -362,7 +359,6 @@ struct EffectHandlersApplyTests {
         let resourceEffect: Effect = .resourceGain(.gold, 3)
         let outcome = EffectHandlersTestSupport.dispatch(
             resourceEffect,
-            ability: CombatantFixtures.ability(),
             source: battle.hero,
             target: battle.hero,
             battle: &battle,

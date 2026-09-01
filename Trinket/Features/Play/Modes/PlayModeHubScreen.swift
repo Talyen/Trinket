@@ -13,14 +13,14 @@ struct PlayModeHubScreen<Content: View>: View {
     var body: some View {
         ScrollView {
             LazyVGrid(
-                columns: TrinketDesign.Metrics.hubGridItems(for: horizontalSizeClass),
-                spacing: TrinketDesign.Metrics.largeSpacing,
+                columns: TrinketDesign.Layout.hubGridItems(for: horizontalSizeClass),
+                spacing: TrinketDesign.Spacing.large,
             ) {
                 content()
             }
-            .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-            .padding(.top, TrinketDesign.Metrics.compactContentTopPadding)
-            .padding(.bottom, TrinketDesign.Metrics.extraLargeSpacing)
+            .padding(.horizontal, TrinketDesign.Layout.contentMargin)
+            .padding(.top, TrinketDesign.Layout.compactContentTopPadding)
+            .padding(.bottom, TrinketDesign.Spacing.extraLarge)
         }
         .scrollIndicators(.hidden)
         .navigationTitle(title)

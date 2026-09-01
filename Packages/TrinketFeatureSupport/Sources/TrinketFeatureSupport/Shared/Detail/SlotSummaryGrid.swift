@@ -33,7 +33,7 @@ public struct SlotSummaryGrid<Slot: Identifiable, CardView: View>: View {
     }
 
     public var body: some View {
-        HStack(alignment: .top, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
+        HStack(alignment: .top, spacing: TrinketDesign.Layout.sectionHeaderSpacing) {
             ForEach(slots) { slot in
                 let locked = isLocked(slot)
                 let filled = hasItem(slot)

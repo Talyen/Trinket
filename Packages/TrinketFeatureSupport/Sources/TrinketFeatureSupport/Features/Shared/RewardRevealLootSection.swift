@@ -12,7 +12,7 @@ public struct RewardRevealLootSection: View {
     let itemAccessibilityID: (String) -> String
     let areItemsVisible: Bool
     let visibleWalletRewardCount: Int
-    var spacing: CGFloat = TrinketDesign.Metrics.largeSpacing
+    var spacing: CGFloat = TrinketDesign.Spacing.large
     let onSelectItem: (InventoryItem) -> Void
     @Binding var focusedItemID: String?
 
@@ -29,7 +29,7 @@ public struct RewardRevealLootSection: View {
         itemAccessibilityID: @escaping (String) -> String,
         areItemsVisible: Bool,
         visibleWalletRewardCount: Int,
-        spacing: CGFloat = TrinketDesign.Metrics.largeSpacing,
+        spacing: CGFloat = TrinketDesign.Spacing.large,
         focusedItemID: Binding<String?>,
         onSelectItem: @escaping (InventoryItem) -> Void,
     ) {
@@ -61,7 +61,7 @@ public struct RewardRevealLootSection: View {
 
     private var rewardItemPager: some View {
         ScrollView(.horizontal) {
-            LazyHStack(spacing: TrinketDesign.Metrics.largeSpacing) {
+            LazyHStack(spacing: TrinketDesign.Spacing.large) {
                 ForEach(items) { item in
                     Button {
                         onSelectItem(item)

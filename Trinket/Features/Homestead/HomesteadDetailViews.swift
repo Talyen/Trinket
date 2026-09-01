@@ -32,7 +32,7 @@ struct HomesteadNodeDetailView: View {
             title: definition.title,
             homestead: homestead,
             roster: roster,
-            bottomPadding: TrinketDesign.Metrics.extraLargeSpacing,
+            bottomPadding: TrinketDesign.Spacing.extraLarge,
         ) {
             HomesteadBuildingArtwork(definition: definition, variant: .full)
                 .saturation(status.isUnlocked ? 1 : 0)

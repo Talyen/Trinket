@@ -18,12 +18,10 @@ public enum ArtworkViewportPrewarm {
     ) async where Item.ID: Hashable {
         try? await Task.sleep(for: viewportDebounceInterval)
         guard !Task.isCancelled else { return }
-        if let currentVisibleIDs, currentVisibleIDs() != visibleIDs {
-            return
-        }
+        let latestIDs: Set<Item.ID> = currentVisibleIDs?() ?? visibleIDs
         let names = windowNames(
             orderedItems: orderedItems,
-            visibleIDs: visibleIDs,
+            visibleIDs: latestIDs,
             thumbnailName: thumbnailName,
             prefetchRows: prefetchRows,
             estimatedColumns: estimatedColumns,

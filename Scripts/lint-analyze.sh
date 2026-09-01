@@ -21,7 +21,8 @@ RAW_DIR="$RESULTS_DIR/raw"
 COMBINED="$RESULTS_DIR/compiler-analyze.log"
 
 if [[ ! -d "$RAW_DIR" ]]; then
-  echo "lint-analyze: no compiler logs at $RAW_DIR (CI build log required)." >&2
+  echo "lint-analyze: no compiler logs at $RAW_DIR." >&2
+  echo "Hint: Generate compiler logs first via './Scripts/build-for-testing.sh --app-only' before running analyzer passes." >&2
   exit 1
 fi
 

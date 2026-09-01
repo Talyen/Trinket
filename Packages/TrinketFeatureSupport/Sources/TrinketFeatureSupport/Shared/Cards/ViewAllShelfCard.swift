@@ -21,7 +21,7 @@ public struct ViewAllShelfCard: View {
             reservesLabelSpace: false,
             accessibilityID: accessibilityIdentifier,
         ) {
-            VStack(spacing: TrinketDesign.Metrics.smallSpacing) {
+            VStack(spacing: TrinketDesign.Spacing.small) {
                 Image(systemName: "square.grid.2x2.fill")
                     // UIStyleCheck: allow - SF Symbol glyph sizing, not copy
                     .font(.system(size: 22, weight: .bold))

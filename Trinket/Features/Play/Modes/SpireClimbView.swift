@@ -98,7 +98,7 @@ struct SpireClimbView: View {
                     )
                 }
             }
-            .padding(.bottom, TrinketDesign.Metrics.compactTabBarContentClearance)
+            .padding(.bottom, TrinketDesign.Layout.compactTabBarContentClearance)
         }
     }
 

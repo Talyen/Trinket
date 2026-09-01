@@ -40,7 +40,7 @@ public struct TalentTreeCard: View {
                 }
             },
             label: {
-                VStack(spacing: TrinketDesign.Metrics.extraSmallSpacing) {
+                VStack(spacing: TrinketDesign.Spacing.extraSmall) {
                     Text(tree.name)
                         .trinketTypography(.cardLabel)
                         .foregroundStyle(.primary)

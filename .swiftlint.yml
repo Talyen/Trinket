@@ -73,6 +73,9 @@ opt_in_rules:
   - unavailable_function
   - static_operator
   - balanced_xctest_lifecycle
+  - untyped_error_in_catch
+  - redundant_discardable_let
+  - fallthrough
   # no_empty_block omitted: fights Codable `init() {}`, SwiftUI dismiss
   # `Button { }`, default no-op closures, and `while predicate() {}` drains.
 

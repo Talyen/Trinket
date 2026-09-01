@@ -251,7 +251,6 @@ extension BattleSession {
         while !Task.isCancelled, isAutoBattleEnabled {
             guard activeBattle != nil, outcome == nil else { return }
 
-
             if isAutoBattlePresentationBlocked {
                 await waitForAutoBattleRetry()
                 continue

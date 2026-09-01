@@ -55,37 +55,29 @@ public struct PlayerLabyrinthState: Equatable, Sendable {
     }
 
     public func isNodeReachable(_ nodeID: String) -> Bool {
-        guard let node = nodes[nodeID], node.isRevealed, !node.isCleared else { return false }
-        if node.id == LabyrinthGenerator.entranceNodeID {
+        guard let node = nodes[nodeID] else { return false }
+        return isNodeReachable(node, using: reachabilityIndex())
+    }
+
+    public func reachableNodeIDs() -> [String] {
+        let index = reachabilityIndex()
+        return nodes.values
+            .filter { isNodeReachable($0, using: index) }
+            .map(\.id)
+            .sorted()
+    }
+
+    private func isNodeReachable(_ node: LabyrinthNode, using index: ReachabilityIndex) -> Bool {
+        guard node.isRevealed, !node.isCleared, node.id != LabyrinthGenerator.entranceNodeID else {
             return false
         }
-        let index = reachabilityIndex()
-        if index.explicitOutgoingIDs.contains(nodeID) {
+        if index.explicitOutgoingIDs.contains(node.id) {
             return true
         }
         guard let position = node.gridPosition,
               let clearedPositions = index.clearedPositionsByCluster[node.clusterID]
         else { return false }
         return Self.adjacentPositions(to: position).contains { clearedPositions.contains($0) }
-    }
-
-    public func reachableNodeIDs() -> [String] {
-        let index = reachabilityIndex()
-
-        return nodes.values.compactMap { node in
-            guard node.isRevealed,
-                  !node.isCleared,
-                  node.id != LabyrinthGenerator.entranceNodeID
-            else { return nil }
-            if index.explicitOutgoingIDs.contains(node.id) {
-                return node.id
-            }
-            guard let position = node.gridPosition,
-                  let clearedPositions = index.clearedPositionsByCluster[node.clusterID],
-                  Self.adjacentPositions(to: position).contains(where: clearedPositions.contains)
-            else { return nil }
-            return node.id
-        }.sorted()
     }
 
     private func reachabilityIndex() -> ReachabilityIndex {

@@ -1,22 +1,15 @@
 import SwiftUI
 
-public enum ArtworkBlendDestination: Equatable, Sendable {
-    case canvas
+public struct ArtworkBlendDestination: Equatable, Sendable {
+    let color: Color
+    private let id: String
 
-    var color: Color {
-        switch self {
-        case .canvas: TrinketDesign.Colors.canvas
-        }
-    }
+    public static let canvas = Self(color: TrinketDesign.Colors.canvas, id: "canvas")
 }
 
 public enum ArtworkBlend: Equatable, Sendable {
     case none
     case bottom(into: ArtworkBlendDestination)
-}
-
-private enum ArtworkBlendRecipe: Sendable {
-    static let clearInset = 0.22
 }
 
 private struct ArtworkBlendModifier: ViewModifier {
@@ -28,24 +21,21 @@ private struct ArtworkBlendModifier: ViewModifier {
             content
         case let .bottom(destination):
             content.overlay {
-                BottomArtworkBlend(destination: destination)
-                    .allowsHitTesting(false)
+                BottomArtworkBlend(color: destination.color).allowsHitTesting(false)
             }
         }
     }
 }
 
 private struct BottomArtworkBlend: View {
-    let destination: ArtworkBlendDestination
+    let color: Color
+    private let clearInset: CGFloat = 0.22
 
     var body: some View {
-        let color = destination.color
-        let recipe = ArtworkBlendRecipe.self
-
         LinearGradient(
             stops: [
                 .init(color: .clear, location: 0),
-                .init(color: .clear, location: 1 - recipe.clearInset),
+                .init(color: .clear, location: 1 - clearInset),
                 .init(color: color, location: 1),
             ],
             startPoint: .top,

@@ -61,7 +61,7 @@ struct MysteryUnlockContent: View {
                 titleOpacity: ceremony.titleOpacity,
                 subtitleOpacity: ceremony.subtitleOpacity,
                 content: {
-                    VStack(spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
+                    VStack(spacing: TrinketDesign.Layout.sectionHeaderSpacing) {
                         Button {
                             onSelectDetail(
                                 CombatantDetailContext(
@@ -100,15 +100,15 @@ struct MysteryUnlockContent: View {
     }
 
     private var recruitSealBadge: some View {
-        HStack(spacing: TrinketDesign.Metrics.smallSpacing) {
+        HStack(spacing: TrinketDesign.Spacing.small) {
             Image(systemName: "checkmark")
                 .fontWeight(.bold)
             Text("RECRUITED")
                 .trinketTypography(.badge)
         }
         .foregroundStyle(TrinketDesign.Colors.canvas)
-        .padding(.horizontal, TrinketDesign.Metrics.mediumSpacing)
-        .padding(.vertical, TrinketDesign.Metrics.smallSpacing)
+        .padding(.horizontal, TrinketDesign.Spacing.medium)
+        .padding(.vertical, TrinketDesign.Spacing.small)
         .background(
             Capsule()
                 .fill(TrinketDesign.Colors.accent),
@@ -116,8 +116,8 @@ struct MysteryUnlockContent: View {
         .opacity(ceremony.checkOpacity)
         .scaleEffect(ceremony.sealBadgeScale)
         .offset(
-            x: -TrinketDesign.Metrics.mediumSpacing,
-            y: -TrinketDesign.Metrics.mediumSpacing,
+            x: -TrinketDesign.Spacing.medium,
+            y: -TrinketDesign.Spacing.medium,
         )
         .accessibilityHidden(ceremony.checkOpacity < 1)
     }

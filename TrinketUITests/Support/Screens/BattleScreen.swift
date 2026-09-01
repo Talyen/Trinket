@@ -82,5 +82,4 @@ struct BattleScreen {
     func openActions() {
         actionsMenu.tap()
     }
-
 }

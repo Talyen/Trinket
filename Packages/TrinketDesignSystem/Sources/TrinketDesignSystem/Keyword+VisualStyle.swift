@@ -13,10 +13,10 @@ public extension Keyword {
 
         public init(color: Color, secondaryColor: Color? = nil, symbolName: String, prefersDarkForeground: Bool = false) {
             self.color = color
-            self.secondaryColor = secondaryColor ?? color.opacity(0.72)
-            glowColor = color.opacity(0.62)
-            subtleBackgroundColor = color.opacity(0.14)
-            borderColor = color.opacity(0.48)
+            self.secondaryColor = secondaryColor ?? color.opacity(TrinketDesign.Opacity.secondary)
+            glowColor = color.opacity(TrinketDesign.Opacity.glow)
+            subtleBackgroundColor = color.opacity(TrinketDesign.Opacity.subtle)
+            borderColor = color.opacity(TrinketDesign.Opacity.border)
             self.symbolName = symbolName
             self.prefersDarkForeground = prefersDarkForeground
         }

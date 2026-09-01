@@ -52,7 +52,7 @@ public struct RewardRevealExperienceScreen<EmptyExperience: View>: View {
             emptyMessage: String?,
             itemAccessibilityID: @escaping (String) -> String,
             lootAccessibilityIdentifier: String? = nil,
-            lootSpacing: CGFloat = TrinketDesign.Metrics.largeSpacing,
+            lootSpacing: CGFloat = TrinketDesign.Spacing.large,
         ) {
             self.items = items
             self.gold = gold
@@ -90,13 +90,13 @@ public struct RewardRevealExperienceScreen<EmptyExperience: View>: View {
         titleAccessibilityIdentifier: String,
         experienceAwards: [Award] = [],
         experienceAccessibilityIdentifier: String? = nil,
-        experienceSpacing: CGFloat = TrinketDesign.Metrics.mediumSpacing,
+        experienceSpacing: CGFloat = TrinketDesign.Spacing.medium,
         loot: Loot,
         primaryActionTitle: String,
         primaryActionAccessibilityIdentifier: String,
         onPrimaryAction: @escaping () -> Bool,
-        contentTopPadding: CGFloat = TrinketDesign.Metrics.smallSpacing,
-        contentStackSpacing: CGFloat = TrinketDesign.Metrics.largeSpacing,
+        contentTopPadding: CGFloat = TrinketDesign.Spacing.small,
+        contentStackSpacing: CGFloat = TrinketDesign.Spacing.large,
         @ViewBuilder emptyExperience: @escaping () -> EmptyExperience,
     ) {
         self.eyebrow = eyebrow
@@ -237,13 +237,13 @@ public extension RewardRevealExperienceScreen where EmptyExperience == EmptyView
         titleAccessibilityIdentifier: String,
         experienceAwards: [Award] = [],
         experienceAccessibilityIdentifier: String? = nil,
-        experienceSpacing: CGFloat = TrinketDesign.Metrics.mediumSpacing,
+        experienceSpacing: CGFloat = TrinketDesign.Spacing.medium,
         loot: Loot,
         primaryActionTitle: String,
         primaryActionAccessibilityIdentifier: String,
         onPrimaryAction: @escaping () -> Bool,
-        contentTopPadding: CGFloat = TrinketDesign.Metrics.smallSpacing,
-        contentStackSpacing: CGFloat = TrinketDesign.Metrics.largeSpacing,
+        contentTopPadding: CGFloat = TrinketDesign.Spacing.small,
+        contentStackSpacing: CGFloat = TrinketDesign.Spacing.large,
     ) {
         self.init(
             eyebrow: eyebrow,

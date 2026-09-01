@@ -124,8 +124,7 @@ public struct ThemedGearGenerator: Sendable {
         if requireBuildAlignment {
             candidates = candidates.filter { baseType in
                 itemGenerator.affixDefinitions.contains { definition in
-                    definition.slot == baseType.slot
-                        && !definition.keywords.isDisjoint(with: baseType.keywordAffinities)
+                    definition.isEligible(for: baseType)
                         && definition.isAligned(withBuildKeywords: keywordBias)
                 }
             }

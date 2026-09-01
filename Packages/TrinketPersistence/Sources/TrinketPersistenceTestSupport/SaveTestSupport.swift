@@ -20,6 +20,18 @@ public enum SaveTestSupport {
         directoryURL.appendingPathComponent("PlayerSave.sqlite")
     }
 
+    public static func makeUserDefaults(suiteName: String) throws -> UserDefaults {
+        guard let defaults = UserDefaults(suiteName: suiteName) else {
+            throw CocoaError(.fileWriteUnknown)
+        }
+        defaults.removePersistentDomain(forName: suiteName)
+        return defaults
+    }
+
+    public static func removeUserDefaults(suiteName: String, defaults: UserDefaults) {
+        defaults.removePersistentDomain(forName: suiteName)
+    }
+
     public static func makeSideContext(storeURL: URL) throws -> ModelContext {
         let schema = PlayerSaveGraph.schema
         let container = try ModelContainer(
@@ -34,42 +46,58 @@ public enum SaveTestSupport {
     }
 
     @MainActor
-    public static func makeSaveStore(directoryURL: URL, persistImmediately: Bool = true) throws -> PlayerSaveStore {
+    public static func makeSaveStore(
+        directoryURL: URL,
+        persistImmediately: Bool = true,
+        resetState: Bool = false,
+        inMemoryOnly: Bool = false,
+    ) throws -> PlayerSaveStore {
         try PlayerSaveStore(
             storeURL: makeStoreURL(directoryURL: directoryURL),
             disableCloudSync: true,
+            resetState: resetState,
+            inMemoryOnly: inMemoryOnly,
             persistSaveImmediately: persistImmediately,
         )
     }
 
     public static func makeSave(modifiedAt: Date, gold: Int = 0) -> PlayerSave {
-        var save = PlayerSave(
-            schemaVersion: PlayerSave.currentSchemaVersion,
+        makeSave(
             modifiedAt: modifiedAt,
             worldSeed: PlayerSave.testWorldSeed,
             journey: .initial,
             roster: .freshStart,
             inventory: .freshStart,
+            gold: gold,
         )
-        save.roster.gold = gold
-        return save
     }
 
     public static func makeSave(
+        modifiedAt: Date = Date(),
+        worldSeed: UInt64 = PlayerSave.testWorldSeed,
+        journey: JourneyProgressState = .initial,
         roster: PlayerRosterState = .testSeed,
         inventory: PlayerInventoryState = PlayerInventoryState(items: []),
         homestead: PlayerHomesteadState = .freshStart,
-        journey: JourneyProgressState = .initial,
+        spires: PlayerSpiresState = .freshStart,
+        labyrinth: PlayerLabyrinthState = .freshStart,
+        gold: Int? = nil,
     ) -> PlayerSave {
-        PlayerSave(
+        var resolvedRoster = roster
+        if let gold {
+            resolvedRoster.gold = gold
+        }
+        return PlayerSave(
             schemaVersion: PlayerSave.currentSchemaVersion,
-            modifiedAt: Date(),
+            modifiedAt: modifiedAt,
             sessionGeneration: 0,
-            worldSeed: PlayerSave.testWorldSeed,
+            worldSeed: worldSeed,
             journey: journey,
-            roster: roster,
+            roster: resolvedRoster,
             inventory: inventory,
             homestead: homestead,
+            spires: spires,
+            labyrinth: labyrinth,
         )
     }
 

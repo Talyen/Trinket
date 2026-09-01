@@ -119,18 +119,20 @@ public enum StageCompletion {
         item: InventoryItem?,
         save: inout PlayerSave,
     ) {
+        let now = Date()
         save.applyGoldDelta(
             resolvedGoldReward(
                 stageGold: stageGold,
                 battleEarnedGold: battleEarnedGold,
                 homestead: save.homestead,
             ),
+            at: now,
         )
         if grantsCombatExperience {
             grantBattleExperience(enemyLevel: encounterLevel, to: hero, roster: &save.roster, xpPercent: xpPercent)
             grantBattleExperience(enemyLevel: encounterLevel, to: companion, roster: &save.roster, xpPercent: xpPercent)
         }
-        save.grantMaterials(materials)
+        save.grantMaterials(materials, at: now)
         if let item {
             save.inventory.appendUniqueItem(item)
         }

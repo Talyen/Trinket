@@ -11,8 +11,8 @@ struct DefeatView: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: TrinketDesign.Metrics.sectionSpacing) {
-                VStack(spacing: TrinketDesign.Metrics.smallSpacing) {
+            VStack(spacing: TrinketDesign.Layout.sectionSpacing) {
+                VStack(spacing: TrinketDesign.Spacing.small) {
                     Text(balanced: "Defeat")
                         .trinketTypography(.screenTitle)
                         .accessibilityIdentifier(AccessibilityID.Battle.defeat)
@@ -35,9 +35,9 @@ struct DefeatView: View {
                 .tint(TrinketDesign.Colors.destructive)
                 .disabled(isCompleting)
                 .accessibilityIdentifier(AccessibilityID.Battle.defeatPrimaryButton)
-                .padding(.top, TrinketDesign.Metrics.smallSpacing)
+                .padding(.top, TrinketDesign.Spacing.small)
             }
-            .padding(TrinketDesign.Metrics.extraLargeSpacing)
+            .padding(TrinketDesign.Spacing.extraLarge)
         }
         .frame(maxWidth: .infinity)
     }

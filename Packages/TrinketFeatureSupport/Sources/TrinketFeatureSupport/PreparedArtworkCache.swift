@@ -121,11 +121,13 @@ public final class PreparedArtworkCache {
         guard !unique.isEmpty else { return }
         for name in unique {
             pinCountsByName[name, default: 0] += 1
+        }
+        await decode(unique, maximumConcurrency: 2, countsTowardLaunch: false)
+        for name in unique where pinnedImages[name] == nil {
             if let image = images.object(forKey: name as NSString) {
                 pinnedImages[name] = image
             }
         }
-        await decode(unique, maximumConcurrency: 2, countsTowardLaunch: false)
     }
 
     public func releasePins(names: [String]) {
@@ -245,6 +247,7 @@ public final class PreparedArtworkCache {
         inFlightNames.insert(name)
         let prepared = await decodeHandler(name)
         let wasCancelled = Task.isCancelled
+        let decodedSuccessfully = prepared.image != nil && !wasCancelled
         if let image = prepared.image, !wasCancelled {
             let decodedCost = Self.decodedCost(of: image)
             images.setObject(
@@ -265,7 +268,7 @@ public final class PreparedArtworkCache {
         inFlightNames.remove(name)
         let waiters = decodeWaitersByName.removeValue(forKey: name) ?? []
         for waiter in waiters {
-            waiter.resume(returning: wasCancelled)
+            waiter.resume(returning: !decodedSuccessfully)
         }
     }
 
@@ -322,7 +325,7 @@ public final class PreparedArtworkCache {
     private static func processPhysicalFootprintByteCount() -> Int {
         var information = task_vm_info_data_t()
         var count = mach_msg_type_number_t(
-            MemoryLayout<task_vm_info_data_t>.size / MemoryLayout<integer_t>.size,
+            MemoryLayout<task_vm_info_data_t>.size / MemoryLayout<natural_t>.size,
         )
         let result = withUnsafeMutablePointer(to: &information) { pointer in
             pointer.withMemoryRebound(to: integer_t.self, capacity: Int(count)) { rebound in
@@ -338,13 +341,17 @@ public final class PreparedArtworkCache {
         return Int(information.phys_footprint)
     }
 
-    nonisolated static func decodeImage(named name: String) async -> PreparedArtwork {
+    @MainActor
+    static func decodeImage(named name: String) async -> PreparedArtwork {
         guard !Task.isCancelled else {
             return PreparedArtwork(name: name, image: nil)
         }
-        guard let source = UIImage(named: name) else {
+        guard let source = await MainActor.run(resultType: UIImage?.self, body: { UIImage(named: name) }),
+              let cgSource = source.cgImage
+        else {
             return PreparedArtwork(name: name, image: nil)
         }
+        _ = cgSource
         guard !Task.isCancelled else {
             return PreparedArtwork(name: name, image: nil)
         }

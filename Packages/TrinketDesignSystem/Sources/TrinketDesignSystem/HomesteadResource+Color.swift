@@ -19,7 +19,7 @@ public extension HomesteadResource {
         case .crystal:
             DesignAssetColors.named("ResourceCrystal")
         case .gold:
-            Keyword.gold.visualStyle.color
+            DesignAssetColors.named("ResourceGold")
         }
     }
 }

@@ -21,7 +21,7 @@ public struct CategoryBrowseShelf<Destination: View, Content: View>: View {
         shelfContentIdentity: String = "",
         shelfAnimation: Animation? = nil,
         totalCount: Int? = nil,
-        previewLimit: Int = TrinketDesign.Metrics.collectionShelfPreviewLimit,
+        previewLimit: Int = TrinketDesign.Layout.collectionShelfPreviewLimit,
         @ViewBuilder destination: @escaping () -> Destination,
         @ViewBuilder content: @escaping () -> Content,
     ) {
@@ -37,7 +37,7 @@ public struct CategoryBrowseShelf<Destination: View, Content: View>: View {
     }
 
     public var body: some View {
-        VStack(alignment: .leading, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
+        VStack(alignment: .leading, spacing: TrinketDesign.Layout.sectionHeaderSpacing) {
             NavigationLink {
                 destination()
             } label: {
@@ -52,7 +52,7 @@ public struct CategoryBrowseShelf<Destination: View, Content: View>: View {
     }
 
     private var categoryHeader: some View {
-        HStack(spacing: TrinketDesign.Metrics.smallSpacing) {
+        HStack(spacing: TrinketDesign.Spacing.small) {
             Text(balanced: title)
                 .trinketTypography(.sectionTitle)
                 .foregroundStyle(.primary)
@@ -61,13 +61,13 @@ public struct CategoryBrowseShelf<Destination: View, Content: View>: View {
                 .foregroundStyle(.secondary)
             Spacer()
         }
-        .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+        .padding(.horizontal, TrinketDesign.Layout.contentMargin)
         .contentShape(Rectangle())
     }
 
     private var horizontalShelf: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            LazyHStack(spacing: TrinketDesign.Metrics.collectionShelfCardSpacing) {
+            LazyHStack(spacing: TrinketDesign.Layout.collectionShelfCardSpacing) {
                 content()
 
                 if let totalCount, totalCount > previewLimit {
@@ -83,12 +83,12 @@ public struct CategoryBrowseShelf<Destination: View, Content: View>: View {
                 }
             }
             .scrollTargetLayout()
-            .padding(.vertical, TrinketDesign.Metrics.shelfVerticalPadding)
+            .padding(.vertical, TrinketDesign.Layout.shelfVerticalPadding)
             .animation(shelfAnimation, value: shelfContentIdentity)
         }
         .contentMargins(
             .horizontal,
-            TrinketDesign.Metrics.collectionShelfHorizontalMargin,
+            TrinketDesign.Layout.collectionShelfHorizontalMargin,
             for: .scrollContent,
         )
         .scrollTargetBehavior(.viewAligned)

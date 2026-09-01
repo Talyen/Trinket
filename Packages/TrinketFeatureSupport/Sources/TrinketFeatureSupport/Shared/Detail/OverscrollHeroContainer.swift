@@ -24,8 +24,10 @@ struct OverscrollHeroContainer<Art: View, Overlay: View>: View {
 
     var body: some View {
         GeometryReader { geometry in
-            let overscroll = max(geometry.frame(in: .scrollView(axis: .vertical)).minY, 0)
-            let height = baseHeight + overscroll
+            let rawOverscroll = max(geometry.frame(in: .scrollView(axis: .vertical)).minY, 0)
+            let metrics = HeroHeaderLayout.overscrollMetrics(baseHeight: baseHeight, overscroll: rawOverscroll)
+            let overscroll = metrics.offsetY == 0 ? rawOverscroll : -metrics.offsetY
+            let height = metrics.height
 
             ZStack(alignment: alignment) {
                 art()

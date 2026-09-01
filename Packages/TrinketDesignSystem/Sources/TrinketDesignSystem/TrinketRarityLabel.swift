@@ -4,6 +4,7 @@ import TrinketCore
 public struct TrinketRarityLabel: View {
     private let rarity: Rarity
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var shinePhase = false
 
     public init(rarity: Rarity) {
@@ -16,8 +17,7 @@ public struct TrinketRarityLabel: View {
             case .astral, .unique:
                 premiumLabel
             case .basic:
-                Text(rarity.label.uppercased())
-                    .foregroundStyle(.secondary)
+                Text(rarity.label.uppercased()).foregroundStyle(.secondary)
             }
         }
         .trinketTypography(.eyebrow)
@@ -57,16 +57,20 @@ public struct TrinketRarityLabel: View {
                     endPoint: UnitPoint(x: shinePhase ? 2.35 : 0.65, y: 0.5),
                 ),
             )
-            .shadow(color: premiumShadowColor.opacity(0.62), radius: 6)
+            .shadow(color: premiumShadowColor.opacity(TrinketDesign.Opacity.glow), radius: 6)
             .task {
+                guard !reduceMotion else { return }
                 await Task.yield()
                 guard !Task.isCancelled else { return }
-                withAnimation(TrinketMotion.Shine.textAnimation) {
-                    shinePhase = true
+                withAnimation(TrinketMotion.Shine.textAnimation) { shinePhase = true }
+            }
+            .onChange(of: reduceMotion) { _, isReduced in
+                if isReduced {
+                    shinePhase = false
+                } else {
+                    withAnimation(TrinketMotion.Shine.textAnimation) { shinePhase = true }
                 }
             }
-            .onDisappear {
-                shinePhase = false
-            }
+            .onDisappear { shinePhase = false }
     }
 }

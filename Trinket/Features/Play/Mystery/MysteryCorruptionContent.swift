@@ -27,17 +27,17 @@ struct MysteryCorruptionRevealContent: View {
                 }
             },
             bodyContent: {
-                VStack(alignment: .leading, spacing: TrinketDesign.Metrics.sectionSpacing) {
+                VStack(alignment: .leading, spacing: TrinketDesign.Layout.sectionSpacing) {
                     Text("The altar remade your \(result.item.displayName).")
                         .trinketTypography(.body)
                         .foregroundStyle(.primary)
                         .fixedSize(horizontal: false, vertical: true)
-                        .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-                        .padding(.top, TrinketDesign.Metrics.contentTopPadding)
+                        .padding(.horizontal, TrinketDesign.Layout.contentMargin)
+                        .padding(.top, TrinketDesign.Layout.contentTopPadding)
 
                     if !result.effects.isEmpty {
                         DetailSection("What Changed") {
-                            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
+                            VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
                                 ForEach(Array(result.effects.enumerated()), id: \.offset) { _, effect in
                                     changeRow(effect)
                                 }
@@ -46,7 +46,7 @@ struct MysteryCorruptionRevealContent: View {
                     }
 
                     DetailSection("Traits") {
-                        VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
+                        VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
                             ForEach(Array(result.item.displayedAffixes.enumerated()), id: \.element.id) { index, affix in
                                 DetailTraitRow(
                                     title: affix.title,
@@ -61,7 +61,7 @@ struct MysteryCorruptionRevealContent: View {
                     }
 
                     mysteryPersistFailureBanner(session.persistFailureMessage)
-                        .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+                        .padding(.horizontal, TrinketDesign.Layout.contentMargin)
                 }
             },
         )
@@ -74,8 +74,8 @@ struct MysteryCorruptionRevealContent: View {
                 accessibilityIdentifier: AccessibilityID.Mystery.corruptionContinueButton,
             )
             .trinketCenteredPrimaryAction()
-            .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-            .padding(.vertical, TrinketDesign.Metrics.mediumSpacing)
+            .padding(.horizontal, TrinketDesign.Layout.contentMargin)
+            .padding(.vertical, TrinketDesign.Spacing.medium)
         }
     }
 
@@ -92,7 +92,7 @@ struct MysteryCorruptionRevealContent: View {
     }
 
     private func changeRow(_ effect: CorruptionEffectSummary) -> some View {
-        HStack(alignment: .firstTextBaseline, spacing: TrinketDesign.Metrics.smallSpacing) {
+        HStack(alignment: .firstTextBaseline, spacing: TrinketDesign.Spacing.small) {
             Image(systemName: effect.symbolName)
                 // UIStyleCheck: allow - SF Symbol glyph sizing, not copy
                 .font(.footnote.weight(.semibold))

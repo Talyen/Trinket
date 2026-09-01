@@ -28,7 +28,7 @@ struct LaunchWarmupView: View {
     @State private var currentTermIndex = Int.random(in: 0 ..< Self.loadingTerms.count)
 
     var body: some View {
-        VStack(spacing: TrinketDesign.Metrics.sectionSpacing) {
+        VStack(spacing: TrinketDesign.Layout.sectionSpacing) {
             Text("TRINKET")
                 .trinketTypography(.screenDisplay)
                 .foregroundStyle(TrinketDesign.Colors.accent)
@@ -45,7 +45,7 @@ struct LaunchWarmupView: View {
                 .id(currentTermIndex)
                 .transition(.opacity.combined(with: .scale(scale: 0.98)))
         }
-        .padding(TrinketDesign.Metrics.contentMargin)
+        .padding(TrinketDesign.Layout.contentMargin)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .trinketScreenBackground()
         .preferredColorScheme(.dark)

@@ -98,34 +98,34 @@ struct StageSelectActiveCard<
 
     private var footerDock: some View {
         ViewThatFits(in: .horizontal) {
-            HStack(alignment: .center, spacing: TrinketDesign.Metrics.smallSpacing) {
+            HStack(alignment: .center, spacing: TrinketDesign.Spacing.small) {
                 titleBlock
                     .fixedSize(horizontal: true, vertical: false)
 
-                Spacer(minLength: TrinketDesign.Metrics.smallSpacing)
+                Spacer(minLength: TrinketDesign.Spacing.small)
 
                 actionControls
             }
 
-            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.mediumSpacing) {
+            VStack(alignment: .leading, spacing: TrinketDesign.Spacing.medium) {
                 titleBlock
 
-                HStack(alignment: .center, spacing: TrinketDesign.Metrics.smallSpacing) {
+                HStack(alignment: .center, spacing: TrinketDesign.Spacing.small) {
                     Spacer(minLength: 0)
 
                     actionControls
                 }
             }
         }
-        .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-        .padding(.vertical, TrinketDesign.Metrics.mediumSpacing)
+        .padding(.horizontal, TrinketDesign.Layout.contentMargin)
+        .padding(.vertical, TrinketDesign.Spacing.medium)
         .background(TrinketDesign.Colors.surface)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(presentation.activeDetailAccessibilityID)
     }
 
     private var titleBlock: some View {
-        VStack(alignment: .leading, spacing: TrinketDesign.Metrics.tightSpacing) {
+        VStack(alignment: .leading, spacing: TrinketDesign.Spacing.tight) {
             Text(presentation.activeEyebrow.uppercased())
                 .trinketTypography(.eyebrow)
                 .foregroundStyle(.secondary)
@@ -139,7 +139,7 @@ struct StageSelectActiveCard<
     }
 
     private var actionControls: some View {
-        HStack(alignment: .center, spacing: TrinketDesign.Metrics.smallSpacing) {
+        HStack(alignment: .center, spacing: TrinketDesign.Spacing.small) {
             if presentation.showsPartyPicker {
                 partyPickerButton
             }
@@ -214,7 +214,7 @@ struct StageSelectMetaLine<Item: Identifiable>: View {
     let presentation: StageSelectRowPresentation<Item>
 
     var body: some View {
-        HStack(spacing: TrinketDesign.Metrics.extraSmallSpacing) {
+        HStack(spacing: TrinketDesign.Spacing.extraSmall) {
             Text(presentation.mapLabel)
             Text("·")
             Text(presentation.encounterTypeTitle)

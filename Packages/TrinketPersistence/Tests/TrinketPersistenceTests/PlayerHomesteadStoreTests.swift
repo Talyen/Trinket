@@ -36,7 +36,7 @@ final class PlayerHomesteadStoreTests {
     }
 
     @Test func `build or upgrade node returns insufficient resources without mutating`() throws {
-        let store = try context.makeSaveStore()
+        let store = try context.makeSaveStore(inMemoryOnly: true)
         let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
         store.homestead = PlayerHomesteadState(resources: [:], nodeTiers: [:])
 
@@ -46,7 +46,7 @@ final class PlayerHomesteadStoreTests {
     }
 
     @Test func `build or upgrade node returns not available when max tier`() throws {
-        let store = try context.makeSaveStore()
+        let store = try context.makeSaveStore(inMemoryOnly: true)
         let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
         let maxTier = try #require(definition.tiers.map(\.tier).max())
         store.homestead = PlayerHomesteadState(
@@ -87,7 +87,7 @@ final class PlayerHomesteadStoreTests {
     }
 
     @Test func `build settles production before changing node tier`() throws {
-        let store = try context.makeSaveStore()
+        let store = try context.makeSaveStore(inMemoryOnly: true)
         let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
         let start = Date(timeIntervalSince1970: 0)
         let upgradeDate = start.addingTimeInterval(PlayerHomesteadState.secondsPerDay)

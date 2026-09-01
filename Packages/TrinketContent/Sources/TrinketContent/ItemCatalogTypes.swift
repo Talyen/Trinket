@@ -200,6 +200,10 @@ public struct ItemAffixDefinition: Identifiable, Equatable, Hashable, Sendable {
         keywords.allSatisfy { $0.category != .damageType }
     }
 
+    public func isEligible(for baseType: ItemBaseType) -> Bool {
+        slot == baseType.slot && !keywords.isDisjoint(with: baseType.keywordAffinities)
+    }
+
     public func isAligned(withBuildKeywords bias: Set<Keyword>) -> Bool {
         if isBuildGeneric {
             return true

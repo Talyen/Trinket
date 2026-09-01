@@ -1,7 +1,7 @@
 import Foundation
 
-public struct CombatantDetailContext: Identifiable, Hashable {
-    public enum Kind: Hashable {
+public struct CombatantDetailContext: Identifiable, Hashable, Sendable {
+    public enum Kind: Hashable, Sendable {
         case hero
         case companion
     }

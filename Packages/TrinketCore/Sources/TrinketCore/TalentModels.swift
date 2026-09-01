@@ -40,26 +40,20 @@ public struct TalentTree: Identifiable, Hashable, Codable, Sendable {
         self.nodes = nodes
     }
 
+    public var rows: [Int] {
+        Set(nodes.map(\.row)).sorted()
+    }
+
     public func nodes(forRow row: Int) -> [TalentNode] {
         nodes.filter { $0.row == row }
     }
 
     public func canUnlock(node: TalentNode, unlockedNodeIDs: Set<String>, availablePoints: Int) -> Bool {
         guard availablePoints > 0 else { return false }
+        guard nodes.contains(where: { $0.id == node.id }) else { return false }
         guard !unlockedNodeIDs.contains(node.id) else { return false }
-
-        switch node.row {
-        case 1:
-            return true
-        case 2:
-            let row1Nodes = nodes(forRow: 1)
-            return row1Nodes.allSatisfy { unlockedNodeIDs.contains($0.id) }
-        case 3:
-            let row2Nodes = nodes(forRow: 2)
-            return row2Nodes.allSatisfy { unlockedNodeIDs.contains($0.id) }
-        default:
-            return false
-        }
+        guard node.row > 1 else { return node.row == 1 }
+        return isRowComplete(node.row - 1, unlockedNodeIDs: unlockedNodeIDs)
     }
 
     public func isRowComplete(_ row: Int, unlockedNodeIDs: Set<String>) -> Bool {
@@ -99,7 +93,8 @@ public struct CombatantTalentConfig: Identifiable, Hashable, Codable, Sendable {
         guard nodeIDs.count > budget else { return nodeIDs }
         guard budget > 0 else { return [] }
         var kept: Set<String> = []
-        for row in 1 ... 3 {
+        let rows = Set(trees.flatMap(\.rows)).sorted()
+        for row in rows {
             for tree in trees {
                 for node in tree.nodes(forRow: row) {
                     guard nodeIDs.contains(node.id), kept.count < budget else { continue }

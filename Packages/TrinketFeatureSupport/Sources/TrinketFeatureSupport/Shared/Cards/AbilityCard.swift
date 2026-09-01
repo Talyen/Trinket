@@ -29,7 +29,7 @@ struct AbilityChoiceCard: View {
                 }
             },
             label: {
-                VStack(spacing: TrinketDesign.Metrics.tightSpacing) {
+                VStack(spacing: TrinketDesign.Spacing.tight) {
                     Text(ability.tier.rawValue.uppercased())
                         .trinketTypography(.eyebrow)
                         .foregroundStyle(.secondary)

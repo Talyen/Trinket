@@ -14,7 +14,7 @@ private enum HomesteadProjectRowMetrics {
         artworkHeight * artworkAspectRatio
     }
 
-    static let artworkTextSpacing = TrinketDesign.Metrics.mediumSpacing
+    static let artworkTextSpacing = TrinketDesign.Spacing.medium
     static var dividerLeadingInset: CGFloat {
         artworkWidth + artworkTextSpacing
     }
@@ -56,7 +56,7 @@ struct HomesteadProjectRow: View {
                 .opacity(isLocked ? 0.72 : 1)
                 .padding(.trailing, HomesteadProjectRowMetrics.artworkTextSpacing)
 
-            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.tightSpacing) {
+            VStack(alignment: .leading, spacing: TrinketDesign.Spacing.tight) {
                 Text(definition.title)
                     .trinketTypography(.rowTitle)
                     .foregroundStyle(isLocked ? .secondary : .primary)
@@ -74,7 +74,7 @@ struct HomesteadProjectRow: View {
                     .trinketTypography(.footnote)
                     .foregroundStyle(status.statusColor)
                     .symbolRenderingMode(.hierarchical)
-                    .padding(.leading, TrinketDesign.Metrics.tightSpacing)
+                    .padding(.leading, TrinketDesign.Spacing.tight)
             } else {
                 Image(systemName: status.statusSymbolName)
                     .trinketTypography(.button)
@@ -85,10 +85,10 @@ struct HomesteadProjectRow: View {
                         value: status.canBuildOrUpgrade,
                     )
                     .frame(width: 22, height: 22)
-                    .padding(.leading, TrinketDesign.Metrics.tightSpacing)
+                    .padding(.leading, TrinketDesign.Spacing.tight)
             }
         }
-        .padding(.vertical, TrinketDesign.Metrics.smallSpacing)
+        .padding(.vertical, TrinketDesign.Spacing.small)
     }
 
     private var effectLine: String {
@@ -105,12 +105,12 @@ struct HomesteadProjectSection: View {
     var showsCategoryHeader = true
 
     var body: some View {
-        VStack(alignment: .leading, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
+        VStack(alignment: .leading, spacing: TrinketDesign.Layout.sectionHeaderSpacing) {
             if showsCategoryHeader {
                 Text(category.rawValue)
                     .trinketTypography(.sectionTitle)
                     .foregroundStyle(.primary)
-                    .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+                    .padding(.horizontal, TrinketDesign.Layout.contentMargin)
                     .accessibilityIdentifier(AccessibilityID.Homestead.category(category.rawValue))
             }
 
@@ -134,7 +134,7 @@ struct HomesteadProjectSection: View {
                     }
                 }
             }
-            .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+            .padding(.horizontal, TrinketDesign.Layout.contentMargin)
         }
     }
 }

@@ -27,13 +27,13 @@ struct MysteryRewardContent: View {
                 showsIncreasePrefix: false,
                 emptyMessage: nil,
                 itemAccessibilityID: AccessibilityID.Mystery.rewardItem,
-                lootSpacing: TrinketDesign.Metrics.sectionSpacing,
+                lootSpacing: TrinketDesign.Layout.sectionSpacing,
             ),
             primaryActionTitle: "Loot All",
             primaryActionAccessibilityIdentifier: AccessibilityID.Mystery.continueButton,
             onPrimaryAction: onFinish,
-            contentTopPadding: TrinketDesign.Metrics.contentTopPadding + TrinketDesign.Metrics.mediumSpacing,
-            contentStackSpacing: TrinketDesign.Metrics.sectionSpacing,
+            contentTopPadding: TrinketDesign.Layout.contentTopPadding + TrinketDesign.Spacing.medium,
+            contentStackSpacing: TrinketDesign.Layout.sectionSpacing,
         )
     }
 

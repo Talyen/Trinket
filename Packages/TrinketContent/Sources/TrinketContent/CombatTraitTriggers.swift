@@ -256,7 +256,6 @@ public struct CombatTraitTriggers: Codable, Sendable, Equatable, Hashable {
             storage.value.onHit[keyPath: keyPath] = newValue
         }
     }
-
 }
 
 public extension CombatTraitTriggers {

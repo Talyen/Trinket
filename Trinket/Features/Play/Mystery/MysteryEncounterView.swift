@@ -105,24 +105,24 @@ struct MysteryEncounterView: View {
                 title: session.event.title,
                 titleAccessibilityIdentifier: AccessibilityID.Mystery.encounterTitle,
                 baseHeight: baseHeight,
-                horizontalPadding: TrinketDesign.Metrics.contentMargin,
-                bottomPadding: TrinketDesign.Metrics.largeSpacing,
+                horizontalPadding: TrinketDesign.Layout.contentMargin,
+                bottomPadding: TrinketDesign.Spacing.large,
             ) {
                 heroArtwork
             }
         } bodyContent: {
-            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.contentMargin) {
+            VStack(alignment: .leading, spacing: TrinketDesign.Layout.contentMargin) {
                 narrativeCard
                 mysteryPersistFailureBanner(session.persistFailureMessage)
                 mysteryChoices
             }
-            .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-            .padding(.vertical, TrinketDesign.Metrics.largeSpacing)
+            .padding(.horizontal, TrinketDesign.Layout.contentMargin)
+            .padding(.vertical, TrinketDesign.Spacing.large)
         }
         .safeAreaInset(edge: .bottom) {
             mysteryConfirmAction
-                .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-                .padding(.vertical, TrinketDesign.Metrics.mediumSpacing)
+                .padding(.horizontal, TrinketDesign.Layout.contentMargin)
+                .padding(.vertical, TrinketDesign.Spacing.medium)
         }
     }
 
@@ -132,13 +132,13 @@ struct MysteryEncounterView: View {
             .foregroundStyle(.primary)
             .fixedSize(horizontal: false, vertical: true)
             .accessibilityIdentifier(AccessibilityID.Mystery.encounterNarrative)
-            .padding(TrinketDesign.Metrics.largeSpacing)
+            .padding(TrinketDesign.Spacing.large)
             .frame(maxWidth: .infinity, alignment: .leading)
             .trinketCardSurface()
     }
 
     private var mysteryChoices: some View {
-        VStack(alignment: .leading, spacing: TrinketDesign.Metrics.mediumSpacing) {
+        VStack(alignment: .leading, spacing: TrinketDesign.Spacing.medium) {
             if session.event.choices.count > 1 {
                 Text("PICK A REWARD")
                     .trinketTypography(.cardTitle)
@@ -181,7 +181,7 @@ struct MysteryEncounterView: View {
         )
         .trinketCenteredPrimaryAction()
         .disabled(selectedChoiceID == nil || session.isResolvingChoice)
-        .padding(.top, TrinketDesign.Metrics.smallSpacing)
+        .padding(.top, TrinketDesign.Spacing.small)
     }
 
     private var heroArtwork: some View {

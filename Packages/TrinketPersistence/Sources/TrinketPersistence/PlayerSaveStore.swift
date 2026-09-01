@@ -163,7 +163,6 @@ public final class PlayerSaveStore {
         }
     }
 
-    // Concurrency-Safety: isolated deinit runs on MainActor so cancelling the
     isolated deinit {
         deferredSaveTask?.cancel()
     }

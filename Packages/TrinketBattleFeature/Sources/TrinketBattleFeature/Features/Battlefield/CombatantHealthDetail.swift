@@ -11,7 +11,7 @@ struct CombatHealthBar: View {
     let maxHealth: Int
     let fillColor: Color
     var style: Style = .standard
-    var height: CGFloat = TrinketDesign.Metrics.statBarHeight
+    var height: CGFloat = TrinketDesign.Bars.statHeight
 
     @State private var displayedHealth: Double
     @State private var trailingHealth: Double
@@ -23,7 +23,7 @@ struct CombatHealthBar: View {
         maxHealth: Int,
         fillColor: Color,
         style: Style = .standard,
-        height: CGFloat = TrinketDesign.Metrics.statBarHeight,
+        height: CGFloat = TrinketDesign.Bars.statHeight,
     ) {
         self.health = health
         self.maxHealth = maxHealth

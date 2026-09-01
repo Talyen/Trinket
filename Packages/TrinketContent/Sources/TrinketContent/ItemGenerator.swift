@@ -20,9 +20,7 @@ public struct ItemGenerator: Sendable {
         using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> InventoryItem {
         let eligibleAffixes = affixDefinitions.filter { definition in
-            guard definition.slot == baseType.slot,
-                  !definition.keywords.isDisjoint(with: baseType.keywordAffinities)
-            else { return false }
+            guard definition.isEligible(for: baseType) else { return false }
             if requireBuildAlignment {
                 return definition.isAligned(withBuildKeywords: keywordBias)
             }

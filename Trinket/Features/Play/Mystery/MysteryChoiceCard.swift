@@ -20,7 +20,7 @@ struct MysteryChoiceCard: View {
         Button {
             onSelect()
         } label: {
-            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.mediumSpacing) {
+            VStack(alignment: .leading, spacing: TrinketDesign.Spacing.medium) {
                 Text(choice.label)
                     .trinketTypography(.rowTitle)
                     .foregroundStyle(.primary)
@@ -29,7 +29,7 @@ struct MysteryChoiceCard: View {
 
                 rewards
             }
-            .padding(TrinketDesign.Metrics.largeSpacing)
+            .padding(TrinketDesign.Spacing.large)
             .frame(maxWidth: .infinity, alignment: .leading)
             .contentShape(Rectangle())
             .background(
@@ -65,7 +65,7 @@ struct MysteryChoiceCard: View {
     }
 
     private var rewardRow: some View {
-        HStack(alignment: .center, spacing: TrinketDesign.Metrics.mediumSpacing) {
+        HStack(alignment: .center, spacing: TrinketDesign.Spacing.medium) {
             ForEach(Array(choice.effects.enumerated()), id: \.offset) { _, effect in
                 reward(for: effect)
             }
@@ -81,10 +81,10 @@ struct MysteryChoiceCard: View {
                         minimum: TrinketDesign.Metrics.mysteryRewardArtworkSize * 2.5,
                         maximum: 200,
                     ),
-                    spacing: TrinketDesign.Metrics.smallSpacing,
+                    spacing: TrinketDesign.Spacing.small,
                 ),
             ],
-            spacing: TrinketDesign.Metrics.smallSpacing,
+            spacing: TrinketDesign.Spacing.small,
         ) {
             ForEach(Array(choice.effects.enumerated()), id: \.offset) { _, effect in
                 reward(for: effect)
@@ -168,7 +168,7 @@ struct MysteryChoiceCard: View {
         systemIcon: String? = nil,
         tint: Color,
     ) -> some View {
-        HStack(spacing: TrinketDesign.Metrics.mediumSpacing) {
+        HStack(spacing: TrinketDesign.Spacing.medium) {
             if let resource {
                 HomesteadResourceArtwork(resource: resource)
                     .frame(
@@ -186,7 +186,7 @@ struct MysteryChoiceCard: View {
                     )
             }
 
-            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.tightSpacing) {
+            VStack(alignment: .leading, spacing: TrinketDesign.Spacing.tight) {
                 if let value {
                     Text(title)
                         .trinketTypography(.cardTitle)

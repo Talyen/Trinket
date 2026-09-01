@@ -11,6 +11,7 @@ public struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
 
     @State private var showsPinnedScrollEdgeEffect = false
     @State private var titleOpacity: CGFloat = 0
+    @State private var headerBaseHeight: CGFloat = HeroHeaderLayout.minimumHeaderHeight
 
     public init(
         title: String,
@@ -30,10 +31,7 @@ public struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
         navigationBarConfigured {
             ScrollView {
                 VStack(spacing: 0) {
-                    DetailHeroHeaderContainer(
-                        heroHeightPolicy: heroHeightPolicy,
-                        header: header,
-                    )
+                    header(headerBaseHeight)
 
                     VStack(alignment: .leading, spacing: 0) {
                         bodyContent()
@@ -46,17 +44,21 @@ public struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
             .scrollBounceBehavior(.always)
             .scrollEdgeEffectHidden(!showsPinnedScrollEdgeEffect, for: .top)
             .scrollEdgeEffectStyle(.soft, for: .top)
-            .onScrollGeometryChange(for: CGFloat.self) { geometry in
+            .onScrollGeometryChange(for: HeroHeaderScrollMetrics.self) { geometry in
                 let topInset = geometry.contentInsets.top
-                let headerBaseHeight = heroHeightPolicy.height(forWidth: geometry.containerSize.width)
-                let threshold = headerBaseHeight - topInset - 44
+                let baseHeight = heroHeightPolicy.height(forWidth: geometry.containerSize.width)
+                let threshold = baseHeight - topInset - 44
                 let offsetY = geometry.contentOffset.y + topInset
-                return min(max((offsetY - threshold) / 32, 0), 1)
-            } action: { _, newOpacity in
-                if titleOpacity != newOpacity {
-                    titleOpacity = newOpacity
+                let opacity = min(max((offsetY - threshold) / 32, 0), 1)
+                return HeroHeaderScrollMetrics(baseHeight: baseHeight, titleOpacity: opacity)
+            } action: { _, metrics in
+                if headerBaseHeight != metrics.baseHeight {
+                    headerBaseHeight = metrics.baseHeight
                 }
-                let isPinned = newOpacity >= 0.5
+                if titleOpacity != metrics.titleOpacity {
+                    titleOpacity = metrics.titleOpacity
+                }
+                let isPinned = metrics.titleOpacity >= 0.5
                 if showsPinnedScrollEdgeEffect != isPinned {
                     showsPinnedScrollEdgeEffect = isPinned
                 }
@@ -88,6 +90,12 @@ public struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
     }
 }
 
+private struct HeroHeaderScrollMetrics: Equatable {
+    let baseHeight: CGFloat
+    let titleOpacity: CGFloat
+}
+
+@available(*, deprecated, message: "DetailHeroHeaderContainer merged into DetailHeroScrollShell")
 private struct DetailHeroHeaderContainer<Header: View>: View {
     let heroHeightPolicy: HeroHeaderLayout.HeightPolicy
     @ViewBuilder let header: (_ baseHeight: CGFloat) -> Header
@@ -132,16 +140,16 @@ public struct DetailSection<Content: View>: View {
     }
 
     public var body: some View {
-        VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
+        VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
             Text(title)
                 .trinketTypography(.rowTitle)
                 .foregroundStyle(.primary)
-                .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-                .padding(.top, TrinketDesign.Metrics.contentTopPadding)
+                .padding(.horizontal, TrinketDesign.Layout.contentMargin)
+                .padding(.top, TrinketDesign.Layout.contentTopPadding)
                 .accessibilityIdentifier(sectionID ?? title)
 
             content()
-                .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+                .padding(.horizontal, TrinketDesign.Layout.contentMargin)
         }
     }
 }
@@ -160,8 +168,8 @@ struct DetailPrimaryActionFooter: View {
         .trinketPrimaryActionButton(accessibilityIdentifier: accessibilityIdentifier ?? title)
         .trinketCenteredPrimaryAction()
         .disabled(isDisabled)
-        .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-        .padding(.vertical, TrinketDesign.Metrics.mediumSpacing)
+        .padding(.horizontal, TrinketDesign.Layout.contentMargin)
+        .padding(.vertical, TrinketDesign.Spacing.medium)
         .trinketSheetChromeIgnoresDismissDrag()
     }
 }

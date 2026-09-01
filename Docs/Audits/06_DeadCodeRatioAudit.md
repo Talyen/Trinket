@@ -29,3 +29,10 @@ No live consumers across app, tests, manifests, generated output, registration/d
 ## Example signals
 
 Unused types/views, enum cases with no construction or matches, unread view state, uncalled private helpers, package `public` used only inside the package, permanently disabled branches, unused asset/resource names or configuration keys, redundant dependencies, orphaned fixtures, empty or stub test files.
+
+## Tooling & Automated Verification
+
+- **Asset / Manifest Bi-Directional Integrity:** Run `python3 Scripts/check-unused-assets.py` to ensure all manifest entries exist on disk and no orphaned media or image assets linger in `Trinket/Assets.xcassets/` or `Trinket/Media/`.
+- **Swift Dead Code & API Boundaries:** Run `./Scripts/check-dead-code.sh` using `.periphery.yml` configuration to identify unreferenced Swift declarations, unused enum cases, and redundant public access modifiers.
+- **Import Hygiene:** Compiler flag `-Wunused-import` in `project.yml` and `Scripts/lint-analyze.sh` for static analyzer passes.
+

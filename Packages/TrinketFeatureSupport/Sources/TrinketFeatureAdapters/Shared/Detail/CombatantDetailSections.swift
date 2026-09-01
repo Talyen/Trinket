@@ -14,8 +14,8 @@ struct CombatantStatsSection: View {
 
     var body: some View {
         DetailSection("Stats", sectionID: AccessibilityID.CombatantDetail.statsSection) {
-            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
-                VStack(alignment: .leading, spacing: TrinketDesign.Metrics.extraSmallSpacing) {
+            VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
+                VStack(alignment: .leading, spacing: TrinketDesign.Spacing.extraSmall) {
                     LabeledContent {
                         Text("\(battleHealth ?? combatBuild.effectiveMaxHealth)/\(combatBuild.effectiveMaxHealth)")
                             .trinketTypography(.statValue)
@@ -48,7 +48,7 @@ struct CombatantStatsSection: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .trinketSurface(.secondary)
 
-                VStack(alignment: .leading, spacing: TrinketDesign.Metrics.extraSmallSpacing) {
+                VStack(alignment: .leading, spacing: TrinketDesign.Spacing.extraSmall) {
                     LabeledContent {
                         Text("\(combatBuild.combatant.primaryStats.strength)")
                             .trinketTypography(.statValue)
@@ -104,7 +104,7 @@ struct CombatantTraitsSection: View {
 
     var body: some View {
         DetailSection("Traits", sectionID: sectionID) {
-            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
+            VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
                 ForEach(traits) { trait in
                     DetailTraitRow(
                         title: trait.name,
@@ -122,7 +122,7 @@ struct CombatantLabyrinthSection: View {
 
     var body: some View {
         DetailSection("Labyrinth", sectionID: AccessibilityID.CombatantDetail.labyrinthModifiersSection) {
-            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
+            VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
                 ForEach(labyrinthModifiers) { modifier in
                     DetailTraitRow(
                         title: modifier.title,
@@ -141,7 +141,7 @@ struct CombatantActiveEffectsSection: View {
 
     var body: some View {
         DetailSection("Active Effects") {
-            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
+            VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
                 ForEach(summaries) { summary in
                     let parts: (String, String) = {
                         if let separator = summary.text.range(of: ": ") {
@@ -175,7 +175,7 @@ struct CombatantTalentsSection: View {
         let config = CombatantTalentCatalog.config(for: combatantID)
         let available = progression.availableTalentPoints(unlockedCount: unlockedTalents.count)
         return DetailSection("Talents", sectionID: AccessibilityID.CombatantDetail.talentsSection) {
-            HStack(spacing: TrinketDesign.Metrics.smallSpacing) {
+            HStack(spacing: TrinketDesign.Spacing.small) {
                 ForEach(config.trees) { tree in
                     let hasUnallocatedPoints = available > 0
                     let unlockedCount = tree.nodes.count(where: { unlockedTalents.contains($0.id) })
@@ -192,7 +192,7 @@ struct CombatantTalentsSection: View {
                     .trinketQuietTapButtonStyle()
                 }
             }
-            .padding(.vertical, TrinketDesign.Metrics.extraSmallSpacing)
+            .padding(.vertical, TrinketDesign.Spacing.extraSmall)
         }
     }
 }

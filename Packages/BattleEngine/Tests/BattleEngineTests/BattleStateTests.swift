@@ -123,7 +123,6 @@ struct BattleStateTests {
         let target = battle.enemy
         let outcome = EffectHandlersTestSupport.dispatch(
             .shield(.block, 5),
-            ability: CombatantFixtures.ability(),
             source: source,
             target: target,
             battle: &battle,

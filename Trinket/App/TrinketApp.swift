@@ -97,7 +97,7 @@ struct TrinketApp: App {
     private func rootTabImageNames(for appState: AppState) -> [String] {
         let roster = appState.playerSave.roster
         let inventory = appState.playerSave.inventory
-        let shelfLimit = TrinketDesign.Metrics.collectionShelfPreviewLimit
+        let shelfLimit = TrinketDesign.Layout.collectionShelfPreviewLimit
 
         let collectionCombatants = (
             Array(roster.collectionHeroes.prefix(shelfLimit))

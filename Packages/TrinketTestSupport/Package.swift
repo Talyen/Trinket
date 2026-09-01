@@ -11,7 +11,7 @@ let package = Package(
     products: [
         .library(
             name: "TrinketTestSupport",
-            targets: ["TrinketTestSupport"]
+            targets: ["TrinketTestSupport"],
         ),
     ],
     dependencies: [
@@ -24,7 +24,7 @@ let package = Package(
             dependencies: [
                 "TrinketCore",
                 "TrinketContent",
-            ]
+            ],
         ),
-    ]
+    ],
 )

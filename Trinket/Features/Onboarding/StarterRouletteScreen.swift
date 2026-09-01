@@ -51,23 +51,23 @@ struct StarterRouletteScreen: View {
 
                 VStack(spacing: 0) {
                     header
-                        .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+                        .padding(.horizontal, TrinketDesign.Layout.contentMargin)
 
-                    Spacer(minLength: TrinketDesign.Metrics.smallSpacing)
+                    Spacer(minLength: TrinketDesign.Spacing.small)
 
                     wheelBand(layout: layout)
 
                     pageIndicator
 
                     namePlate
-                        .padding(.top, TrinketDesign.Metrics.smallSpacing)
-                        .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+                        .padding(.top, TrinketDesign.Spacing.small)
+                        .padding(.horizontal, TrinketDesign.Layout.contentMargin)
 
                     continueAction
-                        .padding(.top, TrinketDesign.Metrics.mediumSpacing)
-                        .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+                        .padding(.top, TrinketDesign.Spacing.medium)
+                        .padding(.horizontal, TrinketDesign.Layout.contentMargin)
 
-                    Spacer(minLength: TrinketDesign.Metrics.sectionSpacing)
+                    Spacer(minLength: TrinketDesign.Layout.sectionSpacing)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
@@ -109,7 +109,7 @@ struct StarterRouletteScreen: View {
             .trinketTypography(.eyebrow)
             .foregroundStyle(.secondary)
             .frame(maxWidth: .infinity)
-            .padding(.top, TrinketDesign.Metrics.sectionSpacing)
+            .padding(.top, TrinketDesign.Layout.sectionSpacing)
     }
 
     private var activeBackgroundEffect: some View {
@@ -121,7 +121,7 @@ struct StarterRouletteScreen: View {
 
     private func wheelBand(layout: RouletteLayout) -> some View {
         ScrollView(.horizontal) {
-            HStack(spacing: TrinketDesign.Metrics.mediumSpacing) {
+            HStack(spacing: TrinketDesign.Spacing.medium) {
                 ForEach(combatants) { combatant in
                     wheelCard(combatant, layout: layout)
                         .id(combatant.id)
@@ -181,7 +181,7 @@ struct StarterRouletteScreen: View {
     }
 
     private var pageIndicator: some View {
-        HStack(spacing: TrinketDesign.Metrics.smallSpacing) {
+        HStack(spacing: TrinketDesign.Spacing.small) {
             ForEach(combatants) { combatant in
                 let isSelected = selectedCombatant?.id == combatant.id
                 Circle()
@@ -191,18 +191,18 @@ struct StarterRouletteScreen: View {
         }
         .accessibilityHidden(true)
         .animation(TrinketMotion.Interaction.selection, value: selectedCombatant?.id)
-        .padding(.top, TrinketDesign.Metrics.smallSpacing)
+        .padding(.top, TrinketDesign.Spacing.small)
     }
 
     private var namePlate: some View {
-        VStack(spacing: TrinketDesign.Metrics.extraSmallSpacing) {
+        VStack(spacing: TrinketDesign.Spacing.extraSmall) {
             if let selectedCombatant {
                 Text(balanced: selectedCombatant.name)
                     .trinketTypography(.screenTitle)
                     .contentTransition(.numericText())
 
                 if let affinities = CombatantTalentCatalog.combatantTreeAffinities[selectedCombatant.id]?.map(\.keyword) {
-                    HStack(spacing: TrinketDesign.Metrics.smallSpacing) {
+                    HStack(spacing: TrinketDesign.Spacing.small) {
                         ForEach(affinities, id: \.self) { keyword in
                             Text(keyword.rawValue)
                                 .trinketTypography(.cardLabel)
@@ -274,7 +274,7 @@ private struct RouletteLayout {
     }
 
     var bandHeight: CGFloat {
-        cardHeight + TrinketDesign.Metrics.largeSpacing
+        cardHeight + TrinketDesign.Spacing.large
     }
 
     var edgeMargin: CGFloat {

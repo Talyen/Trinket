@@ -21,7 +21,7 @@ struct ShopEncounterView: View {
     @State private var purchaseFeedbackTrigger = 0
     @State private var purchaseErrorFeedbackTrigger = 0
 
-    private let columns = TrinketDesign.Metrics.collectionGridItems
+    private let columns = TrinketDesign.Layout.collectionGridItems
 
     var body: some View {
         NavigationStack {
@@ -30,7 +30,7 @@ struct ShopEncounterView: View {
                 copyVisible: contentAppeared,
                 artwork: { merchantArtwork },
                 copy: {
-                    VStack(alignment: .leading, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
+                    VStack(alignment: .leading, spacing: TrinketDesign.Layout.sectionHeaderSpacing) {
                         Text(session.stage.encounterSubjectName(worldSeed: playerSave.worldSeed))
                             .trinketTypography(.screenTitle)
                             .accessibilityIdentifier(AccessibilityID.Shop.encounterTitle)
@@ -73,7 +73,7 @@ struct ShopEncounterView: View {
                     .trinketCenteredPrimaryAction()
                     .tint(TrinketDesign.Colors.encounterShop)
                     .accessibilityIdentifier(AccessibilityID.Shop.leaveButton)
-                    .padding(.top, TrinketDesign.Metrics.extraSmallSpacing)
+                    .padding(.top, TrinketDesign.Spacing.extraSmall)
                 },
             )
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -142,12 +142,12 @@ struct ShopEncounterView: View {
     }
 
     private var offerGrid: some View {
-        LazyVGrid(columns: columns, spacing: TrinketDesign.Metrics.largeSpacing) {
+        LazyVGrid(columns: columns, spacing: TrinketDesign.Spacing.large) {
             ForEach(session.offers) { offer in
                 let soldOut = session.isSoldOut(offer.id)
                 let canAfford = playerSave.roster.gold >= offer.price
                 let canBuy = canAfford && !soldOut
-                VStack(spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
+                VStack(spacing: TrinketDesign.Layout.sectionHeaderSpacing) {
                     EncounterItemTile(
                         item: offer.item,
                         showsName: false,
@@ -173,7 +173,7 @@ struct ShopEncounterView: View {
     }
 
     private func buyButtonLabel(offer: ShopOffer, soldOut: Bool, canBuy: Bool) -> some View {
-        HStack(spacing: TrinketDesign.Metrics.smallSpacing) {
+        HStack(spacing: TrinketDesign.Spacing.small) {
             if soldOut {
                 Text("Sold")
             } else {

@@ -79,17 +79,17 @@ public struct CombatantTalentsView: View {
             }
         } bodyContent: {
             talentGrid
-                .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-                .padding(.top, TrinketDesign.Metrics.mediumSpacing)
-                .padding(.bottom, TrinketDesign.Metrics.largeSpacing)
+                .padding(.horizontal, TrinketDesign.Layout.contentMargin)
+                .padding(.top, TrinketDesign.Spacing.medium)
+                .padding(.bottom, TrinketDesign.Spacing.large)
         }
         .safeAreaInset(edge: .bottom, spacing: 0) {
             inspectorContent
-                .padding(TrinketDesign.Metrics.contentMargin)
+                .padding(TrinketDesign.Layout.contentMargin)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .trinketMaterial(.bottomBar)
-                .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-                .padding(.bottom, TrinketDesign.Metrics.mediumSpacing)
+                .padding(.horizontal, TrinketDesign.Layout.contentMargin)
+                .padding(.bottom, TrinketDesign.Spacing.medium)
                 .trinketSheetChromeIgnoresDismissDrag()
         }
         .onChange(of: tree.id) { _, _ in
@@ -138,14 +138,14 @@ public struct CombatantTalentsView: View {
     }
 
     private var talentGrid: some View {
-        VStack(spacing: TrinketDesign.Metrics.mediumSpacing) {
-            ForEach(1 ... 3, id: \.self) { row in
+        VStack(spacing: TrinketDesign.Spacing.medium) {
+            ForEach(tree.rows, id: \.self) { row in
                 let rowNodes = displayedNodes.filter { $0.row == row }
                 if !rowNodes.isEmpty {
-                    let isRowLocked = (row == 2 && !tree.isRowComplete(1, unlockedNodeIDs: unlockedTalents))
-                        || (row == 3 && !tree.isRowComplete(2, unlockedNodeIDs: unlockedTalents))
+                    let isRowLocked = row > 1
+                        && !tree.isRowComplete(row - 1, unlockedNodeIDs: unlockedTalents)
 
-                    HStack(spacing: TrinketDesign.Metrics.mediumSpacing) {
+                    HStack(spacing: TrinketDesign.Spacing.medium) {
                         ForEach(rowNodes) { node in
                             talentNodeCard(node: node, isRowLocked: isRowLocked)
                         }
@@ -164,7 +164,7 @@ public struct CombatantTalentsView: View {
         return Button {
             selectedNodeID = node.id
         } label: {
-            VStack(spacing: TrinketDesign.Metrics.smallSpacing) {
+            VStack(spacing: TrinketDesign.Spacing.small) {
                 if isUnlocked {
                     Image(systemName: symbolName)
                         .trinketTypography(.screenTitle)
@@ -223,7 +223,7 @@ public struct CombatantTalentsView: View {
     }
 
     private var inspectorContent: some View {
-        VStack(alignment: .leading, spacing: TrinketDesign.Metrics.mediumSpacing) {
+        VStack(alignment: .leading, spacing: TrinketDesign.Spacing.medium) {
             if let selectedNode {
                 let isUnlocked = unlockedTalents.contains(selectedNode.id)
                 let canUnlock = allowsEditing && tree.canUnlock(
@@ -234,7 +234,7 @@ public struct CombatantTalentsView: View {
                 let style = selectedNode.keyword.visualStyle
                 let symbolName = selectedNode.symbolName ?? style.symbolName
 
-                HStack(spacing: TrinketDesign.Metrics.smallSpacing) {
+                HStack(spacing: TrinketDesign.Spacing.small) {
                     Image(systemName: symbolName)
                         .trinketTypography(.cardTitle)
                         .foregroundStyle(style.color)
@@ -289,11 +289,8 @@ public struct CombatantTalentsView: View {
         if canUnlock {
             return "Unlock Talent"
         }
-        if node.row == 2, !tree.isRowComplete(1, unlockedNodeIDs: unlockedTalents) {
-            return "Complete Row 1 to Unlock"
-        }
-        if node.row == 3, !tree.isRowComplete(2, unlockedNodeIDs: unlockedTalents) {
-            return "Complete Row 2 to Unlock"
+        if node.row > 1, !tree.isRowComplete(node.row - 1, unlockedNodeIDs: unlockedTalents) {
+            return "Complete Row \(node.row - 1) to Unlock"
         }
         if availablePoints == 0 {
             return "No Points Available"

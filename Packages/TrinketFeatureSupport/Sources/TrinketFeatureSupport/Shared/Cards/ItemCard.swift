@@ -55,22 +55,20 @@ public struct ItemCard<Art: View>: View {
         self.art = art
     }
 
-    private var effectiveShineKeywords: [Keyword]? {
+    private var effectiveShine: Shine {
         if let customShineKeywords {
-            return customShineKeywords
+            return customShineKeywords.isEmpty ? .none : .keywords(customShineKeywords)
         }
-        guard item.rarity != .unique else { return nil }
-        if enablesAstralShine {
-            return item.astralShineKeywords
+        if let customShineColors, !customShineColors.isEmpty {
+            return .colors(customShineColors)
         }
-        return nil
-    }
-
-    private var effectiveShineColors: [Color]? {
         if item.rarity == .unique {
-            return UniqueShine.borderColors
+            return .unique
         }
-        return effectiveShineKeywords == nil ? customShineColors : nil
+        guard enablesAstralShine, let keywords = item.astralShineKeywords, !keywords.isEmpty else {
+            return .none
+        }
+        return .keywords(keywords)
     }
 
     public var body: some View {
@@ -79,8 +77,7 @@ public struct ItemCard<Art: View>: View {
             appliesCardSurface: appliesCardSurface,
             showsLabel: showsName,
             reservesLabelSpace: reservesLabelSpace,
-            shineKeywords: effectiveShineKeywords,
-            shineColors: effectiveShineColors,
+            shine: effectiveShine,
             shineLineWidth: shineLineWidth,
             art: art,
             label: {
@@ -101,8 +98,8 @@ public struct ItemCard<Art: View>: View {
     }
 
     private var standardLabel: some View {
-        VStack(spacing: TrinketDesign.Metrics.tightSpacing) {
-            HStack(spacing: TrinketDesign.Metrics.tightSpacing) {
+        VStack(spacing: TrinketDesign.Spacing.tight) {
+            HStack(spacing: TrinketDesign.Spacing.tight) {
                 TrinketRarityLabel(rarity: item.rarity)
                     .lineLimit(1)
                 if item.isCorrupted {
@@ -132,7 +129,7 @@ public struct ItemCard<Art: View>: View {
     }
 
     private var revealLabel: some View {
-        VStack(spacing: TrinketDesign.Metrics.extraSmallSpacing) {
+        VStack(spacing: TrinketDesign.Spacing.extraSmall) {
             TrinketRarityLabel(rarity: item.rarity)
 
             Text(balanced: item.displayName)

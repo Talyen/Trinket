@@ -167,7 +167,8 @@ public enum CombatantTalentCatalog {
         nodes.reserveCapacity(10)
 
         let kwSlug = keyword.rawValue.lowercased().filter { $0.isLetter || $0.isNumber }
-        for row in 1 ... 5 {
+        var row = 1
+        while row <= 20 {
             var rowNodes: [TalentNode] = []
             for col in 1 ... 2 {
                 let nodeID = "\(combatantID)_\(kwSlug)_t\(row)_\(col)"
@@ -195,10 +196,13 @@ public enum CombatantTalentCatalog {
             if row <= 3 {
                 precondition(rowNodes.count == 2, "Missing authored talent row \(row) for \(combatantID) \(keyword.rawValue)")
                 nodes.append(contentsOf: rowNodes)
-            } else if !rowNodes.isEmpty {
+            } else {
+                guard !rowNodes.isEmpty else { break }
                 nodes.append(contentsOf: rowNodes)
             }
+            row += 1
         }
+        precondition(row <= 20, "Talent row generation exceeded safety limit for \(combatantID) \(keyword.rawValue)")
 
         return TalentTree(name: name, keyword: keyword, nodes: nodes)
     }

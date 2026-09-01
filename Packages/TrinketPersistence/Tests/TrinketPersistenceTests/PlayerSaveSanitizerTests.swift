@@ -536,4 +536,15 @@ struct PlayerSaveSanitizerTalentIDTests {
         let sanitized = PlayerSaveSanitizer.sanitizeRoster(roster, inventory: .freshStart)
         #expect(sanitized.unlockedTalents["knight"] == nil)
     }
+
+    @Test func `sanitize unlocked talents keeps legal row four prefix when over budget`() throws {
+        let tree = try #require(CombatantTalentCatalog.config(for: "warlock").tree(for: .burn))
+        try #require(tree.nodes.count == 8)
+        var roster = PlayerRosterState.freshStart
+        roster.progressions["warlock"] = .at(level: 14)
+        roster.unlockedTalents["warlock"] = Set(tree.nodes.map(\.id))
+
+        let sanitized = PlayerSaveSanitizer.sanitizeRoster(roster, inventory: .freshStart)
+        #expect(sanitized.unlockedTalents["warlock"] == Set(tree.nodes.prefix(7).map(\.id)))
+    }
 }

@@ -19,11 +19,11 @@ package struct CombatResourceBar: View {
         }
 
         var height: CGFloat {
-            TrinketDesign.Metrics.battleHealthBarHeight
+            TrinketDesign.Bars.battleHeight
         }
 
         var activeHeight: CGFloat {
-            TrinketDesign.Metrics.battleHealthBarActiveHeight
+            TrinketDesign.Bars.battleActiveHeight
         }
 
         func height(isActive: Bool) -> CGFloat {

@@ -33,15 +33,10 @@ USAGE
 done
 
 if [[ "$FAST" == true ]]; then
-  echo "=== Module boundary check ==="
-  ./Scripts/check-module-boundaries.sh
-
-  echo "=== Swift Testing migration gate ==="
-  ./Scripts/check-swift-testing-migration.sh
-
-  echo "=== Validate release notes config ==="
-  ./Scripts/release-notes.sh validate
-
+  # shellcheck source=lib/cheap-slices.sh
+  source Scripts/lib/cheap-slices.sh
+  echo "=== Cheap slices (boundaries, Swift Testing, release notes, artwork-budget) ==="
+  trinket_run_cheap_slices
   echo "=== Fast gate checks passed ==="
   exit 0
 fi

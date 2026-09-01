@@ -140,8 +140,7 @@ enum PlayerSaveSanitizer {
             sanitizerLogger.info("Sanitized journey: dropped invalid pinned mystery events")
         }
 
-        if validChapterIDs.contains(sanitized.activeChapterID) {
-        } else {
+        if !validChapterIDs.contains(sanitized.activeChapterID) {
             sanitized.activeChapterID = activeChapters.first?.id ?? JourneyProgressState.initial.activeChapterID
         }
 

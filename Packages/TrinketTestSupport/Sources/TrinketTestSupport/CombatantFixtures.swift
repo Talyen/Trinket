@@ -1,43 +1,27 @@
-import Foundation
 import TrinketContent
 import TrinketCore
 
 public enum CombatantFixtures {
     public static let deterministicBattleSeed: UInt64 = 1772
+    public static let passiveTurnInterval: Int = 100
+    public static let quickWinTurnInterval: Int = 1
 
     public static func combatant(
         id: String,
+        name: String? = nil,
         role: Combatant.Role,
         maxHealth: Int = 50,
+        maxMana: Int = 0,
         actionIntervalTurns: Int? = nil,
         abilities: [Ability] = [],
         primaryStats: PrimaryStats = PrimaryStats(),
     ) -> Combatant {
         Combatant(
             id: id,
-            name: id.capitalized,
+            name: name ?? formattedName(for: id),
             role: role,
             maxHealth: maxHealth,
-            actionIntervalTurns: actionIntervalTurns,
-            abilities: abilities,
-            primaryStats: primaryStats,
-        )
-    }
-
-    public static func passiveCombatant(
-        id: String,
-        name: String? = nil,
-        role: Combatant.Role,
-        maxHealth: Int = 50,
-        actionIntervalTurns: Int = 100,
-        abilities: [Ability] = [],
-        primaryStats: PrimaryStats = PrimaryStats(),
-    ) -> Combatant {
-        Combatant(
-            id: id,
-            name: name ?? id.capitalized,
-            role: role,
-            maxHealth: maxHealth,
+            maxMana: maxMana,
             actionIntervalTurns: actionIntervalTurns,
             abilities: abilities,
             primaryStats: primaryStats,
@@ -47,7 +31,8 @@ public enum CombatantFixtures {
     public static func passiveHero(
         id: String = "hero",
         maxHealth: Int = 50,
-        actionIntervalTurns: Int = 100,
+        maxMana: Int = 0,
+        actionIntervalTurns: Int = passiveTurnInterval,
         abilities: [Ability] = [],
         primaryStats: PrimaryStats = PrimaryStats(),
     ) -> Combatant {
@@ -55,6 +40,7 @@ public enum CombatantFixtures {
             id: id,
             role: .hero,
             maxHealth: maxHealth,
+            maxMana: maxMana,
             actionIntervalTurns: actionIntervalTurns,
             abilities: abilities,
             primaryStats: primaryStats,
@@ -64,7 +50,8 @@ public enum CombatantFixtures {
     public static func passiveCompanion(
         id: String = "companion",
         maxHealth: Int = 50,
-        actionIntervalTurns: Int = 100,
+        maxMana: Int = 0,
+        actionIntervalTurns: Int = passiveTurnInterval,
         abilities: [Ability] = [],
         primaryStats: PrimaryStats = PrimaryStats(),
     ) -> Combatant {
@@ -72,6 +59,7 @@ public enum CombatantFixtures {
             id: id,
             role: .companion,
             maxHealth: maxHealth,
+            maxMana: maxMana,
             actionIntervalTurns: actionIntervalTurns,
             abilities: abilities,
             primaryStats: primaryStats,
@@ -81,7 +69,8 @@ public enum CombatantFixtures {
     public static func passiveEnemy(
         id: String = "enemy",
         maxHealth: Int = 100,
-        actionIntervalTurns: Int = 100,
+        maxMana: Int = 0,
+        actionIntervalTurns: Int = passiveTurnInterval,
         abilities: [Ability] = [],
         primaryStats: PrimaryStats = PrimaryStats(),
     ) -> Combatant {
@@ -89,33 +78,16 @@ public enum CombatantFixtures {
             id: id,
             role: .enemy,
             maxHealth: maxHealth,
+            maxMana: maxMana,
             actionIntervalTurns: actionIntervalTurns,
             abilities: abilities,
             primaryStats: primaryStats,
         )
     }
 
-    public static func ability(
-        id: String = "test",
-        name: String = "Test",
-        tier: AbilityTier = .basic,
-        directDamage: Int = 0,
-        damageKeyword: Keyword = .physical,
-        description: String = "Test",
-        effects: [Effect] = [],
-        targetedEffects: [TargetedEffect]? = nil,
-        criticalChanceBonus: Double = 0,
-    ) -> Ability {
-        Ability(
-            id: id,
-            name: name,
-            tier: tier,
-            directDamage: directDamage,
-            damageKeyword: damageKeyword,
-            description: description,
-            effects: effects,
-            targetedEffects: targetedEffects,
-            criticalChanceBonus: criticalChanceBonus,
-        )
+    private static func formattedName(for id: String) -> String {
+        id.split(whereSeparator: { $0 == "-" || $0 == "_" })
+            .map { $0.prefix(1).uppercased() + $0.dropFirst() }
+            .joined(separator: " ")
     }
 }

@@ -41,9 +41,9 @@ enum ModelContainerBootstrap {
                         usedInMemoryFallback: false,
                         recoveredAfterStoreDeletion: true,
                     )
-                } catch let recoveryError {
+                } catch {
                     logger.error(
-                        "Failed to recover \(logLabel, privacy: .public) store after deletion: \(recoveryError.localizedDescription, privacy: .public)",
+                        "Failed to recover \(logLabel, privacy: .public) store after deletion: \(error.localizedDescription, privacy: .public)",
                     )
                 }
             }
@@ -56,12 +56,12 @@ enum ModelContainerBootstrap {
                 )
                 logger.notice("\(logLabel, privacy: .public) store opened in-memory fallback.")
                 return OpenResult(container: container, usedInMemoryFallback: true, recoveredAfterStoreDeletion: false)
-            } catch let fallbackError {
+            } catch {
                 logger.fault(
-                    "Failed to open in-memory fallback for \(logLabel, privacy: .public): \(fallbackError.localizedDescription, privacy: .public)",
+                    "Failed to open in-memory fallback for \(logLabel, privacy: .public): \(error.localizedDescription, privacy: .public)",
                 )
                 throw PlayerSavePersistenceError.storeUnavailable(
-                    "Could not open \(logLabel) persistence (\(fallbackError.localizedDescription)).",
+                    "Could not open \(logLabel) persistence (\(error.localizedDescription)).",
                 )
             }
         }

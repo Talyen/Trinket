@@ -31,4 +31,9 @@ echo "=== Locale-stable asset regenerate (en_US.UTF-8) ==="
 LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 ./Scripts/generate.sh --assets
 assert_assets_committed "en_US.UTF-8"
 
+echo "=== Checking asset and manifest bi-directional integrity ==="
+python3 ./Scripts/check-unused-assets.py
+
 echo "=== Asset gate checks passed ==="
+
+

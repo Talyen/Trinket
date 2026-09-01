@@ -57,9 +57,9 @@ private struct SalvageTransmutationEffect: View {
         ZStack {
             departingArtwork
 
-            HStack(spacing: TrinketDesign.Metrics.smallSpacing) {
+            HStack(spacing: TrinketDesign.Spacing.small) {
                 ForEach(Array(event.yields.enumerated()), id: \.offset) { index, yield in
-                    VStack(spacing: TrinketDesign.Metrics.tightSpacing) {
+                    VStack(spacing: TrinketDesign.Spacing.tight) {
                         HomesteadResourceArtwork(resource: yield.resource)
                             .frame(
                                 width: TrinketDesign.Metrics.walletResourceArtworkSize,
@@ -70,14 +70,14 @@ private struct SalvageTransmutationEffect: View {
                             .foregroundStyle(.primary)
                             .lineLimit(1)
                     }
-                    .padding(TrinketDesign.Metrics.smallSpacing)
+                    .padding(TrinketDesign.Spacing.small)
                     .trinketMaterial(
                         .subtleOverlay,
                         cornerRadius: TrinketDesign.Corners.card,
                     )
                     .shadow(
                         color: yield.resource.tint.opacity(0.28),
-                        radius: TrinketDesign.Metrics.smallSpacing,
+                        radius: TrinketDesign.Spacing.small,
                     )
                     .scaleEffect(showsMaterials ? 1 : 0.55)
                     .opacity(showsMaterials && !materialsDeparted ? 1 : 0)

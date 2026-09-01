@@ -17,9 +17,10 @@ mutations outside this package.
 
 ## Architecture and Core Systems
 
-- **Artwork Cache & Warmup**: `PreparedArtworkCache` manages decoded UI bitmaps. Priority assets decode during launch before releasing the interactive UI and stay pinned to avoid hitching on presentation frames; remaining catalog items decode deferred at utility priority. Memory targets and enforcement belong to the [performance playbook](../../Docs/Platform/PerformanceInvestigationPlaybook.md).
-- **Detail Hero Presentation**: `HeroHeaderLayout` and `DetailHeroScrollShell` standardize full-bleed detail sheets (combatants, abilities, items) across the app, ensuring consistent aspect ratio scaling (`4:3`), rubber-band overscroll metrics, and gradient scrim blending into canvas backgrounds.
-- **Frame Pacing Diagnostics**: `FramePacingAnalyzer` and `FramePacingIntervalModifier` provide signpost instrumentation and refresh-normalized interval analytics to evaluate 60/120 Hz render delivery, stall ratios, and 1% low framerate metrics.
+- **Artwork Cache & Warmup**: `PreparedArtworkCache` manages decoded UI bitmaps. Priority assets decode during launch before releasing the interactive UI and stay pinned to avoid hitching on presentation frames; remaining catalog items decode deferred at utility priority. `ArtworkViewportPrewarm` debounces scroll-driven prefetch windows (forward/backward rows). Memory targets and enforcement belong to the [performance playbook](../../Docs/Platform/PerformanceInvestigationPlaybook.md).
+- **Detail Hero Presentation**: `HeroHeaderLayout` and `DetailHeroScrollShell` standardize full-bleed detail sheets (combatants, abilities, items) across the app, ensuring consistent aspect ratio scaling (`4:3`), rubber-band overscroll metrics, and gradient scrim blending into canvas backgrounds. Single geometry source in `DetailHeroScrollShell` drives both header height and pinned-title opacity.
+- **Shine System**: `Shine` is the single source for text and border shimmer (keyword, color, unique, corruption). `ProductCardShell` takes `Shine` directly; `ItemCard` derives it from rarity + astral keywords. `KeywordShine` / `KeywordShineBorder` are thin compat shims.
+- **Frame Pacing Diagnostics**: `FramePacingAnalyzer` and `FramePacingIntervalModifier` (in `TrinketFeatureSupport`) provide signpost instrumentation and refresh-normalized interval analytics to evaluate 60/120 Hz render delivery, stall ratios, and 1% low framerate metrics. `FramePacingReport` is `Codable`; `accessibilityValue` now carries JSON with legacy `schema=4/5` parse fallback.
 
 ## Testing
 

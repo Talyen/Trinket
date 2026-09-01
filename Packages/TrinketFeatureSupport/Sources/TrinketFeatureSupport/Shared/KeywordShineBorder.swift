@@ -3,7 +3,7 @@ import TrinketCore
 import TrinketDesignSystem
 
 public struct KeywordShineBorder: View {
-    public var colors: [Color]
+    public var shine: Shine
     public var cornerRadius: CGFloat = TrinketDesign.Corners.card
     public var lineWidth: CGFloat = 2
     public var isMotionActive: Bool = true
@@ -14,7 +14,7 @@ public struct KeywordShineBorder: View {
         lineWidth: CGFloat = 2,
         isMotionActive: Bool = true,
     ) {
-        colors = keywords.map(\.visualStyle.color)
+        shine = keywords.isEmpty ? .none : .keywords(keywords)
         self.cornerRadius = cornerRadius
         self.lineWidth = lineWidth
         self.isMotionActive = isMotionActive
@@ -26,14 +26,27 @@ public struct KeywordShineBorder: View {
         lineWidth: CGFloat = 2,
         isMotionActive: Bool = true,
     ) {
-        self.colors = colors
+        shine = colors.isEmpty ? .none : .colors(colors)
+        self.cornerRadius = cornerRadius
+        self.lineWidth = lineWidth
+        self.isMotionActive = isMotionActive
+    }
+
+    public init(
+        shine: Shine,
+        cornerRadius: CGFloat = TrinketDesign.Corners.card,
+        lineWidth: CGFloat = 2,
+        isMotionActive: Bool = true,
+    ) {
+        self.shine = shine
         self.cornerRadius = cornerRadius
         self.lineWidth = lineWidth
         self.isMotionActive = isMotionActive
     }
 
     public var body: some View {
-        TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: !isMotionActive)) { context in
+        let colors = shine.borderColors ?? []
+        TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: !isMotionActive || colors.isEmpty)) { context in
             let angle = TrinketMotion.Shine.phase(at: context.date.timeIntervalSinceReferenceDate) * 360
             KeywordShineBorderStroke(
                 colors: colors,
@@ -117,12 +130,7 @@ public extension View {
         isMotionActive: Bool = true,
     ) -> some View {
         if let keywords, !keywords.isEmpty {
-            colorShineBorder(
-                colors: keywords.map(\.visualStyle.color),
-                cornerRadius: cornerRadius,
-                lineWidth: lineWidth,
-                isMotionActive: isMotionActive,
-            )
+            shineBorder(.keywords(keywords), cornerRadius: cornerRadius, lineWidth: lineWidth, isMotionActive: isMotionActive)
         } else {
             self
         }
@@ -136,12 +144,7 @@ public extension View {
         isMotionActive: Bool = true,
     ) -> some View {
         if let keyword {
-            keywordShineBorder(
-                keywords: [keyword],
-                cornerRadius: cornerRadius,
-                lineWidth: lineWidth,
-                isMotionActive: isMotionActive,
-            )
+            shineBorder(.keywords([keyword]), cornerRadius: cornerRadius, lineWidth: lineWidth, isMotionActive: isMotionActive)
         } else {
             self
         }
@@ -155,9 +158,23 @@ public extension View {
         isMotionActive: Bool = true,
     ) -> some View {
         if let colors, !colors.isEmpty {
+            shineBorder(.colors(colors), cornerRadius: cornerRadius, lineWidth: lineWidth, isMotionActive: isMotionActive)
+        } else {
+            self
+        }
+    }
+
+    @ViewBuilder
+    func shineBorder(
+        _ shine: Shine,
+        cornerRadius: CGFloat = TrinketDesign.Corners.card,
+        lineWidth: CGFloat = 2,
+        isMotionActive: Bool = true,
+    ) -> some View {
+        if !shine.isEmpty {
             overlay {
                 KeywordShineBorder(
-                    colors: colors,
+                    shine: shine,
                     cornerRadius: cornerRadius,
                     lineWidth: lineWidth,
                     isMotionActive: isMotionActive,
@@ -169,11 +186,6 @@ public extension View {
     }
 
     func corruptionShineBorder(lineWidth: CGFloat = 2, isMotionActive: Bool = true) -> some View {
-        colorShineBorder(
-            colors: CorruptionShine.borderColors,
-            cornerRadius: TrinketDesign.Corners.card,
-            lineWidth: lineWidth,
-            isMotionActive: isMotionActive,
-        )
+        shineBorder(.corruption, lineWidth: lineWidth, isMotionActive: isMotionActive)
     }
 }

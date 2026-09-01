@@ -29,8 +29,8 @@ struct VictoryView: View {
             primaryActionTitle: primaryActionTitle,
             primaryActionAccessibilityIdentifier: primaryActionAccessibilityIdentifier,
             onPrimaryAction: onPrimaryAction,
-            contentTopPadding: TrinketDesign.Metrics.extraSmallSpacing,
-            contentStackSpacing: TrinketDesign.Metrics.largeSpacing,
+            contentTopPadding: TrinketDesign.Spacing.extraSmall,
+            contentStackSpacing: TrinketDesign.Spacing.large,
             emptyExperience: {
                 BattleOutcomeRewardRow(
                     symbolName: "star",

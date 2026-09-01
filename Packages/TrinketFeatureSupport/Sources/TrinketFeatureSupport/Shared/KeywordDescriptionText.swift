@@ -27,7 +27,7 @@ final class KeywordAttributedTextCache {
 
     func storeAttributedText(_ attr: AttributedString, for text: String) {
         let entry = CacheEntry(attr)
-        let cost = text.utf8.count + attr.characters.count
+        let cost = text.count + attr.characters.count
         cache.setObject(entry, forKey: text as NSString, cost: cost)
     }
 }

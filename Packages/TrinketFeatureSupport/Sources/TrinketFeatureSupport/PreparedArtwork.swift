@@ -12,8 +12,12 @@ private let preparedArtworkFallbackLogger = Logger(
 @MainActor
 private enum PreparedArtworkFallbackDedupe {
     static var seen: Set<String> = []
+    private static let cap = 200
     static func shouldLog(_ name: String) -> Bool {
         guard !seen.contains(name) else { return false }
+        if seen.count >= cap {
+            seen.removeFirst()
+        }
         seen.insert(name)
         return true
     }

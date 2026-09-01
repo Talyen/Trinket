@@ -11,7 +11,7 @@ struct HomesteadHeroScreen<HeroArt: View, WalletBottomContent: View, Body: View>
     let homestead: PlayerHomesteadState
     let roster: PlayerRosterState
     var walletAnimationNamespace: Namespace.ID?
-    var bottomPadding: CGFloat = TrinketDesign.Metrics.tabBarContentClearance
+    var bottomPadding: CGFloat = TrinketDesign.Layout.tabBarContentClearance
     @ViewBuilder let heroArt: () -> HeroArt
     @ViewBuilder let walletBottomContent: () -> WalletBottomContent
     @ViewBuilder let bodyContent: () -> Body
@@ -21,7 +21,7 @@ struct HomesteadHeroScreen<HeroArt: View, WalletBottomContent: View, Body: View>
         homestead: PlayerHomesteadState,
         roster: PlayerRosterState,
         walletAnimationNamespace: Namespace.ID? = nil,
-        bottomPadding: CGFloat = TrinketDesign.Metrics.tabBarContentClearance,
+        bottomPadding: CGFloat = TrinketDesign.Layout.tabBarContentClearance,
         @ViewBuilder heroArt: @escaping () -> HeroArt,
         @ViewBuilder walletBottomContent: @escaping () -> WalletBottomContent,
         @ViewBuilder bodyContent: @escaping () -> Body,
@@ -44,25 +44,25 @@ struct HomesteadHeroScreen<HeroArt: View, WalletBottomContent: View, Body: View>
             DetailHeroHeader(
                 title: title,
                 baseHeight: baseHeight,
-                horizontalPadding: TrinketDesign.Metrics.contentMargin,
-                bottomPadding: TrinketDesign.Metrics.largeSpacing,
+                horizontalPadding: TrinketDesign.Layout.contentMargin,
+                bottomPadding: TrinketDesign.Spacing.large,
             ) {
                 heroArt()
             }
         } bodyContent: {
-            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.largeSpacing) {
+            VStack(alignment: .leading, spacing: TrinketDesign.Spacing.large) {
                 HomesteadResourceWallet(
                     homestead: homestead,
                     roster: roster,
                     walletAnimationNamespace: walletAnimationNamespace,
                 )
-                .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+                .padding(.horizontal, TrinketDesign.Layout.contentMargin)
 
                 walletBottomContent()
 
                 bodyContent()
             }
-            .padding(.top, TrinketDesign.Metrics.sectionHeaderSpacing)
+            .padding(.top, TrinketDesign.Layout.sectionHeaderSpacing)
             .padding(.bottom, bottomPadding)
         }
     }
@@ -74,7 +74,7 @@ extension HomesteadHeroScreen where WalletBottomContent == EmptyView {
         homestead: PlayerHomesteadState,
         roster: PlayerRosterState,
         walletAnimationNamespace: Namespace.ID? = nil,
-        bottomPadding: CGFloat = TrinketDesign.Metrics.tabBarContentClearance,
+        bottomPadding: CGFloat = TrinketDesign.Layout.tabBarContentClearance,
         @ViewBuilder heroArt: @escaping () -> HeroArt,
         @ViewBuilder bodyContent: @escaping () -> Body,
     ) {

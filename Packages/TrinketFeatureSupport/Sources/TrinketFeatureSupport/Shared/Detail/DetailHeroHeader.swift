@@ -21,8 +21,8 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
         titleShineColors: [Color]? = nil,
         titleAccessibilityIdentifier: String? = nil,
         baseHeight: CGFloat,
-        horizontalPadding: CGFloat = TrinketDesign.Metrics.largeSpacing,
-        bottomPadding: CGFloat = TrinketDesign.Metrics.largeSpacing,
+        horizontalPadding: CGFloat = TrinketDesign.Spacing.large,
+        bottomPadding: CGFloat = TrinketDesign.Spacing.large,
         @ViewBuilder art: @escaping () -> Art,
         @ViewBuilder footer: @escaping () -> Footer,
     ) {
@@ -59,7 +59,7 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
     }
 
     private var titleBlock: some View {
-        VStack(alignment: .leading, spacing: TrinketDesign.Metrics.extraSmallSpacing) {
+        VStack(alignment: .leading, spacing: TrinketDesign.Spacing.extraSmall) {
             if let eyebrow {
                 Text(balanced: eyebrow)
                     .trinketTypography(.eyebrow)
@@ -101,8 +101,8 @@ public extension DetailHeroHeader where Footer == EmptyView {
         titleShineColors: [Color]? = nil,
         titleAccessibilityIdentifier: String? = nil,
         baseHeight: CGFloat,
-        horizontalPadding: CGFloat = TrinketDesign.Metrics.largeSpacing,
-        bottomPadding: CGFloat = TrinketDesign.Metrics.largeSpacing,
+        horizontalPadding: CGFloat = TrinketDesign.Spacing.large,
+        bottomPadding: CGFloat = TrinketDesign.Spacing.large,
         @ViewBuilder art: @escaping () -> Art,
     ) {
         self.eyebrow = eyebrow

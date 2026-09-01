@@ -53,7 +53,7 @@ public struct PlaceholderArtwork: View {
 
     public var body: some View {
         ZStack {
-            color.opacity(0.18)
+            color.opacity(TrinketDesign.Opacity.placeholderWash)
 
             Image(systemName: symbolName)
                 // UIStyleCheck: allow - SF Symbol glyph sizing, not copy

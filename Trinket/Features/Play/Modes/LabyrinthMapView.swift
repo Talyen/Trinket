@@ -124,19 +124,19 @@ struct LabyrinthMapView: View {
                     selectedNodeID: selectedNodeID,
                     availableWidth: max(
                         1,
-                        proxy.size.width - 2 * TrinketDesign.Metrics.contentMargin,
+                        proxy.size.width - 2 * TrinketDesign.Layout.contentMargin,
                     ),
                     onSelectNode: { selectedNodeID = $0 },
                     onDismissSelection: { selectedNodeID = nil },
                 )
                 .id(cluster.id)
                 .transition(.opacity.combined(with: .offset(y: 12)))
-                .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-                .padding(.top, TrinketDesign.Metrics.smallSpacing)
+                .padding(.horizontal, TrinketDesign.Layout.contentMargin)
+                .padding(.top, TrinketDesign.Spacing.small)
                 .padding(
                     .bottom,
                     selectedNode == nil
-                        ? TrinketDesign.Metrics.extraLargeSpacing
+                        ? TrinketDesign.Spacing.extraLarge
                         : Self.inspectorScrollClearance,
                 )
             }
@@ -152,7 +152,7 @@ struct LabyrinthMapView: View {
                     onMessage: { nodeMessage = $0 },
                 )
                 .frame(maxWidth: 340)
-                .padding(.bottom, TrinketDesign.Metrics.smallSpacing)
+                .padding(.bottom, TrinketDesign.Spacing.small)
                 .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }

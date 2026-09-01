@@ -18,8 +18,8 @@ public struct RewardRevealShell<Content: View>: View {
     let primaryActionAccessibilityIdentifier: String
     let isPrimaryActionDisabled: Bool
     let onPrimaryAction: () -> Void
-    var contentTopPadding = TrinketDesign.Metrics.contentTopPadding
-    var contentStackSpacing = TrinketDesign.Metrics.sectionSpacing
+    var contentTopPadding = TrinketDesign.Layout.contentTopPadding
+    var contentStackSpacing = TrinketDesign.Layout.sectionSpacing
     var pinsPrimaryActionToBottom = true
     var primaryActionOpacity: Double = 1
 
@@ -40,8 +40,8 @@ public struct RewardRevealShell<Content: View>: View {
         primaryActionAccessibilityIdentifier: String,
         isPrimaryActionDisabled: Bool,
         onPrimaryAction: @escaping () -> Void,
-        contentTopPadding: CGFloat = TrinketDesign.Metrics.contentTopPadding,
-        contentStackSpacing: CGFloat = TrinketDesign.Metrics.sectionSpacing,
+        contentTopPadding: CGFloat = TrinketDesign.Layout.contentTopPadding,
+        contentStackSpacing: CGFloat = TrinketDesign.Layout.sectionSpacing,
         pinsPrimaryActionToBottom: Bool = true,
         primaryActionOpacity: Double = 1,
     ) {
@@ -70,14 +70,14 @@ public struct RewardRevealShell<Content: View>: View {
     public var body: some View {
         ScrollView {
             VStack(spacing: contentStackSpacing) {
-                VStack(spacing: TrinketDesign.Metrics.smallSpacing) {
+                VStack(spacing: TrinketDesign.Spacing.small) {
                     if let eyebrow {
                         Text(balanced: eyebrow)
                             .trinketTypography(.eyebrow)
                             .foregroundStyle(TrinketDesign.Colors.accent)
                             .textCase(.uppercase)
                             .opacity(eyebrowOpacity)
-                            .offset(y: (1 - eyebrowOpacity) * TrinketDesign.Metrics.smallSpacing)
+                            .offset(y: (1 - eyebrowOpacity) * TrinketDesign.Spacing.small)
                             .accessibilityHidden(eyebrowOpacity < 1)
                             .accessibilityIdentifier(eyebrowAccessibilityIdentifier ?? eyebrow)
                     }
@@ -88,7 +88,7 @@ public struct RewardRevealShell<Content: View>: View {
                             .foregroundStyle(titleColor)
                             .multilineTextAlignment(.center)
                             .opacity(titleOpacity)
-                            .offset(y: (1 - titleOpacity) * TrinketDesign.Metrics.smallSpacing)
+                            .offset(y: (1 - titleOpacity) * TrinketDesign.Spacing.small)
                             .accessibilityHidden(titleOpacity < 1)
                             .accessibilityIdentifier(titleAccessibilityIdentifier)
                     }
@@ -99,7 +99,7 @@ public struct RewardRevealShell<Content: View>: View {
                             .foregroundStyle(subtitleColor)
                             .multilineTextAlignment(.center)
                             .opacity(subtitleOpacity)
-                            .offset(y: (1 - subtitleOpacity) * TrinketDesign.Metrics.smallSpacing)
+                            .offset(y: (1 - subtitleOpacity) * TrinketDesign.Spacing.small)
                             .accessibilityHidden(subtitleOpacity < 1)
                             .accessibilityIdentifier(subtitleAccessibilityIdentifier ?? subtitle)
                     }
@@ -111,7 +111,7 @@ public struct RewardRevealShell<Content: View>: View {
                     primaryAction
                 }
             }
-            .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+            .padding(.horizontal, TrinketDesign.Layout.contentMargin)
             .padding(.top, contentTopPadding)
             .padding(.bottom, contentStackSpacing)
             .frame(maxWidth: .infinity)
@@ -119,8 +119,8 @@ public struct RewardRevealShell<Content: View>: View {
         .safeAreaInset(edge: .bottom) {
             if pinsPrimaryActionToBottom, primaryActionTitle != nil {
                 primaryAction
-                    .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-                    .padding(.vertical, TrinketDesign.Metrics.mediumSpacing)
+                    .padding(.horizontal, TrinketDesign.Layout.contentMargin)
+                    .padding(.vertical, TrinketDesign.Spacing.medium)
                     .frame(maxWidth: .infinity)
                     .trinketMaterial(.bottomBar, cornerRadius: 0)
                     .background(alignment: .top) {
@@ -153,7 +153,7 @@ public struct RewardRevealShell<Content: View>: View {
             .trinketCenteredPrimaryAction()
             .disabled(isPrimaryActionDisabled)
             .opacity(primaryActionOpacity)
-            .offset(y: (1 - primaryActionOpacity) * TrinketDesign.Metrics.smallSpacing)
+            .offset(y: (1 - primaryActionOpacity) * TrinketDesign.Spacing.small)
             .accessibilityHidden(primaryActionOpacity < 1)
             .allowsHitTesting(primaryActionOpacity >= 1 && !isPrimaryActionDisabled)
             .accessibilityIdentifier(primaryActionAccessibilityIdentifier)

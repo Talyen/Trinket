@@ -25,15 +25,11 @@ final class AppTestContext {
         let prefix = "AppTestContext"
         suiteName = "\(prefix).\(UUID().uuidString)"
         directoryURL = try SaveTestSupport.makeTempDirectory(prefix: prefix)
-        guard let userDefaults = UserDefaults(suiteName: suiteName) else {
-            throw CocoaError(.fileWriteUnknown)
-        }
-        self.userDefaults = userDefaults
-        userDefaults.removePersistentDomain(forName: suiteName)
+        userDefaults = try SaveTestSupport.makeUserDefaults(suiteName: suiteName)
     }
 
     deinit {
-        userDefaults.removePersistentDomain(forName: suiteName)
+        SaveTestSupport.removeUserDefaults(suiteName: suiteName, defaults: userDefaults)
         SaveTestSupport.removeTempDirectory(directoryURL)
     }
 
@@ -113,12 +109,11 @@ final class AppTestContext {
         if let cachedPlayerSave, !resetState {
             return cachedPlayerSave
         }
-        let store = try PlayerSaveStore(
-            storeURL: SaveTestSupport.makeStoreURL(directoryURL: directoryURL),
-            disableCloudSync: true,
+        let store = try SaveTestSupport.makeSaveStore(
+            directoryURL: directoryURL,
+            persistImmediately: true,
             resetState: resetState,
             inMemoryOnly: !resetState,
-            persistSaveImmediately: true,
         )
         if !resetState {
             cachedPlayerSave = store

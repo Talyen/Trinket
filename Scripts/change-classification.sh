@@ -57,7 +57,7 @@ trinket_add_unique() {
   local candidate="$2"
   local item
   local count
-  eval "count=\${#$array_name[@]}"
+  eval "count=\${#${array_name}[@]}"
   if (( count > 0 )); then
     eval "for item in \"\${${array_name}[@]}\"; do
       if [[ \"\$item\" == \"\$candidate\" ]]; then return 0; fi

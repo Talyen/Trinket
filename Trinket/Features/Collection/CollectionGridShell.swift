@@ -9,22 +9,22 @@ struct CollectionGridShell<Data: RandomAccessCollection, Content: View, EmptyCon
     @ViewBuilder let content: (Data.Element) -> Content
     @ViewBuilder let emptyView: () -> EmptyContent
 
-    private let columns = TrinketDesign.Metrics.collectionGridItems
+    private let columns = TrinketDesign.Layout.collectionGridItems
 
     var body: some View {
         ScrollView {
             if items.isEmpty {
                 emptyView()
-                    .padding(TrinketDesign.Metrics.contentMargin)
+                    .padding(TrinketDesign.Layout.contentMargin)
             } else {
-                VStack(alignment: .leading, spacing: TrinketDesign.Metrics.sectionSpacing) {
-                    LazyVGrid(columns: columns, spacing: TrinketDesign.Metrics.largeSpacing) {
+                VStack(alignment: .leading, spacing: TrinketDesign.Layout.sectionSpacing) {
+                    LazyVGrid(columns: columns, spacing: TrinketDesign.Spacing.large) {
                         ForEach(items) { item in
                             content(item)
                         }
                     }
                 }
-                .padding(TrinketDesign.Metrics.contentMargin)
+                .padding(TrinketDesign.Layout.contentMargin)
             }
         }
         .trinketScreenBackground()

@@ -73,14 +73,14 @@ struct CollectionView: View {
     private var collectionBrowseContent: some View {
         let inventoryState = playerSave.inventory
         let rosterState = playerSave.roster
-        let shelfLimit = TrinketDesign.Metrics.collectionShelfPreviewLimit
+        let shelfLimit = TrinketDesign.Layout.collectionShelfPreviewLimit
         let shelfItems = Array(inventoryState.items.prefix(shelfLimit))
 
         let heroes = rosterState.collectionHeroes
         let companions = rosterState.collectionCompanions
 
         return ScrollView {
-            VStack(spacing: TrinketDesign.Metrics.sectionSpacing) {
+            VStack(spacing: TrinketDesign.Layout.sectionSpacing) {
                 combatantCategorySection(
                     title: "Heroes",
                     accessibilityIdentifier: AccessibilityID.Collection.heroesCategory,
@@ -119,8 +119,8 @@ struct CollectionView: View {
                     }
                 }
             }
-            .padding(.top, TrinketDesign.Metrics.compactContentTopPadding)
-            .padding(.bottom, TrinketDesign.Metrics.sectionSpacing)
+            .padding(.top, TrinketDesign.Layout.compactContentTopPadding)
+            .padding(.bottom, TrinketDesign.Layout.sectionSpacing)
         }
     }
 
@@ -129,7 +129,7 @@ struct CollectionView: View {
     }
 
     static func imminentDetailArtworkNames(roster: PlayerRosterState) -> [String] {
-        let shelfLimit = TrinketDesign.Metrics.collectionShelfPreviewLimit
+        let shelfLimit = TrinketDesign.Layout.collectionShelfPreviewLimit
         let combatants = Array(roster.collectionHeroes.prefix(shelfLimit))
             + Array(roster.collectionCompanions.prefix(shelfLimit))
         var names: [String] = []

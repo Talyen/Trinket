@@ -52,7 +52,7 @@ public struct AbilityDetailView: View {
                     "Traits",
                     sectionID: AccessibilityID.Battle.abilityDetailEffect,
                 ) {
-                    VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
+                    VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
                         DetailTraitRow(description: ability.summary)
                     }
                 }

@@ -26,9 +26,7 @@ enum BalanceAffixContrastRunner {
                     $0.baseItemSlot == definition.slot
                 } ?? definition.slot
                 guard let baseType = GameContent.itemBaseTypes.first(where: {
-                    $0.slot == definition.slot
-                        && $0.canEquip(in: slot)
-                        && !definition.keywords.isDisjoint(with: $0.keywordAffinities)
+                    definition.isEligible(for: $0) && $0.canEquip(in: slot)
                 }) else { return nil }
                 return [
                     Focus(definition: definition, owner: owner, baseType: baseType, baselineKind: .emptySlot),

@@ -32,7 +32,7 @@ public struct EncounterItemTile: View {
 
     public var body: some View {
         Button(action: onSelect) {
-            VStack(spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
+            VStack(spacing: TrinketDesign.Layout.sectionHeaderSpacing) {
                 ItemCard(
                     item: item,
                     showsAffixCount: false,

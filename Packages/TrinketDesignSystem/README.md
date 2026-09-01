@@ -6,17 +6,22 @@ Shared app chrome — semantic surfaces, typography, keyword visuals, and reusab
 
 | File | Role |
 |------|------|
-| `TrinketDesign.swift` | Colors, metrics, overlays, and card chrome |
+| `TrinketDesign.swift` | Colors, metrics, overlays, and card chrome (`Spacing`/`Layout`/`Bars`/`Opacity`) |
 | `DesignAssetColors.swift` | Package-bundled semantic color assets (`Bundle.module`) |
-| `Resources/DesignColors.xcassets` | Theme, keyword, encounter, placeholder, resource, chapter color sets |
-| `VisualFoundation.swift` | Background modes, surface roles, spacing tokens |
+| `Resources/DesignColors.xcassets` | Theme, keyword, encounter, placeholder, resource, chapter color sets (now includes `ResourceGold`) |
+| `VisualFoundation.swift` | Background modes, surface roles, spacing tokens (table-driven specs) |
 | `HeroScrim.swift` | On-art text styling (`.trinketOnArtText`) |
 | `ArtworkBlend.swift` | Optional semantic bottom-edge artwork blending |
-| `Keyword+VisualStyle.swift` | Color + SF Symbol per Keyword |
-| `HomesteadResource+Color.swift` | Homestead resource tint resolution |
-| `Modifiers.swift` | Semantic view modifiers for backgrounds, surfaces |
+| `Keyword+VisualStyle.swift` | Color + SF Symbol per Keyword (uses `Opacity` tokens) |
+| `HomesteadResource+Color.swift` | Homestead resource tint resolution (`ResourceGold` decoupled from keyword) |
+| `Modifiers.swift` | Semantic view modifiers for backgrounds, surfaces (single glass button path) |
 | `ExperienceBar.swift` | XP/level progress bar |
-| `TrinketMotion.swift` | Motion recipes shared by multiple product features |
+| `TrinketMotion.swift` | Motion recipes shared by multiple product features (`static let` animations) |
+| `CardArtwork.swift` | Card clipping and stroke (`TrinketDesign.cardShape` single source) |
+| `PlaceholderArtwork.swift` | Unified placeholder wash + symbol (scaled, `Opacity.placeholderWash`) |
+| `WalletResources.swift` | Wallet grid and resource pills/chips (shared compact formatting, fixed layout threshold) |
+| `KeywordPlasmaBackground.swift` | Keyword-tinted plasma shader (Reduce Motion aware, single/dual path) |
+| `TrinketRarityLabel.swift` | Rarity badge with shine (Reduce Motion aware) |
 
 ## Color families
 
@@ -30,7 +35,7 @@ All production colors load from `DesignColors.xcassets` through `DesignAssetColo
 | Keywords | `Keyword.visualStyle.color` | `KeywordPhysical` … `KeywordDeathsDoor` |
 | Encounters | `TrinketDesign.Colors.encounter*` | `EncounterBattle` … |
 | Placeholders | `TrinketDesign.CardPlaceholderStyle.*` | `PlaceholderHero` … |
-| Resources | `HomesteadResource.tint` | `ResourceWood` … `ResourceHide` / `ResourceCrystal` (+ gold via KeywordGold) |
+| Resources | `HomesteadResource.tint` | `ResourceWood` … `ResourceHide` / `ResourceCrystal` / `ResourceGold` |
 | Chapter | `TrinketDesign.Colors.chapterForest` / `.chapterDungeon` / `.chapterDesert` / `.chapterTundra` | `ChapterForest` … `ChapterTundra` |
 
 On-art text styling uses `.trinketOnArtText(_:)`.
@@ -88,11 +93,11 @@ Route recurring chrome through these modifiers — do not call raw SwiftUI styli
 | `.trinketCardSurface()` | 3:4 card identity tiles |
 | `ArtworkPickerSelectionBadge` / `.trinketArtworkPickerSelectionBorder(isSelected:color:)` | Selected artwork picker checkmark + stroke |
 | `.trinketLockedCardEffect(isLocked:cornerRadius:)` | Subtle desaturation + opaque content blur, larger opaque paper lock with ink edge contrast |
-| `TrinketDesign.Metrics.collectionGridItems` / `.partyPickerGridItems` / `.hubGridItems(for:)` | Shared collection, party-picker, and size-class hub grids |
-| `TrinketDesign.Metrics.collectionShelfPreviewLimit` | Peek-shelf card count for Collection / party shelves |
-| `.trinketPrimaryActionButton()` | Primary CTAs (`.glassProminent`) |
+| `TrinketDesign.Layout.collectionGridItems` / `.partyPickerGridItems` / `.hubGridItems(for:)` | Shared collection, party-picker, and size-class hub grids (via `Spacing`) |
+| `TrinketDesign.Layout.collectionShelfPreviewLimit` | Peek-shelf card count for Collection / party shelves |
+| `.trinketPrimaryActionButton()` | Primary CTAs (`.glassProminent`, single `GlassButtonModifier`) |
 | `.trinketCenteredPrimaryAction()` | Half-width, centered layout for a lone screen primary action |
-| `.trinketQuietTapButtonStyle()` | Tap without press dimming — prefer over `.plain` for artwork in scroll views |
+| `.trinketQuietTapButtonStyle()` | Tap without press dimming — now `.plain` alias (prefer `.buttonStyle(.plain)` directly) |
 | `.trinketOnArtText(_:)` | Paper foreground + ink shadows on hero art |
 | `.trinketArtworkBlend(_:)` | Optional `.bottom` blend into a semantic destination surface; defaults to `.none` |
 | `.trinketSensoryFeedback(_:trigger:enabled:)` | Gate `.sensoryFeedback` on Options haptics toggle |

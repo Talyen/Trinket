@@ -180,8 +180,7 @@ enum CombatFeedbackChipComposer {
             }
         }
 
-        switch layoutDirection {
-        case .rightToLeft:
+        if layoutDirection == .rightToLeft {
             var x = contentX
             let trailingX = x
             x += trailingWidth + glyphSpacing
@@ -189,17 +188,14 @@ enum CombatFeedbackChipComposer {
             advance(&x, width: textWidth, present: textPresent)
             let leadingX = x
             return (leadingX, textX, trailingX)
-        case .leftToRight:
-            fallthrough
-        @unknown default:
-            var x = contentX
-            let leadingX = x
-            advance(&x, width: leadingWidth, present: leadingPresent)
-            let textX = x
-            advance(&x, width: textWidth, present: textPresent)
-            let trailingX = x
-            return (leadingX, textX, trailingX)
         }
+        var x = contentX
+        let leadingX = x
+        advance(&x, width: leadingWidth, present: leadingPresent)
+        let textX = x
+        advance(&x, width: textWidth, present: textPresent)
+        let trailingX = x
+        return (leadingX, textX, trailingX)
     }
 
     private static func makeTextGlyphs(

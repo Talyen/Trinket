@@ -78,7 +78,7 @@ struct LabyrinthCampfireView: View {
     }
 
     private var campfireCopy: some View {
-        VStack(alignment: .leading, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
+        VStack(alignment: .leading, spacing: TrinketDesign.Layout.sectionHeaderSpacing) {
             Text("Campfire")
                 .trinketTypography(.screenTitle)
             Text("A fire crackles against the dark.")
@@ -89,7 +89,7 @@ struct LabyrinthCampfireView: View {
     }
 
     private var campfireContent: some View {
-        VStack(alignment: .leading, spacing: TrinketDesign.Metrics.largeSpacing) {
+        VStack(alignment: .leading, spacing: TrinketDesign.Spacing.large) {
             Text("Rest to restore 30% of each ally's Health.")
                 .trinketTypography(.badge)
                 .foregroundStyle(.secondary)
@@ -129,13 +129,13 @@ struct LabyrinthCampfireView: View {
                 .trinketTypography(.button)
                 .foregroundStyle(TrinketDesign.Colors.success)
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, TrinketDesign.Metrics.mediumSpacing)
+                .padding(.vertical, TrinketDesign.Spacing.medium)
                 .contentTransition(.opacity)
         }
     }
 
     private func partyMeter(_ member: CampfirePartyMember) -> some View {
-        VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
+        VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
             HStack(alignment: .firstTextBaseline) {
                 Text(member.name)
                     .trinketTypography(.cardTitle)
@@ -152,7 +152,7 @@ struct LabyrinthCampfireView: View {
     }
 
     private func counterText(_ member: CampfirePartyMember) -> some View {
-        HStack(spacing: TrinketDesign.Metrics.smallSpacing) {
+        HStack(spacing: TrinketDesign.Spacing.small) {
             Text(displayedCounter(member))
                 .monospacedDigit()
             Text("/ \(member.maxHealth)")
@@ -182,7 +182,7 @@ struct LabyrinthCampfireView: View {
                     .frame(width: geometry.size.width * fraction)
             }
         }
-        .frame(height: TrinketDesign.Metrics.statBarHeight)
+        .frame(height: TrinketDesign.Bars.statHeight)
         .animation(Self.barAnimation, value: barHealthByCombatantID[member.combatantID])
     }
 

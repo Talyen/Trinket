@@ -1,13 +1,5 @@
 import SwiftUI
 
-struct CardSurfaceModifier: ViewModifier {
-    var cornerRadius: CGFloat = TrinketDesign.Corners.card
-
-    func body(content: Content) -> some View {
-        content.trinketSurface(.card, cornerRadiusOverride: cornerRadius)
-    }
-}
-
 struct LockedCardEffectModifier: ViewModifier {
     let isLocked: Bool
     let cornerRadius: CGFloat
@@ -18,10 +10,7 @@ struct LockedCardEffectModifier: ViewModifier {
     private static let lockedBlurRadius: CGFloat = 1
     private static let lockedSaturation: Double = 0.35
 
-    init(
-        isLocked: Bool,
-        cornerRadius: CGFloat = TrinketDesign.Corners.card,
-    ) {
+    init(isLocked: Bool, cornerRadius: CGFloat = TrinketDesign.Corners.card) {
         self.isLocked = isLocked
         self.cornerRadius = cornerRadius
     }
@@ -36,15 +25,10 @@ struct LockedCardEffectModifier: ViewModifier {
                 .saturation(Self.lockedSaturation)
                 .clipShape(clipShape)
                 .compositingGroup()
-                .blur(
-                    radius: Self.lockedBlurRadius,
-                    opaque: true,
-                )
+                .blur(radius: Self.lockedBlurRadius, opaque: true)
                 .clipShape(clipShape)
                 .disabled(true)
-                .overlay {
-                    lockBadgeOverlay
-                }
+                .overlay { lockBadgeOverlay }
         } else {
             content
         }
@@ -57,12 +41,8 @@ struct LockedCardEffectModifier: ViewModifier {
             .font(.system(size: lockIconSize))
             .symbolRenderingMode(.monochrome)
             .foregroundStyle(TrinketDesign.Colors.Overlay.paper)
-            .shadow(color: ink.opacity(0.95), radius: 0, x: 0, y: 1)
-            .shadow(color: ink.opacity(0.9), radius: 0, x: 0, y: -1)
-            .shadow(color: ink.opacity(0.9), radius: 0, x: 1, y: 0)
-            .shadow(color: ink.opacity(0.9), radius: 0, x: -1, y: 0)
+            .shadow(color: ink.opacity(0.9), radius: 1.5)
             .shadow(color: ink.opacity(0.55), radius: 3, x: 0, y: 1.5)
-            .drawingGroup()
     }
 }
 
@@ -74,15 +54,14 @@ struct CardLabelSpaceModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         if isReserved {
-            content
-                .frame(minHeight: reservedHeight, alignment: .center)
+            content.frame(minHeight: reservedHeight, alignment: .center)
         } else {
             content
         }
     }
 }
 
-private struct GlassActionButtonModifier: ViewModifier {
+private struct GlassButtonModifier: ViewModifier {
     let controlSize: ControlSize
     let tint: Color
     let labelColor: Color?
@@ -98,72 +77,32 @@ private struct GlassActionButtonModifier: ViewModifier {
             }
         }
         .tint(tint)
-        .modifier(OptionalForegroundModifier(color: labelColor))
+        .modifier(ForegroundModifier(color: labelColor))
         .controlSize(controlSize)
         .buttonBorderShape(.roundedRectangle)
-        .modifier(OptionalAccessibilityIdentifierModifier(identifier: accessibilityIdentifier))
+        .modifier(IdentifierModifier(identifier: accessibilityIdentifier))
     }
-}
 
-private struct OptionalForegroundModifier: ViewModifier {
-    let color: Color?
-    func body(content: Content) -> some View {
-        if let color {
-            content.foregroundStyle(color)
-        } else {
-            content
+    private struct ForegroundModifier: ViewModifier {
+        let color: Color?
+        func body(content: Content) -> some View {
+            if let color {
+                content.foregroundStyle(color)
+            } else {
+                content
+            }
         }
     }
-}
 
-struct PrimaryActionButtonModifier: ViewModifier {
-    let controlSize: ControlSize
-    let tint: Color
-    let labelColor: Color
-    let accessibilityIdentifier: String?
-
-    func body(content: Content) -> some View {
-        content.modifier(GlassActionButtonModifier(
-            controlSize: controlSize,
-            tint: tint,
-            labelColor: labelColor,
-            isProminent: true,
-            accessibilityIdentifier: accessibilityIdentifier,
-        ))
-    }
-}
-
-struct SecondaryActionButtonModifier: ViewModifier {
-    let controlSize: ControlSize
-    let tint: Color
-    let accessibilityIdentifier: String?
-
-    func body(content: Content) -> some View {
-        content.modifier(GlassActionButtonModifier(
-            controlSize: controlSize,
-            tint: tint,
-            labelColor: nil,
-            isProminent: false,
-            accessibilityIdentifier: accessibilityIdentifier,
-        ))
-    }
-}
-
-private struct OptionalAccessibilityIdentifierModifier: ViewModifier {
-    let identifier: String?
-
-    func body(content: Content) -> some View {
-        if let identifier {
-            content.accessibilityIdentifier(identifier)
-        } else {
-            content
+    private struct IdentifierModifier: ViewModifier {
+        let identifier: String?
+        func body(content: Content) -> some View {
+            if let identifier {
+                content.accessibilityIdentifier(identifier)
+            } else {
+                content
+            }
         }
-    }
-}
-
-struct QuietTapButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
     }
 }
 
@@ -178,8 +117,13 @@ private struct TrinketPressButtonStyle: ButtonStyle {
 }
 
 public extension View {
+    @ViewBuilder
     func trinketAccessibilityIdentifier(_ identifier: String?) -> some View {
-        modifier(OptionalAccessibilityIdentifierModifier(identifier: identifier))
+        if let identifier {
+            accessibilityIdentifier(identifier)
+        } else {
+            self
+        }
     }
 
     func trinketArtworkPickerSelectionBorder(
@@ -188,21 +132,15 @@ public extension View {
         lineWidth: CGFloat = 3,
     ) -> some View {
         overlay {
-            TrinketDesign.cardShape.strokeBorder(
-                isSelected ? color : .clear,
-                lineWidth: isSelected ? lineWidth : 0,
-            )
+            TrinketDesign.cardShape.strokeBorder(isSelected ? color : .clear, lineWidth: isSelected ? lineWidth : 0)
         }
     }
 
     func trinketCardSurface(cornerRadius: CGFloat = TrinketDesign.Corners.card) -> some View {
-        modifier(CardSurfaceModifier(cornerRadius: cornerRadius))
+        trinketSurface(.card, cornerRadiusOverride: cornerRadius)
     }
 
-    func trinketLockedCardEffect(
-        isLocked: Bool,
-        cornerRadius: CGFloat = TrinketDesign.Corners.card,
-    ) -> some View {
+    func trinketLockedCardEffect(isLocked: Bool, cornerRadius: CGFloat = TrinketDesign.Corners.card) -> some View {
         modifier(LockedCardEffectModifier(isLocked: isLocked, cornerRadius: cornerRadius))
     }
 
@@ -216,19 +154,18 @@ public extension View {
         labelColor: Color = TrinketDesign.Colors.canvas,
         accessibilityIdentifier: String? = nil,
     ) -> some View {
-        modifier(PrimaryActionButtonModifier(
+        modifier(GlassButtonModifier(
             controlSize: controlSize,
             tint: tint,
             labelColor: labelColor,
+            isProminent: true,
             accessibilityIdentifier: accessibilityIdentifier,
         ))
     }
 
     func trinketCenteredPrimaryAction() -> some View {
-        containerRelativeFrame(.horizontal) { width, _ in
-            width * TrinketDesign.Metrics.singlePrimaryActionWidthFraction
-        }
-        .frame(maxWidth: .infinity)
+        containerRelativeFrame(.horizontal) { width, _ in width * TrinketDesign.Metrics.singlePrimaryActionWidthFraction }
+            .frame(maxWidth: .infinity)
     }
 
     func trinketSecondaryActionButton(
@@ -236,42 +173,33 @@ public extension View {
         tint: Color = TrinketDesign.Colors.accent,
         accessibilityIdentifier: String? = nil,
     ) -> some View {
-        modifier(SecondaryActionButtonModifier(
+        modifier(GlassButtonModifier(
             controlSize: controlSize,
             tint: tint,
+            labelColor: nil,
+            isProminent: false,
             accessibilityIdentifier: accessibilityIdentifier,
         ))
     }
 
     func trinketQuietTapButtonStyle() -> some View {
-        buttonStyle(QuietTapButtonStyle())
+        buttonStyle(.plain)
     }
 
     func trinketArtworkCardButtonStyle() -> some View {
-        buttonStyle(TrinketPressButtonStyle(
-            pressedScale: TrinketMotion.Interaction.artworkCardPressedScale,
-        ))
+        buttonStyle(TrinketPressButtonStyle(pressedScale: TrinketMotion.Interaction.artworkCardPressedScale))
     }
 
     func trinketSelectionCardButtonStyle() -> some View {
-        buttonStyle(TrinketPressButtonStyle(
-            pressedScale: TrinketMotion.Interaction.selectionCardPressedScale,
-        ))
+        buttonStyle(TrinketPressButtonStyle(pressedScale: TrinketMotion.Interaction.selectionCardPressedScale))
     }
 
-    func trinketSensoryFeedback(
-        _ feedback: SensoryFeedback,
-        trigger: some Equatable,
-        enabled: Bool,
-    ) -> some View {
+    func trinketSensoryFeedback(_ feedback: SensoryFeedback, trigger: some Equatable, enabled: Bool) -> some View {
         sensoryFeedback(feedback, trigger: trigger) { _, _ in enabled }
     }
 
     @ViewBuilder
-    func optionalMatchedTransitionSource<ID: Hashable>(
-        id: ID,
-        in namespace: Namespace.ID?,
-    ) -> some View {
+    func optionalMatchedTransitionSource<ID: Hashable>(id: ID, in namespace: Namespace.ID?) -> some View {
         if let namespace {
             matchedTransitionSource(id: id, in: namespace)
         } else {

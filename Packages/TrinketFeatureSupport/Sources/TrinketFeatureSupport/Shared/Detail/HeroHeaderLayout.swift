@@ -25,6 +25,7 @@ public enum HeroHeaderLayout {
         let offsetY: CGFloat
     }
 
+    @available(*, deprecated, renamed: "HeightPolicy.portrait.height(forWidth:)")
     static func headerHeight(forWidth width: CGFloat) -> CGFloat {
         HeightPolicy.portrait.height(forWidth: width)
     }
@@ -32,6 +33,8 @@ public enum HeroHeaderLayout {
     static var scrimHeight: CGFloat {
         minimumHeaderHeight * (140.0 / 300.0)
     }
+
+    static let portraitAspect = headerAspectRatio
 
     static func overscroll(contentOffsetY: CGFloat, topInset: CGFloat) -> CGFloat {
         max(-(contentOffsetY + topInset), 0)

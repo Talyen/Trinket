@@ -3,7 +3,7 @@ import TrinketCore
 @testable import TrinketContent
 
 struct CombatantTalentCatalogTests {
-    @Test func `all combatants have three keywords and six nodes per tree`() {
+    @Test func `all combatants have three keywords and contiguous authored rows`() {
         let combatants = GameContent.heroes + GameContent.companions
         for combatant in combatants {
             let config = CombatantTalentCatalog.config(for: combatant.id)
@@ -12,11 +12,11 @@ struct CombatantTalentCatalogTests {
             for tree in config.trees {
                 #expect(!tree.name.isEmpty)
                 #expect(tree.nodes.count >= 6)
-                #expect(tree.nodes(forRow: 1).count == 2)
-                #expect(tree.nodes(forRow: 2).count == 2)
-                #expect(tree.nodes(forRow: 3).count == 2)
-                #expect(tree.nodes(forRow: 4).count <= 2)
-                #expect(tree.nodes(forRow: 5).count <= 2)
+                #expect(tree.rows == Array(1 ... tree.rows.count))
+                for row in tree.rows {
+                    let nodeCount = tree.nodes(forRow: row).count
+                    #expect(row <= 3 ? nodeCount == 2 : (1 ... 2).contains(nodeCount))
+                }
             }
         }
     }

@@ -41,7 +41,7 @@ public struct VolumeOptionRow: View {
     }
 
     public var body: some View {
-        VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
+        VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
             HStack {
                 Label {
                     Text(balanced: title)

@@ -46,10 +46,10 @@ struct ItemSlotPickerView: View {
                                 Text("Equipped")
                                     .trinketTypography(.caption)
                                     .foregroundStyle(TrinketDesign.Colors.Overlay.paper)
-                                    .padding(.horizontal, TrinketDesign.Metrics.tightSpacing)
+                                    .padding(.horizontal, TrinketDesign.Spacing.tight)
                                     .padding(.vertical, 2)
                                     .background(TrinketDesign.Colors.accent, in: Capsule())
-                                    .padding(TrinketDesign.Metrics.tightSpacing)
+                                    .padding(TrinketDesign.Spacing.tight)
                             }
                         }
                     },

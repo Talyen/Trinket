@@ -3,7 +3,7 @@ import Testing
 
 struct TalentModelsTests {
     private func makeSampleTree(keyword: Keyword = .poison) -> TalentTree {
-        let nodes: [TalentNode] = (1 ... 3).flatMap { row -> [TalentNode] in
+        let nodes: [TalentNode] = (1 ... 4).flatMap { row -> [TalentNode] in
             (1 ... 2).map { index in
                 TalentNode(
                     id: "\(keyword.rawValue.lowercased())_r\(row)_\(index)",
@@ -47,7 +47,7 @@ struct TalentModelsTests {
         #expect(!tree.canUnlock(node: t1Node, unlockedNodeIDs: [t1Node.id], availablePoints: 1))
     }
 
-    @Test(arguments: [1, 2])
+    @Test(arguments: [1, 2, 3])
     func `row N plus one requires all row N nodes unlocked`(row: Int) {
         let tree = makeSampleTree()
         let previousNodes = tree.nodes(forRow: row)
@@ -59,6 +59,14 @@ struct TalentModelsTests {
 
         #expect(tree.isRowComplete(row, unlockedNodeIDs: fullPrevious))
         #expect(tree.canUnlock(node: gatedNode, unlockedNodeIDs: fullPrevious, availablePoints: 1))
+    }
+
+    @Test func `tree rows are sorted and foreign nodes cannot unlock`() {
+        let tree = makeSampleTree()
+        let foreign = makeSampleTree(keyword: .bleed).nodes[0]
+
+        #expect(tree.rows == [1, 2, 3, 4])
+        #expect(!tree.canUnlock(node: foreign, unlockedNodeIDs: [], availablePoints: 1))
     }
 
     @Test func `combatant config looks up nodes and trees`() {
@@ -84,5 +92,13 @@ struct TalentModelsTests {
         #expect(config.cappedUnlocks(overBudget, budget: 0).isEmpty)
         #expect(config.cappedUnlocks(overBudget, budget: 1) == [poison.nodes[0].id])
         #expect(config.cappedUnlocks(Set([poison.nodes[0].id]), budget: 1) == [poison.nodes[0].id])
+    }
+
+    @Test func `config keeps legal row four talent when capping excess unlocks`() {
+        let tree = makeSampleTree()
+        let config = CombatantTalentConfig(combatantID: "rogue", trees: [tree])
+        let overBudget = Set(tree.nodes.map(\.id))
+
+        #expect(config.cappedUnlocks(overBudget, budget: 7) == Set(tree.nodes.prefix(7).map(\.id)))
     }
 }

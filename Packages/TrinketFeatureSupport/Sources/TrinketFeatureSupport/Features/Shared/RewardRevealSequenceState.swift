@@ -3,6 +3,17 @@ import Observation
 import SwiftUI
 import TrinketDesignSystem
 
+public protocol RewardRevealClock: Sendable {
+    func sleep(for duration: Duration) async throws
+}
+
+public struct SuspendingRewardRevealClock: RewardRevealClock {
+    public init() {}
+    public func sleep(for duration: Duration) async throws {
+        try await SuspendingClock().sleep(for: duration)
+    }
+}
+
 @MainActor
 @Observable
 public final class RewardRevealSequenceState {
@@ -12,14 +23,30 @@ public final class RewardRevealSequenceState {
     private var completedExperienceBarCount = 0
     private var hasStarted = false
     private var revealTask: Task<Void, Never>?
-    private let sleep: (Duration) async throws -> Void
+    private let clock: any RewardRevealClock
 
     public convenience init() {
-        self.init(sleep: { try await SuspendingClock().sleep(for: $0) })
+        self.init(clock: SuspendingRewardRevealClock())
     }
 
-    init(sleep: @escaping (Duration) async throws -> Void) {
-        self.sleep = sleep
+    init(clock: any RewardRevealClock) {
+        self.clock = clock
+    }
+
+    @available(*, deprecated, message: "Use init(clock:) instead")
+    init(sleep: @escaping @Sendable (Duration) async throws -> Void) {
+        // Concurrency-Safety: ClosureClock is @unchecked Sendable because the stored closure is @Sendable.
+        struct ClosureClock: RewardRevealClock, @unchecked Sendable {
+            let sleep: @Sendable (Duration) async throws -> Void
+            func sleep(for duration: Duration) async throws {
+                try await sleep(duration)
+            }
+        }
+        clock = ClosureClock(sleep: sleep)
+    }
+
+    private func clockSleep(for duration: Duration) async throws {
+        try await clock.sleep(for: duration)
     }
 
     public func start(itemCount: Int, walletCount: Int) {
@@ -28,7 +55,7 @@ public final class RewardRevealSequenceState {
         revealTask?.cancel()
         revealTask = Task { @MainActor in
             if itemCount > 0 || walletCount == 0 {
-                try? await sleep(.seconds(TrinketMotion.Reward.itemRevealDelay))
+                try? await self.clockSleep(for: .seconds(TrinketMotion.Reward.itemRevealDelay))
                 guard !Task.isCancelled else { return }
                 withAnimation(TrinketMotion.Reward.reveal) {
                     areItemsVisible = true
@@ -37,7 +64,7 @@ public final class RewardRevealSequenceState {
 
             if walletCount > 0 {
                 for count in 1 ... walletCount {
-                    try? await sleep(.seconds(TrinketMotion.Reward.resourceStagger))
+                    try? await self.clockSleep(for: .seconds(TrinketMotion.Reward.resourceStagger))
                     guard !Task.isCancelled else { return }
                     withAnimation(TrinketMotion.Reward.stateChange) {
                         visibleWalletRewardCount = count
@@ -45,7 +72,7 @@ public final class RewardRevealSequenceState {
                 }
             }
 
-            try? await sleep(.seconds(TrinketMotion.Reward.completionDelay))
+            try? await self.clockSleep(for: .seconds(TrinketMotion.Reward.completionDelay))
             guard !Task.isCancelled else { return }
             withAnimation(TrinketMotion.Reward.stateChange) {
                 finish(walletCount: walletCount)

@@ -42,7 +42,7 @@ enum BattleTestFixtures {
         maxHealth: Int = 20,
         actionIntervalTurns: Int = 100,
     ) -> Combatant {
-        CombatantFixtures.passiveCombatant(
+        CombatantFixtures.combatant(
             id: id,
             name: name,
             role: role,
@@ -166,7 +166,7 @@ enum BattleTestFixtures {
 
     @discardableResult
     static func endTurn(on battle: inout BattleState) -> [ActionEvent] {
-        return battle.endTurn()
+        battle.endTurn()
     }
 
     @discardableResult

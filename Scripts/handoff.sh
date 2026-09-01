@@ -40,15 +40,15 @@ report_output_profile() {
 
 trap report_output_profile EXIT
 
-# Run a routed check through the output profiler while leaving command output
-# and the command's exit status under the profiler's control. The profiler is
-# intentionally invoked for every check; TRINKET_OUTPUT_PROFILE=0 remains the
-# documented debugging escape hatch for callers that need the old direct path.
 run_profiled() {
   local label="$1"
   local policy="$2"
   shift 2
-  python3 Scripts/output-profile.py run --label "$label" --policy "$policy" -- "$@"
+  if [[ "${TRINKET_OUTPUT_PROFILE:-1}" == "0" ]]; then
+    "$@"
+  else
+    python3 Scripts/output-profile.py run --label "$label" --policy "$policy" -- "$@"
+  fi
 }
 
 # check_run <kind> <argument>
@@ -128,10 +128,16 @@ run_check() {
 }
 
 run_cheap_ci_slices() {
-  run_profiled "module-boundaries" "quiet-structured" ./Scripts/check-module-boundaries.sh
-  run_profiled "swift-testing-migration" "quiet-structured" ./Scripts/check-swift-testing-migration.sh
-  run_profiled "release-notes-validate" "quiet-structured" ./Scripts/release-notes.sh validate
-  run_profiled "artwork-budget" "quiet-structured" ./Scripts/check-artwork-budget.sh
+  # shellcheck source=Scripts/lib/cheap-slices.sh
+  source Scripts/lib/cheap-slices.sh
+  if [[ "${TRINKET_OUTPUT_PROFILE:-1}" == "0" ]]; then
+    trinket_run_cheap_slices
+  else
+    run_profiled "module-boundaries" "quiet-structured" ./Scripts/check-module-boundaries.sh
+    run_profiled "swift-testing-migration" "quiet-structured" ./Scripts/check-swift-testing-migration.sh
+    run_profiled "release-notes-validate" "quiet-structured" ./Scripts/release-notes.sh validate
+    run_profiled "artwork-budget" "quiet-structured" ./Scripts/check-artwork-budget.sh
+  fi
 }
 
 while [[ $# -gt 0 ]]; do

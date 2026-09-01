@@ -1,0 +1,23 @@
+# Periphery dead code analyzer configuration for Trinket
+# Scans Swift compiler index to identify unused symbols, redundant access modifiers, and dead paths.
+project: Trinket.xcodeproj
+schemes:
+  - Trinket
+targets:
+  - Trinket
+  - TrinketAppState
+  - TrinketBattleFeature
+  - TrinketFeatureSupport
+  - TrinketDesignSystem
+  - TrinketPersistence
+  - BattleEngine
+  - TrinketContent
+  - TrinketCore
+
+report_redundant_public: true
+retain_public: false
+retain_objc_annotated: true
+retain_unused_protocol_func_params: true
+
+# Retain test support fixtures and generated game content entry points
+retain_assign_only_properties: true
