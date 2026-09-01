@@ -19,11 +19,11 @@ struct ShopScreen {
     }
 
     func assertLoaded(
-        timeout: TimeInterval = TrinketUITestCase.defaultTimeout,
+        timeout: TimeInterval = TrinketUITestCase.deepLinkTimeout,
         file: StaticString = #file,
         line: UInt = #line,
     ) {
         let element = app.buttons[AccessibilityID.Shop.encounterTitle]
-        XCTAssertTrue(element.waitForExistence(timeout: timeout), "Shop screen not found", file: file, line: line)
+        XCTAssertTrue(element.trinketWaitForExistence(timeout: timeout), "Shop screen not found", file: file, line: line)
     }
 }

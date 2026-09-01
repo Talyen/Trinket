@@ -60,9 +60,27 @@ def raw_uitest_literals(allowed: set[str]) -> list[str]:
     return violations
 
 
+def hittability_wrapper_warnings() -> list[str]:
+    violations: list[str] = []
+    for path in sorted(UITESTS.rglob("*.swift")):
+        text = path.read_text(encoding="utf-8")
+        if "waitForExistence(timeout:" in text and "trinketWaitForExistence" not in text:
+            if "XCTest" in text or "TrinketUITest" in text:
+                violations.append(
+                    f"{path.relative_to(ROOT)}: use trinketWaitForExistence(timeout:) for MainActor-safe waits"
+                )
+    return violations
+
+
 def main() -> int:
     failures = [f"duplicate AccessibilityID constant: {value}" for value in unique_constants()]
     failures.extend(raw_uitest_literals(allowlist()))
+    if not failures:
+        warnings = hittability_wrapper_warnings()
+        if warnings:
+            print("Accessibility ID advisory:", file=sys.stderr)
+            for warning in warnings:
+                print(f"  {warning}", file=sys.stderr)
     if failures:
         print("Accessibility ID check failed:", file=sys.stderr)
         for failure in failures:

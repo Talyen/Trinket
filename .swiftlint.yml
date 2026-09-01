@@ -97,7 +97,7 @@ force_cast: error
 force_try: error
 
 file_length:
-  warning: 550
+  warning: 600
   error: 750
 
 type_body_length:

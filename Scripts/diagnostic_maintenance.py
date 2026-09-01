@@ -48,7 +48,7 @@ def stage(root: Path, artifact_dir: Path) -> None:
         raise SystemExit("artifact directory must be distinct from TestResults")
     shutil.rmtree(artifact_dir, ignore_errors=True)
     artifact_dir.mkdir(parents=True, exist_ok=True)
-    names = {"ci-diagnostics.json", "timing-log.jsonl"}
+    names = {"ci-diagnostics.json", "timing-log.jsonl", "simulator.log"}
     for path in root.iterdir():
         if path.is_file() and (path.name in names or path.name.endswith(("-invocation.json", "-diagnostics.json", "-diagnostics.md", "-diagnostics.annotations"))):
             shutil.copy2(path, artifact_dir / path.name)

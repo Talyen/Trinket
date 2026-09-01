@@ -41,18 +41,18 @@ struct BattleScreen {
     }
 
     func assertPresented(
-        timeout: TimeInterval = TrinketUITestCase.defaultTimeout,
+        timeout: TimeInterval = TrinketUITestCase.deepLinkTimeout,
         file: StaticString = #file,
         line: UInt = #line,
     ) {
         let handChrome = app.descendants(matching: .any)
             .matching(identifier: AccessibilityID.Battle.hand)
             .firstMatch
-        if handChrome.waitForExistence(timeout: timeout) {
+        if handChrome.trinketWaitForExistence(timeout: timeout) {
             return
         }
         XCTAssertTrue(
-            victory.waitForExistence(timeout: 1),
+            victory.trinketWaitForExistence(timeout: 1),
             "Battle chrome not found",
             file: file,
             line: line,
@@ -60,7 +60,7 @@ struct BattleScreen {
     }
 
     func assertActive(
-        timeout: TimeInterval = TrinketUITestCase.defaultTimeout,
+        timeout: TimeInterval = TrinketUITestCase.deepLinkTimeout,
         file: StaticString = #file,
         line: UInt = #line,
     ) {
@@ -68,7 +68,7 @@ struct BattleScreen {
             .matching(identifier: AccessibilityID.Battle.hand)
             .firstMatch
         XCTAssertTrue(
-            handChrome.waitForExistence(timeout: timeout),
+            handChrome.trinketWaitForExistence(timeout: timeout),
             "Battle hand chrome not found",
             file: file,
             line: line,

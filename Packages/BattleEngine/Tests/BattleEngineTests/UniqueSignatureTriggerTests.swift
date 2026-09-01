@@ -4,8 +4,6 @@ import TrinketCore
 import TrinketTestSupport
 @testable import BattleEngine
 
-// swiftlint:disable file_length - unique signature matrix stays one owner
-
 // swiftlint:disable:next type_body_length
 struct UniqueSignatureTriggerTests {
     private func hero(maxHealth: Int = 20) -> Combatant {

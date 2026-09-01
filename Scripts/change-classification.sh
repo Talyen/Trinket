@@ -338,6 +338,14 @@ trinket_classify_path() {
   local path="$1"
 
   case "$path" in
+    .swiftlint.yml|.swiftformat|Scripts/tool-versions.env|Scripts/swift-source-dirs.env)
+      TRINKET_NEEDS_STYLE=true
+      TRINKET_AUTHORED_PATHS+=("$path")
+      return 0
+      ;;
+  esac
+
+  case "$path" in
     Packages/*/Generated/*|Trinket/Assets.xcassets/*|Trinket/Media/Music/*|Trinket/Media/SFX/*|Trinket/Media/Cinematics/*)
       TRINKET_GENERATED_PATHS+=("$path")
       if [[ "$path" == Packages/*/Generated/* ]]; then
@@ -569,13 +577,26 @@ trinket_build_verification_plan() {
     local style_swift=()
     local authored
     for authored in "${TRINKET_AUTHORED_PATHS[@]+"${TRINKET_AUTHORED_PATHS[@]}"}"; do
-      # Deleted Swift files have no content to format/lint; SwiftFormat errors
-      # on a missing path, so drop them from the style target list.
       if [[ "$authored" == *.swift && -f "$authored" ]]; then
         style_swift+=("$authored")
       fi
     done
-    if (( ${#style_swift[@]} > 0 )); then
+    local style_scope_needs_full_tree=false
+    for authored in "${TRINKET_AUTHORED_PATHS[@]+"${TRINKET_AUTHORED_PATHS[@]}"}"; do
+      case "$authored" in
+        .swiftlint.yml|.swiftformat|Scripts/tool-versions.env|Scripts/swift-source-dirs.env) style_scope_needs_full_tree=true; break ;;
+      esac
+    done
+    if [[ "$style_scope_needs_full_tree" == false ]]; then
+      for authored in "${TRINKET_CHANGED_PATHS[@]+"${TRINKET_CHANGED_PATHS[@]}"}"; do
+        case "$authored" in
+          Scripts/*|.github/*) style_scope_needs_full_tree=true; break ;;
+        esac
+      done
+    fi
+    if [[ "$style_scope_needs_full_tree" == true ]]; then
+      trinket_add_verification test style "./Scripts/test.sh style"
+    elif (( ${#style_swift[@]} > 0 )); then
       trinket_add_verification test "style:${style_swift[*]}" "./Scripts/test.sh style ${style_swift[*]}"
     else
       trinket_add_verification test style "./Scripts/test.sh style"

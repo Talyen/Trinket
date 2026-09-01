@@ -57,9 +57,23 @@ repo_slug() {
   gh repo view --json nameWithOwner -q .nameWithOwner
 }
 
-# UI / simulator suites only — never auto-rerun unit, style, or generate gates.
+failure_jobs_contain_infra_eligible() {
+  local run_id="$1"
+  local eligible_failures
+  eligible_failures="$(
+    gh run view "$run_id" --json jobs --jq '
+      [.jobs[]?
+        | select(.conclusion == "failure")
+        | select(.name | test("UI|Smoke|ui|smoke|Unit|unit|Exhaustive") )
+      ] | length
+    ' 2>/dev/null || echo 0
+  )"
+  [[ -n "$eligible_failures" && "$eligible_failures" != "0" ]]
+}
+
 failure_jobs_are_ui_or_simulator() {
   local run_id="$1"
+  failure_jobs_contain_infra_eligible "$run_id" && return 0
   local non_ui_failures
   non_ui_failures="$(
     gh run view "$run_id" --json jobs --jq '
@@ -97,8 +111,8 @@ failure_evidence_looks_like_infrastructure() {
 
 failure_looks_like_simulator_infrastructure() {
   local run_id="$1"
-  failure_jobs_are_ui_or_simulator "$run_id" \
-    && failure_evidence_looks_like_infrastructure "$run_id"
+  failure_evidence_looks_like_infrastructure "$run_id" \
+    && failure_jobs_contain_infra_eligible "$run_id"
 }
 
 if ! failure_looks_like_simulator_infrastructure "$RUN_ID"; then

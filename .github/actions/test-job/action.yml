@@ -84,12 +84,17 @@ runs:
             if [[ "$status" != "0" ]]; then
               echo "Simulator preboot failed (status=$status); test.sh will retry boot."
             fi
+            # Persist preboot log for xcodebuild infra classifier
+            mkdir -p .DerivedData/TestResults
+            cp "$RUNNER_TEMP/trinket-sim-preboot/boot.log" .DerivedData/TestResults/simulator.log 2>/dev/null || true
             exit 0
           fi
           sleep 2
         done
         echo "Simulator preboot still running; test.sh will finish booting."
         cat "$RUNNER_TEMP/trinket-sim-preboot/boot.log" || true
+        mkdir -p .DerivedData/TestResults
+        cp "$RUNNER_TEMP/trinket-sim-preboot/boot.log" .DerivedData/TestResults/simulator.log 2>/dev/null || true
 
     - name: Clear cached test diagnostics after build restore
       shell: bash
@@ -145,4 +150,5 @@ runs:
       with:
         name: ${{ inputs.artifact-name }}-${{ github.run_id }}
         path: .DerivedData/TestResults-artifact/
+        retention-days: 7
         if-no-files-found: ignore

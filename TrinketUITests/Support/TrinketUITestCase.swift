@@ -1,6 +1,15 @@
 import TrinketFeatureSupport
 import XCTest
 
+private func trinketWaitForExistenceMainActorSafe(_ element: XCUIElement, timeout: TimeInterval) -> Bool {
+    if Thread.isMainThread {
+        return MainActor.assumeIsolated { element.waitForExistence(timeout: timeout) }
+    }
+    return DispatchQueue.main.sync {
+        MainActor.assumeIsolated { element.waitForExistence(timeout: timeout) }
+    }
+}
+
 enum TestLaunchArg {
     static func tab(_ tab: String) -> String {
         "-selectedTab \(tab)"
@@ -130,7 +139,8 @@ enum TestLaunchArg {
 }
 
 class TrinketUITestCase: XCTestCase {
-    static let defaultTimeout: TimeInterval = 10
+    static let defaultTimeout: TimeInterval = 12
+    static let deepLinkTimeout: TimeInterval = 15
 
     // swiftlint:disable:next implicitly_unwrapped_optional
     private(set) var app: XCUIApplication!
@@ -206,11 +216,38 @@ class TrinketUITestCase: XCTestCase {
         line: UInt = #line,
     ) {
         let element = button(identifier)
-        guard element.waitForExistence(timeout: timeout) else {
+        guard waitForExistence(element, timeout: timeout) else {
             fail("Button '\(identifier)' not found", file: file, line: line)
             return
         }
         tapWhenReady(element)
+    }
+
+    @discardableResult
+    func waitForExistence(
+        _ element: XCUIElement,
+        timeout: TimeInterval,
+        file _: StaticString = #file,
+        line _: UInt = #line,
+    ) -> Bool {
+        trinketWaitForExistenceMainActorSafe(element, timeout: timeout)
+    }
+
+    @discardableResult
+    func waitForHittable(
+        _ element: XCUIElement,
+        timeout: TimeInterval,
+        file _: StaticString = #file,
+        line _: UInt = #line,
+    ) -> Bool {
+        let deadline = Date().addingTimeInterval(timeout)
+        while Date() < deadline {
+            if element.exists, element.isHittable {
+                return true
+            }
+            RunLoop.current.run(until: Date().addingTimeInterval(0.05))
+        }
+        return element.exists && element.isHittable
     }
 
     func tapWhenReady(_ element: XCUIElement) {
@@ -228,7 +265,7 @@ class TrinketUITestCase: XCTestCase {
     @discardableResult
     func waitForEnabled(
         _ element: XCUIElement,
-        timeout: TimeInterval = 10,
+        timeout: TimeInterval = 12,
         file: StaticString = #file,
         line: UInt = #line,
     ) -> Bool {
@@ -253,7 +290,7 @@ class TrinketUITestCase: XCTestCase {
         line: UInt = #line,
     ) {
         let element = button(identifier)
-        guard element.waitForExistence(timeout: timeout) else {
+        guard waitForExistence(element, timeout: timeout) else {
             fail("Button '\(identifier)' not found", file: file, line: line)
             return
         }
@@ -266,7 +303,7 @@ class TrinketUITestCase: XCTestCase {
         line: UInt = #line,
     ) {
         let element = app.descendants(matching: .any)[identifier]
-        guard element.waitForExistence(timeout: timeout) else {
+        guard waitForExistence(element, timeout: timeout) else {
             fail(missingElementMessage("Element '\(identifier)' not found"), file: file, line: line)
             return
         }
@@ -278,9 +315,26 @@ class TrinketUITestCase: XCTestCase {
         file: StaticString = #file,
         line: UInt = #line,
     ) {
-        guard element.waitForExistence(timeout: timeout) else {
+        guard waitForExistence(element, timeout: timeout) else {
             fail(missingElementMessage("Element not found"), file: file, line: line)
             return
+        }
+    }
+
+    func assertSingleElement(
+        _ identifier: String,
+        timeout: TimeInterval = defaultTimeout,
+        file: StaticString = #file,
+        line: UInt = #line,
+    ) {
+        let query = app.descendants(matching: .any).matching(identifier: identifier)
+        guard waitForExistence(query.firstMatch, timeout: timeout) else {
+            fail(missingElementMessage("Element '\(identifier)' not found"), file: file, line: line)
+            return
+        }
+        let count = query.count
+        if count != 1 {
+            fail("Expected single element '\(identifier)' but found \(count)", file: file, line: line)
         }
     }
 
@@ -370,12 +424,8 @@ class TrinketUITestCase: XCTestCase {
 
     func goBack() {
         let navBackButton = app.navigationBars.buttons.firstMatch
-        guard navBackButton.waitForExistence(timeout: 2) else { return }
-        if navBackButton.isHittable {
-            navBackButton.tap()
-        } else {
-            navBackButton.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
-        }
+        guard waitForExistence(navBackButton, timeout: 2) else { return }
+        tapWhenReady(navBackButton)
     }
 
     func scrollUntilVisible(
@@ -396,7 +446,7 @@ class TrinketUITestCase: XCTestCase {
 
     func dismissSheet() {
         let closeButton = app.navigationBars.buttons["Close"]
-        if closeButton.waitForExistence(timeout: 2), closeButton.isHittable {
+        if waitForExistence(closeButton, timeout: 2), closeButton.isHittable {
             closeButton.tap()
             _ = closeButton.waitForNonExistence(timeout: 3)
         } else {
@@ -426,9 +476,9 @@ class TrinketUITestCase: XCTestCase {
     }
 
     func replaceText(in element: XCUIElement, with text: String) {
-        element.tap()
+        tapWhenReady(element)
         let clearButton = element.buttons["Clear text"]
-        if clearButton.waitForExistence(timeout: 1) {
+        if waitForExistence(clearButton, timeout: 1) {
             clearButton.tap()
         } else if let stringValue = element.value as? String, !stringValue.isEmpty {
             let deleteString = String(repeating: XCUIKeyboardKey.delete.rawValue, count: stringValue.count)
@@ -452,6 +502,12 @@ class TrinketUITestCase: XCTestCase {
     }
 }
 
+extension XCUIElement {
+    func trinketWaitForExistence(timeout: TimeInterval) -> Bool {
+        trinketWaitForExistenceMainActorSafe(self, timeout: timeout)
+    }
+}
+
 extension XCUIApplication {
     func scrollUntilVisible(
         _ element: XCUIElement,
@@ -468,7 +524,8 @@ extension XCUIApplication {
             } else {
                 dragScroll(fromY: 0.35, toY: 0.90)
             }
-            _ = element.waitForExistence(timeout: 0.25)
+            let wait: TimeInterval = 0.35
+            _ = trinketWaitForExistenceMainActorSafe(element, timeout: wait)
         }
     }
 

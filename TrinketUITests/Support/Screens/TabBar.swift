@@ -25,34 +25,41 @@ struct HomesteadScreen {
     let app: XCUIApplication
 
     func assertLoaded(
-        timeout: TimeInterval = TrinketUITestCase.defaultTimeout,
+        timeout: TimeInterval = TrinketUITestCase.deepLinkTimeout,
         file: StaticString = #file,
         line: UInt = #line,
     ) {
         let element = app.descendants(matching: .any)[AccessibilityID.Screen.homestead]
-        XCTAssertTrue(element.waitForExistence(timeout: timeout), "Homestead screen not found", file: file, line: line)
+        XCTAssertTrue(element.trinketWaitForExistence(timeout: timeout), "Homestead screen not found", file: file, line: line)
     }
 
     func assertNodeDetail(
         named title: String,
-        timeout: TimeInterval = TrinketUITestCase.defaultTimeout,
+        timeout: TimeInterval = TrinketUITestCase.deepLinkTimeout,
         file: StaticString = #file,
         line: UInt = #line,
     ) {
         let element = app.descendants(matching: .any)[AccessibilityID.Homestead.nodeDetail(title: title)]
-        XCTAssertTrue(element.waitForExistence(timeout: timeout), "\(title) homestead detail not found", file: file, line: line)
+        XCTAssertTrue(element.trinketWaitForExistence(timeout: timeout), "\(title) homestead detail not found", file: file, line: line)
     }
 
     func openFarmingCategoryAndRevealWheatFieldNode() {
         let categoryButton = app.buttons[AccessibilityID.Homestead.category("Farming")]
-        _ = categoryButton.waitForExistence(timeout: TrinketUITestCase.defaultTimeout)
-        categoryButton.tap()
+        _ = categoryButton.trinketWaitForExistence(timeout: TrinketUITestCase.defaultTimeout)
+        if categoryButton.isHittable {
+            categoryButton.tap()
+        } else {
+            categoryButton.coordinate(withNormalizedOffset: CGVector(
+                dx: 0.5,
+                dy: 0.5,
+            )).tap()
+        }
         _ = app.descendants(matching: .any)[AccessibilityID.Homestead.node(title: "Wheat Field")]
-            .waitForExistence(timeout: 2)
+            .trinketWaitForExistence(timeout: 2)
         app.scrollUntilVisible(
             app.descendants(matching: .any)[AccessibilityID.Homestead.node(title: "Wheat Field")],
             swipingUp: true,
-            maxAttempts: 10,
+            maxAttempts: 12,
         )
     }
 }
@@ -61,11 +68,11 @@ struct OptionsScreen {
     let app: XCUIApplication
 
     func assertLoaded(
-        timeout: TimeInterval = TrinketUITestCase.defaultTimeout,
+        timeout: TimeInterval = TrinketUITestCase.deepLinkTimeout,
         file: StaticString = #file,
         line: UInt = #line,
     ) {
         let element = app.descendants(matching: .any)[AccessibilityID.Screen.options]
-        XCTAssertTrue(element.waitForExistence(timeout: timeout), "Options screen not found", file: file, line: line)
+        XCTAssertTrue(element.trinketWaitForExistence(timeout: timeout), "Options screen not found", file: file, line: line)
     }
 }

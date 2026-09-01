@@ -201,6 +201,13 @@ ensure_test_simulator() {
   local force="${1:-}"
   local attempt=1
   local max_attempts=2
+  if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
+    max_attempts=3
+    # TRINKET_-prefixed knob controls SIMULATOR_BOOT_TIMEOUT_SECONDS (150 default -> 180 on CI).
+    if [[ "${TRINKET_SIMULATOR_BOOT_TIMEOUT_SECONDS:-}" == "" ]]; then
+      SIMULATOR_BOOT_TIMEOUT_SECONDS=180
+    fi
+  fi
   local owned_name="${TRINKET_SIMULATOR_NAME:-Trinket Run}"
 
   # Never shut down or delete a device that does not belong to this run's
