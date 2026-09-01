@@ -100,8 +100,11 @@ public struct ItemCard<Art: View>: View {
     private var standardLabel: some View {
         VStack(spacing: TrinketDesign.Spacing.tight) {
             HStack(spacing: TrinketDesign.Spacing.tight) {
-                TrinketRarityLabel(rarity: item.rarity)
-                    .lineLimit(1)
+                TrinketRarityLabel(
+                    rarity: item.rarity,
+                    labelOverride: item.isTrinket ? "Trinket" : nil,
+                )
+                .lineLimit(1)
                 if item.isCorrupted {
                     Text("Corrupted")
                         .trinketTypography(.caption)
@@ -130,7 +133,10 @@ public struct ItemCard<Art: View>: View {
 
     private var revealLabel: some View {
         VStack(spacing: TrinketDesign.Spacing.extraSmall) {
-            TrinketRarityLabel(rarity: item.rarity)
+            TrinketRarityLabel(
+                rarity: item.rarity,
+                labelOverride: item.isTrinket ? "Trinket" : nil,
+            )
 
             Text(balanced: item.displayName)
                 .trinketTypography(.sectionDisplay)

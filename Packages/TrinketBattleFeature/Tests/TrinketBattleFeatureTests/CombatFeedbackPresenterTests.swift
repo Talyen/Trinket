@@ -449,6 +449,35 @@ extension CombatFeedbackPresenterTests {
         #expect(try #require(byID[8]).label == .word(.status(.blockDown)))
     }
 
+    @Test func `suppresses natural mana regeneration but keeps intentional mana gains`() throws {
+        let items = CombatFeedbackPresenter.makeItems(
+            from: [
+                makeEvent(
+                    id: 1,
+                    kind: .effect,
+                    effectKind: .resourceGain,
+                    amount: 2,
+                    keyword: .mana,
+                    abilityName: Keyword.mana.rawValue,
+                ),
+                makeEvent(
+                    id: 2,
+                    kind: .effect,
+                    effectKind: .resourceGain,
+                    amount: 2,
+                    keyword: .mana,
+                    abilityName: "Mana Potion",
+                ),
+            ],
+            at: .now,
+        )
+
+        try #expect(items.count == 1)
+        let intentionalGain = try #require(items.first)
+        #expect(intentionalGain.id == 2)
+        #expect(intentionalGain.label == .amount(2))
+    }
+
     @Test func `merges gold gains and suppresses gold loss chips`() throws {
         let items = CombatFeedbackPresenter.makeItems(
             from: [

@@ -157,6 +157,9 @@ enum CombatFeedbackPresenter {
     private static func filterDisplayable(_ events: [ActionEvent]) -> [ActionEvent] {
         events.filter { event in
             guard event.kind != .milestone else { return false }
+            if isNaturalManaRegeneration(event) {
+                return false
+            }
             if event.kind == .ability {
                 return false
             }
@@ -170,6 +173,13 @@ enum CombatFeedbackPresenter {
             }
             return true
         }
+    }
+
+    private static func isNaturalManaRegeneration(_ event: ActionEvent) -> Bool {
+        event.kind == .effect
+            && event.effectKind == .resourceGain
+            && event.keyword == .mana
+            && event.abilityName == Keyword.mana.rawValue
     }
 
     private static func consolidate(_ sources: [PreparedSource]) -> [PreparedSource] {

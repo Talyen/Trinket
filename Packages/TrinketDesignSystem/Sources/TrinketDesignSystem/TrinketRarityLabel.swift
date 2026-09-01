@@ -3,12 +3,14 @@ import TrinketCore
 
 public struct TrinketRarityLabel: View {
     private let rarity: Rarity
+    private let labelOverride: String?
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var shinePhase = false
 
-    public init(rarity: Rarity) {
+    public init(rarity: Rarity, labelOverride: String? = nil) {
         self.rarity = rarity
+        self.labelOverride = labelOverride
     }
 
     public var body: some View {
@@ -17,7 +19,7 @@ public struct TrinketRarityLabel: View {
             case .astral, .unique:
                 premiumLabel
             case .basic:
-                Text(rarity.label.uppercased()).foregroundStyle(.secondary)
+                Text(displayLabel).foregroundStyle(.secondary)
             }
         }
         .trinketTypography(.eyebrow)
@@ -49,7 +51,7 @@ public struct TrinketRarityLabel: View {
     }
 
     private var premiumLabel: some View {
-        Text(rarity.label.uppercased())
+        Text(displayLabel)
             .foregroundStyle(
                 LinearGradient(
                     colors: premiumColors,
@@ -72,5 +74,9 @@ public struct TrinketRarityLabel: View {
                 }
             }
             .onDisappear { shinePhase = false }
+    }
+
+    private var displayLabel: String {
+        (labelOverride ?? rarity.label).uppercased()
     }
 }
