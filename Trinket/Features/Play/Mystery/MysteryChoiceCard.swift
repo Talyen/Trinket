@@ -21,10 +21,11 @@ struct MysteryChoiceCard: View {
             onSelect()
         } label: {
             VStack(alignment: .leading, spacing: TrinketDesign.Spacing.medium) {
-                Text(choice.label)
+                Text(balanced: choice.label)
                     .trinketTypography(.rowTitle)
                     .foregroundStyle(.primary)
                     .multilineTextAlignment(.leading)
+                    .trinketFittedText()
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                 rewards
@@ -188,21 +189,20 @@ struct MysteryChoiceCard: View {
 
             VStack(alignment: .leading, spacing: TrinketDesign.Spacing.tight) {
                 if let value {
-                    Text(title)
+                    Text(balanced: title)
                         .trinketTypography(.cardTitle)
                         .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.76)
+                        .trinketFittedText()
 
-                    Text(value)
+                    Text(balanced: value)
                         .trinketTypography(.rowTitle)
                         .monospacedDigit()
+                        .trinketFittedText()
                 } else {
-                    Text(title)
+                    Text(balanced: title)
                         .trinketTypography(.rowTitle)
                         .foregroundStyle(.primary)
-                        .lineLimit(2)
-                        .minimumScaleFactor(0.85)
+                        .trinketFittedText()
                 }
             }
         }

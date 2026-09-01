@@ -139,21 +139,22 @@ struct PlayModeArtworkCard: View {
                                 .trinketTypography(.eyebrow)
                         }
 
-                        Text(subtitle)
+                        Text(balanced: subtitle)
                             .trinketTypography(.secondaryBody)
-                            .lineLimit(isLocked ? 3 : 2)
+                            .trinketFittedText()
                     }
                     .trinketOnArtText(.eyebrow)
                 }
 
-                Text(title)
+                Text(balanced: title)
                     .trinketTypography(.screenDisplay)
                     .trinketOnArtText(.title)
-                    .lineLimit(1)
+                    .trinketFittedText()
             }
             .padding(TrinketDesign.Spacing.large)
         }
         .aspectRatio(1.35, contentMode: .fit)
+        .contentShape(TrinketDesign.cardShape)
         .clipShape(TrinketDesign.cardShape)
         .overlay {
             TrinketDesign.cardShape.strokeBorder(TrinketDesign.Colors.subtleStroke, lineWidth: 1)

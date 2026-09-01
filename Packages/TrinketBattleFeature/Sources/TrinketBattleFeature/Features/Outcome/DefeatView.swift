@@ -15,12 +15,14 @@ struct DefeatView: View {
                 VStack(spacing: TrinketDesign.Spacing.small) {
                     Text(balanced: "Defeat")
                         .trinketTypography(.screenTitle)
+                        .trinketFittedText()
                         .accessibilityIdentifier(AccessibilityID.Battle.defeat)
 
                     Text(balanced: "\(enemyName) has defeated your party.")
                         .trinketTypography(.cardTitle)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
+                        .trinketFittedText()
                 }
 
                 Button {

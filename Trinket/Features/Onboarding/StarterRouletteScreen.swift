@@ -199,6 +199,7 @@ struct StarterRouletteScreen: View {
             if let selectedCombatant {
                 Text(balanced: selectedCombatant.name)
                     .trinketTypography(.screenTitle)
+                    .trinketFittedText()
                     .contentTransition(.numericText())
 
                 if let affinities = CombatantTalentCatalog.combatantTreeAffinities[selectedCombatant.id]?.map(\.keyword) {

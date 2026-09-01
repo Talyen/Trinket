@@ -179,14 +179,14 @@ public struct CombatantTalentsView: View {
                         .foregroundStyle(style.color.opacity(0.75))
                 }
 
-                Text(node.name)
+                Text(balanced: node.name)
                     .trinketTypography(.cardLabel)
                     .foregroundStyle(isUnlocked ? .primary : (isRowLocked ? .tertiary : .secondary))
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.75)
+                    .multilineTextAlignment(.center)
+                    .trinketFittedText()
             }
             .frame(maxWidth: .infinity)
-            .frame(height: 104)
+            .frame(minHeight: 104)
             .background(
                 RoundedRectangle(cornerRadius: TrinketDesign.Corners.card, style: .continuous)
                     .fill(TrinketDesign.Colors.panel),
@@ -242,6 +242,7 @@ public struct CombatantTalentsView: View {
                     Text(balanced: selectedNode.name)
                         .trinketTypography(.cardTitle)
                         .foregroundStyle(style.color)
+                        .trinketFittedText()
                 }
 
                 KeywordDescriptionText(text: selectedNode.description)

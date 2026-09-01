@@ -65,6 +65,7 @@ public struct DetailTraitRow: View {
                 let prefix = Text(balanced: titlePrefix)
                     .trinketTypography(.cardTitle)
                     .foregroundStyle(.primary)
+                    .trinketFittedText()
                 if let titlePrefixShineColors, !titlePrefixShineColors.isEmpty {
                     prefix.colorShine(titlePrefixShineColors)
                 } else {
@@ -75,6 +76,7 @@ public struct DetailTraitRow: View {
                 let base = Text(balanced: title)
                     .trinketTypography(.cardTitle)
                     .foregroundStyle(.primary)
+                    .trinketFittedText()
                 if let titleShineColors, !titleShineColors.isEmpty {
                     base.colorShine(titleShineColors)
                 } else {

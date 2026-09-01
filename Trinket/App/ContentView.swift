@@ -63,7 +63,7 @@ struct ContentView: View {
             )
         }
         .onAppear {
-            appState.refreshMusic(scenePhase: scenePhase)
+            appState.reconcileShellState(.scenePhaseChanged, scenePhase: scenePhase)
         }
         .onChange(of: shellSession.selectedTab) { _, newTab in
             appState.refreshMusic(scenePhase: scenePhase)
@@ -87,6 +87,7 @@ struct ContentView: View {
     }
 
     private func tabRoot(selection: Binding<AppTab>) -> some View {
+        @Bindable var shellSession = shellSession
         let intercepting = Binding<AppTab>(
             get: { selection.wrappedValue },
             set: { newTab in
@@ -111,14 +112,12 @@ struct ContentView: View {
                         appState.consumePendingCollectionPresentation()
                     }
                 }
-                .id(shellSession.collectionStackID)
             }
 
             Tab(AppTab.homestead.displayName, systemImage: AppTab.homestead.symbolName, value: AppTab.homestead) {
-                NavigationStack {
+                NavigationStack(path: $shellSession.homesteadPath) {
                     HomesteadView()
                 }
-                .id(shellSession.homesteadStackID)
             }
 
             Tab(AppTab.options.displayName, systemImage: AppTab.options.symbolName, value: AppTab.options) {
@@ -138,7 +137,6 @@ struct ContentView: View {
                         unlockAllContent: appState.unlockAllContent,
                     )
                 }
-                .id(shellSession.optionsStackID)
             }
         }
     }

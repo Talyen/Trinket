@@ -194,6 +194,11 @@ public final class AppState {
         }
 
         refreshMusic(scenePhase: scenePhase)
+        applyIdleTimerPolicy(scenePhase: scenePhase)
+    }
+
+    private func applyIdleTimerPolicy(scenePhase: ScenePhase) {
+        UIApplication.shared.isIdleTimerDisabled = (scenePhase == .active)
     }
 
     private var memoryPressureObserver: (any NSObjectProtocol)?

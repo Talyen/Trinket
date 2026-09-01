@@ -27,14 +27,16 @@ public struct ViewAllShelfCard: View {
                     .font(.system(size: 22, weight: .bold))
                     .foregroundStyle(TrinketDesign.Colors.accent)
 
-                Text("View All")
+                Text(balanced: "View All")
                     .trinketTypography(.cardLabel)
                     .foregroundStyle(.primary)
+                    .trinketFittedText()
 
                 if let remainingCount, remainingCount > 0 {
-                    Text("+\(remainingCount) more")
+                    Text(balanced: "+\(remainingCount) more")
                         .trinketTypography(.footnote)
                         .foregroundStyle(.secondary)
+                        .trinketFittedText()
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)

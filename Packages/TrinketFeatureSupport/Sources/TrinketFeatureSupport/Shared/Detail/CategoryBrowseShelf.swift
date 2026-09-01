@@ -56,6 +56,7 @@ public struct CategoryBrowseShelf<Destination: View, Content: View>: View {
             Text(balanced: title)
                 .trinketTypography(.sectionTitle)
                 .foregroundStyle(.primary)
+                .trinketFittedText()
             Image(systemName: "chevron.right")
                 .trinketTypography(.footnote)
                 .foregroundStyle(.secondary)

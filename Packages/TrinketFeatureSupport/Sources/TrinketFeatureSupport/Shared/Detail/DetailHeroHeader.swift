@@ -64,6 +64,7 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
                 Text(balanced: eyebrow)
                     .trinketTypography(.eyebrow)
                     .trinketOnArtText(.eyebrow)
+                    .trinketFittedText()
             }
 
             titleText
@@ -75,6 +76,7 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
         let base = Text(balanced: title)
             .trinketTypography(.screenDisplay)
             .trinketOnArtText(.title)
+            .trinketFittedText()
         let label = Group {
             if let titleShineColors, !titleShineColors.isEmpty {
                 base.colorShine(titleShineColors)
@@ -82,8 +84,6 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
                 base.keywordShine(titleKeywords)
             }
         }
-        .lineLimit(2)
-        .minimumScaleFactor(0.75)
 
         if let titleAccessibilityIdentifier {
             label.accessibilityIdentifier(titleAccessibilityIdentifier)

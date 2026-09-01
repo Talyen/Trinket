@@ -43,12 +43,11 @@ public struct EncounterItemTile: View {
                 )
 
                 if showsName {
-                    Text(item.displayName)
+                    Text(balanced: item.displayName)
                         .trinketTypography(.badge)
                         .foregroundStyle(.primary)
                         .multilineTextAlignment(.center)
-                        .lineLimit(2)
-                        .fixedSize(horizontal: false, vertical: true)
+                        .trinketFittedText()
                 }
             }
         }

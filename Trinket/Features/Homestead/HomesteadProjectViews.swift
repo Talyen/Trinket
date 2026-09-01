@@ -57,12 +57,12 @@ struct HomesteadProjectRow: View {
                 .padding(.trailing, HomesteadProjectRowMetrics.artworkTextSpacing)
 
             VStack(alignment: .leading, spacing: TrinketDesign.Spacing.tight) {
-                Text(definition.title)
+                Text(balanced: definition.title)
                     .trinketTypography(.rowTitle)
                     .foregroundStyle(isLocked ? .secondary : .primary)
-                    .lineLimit(2)
+                    .trinketFittedText()
 
-                Text(effectLine)
+                Text(balanced: effectLine)
                     .trinketTypography(.caption)
                     .foregroundStyle(isLocked ? .tertiary : .secondary)
                     .fixedSize(horizontal: false, vertical: true)

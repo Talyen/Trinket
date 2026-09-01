@@ -98,15 +98,17 @@ struct LabyrinthNodeInspector: View {
                         HStack(spacing: TrinketDesign.Spacing.small) {
                             Image(systemName: modifierSymbolName(for: modifier))
                                 .symbolRenderingMode(.hierarchical)
-                            Text(modifier.title.uppercased())
+                            Text(balanced: modifier.title.uppercased())
+                                .trinketFittedText()
                         }
                         .trinketTypography(.eyebrow)
                         .trinketOnArtText(.title)
 
-                        Text(modifier.effect.description)
+                        Text(balanced: modifier.effect.description)
                             .trinketTypography(.footnote)
                             .trinketOnArtText(.eyebrow)
-                            .lineLimit(2)
+                            .lineLimit(nil)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                 }
             }

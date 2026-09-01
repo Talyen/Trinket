@@ -14,11 +14,11 @@ struct EmptyAbilitySlotCard: View {
                 PlaceholderArtwork(.ability)
             },
             label: {
-                Text("Empty \(tier.rawValue)")
+                Text(balanced: "Empty \(tier.rawValue)")
                     .trinketTypography(.cardLabel)
                     .foregroundStyle(.secondary)
-                    .lineLimit(2)
                     .multilineTextAlignment(.center)
+                    .trinketFittedText()
             },
         )
     }
@@ -48,11 +48,11 @@ public struct EmptyItemSlotCard: View {
                 }
             },
             label: {
-                Text("Empty \(slot.displayName)")
+                Text(balanced: "Empty \(slot.displayName)")
                     .trinketTypography(.cardLabel)
                     .foregroundStyle(.secondary)
-                    .lineLimit(2)
                     .multilineTextAlignment(.center)
+                    .trinketFittedText()
             },
         )
     }

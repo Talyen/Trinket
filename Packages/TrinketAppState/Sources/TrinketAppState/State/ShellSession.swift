@@ -1,5 +1,6 @@
 import Foundation
 import Observation
+import TrinketCore
 
 @MainActor
 @Observable
@@ -9,9 +10,7 @@ public final class ShellSession {
 
     public var selectedTab: AppTab = .play
     public var playPath: [PlayLaunchDestination] = []
-    public var collectionStackID = UUID()
-    public var homesteadStackID = UUID()
-    public var optionsStackID = UUID()
+    public var homesteadPath: [HomesteadNodeCategory] = []
 
     public init(selectedTab: AppTab = .play) {
         self.selectedTab = selectedTab
@@ -22,11 +21,11 @@ public final class ShellSession {
         case .play:
             playPath.removeAll()
         case .collection:
-            collectionStackID = UUID()
+            break
         case .homestead:
-            homesteadStackID = UUID()
+            homesteadPath.removeAll()
         case .options:
-            optionsStackID = UUID()
+            break
         }
     }
 }

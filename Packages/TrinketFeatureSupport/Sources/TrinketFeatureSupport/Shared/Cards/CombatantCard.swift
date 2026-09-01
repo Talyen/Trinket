@@ -32,8 +32,8 @@ public struct CombatantCard: View {
                 Text(balanced: combatant.name)
                     .trinketTypography(.cardLabel)
                     .foregroundStyle(isLocked ? .secondary : .primary)
-                    .lineLimit(2)
                     .multilineTextAlignment(.center)
+                    .trinketFittedText()
             },
         )
     }

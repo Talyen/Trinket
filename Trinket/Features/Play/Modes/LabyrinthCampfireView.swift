@@ -137,8 +137,9 @@ struct LabyrinthCampfireView: View {
     private func partyMeter(_ member: CampfirePartyMember) -> some View {
         VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
             HStack(alignment: .firstTextBaseline) {
-                Text(member.name)
+                Text(balanced: member.name)
                     .trinketTypography(.cardTitle)
+                    .trinketFittedText()
                 Spacer()
                 counterText(member)
             }

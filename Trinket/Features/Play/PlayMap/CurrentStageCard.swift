@@ -126,15 +126,15 @@ struct StageSelectActiveCard<
 
     private var titleBlock: some View {
         VStack(alignment: .leading, spacing: TrinketDesign.Spacing.tight) {
-            Text(presentation.activeEyebrow.uppercased())
+            Text(balanced: presentation.activeEyebrow.uppercased())
                 .trinketTypography(.eyebrow)
                 .foregroundStyle(.secondary)
-                .lineLimit(1)
+                .trinketFittedText()
 
-            Text(presentation.title)
+            Text(balanced: presentation.title)
                 .trinketTypography(.sectionDisplay)
                 .foregroundStyle(.primary)
-                .lineLimit(2)
+                .trinketFittedText()
         }
     }
 

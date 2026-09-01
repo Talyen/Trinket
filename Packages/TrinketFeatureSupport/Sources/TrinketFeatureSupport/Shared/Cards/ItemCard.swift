@@ -104,12 +104,12 @@ public struct ItemCard<Art: View>: View {
                     rarity: item.rarity,
                     labelOverride: item.isTrinket ? "Trinket" : nil,
                 )
-                .lineLimit(1)
+                .trinketFittedText()
                 if item.isCorrupted {
-                    Text("Corrupted")
+                    Text(balanced: "Corrupted")
                         .trinketTypography(.caption)
                         .foregroundStyle(TrinketDesign.Colors.destructive)
-                        .lineLimit(1)
+                        .trinketFittedText()
                 }
             }
 
@@ -118,14 +118,14 @@ public struct ItemCard<Art: View>: View {
                 .foregroundStyle(.primary)
                 .keywordShine(item.astralShineKeywordSet)
                 .uniqueShine(if: item.rarity == .unique)
-                .lineLimit(2)
                 .multilineTextAlignment(.center)
+                .trinketFittedText()
 
             if showsAffixCount {
-                Text(item.affixCountLabel)
+                Text(balanced: item.affixCountLabel)
                     .trinketTypography(.caption)
                     .foregroundStyle(.secondary)
-                    .lineLimit(1)
+                    .trinketFittedText()
             }
         }
         .opacity(labelOpacity)
@@ -142,9 +142,8 @@ public struct ItemCard<Art: View>: View {
                 .trinketTypography(.sectionDisplay)
                 .keywordShine(item.astralShineKeywordSet)
                 .uniqueShine(if: item.rarity == .unique)
-                .lineLimit(1)
                 .multilineTextAlignment(.center)
-                .minimumScaleFactor(0.7)
+                .trinketFittedText()
         }
         .opacity(labelOpacity)
     }
