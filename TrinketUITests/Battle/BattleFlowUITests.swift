@@ -11,7 +11,7 @@ final class BattleFlowUITests: TrinketUITestCase {
 
         let cards = battle.handCards
         let inspectedCard = cards.firstMatch
-        XCTAssertTrue(inspectedCard.waitForExistence(timeout: Self.defaultTimeout))
+        XCTAssertTrue(inspectedCard.trinketWaitForExistence(timeout: Self.defaultTimeout))
         let inspectCountBefore = cards.count
         inspectedCard.press(forDuration: 0.7)
         assertExists(AccessibilityID.Battle.abilityDetail)
@@ -24,7 +24,7 @@ final class BattleFlowUITests: TrinketUITestCase {
         )
 
         let dragCard = cards.firstMatch
-        XCTAssertTrue(dragCard.waitForExistence(timeout: Self.defaultTimeout))
+        XCTAssertTrue(dragCard.trinketWaitForExistence(timeout: Self.defaultTimeout))
         let dragCountBefore = cards.count
         let origin = dragCard.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
         origin.press(
@@ -52,7 +52,7 @@ final class BattleFlowUITests: TrinketUITestCase {
 
         let detailHeader = combatantDetail.header(for: "Knight")
         XCTAssertFalse(
-            detailHeader.waitForExistence(timeout: 1),
+            detailHeader.trinketWaitForExistence(timeout: 1),
             "Releasing a hand-card drag on a combatant must not open details",
         )
 
@@ -68,7 +68,7 @@ final class BattleFlowUITests: TrinketUITestCase {
         battle.retreatConfirmAction.tap()
 
         XCTAssertTrue(
-            app.tabBars.buttons[AccessibilityID.Tab.play].waitForExistence(timeout: Self.defaultTimeout),
+            app.tabBars.buttons[AccessibilityID.Tab.play].trinketWaitForExistence(timeout: Self.defaultTimeout),
             "Tab bar should return after retreat",
         )
         play.assertCampaignLoaded(number: 1)

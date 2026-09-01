@@ -42,7 +42,7 @@ final class StarterOnboardingSmokeTests: TrinketUITestCase {
         XCTAssertEqual(app.tabBars.count, 0)
 
         let heroConfirm = app.descendants(matching: .any)[AccessibilityID.Onboarding.confirm(role: "Hero")]
-        if !heroConfirm.waitForExistence(timeout: 20) {
+        if !heroConfirm.trinketWaitForExistence(timeout: 20) {
             XCTFail("Confirm Hero not found. Tree: \(String(app.debugDescription.prefix(2500)))")
         }
         XCTAssertTrue(heroConfirm.isEnabled)
@@ -52,7 +52,7 @@ final class StarterOnboardingSmokeTests: TrinketUITestCase {
         assertExists(AccessibilityID.Onboarding.companionScreen, timeout: 20)
 
         let companionConfirm = app.descendants(matching: .any)[AccessibilityID.Onboarding.confirm(role: "Companion")]
-        if !companionConfirm.waitForExistence(timeout: 20) {
+        if !companionConfirm.trinketWaitForExistence(timeout: 20) {
             XCTFail("Confirm Companion not found. Tree: \(String(app.debugDescription.prefix(2500)))")
         }
         XCTAssertTrue(companionConfirm.isEnabled)
@@ -60,9 +60,9 @@ final class StarterOnboardingSmokeTests: TrinketUITestCase {
         tapWhenReady(companionConfirm)
 
         XCTAssertTrue(
-            app.tabBars.firstMatch.waitForExistence(timeout: 20),
+            app.tabBars.firstMatch.trinketWaitForExistence(timeout: 20),
             "Tab bar did not appear after onboarding",
         )
-        _ = app.descendants(matching: .any)[AccessibilityID.Play.modesScreen].waitForExistence(timeout: 20)
+        _ = app.descendants(matching: .any)[AccessibilityID.Play.modesScreen].trinketWaitForExistence(timeout: 20)
     }
 }

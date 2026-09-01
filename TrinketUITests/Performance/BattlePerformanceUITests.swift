@@ -47,11 +47,11 @@ final class BattlePerformanceUITests: TrinketUITestCase {
         let gesture = prepareGesture(for: scenario)
 
         let start = app.buttons[AccessibilityID.Debug.battlePerformanceStart]
-        XCTAssertTrue(start.waitForExistence(timeout: Self.defaultTimeout))
+        XCTAssertTrue(start.trinketWaitForExistence(timeout: Self.defaultTimeout))
         let status = app.descendants(matching: .any)[AccessibilityID.Debug.battlePerformanceStatus]
-        XCTAssertTrue(status.waitForExistence(timeout: Self.defaultTimeout))
+        XCTAssertTrue(status.trinketWaitForExistence(timeout: Self.defaultTimeout))
         let metrics = app.descendants(matching: .any)[AccessibilityID.Debug.frameMetrics]
-        XCTAssertTrue(metrics.waitForExistence(timeout: Self.defaultTimeout))
+        XCTAssertTrue(metrics.trinketWaitForExistence(timeout: Self.defaultTimeout))
 
         tapWhenReady(start)
         XCTAssertTrue(
@@ -97,12 +97,12 @@ final class BattlePerformanceUITests: TrinketUITestCase {
         case "real-card-play":
             let cards = handCards()
             let card = cards.firstMatch
-            XCTAssertTrue(card.waitForExistence(timeout: Self.defaultTimeout))
+            XCTAssertTrue(card.trinketWaitForExistence(timeout: Self.defaultTimeout))
             return .play(origin: screenCoordinate(for: card), initialCardCount: cards.count)
         case "hand-drag-cancel":
             let cards = handCards()
             let card = cards.firstMatch
-            XCTAssertTrue(card.waitForExistence(timeout: Self.defaultTimeout))
+            XCTAssertTrue(card.trinketWaitForExistence(timeout: Self.defaultTimeout))
             return .cancel(origin: screenCoordinate(for: card), initialCardCount: cards.count)
         default:
             return .none

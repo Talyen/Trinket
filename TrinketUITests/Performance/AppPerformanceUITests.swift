@@ -51,7 +51,7 @@ final class AppPerformanceUITests: TrinketUITestCase {
         launchApp(arguments: TestLaunchArg.allForAppPerformance(tab: "collection"))
         collection.assertLoaded()
         let card = app.buttons[AccessibilityID.CombatantDetail.collectionCard(name: "Knight")]
-        XCTAssertTrue(card.waitForExistence(timeout: Self.defaultTimeout))
+        XCTAssertTrue(card.trinketWaitForExistence(timeout: Self.defaultTimeout))
         let cardCoordinate = card.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
         let dismissStart = sheetDismissDragStart
         let dismissEnd = sheetDismissDragEnd
@@ -115,7 +115,7 @@ final class AppPerformanceUITests: TrinketUITestCase {
         play.openCampaign()
         play.assertCampaignLoaded(number: 1)
         let enemy = button(AccessibilityID.Play.enemyArt(chapter: 1, stage: 1))
-        XCTAssertTrue(enemy.waitForExistence(timeout: Self.defaultTimeout))
+        XCTAssertTrue(enemy.trinketWaitForExistence(timeout: Self.defaultTimeout))
         let enemyCoordinate = enemy.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
         let dismissStart = sheetDismissDragStart
         let dismissEnd = sheetDismissDragEnd
@@ -137,7 +137,7 @@ final class AppPerformanceUITests: TrinketUITestCase {
         play.openCampaign()
         play.assertCampaignLoaded(number: 1)
         let stageAction = button(AccessibilityID.Play.stageAction(chapter: 1, stage: 1))
-        XCTAssertTrue(stageAction.waitForExistence(timeout: Self.defaultTimeout))
+        XCTAssertTrue(stageAction.trinketWaitForExistence(timeout: Self.defaultTimeout))
         let stageActionCoordinate = stageAction.coordinate(
             withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5),
         )
@@ -151,7 +151,7 @@ final class AppPerformanceUITests: TrinketUITestCase {
     func test07VictoryRewardReveal() {
         launchApp(arguments: TestLaunchArg.allForVictoryPerformance())
         let victory = app.descendants(matching: .any)[AccessibilityID.Battle.victory]
-        XCTAssertTrue(victory.waitForExistence(timeout: 8))
+        XCTAssertTrue(victory.trinketWaitForExistence(timeout: 8))
         run(scenario: "victory-reward-reveal") {}
     }
 
@@ -159,15 +159,15 @@ final class AppPerformanceUITests: TrinketUITestCase {
         launchApp(arguments: TestLaunchArg.allForMysteryPerformance())
         let unlockCard = app.buttons[AccessibilityID.Mystery.unlockCard(name: "Bear")]
         let unlocked = app.descendants(matching: .any)[AccessibilityID.Mystery.unlockName]
-        let appeared = unlockCard.waitForExistence(timeout: 8)
-            || unlocked.waitForExistence(timeout: 1)
+        let appeared = unlockCard.trinketWaitForExistence(timeout: 8)
+            || unlocked.trinketWaitForExistence(timeout: 1)
         XCTAssertTrue(appeared, "Mystery encounter chrome did not appear")
         run(scenario: "mystery-encounter-reveal") {}
     }
 
     private func tabCoordinate(named name: String) -> XCUICoordinate {
         let tab = app.tabBars.buttons[name]
-        XCTAssertTrue(tab.waitForExistence(timeout: Self.defaultTimeout))
+        XCTAssertTrue(tab.trinketWaitForExistence(timeout: Self.defaultTimeout))
         return tab.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
     }
 
@@ -183,9 +183,9 @@ final class AppPerformanceUITests: TrinketUITestCase {
 
     private func runOnce(scenario: String, iteration: Int, action: @escaping () -> Void) {
         let reset = app.buttons[AccessibilityID.Debug.frameMetricsReset]
-        XCTAssertTrue(reset.waitForExistence(timeout: Self.defaultTimeout))
+        XCTAssertTrue(reset.trinketWaitForExistence(timeout: Self.defaultTimeout))
         let metrics = app.descendants(matching: .any)[AccessibilityID.Debug.frameMetrics]
-        XCTAssertTrue(metrics.waitForExistence(timeout: Self.defaultTimeout))
+        XCTAssertTrue(metrics.trinketWaitForExistence(timeout: Self.defaultTimeout))
         let resetAt = Date()
         tapWhenReady(reset)
         RunLoop.current.run(until: Date().addingTimeInterval(Self.samplerWarmup))

@@ -23,16 +23,16 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
         launchApp(arguments: TestLaunchArg.allForScreen("labyrinth-map"))
 
         let enterButton = app.descendants(matching: .any)[AccessibilityID.Play.labyrinthEnter]
-        if enterButton.waitForExistence(timeout: 3) {
+        if enterButton.trinketWaitForExistence(timeout: 3) {
             tapWhenReady(enterButton)
         }
         assertExists(AccessibilityID.Play.labyrinthMap, timeout: 20)
         let entryNode = app.descendants(matching: .any)[AccessibilityID.Play.labyrinthFloor1EntryNode]
-        if !entryNode.waitForExistence(timeout: 10) {
+        if !entryNode.trinketWaitForExistence(timeout: 10) {
             assertExists(AccessibilityID.Play.labyrinthMap, timeout: 5)
             app.swipeUp()
             app.swipeDown()
-            _ = entryNode.waitForExistence(timeout: 5)
+            _ = entryNode.trinketWaitForExistence(timeout: 5)
         }
         assertExists(entryNode, timeout: 20)
         tapWhenReady(entryNode)
