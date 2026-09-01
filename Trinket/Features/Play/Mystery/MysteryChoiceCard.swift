@@ -181,6 +181,7 @@ struct MysteryChoiceCard: View {
                     // UIStyleCheck: allow - SF Symbol glyph sizing, not copy
                     .font(.title2.weight(.semibold))
                     .foregroundStyle(tint)
+                    .accessibilityHidden(true)
                     .frame(
                         width: TrinketDesign.Metrics.mysteryRewardArtworkSize,
                         height: TrinketDesign.Metrics.mysteryRewardArtworkSize,

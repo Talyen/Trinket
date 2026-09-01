@@ -6,7 +6,7 @@ import TrinketDesignSystem
 import TrinketFeatureSupport
 import TrinketPersistence
 
-struct CombatantStatsSection: View {
+struct CombatantStatsSection: View, Equatable {
     let combatBuild: CombatBuild
     let combatantRole: Combatant.Role
     let battleHealth: Int?
@@ -52,7 +52,7 @@ struct CombatantStatsSection: View {
     }
 }
 
-struct CombatantTraitsSection: View {
+struct CombatantTraitsSection: View, Equatable {
     let traits: [CombatantTraitDefinition]
     let sectionID: String
     let descriptionID: String
@@ -72,7 +72,7 @@ struct CombatantTraitsSection: View {
     }
 }
 
-struct CombatantLabyrinthSection: View {
+struct CombatantLabyrinthSection: View, Equatable {
     let labyrinthModifiers: [LabyrinthModifierDefinition]
 
     var body: some View {
@@ -91,7 +91,7 @@ struct CombatantLabyrinthSection: View {
     }
 }
 
-struct CombatantActiveEffectsSection: View {
+struct CombatantActiveEffectsSection: View, Equatable {
     let summaries: [EffectSummary]
 
     var body: some View {

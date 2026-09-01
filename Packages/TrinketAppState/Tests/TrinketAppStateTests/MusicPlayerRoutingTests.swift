@@ -36,7 +36,7 @@ struct MusicPlayerRoutingTests {
         expectedTrackID: String?,
     ) throws {
         let stageID = enemyID == "skeleton" ? "chapter-1-stage-1" : "chapter-1-stage-10"
-        let battle = try PlayBattleLaunchTestSupport.make(
+        let battle = PlayBattleLaunchTestSupport.make(
             origin: .journey(stageID: stageID),
             rngSeed: 0,
             hero: GameContent.heroes[0],
@@ -64,7 +64,7 @@ struct MusicPlayerRoutingTests {
     }
 
     @Test func `leaving play returns to menu even with active battle`() throws {
-        let battle = try PlayBattleLaunchTestSupport.make(
+        let battle = PlayBattleLaunchTestSupport.make(
             origin: .journey(stageID: "chapter-1-stage-10"),
             rngSeed: 0,
             hero: GameContent.heroes[0],

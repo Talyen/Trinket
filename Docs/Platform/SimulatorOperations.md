@@ -5,9 +5,7 @@
 - Agents use `--isolate` and the managed `Trinket Agent N` pool (Simulator.app
   name **Trinket Agent 1**, **Trinket Agent 2**, …). Never run ad-hoc
   `simctl shutdown all` or erase shared devices.
-- Humans omit isolation. The `run` alias and local tests use **Trinket Run**
-  (formerly named `Trinket CI` — that name meant the shared local device, not
-  GitHub Actions).
+- Humans omit isolation. The `run` alias and local tests use **Trinket Run**.
 - Close SwiftUI Previews before long verification runs. Set
   `TRINKET_CLEANUP_PREVIEW_SIMS=0` only while intentionally keeping previews.
 - Erase is a recovery operation after a failed cold boot, not routine cleanup.

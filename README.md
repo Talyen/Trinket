@@ -2,6 +2,14 @@
 
 Portrait-first **iOS 26+** native fantasy turn-based card combat (deckbuilder). Built with **Swift 6**, **SwiftUI**, and **SwiftData** using Apple's 2026 platform APIs. Requires **Xcode 26+**.
 
+## Player loop
+
+Choose a Journey, Labyrinth, Spire, or encounter from Play; bring a Hero and
+Companion into three-card-hand combat; then carry rewards back into Collection
+loadouts and Homestead upgrades. Collection owns the party's equipment and
+talents, Homestead turns gathered resources into permanent progress, and Options
+holds device preferences without gating play or progress behind an account.
+
 ## Requirements
 
 - Xcode 26+ with iOS 26 simulator runtime

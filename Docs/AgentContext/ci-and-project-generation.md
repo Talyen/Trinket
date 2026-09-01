@@ -5,8 +5,8 @@ Use for XcodeGen, isolate slots, generation freshness, or release tooling except
 Gate composition and test tiers: [Verification.md](../Platform/Verification.md).
 Isolation and IDE workflows: [SimulatorOperations.md](../Platform/SimulatorOperations.md).
 Swift Testing conventions: [Testing.md](../Platform/Testing.md).
-Preview an unfamiliar route with `./Scripts/handoff.sh --dry-run --isolate --paths …`
-(a preview is not verification). Agents **always** pass `--isolate`.
+Preview an unfamiliar route with the dry-run form documented in
+[Verification.md](../Platform/Verification.md); a preview is not verification.
 
 ## Key exceptions
 

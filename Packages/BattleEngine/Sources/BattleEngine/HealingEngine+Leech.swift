@@ -3,7 +3,7 @@ import TrinketContent
 import TrinketCore
 
 package extension HealingEngine {
-    // swiftlint:disable:next function_body_length cyclomatic_complexity
+    // swiftlint:disable:next function_body_length cyclomatic_complexity - leech resolution is one atomic pipeline
     static func leechFromDamage(
         _ damage: Int,
         sourceActorID: String,

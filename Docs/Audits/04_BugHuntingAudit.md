@@ -21,7 +21,7 @@ Severity follows the [shared audit scale](README.md#severity-scale). Treat
 crashes, data loss, double rewards, and wrong state as the highest-priority
 confirmed defects; recoverable diagnostics gaps are optional unless trivial.
 
-Maintainability hits (orphaned state) route to [06_DeadCodeRatioAudit.md](06_DeadCodeRatioAudit.md); future concurrency risk routes to [14_SwiftConcurrencyDataRaceAudit.md](14_SwiftConcurrencyDataRaceAudit.md) — do not track them as low-severity findings here.
+Maintainability hits (orphaned, parallel, or ceremonial state) route to [06_DeadParallelCeremonialSurfaceAudit.md](06_DeadParallelCeremonialSurfaceAudit.md); future concurrency risk routes to [14_SwiftConcurrencyDataRaceAudit.md](14_SwiftConcurrencyDataRaceAudit.md) — do not track them as low-severity findings here.
 
 ## Example signals
 

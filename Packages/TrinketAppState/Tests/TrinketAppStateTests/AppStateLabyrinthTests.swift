@@ -11,7 +11,7 @@ import TrinketTestSupport
 @testable import TrinketPersistence
 
 @MainActor
-struct AppStateLabyrinthTests { // swiftlint:disable:this type_body_length
+struct AppStateLabyrinthTests { // swiftlint:disable:this type_body_length - one suite owns labyrinth app-state journeys
     let context: AppTestContext
 
     init() throws {

@@ -103,6 +103,7 @@ struct MysteryUnlockContent: View {
         HStack(spacing: TrinketDesign.Spacing.small) {
             Image(systemName: "checkmark")
                 .fontWeight(.bold)
+                .accessibilityHidden(true)
             Text("RECRUITED")
                 .trinketTypography(.badge)
         }

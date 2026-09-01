@@ -506,7 +506,8 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
                 self.assertIn("type: execution-plan", text)
                 self.assertIn("status: active", text)
                 self.assertIn("expires:", text)
-                self.assertIn("Docs/Plans/Archived/", text)
+                self.assertIn("Docs/Plans/Archived/README.md", text)
+                self.assertIn("delete this plan", text)
             finally:
                 plan_path.unlink(missing_ok=True)
 

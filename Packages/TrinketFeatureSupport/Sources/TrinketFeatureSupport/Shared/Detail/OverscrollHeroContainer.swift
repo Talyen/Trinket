@@ -23,26 +23,25 @@ struct OverscrollHeroContainer<Art: View, Overlay: View>: View {
     }
 
     var body: some View {
-        GeometryReader { geometry in
-            let rawOverscroll = max(geometry.frame(in: .scrollView(axis: .vertical)).minY, 0)
-            let metrics = HeroHeaderLayout.overscrollMetrics(baseHeight: baseHeight, overscroll: rawOverscroll)
-            let overscroll = metrics.offsetY == 0 ? rawOverscroll : -metrics.offsetY
-            let height = metrics.height
+        ZStack(alignment: alignment) {
+            art()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .trinketArtworkBlend(artworkBlend)
+                .backgroundExtensionEffect()
+                .allowsHitTesting(false)
 
-            ZStack(alignment: alignment) {
-                art()
-                    .frame(width: geometry.size.width, height: height)
-                    .trinketArtworkBlend(artworkBlend)
-                    .backgroundExtensionEffect()
-                    .allowsHitTesting(false)
-
-                overlay()
-                    .frame(width: geometry.size.width, height: height, alignment: alignment)
-            }
-            .frame(width: geometry.size.width, height: height)
-            .clipped()
-            .offset(y: -overscroll)
+            overlay()
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: alignment)
         }
         .frame(height: baseHeight)
+        .clipped()
+        .visualEffect { content, proxy in
+            let rawOverscroll = max(proxy.frame(in: .scrollView(axis: .vertical)).minY, 0)
+            let metrics = HeroHeaderLayout.overscrollMetrics(baseHeight: baseHeight, overscroll: rawOverscroll)
+            let stretch = baseHeight > 0 ? metrics.height / baseHeight : 1
+            return content
+                .scaleEffect(x: 1, y: stretch, anchor: .top)
+                .offset(y: metrics.offsetY)
+        }
     }
 }

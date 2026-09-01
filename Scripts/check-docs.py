@@ -20,10 +20,11 @@ PLAN_STATUSES = {"active", "blocked", "complete", "cancelled"}
 ARCHIVED_PLAN_STATUSES = {"complete", "cancelled"}
 PLAN_WARNING_DAYS = 3
 DOC_WARNINGS: list[str] = []
+SOURCE_GREP_PATHS = ("Packages", "Trinket", "Scripts", "project.yml")
 
 
 def markdown_files() -> list[Path]:
-    """Return tracked Markdown plus explicitly authored, untracked execution plans."""
+    """Return tracked and untracked authored Markdown while respecting ignores."""
     result = subprocess.run(
         [
             "git",
@@ -40,7 +41,7 @@ def markdown_files() -> list[Path]:
     )
     if result.returncode == 0:
         authored = set(result.stdout.splitlines())
-        plans = subprocess.run(
+        untracked = subprocess.run(
             [
                 "git",
                 "-C",
@@ -49,15 +50,14 @@ def markdown_files() -> list[Path]:
                 "--others",
                 "--exclude-standard",
                 "--",
-                "Docs/Plans/*.md",
-                "Docs/Plans/Archived/*.md",
+                "*.md",
             ],
             capture_output=True,
             text=True,
             check=False,
         )
-        if plans.returncode == 0:
-            authored.update(plans.stdout.splitlines())
+        if untracked.returncode == 0:
+            authored.update(untracked.stdout.splitlines())
         return sorted(
             ROOT / line
             for line in authored
@@ -211,6 +211,52 @@ def test_suite_names() -> set[str]:
     return names
 
 
+def source_contains_identifier(identifier: str) -> bool:
+    """Return whether an audit evidence identifier still exists in authored source."""
+    result = subprocess.run(
+        ["git", "-C", str(ROOT), "grep", "-q", "-w", identifier, "--", *SOURCE_GREP_PATHS],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if result.returncode in {0, 1}:
+        return result.returncode == 0
+    for root_name in SOURCE_GREP_PATHS:
+        root = ROOT / root_name
+        paths = [root] if root.is_file() else root.rglob("*") if root.is_dir() else []
+        for path in paths:
+            if path.is_file() and path.suffix in {".swift", ".py", ".sh", ".mjs", ".yml", ".yaml", ".json"}:
+                if re.search(rf"\b{re.escape(identifier)}\b", path.read_text(encoding="utf-8", errors="replace")):
+                    return True
+    return False
+
+
+def proposal_evidence_failures() -> list[str]:
+    """Require the primary evidence pointer to retain a live source symbol."""
+    path = ROOT / "Docs" / "Audits" / "Proposals.md"
+    failures: list[str] = []
+    for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+        if not line.startswith("|") or "`" not in line:
+            continue
+        columns = [column.strip() for column in line.strip().strip("|").split("|")]
+        if len(columns) < 3 or columns[0] in {"Owning audit", "--------------"}:
+            continue
+        pointers = re.findall(r"`([^`]+)`", columns[2])
+        if not pointers:
+            continue
+        pointer = pointers[0]
+        identifiers = re.findall(r"[A-Za-z_][A-Za-z0-9_]*", pointer)
+        if not identifiers:
+            continue
+        identifier = identifiers[-1]
+        if not source_contains_identifier(identifier):
+            failures.append(
+                f"{path.relative_to(ROOT)}:{line_number}: evidence pointer {pointer!r} "
+                f"does not resolve to authored source identifier {identifier!r}"
+            )
+    return failures
+
+
 def structural_checks(files: list[Path], *, final: bool = False, keep_plan: bool = False) -> list[str]:
     failures: list[str] = []
     relative = {path.relative_to(ROOT) for path in files}
@@ -296,6 +342,9 @@ def structural_checks(files: list[Path], *, final: bool = False, keep_plan: bool
         "Task→Command Router": "command routing lives in Docs/Platform/Verification.md",
         "follows the proposal bar": "audit right-size policy lives only in Docs/Audits/README.md",
         "A clean pass is valid": "zero-findings-is-success lives only in Docs/Audits/README.md",
+        "Swift 6.0": "project.yml sets SWIFT_VERSION to 6.2",
+        "accessibility-setting UI test only": "PD-014 forbids accessibility-setting UI tests",
+        "do not regenerate on enter": "Labyrinth entry rebuilds unreadable map payloads",
     }
     for source in files:
         text = source.read_text(encoding="utf-8")
@@ -343,10 +392,27 @@ def structural_checks(files: list[Path], *, final: bool = False, keep_plan: bool
 
     plans_dir = ROOT / "Docs" / "Plans"
     archived_dir = plans_dir / "Archived"
+    parallel_plan_paths = sorted((ROOT / ".agents" / "plans").glob("*.md"))
+    parallel_plan_paths.extend(
+        path
+        for path in files
+        if path.is_file()
+        and plans_dir not in path.parents
+        and "type: execution-plan" in path.read_text(encoding="utf-8", errors="replace")
+    )
+    for path in sorted(set(parallel_plan_paths)):
+        failures.append(
+            f"{path.relative_to(ROOT)}: execution plans are allowed only directly under Docs/Plans/"
+        )
+    archived_plan_files = sorted(path for path in archived_dir.glob("*.md") if path.name != "README.md")
+    for path in archived_plan_files:
+        failures.append(
+            f"{path.relative_to(ROOT)}: completed plan detail belongs in Git history; "
+            "record one outcome row in Docs/Plans/Archived/README.md"
+        )
     active_plans = 0
-    plan_paths = [(path, False) for path in sorted(plans_dir.glob("*.md"))]
-    plan_paths.extend((path, True) for path in sorted(archived_dir.rglob("*.md")))
-    for plan_path, archived in plan_paths:
+    plan_paths = sorted(plans_dir.glob("*.md"))
+    for plan_path in plan_paths:
         if plan_path.name == "README.md":
             continue
         metadata, errors = plan_metadata(plan_path)
@@ -355,15 +421,9 @@ def structural_checks(files: list[Path], *, final: bool = False, keep_plan: bool
             failures.append(f"{relative_plan}: " + "; ".join(errors))
             continue
         status = metadata["status"]
-        if archived:
-            if status not in ARCHIVED_PLAN_STATUSES:
-                failures.append(
-                    f"{relative_plan}: archived plans must be complete or cancelled"
-                )
-            continue
         if status in ARCHIVED_PLAN_STATUSES:
             failures.append(
-                f"{relative_plan}: {status} plans must be moved to Docs/Plans/Archived/"
+                f"{relative_plan}: {status} plans must be summarized in Docs/Plans/Archived/README.md and deleted"
             )
             continue
         try:
@@ -373,7 +433,7 @@ def structural_checks(files: list[Path], *, final: bool = False, keep_plan: bool
         today = date.today()
         if expires <= today:
             failures.append(
-                f"{relative_plan}: {status} plan expired on {expires}; update or renew it, or complete and move it to Docs/Plans/Archived/"
+                f"{relative_plan}: {status} plan expired on {expires}; update or renew it, or record its outcome in Docs/Plans/Archived/README.md and delete it"
             )
         elif expires <= today + timedelta(days=PLAN_WARNING_DAYS):
             DOC_WARNINGS.append(
@@ -383,10 +443,11 @@ def structural_checks(files: list[Path], *, final: bool = False, keep_plan: bool
             active_plans += 1
             if final and not keep_plan:
                 failures.append(
-                    f"{relative_plan}: active plan remains at final handoff; mark complete and move it to Docs/Plans/Archived/, or pass --keep-plan"
+                    f"{relative_plan}: active plan remains at final handoff; record its outcome in Docs/Plans/Archived/README.md and delete it, or pass --keep-plan"
                 )
     if active_plans > 3:
         DOC_WARNINGS.append(f"Docs/Plans/: {active_plans} active plans are present")
+    failures.extend(proposal_evidence_failures())
     return failures
 
 

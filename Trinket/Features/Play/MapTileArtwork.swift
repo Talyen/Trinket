@@ -30,6 +30,7 @@ struct MapTilePlaceholder: View {
                 .font(.system(size: iconSize, weight: .semibold))
                 .foregroundStyle(tint)
                 .symbolRenderingMode(.hierarchical)
+                .accessibilityHidden(true)
         }
     }
 }

@@ -2,7 +2,7 @@ import TrinketContent
 import TrinketCore
 
 package extension CombatTriggerEngine {
-    // swiftlint:disable:next function_body_length cyclomatic_complexity
+    // swiftlint:disable:next function_body_length cyclomatic_complexity - holy triggers share one ordered cadence
     static func afterHolyDamageDealt(
         to enemy: Combatant,
         source: Combatant,

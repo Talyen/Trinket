@@ -382,7 +382,7 @@ struct CombatTriggerTalentControlTests { // swiftlint:disable:this type_body_len
         #expect(poisons.contains { $0.sourceActorID == battle.roster.companion.id })
     }
 
-    // swiftlint:disable:next function_body_length
+    // swiftlint:disable:next function_body_length - one scenario verifies the complete paralysis cadence
     @Test func `harvest essence ignores do T and retaliation`() {
         let harvest = CombatModifierProfile(triggers: CombatTraitTriggers(
             block: BlockTriggers(onAnyHealthLossGainBlock: 1),

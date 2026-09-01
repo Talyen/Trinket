@@ -37,6 +37,6 @@ Store I/O tests isolate `@MainActor` on the test that opens `PlayerSaveStore`, n
 | Labyrinth run health | `LabyrinthRunHealthTests` | Campfire math and payload decode (no extra store open) |
 | Labyrinth encounter level | `LabyrinthEncounterLevelOverrideTests` | Loot/XP at overridden levels |
 | Labyrinth migration | `LabyrinthMigrationTests` | Map version ID migration |
-| Labyrinth unreadable blob | `LabyrinthSaveRecoveryTests` | Keep stored blob; do not regenerate on enter |
+| Labyrinth unreadable blob | `LabyrinthSaveRecoveryTests` | Preserve the stored blob during load/sanitize; rebuild the map when the player enters |
 
 Harnesses: `Support/PersistenceTestContext.swift` (temp dir per store-test instance) and `TrinketPersistenceTestSupport.SaveTestSupport` (`writeRoot`, `makeGeneratedItem`, store factory).

@@ -21,6 +21,7 @@ public struct HomesteadResourceArtwork: View {
                 .trinketTypography(.button)
                 .foregroundStyle(resource.tint)
                 .symbolRenderingMode(.hierarchical)
+                .accessibilityHidden(true)
         }
     }
 }

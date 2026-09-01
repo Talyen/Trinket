@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Fail-closed mechanical invariants that agents otherwise skip: BattleEngine
 # entropy, test Task.sleep, persistence try?, undocumented concurrency escapes,
-# file-level swiftlint:disable without a reason, and launch artwork pin release.
+# SwiftLint disables without a reason, and launch artwork pin release.
 #
 # Escape hatches (nearby line, same style as ExclusivityCheck):
 #   EntropyCheck: allow - <reason>
@@ -159,10 +159,10 @@ while IFS= read -r match; do
   if [[ "$text" == *" - "* ]]; then
     continue
   fi
-  violations+=("${local_file}:${line}: file-level swiftlint:disable must include ' - <reason>'")
+  violations+=("${local_file}:${line}: swiftlint:disable must include ' - <reason>'")
 done < <(
   rg -n --glob '*.swift' --glob '!**/Generated/**' \
-    '//[[:space:]]*swiftlint:disable([^:]|$)' \
+    '//[[:space:]]*swiftlint:disable' \
     "${SWIFT_SOURCE_DIRS[@]}" 2>/dev/null || true
 )
 

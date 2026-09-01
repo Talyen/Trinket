@@ -20,7 +20,7 @@ enum BattleSessionTestSupport {
         ultimateInFrameDurationOverride: TimeInterval? = nil,
         presentationEnvironment: BattleRuntimeDependencies = .silent,
         stageRewardsAlreadyClaimed: Bool = false,
-    ) throws -> BattleSession {
+    ) -> BattleSession {
         let resolvedHero = hero ?? CombatantFixtures.combatant(
             id: "hero",
             role: .hero,
@@ -65,7 +65,7 @@ enum BattleSessionTestSupport {
 
     static func waitUntil(
         timeout: Duration = .seconds(2),
-        condition: @escaping @MainActor () -> Bool,
+        condition: @MainActor () -> Bool,
     ) async throws -> Bool {
         let deadline = ContinuousClock.now.advanced(by: timeout)
         while !condition() {

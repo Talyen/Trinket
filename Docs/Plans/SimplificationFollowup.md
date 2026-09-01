@@ -48,5 +48,5 @@ metadata changes.
 ## Disposition
 
 This plan supersedes the deferred portions of `ElegantSimplificationRound4` and
-`SimplificationConsolidationRound2`. Archive those historical plans only after
-this file is present and the lifecycle check passes.
+`SimplificationConsolidationRound2`; their outcomes are retained in the archived
+plan ledger and their full detail remains in Git history.

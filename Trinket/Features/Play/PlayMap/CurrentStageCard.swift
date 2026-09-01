@@ -221,6 +221,7 @@ struct StageSelectMetaLine<Item: Identifiable>: View {
                 .foregroundStyle(presentation.tint)
             Image(systemName: presentation.symbolName)
                 .foregroundStyle(presentation.tint)
+                .accessibilityHidden(true)
         }
         .trinketTypography(.footnote)
         .foregroundStyle(.secondary)

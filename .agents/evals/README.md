@@ -16,7 +16,7 @@ Do **not** build an autonomous benchmark harness. Prefer objective signals via e
 
 1. Pick a representative task below that matches the change’s concern.
 2. Run the task in an isolated worktree or slot.
-3. Validate with `./Scripts/handoff.sh --isolate --paths <touched-files>` (canonical gate).
+3. Validate with the path-scoped route emitted by `./Scripts/agent-context.sh`.
 4. Record pass/fail in `skill-impact.md` when promoting a skill change.
 
 Future skill changes should be validated against at least one relevant eval before being permanently promoted.

@@ -3,7 +3,7 @@ import TrinketContent
 import TrinketCore
 
 package extension DamagePipeline {
-    // swiftlint:disable:next function_body_length
+    // swiftlint:disable:next function_body_length - shield resolution is one ordered mutation step
     static func applyShieldAbsorption(
         to state: inout DamageResolutionState,
         in context: inout BattleState,

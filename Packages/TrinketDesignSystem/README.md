@@ -8,7 +8,7 @@ Shared app chrome — semantic surfaces, typography, keyword visuals, and reusab
 |------|------|
 | `TrinketDesign.swift` | Colors, metrics, overlays, and card chrome (`Spacing`/`Layout`/`Bars`/`Opacity`) |
 | `DesignAssetColors.swift` | Package-bundled semantic color assets (`Bundle.module`) |
-| `Resources/DesignColors.xcassets` | Theme, keyword, encounter, placeholder, resource, chapter color sets (now includes `ResourceGold`) |
+| `Resources/DesignColors.xcassets` | Theme, keyword, encounter, placeholder, resource, and chapter color sets |
 | `VisualFoundation.swift` | Background modes, surface roles, spacing tokens (table-driven specs) |
 | `HeroScrim.swift` | On-art text styling (`.trinketOnArtText`) |
 | `ArtworkBlend.swift` | Optional semantic bottom-edge artwork blending |
@@ -97,7 +97,7 @@ Route recurring chrome through these modifiers — do not call raw SwiftUI styli
 | `TrinketDesign.Layout.collectionShelfPreviewLimit` | Peek-shelf card count for Collection / party shelves |
 | `.trinketPrimaryActionButton()` | Primary CTAs (`.glassProminent`, single `GlassButtonModifier`) |
 | `.trinketCenteredPrimaryAction()` | Half-width, centered layout for a lone screen primary action |
-| `.trinketQuietTapButtonStyle()` | Tap without press dimming — now `.plain` alias (prefer `.buttonStyle(.plain)` directly) |
+| `.trinketQuietTapButtonStyle()` | Compatibility alias for `.buttonStyle(.plain)`; prefer the native style directly |
 | `.trinketOnArtText(_:)` | Paper foreground + ink shadows on hero art |
 | `.trinketArtworkBlend(_:)` | Optional `.bottom` blend into a semantic destination surface; defaults to `.none` |
 | `.trinketSensoryFeedback(_:trigger:enabled:)` | Gate `.sensoryFeedback` on Options haptics toggle |

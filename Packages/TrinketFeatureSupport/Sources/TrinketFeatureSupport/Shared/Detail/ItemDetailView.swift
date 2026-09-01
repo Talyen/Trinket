@@ -10,16 +10,18 @@ public enum ItemSalvageActionResult: Equatable, Sendable {
 }
 
 public struct ItemDetailView: View {
+    private struct PurchaseAction {
+        let price: Int
+        let canAfford: Bool
+        let isDisabled: Bool
+        let titleOverride: String?
+        let accessibilityID: String
+        let onPurchase: () -> Void
+    }
+
     private enum Action {
         case none
-        case purchase(
-            price: Int,
-            canAfford: Bool,
-            isDisabled: Bool,
-            titleOverride: String?,
-            accessibilityID: String,
-            onPurchase: () -> Void,
-        )
+        case purchase(PurchaseAction)
         case primaryAction(
             title: String,
             accessibilityID: String?,
@@ -56,14 +58,14 @@ public struct ItemDetailView: View {
         onPurchase: @escaping () -> Void,
     ) {
         self.item = item
-        action = .purchase(
+        action = .purchase(PurchaseAction(
             price: purchasePrice,
             canAfford: canAfford,
             isDisabled: isPurchaseDisabled,
             titleOverride: purchaseButtonTitleOverride,
             accessibilityID: accessibilityIdentifier,
             onPurchase: onPurchase,
-        )
+        ))
     }
 
     public init(
@@ -167,12 +169,16 @@ public struct ItemDetailView: View {
                 accessibilityIdentifier: accessibilityID,
                 action: onAction,
             )
-        case let .purchase(price, canAfford, isDisabled, titleOverride, accessibilityID, onPurchase):
+        case let .purchase(purchase):
             DetailPrimaryActionFooter(
-                title: purchaseButtonTitle(price: price, canAfford: canAfford, titleOverride: titleOverride),
-                accessibilityIdentifier: accessibilityID,
-                isDisabled: !canAfford || isDisabled,
-                action: onPurchase,
+                title: purchaseButtonTitle(
+                    price: purchase.price,
+                    canAfford: purchase.canAfford,
+                    titleOverride: purchase.titleOverride,
+                ),
+                accessibilityIdentifier: purchase.accessibilityID,
+                isDisabled: !purchase.canAfford || purchase.isDisabled,
+                action: purchase.onPurchase,
             )
         }
     }

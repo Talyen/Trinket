@@ -138,7 +138,7 @@ public struct ItemAffixPower: Codable, Equatable, Hashable, Sendable {
         description = try container.decode(String.self, forKey: .description)
         struct Failable: Decodable {
             let value: AffixModifier?
-            init(from decoder: Decoder) throws {
+            init(from decoder: Decoder) {
                 value = try? AffixModifier(from: decoder)
             }
         }

@@ -17,6 +17,8 @@ unused_declaration:
 swiftlint_version: 0.65.0
 
 opt_in_rules:
+  - accessibility_label_for_image
+  - accessibility_trait_for_button
   - explicit_init
   - first_where
   - prefer_key_path
@@ -27,7 +29,6 @@ opt_in_rules:
   - identical_operands
   - joined_default_parameter
   - last_where
-  - legacy_random
   - prohibited_super_call
   - overridden_super_call
   - reduce_into
@@ -41,6 +42,10 @@ opt_in_rules:
   - force_cast
   - force_try
   - duplicate_imports
+  - unused_optional_binding
+  - duplicate_conditions
+  - unneeded_override
+  - redundant_discardable_let
   - contains_over_filter_is_empty
   - contains_over_filter_count
   - prefer_zero_over_explicit_init
@@ -51,14 +56,11 @@ opt_in_rules:
   - sorted_first_last
   - private_swiftui_state
   - implicitly_unwrapped_optional
-  - unused_optional_binding
-  - duplicate_conditions
   - yoda_condition
   - optional_enum_case_matching
   - prefer_self_in_static_references
   - prefer_self_type_over_type_of_self
   - self_binding
-  - unneeded_override
   - shorthand_optional_binding
   - superfluous_else
   - fatal_error_message
@@ -73,9 +75,13 @@ opt_in_rules:
   - unavailable_function
   - static_operator
   - balanced_xctest_lifecycle
+  - enum_case_associated_values_count
+  - prohibited_interface_builder
   - untyped_error_in_catch
-  - redundant_discardable_let
   - fallthrough
+  - unneeded_escaping
+  - unneeded_throws_rethrows
+  - unused_parameter
   # no_empty_block omitted: fights Codable `init() {}`, SwiftUI dismiss
   # `Button { }`, default no-op closures, and `while predicate() {}` drains.
 

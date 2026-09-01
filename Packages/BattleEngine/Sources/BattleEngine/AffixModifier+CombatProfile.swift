@@ -25,7 +25,7 @@ public extension AffixModifier {
         return true
     }
 
-    // swiftlint:disable:next cyclomatic_complexity
+    // swiftlint:disable:next cyclomatic_complexity - exhaustive affix mapping belongs in one switch
     private func applyCombatBonus(to profile: inout CombatModifierProfile) -> Bool {
         switch self {
         case let .damageDealt(keyword, amount):

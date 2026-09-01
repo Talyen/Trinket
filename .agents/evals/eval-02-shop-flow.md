@@ -25,4 +25,4 @@ Add or adjust a Shop affordance in `Trinket/Features/Play/Shop/` (or `Trinket/Fe
 Do not copy display strings into tests; assert `AccessibilityID` + one visible outcome. Do not add nav-path pushes under launch cover.
 
 ## Handoff gate
-`./Scripts/handoff.sh --isolate --paths Trinket/Features/Play/Shop/<touched> TrinketUITests/Play/ShopFlowUITests.swift`
+Run the path-scoped route emitted for the touched Shop and UI-test files.

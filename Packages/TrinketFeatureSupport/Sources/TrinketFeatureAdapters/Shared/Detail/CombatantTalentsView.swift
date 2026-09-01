@@ -169,14 +169,17 @@ public struct CombatantTalentsView: View {
                     Image(systemName: symbolName)
                         .trinketTypography(.screenTitle)
                         .foregroundStyle(style.color)
+                        .accessibilityHidden(true)
                 } else if isRowLocked {
                     Image(systemName: "lock.fill")
                         .trinketTypography(.sectionTitle)
                         .foregroundStyle(.tertiary)
+                        .accessibilityHidden(true)
                 } else {
                     Image(systemName: symbolName)
                         .trinketTypography(.screenTitle)
                         .foregroundStyle(style.color.opacity(0.75))
+                        .accessibilityHidden(true)
                 }
 
                 Text(balanced: node.name)
@@ -238,6 +241,7 @@ public struct CombatantTalentsView: View {
                     Image(systemName: symbolName)
                         .trinketTypography(.cardTitle)
                         .foregroundStyle(style.color)
+                        .accessibilityHidden(true)
 
                     Text(balanced: selectedNode.name)
                         .trinketTypography(.cardTitle)

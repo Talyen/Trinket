@@ -354,6 +354,7 @@ struct LabyrinthNodeArtwork: View {
                     .trinketTypography(.sectionDisplay)
                     .foregroundStyle(LabyrinthMapPresentation.tint(for: type))
                     .symbolRenderingMode(.hierarchical)
+                    .accessibilityHidden(true)
             }
         }
     }
@@ -425,6 +426,7 @@ struct LabyrinthNodeArtwork: View {
                 .trinketTypography(.sectionDisplay)
                 .foregroundStyle(LabyrinthMapPresentation.tint(for: type))
                 .symbolRenderingMode(.hierarchical)
+                .accessibilityHidden(true)
         }
     }
 }

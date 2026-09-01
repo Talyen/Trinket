@@ -41,7 +41,7 @@ enum PlayBattleLaunchTestSupport {
         pendingRewardItem: InventoryItem? = nil,
         stageRewardsAlreadyClaimed: Bool = false,
         universalModifiers: [AffixModifier] = [],
-    ) throws -> BattleRunConfiguration {
+    ) -> BattleRunConfiguration {
         PlayBattleLaunch.assembleLaunch(
             input: BattleLaunchInput(
                 origin: origin,

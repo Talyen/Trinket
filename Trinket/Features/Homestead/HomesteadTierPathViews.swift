@@ -263,6 +263,7 @@ struct HomesteadTierNode: View {
                 .font(glyphFont)
                 .foregroundStyle(TrinketDesign.Colors.accent)
                 .symbolRenderingMode(.hierarchical)
+                .accessibilityHidden(true)
                 .contentTransition(.symbolEffect(.replace))
                 .symbolEffect(
                     .bounce.up,
@@ -273,6 +274,7 @@ struct HomesteadTierNode: View {
                 // UIStyleCheck: allow - SF Symbol glyph sizing, not copy
                 .font(glyphFont)
                 .foregroundStyle(TrinketDesign.Colors.success)
+                .accessibilityHidden(true)
                 .contentTransition(.symbolEffect(.replace))
                 .symbolEffect(.bounce, value: chromeState)
         case .locked:
@@ -280,6 +282,7 @@ struct HomesteadTierNode: View {
                 // UIStyleCheck: allow - SF Symbol glyph sizing, not copy
                 .font(glyphFont)
                 .foregroundStyle(.secondary)
+                .accessibilityHidden(true)
                 .contentTransition(.symbolEffect(.replace))
         case .theme:
             Image(systemName: definition.symbolName)
@@ -287,6 +290,7 @@ struct HomesteadTierNode: View {
                 .font(glyphFont)
                 .foregroundStyle(nodeForeground)
                 .symbolRenderingMode(.hierarchical)
+                .accessibilityHidden(true)
                 .contentTransition(.symbolEffect(.replace))
         }
     }

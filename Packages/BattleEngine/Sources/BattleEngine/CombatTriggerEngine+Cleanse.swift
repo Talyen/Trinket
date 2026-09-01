@@ -251,7 +251,7 @@ package extension CombatTriggerEngine {
         )
     }
 
-    // swiftlint:disable:next function_body_length
+    // swiftlint:disable:next function_body_length - cleanse reactions share one deterministic cadence
     private static func cleansePartyReactions(
         triggers: CombatTraitTriggers,
         source: Combatant,

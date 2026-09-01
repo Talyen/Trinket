@@ -36,7 +36,7 @@ Do not re-add layout/chrome, copy catalogs, or smoke+FullUI duplicates. Prefer t
 
 ## Domain rules
 
-UI tests run **serially** on one simulator. Reuse existing page objects; do not extract a new one for one or two call sites. Deterministic launch state, reset/isolation behavior, stable entry routes, identifiers required by owned journeys, and harness/CI state leakage are in scope. Focused Accessibility Inspector review belongs to UI Interaction; add an accessibility-setting UI test only for a distinct reproduced regression.
+UI tests run **serially** on one simulator. Reuse existing page objects; do not extract a new one for one or two call sites. Deterministic launch state, reset/isolation behavior, stable entry routes, identifiers required by owned journeys, and harness/CI state leakage are in scope. Accessibility-setting UI tests remain out of scope under PD-014.
 
 E2E owns an identifier change only when it is required to stabilize an existing owned journey; UIInteractionFeedback owns the broader shipping-control inventory and visible/native interaction behavior.
 

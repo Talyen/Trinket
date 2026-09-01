@@ -92,7 +92,7 @@ package extension CombatTriggerEngine {
         }
     }
 
-    // swiftlint:disable:next function_body_length cyclomatic_complexity
+    // swiftlint:disable:next function_body_length cyclomatic_complexity - ordered damage triggers share one cadence
     static func damageBonus(
         for state: DamageResolutionState,
         in context: inout BattleState,
@@ -354,7 +354,7 @@ package extension CombatTriggerEngine {
         )
     }
 
-    // swiftlint:disable:next function_body_length
+    // swiftlint:disable:next function_body_length - one pass owns the ordered damage reaction sequence
     static func afterCriticalHit(
         to enemy: Combatant,
         source: Combatant,

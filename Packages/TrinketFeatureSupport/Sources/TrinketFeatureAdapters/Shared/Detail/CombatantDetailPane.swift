@@ -201,6 +201,7 @@ public struct CombatantDetailPane: View {
             battleHealth: battleHealth,
             battleMana: battleMana,
         )
+        .equatable()
 
         if !enemyTraits.isEmpty {
             CombatantTraitsSection(
@@ -208,14 +209,17 @@ public struct CombatantDetailPane: View {
                 sectionID: AccessibilityID.CombatantDetail.enemyTraitsSection,
                 descriptionID: AccessibilityID.CombatantDetail.enemyTraitDescription,
             )
+            .equatable()
         }
 
         if !labyrinthModifiers.isEmpty {
             CombatantLabyrinthSection(labyrinthModifiers: labyrinthModifiers)
+                .equatable()
         }
 
         if !activeEffectSummaries.isEmpty {
             CombatantActiveEffectsSection(summaries: activeEffectSummaries)
+                .equatable()
         }
 
         if combatant.role != .enemy {

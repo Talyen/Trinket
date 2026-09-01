@@ -3,7 +3,7 @@ import TrinketContent
 import TrinketCore
 
 package enum ControlMeterEngine {
-    package static func applyMeterCharge( // swiftlint:disable:this function_body_length
+    package static func applyMeterCharge( // swiftlint:disable:this function_body_length - control status mutation is one atomic pipeline
         _ amount: Int,
         keyword: Keyword,
         to combatant: Combatant,
@@ -116,7 +116,7 @@ package enum ControlMeterEngine {
         let baseThreshold: Int
     }
 
-    // swiftlint:disable:next function_body_length
+    // swiftlint:disable:next function_body_length - control decay keeps status and meter changes ordered
     private static func applyThresholdReached(
         _ thresholdContext: ControlMeterThresholdContext,
         currentEffects: inout [ActiveEffect],

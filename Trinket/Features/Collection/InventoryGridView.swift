@@ -85,6 +85,7 @@ struct InventoryGridView: View {
                     Image(systemName: "line.3.horizontal.decrease")
                         .trinketTypography(selectedFilter != .all ? .button : .body)
                         .foregroundStyle(selectedFilter != .all ? TrinketDesign.Colors.accentEmphasized : .primary)
+                        .accessibilityLabel("Filter inventory")
                 }
 
                 .accessibilityIdentifier("Inventory filter")

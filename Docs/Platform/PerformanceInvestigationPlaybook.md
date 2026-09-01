@@ -94,17 +94,16 @@ hits with on-demand `Image(name)`, or lower `PreparedArtworkMemoryBudget` /
 `NSCache.totalCostLimit` to re-target 4 GB, to reduce memory. A smaller
 footprint that re-decodes on the presentation frame is a hitch regression.
 Pins are the eviction defense; `NSCache` alone is not. Budgets are tuned for
-6 GB typical (320 MiB artwork / 550 MiB process / 260 MiB cache cap,
-`physicalMemory/24` floored to 160). See
-[MemoryAndEnergyInvestigation.md](MemoryAndEnergyInvestigation.md).
+the current supported working set; their enforced values are listed once below.
+See [MemoryAndEnergyInvestigation.md](MemoryAndEnergyInvestigation.md) for the
+device-led validation workflow.
 
-### Artwork Budgets (6 GB typical, 2026-08)
+### Artwork Budgets
 
-Assumes iPhone 14/15/16 base (6 GB) as typical, with 8 GB on Pro/16. Jetsam
-kills foreground apps around 1.4–1.8 GB on 6 GB and 2.0–2.5 GB on 8 GB, so the
-budgets below are ~5–8% of RAM and 3× under the kill line. Do not lower to
-re-target 4 GB (iPhone 12/13) without product approval — the 80 MB pinned
-first-screen set is ~1–1.3% of 6–8 GB and is the hitch defense.
+These are the current enforced settings and the single prose owner for their
+numeric values. Change them only with the device evidence and product approval
+required below; do not infer a device-specific Jetsam threshold without a
+recorded measurement.
 
 | Budget | Value | Location |
 |---|---|---|

@@ -181,7 +181,7 @@ final class AppPerformanceUITests: TrinketUITestCase {
         }
     }
 
-    private func runOnce(scenario: String, iteration: Int, action: @escaping () -> Void) {
+    private func runOnce(scenario: String, iteration: Int, action: () -> Void) {
         let reset = app.buttons[AccessibilityID.Debug.frameMetricsReset]
         XCTAssertTrue(reset.trinketWaitForExistence(timeout: Self.defaultTimeout))
         let metrics = app.descendants(matching: .any)[AccessibilityID.Debug.frameMetrics]

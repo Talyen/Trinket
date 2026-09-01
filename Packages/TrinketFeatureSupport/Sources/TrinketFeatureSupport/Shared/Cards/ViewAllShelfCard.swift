@@ -26,6 +26,7 @@ public struct ViewAllShelfCard: View {
                     // UIStyleCheck: allow - SF Symbol glyph sizing, not copy
                     .font(.system(size: 22, weight: .bold))
                     .foregroundStyle(TrinketDesign.Colors.accent)
+                    .accessibilityHidden(true)
 
                 Text(balanced: "View All")
                     .trinketTypography(.cardLabel)

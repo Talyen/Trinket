@@ -41,7 +41,7 @@ existing appropriate one). Add UI coverage only when the keep/drop rubric in
 `Docs/Platform/Testing.md` identifies a shipping outcome that lower tiers cannot own;
 a view change alone does not require a test. IDs are selectors, not substitutes for
 player-facing semantics: preserve native labels and add a concise label/value when a
-custom control is ambiguous. Accessibility is bare-minimum by policy (PD-007,
+custom control is ambiguous. Accessibility uses basic explicit semantics by policy (PD-014,
 [Decisions](../Product/Decisions.md)): keep what SwiftUI provides for free and do not
 add Reduce Motion, Dynamic Type re-layout, or contrast accommodation branches. Use `TrinketUITests/README.md` only for
 launch args, screen helpers, and speed rules.

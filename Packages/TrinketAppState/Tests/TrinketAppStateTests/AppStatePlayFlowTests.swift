@@ -209,7 +209,7 @@ struct AppStatePlayFlowTests {
     @Test func `complete active battle without stage grants gold only`() throws {
         let state = try context.makePlaySession()
         let enemy = try #require(GameContent.enemies.first?.combatant)
-        let configuration = try PlayBattleLaunchTestSupport.make(
+        let configuration = PlayBattleLaunchTestSupport.make(
             rngSeed: 0,
             hero: state.playerSave.roster.activeHero,
             companion: state.playerSave.roster.activeCompanion,
@@ -234,7 +234,7 @@ struct AppStatePlayFlowTests {
         try state.playerSave.performBatchMutation { $0 = save }
 
         let enemy = try #require(GameContent.enemies.first?.combatant)
-        let configuration = try PlayBattleLaunchTestSupport.make(
+        let configuration = PlayBattleLaunchTestSupport.make(
             rngSeed: 0,
             hero: state.playerSave.roster.activeHero,
             companion: state.playerSave.roster.activeCompanion,
@@ -251,7 +251,7 @@ struct AppStatePlayFlowTests {
     @Test func `unknown battle route fails closed without granting gold`() throws {
         let state = try context.makePlaySession()
         let enemy = try #require(GameContent.enemies.first?.combatant)
-        let configuration = try PlayBattleLaunchTestSupport.make(
+        let configuration = PlayBattleLaunchTestSupport.make(
             runKey: BattleRunKey("future-mode|run-1"),
             rngSeed: 0,
             hero: state.playerSave.roster.activeHero,
@@ -288,7 +288,7 @@ struct AppStatePlayFlowTests {
         case "missing-stage":
             let state = try context.makePlaySession()
             let enemy = try #require(GameContent.enemies.first?.combatant)
-            let configuration = try PlayBattleLaunchTestSupport.make(
+            let configuration = PlayBattleLaunchTestSupport.make(
                 origin: .journey(stageID: "missing-stage-bug-hunt-audit"),
                 rngSeed: 0,
                 hero: state.playerSave.roster.activeHero,
@@ -306,7 +306,7 @@ struct AppStatePlayFlowTests {
         case "missing-spire":
             let state = try context.makePlaySession()
             let enemy = try #require(GameContent.enemies.first?.combatant)
-            let configuration = try PlayBattleLaunchTestSupport.make(
+            let configuration = PlayBattleLaunchTestSupport.make(
                 origin: .spire(spireID: .ironVein, floor: 9999),
                 rngSeed: 0,
                 hero: state.playerSave.roster.activeHero,

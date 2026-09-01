@@ -86,7 +86,7 @@ public struct ThemedGearGenerator: Sendable {
         return ThemedGearBuild(inventory: [], loadout: loadout)
     }
 
-    // swiftlint:disable:next function_parameter_count
+    // swiftlint:disable:next function_parameter_count - item generation requires the complete roll context
     private func makeItem(
         for slot: ItemSlot,
         combatant: Combatant,

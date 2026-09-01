@@ -144,7 +144,7 @@ extension BattleTurnEngine {
         }
     }
 
-    // swiftlint:disable:next function_body_length
+    // swiftlint:disable:next function_body_length - end-turn mutations must remain in deterministic order
     private static func applyDamageComponents(
         ability: Ability,
         actor: Combatant,

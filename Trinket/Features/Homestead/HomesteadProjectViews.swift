@@ -74,12 +74,14 @@ struct HomesteadProjectRow: View {
                     .trinketTypography(.footnote)
                     .foregroundStyle(status.statusColor)
                     .symbolRenderingMode(.hierarchical)
+                    .accessibilityHidden(true)
                     .padding(.leading, TrinketDesign.Spacing.tight)
             } else {
                 Image(systemName: status.statusSymbolName)
                     .trinketTypography(.button)
                     .foregroundStyle(status.statusColor)
                     .symbolRenderingMode(.hierarchical)
+                    .accessibilityHidden(true)
                     .symbolEffect(
                         .bounce.up,
                         value: status.canBuildOrUpgrade,

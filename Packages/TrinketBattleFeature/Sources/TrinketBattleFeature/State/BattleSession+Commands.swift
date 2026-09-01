@@ -244,7 +244,7 @@ extension BattleSession {
     func driveAutoBattle(
         isCardCastActive: @escaping @MainActor () -> Bool,
         isManualInteractionActive: @escaping @MainActor () -> Bool,
-        playCard: @escaping @MainActor (BattleCard) async -> Bool,
+        playCard: @MainActor (BattleCard) async -> Bool,
     ) async {
         let autoBattlePolicy = PlayPolicy.greedy
         while !Task.isCancelled, isAutoBattleEnabled {

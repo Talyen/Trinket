@@ -142,7 +142,7 @@ class TrinketUITestCase: XCTestCase {
     static let defaultTimeout: TimeInterval = 12
     static let deepLinkTimeout: TimeInterval = 15
 
-    // swiftlint:disable:next implicitly_unwrapped_optional
+    // swiftlint:disable:next implicitly_unwrapped_optional - XCTest installs the app before each test
     private(set) var app: XCUIApplication!
 
     var play: PlayScreen {

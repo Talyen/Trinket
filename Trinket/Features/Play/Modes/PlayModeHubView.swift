@@ -137,6 +137,7 @@ struct PlayModeArtworkCard: View {
                         if let symbolName {
                             Image(systemName: symbolName)
                                 .trinketTypography(.eyebrow)
+                                .accessibilityHidden(true)
                         }
 
                         Text(balanced: subtitle)

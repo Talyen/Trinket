@@ -60,6 +60,7 @@ public struct PlaceholderArtwork: View {
                 .font(.system(size: iconSize, weight: .semibold))
                 .foregroundStyle(color)
                 .symbolRenderingMode(.hierarchical)
+                .accessibilityHidden(true)
         }
     }
 }

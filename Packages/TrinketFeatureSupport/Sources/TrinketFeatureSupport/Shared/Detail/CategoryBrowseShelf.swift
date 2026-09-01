@@ -60,6 +60,7 @@ public struct CategoryBrowseShelf<Destination: View, Content: View>: View {
             Image(systemName: "chevron.right")
                 .trinketTypography(.footnote)
                 .foregroundStyle(.secondary)
+                .accessibilityHidden(true)
             Spacer()
         }
         .padding(.horizontal, TrinketDesign.Layout.contentMargin)

@@ -31,6 +31,21 @@ One fact has one owner. Link instead of copying policy.
 
 Do not restate these elsewhere except a one-line pointer.
 
+## Lifecycle and retention
+
+| Surface | Authority and retention |
+|---------|-------------------------|
+| Standing Product, Platform, package, and AgentContext docs | Current and authoritative; update with the behavior they describe |
+| Skills | Active routed procedure; keep only instructions needed when the trigger applies |
+| Knowledge | Searchable rationale and rejected approaches; load only by trigger and remove facts already enforced elsewhere |
+| Audit guides | Re-runnable procedure, never run history or backlog |
+| `Docs/Audits/Proposals.md` | Narrow durable audit memory; evidence pointers must continue to resolve |
+| Active execution plans | Temporary, expiring, and allowed only directly under `Docs/Plans/` |
+| Completed or cancelled plans | One-line outcome in `Docs/Plans/Archived/README.md`; full execution detail stays in Git history |
+| Evals | Representative validation fixtures, not standing workflow policy |
+
+Do not create execution plans under `.agents/` or another parallel plan folder.
+
 ## Policy precedence
 
 When guidance overlaps, use the narrowest applicable owner. Root `AGENTS.md`

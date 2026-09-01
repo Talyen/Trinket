@@ -11,13 +11,13 @@ import TrinketTestSupport
 @MainActor
 struct BattleSpectacleSessionTests {
     @Test(arguments: [false, true])
-    func `unmapped ultimate killing blow presents victory without blocking`(alreadyClaimed: Bool) throws {
+    func `unmapped ultimate killing blow presents victory without blocking`(alreadyClaimed: Bool) {
         let hero = CombatantFixtures.combatant(
             id: "hero",
             role: .hero,
             abilities: [.bloodthorn],
         )
-        let session = try BattleSessionTestSupport.makeConfiguredSession(
+        let session = BattleSessionTestSupport.makeConfiguredSession(
             hero: hero,
             companion: CombatantFixtures.combatant(id: "companion", role: .companion, abilities: []),
             enemy: CombatantFixtures.combatant(
@@ -58,7 +58,7 @@ struct BattleSpectacleSessionTests {
             role: .hero,
             abilities: [.slash, .fireball, .bloodthorn],
         )
-        let session = try BattleSessionTestSupport.makeConfiguredSession(
+        let session = BattleSessionTestSupport.makeConfiguredSession(
             hero: hero,
             companion: CombatantFixtures.combatant(id: "companion", role: .companion, abilities: []),
             enemy: CombatantFixtures.combatant(
@@ -93,7 +93,7 @@ struct BattleSpectacleSessionTests {
             role: .hero,
             abilities: [.slash, .fireball, .avatarOfJustice],
         )
-        let session = try BattleSessionTestSupport.makeConfiguredSession(
+        let session = BattleSessionTestSupport.makeConfiguredSession(
             hero: hero,
             companion: CombatantFixtures.combatant(id: "companion", role: .companion, abilities: []),
             enemy: CombatantFixtures.combatant(
@@ -134,7 +134,7 @@ struct BattleSpectacleSessionTests {
             role: .hero,
             abilities: [.slash, .fireball, .avatarOfJustice],
         )
-        let session = try BattleSessionTestSupport.makeConfiguredSession(
+        let session = BattleSessionTestSupport.makeConfiguredSession(
             hero: hero,
             companion: CombatantFixtures.combatant(id: "companion", role: .companion, abilities: []),
             enemy: CombatantFixtures.combatant(
@@ -167,7 +167,7 @@ struct BattleSpectacleSessionTests {
             role: .hero,
             abilities: [.slash, .fireball, .avatarOfJustice],
         )
-        let session = try BattleSessionTestSupport.makeConfiguredSession(
+        let session = BattleSessionTestSupport.makeConfiguredSession(
             hero: hero,
             companion: CombatantFixtures.combatant(id: "companion", role: .companion, abilities: []),
             enemy: CombatantFixtures.combatant(
@@ -205,7 +205,7 @@ struct BattleSpectacleSessionTests {
             role: .hero,
             abilities: [.slash, .fireball, .avatarOfJustice],
         )
-        let session = try BattleSessionTestSupport.makeConfiguredSession(
+        let session = BattleSessionTestSupport.makeConfiguredSession(
             hero: hero,
             companion: CombatantFixtures.combatant(id: "companion", role: .companion, abilities: []),
             enemy: CombatantFixtures.combatant(
@@ -249,14 +249,14 @@ struct BattleSpectacleSessionTests {
         #expect(session.feedback.activeItems.count > feedbackBefore)
     }
 
-    @Test func `enemy ultimate does not present highlight`() throws {
+    @Test func `enemy ultimate does not present highlight`() {
         let enemy = CombatantFixtures.combatant(
             id: "enemy",
             role: .enemy,
             maxHealth: 200,
             abilities: [.slash, .fireball, .bloodthorn],
         )
-        let session = try BattleSessionTestSupport.makeConfiguredSession(
+        let session = BattleSessionTestSupport.makeConfiguredSession(
             hero: CombatantFixtures.combatant(
                 id: "hero",
                 role: .hero,

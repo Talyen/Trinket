@@ -110,6 +110,7 @@ public struct BattleView: View {
         } label: {
             Image(systemName: "ellipsis")
                 .frame(minWidth: 44, minHeight: 44)
+                .accessibilityLabel("Battle actions")
         }
 
         .accessibilityIdentifier(AccessibilityID.Battle.actionsMenu)

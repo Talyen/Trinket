@@ -7,7 +7,7 @@ package extension BattleState {
         gold += goldGranted(for: amount, sourceActorID: sourceActorID)
     }
 
-    // swiftlint:disable:next function_body_length
+    // swiftlint:disable:next function_body_length - resource spending and resulting events are one transaction
     mutating func grantGoldEvent(
         _ amount: Int,
         to combatant: Combatant,

@@ -104,7 +104,7 @@ class ContentAndPolicyScriptTests(ScriptRegressionTestCase):
             _, errors = self.check_docs.plan_metadata(blocked)
             self.assertIn("blocked plans require reason", errors)
 
-    def test_completed_plans_are_archived_instead_of_deleted(self) -> None:
+    def test_completed_plans_are_summarized_instead_of_archived_verbatim(self) -> None:
         plan_name = f"ArchiveFixture{os.getpid()}"
         active_path = ROOT / "Docs" / "Plans" / f"{plan_name}.md"
         archived_path = ROOT / "Docs" / "Plans" / "Archived" / f"{plan_name}.md"
@@ -127,21 +127,49 @@ class ContentAndPolicyScriptTests(ScriptRegressionTestCase):
                 check=False,
             )
             self.assertNotEqual(rejected.returncode, 0)
-            self.assertIn("must be moved to Docs/Plans/Archived/", rejected.stderr)
+            self.assertIn("must be summarized in Docs/Plans/Archived/README.md and deleted", rejected.stderr)
 
             active_path.unlink()
             archived_path.write_text(plan, encoding="utf-8")
-            accepted = subprocess.run(
+            archived_rejected = subprocess.run(
                 [sys.executable, str(ROOT / "Scripts" / "check-docs.py")],
                 cwd=ROOT,
                 capture_output=True,
                 text=True,
                 check=False,
             )
-            self.assertEqual(accepted.returncode, 0, accepted.stderr)
+            self.assertNotEqual(archived_rejected.returncode, 0)
+            self.assertIn("completed plan detail belongs in Git history", archived_rejected.stderr)
         finally:
             active_path.unlink(missing_ok=True)
             archived_path.unlink(missing_ok=True)
+
+    def test_parallel_agent_plan_folder_is_rejected(self) -> None:
+        plans_dir = ROOT / ".agents" / "plans"
+        plan_path = plans_dir / f"ParallelPlanFixture{os.getpid()}.md"
+        plans_dir.mkdir(parents=True, exist_ok=True)
+        try:
+            plan_path.write_text("# Parallel execution plan\n", encoding="utf-8")
+            rejected = subprocess.run(
+                [sys.executable, str(ROOT / "Scripts" / "check-docs.py")],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertNotEqual(rejected.returncode, 0)
+            self.assertIn("execution plans are allowed only directly under Docs/Plans/", rejected.stderr)
+        finally:
+            plan_path.unlink(missing_ok=True)
+            try:
+                plans_dir.rmdir()
+            except OSError:
+                pass
+
+    def test_proposal_evidence_identifier_resolution(self) -> None:
+        self.assertTrue(self.check_docs.source_contains_identifier("performBatchMutation"))
+        missing = "RemovedProposal" + "EvidenceSymbol"
+        self.assertFalse(self.check_docs.source_contains_identifier(missing))
 
     def test_markdown_inventory_excludes_ignored_run_reports(self) -> None:
         paths = self.check_docs.markdown_files()
@@ -227,6 +255,8 @@ class ContentAndPolicyScriptTests(ScriptRegressionTestCase):
         self.assertIn("@unchecked Sendable", text)
         self.assertIn("ArtworkWorkingSetCheck", text)
         self.assertIn("Trinket/App/TrinketApp.swift", text)
+        self.assertIn("swiftlint:disable must include ' - <reason>'", text)
+        self.assertIn(r"//[[:space:]]*swiftlint:disable", text)
 
     def test_accessibility_ids_reject_duplicate_constants_and_raw_uitest_literals(self) -> None:
         checker = load_script("check_accessibility_ids", "check-accessibility-ids.py")

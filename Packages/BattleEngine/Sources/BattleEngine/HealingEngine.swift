@@ -3,7 +3,7 @@ import TrinketContent
 import TrinketCore
 
 package enum HealingEngine {
-    // swiftlint:disable:next function_body_length
+    // swiftlint:disable:next function_body_length - healing resolution is one atomic pipeline
     static func resolveHeal(
         _ request: HealRequest,
         in context: inout BattleState,

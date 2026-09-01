@@ -68,6 +68,7 @@ struct LabyrinthCampfireView: View {
                         .trinketTypography(.sectionDisplay)
                         .foregroundStyle(TrinketDesign.Colors.encounterRest)
                         .symbolRenderingMode(.hierarchical)
+                        .accessibilityHidden(true)
                 }
             }
         }

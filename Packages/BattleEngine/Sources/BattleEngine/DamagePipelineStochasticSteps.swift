@@ -4,7 +4,7 @@ import TrinketContent
 import TrinketCore
 
 package extension DamagePipeline {
-    // swiftlint:disable:next function_body_length
+    // swiftlint:disable:next function_body_length - critical resolution keeps seeded rolls and events together
     static func applyDodgeGate(
         to state: inout DamageResolutionState,
         in context: inout BattleState,
@@ -147,7 +147,7 @@ package extension DamagePipeline {
         applyCritical(to: &state)
     }
 
-    // swiftlint:disable:next function_body_length
+    // swiftlint:disable:next function_body_length - dodge resolution keeps seeded rolls and events together
     private static func resolveGuaranteedCrit(
         to state: inout DamageResolutionState,
         actor: CombatantRuntime,

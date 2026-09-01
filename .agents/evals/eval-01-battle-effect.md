@@ -25,4 +25,4 @@ Add a new `EffectKind` case through registry → `EffectHandlers` → determinis
 Do not add UI, persistence, or balance tuning. Do not add forwarding wrappers.
 
 ## Handoff gate
-`./Scripts/handoff.sh --isolate --paths Packages/BattleEngine/Sources/BattleEngine/<touched> Packages/BattleEngine/Tests/<touched>`
+Run the path-scoped route emitted for the touched BattleEngine source and test files.

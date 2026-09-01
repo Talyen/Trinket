@@ -158,6 +158,7 @@ public struct ExperienceBar: View {
                 .resizable()
                 .interpolation(.low)
                 .scaledToFill()
+                .accessibilityHidden(true)
                 .frame(width: container.width, height: container.height)
                 .offset(x: offsetX, y: offsetY)
         }
@@ -269,7 +270,7 @@ public struct ExperienceBar: View {
         public let newRequiredXP: Int
     }
 
-    // swiftlint:disable:next modifier_order
+    // swiftlint:disable:next modifier_order - public nonisolated is the required concurrency spelling
     public nonisolated static func segments(
         from pre: CombatantProgression,
         to post: CombatantProgression,

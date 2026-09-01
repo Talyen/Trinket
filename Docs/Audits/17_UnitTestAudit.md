@@ -12,7 +12,7 @@ Inventory P0–P3 test portfolio defects in Swift Testing and XCTest unit target
 
 - Do not rewrite working tests solely to switch from XCTest to Swift Testing when the test is otherwise sound. (Use `Scripts/check-swift-testing-migration.sh` when migrating a full file.)
 - UI/E2E test quality belongs to `10_E2ETestQualityAudit.md`.
-- Production mass without a test-portfolio angle belongs to `02_AuthoredMassGrowthAudit.md`.
+- Production maintenance mass without a test-portfolio angle belongs to `02_MaintenanceSurfaceLocalityAudit.md`.
 - Do not optimize declaration count alone: `@Test(arguments:)` may hide more executed cases and runtime.
 - Preserve unique battle, persistence, balance, app-transition, and player-flow owners. Do not delete a failing journey merely to reduce the portfolio.
 

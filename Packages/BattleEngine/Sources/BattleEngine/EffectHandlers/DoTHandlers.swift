@@ -142,7 +142,7 @@ struct DecayingDoTHandler: BattleEffectHandler {
 struct BleedHandler: BattleEffectHandler {
     let kind: EffectKind = .bleed
 
-    // swiftlint:disable:next function_body_length
+    // swiftlint:disable:next function_body_length - one handler owns the full damage-over-time application
     func advanceTurn(_ active: ActiveEffect, on target: Combatant, in context: inout BattleState) -> EffectTurnOutcome {
         guard case let .bleed(potency) = active.effect, active.remainingTurns > 0 else {
             return EffectTurnOutcome()

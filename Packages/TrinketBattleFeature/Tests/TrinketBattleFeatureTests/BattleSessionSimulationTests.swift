@@ -103,7 +103,7 @@ struct BattleSessionSimulationTests {
     }
 
     @Test func `play card appends feedback items when card plays`() throws {
-        let session = try BattleSessionTestSupport.makeConfiguredSession()
+        let session = BattleSessionTestSupport.makeConfiguredSession()
         let card = try #require(session.hand.first(where: { session.isCardPlayable($0) }))
 
         _ = session.playCard(cardID: card.id)
@@ -115,7 +115,7 @@ struct BattleSessionSimulationTests {
     }
 
     @Test func `play card distinguishes successful non victory from rejection`() throws {
-        let session = try BattleSessionTestSupport.makeConfiguredSession()
+        let session = BattleSessionTestSupport.makeConfiguredSession()
         let card = try #require(session.hand.first(where: { session.isCardPlayable($0) }))
 
         let committed = session.playCard(
@@ -130,7 +130,7 @@ struct BattleSessionSimulationTests {
     }
 
     @Test func `presentation projection tracks simulation without exposing log storage`() throws {
-        let session = try BattleSessionTestSupport.makeConfiguredSession()
+        let session = BattleSessionTestSupport.makeConfiguredSession()
         let configurationID = try #require(session.activeBattle?.id)
         let initialEnemyHealth = try #require(session.presentation.enemy?.health)
         let card = try #require(session.hand.first(where: { session.isCardPlayable($0) }))
@@ -150,7 +150,7 @@ struct BattleSessionSimulationTests {
         #expect(session.presentation.hand.isEmpty)
     }
 
-    @Test func `end turn excludes milestones from feedback when battle ends`() throws {
+    @Test func `end turn excludes milestones from feedback when battle ends`() {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 1, abilities: [])
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 1, abilities: [])
         let enemy = CombatantFixtures.combatant(
@@ -159,7 +159,7 @@ struct BattleSessionSimulationTests {
             maxHealth: 100,
             abilities: [.slash],
         )
-        let session = try BattleSessionTestSupport.makeConfiguredSession(hero: hero, companion: companion, enemy: enemy)
+        let session = BattleSessionTestSupport.makeConfiguredSession(hero: hero, companion: companion, enemy: enemy)
 
         while !session.isBattleOver {
             session.endTurn()
@@ -173,7 +173,7 @@ struct BattleSessionSimulationTests {
 
     @Test func `reset clears feedback and rebuilds state when reset called`() throws {
         let party = BattlePartyFixtures.quickWinParty(enemyMaxHealth: 100)
-        let session = try BattleSessionTestSupport.makeConfiguredSession(
+        let session = BattleSessionTestSupport.makeConfiguredSession(
             hero: party.hero,
             companion: party.companion,
             enemy: party.enemy,
@@ -285,7 +285,7 @@ struct BattleSessionSimulationTests {
     }
 
     @Test func `auto end turn fires only when hand is exhausted`() async throws {
-        let session = try BattleSessionTestSupport.makeConfiguredSession()
+        let session = BattleSessionTestSupport.makeConfiguredSession()
         #expect(session.hasPlayableCard)
 
         while let card = session.hand.first(where: { session.isCardPlayable($0) }) {
@@ -307,7 +307,7 @@ struct BattleSessionSimulationTests {
     }
 
     @Test func `trim memory footprint releases battle log projection`() throws {
-        let session = try BattleSessionTestSupport.makeConfiguredSession()
+        let session = BattleSessionTestSupport.makeConfiguredSession()
         let card = try #require(session.hand.first(where: { session.isCardPlayable($0) }))
         _ = session.playCard(cardID: card.id)
         session.syncLogForDisplay()

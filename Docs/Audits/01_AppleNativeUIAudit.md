@@ -23,7 +23,7 @@ then cosmetic token consistency.
 ## Domain rules & allowlists
 
 - Prefer native SwiftUI modifiers (`.font()`, `.foregroundStyle()`, `.padding()`, `.grid()`) over custom utility wrappers.
-- Respect Apple Human Interface Guidelines for platform-native layout behaviors. Accessibility accommodations are out of scope (PD-007).
+- Respect Apple Human Interface Guidelines for platform-native layout behaviors. Accessibility accommodation branches are out of scope (PD-014).
 - Structural duplication — same grid/scaffolding across 3+ files, or two substantial surfaces with demonstrated drift or shared defects — belongs to `09_DuplicateFeatureSurfaceAudit.md`, not a token migration.
 
 **Leave alone (justified custom):** fanned battle hand + drag-to-play; hero rubber-band overscroll; combat float motion recipes / outline shadows; health-bar `GeometryReader` fills; decorative SF Symbols already on `@ScaledMetric`.

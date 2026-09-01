@@ -1,6 +1,6 @@
 # 16. UI Interaction Audit
 
-> Trinket ships bare-minimum accessibility (PD-007). This audit covers interaction
+> Trinket ships basic accessibility semantics (PD-014). This audit covers interaction
 > and feedback quality; it does not review accessibility accommodations.
 
 **Goal:** Find confirmed interaction and feedback defects that static types do not catch.
@@ -12,7 +12,7 @@ Fix confirmed navigation/feedback defects across flows. When a shared control or
 ## Hard stops
 
 - Do not restyle unrelated chrome or expand into layout/typography/DesignSystem migrations (AppleNativeUI owns those).
-- Do not add accessibility accommodations (Reduce Motion, Dynamic Type re-layout, contrast, VoiceOver labeling) — PD-007 forbids them.
+- Do not add accessibility accommodation branches (Reduce Motion, Dynamic Type re-layout, or contrast modes). Keep image labels and hiding aligned with PD-014.
 - iPhone portrait-first; skip iPad-only hover work unless product scope expands.
 - Do not turn one candidate into an untriggered full-tab manual pass. Expand to adjacent flows only when they share the confirmed component, gesture, state machine, or primary-action invariant. Skip unavailable Simulator/device checks without failing the audit.
 - Do not expand into UI test rewrites (E2E owns those).

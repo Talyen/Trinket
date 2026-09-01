@@ -35,5 +35,5 @@ For Trinket’s iOS 26+ screens, use first-party SwiftUI APIs and
 - Use native controls and shared DesignSystem primitives before adding custom layout, motion, material, or feedback.
 - Keep direct manipulation immediate, continuous, spatially consistent, and interruptible; the focused motion reference owns the mechanics.
 - Keep visual, sound, and haptic feedback tied to one committed event.
-- Apply the [PD-007](../../../Docs/Product/Decisions.md) bare-minimum accessibility policy: keep test identifiers, add no accommodation branches.
+- Apply the [PD-014](../../../Docs/Product/Decisions.md) basic accessibility policy: keep test identifiers, give images explicit semantics, and add no accommodation branches.
 - Before handoff: routed reference read, gestures cancellable, DesignSystem primitives used, and no unnecessary visual complexity added.

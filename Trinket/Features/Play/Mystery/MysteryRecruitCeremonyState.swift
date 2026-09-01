@@ -47,7 +47,7 @@ final class MysteryRecruitCeremonyState {
         }
     }
 
-    private func runUnmaskSequence(onUnmaskPeak: @escaping () -> Void) async {
+    private func runUnmaskSequence(onUnmaskPeak: () -> Void) async {
         let clock = SuspendingClock()
         try? await clock.sleep(for: .seconds(MysteryCeremonyMotion.veilHold))
         guard !Task.isCancelled else { return }

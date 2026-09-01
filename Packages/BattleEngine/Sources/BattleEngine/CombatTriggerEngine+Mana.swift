@@ -33,7 +33,7 @@ package extension CombatTriggerEngine {
         )]
     }
 
-    // swiftlint:disable:next function_body_length cyclomatic_complexity
+    // swiftlint:disable:next function_body_length cyclomatic_complexity - mana triggers share one ordered cadence
     static func afterSpendMana(by actor: Combatant, amountSpent: Int, in context: inout BattleState) -> [ActionEvent] {
         let profile = context.modifiers(for: actor.id)
         let triggers = profile.triggers

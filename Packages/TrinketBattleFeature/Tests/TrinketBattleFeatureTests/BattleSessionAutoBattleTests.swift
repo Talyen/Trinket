@@ -10,7 +10,7 @@ import TrinketTestSupport
 @MainActor
 struct BattleSessionAutoBattleTests {
     @Test func `auto battle plays cards in greedy order until disabled`() async throws {
-        let session = try BattleSessionTestSupport.makeConfiguredSession()
+        let session = BattleSessionTestSupport.makeConfiguredSession()
         let expectedCardIDs = try BattleSessionTestSupport.greedyPlaySequence(from: session)
         var playedCardIDs: [Int] = []
 
@@ -28,7 +28,7 @@ struct BattleSessionAutoBattleTests {
     }
 
     @Test func `auto battle retries after A rejected play instead of stopping`() async throws {
-        let session = try BattleSessionTestSupport.makeConfiguredSession()
+        let session = BattleSessionTestSupport.makeConfiguredSession()
         let expectedCardIDs = try BattleSessionTestSupport.greedyPlaySequence(from: session)
         var playAttempts = 0
         var playedCardIDs: [Int] = []
@@ -57,8 +57,8 @@ struct BattleSessionAutoBattleTests {
     }
 
     @Test(arguments: [ResumeGate.manualInteraction, .cardCast])
-    private func `auto battle resumes after gate clears`(gate: ResumeGate) async throws {
-        let session = try BattleSessionTestSupport.makeConfiguredSession()
+    private func `auto battle resumes after gate clears`(gate: ResumeGate) async {
+        let session = BattleSessionTestSupport.makeConfiguredSession()
         var remainingBlocks = 3
         var playedCardIDs: [Int] = []
 
@@ -98,7 +98,7 @@ struct BattleSessionAutoBattleTests {
     }
 
     @Test func `auto battle does not play while ability overlay is open after cast wait`() async throws {
-        let session = try BattleSessionTestSupport.makeConfiguredSession()
+        let session = BattleSessionTestSupport.makeConfiguredSession()
         var remainingCastBlocks = 2
         var playedCardIDs: [Int] = []
 
@@ -133,7 +133,7 @@ struct BattleSessionAutoBattleTests {
     }
 
     @Test func `auto battle does not play during sustained manual interaction`() async throws {
-        let session = try BattleSessionTestSupport.makeConfiguredSession()
+        let session = BattleSessionTestSupport.makeConfiguredSession()
         var interacting = true
         var interactionChecks = 0
         var playedCardIDs: [Int] = []
@@ -164,8 +164,8 @@ struct BattleSessionAutoBattleTests {
         _ = await driver.result
     }
 
-    @Test func `auto battle resumes after stuck cast request clears`() async throws {
-        let session = try BattleSessionTestSupport.makeConfiguredSession()
+    @Test func `auto battle resumes after stuck cast request clears`() async {
+        let session = BattleSessionTestSupport.makeConfiguredSession()
         let castPresentation = BattleCastPresentationState()
         castPresentation.stuckResetDelayOverride = 0.02
         castPresentation.append(
@@ -198,8 +198,8 @@ struct BattleSessionAutoBattleTests {
         #expect(!playedCardIDs.isEmpty)
     }
 
-    @Test func `auto battle returns when battle is missing`() async throws {
-        let session = try BattleSessionTestSupport.makeConfiguredSession()
+    @Test func `auto battle returns when battle is missing`() async {
+        let session = BattleSessionTestSupport.makeConfiguredSession()
         session.endBattle()
         session.isAutoBattleEnabled = true
 
@@ -211,7 +211,7 @@ struct BattleSessionAutoBattleTests {
     }
 
     @Test func `auto battle continues during in-frame ultimate highlight`() async throws {
-        let session = try BattleSessionTestSupport.makeConfiguredSession(
+        let session = BattleSessionTestSupport.makeConfiguredSession(
             hero: CombatantFixtures.combatant(
                 id: "knight",
                 role: .hero,
@@ -262,7 +262,7 @@ struct BattleSessionAutoBattleTests {
 
     @Test func `auto battle resets off on new battle when remember is off`() throws {
         let probe = AutoBattleProbe(remember: false, stored: false)
-        let session = try BattleSessionTestSupport.makeConfiguredSession(
+        let session = BattleSessionTestSupport.makeConfiguredSession(
             presentationEnvironment: autoBattleEnvironment(probe: probe),
         )
         let firstConfiguration = try #require(session.activeBattle)
@@ -284,9 +284,9 @@ struct BattleSessionAutoBattleTests {
         #expect(probe.persistedValues.isEmpty)
     }
 
-    @Test func `auto battle restores and persists when remember is on`() throws {
+    @Test func `auto battle restores and persists when remember is on`() {
         let probe = AutoBattleProbe(remember: true, stored: true)
-        let session = try BattleSessionTestSupport.makeConfiguredSession(
+        let session = BattleSessionTestSupport.makeConfiguredSession(
             presentationEnvironment: autoBattleEnvironment(probe: probe),
         )
         #expect(session.isAutoBattleEnabled)

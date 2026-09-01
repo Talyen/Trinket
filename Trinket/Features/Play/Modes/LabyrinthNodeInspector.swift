@@ -98,6 +98,7 @@ struct LabyrinthNodeInspector: View {
                         HStack(spacing: TrinketDesign.Spacing.small) {
                             Image(systemName: modifierSymbolName(for: modifier))
                                 .symbolRenderingMode(.hierarchical)
+                                .accessibilityHidden(true)
                             Text(balanced: modifier.title.uppercased())
                                 .trinketFittedText()
                         }

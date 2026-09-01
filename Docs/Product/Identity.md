@@ -40,7 +40,7 @@ There is **no** Trinket-owned user row, password, or OAuth session. Cross-device
 | Google Sign-In | Cannot key CloudKit; needs a hosted identity store to mean anything for saves |
 | Email / password | Not required by Apple; needs a database — skip |
 
-**App Store 4.8:** Only applies if a third-party social login authenticates a **primary account**. With no Google/Facebook/etc., SIWA is **not** required.
+**App Store 4.8:** Applies when a third-party or social login service authenticates a **primary account**. With no Google/Facebook/etc., SIWA is **not** required.
 
 **App Store 5.1.1(v):** If the app does **not** create accounts, the account-creation / SIWA-revoke rules do not apply. Players must still be able to use the app without login (satisfied). Data wipe is handled via Reset + iCloud storage management (below).
 
@@ -93,6 +93,10 @@ Because progress is **local + optional iCloud container data**, not a developer-
 Keep the implementation lightweight until Developer Program enrollment: local play is unconditional, CloudKit is an explicit configuration gate, and tests never require an Apple ID. Launch arguments, persistence mechanics, and UI-test defaults belong to their owning [testing](../Platform/Testing.md), [persistence](../AgentContext/persistence.md), and [UI-test](../../TrinketUITests/README.md) guides rather than being copied here.
 
 Do not ship Account / Sign-In rows, SIWA, Google, Game Center, or a hosted identity store. When sync is ready, run [CloudKitPreShipChecklist.md](../Platform/CloudKitPreShipChecklist.md) end-to-end; it owns the entitlement, schema, reset, conflict, privacy, and review checks.
+
+Apple owns the review and platform requirements linked above. Recheck their
+current wording during release work instead of treating this summary as a frozen
+legal or App Review guarantee.
 
 ---
 

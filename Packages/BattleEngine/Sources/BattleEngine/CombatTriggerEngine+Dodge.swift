@@ -2,7 +2,7 @@ import TrinketContent
 import TrinketCore
 
 package extension CombatTriggerEngine {
-    // swiftlint:disable:next function_body_length cyclomatic_complexity
+    // swiftlint:disable:next function_body_length cyclomatic_complexity - dodge triggers share one ordered cadence
     static func afterDodge(
         by combatant: Combatant,
         attackerID: String?,
