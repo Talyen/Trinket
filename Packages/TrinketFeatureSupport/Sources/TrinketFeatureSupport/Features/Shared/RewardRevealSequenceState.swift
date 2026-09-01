@@ -33,18 +33,6 @@ public final class RewardRevealSequenceState {
         self.clock = clock
     }
 
-    @available(*, deprecated, message: "Use init(clock:) instead")
-    init(sleep: @escaping @Sendable (Duration) async throws -> Void) {
-        // Concurrency-Safety: ClosureClock is @unchecked Sendable because the stored closure is @Sendable.
-        struct ClosureClock: RewardRevealClock, @unchecked Sendable {
-            let sleep: @Sendable (Duration) async throws -> Void
-            func sleep(for duration: Duration) async throws {
-                try await sleep(duration)
-            }
-        }
-        clock = ClosureClock(sleep: sleep)
-    }
-
     private func clockSleep(for duration: Duration) async throws {
         try await clock.sleep(for: duration)
     }

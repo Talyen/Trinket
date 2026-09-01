@@ -5,7 +5,7 @@ import Testing
 @MainActor
 struct RewardRevealSequenceStateTests {
     @Test func `start completes wallet and item reveal`() async {
-        let state = RewardRevealSequenceState(sleep: { _ in })
+        let state = makeState()
         state.start(itemCount: 1, walletCount: 2)
         #expect(await waitUntil { state.isSequenceComplete })
         #expect(state.areItemsVisible)
@@ -13,7 +13,7 @@ struct RewardRevealSequenceStateTests {
     }
 
     @Test func `start is idempotent`() async {
-        let state = RewardRevealSequenceState(sleep: { _ in })
+        let state = makeState()
         state.start(itemCount: 1, walletCount: 1)
         #expect(await waitUntil { state.isSequenceComplete })
         state.start(itemCount: 0, walletCount: 3)
@@ -21,12 +21,12 @@ struct RewardRevealSequenceStateTests {
     }
 
     @Test func `cancel finishes A started sequence`() async {
-        let state = RewardRevealSequenceState(sleep: { _ in
+        let state = makeState { _ in
             while !Task.isCancelled {
                 await Task.yield()
             }
             throw CancellationError()
-        })
+        }
         state.start(itemCount: 1, walletCount: 2)
         await Task.yield()
         state.cancel(walletCount: 2)
@@ -36,12 +36,12 @@ struct RewardRevealSequenceStateTests {
     }
 
     @Test func `experience bars gate the reveal`() async {
-        let singleAwardState = RewardRevealSequenceState(sleep: { _ in })
+        let singleAwardState = makeState()
         singleAwardState.experienceBarCompleted(requiredCount: 1, itemCount: 0, walletCount: 1)
         #expect(await waitUntil { singleAwardState.isSequenceComplete })
         #expect(singleAwardState.visibleWalletRewardCount == 1)
 
-        let twoAwardState = RewardRevealSequenceState(sleep: { _ in })
+        let twoAwardState = makeState()
         twoAwardState.experienceBarCompleted(requiredCount: 2, itemCount: 0, walletCount: 1)
         #expect(!twoAwardState.isSequenceComplete)
         twoAwardState.experienceBarCompleted(requiredCount: 2, itemCount: 0, walletCount: 1)
@@ -59,5 +59,23 @@ struct RewardRevealSequenceStateTests {
             await Task.yield()
         }
         return true
+    }
+
+    private func makeState(
+        sleep: @escaping @Sendable (Duration) async throws -> Void = { _ in },
+    ) -> RewardRevealSequenceState {
+        RewardRevealSequenceState(clock: TestRewardRevealClock(sleep: sleep))
+    }
+}
+
+private struct TestRewardRevealClock: RewardRevealClock, Sendable {
+    let sleepAction: @Sendable (Duration) async throws -> Void
+
+    init(sleep: @escaping @Sendable (Duration) async throws -> Void) {
+        sleepAction = sleep
+    }
+
+    func sleep(for duration: Duration) async throws {
+        try await sleepAction(duration)
     }
 }
