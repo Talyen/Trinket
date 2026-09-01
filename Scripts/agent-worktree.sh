@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-# Thin git worktree helper for parallel agent checkouts.
+# Compat sibling worktree helper — delegates to canonical .worktrees manager when possible.
+# Canonical: node Scripts/agent-worktree.mjs create --task <slug> [--base <branch>]
+# This shim keeps the legacy ../Trinket-<slug> --detach workflow for older callers.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -12,10 +14,14 @@ Usage:
   ./Scripts/agent-worktree.sh create <slug>
   ./Scripts/agent-worktree.sh list
   ./Scripts/agent-worktree.sh remove <slug>
+  node Scripts/agent-worktree.mjs create --task <slug> [--base <branch>]  (canonical)
 
 Creates a sibling checkout at ../Trinket-<slug> from the current HEAD, on the
 same branch, so another agent can verify with --isolate without sharing a dirty
 working tree. Does not create or switch git branches unless you ask separately.
+
+Canonical isolated worktrees live under .worktrees/<slug> on branch agent/<slug>:
+  node Scripts/agent-worktree.mjs create --task <slug> [--base main]
 EOF
 }
 

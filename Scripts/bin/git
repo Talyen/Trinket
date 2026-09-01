@@ -1,0 +1,24 @@
+#!/usr/bin/env sh
+# Harness-agnostic shim: intercepts destructive git commands via guard,
+# delegates to real git otherwise. Bypass with REAL_GIT_BYPASS=1 /usr/bin/git ...
+set -eu
+if [ "${REAL_GIT_BYPASS:-0}" = "1" ]; then
+  exec /usr/bin/git "$@"
+fi
+ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+SHIM_DIR="$ROOT/Scripts/bin"
+# Find real git - prefer system git, skip any wrappers that delegate to this shim
+REAL_GIT="${REAL_GIT:-}"
+if [ -z "$REAL_GIT" ]; then
+  for cand in /opt/homebrew/bin/git /usr/local/bin/git /usr/bin/git; do
+    if [ -x "$cand" ]; then REAL_GIT="$cand"; break; fi
+  done
+  REAL_GIT="${REAL_GIT:-/usr/bin/git}"
+fi
+# Fast path: non-destructive commands go straight to real git
+case "${1:-}" in
+  reset|checkout|restore|clean|switch|branch|push) ;;
+  *) exec "$REAL_GIT" "$@" ;;
+esac
+# Destructive candidates: run guard (which re-exec's REAL_GIT if clean)
+exec env REAL_GIT="$REAL_GIT" node "$ROOT/Scripts/git-safety-guard.mjs" "$@"
