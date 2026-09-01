@@ -16,11 +16,11 @@ while [[ $# -gt 0 ]]; do
 Usage: ./Scripts/ci-gate.sh [--fast]
 
 Full gate (default): generation, style, module boundaries, script regressions,
-Swift Testing policy, and release-note validation.
+Swift Testing policy, release-note validation, and artwork budget.
 
 --fast skips generation and style (already covered by handoff/push) and runs
 only the cheap full-tree slices: module boundaries, Swift Testing migration,
-and release-note validation.
+release-note validation, and artwork budget.
 USAGE
       exit 0
       ;;
@@ -63,7 +63,7 @@ if ! ./Scripts/assert-generated-output.sh; then
   exit 1
 fi
 
-# Order: style → boundaries → script checks → Swift Testing → release notes
+# Order: style → boundaries → script checks → Swift Testing → release notes → artwork budget
 # (CI gate.yml calls this script).
 echo "=== Style check ==="
 ./Scripts/test.sh style

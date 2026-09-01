@@ -87,6 +87,8 @@ run_check() {
       [[ "$argument" == all ]] || { echo "Unknown script check: $argument" >&2; return 2; }
       if [[ "$FINAL" == true ]]; then
         ./Scripts/test-scripts.sh --skip-docs
+      elif [[ "$TRINKET_NEEDS_DOCS" == true ]]; then
+        ./Scripts/test-scripts.sh --skip-docs
       else
         ./Scripts/test-scripts.sh
       fi
@@ -177,9 +179,36 @@ trinket_classify_paths
 trinket_build_verification_plan
 
 if [[ "$DRY_RUN" == true ]]; then
+  # shellcheck source=Scripts/lib/cheap-slices.sh
+  source Scripts/lib/cheap-slices.sh
   echo "Planned checks:"
-  if (( ${#TRINKET_VERIFICATION_COMMANDS[@]} > 0 )); then
-    printf '  %s\n' "${TRINKET_VERIFICATION_COMMANDS[@]}"
+  declare -a _dry_commands=()
+  if [[ "$FINAL" == true ]]; then
+    _final_docs="python3 ./Scripts/check-docs.py --final"
+    [[ "$KEEP_PLAN" == true ]] && _final_docs+=" --keep-plan"
+    _dry_commands+=("$_final_docs")
+  fi
+  _has_docs_in_plan=false
+  for _k in "${TRINKET_VERIFICATION_KINDS[@]-}"; do
+    [[ "$_k" == docs ]] && _has_docs_in_plan=true && break
+  done
+  for i in "${!TRINKET_VERIFICATION_COMMANDS[@]}"; do
+    kind="${TRINKET_VERIFICATION_KINDS[$i]:-}"
+    display="${TRINKET_VERIFICATION_COMMANDS[$i]}"
+    if [[ "$kind" == docs && "$FINAL" == true ]]; then
+      continue
+    fi
+    if [[ "$kind" == scripts && ( "$FINAL" == true || "$_has_docs_in_plan" == true ) ]]; then
+      _dry_commands+=("./Scripts/test-scripts.sh --skip-docs")
+    else
+      _dry_commands+=("$display")
+    fi
+  done
+  while IFS= read -r _slice; do
+    [[ -n "$_slice" ]] && _dry_commands+=("$_slice")
+  done < <(trinket_cheap_slice_commands)
+  if (( ${#_dry_commands[@]} > 0 )); then
+    printf '  %s\n' "${_dry_commands[@]}"
   else
     echo "  (none; review docs/tooling directly)"
   fi
@@ -217,7 +246,7 @@ fi
 
 if [[ "$QUIET" != true ]]; then
   echo ""
-  echo "=== Cheap CI slices (boundaries, Swift Testing, release notes) ==="
+  echo "=== Cheap CI slices (boundaries, Swift Testing, release notes, artwork budget) ==="
 fi
 run_cheap_ci_slices
 

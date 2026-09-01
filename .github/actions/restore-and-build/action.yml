@@ -53,7 +53,7 @@ runs:
 
     - name: Restore warm build cache
       id: restore
-      uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+      uses: actions/cache/restore@3edfce9056124e459a23f683a21433670d47daca # v4
       with:
         path: .DerivedData
         # Exact hit = identical tree. Prefix hit = same nonsource, safe incremental rebuild.
@@ -75,7 +75,7 @@ runs:
 
     - name: Upload build failure diagnostics
       if: failure() && inputs.skip-build != 'true' && steps.build.outcome == 'failure'
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
       with:
         name: ${{ steps.ids.outputs.artifact-name }}-failure-diagnostics
         path: .DerivedData/TestResults
@@ -90,7 +90,7 @@ runs:
 
     - name: Save warm build cache
       if: inputs.skip-build != 'true' && inputs.save-cache == 'true' && steps.restore.outputs.cache-hit != 'true'
-      uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+      uses: actions/cache/save@3edfce9056124e459a23f683a21433670d47daca # v4
       with:
         path: .DerivedData
         key: ${{ steps.ids.outputs.cache-key }}
@@ -102,10 +102,10 @@ runs:
 
     - name: Upload build products for test jobs
       if: inputs.skip-build != 'true' && inputs.upload-artifact == 'true'
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
       with:
         name: ${{ steps.ids.outputs.artifact-name }}
         path: .DerivedData/ci-test-artifact
         include-hidden-files: true
-        retention-days: 1
+        retention-days: 7
         if-no-files-found: error

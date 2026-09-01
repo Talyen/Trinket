@@ -32,7 +32,7 @@ runs:
         echo "XCODE_PATH=$xcode_path" >> "$GITHUB_ENV"
 
     - name: Cache pinned CI tools
-      uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+      uses: actions/cache@3edfce9056124e459a23f683a21433670d47daca # v4
       with:
         path: .tools
         key: tools-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('Scripts/tool-versions.env') }}

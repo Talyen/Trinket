@@ -15,10 +15,10 @@ Choose the cheapest route that answers the question at hand.
 | Focused iteration | Package/test script | Fast feedback on the current owner |
 | Task handoff | `handoff.sh` | Required path-scoped agent gate |
 | Gate only | `ci-gate.sh` | Generation, style, boundaries, scripts, and release metadata; no unit/UI |
-| Fast gate | `ci-gate.sh --fast` | Cheap full-tree slices only (boundaries, Swift Testing, release notes) |
+| Fast gate | `ci-gate.sh --fast` | Cheap full-tree slices only (boundaries, Swift Testing, release notes, artwork budget) — canonical registry `Scripts/config/cheap-slices.txt` |
 | Local canary | `test-deploy.sh --mode smoke` | Optional human confidence: gate, unit, and smoke |
 | Release confidence | `release.sh` / `test-deploy.sh` | Pre-release only: gate, unit, and full UI (the one sanctioned local full-UI run) |
-| Main CI | Shared `tests.yml` workflow | Post-push on `main` (no pull-request workflow): path filter, then generate/style, app-only build, sharded unit (Heavy vs Rest), and sharded smoke; exhaustive is advisory nightly/dispatch |
+| Main CI | Shared `tests.yml` workflow | Post-push on `main` (no pull-request workflow): path filter, then generate/style, app-only build, sharded unit (Engine/State/Features) for faster push feedback, and sharded smoke; exhaustive is advisory nightly/dispatch |
 | Nightly exhaustive | `ci.yml` schedule + `workflow_dispatch` exhaustive | Full sharded exhaustive UI off the push path; visible but never blocks `CI OK` |
 | Local debugging / performance | `test.sh ui <Target>` / `performance.sh` | Single UI target or ad hoc performance; the full exhaustive suite is CI-owned |
 
@@ -58,16 +58,14 @@ reruns in the same slot. Final handoff still uses the full isolated route.
 style, package, compile, smoke, documentation, and idempotence checks from the
 changed paths; the script's help and `agent-context.sh` output show the exact
 route. Docs and Markdown edits route `check-docs.py`. `--final` is only for
-plan-lifecycle cleanup. After the routed plan succeeds, handoff always runs
-the cheap CI slices (module boundaries, Swift Testing migration, release-note
-validation) that full `ci-gate.sh` also enforces.
+plan-lifecycle cleanup. `--dry-run` shows the complete ordered execution including the cheap CI slices (boundaries, Swift Testing, release notes, artwork budget) from `Scripts/config/cheap-slices.txt`. After the routed plan succeeds, handoff always runs the cheap CI slices that `ci-gate.sh --fast` also enforces; `--dry-run` and execution share that canonical registry, and the documentation checker runs once even when script and documentation changes are combined.
 
 ## Gate composition
 
 | Gate | Composition |
 |---|---|
-| `ci-gate.sh` | Generate/assert against HEAD, full-tree style, module boundaries, script syntax and regression tests, Swift Testing policy, release-note validation |
-| `ci-gate.sh --fast` | Module boundaries, Swift Testing policy, and release-note validation only |
+| `ci-gate.sh` | Generate/assert against HEAD, full-tree style, module boundaries, script syntax and regression tests, Swift Testing policy, release-note validation, artwork budget |
+| `ci-gate.sh --fast` | Module boundaries, Swift Testing policy, release-note validation, and artwork budget only — from `Scripts/config/cheap-slices.txt` |
 | `ci-assets-gate.sh` | Generate assets, assert, regenerate in a stable locale, assert again |
 | `test-deploy.sh` | Release-time: `ci-gate.sh`, unit, then full UI, or the optional smoke canary |
 | Main CI | Post-push on `main`: path filter, generation/style, app build, package unit, and smoke for product changes; advisory analysis and exhaustive UI do not block `CI OK` |

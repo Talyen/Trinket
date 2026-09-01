@@ -61,11 +61,11 @@ Read these focused guides:
 | `./Scripts/agent-watch-ci.sh [--sha …]` | Poll a hosted CI run for a commit; prints failed jobs and annotations when red |
 | `node Scripts/agent-worktree.mjs create --task <slug>` | Canonical isolated worktree under `.worktrees/<slug>` on `agent/<slug>`; use when another agent owns dirty work |
 | `./Scripts/agent-worktree.sh -h` | Compatibility helper for sibling `../Trinket-<slug>` worktrees |
-| `./Scripts/handoff.sh --isolate --paths …` | Canonical path-scoped source gate; use `--working-tree` only intentionally; always finishes with cheap CI slices (boundaries, Swift Testing, release notes) |
+| `./Scripts/handoff.sh --isolate --paths …` | Canonical path-scoped source gate; use `--working-tree` only intentionally; `--dry-run` shows the full ordered plan including cheap CI slices from `Scripts/config/cheap-slices.txt`; always finishes with cheap CI slices (boundaries, Swift Testing, release notes, artwork budget) |
 | `./Scripts/new-plan.sh <PlanName>` | Scaffold an expiring active execution plan under `Docs/Plans/`; completed outcomes go in `Docs/Plans/Archived/README.md` and the full plan is deleted |
-| `./Scripts/ci-gate.sh` | Generation, style, boundaries, script regressions, and release-note validation |
-| `./Scripts/ci-gate.sh --fast` | Cheap full-tree slices only (boundaries, Swift Testing, release notes); skips generation and style |
-| `./Scripts/test-scripts.sh [--skip-docs]` | Script syntax/regressions; omit docs when a caller already ran `check-docs.py --final` |
+| `./Scripts/ci-gate.sh` | Generation, style, boundaries, script regressions, Swift Testing policy, release-note validation, and artwork budget |
+| `./Scripts/ci-gate.sh --fast` | Cheap full-tree slices only (boundaries, Swift Testing, release notes, artwork budget) from `Scripts/config/cheap-slices.txt`; skips generation and style |
+| `./Scripts/test-scripts.sh [--skip-docs]` | Script syntax/regressions; runs docs by default, omit docs when a caller already ran `check-docs.py` (mixed script/docs scope or `--final`) |
 | `./Scripts/ci-assets-gate.sh` | Asset generation, idempotence, and locale-stability gate |
 | `python3 ./Scripts/check-docs.py [--final] [--keep-plan]` | Check links, structure, smoke classes, stale terms, and execution-plan lifecycle |
 | `./Scripts/test-deploy.sh [--mode smoke]` | Pre-release deploy verification (`release.sh` calls this); `--mode smoke` is an optional canary |
@@ -88,7 +88,7 @@ dedicated help mode. Pinned tool versions live in
 in `Scripts/swift-source-dirs.env`; generated-output ownership lives in
 `Scripts/config/generated-paths.tsv`; diagnostic budgets live in
 `Scripts/config/diagnostic-limits.env`; simulator JSON queries live in
-`Scripts/simctl_json.py`. The small helpers under `Scripts/lib/` own shared
+`Scripts/simctl_json.py`; cheap CI slices live in `Scripts/config/cheap-slices.txt`. The small helpers under `Scripts/lib/` own shared
 mechanics only (tool PATH setup, app build arguments, media conversion/state
 sorting, cache pruning, and infrastructure-failure matching); domain-specific
 policy remains in the owning command.

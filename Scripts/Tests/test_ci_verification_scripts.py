@@ -192,7 +192,9 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
         )
         self.assertEqual(result.returncode, 0, result.stderr)
         plan = [line.strip() for line in result.stdout.splitlines() if line.startswith("  ")]
-        self.assertEqual(plan, ["python3 ./Scripts/check-docs.py"])
+        self.assertIn("python3 ./Scripts/check-docs.py", plan)
+        self.assertIn("./Scripts/check-module-boundaries.sh", plan)
+        self.assertIn("./Scripts/check-artwork-budget.sh", plan)
 
     def test_agent_push_gate_skips_generate_when_classification_does_not_need_it(self) -> None:
         text = (ROOT / "Scripts" / "agent-push-gate.sh").read_text(encoding="utf-8")

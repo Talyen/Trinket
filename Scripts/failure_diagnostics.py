@@ -167,6 +167,8 @@ def _classify_text(text: str, default: str) -> str:
     # Scripts/config/infrastructure-patterns.env.
     if re.search(INFRASTRUCTURE_FAILURE_PATTERN, lowered):
         return "simulator-infrastructure"
+    if re.search(r"xctassert|xctfail|assertion failed|expectation failed", lowered):
+        return "test-failure"
     if any(re.search(pattern, lowered) for pattern in _CONFIGURATION_PATTERNS):
         return "configuration"
     if any(re.search(pattern, lowered) for pattern in _TOOLING_PATTERNS):
@@ -385,6 +387,7 @@ LOG_PATTERNS: tuple[tuple[str, str, str], ...] = (
     # Canonical simulator vocabulary first so a crash/timeout line that also
     # names the simulator classifies as infrastructure, not test failure.
     (INFRASTRUCTURE_FAILURE_PATTERN, "simulator-infrastructure", "Simulator infrastructure"),
+    (r"(?:XCTAssert\w*\s*failed|XCTFail|XCTUnwrap.*failed|assertion failed|expectation failed)", "test-failure", "XCTest assertion failure"),
     (r"(?:test (?:runner|process) (?:crashed|crash|exited)|test .*terminated unexpectedly|testing failed|failed to (?:build|test)|terminated due to signal|killed by signal|(?:test .*|^|\s)timed? out|timeout|hang detected|(?:failed to launch test|test .*failed to launch)|test execution interrupted|exc_crash|abort trap|signal [0-9]+)", "test-failure", "Test process failure"),
     (r"(?:scheme .{0,80}not found|workspace .{0,40}does not contain|no test plan|invalid destination|unable to find a destination|destination .* unavailable|requires a provisioning profile|code signing|requires a development team|no such module)", "configuration", "Configuration failure"),
     (r"(?:command not found|unable to find utility|xcode-select[^\n]*error|developer directory[^\n]*(?:invalid|missing|not found)|toolchain[^\n]*(?:not found|invalid|not configured)|swiftlint[^\n]*(?:error|not found|unavailable))", "tooling", "Tooling failure"),

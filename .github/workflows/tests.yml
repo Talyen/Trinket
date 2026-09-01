@@ -48,7 +48,7 @@ jobs:
     runs-on: macos-26
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
       - uses: ./.github/actions/setup-trinket
       # Same semantics as local ./Scripts/ci-assets-gate.sh (single owner).
       - name: Asset codegen gate
@@ -63,7 +63,7 @@ jobs:
     outputs:
       build-artifact: ${{ steps.restore-and-build.outputs.artifact-name }}
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
           fetch-depth: 1
           sparse-checkout-cone-mode: true
@@ -99,12 +99,12 @@ jobs:
           save-cache: 'true'
           upload-artifact: 'true'
       - name: Upload compiler logs for analyze
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
         with:
           name: ${{ steps.restore-and-build.outputs.artifact-name }}-compiler-logs
           path: .DerivedData/TestResults/raw
           include-hidden-files: true
-          retention-days: 1
+          retention-days: 7
           if-no-files-found: error
 
   unit:
@@ -115,17 +115,19 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: Heavy
+          - name: Engine
             packages: BattleEngine
-          - name: Rest
-            packages: TrinketCore TrinketContent TrinketPersistence TrinketDesignSystem TrinketFeatureSupport TrinketBattleFeature TrinketAppState
+          - name: State
+            packages: TrinketCore TrinketPersistence TrinketAppState
+          - name: Features
+            packages: TrinketContent TrinketDesignSystem TrinketFeatureSupport TrinketBattleFeature
     runs-on: macos-26
     # Package schemes are compiled in this job; the shared build is app-only
     # so smoke/UI can start without waiting on package test products.
-    # Sharded 2-way (Heavy vs Rest) so BattleEngine no longer serializes all 8 packages.
+    # Sharded 3-way (Engine/State/Features) for faster push feedback.
     timeout-minutes: 25
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
           fetch-depth: 1
           sparse-checkout-cone-mode: true
@@ -174,7 +176,7 @@ jobs:
     runs-on: macos-26
     timeout-minutes: 25
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
           fetch-depth: 1
           sparse-checkout-cone-mode: true
@@ -229,7 +231,7 @@ jobs:
     runs-on: macos-26
     timeout-minutes: 25
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
           fetch-depth: 1
           sparse-checkout-cone-mode: true
@@ -270,7 +272,7 @@ jobs:
     runs-on: macos-26
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
           fetch-depth: 1
           sparse-checkout-cone-mode: true
@@ -296,7 +298,7 @@ jobs:
           test -f BattlePerformance.xctestplan
       - uses: ./.github/actions/setup-trinket
       - name: Download compiler logs
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        uses: actions/download-artifact@484a0b528fb4d7bd804637ccb632e47a0e638317 # v5
         with:
           name: ${{ needs.build.outputs.build-artifact }}-compiler-logs
           path: .DerivedData/TestResults/raw
@@ -314,7 +316,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
           fetch-depth: 0
       - name: Change-budget summary

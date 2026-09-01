@@ -304,12 +304,21 @@ class ContentAndPolicyScriptTests(ScriptRegressionTestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         plan = [line.strip() for line in result.stdout.splitlines() if line.startswith("  ")]
         self.assertEqual(
-            plan,
+            plan[:4],
             [
                 "./Scripts/generate.sh",
                 "./Scripts/assert-generated-output.sh --idempotent",
                 "./Scripts/test.sh style Packages/TrinketContent/Sources/TrinketContent/Content/AbilityCatalogBasic.swift",
                 "./Scripts/test-package.sh TrinketContent",
+            ],
+        )
+        self.assertEqual(
+            plan[4:],
+            [
+                "./Scripts/check-module-boundaries.sh",
+                "./Scripts/check-swift-testing-migration.sh",
+                "./Scripts/release-notes.sh validate",
+                "./Scripts/check-artwork-budget.sh",
             ],
         )
 
