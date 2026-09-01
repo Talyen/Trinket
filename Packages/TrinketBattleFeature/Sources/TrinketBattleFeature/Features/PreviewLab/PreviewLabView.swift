@@ -115,8 +115,7 @@ public struct PreviewLabView: View {
     }
 
     private var isCinematicClear: Bool {
-        !labSession.spectacle.isShowingVictory
-            && !labSession.spectacle.isShowingDefeat
+        !labSession.spectacle.outcomePresentation.isOutcomePresented
     }
 
     private func prepare() {

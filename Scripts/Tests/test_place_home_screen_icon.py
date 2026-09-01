@@ -8,7 +8,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from test_script_regressions import ROOT, load_script
+from script_test_support import ROOT, load_script
 
 place = load_script("place_home_screen_icon", "place-home-screen-icon.py")
 

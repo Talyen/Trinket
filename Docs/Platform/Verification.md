@@ -80,9 +80,6 @@ the checked-in workflows ([tests.yml](../../.github/workflows/tests.yml) and
 related workflow files); update this guide only when the verification policy
 changes.
 
-Verification output profiling is metadata-only and advisory. Commands,
-retention, and maintenance details live in [Scripts/README.md](../../Scripts/README.md).
-
 ## Style and boundary ownership
 
 | Check | Owns |

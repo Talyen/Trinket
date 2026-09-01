@@ -4,16 +4,6 @@ description: Xcode 26 selection and pinned tooling for Trinket CI on macos-26
 runs:
   using: composite
   steps:
-    - name: Configure CI output profiling
-      shell: bash
-      run: |
-        profile_dir="${TRINKET_OUTPUT_PROFILE_DIR:-.DerivedData/OutputProfiles}"
-        mkdir -p "$profile_dir"
-        {
-          echo "CI=true"
-          echo "TRINKET_OUTPUT_PROFILE_DIR=$profile_dir"
-        } >> "$GITHUB_ENV"
-
     - name: Select Xcode Version
       shell: bash
       run: |

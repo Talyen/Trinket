@@ -225,8 +225,8 @@ struct BattleSessionPreparationTests {
 
         #if DEBUG
         session.debugSkipCombat()
-        #expect(session.spectacle.isShowingVictory)
-        #expect(session.spectacle.victorySummary != nil)
+        #expect(session.spectacle.outcomePresentation.isVictoryPresented)
+        #expect(session.spectacle.outcomePresentation.victorySummaryIfAvailable != nil)
         #endif
     }
 

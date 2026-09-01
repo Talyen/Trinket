@@ -58,8 +58,7 @@ public struct BattleView: View {
             .toolbarVisibility(.visible, for: .navigationBar)
             .toolbarVisibility(.hidden, for: .tabBar)
             .toolbar {
-                if !battleSession.spectacle.isShowingVictory,
-                   !battleSession.spectacle.isShowingDefeat {
+                if !battleSession.spectacle.outcomePresentation.isOutcomePresented {
                     ToolbarItemGroup(placement: .topBarTrailing) {
                         BattleAutoToggle(battleSession: battleSession)
                         battleActionsMenu(canRetreat: battleSession.canRetreat)
@@ -118,8 +117,8 @@ public struct BattleView: View {
 
     private func outcomeContent(battleSession: BattleSession) -> some View {
         ZStack {
-            if battleSession.spectacle.isShowingVictory,
-               let victorySummary = battleSession.spectacle.victorySummary {
+            switch battleSession.spectacle.outcomePresentation {
+            case let .victory(victorySummary):
                 VictoryView(
                     summary: victorySummary,
                     primaryActionTitle: hasStageProgression ? "Loot All" : "Battle Again",
@@ -129,7 +128,7 @@ public struct BattleView: View {
                     onPrimaryAction: { completeVictoryPrimaryAction(summary: victorySummary) },
                 )
                 .transition(.opacity)
-            } else if battleSession.spectacle.isShowingDefeat {
+            case .defeat:
                 switch presentationContext.defeatPrimaryAction {
                 case .retreat:
                     DefeatView(
@@ -151,7 +150,7 @@ public struct BattleView: View {
                     )
                     .transition(.opacity)
                 }
-            } else {
+            case .battle, .pendingVictory:
                 BattleFieldLane(
                     configuration: configuration,
                     presentationContext: presentationContext,
@@ -163,7 +162,7 @@ public struct BattleView: View {
                 .transition(.opacity)
             }
         }
-        .animation(TrinketMotion.Screen.crossfade, value: outcomePhase(for: battleSession))
+        .animation(TrinketMotion.Screen.crossfade, value: battleSession.spectacle.outcomePresentation)
     }
 
     private func completeVictoryPrimaryAction(summary: BattleVictorySummary) -> Bool {
@@ -449,16 +448,6 @@ private struct BattleCastPrewarmLane: View {
 }
 
 private extension BattleView {
-    func outcomePhase(for battleSession: BattleSession) -> String {
-        if battleSession.spectacle.isShowingVictory {
-            "victory"
-        } else if battleSession.spectacle.isShowingDefeat {
-            "defeat"
-        } else {
-            "battle"
-        }
-    }
-
     var hasStageProgression: Bool {
         presentationContext.hasProgressionRewards
     }

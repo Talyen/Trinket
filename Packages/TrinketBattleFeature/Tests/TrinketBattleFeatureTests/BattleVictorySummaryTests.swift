@@ -24,8 +24,8 @@ struct BattleVictorySummaryTests {
 
         session.presentLaunchVictory()
 
-        #expect(session.spectacle.isShowingVictory)
-        let summary = try #require(session.spectacle.victorySummary)
+        #expect(session.spectacle.outcomePresentation.isVictoryPresented)
+        let summary = try #require(session.spectacle.outcomePresentation.victorySummaryIfAvailable)
         #expect(summary.experience == 17)
         #expect(summary.companionExperience == 9)
         #expect(summary.stageGold == 12)

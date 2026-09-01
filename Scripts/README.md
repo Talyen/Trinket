@@ -23,34 +23,6 @@ Run artifacts are ephemeral by default. Use the owning command's documented
 keep/cleanup switches when an investigation needs to retain a successful run;
 failed evidence remains available for triage.
 
-## Output profiling
-
-CI and local verification profile output automatically. Profiling is metadata-only
-(label, outcome, elapsed time, and displayed line/byte counts); command arguments
-and output contents are not retained. Reports are advisory and do not fail a
-correctness gate. Normal verification stays quiet; the profiler owns the
-thresholds for sustained or materially excessive output, and CI surfaces at most
-three ranked advisories.
-
-The profile directory is retained separately from diagnostic artifacts: 50 local
-sessions under `.DerivedData/OutputProfiles/` and 30 days in CI. Raw Xcode/test
-logs remain agent-visible only when a command prints them, not merely because
-they exist in a diagnostic artifact.
-
-Use these reports when investigating a local or hosted trend:
-
-```sh
-python3 Scripts/output-profile.py report --local
-python3 Scripts/output-profile.py report --ci <artifact-dirs...>
-python3 Scripts/output-profile.py report --actionable --top 3
-```
-
-`TRINKET_OUTPUT_PROFILE=0` is a debugging escape hatch. Set
-`TRINKET_OUTPUT_PROFILE_DIR` when an isolated test needs a different metadata
-directory. The recurring maintenance task consumes actionable evidence, edits
-only a clean checkout, and leaves verified bounded changes uncommitted for
-review.
-
 Read these focused guides:
 
 - [Documentation map](../Docs/README.md) — source-of-truth owners.
@@ -100,9 +72,6 @@ Read these focused guides:
 | `./Scripts/ci-diagnostics.sh [RESULTS_DIR]` | Aggregate the current diagnostics session |
 | `./Scripts/ci-diagnostics.sh --stage-artifacts <RESULTS_DIR> <ARTIFACT_DIR>` | Stage structured artifacts, adding raw failure evidence only when needed |
 | `./Scripts/ci-diagnostics.sh --cleanup [--keep] <RESULTS_DIR>` | Delete passed result/report history after staging; retain failures for current triage unless `--keep` |
-| `python3 ./Scripts/output-profile.py report --local` | Rank recent local output profiles and actionable hotspots |
-| `python3 ./Scripts/output-profile.py report --ci <artifact-dirs...>` | Aggregate CI profile artifacts without reading raw logs |
-| `python3 ./Scripts/output-profile.py report --actionable --top 3` | Print at most three actionable output hotspots |
 | `./Scripts/change-budget.sh --paths …` | Advisory authored-surface report against HEAD; `--base <rev>` for CI ranges |
 | `./Scripts/lint-analyze.sh` | CI-only advisory SwiftLint analyzer (`unused_import` / `unused_declaration`) after a compiler log exists; runs beside tests, never from handoff or style |
 | `./Scripts/ensure-ci-tools.sh` | Install pinned XcodeGen, SwiftFormat, SwiftLint, ripgrep, and xcbeautify |

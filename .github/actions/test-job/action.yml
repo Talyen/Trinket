@@ -2,10 +2,6 @@ name: Test job
 description: Download CI build products, run tests, aggregate diagnostics, upload artifacts
 
 inputs:
-  profile-label:
-    description: Stable output-profile label for this test boundary
-    required: false
-    default: ci-tests
   command:
     description: Shell command to run tests
     required: true
@@ -66,10 +62,7 @@ runs:
         SKIP_GENERATE: 1
       run: |
         echo "Build artifact miss for ${{ inputs.build-artifact }}; rebuilding with: ${{ inputs.rebuild-command }}"
-        python3 Scripts/output-profile.py run \
-          --label "${{ inputs.profile-label }}-rebuild" \
-          --policy ci-rebuild \
-          -- ${{ inputs.rebuild-command }}
+        ${{ inputs.rebuild-command }}
 
     - name: Wait for simulator preboot
       if: inputs.preboot-simulator == 'true'
@@ -106,11 +99,7 @@ runs:
         SKIP_GENERATE: 1
         CI: true
         TRINKET_CLEANUP_TEST_ARTIFACTS: 0
-      run: >-
-        python3 Scripts/output-profile.py run
-        --label "${{ inputs.profile-label }}"
-        --policy ci-test
-        -- ${{ inputs.command }}
+      run: ${{ inputs.command }}
 
     - name: Classify CI outcome and report timing
       if: always()
@@ -126,22 +115,6 @@ runs:
       if: always()
       shell: bash
       run: ./Scripts/ci-diagnostics.sh --cleanup .DerivedData/TestResults
-
-    - name: Report CI output profile
-      if: always()
-      continue-on-error: true
-      shell: bash
-      run: python3 Scripts/output-profile.py report --ci .DerivedData/OutputProfiles --actionable --top 3
-
-    - name: Upload CI output profile
-      if: always()
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-      with:
-        name: ${{ inputs.artifact-name }}-output-profile-${{ github.run_id }}
-        path: .DerivedData/OutputProfiles/
-        include-hidden-files: true
-        retention-days: 30
-        if-no-files-found: ignore
 
     - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
       # Passing runs are intentionally ephemeral. Keep forensic artifacts for a

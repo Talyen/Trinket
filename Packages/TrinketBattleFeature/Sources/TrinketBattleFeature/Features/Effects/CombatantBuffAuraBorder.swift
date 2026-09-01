@@ -72,8 +72,7 @@ struct CombatantBuffAuraLane: View {
         CombatantBuffAuraBorder(
             kind: kind,
             isMotionActive: battleSession.lifecyclePhase == .active
-                && !battleSession.spectacle.isShowingVictory
-                && !battleSession.spectacle.isShowingDefeat,
+                && !battleSession.spectacle.outcomePresentation.isOutcomePresented,
         )
     }
 }

@@ -193,8 +193,8 @@ struct BattleSessionAppIntegrationTests {
         driveToVictory(battle)
 
         #expect(battle.outcome == .victory)
-        #expect(battle.spectacle.isShowingVictory)
-        #expect(battle.spectacle.victorySummary != nil)
+        #expect(battle.spectacle.outcomePresentation.isVictoryPresented)
+        #expect(battle.spectacle.outcomePresentation.victorySummaryIfAvailable != nil)
         #expect(state.battle.activeBattle != nil)
     }
     #endif

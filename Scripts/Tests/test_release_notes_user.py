@@ -8,7 +8,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from test_script_regressions import ROOT, load_script
+from script_test_support import ROOT, load_script
 
 notes = load_script("release_notes_user", "release-notes-user.py")
 
@@ -136,7 +136,7 @@ class ReleaseNotesUserTests(unittest.TestCase):
     def test_build_notes_skips_infra_and_uses_fallback(self) -> None:
         summary, bullets = notes.build_notes(
             [
-                commit("Add script regression coverage", "Scripts/Tests/test_script_regressions.py"),
+                commit("Add script regression coverage", "Scripts/Tests/test_ci_verification_scripts.py"),
                 commit("ci: speed up isolate slots", ".github/workflows/tests.yml"),
             ]
         )

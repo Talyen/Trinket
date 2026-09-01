@@ -43,11 +43,11 @@ struct BattleSpectacleSessionTests {
         #expect(!session.canRetreat)
         if alreadyClaimed {
             #expect(deliveryCount == 1)
-            #expect(!(session.spectacle.isShowingVictory))
+            #expect(!session.spectacle.outcomePresentation.isVictoryPresented)
         } else {
             #expect(deliveryCount == 0)
-            #expect(session.spectacle.victorySummary != nil)
-            #expect(session.spectacle.isShowingVictory)
+            #expect(session.spectacle.outcomePresentation.victorySummaryIfAvailable != nil)
+            #expect(session.spectacle.outcomePresentation.isVictoryPresented)
         }
         #expect(session.spectacle.ultimateHighlightsByActorID.isEmpty || session.spectacle.ultimateHighlightsByActorID["hero"] != nil)
     }

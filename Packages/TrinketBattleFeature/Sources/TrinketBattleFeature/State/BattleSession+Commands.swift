@@ -20,8 +20,7 @@ extension BattleSession {
         cancelPendingAutoEnd()
         feedback.pruneExpired(at: date, notifyPresentation: false)
         finishEnemyTurnPresentation()
-        guard !spectacle.isShowingVictory,
-              !spectacle.isShowingDefeat,
+        guard spectacle.outcomePresentation == .battle,
               !isDealingOpeningHand,
               hasActiveSimulation,
               !isBattleOver,

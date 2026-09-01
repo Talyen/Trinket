@@ -7,4 +7,4 @@ trinket_run_cheap_slices() {
   ./Scripts/check-artwork-budget.sh
 }
 
-# Keep in sync with handoff.sh run_cheap_ci_slices profiled list.
+# Keep in sync with handoff.sh run_cheap_ci_slices.

@@ -60,7 +60,7 @@ extension BattleSession {
                 return
             }
             guard let summary = makeVictorySummary(for: configuration, presentation: context) else { return }
-            spectacle.victorySummary = summary
+            spectacle.outcomePresentation = .pendingVictory(summary)
             scheduleVictoryPresentation(after: date)
         case .defeat:
             scheduleDefeatPresentation(after: date)
@@ -76,7 +76,8 @@ extension BattleSession {
             expected: .victory,
             sfx: SFXID.victory,
         ) { session in
-            session.spectacle.isShowingVictory = true
+            guard case let .pendingVictory(summary) = session.spectacle.outcomePresentation else { return }
+            session.spectacle.outcomePresentation = .victory(summary)
         }
     }
 
@@ -132,13 +133,17 @@ extension BattleSession {
         guard outcome == .victory,
               let configuration = activeBattle,
               let context = presentationContext,
-              hasActiveSimulation,
-              !spectacle.isShowingVictory
+              hasActiveSimulation
         else { return }
-        if spectacle.victorySummary == nil {
-            spectacle.victorySummary = makeVictorySummary(for: configuration, presentation: context)
+        switch spectacle.outcomePresentation {
+        case .victory:
+            return
+        case let .pendingVictory(summary):
+            spectacle.outcomePresentation = .victory(summary)
+        case .battle, .defeat:
+            guard let summary = makeVictorySummary(for: configuration, presentation: context) else { return }
+            spectacle.outcomePresentation = .victory(summary)
         }
-        spectacle.isShowingVictory = true
     }
 
     #if DEBUG
@@ -146,8 +151,7 @@ extension BattleSession {
         guard let configuration = activeBattle,
               let context = presentationContext,
               hasActiveSimulation,
-              !spectacle.isShowingVictory,
-              !spectacle.isShowingDefeat
+              spectacle.outcomePresentation == .battle
         else { return }
 
         cancelPendingAutoEnd()
@@ -155,8 +159,8 @@ extension BattleSession {
         spectacle.pendingOutcomePresentationTask?.cancel()
         spectacle.pendingOutcomePresentationTask = nil
         clearSpectacle()
-        spectacle.victorySummary = makeVictorySummary(for: configuration, presentation: context)
-        spectacle.isShowingVictory = true
+        guard let summary = makeVictorySummary(for: configuration, presentation: context) else { return }
+        spectacle.outcomePresentation = .victory(summary)
         presentationEnvironment.playSFX([SFXID.victory])
     }
     #endif
@@ -167,7 +171,7 @@ extension BattleSession {
             expected: .defeat,
             sfx: SFXID.defeat,
         ) { session in
-            session.spectacle.isShowingDefeat = true
+            session.spectacle.outcomePresentation = .defeat
         }
     }
 

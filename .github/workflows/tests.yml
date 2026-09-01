@@ -52,25 +52,7 @@ jobs:
       - uses: ./.github/actions/setup-trinket
       # Same semantics as local ./Scripts/ci-assets-gate.sh (single owner).
       - name: Asset codegen gate
-        run: >-
-          python3 Scripts/output-profile.py run
-          --label ci-assets-gate
-          --policy ci-assets-gate
-          -- ./Scripts/ci-assets-gate.sh
-      - name: Report CI output profile
-        if: always()
-        continue-on-error: true
-        shell: bash
-        run: python3 Scripts/output-profile.py report --ci .DerivedData/OutputProfiles --actionable --top 3
-      - name: Upload CI output profile
-        if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: ${{ github.workflow }}-assets-output-profile-${{ github.run_id }}
-          path: .DerivedData/OutputProfiles/
-          include-hidden-files: true
-          retention-days: 30
-          if-no-files-found: ignore
+        run: ./Scripts/ci-assets-gate.sh
 
   build:
     name: Build for testing
@@ -135,10 +117,8 @@ jobs:
         include:
           - name: Heavy
             packages: BattleEngine
-            profile-label: unit-heavy
           - name: Rest
             packages: TrinketCore TrinketContent TrinketPersistence TrinketDesignSystem TrinketFeatureSupport TrinketBattleFeature TrinketAppState
-            profile-label: unit-rest
     runs-on: macos-26
     # Package schemes are compiled in this job; the shared build is app-only
     # so smoke/UI can start without waiting on package test products.
@@ -175,7 +155,6 @@ jobs:
           skip-build: 'true'
       - uses: ./.github/actions/test-job
         with:
-          profile-label: ${{ matrix.profile-label }}
           artifact-name: ${{ inputs.artifact-prefix }}unit-${{ matrix.name }}
           command: ./Scripts/test-package.sh ${{ matrix.packages }}
           preboot-simulator: 'true'
@@ -222,7 +201,6 @@ jobs:
       - uses: ./.github/actions/setup-trinket
       - uses: ./.github/actions/test-job
         with:
-          profile-label: smoke-tests-${{ matrix.name }}
           build-artifact: ${{ needs.build.outputs.build-artifact }}
           artifact-name: ${{ inputs.artifact-prefix }}smoke-${{ matrix.name }}
           rebuild-command: ./Scripts/build-for-testing.sh --app-only
@@ -278,7 +256,6 @@ jobs:
       - uses: ./.github/actions/setup-trinket
       - uses: ./.github/actions/test-job
         with:
-          profile-label: exhaustive-ui-${{ matrix.name }}
           build-artifact: ${{ needs.build.outputs.build-artifact }}
           artifact-name: ${{ inputs.artifact-prefix }}exhaustive-ui-${{ matrix.name }}
           rebuild-command: ./Scripts/build-for-testing.sh --app-only
@@ -327,25 +304,7 @@ jobs:
         continue-on-error: true
         env:
           SKIP_GENERATE: 1
-        run: >-
-          python3 Scripts/output-profile.py run
-          --label swiftlint-analyze
-          --policy ci-gate
-          -- ./Scripts/lint-analyze.sh
-      - name: Report CI output profile
-        if: always()
-        continue-on-error: true
-        shell: bash
-        run: python3 Scripts/output-profile.py report --ci .DerivedData/OutputProfiles --actionable --top 3
-      - name: Upload CI output profile
-        if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: ${{ github.workflow }}-analyze-output-profile-${{ github.run_id }}
-          path: .DerivedData/OutputProfiles/
-          include-hidden-files: true
-          retention-days: 30
-          if-no-files-found: ignore
+        run: ./Scripts/lint-analyze.sh
 
   diff-review:
     name: Advisory diff review

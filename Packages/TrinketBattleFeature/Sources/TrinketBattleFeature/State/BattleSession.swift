@@ -131,7 +131,7 @@ public final class BattleSession: BattleRuntime {
         engineState?.phase == .playerTurn && !(engineState?.isBattleOver ?? true)
             && hasActiveSimulation
             && !isDealingOpeningHand
-            && !spectacle.isShowingVictory && !spectacle.isShowingDefeat
+            && spectacle.outcomePresentation == .battle
     }
 
     var hasActiveSimulation: Bool {
@@ -139,7 +139,7 @@ public final class BattleSession: BattleRuntime {
     }
 
     var canRetreat: Bool {
-        activeBattle != nil && !presentation.isBattleOver && !spectacle.isShowingVictory && !spectacle.isShowingDefeat
+        activeBattle != nil && !presentation.isBattleOver && spectacle.outcomePresentation == .battle
     }
 
     var hapticsEnabled: Bool {
@@ -177,8 +177,7 @@ public final class BattleSession: BattleRuntime {
               let context = presentationContext,
               let summary = makeVictorySummary(for: configuration, presentation: context)
         else { return }
-        spectacle.victorySummary = summary
-        spectacle.isShowingVictory = true
+        spectacle.outcomePresentation = .victory(summary)
     }
 
     func combatantReadModel(for combatant: Combatant) -> CombatantReadModel? {
@@ -267,15 +266,7 @@ public final class BattleSession: BattleRuntime {
     func clearOutcomePresentation() {
         spectacle.pendingOutcomePresentationTask?.cancel()
         spectacle.pendingOutcomePresentationTask = nil
-        if spectacle.isShowingVictory {
-            spectacle.isShowingVictory = false
-        }
-        if spectacle.isShowingDefeat {
-            spectacle.isShowingDefeat = false
-        }
-        if spectacle.victorySummary != nil {
-            spectacle.victorySummary = nil
-        }
+        spectacle.outcomePresentation = .battle
     }
 
     func trimPresentationMemory() {

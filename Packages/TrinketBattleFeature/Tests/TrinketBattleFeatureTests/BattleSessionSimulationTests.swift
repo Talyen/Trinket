@@ -26,8 +26,9 @@ struct BattleSessionSimulationTests {
         BattleSessionTestSupport.driveUntilOutcome(session)
 
         #expect(session.outcome == .victory)
-        #expect(session.spectacle.victorySummary != nil)
-        #expect(!session.spectacle.isShowingVictory)
+        #expect(session.spectacle.outcomePresentation.victorySummaryIfAvailable != nil)
+        #expect(!session.spectacle.outcomePresentation.isOutcomePresented)
+        #expect(!session.spectacle.outcomePresentation.isVictoryPresented)
         #expect(!session.canRetreat)
         let heroID = try #require(session.heroID)
         let companionID = try #require(session.companionID)
@@ -35,7 +36,8 @@ struct BattleSessionSimulationTests {
         #expect(session.feedback.hitReactionsByTargetID[companionID]?.kind == .celebrate)
         let presentationTask = try #require(session.spectacle.pendingOutcomePresentationTask)
         await presentationTask.value
-        #expect(session.spectacle.isShowingVictory)
+        #expect(session.spectacle.outcomePresentation.isOutcomePresented)
+        #expect(session.spectacle.outcomePresentation.isVictoryPresented)
         #expect(!session.canRetreat)
     }
 
@@ -60,8 +62,8 @@ struct BattleSessionSimulationTests {
         let earnedGold = BattleSessionTestSupport.driveUntilOutcome(session)
 
         #expect(earnedGold == session.earnedGold ?? 0)
-        #expect(!(session.spectacle.isShowingVictory))
-        #expect(session.spectacle.victorySummary == nil)
+        #expect(!session.spectacle.outcomePresentation.isVictoryPresented)
+        #expect(session.spectacle.outcomePresentation.victorySummaryIfAvailable == nil)
         let heroID = try #require(session.heroID)
         let companionID = try #require(session.companionID)
         #expect(session.feedback.hitReactionsByTargetID[heroID]?.kind == .celebrate)
@@ -69,16 +71,14 @@ struct BattleSessionSimulationTests {
 
         session.presentVictoryChromeForPersistRetry()
 
-        #expect(session.spectacle.isShowingVictory)
-        #expect(session.spectacle.victorySummary != nil)
+        #expect(session.spectacle.outcomePresentation.isVictoryPresented)
+        #expect(session.spectacle.outcomePresentation.victorySummaryIfAvailable != nil)
         #expect(!session.canRetreat)
     }
 
-    @Test func `clear outcome presentation resets victory and defeat flags when cleared`() {
+    @Test func `clear outcome presentation resets the outcome state`() {
         let session = BattleSession(openingHandDrawStagger: 0)
-        session.spectacle.isShowingVictory = true
-        session.spectacle.isShowingDefeat = true
-        session.spectacle.victorySummary = BattleVictorySummary(
+        let summary = BattleVictorySummary(
             stageGold: 1,
             battleGold: 2,
             rawBattleEarnedGold: 2,
@@ -95,12 +95,11 @@ struct BattleSessionSimulationTests {
             companionProgressionBefore: .initial,
             companionProgressionAfter: .initial,
         )
+        session.spectacle.outcomePresentation = .pendingVictory(summary)
 
         session.clearOutcomePresentation()
 
-        #expect(!(session.spectacle.isShowingVictory))
-        #expect(!(session.spectacle.isShowingDefeat))
-        #expect(session.spectacle.victorySummary == nil)
+        #expect(session.spectacle.outcomePresentation == .battle)
     }
 
     @Test func `play card appends feedback items when card plays`() throws {

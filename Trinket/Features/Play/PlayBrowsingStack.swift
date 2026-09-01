@@ -168,7 +168,10 @@ struct PlayBattleOverlay: View {
         guard let configuration = battle.overlayBattleConfiguration,
               let presentationContext = battlePresentationContext(for: configuration)
         else { return }
-        let launchVictoryWasPresented = battle.spectacle.isShowingVictory
+        let launchVictoryWasPresented = switch battle.spectacle.outcomePresentation {
+        case .victory: true
+        case .battle, .pendingVictory, .defeat: false
+        }
         battle.installPresentationContext(presentationContext)
         guard battle.activeBattle != nil else { return }
         if launchVictoryWasPresented {
