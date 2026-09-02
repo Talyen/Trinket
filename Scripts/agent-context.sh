@@ -17,11 +17,15 @@ declare -a requested_paths=()
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --agent) OUTPUT="agent" ;;
+    --smoke)
+      TRINKET_ENABLE_SMOKE=true
+      export TRINKET_ENABLE_SMOKE
+      ;;
     --full) FULL=true ;;
     --allow-broad-scope) ALLOW_BROAD_SCOPE=true ;;
     --help|-h)
       cat <<USAGE
-Usage: ./Scripts/agent-context.sh [--agent] [--full] [--allow-broad-scope] [--paths <file> ...]
+Usage: ./Scripts/agent-context.sh [--agent] [--full] [--smoke] [--allow-broad-scope] [--paths <file> ...]
 
 Prints a compact task briefing: applicable AGENTS.md guides, context cards and
 skills, architecture/generated-output warnings, and the focused sequential

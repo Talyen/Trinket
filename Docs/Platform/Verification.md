@@ -54,17 +54,24 @@ Full smoke and exhaustive UI are CI-owned post-push gates; watch them with
 - The full local UI run belongs to pre-release deploy verification (`release.sh` / `test-deploy.sh`).
 
 After a green isolated rebuild, `--no-build` is appropriate for mid-task smoke
-reruns in the same slot. Final handoff still uses the full isolated route. On
-`--isolate` success the built app is auto-mirrored to **Trinket Run** (see
-[SimulatorOperations.md](SimulatorOperations.md))
-so Simulator.app shows the latest without a manual install.
+reruns in the same slot. Routine handoff is headless by default, executing
+package tests, app compilation proofs (`build.sh`), style, and module
+boundaries without booting a simulator. Pass `--smoke` to opt into targeted UI
+smoke tests locally, and pass `--mirror` to auto-mirror the built app to
+**Trinket Run** (see [SimulatorOperations.md](SimulatorOperations.md)).
 
 `handoff.sh` is the canonical path-scoped route. It composes generation,
-style, package, compile, smoke, documentation, and idempotence checks from the
-changed paths, including paths added by encountered fixes. The script's help
-and `agent-context.sh` output show the exact route. Docs and Markdown edits
-route `check-docs.py`. `--final` is only for
-plan-lifecycle cleanup. `--dry-run` shows the complete ordered execution including the cheap CI slices (boundaries, Swift Testing, release notes, artwork budget) from `Scripts/config/cheap-slices.txt`. After the routed plan succeeds, handoff always runs the cheap CI slices that `ci-gate.sh --fast` also enforces; `--dry-run` and execution share that canonical registry, and the documentation checker runs once even when script and documentation changes are combined.
+style, package, compile, documentation, and idempotence checks from the
+changed paths, including paths added by encountered fixes. Pass `--smoke` to
+include the targeted UI smoke canary. The script's help and `agent-context.sh`
+output show the exact route. Docs and Markdown edits route `check-docs.py`.
+`--final` is only for plan-lifecycle cleanup. `--dry-run` shows the complete
+ordered execution including the cheap CI slices (boundaries, Swift Testing,
+release notes, artwork budget) from `Scripts/config/cheap-slices.txt`. After
+the routed plan succeeds, handoff always runs the cheap CI slices that
+`ci-gate.sh --fast` also enforces; `--dry-run` and execution share that
+canonical registry, and the documentation checker runs once even when script
+and documentation changes are combined.
 
 ## Gate composition
 

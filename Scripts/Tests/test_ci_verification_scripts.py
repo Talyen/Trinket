@@ -534,13 +534,31 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
         )
         self.assertEqual(explicit.returncode, 0, explicit.stderr)
 
-    def test_mystery_subflow_runs_play_smoke(self) -> None:
-        # Deterministic routing: any Play diff runs SmokeShellTests; no demotion
-        # to compile-only for subflow-only diffs.
+    def test_handoff_default_headless_compile_proof(self) -> None:
         result = subprocess.run(
             [
                 str(ROOT / "Scripts" / "handoff.sh"),
                 "--dry-run",
+                "--paths",
+                "Trinket/Features/Play/Mystery/MysteryChoiceCard.swift",
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        plan = "\n".join(result.stdout.splitlines())
+        self.assertIn("./Scripts/build.sh", plan)
+        self.assertNotIn("SmokeShellTests", plan)
+
+    def test_mystery_subflow_runs_play_smoke(self) -> None:
+        # Deterministic routing: when --smoke is passed, any Play diff runs SmokeShellTests.
+        result = subprocess.run(
+            [
+                str(ROOT / "Scripts" / "handoff.sh"),
+                "--dry-run",
+                "--smoke",
                 "--paths",
                 "Trinket/Features/Play/Mystery/MysteryChoiceCard.swift",
             ],
@@ -557,6 +575,7 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
             [
                 str(ROOT / "Scripts" / "handoff.sh"),
                 "--dry-run",
+                "--smoke",
                 "--paths",
                 "Trinket/Features/Play/Modes/PlayModeHubView.swift",
             ],
@@ -591,6 +610,7 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
             [
                 str(ROOT / "Scripts" / "handoff.sh"),
                 "--dry-run",
+                "--smoke",
                 "--paths",
                 "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Shared/AccessibilityID.swift",
             ],
@@ -607,6 +627,7 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
             [
                 str(ROOT / "Scripts" / "handoff.sh"),
                 "--dry-run",
+                "--smoke",
                 "--paths",
                 "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/PreparedArtwork.swift",
             ],
@@ -619,12 +640,13 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
         self.assertIn("SmokeShellTests", result.stdout)
 
     def test_battle_feature_lab_runs_full_package_tests_and_smoke(self) -> None:
-        # No lab demotion: a DEBUG variant file still runs the full package
+        # With --smoke, a DEBUG variant file runs the full package
         # suite plus the SmokeBattleTests canary.
         result = subprocess.run(
             [
                 str(ROOT / "Scripts" / "handoff.sh"),
                 "--dry-run",
+                "--smoke",
                 "--paths",
                 "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/Effects/CombatantCardDeathEffectVariants.swift",
             ],
@@ -644,6 +666,7 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
             [
                 str(ROOT / "Scripts" / "handoff.sh"),
                 "--dry-run",
+                "--smoke",
                 "--paths",
                 "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/Battlefield/BattleCombatantPane.swift",
             ],
@@ -663,6 +686,7 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
             [
                 str(ROOT / "Scripts" / "handoff.sh"),
                 "--dry-run",
+                "--smoke",
                 "--paths",
                 "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/Effects/CombatantCardDeathEffectVariants.swift",
                 "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/Battlefield/BattleCombatantPane.swift",

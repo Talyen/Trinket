@@ -118,21 +118,29 @@ while [[ $# -gt 0 ]]; do
       TRINKET_ISOLATE=1
       export TRINKET_ISOLATE
       ;;
+    --smoke)
+      TRINKET_ENABLE_SMOKE=true
+      export TRINKET_ENABLE_SMOKE
+      ;;
+    --mirror)
+      TRINKET_ENABLE_MIRROR=true
+      export TRINKET_ENABLE_MIRROR
+      ;;
     --final) FINAL=true ;;
     --keep-plan) KEEP_PLAN=true ;;
     --working-tree) PATH_MODE="working-tree" ;;
     --help|-h)
       cat <<'USAGE'
-Usage: ./Scripts/handoff.sh [--dry-run] [--quiet] [--isolate] [--final] [--keep-plan] [--paths <file> ...]
+Usage: ./Scripts/handoff.sh [--dry-run] [--quiet] [--isolate] [--smoke] [--mirror] [--final] [--keep-plan] [--paths <file> ...]
 
 Classifies task-scoped changes when --paths is supplied, otherwise all
-working-tree changes. It runs generation, style, touched-package tests, an
-app build for unresolved feature/UI Swift, and a targeted smoke canary —
-sequentially, with no demotions or warm-cache reuse.
+working-tree changes. It runs generation, style, touched-package tests, and
+an app build for unresolved or feature/UI Swift — sequentially and headlessly
+by default.
 
---isolate forwards to the simulator-slot environment (test/test-package) so a
-task-scoped run does not collide with another agent on the same Mac. Agents
-should always pass --isolate.
+--smoke opts into the targeted simulator UI smoke canary for touched feature flows.
+--mirror opts into auto-mirroring the built app into Trinket Run on success.
+--isolate forwards to the simulator-slot environment so runs do not collide.
 --final applies final documentation and active-plan checks.
 --keep-plan permits an intentionally unfinished active plan with --final.
 Use --working-tree to opt into whole-tree classification; --paths is preferred.
@@ -257,7 +265,7 @@ run_cheap_ci_slices
 source Scripts/lib/handoff-receipt.sh
 trinket_handoff_receipt_write || echo "warning: failed to write handoff receipt" >&2
 
-if [[ "${TRINKET_ISOLATE:-}" == "1" && "${ISOLATE}" == true ]]; then
+if [[ "${TRINKET_ENABLE_MIRROR:-false}" == "true" && "${TRINKET_ISOLATE:-}" == "1" && "${ISOLATE}" == true ]]; then
   _mirror_needs_build=false
   if [[ "$TRINKET_NEEDS_APP_BUILD" == true || "$TRINKET_HAS_FEATURE" == true || "$TRINKET_NEEDS_CONTENT_GENERATION" == true || "$TRINKET_NEEDS_PROJECT_GENERATION" == true ]] || (( ${#TRINKET_PACKAGES[@]} > 0 )); then
     _mirror_needs_build=true

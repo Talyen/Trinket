@@ -28,18 +28,6 @@ trinket_handoff_receipt_write() {
   if ! git diff --quiet 2>/dev/null; then dirty=true; fi
   if ! git diff --cached --quiet 2>/dev/null; then dirty=true; fi
   if [[ -n "$(git ls-files --others --exclude-standard 2>/dev/null | head -n 1)" ]]; then dirty=true; fi
-  if [[ "$dirty" == true ]]; then
-    local tmp_index
-    tmp_index="$(mktemp 2>/dev/null || echo /tmp/trinket-handoff-index-$$)"
-    if cp .git/index "$tmp_index" 2>/dev/null; then :; else rm -f "$tmp_index"; tmp_index=""; fi
-    if [[ -n "$tmp_index" && -f "$tmp_index" ]]; then
-      GIT_INDEX_FILE="$tmp_index" git add -A 2>/dev/null || true
-      local wt_tree
-      wt_tree="$(GIT_INDEX_FILE="$tmp_index" git write-tree 2>/dev/null || echo "")"
-      if [[ -n "$wt_tree" ]]; then tree="$wt_tree"; fi
-      rm -f "$tmp_index"
-    fi
-  fi
 
   # Hash of the classification input (sorted changed paths) for stricter matching.
   paths_hash="$(printf '%s\n' "${TRINKET_CHANGED_PATHS[@]-}" | sort -u | shasum -a 256 2>/dev/null | awk '{print $1}' || echo unknown)"

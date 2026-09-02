@@ -61,7 +61,7 @@ Read these focused guides:
 | `./Scripts/agent-watch-ci.sh [--sha …]` | Poll a hosted CI run for a commit; prints failed jobs and annotations when red |
 | `node Scripts/agent-worktree.mjs create --task <slug>` | Canonical isolated worktree under `.worktrees/<slug>` on `agent/<slug>`; use when another agent owns dirty work |
 | `./Scripts/agent-worktree.sh -h` | Compatibility helper for sibling `../Trinket-<slug>` worktrees |
-| `./Scripts/handoff.sh --isolate --paths …` | Canonical path-scoped source gate; use `--working-tree` only intentionally; `--dry-run` shows the full ordered plan including cheap CI slices from `Scripts/config/cheap-slices.txt`; always finishes with cheap CI slices (boundaries, Swift Testing, release notes, artwork budget) and auto-mirrors the isolated app to Trinket Run |
+| `./Scripts/handoff.sh --isolate --paths …` | Canonical path-scoped source gate (headless by default); `--smoke` runs targeted UI smoke; `--mirror` mirrors to Trinket Run; `--dry-run` shows the full ordered plan including cheap CI slices |
 | `./Scripts/new-plan.sh <PlanName>` | Scaffold an expiring active execution plan under `Docs/Plans/`; completed outcomes go in `Docs/Plans/Archived/README.md` and the full plan is deleted |
 | `./Scripts/ci-gate.sh` | Generation, style, boundaries, script regressions, Swift Testing policy, release-note validation, and artwork budget |
 | `./Scripts/ci-gate.sh --fast` | Cheap full-tree slices only (boundaries, Swift Testing, release notes, artwork budget) from `Scripts/config/cheap-slices.txt`; skips generation and style |

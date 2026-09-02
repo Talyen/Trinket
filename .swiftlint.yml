@@ -139,6 +139,46 @@ custom_rules:
       - comment
     message: "Comments banned — remove or use an allowed toolchain directive (swift-tools-version / swiftlint:disable / swiftformat:disable). See doc-budget skill."
     severity: error
+  banned_task_sleep:
+    name: "Task.sleep in tests"
+    regex: '(?<!//.*)Task\.sleep\s*\((?![^)]*\.milliseconds)'
+    included:
+      - "Packages/*/Tests"
+    message: "Task.sleep in package tests must poll with .milliseconds or use TestSleepCheck: allow"
+    severity: error
+  banned_persistence_try_question:
+    name: "Persistence try? ban"
+    regex: '(?<!//.*)\btry\?'
+    included:
+      - "Packages/TrinketPersistence/Sources/TrinketPersistence"
+    message: "try? on persistence write/open; use an explicit path or PersistenceCheck: allow"
+    severity: error
+  banned_battle_engine_date_uuid:
+    name: "BattleEngine unseeded Date()/UUID()"
+    regex: '(?<!//.*)\b(Date|UUID)\(\)'
+    included:
+      - "Packages/BattleEngine/Sources/BattleEngine"
+    message: "unseeded Date()/UUID() in BattleEngine rule code"
+    severity: error
+  banned_battle_engine_random:
+    name: "BattleEngine unseeded .random()"
+    regex: '(?<!//.*)\.random\s*\((?![^)]*using:)'
+    included:
+      - "Packages/BattleEngine/Sources/BattleEngine"
+    message: "unseeded .random( in BattleEngine rule code (inject RNG via using:)"
+    severity: error
+  banned_swiftlint_disable_without_reason:
+    name: "swiftlint:disable without reason"
+    regex: '//\s*swiftlint:disable\b(?![^\n]*-\s*\S+)'
+    message: "swiftlint:disable must include ' - <reason>'"
+    severity: error
+  banned_artwork_release_pins:
+    name: "Launch artwork pin release"
+    regex: '(?<!//.*)\breleasePins\b'
+    included:
+      - "Trinket/App/TrinketApp.swift"
+    message: "do not release launch artwork pins after warmup (ArtworkWorkingSetCheck)"
+    severity: error
 
 excluded:
   - Packages/TrinketContent/Sources/TrinketContent/Generated

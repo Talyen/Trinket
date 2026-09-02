@@ -613,11 +613,10 @@ trinket_build_verification_plan() {
   if (( ${#TRINKET_PACKAGES[@]} > 0 )); then
     trinket_add_verification package "${TRINKET_PACKAGES[*]}" "./Scripts/test-package.sh ${TRINKET_PACKAGES[*]}"
   fi
-  # App compile gap-fill: feature/shared Swift with no resolved unit or smoke
-  # owner still needs a compile proof. Deterministic — never skipped for
-  # presentation-only "chrome" diffs.
+  # App compile proof: feature/shared Swift diffs get a fast headless compile
+  # proof when smoke is not enabled or when no smoke owner is resolved.
   if [[ "$TRINKET_HAS_FEATURE" == true && "$TRINKET_NEEDS_APP_BUILD" != true ]] \
-    && (( ${#TRINKET_SMOKE_TARGETS[@]} == 0 )); then
+    && { (( ${#TRINKET_SMOKE_TARGETS[@]} == 0 )) || [[ "${TRINKET_ENABLE_SMOKE:-false}" != "true" ]]; }; then
     if command -v xcodebuild >/dev/null 2>&1; then
       trinket_add_verification build app "SKIP_GENERATE=1 ./Scripts/build.sh"
     else
@@ -631,7 +630,7 @@ trinket_build_verification_plan() {
       TRINKET_APP_COMPILE_SKIPPED_NO_XCODE=true
     fi
   fi
-  if [[ "$TRINKET_NEEDS_SMOKE" == true ]]; then
+  if [[ "$TRINKET_NEEDS_SMOKE" == true && "${TRINKET_ENABLE_SMOKE:-false}" == "true" ]]; then
     local smoke_target
     local smoke_list=()
     for smoke_target in "${TRINKET_SMOKE_TARGETS[@]+"${TRINKET_SMOKE_TARGETS[@]}"}"; do
