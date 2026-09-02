@@ -169,21 +169,23 @@ public struct BattleHand: Hashable, Sendable {
     @discardableResult
     public mutating func promoteNextFromBuffer(
         isOwnerAlive: (BattleParticipant) -> Bool,
-    ) -> BattleCard? {
+    ) -> (promoted: BattleCard?, discarded: [BattleCard]) {
         guard !isFull, !buffer.isEmpty else {
-            return nil
+            return (nil, [])
         }
+        var discarded: [BattleCard] = []
         while !buffer.isEmpty {
             let card = buffer.removeFirst()
             if isOwnerAlive(card.owner) {
                 cards.append(card)
-                return card
+                return (card, discarded)
             }
+            discarded.append(card)
             if isFull {
                 break
             }
         }
-        return nil
+        return (nil, discarded)
     }
 
     public var isFull: Bool {

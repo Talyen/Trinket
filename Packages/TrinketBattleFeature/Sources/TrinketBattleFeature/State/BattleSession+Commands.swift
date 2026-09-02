@@ -19,7 +19,6 @@ extension BattleSession {
     ) -> BattleCardPlayResolution {
         cancelPendingAutoEnd()
         feedback.pruneExpired(at: date, notifyPresentation: false)
-        finishEnemyTurnPresentation()
         guard spectacle.outcomePresentation == .battle,
               hasActiveSimulation,
               !isBattleOver,
@@ -68,7 +67,6 @@ extension BattleSession {
     func endTurn(at date: Date = .now) {
         cancelPendingAutoEnd()
         feedback.pruneExpired(at: date, notifyPresentation: false)
-        finishEnemyTurnPresentation()
         guard canEndTurn, hasActiveSimulation, !isSuspendedForScenePhase else {
             feedback.noteItemsChanged()
             return
@@ -83,8 +81,6 @@ extension BattleSession {
                 transitionInterval,
             )
         }
-
-        beginEnemyTurnIfNeeded()
 
         if openingHandDrawStagger <= .zero {
             performAtomicTurnTransition(at: date)
@@ -104,11 +100,7 @@ extension BattleSession {
         presentResolvedEvents(events, at: date)
         handleOutcomeIfNeeded(at: date)
         if isBattleOver || outcome != nil {
-            cancelPendingEnemyTurnReset()
-            isEnemyTurnActive = false
             installSimulationPresentation()
-        } else {
-            scheduleEnemyTurnReset(after: date)
         }
         scheduleAutoEndIfNeeded()
     }
@@ -126,8 +118,6 @@ extension BattleSession {
         presentResolvedEvents(preEvents, at: date)
         handleOutcomeIfNeeded(at: date)
         if isBattleOver || outcome != nil {
-            cancelPendingEnemyTurnReset()
-            isEnemyTurnActive = false
             installSimulationPresentation()
             scheduleAutoEndIfNeeded()
             return
@@ -196,11 +186,7 @@ extension BattleSession {
         presentResolvedEvents(postEvents, at: .now)
         handleOutcomeIfNeeded(at: .now)
         if isBattleOver || outcome != nil {
-            cancelPendingEnemyTurnReset()
-            isEnemyTurnActive = false
             installSimulationPresentation()
-        } else {
-            scheduleEnemyTurnReset(after: .now)
         }
         scheduleAutoEndIfNeeded()
     }
@@ -347,7 +333,6 @@ extension BattleSession {
             else { return }
 
             if shouldTelegraphEnemyAttack(), let enemyID {
-                beginEnemyTurnIfNeeded()
                 publishAttackTelegraph(.full, for: enemyID)
                 let impactDelay = enemyAttackImpactDelayOverride
                     ?? .seconds(CombatFeedbackAttackRecipes.cardAttack(for: .attack).impactDelay)
@@ -358,11 +343,6 @@ extension BattleSession {
                           canEndTurn,
                           !hasPlayableCard
                     else {
-                        if Task.isCancelled {
-                            cancelPendingEnemyTurnReset()
-                            isEnemyTurnActive = false
-                            installSimulationPresentation()
-                        }
                         return
                     }
                 }

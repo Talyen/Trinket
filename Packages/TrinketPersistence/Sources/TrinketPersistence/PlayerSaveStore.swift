@@ -298,7 +298,7 @@ public final class PlayerSaveStore {
         let rawSave = rawSave ?? root.toPlayerSave()
         var save = sanitized ?? PlayerSaveSanitizer.sanitize(rawSave)
         save.schemaVersion = PlayerSave.currentSchemaVersion
-        var repairSlices = root.repairSlices(for: save)
+        var repairSlices = root.repairSlices(for: save, currentSave: rawSave)
         guard !repairSlices.isEmpty else { return }
 
         if !repairSlices.contains(.root) {
@@ -382,21 +382,6 @@ private extension PlayerSaveStore {
             )
             return (root, false, true)
         }
-    }
-
-    func measured<Result>(
-        _ name: StaticString,
-        operation: () throws -> Result,
-    ) rethrows -> Result {
-        #if DEBUG
-        let interval = Self.performanceSignposter.beginInterval(name)
-        defer {
-            Self.performanceSignposter.endInterval(name, interval)
-        }
-        return try operation()
-        #else
-        return try operation()
-        #endif
     }
 
     func scheduleDeferredSave() {

@@ -224,6 +224,7 @@ extension BattleSession {
     }
 
     func triggerUltimateInFrameHighlight(from event: ActionEvent, at date: Date) {
+        BattleCinematicPlayer.shared.isEnabled = areUltimateCinematicAnimationsEnabled
         guard areUltimateCinematicAnimationsEnabled else { return }
         let autoSkip = presentationEnvironment.shouldAutoSkipUltimateCinematic(
             event.actorID,
@@ -294,8 +295,6 @@ extension BattleSession {
         holdOpeningHandForOverlayFade: Bool = false,
     ) {
         cancelPendingAutoEnd()
-        cancelPendingEnemyTurnReset()
-        isEnemyTurnActive = false
         cancelOpeningHandDeal()
         cancelPendingTurnDraw()
         deliveredClaimedVictoryConfigurationID = nil
@@ -327,8 +326,6 @@ extension BattleSession {
 
     func clearRunState() {
         cancelPendingAutoEnd()
-        cancelPendingEnemyTurnReset()
-        isEnemyTurnActive = false
         cancelOpeningHandDeal()
         cancelPendingTurnDraw()
         deliveredClaimedVictoryConfigurationID = nil
@@ -338,6 +335,8 @@ extension BattleSession {
         clearSpectacle()
         clearOutcomePresentation()
         feedback.release()
+        CombatFeedbackGlyphAtlas.shared.removeAll()
+        CardDissolveTexture.clearCache()
         overlayCombatantDetail = nil
         overlayAbilityDetail = nil
         isShowingBattleLog = false

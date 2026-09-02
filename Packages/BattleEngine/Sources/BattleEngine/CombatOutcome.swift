@@ -51,14 +51,17 @@ extension CombatOutcome {
         if state.isDodged {
             flags.insert(.dodged)
         }
-        if state.damageEvents.contains(where: { $0.effectKind == .shieldAbsorbed }) {
-            flags.insert(.shieldAbsorbed)
-        }
-        if state.damageEvents.contains(where: { $0.effectKind == .leechHeal }) {
-            flags.insert(.leeched)
-        }
-        if state.damageEvents.contains(where: { $0.effectKind == .controlTriggered }) {
-            flags.insert(.controlTriggered)
+        for event in state.damageEvents {
+            switch event.effectKind {
+            case .shieldAbsorbed:
+                flags.insert(.shieldAbsorbed)
+            case .leechHeal:
+                flags.insert(.leeched)
+            case .controlTriggered:
+                flags.insert(.controlTriggered)
+            default:
+                break
+            }
         }
         return CombatOutcome(
             healthDelta: -state.healthLost,

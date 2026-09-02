@@ -28,18 +28,12 @@ package extension DamagePipeline {
         let profile = context.modifiers(for: state.combatant.id)
         let autoDodge = profile.triggers.autoDodgeAfterFirstHitPerTurn
             && (context.roster.runtime(for: state.combatant)?.hasTakenAttackHitThisTurn ?? false)
-        if let damageKeyword = state.damageKeyword, damageKeyword == .holy,
-           let sourceActorID = state.sourceActorID {
-            let srcTriggers = context.modifiers(for: sourceActorID).triggers
-            if srcTriggers.holyIgnoresBlockAndDodge {
-                return
-            }
-            let partyUnbroken = CombatTriggerEngine.livingPartyTriggers(in: context).unbrokenVow
-            if srcTriggers.unbrokenVow || partyUnbroken,
-               let src = context.roster.combatant(for: sourceActorID),
-               DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: src.combatant)) > 0 {
-                return
-            }
+        if DefensePoolEngine.shouldIgnoreDodge(
+            keyword: state.damageKeyword,
+            sourceActorID: state.sourceActorID,
+            in: context
+        ) {
+            return
         }
         let dodged: Bool
         if hasEvadeNextHit || autoDodge {

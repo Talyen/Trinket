@@ -12,7 +12,7 @@ public extension BattleCardCombatEngine {
             return []
         }
 
-        var events = advanceRoundCommon(context: &context)
+        let events = advanceRoundCommon(context: &context)
         if context.phase == .ended {
             return events
         }
@@ -96,8 +96,11 @@ public extension BattleCardCombatEngine {
     static func promoteNextFromBuffer(
         context: inout BattleState,
     ) -> BattleCard? {
-        context.hand.promoteNextFromBuffer(isOwnerAlive: { owner in
-            context.roster[owner].isAlive
-        })
+        let isAlive: (BattleParticipant) -> Bool = { context.roster[$0].isAlive }
+        let result = context.hand.promoteNextFromBuffer(isOwnerAlive: isAlive)
+        for card in result.discarded {
+            putAbilityOnBottom(card.ability, owner: card.owner, context: &context)
+        }
+        return result.promoted
     }
 }

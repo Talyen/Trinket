@@ -113,8 +113,8 @@ public extension PlayerSaveRoot {
 }
 
 extension PlayerSaveRoot {
-    func repairSlices(for sanitizedSave: PlayerSave) -> PlayerSaveSlice {
-        var slices = PlayerSaveSlice.changed(between: toPlayerSave(), and: sanitizedSave)
+    func repairSlices(for sanitizedSave: PlayerSave, currentSave: PlayerSave? = nil) -> PlayerSaveSlice {
+        var slices = PlayerSaveSlice.changed(between: currentSave ?? toPlayerSave(), and: sanitizedSave)
 
         if journey == nil || hasDuplicateKeys(journey?.stages ?? [], key: \.stageID) {
             slices.insert(.journey)

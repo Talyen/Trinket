@@ -71,11 +71,6 @@ public final class BattleSession: BattleRuntime {
     var preparedArtworkNames: Set<String> = []
 
     public internal(set) var isDealingOpeningHand = false
-    var isEnemyTurnActive = false
-    @ObservationIgnored
-    var enemyTurnGeneration = 0
-    @ObservationIgnored
-    var pendingEnemyTurnResetTask: Task<Void, Never>?
 
     var hasPendingAutoEnd: Bool {
         pendingAutoEndTask != nil
@@ -285,6 +280,8 @@ public final class BattleSession: BattleRuntime {
         let date = Date.now
         feedback.pruneExpired(at: date)
         resetFeedbackRasterMemory()
+        CombatFeedbackGlyphAtlas.shared.removeAll()
+        CardDissolveTexture.clearCache()
     }
 
     func resetFeedbackRasterMemory() {
@@ -303,6 +300,7 @@ public final class BattleSession: BattleRuntime {
         companionUltimateID: String?,
     ) {
         presentationEnvironment.warmSFX(SFXID.battlePrewarmIDs, 2)
+        BattleCinematicPlayer.shared.isEnabled = areUltimateCinematicAnimationsEnabled
         guard areUltimateCinematicAnimationsEnabled else { return }
         BattleCinematicPlayer.shared.warmLoadout(
             heroActorID: heroActorID,

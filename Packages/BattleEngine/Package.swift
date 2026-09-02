@@ -45,7 +45,6 @@ let package = Package(
             name: "BattleEngineTests",
             dependencies: [
                 "BattleEngine",
-                "BattleBalanceTools",
                 "TrinketCore",
                 "TrinketContent",
                 .product(name: "TrinketTestSupport", package: "TrinketTestSupport"),

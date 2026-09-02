@@ -39,21 +39,11 @@ public enum ShopPurchaseApplier {
             offerID: offer.id,
             visitToken: visitToken,
         )
-        let itemID = offer.item.isTrinket ? offer.item.id : instanceID
+        let isSingletonItem = offer.item.isTrinket || offer.item.rarity == .unique
+        let itemID = isSingletonItem ? offer.item.id : instanceID
         guard offer.price >= 0 else {
             return .insufficientGold
         }
-        guard !save.inventory.items.contains(where: { $0.id == itemID }) else {
-            return .alreadyOwned
-        }
-        if offer.item.isTrinket,
-           save.inventory.items.contains(where: { $0.isTrinket && $0.templateID == offer.item.templateID }) {
-            return .alreadyOwned
-        }
-        guard save.roster.spendGold(offer.price) else {
-            return .insufficientGold
-        }
-
         let purchased = InventoryItem(
             id: itemID,
             templateID: offer.item.templateID,
@@ -64,7 +54,13 @@ public enum ShopPurchaseApplier {
             isCorrupted: offer.item.isCorrupted,
             affixPowers: offer.item.affixPowers,
         )
-        save.inventory.items.append(purchased)
+        guard !InventoryDuplicatePolicy.containsDuplicate(of: purchased, in: save.inventory.items) else {
+            return .alreadyOwned
+        }
+        guard save.roster.spendGold(offer.price) else {
+            return .insufficientGold
+        }
+        save.inventory.appendUniqueItem(purchased)
         return .success(purchased)
     }
 }

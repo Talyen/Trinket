@@ -343,4 +343,22 @@ struct PlayerRosterStateTests {
         roster.progressions[companion.id] = .at(level: 1)
         #expect(roster.activePartyAverageLevel == 10)
     }
+
+    @Test func `active combatants resolve accurately`() throws {
+        var roster = PlayerRosterState.freshStart
+        #expect(roster.activeHero.id == PlayerRosterState.starterHeroID)
+        #expect(roster.activeCompanion.id == PlayerRosterState.starterCompanionID)
+
+        let wizard = try #require(GameContent.heroes.first { $0.id == "wizard" })
+        roster.unlockHero(id: wizard.id)
+        roster.setActiveHero(wizard)
+        #expect(roster.activeHero.id == "wizard")
+        #expect(roster.activeHero.role == .hero)
+
+        let bear = try #require(GameContent.companions.first { $0.id == "bear" })
+        roster.unlockCompanion(id: bear.id)
+        roster.setActiveCompanion(bear)
+        #expect(roster.activeCompanion.id == "bear")
+        #expect(roster.activeCompanion.role == .companion)
+    }
 }

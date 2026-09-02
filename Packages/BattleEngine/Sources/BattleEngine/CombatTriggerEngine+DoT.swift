@@ -184,4 +184,34 @@ package extension CombatTriggerEngine {
         }
         return events
     }
+
+    static func applyDoT(
+        keyword: Keyword,
+        potency: Int,
+        to target: Combatant,
+        sourceActorID: String,
+        dealImmediateDamage: Bool = true,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        switch keyword {
+        case .bleed:
+            DoTApplicator.applyBleed(
+                potency: potency,
+                to: target,
+                sourceActorID: sourceActorID,
+                dealImmediateDamage: dealImmediateDamage,
+                suppressAffixReactions: true,
+                in: &context,
+            )
+        default:
+            context.applyDecayingDoT(
+                keyword: keyword,
+                potency: potency,
+                to: target,
+                sourceActorID: sourceActorID,
+                dealImmediateDamage: dealImmediateDamage,
+                suppressAffixReactions: true,
+            )
+        }
+    }
 }

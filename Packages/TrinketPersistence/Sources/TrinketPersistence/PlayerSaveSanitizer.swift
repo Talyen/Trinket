@@ -1,4 +1,3 @@
-// swiftformat:disable:this all
 import Foundation
 import os
 import TrinketContent

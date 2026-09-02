@@ -137,6 +137,22 @@ enum CardDissolveTexture {
                 return image
             }
         }
+
+        func removeAll() {
+            noiseCache.withLock { $0.removeAll(keepingCapacity: false) }
+            thresholdCache.withLock { $0.removeAll(keepingCapacity: false) }
+        }
+    }
+
+    static func clearCache() {
+        prewarmState.withLock { state in
+            for task in state.tasks.values {
+                task.cancel()
+            }
+            state.tasks.removeAll()
+            state.prepared.removeAll()
+        }
+        cache.removeAll()
     }
 
     static func thresholdMaskImage(

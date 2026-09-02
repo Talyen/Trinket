@@ -99,7 +99,7 @@ public struct PlayerLabyrinthState: Equatable, Sendable {
             LabyrinthGridPosition(row: position.row - 1, column: position.column + 1),
             LabyrinthGridPosition(row: position.row + 1, column: position.column - 1),
             LabyrinthGridPosition(row: position.row + 1, column: position.column),
-        ].filter { position.isAdjacent(to: $0) }
+        ]
     }
 
     public var currentFloorNumber: Int {

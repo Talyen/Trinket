@@ -2,7 +2,6 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-// swiftlint:disable:next type_body_length - consolidated round helpers keep single owner
 public enum BattleCardCombatEngine {
     public static func bootstrapDecks(context: inout BattleState) {
         context.heroDeck = CombatDeck.shuffled(
@@ -131,20 +130,14 @@ public enum BattleCardCombatEngine {
             return []
         }
 
-        var events = advanceRoundCommon(context: &context)
+        var events = endTurnWithoutDraw(context: &context)
         if context.phase == .ended {
             return events
         }
 
-        drawCardsBalanced(heroCount: 1, companionCount: 1, context: &context)
+        while drawNextTurnStartCard(context: &context) {}
         promoteFromBuffer(context: &context)
-        context.ownersSkippingThisPlayerTurn = skippingOwners(in: context)
-        events.append(contentsOf: restoreManaAtPlayerTurnStart(context: &context))
-        events.append(contentsOf: CombatTriggerEngine.atPlayerTurnStart(in: &context))
-        for owner in [BattleParticipant.hero, .companion] {
-            context.roster.clearControlStatusLinger(for: context.roster[owner].combatant)
-        }
-        context.phase = .playerTurn
+        events.append(contentsOf: finalizeTurnStart(context: &context))
         return events
     }
 
@@ -240,46 +233,6 @@ public enum BattleCardCombatEngine {
             }
         }
         return skipping
-    }
-
-    private static func drawCardsBalanced(
-        heroCount: Int,
-        companionCount: Int,
-        context: inout BattleState,
-    ) {
-        var remaining: [BattleParticipant: Int] = [.hero: heroCount, .companion: companionCount]
-        let tieWinner: BattleParticipant = context.turnCount.isMultiple(of: 2) ? .hero : .companion
-        var heroHandCount = context.hand.cards.count { $0.owner == .hero }
-        var companionHandCount = context.hand.cards.count { $0.owner == .companion }
-
-        while true {
-            let candidates = [BattleParticipant.hero, .companion].filter {
-                remaining[$0, default: 0] > 0
-            }
-            guard !candidates.isEmpty else { return }
-
-            let owner = pickBalancedOwner(
-                candidates: candidates,
-                isHandFull: context.hand.isFull,
-                tieWinner: tieWinner,
-                heroHandCount: heroHandCount,
-                companionHandCount: companionHandCount,
-            )
-
-            remaining[owner, default: 0] -= 1
-            let wasFull = context.hand.isFull
-            if let card = drawOne(for: owner, context: &context) {
-                if !wasFull {
-                    if card.owner == .hero {
-                        heroHandCount += 1
-                    } else if card.owner == .companion {
-                        companionHandCount += 1
-                    }
-                }
-            } else {
-                remaining[owner] = 0
-            }
-        }
     }
 
     static func pickBalancedOwner(

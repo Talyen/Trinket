@@ -80,6 +80,9 @@ final class CombatFeedbackRasterUIView: UIView {
     private var orderedLayers: [ChipLayer] = []
     private var reusableLayers: [CALayer] = []
     var cardHeight: CGFloat = 0
+    #if DEBUG
+    var debugLastAppliedChips: [CombatFeedbackItem] = []
+    #endif
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -123,6 +126,9 @@ final class CombatFeedbackRasterUIView: UIView {
             guard let raster = chip.raster else { return nil }
             return (chip.item, raster)
         }
+        #if DEBUG
+        debugLastAppliedChips = validChips.map(\.0)
+        #endif
         let nextIDs = Set(validChips.map(\.0.id))
         for id in Array(layersByID.keys) where !nextIDs.contains(id) {
             recycleLayer(id: id)

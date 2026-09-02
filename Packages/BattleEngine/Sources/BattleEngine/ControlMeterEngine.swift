@@ -232,16 +232,12 @@ package enum ControlMeterEngine {
         in context: inout BattleState,
     ) {
         guard chance > 0 else { return }
-        guard BattleChance.succeeds(probability: min(1, chance), using: &context.rng) else { return }
-        context.additionalControlSkipsByCombatantID[combatant.id, default: 0] += 1
-        guard chance > 1 else { return }
-        let additional = Int(chance - 1)
-        let fractional = chance - Double(Int(chance))
-        if additional > 0 {
-            context.additionalControlSkipsByCombatantID[combatant.id, default: 0] += additional
+        var remaining = chance
+        while remaining >= 1 {
+            context.additionalControlSkipsByCombatantID[combatant.id, default: 0] += 1
+            remaining -= 1
         }
-        if fractional > 0,
-           BattleChance.succeeds(probability: fractional, using: &context.rng) {
+        if remaining > 0, BattleChance.succeeds(probability: remaining, using: &context.rng) {
             context.additionalControlSkipsByCombatantID[combatant.id, default: 0] += 1
         }
     }

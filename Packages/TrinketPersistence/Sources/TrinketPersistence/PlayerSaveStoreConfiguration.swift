@@ -55,26 +55,6 @@ enum PlayerSaveStoreConfiguration {
         return ResolvedStore(config: resolved.0, recoveryURL: resolved.1, finalURL: finalURL)
     }
 
-    static func resolveConfiguration(
-        schema: Schema,
-        finalURL _: URL,
-        storeName: String?,
-        storeURL: URL?,
-        disableCloudSync: Bool,
-        inMemoryOnly: Bool,
-        cloudKitContainerIdentifier: String,
-    ) -> (config: ModelConfiguration, recoveryURL: URL?) {
-        let resolved = resolveStore(
-            schema: schema,
-            storeName: storeName,
-            storeURL: storeURL,
-            disableCloudSync: disableCloudSync,
-            inMemoryOnly: inMemoryOnly,
-            cloudKitContainerIdentifier: cloudKitContainerIdentifier,
-        )
-        return (resolved.config, resolved.recoveryURL)
-    }
-
     static func fetchRoot(in context: ModelContext, logger: Logger) throws -> PlayerSaveRoot? {
         let descriptor = FetchDescriptor<PlayerSaveRoot>(
             predicate: #Predicate { $0.id == "primary" },

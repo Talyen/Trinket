@@ -24,7 +24,7 @@ struct BattlePresentationSnapshot: Equatable {
     let playableCardIDs: Set<Int>
     let isBattleOver: Bool
 
-    init(configurationID: UUID, state: borrowing BattleState, isEnemyTurnActive _: Bool = false) {
+    init(configurationID: UUID, state: borrowing BattleState) {
         self.configurationID = configurationID
         let heroEffects = state.activeEffects(of: state.hero)
         let companionEffects = state.activeEffects(of: state.companion)
@@ -63,9 +63,7 @@ struct BattlePresentationSnapshot: Equatable {
                 from: effects,
                 controlAccentRequiresPendingSkip: combatant.role != .enemy,
             ),
-            buffAuraKind: InternalFeatureFlags.combatantBuffAuraEnabled
-                ? CombatantBuffAura.kind(from: effects)
-                : nil,
+            buffAuraKind: nil,
         )
     }
 }
@@ -119,12 +117,10 @@ final class BattlePresentationState {
 extension BattleState {
     borrowing func battlePresentationSnapshot(
         configurationID: UUID,
-        isEnemyTurnActive: Bool = false,
     ) -> BattlePresentationSnapshot {
         BattlePresentationSnapshot(
             configurationID: configurationID,
             state: self,
-            isEnemyTurnActive: isEnemyTurnActive,
         )
     }
 }

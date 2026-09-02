@@ -25,17 +25,39 @@ package extension DamagePipeline {
         source: CombatantRuntime,
         in context: inout BattleState,
     ) {
-        let mirrored: [(Bool, Keyword, Keyword)] = [
-            (triggers.toxicTransfusion, .physical, .poison),
-            (triggers.firebrand, .physical, .burn),
-            (triggers.butchersLedger, .physical, .bleed),
-            (triggers.nerveAgent, .poison, .stun),
-            (triggers.crossContamination, .bleed, .poison),
-            (triggers.frostfire, .burn, .freeze),
-        ]
+        guard state.buildupDamage > 0 else { return }
         let scaled = CombatRounding.scaled(state.buildupDamage, multiplier: 0.5)
         guard scaled > 0 else { return }
-        for (enabled, src, dst) in mirrored where enabled && keyword == src {
+
+        var destinations: [Keyword] = []
+        switch keyword {
+        case .physical:
+            if triggers.toxicTransfusion {
+                destinations.append(.poison)
+            }
+            if triggers.firebrand {
+                destinations.append(.burn)
+            }
+            if triggers.butchersLedger {
+                destinations.append(.bleed)
+            }
+        case .poison:
+            if triggers.nerveAgent {
+                destinations.append(.stun)
+            }
+        case .bleed:
+            if triggers.crossContamination {
+                destinations.append(.poison)
+            }
+        case .burn:
+            if triggers.frostfire {
+                destinations.append(.freeze)
+            }
+        default:
+            break
+        }
+
+        for dst in destinations {
             state.damageEvents.append(contentsOf: dealTalentMirroredDamage(
                 scaled,
                 keyword: dst,

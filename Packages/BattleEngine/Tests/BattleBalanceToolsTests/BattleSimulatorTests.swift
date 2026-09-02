@@ -157,4 +157,10 @@ struct BattleSimulatorTests {
         let fullFocus = BalanceTalentContrastRunner.KitFocus(owner: owner, kit: valid)
         #expect(!BalanceTalentContrastRunner.isKitLegal(focus: fullFocus, tier: .early))
     }
+
+    @Test func `simulation policies make rejects unknown I ds`() {
+        #expect(SimulationPolicies.make(id: PlayPolicy.greedy.rawValue)?.id == PlayPolicy.greedy.rawValue)
+        #expect(SimulationPolicies.make(id: PlayPolicy.setupAware.rawValue)?.id == PlayPolicy.setupAware.rawValue)
+        #expect(SimulationPolicies.make(id: "setup-v2") == nil)
+    }
 }

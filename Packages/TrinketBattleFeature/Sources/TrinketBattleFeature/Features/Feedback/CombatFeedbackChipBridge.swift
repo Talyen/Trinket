@@ -101,11 +101,13 @@ enum CombatFeedbackChipBridge {
         var earliestTargetID: String?
         if let previous = nextAvailabilityDate,
            let targetID = nextAvailabilityTargetID,
-           !affectedTargets.contains(targetID) {
+           !affectedTargets.contains(targetID),
+           previous > now {
             earliest = previous
             earliestTargetID = targetID
         }
-        for targetID in affectedTargets {
+        let searchTargets = earliestTargetID == nil ? Set(itemsByTarget.keys) : affectedTargets
+        for targetID in searchTargets {
             guard let items = itemsByTarget[targetID] else { continue }
             for item in items.values where item.availableAt > now {
                 if item.availableAt < (earliest ?? .distantFuture) {
@@ -180,31 +182,39 @@ enum CombatFeedbackChipBridge {
             return $0.availableAt < $1.availableAt
         })
         var chips: [(item: CombatFeedbackItem, raster: CombatFeedbackRaster?)] = []
-        var misses: [CombatFeedbackItem] = []
         for item in chipsToDraw {
-            if let raster = CombatFeedbackRasterPool.shared.cachedRaster(
+            let raster = CombatFeedbackRasterPool.shared.cachedRaster(
                 for: item,
                 layoutDirection: entry.layoutDirection,
                 displayScale: entry.displayScale,
-            ) {
-                chips.append((item: item, raster: raster))
-            } else {
-                misses.append(item)
-            }
-        }
-        if !misses.isEmpty {
-            for item in misses {
-                if let raster = CombatFeedbackRasterPool.shared.prepare(
-                    for: item,
-                    layoutDirection: entry.layoutDirection,
-                    displayScale: entry.displayScale,
-                ) {
-                    chips.append((item: item, raster: raster))
-                }
-            }
+            ) ?? CombatFeedbackRasterPool.shared.prepare(
+                for: item,
+                layoutDirection: entry.layoutDirection,
+                displayScale: entry.displayScale,
+            )
+            chips.append((item: item, raster: raster))
         }
         view.apply(chips: chips)
     }
+
+    #if DEBUG
+    static var debugNextAvailabilityDate: Date? {
+        nextAvailabilityDate
+    }
+
+    static var debugNextAvailabilityTargetID: String? {
+        nextAvailabilityTargetID
+    }
+
+    static func debugReset() {
+        hosts.removeAll()
+        itemsByTarget.removeAll()
+        nextAvailabilityDate = nil
+        nextAvailabilityTargetID = nil
+        availabilityTimer?.invalidate()
+        availabilityTimer = nil
+    }
+    #endif
 }
 
 @MainActor

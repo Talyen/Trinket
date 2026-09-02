@@ -53,22 +53,40 @@ public enum StageCompletion {
         override ?? stageReward.materialRewards.filter { $0.resource != .gold && $0.quantity > 0 }
     }
 
+    public static func resolveLoot(
+        for stage: Stage,
+        encounterLevel: Int? = nil,
+        enemyIsBoss: Bool? = nil,
+        worldSeed: UInt64,
+        ownedTrinketIDs: Set<String> = [],
+        ownedUniqueIDs: Set<String> = [],
+        astralChanceBonusPercent: Int = 0,
+        in chapters: [Chapter] = GameContent.chapters,
+    ) -> BattleLootPackage {
+        let level = encounterLevel ?? resolvedEncounterLevel(for: stage, in: chapters)
+        let isBoss = enemyIsBoss ?? {
+            guard let enemyID = stage.encounter.battleEnemyID else { return false }
+            return GameContent.enemy(matching: enemyID)?.isBoss == true
+        }()
+        return BattleLoot.resolveJourney(
+            stage: stage,
+            encounterLevel: level,
+            enemyIsBoss: isBoss,
+            worldSeed: worldSeed,
+            ownedTrinketIDs: ownedTrinketIDs,
+            ownedUniqueIDs: ownedUniqueIDs,
+            astralChanceBonusPercent: astralChanceBonusPercent,
+        )
+    }
+
     public static func resolvedGoldReward(
         stageGold: Int,
         battleEarnedGold: Int,
         goldFindPercent: Int,
     ) -> Int {
-        let effects = HomesteadEffects(
-            heroModifiers: [],
-            companionModifiers: [],
-            astralChanceBonusPercent: 0,
-            goldFindPercent: goldFindPercent,
-        )
-        return max(
-            0,
-            effects.adjustedGold(stageGold + max(0, battleEarnedGold))
-                + min(0, battleEarnedGold),
-        )
+        let earned = max(0, stageGold + max(0, battleEarnedGold))
+        let adjusted = goldFindPercent > 0 ? earned + (earned * goldFindPercent) / 100 : earned
+        return max(0, adjusted + min(0, battleEarnedGold))
     }
 
     public static func resolvedGoldReward(
@@ -221,8 +239,8 @@ public enum StageCompletion {
             guard stage.encounter.isCombat else {
                 return nil
             }
-            return BattleLoot.resolveJourney(
-                stage: stage,
+            return resolveLoot(
+                for: stage,
                 encounterLevel: encounterLevel,
                 enemyIsBoss: enemyIsBoss,
                 worldSeed: save.worldSeed,

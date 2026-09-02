@@ -195,19 +195,12 @@ package extension DamagePipeline {
                targetIsStunned || targetIsFrozen {
                 effectiveBuffer = 0
             }
-            if damageKeyword == .holy, sourceTriggers.holyIgnoresBlock || sourceTriggers.holyIgnoresBlockAndDodge {
-                effectiveBuffer = 0
-            }
-            if damageKeyword == .holy, let sourceActorID, let ctx = context {
-                let partyUnbroken = CombatTriggerEngine.livingPartyTriggers(in: ctx).unbrokenVow
-                let sourceUnbroken = sourceTriggers.unbrokenVow
-                if sourceUnbroken || partyUnbroken,
-                   let src = ctx.roster.combatant(for: sourceActorID),
-                   DefensePoolEngine.blockPoints(in: ctx.roster.activeEffects(for: src.combatant)) > 0 {
-                    effectiveBuffer = 0
-                }
-            }
-            if damageKeyword == .burn, sourceTriggers.burnIgnoresBlockAndMitigation {
+            if DefensePoolEngine.shouldIgnoreBlock(
+                keyword: damageKeyword,
+                sourceTriggers: sourceTriggers,
+                sourceActorID: sourceActorID,
+                in: context,
+            ) {
                 effectiveBuffer = 0
             }
         }

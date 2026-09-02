@@ -51,4 +51,31 @@ struct ControlStatusHandMaintenanceTests {
         )
         try #expect(outcome.events.contains { $0.effectKind == .controlTriggered && $0.keyword == keyword })
     }
+
+    @Test func `promote next from buffer returns dead owner card to bottom of deck`() {
+        var battle = BattleStateTestFactory.makeBattle(
+            hero: CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [.slash]),
+            companion: CombatantFixtures.combatant(id: "companion", role: .companion, abilities: [.bash]),
+            enemy: CombatantFixtures.combatant(id: "enemy", role: .enemy),
+            dealOpeningHand: false,
+        )
+        battle.companionDeck = CombatDeck(abilities: [])
+        battle.hand = BattleHand(
+            cards: [
+                BattleCard(id: 1, ability: .slash, owner: .hero),
+            ],
+            buffer: [
+                BattleCard(id: 2, ability: .bash, owner: .companion),
+                BattleCard(id: 3, ability: .slash, owner: .hero),
+            ],
+        )
+        battle.roster.mutateRuntime(for: battle.companion) { $0.takeRawDamage(1000) }
+
+        let promoted = battle.promoteNextTurnBufferCard(rebuildLog: false)
+
+        #expect(promoted?.id == 3)
+        #expect(battle.hand.cards.map(\.id) == [1, 3])
+        #expect(battle.hand.buffer.isEmpty)
+        #expect(battle.companionDeck.abilities.map(\.id) == [Ability.bash.id])
+    }
 }

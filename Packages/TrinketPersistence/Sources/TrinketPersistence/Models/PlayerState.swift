@@ -29,6 +29,19 @@ public struct PlayerInventoryState: Equatable, Hashable, Sendable {
     public var ownedUniqueIDs: Set<String> {
         Set(items.filter { $0.rarity == .unique }.map(\.templateID))
     }
+
+    public mutating func addRewardItem(from template: InventoryItem, for stage: Stage) {
+        appendUniqueItem(template.rewardInstance(for: stage.id))
+    }
+
+    public mutating func appendUniqueItem(_ item: InventoryItem) {
+        guard !InventoryDuplicatePolicy.containsDuplicate(of: item, in: items) else { return }
+        items.append(item)
+    }
+
+    public mutating func removeItem(id: String) {
+        items.removeAll { $0.id == id }
+    }
 }
 
 public struct PlayerRosterState: Equatable, Sendable {
@@ -361,6 +374,11 @@ public struct PlayerRosterState: Equatable, Sendable {
     }
 
     public var activeHero: Combatant {
+        if isHeroUnlocked(activeHeroID),
+           let combatant = GameContent.combatant(matching: activeHeroID),
+           combatant.role == .hero {
+            return battleConfiguredCombatant(combatant)
+        }
         if let hero = heroes.first(where: { $0.id == activeHeroID }) ?? heroes.first {
             return hero
         }
@@ -372,6 +390,11 @@ public struct PlayerRosterState: Equatable, Sendable {
     }
 
     public var activeCompanion: Combatant {
+        if isCompanionUnlocked(activeCompanionID),
+           let combatant = GameContent.combatant(matching: activeCompanionID),
+           combatant.role == .companion {
+            return battleConfiguredCombatant(combatant)
+        }
         if let companion = companions.first(where: { $0.id == activeCompanionID }) ?? companions.first {
             return companion
         }

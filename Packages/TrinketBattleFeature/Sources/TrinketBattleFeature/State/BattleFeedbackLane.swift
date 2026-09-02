@@ -196,16 +196,15 @@ final class BattleFeedbackLane {
     }
 
     func removeEvent(_ id: Int, noteChange: Bool = true) {
-        if let item = activeItems.first(where: { $0.sourceEventIDs.contains(id) }) {
-            let sourceEventIDs = Set(item.sourceEventIDs)
+        if let index = activeItems.firstIndex(where: { $0.sourceEventIDs.contains(id) }) {
+            let item = activeItems.remove(at: index)
             let clearedReaction = hitReactionsByTargetID[item.targetID].map { reaction in
                 item.sourceEventIDs.contains(reaction.id)
             } ?? false
             if clearedReaction {
                 hitReactionsByTargetID.removeValue(forKey: item.targetID)
             }
-            activeItems.removeAll { $0.id == item.id }
-            for sourceEventID in sourceEventIDs {
+            for sourceEventID in item.sourceEventIDs {
                 eventRecordedAt.removeValue(forKey: sourceEventID)
                 presentedEventIDs.remove(sourceEventID)
             }
@@ -222,29 +221,46 @@ final class BattleFeedbackLane {
     }
 
     func pruneExpired(at date: Date = .now, notifyPresentation: Bool = true) {
-        let expiredItemIDs = activeItems.compactMap { item in
-            date >= item.expiresAt ? item.id : nil
-        }
         var removedItemIDs: Set<Int> = []
-        for eventID in expiredItemIDs {
-            let beforeCount = activeItems.count
-            removeEvent(eventID, noteChange: false)
-            if activeItems.count != beforeCount {
-                removedItemIDs.insert(eventID)
+        var reactedTargetIDsToNotify: Set<String> = []
+        var remainingItems: [CombatFeedbackItem] = []
+        remainingItems.reserveCapacity(activeItems.count)
+
+        for item in activeItems {
+            if date >= item.expiresAt {
+                removedItemIDs.insert(item.id)
+                let clearedReaction = hitReactionsByTargetID[item.targetID].map { reaction in
+                    item.sourceEventIDs.contains(reaction.id)
+                } ?? false
+                if clearedReaction {
+                    hitReactionsByTargetID.removeValue(forKey: item.targetID)
+                    reactedTargetIDsToNotify.insert(item.targetID)
+                }
+                for sourceEventID in item.sourceEventIDs {
+                    eventRecordedAt.removeValue(forKey: sourceEventID)
+                    presentedEventIDs.remove(sourceEventID)
+                }
+            } else {
+                remainingItems.append(item)
             }
         }
+        activeItems = remainingItems
 
         let maxRawLifetime = BattleMotion.maxChipLifetime
         let referencedIDs = Set(activeItems.flatMap(\.sourceEventIDs))
-        let expiredRawIDs: [Int] = eventRecordedAt.compactMap { entry -> Int? in
+        let expiredRawIDs = eventRecordedAt.compactMap { entry -> Int? in
             let (eventID, recordedAt) = entry
             guard date.timeIntervalSince(recordedAt) >= maxRawLifetime else { return nil }
             return referencedIDs.contains(eventID) ? nil : eventID
         }
         for eventID in expiredRawIDs {
-            removeEvent(eventID, noteChange: false)
+            eventRecordedAt.removeValue(forKey: eventID)
+            presentedEventIDs.remove(eventID)
         }
 
+        if !reactedTargetIDsToNotify.isEmpty {
+            noteHitReactionsChanged(for: reactedTargetIDsToNotify)
+        }
         if !removedItemIDs.isEmpty, notifyPresentation {
             publish(.remove(removedItemIDs))
         }

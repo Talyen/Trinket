@@ -178,7 +178,14 @@ struct BalanceSweepOrchestrationTests {
             focusIDs: [],
         )
         #expect(BalanceAbilityContrastRunner.workCount(config: config) == foci.count * 3)
-        #expect(foci.count == 6)
+        let expectedPairs = (config.resolvedRoster.heroes + config.resolvedRoster.companions).reduce(0) { total, owner in
+            total + AbilityTier.allCases.reduce(0) { tierTotal, tier in
+                let n = owner.abilityChoices.abilities(for: tier).count
+                return tierTotal + (n * (n - 1) / 2)
+            }
+        }
+        #expect(foci.count == expectedPairs)
+        #expect(!foci.isEmpty)
     }
 
     @Test func `affix contrast work plan counts only gear tiers`() {

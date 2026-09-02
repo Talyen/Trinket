@@ -215,8 +215,6 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
     private var cardBorder: some View {
         if borderAccentKeyword == .deathsDoor, let keyword = borderAccentKeyword {
             CombatantStatusBorderPulse(keyword: keyword)
-        } else if InternalFeatureFlags.combatantBuffAuraEnabled, let buffAuraKind {
-            CombatantBuffAuraLane(kind: buffAuraKind)
         } else {
             TrinketDesign.cardShape.strokeBorder(
                 TrinketDesign.Colors.subtleStroke,

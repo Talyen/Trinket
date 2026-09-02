@@ -18,7 +18,7 @@ package enum CriticalChanceEngine {
         var chance = 0.10
         chance += abilityBonus
         chance += context.modifiers(for: actorID).triggers.criticalChanceBonus
-        chance += partyCritChanceBonus(actor: actor, in: context)
+        chance += partyCritChanceBonus(actorRole: actor.role, in: context)
         if countsBleedingDefender,
            context.roster.activeEffects(for: defender).contains(where: { $0.effect.keyword == .bleed }) {
             chance += context.modifiers(for: actorID).triggers.critChancePerBleedingEnemy
@@ -33,20 +33,20 @@ package enum CriticalChanceEngine {
     }
 
     private static func partyCritChanceBonus(
-        actor: CombatantRuntime,
-        in context: BattleState,
+        actorRole: Combatant.Role,
+        in context: borrowing BattleState,
     ) -> Double {
-        guard actor.role != .enemy, context.roster.companion.isAlive else { return 0 }
+        guard actorRole != .enemy, context.roster.companion.isAlive else { return 0 }
         let companionTriggers = context.companionModifiers.triggers
         var bonus: Double = 0
+        let companionMaxHealth = context.roster.companion.maxHealth
         if companionTriggers.partyCritChanceWhileCompanionAboveHealthThreshold > 0,
-           context.roster.maxHealth(for: context.roster.companion.combatant) > 0,
-           Double(context.roster.health(for: context.roster.companion.combatant))
-           / Double(context.roster.maxHealth(for: context.roster.companion.combatant))
+           companionMaxHealth > 0,
+           Double(context.roster.companion.currentHealth) / Double(companionMaxHealth)
            >= companionTriggers.partyCritChanceWhileCompanionAboveHealthThreshold {
             bonus += companionTriggers.partyCritChanceWhileCompanionAboveHealthBonus
         }
-        if actor.role == .hero, companionTriggers.heroCritChanceWhileCompanionAlive > 0 {
+        if actorRole == .hero, companionTriggers.heroCritChanceWhileCompanionAlive > 0 {
             bonus += companionTriggers.heroCritChanceWhileCompanionAlive
         }
         if companionTriggers.partyCritChanceWhileGoldAbove > 0,

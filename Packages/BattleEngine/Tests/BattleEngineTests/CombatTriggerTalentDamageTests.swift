@@ -58,6 +58,30 @@ struct CombatTriggerTalentDamageTests {
         #expect(block == 10)
     }
 
+    @Test func `piercing starlight ignores block only for holy damage`() {
+        var battle = BattleTestFixtures.makePipelineContext(
+            heroModifiers: .init(triggers: CombatTraitTriggers(
+                block: BlockTriggers(holyIgnoresBlockAndDodge: true),
+            )),
+        )
+        BattleStateTestFactory.seedActiveEffects(
+            [ActiveEffect(id: 1, effect: .shield(.block, 10), remainingTurns: 0)],
+            for: battle.roster.enemy.combatant,
+            on: &battle,
+        )
+        let holyOutcome = battle.resolveDamage(
+            DamageRequest(amount: 6, target: battle.roster.enemy.combatant, keyword: .holy, sourceActorID: "source"),
+        )
+        #expect(holyOutcome.healthLost == 6)
+
+        let physicalOutcome = battle.resolveDamage(
+            DamageRequest(amount: 4, target: battle.roster.enemy.combatant, keyword: .physical, sourceActorID: "source"),
+        )
+        #expect(physicalOutcome.healthLost == 0)
+        let block = DefensePoolEngine.blockPoints(in: battle.roster.activeEffects(for: battle.roster.enemy.combatant))
+        #expect(block == 6)
+    }
+
     @Test func `burn damage vs no block multiplier applies`() {
         var battle = BattleTestFixtures.makePipelineContext(
             heroModifiers: .init(triggers: CombatTraitTriggers(

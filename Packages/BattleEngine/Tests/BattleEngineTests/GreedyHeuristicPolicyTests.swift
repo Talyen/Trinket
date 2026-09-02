@@ -1,7 +1,6 @@
 import Testing
 import TrinketContent
 import TrinketCore
-@testable import BattleBalanceTools
 @testable import BattleEngine
 
 struct PlayPolicyTests {
@@ -87,11 +86,5 @@ struct PlayPolicyTests {
 
         let chosen = PlayPolicy.setupAware.preferredPlayableCard(in: battle)
         #expect(chosen?.id == poison.id)
-    }
-
-    @Test func `simulation policies make rejects unknown I ds`() {
-        #expect(SimulationPolicies.make(id: PlayPolicy.greedy.rawValue)?.id == PlayPolicy.greedy.rawValue)
-        #expect(SimulationPolicies.make(id: PlayPolicy.setupAware.rawValue)?.id == PlayPolicy.setupAware.rawValue)
-        #expect(SimulationPolicies.make(id: "setup-v2") == nil)
     }
 }
