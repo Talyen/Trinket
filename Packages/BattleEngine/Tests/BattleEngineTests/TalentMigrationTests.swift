@@ -662,3 +662,88 @@ struct TalentMigrationTests {
         #expect(remainingDebuffs == 1)
     }
 }
+
+extension TalentMigrationTests {
+    @Test func `cryostasis does not preserve bleed on frozen ally`() {
+        var battle = makeBattle(heroTriggers: CombatTraitTriggers(dot: DotTriggers(cryostasis: true)))
+        let outcome = battle.withEngineContext { ctx -> EffectTurnOutcome in
+            ctx.roster.setActiveEffects([
+                ActiveEffect(id: 1, effect: .controlMeter(Keyword.freeze, 100, 10), remainingTurns: 0),
+                ActiveEffect(id: 2, effect: .bleed(4), remainingTurns: 1),
+            ], for: ctx.roster.hero.combatant)
+            return BleedHandler().advanceTurn(
+                ActiveEffect(id: 2, effect: .bleed(4), remainingTurns: 1),
+                on: ctx.roster.hero.combatant,
+                in: &ctx,
+            )
+        }
+        #expect(outcome.updatedStack?.remainingTurns == 0)
+        #expect(outcome.removeAfter == true)
+    }
+
+    @Test func `crownfall does not damage when enemy purges ally buff`() {
+        var battle = makeBattle(heroTriggers: CombatTraitTriggers(cleanse: CleanseTriggers(crownfall: true)))
+        battle.withEngineContext { ctx in
+            ctx.roster.setActiveEffects(
+                [ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTurns: 0)],
+                for: ctx.roster.hero.combatant,
+            )
+        }
+        let heroHealthBefore = battle.health(of: battle.hero)
+        _ = battle.withEngineContext { ctx in
+            _ = BattleTestFixtures.apply(
+                .purge(nil),
+                abilityName: "enemy-purge",
+                source: ctx.roster.enemy.combatant,
+                target: ctx.roster.hero.combatant,
+                in: &ctx,
+            )
+        }
+        #expect(battle.health(of: battle.hero) == heroHealthBefore)
+    }
+
+    @Test func `purifyingWaters does not heal when enemy cleanses`() {
+        var battle = makeBattle(heroTriggers: CombatTraitTriggers(healing: HealingTriggers(purifyingWaters: true)))
+        battle.withEngineContext { ctx in
+            ctx.roster.mutateRuntime(for: ctx.roster.enemy.combatant) { $0.currentHealth = 10 }
+            ctx.roster.setActiveEffects([ActiveEffect(id: 1, effect: .poison(1), remainingTurns: 1)], for: ctx.roster.enemy.combatant)
+        }
+        let enemyHealthBefore = battle.health(of: battle.enemy)
+        _ = battle.withEngineContext { ctx in
+            CombatTriggerEngine.afterCleanseAction(
+                source: ctx.roster.enemy.combatant,
+                target: ctx.roster.enemy.combatant,
+                removedCount: 1,
+                in: &ctx,
+            )
+        }
+        #expect(battle.health(of: battle.enemy) == enemyHealthBefore)
+    }
+
+    @Test func `cleanSlate does not cleanse when enemy overheals`() {
+        var battle = makeBattle(heroTriggers: CombatTraitTriggers(healing: HealingTriggers(cleanSlate: true)))
+        battle.withEngineContext { ctx in
+            ctx.roster.setActiveEffects(
+                [ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTurns: 0)],
+                for: ctx.roster.enemy.combatant,
+            )
+            ctx.roster.mutateRuntime(for: ctx.roster.enemy.combatant) { $0.currentHealth = $0.maxHealth - 1 }
+        }
+        _ = battle.withEngineContext { ctx in
+            _ = ctx.healEmitting(
+                amount: 10,
+                target: ctx.roster.enemy.combatant,
+                source: ctx.roster.enemy.combatant,
+                abilityName: "test-heal",
+            )
+        }
+        let buffRemains = battle.activeEffects(of: battle.enemy).contains {
+            if case .shield = $0.effect {
+                true
+            } else {
+                false
+            }
+        }
+        #expect(buffRemains)
+    }
+}

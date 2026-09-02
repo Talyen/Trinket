@@ -255,7 +255,8 @@ struct BleedHandler: BattleEffectHandler {
     }
 
     private func shouldPreserveBleed(on target: Combatant, in context: BattleState) -> Bool {
-        context.roster.hasControlStatus(for: target, keyword: .freeze)
+        target.role == .enemy
+            && context.roster.hasControlStatus(for: target, keyword: .freeze)
             && CombatTriggerEngine.livingPartyTriggers(in: context).cryostasis
     }
 }

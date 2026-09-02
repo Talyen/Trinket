@@ -53,9 +53,12 @@ package enum HealingEngine {
         }
 
         let overflow = max(0, amount - max(0, maxHealth - preHealth))
-        if overflow > 0, request.sourceActorID != nil,
+        if overflow > 0,
+           let srcID = request.sourceActorID,
+           let src = context.roster.combatant(for: srcID),
+           src.role != .enemy,
+           request.target.role != .enemy,
            CombatTriggerEngine.livingPartyTriggers(in: context).cleanSlate,
-           let srcID = request.sourceActorID, let src = context.roster.combatant(for: srcID),
            context.claimTurnGuard(.cleanSlate, actorID: srcID) {
             events.append(contentsOf: CombatTriggerEngine.performRandomCleanses(
                 source: src.combatant,

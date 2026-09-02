@@ -131,7 +131,7 @@ struct CleansePurgeHandler: BattleEffectHandler {
             keyword: targetKeyword ?? .purge,
         )
         var events = [event]
-        if CombatTriggerEngine.livingPartyTriggers(in: context).crownfall {
+        if source.role != .enemy, target.role == .enemy, CombatTriggerEngine.livingPartyTriggers(in: context).crownfall {
             events.append(contentsOf: context.resolveDamage(DamageRequest(
                 amount: removed.count * 3,
                 target: target,
@@ -164,7 +164,7 @@ struct CleansePurgeHandler: BattleEffectHandler {
             keyword: keyword,
         )
         var events = [event]
-        if CombatTriggerEngine.livingPartyTriggers(in: context).crownfall {
+        if source.role != .enemy, target.role == .enemy, CombatTriggerEngine.livingPartyTriggers(in: context).crownfall {
             events.append(contentsOf: context.resolveDamage(DamageRequest(
                 amount: 3,
                 target: target,
