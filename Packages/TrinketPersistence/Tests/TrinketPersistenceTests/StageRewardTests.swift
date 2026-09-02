@@ -164,7 +164,7 @@ struct StageRewardTests {
             save: &save,
         )
 
-        try #expect(save.roster.gold == goldAfterFirst + 2)
+        try #expect(save.roster.gold == goldAfterFirst)
         try #expect(save.inventory.items.count(where: { $0.id == loot.item.id }) == 1)
     }
 
@@ -289,22 +289,16 @@ struct StageRewardTests {
         let goldAfterClaim = save.roster.gold
         let heroXPAfterClaim = save.roster.progression(for: hero).currentXP
         let itemCountAfterClaim = save.inventory.items.count
-        let battleEarnedGold = 9
-        let expectedBattleGrant = StageCompletion.resolvedGoldReward(
-            stageGold: 0,
-            battleEarnedGold: battleEarnedGold,
-            homestead: save.homestead,
-        )
 
         StageCompletion.claimRewardsIfNeeded(
             for: firstStage,
             hero: hero,
             companion: companion,
-            battleEarnedGold: battleEarnedGold,
+            battleEarnedGold: 9,
             save: &save,
         )
 
-        try #expect(save.roster.gold == goldAfterClaim + expectedBattleGrant)
+        try #expect(save.roster.gold == goldAfterClaim)
         try #expect(save.roster.progression(for: hero).currentXP == heroXPAfterClaim)
         try #expect(save.inventory.items.count == itemCountAfterClaim)
         try #expect(save.journey.hasClaimedRewards(for: firstStage))

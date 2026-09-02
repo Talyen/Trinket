@@ -92,21 +92,9 @@ package enum EffectTurnEngine {
     private static func accelerateDebuffExpiration(_ effects: [ActiveEffect]) -> [ActiveEffect] {
         effects.compactMap { active in
             guard active.effect.isRemovableDebuff else { return active }
+            guard !active.effect.isDecayingDoT else { return active }
+            guard active.remainingTurns > 0 else { return active }
             var updated = active
-            if updated.effect.isDecayingDoT {
-                let nextPotency = updated.effect.potencyAfterTurn()
-                guard nextPotency > 0 else { return nil }
-                switch updated.effect.keyword {
-                case .burn:
-                    updated.effect = .burn(nextPotency)
-                case .poison:
-                    updated.effect = .poison(nextPotency)
-                default:
-                    break
-                }
-                return updated
-            }
-            guard updated.remainingTurns > 0 else { return updated }
             updated.remainingTurns -= 1
             return updated.remainingTurns > 0 ? updated : nil
         }

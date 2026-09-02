@@ -101,8 +101,8 @@ public struct RewardRevealLootSection: View {
                     }
                 }
 
-                ForEach(Array(positiveMaterials.enumerated()), id: \.offset) { index, reward in
-                    let revealIndex = index + goldOffset
+                ForEach(positiveMaterials, id: \.resource) { reward in
+                    let revealIndex = (positiveMaterials.firstIndex(where: { $0.resource == reward.resource }) ?? 0) + goldOffset
                     TrinketWalletResourcePill(
                         title: reward.resource.displayName,
                         amount: reward.quantity,

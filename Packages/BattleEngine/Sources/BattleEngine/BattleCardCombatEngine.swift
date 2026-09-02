@@ -158,17 +158,19 @@ public enum BattleCardCombatEngine {
         events.append(contentsOf: CombatTriggerEngine.atPlayerEndTurn(in: &context))
         context.primedRepeatKeywords.removeAll()
 
+        for participant in BattleParticipant.allCases {
+            context.roster.mutateRuntime(for: context.roster[participant].combatant) { runtime in
+                if let expiredAt = runtime.deathsDoorExpiredAtTurn, expiredAt != context.turnCount {
+                    runtime.deathsDoorExpiredAtTurn = nil
+                }
+            }
+        }
         context.turnCount += 1
         events.append(contentsOf: EffectTurnEngine.advanceAll(context: &context))
         for combatant in [context.roster.hero.combatant, context.roster.companion.combatant, context.roster.enemy.combatant] {
             DefensePoolEngine.decayBlockAtEndOfRound(on: combatant, in: &context)
         }
         events.append(contentsOf: context.appendDefeatMilestonesIfNeeded())
-        for participant in BattleParticipant.allCases {
-            context.roster.mutateRuntime(for: context.roster[participant].combatant) {
-                $0.deathsDoorExpiredAtTurn = nil
-            }
-        }
         if context.isBattleOver {
             context.phase = .ended
             return events

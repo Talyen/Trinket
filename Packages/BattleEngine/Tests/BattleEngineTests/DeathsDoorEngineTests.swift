@@ -88,7 +88,7 @@ struct DeathsDoorEngineTests {
         try #expect(context.roster.health(for: hero) == 1)
         try #expect(context.roster.hero.isAlive)
         try #expect(!(context.roster.isDeathsDoorActive(for: hero)))
-        try #expect(context.roster.runtime(for: hero)?.deathsDoorExpiredAtTurn == nil)
+        try #expect(context.roster.runtime(for: hero)?.deathsDoorExpiredAtTurn == context.turnCount)
     }
 
     @Test func `do T kills on the round after deaths door expires`() throws {

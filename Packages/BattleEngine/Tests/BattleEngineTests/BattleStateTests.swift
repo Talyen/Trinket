@@ -72,6 +72,15 @@ struct BattleStateTests {
             _ = context.applyTestDamage(3, to: companionID, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
         }
 
+        try #expect(!(battle.isPartyDefeated))
+
+        _ = battle.endTurn()
+
+        battle.withEngineContext { context in
+            _ = context.applyTestDamage(3, to: heroID, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
+            _ = context.applyTestDamage(3, to: companionID, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
+        }
+
         try #expect(battle.isPartyDefeated)
     }
 

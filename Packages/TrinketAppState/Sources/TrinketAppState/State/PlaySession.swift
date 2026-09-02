@@ -27,13 +27,11 @@ public final class PlaySession {
     private var postBattleTalentCombatantIDs: [String] = []
 
     public var currentPostBattleTalentCombatantID: String? {
-        while let first = postBattleTalentCombatantIDs.first {
-            if playerSave.roster.availableTalentPoints(for: first) > 0 {
-                return first
-            }
-            postBattleTalentCombatantIDs.removeFirst()
-        }
-        return nil
+        postBattleTalentCombatantIDs.first { playerSave.roster.availableTalentPoints(for: $0) > 0 }
+    }
+
+    private func prunePostBattleTalentCombatantIDs() {
+        postBattleTalentCombatantIDs.removeAll { playerSave.roster.availableTalentPoints(for: $0) == 0 }
     }
 
     public var isGameplayActive: Bool {
@@ -167,6 +165,7 @@ public final class PlaySession {
     }
 
     public func choosePostBattleTalent(nodeID: String, treeID: String) -> TalentUnlockResult {
+        prunePostBattleTalentCombatantIDs()
         guard let combatantID = currentPostBattleTalentCombatantID else {
             return .unavailable
         }

@@ -204,15 +204,6 @@ public enum StageCompletion {
         save: inout PlayerSave,
     ) {
         guard !save.journey.hasClaimedRewards(for: stage) else {
-            if battleEarnedGold != 0 {
-                save.applyGoldDelta(
-                    resolvedGoldReward(
-                        stageGold: 0,
-                        battleEarnedGold: battleEarnedGold,
-                        homestead: save.homestead,
-                    ),
-                )
-            }
             return
         }
 
@@ -274,6 +265,7 @@ public enum StageCompletion {
         worldSeed: UInt64,
         inventory: inout PlayerInventoryState,
     ) {
+        var reservedTrinketIDs = Set<String>()
         for templateID in stage.rewards.itemTemplateIDs {
             guard let template = GameContent.itemTemplate(matching: templateID) else { continue }
             if template.rarity == .astral {
@@ -285,11 +277,13 @@ public enum StageCompletion {
                 )
                 let eligibleTrinkets = GameContent.trinketItems.filter {
                     !inventory.ownedTrinketIDs.contains($0.templateID)
+                        && !reservedTrinketIDs.contains($0.templateID)
                 }
                 if !eligibleTrinkets.isEmpty,
                    Bool.random(using: &randomNumberGenerator),
                    let trinket = eligibleTrinkets.randomElement(using: &randomNumberGenerator) {
                     inventory.appendUniqueItem(trinket)
+                    reservedTrinketIDs.insert(trinket.templateID)
                     continue
                 }
             }

@@ -172,9 +172,6 @@ struct BattleSessionAppIntegrationTests {
         battle.partyCelebrateDelayOverride = .zero
         let state = try context.makePlaySession(playerSave: playerSave, battleRuntime: battle)
         let stage = try #require(GameContent.chapters[0].stages.first)
-        try playerSave.performBatchMutation { save in
-            save.journey.markRewardsClaimed(for: stage)
-        }
         _ = state.journey.startBattle(for: stage)
         let configuration = try #require(state.battle.activeBattle)
         let presentation = try #require(state.battlePresentation(for: configuration.runKey))

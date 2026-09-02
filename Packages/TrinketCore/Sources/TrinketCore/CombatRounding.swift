@@ -7,7 +7,12 @@ public enum CombatRounding {
     }
 
     public static func rounded(_ value: Double) -> Int {
-        max(0, Int(value.rounded()))
+        guard value.isFinite else { return 0 }
+        let rounded = value.rounded()
+        guard rounded >= Double(Int.min), rounded <= Double(Int.max) else {
+            return rounded > 0 ? Int.max : 0
+        }
+        return max(0, Int(rounded))
     }
 
     public static func scaled(_ value: Int, byPercent percent: Int) -> Int {

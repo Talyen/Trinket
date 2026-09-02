@@ -122,6 +122,7 @@ package extension BattleState {
         var percent = max(0, profile.goldGainedPercent)
         let isPartySource = sourceActorID == roster.hero.id || sourceActorID == roster.companion.id
         if isPartySource {
+            percent += max(0, heroModifiers.triggers.partyGoldGainedPercent)
             percent += max(0, companionModifiers.triggers.partyGoldGainedPercent)
         }
         var scaled = CombatRounding.scaled(amount, multiplier: 1 + percent)
@@ -224,7 +225,11 @@ public extension BattleTurnEngine {
         }
         var events: [ActionEvent] = []
         var purchases = 0
-        let maxPurchases = empowermentCost > 0 ? max(1, (context.roster.runtime(for: actor)?.maxMana ?? 1) / empowermentCost) : 1
+        let maxPurchases: Int = if empowermentCost == 0 {
+            1
+        } else {
+            max(1, (context.roster.runtime(for: actor)?.maxMana ?? 1) / empowermentCost)
+        }
         while purchases == 0 || repeats, purchases < maxPurchases {
             guard let runtime = context.roster.runtime(for: actor),
                   runtime.maxMana > 0,
