@@ -38,8 +38,8 @@ enum AbilityCatalogSkill {
     static let briarShield = Ability(
         id: "briar-shield", name: "Briar Shield", tier: .skill,
         targetedEffects: [
-            TargetedEffect(.shield(.block, 2)),
-            TargetedEffect(.thorns(1)),
+            TargetedEffect(.shield(.block, 1)),
+            TargetedEffect(.thorns(3)),
         ],
     )
 

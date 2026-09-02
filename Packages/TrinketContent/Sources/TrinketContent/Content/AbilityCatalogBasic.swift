@@ -14,9 +14,9 @@ enum AbilityCatalogBasic {
 
     static let blackjack = Ability(
         id: "blackjack", name: "Blackjack", tier: .basic,
-        outcomeBranches: [
-            AbilityOutcomeBranch(damageComponents: [DamageComponent(2, keyword: .stun)]),
-            AbilityOutcomeBranch(effects: [.resourceGain(.gold, 2)]),
+        damageComponents: [DamageComponent(2, keyword: .stun)],
+        targetedEffects: [
+            TargetedEffect(.resourceGain(.gold, 2), condition: .enemyStunned),
         ],
     )
 
@@ -74,9 +74,9 @@ enum AbilityCatalogBasic {
         ],
     )
 
-    static let rayOfFrost = AbilityBuilder.directHit(
+    static let rayOfFrost = Ability(
         id: "ray-of-frost", name: "Ray of Frost", tier: .basic,
-        amount: 2, keyword: .freeze,
+        targetedEffects: [TargetedEffect(.recurringDamage(.freeze, 1, 2))],
     )
 
     static let rendingSlash = AbilityBuilder.directHit(

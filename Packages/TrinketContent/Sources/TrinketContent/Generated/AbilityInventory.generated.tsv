@@ -1,7 +1,7 @@
 id	name	tier	summary
 apple	Apple	basic	Restore 3 Health.
 bash	Bash	basic	Deal 2 Stun damage.
-blackjack	Blackjack	basic	Deal 2 Stun damage or steal 2 Gold.
+blackjack	Blackjack	basic	Deal 2 Stun damage and steal 2 Gold if the enemy is Stunned.
 block	Block	basic	Gain 3 Block.
 caustic-jab	Caustic Jab	basic	Deal 1 Poison damage.
 fangs	Fangs	basic	Deal 1 Bleed damage. Leech.
@@ -11,7 +11,7 @@ kindling	Kindling	basic	Deal 1 Burn damage.
 mana-berries	Mana Berries	basic	Restore 2 Mana.
 maul	Maul	basic	Deal 2 Stun damage or deal 2 Bleed damage.
 pixie-dust	Pixie Dust	basic	Deal 2 Burn damage or restore 2 Mana.
-ray-of-frost	Ray of Frost	basic	Deal 2 Freeze damage.
+ray-of-frost	Ray of Frost	basic	Deal 1 Freeze damage each turn for 2 turns.
 rending-slash	Rend	basic	Deal 2 Bleed damage.
 shield-bash	Shield Bash	basic	Deal 1 Stun damage and gain 1 Block.
 slash	Slash	basic	Deal 2 Physical damage.
@@ -22,7 +22,7 @@ venom-arrow	Venom Arrow	basic	Deal 2 Poison damage.
 acid-potion	Acid Potion	skill	Deal 3 Poison damage and halve the enemy's Block.
 blood-offering	Blood Offering	skill	Lose 1 Health. Deal 4 Bleed damage.
 bounty-shot	Bounty Shot	skill	Deal 3 Physical damage or steal 3 Gold. If the enemy is Marked, gain both.
-briar-shield	Briar Shield	skill	Gain 2 Block and gain 1 Thorns.
+briar-shield	Briar Shield	skill	Gain 1 Block and gain 3 Thorns.
 cinderbloom	Cinderbloom	skill	Deal 3 Burn damage or deal 3 Poison damage.
 cleanse	Cleanse	skill	Cleanse a status effect and restore 3 Health.
 cold-snap	Cold Snap	skill	Deal 2 Freeze damage. Restore 1 Mana if the enemy is Frozen.
