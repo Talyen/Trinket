@@ -44,8 +44,8 @@ trinket_sim_shutdown_wait() {
   [[ "$timeout_seconds" =~ ^[0-9]+$ ]] || timeout_seconds=45
   (( timeout_seconds > 0 )) || return 0
 
-  local waited=0
-  while (( waited < timeout_seconds )); do
+  local deadline=$((SECONDS + timeout_seconds))
+  while (( SECONDS < deadline )); do
     local state=""
     if [[ -n "$udid" && "$udid" != "all" ]]; then
       local sim_cmd=("xcrun" "simctl")
@@ -66,7 +66,6 @@ trinket_sim_shutdown_wait() {
       fi
     fi
     sleep 0.25
-    ((waited++))
   done
   echo "warning: simulator did not reach Shutdown within ${timeout_seconds}s (udid: $udid)" >&2
 }

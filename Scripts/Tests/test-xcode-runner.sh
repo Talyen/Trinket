@@ -295,6 +295,7 @@ bash -c '
 ' _ "$RUNNER" "$TMP_DIR/fake-hang-silent" >"$bounded_run_terminal" 2>&1
 
 # Infra retry matcher covers XCUITest launch flakes even when exit is 65.
+# Evidence patterns determine classification; exit code alone must not override.
 launch_log="$TMP_DIR/launch.log"
 cat > "$launch_log" <<'EOF'
 Failed to launch <XCUIApplicationImpl: 0x1 com.ryanmcintire.Trinket> via Xcode: Timed out while launching application via Xcode.
@@ -305,6 +306,6 @@ trinket_xcodebuild_log_is_infrastructure_failure 65 "$launch_log"
 product_log="$TMP_DIR/product.log"
 echo 'XCTAssertEqual failed: ("1") is not equal to ("2")' > "$product_log"
 ! trinket_xcodebuild_log_is_infrastructure_failure 65 "$product_log"
-trinket_xcodebuild_log_is_infrastructure_failure 70 "$product_log"
+! trinket_xcodebuild_log_is_infrastructure_failure 70 "$product_log"
 
 echo "xcode-runner fake integration tests passed"

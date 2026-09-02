@@ -90,14 +90,14 @@ if [[ "$MODE" == "style" ]]; then
   if [[ ${#TARGETS[@]} -gt 0 ]]; then
     style_paths=("${TARGETS[@]}")
   fi
+  style_status=0
   if (( ${#style_paths[@]} > 0 )); then
-    if ! trinket_run_style_gate "${style_paths[@]}"; then
-      exit $?
-    fi
+    trinket_run_style_gate "${style_paths[@]}" || style_status=$?
   else
-    if ! trinket_run_style_gate; then
-      exit $?
-    fi
+    trinket_run_style_gate || style_status=$?
+  fi
+  if (( style_status != 0 )); then
+    exit "$style_status"
   fi
   exit 0
 fi
@@ -267,15 +267,11 @@ XCODEBUILD_REPORT_PREFIX="$XCODE_RUNNER_REPORT_PREFIX"
 # shellcheck source=lib/test-helpers.sh
 source "$SCRIPT_DIR/lib/test-helpers.sh"
 
-record_timing() { trinket_record_timing "$@"; }
-assert_no_build_is_fresh() { trinket_assert_no_build_is_fresh "$@"; }
-assert_targeted_tests_executed() { trinket_assert_targeted_tests_executed "$@"; }
-
 if [[ "$NO_BUILD" == "true" ]]; then
   if [[ "$RUN_PACKAGES_ONLY" == "true" ]]; then
     # Package stamp freshness is validated inside test-package.sh --no-build.
     :
-  elif assert_no_build_is_fresh; then
+  elif trinket_assert_no_build_is_fresh; then
     :
   else
     no_build_status=$?
@@ -286,8 +282,6 @@ if [[ "$NO_BUILD" == "true" ]]; then
   fi
   ACTION="test-without-building"
 fi
-
-run_package_tests() { trinket_run_package_tests "$@"; }
 
 TEST_WALL_SECONDS=0
 SECONDS=0
@@ -334,7 +328,7 @@ else
   TEST_WALL_SECONDS=$SECONDS
 
   if [[ "$XCODEBUILD_EXIT_CODE" -eq 0 ]]; then
-    if ! assert_targeted_tests_executed; then
+    if ! trinket_assert_targeted_tests_executed; then
       xcode_runner_write_manifest "$RESULT_BUNDLE_PATH" "$XCODEBUILD_REPORT_PREFIX" 1 "$MODE"
       exit 1
     fi
@@ -342,7 +336,7 @@ else
   fi
 
   if [[ "$XCODEBUILD_EXIT_CODE" -ne 0 ]]; then
-    record_timing
+    trinket_record_timing
     echo ""
     echo "Timing recorded. Hotspots: ./Scripts/test-timing.sh"
     exit "$XCODEBUILD_EXIT_CODE"
@@ -353,8 +347,8 @@ if [[ "$RUN_PACKAGES_ONLY" == "true" ]]; then
   echo "Running package tests..."
   # Mirror the app path: record wall timing before exiting on failure so a
   # failed package run still contributes a sample to the timing history.
-  if ! run_package_tests "$ACTION"; then
-    record_timing
+  if ! trinket_run_package_tests "$ACTION"; then
+    trinket_record_timing
     exit 1
   fi
 fi
@@ -368,6 +362,6 @@ if [[ "$NO_BUILD" == "false" && "$RUN_PACKAGES_ONLY" == "false" ]]; then
   fi
 fi
 
-record_timing
+trinket_record_timing
 echo ""
 echo "Timing recorded. Hotspots: ./Scripts/test-timing.sh"

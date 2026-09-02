@@ -575,10 +575,6 @@ def build_report(args: argparse.Namespace) -> DiagnosticReport:
 
     issue_kinds = {issue.kind for issue in issues}
     classification = next((kind for kind in CLASSIFICATION_PRECEDENCE if kind in issue_kinds), "unknown")
-    # xcodebuild exits 70 only for simulator-service failures; mirror the bash
-    # retry matcher's unconditional treatment so report and retry agree.
-    if args.exit_code == 70:
-        classification = "simulator-infrastructure"
     unmatched_attachments: list[str] = []
     stem = output_stem(args.output_prefix)
     attachment_dir = Path(str(stem) + ".attachments")

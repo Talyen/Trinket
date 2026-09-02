@@ -588,7 +588,8 @@ bash -c '
   started=$SECONDS
   warning="$(TRINKET_SIMULATOR_SHUTDOWN_TIMEOUT_SECONDS=1 trinket_sim_shutdown_wait agent-1 2>&1)"
   elapsed=$(( SECONDS - started ))
-  (( elapsed <= 5 ))
+  (( elapsed >= 1 ))
+  (( elapsed <= 3 ))
   [[ "$warning" == *"did not reach Shutdown within 1s"* ]]
   # A device that reports Shutdown (or an unknown udid) returns without waiting.
   TRINKET_SIMULATOR_SHUTDOWN_TIMEOUT_SECONDS=10 trinket_sim_shutdown_wait ci-1 >/dev/null
