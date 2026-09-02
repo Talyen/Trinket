@@ -69,33 +69,51 @@ while IFS= read -r path; do
 done < <(collect_pushed_paths | sed '/^$/d' | sort -u)
 
 echo "=== Pre-push: style (format / lint / UI / platform bans / exclusivity / agent invariants / accessibility IDs / comment ban) ==="
-if (( ${#style_swift[@]} > 0 )); then
-  echo "Path-scoped style on ${#style_swift[@]} Swift file(s) in the push range."
-  ./Scripts/test.sh style "${style_swift[@]}"
-else
-  ./Scripts/check-platform-api-bans.sh
-  ./Scripts/check-exclusivity-footguns.sh
-  ./Scripts/check-agent-invariants.sh
-  ./Scripts/check-accessibility-ids.sh
-  ./Scripts/check-comment-ban.sh
-fi
-
-echo "=== Pre-push: agent push gate (generate + assert vs HEAD) ==="
-./Scripts/agent-push-gate.sh
-
-echo "=== Pre-push: path-scoped package tests ==="
+# Classify push range before style so receipt can compare style/package needs.
 # shellcheck source=Scripts/change-classification.sh
 source Scripts/change-classification.sh
 if (( ${#pushed_paths[@]} > 0 )); then
   trinket_collect_paths explicit "${pushed_paths[@]}"
   trinket_classify_paths
 fi
-if (( ${#TRINKET_PACKAGES[@]} > 0 )); then
-  echo "Package tests for: ${TRINKET_PACKAGES[*]}"
-  if command -v xcodebuild >/dev/null 2>&1; then
-    SKIP_GENERATE=1 ./Scripts/test-package.sh "${TRINKET_PACKAGES[@]}"
+# shellcheck source=Scripts/lib/handoff-receipt.sh
+source Scripts/lib/handoff-receipt.sh
+_prepush_skip_style=false
+if trinket_handoff_receipt_can_skip style 2>/dev/null; then
+  if (( ${#style_swift[@]} > 0 )); then
+    echo "Reusing green handoff (tree match): skipping path-scoped style — already verified for this tree."
   else
-    echo "Skipping package tests (xcodebuild unavailable)." >&2
+    echo "Reusing green handoff (tree match): skipping style checks — already verified for this tree."
+  fi
+  _prepush_skip_style=true
+fi
+if [[ "$_prepush_skip_style" != true ]]; then
+  if (( ${#style_swift[@]} > 0 )); then
+    echo "Path-scoped style on ${#style_swift[@]} Swift file(s) in the push range."
+    ./Scripts/test.sh style "${style_swift[@]}"
+  else
+    ./Scripts/check-platform-api-bans.sh
+    ./Scripts/check-exclusivity-footguns.sh
+    ./Scripts/check-agent-invariants.sh
+    ./Scripts/check-accessibility-ids.sh
+    ./Scripts/check-comment-ban.sh
+  fi
+fi
+
+echo "=== Pre-push: agent push gate (generate + assert vs HEAD) ==="
+./Scripts/agent-push-gate.sh
+
+echo "=== Pre-push: path-scoped package tests ==="
+if (( ${#TRINKET_PACKAGES[@]} > 0 )); then
+  if trinket_handoff_receipt_can_skip package 2>/dev/null; then
+    echo "Reusing green handoff (tree match): skipping package tests for ${TRINKET_PACKAGES[*]} — already verified for this tree."
+  else
+    echo "Package tests for: ${TRINKET_PACKAGES[*]}"
+    if command -v xcodebuild >/dev/null 2>&1; then
+      SKIP_GENERATE=1 ./Scripts/test-package.sh "${TRINKET_PACKAGES[@]}"
+    else
+      echo "Skipping package tests (xcodebuild unavailable)." >&2
+    fi
   fi
 else
   echo "No package test targets in the push range."

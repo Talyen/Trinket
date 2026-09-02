@@ -250,6 +250,13 @@ if [[ "$QUIET" != true ]]; then
 fi
 run_cheap_ci_slices
 
+# Record a content-addressed receipt so agent-push-gate and pre-push can skip
+# duplicate generate/style/package work when the committed tree is exactly what
+# this handoff just verified. No timestamp trust — reuse requires tree equality.
+# shellcheck source=Scripts/lib/handoff-receipt.sh
+source Scripts/lib/handoff-receipt.sh
+trinket_handoff_receipt_write || echo "warning: failed to write handoff receipt" >&2
+
 if [[ "${TRINKET_ISOLATE:-}" == "1" && "${ISOLATE}" == true ]]; then
   _mirror_needs_build=false
   if [[ "$TRINKET_NEEDS_APP_BUILD" == true || "$TRINKET_HAS_FEATURE" == true || "$TRINKET_NEEDS_CONTENT_GENERATION" == true || "$TRINKET_NEEDS_PROJECT_GENERATION" == true ]] || (( ${#TRINKET_PACKAGES[@]} > 0 )); then

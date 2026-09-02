@@ -118,7 +118,13 @@ not a routine optimization mandate.
 
 Before a requested push, run `agent-push-gate.sh` after committing. It checks
 generation completeness only; the path-scoped handoff remains the pre-CI source
-gate.
+gate. A green `handoff.sh --isolate` writes a content-addressed receipt
+(`.DerivedData/handoff-receipt.json`) keyed by the verified tree hash. Both
+`agent-push-gate.sh` and the `pre-push` hook reuse that receipt: when the tree
+about to be pushed is exactly the tree handoff just verified, the push gates
+skip the duplicate generate/style/package work and only run a cheap idempotent
+assert. Any new diff, ancestry change, or classification mismatch falls through
+to the full gates — there is no time-window trust.
 
 Land on `main` by direct push; do not open pull requests. After a red CI run,
 triage with `./Scripts/ci-diagnostics.sh` and
