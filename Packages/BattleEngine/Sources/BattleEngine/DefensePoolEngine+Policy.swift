@@ -13,10 +13,10 @@ package extension DefensePoolEngine {
             if sourceTriggers.holyIgnoresBlock || sourceTriggers.holyIgnoresBlockAndDodge {
                 return true
             }
-            if let sourceActorID, let context {
-                let partyUnbroken = CombatTriggerEngine.livingPartyTriggers(in: context).unbrokenVow
+            if let sourceActorID, let context,
+               let src = context.roster.combatant(for: sourceActorID) {
+                let partyUnbroken = (src.role != .enemy) && CombatTriggerEngine.livingPartyTriggers(in: context).unbrokenVow
                 if sourceTriggers.unbrokenVow || partyUnbroken,
-                   let src = context.roster.combatant(for: sourceActorID),
                    Self.blockPoints(in: context.roster.activeEffects(for: src.combatant)) > 0 {
                     return true
                 }
@@ -52,9 +52,9 @@ package extension DefensePoolEngine {
         if srcTriggers.holyIgnoresBlockAndDodge {
             return true
         }
-        let partyUnbroken = CombatTriggerEngine.livingPartyTriggers(in: context).unbrokenVow
+        guard let src = context.roster.combatant(for: sourceActorID) else { return false }
+        let partyUnbroken = (src.role != .enemy) && CombatTriggerEngine.livingPartyTriggers(in: context).unbrokenVow
         if srcTriggers.unbrokenVow || partyUnbroken,
-           let src = context.roster.combatant(for: sourceActorID),
            Self.blockPoints(in: context.roster.activeEffects(for: src.combatant)) > 0 {
             return true
         }

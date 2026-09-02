@@ -32,6 +32,10 @@ public struct CombatOutcome: Equatable {
     public var isCritical: Bool {
         flags.contains(.critical)
     }
+
+    public var isDodged: Bool {
+        flags.contains(.dodged)
+    }
 }
 
 public enum CombatFlag: Hashable, Sendable {
