@@ -99,8 +99,8 @@ while IFS=$'\t' read -r actor_id ability_id asset_name source_path has_audio || 
     exit 1
   fi
 
-  ability_symbol="$(kebab_to_camel "$ability_id")"
-  actor_ultimates="$(awk -F$'\t' -v id="$actor_id" 'NR > 1 && $1 == id { print $9; exit }' "$combatants_tsv")"
+   ability_symbol="$(kebab_to_camel "$ability_id")"
+   actor_ultimates="$(awk -F$'\t' -v id="$actor_id" 'NR > 1 && $1 == id { print $8; exit }' "$combatants_tsv")"
   if [[ -z "$actor_ultimates" ]]; then
     echo "Cinematic actor id '$actor_id' has no Ultimates column in $combatants_tsv." >&2
     exit 1
