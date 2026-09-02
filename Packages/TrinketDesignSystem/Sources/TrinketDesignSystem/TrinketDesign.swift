@@ -104,8 +104,9 @@ public enum TrinketDesign {
     }
 
     public enum Bars {
+        public static let vitalHeight: CGFloat = 3
         public static let statHeight: CGFloat = 7
-        public static let battleHeight: CGFloat = 7
+        public static let battleHeight: CGFloat = vitalHeight
     }
 
     @available(*, deprecated, message: "Use TrinketDesign.Spacing, TrinketDesign.Layout, or TrinketDesign.Bars instead")

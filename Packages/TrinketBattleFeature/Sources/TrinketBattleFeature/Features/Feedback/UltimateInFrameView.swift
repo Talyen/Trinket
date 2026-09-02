@@ -12,24 +12,32 @@ struct UltimateInFrameView: View {
     @State private var videoTask: Task<Void, Never>?
 
     var body: some View {
-        GeometryReader { geometry in
-            ZStack {
-                keywordHighlight
-                if showVideo, let player = BattleCinematicPlayer.shared.player(
-                    for: highlight.actorID,
-                    abilityID: highlight.abilityID,
-                ) {
-                    InFrameCinematicVideoView(player: player)
-                        .transition(.opacity)
+        Group {
+            if hasVideo {
+                GeometryReader { geometry in
+                    let width = geometry.size.width.isFinite ? geometry.size.width : 0
+                    let height = geometry.size.height.isFinite ? geometry.size.height : 0
+                    ZStack {
+                        if showVideo, let player = BattleCinematicPlayer.shared.player(
+                            for: highlight.actorID,
+                            abilityID: highlight.abilityID,
+                        ) {
+                            InFrameCinematicVideoView(player: player)
+                                .transition(.opacity)
+                        }
+                    }
+                    .animation(.easeIn(duration: 0.18), value: showVideo)
+                    .frame(width: max(0, width), height: max(0, height))
+                    .clipped()
+                    .clipShape(TrinketDesign.cardShape)
+                    .overlay {
+                        TrinketDesign.cardShape.strokeBorder(TrinketDesign.Colors.subtleStroke, lineWidth: 1)
+                            .opacity(0.6)
+                    }
                 }
-            }
-            .animation(.easeIn(duration: 0.18), value: showVideo)
-            .frame(width: geometry.size.width, height: geometry.size.height)
-            .clipped()
-            .clipShape(TrinketDesign.cardShape)
-            .overlay {
-                TrinketDesign.cardShape.strokeBorder(TrinketDesign.Colors.subtleStroke, lineWidth: 1)
-                    .opacity(0.6)
+            } else {
+                Color.clear
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
         .allowsHitTesting(false)
@@ -48,15 +56,6 @@ struct UltimateInFrameView: View {
 
     private var hasVideo: Bool {
         BattleCinematicPlayer.shared.hasVideo(for: highlight.actorID, abilityID: highlight.abilityID)
-    }
-
-    private var keywordHighlight: some View {
-        ZStack {
-            TrinketDesign.cardShape
-                .fill(highlight.keyword.visualStyle.color.opacity(0.38))
-            TrinketDesign.cardShape
-                .fill(TrinketDesign.Colors.Overlay.paper.opacity(0.06))
-        }
     }
 
     private func start() {

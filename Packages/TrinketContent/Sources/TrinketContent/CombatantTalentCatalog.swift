@@ -158,6 +158,22 @@ public enum CombatantTalentCatalog {
         return cached
     }
 
+    public static func configIfAvailable(for combatantID: String) -> CombatantTalentConfig? {
+        guard let config = allConfigs[combatantID] else {
+            #if DEBUG
+            if let combatant = GameContent.combatant(matching: combatantID),
+               combatant.role != .enemy {
+                assertionFailure("Missing talent config for \(combatantID) (\(combatant.role.rawValue))")
+            } else if GameContent.heroes.contains(where: { $0.id == combatantID })
+                || GameContent.companions.contains(where: { $0.id == combatantID }) {
+                assertionFailure("Missing talent config for \(combatantID)")
+            }
+            #endif
+            return nil
+        }
+        return config
+    }
+
     public static func effect(for nodeID: String) -> CombatantTalentEffect? {
         signatureTalents[nodeID]
     }

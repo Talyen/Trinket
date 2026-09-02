@@ -16,7 +16,6 @@ struct CombatantVitalBarsView: View, Equatable {
             VStack(alignment: .leading, spacing: TrinketDesign.Spacing.medium) {
                 DetailVitalBar(
                     label: "Health",
-                    symbolName: Keyword.health.visualStyle.symbolName,
                     value: battleHealth ?? combatBuild.effectiveMaxHealth,
                     maxValue: combatBuild.effectiveMaxHealth,
                     fillColor: TrinketDesign.Colors.health,
@@ -26,7 +25,6 @@ struct CombatantVitalBarsView: View, Equatable {
                 if combatantRole != .enemy, combatBuild.effectiveMaxMana > 0 {
                     DetailVitalBar(
                         label: "Mana",
-                        symbolName: Keyword.mana.visualStyle.symbolName,
                         value: battleMana ?? combatBuild.effectiveMaxMana,
                         maxValue: combatBuild.effectiveMaxMana,
                         fillColor: Keyword.mana.visualStyle.color,
@@ -44,7 +42,6 @@ struct CombatantVitalBarsView: View, Equatable {
 
 private struct DetailVitalBar: View {
     let label: String
-    let symbolName: String
     let value: Int
     let maxValue: Int
     let fillColor: Color
@@ -52,13 +49,7 @@ private struct DetailVitalBar: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
-            HStack(spacing: TrinketDesign.Spacing.extraSmall) {
-                Image(systemName: symbolName)
-                    // UIStyleCheck: allow - SF Symbol glyph sizing, not copy
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(fillColor)
-                    .accessibilityHidden(true)
-
+            HStack {
                 Text(label)
                     .trinketTypography(.body)
                     .foregroundStyle(.primary)
@@ -85,7 +76,7 @@ private struct DetailVitalBar: View {
                         .frame(width: geometry.size.width * fraction)
                 }
             }
-            .frame(height: TrinketDesign.Bars.statHeight)
+            .frame(height: TrinketDesign.Bars.vitalHeight)
             .clipShape(Capsule())
             .animation(.easeOut(duration: 0.35), value: value)
             .animation(.easeOut(duration: 0.35), value: maxValue)

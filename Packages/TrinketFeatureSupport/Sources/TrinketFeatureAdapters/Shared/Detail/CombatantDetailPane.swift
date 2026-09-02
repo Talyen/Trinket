@@ -154,9 +154,11 @@ public struct CombatantDetailPane: View {
                 names.append(ref.thumbnailImageName ?? ref.imageName)
             }
         }
-        for tree in CombatantTalentCatalog.config(for: combatant.id).trees {
-            if let ref = tree.keyword.artReference {
-                names.append(ref.thumbnailImageName ?? ref.imageName)
+        if let config = CombatantTalentCatalog.configIfAvailable(for: combatant.id) {
+            for tree in config.trees {
+                if let ref = tree.keyword.artReference {
+                    names.append(ref.thumbnailImageName ?? ref.imageName)
+                }
             }
         }
         for itemID in equipmentLoadout.itemIDsBySlot.values {

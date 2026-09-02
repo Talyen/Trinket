@@ -80,27 +80,28 @@ struct CombatantTalentsSection: View {
     let onSelectTree: (TalentTree) -> Void
 
     var body: some View {
-        let config = CombatantTalentCatalog.config(for: combatantID)
-        let available = progression.availableTalentPoints(unlockedCount: unlockedTalents.count)
-        return DetailSection("Talents", sectionID: AccessibilityID.CombatantDetail.talentsSection) {
-            HStack(spacing: TrinketDesign.Spacing.small) {
-                ForEach(config.trees) { tree in
-                    let hasUnallocatedPoints = available > 0
-                    let unlockedCount = tree.nodes.count(where: { unlockedTalents.contains($0.id) })
-                    Button {
-                        onSelectTree(tree)
-                    } label: {
-                        TalentTreeCard(
-                            tree: tree,
-                            caption: "\(unlockedCount)/\(tree.nodes.count)",
-                            showsShine: hasUnallocatedPoints,
-                            accessibilityID: AccessibilityID.CombatantDetail.talentsNode(id: tree.keyword.rawValue),
-                        )
+        if let config = CombatantTalentCatalog.configIfAvailable(for: combatantID) {
+            let available = progression.availableTalentPoints(unlockedCount: unlockedTalents.count)
+            DetailSection("Talents", sectionID: AccessibilityID.CombatantDetail.talentsSection) {
+                HStack(spacing: TrinketDesign.Spacing.small) {
+                    ForEach(config.trees) { tree in
+                        let hasUnallocatedPoints = available > 0
+                        let unlockedCount = tree.nodes.count(where: { unlockedTalents.contains($0.id) })
+                        Button {
+                            onSelectTree(tree)
+                        } label: {
+                            TalentTreeCard(
+                                tree: tree,
+                                caption: "\(unlockedCount)/\(tree.nodes.count)",
+                                showsShine: hasUnallocatedPoints,
+                                accessibilityID: AccessibilityID.CombatantDetail.talentsNode(id: tree.keyword.rawValue),
+                            )
+                        }
+                        .trinketQuietTapButtonStyle()
                     }
-                    .trinketQuietTapButtonStyle()
                 }
+                .padding(.vertical, TrinketDesign.Spacing.extraSmall)
             }
-            .padding(.vertical, TrinketDesign.Spacing.extraSmall)
         }
     }
 }

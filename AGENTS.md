@@ -4,7 +4,7 @@ Portrait-first iOS fantasy turn-based card combat. SwiftUI + SPM packages under 
 
 This file is the router + universal constraints. Nested `AGENTS.md` add local hard stops; AgentContext cards and Platform docs own domain behavior, rationale, and exact commands.
 
-Active skills live in [`.agents/skills/`](.agents/skills/); durable lessons in [`.agents/knowledge/`](.agents/knowledge/) (searchable, not auto-loaded — see [knowledge/index.md](.agents/knowledge/index.md)). Load knowledge only when the task touches its concern or a skill’s PURPOSE points there. One-off failures stay in session history.
+Active skills live in [`.agents/skills/`](.agents/skills/); durable lessons in [`.agents/knowledge/`](.agents/knowledge/) (searchable, not auto-loaded — see [knowledge/index.md](.agents/knowledge/index.md)). Load knowledge only when the task touches its concern or a skill’s PURPOSE points there. One-off failures stay in session history. Friction log lives in [`.agents/FRICTION_LOG.md`](.agents/FRICTION_LOG.md) — append when docs mislead, behavior surprises, or repeated friction appears. Not auto-loaded; one-line row is enough — move to Resolved with a fix link when addressed.
 
 ## Communication
 

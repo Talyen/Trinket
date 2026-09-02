@@ -58,14 +58,12 @@ private struct ArtFillModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         switch variant {
-        case .battle:
+        case .battle, .card, .hero:
             Color.clear
                 .overlay {
                     content.scaledToFill()
                 }
                 .clipped()
-        case .card, .hero:
-            content.aspectRatio(contentMode: .fill)
         }
     }
 }

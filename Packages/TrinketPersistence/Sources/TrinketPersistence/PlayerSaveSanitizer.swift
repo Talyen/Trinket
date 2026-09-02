@@ -277,8 +277,13 @@ enum PlayerSaveSanitizer {
             let remapped = Set(nodeIDs.map { LegacyIDRemap.remappedTalentNodeID($0) })
             var filtered = remapped.intersection(validNodeIDs)
             if let budget = progressions[combatantID]?.totalTalentPoints {
-                filtered = CombatantTalentCatalog.config(for: combatantID)
-                    .cappedUnlocks(filtered, budget: budget)
+                if let config = CombatantTalentCatalog.configIfAvailable(for: combatantID) {
+                    filtered = config.cappedUnlocks(filtered, budget: budget)
+                } else {
+                    #if DEBUG
+                    assertionFailure("Missing talent config for \(combatantID) during sanitize")
+                    #endif
+                }
             }
             if !filtered.isEmpty {
                 sanitized[combatantID] = filtered
