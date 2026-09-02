@@ -50,8 +50,8 @@ Read these focused guides:
 | `./Scripts/stage-ci-test-artifact.sh` | Stage Products + stamps for the CI `--no-build` fan-out artifact |
 | `./Scripts/test-package.sh <Package>` | Run one package's tests |
 | `./Scripts/test.sh unit` | Run all package unit suites |
-| `./Scripts/test-timing.sh report` | Show per-suite wall-time history and hotspots from test runs |
-| `./Scripts/test-timing.sh show --last 10` | Show recent run IDs, outcomes, targets, and result-bundle availability without hotspot output |
+| `python3 ./Scripts/test-timing.py report` | Show per-suite wall-time history and hotspots from test runs |
+| `python3 ./Scripts/test-timing.py show --last 10` | Show recent run IDs, outcomes, targets, and result-bundle availability without hotspot output |
 | `./Scripts/test.sh smoke` | Run the checked-in smoke registry |
 | `./Scripts/test.sh smoke <Class...>` | Run targeted smoke classes |
 | `./Scripts/test.sh ui <Target>` | Run one exhaustive UI target; bare full suite requires `TRINKET_ALLOW_FULL_UI=1` (CI-owned otherwise) |
@@ -60,11 +60,11 @@ Read these focused guides:
 | `./Scripts/agent-context.sh --agent --paths …` | Print concise guidance and verification routing; use `--full` for full commands and `--working-tree --allow-broad-scope` only intentionally |
 | `./Scripts/agent-watch-ci.sh [--sha …]` | Poll a hosted CI run for a commit; prints failed jobs and annotations when red |
 | `node Scripts/agent-worktree.mjs create --task <slug>` | Canonical isolated worktree under `.worktrees/<slug>` on `agent/<slug>`; use when another agent owns dirty work |
-| `./Scripts/agent-worktree.sh -h` | Compatibility helper for sibling `../Trinket-<slug>` worktrees |
+| `node Scripts/agent-worktree.mjs legacy-detach create <slug>` | Legacy sibling `../Trinket-<slug>` checkout, detached at HEAD |
 | `./Scripts/handoff.sh --isolate --paths …` | Canonical path-scoped source gate (headless by default); `--smoke` runs targeted UI smoke; `--mirror` mirrors to Trinket Run; `--dry-run` shows the full ordered plan including cheap CI slices |
 | `./Scripts/new-plan.sh <PlanName>` | Scaffold an expiring active execution plan under `Docs/Plans/`; completed outcomes go in `Docs/Plans/Archived/README.md` and the full plan is deleted |
 | `./Scripts/ci-gate.sh` | Generation, style, boundaries, script regressions, Swift Testing policy, release-note validation, and artwork budget |
-| `./Scripts/ci-gate.sh --fast` | Cheap full-tree slices only (boundaries, Swift Testing, release notes, artwork budget) from `Scripts/config/cheap-slices.txt`; skips generation and style |
+| `./Scripts/ci-gate.sh --fast` | Cheap full-tree slices only (boundaries, API bans, release notes, artwork budget) from `Scripts/config/cheap-slices.txt`; skips generation and style |
 | `./Scripts/test-scripts.sh [--skip-docs]` | Script syntax/regressions; runs docs by default, omit docs when a caller already ran `check-docs.py` (mixed script/docs scope or `--final`) |
 | `./Scripts/ci-assets-gate.sh` | Asset generation, idempotence, and locale-stability gate |
 | `python3 ./Scripts/check-docs.py [--final] [--keep-plan]` | Check links, structure, smoke classes, stale terms, and execution-plan lifecycle |
@@ -79,13 +79,18 @@ Read these focused guides:
 | `./Scripts/update-tools.sh [--apply]` | Report newer SwiftFormat/SwiftLint releases; with `--apply`, bump the pins in `tool-versions.env` (checksummed) and re-install |
 | `./Scripts/run-simulator.sh [--isolate] [--agent N]` | Build and launch on a managed simulator (default Trinket Run; `--isolate`/`--agent N` for the isolated pool) — also available as `run` alias via `node Scripts/setup-git-safety.mjs` |
 | `./Scripts/prune-derived-data-cache.sh` | Prune safe, old local build artifacts |
+| `./Scripts/prepare-audio-assets.sh [music\|sfx\|all]` | Validate music/SFX manifests, encode AAC, regenerate `MusicCatalog` / `SFXCatalog` |
+| `./Scripts/check-api-bans.sh` | Banned legacy observation/navigation APIs plus XCTest-outside-UITests migration |
+| `./Scripts/promote.sh` | Install an isolated agent build into the human simulator without relaunch (also via `handoff.sh --mirror`) |
+| `./Scripts/build-freshness.sh` | Generated-input freshness and `--no-build` stamp helpers sourced by build/test commands |
 | `./Scripts/balance-sweep.sh` | Run the headless battle balance sweep |
 | `./Scripts/release.sh [--dry-run]` | Preview or execute a release |
 
 Use `--help` where a command supports it; this index covers commands without a
 dedicated help mode. Pinned tool versions live in
-`Scripts/tool-versions.env`; package/build/generation roots and test plans live
-in `Scripts/swift-source-dirs.env`; generated-output ownership lives in
+`Scripts/tool-versions.env`; format roots live in `Scripts/format-dirs.env` and
+package/build/generation roots plus test plans in `Scripts/build-inputs.env`
+(both sourced by the `Scripts/swift-source-dirs.env` shim); generated-output ownership lives in
 `Scripts/config/generated-paths.tsv`; diagnostic budgets live in
 `Scripts/config/diagnostic-limits.env`; simulator JSON queries live in
 `Scripts/simctl_json.py`; cheap CI slices live in `Scripts/config/cheap-slices.txt`. The small helpers under `Scripts/lib/` own shared

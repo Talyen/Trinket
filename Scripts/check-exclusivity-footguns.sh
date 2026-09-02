@@ -11,13 +11,14 @@
 # Escape hatch: nearby `ExclusivityCheck: allow` with a concrete reason.
 set -euo pipefail
 
-cd "$(dirname "$0")/.."
+# shellcheck source=Scripts/lib/rg-check.sh
+source "$(dirname "$0")/lib/rg-check.sh"
 
 # shellcheck source=swift-source-dirs.env
 source ./Scripts/swift-source-dirs.env
 SOURCE_DIRS=("${SWIFT_SOURCE_DIRS[@]}")
 
-violations=()
+TRINKET_RG_BULLET="  "
 
 is_allowed() {
   local file="$1"
@@ -69,7 +70,7 @@ while IFS=: read -r file line_number content; do
   if is_allowed "$file" "$line_number"; then
     continue
   fi
-  violations+=("${file}:${line_number}: ${content}")
+  trinket_rg_violation "${file}:${line_number}: ${content}"
 done < <(
   rg -n --glob '*.swift' --glob '!**/Generated/**' '&self\.' "${SOURCE_DIRS[@]}" 2>/dev/null || true
 )
@@ -84,17 +85,11 @@ while IFS=: read -r file line_number content; do
   if has_safe_inout_target "$file" "$line_number" "$ident"; then
     continue
   fi
-  violations+=("${file}:${line_number}: ${content}")
+  trinket_rg_violation "${file}:${line_number}: ${content}"
 done < <(
   rg -n --glob '*.swift' --glob '!**/Generated/**' 'into:[[:space:]]*&[A-Za-z_]' "${SOURCE_DIRS[@]}" 2>/dev/null || true
 )
 
-if ((${#violations[@]} > 0)); then
-  echo "Exclusivity footgun check found inout of a likely stored property:" >&2
-  printf '  %s\n' "${violations[@]}" >&2
-  echo "Copy the property to a local var, pass &local, then write back — see PlayerRosterState.unlockHero." >&2
-  echo "Escape hatch: // ExclusivityCheck: allow - <reason> on a nearby line." >&2
-  exit 1
-fi
-
-echo "Exclusivity footgun check passed."
+trinket_rg_report "Exclusivity footgun check found inout of a likely stored property:" "Exclusivity footgun check passed." "" \
+  "Copy the property to a local var, pass &local, then write back — see PlayerRosterState.unlockHero." \
+  "Escape hatch: // ExclusivityCheck: allow - <reason> on a nearby line."

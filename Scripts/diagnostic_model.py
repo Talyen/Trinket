@@ -53,6 +53,13 @@ def bounded_text(value: str, *, line_limit: int = MAX_DETAIL_LINES, char_limit: 
     return preview, clipped
 
 
+def bounded_lines(lines: list[str], limit: int = MAX_LINES) -> list[str]:
+    if len(lines) <= limit:
+        return lines
+    omitted = len(lines) - limit + 1
+    return [*lines[: limit - 1], f"… {omitted} additional lines omitted by reporter"]
+
+
 def identifier_aliases(*values: str) -> frozenset[str]:
     aliases: set[str] = set()
     for raw in values:

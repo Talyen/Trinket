@@ -24,7 +24,7 @@ class VerificationImprovementsTests(ScriptRegressionTestCase):
             registry,
             [
                 "./Scripts/check-module-boundaries.sh",
-                "./Scripts/check-swift-testing-migration.sh",
+                "./Scripts/check-api-bans.sh",
                 "./Scripts/release-notes.sh validate",
                 "./Scripts/check-artwork-budget.sh",
             ],
@@ -32,9 +32,10 @@ class VerificationImprovementsTests(ScriptRegressionTestCase):
         lib = (ROOT / "Scripts" / "lib" / "cheap-slices.sh").read_text(encoding="utf-8")
         self.assertIn("trinket_cheap_slice_commands", lib)
         self.assertIn("trinket_run_cheap_slices", lib)
+        self.assertIn("--dry-run", lib)
         self.assertIn("cheap-slices.txt", lib)
         handoff = (ROOT / "Scripts" / "handoff.sh").read_text(encoding="utf-8")
-        self.assertIn("trinket_cheap_slice_commands", handoff)
+        self.assertIn("trinket_run_cheap_slices --dry-run", handoff)
         self.assertIn("trinket_run_cheap_slices", handoff)
         # Dry-run must include cheap slices in order after plan.
         result = subprocess.run(
@@ -119,7 +120,7 @@ class VerificationImprovementsTests(ScriptRegressionTestCase):
 
     def test_every_unit_package_in_exactly_one_shard(self) -> None:
         workflow = (ROOT / ".github" / "workflows" / "tests.yml").read_text(encoding="utf-8")
-        env = (ROOT / "Scripts" / "swift-source-dirs.env").read_text(encoding="utf-8")
+        env = (ROOT / "Scripts" / "build-inputs.env").read_text(encoding="utf-8")
         import re
 
         test_packages_block = re.search(r"TRINKET_TEST_PACKAGES=\((.*?)\)", env, re.S).group(1)

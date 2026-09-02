@@ -6,7 +6,7 @@ Battle ownership matrix: `Packages/BattleEngine/Tests/README.md`. UI launch args
 
 ## Framework split
 
-**Swift Testing only** in package test targets (`import Testing`). **XCTest** only in `TrinketUITests/`. Enforced by `./Scripts/check-swift-testing-migration.sh`.
+**Swift Testing only** in package test targets (`import Testing`). **XCTest** only in `TrinketUITests/`. Enforced by `./Scripts/check-api-bans.sh`.
 
 Keep semantic tests beside their owning package; there is no app-level `TrinketTests`
 target (final app-target integration behavior that packages cannot own lives in

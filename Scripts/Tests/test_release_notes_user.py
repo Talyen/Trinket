@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -215,10 +216,10 @@ class ReleaseNotesUserTests(unittest.TestCase):
 
     def test_release_dry_run_still_prints_player_draft(self) -> None:
         release = (ROOT / "Scripts" / "release.sh").read_text(encoding="utf-8")
-        self.assertIn("release-notes-user.sh", release)
+        self.assertIn("release-notes-user.py", release)
         self.assertIn("--dry-run", release)
         result = subprocess.run(
-            [str(ROOT / "Scripts" / "release-notes-user.sh"), "--dry-run", "--version", "0.2.0"],
+            [sys.executable, str(ROOT / "Scripts" / "release-notes-user.py"), "--dry-run", "--version", "0.2.0"],
             cwd=ROOT,
             capture_output=True,
             text=True,

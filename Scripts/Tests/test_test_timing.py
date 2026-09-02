@@ -5,12 +5,13 @@ from __future__ import annotations
 import json
 import os
 import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
 
 
-SCRIPT = Path(__file__).parents[1] / "test-timing.sh"
+SCRIPT = Path(__file__).parents[1] / "test-timing.py"
 
 
 class TestTimingTests(unittest.TestCase):
@@ -24,7 +25,7 @@ class TestTimingTests(unittest.TestCase):
         environment["RESULTS_DIR"] = str(results_dir)
         environment.update(extra_environment or {})
         return subprocess.run(
-            [str(SCRIPT), *args],
+            [sys.executable, str(SCRIPT), *args],
             env=environment,
             capture_output=True,
             text=True,

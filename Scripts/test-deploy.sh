@@ -67,7 +67,7 @@ if [[ "$MODE" == "ui" ]]; then
 else
   echo ""
   echo "=== Unit timing report ==="
-  ./Scripts/test-timing.sh report --mode unit --last 1 --top 10
+  python3 ./Scripts/test-timing.py report --mode unit --last 1 --top 10
 
   echo ""
   echo "=== Smoke UI canary ==="
@@ -75,7 +75,7 @@ else
 
   echo ""
   echo "=== Smoke timing report ==="
-  ./Scripts/test-timing.sh report --mode smoke --last 1 --top 10
+  python3 ./Scripts/test-timing.py report --mode smoke --last 1 --top 10
 fi
 
 echo ""

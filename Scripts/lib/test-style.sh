@@ -7,16 +7,16 @@ trinket_run_style_gate() {
     echo "Running path-scoped style on ${#style_paths[@]} path(s)..."
     ./Scripts/format.sh --lint -- "${style_paths[@]}" || style_status=$?
     ./Scripts/lint.sh -- "${style_paths[@]}" || style_status=$?
-    ./Scripts/check-ui-style.sh "${style_paths[@]}" || style_status=$?
+    python3 ./Scripts/check-ui-style.py "${style_paths[@]}" || style_status=$?
   else
     ./Scripts/format.sh --lint || style_status=$?
     ./Scripts/lint.sh || style_status=$?
-    ./Scripts/check-ui-style.sh || style_status=$?
+    python3 ./Scripts/check-ui-style.py || style_status=$?
   fi
-  ./Scripts/check-platform-api-bans.sh || style_status=$?
+  ./Scripts/check-api-bans.sh || style_status=$?
   ./Scripts/check-exclusivity-footguns.sh || style_status=$?
   ./Scripts/check-agent-invariants.sh || style_status=$?
-  ./Scripts/check-accessibility-ids.sh || style_status=$?
+  python3 ./Scripts/check-accessibility-ids.py || style_status=$?
   if (( ${#style_paths[@]} > 0 )); then
     ./Scripts/check-comment-ban.sh -- "${style_paths[@]}" || style_status=$?
   else

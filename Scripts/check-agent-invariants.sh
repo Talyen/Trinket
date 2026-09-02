@@ -11,12 +11,13 @@
 #   ArtworkWorkingSetCheck: allow - <reason>
 set -euo pipefail
 
-cd "$(dirname "$0")/.."
+# shellcheck source=Scripts/lib/rg-check.sh
+source "$(dirname "$0")/lib/rg-check.sh"
 
 # shellcheck source=swift-source-dirs.env
 source ./Scripts/swift-source-dirs.env
 
-violations=()
+TRINKET_RG_BULLET="  "
 
 has_nearby_allow() {
   local file="$1"
@@ -62,7 +63,7 @@ while IFS= read -r match; do
   if has_nearby_allow "$local_file" "$line" "EntropyCheck"; then
     continue
   fi
-  violations+=("${local_file}:${line}: unseeded Date()/UUID() in BattleEngine rule code")
+  trinket_rg_violation "${local_file}:${line}: unseeded Date()/UUID() in BattleEngine rule code"
 done < <(
   scan_matches '\b(Date|UUID)\(\)' '*.swift' Packages/BattleEngine/Sources/BattleEngine
 )
@@ -82,7 +83,7 @@ while IFS= read -r match; do
   if has_nearby_allow "$local_file" "$line" "EntropyCheck"; then
     continue
   fi
-  violations+=("${local_file}:${line}: unseeded .random( in BattleEngine rule code (inject RNG via using:)")
+  trinket_rg_violation "${local_file}:${line}: unseeded .random( in BattleEngine rule code (inject RNG via using:)"
 done < <(
   scan_matches '\.random\(' '*.swift' Packages/BattleEngine/Sources/BattleEngine
 )
@@ -102,7 +103,7 @@ while IFS= read -r match; do
   if has_nearby_allow "$local_file" "$line" "TestSleepCheck"; then
     continue
   fi
-  violations+=("${local_file}:${line}: Task.sleep in package tests must poll with .milliseconds or use TestSleepCheck: allow")
+  trinket_rg_violation "${local_file}:${line}: Task.sleep in package tests must poll with .milliseconds or use TestSleepCheck: allow"
 done < <(
   scan_matches 'Task\.sleep' '*.swift' \
     Packages/TrinketCore/Tests \
@@ -127,7 +128,7 @@ while IFS= read -r match; do
   if has_nearby_allow "$local_file" "$line" "PersistenceCheck"; then
     continue
   fi
-  violations+=("${local_file}:${line}: try? on persistence write/open; use an explicit path or PersistenceCheck: allow")
+  trinket_rg_violation "${local_file}:${line}: try? on persistence write/open; use an explicit path or PersistenceCheck: allow"
 done < <(
   scan_matches 'try\?' '*.swift' Packages/TrinketPersistence/Sources/TrinketPersistence
 )
@@ -144,7 +145,7 @@ while IFS= read -r match; do
   if has_nearby_concurrency_rationale "$local_file" "$line"; then
     continue
   fi
-  violations+=("${local_file}:${line}: @unchecked Sendable / nonisolated(unsafe) needs a nearby Concurrency-Safety: rationale")
+  trinket_rg_violation "${local_file}:${line}: @unchecked Sendable / nonisolated(unsafe) needs a nearby Concurrency-Safety: rationale"
 done < <(
   scan_matches '@unchecked Sendable|nonisolated\(unsafe\)' '*.swift' \
     "${SWIFT_SOURCE_DIRS[@]}"
@@ -159,7 +160,7 @@ while IFS= read -r match; do
   if [[ "$text" == *" - "* ]]; then
     continue
   fi
-  violations+=("${local_file}:${line}: swiftlint:disable must include ' - <reason>'")
+  trinket_rg_violation "${local_file}:${line}: swiftlint:disable must include ' - <reason>'"
 done < <(
   rg -n --glob '*.swift' --glob '!**/Generated/**' \
     '//[[:space:]]*swiftlint:disable' \
@@ -178,16 +179,10 @@ while IFS= read -r match; do
   if has_nearby_allow "$local_file" "$line" "ArtworkWorkingSetCheck"; then
     continue
   fi
-  violations+=("${local_file}:${line}: do not release launch artwork pins after warmup (ArtworkWorkingSetCheck)")
+  trinket_rg_violation "${local_file}:${line}: do not release launch artwork pins after warmup (ArtworkWorkingSetCheck)"
 done < <(
   scan_matches 'releasePins' '*.swift' Trinket/App/TrinketApp.swift
 )
 
-if ((${#violations[@]} > 0)); then
-  echo "Agent invariant check failed:" >&2
-  printf '  %s\n' "${violations[@]}" >&2
-  echo "Escape hatches: EntropyCheck / TestSleepCheck / PersistenceCheck / ConcurrencyCheck / ArtworkWorkingSetCheck: allow - <reason>." >&2
-  exit 1
-fi
-
-echo "Agent invariant check passed."
+trinket_rg_report "Agent invariant check failed:" "Agent invariant check passed." "" \
+  "Escape hatches: EntropyCheck / TestSleepCheck / PersistenceCheck / ConcurrencyCheck / ArtworkWorkingSetCheck: allow - <reason>."

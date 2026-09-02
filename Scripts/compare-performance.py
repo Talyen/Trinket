@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from performance_model import REMOVED_FIELDS, REQUIRED_NUMERIC_FIELDS, REQUIRED_SCHEMA_VERSION, finite_number, load_baseline, validate_metric_domains
+from performance_model import REMOVED_FIELDS, REQUIRED_NUMERIC_FIELDS, REQUIRED_SCHEMA_VERSION, finite_number, load_baseline, validate_metric_domains, validate_report_domains
 
 
 def main() -> int:
@@ -66,13 +66,11 @@ def main() -> int:
         if removed:
             failures.append(f"{scenario}: removed metrics still present: {', '.join(removed)}")
 
+        failures.extend(validate_report_domains(report))
         try:
             values = {key: finite_number(report, key) for key in REQUIRED_NUMERIC_FIELDS}
-        except ValueError as error:
-            failures.append(f"{scenario}: {error}")
+        except ValueError:
             continue
-
-        failures.extend(validate_metric_domains(values, scenario))
 
         rows.append(
             f"| {scenario} | {values['averageFPS']:.2f} | "

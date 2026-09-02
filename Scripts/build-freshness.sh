@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
-# Shared generated-input and --no-build freshness helpers.
+# Merged generated-input freshness + --no-build stamp helpers.
+# Replaces Scripts/build-inputs.sh + Scripts/build-stamp.sh (deleted).
 # Source this file from build/test entry points; it intentionally has no main.
+# Function names and signatures are unchanged.
 
-# shellcheck source=swift-source-dirs.env
-source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/swift-source-dirs.env"
+# shellcheck source=build-inputs.env
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/build-inputs.env"
 
 generation_paths_newer_than() {
   local stamp="$1"
@@ -27,23 +29,16 @@ generation_inputs_are_dirty() {
   local paths=("$@")
   local status
   status="$(git status --porcelain -- "${paths[@]}" 2>/dev/null)"
-  # Ignore documentation-only changes that don't affect generation.
-  # Generation only cares about data files (tsv/json/yml), not READMEs.
   status="$(printf '%s\n' "$status" | grep -v "\.md$" || true)"
   [[ -n "$status" ]]
 }
 
-# All inputs that feed generate.sh (content + project.yml + assets). Used for
-# stamp-time porcelain snapshots so dirty-vs-HEAD worktrees do not defeat the
-# handoff idempotent-assert skip after a fresh generate.
 generation_input_paths=(
   "${content_generation_inputs[@]}"
   project.yml
   "${asset_generation_inputs[@]}"
 )
 
-# Snapshot of build-input git porcelain at stamp time. Comparing against HEAD
-# alone would refuse --no-build in any dirty worktree after a fresh build.
 build_input_git_snapshot() {
   git status --porcelain -- "${build_input_paths[@]}" 2>/dev/null || true
 }
@@ -62,8 +57,6 @@ record_generate_input_git_snapshot() {
   printf '%s\n' "$(generation_input_git_snapshot)" >"${stamp}.gitstatus"
 }
 
-# Return 0 when generation-input porcelain matches the stamp sidecar (or the
-# sidecar is missing — legacy stamps fall back to mtime-only callers).
 assert_generate_input_git_snapshot_unchanged() {
   local stamp="$1"
   local snapshot="${stamp}.gitstatus"
@@ -92,7 +85,6 @@ assert_build_input_git_snapshot_unchanged() {
   local previous=""
   local current
 
-  # Legacy stamps without a sidecar: mtime-only (backward compatible).
   [[ -f "$snapshot" ]] || return 0
 
   previous="$(cat "$snapshot")"
@@ -124,9 +116,6 @@ prepare_generated_inputs() {
     project_changed="$(generation_paths_newer_than "$stamp" project.yml)"
     assets_changed="$(generation_paths_newer_than "$stamp" "${asset_generation_inputs[@]}")"
   fi
-  # Edits can preserve stale mtimes (e.g. Darkroom exports or generated
-  # manifest rewrites). Git dirtiness catches those even when find -newer would
-  # miss them, including content and project inputs.
   if [[ -z "$content_changed" ]] && generation_inputs_are_dirty "${content_generation_inputs[@]}"; then
     content_changed="dirty content input"
   fi
@@ -188,8 +177,73 @@ assert_no_build_inputs_are_fresh() {
     return 1
   fi
 
-  # Prefer stamp-time porcelain snapshot over "dirty vs HEAD". Dirty worktrees
-  # are normal for local/agent flows; refuse only when build-input dirtiness
-  # changed since this fingerprint was stamped (catches preserved-mtime edits).
   assert_build_input_git_snapshot_unchanged "$stamp" "$fingerprint"
 }
+
+build_stamp_key() {
+  local fingerprint="$1"
+  printf '%s' "$fingerprint" | shasum -a 256 | awk '{print $1}'
+}
+
+build_stamp_path() {
+  local results_dir="$1"
+  local fingerprint="$2"
+  local run_key
+  run_key="$(build_stamp_key "$fingerprint")"
+  printf '%s/.last-build-%s.stamp' "$results_dir" "$run_key"
+}
+
+touch_build_stamp() {
+  local results_dir="$1"
+  local fingerprint="$2"
+  local stamp
+  stamp="$(build_stamp_path "$results_dir" "$fingerprint")"
+  mkdir -p "$results_dir"
+  touch "$stamp"
+  record_build_input_git_snapshot "$stamp"
+}
+
+package_test_scheme() {
+  case "$1" in
+    BattleEngine) printf '%s\n' 'BattleEngine-Package' ;;
+    TrinketContent) printf '%s\n' 'TrinketContent-Package' ;;
+    TrinketFeatureSupport) printf '%s\n' 'TrinketFeatureSupport-Package' ;;
+    TrinketPersistence) printf '%s\n' 'TrinketPersistence-Package' ;;
+    *) printf '%s\n' "$1" ;;
+  esac
+}
+
+# Package schemes get their own DerivedData tenant so builds can run in parallel
+# without contending on a shared build.db. App builds keep DERIVED_DATA_PATH.
+package_derived_data_path() {
+  local package="$1"
+  printf '%s/packages/%s' "${DERIVED_DATA_PATH:?}" "$package"
+}
+
+# SPM package schemes still emit XCBuildData under Packages/.DerivedData when only
+# -derivedDataPath is set, racing parallel package builds on one build.db. Pin
+# products/intermediates into the per-package tenant alongside -derivedDataPath.
+package_symroot() {
+  printf '%s/Build/Products' "${1:?}"
+}
+
+package_objroot() {
+  printf '%s/Build/Intermediates.noindex' "${1:?}"
+}
+
+package_shared_precomps_dir() {
+  printf '%s/Build/Intermediates.noindex/PrecompiledHeaders' "${1:?}"
+}
+
+# shellcheck disable=SC2034
+TRINKET_BUILD_FINGERPRINTS_APP=(
+  smoke
+  ui
+)
+
+# shellcheck disable=SC2034
+TRINKET_BUILD_FINGERPRINTS_FULL=(
+  unit
+  "${TRINKET_BUILD_FINGERPRINTS_APP[@]}"
+  all
+)

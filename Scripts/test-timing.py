@@ -362,7 +362,7 @@ def main(argv: list[str]) -> int:
     command = argv[0] if argv else "report"
     args = argv[1:] if argv else []
     if command in {"-h", "--help", "help"}:
-        print("Usage: test-timing.sh [show|report|record|assert-budget] ...")
+        print("Usage: python3 Scripts/test-timing.py [show|report|record|assert-budget] ...")
         return 0
     if command not in {"show", "report", "record", "assert-budget"}:
         args = argv

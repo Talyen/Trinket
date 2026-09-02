@@ -2,6 +2,6 @@
 # Single registry — sourced by Scripts/lib/cheap-slices.sh, previewed by
 # handoff.sh --dry-run, and documented in Docs/Platform/Verification.md.
 ./Scripts/check-module-boundaries.sh
-./Scripts/check-swift-testing-migration.sh
+./Scripts/check-api-bans.sh
 ./Scripts/release-notes.sh validate
 ./Scripts/check-artwork-budget.sh

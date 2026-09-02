@@ -50,7 +50,7 @@ not repeat the full suite already run by the release command and main CI.
 Apple's What's New field is required for updates after the first version, is
 plain text and localizable, and permits up to 4,000 characters. See
 [Apple's platform version reference](https://developer.apple.com/help/app-store-connect/reference/app-information/platform-version-information/).
-`release-notes-user.sh` infers player-facing commits and writes
+`release-notes-user.py` infers player-facing commits and writes
 `ReleaseNotes/en-US.txt`. Paste that file into App Store Connect when submitting.
 
 ## Local hooks and push discipline

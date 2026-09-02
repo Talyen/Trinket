@@ -11,9 +11,7 @@ trinket_run_env_print
 # Isolated builds share a warm agent-N DerivedData tenant; no simulator boot needed
 # (generic/platform destination), but init already acquired the agent slot.
 
-source "$SCRIPT_DIR/build-stamp.sh"
-# shellcheck source=build-inputs.sh
-source "$SCRIPT_DIR/build-inputs.sh"
+source "$SCRIPT_DIR/build-freshness.sh"
 # shellcheck source=xcode-runner.sh
 source "$SCRIPT_DIR/xcode-runner.sh"
 # shellcheck source=lib/app-build.sh

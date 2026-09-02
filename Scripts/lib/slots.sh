@@ -147,7 +147,7 @@ trinket_sim_slot_acquire() {
   echo "Agent simulator slot pool full (0/$max free; TRINKET_MAX_AGENT_SIMS=$max)." >&2
   echo "Another agent or local isolated run is using a Trinket Agent simulator." >&2
   echo "Do not kill foreign xcodebuild/simctl processes." >&2
-  echo "Options: retry after a peer finishes, use a git worktree (./Scripts/agent-worktree.sh), or raise TRINKET_MAX_AGENT_SIMS only with measured headroom." >&2
+  echo "Options: retry after a peer finishes, use a git worktree (node Scripts/agent-worktree.mjs create --task <slug>), or raise TRINKET_MAX_AGENT_SIMS only with measured headroom." >&2
   return 1
 }
 
@@ -170,12 +170,12 @@ trinket_shared_sim_lease_acquire() {
   trinket_sim_slot_reap
   if [[ -e "$path" ]]; then
     echo "Trinket Run is busy: shared simulator lease held by another run." >&2
-    echo "Options: wait for the peer to finish, use --isolate for an agent-slot run, or use a git worktree (./Scripts/agent-worktree.sh)." >&2
+    echo "Options: wait for the peer to finish, use --isolate for an agent-slot run, or use a git worktree (node Scripts/agent-worktree.mjs create --task <slug>)." >&2
     return 1
   fi
   if ! trinket_lock_claim_file "$path" "$$ ${TRINKET_RUN_ID:-shared} $(date -u +%Y-%m-%dT%H:%M:%SZ)"; then
     echo "Trinket Run is busy: another run claimed the shared simulator lease." >&2
-    echo "Options: wait for the peer to finish, use --isolate for an agent-slot run, or use a git worktree (./Scripts/agent-worktree.sh)." >&2
+    echo "Options: wait for the peer to finish, use --isolate for an agent-slot run, or use a git worktree (node Scripts/agent-worktree.mjs create --task <slug>)." >&2
     return 1
   fi
   TRINKET_SHARED_SIM_SLOT_PATH="$path"
@@ -211,7 +211,7 @@ trinket_ui_slot_acquire() {
     echo "UI/smoke concurrency cap reached ($count/$max active)." >&2
     echo "Another agent or local run is using the simulator lane." >&2
     echo "Do not kill foreign xcodebuild/simctl processes." >&2
-    echo "Options: retry after a peer finishes, use a git worktree (./Scripts/agent-worktree.sh), or raise TRINKET_MAX_CONCURRENT_UI only with measured headroom." >&2
+    echo "Options: retry after a peer finishes, use a git worktree (node Scripts/agent-worktree.mjs create --task <slug>), or raise TRINKET_MAX_CONCURRENT_UI only with measured headroom." >&2
     return 1
   fi
 

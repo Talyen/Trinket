@@ -46,6 +46,27 @@ def validate_metric_domains(values: dict[str, float], scenario: str) -> list[str
     return failures
 
 
+def validate_report_domains(report: dict[str, Any]) -> list[str]:
+    scenario = report.get("scenario")
+    failures: list[str] = []
+    for metric in METRICS:
+        value = report.get(metric)
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            failures.append(f"{scenario}: {metric} is missing or non-numeric")
+            continue
+        numeric = float(value)
+        if not math.isfinite(numeric):
+            failures.append(f"{scenario}: {metric} is not finite")
+            continue
+        if metric in COUNT_METRICS and (not numeric.is_integer() or numeric < 0):
+            failures.append(f"{scenario}: {metric} must be a non-negative integer")
+        elif metric in NON_NEGATIVE_METRICS and numeric < 0:
+            failures.append(f"{scenario}: {metric} must be non-negative")
+        elif metric == "missedDeadlineRatio" and not 0 <= numeric <= 1:
+            failures.append(f"{scenario}: missedDeadlineRatio must be between 0 and 1")
+    return failures
+
+
 def load_baseline(baseline: dict[str, Any]) -> tuple[list[str], str, float, float, float]:
     scenarios = baseline.get("scenarios")
     if not isinstance(scenarios, list) or not scenarios or any(

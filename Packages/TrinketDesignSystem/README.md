@@ -40,7 +40,7 @@ All production colors load from `DesignColors.xcassets` through `DesignAssetColo
 
 On-art text styling uses `.trinketOnArtText(_:)`.
 
-**Enforcement:** `./Scripts/check-ui-style.sh` fails style/CI on one-off colors. A nearby `UIStyleCheck: allow - reason` annotation is permitted only for a narrow content/art exception that the semantic API cannot express; do not use it to bypass product chrome routing. New colors = new `DesignColors` asset + public design-system API.
+**Enforcement:** `python3 ./Scripts/check-ui-style.py` fails style/CI on one-off colors. A nearby `UIStyleCheck: allow - reason` annotation is permitted only for a narrow content/art exception that the semantic API cannot express; do not use it to bypass product chrome routing. New colors = new `DesignColors` asset + public design-system API.
 
 ```sh
 ./Scripts/test-package.sh TrinketDesignSystem

@@ -2,6 +2,8 @@
 # Copy --no-build inputs into .DerivedData/ci-test-artifact for the CI fan-out
 # upload. Keeps Build/Products plus optional ModuleCache/SourcePackages and
 # TestResults stamps; drops package tenants and other DerivedData bulk.
+# Inverse of prune-derived-data-cache.sh --ci: that script strips rebuildable
+# bulk before cache save while this one stages the kept --no-build inputs.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."

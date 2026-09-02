@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-cd "$(dirname "$0")/.."
+# shellcheck source=Scripts/lib/rg-check.sh
+source "$(dirname "$0")/lib/rg-check.sh"
 
 # shellcheck source=swift-source-dirs.env
 source Scripts/swift-source-dirs.env
@@ -38,7 +39,6 @@ if ! command -v rg >/dev/null 2>&1; then
   exit 1
 fi
 
-violations=()
 while IFS= read -r match; do
   [[ -z "$match" ]] && continue
   file="${match%%:*}"
@@ -67,21 +67,7 @@ while IFS= read -r match; do
   if [[ "$text" =~ Concurrency-Safety: ]]; then
     continue
   fi
-  violations+=("$file:$line_num: Comments banned — remove comment or use an allowed toolchain directive (swift-tools-version / swiftlint:disable / swiftformat:disable) — see doc-budget skill")
+  trinket_rg_violation "$file:$line_num: Comments banned — remove comment or use an allowed toolchain directive (swift-tools-version / swiftlint:disable / swiftformat:disable) — see doc-budget skill"
 done < <(rg -n --with-filename --glob '*.swift' --glob '!**/Generated/**' '(^|[[:space:]])//|/\*|\*/' "${SEARCH_ROOTS[@]}" 2>/dev/null || true)
 
-if (( ${#violations[@]} > 0 )); then
-  echo "Comment ban violations (${#violations[@]}):" >&2
-  for v in "${violations[@]}"; do
-    echo "  - $v" >&2
-    if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
-      f=$(echo "$v" | cut -d: -f1)
-      l=$(echo "$v" | cut -d: -f2)
-      msg=$(echo "$v" | cut -d: -f3- | xargs)
-      echo "::error file=$f,line=$l,title=Comment Ban::$msg"
-    fi
-  done
-  exit 1
-fi
-
-echo "Comment ban OK."
+trinket_rg_report "Comment ban violations (${#violations[@]}):" "Comment ban OK." "Comment Ban"

@@ -81,7 +81,7 @@ if [[ -n "${GITHUB_STEP_SUMMARY:-}" && -f "$RESULTS_DIR/timing-log.jsonl" ]]; th
     echo "<details><summary>Timing report</summary>"
     echo
     echo '```text'
-    ./Scripts/test-timing.sh report --last 8 --top 10 || true
+    python3 ./Scripts/test-timing.py report --last 8 --top 10 || true
     echo '```'
     echo
     echo "</details>"

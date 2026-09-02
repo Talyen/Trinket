@@ -46,8 +46,8 @@ trinket_run_env_print
 
 APP_PATH="$DERIVED_DATA_PATH/Build/Products/Debug-iphonesimulator/Trinket.app"
 
-# shellcheck source=build-inputs.sh
-source ./Scripts/build-inputs.sh
+# shellcheck source=build-freshness.sh
+source ./Scripts/build-freshness.sh
 prepare_generated_inputs "$RESULTS_DIR"
 
 # shellcheck source=ensure-simulator.sh
@@ -67,10 +67,7 @@ trinket_set_app_xcodebuild_args "$DERIVED_DATA_PATH"
 # so a warm rebuild is not mistaken for a hang.
 echo "Building Trinket (quiet; log in $RESULTS_DIR/raw/)..."
 xcode_runner_run --label "run-simulator" --quiet -- \
-  xcodebuild build "${TRINKET_APP_XCODEBUILD_ARGS[@]}" \
-  COMPILER_INDEX_STORE_ENABLE=NO \
-  CODE_SIGNING_ALLOWED=NO \
-  CODE_SIGNING_REQUIRED=NO
+  xcodebuild build "${TRINKET_APP_XCODEBUILD_ARGS[@]}"
 
 if [[ -n "${TRINKET_SIMULATOR_NAME:-}" ]]; then
   echo "Build succeeded. Preparing $TRINKET_SIMULATOR_NAME..."

@@ -214,7 +214,7 @@ if [[ "$DRY_RUN" == true ]]; then
   done
   while IFS= read -r _slice; do
     [[ -n "$_slice" ]] && _dry_commands+=("$_slice")
-  done < <(trinket_cheap_slice_commands)
+  done < <(trinket_run_cheap_slices --dry-run)
   if (( ${#_dry_commands[@]} > 0 )); then
     printf '  %s\n' "${_dry_commands[@]}"
   else
@@ -271,18 +271,11 @@ if [[ "${TRINKET_ENABLE_MIRROR:-false}" == "true" && "${TRINKET_ISOLATE:-}" == "
     _mirror_needs_build=true
   fi
   if [[ "$_mirror_needs_build" == true ]]; then
-    if [[ "$QUIET" != true ]]; then
-      echo ""
-      echo "=== Auto-mirror: ensuring Trinket.app reflects verified packages ==="
+    if [[ "$QUIET" == true ]]; then
+      ./Scripts/promote.sh --quiet || true
+    else
+      ./Scripts/promote.sh || true
     fi
-    env SKIP_GENERATE=1 ./Scripts/build.sh >/dev/null 2>&1 || echo "warning: auto-mirror app build failed" >&2
-    if [[ "$QUIET" != true ]]; then
-      echo ""
-      echo "=== Auto-mirror to Trinket Run (isolated build → human simulator) ==="
-    fi
-    # shellcheck source=Scripts/lib/promote.sh
-    source Scripts/lib/promote.sh
-    trinket_promote_auto_mirror_to_run || true
   fi
 fi
 

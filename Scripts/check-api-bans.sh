@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
-# Enforce AGENTS.md legacy platform API bans without SourceKit.
-# SwiftLint custom_rules cover the same patterns when SourceKit is available.
+# Single ban table for legacy API usage. Merges check-platform-api-bans.sh
+# (legacy observation/navigation APIs) and check-swift-testing-migration.sh
+# (XCTest outside TrinketUITests). SwiftLint custom_rules cover the same
+# platform patterns when SourceKit is available.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -34,18 +36,30 @@ scan_pattern '@StateObject\b' 'Use @Observable + @Environment(Type.self) instead
 scan_pattern '@EnvironmentObject\b' 'Use @Environment(Type.self) instead of @EnvironmentObject'
 scan_pattern '@ObservedObject\b' 'Use @Bindable / @Environment(Type.self) instead of @ObservedObject'
 
+while IFS= read -r match; do
+  [[ -z "$match" ]] && continue
+  file="${match%%:*}"
+  rest="${match#*:}"
+  line="${rest%%:*}"
+  if [[ "$file" == *TrinketUITests/* ]]; then
+    continue
+  fi
+  violations+=("$file:$line: Use Swift Testing instead of XCTest outside TrinketUITests")
+done < <(rg -n 'import XCTest|XCTestCase|XCTAssert|XCTFail|XCTUnwrap' Packages --glob '*Tests/**/*.swift' --glob '!**/TrinketUITests/**' 2>/dev/null || true)
+
 if (( ${#violations[@]} > 0 )); then
-  echo "Platform API ban violations:" >&2
+  echo "API ban violations:" >&2
   for violation in "${violations[@]}"; do
     echo "  - $violation" >&2
     if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
       file=$(echo "$violation" | cut -d: -f1)
       line=$(echo "$violation" | cut -d: -f2)
       message=$(echo "$violation" | cut -d: -f3- | xargs)
-      echo "::error file=$file,line=$line,title=Platform API Ban::$message"
+      echo "::error file=$file,line=$line,title=API Ban::$message"
     fi
   done
   exit 1
 fi
 
 echo "Platform API bans OK."
+echo "Swift Testing migration gate: OK (no XCTest imports in unit targets)"

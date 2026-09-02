@@ -9,10 +9,8 @@ SCRIPT_DIR="$(dirname "$0")"
 source "$SCRIPT_DIR/run-env.sh"
 trinket_run_env_init
 
-# shellcheck source=build-stamp.sh
-source "$SCRIPT_DIR/build-stamp.sh"
-# shellcheck source=build-inputs.sh
-source "$SCRIPT_DIR/build-inputs.sh"
+# shellcheck source=build-freshness.sh
+source "$SCRIPT_DIR/build-freshness.sh"
 # shellcheck source=xcode-runner.sh
 source "$SCRIPT_DIR/xcode-runner.sh"
 
@@ -238,7 +236,7 @@ run_one_package() {
   xcode_runner_run "${runner_args[@]}" -- "${xcodebuild_args[@]}" || package_status=$?
   package_wall=$SECONDS
 
-  # Record per-package timings for on-demand hotspot mining (test-timing.sh).
+  # Record per-package timings for on-demand hotspot mining (test-timing.py).
   # Build-for-testing runs have no test cases; skip those xcresults. Soft-fail
   # record so a corrupt/partial bundle after a hung kill cannot mask the
   # xcodebuild status.
@@ -246,7 +244,7 @@ run_one_package() {
     && [[ -f "$result_bundle/Info.plist" ]] \
     && [[ "${TRINKET_RECORD_TIMING:-1}" != "0" ]]; then
     if [[ "$ACTION" == "test-without-building" ]]; then
-      ./Scripts/test-timing.sh record \
+      python3 ./Scripts/test-timing.py record \
         --mode "package:$package" \
         --run "$invocation_id" \
         --wall "$package_wall" \
@@ -254,7 +252,7 @@ run_one_package() {
         --no-build \
         || echo "Warning: failed to record timing for package:$package" >&2
     else
-      ./Scripts/test-timing.sh record \
+      python3 ./Scripts/test-timing.py record \
         --mode "package:$package" \
         --run "$invocation_id" \
         --wall "$package_wall" \

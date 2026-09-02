@@ -14,6 +14,10 @@ trinket_cheap_slice_commands() {
 }
 
 trinket_run_cheap_slices() {
+  if [[ "${1:-}" == "--dry-run" ]]; then
+    trinket_cheap_slice_commands
+    return 0
+  fi
   local cmd
   while IFS= read -r cmd; do
     [[ -z "$cmd" ]] && continue

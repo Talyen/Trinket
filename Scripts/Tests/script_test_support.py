@@ -44,7 +44,7 @@ class ScriptRegressionTestCase(unittest.TestCase):
         ):
             (root / relative).mkdir(parents=True, exist_ok=True)
 
-        for relative in ("Scripts/prepare-sfx-assets.sh", "Scripts/lib/media-assets.sh"):
+        for relative in ("Scripts/prepare-audio-assets.sh", "Scripts/lib/media-assets.sh"):
             destination = root / relative
             destination.write_text((ROOT / relative).read_text(encoding="utf-8"), encoding="utf-8")
             destination.chmod(0o755)
@@ -77,7 +77,7 @@ class ScriptRegressionTestCase(unittest.TestCase):
         self, root: Path, environment: dict[str, str]
     ) -> subprocess.CompletedProcess[str]:
         return subprocess.run(
-            [str(root / "Scripts/prepare-sfx-assets.sh")],
+            [str(root / "Scripts/prepare-audio-assets.sh"), "sfx"],
             cwd=root,
             env=environment,
             capture_output=True,
@@ -97,7 +97,7 @@ class ScriptRegressionTestCase(unittest.TestCase):
         ):
             (root / relative).mkdir(parents=True, exist_ok=True)
 
-        for relative in ("Scripts/prepare-music-assets.sh", "Scripts/lib/media-assets.sh"):
+        for relative in ("Scripts/prepare-audio-assets.sh", "Scripts/lib/media-assets.sh"):
             destination = root / relative
             destination.write_text((ROOT / relative).read_text(encoding="utf-8"), encoding="utf-8")
             destination.chmod(0o755)
@@ -130,7 +130,7 @@ class ScriptRegressionTestCase(unittest.TestCase):
         self, root: Path, environment: dict[str, str]
     ) -> subprocess.CompletedProcess[str]:
         return subprocess.run(
-            ["bash", "Scripts/prepare-music-assets.sh"],
+            ["bash", "Scripts/prepare-audio-assets.sh", "music"],
             cwd=root,
             env=environment,
             capture_output=True,

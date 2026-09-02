@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-cd "$(dirname "$0")/.."
-
-violations=()
+# shellcheck source=Scripts/lib/rg-check.sh
+source "$(dirname "$0")/lib/rg-check.sh"
 
 check_no_import() {
   local folder="$1"
@@ -11,7 +10,7 @@ check_no_import() {
   local reason="$3"
 
   while IFS= read -r file; do
-    [[ -n "$file" ]] && violations+=("$file: $reason")
+    [[ -n "$file" ]] && trinket_rg_violation "$file: $reason"
   done < <(rg -l "$pattern" "$folder" -g '*.swift' 2>/dev/null || true)
 }
 
@@ -22,7 +21,7 @@ check_no_package_dependency() {
   local manifest="Packages/$package/Package.swift"
 
   if rg -q "\"$dependency\"" "$manifest"; then
-    violations+=("$manifest: $reason")
+    trinket_rg_violation "$manifest: $reason"
   fi
 }
 
@@ -41,13 +40,13 @@ check_no_production_target_dependency() {
     in_production_target && index($0, dependency) { found = 1 }
     END { exit found ? 0 : 1 }
   ' "$manifest"; then
-    violations+=("$manifest: $reason")
+    trinket_rg_violation "$manifest: $reason"
   fi
 }
 
 # Packages must not import the app module.
 while IFS= read -r file; do
-  [[ -n "$file" ]] && violations+=("$file: packages must not import Trinket app module")
+  [[ -n "$file" ]] && trinket_rg_violation "$file: packages must not import Trinket app module"
 done < <(rg -l '^import Trinket$' Packages -g '*.swift' 2>/dev/null || true)
 
 # Enforce the package DAG in both source imports and Package.swift declarations.
@@ -119,7 +118,7 @@ if awk '
   in_production_target && index($0, "name: \"TrinketFeatureAdapters\"") { found = 1 }
   END { exit found ? 0 : 1 }
 ' Packages/TrinketAppState/Package.swift; then
-  violations+=("Packages/TrinketAppState/Package.swift: production target must not depend on save-backed FeatureAdapters")
+  trinket_rg_violation "Packages/TrinketAppState/Package.swift: production target must not depend on save-backed FeatureAdapters"
 fi
 
 # The app target is the composition root, but product screens should not reach
@@ -142,7 +141,7 @@ while IFS= read -r file; do
     Trinket/Features/Play/Modes/SpireClimbView.swift)
       ;;
     *)
-      violations+=("$file: app product screens must use BattleRuntime/FeatureSupport instead of importing BattleFeature")
+      trinket_rg_violation "$file: app product screens must use BattleRuntime/FeatureSupport instead of importing BattleFeature"
       ;;
   esac
 done < <(rg -l '^import TrinketBattleFeature$' Trinket -g '*.swift' 2>/dev/null || true)
@@ -155,17 +154,4 @@ for forbidden in SwiftUI UIKit TrinketBattleFeature TrinketAppState; do
 done
 # Note: AVFoundation is allowed in BattleEngine for haptics wiring via BattleRuntimeDependencies; not checked here.
 
-if (( ${#violations[@]} > 0 )); then
-  echo "Module boundary violations:" >&2
-  for violation in "${violations[@]}"; do
-    echo "  - $violation" >&2
-    if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
-      file=$(echo "$violation" | cut -d: -f1 | xargs)
-      reason=$(echo "$violation" | cut -d: -f2- | xargs)
-      echo "::error file=$file,line=1,title=Module Boundary Violation::$reason"
-    fi
-  done
-  exit 1
-fi
-
-echo "Module boundaries OK."
+trinket_rg_report "Module boundary violations:" "Module boundaries OK." "Module Boundary Violation"

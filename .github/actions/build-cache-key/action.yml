@@ -5,7 +5,7 @@ description: >
   full adds app/package/test sources and Scripts/**. Script-only CI edits
   prefix-restore. Path lists for hashFiles live only here so workflows cannot
   drift. Scripts/check-build-cache-paths.sh guards required shared roots against
-  Scripts/build-inputs.sh (intentional differences documented there).
+  Scripts/build-freshness.sh (intentional differences documented there).
 
 inputs:
   artifact-prefix:

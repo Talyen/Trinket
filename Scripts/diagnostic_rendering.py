@@ -8,9 +8,13 @@ import sys
 from pathlib import Path
 
 try:
-    from diagnostic_model import DiagnosticIssue, DiagnosticReport, MAX_ISSUES, MAX_LINES, bounded_text
+    from diagnostic_model import DiagnosticIssue, DiagnosticReport, MAX_ISSUES, MAX_LINES, bounded_lines, bounded_text
 except ModuleNotFoundError:
-    from Scripts.diagnostic_model import DiagnosticIssue, DiagnosticReport, MAX_ISSUES, MAX_LINES, bounded_text
+    from Scripts.diagnostic_model import DiagnosticIssue, DiagnosticReport, MAX_ISSUES, MAX_LINES, bounded_lines, bounded_text
+
+
+def _bounded_lines(lines: list[str], limit: int = MAX_LINES) -> list[str]:
+    return bounded_lines(lines, limit)
 
 
 def _escape_annotation(value: str) -> str:
@@ -29,13 +33,6 @@ def render_annotation(issue: DiagnosticIssue) -> str:
     properties.append(f"title={_escape_annotation(issue.title)}")
     fields = " " + ",".join(properties) if properties else ""
     return f"::error{fields}::{_escape_annotation(issue.message)}"
-
-
-def _bounded_lines(lines: list[str], limit: int = MAX_LINES) -> list[str]:
-    if len(lines) <= limit:
-        return lines
-    omitted = len(lines) - limit + 1
-    return [*lines[: limit - 1], f"… {omitted} additional lines omitted by reporter"]
 
 
 def render_markdown(report: DiagnosticReport) -> str:

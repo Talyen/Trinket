@@ -71,21 +71,6 @@ failure_jobs_contain_infra_eligible() {
   [[ -n "$eligible_failures" && "$eligible_failures" != "0" ]]
 }
 
-failure_jobs_are_ui_or_simulator() {
-  local run_id="$1"
-  failure_jobs_contain_infra_eligible "$run_id" && return 0
-  local non_ui_failures
-  non_ui_failures="$(
-    gh run view "$run_id" --json jobs --jq '
-      [.jobs[]?
-        | select(.conclusion == "failure")
-        | select(.name | test("UI|Smoke|ui|smoke") | not)
-      ] | length
-    ' 2>/dev/null || echo 1
-  )"
-  [[ -n "$non_ui_failures" && "$non_ui_failures" == "0" ]]
-}
-
 failure_evidence_looks_like_infrastructure() {
   local run_id="$1"
   local repo evidence

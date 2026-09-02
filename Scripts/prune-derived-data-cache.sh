@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 # Prune DerivedData for CI cache save, and reap stale local isolation metadata.
+# Inverse of stage-ci-test-artifact.sh: that script stages the kept
+# --no-build inputs (Build/Products, stamps) while this script strips the
+# rebuildable bulk around them before cache save.
 #
 # Destructive Intermediate/Index/compilation-cache wipes run only when CI=true
 # or --ci is passed (GitHub Actions cache-save path). Local default runs keep

@@ -6,6 +6,8 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 # shellcheck source=tool-versions.env
 source "$ROOT/Scripts/tool-versions.env"
+# shellcheck source=lib/tool-install.sh
+source "$ROOT/Scripts/lib/tool-install.sh"
 
 TOOLS_DIR="$ROOT/.tools"
 
@@ -152,124 +154,13 @@ install_zip_tool() {
   fi
 }
 
-install_swiftformat() {
-  install_zip_tool swiftformat "$SWIFTFORMAT_VERSION" nicklockwood/SwiftFormat --version swiftformat_linux swiftformat
-}
+CI_TOOLS_D="$ROOT/Scripts/lib/ci-tools.d"
+for _ci_tool in swiftformat swiftlint xcodegen ripgrep xcbeautify; do
+  # shellcheck source=lib/ci-tools.d/swiftformat.sh
+  source "$CI_TOOLS_D/$_ci_tool.sh"
+done
+unset _ci_tool
 
-install_swiftlint() {
-  install_zip_tool swiftlint "$SWIFTLINT_VERSION" realm/SwiftLint version swiftlint-static swiftlint
-}
-
-install_xcodegen() {
-  # XcodeGen writes the committed project, so use a checksummed release rather
-  # than whichever Homebrew formula happens to be current on the runner.
-  [[ "$os" == "darwin" ]] || return 0
-
-  local bin="$TOOLS_DIR/xcodegen"
-  local install_dir="$TOOLS_DIR/xcodegen-$XCODEGEN_VERSION"
-  local real_bin="$install_dir/bin/xcodegen"
-  local marker="$TOOLS_DIR/.xcodegen.sha256"
-
-  write_xcodegen_wrapper() {
-    # XcodeGen resolves SettingPresets from argv[0]/../share/xcodegen. A plain
-    # symlink at .tools/xcodegen makes that lookup miss the presets and strip
-    # default SDK/runpath settings from project.pbxproj (CI assert drift).
-    # Remove any existing symlink first so we do not overwrite the real binary.
-    rm -f "$bin"
-    cat >"$bin" <<EOF
-#!/usr/bin/env bash
-exec "$real_bin" "\$@"
-EOF
-    chmod +x "$bin"
-  }
-
-  if [[ -x "$real_bin" && -f "$marker" ]] \
-    && [[ "$(awk -F= '$1 == "archive" { print $2; exit }' "$marker")" == "$XCODEGEN_SHA256" ]] \
-    && [[ "$(awk -F= '$1 == "binary" { print $2; exit }' "$marker")" == "$(sha256_file "$real_bin")" ]] \
-    && [[ "$("$real_bin" --version 2>/dev/null | awk '{print $NF}' || true)" == "$XCODEGEN_VERSION" ]]; then
-    write_xcodegen_wrapper
-    return 0
-  fi
-
-  local tmpdir archive
-  tmpdir="$(mktemp -d)"
-  archive="$tmpdir/xcodegen.zip"
-
-  curl -fsSL "https://github.com/yonaskolb/XcodeGen/releases/download/${XCODEGEN_VERSION}/xcodegen.zip" -o "$archive"
-  verify_archive "$archive" "$XCODEGEN_SHA256" "XcodeGen"
-
-  rm -rf "$install_dir"
-  unzip -qo "$archive" -d "$tmpdir"
-  mv "$tmpdir/xcodegen" "$install_dir"
-  write_xcodegen_wrapper
-  rm -rf "$tmpdir"
-
-  local actual
-  actual="$("$bin" --version | awk '{print $NF}')"
-  if [[ "$actual" != "$XCODEGEN_VERSION" ]]; then
-    echo "XcodeGen version mismatch after install: expected $XCODEGEN_VERSION, found $actual" >&2
-    exit 1
-  fi
-  printf 'archive=%s\nbinary=%s\n' "$XCODEGEN_SHA256" "$(sha256_file "$real_bin")" > "$marker"
-}
-
-install_ripgrep() {
-  local bin="$TOOLS_DIR/rg"
-  local marker="$TOOLS_DIR/.rg.sha256"
-  local target checksum tmpdir archive candidate
-  case "$os-$arch" in
-    darwin-arm64 | darwin-aarch64)
-      target="aarch64-apple-darwin"
-      checksum="$RIPGREP_DARWIN_ARM64_SHA256"
-      ;;
-    darwin-x86_64 | darwin-amd64)
-      target="x86_64-apple-darwin"
-      checksum="$RIPGREP_DARWIN_X86_64_SHA256"
-      ;;
-    linux-arm64 | linux-aarch64)
-      target="aarch64-unknown-linux-gnu"
-      checksum="$RIPGREP_LINUX_ARM64_SHA256"
-      ;;
-    linux-x86_64 | linux-amd64)
-      target="x86_64-unknown-linux-musl"
-      checksum="$RIPGREP_LINUX_X86_64_SHA256"
-      ;;
-    *)
-      echo "Unsupported OS/architecture for ripgrep: $os/$arch" >&2
-      exit 1
-      ;;
-  esac
-
-  if [[ -x "$bin" && -f "$marker" ]] \
-    && [[ "$(awk -F= '$1 == "archive" { print $2; exit }' "$marker")" == "$checksum" ]] \
-    && [[ "$(awk -F= '$1 == "binary" { print $2; exit }' "$marker")" == "$(sha256_file "$bin")" ]] \
-    && [[ "$("$bin" --version 2>/dev/null | head -n 1 | awk '{print $2}' || true)" == "$RIPGREP_VERSION" ]]; then
-    return 0
-  fi
-
-  tmpdir="$(mktemp -d)"
-  archive="$tmpdir/ripgrep.tar.gz"
-  curl -fsSL "https://github.com/BurntSushi/ripgrep/releases/download/${RIPGREP_VERSION}/ripgrep-${RIPGREP_VERSION}-${target}.tar.gz" -o "$archive"
-  verify_archive "$archive" "$checksum" "ripgrep"
-
-  tar -xzf "$archive" -C "$tmpdir"
-  candidate="$(find "$tmpdir" -type f -name rg -print -quit)"
-  if [[ -z "$candidate" ]]; then
-    echo "ripgrep binary not found in release archive." >&2
-    rm -rf "$tmpdir"
-    exit 1
-  fi
-  install -m 755 "$candidate" "$bin"
-  printf 'archive=%s\nbinary=%s\n' "$checksum" "$(sha256_file "$bin")" > "$marker"
-  rm -rf "$tmpdir"
-}
-
-install_xcbeautify() {
-  # Local/darwin only: CI omits --verbose and uses structured failure reports,
-  # so a condensed formatter is only needed on mac for the run/build path.
-  [[ "$os" == "darwin" ]] || return 0
-  install_zip_tool xcbeautify "$XCBEAUTIFY_VERSION" cpisciotta/xcbeautify --version xcbeautify
-}
 
 expected_archive_checksum() {
   local tool="$1"

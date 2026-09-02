@@ -30,20 +30,24 @@ if [[ $# -ge 1 ]]; then
   esac
 fi
 
+run_kind() {
+  echo "=== Preparing $1 ==="
+  case "$1" in
+    art) Scripts/prepare-art-assets.sh ;;
+    cinematic) Scripts/prepare-cinematic-assets.sh ;;
+    music) Scripts/prepare-audio-assets.sh music ;;
+    sfx) Scripts/prepare-audio-assets.sh sfx ;;
+    app-icon) Scripts/prepare-app-icon.sh ;;
+  esac
+}
+
 case "$kind" in
-  art) echo "=== Preparing art ==="; Scripts/prepare-art-assets.sh ;;
-  cinematic) echo "=== Preparing cinematic ==="; Scripts/prepare-cinematic-assets.sh ;;
-  music) echo "=== Preparing music ==="; Scripts/prepare-music-assets.sh ;;
-  sfx) echo "=== Preparing sfx ==="; Scripts/prepare-sfx-assets.sh ;;
-  app-icon) echo "=== Preparing app-icon ==="; Scripts/prepare-app-icon.sh ;;
   all)
-    echo "=== Preparing art ==="; Scripts/prepare-art-assets.sh
-    echo "=== Preparing cinematic ==="; Scripts/prepare-cinematic-assets.sh
-    echo "=== Preparing music ==="; Scripts/prepare-music-assets.sh
-    echo "=== Preparing sfx ==="; Scripts/prepare-sfx-assets.sh
-    echo "=== Preparing app-icon ==="; Scripts/prepare-app-icon.sh
+    for _kind in art cinematic music sfx app-icon; do
+      run_kind "$_kind"
+    done
     ;;
   *)
-    echo "Unknown kind '$kind'" >&2; exit 1
+    run_kind "$kind"
     ;;
 esac

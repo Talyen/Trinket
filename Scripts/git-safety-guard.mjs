@@ -8,7 +8,9 @@ const ownShimDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".
 const args = process.argv.slice(2);
 const subcommand = args[0] ?? "";
 
-const DESTRUCTIVE = new Set(["reset", "checkout", "restore", "clean", "switch", "branch", "push"]);
+export const DESTRUCTIVE_GIT_COMMANDS = ["reset", "checkout", "restore", "clean", "switch", "branch", "push"];
+
+const DESTRUCTIVE = new Set(DESTRUCTIVE_GIT_COMMANDS);
 
 function isDestructive(parsedArgs) {
   const cmd = parsedArgs[0];
@@ -78,7 +80,7 @@ function findRealGit() {
 
 function execRealGit(realGit, gitArgs) {
   const bypassEnv = { ...process.env };
-  const destructiveAliases = ["reset", "checkout", "restore", "clean", "switch", "branch", "push"];
+  const destructiveAliases = DESTRUCTIVE_GIT_COMMANDS;
   let idx = 0;
   for (const a of destructiveAliases) {
     bypassEnv[`GIT_CONFIG_KEY_${idx}`] = `alias.${a}`;
@@ -120,6 +122,6 @@ console.error("");
 console.error("  To retry after stashing/committing, run the same git command again on a clean tree.");
 console.error("  If you have parallel agents, use isolated worktrees instead:");
 console.error("    node Scripts/agent-worktree.mjs create --task <slug>");
-console.error("    # compat: ./Scripts/agent-worktree.sh create <slug>");
+console.error("    # legacy sibling checkout: node Scripts/agent-worktree.mjs legacy-detach create <slug>");
 console.error("");
 process.exit(1);

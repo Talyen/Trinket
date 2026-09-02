@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from performance_model import COUNT_METRICS, METRICS, NON_NEGATIVE_METRICS, REQUIRED_SCHEMA_VERSION, load_baseline
+from performance_model import COUNT_METRICS, METRICS, NON_NEGATIVE_METRICS, REQUIRED_SCHEMA_VERSION, load_baseline, validate_report_domains
 
 
 def aggregate(values: list[float]) -> dict[str, float]:
@@ -42,21 +42,7 @@ def validate_report(report: object, expected_scenarios: set[str]) -> tuple[dict[
     iteration = report.get("iteration")
     if isinstance(iteration, bool) or not isinstance(iteration, int) or iteration < 1:
         failures.append(f"{scenario}: iteration must be a positive integer")
-    for metric in METRICS:
-        value = report.get(metric)
-        if isinstance(value, bool) or not isinstance(value, (int, float)):
-            failures.append(f"{scenario}: {metric} is missing or non-numeric")
-            continue
-        numeric = float(value)
-        if not math.isfinite(numeric):
-            failures.append(f"{scenario}: {metric} is not finite")
-            continue
-        if metric in COUNT_METRICS and (not numeric.is_integer() or numeric < 0):
-            failures.append(f"{scenario}: {metric} must be a non-negative integer")
-        elif metric in NON_NEGATIVE_METRICS and numeric < 0:
-            failures.append(f"{scenario}: {metric} must be non-negative")
-        elif metric == "missedDeadlineRatio" and not 0 <= numeric <= 1:
-            failures.append(f"{scenario}: missedDeadlineRatio must be between 0 and 1")
+    failures.extend(validate_report_domains(report))
     return report, failures
 
 

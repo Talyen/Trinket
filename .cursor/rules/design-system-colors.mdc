@@ -31,6 +31,6 @@ Adaptive text roles are fine: `.primary`, `.secondary`, `.tertiary`, `.quaternar
 1. Add a `*.colorset` under `Packages/TrinketDesignSystem/.../DesignColors.xcassets`
 2. Wire it through `DesignAssetColors.named` → `ThemePalette` and/or a public `TrinketDesign.Colors` / domain helper
 3. Consume the public API from feature code
-4. Run `./Scripts/check-ui-style.sh` (part of `./Scripts/test.sh style`)
+4. Run `python3 ./Scripts/check-ui-style.py` (part of `./Scripts/test.sh style`)
 
 Escape hatch only with a nearby `UIStyleCheck: allow` comment and a concrete reason.

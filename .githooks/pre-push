@@ -92,10 +92,10 @@ if [[ "$_prepush_skip_style" != true ]]; then
     echo "Path-scoped style on ${#style_swift[@]} Swift file(s) in the push range."
     ./Scripts/test.sh style "${style_swift[@]}"
   else
-    ./Scripts/check-platform-api-bans.sh
+    ./Scripts/check-api-bans.sh
     ./Scripts/check-exclusivity-footguns.sh
     ./Scripts/check-agent-invariants.sh
-    ./Scripts/check-accessibility-ids.sh
+    python3 ./Scripts/check-accessibility-ids.py
     ./Scripts/check-comment-ban.sh
   fi
 fi

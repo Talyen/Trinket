@@ -20,7 +20,7 @@ Use this reference for translucent surfaces, glass, blur, toolbars, sheets, scri
 - Materialize rather than merely fade. On entry/exit, animate blur radius and scale together so the surface reads as a real material arriving.
 
 Materials, colors, and glass route through `TrinketDesignSystem`
-(`check-ui-style.sh` enforces this); see the
+(`check-ui-style.py` enforces this); see the
 [TrinketDesignSystem README](../../../Packages/TrinketDesignSystem/README.md)
 for tokens and reduced-transparency handling.
 

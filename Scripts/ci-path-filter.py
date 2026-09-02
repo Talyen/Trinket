@@ -7,9 +7,9 @@ This script lists files via compare/{before}...{sha} and writes GITHUB_OUTPUT.
 
 from __future__ import annotations
 
+import fnmatch
 import json
 import os
-import re
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -36,7 +36,7 @@ CODE_SCRIPT_INCLUDES = (
     "Scripts/build.sh",
     "Scripts/build-*.sh",
     "Scripts/build-for-testing.sh",
-    "Scripts/build-inputs.sh",
+    "Scripts/build-freshness.sh",
     "Scripts/test.sh",
     "Scripts/test-*.sh",
     "Scripts/generate.sh",
@@ -67,36 +67,26 @@ ASSET_INCLUDES = (
 )
 
 
-def glob_to_regex(pattern: str) -> re.Pattern[str]:
-    parts: list[str] = []
-    i = 0
-    while i < len(pattern):
-        if pattern.startswith("**/", i):
-            parts.append("(?:.*/)?")
-            i += 3
-            continue
-        if pattern.startswith("**", i):
-            parts.append(".*")
-            i += 2
-            continue
-        if pattern[i] == "*":
-            parts.append("[^/]*")
-            i += 1
-            continue
-        parts.append(re.escape(pattern[i]))
-        i += 1
-    return re.compile("^" + "".join(parts) + "$")
-
-
-_GLOB_CACHE: dict[str, re.Pattern[str]] = {}
+def _match_segments(pattern_segments: list[str], path_segments: list[str]) -> bool:
+    if not pattern_segments:
+        return not path_segments
+    head, rest = pattern_segments[0], pattern_segments[1:]
+    if head == "**":
+        if not rest:
+            return len(path_segments) >= 1
+        return any(
+            _match_segments(rest, path_segments[index:])
+            for index in range(len(path_segments) + 1)
+        )
+    if not path_segments:
+        return False
+    return fnmatch.fnmatchcase(path_segments[0], head) and _match_segments(
+        rest, path_segments[1:]
+    )
 
 
 def glob_match(path: str, pattern: str) -> bool:
-    compiled = _GLOB_CACHE.get(pattern)
-    if compiled is None:
-        compiled = glob_to_regex(pattern)
-        _GLOB_CACHE[pattern] = compiled
-    return compiled.fullmatch(path) is not None
+    return _match_segments(pattern.split("/"), path.split("/"))
 
 
 def matches_any(path: str, patterns: tuple[str, ...]) -> bool:

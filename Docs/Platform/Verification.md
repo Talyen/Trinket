@@ -86,11 +86,11 @@ changes.
 |---|---|
 | SwiftFormat | Mechanical Swift formatting and preferred rewrites |
 | SwiftLint | API idioms, semantics, size, and unsafe operations |
-| `check-ui-style.sh` | Product colors, materials, and chrome routed through `TrinketDesign` |
-| `check-platform-api-bans.sh` | Repository-banned legacy observation/navigation APIs, mirrored from SwiftLint for portable builds |
+| `check-ui-style.py` | Product colors, materials, and chrome routed through `TrinketDesign` |
+| `check-api-bans.sh` | Repository-banned legacy observation/navigation APIs (mirrored from SwiftLint for portable builds) plus XCTest-outside-UITests migration |
 | `check-exclusivity-footguns.sh` | Suspicious `inout` access to stored properties |
 | `check-agent-invariants.sh` | BattleEngine entropy, test `Task.sleep`, persistence `try?`, undocumented concurrency escapes, SwiftLint disables without reasons |
-| `check-accessibility-ids.sh` | Unique `AccessibilityID` constants; UITests must query `AccessibilityID.*` |
+| `check-accessibility-ids.py` | Unique `AccessibilityID` constants; UITests must query `AccessibilityID.*` |
 | `check-comment-ban.sh` | Banned `//` in Swift authored sources (allowlist: `swift-tools-version` / `swiftlint:disable` / `swiftformat:disable` / `Generated` headers; transitional `*Check: allow` / `Concurrency-Safety:`) |
 | `check-module-boundaries.sh` | Package layering and imports |
 

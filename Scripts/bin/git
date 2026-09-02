@@ -15,9 +15,17 @@ if [ -z "$REAL_GIT" ]; then
   done
   REAL_GIT="${REAL_GIT:-/usr/bin/git}"
 fi
-# Fast path: non-destructive commands go straight to real git
-case "${1:-}" in
-  reset|checkout|restore|clean|switch|branch|push) ;;
+# Fast path: non-destructive commands go straight to real git. The command
+# list is owned by Scripts/git-safety-guard.mjs (exported
+# DESTRUCTIVE_GIT_COMMANDS); parse it here so the shell shim cannot drift.
+# Comma-wrapped containment keeps the match portable across sh variants.
+destructive_commands="$(sed -n 's/^export const DESTRUCTIVE_GIT_COMMANDS = \[\(.*\)\];$/\1/p' "$ROOT/Scripts/git-safety-guard.mjs" | tr -d ' "')"
+if [ -z "$destructive_commands" ]; then
+  # Fail closed: without the canonical list every command goes via the guard.
+  exec env REAL_GIT="$REAL_GIT" node "$ROOT/Scripts/git-safety-guard.mjs" "$@"
+fi
+case ",${destructive_commands}," in
+  *,"${1:-}",*) ;;
   *) exec "$REAL_GIT" "$@" ;;
 esac
 # Destructive candidates: run guard (which re-exec's REAL_GIT if clean)

@@ -190,8 +190,8 @@ if [[ "$MODE" == "idempotent" ]]; then
   # shellcheck source=run-env.sh
   source ./Scripts/run-env.sh
   trinket_run_env_init
-  # shellcheck source=build-inputs.sh
-  source ./Scripts/build-inputs.sh
+  # shellcheck source=build-freshness.sh
+  source ./Scripts/build-freshness.sh
   stamp="${RESULTS_DIR}/.last-generate.stamp"
   skip_regenerate=false
   if [[ -f "$stamp" ]]; then

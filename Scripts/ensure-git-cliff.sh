@@ -1,12 +1,17 @@
 #!/usr/bin/env bash
-# Installs git-cliff to .tools/git-cliff if not already present.
+# Installs pinned git-cliff to .tools/git-cliff if not already present, then execs it.
+# Tarball download/verify/marker mechanics are shared with ensure-ci-tools.sh
+# via Scripts/lib/tool-install.sh; only the git-cliff platform mapping lives here.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 BIN="$ROOT/.tools/git-cliff"
+# shellcheck source=tool-versions.env
 source "$ROOT/Scripts/tool-versions.env"
+TOOLS_DIR="$ROOT/.tools"
+# shellcheck source=lib/tool-install.sh
+source "$ROOT/Scripts/lib/tool-install.sh"
 VERSION="$GIT_CLIFF_VERSION"
-MARKER="$ROOT/.tools/.git-cliff.sha256"
 
 os="$(uname -s | tr '[:upper:]' '[:lower:]')"
 arch="$(uname -m)"
@@ -33,28 +38,19 @@ case "$os-$arch" in
     ;;
 esac
 
-if [[ -x "$BIN" && -f "$MARKER" ]] \
-  && [[ "$(awk -F= '$1 == "archive" { print $2; exit }' "$MARKER")" == "$checksum" ]] \
-  && [[ "$(awk -F= '$1 == "binary" { print $2; exit }' "$MARKER")" == "$(shasum -a 256 "$BIN" | awk '{print $1}')" ]] \
+if trinket_tool_marker_fresh git-cliff "$BIN" "$checksum" \
   && [[ "$("$BIN" --version 2>/dev/null || true)" == *"$VERSION"* ]]; then
   exec "$BIN" "$@"
 fi
 
-mkdir -p "$ROOT/.tools"
+mkdir -p "$TOOLS_DIR"
 
 url="https://github.com/orhun/git-cliff/releases/download/v${VERSION}/${archive}"
-tmpdir="$(mktemp -d)"
+echo "Installing git-cliff ${VERSION} from ${url}..."
+tmpdir="$(trinket_tool_fetch_tarball "$url" "$checksum" "git-cliff")"
 trap 'rm -rf "$tmpdir"' EXIT
 
-echo "Installing git-cliff ${VERSION} from ${url}..."
-archive_path="$tmpdir/archive.tar.gz"
-curl -fsSL "$url" -o "$archive_path"
-actual="$(shasum -a 256 "$archive_path" | awk '{print $1}')"
-if [[ "$actual" != "$checksum" ]]; then
-  echo "git-cliff checksum mismatch: expected $checksum, found $actual" >&2
-  exit 1
-fi
-tar xzf "$archive_path" -C "$tmpdir"
+tar xzf "$tmpdir/archive.tar.gz" -C "$tmpdir"
 candidate="$tmpdir/git-cliff-${VERSION}/git-cliff"
 if [[ ! -f "$candidate" ]]; then
   echo "git-cliff binary not found in release archive." >&2
@@ -62,6 +58,6 @@ if [[ ! -f "$candidate" ]]; then
 fi
 install -m 755 "$candidate" "$BIN.tmp"
 mv -f "$BIN.tmp" "$BIN"
-printf 'archive=%s\nbinary=%s\n' "$checksum" "$(shasum -a 256 "$BIN" | awk '{print $1}')" > "$MARKER"
+trinket_tool_write_marker git-cliff "$BIN" "$checksum"
 
 exec "$BIN" "$@"

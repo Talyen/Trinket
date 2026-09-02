@@ -88,8 +88,8 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
         self.assertFalse((ROOT / "Scripts" / "sync-xcodeproj-sources.py").exists())
 
     def test_build_inputs_include_xctestplans(self) -> None:
-        text = (ROOT / "Scripts" / "build-inputs.sh").read_text(encoding="utf-8")
-        owner = (ROOT / "Scripts" / "swift-source-dirs.env").read_text(encoding="utf-8")
+        text = (ROOT / "Scripts" / "build-freshness.sh").read_text(encoding="utf-8")
+        owner = (ROOT / "Scripts" / "build-inputs.env").read_text(encoding="utf-8")
         for plan in (
             "Smoke.xctestplan",
             "FullUI.xctestplan",
@@ -162,7 +162,7 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
         self.assertIn("cheap-slices", text)
         cheap = (ROOT / "Scripts" / "config" / "cheap-slices.txt").read_text(encoding="utf-8")
         self.assertIn("check-module-boundaries.sh", cheap)
-        self.assertIn("check-swift-testing-migration.sh", cheap)
+        self.assertIn("check-api-bans.sh", cheap)
         self.assertIn("release-notes.sh validate", cheap)
 
     def test_test_scripts_supports_skip_docs(self) -> None:
@@ -207,7 +207,7 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
     def test_pre_push_path_scopes_style_to_pushed_swift(self) -> None:
         text = (ROOT / ".githooks" / "pre-push").read_text(encoding="utf-8")
         self.assertIn('test.sh style "${style_swift[@]}"', text)
-        self.assertIn("check-platform-api-bans.sh", text)
+        self.assertIn("check-api-bans.sh", text)
         self.assertIn("check-agent-invariants.sh", text)
         self.assertIn("test-package.sh", text)
         self.assertLess(text.find("agent-push-gate.sh"), text.find("test-package.sh"))
@@ -703,7 +703,7 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
         self.assertIn("SmokeBattleTests", plan)
 
     def test_compile_only_packages_are_disjoint_from_test_packages(self) -> None:
-        owner = (ROOT / "Scripts" / "swift-source-dirs.env").read_text(encoding="utf-8")
+        owner = (ROOT / "Scripts" / "build-inputs.env").read_text(encoding="utf-8")
         test_packages = re.findall(
             r"^\s+(Trinket\w+|BattleEngine)\s*$",
             owner.split("TRINKET_TEST_PACKAGES=(")[1].split(")")[0],
@@ -763,7 +763,7 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
         self.assertNotIn("test-package.sh TrinketTestSupport", plan)
 
     def test_generate_stamp_records_input_porcelain_sidecar(self) -> None:
-        text = (ROOT / "Scripts" / "build-inputs.sh").read_text(encoding="utf-8")
+        text = (ROOT / "Scripts" / "build-freshness.sh").read_text(encoding="utf-8")
         self.assertIn("touch_generate_stamp", text)
         self.assertIn("record_generate_input_git_snapshot", text)
         self.assertIn("assert_generate_input_git_snapshot_unchanged", text)
@@ -775,7 +775,7 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
 
     def test_test_package_records_timing_log(self) -> None:
         text = (ROOT / "Scripts" / "test-package.sh").read_text(encoding="utf-8")
-        self.assertIn("./Scripts/test-timing.sh record", text)
+        self.assertIn("test-timing.py record", text)
         self.assertIn('package:$package', text)
         self.assertIn('--run "$invocation_id"', text)
         self.assertIn("--xcresult", text)
@@ -796,7 +796,7 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
         self.assertIn(
             'SHARED_PRECOMPS_DIR=$(package_shared_precomps_dir "$package_dd")', text
         )
-        stamp = (ROOT / "Scripts" / "build-stamp.sh").read_text(encoding="utf-8")
+        stamp = (ROOT / "Scripts" / "build-freshness.sh").read_text(encoding="utf-8")
         self.assertIn("package_symroot()", stamp)
         self.assertIn("package_objroot()", stamp)
         self.assertIn("package_shared_precomps_dir()", stamp)

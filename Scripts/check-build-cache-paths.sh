@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Drift guard: required shared roots must appear in both local --no-build
-# freshness (Scripts/build-inputs.sh) and CI DerivedData cache keys
+# freshness (Scripts/build-freshness.sh) and CI DerivedData cache keys
 # (.github/actions/build-cache-key/action.yml).
 #
 # Intentional differences (do not "fix" by forcing identical lists):
@@ -17,9 +17,9 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
-BUILD_INPUTS="$ROOT/Scripts/build-inputs.sh"
+BUILD_INPUTS="$ROOT/Scripts/build-freshness.sh"
 CACHE_KEY_ACTION="$ROOT/.github/actions/build-cache-key/action.yml"
-# shellcheck source=build-inputs.sh
+# shellcheck source=build-freshness.sh
 source "$BUILD_INPUTS"
 
 die() {
@@ -77,7 +77,7 @@ for required_glob in "${TRINKET_CACHE_REQUIRED_ROOTS[@]}"; do
   require_cache_glob "$required_glob"
 done
 
-# Shared build-input ownership is loaded from build-inputs.sh above.
+# Shared build-input ownership is loaded from build-freshness.sh above.
 build_inputs_contain() {
   local token="$1"
   local input

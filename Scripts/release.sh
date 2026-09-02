@@ -174,7 +174,7 @@ if [[ "$DRY_RUN" == "true" ]]; then
   echo "Would set MARKETING_VERSION=${VERSION}, CURRENT_PROJECT_VERSION=${NEXT_BUILD}"
   notes_args=(--version "$VERSION" --dry-run)
   if [[ -n "$SINCE_TAG" ]]; then notes_args+=(--since-tag "$SINCE_TAG"); fi
-  ./Scripts/release-notes-user.sh "${notes_args[@]}"
+  python3 ./Scripts/release-notes-user.py "${notes_args[@]}"
   exit 0
 fi
 
@@ -201,7 +201,7 @@ echo ""
 echo "=== Generating App Store release notes ==="
 notes_args=(--version "$VERSION")
 if [[ -n "$SINCE_TAG" ]]; then notes_args+=(--since-tag "$SINCE_TAG"); fi
-./Scripts/release-notes-user.sh "${notes_args[@]}"
+python3 ./Scripts/release-notes-user.py "${notes_args[@]}"
 
 echo ""
 echo "=== Committing release ==="

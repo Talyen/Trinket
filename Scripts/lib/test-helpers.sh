@@ -20,7 +20,7 @@ trinket_record_timing() {
   if [[ ${#TARGETS[@]} -gt 0 ]]; then
     record_args+=("${TARGETS[@]}")
   fi
-  if ! ./Scripts/test-timing.sh record "${record_args[@]}"; then
+  if ! python3 ./Scripts/test-timing.py record "${record_args[@]}"; then
     echo "Warning: failed to record timing for $MODE" >&2
   fi
 }

@@ -12,7 +12,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from diagnostic_limits import MAX_AGGREGATE_ISSUES, MAX_DETAIL_CHARS, MAX_DETAIL_LINES, MAX_LABELS_IN_DETAIL, MAX_LINE_CHARS, MAX_MESSAGE_CHARS
-from diagnostic_model import CLASSIFICATION_PRECEDENCE
+from diagnostic_model import CLASSIFICATION_PRECEDENCE, bounded_text
 
 FULL_REPORT = False
 argv = sys.argv[1:]
@@ -115,19 +115,9 @@ def normalized_issue(issue: object) -> dict:
     if not isinstance(attachments, list):
         attachments = []
     details = str(issue.get("details", ""))
-    detail_lines = details.splitlines()[:MAX_DETAIL_LINES]
-    details_truncated = len(details.splitlines()) > MAX_DETAIL_LINES
-    bounded_lines: list[str] = []
-    for detail in detail_lines:
-        detail = compact_text(detail)
-        if len(detail) > MAX_LINE_CHARS:
-            detail = f"{detail[:MAX_LINE_CHARS - 1]}…"
-            details_truncated = True
-        bounded_lines.append(detail)
-    bounded_details = "\n".join(bounded_lines)
-    if len(bounded_details) > MAX_DETAIL_CHARS:
-        bounded_details = f"{bounded_details[:MAX_DETAIL_CHARS - 1]}…"
-        details_truncated = True
+    normalized_details = "\n".join(compact_text(line) for line in details.splitlines())
+    bounded_details, details_truncated = bounded_text(normalized_details)
+    details_truncated = details_truncated or issue.get("details_truncated") is True
     message = compact_text(issue.get("message", ""), limit=MAX_MESSAGE_CHARS)
     return {
         "id": str(issue.get("id", "unknown")),

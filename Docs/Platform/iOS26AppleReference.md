@@ -1,6 +1,6 @@
 # Trinket Apple API choices
 
-Official Apple sources remain authoritative. This file records **Trinket’s** forks of iOS 26 / Swift 6 APIs. Motion and materials procedure: [apple-design skill](../../.agents/skills/apple-design/SKILL.md). Chrome tokens: [TrinketDesignSystem README](../../Packages/TrinketDesignSystem/README.md). Banned legacy APIs are enforced by `./Scripts/check-platform-api-bans.sh`.
+Official Apple sources remain authoritative. This file records **Trinket’s** forks of iOS 26 / Swift 6 APIs. Motion and materials procedure: [apple-design skill](../../.agents/skills/apple-design/SKILL.md). Chrome tokens: [TrinketDesignSystem README](../../Packages/TrinketDesignSystem/README.md). Banned legacy APIs are enforced by `./Scripts/check-api-bans.sh`.
 
 **Baseline:** iOS 26.0, Swift 6.2, `SWIFT_STRICT_CONCURRENCY: complete` (`project.yml`).
 
@@ -12,7 +12,7 @@ Start here: [Adopting Liquid Glass](https://developer.apple.com/documentation/te
 |-----|----------------|
 | `.tabBarMinimizeBehavior(.onScrollDown)` | Omitted — tab bar stays fully expanded |
 | `.toolbarBackgroundVisibility(.hidden)` | Retained on Battle / detail-hero screens |
-| `.buttonStyle(.glass)` / `.glassProminent` | Route through `TrinketDesignSystem` (`check-ui-style.sh`) |
+| `.buttonStyle(.glass)` / `.glassProminent` | Route through `TrinketDesignSystem` (`check-ui-style.py`) |
 | Raw `.glassEffect` in feature views | Forbidden — DesignSystem only |
 
 Let system chrome adopt glass where it does not fight art-forward screens. Use glass sparingly on custom controls (combat chips, wallet pills), not every card. Dense Collection / Inventory / Options stay on solid themed surfaces. Do not stack glass on glass. Accessibility: PD-014.

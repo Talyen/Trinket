@@ -13,16 +13,11 @@ SIMCTL_JSON="$SCRIPT_DIR/simctl_json.py"
 SIMULATOR_NAME="${TRINKET_SIMULATOR_NAME:-Trinket Run}"
 SIMULATOR_BOOT_TIMEOUT_SECONDS="${TRINKET_SIMULATOR_BOOT_TIMEOUT_SECONDS:-150}"
 
-# Prefer shared helper from run-env.sh (callers source run-env before this file).
+# Canonical shutdown wait lives in lib/simctl.sh (sourced via run-env.sh).
 shutdown_and_wait_simulator() {
   local target_udid="$1"
   [[ -n "$target_udid" ]] || return 0
-  if declare -F trinket_sim_shutdown_wait >/dev/null 2>&1; then
-    trinket_sim_shutdown_wait "$target_udid"
-    return
-  fi
-  xcrun simctl spawn "$target_udid" launchctl stop com.apple.PosterBoard 2>/dev/null || true
-  xcrun simctl shutdown "$target_udid" 2>/dev/null || true
+  trinket_sim_shutdown_wait "$target_udid"
 }
 
 discard_simulator() {

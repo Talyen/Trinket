@@ -14,7 +14,7 @@ Reduce unjustified custom layout/typography and confirmed non-adaptive UI while 
 
 - Do not redesign battle battlefield geometry or product composition unsupervised. A bounded migration to native/adaptive APIs may ship when it preserves the existing constraints, includes runtime evidence, and can be verified as one phase.
 - Do not replace intentional game juice: combat float keyframe recipes, 3:4 card identity (`TrinketDesign.cardShape`).
-- Do not hand-roll materials / glass / primary buttons — use DesignSystem (`check-ui-style.sh`).
+- Do not hand-roll materials / glass / primary buttons — use DesignSystem (`check-ui-style.py`).
 
 Severity follows the [shared audit scale](README.md#severity-scale): prioritize
 broken adaptation or native behavior, then confirmed typography/container gaps,

@@ -9,10 +9,8 @@ source "$SCRIPT_DIR/run-env.sh"
 trinket_run_env_init
 trinket_run_env_print
 
-# shellcheck source=build-stamp.sh
-source "$SCRIPT_DIR/build-stamp.sh"
-# shellcheck source=build-inputs.sh
-source "$SCRIPT_DIR/build-inputs.sh"
+# shellcheck source=build-freshness.sh
+source "$SCRIPT_DIR/build-freshness.sh"
 # shellcheck source=xcode-runner.sh
 source "$SCRIPT_DIR/xcode-runner.sh"
 
@@ -338,7 +336,7 @@ else
   if [[ "$XCODEBUILD_EXIT_CODE" -ne 0 ]]; then
     trinket_record_timing
     echo ""
-    echo "Timing recorded. Hotspots: ./Scripts/test-timing.sh"
+    echo "Timing recorded. Hotspots: python3 ./Scripts/test-timing.py report"
     exit "$XCODEBUILD_EXIT_CODE"
   fi
 fi
@@ -364,4 +362,4 @@ fi
 
 trinket_record_timing
 echo ""
-echo "Timing recorded. Hotspots: ./Scripts/test-timing.sh"
+echo "Timing recorded. Hotspots: python3 ./Scripts/test-timing.py report"

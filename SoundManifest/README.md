@@ -27,12 +27,12 @@ Comment lines start with `#`. Generated outputs are always AAC `.m4a`.
 
 ## Generate SFX Assets
 
-Entry point and verification routing: [content-and-manifests.md](../Docs/AgentContext/content-and-manifests.md); `prepare-sfx-assets.sh` is the focused debugging entry point.
+Entry point and verification routing: [content-and-manifests.md](../Docs/AgentContext/content-and-manifests.md); `prepare-audio-assets.sh sfx` is the focused debugging entry point.
 
 The script validates manifest rows, converts source files with macOS `afconvert`, writes AAC `.m4a` files, prunes orphans, and regenerates `SFXID` plus the Swift catalog. Source bytes and the complete encode profile both participate in cache invalidation. The default AAC bitrate is `64000`; override with:
 
 ```sh
-SFX_AAC_BITRATE=96000 ./Scripts/prepare-sfx-assets.sh
+SFX_AAC_BITRATE=96000 ./Scripts/prepare-audio-assets.sh sfx
 ```
 
 ## Runtime Routing

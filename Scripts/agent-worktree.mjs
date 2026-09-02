@@ -23,10 +23,13 @@ function usage() {
   node Scripts/agent-worktree.mjs remove --task <slug> [--force]
   node Scripts/agent-worktree.mjs list
   node Scripts/agent-worktree.mjs prune
+  node Scripts/agent-worktree.mjs legacy-detach create <slug>
+  node Scripts/agent-worktree.mjs legacy-detach list
+  node Scripts/agent-worktree.mjs legacy-detach remove <slug>
 
 Creates isolated worktrees under .worktrees/<slug> on branch agent/<slug>.
 Use when another agent has dirty work on main to avoid shared-checkout races.
-Compat shell helper remains: ./Scripts/agent-worktree.sh create <slug> (sibling ../Trinket-<slug>)
+legacy-detach keeps the old sibling ../Trinket-<slug> --detach workflow.
 `);
 }
 
@@ -145,6 +148,64 @@ if (cmd === "remove") {
 
   const prune = runGit(["worktree", "prune"], { stdio: "inherit" });
   process.exit(prune.status ?? 0);
+}
+
+if (cmd === "legacy-detach") {
+  const sub = rest[0];
+  const slugRaw = rest[1];
+  const worktreeParent = path.resolve(root, "..");
+  const siblingPathFor = (slug) => path.join(worktreeParent, `Trinket-${slug}`);
+  if (!sub || sub === "--help" || sub === "-h") {
+    usage();
+    process.exit(0);
+  }
+  if (sub === "list") {
+    const r = runGit(["worktree", "list"], { stdio: "inherit" });
+    process.exit(r.status ?? 0);
+  }
+  if (sub === "create" || sub === "remove") {
+    if (!slugRaw) {
+      console.error(`legacy-detach ${sub} requires a <slug>`);
+      usage();
+      process.exit(1);
+    }
+    const slug = slugify(slugRaw);
+    if (!slug) {
+      console.error(`invalid slug: ${slugRaw}`);
+      process.exit(1);
+    }
+    const target = siblingPathFor(slug);
+    if (sub === "create") {
+      if (fs.existsSync(target)) {
+        console.error(`Worktree path already exists: ${target}`);
+        process.exit(1);
+      }
+      const r = runGit(["worktree", "add", "--detach", target, "HEAD"], { stdio: "inherit" });
+      if (r.status !== 0) process.exit(r.status ?? 1);
+      console.log(`Created worktree: ${target}`);
+      console.log(``);
+      console.log(`Checked out detached at the current HEAD (same commit as this tree; no new branch).`);
+      console.log(`Next:`);
+      console.log(`  cd "${target}"`);
+      console.log(`  ./Scripts/handoff.sh --isolate --paths <file...>`);
+      console.log(``);
+      console.log(`Use a unique TRINKET_RUN_ID / --isolate in each worktree so DerivedData and`);
+      console.log(`simulators do not collide with peers on this Mac.`);
+      process.exit(0);
+    } else {
+      if (!fs.existsSync(target)) {
+        console.error(`No worktree at ${target}`);
+        process.exit(1);
+      }
+      const r = runGit(["worktree", "remove", target], { stdio: "inherit" });
+      if (r.status !== 0) process.exit(r.status ?? 1);
+      console.log(`Removed worktree: ${target}`);
+      process.exit(0);
+    }
+  }
+  console.error(`unknown legacy-detach subcommand: ${sub}`);
+  usage();
+  process.exit(1);
 }
 
 console.error(`unknown command: ${cmd}`);

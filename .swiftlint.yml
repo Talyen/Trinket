@@ -1,6 +1,6 @@
 # SwiftLint enforces semantics and API idioms. Formatting (whitespace, commas,
 # trailing newlines) is owned by SwiftFormat (.swiftformat). Product UI chrome is
-# guarded by Scripts/check-ui-style.sh (TrinketDesign / UIStyleCheck: allow).
+# guarded by Scripts/check-ui-style.py (TrinketDesign / UIStyleCheck: allow).
 # See Scripts/README.md "Style & lint ownership".
 #
 # Analyzer rules need `swiftlint analyze` plus
@@ -119,7 +119,7 @@ nesting:
 function_parameter_count: 7
 
 # Platform bans from AGENTS.md — prefer @Observable / NavigationStack. Regex
-# custom_rules need SourceKit, so check-platform-api-bans.sh mirrors them for
+# custom_rules need SourceKit, so check-api-bans.sh mirrors them for
 # portable builds. Product color policy belongs to check-ui-style.py.
 custom_rules:
   banned_observation_apis:

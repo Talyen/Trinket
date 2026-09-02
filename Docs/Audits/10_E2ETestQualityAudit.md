@@ -13,7 +13,7 @@ Confirm P0–P2 reliability, signal, tier-fit, isolation, and testability issues
 - XCTest stays for `TrinketUITests/` (`XCUIApplication`). Do not migrate UI tests to Swift Testing.
 - Mid-battle interaction tests: enter via Play map — not `-launch-screen battle` with extreme tick intervals.
 - Do not invent wall-clock budgets that conflict with Testing.md / `AGENTS.md` (smoke is a short UI-only plan).
-- Do not expand into unit XCTest→Testing migration (`17_UnitTestAudit.md` + `check-swift-testing-migration.sh`).
+- Do not expand into unit XCTest→Testing migration (`17_UnitTestAudit.md` + `check-api-bans.sh`).
 
 ## Tier rules
 

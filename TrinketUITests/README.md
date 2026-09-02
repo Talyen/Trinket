@@ -50,4 +50,4 @@ product contract. UI tests tap tab labels, not `AppTab` raw values.
 - Use the timeout and tick defaults from `TrinketUITestCase` and its helpers;
   do not copy their numeric values into this guide.
 - Accessibility audits are intentionally not part of the test suite. Keep UI assertions focused on stable test selectors and interaction outcomes — not display names, rarity labels, or scroll geometry unless that string is the product contract.
-- UI tests run serially on a single simulator by default. Hotspots: `./Scripts/test-timing.sh report --top 30`.
+- UI tests run serially on a single simulator by default. Hotspots: `python3 ./Scripts/test-timing.py report --top 30`.

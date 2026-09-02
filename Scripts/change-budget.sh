@@ -116,7 +116,7 @@ LC_ALL=C awk \
     if (new_prod > file_limit) warning("more than " file_limit " production Swift files were added; confirm each owner")
     if (typen > type_limit) warning("net production type growth exceeds +" type_limit "; check helper/wrapper/manager ceremony")
     if (testn > decl_limit) warning("net test declarations exceed +" decl_limit "; confirm the test-addition gate")
-    if (ta || td) print "  Runtime note: declarations exclude expanded argument cases; inspect test-timing.sh for affected owners."
+    if (ta || td) print "  Runtime note: declarations exclude expanded argument cases; inspect test-timing.py for affected owners."
     if (!warnings) print "  Warnings: none"
   }
 ' "$stats" "$patch"

@@ -185,7 +185,7 @@ class ContentAndPolicyScriptTests(ScriptRegressionTestCase):
                 encoding="utf-8",
             )
             rejected = subprocess.run(
-                [str(ROOT / "Scripts" / "check-ui-style.sh"), str(fixture)],
+                [sys.executable, str(ROOT / "Scripts" / "check-ui-style.py"), str(fixture)],
                 cwd=ROOT,
                 capture_output=True,
                 text=True,
@@ -199,7 +199,7 @@ class ContentAndPolicyScriptTests(ScriptRegressionTestCase):
                 encoding="utf-8",
             )
             accepted = subprocess.run(
-                [str(ROOT / "Scripts" / "check-ui-style.sh"), str(fixture)],
+                [sys.executable, str(ROOT / "Scripts" / "check-ui-style.py"), str(fixture)],
                 cwd=ROOT,
                 capture_output=True,
                 text=True,
@@ -218,7 +218,7 @@ class ContentAndPolicyScriptTests(ScriptRegressionTestCase):
             ):
                 fixture.write_text(source, encoding="utf-8")
                 rejected = subprocess.run(
-                    [str(ROOT / "Scripts" / "check-ui-style.sh"), str(fixture)],
+                    [sys.executable, str(ROOT / "Scripts" / "check-ui-style.py"), str(fixture)],
                     cwd=ROOT,
                     capture_output=True,
                     text=True,
@@ -227,7 +227,7 @@ class ContentAndPolicyScriptTests(ScriptRegressionTestCase):
                 self.assertNotEqual(rejected.returncode, 0, source)
 
         swiftlint = (ROOT / ".swiftlint.yml").read_text(encoding="utf-8")
-        platform = (ROOT / "Scripts" / "check-platform-api-bans.sh").read_text(encoding="utf-8")
+        platform = (ROOT / "Scripts" / "check-api-bans.sh").read_text(encoding="utf-8")
         self.assertNotIn("banned_system_color_literal", swiftlint)
         self.assertNotIn("SYSTEM_COLORS", platform)
 
@@ -294,7 +294,7 @@ class ContentAndPolicyScriptTests(ScriptRegressionTestCase):
         style_lib = (ROOT / "Scripts" / "lib" / "test-style.sh").read_text(encoding="utf-8")
         combined = text + style_lib
         self.assertIn("check-agent-invariants.sh", combined)
-        self.assertIn("check-accessibility-ids.sh", combined)
+        self.assertIn("check-accessibility-ids.py", combined)
 
     def test_content_codegen_routes_generation_and_script_tests(self) -> None:
         result = subprocess.run(
@@ -342,7 +342,7 @@ class ContentAndPolicyScriptTests(ScriptRegressionTestCase):
             plan[4:],
             [
                 "./Scripts/check-module-boundaries.sh",
-                "./Scripts/check-swift-testing-migration.sh",
+                "./Scripts/check-api-bans.sh",
                 "./Scripts/release-notes.sh validate",
                 "./Scripts/check-artwork-budget.sh",
             ],

@@ -72,14 +72,25 @@ if (!envrcContent.includes(shimDir)) {
 
 const globalWrapperDir = path.join(home, ".local/bin");
 const globalWrapper = path.join(globalWrapperDir, "git");
+
+function realGitCandidates() {
+  try {
+    const shim = fs.readFileSync(path.join(shimDir, "git"), "utf8");
+    const match = shim.match(/for cand in ([^;]+); do/);
+    if (match) return match[1].trim().split(/\s+/).join(" ");
+  } catch {}
+  return "/opt/homebrew/bin/git /usr/local/bin/git /usr/bin/git";
+}
+
 try {
   fs.mkdirSync(globalWrapperDir, { recursive: true });
+  const candidates = realGitCandidates();
   const wrapperContent = `#!/usr/bin/env sh
 # Global harness-agnostic shim: if inside Trinket repo, delegate to repo guard
 case "$(pwd)" in
   "${root}"* ) exec "${shimDir}/git" "$@" ;;
   *)
-    for cand in /opt/homebrew/bin/git /usr/local/bin/git /usr/bin/git; do
+    for cand in ${candidates}; do
       if [ -x "$cand" ]; then exec "$cand" "$@"; fi
     done
     exec git "$@"
