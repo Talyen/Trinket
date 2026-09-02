@@ -9,7 +9,7 @@ struct StageSelectList<Item: Identifiable, Artwork: View, PartyPickerSheet: View
     let rows: [StageSelectRowPresentation<Item>]
     let isPrimaryActionDisabled: (Item) -> Bool
     let onArtworkTap: (Item) -> Void
-    let onPrimaryAction: (Item) -> Void
+    let onPrimaryAction: (Item) -> Bool
     @ViewBuilder let artwork: (Item, _ isActive: Bool) -> Artwork
     @ViewBuilder let partyPickerSheet: (Item) -> PartyPickerSheet
 
@@ -35,7 +35,7 @@ private struct StageSelectRow<Item: Identifiable, Artwork: View, PartyPickerShee
     let presentation: StageSelectRowPresentation<Item>
     let isPrimaryActionDisabled: Bool
     let onArtworkTap: () -> Void
-    let onPrimaryAction: () -> Void
+    let onPrimaryAction: () -> Bool
     @ViewBuilder let artwork: () -> Artwork
     @ViewBuilder let partyPickerSheet: () -> PartyPickerSheet
 

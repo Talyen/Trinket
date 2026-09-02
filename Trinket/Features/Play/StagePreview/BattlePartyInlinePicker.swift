@@ -69,6 +69,7 @@ struct StageBattlePartyPickerSheet: View {
 
     @State private var selectionFeedbackTrigger = 0
     @State private var persistError: String?
+    @State private var persistErrorTrigger = 0
 
     let spire: SpireDefinition?
 
@@ -103,6 +104,11 @@ struct StageBattlePartyPickerSheet: View {
         .trinketSensoryFeedback(
             .selection,
             trigger: selectionFeedbackTrigger,
+            enabled: options.hapticsEnabled,
+        )
+        .trinketSensoryFeedback(
+            .error,
+            trigger: persistErrorTrigger,
             enabled: options.hapticsEnabled,
         )
         .trinketFailureAlert("Couldn't Save Progress", message: $persistError)
@@ -160,6 +166,7 @@ struct StageBattlePartyPickerSheet: View {
         }
         guard didPersist else {
             persistError = "Your party change was not saved. Try again."
+            persistErrorTrigger &+= 1
             return
         }
         selectionFeedbackTrigger += 1
@@ -183,6 +190,7 @@ private struct BattlePartySlotGridView: View {
 
     @State private var selectionFeedbackTrigger = 0
     @State private var persistError: String?
+    @State private var persistErrorTrigger = 0
 
     let slot: BattlePartySlot
     let spire: SpireDefinition?
@@ -214,6 +222,11 @@ private struct BattlePartySlotGridView: View {
             trigger: selectionFeedbackTrigger,
             enabled: options.hapticsEnabled,
         )
+        .trinketSensoryFeedback(
+            .error,
+            trigger: persistErrorTrigger,
+            enabled: options.hapticsEnabled,
+        )
         .trinketFailureAlert("Couldn't Save Progress", message: $persistError)
     }
 
@@ -228,6 +241,7 @@ private struct BattlePartySlotGridView: View {
         }
         guard didPersist else {
             persistError = "Your party change was not saved. Try again."
+            persistErrorTrigger &+= 1
             return
         }
         selectionFeedbackTrigger += 1

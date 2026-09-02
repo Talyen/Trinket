@@ -17,7 +17,7 @@ struct StageSelectActiveCard<
     let presentation: StageSelectRowPresentation<Item>
     let isPrimaryActionDisabled: Bool
     let onArtworkTap: () -> Void
-    let onPrimaryAction: () -> Void
+    let onPrimaryAction: () -> Bool
     @ViewBuilder let artwork: () -> Artwork
     @ViewBuilder let partyPickerSheet: () -> PartyPickerSheet
     @ViewBuilder let artworkAccessory: () -> ArtworkAccessory
@@ -30,7 +30,7 @@ struct StageSelectActiveCard<
         presentation: StageSelectRowPresentation<Item>,
         isPrimaryActionDisabled: Bool,
         onArtworkTap: @escaping () -> Void,
-        onPrimaryAction: @escaping () -> Void,
+        onPrimaryAction: @escaping () -> Bool,
         @ViewBuilder artwork: @escaping () -> Artwork,
         @ViewBuilder partyPickerSheet: @escaping () -> PartyPickerSheet,
         @ViewBuilder artworkAccessory: @escaping () -> ArtworkAccessory,
@@ -150,8 +150,9 @@ struct StageSelectActiveCard<
 
     private var primaryActionButton: some View {
         Button {
-            actionFeedbackTrigger += 1
-            onPrimaryAction()
+            if onPrimaryAction() {
+                actionFeedbackTrigger &+= 1
+            }
         } label: {
             Label(presentation.primaryActionTitle, systemImage: presentation.symbolName)
                 .lineLimit(1)
@@ -194,7 +195,7 @@ extension StageSelectActiveCard where ArtworkAccessory == EmptyView {
         presentation: StageSelectRowPresentation<Item>,
         isPrimaryActionDisabled: Bool,
         onArtworkTap: @escaping () -> Void,
-        onPrimaryAction: @escaping () -> Void,
+        onPrimaryAction: @escaping () -> Bool,
         @ViewBuilder artwork: @escaping () -> Artwork,
         @ViewBuilder partyPickerSheet: @escaping () -> PartyPickerSheet,
     ) {

@@ -16,6 +16,7 @@ struct HomesteadView: View {
     @State private var isDepositLaunching = false
     @State private var isIconAttentionRaised = false
     @State private var depositDismissTask: Task<Void, Never>?
+    @State private var collectionErrorTrigger = 0
 
     private var homestead: PlayerHomesteadState {
         playerSave.homestead
@@ -61,6 +62,16 @@ struct HomesteadView: View {
             trigger: collection.collectionEventCount,
             enabled: options.hapticsEnabled,
         )
+        .trinketSensoryFeedback(
+            .error,
+            trigger: collectionErrorTrigger,
+            enabled: options.hapticsEnabled,
+        )
+        .onChange(of: collection.error) { _, newError in
+            if newError == "Couldn't save collected materials. Try again." {
+                collectionErrorTrigger &+= 1
+            }
+        }
     }
 
     private var collectionSection: some View {

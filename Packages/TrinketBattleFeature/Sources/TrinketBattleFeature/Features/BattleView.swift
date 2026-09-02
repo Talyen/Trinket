@@ -11,6 +11,8 @@ public struct BattleView: View {
     @State private var castPresentation = BattleCastPresentationState()
     @State private var interactionState = BattleInteractionState()
     @State private var isConfirmingRetreat = false
+    @State private var victoryFeedbackToken = 0
+    @State private var defeatFeedbackToken = 0
 
     private let configuration: BattleRunConfiguration
     private let presentationContext: BattlePresentationContext
@@ -164,6 +166,11 @@ public struct BattleView: View {
             }
         }
         .animation(TrinketMotion.Screen.crossfade, value: battleSession.spectacle.outcomePresentation)
+        .modifier(BattleOutcomeHapticsModifier(
+            battleSession: battleSession,
+            victoryTrigger: $victoryFeedbackToken,
+            defeatTrigger: $defeatFeedbackToken,
+        ))
     }
 
     private func completeVictoryPrimaryAction(summary: BattleVictorySummary) -> Bool {
@@ -451,5 +458,27 @@ private struct BattleCastPrewarmLane: View {
 private extension BattleView {
     var hasStageProgression: Bool {
         presentationContext.hasProgressionRewards
+    }
+}
+
+private struct BattleOutcomeHapticsModifier: ViewModifier {
+    let battleSession: BattleSession
+    @Binding var victoryTrigger: Int
+    @Binding var defeatTrigger: Int
+
+    func body(content: Content) -> some View {
+        content
+            .trinketSensoryFeedback(.success, trigger: victoryTrigger, enabled: battleSession.hapticsEnabled)
+            .trinketSensoryFeedback(.error, trigger: defeatTrigger, enabled: battleSession.hapticsEnabled)
+            .onChange(of: battleSession.spectacle.outcomePresentation) { _, newValue in
+                switch newValue {
+                case .victory:
+                    victoryTrigger &+= 1
+                case .defeat:
+                    defeatTrigger &+= 1
+                case .battle, .pendingVictory:
+                    break
+                }
+            }
     }
 }

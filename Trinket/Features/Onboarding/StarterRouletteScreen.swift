@@ -26,6 +26,7 @@ struct StarterRouletteScreen: View {
     @State private var inspectedCombatant: Combatant?
     @State private var showsSaveFailure = false
     @State private var isConfirming = false
+    @State private var saveErrorTrigger = 0
 
     init(
         roleName: String,
@@ -79,6 +80,11 @@ struct StarterRouletteScreen: View {
         .trinketSensoryFeedback(
             .selection,
             trigger: selectionFeedbackTrigger,
+            enabled: options.hapticsEnabled,
+        )
+        .trinketSensoryFeedback(
+            .error,
+            trigger: saveErrorTrigger,
             enabled: options.hapticsEnabled,
         )
         .onAppear { isConfirming = false }
@@ -250,6 +256,7 @@ struct StarterRouletteScreen: View {
         isConfirming = true
         if !onConfirm(selectedCombatant.id) {
             isConfirming = false
+            saveErrorTrigger &+= 1
             showsSaveFailure = true
         }
     }

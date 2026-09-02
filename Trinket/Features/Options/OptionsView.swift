@@ -13,6 +13,7 @@ struct OptionsView: View {
     @Environment(\.scenePhase) private var scenePhase
     @State private var isResetConfirmationPresented = false
     @State private var actionErrorMessage: String?
+    @State private var actionErrorTrigger = 0
 
     let persistenceStatusMessage: () -> String?
     let applyMusicVolumeLive: (Double, ScenePhase) -> Void
@@ -102,6 +103,7 @@ struct OptionsView: View {
                 Button("Unlock All") {
                     if !unlockAllContent() {
                         actionErrorMessage = "Couldn't unlock content. Try again."
+                        actionErrorTrigger &+= 1
                     }
                 }
                 .accessibilityIdentifier(AccessibilityID.Options.unlockAllButton)
@@ -123,6 +125,7 @@ struct OptionsView: View {
             Button("Reset Game Progress", role: .destructive) {
                 if !resetGameplayProgress() {
                     actionErrorMessage = "Couldn't reset progress. Try again."
+                    actionErrorTrigger &+= 1
                 }
             }
             Button("Cancel", role: .cancel) {}
@@ -136,5 +139,10 @@ struct OptionsView: View {
             )
         }
         .trinketFailureAlert("Action Failed", message: $actionErrorMessage)
+        .trinketSensoryFeedback(
+            .error,
+            trigger: actionErrorTrigger,
+            enabled: optionsStore.hapticsEnabled,
+        )
     }
 }

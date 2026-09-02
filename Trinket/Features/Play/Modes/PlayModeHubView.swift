@@ -10,10 +10,10 @@ struct PlayModeHubView: View {
     @Environment(OptionsStore.self) private var options
     @Environment(PlayerSaveStore.self) private var playerSave
 
-    let onOpenCampaign: () -> Void
-    let onOpenExplore: () -> Void
+    let onOpenCampaign: () -> Bool
+    let onOpenExplore: () -> Bool
 
-    @State private var committedSelection: Mode?
+    @State private var modeSelectionTrigger = 0
 
     var body: some View {
         PlayModeHubScreen(
@@ -25,19 +25,21 @@ struct PlayModeHubView: View {
         }
         .trinketSensoryFeedback(
             .selection,
-            trigger: committedSelection,
+            trigger: modeSelectionTrigger,
             enabled: options.hapticsEnabled,
         )
     }
 
     private func modeCard(_ mode: Mode) -> some View {
         Button {
-            committedSelection = mode
-            switch mode {
+            let accepted: Bool = switch mode {
             case .campaign:
                 onOpenCampaign()
             case .explore:
                 onOpenExplore()
+            }
+            if accepted {
+                modeSelectionTrigger &+= 1
             }
         } label: {
             PlayModeArtworkCard(

@@ -4,6 +4,7 @@ import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
 import TrinketFeatureSupport
+import TrinketPersistence
 
 public struct CombatantDetailPane: View {
     @Environment(\.playSFX) private var playSFX
@@ -22,7 +23,7 @@ public struct CombatantDetailPane: View {
     var activeEffectSummaries: [EffectSummary] = []
     var labyrinthModifiers: [LabyrinthModifierDefinition] = []
     var hidesNavigationBar = false
-    var onUnlockTalent: ((TalentNode, TalentTree) -> Void)?
+    var onUnlockTalent: ((TalentNode, TalentTree) -> TalentUnlockResult)?
     var onResetTalents: (() -> Void)?
 
     @State private var selectedItemSlot: ItemSlot?
@@ -109,13 +110,18 @@ public struct CombatantDetailPane: View {
                 progression: progression,
                 unlockedTalents: $unlockedTalents,
                 allowsEditing: allowsEditing,
+                hapticsEnabled: hapticsEnabled,
                 onUnlockTalent: { node, tree in
-                    onUnlockTalent?(node, tree)
+                    onUnlockTalent?(node, tree) ?? .unavailable
                 },
                 onResetTalents: {
                     onResetTalents?()
                 },
             )
+        }
+        .onChange(of: selectedTalentTree?.id) { oldValue, newValue in
+            guard oldValue != newValue, newValue != nil else { return }
+            selectionFeedbackTrigger &+= 1
         }
         .trinketSensoryFeedback(
             .selection,

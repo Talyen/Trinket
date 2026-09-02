@@ -11,8 +11,11 @@ struct PostBattleTalentChoiceView: View {
     @Environment(PlaySession.self) private var play
     @Environment(PlayerSaveStore.self) private var playerSave
 
+    @Environment(OptionsStore.self) private var options
     @State private var navigationPath: [String] = []
     @State private var showsSaveFailure = false
+    @State private var treeSelectionTrigger = 0
+    @State private var talentErrorTrigger = 0
 
     var body: some View {
         NavigationStack(path: $navigationPath) {
@@ -36,6 +39,16 @@ struct PostBattleTalentChoiceView: View {
         } message: {
             Text("Your Talent choice was not saved. Please try again.")
         }
+        .trinketSensoryFeedback(
+            .selection,
+            trigger: treeSelectionTrigger,
+            enabled: options.hapticsEnabled,
+        )
+        .trinketSensoryFeedback(
+            .error,
+            trigger: talentErrorTrigger,
+            enabled: options.hapticsEnabled,
+        )
     }
 
     private var combatant: Combatant? {
@@ -92,6 +105,7 @@ struct PostBattleTalentChoiceView: View {
             showsReset: false,
             nodeAccessibilityIdentifier: AccessibilityID.TalentChoice.node,
             unlockAccessibilityIdentifier: AccessibilityID.TalentChoice.unlockButton,
+            hapticsEnabled: options.hapticsEnabled,
             onUnlockTalent: { node, tree in
                 choose(node: node, tree: tree)
             },
@@ -107,6 +121,7 @@ struct PostBattleTalentChoiceView: View {
 
         return Button {
             navigationPath.append(tree.id)
+            treeSelectionTrigger &+= 1
         } label: {
             TalentTreeCard(
                 tree: tree,
@@ -133,15 +148,18 @@ struct PostBattleTalentChoiceView: View {
         }
     }
 
-    private func choose(node: TalentNode, tree: TalentTree) {
-        switch play.choosePostBattleTalent(nodeID: node.id, treeID: tree.id) {
+    private func choose(node: TalentNode, tree: TalentTree) -> TalentUnlockResult {
+        let result = play.choosePostBattleTalent(nodeID: node.id, treeID: tree.id)
+        switch result {
         case .unlocked:
             break
         case .unavailable:
             navigationPath.removeAll()
         case .persistenceFailed:
             showsSaveFailure = true
+            talentErrorTrigger &+= 1
         }
+        return result
     }
 
     private var treeColumns: [GridItem] {

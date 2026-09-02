@@ -29,6 +29,11 @@ private struct SalvageInventoryPresentationModifier: ViewModifier {
                 trigger: salvageDetail.salvageSuccessCount,
                 enabled: hapticsEnabled,
             )
+            .trinketSensoryFeedback(
+                .error,
+                trigger: salvageDetail.salvageErrorCount,
+                enabled: hapticsEnabled,
+            )
     }
 }
 

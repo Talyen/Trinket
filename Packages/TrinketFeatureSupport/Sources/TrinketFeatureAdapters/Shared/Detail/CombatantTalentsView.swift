@@ -14,10 +14,14 @@ public struct CombatantTalentsView: View {
     let showsReset: Bool
     let nodeAccessibilityIdentifier: (String) -> String
     let unlockAccessibilityIdentifier: String
-    let onUnlockTalent: (TalentNode, TalentTree) -> Void
+    let hapticsEnabled: Bool
+    let onUnlockTalent: (TalentNode, TalentTree) -> TalentUnlockResult
     let onResetTalents: () -> Void
 
     @State private var selectedNodeID: String?
+    @State private var selectionFeedbackTrigger = 0
+    @State private var unlockSuccessTrigger = 0
+    @State private var unlockErrorTrigger = 0
 
     public init(
         tree: TalentTree,
@@ -29,7 +33,8 @@ public struct CombatantTalentsView: View {
         showsReset: Bool = true,
         nodeAccessibilityIdentifier: @escaping (String) -> String = AccessibilityID.CombatantDetail.talentsNode,
         unlockAccessibilityIdentifier: String = AccessibilityID.CombatantDetail.talentsUnlockButton,
-        onUnlockTalent: @escaping (TalentNode, TalentTree) -> Void,
+        hapticsEnabled: Bool = false,
+        onUnlockTalent: @escaping (TalentNode, TalentTree) -> TalentUnlockResult,
         onResetTalents: @escaping () -> Void,
     ) {
         self.tree = tree
@@ -40,6 +45,7 @@ public struct CombatantTalentsView: View {
         self.showsReset = showsReset
         self.nodeAccessibilityIdentifier = nodeAccessibilityIdentifier
         self.unlockAccessibilityIdentifier = unlockAccessibilityIdentifier
+        self.hapticsEnabled = hapticsEnabled
         self.onUnlockTalent = onUnlockTalent
         self.onResetTalents = onResetTalents
 
@@ -100,6 +106,21 @@ public struct CombatantTalentsView: View {
                 selectedNodeID = displayedNodes.first?.id
             }
         }
+        .trinketSensoryFeedback(
+            .selection,
+            trigger: selectionFeedbackTrigger,
+            enabled: hapticsEnabled,
+        )
+        .trinketSensoryFeedback(
+            .success,
+            trigger: unlockSuccessTrigger,
+            enabled: hapticsEnabled,
+        )
+        .trinketSensoryFeedback(
+            .error,
+            trigger: unlockErrorTrigger,
+            enabled: hapticsEnabled,
+        )
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 if showsReset, allowsEditing, hasTreeUnlocks {
@@ -162,7 +183,9 @@ public struct CombatantTalentsView: View {
         let symbolName = node.symbolName ?? style.symbolName
 
         return Button {
+            guard selectedNodeID != node.id else { return }
             selectedNodeID = node.id
+            selectionFeedbackTrigger &+= 1
         } label: {
             VStack(spacing: TrinketDesign.Spacing.small) {
                 if isUnlocked {
@@ -268,7 +291,15 @@ public struct CombatantTalentsView: View {
         let title = buttonLabel(for: node, isUnlocked: isUnlocked, canUnlock: canUnlock)
         if canUnlock {
             Button(title) {
-                onUnlockTalent(node, tree)
+                let result = onUnlockTalent(node, tree)
+                switch result {
+                case .unlocked:
+                    unlockSuccessTrigger &+= 1
+                case .persistenceFailed:
+                    unlockErrorTrigger &+= 1
+                case .unavailable:
+                    break
+                }
             }
             .frame(maxWidth: .infinity)
             .trinketPrimaryActionButton(

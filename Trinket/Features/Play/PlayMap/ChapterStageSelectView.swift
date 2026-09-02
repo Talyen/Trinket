@@ -125,7 +125,7 @@ struct ChapterStageSelectView: View {
     @Environment(PlayerSaveStore.self) private var playerSave
     @Environment(\.dismiss) private var dismiss
 
-    let onStageTap: (Stage) -> Void
+    let onStageTap: (Stage) -> Bool
     let onEnemyTap: (Stage) -> Void
 
     private var chapter: Chapter {
@@ -217,9 +217,9 @@ struct ChapterStageSelectView: View {
         journey.prepareBattle(for: stage)
     }
 
-    private func handlePrimaryAction(_ stage: Stage) {
-        guard playerSave.journey.isActive(stage) else { return }
-        onStageTap(stage)
+    private func handlePrimaryAction(_ stage: Stage) -> Bool {
+        guard playerSave.journey.isActive(stage) else { return false }
+        return onStageTap(stage)
     }
 }
 

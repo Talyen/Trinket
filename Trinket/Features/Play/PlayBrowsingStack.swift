@@ -49,30 +49,32 @@ struct PlayBrowsingStack: View {
         }
     }
 
-    private func openMode(_ destination: PlayLaunchDestination) {
-        guard !isBattleActive else { return }
+    private func openMode(_ destination: PlayLaunchDestination) -> Bool {
+        guard !isBattleActive else { return false }
         navigationPath.append(destination)
+        return true
     }
 
-    private func handleStageTap(_ stage: Stage) {
-        if playerSave.journey.isActive(stage) {
-            let interval = AppFramePacingSignposts.signposter.beginInterval(
+    private func handleStageTap(_ stage: Stage) -> Bool {
+        guard playerSave.journey.isActive(stage) else { return false }
+        let interval = AppFramePacingSignposts.signposter.beginInterval(
+            AppFramePacingSignposts.Name.stageSelectBattleActivate,
+        )
+        defer {
+            AppFramePacingSignposts.signposter.endInterval(
                 AppFramePacingSignposts.Name.stageSelectBattleActivate,
+                interval,
             )
-            defer {
-                AppFramePacingSignposts.signposter.endInterval(
-                    AppFramePacingSignposts.Name.stageSelectBattleActivate,
-                    interval,
-                )
-            }
-            AppFramePacingSignposts.event(
-                AppFramePacingSignposts.Name.stageSelectBattleActivate,
-                detail: "stage=\(stage.id)",
-            )
-            if let message = journey.handleStagePrimaryAction(for: stage) {
-                stageMessage = message
-            }
         }
+        AppFramePacingSignposts.event(
+            AppFramePacingSignposts.Name.stageSelectBattleActivate,
+            detail: "stage=\(stage.id)",
+        )
+        if let message = journey.handleStagePrimaryAction(for: stage) {
+            stageMessage = message
+            return false
+        }
+        return true
     }
 
     private func showEnemyDetails(for stage: Stage) {
@@ -99,9 +101,11 @@ struct PlayBattleOverlay: View {
     @Environment(PlaySession.self) private var play
     @Environment(BattleSession.self) private var battle
     @Environment(\.displayScale) private var displayScale
+    @Environment(OptionsStore.self) private var options
     @Binding var stageMessage: StageMapMessage?
     @State private var claimedVictoryHandlerOwnerID = UUID()
     @State private var didPresentLaunchVictory = false
+    @State private var claimedVictoryErrorTrigger = 0
 
     var body: some View {
         let configuration = battle.overlayBattleConfiguration
@@ -152,6 +156,16 @@ struct PlayBattleOverlay: View {
         }
         .task(id: battlePresentationTaskKey) {
             await battle.prepareBattlePresentationAssets(displayScale: displayScale)
+        }
+        .trinketSensoryFeedback(
+            .error,
+            trigger: claimedVictoryErrorTrigger,
+            enabled: options.hapticsEnabled,
+        )
+        .onChange(of: stageMessage) { _, newValue in
+            if newValue?.message == Self.persistenceFailureMessage.message {
+                claimedVictoryErrorTrigger &+= 1
+            }
         }
     }
 
@@ -307,7 +321,7 @@ private struct PlayEncounterCoversModifier: ViewModifier {
                 ShopEncounterView(
                     session: session,
                     onLeave: {
-                        _ = encounters.finishActiveShopEncounter()
+                        encounters.finishActiveShopEncounter()
                     },
                 )
                 .interactiveDismissDisabled()

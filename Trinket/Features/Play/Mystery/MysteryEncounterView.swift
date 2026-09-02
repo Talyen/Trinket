@@ -15,6 +15,9 @@ struct MysteryEncounterView: View {
     @State private var selectedDetail: CombatantDetailContext?
     @State private var selectedChoiceID: String?
     @State private var choiceFeedbackTrigger = 0
+    @State private var rewardFeedbackTrigger = 0
+    @State private var corruptionWarningTrigger = 0
+    @State private var mysteryPersistErrorTrigger = 0
 
     var body: some View {
         ZStack {
@@ -38,7 +41,13 @@ struct MysteryEncounterView: View {
                 MysteryCorruptionRevealContent(
                     session: session,
                     result: result,
-                    onFinish: { encounters.finishActiveMysteryCorruptionReveal() },
+                    onFinish: {
+                        let didFinish = encounters.finishActiveMysteryCorruptionReveal()
+                        if didFinish {
+                            corruptionWarningTrigger &+= 1
+                        }
+                        return didFinish
+                    },
                 )
                 .transition(.opacity)
             } else if session.showsCorruptItemChoice {
@@ -56,6 +65,31 @@ struct MysteryEncounterView: View {
         .animation(TrinketMotion.Screen.crossfade, value: screenPhase)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .trinketScreenBackground()
+        .trinketSensoryFeedback(
+            .success,
+            trigger: rewardFeedbackTrigger,
+            enabled: options.hapticsEnabled,
+        )
+        .trinketSensoryFeedback(
+            .warning,
+            trigger: corruptionWarningTrigger,
+            enabled: options.hapticsEnabled,
+        )
+        .trinketSensoryFeedback(
+            .error,
+            trigger: mysteryPersistErrorTrigger,
+            enabled: options.hapticsEnabled,
+        )
+        .onChange(of: session.showsReward) { _, isReward in
+            if isReward {
+                rewardFeedbackTrigger &+= 1
+            }
+        }
+        .onChange(of: session.persistFailureMessage) { _, newMessage in
+            if newMessage != nil {
+                mysteryPersistErrorTrigger &+= 1
+            }
+        }
         .sheet(item: $selectedDetail) { context in
             NavigationStack {
                 RosterCombatantDetailView(

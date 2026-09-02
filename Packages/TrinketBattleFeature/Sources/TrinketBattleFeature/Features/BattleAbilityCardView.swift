@@ -237,7 +237,6 @@ struct BattleAbilityCardView: View {
                 && -release.height > abs(release.width)
             if crossedDenyThreshold, !didAnnounceDeny {
                 didAnnounceDeny = true
-                denyFeedbackToken &+= 1
                 reportPlayDeniedIfNeeded()
             } else if !crossedDenyThreshold {
                 didAnnounceDeny = false
@@ -466,6 +465,7 @@ private extension BattleAbilityCardView {
     func reportPlayDeniedIfNeeded() {
         guard !isPlayable, !didReportPlayDenied else { return }
         didReportPlayDenied = true
+        denyFeedbackToken &+= 1
         onPlayDenied()
     }
 }

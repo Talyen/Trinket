@@ -47,7 +47,9 @@ struct LabyrinthNodeInspector: View {
             onPrimaryAction: {
                 if let message = labyrinth.handleNodeAction(nodeID: node.id) {
                     onMessage(message)
+                    return false
                 }
+                return true
             },
             artwork: {
                 LabyrinthNodeArtwork(

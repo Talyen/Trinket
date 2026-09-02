@@ -23,6 +23,7 @@ struct LabyrinthCampfireView: View {
     @State private var artAppeared = false
     @State private var contentAppeared = false
     @State private var healHapticTrigger = 0
+    @State private var restErrorTrigger = 0
 
     private static let counterDuration = Duration.milliseconds(900)
     private static let barAnimation = Animation.easeOut(duration: 1.25)
@@ -43,6 +44,11 @@ struct LabyrinthCampfireView: View {
         .trinketSensoryFeedback(
             .success,
             trigger: healHapticTrigger,
+            enabled: options.hapticsEnabled,
+        )
+        .trinketSensoryFeedback(
+            .error,
+            trigger: restErrorTrigger,
             enabled: options.hapticsEnabled,
         )
         .onAppear {
@@ -233,11 +239,12 @@ struct LabyrinthCampfireView: View {
 
     private func finishRest() async {
         phase = .done
-        healHapticTrigger += 1
         try? await Task.sleep(for: Self.continueDelay)
         if labyrinth.finishActiveRest() {
+            healHapticTrigger &+= 1
             dismiss()
         } else {
+            restErrorTrigger &+= 1
             barHealthByCombatantID = [:]
             counterHealthByCombatantID = [:]
             phase = .idle

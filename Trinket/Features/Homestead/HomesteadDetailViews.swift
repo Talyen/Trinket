@@ -12,6 +12,7 @@ struct HomesteadNodeDetailView: View {
     @Environment(OptionsStore.self) private var options
     @State private var build = HomesteadBuildControl()
     @State private var pinnedArtwork: [String] = []
+    @State private var buildErrorTrigger = 0
 
     let definition: HomesteadNodeDefinition
 
@@ -61,7 +62,17 @@ struct HomesteadNodeDetailView: View {
             trigger: build.upgradeEventCount,
             enabled: options.hapticsEnabled,
         )
+        .trinketSensoryFeedback(
+            .error,
+            trigger: buildErrorTrigger,
+            enabled: options.hapticsEnabled,
+        )
         .homesteadBuildErrorAlert(build: $build)
+        .onChange(of: build.error) { _, newError in
+            if newError == "Couldn't save homestead progress. Try again." {
+                buildErrorTrigger &+= 1
+            }
+        }
         .task(id: artworkPinKey) {
             await refreshArtworkPins()
         }

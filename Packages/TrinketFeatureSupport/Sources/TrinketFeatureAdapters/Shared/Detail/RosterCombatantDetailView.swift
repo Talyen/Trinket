@@ -69,9 +69,11 @@ public struct RosterCombatantDetailView: View {
                 effectsVolume: effectsVolume,
                 hidesNavigationBar: hidesNavigationBar,
                 onUnlockTalent: { node, tree in
-                    persistRoster {
-                        _ = $0.unlockTalent(node: node, inTree: tree, for: combatant.id)
-                    }
+                    playerSave.unlockTalent(
+                        nodeID: node.id,
+                        treeID: tree.id,
+                        for: combatant.id,
+                    )
                 },
                 onResetTalents: {
                     persistRoster {

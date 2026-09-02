@@ -83,7 +83,9 @@ struct SpireClimbView: View {
                         onPrimaryAction: { floor in
                             if let message = spires.startBattle(for: floor) {
                                 floorMessage = message
+                                return false
                             }
+                            return true
                         },
                         artwork: { floor, isActive in
                             SpireFloorArtwork(

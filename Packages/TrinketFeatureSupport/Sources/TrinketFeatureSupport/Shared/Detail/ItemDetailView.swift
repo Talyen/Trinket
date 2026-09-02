@@ -213,6 +213,7 @@ public struct ItemDetailView: View {
             onSalvageFinished?(.itemNotFound)
             dismiss()
         case .persistenceFailure:
+            onSalvageFinished?(.persistenceFailure)
             salvageErrorMessage = "Couldn't salvage this item. Try again."
         }
     }

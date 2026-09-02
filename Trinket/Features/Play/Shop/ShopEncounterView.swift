@@ -12,7 +12,7 @@ struct ShopEncounterView: View {
     @Environment(OptionsStore.self) private var options
     @Environment(PlayerSaveStore.self) private var playerSave
     @Bindable var session: ShopEncounterSession
-    let onLeave: () -> Void
+    let onLeave: () -> Bool
 
     @State private var selectedOffer: ShopOffer?
     @State private var artAppeared = false
@@ -20,6 +20,7 @@ struct ShopEncounterView: View {
     @State private var offersAppeared = false
     @State private var purchaseFeedbackTrigger = 0
     @State private var purchaseErrorFeedbackTrigger = 0
+    @State private var leaveErrorTrigger = 0
 
     private let columns = TrinketDesign.Layout.collectionGridItems
 
@@ -64,7 +65,9 @@ struct ShopEncounterView: View {
                         .offset(y: offersAppeared ? 0 : 10)
 
                     Button {
-                        onLeave()
+                        if !onLeave() {
+                            leaveErrorTrigger &+= 1
+                        }
                     } label: {
                         Text("Leave Shop")
                             .frame(maxWidth: .infinity)
@@ -118,6 +121,11 @@ struct ShopEncounterView: View {
         .trinketSensoryFeedback(
             .error,
             trigger: purchaseErrorFeedbackTrigger,
+            enabled: options.hapticsEnabled,
+        )
+        .trinketSensoryFeedback(
+            .error,
+            trigger: leaveErrorTrigger,
             enabled: options.hapticsEnabled,
         )
     }

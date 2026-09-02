@@ -9,6 +9,7 @@ struct SalvageDetailState {
     var selectedItem: InventoryItem?
     var transmutationEvent: SalvageTransmutationEvent?
     var salvageSuccessCount = 0
+    var salvageErrorCount = 0
 
     mutating func select(_ item: InventoryItem) {
         selectedItem = item
@@ -24,6 +25,8 @@ struct SalvageDetailState {
                 yields: yields,
             )
             salvageSuccessCount += 1
+        } else if case .persistenceFailure = result {
+            salvageErrorCount &+= 1
         }
         var dismiss = Transaction()
         dismiss.disablesAnimations = true

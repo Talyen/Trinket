@@ -16,6 +16,7 @@ struct LabyrinthMapView: View {
     @State private var nodeMessage: StageMapMessage?
     @State private var viewedFloor = 1
     @State private var selectedNodeID: String?
+    @State private var nodeSelectionFeedbackTrigger = 0
 
     private var state: PlayerLabyrinthState {
         playerSave.labyrinth
@@ -160,9 +161,13 @@ struct LabyrinthMapView: View {
         .animation(LabyrinthMapMotion.inspector, value: selectedNodeID)
         .trinketSensoryFeedback(
             .selection,
-            trigger: selectedNodeID,
+            trigger: nodeSelectionFeedbackTrigger,
             enabled: options.hapticsEnabled,
         )
+        .onChange(of: selectedNodeID) { _, newValue in
+            guard newValue != nil else { return }
+            nodeSelectionFeedbackTrigger &+= 1
+        }
     }
 
     private func showFloor(_ floor: Int) {
