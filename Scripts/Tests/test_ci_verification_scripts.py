@@ -158,10 +158,12 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
     def test_ci_gate_fast_skips_generation_and_style(self) -> None:
         text = (ROOT / "Scripts" / "ci-gate.sh").read_text(encoding="utf-8")
         self.assertIn("--fast", text)
-        self.assertIn("check-module-boundaries.sh", text)
-        self.assertIn("check-swift-testing-migration.sh", text)
-        self.assertIn("release-notes.sh validate", text)
         self.assertIn("=== Fast gate checks passed ===", text)
+        self.assertIn("cheap-slices", text)
+        cheap = (ROOT / "Scripts" / "config" / "cheap-slices.txt").read_text(encoding="utf-8")
+        self.assertIn("check-module-boundaries.sh", cheap)
+        self.assertIn("check-swift-testing-migration.sh", cheap)
+        self.assertIn("release-notes.sh validate", cheap)
 
     def test_test_scripts_supports_skip_docs(self) -> None:
         text = (ROOT / "Scripts" / "test-scripts.sh").read_text(encoding="utf-8")
@@ -753,8 +755,10 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
         self.assertIn('package:$package', text)
         self.assertIn('--run "$invocation_id"', text)
         self.assertIn("--xcresult", text)
+        helpers = (ROOT / "Scripts" / "lib" / "test-helpers.sh").read_text(encoding="utf-8")
         test_text = (ROOT / "Scripts" / "test.sh").read_text(encoding="utf-8")
-        self.assertIn('--run "$XCODE_RUNNER_INVOCATION_ID"', test_text)
+        combined = helpers + test_text
+        self.assertIn('--run "$XCODE_RUNNER_INVOCATION_ID"', combined)
 
     def test_test_package_parallelizes_multiple_packages(self) -> None:
         # test-package.sh is the single owner of parallel package builds/tests:
@@ -780,9 +784,11 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
         )
         self.assertIn("test-package.sh --build-for-testing", build_for_testing)
         self.assertIn("TRINKET_BUILD_FINGERPRINTS_APP", build_for_testing)
+        helpers = (ROOT / "Scripts" / "lib" / "test-helpers.sh").read_text(encoding="utf-8")
         test_sh = (ROOT / "Scripts" / "test.sh").read_text(encoding="utf-8")
-        self.assertIn("test-package.sh --build-for-testing", test_sh)
-        self.assertIn("test-package.sh --no-build", test_sh)
+        combined = helpers + test_sh
+        self.assertIn("test-package.sh --build-for-testing", combined)
+        self.assertIn("test-package.sh --no-build", combined)
 
     def test_bare_full_ui_requires_explicit_opt_in(self) -> None:
         # Full exhaustive UI is CI-owned post-push; bare local runs must opt in.
@@ -795,12 +801,9 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
         self.assertIn("TRINKET_ALLOW_FULL_UI=1 ./Scripts/test.sh ui", deploy)
 
     def test_run_env_removes_shared_packages_derived_data(self) -> None:
-        text = (ROOT / "Scripts" / "run-env.sh").read_text(encoding="utf-8")
-        prune = text.split("trinket_derived_data_age_prune()", 1)[1].split(
-            "trinket_simulator_enforce_single_warm_booted()", 1
-        )[0]
-        self.assertIn('Packages/.DerivedData', prune)
-        self.assertIn('rm -rf "$repo_root/Packages/.DerivedData"', prune)
+        text = (ROOT / "Scripts" / "lib" / "derived-data.sh").read_text(encoding="utf-8")
+        self.assertIn('Packages/.DerivedData', text)
+        self.assertIn('rm -rf "$repo_root/Packages/.DerivedData"', text)
 
     def test_prune_gates_bulk_wipe(self) -> None:
         text = (ROOT / "Scripts" / "prune-derived-data-cache.sh").read_text(encoding="utf-8")
@@ -810,15 +813,18 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
 
     def test_run_env_self_cleans_on_start_and_release(self) -> None:
         text = (ROOT / "Scripts" / "run-env.sh").read_text(encoding="utf-8")
-        self.assertIn("trinket_preview_sims_reclaim", text)
-        self.assertIn("trinket_simulator_enforce_single_warm_booted", text)
-        self.assertIn("trinket_derived_data_age_prune", text)
+        simctl = (ROOT / "Scripts" / "lib" / "simctl.sh").read_text(encoding="utf-8")
+        derived = (ROOT / "Scripts" / "lib" / "derived-data.sh").read_text(encoding="utf-8")
+        combined = text + simctl + derived
+        self.assertIn("trinket_preview_sims_reclaim", combined)
+        self.assertIn("trinket_simulator_enforce_single_warm_booted", combined)
+        self.assertIn("trinket_derived_data_age_prune", combined)
         self.assertIn("trinket_run_env_self_clean_hygiene", text)
         self.assertIn("trinket_run_env_release_slots", text)
         self.assertIn("trinket_run_env_claim_self_clean_owner", text)
         self.assertIn("TRINKET_SELF_CLEAN_OWNER", text)
-        self.assertIn("Simulator%20Devices", text)
-        self.assertIn("Packages", text)
+        self.assertIn("Simulator%20Devices", simctl)
+        self.assertIn("Packages", derived)
         hygiene = text.split("trinket_run_env_self_clean_hygiene()", 1)[1].split(
             "trinket_run_env_claim_self_clean_owner", 1
         )[0]
@@ -827,7 +833,7 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
         self.assertIn("trinket_derived_data_age_prune", hygiene)
         install = text.split("trinket_run_env_install_self_clean()", 1)[1].split(
             "trinket_bind_agent_slot", 1
-        )[0]
+        )[0] if "trinket_bind_agent_slot" in text else text.split("trinket_run_env_install_self_clean()", 1)[1]
         self.assertIn("trinket_run_env_self_clean_hygiene", install)
         self.assertNotIn("trinket_run_env_install_test_simulator_cleanup", text)
         release = text.split("trinket_run_env_release_slots()", 1)[1].split(
@@ -835,15 +841,15 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
         )[0]
         self.assertIn("TRINKET_SELF_CLEAN_OWNER", release)
         self.assertIn("trinket_run_env_self_clean_hygiene", release)
-        single = text.split("trinket_simulator_enforce_single_warm_booted()", 1)[1].split(
+        single = simctl.split("trinket_simulator_enforce_single_warm_booted()", 1)[1].split(
             "trinket_run_env_cleanup_test_artifacts", 1
-        )[0]
+        )[0] if "trinket_run_env_cleanup_test_artifacts" in simctl else simctl.split("trinket_simulator_enforce_single_warm_booted()", 1)[1]
         self.assertIn('TRINKET_CLEANUP_SINGLE_WARMED:-1', single)
         self.assertIn("trinket_simulator_is_shared_name", single)
         self.assertIn("trinket_simulator_is_active_agent_name", single)
-        self.assertIn("trinket_simulator_is_shared_name", text)
-        self.assertIn("Trinket CI", text)
-        self.assertIn("trinket_simulator_is_managed_name", text)
+        self.assertIn("trinket_simulator_is_shared_name", simctl)
+        self.assertIn("Trinket CI", simctl)
+        self.assertIn("trinket_simulator_is_managed_name", simctl)
         self.assertNotIn("TRINKET_CLEANUP_IDLE_POOL", text)
         self.assertNotIn("TRINKET_CLEANUP_EXCESS_SIMULATORS", text)
         self.assertNotIn("TRINKET_KEEP_DIAGNOSTICS", text)

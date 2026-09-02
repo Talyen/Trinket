@@ -267,8 +267,10 @@ class ContentAndPolicyScriptTests(ScriptRegressionTestCase):
 
     def test_style_gate_invokes_agent_invariants_and_accessibility_ids(self) -> None:
         text = (ROOT / "Scripts" / "test.sh").read_text(encoding="utf-8")
-        self.assertIn("check-agent-invariants.sh", text)
-        self.assertIn("check-accessibility-ids.sh", text)
+        style_lib = (ROOT / "Scripts" / "lib" / "test-style.sh").read_text(encoding="utf-8")
+        combined = text + style_lib
+        self.assertIn("check-agent-invariants.sh", combined)
+        self.assertIn("check-accessibility-ids.sh", combined)
 
     def test_content_codegen_routes_generation_and_script_tests(self) -> None:
         result = subprocess.run(

@@ -293,6 +293,11 @@ fi
 if [[ "$ACTION" == "test" || "$ACTION" == "test-without-building" ]]; then
   if [[ "${CI:-}" == "true" || "${GITHUB_ACTIONS:-}" == "true" ]]; then
     jobs=1
+  elif [[ -n "${TRINKET_PACKAGE_TEST_JOBS:-}" ]]; then
+    jobs="${TRINKET_PACKAGE_TEST_JOBS}"
+    [[ "$jobs" =~ ^[0-9]+$ ]] || jobs=1
+    (( jobs >= 1 )) || jobs=1
+    if [[ "$jobs" -gt ${#PACKAGES[@]} ]]; then jobs=${#PACKAGES[@]}; fi
   fi
 fi
 

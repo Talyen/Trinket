@@ -10,9 +10,12 @@ TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT
 
 REPO="$TMP_DIR/repo"
-mkdir -p "$REPO/Scripts"
+mkdir -p "$REPO/Scripts/lib"
 cp "$ROOT_DIR/Scripts/run-env.sh" "$REPO/Scripts/run-env.sh"
 cp "$ROOT_DIR/Scripts/simctl_json.py" "$REPO/Scripts/simctl_json.py"
+cp "$ROOT_DIR/Scripts/lib/slots.sh" "$REPO/Scripts/lib/slots.sh"
+cp "$ROOT_DIR/Scripts/lib/simctl.sh" "$REPO/Scripts/lib/simctl.sh"
+cp "$ROOT_DIR/Scripts/lib/derived-data.sh" "$REPO/Scripts/lib/derived-data.sh"
 
 FAKE_BIN="$TMP_DIR/bin"
 FAKE_SHUTDOWN_LOG="$TMP_DIR/shutdown.log"

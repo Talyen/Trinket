@@ -164,6 +164,8 @@ trinket_classify_package_swift_path() {
     TrinketAppState)
       if [[ "$path" == Packages/TrinketAppState/Sources/TrinketAppState/Audio/* ]]; then
         TRINKET_HAS_AUDIO=true
+        TRINKET_NEEDS_SMOKE=true
+        trinket_add_smoke_target "$TRINKET_SMOKE_CLASS_SHELL"
       fi
       ;;
   esac

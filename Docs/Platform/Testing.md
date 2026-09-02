@@ -27,10 +27,10 @@ journeys use UI smoke/deploy only when the keep/drop rubric below applies.
 
 ## Fixtures
 
-Prefer `TrinketTestSupport` (`CombatantFixtures`, battle parties). Save harnesses live
+Prefer `TrinketTestSupport` (`CombatantFixtures`, `ItemFixtures`, battle parties) for shared fixtures; `BattleStateTestFactory` owns `BattleState` construction in `BattleEngineTests` and `BattleTestFixtures` owns only play helpers (`playFirstPlayableCard`, `endTurn`). Save harnesses live
 in `TrinketPersistence`'s `TrinketPersistenceTestSupport` target—not in `TrinketTestSupport`—so TestSupport stays
 Persistence-free. App suites use `AppTestContext`; Persistence uses
-`PersistenceTestContext`. Package-specific fixture, RNG, and handler-dispatch
+`PersistenceTestContext`. Canonical RNG seed is `CombatantFixtures.deterministicBattleSeed` (1772). Package-specific fixture, RNG, and handler-dispatch
 conventions belong in the owning package's test README; do not duplicate them
 here.
 

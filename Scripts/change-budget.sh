@@ -63,7 +63,8 @@ LC_ALL=C awk \
   -v decl_limit="${TRINKET_BUDGET_TEST_DECL_WARN:-3}" '
   function category(p) {
     if (p ~ /(\/Generated\/|\.generated\.swift$|^Trinket\.xcodeproj\/|^\.DerivedData\/|^\.tools\/|^Raw Assets\/)/) return "generated"
-    if (p ~ /(^TrinketUITests\/|\/Tests\/|^Scripts\/Tests\/|^Packages\/TrinketTestSupport\/|^Packages\/TrinketPersistence\/Sources\/TrinketPersistenceTestSupport\/)/) return "test"
+    if (p ~ /(^TrinketUITests\/|\/Tests\/|^Scripts\/Tests\/)/) return "test"
+    if (p ~ /(^Packages\/TrinketTestSupport\/|^Packages\/TrinketPersistence\/Sources\/TrinketPersistenceTestSupport\/)/) return "support"
     return p ~ /\.swift$/ ? "production" : "docs"
   }
   function declarations(text, copy, count) {
@@ -78,7 +79,7 @@ LC_ALL=C awk \
     added = $1 == "-" ? 0 : $1; deleted = $2 == "-" ? 0 : $2
     path = $0; sub(/^[^\t]*\t[^\t]*\t/, "", path); kind = category(path)
     if (kind == "production") { pa += added; pd += deleted }
-    else if (kind == "test") { ta += added; td += deleted }
+    else if (kind == "test" || kind == "support") { ta += added; td += deleted }
     else if (kind == "docs") { da += added; dd += deleted }
     else generated++
     next
@@ -88,20 +89,20 @@ LC_ALL=C awk \
   /^--- a\// { path = substr($0, 7); kind = category(path); next }
   /^\+\+\+ b\// {
     path = substr($0, 7); kind = category(path)
-    if (new_file && path ~ /\.swift$/) { if (kind == "production") new_prod++; else if (kind == "test") new_test++ }
+    if (new_file && path ~ /\.swift$/) { if (kind == "production") new_prod++; else if (kind == "test" || kind == "support") new_test++ }
     next
   }
   /^\+\+\+|^@@/ { next }
   /^\+[^+]/ {
     text = substr($0, 2)
     if (kind == "production" && text ~ /(^|[^A-Za-z0-9_])(class|struct|enum|protocol|actor)[[:space:]]+[A-Za-z_]/) types_added++
-    if (kind == "test") tests_added += declarations(text)
+    if (kind == "test" || kind == "support") tests_added += declarations(text)
     next
   }
   /^-[^-]/ {
     text = substr($0, 2)
     if (kind == "production" && text ~ /(^|[^A-Za-z0-9_])(class|struct|enum|protocol|actor)[[:space:]]+[A-Za-z_]/) types_deleted++
-    if (kind == "test") tests_deleted += declarations(text)
+    if (kind == "test" || kind == "support") tests_deleted += declarations(text)
   }
   END {
     pn = pa - pd; tn = ta - td; dn = da - dd; typen = types_added - types_deleted; testn = tests_added - tests_deleted

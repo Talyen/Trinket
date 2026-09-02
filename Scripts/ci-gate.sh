@@ -68,16 +68,12 @@ fi
 echo "=== Style check ==="
 ./Scripts/test.sh style
 
-echo "=== Module boundary check ==="
-./Scripts/check-module-boundaries.sh
-
 echo "=== Script checks ==="
 ./Scripts/test-scripts.sh
 
-echo "=== Swift Testing migration gate ==="
-./Scripts/check-swift-testing-migration.sh
-
-echo "=== Validate release notes config ==="
-./Scripts/release-notes.sh validate
+echo "=== Cheap slices (boundaries, Swift Testing, release notes, artwork-budget) ==="
+# shellcheck source=lib/cheap-slices.sh
+source Scripts/lib/cheap-slices.sh
+trinket_run_cheap_slices
 
 echo "=== Gate checks passed ==="
