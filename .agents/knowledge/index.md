@@ -14,7 +14,7 @@ validated improvement → promote to active skill
 mechanically enforceable → encode in types / lint / tests / boundaries, remove prose
 ```
 
-Patterns support merging, marking `superseded` / `obsolete`, and preserving rejected approaches that are likely to be re-proposed. No automated pruning; document the policy instead.
+Patterns support merging, marking `superseded` / `obsolete`, and preserving rejected approaches that are likely to be re-proposed. The author landing the superseding change marks the old pattern; no automated pruning.
 
 ## Patterns
 

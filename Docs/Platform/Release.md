@@ -62,6 +62,14 @@ commits being pushed (platform bans stay full-tree), runs `agent-push-gate.sh`
 then path-scoped package tests against that generated tree. A requested push
 still requires a green path-scoped handoff before commit. Review and include only task-related authored and generated files.
 
+A green `handoff.sh --isolate` writes a content-addressed receipt
+(`.DerivedData/handoff-receipt.json`) keyed by the verified tree hash. Both
+`agent-push-gate.sh` and the `pre-push` hook reuse that receipt: when the tree
+about to be pushed is exactly the tree handoff just verified, the push gates
+skip the duplicate generate/style/package work and only run a cheap idempotent
+assert. Any new diff, ancestry change, or classification mismatch falls through
+to the full gates — there is no time-window trust.
+
 Fastlane upload remains a separate future step: provide an App Store Connect API
 key, configure `deliver`, and extend the release workflow only when automated
 TestFlight/App Store submission is deliberately enabled.

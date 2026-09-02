@@ -1,6 +1,6 @@
 # Audits
 
-Re-runnable one-shot guides for coding agents. An audit is neither a project tracker nor standing product requirements. Run one only when the user cites it; do not treat uncited audits as backlog.
+Re-runnable one-shot guides for coding agents. An audit is neither a project tracker nor standing product requirements. Run one only when the user cites it; do not treat uncited audits as backlog. Numbers are stable identifiers, not a sequence: gaps (05, 08, 11) are retired audits whose numbers stay retired so evidence pointers keep resolving.
 
 ## Shared contract
 

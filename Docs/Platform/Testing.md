@@ -47,7 +47,7 @@ here.
     `Hashable` / `Equatable`). Nested types like `Keyword.Category` need the same
     conformances even when the parent type already has them.
 - **Lifecycle:** Prefer `@Suite` on package tests. Use `@MainActor` when UI/layout/store isolation requires it. Use `final class` + `init() throws` only for teardown ownership (`AppTestContext` / `PersistenceTestContext`).
-- **Stores:** mutate → close/reload from disk → `#expect`; an in-memory accessor/setter round trip is not persistence coverage.
+- **Stores (persistence reload semantics):** mutate → close/reload from disk → `#expect`; an in-memory accessor/setter round trip is not persistence coverage.
 - **Async/debounce:** inject short intervals in production inits; poll in tests — never `Task.sleep` for multi-second production delays.
 - **Events:** pin outcome counters; assert event *semantics*, not full log fingerprints.
 - **Do not unit-test:** log prose (except a few representative formatter cases), `TrinketDesign` styling, AVFoundation playback, real CloudKit I/O, BattleFeature layout/glyph/dissolve/recipe chrome.

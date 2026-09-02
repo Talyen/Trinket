@@ -15,8 +15,7 @@ to `Image(name)` sync-decodes on that frame — that is the hitch path, not a
 memory win. Do not convert this to on-demand loading. Transient battle and
 Collection pins still release when that lifecycle ends; Collection re-keys its
 pin task when shelf combatants change so newly unlocked heroes stay hitch-free.
-Memory targets:
-[MemoryAndEnergyInvestigation.md](../Platform/MemoryAndEnergyInvestigation.md).
+Memory targets and enforcement: [PerformanceInvestigationPlaybook.md](../Platform/PerformanceInvestigationPlaybook.md) Artwork Budgets.
 
 The four tab roots first-layout under the launch cover, including the tab that
 is already selected. Play uses the longer first-layout budget for the hidden

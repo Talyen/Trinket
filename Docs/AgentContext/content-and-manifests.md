@@ -2,6 +2,9 @@
 
 Use for abilities, item bases, stages, art, music, SFX, cinematics, and project generation.
 
+This card owns the workflow. Column formats live in each manifest directory's
+README; open only the manifest README for the input being changed.
+
 **Single entry:** `./Scripts/generate.sh` validates ContentManifest TSVs, regenerates content catalogs (trigger families are `public`; catalog blobs are `internal` and reached through `GameContent`), optionally prepares art/music/SFX/cinematics (`--assets`), then runs XcodeGen. Pass `--skip-xcodegen` for content/asset codegen only.
 
 | Input | Run | Review |

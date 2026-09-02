@@ -19,7 +19,8 @@ Stable product decisions that guide implementation. Keep entries concise and upd
 | PD-013 | Talent tree rows represent UI visual unlock progression only. | All talent nodes share an equivalent flat power budget; do not scale talent magnitude by row or tier. |
 | PD-014 | Trinket is visual-first with explicit basic accessibility semantics. | Every SwiftUI image is labeled or hidden from accessibility, and stable `accessibilityIdentifier` values remain available to UI tests. Do not add bespoke accessibility modes, setting-specific layout branches, or accessibility-setting UI tests. |
 
-These are product constraints, not a backlog. For source ownership and tests, read the relevant `Docs/AgentContext/` card.
+These are product constraints, not a backlog. Sibling product docs:
+[README.md](README.md). For source ownership and tests, read the relevant `Docs/AgentContext/` card.
 
 Decision IDs are append-only. When direction changes, mark the prior decision as
 superseded and add a new entry instead of silently rewriting history. Any

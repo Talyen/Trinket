@@ -54,24 +54,13 @@ Full smoke and exhaustive UI are CI-owned post-push gates; watch them with
 - The full local UI run belongs to pre-release deploy verification (`release.sh` / `test-deploy.sh`).
 
 After a green isolated rebuild, `--no-build` is appropriate for mid-task smoke
-reruns in the same slot. Routine handoff is headless by default, executing
-package tests, app compilation proofs (`build.sh`), style, and module
-boundaries without booting a simulator. Pass `--smoke` to opt into targeted UI
-smoke tests locally, and pass `--mirror` to auto-mirror the built app to
-**Trinket Run** (see [SimulatorOperations.md](SimulatorOperations.md)).
+reruns in the same slot. Routine handoff is headless by default. Exact flags
+(`--smoke`, `--mirror`, `--dry-run`, `--final`) live in
+[`Scripts/README.md`](../../Scripts/README.md) and each script's usage text.
 
 `handoff.sh` is the canonical path-scoped route. It composes generation,
 style, package, compile, documentation, and idempotence checks from the
-changed paths, including paths added by encountered fixes. Pass `--smoke` to
-include the targeted UI smoke canary. The script's help and `agent-context.sh`
-output show the exact route. Docs and Markdown edits route `check-docs.py`.
-`--final` is only for plan-lifecycle cleanup. `--dry-run` shows the complete
-ordered execution including the cheap CI slices (boundaries, Swift Testing,
-release notes, artwork budget) from `Scripts/config/cheap-slices.txt`. After
-the routed plan succeeds, handoff always runs the cheap CI slices that
-`ci-gate.sh --fast` also enforces; `--dry-run` and execution share that
-canonical registry, and the documentation checker runs once even when script
-and documentation changes are combined.
+changed paths, including paths added by encountered fixes. Docs and Markdown edits route `check-docs.py`.
 
 ## Gate composition
 
@@ -123,15 +112,10 @@ the task, but unusual production/test surface growth needs a necessity statement
 and the simpler alternative that was rejected. Timing logs are diagnostic data,
 not a routine optimization mandate.
 
-Before a requested push, run `agent-push-gate.sh` after committing. It checks
-generation completeness only; the path-scoped handoff remains the pre-CI source
-gate. A green `handoff.sh --isolate` writes a content-addressed receipt
-(`.DerivedData/handoff-receipt.json`) keyed by the verified tree hash. Both
-`agent-push-gate.sh` and the `pre-push` hook reuse that receipt: when the tree
-about to be pushed is exactly the tree handoff just verified, the push gates
-skip the duplicate generate/style/package work and only run a cheap idempotent
-assert. Any new diff, ancestry change, or classification mismatch falls through
-to the full gates — there is no time-window trust.
+Before a requested push, run `agent-push-gate.sh` after committing. Commit
+format, hooks, and push preconditions live in [Release.md](Release.md);
+receipt reuse and idempotent-assert behavior are documented in that guide and
+in [`Scripts/README.md`](../../Scripts/README.md).
 
 Land on `main` by direct push; do not open pull requests. After a red CI run,
 triage with `./Scripts/ci-diagnostics.sh` and

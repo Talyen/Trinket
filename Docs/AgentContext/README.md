@@ -9,6 +9,16 @@ The router prints a read contract. Read the root and nested `AGENTS.md` files pl
 the listed focused card(s) first. Skills are optional lookups: open one only when
 the trigger applies. A route card such as `battle.md` is lookup-only metadata; use
 the focused subcard named beside it and do not read the router card by default.
+All skills live under `../../.agents/skills/`; the design skill below is the one
+most routes attach.
+
+Sample briefing shape (exact cards vary by path):
+
+```text
+Read first: AGENTS.md, Packages/BattleEngine/AGENTS.md
+Context cards: Docs/AgentContext/battle-engine.md
+Verification: ./Scripts/handoff.sh --isolate --paths <files...>
+```
 
 | Card | Typical trigger |
 |------|-----------------|

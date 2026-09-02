@@ -2,7 +2,7 @@
 
 Centralized intake for agent pain points, confusion, and struggle while working in this codebase. Keep entries short — one line in the table is enough. Use the expanded template only when extra context helps.
 
-Add a row to `Open` when docs mislead, behavior surprises, or repeated friction appears. Move it to `Resolved` with a link to the fix when addressed.
+Add a row to `Open` when docs mislead, behavior surprises, or repeated friction appears. Move it to `Resolved` with a link to the fix when addressed. Triage owner: whoever lands the linked fix drains the row into a knowledge pattern or skill update per `knowledge/index.md` lifecycle; review Open rows whenever touching the area they name.
 
 ## How to log
 

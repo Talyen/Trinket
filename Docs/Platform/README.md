@@ -14,4 +14,4 @@ Standing engineering policy. Product decisions live in [Docs/Product/Decisions.m
 | [PerformanceInvestigationPlaybook.md](PerformanceInvestigationPlaybook.md) | Frame-pacing investigation only — do not run unless the task is performance |
 | [MemoryAndEnergyInvestigation.md](MemoryAndEnergyInvestigation.md) | Device-led memory/energy investigation only |
 
-Related: [Audits](../Audits/README.md), [Identity](../Product/Identity.md).
+Related: [Audits](../Audits/README.md), [Identity](../Product/Identity.md), [Product](../Product/README.md).

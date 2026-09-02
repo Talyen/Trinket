@@ -59,5 +59,5 @@ Touched areas must respect their nested guides and AgentContext cards. Run `./Sc
 ## Commit and push
 
 - Commits include only requested work and explicitly adopted fixes, plus their authored and generated outputs, and must pass repository hooks. When an adopted fix shares a dirty file with unrelated work, stage only the fix's hunks. Path-scoped verification should be green before commit.
-- Push only when explicitly requested. Generation completeness against HEAD (`./Scripts/agent-push-gate.sh`) must be green before push; if generation changes files, review them, include them, and ensure the gate is clean. Exact commands: [`Docs/Platform/Release.md`](Docs/Platform/Release.md).
+- Push only when explicitly requested. Commit format, hooks, and push preconditions live in [`Docs/Platform/Release.md`](Docs/Platform/Release.md).
 - Hosted CI runs after a push to `main`. Do **not** require `tests / CI OK` as a GitHub **push** gate; that status is produced by the post-push run.

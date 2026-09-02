@@ -5,6 +5,8 @@ description: Auto-triggers when authoring or modifying Swift comments. Applies t
 
 # Comment hygiene
 
+Activate when: authoring or modifying Swift comments.
+
 Swift comments are banned in authored sources (`SWIFT_SOURCE_DIRS` / `Packages/*`).
 `Scripts/check-comment-ban.sh`, `Scripts/check-agent-invariants.sh`, and `banned_comments`
 in `.swiftlint.yml` enforce this as part of `Scripts/test.sh style` and
