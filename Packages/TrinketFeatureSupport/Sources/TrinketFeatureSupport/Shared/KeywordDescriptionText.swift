@@ -9,28 +9,48 @@ final class KeywordAttributedTextCache {
     private let cache: NSCache<NSString, CacheEntry> = {
         let c = NSCache<NSString, CacheEntry>()
         c.countLimit = 200
-        c.totalCostLimit = 1 * 1024 * 1024
         return c
     }()
 
-    private final class CacheEntry {
-        let value: AttributedString
+    private final class CacheEntry: Sendable {
+        let spans: [KeywordSpan]
 
-        init(_ value: AttributedString) {
-            self.value = value
+        init(_ spans: [KeywordSpan]) {
+            self.spans = spans
         }
     }
 
-    func cachedAttributedText(for text: String) -> AttributedString? {
-        cache.object(forKey: text as NSString)?.value
+    func cachedSpans(for text: String) -> [KeywordSpan]? {
+        cache.object(forKey: text as NSString)?.spans
     }
 
-    func storeAttributedText(_ attr: AttributedString, for text: String) {
-        let entry = CacheEntry(attr)
-        let cost = text.count + attr.characters.count
-        cache.setObject(entry, forKey: text as NSString, cost: cost)
+    func storeSpans(_ spans: [KeywordSpan], for text: String) {
+        cache.setObject(CacheEntry(spans), forKey: text as NSString)
     }
 }
+
+struct KeywordSpan: Sendable {
+    let range: NSRange
+    let keyword: Keyword
+}
+
+private let keywordHighlightRegex: NSRegularExpression? = {
+    let alternatives = Keyword.styledTerms
+        .map { NSRegularExpression.escapedPattern(for: $0.term) }
+        .joined(separator: "|")
+    return try? NSRegularExpression(
+        pattern: "\\b(?:\(alternatives))\\b",
+        options: [.caseInsensitive],
+    )
+}()
+
+private let keywordHighlightLookup: [String: Keyword] = {
+    var lookup: [String: Keyword] = [:]
+    for (term, keyword) in Keyword.styledTerms {
+        lookup[term.lowercased()] = keyword
+    }
+    return lookup
+}()
 
 public struct KeywordDescriptionText: View {
     public let text: String
@@ -45,26 +65,33 @@ public struct KeywordDescriptionText: View {
 
     @MainActor
     public static func attributedText(for text: String) -> AttributedString {
-        if let cached = KeywordAttributedTextCache.shared.cachedAttributedText(for: text) {
-            return cached
+        let spans: [KeywordSpan]
+        if let cached = KeywordAttributedTextCache.shared.cachedSpans(for: text) {
+            spans = cached
+        } else {
+            spans = highlightSpans(in: text)
+            KeywordAttributedTextCache.shared.storeSpans(spans, for: text)
         }
         var attr = AttributedString(text)
-        let nsText = text as NSString
-        let fullRange = NSRange(location: 0, length: nsText.length)
-        for (regex, keyword) in Keyword.styledRegexes {
-            let matches = regex.matches(in: text, options: [], range: fullRange)
-            for match in matches {
-                let nsRange = match.range
-                guard let swiftRange = Range(nsRange, in: text),
-                      let startIdx = AttributedString.Index(swiftRange.lowerBound, within: attr),
-                      let endIdx = AttributedString.Index(swiftRange.upperBound, within: attr)
-                else { continue }
-                let styledRange = startIdx ..< endIdx
-                attr[styledRange].foregroundColor = keyword.visualStyle.color
-                attr[styledRange].inlinePresentationIntent = .stronglyEmphasized
-            }
+        for span in spans {
+            guard let swiftRange = Range(span.range, in: text),
+                  let startIdx = AttributedString.Index(swiftRange.lowerBound, within: attr),
+                  let endIdx = AttributedString.Index(swiftRange.upperBound, within: attr)
+            else { continue }
+            let styledRange = startIdx ..< endIdx
+            attr[styledRange].foregroundColor = span.keyword.visualStyle.color
+            attr[styledRange].inlinePresentationIntent = .stronglyEmphasized
         }
-        KeywordAttributedTextCache.shared.storeAttributedText(attr, for: text)
         return attr
+    }
+
+    private static func highlightSpans(in text: String) -> [KeywordSpan] {
+        guard let regex = keywordHighlightRegex else { return [] }
+        let fullRange = NSRange(location: 0, length: (text as NSString).length)
+        return regex.matches(in: text, options: [], range: fullRange).compactMap { match in
+            let matched = (text as NSString).substring(with: match.range).lowercased()
+            guard let keyword = keywordHighlightLookup[matched] else { return nil }
+            return KeywordSpan(range: match.range, keyword: keyword)
+        }
     }
 }

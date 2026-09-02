@@ -2,6 +2,7 @@ import BattleEngine
 import SwiftUI
 import TrinketCore
 import TrinketDesignSystem
+import TrinketFeatureSupport
 
 struct CombatantBuffAuraBorder: View {
     let kind: CombatantBuffAuraKind
@@ -30,14 +31,7 @@ private struct CombatantBuffAuraStroke: View {
             TrinketDesign.cardShape.strokeBorder(TrinketDesign.Colors.panel, lineWidth: 2)
             TrinketDesign.cardShape.strokeBorder(
                 AngularGradient(
-                    gradient: Gradient(stops: [
-                        .init(color: base, location: 0),
-                        .init(color: base, location: 0.28),
-                        .init(color: TrinketDesign.Colors.Overlay.paper, location: 0.4),
-                        .init(color: base, location: 0.5),
-                        .init(color: base, location: 0.72),
-                        .init(color: base, location: 1),
-                    ]),
+                    gradient: Gradient(stops: Shine.stops(for: base, motionEnabled: true)),
                     center: .center,
                     angle: .degrees(angle),
                 ),

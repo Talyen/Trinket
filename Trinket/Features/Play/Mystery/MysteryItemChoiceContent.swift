@@ -44,7 +44,7 @@ private struct MysteryItemChoiceScaffold<Footer: View>: View {
                             item: item,
                             showsName: true,
                             isSelected: selectedItemID == item.id,
-                            selectionShineColors: CorruptionShine.borderColors,
+                            selectionShineColors: Shine.corruptionBorderColors,
                             isDisabled: isDisabled,
                             accessibilityID: itemAccessibilityID(item.id),
                             onSelect: { onSelectItem(item.id) },

@@ -10,16 +10,12 @@ struct CombatantTraitsSection: View, Equatable {
     let descriptionID: String
 
     var body: some View {
-        DetailSection("Traits", sectionID: sectionID) {
-            VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
-                ForEach(traits) { trait in
-                    DetailTraitRow(
-                        title: trait.name,
-                        description: trait.description.hasSuffix(".") ? String(trait.description.dropLast()) : trait.description,
-                        descriptionAccessibilityID: descriptionID,
-                    )
-                }
-            }
+        TraitListSection(title: "Traits", sectionID: sectionID, items: traits) { trait in
+            DetailTraitRow(
+                title: trait.name,
+                description: trimmed(trait.description),
+                descriptionAccessibilityID: descriptionID,
+            )
         }
     }
 }
@@ -28,17 +24,16 @@ struct CombatantLabyrinthSection: View, Equatable {
     let labyrinthModifiers: [LabyrinthModifierDefinition]
 
     var body: some View {
-        DetailSection("Labyrinth", sectionID: AccessibilityID.CombatantDetail.labyrinthModifiersSection) {
-            VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
-                ForEach(labyrinthModifiers) { modifier in
-                    DetailTraitRow(
-                        title: modifier.title,
-                        description: modifier.effect.description.hasSuffix(".")
-                            ? String(modifier.effect.description.dropLast()) : modifier.effect.description,
-                        descriptionAccessibilityID: AccessibilityID.CombatantDetail.labyrinthModifierDescription,
-                    )
-                }
-            }
+        TraitListSection(
+            title: "Labyrinth",
+            sectionID: AccessibilityID.CombatantDetail.labyrinthModifiersSection,
+            items: labyrinthModifiers,
+        ) { modifier in
+            DetailTraitRow(
+                title: modifier.title,
+                description: trimmed(modifier.effect.description),
+                descriptionAccessibilityID: AccessibilityID.CombatantDetail.labyrinthModifierDescription,
+            )
         }
     }
 }
@@ -47,29 +42,46 @@ struct CombatantActiveEffectsSection: View, Equatable {
     let summaries: [EffectSummary]
 
     var body: some View {
-        DetailSection("Active Effects") {
+        TraitListSection(title: "Active Effects", items: summaries) { summary in
+            let parts = activeEffectParts(summary)
+            DetailTraitRow(title: parts.0, description: parts.1, leadingIconKeyword: summary.keyword)
+        }
+    }
+}
+
+private struct TraitListSection<Item: Identifiable, Row: View>: View {
+    let title: String
+    var sectionID: String?
+    let items: [Item]
+    @ViewBuilder let row: (Item) -> Row
+
+    init(title: String, sectionID: String? = nil, items: [Item], @ViewBuilder row: @escaping (Item) -> Row) {
+        self.title = title
+        self.sectionID = sectionID
+        self.items = items
+        self.row = row
+    }
+
+    var body: some View {
+        DetailSection(title, sectionID: sectionID) {
             VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
-                ForEach(summaries) { summary in
-                    let parts: (String, String) = {
-                        if let separator = summary.text.range(of: ": ") {
-                            let title = String(summary.text[..<separator.lowerBound])
-                            let desc = String(summary.text[separator.upperBound...])
-                            return (
-                                title.hasSuffix(".") ? String(title.dropLast()) : title,
-                                desc.hasSuffix(".") ? String(desc.dropLast()) : desc,
-                            )
-                        }
-                        return (
-                            summary.text.hasSuffix(".") ? String(summary.text.dropLast()) : summary.text,
-                            summary.keyword.rulesText.hasSuffix(".") ? String(summary.keyword.rulesText.dropLast()) : summary.keyword
-                                .rulesText,
-                        )
-                    }()
-                    DetailTraitRow(title: parts.0, description: parts.1, leadingIconKeyword: summary.keyword)
-                }
+                ForEach(items) { row($0) }
             }
         }
     }
+}
+
+private func trimmed(_ text: String) -> String {
+    text.hasSuffix(".") ? String(text.dropLast()) : text
+}
+
+private func activeEffectParts(_ summary: EffectSummary) -> (String, String) {
+    if let separator = summary.text.range(of: ": ") {
+        let title = String(summary.text[..<separator.lowerBound])
+        let desc = String(summary.text[separator.upperBound...])
+        return (trimmed(title), trimmed(desc))
+    }
+    return (trimmed(summary.text), trimmed(summary.keyword.rulesText))
 }
 
 struct CombatantTalentsSection: View {

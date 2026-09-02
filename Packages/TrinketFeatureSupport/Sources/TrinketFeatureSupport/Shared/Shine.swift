@@ -15,11 +15,38 @@ public enum Shine: Equatable, Sendable {
             true
         case let (.keywords(a), .keywords(b)):
             a == b
-        case (.colors, .colors):
-            false
+        case let (.colors(a), .colors(b)):
+            a == b
         default:
             false
         }
+    }
+
+    public static let uniqueBorderColors: [Color] = [
+        TrinketDesign.Colors.warning,
+    ]
+
+    public static let corruptionBorderColors: [Color] = [
+        TrinketDesign.Colors.destructive,
+    ]
+
+    public static func stops(for base: Color, motionEnabled: Bool) -> [Gradient.Stop] {
+        if !motionEnabled {
+            return [
+                .init(color: base, location: 0),
+                .init(color: base, location: 0.5),
+                .init(color: base, location: 1),
+            ]
+        }
+        let highlight = TrinketDesign.Colors.Overlay.paper
+        return [
+            .init(color: base, location: 0),
+            .init(color: base, location: 0.28),
+            .init(color: highlight, location: 0.4),
+            .init(color: base, location: 0.5),
+            .init(color: base, location: 0.72),
+            .init(color: base, location: 1),
+        ]
     }
 
     public var textColors: [Color] {
@@ -27,13 +54,13 @@ public enum Shine: Equatable, Sendable {
         case .none:
             []
         case let .keywords(keywords):
-            keywordColors(keywords)
+            keywords.map(\.visualStyle.color)
         case let .colors(colors):
             colors
         case .unique:
-            UniqueShine.textColors
+            Self.uniqueBorderColors
         case .corruption:
-            CorruptionShine.textColors
+            Self.corruptionBorderColors
         }
     }
 
@@ -50,9 +77,9 @@ public enum Shine: Equatable, Sendable {
         case let .colors(colors):
             colors
         case .unique:
-            UniqueShine.borderColors
+            Self.uniqueBorderColors
         case .corruption:
-            CorruptionShine.borderColors
+            Self.corruptionBorderColors
         }
     }
 
@@ -69,10 +96,6 @@ public enum Shine: Equatable, Sendable {
         guard let keyword else { return .none }
         return Self.keywords([keyword])
     }
-}
-
-private func keywordColors(_ keywords: [Keyword]) -> [Color] {
-    keywords.flatMap { [$0.visualStyle.color, $0.visualStyle.secondaryColor] }
 }
 
 private struct ShineTextModifier: ViewModifier {
@@ -115,26 +138,6 @@ private func textShineStops(colors: [Color]) -> [Gradient.Stop] {
     guard looped.count > 1 else { return [] }
     let last = Double(looped.count - 1)
     return looped.enumerated().map { Gradient.Stop(color: $0.element, location: Double($0.offset) / last) }
-}
-
-public enum CorruptionShine {
-    public static let textColors: [Color] = [
-        TrinketDesign.Colors.destructive,
-        TrinketDesign.Colors.destructive.opacity(0.55),
-    ]
-    public static let borderColors: [Color] = [
-        TrinketDesign.Colors.destructive,
-    ]
-}
-
-public enum UniqueShine {
-    public static let textColors: [Color] = [
-        TrinketDesign.Colors.warning,
-        TrinketDesign.Colors.warning.opacity(0.55),
-    ]
-    public static let borderColors: [Color] = [
-        TrinketDesign.Colors.warning,
-    ]
 }
 
 public extension View {

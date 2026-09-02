@@ -18,8 +18,25 @@ public extension InventoryItem {
         orderedAffinityKeywords
     }
 
+    var displayShine: Shine {
+        if rarity == .unique {
+            return .unique
+        }
+        return astralShine
+    }
+
+    func affixShine(at index: Int, affix: ItemAffix) -> Shine {
+        if rarity == .unique {
+            return .unique
+        }
+        if affix.isCorrupted {
+            return .corruption
+        }
+        let keywords = isPerfectAffix(at: index) ? Keyword.allCases.filter(affix.keywords.contains) : []
+        return keywords.isEmpty ? .none : .keywords(keywords)
+    }
+
     private var orderedAffinityKeywords: [Keyword] {
-        let source = keywords.isEmpty ? baseType.keywordAffinities : keywords
-        return Keyword.allCases.filter { source.contains($0) }
+        Keyword.allCases.filter { keywords.contains($0) }
     }
 }

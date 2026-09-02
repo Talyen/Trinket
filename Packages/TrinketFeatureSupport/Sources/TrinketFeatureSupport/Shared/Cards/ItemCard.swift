@@ -48,14 +48,8 @@ public struct ItemCard<Art: View>: View {
         self.art = art
     }
 
-    private var effectiveShine: Shine {
-        if let shine {
-            return shine
-        }
-        if item.rarity == .unique {
-            return .unique
-        }
-        return item.astralShine
+    private var resolvedShine: Shine {
+        shine ?? item.displayShine
     }
 
     public var body: some View {
@@ -64,7 +58,7 @@ public struct ItemCard<Art: View>: View {
             appliesCardSurface: appliesCardSurface,
             showsLabel: showsName,
             reservesLabelSpace: reservesLabelSpace,
-            shine: effectiveShine,
+            shine: resolvedShine,
             shineLineWidth: shineLineWidth,
             art: art,
             label: {
@@ -82,13 +76,6 @@ public struct ItemCard<Art: View>: View {
                 labelOpacity = 0
             }
         }
-    }
-
-    private var labelShine: Shine {
-        if item.rarity == .unique {
-            return .unique
-        }
-        return item.astralShine
     }
 
     private var standardLabel: some View {
@@ -110,7 +97,7 @@ public struct ItemCard<Art: View>: View {
             Text(balanced: item.displayName)
                 .trinketTypography(.cardLabel)
                 .foregroundStyle(.primary)
-                .shineText(labelShine)
+                .shineText(resolvedShine)
                 .multilineTextAlignment(.center)
                 .trinketFittedText()
 
@@ -133,7 +120,7 @@ public struct ItemCard<Art: View>: View {
 
             Text(balanced: item.displayName)
                 .trinketTypography(.sectionDisplay)
-                .shineText(labelShine)
+                .shineText(resolvedShine)
                 .multilineTextAlignment(.center)
                 .trinketFittedText()
         }

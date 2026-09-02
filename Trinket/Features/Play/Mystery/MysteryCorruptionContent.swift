@@ -18,7 +18,7 @@ struct MysteryCorruptionRevealContent: View {
                 DetailHeroHeader(
                     eyebrow: eyebrow(for: result.item),
                     title: result.item.displayName,
-                    titleShine: result.item.rarity == .unique ? .unique : result.item.astralShine,
+                    titleShine: result.item.displayShine,
                     titleAccessibilityIdentifier: AccessibilityID.Mystery.corruptionRevealTitle,
                     baseHeight: baseHeight,
                 ) {
@@ -50,7 +50,7 @@ struct MysteryCorruptionRevealContent: View {
                                 DetailTraitRow(
                                     title: affix.title,
                                     description: affix.description,
-                                    titleShine: affixShine(for: affix, at: index, item: result.item),
+                                    titleShine: result.item.affixShine(at: index, affix: affix),
                                     titlePrefix: affix.isCorrupted ? "Corrupted " : nil,
                                     titlePrefixShine: affix.isCorrupted ? .corruption : .none,
                                 )
@@ -80,14 +80,6 @@ struct MysteryCorruptionRevealContent: View {
     private func eyebrow(for item: InventoryItem) -> String {
         let tag = item.isTrinket ? "TRINKET" : item.rarity.label.uppercased()
         return item.isCorrupted ? "\(tag) · CORRUPTED" : tag
-    }
-
-    private func affixShine(for affix: ItemAffix, at index: Int, item: InventoryItem) -> Shine {
-        if item.rarity == .unique {
-            return .unique
-        }
-        let keywords = item.isPerfectAffix(at: index) ? Keyword.allCases.filter(affix.keywords.contains) : []
-        return keywords.isEmpty ? .none : .keywords(keywords)
     }
 
     private func changeRow(_ effect: CorruptionEffectSummary) -> some View {
