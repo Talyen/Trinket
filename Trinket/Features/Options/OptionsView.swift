@@ -1,3 +1,4 @@
+import BattleEngine
 import SwiftUI
 import TrinketAppState
 import TrinketContent
@@ -62,12 +63,14 @@ struct OptionsView: View {
             }
 
             Section("Battle") {
-                Picker("Ultimate Animations", selection: $options.ultimateCinematicShowPolicy) {
-                    ForEach(UltimateCinematicShowPolicy.allCases) { policy in
-                        Text(policy.displayName).tag(policy)
+                if BattleFeatureFlags.ultimateCinematicAnimationsEnabled {
+                    Picker("Ultimate Animations", selection: $options.ultimateCinematicShowPolicy) {
+                        ForEach(UltimateCinematicShowPolicy.allCases) { policy in
+                            Text(policy.displayName).tag(policy)
+                        }
                     }
+                    .accessibilityIdentifier(AccessibilityID.Options.showAnimationsPicker)
                 }
-                .accessibilityIdentifier(AccessibilityID.Options.showAnimationsPicker)
 
                 Toggle(isOn: $options.rememberAutoBattlePreference) {
                     Label {

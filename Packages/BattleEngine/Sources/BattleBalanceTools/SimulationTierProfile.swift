@@ -3,10 +3,12 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
+// swiftformat:disable redundantRawValues - serialized report tiers must remain explicit
+// swiftlint:disable redundant_string_enum_value - serialized report tiers must remain explicit
 public enum SimulationPowerTier: String, CaseIterable, Codable, Sendable {
-    case early
-    case middle
-    case lateGame
+    case early = "early"
+    case middle = "middle"
+    case lateGame = "lateGame"
 
     public var level: Int {
         switch self {
@@ -65,6 +67,9 @@ public enum SimulationPowerTier: String, CaseIterable, Codable, Sendable {
         }
     }
 }
+
+// swiftlint:enable redundant_string_enum_value
+// swiftformat:enable redundantRawValues
 
 public struct SimulationBuildContext: Equatable, Hashable, Sendable {
     public let tier: SimulationPowerTier

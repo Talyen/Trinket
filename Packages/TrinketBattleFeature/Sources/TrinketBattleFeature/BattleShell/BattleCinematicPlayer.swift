@@ -1,4 +1,5 @@
 import AVFoundation
+import BattleEngine
 import Foundation
 import Observation
 import TrinketContent
@@ -27,6 +28,7 @@ final class BattleCinematicPlayer {
         companionActorID: String?,
         companionUltimateID: String?,
     ) {
+        guard BattleFeatureFlags.ultimateCinematicAnimationsEnabled else { return }
         if let heroActorID, let heroUltimateID {
             warm(actorID: heroActorID, abilityID: heroUltimateID)
         }
@@ -36,6 +38,7 @@ final class BattleCinematicPlayer {
     }
 
     func warm(actorID: String, abilityID: String) {
+        guard BattleFeatureFlags.ultimateCinematicAnimationsEnabled else { return }
         let key = CinematicCastKey(actorID: actorID, abilityID: abilityID)
         warmedCastKeys.insert(key)
         guard playersByCastKey[key] == nil else { return }
@@ -50,6 +53,7 @@ final class BattleCinematicPlayer {
     }
 
     func player(for actorID: String, abilityID: String) -> AVPlayer? {
+        guard BattleFeatureFlags.ultimateCinematicAnimationsEnabled else { return nil }
         let key = CinematicCastKey(actorID: actorID, abilityID: abilityID)
         if let existing = playersByCastKey[key] {
             return existing
@@ -59,10 +63,12 @@ final class BattleCinematicPlayer {
     }
 
     func hasVideo(for actorID: String, abilityID: String) -> Bool {
-        UltimateCinematicCatalog.reference(for: actorID, abilityID: abilityID).videoName != nil
+        guard BattleFeatureFlags.ultimateCinematicAnimationsEnabled else { return false }
+        return UltimateCinematicCatalog.reference(for: actorID, abilityID: abilityID).videoName != nil
     }
 
     func isReady(for actorID: String, abilityID: String) -> Bool {
+        guard BattleFeatureFlags.ultimateCinematicAnimationsEnabled else { return false }
         let key = CinematicCastKey(actorID: actorID, abilityID: abilityID)
         guard let player = playersByCastKey[key],
               let item = player.currentItem else { return false }
@@ -70,6 +76,7 @@ final class BattleCinematicPlayer {
     }
 
     func whenReady(actorID: String, abilityID: String) async -> Bool {
+        guard BattleFeatureFlags.ultimateCinematicAnimationsEnabled else { return false }
         warm(actorID: actorID, abilityID: abilityID)
         let key = CinematicCastKey(actorID: actorID, abilityID: abilityID)
         guard playersByCastKey[key]?.currentItem != nil else { return false }
@@ -106,6 +113,7 @@ final class BattleCinematicPlayer {
         rate: Float = 1,
         onEnded: @escaping @MainActor () -> Void,
     ) {
+        guard BattleFeatureFlags.ultimateCinematicAnimationsEnabled else { return }
         let key = CinematicCastKey(actorID: actorID, abilityID: abilityID)
         guard let player = player(for: actorID, abilityID: abilityID) else { return }
         applyVolume(effectsVolume: effectsVolume, to: player, actorID: actorID, abilityID: abilityID)

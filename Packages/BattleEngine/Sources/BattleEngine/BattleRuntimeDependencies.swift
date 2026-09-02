@@ -10,6 +10,7 @@ public struct BattleRuntimeDependencies {
     public let autoBattleEnabled: () -> Bool
     public let setAutoBattleEnabled: (Bool) -> Void
     public let shouldAutoSkipUltimateCinematic: (String, Set<String>) -> Bool
+    public let ultimateCinematicAnimationsEnabled: () -> Bool
 
     public static let silent = Self(
         playSFX: { _ in },
@@ -31,6 +32,9 @@ public struct BattleRuntimeDependencies {
         autoBattleEnabled: @escaping () -> Bool = { false },
         setAutoBattleEnabled: @escaping (Bool) -> Void = { _ in },
         shouldAutoSkipUltimateCinematic: @escaping (String, Set<String>) -> Bool,
+        ultimateCinematicAnimationsEnabled: @escaping () -> Bool = {
+            BattleFeatureFlags.ultimateCinematicAnimationsEnabled
+        },
     ) {
         self.playSFX = playSFX
         self.warmSFX = warmSFX
@@ -40,5 +44,6 @@ public struct BattleRuntimeDependencies {
         self.autoBattleEnabled = autoBattleEnabled
         self.setAutoBattleEnabled = setAutoBattleEnabled
         self.shouldAutoSkipUltimateCinematic = shouldAutoSkipUltimateCinematic
+        self.ultimateCinematicAnimationsEnabled = ultimateCinematicAnimationsEnabled
     }
 }

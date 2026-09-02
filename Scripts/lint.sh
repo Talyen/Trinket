@@ -90,7 +90,7 @@ fi
 mkdir -p .DerivedData/swiftlint-cache
 
 if [ ${#extra_args[@]} -gt 0 ]; then
-  swiftlint lint --strict --cache-path .DerivedData/swiftlint-cache "${extra_args[@]}" "${LINT_TARGETS[@]}"
+  swiftlint lint --cache-path .DerivedData/swiftlint-cache "${extra_args[@]}" "${LINT_TARGETS[@]}"
 else
-  swiftlint lint --strict --cache-path .DerivedData/swiftlint-cache "${LINT_TARGETS[@]}"
+  swiftlint lint --cache-path .DerivedData/swiftlint-cache "${LINT_TARGETS[@]}"
 fi

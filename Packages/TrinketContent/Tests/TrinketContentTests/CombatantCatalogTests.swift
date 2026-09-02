@@ -93,9 +93,13 @@ struct CombatantCatalogTests {
 
     @Test func `player combatants have complete ability choices and loadouts`() throws {
         for combatant in GameContent.heroes + GameContent.companions {
-            try #expect(!combatant.abilityChoices.basics.isEmpty, "\(combatant.name) should have basic choices")
-            try #expect(!combatant.abilityChoices.skills.isEmpty, "\(combatant.name) should have skill choices")
-            try #expect(!combatant.abilityChoices.ultimates.isEmpty, "\(combatant.name) should have ultimate choices")
+            for tier in AbilityTier.allCases {
+                let choices = combatant.abilityChoices.abilities(for: tier)
+                try #expect(choices.count == 4, "\(combatant.name) should have four \(tier.rawValue) choices")
+                try #expect(Set(choices.map(\.id)).count == 4)
+                try #expect(choices.allSatisfy { $0.tier == tier })
+                try #expect(combatant.abilityLoadout.ability(for: tier)?.id == choices.first?.id)
+            }
             _ = try #require(combatant.abilityLoadout.basic, "\(combatant.name) should have a selected basic")
             _ = try #require(combatant.abilityLoadout.skill, "\(combatant.name) should have a selected skill")
             _ = try #require(combatant.abilityLoadout.ultimate, "\(combatant.name) should have a selected ultimate")

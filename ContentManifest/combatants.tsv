@@ -1,19 +1,19 @@
 id	name	role	max_health	max_mana	basics	skills	ultimates
-knight	Knight	hero	17	0	bash,block	smite,sunder	avatarOfJustice,moltenBulwark
-ranger	Ranger	hero	14	0	venomArrow,fireArrow	sapArrow,bountyShot	packTactics,astralArrow
-rogue	Rogue	hero	14	0	stab,blackjack	poisonDagger,serratedEdge	hemorrhage,shadowstep
-wizard	Wizard	hero	14	10	manaBerries,rayOfFrost	fireball,glacialWard	meteor,blizzard
-warlock	Warlock	hero	16	9	kindling,fangs	bloodOffering,darkPact	combustion,faustianBargain
-wolf	Wolf	companion	14	0	fangs,rendingSlash	pounce,predatorsFocus	packTactics,hemorrhage
-bear	Bear	companion	17	0	maul,fangs	briarShield,sunder	earthquake,thornMail
-frost_whelp	Frost Whelp	companion	14	8	rayOfFrost,iceShot	frostbolt,coldSnap	blizzard,astralArrow
-lizard_scout	Lizard Scout	companion	14	0	stab,blackjack	serratedEdge,poisonDagger	hemorrhage,steal
-panther	Panther	companion	15	0	rendingSlash,fangs	pounce,venomFangs	shadowstep,bloodthorn
-phoenix	Phoenix	companion	14	8	kindling,fireArrow	fireball,cinderbloom	phoenixFeather,combustion
-golden_retriever	Golden Retriever	companion	16	0	apple,sniffOut	stoneskinPotion,tithe	luckPotion,goldenPlate
-library_owl	Library Owl	companion	14	8	apple,stargaze	heal,cleanse	panaceaPotion,sunburst
-risen_skeleton	Risen Skeleton	companion	15	0	slash,block	darkPact,sunder	faustianBargain,hemorrhage
-mana_moth	Mana Moth	companion	14	11	manaBerries,pixieDust	manaPotion,manaShield	meteor,blizzard
-pixie	Pixie	companion	14	7	pixieDust,manaBerries	cleanse,heal	panaceaPotion,sunburst
-shield_scarab	Shield Scarab	companion	16	0	block,shieldBash	spikedShield,stoneskinPotion	thornMail,blessedAegis
-fox	Fox	companion	14	0	sniffOut,fangs	steal,pounce	shadowstep,luckPotion
+knight	Knight	hero	17	0	bash,block,shieldBash,slash	smite,sunder,stoneskinPotion,spikedShield	avatarOfJustice,moltenBulwark,blessedAegis,earthquake
+ranger	Ranger	hero	14	0	venomArrow,fireArrow,sniffOut,rendingSlash	sapArrow,bountyShot,predatorsFocus,serratedEdge	packTactics,astralArrow,hemorrhage,bloodthorn
+rogue	Rogue	hero	14	0	stab,blackjack,fangs,rendingSlash	poisonDagger,serratedEdge,steal,venomFangs	hemorrhage,shadowstep,bloodthorn,luckPotion
+wizard	Wizard	hero	14	10	manaBerries,rayOfFrost,kindling,stargaze	fireball,glacialWard,frostbolt,manaShield	meteor,blizzard,luckPotion,combustion
+warlock	Warlock	hero	16	9	kindling,fangs,manaBerries,rendingSlash	bloodOffering,darkPact,venomFangs,cinderbloom	combustion,faustianBargain,bloodthorn,meteor
+wolf	Wolf	companion	14	0	fangs,rendingSlash,stab,sniffOut	pounce,predatorsFocus,venomFangs,serratedEdge	packTactics,hemorrhage,shadowstep,bloodthorn
+bear	Bear	companion	17	0	maul,fangs,bash,slash	briarShield,sunder,stoneskinPotion,serratedEdge	earthquake,thornMail,moltenBulwark,bloodthorn
+frost_whelp	Frost Whelp	companion	14	8	rayOfFrost,iceShot,manaBerries,stargaze	frostbolt,coldSnap,glacialWard,manaShield	blizzard,astralArrow,luckPotion,panaceaPotion
+lizard_scout	Lizard Scout	companion	14	0	stab,blackjack,causticJab,sniffOut	serratedEdge,poisonDagger,steal,acidPotion	hemorrhage,bloodthorn,shadowstep,astralArrow
+panther	Panther	companion	15	0	rendingSlash,fangs,stab,sniffOut	pounce,venomFangs,predatorsFocus,serratedEdge	shadowstep,bloodthorn,hemorrhage,packTactics
+phoenix	Phoenix	companion	14	8	kindling,fireArrow,pixieDust,manaBerries	fireball,cinderbloom,manaPotion,heal	phoenixFeather,combustion,meteor,sunburst
+golden_retriever	Golden Retriever	companion	16	0	apple,sniffOut,block,shieldBash	stoneskinPotion,tithe,steal,heal	luckPotion,goldenPlate,panaceaPotion,blessedAegis
+library_owl	Library Owl	companion	14	8	apple,stargaze,manaBerries,block	heal,cleanse,smite,manaPotion	panaceaPotion,sunburst,astralArrow,luckPotion
+risen_skeleton	Risen Skeleton	companion	15	0	slash,block,fangs,rendingSlash	darkPact,sunder,bloodOffering,venomFangs	faustianBargain,hemorrhage,bloodthorn,shadowstep
+mana_moth	Mana Moth	companion	14	11	manaBerries,pixieDust,stargaze,rayOfFrost	manaPotion,manaShield,frostbolt,coldSnap	meteor,blizzard,combustion,luckPotion
+pixie	Pixie	companion	14	7	pixieDust,manaBerries,apple,stargaze	cleanse,heal,tithe,manaPotion	panaceaPotion,sunburst,meteor,luckPotion
+shield_scarab	Shield Scarab	companion	16	0	block,shieldBash,bash,slash	spikedShield,stoneskinPotion,briarShield,sunder	thornMail,blessedAegis,earthquake,moltenBulwark
+fox	Fox	companion	14	0	sniffOut,fangs,bash,rendingSlash	steal,pounce,predatorsFocus,serratedEdge	shadowstep,luckPotion,packTactics,bloodthorn

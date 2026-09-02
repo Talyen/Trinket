@@ -14,6 +14,17 @@ struct OptionsUltimateSkipPolicyTests {
         #expect(options.ultimateCinematicShowPolicy == .oncePerBattle)
     }
 
+    @Test func `saved show policy reloads while cinematic animations are unavailable`() throws {
+        let suiteName = "OptionsUltimateSkipPolicyTests.reload.\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suiteName))
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let options = OptionsStore(defaults: defaults)
+        options.ultimateCinematicShowPolicy = .always
+
+        let reloadedOptions = OptionsStore(defaults: defaults)
+        #expect(reloadedOptions.ultimateCinematicShowPolicy == .always)
+    }
+
     @Test func `once per battle auto skips after actor presented`() throws {
         let suiteName = "OptionsUltimateSkipPolicyTests.\(UUID().uuidString)"
         let defaults = try #require(UserDefaults(suiteName: suiteName))

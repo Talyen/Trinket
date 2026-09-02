@@ -158,6 +158,10 @@ public final class BattleSession: BattleRuntime {
         presentationEnvironment.effectsVolume()
     }
 
+    var areUltimateCinematicAnimationsEnabled: Bool {
+        presentationEnvironment.ultimateCinematicAnimationsEnabled()
+    }
+
     func playPresentationSFX(_ id: String) {
         presentationEnvironment.playSFX([id])
     }
@@ -299,6 +303,7 @@ public final class BattleSession: BattleRuntime {
         companionUltimateID: String?,
     ) {
         presentationEnvironment.warmSFX(SFXID.battlePrewarmIDs, 2)
+        guard areUltimateCinematicAnimationsEnabled else { return }
         BattleCinematicPlayer.shared.warmLoadout(
             heroActorID: heroActorID,
             heroUltimateID: heroUltimateID,

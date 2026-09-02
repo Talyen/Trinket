@@ -708,11 +708,21 @@ def parse_hand_ability_symbols(path: Path) -> list[str]:
 
 
 def collect_ability_symbols() -> set[str]:
-    symbols: set[str] = set()
+    return set(collect_ability_tiers())
+
+
+def collect_ability_tiers() -> dict[str, str]:
+    tiers: dict[str, str] = {}
     for tier in ("Basic", "Skill", "Ultimate"):
         hand_path = CONTENT_DIR / f"AbilityCatalog{tier}.swift"
-        symbols.update(parse_hand_ability_symbols(hand_path))
-    return symbols
+        tier_name = tier.lower()
+        for symbol in parse_hand_ability_symbols(hand_path):
+            previous = tiers.setdefault(symbol, tier_name)
+            if previous != tier_name:
+                raise ValueError(
+                    f"Ability symbol '{symbol}' appears in both {previous} and {tier_name} catalogs"
+                )
+    return tiers
 
 
 
@@ -743,14 +753,28 @@ def _validate_positive_int(label: str, value: str, row_id: str) -> None:
         raise ValueError(f"{label} for {row_id} must be non-negative")
 
 
-def _validate_ability_symbols(raw: str, row_id: str, ability_symbols: set[str], expected_count: int | None = None) -> None:
+def _validate_ability_symbols(
+    raw: str,
+    row_id: str,
+    ability_symbols: set[str],
+    expected_count: int | None = None,
+    expected_tier: str | None = None,
+    ability_tiers: dict[str, str] | None = None,
+) -> None:
     symbols = parse_ability_symbol_list(raw)
     if expected_count is not None and len(symbols) != expected_count:
         raise ValueError(f"{row_id} must list exactly {expected_count} ability symbols")
+    if len(set(symbols)) != len(symbols):
+        raise ValueError(f"{row_id} must not repeat an ability symbol within a tier")
     for symbol in symbols:
         _validate_swift_symbol("ability symbol", symbol, row_id)
         if symbol not in ability_symbols:
             raise ValueError(f"Unknown ability symbol '{symbol}' for {row_id}")
+        if expected_tier is not None and ability_tiers is not None and ability_tiers[symbol] != expected_tier:
+            raise ValueError(
+                f"Ability symbol '{symbol}' for {row_id} belongs to the {ability_tiers[symbol]} tier, "
+                f"not {expected_tier}"
+            )
 
 
 def validate_trait_rows(rows: list[TraitRow]) -> None:
@@ -770,8 +794,11 @@ def validate_trait_rows(rows: list[TraitRow]) -> None:
 
 
 def validate_combatant_rows(
-    rows: list[CombatantRow], ability_symbols: set[str]
+    rows: list[CombatantRow],
+    ability_symbols: set[str],
+    ability_tiers: dict[str, str] | None = None,
 ) -> None:
+    ability_tiers = ability_tiers or collect_ability_tiers()
     seen: set[str] = set()
     for row in rows:
         if row.id in seen:
@@ -788,9 +815,30 @@ def validate_combatant_rows(
             raise ValueError(f"max_health for {row.id} must be at least 6")
         _validate_positive_int("max_mana", row.max_mana, row.id)
 
-        _validate_ability_symbols(row.basics, row.id, ability_symbols, expected_count=2)
-        _validate_ability_symbols(row.skills, row.id, ability_symbols, expected_count=2)
-        _validate_ability_symbols(row.ultimates, row.id, ability_symbols, expected_count=2)
+        _validate_ability_symbols(
+            row.basics,
+            row.id,
+            ability_symbols,
+            expected_count=4,
+            expected_tier="basic",
+            ability_tiers=ability_tiers,
+        )
+        _validate_ability_symbols(
+            row.skills,
+            row.id,
+            ability_symbols,
+            expected_count=4,
+            expected_tier="skill",
+            ability_tiers=ability_tiers,
+        )
+        _validate_ability_symbols(
+            row.ultimates,
+            row.id,
+            ability_symbols,
+            expected_count=4,
+            expected_tier="ultimate",
+            ability_tiers=ability_tiers,
+        )
         render_party_combatant(row)
 
 
@@ -1729,11 +1777,12 @@ def validate_manifests() -> tuple[
     item_base_rows = parse_item_base_rows()
     talent_rows = parse_talent_rows()
     ability_symbols = collect_ability_symbols()
+    ability_tiers = collect_ability_tiers()
 
     validate_affix_rows(affix_rows)
     validate_trait_rows(trait_rows)
     validate_talent_rows(talent_rows)
-    validate_combatant_rows(combatant_rows, ability_symbols)
+    validate_combatant_rows(combatant_rows, ability_symbols, ability_tiers)
     validate_enemy_rows(
         enemy_rows,
         ability_symbols,

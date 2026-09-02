@@ -224,6 +224,7 @@ extension BattleSession {
     }
 
     func triggerUltimateInFrameHighlight(from event: ActionEvent, at date: Date) {
+        guard areUltimateCinematicAnimationsEnabled else { return }
         let autoSkip = presentationEnvironment.shouldAutoSkipUltimateCinematic(
             event.actorID,
             spectacle.actorsWhoPresentedUltimateThisBattle,

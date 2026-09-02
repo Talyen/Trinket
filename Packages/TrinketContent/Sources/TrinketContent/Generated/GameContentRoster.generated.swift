@@ -12,9 +12,9 @@ enum GameContentRosterGenerated {
             role: .hero,
             maxHealth: 17,
             abilityChoices: AbilityChoices(
-                basics: [.bash, .block],
-                skills: [.smite, .sunder],
-                ultimates: [.avatarOfJustice, .moltenBulwark]
+                basics: [.bash, .block, .shieldBash, .slash],
+                skills: [.smite, .sunder, .stoneskinPotion, .spikedShield],
+                ultimates: [.avatarOfJustice, .moltenBulwark, .blessedAegis, .earthquake]
             )
         ))
         list.append(Combatant(
@@ -23,9 +23,9 @@ enum GameContentRosterGenerated {
             role: .hero,
             maxHealth: 14,
             abilityChoices: AbilityChoices(
-                basics: [.venomArrow, .fireArrow],
-                skills: [.sapArrow, .bountyShot],
-                ultimates: [.packTactics, .astralArrow]
+                basics: [.venomArrow, .fireArrow, .sniffOut, .rendingSlash],
+                skills: [.sapArrow, .bountyShot, .predatorsFocus, .serratedEdge],
+                ultimates: [.packTactics, .astralArrow, .hemorrhage, .bloodthorn]
             )
         ))
         list.append(Combatant(
@@ -34,9 +34,9 @@ enum GameContentRosterGenerated {
             role: .hero,
             maxHealth: 14,
             abilityChoices: AbilityChoices(
-                basics: [.stab, .blackjack],
-                skills: [.poisonDagger, .serratedEdge],
-                ultimates: [.hemorrhage, .shadowstep]
+                basics: [.stab, .blackjack, .fangs, .rendingSlash],
+                skills: [.poisonDagger, .serratedEdge, .steal, .venomFangs],
+                ultimates: [.hemorrhage, .shadowstep, .bloodthorn, .luckPotion]
             )
         ))
         list.append(Combatant(
@@ -46,9 +46,9 @@ enum GameContentRosterGenerated {
             maxHealth: 14,
             maxMana: 10,
             abilityChoices: AbilityChoices(
-                basics: [.manaBerries, .rayOfFrost],
-                skills: [.fireball, .glacialWard],
-                ultimates: [.meteor, .blizzard]
+                basics: [.manaBerries, .rayOfFrost, .kindling, .stargaze],
+                skills: [.fireball, .glacialWard, .frostbolt, .manaShield],
+                ultimates: [.meteor, .blizzard, .luckPotion, .combustion]
             )
         ))
         list.append(Combatant(
@@ -58,9 +58,9 @@ enum GameContentRosterGenerated {
             maxHealth: 16,
             maxMana: 9,
             abilityChoices: AbilityChoices(
-                basics: [.kindling, .fangs],
-                skills: [.bloodOffering, .darkPact],
-                ultimates: [.combustion, .faustianBargain]
+                basics: [.kindling, .fangs, .manaBerries, .rendingSlash],
+                skills: [.bloodOffering, .darkPact, .venomFangs, .cinderbloom],
+                ultimates: [.combustion, .faustianBargain, .bloodthorn, .meteor]
             )
         ))
         return list
@@ -75,9 +75,9 @@ enum GameContentRosterGenerated {
             role: .companion,
             maxHealth: 14,
             abilityChoices: AbilityChoices(
-                basics: [.fangs, .rendingSlash],
-                skills: [.pounce, .predatorsFocus],
-                ultimates: [.packTactics, .hemorrhage]
+                basics: [.fangs, .rendingSlash, .stab, .sniffOut],
+                skills: [.pounce, .predatorsFocus, .venomFangs, .serratedEdge],
+                ultimates: [.packTactics, .hemorrhage, .shadowstep, .bloodthorn]
             )
         ))
         list.append(Combatant(
@@ -86,9 +86,9 @@ enum GameContentRosterGenerated {
             role: .companion,
             maxHealth: 17,
             abilityChoices: AbilityChoices(
-                basics: [.maul, .fangs],
-                skills: [.briarShield, .sunder],
-                ultimates: [.earthquake, .thornMail]
+                basics: [.maul, .fangs, .bash, .slash],
+                skills: [.briarShield, .sunder, .stoneskinPotion, .serratedEdge],
+                ultimates: [.earthquake, .thornMail, .moltenBulwark, .bloodthorn]
             )
         ))
         list.append(Combatant(
@@ -98,9 +98,9 @@ enum GameContentRosterGenerated {
             maxHealth: 14,
             maxMana: 8,
             abilityChoices: AbilityChoices(
-                basics: [.rayOfFrost, .iceShot],
-                skills: [.frostbolt, .coldSnap],
-                ultimates: [.blizzard, .astralArrow]
+                basics: [.rayOfFrost, .iceShot, .manaBerries, .stargaze],
+                skills: [.frostbolt, .coldSnap, .glacialWard, .manaShield],
+                ultimates: [.blizzard, .astralArrow, .luckPotion, .panaceaPotion]
             )
         ))
         list.append(Combatant(
@@ -109,9 +109,9 @@ enum GameContentRosterGenerated {
             role: .companion,
             maxHealth: 14,
             abilityChoices: AbilityChoices(
-                basics: [.stab, .blackjack],
-                skills: [.serratedEdge, .poisonDagger],
-                ultimates: [.hemorrhage, .steal]
+                basics: [.stab, .blackjack, .causticJab, .sniffOut],
+                skills: [.serratedEdge, .poisonDagger, .steal, .acidPotion],
+                ultimates: [.hemorrhage, .bloodthorn, .shadowstep, .astralArrow]
             )
         ))
         list.append(Combatant(
@@ -120,9 +120,9 @@ enum GameContentRosterGenerated {
             role: .companion,
             maxHealth: 15,
             abilityChoices: AbilityChoices(
-                basics: [.rendingSlash, .fangs],
-                skills: [.pounce, .venomFangs],
-                ultimates: [.shadowstep, .bloodthorn]
+                basics: [.rendingSlash, .fangs, .stab, .sniffOut],
+                skills: [.pounce, .venomFangs, .predatorsFocus, .serratedEdge],
+                ultimates: [.shadowstep, .bloodthorn, .hemorrhage, .packTactics]
             )
         ))
         list.append(Combatant(
@@ -132,9 +132,9 @@ enum GameContentRosterGenerated {
             maxHealth: 14,
             maxMana: 8,
             abilityChoices: AbilityChoices(
-                basics: [.kindling, .fireArrow],
-                skills: [.fireball, .cinderbloom],
-                ultimates: [.phoenixFeather, .combustion]
+                basics: [.kindling, .fireArrow, .pixieDust, .manaBerries],
+                skills: [.fireball, .cinderbloom, .manaPotion, .heal],
+                ultimates: [.phoenixFeather, .combustion, .meteor, .sunburst]
             )
         ))
         list.append(Combatant(
@@ -143,9 +143,9 @@ enum GameContentRosterGenerated {
             role: .companion,
             maxHealth: 16,
             abilityChoices: AbilityChoices(
-                basics: [.apple, .sniffOut],
-                skills: [.stoneskinPotion, .tithe],
-                ultimates: [.luckPotion, .goldenPlate]
+                basics: [.apple, .sniffOut, .block, .shieldBash],
+                skills: [.stoneskinPotion, .tithe, .steal, .heal],
+                ultimates: [.luckPotion, .goldenPlate, .panaceaPotion, .blessedAegis]
             )
         ))
         list.append(Combatant(
@@ -155,9 +155,9 @@ enum GameContentRosterGenerated {
             maxHealth: 14,
             maxMana: 8,
             abilityChoices: AbilityChoices(
-                basics: [.apple, .stargaze],
-                skills: [.heal, .cleanse],
-                ultimates: [.panaceaPotion, .sunburst]
+                basics: [.apple, .stargaze, .manaBerries, .block],
+                skills: [.heal, .cleanse, .smite, .manaPotion],
+                ultimates: [.panaceaPotion, .sunburst, .astralArrow, .luckPotion]
             )
         ))
         list.append(Combatant(
@@ -166,9 +166,9 @@ enum GameContentRosterGenerated {
             role: .companion,
             maxHealth: 15,
             abilityChoices: AbilityChoices(
-                basics: [.slash, .block],
-                skills: [.darkPact, .sunder],
-                ultimates: [.faustianBargain, .hemorrhage]
+                basics: [.slash, .block, .fangs, .rendingSlash],
+                skills: [.darkPact, .sunder, .bloodOffering, .venomFangs],
+                ultimates: [.faustianBargain, .hemorrhage, .bloodthorn, .shadowstep]
             )
         ))
         list.append(Combatant(
@@ -178,9 +178,9 @@ enum GameContentRosterGenerated {
             maxHealth: 14,
             maxMana: 11,
             abilityChoices: AbilityChoices(
-                basics: [.manaBerries, .pixieDust],
-                skills: [.manaPotion, .manaShield],
-                ultimates: [.meteor, .blizzard]
+                basics: [.manaBerries, .pixieDust, .stargaze, .rayOfFrost],
+                skills: [.manaPotion, .manaShield, .frostbolt, .coldSnap],
+                ultimates: [.meteor, .blizzard, .combustion, .luckPotion]
             )
         ))
         list.append(Combatant(
@@ -190,9 +190,9 @@ enum GameContentRosterGenerated {
             maxHealth: 14,
             maxMana: 7,
             abilityChoices: AbilityChoices(
-                basics: [.pixieDust, .manaBerries],
-                skills: [.cleanse, .heal],
-                ultimates: [.panaceaPotion, .sunburst]
+                basics: [.pixieDust, .manaBerries, .apple, .stargaze],
+                skills: [.cleanse, .heal, .tithe, .manaPotion],
+                ultimates: [.panaceaPotion, .sunburst, .meteor, .luckPotion]
             )
         ))
         list.append(Combatant(
@@ -201,9 +201,9 @@ enum GameContentRosterGenerated {
             role: .companion,
             maxHealth: 16,
             abilityChoices: AbilityChoices(
-                basics: [.block, .shieldBash],
-                skills: [.spikedShield, .stoneskinPotion],
-                ultimates: [.thornMail, .blessedAegis]
+                basics: [.block, .shieldBash, .bash, .slash],
+                skills: [.spikedShield, .stoneskinPotion, .briarShield, .sunder],
+                ultimates: [.thornMail, .blessedAegis, .earthquake, .moltenBulwark]
             )
         ))
         list.append(Combatant(
@@ -212,9 +212,9 @@ enum GameContentRosterGenerated {
             role: .companion,
             maxHealth: 14,
             abilityChoices: AbilityChoices(
-                basics: [.sniffOut, .fangs],
-                skills: [.steal, .pounce],
-                ultimates: [.shadowstep, .luckPotion]
+                basics: [.sniffOut, .fangs, .bash, .rendingSlash],
+                skills: [.steal, .pounce, .predatorsFocus, .serratedEdge],
+                ultimates: [.shadowstep, .luckPotion, .packTactics, .bloodthorn]
             )
         ))
         return list

@@ -144,6 +144,7 @@ public struct PreviewLabView: View {
     }
 
     private func warmSelectedCinematics() {
+        guard labSession.areUltimateCinematicAnimationsEnabled else { return }
         if let ultimate = PreviewLab.cinematicUltimate(for: selectedHeroID) {
             BattleCinematicPlayer.shared.warm(actorID: selectedHeroID, abilityID: ultimate.id)
         }

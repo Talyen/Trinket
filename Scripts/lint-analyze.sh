@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# CI-only advisory SwiftLint analyzer pass (unused_import / unused_declaration).
+# CI-only advisory SwiftLint analyzer pass.
 # Requires an xcodebuild compiler log from build-for-testing. Do not add this
 # to handoff.sh or test.sh style — it needs the shared CI build index/log.
 # tests.yml runs this as an advisory job after build, off the test critical path.
@@ -53,5 +53,5 @@ if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
   extra_args+=(--reporter xcode)
 fi
 
-echo "=== SwiftLint analyze (unused_import / unused_declaration) ==="
+echo "=== SwiftLint analyze (capture_variable / unused_import / unused_declaration) ==="
 swiftlint analyze --compiler-log-path "$COMBINED" "${extra_args[@]}" "${SWIFT_SOURCE_DIRS[@]}"

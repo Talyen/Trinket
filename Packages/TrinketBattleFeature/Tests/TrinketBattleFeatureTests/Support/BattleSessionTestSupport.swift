@@ -18,7 +18,7 @@ enum BattleSessionTestSupport {
         enemy: Combatant? = nil,
         autoEndTurnDelay: TimeInterval = 0.01,
         ultimateInFrameDurationOverride: TimeInterval? = nil,
-        presentationEnvironment: BattleRuntimeDependencies = .silent,
+        presentationEnvironment: BattleRuntimeDependencies? = nil,
         stageRewardsAlreadyClaimed: Bool = false,
     ) -> BattleSession {
         let resolvedHero = hero ?? CombatantFixtures.combatant(
@@ -35,7 +35,7 @@ enum BattleSessionTestSupport {
             enemyAttackImpactDelayOverride: 0,
             outcomePresentationDelayOverride: 0,
             ultimateInFrameDurationOverride: ultimateInFrameDurationOverride,
-            presentationEnvironment: presentationEnvironment,
+            presentationEnvironment: presentationEnvironment ?? Self.enabledPresentationEnvironment,
         )
         session.partyCelebrateDelayOverride = .zero
         session.autoBattleRetryDelay = .zero
@@ -53,6 +53,7 @@ enum BattleSessionTestSupport {
 
     static func presentationEnvironment(
         shouldAutoSkipUltimateCinematic: @escaping (String, Set<String>) -> Bool,
+        ultimateCinematicAnimationsEnabled: @escaping () -> Bool = { true },
     ) -> BattleRuntimeDependencies {
         BattleRuntimeDependencies(
             playSFX: { _ in },
@@ -60,8 +61,13 @@ enum BattleSessionTestSupport {
             hapticsEnabled: { false },
             effectsVolume: { 0 },
             shouldAutoSkipUltimateCinematic: shouldAutoSkipUltimateCinematic,
+            ultimateCinematicAnimationsEnabled: ultimateCinematicAnimationsEnabled,
         )
     }
+
+    private static let enabledPresentationEnvironment = presentationEnvironment(
+        shouldAutoSkipUltimateCinematic: { _, _ in false },
+    )
 
     static func waitUntil(
         timeout: Duration = .seconds(2),

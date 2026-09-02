@@ -25,7 +25,9 @@ Choose the cheapest route that answers the question at hand.
 Run `./Scripts/agent-context.sh --agent --paths <files...>` after touched paths
 are known. Use `--working-tree` only for an intentional whole-tree scope. The
 briefing prints the required/optional read contract and applicable handoff
-route; rerun it when scope crosses into another owner.
+route; rerun it when requested work or an encountered fix crosses into another
+owner. The final path list is the union of requested work and every explicitly
+adopted fix, not the task's initial path list.
 
 ## Test tiers
 
@@ -59,8 +61,9 @@ so Simulator.app shows the latest without a manual install.
 
 `handoff.sh` is the canonical path-scoped route. It composes generation,
 style, package, compile, smoke, documentation, and idempotence checks from the
-changed paths; the script's help and `agent-context.sh` output show the exact
-route. Docs and Markdown edits route `check-docs.py`. `--final` is only for
+changed paths, including paths added by encountered fixes. The script's help
+and `agent-context.sh` output show the exact route. Docs and Markdown edits
+route `check-docs.py`. `--final` is only for
 plan-lifecycle cleanup. `--dry-run` shows the complete ordered execution including the cheap CI slices (boundaries, Swift Testing, release notes, artwork budget) from `Scripts/config/cheap-slices.txt`. After the routed plan succeeds, handoff always runs the cheap CI slices that `ci-gate.sh --fast` also enforces; `--dry-run` and execution share that canonical registry, and the documentation checker runs once even when script and documentation changes are combined.
 
 ## Gate composition
@@ -88,7 +91,7 @@ changes.
 | SwiftFormat | Mechanical Swift formatting and preferred rewrites |
 | SwiftLint | API idioms, semantics, size, and unsafe operations |
 | `check-ui-style.sh` | Product colors, materials, and chrome routed through `TrinketDesign` |
-| `check-platform-api-bans.sh` | Repository-banned legacy observation/navigation APIs |
+| `check-platform-api-bans.sh` | Repository-banned legacy observation/navigation APIs, mirrored from SwiftLint for portable builds |
 | `check-exclusivity-footguns.sh` | Suspicious `inout` access to stored properties |
 | `check-agent-invariants.sh` | BattleEngine entropy, test `Task.sleep`, persistence `try?`, undocumented concurrency escapes, SwiftLint disables without reasons |
 | `check-accessibility-ids.sh` | Unique `AccessibilityID` constants; UITests must query `AccessibilityID.*` |

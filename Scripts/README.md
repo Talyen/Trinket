@@ -74,7 +74,7 @@ Read these focused guides:
 | `./Scripts/ci-diagnostics.sh --stage-artifacts <RESULTS_DIR> <ARTIFACT_DIR>` | Stage structured artifacts, adding raw failure evidence only when needed |
 | `./Scripts/ci-diagnostics.sh --cleanup [--keep] <RESULTS_DIR>` | Delete passed result/report history after staging; retain failures for current triage unless `--keep` |
 | `./Scripts/change-budget.sh --paths …` | Advisory authored-surface report against HEAD; `--base <rev>` for CI ranges |
-| `./Scripts/lint-analyze.sh` | CI-only advisory SwiftLint analyzer (`unused_import` / `unused_declaration`) after a compiler log exists; runs beside tests, never from handoff or style |
+| `./Scripts/lint-analyze.sh` | CI-only advisory SwiftLint analyzer (`capture_variable` / `unused_import` / `unused_declaration`) after a compiler log exists; runs beside tests, never from handoff or style |
 | `./Scripts/ensure-ci-tools.sh` | Install pinned XcodeGen, SwiftFormat, SwiftLint, ripgrep, and xcbeautify |
 | `./Scripts/update-tools.sh [--apply]` | Report newer SwiftFormat/SwiftLint releases; with `--apply`, bump the pins in `tool-versions.env` (checksummed) and re-install |
 | `./Scripts/run-simulator.sh [--isolate] [--agent N]` | Build and launch on a managed simulator (default Trinket Run; `--isolate`/`--agent N` for the isolated pool) — also available as `run` alias via `node Scripts/setup-git-safety.mjs` |

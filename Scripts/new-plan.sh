@@ -43,14 +43,16 @@ expires: $expires
 
 ## Objective
 
-Describe the user-visible outcome and the bounded implementation scope.
+Describe the user-visible outcome and initial implementation scope. Confirmed
+encountered fixes may expand it under the root agent policy.
 
 ## Plan
 
 - [ ] Record the baseline and relevant constraints.
 - [ ] Implement the most pragmatic complete change — the cleanest architectural shape that fully satisfies the objective, not the narrowest diff.
+- [ ] Record evidenced scope expansions and include their complete remedies and owners.
 - [ ] Add or extend only consequential coverage.
-- [ ] Run path-scoped verification.
+- [ ] Run path-scoped verification for the union of requested and adopted changes.
 - [ ] Record the outcome in \`Docs/Plans/Archived/README.md\`, delete this file, and report verification.
 
 ## Notes

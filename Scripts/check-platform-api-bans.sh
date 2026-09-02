@@ -1,30 +1,9 @@
 #!/usr/bin/env bash
-# Enforce AGENTS.md platform API bans without SourceKit (works on Linux CI tools).
-# SwiftLint custom_rules cover the same patterns on macOS when SourceKit is available.
+# Enforce AGENTS.md legacy platform API bans without SourceKit.
+# SwiftLint custom_rules cover the same patterns when SourceKit is available.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
-
-SYSTEM_COLORS="$(awk '!/^#/ && NF { if (count++) printf "|"; printf "%s", $0 }' Scripts/config/system-colors.txt)"
-if [[ -z "$SYSTEM_COLORS" ]]; then
-  echo "check-platform-api-bans: Scripts/config/system-colors.txt must list at least one color" >&2
-  exit 1
-fi
-
-# Verify .swiftlint.yml contains all system colors from system-colors.txt in its custom rules
-if [[ -f .swiftlint.yml ]]; then
-  if ! grep -q -E "banned_system_color_literal" .swiftlint.yml; then
-    echo "check-platform-api-bans: .swiftlint.yml is missing banned_system_color_literal rule" >&2
-    exit 1
-  fi
-  while IFS= read -r color; do
-    [[ -z "$color" || "$color" =~ ^# ]] && continue
-    if ! grep -q "\b$color\b" .swiftlint.yml; then
-      echo "check-platform-api-bans: .swiftlint.yml is missing system color token '$color' from Scripts/config/system-colors.txt" >&2
-      exit 1
-    fi
-  done < Scripts/config/system-colors.txt
-fi
 
 violations=()
 
@@ -54,10 +33,6 @@ scan_pattern '@Published\b' 'Use @Observable properties instead of @Published'
 scan_pattern '@StateObject\b' 'Use @Observable + @Environment(Type.self) instead of @StateObject'
 scan_pattern '@EnvironmentObject\b' 'Use @Environment(Type.self) instead of @EnvironmentObject'
 scan_pattern '@ObservedObject\b' 'Use @Bindable / @Environment(Type.self) instead of @ObservedObject'
-scan_pattern 'Color\s*\(\s*(red|white)\s*:|UIColor\s*\(\s*(red|white|displayP3Red)\s*:|#colorLiteral\(' 'Use TrinketDesign.Colors / DesignColors assets via DesignAssetColors — not Color(red:green:blue:) or raw color initializers'
-scan_pattern "(^|[^A-Za-z0-9_])Color\\.(${SYSTEM_COLORS})\\b" 'Use TrinketDesign.Colors tokens — not SwiftUI system Color.* literals'
-scan_pattern "\\.(foregroundStyle|tint|fill|stroke|background)\\(\\.(${SYSTEM_COLORS})\\b" 'Use TrinketDesign.Colors / Overlay tokens instead of .foregroundStyle(.white) / .fill(.red)'
-scan_pattern 'Color\s*\(\s*"[^"]+"\s*,\s*bundle\s*:\s*\.main\b' 'Move named colors into DesignColors.xcassets and expose them via TrinketDesignSystem'
 
 if (( ${#violations[@]} > 0 )); then
   echo "Platform API ban violations:" >&2

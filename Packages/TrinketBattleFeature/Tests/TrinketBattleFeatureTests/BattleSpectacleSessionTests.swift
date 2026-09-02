@@ -199,6 +199,42 @@ struct BattleSpectacleSessionTests {
         #expect(session.feedback.activeItems.count > beforeFeedbackCount)
     }
 
+    @Test func `disabled ultimate cinematic feature keeps feedback without a highlight`() throws {
+        let hero = CombatantFixtures.combatant(
+            id: "knight",
+            role: .hero,
+            abilities: [.slash, .fireball, .avatarOfJustice],
+        )
+        let session = BattleSessionTestSupport.makeConfiguredSession(
+            hero: hero,
+            companion: CombatantFixtures.combatant(id: "companion", role: .companion, abilities: []),
+            enemy: CombatantFixtures.combatant(
+                id: "enemy",
+                role: .enemy,
+                maxHealth: 500,
+                abilities: [],
+            ),
+            presentationEnvironment: BattleSessionTestSupport.presentationEnvironment(
+                shouldAutoSkipUltimateCinematic: { _, _ in false },
+                ultimateCinematicAnimationsEnabled: { false },
+            ),
+        )
+
+        let now = Date()
+        let ultimate = try #require(
+            BattleSessionTestSupport.drawUntilPlayable(
+                Ability.avatarOfJustice.id,
+                on: session,
+                at: now,
+            ),
+        )
+        let beforeFeedbackCount = session.feedback.activeItems.count
+        _ = session.playCard(cardID: ultimate.id, at: now)
+
+        #expect(session.spectacle.ultimateHighlightsByActorID.isEmpty)
+        #expect(session.feedback.activeItems.count > beforeFeedbackCount)
+    }
+
     @Test func `once per battle shows highlight once then skips`() throws {
         let hero = CombatantFixtures.combatant(
             id: "knight",

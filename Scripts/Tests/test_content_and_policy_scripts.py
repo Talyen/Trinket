@@ -207,6 +207,30 @@ class ContentAndPolicyScriptTests(ScriptRegressionTestCase):
             )
             self.assertEqual(accepted.returncode, 0, accepted.stdout + accepted.stderr)
 
+    def test_ui_style_owns_product_color_policy(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            fixture = Path(directory) / "ColorFixture.swift"
+            for source in (
+                "let color = Color(red: 1, green: 0, blue: 0)\n",
+                "let color = Color.red\n",
+                "Text(\"Alert\").foregroundStyle(.red)\n",
+                'let color = Color("Alert", bundle: .main)\n',
+            ):
+                fixture.write_text(source, encoding="utf-8")
+                rejected = subprocess.run(
+                    [str(ROOT / "Scripts" / "check-ui-style.sh"), str(fixture)],
+                    cwd=ROOT,
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                )
+                self.assertNotEqual(rejected.returncode, 0, source)
+
+        swiftlint = (ROOT / ".swiftlint.yml").read_text(encoding="utf-8")
+        platform = (ROOT / "Scripts" / "check-platform-api-bans.sh").read_text(encoding="utf-8")
+        self.assertNotIn("banned_system_color_literal", swiftlint)
+        self.assertNotIn("SYSTEM_COLORS", platform)
+
     def test_comment_ban_rejects_inline_and_block_comments(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             fixture = Path(directory) / "CommentFixture.swift"

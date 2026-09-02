@@ -60,10 +60,11 @@ enum RosterHydration {
         for (combatantID, loadoutIDs) in ids {
             guard let combatant = GameContent.combatant(matching: combatantID) else { continue }
             let choices = combatant.abilityChoices
+            let migratedIDs = migrateLegacyAbilityIDs(loadoutIDs, combatantID: combatantID)
             resolved[combatantID] = AbilityLoadout(
-                basic: exactAbility(loadoutIDs.basicID, choices: choices.abilities(for: .basic)),
-                skill: exactAbility(loadoutIDs.skillID, choices: choices.abilities(for: .skill)),
-                ultimate: exactAbility(loadoutIDs.ultimateID, choices: choices.abilities(for: .ultimate)),
+                basic: exactAbility(migratedIDs.basicID, choices: choices.abilities(for: .basic)),
+                skill: exactAbility(migratedIDs.skillID, choices: choices.abilities(for: .skill)),
+                ultimate: exactAbility(migratedIDs.ultimateID, choices: choices.abilities(for: .ultimate)),
             )
         }
         return resolved
@@ -86,8 +87,9 @@ enum RosterHydration {
         var resolved: [String: AbilityLoadout] = [:]
         for (combatantID, ids) in loadouts {
             guard let combatant = GameContent.combatant(matching: combatantID) else { continue }
+            let migratedIDs = migrateLegacyAbilityIDs(ids, combatantID: combatantID)
             resolved[combatantID] = resolvedLoadout(
-                ids,
+                migratedIDs,
                 defaults: combatant.abilityLoadout,
                 choices: combatant.abilityChoices,
             )
@@ -123,6 +125,18 @@ enum RosterHydration {
             return match
         }
         return fallback
+    }
+
+    private static func migrateLegacyAbilityIDs(
+        _ ids: AbilityLoadoutIDs,
+        combatantID: String,
+    ) -> AbilityLoadoutIDs {
+        guard combatantID == "lizard_scout", ids.ultimateID == "steal" else { return ids }
+        return AbilityLoadoutIDs(
+            basicID: ids.basicID,
+            skillID: "steal",
+            ultimateID: nil,
+        )
     }
 
     struct AbilityLoadoutIDs {

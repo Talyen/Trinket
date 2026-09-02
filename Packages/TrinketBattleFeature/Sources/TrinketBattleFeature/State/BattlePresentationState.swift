@@ -63,7 +63,9 @@ struct BattlePresentationSnapshot: Equatable {
                 from: effects,
                 controlAccentRequiresPendingSkip: combatant.role != .enemy,
             ),
-            buffAuraKind: CombatantBuffAura.kind(from: effects),
+            buffAuraKind: InternalFeatureFlags.combatantBuffAuraEnabled
+                ? CombatantBuffAura.kind(from: effects)
+                : nil,
         )
     }
 }

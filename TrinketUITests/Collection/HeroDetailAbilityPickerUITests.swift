@@ -10,6 +10,9 @@ final class HeroDetailAbilityPickerUITests: TrinketUITestCase {
         assertButtonExists(AccessibilityID.Equipment.basicAbilitySlot, timeout: 10)
         button(AccessibilityID.Equipment.basicAbilitySlot).tap()
         assertExists(AccessibilityID.LoadoutPicker.abilityGrid("Basic"), timeout: 10)
+        for abilityID in ["bash", "block", "shield-bash", "slash"] {
+            assertButtonExists(AccessibilityID.LoadoutPicker.abilityCandidate(abilityID), timeout: 5)
+        }
         button(AccessibilityID.LoadoutPicker.abilityCandidate("block")).tap()
         assertExists(AccessibilityID.LoadoutPicker.abilityDetail("block"))
         button(AccessibilityID.LoadoutPicker.selectAbility("block")).tap()

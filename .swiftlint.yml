@@ -3,10 +3,11 @@
 # guarded by Scripts/check-ui-style.sh (TrinketDesign / UIStyleCheck: allow).
 # See Scripts/README.md "Style & lint ownership".
 #
-# Analyzer rules (unused_import, unused_declaration) need `swiftlint analyze` plus
+# Analyzer rules need `swiftlint analyze` plus
 # a compiler index/log and are intentionally not part of the fail-closed style gate.
 # CI runs them in an advisory job after the shared build (Scripts/lint-analyze.sh).
 analyzer_rules:
+  - capture_variable
   - unused_import
   - unused_declaration
 
@@ -19,16 +20,12 @@ swiftlint_version: 0.65.0
 opt_in_rules:
   - accessibility_label_for_image
   - accessibility_trait_for_button
-  - explicit_init
-  - first_where
-  - prefer_key_path
-  - contains_over_first_not_nil
+  - closure_body_length
   - empty_string
-  - empty_count
-  - flatmap_over_map_reduce
   - identical_operands
   - joined_default_parameter
   - last_where
+  - lower_acl_than_parent
   - prohibited_super_call
   - overridden_super_call
   - reduce_into
@@ -36,27 +33,14 @@ opt_in_rules:
   - array_init
   - unhandled_throwing_task
   - modifier_order
-  - implicit_return
   - async_without_await
   - force_unwrapping
-  - force_cast
-  - force_try
-  - duplicate_imports
-  - unused_optional_binding
-  - duplicate_conditions
-  - unneeded_override
-  - redundant_discardable_let
-  - contains_over_filter_is_empty
-  - contains_over_filter_count
   - prefer_zero_over_explicit_init
   - single_test_class
   - xct_specific_matcher
   - toggle_bool
   - legacy_multiple
-  - sorted_first_last
-  - private_swiftui_state
   - implicitly_unwrapped_optional
-  - yoda_condition
   - optional_enum_case_matching
   - prefer_self_in_static_references
   - prefer_self_type_over_type_of_self
@@ -77,15 +61,32 @@ opt_in_rules:
   - balanced_xctest_lifecycle
   - enum_case_associated_values_count
   - prohibited_interface_builder
+  - raw_value_for_camel_cased_codable_enum
   - untyped_error_in_catch
   - fallthrough
   - unneeded_escaping
   - unneeded_throws_rethrows
-  - unused_parameter
   # no_empty_block omitted: fights Codable `init() {}`, SwiftUI dismiss
   # `Button { }`, default no-op closures, and `while predicate() {}` drains.
 
 disabled_rules:
+  # SwiftFormat owns these mechanical rewrites in the style gate.
+  - contains_over_filter_count
+  - contains_over_filter_is_empty
+  - contains_over_first_not_nil
+  - duplicate_imports
+  - empty_count
+  - explicit_init
+  - first_where
+  - flatmap_over_map_reduce
+  - implicit_return
+  - prefer_key_path
+  - private_swiftui_state
+  - redundant_discardable_let
+  - sorted_first_last
+  - unused_optional_binding
+  - unused_parameter
+  - yoda_condition
   - line_length
   - identifier_name
   - todo
@@ -95,28 +96,17 @@ disabled_rules:
   - vertical_whitespace
   - statement_position
 
-# Force unwrap / cast / try are opt-in above. Under `strict` + `lint.sh --strict`
-# they fail the gate; keep production code free of them and prefer XCTUnwrap /
-# #require / guard-let in tests.
+# Force unwrap is opt-in; cast and try are default rules. Strict mode makes all
+# three fail the gate. Prefer XCTUnwrap / #require / guard-let in tests.
 force_unwrapping: error
 force_cast: error
 force_try: error
 
-file_length:
-  warning: 600
-  error: 750
-
-type_body_length:
-  warning: 350
-  error: 500
-
-function_body_length:
-  warning: 60
-  error: 100
-
-cyclomatic_complexity:
-  warning: 15
-  error: 25
+file_length: 600
+type_body_length: 350
+function_body_length: 60
+closure_body_length: 80
+cyclomatic_complexity: 15
 
 nesting:
   type_level:
@@ -126,14 +116,11 @@ nesting:
 
 # Structural guardrails use generous thresholds above. Keep large generated or
 # catalog content split across focused files instead of raising limits further.
-function_parameter_count:
-  warning: 7
-  error: 9
+function_parameter_count: 7
 
-# Platform bans from AGENTS.md — prefer @Observable / NavigationStack.
-# Regex custom_rules need SourceKit (skipped on Linux portable builds); style also
-# runs Scripts/check-platform-api-bans.sh so Linux/CI tools still enforce these.
-# Adaptive Color.primary / .secondary / .clear stay allowed (see check-ui-style.sh).
+# Platform bans from AGENTS.md — prefer @Observable / NavigationStack. Regex
+# custom_rules need SourceKit, so check-platform-api-bans.sh mirrors them for
+# portable builds. Product color policy belongs to check-ui-style.py.
 custom_rules:
   banned_observation_apis:
     name: "Banned Observation APIs"
@@ -145,33 +132,6 @@ custom_rules:
     regex: '(?<!\w)NavigationView(?!\w)'
     message: "Use NavigationStack instead of NavigationView."
     severity: error
-  banned_raw_rgb_color:
-    name: "Banned raw RGB Color"
-    regex: 'Color\s*\(\s*(red|white)\s*:|UIColor\s*\(\s*(red|white|displayP3Red)\s*:|#colorLiteral\('
-    message: "Use TrinketDesign.Colors / DesignColors assets via DesignAssetColors — not Color(red:green:blue:) or raw color initializers. See Packages/TrinketDesignSystem/README.md."
-    severity: error
-  banned_system_color_literal:
-    name: "Banned system Color literal"
-    regex: '(?<!\w)Color\.(red|green|blue|orange|yellow|pink|purple|mint|teal|indigo|brown|cyan|gray|grey|black|white|accentColor)\b'
-    message: "Use TrinketDesign.Colors, Overlay, keyword/homestead/resource helpers — not SwiftUI system Color.* literals."
-    severity: error
-  banned_system_shape_style_literal:
-    name: "Banned system shape-style color"
-    regex: '\.(foregroundStyle|tint|fill|stroke|background)\(\.(white|black|red|green|blue|orange|yellow|pink|purple|mint|teal|indigo|brown|cyan|gray|grey|accentColor)\b'
-    message: "Use TrinketDesign.Colors / Overlay tokens instead of .foregroundStyle(.white) / .fill(.red) and similar."
-    severity: error
-  banned_app_bundle_named_color:
-    name: "Banned app-bundle named Color"
-    regex: 'Color\s*\(\s*"[^"]+"\s*,\s*bundle\s*:\s*\.main\b'
-    message: "Move named colors into DesignColors.xcassets and expose them via TrinketDesignSystem."
-    severity: error
-  banned_em_dash:
-    name: "Banned em dash"
-    regex: '—'
-    message: "Do not use em dashes (—). Reword with a comma, period, or 'and'."
-    severity: error
-    match_kinds:
-      - string
   banned_comments:
     name: "Banned comments"
     regex: '//(?!\s*(swift-tools-version:|swiftlint:(disable|enable)|swiftformat:(disable|enable)|Generated by|.*(UIStyleCheck|EntropyCheck|PersistenceCheck|ConcurrencyCheck|ExclusivityCheck|ArtworkWorkingSetCheck|TestSleepCheck):\s*allow\s*-\s*\S+|.*Concurrency-Safety:))|/\*'

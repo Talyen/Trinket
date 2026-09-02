@@ -31,8 +31,12 @@ final class SlicesReloadTests {
         let firstStore = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true, persistSaveImmediately: true)
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         var loadout = knight.abilityLoadout
-        let alternateSkill = try #require(knight.abilityChoices.abilities(for: .skill).dropFirst().first)
-        loadout = loadout.selecting(alternateSkill)
+        let thirdChoiceBasic = try #require(knight.abilityChoices.abilities(for: .basic).dropFirst(2).first)
+        let fourthChoiceSkill = try #require(knight.abilityChoices.abilities(for: .skill).dropFirst(3).first)
+        let thirdChoiceUltimate = try #require(knight.abilityChoices.abilities(for: .ultimate).dropFirst(2).first)
+        loadout = loadout.selecting(thirdChoiceBasic)
+        loadout = loadout.selecting(fourthChoiceSkill)
+        loadout = loadout.selecting(thirdChoiceUltimate)
         var roster = firstStore.roster
         roster.abilityLoadouts["knight"] = loadout
         firstStore.roster = roster
