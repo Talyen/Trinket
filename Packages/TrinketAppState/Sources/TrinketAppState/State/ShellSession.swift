@@ -10,7 +10,7 @@ public final class ShellSession {
 
     public var selectedTab: AppTab = .play
     public var playPath: [PlayLaunchDestination] = []
-    public var homesteadPath: [HomesteadNodeCategory] = []
+    public var homesteadPath: [HomesteadRoute] = []
 
     public init(selectedTab: AppTab = .play) {
         self.selectedTab = selectedTab

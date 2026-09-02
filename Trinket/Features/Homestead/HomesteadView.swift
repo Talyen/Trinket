@@ -50,9 +50,6 @@ struct HomesteadView: View {
             }
             .padding(.horizontal, TrinketDesign.Layout.contentMargin)
         }
-        .navigationDestination(for: HomesteadNodeCategory.self) { category in
-            HomesteadCategoryView(category: category)
-        }
         .accessibilityIdentifier(AccessibilityID.Screen.homestead)
         .onDisappear {
             depositDismissTask?.cancel()
@@ -215,7 +212,7 @@ struct HomesteadView: View {
 
     private func categoryCard(_ category: HomesteadNodeCategory) -> some View {
         let progress = HomesteadCategoryProgress(category: category, homestead: homestead)
-        return NavigationLink(value: category) {
+        return NavigationLink(value: HomesteadRoute.category(category)) {
             PlayModeArtworkCard(
                 title: category.rawValue,
                 subtitle: progress.subtitle,

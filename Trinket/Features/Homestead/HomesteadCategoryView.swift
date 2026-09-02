@@ -9,9 +9,9 @@ import TrinketPersistence
 
 struct HomesteadCategoryView: View {
     let category: HomesteadNodeCategory
+    var zoomNamespace: Namespace.ID
 
     @Environment(PlayerSaveStore.self) private var playerSave
-    @Namespace private var zoomNamespace
     @State private var pinnedHomesteadArtwork: [String] = []
 
     private var homestead: PlayerHomesteadState {
@@ -42,10 +42,6 @@ struct HomesteadCategoryView: View {
                 zoomNamespace: zoomNamespace,
                 showsCategoryHeader: false,
             )
-        }
-        .navigationDestination(for: HomesteadNodeDefinition.self) { definition in
-            HomesteadNodeDetailView(definition: definition)
-                .navigationTransition(.zoom(sourceID: definition.id, in: zoomNamespace))
         }
         .task(id: imminentHomesteadArtworkKey) {
             await refreshImminentHomesteadArtworkPins()

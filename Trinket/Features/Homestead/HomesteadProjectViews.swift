@@ -37,7 +37,7 @@ struct HomesteadProjectRow: View {
     }
 
     var body: some View {
-        NavigationLink(value: definition) {
+        NavigationLink(value: HomesteadRoute.node(definition.id)) {
             rowContent
                 .matchedTransitionSource(id: definition.id, in: zoomNamespace)
         }

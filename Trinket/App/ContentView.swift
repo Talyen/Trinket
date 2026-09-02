@@ -14,6 +14,7 @@ struct ContentView: View {
     @Environment(PlayerSaveStore.self) private var playerSave
     @Environment(\.scenePhase) private var scenePhase
     @State private var didAcknowledgePersistenceRecovery = false
+    @Namespace private var homesteadZoomNamespace
 
     var body: some View {
         @Bindable var shellSession = shellSession
@@ -115,9 +116,7 @@ struct ContentView: View {
             }
 
             Tab(AppTab.homestead.displayName, systemImage: AppTab.homestead.symbolName, value: AppTab.homestead) {
-                NavigationStack(path: $shellSession.homesteadPath) {
-                    HomesteadView()
-                }
+                homesteadTab
             }
 
             Tab(AppTab.options.displayName, systemImage: AppTab.options.symbolName, value: AppTab.options) {
@@ -137,6 +136,35 @@ struct ContentView: View {
                         unlockAllContent: appState.unlockAllContent,
                     )
                 }
+            }
+        }
+    }
+
+    private var homesteadTab: some View {
+        @Bindable var shellSession = shellSession
+        return NavigationStack(path: $shellSession.homesteadPath) {
+            HomesteadView()
+                .navigationDestination(for: HomesteadRoute.self) { route in
+                    homesteadRouteView(for: route)
+                }
+        }
+    }
+
+    @ViewBuilder
+    private func homesteadRouteView(for route: HomesteadRoute) -> some View {
+        switch route {
+        case let .category(category):
+            HomesteadCategoryView(category: category, zoomNamespace: homesteadZoomNamespace)
+        case let .node(nodeID):
+            if let definition = GameContent.homesteadNodes.first(where: { $0.id == nodeID }) {
+                HomesteadNodeDetailView(definition: definition)
+                    .navigationTransition(.zoom(sourceID: nodeID, in: homesteadZoomNamespace))
+            } else {
+                ContentUnavailableView(
+                    "Project Unavailable",
+                    systemImage: "hammer.fill",
+                    description: Text("This homestead project is no longer available."),
+                )
             }
         }
     }
