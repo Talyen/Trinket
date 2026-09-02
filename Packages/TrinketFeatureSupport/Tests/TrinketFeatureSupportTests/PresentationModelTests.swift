@@ -86,7 +86,7 @@ struct PresentationModelTests {
         #expect(radius > 0)
 
         #expect(LabyrinthMapPresentation.destinationEncounterArtID(for: .shop) == "destination-merchant-shop")
-        #expect(LabyrinthMapPresentation.destinationEncounterArtID(for: .rest) == "destination-campfire")
+        #expect(LabyrinthMapPresentation.destinationEncounterArtID(for: .rest) == nil)
         #expect(LabyrinthMapPresentation.destinationEncounterArtID(for: .battle) == nil)
     }
 

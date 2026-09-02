@@ -22,12 +22,7 @@ public enum PlayBattleOrigin: Hashable, Sendable {
     }
 
     public var defeatPrimaryAction: BattleDefeatPrimaryAction {
-        switch self {
-        case .labyrinth:
-            .retreat
-        case .journey, .spire:
-            .restart
-        }
+        .restart
     }
 
     public var musicStageID: String? {

@@ -113,6 +113,37 @@ struct BattleSessionAppIntegrationTests {
         #expect(restarted.id != original.id)
     }
 
+    @Test func `restart battle in labyrinth preserves battle combatant and starts at full health when active roster changes`() throws {
+        let appState = try context.makePlaySession(arguments: ["-reset-state"])
+        _ = appState.labyrinth.enter()
+        let combatNodeID = try #require(
+            LabyrinthTestSupport.firstReachableCombatNodeID(in: appState),
+        )
+        let initialHero = appState.playerSave.roster.activeHero
+        let otherHero = try #require(
+            GameContent.heroes.first { $0.id != initialHero.id },
+        )
+
+        var save = appState.playerSave.currentSave
+        save.roster.unlock(otherHero)
+        appState.playerSave.roster = save.roster
+
+        #expect(appState.labyrinth.startBattle(nodeID: combatNodeID) == nil)
+        let original = try #require(appState.battle.activeBattle)
+        #expect(original.hero.combatant.id == initialHero.id)
+        #expect(original.hero.startingHealth == nil)
+
+        var updatedRoster = appState.playerSave.roster
+        updatedRoster.setActiveHero(otherHero)
+        appState.playerSave.roster = updatedRoster
+
+        appState.restartActiveBattle()
+
+        let restarted = try #require(appState.battle.activeBattle)
+        #expect(restarted.hero.combatant.id == initialHero.id)
+        #expect(restarted.hero.startingHealth == nil)
+    }
+
     @Test func `clearing transient state removes the whole battle run record`() throws {
         let appState = try context.makePlaySession()
         let stage = try #require(GameContent.chapters[0].stages.first)

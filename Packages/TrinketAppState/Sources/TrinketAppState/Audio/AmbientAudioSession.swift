@@ -1,9 +1,10 @@
 import AVFoundation
 import Foundation
 import os
+import TrinketPersistence
 
 enum AudioLogging {
-    static let subsystem = Bundle.main.bundleIdentifier ?? "com.ryanmcintire.Trinket"
+    static let subsystem = PlayerSaveDefaults.loggingSubsystem
 }
 
 enum AmbientAudioSession {

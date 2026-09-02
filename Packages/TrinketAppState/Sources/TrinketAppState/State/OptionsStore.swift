@@ -65,6 +65,15 @@ public final class OptionsStore {
     static let autoBattleEnabledKey = "battle.autoBattleEnabled"
     static let ultimateCinematicShowPolicyKey = "options.ultimateCinematicShowPolicy"
 
+    static func clearDefaults(from defaults: UserDefaults) {
+        defaults.removeObject(forKey: musicVolumeKey)
+        defaults.removeObject(forKey: effectsVolumeKey)
+        defaults.removeObject(forKey: hapticsEnabledKey)
+        defaults.removeObject(forKey: rememberAutoBattlePreferenceKey)
+        defaults.removeObject(forKey: autoBattleEnabledKey)
+        defaults.removeObject(forKey: ultimateCinematicShowPolicyKey)
+    }
+
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
 

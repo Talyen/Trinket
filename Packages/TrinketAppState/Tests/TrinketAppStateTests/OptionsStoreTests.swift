@@ -31,4 +31,23 @@ struct OptionsStoreTests {
         #expect(!store.autoBattleEnabled)
         #expect(!context.userDefaults.bool(forKey: OptionsStore.autoBattleEnabledKey))
     }
+
+    @Test func `clearDefaults removes all options keys`() {
+        let defaults = context.userDefaults
+        defaults.set(0.25, forKey: OptionsStore.musicVolumeKey)
+        defaults.set(0.5, forKey: OptionsStore.effectsVolumeKey)
+        defaults.set(false, forKey: OptionsStore.hapticsEnabledKey)
+        defaults.set(true, forKey: OptionsStore.rememberAutoBattlePreferenceKey)
+        defaults.set(true, forKey: OptionsStore.autoBattleEnabledKey)
+        defaults.set(UltimateCinematicShowPolicy.never.rawValue, forKey: OptionsStore.ultimateCinematicShowPolicyKey)
+
+        OptionsStore.clearDefaults(from: defaults)
+
+        #expect(defaults.object(forKey: OptionsStore.musicVolumeKey) == nil)
+        #expect(defaults.object(forKey: OptionsStore.effectsVolumeKey) == nil)
+        #expect(defaults.object(forKey: OptionsStore.hapticsEnabledKey) == nil)
+        #expect(defaults.object(forKey: OptionsStore.rememberAutoBattlePreferenceKey) == nil)
+        #expect(defaults.object(forKey: OptionsStore.autoBattleEnabledKey) == nil)
+        #expect(defaults.object(forKey: OptionsStore.ultimateCinematicShowPolicyKey) == nil)
+    }
 }

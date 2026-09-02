@@ -39,7 +39,6 @@ public final class PlaySession {
             || currentPostBattleTalentCombatantID != nil
             || encounters.activeMysteryEncounter != nil
             || encounters.activeShopEncounter != nil
-            || labyrinth.activeNodeSession != nil
     }
 
     init(
@@ -192,7 +191,6 @@ public final class PlaySession {
         dismissPostBattleTalentChoice()
         encounters.activeMysteryEncounter = nil
         encounters.activeShopEncounter = nil
-        labyrinth.activeNodeSession = nil
         shellSession.selectedTab = .play
     }
 
@@ -206,6 +204,10 @@ public final class PlaySession {
 
     func battleUniversalModifiers(for runKey: BattleRunKey?) -> [AffixModifier] {
         battleRunRegistry.universalModifiers(for: runKey)
+    }
+
+    func battleRegistration(for runKey: BattleRunKey?) -> PlayBattleRunRegistration? {
+        battleRunRegistry.registration(for: runKey)
     }
 
     private func queuePostBattleTalentChoices(
@@ -240,19 +242,21 @@ final class PlayBattleRunRegistry {
         battleRuns = battleRuns.filter { keys.contains($0.key) }
     }
 
-    func route(for runKey: BattleRunKey?) -> PlayBattleRoute? {
+    func registration(for runKey: BattleRunKey?) -> PlayBattleRunRegistration? {
         guard let runKey else { return nil }
-        return battleRuns[runKey]?.route
+        return battleRuns[runKey]
+    }
+
+    func route(for runKey: BattleRunKey?) -> PlayBattleRoute? {
+        registration(for: runKey)?.route
     }
 
     func presentation(for runKey: BattleRunKey?) -> BattlePresentationContext? {
-        guard let runKey else { return nil }
-        return battleRuns[runKey]?.presentation
+        registration(for: runKey)?.presentation
     }
 
     func universalModifiers(for runKey: BattleRunKey?) -> [AffixModifier] {
-        guard let runKey else { return [] }
-        return battleRuns[runKey]?.universalModifiers ?? []
+        registration(for: runKey)?.universalModifiers ?? []
     }
 
     func removeAll() {

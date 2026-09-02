@@ -37,8 +37,7 @@ public enum LabyrinthMapPresentation {
         case .battle: "Battle"
         case .boss: "Challenge Boss"
         case .shop: "Visit Shop"
-        case .rest: "Rest at Campfire"
-        case .mystery, .event, .craft: "Approach Mystery"
+        case .mystery, .event, .craft, .rest: "Approach Mystery"
         case .recruit: "Recruit"
         case .entrance: "Enter Labyrinth"
         }
@@ -48,8 +47,7 @@ public enum LabyrinthMapPresentation {
         switch type.canonical {
         case .battle, .boss: TrinketDesign.Colors.encounterBattle
         case .shop: TrinketDesign.Colors.encounterShop
-        case .rest: TrinketDesign.Colors.encounterRest
-        case .mystery, .event, .recruit, .craft, .entrance:
+        case .mystery, .event, .recruit, .craft, .entrance, .rest:
             TrinketDesign.Colors.encounterEvent
         }
     }
@@ -60,9 +58,6 @@ public enum LabyrinthMapPresentation {
     ) -> String {
         if type.canonical == .recruit {
             return GameContent.recruitEncounterSymbolName(forEventID: recruitEventID)
-        }
-        if type.canonical == .rest {
-            return "flame.fill"
         }
         return type.symbolName
     }
@@ -87,8 +82,7 @@ public enum LabyrinthMapPresentation {
     public static func destinationEncounterArtID(for type: LabyrinthNodeType) -> String? {
         switch type.canonical {
         case .shop: "destination-merchant-shop"
-        case .rest: "destination-campfire"
-        case .battle, .boss, .mystery, .event, .recruit, .craft, .entrance:
+        case .battle, .boss, .mystery, .event, .recruit, .craft, .entrance, .rest:
             nil
         }
     }

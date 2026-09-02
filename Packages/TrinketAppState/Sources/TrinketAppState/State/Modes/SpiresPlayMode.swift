@@ -80,8 +80,6 @@ public final class SpiresPlayMode {
 
     @discardableResult
     public func startBattle(for floor: SpireFloor) -> StageMapMessage? {
-        guard battle.lifecyclePhase != .active else { return nil }
-
         guard let spire = GameContent.spire(id: floor.spireID) else {
             return StageMapMessage(title: "Spire Missing", message: "This Spire is not ready yet.")
         }

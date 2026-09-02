@@ -4,10 +4,6 @@ import BattleEngine
 struct PlayBattlePreparationTracker<Input: Equatable> {
     private var cached: Input?
 
-    var hasCached: Bool {
-        cached != nil
-    }
-
     mutating func notePrepared(_ input: Input) {
         cached = input
     }

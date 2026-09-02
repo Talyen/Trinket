@@ -141,6 +141,7 @@ final class MusicPlayer {
     }
 
     private func enqueueLoad(_ request: MusicPlaybackRequest, startVolume: Float?) {
+        cancelPendingLoad()
         guard let url = resourceURL(for: request.track) else {
             logger.warning(
                 "Missing music resource: \(request.track.resourceName, privacy: .public).\(request.track.fileExtension, privacy: .public)",
@@ -148,7 +149,6 @@ final class MusicPlayer {
             return
         }
 
-        cancelPendingLoad()
         if preparedRequest?.resumeKey != request.resumeKey {
             clearPrepared()
         }

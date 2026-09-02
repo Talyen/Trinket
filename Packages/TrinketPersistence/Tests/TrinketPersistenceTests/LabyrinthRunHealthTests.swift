@@ -4,14 +4,7 @@ import TrinketContent
 @testable import TrinketPersistence
 
 struct LabyrinthRunHealthTests {
-    @Test func `campfire rest health restores floored thirty percent capped at max`() {
-        #expect(LabyrinthCompletion.campfireRestHealth(current: 34, maxHealth: 52) == 49)
-        #expect(LabyrinthCompletion.campfireRestHealth(current: 0, maxHealth: 41) == 12)
-        #expect(LabyrinthCompletion.campfireRestHealth(current: 90, maxHealth: 100) == 100)
-        #expect(LabyrinthCompletion.campfireRestHealth(current: 100, maxHealth: 100) == 100)
-    }
-
-    @Test func `rest completion grants no gold stipend`() {
+    @Test func `rest node completes with mystery gold stipend`() {
         let node = LabyrinthNode(
             id: "depth-five-rest",
             type: .rest,
@@ -41,10 +34,10 @@ struct LabyrinthRunHealthTests {
             save: &save,
         )
 
-        #expect(save.roster.gold == goldBefore)
+        #expect(save.roster.gold == goldBefore + 7)
     }
 
-    @Test func `completion persists party run health`() throws {
+    @Test func `completion clears node without setting run health`() throws {
         var save = PlayerSave.fresh
         save.labyrinth.ensureMap(seed: 17)
         let combatID = try #require(
@@ -56,10 +49,10 @@ struct LabyrinthRunHealthTests {
             nodeID: combatID,
             hero: save.roster.activeHero,
             companion: save.roster.activeCompanion,
-            partyRunHealth: ["knight": 7],
             save: &save,
         )
-        #expect(save.labyrinth.runHealthByCombatantID == ["knight": 7])
+        #expect(save.labyrinth.nodes[combatID]?.isCleared == true)
+        #expect(save.labyrinth.runHealthByCombatantID.isEmpty)
     }
 
     @Test func `ensure map resets run health`() {

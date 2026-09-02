@@ -326,8 +326,5 @@ private struct PlayEncounterCoversModifier: ViewModifier {
                 )
                 .interactiveDismissDisabled()
             }
-            .fullScreenCover(item: $labyrinth.activeNodeSession) { session in
-                LabyrinthCampfireView(session: session)
-            }
     }
 }

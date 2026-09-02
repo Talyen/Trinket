@@ -25,7 +25,7 @@ extension AppState {
         userDefaults: UserDefaults,
     ) throws -> BootstrapDependencies {
         if environment.resetState {
-            clearResetStateDefaults(from: userDefaults)
+            OptionsStore.clearDefaults(from: userDefaults)
         }
 
         let resolvedPlayerSave = try playerSave ?? PlayerSaveStore(
@@ -89,15 +89,6 @@ extension AppState {
         case .heroDetail, .companionDetail, .itemDetail, .options, .labyrinth, .labyrinthMap, .none:
             break
         }
-    }
-
-    private static func clearResetStateDefaults(from defaults: UserDefaults) {
-        defaults.removeObject(forKey: OptionsStore.musicVolumeKey)
-        defaults.removeObject(forKey: OptionsStore.effectsVolumeKey)
-        defaults.removeObject(forKey: OptionsStore.hapticsEnabledKey)
-        defaults.removeObject(forKey: OptionsStore.rememberAutoBattlePreferenceKey)
-        defaults.removeObject(forKey: OptionsStore.autoBattleEnabledKey)
-        defaults.removeObject(forKey: OptionsStore.ultimateCinematicShowPolicyKey)
     }
 }
 

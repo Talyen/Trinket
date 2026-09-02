@@ -87,7 +87,6 @@ struct PlayBattleLaunch {
 
     private func makeLaunchInput(for request: PlayCombatRequest) -> BattleLaunchInput {
         let roster = playerSave.roster
-        let startingHealths = labyrinthStartingHealths(for: request.origin)
         return BattleLaunchInput(
             origin: request.origin,
             hero: roster.activeHero,
@@ -99,20 +98,6 @@ struct PlayBattleLaunch {
             stageRewardsAlreadyClaimed: request.stageRewardsAlreadyClaimed,
             universalModifiers: request.universalModifiers,
             labyrinthModifiers: request.labyrinthModifiers,
-            heroStartingHealth: startingHealths.hero,
-            companionStartingHealth: startingHealths.companion,
-        )
-    }
-
-    private func labyrinthStartingHealths(
-        for origin: PlayBattleOrigin?,
-    ) -> (hero: Int?, companion: Int?) {
-        guard case .labyrinth = origin else { return (nil, nil) }
-        let runHealth = playerSave.labyrinth.runHealthByCombatantID
-        let roster = playerSave.roster
-        return (
-            hero: runHealth[roster.activeHeroID],
-            companion: runHealth[roster.activeCompanionID],
         )
     }
 
@@ -158,7 +143,6 @@ struct PlayBattleLaunch {
             ?? roster.activeHero
         let companion = roster.companions.first(where: { $0.id == activeBattle.companion.combatant.id })
             ?? roster.activeCompanion
-        let startingHealths = labyrinthStartingHealths(for: route?.origin)
         let launch = makeBattleLaunch(
             BattleLaunchInput(
                 origin: route?.origin,
@@ -172,8 +156,6 @@ struct PlayBattleLaunch {
                 stageRewardsAlreadyClaimed: presentation?.stageRewardsAlreadyClaimed ?? false,
                 universalModifiers: universalModifiers,
                 labyrinthModifiers: presentation?.labyrinthModifiers ?? [],
-                heroStartingHealth: startingHealths.hero,
-                companionStartingHealth: startingHealths.companion,
             ),
         )
         guard battle.restart(launch.configuration) else { return }
@@ -186,7 +168,8 @@ public extension PlaySession {
     func restartActiveBattle() {
         guard let activeBattle = battle.activeBattle else { return }
 
-        let route = route(for: activeBattle.runKey)
+        let registration = battleRegistration(for: activeBattle.runKey)
+        let route = registration?.route
         guard PlayBattleRoute.matches(
             route,
             runKey: activeBattle.runKey,
@@ -194,12 +177,12 @@ public extension PlaySession {
         ) else {
             return
         }
-        let presentation = battlePresentation(for: activeBattle.runKey)
+        let presentation = registration?.presentation
         guard activeBattle.runKey == nil || presentation != nil else {
             appStateLogger.error("Missing presentation metadata for active battle restart")
             return
         }
-        let universalModifiers = battleUniversalModifiers(for: activeBattle.runKey)
+        let universalModifiers = registration?.universalModifiers ?? []
         battleLaunch.restartActiveBattle(
             activeBattle,
             route: route,

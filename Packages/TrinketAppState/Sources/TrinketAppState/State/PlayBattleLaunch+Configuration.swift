@@ -38,8 +38,6 @@ struct BattleLaunchInput {
     let stageRewardsAlreadyClaimed: Bool
     let universalModifiers: [AffixModifier]
     let labyrinthModifiers: [LabyrinthModifierDefinition]
-    let heroStartingHealth: Int?
-    let companionStartingHealth: Int?
 
     init(
         origin: PlayBattleOrigin? = nil,
@@ -53,8 +51,6 @@ struct BattleLaunchInput {
         stageRewardsAlreadyClaimed: Bool = false,
         universalModifiers: [AffixModifier] = [],
         labyrinthModifiers: [LabyrinthModifierDefinition] = [],
-        heroStartingHealth: Int? = nil,
-        companionStartingHealth: Int? = nil,
     ) {
         self.origin = origin
         self.hero = hero
@@ -67,8 +63,6 @@ struct BattleLaunchInput {
         self.stageRewardsAlreadyClaimed = stageRewardsAlreadyClaimed
         self.universalModifiers = universalModifiers
         self.labyrinthModifiers = labyrinthModifiers
-        self.heroStartingHealth = heroStartingHealth
-        self.companionStartingHealth = companionStartingHealth
     }
 }
 
@@ -153,14 +147,12 @@ extension PlayBattleLaunch {
         (
             partyMember(
                 combatant: input.hero,
-                startingHealth: input.heroStartingHealth,
                 rosterState: rosterState,
                 inventoryState: inventoryState,
                 additionalModifiers: homesteadEffects.heroModifiers,
             ),
             partyMember(
                 combatant: input.companion,
-                startingHealth: input.companionStartingHealth,
                 rosterState: rosterState,
                 inventoryState: inventoryState,
                 additionalModifiers: homesteadEffects.companionModifiers,
@@ -170,7 +162,6 @@ extension PlayBattleLaunch {
 
     private static func partyMember(
         combatant: Combatant,
-        startingHealth: Int?,
         rosterState: PlayerRosterState,
         inventoryState: PlayerInventoryState,
         additionalModifiers: [AffixModifier] = [],
@@ -194,26 +185,6 @@ extension PlayBattleLaunch {
             equipmentLoadout: equipmentLoadout,
             modifiers: build.modifiers,
             unlockedTalents: unlockedTalents,
-            startingHealth: startingHealth.map {
-                min(max(1, $0), build.effectiveMaxHealth)
-            },
-        )
-    }
-
-    static func bakedActiveParty(
-        rosterState: PlayerRosterState,
-        inventoryState: PlayerInventoryState,
-        homesteadState: PlayerHomesteadState,
-    ) -> (hero: BattleRunConfiguration.PartyMember, companion: BattleRunConfiguration.PartyMember) {
-        let input = BattleLaunchInput(
-            hero: rosterState.activeHero,
-            companion: rosterState.activeCompanion,
-        )
-        return makePartyMembers(
-            input: input,
-            homesteadEffects: homesteadState.effects,
-            rosterState: rosterState,
-            inventoryState: inventoryState,
         )
     }
 
@@ -225,8 +196,7 @@ extension PlayBattleLaunch {
             return CombatBuild(combatant: Enemy.fallbackCombatant, modifiers: .zero)
         }
         if let catalogEnemy = GameContent.enemy(matching: enemy.id) {
-            let catalogBuild = CombatBuildResolver.build(enemy: catalogEnemy, level: level)
-            return CombatBuild(combatant: enemy, modifiers: catalogBuild.modifiers)
+            return CombatBuildResolver.build(enemy: catalogEnemy, level: level)
         }
         var fallbackModifiers = CombatModifierProfile.zero
         fallbackModifiers.outgoingDamagePercent = EnemyPowerCurve.rawDamagePercent(level: level, isBoss: false)

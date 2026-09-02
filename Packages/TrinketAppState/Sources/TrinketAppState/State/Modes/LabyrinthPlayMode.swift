@@ -19,7 +19,6 @@ public final class LabyrinthPlayMode {
     private struct PreparationInputs: Equatable {
         let combatNodes: [CombatPrepNode]
         let party: PlayBattlePartySnapshot
-        let runHealthByCombatantID: [String: Int]
     }
 
     public let playerSave: PlayerSaveStore
@@ -27,8 +26,6 @@ public final class LabyrinthPlayMode {
     private let battleLaunch: PlayBattleLaunch
     private let encounters: EncounterPlayMode
     private var preparationTracker = PlayBattlePreparationTracker<PreparationInputs>()
-
-    public var activeNodeSession: LabyrinthNodeSession?
 
     init(
         playerSave: PlayerSaveStore,
@@ -43,7 +40,7 @@ public final class LabyrinthPlayMode {
     }
 
     private var canBeginTransientEncounter: Bool {
-        encounters.canBeginTransientEncounter && activeNodeSession == nil
+        encounters.canBeginTransientEncounter
     }
 
     @discardableResult
@@ -109,72 +106,9 @@ public final class LabyrinthPlayMode {
                 nodeID: nodeID,
                 forcedEventID: resolution.event.id,
             )
-        case .rest:
-            return beginRest(nodeID: nodeID)
-        case .entrance:
+        case .entrance, .rest:
             return nil
         }
-    }
-
-    @discardableResult
-    func beginRest(nodeID: String) -> StageMapMessage? {
-        guard canBeginTransientEncounter else { return nil }
-        let labyrinth = playerSave.labyrinth
-        guard let node = labyrinth.node(id: nodeID), node.type.canonical == .rest else {
-            return StageMapMessage(title: "Campfire Missing", message: "This path is not ready yet.")
-        }
-        activeNodeSession = LabyrinthNodeSession(
-            nodeID: node.id,
-            depth: node.depth,
-            party: campfireParty(),
-        )
-        return nil
-    }
-
-    private func campfireParty() -> [CampfirePartyMember] {
-        let party = PlayBattleLaunch.bakedActiveParty(
-            rosterState: playerSave.roster,
-            inventoryState: playerSave.inventory,
-            homesteadState: playerSave.homestead,
-        )
-        let runHealth = playerSave.labyrinth.runHealthByCombatantID
-
-        func member(_ partyMember: BattleRunConfiguration.PartyMember) -> CampfirePartyMember {
-            let maxHealth = partyMember.baselineMaxHealth
-            let currentHealth = min(maxHealth, runHealth[partyMember.combatant.id] ?? maxHealth)
-            return CampfirePartyMember(
-                combatantID: partyMember.combatant.id,
-                name: partyMember.combatant.name,
-                currentHealth: currentHealth,
-                maxHealth: maxHealth,
-                healedHealth: LabyrinthCompletion.campfireRestHealth(
-                    current: currentHealth,
-                    maxHealth: maxHealth,
-                ),
-            )
-        }
-
-        return [member(party.hero), member(party.companion)]
-    }
-
-    @discardableResult
-    public func finishActiveRest() -> Bool {
-        guard let sessionNode = activeNodeSession else { return false }
-        sessionNode.clearFailure()
-        guard playerSave.persistBatch(logging: "Failed to finish Labyrinth rest", { save in
-            LabyrinthCompletion.complete(
-                nodeID: sessionNode.nodeID,
-                hero: save.roster.activeHero,
-                companion: save.roster.activeCompanion,
-                partyRunHealth: sessionNode.healedRunHealthByCombatantID,
-                save: &save,
-            )
-        }) else {
-            sessionNode.markFailed("Couldn't save progress. Stay here and try Rest again.")
-            return false
-        }
-        activeNodeSession = nil
-        return true
     }
 
     public func resolvedEncounter(for node: LabyrinthNode) -> (combatant: Combatant, level: Int)? {
@@ -274,7 +208,6 @@ public final class LabyrinthPlayMode {
         return PreparationInputs(
             combatNodes: combatNodes,
             party: PlayBattlePartySnapshot(playerSave: playerSave),
-            runHealthByCombatantID: labyrinth.runHealthByCombatantID,
         )
     }
 
@@ -309,14 +242,10 @@ public final class LabyrinthPlayMode {
         rewardItem: InventoryItem? = nil,
         loot: BattleLootPackage? = nil,
         enemyEncounterLevel: Int? = nil,
-        partyRunHealth: [String: Int]? = nil,
     ) -> Bool {
         let roster = playerSave.roster
         let resolvedHero = hero ?? roster.activeHero
         let resolvedCompanion = companion ?? roster.activeCompanion
-        let resolvedRunHealth = partyRunHealth.map { healths in
-            Dictionary(uniqueKeysWithValues: healths.map { ($0.key, max(1, $0.value)) })
-        }
         return playerSave.persistBatch(logging: "Failed to persist Labyrinth node") { save in
             LabyrinthCompletion.complete(
                 nodeID: nodeID,
@@ -327,7 +256,6 @@ public final class LabyrinthPlayMode {
                 rewardItem: rewardItem,
                 loot: loot,
                 enemyEncounterLevel: enemyEncounterLevel,
-                partyRunHealth: resolvedRunHealth,
                 save: &save,
             )
         }
@@ -401,15 +329,6 @@ extension LabyrinthPlayMode {
         let origin = PlayBattleOrigin.labyrinth(nodeID: nodeID)
         return PlayBattleRoute(origin: origin) { [weak self] configuration, presentation, battleEarnedGold, materialRewards, loot in
             guard let self else { return false }
-            let runHealth = battle.finalPartyHealthByCombatantID.map { healths in
-                func capped(_ member: BattleRunConfiguration.PartyMember) -> Int? {
-                    healths[member.combatant.id].map { min($0, member.baselineMaxHealth) }
-                }
-                return [
-                    configuration.hero.combatant.id: capped(configuration.hero),
-                    configuration.companion.combatant.id: capped(configuration.companion),
-                ].compactMapValues { $0 }
-            }
             return completeNode(
                 nodeID: nodeID,
                 hero: configuration.hero.combatant,
@@ -419,7 +338,6 @@ extension LabyrinthPlayMode {
                 rewardItem: presentation?.pendingRewardItem,
                 loot: loot,
                 enemyEncounterLevel: configuration.enemyEncounterLevel,
-                partyRunHealth: runHealth,
             )
         }
     }

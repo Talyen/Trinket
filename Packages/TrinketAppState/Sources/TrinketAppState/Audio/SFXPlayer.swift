@@ -24,6 +24,10 @@ public final class SFXPlayer {
         self.isDisabled = isDisabled
     }
 
+    isolated deinit {
+        catalogWarmTask?.cancel()
+    }
+
     public func play(_ id: String, volume: Double) {
         playAll([id], volume: volume)
     }

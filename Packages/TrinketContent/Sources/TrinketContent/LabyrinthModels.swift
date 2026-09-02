@@ -98,7 +98,7 @@ public enum LabyrinthNodeType: String, Hashable, Sendable, CaseIterable, Codable
     case entrance
 
     public var canonical: Self {
-        self == .event || self == .craft ? .mystery : self
+        self == .event || self == .craft || self == .rest ? .mystery : self
     }
 
     public init(from decoder: Decoder) throws {
@@ -116,6 +116,10 @@ public enum LabyrinthNodeType: String, Hashable, Sendable, CaseIterable, Codable
             self = .entrance
             return
         }
+        if rawValue == "rest" {
+            self = .mystery
+            return
+        }
         guard let value = Self(rawValue: rawValue) else {
             throw DecodingError.dataCorruptedError(
                 in: container,
@@ -130,8 +134,7 @@ public enum LabyrinthNodeType: String, Hashable, Sendable, CaseIterable, Codable
         case .battle: "Battle"
         case .boss: "Boss"
         case .shop: "Merchant's Shop"
-        case .rest: "Campfire"
-        case .mystery, .event, .craft: "Mystery"
+        case .mystery, .event, .craft, .rest: "Mystery"
         case .recruit: "Recruit"
         case .entrance: "Labyrinth Entrance"
         }
@@ -142,8 +145,7 @@ public enum LabyrinthNodeType: String, Hashable, Sendable, CaseIterable, Codable
         case .battle: StageTypeSymbol.battle
         case .boss: StageTypeSymbol.boss
         case .shop: StageTypeSymbol.shop
-        case .rest: StageTypeSymbol.rest
-        case .mystery, .event, .craft: StageTypeSymbol.mystery
+        case .mystery, .event, .craft, .rest: StageTypeSymbol.mystery
         case .recruit: GameContent.recruitEncounterSymbolName(forEventID: nil)
         case .entrance: StageTypeSymbol.entrance
         }
@@ -155,9 +157,7 @@ public enum LabyrinthNodeType: String, Hashable, Sendable, CaseIterable, Codable
             "Fight"
         case .shop:
             "Visit"
-        case .rest:
-            "Rest"
-        case .mystery, .event, .craft:
+        case .mystery, .event, .craft, .rest:
             "Approach"
         case .recruit:
             "Recruit"

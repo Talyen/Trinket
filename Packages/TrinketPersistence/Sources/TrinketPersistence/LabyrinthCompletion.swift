@@ -12,18 +12,11 @@ public enum LabyrinthCompletion {
 
     public static func nonCombatGoldStipend(for node: LabyrinthNode) -> Int {
         switch node.type.canonical {
-        case .shop, .mystery, .event, .craft, .recruit:
+        case .shop, .mystery, .event, .craft, .recruit, .rest:
             2 + node.depth
-        case .battle, .boss, .rest, .entrance:
+        case .battle, .boss, .entrance:
             0
         }
-    }
-
-    private static let campfireRestFraction = 0.3
-
-    public static func campfireRestHealth(current: Int, maxHealth: Int) -> Int {
-        let gain = Int((Double(maxHealth) * campfireRestFraction).rounded(.down))
-        return min(maxHealth, current + gain)
     }
 
     public static func rewardItemID(forNodeID nodeID: String) -> String {
@@ -63,7 +56,6 @@ public enum LabyrinthCompletion {
         rewardItem: InventoryItem? = nil,
         loot: BattleLootPackage? = nil,
         enemyEncounterLevel: Int? = nil,
-        partyRunHealth: [String: Int]? = nil,
         save: inout PlayerSave,
     ) {
         let eligibleRecruitEventIDs = save.roster.eligibleRecruitEventIDs
@@ -113,10 +105,6 @@ public enum LabyrinthCompletion {
                 item: rewardItem,
                 save: &save,
             )
-        }
-
-        if let partyRunHealth {
-            save.labyrinth.runHealthByCombatantID = partyRunHealth
         }
 
         save.labyrinth.markCleared(

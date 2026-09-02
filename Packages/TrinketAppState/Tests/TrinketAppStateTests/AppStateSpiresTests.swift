@@ -84,4 +84,14 @@ struct AppStateSpiresTests {
         let lockedFloor = try #require(GameContent.spireFloor(spireID: .ironVein, floor: 4))
         #expect(state.spires.startBattle(for: lockedFloor) != nil)
     }
+
+    @Test func `start spire battle returns failure message when battle already active`() throws {
+        let state = try context.makePlaySession()
+        let floor = try #require(GameContent.spireFloor(spireID: .ironVein, floor: 1))
+        #expect(state.spires.startBattle(for: floor) == nil)
+        #expect(state.battle.activeBattle != nil)
+
+        let message = state.spires.startBattle(for: floor)
+        #expect(message?.title == PlayBattleLaunch.activationFailureMessage.title)
+    }
 }
