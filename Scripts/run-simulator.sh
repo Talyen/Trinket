@@ -6,6 +6,39 @@ cd "$(dirname "$0")/.."
 source Scripts/lib/tools.sh
 trinket_prepend_pinned_tools
 
+ISOLATE_FLAG=false
+AGENT_SLOT_ARG=""
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --isolate)
+      ISOLATE_FLAG=true
+      TRINKET_ISOLATE=1
+      export TRINKET_ISOLATE
+      shift
+      ;;
+    --agent)
+      if [[ $# -lt 2 ]]; then echo "--agent requires a slot number" >&2; exit 1; fi
+      AGENT_SLOT_ARG="$2"
+      TRINKET_AGENT_SLOT="$2"
+      TRINKET_ISOLATE=1
+      export TRINKET_AGENT_SLOT TRINKET_ISOLATE
+      shift 2
+      ;;
+    --help|-h)
+      cat <<'USAGE'
+Usage: ./Scripts/run-simulator.sh [--isolate] [--agent N]
+
+Builds Trinket and launches it. By default targets Trinket Run (human).
+Use --isolate for the current agent slot, or --agent N for Trinket Agent N.
+USAGE
+      exit 0
+      ;;
+    --) shift; break ;;
+    -*) echo "Unknown option: $1" >&2; exit 1 ;;
+    *) break ;;
+  esac
+done
+
 # shellcheck source=run-env.sh
 source ./Scripts/run-env.sh
 trinket_run_env_init
@@ -39,7 +72,11 @@ xcode_runner_run --label "run-simulator" --quiet -- \
   CODE_SIGNING_ALLOWED=NO \
   CODE_SIGNING_REQUIRED=NO
 
-echo "Build succeeded. Preparing Trinket Run..."
+if [[ -n "${TRINKET_SIMULATOR_NAME:-}" ]]; then
+  echo "Build succeeded. Preparing $TRINKET_SIMULATOR_NAME..."
+else
+  echo "Build succeeded. Preparing Trinket Run..."
+fi
 ensure_test_simulator
 
 # Read the identifier from the product that was just built so project.yml and
@@ -73,49 +110,44 @@ xcrun simctl install "$SIMULATOR_UDID" "$APP_PATH"
 # invalidate test-without-building stamps that depend on that simulator state.
 rm -f "$DERIVED_DATA_PATH"/TestResults/.last-build-*.stamp 2>/dev/null || true
 
-place_bundle_on_first_home_screen() {
-  local data_home plist attempt status="missing"
-  data_home="$(xcrun simctl getenv "$SIMULATOR_UDID" HOME 2>/dev/null || true)"
-  [[ -n "$data_home" ]] || return 0
-  plist="$data_home/Library/SpringBoard/IconState.plist"
-
-  for attempt in $(seq 1 15); do
-    if [[ -f "$plist" ]]; then
-      status="$(python3 ./Scripts/place-home-screen-icon.py --plist "$plist" --bundle-id "$BUNDLE_ID" --check)"
-      if [[ "$status" != "missing" ]]; then
-        break
-      fi
-    fi
-    sleep 0.2
-  done
-
-  status="$(python3 ./Scripts/place-home-screen-icon.py --plist "$plist" --bundle-id "$BUNDLE_ID" --insert-if-missing)"
-  printf '%s' "$status"
-}
-
-ICON_PLACE_STATUS="$(place_bundle_on_first_home_screen)"
-echo "Home screen icon: ${ICON_PLACE_STATUS:-skipped}"
-if [[ "$ICON_PLACE_STATUS" == "moved" ]]; then
-  # SIGKILL so SpringBoard cannot flush the previous page layout on the way down.
-  xcrun simctl spawn "$SIMULATOR_UDID" killall -9 SpringBoard 2>/dev/null || true
-fi
-
 echo "Opening Simulator and launching $BUNDLE_ID..."
-open -a Simulator --args -CurrentDeviceUDID "$SIMULATOR_UDID"
-# Install and a SpringBoard reload can reject the first launch; keep retrying
-# until simctl accepts it, then launch once more after SpringBoard settles.
+# Simulator.app visibility: `open --args -CurrentDeviceUDID` only affects a fresh
+# launch. When Simulator is already running (idle or on another device) the
+# `open` is a no-op and `simctl launch` succeeds headlessly with no window.
+# Ensure the app is running, frontmost, and pointed at this UDID.
+if pgrep -x Simulator >/dev/null 2>&1; then
+  open -a Simulator 2>/dev/null || true
+  open -a Simulator --args -CurrentDeviceUDID "$SIMULATOR_UDID" 2>/dev/null || true
+else
+  open -a Simulator --args -CurrentDeviceUDID "$SIMULATOR_UDID" 2>/dev/null || open -a Simulator 2>/dev/null || true
+fi
+osascript -e 'tell application "Simulator" to activate' 2>/dev/null || true
+for _ in {1..10}; do
+  pgrep -x Simulator >/dev/null 2>&1 && break
+  sleep 0.5
+done
+if ! pgrep -x Simulator >/dev/null 2>&1; then
+  echo "warning: Simulator.app did not appear after open; launch will be headless" >&2
+  echo "  Try: open -a Simulator" >&2
+fi
 LAUNCH_DEADLINE=$((SECONDS + 20))
 until xcrun simctl launch --terminate-running-process \
   "$SIMULATOR_UDID" "$BUNDLE_ID" -- -appearance dark
 do
   if (( SECONDS >= LAUNCH_DEADLINE )); then
     echo "error: simctl launch failed for $BUNDLE_ID" >&2
+    echo "  Simulator UDID: $SIMULATOR_UDID ($TRINKET_SIMULATOR_NAME)" >&2
+    xcrun simctl list devices "$SIMULATOR_UDID" -j 2>/dev/null | python3 Scripts/simctl_json.py state-for-udid "$SIMULATOR_UDID" 2>/dev/null | sed 's/^/  sim state: /' >&2 || true
+    pgrep -a Simulator 2>&1 | sed 's/^/  /' >&2 || echo "  Simulator.app not running" >&2
     exit 1
   fi
   sleep 0.4
 done
-if [[ "$ICON_PLACE_STATUS" == "moved" ]]; then
-  sleep 1
-  xcrun simctl launch --terminate-running-process \
-    "$SIMULATOR_UDID" "$BUNDLE_ID" -- -appearance dark
+if ! pgrep -x Simulator >/dev/null 2>&1; then
+  echo "warning: $BUNDLE_ID launched headlessly — Simulator.app is not running" >&2
+  echo "  Open it: open -a Simulator --args -CurrentDeviceUDID $SIMULATOR_UDID" >&2
+else
+  osascript -e 'tell application "Simulator" to activate' 2>/dev/null || true
+  echo "Launched $BUNDLE_ID on $TRINKET_SIMULATOR_NAME ($SIMULATOR_UDID) — Simulator window should be frontmost."
+  echo "  If no window is visible: open -a Simulator --args -CurrentDeviceUDID $SIMULATOR_UDID"
 fi

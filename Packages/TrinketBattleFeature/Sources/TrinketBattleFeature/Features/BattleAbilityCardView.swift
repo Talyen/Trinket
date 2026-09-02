@@ -57,15 +57,10 @@ struct BattleAbilityCardView: View {
         BattleHandLayout.playDragThreshold
     }
 
-    private var faceOpacity: Double {
-        isPlayable ? 1 : 0.45
-    }
-
     var body: some View {
         BattleAbilityCardFace(artworkName: card.ability.artReference?.imageName)
             .equatable()
             .frame(width: width, height: height)
-            .opacity(faceOpacity)
             .overlay {
                 if isPlayArmed {
                     TrinketDesign.cardShape

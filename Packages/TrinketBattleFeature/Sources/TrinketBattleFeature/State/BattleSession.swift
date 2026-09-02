@@ -64,6 +64,10 @@ public final class BattleSession: BattleRuntime {
     @ObservationIgnored
     var openingHandDealGeneration = 0
     @ObservationIgnored
+    var pendingTurnDrawTask: Task<Void, Never>?
+    @ObservationIgnored
+    var turnDrawGeneration = 0
+    @ObservationIgnored
     var preparedArtworkNames: Set<String> = []
 
     public internal(set) var isDealingOpeningHand = false
@@ -135,7 +139,6 @@ public final class BattleSession: BattleRuntime {
     var canEndTurn: Bool {
         engineState?.phase == .playerTurn && !(engineState?.isBattleOver ?? true)
             && hasActiveSimulation
-            && !isDealingOpeningHand
             && spectacle.outcomePresentation == .battle
     }
 

@@ -52,7 +52,10 @@ Full smoke and exhaustive UI are CI-owned post-push gates; watch them with
 - The full local UI run belongs to pre-release deploy verification (`release.sh` / `test-deploy.sh`).
 
 After a green isolated rebuild, `--no-build` is appropriate for mid-task smoke
-reruns in the same slot. Final handoff still uses the full isolated route.
+reruns in the same slot. Final handoff still uses the full isolated route. On
+`--isolate` success the built app is auto-mirrored to **Trinket Run** (see
+[SimulatorOperations.md](SimulatorOperations.md))
+so Simulator.app shows the latest without a manual install.
 
 `handoff.sh` is the canonical path-scoped route. It composes generation,
 style, package, compile, smoke, documentation, and idempotence checks from the

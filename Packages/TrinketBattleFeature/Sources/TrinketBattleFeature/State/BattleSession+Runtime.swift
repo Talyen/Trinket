@@ -199,6 +199,38 @@ extension BattleSession {
         return events
     }
 
+    @discardableResult
+    func endTurnWithoutDraw() -> [ActionEvent] {
+        guard var engineState else { return [] }
+        let events = engineState.endTurnWithoutDraw(rebuildLog: false)
+        self.engineState = engineState
+        return events
+    }
+
+    @discardableResult
+    func drawNextTurnStartCard() -> Bool {
+        guard var engineState else { return false }
+        let didDraw = engineState.drawNextTurnStartCard(rebuildLog: false)
+        self.engineState = engineState
+        return didDraw
+    }
+
+    @discardableResult
+    func finalizeTurnStart() -> [ActionEvent] {
+        guard var engineState else { return [] }
+        let events = engineState.finalizeTurnStart(rebuildLog: false)
+        self.engineState = engineState
+        return events
+    }
+
+    @discardableResult
+    func promoteNextTurnBufferCard() -> BattleCard? {
+        guard var engineState else { return nil }
+        let card = engineState.promoteNextTurnBufferCard(rebuildLog: false)
+        self.engineState = engineState
+        return card
+    }
+
     func syncEngineLog() {
         guard var engineState else { return }
         engineState.syncLog()
@@ -328,6 +360,7 @@ extension BattleSession {
         if suspended {
             cancelPendingAutoEnd()
             finishEnemyTurnPresentation()
+            cancelPendingTurnDraw()
         } else {
             scheduleAutoEndIfNeeded()
         }

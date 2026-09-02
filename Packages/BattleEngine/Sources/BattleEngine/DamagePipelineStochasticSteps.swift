@@ -147,7 +147,6 @@ package extension DamagePipeline {
         applyCritical(to: &state)
     }
 
-    // swiftlint:disable:next function_body_length - dodge resolution keeps seeded rolls and events together
     private static func resolveGuaranteedCrit(
         to state: inout DamageResolutionState,
         actor: CombatantRuntime,
@@ -156,66 +155,51 @@ package extension DamagePipeline {
         guard let sourceActorID = state.sourceActorID else {
             return false
         }
-        if state.options.guaranteedCritical {
-            if actor.role == .enemy {
-                return false
-            }
+        if actor.role != .enemy, state.options.guaranteedCritical {
             applyCritical(to: &state)
             return true
         }
-        if state.options.guaranteedCriticalIfEnemyBuffed,
+        if actor.role != .enemy,
+           state.options.guaranteedCriticalIfEnemyBuffed,
            context.roster.activeEffects(for: state.combatant).contains(where: \.effect.isRemovableBuff) {
-            if actor.role == .enemy {
-                return false
-            }
             applyCritical(to: &state)
             return true
         }
         if state.options.isAttackHit,
+           actor.role != .enemy,
            context.modifiers(for: sourceActorID).triggers.firstAttackGuaranteedCritical,
            context.claimBattleGuard(.surpriseStrike, actorID: actor.combatant.id) {
-            if actor.role == .enemy {
-                return false
-            }
             applyCritical(to: &state)
             return true
         }
-        if state.options.isAttackHit,
+        if actor.role != .enemy,
+           state.options.isAttackHit,
            context.roster.runtime(for: actor.combatant)?.pendingGuaranteedCriticalAfterDodge == true {
             context.roster.mutateRuntime(for: actor.combatant) {
                 $0.pendingGuaranteedCriticalAfterDodge = false
             }
-            if actor.role == .enemy {
-                return false
-            }
             applyCritical(to: &state)
             return true
         }
-        if state.options.isAttackHit, state.options.isBasicAttackHit,
+        if actor.role != .enemy,
+           state.options.isAttackHit, state.options.isBasicAttackHit,
            context.roster.runtime(for: actor.combatant)?.pendingBasicGuaranteedCrit == true {
             context.roster.mutateRuntime(for: actor.combatant) {
                 $0.pendingBasicGuaranteedCrit = false
             }
-            if actor.role == .enemy {
-                return false
-            }
             applyCritical(to: &state)
             return true
         }
-        if context.roster.isDeathsDoorActive(for: actor.combatant),
+        if actor.role != .enemy,
+           context.roster.isDeathsDoorActive(for: actor.combatant),
            context.modifiers(for: sourceActorID).triggers.guaranteedCritWhileOnDeathsDoor {
-            if actor.role == .enemy {
-                return false
-            }
             applyCritical(to: &state)
             return true
         }
-        if context.modifiers(for: sourceActorID).triggers.warChest,
+        if actor.role != .enemy,
+           context.modifiers(for: sourceActorID).triggers.warChest,
            state.damageKeyword == .physical,
            context.gold >= 50 {
-            if actor.role == .enemy {
-                return false
-            }
             applyCritical(to: &state)
             return true
         }

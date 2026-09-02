@@ -12,7 +12,6 @@ public struct CombatantRuntime: Hashable {
         public var totalBlockGainedThisCombat: Int = 0
         public var talentCritMultiplierBonus: Double = 0.0
         public var hasNegatedFirstEnemyAttack: Bool = false
-
         public var bonusDodgeUntilNextTurn: Double = 0.0
         public var bonusDodgeExpiresAtTurn: Int = 0
         public var healOverTimeAmount: Int = 0
@@ -22,7 +21,6 @@ public struct CombatantRuntime: Hashable {
         public var hasTriggeredBlockBreakThisTurn: Bool = false
         public var talentDamagePercentBonus: Double = 0.0
         public var talentDamagePercentUntilTurn: Int = 0
-
         public var pendingDamageAfterDodge: Int = 0
         public var pendingDamageDoubleAfterDodge: Bool = false
         public var pendingGuaranteedCriticalAfterDodge: Bool = false
@@ -56,21 +54,20 @@ public struct CombatantRuntime: Hashable {
         }
     }
 
-    private var talentBox: CopyOnWriteBox<TalentState>
+    private var talentStateStorage = TalentState()
 
     private mutating func mutateTalentState(_ body: (inout TalentState) -> Void) {
-        if isKnownUniquelyReferenced(&talentBox) {
-            body(&talentBox.value)
-        } else {
-            var newState = talentBox.value
-            body(&newState)
-            talentBox = CopyOnWriteBox(newState)
-        }
+        body(&talentStateStorage)
     }
 
     public subscript<T>(dynamicMember keyPath: WritableKeyPath<TalentState, T>) -> T {
-        get { talentBox.value[keyPath: keyPath] }
+        get { talentStateStorage[keyPath: keyPath] }
         set { mutateTalentState { $0[keyPath: keyPath] = newValue } }
+    }
+
+    var talentState: TalentState {
+        get { talentStateStorage }
+        set { talentStateStorage = newValue }
     }
 
     public let combatant: Combatant
@@ -122,7 +119,7 @@ public struct CombatantRuntime: Hashable {
         self.hasTriggeredSecondWind = hasTriggeredSecondWind
         self.hasTriggeredDeathRevive = hasTriggeredDeathRevive
         self.hasTriggeredPhoenixGift = hasTriggeredPhoenixGift
-        talentBox = CopyOnWriteBox(TalentState())
+        talentStateStorage = TalentState()
         currentHealth = initialHealth ?? CombatantMaxValues.maxHealth(for: combatant, flatBonus: maximumHealthBonus)
         currentMana = initialMana ?? CombatantMaxValues.maxMana(for: combatant, flatBonus: maximumManaBonus)
         activeEffects = initialActiveEffects
@@ -208,39 +205,5 @@ public struct CombatantRuntime: Hashable {
 
     package mutating func resetTalentTurnState(currentTurn: Int) {
         mutateTalentState { $0.resetForNewTurn(currentTurn: currentTurn) }
-    }
-
-    public static func == (lhs: Self, rhs: Self) -> Bool {
-        lhs.combatant == rhs.combatant
-            && lhs.currentHealth == rhs.currentHealth
-            && lhs.currentMana == rhs.currentMana
-            && lhs.activeEffects == rhs.activeEffects
-            && lhs.actionCount == rhs.actionCount
-            && lhs.maximumHealthBonus == rhs.maximumHealthBonus
-            && lhs.maximumManaBonus == rhs.maximumManaBonus
-            && lhs.hasConsumedDeathsDoor == rhs.hasConsumedDeathsDoor
-            && lhs.deathsDoorExpiredAtTurn == rhs.deathsDoorExpiredAtTurn
-            && lhs.hasTriggeredFirstHitBonus == rhs.hasTriggeredFirstHitBonus
-            && lhs.hasTriggeredSecondWind == rhs.hasTriggeredSecondWind
-            && lhs.hasTriggeredDeathRevive == rhs.hasTriggeredDeathRevive
-            && lhs.hasTriggeredPhoenixGift == rhs.hasTriggeredPhoenixGift
-            && lhs.talentBox.value == rhs.talentBox.value
-    }
-
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(combatant)
-        hasher.combine(currentHealth)
-        hasher.combine(currentMana)
-        hasher.combine(activeEffects)
-        hasher.combine(actionCount)
-        hasher.combine(maximumHealthBonus)
-        hasher.combine(maximumManaBonus)
-        hasher.combine(hasConsumedDeathsDoor)
-        hasher.combine(deathsDoorExpiredAtTurn)
-        hasher.combine(hasTriggeredFirstHitBonus)
-        hasher.combine(hasTriggeredSecondWind)
-        hasher.combine(hasTriggeredDeathRevive)
-        hasher.combine(hasTriggeredPhoenixGift)
-        hasher.combine(talentBox.value)
     }
 }

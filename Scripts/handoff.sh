@@ -250,4 +250,25 @@ if [[ "$QUIET" != true ]]; then
 fi
 run_cheap_ci_slices
 
+if [[ "${TRINKET_ISOLATE:-}" == "1" && "${ISOLATE}" == true ]]; then
+  _mirror_needs_build=false
+  if [[ "$TRINKET_NEEDS_APP_BUILD" == true || "$TRINKET_HAS_FEATURE" == true || "$TRINKET_NEEDS_CONTENT_GENERATION" == true || "$TRINKET_NEEDS_PROJECT_GENERATION" == true ]] || (( ${#TRINKET_PACKAGES[@]} > 0 )); then
+    _mirror_needs_build=true
+  fi
+  if [[ "$_mirror_needs_build" == true ]]; then
+    if [[ "$QUIET" != true ]]; then
+      echo ""
+      echo "=== Auto-mirror: ensuring Trinket.app reflects verified packages ==="
+    fi
+    env SKIP_GENERATE=1 ./Scripts/build.sh >/dev/null 2>&1 || echo "warning: auto-mirror app build failed" >&2
+    if [[ "$QUIET" != true ]]; then
+      echo ""
+      echo "=== Auto-mirror to Trinket Run (isolated build → human simulator) ==="
+    fi
+    # shellcheck source=Scripts/lib/promote.sh
+    source Scripts/lib/promote.sh
+    trinket_promote_auto_mirror_to_run || true
+  fi
+fi
+
 exit 0

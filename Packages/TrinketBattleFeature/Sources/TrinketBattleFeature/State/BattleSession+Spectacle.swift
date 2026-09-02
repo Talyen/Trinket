@@ -296,6 +296,7 @@ extension BattleSession {
         cancelPendingEnemyTurnReset()
         isEnemyTurnActive = false
         cancelOpeningHandDeal()
+        cancelPendingTurnDraw()
         deliveredClaimedVictoryConfigurationID = nil
         installSimulationPresentation()
         feedback.clear()
@@ -328,6 +329,7 @@ extension BattleSession {
         cancelPendingEnemyTurnReset()
         isEnemyTurnActive = false
         cancelOpeningHandDeal()
+        cancelPendingTurnDraw()
         deliveredClaimedVictoryConfigurationID = nil
         presentation.clear()
         feedback.clear()

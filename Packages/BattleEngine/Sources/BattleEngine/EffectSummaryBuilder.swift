@@ -17,10 +17,11 @@ public enum EffectSummaryBuilder {
     ]
 
     public static func build(for effects: [ActiveEffect]) -> [EffectSummary] {
+        let grouped = Dictionary(grouping: effects, by: \.effect.kind)
         var summaries: [EffectSummary] = []
+        summaries.reserveCapacity(grouped.count)
         for kind in priorityOrder {
-            let kindEffects = effects.filter { $0.effect.kind == kind }
-            guard !kindEffects.isEmpty else { continue }
+            guard let kindEffects = grouped[kind], !kindEffects.isEmpty else { continue }
             guard let handler = EffectHandlers.all[kind] else { continue }
             let groupedByKeyword = Dictionary(grouping: kindEffects, by: \.keyword)
             for (keyword, stacks) in groupedByKeyword {

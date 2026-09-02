@@ -5,7 +5,7 @@
 - Agents use `--isolate` and the managed `Trinket Agent N` pool (Simulator.app
   name **Trinket Agent 1**, **Trinket Agent 2**, …). Never run ad-hoc
   `simctl shutdown all` or erase shared devices.
-- Humans omit isolation. The `run` alias and local tests use **Trinket Run**.
+- Humans omit isolation. The `run` alias (`alias run='cd <repo> && ./Scripts/run-simulator.sh'` — installed by `node Scripts/setup-git-safety.mjs`) and local tests use **Trinket Run**.
 - Close SwiftUI Previews before long verification runs. Set
   `TRINKET_CLEANUP_PREVIEW_SIMS=0` only while intentionally keeping previews.
 - Erase is a recovery operation after a failed cold boot, not routine cleanup.
@@ -17,6 +17,31 @@ release only their own leases. Never kill foreign Xcode or Simulator processes.
 A lease left by a crashed run is reaped when its pid is dead or its age exceeds
 `TRINKET_SLOT_STALE_SECONDS` (default 6h) — the age cap defeats pid reuse, so
 stale leases never block the agent pool permanently.
+
+## Auto-mirror (isolated → human)
+
+After a green `handoff --isolate`, the built `Trinket.app` (in
+`.DerivedData/runs/agent-N/Build/Products/...`) is automatically
+`simctl install`-ed to **Trinket Run** so opening Simulator.app shows the
+latest verified build with no manual step. This is install-only (no launch)
+to avoid killing a mid-session game; the next foreground shows the new binary.
+Package-only changes trigger a quick `build.sh` for the mirror if no app
+product exists yet. Suppressed in CI (`GITHUB_ACTIONS=true`) or with
+`TRINKET_PROMOTE_SKIP=1`; set `TRINKET_HANDOFF_AUTO_LAUNCH=1` to also
+foreground-launch after install. Manual inspection of the isolated device
+remains via `./Scripts/run-simulator.sh --isolate` or `--agent N`.
+
+## Launch visibility
+
+`./Scripts/run-simulator.sh` (the `run` alias) builds, installs, then ensures
+`Simulator.app` is frontmost for the target device. `open -a Simulator --args
+-CurrentDeviceUDID` only affects a fresh launch — when Simulator is already
+running the script explicitly re-opens, activates, and re-applies the UDID so
+`simctl launch` does not succeed headlessly with no window. If the window
+still does not appear, run `open -a Simulator --args -CurrentDeviceUDID <UDID>`
+or `open -a Simulator` and check `xcrun simctl list devices` for the `Booted`
+state. `handoff --isolate` auto-mirror does not launch, so use `run` to
+foreground the build.
 
 ## Xcode IDE loop
 

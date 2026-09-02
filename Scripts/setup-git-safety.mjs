@@ -23,10 +23,34 @@ function ensureLine(filePath) {
   console.log(`added shim to ${filePath}`);
 }
 
+const runAlias = `alias run='cd ${root} && ./Scripts/run-simulator.sh'  # Trinket run alias (build + foreground Simulator on Trinket Run)`;
+
+function ensureRunAlias(filePath) {
+  let content = "";
+  try {
+    content = fs.readFileSync(filePath, "utf8");
+  } catch {}
+  if (content.includes("alias run=") && content.includes("run-simulator.sh")) {
+    console.log(`ok: ${filePath} already contains run alias`);
+    return;
+  }
+  if (content.includes("alias run=")) {
+    console.log(`skip: ${filePath} has custom alias run — not overwriting`);
+    return;
+  }
+  const append = content.endsWith("\n") || content === "" ? "" : "\n";
+  fs.appendFileSync(filePath, `${append}${runAlias}\n`);
+  console.log(`added run alias to ${filePath}`);
+}
+
 const home = os.homedir();
 for (const rc of [".zshrc", ".bashrc", ".bash_profile"]) {
   const p = path.join(home, rc);
   if (fs.existsSync(p) || rc === ".zshrc") ensureLine(p);
+}
+for (const rc of [".zshrc", ".bashrc"]) {
+  const p = path.join(home, rc);
+  if (fs.existsSync(p) || rc === ".zshrc") ensureRunAlias(p);
 }
 
 const envrc = path.join(root, ".envrc");

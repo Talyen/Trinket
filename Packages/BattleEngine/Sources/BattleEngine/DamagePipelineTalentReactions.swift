@@ -25,55 +25,20 @@ package extension DamagePipeline {
         source: CombatantRuntime,
         in context: inout BattleState,
     ) {
-        if triggers.toxicTransfusion, keyword == .physical {
+        let mirrored: [(Bool, Keyword, Keyword)] = [
+            (triggers.toxicTransfusion, .physical, .poison),
+            (triggers.firebrand, .physical, .burn),
+            (triggers.butchersLedger, .physical, .bleed),
+            (triggers.nerveAgent, .poison, .stun),
+            (triggers.crossContamination, .bleed, .poison),
+            (triggers.frostfire, .burn, .freeze),
+        ]
+        let scaled = CombatRounding.scaled(state.buildupDamage, multiplier: 0.5)
+        guard scaled > 0 else { return }
+        for (enabled, src, dst) in mirrored where enabled && keyword == src {
             state.damageEvents.append(contentsOf: dealTalentMirroredDamage(
-                CombatRounding.scaled(state.buildupDamage, multiplier: 0.5),
-                keyword: .poison,
-                target: state.combatant,
-                source: source.combatant,
-                in: &context,
-            ))
-        }
-        if triggers.firebrand, keyword == .physical {
-            state.damageEvents.append(contentsOf: dealTalentMirroredDamage(
-                CombatRounding.scaled(state.buildupDamage, multiplier: 0.5),
-                keyword: .burn,
-                target: state.combatant,
-                source: source.combatant,
-                in: &context,
-            ))
-        }
-        if triggers.butchersLedger, keyword == .physical {
-            state.damageEvents.append(contentsOf: dealTalentMirroredDamage(
-                CombatRounding.scaled(state.buildupDamage, multiplier: 0.5),
-                keyword: .bleed,
-                target: state.combatant,
-                source: source.combatant,
-                in: &context,
-            ))
-        }
-        if triggers.nerveAgent, keyword == .poison {
-            state.damageEvents.append(contentsOf: dealTalentMirroredDamage(
-                CombatRounding.scaled(state.buildupDamage, multiplier: 0.5),
-                keyword: .stun,
-                target: state.combatant,
-                source: source.combatant,
-                in: &context,
-            ))
-        }
-        if triggers.crossContamination, keyword == .bleed {
-            state.damageEvents.append(contentsOf: dealTalentMirroredDamage(
-                CombatRounding.scaled(state.buildupDamage, multiplier: 0.5),
-                keyword: .poison,
-                target: state.combatant,
-                source: source.combatant,
-                in: &context,
-            ))
-        }
-        if triggers.frostfire, keyword == .burn {
-            state.damageEvents.append(contentsOf: dealTalentMirroredDamage(
-                CombatRounding.scaled(state.buildupDamage, multiplier: 0.5),
-                keyword: .freeze,
+                scaled,
+                keyword: dst,
                 target: state.combatant,
                 source: source.combatant,
                 in: &context,

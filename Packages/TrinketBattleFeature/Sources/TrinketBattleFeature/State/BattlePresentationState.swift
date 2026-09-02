@@ -50,9 +50,7 @@ struct BattlePresentationSnapshot: Equatable {
             in: state,
         )
         hand = state.hand.cards
-        playableCardIDs = isEnemyTurnActive
-            ? []
-            : Set(hand.filter { state.isCardPlayable($0) }.map(\.id))
+        playableCardIDs = Set(hand.filter { state.isCardPlayable($0) }.map(\.id))
         isBattleOver = state.isBattleOver
     }
 

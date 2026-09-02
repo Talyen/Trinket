@@ -1,4 +1,5 @@
 import BattleEngine
+import Dispatch
 import Foundation
 import TrinketContent
 import TrinketCore
@@ -244,6 +245,7 @@ enum BalanceContrastSupport {
         )
     }
 
+    // swiftlint:disable:next function_body_length - parallel branch for contrast work
     static func runSweep<Focus: Sendable>(
         context: BalanceContrastContext,
         foci: [Focus],
@@ -269,26 +271,56 @@ enum BalanceContrastSupport {
                 samples: config.battlesPerTier,
             ),
         )
-        let pairResults = work.map { item -> ContrastPairOutcome? in
-            let focus = foci[item.focusIndex]
-            let seed = config.seed
-                &+ UInt64(item.tier.level) &* primes.tier
-                &+ UInt64(item.pairIndex) &* primes.pair
-                &+ stableHash64(summarize(focus).entityID)
-            guard let pair = makePair(focus, item.tier, item.pairIndex, seed) else { return nil }
-            let outcome = runEntityBaselinePair(
-                matchups: pair,
-                policy: policy,
-                maxRounds: config.maxRounds,
-                maxActions: config.maxActions,
-                appliesFightPacing: config.appliesFightPacing,
-            )
-            return ContrastPairOutcome(
-                focusIndex: item.focusIndex,
-                tier: item.tier,
-                entity: outcome.entity,
-                baseline: outcome.baseline,
-            )
+        let jobs = config.resolvedJobs
+        let pairResults: [ContrastPairOutcome?]
+        if jobs <= 1 || work.count <= 1 {
+            pairResults = work.map { item -> ContrastPairOutcome? in
+                let focus = foci[item.focusIndex]
+                let seed = config.seed
+                    &+ UInt64(item.tier.level) &* primes.tier
+                    &+ UInt64(item.pairIndex) &* primes.pair
+                    &+ stableHash64(summarize(focus).entityID)
+                guard let pair = makePair(focus, item.tier, item.pairIndex, seed) else { return nil }
+                let outcome = runEntityBaselinePair(
+                    matchups: pair,
+                    policy: policy,
+                    maxRounds: config.maxRounds,
+                    maxActions: config.maxActions,
+                    appliesFightPacing: config.appliesFightPacing,
+                )
+                return ContrastPairOutcome(
+                    focusIndex: item.focusIndex,
+                    tier: item.tier,
+                    entity: outcome.entity,
+                    baseline: outcome.baseline,
+                )
+            }
+        } else {
+            // Concurrency-Safety: disjoint indices written by concurrentPerform, no overlap
+            nonisolated(unsafe) var tmp = [ContrastPairOutcome?](repeating: nil, count: work.count)
+            DispatchQueue.concurrentPerform(iterations: work.count) { idx in
+                let item = work[idx]
+                let focus = foci[item.focusIndex]
+                let seed = config.seed
+                    &+ UInt64(item.tier.level) &* primes.tier
+                    &+ UInt64(item.pairIndex) &* primes.pair
+                    &+ stableHash64(summarize(focus).entityID)
+                guard let pair = makePair(focus, item.tier, item.pairIndex, seed) else { return }
+                let outcome = runEntityBaselinePair(
+                    matchups: pair,
+                    policy: policy,
+                    maxRounds: config.maxRounds,
+                    maxActions: config.maxActions,
+                    appliesFightPacing: config.appliesFightPacing,
+                )
+                tmp[idx] = ContrastPairOutcome(
+                    focusIndex: item.focusIndex,
+                    tier: item.tier,
+                    entity: outcome.entity,
+                    baseline: outcome.baseline,
+                )
+            }
+            pairResults = tmp
         }
 
         return aggregate(

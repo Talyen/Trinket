@@ -80,6 +80,7 @@ public extension BattleState {
         if combatantID == roster.enemy.id || combatantID == "enemy" {
             return enemyModifiers
         }
+        assertionFailure("BattleState.modifiers fallback to .zero for unknown combatantID: \(combatantID)")
         return .zero
     }
 

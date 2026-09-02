@@ -28,6 +28,14 @@ public struct TalentActionGuardKey: Hashable, Sendable {
     }
 }
 
+public struct TurnDrawState: Hashable, Sendable {
+    var remaining: [BattleParticipant: Int]
+    var tieWinner: BattleParticipant
+    var heroHandCount: Int
+    var companionHandCount: Int
+}
+
+// swiftlint:disable:next type_body_length - BattleState is intentional battle facade
 public struct BattleState {
     public let rngSeed: UInt64
 
@@ -96,6 +104,7 @@ public struct BattleState {
     public let enemyFaction: EnemyFaction
     public var storedBlockedDamageByActorID: [String: Int] = [:]
     public var primedRepeatKeywords: Set<Keyword> = []
+    var pendingTurnDrawState: TurnDrawState?
 
     public var partyTriggers: CombatTraitTriggers {
         CombatTriggerEngine.livingPartyTriggers(in: self)
@@ -143,6 +152,7 @@ public struct BattleState {
         tracksLog: Bool = false,
         tracksEvents: Bool = true,
         appliesFightPacing: Bool = true,
+        pendingTurnDrawState: TurnDrawState? = nil,
     ) {
         precondition(!(tracksLog && !tracksEvents), "tracksLog requires tracksEvents")
         rngSeed = rng.seed
@@ -182,6 +192,7 @@ public struct BattleState {
         self.dotRecursionDepth = dotRecursionDepth
         self.isResolvingAutoPlayCard = isResolvingAutoPlayCard
         self.drawAndPlayDepth = drawAndPlayDepth
+        self.pendingTurnDrawState = pendingTurnDrawState
 
         self.enemyFaction = enemyFaction
     }
@@ -320,6 +331,38 @@ public struct BattleState {
         return events
     }
 
+    @discardableResult
+    public mutating func endTurnWithoutDraw(rebuildLog: Bool = true) -> [ActionEvent] {
+        let events = BattleCardCombatEngine.endTurnWithoutDraw(context: &self)
+        finishMutation(rebuildLog: rebuildLog)
+        return events
+    }
+
+    @discardableResult
+    public mutating func drawNextTurnStartCard(rebuildLog: Bool = true) -> Bool {
+        let drew = BattleCardCombatEngine.drawNextTurnStartCard(context: &self)
+        if drew {
+            finishMutation(rebuildLog: rebuildLog)
+        }
+        return drew
+    }
+
+    @discardableResult
+    public mutating func finalizeTurnStart(rebuildLog: Bool = true) -> [ActionEvent] {
+        let events = BattleCardCombatEngine.finalizeTurnStart(context: &self)
+        finishMutation(rebuildLog: rebuildLog)
+        return events
+    }
+
+    @discardableResult
+    public mutating func promoteNextTurnBufferCard(rebuildLog: Bool = true) -> BattleCard? {
+        let card = BattleCardCombatEngine.promoteNextFromBuffer(context: &self)
+        if card != nil {
+            finishMutation(rebuildLog: rebuildLog)
+        }
+        return card
+    }
+
     public func isCardPlayable(_ card: BattleCard) -> Bool {
         BattleCardCombatEngine.isCardPlayable(card, in: self)
     }
@@ -336,6 +379,87 @@ public struct BattleState {
 
     public mutating func releaseLogProjection() {
         logProjection = nil
+    }
+
+    package mutating func resolveDamage(_ request: DamageRequest) -> CombatOutcome {
+        guard request.amount > 0 else { return .empty }
+
+        talentReactionDepth += 1
+        defer { talentReactionDepth -= 1 }
+        if talentReactionDepth > ReactionScope.maxTalentReactionDepth {
+            ReactionScope.capHit(site: "talentReactionDepth", depth: talentReactionDepth)
+            return .empty
+        }
+        var resolved = request
+        if talentReactionDepth > 1 {
+            resolved.options.isRetaliation = true
+        }
+
+        var state = DamageResolutionState(
+            amount: resolved.amount,
+            combatant: resolved.target,
+            sourceActorID: resolved.sourceActorID,
+            damageKeyword: resolved.keyword,
+            options: resolved.options,
+        )
+        state.activeEffects = roster.activeEffects(for: request.target)
+
+        DamagePipeline.run(state: &state, in: &self)
+
+        return CombatOutcome.fromDamage(state: state)
+    }
+
+    package mutating func resolveHeal(_ request: HealRequest) -> CombatOutcome {
+        HealingEngine.resolveHeal(request, in: &self)
+    }
+
+    package mutating func applyControlMeter(
+        _ amount: Int,
+        keyword: Keyword,
+        to combatant: Combatant,
+        sourceActorID: String?,
+    ) -> [ActionEvent] {
+        ControlMeterEngine.applyMeterCharge(
+            amount,
+            keyword: keyword,
+            to: combatant,
+            sourceActorID: sourceActorID,
+            in: &self,
+        )
+    }
+
+    package mutating func resolveDoTTick(
+        basePotency: Int,
+        keyword: Keyword,
+        target: Combatant,
+        sourceActorID: String?,
+    ) -> CombatOutcome {
+        DoTDamage.resolveTurnDamage(
+            basePotency: basePotency,
+            keyword: keyword,
+            target: target,
+            sourceActorID: sourceActorID,
+            in: &self,
+        )
+    }
+
+    package mutating func applyDecayingDoT(
+        keyword: Keyword,
+        potency: Int,
+        to effectTarget: Combatant,
+        sourceActorID: String,
+        dealImmediateDamage: Bool,
+        suppressAffixReactions: Bool = false,
+    ) -> [ActionEvent] {
+        DoTApplicator.applyDecayingDoT(
+            keyword: keyword,
+            potency: potency,
+            to: effectTarget,
+            sourceActorID: sourceActorID,
+            dealImmediateDamage: dealImmediateDamage,
+            suppressAffixReactions: suppressAffixReactions,
+            in: &self,
+        )
     }
 
     private mutating func finishMutation(rebuildLog: Bool) {

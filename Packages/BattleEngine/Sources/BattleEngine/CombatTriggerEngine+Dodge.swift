@@ -190,12 +190,17 @@ package extension CombatTriggerEngine {
 
         if triggers.phantomCounter,
            context.talentReactionDepth < ReactionScope.maxTalentReactionDepth,
+           context.dotRecursionDepth < ReactionScope.maxDotRecursionDepth,
            context.drawAndPlayDepth < BattleState.maxDrawAndPlayDepth,
            !context.isResolvingAutoPlayCard,
            let owner = context.roster.participant(for: combatant),
            let card = BattleCardCombatEngine.drawFirstCard(matching: .physical, for: owner, context: &context) {
             context.talentReactionDepth += 1
-            defer { context.talentReactionDepth -= 1 }
+            context.dotRecursionDepth += 1
+            defer {
+                context.talentReactionDepth -= 1
+                context.dotRecursionDepth -= 1
+            }
             events.append(contentsOf: (try? BattleCardCombatEngine.playDrawnCard(card, context: &context)) ?? [])
         }
 

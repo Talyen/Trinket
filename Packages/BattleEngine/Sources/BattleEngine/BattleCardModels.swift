@@ -166,6 +166,26 @@ public struct BattleHand: Hashable, Sendable {
         return discarded
     }
 
+    @discardableResult
+    public mutating func promoteNextFromBuffer(
+        isOwnerAlive: (BattleParticipant) -> Bool,
+    ) -> BattleCard? {
+        guard !isFull, !buffer.isEmpty else {
+            return nil
+        }
+        while !buffer.isEmpty {
+            let card = buffer.removeFirst()
+            if isOwnerAlive(card.owner) {
+                cards.append(card)
+                return card
+            }
+            if isFull {
+                break
+            }
+        }
+        return nil
+    }
+
     public var isFull: Bool {
         cards.count >= Self.maxSize
     }

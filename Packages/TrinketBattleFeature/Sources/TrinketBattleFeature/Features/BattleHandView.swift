@@ -107,6 +107,7 @@ struct BattleHandView: View {
                     )
                     .offset(x: snapshot.fanOffsetX)
                     .zIndex(isHeld ? 100 : Double(index))
+                    .allowsHitTesting(true)
                     .animation(isHeld ? nil : BattleMotion.handReflow, value: liveSnapshot)
                     .transition(
                         .asymmetric(

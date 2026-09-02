@@ -8,9 +8,13 @@ extension BattleCardCombatEngine {
         owner: BattleParticipant,
         context: inout BattleState,
     ) -> BattleCard? {
-        guard canDrawFromDeck(for: owner, in: context), let keyPath = deckKeyPath(for: owner) else { return nil }
-        guard let ability = context[keyPath: keyPath].drawFirst(where: { $0.tier == tier }) else { return nil }
-        _ = context.rng.next()
+        guard canDrawFromDeck(for: owner, in: context) else { return nil }
+        let ability: Ability? = switch owner {
+        case .hero: context.heroDeck.drawFirst(where: { $0.tier == tier })
+        case .companion: context.companionDeck.drawFirst(where: { $0.tier == tier })
+        case .enemy: nil
+        }
+        guard let ability else { return nil }
         return deal(ability, owner: owner, context: &context)
     }
 

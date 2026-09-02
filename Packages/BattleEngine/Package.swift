@@ -39,7 +39,7 @@ let package = Package(
         ),
         .executableTarget(
             name: "BalanceSweepCLI",
-            dependencies: ["BattleBalanceTools", "BattleEngine", "TrinketContent"],
+            dependencies: ["BattleBalanceTools"],
         ),
         .testTarget(
             name: "BattleEngineTests",
