@@ -20,4 +20,11 @@ struct PreparedArtworkMemoryBudgetTests {
         let limitFloor = PreparedArtworkCache.totalCostLimit(forPhysicalMemory: 1 * 1024 * 1024 * 1024)
         #expect(limitFloor == 160 * 1024 * 1024)
     }
+
+    @Test func `evictable cap stays below total resident budget`() {
+        for physicalMemory in [1, 4, 6, 8, 16].map({ $0 * 1024 * 1024 * 1024 }) {
+            let limit = PreparedArtworkCache.totalCostLimit(forPhysicalMemory: physicalMemory)
+            #expect(limit <= PreparedArtworkMemoryBudget.residentArtworkByteCount)
+        }
+    }
 }

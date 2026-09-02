@@ -1,12 +1,10 @@
 import SwiftUI
-import TrinketCore
 import TrinketDesignSystem
 
 public struct DetailHeroHeader<Art: View, Footer: View>: View {
     let eyebrow: String?
     let title: String
-    var titleKeywords: Set<Keyword>
-    var titleShineColors: [Color]?
+    var titleShine: Shine
     var titleAccessibilityIdentifier: String?
     let baseHeight: CGFloat
     var horizontalPadding: CGFloat
@@ -17,8 +15,7 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
     public init(
         eyebrow: String? = nil,
         title: String,
-        titleKeywords: Set<Keyword> = [],
-        titleShineColors: [Color]? = nil,
+        titleShine: Shine = .none,
         titleAccessibilityIdentifier: String? = nil,
         baseHeight: CGFloat,
         horizontalPadding: CGFloat = TrinketDesign.Spacing.large,
@@ -28,8 +25,7 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
     ) {
         self.eyebrow = eyebrow
         self.title = title
-        self.titleKeywords = titleKeywords
-        self.titleShineColors = titleShineColors
+        self.titleShine = titleShine
         self.titleAccessibilityIdentifier = titleAccessibilityIdentifier
         self.baseHeight = baseHeight
         self.horizontalPadding = horizontalPadding
@@ -39,14 +35,22 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
     }
 
     public var body: some View {
-        OverscrollHeroContainer(
-            baseHeight: baseHeight,
-            alignment: .topLeading,
-            artworkBlend: .bottom(into: .canvas),
-        ) {
+        ZStack(alignment: .topLeading) {
             art()
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-        } overlay: {
+                .backgroundExtensionEffect()
+                .allowsHitTesting(false)
+                .frame(height: baseHeight)
+                .clipped()
+                .trinketArtworkBlend(.bottom(into: .canvas))
+                .visualEffect { content, proxy in
+                    let overscroll = max(proxy.frame(in: .scrollView(axis: .vertical)).minY, 0)
+                    let stretch = baseHeight > 0 ? (baseHeight + overscroll) / baseHeight : 1
+                    return content
+                        .scaleEffect(stretch, anchor: .top)
+                        .offset(y: -overscroll)
+                }
+
             VStack(alignment: .leading) {
                 titleBlock
                 footer()
@@ -55,7 +59,11 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
             .padding(.bottom, bottomPadding)
             .frame(maxWidth: .infinity, alignment: .leading)
             .frame(maxHeight: .infinity, alignment: .bottom)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .frame(height: baseHeight)
+            .clipped()
         }
+        .frame(height: baseHeight)
     }
 
     private var titleBlock: some View {
@@ -73,17 +81,11 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
 
     @ViewBuilder
     private var titleText: some View {
-        let base = Text(balanced: title)
+        let label = Text(balanced: title)
             .trinketTypography(.screenDisplay)
             .trinketOnArtText(.title)
             .trinketFittedText()
-        let label = Group {
-            if let titleShineColors, !titleShineColors.isEmpty {
-                base.colorShine(titleShineColors)
-            } else {
-                base.keywordShine(titleKeywords)
-            }
-        }
+            .shineText(titleShine)
 
         if let titleAccessibilityIdentifier {
             label.accessibilityIdentifier(titleAccessibilityIdentifier)
@@ -97,8 +99,7 @@ public extension DetailHeroHeader where Footer == EmptyView {
     init(
         eyebrow: String? = nil,
         title: String,
-        titleKeywords: Set<Keyword> = [],
-        titleShineColors: [Color]? = nil,
+        titleShine: Shine = .none,
         titleAccessibilityIdentifier: String? = nil,
         baseHeight: CGFloat,
         horizontalPadding: CGFloat = TrinketDesign.Spacing.large,
@@ -107,8 +108,7 @@ public extension DetailHeroHeader where Footer == EmptyView {
     ) {
         self.eyebrow = eyebrow
         self.title = title
-        self.titleKeywords = titleKeywords
-        self.titleShineColors = titleShineColors
+        self.titleShine = titleShine
         self.titleAccessibilityIdentifier = titleAccessibilityIdentifier
         self.baseHeight = baseHeight
         self.horizontalPadding = horizontalPadding

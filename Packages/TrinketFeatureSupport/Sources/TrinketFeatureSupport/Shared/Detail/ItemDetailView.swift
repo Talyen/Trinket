@@ -110,8 +110,7 @@ public struct ItemDetailView: View {
                 DetailHeroHeader(
                     eyebrow: ItemDetailContent.eyebrow(for: item),
                     title: item.displayName,
-                    titleKeywords: Set(item.astralShineKeywords ?? []),
-                    titleShineColors: item.rarity == .unique ? UniqueShine.textColors : nil,
+                    titleShine: item.rarity == .unique ? .unique : item.astralShine,
                     baseHeight: baseHeight,
                 ) {
                     ItemArtwork(item: item)
@@ -229,11 +228,15 @@ struct ItemDetailContent: View {
         return item.isCorrupted ? "\(tag) · CORRUPTED" : tag
     }
 
-    private func uniqueAffixShineColors(_ affix: ItemAffix) -> [Color]? {
+    private func affixShine(at index: Int, affix: ItemAffix) -> Shine {
         if item.rarity == .unique {
-            return UniqueShine.textColors
+            return .unique
         }
-        return affix.isCorrupted ? CorruptionShine.textColors : nil
+        if affix.isCorrupted {
+            return .corruption
+        }
+        let keywords = item.isPerfectAffix(at: index) ? Keyword.allCases.filter(affix.keywords.contains) : []
+        return keywords.isEmpty ? .none : .keywords(keywords)
     }
 
     var body: some View {
@@ -243,8 +246,7 @@ struct ItemDetailContent: View {
                     DetailTraitRow(
                         title: affix.title,
                         description: affix.description,
-                        titleKeywords: item.isPerfectAffix(at: index) ? affix.keywords : [],
-                        titleShineColors: uniqueAffixShineColors(affix),
+                        titleShine: affixShine(at: index, affix: affix),
                     )
                 }
             }

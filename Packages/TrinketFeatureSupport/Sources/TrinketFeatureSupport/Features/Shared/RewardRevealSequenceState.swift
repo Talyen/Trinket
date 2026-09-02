@@ -33,17 +33,13 @@ public final class RewardRevealSequenceState {
         self.clock = clock
     }
 
-    private func clockSleep(for duration: Duration) async throws {
-        try await clock.sleep(for: duration)
-    }
-
     public func start(itemCount: Int, walletCount: Int) {
         guard !hasStarted else { return }
         hasStarted = true
         revealTask?.cancel()
         revealTask = Task { @MainActor in
             if itemCount > 0 || walletCount == 0 {
-                try? await self.clockSleep(for: .seconds(TrinketMotion.Reward.itemRevealDelay))
+                try? await clock.sleep(for: .seconds(TrinketMotion.Reward.itemRevealDelay))
                 guard !Task.isCancelled else { return }
                 withAnimation(TrinketMotion.Reward.reveal) {
                     areItemsVisible = true
@@ -52,7 +48,7 @@ public final class RewardRevealSequenceState {
 
             if walletCount > 0 {
                 for count in 1 ... walletCount {
-                    try? await self.clockSleep(for: .seconds(TrinketMotion.Reward.resourceStagger))
+                    try? await clock.sleep(for: .seconds(TrinketMotion.Reward.resourceStagger))
                     guard !Task.isCancelled else { return }
                     withAnimation(TrinketMotion.Reward.stateChange) {
                         visibleWalletRewardCount = count
@@ -60,7 +56,7 @@ public final class RewardRevealSequenceState {
                 }
             }
 
-            try? await self.clockSleep(for: .seconds(TrinketMotion.Reward.completionDelay))
+            try? await clock.sleep(for: .seconds(TrinketMotion.Reward.completionDelay))
             guard !Task.isCancelled else { return }
             withAnimation(TrinketMotion.Reward.stateChange) {
                 finish(walletCount: walletCount)

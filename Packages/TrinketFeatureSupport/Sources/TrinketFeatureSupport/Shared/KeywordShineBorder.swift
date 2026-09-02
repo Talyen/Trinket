@@ -9,30 +9,6 @@ public struct KeywordShineBorder: View {
     public var isMotionActive: Bool = true
 
     public init(
-        keywords: [Keyword],
-        cornerRadius: CGFloat = TrinketDesign.Corners.card,
-        lineWidth: CGFloat = 2,
-        isMotionActive: Bool = true,
-    ) {
-        shine = keywords.isEmpty ? .none : .keywords(keywords)
-        self.cornerRadius = cornerRadius
-        self.lineWidth = lineWidth
-        self.isMotionActive = isMotionActive
-    }
-
-    public init(
-        colors: [Color],
-        cornerRadius: CGFloat = TrinketDesign.Corners.card,
-        lineWidth: CGFloat = 2,
-        isMotionActive: Bool = true,
-    ) {
-        shine = colors.isEmpty ? .none : .colors(colors)
-        self.cornerRadius = cornerRadius
-        self.lineWidth = lineWidth
-        self.isMotionActive = isMotionActive
-    }
-
-    public init(
         shine: Shine,
         cornerRadius: CGFloat = TrinketDesign.Corners.card,
         lineWidth: CGFloat = 2,
@@ -123,48 +99,6 @@ private struct KeywordShineBorderStroke: View {
 
 public extension View {
     @ViewBuilder
-    func keywordShineBorder(
-        keywords: [Keyword]?,
-        cornerRadius: CGFloat = TrinketDesign.Corners.card,
-        lineWidth: CGFloat = 2,
-        isMotionActive: Bool = true,
-    ) -> some View {
-        if let keywords, !keywords.isEmpty {
-            shineBorder(.keywords(keywords), cornerRadius: cornerRadius, lineWidth: lineWidth, isMotionActive: isMotionActive)
-        } else {
-            self
-        }
-    }
-
-    @ViewBuilder
-    func keywordShineBorder(
-        keyword: Keyword?,
-        cornerRadius: CGFloat = TrinketDesign.Corners.card,
-        lineWidth: CGFloat = 2,
-        isMotionActive: Bool = true,
-    ) -> some View {
-        if let keyword {
-            shineBorder(.keywords([keyword]), cornerRadius: cornerRadius, lineWidth: lineWidth, isMotionActive: isMotionActive)
-        } else {
-            self
-        }
-    }
-
-    @ViewBuilder
-    func colorShineBorder(
-        colors: [Color]?,
-        cornerRadius: CGFloat = TrinketDesign.Corners.card,
-        lineWidth: CGFloat = 2,
-        isMotionActive: Bool = true,
-    ) -> some View {
-        if let colors, !colors.isEmpty {
-            shineBorder(.colors(colors), cornerRadius: cornerRadius, lineWidth: lineWidth, isMotionActive: isMotionActive)
-        } else {
-            self
-        }
-    }
-
-    @ViewBuilder
     func shineBorder(
         _ shine: Shine,
         cornerRadius: CGFloat = TrinketDesign.Corners.card,
@@ -183,9 +117,5 @@ public extension View {
         } else {
             self
         }
-    }
-
-    func corruptionShineBorder(lineWidth: CGFloat = 2, isMotionActive: Bool = true) -> some View {
-        shineBorder(.corruption, lineWidth: lineWidth, isMotionActive: isMotionActive)
     }
 }

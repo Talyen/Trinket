@@ -123,7 +123,7 @@ public extension Stage {
 
 public extension StageEncounter {
     var artAspectRatio: CGFloat {
-        4.0 / 3.0
+        HeroHeaderLayout.headerAspectRatio
     }
 
     var mapTint: Color {

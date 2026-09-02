@@ -51,7 +51,7 @@ public struct AbilityTierPickerSheet: View {
                 AbilityChoiceCard(
                     ability: ability,
                     isSelected: isSelected,
-                    shineKeywords: isSelected ? equippedKeywords : nil,
+                    shine: isSelected ? .keywords(equippedKeywords) : .none,
                     shineLineWidth: 3,
                 )
             },

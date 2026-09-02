@@ -4,14 +4,14 @@ import TrinketCore
 import TrinketDesignSystem
 
 public extension InventoryItem {
-    var astralShineKeywords: [Keyword]? {
-        guard isTrinket || rarity == .astral else { return nil }
+    var astralShineKeywords: [Keyword] {
+        guard isTrinket || rarity == .astral else { return [] }
         return orderedAffinityKeywords
     }
 
-    var astralShineKeywordSet: Set<Keyword> {
-        guard let keywords = astralShineKeywords else { return [] }
-        return Set(keywords)
+    var astralShine: Shine {
+        let keywords = astralShineKeywords
+        return keywords.isEmpty ? .none : .keywords(keywords)
     }
 
     var plasmaKeywords: [Keyword] {

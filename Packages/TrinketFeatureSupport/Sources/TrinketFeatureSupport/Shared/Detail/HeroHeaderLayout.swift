@@ -17,28 +17,4 @@ public enum HeroHeaderLayout {
 
     static let minimumHeaderHeight: CGFloat = 300
     static let headerAspectRatio: CGFloat = 4.0 / 3.0
-    static let pickerRowCardWidth: CGFloat = 100
-    static let pickerRowCardHeight: CGFloat = pickerRowCardWidth * headerAspectRatio
-
-    struct OverscrollMetrics: Equatable {
-        let height: CGFloat
-        let offsetY: CGFloat
-    }
-
-    static var scrimHeight: CGFloat {
-        minimumHeaderHeight * (140.0 / 300.0)
-    }
-
-    static let portraitAspect = headerAspectRatio
-
-    static func overscroll(contentOffsetY: CGFloat, topInset: CGFloat) -> CGFloat {
-        max(-(contentOffsetY + topInset), 0)
-    }
-
-    static func overscrollMetrics(baseHeight: CGFloat, overscroll: CGFloat) -> OverscrollMetrics {
-        OverscrollMetrics(
-            height: baseHeight + overscroll,
-            offsetY: -overscroll,
-        )
-    }
 }

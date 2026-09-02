@@ -5,7 +5,6 @@ import TrinketDesignSystem
 public enum Shine: Equatable, Sendable {
     case none
     case keywords([Keyword])
-    case keywordSet(Set<Keyword>)
     case colors([Color])
     case unique
     case corruption
@@ -15,8 +14,6 @@ public enum Shine: Equatable, Sendable {
         case (.none, .none), (.unique, .unique), (.corruption, .corruption):
             true
         case let (.keywords(a), .keywords(b)):
-            a == b
-        case let (.keywordSet(a), .keywordSet(b)):
             a == b
         case (.colors, .colors):
             false
@@ -31,8 +28,6 @@ public enum Shine: Equatable, Sendable {
             []
         case let .keywords(keywords):
             keywordColors(keywords)
-        case let .keywordSet(set):
-            keywordSetColors(set)
         case let .colors(colors):
             colors
         case .unique:
@@ -50,10 +45,6 @@ public enum Shine: Equatable, Sendable {
             nil
         case let .keywords(keywords):
             keywords.map(\.visualStyle.color)
-        case let .keywordSet(set) where set.isEmpty:
-            nil
-        case let .keywordSet(set):
-            set.map(\.visualStyle.color)
         case let .colors(colors) where colors.isEmpty:
             nil
         case let .colors(colors):
@@ -69,7 +60,6 @@ public enum Shine: Equatable, Sendable {
         switch self {
         case .none: true
         case let .keywords(k): k.isEmpty
-        case let .keywordSet(s): s.isEmpty
         case let .colors(c): c.isEmpty
         case .unique, .corruption: false
         }
@@ -83,12 +73,6 @@ public enum Shine: Equatable, Sendable {
 
 private func keywordColors(_ keywords: [Keyword]) -> [Color] {
     keywords.flatMap { [$0.visualStyle.color, $0.visualStyle.secondaryColor] }
-}
-
-private func keywordSetColors(_ keywords: Set<Keyword>) -> [Color] {
-    Keyword.allCases
-        .filter(keywords.contains)
-        .flatMap { [$0.visualStyle.color, $0.visualStyle.secondaryColor] }
 }
 
 private struct ShineTextModifier: ViewModifier {

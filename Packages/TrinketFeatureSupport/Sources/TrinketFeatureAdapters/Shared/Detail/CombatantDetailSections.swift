@@ -3,7 +3,6 @@ import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
 import TrinketFeatureSupport
-import TrinketPersistence
 
 struct CombatantTraitsSection: View, Equatable {
     let traits: [CombatantTraitDefinition]

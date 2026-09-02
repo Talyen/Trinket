@@ -224,8 +224,8 @@ public struct CombatantTalentsView: View {
                         lineWidth: 1,
                     ),
             )
-            .keywordShineBorder(
-                keywords: isSelected ? referencedKeywords(for: node) : nil,
+            .shineBorder(
+                isSelected ? .keywords(referencedKeywords(for: node)) : .none,
                 cornerRadius: TrinketDesign.Corners.card,
                 lineWidth: 2,
             )

@@ -8,7 +8,7 @@ struct AbilityChoiceCard: View {
     var showsName: Bool = true
     var reservesLabelSpace: Bool = true
     var isSelected = false
-    var shineKeywords: [Keyword]?
+    var shine: Shine = .none
     var shineLineWidth: CGFloat = 2
 
     var body: some View {
@@ -16,7 +16,7 @@ struct AbilityChoiceCard: View {
             isSelected: isSelected,
             showsLabel: showsName,
             reservesLabelSpace: reservesLabelSpace,
-            shineKeywords: shineKeywords,
+            shine: shine,
             shineLineWidth: shineLineWidth,
             art: {
                 if let artRef = ability.artReference {

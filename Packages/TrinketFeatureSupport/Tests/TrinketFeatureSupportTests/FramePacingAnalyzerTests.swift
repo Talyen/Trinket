@@ -78,4 +78,32 @@ struct FramePacingAnalyzerTests {
         #expect(FramePacingReport.parseAccessibilityValue(legacyValue) != nil)
         #expect(FramePacingReport.parseAccessibilityValue("schema=3;samples=1") == nil)
     }
+
+    @Test func `legacy semicolon payload parses`() {
+        let value = "schema=5;samples=120;expectedFPS=60.00;avgFPS=59.50;p95Ms=18.20;p99Ms=21.40;oneLowFPS=48.10;maxMs=33.30;missed=2;estimatedMissed=3;severe=1;missedRatio=0.01667"
+        let parsed = FramePacingReport.parseAccessibilityValue(value)
+        #expect(parsed?.sampleCount == 120)
+        #expect(parsed?.missedDeadlineCount == 2)
+        #expect(parsed?.severeStallCount == 1)
+        #expect(FramePacingReport.parseAccessibilityValue("schema=5;samples=1") == nil)
+    }
+
+    @Test func `json payload tolerates unknown future fields`() {
+        let report = FramePacingReport(
+            sampleCount: 10,
+            expectedFPS: 60,
+            averageFPS: 60,
+            p95FrameMs: 17,
+            p99FrameMs: 18,
+            onePercentLowFPS: 55,
+            maxFrameMs: 20,
+            missedDeadlineCount: 0,
+            estimatedMissedFrameCount: 0,
+            severeStallCount: 0,
+            missedDeadlineRatio: 0,
+        )
+        let json = report.accessibilityValue.replacingOccurrences(of: "}", with: ",\"futureField\":1}")
+        let parsed = FramePacingReport.parseAccessibilityValue(json)
+        #expect(parsed?.sampleCount == 10)
+    }
 }

@@ -39,7 +39,7 @@ public struct EncounterItemTile: View {
                     showsName: false,
                     appliesCardSurface: false,
                     isSelected: isSelected,
-                    customShineColors: isSelected ? selectionShineColors : nil,
+                    shine: selectionOverrideShine,
                 )
 
                 if showsName {
@@ -54,5 +54,10 @@ public struct EncounterItemTile: View {
         .trinketQuietTapButtonStyle()
         .disabled(isDisabled)
         .trinketAccessibilityIdentifier(accessibilityID)
+    }
+
+    private var selectionOverrideShine: Shine? {
+        guard isSelected, let selectionShineColors, !selectionShineColors.isEmpty else { return nil }
+        return .colors(selectionShineColors)
     }
 }

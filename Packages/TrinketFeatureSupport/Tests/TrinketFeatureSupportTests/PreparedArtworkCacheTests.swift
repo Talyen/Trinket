@@ -179,6 +179,54 @@ struct PreparedArtworkCacheTests {
         #expect(cache.launchWarmupSnapshot().pinnedCount == 0)
         #expect(cache.image(named: "art") != nil)
     }
+
+    @Test func `priority pins materialize when artwork is already cached`() async {
+        let image = UIGraphicsImageRenderer(size: CGSize(width: 4, height: 4)).image { context in
+            UIColor.red.setFill()
+            context.cgContext.fill(CGRect(x: 0, y: 0, width: 4, height: 4))
+        }
+        let cache = PreparedArtworkCache.makeForTesting(catalogNames: ["priority"]) { name in
+            PreparedArtwork(name: name, image: image)
+        }
+
+        await cache.prepare(names: ["priority"])
+        await cache.prepareAll(priorityImageNames: ["priority"])
+        await cache.waitForDeferredWarmup()
+
+        #expect(cache.launchWarmupSnapshot().pinnedCount == 1)
+
+        cache.releasePins(names: ["priority"])
+        #expect(cache.launchWarmupSnapshot().pinnedCount == 0)
+        #expect(cache.image(named: "priority") != nil)
+    }
+
+    @Test func `failed prepare and pin leaves no phantom demand`() async {
+        let cache = PreparedArtworkCache.makeForTesting(catalogNames: ["art"]) { name in
+            PreparedArtwork(name: name, image: nil)
+        }
+
+        await cache.prepareAndPin(names: ["art"])
+        #expect(cache.pinDemandCount(for: "art") == 0)
+    }
+
+    @Test func `concurrent waiters share A single decode`() async {
+        let gate = DeferredDecodeGate()
+        let counter = DecodeCallCounter()
+        let cache = PreparedArtworkCache.makeForTesting(catalogNames: ["art"]) { name in
+            await counter.markCalled()
+            await gate.waitUntilOpen()
+            return PreparedArtwork(name: name, image: nil)
+        }
+
+        async let first: Void = cache.prepare(names: ["art"])
+        async let second: Void = cache.prepare(names: ["art"])
+        await counter.wait(until: 1)
+        await gate.open()
+        await first
+        await second
+
+        #expect(await counter.count == 1)
+    }
 }
 
 private actor RetryingDecodeSource {
@@ -237,6 +285,29 @@ private actor DecodeStartSignal {
         }
         await withCheckedContinuation { continuation in
             waiters.append(continuation)
+        }
+    }
+}
+
+private actor DecodeCallCounter {
+    private(set) var count = 0
+    private var waiters: [(Int, CheckedContinuation<Void, Never>)] = []
+
+    func markCalled() {
+        count += 1
+        let ready = waiters.filter { count >= $0.0 }
+        waiters.removeAll { count >= $0.0 }
+        for waiter in ready {
+            waiter.1.resume()
+        }
+    }
+
+    func wait(until target: Int) async {
+        if count >= target {
+            return
+        }
+        await withCheckedContinuation { continuation in
+            waiters.append((target, continuation))
         }
     }
 }

@@ -84,7 +84,7 @@ public struct RewardRevealLootSection: View {
     @ViewBuilder
     private var rewardWallet: some View {
         let positiveMaterials = materials.filter { $0.quantity > 0 }
-        let rewardCount = (gold > 0 ? 1 : 0) + positiveMaterials.count
+        let rewardCount = Self.walletRewardCount(gold: gold, materials: materials)
 
         if rewardCount > 0 {
             let goldOffset = gold > 0 ? 1 : 0
@@ -101,8 +101,8 @@ public struct RewardRevealLootSection: View {
                     }
                 }
 
-                ForEach(positiveMaterials, id: \.resource) { reward in
-                    let revealIndex = (positiveMaterials.firstIndex(where: { $0.resource == reward.resource }) ?? 0) + goldOffset
+                ForEach(Array(positiveMaterials.enumerated()), id: \.element.resource) { index, reward in
+                    let revealIndex = index + goldOffset
                     TrinketWalletResourcePill(
                         title: reward.resource.displayName,
                         amount: reward.quantity,

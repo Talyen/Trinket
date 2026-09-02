@@ -22,29 +22,11 @@ public struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
         self.bodyContent = bodyContent
     }
 
-    public var body: some View {
-        DetailHeroScrollContainer(
-            title: title,
-            heroHeightPolicy: heroHeightPolicy,
-            hidesNavigationBar: hidesNavigationBar,
-            header: header,
-            bodyContent: bodyContent,
-        )
-    }
-}
-
-private struct DetailHeroScrollContainer<Header: View, BodyContent: View>: View {
-    let title: String
-    let heroHeightPolicy: HeroHeaderLayout.HeightPolicy
-    let hidesNavigationBar: Bool
-    @ViewBuilder let header: (_ baseHeight: CGFloat) -> Header
-    @ViewBuilder let bodyContent: () -> BodyContent
-
     @State private var headerBaseHeight: CGFloat = HeroHeaderLayout.minimumHeaderHeight
     @State private var titleOpacity: CGFloat = 0
     @State private var showsPinnedScrollEdgeEffect = false
 
-    var body: some View {
+    public var body: some View {
         navigationBarConfigured {
             ScrollView {
                 VStack(spacing: 0) {

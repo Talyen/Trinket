@@ -123,10 +123,11 @@ public final class PreparedArtworkCache {
             pinCountsByName[name, default: 0] += 1
         }
         await decode(unique, maximumConcurrency: 2, countsTowardLaunch: false)
-        for name in unique where pinnedImages[name] == nil {
-            if let image = images.object(forKey: name as NSString) {
-                pinnedImages[name] = image
-            }
+        for name in unique {
+            pinResidentImage(named: name)
+        }
+        for name in unique {
+            balanceFailedPin(named: name)
         }
     }
 
@@ -137,8 +138,31 @@ public final class PreparedArtworkCache {
                 pinCountsByName[name] = count - 1
             } else {
                 pinCountsByName.removeValue(forKey: name)
-                pinnedImages.removeValue(forKey: name)
+                if let image = pinnedImages.removeValue(forKey: name) {
+                    images.setObject(
+                        image,
+                        forKey: name as NSString,
+                        cost: decodedCostsByName[name] ?? 0,
+                    )
+                }
             }
+        }
+    }
+
+    private func pinResidentImage(named name: String) {
+        guard pinCountsByName[name] != nil, pinnedImages[name] == nil else { return }
+        guard let image = images.object(forKey: name as NSString) else { return }
+        pinnedImages[name] = image
+        images.setObject(image, forKey: name as NSString, cost: 0)
+    }
+
+    private func balanceFailedPin(named name: String) {
+        guard pinnedImages[name] == nil, images.object(forKey: name as NSString) == nil else { return }
+        guard let count = pinCountsByName[name] else { return }
+        if count > 1 {
+            pinCountsByName[name] = count - 1
+        } else {
+            pinCountsByName.removeValue(forKey: name)
         }
     }
 
@@ -166,6 +190,9 @@ public final class PreparedArtworkCache {
         let task = Task(priority: .userInitiated) { @MainActor [weak self] in
             guard let self else { return }
             await decode(plan.priorityNames, maximumConcurrency: 2, countsTowardLaunch: true)
+            for name in plan.priorityNames {
+                pinResidentImage(named: name)
+            }
             isLaunchWarmupComplete = true
             reportMemorySnapshot(label: "priorityWarmup")
         }
@@ -184,6 +211,10 @@ public final class PreparedArtworkCache {
     func waitForDeferredWarmup() async {
         guard let deferredWarmupTask else { return }
         await deferredWarmupTask.value
+    }
+
+    func pinDemandCount(for name: String) -> Int {
+        pinCountsByName[name] ?? 0
     }
 
     private func decode(
@@ -247,16 +278,16 @@ public final class PreparedArtworkCache {
         inFlightNames.insert(name)
         let prepared = await decodeHandler(name)
         let wasCancelled = Task.isCancelled
-        let decodedSuccessfully = prepared.image != nil && !wasCancelled
         if let image = prepared.image, !wasCancelled {
             let decodedCost = Self.decodedCost(of: image)
+            let isPinned = pinCountsByName[prepared.name] != nil
             images.setObject(
                 image,
                 forKey: prepared.name as NSString,
-                cost: decodedCost,
+                cost: isPinned ? 0 : decodedCost,
             )
             decodedCostsByName[prepared.name] = decodedCost
-            if pinCountsByName[prepared.name] != nil {
+            if isPinned {
                 pinnedImages[prepared.name] = image
             }
         } else {
@@ -268,7 +299,7 @@ public final class PreparedArtworkCache {
         inFlightNames.remove(name)
         let waiters = decodeWaitersByName.removeValue(forKey: name) ?? []
         for waiter in waiters {
-            waiter.resume(returning: !decodedSuccessfully)
+            waiter.resume(returning: false)
         }
     }
 
@@ -347,11 +378,10 @@ public final class PreparedArtworkCache {
             return PreparedArtwork(name: name, image: nil)
         }
         guard let source = await MainActor.run(resultType: UIImage?.self, body: { UIImage(named: name) }),
-              let cgSource = source.cgImage
+              source.cgImage != nil
         else {
             return PreparedArtwork(name: name, image: nil)
         }
-        _ = cgSource
         guard !Task.isCancelled else {
             return PreparedArtwork(name: name, image: nil)
         }

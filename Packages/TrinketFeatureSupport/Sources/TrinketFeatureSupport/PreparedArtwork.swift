@@ -12,13 +12,15 @@ private let preparedArtworkFallbackLogger = Logger(
 @MainActor
 private enum PreparedArtworkFallbackDedupe {
     static var seen: Set<String> = []
+    static var order: [String] = []
     private static let cap = 200
     static func shouldLog(_ name: String) -> Bool {
         guard !seen.contains(name) else { return false }
-        if seen.count >= cap {
-            seen.removeFirst()
+        if seen.count >= cap, !order.isEmpty {
+            seen.remove(order.removeFirst())
         }
         seen.insert(name)
+        order.append(name)
         return true
     }
 }

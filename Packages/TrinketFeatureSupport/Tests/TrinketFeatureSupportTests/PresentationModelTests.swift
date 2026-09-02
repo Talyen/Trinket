@@ -67,18 +67,6 @@ struct PresentationModelTests {
 
         let cinematicClampedMax = HeroHeaderLayout.HeightPolicy.cinematicLandscape.height(forWidth: 600)
         #expect(cinematicClampedMax == 344)
-
-        #expect(HeroHeaderLayout.scrimHeight == 140.0)
-
-        let normalOverscroll = HeroHeaderLayout.overscroll(contentOffsetY: -20, topInset: 0)
-        #expect(normalOverscroll == 20)
-
-        let noOverscroll = HeroHeaderLayout.overscroll(contentOffsetY: 50, topInset: 0)
-        #expect(noOverscroll == 0)
-
-        let metrics = HeroHeaderLayout.overscrollMetrics(baseHeight: 300, overscroll: 25)
-        #expect(metrics.height == 325)
-        #expect(metrics.offsetY == -25)
     }
 
     @Test func `labyrinth hex radius and destination art`() {

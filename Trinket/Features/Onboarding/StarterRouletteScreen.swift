@@ -165,8 +165,8 @@ struct StarterRouletteScreen: View {
                     showsName: false,
                     isSelected: isCentered,
                 )
-                .keywordShineBorder(
-                    keywords: shineKeywords,
+                .shineBorder(
+                    shineKeywords.map { $0.isEmpty ? .none : .keywords($0) } ?? .none,
                     cornerRadius: TrinketDesign.Corners.card,
                     lineWidth: 2,
                     isMotionActive: isCentered,

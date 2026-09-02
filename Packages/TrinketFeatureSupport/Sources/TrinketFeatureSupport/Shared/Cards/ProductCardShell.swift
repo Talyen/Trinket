@@ -1,5 +1,4 @@
 import SwiftUI
-import TrinketCore
 import TrinketDesignSystem
 
 @MainActor
@@ -22,8 +21,6 @@ public struct ProductCardShell<Art: View, Label: View>: View {
         showsLabel: Bool = true,
         reservesLabelSpace: Bool = true,
         shine: Shine = .none,
-        shineKeywords: [Keyword]? = nil,
-        shineColors: [Color]? = nil,
         shineLineWidth: CGFloat = 2,
         accessibilityID: String? = nil,
         @ViewBuilder art: @escaping () -> Art,
@@ -34,15 +31,7 @@ public struct ProductCardShell<Art: View, Label: View>: View {
         self.appliesCardSurface = appliesCardSurface
         self.showsLabel = showsLabel
         self.reservesLabelSpace = reservesLabelSpace
-        if shine != .none {
-            self.shine = shine
-        } else if let shineKeywords, !shineKeywords.isEmpty {
-            self.shine = .keywords(shineKeywords)
-        } else if let shineColors, !shineColors.isEmpty {
-            self.shine = .colors(shineColors)
-        } else {
-            self.shine = .none
-        }
+        self.shine = shine
         self.shineLineWidth = shineLineWidth
         self.accessibilityID = accessibilityID
         self.art = art
@@ -60,10 +49,6 @@ public struct ProductCardShell<Art: View, Label: View>: View {
             }
         }
         .trinketAccessibilityIdentifier(accessibilityID)
-    }
-
-    private var borderShineColors: [Color]? {
-        shine.borderColors
     }
 
     @ViewBuilder
@@ -90,8 +75,8 @@ public struct ProductCardShell<Art: View, Label: View>: View {
             isSelected: isSelected,
             lineWidth: 1.5,
         )
-        .colorShineBorder(
-            colors: borderShineColors,
+        .shineBorder(
+            shine,
             cornerRadius: TrinketDesign.Corners.card,
             lineWidth: shineLineWidth,
         )

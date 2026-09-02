@@ -18,8 +18,7 @@ struct MysteryCorruptionRevealContent: View {
                 DetailHeroHeader(
                     eyebrow: eyebrow(for: result.item),
                     title: result.item.displayName,
-                    titleKeywords: Set(result.item.astralShineKeywords ?? []),
-                    titleShineColors: result.item.rarity == .unique ? UniqueShine.textColors : nil,
+                    titleShine: result.item.rarity == .unique ? .unique : result.item.astralShine,
                     titleAccessibilityIdentifier: AccessibilityID.Mystery.corruptionRevealTitle,
                     baseHeight: baseHeight,
                 ) {
@@ -51,10 +50,9 @@ struct MysteryCorruptionRevealContent: View {
                                 DetailTraitRow(
                                     title: affix.title,
                                     description: affix.description,
-                                    titleKeywords: result.item.isPerfectAffix(at: index) ? affix.keywords : [],
-                                    titleShineColors: uniqueAffixShineColors(for: affix),
+                                    titleShine: affixShine(for: affix, at: index, item: result.item),
                                     titlePrefix: affix.isCorrupted ? "Corrupted " : nil,
-                                    titlePrefixShineColors: affix.isCorrupted ? CorruptionShine.textColors : nil,
+                                    titlePrefixShine: affix.isCorrupted ? .corruption : .none,
                                 )
                             }
                         }
@@ -84,11 +82,12 @@ struct MysteryCorruptionRevealContent: View {
         return item.isCorrupted ? "\(tag) · CORRUPTED" : tag
     }
 
-    private func uniqueAffixShineColors(for _: ItemAffix) -> [Color]? {
-        if result.item.rarity == .unique {
-            return UniqueShine.textColors
+    private func affixShine(for affix: ItemAffix, at index: Int, item: InventoryItem) -> Shine {
+        if item.rarity == .unique {
+            return .unique
         }
-        return nil
+        let keywords = item.isPerfectAffix(at: index) ? Keyword.allCases.filter(affix.keywords.contains) : []
+        return keywords.isEmpty ? .none : .keywords(keywords)
     }
 
     private func changeRow(_ effect: CorruptionEffectSummary) -> some View {

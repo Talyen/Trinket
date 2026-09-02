@@ -27,7 +27,7 @@ public struct TalentTreeCard: View {
     public var body: some View {
         ProductCardShell(
             isLocked: isLocked,
-            shineKeywords: showsShine ? [tree.keyword] : nil,
+            shine: showsShine ? .keywords([tree.keyword]) : .none,
             accessibilityID: accessibilityID,
             art: {
                 if let artReference = tree.keyword.artReference {

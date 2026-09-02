@@ -1,6 +1,5 @@
 import SwiftUI
 import TrinketContent
-import TrinketCore
 import TrinketDesignSystem
 
 public enum ItemCardPresentation {
@@ -17,10 +16,8 @@ public struct ItemCard<Art: View>: View {
     var appliesCardSurface: Bool = true
     var isSelected = false
     var fadesLabel = false
-    var customShineKeywords: [Keyword]?
-    var customShineColors: [Color]?
+    var shine: Shine?
     var shineLineWidth: CGFloat = 2
-    var enablesAstralShine: Bool = true
     @ViewBuilder private var art: () -> Art
 
     @State private var labelOpacity = 1.0
@@ -34,10 +31,8 @@ public struct ItemCard<Art: View>: View {
         appliesCardSurface: Bool = true,
         isSelected: Bool = false,
         fadesLabel: Bool = false,
-        customShineKeywords: [Keyword]? = nil,
-        customShineColors: [Color]? = nil,
+        shine: Shine? = nil,
         shineLineWidth: CGFloat = 2,
-        enablesAstralShine: Bool = true,
         @ViewBuilder art: @escaping () -> Art,
     ) {
         self.item = item
@@ -48,27 +43,19 @@ public struct ItemCard<Art: View>: View {
         self.appliesCardSurface = appliesCardSurface
         self.isSelected = isSelected
         self.fadesLabel = fadesLabel
-        self.customShineKeywords = customShineKeywords
-        self.customShineColors = customShineColors
+        self.shine = shine
         self.shineLineWidth = shineLineWidth
-        self.enablesAstralShine = enablesAstralShine
         self.art = art
     }
 
     private var effectiveShine: Shine {
-        if let customShineKeywords {
-            return customShineKeywords.isEmpty ? .none : .keywords(customShineKeywords)
-        }
-        if let customShineColors, !customShineColors.isEmpty {
-            return .colors(customShineColors)
+        if let shine {
+            return shine
         }
         if item.rarity == .unique {
             return .unique
         }
-        guard enablesAstralShine, let keywords = item.astralShineKeywords, !keywords.isEmpty else {
-            return .none
-        }
-        return .keywords(keywords)
+        return item.astralShine
     }
 
     public var body: some View {
@@ -97,6 +84,13 @@ public struct ItemCard<Art: View>: View {
         }
     }
 
+    private var labelShine: Shine {
+        if item.rarity == .unique {
+            return .unique
+        }
+        return item.astralShine
+    }
+
     private var standardLabel: some View {
         VStack(spacing: TrinketDesign.Spacing.tight) {
             HStack(spacing: TrinketDesign.Spacing.tight) {
@@ -116,8 +110,7 @@ public struct ItemCard<Art: View>: View {
             Text(balanced: item.displayName)
                 .trinketTypography(.cardLabel)
                 .foregroundStyle(.primary)
-                .keywordShine(item.astralShineKeywordSet)
-                .uniqueShine(if: item.rarity == .unique)
+                .shineText(labelShine)
                 .multilineTextAlignment(.center)
                 .trinketFittedText()
 
@@ -140,8 +133,7 @@ public struct ItemCard<Art: View>: View {
 
             Text(balanced: item.displayName)
                 .trinketTypography(.sectionDisplay)
-                .keywordShine(item.astralShineKeywordSet)
-                .uniqueShine(if: item.rarity == .unique)
+                .shineText(labelShine)
                 .multilineTextAlignment(.center)
                 .trinketFittedText()
         }
@@ -159,10 +151,8 @@ public extension ItemCard where Art == ItemArtwork {
         appliesCardSurface: Bool = true,
         isSelected: Bool = false,
         fadesLabel: Bool = false,
-        customShineKeywords: [Keyword]? = nil,
-        customShineColors: [Color]? = nil,
+        shine: Shine? = nil,
         shineLineWidth: CGFloat = 2,
-        enablesAstralShine: Bool = true,
     ) {
         self.init(
             item: item,
@@ -173,10 +163,8 @@ public extension ItemCard where Art == ItemArtwork {
             appliesCardSurface: appliesCardSurface,
             isSelected: isSelected,
             fadesLabel: fadesLabel,
-            customShineKeywords: customShineKeywords,
-            customShineColors: customShineColors,
+            shine: shine,
             shineLineWidth: shineLineWidth,
-            enablesAstralShine: enablesAstralShine,
         ) {
             ItemArtwork(item: item, variant: .thumbnail)
         }

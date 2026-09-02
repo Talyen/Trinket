@@ -15,6 +15,50 @@ public struct FramePacingReport: Equatable, Sendable, Codable {
     public var severeStallCount: Int
     public var missedDeadlineRatio: Double
 
+    private enum CodingKeys: String, CodingKey {
+        case sampleCount
+        case expectedFPS
+        case averageFPS
+        case p95FrameMs
+        case p99FrameMs
+        case onePercentLowFPS
+        case maxFrameMs
+        case missedDeadlineCount
+        case estimatedMissedFrameCount
+        case severeStallCount
+        case missedDeadlineRatio
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        sampleCount = try container.decodeIfPresent(Int.self, forKey: .sampleCount) ?? 0
+        expectedFPS = try container.decodeIfPresent(Double.self, forKey: .expectedFPS) ?? 0
+        averageFPS = try container.decodeIfPresent(Double.self, forKey: .averageFPS) ?? 0
+        p95FrameMs = try container.decodeIfPresent(Double.self, forKey: .p95FrameMs) ?? 0
+        p99FrameMs = try container.decodeIfPresent(Double.self, forKey: .p99FrameMs) ?? 0
+        onePercentLowFPS = try container.decodeIfPresent(Double.self, forKey: .onePercentLowFPS) ?? 0
+        maxFrameMs = try container.decodeIfPresent(Double.self, forKey: .maxFrameMs) ?? 0
+        missedDeadlineCount = try container.decodeIfPresent(Int.self, forKey: .missedDeadlineCount) ?? 0
+        estimatedMissedFrameCount = try container.decodeIfPresent(Int.self, forKey: .estimatedMissedFrameCount) ?? 0
+        severeStallCount = try container.decodeIfPresent(Int.self, forKey: .severeStallCount) ?? 0
+        missedDeadlineRatio = try container.decodeIfPresent(Double.self, forKey: .missedDeadlineRatio) ?? 0
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(sampleCount, forKey: .sampleCount)
+        try container.encode(expectedFPS, forKey: .expectedFPS)
+        try container.encode(averageFPS, forKey: .averageFPS)
+        try container.encode(p95FrameMs, forKey: .p95FrameMs)
+        try container.encode(p99FrameMs, forKey: .p99FrameMs)
+        try container.encode(onePercentLowFPS, forKey: .onePercentLowFPS)
+        try container.encode(maxFrameMs, forKey: .maxFrameMs)
+        try container.encode(missedDeadlineCount, forKey: .missedDeadlineCount)
+        try container.encode(estimatedMissedFrameCount, forKey: .estimatedMissedFrameCount)
+        try container.encode(severeStallCount, forKey: .severeStallCount)
+        try container.encode(missedDeadlineRatio, forKey: .missedDeadlineRatio)
+    }
+
     public static let empty = Self(
         sampleCount: 0,
         expectedFPS: 0,

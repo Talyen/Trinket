@@ -31,14 +31,11 @@ struct ItemSlotPickerView: View {
                         AccessibilityID.LoadoutPicker.itemCandidate(item.id)
                     },
                     card: { item, isSelected in
-                        let shineKeywords = item.astralShineKeywords
-                        let selectedShineKeywords = item.keywords.isEmpty ? Array(item.baseType.keywordAffinities) : Array(item.keywords)
-
                         ItemCard(
                             item: item,
                             showsAffixCount: false,
                             isSelected: isSelected,
-                            customShineKeywords: isSelected ? selectedShineKeywords : shineKeywords,
+                            shine: isSelected ? .keywords(item.plasmaKeywords) : nil,
                             shineLineWidth: isSelected ? 3 : 1.5,
                         )
                         .overlay(alignment: .topTrailing) {
