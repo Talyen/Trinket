@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "enemy_earth_elemental_card_thumb.heic",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

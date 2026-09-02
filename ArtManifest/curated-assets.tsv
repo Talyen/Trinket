@@ -181,6 +181,30 @@ combatant	frost_elemental	enemy_frost_elemental_card	Raw Assets/Enemies/Frost El
 combatant	goblin	enemy_goblin_card	Raw Assets/Enemies/Goblin.jpeg	0.50	0.50
 combatant	slime	enemy_slime_card	Raw Assets/Enemies/Slime.jpeg	0.50	0.50
 combatant	will_o_wisp	enemy_will_o_wisp_card	Raw Assets/Enemies/Will-o-Wisp.jpeg	0.50	0.50
+combatant	bandit	enemy_bandit_card	Raw Assets/Enemies/Bandit.jpeg	0.50	0.50
+combatant	banshee	enemy_banshee_card	Raw Assets/Enemies/Banshee.jpeg	0.50	0.50
+combatant	blood_cultist	enemy_blood_cultist_card	Raw Assets/Enemies/Blood Cultist.jpeg	0.50	0.50
+combatant	brawler	enemy_brawler_card	Raw Assets/Enemies/Brawler.jpeg	0.50	0.50
+combatant	cleric	enemy_cleric_card	Raw Assets/Enemies/Cleric.jpeg	0.50	0.50
+combatant	dire_wolf	enemy_dire_wolf_card	Raw Assets/Enemies/Dire Wolf.jpeg	0.50	0.50
+combatant	earth_elemental	enemy_earth_elemental_card	Raw Assets/Enemies/Earth Elemental.jpeg	0.50	0.50
+combatant	fire_imp	enemy_fire_imp_card	Raw Assets/Enemies/Fire Imp.jpeg	0.50	0.50
+combatant	giant_snake	enemy_giant_snake_card	Raw Assets/Enemies/Giant Snake.jpeg	0.50	0.50
+combatant	giant_spider	enemy_giant_spider_card	Raw Assets/Enemies/Giant Spider.jpeg	0.50	0.50
+combatant	hellhound	enemy_hellhound_card	Raw Assets/Enemies/Hellhound.jpeg	0.50	0.50
+combatant	ice_wraith	enemy_ice_wraith_card	Raw Assets/Enemies/Ice Wraith.jpeg	0.50	0.50
+combatant	inquisitor	enemy_inquisitor_card	Raw Assets/Enemies/Inquisitor.jpeg	0.50	0.50
+combatant	ogre	enemy_ogre_card	Raw Assets/Enemies/Ogre.jpeg	0.50	0.50
+combatant	paladin	enemy_paladin_card	Raw Assets/Enemies/Paladin.jpeg	0.50	0.50
+combatant	pyromancer	enemy_pyromancer_card	Raw Assets/Enemies/Pyromancer.jpeg	0.50	0.50
+combatant	stone_golem	enemy_stone_golem_card	Raw Assets/Enemies/Stone Golem.jpeg	0.50	0.50
+combatant	the_blood_countess	enemy_the_blood_countess_card	Raw Assets/Enemies/Bosses/The Blood Countess.jpeg	0.50	0.50
+combatant	the_seraph	enemy_the_seraph_card	Raw Assets/Enemies/Bosses/The Seraph.jpeg	0.50	0.50
+combatant	the_stone_titan	enemy_the_stone_titan_card	Raw Assets/Enemies/Bosses/The Stone Titan.jpeg	0.50	0.50
+combatant	vampire	enemy_vampire_card	Raw Assets/Enemies/Vampire.jpeg	0.50	0.50
+combatant	winter_wolf	enemy_winter_wolf_card	Raw Assets/Enemies/Winter Wolf.jpeg	0.50	0.50
+combatant	yeti	enemy_yeti_card	Raw Assets/Enemies/Yeti.jpeg	0.50	0.50
+combatant	zealot	enemy_zealot_card	Raw Assets/Enemies/Zealot.jpeg	0.50	0.50
 combatant	pixie	companion_pixie_card	Raw Assets/Companions/Pixie.jpeg	0.50	0.50
 combatant	shield_scarab	companion_shield_scarab_card	Raw Assets/Companions/Shield Scarab.jpeg	0.50	0.50
 background	chapter-1	bg_forest	Raw Assets/Chapter Backgrounds/Forest.jpeg	0.50	0.50

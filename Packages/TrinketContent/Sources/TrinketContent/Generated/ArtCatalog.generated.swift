@@ -213,6 +213,126 @@ public enum ArtCatalog {
             thumbnailImageName: "enemy_will_o_wisp_card_thumb",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         )
+        dict["bandit"] = CombatantArtReference(
+            imageName: "enemy_bandit_card",
+            thumbnailImageName: "enemy_bandit_card_thumb",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
+        )
+        dict["banshee"] = CombatantArtReference(
+            imageName: "enemy_banshee_card",
+            thumbnailImageName: "enemy_banshee_card_thumb",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
+        )
+        dict["blood_cultist"] = CombatantArtReference(
+            imageName: "enemy_blood_cultist_card",
+            thumbnailImageName: "enemy_blood_cultist_card_thumb",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
+        )
+        dict["brawler"] = CombatantArtReference(
+            imageName: "enemy_brawler_card",
+            thumbnailImageName: "enemy_brawler_card_thumb",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
+        )
+        dict["cleric"] = CombatantArtReference(
+            imageName: "enemy_cleric_card",
+            thumbnailImageName: "enemy_cleric_card_thumb",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
+        )
+        dict["dire_wolf"] = CombatantArtReference(
+            imageName: "enemy_dire_wolf_card",
+            thumbnailImageName: "enemy_dire_wolf_card_thumb",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
+        )
+        dict["earth_elemental"] = CombatantArtReference(
+            imageName: "enemy_earth_elemental_card",
+            thumbnailImageName: "enemy_earth_elemental_card_thumb",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
+        )
+        dict["fire_imp"] = CombatantArtReference(
+            imageName: "enemy_fire_imp_card",
+            thumbnailImageName: "enemy_fire_imp_card_thumb",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
+        )
+        dict["giant_snake"] = CombatantArtReference(
+            imageName: "enemy_giant_snake_card",
+            thumbnailImageName: "enemy_giant_snake_card_thumb",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
+        )
+        dict["giant_spider"] = CombatantArtReference(
+            imageName: "enemy_giant_spider_card",
+            thumbnailImageName: "enemy_giant_spider_card_thumb",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
+        )
+        dict["hellhound"] = CombatantArtReference(
+            imageName: "enemy_hellhound_card",
+            thumbnailImageName: "enemy_hellhound_card_thumb",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
+        )
+        dict["ice_wraith"] = CombatantArtReference(
+            imageName: "enemy_ice_wraith_card",
+            thumbnailImageName: "enemy_ice_wraith_card_thumb",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
+        )
+        dict["inquisitor"] = CombatantArtReference(
+            imageName: "enemy_inquisitor_card",
+            thumbnailImageName: "enemy_inquisitor_card_thumb",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
+        )
+        dict["ogre"] = CombatantArtReference(
+            imageName: "enemy_ogre_card",
+            thumbnailImageName: "enemy_ogre_card_thumb",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
+        )
+        dict["paladin"] = CombatantArtReference(
+            imageName: "enemy_paladin_card",
+            thumbnailImageName: "enemy_paladin_card_thumb",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
+        )
+        dict["pyromancer"] = CombatantArtReference(
+            imageName: "enemy_pyromancer_card",
+            thumbnailImageName: "enemy_pyromancer_card_thumb",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
+        )
+        dict["stone_golem"] = CombatantArtReference(
+            imageName: "enemy_stone_golem_card",
+            thumbnailImageName: "enemy_stone_golem_card_thumb",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
+        )
+        dict["the_blood_countess"] = CombatantArtReference(
+            imageName: "enemy_the_blood_countess_card",
+            thumbnailImageName: "enemy_the_blood_countess_card_thumb",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
+        )
+        dict["the_seraph"] = CombatantArtReference(
+            imageName: "enemy_the_seraph_card",
+            thumbnailImageName: "enemy_the_seraph_card_thumb",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
+        )
+        dict["the_stone_titan"] = CombatantArtReference(
+            imageName: "enemy_the_stone_titan_card",
+            thumbnailImageName: "enemy_the_stone_titan_card_thumb",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
+        )
+        dict["vampire"] = CombatantArtReference(
+            imageName: "enemy_vampire_card",
+            thumbnailImageName: "enemy_vampire_card_thumb",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
+        )
+        dict["winter_wolf"] = CombatantArtReference(
+            imageName: "enemy_winter_wolf_card",
+            thumbnailImageName: "enemy_winter_wolf_card_thumb",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
+        )
+        dict["yeti"] = CombatantArtReference(
+            imageName: "enemy_yeti_card",
+            thumbnailImageName: "enemy_yeti_card_thumb",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
+        )
+        dict["zealot"] = CombatantArtReference(
+            imageName: "enemy_zealot_card",
+            thumbnailImageName: "enemy_zealot_card_thumb",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
+        )
         dict["pixie"] = CombatantArtReference(
             imageName: "companion_pixie_card",
             thumbnailImageName: "companion_pixie_card_thumb",
