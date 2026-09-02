@@ -7,7 +7,8 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-violations=()
+# shellcheck source=lib/rg-check.sh
+source Scripts/lib/rg-check.sh
 
 # Match whole identifiers / attributes; skip comments by scanning code-ish lines lightly.
 scan_pattern() {
@@ -25,7 +26,7 @@ scan_pattern() {
     if [[ "$text" =~ ^[[:space:]]*// ]]; then
       continue
     fi
-    violations+=("$file:$line: $reason")
+    trinket_rg_violation "$file:$line: $reason"
   done < <(rg -n --glob '*.swift' --glob '!**/Generated/**' "$pattern" Trinket TrinketUITests Packages || true)
 }
 
@@ -44,22 +45,9 @@ while IFS= read -r match; do
   if [[ "$file" == *TrinketUITests/* ]]; then
     continue
   fi
-  violations+=("$file:$line: Use Swift Testing instead of XCTest outside TrinketUITests")
+  trinket_rg_violation "$file:$line: Use Swift Testing instead of XCTest outside TrinketUITests"
 done < <(rg -n 'import XCTest|XCTestCase|XCTAssert|XCTFail|XCTUnwrap' Packages --glob '*Tests/**/*.swift' --glob '!**/TrinketUITests/**' 2>/dev/null || true)
 
-if (( ${#violations[@]} > 0 )); then
-  echo "API ban violations:" >&2
-  for violation in "${violations[@]}"; do
-    echo "  - $violation" >&2
-    if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
-      file=$(echo "$violation" | cut -d: -f1)
-      line=$(echo "$violation" | cut -d: -f2)
-      message=$(echo "$violation" | cut -d: -f3- | xargs)
-      echo "::error file=$file,line=$line,title=API Ban::$message"
-    fi
-  done
-  exit 1
-fi
-
-echo "Platform API bans OK."
+trinket_rg_report "API ban violations:" "Platform API bans OK." "API Ban" \
+  "Swift Testing migration gate: OK (no XCTest imports in unit targets)"
 echo "Swift Testing migration gate: OK (no XCTest imports in unit targets)"

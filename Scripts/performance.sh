@@ -18,20 +18,15 @@ if ! [[ "$REPETITIONS" =~ ^[1-9][0-9]*$ ]]; then
 fi
 
 mkdir -p .DerivedData "$(dirname "$OUTPUT_DIR")"
-if [[ -f "$LOCK_DIR/pid" ]]; then
-  read -r existing_pid < "$LOCK_DIR/pid" || existing_pid=""
-  if [[ "$existing_pid" =~ ^[0-9]+$ ]] && ! kill -0 "$existing_pid" 2>/dev/null; then
-    rm -rf "$LOCK_DIR"
-  fi
-fi
-if ! mkdir "$LOCK_DIR" 2>/dev/null; then
+# shellcheck source=lib/lock.sh
+source Scripts/lib/lock.sh
+if ! trinket_dir_lock_acquire "$LOCK_DIR" 0; then
   echo "Battle performance lane is already in use. This runner is intentionally exclusive." >&2
   exit 1
 fi
-printf '%s\n' "$$" > "$LOCK_DIR/pid"
 cleanup() {
   local status=$?
-  rm -rf "$LOCK_DIR"
+  trinket_dir_lock_release "$LOCK_DIR" "${BASHPID:-$$}"
   if [[ "$status" -eq 0 && "$EXPLICIT_OUTPUT" != true && "${TRINKET_KEEP_PERFORMANCE_REPORTS:-0}" != "1" ]]; then
     rm -rf "$OUTPUT_DIR"
   fi

@@ -6,12 +6,12 @@ public enum AccessibilityID {
         public static let heroScreen = "Starter Hero Choice Screen"
         public static let companionScreen = "Starter Companion Choice Screen"
 
-        public static func option(role: String, combatantID: String) -> String {
-            "Starter \(role) Option \(combatantID)"
+        public static func option(role: Combatant.Role, combatantID: String) -> String {
+            "Starter \(role.rawValue) Option \(combatantID)"
         }
 
-        public static func confirm(role: String) -> String {
-            "Confirm Starter \(role)"
+        public static func confirm(role: Combatant.Role) -> String {
+            "Confirm Starter \(role.rawValue)"
         }
 
         public static func detail(combatantID: String) -> String {

@@ -36,7 +36,7 @@ struct PlayerSaveWorldSeedTests {
         #expect(sanitized.labyrinth.hasMap)
     }
 
-    @Test func `sanitize does not overwrite unreadable map world seed`() {
+    @Test func `sanitize heals unreadable map preserving world seed`() {
         var save = PlayerSave.fresh
         save.labyrinth = PlayerLabyrinthState(
             worldSeed: 55,
@@ -48,7 +48,7 @@ struct PlayerSaveWorldSeedTests {
 
         #expect(sanitized.worldSeed == save.worldSeed)
         #expect(sanitized.labyrinth.worldSeed == 55)
-        #expect(sanitized.labyrinth.isMapPayloadUnreadable)
-        #expect(!sanitized.labyrinth.hasMap)
+        #expect(!sanitized.labyrinth.isMapPayloadUnreadable)
+        #expect(sanitized.labyrinth.hasMap)
     }
 }

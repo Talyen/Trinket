@@ -13,7 +13,7 @@ public extension PlayerSaveStore {
     @discardableResult
     func confirmStarterHero(_ heroID: String) -> Bool {
         guard starterSelection.phase != .complete,
-              GameContent.starterHeroIDs.contains(heroID)
+              GameContent.heroes.map(\.id).contains(heroID)
         else { return false }
         return persistBatch(logging: "Failed to save starter Hero") { save in
             save.starterSelection = StarterSelectionState(
@@ -28,21 +28,22 @@ public extension PlayerSaveStore {
         let selection = starterSelection
         guard selection.phase == .chooseCompanion,
               let heroID = selection.heroID,
-              GameContent.starterHeroIDs.contains(heroID),
-              GameContent.starterCompanionIDs.contains(companionID)
+              GameContent.heroes.map(\.id).contains(heroID),
+              GameContent.companions.map(\.id).contains(companionID)
         else { return false }
 
         return persistBatch(logging: "Failed to save starter party") { save in
+            let previous = save.roster
             save.roster = PlayerRosterState(
                 activeHeroID: heroID,
                 activeCompanionID: companionID,
                 unlockedHeroIDs: [heroID],
                 unlockedCompanionIDs: [companionID],
-                abilityLoadouts: [:],
+                abilityLoadouts: previous.abilityLoadouts.filter { $0.key == heroID || $0.key == companionID },
                 progressions: [heroID: .initial, companionID: .initial],
-                equipmentLoadouts: [:],
-                unlockedTalents: [:],
-                gold: save.roster.gold,
+                equipmentLoadouts: previous.equipmentLoadouts.filter { $0.key == heroID || $0.key == companionID },
+                unlockedTalents: previous.unlockedTalents.filter { $0.key == heroID || $0.key == companionID },
+                gold: previous.gold,
             )
             save.starterSelection = .complete
         }

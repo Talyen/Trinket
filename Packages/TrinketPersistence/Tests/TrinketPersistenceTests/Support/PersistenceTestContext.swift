@@ -18,7 +18,16 @@ final class PersistenceTestContext {
         SaveTestSupport.makeStoreURL(directoryURL: directoryURL)
     }
 
-    func makeSaveStore(inMemoryOnly: Bool = false) throws -> PlayerSaveStore {
-        try SaveTestSupport.makeSaveStore(directoryURL: directoryURL, inMemoryOnly: inMemoryOnly)
+    func makeSaveStore(
+        inMemoryOnly: Bool = false,
+        persistImmediately: Bool = true,
+        resetState: Bool = false,
+    ) throws -> PlayerSaveStore {
+        try SaveTestSupport.makeSaveStore(
+            directoryURL: directoryURL,
+            persistImmediately: persistImmediately,
+            resetState: resetState,
+            inMemoryOnly: inMemoryOnly,
+        )
     }
 }

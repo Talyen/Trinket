@@ -84,23 +84,6 @@ extension InventoryItemModel {
         )
         affixes?.linkEach(to: self, parent: \.item)
     }
-
-    func updateWithoutContext(from item: InventoryItem) {
-        id = item.id
-        templateID = item.templateID
-        baseTypeID = item.baseType.id
-        rarityID = item.rarity.rawValue
-        displayName = item.displayName
-        isCorrupted = item.isCorrupted
-        applyAffixPowers(from: item)
-        affixes = item.affixes.enumerated().map { index, affix in
-            let model = ItemAffixModel(affix: affix)
-            model.sortIndex = index
-            model.keywordRawValues = affix.keywords.map(\.rawValue).sorted()
-            return model
-        }
-        affixes?.linkEach(to: self, parent: \.item)
-    }
 }
 
 extension RosterModel {

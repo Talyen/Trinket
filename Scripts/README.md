@@ -43,7 +43,7 @@ Read these focused guides:
 | `./Scripts/generate.sh` | Generate the Xcode project and authored derived content |
 | `./Scripts/generate.sh --assets` | Also prepare art, music, SFX, and cinematics |
 | `./Scripts/assert-generated-output.sh --idempotent` | Confirm regeneration produces no diff |
-| `./Scripts/build.sh` | Build the app with the routed local toolchain |
+| `./Scripts/build.sh` | Alias for `build-for-testing.sh --app-only` (kept for the short name) |
 | `./Scripts/build-for-testing.sh` | Rebuild app and package schemes for `test.sh … --no-build` runs against CI build artifacts |
 | `./Scripts/build-for-testing.sh --app-only` | Rebuild only the app (CI shared build; smoke/UI artifact miss recovery) |
 | `./Scripts/ci-path-filter.py` | CI path filter via the GitHub compare API (no full checkout); `code` / `assets` / `infra` outputs |
@@ -65,7 +65,7 @@ Read these focused guides:
 | `./Scripts/new-plan.sh <PlanName>` | Scaffold an expiring active execution plan under `Docs/Plans/`; completed outcomes go in `Docs/Plans/Archived/README.md` and the full plan is deleted |
 | `./Scripts/ci-gate.sh` | Generation, style, boundaries, script regressions, Swift Testing policy, release-note validation, and artwork budget |
 | `./Scripts/ci-gate.sh --fast` | Cheap full-tree slices only (boundaries, API bans, release notes, artwork budget) from `Scripts/config/cheap-slices.txt`; skips generation and style |
-| `./Scripts/test-scripts.sh [--skip-docs]` | Script syntax/regressions; runs docs by default, omit docs when a caller already ran `check-docs.py` (mixed script/docs scope or `--final`) |
+| `./Scripts/test-scripts.sh [--skip-docs] [--fast]` | Script syntax/regressions; runs docs by default, omit docs when a caller already ran `check-docs.py` (mixed script/docs scope or `--final`); `--fast` skips docs, media audio fixtures, and shell regressions for a quick loop |
 | `./Scripts/ci-assets-gate.sh` | Asset generation, idempotence, and locale-stability gate |
 | `python3 ./Scripts/check-docs.py [--final] [--keep-plan]` | Check links, structure, smoke classes, stale terms, and execution-plan lifecycle |
 | `./Scripts/test-deploy.sh [--mode smoke]` | Pre-release deploy verification (`release.sh` calls this); `--mode smoke` is an optional canary |
@@ -85,6 +85,29 @@ Read these focused guides:
 | `./Scripts/build-freshness.sh` | Generated-input freshness and `--no-build` stamp helpers sourced by build/test commands |
 | `./Scripts/balance-sweep.sh` | Run the headless battle balance sweep |
 | `./Scripts/release.sh [--dry-run]` | Preview or execute a release |
+
+### Advanced / internal (owned by another command, not everyday entry points)
+
+These scripts are intentionally not everyday commands; they are sourced or
+invoked by the indexed commands above. Listed here so the index stays honest
+(`check-docs.py` enforces this list against `Scripts/*.sh`).
+
+| Command | Owner / entry point |
+|---|---|
+| `./Scripts/run-env.sh`, `./Scripts/xcode-runner.sh`, `./Scripts/build-freshness.sh` | Sourced by `build` / `test` / `generate` / `run-simulator` |
+| `./Scripts/change-classification.sh` | Sourced by `handoff` / `agent-context` / `agent-push-gate` |
+| `./Scripts/ensure-simulator.sh` | Invoked by `test` / `run-simulator` slot setup |
+| `./Scripts/check-module-boundaries.sh`, `./Scripts/check-comment-ban.sh`, `./Scripts/check-agent-invariants.sh`, `./Scripts/check-exclusivity-footguns.sh` | Invoked via style gate / `ci-gate --fast` cheap slices |
+| `./Scripts/check-artwork-budget.sh`, `./Scripts/release-notes.sh` | Invoked via `ci-gate` cheap slices |
+| `./Scripts/check-build-cache-paths.sh`, `./Scripts/check-testplan-sync.py`, `./Scripts/check-links.py`, `./Scripts/check-plans.py` | Invoked via `test-scripts.sh` / `check-docs.py` |
+| `./Scripts/check-unused-assets.py`, `./Scripts/check-accessibility-ids.py`, `./Scripts/check-ui-style.py` | Invoked via style / asset gates |
+| `./Scripts/prepare-assets.sh`, `./Scripts/prepare-art-assets.sh`, `./Scripts/prepare-cinematic-assets.sh`, `./Scripts/prepare-app-icon.sh` | Invoked via `generate.sh --assets` |
+| `./Scripts/content_codegen.py` (+ `content_codegen_modifiers.py`, `content_codegen_triggers.py`) | Invoked via `generate.sh` |
+| `./Scripts/lint.sh`, `./Scripts/format.sh` | Invoked via style gate |
+| `./Scripts/validate-commit-msg.sh` | Invoked via commit-msg hook |
+| `./Scripts/ci-infra-rerun.sh` | Invoked via `agent-watch-ci.sh` |
+| `./Scripts/ensure-git-cliff.sh`, `./Scripts/report-art-memory.sh`, `./Scripts/record-time-profiler.sh`, `./Scripts/collect-performance-results.py` | Ad hoc / release diagnostics |
+| `./Scripts/lib/args.sh`, `./Scripts/lib/lock.sh`, `./Scripts/lib/simctl.sh`, `./Scripts/lib/slots.sh` | Shared helpers (no direct CLI) |
 
 Use `--help` where a command supports it; this index covers commands without a
 dedicated help mode. Pinned tool versions live in

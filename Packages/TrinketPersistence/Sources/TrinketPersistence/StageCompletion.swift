@@ -9,17 +9,11 @@ public enum StageCompletion {
         highestLevel: Int,
         xpPercent: Int = 0,
     ) -> Int {
-        let raw = adjustedExperienceAward(
-            ExperienceScaling.battleAwardWithCatchUp(
-                playerLevel: playerLevel,
-                enemyLevel: enemyLevel,
-                highestLevel: highestLevel,
-            ),
+        VictoryRewardApplier.battleExperienceAward(
+            playerLevel: playerLevel,
+            enemyLevel: enemyLevel,
+            highestLevel: highestLevel,
             xpPercent: xpPercent,
-        )
-        return ExperienceScaling.cappedAward(
-            raw,
-            requiredXP: CombatantProgression.requiredXP(forLevel: playerLevel),
         )
     }
 
@@ -33,17 +27,12 @@ public enum StageCompletion {
         roster: inout PlayerRosterState,
         xpPercent: Int = 0,
     ) {
-        let playerLevel = roster.progression(for: combatant).level
-        let highestLevel = combatant.role == .hero
-            ? roster.highestHeroLevel
-            : roster.highestCompanionLevel
-        let award = battleExperienceAward(
-            playerLevel: playerLevel,
+        VictoryRewardApplier.grantBattleExperience(
             enemyLevel: enemyLevel,
-            highestLevel: highestLevel,
+            to: combatant,
+            roster: &roster,
             xpPercent: xpPercent,
         )
-        roster.grantExperience(award, to: combatant)
     }
 
     public static func resolvedMaterialRewards(
@@ -64,10 +53,7 @@ public enum StageCompletion {
         in chapters: [Chapter] = GameContent.chapters,
     ) -> BattleLootPackage {
         let level = encounterLevel ?? resolvedEncounterLevel(for: stage, in: chapters)
-        let isBoss = enemyIsBoss ?? {
-            guard let enemyID = stage.encounter.battleEnemyID else { return false }
-            return GameContent.enemy(matching: enemyID)?.isBoss == true
-        }()
+        let isBoss = enemyIsBoss ?? VictoryRewardApplier.isBoss(enemyID: stage.encounter.battleEnemyID)
         return BattleLoot.resolveJourney(
             stage: stage,
             encounterLevel: level,
@@ -84,9 +70,11 @@ public enum StageCompletion {
         battleEarnedGold: Int,
         goldFindPercent: Int,
     ) -> Int {
-        let earned = max(0, stageGold + max(0, battleEarnedGold))
-        let adjusted = goldFindPercent > 0 ? earned + (earned * goldFindPercent) / 100 : earned
-        return max(0, adjusted + min(0, battleEarnedGold))
+        VictoryRewardApplier.resolvedGoldReward(
+            stageGold: stageGold,
+            battleEarnedGold: battleEarnedGold,
+            goldFindPercent: goldFindPercent,
+        )
     }
 
     public static func resolvedGoldReward(
@@ -94,10 +82,10 @@ public enum StageCompletion {
         battleEarnedGold: Int,
         homestead: PlayerHomesteadState,
     ) -> Int {
-        resolvedGoldReward(
+        VictoryRewardApplier.resolvedGoldReward(
             stageGold: stageGold,
             battleEarnedGold: battleEarnedGold,
-            goldFindPercent: homestead.effects.goldFindPercent,
+            homestead: homestead,
         )
     }
 
@@ -137,23 +125,18 @@ public enum StageCompletion {
         item: InventoryItem?,
         save: inout PlayerSave,
     ) {
-        let now = Date()
-        save.applyGoldDelta(
-            resolvedGoldReward(
-                stageGold: stageGold,
-                battleEarnedGold: battleEarnedGold,
-                homestead: save.homestead,
-            ),
-            at: now,
+        VictoryRewardApplier.grantVictoryRewards(
+            hero: hero,
+            companion: companion,
+            encounterLevel: encounterLevel,
+            stageGold: stageGold,
+            battleEarnedGold: battleEarnedGold,
+            grantsCombatExperience: grantsCombatExperience,
+            xpPercent: xpPercent,
+            materials: materials,
+            item: item,
+            save: &save,
         )
-        if grantsCombatExperience {
-            grantBattleExperience(enemyLevel: encounterLevel, to: hero, roster: &save.roster, xpPercent: xpPercent)
-            grantBattleExperience(enemyLevel: encounterLevel, to: companion, roster: &save.roster, xpPercent: xpPercent)
-        }
-        save.grantMaterials(materials, at: now)
-        if let item {
-            save.inventory.appendUniqueItem(item)
-        }
     }
 
     public static func complete(
@@ -189,6 +172,11 @@ public enum StageCompletion {
         labyrinthNodeID: String?,
         hero: Combatant,
         companion: Combatant,
+        battleEarnedGold: Int = 0,
+        materialRewards: [ResourceAmount]? = nil,
+        rewardItem: InventoryItem? = nil,
+        loot: BattleLootPackage? = nil,
+        enemyEncounterLevel: Int? = nil,
         in chapters: [Chapter],
         save: inout PlayerSave,
     ) {
@@ -197,6 +185,11 @@ public enum StageCompletion {
                 nodeID: labyrinthNodeID,
                 hero: hero,
                 companion: companion,
+                battleEarnedGold: battleEarnedGold,
+                materialRewards: materialRewards,
+                rewardItem: rewardItem,
+                loot: loot,
+                enemyEncounterLevel: enemyEncounterLevel,
                 save: &save,
             )
             return
@@ -205,6 +198,11 @@ public enum StageCompletion {
             stage,
             hero: hero,
             companion: companion,
+            battleEarnedGold: battleEarnedGold,
+            materialRewards: materialRewards,
+            rewardItem: rewardItem,
+            loot: loot,
+            enemyEncounterLevel: enemyEncounterLevel,
             in: chapters,
             save: &save,
         )
@@ -227,10 +225,7 @@ public enum StageCompletion {
 
         let encounterLevel = enemyEncounterLevel
             ?? partyAdjustedEncounterLevel(for: stage, save: save)
-        let enemyIsBoss: Bool = {
-            guard let enemyID = stage.encounter.battleEnemyID else { return false }
-            return GameContent.enemy(matching: enemyID)?.isBoss == true
-        }()
+        let enemyIsBoss = VictoryRewardApplier.isBoss(enemyID: stage.encounter.battleEnemyID)
 
         let resolvedLoot: BattleLootPackage? = {
             if let loot {
@@ -250,7 +245,7 @@ public enum StageCompletion {
             )
         }()
 
-        let stageGold = resolvedLoot?.gold ?? stage.rewards.gold
+        let stageGold = stage.rewards.gold + (resolvedLoot?.gold ?? 0)
         let item: InventoryItem? = if let rewardItem {
             rewardItem
         } else if let resolvedLoot {

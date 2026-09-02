@@ -37,10 +37,8 @@ struct MysteryEventCatalogTests {
     }
 
     @Test func `starter options exist in their authored order and role`() throws {
-        try #expect(GameContent.starterHeroes.map(\.id) == GameContent.starterHeroIDs)
-        try #expect(GameContent.starterCompanions.map(\.id) == GameContent.starterCompanionIDs)
-        try #expect(GameContent.starterHeroes.allSatisfy { $0.role == .hero })
-        try #expect(GameContent.starterCompanions.allSatisfy { $0.role == .companion })
+        try #expect(GameContent.heroes.allSatisfy { $0.role == .hero })
+        try #expect(GameContent.companions.allSatisfy { $0.role == .companion })
     }
 
     @Test func `all mystery event choices have unique I ds and at least one effect`() throws {

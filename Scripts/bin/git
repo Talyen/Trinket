@@ -16,10 +16,14 @@ if [ -z "$REAL_GIT" ]; then
   REAL_GIT="${REAL_GIT:-/usr/bin/git}"
 fi
 # Fast path: non-destructive commands go straight to real git. The command
-# list is owned by Scripts/git-safety-guard.mjs (exported
-# DESTRUCTIVE_GIT_COMMANDS); parse it here so the shell shim cannot drift.
+# list is owned by Scripts/config/destructive-git-commands.txt (read by both
+# this shim and Scripts/git-safety-guard.mjs) so the shell shim cannot drift
+# when the JS export is reformatted.
 # Comma-wrapped containment keeps the match portable across sh variants.
-destructive_commands="$(sed -n 's/^export const DESTRUCTIVE_GIT_COMMANDS = \[\(.*\)\];$/\1/p' "$ROOT/Scripts/git-safety-guard.mjs" | tr -d ' "')"
+destructive_commands="$(grep -v '^#' "$ROOT/Scripts/config/destructive-git-commands.txt" 2>/dev/null | grep -v '^$' | tr '\n' ',' | sed 's/,$//')"
+if [ -z "$destructive_commands" ]; then
+  destructive_commands="$(sed -n 's/^export const DESTRUCTIVE_GIT_COMMANDS = \[\(.*\)\];$/\1/p' "$ROOT/Scripts/git-safety-guard.mjs" | tr -d ' "')"
+fi
 if [ -z "$destructive_commands" ]; then
   # Fail closed: without the canonical list every command goes via the guard.
   exec env REAL_GIT="$REAL_GIT" node "$ROOT/Scripts/git-safety-guard.mjs" "$@"

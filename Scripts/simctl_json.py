@@ -6,6 +6,35 @@ from __future__ import annotations
 import json
 import re
 import sys
+from pathlib import Path
+
+
+def _managed_names() -> tuple[set[str], str]:
+    """Load shared/agent simulator vocabulary from config/simulator-names.env.
+
+    Single source with Scripts/lib/simctl.sh; falls back to the checked-in
+    names if the config is unreadable so device queries degrade, not fail.
+    """
+    shared = {"Trinket Run", "Trinket CI"}
+    pattern = r"Trinket Agent \d+"
+    try:
+        text = (Path(__file__).resolve().parent / "config" / "simulator-names.env").read_text()
+    except OSError:
+        return shared, pattern
+    for line in text.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("TRINKET_SHARED_SIM_NAMES="):
+            names = re.findall(r'"([^"]+)"', stripped)
+            if names:
+                shared = set(names)
+        elif stripped.startswith("TRINKET_AGENT_SIM_PATTERN="):
+            match = re.search(r"'([^']+)'", stripped)
+            if match:
+                pattern = match.group(1)
+    return shared, pattern
+
+
+MANAGED_SHARED_NAMES, AGENT_NAME_PATTERN = _managed_names()
 
 
 def payload() -> dict:
@@ -53,7 +82,7 @@ def main(argv: list[str]) -> int:
     if command == "booted-managed":
         for device in devices(data):
             name = str(device.get("name", ""))
-            if device.get("state") == "Booted" and (name in {"Trinket Run", "Trinket CI"} or re.fullmatch(r"Trinket Agent \d+", name)):
+            if device.get("state") == "Booted" and (name in MANAGED_SHARED_NAMES or re.fullmatch(AGENT_NAME_PATTERN, name)):
                 if device.get("udid"):
                     print(f"{device['udid']}\t{name}")
         return 0

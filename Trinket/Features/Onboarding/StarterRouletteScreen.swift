@@ -15,31 +15,34 @@ private enum StarterRouletteMotion {
 struct StarterRouletteScreen: View {
     @Environment(OptionsStore.self) private var options
 
-    let roleName: String
+    let role: Combatant.Role
     let combatants: [Combatant]
     let screenAccessibilityID: String
     let onConfirm: (String) -> Bool
 
     @State private var scrollEntryID: String?
-    @State private var selectedCombatant: Combatant?
     @State private var selectionFeedbackTrigger = 0
     @State private var inspectedCombatant: Combatant?
-    @State private var showsSaveFailure = false
-    @State private var isConfirming = false
+    @State private var persistError: String?
     @State private var saveErrorTrigger = 0
 
     init(
-        roleName: String,
+        role: Combatant.Role,
         combatants: [Combatant],
         screenAccessibilityID: String,
+        initialSelectionID: String? = nil,
         onConfirm: @escaping (String) -> Bool,
     ) {
-        self.roleName = roleName
+        self.role = role
         self.combatants = combatants
         self.screenAccessibilityID = screenAccessibilityID
         self.onConfirm = onConfirm
-        _scrollEntryID = State(initialValue: combatants.first?.id)
-        _selectedCombatant = State(initialValue: combatants.first)
+        let initialID = initialSelectionID.flatMap { id in combatants.contains(where: { $0.id == id }) ? id : nil }
+        _scrollEntryID = State(initialValue: initialID ?? combatants.first?.id)
+    }
+
+    private var selectedCombatant: Combatant? {
+        combatants.first(where: { $0.id == scrollEntryID })
     }
 
     var body: some View {
@@ -56,9 +59,18 @@ struct StarterRouletteScreen: View {
 
                     Spacer(minLength: TrinketDesign.Spacing.small)
 
-                    wheelBand(layout: layout)
+                    if combatants.isEmpty {
+                        ContentUnavailableView(
+                            "No \(role.rawValue) Choices",
+                            systemImage: "person.fill.questionmark",
+                            description: Text("Starter choices are unavailable right now. Try relaunching."),
+                        )
+                        .frame(height: layout.bandHeight)
+                    } else {
+                        wheelBand(layout: layout)
 
-                    pageIndicator
+                        pageIndicator
+                    }
 
                     namePlate
                         .padding(.top, TrinketDesign.Spacing.small)
@@ -87,18 +99,10 @@ struct StarterRouletteScreen: View {
             trigger: saveErrorTrigger,
             enabled: options.hapticsEnabled,
         )
-        .onAppear { isConfirming = false }
-        .onChange(of: scrollEntryID) { _, newID in
-            guard let newID,
-                  let combatant = combatants.first(where: { $0.id == newID })
-            else { return }
-            updateSelection(combatant)
+        .onChange(of: scrollEntryID) { _, _ in
+            selectionFeedbackTrigger += 1
         }
-        .alert("Couldn't Save Progress", isPresented: $showsSaveFailure) {
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text("Your choice was not saved. Please try again.")
-        }
+        .trinketFailureAlert("Couldn't Save Progress", message: $persistError)
         .sheet(item: $inspectedCombatant) { combatant in
             NavigationStack {
                 CombatantDetailPane(snapshot: CombatantCardDetail(combatant: combatant))
@@ -111,7 +115,7 @@ struct StarterRouletteScreen: View {
     }
 
     private var header: some View {
-        Text("CHOOSE A \(roleName.uppercased())")
+        Text("CHOOSE A \(role.rawValue.uppercased())")
             .trinketTypography(.eyebrow)
             .foregroundStyle(.secondary)
             .frame(maxWidth: .infinity)
@@ -120,7 +124,7 @@ struct StarterRouletteScreen: View {
 
     private var activeBackgroundEffect: some View {
         KeywordPlasmaBackground(
-            keywords: activeKeywords,
+            keywords: selectedCombatant?.affinityKeywords ?? [],
             isMotionActive: inspectedCombatant == nil,
         )
     }
@@ -144,9 +148,6 @@ struct StarterRouletteScreen: View {
 
     private func wheelCard(_ combatant: Combatant, layout: RouletteLayout) -> some View {
         let isCentered = selectedCombatant?.id == combatant.id
-        let shineKeywords = CombatantTalentCatalog
-            .combatantTreeAffinities[combatant.id]?
-            .map(\.keyword)
 
         return InspectableTapButton(
             action: {
@@ -166,7 +167,7 @@ struct StarterRouletteScreen: View {
                     isSelected: isCentered,
                 )
                 .shineBorder(
-                    shineKeywords.map { $0.isEmpty ? .none : .keywords($0) } ?? .none,
+                    Shine.keywords(combatant.affinityKeywords),
                     cornerRadius: TrinketDesign.Corners.card,
                     lineWidth: 2,
                     isMotionActive: isCentered,
@@ -182,7 +183,7 @@ struct StarterRouletteScreen: View {
                 .opacity(1 - distance * RouletteLayout.edgeDimming)
         }
         .accessibilityIdentifier(
-            AccessibilityID.Onboarding.option(role: roleName, combatantID: combatant.id),
+            AccessibilityID.Onboarding.option(role: role, combatantID: combatant.id),
         )
     }
 
@@ -208,7 +209,8 @@ struct StarterRouletteScreen: View {
                     .trinketFittedText()
                     .contentTransition(.numericText())
 
-                if let affinities = CombatantTalentCatalog.combatantTreeAffinities[selectedCombatant.id]?.map(\.keyword) {
+                let affinities = selectedCombatant.affinityKeywords
+                if !affinities.isEmpty {
                     HStack(spacing: TrinketDesign.Spacing.small) {
                         ForEach(affinities, id: \.self) { keyword in
                             Text(keyword.rawValue)
@@ -229,19 +231,11 @@ struct StarterRouletteScreen: View {
 
     private var continueAction: some View {
         Button("Continue", action: confirm)
-            .disabled(selectedCombatant == nil || isConfirming)
+            .disabled(selectedCombatant == nil)
             .trinketPrimaryActionButton(
-                accessibilityIdentifier: AccessibilityID.Onboarding.confirm(role: roleName),
+                accessibilityIdentifier: AccessibilityID.Onboarding.confirm(role: role),
             )
             .trinketCenteredPrimaryAction()
-    }
-
-    private func updateSelection(_ combatant: Combatant) {
-        guard selectedCombatant?.id != combatant.id else { return }
-        withAnimation(StarterRouletteMotion.plateSwap) {
-            selectedCombatant = combatant
-        }
-        selectionFeedbackTrigger += 1
     }
 
     private func center(on combatant: Combatant) {
@@ -252,18 +246,11 @@ struct StarterRouletteScreen: View {
     }
 
     private func confirm() {
-        guard let selectedCombatant, !isConfirming else { return }
-        isConfirming = true
+        guard let selectedCombatant else { return }
         if !onConfirm(selectedCombatant.id) {
-            isConfirming = false
-            saveErrorTrigger &+= 1
-            showsSaveFailure = true
+            saveErrorTrigger += 1
+            persistError = "Your choice was not saved. Please try again."
         }
-    }
-
-    private var activeKeywords: [Keyword] {
-        guard let selectedCombatant else { return [] }
-        return CombatantTalentCatalog.combatantTreeAffinities[selectedCombatant.id]?.map(\.keyword) ?? []
     }
 }
 
@@ -278,7 +265,7 @@ private struct RouletteLayout {
     }
 
     var cardHeight: CGFloat {
-        cardWidth * 4.0 / 3.0
+        min(cardWidth * 4.0 / 3.0, max(0, containerSize.height * 0.45))
     }
 
     var bandHeight: CGFloat {

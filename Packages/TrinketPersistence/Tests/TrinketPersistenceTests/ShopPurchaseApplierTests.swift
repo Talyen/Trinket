@@ -62,7 +62,8 @@ struct ShopPurchaseApplierTests {
             save: &save,
         )
 
-        #expect(result == .insufficientGold)
+        #expect(result == .invalidOffer)
+        #expect(result.failureMessage == "That offer is unavailable.")
         #expect(save.roster.gold == 50)
     }
 

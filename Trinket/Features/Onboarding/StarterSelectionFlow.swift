@@ -10,11 +10,10 @@ struct StarterSelectionFlow: View {
     }
 
     @State private var path: [Destination]
-    @State private var selectedHeroID: String?
-    @State private var selectedCompanionID: String?
 
     let confirmHero: (String) -> Bool
     let confirmCompanion: (String) -> Bool
+    let initialHeroID: String?
 
     init(
         initialSelection: StarterSelectionState,
@@ -22,7 +21,7 @@ struct StarterSelectionFlow: View {
         confirmCompanion: @escaping (String) -> Bool,
     ) {
         _path = State(initialValue: initialSelection.phase == .chooseCompanion ? [.companion] : [])
-        _selectedHeroID = State(initialValue: initialSelection.heroID)
+        initialHeroID = initialSelection.heroID
         self.confirmHero = confirmHero
         self.confirmCompanion = confirmCompanion
     }
@@ -30,15 +29,16 @@ struct StarterSelectionFlow: View {
     var body: some View {
         NavigationStack(path: $path) {
             StarterRouletteScreen(
-                roleName: "Hero",
-                combatants: GameContent.starterHeroes,
+                role: .hero,
+                combatants: GameContent.heroes,
                 screenAccessibilityID: AccessibilityID.Onboarding.heroScreen,
+                initialSelectionID: initialHeroID,
                 onConfirm: confirmSelectedHero,
             )
             .navigationDestination(for: Destination.self) { _ in
                 StarterRouletteScreen(
-                    roleName: "Companion",
-                    combatants: GameContent.starterCompanions,
+                    role: .companion,
+                    combatants: GameContent.companions,
                     screenAccessibilityID: AccessibilityID.Onboarding.companionScreen,
                     onConfirm: confirmSelectedCompanion,
                 )
@@ -48,14 +48,11 @@ struct StarterSelectionFlow: View {
 
     private func confirmSelectedHero(_ heroID: String) -> Bool {
         guard confirmHero(heroID) else { return false }
-        selectedHeroID = heroID
         path.append(.companion)
         return true
     }
 
     private func confirmSelectedCompanion(_ companionID: String) -> Bool {
-        guard confirmCompanion(companionID) else { return false }
-        selectedCompanionID = companionID
-        return true
+        confirmCompanion(companionID)
     }
 }

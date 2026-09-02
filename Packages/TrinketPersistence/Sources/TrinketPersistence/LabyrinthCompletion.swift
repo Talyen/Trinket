@@ -34,7 +34,7 @@ public enum LabyrinthCompletion {
     ) -> BattleLootPackage? {
         guard node.type.isCombat else { return nil }
         let level = encounterLevel ?? EncounterLevelResolver.labyrinthEnemyLevel(for: node)
-        let enemyIsBoss = node.enemyID.flatMap(GameContent.enemy(matching:))?.isBoss == true
+        let enemyIsBoss = VictoryRewardApplier.isBoss(enemyID: node.enemyID)
         return BattleLoot.resolveLabyrinth(
             node: node,
             encounterLevel: level,
@@ -101,8 +101,8 @@ public enum LabyrinthCompletion {
                 stageGold: nonCombatGoldStipend(for: node),
                 battleEarnedGold: battleEarnedGold,
                 grantsCombatExperience: false,
-                materials: materialRewards ?? [],
-                item: rewardItem,
+                materials: materialRewards ?? loot?.materials ?? [],
+                item: rewardItem ?? loot?.item,
                 save: &save,
             )
         }

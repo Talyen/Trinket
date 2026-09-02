@@ -6,6 +6,7 @@ public enum ShopPurchaseResult: Equatable, Sendable {
     case success(InventoryItem)
     case insufficientGold
     case alreadyOwned
+    case invalidOffer
 
     public var failureMessage: String? {
         switch self {
@@ -15,6 +16,8 @@ public enum ShopPurchaseResult: Equatable, Sendable {
             "Not enough Gold."
         case .alreadyOwned:
             "That item is already sold."
+        case .invalidOffer:
+            "That offer is unavailable."
         }
     }
 }
@@ -42,7 +45,7 @@ public enum ShopPurchaseApplier {
         let isSingletonItem = offer.item.isTrinket || offer.item.rarity == .unique
         let itemID = isSingletonItem ? offer.item.id : instanceID
         guard offer.price >= 0 else {
-            return .insufficientGold
+            return .invalidOffer
         }
         let purchased = InventoryItem(
             id: itemID,

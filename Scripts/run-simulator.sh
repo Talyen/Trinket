@@ -6,12 +6,10 @@ cd "$(dirname "$0")/.."
 source Scripts/lib/tools.sh
 trinket_prepend_pinned_tools
 
-ISOLATE_FLAG=false
 AGENT_SLOT_ARG=""
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --isolate)
-      ISOLATE_FLAG=true
       TRINKET_ISOLATE=1
       export TRINKET_ISOLATE
       shift

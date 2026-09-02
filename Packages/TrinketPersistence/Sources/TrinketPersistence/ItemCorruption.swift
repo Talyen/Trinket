@@ -135,7 +135,7 @@ public enum ItemCorruption {
             using: &randomNumberGenerator,
         )
 
-        if rarity == .basic, kinds.contains(.upgradeRarity) || affixIDs.count >= 3 {
+        if rarity == .basic, kinds.contains(.upgradeRarity) {
             rarity = .astral
             summaries.append(.upgradedRarity)
         }
@@ -305,7 +305,7 @@ public enum ItemCorruptionApplier {
             return .itemNotFound
         }
         let item = save.inventory.items[index]
-        guard !item.isCorrupted else { return .alreadyCorrupted }
+        guard !item.isCorrupted, !item.hasCorruptedAffix else { return .alreadyCorrupted }
         guard ItemCorruption.isEligibleTarget(item) else { return .ineligible }
         guard let result = ItemCorruption.corrupt(item, using: &randomNumberGenerator) else {
             return .ineligible

@@ -1,3 +1,4 @@
+import TrinketContent
 import TrinketFeatureSupport
 import XCTest
 
@@ -41,7 +42,7 @@ final class StarterOnboardingSmokeTests: TrinketUITestCase {
         assertExists(AccessibilityID.Onboarding.heroScreen, timeout: 20)
         XCTAssertEqual(app.tabBars.count, 0)
 
-        let heroConfirm = app.descendants(matching: .any)[AccessibilityID.Onboarding.confirm(role: "Hero")]
+        let heroConfirm = app.descendants(matching: .any)[AccessibilityID.Onboarding.confirm(role: .hero)]
         if !heroConfirm.trinketWaitForExistence(timeout: 20) {
             XCTFail("Confirm Hero not found. Tree: \(String(app.debugDescription.prefix(2500)))")
         }
@@ -51,7 +52,7 @@ final class StarterOnboardingSmokeTests: TrinketUITestCase {
 
         assertExists(AccessibilityID.Onboarding.companionScreen, timeout: 20)
 
-        let companionConfirm = app.descendants(matching: .any)[AccessibilityID.Onboarding.confirm(role: "Companion")]
+        let companionConfirm = app.descendants(matching: .any)[AccessibilityID.Onboarding.confirm(role: .companion)]
         if !companionConfirm.trinketWaitForExistence(timeout: 20) {
             XCTFail("Confirm Companion not found. Tree: \(String(app.debugDescription.prefix(2500)))")
         }

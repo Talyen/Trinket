@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { spawnSync } from "node:child_process";
+import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -8,7 +9,16 @@ const ownShimDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".
 const args = process.argv.slice(2);
 const subcommand = args[0] ?? "";
 
-export const DESTRUCTIVE_GIT_COMMANDS = ["reset", "checkout", "restore", "clean", "switch", "branch", "push"];
+function loadDestructiveCommands() {
+  try {
+    const listPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "config", "destructive-git-commands.txt");
+    const names = fs.readFileSync(listPath, "utf8").split("\n").map((s) => s.trim()).filter((s) => s && !s.startsWith("#"));
+    if (names.length > 0) return names;
+  } catch {}
+  return ["reset", "checkout", "restore", "clean", "switch", "branch", "push"];
+}
+
+export const DESTRUCTIVE_GIT_COMMANDS = loadDestructiveCommands();
 
 const DESTRUCTIVE = new Set(DESTRUCTIVE_GIT_COMMANDS);
 

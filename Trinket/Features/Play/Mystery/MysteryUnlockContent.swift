@@ -96,7 +96,7 @@ struct MysteryUnlockContent: View {
     }
 
     private func recruitPlasmaKeywords(for combatant: Combatant) -> [Keyword] {
-        CombatantTalentCatalog.combatantTreeAffinities[combatant.id]?.map(\.keyword) ?? []
+        combatant.affinityKeywords
     }
 
     private var recruitSealBadge: some View {

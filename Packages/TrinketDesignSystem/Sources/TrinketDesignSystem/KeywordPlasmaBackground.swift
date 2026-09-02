@@ -76,7 +76,6 @@ public struct KeywordPlasmaBackground: View {
         .ignoresSafeArea()
         .allowsHitTesting(false)
         .accessibilityHidden(true)
-        .onChange(of: keywords) { _, _ in startDate = Date() }
         .animation(reduceMotion ? nil : TrinketMotion.Content.fade, value: keywords)
         .animation(nil, value: isMotionActive)
         .animation(nil, value: reduceMotion)

@@ -72,10 +72,13 @@ enum ModelContainerBootstrap {
         let ext = url.pathExtension
         let shmExtension = ext.isEmpty ? "shm" : "\(ext)-shm"
         let walExtension = ext.isEmpty ? "wal" : "\(ext)-wal"
+        let journalExtension = ext.isEmpty ? "journal" : "\(ext)-journal"
         let candidates = [
             url,
             base.appendingPathExtension(shmExtension),
             base.appendingPathExtension(walExtension),
+            base.appendingPathExtension(journalExtension),
+            URL(fileURLWithPath: url.path + "-journal"),
         ]
         for candidate in candidates {
             guard FileManager.default.fileExists(atPath: candidate.path) else { continue }

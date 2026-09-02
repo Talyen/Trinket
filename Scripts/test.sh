@@ -63,6 +63,15 @@ while [[ $# -gt 0 ]]; do
       QUIET=true
       shift
       ;;
+    --help|-h)
+      cat <<'USAGE'
+Usage: ./Scripts/test.sh [unit | ui | style | smoke | performance] [--no-build] [--app-only] [--quiet] [--verbose] [TestClass[/testMethod] | SwiftPath ...]
+
+Bare local full exhaustive UI runs require TRINKET_ALLOW_FULL_UI=1; CI and
+targeted runs do not. See Scripts/README.md for tiers and routing.
+USAGE
+      exit 0
+      ;;
     --verbose|verbose)
       VERBOSE=true
       QUIET=false

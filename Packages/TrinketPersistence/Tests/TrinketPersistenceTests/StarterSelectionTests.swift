@@ -54,8 +54,11 @@ struct StarterSelectionTests {
         #expect(StarterSelectionState(phase: .chooseHero, heroID: "knight") == .fresh)
         #expect(StarterSelectionState(phase: .complete, heroID: "knight") == .complete)
 
-        let store = try context.makeSaveStore()
+        let store = try context.makeSaveStore(inMemoryOnly: true)
+        #expect(!store.confirmStarterHero("not-a-hero"))
+        #expect(!store.completeStarterSelection(companionID: "wolf"))
         #expect(store.confirmStarterHero("knight"))
+        #expect(!store.completeStarterSelection(companionID: "not-a-companion"))
         #expect(store.completeStarterSelection(companionID: "wolf"))
         #expect(!store.confirmStarterHero("rogue"))
         #expect(store.starterSelection == .complete)

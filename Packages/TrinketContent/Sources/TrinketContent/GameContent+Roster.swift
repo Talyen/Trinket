@@ -11,22 +11,6 @@ public extension GameContent {
         uniqueKeysWithValues: combatants.map { ($0.id, $0) },
     )
 
-    static var starterHeroes: [Combatant] {
-        heroes
-    }
-
-    static var starterCompanions: [Combatant] {
-        companions
-    }
-
-    static var starterHeroIDs: [String] {
-        heroes.map(\.id)
-    }
-
-    static var starterCompanionIDs: [String] {
-        companions.map(\.id)
-    }
-
     static func combatant(matching id: String) -> Combatant? {
         combatantsByID[id]
     }

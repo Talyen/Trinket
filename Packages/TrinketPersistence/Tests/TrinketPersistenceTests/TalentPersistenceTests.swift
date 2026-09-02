@@ -17,6 +17,14 @@ struct TalentPersistenceTests {
         #expect(sanitized.unlockedTalents["invalid_combatant"] == nil)
     }
 
+    @Test func `save sanitizer caps talents missing progression`() {
+        var roster = PlayerRosterState.freshStart
+        roster.unlockedTalents["rogue"] = ["rogue_poison_t1_1"]
+
+        let sanitized = PlayerSaveSanitizer.sanitizeRoster(roster, inventory: .freshStart)
+        #expect(sanitized.unlockedTalents["rogue"] == nil)
+    }
+
     @Test @MainActor func `talent loadouts survive player save store round trip`() throws {
         let context = try PersistenceTestContext()
         let storeURL = context.storeURL()

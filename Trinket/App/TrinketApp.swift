@@ -81,8 +81,13 @@ struct TrinketApp: App {
             .flatMap { reference in
                 [reference.imageName, reference.thumbnailImageName].compactMap(\.self)
             }
-        let starterChoices = (GameContent.starterHeroes + GameContent.starterCompanions)
-            .compactMap { $0.artReference?.thumbnailImageName }
+        let starterChoices: [String] =
+            if appState.playerSave.starterSelection.phase == .complete {
+                []
+            } else {
+                (GameContent.heroes + GameContent.companions)
+                    .compactMap { $0.artReference?.thumbnailImageName }
+            }
         let activeEnemy = appState.playerSave.journey.activeStageID
             .flatMap(GameContent.stage(id:))?
             .encounterCombatantArtReference(worldSeed: appState.playerSave.worldSeed)

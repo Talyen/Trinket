@@ -51,6 +51,32 @@ public struct MysteryEffectApplyResult: Equatable, Sendable {
     }
 }
 
+public enum MysteryEventPinApplier {
+    @discardableResult
+    public static func pinLabyrinthEvent(
+        nodeID: String,
+        eventID: String,
+        save: inout PlayerSave,
+    ) -> Bool {
+        guard var node = save.labyrinth.nodes[nodeID] else { return false }
+        guard node.mysteryEventID == nil else { return true }
+        node.mysteryEventID = eventID
+        save.labyrinth.nodes[nodeID] = node
+        return true
+    }
+
+    @discardableResult
+    public static func pinJourneyEvent(
+        stageID: String,
+        eventID: String,
+        save: inout PlayerSave,
+    ) -> Bool {
+        guard save.journey.pinnedMysteryEventIDs[stageID] == nil else { return true }
+        save.journey.pinnedMysteryEventIDs[stageID] = eventID
+        return true
+    }
+}
+
 public enum MysteryEffectApplier {
     public static func materialQuantity(forLevel level: Int) -> Int {
         let clamped = max(1, level)
@@ -113,13 +139,17 @@ public enum MysteryEffectApplier {
         )
 
         for effect in effects {
+            let ownership = RewardOwnership(
+                save.inventory,
+                eligibleTrinketIDs: itemContext.eligibleTrinketIDs,
+            )
             apply(
                 effect,
                 hero: hero,
                 companion: companion,
                 save: &save,
                 state: &state,
-                itemContext: itemContext,
+                items: ItemResolution(context: itemContext, ownership: ownership),
                 using: &randomNumberGenerator,
             )
         }
@@ -188,19 +218,20 @@ public enum MysteryEffectApplier {
         scaledQuantity(experienceAward(for: progression, highestLevel: highestLevel), percent: percent)
     }
 
+    private struct ItemResolution {
+        let context: GeneratedItemContext
+        let ownership: RewardOwnership
+    }
+
     private static func apply(
         _ effect: MysteryEffect,
         hero: Combatant,
         companion: Combatant,
         save: inout PlayerSave,
         state: inout ApplyState,
-        itemContext: GeneratedItemContext,
+        items: ItemResolution,
         using randomNumberGenerator: inout some RandomNumberGenerator,
     ) {
-        let ownership = RewardOwnership(
-            save.inventory,
-            eligibleTrinketIDs: itemContext.eligibleTrinketIDs,
-        )
         switch effect {
         case let .gainGold(amount):
             guard amount > 0 else { return }
@@ -232,15 +263,15 @@ public enum MysteryEffectApplier {
             appendThemedItem(
                 baseTypeID: baseTypeID,
                 guaranteedAffixIDs: guaranteedAffixIDs,
-                ownership: ownership,
+                ownership: items.ownership,
                 state: &state,
                 save: &save,
-                itemContext: itemContext,
+                itemContext: items.context,
                 using: &randomNumberGenerator,
             )
 
         case .gainRandomItem:
-            guard let baseType = itemContext.baseTypes
+            guard let baseType = items.context.baseTypes
                 .filter({ $0.slot != .trinket })
                 .randomElement(using: &randomNumberGenerator) else {
                 return
@@ -248,10 +279,10 @@ public enum MysteryEffectApplier {
             appendThemedItem(
                 baseTypeID: baseType.id,
                 guaranteedAffixIDs: [],
-                ownership: ownership,
+                ownership: items.ownership,
                 state: &state,
                 save: &save,
-                itemContext: itemContext,
+                itemContext: items.context,
                 using: &randomNumberGenerator,
             )
 
@@ -290,14 +321,7 @@ public enum MysteryEffectApplier {
         save: inout PlayerSave,
         result: inout MysteryEffectApplyResult,
     ) {
-        let didUnlock: Bool = if GameContent.heroes.contains(where: { $0.id == combatantID }) {
-            save.roster.unlockHero(id: combatantID)
-        } else if GameContent.companions.contains(where: { $0.id == combatantID }) {
-            save.roster.unlockCompanion(id: combatantID)
-        } else {
-            false
-        }
-        if didUnlock {
+        if save.roster.unlockCombatant(id: combatantID) {
             result.unlockedCombatantIDs.append(combatantID)
         }
     }
@@ -346,7 +370,15 @@ public enum MysteryEffectApplier {
             return nil
         }
         if baseType.slot == .trinket {
-            return GameContent.trinketItems.first { $0.templateID == baseTypeID }
+            if let eligible = ownership.eligibleTrinketIDs, !eligible.contains(baseTypeID) {
+                return nil
+            }
+            guard let item = GameContent.trinketItems.first(where: { $0.templateID == baseTypeID }),
+                  !ownership.ownedTrinketIDs.contains(item.templateID)
+            else {
+                return nil
+            }
+            return item
         }
         let tier = MysteryItemRarity.roll(
             astralChanceBonusPercent: context.astralChanceBonusPercent,

@@ -52,7 +52,7 @@ struct PlayerSaveSlice: OptionSet {
     }
 
     static func persistTargets(for sanitizeSlices: Self) -> Self {
-        sanitizeSlices.union(.root).union(.labyrinth)
+        sanitizeSlices.union(.root)
     }
 
     static func sanitizeTargets(for mutationSlices: Self) -> Self {

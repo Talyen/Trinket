@@ -58,6 +58,10 @@ enum PlayerSaveStoreConfiguration {
     static func fetchRoot(in context: ModelContext, logger: Logger) throws -> PlayerSaveRoot? {
         let descriptor = FetchDescriptor<PlayerSaveRoot>(
             predicate: #Predicate { $0.id == "primary" },
+            sortBy: [
+                SortDescriptor(\.modifiedAt, order: .reverse),
+                SortDescriptor(\.sessionGeneration, order: .reverse),
+            ],
         )
         let primaries: [PlayerSaveRoot]
         do {
@@ -70,7 +74,7 @@ enum PlayerSaveStoreConfiguration {
                 "Couldn't read saved progress from this device.",
             )
         }
-        guard let keeper = primaries.max(by: Self.isOlderPrimary(_:than:)) else {
+        guard let keeper = primaries.first else {
             return nil
         }
         let extras = primaries.filter { $0 !== keeper }
@@ -87,19 +91,9 @@ enum PlayerSaveStoreConfiguration {
             logger.error(
                 "Failed to drop duplicate player save roots: \(error.localizedDescription, privacy: .public)",
             )
-            throw PlayerSavePersistenceError.writeFailed
+            context.rollback()
         }
         return keeper
-    }
-
-    private static func isOlderPrimary(_ lhs: PlayerSaveRoot, than rhs: PlayerSaveRoot) -> Bool {
-        if lhs.modifiedAt != rhs.modifiedAt {
-            return lhs.modifiedAt < rhs.modifiedAt
-        }
-        if lhs.sessionGeneration != rhs.sessionGeneration {
-            return lhs.sessionGeneration < rhs.sessionGeneration
-        }
-        return String(describing: lhs.persistentModelID) < String(describing: rhs.persistentModelID)
     }
 
     static func clearSaveRoot(in context: ModelContext, logger: Logger) throws {

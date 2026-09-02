@@ -110,6 +110,23 @@ def proposal_evidence_failures() -> list[str]:
     return failures
 
 
+def script_index_failures() -> list[str]:
+    """Require every top-level Scripts/*.sh to be indexed in Scripts/README.md.
+
+    Either the Everyday command table or the Advanced/internal table must name
+    the script file; otherwise the index drifts and agents miss the owner.
+    """
+    readme = (ROOT / "Scripts" / "README.md").read_text(encoding="utf-8")
+    failures: list[str] = []
+    for script in sorted((ROOT / "Scripts").glob("*.sh")):
+        if f"Scripts/{script.name}" not in readme:
+            failures.append(
+                f"Scripts/README.md: command index is missing Scripts/{script.name} "
+                "(add it to the Everyday table or the Advanced/internal table)"
+            )
+    return failures
+
+
 def structural_checks(files: list[Path], *, final: bool = False, keep_plan: bool = False) -> list[str]:
     failures: list[str] = []
     relative = {path.relative_to(ROOT) for path in files}
@@ -120,6 +137,7 @@ def structural_checks(files: list[Path], *, final: bool = False, keep_plan: bool
             failures.append(f"{package}: package has neither README.md nor AGENTS.md")
 
     failures.extend(_check_testplan_sync.testplan_failures())
+    failures.extend(script_index_failures())
 
     stale = {
         "five-surface selector matrix": "smoke plan is SmokeShellTests, SmokeBattleTests, SmokeShopTests",

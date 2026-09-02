@@ -405,7 +405,7 @@ extension LabyrinthProgressTests {
 }
 
 extension LabyrinthProgressTests {
-    @Test func `corrupt map payload keeps blob and does not sanitize rebuild`() {
+    @Test func `corrupt map payload heals on sanitize rebuild`() {
         let model = LabyrinthProgressModel()
         model.worldSeed = 55
         model.hasEntered = true
@@ -420,13 +420,13 @@ extension LabyrinthProgressTests {
         #expect(loaded.isMapPayloadUnreadable)
 
         let sanitized = PlayerSaveSanitizer.sanitizeLabyrinth(loaded)
-        #expect(!sanitized.hasMap)
-        #expect(sanitized.isMapPayloadUnreadable)
+        #expect(sanitized.hasMap)
+        #expect(!sanitized.isMapPayloadUnreadable)
         #expect(sanitized.worldSeed == 55)
-        #expect(sanitized.mapVersion == loaded.mapVersion)
 
         model.update(from: sanitized)
-        #expect(model.mapPayload == corruptBlob)
+        #expect(model.mapPayload != corruptBlob)
+        #expect(!model.toPlayerLabyrinthState().isMapPayloadUnreadable)
     }
 
     @Test func `sanitize preserves pinned mystery on map version bump`() throws {

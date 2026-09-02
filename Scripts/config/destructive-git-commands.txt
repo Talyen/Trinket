@@ -1,0 +1,10 @@
+# Single source for destructive git subcommands guarded with a dirty tree.
+# Owned by Scripts/git-safety-guard.mjs; Scripts/bin/git reads this file so the
+# shell shim cannot drift when the JS export is reformatted.
+reset
+checkout
+restore
+clean
+switch
+branch
+push

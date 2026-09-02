@@ -60,6 +60,7 @@ struct PlayerSaveSliceSanitizerTests {
             labyrinthNodeID = nodeID
         }
 
+        save.labyrinth.worldSeed = save.worldSeed
         let full = PlayerSaveSanitizer.sanitize(save)
         let scoped = PlayerSaveSanitizer.sanitize(
             save,
@@ -108,7 +109,7 @@ struct PlayerSaveSliceSanitizerTests {
         #expect(rosterExpanded.labyrinth.nodes[nodeID]?.type == .event)
     }
 
-    @Test func `persist targets include labyrinth seed pin after homestead mutation`() {
+    @Test func `homestead mutation does not pin labyrinth seed`() {
         var snapshot = PlayerSave.fresh
         snapshot.labyrinth.worldSeed = 0
         var candidate = snapshot
@@ -125,11 +126,11 @@ struct PlayerSaveSliceSanitizerTests {
 
         #expect(mutationSlices == .homestead)
         #expect(!sanitizeSlices.contains(.labyrinth))
-        #expect(candidate.labyrinth.worldSeed == candidate.worldSeed)
-        #expect(changedSlices.contains(.labyrinth))
+        #expect(candidate.labyrinth.worldSeed == 0)
+        #expect(!changedSlices.contains(.labyrinth))
     }
 
-    @Test @MainActor func `homestead mutation persists sanitizer labyrinth world seed pin`() throws {
+    @Test @MainActor func `homestead mutation leaves labyrinth seed alone`() throws {
         let context = try PersistenceTestContext()
         let storeURL = context.storeURL()
         let store = try PlayerSaveStore(
@@ -143,9 +144,8 @@ struct PlayerSaveSliceSanitizerTests {
         let (candidate, changedSlices) = try PlayerSaveSlice.prepareCandidate(from: snapshot) { save in
             save.homestead.resources[.wood] = wood
         }
-        #expect(changedSlices.contains(.labyrinth))
-        #expect(candidate.labyrinth.worldSeed == candidate.worldSeed)
-        #expect(candidate.labyrinth.worldSeed != 0)
+        #expect(!changedSlices.contains(.labyrinth))
+        #expect(candidate.labyrinth.worldSeed == 0)
 
         try store.performBatchMutation { $0 = candidate }
         let reloaded = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)

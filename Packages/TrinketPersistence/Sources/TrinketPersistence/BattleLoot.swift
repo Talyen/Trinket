@@ -84,17 +84,16 @@ public enum BattleLoot {
         ownedUniqueIDs: Set<String>,
         astralChanceBonusPercent: Int = 0,
     ) -> BattleLootPackage {
-        var rng = SeededRandomNumberGenerator(
-            seed: GameContent.encounterSeed(worldSeed, salt: "battle-loot-journey-\(stage.id)"),
-        )
-        return resolve(
+        VictoryRewardApplier.resolveLoot(
+            LootRequest(seedSalt: "battle-loot-journey-\(stage.id)", itemID: "\(stage.id)-loot"),
             encounterLevel: encounterLevel,
             enemyIsBoss: enemyIsBoss,
-            itemID: "\(stage.id)-loot",
-            ownedTrinketIDs: ownedTrinketIDs,
-            ownedUniqueIDs: ownedUniqueIDs,
+            worldSeed: worldSeed,
+            ownership: RewardOwnership(
+                ownedTrinketIDs: ownedTrinketIDs,
+                ownedUniqueIDs: ownedUniqueIDs,
+            ),
             astralChanceBonusPercent: astralChanceBonusPercent,
-            using: &rng,
         )
     }
 
@@ -108,21 +107,24 @@ public enum BattleLoot {
         ownedUniqueIDs: Set<String>,
         astralChanceBonusPercent: Int = 0,
     ) -> BattleLootPackage {
-        var rng = SeededRandomNumberGenerator(
-            seed: GameContent.encounterSeed(
-                worldSeed,
-                salt: "battle-loot-spire-\(floor.spireID.rawValue)-\(floor.floor)",
+        var combinedBias = keywordBias
+        if let spire = GameContent.spire(id: floor.spireID) {
+            combinedBias.insert(spire.keyword)
+        }
+        return VictoryRewardApplier.resolveLoot(
+            LootRequest(
+                seedSalt: "battle-loot-spire-\(floor.spireID.rawValue)-\(floor.floor)",
+                itemID: "spire-\(floor.spireID.rawValue)-floor-\(floor.floor)-loot",
+                keywordBias: combinedBias,
             ),
-        )
-        return resolve(
             encounterLevel: encounterLevel,
             enemyIsBoss: enemyIsBoss,
-            itemID: "spire-\(floor.spireID.rawValue)-floor-\(floor.floor)-loot",
-            keywordBias: keywordBias,
-            ownedTrinketIDs: ownedTrinketIDs,
-            ownedUniqueIDs: ownedUniqueIDs,
+            worldSeed: worldSeed,
+            ownership: RewardOwnership(
+                ownedTrinketIDs: ownedTrinketIDs,
+                ownedUniqueIDs: ownedUniqueIDs,
+            ),
             astralChanceBonusPercent: astralChanceBonusPercent,
-            using: &rng,
         )
     }
 
@@ -136,20 +138,21 @@ public enum BattleLoot {
         ownedUniqueIDs: Set<String>,
         astralChanceBonusPercent: Int = 0,
     ) -> BattleLootPackage {
-        var rng = SeededRandomNumberGenerator(
-            seed: GameContent.encounterSeed(worldSeed, salt: "battle-loot-labyrinth-\(node.id)"),
-        )
-        return resolve(
+        VictoryRewardApplier.resolveLoot(
+            LootRequest(
+                seedSalt: "battle-loot-labyrinth-\(node.id)",
+                itemID: LabyrinthCompletion.rewardItemID(forNodeID: node.id),
+                goldFoundPercent: effects.goldFoundPercent,
+                materialsFoundPercent: effects.materialsFoundPercent,
+            ),
             encounterLevel: encounterLevel,
             enemyIsBoss: enemyIsBoss,
-            itemID: LabyrinthCompletion.rewardItemID(forNodeID: node.id),
-            keywordBias: [],
-            ownedTrinketIDs: ownedTrinketIDs,
-            ownedUniqueIDs: ownedUniqueIDs,
-            goldFoundPercent: effects.goldFoundPercent,
-            materialsFoundPercent: effects.materialsFoundPercent,
+            worldSeed: worldSeed,
+            ownership: RewardOwnership(
+                ownedTrinketIDs: ownedTrinketIDs,
+                ownedUniqueIDs: ownedUniqueIDs,
+            ),
             astralChanceBonusPercent: astralChanceBonusPercent,
-            using: &rng,
         )
     }
 

@@ -117,7 +117,7 @@ struct ItemCorruptionTests {
         #expect(!ItemCorruption.isEligibleTarget(markedOnly))
     }
 
-    @Test func `three or more affixes force astral`() throws {
+    @Test func `add affix alone does not force astral`() throws {
         let item = try makeItem(baseID: "longsword", rarity: .basic, affixCount: 2)
         var rng = SeededRandomNumberGenerator(seed: 7)
         let result = ItemCorruption.apply(
@@ -126,6 +126,18 @@ struct ItemCorruptionTests {
             using: &rng,
         )
         #expect(result.item.affixes.count == 3)
+        #expect(result.item.rarity == .basic)
+        #expect(!result.effects.contains(.upgradedRarity))
+    }
+
+    @Test func `rolled rarity upgrade promotes basic to astral`() throws {
+        let item = try makeItem(baseID: "longsword", rarity: .basic, affixCount: 2)
+        var rng = SeededRandomNumberGenerator(seed: 7)
+        let result = ItemCorruption.apply(
+            kinds: [.upgradeRarity],
+            to: item,
+            using: &rng,
+        )
         #expect(result.item.rarity == .astral)
         #expect(result.effects.contains(.upgradedRarity))
     }
@@ -149,6 +161,38 @@ struct ItemCorruptionTests {
         var rng = SeededRandomNumberGenerator(seed: 1)
         let result = ItemCorruptionApplier.corrupt(itemID: item.id, save: &save, using: &rng)
         #expect(result == .alreadyCorrupted)
+    }
+
+    @Test func `legacy marked affix reports already corrupted`() throws {
+        let plain = try makeItem(baseID: "longsword", rarity: .basic, affixCount: 2)
+        let markedOnly = withMarkedFirstAffix(plain)
+        var save = PlayerSave.testSeed
+        save.inventory.items = [markedOnly]
+        var rng = SeededRandomNumberGenerator(seed: 1)
+        let result = ItemCorruptionApplier.corrupt(itemID: markedOnly.id, save: &save, using: &rng)
+        #expect(result == .alreadyCorrupted)
+        #expect(save.inventory.items == [markedOnly])
+    }
+
+    @Test @MainActor func `store corrupt item persists across reload`() throws {
+        let context = try PersistenceTestContext()
+        let store = try context.makeSaveStore()
+        let item = try makeItem(baseID: "longsword", rarity: .basic, affixCount: 2, id: "store-corrupt")
+        try store.performBatchMutation { save in
+            save.inventory.items = [item]
+        }
+        var rng = SeededRandomNumberGenerator(seed: 3)
+        let outcome = store.corruptItem(id: item.id, using: &rng)
+        guard case let .success(applied) = outcome else {
+            Issue.record("Expected corruption success, got \(String(describing: outcome))")
+            return
+        }
+        #expect(applied.item.isCorrupted)
+
+        let reloaded = try context.makeSaveStore()
+        let reloadedItem = try #require(reloaded.currentSave.inventory.items.first { $0.id == item.id })
+        #expect(reloadedItem.isCorrupted)
+        #expect(reloadedItem.hasCorruptedAffix)
     }
 
     @Test func `trinkets cannot be corrupted`() throws {
@@ -341,7 +385,9 @@ struct ItemCorruptionTests {
         #expect(powers[0].triggers.onBleedApplyPoison == 3)
         #expect(powers[0].description == "Apply 3 Poison when target Bleeds.")
     }
+}
 
+extension ItemCorruptionTests {
     @Test func `bump applies integer and percent triggers correctly`() {
         var intPowers = [
             ItemAffixPower(

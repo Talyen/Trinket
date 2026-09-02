@@ -32,7 +32,7 @@ public final class InventoryItemModel {
 
     public convenience init(item: InventoryItem) {
         self.init()
-        updateWithoutContext(from: item)
+        update(from: item, context: nil)
     }
 
     func applyAffixPowers(from item: InventoryItem) {

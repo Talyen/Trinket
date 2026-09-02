@@ -339,3 +339,86 @@ struct StageRewardTests {
         try #expect(save.homestead.resources[.herbs] == 2)
     }
 }
+
+extension StageRewardTests {
+    @Test func `combat loot stacks with authored stage gold`() throws {
+        var save = SaveTestSupport.makeSave(modifiedAt: .now, gold: 0)
+        let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
+        let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
+        let authored = Stage(
+            id: "test-authored",
+            chapterID: "chapter-1",
+            chapterNumber: 1,
+            stageNumber: 98,
+            encounter: .battle(enemyID: "test-enemy"),
+            rewards: StageReward(gold: 10, itemTemplateIDs: [], materialRewards: []),
+        )
+        let encounterLevel = EncounterLevelResolver.journeyEnemyLevel(for: firstStage, in: chapter)
+        let loot = BattleLoot.resolveJourney(
+            stage: firstStage,
+            encounterLevel: encounterLevel,
+            enemyIsBoss: false,
+            worldSeed: PlayerSave.testWorldSeed,
+            ownedTrinketIDs: [],
+            ownedUniqueIDs: [],
+        )
+
+        StageCompletion.claimRewardsIfNeeded(
+            for: authored,
+            hero: hero,
+            companion: companion,
+            loot: loot,
+            save: &save,
+        )
+
+        let expected = VictoryRewardApplier.resolvedGoldReward(
+            stageGold: 10 + loot.gold,
+            battleEarnedGold: 0,
+            homestead: save.homestead,
+        )
+        try #expect(save.roster.gold == expected)
+        try #expect(expected >= 10)
+    }
+
+    @Test func `negative gold find reduces rewards`() {
+        #expect(
+            StageCompletion.resolvedGoldReward(
+                stageGold: 10,
+                battleEarnedGold: 0,
+                goldFindPercent: -50,
+            ) < 10,
+        )
+    }
+
+    @Test func `complete encounter forwards loot to labyrinth`() throws {
+        var save = SaveTestSupport.makeSave()
+        let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
+        let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
+        save.labyrinth.ensureMap(
+            seed: save.worldSeed,
+            eligibleRecruitEventIDs: save.roster.eligibleRecruitEventIDs,
+        )
+        let node = try #require(save.labyrinth.nodes.values.first { $0.type.isCombat })
+        let effects = save.labyrinth.effects(for: node.id)
+        let loot = try #require(LabyrinthCompletion.resolveCombatLoot(
+            for: node,
+            effects: effects,
+            worldSeed: save.worldSeed,
+            ownedTrinketIDs: [],
+            ownedUniqueIDs: [],
+        ))
+
+        StageCompletion.completeEncounter(
+            stage: firstStage,
+            labyrinthNodeID: node.id,
+            hero: hero,
+            companion: companion,
+            loot: loot,
+            in: GameContent.chapters,
+            save: &save,
+        )
+
+        #expect(save.labyrinth.node(id: node.id)?.isCleared == true)
+        #expect(save.inventory.item(matching: loot.item.id) != nil)
+    }
+}

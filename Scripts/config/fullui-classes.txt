@@ -1,4 +1,5 @@
-# Generated from smoke suite — do not hand-edit. Update via Scripts/prepare-assets.sh --kind fullui or mirror Scripts/README.md FullUI drift check.
+# FullUI registry — do not hand-edit without updating FullUI.xctestplan.
+# Validated by Scripts/check-testplan-sync.py (plan selection vs UI classes).
 BattleFlowUITests
 MysteryRecruitUITests
 PlayMapUITests

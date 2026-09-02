@@ -25,7 +25,7 @@ Propose-and-stop items awaiting user approval per the README right-size policy.
 | Owning audit | Proposal | Evidence pointer | Implementation boundary | Proposed |
 |--------------|----------|------------------|-------------------------|----------|
 | 04 / 06 | CloudKit `recoveryURL: nil` → in-memory fallback, no delete/recreate | `PlayerSaveStoreConfiguration.resolveStore` CloudKit branch | Live CloudKit still gated by CloudKitPreShipChecklist; needs a recoverable local URL plus a non-network test | 2026-08-19 |
-| 04 / 06 | `deleteStoreOnFailure: true` wipes progress on any open failure | `PlayerSaveStore.openContainer` | Availability-over-durability product policy; needs SchemaMigrationPlan + backup-before-delete | 2026-08-19 |
+| 04 / 06 | `deleteStoreOnFailure: true` wipes progress on any open failure | `PlayerSaveStore.openSaveContainer` | Availability-over-durability product policy; needs SchemaMigrationPlan + backup-before-delete | 2026-08-19 |
 | 13 | Full `PlayerSave` snapshot on every `performBatchMutation` | `PlayerSaveStore.performBatchMutation` (`let snapshot = currentSave`) | High-risk rewrite; measure Instruments first | 2026-08-19 |
 
 ## Rejected proposals

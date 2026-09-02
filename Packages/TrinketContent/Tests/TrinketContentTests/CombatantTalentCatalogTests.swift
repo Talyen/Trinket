@@ -26,6 +26,9 @@ struct CombatantTalentCatalogTests {
             let config = CombatantTalentCatalog.config(for: combatantID)
             #expect(config.trees.map(\.keyword) == affinities.map(\.keyword))
         }
+        for combatant in GameContent.heroes + GameContent.companions {
+            #expect(combatant.affinityKeywords == CombatantTalentCatalog.combatantTreeAffinities[combatant.id]?.map(\.keyword) ?? [])
+        }
     }
 
     @Test func `authored talent node I ds match generated trees`() {
@@ -131,12 +134,10 @@ struct CombatantTalentCatalogTests {
     }
 
     @Test func `starter eligibility matches every hero and companion in catalog order`() {
-        #expect(GameContent.starterHeroes == GameContent.heroes)
-        #expect(GameContent.starterHeroIDs == GameContent.heroes.map(\.id))
-        #expect(GameContent.starterCompanions == GameContent.companions)
-        #expect(GameContent.starterCompanionIDs == GameContent.companions.map(\.id))
+        #expect(GameContent.heroes.allSatisfy { $0.role == .hero })
+        #expect(GameContent.companions.allSatisfy { $0.role == .companion })
 
-        let allStarters = GameContent.starterHeroes + GameContent.starterCompanions
+        let allStarters = GameContent.heroes + GameContent.companions
         for combatant in allStarters {
             let affinities = CombatantTalentCatalog.combatantTreeAffinities[combatant.id]
             #expect(affinities?.count == 3, "\(combatant.id) must have exactly 3 authored tree affinities")

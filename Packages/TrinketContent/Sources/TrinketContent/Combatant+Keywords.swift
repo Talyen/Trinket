@@ -8,4 +8,8 @@ public extension Combatant {
             + abilityChoices.ultimates
         return Set(abilities.flatMap(\.keywords))
     }
+
+    var affinityKeywords: [Keyword] {
+        CombatantTalentCatalog.combatantTreeAffinities[id]?.map(\.keyword) ?? []
+    }
 }

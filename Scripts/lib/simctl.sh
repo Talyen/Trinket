@@ -4,14 +4,34 @@ trinket_simctl_json() {
   python3 "$(trinket_run_env_repo_root)/Scripts/simctl_json.py" "$@"
 }
 
+# Single source for managed simulator names; fall back to checked-in defaults
+# when this file is copied standalone into a fixture repo without config/.
+_trinket_simctl_config=""
+_trinket_simctl_config_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/../config" 2>/dev/null && pwd || true)"
+if [[ -n "$_trinket_simctl_config_dir" ]]; then
+  _trinket_simctl_config="$_trinket_simctl_config_dir/simulator-names.env"
+fi
+# shellcheck source=../config/simulator-names.env
+if [[ -n "$_trinket_simctl_config" && -f "$_trinket_simctl_config" ]]; then
+  source "$_trinket_simctl_config"
+else
+  TRINKET_SHARED_SIM_NAMES=("Trinket Run" "Trinket CI")
+  TRINKET_AGENT_SIM_PATTERN='^Trinket Agent [0-9]+$'
+fi
+unset _trinket_simctl_config _trinket_simctl_config_dir
+
 trinket_simulator_is_shared_name() {
   local name="$1"
-  [[ "$name" == "Trinket Run" || "$name" == "Trinket CI" ]]
+  local candidate
+  for candidate in "${TRINKET_SHARED_SIM_NAMES[@]}"; do
+    [[ "$name" == "$candidate" ]] && return 0
+  done
+  return 1
 }
 
 trinket_simulator_is_managed_name() {
   local name="$1"
-  trinket_simulator_is_shared_name "$name" || [[ "$name" =~ ^Trinket\ Agent\ [0-9]+$ ]]
+  trinket_simulator_is_shared_name "$name" || [[ "$name" =~ $TRINKET_AGENT_SIM_PATTERN ]]
 }
 
 trinket_simulator_is_active_agent_name() {
@@ -216,7 +236,7 @@ trinket_simulator_enforce_single_warm_booted() {
   for index in "${!managed_names[@]}"; do
     udid="${managed_udids[$index]}"
     name="${managed_names[$index]}"
-    if [[ "$name" =~ ^Trinket\ Agent\ [0-9]+$ ]]; then
+    if [[ "$name" =~ $TRINKET_AGENT_SIM_PATTERN ]]; then
       agent_udids+=("$udid")
       agent_names+=("$name")
     elif trinket_simulator_is_shared_name "$name"; then

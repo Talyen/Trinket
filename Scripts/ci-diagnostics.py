@@ -59,28 +59,26 @@ def iso_now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def _resolve_bundle_candidates(value: object) -> list[Path]:
+    candidate = Path(value) if isinstance(value, str) else Path("")
+    candidates = [candidate]
+    if not candidate.is_absolute():
+        candidates.extend((results_dir / candidate, Path.cwd() / candidate))
+    return candidates
+
+
 def result_bundle_exists(value: object) -> bool:
     """Resolve a reporter's result bundle path without reparsing it."""
     if not isinstance(value, str) or not value.strip():
         return False
-
-    candidate = Path(value)
-    candidates = [candidate]
-    if not candidate.is_absolute():
-        candidates.extend((results_dir / candidate, Path.cwd() / candidate))
-    return any(path.is_dir() for path in candidates)
+    return any(path.is_dir() for path in _resolve_bundle_candidates(value))
 
 
 def result_bundle_complete(value: object) -> bool:
     """A finalized xcresult has a root Info.plist; partial watchdog output does not."""
     if not isinstance(value, str) or not value.strip():
         return False
-
-    candidate = Path(value)
-    candidates = [candidate]
-    if not candidate.is_absolute():
-        candidates.extend((results_dir / candidate, Path.cwd() / candidate))
-    return any((path / "Info.plist").is_file() for path in candidates)
+    return any((path / "Info.plist").is_file() for path in _resolve_bundle_candidates(value))
 
 
 def watchdog_log_proves_pass(manifest: dict, status: str, exit_code: int) -> bool:

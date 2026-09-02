@@ -32,7 +32,7 @@ struct AppStateLabyrinthTests {
         #expect(state.playerSave.labyrinth == firstMap)
     }
 
-    @Test func `enter unreadable map returns error and does not regenerate`() throws {
+    @Test func `unreadable map heals on write and enter succeeds`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         state.playerSave.labyrinth = PlayerLabyrinthState(
             worldSeed: 55,
@@ -40,11 +40,10 @@ struct AppStateLabyrinthTests {
             isMapPayloadUnreadable: true,
         )
 
-        let message = try #require(state.labyrinth.enter())
-        #expect(message.title == "Labyrinth Error")
-        #expect(!state.playerSave.labyrinth.hasMap)
-        #expect(state.playerSave.labyrinth.isMapPayloadUnreadable)
-        #expect(state.playerSave.labyrinth.worldSeed == 55)
+        #expect(!state.playerSave.labyrinth.isMapPayloadUnreadable)
+        #expect(state.playerSave.labyrinth.hasMap)
+        #expect(state.labyrinth.enter() == nil)
+        #expect(state.playerSave.labyrinth.hasMap)
     }
 
     @Test func `unchanged labyrinth inputs reuse prepared battles`() throws {

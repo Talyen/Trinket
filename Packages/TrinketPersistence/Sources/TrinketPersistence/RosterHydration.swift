@@ -75,10 +75,8 @@ enum RosterHydration {
         if let match = choices.first(where: { $0.id == id }) {
             return match
         }
-        if let remappedID = LegacyIDRemap.remappedAbilityID(id) {
-            return choices.first(where: { $0.id == remappedID })
-        }
-        return nil
+        guard let remappedID = LegacyIDRemap.remappedAbilityID(id) else { return nil }
+        return choices.first(where: { $0.id == remappedID })
     }
 
     private static func resolvedAbilities(
@@ -116,15 +114,7 @@ enum RosterHydration {
         choices: AbilityChoices,
     ) -> Ability? {
         guard let id else { return fallback }
-        let tierChoices = choices.abilities(for: tier)
-        if let match = tierChoices.first(where: { $0.id == id }) {
-            return match
-        }
-        if let remappedID = LegacyIDRemap.remappedAbilityID(id),
-           let match = tierChoices.first(where: { $0.id == remappedID }) {
-            return match
-        }
-        return fallback
+        return exactAbility(id, choices: choices.abilities(for: tier)) ?? fallback
     }
 
     private static func migrateLegacyAbilityIDs(

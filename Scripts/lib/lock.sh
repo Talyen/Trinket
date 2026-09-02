@@ -6,6 +6,21 @@
 # Acquires an exclusive directory lock at `lock_dir` with a timeout.
 # On success leaves `$lock_dir/pid` containing the holder PID and traps EXIT cleanup.
 # Usage: trinket_dir_lock_acquire <lock_dir> <timeout_seconds>
+# Chain onto any existing EXIT/INT/TERM trap instead of replacing it, so a
+# generation lock held alongside the run-env slot release cleans up both.
+trinket_dir_lock_chain_trap() {
+  local new_step="$1"
+  local existing=""
+  existing="$(trap -p EXIT 2>/dev/null | sed -n "s/^trap -- '\(.*\)' EXIT$/\1/p" || true)"
+  if [[ -n "$existing" && "$existing" != *"$new_step"* ]]; then
+    # shellcheck disable=SC2064
+    trap "$new_step; $existing" EXIT INT TERM
+  else
+    # shellcheck disable=SC2064
+    trap "$new_step" EXIT INT TERM
+  fi
+}
+
 trinket_dir_lock_acquire() {
   local lock_dir="$1"
   local timeout_seconds="$2"
@@ -16,7 +31,7 @@ trinket_dir_lock_acquire() {
 
   # Expand now so the EXIT trap captures the current lock path/pid (locals are gone at trap time).
   # shellcheck disable=SC2064
-  trap "trinket_dir_lock_release \"$lock_dir\" \"${BASHPID:-$$}\"" EXIT INT TERM
+  trinket_dir_lock_chain_trap "trinket_dir_lock_release \"$lock_dir\" \"${BASHPID:-$$}\""
 
   while ! mkdir "$lock_dir" 2>/dev/null; do
     lock_pid=""

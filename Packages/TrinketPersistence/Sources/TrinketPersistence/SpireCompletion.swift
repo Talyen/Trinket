@@ -12,7 +12,7 @@ public enum SpireCompletion {
         astralChanceBonusPercent: Int = 0,
     ) -> BattleLootPackage {
         let level = encounterLevel ?? EncounterLevelResolver.spireEnemyLevel(for: floor)
-        let enemyIsBoss = GameContent.enemy(matching: floor.enemyID)?.isBoss == true
+        let enemyIsBoss = VictoryRewardApplier.isBoss(enemyID: floor.enemyID)
         let keywordBias: Set<Keyword> = {
             guard let spire = GameContent.spire(id: floor.spireID) else { return [] }
             return [spire.keyword]
@@ -41,14 +41,16 @@ public enum SpireCompletion {
         save: inout PlayerSave,
     ) {
         let spireID = floor.spireID.rawValue
-        let floorCount = GameContent.spire(id: floor.spireID)?.floorCount ?? floor.floor
+        guard let spire = GameContent.spire(id: floor.spireID) else {
+            return
+        }
         guard !save.spires.isFloorCleared(floor.floor, spireID: spireID) else {
             return
         }
         guard save.spires.isFloorStartable(
             floor.floor,
             spireID: spireID,
-            floorCount: floorCount,
+            floorCount: spire.floorCount,
         ) else {
             return
         }

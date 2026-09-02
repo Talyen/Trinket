@@ -8,7 +8,12 @@ extension PlayerSaveSanitizer {
         eligibleRecruitEventIDs: [String] = [],
     ) -> PlayerLabyrinthState {
         if labyrinth.isMapPayloadUnreadable {
-            return labyrinth
+            var healed = labyrinth
+            healed.ensureMap(
+                seed: labyrinth.worldSeed == 0 ? nil : labyrinth.worldSeed,
+                eligibleRecruitEventIDs: eligibleRecruitEventIDs,
+            )
+            return sanitizeLabyrinth(healed, eligibleRecruitEventIDs: eligibleRecruitEventIDs)
         }
 
         var sanitized = labyrinth

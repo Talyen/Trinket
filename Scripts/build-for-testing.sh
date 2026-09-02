@@ -18,18 +18,14 @@ source "$SCRIPT_DIR/xcode-runner.sh"
 source "$SCRIPT_DIR/lib/app-build.sh"
 trinket_set_app_xcodebuild_args "$DERIVED_DATA_PATH"
 
+# shellcheck source=lib/args.sh
+source "$SCRIPT_DIR/lib/args.sh"
 QUIET=true
+VERBOSE=false
 APP_ONLY=false
 while [[ $# -gt 0 ]]; do
+  if trinket_args_quiet_verbose "$1"; then shift; continue; fi
   case "$1" in
-    --verbose|verbose)
-      QUIET=false
-      shift
-      ;;
-    --quiet|quiet)
-      QUIET=true
-      shift
-      ;;
     --app-only)
       APP_ONLY=true
       shift
@@ -39,8 +35,7 @@ while [[ $# -gt 0 ]]; do
       exit 0
       ;;
     *)
-      echo "Unknown argument: $1" >&2
-      echo "Usage: $0 [--verbose] [--app-only]" >&2
+      trinket_args_unknown "$1" "Usage: $0 [--verbose] [--app-only]" >&2
       exit 1
       ;;
   esac

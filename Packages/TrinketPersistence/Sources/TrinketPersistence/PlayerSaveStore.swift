@@ -119,7 +119,7 @@ public final class PlayerSaveStore {
             PlayerSaveStoreConfiguration.cleanStoreFiles(at: resolved.finalURL)
         }
 
-        let openResult = try Self.openContainer(
+        let openResult = try Self.openSaveContainer(
             schema: schema,
             configuration: resolved.config,
             recoveryURL: resolved.recoveryURL,
@@ -185,9 +185,8 @@ public final class PlayerSaveStore {
                 lastPersistenceError = nil
             } catch {
                 root.update(from: snapshot, context: context)
+                context.rollback()
                 installObservedSave(snapshot)
-                lastPersistenceError = .writeFailed
-                logger.error("Failed to save SwiftData player graph: \(error.localizedDescription, privacy: .public)")
                 throw PlayerSavePersistenceError.writeFailed
             }
         } else {
@@ -224,8 +223,6 @@ public final class PlayerSaveStore {
             lastPersistenceError = nil
         } catch {
             rollbackPendingMutationIfNeeded()
-            lastPersistenceError = .writeFailed
-            logger.error("Failed to flush deferred SwiftData save: \(error.localizedDescription, privacy: .public)")
         }
     }
 
@@ -239,6 +236,7 @@ public final class PlayerSaveStore {
             clearPendingDeferredPersistence()
         } catch {
             root.update(from: snapshot, context: context)
+            context.rollback()
             installObservedSave(snapshot)
             throw error
         }
@@ -270,7 +268,6 @@ public final class PlayerSaveStore {
             }
         } catch {
             lastPersistenceError = (error as? PlayerSavePersistenceError) ?? .writeFailed
-            logger.error("Failed to persist player graph mutation: \(error.localizedDescription, privacy: .public)")
         }
     }
 
@@ -290,6 +287,7 @@ public final class PlayerSaveStore {
             lastPersistenceError = nil
         } catch {
             lastPersistenceError = .writeFailed
+            logger.error("Failed to save SwiftData player graph: \(error.localizedDescription, privacy: .public)")
             throw PlayerSavePersistenceError.writeFailed
         }
     }
@@ -315,11 +313,8 @@ public final class PlayerSaveStore {
             try saveGraph()
         } catch {
             root.update(from: observedSnapshot, context: context)
+            context.rollback()
             installObservedSave(observedSnapshot)
-            lastPersistenceError = .writeFailed
-            logger.error(
-                "Failed to persist sanitized player graph: \(error.localizedDescription, privacy: .public)",
-            )
         }
     }
 }
@@ -340,16 +335,14 @@ public extension PlayerSaveStore {
 #endif
 
 private extension PlayerSaveStore {
-    static func openContainer(
+    static func openSaveContainer(
         schema: Schema,
         configuration: ModelConfiguration,
         recoveryURL: URL?,
         logger: Logger,
     ) throws -> ModelContainerBootstrap.OpenResult {
         let interval = performanceSignposter.beginInterval("ModelContainerOpen")
-        defer {
-            performanceSignposter.endInterval("ModelContainerOpen", interval)
-        }
+        defer { performanceSignposter.endInterval("ModelContainerOpen", interval) }
         return try ModelContainerBootstrap.open(
             schema: schema,
             primaryConfiguration: configuration,
@@ -399,10 +392,6 @@ private extension PlayerSaveStore {
                 lastPersistenceError = nil
             } catch {
                 rollbackPendingMutationIfNeeded()
-                lastPersistenceError = .writeFailed
-                logger.error(
-                    "Failed to persist deferred player graph mutation: \(error.localizedDescription, privacy: .public)",
-                )
             }
         }
     }
@@ -410,6 +399,7 @@ private extension PlayerSaveStore {
     func rollbackPendingMutationIfNeeded() {
         guard let pendingRollbackSnapshot else { return }
         root.update(from: pendingRollbackSnapshot, context: context)
+        context.rollback()
         installObservedSave(pendingRollbackSnapshot)
         clearPendingDeferredPersistence()
     }

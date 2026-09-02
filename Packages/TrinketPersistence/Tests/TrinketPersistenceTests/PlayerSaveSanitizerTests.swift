@@ -508,6 +508,11 @@ struct PlayerSaveSanitizerTalentIDTests {
                 "knight": ["knight_block_t1_1"],
             ],
             validCombatantIDs: ["rogue", "frost_whelp", "knight"],
+            progressions: [
+                "rogue": .at(level: 4),
+                "frost_whelp": .at(level: 4),
+                "knight": .at(level: 4),
+            ],
         )
         #expect(sanitized["rogue"]?.contains("rogue_gold_t1_1") == true)
         #expect(sanitized["rogue"]?.contains("rogue_gold_t1_2") == true)

@@ -92,7 +92,7 @@ public final class EncounterPlayMode {
             shopSession.markPurchaseFinished(offerID: offerID)
             sfxPlayer.play(SFXID.uiBuySell, volume: options.effectsVolume)
             return true
-        case .insufficientGold, .alreadyOwned:
+        case .insufficientGold, .alreadyOwned, .invalidOffer:
             shopSession.markPurchaseFailed(
                 message: purchaseResult?.failureMessage ?? "Purchase failed.",
             )

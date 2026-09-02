@@ -15,10 +15,10 @@ enum PlayerSaveSanitizer {
 
     static func sanitize(_ save: PlayerSave, changedSlices: PlayerSaveSlice) -> PlayerSave {
         var sanitized = save
-        sanitized.worldSeed = resolvedWorldSeed(save)
-        let labyrinthNeedsWorldSeed = !sanitized.labyrinth.hasMap || sanitized.labyrinth.worldSeed == 0
-        if !sanitized.labyrinth.isMapPayloadUnreadable,
-           save.worldSeed == 0 || labyrinthNeedsWorldSeed {
+        sanitized.worldSeed = resolvedWorldSeed(save, seedIfMissing: changedSlices.contains(.root))
+        if changedSlices.contains(.labyrinth),
+           !sanitized.labyrinth.isMapPayloadUnreadable,
+           save.worldSeed == 0 || !sanitized.labyrinth.hasMap || sanitized.labyrinth.worldSeed == 0 {
             sanitized.labyrinth.worldSeed = sanitized.worldSeed
         }
         if changedSlices.contains(.inventory) {
@@ -45,7 +45,7 @@ enum PlayerSaveSanitizer {
         return sanitized
     }
 
-    static func resolvedWorldSeed(_ save: PlayerSave) -> UInt64 {
+    static func resolvedWorldSeed(_ save: PlayerSave, seedIfMissing: Bool = true) -> UInt64 {
         if save.worldSeed != 0 {
             return save.worldSeed
         }
@@ -53,6 +53,7 @@ enum PlayerSaveSanitizer {
             let existing = save.labyrinth.worldSeed
             return existing == 0 ? LabyrinthGenerator.fallbackWorldSeed : existing
         }
+        guard seedIfMissing else { return 0 }
         return PlayerSave.makeWorldSeed()
     }
 
@@ -152,7 +153,9 @@ enum PlayerSaveSanitizer {
             if let stage = allStages.first(where: { $0.id == activeStageID }) {
                 sanitized.activeChapterID = stage.chapterID
             }
-        } else if let firstIncomplete = allStages.first(where: { !sanitized.completedStageIDs.contains($0.id) }) {
+        } else if let firstIncomplete = allStages.first(where: {
+            $0.chapterID == sanitized.activeChapterID && !sanitized.completedStageIDs.contains($0.id)
+        }) ?? allStages.first(where: { !sanitized.completedStageIDs.contains($0.id) }) {
             sanitized.activeStageID = firstIncomplete.id
             sanitized.activeChapterID = firstIncomplete.chapterID
         } else {
@@ -275,14 +278,13 @@ enum PlayerSaveSanitizer {
             let validNodeIDs = CombatantTalentCatalog.validNodeIDs(for: combatantID)
             let remapped = Set(nodeIDs.map { LegacyIDRemap.remappedTalentNodeID($0) })
             var filtered = remapped.intersection(validNodeIDs)
-            if let budget = progressions[combatantID]?.totalTalentPoints {
-                if let config = CombatantTalentCatalog.configIfAvailable(for: combatantID) {
-                    filtered = config.cappedUnlocks(filtered, budget: budget)
-                } else {
-                    #if DEBUG
-                    assertionFailure("Missing talent config for \(combatantID) during sanitize")
-                    #endif
-                }
+            let budget = progressions[combatantID]?.totalTalentPoints ?? 0
+            if let config = CombatantTalentCatalog.configIfAvailable(for: combatantID) {
+                filtered = config.cappedUnlocks(filtered, budget: budget)
+            } else {
+                #if DEBUG
+                assertionFailure("Missing talent config for \(combatantID) during sanitize")
+                #endif
             }
             if !filtered.isEmpty {
                 sanitized[combatantID] = filtered

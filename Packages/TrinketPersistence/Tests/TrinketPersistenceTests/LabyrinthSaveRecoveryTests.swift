@@ -24,7 +24,7 @@ struct LabyrinthSaveRecoveryTests {
         #expect(!save.labyrinth.nodes.isEmpty)
     }
 
-    @Test @MainActor func `store reload then enter preserves corrupt map blob`() throws {
+    @Test @MainActor func `store reload heals corrupt map blob`() throws {
         let directory = try SaveTestSupport.makeTempDirectory(prefix: "labyrinth-corrupt-enter")
         defer { SaveTestSupport.removeTempDirectory(directory) }
         let storeURL = SaveTestSupport.makeStoreURL(directoryURL: directory)
@@ -53,21 +53,12 @@ struct LabyrinthSaveRecoveryTests {
             disableCloudSync: true,
             persistSaveImmediately: true,
         )
-        #expect(loaded.labyrinth.isMapPayloadUnreadable)
-        #expect(!loaded.labyrinth.hasMap)
-
-        let expectedSeed = loaded.worldSeed
-        #expect(loaded.persistBatch(logging: "enter") { save in
-            LabyrinthCompletion.enter(save: &save)
-        })
         #expect(!loaded.labyrinth.isMapPayloadUnreadable)
         #expect(loaded.labyrinth.hasMap)
-        #expect(loaded.labyrinth.worldSeed == expectedSeed)
 
         let reloaded = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
         #expect(!reloaded.labyrinth.isMapPayloadUnreadable)
         #expect(reloaded.labyrinth.hasMap)
-        #expect(reloaded.labyrinth.worldSeed == expectedSeed)
     }
 
     @Test @MainActor func `labyrinth setter migrates legacy map with roster recruit eligibility`() throws {

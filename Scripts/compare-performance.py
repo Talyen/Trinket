@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from performance_model import REMOVED_FIELDS, REQUIRED_NUMERIC_FIELDS, REQUIRED_SCHEMA_VERSION, finite_number, load_baseline, validate_metric_domains, validate_report_domains
+from performance_model import REMOVED_FIELDS, REQUIRED_NUMERIC_FIELDS, REQUIRED_SCHEMA_VERSION, finite_number, load_baseline, validate_report_domains
 
 
 def main() -> int:
@@ -54,9 +54,9 @@ def main() -> int:
             continue
 
         report = records[0]
-        if report.get("schemaVersion") != 4:
+        if report.get("schemaVersion") != REQUIRED_SCHEMA_VERSION:
             failures.append(
-                f"{scenario}: expected frame report schema 4, found {report.get('schemaVersion')!r}"
+                f"{scenario}: expected frame report schema {REQUIRED_SCHEMA_VERSION}, found {report.get('schemaVersion')!r}"
             )
         if report.get("iteration") != 1:
             failures.append(
