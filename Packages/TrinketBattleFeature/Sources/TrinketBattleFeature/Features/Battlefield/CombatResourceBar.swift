@@ -22,14 +22,6 @@ package struct CombatResourceBar: View {
             TrinketDesign.Bars.battleHeight
         }
 
-        var activeHeight: CGFloat {
-            TrinketDesign.Bars.battleActiveHeight
-        }
-
-        func height(isActive: Bool) -> CGFloat {
-            isActive ? activeHeight : height
-        }
-
         var usesTrailing: Bool {
             switch self {
             case .healthBattle: true
@@ -41,17 +33,15 @@ package struct CombatResourceBar: View {
     let value: Int
     let maxValue: Int
     let style: Style
-    let isActive: Bool
 
     @State private var displayed: Double
     @State private var trailing: Double
     @State private var restoreOpacity: Double = 0
 
-    package init(value: Int, maxValue: Int, style: Style, isActive: Bool = false) {
+    package init(value: Int, maxValue: Int, style: Style) {
         self.value = value
         self.maxValue = maxValue
         self.style = style
-        self.isActive = isActive
         let initial = Double(value)
         _displayed = State(initialValue: initial)
         _trailing = State(initialValue: initial)
@@ -81,9 +71,8 @@ package struct CombatResourceBar: View {
             }
         }
         .frame(maxWidth: .infinity)
-        .frame(height: style.height(isActive: isActive))
+        .frame(height: style.height)
         .clipShape(Rectangle())
-        .animation(TrinketMotion.Interaction.stateChange, value: isActive)
         .onChange(of: value) { oldValue, newValue in
             animate(from: oldValue, to: newValue)
         }

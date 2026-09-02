@@ -282,8 +282,12 @@ trinket_sim_cleanup_lock_release() {
   rm -f "$1/.simulator-cleanup.lock"
 }
 
-# Keep exactly one Booted managed sim (Trinket Run / Trinket Agent N). Quietly
-# shut down the rest; never erase. Default on for self-clean start + EXIT.
+# Keep warm managed sims without cross-killing the human device.
+# Locally (not CI): one Trinket Run + one Trinket Agent N may stay Booted
+# concurrently — agents never shut down Run, and Run never shuts down agents.
+# Each tenant keeps at most one Booted device (excess Runs or excess Agents
+# are shut down). In CI (GITHUB_ACTIONS=true) there is no human Run, so the
+# legacy single-warm rule across all managed devices still applies. Never erase.
 trinket_simulator_enforce_single_warm_booted() {
   [[ "${TRINKET_CLEANUP_SINGLE_WARMED:-1}" == "1" ]] || return 0
 
@@ -313,42 +317,124 @@ trinket_simulator_enforce_single_warm_booted() {
     return 0
   fi
 
-  # Prefer: held agent slot → TRINKET_SIMULATOR_NAME → Trinket Run → first.
-  local keep_index=-1
-  local index
-  for index in "${!managed_names[@]}"; do
-    if trinket_simulator_is_active_agent_name "${managed_names[$index]}"; then
-      keep_index="$index"
-      break
+  if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
+    local keep_index=-1
+    local index
+    for index in "${!managed_names[@]}"; do
+      if trinket_simulator_is_active_agent_name "${managed_names[$index]}"; then
+        keep_index="$index"
+        break
+      fi
+    done
+    if (( keep_index < 0 )) && [[ -n "${TRINKET_SIMULATOR_NAME:-}" ]]; then
+      for index in "${!managed_names[@]}"; do
+        if [[ "${managed_names[$index]}" == "${TRINKET_SIMULATOR_NAME}" ]]; then
+          keep_index="$index"
+          break
+        fi
+      done
     fi
-  done
-  if (( keep_index < 0 )) && [[ -n "${TRINKET_SIMULATOR_NAME:-}" ]]; then
-    for index in "${!managed_names[@]}"; do
-      if [[ "${managed_names[$index]}" == "${TRINKET_SIMULATOR_NAME}" ]]; then
-        keep_index="$index"
-        break
+    if (( keep_index < 0 )); then
+      for index in "${!managed_names[@]}"; do
+        if trinket_simulator_is_shared_name "${managed_names[$index]}"; then
+          keep_index="$index"
+          break
+        fi
+      done
+    fi
+    if (( keep_index < 0 )); then
+      keep_index=0
+    fi
+
+    echo "Simulator cleanup: keeping ${managed_names[$keep_index]} Booted; shutting down $((managed_count - 1)) excess managed simulator(s)."
+    for index in "${!managed_udids[@]}"; do
+      if (( index == keep_index )); then
+        continue
       fi
+      trinket_sim_shutdown_wait "${managed_udids[$index]}"
     done
-  fi
-  if (( keep_index < 0 )); then
-    for index in "${!managed_names[@]}"; do
-      if trinket_simulator_is_shared_name "${managed_names[$index]}"; then
-        keep_index="$index"
-        break
-      fi
-    done
-  fi
-  if (( keep_index < 0 )); then
-    keep_index=0
+
+    trinket_sim_cleanup_lock_release "$shared_root"
+    return 0
   fi
 
-  echo "Simulator cleanup: keeping ${managed_names[$keep_index]} Booted; shutting down $((managed_count - 1)) excess managed simulator(s)."
-  for index in "${!managed_udids[@]}"; do
-    if (( index == keep_index )); then
-      continue
+  local -a agent_udids=()
+  local -a agent_names=()
+  local -a run_udids=()
+  local -a run_names=()
+  for index in "${!managed_names[@]}"; do
+    udid="${managed_udids[$index]}"
+    name="${managed_names[$index]}"
+    if [[ "$name" =~ ^Trinket\ Agent\ [0-9]+$ ]]; then
+      agent_udids+=("$udid")
+      agent_names+=("$name")
+    elif trinket_simulator_is_shared_name "$name"; then
+      run_udids+=("$udid")
+      run_names+=("$name")
+    else
+      agent_udids+=("$udid")
+      agent_names+=("$name")
     fi
-    trinket_sim_shutdown_wait "${managed_udids[$index]}"
   done
+
+  local agent_count="${#agent_udids[@]}"
+  local run_count="${#run_udids[@]}"
+
+  if (( agent_count > 1 )); then
+    local keep_agent=-1
+    for index in "${!agent_names[@]}"; do
+      if trinket_simulator_is_active_agent_name "${agent_names[$index]}"; then
+        keep_agent="$index"
+        break
+      fi
+    done
+    if (( keep_agent < 0 )) && [[ -n "${TRINKET_SIMULATOR_NAME:-}" ]]; then
+      for index in "${!agent_names[@]}"; do
+        if [[ "${agent_names[$index]}" == "${TRINKET_SIMULATOR_NAME}" ]]; then
+          keep_agent="$index"
+          break
+        fi
+      done
+    fi
+    if (( keep_agent < 0 )); then
+      keep_agent=0
+    fi
+    echo "Simulator cleanup: keeping ${agent_names[$keep_agent]} Booted; shutting down $((agent_count - 1)) excess agent simulator(s)."
+    for index in "${!agent_udids[@]}"; do
+      if (( index == keep_agent )); then
+        continue
+      fi
+      trinket_sim_shutdown_wait "${agent_udids[$index]}"
+    done
+  fi
+
+  if (( run_count > 1 )); then
+    local keep_run=-1
+    for index in "${!run_names[@]}"; do
+      if [[ "${run_names[$index]}" == "Trinket Run" ]]; then
+        keep_run="$index"
+        break
+      fi
+    done
+    if (( keep_run < 0 )) && [[ -n "${TRINKET_SIMULATOR_NAME:-}" ]]; then
+      for index in "${!run_names[@]}"; do
+        if [[ "${run_names[$index]}" == "${TRINKET_SIMULATOR_NAME}" ]]; then
+          keep_run="$index"
+          break
+        fi
+      done
+    fi
+    if (( keep_run < 0 )); then
+      keep_run=0
+    fi
+    echo "Simulator cleanup: keeping ${run_names[$keep_run]} Booted; shutting down $((run_count - 1)) excess Trinket Run simulator(s)."
+    for index in "${!run_udids[@]}"; do
+      if (( index == keep_run )); then
+        continue
+      fi
+      trinket_sim_shutdown_wait "${run_udids[$index]}"
+    done
+  fi
 
   trinket_sim_cleanup_lock_release "$shared_root"
 }

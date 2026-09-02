@@ -13,7 +13,6 @@ struct BattleCombatantPresentation: Equatable {
     let maxMana: Int
     let borderAccentKeyword: Keyword?
     let buffAuraKind: CombatantBuffAuraKind?
-    let isActiveTurn: Bool
 }
 
 struct BattlePresentationSnapshot: Equatable {
@@ -25,28 +24,23 @@ struct BattlePresentationSnapshot: Equatable {
     let playableCardIDs: Set<Int>
     let isBattleOver: Bool
 
-    init(configurationID: UUID, state: borrowing BattleState, isEnemyTurnActive: Bool = false) {
+    init(configurationID: UUID, state: borrowing BattleState, isEnemyTurnActive _: Bool = false) {
         self.configurationID = configurationID
         let heroEffects = state.activeEffects(of: state.hero)
         let companionEffects = state.activeEffects(of: state.companion)
         hero = Self.combatant(
             state.hero,
             effects: heroEffects,
-            isActiveTurn: !isEnemyTurnActive && state.phase == .playerTurn
-                && !state.ownersSkippingThisPlayerTurn.contains(.hero),
             in: state,
         )
         companion = Self.combatant(
             state.companion,
             effects: companionEffects,
-            isActiveTurn: !isEnemyTurnActive && state.phase == .playerTurn
-                && !state.ownersSkippingThisPlayerTurn.contains(.companion),
             in: state,
         )
         enemy = Self.combatant(
             state.enemy,
             effects: state.activeEffects(of: state.enemy),
-            isActiveTurn: isEnemyTurnActive,
             in: state,
         )
         hand = state.hand.cards
@@ -57,7 +51,6 @@ struct BattlePresentationSnapshot: Equatable {
     private static func combatant(
         _ combatant: Combatant,
         effects: [ActiveEffect],
-        isActiveTurn: Bool,
         in state: borrowing BattleState,
     ) -> BattleCombatantPresentation {
         BattleCombatantPresentation(
@@ -71,7 +64,6 @@ struct BattlePresentationSnapshot: Equatable {
                 controlAccentRequiresPendingSkip: combatant.role != .enemy,
             ),
             buffAuraKind: CombatantBuffAura.kind(from: effects),
-            isActiveTurn: isActiveTurn,
         )
     }
 }

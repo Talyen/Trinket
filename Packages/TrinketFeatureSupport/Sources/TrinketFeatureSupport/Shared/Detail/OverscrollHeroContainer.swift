@@ -26,11 +26,11 @@ struct OverscrollHeroContainer<Art: View, Overlay: View>: View {
         ZStack(alignment: alignment) {
             art()
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .trinketArtworkBlend(artworkBlend)
                 .backgroundExtensionEffect()
                 .allowsHitTesting(false)
                 .frame(height: baseHeight)
                 .clipped()
+                .trinketArtworkBlend(artworkBlend)
                 .visualEffect { content, proxy in
                     let rawOverscroll = max(proxy.frame(in: .scrollView(axis: .vertical)).minY, 0)
                     let metrics = HeroHeaderLayout.overscrollMetrics(baseHeight: baseHeight, overscroll: rawOverscroll)

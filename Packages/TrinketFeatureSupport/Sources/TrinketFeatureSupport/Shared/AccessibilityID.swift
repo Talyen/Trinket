@@ -237,8 +237,11 @@ public enum AccessibilityID {
     }
 
     public enum CombatantDetail {
+        public static let vitalBarsSection = "Combatant Vital Bars Section"
         public static let statsSection = "Combatant Stats Section"
         public static let healthStat = "Combatant Health Stat"
+        public static let healthBar = "Combatant Health Bar"
+        public static let manaBar = "Combatant Mana Bar"
         public static let traitSection = "Combatant Trait Section"
         public static let traitDescription = "Combatant Trait Description"
         public static let enemyTraitsSection = "Combatant Enemy Traits Section"

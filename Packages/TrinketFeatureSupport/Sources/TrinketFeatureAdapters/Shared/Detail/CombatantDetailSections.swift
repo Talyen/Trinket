@@ -1,56 +1,9 @@
-import BattleEngine
 import SwiftUI
 import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
 import TrinketFeatureSupport
 import TrinketPersistence
-
-struct CombatantStatsSection: View, Equatable {
-    let combatBuild: CombatBuild
-    let combatantRole: Combatant.Role
-    let battleHealth: Int?
-    let battleMana: Int?
-
-    var body: some View {
-        DetailSection("Stats", sectionID: AccessibilityID.CombatantDetail.statsSection) {
-            VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
-                VStack(alignment: .leading, spacing: TrinketDesign.Spacing.extraSmall) {
-                    LabeledContent {
-                        Text("\(battleHealth ?? combatBuild.effectiveMaxHealth)/\(combatBuild.effectiveMaxHealth)")
-                            .trinketTypography(.statValue)
-                            .foregroundStyle(.secondary)
-                            .contentTransition(.numericText())
-                            .animation(
-                                TrinketMotion.Interaction.selection,
-                                value: battleHealth ?? combatBuild.effectiveMaxHealth,
-                            )
-                    } label: {
-                        Text("Health").trinketTypography(.body).foregroundStyle(.primary)
-                    }
-                    .accessibilityIdentifier(AccessibilityID.CombatantDetail.healthStat)
-
-                    if combatantRole != .enemy, combatBuild.effectiveMaxMana > 0 {
-                        LabeledContent {
-                            Text("\(battleMana ?? combatBuild.effectiveMaxMana)/\(combatBuild.effectiveMaxMana)")
-                                .trinketTypography(.statValue)
-                                .foregroundStyle(.secondary)
-                                .contentTransition(.numericText())
-                                .animation(
-                                    TrinketMotion.Interaction.selection,
-                                    value: battleMana ?? combatBuild.effectiveMaxMana,
-                                )
-                        } label: {
-                            Text("Mana").trinketTypography(.body).foregroundStyle(.primary)
-                        }
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .trinketSurface(.secondary)
-            }
-        }
-    }
-}
 
 struct CombatantTraitsSection: View, Equatable {
     let traits: [CombatantTraitDefinition]

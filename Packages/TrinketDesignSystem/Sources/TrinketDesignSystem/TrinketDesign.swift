@@ -105,8 +105,7 @@ public enum TrinketDesign {
 
     public enum Bars {
         public static let statHeight: CGFloat = 7
-        public static let battleHeight: CGFloat = 3
-        public static let battleActiveHeight: CGFloat = 7
+        public static let battleHeight: CGFloat = 7
     }
 
     @available(*, deprecated, message: "Use TrinketDesign.Spacing, TrinketDesign.Layout, or TrinketDesign.Bars instead")
@@ -126,7 +125,7 @@ public enum TrinketDesign {
         public static let mysteryRewardRowMinHeight: CGFloat = 48
         public static let statBarHeight: CGFloat = Bars.statHeight
         public static let battleHealthBarHeight: CGFloat = Bars.battleHeight
-        public static let battleHealthBarActiveHeight: CGFloat = Bars.battleActiveHeight
+        public static let battleHealthBarActiveHeight: CGFloat = Bars.battleHeight
         public static let contentMargin: CGFloat = Layout.contentMargin
         public static let singlePrimaryActionWidthFraction: CGFloat = 0.5
         public static let contentTopPadding: CGFloat = Layout.contentTopPadding

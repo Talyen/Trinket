@@ -4,6 +4,7 @@ import TrinketContent
 import TrinketDesignSystem
 import TrinketFeatureSupport
 
+// swiftlint:disable:next type_body_length - battle card owns press/drag/inspect/tap lifecycle
 struct BattleAbilityCardView: View {
     let card: BattleCard
     let isPlayable: Bool
@@ -27,6 +28,8 @@ struct BattleAbilityCardView: View {
     @State private var didExceedTapSlop = false
     @State private var interactionResolution: InteractionResolution = .idle
     @State private var inspectionTask: Task<Void, Never>?
+    @State private var pressCommitted = false
+    @State private var pressCommitTask: Task<Void, Never>?
     @State private var didAnnounceWindUp = false
     @State private var playArmFeedbackToken = 0
     @State private var inspectFeedbackToken = 0
@@ -53,6 +56,10 @@ struct BattleAbilityCardView: View {
         }
     }
 
+    private var isScaleCommitted: Bool {
+        pressCommitted || didExceedTapSlop
+    }
+
     private var playDragThreshold: CGFloat {
         BattleHandLayout.playDragThreshold
     }
@@ -73,7 +80,7 @@ struct BattleAbilityCardView: View {
             .scaleEffect(x: activeScale.width, y: activeScale.height)
             .rotationEffect(.degrees(activeRotation), anchor: .bottom)
             .rotation3DEffect(
-                .degrees(isDragging ? verticalTilt : 0),
+                .degrees(isScaleCommitted ? verticalTilt : 0),
                 axis: (x: 1, y: 0, z: 0),
                 anchor: .bottom,
                 perspective: BattleMotion.cardPerspective,
@@ -81,7 +88,7 @@ struct BattleAbilityCardView: View {
             .offset(activeOffset)
             .offset(tapLiftOffset)
             .shadow(
-                color: isDragging ? TrinketDesign.Colors.Overlay.dragShadow.opacity(0.55) : .clear,
+                color: isScaleCommitted ? TrinketDesign.Colors.Overlay.dragShadow.opacity(0.55) : .clear,
                 radius: BattleMotion.cardHeldShadowRadius,
                 y: BattleMotion.cardHeldShadowY,
             )
@@ -110,6 +117,7 @@ struct BattleAbilityCardView: View {
             )
             .onDisappear {
                 cancelInspection()
+                cancelPressCommit()
                 cancelTapLift()
                 onInteractionChanged(false)
             }
@@ -167,7 +175,7 @@ struct BattleAbilityCardView: View {
     }
 
     private var heldScale: CGSize {
-        guard isDragging else { return CGSize(width: 1, height: 1) }
+        guard isScaleCommitted else { return CGSize(width: 1, height: 1) }
         var base = CGFloat(BattleMotion.cardHeldScale)
         if isPlayArmed {
             base += BattleMotion.cardArmedScaleBoost
@@ -183,11 +191,10 @@ struct BattleAbilityCardView: View {
         guard interactionResolution != .inspecting else { return }
 
         if interactionResolution == .idle {
-            withAnimation(BattleMotion.cardPress) {
-                interactionResolution = .pressing
-            }
+            interactionResolution = .pressing
             onInteractionChanged(true)
             scheduleInspection()
+            schedulePressCommit()
         }
         if !didExceedTapSlop,
            BattleHandLayout.exceedsTapSlop(
@@ -196,6 +203,7 @@ struct BattleAbilityCardView: View {
            ) {
             didExceedTapSlop = true
             cancelInspection()
+            commitPressImmediately()
             interactionResolution = .dragging
             announceWindUpIfNeeded()
         }
@@ -243,6 +251,7 @@ struct BattleAbilityCardView: View {
             return
         }
         cancelInspection()
+        cancelPressCommit()
 
         let isTap = BattleHandLayout.isTapGesture(
             translation: value.translation,
@@ -283,6 +292,7 @@ struct BattleAbilityCardView: View {
         else { return }
 
         cancelInspection()
+        cancelPressCommit()
         interactionResolution = .inspecting
         inspectFeedbackToken &+= 1
         resetVisualState()
@@ -305,8 +315,35 @@ struct BattleAbilityCardView: View {
         inspectionTask = nil
     }
 
+    private func schedulePressCommit() {
+        cancelPressCommit()
+        let delay = BattleMotion.cardPressCommitDelay
+        pressCommitTask = Task { @MainActor in
+            try? await Task.sleep(for: .seconds(delay))
+            guard !Task.isCancelled else { return }
+            guard interactionResolution == .pressing else { return }
+            withAnimation(BattleMotion.cardPress) {
+                pressCommitted = true
+            }
+        }
+    }
+
+    private func cancelPressCommit() {
+        pressCommitTask?.cancel()
+        pressCommitTask = nil
+    }
+
+    private func commitPressImmediately() {
+        cancelPressCommit()
+        guard !pressCommitted else { return }
+        withAnimation(BattleMotion.cardPress) {
+            pressCommitted = true
+        }
+    }
+
     private func returnDrag() {
         cancelInspection()
+        cancelPressCommit()
         resetVisualState()
         interactionResolution = .idle
         onInteractionChanged(false)
@@ -320,9 +357,11 @@ struct BattleAbilityCardView: View {
             isPlayArmed = false
             didExceedTapSlop = false
             isTapLifting = false
+            pressCommitted = false
         }
         didAnnounceDeny = false
         didReportPlayDenied = false
+        cancelPressCommit()
         cancelTapLift()
     }
 
@@ -364,7 +403,6 @@ private extension BattleAbilityCardView {
     func beginTapPlay() {
         guard tapLiftTask == nil else { return }
         interactionResolution = .idle
-        onInteractionChanged(false)
         announceWindUpIfNeeded()
         withAnimation(BattleMotion.tapLift) {
             isTapLifting = true

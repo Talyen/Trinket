@@ -195,7 +195,7 @@ public struct CombatantDetailPane: View {
 
     @ViewBuilder
     private func combatantDetailBody(combatBuild: CombatBuild) -> some View {
-        CombatantStatsSection(
+        CombatantVitalBarsView(
             combatBuild: combatBuild,
             combatantRole: combatant.role,
             battleHealth: battleHealth,

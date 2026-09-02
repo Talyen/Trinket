@@ -155,10 +155,7 @@ struct ChapterStageSelectView: View {
         ) {
             if let art = ArtCatalog.backgroundArtByID[chapter.id]
                 ?? ArtCatalog.backgroundArtByID["chapter-1"] {
-                Image.preparedAsset(art, displaySize: .full)
-                    .resizable()
-                    .scaledToFill()
-                    .decorativePreparedArtwork()
+                ChapterHeroFocalArtwork(art: art)
             } else {
                 chapter.theme.tint
             }
@@ -223,5 +220,34 @@ struct ChapterStageSelectView: View {
     private func handlePrimaryAction(_ stage: Stage) {
         guard playerSave.journey.isActive(stage) else { return }
         onStageTap(stage)
+    }
+}
+
+private struct ChapterHeroFocalArtwork: View {
+    let art: BackgroundArtReference
+
+    private let sourceAspectRatio: CGFloat = 4.0 / 3.0
+
+    var body: some View {
+        GeometryReader { geometry in
+            let container = geometry.size
+            let scale = max(container.width / sourceAspectRatio, container.height)
+            let renderedWidth = sourceAspectRatio * scale
+            let renderedHeight = scale
+            let overflowX = max(renderedWidth - container.width, 0)
+            let overflowY = max(renderedHeight - container.height, 0)
+            let offsetX = (0.5 - art.focalPoint.x) * overflowX
+            let offsetY = (0.5 - art.focalPoint.y) * overflowY
+
+            Image.preparedAsset(art, displaySize: .full)
+                .resizable()
+                .interpolation(.medium)
+                .scaledToFill()
+                .frame(width: container.width, height: container.height)
+                .decorativePreparedArtwork()
+                .offset(x: offsetX, y: offsetY)
+        }
+        .clipped()
+        .allowsHitTesting(false)
     }
 }

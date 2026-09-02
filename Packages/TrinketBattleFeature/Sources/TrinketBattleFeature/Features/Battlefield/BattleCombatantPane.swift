@@ -16,7 +16,6 @@ struct BattleCombatantPane: View {
     let buffAuraKind: CombatantBuffAuraKind?
     let hapticsEnabled: Bool
     let recoilDirection: CombatantHitRecoilDirection
-    let isActiveTurn: Bool
     let onCombatantTap: () -> Void
 
     private var hasMana: Bool {
@@ -96,11 +95,10 @@ struct BattleCombatantPane: View {
                 value: health,
                 maxValue: maxHealth,
                 style: .healthBattle,
-                isActive: isActiveTurn,
             )
 
             if hasMana {
-                CombatResourceBar(value: mana, maxValue: maxMana, style: .mana, isActive: isActiveTurn)
+                CombatResourceBar(value: mana, maxValue: maxMana, style: .mana)
             }
         }
         .frame(maxWidth: .infinity)

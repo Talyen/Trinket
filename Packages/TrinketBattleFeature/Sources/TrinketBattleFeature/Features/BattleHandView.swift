@@ -106,7 +106,7 @@ struct BattleHandView: View {
                         onAttackCancel: { onAttackCancel?(card) },
                     )
                     .offset(x: snapshot.fanOffsetX)
-                    .zIndex(isHeld ? 100 : Double(index))
+                    .zIndex((isHeld || autoLiftCardID == card.id) ? 100 : Double(index))
                     .allowsHitTesting(true)
                     .animation(isHeld ? nil : BattleMotion.handReflow, value: liveSnapshot)
                     .transition(

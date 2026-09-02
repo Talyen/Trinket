@@ -11,10 +11,15 @@
 - Erase is a recovery operation after a failed cold boot, not routine cleanup.
 
 `Scripts/run-env.sh` leases a simulator and a corresponding
-`.DerivedData/runs/agent-N/` tree. Top-level cleanup preserves one warm managed
-device, reclaims preview devices, and age-prunes bulky artifacts. Nested commands
-release only their own leases. Never kill foreign Xcode or Simulator processes.
-A lease left by a crashed run is reaped when its pid is dead or its age exceeds
+`.DerivedData/runs/agent-N/` tree. Top-level cleanup preserves warm managed
+devices per tenant — one **Trinket Run** plus one **Trinket Agent N** may stay
+`Booted` concurrently so an agent run never shuts down a human's `Trinket Run`
+session (and vice versa); excess `Run` or excess `Agent` boots within a tenant
+are shut down. In CI (`GITHUB_ACTIONS=true`) there is no human `Run`, so the
+legacy single-warm rule across all managed devices still applies. Preview
+devices are reclaimed and bulky artifacts age-pruned. Nested commands release
+only their own leases. Never kill foreign Xcode or Simulator processes. A lease
+left by a crashed run is reaped when its pid is dead or its age exceeds
 `TRINKET_SLOT_STALE_SECONDS` (default 6h) — the age cap defeats pid reuse, so
 stale leases never block the agent pool permanently.
 
@@ -25,6 +30,9 @@ After a green `handoff --isolate`, the built `Trinket.app` (in
 `simctl install`-ed to **Trinket Run** so opening Simulator.app shows the
 latest verified build with no manual step. This is install-only (no launch)
 to avoid killing a mid-session game; the next foreground shows the new binary.
+Agent hygiene never shuts down **Trinket Run** to make room for an agent
+device — the two tenants are warm concurrently — so the mirror does not need
+to re-boot a device that hygiene just killed.
 Package-only changes trigger a quick `build.sh` for the mirror if no app
 product exists yet. Suppressed in CI (`GITHUB_ACTIONS=true`) or with
 `TRINKET_PROMOTE_SKIP=1`; set `TRINKET_HANDOFF_AUTO_LAUNCH=1` to also
