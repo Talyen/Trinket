@@ -14,19 +14,24 @@ struct HomesteadBuildingArtwork: View {
     var variant: Variant = .full
 
     var body: some View {
-        HomesteadFocalArtwork(
-            art: art,
-            displaySize: variant == .thumbnail ? .compact : .full,
-            interpolation: variant == .thumbnail ? .low : .medium,
-        )
+        Group {
+            if let art {
+                HomesteadFocalArtwork(
+                    art: art,
+                    displaySize: variant == .thumbnail ? .compact : .full,
+                    interpolation: variant == .thumbnail ? .low : .medium,
+                )
+            } else {
+                TrinketDesign.Colors.surface
+            }
+        }
         .clipShape(RoundedRectangle(cornerRadius: TrinketDesign.Corners.card, style: .continuous))
     }
 
-    private var art: BackgroundArtReference {
-        guard let art = ArtCatalog.backgroundArtByID[definition.id.rawValue] else {
-            preconditionFailure("Missing Homestead artwork for \(definition.id.rawValue)")
-        }
-        return art
+    private var art: BackgroundArtReference? {
+        ArtCatalog.backgroundArtByID[definition.id.rawValue]
+            ?? ArtCatalog.backgroundArtByID["homestead"]
+            ?? ArtCatalog.backgroundArtByID["wheatField"]
     }
 }
 

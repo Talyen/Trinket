@@ -18,6 +18,7 @@ private let trinketAppLogger = Logger(
 struct TrinketApp: App {
     @State private var appState: AppState?
     @State private var bootstrapFailureMessage: String?
+    @State private var launchPriorityImageNames: [String] = []
 
     init() {
         let environment = AppEnvironment.shared
@@ -27,26 +28,34 @@ struct TrinketApp: App {
                 presentationEnvironment: dependencies,
             )
         }
+        func makeState(_ store: PlayerSaveStore?) throws -> AppState {
+            if let store {
+                try AppState(
+                    environment: environment,
+                    playerSave: store,
+                    makeBattleRuntime: makeBattleRuntime,
+                )
+            } else {
+                try AppState(
+                    environment: environment,
+                    makeBattleRuntime: makeBattleRuntime,
+                )
+            }
+        }
 
         do {
-            let state = try AppState(
-                environment: environment,
-                makeBattleRuntime: makeBattleRuntime,
-            )
+            let state = try makeState(nil)
             _appState = State(initialValue: state)
+            _launchPriorityImageNames = State(initialValue: Self.priorityImageNames(for: state))
         } catch {
-            assertionFailure("AppState bootstrap failed: \(error)")
             trinketAppLogger.error(
                 "AppState bootstrap failed: \(error.localizedDescription, privacy: .public)",
             )
             do {
                 let fallbackSave = try PlayerSaveStore(inMemoryOnly: true)
-                let state = try AppState(
-                    environment: environment,
-                    playerSave: fallbackSave,
-                    makeBattleRuntime: makeBattleRuntime,
-                )
+                let state = try makeState(fallbackSave)
                 _appState = State(initialValue: state)
+                _launchPriorityImageNames = State(initialValue: Self.priorityImageNames(for: state))
             } catch {
                 trinketAppLogger.fault(
                     "AppState in-memory fallback failed: \(error.localizedDescription, privacy: .public)",
@@ -64,7 +73,7 @@ struct TrinketApp: App {
             if let appState {
                 PreparedAppRoot(
                     appState: appState,
-                    priorityImageNames: priorityImageNames(for: appState),
+                    priorityImageNames: launchPriorityImageNames,
                 )
             } else {
                 AppBootstrapFailureView(
@@ -75,7 +84,7 @@ struct TrinketApp: App {
         }
     }
 
-    private func priorityImageNames(for appState: AppState) -> [String] {
+    private static func priorityImageNames(for appState: AppState) -> [String] {
         let activeParty = [appState.playerSave.roster.activeHero, appState.playerSave.roster.activeCompanion]
             .compactMap(\.artReference)
             .flatMap { reference in
@@ -99,7 +108,7 @@ struct TrinketApp: App {
         ).sorted()
     }
 
-    private func rootTabImageNames(for appState: AppState) -> [String] {
+    private static func rootTabImageNames(for appState: AppState) -> [String] {
         let roster = appState.playerSave.roster
         let inventory = appState.playerSave.inventory
         let shelfLimit = TrinketDesign.Layout.collectionShelfPreviewLimit
@@ -150,13 +159,12 @@ struct TrinketApp: App {
 }
 
 private struct PreparedAppRoot: View {
-    private static let minimumLaunchDisplayDuration: Duration = .seconds(1)
-
     @Environment(\.displayScale) private var displayScale
-    @State private var artworkCache = PreparedArtworkCache.shared
+    private let artworkCache = PreparedArtworkCache.shared
     @State private var isResourcePreparationComplete = false
     @State private var isShellWarmupComplete = false
     @State private var areCastEffectsPrepared = false
+    @State private var didWarmHiddenTabs = false
 
     let appState: AppState
     let priorityImageNames: [String]
@@ -169,23 +177,23 @@ private struct PreparedAppRoot: View {
     }
 
     private var shouldWarmHiddenTabs: Bool {
-        appState.playerSave.starterSelection.phase == .complete && !isShellWarmupComplete
+        appState.playerSave.starterSelection.phase == .complete && !didWarmHiddenTabs
     }
 
     var body: some View {
         ZStack {
             if isResourcePreparationComplete {
                 ContentView()
-                    .environment(battleSession)
             }
             if shouldWarmHiddenTabs {
-                HiddenTabPrewarm(appState: appState)
-                    .environment(battleSession)
+                HiddenTabPrewarm(appState: appState) {
+                    didWarmHiddenTabs = true
+                }
             }
             if !isPreparationComplete {
                 LaunchWarmupView()
                     .allowsHitTesting(true)
-                if shouldPrepareCastEffects, !areCastEffectsPrepared {
+                if !areCastEffectsPrepared {
                     CardCastEffectsPrewarmView {
                         areCastEffectsPrepared = true
                     }
@@ -212,47 +220,30 @@ private struct PreparedAppRoot: View {
             MetricKitSubscriber.shared.start()
             guard !isResourcePreparationComplete else { return }
             appState.prepareLaunchPerformanceResources()
-            await Task.yield()
-            let displayedAt = ContinuousClock.now
-            await BattlePresentationWarmup.prepareAndWait(displayScale: displayScale)
-            await artworkCache.prepareAll(priorityImageNames: priorityImageNames)
+            async let battleTextures: Void = BattlePresentationWarmup.prepareAndWait(displayScale: displayScale)
+            async let launchArtwork: Void = artworkCache.prepareAll(priorityImageNames: priorityImageNames)
+            await battleTextures
+            await launchArtwork
             guard !Task.isCancelled else { return }
             if let stageID = appState.playerSave.journey.activeStageID,
                let stage = GameContent.stage(id: stageID) {
                 appState.play.journey.prepareBattle(for: stage)
             }
             isResourcePreparationComplete = true
-            if appState.playerSave.starterSelection.phase == .complete {
-                let secondaryTabCount = max(0, AppTab.allCases.count - 1)
-                await Task.yield()
-                await Task.yield()
-                try? await Task.sleep(for: ShellSession.tabFirstLayoutBudget)
-                for _ in 0 ..< secondaryTabCount {
-                    guard !Task.isCancelled else { return }
-                    try? await Task.sleep(for: ShellSession.secondaryTabFirstLayoutBudget)
-                }
-                await Task.yield()
-            }
-            let hold = Self.minimumLaunchDisplayDuration
-                - displayedAt.duration(to: ContinuousClock.now)
-            if hold > .zero {
-                try? await Task.sleep(for: hold)
-            }
-            guard !Task.isCancelled else { return }
             isShellWarmupComplete = true
-            await Task.yield()
-            await Task.yield()
             artworkCache.reportMemorySnapshot(label: "interactiveRoot")
         }
-    }
-
-    private var shouldPrepareCastEffects: Bool {
-        true
+        .task(id: shouldWarmHiddenTabs) {
+            guard shouldWarmHiddenTabs else { return }
+            try? await Task.sleep(for: .milliseconds(500))
+            guard !Task.isCancelled else { return }
+            didWarmHiddenTabs = true
+        }
     }
 
     private var isPreparationComplete: Bool {
         isResourcePreparationComplete
             && isShellWarmupComplete
-            && (areCastEffectsPrepared || !shouldPrepareCastEffects)
+            && areCastEffectsPrepared
     }
 }

@@ -3,7 +3,7 @@ import TrinketAppState
 import TrinketDesignSystem
 import TrinketFeatureSupport
 
-struct PlayModeHubScreen<Content: View>: View {
+struct HubGridScaffold<Content: View>: View {
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     let title: String

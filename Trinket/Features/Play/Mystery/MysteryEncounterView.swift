@@ -203,18 +203,14 @@ struct MysteryEncounterView: View {
     }
 
     private var mysteryConfirmAction: some View {
-        Button {
+        MysteryPrimaryFooter(
+            title: "Confirm",
+            accessibilityIdentifier: AccessibilityID.Mystery.confirmChoiceButton,
+            isDisabled: selectedChoiceID == nil || session.isResolvingChoice,
+        ) {
             guard let selectedChoiceID else { return }
             _ = encounters.resolveActiveMysteryChoice(choiceID: selectedChoiceID)
-        } label: {
-            Text("Confirm")
-                .frame(maxWidth: .infinity)
         }
-        .trinketPrimaryActionButton(
-            accessibilityIdentifier: AccessibilityID.Mystery.confirmChoiceButton,
-        )
-        .trinketCenteredPrimaryAction()
-        .disabled(selectedChoiceID == nil || session.isResolvingChoice)
         .padding(.top, TrinketDesign.Spacing.small)
     }
 
@@ -236,5 +232,24 @@ func mysteryPersistFailureBanner(
             .multilineTextAlignment(centered ? .center : .leading)
             .accessibilityIdentifier(AccessibilityID.Mystery.persistFailure)
             .transition(.opacity)
+    }
+}
+
+struct MysteryPrimaryFooter: View {
+    let title: String
+    let accessibilityIdentifier: String
+    var isDisabled = false
+    let action: () -> Void
+
+    var body: some View {
+        Button {
+            action()
+        } label: {
+            Text(title)
+                .frame(maxWidth: .infinity)
+        }
+        .trinketPrimaryActionButton(accessibilityIdentifier: accessibilityIdentifier)
+        .trinketCenteredPrimaryAction()
+        .disabled(isDisabled)
     }
 }

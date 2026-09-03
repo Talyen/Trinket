@@ -48,7 +48,9 @@ struct StarterSelectionFlow: View {
 
     private func confirmSelectedHero(_ heroID: String) -> Bool {
         guard confirmHero(heroID) else { return false }
-        path.append(.companion)
+        if !path.contains(.companion) {
+            path.append(.companion)
+        }
         return true
     }
 

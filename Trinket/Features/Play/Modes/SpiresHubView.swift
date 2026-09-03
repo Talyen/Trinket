@@ -10,7 +10,7 @@ struct SpiresHubView: View {
     @Environment(PlayerSaveStore.self) private var playerSave
 
     var body: some View {
-        PlayModeHubScreen(
+        HubGridScaffold(
             title: "The Spires",
             accessibilityIdentifier: AccessibilityID.Play.spiresHub,
         ) {
@@ -27,7 +27,7 @@ struct SpiresHubView: View {
         NavigationLink {
             SpireClimbView(spireID: spire.id)
         } label: {
-            PlayModeArtworkCard(
+            HubArtworkCard(
                 title: spire.title,
                 subtitle: subtitle(for: spire, isLocked: isLocked),
                 symbolName: nil,

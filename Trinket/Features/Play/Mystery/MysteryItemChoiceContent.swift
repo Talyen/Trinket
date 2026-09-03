@@ -6,7 +6,7 @@ import TrinketDesignSystem
 import TrinketFeatureSupport
 import TrinketPersistence
 
-private struct MysteryItemChoiceScaffold<Footer: View>: View {
+struct MysteryScaffold<Footer: View>: View {
     let title: String
     let titleAccessibilityIdentifier: String
     let narrative: String
@@ -86,7 +86,7 @@ struct MysteryCorruptItemChoiceContent: View {
     @State private var selectionFeedbackTrigger = 0
 
     var body: some View {
-        MysteryItemChoiceScaffold(
+        MysteryScaffold(
             title: "Offer an Item",
             titleAccessibilityIdentifier: AccessibilityID.Mystery.corruptItemTitle,
             narrative: "Choose gear to corrupt. The altar remakes it once, forever.",

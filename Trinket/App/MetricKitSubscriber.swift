@@ -4,8 +4,8 @@ import os
 import TrinketAppState
 import TrinketFeatureSupport
 
-struct MetricKitDiagnosticSummary {
-    enum Kind {
+struct MetricKitDiagnosticSnapshot: Sendable {
+    enum Kind: Sendable {
         case crash(signal: Int?, terminationReason: String?)
         case hang(durationSeconds: Double)
         case diskWrite(totalMegabytes: Double)
@@ -49,23 +49,23 @@ final class MetricKitSubscriber: NSObject, MXMetricManagerSubscriber {
     }
 
     nonisolated func didReceive(_ payloads: [MXDiagnosticPayload]) {
-        let summaries = payloads.flatMap(Self.summaries)
-        guard !summaries.isEmpty else { return }
+        let snapshots = payloads.flatMap(Self.snapshots)
+        guard !snapshots.isEmpty else { return }
         Task { @MainActor in
-            for summary in summaries {
-                self.record(summary)
+            for snapshot in snapshots {
+                self.log(snapshot)
             }
         }
     }
 
-    nonisolated static func summaries(
+    nonisolated static func snapshots(
         for payload: MXDiagnosticPayload,
-    ) -> [MetricKitDiagnosticSummary] {
+    ) -> [MetricKitDiagnosticSnapshot] {
         let periodStart = payload.timeStampBegin.timeIntervalSince1970
         let periodEnd = payload.timeStampEnd.timeIntervalSince1970
 
         let crashes = (payload.crashDiagnostics ?? []).map { diagnostic in
-            MetricKitDiagnosticSummary(
+            MetricKitDiagnosticSnapshot(
                 kind: .crash(
                     signal: diagnostic.signal?.intValue,
                     terminationReason: diagnostic.terminationReason,
@@ -76,7 +76,7 @@ final class MetricKitSubscriber: NSObject, MXMetricManagerSubscriber {
             )
         }
         let hangs = (payload.hangDiagnostics ?? []).map { diagnostic in
-            MetricKitDiagnosticSummary(
+            MetricKitDiagnosticSnapshot(
                 kind: .hang(
                     durationSeconds: diagnostic.hangDuration.converted(to: .seconds).value,
                 ),
@@ -86,7 +86,7 @@ final class MetricKitSubscriber: NSObject, MXMetricManagerSubscriber {
             )
         }
         let diskWrites = (payload.diskWriteExceptionDiagnostics ?? []).map { diagnostic in
-            MetricKitDiagnosticSummary(
+            MetricKitDiagnosticSnapshot(
                 kind: .diskWrite(
                     totalMegabytes: diagnostic.totalWritesCaused.converted(to: .megabytes).value,
                 ),
@@ -98,33 +98,33 @@ final class MetricKitSubscriber: NSObject, MXMetricManagerSubscriber {
         return crashes + hangs + diskWrites
     }
 
-    private func record(_ summary: MetricKitDiagnosticSummary) {
-        switch summary.kind {
+    private func log(_ snapshot: MetricKitDiagnosticSnapshot) {
+        switch snapshot.kind {
         case let .crash(signal, terminationReason):
             logger.fault(
                 """
-                crash appVersion=\(summary.applicationVersion, privacy: .public) \
-                periodStart=\(summary.periodStart, privacy: .public) \
-                periodEnd=\(summary.periodEnd, privacy: .public) \
-                signal=\(signal.map(String.init) ?? "unknown", privacy: .public) \
+                crash appVersion=\(snapshot.applicationVersion, privacy: .public) \
+                periodStart=\(snapshot.periodStart, privacy: .public) \
+                periodEnd=\(snapshot.periodEnd, privacy: .public) \
+                signal=\(signal.map { String($0) } ?? "unknown", privacy: .public) \
                 terminationReason=\(terminationReason ?? "unknown", privacy: .private)
                 """,
             )
         case let .hang(durationSeconds):
             logger.error(
                 """
-                hang appVersion=\(summary.applicationVersion, privacy: .public) \
-                periodStart=\(summary.periodStart, privacy: .public) \
-                periodEnd=\(summary.periodEnd, privacy: .public) \
+                hang appVersion=\(snapshot.applicationVersion, privacy: .public) \
+                periodStart=\(snapshot.periodStart, privacy: .public) \
+                periodEnd=\(snapshot.periodEnd, privacy: .public) \
                 durationSeconds=\(durationSeconds, privacy: .public)
                 """,
             )
         case let .diskWrite(totalMegabytes):
             logger.error(
                 """
-                diskWrite appVersion=\(summary.applicationVersion, privacy: .public) \
-                periodStart=\(summary.periodStart, privacy: .public) \
-                periodEnd=\(summary.periodEnd, privacy: .public) \
+                diskWrite appVersion=\(snapshot.applicationVersion, privacy: .public) \
+                periodStart=\(snapshot.periodStart, privacy: .public) \
+                periodEnd=\(snapshot.periodEnd, privacy: .public) \
                 totalMegabytes=\(totalMegabytes, privacy: .public)
                 """,
             )

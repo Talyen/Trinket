@@ -157,8 +157,14 @@ struct CollectionView: View {
         let added = Set(next).subtracting(previous)
         let removed = previous.subtracting(next)
         if !added.isEmpty {
-            await PreparedArtworkCache.shared.prepareAndPin(names: Array(added))
+            let addedNames = Array(added)
+            await PreparedArtworkCache.shared.prepareAndPin(names: addedNames)
+            guard !Task.isCancelled else {
+                PreparedArtworkCache.shared.releasePins(names: addedNames)
+                return
+            }
         }
+        guard !Task.isCancelled else { return }
         if !removed.isEmpty {
             PreparedArtworkCache.shared.releasePins(names: Array(removed))
         }

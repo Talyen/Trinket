@@ -36,7 +36,7 @@ struct EncounterArtwork: View {
                 MysteryEventHeroArtwork(
                     event: event,
                     chapterID: stage.chapterID,
-                    preferThumbnail: prefersThumbnail,
+                    prefersThumbnail: prefersThumbnail,
                 )
             } else if let art = stage.encounterArtReference {
                 MapTileArtwork(art: art, prefersThumbnail: prefersThumbnail)

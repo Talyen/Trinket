@@ -336,7 +336,7 @@ struct LabyrinthNodeArtwork: View {
             MysteryEventHeroArtwork(
                 event: event,
                 chapterID: "labyrinth",
-                preferThumbnail: prefersThumbnail,
+                prefersThumbnail: prefersThumbnail,
             )
         } else if let artID = LabyrinthMapPresentation.destinationEncounterArtID(for: type),
                   let art = ArtCatalog.encounterArtByID[artID] {

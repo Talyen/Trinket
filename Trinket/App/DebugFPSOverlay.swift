@@ -79,8 +79,8 @@ final class FramePacingMetricsProbe {
             metrics.topAnchor.constraint(equalTo: root.view.topAnchor),
             metrics.widthAnchor.constraint(equalToConstant: 1),
             metrics.heightAnchor.constraint(equalToConstant: 1),
-            reset.centerXAnchor.constraint(equalTo: root.view.centerXAnchor),
-            reset.topAnchor.constraint(equalTo: root.view.safeAreaLayoutGuide.topAnchor),
+            reset.trailingAnchor.constraint(equalTo: root.view.safeAreaLayoutGuide.trailingAnchor, constant: -4),
+            reset.bottomAnchor.constraint(equalTo: root.view.safeAreaLayoutGuide.bottomAnchor, constant: -4),
             reset.widthAnchor.constraint(equalToConstant: 44),
             reset.heightAnchor.constraint(equalToConstant: 44),
         ])
@@ -141,9 +141,6 @@ final class FramePacingMetricsProbe {
 private final class PassThroughWindow: UIWindow {
     override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
         guard let hit = super.hitTest(point, with: event) else { return nil }
-        if hit is UIControl {
-            return hit
-        }
         var view: UIView? = hit
         while let current = view {
             if current is UIControl {

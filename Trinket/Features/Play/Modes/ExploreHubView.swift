@@ -9,12 +9,12 @@ struct ExploreHubView: View {
     @Environment(PlayerSaveStore.self) private var playerSave
 
     var body: some View {
-        PlayModeHubScreen(
+        HubGridScaffold(
             title: "Explore",
             accessibilityIdentifier: AccessibilityID.Play.exploreHub,
         ) {
             NavigationLink(value: PlayLaunchDestination.spiresHub) {
-                PlayModeArtworkCard(
+                HubArtworkCard(
                     title: "The Spires",
                     subtitle: spiresProgressSubtitle,
                     symbolName: nil,
@@ -26,7 +26,7 @@ struct ExploreHubView: View {
             .trinketArtworkCardButtonStyle()
 
             NavigationLink(value: PlayLaunchDestination.labyrinthMap) {
-                PlayModeArtworkCard(
+                HubArtworkCard(
                     title: "Labyrinth",
                     subtitle: "Floor \(max(1, playerSave.labyrinth.currentFloorNumber))",
                     symbolName: nil,

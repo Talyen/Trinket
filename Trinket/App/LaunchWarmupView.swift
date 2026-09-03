@@ -1,10 +1,10 @@
 import SwiftUI
-import TrinketAppState
 import TrinketDesignSystem
 import TrinketFeatureSupport
 
 struct LaunchWarmupView: View {
-    private static let fillDuration: TimeInterval = 1.0
+    @State private var cache = PreparedArtworkCache.shared
+    @State private var currentTermIndex = 0
 
     private static let loadingTerms: [String] = [
         "Preparing your adventure…",
@@ -24,16 +24,13 @@ struct LaunchWarmupView: View {
         "Restocking mystery shops…",
     ]
 
-    @State private var progress: Double = 0
-    @State private var currentTermIndex = Int.random(in: 0 ..< Self.loadingTerms.count)
-
     var body: some View {
         VStack(spacing: TrinketDesign.Layout.sectionSpacing) {
             Text("TRINKET")
                 .trinketTypography(.screenDisplay)
                 .foregroundStyle(TrinketDesign.Colors.accent)
 
-            ProgressView(value: progress)
+            ProgressView(value: cache.progress)
                 .progressViewStyle(.linear)
                 .tint(TrinketDesign.Colors.accent)
                 .frame(maxWidth: 240)
@@ -51,21 +48,11 @@ struct LaunchWarmupView: View {
         .preferredColorScheme(.dark)
         .accessibilityIdentifier("Launch Warmup")
         .task {
-            await Task.yield()
-            guard !Task.isCancelled else { return }
-            withAnimation(.linear(duration: Self.fillDuration)) {
-                progress = 1
-            }
-
             while !Task.isCancelled {
                 try? await Task.sleep(for: .milliseconds(750))
                 guard !Task.isCancelled else { break }
                 withAnimation(TrinketMotion.Content.fade) {
-                    var nextIndex = currentTermIndex
-                    while nextIndex == currentTermIndex {
-                        nextIndex = Int.random(in: 0 ..< Self.loadingTerms.count)
-                    }
-                    currentTermIndex = nextIndex
+                    currentTermIndex = (currentTermIndex + 1) % Self.loadingTerms.count
                 }
             }
         }

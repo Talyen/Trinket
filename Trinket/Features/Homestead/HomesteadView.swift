@@ -212,7 +212,14 @@ struct HomesteadView: View {
                 isDepositLaunching = true
             }
             try? await Task.sleep(for: .seconds(0.5))
-            guard !Task.isCancelled, depositEvent?.id == event.id else { return }
+            guard !Task.isCancelled, depositEvent?.id == event.id else {
+                if depositEvent?.id == event.id {
+                    depositEvent = nil
+                    isDepositLaunching = false
+                    depositDismissTask = nil
+                }
+                return
+            }
             withAnimation(TrinketMotion.Content.fade) {
                 depositEvent = nil
             }
@@ -224,7 +231,7 @@ struct HomesteadView: View {
     private func categoryCard(_ category: HomesteadNodeCategory) -> some View {
         let progress = HomesteadCategoryProgress(category: category, homestead: homestead)
         return NavigationLink(value: HomesteadRoute.category(category)) {
-            PlayModeArtworkCard(
+            HubArtworkCard(
                 title: category.rawValue,
                 subtitle: progress.subtitle,
                 symbolName: "hammer.fill",

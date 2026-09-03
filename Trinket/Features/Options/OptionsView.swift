@@ -46,6 +46,9 @@ struct OptionsView: View {
                 VolumeOptionRow(
                     title: "Sound Effects",
                     value: $options.effectsVolume,
+                    onLiveChange: { volume in
+                        playToggleSFX(true, volume)
+                    },
                 )
 
                 Toggle(isOn: $options.hapticsEnabled) {
@@ -87,30 +90,7 @@ struct OptionsView: View {
                 }
             }
 
-            Section("Game Data") {
-                Button("Reset Game Progress", role: .destructive) {
-                    isResetConfirmationPresented = true
-                }
-                .accessibilityIdentifier(AccessibilityID.Options.resetProgressButton)
-            }
-
-            #if DEBUG
-            Section {
-                NavigationLink("Preview Lab") {
-                    PreviewLabView()
-                }
-
-                Button("Unlock All") {
-                    if !unlockAllContent() {
-                        actionErrorMessage = "Couldn't unlock content. Try again."
-                        actionErrorTrigger &+= 1
-                    }
-                }
-                .accessibilityIdentifier(AccessibilityID.Options.unlockAllButton)
-            } header: {
-                Text("Developer")
-            }
-            #endif
+            gameDataSection
         }
         .scrollContentBackground(.hidden)
         .trinketScreenBackground()
@@ -144,5 +124,33 @@ struct OptionsView: View {
             trigger: actionErrorTrigger,
             enabled: optionsStore.hapticsEnabled,
         )
+    }
+
+    @ViewBuilder
+    private var gameDataSection: some View {
+        Section("Game Data") {
+            Button("Reset Game Progress", role: .destructive) {
+                isResetConfirmationPresented = true
+            }
+            .accessibilityIdentifier(AccessibilityID.Options.resetProgressButton)
+        }
+
+        #if DEBUG
+        Section {
+            NavigationLink("Preview Lab") {
+                PreviewLabView()
+            }
+
+            Button("Unlock All") {
+                if !unlockAllContent() {
+                    actionErrorMessage = "Couldn't unlock content. Try again."
+                    actionErrorTrigger &+= 1
+                }
+            }
+            .accessibilityIdentifier(AccessibilityID.Options.unlockAllButton)
+        } header: {
+            Text("Developer")
+        }
+        #endif
     }
 }

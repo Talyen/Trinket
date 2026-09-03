@@ -64,14 +64,12 @@ struct MysteryCorruptionRevealContent: View {
             },
         )
         .safeAreaInset(edge: .bottom) {
-            Button("Continue") {
+            MysteryPrimaryFooter(
+                title: "Continue",
+                accessibilityIdentifier: AccessibilityID.Mystery.corruptionContinueButton,
+            ) {
                 _ = onFinish()
             }
-            .frame(maxWidth: .infinity)
-            .trinketPrimaryActionButton(
-                accessibilityIdentifier: AccessibilityID.Mystery.corruptionContinueButton,
-            )
-            .trinketCenteredPrimaryAction()
             .padding(.horizontal, TrinketDesign.Layout.contentMargin)
             .padding(.vertical, TrinketDesign.Spacing.medium)
         }
