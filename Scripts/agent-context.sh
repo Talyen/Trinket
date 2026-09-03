@@ -100,7 +100,14 @@ print_agent() {
   else
     printf '  (none)\n'
   fi
+  printf 'Relevant memory (load only if you touch the concern; not auto-loaded):\n'
+  if (( ${#TRINKET_KNOWLEDGE[@]} > 0 )); then
+    printf '  %s\n' "${TRINKET_KNOWLEDGE[@]}"
+  else
+    printf '  (none)\n'
+  fi
   printf 'Read contract: required cards/guides above; skills are optional lookups. Use rg and bounded ranges before opening linked material.\n'
+  printf 'Friction: if docs misled or behavior surprised you, add one row to .agents/FRICTION_LOG.md Open table.\n'
 
   print_path_summary() {
     local label="$1"

@@ -227,5 +227,76 @@ class AgentContextTests(ScriptRegressionTestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertNotIn("apple-design/SKILL.md", result.stdout)
 
+    def test_agent_context_surfaces_artwork_memory_for_prepared_artwork(self) -> None:
+        result = subprocess.run(
+            [
+                str(ROOT / "Scripts" / "agent-context.sh"),
+                "--agent",
+                "--paths",
+                "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/PreparedArtworkCache.swift",
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn(
+            ".agents/knowledge/patterns/artwork-working-set.md", result.stdout
+        )
+
+    def test_agent_context_surfaces_dag_memory_for_package_manifest(self) -> None:
+        result = subprocess.run(
+            [
+                str(ROOT / "Scripts" / "agent-context.sh"),
+                "--agent",
+                "--paths",
+                "Packages/BattleEngine/Package.swift",
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn(
+            ".agents/knowledge/patterns/module-dag-containment.md", result.stdout
+        )
+
+    def test_agent_context_surfaces_deferred_seams_for_architecture_doc(self) -> None:
+        result = subprocess.run(
+            [
+                str(ROOT / "Scripts" / "agent-context.sh"),
+                "--agent",
+                "--paths",
+                "Docs/Platform/Architecture.md",
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn(
+            ".agents/knowledge/patterns/architecture-deferred-seams.md",
+            result.stdout,
+        )
+
+    def test_agent_context_keeps_memory_quiet_for_unrelated_paths(self) -> None:
+        result = subprocess.run(
+            [
+                str(ROOT / "Scripts" / "agent-context.sh"),
+                "--agent",
+                "--paths",
+                "TrinketUITests/Smoke/SmokeShellTests.swift",
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertNotIn(".agents/knowledge/patterns/", result.stdout)
+
 if __name__ == "__main__":
     unittest.main()

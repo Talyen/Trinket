@@ -27,6 +27,7 @@ TRINKET_PACKAGES=()
 TRINKET_CONTEXT_CARDS=()
 TRINKET_ROUTE_CARDS=()
 TRINKET_SKILLS=()
+TRINKET_KNOWLEDGE=()
 TRINKET_AGENT_GUIDES=()
 TRINKET_BOUNDARY_WARNINGS=()
 TRINKET_GENERATED_WARNINGS=()
@@ -102,6 +103,7 @@ trinket_route_package_verification() {
 trinket_add_context_card() { trinket_add_unique TRINKET_CONTEXT_CARDS "$1"; }
 trinket_add_route_card() { trinket_add_unique TRINKET_ROUTE_CARDS "$1"; }
 trinket_add_skill() { trinket_add_unique TRINKET_SKILLS "$1"; }
+trinket_add_knowledge() { trinket_add_unique TRINKET_KNOWLEDGE "$1"; }
 trinket_add_agent_guide() { trinket_add_unique TRINKET_AGENT_GUIDES "$1"; }
 
 # Every card in Docs/AgentContext/ must be emitted above or declared here as
@@ -199,6 +201,7 @@ trinket_reset_classification() {
   TRINKET_CONTEXT_CARDS=()
   TRINKET_ROUTE_CARDS=()
   TRINKET_SKILLS=()
+  TRINKET_KNOWLEDGE=()
   TRINKET_AGENT_GUIDES=()
   TRINKET_BOUNDARY_WARNINGS=()
   TRINKET_GENERATED_WARNINGS=()
@@ -334,6 +337,25 @@ trinket_add_battle_subcard_for_path() {
       trinket_add_context_card Docs/AgentContext/battle-runtime.md
       ;;
     *)
+      ;;
+  esac
+}
+
+trinket_add_knowledge_for_path() {
+  local path="$1"
+  case "$path" in
+    *PreparedArtwork*|Trinket/App/TrinketApp.swift|*PerformanceInvestigationPlaybook.md|*MemoryAndEnergyInvestigation.md|Scripts/check-artwork-budget.sh|Scripts/check-agent-invariants.sh|Scripts/prepare-art-assets.sh|ArtManifest/*|Raw\ Assets/*)
+      trinket_add_knowledge .agents/knowledge/patterns/artwork-working-set.md
+      ;;
+  esac
+  case "$path" in
+    */Package.swift|Packages/BattleEngine/*BattleState*|Packages/TrinketPersistence/*PlayerSaveStore*|Packages/TrinketAppState/*AppState*|Packages/TrinketAppState/*PlayBattle*|Packages/BattleEngine/EffectHandlers/*|Packages/BattleEngine/*DamagePipeline*|Docs/Platform/Architecture.md)
+      trinket_add_knowledge .agents/knowledge/patterns/module-dag-containment.md
+      ;;
+  esac
+  case "$path" in
+    *CloudKit*|Packages/TrinketContent/Package.swift|Packages/TrinketFeatureSupport/Package.swift|Packages/TrinketBattleFeature/*Feedback*|Packages/TrinketBattleFeature/*Spectacle*|Packages/TrinketBattleFeature/*Projection*|Packages/TrinketBattleFeature/*Ultimate*|Docs/Platform/Architecture.md)
+      trinket_add_knowledge .agents/knowledge/patterns/architecture-deferred-seams.md
       ;;
   esac
 }
@@ -528,12 +550,14 @@ trinket_classify_paths() {
         fi
         if trinket_path_needs_architect "$path"; then
           trinket_add_skill .agents/skills/architect/SKILL.md
+          trinket_add_knowledge .agents/knowledge/patterns/module-dag-containment.md
         fi
       fi
       if trinket_path_is_visual_ui "$path"; then
         TRINKET_HAS_VISUAL_UI=true
       fi
       trinket_add_battle_subcard_for_path "$path"
+      trinket_add_knowledge_for_path "$path"
       trinket_add_agent_guides_for_path "$path"
     done
   fi
