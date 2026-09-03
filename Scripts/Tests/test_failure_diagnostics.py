@@ -569,6 +569,8 @@ class ReporterTests(unittest.TestCase):
             manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
             aggregate_path = root / "ci-diagnostics.json"
 
+            clean_env = {**os.environ}
+            clean_env.pop("TRINKET_DIAGNOSTICS_SESSION_ID", None)
             accepted = subprocess.run(
                 [
                     sys.executable,
@@ -576,6 +578,7 @@ class ReporterTests(unittest.TestCase):
                     str(root),
                     str(aggregate_path),
                 ],
+                env=clean_env,
                 capture_output=True,
                 text=True,
                 check=False,
@@ -596,6 +599,7 @@ class ReporterTests(unittest.TestCase):
                     str(root),
                     str(aggregate_path),
                 ],
+                env=clean_env,
                 capture_output=True,
                 text=True,
                 check=False,

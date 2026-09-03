@@ -76,6 +76,18 @@ trinket_run_env_install_self_clean() {
   trinket_run_env_install_release_trap
 }
 
+trinket_run_env_ensure_diagnostics_session() {
+  if [[ -n "${TRINKET_DIAGNOSTICS_SESSION_ID:-}" ]]; then
+    return 0
+  fi
+  if [[ -n "${TRINKET_RUN_ID:-}" ]]; then
+    TRINKET_DIAGNOSTICS_SESSION_ID="$TRINKET_RUN_ID"
+  else
+    TRINKET_DIAGNOSTICS_SESSION_ID="$(date -u +%Y%m%dT%H%M%SZ)-$$-${RANDOM:-0}"
+  fi
+  export TRINKET_DIAGNOSTICS_SESSION_ID
+}
+
 trinket_run_env_init() {
   local root shared
   local derived_explicit=0
@@ -124,7 +136,7 @@ trinket_run_env_init() {
     if [[ -z "${TRINKET_SIMULATOR_NAME:-}" ]]; then
       TRINKET_SIMULATOR_NAME="Trinket Run"
     fi
-    TRINKET_DIAGNOSTICS_SESSION_ID="${TRINKET_DIAGNOSTICS_SESSION_ID:-}"
+    trinket_run_env_ensure_diagnostics_session
   fi
 
   if [[ -z "${RESULTS_DIR:-}" ]]; then

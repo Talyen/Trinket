@@ -3,6 +3,11 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
+if [[ -z "${TRINKET_DIAGNOSTICS_SESSION_ID:-}" ]]; then
+  TRINKET_DIAGNOSTICS_SESSION_ID="$(date -u +%Y%m%dT%H%M%SZ)-$$-${RANDOM:-0}"
+  export TRINKET_DIAGNOSTICS_SESSION_ID
+fi
+
 # Local/release confidence gate. Runs CI gate checks plus unit and UI tests.
 # --mode smoke mirrors the former ci-locally.sh (gate + unit + smoke
 # canary + timing reports); --mode ui (default) is the full pre-merge/release

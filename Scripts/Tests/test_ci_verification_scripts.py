@@ -222,6 +222,50 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
         self.assertIn('"$remote_sha..$local_sha"', text)
         self.assertIn("push_lines+=", text)
         self.assertNotIn("./Scripts/test.sh style\n", text)
+        # Pre-push reruns safeguards unconditionally: no receipt reuse.
+        self.assertNotIn("handoff-receipt", text)
+        self.assertNotIn("receipt_can_skip", text)
+        self.assertNotIn("Reusing green handoff", text)
+        self.assertNotIn("receipt reused", text.lower())
+        # Style, generation, and touched-package checks are unconditional.
+        self.assertIn("=== Pre-push: style", text)
+        self.assertIn("=== Pre-push: agent push gate", text)
+        self.assertIn("=== Pre-push: path-scoped package tests ===", text)
+        self.assertIn('SKIP_GENERATE=1 ./Scripts/test-package.sh "${TRINKET_PACKAGES[@]}"', text)
+
+    def test_no_handoff_receipt_code_remains(self) -> None:
+        self.assertFalse((ROOT / "Scripts" / "lib" / "handoff-receipt.sh").exists())
+        for path in (
+            ROOT / "Scripts" / "handoff.sh",
+            ROOT / "Scripts" / "agent-push-gate.sh",
+            ROOT / ".githooks" / "pre-push",
+            ROOT / "Scripts" / "README.md",
+            ROOT / "Docs" / "Platform" / "Release.md",
+        ):
+            text = path.read_text(encoding="utf-8")
+            self.assertNotIn("handoff-receipt", text, str(path))
+            self.assertNotIn("handoff_receipt", text, str(path))
+            self.assertNotIn("handoff-receipt.json", text, str(path))
+        self.assertNotIn(
+            "receipt reused",
+            (ROOT / "Scripts" / "agent-push-gate.sh").read_text(encoding="utf-8").lower(),
+        )
+        self.assertNotIn(
+            "Reusing green handoff",
+            (ROOT / ".githooks" / "pre-push").read_text(encoding="utf-8"),
+        )
+
+    def test_agent_push_gate_is_internal_pre_push_component(self) -> None:
+        gate = (ROOT / "Scripts" / "agent-push-gate.sh").read_text(encoding="utf-8")
+        self.assertIn("Internal pre-push component", gate)
+        self.assertIn("not a manual post-commit step", gate)
+        self.assertIn("focused iteration", gate)
+        self.assertNotIn("Agents: run this after committing", gate)
+        verification = (ROOT / "Docs" / "Platform" / "Verification.md").read_text(encoding="utf-8")
+        self.assertNotIn("run `agent-push-gate.sh` after committing", verification)
+        self.assertIn("focused iteration", verification)
+        readme = (ROOT / "Scripts" / "README.md").read_text(encoding="utf-8")
+        self.assertIn("not a manual post-commit step", readme)
 
     def test_build_script_routes_script_gate(self) -> None:
         result = subprocess.run(
@@ -402,9 +446,12 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
                     encoding="utf-8",
                 )
             aggregate = results / "current.json"
+            env = {**os.environ}
+            env.pop("TRINKET_DIAGNOSTICS_SESSION_ID", None)
             unscoped = subprocess.run(
                 [sys.executable, str(ROOT / "Scripts" / "ci-diagnostics.py"), str(results), str(aggregate)],
                 cwd=ROOT,
+                env=env,
                 capture_output=True,
                 text=True,
                 check=False,
@@ -414,6 +461,109 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
             self.assertEqual(payload["distinct_sessions"], 2)
             self.assertIn("Warning:", payload["detail"])
             self.assertIn("--reset", payload["session_warning"])
+
+    def test_shared_runs_receive_distinct_sessions_and_nested_retains_parent(self) -> None:
+        run_env = ROOT / "Scripts" / "run-env.sh"
+        self.assertIn(
+            "trinket_run_env_ensure_diagnostics_session",
+            run_env.read_text(encoding="utf-8"),
+        )
+
+        def init_session(extra_env: dict[str, str]) -> str:
+            result = subprocess.run(
+                [
+                    "bash",
+                    "-c",
+                    'source "$1" && unset TRINKET_ISOLATE TRINKET_RUN_ID TRINKET_DIAGNOSTICS_SESSION_ID '
+                    "DERIVED_DATA_PATH RESULTS_DIR TRINKET_SIMULATOR_NAME TRINKET_AGENT_SLOT && "
+                    "trinket_run_env_init >/dev/null && printf '%s' \"$TRINKET_DIAGNOSTICS_SESSION_ID\"",
+                    "_",
+                    str(run_env),
+                ],
+                cwd=ROOT,
+                env={**os.environ, **extra_env},
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            session = result.stdout.strip()
+            self.assertTrue(session)
+            return session
+
+        first = init_session({})
+        second = init_session({})
+        self.assertNotEqual(first, second)
+
+        nested = subprocess.run(
+            [
+                "bash",
+                "-c",
+                'source "$1" && export TRINKET_DIAGNOSTICS_SESSION_ID="parent-session" && '
+                "trinket_run_env_init >/dev/null && printf '%s' \"$TRINKET_DIAGNOSTICS_SESSION_ID\"",
+                "_",
+                str(run_env),
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(nested.returncode, 0, nested.stderr)
+        self.assertEqual(nested.stdout.strip(), "parent-session")
+
+    def test_orchestrations_establish_inheritable_session(self) -> None:
+        for script in ("handoff.sh", "test-deploy.sh"):
+            text = (ROOT / "Scripts" / script).read_text(encoding="utf-8")
+            self.assertIn("TRINKET_DIAGNOSTICS_SESSION_ID", text, script)
+            self.assertIn("export TRINKET_DIAGNOSTICS_SESSION_ID", text, script)
+        # Nested package commands inherit via run-env preservation, not a fresh id.
+        run_env = (ROOT / "Scripts" / "run-env.sh").read_text(encoding="utf-8")
+        self.assertIn(
+            'if [[ -n "${TRINKET_DIAGNOSTICS_SESSION_ID:-}" ]]; then',
+            run_env,
+        )
+
+    def test_aggregation_selects_newest_failed_while_retaining_old(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            results = Path(directory) / "TestResults"
+            results.mkdir()
+            for label, session, seconds in (
+                ("old-fail", "session-old-fail", "00"),
+                ("new-fail", "session-new-fail", "30"),
+            ):
+                (results / f"{label}-invocation.json").write_text(
+                    json.dumps(
+                        {
+                            "label": label,
+                            "session_id": session,
+                            "status": "failed",
+                            "exit_code": 65,
+                            "result_bundle": "",
+                            "generated_at": f"2026-08-20T00:00:{seconds}Z",
+                        }
+                    ),
+                    encoding="utf-8",
+                )
+            aggregate = results / "current.json"
+            env = {**os.environ}
+            env.pop("TRINKET_DIAGNOSTICS_SESSION_ID", None)
+            unscoped = subprocess.run(
+                [sys.executable, str(ROOT / "Scripts" / "ci-diagnostics.py"), str(results), str(aggregate)],
+                cwd=ROOT,
+                env=env,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(unscoped.returncode, 0, unscoped.stderr)
+            payload = json.loads(aggregate.read_text(encoding="utf-8"))
+            self.assertEqual(payload["session_id"], "session-new-fail")
+            self.assertEqual(payload["recorded_invocations"], 1)
+            self.assertEqual(payload["failed_invocations"], 1)
+            # Old retained failures remain available for forensic use.
+            self.assertTrue((results / "old-fail-invocation.json").exists())
+            self.assertTrue((results / "new-fail-invocation.json").exists())
 
     def test_cleanup_sweeps_orphan_bundles_and_logs_by_age(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -807,18 +957,44 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
         self.assertIn("package_objroot()", stamp)
         self.assertIn("package_shared_precomps_dir()", stamp)
         self.assertIn("Packages/.DerivedData", stamp)
-        # build-for-testing.sh and test.sh delegate package work to the single
-        # parallel owner instead of re-implementing the xargs/tenant protocol.
+        # build-for-testing.sh delegates package builds to the single parallel
+        # owner instead of re-implementing the xargs/tenant protocol.
         build_for_testing = (ROOT / "Scripts" / "build-for-testing.sh").read_text(
             encoding="utf-8"
         )
         self.assertIn("test-package.sh --build-for-testing", build_for_testing)
         self.assertIn("TRINKET_BUILD_FINGERPRINTS_APP", build_for_testing)
         helpers = (ROOT / "Scripts" / "lib" / "test-helpers.sh").read_text(encoding="utf-8")
+        self.assertNotIn("trinket_run_package_tests", helpers)
         test_sh = (ROOT / "Scripts" / "test.sh").read_text(encoding="utf-8")
-        combined = helpers + test_sh
-        self.assertIn("test-package.sh --build-for-testing", combined)
-        self.assertIn("test-package.sh --no-build", combined)
+        # test.sh unit collapses into one package-test pass via the parallel
+        # owner: no separate generic prebuild, no orchestration helper.
+        self.assertNotIn("trinket_run_package_tests", test_sh)
+        self.assertNotIn("test-package.sh --build-for-testing", test_sh)
+        self.assertIn('"${TRINKET_TEST_PACKAGES[@]}"', test_sh)
+        self.assertIn("--destination", test_sh)
+
+    def test_unit_single_pass_preserves_flags_timing_and_reporting(self) -> None:
+        test_sh = (ROOT / "Scripts" / "test.sh").read_text(encoding="utf-8")
+        # --no-build forwarding.
+        self.assertIn("package_args+=(--no-build)", test_sh)
+        self.assertIn('if [[ "$NO_BUILD" == "true" ]]; then', test_sh)
+        # Quiet/verbose forwarding to the package owner.
+        self.assertIn("package_args+=(--quiet)", test_sh)
+        self.assertIn("package_args+=(--verbose)", test_sh)
+        # Package coverage via the registry, single parallel invocation.
+        self.assertIn(
+            './Scripts/test-package.sh "${package_args[@]}" "${TRINKET_TEST_PACKAGES[@]}"',
+            test_sh,
+        )
+        # Wall-time aggregate entry for deploy timing reports, on both pass
+        # and fail (mirrors the app path's failure timing sample).
+        self.assertIn("TEST_WALL_SECONDS=$SECONDS", test_sh)
+        self.assertIn("trinket_record_timing", test_sh)
+        self.assertIn("Timing recorded. Hotspots:", test_sh)
+        # Exit status preserved without a redundant prebuild.
+        self.assertIn("exit 1", test_sh)
+        self.assertNotIn("--build-for-testing", test_sh)
 
     def test_bare_full_ui_requires_explicit_opt_in(self) -> None:
         # Full exhaustive UI is CI-owned post-push; bare local runs must opt in.

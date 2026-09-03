@@ -57,18 +57,17 @@ plain text and localizable, and permits up to 4,000 characters. See
 
 `git config core.hooksPath .githooks` enables the advisory commit-message hook
 and the pre-push style/generation checks. Pre-push styles Swift files in the
-commits being pushed (platform bans stay full-tree), runs `agent-push-gate.sh`
-(regenerate only when classification says content, project, or assets changed),
-then path-scoped package tests against that generated tree. A requested push
-still requires a green path-scoped handoff before commit. Review and include only task-related authored and generated files.
+commits being pushed (platform bans stay full-tree), runs the internal
+`agent-push-gate.sh` component (regenerate only when classification says
+content, project, or assets changed), then path-scoped package tests against
+that generated tree. A requested push still requires a green path-scoped
+handoff before commit. Review and include only task-related authored and
+generated files.
 
-A green `handoff.sh --isolate` writes a content-addressed receipt
-(`.DerivedData/handoff-receipt.json`) keyed by the verified tree hash. Both
-`agent-push-gate.sh` and the `pre-push` hook reuse that receipt: when the tree
-about to be pushed is exactly the tree handoff just verified, the push gates
-skip the duplicate generate/style/package work and only run a cheap idempotent
-assert. Any new diff, ancestry change, or classification mismatch falls through
-to the full gates — there is no time-window trust.
+Direct pushes to `main` justify repeating these inexpensive path-scoped
+safeguards at pre-push: style, generated-output completeness, and
+touched-package tests rerun unconditionally, even when handoff just verified
+the same tree. There is no skip or receipt reuse.
 
 Fastlane upload remains a separate future step: provide an App Store Connect API
 key, configure `deliver`, and extend the release workflow only when automated

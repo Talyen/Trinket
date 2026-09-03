@@ -295,69 +295,82 @@ SECONDS=0
 
 if [[ "$RUN_PACKAGES_ONLY" == "true" ]]; then
   echo "Running package schemes only (no app-level unit test bundle)."
-else
-  XCODEBUILD_EXIT_CODE=0
-  XCODEBUILD_ARGS=(
-    "$ACTION"
-    -project Trinket.xcodeproj
-    -scheme Trinket
-    -sdk iphonesimulator
-    -destination "$SIMULATOR_DESTINATION"
-    -derivedDataPath "$DERIVED_DATA_PATH"
-    -resultBundlePath "$RESULT_BUNDLE_PATH"
-  )
-  if [[ "$MODE" == "performance" ]]; then
-    # Keep DEBUG-only deterministic instrumentation while compiling the measured
-    # app and test bundles with release-style Swift optimization.
-    XCODEBUILD_ARGS+=(SWIFT_OPTIMIZATION_LEVEL=-O)
+  echo "Running package tests..."
+  package_args=()
+  if [[ "$NO_BUILD" == "true" ]]; then
+    package_args+=(--no-build)
   fi
-  if [[ ${#TEST_TARGET_FLAG[@]} -gt 0 ]]; then
-    XCODEBUILD_ARGS+=("${TEST_TARGET_FLAG[@]}")
-  fi
-  if [[ ${#PARALLEL_FLAGS[@]} -gt 0 ]]; then
-    XCODEBUILD_ARGS+=("${PARALLEL_FLAGS[@]}")
-  fi
-
-  runner_args=(
-    --label "$MODE"
-    --result-bundle "$RESULT_BUNDLE_PATH"
-    --log "$XCODEBUILD_LOG_PATH"
-    --report-prefix "$XCODEBUILD_REPORT_PREFIX"
-    --retry-callback trinket_xcodebuild_log_is_infrastructure_failure
-  )
+  package_args+=(--destination "$SIMULATOR_DESTINATION")
   if [[ "$QUIET" == "true" ]]; then
-    runner_args+=(--quiet)
+    package_args+=(--quiet)
   else
-    runner_args+=(--verbose)
+    package_args+=(--verbose)
   fi
-  xcode_runner_run "${runner_args[@]}" -- xcodebuild "${XCODEBUILD_ARGS[@]}" || XCODEBUILD_EXIT_CODE=$?
-
-  TEST_WALL_SECONDS=$SECONDS
-
-  if [[ "$XCODEBUILD_EXIT_CODE" -eq 0 ]]; then
-    if ! trinket_assert_targeted_tests_executed; then
-      xcode_runner_write_manifest "$RESULT_BUNDLE_PATH" "$XCODEBUILD_REPORT_PREFIX" 1 "$MODE"
-      exit 1
-    fi
-    echo "Tests succeeded!"
-  fi
-
-  if [[ "$XCODEBUILD_EXIT_CODE" -ne 0 ]]; then
+  if ! ./Scripts/test-package.sh "${package_args[@]}" "${TRINKET_TEST_PACKAGES[@]}"; then
+    TEST_WALL_SECONDS=$SECONDS
     trinket_record_timing
     echo ""
     echo "Timing recorded. Hotspots: python3 ./Scripts/test-timing.py report"
-    exit "$XCODEBUILD_EXIT_CODE"
-  fi
-fi
-
-if [[ "$RUN_PACKAGES_ONLY" == "true" ]]; then
-  echo "Running package tests..."
-  # Mirror the app path: record wall timing before exiting on failure so a
-  # failed package run still contributes a sample to the timing history.
-  if ! trinket_run_package_tests "$ACTION"; then
-    trinket_record_timing
     exit 1
   fi
+  TEST_WALL_SECONDS=$SECONDS
+  trinket_record_timing
+  echo ""
+  echo "Timing recorded. Hotspots: python3 ./Scripts/test-timing.py report"
+  exit 0
+fi
+
+XCODEBUILD_EXIT_CODE=0
+XCODEBUILD_ARGS=(
+  "$ACTION"
+  -project Trinket.xcodeproj
+  -scheme Trinket
+  -sdk iphonesimulator
+  -destination "$SIMULATOR_DESTINATION"
+  -derivedDataPath "$DERIVED_DATA_PATH"
+  -resultBundlePath "$RESULT_BUNDLE_PATH"
+)
+if [[ "$MODE" == "performance" ]]; then
+  # Keep DEBUG-only deterministic instrumentation while compiling the measured
+  # app and test bundles with release-style Swift optimization.
+  XCODEBUILD_ARGS+=(SWIFT_OPTIMIZATION_LEVEL=-O)
+fi
+if [[ ${#TEST_TARGET_FLAG[@]} -gt 0 ]]; then
+  XCODEBUILD_ARGS+=("${TEST_TARGET_FLAG[@]}")
+fi
+if [[ ${#PARALLEL_FLAGS[@]} -gt 0 ]]; then
+  XCODEBUILD_ARGS+=("${PARALLEL_FLAGS[@]}")
+fi
+
+runner_args=(
+  --label "$MODE"
+  --result-bundle "$RESULT_BUNDLE_PATH"
+  --log "$XCODEBUILD_LOG_PATH"
+  --report-prefix "$XCODEBUILD_REPORT_PREFIX"
+  --retry-callback trinket_xcodebuild_log_is_infrastructure_failure
+)
+if [[ "$QUIET" == "true" ]]; then
+  runner_args+=(--quiet)
+else
+  runner_args+=(--verbose)
+fi
+xcode_runner_run "${runner_args[@]}" -- xcodebuild "${XCODEBUILD_ARGS[@]}" || XCODEBUILD_EXIT_CODE=$?
+
+TEST_WALL_SECONDS=$SECONDS
+
+if [[ "$XCODEBUILD_EXIT_CODE" -eq 0 ]]; then
+  if ! trinket_assert_targeted_tests_executed; then
+    xcode_runner_write_manifest "$RESULT_BUNDLE_PATH" "$XCODEBUILD_REPORT_PREFIX" 1 "$MODE"
+    exit 1
+  fi
+  echo "Tests succeeded!"
+fi
+
+if [[ "$XCODEBUILD_EXIT_CODE" -ne 0 ]]; then
+  trinket_record_timing
+  echo ""
+  echo "Timing recorded. Hotspots: python3 ./Scripts/test-timing.py report"
+  exit "$XCODEBUILD_EXIT_CODE"
 fi
 
 if [[ "$NO_BUILD" == "false" && "$RUN_PACKAGES_ONLY" == "false" ]]; then

@@ -18,8 +18,8 @@ usage() {
   cat <<'EOF'
 Usage: ./Scripts/agent-push-gate.sh [--paths <file> ...]
 
-Ensures generated catalogs/assets/project.pbxproj match what CI will regenerate
-when the commit scope can affect them:
+Internal pre-push component: ensures generated catalogs/assets/project.pbxproj
+match what CI will regenerate when the commit scope can affect them:
   1. ./Scripts/ensure-ci-tools.sh (pinned SwiftFormat/SwiftLint/XcodeGen)
   2. ./Scripts/generate.sh [--assets] --force-xcodegen (skipped when classification
      reports no content, project, or asset generation)
@@ -29,8 +29,8 @@ Without --paths, unions working-tree paths with local commits not present on a
 remote (falling back to the latest commit). With --paths, only those paths drive
 whether --assets is included.
 
-Agents: run this after committing the reviewed task scope and before pushing.
-Pre-push also calls this script.
+Invoked automatically by the pre-push hook; not a manual post-commit step.
+The user-facing workflow is focused iteration → path-scoped handoff → commit → push.
 
 Env:
   SKIP_TRINKET_PUSH_GATE=1   Skip (for emergencies only)
@@ -145,35 +145,6 @@ if [[ "$NEEDS_GENERATE" != true ]]; then
   echo "Note: push-gate is generate/assert completeness only — not style or compile."
   echo "Pre-CI source checks: ./Scripts/handoff.sh --isolate --paths …"
   exit 0
-fi
-
-# Content-addressed reuse: if a green handoff already verified this exact tree
-# with the same generation needs, a cheap idempotent assert is enough — the
-# forced XcodeGen rewrite would produce identical output.
-# shellcheck source=Scripts/lib/handoff-receipt.sh
-source Scripts/lib/handoff-receipt.sh
-if trinket_handoff_receipt_can_skip generate 2>/dev/null; then
-  echo "=== Agent push gate: checking handoff receipt (tree match) ==="
-  _receipt_assert_passed=false
-  if [[ "$INCLUDE_ASSETS" == true ]]; then
-    if ./Scripts/assert-generated-output.sh --idempotent --assets >/dev/null 2>&1; then
-      _receipt_assert_passed=true
-    fi
-  else
-    if ./Scripts/assert-generated-output.sh --idempotent >/dev/null 2>&1; then
-      _receipt_assert_passed=true
-    fi
-  fi
-  if [[ "$_receipt_assert_passed" == true ]]; then
-    echo "Reusing green handoff: generated output already idempotent for this tree — skipping forced generate."
-    report_change_budget
-    echo "=== Agent push gate passed (receipt reused) ==="
-    echo "Note: push-gate is generate/assert completeness only — not style or compile."
-    echo "Pre-CI source checks: ./Scripts/handoff.sh --isolate --paths …"
-    exit 0
-  else
-    echo "Receipt tree matched but generated output drifted — falling through to forced generate."
-  fi
 fi
 
 if ! command -v xcodegen >/dev/null 2>&1; then

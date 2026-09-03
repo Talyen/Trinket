@@ -51,7 +51,11 @@ Run (the current diagnostics session is selected automatically):
 
 The command aggregates only the current session's completion manifests and failure reports into
 `<RESULTS_DIR>/ci-diagnostics.json`; in CI it also writes the actionable
-summary to `GITHUB_STEP_SUMMARY`. It consumes the structured reports and does not
+summary to `GITHUB_STEP_SUMMARY`. Every test/build orchestration receives a
+unique diagnostics session, and `handoff`, deploy verification, and nested
+package commands inherit one session, so the aggregate reports only the
+current failed run while older retained failures stay available for forensic
+use. It consumes the structured reports and does not
 reparse xcresult bundles. Cached status/diagnostic artifacts can be cleared at job
 start without deleting raw logs or xcresult bundles:
 

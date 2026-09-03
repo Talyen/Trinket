@@ -7,7 +7,6 @@ the linked guides explain routing and operating policy.
 ## Everyday workflow
 
 ```sh
-./Scripts/generate.sh
 ./Scripts/test-package.sh BattleEngine
 ./Scripts/test.sh unit
 ./Scripts/agent-context.sh --agent --paths <changed-paths...>
@@ -15,9 +14,16 @@ the linked guides explain routing and operating policy.
 ./Scripts/new-plan.sh <PlanName>
 ```
 
+Ordinary Swift work starts with focused iteration, not manual generation:
+generation runs automatically when classified inputs require it (build
+freshness and handoff plan it). Run `./Scripts/generate.sh` directly only
+when changing generation inputs (content, `project.yml`, assets).
+
 Agents always use an isolated path-scoped handoff. Humans may omit `--isolate`
 to reuse the shared warm build tree. Do not regenerate assets during ordinary
-Swift iteration unless an asset manifest or source changed.
+Swift iteration unless an asset manifest or source changed. The user-facing
+flow is focused iteration → path-scoped handoff → commit → push; pre-push
+runs its own generation/style/package safeguards automatically.
 
 Run artifacts are ephemeral by default. Use the owning command's documented
 keep/cleanup switches when an investigation needs to retain a successful run;
@@ -49,7 +55,7 @@ Read these focused guides:
 | `./Scripts/ci-path-filter.py` | CI path filter via the GitHub compare API (no full checkout); `code` / `assets` / `infra` outputs |
 | `./Scripts/stage-ci-test-artifact.sh` | Stage Products + stamps for the CI `--no-build` fan-out artifact |
 | `./Scripts/test-package.sh <Package>` | Run one package's tests |
-| `./Scripts/test.sh unit` | Run all package unit suites |
+| `./Scripts/test.sh unit` | Run all package unit suites via the parallel `test-package.sh` owner |
 | `python3 ./Scripts/test-timing.py report` | Show per-suite wall-time history and hotspots from test runs |
 | `python3 ./Scripts/test-timing.py show --last 10` | Show recent run IDs, outcomes, targets, and result-bundle availability without hotspot output |
 | `./Scripts/test.sh smoke` | Run the checked-in smoke registry |
@@ -69,7 +75,7 @@ Read these focused guides:
 | `./Scripts/ci-assets-gate.sh` | Asset generation, idempotence, and locale-stability gate |
 | `python3 ./Scripts/check-docs.py [--final] [--keep-plan]` | Check links, structure, smoke classes, stale terms, and execution-plan lifecycle |
 | `./Scripts/test-deploy.sh [--mode smoke]` | Pre-release deploy verification (`release.sh` calls this); `--mode smoke` is an optional canary |
-| `./Scripts/agent-push-gate.sh` | Post-commit generation completeness; skips generate when classification has no content/project/asset inputs; reuses green handoff receipt when the tree matches |
+| `./Scripts/agent-push-gate.sh` | Internal pre-push generation completeness; invoked automatically by pre-push, not a manual post-commit step |
 | `./Scripts/ci-diagnostics.sh [RESULTS_DIR]` | Aggregate the current diagnostics session |
 | `./Scripts/ci-diagnostics.sh --stage-artifacts <RESULTS_DIR> <ARTIFACT_DIR>` | Stage structured artifacts, adding raw failure evidence only when needed |
 | `./Scripts/ci-diagnostics.sh --cleanup [--keep] <RESULTS_DIR>` | Delete passed result/report history after staging; retain failures for current triage unless `--keep` |

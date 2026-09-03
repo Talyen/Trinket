@@ -77,35 +77,3 @@ PY
     return 1
   fi
 }
-
-trinket_run_package_tests() {
-  local xcodebuild_action="$1"
-  local packages=("${TRINKET_TEST_PACKAGES[@]}")
-  local failed=0
-  local build_seconds=0
-  local test_seconds=0
-  if [[ "$xcodebuild_action" != "test-without-building" ]]; then
-    SECONDS=0
-    echo "Building package tests in parallel..."
-    if ! ./Scripts/test-package.sh --build-for-testing "${packages[@]}"; then
-      build_seconds=$SECONDS
-      TEST_WALL_SECONDS=$((TEST_WALL_SECONDS + build_seconds))
-      return 1
-    fi
-    build_seconds=$SECONDS
-  fi
-  SECONDS=0
-  local -a package_test_args=(--no-build --destination "$SIMULATOR_DESTINATION")
-  if [[ "$QUIET" == "true" ]]; then
-    package_test_args+=(--quiet)
-  else
-    package_test_args+=(--verbose)
-  fi
-  echo "Running package tests in parallel..."
-  if ! ./Scripts/test-package.sh "${package_test_args[@]}" "${packages[@]}"; then
-    failed=1
-  fi
-  test_seconds=$SECONDS
-  TEST_WALL_SECONDS=$((TEST_WALL_SECONDS + build_seconds + test_seconds))
-  return "$failed"
-}

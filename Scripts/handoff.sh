@@ -11,6 +11,11 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
+if [[ -z "${TRINKET_DIAGNOSTICS_SESSION_ID:-}" ]]; then
+  TRINKET_DIAGNOSTICS_SESSION_ID="$(date -u +%Y%m%dT%H%M%SZ)-$$-${RANDOM:-0}"
+  export TRINKET_DIAGNOSTICS_SESSION_ID
+fi
+
 # Keep source routing aligned with agent-context.sh and agent-push-gate.sh.
 # shellcheck source=Scripts/change-classification.sh
 source Scripts/change-classification.sh
@@ -257,13 +262,6 @@ if [[ "$QUIET" != true ]]; then
   echo "=== Cheap CI slices (boundaries, Swift Testing, release notes, artwork budget) ==="
 fi
 run_cheap_ci_slices
-
-# Record a content-addressed receipt so agent-push-gate and pre-push can skip
-# duplicate generate/style/package work when the committed tree is exactly what
-# this handoff just verified. No timestamp trust — reuse requires tree equality.
-# shellcheck source=Scripts/lib/handoff-receipt.sh
-source Scripts/lib/handoff-receipt.sh
-trinket_handoff_receipt_write || echo "warning: failed to write handoff receipt" >&2
 
 if [[ "${TRINKET_ENABLE_MIRROR:-false}" == "true" && "${TRINKET_ISOLATE:-}" == "1" && "${ISOLATE}" == true ]]; then
   _mirror_needs_build=false

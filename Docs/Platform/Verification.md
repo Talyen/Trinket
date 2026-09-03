@@ -112,10 +112,11 @@ the task, but unusual production/test surface growth needs a necessity statement
 and the simpler alternative that was rejected. Timing logs are diagnostic data,
 not a routine optimization mandate.
 
-Before a requested push, run `agent-push-gate.sh` after committing. Commit
-format, hooks, and push preconditions live in [Release.md](Release.md);
-receipt reuse and idempotent-assert behavior are documented in that guide and
-in [`Scripts/README.md`](../../Scripts/README.md).
+Before a requested push, the pre-push hook runs its own safeguards
+unconditionally: path-scoped style, generation completeness via the internal
+`agent-push-gate.sh` component, and touched-package tests. The user-facing
+workflow is focused iteration → path-scoped handoff → commit → push; do not
+invoke `agent-push-gate.sh` manually post-commit.
 
 Land on `main` by direct push; do not open pull requests. After a red CI run,
 triage with `./Scripts/ci-diagnostics.sh` and
