@@ -134,6 +134,65 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         modifier.apply(to: &self)
     }
 
+    mutating func applyMaximumAffixStat(_ modifier: AffixModifier) -> Bool {
+        switch modifier {
+        case let .maximumHealth(amount):
+            maximumHealthBonus += amount
+        case let .maximumMana(amount):
+            maximumManaBonus += amount
+        default:
+            return false
+        }
+        return true
+    }
+
+    // swiftlint:disable:next cyclomatic_complexity - exhaustive affix mapping belongs in one switch
+    mutating func applyAffixCombatBonus(_ modifier: AffixModifier) -> Bool {
+        switch modifier {
+        case let .damageDealt(keyword, amount):
+            damageDealtBonus[keyword, default: 0] += amount
+        case let .poisonDamageDealtPercent(amount):
+            poisonDamageDealtPercent += amount
+        case let .healthRestored(amount):
+            healthRestoredBonus += amount
+        case let .leechGainedPercent(amount):
+            leechGainedBonus += amount
+        case let .leechHealing(amount):
+            leechHealingBonus += amount
+        case let .goldGained(amount):
+            goldGainedBonus += amount
+        case let .goldGainedPercent(amount):
+            goldGainedPercent += amount
+        case let .blockGained(amount):
+            blockGainedBonus += amount
+        case let .damageTakenPercent(keyword, amount):
+            damageTakenReduction[keyword, default: 0] += amount
+        case let .damageTakenFlat(keyword, amount):
+            damageTakenFlat[keyword, default: 0] += amount
+        case let .damageTakenVulnerability(keyword, amount):
+            damageTakenVulnerability[keyword, default: 0] += amount
+        case let .companionDamageDealt(amount):
+            companionDamageDealtBonus += amount
+        case let .companionBleedDamageDealt(amount):
+            companionBleedDamageDealtBonus += amount
+        case let .outgoingDamagePercent(amount):
+            outgoingDamagePercent += amount
+        case let .incomingDamageReductionPercent(amount):
+            incomingDamageReductionPercent += amount
+        case let .dodgeChanceBonus(amount):
+            triggers.dodgeChanceBonus += amount
+        default:
+            return false
+        }
+        return true
+    }
+
+    mutating func applyAffixDurationBonus(_ modifier: AffixModifier) {
+        if case let .bleedDuration(amount) = modifier {
+            bleedDurationBonus += amount
+        }
+    }
+
     public func damageDealtBonus(for keyword: Keyword) -> Int {
         damageDealtBonus[keyword, default: 0]
     }
@@ -152,6 +211,18 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
 
     public func damageTakenVulnerability(for keyword: Keyword) -> Double {
         max(0, damageTakenVulnerability[keyword, default: 0])
+    }
+}
+
+public extension AffixModifier {
+    func apply(to profile: inout CombatModifierProfile) {
+        if profile.applyMaximumAffixStat(self) {
+            return
+        }
+        if profile.applyAffixCombatBonus(self) {
+            return
+        }
+        profile.applyAffixDurationBonus(self)
     }
 }
 

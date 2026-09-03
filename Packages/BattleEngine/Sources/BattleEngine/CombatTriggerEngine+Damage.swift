@@ -461,7 +461,6 @@ package extension CombatTriggerEngine {
         context.isResolvingDoTDetonation = true
         defer { context.isResolvingDoTDetonation = false }
 
-        var events: [ActionEvent] = []
         let currentEffects = context.roster.activeEffects(for: target)
         var bleedsToDetonate: [(potency: Int, turns: Int)] = []
         for effect in currentEffects {
@@ -479,19 +478,7 @@ package extension CombatTriggerEngine {
         }
         context.roster.setActiveEffects(remainingEffects, for: target)
 
-        for (potency, turns) in bleedsToDetonate {
-            for _ in 0 ..< turns {
-                guard context.roster.health(for: target) > 0 else { break }
-                events.append(contentsOf: DoTDamage.resolveTurnDamage(
-                    basePotency: potency,
-                    keyword: .bleed,
-                    target: target,
-                    sourceActorID: sourceActorID,
-                    in: &context,
-                ).events)
-            }
-        }
-        return events
+        return detonateBleedStacks(bleedsToDetonate, on: target, sourceActorID: sourceActorID, in: &context)
     }
 }
 

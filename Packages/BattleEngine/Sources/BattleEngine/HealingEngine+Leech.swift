@@ -51,10 +51,6 @@ package extension HealingEngine {
 
         var restored = CombatRounding.scaled(baseDamage, multiplier: leechPct)
         restored += profile.leechHealingBonus
-        restored = CombatRounding.scaled(
-            restored,
-            multiplier: CombatTriggerEngine.incomingHealMultiplier(for: actorCombatant, in: context),
-        )
         if let target, profile.triggers.leechBonusHealVsLowHealthEnemies > 0,
            context.roster.maxHealth(for: target) > 0,
            Double(context.roster.health(for: target)) / Double(context.roster.maxHealth(for: target)) < 0.5 {
@@ -127,7 +123,7 @@ package extension HealingEngine {
                 isCritical: healOutcome.isCritical,
             ))
             if actorCombatant.id == context.roster.hero.id {
-                events.append(contentsOf: CombatTriggerEngine.shareHeroLeechWithCompanion(
+                events.append(contentsOf: Self.shareHeroLeechWithCompanion(
                     restored: actualRestored,
                     in: &context,
                 ))
@@ -158,5 +154,28 @@ package extension HealingEngine {
         var flags = leechFlags
         flags.insert(.leeched)
         return CombatOutcome(healthDelta: actualRestored, events: events, flags: flags)
+    }
+
+    static func shareHeroLeechWithCompanion(
+        restored: Int,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        let percent = min(max(context.heroModifiers.triggers.companionLeechSharePercent, 0), 1)
+        guard restored > 0,
+              percent > 0,
+              context.roster.companion.isAlive
+        else { return [] }
+        let share = max(1, CombatRounding.scaled(restored, multiplier: percent))
+        return context.healEmitting(
+            amount: share,
+            target: context.roster.companion.combatant,
+            source: context.roster.hero.combatant,
+            abilityName: CombatTriggerEngine.triggerAbilityName(
+                "companionLeechSharePercent",
+                for: context.roster.hero.combatant,
+                fallback: "Symbiosis",
+                in: context,
+            ),
+        )
     }
 }

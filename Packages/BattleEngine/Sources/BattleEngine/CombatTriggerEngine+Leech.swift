@@ -67,22 +67,6 @@ package extension CombatTriggerEngine {
         restored: Int,
         in context: inout BattleState,
     ) -> [ActionEvent] {
-        let percent = min(max(context.heroModifiers.triggers.companionLeechSharePercent, 0), 1)
-        guard restored > 0,
-              percent > 0,
-              context.roster.companion.isAlive
-        else { return [] }
-        let share = max(1, CombatRounding.scaled(restored, multiplier: percent))
-        return context.healEmitting(
-            amount: share,
-            target: context.roster.companion.combatant,
-            source: context.roster.hero.combatant,
-            abilityName: triggerAbilityName(
-                "companionLeechSharePercent",
-                for: context.roster.hero.combatant,
-                fallback: "Symbiosis",
-                in: context,
-            ),
-        )
+        HealingEngine.shareHeroLeechWithCompanion(restored: restored, in: &context)
     }
 }

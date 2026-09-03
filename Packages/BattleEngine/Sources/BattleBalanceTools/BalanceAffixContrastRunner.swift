@@ -138,7 +138,7 @@ enum BalanceAffixContrastRunner {
             idPrefix: "contrast-partner",
             using: &fillRNG,
         )
-        return BalanceContrastSupport.buildOwnerGearPair(
+        return BalanceContrastSupport.buildOwnerPair(
             base: .init(
                 owner: focus.owner,
                 partner: partner,
@@ -150,9 +150,9 @@ enum BalanceAffixContrastRunner {
                 tier: tier,
                 seed: pairSeed,
             ),
-            entityOwnerGear: gears.withAffix,
-            baselineOwnerGear: gears.baseline,
-        )
+        ) { parts, isEntity in
+            parts.ownerGear = isEntity ? gears.withAffix : gears.baseline
+        }
     }
 
     private static func makeAffixGearPair(

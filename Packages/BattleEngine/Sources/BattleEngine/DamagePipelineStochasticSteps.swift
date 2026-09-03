@@ -211,4 +211,24 @@ package extension DamagePipeline {
     private static func applyCritical(to state: inout DamageResolutionState) {
         state.isCritical = true
     }
+
+    static func applyCriticalBlockSteal(
+        to state: inout DamageResolutionState,
+        in context: inout BattleState,
+    ) {
+        guard state.isCritical,
+              state.combatant.role == .enemy,
+              let source = state.partySource(in: context),
+              context.modifiers(for: source.id).triggers.critStealEnemyBlock
+        else { return }
+        let enemyBlock = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: state.combatant))
+        guard enemyBlock > 0 else { return }
+        DefensePoolEngine.set(0, on: state.combatant, in: &context)
+        state.damageEvents.append(contentsOf: context.applyBlock(
+            enemyBlock,
+            to: source.combatant,
+            source: source.combatant,
+            abilityName: "Master Thief",
+        ))
+    }
 }

@@ -56,38 +56,56 @@ enum BalanceContrastSupport {
         pairResults: [ContrastPairOutcome],
         config: BalanceSweepConfig,
     ) -> [PairedContrastSummary] {
-        var buckets: [String: BalanceContrastFlags.ContrastAcc] = [:]
-        for result in pairResults {
-            let focus = foci[result.focusIndex]
-            let key = BalanceContrastFlags.summaryKey(
-                tier: result.tier,
-                entityID: focus.entityID,
-                baselineID: focus.baselineID,
-                ownerID: focus.ownerID,
-                baselineKind: focus.baselineKind,
-            )
-            var bucket = buckets[key] ?? BalanceContrastFlags.ContrastAcc(
-                entityID: focus.entityID,
-                baselineID: focus.baselineID,
-                ownerID: focus.ownerID,
-                tier: result.tier,
-                baselineKind: focus.baselineKind,
-                nonCombat: focus.nonCombat,
-            )
-            bucket.accumulate(entity: result.entity, baseline: result.baseline)
-            buckets[key] = bucket
-        }
-
-        return buckets.values.map { BalanceContrastFlags.makeSummary($0, config: config) }
-            .sorted(by: BalanceContrastFlags.summarySort)
+        bucketed(
+            rows: pairResults.map { result in
+                let focus = foci[result.focusIndex]
+                return BucketRow(
+                    tier: result.tier,
+                    entityID: focus.entityID,
+                    baselineID: focus.baselineID,
+                    ownerID: focus.ownerID,
+                    baselineKind: focus.baselineKind,
+                    nonCombat: focus.nonCombat,
+                    apply: { $0.accumulate(entity: result.entity, baseline: result.baseline) },
+                )
+            },
+            config: config,
+        )
     }
 
     static func mergeSummaries(
         _ summaries: [PairedContrastSummary],
         config: BalanceSweepConfig,
     ) -> [PairedContrastSummary] {
+        bucketed(
+            rows: summaries.map { row in
+                BucketRow(
+                    tier: row.tier,
+                    entityID: row.entityID,
+                    baselineID: row.baselineID,
+                    ownerID: row.ownerID,
+                    baselineKind: row.baselineKind,
+                    nonCombat: row.nonCombat,
+                    apply: { $0.merge(row) },
+                )
+            },
+            config: config,
+        )
+    }
+
+    private struct BucketRow {
+        var tier: SimulationPowerTier
+        var entityID: String
+        var baselineID: String
+        var ownerID: String
+        var baselineKind: ContrastBaselineKind
+        var nonCombat: Bool
+        var apply: (inout BalanceContrastFlags.ContrastAcc) -> Void
+    }
+
+    private static func bucketed(rows: [BucketRow], config: BalanceSweepConfig) -> [PairedContrastSummary] {
         var buckets: [String: BalanceContrastFlags.ContrastAcc] = [:]
-        for row in summaries {
+        for row in rows {
             let key = BalanceContrastFlags.summaryKey(
                 tier: row.tier,
                 entityID: row.entityID,
@@ -95,7 +113,7 @@ enum BalanceContrastSupport {
                 ownerID: row.ownerID,
                 baselineKind: row.baselineKind,
             )
-            var bucket = buckets[key] ?? BalanceContrastFlags.ContrastAcc(
+            var acc = buckets[key] ?? BalanceContrastFlags.ContrastAcc(
                 entityID: row.entityID,
                 baselineID: row.baselineID,
                 ownerID: row.ownerID,
@@ -103,10 +121,9 @@ enum BalanceContrastSupport {
                 baselineKind: row.baselineKind,
                 nonCombat: row.nonCombat,
             )
-            bucket.merge(row)
-            buckets[key] = bucket
+            row.apply(&acc)
+            buckets[key] = acc
         }
-
         return buckets.values.map { BalanceContrastFlags.makeSummary($0, config: config) }
             .sorted(by: BalanceContrastFlags.summarySort)
     }
@@ -196,28 +213,28 @@ enum BalanceContrastSupport {
         )
     }
 
-    static func buildOwnerGearPair(
+    static func buildOwnerPair(
         base: MatchupParts,
-        entityOwnerGear: SimulationMatchupBuilder.GearOverride?,
-        baselineOwnerGear: SimulationMatchupBuilder.GearOverride?,
+        mutate: (inout MatchupParts, Bool) -> Void,
     ) -> (withEntity: ConfiguredSimulationMatchup, withBaseline: ConfiguredSimulationMatchup) {
         var withEntity = base
-        withEntity.ownerGear = entityOwnerGear
+        mutate(&withEntity, true)
         var withBaseline = base
-        withBaseline.ownerGear = baselineOwnerGear
+        mutate(&withBaseline, false)
         return (buildMatchup(withEntity), buildMatchup(withBaseline))
     }
 
-    static func buildOwnerTalentPair(
-        base: MatchupParts,
-        entityOwnerTalents: Set<String>,
-        baselineOwnerTalents: Set<String>,
-    ) -> (withEntity: ConfiguredSimulationMatchup, withBaseline: ConfiguredSimulationMatchup) {
-        var withEntity = base
-        withEntity.ownerTalents = entityOwnerTalents
-        var withBaseline = base
-        withBaseline.ownerTalents = baselineOwnerTalents
-        return (buildMatchup(withEntity), buildMatchup(withBaseline))
+    static func seed(
+        base: UInt64,
+        tier: SimulationPowerTier,
+        pairIndex: Int,
+        entityID: String,
+        primes: (tier: UInt64, pair: UInt64),
+    ) -> UInt64 {
+        base
+            &+ UInt64(tier.level) &* primes.tier
+            &+ UInt64(pairIndex) &* primes.pair
+            &+ stableHash64(entityID)
     }
 
     static func runEntityBaselinePair(
@@ -276,11 +293,14 @@ enum BalanceContrastSupport {
         if jobs <= 1 || work.count <= 1 {
             pairResults = work.map { item -> ContrastPairOutcome? in
                 let focus = foci[item.focusIndex]
-                let seed = config.seed
-                    &+ UInt64(item.tier.level) &* primes.tier
-                    &+ UInt64(item.pairIndex) &* primes.pair
-                    &+ stableHash64(summarize(focus).entityID)
-                guard let pair = makePair(focus, item.tier, item.pairIndex, seed) else { return nil }
+                let pairSeed = seed(
+                    base: config.seed,
+                    tier: item.tier,
+                    pairIndex: item.pairIndex,
+                    entityID: summarize(focus).entityID,
+                    primes: primes,
+                )
+                guard let pair = makePair(focus, item.tier, item.pairIndex, pairSeed) else { return nil }
                 let outcome = runEntityBaselinePair(
                     matchups: pair,
                     policy: policy,
@@ -301,11 +321,14 @@ enum BalanceContrastSupport {
             DispatchQueue.concurrentPerform(iterations: work.count) { idx in
                 let item = work[idx]
                 let focus = foci[item.focusIndex]
-                let seed = config.seed
-                    &+ UInt64(item.tier.level) &* primes.tier
-                    &+ UInt64(item.pairIndex) &* primes.pair
-                    &+ stableHash64(summarize(focus).entityID)
-                guard let pair = makePair(focus, item.tier, item.pairIndex, seed) else { return }
+                let pairSeed = seed(
+                    base: config.seed,
+                    tier: item.tier,
+                    pairIndex: item.pairIndex,
+                    entityID: summarize(focus).entityID,
+                    primes: primes,
+                )
+                guard let pair = makePair(focus, item.tier, item.pairIndex, pairSeed) else { return }
                 let outcome = runEntityBaselinePair(
                     matchups: pair,
                     policy: policy,

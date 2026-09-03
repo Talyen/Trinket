@@ -131,15 +131,12 @@ struct CleansePurgeHandler: BattleEffectHandler {
             keyword: targetKeyword ?? .purge,
         )
         var events = [event]
-        if source.role != .enemy, target.role == .enemy, CombatTriggerEngine.livingPartyTriggers(in: context).crownfall {
-            events.append(contentsOf: context.resolveDamage(DamageRequest(
-                amount: removed.count * 3,
-                target: target,
-                keyword: .holy,
-                sourceActorID: source.id,
-                options: .flatReaction,
-            )).events)
-        }
+        events.append(contentsOf: Self.crownfallDamage(
+            removedCount: removed.count,
+            source: source,
+            target: target,
+            in: &context,
+        ))
         return EffectApplyOutcome(events: events, didApply: true)
     }
 
@@ -164,15 +161,32 @@ struct CleansePurgeHandler: BattleEffectHandler {
             keyword: keyword,
         )
         var events = [event]
-        if source.role != .enemy, target.role == .enemy, CombatTriggerEngine.livingPartyTriggers(in: context).crownfall {
-            events.append(contentsOf: context.resolveDamage(DamageRequest(
-                amount: 3,
-                target: target,
-                keyword: .holy,
-                sourceActorID: source.id,
-                options: .flatReaction,
-            )).events)
-        }
+        events.append(contentsOf: Self.crownfallDamage(
+            removedCount: 1,
+            source: source,
+            target: target,
+            in: &context,
+        ))
         return EffectApplyOutcome(events: events, didApply: true)
+    }
+
+    private static func crownfallDamage(
+        removedCount: Int,
+        source: Combatant,
+        target: Combatant,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        guard removedCount > 0,
+              source.role != .enemy,
+              target.role == .enemy,
+              CombatTriggerEngine.livingPartyTriggers(in: context).crownfall
+        else { return [] }
+        return context.resolveDamage(DamageRequest(
+            amount: removedCount * 3,
+            target: target,
+            keyword: .holy,
+            sourceActorID: source.id,
+            options: .flatReaction,
+        )).events
     }
 }

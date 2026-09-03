@@ -240,7 +240,7 @@ enum BalanceTalentContrastRunner {
             tier: tier,
             pairSeed: pairSeed,
         )
-        return BalanceContrastSupport.buildOwnerTalentPair(
+        return BalanceContrastSupport.buildOwnerPair(
             base: .init(
                 owner: owner,
                 partner: partner,
@@ -252,8 +252,8 @@ enum BalanceTalentContrastRunner {
                 tier: tier,
                 seed: pairSeed,
             ),
-            entityOwnerTalents: entityTalents,
-            baselineOwnerTalents: baselineTalents,
-        )
+        ) { parts, isEntity in
+            parts.ownerTalents = isEntity ? entityTalents : baselineTalents
+        }
     }
 }

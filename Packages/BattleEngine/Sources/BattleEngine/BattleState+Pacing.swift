@@ -20,23 +20,42 @@ package extension BattleState {
     }
 
     mutating func claimActionGuard(_ kind: TalentActionGuardKey.Kind, actorID: String) -> Bool {
-        let key = TalentActionGuardKey(kind: kind, actorID: actorID)
-        guard talentActionGuardByActorID[key] != actionCount else { return false }
-        talentActionGuardByActorID[key] = actionCount
-        return true
+        claimGuard(kind, actorID: actorID, scope: .action)
     }
 
     mutating func claimBattleGuard(_ kind: TalentActionGuardKey.Kind, actorID: String) -> Bool {
-        let key = TalentActionGuardKey(kind: kind, actorID: actorID)
-        guard talentActionGuardByActorID[key] == nil else { return false }
-        talentActionGuardByActorID[key] = 1
-        return true
+        claimGuard(kind, actorID: actorID, scope: .battle)
     }
 
     mutating func claimTurnGuard(_ kind: TalentActionGuardKey.Kind, actorID: String) -> Bool {
+        claimGuard(kind, actorID: actorID, scope: .turn)
+    }
+
+    private enum GuardScope {
+        case action
+        case battle
+        case turn
+    }
+
+    private mutating func claimGuard(
+        _ kind: TalentActionGuardKey.Kind,
+        actorID: String,
+        scope: GuardScope,
+    ) -> Bool {
         let key = TalentActionGuardKey(kind: kind, actorID: actorID)
-        guard talentTurnGuardByActorID[key] != turnCount else { return false }
-        talentTurnGuardByActorID[key] = turnCount
-        return true
+        switch scope {
+        case .action:
+            guard talentActionGuardByActorID[key] != actionCount else { return false }
+            talentActionGuardByActorID[key] = actionCount
+            return true
+        case .battle:
+            guard talentActionGuardByActorID[key] == nil else { return false }
+            talentActionGuardByActorID[key] = 1
+            return true
+        case .turn:
+            guard talentTurnGuardByActorID[key] != turnCount else { return false }
+            talentTurnGuardByActorID[key] = turnCount
+            return true
+        }
     }
 }
