@@ -65,7 +65,34 @@ jobs:
     outputs:
       build-artifact: ${{ steps.restore-and-build.outputs.artifact-name }}
     steps:
-      - uses: ./.github/actions/checkout-trinket
+      # Local composite actions cannot run before the repo exists, so the
+      # first step inlines actions/checkout (same sparse set as
+      # .github/actions/checkout-trinket, which documents the shared list).
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          fetch-depth: 1
+          sparse-checkout-cone-mode: true
+          # Cone mode keeps root files (project.yml, *.xctestplan). Skip Raw Assets.
+          sparse-checkout: |
+            Scripts
+            Packages
+            Trinket
+            TrinketUITests
+            Trinket.xcodeproj
+            ContentManifest
+            ArtManifest
+            MusicManifest
+            SoundManifest
+            CinematicManifest
+            .github
+      - name: Assert sparse checkout kept root build inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f project.yml
+          test -f Smoke.xctestplan
+          test -f FullUI.xctestplan
+          test -f BattlePerformance.xctestplan
       - uses: ./.github/actions/setup-trinket
       - name: Restore warm cache and build
         id: restore-and-build

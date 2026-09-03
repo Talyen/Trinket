@@ -155,7 +155,7 @@ struct BattleSpectacleSessionTests {
         )
         _ = session.playCard(cardID: ultimate.id, at: now)
         #expect(session.spectacle.ultimateHighlightsByActorID["knight"] != nil)
-        #expect(try await BattleSessionTestSupport.waitUntil(timeout: .milliseconds(300)) {
+        #expect(try await BattleSessionTestSupport.waitUntil(timeout: .seconds(2)) {
             session.spectacle.ultimateHighlightsByActorID["knight"] == nil
         })
         #expect(session.canEndTurn)

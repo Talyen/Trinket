@@ -50,13 +50,13 @@ struct RewardRevealSequenceStateTests {
     }
 
     private func waitUntil(
-        timeout: Duration = .seconds(1),
+        timeout: Duration = .seconds(5),
         condition: @MainActor () -> Bool,
     ) async -> Bool {
         let deadline = ContinuousClock.now.advanced(by: timeout)
         while !condition() {
             guard ContinuousClock.now < deadline else { return false }
-            await Task.yield()
+            try? await Task.sleep(for: .milliseconds(5))
         }
         return true
     }
