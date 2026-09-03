@@ -154,6 +154,10 @@ def structural_checks(files: list[Path], *, final: bool = False, keep_plan: bool
         "Swift 6.0": "project.yml sets SWIFT_VERSION to 6.2",
         "accessibility-setting UI test only": "PD-014 forbids accessibility-setting UI tests",
         "do not regenerate on enter": "Labyrinth entry rebuilds unreadable map payloads",
+        "TrinketDesign.Metrics": "design tokens are TrinketDesign.Spacing and TrinketDesign.Layout",
+        "InelegantSlop": "retired audit name; route to audit 02 or 06",
+        "DualPathRetention": "retired audit name; route to audit 06",
+        "reduced-transparency handling": "the design system has no reduced-transparency policy",
     }
     for source in files:
         text = source.read_text(encoding="utf-8")

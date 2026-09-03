@@ -21,7 +21,7 @@ Agentic coding often drops the next method on the nearest large type. Gravity we
 | Mirrored mutable state or duplicated derived state across view/session/store | Competing owners can diverge and make lifecycle or mutation order ambiguous |
 | Callers validate or sequence an invariant that belongs to an engine/store | Ownership is distributed across entry points instead of enforced once |
 
-**Not this audit:** import-gate failures alone → repair directly through `check-module-boundaries.sh`; correct owner with leftover twin / shim → DualPathRetention; verbose ceremony with correct ownership → InelegantSlop.
+**Not this audit:** import-gate failures alone → repair directly through `check-module-boundaries.sh`; correct owner with a leftover twin or shim → [06](06_DeadParallelCeremonialSurfaceAudit.md); large correct-owner surface whose cost is mixed jobs → [02](02_MaintenanceSurfaceLocalityAudit.md).
 
 ## Hard stops
 

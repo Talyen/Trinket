@@ -8,7 +8,7 @@ Prereads: `Packages/TrinketDesignSystem/README.md`, `Docs/Platform/iOS26AppleRef
 
 Reduce unjustified custom layout/typography and confirmed non-adaptive UI while preserving intentional game UI. Add a shared token/helper only when removing call-site surface outweighs the new API under the [README right-size policy](README.md); otherwise simplify locally. After confirming a problem in a shared component or component family, inventory its affected call sites and migrate the confirmed cluster together.
 
-**Principles:** one spacing scale (`TrinketDesign.Metrics`); delete parallel systems; typography that scales (`Font.TextStyle` / `.trinketTypography` / `@ScaledMetric`); don’t invent a second platform — prefer `containerRelativeFrame`, adaptive grids, `Layout`, and DesignSystem glass/button styles.
+**Principles:** one spacing scale (`TrinketDesign.Spacing`) and one layout-token owner (`TrinketDesign.Layout`); delete parallel systems; typography that scales (`Font.TextStyle` / `.trinketTypography` / `@ScaledMetric`); don’t invent a second platform — prefer `containerRelativeFrame`, adaptive grids, `Layout`, and DesignSystem glass/button styles.
 
 ## Hard stops
 
@@ -30,6 +30,6 @@ then cosmetic token consistency.
 
 **Tie-breakers:** repair visible adaptation and native control behavior before cosmetic token consistency; extract/document justified custom over rewriting it.
 
-Prefer `TrinketDesign.Metrics`, `Corners`, `.trinketTypography`, `.trinketSurface`, `.trinketGlassChip`, `.trinketPrimaryActionButton`. Surfaces already pad — do not stack extra padding then `.trinketSurface` unless the role is `.card`. Prefer growing containers in scroll contexts over `minimumScaleFactor`; account for localization expansion, safe areas, and keyboard presentation before fixing dimensions. Prefer native controls and container APIs when they preserve the game interaction. Gesture-driven motion should track 1:1 during drag and settle with interruptible springs (`TrinketMotion`).
+Prefer `TrinketDesign.Spacing`, `TrinketDesign.Layout`, `Corners`, `.trinketTypography`, `.trinketSurface`, `.trinketGlassChip`, `.trinketPrimaryActionButton`. Surfaces already pad — do not stack extra padding then `.trinketSurface` unless the role is `.card`. Prefer growing containers in scroll contexts over `minimumScaleFactor`; account for localization expansion, safe areas, and keyboard presentation before fixing dimensions. Prefer native controls and container APIs when they preserve the game interaction. Gesture-driven motion should track 1:1 during drag and settle with interruptible springs (`TrinketMotion`).
 
 Successful fixes show a net reduction or neutral move in custom layout/typography constants toward tokens or native APIs.

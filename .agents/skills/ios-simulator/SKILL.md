@@ -5,7 +5,7 @@ description: Use when inspecting, launching, controlling, capturing screenshots/
 
 # iOS Simulator — isolation and capture
 
-Executable isolation rules for `xcrun simctl` work. Full command catalog lives in `Docs/Platform/SimulatorOperations.md`.
+Executable isolation rules for `xcrun simctl` work. Pool lifecycle and IDE guidance live in `Docs/Platform/SimulatorOperations.md`.
 
 ## Rules
 
@@ -27,4 +27,4 @@ xcrun simctl ui <UDID> appearance dark
 xcrun simctl status_bar <UDID> override --time "9:41" --batteryState charged --batteryLevel 100
 ```
 
-See `SimulatorOperations.md` for lifecycle, install/launch flags, `addmedia`, `pbcopy`, UserDefaults, `log stream`, and `privacy` details.
+See `SimulatorOperations.md` for managed-device lifecycle, leases, local Xcode setup, and watchdog guidance.

@@ -2,7 +2,7 @@
 type: execution-plan
 status: active
 created: 2026-09-01
-updated: 2026-09-01
+updated: 2026-09-03
 expires: 2026-09-15
 ---
 
@@ -18,16 +18,10 @@ maintenance win. Keep gameplay balance and artwork budgets unchanged.
 - [ ] **1. Frozen mystery preview.** Make the preview ticket authoritative even
   when pinning fails, then add persistence/reload coverage for the same encounter
   level and reward preview.
-- [ ] **2. Artwork single source.** Route remaining app warmup enumeration through
-  `ArtCatalog.allImageNames`, derive thumbnails only where the manifest contract
-  permits, and wire the battle card face to the existing design-system surface
-  primitive without changing layout or art budgets.
-- [ ] **3. Codegen correctness.** Replace fragile `publicize`/brace counting with
+- [ ] **2. Codegen correctness.** Replace fragile `publicize`/brace counting with
   schema-driven access emission, fix `swift_escape` round trips, and add focused
   regression cases for quotes, backslashes, and braces.
-- [ ] **4. Build avoidance.** Unify generation stamps and skip unchanged codegen or
-  inventory work while preserving generated-output and CI diagnostics behavior.
-- [ ] **5. Measured performance proposals.** Benchmark damage-resolution rescans
+- [ ] **3. Measured performance proposals.** Benchmark damage-resolution rescans
   and combat-feedback layering first. Implement a snapshot or feedback dedup only
   when measurement confirms a bounded win; otherwise record a non-finding.
 

@@ -16,6 +16,6 @@ Trinket is a visual-heavy game and ships only basic accessibility semantics (PD-
 
 If Apple's platform forces a decision, take the simplest option and move on.
 
-Existing Reduce Motion branches in `KeywordPlasmaBackground` and
-`TrinketRarityLabel` are retained product behavior, not precedent for new
-accommodation paths. Changing or removing them requires an explicit product task.
+Existing checked-in Reduce Motion branches are retained product behavior, not
+precedent for new accommodation paths. Changing or removing them requires an
+explicit product task.

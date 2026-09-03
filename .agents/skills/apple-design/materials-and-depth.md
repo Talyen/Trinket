@@ -22,7 +22,7 @@ Use this reference for translucent surfaces, glass, blur, toolbars, sheets, scri
 Materials, colors, and glass route through `TrinketDesignSystem`
 (`check-ui-style.py` enforces this); see the
 [TrinketDesignSystem README](../../../Packages/TrinketDesignSystem/README.md)
-for tokens and reduced-transparency handling.
+for tokens and material routing.
 
 ## Review questions
 

@@ -107,7 +107,6 @@ TrinketFeatureSupport ───→ TrinketContent ──→ TrinketCore
 
 TrinketFeatureContracts ──→ TrinketContent ──→ TrinketCore
 
-BattleEngine ───────────→ TrinketContent ──→ TrinketCore
 TrinketPersistence ─────→ TrinketContent ──→ TrinketCore
 TrinketDesignSystem ───────────────────────→ TrinketCore
 ```
