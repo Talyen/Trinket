@@ -183,9 +183,9 @@ struct DeathsDoorEngineTests {
 
     private func makeLegionContext(heroHealth: Int) -> BattleState {
         BattleTestFixtures.makeContext(
-            hero: BattleTestFixtures.passiveHero(maxHealth: 50),
-            companion: BattleTestFixtures.passiveCompanion(),
-            enemy: BattleTestFixtures.passiveEnemy(),
+            hero: CombatantFixtures.passiveHero(maxHealth: 50),
+            companion: CombatantFixtures.passiveCompanion(),
+            enemy: CombatantFixtures.passiveEnemy(),
             heroHealth: heroHealth,
             heroModifiers: CombatModifierProfile(
                 triggers: CombatTraitTriggers(revival: RevivalTriggers(deathsDoorExpiredHealFlat: 10)),

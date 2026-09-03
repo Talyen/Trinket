@@ -2,6 +2,7 @@ import BattleEngine
 import Testing
 import TrinketContent
 import TrinketCore
+import TrinketTestSupport
 
 struct CleanseIntegrationTests {
     @Test func `panacea cleanses most debuffed and heals lowest as one action`() throws {
@@ -12,8 +13,8 @@ struct CleanseIntegrationTests {
             maxHealth: 20,
             abilities: [.panaceaPotion],
         )
-        let companion = BattleTestFixtures.passiveCompanion()
-        let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
+        let companion = CombatantFixtures.passiveCompanion()
+        let enemy = CombatantFixtures.combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
         var battle = BattleTestFixtures.standardParty(
             hero: hero,
             companion: companion,
@@ -53,8 +54,8 @@ struct CleanseIntegrationTests {
             maxHealth: 20,
             abilities: [.panaceaPotion],
         )
-        let companion = BattleTestFixtures.passiveCompanion()
-        let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
+        let companion = CombatantFixtures.passiveCompanion()
+        let enemy = CombatantFixtures.combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
         var battle = BattleTestFixtures.standardParty(
             hero: hero,
             companion: companion,
@@ -85,8 +86,8 @@ struct CleanseIntegrationTests {
             maxHealth: 20,
             abilities: [.panaceaPotion],
         )
-        let companion = BattleTestFixtures.passiveCompanion()
-        let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
+        let companion = CombatantFixtures.passiveCompanion()
+        let enemy = CombatantFixtures.combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
         var battle = BattleTestFixtures.standardParty(
             hero: hero,
             companion: companion,
@@ -117,8 +118,8 @@ struct CleanseIntegrationTests {
             id: "hero", name: "Hero", role: .hero, maxHealth: 20,
             abilities: [cleansePoison],
         )
-        let companion = BattleTestFixtures.passiveCompanion()
-        let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
+        let companion = CombatantFixtures.passiveCompanion()
+        let enemy = CombatantFixtures.combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
         var battle = BattleTestFixtures.standardParty(
             hero: hero,
             companion: companion,
@@ -160,8 +161,8 @@ struct CleanseIntegrationTests {
             maxHealth: 50,
             abilities: [cleanseAbility],
         )
-        let companion = BattleTestFixtures.passiveCompanion()
-        let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 10)
+        let companion = CombatantFixtures.passiveCompanion()
+        let enemy = CombatantFixtures.combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 10)
         var battle = BattleTestFixtures.standardParty(
             hero: hero,
             companion: companion,
@@ -189,8 +190,8 @@ struct CleanseIntegrationTests {
             id: "hero", name: "Hero", role: .hero, maxHealth: 50,
             abilities: [cleanseAll],
         )
-        let companion = BattleTestFixtures.passiveCompanion()
-        let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
+        let companion = CombatantFixtures.passiveCompanion()
+        let enemy = CombatantFixtures.combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
         var triggers = CombatTraitTriggers()
         triggers.onCleansePoisonDealDamagePerStack = 5
         var battle = BattleStateTestFactory.makeBattle(
@@ -225,8 +226,8 @@ struct CleanseIntegrationTests {
             id: "hero", name: "Hero", role: .hero, maxHealth: 50,
             abilities: [cleanseAll],
         )
-        let companion = BattleTestFixtures.passiveCompanion()
-        let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
+        let companion = CombatantFixtures.passiveCompanion()
+        let enemy = CombatantFixtures.combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
         let triggers = CombatTraitTriggers(cleanse: CleanseTriggers(cleansePartyBlock: 2))
         var battle = BattleStateTestFactory.makeBattle(
             hero: hero,

@@ -2,6 +2,7 @@ import BattleEngine
 import Testing
 import TrinketContent
 import TrinketCore
+import TrinketTestSupport
 
 struct DoTMechanicsTests {
     private func isolatedBattle(
@@ -17,8 +18,8 @@ struct DoTMechanicsTests {
                 maxHealth: 20,
                 abilities: heroAbilities,
             ),
-            companion: BattleTestFixtures.passiveCompanion(),
-            enemy: BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100),
+            companion: CombatantFixtures.passiveCompanion(),
+            enemy: CombatantFixtures.combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100),
             activeEnemyEffects: enemyEffects,
             activeHeroEffects: heroEffects,
         )
@@ -149,8 +150,8 @@ struct DoTMechanicsTests {
                 maxHealth: 20,
                 abilities: [burnAbility(potency: 4)],
             ),
-            companion: BattleTestFixtures.passiveCompanion(),
-            enemy: BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100),
+            companion: CombatantFixtures.passiveCompanion(),
+            enemy: CombatantFixtures.combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100),
             activeEnemyEffects: [
                 ActiveEffect(id: 1, effect: .shield(.block, 20), remainingTurns: 5),
             ],

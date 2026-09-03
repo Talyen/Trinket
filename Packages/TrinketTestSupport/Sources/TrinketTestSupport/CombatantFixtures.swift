@@ -10,7 +10,7 @@ public enum CombatantFixtures {
         id: String,
         name: String? = nil,
         role: Combatant.Role,
-        maxHealth: Int = 50,
+        maxHealth: Int = 20,
         maxMana: Int = 0,
         actionIntervalTurns: Int? = nil,
         abilities: [Ability] = [],
@@ -28,7 +28,7 @@ public enum CombatantFixtures {
 
     public static func passiveHero(
         id: String = "hero",
-        maxHealth: Int = 50,
+        maxHealth: Int = 20,
         maxMana: Int = 0,
         actionIntervalTurns: Int = passiveTurnInterval,
         abilities: [Ability] = [],
@@ -45,7 +45,7 @@ public enum CombatantFixtures {
 
     public static func passiveCompanion(
         id: String = "companion",
-        maxHealth: Int = 50,
+        maxHealth: Int = 20,
         maxMana: Int = 0,
         actionIntervalTurns: Int = passiveTurnInterval,
         abilities: [Ability] = [],

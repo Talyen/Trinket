@@ -9,10 +9,8 @@ import TrinketTestSupport
 
 @MainActor
 enum BattleSessionTestSupport {
-    static let deterministicBattleSeed: UInt64 = CombatantFixtures.deterministicBattleSeed
-
     static func makeConfiguredSession(
-        rngSeed: UInt64 = deterministicBattleSeed,
+        rngSeed: UInt64 = CombatantFixtures.deterministicBattleSeed,
         hero: Combatant? = nil,
         companion: Combatant? = nil,
         enemy: Combatant? = nil,
@@ -24,7 +22,7 @@ enum BattleSessionTestSupport {
         let resolvedHero = hero ?? CombatantFixtures.combatant(
             id: "hero",
             role: .hero,
-            actionIntervalTurns: 1,
+            actionIntervalTurns: CombatantFixtures.quickWinTurnInterval,
             abilities: [.slash],
         )
         let resolvedCompanion = companion ?? CombatantFixtures.passiveCompanion()

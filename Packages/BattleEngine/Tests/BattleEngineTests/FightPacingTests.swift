@@ -103,7 +103,7 @@ struct FightPacingTests {
             heroHealth: 10,
             companionHealth: 10,
             enemyHealth: 100,
-            seed: BattleTestFixtures.deterministicNonCriticalSeed,
+            seed: CombatantFixtures.deterministicBattleSeed,
             nextEffectID: 0,
             nextEventID: 0,
         )

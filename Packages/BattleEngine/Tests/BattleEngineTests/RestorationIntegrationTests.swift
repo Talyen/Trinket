@@ -2,6 +2,7 @@ import BattleEngine
 import Testing
 import TrinketContent
 import TrinketCore
+import TrinketTestSupport
 
 struct RestorationIntegrationTests {
     @Test func `instant heal restores health`() throws {
@@ -14,8 +15,8 @@ struct RestorationIntegrationTests {
             effects: [.instantHeal(.health, 3)],
         )
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 10, abilities: [heal])
-        let companion = BattleTestFixtures.passiveCompanion()
-        let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy)
+        let companion = CombatantFixtures.passiveCompanion()
+        let enemy = CombatantFixtures.combatant(id: "enemy", name: "Enemy", role: .enemy)
         var battle = BattleTestFixtures.standardParty(
             hero: hero,
             companion: companion,
@@ -44,8 +45,8 @@ struct RestorationIntegrationTests {
             hasLeech: true,
         )
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 10, abilities: [leechSlash])
-        let companion = BattleTestFixtures.passiveCompanion()
-        let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy)
+        let companion = CombatantFixtures.passiveCompanion()
+        let enemy = CombatantFixtures.combatant(id: "enemy", name: "Enemy", role: .enemy)
         var battle = BattleTestFixtures.standardParty(
             hero: hero,
             companion: companion,
@@ -73,8 +74,8 @@ struct RestorationIntegrationTests {
             description: "Restore 5 Health.",
             effects: [.instantHeal(.health, 5)],
         )
-        let hero = BattleTestFixtures.passiveCombatant(id: "hero", name: "Hero", role: .hero)
-        let companion = BattleTestFixtures.passiveCompanion()
+        let hero = CombatantFixtures.combatant(id: "hero", name: "Hero", role: .hero)
+        let companion = CombatantFixtures.passiveCompanion()
         let enemy = Combatant(
             id: "enemy", name: "Enemy", role: .enemy, maxHealth: 20,
             abilities: [selfHeal],

@@ -186,7 +186,7 @@ struct BattleSessionSimulationTests {
         #expect(engineState.health(of: engineState.enemy) < 100)
 
         _ = session.restart(BattleRunConfigurationTestSupport.make(
-            rngSeed: BattleSessionTestSupport.deterministicBattleSeed,
+            rngSeed: CombatantFixtures.deterministicBattleSeed,
             hero: party.hero,
             companion: party.companion,
             enemy: party.enemy,

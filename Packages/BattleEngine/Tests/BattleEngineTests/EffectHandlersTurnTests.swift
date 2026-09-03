@@ -6,7 +6,7 @@ import TrinketCore
 struct EffectHandlersTurnTests {
     @Test func `decaying do T ticks use semantic decay rules`() throws {
         for (potency, expectedPotency, removes) in [(4, 2, false), (2, 1, false), (1, 0, true)] {
-            var battle = EffectHandlersTestSupport.makeBattle()
+            var battle = BattleStateTestFactory.makeBattle()
             let burn = ActiveEffect(id: 1, effect: .burn(potency), remainingTurns: 0, sourceActorID: "hero")
             let outcome = EffectHandlersTestSupport.dispatchTick(burn, target: battle.enemy, battle: &battle)
             try #expect(outcome.events.count == (removes ? 0 : 1))
@@ -14,7 +14,7 @@ struct EffectHandlersTurnTests {
             try #expect(outcome.removeAfter == removes)
         }
 
-        var poisonBattle = EffectHandlersTestSupport.makeBattle()
+        var poisonBattle = BattleStateTestFactory.makeBattle()
         let poison = ActiveEffect(id: 1, effect: .poison(8), remainingTurns: 0, sourceActorID: "hero")
         let poisonOutcome = EffectHandlersTestSupport.dispatchTick(poison, target: poisonBattle.enemy, battle: &poisonBattle)
         try #expect(poisonOutcome.events.count == 1)
@@ -22,7 +22,7 @@ struct EffectHandlersTurnTests {
         try #expect(!(poisonOutcome.removeAfter))
 
         for (remainingTurns, expectedTicks, removes) in [(3, 2, false), (1, 0, true)] {
-            var battle = EffectHandlersTestSupport.makeBattle()
+            var battle = BattleStateTestFactory.makeBattle()
             let bleed = ActiveEffect(id: 1, effect: .bleed(3), remainingTurns: remainingTurns, sourceActorID: "hero")
             let outcome = EffectHandlersTestSupport.dispatchTick(bleed, target: battle.enemy, battle: &battle)
             try #expect(outcome.events.count == 1)
@@ -30,7 +30,7 @@ struct EffectHandlersTurnTests {
             try #expect(outcome.removeAfter == removes)
         }
 
-        var expiredBattle = EffectHandlersTestSupport.makeBattle()
+        var expiredBattle = BattleStateTestFactory.makeBattle()
         let expired = ActiveEffect(id: 1, effect: .bleed(3), remainingTurns: 0, sourceActorID: "hero")
         let expiredOutcome = EffectHandlersTestSupport.dispatchTick(expired, target: expiredBattle.enemy, battle: &expiredBattle)
         try #expect(expiredOutcome.events.isEmpty)
@@ -38,7 +38,7 @@ struct EffectHandlersTurnTests {
     }
 
     @Test func `burn decay slow talent slows burn applied by its owner`() throws {
-        var battle = EffectHandlersTestSupport.makeBattle()
+        var battle = BattleStateTestFactory.makeBattle()
         let burn = ActiveEffect(id: 1, effect: .burn(10), remainingTurns: 2, sourceActorID: "hero")
         let baseline = EffectHandlersTestSupport.dispatchTick(burn, target: battle.enemy, battle: &battle)
         try #expect(baseline.updatedStack?.effect.potency == 5)
@@ -63,7 +63,7 @@ struct EffectHandlersTurnTests {
         Effect.shield(.block, 5),
     ])
     func `durationless mitigation ticks leave stacks untouched`(effect: Effect) throws {
-        var battle = EffectHandlersTestSupport.makeBattle()
+        var battle = BattleStateTestFactory.makeBattle()
         let stack = ActiveEffect(id: 1, effect: effect, remainingTurns: 0, sourceActorID: "hero")
         let outcome = EffectHandlersTestSupport.dispatchTick(stack, target: battle.enemy, battle: &battle)
         try #expect(outcome.events.isEmpty)

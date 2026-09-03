@@ -1,23 +1,8 @@
 import BattleEngine
 import TrinketContent
 import TrinketCore
-import TrinketTestSupport
 
 enum EffectHandlersTestSupport {
-    static func makeBattle(
-        hero: Combatant? = nil,
-        companion: Combatant? = nil,
-        enemy: Combatant? = nil,
-        initialGold: Int = 0,
-    ) -> BattleState {
-        BattleStateTestFactory.makeBattle(
-            hero: hero ?? CombatantFixtures.passiveHero(),
-            companion: companion ?? CombatantFixtures.passiveCompanion(),
-            enemy: enemy ?? CombatantFixtures.passiveEnemy(),
-            initialGold: initialGold,
-        )
-    }
-
     static func dispatch(
         _ effect: Effect,
         ability: Ability = Ability(id: "test", name: "Test", tier: .basic),

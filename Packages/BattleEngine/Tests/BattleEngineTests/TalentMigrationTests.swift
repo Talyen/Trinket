@@ -1,6 +1,7 @@
 import Testing
 import TrinketContent
 import TrinketCore
+import TrinketTestSupport
 @testable import BattleEngine
 
 // swiftlint:disable file_length - migration suite exceeds 550
@@ -11,7 +12,7 @@ struct TalentMigrationTests {
         companionTriggers: CombatTraitTriggers = CombatTraitTriggers(),
         heroAbilities: [Ability] = [.slash],
         initialGold: Int = 0,
-        seed: UInt64 = BattleTestFixtures.deterministicNonCriticalSeed,
+        seed: UInt64 = CombatantFixtures.deterministicBattleSeed,
     ) -> BattleState {
         BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: heroAbilities,

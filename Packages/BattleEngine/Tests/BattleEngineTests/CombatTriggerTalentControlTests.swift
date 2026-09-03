@@ -40,9 +40,9 @@ struct CombatTriggerTalentControlTests { // swiftlint:disable:this type_body_len
 
     @Test func `seismic roar stuns enemy when companion drops below half`() {
         var battle = BattleStateTestFactory.makeBattle(
-            hero: BattleTestFixtures.passiveHero(maxHealth: 50),
-            companion: BattleTestFixtures.passiveCompanion(maxHealth: 20),
-            enemy: BattleTestFixtures.silentEnemy(maxHealth: 100),
+            hero: CombatantFixtures.passiveHero(maxHealth: 50),
+            companion: CombatantFixtures.passiveCompanion(maxHealth: 20),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             companionModifiers: .init(triggers: CombatTraitTriggers(
                 control: ControlTriggers(
                     onceBelowHealthPercentStunAllEnemies: true,
@@ -60,9 +60,9 @@ struct CombatTriggerTalentControlTests { // swiftlint:disable:this type_body_len
 
     @Test func `paralysis stuns enemy with enough poison`() {
         var battle = BattleStateTestFactory.makeBattle(
-            hero: BattleTestFixtures.passiveHero(),
-            companion: BattleTestFixtures.passiveCompanion(),
-            enemy: BattleTestFixtures.silentEnemy(maxHealth: 100),
+            hero: CombatantFixtures.passiveHero(),
+            companion: CombatantFixtures.passiveCompanion(),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             companionModifiers: .init(triggers: CombatTraitTriggers(
                 dot: DotTriggers(poisonStunChancePercent: 1.0, poisonThresholdStunAmount: 6),
             )),
@@ -82,9 +82,9 @@ struct CombatTriggerTalentControlTests { // swiftlint:disable:this type_body_len
 
     @Test func `paralysis zero chance falls back to guaranteed for legacy saves`() {
         var battle = BattleStateTestFactory.makeBattle(
-            hero: BattleTestFixtures.passiveHero(),
-            companion: BattleTestFixtures.passiveCompanion(),
-            enemy: BattleTestFixtures.silentEnemy(maxHealth: 100),
+            hero: CombatantFixtures.passiveHero(),
+            companion: CombatantFixtures.passiveCompanion(),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             companionModifiers: .init(triggers: CombatTraitTriggers(
                 dot: DotTriggers(poisonStunChancePercent: 0, poisonThresholdStunAmount: 6),
             )),
@@ -99,9 +99,9 @@ struct CombatTriggerTalentControlTests { // swiftlint:disable:this type_body_len
 
     @Test func `paralysis respects seed and once per turn guard`() {
         var hitBattle = BattleStateTestFactory.makeBattle(
-            hero: BattleTestFixtures.passiveHero(),
-            companion: BattleTestFixtures.passiveCompanion(),
-            enemy: BattleTestFixtures.silentEnemy(maxHealth: 100),
+            hero: CombatantFixtures.passiveHero(),
+            companion: CombatantFixtures.passiveCompanion(),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             companionModifiers: .init(triggers: CombatTraitTriggers(
                 dot: DotTriggers(poisonStunChancePercent: 0.40, poisonThresholdStunAmount: 6),
             )),
@@ -121,9 +121,9 @@ struct CombatTriggerTalentControlTests { // swiftlint:disable:this type_body_len
         )
 
         var missBattle = BattleStateTestFactory.makeBattle(
-            hero: BattleTestFixtures.passiveHero(),
-            companion: BattleTestFixtures.passiveCompanion(),
-            enemy: BattleTestFixtures.silentEnemy(maxHealth: 100),
+            hero: CombatantFixtures.passiveHero(),
+            companion: CombatantFixtures.passiveCompanion(),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             companionModifiers: .init(triggers: CombatTraitTriggers(
                 dot: DotTriggers(poisonStunChancePercent: 0.40, poisonThresholdStunAmount: 6),
             )),
@@ -138,9 +138,9 @@ struct CombatTriggerTalentControlTests { // swiftlint:disable:this type_body_len
 
     @Test func `paralysis turn guard resets next turn`() {
         var battle = BattleStateTestFactory.makeBattle(
-            hero: BattleTestFixtures.passiveHero(),
-            companion: BattleTestFixtures.passiveCompanion(),
-            enemy: BattleTestFixtures.silentEnemy(maxHealth: 100),
+            hero: CombatantFixtures.passiveHero(),
+            companion: CombatantFixtures.passiveCompanion(),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             companionModifiers: .init(triggers: CombatTraitTriggers(
                 dot: DotTriggers(poisonStunChancePercent: 1.0, poisonThresholdStunAmount: 6),
             )),
@@ -165,9 +165,9 @@ struct CombatTriggerTalentControlTests { // swiftlint:disable:this type_body_len
 
     @Test func `venomous skin poisons attacker`() {
         var battle = BattleStateTestFactory.makeBattle(
-            hero: BattleTestFixtures.passiveHero(maxHealth: 50),
-            companion: BattleTestFixtures.passiveCompanion(maxHealth: 20),
-            enemy: BattleTestFixtures.silentEnemy(maxHealth: 100),
+            hero: CombatantFixtures.passiveHero(maxHealth: 50),
+            companion: CombatantFixtures.passiveCompanion(maxHealth: 20),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             companionModifiers: .init(triggers: CombatTraitTriggers(
                 onHit: OnHitTriggers(onHitAttackerPoison: 1),
             )),
@@ -219,9 +219,9 @@ struct CombatTriggerTalentControlTests { // swiftlint:disable:this type_body_len
     @Test func `pinning strike and paralytic poison require living owner`() {
         func bleedBattle(heroAlive: Bool) -> BattleState {
             var battle = BattleStateTestFactory.makeBattle(
-                hero: BattleTestFixtures.passiveHero(maxHealth: 50),
-                companion: BattleTestFixtures.passiveCompanion(maxHealth: 20),
-                enemy: BattleTestFixtures.silentEnemy(maxHealth: 40),
+                hero: CombatantFixtures.passiveHero(maxHealth: 50),
+                companion: CombatantFixtures.passiveCompanion(maxHealth: 20),
+                enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
                 activeEnemyEffects: [ActiveEffect(id: 1, effect: .bleed(2), remainingTurns: 0)],
                 heroModifiers: .init(triggers: CombatTraitTriggers(
                     mitigation: MitigationTriggers(bleedingEnemyAttackDealDamage: 5),
@@ -244,9 +244,9 @@ struct CombatTriggerTalentControlTests { // swiftlint:disable:this type_body_len
 
         func poisonBattle(heroAlive: Bool) -> BattleState {
             var battle = BattleStateTestFactory.makeBattle(
-                hero: BattleTestFixtures.passiveHero(maxHealth: 50),
-                companion: BattleTestFixtures.passiveCompanion(maxHealth: 20),
-                enemy: BattleTestFixtures.silentEnemy(maxHealth: 40),
+                hero: CombatantFixtures.passiveHero(maxHealth: 50),
+                companion: CombatantFixtures.passiveCompanion(maxHealth: 20),
+                enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
                 activeEnemyEffects: [ActiveEffect(id: 1, effect: .poison(2), remainingTurns: 0)],
                 heroModifiers: .init(triggers: CombatTraitTriggers(
                     mitigation: MitigationTriggers(poisonedEnemyMissChancePercent: 1),
@@ -269,9 +269,9 @@ struct CombatTriggerTalentControlTests { // swiftlint:disable:this type_body_len
     @Test func `frozen cannot block aura requires living owner`() {
         func makeBattle() -> BattleState {
             var battle = BattleStateTestFactory.makeBattle(
-                hero: BattleTestFixtures.passiveHero(),
-                companion: BattleTestFixtures.passiveCompanion(),
-                enemy: BattleTestFixtures.silentEnemy(maxHealth: 40),
+                hero: CombatantFixtures.passiveHero(),
+                companion: CombatantFixtures.passiveCompanion(),
+                enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
                 companionModifiers: .init(triggers: CombatTraitTriggers(
                     control: ControlTriggers(frozenEnemyCannotBlockOrHeal: true),
                 )),
@@ -316,9 +316,9 @@ struct CombatTriggerTalentControlTests { // swiftlint:disable:this type_body_len
         }
 
         var companionSpend = BattleStateTestFactory.makeBattle(
-            hero: BattleTestFixtures.passiveHero(maxHealth: 50),
-            companion: BattleTestFixtures.passiveCompanion(maxHealth: 20),
-            enemy: BattleTestFixtures.silentEnemy(maxHealth: 100),
+            hero: CombatantFixtures.passiveHero(maxHealth: 50),
+            companion: CombatantFixtures.passiveCompanion(maxHealth: 20),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             companionModifiers: .init(triggers: CombatTraitTriggers(
                 mana: ManaTriggers(onHeroSpendManaApplyRandomAffliction: true),
             )),
@@ -332,9 +332,9 @@ struct CombatTriggerTalentControlTests { // swiftlint:disable:this type_body_len
         #expect(!enemyIsAfflicted(companionSpend))
 
         var heroSpend = BattleStateTestFactory.makeBattle(
-            hero: BattleTestFixtures.passiveHero(maxHealth: 50),
-            companion: BattleTestFixtures.passiveCompanion(maxHealth: 20),
-            enemy: BattleTestFixtures.silentEnemy(maxHealth: 100),
+            hero: CombatantFixtures.passiveHero(maxHealth: 50),
+            companion: CombatantFixtures.passiveCompanion(maxHealth: 20),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             heroModifiers: .init(triggers: CombatTraitTriggers(
                 mana: ManaTriggers(onHeroSpendManaApplyRandomAffliction: true),
             )),
@@ -350,9 +350,9 @@ struct CombatTriggerTalentControlTests { // swiftlint:disable:this type_body_len
 
     @Test func `spit poison applies from companion when hero attacks poisoned enemy`() {
         var battle = BattleStateTestFactory.makeBattle(
-            hero: BattleTestFixtures.passiveHero(maxHealth: 50),
-            companion: BattleTestFixtures.passiveCompanion(maxHealth: 20),
-            enemy: BattleTestFixtures.silentEnemy(maxHealth: 100),
+            hero: CombatantFixtures.passiveHero(maxHealth: 50),
+            companion: CombatantFixtures.passiveCompanion(maxHealth: 20),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             companionModifiers: .init(triggers: CombatTraitTriggers(
                 attack: AttackTriggers(onHeroAttackPoisonedEnemyApplyPoison: 1),
             )),
@@ -388,9 +388,9 @@ struct CombatTriggerTalentControlTests { // swiftlint:disable:this type_body_len
             block: BlockTriggers(onAnyHealthLossGainBlock: 1),
         ))
         var dotBattle = BattleStateTestFactory.makeBattle(
-            hero: BattleTestFixtures.passiveHero(),
-            companion: BattleTestFixtures.passiveCompanion(),
-            enemy: BattleTestFixtures.silentEnemy(maxHealth: 40),
+            hero: CombatantFixtures.passiveHero(),
+            companion: CombatantFixtures.passiveCompanion(),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
             heroModifiers: harvest,
             dealOpeningHand: false,
         )
@@ -406,9 +406,9 @@ struct CombatTriggerTalentControlTests { // swiftlint:disable:this type_body_len
         ) == 0)
 
         var hitBattle = BattleStateTestFactory.makeBattle(
-            hero: BattleTestFixtures.passiveHero(),
-            companion: BattleTestFixtures.passiveCompanion(),
-            enemy: BattleTestFixtures.silentEnemy(maxHealth: 40),
+            hero: CombatantFixtures.passiveHero(),
+            companion: CombatantFixtures.passiveCompanion(),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
             heroModifiers: harvest,
             dealOpeningHand: false,
         )
@@ -431,9 +431,9 @@ struct CombatTriggerTalentControlTests { // swiftlint:disable:this type_body_len
         ) == 1)
 
         var retaliation = BattleStateTestFactory.makeBattle(
-            hero: BattleTestFixtures.passiveHero(),
-            companion: BattleTestFixtures.passiveCompanion(),
-            enemy: BattleTestFixtures.silentEnemy(maxHealth: 40),
+            hero: CombatantFixtures.passiveHero(),
+            companion: CombatantFixtures.passiveCompanion(),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
             heroModifiers: harvest,
             dealOpeningHand: false,
         )

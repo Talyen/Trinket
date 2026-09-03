@@ -13,7 +13,7 @@ public enum ItemFixtures {
         return base
     }
 
-    public static func makeItem(
+    public static func makeBareItem(
         _ baseID: String,
         id: String? = nil,
         rarity: Rarity = .basic,
@@ -22,7 +22,7 @@ public enum ItemFixtures {
     ) throws -> InventoryItem {
         let base = try baseType(baseID)
         return InventoryItem(
-            id: id ?? base.id,
+            id: id ?? "\(base.id)-test",
             baseType: base,
             rarity: rarity,
             displayName: base.name,

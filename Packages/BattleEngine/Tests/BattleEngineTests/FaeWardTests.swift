@@ -14,9 +14,9 @@ struct FaeWardTests {
         enemyModifiers: CombatModifierProfile = .zero,
     ) -> BattleState {
         BattleStateTestFactory.makeBattle(
-            hero: BattleTestFixtures.passiveHero(maxHealth: 50),
-            companion: BattleTestFixtures.passiveCompanion(maxHealth: 20),
-            enemy: BattleTestFixtures.silentEnemy(maxHealth: 100),
+            hero: CombatantFixtures.passiveHero(maxHealth: 50),
+            companion: CombatantFixtures.passiveCompanion(maxHealth: 20),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             heroModifiers: heroModifiers,
             enemyModifiers: enemyModifiers,
             dealOpeningHand: false,

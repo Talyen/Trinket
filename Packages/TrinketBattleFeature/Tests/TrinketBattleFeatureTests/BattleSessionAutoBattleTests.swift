@@ -273,7 +273,7 @@ struct BattleSessionAutoBattleTests {
 
         session.endBattle()
         let (nextConfiguration, _) = BattleRunConfigurationTestSupport.make(
-            rngSeed: BattleSessionTestSupport.deterministicBattleSeed &+ 1,
+            rngSeed: CombatantFixtures.deterministicBattleSeed &+ 1,
             hero: firstConfiguration.hero.combatant,
             companion: firstConfiguration.companion.combatant,
             enemy: firstConfiguration.enemy,
@@ -300,7 +300,7 @@ struct BattleSessionAutoBattleTests {
 
         session.endBattle()
         let (nextConfiguration, _) = BattleRunConfigurationTestSupport.make(
-            rngSeed: BattleSessionTestSupport.deterministicBattleSeed &+ 2,
+            rngSeed: CombatantFixtures.deterministicBattleSeed &+ 2,
             hero: CombatantFixtures.combatant(
                 id: "hero",
                 role: .hero,

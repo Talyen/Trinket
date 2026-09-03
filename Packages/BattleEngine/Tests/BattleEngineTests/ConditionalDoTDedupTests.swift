@@ -17,7 +17,7 @@ struct ConditionalDoTDedupTests {
             hero: hero,
             companion: companion,
             enemy: enemy,
-            rngSeed: BattleTestFixtures.deterministicNonCriticalSeed,
+            rngSeed: CombatantFixtures.deterministicBattleSeed,
             dealOpeningHand: false,
         )
         let startingHealth = context.roster.health(for: enemy)

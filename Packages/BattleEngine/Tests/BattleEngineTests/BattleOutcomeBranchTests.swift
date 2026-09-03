@@ -2,13 +2,14 @@ import BattleEngine
 import Testing
 import TrinketContent
 import TrinketCore
+import TrinketTestSupport
 
 struct BattleOutcomeBranchTests {
     private func makeBattle(
         heroAbilities: [Ability],
         companionAbilities: [Ability] = [],
         enemyMaxHealth: Int = 500,
-        rngSeed: UInt64 = BattleTestFixtures.deterministicNonCriticalSeed,
+        rngSeed: UInt64 = CombatantFixtures.deterministicBattleSeed,
     ) -> BattleState {
         BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: heroAbilities,
@@ -22,7 +23,7 @@ struct BattleOutcomeBranchTests {
         heroAbilities: [Ability],
         companionAbilities: [Ability],
         abilityNamed name: String,
-        rngSeed: UInt64 = BattleTestFixtures.deterministicNonCriticalSeed,
+        rngSeed: UInt64 = CombatantFixtures.deterministicBattleSeed,
     ) throws -> (battle: BattleState, events: [ActionEvent]) {
         var battle = makeBattle(
             heroAbilities: heroAbilities,

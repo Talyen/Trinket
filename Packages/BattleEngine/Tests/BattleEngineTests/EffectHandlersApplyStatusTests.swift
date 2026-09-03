@@ -19,7 +19,7 @@ struct EffectHandlersApplyStatusTests {
         .randomOneOfTwo,
     ])
     private func `cleanse modes remove expected debuffs`(caseKind: CleanseCase) throws {
-        var battle = EffectHandlersTestSupport.makeBattle()
+        var battle = BattleStateTestFactory.makeBattle()
         let effect = seedCleanseCase(caseKind, battle: &battle)
 
         let outcome = EffectHandlersTestSupport.dispatch(
@@ -111,7 +111,7 @@ struct EffectHandlersApplyStatusTests {
         .randomOneOfTwo,
     ])
     private func `purge modes remove expected buffs`(caseKind: PurgeCase) throws {
-        var battle = EffectHandlersTestSupport.makeBattle()
+        var battle = BattleStateTestFactory.makeBattle()
         let effect = seedPurgeCase(caseKind, battle: &battle)
 
         let outcome = EffectHandlersTestSupport.dispatch(

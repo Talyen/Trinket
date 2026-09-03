@@ -5,11 +5,11 @@ import TrinketCore
 struct CombatantEquipmentTests {
     @Test func `companion slots accept accessory and trinkets but not armor or weapons`() throws {
         let bear = try #require(GameContent.companions.first { $0.id == "bear" })
-        let ring = try ItemFixtures.makeItem("ruby_ring", id: "ring-a")
-        let armor = try ItemFixtures.makeItem("leather_armor", id: "armor-a")
-        let sword = try ItemFixtures.makeItem("longsword", id: "sword-a")
+        let ring = try ItemFixtures.makeBareItem("ruby_ring", id: "ring-a")
+        let armor = try ItemFixtures.makeBareItem("leather_armor", id: "armor-a")
+        let sword = try ItemFixtures.makeBareItem("longsword", id: "sword-a")
         let trinketBase = try #require(GameContent.itemBaseTypes.first { $0.slot == .trinket })
-        let trinket = try ItemFixtures.makeItem(trinketBase.id, rarity: .astral)
+        let trinket = try ItemFixtures.makeBareItem(trinketBase.id, rarity: .astral)
         let loadout = EquipmentLoadout(itemIDsBySlot: [
             .accessory: ring.id,
             .trinket: trinket.id,
@@ -31,9 +31,9 @@ struct CombatantEquipmentTests {
         let trinketBases = GameContent.itemBaseTypes.filter { $0.slot == .trinket }
         let firstBase = try #require(trinketBases.first)
         let secondBase = try #require(trinketBases.dropFirst().first)
-        let charmA = try ItemFixtures.makeItem(firstBase.id, id: "charm-a")
-        let charmACopy = try ItemFixtures.makeItem(firstBase.id, id: "charm-a-copy")
-        let charmOther = try ItemFixtures.makeItem(secondBase.id, id: "charm-other")
+        let charmA = try ItemFixtures.makeBareItem(firstBase.id, id: "charm-a")
+        let charmACopy = try ItemFixtures.makeBareItem(firstBase.id, id: "charm-a-copy")
+        let charmOther = try ItemFixtures.makeBareItem(secondBase.id, id: "charm-other")
         let inventory = [charmA, charmACopy, charmOther]
 
         let sanitized = EquipmentLoadout(itemIDsBySlot: [
@@ -55,7 +55,7 @@ struct CombatantEquipmentTests {
 
     @Test func `sanitized drops duplicate item across accessory slots`() throws {
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let ring = try ItemFixtures.makeItem("ruby_ring", id: "ring-a", rarity: .basic)
+        let ring = try ItemFixtures.makeBareItem("ruby_ring", id: "ring-a", rarity: .basic)
         let loadout = EquipmentLoadout(itemIDsBySlot: [
             .accessory: ring.id,
             .secondaryAccessory: ring.id,
@@ -68,7 +68,7 @@ struct CombatantEquipmentTests {
     }
 
     @Test func `equip moves item between hero accessory slots`() throws {
-        let ring = try ItemFixtures.makeItem("ruby_ring", id: "ring-a", rarity: .basic)
+        let ring = try ItemFixtures.makeBareItem("ruby_ring", id: "ring-a", rarity: .basic)
         var loadout = EquipmentLoadout()
         loadout.equip(ring, in: .accessory, inventory: [ring])
         loadout.equip(ring, in: .secondaryAccessory, inventory: [ring])
@@ -79,9 +79,9 @@ struct CombatantEquipmentTests {
 
     @Test func `hero secondary slots accept family items`() throws {
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let sword = try ItemFixtures.makeItem("longsword", id: "sword-a")
-        let shield = try ItemFixtures.makeItem("kite_shield", id: "shield-a")
-        let ring = try ItemFixtures.makeItem("ruby_ring", id: "ring-a")
+        let sword = try ItemFixtures.makeBareItem("longsword", id: "sword-a")
+        let shield = try ItemFixtures.makeBareItem("kite_shield", id: "shield-a")
+        let ring = try ItemFixtures.makeBareItem("ruby_ring", id: "ring-a")
 
         let sanitized = EquipmentLoadout(itemIDsBySlot: [
             .weapon: "sword-a",
@@ -96,8 +96,8 @@ struct CombatantEquipmentTests {
 
     @Test func `off hands only equip in secondary weapon slot`() throws {
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let shieldA = try ItemFixtures.makeItem("kite_shield", id: "shield-a", rarity: .basic)
-        let shieldB = try ItemFixtures.makeItem("kite_shield", id: "shield-b")
+        let shieldA = try ItemFixtures.makeBareItem("kite_shield", id: "shield-a", rarity: .basic)
+        let shieldB = try ItemFixtures.makeBareItem("kite_shield", id: "shield-b")
 
         let sanitized = EquipmentLoadout(itemIDsBySlot: [
             .weapon: "shield-a",
@@ -110,8 +110,8 @@ struct CombatantEquipmentTests {
 
     @Test func `two handed weapon unequips and disables secondary weapon slot`() throws {
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let maul = try ItemFixtures.makeItem("maul", id: "maul-a")
-        let sword = try ItemFixtures.makeItem("longsword", id: "sword-a")
+        let maul = try ItemFixtures.makeBareItem("maul", id: "maul-a")
+        let sword = try ItemFixtures.makeBareItem("longsword", id: "sword-a")
         let inventory = [maul, sword]
         var loadout = EquipmentLoadout()
         loadout.equip(sword, in: .secondaryWeapon, inventory: inventory)
@@ -132,12 +132,12 @@ struct CombatantEquipmentTests {
     }
 
     @Test func `ranged two hander allows quiver but blocks shields`() throws {
-        let crossbow = try ItemFixtures.makeItem("crossbow", id: "crossbow-a")
-        let quiver = try ItemFixtures.makeItem("quiver", id: "quiver-a")
-        let shield = try ItemFixtures.makeItem("kite_shield", id: "shield-a")
-        let buckler = try ItemFixtures.makeItem("leather_buckler", id: "buckler-a")
-        let spellbook = try ItemFixtures.makeItem("spellbook", id: "spellbook-a")
-        let sword = try ItemFixtures.makeItem("longsword", id: "sword-a")
+        let crossbow = try ItemFixtures.makeBareItem("crossbow", id: "crossbow-a")
+        let quiver = try ItemFixtures.makeBareItem("quiver", id: "quiver-a")
+        let shield = try ItemFixtures.makeBareItem("kite_shield", id: "shield-a")
+        let buckler = try ItemFixtures.makeBareItem("leather_buckler", id: "buckler-a")
+        let spellbook = try ItemFixtures.makeBareItem("spellbook", id: "spellbook-a")
+        let sword = try ItemFixtures.makeBareItem("longsword", id: "sword-a")
         var loadout = EquipmentLoadout()
         loadout.equip(crossbow, in: .weapon, inventory: [crossbow, quiver, shield, buckler, spellbook, sword])
 
@@ -149,12 +149,12 @@ struct CombatantEquipmentTests {
 
         loadout.equip(quiver, in: .secondaryWeapon, inventory: [crossbow, quiver, shield, buckler, spellbook, sword])
         try #expect(loadout.itemID(for: .secondaryWeapon) == quiver.id)
-        let longbow = try ItemFixtures.makeItem("longbow", id: "longbow-a")
+        let longbow = try ItemFixtures.makeBareItem("longbow", id: "longbow-a")
         var loadout2 = EquipmentLoadout(itemIDsBySlot: [.weapon: crossbow.id, .secondaryWeapon: quiver.id])
         loadout2.equip(longbow, in: .weapon, inventory: [crossbow, longbow, quiver])
         try #expect(loadout2.itemID(for: .secondaryWeapon) == quiver.id)
         var loadout3 = EquipmentLoadout(itemIDsBySlot: [.weapon: crossbow.id, .secondaryWeapon: quiver.id])
-        let maul = try ItemFixtures.makeItem("maul", id: "maul-a")
+        let maul = try ItemFixtures.makeBareItem("maul", id: "maul-a")
         loadout3.equip(maul, in: .weapon, inventory: [crossbow, maul, quiver])
         try #expect(loadout3.itemID(for: .weapon) == crossbow.id)
         try #expect(loadout3.itemID(for: .secondaryWeapon) == quiver.id)
@@ -165,9 +165,9 @@ struct CombatantEquipmentTests {
     }
 
     @Test func `quiver requires ranged primary and blocks melee main hand`() throws {
-        let quiver = try ItemFixtures.makeItem("quiver", id: "quiver-a")
-        let crossbow = try ItemFixtures.makeItem("crossbow", id: "crossbow-a")
-        let sword = try ItemFixtures.makeItem("longsword", id: "sword-a")
+        let quiver = try ItemFixtures.makeBareItem("quiver", id: "quiver-a")
+        let crossbow = try ItemFixtures.makeBareItem("crossbow", id: "crossbow-a")
+        let sword = try ItemFixtures.makeBareItem("longsword", id: "sword-a")
         var loadout = EquipmentLoadout()
         try #expect(!loadout.canEquip(quiver, in: .secondaryWeapon, inventory: [quiver, crossbow]))
         loadout.equip(sword, in: .weapon, inventory: [sword, quiver])
@@ -180,8 +180,8 @@ struct CombatantEquipmentTests {
     }
 
     @Test func `one handed items move or dual wield across weapon slots`() throws {
-        let swordA = try ItemFixtures.makeItem("longsword", id: "sword-a", rarity: .basic)
-        let swordB = try ItemFixtures.makeItem("longsword", id: "sword-b")
+        let swordA = try ItemFixtures.makeBareItem("longsword", id: "sword-a", rarity: .basic)
+        let swordB = try ItemFixtures.makeBareItem("longsword", id: "sword-b")
         let inventory = [swordA, swordB]
         var loadout = EquipmentLoadout()
         loadout.equip(swordA, in: .weapon, inventory: inventory)

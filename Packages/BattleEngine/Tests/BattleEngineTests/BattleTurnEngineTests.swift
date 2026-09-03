@@ -7,7 +7,7 @@ import TrinketTestSupport
 struct BattleTurnEngineTests {
     private func makeContext(
         actorEffects: [ActiveEffect] = [],
-        seed: UInt64 = BattleTestFixtures.deterministicNonCriticalSeed,
+        seed: UInt64 = CombatantFixtures.deterministicBattleSeed,
     ) -> BattleState {
         let hero = CombatantFixtures.combatant(
             id: "hero",
@@ -144,7 +144,7 @@ struct BattleTurnEngineTests {
             companion: companion,
             enemy: enemy,
             heroEffects: [ActiveEffect(id: 1, effect: .nextStrikeDouble, remainingTurns: 0)],
-            seed: BattleTestFixtures.deterministicNonCriticalSeed,
+            seed: CombatantFixtures.deterministicBattleSeed,
             nextEffectID: 2,
             nextEventID: 0,
         )
@@ -185,7 +185,7 @@ struct BattleTurnEngineTests {
             hero: hero,
             companion: companion,
             enemy: enemy,
-            seed: BattleTestFixtures.deterministicNonCriticalSeed,
+            seed: CombatantFixtures.deterministicBattleSeed,
             nextEventID: 0,
         )
         let events = BattleTurnEngine.performAction(
@@ -222,7 +222,7 @@ struct BattleTurnEngineTests {
             enemyEffects: [
                 ActiveEffect(id: 1, effect: .shield(.block, 1), remainingTurns: 2),
             ],
-            seed: BattleTestFixtures.deterministicNonCriticalSeed,
+            seed: CombatantFixtures.deterministicBattleSeed,
             nextEventID: 0,
         )
         let events = BattleTurnEngine.performAction(
@@ -328,7 +328,7 @@ struct BattleTurnEngineBurnBonusTests {
             companion: companion,
             enemy: enemy,
             heroEffects: [ActiveEffect(id: 1, effect: .nextBurnBonus(1), remainingTurns: 0)],
-            seed: BattleTestFixtures.deterministicNonCriticalSeed,
+            seed: CombatantFixtures.deterministicBattleSeed,
             nextEffectID: 2,
             nextEventID: 0,
         )
@@ -367,7 +367,7 @@ struct BattleTurnEngineBurnBonusTests {
             companion: companion,
             enemy: enemy,
             heroEffects: [ActiveEffect(id: 1, effect: .nextBurnBonus(1), remainingTurns: 0)],
-            seed: BattleTestFixtures.deterministicNonCriticalSeed,
+            seed: CombatantFixtures.deterministicBattleSeed,
             nextEffectID: 2,
             nextEventID: 0,
         )
@@ -397,7 +397,7 @@ struct BattleTurnEngineBurnBonusTests {
             hero: hero,
             companion: companion,
             enemy: enemy,
-            seed: BattleTestFixtures.deterministicNonCriticalSeed,
+            seed: CombatantFixtures.deterministicBattleSeed,
             nextEffectID: 1,
             nextEventID: 0,
         )
@@ -429,7 +429,7 @@ struct BattleTurnEngineBurnBonusTests {
             companion: companion,
             enemy: enemy,
             heroEffects: [ActiveEffect(id: 1, effect: .nextBurnBonus(1), remainingTurns: 0)],
-            seed: BattleTestFixtures.deterministicNonCriticalSeed,
+            seed: CombatantFixtures.deterministicBattleSeed,
             nextEffectID: 2,
             nextEventID: 0,
         )
@@ -468,7 +468,7 @@ struct BattleTurnEngineComponentTests {
             companion: companion,
             enemy: enemy,
             heroEffects: [ActiveEffect(id: 1, effect: .nextHolyStrike, remainingTurns: 0)],
-            seed: BattleTestFixtures.deterministicNonCriticalSeed,
+            seed: CombatantFixtures.deterministicBattleSeed,
             nextEffectID: 2,
             nextEventID: 0,
         )
@@ -505,7 +505,7 @@ struct BattleTurnEngineComponentTests {
             hero: hero,
             companion: companion,
             enemy: enemy,
-            seed: BattleTestFixtures.deterministicNonCriticalSeed,
+            seed: CombatantFixtures.deterministicBattleSeed,
             nextEventID: 0,
         )
 

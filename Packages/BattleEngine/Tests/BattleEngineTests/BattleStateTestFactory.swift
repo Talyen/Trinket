@@ -1,11 +1,12 @@
 import TrinketContent
 import TrinketCore
+import TrinketTestSupport
 @testable import BattleEngine
 
 enum BattleStateTestFactory {
     static func makeBattle(
-        hero: Combatant,
-        companion: Combatant,
+        hero: Combatant? = nil,
+        companion: Combatant? = nil,
         enemy: Combatant? = nil,
         activeEnemyEffects: [ActiveEffect] = [],
         activeHeroEffects: [ActiveEffect] = [],
@@ -15,14 +16,14 @@ enum BattleStateTestFactory {
         companionModifiers: CombatModifierProfile = .zero,
         enemyModifiers: CombatModifierProfile = .zero,
         enemyFaction: EnemyFaction = .mortal,
-        rngSeed: UInt64 = BattleTestFixtures.deterministicNonCriticalSeed,
+        rngSeed: UInt64 = CombatantFixtures.deterministicBattleSeed,
         tracksLog: Bool = false,
         tracksEvents: Bool = true,
         dealOpeningHand: Bool = true,
     ) -> BattleState {
         BattleState(
-            hero: hero,
-            companion: companion,
+            hero: hero ?? CombatantFixtures.passiveHero(),
+            companion: companion ?? CombatantFixtures.passiveCompanion(),
             enemy: enemy,
             activeEnemyEffects: activeEnemyEffects,
             activeHeroEffects: activeHeroEffects,
@@ -55,8 +56,8 @@ enum BattleStateTestFactory {
         heroAbilities: [Ability] = [],
         companionAbilities: [Ability] = [],
         enemyAbilities: [Ability] = [],
-        heroMaxHealth: Int = 50,
-        companionMaxHealth: Int = 50,
+        heroMaxHealth: Int = 20,
+        companionMaxHealth: Int = 20,
         enemyMaxHealth: Int = 100,
         heroMaxMana: Int = 0,
         heroMana: Int? = nil,
@@ -65,29 +66,26 @@ enum BattleStateTestFactory {
         initialGold: Int = 0,
         heroModifiers: CombatModifierProfile = .zero,
         companionModifiers: CombatModifierProfile = .zero,
-        rngSeed: UInt64 = BattleTestFixtures.deterministicNonCriticalSeed,
+        rngSeed: UInt64 = CombatantFixtures.deterministicBattleSeed,
         tracksLog: Bool = false,
         dealOpeningHand: Bool = true,
     ) -> BattleState {
-        let hero = Combatant(
+        let hero = CombatantFixtures.combatant(
             id: "hero",
-            name: "Hero",
             role: .hero,
             maxHealth: heroMaxHealth,
             maxMana: heroMaxMana,
             abilities: heroAbilities,
         )
-        let companion = Combatant(
+        let companion = CombatantFixtures.combatant(
             id: "companion",
-            name: "Companion",
             role: .companion,
             maxHealth: companionMaxHealth,
             maxMana: companionMaxMana,
             abilities: companionAbilities,
         )
-        let enemy = Combatant(
+        let enemy = CombatantFixtures.combatant(
             id: "enemy",
-            name: "Enemy",
             role: .enemy,
             maxHealth: enemyMaxHealth,
             abilities: enemyAbilities,
@@ -132,7 +130,7 @@ enum BattleStateTestFactory {
         heroModifiers: CombatModifierProfile = .zero,
         companionModifiers: CombatModifierProfile = .zero,
         enemyModifiers: CombatModifierProfile = .zero,
-        rngSeed: UInt64 = BattleTestFixtures.deterministicNonCriticalSeed,
+        rngSeed: UInt64 = CombatantFixtures.deterministicBattleSeed,
         nextEffectID: Int? = nil,
         nextEventID: Int = 0,
     ) -> BattleState {

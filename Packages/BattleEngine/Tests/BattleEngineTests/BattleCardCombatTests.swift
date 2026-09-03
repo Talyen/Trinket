@@ -12,7 +12,7 @@ struct BattleCardCombatTests {
         enemyMaxHealth: Int = 100,
         heroMaxMana: Int = 0,
         heroMana: Int? = nil,
-        rngSeed: UInt64 = BattleTestFixtures.deterministicNonCriticalSeed,
+        rngSeed: UInt64 = CombatantFixtures.deterministicBattleSeed,
     ) -> BattleState {
         BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: heroAbilities,
@@ -134,7 +134,7 @@ struct BattleCardCombatTests {
         try #expect(battle.hand.count == BattleHand.maxSize)
         try #expect(battle.hand.bufferCount == 1)
         try #expect(events.contains { $0.effectKind == .cardsDrawn && $0.amount == 2 })
-        try #expect(battle.health(of: battle.hero) == 47)
+        try #expect(battle.health(of: battle.hero) == 17)
     }
 
     @Test func `dark pact health cost ignores block`() throws {
@@ -156,7 +156,7 @@ struct BattleCardCombatTests {
 
         _ = try BattleTestFixtures.playCardNamed("Dark Pact", owner: .hero, on: &battle)
 
-        try #expect(battle.health(of: battle.hero) == 47)
+        try #expect(battle.health(of: battle.hero) == 17)
         let shield = battle.activeEffects(of: battle.hero).first {
             if case .shield = $0.effect {
                 return true

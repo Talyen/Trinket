@@ -1,6 +1,7 @@
 import Testing
 import TrinketContent
 import TrinketCore
+import TrinketTestSupport
 @testable import BattleEngine
 
 struct ReactionScopeTests {
@@ -55,11 +56,11 @@ struct ReactionScopeTests {
     }
 
     @Test func `buildup damage invariant holds for blocked hit`() {
-        let hero = BattleTestFixtures.passiveHero(maxHealth: 100)
+        let hero = CombatantFixtures.passiveHero(maxHealth: 100)
         var state = BattleTestFixtures.makeContext(
             hero: hero,
-            companion: BattleTestFixtures.passiveCompanion(),
-            enemy: BattleTestFixtures.passiveEnemy(maxHealth: 100),
+            companion: CombatantFixtures.passiveCompanion(),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
         )
         let target = state.roster.hero.combatant
         state.seedActiveEffects([ActiveEffect(id: 1, effect: .shield(.block, 999), remainingTurns: 2)], for: target)

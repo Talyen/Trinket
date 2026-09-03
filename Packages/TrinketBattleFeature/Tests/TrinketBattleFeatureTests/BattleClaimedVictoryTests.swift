@@ -12,7 +12,7 @@ struct BattleClaimedVictoryTests {
         let session = BattleSession(openingHandDrawStagger: 0, outcomePresentationDelayOverride: 0)
         session.partyCelebrateDelayOverride = .zero
         let (configuration, presentation) = BattleRunConfigurationTestSupport.make(
-            rngSeed: BattleSessionTestSupport.deterministicBattleSeed,
+            rngSeed: CombatantFixtures.deterministicBattleSeed,
             hero: party.hero,
             companion: party.companion,
             enemy: party.enemy,
@@ -38,7 +38,7 @@ struct BattleClaimedVictoryTests {
         let session = BattleSession(openingHandDrawStagger: 0, outcomePresentationDelayOverride: 0)
         session.partyCelebrateDelayOverride = .zero
         let first = BattleRunConfigurationTestSupport.make(
-            rngSeed: BattleSessionTestSupport.deterministicBattleSeed,
+            rngSeed: CombatantFixtures.deterministicBattleSeed,
             hero: party.hero,
             companion: party.companion,
             enemy: party.enemy,
@@ -54,7 +54,7 @@ struct BattleClaimedVictoryTests {
         BattleSessionTestSupport.driveUntilOutcome(session)
 
         let second = BattleRunConfigurationTestSupport.make(
-            rngSeed: BattleSessionTestSupport.deterministicBattleSeed,
+            rngSeed: CombatantFixtures.deterministicBattleSeed,
             hero: party.hero,
             companion: party.companion,
             enemy: party.enemy,

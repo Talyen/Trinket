@@ -7,7 +7,7 @@ enum ItemFixtures {
         try #require(GameContent.itemBaseType(matching: id))
     }
 
-    static func makeItem(
+    static func makeBareItem(
         _ baseID: String,
         id: String? = nil,
         rarity: Rarity = .basic,
@@ -16,7 +16,7 @@ enum ItemFixtures {
     ) throws -> InventoryItem {
         let base = try baseType(baseID)
         return InventoryItem(
-            id: id ?? base.id,
+            id: id ?? "\(base.id)-test",
             baseType: base,
             rarity: rarity,
             displayName: base.name,

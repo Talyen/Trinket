@@ -5,15 +5,13 @@ import TrinketCore
 import TrinketTestSupport
 
 enum BattleTestFixtures {
-    static let deterministicNonCriticalSeed: UInt64 = CombatantFixtures.deterministicBattleSeed
-
     static func makePipelineContext(
         targetMaxHealth: Int = 50,
         targetEffects: [ActiveEffect] = [],
         heroModifiers: CombatModifierProfile = .zero,
         companionModifiers: CombatModifierProfile = .zero,
         enemyModifiers: CombatModifierProfile = .zero,
-        seed: UInt64 = deterministicNonCriticalSeed,
+        seed: UInt64 = CombatantFixtures.deterministicBattleSeed,
     ) -> BattleState {
         BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.combatant(
@@ -29,38 +27,6 @@ enum BattleTestFixtures {
             enemyModifiers: enemyModifiers,
             rngSeed: seed,
         )
-    }
-
-    static func passiveCombatant(
-        id: String,
-        name: String? = nil,
-        role: Combatant.Role,
-        maxHealth: Int = 20,
-        actionIntervalTurns: Int = 100,
-    ) -> Combatant {
-        CombatantFixtures.combatant(
-            id: id,
-            name: name,
-            role: role,
-            maxHealth: maxHealth,
-            actionIntervalTurns: actionIntervalTurns,
-        )
-    }
-
-    static func passiveHero(maxHealth: Int = 20) -> Combatant {
-        CombatantFixtures.passiveHero(maxHealth: maxHealth)
-    }
-
-    static func passiveCompanion(maxHealth: Int = 20) -> Combatant {
-        CombatantFixtures.passiveCompanion(maxHealth: maxHealth)
-    }
-
-    static func passiveEnemy(maxHealth: Int = 100) -> Combatant {
-        CombatantFixtures.passiveEnemy(maxHealth: maxHealth)
-    }
-
-    static func silentEnemy(maxHealth: Int) -> Combatant {
-        CombatantFixtures.passiveEnemy(maxHealth: maxHealth)
     }
 
     static func attackingEnemy(
@@ -88,7 +54,7 @@ enum BattleTestFixtures {
     ) -> BattleState {
         BattleStateTestFactory.makeBattle(
             hero: hero,
-            companion: companion ?? passiveCompanion(),
+            companion: companion ?? CombatantFixtures.passiveCompanion(),
             enemy: enemy,
             activeEnemyEffects: activeEnemyEffects,
             activeHeroEffects: activeHeroEffects,
@@ -103,8 +69,8 @@ enum BattleTestFixtures {
         companion: Combatant? = nil,
         enemy: Combatant? = nil,
     ) -> BattleState {
-        let resolvedHero = hero ?? passiveCombatant(id: "hero", name: "Hero", role: .hero)
-        let resolvedCompanion = companion ?? passiveCompanion()
+        let resolvedHero = hero ?? CombatantFixtures.passiveHero()
+        let resolvedCompanion = companion ?? CombatantFixtures.passiveCompanion()
         let resolvedEnemy = enemy ?? attackingEnemy(abilities: [.slash])
         return standardParty(
             hero: resolvedHero,
@@ -228,10 +194,8 @@ enum BattleTestFixtures {
     ) -> BattleState {
         standardParty(
             hero: hero,
-            companion: passiveCompanion(),
-            enemy: enemy ?? passiveCombatant(
-                id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, actionIntervalTurns: 100,
-            ),
+            companion: CombatantFixtures.passiveCompanion(),
+            enemy: enemy ?? CombatantFixtures.passiveEnemy(),
         )
     }
 
@@ -255,7 +219,7 @@ enum BattleTestFixtures {
         heroModifiers: CombatModifierProfile = .zero,
         companionModifiers: CombatModifierProfile = .zero,
         enemyModifiers: CombatModifierProfile = .zero,
-        seed: UInt64 = Self.deterministicNonCriticalSeed,
+        seed: UInt64 = CombatantFixtures.deterministicBattleSeed,
         nextEffectID: Int? = nil,
         nextEventID: Int = 0,
     ) -> BattleState {

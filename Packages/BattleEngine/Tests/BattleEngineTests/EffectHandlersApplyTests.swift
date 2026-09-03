@@ -36,7 +36,7 @@ struct EffectHandlersApplyTests {
     }
 
     @Test func `burn handler applies burn effect`() throws {
-        var battle = EffectHandlersTestSupport.makeBattle()
+        var battle = BattleStateTestFactory.makeBattle()
         let enemy = battle.enemy
         let outcome = EffectHandlersTestSupport.dispatch(
             .burn(3),
@@ -49,7 +49,7 @@ struct EffectHandlersApplyTests {
     }
 
     @Test func `shield handler applies and emits events`() throws {
-        var battle = EffectHandlersTestSupport.makeBattle()
+        var battle = BattleStateTestFactory.makeBattle()
         let outcome = EffectHandlersTestSupport.dispatch(
             .shield(.block, 5),
             source: battle.hero,
@@ -67,7 +67,7 @@ struct EffectHandlersApplyTests {
     }
 
     @Test func `draw cards handler draws into hand and emits event`() throws {
-        var battle = EffectHandlersTestSupport.makeBattle(
+        var battle = BattleStateTestFactory.makeBattle(
             hero: CombatantFixtures.combatant(
                 id: "hero",
                 role: .hero,
@@ -95,7 +95,7 @@ struct EffectHandlersApplyTests {
     }
 
     @Test func `draw and play cards handler draws and plays hero and companion cards`() throws {
-        var battle = EffectHandlersTestSupport.makeBattle(
+        var battle = BattleStateTestFactory.makeBattle(
             hero: CombatantFixtures.combatant(
                 id: "hero",
                 role: .hero,
@@ -138,7 +138,7 @@ struct EffectHandlersApplyTests {
     }
 
     @Test func `draw and play cards handler plays buffered card when hand is full`() throws {
-        var battle = EffectHandlersTestSupport.makeBattle(
+        var battle = BattleStateTestFactory.makeBattle(
             hero: CombatantFixtures.combatant(
                 id: "hero",
                 role: .hero,
@@ -185,7 +185,7 @@ struct EffectHandlersApplyTests {
     }
 
     @Test func `draw and play cards handler skips stunned owner and plays companion`() throws {
-        var battle = EffectHandlersTestSupport.makeBattle(
+        var battle = BattleStateTestFactory.makeBattle(
             hero: CombatantFixtures.combatant(
                 id: "hero",
                 role: .hero,
@@ -242,7 +242,7 @@ struct EffectHandlersApplyTests {
             tier: .ultimate,
             targetedEffects: [TargetedEffect(.drawAndPlayCards(2))],
         )
-        var battle = EffectHandlersTestSupport.makeBattle(
+        var battle = BattleStateTestFactory.makeBattle(
             hero: CombatantFixtures.combatant(
                 id: "hero",
                 role: .hero,
@@ -281,7 +281,7 @@ struct EffectHandlersApplyTests {
             tier: .ultimate,
             targetedEffects: [TargetedEffect(.drawAndPlayCards(2))],
         )
-        var battle = EffectHandlersTestSupport.makeBattle(
+        var battle = BattleStateTestFactory.makeBattle(
             hero: CombatantFixtures.combatant(
                 id: "hero",
                 role: .hero,
@@ -313,7 +313,7 @@ struct EffectHandlersApplyTests {
     }
 
     @Test func `draw cards handler overflow goes to buffer`() throws {
-        var battle = EffectHandlersTestSupport.makeBattle(
+        var battle = BattleStateTestFactory.makeBattle(
             hero: CombatantFixtures.combatant(
                 id: "hero",
                 role: .hero,
@@ -343,7 +343,7 @@ struct EffectHandlersApplyTests {
     }
 
     @Test func `cleanse without debuffs does not apply`() throws {
-        var battle = EffectHandlersTestSupport.makeBattle()
+        var battle = BattleStateTestFactory.makeBattle()
         let outcome = EffectHandlersTestSupport.dispatch(
             .cleanse(.poison),
             source: battle.hero,
@@ -355,7 +355,7 @@ struct EffectHandlersApplyTests {
     }
 
     @Test func `resource gain handler adds gold`() throws {
-        var battle = EffectHandlersTestSupport.makeBattle(initialGold: 10)
+        var battle = BattleStateTestFactory.makeBattle(initialGold: 10)
         let resourceEffect: Effect = .resourceGain(.gold, 3)
         let outcome = EffectHandlersTestSupport.dispatch(
             resourceEffect,

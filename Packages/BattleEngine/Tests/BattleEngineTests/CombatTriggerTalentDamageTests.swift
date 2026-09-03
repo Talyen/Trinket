@@ -99,9 +99,9 @@ struct CombatTriggerTalentDamageTests {
             damage: DamageTriggers(holyDamageVsUndeadOrCorruptedMultiplier: 2),
         )
         var undead = BattleStateTestFactory.makeBattle(
-            hero: BattleTestFixtures.passiveHero(),
-            companion: BattleTestFixtures.passiveCompanion(),
-            enemy: BattleTestFixtures.silentEnemy(maxHealth: 40),
+            hero: CombatantFixtures.passiveHero(),
+            companion: CombatantFixtures.passiveCompanion(),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
             heroModifiers: .init(triggers: triggers),
             enemyFaction: .undead,
             dealOpeningHand: false,
@@ -116,9 +116,9 @@ struct CombatTriggerTalentDamageTests {
             ),
         )
         var mortal = BattleStateTestFactory.makeBattle(
-            hero: BattleTestFixtures.passiveHero(),
-            companion: BattleTestFixtures.passiveCompanion(),
-            enemy: BattleTestFixtures.silentEnemy(maxHealth: 40),
+            hero: CombatantFixtures.passiveHero(),
+            companion: CombatantFixtures.passiveCompanion(),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
             heroModifiers: .init(triggers: triggers),
             enemyFaction: .mortal,
             dealOpeningHand: false,
@@ -138,9 +138,9 @@ struct CombatTriggerTalentDamageTests {
 
     @Test func `stalker precision caps crit multiplier`() {
         var battle = BattleStateTestFactory.makeBattle(
-            hero: BattleTestFixtures.passiveHero(),
-            companion: BattleTestFixtures.passiveCompanion(),
-            enemy: BattleTestFixtures.silentEnemy(maxHealth: 40),
+            hero: CombatantFixtures.passiveHero(),
+            companion: CombatantFixtures.passiveCompanion(),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
             companionModifiers: .init(triggers: CombatTraitTriggers(
                 dodge: DodgeTriggers(critMultiplierPerDodge: 0.5),
             )),
@@ -162,9 +162,9 @@ struct CombatTriggerTalentDamageTests {
             block: BlockTriggers(onAnyHealthLossGainBlock: 1),
         ))
         var battle = BattleStateTestFactory.makeBattle(
-            hero: BattleTestFixtures.passiveHero(),
-            companion: BattleTestFixtures.passiveCompanion(),
-            enemy: BattleTestFixtures.silentEnemy(maxHealth: 40),
+            hero: CombatantFixtures.passiveHero(),
+            companion: CombatantFixtures.passiveCompanion(),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
             heroModifiers: harvest,
             dealOpeningHand: false,
         )
@@ -193,9 +193,9 @@ struct CombatTriggerTalentDamageTests {
             damage: DamageTriggers(damageWhileTargetStunnedBonus: 4),
         ))
         var battle = BattleStateTestFactory.makeBattle(
-            hero: BattleTestFixtures.passiveHero(),
-            companion: BattleTestFixtures.passiveCompanion(),
-            enemy: BattleTestFixtures.silentEnemy(maxHealth: 40),
+            hero: CombatantFixtures.passiveHero(),
+            companion: CombatantFixtures.passiveCompanion(),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
             companionModifiers: scarabProfile,
             dealOpeningHand: false,
         )
@@ -216,9 +216,9 @@ struct CombatTriggerTalentDamageTests {
 
     @Test func `keyword reactions skip retaliation holy pings`() {
         var battle = BattleStateTestFactory.makeBattle(
-            hero: BattleTestFixtures.passiveHero(),
-            companion: BattleTestFixtures.passiveCompanion(),
-            enemy: BattleTestFixtures.silentEnemy(maxHealth: 40),
+            hero: CombatantFixtures.passiveHero(),
+            companion: CombatantFixtures.passiveCompanion(),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
             heroModifiers: .init(triggers: CombatTraitTriggers(
                 mitigation: MitigationTriggers(holyDamageTargetMissNextAttack: true),
                 dot: DotTriggers(onBurnTickHolyDamage: 1),
@@ -249,9 +249,9 @@ struct CombatTriggerTalentDamageTests {
 
     @Test func `afflicted damage auras stack additively`() {
         var stacked = BattleStateTestFactory.makeBattle(
-            hero: BattleTestFixtures.passiveHero(),
-            companion: BattleTestFixtures.passiveCompanion(),
-            enemy: BattleTestFixtures.silentEnemy(maxHealth: 40),
+            hero: CombatantFixtures.passiveHero(),
+            companion: CombatantFixtures.passiveCompanion(),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
             activeEnemyEffects: [ActiveEffect(id: 1, effect: .burn(4), remainingTurns: 0)],
             heroModifiers: .init(
                 triggers: CombatTraitTriggers(
@@ -279,9 +279,9 @@ struct CombatTriggerTalentDamageTests {
         #expect(stackedHit.events.contains { $0.abilityName == "Intense Heat" && $0.kind == .ability })
 
         var companionAura = BattleStateTestFactory.makeBattle(
-            hero: BattleTestFixtures.passiveHero(),
-            companion: BattleTestFixtures.passiveCompanion(),
-            enemy: BattleTestFixtures.silentEnemy(maxHealth: 40),
+            hero: CombatantFixtures.passiveHero(),
+            companion: CombatantFixtures.passiveCompanion(),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
             activeEnemyEffects: [ActiveEffect(id: 1, effect: .burn(4), remainingTurns: 0)],
             companionModifiers: .init(
                 triggers: CombatTraitTriggers(
@@ -304,9 +304,9 @@ struct CombatTriggerTalentDamageTests {
 
     @Test func `prey on the weak uses hero talent on companion hits`() {
         var battle = BattleStateTestFactory.makeBattle(
-            hero: BattleTestFixtures.passiveHero(maxHealth: 50),
-            companion: BattleTestFixtures.passiveCompanion(maxHealth: 20),
-            enemy: BattleTestFixtures.silentEnemy(maxHealth: 100),
+            hero: CombatantFixtures.passiveHero(maxHealth: 50),
+            companion: CombatantFixtures.passiveCompanion(maxHealth: 20),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             heroModifiers: .init(triggers: CombatTraitTriggers(
                 damage: DamageTriggers(companionDamageVsPoisonedBonus: 2),
             )),
@@ -331,9 +331,9 @@ struct CombatTriggerTalentDamageTests {
 
     @Test func `radiant health buffs hero hits while companion is full health`() {
         var battle = BattleStateTestFactory.makeBattle(
-            hero: BattleTestFixtures.passiveHero(maxHealth: 50),
-            companion: BattleTestFixtures.passiveCompanion(maxHealth: 20),
-            enemy: BattleTestFixtures.silentEnemy(maxHealth: 100),
+            hero: CombatantFixtures.passiveHero(maxHealth: 50),
+            companion: CombatantFixtures.passiveCompanion(maxHealth: 20),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             companionModifiers: .init(triggers: CombatTraitTriggers(
                 attack: AttackTriggers(partyDamageBonusWhileCompanionFullHealth: 2),
             )),

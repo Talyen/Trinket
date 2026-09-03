@@ -80,7 +80,7 @@ struct ItemAffixCatalogTests {
     @Test func `two handed power scaling doubles magnitudes without thresholds or caps`() throws {
         let executioners = try #require(GameContent.itemAffixDefinition(matching: "executioners"))
         let symbiosis = try #require(GameContent.itemAffixDefinition(matching: "symbiosis"))
-        let item = try ItemFixtures.makeItem(
+        let item = try ItemFixtures.makeBareItem(
             "crossbow",
             id: "scaled-crossbow",
             rarity: .astral,

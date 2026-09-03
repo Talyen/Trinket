@@ -7,7 +7,7 @@ import TrinketTestSupport
 struct EffectHandlersApplyBuffDebuffTests {
     @Test(arguments: [true, false])
     func `halve shield handler applies only when block present`(seedBlock: Bool) throws {
-        var battle = EffectHandlersTestSupport.makeBattle()
+        var battle = BattleStateTestFactory.makeBattle()
         if seedBlock {
             BattleStateTestFactory.seedActiveEffects(
                 [ActiveEffect(id: 1, effect: .shield(.block, 3), remainingTurns: 0)],
@@ -45,7 +45,7 @@ struct EffectHandlersApplyBuffDebuffTests {
 
     @Test func `card combat no op handlers do not apply`() throws {
         do {
-            var battle = EffectHandlersTestSupport.makeBattle()
+            var battle = BattleStateTestFactory.makeBattle()
             let outcome = EffectHandlersTestSupport.dispatch(
                 .deathsDoor,
                 source: battle.hero,
@@ -58,7 +58,7 @@ struct EffectHandlersApplyBuffDebuffTests {
     }
 
     @Test func `thorns handler applies thorns and emits event`() throws {
-        var battle = EffectHandlersTestSupport.makeBattle()
+        var battle = BattleStateTestFactory.makeBattle()
         let outcome = EffectHandlersTestSupport.dispatch(
             .thorns(5),
             source: battle.hero,
@@ -78,7 +78,7 @@ struct EffectHandlersApplyBuffDebuffTests {
     }
 
     @Test func `marked handler applies and replaces instead of stacking`() throws {
-        var battle = EffectHandlersTestSupport.makeBattle()
+        var battle = BattleStateTestFactory.makeBattle()
         let first = EffectHandlersTestSupport.dispatch(
             .marked(Effect.standardMarkedBonus, Effect.standardMarkedDuration),
             source: battle.hero,
@@ -121,7 +121,7 @@ struct EffectHandlersApplyBuffDebuffTests {
     }
 
     @Test func `critical chance bonus reapply refreshes single stack`() throws {
-        var battle = EffectHandlersTestSupport.makeBattle()
+        var battle = BattleStateTestFactory.makeBattle()
         let first = EffectHandlersTestSupport.dispatch(
             .criticalChanceBonus(0.15, 6),
             source: battle.hero,
@@ -155,7 +155,7 @@ struct EffectHandlersApplyBuffDebuffTests {
     }
 
     @Test func `restore mana on hit handler applies stack and emits event`() throws {
-        var battle = EffectHandlersTestSupport.makeBattle()
+        var battle = BattleStateTestFactory.makeBattle()
         let outcome = EffectHandlersTestSupport.dispatch(
             .restoreManaOnHit(3, 6),
             source: battle.hero,
@@ -175,7 +175,7 @@ struct EffectHandlersApplyBuffDebuffTests {
     }
 
     @Test func `restore mana on hit recast stacks on top of existing shield`() throws {
-        var battle = EffectHandlersTestSupport.makeBattle()
+        var battle = BattleStateTestFactory.makeBattle()
         _ = EffectHandlersTestSupport.dispatch(
             .restoreManaOnHit(3, 6),
             source: battle.hero,
@@ -205,7 +205,7 @@ struct EffectHandlersApplyBuffDebuffTests {
     }
 
     @Test func `damage keyword override handler applies stack and emits event`() throws {
-        var battle = EffectHandlersTestSupport.makeBattle()
+        var battle = BattleStateTestFactory.makeBattle()
         let outcome = EffectHandlersTestSupport.dispatch(
             .damageKeywordOverride(.holy, 3, 6),
             source: battle.hero,
@@ -225,7 +225,7 @@ struct EffectHandlersApplyBuffDebuffTests {
     }
 
     @Test func `next strike double handler applies and emits event`() throws {
-        var battle = EffectHandlersTestSupport.makeBattle()
+        var battle = BattleStateTestFactory.makeBattle()
         let outcome = EffectHandlersTestSupport.dispatch(
             .nextStrikeDouble,
             source: battle.hero,
@@ -243,7 +243,7 @@ struct EffectHandlersApplyBuffDebuffTests {
     }
 
     @Test func `next burn bonus handler stacks and emits event`() throws {
-        var battle = EffectHandlersTestSupport.makeBattle()
+        var battle = BattleStateTestFactory.makeBattle()
         let first = EffectHandlersTestSupport.dispatch(
             .nextBurnBonus(1),
             source: battle.hero,
@@ -270,7 +270,7 @@ struct EffectHandlersApplyBuffDebuffTests {
     }
 
     @Test func `evade next hit handler applies and emits event`() throws {
-        var battle = EffectHandlersTestSupport.makeBattle()
+        var battle = BattleStateTestFactory.makeBattle()
         let outcome = EffectHandlersTestSupport.dispatch(
             .evadeNextHit,
             source: battle.hero,

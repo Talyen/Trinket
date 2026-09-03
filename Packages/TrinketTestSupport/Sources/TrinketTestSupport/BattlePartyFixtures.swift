@@ -14,21 +14,10 @@ public enum BattlePartyFixtures {
         }
     }
 
-    public static func standardParty(
-        hero: Combatant? = nil,
-        companion: Combatant? = nil,
-        enemy: Combatant? = nil,
-    ) -> BattleParty {
-        BattleParty(
-            hero: hero ?? CombatantFixtures.passiveHero(),
-            companion: companion ?? CombatantFixtures.passiveCompanion(),
-            enemy: enemy ?? CombatantFixtures.passiveEnemy(),
-        )
-    }
-
     public static func quickWinParty(
         hero: Combatant? = nil,
         companion: Combatant? = nil,
+        enemy: Combatant? = nil,
         heroAbilities: [Ability] = [.slash],
         enemyMaxHealth: Int = 1,
     ) -> BattleParty {
@@ -41,7 +30,7 @@ public enum BattlePartyFixtures {
                 abilities: heroAbilities,
             ),
             companion: companion ?? CombatantFixtures.passiveCompanion(),
-            enemy: CombatantFixtures.passiveEnemy(
+            enemy: enemy ?? CombatantFixtures.passiveEnemy(
                 maxHealth: enemyMaxHealth,
             ),
         )
