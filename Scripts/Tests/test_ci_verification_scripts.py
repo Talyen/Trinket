@@ -139,8 +139,7 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
         self.assertIn("name: Homestead", workflow)
         self.assertIn("preboot-simulator: 'true'", workflow)
         self.assertIn("skip-build: 'true'", workflow)
-        self.assertIn("sparse-checkout-cone-mode: true", workflow)
-        self.assertIn("test -f project.yml", workflow)
+        self.assertIn("checkout-trinket", workflow)
         self.assertNotIn("checkout-ci", workflow)
         self.assertIn("Smoke tests (${{ matrix.name }})", workflow)
         self.assertIn("needs.changes.outputs.infra", workflow)
@@ -151,9 +150,12 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
             ROOT / ".github" / "actions" / "build-cache-key" / "action.yml"
         ).read_text(encoding="utf-8")
         self.assertIn('git rev-parse "HEAD:Raw Assets"', cache_key)
-        sparse_block = workflow.split("sparse-checkout:", 1)[1]
-        self.assertIn(".github", sparse_block)
-        self.assertNotIn("Raw Assets", sparse_block)
+        checkout = (
+            ROOT / ".github" / "actions" / "checkout-trinket" / "action.yml"
+        ).read_text(encoding="utf-8")
+        sparse_list = checkout.split("sparse-checkout: |", 1)[1].split("- name:", 1)[0]
+        self.assertIn(".github", sparse_list)
+        self.assertNotIn("Raw Assets", sparse_list)
 
     def test_ci_gate_fast_skips_generation_and_style(self) -> None:
         text = (ROOT / "Scripts" / "ci-gate.sh").read_text(encoding="utf-8")
@@ -715,17 +717,15 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
             re.MULTILINE,
         )
         self.assertEqual(set(test_packages) & set(compile_only), set())
-        classified = re.search(
-            r"case \"\$package\" in\n\s+([^\n]+)",
-            (ROOT / "Scripts" / "change-classification.sh").read_text(encoding="utf-8"),
+        classifier = (ROOT / "Scripts" / "change-classification.sh").read_text(
+            encoding="utf-8"
         )
-        self.assertIsNotNone(classified)
-        for package in classified.group(1).split("|"):  # type: ignore[union-attr]
-            package = package.strip().rstrip(")")
-            self.assertTrue(
-                package in test_packages or package in compile_only,
-                f"{package} missing from swift-source-dirs package registry",
-            )
+        # The package membership gate must read the registry, not a
+        # second hardcoded list that can drift from build-inputs.env.
+        self.assertIn(
+            '"${TRINKET_TEST_PACKAGES[@]}" "${TRINKET_COMPILE_ONLY_PACKAGES[@]}"',
+            classifier,
+        )
 
     def test_battle_runtime_routes_to_app_build_not_test_package(self) -> None:
         result = subprocess.run(

@@ -16,15 +16,12 @@ if [[ $# -ge 1 ]]; then
       fi
       kind="$2"
       ;;
-    art|cinematic|music|sfx|app-icon|all)
-      kind="$1"
-      ;;
     --help|-h)
       echo "Usage: $0 [--kind art|cinematic|music|sfx|app-icon|all]"
       exit 0
       ;;
     *)
-      echo "Unknown arg '$1' (expected --kind art|cinematic|music|sfx|app-icon|all or art|cinematic|music|sfx|app-icon|all)" >&2
+      echo "Unknown arg '$1' (expected --kind art|cinematic|music|sfx|app-icon|all)" >&2
       exit 1
       ;;
   esac

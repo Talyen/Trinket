@@ -44,28 +44,5 @@ runs:
     - name: Verify pinned tool versions
       shell: bash
       run: |
-        # shellcheck source=../../Scripts/tool-versions.env
-        source Scripts/tool-versions.env
-        export PATH="$PWD/.tools:$PATH"
-        actual_swiftformat="$(swiftformat --version)"
-        actual_swiftlint="$(swiftlint version)"
-        actual_xcodegen="$(xcodegen --version | awk '{print $NF}')"
-        actual_ripgrep="$(rg --version | head -n 1 | awk '{print $2}')"
-        if [ "$actual_swiftformat" != "$SWIFTFORMAT_VERSION" ]; then
-          echo "SwiftFormat version mismatch: expected $SWIFTFORMAT_VERSION, found $actual_swiftformat" >&2
-          exit 1
-        fi
-        if [ "$actual_swiftlint" != "$SWIFTLINT_VERSION" ]; then
-          echo "SwiftLint version mismatch: expected $SWIFTLINT_VERSION, found $actual_swiftlint" >&2
-          exit 1
-        fi
-        if [ "$actual_xcodegen" != "$XCODEGEN_VERSION" ]; then
-          echo "XcodeGen version mismatch: expected $XCODEGEN_VERSION, found $actual_xcodegen" >&2
-          exit 1
-        fi
-        if [ "$actual_ripgrep" != "$RIPGREP_VERSION" ]; then
-          echo "ripgrep version mismatch: expected $RIPGREP_VERSION, found $actual_ripgrep" >&2
-          exit 1
-        fi
-        echo "SwiftFormat $actual_swiftformat, SwiftLint $actual_swiftlint, XcodeGen $actual_xcodegen, and ripgrep $actual_ripgrep verified."
+        ./Scripts/ensure-ci-tools.sh --check
         echo "PATH=$PWD/.tools:$PATH" >> "$GITHUB_ENV"

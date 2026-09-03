@@ -1,0 +1,34 @@
+name: Checkout Trinket sources
+description: >
+  Sparse checkout shared by the tests.yml build/test jobs (no Raw Assets),
+  plus an assertion that the cone kept the root build inputs. Single owner
+  for the sparse path list so the five jobs cannot drift.
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      with:
+        fetch-depth: 1
+        sparse-checkout-cone-mode: true
+        # Cone mode keeps root files (project.yml, *.xctestplan). Skip Raw Assets.
+        sparse-checkout: |
+          Scripts
+          Packages
+          Trinket
+          TrinketUITests
+          Trinket.xcodeproj
+          ContentManifest
+          ArtManifest
+          MusicManifest
+          SoundManifest
+          CinematicManifest
+          .github
+    - name: Assert sparse checkout kept root build inputs
+      shell: bash
+      run: |
+        set -euo pipefail
+        test -f project.yml
+        test -f Smoke.xctestplan
+        test -f FullUI.xctestplan
+        test -f BattlePerformance.xctestplan

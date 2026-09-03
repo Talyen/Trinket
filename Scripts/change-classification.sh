@@ -132,13 +132,17 @@ trinket_classify_package_swift_path() {
   local package="${path#Packages/}"
   package="${package%%/*}"
 
-  case "$package" in
-    TrinketCore|TrinketContent|BattleEngine|TrinketPersistence|TrinketDesignSystem|TrinketFeatureSupport|TrinketBattleFeature|TrinketAppState|TrinketTestSupport)
-      ;;
-    *)
-      return 1
-      ;;
-  esac
+  # Membership gate reads the package registry in Scripts/build-inputs.env
+  # (via swift-source-dirs.env above), not a second hardcoded list.
+  local candidate
+  local known=false
+  for candidate in "${TRINKET_TEST_PACKAGES[@]}" "${TRINKET_COMPILE_ONLY_PACKAGES[@]}"; do
+    if [[ "$package" == "$candidate" ]]; then
+      known=true
+      break
+    fi
+  done
+  [[ "$known" == true ]] || return 1
 
   TRINKET_NEEDS_STYLE=true
   TRINKET_AUTHORED_PATHS+=("$path")
