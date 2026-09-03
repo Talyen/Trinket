@@ -149,7 +149,7 @@ struct HomesteadView: View {
     }
 
     private var depositTravelDistance: CGFloat {
-        TrinketDesign.Metrics.walletResourceArtworkSize + TrinketDesign.Spacing.extraLarge
+        TrinketDesign.Layout.walletResourceArtworkSize + TrinketDesign.Spacing.extraLarge
     }
 
     private func collectResourceIcons(
@@ -160,8 +160,8 @@ struct HomesteadView: View {
             ForEach(Array(amounts.enumerated()), id: \.offset) { index, amount in
                 HomesteadResourceArtwork(resource: amount.resource)
                     .frame(
-                        width: TrinketDesign.Metrics.walletResourceArtworkSize,
-                        height: TrinketDesign.Metrics.walletResourceArtworkSize,
+                        width: TrinketDesign.Layout.walletResourceArtworkSize,
+                        height: TrinketDesign.Layout.walletResourceArtworkSize,
                     )
                     .offset(y: drawsAttention && isIconAttentionRaised ? -2 : 0)
                     .scaleEffect(drawsAttention && isIconAttentionRaised ? 1.05 : 1)

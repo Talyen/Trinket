@@ -1,3 +1,4 @@
+#if DEBUG
 import SwiftUI
 
 private struct DesignSystemGallery: View {
@@ -122,3 +123,4 @@ private struct DesignSystemGallery: View {
     DesignSystemGallery()
         .preferredColorScheme(.dark)
 }
+#endif

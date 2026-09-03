@@ -22,7 +22,7 @@ public enum TrinketDesign {
         public static let healthTrailingDamage = health.opacity(Opacity.trailingDamage)
         public static let battleHealth = health.opacity(Opacity.battleHealth)
         public static let battleHealthTrack = Overlay.ink.opacity(Opacity.glow)
-        public static let battleHealthTrailingDamage = health.opacity(0.45)
+        public static let battleHealthTrailingDamage = health.opacity(Opacity.trailingDamage)
         public static let battleSliceCrack = DesignAssetColors.named("BattleSliceCrack")
         public static let battleSliceSpark = DesignAssetColors.named("BattleSliceSpark")
 
@@ -40,7 +40,7 @@ public enum TrinketDesign {
             public static let ink = DesignAssetColors.named("ThemeOverlayInk")
             public static let paper = DesignAssetColors.named("ThemeOverlayPaper")
             public static let dragShadow = ink.opacity(Opacity.dragShadow)
-            public static let cinematicDim = ink
+            public static let cinematicDim = ink.opacity(Opacity.cinematicDim)
         }
     }
 
@@ -53,7 +53,8 @@ public enum TrinketDesign {
         public static let trailingDamage: Double = 0.35
         public static let battleHealth: Double = 0.92
         public static let placeholderWash: Double = 0.18
-        public static let cardPlaceholderPaper: Double = 0.85
+        public static let cinematicDim: Double = 0.6
+        public static let chipEmphasisStroke: Double = 0.22
     }
 
     public enum Spacing {
@@ -86,6 +87,15 @@ public enum TrinketDesign {
         public static let collectionGridMaximum: CGFloat = 190
         public static let partyPickerGridMinimum: CGFloat = 120
         public static let partyPickerGridMaximum: CGFloat = 160
+        public static let cardLabelReservedHeight: CGFloat = 38
+        public static let cardPlaceholderIconPointSize: CGFloat = 38
+        public static let walletResourceArtworkSize: CGFloat = 36
+        public static let compactResourceArtworkSize: CGFloat = 20
+        public static let walletResourceRowMinHeight: CGFloat = 46
+        public static let mysteryRewardArtworkSize: CGFloat = 44
+        public static let mysteryRewardRowMinHeight: CGFloat = 48
+        public static let singlePrimaryActionWidthFraction: CGFloat = 0.5
+        public static let collectionShelfVisibleCardCount: CGFloat = 1.75
 
         public static var collectionGridItems: [GridItem] {
             [GridItem(.adaptive(minimum: collectionGridMinimum, maximum: collectionGridMaximum), spacing: Spacing.large)]
@@ -109,59 +119,6 @@ public enum TrinketDesign {
         public static let battleHeight: CGFloat = vitalHeight
     }
 
-    @available(*, deprecated, message: "Use TrinketDesign.Spacing, TrinketDesign.Layout, or TrinketDesign.Bars instead")
-    public enum Metrics {
-        public static let tightSpacing: CGFloat = Spacing.tight
-        public static let extraSmallSpacing: CGFloat = Spacing.extraSmall
-        public static let smallSpacing: CGFloat = Spacing.small
-        public static let mediumSpacing: CGFloat = Spacing.medium
-        public static let largeSpacing: CGFloat = Spacing.large
-        public static let extraLargeSpacing: CGFloat = Spacing.extraLarge
-        public static let cardLabelReservedHeight: CGFloat = 38
-        public static let cardPlaceholderIconPointSize: CGFloat = 38
-        public static let walletResourceArtworkSize: CGFloat = 36
-        public static let compactResourceArtworkSize: CGFloat = 20
-        public static let walletResourceRowMinHeight: CGFloat = 46
-        public static let mysteryRewardArtworkSize: CGFloat = 44
-        public static let mysteryRewardRowMinHeight: CGFloat = 48
-        public static let statBarHeight: CGFloat = Bars.statHeight
-        public static let battleHealthBarHeight: CGFloat = Bars.battleHeight
-        public static let battleHealthBarActiveHeight: CGFloat = Bars.battleHeight
-        public static let contentMargin: CGFloat = Layout.contentMargin
-        public static let singlePrimaryActionWidthFraction: CGFloat = 0.5
-        public static let contentTopPadding: CGFloat = Layout.contentTopPadding
-        public static let compactContentTopPadding: CGFloat = Layout.compactContentTopPadding
-        public static let sectionSpacing: CGFloat = Layout.sectionSpacing
-        public static let sectionHeaderSpacing: CGFloat = Layout.sectionHeaderSpacing
-        public static let shelfVerticalPadding: CGFloat = Layout.shelfVerticalPadding
-        public static let collectionShelfHorizontalMargin: CGFloat = Layout.collectionShelfHorizontalMargin
-        public static let collectionShelfCardSpacing: CGFloat = Layout.collectionShelfCardSpacing
-        public static let collectionShelfPeekRatio: CGFloat = Layout.collectionShelfPeekRatio
-        public static let collectionShelfPreviewLimit = Layout.collectionShelfPreviewLimit
-        public static let tabBarContentClearance: CGFloat = Layout.tabBarContentClearance
-        public static let compactTabBarContentClearance: CGFloat = Layout.compactTabBarContentClearance
-        public static let chipPaddingHorizontal: CGFloat = Layout.chipPaddingHorizontal
-        public static let chipPaddingVertical: CGFloat = Layout.chipPaddingVertical
-        public static let chipEmphasisPaddingHorizontal: CGFloat = Layout.chipEmphasisPaddingHorizontal
-        public static let chipEmphasisPaddingVertical: CGFloat = Layout.chipEmphasisPaddingVertical
-        public static let collectionGridMinimum: CGFloat = Layout.collectionGridMinimum
-        public static let collectionGridMaximum: CGFloat = Layout.collectionGridMaximum
-        public static let partyPickerGridMinimum: CGFloat = Layout.partyPickerGridMinimum
-        public static let partyPickerGridMaximum: CGFloat = Layout.partyPickerGridMaximum
-        public static var collectionGridItems: [GridItem] {
-            Layout.collectionGridItems
-        }
-
-        public static var partyPickerGridItems: [GridItem] {
-            Layout.partyPickerGridItems
-        }
-
-        public static func hubGridItems(for horizontalSizeClass: UserInterfaceSizeClass?) -> [GridItem] {
-            Layout
-                .hubGridItems(for: horizontalSizeClass)
-        }
-    }
-
     public enum Corners {
         public static let card: CGFloat = 16
     }
@@ -174,8 +131,8 @@ public enum TrinketDesign {
 
         public static let hero = Self(color: DesignAssetColors.named("PlaceholderHero"), symbolName: "person.fill")
         public static let companion = Self(color: DesignAssetColors.named("PlaceholderCompanion"), symbolName: "pawprint.fill")
-        public static let enemy = Self(color: DesignAssetColors.named("PlaceholderEnemy"), symbolName: "flame.fill")
+        public static let enemy = Self(color: DesignAssetColors.named("PlaceholderEnemy"), symbolName: "skull.fill")
         public static let item = Self(color: DesignAssetColors.named("PlaceholderItem"), symbolName: "shippingbox.fill")
-        public static let ability = Self(color: DesignAssetColors.named("PlaceholderAbility"), symbolName: "bolt.fill")
+        public static let ability = Self(color: DesignAssetColors.named("PlaceholderAbility"), symbolName: "wand.and.stars")
     }
 }

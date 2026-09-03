@@ -41,35 +41,93 @@ public struct KeywordPlasmaBackground: View {
     }
 
     public var body: some View {
+        Group {
+            switch plasmaContent {
+            case .paused:
+                pausedFallback
+            case let .multi(active):
+                multiSourceBody(active)
+            case .single:
+                singleSourceBody
+            case .empty:
+                EmptyView()
+            }
+        }
+        .onAppear { startDate = Date() }
+    }
+
+    private enum PlasmaContent {
+        case paused
+        case multi([Source])
+        case single
+        case empty
+    }
+
+    private var plasmaContent: PlasmaContent {
+        if isTimelinePaused {
+            return .paused
+        }
         if let sources {
             let active = sources.filter { !$0.keywords.isEmpty }
-            if !active.isEmpty {
-                multiSourceBody(active)
-            }
-        } else if !keywords.isEmpty {
-            singleSourceBody
+            return active.isEmpty ? .empty : .multi(active)
         }
+        return keywords.isEmpty ? .empty : .single
+    }
+
+    @ViewBuilder
+    private var pausedFallback: some View {
+        if let fallbackColors = pausedColors {
+            LinearGradient(
+                colors: [
+                    fallbackColors.primary.opacity(0.28),
+                    fallbackColors.secondary.opacity(0.18),
+                    TrinketDesign.Colors.canvas,
+                ],
+                startPoint: .top,
+                endPoint: .bottom,
+            )
+            .ignoresSafeArea()
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
+        }
+    }
+
+    private var pausedColors: (primary: Color, secondary: Color)? {
+        if let sources {
+            guard let first = sources.first(where: { !$0.keywords.isEmpty }) else { return nil }
+            return Self.colors(for: first.keywords)
+        }
+        guard !keywords.isEmpty else { return nil }
+        return Self.colors(for: keywords)
+    }
+
+    private func singlePlasmaLayer(primary: Color, secondary: Color, center: CGPoint, size: CGSize, time: Float) -> some View {
+        Rectangle()
+            .fill(TrinketDesign.Colors.canvas)
+            .colorEffect(ShaderLibrary.bundle(.module).shaderLiquidPlasma(
+                .float2(Float(size.width), Float(size.height)),
+                .float(time),
+                .color(primary),
+                .color(secondary),
+                .float2(Float(center.x), Float(center.y)),
+            ))
+            .blendMode(.plusLighter)
+            .frame(width: size.width, height: size.height)
     }
 
     private var singleSourceBody: some View {
         TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: isTimelinePaused)) { timeline in
             GeometryReader { geometry in
                 let time = Float(timeline.date.timeIntervalSince(startDate))
-                let colors = colors(for: Array(keywords.prefix(2)))
+                let resolved = Self.colors(for: Array(keywords.prefix(2)))
                 let focalCenter = CGPoint(x: geometry.size.width / 2, y: geometry.size.height / 2 - focalYOffset)
-                let size = float2(Float(geometry.size.width), Float(geometry.size.height))
-                let center = float2(Float(focalCenter.x), Float(focalCenter.y))
-                Rectangle()
-                    .fill(TrinketDesign.Colors.canvas)
-                    .colorEffect(ShaderLibrary.bundle(.module).shaderLiquidPlasma(
-                        .float2(size.x, size.y),
-                        .float(time),
-                        .color(colors.primary),
-                        .color(colors.secondary),
-                        .float2(center.x, center.y),
-                    ))
-                    .blendMode(.plusLighter)
-                    .frame(width: geometry.size.width, height: geometry.size.height)
+                singlePlasmaLayer(
+                    primary: resolved.primary,
+                    secondary: resolved.secondary,
+                    center: focalCenter,
+                    size: geometry.size,
+                    time: time,
+                )
             }
             .ignoresSafeArea()
         }
@@ -86,27 +144,22 @@ public struct KeywordPlasmaBackground: View {
             GeometryReader { geometry in
                 let time = Float(timeline.date.timeIntervalSince(startDate))
                 if activeSources.count == 1, let first = activeSources.first {
-                    let firstColors = colors(for: first.keywords)
-                    let firstCenter = center(for: first, in: geometry.size)
-                    let size = float2(Float(geometry.size.width), Float(geometry.size.height))
-                    Rectangle()
-                        .fill(TrinketDesign.Colors.canvas)
-                        .colorEffect(ShaderLibrary.bundle(.module).shaderLiquidPlasma(
-                            .float2(size.x, size.y),
-                            .float(time),
-                            .color(firstColors.primary),
-                            .color(firstColors.secondary),
-                            .float2(firstCenter.x, firstCenter.y),
-                        ))
-                        .blendMode(.plusLighter)
-                        .frame(width: geometry.size.width, height: geometry.size.height)
+                    let firstColors = Self.colors(for: first.keywords)
+                    let firstCenter = Self.center(for: first, in: geometry.size)
+                    singlePlasmaLayer(
+                        primary: firstColors.primary,
+                        secondary: firstColors.secondary,
+                        center: CGPoint(x: CGFloat(firstCenter.x), y: CGFloat(firstCenter.y)),
+                        size: geometry.size,
+                        time: time,
+                    )
                 } else if let first = activeSources.first, activeSources.count == 2 {
                     let second = activeSources[1]
-                    let firstColors = colors(for: first.keywords)
-                    let secondColors = colors(for: second.keywords)
+                    let firstColors = Self.colors(for: first.keywords)
+                    let secondColors = Self.colors(for: second.keywords)
                     let size = float2(Float(geometry.size.width), Float(geometry.size.height))
-                    let firstCenter = center(for: first, in: geometry.size)
-                    let secondCenter = center(for: second, in: geometry.size)
+                    let firstCenter = Self.center(for: first, in: geometry.size)
+                    let secondCenter = Self.center(for: second, in: geometry.size)
                     Rectangle()
                         .fill(TrinketDesign.Colors.canvas)
                         .colorEffect(
@@ -135,14 +188,14 @@ public struct KeywordPlasmaBackground: View {
         .animation(nil, value: reduceMotion)
     }
 
-    private func colors(for keywords: [Keyword]) -> (primary: Color, secondary: Color) {
+    nonisolated static func colors(for keywords: [Keyword]) -> (primary: Color, secondary: Color) {
         let limited = Array(keywords.prefix(2))
         let primary = limited.first?.visualStyle.color ?? TrinketDesign.Colors.accent
         let secondary = limited.count > 1 ? limited[1].visualStyle.color : (limited.first?.visualStyle.secondaryColor ?? primary)
         return (primary, secondary)
     }
 
-    private func center(for source: Source, in size: CGSize) -> float2 {
+    nonisolated static func center(for source: Source, in size: CGSize) -> float2 {
         float2(Float(source.focalPoint.x * size.width), Float(source.focalPoint.y * size.height))
     }
 }

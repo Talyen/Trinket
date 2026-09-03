@@ -6,22 +6,25 @@ Shared app chrome — semantic surfaces, typography, keyword visuals, and reusab
 
 | File | Role |
 |------|------|
-| `TrinketDesign.swift` | Colors, metrics, overlays, and card chrome (`Spacing`/`Layout`/`Bars`/`Opacity`) |
-| `DesignAssetColors.swift` | Package-bundled semantic color assets (`Bundle.module`) |
+| `TrinketDesign.swift` | Colors, `Opacity`, `Spacing`/`Layout`/`Bars`, card shape, placeholder styles |
+| `DesignAssetColors.swift` | Package-private semantic color loader (`Bundle.module`); feature code must use `TrinketDesign.Colors` instead |
 | `Resources/DesignColors.xcassets` | Theme, keyword, encounter, placeholder, resource, and chapter color sets |
 | `VisualFoundation.swift` | Background modes, surface roles, spacing tokens (table-driven specs) |
 | `HeroScrim.swift` | On-art text styling (`.trinketOnArtText`) |
 | `ArtworkBlend.swift` | Optional semantic bottom-edge artwork blending |
 | `Keyword+VisualStyle.swift` | Color + SF Symbol per Keyword (uses `Opacity` tokens) |
-| `HomesteadResource+Color.swift` | Homestead resource tint resolution (`ResourceGold` decoupled from keyword) |
+| `HomesteadResource+Color.swift` | Homestead resource tint resolution (gold resolves to the theme accent) |
 | `Modifiers.swift` | Semantic view modifiers for backgrounds, surfaces (single glass button path) |
 | `ExperienceBar.swift` | XP/level progress bar |
 | `TrinketMotion.swift` | Motion recipes shared by multiple product features (`static let` animations) |
 | `CardArtwork.swift` | Card clipping and stroke (`TrinketDesign.cardShape` single source) |
 | `PlaceholderArtwork.swift` | Unified placeholder wash + symbol (scaled, `Opacity.placeholderWash`) |
 | `WalletResources.swift` | Wallet grid and resource pills/chips (shared compact formatting, fixed layout threshold) |
-| `KeywordPlasmaBackground.swift` | Keyword-tinted plasma shader (Reduce Motion aware, single/dual path) |
+| `KeywordPlasmaBackground.swift` | Keyword-tinted plasma shader (Reduce Motion aware with a static fallback, single/dual path) |
 | `TrinketRarityLabel.swift` | Rarity badge with shine (Reduce Motion aware) |
+| `TextBalance.swift` | Widow prevention for titles (`Text(balanced:)`) |
+| `TextFitting.swift` | Native shrinking/wrapping text composition (`.trinketFittedText()`) |
+| `DesignSystemPreview.swift` | Debug-only gallery (`#if DEBUG`, never ships) |
 
 ## Color families
 
@@ -35,7 +38,7 @@ All production colors load from `DesignColors.xcassets` through `DesignAssetColo
 | Keywords | `Keyword.visualStyle.color` | `KeywordPhysical` … `KeywordDeathsDoor` |
 | Encounters | `TrinketDesign.Colors.encounter*` | `EncounterBattle` … |
 | Placeholders | `TrinketDesign.CardPlaceholderStyle.*` | `PlaceholderHero` … |
-| Resources | `HomesteadResource.tint` | `ResourceWood` … `ResourceHide` / `ResourceCrystal` / `ResourceGold` |
+| Resources | `HomesteadResource.tint` (gold resolves to the theme accent) | `ResourceWood` … `ResourceHide` / `ResourceCrystal` |
 | Chapter | `TrinketDesign.Colors.chapterForest` / `.chapterDungeon` / `.chapterDesert` / `.chapterTundra` | `ChapterForest` … `ChapterTundra` |
 
 On-art text styling uses `.trinketOnArtText(_:)`.
@@ -96,6 +99,16 @@ Route recurring chrome through these modifiers — do not call raw SwiftUI styli
 | `TrinketDesign.Layout.collectionGridItems` / `.partyPickerGridItems` / `.hubGridItems(for:)` | Shared collection, party-picker, and size-class hub grids (via `Spacing`) |
 | `TrinketDesign.Layout.collectionShelfPreviewLimit` | Peek-shelf card count for Collection / party shelves |
 | `.trinketPrimaryActionButton()` | Primary CTAs (`.glassProminent`, single `GlassButtonModifier`) |
+| `.trinketSecondaryActionButton()` | Secondary CTAs (`.glass`) |
+| `.trinketArtworkCardButtonStyle()` / `.trinketSelectionCardButtonStyle()` | Press-scale feedback for card buttons |
+| `.trinketCardLabelSpace(_:)` | Reserved label height under cards |
+| `.trinketAccessibilityIdentifier(_:)` | Optional test identifier passthrough |
+| `.optionalMatchedTransitionSource(id:in:)` | Matched transitions with an optional namespace |
+| `.cardArtworkSurface()` | Card clipping + stroke (`TrinketDesign.cardShape` single source) |
+| `collectionShelfCardWidth()` | Peek-shelf card width |
+| `.trinketFittedText()` / `.trinketSingleLineFittedText()` | Native text shrinking/wrapping |
+| `Text(balanced:)` | Widow-proof titles |
+| `TrinketWalletGrid` / `TrinketWalletResourcePill` / `TrinketCompactResourceChip` | Wallet grid and resource pills/chips |
 | `.trinketCenteredPrimaryAction()` | Half-width, centered layout for a lone screen primary action |
 | `.trinketQuietTapButtonStyle()` | Compatibility alias for `.buttonStyle(.plain)`; prefer the native style directly |
 | `.trinketOnArtText(_:)` | Paper foreground + ink shadows on hero art |

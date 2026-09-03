@@ -10,7 +10,7 @@ public struct PlaceholderArtwork: View {
         self.init(
             color: style.color,
             symbolName: style.symbolName,
-            iconPointSize: TrinketDesign.Metrics.cardPlaceholderIconPointSize,
+            iconPointSize: TrinketDesign.Layout.cardPlaceholderIconPointSize,
             relativeTo: .title,
         )
     }
@@ -27,7 +27,7 @@ public struct PlaceholderArtwork: View {
         self.init(
             color: style.color,
             symbolName: style.symbolName,
-            iconPointSize: TrinketDesign.Metrics.cardPlaceholderIconPointSize,
+            iconPointSize: TrinketDesign.Layout.cardPlaceholderIconPointSize,
             relativeTo: .title,
         )
     }

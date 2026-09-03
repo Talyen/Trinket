@@ -5,11 +5,9 @@ import SwiftUI
 public enum TrinketMotion: Sendable {
     public enum Interaction: Sendable {
         public static let artworkCardPressedScale: CGFloat = 0.99
-        public static let selectionCardPressedScale: CGFloat = 0.995
         public static let walletIncreaseScale: CGFloat = 1.025
         public static let walletIncreaseDelayStep: TimeInterval = 0.055
         public static let walletIncreaseMaximumDelay: TimeInterval = 0.30
-        public static let manaSpendDuration: TimeInterval = 0.16
         public static let manaRestoreDuration: TimeInterval = 0.22
 
         public static let press: Animation = .spring(response: 0.18, dampingFraction: 1)

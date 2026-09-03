@@ -45,7 +45,7 @@ public extension Keyword {
             symbolName: "heart.fill",
         )
         public static let gold = Self(
-            color: DesignAssetColors.named("KeywordGold"),
+            color: TrinketDesign.Colors.accent,
             symbolName: "circle.circle.fill",
             prefersDarkForeground: true,
         )

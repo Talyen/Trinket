@@ -79,7 +79,7 @@ struct MysteryChoiceCard: View {
             columns: [
                 GridItem(
                     .adaptive(
-                        minimum: TrinketDesign.Metrics.mysteryRewardArtworkSize * 2.5,
+                        minimum: TrinketDesign.Layout.mysteryRewardArtworkSize * 2.5,
                         maximum: 200,
                     ),
                     spacing: TrinketDesign.Spacing.small,
@@ -173,8 +173,8 @@ struct MysteryChoiceCard: View {
             if let resource {
                 HomesteadResourceArtwork(resource: resource)
                     .frame(
-                        width: TrinketDesign.Metrics.mysteryRewardArtworkSize,
-                        height: TrinketDesign.Metrics.mysteryRewardArtworkSize,
+                        width: TrinketDesign.Layout.mysteryRewardArtworkSize,
+                        height: TrinketDesign.Layout.mysteryRewardArtworkSize,
                     )
             } else if let systemIcon {
                 Image(systemName: systemIcon)
@@ -183,8 +183,8 @@ struct MysteryChoiceCard: View {
                     .foregroundStyle(tint)
                     .accessibilityHidden(true)
                     .frame(
-                        width: TrinketDesign.Metrics.mysteryRewardArtworkSize,
-                        height: TrinketDesign.Metrics.mysteryRewardArtworkSize,
+                        width: TrinketDesign.Layout.mysteryRewardArtworkSize,
+                        height: TrinketDesign.Layout.mysteryRewardArtworkSize,
                     )
             }
 
@@ -209,7 +209,7 @@ struct MysteryChoiceCard: View {
         }
         .frame(
             maxWidth: .infinity,
-            minHeight: TrinketDesign.Metrics.mysteryRewardRowMinHeight,
+            minHeight: TrinketDesign.Layout.mysteryRewardRowMinHeight,
             alignment: .leading,
         )
     }

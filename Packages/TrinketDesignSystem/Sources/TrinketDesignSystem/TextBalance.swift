@@ -19,8 +19,4 @@ public extension Text {
     init(balanced text: String) {
         self.init(text.trinketBalanced())
     }
-
-    static func trinketBalanced(_ text: String) -> Text {
-        Text(text.trinketBalanced())
-    }
 }

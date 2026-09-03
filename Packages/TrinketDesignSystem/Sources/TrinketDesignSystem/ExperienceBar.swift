@@ -19,11 +19,11 @@ public struct ExperienceBar: View {
     @State private var hasAnimated = false
     @State private var hasReportedCompletion = false
     @State private var animationTask: Task<Void, Never>?
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private let initialDelay: TimeInterval = 0.10
 
     nonisolated static let animationBudget: TimeInterval = 0.30
-    nonisolated static let animationFramesPerSecond = 60
 
     private let artworkFocalX: Double
     private let artworkFocalY: Double
@@ -86,9 +86,9 @@ public struct ExperienceBar: View {
 
                         Capsule()
                             .fill(fillColor)
-                            .frame(width: max(0, geometry.size.width * displayedFraction))
+                            .frame(width: max(0, geometry.size.width * clampedFraction))
                             .overlay(alignment: .trailing) {
-                                if displayedFraction > 0.02 {
+                                if clampedFraction > 0.02 {
                                     Circle()
                                         .fill(fillColor)
                                         .frame(width: 6, height: 6)
@@ -116,12 +116,19 @@ public struct ExperienceBar: View {
         .onAppear {
             guard !hasAnimated else { return }
             hasAnimated = true
-            if snapToFinal {
+            if snapToFinal || reduceMotion {
                 snapToPost()
                 reportCompletion()
             } else {
                 startAnimation()
             }
+        }
+        .onChange(of: reduceMotion) { _, isReduced in
+            guard isReduced else { return }
+            animationTask?.cancel()
+            animationTask = nil
+            snapToPost()
+            reportCompletion()
         }
         .onChange(of: snapToFinal) { _, shouldSnap in
             guard shouldSnap else { return }
@@ -170,12 +177,15 @@ public struct ExperienceBar: View {
         }
     }
 
+    private var clampedFraction: Double {
+        min(1, max(0, displayedFraction))
+    }
+
     private func startAnimation() {
         animationTask = Task { @MainActor in
-            let clock = SuspendingClock()
-            try? await clock.sleep(for: .seconds(initialDelay), tolerance: .milliseconds(25))
+            try? await Task.sleep(for: .seconds(initialDelay))
             guard !Task.isCancelled else { return }
-            await runSegments(clock: clock)
+            await runSegments()
         }
     }
 
@@ -198,18 +208,12 @@ public struct ExperienceBar: View {
         onAnimationCompleted()
     }
 
-    private func runSegments(clock: SuspendingClock) async {
+    private func runSegments() async {
         let segments = Self.segments(from: pre, to: post)
         let segmentDuration = Self.segmentDuration(forSegmentCount: segments.count)
-        let stepCounts = Self.stepCounts(forSegmentCount: segments.count)
-        for (segment, stepCount) in zip(segments, stepCounts) {
+        for segment in segments {
             guard !Task.isCancelled else { return }
-            await animate(
-                to: segment,
-                duration: segmentDuration,
-                stepCount: stepCount,
-                clock: clock,
-            )
+            await animate(to: segment, duration: segmentDuration)
             guard !Task.isCancelled else { return }
             if segment.levelsGained > 0 {
                 applyLevelUp(newLevel: segment.newLevel, newRequiredXP: segment.newRequiredXP)
@@ -219,31 +223,15 @@ public struct ExperienceBar: View {
         reportCompletion()
     }
 
-    private func animate(
-        to segment: Segment,
-        duration: TimeInterval,
-        stepCount: Int,
-        clock: SuspendingClock,
-    ) async {
-        let startFraction = segment.startFraction
-        let endFraction = segment.endFraction
-        let startXP = displayedXP
-        let endXP = segment.endXP
-
-        displayedFraction = startFraction
-
-        let stepDuration = duration / Double(stepCount)
-
-        for step in 1 ... stepCount {
-            guard !Task.isCancelled else { return }
-            let t = Self.easeInOut(Double(step) / Double(stepCount))
-            displayedFraction = startFraction + (endFraction - startFraction) * t
-            displayedXP = startXP + Int((Double(endXP - startXP) * t).rounded())
-            try? await clock.sleep(for: .seconds(stepDuration), tolerance: .milliseconds(8))
+    private func animate(to segment: Segment, duration: TimeInterval) async {
+        withAnimation(.easeInOut(duration: duration)) {
+            displayedFraction = segment.endFraction
+            displayedXP = segment.endXP
         }
-
-        displayedFraction = endFraction
-        displayedXP = endXP
+        try? await Task.sleep(for: .seconds(duration))
+        guard !Task.isCancelled else { return }
+        displayedFraction = segment.endFraction
+        displayedXP = segment.endXP
     }
 
     private func applyLevelUp(newLevel: Int, newRequiredXP: Int) {
@@ -251,14 +239,6 @@ public struct ExperienceBar: View {
         displayedRequiredXP = newRequiredXP
         displayedXP = 0
         displayedFraction = 0
-    }
-
-    private static func easeInOut(_ t: Double) -> Double {
-        if t < 0.5 {
-            return 2 * t * t
-        }
-        let inverted = -2 * t + 2
-        return 1 - (inverted * inverted) / 2
     }
 
     public struct Segment: Equatable, Sendable {
@@ -333,16 +313,5 @@ public struct ExperienceBar: View {
     nonisolated static func segmentDuration(forSegmentCount count: Int) -> TimeInterval {
         guard count > 0 else { return 0 }
         return animationBudget / Double(count)
-    }
-
-    nonisolated static func stepCounts(forSegmentCount count: Int) -> [Int] {
-        guard count > 0 else { return [] }
-        let frameBudget = Int((animationBudget * Double(animationFramesPerSecond)).rounded(.down))
-        let totalSteps = max(count, frameBudget)
-        let baseSteps = totalSteps / count
-        let remainder = totalSteps % count
-        return (0 ..< count).map { index in
-            baseSteps + (index < remainder ? 1 : 0)
-        }
     }
 }

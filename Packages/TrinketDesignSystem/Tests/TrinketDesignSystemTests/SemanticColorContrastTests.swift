@@ -20,15 +20,22 @@ struct SemanticColorContrastTests {
 
     @Test(arguments: semanticForegroundNames)
     func `semantic foreground meets contrast in dark environment`(colorName: String) throws {
-        let canvas = try darkResolvedSRGB("ThemeCanvas")
-        let color = try darkResolvedSRGB(colorName)
+        let canvas = try resolvedSRGB("ThemeCanvas", style: .dark)
+        let color = try resolvedSRGB(colorName, style: .dark)
+        #expect(contrastRatio(color, canvas) >= 4.5)
+    }
+
+    @Test(arguments: semanticForegroundNames)
+    func `semantic foreground meets contrast in light environment`(colorName: String) throws {
+        let canvas = try resolvedSRGB("ThemeCanvas", style: .light)
+        let color = try resolvedSRGB(colorName, style: .light)
         #expect(contrastRatio(color, canvas) >= 4.5)
     }
 }
 
-private func darkResolvedSRGB(_ name: String) throws -> (red: Double, green: Double, blue: Double) {
+private func resolvedSRGB(_ name: String, style: UIUserInterfaceStyle) throws -> (red: Double, green: Double, blue: Double) {
     // UIStyleCheck: allow - contrast math needs authored asset components, not semantic Color roles.
-    let traits = UITraitCollection(userInterfaceStyle: .dark)
+    let traits = UITraitCollection(userInterfaceStyle: style)
     let color = try #require(UIColor(named: name, in: .module, compatibleWith: traits))
     var red: CGFloat = 0
     var green: CGFloat = 0

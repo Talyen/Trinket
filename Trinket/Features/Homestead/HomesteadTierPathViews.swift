@@ -348,8 +348,8 @@ struct HomesteadTierCostLabel: View {
                 HStack(spacing: TrinketDesign.Spacing.small) {
                     HomesteadResourceArtwork(resource: amount.resource)
                         .frame(
-                            width: TrinketDesign.Metrics.walletResourceArtworkSize,
-                            height: TrinketDesign.Metrics.walletResourceArtworkSize,
+                            width: TrinketDesign.Layout.walletResourceArtworkSize,
+                            height: TrinketDesign.Layout.walletResourceArtworkSize,
                         )
                     Text("\(amount.quantity)")
                         .trinketTypography(.statValue)

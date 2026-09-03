@@ -188,8 +188,8 @@ struct ShopEncounterView: View {
                 Text("Buy")
                 HomesteadResourceArtwork(resource: .gold)
                     .frame(
-                        width: TrinketDesign.Metrics.compactResourceArtworkSize * 0.8,
-                        height: TrinketDesign.Metrics.compactResourceArtworkSize * 0.8,
+                        width: TrinketDesign.Layout.compactResourceArtworkSize * 0.8,
+                        height: TrinketDesign.Layout.compactResourceArtworkSize * 0.8,
                     )
                 Text("\(offer.price)")
                     .monospacedDigit()

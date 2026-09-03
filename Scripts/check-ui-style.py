@@ -14,11 +14,18 @@ ROOT = Path(__file__).resolve().parents[1]
 SCAN_ROOTS = [
     "Trinket",
     "TrinketUITests",
+    "Packages/BattleEngine",
     "Packages/TrinketDesignSystem/Sources",
     "Packages/TrinketFeatureSupport",
     "Packages/TrinketBattleFeature",
     "Packages/TrinketAppState",
+    "Packages/TrinketContent",
+    "Packages/TrinketCore",
+    "Packages/TrinketPersistence",
+    "Packages/TrinketTestSupport",
 ]
+
+DESIGN_SYSTEM_SOURCES = "Packages/TrinketDesignSystem/Sources/"
 
 DESIGN_HELPERS = {
     "Packages/TrinketDesignSystem/Sources/TrinketDesignSystem/TrinketDesign.swift",
@@ -66,13 +73,28 @@ PATTERNS: list[tuple[str, re.Pattern[str]]] = [
     ("AnyView usage (use @ViewBuilder instead)", re.compile(r"AnyView\(")),
     ("raw RGB color", re.compile(r"Color\s*\(\s*red\s*:")),
     ("raw RGB color", re.compile(r"Color\s*\(\s*white\s*:")),
+    ("raw RGB color", re.compile(r"Color\s*\(\s*hue\s*:")),
+    ("raw RGB color", re.compile(r"Color\s*\(\s*cgColor\s*:")),
+    ("raw RGB color", re.compile(r"Color\s*\(\s*uiColor\s*:")),
     ("raw RGB color", re.compile(r"UIColor\s*\(")),
     ("raw RGB color", re.compile(r"#colorLiteral\(")),
     (
+        "design asset colors outside the design system",
+        re.compile(r"DesignAssetColors\.named"),
+    ),
+    (
         "system color literal",
         re.compile(
-            rf"\.(foregroundStyle|tint|fill|stroke|background)\(\.({SYSTEM_COLORS})\b"
+            rf"\.(foregroundStyle|foregroundColor|tint|fill|stroke|background)\(\.({SYSTEM_COLORS})\b"
         ),
+    ),
+    (
+        "system color literal",
+        re.compile(rf"\.strokeBorder\(\.({SYSTEM_COLORS})\b"),
+    ),
+    (
+        "system color literal",
+        re.compile(rf"\.shadow\(color:\s*\.({SYSTEM_COLORS})\b"),
     ),
     (
         "system color literal",
@@ -172,6 +194,9 @@ def is_allowed(
         if pattern == "raw RGB color" and file_rel in RGB_ALLOWED:
             return True
         return False
+
+    if pattern == "design asset colors outside the design system":
+        return file_rel.startswith(DESIGN_SYSTEM_SOURCES)
 
     if pattern == "direct accentColor modifier":
         return False

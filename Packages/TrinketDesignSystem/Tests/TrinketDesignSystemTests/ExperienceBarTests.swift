@@ -92,14 +92,9 @@ struct ExperienceBarTests {
     }
 
     @Test(arguments: [1, 2, 3, 20])
-    func `animation steps stay within the useful frame budget`(segmentCount: Int) {
-        let stepCounts = ExperienceBar.stepCounts(forSegmentCount: segmentCount)
-        let frameBudget = Int(
-            ExperienceBar.animationBudget * Double(ExperienceBar.animationFramesPerSecond),
-        )
-
-        #expect(stepCounts.count == segmentCount)
-        #expect(stepCounts.allSatisfy { $0 >= 1 })
-        #expect(stepCounts.reduce(0, +) == max(segmentCount, frameBudget))
+    func `segment durations partition the animation budget`(segmentCount: Int) {
+        let duration = ExperienceBar.segmentDuration(forSegmentCount: segmentCount)
+        #expect(abs(duration * Double(segmentCount) - ExperienceBar.animationBudget) < 0.001)
+        #expect(ExperienceBar.segmentDuration(forSegmentCount: 0) == 0)
     }
 }

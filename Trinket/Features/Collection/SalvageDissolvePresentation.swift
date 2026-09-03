@@ -62,8 +62,8 @@ private struct SalvageTransmutationEffect: View {
                     VStack(spacing: TrinketDesign.Spacing.tight) {
                         HomesteadResourceArtwork(resource: yield.resource)
                             .frame(
-                                width: TrinketDesign.Metrics.walletResourceArtworkSize,
-                                height: TrinketDesign.Metrics.walletResourceArtworkSize,
+                                width: TrinketDesign.Layout.walletResourceArtworkSize,
+                                height: TrinketDesign.Layout.walletResourceArtworkSize,
                             )
                         Text("+\(yield.quantity)")
                             .trinketTypography(.statValue)

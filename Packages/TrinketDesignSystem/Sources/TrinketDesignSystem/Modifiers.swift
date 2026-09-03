@@ -23,11 +23,11 @@ struct LockedCardEffectModifier: ViewModifier {
         if isLocked {
             content
                 .saturation(Self.lockedSaturation)
-                .clipShape(clipShape)
                 .compositingGroup()
-                .blur(radius: Self.lockedBlurRadius, opaque: true)
+                .blur(radius: Self.lockedBlurRadius)
                 .clipShape(clipShape)
                 .disabled(true)
+                .accessibilityLabel("Locked")
                 .overlay { lockBadgeOverlay }
         } else {
             content
@@ -37,7 +37,6 @@ struct LockedCardEffectModifier: ViewModifier {
     private var lockBadgeOverlay: some View {
         let ink = TrinketDesign.Colors.Overlay.ink
         return Image(systemName: "lock.fill")
-            // UIStyleCheck: allow - SF Symbol glyph sizing, not copy
             .font(.system(size: lockIconSize))
             .symbolRenderingMode(.monochrome)
             .foregroundStyle(TrinketDesign.Colors.Overlay.paper)
@@ -50,7 +49,7 @@ struct CardLabelSpaceModifier: ViewModifier {
     let isReserved: Bool
 
     @ScaledMetric(relativeTo: .subheadline)
-    private var reservedHeight: CGFloat = TrinketDesign.Metrics.cardLabelReservedHeight
+    private var reservedHeight: CGFloat = TrinketDesign.Layout.cardLabelReservedHeight
 
     func body(content: Content) -> some View {
         if isReserved {
@@ -80,7 +79,7 @@ private struct GlassButtonModifier: ViewModifier {
         .modifier(ForegroundModifier(color: labelColor))
         .controlSize(controlSize)
         .buttonBorderShape(.roundedRectangle)
-        .modifier(IdentifierModifier(identifier: accessibilityIdentifier))
+        .trinketAccessibilityIdentifier(accessibilityIdentifier)
     }
 
     private struct ForegroundModifier: ViewModifier {
@@ -88,17 +87,6 @@ private struct GlassButtonModifier: ViewModifier {
         func body(content: Content) -> some View {
             if let color {
                 content.foregroundStyle(color)
-            } else {
-                content
-            }
-        }
-    }
-
-    private struct IdentifierModifier: ViewModifier {
-        let identifier: String?
-        func body(content: Content) -> some View {
-            if let identifier {
-                content.accessibilityIdentifier(identifier)
             } else {
                 content
             }
@@ -132,7 +120,7 @@ public extension View {
         lineWidth: CGFloat = 3,
     ) -> some View {
         overlay {
-            TrinketDesign.cardShape.strokeBorder(isSelected ? color : .clear, lineWidth: isSelected ? lineWidth : 0)
+            TrinketDesign.cardShape.strokeBorder(color.opacity(isSelected ? 1 : 0), lineWidth: lineWidth)
         }
     }
 
@@ -164,7 +152,7 @@ public extension View {
     }
 
     func trinketCenteredPrimaryAction() -> some View {
-        containerRelativeFrame(.horizontal) { width, _ in width * TrinketDesign.Metrics.singlePrimaryActionWidthFraction }
+        containerRelativeFrame(.horizontal) { width, _ in width * TrinketDesign.Layout.singlePrimaryActionWidthFraction }
             .frame(maxWidth: .infinity)
     }
 
@@ -191,7 +179,7 @@ public extension View {
     }
 
     func trinketSelectionCardButtonStyle() -> some View {
-        buttonStyle(TrinketPressButtonStyle(pressedScale: TrinketMotion.Interaction.selectionCardPressedScale))
+        buttonStyle(TrinketPressButtonStyle(pressedScale: TrinketMotion.Interaction.artworkCardPressedScale))
     }
 
     func trinketSensoryFeedback(_ feedback: SensoryFeedback, trigger: some Equatable, enabled: Bool) -> some View {
