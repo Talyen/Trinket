@@ -125,7 +125,7 @@ struct MysteryUnlockContent: View {
 
     private func recruitPortrait(combatant: Combatant) -> some View {
         CombatantArtwork(combatant: combatant, variant: .hero)
-            .aspectRatio(session.stage.encounter.artAspectRatio, contentMode: .fit)
+            .aspectRatio(3.0 / 4.0, contentMode: .fit)
             .saturation(1 - ceremony.veilAmount)
             .brightness(MysteryCeremonyMotion.veiledBrightness * ceremony.veilAmount)
             .overlay {

@@ -9,6 +9,7 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
     let baseHeight: CGFloat
     var horizontalPadding: CGFloat
     var bottomPadding: CGFloat
+    var singleLineTitle = false
     @ViewBuilder let art: () -> Art
     @ViewBuilder let footer: () -> Footer
 
@@ -20,6 +21,7 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
         baseHeight: CGFloat,
         horizontalPadding: CGFloat = TrinketDesign.Spacing.large,
         bottomPadding: CGFloat = TrinketDesign.Spacing.large,
+        singleLineTitle: Bool = false,
         @ViewBuilder art: @escaping () -> Art,
         @ViewBuilder footer: @escaping () -> Footer,
     ) {
@@ -30,6 +32,7 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
         self.baseHeight = baseHeight
         self.horizontalPadding = horizontalPadding
         self.bottomPadding = bottomPadding
+        self.singleLineTitle = singleLineTitle
         self.art = art
         self.footer = footer
     }
@@ -81,6 +84,30 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
 
     @ViewBuilder
     private var titleText: some View {
+        if singleLineTitle {
+            singleLineTitleText
+        } else {
+            wrappedTitleText
+        }
+    }
+
+    @ViewBuilder
+    private var singleLineTitleText: some View {
+        let label = Text(title)
+            .trinketTypography(.screenDisplay)
+            .trinketOnArtText(.title)
+            .trinketSingleLineFittedText()
+            .shineText(titleShine)
+
+        if let titleAccessibilityIdentifier {
+            label.accessibilityIdentifier(titleAccessibilityIdentifier)
+        } else {
+            label
+        }
+    }
+
+    @ViewBuilder
+    private var wrappedTitleText: some View {
         let label = Text(balanced: title)
             .trinketTypography(.screenDisplay)
             .trinketOnArtText(.title)
@@ -104,6 +131,7 @@ public extension DetailHeroHeader where Footer == EmptyView {
         baseHeight: CGFloat,
         horizontalPadding: CGFloat = TrinketDesign.Spacing.large,
         bottomPadding: CGFloat = TrinketDesign.Spacing.large,
+        singleLineTitle: Bool = false,
         @ViewBuilder art: @escaping () -> Art,
     ) {
         self.eyebrow = eyebrow
@@ -113,6 +141,7 @@ public extension DetailHeroHeader where Footer == EmptyView {
         self.baseHeight = baseHeight
         self.horizontalPadding = horizontalPadding
         self.bottomPadding = bottomPadding
+        self.singleLineTitle = singleLineTitle
         self.art = art
         footer = { EmptyView() }
     }

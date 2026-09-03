@@ -141,6 +141,7 @@ struct MysteryEncounterView: View {
                 baseHeight: baseHeight,
                 horizontalPadding: TrinketDesign.Layout.contentMargin,
                 bottomPadding: TrinketDesign.Spacing.large,
+                singleLineTitle: true,
             ) {
                 heroArtwork
             }
