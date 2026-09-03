@@ -8,12 +8,7 @@ Active skills live in [`.agents/skills/`](.agents/skills/); durable lessons in [
 
 ## Communication
 
-Write for a collaborator who knows Trinket as a game, not the file tree.
-
-- **Lead with meaning in game terms.** First sentence is what is true / what changed for the player.
-- **Prefer product / design / user language.** Game terminology (“enemies pick a new target,” “Homestead build,” “Collection detail,” “hand,” “shop”) is always welcome and encouraged.
-- **Avoid strictly technical / code / engineering language by default.** Don’t lean on file paths, line numbers, function/method/class names, code blocks, diffs, package names, or script/gate names (`handoff.sh`, `check-docs`, `isolate`, `ci-gate`) in messages to the user. If technical detail helps, keep it brief and after the product summary — and only when you asked for depth.
-- **Keep the work in the work.** Gates, budgets, generation, and diagnostics belong in the diff/logs; the chat summarizes in product terms.
+Write for a product manager, designer, player, or user who knows Trinket as a game, not its implementation. Use plain language and established player-facing names for features, screens, and behavior. Discuss code-level detail only when the user asks for it or when it is necessary to explain a decision, risk, or blocker.
 
 ## Guardrails
 
@@ -54,7 +49,7 @@ Touched areas must respect their nested guides and AgentContext cards. Run `./Sc
 - Verification does not imply authoring a test. Follow [`Docs/Platform/Testing.md`](Docs/Platform/Testing.md) to place consequential coverage in the cheapest existing semantic owner; that guide owns persistence reload semantics and the UI keep/drop rubric.
 - Full smoke and exhaustive UI are CI-owned post-push gates. Local simulator work is limited to routed targeted smoke classes or single-target UI debugging; reserve full local UI runs for release-time deploy verification (`test-deploy.sh`).
 - Before handoff, run path-scoped verification with `--isolate`. `./Scripts/handoff.sh --isolate --paths <file...>` is the canonical gate; add `--final` when closing a task that used an execution plan. Do not claim completion unless the routed gate passes; if a required step is unavailable, report the exact blocker or skip. Never kill foreign Xcode or Simulator processes; concurrency, worktree, lock, and diagnostics details live in [`Docs/AgentContext/ci-and-project-generation.md`](Docs/AgentContext/ci-and-project-generation.md) and [`Docs/AgentContext/ci-diagnostics.md`](Docs/AgentContext/ci-diagnostics.md).
-- At handoff, report what changed, what you checked, and what you intentionally left alone — in the same product voice as Communication, readable without opening the diff. Distinguish requested work from encountered fixes so each scope expansion is visible. Example: “Enemies now pick a new target if the current one dies mid-turn. While checking that flow, I also repaired the stale target saved after a retreat. Checked that battles still play and the shop still opens.” Not: “Refactored `BattleTurnEngine.swift:42` targeting resolution. Ran `handoff.sh --isolate --paths …`.” Include pass/fail and skips in product terms; omit file paths, line numbers, and script names unless you asked for them. Include any change-budget justification in the same voice.
+- At handoff, briefly report the result, verification status, encountered fixes, and anything intentionally left alone. Follow Communication for the level of detail.
 
 ## Commit and push
 

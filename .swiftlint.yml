@@ -3,9 +3,17 @@
 # guarded by Scripts/check-ui-style.py (TrinketDesign / UIStyleCheck: allow).
 # See Scripts/README.md "Style & lint ownership".
 #
-# Analyzer rules need `swiftlint analyze` plus
-# a compiler index/log and are intentionally not part of the fail-closed style gate.
-# CI runs them in an advisory job after the shared build (Scripts/lint-analyze.sh).
+# Ownership split for bans: portable ripgrep checks own enforcement
+# (check-api-bans.sh for observation/navigation, check-agent-invariants.sh for
+# entropy/sleep/persistence/artwork/disables). SwiftLint custom_rules below
+# mirror ONLY patterns that are valid NSRegularExpression; variable-length
+# lookbehind (e.g. (?<!//.*)) is invalid and silently disables the rule, so
+# comment-sensitive bans must live in the shell checks, never here.
+#
+# Analyzer rules need `swiftlint analyze` plus a compiler index/log.
+# Scripts/lint-analyze.sh fails the run on unused_import (dead code is
+# blocking); capture_variable and unused_declaration stay advisory.
+# CI runs it as a blocking job after the shared build (Scripts/lint-analyze.sh).
 analyzer_rules:
   - capture_variable
   - unused_import
@@ -17,6 +25,12 @@ unused_declaration:
 
 swiftlint_version: 0.65.0
 
+# modifier_order lives here, not in SwiftFormat (.swiftformat disables
+# modifierOrder): the compiler-required `public nonisolated` spelling beats
+# the rule, so that site carries a reasoned swiftlint:disable:next.
+# single_test_class / balanced_xctest_lifecycle / xct_specific_matcher stay
+# until the XCTest-to-Swift-Testing migration (check-api-bans.sh) completes,
+# then retire them.
 opt_in_rules:
   - accessibility_label_for_image
   - accessibility_trait_for_button
@@ -70,7 +84,10 @@ opt_in_rules:
   # `Button { }`, default no-op closures, and `while predicate() {}` drains.
 
 disabled_rules:
-  # SwiftFormat owns these mechanical rewrites in the style gate.
+  # SwiftFormat owns these mechanical rewrites in the style gate
+  # (see .swiftformat --enable: isEmpty, preferContains, preferFirstWhere,
+  # preferCountWhere, preferMinOverSorted, preferFlatMap, preferSwiftTesting).
+  # Do not re-enable the SwiftLint counterparts.
   - contains_over_filter_count
   - contains_over_filter_is_empty
   - contains_over_first_not_nil
@@ -81,20 +98,24 @@ disabled_rules:
   - flatmap_over_map_reduce
   - implicit_return
   - prefer_key_path
-  - private_swiftui_state
   - redundant_discardable_let
   - sorted_first_last
-  - unused_optional_binding
-  - unused_parameter
   - yoda_condition
-  - line_length
-  - identifier_name
-  - todo
-  - large_tuple
+  # Formatting owned by SwiftFormat (maxwidth 140, trailing commas, newlines).
   - trailing_comma
   - trailing_newline
   - vertical_whitespace
   - statement_position
+  - line_length
+  # Deliberately off with reason:
+  # - private_swiftui_state: @Observable replaced @State wrappers; the rule
+  #   pushes legacy state patterns.
+  # - identifier_name: game domain and SwiftUI DSL use short names pervasively.
+  # - large_tuple: 3-element tuples (coordinates, test rows) are idiomatic;
+  #   cyclomatic_complexity bounds the egregious cases.
+  - private_swiftui_state
+  - identifier_name
+  - large_tuple
 
 # Force unwrap is opt-in; cast and try are default rules. Strict mode makes all
 # three fail the gate. Prefer XCTUnwrap / #require / guard-let in tests.
@@ -118,9 +139,13 @@ nesting:
 # catalog content split across focused files instead of raising limits further.
 function_parameter_count: 7
 
-# Platform bans from AGENTS.md — prefer @Observable / NavigationStack. Regex
-# custom_rules need SourceKit, so check-api-bans.sh mirrors them for
-# portable builds. Product color policy belongs to check-ui-style.py.
+# Platform bans from AGENTS.md — prefer @Observable / NavigationStack.
+# check-api-bans.sh is the portable owner and runs in every style gate;
+# the observation/navigation customs below are editor-speed mirrors only.
+# Entropy, test-sleep, persistence, and artwork bans live SOLELY in
+# check-agent-invariants.sh: their patterns need comment awareness that
+# NSRegularExpression cannot express, so SwiftLint copies were dead rules.
+# Product color policy belongs to check-ui-style.py.
 custom_rules:
   banned_observation_apis:
     name: "Banned Observation APIs"
@@ -139,45 +164,10 @@ custom_rules:
       - comment
     message: "Comments banned — remove or use an allowed toolchain directive (swift-tools-version / swiftlint:disable / swiftformat:disable). See doc-budget skill."
     severity: error
-  banned_task_sleep:
-    name: "Task.sleep in tests"
-    regex: '(?<!//.*)Task\.sleep\s*\((?![^)]*\.milliseconds)'
-    included:
-      - "Packages/*/Tests"
-    message: "Task.sleep in package tests must poll with .milliseconds or use TestSleepCheck: allow"
-    severity: error
-  banned_persistence_try_question:
-    name: "Persistence try? ban"
-    regex: '(?<!//.*)\btry\?'
-    included:
-      - "Packages/TrinketPersistence/Sources/TrinketPersistence"
-    message: "try? on persistence write/open; use an explicit path or PersistenceCheck: allow"
-    severity: error
-  banned_battle_engine_date_uuid:
-    name: "BattleEngine unseeded Date()/UUID()"
-    regex: '(?<!//.*)\b(Date|UUID)\(\)'
-    included:
-      - "Packages/BattleEngine/Sources/BattleEngine"
-    message: "unseeded Date()/UUID() in BattleEngine rule code"
-    severity: error
-  banned_battle_engine_random:
-    name: "BattleEngine unseeded .random()"
-    regex: '(?<!//.*)\.random\s*\((?![^)]*using:)'
-    included:
-      - "Packages/BattleEngine/Sources/BattleEngine"
-    message: "unseeded .random( in BattleEngine rule code (inject RNG via using:)"
-    severity: error
   banned_swiftlint_disable_without_reason:
     name: "swiftlint:disable without reason"
     regex: '//\s*swiftlint:disable\b(?![^\n]*-\s*\S+)'
     message: "swiftlint:disable must include ' - <reason>'"
-    severity: error
-  banned_artwork_release_pins:
-    name: "Launch artwork pin release"
-    regex: '(?<!//.*)\breleasePins\b'
-    included:
-      - "Trinket/App/TrinketApp.swift"
-    message: "do not release launch artwork pins after warmup (ArtworkWorkingSetCheck)"
     severity: error
 
 excluded:
@@ -187,8 +177,5 @@ excluded:
   - build
   - "Packages/*/build"
   - "Packages/*/.build"
-  # DEBUG feel-tuning lab; intentionally dense parameter surface.
-  - Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/Layout/BattleHandMotionLab.swift
-  - Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/Feedback/CombatFeedbackFloatMotionLab.swift
 
 strict: true

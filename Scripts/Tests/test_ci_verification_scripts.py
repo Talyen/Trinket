@@ -19,7 +19,7 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
         text = (ROOT / "Scripts" / "lint-analyze.sh").read_text(encoding="utf-8")
         self.assertIn("swiftlint analyze", text)
         self.assertIn("compiler-log-path", text)
-        # Advisory analyze must not emit Checks annotations: that reporter
+        # Blocking analyze must not emit Checks annotations: that reporter
         # volume plus cache save overflowed the 30-minute build job timeout.
         self.assertNotIn("--reporter github-actions-logging", text)
         self.assertIn("build-app-", text)
@@ -35,11 +35,15 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
         self.assertIn("lint-analyze.sh", tests_yml)
         self.assertRegex(
             tests_yml,
-            r"name: Advisory SwiftLint analyze\n(?:.*\n){0,8}    continue-on-error: true",
+            r"name: SwiftLint analyze \(unused_import blocking\)\n",
+        )
+        self.assertNotRegex(
+            tests_yml,
+            r"name: SwiftLint analyze \(unused_import blocking\)\n(?:.*\n){0,8}    continue-on-error: true",
         )
         self.assertRegex(
             tests_yml,
-            r"SwiftLint analyze\n(?:.*\n){0,6}        continue-on-error: true",
+            r"- name: SwiftLint analyze\n        env:",
         )
         self.assertRegex(
             tests_yml,
@@ -51,10 +55,12 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
             r"name: Build for testing\n(?:.*\n){0,8}    timeout-minutes: 30",
         )
 
-    def test_ci_analyze_is_advisory(self) -> None:
+    def test_ci_analyze_blocks_on_dead_code(self) -> None:
         text = (ROOT / ".github" / "workflows" / "tests.yml").read_text(encoding="utf-8")
-        self.assertRegex(text, r"analyze:\n(?:.*\n){0,8}    continue-on-error: true")
-        self.assertNotRegex(text, r"ci-ok:\n(?:.*\n)*?needs:.*analyze")
+        self.assertNotRegex(text, r"analyze:\n(?:.*\n){0,8}    continue-on-error: true")
+        self.assertRegex(text, r"  ci-ok:\n(?:.*\n)*?    needs:.*analyze")
+        script = (ROOT / "Scripts" / "lint-analyze.sh").read_text(encoding="utf-8")
+        self.assertIn("unused_import", script)
 
     def test_change_budget_warns_when_package_production_lacks_tests(self) -> None:
         text = (ROOT / "Scripts" / "change-budget.sh").read_text(encoding="utf-8")

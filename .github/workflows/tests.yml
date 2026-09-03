@@ -14,9 +14,10 @@ name: Build and test
 # toolchain/assets incremental source rebuilds (script-only edits keep that
 # prefix). Within-run fan-out uses a run-scoped artifact of pruned
 # .DerivedData. The build job compiles the app so smoke and exhaustive UI can
-# run with --no-build; the unit job compiles package schemes itself. Advisory
-# SwiftLint analyze runs beside tests from the app-only compiler log, not on
-# the build job. The exhaustive UI suite is sharded by feature so post-push
+# run with --no-build; the unit job compiles package schemes itself. SwiftLint
+# analyze runs beside tests from the app-only compiler log, not on
+# the build job, and blocks CI OK on unused_import (other analyzer findings
+# stay advisory). The exhaustive UI suite is sharded by feature so post-push
 # validation does not serialize every journey on one CI simulator.
 
 on:
@@ -242,10 +243,9 @@ jobs:
           preboot-simulator: 'true'
 
   analyze:
-    name: Advisory SwiftLint analyze
+    name: SwiftLint analyze (unused_import blocking)
     needs: [changes, build]
     if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.code == 'true'
-    continue-on-error: true
     runs-on: macos-26
     timeout-minutes: 30
     steps:
@@ -280,7 +280,6 @@ jobs:
           name: ${{ needs.build.outputs.build-artifact }}-compiler-logs
           path: .DerivedData/TestResults/raw
       - name: SwiftLint analyze
-        continue-on-error: true
         env:
           SKIP_GENERATE: 1
         run: ./Scripts/lint-analyze.sh
@@ -337,7 +336,7 @@ jobs:
   # Exhaustive UI is advisory (nightly/dispatch) so it never blocks pushes.
   ci-ok:
     name: CI OK
-    needs: [changes, gate, assets-gate, build, unit, smoke]
+    needs: [changes, gate, assets-gate, build, unit, smoke, analyze]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5

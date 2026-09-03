@@ -69,13 +69,12 @@ Do not edit audit guides to record results. Record durable proposals and accepte
 
 ## Handoff
 
-Lead with the outcome and report:
+Report:
 
 - Confirmed findings fixed, grouped by owning audit
 - Audits with zero findings
 - Proposals awaiting approval
-- Changed authored paths
-- Verification commands and pass/fail/skip status
+- Verification pass/fail/skip status
 - Any toolchain limitation or change-budget justification
 
 Keep the handoff concise. Summarize diagnostics; never paste long build, test, search, or diff output.

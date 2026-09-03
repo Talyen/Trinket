@@ -70,12 +70,12 @@ changed paths, including paths added by encountered fixes. Docs and Markdown edi
 | `ci-gate.sh --fast` | Module boundaries, Swift Testing policy, release-note validation, and artwork budget only — from `Scripts/config/cheap-slices.txt` |
 | `ci-assets-gate.sh` | Generate assets, assert, regenerate in a stable locale, assert again |
 | `test-deploy.sh` | Release-time: `ci-gate.sh`, unit, then full UI, or the optional smoke canary |
-| Main CI | Post-push on `main`: path filter, generation/style, app build, package unit, and smoke for product changes; advisory analysis and exhaustive UI do not block `CI OK` |
+| Main CI | Post-push on `main`: path filter, generation/style, app build, package unit, and smoke for product changes; analyzer dead-code (`unused_import`) and exhaustive UI: only dead-code blocks `CI OK`, exhaustive stays advisory |
 | Nightly exhaustive | Scheduled or manually dispatched exhaustive UI; advisory and reported separately from `CI OK` |
 
 The shared build job produces app test products for smoke and exhaustive UI
 fan-out, while package unit tests compile their own schemes in parallel. Exact
-shards, artifact contracts, cache inputs, and advisory job behavior belong to
+shards, artifact contracts, cache inputs, and remaining advisory job behavior belong to
 the checked-in workflows ([tests.yml](../../.github/workflows/tests.yml) and
 related workflow files); update this guide only when the verification policy
 changes.

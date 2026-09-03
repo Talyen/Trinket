@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
-# CI-only advisory SwiftLint analyzer pass.
+# CI blocking SwiftLint analyzer pass for dead code (unused_import).
 # Requires an xcodebuild compiler log from build-for-testing. Do not add this
 # to handoff.sh or test.sh style — it needs the shared CI build index/log.
-# tests.yml runs this as an advisory job after build, off the test critical path.
+# tests.yml runs this as a blocking job after build, off the test critical path.
+# Only unused_import fails the run; capture_variable and unused_declaration
+# findings stay advisory noise in the log.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -46,12 +48,31 @@ if ! grep -E -q 'swift(c|-frontend)' "$COMBINED"; then
 fi
 
 # xcode reporter only: github-actions-logging floods Checks with unused_import
-# findings while this pass is still advisory, and that annotation volume plus
-# cache save overflows the build job's wall clock.
+# findings, and that annotation volume plus cache save overflows the build
+# job's wall clock.
 extra_args=()
 if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
   extra_args+=(--reporter xcode)
 fi
 
 echo "=== SwiftLint analyze (capture_variable / unused_import / unused_declaration) ==="
-swiftlint analyze --compiler-log-path "$COMBINED" "${extra_args[@]}" "${SWIFT_SOURCE_DIRS[@]}"
+analyze_output="$(mktemp)"
+analyze_status=0
+if [ ${#extra_args[@]} -gt 0 ]; then
+  swiftlint analyze --compiler-log-path "$COMBINED" "${extra_args[@]}" "${SWIFT_SOURCE_DIRS[@]}" 2>&1 | tee "$analyze_output" || analyze_status=$?
+else
+  swiftlint analyze --compiler-log-path "$COMBINED" "${SWIFT_SOURCE_DIRS[@]}" 2>&1 | tee "$analyze_output" || analyze_status=$?
+fi
+if (( analyze_status != 0 && analyze_status != 1 )); then
+  echo "lint-analyze: swiftlint analyze errored (exit $analyze_status)." >&2
+  rm -f "$analyze_output"
+  exit "$analyze_status"
+fi
+if grep -E -q 'unused_import' "$analyze_output"; then
+  echo "lint-analyze: unused_import violations found — remove the dead imports." >&2
+  rm -f "$analyze_output"
+  exit 1
+fi
+rm -f "$analyze_output"
+echo "lint-analyze: no unused_import violations (remaining findings advisory); passing."
+exit 0
