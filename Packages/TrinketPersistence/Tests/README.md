@@ -19,23 +19,21 @@ Store I/O tests isolate `@MainActor` on the test that opens `PlayerSaveStore`, n
 | Homestead store API | `PlayerHomesteadStoreTests` | `buildOrUpgradeNode` / `collectProduction` through the hub |
 | Homestead math | `HomesteadStateTests` | Build costs, production settlement (no store I/O) |
 | Roster / inventory state | `PlayerRosterStateTests` | Loadouts, equipment, gold, equipped-item lookup |
-| Inventory decode | `InventoryModelMappingTests` | Trinket catalog refresh from stale rows |
-| Unique items | `UniqueItemRuleTests` | Unique affix-power reload; altar exclusion |
+| Unique items | `UniqueItemRuleTests` | Unique affix-power reload; altar exclusion; trinket catalog refresh from stale rows |
 | Talents | `TalentPersistenceTests` | Sanitizer filter, unlock API, reload |
 | Journey progression | `JourneyProgressTests` | Unlock chain, `nextStage`, pin/progress reload, duplicate-stage repair |
 | Stage rewards | `StageRewardTests` | Claim policy, gold/XP, party-adjusted claim fallback (journey + spire) |
 | Combat loot rolls | `BattleLootTests` | Quantity bands, rarity ladder, seed-stable journey loot |
 | Shop | `ShopPurchaseApplierTests` | Purchase rules; one cross-applier reload proof |
 | Mystery apply | `MysteryEffectApplierTests` | Gold/materials/XP/items/recruits |
-| Mystery pins | `MysteryEventPinApplierTests` | Journey/labyrinth pin idempotency |
-| Mystery pick context | `MysteryEventPickContextSaveTests` | Corruption Altar gating |
+| Mystery pins | `MysteryEventPinTests` | Journey/labyrinth pin idempotency |
+| Mystery pick context | `MysteryEventPinTests` | Corruption Altar gating |
 | Salvage | `ItemSalvageApplierTests` | Yields, unequip, trinket/unique ineligibility, one reload |
 | Corruption | `ItemCorruptionTests` | Affix rules, eligibility, one reload |
 | Spires progress | `SpiresProgressTests` | Floor unlock/clear; XP override |
 | Slice reload proofs | `SlicesReloadTests` | Spire clamp, ability loadouts, legacy companion armor |
 | Labyrinth map / completion | `LabyrinthProgressTests` | Generation, clear, sanitize, completion, map+run-health reload |
-| Labyrinth run health | `LabyrinthRunHealthTests` | Campfire math and payload decode (no extra store open) |
-| Labyrinth encounter level | `LabyrinthEncounterLevelOverrideTests` | Loot/XP at overridden levels |
+| Labyrinth encounter level | `StageRewardEncounterLevelTests` | Loot/XP at overridden levels |
 | Labyrinth migration | `LabyrinthMigrationTests` | Map version ID migration |
 | Labyrinth unreadable blob | `LabyrinthSaveRecoveryTests` | Preserve the stored blob during load/sanitize; rebuild the map when the player enters |
 
