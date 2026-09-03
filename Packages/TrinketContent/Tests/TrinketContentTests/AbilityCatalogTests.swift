@@ -193,6 +193,14 @@ struct AbilityCatalogTests {
         try #expect(Ability.stab.criticalChanceBonus == 0.25)
     }
 
+    @Test func `sap arrow takes gold from stunned enemies`() throws {
+        try #expect(Ability.sapArrow.summary == "Deal 3 Stun damage. If the enemy is Stunned, gain 2 Gold.")
+        try #expect(Ability.sapArrow.damageComponents == [DamageComponent(3, keyword: .stun)])
+        try #expect(Ability.sapArrow.targetedEffects == [
+            TargetedEffect(.resourceGain(.gold, 2), condition: .enemyStunned),
+        ])
+    }
+
     @Test func `variable damage branches resolve within locked ranges`() throws {
         var rng = SeededRandomNumberGenerator(seed: 7)
         for _ in 0 ..< 12 {

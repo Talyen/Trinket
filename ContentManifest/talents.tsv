@@ -28,9 +28,9 @@ rogue_bleed_t1_2	Deep Wounds	drop.triangle.fill	Bleed ignores the enemy's damage
 rogue_bleed_t2_1	Taste for Blood	mouth.fill	When Bleed deals damage, your next basic attack is a guaranteed Critical Hit.		onBleedDamageNextBasicGuaranteedCrit:true
 rogue_bleed_t2_2	Blood Money	banknote.fill	When Bleed deals damage, gain 2 Gold.		bleedDamageGoldFlat:2
 rogue_bleed_t3_1	Exsanguinate	drop.degreesign.fill	Critical hits on Bleeding targets detonate and consume all remaining Bleed damage at once.		criticalOnBleedingDetonateBleed:true
-rogue_bleed_t3_2	Scent of Blood	scope	Deal 3 additional damage to Bleeding enemies.		damageVsBleedingBonus:3
+rogue_bleed_t3_2	Scent of Blood	scope	Deal 1 additional damage to Bleeding enemies and enemies below half Health.		damageBelowHealthPercentThreshold:0.5|damageBelowHealthPercentBonus:1|damageVsBleedingBonus:1
 rogue_gold_t1_1	Light Fingers	hand.point.up.fill	Gain 2 Gold when you Critically Hit.		criticalGoldFlat:2
-rogue_gold_t1_2	Deep Pockets	bag.fill	Start each battle with 15 bonus Gold.		startBattleBonusGold:15
+rogue_gold_t1_2	Coinmail	bag.fill	Whenever you gain Gold in combat, gain Block equal to half that amount.		gold_gain_block_percent:0.50
 rogue_gold_t2_1	Cutpurse Cut	dollarsign.circle.fill	Attacks steal 2 Gold from the target.		onAttackStealGold:2
 rogue_gold_t2_2	Gold Reserves	centsign.circle.fill	Deal 1 additional damage for every 10 Gold carried (up to +5 bonus damage).		goldReservesDamageEvery:10|goldReservesDamageCap:5
 rogue_gold_t3_1	Bounty Hunter	target	Defeating an enemy with a Critical Hit grants 10 bonus Gold.		critOnDefeatGold:10

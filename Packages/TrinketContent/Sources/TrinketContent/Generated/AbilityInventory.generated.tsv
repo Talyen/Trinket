@@ -36,7 +36,7 @@ mana-shield	Mana Shield	skill	Convert all Mana into Block.
 poison-dagger	Poison Dagger	skill	Deal 2 Poison damage.
 pounce	Pounce	skill	Deal 3 Stun damage. Doubled if played on the first turn.
 predators-focus	Predator's Focus	skill	Mark the enemy. Your next attack is a guaranteed Critical Hit.
-sap-arrow	Sap Arrow	skill	Deal 3 Stun damage and restore 1 Mana.
+sap-arrow	Sap Arrow	skill	Deal 3 Stun damage. If the enemy is Stunned, gain 2 Gold.
 serrated-edge	Serrated Edge	skill	Deal 2 Bleed damage and reduces damage dealt by 50% for 2 turns.
 smite	Smite	skill	Deal 4 Holy damage and Purge a positive status effect from the enemy.
 spiked-shield	Spiked Shield	skill	Gain 2 Block and gain 2 Thorns.

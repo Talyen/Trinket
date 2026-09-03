@@ -139,7 +139,8 @@ enum AbilityCatalogSkill {
     static let sapArrow = AbilityBuilder.directHit(
         id: "sap-arrow", name: "Sap Arrow", tier: .skill,
         amount: 3, keyword: .stun,
-        extras: [TargetedEffect(.resourceGain(.mana, 1), target: .actor)],
+        description: "Deal 3 Stun damage. If the enemy is Stunned, gain 2 Gold.",
+        extras: [TargetedEffect(.resourceGain(.gold, 2), condition: .enemyStunned)],
     )
 
     static let serratedEdge = Ability(

@@ -384,9 +384,9 @@ public extension CombatantTalentCatalog {
             "rogue_bleed_t3_2": CombatantTalentEffect(
                 name: "Scent of Blood",
                 symbolName: "scope",
-                description: "Deal 3 additional damage to Bleeding enemies.",
+                description: "Deal 1 additional damage to Bleeding enemies and enemies below half Health.",
                 modifiers: [],
-                triggers: CombatTraitTriggers(damage: DamageTriggers(damageVsBleedingBonus: 3))
+                triggers: CombatTraitTriggers(damage: DamageTriggers(damageBelowHealthPercentThreshold: 0.5, damageBelowHealthPercentBonus: 1, damageVsBleedingBonus: 1))
             ),
             "rogue_gold_t1_1": CombatantTalentEffect(
                 name: "Light Fingers",
@@ -396,11 +396,11 @@ public extension CombatantTalentCatalog {
                 triggers: CombatTraitTriggers(gold: GoldTriggers(criticalGoldFlat: 2))
             ),
             "rogue_gold_t1_2": CombatantTalentEffect(
-                name: "Deep Pockets",
+                name: "Coinmail",
                 symbolName: "bag.fill",
-                description: "Start each battle with 15 bonus Gold.",
+                description: "Whenever you gain Gold in combat, gain Block equal to half that amount.",
                 modifiers: [],
-                triggers: CombatTraitTriggers(gold: GoldTriggers(startBattleBonusGold: 15))
+                triggers: CombatTraitTriggers(block: BlockTriggers(goldGainBlockPercent: 0.50))
             ),
             "rogue_gold_t2_1": CombatantTalentEffect(
                 name: "Cutpurse Cut",
