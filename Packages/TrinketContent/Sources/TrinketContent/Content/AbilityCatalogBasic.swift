@@ -28,6 +28,9 @@ enum AbilityCatalogBasic {
     static let causticJab = Ability(
         id: "caustic-jab", name: "Caustic Jab", tier: .basic,
         damageComponents: [DamageComponent(1, keyword: .poison)],
+        targetedEffects: [
+            TargetedEffect(.halveShield(.block), target: .enemy),
+        ],
     )
 
     static let fangs = AbilityBuilder.directHit(
@@ -45,7 +48,11 @@ enum AbilityCatalogBasic {
 
     static let iceShot = Ability(
         id: "ice-shot", name: "Ice Shot", tier: .basic,
-        damageComponents: [DamageComponent(2, keyword: .freeze)],
+        description: "Deal 2 Freeze damage. If this Freezes the enemy, deal 2 Physical damage.",
+        damageComponents: [
+            DamageComponent(2, keyword: .freeze),
+            DamageComponent(2, keyword: .physical, condition: .enemyFrozen),
+        ],
     )
 
     static let kindling = Ability(
@@ -70,10 +77,8 @@ enum AbilityCatalogBasic {
 
     static let pixieDust = Ability(
         id: "pixie-dust", name: "Pixie Dust", tier: .basic,
-        outcomeBranches: [
-            AbilityOutcomeBranch(damageComponents: [DamageComponent(2, keyword: .burn)]),
-            AbilityOutcomeBranch(effects: [.resourceGain(.mana, 2)]),
-        ],
+        damageComponents: [DamageComponent(1, keyword: .burn)],
+        targetedEffects: [TargetedEffect(.resourceGain(.mana, 1))],
     )
 
     static let rayOfFrost = Ability(

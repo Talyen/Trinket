@@ -49,6 +49,16 @@ package enum CombatTriggerEngine {
 
     static func incomingHealMultiplier(for target: Combatant, in context: BattleState) -> Double {
         guard target.role == .enemy else { return 1 }
+        var multiplier = burnAuraHealMultiplier(for: target, in: context)
+        let affliction = context.roster.activeEffects(for: target).compactMap { active -> Double? in
+            guard case let .healingReductionPercent(percent, _) = active.effect else { return nil }
+            return percent
+        }.max() ?? 0
+        multiplier *= max(0, 1 - min(1, affliction))
+        return multiplier
+    }
+
+    private static func burnAuraHealMultiplier(for target: Combatant, in context: BattleState) -> Double {
         let isBurning = context.roster.activeEffects(for: target).contains { $0.effect.keyword == .burn }
         guard isBurning else { return 1 }
         var reduction = 0.0

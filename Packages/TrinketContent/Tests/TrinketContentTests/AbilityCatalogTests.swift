@@ -135,17 +135,44 @@ struct AbilityCatalogTests {
         try #expect(!Ability.packTactics.dealsCombatDamage)
     }
 
-    @Test func `validator rejects damage condition without bonus amount`() throws {
+    @Test func `validator allows condition-gated damage line`() throws {
         let ability = Ability(
-            id: "bad-pounce",
-            name: "Bad Pounce",
+            id: "gated-pounce",
+            name: "Gated Pounce",
             tier: .skill,
             damageComponents: [
                 DamageComponent(3, keyword: .stun, condition: .firstTurn),
             ],
         )
         let issues = AbilityValidator.validate(ability)
-        try #expect(issues.contains { $0.message.contains("bonusAmount") })
+        try #expect(issues.isEmpty, "\(issues.map(\.description).joined(separator: "\n"))")
+    }
+
+    @Test func `ice shot shatters frozen enemies`() throws {
+        let iceShot = try #require(AbilityCatalog.ability(id: "ice-shot"))
+        try #expect(iceShot.summary == "Deal 2 Freeze damage. If this Freezes the enemy, deal 2 Physical damage.")
+        try #expect(iceShot.damageComponents == [
+            DamageComponent(2, keyword: .freeze),
+            DamageComponent(2, keyword: .physical, condition: .enemyFrozen),
+        ])
+        try #expect(iceShot.keywords.contains(.physical))
+        try #expect(iceShot.identityKeywords == [.freeze])
+    }
+
+    @Test func `serrated edge weakens enemy healing`() throws {
+        try #expect(Ability.serratedEdge.summary == "Deal 2 Bleed damage. Reduces enemy Healing by 25% for 3 turns.")
+        try #expect(Ability.serratedEdge.targetedEffects == [
+            TargetedEffect(.healingReductionPercent(0.25, 3), target: .enemy),
+        ])
+    }
+
+    @Test func `combustion detonates burning enemies`() throws {
+        let combustion = try #require(AbilityCatalog.ability(id: "combustion"))
+        try #expect(combustion.summary == "Deal 4 Burn damage. If the enemy is Burning, detonate all its remaining Burn at once, doubled.")
+        try #expect(combustion.damageComponents == [DamageComponent(4, keyword: .burn)])
+        try #expect(combustion.targetedEffects == [
+            TargetedEffect(.detonateDoT(.burn, 2), target: .enemy, condition: .enemyBurning),
+        ])
     }
 
     @Test func `validator rejects purge on ally in outcome branch`() throws {
@@ -215,11 +242,29 @@ struct AbilityCatalogTests {
         }
     }
 
-    @Test func `resolving outcome branch preserves shared ability clauses`() {
-        var rng = SeededRandomNumberGenerator(seed: 42)
-        let resolvedBloodthorn = Ability.bloodthorn.resolvingOutcomeBranch(using: &rng)
-        #expect(resolvedBloodthorn.hasLeech)
-        #expect(resolvedBloodthorn.damageComponents.count == 1)
-        #expect(resolvedBloodthorn.damageComponents[0].keyword == .bleed || resolvedBloodthorn.damageComponents[0].keyword == .poison)
+    @Test func `bloodthorn deals fixed bleed and poison with leech`() throws {
+        let bloodthorn = try #require(AbilityCatalog.ability(id: "bloodthorn"))
+        try #expect(bloodthorn.outcomeBranches == nil)
+        try #expect(bloodthorn.damageComponents == [
+            DamageComponent(3, keyword: .bleed),
+            DamageComponent(3, keyword: .poison),
+        ])
+        try #expect(bloodthorn.hasLeech)
+    }
+
+    @Test func `branched abilities show shared riders`() throws {
+        let bloodthorn = try #require(AbilityCatalog.ability(id: "bloodthorn"))
+        try #expect(bloodthorn.summary == "Deal 3 Bleed damage and deal 3 Poison damage. Leech.")
+        for ability in AbilityCatalog.all where ability.descriptionOverride == nil {
+            if ability.hasLeech {
+                try #expect(ability.summary.contains("Leech"), "\(ability.id) hides Leech")
+            }
+            if ability.repeatsManaEmpowerment {
+                try #expect(ability.summary.contains("Mana"), "\(ability.id) hides empowerment")
+            }
+            if ability.criticalChanceBonus > 0 || ability.guaranteedCriticalIfEnemyBuffed {
+                try #expect(ability.summary.contains("Critical"), "\(ability.id) hides critical rider")
+            }
+        }
     }
 }

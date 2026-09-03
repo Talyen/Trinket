@@ -180,6 +180,51 @@ struct MultiplyDoTHandler: BattleEffectHandler {
     }
 }
 
+struct DetonateDoTHandler: BattleEffectHandler {
+    let kind: EffectKind = .detonateDoT
+
+    func apply(
+        _ effect: Effect,
+        ability _: Ability,
+        source: Combatant,
+        target: Combatant,
+        in context: inout BattleState,
+    ) -> EffectApplyOutcome {
+        guard case let .detonateDoT(keyword, factor) = effect, factor > 0 else {
+            return EffectApplyOutcome(events: [], didApply: false)
+        }
+        guard !context.isResolvingDoTDetonation else {
+            return EffectApplyOutcome(events: [], didApply: false)
+        }
+        context.isResolvingDoTDetonation = true
+        defer { context.isResolvingDoTDetonation = false }
+        var effects = context.roster.activeEffects(for: target)
+        let matching = effects.filter {
+            $0.effect.keyword == keyword && ($0.effect.isDecayingDoT || $0.effect.isBleed)
+        }
+        guard !matching.isEmpty else {
+            return EffectApplyOutcome(events: [], didApply: false)
+        }
+        effects.removeAll {
+            $0.effect.keyword == keyword && ($0.effect.isDecayingDoT || $0.effect.isBleed)
+        }
+        context.roster.setActiveEffects(effects, for: target)
+        var events: [ActionEvent] = []
+        for active in matching {
+            let potency = (active.effect.potency ?? 0) * factor
+            guard potency > 0 else { continue }
+            events.append(contentsOf: DoTDamage.resolveTurnDamage(
+                basePotency: potency,
+                keyword: keyword,
+                target: target,
+                sourceActorID: source.id,
+                in: &context,
+            ).events)
+        }
+        return EffectApplyOutcome(events: events, didApply: true)
+    }
+}
+
 struct RecurringDamageHandler: BattleEffectHandler {
     let kind: EffectKind = .recurringDamage
 

@@ -165,13 +165,16 @@ extension BattleTurnEngine {
             )
 
             var amount = component.amount
-            if let condition = component.condition,
-               BattleConditionEvaluator.isMet(
-                   condition,
-                   actor: actor,
-                   in: context,
-               ) {
-                amount += component.bonusAmount
+            if let condition = component.condition {
+                if BattleConditionEvaluator.isMet(
+                    condition,
+                    actor: actor,
+                    in: context,
+                ) {
+                    amount += component.bonusAmount
+                } else if component.bonusAmount == 0 {
+                    continue
+                }
             }
 
             let isSelfHealthCost = damageTarget.id == actor.id

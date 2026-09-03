@@ -33,6 +33,12 @@ struct TimedDebuffHandler: BattleEffectHandler {
                 keyword: keyword,
                 text: "Dazzled: Outgoing damage reduced by \(amount)\(durationSuffix).",
             )
+        case let .healingReductionPercent(percent, _):
+            let percentInt = Int((percent * 100).rounded())
+            return EffectSummary(
+                keyword: keyword,
+                text: "Sapped: Incoming healing reduced by \(percentInt)%\(durationSuffix).",
+            )
         default:
             return nil
         }

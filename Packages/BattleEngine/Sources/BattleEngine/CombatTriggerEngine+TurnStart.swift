@@ -119,7 +119,37 @@ package extension CombatTriggerEngine {
         events.append(contentsOf: startOfTurnResourceCadence(for: owner, actor: actor, triggers: triggers, in: &context))
         events.append(contentsOf: startOfTurnDrawCadence(for: owner, actor: actor, triggers: triggers, in: &context))
         events.append(contentsOf: battleStartBonuses(for: owner, actor: actor, triggers: triggers, in: &context))
+        applyDamageRamp(for: actor, triggers: triggers, in: &context)
         return events
+    }
+
+    private static func applyDamageRamp(
+        for actor: Combatant,
+        triggers: CombatTraitTriggers,
+        in context: inout BattleState,
+    ) {
+        let burnPerRound: Int = triggers.burnDamageRampPerRound
+        let burnCap: Int = triggers.burnDamageRampCap
+        let bleedPerRound: Int = triggers.bleedDamageRampPerRound
+        let bleedCap: Int = triggers.bleedDamageRampCap
+        bumpDamageRamp(for: actor, keyword: Keyword.burn, perRound: burnPerRound, cap: burnCap, in: &context)
+        bumpDamageRamp(for: actor, keyword: Keyword.bleed, perRound: bleedPerRound, cap: bleedCap, in: &context)
+    }
+
+    private static func bumpDamageRamp(
+        for actor: Combatant,
+        keyword: Keyword,
+        perRound: Int,
+        cap: Int,
+        in context: inout BattleState,
+    ) {
+        guard perRound > 0, cap > 0 else { return }
+        context.roster.mutateRuntime(for: actor) { runtime in
+            let current: Int = runtime.keywordDamageRamp[keyword, default: 0]
+            var ramp: [Keyword: Int] = runtime.keywordDamageRamp
+            ramp[keyword] = min(current + perRound, cap)
+            runtime.keywordDamageRamp = ramp
+        }
     }
 
     private static func startOfTurnRegen(

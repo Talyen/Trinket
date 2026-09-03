@@ -5,7 +5,7 @@ enum AbilityDescriptionFormatter {
     static func format(_ ability: Ability) -> String {
         if let branches = ability.outcomeBranches, !branches.isEmpty {
             let branchTexts = branches.map(formatBranch)
-            return joinOr(branchTexts)
+            return joinOr(branchTexts) + riderSuffix(for: ability)
         }
         return formatFixed(ability)
     }
@@ -24,6 +24,22 @@ enum AbilityDescriptionFormatter {
         )
         let text = formatFixed(ability)
         return text.hasSuffix(".") ? String(text.dropLast()) : text
+    }
+
+    private static func riderSuffix(for ability: Ability) -> String {
+        var riders: [String] = []
+        if let critical = criticalClause(for: ability) {
+            riders.append(critical)
+        }
+        if ability.repeatsManaEmpowerment {
+            riders.append("convert all your Mana into bonus Burn damage")
+        }
+        if ability.hasLeech {
+            riders.append("leech")
+        }
+        guard !riders.isEmpty else { return "" }
+        let sentences = riders.map { capitalize($0) + "." }
+        return " " + sentences.joined(separator: " ")
     }
 
     private static func criticalClause(for ability: Ability) -> String? {
@@ -73,8 +89,12 @@ enum AbilityDescriptionFormatter {
         var clauses: [String] = []
         for component in components {
             var text = "deal \(component.amount) \(component.keyword.rawValue) damage"
-            if component.bonusAmount > 0, let condition = component.condition {
-                text += ". If \(conditionPhrase(condition)), deal \(component.bonusAmount) extra \(component.keyword.rawValue) damage"
+            if let condition = component.condition {
+                if component.bonusAmount > 0 {
+                    text += ". If \(conditionPhrase(condition)), deal \(component.bonusAmount) extra \(component.keyword.rawValue) damage"
+                } else {
+                    text += " if \(conditionPhrase(condition))"
+                }
             }
             clauses.append(text)
         }

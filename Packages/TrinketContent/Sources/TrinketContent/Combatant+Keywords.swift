@@ -6,7 +6,7 @@ public extension Combatant {
         let abilities = abilityChoices.basics
             + abilityChoices.skills
             + abilityChoices.ultimates
-        return Set(abilities.flatMap(\.keywords))
+        return Set(abilities.flatMap(\.identityKeywords))
     }
 
     var affinityKeywords: [Keyword] {

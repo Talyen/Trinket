@@ -36,11 +36,13 @@ public enum EffectKind: Hashable, CaseIterable, Sendable {
     case freezeNextAttacker
     case onHitDamage
     case multiplyDoT
+    case detonateDoT
     case recurringDamage
     case avatar
     case revive
     case damageReductionPercent
     case damageReductionFlat
+    case healingReductionPercent
     case hemorrhage
 }
 
@@ -82,11 +84,13 @@ public extension Effect {
         case .freezeNextAttacker: .freezeNextAttacker
         case .onHitDamage: .onHitDamage
         case .multiplyDoT: .multiplyDoT
+        case .detonateDoT: .detonateDoT
         case .recurringDamage: .recurringDamage
         case .avatar: .avatar
         case .revive: .revive
         case .damageReductionPercent: .damageReductionPercent
         case .damageReductionFlat: .damageReductionFlat
+        case .healingReductionPercent: .healingReductionPercent
         case .hemorrhage: .hemorrhage
         }
     }

@@ -42,7 +42,7 @@ public enum EffectMetadata {
              .cleanse, .cleanseHealPerDebuff, .panacea, .cleanseRandom,
              .purge, .purgeRandom, .halveShield,
              .convertManaToBlock, .shieldFromMana, .shieldFromHalfMana, .shieldFromGold,
-             .multiplyDoT, .revive:
+             .multiplyDoT, .detonateDoT, .revive:
             .init(isInstant: true)
         case .deathsDoor:
             .init(advancesEachTurn: true)
@@ -52,7 +52,7 @@ public enum EffectMetadata {
         case .maximumManaBonus:
             .init(isRemovableBuff: true, isInstant: true)
         case .marked, .recurringDamage, .damageReductionPercent,
-             .damageReductionFlat:
+             .damageReductionFlat, .healingReductionPercent:
             .init(isRemovableDebuff: true, advancesEachTurn: true)
         case .criticalChanceBonus, .restoreManaOnHit, .damageKeywordOverride, .avatar:
             .init(isRemovableBuff: true, advancesEachTurn: true)

@@ -25,22 +25,27 @@ enum AbilityCatalogUltimate {
 
     static let bloodthorn = Ability(
         id: "bloodthorn", name: "Bloodthorn", tier: .ultimate,
-        outcomeBranches: [
-            AbilityOutcomeBranch(damageComponents: [DamageComponent(4, keyword: .bleed)]),
-            AbilityOutcomeBranch(damageComponents: [DamageComponent(4, keyword: .poison)]),
+        damageComponents: [
+            DamageComponent(3, keyword: .bleed),
+            DamageComponent(3, keyword: .poison),
         ],
         hasLeech: true,
     )
 
     static let combustion = Ability(
         id: "combustion", name: "Combustion", tier: .ultimate,
+        description: "Deal 4 Burn damage. If the enemy is Burning, detonate all its remaining Burn at once, doubled.",
         damageComponents: [
-            DamageComponent(4, keyword: .burn, bonusAmount: 4, condition: .enemyBurning),
+            DamageComponent(4, keyword: .burn),
+        ],
+        targetedEffects: [
+            TargetedEffect(.detonateDoT(.burn, 2), target: .enemy, condition: .enemyBurning),
         ],
     )
 
     static let astralArrow = Ability(
         id: "astral-arrow", name: "Astral Arrow", tier: .ultimate,
+        description: "Deal 7 Stun, Freeze, or Burn damage.",
         outcomeBranches: [
             AbilityOutcomeBranch(damageComponents: [DamageComponent(7, keyword: .stun)]),
             AbilityOutcomeBranch(damageComponents: [DamageComponent(7, keyword: .freeze)]),

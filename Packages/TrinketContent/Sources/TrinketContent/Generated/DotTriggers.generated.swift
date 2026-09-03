@@ -34,6 +34,10 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
     public var freezeDamageLeech: Bool = false
     public var poisonDamageLeech: Bool = false
     public var bleedDamageGoldFlat: Int = 0
+    public var burnDamageRampPerRound: Int = 0
+    public var burnDamageRampCap: Int = 0
+    public var bleedDamageRampPerRound: Int = 0
+    public var bleedDamageRampCap: Int = 0
     public var burnDamageManaRestoreThreshold: Int = 0
     public var onBurnDamageRestoreManaPerTurnCap: Int = 0
     public var burnProcsBleedChancePercent: Double = 0
@@ -80,6 +84,10 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
         freezeDamageLeech: Bool = false,
         poisonDamageLeech: Bool = false,
         bleedDamageGoldFlat: Int = 0,
+        burnDamageRampPerRound: Int = 0,
+        burnDamageRampCap: Int = 0,
+        bleedDamageRampPerRound: Int = 0,
+        bleedDamageRampCap: Int = 0,
         burnDamageManaRestoreThreshold: Int = 0,
         onBurnDamageRestoreManaPerTurnCap: Int = 0,
         burnProcsBleedChancePercent: Double = 0,
@@ -125,6 +133,10 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
         self.freezeDamageLeech = freezeDamageLeech
         self.poisonDamageLeech = poisonDamageLeech
         self.bleedDamageGoldFlat = bleedDamageGoldFlat
+        self.burnDamageRampPerRound = burnDamageRampPerRound
+        self.burnDamageRampCap = burnDamageRampCap
+        self.bleedDamageRampPerRound = bleedDamageRampPerRound
+        self.bleedDamageRampCap = bleedDamageRampCap
         self.burnDamageManaRestoreThreshold = burnDamageManaRestoreThreshold
         self.onBurnDamageRestoreManaPerTurnCap = onBurnDamageRestoreManaPerTurnCap
         self.burnProcsBleedChancePercent = burnProcsBleedChancePercent
@@ -142,7 +154,7 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["burnDecaySlowPercent", "poisonDecaySlowPercent", "poisonDecayIncreaseChance", "onBleedApplyPoison", "onBurnApplyPoison", "onBleedDealBurnDamage", "onBleedDealPoisonChancePercent", "onBurnDealPoisonChancePercent", "onBleedDealBurnChancePercent", "onBurnDamageDetonateBleedChancePercent", "poisonStunChancePercent", "freezeDamageWhileBurningBonus", "onBleedDamagePoisonTick", "onBleedAppliedToBleedingExtendTurns", "onBleedAppliedToBleedingDealDamage", "bleedsIgnoreMitigation", "onBleedDamageHealSelf", "onBurnTickHolyDamage", "burnTicksTwicePerTurn", "damagePerBurnPotencyPercent", "burnIncreaseChancePercent", "poisonThresholdStunAmount", "poisonDamageLeechPercent", "onCritDoubleBleedDuration", "criticalOnBleedingDetonateBleed", "criticalDetonateBleedAndPoison", "onBurnDamageDetonateBleed", "freezeDamageLeech", "poisonDamageLeech", "bleedDamageGoldFlat", "burnDamageManaRestoreThreshold", "onBurnDamageRestoreManaPerTurnCap", "burnProcsBleedChancePercent", "bleedProcsBurnChancePercent", "burnDamageLeech", "bleedDamageLeech", "shatterpoint", "cryostasis", "crossContamination", "backdraft", "ashenArsenal", "arterialCascade", "bloodrush", "steamExplosion"]
+    public static let fieldNames: [String] = ["burnDecaySlowPercent", "poisonDecaySlowPercent", "poisonDecayIncreaseChance", "onBleedApplyPoison", "onBurnApplyPoison", "onBleedDealBurnDamage", "onBleedDealPoisonChancePercent", "onBurnDealPoisonChancePercent", "onBleedDealBurnChancePercent", "onBurnDamageDetonateBleedChancePercent", "poisonStunChancePercent", "freezeDamageWhileBurningBonus", "onBleedDamagePoisonTick", "onBleedAppliedToBleedingExtendTurns", "onBleedAppliedToBleedingDealDamage", "bleedsIgnoreMitigation", "onBleedDamageHealSelf", "onBurnTickHolyDamage", "burnTicksTwicePerTurn", "damagePerBurnPotencyPercent", "burnIncreaseChancePercent", "poisonThresholdStunAmount", "poisonDamageLeechPercent", "onCritDoubleBleedDuration", "criticalOnBleedingDetonateBleed", "criticalDetonateBleedAndPoison", "onBurnDamageDetonateBleed", "freezeDamageLeech", "poisonDamageLeech", "bleedDamageGoldFlat", "burnDamageRampPerRound", "burnDamageRampCap", "bleedDamageRampPerRound", "bleedDamageRampCap", "burnDamageManaRestoreThreshold", "onBurnDamageRestoreManaPerTurnCap", "burnProcsBleedChancePercent", "bleedProcsBurnChancePercent", "burnDamageLeech", "bleedDamageLeech", "shatterpoint", "cryostasis", "crossContamination", "backdraft", "ashenArsenal", "arterialCascade", "bloodrush", "steamExplosion"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -177,6 +189,10 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
         if self.freezeDamageLeech != other.freezeDamageLeech { names.append("freezeDamageLeech") }
         if self.poisonDamageLeech != other.poisonDamageLeech { names.append("poisonDamageLeech") }
         if self.bleedDamageGoldFlat != other.bleedDamageGoldFlat { names.append("bleedDamageGoldFlat") }
+        if self.burnDamageRampPerRound != other.burnDamageRampPerRound { names.append("burnDamageRampPerRound") }
+        if self.burnDamageRampCap != other.burnDamageRampCap { names.append("burnDamageRampCap") }
+        if self.bleedDamageRampPerRound != other.bleedDamageRampPerRound { names.append("bleedDamageRampPerRound") }
+        if self.bleedDamageRampCap != other.bleedDamageRampCap { names.append("bleedDamageRampCap") }
         if self.burnDamageManaRestoreThreshold != other.burnDamageManaRestoreThreshold { names.append("burnDamageManaRestoreThreshold") }
         if self.onBurnDamageRestoreManaPerTurnCap != other.onBurnDamageRestoreManaPerTurnCap { names.append("onBurnDamageRestoreManaPerTurnCap") }
         if self.burnProcsBleedChancePercent != other.burnProcsBleedChancePercent { names.append("burnProcsBleedChancePercent") }
@@ -227,6 +243,10 @@ extension DotTriggers {
         freezeDamageLeech = freezeDamageLeech || other.freezeDamageLeech
         poisonDamageLeech = poisonDamageLeech || other.poisonDamageLeech
         bleedDamageGoldFlat += other.bleedDamageGoldFlat
+        burnDamageRampPerRound += other.burnDamageRampPerRound
+        burnDamageRampCap = max(burnDamageRampCap, other.burnDamageRampCap)
+        bleedDamageRampPerRound += other.bleedDamageRampPerRound
+        bleedDamageRampCap = max(bleedDamageRampCap, other.bleedDamageRampCap)
         burnDamageManaRestoreThreshold = max(burnDamageManaRestoreThreshold, other.burnDamageManaRestoreThreshold)
         onBurnDamageRestoreManaPerTurnCap = max(onBurnDamageRestoreManaPerTurnCap, other.onBurnDamageRestoreManaPerTurnCap)
         burnProcsBleedChancePercent += other.burnProcsBleedChancePercent
@@ -278,6 +298,10 @@ extension DotTriggers {
             freezeDamageLeech: values.decode(Bool.self, "freezeDamageLeech", default: false),
             poisonDamageLeech: values.decode(Bool.self, "poisonDamageLeech", default: false),
             bleedDamageGoldFlat: values.decode(Int.self, "bleedDamageGoldFlat", default: 0),
+            burnDamageRampPerRound: values.decode(Int.self, "burnDamageRampPerRound", default: 0),
+            burnDamageRampCap: values.decode(Int.self, "burnDamageRampCap", default: 0),
+            bleedDamageRampPerRound: values.decode(Int.self, "bleedDamageRampPerRound", default: 0),
+            bleedDamageRampCap: values.decode(Int.self, "bleedDamageRampCap", default: 0),
             burnDamageManaRestoreThreshold: values.decode(Int.self, "burnDamageManaRestoreThreshold", default: 0),
             onBurnDamageRestoreManaPerTurnCap: values.decode(Int.self, "onBurnDamageRestoreManaPerTurnCap", default: 0),
             burnProcsBleedChancePercent: values.decode(Double.self, "burnProcsBleedChancePercent", default: 0),
@@ -326,6 +350,10 @@ extension DotTriggers {
         try container.encodeNonDefault(freezeDamageLeech, "freezeDamageLeech", default: false)
         try container.encodeNonDefault(poisonDamageLeech, "poisonDamageLeech", default: false)
         try container.encodeNonDefault(bleedDamageGoldFlat, "bleedDamageGoldFlat", default: 0)
+        try container.encodeNonDefault(burnDamageRampPerRound, "burnDamageRampPerRound", default: 0)
+        try container.encodeNonDefault(burnDamageRampCap, "burnDamageRampCap", default: 0)
+        try container.encodeNonDefault(bleedDamageRampPerRound, "bleedDamageRampPerRound", default: 0)
+        try container.encodeNonDefault(bleedDamageRampCap, "bleedDamageRampCap", default: 0)
         try container.encodeNonDefault(burnDamageManaRestoreThreshold, "burnDamageManaRestoreThreshold", default: 0)
         try container.encodeNonDefault(onBurnDamageRestoreManaPerTurnCap, "onBurnDamageRestoreManaPerTurnCap", default: 0)
         try container.encodeNonDefault(burnProcsBleedChancePercent, "burnProcsBleedChancePercent", default: 0)

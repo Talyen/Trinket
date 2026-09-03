@@ -3,14 +3,14 @@ apple	Apple	basic	Restore 3 Health.
 bash	Bash	basic	Deal 2 Stun damage.
 blackjack	Blackjack	basic	Deal 2 Stun damage and steal 2 Gold if the enemy is Stunned.
 block	Block	basic	Gain 3 Block.
-caustic-jab	Caustic Jab	basic	Deal 1 Poison damage.
+caustic-jab	Caustic Jab	basic	Deal 1 Poison damage and halve the enemy's Block.
 fangs	Fangs	basic	Deal 1 Bleed damage. Leech.
 fire-arrow	Fire Arrow	basic	Deal 1 Burn damage. If the enemy is Burning, deal 1 extra Burn damage.
-ice-shot	Ice Shot	basic	Deal 2 Freeze damage.
+ice-shot	Ice Shot	basic	Deal 2 Freeze damage. If this Freezes the enemy, deal 2 Physical damage.
 kindling	Kindling	basic	Deal 1 Burn damage. Your next Burn card deals +1 Burn damage.
 mana-berries	Mana Berries	basic	Restore 2 Mana.
 maul	Maul	basic	Deal 2 Stun damage or deal 2 Bleed damage.
-pixie-dust	Pixie Dust	basic	Deal 2 Burn damage or restore 2 Mana.
+pixie-dust	Pixie Dust	basic	Deal 1 Burn damage and restore 1 Mana.
 ray-of-frost	Ray of Frost	basic	Deal 1 Freeze damage each turn for 2 turns.
 rending-slash	Rend	basic	Deal 2 Bleed damage.
 shield-bash	Shield Bash	basic	Deal 1 Stun damage and gain 1 Block.
@@ -37,7 +37,7 @@ poison-dagger	Poison Dagger	skill	Deal 2 Poison damage.
 pounce	Pounce	skill	Deal 3 Stun damage. Doubled if played on the first turn.
 predators-focus	Predator's Focus	skill	Mark the enemy. Your next attack is a guaranteed Critical Hit.
 sap-arrow	Sap Arrow	skill	Deal 3 Stun damage. If the enemy is Stunned, gain 2 Gold.
-serrated-edge	Serrated Edge	skill	Deal 2 Bleed damage and reduces damage dealt by 50% for 2 turns.
+serrated-edge	Serrated Edge	skill	Deal 2 Bleed damage. Reduces enemy Healing by 25% for 3 turns.
 smite	Smite	skill	Deal 4 Holy damage and Purge a positive status effect from the enemy.
 spiked-shield	Spiked Shield	skill	Gain 2 Block and gain 2 Thorns.
 steal	Steal	skill	Steal 3 Gold.
@@ -45,12 +45,12 @@ stoneskin-potion	Stoneskin Potion	skill	Gain 4 Block.
 sunder	Sunder	skill	Deal 4 Physical damage and halve the enemy's Block.
 tithe	Tithe	skill	Deal 3 Holy damage or steal 3 Gold.
 venom-fangs	Venom Fangs	skill	Deal 2 Poison damage. Leech.
-astral-arrow	Astral Arrow	ultimate	Deal 7 Stun damage, Deal 7 Freeze damage, or deal 7 Burn damage.
+astral-arrow	Astral Arrow	ultimate	Deal 7 Stun, Freeze, or Burn damage.
 avatar-of-justice	Avatar	ultimate	Deal 5 Holy damage and gain 3 Block each turn for 2 turns.
 blessed-aegis	Blessed Aegis	ultimate	Gain 6 Block. Next time you're hit, Deal 6 Holy damage.
 blizzard	Blizzard	ultimate	Deal 4 Freeze damage each turn for 2 turns.
-bloodthorn	Bloodthorn	ultimate	Deal 4 Bleed damage or deal 4 Poison damage.
-combustion	Combustion	ultimate	Deal 4 Burn damage. If the enemy is Burning, deal 4 extra Burn damage.
+bloodthorn	Bloodthorn	ultimate	Deal 3 Bleed damage and deal 3 Poison damage. Leech.
+combustion	Combustion	ultimate	Deal 4 Burn damage. If the enemy is Burning, detonate all its remaining Burn at once, doubled.
 earthquake	Earthquake	ultimate	Deal 4 Stun damage each turn for 2 turns.
 faustian-bargain	Faustian Bargain	ultimate	Lose 2 Health. Deal 4 Burn damage and draw 1 card.
 golden-plate	Golden Plate	ultimate	Gain 3 Block, Gold, and Thorns. Your Hero and Companion each dodge the next attack.

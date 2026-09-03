@@ -95,11 +95,13 @@ public enum Effect: Hashable, Sendable {
     case cleanseHealPerDebuff(Int)
     case panacea(baseHeal: Int, healPerDebuff: Int)
     case multiplyDoT(Keyword, Int)
+    case detonateDoT(Keyword, Int)
     case recurringDamage(Keyword, Int, Int)
     case avatar(holyDamage: Int, blockPerTurn: Int, turns: Int)
     case revive(Int)
     case damageReductionPercent(Double, Int)
     case damageReductionFlat(Int, Int)
+    case healingReductionPercent(Double, Int)
     case hemorrhage(Int)
 
     public static let bleedDoTTurnCount = 2
@@ -145,11 +147,13 @@ public enum Effect: Hashable, Sendable {
         case .freezeNextAttacker: .freeze
         case let .onHitDamage(k, _): k
         case let .multiplyDoT(k, _): k
+        case let .detonateDoT(k, _): k
         case let .recurringDamage(k, _, _): k
         case .avatar: .holy
         case .revive: .health
         case .damageReductionPercent: .physical
         case .damageReductionFlat: .physical
+        case .healingReductionPercent: .physical
         case .hemorrhage: .bleed
         }
     }
@@ -198,12 +202,12 @@ public enum Effect: Hashable, Sendable {
         case let .damageKeywordOverride(_, _, d): d
         case let .recurringDamage(_, _, d): d
         case let .avatar(_, _, d): d
-        case let .damageReductionPercent(_, d), let .damageReductionFlat(_, d): d
+        case let .damageReductionPercent(_, d), let .damageReductionFlat(_, d), let .healingReductionPercent(_, d): d
         case .burn, .poison, .instantHeal, .resourceGain, .drawCards, .drawAndPlayCards, .cleanse, .cleanseRandom,
              .purge, .purgeRandom, .halveShield, .controlMeter, .deathsDoor,
              .shield, .thorns, .nextHolyStrike, .nextStrikeDouble, .nextBurnBonus, .evadeNextHit,
              .convertManaToBlock, .shieldFromMana, .shieldFromHalfMana, .shieldFromGold, .maximumManaBonus,
-             .nextStrikeCritical, .freezeNextAttacker, .onHitDamage, .multiplyDoT, .revive,
+             .nextStrikeCritical, .freezeNextAttacker, .onHitDamage, .multiplyDoT, .detonateDoT, .revive,
              .cleanseHealPerDebuff, .panacea, .hemorrhage:
             0
         }
@@ -234,8 +238,8 @@ public enum Effect: Hashable, Sendable {
     public static func defaultTarget(for effect: Self) -> EffectTarget {
         switch effect {
         case .burn, .poison, .bleed, .controlMeter, .halveShield, .purge, .purgeRandom, .marked,
-             .multiplyDoT, .recurringDamage, .hemorrhage,
-             .damageReductionPercent, .damageReductionFlat:
+             .multiplyDoT, .detonateDoT, .recurringDamage, .hemorrhage,
+             .damageReductionPercent, .damageReductionFlat, .healingReductionPercent:
             .abilityTarget
         case .instantHeal:
             .lowestHealthAlly

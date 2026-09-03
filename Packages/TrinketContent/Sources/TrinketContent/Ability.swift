@@ -137,6 +137,19 @@ public struct Ability: Identifiable, Hashable, Sendable {
 
     public var keywords: [Keyword] {
         var result = damageComponents.map(\.keyword)
+        appendNonDamageKeywords(to: &result)
+        return result
+    }
+
+    public var identityKeywords: [Keyword] {
+        var result = damageComponents
+            .filter { $0.condition == nil || $0.bonusAmount > 0 }
+            .map(\.keyword)
+        appendNonDamageKeywords(to: &result)
+        return result
+    }
+
+    private func appendNonDamageKeywords(to result: inout [Keyword]) {
         for targetedEffect in targetedEffects {
             result.append(targetedEffect.effect.keyword)
         }
@@ -149,7 +162,6 @@ public struct Ability: Identifiable, Hashable, Sendable {
         if hasLeech {
             result.append(.leech)
         }
-        return result
     }
 
     public var summary: String {

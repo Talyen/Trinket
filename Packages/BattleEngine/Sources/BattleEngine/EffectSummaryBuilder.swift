@@ -12,7 +12,7 @@ public enum EffectSummaryBuilder {
         .nextHolyStrike, .nextStrikeDouble, .nextBurnBonus, .evadeNextHit,
         .nextStrikeCritical, .freezeNextAttacker, .onHitDamage, .maximumManaBonus,
         .recurringDamage, .avatar,
-        .damageReductionPercent, .damageReductionFlat,
+        .damageReductionPercent, .damageReductionFlat, .healingReductionPercent,
         .controlMeter,
     ]
 

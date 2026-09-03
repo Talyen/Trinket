@@ -16,16 +16,19 @@ enum AbilityValidator {
         "blessed-aegis",
         "bounty-shot",
         "cold-snap",
+        "combustion",
         "dark-pact",
         "earthquake",
         "fireball",
         "glacial-ward",
         "golden-plate",
+        "ice-shot",
         "kindling",
         "panacea-potion",
         "pounce",
         "predators-focus",
         "sap-arrow",
+        "serrated-edge",
         "shadowstep",
         "slash",
         "smite",
@@ -132,7 +135,7 @@ enum AbilityValidator {
         case "smite":
             total == 4
         case "ice-shot":
-            total == 2
+            total == 4
         case "slash":
             total == 3
         default:
@@ -146,11 +149,41 @@ enum AbilityValidator {
             components.append(contentsOf: branches.flatMap(\.damageComponents))
         }
         return components.compactMap { component in
-            guard component.condition != nil, component.bonusAmount == 0 else { return nil }
-            return Issue(
-                abilityID: ability.id,
-                message: "damage condition requires bonusAmount > 0 (amount always applies)",
-            )
+            guard let condition = component.condition, component.bonusAmount == 0 else { return nil }
+            guard rendersCondition(condition, for: component) else {
+                return Issue(
+                    abilityID: ability.id,
+                    message: "damage condition is not rendered in card text",
+                )
+            }
+            return nil
+        }
+    }
+
+    private static func rendersCondition(_ condition: DamageCondition, for component: DamageComponent) -> Bool {
+        let generated = AbilityDescriptionFormatter.format(Ability(
+            id: "preview",
+            name: "preview",
+            tier: .basic,
+            damageComponents: [component],
+        ))
+        return generated.contains(conditionPreview(condition))
+    }
+
+    private static func conditionPreview(_ condition: DamageCondition) -> String {
+        switch condition {
+        case .enemyBleeding: "Bleeding"
+        case .enemyBurning: "Burning"
+        case .enemyNotBurning: "not Burning"
+        case .enemyPoisoned: "Poisoned"
+        case .enemyFrozen: "Frozen"
+        case .enemyStunned: "Stunned"
+        case .enemyStunnedOrFrozen: "Stunned or Frozen"
+        case .enemyMarked: "Marked"
+        case .enemyLowerHealthThanActor: "less Health"
+        case .allyBelowHalfHealth: "half Health"
+        case .enemyHasBuff: "buff"
+        case .firstTurn: "first turn"
         }
     }
 }

@@ -145,9 +145,10 @@ enum AbilityCatalogSkill {
 
     static let serratedEdge = Ability(
         id: "serrated-edge", name: "Serrated Edge", tier: .skill,
+        description: "Deal 2 Bleed damage. Reduces enemy Healing by 25% for 3 turns.",
         damageComponents: [DamageComponent(2, keyword: .bleed)],
         targetedEffects: [
-            TargetedEffect(.damageReductionPercent(0.50, 2), target: .enemy),
+            TargetedEffect(.healingReductionPercent(0.25, 3), target: .enemy),
         ],
     )
 

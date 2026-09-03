@@ -614,9 +614,9 @@ public extension CombatantTalentCatalog {
             "warlock_burn_t1_2": CombatantTalentEffect(
                 name: "Scorching Ash",
                 symbolName: "flame.fill",
-                description: "Increase Burn damage dealt by 2.",
-                modifiers: [.damageDealt(.burn, 2)],
-                triggers: CombatTraitTriggers()
+                description: "Burn damage dealt increases by 1 each round, up to 4.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(dot: DotTriggers(burnDamageRampPerRound: 1, burnDamageRampCap: 4))
             ),
             "warlock_burn_t2_1": CombatantTalentEffect(
                 name: "Withering Flame",
@@ -1350,9 +1350,9 @@ public extension CombatantTalentCatalog {
             "panther_bleed_t1_1": CombatantTalentEffect(
                 name: "Razor Claws",
                 symbolName: "pawprint.fill",
-                description: "Increase Bleed damage dealt by 2.",
-                modifiers: [.damageDealt(.bleed, 2)],
-                triggers: CombatTraitTriggers()
+                description: "Bleed damage dealt increases by 1 each round, up to 4.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(dot: DotTriggers(bleedDamageRampPerRound: 1, bleedDamageRampCap: 4))
             ),
             "panther_bleed_t1_2": CombatantTalentEffect(
                 name: "Raking Swipes",

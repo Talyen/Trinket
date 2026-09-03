@@ -69,11 +69,13 @@ public enum EffectHandlers {
         ),
         .onHitDamage: OnHitDamageHandler(),
         .multiplyDoT: MultiplyDoTHandler(),
+        .detonateDoT: DetonateDoTHandler(),
         .recurringDamage: RecurringDamageHandler(),
         .avatar: AvatarHandler(),
         .revive: ReviveHandler(),
         .damageReductionPercent: TimedDebuffHandler(kind: .damageReductionPercent),
         .damageReductionFlat: TimedDebuffHandler(kind: .damageReductionFlat),
+        .healingReductionPercent: TimedDebuffHandler(kind: .healingReductionPercent),
         .hemorrhage: HemorrhageHandler(),
     ]
 

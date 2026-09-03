@@ -72,7 +72,7 @@ ranger_bleed_t2_2	Hunter's Mark	scope	Increase Companion Bleed duration by 1 and
 ranger_bleed_t3_1	Pinning Strike	arrow.down.to.line.compact	Bleeding enemies take 2 damage whenever they attack.		bleedingEnemyAttackDealDamage:2
 ranger_bleed_t3_2	Blood Tracker	eye.fill	Gain +15% Critical Hit chance against Bleeding enemies.		critChancePerBleedingEnemy:0.15
 warlock_burn_t1_1	Bloodfire	drop.fill	Whenever Burn damages an enemy, restore 2 Health.		burnDamageHealFlat:2
-warlock_burn_t1_2	Scorching Ash	flame.fill	Increase Burn damage dealt by 2.	damage_dealt:burn:2	
+warlock_burn_t1_2	Scorching Ash	flame.fill	Burn damage dealt increases by 1 each round, up to 4.		burn_damage_ramp_per_round:1|burn_damage_ramp_cap:4
 warlock_burn_t2_1	Withering Flame	heart.slash.fill	Burn reduces enemy healing and Leech by half.		burnReducesEnemyHealingAndLeechPercent:0.5
 warlock_burn_t2_2	Soul Burn	moon.stars.fill	Restore 1 Mana whenever Burn deals 4 or more damage in a turn.		burnDamageManaRestoreThreshold:4|onBurnDamageRestoreManaFlat:1
 warlock_burn_t3_1	Damnation	exclamationmark.triangle.fill	Burning enemies take 25% additional damage from all sources.		damageVsBurningMultiplier:1.25
@@ -143,7 +143,7 @@ lizard_scout_gold_t2_1	Pickpocket	hand.point.up.fill	Attacks steal 1 Gold from t
 lizard_scout_gold_t2_2	Scavenger's Cache	bag.fill	Spend Gold to prevent damage (1 Gold per 1 damage, up to 5 Gold per hit).		goldAbsorbsDamage:true
 lizard_scout_gold_t3_1	Flawless Bounty	star.circle.fill	While the Lizard Scout is at full Health, Gold you gain in combat is doubled.		goldDoubledWhileFullHealth:true
 lizard_scout_gold_t3_2	Gilded Claws	dollarsign.circle.fill	Deal 1 bonus damage for every 20 Gold carried.		damagePerCarriedGoldEvery:20
-panther_bleed_t1_1	Razor Claws	pawprint.fill	Increase Bleed damage dealt by 2.	damage_dealt:bleed:2	
+panther_bleed_t1_1	Razor Claws	pawprint.fill	Bleed damage dealt increases by 1 each round, up to 4.		bleed_damage_ramp_per_round:1|bleed_damage_ramp_cap:4
 panther_bleed_t1_2	Raking Swipes	triangle.fill	Attacks apply 2 Bleed.		attackApplyBleed:2
 panther_bleed_t2_1	Stalk the Wound	scope	Bleeding targets take 20% additional damage from Physical attacks.		physicalDamageVsBleedingMultiplier:1.2
 panther_bleed_t2_2	Rend Flesh	drop.triangle.fill	Critical hits double the duration of active Bleed effects.		onCritDoubleBleedDuration:true

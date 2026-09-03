@@ -1213,6 +1213,30 @@
         "merge": "add"
       },
       {
+        "name": "burnDamageRampPerRound",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "burnDamageRampCap",
+        "type": "Int",
+        "default": "0",
+        "merge": "max"
+      },
+      {
+        "name": "bleedDamageRampPerRound",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "bleedDamageRampCap",
+        "type": "Int",
+        "default": "0",
+        "merge": "max"
+      },
+      {
         "name": "burnDamageManaRestoreThreshold",
         "type": "Int",
         "default": "0",
