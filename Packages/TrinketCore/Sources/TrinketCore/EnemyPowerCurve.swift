@@ -8,21 +8,21 @@ public enum EnemyPowerCurve {
     ]
 
     private static let bossHPAnchors: [(level: Int, value: Double)] = [
-        (1, 11.20),
-        (20, 34.00),
-        (40, 138.00),
+        (1, 7.50),
+        (20, 28.00),
+        (40, 85.00),
     ]
 
     private static let normalDamageAnchors: [(level: Int, value: Double)] = [
         (1, 0.50),
         (20, 0.80),
-        (40, 1.15),
+        (40, 1.80),
     ]
 
     private static let bossDamageAnchors: [(level: Int, value: Double)] = [
         (1, 0.60),
         (20, 0.95),
-        (40, 1.40),
+        (40, 2.30),
     ]
 
     public static func health(level: Int, isBoss: Bool) -> Double {

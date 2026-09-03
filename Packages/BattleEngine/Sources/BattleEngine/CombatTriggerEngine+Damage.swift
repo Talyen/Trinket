@@ -423,7 +423,10 @@ package extension CombatTriggerEngine {
                 in: &context,
             ))
         }
-        if profile.triggers.criticalOnBleedingDetonateBleed, context.roster.health(for: enemy) > 0 {
+        let shouldDetonateBleed = profile.triggers.criticalOnBleedingDetonateBleed
+            || (profile.triggers.criticalOnBleedingDetonateBleedChance > 0
+                && BattleChance.succeeds(probability: profile.triggers.criticalOnBleedingDetonateBleedChance, using: &context.rng))
+        if shouldDetonateBleed, context.roster.health(for: enemy) > 0 {
             events.append(contentsOf: detonateBleed(on: enemy, sourceActorID: source.id, in: &context))
         }
         if profile.triggers.criticalDetonateBleedAndPoison, context.roster.health(for: enemy) > 0 {

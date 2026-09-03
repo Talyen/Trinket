@@ -183,6 +183,8 @@ public struct BalanceBattleRecord: Equatable, Codable, Sendable {
     public var affixIDs: [String]
     public var heroAffixIDs: [String]
     public var companionAffixIDs: [String]
+    public var heroItemBaseIDs: [String]
+    public var companionItemBaseIDs: [String]
     public var heroTalentIDs: [String]
     public var companionTalentIDs: [String]
     public var seed: UInt64
@@ -202,6 +204,8 @@ public struct BalanceBattleRecord: Equatable, Codable, Sendable {
         affixIDs: [String],
         heroAffixIDs: [String] = [],
         companionAffixIDs: [String] = [],
+        heroItemBaseIDs: [String] = [],
+        companionItemBaseIDs: [String] = [],
         heroTalentIDs: [String],
         companionTalentIDs: [String],
         seed: UInt64,
@@ -220,6 +224,8 @@ public struct BalanceBattleRecord: Equatable, Codable, Sendable {
         self.affixIDs = affixIDs
         self.heroAffixIDs = heroAffixIDs
         self.companionAffixIDs = companionAffixIDs
+        self.heroItemBaseIDs = heroItemBaseIDs
+        self.companionItemBaseIDs = companionItemBaseIDs
         self.heroTalentIDs = heroTalentIDs
         self.companionTalentIDs = companionTalentIDs
         self.seed = seed

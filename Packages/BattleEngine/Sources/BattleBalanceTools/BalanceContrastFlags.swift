@@ -90,9 +90,7 @@ enum BalanceContrastFlags {
             && abs(lift) >= config.peerDeltaFlagThreshold
             && discordant >= 4
         let comfortFlag = !acc.nonCombat
-            && !wrFlag
             && acc.decidedPairs >= BalanceSweepConfig.contrastFlagMinPairs
-            && abs(lift) < config.peerDeltaFlagThreshold
             && (
                 abs(meanDeltaPartyHP) >= config.comfortHPThreshold
                     || abs(meanDeltaRounds) >= config.comfortRoundThreshold
@@ -151,16 +149,22 @@ enum BalanceContrastFlags {
         if acc.nonCombat {
             return (false, "NONCOMBAT")
         }
+        var tags: [String] = []
         if wrFlag {
-            return (true, lift > 0 ? "HIGH" : "LOW")
+            tags.append(lift > 0 ? "HIGH" : "LOW")
         }
         if comfortFlag {
             if abs(means.partyHP) >= config.comfortHPThreshold {
-                return (true, means.partyHP > 0 ? "SAFER" : "GLASS")
+                tags.append(means.partyHP > 0 ? "SAFER" : "GLASS")
             }
-            return (true, means.rounds < 0 ? "FASTER" : "SLOWER")
+            if abs(means.rounds) >= config.comfortRoundThreshold {
+                tags.append(means.rounds < 0 ? "FASTER" : "SLOWER")
+            }
         }
-        return (false, nil)
+        if tags.isEmpty {
+            return (false, nil)
+        }
+        return (true, tags.joined(separator: ", "))
     }
 
     static func summarySort(_ lhs: PairedContrastSummary, _ rhs: PairedContrastSummary) -> Bool {

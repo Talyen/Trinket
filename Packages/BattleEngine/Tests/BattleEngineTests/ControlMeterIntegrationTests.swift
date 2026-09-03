@@ -189,4 +189,32 @@ struct ControlMeterIntegrationTests {
         _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &stunnedBattle)
         try #expect(100 - stunnedBattle.health(of: stunnedBattle.enemy) == 2)
     }
+
+    @Test func `blocked stun damage does not charge control meter`() throws {
+        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
+        let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 20)
+        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 20)
+        var battle = BattleStateTestFactory.makeBattle(
+            hero: hero,
+            companion: companion,
+            enemy: enemy,
+            activeHeroEffects: [ActiveEffect(id: 1, effect: .shield(.block, 10), remainingTurns: 3)],
+        )
+        _ = battle.resolveDamage(DamageRequest(
+            amount: 5,
+            target: hero,
+            keyword: .stun,
+            sourceActorID: enemy.id,
+            options: .flatReaction,
+        ))
+        try #expect(battle.health(of: hero) == 20)
+        try #expect(!battle.roster.hasControlStatus(for: hero, keyword: .stun))
+        let meter = battle.roster.activeEffects(for: hero).first {
+            if case .controlMeter = $0.effect {
+                return true
+            }
+            return false
+        }
+        try #expect(meter == nil)
+    }
 }

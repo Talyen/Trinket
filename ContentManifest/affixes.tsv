@@ -35,7 +35,7 @@ ashen_wake	Ashen Wake	weapon	burn,poison	8	Dealing Burn damage has a 35% chance 
 cauterize	Cauterize	weapon	bleed,burn	8	Dealing Bleed damage has a 35% chance to deal 1 Burn damage.	Dealing Bleed damage has a 35% chance to deal 2 Burn damage.			on_bleed_deal_burn_damage:1|on_bleed_deal_burn_chance_percent:0.35	on_bleed_deal_burn_damage:2|on_bleed_deal_burn_chance_percent:0.35
 contagion	Contagion	weapon	poison	8	Poison has a 10% chance to increase instead of decreasing.	Poison has a 20% chance to increase instead of decreasing.			poison_decay_increase_chance:0.10	poison_decay_increase_chance:0.20
 shatter	Shatter	weapon	freeze	8	Deal 2 additional damage while the enemy is Frozen.	Deal 4 additional damage while the enemy is Frozen.			damage_while_target_frozen:2	damage_while_target_frozen:4
-executioners	Executioner's	weapon	physical	8	Deal 3 additional damage if the enemy is below 30% Health.	Deal 6 additional damage if the enemy is below 30% Health.			damage_below_health_percent:0.30:3	damage_below_health_percent:0.30:6
+executioners	Executioner's	weapon	physical	8	Deal 2 additional damage if the enemy is below 30% Health.	Deal 3 additional damage if the enemy is below 30% Health.			damage_below_health_percent:0.30:2	damage_below_health_percent:0.30:3
 riposte	Riposte	armor	physical,dodge	8	Deal 3 additional damage on your next attack after Dodging.	Deal 6 additional damage on your next attack after Dodging.			damage_after_dodge:3	damage_after_dodge:6
 cascading	Cascading	armor	block	8	Gain 1 Block when your Block is broken.	Gain 2 Block when your Block is broken.			on_block_broken_block:1	on_block_broken_block:2
 symbiosis	Symbiosis	accessory	leech,health	8	Companions gain 50% of your Leech.	Companions gain 100% of your Leech.			companion_leech_share_percent:0.50	companion_leech_share_percent:1.00
@@ -69,7 +69,7 @@ sidestep	Sidestep	armor	dodge,health	8	Restore 1 Health when you Dodge.	Restore 
 blur	Blur	accessory	dodge,health	8	Gain 15% Dodge chance while below 50% Health.	Gain 30% Dodge chance while below 50% Health.			dodge_chance_below_health_percent:0.50:0.15	dodge_chance_below_health_percent:0.50:0.30
 bone_charm	Blood Omen	trinket	health	1	Draw a card the first time you lose Health each turn.	Draw a card the first time you lose Health each turn.			draw_on_health_loss:1	draw_on_health_loss:1
 brass_censer	Toxic Incense	trinket	holy,poison	1	Deal 1 Poison damage when you deal Holy damage.	Deal 1 Poison damage when you deal Holy damage.			on_holy_damage_poison:1	on_holy_damage_poison:1
-companions_collar	Loyal Companion	trinket	mana	1	Draw an additional Companion card each turn.	Draw an additional Companion card each turn.			companion_cards_per_turn:1	companion_cards_per_turn:1
+companions_collar	Loyal Companion	trinket	health,physical	1	Draw an additional Companion card each turn.	Draw an additional Companion card each turn.			companion_cards_per_turn:1	companion_cards_per_turn:1
 cutpurse_knife	Blood Money	trinket	bleed,gold	1	Gain 1 Gold when you deal Bleed damage.	Gain 1 Gold when you deal Bleed damage.			on_bleed_damage_gold:1	on_bleed_damage_gold:1
 frozen_pocketwatch	Deep Freeze	trinket	freeze	1	Freeze has a 20% chance to last an additional turn.	Freeze has a 20% chance to last an additional turn.			freeze_extend_chance_percent:0.20	freeze_extend_chance_percent:0.20
 stunned_pocketwatch	Concussive Pocketwatch	trinket	stun	1	Stun has a 20% chance to last an additional turn.	Stun has a 20% chance to last an additional turn.			stun_extend_chance_percent:0.20	stun_extend_chance_percent:0.20
@@ -85,7 +85,7 @@ parasitic_bloom	Symbiotic Venom	trinket	poison,leech	1	Poison damage gains Leech
 plague_doctors_mask	Plagueward	trinket	poison,health	1	Take 50% less Poison damage.	Take 50% less Poison damage.	damage_taken_percent:poison:0.50	damage_taken_percent:poison:0.50
 resonant_chimes	Resonance	trinket	mana	1	Gain 1 Mana when you play your second card each turn.	Gain 1 Mana when you play your second card each turn.			cards_played_mana:2:1	cards_played_mana:2:1
 runic_quill	Arcane Script	trinket	mana	1	Draw a card the first time you spend Mana each turn.	Draw a card the first time you spend Mana each turn.			draw_on_spend_mana:1	draw_on_spend_mana:1
-sin_eaters_lantern	Absolution	trinket	holy,health	1	Restore 6 Health when you remove a harmful status effect.	Restore 6 Health when you remove a harmful status effect.			on_cleanse_self_heal:6	on_cleanse_self_heal:6
+sin_eaters_lantern	Absolution	trinket	holy,health	1	Restore 3 Health when you remove a harmful status effect.	Restore 3 Health when you remove a harmful status effect.			on_cleanse_self_heal:3	on_cleanse_self_heal:3
 smugglers_map	Hidden Cache	trinket	gold	1	Gain 4 additional Gold on victory.	Gain 4 additional Gold on victory.			victory_gold_flat:4	victory_gold_flat:4
 sundering_charm	Shatterguard	trinket	physical,block	1	Physical and Stun damage remove twice as much Block.	Physical and Stun damage remove twice as much Block.			sundering_block_multiplier:1.00	sundering_block_multiplier:1.00
 tattered_pages	Forbidden Knowledge	trinket	mana	1	Draw an additional card every other turn.	Draw an additional card every other turn.			draw_every_other_turn:1	draw_every_other_turn:1

@@ -23,6 +23,7 @@ public struct AttackTriggers: Equatable, Hashable, Sendable {
     public var holyDamageNextHitBonus: Int = 0
     public var holyDamageNextAttackHolyBonus: Int = 0
     public var onBleedDamageNextBasicGuaranteedCrit: Bool = false
+    public var onBleedDamageNextBasicCritBonus: Double = 0
     public var nextAttackBonusOnFullHealth: Int = 0
     public var leechOverhealDamageBonus: Int = 0
     public var onHeroSpendManaCompanionNextAttackBonus: Int = 0
@@ -62,6 +63,7 @@ public struct AttackTriggers: Equatable, Hashable, Sendable {
         holyDamageNextHitBonus: Int = 0,
         holyDamageNextAttackHolyBonus: Int = 0,
         onBleedDamageNextBasicGuaranteedCrit: Bool = false,
+        onBleedDamageNextBasicCritBonus: Double = 0,
         nextAttackBonusOnFullHealth: Int = 0,
         leechOverhealDamageBonus: Int = 0,
         onHeroSpendManaCompanionNextAttackBonus: Int = 0,
@@ -100,6 +102,7 @@ public struct AttackTriggers: Equatable, Hashable, Sendable {
         self.holyDamageNextHitBonus = holyDamageNextHitBonus
         self.holyDamageNextAttackHolyBonus = holyDamageNextAttackHolyBonus
         self.onBleedDamageNextBasicGuaranteedCrit = onBleedDamageNextBasicGuaranteedCrit
+        self.onBleedDamageNextBasicCritBonus = onBleedDamageNextBasicCritBonus
         self.nextAttackBonusOnFullHealth = nextAttackBonusOnFullHealth
         self.leechOverhealDamageBonus = leechOverhealDamageBonus
         self.onHeroSpendManaCompanionNextAttackBonus = onHeroSpendManaCompanionNextAttackBonus
@@ -121,7 +124,7 @@ public struct AttackTriggers: Equatable, Hashable, Sendable {
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["attacksApplyPoison", "physicalAttackApplyBleed", "physicalAttackApplyBleedAndStun", "physicalAttackFlatStunBuildup", "basicAttackApplyBleed", "basicAttackFreezeBuildup", "criticalApplyPoison", "criticalApplyBurn", "criticalApplyStunBuildup", "holyAttackApplyBurnAndStunBuildup", "onAttackStealGold", "basicAttackStealGold", "onAttackFrozenEnemyGainMana", "onAttackFrozenEnemyGainBlock", "onAttackStunnedEnemyGold", "onAttackStunnedEnemyBlock", "holyDamageNextHitBonus", "holyDamageNextAttackHolyBonus", "onBleedDamageNextBasicGuaranteedCrit", "nextAttackBonusOnFullHealth", "leechOverhealDamageBonus", "onHeroSpendManaCompanionNextAttackBonus", "partyBasicAttackHolyBonus", "partyHolyDamageBonusWhileCompanionFullHealth", "partyDamageBonusWhileCompanionFullHealth", "partyPhysicalDamageBonusFirstTurns", "partyPhysicalDamageBonusFirstTurnCount", "attackBurstChancePercent", "attackBurstDamage", "attackBurstBlock", "directHitBleedChancePercent", "attackApplyBleed", "onHeroAttackPoisonedEnemyApplyPoison", "onPhysicalDamageGainBlock", "critStealEnemyBlock", "criticalPurgeCount", "criticalPurgeAll"]
+    public static let fieldNames: [String] = ["attacksApplyPoison", "physicalAttackApplyBleed", "physicalAttackApplyBleedAndStun", "physicalAttackFlatStunBuildup", "basicAttackApplyBleed", "basicAttackFreezeBuildup", "criticalApplyPoison", "criticalApplyBurn", "criticalApplyStunBuildup", "holyAttackApplyBurnAndStunBuildup", "onAttackStealGold", "basicAttackStealGold", "onAttackFrozenEnemyGainMana", "onAttackFrozenEnemyGainBlock", "onAttackStunnedEnemyGold", "onAttackStunnedEnemyBlock", "holyDamageNextHitBonus", "holyDamageNextAttackHolyBonus", "onBleedDamageNextBasicGuaranteedCrit", "onBleedDamageNextBasicCritBonus", "nextAttackBonusOnFullHealth", "leechOverhealDamageBonus", "onHeroSpendManaCompanionNextAttackBonus", "partyBasicAttackHolyBonus", "partyHolyDamageBonusWhileCompanionFullHealth", "partyDamageBonusWhileCompanionFullHealth", "partyPhysicalDamageBonusFirstTurns", "partyPhysicalDamageBonusFirstTurnCount", "attackBurstChancePercent", "attackBurstDamage", "attackBurstBlock", "directHitBleedChancePercent", "attackApplyBleed", "onHeroAttackPoisonedEnemyApplyPoison", "onPhysicalDamageGainBlock", "critStealEnemyBlock", "criticalPurgeCount", "criticalPurgeAll"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -145,6 +148,7 @@ public struct AttackTriggers: Equatable, Hashable, Sendable {
         if self.holyDamageNextHitBonus != other.holyDamageNextHitBonus { names.append("holyDamageNextHitBonus") }
         if self.holyDamageNextAttackHolyBonus != other.holyDamageNextAttackHolyBonus { names.append("holyDamageNextAttackHolyBonus") }
         if self.onBleedDamageNextBasicGuaranteedCrit != other.onBleedDamageNextBasicGuaranteedCrit { names.append("onBleedDamageNextBasicGuaranteedCrit") }
+        if self.onBleedDamageNextBasicCritBonus != other.onBleedDamageNextBasicCritBonus { names.append("onBleedDamageNextBasicCritBonus") }
         if self.nextAttackBonusOnFullHealth != other.nextAttackBonusOnFullHealth { names.append("nextAttackBonusOnFullHealth") }
         if self.leechOverhealDamageBonus != other.leechOverhealDamageBonus { names.append("leechOverhealDamageBonus") }
         if self.onHeroSpendManaCompanionNextAttackBonus != other.onHeroSpendManaCompanionNextAttackBonus { names.append("onHeroSpendManaCompanionNextAttackBonus") }
@@ -188,6 +192,7 @@ extension AttackTriggers {
         holyDamageNextHitBonus += other.holyDamageNextHitBonus
         holyDamageNextAttackHolyBonus += other.holyDamageNextAttackHolyBonus
         onBleedDamageNextBasicGuaranteedCrit = onBleedDamageNextBasicGuaranteedCrit || other.onBleedDamageNextBasicGuaranteedCrit
+        onBleedDamageNextBasicCritBonus = max(onBleedDamageNextBasicCritBonus, other.onBleedDamageNextBasicCritBonus)
         nextAttackBonusOnFullHealth += other.nextAttackBonusOnFullHealth
         leechOverhealDamageBonus += other.leechOverhealDamageBonus
         onHeroSpendManaCompanionNextAttackBonus += other.onHeroSpendManaCompanionNextAttackBonus
@@ -232,6 +237,7 @@ extension AttackTriggers {
             holyDamageNextHitBonus: values.decode(Int.self, "holyDamageNextHitBonus", default: 0),
             holyDamageNextAttackHolyBonus: values.decode(Int.self, "holyDamageNextAttackHolyBonus", default: 0),
             onBleedDamageNextBasicGuaranteedCrit: values.decode(Bool.self, "onBleedDamageNextBasicGuaranteedCrit", default: false),
+            onBleedDamageNextBasicCritBonus: values.decode(Double.self, "onBleedDamageNextBasicCritBonus", default: 0),
             nextAttackBonusOnFullHealth: values.decode(Int.self, "nextAttackBonusOnFullHealth", default: 0),
             leechOverhealDamageBonus: values.decode(Int.self, "leechOverhealDamageBonus", default: 0),
             onHeroSpendManaCompanionNextAttackBonus: values.decode(Int.self, "onHeroSpendManaCompanionNextAttackBonus", default: 0),
@@ -273,6 +279,7 @@ extension AttackTriggers {
         try container.encodeNonDefault(holyDamageNextHitBonus, "holyDamageNextHitBonus", default: 0)
         try container.encodeNonDefault(holyDamageNextAttackHolyBonus, "holyDamageNextAttackHolyBonus", default: 0)
         try container.encodeNonDefault(onBleedDamageNextBasicGuaranteedCrit, "onBleedDamageNextBasicGuaranteedCrit", default: false)
+        try container.encodeNonDefault(onBleedDamageNextBasicCritBonus, "onBleedDamageNextBasicCritBonus", default: 0)
         try container.encodeNonDefault(nextAttackBonusOnFullHealth, "nextAttackBonusOnFullHealth", default: 0)
         try container.encodeNonDefault(leechOverhealDamageBonus, "leechOverhealDamageBonus", default: 0)
         try container.encodeNonDefault(onHeroSpendManaCompanionNextAttackBonus, "onHeroSpendManaCompanionNextAttackBonus", default: 0)

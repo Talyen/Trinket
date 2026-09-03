@@ -29,6 +29,7 @@ public struct HealingTriggers: Equatable, Hashable, Sendable {
     public var healOverTimeOnHealTurns: Int = 0
     public var healOverTimeOnHealAmount: Int = 0
     public var onHealGrantBlock: Int = 0
+    public var onHealCleanseTargetChance: Double = 0
     public var onHealRestoreCasterMana: Int = 0
     public var holyDamageHealLowestAllyFlat: Int = 0
     public var holyDamageHealHeroFlat: Int = 0
@@ -77,6 +78,7 @@ public struct HealingTriggers: Equatable, Hashable, Sendable {
         healOverTimeOnHealTurns: Int = 0,
         healOverTimeOnHealAmount: Int = 0,
         onHealGrantBlock: Int = 0,
+        onHealCleanseTargetChance: Double = 0,
         onHealRestoreCasterMana: Int = 0,
         holyDamageHealLowestAllyFlat: Int = 0,
         holyDamageHealHeroFlat: Int = 0,
@@ -124,6 +126,7 @@ public struct HealingTriggers: Equatable, Hashable, Sendable {
         self.healOverTimeOnHealTurns = healOverTimeOnHealTurns
         self.healOverTimeOnHealAmount = healOverTimeOnHealAmount
         self.onHealGrantBlock = onHealGrantBlock
+        self.onHealCleanseTargetChance = onHealCleanseTargetChance
         self.onHealRestoreCasterMana = onHealRestoreCasterMana
         self.holyDamageHealLowestAllyFlat = holyDamageHealLowestAllyFlat
         self.holyDamageHealHeroFlat = holyDamageHealHeroFlat
@@ -148,7 +151,7 @@ public struct HealingTriggers: Equatable, Hashable, Sendable {
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["cleanseSelfHeal", "cleanseBonusHeal", "onceBelowHealthPercentHeal", "blockOnDeathsDoor", "holyDamageHealFlat", "burnDamageHealFlat", "healthRestoredPoisonPercent", "healthPerTurn", "overhealConvertsToBlock", "overhealConvertsToMaxHealth", "overhealConvertsToMaxHealthCap", "overhealConvertsToMaxHealthPerEvent", "overhealShieldCap", "leechOverhealTransfersToCompanion", "leechSharesToHeroPercent", "onCompanionLeechRestoreHeroMana", "leechHealingVsAfflictedMultiplier", "leechPercentVsLowHealthEnemies", "leechBonusHealVsLowHealthEnemies", "leechChancePercent", "healingBelowHealthPercentThreshold", "healingBelowHealthPercentMultiplier", "healOverTimeOnHealTurns", "healOverTimeOnHealAmount", "onHealGrantBlock", "onHealRestoreCasterMana", "holyDamageHealLowestAllyFlat", "holyDamageHealHeroFlat", "endTurnWithBlockHealFlat", "endOfTurnHealLowestAlly", "cardsPlayedHealPartyThreshold", "cardsPlayedHealPartyAmount", "healthRegenFirstTurnsAmount", "healthRegenFirstTurnsDuration", "healthRegenAboveHalfHealth", "onBurnDamageHealLowestAllyFlat", "companionLeechSharePercent", "onLeechApplyPoison", "onLeechApplyBleed", "onLeechReduceEnemyStrength", "onLeechReduceEnemyStrengthTurns", "companionDamageLeechesToHeroPercent", "leechOnBlockDamage", "partyRegenPerRound", "purifyingWaters", "cleanSlate"]
+    public static let fieldNames: [String] = ["cleanseSelfHeal", "cleanseBonusHeal", "onceBelowHealthPercentHeal", "blockOnDeathsDoor", "holyDamageHealFlat", "burnDamageHealFlat", "healthRestoredPoisonPercent", "healthPerTurn", "overhealConvertsToBlock", "overhealConvertsToMaxHealth", "overhealConvertsToMaxHealthCap", "overhealConvertsToMaxHealthPerEvent", "overhealShieldCap", "leechOverhealTransfersToCompanion", "leechSharesToHeroPercent", "onCompanionLeechRestoreHeroMana", "leechHealingVsAfflictedMultiplier", "leechPercentVsLowHealthEnemies", "leechBonusHealVsLowHealthEnemies", "leechChancePercent", "healingBelowHealthPercentThreshold", "healingBelowHealthPercentMultiplier", "healOverTimeOnHealTurns", "healOverTimeOnHealAmount", "onHealGrantBlock", "onHealCleanseTargetChance", "onHealRestoreCasterMana", "holyDamageHealLowestAllyFlat", "holyDamageHealHeroFlat", "endTurnWithBlockHealFlat", "endOfTurnHealLowestAlly", "cardsPlayedHealPartyThreshold", "cardsPlayedHealPartyAmount", "healthRegenFirstTurnsAmount", "healthRegenFirstTurnsDuration", "healthRegenAboveHalfHealth", "onBurnDamageHealLowestAllyFlat", "companionLeechSharePercent", "onLeechApplyPoison", "onLeechApplyBleed", "onLeechReduceEnemyStrength", "onLeechReduceEnemyStrengthTurns", "companionDamageLeechesToHeroPercent", "leechOnBlockDamage", "partyRegenPerRound", "purifyingWaters", "cleanSlate"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -178,6 +181,7 @@ public struct HealingTriggers: Equatable, Hashable, Sendable {
         if self.healOverTimeOnHealTurns != other.healOverTimeOnHealTurns { names.append("healOverTimeOnHealTurns") }
         if self.healOverTimeOnHealAmount != other.healOverTimeOnHealAmount { names.append("healOverTimeOnHealAmount") }
         if self.onHealGrantBlock != other.onHealGrantBlock { names.append("onHealGrantBlock") }
+        if self.onHealCleanseTargetChance != other.onHealCleanseTargetChance { names.append("onHealCleanseTargetChance") }
         if self.onHealRestoreCasterMana != other.onHealRestoreCasterMana { names.append("onHealRestoreCasterMana") }
         if self.holyDamageHealLowestAllyFlat != other.holyDamageHealLowestAllyFlat { names.append("holyDamageHealLowestAllyFlat") }
         if self.holyDamageHealHeroFlat != other.holyDamageHealHeroFlat { names.append("holyDamageHealHeroFlat") }
@@ -230,6 +234,7 @@ extension HealingTriggers {
         healOverTimeOnHealTurns = max(healOverTimeOnHealTurns, other.healOverTimeOnHealTurns)
         healOverTimeOnHealAmount += other.healOverTimeOnHealAmount
         onHealGrantBlock += other.onHealGrantBlock
+        onHealCleanseTargetChance = max(onHealCleanseTargetChance, other.onHealCleanseTargetChance)
         onHealRestoreCasterMana += other.onHealRestoreCasterMana
         holyDamageHealLowestAllyFlat += other.holyDamageHealLowestAllyFlat
         holyDamageHealHeroFlat += other.holyDamageHealHeroFlat
@@ -283,6 +288,7 @@ extension HealingTriggers {
             healOverTimeOnHealTurns: values.decode(Int.self, "healOverTimeOnHealTurns", default: 0),
             healOverTimeOnHealAmount: values.decode(Int.self, "healOverTimeOnHealAmount", default: 0),
             onHealGrantBlock: values.decode(Int.self, "onHealGrantBlock", default: 0),
+            onHealCleanseTargetChance: values.decode(Double.self, "onHealCleanseTargetChance", default: 0),
             onHealRestoreCasterMana: values.decode(Int.self, "onHealRestoreCasterMana", default: 0),
             holyDamageHealLowestAllyFlat: values.decode(Int.self, "holyDamageHealLowestAllyFlat", default: 0),
             holyDamageHealHeroFlat: values.decode(Int.self, "holyDamageHealHeroFlat", default: 0),
@@ -333,6 +339,7 @@ extension HealingTriggers {
         try container.encodeNonDefault(healOverTimeOnHealTurns, "healOverTimeOnHealTurns", default: 0)
         try container.encodeNonDefault(healOverTimeOnHealAmount, "healOverTimeOnHealAmount", default: 0)
         try container.encodeNonDefault(onHealGrantBlock, "onHealGrantBlock", default: 0)
+        try container.encodeNonDefault(onHealCleanseTargetChance, "onHealCleanseTargetChance", default: 0)
         try container.encodeNonDefault(onHealRestoreCasterMana, "onHealRestoreCasterMana", default: 0)
         try container.encodeNonDefault(holyDamageHealLowestAllyFlat, "holyDamageHealLowestAllyFlat", default: 0)
         try container.encodeNonDefault(holyDamageHealHeroFlat, "holyDamageHealHeroFlat", default: 0)

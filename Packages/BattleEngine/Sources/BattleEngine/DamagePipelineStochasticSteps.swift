@@ -127,11 +127,18 @@ package extension DamagePipeline {
         if resolveGuaranteedCrit(to: &state, actor: actor, in: &context) {
             return
         }
+        var abilityBonus = state.options.abilityCriticalChanceBonus
+        if actor.role != .enemy, state.options.isAttackHit, state.options.isBasicAttackHit,
+           let pendingBonus = context.roster.runtime(for: actor.combatant)?.pendingBasicCritBonus,
+           pendingBonus > 0 {
+            abilityBonus += pendingBonus
+            context.roster.mutateRuntime(for: actor.combatant) { $0.pendingBasicCritBonus = 0 }
+        }
         guard CriticalChanceEngine.rollSucceeds(
             keyword: damageKeyword,
             actorID: sourceActorID,
             defender: state.combatant,
-            abilityBonus: state.options.abilityCriticalChanceBonus,
+            abilityBonus: abilityBonus,
             countsBleedingDefender: true,
             in: &context,
         )

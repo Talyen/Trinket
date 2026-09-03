@@ -357,8 +357,8 @@ enum ItemAffixCatalogGenerated {
             slot: .weapon,
             keywords: [.physical],
             weight: 8,
-            basic: ItemAffixPower(description: "Deal 3 additional damage if the enemy is below 30% Health.", modifiers: [], triggers: CombatTraitTriggers(damage: DamageTriggers(damageBelowHealthPercentThreshold: 0.30, damageBelowHealthPercentBonus: 3))),
-            astral: ItemAffixPower(description: "Deal 6 additional damage if the enemy is below 30% Health.", modifiers: [], triggers: CombatTraitTriggers(damage: DamageTriggers(damageBelowHealthPercentThreshold: 0.30, damageBelowHealthPercentBonus: 6)))
+            basic: ItemAffixPower(description: "Deal 2 additional damage if the enemy is below 30% Health.", modifiers: [], triggers: CombatTraitTriggers(damage: DamageTriggers(damageBelowHealthPercentThreshold: 0.30, damageBelowHealthPercentBonus: 2))),
+            astral: ItemAffixPower(description: "Deal 3 additional damage if the enemy is below 30% Health.", modifiers: [], triggers: CombatTraitTriggers(damage: DamageTriggers(damageBelowHealthPercentThreshold: 0.30, damageBelowHealthPercentBonus: 3)))
         ),
         ItemAffixCatalogSupport.affix(
             id: "riposte",
@@ -671,7 +671,7 @@ enum ItemAffixCatalogGenerated {
             id: "companions_collar",
             title: "Loyal Companion",
             slot: .trinket,
-            keywords: [.mana],
+            keywords: [.health, .physical],
             weight: 1,
             basic: ItemAffixPower(description: "Draw an additional Companion card each turn.", modifiers: [], triggers: CombatTraitTriggers(mana: ManaTriggers(companionCardsPerTurn: 1))),
             astral: ItemAffixPower(description: "Draw an additional Companion card each turn.", modifiers: [], triggers: CombatTraitTriggers(mana: ManaTriggers(companionCardsPerTurn: 1)))
@@ -822,8 +822,8 @@ enum ItemAffixCatalogGenerated {
             slot: .trinket,
             keywords: [.holy, .health],
             weight: 1,
-            basic: ItemAffixPower(description: "Restore 6 Health when you remove a harmful status effect.", modifiers: [], triggers: CombatTraitTriggers(healing: HealingTriggers(cleanseSelfHeal: 6))),
-            astral: ItemAffixPower(description: "Restore 6 Health when you remove a harmful status effect.", modifiers: [], triggers: CombatTraitTriggers(healing: HealingTriggers(cleanseSelfHeal: 6)))
+            basic: ItemAffixPower(description: "Restore 3 Health when you remove a harmful status effect.", modifiers: [], triggers: CombatTraitTriggers(healing: HealingTriggers(cleanseSelfHeal: 3))),
+            astral: ItemAffixPower(description: "Restore 3 Health when you remove a harmful status effect.", modifiers: [], triggers: CombatTraitTriggers(healing: HealingTriggers(cleanseSelfHeal: 3)))
         ),
         ItemAffixCatalogSupport.affix(
             id: "smugglers_map",

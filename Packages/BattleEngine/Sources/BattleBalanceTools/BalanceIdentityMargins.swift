@@ -10,6 +10,7 @@ struct WinRateSpec {
     var threshold: Double
     var positiveFlag: String
     var negativeFlag: String
+    var targetBandDelta: Double?
 }
 
 enum BalanceIdentityMargins {
@@ -18,8 +19,43 @@ enum BalanceIdentityMargins {
         id: KeyPath<BalanceBattleRecord, String>,
         peerRate: Double,
         threshold: Double,
+        targetBand: (lower: Double, upper: Double)? = nil,
     ) -> [WinRateSummary] {
-        margin(records: records, ids: { [$0[keyPath: id]] }, peerRate: peerRate, threshold: threshold)
+        var buckets: [String: (wins: Int, battles: Int)] = [:]
+        for record in records {
+            let key = record[keyPath: id]
+            var bucket = buckets[key] ?? (0, 0)
+            bucket.battles += 1
+            if record.result.isVictory {
+                bucket.wins += 1
+            }
+            buckets[key] = bucket
+        }
+        return buckets.sorted { $0.key < $1.key }.map { id, bucket in
+            let targetDelta = targetBand.map { band in
+                let rate = bucket.battles == 0 ? 0 : Double(bucket.wins) / Double(bucket.battles)
+                return rate - ((band.lower + band.upper) / 2)
+            }
+            return makeWinRate(
+                WinRateSpec(
+                    id: id,
+                    ownerID: nil,
+                    wins: bucket.wins,
+                    battles: bucket.battles,
+                    peerRate: peerRate,
+                    threshold: threshold,
+                    positiveFlag: "HIGH",
+                    negativeFlag: "LOW",
+                    targetBandDelta: targetDelta,
+                ),
+            )
+        }
+        .sorted { lhs, rhs in
+            if lhs.flagged != rhs.flagged {
+                return lhs.flagged && !rhs.flagged
+            }
+            return abs(lhs.deltaVsPeer) > abs(rhs.deltaVsPeer)
+        }
     }
 
     static func margin(
@@ -160,6 +196,7 @@ enum BalanceIdentityMargins {
             wilsonLow: ci.low,
             wilsonHigh: ci.high,
             deltaVsPeer: delta,
+            targetBandDelta: spec.targetBandDelta,
             flagged: flagged,
             flagReason: flagged ? (delta > 0 ? spec.positiveFlag : spec.negativeFlag) : nil,
             sampleTooLow: sampleTooLow,

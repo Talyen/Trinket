@@ -93,14 +93,14 @@ struct ItemAffixCatalogTests {
 
         let executionPower = try #require(item.resolvedPower(at: 0))
         try #expect(executionPower.triggers.damageBelowHealthPercentThreshold == 0.30)
-        try #expect(executionPower.triggers.damageBelowHealthPercentBonus == 12)
-        try #expect(executionPower.description == "Deal 12 additional damage if the enemy is below 30% Health.")
+        try #expect(executionPower.triggers.damageBelowHealthPercentBonus == 6)
+        try #expect(executionPower.description == "Deal 6 additional damage if the enemy is below 30% Health.")
 
         let uncappedPower = try #require(item.resolvedPower(at: 1))
         try #expect(uncappedPower.triggers.companionLeechSharePercent == 2)
         try #expect(uncappedPower.description == "Companions gain 200% of your Leech.")
         try #expect(item.displayedAffixes.map(\.description) == [
-            "Deal 12 additional damage if the enemy is below 30% Health.",
+            "Deal 6 additional damage if the enemy is below 30% Health.",
             "Companions gain 200% of your Leech.",
         ])
     }

@@ -18,9 +18,10 @@ public struct ThemedGearGenerator: Sendable {
     public init(
         itemGenerator: ItemGenerator = ItemGenerator(),
         baseTypes: [ItemBaseType] = GameContent.itemBaseTypes,
+        includeTrinkets: Bool = false,
     ) {
         self.itemGenerator = itemGenerator
-        self.baseTypes = baseTypes.filter { $0.slot != .trinket }
+        self.baseTypes = includeTrinkets ? baseTypes : baseTypes.filter { $0.slot != .trinket }
     }
 
     public func generate(

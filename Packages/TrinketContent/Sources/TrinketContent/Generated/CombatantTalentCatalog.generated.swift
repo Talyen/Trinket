@@ -363,9 +363,9 @@ public extension CombatantTalentCatalog {
             "rogue_bleed_t2_1": CombatantTalentEffect(
                 name: "Taste for Blood",
                 symbolName: "mouth.fill",
-                description: "When Bleed deals damage, your next basic attack is a guaranteed Critical Hit.",
+                description: "When Bleed deals damage, your next basic attack has +35% Critical Hit chance.",
                 modifiers: [],
-                triggers: CombatTraitTriggers(attack: AttackTriggers(onBleedDamageNextBasicGuaranteedCrit: true))
+                triggers: CombatTraitTriggers(attack: AttackTriggers(onBleedDamageNextBasicCritBonus: 0.35))
             ),
             "rogue_bleed_t2_2": CombatantTalentEffect(
                 name: "Blood Money",
@@ -377,9 +377,9 @@ public extension CombatantTalentCatalog {
             "rogue_bleed_t3_1": CombatantTalentEffect(
                 name: "Exsanguinate",
                 symbolName: "drop.degreesign.fill",
-                description: "Critical hits on Bleeding targets detonate and consume all remaining Bleed damage at once.",
+                description: "Critical hits on Bleeding targets have a 20% chance to detonate and consume all remaining Bleed damage at once.",
                 modifiers: [],
-                triggers: CombatTraitTriggers(dot: DotTriggers(criticalOnBleedingDetonateBleed: true))
+                triggers: CombatTraitTriggers(dot: DotTriggers(criticalOnBleedingDetonateBleedChance: 0.20))
             ),
             "rogue_bleed_t3_2": CombatantTalentEffect(
                 name: "Scent of Blood",
@@ -1720,9 +1720,9 @@ public extension CombatantTalentCatalog {
             "golden_retriever_health_t1_1": CombatantTalentEffect(
                 name: "Cheer Up",
                 symbolName: "heart.fill",
-                description: "Restore 3 Health to the lowest Health party member at end of turn.",
+                description: "Restore 1 Health to the lowest Health party member at end of turn.",
                 modifiers: [],
-                triggers: CombatTraitTriggers(healing: HealingTriggers(endOfTurnHealLowestAlly: 3))
+                triggers: CombatTraitTriggers(healing: HealingTriggers(endOfTurnHealLowestAlly: 1))
             ),
             "golden_retriever_health_t1_2": CombatantTalentEffect(
                 name: "Playful Energy",
@@ -1856,9 +1856,9 @@ public extension CombatantTalentCatalog {
             "library_owl_cleanse_t3_2": CombatantTalentEffect(
                 name: "Sanctified Scroll",
                 symbolName: "text.book.closed.fill",
-                description: "Cleanse 1 negative effect from the party automatically each round.",
+                description: "Restoring Health has a 10% chance to Cleanse a negative effect.",
                 modifiers: [],
-                triggers: CombatTraitTriggers(cleanse: CleanseTriggers(autoCleanseTeamPerTurn: 1))
+                triggers: CombatTraitTriggers(healing: HealingTriggers(onHealCleanseTargetChance: 0.10))
             ),
             "library_owl_health_t1_1": CombatantTalentEffect(
                 name: "Safe Perch",

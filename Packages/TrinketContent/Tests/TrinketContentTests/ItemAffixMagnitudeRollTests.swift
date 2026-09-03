@@ -46,7 +46,7 @@ struct ItemAffixMagnitudeRollTests {
             var rng = SeededRandomNumberGenerator(seed: seed)
             let rolled = catalog.rolled(using: &rng)
             try #expect(rolled.triggers.damageBelowHealthPercentThreshold == 0.30)
-            try #expect((2 ... 4).contains(rolled.triggers.damageBelowHealthPercentBonus))
+            try #expect((1 ... 3).contains(rolled.triggers.damageBelowHealthPercentBonus))
         }
     }
 

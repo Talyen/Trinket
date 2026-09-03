@@ -15,9 +15,9 @@ public struct BalanceSweepWorkerJob: Equatable, Sendable {
 
 public enum BalanceSweepWorkPlan {
     public static let identityChunkSize = 16
-    public static let pairContrastChunkSize = 8
-    public static let talentContrastChunkSize = 4
-    public static let progressionChunkSize = 1
+    public static let pairContrastChunkSize = 128
+    public static let talentContrastChunkSize = 64
+    public static let progressionChunkSize = 4
 
     public static let concreteModes: [BalanceSweepMode] = [
         .identity,

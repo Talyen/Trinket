@@ -30,7 +30,7 @@ topaz_amulet	Topaz Amulet	accessory		holy,gold,stun,block
 topaz_ring	Topaz Ring	accessory		holy,gold,stun,block
 bone_charm	Bone Charm	trinket		health
 brass_censer	Brass Censer	trinket		holy,poison
-companions_collar	Companion's Collar	trinket		mana
+companions_collar	Companion's Collar	trinket		health,physical
 cutpurse_knife	Cutpurse Knife	trinket		bleed,gold
 frozen_pocketwatch	Frozen Pocketwatch	trinket		freeze
 groves_favor	Grove's Favor	trinket		health

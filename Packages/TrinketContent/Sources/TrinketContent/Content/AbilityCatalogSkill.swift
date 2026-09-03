@@ -161,6 +161,7 @@ enum AbilityCatalogSkill {
 
     static let spikedShield = Ability(
         id: "spiked-shield", name: "Spiked Shield", tier: .skill,
+        damageComponents: [DamageComponent(2, keyword: .physical)],
         targetedEffects: [
             TargetedEffect(.shield(.block, 2)),
             TargetedEffect(.thorns(2)),

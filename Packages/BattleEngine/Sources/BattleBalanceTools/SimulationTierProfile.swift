@@ -79,6 +79,8 @@ public struct SimulationBuildContext: Equatable, Hashable, Sendable {
     public let seed: UInt64
     public let heroAffixIDs: [String]
     public let companionAffixIDs: [String]
+    public let heroItemBaseIDs: [String]
+    public let companionItemBaseIDs: [String]
     public let heroTalentIDs: [String]
     public let companionTalentIDs: [String]
 
@@ -90,6 +92,8 @@ public struct SimulationBuildContext: Equatable, Hashable, Sendable {
         seed: UInt64,
         heroAffixIDs: [String] = [],
         companionAffixIDs: [String] = [],
+        heroItemBaseIDs: [String] = [],
+        companionItemBaseIDs: [String] = [],
         heroTalentIDs: [String] = [],
         companionTalentIDs: [String] = [],
     ) {
@@ -100,6 +104,8 @@ public struct SimulationBuildContext: Equatable, Hashable, Sendable {
         self.seed = seed
         self.heroAffixIDs = heroAffixIDs
         self.companionAffixIDs = companionAffixIDs
+        self.heroItemBaseIDs = heroItemBaseIDs
+        self.companionItemBaseIDs = companionItemBaseIDs
         self.heroTalentIDs = heroTalentIDs
         self.companionTalentIDs = companionTalentIDs
     }

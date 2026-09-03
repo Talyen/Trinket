@@ -100,14 +100,14 @@ struct AbilityCatalogTests {
         try #expect(Ability.glacialWard.tier == .skill)
     }
 
-    @Test func `astral arrow offers stun freeze or burn branches`() throws {
+    @Test func `astral arrow offers burn freeze or bleed branches`() throws {
         let ability = try #require(AbilityCatalog.ability(id: "astral-arrow"))
         let branches = try #require(ability.outcomeBranches)
         try #expect(branches.count == 3)
         try #expect(branches.map(\.damageComponents) == [
-            [DamageComponent(7, keyword: .stun)],
-            [DamageComponent(7, keyword: .freeze)],
             [DamageComponent(7, keyword: .burn)],
+            [DamageComponent(7, keyword: .freeze)],
+            [DamageComponent(7, keyword: .bleed)],
         ])
         try #expect(AbilityCatalog.ability(id: "concussive-shot") == nil)
         let ranger = try #require(GameContent.heroes.first { $0.id == "ranger" })
@@ -168,10 +168,10 @@ struct AbilityCatalogTests {
 
     @Test func `combustion detonates burning enemies`() throws {
         let combustion = try #require(AbilityCatalog.ability(id: "combustion"))
-        try #expect(combustion.summary == "Deal 4 Burn damage. If the enemy is Burning, detonate all its remaining Burn at once, doubled.")
-        try #expect(combustion.damageComponents == [DamageComponent(4, keyword: .burn)])
+        try #expect(combustion.summary == "Deal 6 Burn damage. If the enemy is Burning, detonate all its remaining Burn at once.")
+        try #expect(combustion.damageComponents == [DamageComponent(6, keyword: .burn)])
         try #expect(combustion.targetedEffects == [
-            TargetedEffect(.detonateDoT(.burn, 2), target: .enemy, condition: .enemyBurning),
+            TargetedEffect(.detonateDoT(.burn, 1), target: .enemy, condition: .enemyBurning),
         ])
     }
 
@@ -246,15 +246,15 @@ struct AbilityCatalogTests {
         let bloodthorn = try #require(AbilityCatalog.ability(id: "bloodthorn"))
         try #expect(bloodthorn.outcomeBranches == nil)
         try #expect(bloodthorn.damageComponents == [
-            DamageComponent(3, keyword: .bleed),
-            DamageComponent(3, keyword: .poison),
+            DamageComponent(2, keyword: .bleed),
+            DamageComponent(2, keyword: .poison),
         ])
         try #expect(bloodthorn.hasLeech)
     }
 
     @Test func `branched abilities show shared riders`() throws {
         let bloodthorn = try #require(AbilityCatalog.ability(id: "bloodthorn"))
-        try #expect(bloodthorn.summary == "Deal 3 Bleed damage and deal 3 Poison damage. Leech.")
+        try #expect(bloodthorn.summary == "Deal 2 Bleed damage and deal 2 Poison damage. Leech.")
         for ability in AbilityCatalog.all where ability.descriptionOverride == nil {
             if ability.hasLeech {
                 try #expect(ability.summary.contains("Leech"), "\(ability.id) hides Leech")

@@ -481,6 +481,12 @@
         "merge": "or"
       },
       {
+        "name": "onBleedDamageNextBasicCritBonus",
+        "type": "Double",
+        "default": "0",
+        "merge": "max"
+      },
+      {
         "name": "nextAttackBonusOnFullHealth",
         "type": "Int",
         "default": "0",
@@ -1181,6 +1187,12 @@
         "type": "Bool",
         "default": "false",
         "merge": "or"
+      },
+      {
+        "name": "criticalOnBleedingDetonateBleedChance",
+        "type": "Double",
+        "default": "0",
+        "merge": "max"
       },
       {
         "name": "criticalDetonateBleedAndPoison",
@@ -2249,6 +2261,12 @@
         "type": "Int",
         "default": "0",
         "merge": "add"
+      },
+      {
+        "name": "onHealCleanseTargetChance",
+        "type": "Double",
+        "default": "0",
+        "merge": "max"
       },
       {
         "name": "onHealRestoreCasterMana",

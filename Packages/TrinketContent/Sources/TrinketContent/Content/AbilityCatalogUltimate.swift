@@ -26,30 +26,30 @@ enum AbilityCatalogUltimate {
     static let bloodthorn = Ability(
         id: "bloodthorn", name: "Bloodthorn", tier: .ultimate,
         damageComponents: [
-            DamageComponent(3, keyword: .bleed),
-            DamageComponent(3, keyword: .poison),
+            DamageComponent(2, keyword: .bleed),
+            DamageComponent(2, keyword: .poison),
         ],
         hasLeech: true,
     )
 
     static let combustion = Ability(
         id: "combustion", name: "Combustion", tier: .ultimate,
-        description: "Deal 4 Burn damage. If the enemy is Burning, detonate all its remaining Burn at once, doubled.",
+        description: "Deal 6 Burn damage. If the enemy is Burning, detonate all its remaining Burn at once.",
         damageComponents: [
-            DamageComponent(4, keyword: .burn),
+            DamageComponent(6, keyword: .burn),
         ],
         targetedEffects: [
-            TargetedEffect(.detonateDoT(.burn, 2), target: .enemy, condition: .enemyBurning),
+            TargetedEffect(.detonateDoT(.burn, 1), target: .enemy, condition: .enemyBurning),
         ],
     )
 
     static let astralArrow = Ability(
         id: "astral-arrow", name: "Astral Arrow", tier: .ultimate,
-        description: "Deal 7 Stun, Freeze, or Burn damage.",
+        description: "Deal 7 Burn, Freeze, or Bleed damage.",
         outcomeBranches: [
-            AbilityOutcomeBranch(damageComponents: [DamageComponent(7, keyword: .stun)]),
-            AbilityOutcomeBranch(damageComponents: [DamageComponent(7, keyword: .freeze)]),
             AbilityOutcomeBranch(damageComponents: [DamageComponent(7, keyword: .burn)]),
+            AbilityOutcomeBranch(damageComponents: [DamageComponent(7, keyword: .freeze)]),
+            AbilityOutcomeBranch(damageComponents: [DamageComponent(7, keyword: .bleed)]),
         ],
     )
 
@@ -94,7 +94,7 @@ enum AbilityCatalogUltimate {
         id: "luck-potion", name: "Luck Potion", tier: .ultimate,
         outcomeBranches: [
             AbilityOutcomeBranch(effects: [.resourceGain(.mana, 7)]),
-            AbilityOutcomeBranch(effects: [.resourceGain(.gold, 7)]),
+            AbilityOutcomeBranch(effects: [.instantHeal(.health, 7)]),
             AbilityOutcomeBranch(effects: [.shield(.block, 7)]),
         ],
     )

@@ -326,6 +326,8 @@ public enum BalanceSweepRunner {
             affixIDs: matchup.context.heroAffixIDs + matchup.context.companionAffixIDs,
             heroAffixIDs: matchup.context.heroAffixIDs,
             companionAffixIDs: matchup.context.companionAffixIDs,
+            heroItemBaseIDs: matchup.context.heroItemBaseIDs,
+            companionItemBaseIDs: matchup.context.companionItemBaseIDs,
             heroTalentIDs: matchup.context.heroTalentIDs,
             companionTalentIDs: matchup.context.companionTalentIDs,
             seed: parts.battleSeed,

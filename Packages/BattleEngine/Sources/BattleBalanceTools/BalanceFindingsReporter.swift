@@ -20,7 +20,7 @@ public enum BalanceFindingsReporter {
         return lines.joined(separator: "\n")
     }
 
-    private struct Finding {
+    fileprivate struct Finding {
         var score: Double
         var line: String
     }
@@ -118,6 +118,7 @@ public enum BalanceFindingsReporter {
         findings.append(contentsOf: contrastFindings(report.talentContrasts, kind: "talent"))
         findings.append(contentsOf: contrastFindings(report.talentKitContrasts, kind: "talent kit"))
         findings.append(contentsOf: progressionFindings(report.progressionHotspots))
+        findings.append(contentsOf: crossTierFindings(tiers: tiers))
         return findings.sorted { lhs, rhs in
             if lhs.score != rhs.score {
                 return lhs.score > rhs.score
@@ -125,14 +126,20 @@ public enum BalanceFindingsReporter {
             return lhs.line < rhs.line
         }
     }
+}
 
+extension BalanceFindingsReporter {
     private static func identityFindings(tier: BalanceTierStats, records: [BalanceBattleRecord]) -> [Finding] {
         var findings: [Finding] = []
         findings.append(contentsOf: durationFinding(tier.trashDuration, bucket: "trash", tier: tier.tier))
         findings.append(contentsOf: durationFinding(tier.bossDuration, bucket: "boss", tier: tier.tier))
+        findings.append(contentsOf: enemyDurationFindings(tier.enemyDurations, tier: tier.tier))
+        findings.append(contentsOf: combatantDurationFindings(tier.heroDurations, kind: "hero", tier: tier.tier))
+        findings.append(contentsOf: combatantDurationFindings(tier.companionDurations, kind: "companion", tier: tier.tier))
         findings.append(contentsOf: rosterFindings(tier.heroes, kind: "hero", tier: tier.tier))
         findings.append(contentsOf: rosterFindings(tier.companions, kind: "companion", tier: tier.tier))
         findings.append(contentsOf: rosterFindings(tier.enemies, kind: "enemy", tier: tier.tier, records: records))
+        findings.append(contentsOf: rosterFindings(tier.items, kind: "item", tier: tier.tier))
         findings.append(contentsOf: rosterFindings(tier.abilities, kind: "ability", tier: tier.tier))
         findings.append(contentsOf: rosterFindings(tier.talents, kind: "talent", tier: tier.tier))
         findings.append(contentsOf: rosterFindings(tier.affixes, kind: "affix", tier: tier.tier))
@@ -175,8 +182,10 @@ public enum BalanceFindingsReporter {
         records: [BalanceBattleRecord] = [],
     ) -> [Finding] {
         rows.filter(\.flagged).map { row in
-            let why = if kind == "enemy" {
+            let why: String = if kind == "enemy" {
                 enemyWhy(row.id, records: records.filter { $0.tier == tier })
+            } else if let targetDelta = row.targetBandDelta {
+                String(format: "vs %@ peer (target Δ%+.1f pp)", tier.displayName, targetDelta * 100)
             } else {
                 "vs \(tier.displayName) peer"
             }
@@ -281,6 +290,67 @@ public enum BalanceFindingsReporter {
         }
     }
 
+    private static func enemyDurationFindings(
+        _ rows: [BalanceEnemyDurationStats],
+        tier: SimulationPowerTier,
+    ) -> [Finding] {
+        rows.filter(\.flagged).map { row in
+            Finding(
+                score: max(row.shortRate, row.longRate),
+                line: String(
+                    format: "Enemy `%@` (%@ duration): ⚠ %@ · avg %.1f rounds · SHORT %.0f%% · LONG %.0f%% · n=%d",
+                    row.enemyID,
+                    tier.displayName,
+                    row.flagReason ?? "",
+                    row.averageRounds,
+                    row.shortRate * 100,
+                    row.longRate * 100,
+                    row.battles,
+                ),
+            )
+        }
+    }
+
+    private static func combatantDurationFindings(
+        _ rows: [BalanceCombatantDurationStats],
+        kind: String,
+        tier: SimulationPowerTier,
+    ) -> [Finding] {
+        rows.filter(\.flagged).map { row in
+            Finding(
+                score: max(row.shortRate, row.longRate),
+                line: String(
+                    format: "%@ `%@` (%@ duration): ⚠ %@ · avg %.1f rounds · SHORT %.0f%% · LONG %.0f%% · n=%d",
+                    kind.capitalized,
+                    row.combatantID,
+                    tier.displayName,
+                    row.flagReason ?? "",
+                    row.averageRounds,
+                    row.shortRate * 100,
+                    row.longRate * 100,
+                    row.battles,
+                ),
+            )
+        }
+    }
+
+    private static func crossTierFindings(tiers: [BalanceTierStats]) -> [Finding] {
+        let activeTiers = tiers.filter { $0.battles > 0 }
+        guard activeTiers.count >= 2 else { return [] }
+        var enemyFlags: [String: [String]] = [:]
+        for tier in activeTiers {
+            for enemy in tier.enemies where enemy.flagged {
+                enemyFlags[enemy.id, default: []].append(tier.tier.displayName)
+            }
+        }
+        return enemyFlags.filter { $0.value.count >= 2 }.sorted { $0.key < $1.key }.map { id, tierList in
+            Finding(
+                score: 100.0 + Double(tierList.count),
+                line: "Cross-Tier Outlier `\(id)`: ⚠ flagged in \(tierList.count) tiers (\(tierList.joined(separator: ", "))) — priority tuning candidate",
+            )
+        }
+    }
+
     private static func contrastFindings(_ rows: [PairedContrastSummary], kind: String) -> [Finding] {
         let flagged = rows.filter(\.flagged).sorted(by: BalanceContrastFlags.summarySort)
         let extra = max(0, flagged.count - contrastCap)
@@ -288,7 +358,7 @@ public enum BalanceFindingsReporter {
             Finding(
                 score: max(abs(row.lift), abs(row.meanDeltaPartyHP), abs(row.meanDeltaRounds) / 10),
                 line: String(
-                    format: "%@ `%@` vs `%@` on `%@` (%@, %@): ⚠ %@ · lift %+.1f pp · ΔHP %+.2f · Δrounds %+.1f · n=%d decided · sibling swap",
+                    format: "%@ `%@` vs `%@` on `%@` (%@, %@): ⚠ %@ · lift %+.1f pp · ΔHP %+.2f · Δrounds %+.1f · n=%d decided · %@",
                     kind.capitalized,
                     row.entityID,
                     row.baselineID,
@@ -300,6 +370,7 @@ public enum BalanceFindingsReporter {
                     row.meanDeltaPartyHP,
                     row.meanDeltaRounds,
                     row.decidedPairs,
+                    row.baselineKind.rawValue,
                 ),
             )
         }

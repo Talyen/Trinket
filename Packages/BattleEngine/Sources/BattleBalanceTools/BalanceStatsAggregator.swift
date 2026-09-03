@@ -12,9 +12,38 @@ public struct WinRateSummary: Equatable, Sendable {
     public var wilsonLow: Double
     public var wilsonHigh: Double
     public var deltaVsPeer: Double
+    public var targetBandDelta: Double?
     public var flagged: Bool
     public var flagReason: String?
     public var sampleTooLow: Bool
+
+    public init(
+        id: String,
+        ownerID: String? = nil,
+        wins: Int,
+        battles: Int,
+        winRate: Double,
+        wilsonLow: Double,
+        wilsonHigh: Double,
+        deltaVsPeer: Double,
+        targetBandDelta: Double? = nil,
+        flagged: Bool,
+        flagReason: String? = nil,
+        sampleTooLow: Bool,
+    ) {
+        self.id = id
+        self.ownerID = ownerID
+        self.wins = wins
+        self.battles = battles
+        self.winRate = winRate
+        self.wilsonLow = wilsonLow
+        self.wilsonHigh = wilsonHigh
+        self.deltaVsPeer = deltaVsPeer
+        self.targetBandDelta = targetBandDelta
+        self.flagged = flagged
+        self.flagReason = flagReason
+        self.sampleTooLow = sampleTooLow
+    }
 }
 
 public struct PairCellSummary: Equatable, Sendable {
@@ -74,6 +103,19 @@ public struct BalanceEnemyDurationStats: Equatable, Sendable {
     public var averageRounds: Double
     public var shortRate: Double
     public var longRate: Double
+    public var flagged: Bool
+    public var flagReason: String?
+}
+
+public struct BalanceCombatantDurationStats: Equatable, Sendable {
+    public var combatantID: String
+    public var role: Combatant.Role
+    public var battles: Int
+    public var averageRounds: Double
+    public var shortRate: Double
+    public var longRate: Double
+    public var flagged: Bool
+    public var flagReason: String?
 }
 
 public struct BalanceTierStats: Sendable {
@@ -88,6 +130,8 @@ public struct BalanceTierStats: Sendable {
     public var trashDuration: BalanceDurationBucketStats
     public var bossDuration: BalanceDurationBucketStats
     public var enemyDurations: [BalanceEnemyDurationStats]
+    public var heroDurations: [BalanceCombatantDurationStats]
+    public var companionDurations: [BalanceCombatantDurationStats]
     public var heroes: [WinRateSummary]
     public var heroesTrash: [WinRateSummary]
     public var heroesBoss: [WinRateSummary]
@@ -95,6 +139,7 @@ public struct BalanceTierStats: Sendable {
     public var companionsTrash: [WinRateSummary]
     public var companionsBoss: [WinRateSummary]
     public var enemies: [WinRateSummary]
+    public var items: [WinRateSummary]
     public var abilities: [WinRateSummary]
     public var talents: [WinRateSummary]
     public var enemyAbilities: [WinRateSummary]
@@ -144,6 +189,7 @@ public enum BalanceStatsAggregator {
             id: \.heroID,
             peerRate: overallRate,
             threshold: threshold,
+            targetBand: BalanceIdentityTables.targetBand(isBoss: false, tier: tier),
         )
         let heroRates = Dictionary(uniqueKeysWithValues: heroOverall.map { ($0.id, $0.winRate) })
         let companionOverall = BalanceIdentityMargins.ownerMargins(
@@ -151,6 +197,7 @@ public enum BalanceStatsAggregator {
             id: \.companionID,
             peerRate: overallRate,
             threshold: threshold,
+            targetBand: BalanceIdentityTables.targetBand(isBoss: false, tier: tier),
         )
         let companionRates = Dictionary(uniqueKeysWithValues: companionOverall.map { ($0.id, $0.winRate) })
 

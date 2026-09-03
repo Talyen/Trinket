@@ -30,6 +30,7 @@ public struct CombatantRuntime: Hashable {
         public var pendingNextHitBonus: Int = 0
         public var pendingNextAttackHolyBonus: Int = 0
         public var pendingBasicGuaranteedCrit: Bool = false
+        public var pendingBasicCritBonus: Double = 0.0
         public var pendingAttackBonusOnFullHealth: Int = 0
         public var pendingDoubleStatusNextCard: Bool = false
         public var goldenTouchActiveThisCard: Bool = false

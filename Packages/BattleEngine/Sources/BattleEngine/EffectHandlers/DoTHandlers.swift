@@ -171,10 +171,17 @@ struct BleedHandler: BattleEffectHandler {
             ))
         }
 
-        if let sourceTriggers, sourceTriggers.onBleedDamageNextBasicGuaranteedCrit,
+        if let sourceTriggers,
            let attackerID = active.sourceActorID,
            let caster = context.roster.combatant(for: attackerID) {
-            context.roster.mutateRuntime(for: caster.combatant) { $0.pendingBasicGuaranteedCrit = true }
+            if sourceTriggers.onBleedDamageNextBasicGuaranteedCrit {
+                context.roster.mutateRuntime(for: caster.combatant) { $0.pendingBasicGuaranteedCrit = true }
+            }
+            if sourceTriggers.onBleedDamageNextBasicCritBonus > 0 {
+                context.roster.mutateRuntime(for: caster.combatant) {
+                    $0.pendingBasicCritBonus = max($0.pendingBasicCritBonus, sourceTriggers.onBleedDamageNextBasicCritBonus)
+                }
+            }
         }
 
         if let sourceTriggers, let attackerID = active.sourceActorID {

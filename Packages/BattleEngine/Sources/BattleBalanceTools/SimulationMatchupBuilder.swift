@@ -36,7 +36,7 @@ public enum SimulationMatchupBuilder {
         heroTalents: Set<String> = [],
         companionTalents: Set<String> = [],
         gearKeywordBias: Set<Keyword>? = nil,
-        gearGenerator: ThemedGearGenerator = ThemedGearGenerator(),
+        gearGenerator: ThemedGearGenerator = ThemedGearGenerator(includeTrinkets: true),
     ) -> ConfiguredSimulationMatchup {
         var rng = SeededRandomNumberGenerator(seed: seed)
         let resolvedHeroLevel = heroLevel ?? tier.level
@@ -86,6 +86,8 @@ public enum SimulationMatchupBuilder {
             seed: seed,
             heroAffixIDs: heroPrepared.affixIDs,
             companionAffixIDs: companionPrepared.affixIDs,
+            heroItemBaseIDs: heroPrepared.itemBaseIDs,
+            companionItemBaseIDs: companionPrepared.itemBaseIDs,
             heroTalentIDs: heroTalents.sorted(),
             companionTalentIDs: companionTalents.sorted(),
         )
@@ -153,7 +155,7 @@ public enum SimulationMatchupBuilder {
         tier: SimulationPowerTier,
         keywordBias: Set<Keyword>,
         idPrefix: String,
-        gearGenerator: ThemedGearGenerator = ThemedGearGenerator(),
+        gearGenerator: ThemedGearGenerator = ThemedGearGenerator(includeTrinkets: true),
         using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> GearOverride? {
         guard tier.includesGear,
@@ -180,7 +182,7 @@ public enum SimulationMatchupBuilder {
         level: Int,
         idPrefix: String,
         gearKeywordBias: Set<Keyword>? = nil,
-        gearGenerator: ThemedGearGenerator = ThemedGearGenerator(),
+        gearGenerator: ThemedGearGenerator = ThemedGearGenerator(includeTrinkets: true),
         using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> GearOverride? {
         let withLoadout = combatant.withAbilityLoadoutPreservingEmptyTiers(loadout)
@@ -206,7 +208,7 @@ public enum SimulationMatchupBuilder {
         level: Int? = nil,
         idPrefix: String,
         gearKeywordBias: Set<Keyword>? = nil,
-        gearGenerator: ThemedGearGenerator = ThemedGearGenerator(),
+        gearGenerator: ThemedGearGenerator = ThemedGearGenerator(includeTrinkets: true),
         using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> GearOverride? {
         guard tier.usesStarterGear else { return nil }
@@ -282,6 +284,29 @@ public enum SimulationMatchupBuilder {
         var build: CombatBuild
         var loadout: AbilityLoadout
         var affixIDs: [String]
+        var itemBaseIDs: [String]
+    }
+
+    private static func makePrepared(
+        combatant: Combatant,
+        loadout: AbilityLoadout,
+        unlockedTalents: Set<String>,
+        inventory: [InventoryItem],
+        equipmentLoadout: EquipmentLoadout,
+    ) -> PreparedPartyMember {
+        let sanitized = equipmentLoadout.sanitized(for: combatant, inventory: inventory)
+        let build = CombatBuildResolver.build(
+            combatant: combatant,
+            equipmentLoadout: sanitized,
+            inventory: inventory,
+            unlockedTalents: unlockedTalents,
+        )
+        return PreparedPartyMember(
+            build: build,
+            loadout: loadout,
+            affixIDs: inventory.flatMap { $0.affixes.map(\.id) },
+            itemBaseIDs: inventory.map(\.baseType.id),
+        )
     }
 
     private static func preparePartyMember(
@@ -294,28 +319,26 @@ public enum SimulationMatchupBuilder {
         let scaled = CombatantLevelScaler.scale(combatant: withLoadout, level: request.progression.level)
 
         if let gearOverride = request.gearOverride {
-            let sanitized = gearOverride.loadout.sanitized(for: scaled, inventory: gearOverride.inventory)
-            let build = CombatBuildResolver.build(
+            return makePrepared(
                 combatant: scaled,
-                equipmentLoadout: sanitized,
-                inventory: gearOverride.inventory,
+                loadout: loadout,
                 unlockedTalents: request.unlockedTalents,
+                inventory: gearOverride.inventory,
+                equipmentLoadout: gearOverride.loadout,
             )
-            let affixIDs = gearOverride.inventory.flatMap { $0.affixes.map(\.id) }
-            return PreparedPartyMember(build: build, loadout: loadout, affixIDs: affixIDs)
         }
 
         guard request.tier.includesGear,
               let rarity = request.tier.rarity,
               let affixCount = request.tier.fixedAffixCount
         else {
-            let build = CombatBuildResolver.build(
+            return makePrepared(
                 combatant: scaled,
-                equipmentLoadout: EquipmentLoadout(),
-                inventory: [],
+                loadout: loadout,
                 unlockedTalents: request.unlockedTalents,
+                inventory: [],
+                equipmentLoadout: EquipmentLoadout(),
             )
-            return PreparedPartyMember(build: build, loadout: loadout, affixIDs: [])
         }
 
         let buildKeywords = request.gearKeywordBias ?? Set(scaled.abilities.flatMap(\.keywords))
@@ -328,14 +351,12 @@ public enum SimulationMatchupBuilder {
             requireBuildAlignment: true,
             using: &randomNumberGenerator,
         )
-        let sanitized = gear.loadout.sanitized(for: scaled, inventory: gear.inventory)
-        let build = CombatBuildResolver.build(
+        return makePrepared(
             combatant: scaled,
-            equipmentLoadout: sanitized,
-            inventory: gear.inventory,
+            loadout: loadout,
             unlockedTalents: request.unlockedTalents,
+            inventory: gear.inventory,
+            equipmentLoadout: gear.loadout,
         )
-        let affixIDs = gear.inventory.flatMap { $0.affixes.map(\.id) }
-        return PreparedPartyMember(build: build, loadout: loadout, affixIDs: affixIDs)
     }
 }

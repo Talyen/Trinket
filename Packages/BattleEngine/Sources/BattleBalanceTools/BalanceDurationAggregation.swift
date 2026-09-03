@@ -1,5 +1,6 @@
 import BattleEngine
 import Foundation
+import TrinketContent
 
 enum BalanceDurationAggregation {
     static func durationStats(
@@ -96,7 +97,7 @@ enum BalanceDurationAggregation {
 
     static func enemyDurationTable(
         _ records: [BalanceBattleRecord],
-        flagRate _: Double,
+        flagRate: Double,
     ) -> [BalanceEnemyDurationStats] {
         let grouped = Dictionary(grouping: records, by: \.enemyID)
         return grouped.keys.sorted().compactMap { enemyID -> BalanceEnemyDurationStats? in
@@ -112,13 +113,75 @@ enum BalanceDurationAggregation {
             let short = recs.count { $0.result.rounds < minRounds }
             let long = recs.count { $0.result.rounds > maxRounds }
             let avg = recs.reduce(0.0) { $0 + Double($1.result.rounds) } / Double(recs.count)
+            let shortRate = Double(short) / Double(recs.count)
+            let longRate = Double(long) / Double(recs.count)
+            let sampleTooLow = recs.count < BalanceSweepConfig.identityFlagMinBattles
+            var flags: [String] = []
+            if !sampleTooLow {
+                if shortRate >= flagRate {
+                    flags.append("FAST")
+                }
+                if longRate >= flagRate {
+                    flags.append("SLOW")
+                }
+            }
             return BalanceEnemyDurationStats(
                 enemyID: enemyID,
                 isBoss: isBoss,
                 battles: recs.count,
                 averageRounds: avg,
-                shortRate: Double(short) / Double(recs.count),
-                longRate: Double(long) / Double(recs.count),
+                shortRate: shortRate,
+                longRate: longRate,
+                flagged: !flags.isEmpty,
+                flagReason: flags.isEmpty ? nil : flags.joined(separator: " "),
+            )
+        }
+    }
+
+    static func combatantDurationTable(
+        _ records: [BalanceBattleRecord],
+        role: Combatant.Role,
+        idPath: KeyPath<BalanceBattleRecord, String>,
+        flagRate: Double,
+    ) -> [BalanceCombatantDurationStats] {
+        let grouped = Dictionary(grouping: records, by: { $0[keyPath: idPath] })
+        return grouped.keys.sorted().compactMap { combatantID -> BalanceCombatantDurationStats? in
+            let recs = grouped[combatantID] ?? []
+            guard !recs.isEmpty else { return nil }
+            let short = recs.count { rec in
+                let minR = rec.isBoss
+                    ? BalanceDurationThresholds.bossMinRounds
+                    : BalanceDurationThresholds.trashMinRounds
+                return rec.result.rounds < minR
+            }
+            let long = recs.count { rec in
+                let maxR = rec.isBoss
+                    ? BalanceDurationThresholds.bossMaxRounds
+                    : BalanceDurationThresholds.trashMaxRounds
+                return rec.result.rounds > maxR
+            }
+            let avg = recs.reduce(0.0) { $0 + Double($1.result.rounds) } / Double(recs.count)
+            let shortRate = Double(short) / Double(recs.count)
+            let longRate = Double(long) / Double(recs.count)
+            let sampleTooLow = recs.count < BalanceSweepConfig.identityFlagMinBattles
+            var flags: [String] = []
+            if !sampleTooLow {
+                if shortRate >= flagRate {
+                    flags.append("FAST")
+                }
+                if longRate >= flagRate {
+                    flags.append("SLOW")
+                }
+            }
+            return BalanceCombatantDurationStats(
+                combatantID: combatantID,
+                role: role,
+                battles: recs.count,
+                averageRounds: avg,
+                shortRate: shortRate,
+                longRate: longRate,
+                flagged: !flags.isEmpty,
+                flagReason: flags.isEmpty ? nil : flags.joined(separator: " "),
             )
         }
     }

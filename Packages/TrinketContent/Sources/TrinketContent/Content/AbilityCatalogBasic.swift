@@ -93,7 +93,7 @@ enum AbilityCatalogBasic {
 
     static let shieldBash = Ability(
         id: "shield-bash", name: "Shield Bash", tier: .basic,
-        damageComponents: [DamageComponent(1, keyword: .stun)],
+        damageComponents: [DamageComponent(2, keyword: .stun)],
         targetedEffects: [TargetedEffect(.shield(.block, 1))],
     )
 

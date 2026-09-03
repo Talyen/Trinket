@@ -25,9 +25,9 @@ rogue_poison_t3_1	Contagion	leaf.arrow.triangle.circlepath	Poison damage has a 2
 rogue_poison_t3_2	Deadly Dose	cross.vial.fill	Poisoned enemies take 25% additional damage from all sources.		damageVsPoisonedMultiplier:1.25
 rogue_bleed_t1_1	Serrated Blades	triangle.fill	Applying Bleed to a Bleeding target extends its duration by 1 turn.		onBleedAppliedToBleedingExtendTurns:1
 rogue_bleed_t1_2	Deep Wounds	drop.triangle.fill	Bleed ignores the enemy's damage reduction.		bleedsIgnoreMitigation:true
-rogue_bleed_t2_1	Taste for Blood	mouth.fill	When Bleed deals damage, your next basic attack is a guaranteed Critical Hit.		onBleedDamageNextBasicGuaranteedCrit:true
+rogue_bleed_t2_1	Taste for Blood	mouth.fill	When Bleed deals damage, your next basic attack has +35% Critical Hit chance.		onBleedDamageNextBasicCritBonus:0.35
 rogue_bleed_t2_2	Blood Money	banknote.fill	When Bleed deals damage, gain 2 Gold.		bleedDamageGoldFlat:2
-rogue_bleed_t3_1	Exsanguinate	drop.degreesign.fill	Critical hits on Bleeding targets detonate and consume all remaining Bleed damage at once.		criticalOnBleedingDetonateBleed:true
+rogue_bleed_t3_1	Exsanguinate	drop.degreesign.fill	Critical hits on Bleeding targets have a 20% chance to detonate and consume all remaining Bleed damage at once.		criticalOnBleedingDetonateBleedChance:0.20
 rogue_bleed_t3_2	Scent of Blood	scope	Deal 1 additional damage to Bleeding enemies and enemies below half Health.		damageBelowHealthPercentThreshold:0.5|damageBelowHealthPercentBonus:1|damageVsBleedingBonus:1
 rogue_gold_t1_1	Light Fingers	hand.point.up.fill	Gain 2 Gold when you Critically Hit.		criticalGoldFlat:2
 rogue_gold_t1_2	Coinmail	bag.fill	Whenever you gain Gold in combat, gain Block equal to half that amount.		gold_gain_block_percent:0.50
@@ -209,7 +209,7 @@ golden_retriever_block_t2_1	Shield Bond	arrow.triangle.swap	Whenever Retriever g
 golden_retriever_block_t2_2	Warning Bark	speaker.wave.2.fill	Negate the first enemy attack of each combat.		negateFirstEnemyAttack:true
 golden_retriever_block_t3_1	Sacrificial Guard	heart.slash.fill	When the Hero would die, the Retriever takes that hit instead and gains 10 Block.		companionFatalDamageRedirectBlock:10
 golden_retriever_block_t3_2	Steadfast	shield.checkered	While holding Block, Stun and Freeze on the Retriever is halved, and Burn damage taken is halved.		blockedControlBurnResistance:0.5
-golden_retriever_health_t1_1	Cheer Up	heart.fill	Restore 3 Health to the lowest Health party member at end of turn.		endOfTurnHealLowestAlly:3
+golden_retriever_health_t1_1	Cheer Up	heart.fill	Restore 1 Health to the lowest Health party member at end of turn.		endOfTurnHealLowestAlly:1
 golden_retriever_health_t1_2	Playful Energy	sparkles	Playing 3 cards in a turn heals the party for 2 Health.		cardsPlayedHealPartyThreshold:3|cardsPlayedHealPartyAmount:2
 golden_retriever_health_t2_1	Campfire Comfort	flame.circle.fill	At the end of each round, restore 2 Health to each party member.		partyRegenPerRound:2
 golden_retriever_health_t2_2	Man's Best Friend	heart.circle.fill	Hero gains +15% Critical Hit chance while Retriever is alive.		heroCritChanceWhileCompanionAlive:0.15
@@ -226,7 +226,7 @@ library_owl_cleanse_t1_2	Healing Hymn	bell.fill	Cleansing an ally also heals the
 library_owl_cleanse_t2_1	Spellbreak Shield	shield.fill	Cleansing a negative effect grants 2 Block per effect removed.		cleanseBlockPerStack:2
 library_owl_cleanse_t2_2	Mass Cleanse	sparkles	Cleanse also removes negative effects from the rest of the party.		cleanseAffectsBothHeroAndCompanion:true
 library_owl_cleanse_t3_1	Reflective Ward	arrow.counterclockwise	Cleansing a negative effect reflects it onto the enemy who applied it.		cleanseReflectDebuffToEnemy:true
-library_owl_cleanse_t3_2	Sanctified Scroll	text.book.closed.fill	Cleanse 1 negative effect from the party automatically each round.		autoCleanseTeamPerTurn:1
+library_owl_cleanse_t3_2	Sanctified Scroll	text.book.closed.fill	Restoring Health has a 10% chance to Cleanse a negative effect.		onHealCleanseTargetChance:0.10
 library_owl_health_t1_1	Safe Perch	tree.fill	Regenerate 2 Health per turn while above half Health.		healthRegenAboveHalfHealth:2
 library_owl_health_t1_2	Warded Roost	shield.lefthalf.filled	Healing an ally also grants them 2 Block.		onHealGrantBlock:2
 library_owl_health_t2_1	Efficient Care	wand.and.stars	When you spend 3 Mana to empower a heal, it costs 2 Mana instead of 3.		healingEmpowermentCostReduction:1

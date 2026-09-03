@@ -13,7 +13,7 @@ maul	Maul	basic	Deal 2 Stun damage or deal 2 Bleed damage.
 pixie-dust	Pixie Dust	basic	Deal 1 Burn damage and restore 1 Mana.
 ray-of-frost	Ray of Frost	basic	Deal 1 Freeze damage each turn for 2 turns.
 rending-slash	Rend	basic	Deal 2 Bleed damage.
-shield-bash	Shield Bash	basic	Deal 1 Stun damage and gain 1 Block.
+shield-bash	Shield Bash	basic	Deal 2 Stun damage and gain 1 Block.
 slash	Slash	basic	Deal 2 to 3 Physical damage.
 sniff-out	Sniff Out	basic	Mark the enemy.
 stab	Stab	basic	Deal 2 Physical damage with a +25% chance to Critically Hit.
@@ -39,23 +39,23 @@ predators-focus	Predator's Focus	skill	Mark the enemy. Your next attack is a gua
 sap-arrow	Sap Arrow	skill	Deal 3 Stun damage. If the enemy is Stunned, gain 2 Gold.
 serrated-edge	Serrated Edge	skill	Deal 2 Bleed damage. Reduces enemy Healing by 25% for 3 turns.
 smite	Smite	skill	Deal 4 Holy damage and Purge a positive status effect from the enemy.
-spiked-shield	Spiked Shield	skill	Gain 2 Block and gain 2 Thorns.
+spiked-shield	Spiked Shield	skill	Deal 2 Physical damage, gain 2 Block, and gain 2 Thorns.
 steal	Steal	skill	Steal 3 Gold.
 stoneskin-potion	Stoneskin Potion	skill	Gain 4 Block.
 sunder	Sunder	skill	Deal 4 Physical damage and halve the enemy's Block.
 tithe	Tithe	skill	Deal 3 Holy damage or steal 3 Gold.
 venom-fangs	Venom Fangs	skill	Deal 2 Poison damage. Leech.
-astral-arrow	Astral Arrow	ultimate	Deal 7 Stun, Freeze, or Burn damage.
+astral-arrow	Astral Arrow	ultimate	Deal 7 Burn, Freeze, or Bleed damage.
 avatar-of-justice	Avatar	ultimate	Deal 5 Holy damage and gain 3 Block each turn for 2 turns.
 blessed-aegis	Blessed Aegis	ultimate	Gain 6 Block. Next time you're hit, Deal 6 Holy damage.
 blizzard	Blizzard	ultimate	Deal 4 Freeze damage each turn for 2 turns.
-bloodthorn	Bloodthorn	ultimate	Deal 3 Bleed damage and deal 3 Poison damage. Leech.
-combustion	Combustion	ultimate	Deal 4 Burn damage. If the enemy is Burning, detonate all its remaining Burn at once, doubled.
+bloodthorn	Bloodthorn	ultimate	Deal 2 Bleed damage and deal 2 Poison damage. Leech.
+combustion	Combustion	ultimate	Deal 6 Burn damage. If the enemy is Burning, detonate all its remaining Burn at once.
 earthquake	Earthquake	ultimate	Deal 4 Stun damage each turn for 2 turns.
 faustian-bargain	Faustian Bargain	ultimate	Lose 2 Health. Deal 4 Burn damage and draw 1 card.
 golden-plate	Golden Plate	ultimate	Gain 3 Block, Gold, and Thorns. Your Hero and Companion each dodge the next attack.
 hemorrhage	Hemorrhage	ultimate	Deal 4 Bleed damage and the next time they attack, they take 4 Bleed damage.
-luck-potion	Luck Potion	ultimate	Restore 7 Mana, Steal 7 Gold, or gain 7 Block.
+luck-potion	Luck Potion	ultimate	Restore 7 Mana, Restore 7 Health, or gain 7 Block.
 meteor	Meteor	ultimate	Deal 6 Burn damage and convert all your Mana into bonus Burn damage.
 molten-bulwark	Molten Bulwark	ultimate	Deal 3 Burn damage, gain 4 Block, and deal 3 Burn damage next time you're hit.
 pack-tactics	Pack Tactics	ultimate	Draw and play 2 cards.

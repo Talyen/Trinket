@@ -126,6 +126,7 @@ package extension DamagePipeline {
         let absorbed = min(state.remaining, effectiveBuffer)
         state.remaining -= absorbed
         state.blockedAmount += absorbed
+        state.buildupDamage = max(0, state.buildupDamage - absorbed)
         let extraRemoved = extraBlockRemoval(
             absorbed: absorbed,
             buffer: buffer,
@@ -162,6 +163,7 @@ package extension DamagePipeline {
         let heroAbsorbed = reduced.absorbed
         state.remaining -= heroAbsorbed
         state.blockedAmount += heroAbsorbed
+        state.buildupDamage = max(0, state.buildupDamage - heroAbsorbed)
         state.damageEvents.append(context.nextEvent(
             kind: .effect,
             effectKind: .shieldAbsorbed,

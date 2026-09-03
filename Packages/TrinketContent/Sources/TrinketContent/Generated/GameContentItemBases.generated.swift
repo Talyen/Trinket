@@ -37,7 +37,7 @@ enum GameContentItemBasesGenerated {
         list.append(ItemBaseType(id: "topaz_ring", name: "Topaz Ring", slot: .accessory, weaponKind: nil, keywordAffinities: [.holy, .gold, .stun, .block]))
         list.append(ItemBaseType(id: "bone_charm", name: "Bone Charm", slot: .trinket, weaponKind: nil, keywordAffinities: [.health]))
         list.append(ItemBaseType(id: "brass_censer", name: "Brass Censer", slot: .trinket, weaponKind: nil, keywordAffinities: [.holy, .poison]))
-        list.append(ItemBaseType(id: "companions_collar", name: "Companion's Collar", slot: .trinket, weaponKind: nil, keywordAffinities: [.mana]))
+        list.append(ItemBaseType(id: "companions_collar", name: "Companion's Collar", slot: .trinket, weaponKind: nil, keywordAffinities: [.health, .physical]))
         list.append(ItemBaseType(id: "cutpurse_knife", name: "Cutpurse Knife", slot: .trinket, weaponKind: nil, keywordAffinities: [.bleed, .gold]))
         list.append(ItemBaseType(id: "frozen_pocketwatch", name: "Frozen Pocketwatch", slot: .trinket, weaponKind: nil, keywordAffinities: [.freeze]))
         list.append(ItemBaseType(id: "groves_favor", name: "Grove's Favor", slot: .trinket, weaponKind: nil, keywordAffinities: [.health]))

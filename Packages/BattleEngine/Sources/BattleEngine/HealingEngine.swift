@@ -87,6 +87,19 @@ package enum HealingEngine {
                 abilityName: abilityName,
             ))
         }
+        if restored > 0, let sourceTriggers, sourceTriggers.onHealCleanseTargetChance > 0,
+           BattleChance.succeeds(probability: sourceTriggers.onHealCleanseTargetChance, using: &context.rng) {
+            let abilityName = request.sourceActorID.map {
+                context.modifiers(for: $0).triggerAbilityName("onHealCleanseTargetChance", fallback: "Sanctified Scroll")
+            } ?? "Sanctified Scroll"
+            events.append(contentsOf: CombatTriggerEngine.performRandomCleanses(
+                source: request.target,
+                target: request.target,
+                count: 1,
+                abilityName: abilityName,
+                in: &context,
+            ))
+        }
         if restored > 0, let sourceTriggers,
            sourceTriggers.healOverTimeOnHealAmount > 0,
            sourceTriggers.healOverTimeOnHealTurns > 0,

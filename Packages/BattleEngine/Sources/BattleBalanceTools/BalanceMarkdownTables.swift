@@ -32,13 +32,7 @@ enum BalanceMarkdownTables {
         lines.append(summary)
         lines.append("")
         appendDurationSection(tierStats, into: &lines)
-        appendSection(title: "Heroes", summaries: tierStats.heroes, into: &lines)
-        appendSection(title: "Heroes vs trash", summaries: tierStats.heroesTrash, into: &lines)
-        appendSection(title: "Heroes vs bosses", summaries: tierStats.heroesBoss, into: &lines)
-        appendSection(title: "Companions", summaries: tierStats.companions, into: &lines)
-        appendSection(title: "Companions vs trash", summaries: tierStats.companionsTrash, into: &lines)
-        appendSection(title: "Companions vs bosses", summaries: tierStats.companionsBoss, into: &lines)
-        appendSection(title: "Enemies", summaries: tierStats.enemies, into: &lines)
+        appendRosterSections(tierStats, into: &lines)
         appendSection(
             title: "Party Abilities (within owner)",
             summaries: tierStats.abilities,
@@ -55,6 +49,12 @@ enum BalanceMarkdownTables {
         appendSection(title: "Enemy Traits", summaries: tierStats.enemyTraits, into: &lines)
         if tierStats.tier.includesGear {
             appendSection(
+                title: "Item Bases (within owner)",
+                summaries: tierStats.items,
+                into: &lines,
+                flaggedPlusTop: 25,
+            )
+            appendSection(
                 title: "Item Affixes (within owner)",
                 summaries: tierStats.affixes,
                 into: &lines,
@@ -64,6 +64,16 @@ enum BalanceMarkdownTables {
         appendPairSection(title: "Hero × companion (flagged)", cells: tierStats.heroCompanionCells, into: &lines)
         appendPairSection(title: "Hero × enemy (flagged)", cells: tierStats.heroEnemyCells, into: &lines)
         appendEnemyDurationSection(tierStats.enemyDurations, into: &lines)
+    }
+
+    private static func appendRosterSections(_ tierStats: BalanceTierStats, into lines: inout [String]) {
+        appendSection(title: "Heroes", summaries: tierStats.heroes, into: &lines)
+        appendSection(title: "Heroes vs trash", summaries: tierStats.heroesTrash, into: &lines)
+        appendSection(title: "Heroes vs bosses", summaries: tierStats.heroesBoss, into: &lines)
+        appendSection(title: "Companions", summaries: tierStats.companions, into: &lines)
+        appendSection(title: "Companions vs trash", summaries: tierStats.companionsTrash, into: &lines)
+        appendSection(title: "Companions vs bosses", summaries: tierStats.companionsBoss, into: &lines)
+        appendSection(title: "Enemies", summaries: tierStats.enemies, into: &lines)
     }
 
     static func appendDurationSection(_ tierStats: BalanceTierStats, into lines: inout [String]) {

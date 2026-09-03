@@ -44,6 +44,12 @@ enum BalanceIdentityTables {
             overallRate: overallRate,
             threshold: threshold,
         )
+        let splits = rosterSplits(
+            decided: decided,
+            overallRate: overallRate,
+            threshold: threshold,
+            tier: inputs.tier,
+        )
         return BalanceTierStats(
             tier: inputs.tier,
             battles: records.count,
@@ -56,33 +62,16 @@ enum BalanceIdentityTables {
             trashDuration: duration.trash,
             bossDuration: duration.boss,
             enemyDurations: duration.enemies,
+            heroDurations: duration.heroes,
+            companionDurations: duration.companions,
             heroes: inputs.heroOverall,
-            heroesTrash: BalanceIdentityMargins.ownerMargins(
-                records: decided.filter { !$0.isBoss },
-                id: \.heroID,
-                peerRate: overallRate,
-                threshold: threshold,
-            ),
-            heroesBoss: BalanceIdentityMargins.ownerMargins(
-                records: decided.filter(\.isBoss),
-                id: \.heroID,
-                peerRate: overallRate,
-                threshold: threshold,
-            ),
+            heroesTrash: splits.heroesTrash,
+            heroesBoss: splits.heroesBoss,
             companions: inputs.companionOverall,
-            companionsTrash: BalanceIdentityMargins.ownerMargins(
-                records: decided.filter { !$0.isBoss },
-                id: \.companionID,
-                peerRate: overallRate,
-                threshold: threshold,
-            ),
-            companionsBoss: BalanceIdentityMargins.ownerMargins(
-                records: decided.filter(\.isBoss),
-                id: \.companionID,
-                peerRate: overallRate,
-                threshold: threshold,
-            ),
+            companionsTrash: splits.companionsTrash,
+            companionsBoss: splits.companionsBoss,
             enemies: entities.enemies,
+            items: entities.items,
             abilities: entities.abilities,
             talents: entities.talents,
             enemyAbilities: entities.enemyAbilities,
@@ -93,10 +82,57 @@ enum BalanceIdentityTables {
         )
     }
 
+    private struct RosterSplits {
+        var heroesTrash: [WinRateSummary]
+        var heroesBoss: [WinRateSummary]
+        var companionsTrash: [WinRateSummary]
+        var companionsBoss: [WinRateSummary]
+    }
+
+    private static func rosterSplits(
+        decided: [BalanceBattleRecord],
+        overallRate: Double,
+        threshold: Double,
+        tier: SimulationPowerTier,
+    ) -> RosterSplits {
+        RosterSplits(
+            heroesTrash: BalanceIdentityMargins.ownerMargins(
+                records: decided.filter { !$0.isBoss },
+                id: \.heroID,
+                peerRate: overallRate,
+                threshold: threshold,
+                targetBand: targetBand(isBoss: false, tier: tier),
+            ),
+            heroesBoss: BalanceIdentityMargins.ownerMargins(
+                records: decided.filter(\.isBoss),
+                id: \.heroID,
+                peerRate: overallRate,
+                threshold: threshold,
+                targetBand: targetBand(isBoss: true, tier: tier),
+            ),
+            companionsTrash: BalanceIdentityMargins.ownerMargins(
+                records: decided.filter { !$0.isBoss },
+                id: \.companionID,
+                peerRate: overallRate,
+                threshold: threshold,
+                targetBand: targetBand(isBoss: false, tier: tier),
+            ),
+            companionsBoss: BalanceIdentityMargins.ownerMargins(
+                records: decided.filter(\.isBoss),
+                id: \.companionID,
+                peerRate: overallRate,
+                threshold: threshold,
+                targetBand: targetBand(isBoss: true, tier: tier),
+            ),
+        )
+    }
+
     private struct DurationBundle {
         var trash: BalanceDurationBucketStats
         var boss: BalanceDurationBucketStats
         var enemies: [BalanceEnemyDurationStats]
+        var heroes: [BalanceCombatantDurationStats]
+        var companions: [BalanceCombatantDurationStats]
     }
 
     private static func durationBundle(
@@ -117,11 +153,24 @@ enum BalanceIdentityTables {
                 flagRate: flagRate,
             ),
             enemies: BalanceDurationAggregation.enemyDurationTable(records, flagRate: flagRate),
+            heroes: BalanceDurationAggregation.combatantDurationTable(
+                records,
+                role: .hero,
+                idPath: \.heroID,
+                flagRate: flagRate,
+            ),
+            companions: BalanceDurationAggregation.combatantDurationTable(
+                records,
+                role: .companion,
+                idPath: \.companionID,
+                flagRate: flagRate,
+            ),
         )
     }
 
     private struct EntityBundle {
         var enemies: [WinRateSummary]
+        var items: [WinRateSummary]
         var abilities: [WinRateSummary]
         var talents: [WinRateSummary]
         var enemyAbilities: [WinRateSummary]
@@ -131,15 +180,27 @@ enum BalanceIdentityTables {
         var heroEnemyCells: [PairCellSummary]
     }
 
-    private static func entityBundle(
-        tier: SimulationPowerTier,
+    private struct PartyLoadoutBundle {
+        var items: [WinRateSummary]
+        var abilities: [WinRateSummary]
+        var talents: [WinRateSummary]
+        var affixes: [WinRateSummary]
+    }
+
+    private static func partyLoadoutBundle(
         decided: [BalanceBattleRecord],
         ownerRates: [String: Double],
-        overallRate: Double,
         threshold: Double,
-    ) -> EntityBundle {
-        EntityBundle(
-            enemies: enemyMargins(records: decided, tier: tier),
+    ) -> PartyLoadoutBundle {
+        PartyLoadoutBundle(
+            items: partyPresenceMargins(
+                records: decided,
+                ownerRates: ownerRates,
+                threshold: threshold,
+            ) { record in
+                record.heroItemBaseIDs.map { (record.heroID, $0) }
+                    + record.companionItemBaseIDs.map { (record.companionID, $0) }
+            },
             abilities: partyPresenceMargins(
                 records: decided,
                 ownerRates: ownerRates,
@@ -156,6 +217,34 @@ enum BalanceIdentityTables {
                 record.heroTalentIDs.map { (record.heroID, $0) }
                     + record.companionTalentIDs.map { (record.companionID, $0) }
             },
+            affixes: partyPresenceMargins(
+                records: decided,
+                ownerRates: ownerRates,
+                threshold: threshold,
+            ) { record in
+                record.heroAffixIDs.map { (record.heroID, $0) }
+                    + record.companionAffixIDs.map { (record.companionID, $0) }
+            },
+        )
+    }
+
+    private static func entityBundle(
+        tier: SimulationPowerTier,
+        decided: [BalanceBattleRecord],
+        ownerRates: [String: Double],
+        overallRate: Double,
+        threshold: Double,
+    ) -> EntityBundle {
+        let loadout = partyLoadoutBundle(
+            decided: decided,
+            ownerRates: ownerRates,
+            threshold: threshold,
+        )
+        return EntityBundle(
+            enemies: enemyMargins(records: decided, tier: tier),
+            items: loadout.items,
+            abilities: loadout.abilities,
+            talents: loadout.talents,
             enemyAbilities: opponentMargins(
                 records: decided,
                 ids: \.enemyAbilityIDs,
@@ -168,14 +257,7 @@ enum BalanceIdentityTables {
                 peerRate: overallRate,
                 threshold: threshold,
             ),
-            affixes: partyPresenceMargins(
-                records: decided,
-                ownerRates: ownerRates,
-                threshold: threshold,
-            ) { record in
-                record.heroAffixIDs.map { (record.heroID, $0) }
-                    + record.companionAffixIDs.map { (record.companionID, $0) }
-            },
+            affixes: loadout.affixes,
             heroCompanionCells: BalanceIdentityMargins.flaggedPairCells(
                 records: decided,
                 left: \.heroID,
@@ -242,11 +324,12 @@ enum BalanceIdentityTables {
             let rate = bucket.battles == 0 ? 0 : Double(bucket.wins) / Double(bucket.battles)
             let ci = BalanceStatsAggregator.wilson(wins: bucket.wins, battles: bucket.battles)
             let band = targetBand(isBoss: bucket.boss, tier: tier)
-            let inBand = rate >= band.lower && rate <= band.upper
             let sampleTooLow = bucket.battles < BalanceSweepConfig.identityFlagMinBattles
-            let flagged = !inBand && !sampleTooLow
+            let isHard = ci.high < band.lower
+            let isEasy = ci.low > band.upper
+            let flagged = (isHard || isEasy) && !sampleTooLow
             let reason: String? = if flagged {
-                rate > band.upper ? "EASY" : "HARD"
+                isEasy ? "EASY" : "HARD"
             } else {
                 nil
             }
@@ -272,7 +355,7 @@ enum BalanceIdentityTables {
         }
     }
 
-    private static func targetBand(
+    static func targetBand(
         isBoss: Bool,
         tier: SimulationPowerTier,
     ) -> (lower: Double, upper: Double) {
