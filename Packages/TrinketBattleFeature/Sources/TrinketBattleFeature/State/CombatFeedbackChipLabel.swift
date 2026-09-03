@@ -115,6 +115,7 @@ enum CombatFeedbackStatusLabel: String, CaseIterable, Hashable {
     case consecrated = "Consecrated"
     case nextHolyStrike = "Next Holy Strike"
     case nextStrikeDouble = "Double Damage"
+    case kindled = "Kindled"
     case evadeNextHit = "Evade"
     case marked = "Marked"
     case blockDown = "Block Down"

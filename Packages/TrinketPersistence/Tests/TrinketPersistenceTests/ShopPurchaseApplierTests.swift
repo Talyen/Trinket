@@ -124,9 +124,22 @@ struct ShopPurchaseApplierTests {
 
     @Test func `trinket cannot be purchased more than once`() throws {
         let trinket = try #require(GameContent.trinketItems.first)
+        assertSingletonRefusesSecondPurchase(item: trinket, offerIDPrefix: "trinket-offer", price: 20)
+    }
+
+    @Test func `unique item cannot be purchased more than once`() throws {
+        let unique = try #require(GameContent.unique(matching: "wardbreaker"))
+        assertSingletonRefusesSecondPurchase(item: unique, offerIDPrefix: "unique-offer", price: 30)
+    }
+
+    private func assertSingletonRefusesSecondPurchase(
+        item: InventoryItem,
+        offerIDPrefix: String,
+        price: Int,
+    ) {
         var save = SaveTestSupport.makeSave(modifiedAt: .now, gold: 200)
-        let firstOffer = ShopOffer(id: "trinket-offer-a", item: trinket, price: 20)
-        let secondOffer = ShopOffer(id: "trinket-offer-b", item: trinket, price: 20)
+        let firstOffer = ShopOffer(id: "\(offerIDPrefix)-a", item: item, price: price)
+        let secondOffer = ShopOffer(id: "\(offerIDPrefix)-b", item: item, price: price)
 
         let first = ShopPurchaseApplier.purchase(
             offer: firstOffer,
@@ -142,13 +155,13 @@ struct ShopPurchaseApplierTests {
         )
 
         guard case let .success(purchased) = first else {
-            Issue.record("Expected first Trinket purchase to succeed")
+            Issue.record("Expected first purchase to succeed")
             return
         }
-        #expect(purchased == trinket)
+        #expect(purchased.id == item.id)
         #expect(second == .alreadyOwned)
-        #expect(save.roster.gold == 180)
-        #expect(save.inventory.items == [trinket])
+        #expect(save.roster.gold == 200 - price)
+        #expect(save.inventory.items == [item])
     }
 
     @Test @MainActor func `campaign appliers survive store reload`() throws {
@@ -157,12 +170,12 @@ struct ShopPurchaseApplierTests {
         let stage = GameContent.chapters[0].stages[0]
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
-        let loot = BattleLoot.resolveJourney(
-            stage: stage,
+        let loot = VictoryRewardApplier.resolveLoot(
+            .journey(stage: stage),
             encounterLevel: EncounterLevelResolver.journeyEnemyLevel(for: stage, in: GameContent.chapters[0]),
             enemyIsBoss: false,
             worldSeed: store.currentSave.worldSeed,
-            ownedUniqueIDs: [],
+            ownership: RewardOwnership(ownedUniqueIDs: []),
         )
         let offer = try makeOffer(price: 28)
         var rng = SeededRandomNumberGenerator(seed: 1)

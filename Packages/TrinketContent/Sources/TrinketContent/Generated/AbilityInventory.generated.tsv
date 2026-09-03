@@ -7,16 +7,16 @@ caustic-jab	Caustic Jab	basic	Deal 1 Poison damage.
 fangs	Fangs	basic	Deal 1 Bleed damage. Leech.
 fire-arrow	Fire Arrow	basic	Deal 1 Burn damage. If the enemy is Burning, deal 1 extra Burn damage.
 ice-shot	Ice Shot	basic	Deal 2 Freeze damage.
-kindling	Kindling	basic	Deal 1 Burn damage.
+kindling	Kindling	basic	Deal 1 Burn damage. Your next Burn card deals +1 Burn damage.
 mana-berries	Mana Berries	basic	Restore 2 Mana.
 maul	Maul	basic	Deal 2 Stun damage or deal 2 Bleed damage.
 pixie-dust	Pixie Dust	basic	Deal 2 Burn damage or restore 2 Mana.
 ray-of-frost	Ray of Frost	basic	Deal 1 Freeze damage each turn for 2 turns.
 rending-slash	Rend	basic	Deal 2 Bleed damage.
 shield-bash	Shield Bash	basic	Deal 1 Stun damage and gain 1 Block.
-slash	Slash	basic	Deal 2 Physical damage.
+slash	Slash	basic	Deal 2 to 3 Physical damage.
 sniff-out	Sniff Out	basic	Mark the enemy.
-stab	Stab	basic	Deal 2 Physical damage.
+stab	Stab	basic	Deal 2 Physical damage with a +25% chance to Critically Hit.
 stargaze	Stargaze	basic	Deal 1 Freeze damage and restore 1 Mana.
 venom-arrow	Venom Arrow	basic	Deal 2 Poison damage.
 acid-potion	Acid Potion	skill	Deal 3 Poison damage and halve the enemy's Block.
@@ -27,7 +27,7 @@ cinderbloom	Cinderbloom	skill	Deal 3 Burn damage or deal 3 Poison damage.
 cleanse	Cleanse	skill	Cleanse a status effect and restore 3 Health.
 cold-snap	Cold Snap	skill	Deal 2 Freeze damage. Restore 1 Mana if the enemy is Frozen.
 dark-pact	Dark Pact	skill	Lose 3 Health. Draw 2 cards.
-fireball	Fireball	skill	Deal 3 Burn damage.
+fireball	Fireball	skill	Deal 2 to 4 Burn damage.
 frostbolt	Frostbolt	skill	Deal 3 Freeze damage.
 glacial-ward	Glacial Ward	skill	Gain 2 Block. Deal 2 Freeze damage next time you're hit.
 heal	Heal	skill	Restore 6 Health.

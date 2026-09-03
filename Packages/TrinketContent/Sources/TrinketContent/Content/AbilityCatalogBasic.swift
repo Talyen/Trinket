@@ -48,9 +48,11 @@ enum AbilityCatalogBasic {
         damageComponents: [DamageComponent(2, keyword: .freeze)],
     )
 
-    static let kindling = AbilityBuilder.directHit(
+    static let kindling = Ability(
         id: "kindling", name: "Kindling", tier: .basic,
-        amount: 1, keyword: .burn,
+        description: "Deal 1 Burn damage. Your next Burn card deals +1 Burn damage.",
+        damageComponents: [DamageComponent(1, keyword: .burn)],
+        targetedEffects: [TargetedEffect(.nextBurnBonus(1), target: .actor)],
     )
 
     static let manaBerries = Ability(
@@ -90,9 +92,13 @@ enum AbilityCatalogBasic {
         targetedEffects: [TargetedEffect(.shield(.block, 1))],
     )
 
-    static let slash = AbilityBuilder.directHit(
+    static let slash = Ability(
         id: "slash", name: "Slash", tier: .basic,
-        amount: 2, keyword: .physical,
+        description: "Deal 2 to 3 Physical damage.",
+        outcomeBranches: [
+            AbilityOutcomeBranch(damageComponents: [DamageComponent(2, keyword: .physical)]),
+            AbilityOutcomeBranch(damageComponents: [DamageComponent(3, keyword: .physical)]),
+        ],
     )
 
     static let sniffOut = Ability(
@@ -100,9 +106,11 @@ enum AbilityCatalogBasic {
         targetedEffects: [TargetedEffect(.marked(3, 6))],
     )
 
-    static let stab = AbilityBuilder.directHit(
+    static let stab = Ability(
         id: "stab", name: "Stab", tier: .basic,
-        amount: 2, keyword: .physical,
+        description: "Deal 2 Physical damage with a +25% chance to Critically Hit.",
+        damageComponents: [DamageComponent(2, keyword: .physical)],
+        criticalChanceBonus: 0.25,
     )
 
     static let stargaze = Ability(

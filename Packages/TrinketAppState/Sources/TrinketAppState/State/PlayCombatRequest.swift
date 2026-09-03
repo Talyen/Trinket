@@ -10,7 +10,7 @@ struct PlayCombatRequest {
     let origin: PlayBattleOrigin
     let encounter: (combatant: Combatant, level: Int)
     let route: PlayBattleRoute
-    let loot: BattleLootPackage?
+    let loot: BattleLootResult?
     let stageRewardsAlreadyClaimed: Bool
     let universalModifiers: [AffixModifier]
     let labyrinthModifiers: [LabyrinthModifierDefinition]
@@ -19,7 +19,7 @@ struct PlayCombatRequest {
         origin: PlayBattleOrigin,
         encounter: (combatant: Combatant, level: Int),
         route: PlayBattleRoute,
-        loot: BattleLootPackage? = nil,
+        loot: BattleLootResult? = nil,
         stageRewardsAlreadyClaimed: Bool = false,
         universalModifiers: [AffixModifier] = [],
         labyrinthModifiers: [LabyrinthModifierDefinition] = [],

@@ -2,7 +2,7 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-public struct BattleLootPackage: Hashable, Sendable {
+public struct BattleLootResult: Hashable, Sendable {
     public let item: InventoryItem
     public let gold: Int
     public let materials: [ResourceAmount]
@@ -41,7 +41,7 @@ public enum BattleLoot {
         materialsFoundPercent: Int = 0,
         astralChanceBonusPercent: Int = 0,
         using randomNumberGenerator: inout some RandomNumberGenerator,
-    ) -> BattleLootPackage {
+    ) -> BattleLootResult {
         let range = quantityRange(forLevel: encounterLevel)
         let multiplier = enemyIsBoss ? 2 : 1
 
@@ -72,88 +72,7 @@ public enum BattleLoot {
             using: &randomNumberGenerator,
         )
 
-        return BattleLootPackage(item: item, gold: gold, materials: materials)
-    }
-
-    public static func resolveJourney(
-        stage: Stage,
-        encounterLevel: Int,
-        enemyIsBoss: Bool,
-        worldSeed: UInt64,
-        ownedTrinketIDs: Set<String> = [],
-        ownedUniqueIDs: Set<String>,
-        astralChanceBonusPercent: Int = 0,
-    ) -> BattleLootPackage {
-        VictoryRewardApplier.resolveLoot(
-            LootRequest(seedSalt: "battle-loot-journey-\(stage.id)", itemID: "\(stage.id)-loot"),
-            encounterLevel: encounterLevel,
-            enemyIsBoss: enemyIsBoss,
-            worldSeed: worldSeed,
-            ownership: RewardOwnership(
-                ownedTrinketIDs: ownedTrinketIDs,
-                ownedUniqueIDs: ownedUniqueIDs,
-            ),
-            astralChanceBonusPercent: astralChanceBonusPercent,
-        )
-    }
-
-    public static func resolveSpire(
-        floor: SpireFloor,
-        encounterLevel: Int,
-        enemyIsBoss: Bool,
-        worldSeed: UInt64,
-        keywordBias: Set<Keyword> = [],
-        ownedTrinketIDs: Set<String> = [],
-        ownedUniqueIDs: Set<String>,
-        astralChanceBonusPercent: Int = 0,
-    ) -> BattleLootPackage {
-        var combinedBias = keywordBias
-        if let spire = GameContent.spire(id: floor.spireID) {
-            combinedBias.insert(spire.keyword)
-        }
-        return VictoryRewardApplier.resolveLoot(
-            LootRequest(
-                seedSalt: "battle-loot-spire-\(floor.spireID.rawValue)-\(floor.floor)",
-                itemID: "spire-\(floor.spireID.rawValue)-floor-\(floor.floor)-loot",
-                keywordBias: combinedBias,
-            ),
-            encounterLevel: encounterLevel,
-            enemyIsBoss: enemyIsBoss,
-            worldSeed: worldSeed,
-            ownership: RewardOwnership(
-                ownedTrinketIDs: ownedTrinketIDs,
-                ownedUniqueIDs: ownedUniqueIDs,
-            ),
-            astralChanceBonusPercent: astralChanceBonusPercent,
-        )
-    }
-
-    public static func resolveLabyrinth(
-        node: LabyrinthNode,
-        encounterLevel: Int,
-        enemyIsBoss: Bool,
-        effects: LabyrinthModifierEffects,
-        worldSeed: UInt64,
-        ownedTrinketIDs: Set<String> = [],
-        ownedUniqueIDs: Set<String>,
-        astralChanceBonusPercent: Int = 0,
-    ) -> BattleLootPackage {
-        VictoryRewardApplier.resolveLoot(
-            LootRequest(
-                seedSalt: "battle-loot-labyrinth-\(node.id)",
-                itemID: LabyrinthCompletion.rewardItemID(forNodeID: node.id),
-                goldFoundPercent: effects.goldFoundPercent,
-                materialsFoundPercent: effects.materialsFoundPercent,
-            ),
-            encounterLevel: encounterLevel,
-            enemyIsBoss: enemyIsBoss,
-            worldSeed: worldSeed,
-            ownership: RewardOwnership(
-                ownedTrinketIDs: ownedTrinketIDs,
-                ownedUniqueIDs: ownedUniqueIDs,
-            ),
-            astralChanceBonusPercent: astralChanceBonusPercent,
-        )
+        return BattleLootResult(item: item, gold: gold, materials: materials)
     }
 
     private static func rollDistinctMaterials(

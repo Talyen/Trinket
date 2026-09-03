@@ -13,8 +13,7 @@ final class PlayerHomesteadStoreTests {
     }
 
     @Test func `build or upgrade node persists homestead and roster through hub`() throws {
-        let storeURL = context.storeURL()
-        let firstStore = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true, persistSaveImmediately: true)
+        let firstStore = try context.makeSaveStore()
         let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
         firstStore.homestead = PlayerHomesteadState(
             resources: [.wood: 20, .herbs: 10],
@@ -29,7 +28,7 @@ final class PlayerHomesteadStoreTests {
         try #expect(firstStore.homestead.tier(for: .wheatField) == 1)
         try #expect(firstStore.homestead.resources[.wood] == 15)
 
-        let reloaded = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
+        let reloaded = try context.makeReloadedStore()
         try #expect(reloaded.homestead.tier(for: .wheatField) == 1)
         try #expect(reloaded.homestead.resources[.wood] == 15)
         try #expect(reloaded.homestead.resources[.herbs] == 5)
@@ -60,8 +59,7 @@ final class PlayerHomesteadStoreTests {
     }
 
     @Test func `collect production persists pending materials and timestamp`() throws {
-        let storeURL = context.storeURL()
-        let firstStore = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true, persistSaveImmediately: true)
+        let firstStore = try context.makeSaveStore()
         let start = Date(timeIntervalSince1970: 0)
         let collectionDate = start.addingTimeInterval(PlayerHomesteadState.secondsPerDay)
         firstStore.homestead = PlayerHomesteadState(
@@ -79,7 +77,7 @@ final class PlayerHomesteadStoreTests {
             ResourceAmount(.gold, 1),
         ]))
 
-        let reloaded = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
+        let reloaded = try context.makeReloadedStore()
         try #expect(reloaded.homestead.resources[.food] == 1)
         try #expect(reloaded.roster.gold == 901)
         try #expect(reloaded.homestead.pendingProduction.isEmpty)

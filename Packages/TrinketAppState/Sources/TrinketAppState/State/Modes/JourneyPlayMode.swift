@@ -45,7 +45,7 @@ public final class JourneyPlayMode {
         battleEarnedGold: Int = 0,
         materialRewards: [ResourceAmount]? = nil,
         rewardItem: InventoryItem? = nil,
-        loot: BattleLootPackage? = nil,
+        loot: BattleLootResult? = nil,
         enemyEncounterLevel: Int? = nil,
     ) -> Bool {
         persistStageCompletions(
@@ -188,7 +188,7 @@ public final class JourneyPlayMode {
         materialRewards: [ResourceAmount]? = nil,
         rewardItem: InventoryItem? = nil,
         resetJourney: Bool = false,
-        loot: BattleLootPackage? = nil,
+        loot: BattleLootResult? = nil,
         enemyEncounterLevel: Int? = nil,
     ) -> Bool {
         guard !stages.isEmpty else { return false }
@@ -234,15 +234,14 @@ extension JourneyPlayMode {
     private func battleLoot(
         for stage: Stage,
         encounter: (combatant: Combatant, level: Int),
-    ) -> BattleLootPackage? {
+    ) -> BattleLootResult? {
         guard stage.encounter.isCombat else { return nil }
-        return BattleLoot.resolveJourney(
-            stage: stage,
+        return VictoryRewardApplier.resolveLoot(
+            .journey(stage: stage),
             encounterLevel: encounter.level,
             enemyIsBoss: GameContent.enemy(matching: encounter.combatant.id)?.isBoss == true,
             worldSeed: playerSave.worldSeed,
-            ownedTrinketIDs: playerSave.inventory.ownedTrinketIDs,
-            ownedUniqueIDs: playerSave.inventory.ownedUniqueIDs,
+            ownership: RewardOwnership(playerSave.inventory),
             astralChanceBonusPercent: playerSave.homestead.effects.astralChanceBonusPercent,
         )
     }

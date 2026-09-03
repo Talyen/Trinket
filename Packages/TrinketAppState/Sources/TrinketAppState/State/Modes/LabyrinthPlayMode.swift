@@ -240,7 +240,7 @@ public final class LabyrinthPlayMode {
         battleEarnedGold: Int = 0,
         materialRewards: [ResourceAmount]? = nil,
         rewardItem: InventoryItem? = nil,
-        loot: BattleLootPackage? = nil,
+        loot: BattleLootResult? = nil,
         enemyEncounterLevel: Int? = nil,
     ) -> Bool {
         let roster = playerSave.roster
@@ -313,7 +313,7 @@ extension LabyrinthPlayMode {
         for node: LabyrinthNode,
         labyrinth: PlayerLabyrinthState,
         encounterLevel: Int,
-    ) -> BattleLootPackage? {
+    ) -> BattleLootResult? {
         LabyrinthCompletion.resolveCombatLoot(
             for: node,
             effects: labyrinth.effects(for: node.id),

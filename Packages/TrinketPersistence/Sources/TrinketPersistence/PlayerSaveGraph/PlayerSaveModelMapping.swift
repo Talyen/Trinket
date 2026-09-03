@@ -50,9 +50,9 @@ extension RosterModel {
                 slotModel.slotID = slot.slotID
                 slotModel.itemID = slot.itemID
             },
+            link: { $0.loadout = model },
             context: context,
         )
-        model.slots?.linkEach(to: model, parent: \.loadout)
     }
 }
 
@@ -80,9 +80,9 @@ extension InventoryItemModel {
                 model.isCorrupted = value.affix.isCorrupted
                 model.sortIndex = value.index
             },
+            link: { $0.item = self },
             context: context,
         )
-        affixes?.linkEach(to: self, parent: \.item)
     }
 }
 
@@ -114,9 +114,9 @@ extension RosterModel {
                 model.combatantID = value.combatantID
                 model.role = value.role
             },
+            link: { $0.roster = self },
             context: context,
         )
-        unlockedCombatants?.linkEach(to: self, parent: \.roster)
     }
 
     private func updateProgressions(from roster: PlayerRosterState, context: ModelContext?) {
@@ -133,9 +133,9 @@ extension RosterModel {
                 model.currentXP = value.value.currentXP
                 model.requiredXP = value.value.requiredXP
             },
+            link: { $0.roster = self },
             context: context,
         )
-        progressions?.linkEach(to: self, parent: \.roster)
     }
 
     private func updateAbilityLoadouts(from roster: PlayerRosterState, context: ModelContext?) {
@@ -152,9 +152,9 @@ extension RosterModel {
                 model.skillID = value.value.skill?.id
                 model.ultimateID = value.value.ultimate?.id
             },
+            link: { $0.roster = self },
             context: context,
         )
-        abilityLoadouts?.linkEach(to: self, parent: \.roster)
     }
 
     private func updateTalentLoadouts(from roster: PlayerRosterState, context: ModelContext?) {
@@ -170,9 +170,9 @@ extension RosterModel {
             update: { model, value in
                 self.updateTalentLoadout(model, from: value, context: context)
             },
+            link: { $0.roster = self },
             context: context,
         )
-        talentLoadouts?.linkEach(to: self, parent: \.roster)
     }
 
     private func updateTalentLoadout(
@@ -190,9 +190,9 @@ extension RosterModel {
             update: { unlockModel, nodeID in
                 unlockModel.nodeID = nodeID
             },
+            link: { $0.loadout = model },
             context: context,
         )
-        model.unlockedNodes?.linkEach(to: model, parent: \.loadout)
     }
 
     private func updateEquipmentLoadouts(from roster: PlayerRosterState, context: ModelContext?) {
@@ -208,9 +208,9 @@ extension RosterModel {
             update: { model, value in
                 self.updateEquipmentLoadout(model, from: value, context: context)
             },
+            link: { $0.roster = self },
             context: context,
         )
-        equipmentLoadouts?.linkEach(to: self, parent: \.roster)
     }
 }
 
@@ -221,29 +221,44 @@ extension RosterModel {
         let unlocked = unlockedCombatants ?? []
         let heroIDs = Set(unlocked.filter { $0.role == UnlockedCombatantValue.heroRole }.map(\.combatantID))
         let companionIDs = Set(unlocked.filter { $0.role == UnlockedCombatantValue.companionRole }.map(\.combatantID))
-        let progressionValues = Dictionary(lastWins: (progressions ?? []).map {
-            ($0.combatantID, CombatantProgression(level: $0.level, currentXP: $0.currentXP, requiredXP: $0.requiredXP))
-        })
-        let abilityIDValues = Dictionary(lastWins: (abilityLoadouts ?? []).map {
-            ($0.combatantID, RosterHydration.AbilityLoadoutIDs(basicID: $0.basicID, skillID: $0.skillID, ultimateID: $0.ultimateID))
-        })
-        let equipmentValues = Dictionary(lastWins: (equipmentLoadouts ?? []).map { loadoutModel in
-            let isHero = GameContent.combatant(matching: loadoutModel.combatantID)?.role == .hero
-            return (
-                loadoutModel.combatantID,
-                EquipmentLoadout(itemIDsBySlot: Dictionary(lastWins: (loadoutModel.slots ?? []).compactMap { slot in
-                    let resolvedSlot = RosterHydration.resolveEquipmentSlot(
-                        slot.slotID,
-                        schemaVersion: schemaVersion,
-                        isHero: isHero,
-                    )
-                    return resolvedSlot.map { ($0, slot.itemID) }
-                })),
-            )
-        })
-        let talentValues = Dictionary(lastWins: (talentLoadouts ?? []).map { loadoutModel in
-            (loadoutModel.combatantID, Set((loadoutModel.unlockedNodes ?? []).map(\.nodeID)))
-        })
+        let progressionValues = Dictionary(
+            (progressions ?? []).map {
+                ($0.combatantID, CombatantProgression(level: $0.level, currentXP: $0.currentXP, requiredXP: $0.requiredXP))
+            },
+            uniquingKeysWith: { _, new in new },
+        )
+        let abilityIDValues = Dictionary(
+            (abilityLoadouts ?? []).map {
+                ($0.combatantID, RosterHydration.AbilityLoadoutIDs(basicID: $0.basicID, skillID: $0.skillID, ultimateID: $0.ultimateID))
+            },
+            uniquingKeysWith: { _, new in new },
+        )
+        let equipmentValues = Dictionary(
+            (equipmentLoadouts ?? []).map { loadoutModel in
+                let isHero = GameContent.combatant(matching: loadoutModel.combatantID)?.role == .hero
+                return (
+                    loadoutModel.combatantID,
+                    EquipmentLoadout(itemIDsBySlot: Dictionary(
+                        (loadoutModel.slots ?? []).compactMap { slot in
+                            let resolvedSlot = RosterHydration.resolveEquipmentSlot(
+                                slot.slotID,
+                                schemaVersion: schemaVersion,
+                                isHero: isHero,
+                            )
+                            return resolvedSlot.map { ($0, slot.itemID) }
+                        },
+                        uniquingKeysWith: { _, new in new },
+                    )),
+                )
+            },
+            uniquingKeysWith: { _, new in new },
+        )
+        let talentValues = Dictionary(
+            (talentLoadouts ?? []).map { loadoutModel in
+                (loadoutModel.combatantID, Set((loadoutModel.unlockedNodes ?? []).map(\.nodeID)))
+            },
+            uniquingKeysWith: { _, new in new },
+        )
 
         return PlayerRosterState(
             activeHeroID: activeHeroID,
@@ -272,9 +287,9 @@ extension InventoryModel {
                 model.update(from: value.item, context: context)
                 model.sortIndex = value.index
             },
+            link: { $0.inventory = self },
             context: context,
         )
-        items?.linkEach(to: self, parent: \.inventory)
     }
 }
 
@@ -319,9 +334,9 @@ extension HomesteadModel {
                 model.resourceID = value.resourceID
                 model.quantity = value.quantity
             },
+            link: { $0.homestead = self },
             context: context,
         )
-        resources?.linkEach(to: self, parent: \.homestead)
 
         let pendingValues = homestead.pendingProduction
             .filter { $0.value.isFinite && $0.value > 0 }
@@ -337,9 +352,9 @@ extension HomesteadModel {
                 model.resourceID = value.resourceID
                 model.quantity = value.quantity
             },
+            link: { $0.homestead = self },
             context: context,
         )
-        pendingProduction?.linkEach(to: self, parent: \.homestead)
 
         let tierValues = homestead.nodeTiers
             .map { (nodeID: $0.key.rawValue, tier: $0.value) }
@@ -354,9 +369,9 @@ extension HomesteadModel {
                 model.nodeID = value.nodeID
                 model.tier = value.tier
             },
+            link: { $0.homestead = self },
             context: context,
         )
-        nodeTiers?.linkEach(to: self, parent: \.homestead)
     }
 }
 
@@ -382,9 +397,9 @@ extension SpiresProgressModel {
                 model.spireID = value.key
                 model.highestClearedFloor = max(0, value.value)
             },
+            link: { $0.spires = self },
             context: context,
         )
-        floors?.linkEach(to: self, parent: \.spires)
     }
 }
 
@@ -405,7 +420,10 @@ extension LabyrinthProgressModel {
                 mapVersion: mapVersion,
                 hasEntered: hasEntered,
                 clusters: payload.clusters,
-                nodes: Dictionary(lastWins: payload.nodes.map { ($0.id, $0) }),
+                nodes: Dictionary(
+                    payload.nodes.map { ($0.id, $0) },
+                    uniquingKeysWith: { _, new in new },
+                ),
                 runHealthByCombatantID: payload.runHealthByCombatantID,
             )
         case .unreadable:
@@ -462,15 +480,6 @@ extension LabyrinthProgressModel {
     }
 }
 
-extension Array {
-    func linkEach<Parent>(
-        to parent: Parent,
-        parent keyPath: ReferenceWritableKeyPath<Element, Parent?>,
-    ) {
-        forEach { $0[keyPath: keyPath] = parent }
-    }
-}
-
 func reconcileModels<Model: PersistentModel, Value, Key: Hashable>(
     existing: [Model],
     values: [Value],
@@ -478,6 +487,7 @@ func reconcileModels<Model: PersistentModel, Value, Key: Hashable>(
     valueKey: (Value) -> Key,
     make: (Value) -> Model,
     update: (Model, Value) -> Void,
+    link: ((Model) -> Void)? = nil,
     context: ModelContext?,
 ) -> [Model] {
     var modelsByKey = [Key: Model](minimumCapacity: existing.count)
@@ -493,21 +503,18 @@ func reconcileModels<Model: PersistentModel, Value, Key: Hashable>(
     var reconciled: [Model] = []
     reconciled.reserveCapacity(values.count)
     for value in values {
-        let model = modelsByKey.removeValue(forKey: valueKey(value)) ?? make(value)
-        update(model, value)
-        reconciled.append(model)
+        if let model = modelsByKey.removeValue(forKey: valueKey(value)) {
+            update(model, value)
+            reconciled.append(model)
+        } else {
+            let model = make(value)
+            update(model, value)
+            link?(model)
+            reconciled.append(model)
+        }
     }
     for removed in modelsByKey.values {
         context?.delete(removed)
     }
     return reconciled
-}
-
-extension Dictionary {
-    init(lastWins pairs: [(Key, Value)]) {
-        self.init(minimumCapacity: pairs.count)
-        for (key, value) in pairs {
-            self[key] = value
-        }
-    }
 }

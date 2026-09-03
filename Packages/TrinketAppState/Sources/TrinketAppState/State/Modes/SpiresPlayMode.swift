@@ -48,7 +48,7 @@ public final class SpiresPlayMode {
         )
     }
 
-    private func battleLoot(for floor: SpireFloor, encounterLevel: Int) -> BattleLootPackage? {
+    private func battleLoot(for floor: SpireFloor, encounterLevel: Int) -> BattleLootResult? {
         SpireCompletion.resolveLoot(
             for: floor,
             encounterLevel: encounterLevel,
@@ -189,7 +189,7 @@ public final class SpiresPlayMode {
         battleEarnedGold: Int = 0,
         materialRewards: [ResourceAmount]? = nil,
         rewardItem: InventoryItem? = nil,
-        loot: BattleLootPackage? = nil,
+        loot: BattleLootResult? = nil,
         enemyEncounterLevel: Int? = nil,
     ) -> Bool {
         playerSave.persistBatch(logging: "Failed to persist Spire floor") { save in

@@ -18,7 +18,7 @@ public enum CorruptionEffectSummary: Equatable, Sendable {
     case upgradedRarity
 }
 
-public struct ItemCorruptionResult: Equatable, Sendable {
+public struct ItemCorruptionDetail: Equatable, Sendable {
     public var originalItem: InventoryItem
     public var item: InventoryItem
     public var effects: [CorruptionEffectSummary]
@@ -30,8 +30,8 @@ public struct ItemCorruptionResult: Equatable, Sendable {
     }
 }
 
-public enum ItemCorruptionApplyResult: Equatable, Sendable {
-    case success(ItemCorruptionResult)
+public enum ItemCorruptionResult: Equatable, Sendable {
+    case success(ItemCorruptionDetail)
     case itemNotFound
     case alreadyCorrupted
     case ineligible
@@ -59,7 +59,7 @@ public enum ItemCorruption {
     public static func corrupt(
         _ item: InventoryItem,
         using randomNumberGenerator: inout some RandomNumberGenerator,
-    ) -> ItemCorruptionResult? {
+    ) -> ItemCorruptionDetail? {
         guard isEligibleTarget(item) else { return nil }
 
         let kinds = rollEffectKinds(for: item, using: &randomNumberGenerator)
@@ -120,7 +120,7 @@ public enum ItemCorruption {
         kinds: Set<CorruptionEffectKind>,
         to item: InventoryItem,
         using randomNumberGenerator: inout some RandomNumberGenerator,
-    ) -> ItemCorruptionResult {
+    ) -> ItemCorruptionDetail {
         var affixIDs = item.affixes.map(\.id)
         var summaries: [CorruptionEffectSummary] = []
         var rarity = item.rarity
@@ -181,7 +181,7 @@ public enum ItemCorruption {
             isCorrupted: true,
             affixPowers: powers,
         )
-        return ItemCorruptionResult(originalItem: item, item: mutated, effects: summaries)
+        return ItemCorruptionDetail(originalItem: item, item: mutated, effects: summaries)
     }
 
     private static func corruptedMarkIndex(
@@ -300,7 +300,7 @@ public enum ItemCorruptionApplier {
         itemID: String,
         save: inout PlayerSave,
         using randomNumberGenerator: inout some RandomNumberGenerator,
-    ) -> ItemCorruptionApplyResult {
+    ) -> ItemCorruptionResult {
         guard let index = save.inventory.items.firstIndex(where: { $0.id == itemID }) else {
             return .itemNotFound
         }

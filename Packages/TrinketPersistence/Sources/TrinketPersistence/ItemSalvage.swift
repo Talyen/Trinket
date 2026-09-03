@@ -80,8 +80,8 @@ public extension PlayerSaveStore {
     func corruptItem(
         id: String,
         using randomNumberGenerator: inout some RandomNumberGenerator,
-    ) -> ItemCorruptionApplyResult? {
-        var result: ItemCorruptionApplyResult = .itemNotFound
+    ) -> ItemCorruptionResult? {
+        var result: ItemCorruptionResult = .itemNotFound
         guard persistBatch(logging: "Failed to corrupt item \(id)", { save in
             result = ItemCorruptionApplier.corrupt(itemID: id, save: &save, using: &randomNumberGenerator)
         }) else {

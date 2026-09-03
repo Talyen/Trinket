@@ -18,14 +18,18 @@ enum AbilityValidator {
         "cold-snap",
         "dark-pact",
         "earthquake",
+        "fireball",
         "glacial-ward",
         "golden-plate",
+        "kindling",
         "panacea-potion",
         "pounce",
         "predators-focus",
         "sap-arrow",
         "shadowstep",
+        "slash",
         "smite",
+        "stab",
         "sunburst",
         "thorn-mail",
     ]
@@ -129,6 +133,8 @@ enum AbilityValidator {
             total == 4
         case "ice-shot":
             total == 2
+        case "slash":
+            total == 3
         default:
             false
         }

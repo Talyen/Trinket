@@ -2,7 +2,7 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-public struct LootRequest: Sendable {
+public struct LootRequest: Equatable, Sendable {
     public var seedSalt: String
     public var itemID: String
     public var keywordBias: Set<Keyword>
@@ -24,7 +24,7 @@ public struct LootRequest: Sendable {
     }
 }
 
-public struct RewardOwnership: Sendable {
+public struct RewardOwnership: Equatable, Sendable {
     public var ownedTrinketIDs: Set<String>
     public var ownedUniqueIDs: Set<String>
 
@@ -43,6 +43,33 @@ public struct RewardOwnership: Sendable {
     }
 }
 
+public extension LootRequest {
+    static func journey(stage: Stage) -> LootRequest {
+        LootRequest(seedSalt: "battle-loot-journey-\(stage.id)", itemID: "\(stage.id)-loot")
+    }
+
+    static func spire(floor: SpireFloor) -> LootRequest {
+        var keywordBias: Set<Keyword> = []
+        if let spire = GameContent.spire(id: floor.spireID) {
+            keywordBias.insert(spire.keyword)
+        }
+        return LootRequest(
+            seedSalt: "battle-loot-spire-\(floor.spireID.rawValue)-\(floor.floor)",
+            itemID: "spire-\(floor.spireID.rawValue)-floor-\(floor.floor)-loot",
+            keywordBias: keywordBias,
+        )
+    }
+
+    static func labyrinth(node: LabyrinthNode, effects: LabyrinthModifierEffects) -> LootRequest {
+        LootRequest(
+            seedSalt: "battle-loot-labyrinth-\(node.id)",
+            itemID: LabyrinthCompletion.rewardItemID(forNodeID: node.id),
+            goldFoundPercent: effects.goldFoundPercent,
+            materialsFoundPercent: effects.materialsFoundPercent,
+        )
+    }
+}
+
 public enum VictoryRewardApplier {
     public static func isBoss(enemyID: String?) -> Bool {
         guard let enemyID else { return false }
@@ -52,10 +79,10 @@ public enum VictoryRewardApplier {
     public static func resolvedGoldReward(
         stageGold: Int,
         battleEarnedGold: Int,
-        goldFindPercent: Int,
+        goldFoundPercent: Int,
     ) -> Int {
         let earned = max(0, stageGold) + battleEarnedGold
-        let scaled = CombatRounding.scaled(earned, byPercent: goldFindPercent)
+        let scaled = CombatRounding.scaled(earned, byPercent: goldFoundPercent)
         return max(0, scaled)
     }
 
@@ -67,7 +94,7 @@ public enum VictoryRewardApplier {
         resolvedGoldReward(
             stageGold: stageGold,
             battleEarnedGold: battleEarnedGold,
-            goldFindPercent: homestead.effects.goldFindPercent,
+            goldFoundPercent: homestead.effects.goldFindPercent,
         )
     }
 
@@ -75,7 +102,7 @@ public enum VictoryRewardApplier {
         playerLevel: Int,
         enemyLevel: Int,
         highestLevel: Int,
-        xpPercent: Int = 0,
+        experienceEarnedPercent: Int = 0,
     ) -> Int {
         let raw = CombatRounding.scaled(
             ExperienceScaling.battleAwardWithCatchUp(
@@ -83,7 +110,7 @@ public enum VictoryRewardApplier {
                 enemyLevel: enemyLevel,
                 highestLevel: highestLevel,
             ),
-            byPercent: xpPercent,
+            byPercent: experienceEarnedPercent,
         )
         return ExperienceScaling.cappedAward(
             raw,
@@ -95,7 +122,7 @@ public enum VictoryRewardApplier {
         enemyLevel: Int,
         to combatant: Combatant,
         roster: inout PlayerRosterState,
-        xpPercent: Int = 0,
+        experienceEarnedPercent: Int = 0,
     ) {
         let playerLevel = roster.progression(for: combatant).level
         let highestLevel = combatant.role == .hero
@@ -105,7 +132,7 @@ public enum VictoryRewardApplier {
             playerLevel: playerLevel,
             enemyLevel: enemyLevel,
             highestLevel: highestLevel,
-            xpPercent: xpPercent,
+            experienceEarnedPercent: experienceEarnedPercent,
         )
         roster.grantExperience(award, to: combatant)
     }
@@ -117,7 +144,7 @@ public enum VictoryRewardApplier {
         worldSeed: UInt64,
         ownership: RewardOwnership,
         astralChanceBonusPercent: Int = 0,
-    ) -> BattleLootPackage {
+    ) -> BattleLootResult {
         var rng = SeededRandomNumberGenerator(
             seed: GameContent.encounterSeed(worldSeed, salt: request.seedSalt),
         )
@@ -135,6 +162,21 @@ public enum VictoryRewardApplier {
         )
     }
 
+    static func grantedMaterials(
+        override: [ResourceAmount]?,
+        loot: BattleLootResult?,
+        fallback: [ResourceAmount] = [],
+    ) -> [ResourceAmount] {
+        override ?? loot?.materials ?? fallback
+    }
+
+    static func grantedItem(
+        override: InventoryItem?,
+        loot: BattleLootResult?,
+    ) -> InventoryItem? {
+        override ?? loot?.item
+    }
+
     static func grantVictoryRewards(
         hero: Combatant,
         companion: Combatant,
@@ -142,8 +184,8 @@ public enum VictoryRewardApplier {
         stageGold: Int,
         battleEarnedGold: Int = 0,
         grantsCombatExperience: Bool = true,
-        xpPercent: Int = 0,
-        materials: [ResourceAmount],
+        experienceEarnedPercent: Int = 0,
+        materialRewards: [ResourceAmount],
         item: InventoryItem?,
         save: inout PlayerSave,
     ) {
@@ -157,10 +199,20 @@ public enum VictoryRewardApplier {
             at: now,
         )
         if grantsCombatExperience {
-            grantBattleExperience(enemyLevel: encounterLevel, to: hero, roster: &save.roster, xpPercent: xpPercent)
-            grantBattleExperience(enemyLevel: encounterLevel, to: companion, roster: &save.roster, xpPercent: xpPercent)
+            grantBattleExperience(
+                enemyLevel: encounterLevel,
+                to: hero,
+                roster: &save.roster,
+                experienceEarnedPercent: experienceEarnedPercent,
+            )
+            grantBattleExperience(
+                enemyLevel: encounterLevel,
+                to: companion,
+                roster: &save.roster,
+                experienceEarnedPercent: experienceEarnedPercent,
+            )
         }
-        save.grantMaterials(materials, at: now)
+        save.grantMaterials(materialRewards, at: now)
         if let item {
             save.inventory.appendUniqueItem(item)
         }

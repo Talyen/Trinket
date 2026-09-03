@@ -2,7 +2,6 @@ import Testing
 import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
-@MainActor
 struct StarterSelectionTests {
     let context: PersistenceTestContext
 
@@ -10,25 +9,20 @@ struct StarterSelectionTests {
         context = try PersistenceTestContext()
     }
 
-    @Test func `draft and chosen party survive reload`() throws {
-        let storeURL = context.storeURL()
-        let firstStore = try PlayerSaveStore(
-            storeURL: storeURL,
-            disableCloudSync: true,
-            persistSaveImmediately: true,
-        )
+    @Test @MainActor func `draft and chosen party survive reload`() throws {
+        let firstStore = try context.makeSaveStore()
 
         #expect(firstStore.starterSelection == .fresh)
         #expect(firstStore.confirmStarterHero("warlock"))
 
-        let resumedStore = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
+        let resumedStore = try context.makeReloadedStore()
         #expect(
             resumedStore.starterSelection
                 == StarterSelectionState(phase: .chooseCompanion, heroID: "warlock"),
         )
         #expect(resumedStore.completeStarterSelection(companionID: "pixie"))
 
-        let completedStore = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
+        let completedStore = try context.makeReloadedStore()
         #expect(completedStore.starterSelection == .complete)
         #expect(completedStore.roster.activeHeroID == "warlock")
         #expect(completedStore.roster.activeCompanionID == "pixie")
@@ -48,7 +42,7 @@ struct StarterSelectionTests {
         #expect(root.toPlayerSave().starterSelection == .complete)
     }
 
-    @Test func `invalid drafts normalize and completed selection cannot reopen`() throws {
+    @Test @MainActor func `invalid drafts normalize and completed selection cannot reopen`() throws {
         #expect(StarterSelectionState(phase: .chooseCompanion) == .fresh)
         #expect(StarterSelectionState(phase: .chooseCompanion, heroID: "enemy") == .fresh)
         #expect(StarterSelectionState(phase: .chooseHero, heroID: "knight") == .fresh)

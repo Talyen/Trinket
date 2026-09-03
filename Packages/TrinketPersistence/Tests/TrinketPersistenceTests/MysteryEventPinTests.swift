@@ -1,10 +1,10 @@
 import Testing
 import TrinketContent
 import TrinketCore
-import TrinketPersistence
 import TrinketPersistenceTestSupport
+@testable import TrinketPersistence
 
-struct MysteryEventPinApplierTests {
+struct MysteryEventPinTests {
     @Test func `pin journey event is idempotent`() {
         var save = SaveTestSupport.makeSave(modifiedAt: .now)
         #expect(MysteryEventPinApplier.pinJourneyEvent(
@@ -51,5 +51,36 @@ struct MysteryEventPinApplierTests {
             save: &save,
         ))
         #expect(save.labyrinth.nodes[node.id]?.mysteryEventID == "mana-berries")
+    }
+
+    @Test func `journey gates corruption altar by chapter number`() {
+        let inventory = PlayerInventoryState.testSeed
+        let chapterOne = MysteryEventPickContext.journey(
+            chapterNumber: 1,
+            inventory: inventory,
+            corruptionAltarCooldownRemaining: 0,
+        )
+        #expect(chapterOne.allowsCorruptionAltar == false)
+
+        let chapterTwo = MysteryEventPickContext.journey(
+            chapterNumber: 2,
+            inventory: inventory,
+            corruptionAltarCooldownRemaining: 0,
+        )
+        #expect(chapterTwo.allowsCorruptionAltar == true)
+    }
+
+    @Test func `labyrinth always allows corruption altar`() {
+        let inventory = PlayerInventoryState.testSeed
+        let context = MysteryEventPickContext.labyrinth(
+            inventory: inventory,
+            corruptionAltarCooldownRemaining: 3,
+        )
+        #expect(context.allowsCorruptionAltar == true)
+        #expect(context.corruptionAltarCooldownRemaining == 3)
+        #expect(
+            context.hasEligibleCorruptTarget
+                == !ItemCorruption.eligibleTargets(in: inventory).isEmpty,
+        )
     }
 }

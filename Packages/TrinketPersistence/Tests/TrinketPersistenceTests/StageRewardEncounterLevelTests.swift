@@ -5,7 +5,7 @@ import TrinketCore
 import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
-struct StageRewardClaimFallbackTests {
+struct StageRewardEncounterLevelTests {
     enum ClaimFallbackMode: String {
         case journey
         case spire
@@ -19,8 +19,8 @@ struct StageRewardClaimFallbackTests {
         var pinned = SaveTestSupport.makeSave()
         pinned.roster.progressions[hero.id] = .at(level: 3)
         pinned.roster.progressions[companion.id] = .at(level: 2)
-        let level = try expectedLevel(mode: mode, in: pinned)
-        try complete(
+        let level = try expectedClaimLevel(mode: mode, in: pinned)
+        try completeForClaimFallback(
             mode: mode,
             hero: hero,
             companion: companion,
@@ -32,7 +32,7 @@ struct StageRewardClaimFallbackTests {
         var fallback = SaveTestSupport.makeSave()
         fallback.roster.progressions[hero.id] = .at(level: 3)
         fallback.roster.progressions[companion.id] = .at(level: 2)
-        try complete(
+        try completeForClaimFallback(
             mode: mode,
             hero: hero,
             companion: companion,
@@ -40,11 +40,92 @@ struct StageRewardClaimFallbackTests {
             enemyEncounterLevel: nil,
         )
 
-        try assertModeExpectations(mode: mode, level: level)
+        try assertClaimModeExpectations(mode: mode, level: level)
         #expect(fallback.roster.progression(for: hero).currentXP == pinnedXP)
     }
 
-    private func complete(
+    @Test func `combat loot resolves at provided encounter level instead of node depth`() throws {
+        let node = LabyrinthNode(
+            id: "level-override-node",
+            type: .battle,
+            enemyID: "goblin",
+            depth: 2,
+            clusterID: "labyrinth-test",
+        )
+        let atDepth = try #require(
+            LabyrinthCompletion.resolveCombatLoot(
+                for: node,
+                effects: .zero,
+                worldSeed: 5,
+                ownedTrinketIDs: [],
+                ownedUniqueIDs: [],
+            ),
+        )
+        let explicit = try #require(
+            LabyrinthCompletion.resolveCombatLoot(
+                for: node,
+                effects: .zero,
+                encounterLevel: 2,
+                worldSeed: 5,
+                ownedTrinketIDs: [],
+                ownedUniqueIDs: [],
+            ),
+        )
+        #expect(explicit.gold == atDepth.gold)
+        #expect(explicit.materials == atDepth.materials)
+
+        let raised = try #require(
+            LabyrinthCompletion.resolveCombatLoot(
+                for: node,
+                effects: .zero,
+                encounterLevel: 40,
+                worldSeed: 5,
+                ownedTrinketIDs: [],
+                ownedUniqueIDs: [],
+            ),
+        )
+        for (boosted, base) in zip(raised.materials, atDepth.materials) {
+            #expect(boosted.resource == base.resource)
+            #expect(boosted.quantity > base.quantity)
+        }
+        #expect(raised.gold > atDepth.gold)
+    }
+
+    @Test func `combat completion honors overridden encounter level for experience`() {
+        func grantedHeroXP(enemyEncounterLevel: Int?) -> Int {
+            var save = PlayerSave.fresh
+            save.labyrinth.ensureMap(seed: 31)
+            let deepID = "labyrinth-scaling-battle"
+            save.labyrinth.nodes[deepID] = LabyrinthNode(
+                id: deepID,
+                type: .battle,
+                enemyID: "goblin",
+                depth: 20,
+                clusterID: "labyrinth-test",
+                isRevealed: true,
+            )
+            let hero = save.roster.activeHero
+            save.roster.progressions[hero.id] = CombatantProgression(level: 20, currentXP: 0, requiredXP: 500)
+            let before = save.roster.progression(for: hero)
+            LabyrinthCompletion.complete(
+                nodeID: deepID,
+                hero: hero,
+                companion: save.roster.activeCompanion,
+                enemyEncounterLevel: enemyEncounterLevel,
+                save: &save,
+            )
+            return save.roster.progression(for: hero).currentXP - before.currentXP
+        }
+
+        let authored = grantedHeroXP(enemyEncounterLevel: 20)
+        let scaled = grantedHeroXP(enemyEncounterLevel: 13)
+
+        #expect(authored > 0)
+        #expect(scaled > 0)
+        #expect(scaled < authored)
+    }
+
+    private func completeForClaimFallback(
         mode: ClaimFallbackMode,
         hero: Combatant,
         companion: Combatant,
@@ -80,7 +161,7 @@ struct StageRewardClaimFallbackTests {
         }
     }
 
-    private func expectedLevel(mode: ClaimFallbackMode, in save: PlayerSave) throws -> Int {
+    private func expectedClaimLevel(mode: ClaimFallbackMode, in save: PlayerSave) throws -> Int {
         switch mode {
         case .journey:
             let deepStage = try deepJourneyStage()
@@ -94,7 +175,7 @@ struct StageRewardClaimFallbackTests {
         }
     }
 
-    private func assertModeExpectations(mode: ClaimFallbackMode, level: Int) throws {
+    private func assertClaimModeExpectations(mode: ClaimFallbackMode, level: Int) throws {
         switch mode {
         case .journey:
             #expect(level == 5)

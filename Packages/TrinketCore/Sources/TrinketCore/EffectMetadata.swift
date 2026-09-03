@@ -46,7 +46,7 @@ public enum EffectMetadata {
             .init(isInstant: true)
         case .deathsDoor:
             .init(advancesEachTurn: true)
-        case .thorns, .nextHolyStrike, .nextStrikeDouble, .evadeNextHit,
+        case .thorns, .nextHolyStrike, .nextStrikeDouble, .nextBurnBonus, .evadeNextHit,
              .nextStrikeCritical, .freezeNextAttacker, .onHitDamage:
             .init(isRemovableBuff: true)
         case .maximumManaBonus:

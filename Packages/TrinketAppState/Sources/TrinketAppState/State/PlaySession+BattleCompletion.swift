@@ -55,9 +55,9 @@ struct PlayBattleCompletion {
     static func preparedLoot(
         from presentation: BattlePresentationContext?,
         materialRewards: [ResourceAmount]?,
-    ) -> BattleLootPackage? {
+    ) -> BattleLootResult? {
         guard let presentation, let item = presentation.pendingRewardItem else { return nil }
-        return BattleLootPackage(
+        return BattleLootResult(
             item: item,
             gold: presentation.stageReward?.gold ?? 0,
             materials: materialRewards ?? presentation.materialRewards,

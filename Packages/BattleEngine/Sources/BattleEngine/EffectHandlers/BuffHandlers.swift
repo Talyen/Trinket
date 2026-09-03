@@ -315,3 +315,47 @@ struct HemorrhageHandler: BattleEffectHandler {
         return EffectApplyOutcome(events: [event], didApply: true)
     }
 }
+
+struct NextBurnBonusHandler: BattleEffectHandler {
+    let kind: EffectKind = .nextBurnBonus
+
+    func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
+        let total = stacks.reduce(0) { sum, active in
+            if case let .nextBurnBonus(amount) = active.effect {
+                return sum + amount
+            }
+            return sum
+        }
+        guard total > 0 else { return nil }
+        return EffectSummary(keyword: keyword, text: "Kindled: Next Burn attack deals +\(total) damage.")
+    }
+
+    func apply(
+        _ effect: Effect,
+        ability: Ability,
+        source: Combatant,
+        target: Combatant,
+        in context: inout BattleState,
+    ) -> EffectApplyOutcome {
+        guard case let .nextBurnBonus(amount) = effect, amount > 0 else {
+            return EffectApplyOutcome(events: [], didApply: false)
+        }
+        let existing = context.roster.activeEffects(for: target).reduce(0) { sum, active in
+            if case let .nextBurnBonus(stacks) = active.effect {
+                return sum + stacks
+            }
+            return sum
+        }
+        let total = existing + amount
+        let event = ActiveEffectMutation.replaceAndEmit(
+            .nextBurnBonus(total),
+            to: target,
+            source: source,
+            ability: ability,
+            in: &context,
+            replacing: { $0.kind == .nextBurnBonus },
+            event: (.nextBurnBonusApplied, total, .burn),
+        )
+        return EffectApplyOutcome(events: [event], didApply: true)
+    }
+}

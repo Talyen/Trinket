@@ -11,7 +11,7 @@ struct MysteryRewardContent: View {
     @Environment(PlayerSaveStore.self) private var playerSave
 
     @Bindable var session: MysteryEncounterSession
-    let result: MysteryEffectApplyResult
+    let result: MysteryEffectResult
     let onFinish: () -> Bool
 
     var body: some View {

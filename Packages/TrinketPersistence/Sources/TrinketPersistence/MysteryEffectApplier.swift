@@ -2,7 +2,7 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-public struct MysteryEffectApplyResult: Equatable, Sendable {
+public struct MysteryEffectResult: Equatable, Sendable {
     public var grantedGold: Int
     public var grantedMaterials: [ResourceAmount]
     public var heroGrantedExperience: Int
@@ -86,10 +86,12 @@ public enum MysteryEffectApplier {
     public static func experienceAward(
         for progression: CombatantProgression,
         highestLevel: Int,
+        encounterLevel: Int,
     ) -> Int {
         ExperienceScaling.cappedAward(
-            ExperienceScaling.equalBattleAward(
+            ExperienceScaling.battleAwardWithCatchUp(
                 playerLevel: progression.level,
+                enemyLevel: encounterLevel,
                 highestLevel: highestLevel,
             ),
             for: progression,
@@ -120,11 +122,12 @@ public enum MysteryEffectApplier {
         goldFoundPercent: Int = 0,
         experienceEarnedPercent: Int = 0,
         materialsFoundPercent: Int = 0,
-    ) -> MysteryEffectApplyResult {
+    ) -> MysteryEffectResult {
         var state = ApplyState(
             materialQuantity: scaledQuantity(materialQuantity(forLevel: encounterLevel), percent: materialsFoundPercent),
             goldFoundPercent: goldFoundPercent,
             experienceEarnedPercent: experienceEarnedPercent,
+            encounterLevel: encounterLevel,
         )
         let hero = save.roster.activeHero
         let companion = save.roster.activeCompanion
@@ -139,7 +142,7 @@ public enum MysteryEffectApplier {
         )
 
         for effect in effects {
-            let ownership = RewardOwnership(
+            let ownership = ThemedItemOwnership(
                 save.inventory,
                 eligibleTrinketIDs: itemContext.eligibleTrinketIDs,
             )
@@ -170,7 +173,7 @@ public enum MysteryEffectApplier {
         companion: Combatant,
         heroProgressionBefore: CombatantProgression,
         companionProgressionBefore: CombatantProgression,
-    ) -> MysteryEffectApplyResult {
+    ) -> MysteryEffectResult {
         let materials = state.materialTotals.map { ResourceAmount($0.key, $0.value) }
             .sorted { $0.resource.rawValue < $1.resource.rawValue }
         if !materials.isEmpty {
@@ -198,12 +201,13 @@ public enum MysteryEffectApplier {
     }
 
     private struct ApplyState {
-        var result = MysteryEffectApplyResult()
+        var result = MysteryEffectResult()
         var materialTotals: [HomesteadResource: Int] = [:]
         var itemOrdinal = 0
         let materialQuantity: Int
         let goldFoundPercent: Int
         let experienceEarnedPercent: Int
+        let encounterLevel: Int
     }
 
     private static func scaledQuantity(_ quantity: Int, percent: Int) -> Int {
@@ -213,14 +217,18 @@ public enum MysteryEffectApplier {
     private static func scaledAward(
         for progression: CombatantProgression,
         highestLevel: Int,
+        encounterLevel: Int,
         percent: Int,
     ) -> Int {
-        scaledQuantity(experienceAward(for: progression, highestLevel: highestLevel), percent: percent)
+        scaledQuantity(
+            experienceAward(for: progression, highestLevel: highestLevel, encounterLevel: encounterLevel),
+            percent: percent,
+        )
     }
 
     private struct ItemResolution {
         let context: GeneratedItemContext
-        let ownership: RewardOwnership
+        let ownership: ThemedItemOwnership
     }
 
     private static func apply(
@@ -235,8 +243,9 @@ public enum MysteryEffectApplier {
         switch effect {
         case let .gainGold(amount):
             guard amount > 0 else { return }
-            let scaled = scaledQuantity(amount, percent: state.goldFoundPercent)
-            state.result.grantedGold += save.grantGold(save.homestead.effects.adjustedGold(scaled))
+            let combinedPercent = state.goldFoundPercent + save.homestead.effects.goldFindPercent
+            let scaled = scaledQuantity(amount, percent: combinedPercent)
+            state.result.grantedGold += save.grantGold(scaled)
 
         case let .gainMaterial(resource):
             guard resource != .gold else { return }
@@ -246,11 +255,13 @@ public enum MysteryEffectApplier {
             let heroAward = scaledAward(
                 for: save.roster.progression(for: hero),
                 highestLevel: save.roster.highestHeroLevel,
+                encounterLevel: state.encounterLevel,
                 percent: state.experienceEarnedPercent,
             )
             let companionAward = scaledAward(
                 for: save.roster.progression(for: companion),
                 highestLevel: save.roster.highestCompanionLevel,
+                encounterLevel: state.encounterLevel,
                 percent: state.experienceEarnedPercent,
             )
             state.result.heroGrantedExperience += save.roster.grantExperience(heroAward, to: hero)
@@ -297,7 +308,7 @@ public enum MysteryEffectApplier {
     private static func appendThemedItem(
         baseTypeID: String,
         guaranteedAffixIDs: [String],
-        ownership: RewardOwnership,
+        ownership: ThemedItemOwnership,
         state: inout ApplyState,
         save: inout PlayerSave,
         itemContext: GeneratedItemContext,
@@ -319,7 +330,7 @@ public enum MysteryEffectApplier {
     private static func applyUnlock(
         _ combatantID: String,
         save: inout PlayerSave,
-        result: inout MysteryEffectApplyResult,
+        result: inout MysteryEffectResult,
     ) {
         if save.roster.unlockCombatant(id: combatantID) {
             result.unlockedCombatantIDs.append(combatantID)
@@ -329,7 +340,7 @@ public enum MysteryEffectApplier {
     private static func appendItem(
         _ item: InventoryItem,
         to save: inout PlayerSave,
-        result: inout MysteryEffectApplyResult,
+        result: inout MysteryEffectResult,
     ) {
         let priorCount = save.inventory.items.count
         save.inventory.appendUniqueItem(item)
@@ -346,7 +357,7 @@ public enum MysteryEffectApplier {
         appendItem(item, to: &save, result: &state.result)
     }
 
-    private struct RewardOwnership {
+    private struct ThemedItemOwnership {
         let ownedTrinketIDs: Set<String>
         let ownedUniqueIDs: Set<String>
         let eligibleTrinketIDs: Set<String>?
@@ -363,7 +374,7 @@ public enum MysteryEffectApplier {
         guaranteedAffixIDs: [String],
         ordinal: Int,
         context: GeneratedItemContext,
-        ownership: RewardOwnership,
+        ownership: ThemedItemOwnership,
         using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> InventoryItem? {
         guard let baseType = context.baseTypes.first(where: { $0.id == baseTypeID }) else {

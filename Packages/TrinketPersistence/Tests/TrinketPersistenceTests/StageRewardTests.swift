@@ -20,13 +20,12 @@ struct StageRewardTests {
         var save = SaveTestSupport.makeSave()
         let battleEarnedGold = 4
         let encounterLevel = EncounterLevelResolver.journeyEnemyLevel(for: firstStage, in: chapter)
-        let loot = BattleLoot.resolveJourney(
-            stage: firstStage,
+        let loot = VictoryRewardApplier.resolveLoot(
+            .journey(stage: firstStage),
             encounterLevel: encounterLevel,
             enemyIsBoss: false,
             worldSeed: PlayerSave.testWorldSeed,
-            ownedTrinketIDs: [],
-            ownedUniqueIDs: [],
+            ownership: RewardOwnership(ownedTrinketIDs: [], ownedUniqueIDs: []),
         )
 
         StageCompletion.complete(
@@ -79,13 +78,12 @@ struct StageRewardTests {
         let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
         let startingGold = save.roster.gold
         let encounterLevel = EncounterLevelResolver.journeyEnemyLevel(for: firstStage, in: chapter)
-        let loot = BattleLoot.resolveJourney(
-            stage: firstStage,
+        let loot = VictoryRewardApplier.resolveLoot(
+            .journey(stage: firstStage),
             encounterLevel: encounterLevel,
             enemyIsBoss: false,
             worldSeed: PlayerSave.testWorldSeed,
-            ownedTrinketIDs: [],
-            ownedUniqueIDs: [],
+            ownership: RewardOwnership(ownedTrinketIDs: [], ownedUniqueIDs: []),
         )
 
         StageCompletion.claimRewardsIfNeeded(
@@ -134,13 +132,12 @@ struct StageRewardTests {
         var save = SaveTestSupport.makeSave()
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
-        let loot = BattleLoot.resolveJourney(
-            stage: firstStage,
+        let loot = VictoryRewardApplier.resolveLoot(
+            .journey(stage: firstStage),
             encounterLevel: EncounterLevelResolver.journeyEnemyLevel(for: firstStage, in: chapter),
             enemyIsBoss: false,
             worldSeed: PlayerSave.testWorldSeed,
-            ownedTrinketIDs: [],
-            ownedUniqueIDs: [],
+            ownership: RewardOwnership(ownedTrinketIDs: [], ownedUniqueIDs: []),
         )
 
         StageCompletion.complete(
@@ -309,14 +306,14 @@ struct StageRewardTests {
             StageCompletion.resolvedGoldReward(
                 stageGold: 0,
                 battleEarnedGold: -3,
-                goldFindPercent: 0,
+                goldFoundPercent: 0,
             ) == 0,
         )
         #expect(
             StageCompletion.resolvedGoldReward(
                 stageGold: 10,
                 battleEarnedGold: -3,
-                goldFindPercent: 0,
+                goldFoundPercent: 0,
             ) == 7,
         )
     }
@@ -341,7 +338,7 @@ struct StageRewardTests {
 }
 
 extension StageRewardTests {
-    @Test func `combat loot stacks with authored stage gold`() throws {
+    @Test func `combat loot uses generated gold without authored stacking`() throws {
         var save = SaveTestSupport.makeSave(modifiedAt: .now, gold: 0)
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
@@ -354,13 +351,12 @@ extension StageRewardTests {
             rewards: StageReward(gold: 10, itemTemplateIDs: [], materialRewards: []),
         )
         let encounterLevel = EncounterLevelResolver.journeyEnemyLevel(for: firstStage, in: chapter)
-        let loot = BattleLoot.resolveJourney(
-            stage: firstStage,
+        let loot = VictoryRewardApplier.resolveLoot(
+            .journey(stage: firstStage),
             encounterLevel: encounterLevel,
             enemyIsBoss: false,
             worldSeed: PlayerSave.testWorldSeed,
-            ownedTrinketIDs: [],
-            ownedUniqueIDs: [],
+            ownership: RewardOwnership(ownedTrinketIDs: [], ownedUniqueIDs: []),
         )
 
         StageCompletion.claimRewardsIfNeeded(
@@ -372,12 +368,11 @@ extension StageRewardTests {
         )
 
         let expected = VictoryRewardApplier.resolvedGoldReward(
-            stageGold: 10 + loot.gold,
+            stageGold: loot.gold,
             battleEarnedGold: 0,
             homestead: save.homestead,
         )
         try #expect(save.roster.gold == expected)
-        try #expect(expected >= 10)
     }
 
     @Test func `negative gold find reduces rewards`() {
@@ -385,7 +380,7 @@ extension StageRewardTests {
             StageCompletion.resolvedGoldReward(
                 stageGold: 10,
                 battleEarnedGold: 0,
-                goldFindPercent: -50,
+                goldFoundPercent: -50,
             ) < 10,
         )
     }
@@ -420,5 +415,69 @@ extension StageRewardTests {
 
         #expect(save.labyrinth.node(id: node.id)?.isCleared == true)
         #expect(save.inventory.item(matching: loot.item.id) != nil)
+    }
+
+    @Test func `victory grant is identical across journey dungeon and tower`() throws {
+        let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
+        let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
+        let encounterLevel = EncounterLevelResolver.journeyEnemyLevel(for: firstStage, in: chapter)
+        let loot = VictoryRewardApplier.resolveLoot(
+            .journey(stage: firstStage),
+            encounterLevel: encounterLevel,
+            enemyIsBoss: false,
+            worldSeed: PlayerSave.testWorldSeed,
+            ownership: RewardOwnership(ownedTrinketIDs: [], ownedUniqueIDs: []),
+        )
+        let materialRewards = [ResourceAmount(.wood, 3), ResourceAmount(.herbs, 2)]
+
+        var journeySave = SaveTestSupport.makeSave()
+        StageCompletion.claimRewardsIfNeeded(
+            for: firstStage,
+            hero: hero,
+            companion: companion,
+            battleEarnedGold: 7,
+            materialRewards: materialRewards,
+            rewardItem: loot.item,
+            loot: loot,
+            enemyEncounterLevel: encounterLevel,
+            save: &journeySave,
+        )
+
+        var dungeonSave = SaveTestSupport.makeSave()
+        dungeonSave.labyrinth.ensureMap(
+            seed: dungeonSave.worldSeed,
+            eligibleRecruitEventIDs: dungeonSave.roster.eligibleRecruitEventIDs,
+        )
+        let node = try #require(dungeonSave.labyrinth.nodes.values.first { $0.type.isCombat })
+        LabyrinthCompletion.complete(
+            nodeID: node.id,
+            hero: hero,
+            companion: companion,
+            battleEarnedGold: 7,
+            materialRewards: materialRewards,
+            rewardItem: loot.item,
+            loot: loot,
+            enemyEncounterLevel: encounterLevel,
+            save: &dungeonSave,
+        )
+
+        var towerSave = SaveTestSupport.makeSave()
+        let floor = try #require(GameContent.spireFloor(spireID: .ironVein, floor: 1))
+        SpireCompletion.complete(
+            floor: floor,
+            hero: hero,
+            companion: companion,
+            battleEarnedGold: 7,
+            materialRewards: materialRewards,
+            rewardItem: loot.item,
+            loot: loot,
+            enemyEncounterLevel: encounterLevel,
+            save: &towerSave,
+        )
+
+        try #expect(dungeonSave.roster.gold == journeySave.roster.gold)
+        try #expect(towerSave.roster.gold == journeySave.roster.gold)
+        try #expect(dungeonSave.homestead.resources == journeySave.homestead.resources)
+        try #expect(towerSave.homestead.resources == journeySave.homestead.resources)
     }
 }

@@ -40,6 +40,7 @@ public enum EffectHandlers {
             keyword: .physical,
             summaryText: EffectMetadata.requiredBattleSummaryPhrase(for: .nextStrikeDouble),
         ),
+        .nextBurnBonus: NextBurnBonusHandler(),
         .evadeNextHit: FlagEffectHandler(
             flag: .evadeNextHit,
             appliedEffectKind: .evadeNextHitApplied,

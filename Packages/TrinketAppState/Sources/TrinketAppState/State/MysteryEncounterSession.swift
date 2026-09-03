@@ -15,8 +15,8 @@ enum MysteryEncounterPhase: Equatable {
 enum MysteryChoiceOutcome: Equatable {
     case reveal(unlockedCombatantID: String)
     case selectCorruptItem
-    case corruptionReveal(ItemCorruptionResult)
-    case reward(MysteryEffectApplyResult)
+    case corruptionReveal(ItemCorruptionDetail)
+    case reward(MysteryEffectResult)
     case dismiss
     case failed
 }
@@ -44,8 +44,8 @@ public final class MysteryEncounterSession: Identifiable {
     private(set) var phase: MysteryEncounterPhase = .reading
     public private(set) var unlockedCombatantID: String?
     public private(set) var corruptibleItems: [InventoryItem] = []
-    public private(set) var corruptionResult: ItemCorruptionResult?
-    public private(set) var applyResult: MysteryEffectApplyResult?
+    public private(set) var corruptionResult: ItemCorruptionDetail?
+    public private(set) var applyResult: MysteryEffectResult?
     public private(set) var isResolvingChoice = false
     public private(set) var persistFailureMessage: String?
     public private(set) var previewMaterialQuantity = 0
@@ -161,6 +161,7 @@ public final class MysteryEncounterSession: Identifiable {
             MysteryEffectApplier.experienceAward(
                 for: roster.progression(for: roster.activeHero),
                 highestLevel: roster.highestHeroLevel,
+                encounterLevel: level,
             ),
             byPercent: experiencePercent,
         )
@@ -168,6 +169,7 @@ public final class MysteryEncounterSession: Identifiable {
             MysteryEffectApplier.experienceAward(
                 for: roster.progression(for: roster.activeCompanion),
                 highestLevel: roster.highestCompanionLevel,
+                encounterLevel: level,
             ),
             byPercent: experiencePercent,
         )
@@ -194,14 +196,14 @@ extension MysteryEncounterSession {
         persistFailureMessage = nil
     }
 
-    func presentCorruptionReveal(result: ItemCorruptionResult) {
+    func presentCorruptionReveal(result: ItemCorruptionDetail) {
         corruptionResult = result
         phase = .revealingCorruption
         isResolvingChoice = false
         persistFailureMessage = nil
     }
 
-    func presentReward(result: MysteryEffectApplyResult) {
+    func presentReward(result: MysteryEffectResult) {
         applyResult = result
         phase = .reward
         isResolvingChoice = false

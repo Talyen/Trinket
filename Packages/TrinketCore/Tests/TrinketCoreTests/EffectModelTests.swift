@@ -133,6 +133,7 @@ struct EffectModelTests {
             .damageKeywordOverride(.holy, 2, 2),
             .nextHolyStrike,
             .nextStrikeDouble,
+            .nextBurnBonus(1),
             .evadeNextHit,
             .convertManaToBlock,
             .shieldFromMana,

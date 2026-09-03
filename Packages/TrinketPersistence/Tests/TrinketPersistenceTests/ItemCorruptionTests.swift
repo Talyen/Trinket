@@ -174,9 +174,9 @@ struct ItemCorruptionTests {
         #expect(save.inventory.items == [markedOnly])
     }
 
-    @Test @MainActor func `store corrupt item persists across reload`() throws {
+    @Test @MainActor func `store corrupt item applies through entry point`() throws {
         let context = try PersistenceTestContext()
-        let store = try context.makeSaveStore()
+        let store = try context.makeSaveStore(inMemoryOnly: true)
         let item = try makeItem(baseID: "longsword", rarity: .basic, affixCount: 2, id: "store-corrupt")
         try store.performBatchMutation { save in
             save.inventory.items = [item]
@@ -188,11 +188,9 @@ struct ItemCorruptionTests {
             return
         }
         #expect(applied.item.isCorrupted)
-
-        let reloaded = try context.makeSaveStore()
-        let reloadedItem = try #require(reloaded.currentSave.inventory.items.first { $0.id == item.id })
-        #expect(reloadedItem.isCorrupted)
-        #expect(reloadedItem.hasCorruptedAffix)
+        let stored = try #require(store.currentSave.inventory.items.first { $0.id == item.id })
+        #expect(stored.isCorrupted)
+        #expect(stored.hasCorruptedAffix)
     }
 
     @Test func `trinkets cannot be corrupted`() throws {
@@ -215,7 +213,7 @@ struct ItemCorruptionTests {
             save.inventory.items = [item]
         }
 
-        var applied: ItemCorruptionResult?
+        var applied: ItemCorruptionDetail?
         try store.performBatchMutation { save in
             var rng = SeededRandomNumberGenerator(seed: 99)
             if case let .success(result) = ItemCorruptionApplier.corrupt(

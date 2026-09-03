@@ -8,7 +8,7 @@ import TrinketPersistence
 
 struct MysteryCorruptionRevealContent: View {
     @Bindable var session: MysteryEncounterSession
-    let result: ItemCorruptionResult
+    let result: ItemCorruptionDetail
     let onFinish: () -> Bool
 
     var body: some View {

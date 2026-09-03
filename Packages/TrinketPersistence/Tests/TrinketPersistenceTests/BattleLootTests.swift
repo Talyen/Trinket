@@ -129,44 +129,40 @@ struct BattleLootTests {
 
     @Test func `journey loot is seed stable`() throws {
         let stage = try #require(GameContent.stage(id: "chapter-1-stage-1"))
-        let first = BattleLoot.resolveJourney(
-            stage: stage,
+        let first = VictoryRewardApplier.resolveLoot(
+            .journey(stage: stage),
             encounterLevel: 1,
             enemyIsBoss: false,
             worldSeed: 8,
-            ownedTrinketIDs: [],
-            ownedUniqueIDs: [],
+            ownership: RewardOwnership(ownedTrinketIDs: [], ownedUniqueIDs: []),
         )
-        let second = BattleLoot.resolveJourney(
-            stage: stage,
+        let second = VictoryRewardApplier.resolveLoot(
+            .journey(stage: stage),
             encounterLevel: 1,
             enemyIsBoss: false,
             worldSeed: 8,
-            ownedTrinketIDs: [],
-            ownedUniqueIDs: [],
+            ownership: RewardOwnership(ownedTrinketIDs: [], ownedUniqueIDs: []),
         )
         #expect(first == second)
 
-        let otherWorld = BattleLoot.resolveJourney(
-            stage: stage,
+        let otherWorld = VictoryRewardApplier.resolveLoot(
+            .journey(stage: stage),
             encounterLevel: 1,
             enemyIsBoss: false,
             worldSeed: 9,
-            ownedTrinketIDs: [],
-            ownedUniqueIDs: [],
+            ownership: RewardOwnership(ownedTrinketIDs: [], ownedUniqueIDs: []),
         )
         #expect(first != otherWorld)
     }
 
     @Test func `boss journey loot is never basic`() throws {
         let stage = try #require(GameContent.stage(id: "chapter-1-stage-10"))
-        let package = BattleLoot.resolveJourney(
-            stage: stage,
+        let package = VictoryRewardApplier.resolveLoot(
+            .journey(stage: stage),
             encounterLevel: 5,
             enemyIsBoss: true,
             worldSeed: 8,
-            ownedTrinketIDs: [],
-            ownedUniqueIDs: [],
+            ownership: RewardOwnership(ownedTrinketIDs: [], ownedUniqueIDs: []),
         )
         switch package.item.rarity {
         case .unique, .astral:
@@ -178,13 +174,12 @@ struct BattleLootTests {
 
     @Test func `homestead astral chance applies to journey and spire battle loot`() throws {
         let stage = try #require(GameContent.stage(id: "chapter-1-stage-1"))
-        let journeyLoot = BattleLoot.resolveJourney(
-            stage: stage,
+        let journeyLoot = VictoryRewardApplier.resolveLoot(
+            .journey(stage: stage),
             encounterLevel: 1,
             enemyIsBoss: false,
             worldSeed: 8,
-            ownedTrinketIDs: [],
-            ownedUniqueIDs: [],
+            ownership: RewardOwnership(ownedTrinketIDs: [], ownedUniqueIDs: []),
             astralChanceBonusPercent: 100,
         )
         #expect(journeyLoot.item.rarity == .astral)

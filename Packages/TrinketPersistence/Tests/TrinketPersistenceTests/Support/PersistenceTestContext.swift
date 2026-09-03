@@ -6,7 +6,7 @@ import TrinketPersistenceTestSupport
 final class PersistenceTestContext {
     let directoryURL: URL
 
-    init() throws {
+    nonisolated init() throws {
         directoryURL = try SaveTestSupport.makeTempDirectory(prefix: "PersistenceTest")
     }
 
@@ -28,6 +28,16 @@ final class PersistenceTestContext {
             persistImmediately: persistImmediately,
             resetState: resetState,
             inMemoryOnly: inMemoryOnly,
+        )
+    }
+
+    func makeReloadedStore(
+        persistImmediately: Bool = true,
+    ) throws -> PlayerSaveStore {
+        try PlayerSaveStore(
+            storeURL: storeURL(),
+            disableCloudSync: true,
+            persistSaveImmediately: persistImmediately,
         )
     }
 }

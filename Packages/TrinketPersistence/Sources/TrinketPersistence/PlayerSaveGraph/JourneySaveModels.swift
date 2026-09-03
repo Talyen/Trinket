@@ -38,10 +38,13 @@ public final class JourneyStageProgressModel {
 extension JourneyProgressModel {
     func toJourneyProgressState() -> JourneyProgressState {
         let stageModels = stages ?? []
-        let pinned = Dictionary(lastWins: stageModels.compactMap { model -> (String, String)? in
-            guard let eventID = model.mysteryEventID, !eventID.isEmpty else { return nil }
-            return (model.stageID, eventID)
-        })
+        let pinned = Dictionary(
+            stageModels.compactMap { model -> (String, String)? in
+                guard let eventID = model.mysteryEventID, !eventID.isEmpty else { return nil }
+                return (model.stageID, eventID)
+            },
+            uniquingKeysWith: { _, new in new },
+        )
         return JourneyProgressState(
             activeChapterID: activeChapterID,
             activeStageID: activeStageID,
@@ -69,8 +72,8 @@ extension JourneyProgressModel {
                 model.rewardsClaimed = state.claimedRewardStageIDs.contains(stageID)
                 model.mysteryEventID = state.pinnedMysteryEventIDs[stageID]
             },
+            link: { $0.journey = self },
             context: context,
         )
-        stages?.linkEach(to: self, parent: \.journey)
     }
 }

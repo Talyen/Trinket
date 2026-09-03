@@ -8,23 +8,20 @@ public enum SpireCompletion {
         encounterLevel: Int? = nil,
         worldSeed: UInt64,
         ownedTrinketIDs: Set<String> = [],
-        ownedUniqueIDs: Set<String> = [],
+        ownedUniqueIDs: Set<String>,
         astralChanceBonusPercent: Int = 0,
-    ) -> BattleLootPackage {
+    ) -> BattleLootResult {
         let level = encounterLevel ?? EncounterLevelResolver.spireEnemyLevel(for: floor)
         let enemyIsBoss = VictoryRewardApplier.isBoss(enemyID: floor.enemyID)
-        let keywordBias: Set<Keyword> = {
-            guard let spire = GameContent.spire(id: floor.spireID) else { return [] }
-            return [spire.keyword]
-        }()
-        return BattleLoot.resolveSpire(
-            floor: floor,
+        return VictoryRewardApplier.resolveLoot(
+            .spire(floor: floor),
             encounterLevel: level,
             enemyIsBoss: enemyIsBoss,
             worldSeed: worldSeed,
-            keywordBias: keywordBias,
-            ownedTrinketIDs: ownedTrinketIDs,
-            ownedUniqueIDs: ownedUniqueIDs,
+            ownership: RewardOwnership(
+                ownedTrinketIDs: ownedTrinketIDs,
+                ownedUniqueIDs: ownedUniqueIDs,
+            ),
             astralChanceBonusPercent: astralChanceBonusPercent,
         )
     }
@@ -36,7 +33,7 @@ public enum SpireCompletion {
         battleEarnedGold: Int = 0,
         materialRewards: [ResourceAmount]? = nil,
         rewardItem: InventoryItem? = nil,
-        loot: BattleLootPackage? = nil,
+        loot: BattleLootResult? = nil,
         enemyEncounterLevel: Int? = nil,
         save: inout PlayerSave,
     ) {
@@ -68,14 +65,17 @@ public enum SpireCompletion {
             ownedUniqueIDs: save.inventory.ownedUniqueIDs,
             astralChanceBonusPercent: save.homestead.effects.astralChanceBonusPercent,
         )
-        StageCompletion.grantVictoryRewards(
+        VictoryRewardApplier.grantVictoryRewards(
             hero: hero,
             companion: companion,
             encounterLevel: encounterLevel,
             stageGold: resolvedLoot.gold,
             battleEarnedGold: battleEarnedGold,
-            materials: materialRewards ?? resolvedLoot.materials,
-            item: rewardItem ?? resolvedLoot.item,
+            materialRewards: VictoryRewardApplier.grantedMaterials(
+                override: materialRewards,
+                loot: resolvedLoot,
+            ),
+            item: VictoryRewardApplier.grantedItem(override: rewardItem, loot: resolvedLoot),
             save: &save,
         )
 

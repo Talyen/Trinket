@@ -25,6 +25,7 @@ public enum EffectKind: Hashable, CaseIterable, Sendable {
     case damageKeywordOverride
     case nextHolyStrike
     case nextStrikeDouble
+    case nextBurnBonus
     case evadeNextHit
     case convertManaToBlock
     case shieldFromMana
@@ -70,6 +71,7 @@ public extension Effect {
         case .damageKeywordOverride: .damageKeywordOverride
         case .nextHolyStrike: .nextHolyStrike
         case .nextStrikeDouble: .nextStrikeDouble
+        case .nextBurnBonus: .nextBurnBonus
         case .evadeNextHit: .evadeNextHit
         case .convertManaToBlock: .convertManaToBlock
         case .shieldFromMana: .shieldFromMana

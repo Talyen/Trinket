@@ -75,9 +75,14 @@ enum AbilityCatalogSkill {
         targetedEffects: [TargetedEffect(.drawCards(2))],
     )
 
-    static let fireball = AbilityBuilder.directHit(
+    static let fireball = Ability(
         id: "fireball", name: "Fireball", tier: .skill,
-        amount: 3, keyword: .burn,
+        description: "Deal 2 to 4 Burn damage.",
+        outcomeBranches: [
+            AbilityOutcomeBranch(damageComponents: [DamageComponent(2, keyword: .burn)]),
+            AbilityOutcomeBranch(damageComponents: [DamageComponent(3, keyword: .burn)]),
+            AbilityOutcomeBranch(damageComponents: [DamageComponent(4, keyword: .burn)]),
+        ],
     )
 
     static let frostbolt = AbilityBuilder.directHit(

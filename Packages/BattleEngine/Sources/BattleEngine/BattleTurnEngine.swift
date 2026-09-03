@@ -195,6 +195,12 @@ extension BattleTurnEngine {
             let shouldConsumeNextStrikeCritical = amount > 0
                 && !isSelfHealthCost
                 && hasActiveEffect(for: actor, in: context) { $0 == .nextStrikeCritical }
+            let nextBurnBonus = amount > 0 && !isSelfHealthCost && damageKeyword == .burn
+                ? activeNextBurnBonus(for: actor, in: context)
+                : 0
+            if nextBurnBonus > 0 {
+                amount += nextBurnBonus
+            }
             let holyStrikeBurnPotency = amount
             if shouldConsumeNextHolyStrike || shouldConsumeNextStrikeDouble {
                 amount *= 2
@@ -257,6 +263,14 @@ extension BattleTurnEngine {
             }
             if shouldConsumeNextStrikeCritical {
                 removeActiveEffect(for: actor, in: &context) { $0 == .nextStrikeCritical }
+            }
+            if nextBurnBonus > 0 {
+                removeActiveEffect(for: actor, in: &context) {
+                    if case .nextBurnBonus = $0 {
+                        return true
+                    }
+                    return false
+                }
             }
             if amount > 0, !isSelfHealthCost {
                 events.append(contentsOf: applyDoTStackFromDamage(
@@ -323,6 +337,18 @@ extension BattleTurnEngine {
         where matches: (Effect) -> Bool,
     ) -> Bool {
         context.roster.activeEffects(for: actor).contains { matches($0.effect) }
+    }
+
+    private static func activeNextBurnBonus(
+        for actor: Combatant,
+        in context: BattleState,
+    ) -> Int {
+        context.roster.activeEffects(for: actor).reduce(0) { sum, active in
+            if case let .nextBurnBonus(amount) = active.effect {
+                return sum + amount
+            }
+            return sum
+        }
     }
 
     private static func removeActiveEffect(

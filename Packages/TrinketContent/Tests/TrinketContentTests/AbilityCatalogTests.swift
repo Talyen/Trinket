@@ -169,8 +169,42 @@ struct AbilityCatalogTests {
         #expect(resolvedTithe.outcomeBranches == nil)
         #expect(resolvedTithe.damageComponents.count == 1 || resolvedTithe.targetedEffects.count == 1)
 
-        let resolvedSlash = Ability.slash.resolvingOutcomeBranch(using: &rng)
-        #expect(resolvedSlash.damageComponents == Ability.slash.damageComponents)
+        let resolvedBash = Ability.bash.resolvingOutcomeBranch(using: &rng)
+        #expect(resolvedBash.damageComponents == Ability.bash.damageComponents)
+    }
+
+    @Test func `locked revisions keep summaries and mechanics`() throws {
+        try #expect(Ability.kindling.summary == "Deal 1 Burn damage. Your next Burn card deals +1 Burn damage.")
+        try #expect(Ability.kindling.damageComponents == [DamageComponent(1, keyword: .burn)])
+        try #expect(Ability.kindling.targetedEffects == [TargetedEffect(.nextBurnBonus(1), target: .actor)])
+        try #expect(Ability.fireball.summary == "Deal 2 to 4 Burn damage.")
+        try #expect(Ability.fireball.outcomeBranches?.map(\.damageComponents) == [
+            [DamageComponent(2, keyword: .burn)],
+            [DamageComponent(3, keyword: .burn)],
+            [DamageComponent(4, keyword: .burn)],
+        ])
+        try #expect(Ability.slash.summary == "Deal 2 to 3 Physical damage.")
+        try #expect(Ability.slash.outcomeBranches?.map(\.damageComponents) == [
+            [DamageComponent(2, keyword: .physical)],
+            [DamageComponent(3, keyword: .physical)],
+        ])
+        try #expect(Ability.stab.summary == "Deal 2 Physical damage with a +25% chance to Critically Hit.")
+        try #expect(Ability.stab.damageComponents == [DamageComponent(2, keyword: .physical)])
+        try #expect(Ability.stab.criticalChanceBonus == 0.25)
+    }
+
+    @Test func `variable damage branches resolve within locked ranges`() throws {
+        var rng = SeededRandomNumberGenerator(seed: 7)
+        for _ in 0 ..< 12 {
+            let resolvedFireball = Ability.fireball.resolvingOutcomeBranch(using: &rng)
+            let fireballDamage = try #require(resolvedFireball.damageComponents.first?.amount)
+            try #expect((2 ... 4).contains(fireballDamage))
+            try #expect(resolvedFireball.outcomeBranches == nil)
+            let resolvedSlash = Ability.slash.resolvingOutcomeBranch(using: &rng)
+            let slashDamage = try #require(resolvedSlash.damageComponents.first?.amount)
+            try #expect((2 ... 3).contains(slashDamage))
+            try #expect(resolvedSlash.outcomeBranches == nil)
+        }
     }
 
     @Test func `resolving outcome branch preserves shared ability clauses`() {

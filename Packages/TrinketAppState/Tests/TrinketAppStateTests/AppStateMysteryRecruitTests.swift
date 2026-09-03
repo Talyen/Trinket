@@ -181,13 +181,20 @@ struct AppStateMysteryRecruitTests {
         let session = attachMysterySession(event: event, to: state)
         session.installPreviews(save: state.playerSave.currentSave)
 
+        let level = MysteryEffectApplier.resolvedEncounterLevel(
+            stage: session.stage,
+            labyrinthNodeID: session.labyrinthNodeID,
+            save: state.playerSave.currentSave,
+        )
         let expectedHero = MysteryEffectApplier.experienceAward(
             for: roster.progression(for: roster.activeHero),
             highestLevel: roster.highestHeroLevel,
+            encounterLevel: level,
         )
         let expectedCompanion = MysteryEffectApplier.experienceAward(
             for: roster.progression(for: roster.activeCompanion),
             highestLevel: roster.highestCompanionLevel,
+            encounterLevel: level,
         )
         #expect(session.previewHeroExperienceAward == expectedHero)
         #expect(session.previewCompanionExperienceAward == expectedCompanion)

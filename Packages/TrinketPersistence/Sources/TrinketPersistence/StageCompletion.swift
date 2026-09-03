@@ -7,31 +7,31 @@ public enum StageCompletion {
         playerLevel: Int,
         enemyLevel: Int,
         highestLevel: Int,
-        xpPercent: Int = 0,
+        experienceEarnedPercent: Int = 0,
     ) -> Int {
         VictoryRewardApplier.battleExperienceAward(
             playerLevel: playerLevel,
             enemyLevel: enemyLevel,
             highestLevel: highestLevel,
-            xpPercent: xpPercent,
+            experienceEarnedPercent: experienceEarnedPercent,
         )
     }
 
-    static func adjustedExperienceAward(_ base: Int, xpPercent: Int) -> Int {
-        CombatRounding.scaled(base, byPercent: xpPercent)
+    static func adjustedExperienceAward(_ base: Int, experienceEarnedPercent: Int) -> Int {
+        CombatRounding.scaled(base, byPercent: experienceEarnedPercent)
     }
 
     public static func grantBattleExperience(
         enemyLevel: Int,
         to combatant: Combatant,
         roster: inout PlayerRosterState,
-        xpPercent: Int = 0,
+        experienceEarnedPercent: Int = 0,
     ) {
         VictoryRewardApplier.grantBattleExperience(
             enemyLevel: enemyLevel,
             to: combatant,
             roster: &roster,
-            xpPercent: xpPercent,
+            experienceEarnedPercent: experienceEarnedPercent,
         )
     }
 
@@ -51,16 +51,18 @@ public enum StageCompletion {
         ownedUniqueIDs: Set<String> = [],
         astralChanceBonusPercent: Int = 0,
         in chapters: [Chapter] = GameContent.chapters,
-    ) -> BattleLootPackage {
+    ) -> BattleLootResult {
         let level = encounterLevel ?? resolvedEncounterLevel(for: stage, in: chapters)
         let isBoss = enemyIsBoss ?? VictoryRewardApplier.isBoss(enemyID: stage.encounter.battleEnemyID)
-        return BattleLoot.resolveJourney(
-            stage: stage,
+        return VictoryRewardApplier.resolveLoot(
+            .journey(stage: stage),
             encounterLevel: level,
             enemyIsBoss: isBoss,
             worldSeed: worldSeed,
-            ownedTrinketIDs: ownedTrinketIDs,
-            ownedUniqueIDs: ownedUniqueIDs,
+            ownership: RewardOwnership(
+                ownedTrinketIDs: ownedTrinketIDs,
+                ownedUniqueIDs: ownedUniqueIDs,
+            ),
             astralChanceBonusPercent: astralChanceBonusPercent,
         )
     }
@@ -68,12 +70,12 @@ public enum StageCompletion {
     public static func resolvedGoldReward(
         stageGold: Int,
         battleEarnedGold: Int,
-        goldFindPercent: Int,
+        goldFoundPercent: Int,
     ) -> Int {
         VictoryRewardApplier.resolvedGoldReward(
             stageGold: stageGold,
             battleEarnedGold: battleEarnedGold,
-            goldFindPercent: goldFindPercent,
+            goldFoundPercent: goldFoundPercent,
         )
     }
 
@@ -113,32 +115,6 @@ public enum StageCompletion {
         )
     }
 
-    static func grantVictoryRewards(
-        hero: Combatant,
-        companion: Combatant,
-        encounterLevel: Int,
-        stageGold: Int,
-        battleEarnedGold: Int = 0,
-        grantsCombatExperience: Bool = true,
-        xpPercent: Int = 0,
-        materials: [ResourceAmount],
-        item: InventoryItem?,
-        save: inout PlayerSave,
-    ) {
-        VictoryRewardApplier.grantVictoryRewards(
-            hero: hero,
-            companion: companion,
-            encounterLevel: encounterLevel,
-            stageGold: stageGold,
-            battleEarnedGold: battleEarnedGold,
-            grantsCombatExperience: grantsCombatExperience,
-            xpPercent: xpPercent,
-            materials: materials,
-            item: item,
-            save: &save,
-        )
-    }
-
     public static func complete(
         _ stage: Stage,
         hero: Combatant,
@@ -146,7 +122,7 @@ public enum StageCompletion {
         battleEarnedGold: Int = 0,
         materialRewards: [ResourceAmount]? = nil,
         rewardItem: InventoryItem? = nil,
-        loot: BattleLootPackage? = nil,
+        loot: BattleLootResult? = nil,
         enemyEncounterLevel: Int? = nil,
         in chapters: [Chapter],
         save: inout PlayerSave,
@@ -175,7 +151,7 @@ public enum StageCompletion {
         battleEarnedGold: Int = 0,
         materialRewards: [ResourceAmount]? = nil,
         rewardItem: InventoryItem? = nil,
-        loot: BattleLootPackage? = nil,
+        loot: BattleLootResult? = nil,
         enemyEncounterLevel: Int? = nil,
         in chapters: [Chapter],
         save: inout PlayerSave,
@@ -215,7 +191,7 @@ public enum StageCompletion {
         battleEarnedGold: Int = 0,
         materialRewards: [ResourceAmount]? = nil,
         rewardItem: InventoryItem? = nil,
-        loot: BattleLootPackage? = nil,
+        loot: BattleLootResult? = nil,
         enemyEncounterLevel: Int? = nil,
         save: inout PlayerSave,
     ) {
@@ -227,7 +203,7 @@ public enum StageCompletion {
             ?? partyAdjustedEncounterLevel(for: stage, save: save)
         let enemyIsBoss = VictoryRewardApplier.isBoss(enemyID: stage.encounter.battleEnemyID)
 
-        let resolvedLoot: BattleLootPackage? = {
+        let resolvedLoot: BattleLootResult? = {
             if let loot {
                 return loot
             }
@@ -245,24 +221,20 @@ public enum StageCompletion {
             )
         }()
 
-        let stageGold = stage.rewards.gold + (resolvedLoot?.gold ?? 0)
-        let item: InventoryItem? = if let rewardItem {
-            rewardItem
-        } else if let resolvedLoot {
-            resolvedLoot.item
-        } else {
-            nil
-        }
-        grantVictoryRewards(
+        let stageGold = resolvedLoot?.gold ?? stage.rewards.gold
+        let item = VictoryRewardApplier.grantedItem(override: rewardItem, loot: resolvedLoot)
+        VictoryRewardApplier.grantVictoryRewards(
             hero: hero,
             companion: companion,
             encounterLevel: encounterLevel,
             stageGold: stageGold,
             battleEarnedGold: battleEarnedGold,
             grantsCombatExperience: stage.encounter.isCombat,
-            materials: materialRewards
-                ?? resolvedLoot?.materials
-                ?? resolvedMaterialRewards(stageReward: stage.rewards),
+            materialRewards: VictoryRewardApplier.grantedMaterials(
+                override: materialRewards,
+                loot: resolvedLoot,
+                fallback: resolvedMaterialRewards(stageReward: stage.rewards),
+            ),
             item: item,
             save: &save,
         )

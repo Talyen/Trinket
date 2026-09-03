@@ -31,18 +31,19 @@ public enum LabyrinthCompletion {
         ownedTrinketIDs: Set<String> = [],
         ownedUniqueIDs: Set<String>,
         astralChanceBonusPercent: Int = 0,
-    ) -> BattleLootPackage? {
+    ) -> BattleLootResult? {
         guard node.type.isCombat else { return nil }
         let level = encounterLevel ?? EncounterLevelResolver.labyrinthEnemyLevel(for: node)
         let enemyIsBoss = VictoryRewardApplier.isBoss(enemyID: node.enemyID)
-        return BattleLoot.resolveLabyrinth(
-            node: node,
+        return VictoryRewardApplier.resolveLoot(
+            .labyrinth(node: node, effects: effects),
             encounterLevel: level,
             enemyIsBoss: enemyIsBoss,
-            effects: effects,
             worldSeed: worldSeed,
-            ownedTrinketIDs: ownedTrinketIDs,
-            ownedUniqueIDs: ownedUniqueIDs,
+            ownership: RewardOwnership(
+                ownedTrinketIDs: ownedTrinketIDs,
+                ownedUniqueIDs: ownedUniqueIDs,
+            ),
             astralChanceBonusPercent: astralChanceBonusPercent,
         )
     }
@@ -54,7 +55,7 @@ public enum LabyrinthCompletion {
         battleEarnedGold: Int = 0,
         materialRewards: [ResourceAmount]? = nil,
         rewardItem: InventoryItem? = nil,
-        loot: BattleLootPackage? = nil,
+        loot: BattleLootResult? = nil,
         enemyEncounterLevel: Int? = nil,
         save: inout PlayerSave,
     ) {
@@ -82,27 +83,30 @@ public enum LabyrinthCompletion {
                 ownedUniqueIDs: save.inventory.ownedUniqueIDs,
                 astralChanceBonusPercent: save.homestead.effects.astralChanceBonusPercent,
             )
-            StageCompletion.grantVictoryRewards(
+            VictoryRewardApplier.grantVictoryRewards(
                 hero: hero,
                 companion: companion,
                 encounterLevel: encounterLevel,
                 stageGold: resolvedLoot?.gold ?? 0,
                 battleEarnedGold: battleEarnedGold,
-                xpPercent: effects.experienceEarnedPercent,
-                materials: materialRewards ?? resolvedLoot?.materials ?? [],
-                item: rewardItem ?? resolvedLoot?.item,
+                experienceEarnedPercent: effects.experienceEarnedPercent,
+                materialRewards: VictoryRewardApplier.grantedMaterials(
+                    override: materialRewards,
+                    loot: resolvedLoot,
+                ),
+                item: VictoryRewardApplier.grantedItem(override: rewardItem, loot: resolvedLoot),
                 save: &save,
             )
         } else {
-            StageCompletion.grantVictoryRewards(
+            VictoryRewardApplier.grantVictoryRewards(
                 hero: hero,
                 companion: companion,
                 encounterLevel: encounterLevel,
                 stageGold: nonCombatGoldStipend(for: node),
                 battleEarnedGold: battleEarnedGold,
                 grantsCombatExperience: false,
-                materials: materialRewards ?? loot?.materials ?? [],
-                item: rewardItem ?? loot?.item,
+                materialRewards: VictoryRewardApplier.grantedMaterials(override: materialRewards, loot: loot),
+                item: VictoryRewardApplier.grantedItem(override: rewardItem, loot: loot),
                 save: &save,
             )
         }

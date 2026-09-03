@@ -74,6 +74,8 @@ public enum EffectPresentation {
             "your next Holy attack deals double damage and applies Burning"
         case .nextStrikeDouble:
             "your next attack deals double damage"
+        case let .nextBurnBonus(bonus):
+            "your next Burn attack deals +\(bonus) damage"
         case .nextStrikeCritical:
             "your next attack is a guaranteed Critical Hit"
         case .evadeNextHit:

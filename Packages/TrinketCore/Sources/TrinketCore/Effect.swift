@@ -82,6 +82,7 @@ public enum Effect: Hashable, Sendable {
     case damageKeywordOverride(Keyword, Int, Int)
     case nextHolyStrike
     case nextStrikeDouble
+    case nextBurnBonus(Int)
     case evadeNextHit
     case convertManaToBlock
     case shieldFromMana
@@ -136,6 +137,7 @@ public enum Effect: Hashable, Sendable {
         case let .damageKeywordOverride(k, _, _): k
         case .nextHolyStrike: .holy
         case .nextStrikeDouble: .physical
+        case .nextBurnBonus: .burn
         case .evadeNextHit: .dodge
         case .convertManaToBlock, .shieldFromMana, .shieldFromHalfMana, .shieldFromGold: .block
         case .maximumManaBonus: .mana
@@ -199,7 +201,7 @@ public enum Effect: Hashable, Sendable {
         case let .damageReductionPercent(_, d), let .damageReductionFlat(_, d): d
         case .burn, .poison, .instantHeal, .resourceGain, .drawCards, .drawAndPlayCards, .cleanse, .cleanseRandom,
              .purge, .purgeRandom, .halveShield, .controlMeter, .deathsDoor,
-             .shield, .thorns, .nextHolyStrike, .nextStrikeDouble, .evadeNextHit,
+             .shield, .thorns, .nextHolyStrike, .nextStrikeDouble, .nextBurnBonus, .evadeNextHit,
              .convertManaToBlock, .shieldFromMana, .shieldFromHalfMana, .shieldFromGold, .maximumManaBonus,
              .nextStrikeCritical, .freezeNextAttacker, .onHitDamage, .multiplyDoT, .revive,
              .cleanseHealPerDebuff, .panacea, .hemorrhage:
@@ -242,7 +244,7 @@ public enum Effect: Hashable, Sendable {
         case .shield, .resourceGain, .drawCards, .drawAndPlayCards, .cleanse, .cleanseRandom,
              .cleanseHealPerDebuff, .panacea,
              .deathsDoor, .thorns, .criticalChanceBonus, .restoreManaOnHit,
-             .damageKeywordOverride, .nextHolyStrike, .nextStrikeDouble, .evadeNextHit,
+             .damageKeywordOverride, .nextHolyStrike, .nextStrikeDouble, .nextBurnBonus, .evadeNextHit,
              .convertManaToBlock, .shieldFromMana, .shieldFromHalfMana, .shieldFromGold, .maximumManaBonus,
              .nextStrikeCritical, .freezeNextAttacker, .onHitDamage, .avatar:
             .actor

@@ -2,14 +2,14 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-public enum HomesteadBuildResult: Equatable {
+public enum HomesteadBuildResult: Equatable, Sendable {
     case success
     case insufficientResources
     case notAvailable
     case persistFailed
 }
 
-public enum HomesteadCollectionResult: Equatable {
+public enum HomesteadCollectionResult: Equatable, Sendable {
     case success([ResourceAmount])
     case noProduction
     case cloudSyncUnsupported

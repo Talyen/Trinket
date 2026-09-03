@@ -242,6 +242,33 @@ struct EffectHandlersApplyBuffDebuffTests {
         try #expect(outcome.events.contains { $0.effectKind == .nextStrikeDoubleApplied })
     }
 
+    @Test func `next burn bonus handler stacks and emits event`() throws {
+        var battle = EffectHandlersTestSupport.makeBattle()
+        let first = EffectHandlersTestSupport.dispatch(
+            .nextBurnBonus(1),
+            source: battle.hero,
+            target: battle.hero,
+            battle: &battle,
+        )
+        try #expect(first.didApply)
+        let second = EffectHandlersTestSupport.dispatch(
+            .nextBurnBonus(1),
+            source: battle.hero,
+            target: battle.hero,
+            battle: &battle,
+        )
+        try #expect(second.didApply)
+        try #expect(battle.activeEffects(of: battle.hero).contains { active in
+            if case let .nextBurnBonus(amount) = active.effect {
+                return amount == 2
+            }
+            return false
+        })
+        try #expect(second.events.contains {
+            $0.effectKind == .nextBurnBonusApplied && $0.amount == 2 && $0.keyword == .burn
+        })
+    }
+
     @Test func `evade next hit handler applies and emits event`() throws {
         var battle = EffectHandlersTestSupport.makeBattle()
         let outcome = EffectHandlersTestSupport.dispatch(

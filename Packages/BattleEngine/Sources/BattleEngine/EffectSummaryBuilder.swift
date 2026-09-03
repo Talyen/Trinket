@@ -9,7 +9,7 @@ public enum EffectSummaryBuilder {
         .bleed, .hemorrhage,
         .shield,
         .thorns, .marked, .criticalChanceBonus, .restoreManaOnHit, .damageKeywordOverride,
-        .nextHolyStrike, .nextStrikeDouble, .evadeNextHit,
+        .nextHolyStrike, .nextStrikeDouble, .nextBurnBonus, .evadeNextHit,
         .nextStrikeCritical, .freezeNextAttacker, .onHitDamage, .maximumManaBonus,
         .recurringDamage, .avatar,
         .damageReductionPercent, .damageReductionFlat,

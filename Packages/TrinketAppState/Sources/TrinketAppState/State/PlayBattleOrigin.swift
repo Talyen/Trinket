@@ -41,7 +41,7 @@ struct PlayBattleRoute {
         BattlePresentationContext?,
         Int,
         [ResourceAmount]?,
-        BattleLootPackage?,
+        BattleLootResult?,
     ) -> Bool
 
     static func matches(_ route: Self?, runKey: BattleRunKey?, missingLog: String) -> Bool {

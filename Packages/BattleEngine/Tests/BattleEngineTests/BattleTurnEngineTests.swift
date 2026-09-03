@@ -312,6 +312,146 @@ struct BattleTurnEngineTests {
     }
 }
 
+struct BattleTurnEngineBurnBonusTests {
+    @Test func `next burn bonus applies to burn and consumes`() throws {
+        let ability = Ability(
+            id: "test-burn",
+            name: "Test Burn",
+            tier: .basic,
+            damageComponents: [DamageComponent(2, keyword: .burn)],
+        )
+        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [ability])
+        let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
+        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 100)
+        var context = BattleTestFixtures.makeContext(
+            hero: hero,
+            companion: companion,
+            enemy: enemy,
+            heroEffects: [ActiveEffect(id: 1, effect: .nextBurnBonus(1), remainingTurns: 0)],
+            seed: BattleTestFixtures.deterministicNonCriticalSeed,
+            nextEffectID: 2,
+            nextEventID: 0,
+        )
+        let healthBefore = context.roster.health(for: enemy)
+
+        let events = BattleTurnEngine.performAction(
+            ability: ability,
+            actor: hero,
+            abilityTarget: context.enemy,
+            context: &context,
+        )
+
+        let damageEvent = try #require(events.first { $0.kind == .abilityDamage })
+        try #expect(damageEvent.amount == 3)
+        try #expect(context.roster.health(for: enemy) == healthBefore - 3)
+        try #expect(!(context.roster.activeEffects(for: hero).contains {
+            if case .nextBurnBonus = $0.effect {
+                return true
+            }
+            return false
+        }))
+    }
+
+    @Test func `next burn bonus ignores non burn and persists`() throws {
+        let ability = Ability(
+            id: "test-physical",
+            name: "Test Physical",
+            tier: .basic,
+            damageComponents: [DamageComponent(2, keyword: .physical)],
+        )
+        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [ability])
+        let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
+        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 100)
+        var context = BattleTestFixtures.makeContext(
+            hero: hero,
+            companion: companion,
+            enemy: enemy,
+            heroEffects: [ActiveEffect(id: 1, effect: .nextBurnBonus(1), remainingTurns: 0)],
+            seed: BattleTestFixtures.deterministicNonCriticalSeed,
+            nextEffectID: 2,
+            nextEventID: 0,
+        )
+
+        let events = BattleTurnEngine.performAction(
+            ability: ability,
+            actor: hero,
+            abilityTarget: context.enemy,
+            context: &context,
+        )
+
+        let damageEvent = try #require(events.first { $0.kind == .abilityDamage })
+        try #expect(damageEvent.amount == 2)
+        try #expect(context.roster.activeEffects(for: hero).contains {
+            if case let .nextBurnBonus(amount) = $0.effect {
+                return amount == 1
+            }
+            return false
+        })
+    }
+
+    @Test func `kindling grants next burn bonus`() throws {
+        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [Ability.kindling])
+        let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
+        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 100)
+        var context = BattleTestFixtures.makeContext(
+            hero: hero,
+            companion: companion,
+            enemy: enemy,
+            seed: BattleTestFixtures.deterministicNonCriticalSeed,
+            nextEffectID: 1,
+            nextEventID: 0,
+        )
+
+        let events = BattleTurnEngine.performAction(
+            ability: Ability.kindling,
+            actor: hero,
+            abilityTarget: context.enemy,
+            context: &context,
+        )
+
+        let damageEvent = try #require(events.first { $0.kind == .abilityDamage })
+        try #expect(damageEvent.amount == 1)
+        try #expect(context.roster.activeEffects(for: hero).contains {
+            if case let .nextBurnBonus(amount) = $0.effect {
+                return amount == 1
+            }
+            return false
+        })
+        try #expect(events.contains { $0.effectKind == .nextBurnBonusApplied })
+    }
+
+    @Test func `kindling consumes pending bonus then grants fresh bonus`() throws {
+        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [Ability.kindling])
+        let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
+        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 100)
+        var context = BattleTestFixtures.makeContext(
+            hero: hero,
+            companion: companion,
+            enemy: enemy,
+            heroEffects: [ActiveEffect(id: 1, effect: .nextBurnBonus(1), remainingTurns: 0)],
+            seed: BattleTestFixtures.deterministicNonCriticalSeed,
+            nextEffectID: 2,
+            nextEventID: 0,
+        )
+
+        let events = BattleTurnEngine.performAction(
+            ability: Ability.kindling,
+            actor: hero,
+            abilityTarget: context.enemy,
+            context: &context,
+        )
+
+        let damageEvent = try #require(events.first { $0.kind == .abilityDamage })
+        try #expect(damageEvent.amount == 2)
+        try #expect(context.roster.activeEffects(for: hero).contains {
+            if case let .nextBurnBonus(amount) = $0.effect {
+                return amount == 1
+            }
+            return false
+        })
+    }
+}
+
 struct BattleTurnEngineComponentTests {
     @Test func `next holy strike burn uses authored not doubled potency`() throws {
         let ability = Ability(
