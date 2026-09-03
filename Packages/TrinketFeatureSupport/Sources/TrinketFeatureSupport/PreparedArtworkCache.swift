@@ -1,7 +1,6 @@
 import Darwin
 import Observation
 import os
-import SwiftUI
 import TrinketContent
 import UIKit
 
@@ -11,10 +10,18 @@ struct LaunchArtworkWarmupPlan: Equatable {
 
     static func make(priorityImageNames: [String], catalogNames: [String]) -> Self {
         let priority = Set(priorityImageNames)
-        return Self(
-            priorityNames: catalogNames.filter { priority.contains($0) },
-            deferredNames: catalogNames.filter { !priority.contains($0) },
-        )
+        var seen = Set<String>()
+        var priorityNames: [String] = []
+        var deferredNames: [String] = []
+        for name in catalogNames {
+            guard seen.insert(name).inserted else { continue }
+            if priority.contains(name) {
+                priorityNames.append(name)
+            } else {
+                deferredNames.append(name)
+            }
+        }
+        return Self(priorityNames: priorityNames, deferredNames: deferredNames)
     }
 }
 
@@ -54,7 +61,7 @@ public final class PreparedArtworkCache {
     @ObservationIgnored private var decodedCostsByName: [String: Int] = [:]
     @ObservationIgnored private var launchWarmupNames: [String] = []
     @ObservationIgnored private var inFlightNames: Set<String> = []
-    @ObservationIgnored private var decodeWaitersByName: [String: [CheckedContinuation<Bool, Never>]] = [:]
+    @ObservationIgnored private var decodeWaitersByName: [String: [CheckedContinuation<Void, Never>]] = [:]
     @ObservationIgnored private let catalogNamesProvider: () -> [String]
     @ObservationIgnored private let decodeHandler: @Sendable (String) async -> PreparedArtwork
     @ObservationIgnored private let logger = Logger(
@@ -133,19 +140,25 @@ public final class PreparedArtworkCache {
 
     public func releasePins(names: [String]) {
         for name in Set(names) {
-            guard let count = pinCountsByName[name] else { continue }
-            if count > 1 {
-                pinCountsByName[name] = count - 1
-            } else {
-                pinCountsByName.removeValue(forKey: name)
-                if let image = pinnedImages.removeValue(forKey: name) {
-                    images.setObject(
-                        image,
-                        forKey: name as NSString,
-                        cost: decodedCostsByName[name] ?? 0,
-                    )
-                }
-            }
+            decrementPinDemand(named: name, dropResident: true)
+        }
+    }
+
+    private func decrementPinDemand(named name: String, dropResident: Bool) {
+        guard let count = pinCountsByName[name] else { return }
+        if count > 1 {
+            pinCountsByName[name] = count - 1
+            return
+        }
+        pinCountsByName.removeValue(forKey: name)
+        if dropResident, let image = pinnedImages.removeValue(forKey: name) {
+            images.setObject(
+                image,
+                forKey: name as NSString,
+                cost: decodedCostsByName[name] ?? 0,
+            )
+        } else {
+            pinnedImages.removeValue(forKey: name)
         }
     }
 
@@ -153,17 +166,11 @@ public final class PreparedArtworkCache {
         guard pinCountsByName[name] != nil, pinnedImages[name] == nil else { return }
         guard let image = images.object(forKey: name as NSString) else { return }
         pinnedImages[name] = image
-        images.setObject(image, forKey: name as NSString, cost: 0)
     }
 
     private func balanceFailedPin(named name: String) {
         guard pinnedImages[name] == nil, images.object(forKey: name as NSString) == nil else { return }
-        guard let count = pinCountsByName[name] else { return }
-        if count > 1 {
-            pinCountsByName[name] = count - 1
-        } else {
-            pinCountsByName.removeValue(forKey: name)
-        }
+        decrementPinDemand(named: name, dropResident: false)
     }
 
     public func prepareAll(priorityImageNames: [String]) async {
@@ -193,7 +200,11 @@ public final class PreparedArtworkCache {
             for name in plan.priorityNames {
                 pinResidentImage(named: name)
             }
+            for name in plan.priorityNames {
+                balanceFailedPin(named: name)
+            }
             isLaunchWarmupComplete = true
+            priorityWarmupTask = nil
             reportMemorySnapshot(label: "priorityWarmup")
         }
         priorityWarmupTask = task
@@ -202,8 +213,10 @@ public final class PreparedArtworkCache {
         deferredWarmupTask = Task(priority: .utility) { @MainActor [weak self] in
             guard let self else { return }
             await decode(plan.deferredNames, maximumConcurrency: 2, countsTowardLaunch: true)
+            guard !Task.isCancelled else { return }
             isDeferredWarmupComplete = true
             completedCount = totalCount
+            deferredWarmupTask = nil
             reportMemorySnapshot(label: "deferredWarmup")
         }
     }
@@ -254,7 +267,6 @@ public final class PreparedArtworkCache {
                         await self.prepareArtwork(named: name)
                     }
                 }
-                await Task.yield()
             }
         }
     }
@@ -266,11 +278,8 @@ public final class PreparedArtworkCache {
             return
         }
         if inFlightNames.contains(name) {
-            let shouldRetry = await withCheckedContinuation { continuation in
+            await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
                 decodeWaitersByName[name, default: []].append(continuation)
-            }
-            if shouldRetry, !Task.isCancelled {
-                await prepareArtwork(named: name)
             }
             return
         }
@@ -278,28 +287,31 @@ public final class PreparedArtworkCache {
         inFlightNames.insert(name)
         let prepared = await decodeHandler(name)
         let wasCancelled = Task.isCancelled
+        if prepared.name != name {
+            assertionFailure("Artwork decode returned mismatched name for \(name)")
+        }
         if let image = prepared.image, !wasCancelled {
             let decodedCost = Self.decodedCost(of: image)
-            let isPinned = pinCountsByName[prepared.name] != nil
+            let isPinned = pinCountsByName[name] != nil
             images.setObject(
                 image,
-                forKey: prepared.name as NSString,
-                cost: isPinned ? 0 : decodedCost,
+                forKey: name as NSString,
+                cost: decodedCost,
             )
-            decodedCostsByName[prepared.name] = decodedCost
+            decodedCostsByName[name] = decodedCost
             if isPinned {
-                pinnedImages[prepared.name] = image
+                pinnedImages[name] = image
             }
         } else {
             assert(
-                pinnedImages[prepared.name] == nil,
-                "Failed decode must not have a pinned bitmap for \(prepared.name)",
+                pinnedImages[name] == nil,
+                "Failed decode must not have a pinned bitmap for \(name)",
             )
         }
         inFlightNames.remove(name)
         let waiters = decodeWaitersByName.removeValue(forKey: name) ?? []
         for waiter in waiters {
-            waiter.resume(returning: false)
+            waiter.resume()
         }
     }
 
@@ -377,7 +389,7 @@ public final class PreparedArtworkCache {
         guard !Task.isCancelled else {
             return PreparedArtwork(name: name, image: nil)
         }
-        guard let source = await MainActor.run(resultType: UIImage?.self, body: { UIImage(named: name) }),
+        guard let source = UIImage(named: name),
               source.cgImage != nil
         else {
             return PreparedArtwork(name: name, image: nil)

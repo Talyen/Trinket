@@ -87,6 +87,9 @@ struct PlayBattleLaunch {
 
     private func makeLaunchInput(for request: PlayCombatRequest) -> BattleLaunchInput {
         let roster = playerSave.roster
+        if request.loot == nil {
+            assertionFailure("Combat launched without pre-rolled loot; Victory screen will not match granted rewards.")
+        }
         return BattleLaunchInput(
             origin: request.origin,
             hero: roster.activeHero,

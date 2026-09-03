@@ -1,4 +1,3 @@
-import CoreGraphics
 import os
 import SwiftUI
 import TrinketContent
@@ -25,7 +24,7 @@ private enum PreparedArtworkFallbackDedupe {
     }
 }
 
-/// Concurrency-Safety: `@unchecked Sendable` — `name` is a value type and
+/// Concurrency-Safety: `@unchecked Sendable` — `name` is a value type and `image` only crosses isolation through the main-actor cache.
 struct PreparedArtwork: @unchecked Sendable {
     let name: String
     let image: UIImage?

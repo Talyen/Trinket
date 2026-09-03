@@ -26,14 +26,14 @@ public struct CombatantArtwork: View {
                 )
                 .resizable()
                 .interpolation(interpolation)
-                .modifier(ArtFillModifier(variant: variant))
+                .modifier(ArtFillModifier())
                 .decorativePreparedArtwork()
 
             } else {
                 placeholderArt
             }
         }
-        .modifier(BattleFrameModifier(variant: variant))
+        .modifier(BattleFrameModifier(expandsToFrame: variant == .battle))
     }
 
     private var interpolation: Image.Interpolation {
@@ -54,30 +54,21 @@ public struct CombatantArtwork: View {
 }
 
 private struct ArtFillModifier: ViewModifier {
-    let variant: CombatantArtwork.Variant
-
     func body(content: Content) -> some View {
-        switch variant {
-        case .battle, .card, .hero:
-            Color.clear
-                .overlay {
-                    content.scaledToFill()
-                }
-                .clipped()
-        }
+        Color.clear
+            .overlay {
+                content.scaledToFill()
+            }
+            .clipped()
     }
 }
 
 private struct BattleFrameModifier: ViewModifier {
-    let variant: CombatantArtwork.Variant
+    let expandsToFrame: Bool
 
     func body(content: Content) -> some View {
-        if variant == .battle {
-            content
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .clipped()
-        } else {
-            content.clipped()
-        }
+        content
+            .frame(maxWidth: expandsToFrame ? .infinity : nil, maxHeight: expandsToFrame ? .infinity : nil)
+            .clipped()
     }
 }

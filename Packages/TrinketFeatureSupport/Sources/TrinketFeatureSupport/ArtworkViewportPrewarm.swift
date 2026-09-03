@@ -1,13 +1,14 @@
-import SwiftUI
+import Foundation
 
-@MainActor
 public enum ArtworkViewportPrewarm {
     public static let defaultPrefetchRows = 3
     public static let collectionEstimatedColumns = 2
     public static let partyPickerEstimatedColumns = 3
-    private static let backwardPrefetchRows = 1
+    public static let backwardPrefetchRows = 1
     public static let viewportDebounceInterval: Duration = .milliseconds(50)
+    static let maximumConcurrency = 2
 
+    @MainActor
     public static func prewarm<Item: Identifiable>(
         orderedItems: [Item],
         visibleIDs: Set<Item.ID>,
@@ -64,9 +65,42 @@ public enum ArtworkViewportPrewarm {
         }
         let forwardCount = prefetchRows * estimatedColumns
         let backwardCount = backwardPrefetchRows * estimatedColumns
+        let span = maxVisible - minVisible + 1
+        if span > visibleIndices.count + forwardCount + backwardCount {
+            return perClusterNames(
+                orderedItems: orderedItems,
+                visibleIndices: visibleIndices,
+                thumbnailName: thumbnailName,
+                prefetchRows: prefetchRows,
+                estimatedColumns: estimatedColumns,
+            )
+        }
         let windowStart = max(0, minVisible - backwardCount)
         let windowEnd = min(orderedItems.count - 1, maxVisible + forwardCount)
         return dedupedNames(for: orderedItems[windowStart ... windowEnd], thumbnailName: thumbnailName)
+    }
+
+    private static func perClusterNames<Item: Identifiable>(
+        orderedItems: [Item],
+        visibleIndices: [Int],
+        thumbnailName: (Item) -> String?,
+        prefetchRows: Int,
+        estimatedColumns: Int,
+    ) -> [String] {
+        let forwardCount = prefetchRows * estimatedColumns
+        let backwardCount = backwardPrefetchRows * estimatedColumns
+        var seen = Set<String>()
+        var result: [String] = []
+        for visible in visibleIndices {
+            let start = max(0, visible - backwardCount)
+            let end = min(orderedItems.count - 1, visible + forwardCount)
+            guard start <= end else { continue }
+            for item in orderedItems[start ... end] {
+                guard let name = thumbnailName(item), seen.insert(name).inserted else { continue }
+                result.append(name)
+            }
+        }
+        return result
     }
 
     private static func initialWindowNames<Item: Identifiable>(

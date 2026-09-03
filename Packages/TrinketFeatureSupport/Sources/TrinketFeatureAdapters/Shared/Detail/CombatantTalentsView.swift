@@ -233,11 +233,10 @@ public struct CombatantTalentsView: View {
                 color: isSelected ? style.glowColor.opacity(0.4) : .clear,
                 radius: 8,
             )
-            .saturation(isRowLocked ? 0.35 : 1.0)
-            .opacity(isRowLocked ? 0.65 : 1.0)
         }
         .trinketQuietTapButtonStyle()
         .accessibilityIdentifier(nodeAccessibilityIdentifier(node.id))
+        .accessibilityLabel(isRowLocked ? "\(node.name), locked" : node.name)
     }
 
     private func referencedKeywords(for node: TalentNode) -> [Keyword] {

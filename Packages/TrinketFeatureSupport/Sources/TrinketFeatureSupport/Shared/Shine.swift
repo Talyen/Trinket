@@ -49,22 +49,7 @@ public enum Shine: Equatable, Sendable {
         ]
     }
 
-    public var textColors: [Color] {
-        switch self {
-        case .none:
-            []
-        case let .keywords(keywords):
-            keywords.map(\.visualStyle.color)
-        case let .colors(colors):
-            colors
-        case .unique:
-            Self.uniqueBorderColors
-        case .corruption:
-            Self.corruptionBorderColors
-        }
-    }
-
-    public var borderColors: [Color]? {
+    public var colors: [Color]? {
         switch self {
         case .none:
             nil
@@ -81,6 +66,14 @@ public enum Shine: Equatable, Sendable {
         case .corruption:
             Self.corruptionBorderColors
         }
+    }
+
+    public var textColors: [Color] {
+        colors ?? []
+    }
+
+    public var borderColors: [Color]? {
+        colors
     }
 
     public var isEmpty: Bool {

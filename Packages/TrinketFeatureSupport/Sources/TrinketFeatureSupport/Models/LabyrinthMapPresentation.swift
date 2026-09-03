@@ -44,10 +44,14 @@ public enum LabyrinthMapPresentation {
     }
 
     public static func tint(for type: LabyrinthNodeType) -> Color {
-        switch type.canonical {
-        case .battle, .boss: TrinketDesign.Colors.encounterBattle
-        case .shop: TrinketDesign.Colors.encounterShop
-        case .mystery, .event, .recruit, .craft, .entrance, .rest:
+        switch type {
+        case .rest:
+            TrinketDesign.Colors.encounterRest
+        case .battle, .boss:
+            TrinketDesign.Colors.encounterBattle
+        case .shop:
+            TrinketDesign.Colors.encounterShop
+        case .mystery, .event, .recruit, .craft, .entrance:
             TrinketDesign.Colors.encounterEvent
         }
     }

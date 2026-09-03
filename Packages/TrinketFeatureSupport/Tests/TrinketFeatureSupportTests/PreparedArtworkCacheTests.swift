@@ -123,10 +123,11 @@ struct PreparedArtworkCacheTests {
         let attemptCount = await source.attemptCount
         #expect(attemptCount == 2)
         #expect(cache.launchWarmupSnapshot().pinnedCount == 1)
+        #expect(cache.pinDemandCount(for: "art") == 1)
 
         cache.releasePins(names: ["art"])
 
-        #expect(cache.launchWarmupSnapshot().pinnedCount == 1)
+        #expect(cache.launchWarmupSnapshot().pinnedCount == 0)
         #expect(cache.image(named: "art") != nil)
 
         cache.releasePins(names: ["art"])
@@ -207,6 +208,16 @@ struct PreparedArtworkCacheTests {
 
         await cache.prepareAndPin(names: ["art"])
         #expect(cache.pinDemandCount(for: "art") == 0)
+    }
+
+    @Test func `failed priority warmup leaves no phantom demand`() async {
+        let cache = PreparedArtworkCache.makeForTesting(catalogNames: ["art"]) { name in
+            PreparedArtwork(name: name, image: nil)
+        }
+
+        await cache.prepareAll(priorityImageNames: ["art"])
+        #expect(cache.pinDemandCount(for: "art") == 0)
+        #expect(cache.launchWarmupSnapshot().pinnedCount == 0)
     }
 
     @Test func `concurrent waiters share A single decode`() async {

@@ -52,13 +52,20 @@ public struct ItemCard<Art: View>: View {
         shine ?? item.displayShine
     }
 
+    private var borderShine: Shine {
+        if item.isCorrupted, item.rarity != .unique {
+            return .corruption
+        }
+        return resolvedShine
+    }
+
     public var body: some View {
         ProductCardShell(
             isSelected: isSelected,
             appliesCardSurface: appliesCardSurface,
             showsLabel: showsName,
             reservesLabelSpace: reservesLabelSpace,
-            shine: resolvedShine,
+            shine: borderShine,
             shineLineWidth: shineLineWidth,
             art: art,
             label: {
@@ -90,6 +97,7 @@ public struct ItemCard<Art: View>: View {
                     Text(balanced: "Corrupted")
                         .trinketTypography(.caption)
                         .foregroundStyle(TrinketDesign.Colors.destructive)
+                        .shineText(.corruption)
                         .trinketFittedText()
                 }
             }
