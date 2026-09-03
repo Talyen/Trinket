@@ -149,7 +149,6 @@ public final class SpiresPlayMode {
         let inputs = preparationInputs(for: floor)
         guard preparationTracker.shouldPrepare(
             for: inputs,
-            lifecycle: battle.lifecyclePhase,
             hasPreparedRun: battle.hasPreparedRun(request.origin.runKey),
         ) else { return }
         let prepared = battleLaunch.prepareCombat(request)

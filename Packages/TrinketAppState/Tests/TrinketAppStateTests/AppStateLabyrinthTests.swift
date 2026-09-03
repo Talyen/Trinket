@@ -384,20 +384,17 @@ struct AppStateLabyrinthTests {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         _ = state.labyrinth.enter()
         let reachableID = try #require(state.playerSave.labyrinth.reachableNodeIDs().first)
-        var labyrinth = state.playerSave.labyrinth
-        var node = try #require(labyrinth.nodes[reachableID], "Missing reachable node")
-        node = LabyrinthNode(
-            id: node.id,
-            type: .event,
-            enemyID: nil,
-            depth: node.depth,
-            clusterID: node.clusterID,
-            outgoingIDs: node.outgoingIDs,
-            isCleared: false,
-            isRevealed: true,
+        let node = try #require(state.playerSave.labyrinth.nodes[reachableID], "Missing reachable node")
+        LabyrinthTestSupport.store(
+            LabyrinthTestSupport.remade(
+                node,
+                type: .event,
+                recruitEventID: nil,
+                isCleared: false,
+                isRevealed: true,
+            ),
+            in: state,
         )
-        labyrinth.nodes[reachableID] = node
-        state.playerSave.labyrinth = labyrinth
 
         #expect(state.labyrinth.handleNodeAction(nodeID: reachableID) == nil)
         #expect(state.encounters.activeMysteryEncounter?.labyrinthNodeID == reachableID)

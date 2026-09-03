@@ -191,6 +191,7 @@ public final class PlaySession {
         dismissPostBattleTalentChoice()
         encounters.activeMysteryEncounter = nil
         encounters.activeShopEncounter = nil
+        pendingDestination = nil
         shellSession.selectedTab = .play
     }
 

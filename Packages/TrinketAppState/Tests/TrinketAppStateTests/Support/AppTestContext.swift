@@ -41,7 +41,7 @@ final class AppTestContext {
     @MainActor
     func makeOnboardingEnvironment() -> AppEnvironment {
         AppEnvironment.parse(
-            arguments: ["-disable-cloud-sync", "-disable-audio"],
+            arguments: Self.defaultTestArguments.filter { $0 != "-skip-starter-selection" },
             environment: [:],
         )
     }
@@ -57,31 +57,18 @@ final class AppTestContext {
             arguments: Self.defaultTestArguments + arguments,
             environment: environment,
         )
-        let battle: any BattleRuntime = battleRuntime ?? BattleSession(presentationEnvironment: .silent)
+        let battle = battleRuntime ?? BattleSession(presentationEnvironment: .silent)
         let resolvedSave = try playerSave ?? sharedPlayerSave(resetState: parsed.resetState)
-        let state = try AppState(
-            environment: parsed,
-            playerSave: resolvedSave,
-            userDefaults: userDefaults,
-            makeBattleRuntime: { _ in battle },
-        )
-        lastBattle = battle as? BattleSession
-        lastBattle?.openingHandDrawStagger = .zero
-        return state
+        return try buildAppState(environment: parsed, playerSave: resolvedSave, battle: battle)
     }
 
     @MainActor
     func makeAppState(environment: AppEnvironment) throws -> AppState {
-        let battle = BattleSession(presentationEnvironment: .silent)
-        let state = try AppState(
+        try buildAppState(
             environment: environment,
             playerSave: sharedPlayerSave(resetState: environment.resetState),
-            userDefaults: userDefaults,
-            makeBattleRuntime: { _ in battle },
+            battle: BattleSession(presentationEnvironment: .silent),
         )
-        lastBattle = battle
-        battle.openingHandDrawStagger = .zero
-        return state
     }
 
     @MainActor
@@ -102,6 +89,23 @@ final class AppTestContext {
     @MainActor
     func makePlaySession(environment: AppEnvironment) throws -> PlaySession {
         try makeAppState(environment: environment).play
+    }
+
+    @MainActor
+    private func buildAppState(
+        environment: AppEnvironment,
+        playerSave: PlayerSaveStore,
+        battle: any BattleRuntime,
+    ) throws -> AppState {
+        let state = try AppState(
+            environment: environment,
+            playerSave: playerSave,
+            userDefaults: userDefaults,
+            makeBattleRuntime: { _ in battle },
+        )
+        lastBattle = battle as? BattleSession
+        lastBattle?.openingHandDrawStagger = .zero
+        return state
     }
 
     @MainActor

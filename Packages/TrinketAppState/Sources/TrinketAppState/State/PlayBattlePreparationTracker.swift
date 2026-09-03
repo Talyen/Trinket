@@ -1,5 +1,3 @@
-import BattleEngine
-
 @MainActor
 struct PlayBattlePreparationTracker<Input: Equatable> {
     private var cached: Input?
@@ -12,7 +10,7 @@ struct PlayBattlePreparationTracker<Input: Equatable> {
         cached = nil
     }
 
-    func shouldPrepare(for newInput: Input, lifecycle: BattleLifecyclePhase, hasPreparedRun: Bool) -> Bool {
-        newInput != cached || lifecycle == .idle || !hasPreparedRun
+    func shouldPrepare(for newInput: Input, hasPreparedRun: Bool) -> Bool {
+        newInput != cached || !hasPreparedRun
     }
 }

@@ -174,7 +174,6 @@ public final class LabyrinthPlayMode {
         }
         guard preparationTracker.shouldPrepare(
             for: inputs,
-            lifecycle: battle.lifecyclePhase,
             hasPreparedRun: !missingPreparedRun,
         ) else { return }
 
@@ -182,8 +181,9 @@ public final class LabyrinthPlayMode {
         var preparedKeys: Set<BattleRunKey> = []
         for nodeID in labyrinth.reachableNodeIDs() {
             guard let node = labyrinth.node(id: nodeID), node.type.isCombat else { continue }
-            preparedKeys.insert(PlayBattleOrigin.labyrinth(nodeID: nodeID).runKey)
-            if !prepareBattle(node: node, labyrinth: labyrinth) {
+            if prepareBattle(node: node, labyrinth: labyrinth) {
+                preparedKeys.insert(PlayBattleOrigin.labyrinth(nodeID: nodeID).runKey)
+            } else {
                 preparedAll = false
             }
         }

@@ -6,6 +6,41 @@ import TrinketPersistence
 enum LabyrinthTestSupport {
     private static let maximumAdvanceCount = 24
 
+    static func remade(
+        _ node: LabyrinthNode,
+        type: LabyrinthNodeType,
+        recruitEventID: String?,
+        enemyID: String? = nil,
+        depth: Int? = nil,
+        modifierIDs: [LabyrinthModifierID]? = nil,
+        mysteryEventID: String? = nil,
+        isCleared: Bool? = nil,
+        isRevealed: Bool? = nil,
+    ) -> LabyrinthNode {
+        LabyrinthNode(
+            id: node.id,
+            type: type,
+            enemyID: enemyID,
+            depth: depth ?? node.depth,
+            clusterID: node.clusterID,
+            gridPosition: node.gridPosition,
+            modifierIDs: modifierIDs ?? node.modifierIDs,
+            recruitEventID: recruitEventID,
+            mysteryEventID: mysteryEventID,
+            outgoingIDs: node.outgoingIDs,
+            isCleared: isCleared ?? node.isCleared,
+            isRevealed: isRevealed ?? node.isRevealed,
+        )
+    }
+
+    @discardableResult
+    static func store(_ node: LabyrinthNode, in state: PlaySession) -> String {
+        var labyrinth = state.playerSave.labyrinth
+        labyrinth.nodes[node.id] = node
+        state.playerSave.labyrinth = labyrinth
+        return node.id
+    }
+
     static func firstReachableCombatNodeID(in state: PlaySession) -> String? {
         firstReachableCombatNodeID(where: { _ in true }, in: state)
     }
@@ -21,20 +56,10 @@ enum LabyrinthTestSupport {
         guard let nodeID = state.playerSave.labyrinth.reachableNodeIDs().first,
               let node = state.playerSave.labyrinth.nodes[nodeID]
         else { return nil }
-        var labyrinth = state.playerSave.labyrinth
-        labyrinth.nodes[nodeID] = LabyrinthNode(
-            id: node.id,
-            type: .recruit,
-            depth: node.depth,
-            clusterID: node.clusterID,
-            gridPosition: node.gridPosition,
-            modifierIDs: node.modifierIDs,
-            recruitEventID: eventID,
-            outgoingIDs: node.outgoingIDs,
-            isRevealed: true,
+        return store(
+            remade(node, type: .recruit, recruitEventID: eventID, isRevealed: true),
+            in: state,
         )
-        state.playerSave.labyrinth = labyrinth
-        return nodeID
     }
 
     static func firstReachableNodeID(
@@ -58,24 +83,14 @@ enum LabyrinthTestSupport {
         case .mystery: [LabyrinthModifierID("bountyMark")]
         default: []
         }
-        let updatedNode = LabyrinthNode(
-            id: existingNode.id,
+        let updatedNode = remade(
+            existingNode,
             type: type,
-            enemyID: enemyID,
-            depth: existingNode.depth,
-            clusterID: existingNode.clusterID,
-            gridPosition: existingNode.gridPosition,
-            modifierIDs: modifierIDs,
             recruitEventID: nil,
-            mysteryEventID: nil,
-            outgoingIDs: existingNode.outgoingIDs,
-            isCleared: existingNode.isCleared,
-            isRevealed: existingNode.isRevealed,
+            enemyID: enemyID,
+            modifierIDs: modifierIDs,
         )
-        var labyrinth = state.playerSave.labyrinth
-        labyrinth.nodes[targetID] = updatedNode
-        state.playerSave.labyrinth = labyrinth
-        return targetID
+        return store(updatedNode, in: state)
     }
 
     private static func firstReachableNodeID(

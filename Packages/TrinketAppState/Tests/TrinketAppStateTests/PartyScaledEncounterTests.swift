@@ -98,24 +98,18 @@ struct PartyScaledEncounterTests {
         _ = state.labyrinth.enter()
         let nodeID = try #require(LabyrinthTestSupport.firstReachableCombatNodeID(in: state))
         let node = try #require(state.playerSave.labyrinth.node(id: nodeID))
-        let deepened = LabyrinthNode(
-            id: node.id,
-            type: .battle,
-            enemyID: "goblin",
-            depth: 20,
-            clusterID: node.clusterID,
-            gridPosition: node.gridPosition,
-            modifierIDs: node.modifierIDs,
-            recruitEventID: nil,
-            mysteryEventID: nil,
-            outgoingIDs: node.outgoingIDs,
-            isCleared: false,
-            isRevealed: true,
+        return LabyrinthTestSupport.store(
+            LabyrinthTestSupport.remade(
+                node,
+                type: .battle,
+                recruitEventID: nil,
+                enemyID: "goblin",
+                depth: 20,
+                isCleared: false,
+                isRevealed: true,
+            ),
+            in: state,
         )
-        var labyrinth = state.playerSave.labyrinth
-        labyrinth.nodes[nodeID] = deepened
-        state.playerSave.labyrinth = labyrinth
-        return nodeID
     }
 
     @Test func `labyrinth encounter scales down to party ceiling`() throws {

@@ -94,7 +94,6 @@ public final class JourneyPlayMode {
         let inputs = preparationInputs(for: stage, stageRewardsAlreadyClaimed: request.stageRewardsAlreadyClaimed)
         guard preparationTracker.shouldPrepare(
             for: inputs,
-            lifecycle: battle.lifecyclePhase,
             hasPreparedRun: battle.hasPreparedRun(request.origin.runKey),
         ) else { return }
         let prepared = battleLaunch.prepareCombat(request)

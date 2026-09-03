@@ -1,6 +1,5 @@
 import Foundation
-import SwiftUI
-import TrinketPersistence
+import Observation
 
 public enum UltimateCinematicShowPolicy: String, CaseIterable, Identifiable, Sendable {
     case always
