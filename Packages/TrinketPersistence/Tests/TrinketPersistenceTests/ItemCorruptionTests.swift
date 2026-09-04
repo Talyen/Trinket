@@ -288,10 +288,10 @@ struct ItemCorruptionTests {
         #expect(powers[0].triggers == CombatTraitTriggers(
             damage: DamageTriggers(
                 damageBelowHealthPercentThreshold: 0.30,
-                damageBelowHealthPercentBonus: 4,
+                damageBelowHealthPercentBonus: 3,
             ),
         ))
-        #expect(powers[0].description == "Deal 4 additional damage if the enemy is below 30% Health.")
+        #expect(powers[0].description == "Deal 3 additional damage if the enemy is below 30% Health.")
     }
 
     @Test func `minimum integer and percent values cannot bump down`() {
