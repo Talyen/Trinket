@@ -111,7 +111,7 @@ struct DoTMechanicsTests {
         )
     }
 
-    @Test func `bleed four ticks twice after apply`() throws {
+    @Test func `bleed four ticks once after apply`() throws {
         var battle = isolatedBattle(heroAbilities: [bleedAbility(potency: 4)])
 
         _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
@@ -122,21 +122,26 @@ struct DoTMechanicsTests {
             amounts.append(contentsOf: statusAmounts(from: events, keyword: .bleed))
         }
 
-        try #expect(amounts == [4, 4])
-        try #expect(battle.health(of: battle.enemy) == 88)
+        try #expect(amounts == [4])
+        try #expect(battle.health(of: battle.enemy) == 92)
         try #expect(!battle.activeEffects(of: battle.enemy).contains { $0.keyword == .bleed })
     }
 
     @Test func `bleed instances track independently`() throws {
-        var battle = isolatedBattle(heroAbilities: [bleedAbility(potency: 6)])
+        var battle = BattleStateTestFactory.makeBattle(
+            hero: Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [bleedAbility(potency: 6)]),
+            companion: Combatant(
+                id: "companion",
+                name: "Companion",
+                role: .companion,
+                maxHealth: 20,
+                abilities: [bleedAbility(potency: 4)],
+            ),
+            enemy: CombatantFixtures.combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100),
+        )
 
         _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
-        if let second = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle) {
-            _ = second
-        } else {
-            _ = BattleTestFixtures.endTurn(on: &battle)
-            _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
-        }
+        _ = try BattleTestFixtures.playFirstPlayableCard(owner: .companion, on: &battle)
 
         try #expect(battle.activeEffects(of: battle.enemy).count(where: { $0.keyword == .bleed }) == 2)
     }

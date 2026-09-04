@@ -7,7 +7,7 @@ enum GameContentEnemiesGenerated {
         var list = [Enemy]()
         list.reserveCapacity(39)
         list.append(Enemy(combatant: Combatant(id: "living_armor", name: "Living Armor", role: .enemy, maxHealth: 15, abilities: [.slash, .sunder, .thornMail]), traitID: "living_armor_trait", faction: .construct))
-        list.append(Enemy(combatant: Combatant(id: "mimic", name: "Mimic", role: .enemy, maxHealth: 14, abilities: [.fangs, .acidPotion, .hemorrhage]), traitID: "mimic_trait", faction: .beast))
+        list.append(Enemy(combatant: Combatant(id: "mimic", name: "Mimic", role: .enemy, maxHealth: 14, abilities: [.fangs, .acidPotion, .thornMail]), traitID: "mimic_trait", faction: .beast))
         list.append(Enemy(combatant: Combatant(id: "mud_elemental", name: "Mud Elemental", role: .enemy, maxHealth: 15, abilities: [.bash, .sunder, .thornMail]), traitID: "mud_elemental_trait", faction: .elemental))
         list.append(Enemy(combatant: Combatant(id: "necromancer", name: "Necromancer", role: .enemy, maxHealth: 14, abilities: [.rendingSlash, .bloodOffering, .hemorrhage]), traitID: "necromancer_trait", faction: .undead))
         list.append(Enemy(combatant: Combatant(id: "plague_doctor", name: "Plague Doctor", role: .enemy, maxHealth: 13, abilities: [.causticJab, .poisonDagger, .bloodthorn]), traitID: "plague_doctor_trait", faction: .mortal))

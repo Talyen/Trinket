@@ -104,7 +104,7 @@ public enum Effect: Hashable, Sendable {
     case healingReductionPercent(Double, Int)
     case hemorrhage(Int)
 
-    public static let bleedDoTTurnCount = 2
+    public static let bleedDoTTurnCount = 1
     public static let abilityLeechPercent = 0.50
     public static let standardMarkedDuration = 6
     public static let standardMarkedBonus = 2

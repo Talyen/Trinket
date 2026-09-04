@@ -66,6 +66,6 @@ struct KeywordCoreTests {
     }
 
     @Test func `bleed rules text matches turn count`() throws {
-        try #expect(Keyword.bleed.rulesText.contains("\(Effect.bleedDoTTurnCount) rounds"))
+        try #expect(Keyword.bleed.rulesText.contains("\(Effect.bleedDoTTurnCount) round"))
     }
 }

@@ -367,9 +367,11 @@ extension BattleTurnEngine {
         in context: inout BattleState,
     ) -> [ActionEvent] {
         var hemorrhageDamage: Int?
+        var sourceActorID: String?
         for active in context.roster.activeEffects(for: actor) {
             if case let .hemorrhage(damage) = active.effect {
                 hemorrhageDamage = damage
+                sourceActorID = active.sourceActorID
                 break
             }
         }
@@ -380,12 +382,13 @@ extension BattleTurnEngine {
             }
             return false
         }
+        let casterID = sourceActorID ?? actor.id
         let hemorrhageOutcome = context.resolveDamage(
             DamageRequest(
                 amount: hemorrhageDamage,
                 target: actor,
                 keyword: .bleed,
-                sourceActorID: actor.id,
+                sourceActorID: casterID,
                 options: .flatReaction,
             ),
         )
@@ -410,6 +413,13 @@ extension BattleTurnEngine {
                 keyword: .bleed,
             ))
         }
+        hemorrhageEvents.append(contentsOf: DoTApplicator.applyBleed(
+            potency: hemorrhageDamage,
+            to: actor,
+            sourceActorID: casterID,
+            dealImmediateDamage: false,
+            in: &context,
+        ))
         return hemorrhageEvents
     }
 

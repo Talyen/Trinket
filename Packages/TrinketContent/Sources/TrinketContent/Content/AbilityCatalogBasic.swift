@@ -64,7 +64,10 @@ enum AbilityCatalogBasic {
 
     static let manaBerries = Ability(
         id: "mana-berries", name: "Mana Berries", tier: .basic,
-        targetedEffects: [TargetedEffect(.resourceGain(.mana, 2))],
+        targetedEffects: [
+            TargetedEffect(.instantHeal(.health, 2)),
+            TargetedEffect(.resourceGain(.mana, 2)),
+        ],
     )
 
     static let maul = Ability(

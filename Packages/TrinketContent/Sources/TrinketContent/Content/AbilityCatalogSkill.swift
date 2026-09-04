@@ -14,7 +14,7 @@ enum AbilityCatalogSkill {
         id: "blood-offering", name: "Blood Offering", tier: .skill,
         damageComponents: [
             DamageComponent(1, keyword: .physical, target: .actor),
-            DamageComponent(4, keyword: .bleed),
+            DamageComponent(3, keyword: .bleed),
         ],
     )
 
@@ -170,7 +170,8 @@ enum AbilityCatalogSkill {
 
     static let steal = Ability(
         id: "steal", name: "Steal", tier: .skill,
-        targetedEffects: [TargetedEffect(.resourceGain(.gold, 3))],
+        damageComponents: [DamageComponent(2, keyword: .physical)],
+        targetedEffects: [TargetedEffect(.resourceGain(.gold, 2))],
     )
 
     static let stoneskinPotion = AbilityBuilder.buffOnly(

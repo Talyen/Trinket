@@ -34,7 +34,7 @@ struct EnemyCatalogTests {
         let mimic = try #require(GameContent.enemies.first { $0.id == "mimic" })
         try #expect(mimic.combatant.abilityLoadout.basic == .fangs)
         try #expect(mimic.combatant.abilityLoadout.skill == .acidPotion)
-        try #expect(mimic.combatant.abilityLoadout.ultimate == .hemorrhage)
+        try #expect(mimic.combatant.abilityLoadout.ultimate == .thornMail)
 
         let bear = try #require(GameContent.enemies.first { $0.id == "the_iron_bear" })
         try #expect(bear.combatant.abilityLoadout.basic == .bash)

@@ -60,7 +60,29 @@ private enum HeuristicCardScoring {
 
         let enemyEffects = battle.roster.activeEffects(for: battle.enemy)
         value += effectScore(ability: ability, enemyEffects: enemyEffects, setupAware: setupAware)
+        if let branches = ability.outcomeBranches, !branches.isEmpty {
+            value += branchScore(branches: branches, enemyEffects: enemyEffects, setupAware: setupAware)
+        }
         return value
+    }
+
+    private static func branchScore(
+        branches: [AbilityOutcomeBranch],
+        enemyEffects: [ActiveEffect],
+        setupAware: Bool,
+    ) -> Int {
+        var total = 0
+        for branch in branches {
+            let branchDamage = branch.damageComponents.reduce(0) { sum, comp in
+                comp.target == .actor ? sum : sum + comp.amount
+            }
+            var branchEffects = 0
+            for targeted in branch.targetedEffects {
+                branchEffects += effectValue(targeted.effect, enemyEffects: enemyEffects, setupAware: setupAware)
+            }
+            total += branchDamage + branchEffects
+        }
+        return total / branches.count
     }
 
     private static func effectScore(

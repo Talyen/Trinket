@@ -8,7 +8,7 @@ fangs	Fangs	basic	Deal 1 Bleed damage. Leech.
 fire-arrow	Fire Arrow	basic	Deal 1 Burn damage. If the enemy is Burning, deal 1 extra Burn damage.
 ice-shot	Ice Shot	basic	Deal 2 Freeze damage. If this Freezes the enemy, deal 2 Physical damage.
 kindling	Kindling	basic	Deal 1 Burn damage. Your next Burn card deals +1 Burn damage.
-mana-berries	Mana Berries	basic	Restore 2 Mana.
+mana-berries	Mana Berries	basic	Restore 2 Health and restore 2 Mana.
 maul	Maul	basic	Deal 2 Stun damage or deal 2 Bleed damage.
 pixie-dust	Pixie Dust	basic	Deal 1 Burn damage and restore 1 Mana.
 ray-of-frost	Ray of Frost	basic	Deal 1 Freeze damage each turn for 2 turns.
@@ -20,7 +20,7 @@ stab	Stab	basic	Deal 2 Physical damage with a +25% chance to Critically Hit.
 stargaze	Stargaze	basic	Deal 1 Freeze damage and restore 1 Mana.
 venom-arrow	Venom Arrow	basic	Deal 2 Poison damage.
 acid-potion	Acid Potion	skill	Deal 3 Poison damage and halve the enemy's Block.
-blood-offering	Blood Offering	skill	Lose 1 Health. Deal 4 Bleed damage.
+blood-offering	Blood Offering	skill	Lose 1 Health. Deal 3 Bleed damage.
 bounty-shot	Bounty Shot	skill	Deal 3 Physical damage or steal 3 Gold. If the enemy is Marked, gain both.
 briar-shield	Briar Shield	skill	Gain 1 Block and gain 3 Thorns.
 cinderbloom	Cinderbloom	skill	Deal 3 Burn damage or deal 3 Poison damage.
@@ -40,13 +40,13 @@ sap-arrow	Sap Arrow	skill	Deal 3 Stun damage. If the enemy is Stunned, gain 2 Go
 serrated-edge	Serrated Edge	skill	Deal 2 Bleed damage. Reduces enemy Healing by 25% for 3 turns.
 smite	Smite	skill	Deal 4 Holy damage and Purge a positive status effect from the enemy.
 spiked-shield	Spiked Shield	skill	Deal 2 Physical damage, gain 2 Block, and gain 2 Thorns.
-steal	Steal	skill	Steal 3 Gold.
+steal	Steal	skill	Deal 2 Physical damage and steal 2 Gold.
 stoneskin-potion	Stoneskin Potion	skill	Gain 4 Block.
 sunder	Sunder	skill	Deal 4 Physical damage and halve the enemy's Block.
 tithe	Tithe	skill	Deal 3 Holy damage or steal 3 Gold.
 venom-fangs	Venom Fangs	skill	Deal 2 Poison damage. Leech.
 astral-arrow	Astral Arrow	ultimate	Deal 7 Burn, Freeze, or Bleed damage.
-avatar-of-justice	Avatar	ultimate	Deal 5 Holy damage and gain 3 Block each turn for 2 turns.
+avatar-of-justice	Avatar	ultimate	Deal 7 Holy damage and gain 2 Block each turn for 2 turns.
 blessed-aegis	Blessed Aegis	ultimate	Gain 6 Block. Next time you're hit, Deal 6 Holy damage.
 blizzard	Blizzard	ultimate	Deal 4 Freeze damage each turn for 2 turns.
 bloodthorn	Bloodthorn	ultimate	Deal 2 Bleed damage and deal 2 Poison damage. Leech.

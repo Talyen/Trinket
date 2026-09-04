@@ -1,6 +1,6 @@
 id	name	max_health	is_boss	abilities	trait_id	faction
 living_armor	Living Armor	15	false	slash,sunder,thornMail	living_armor_trait	construct
-mimic	Mimic	14	false	fangs,acidPotion,hemorrhage	mimic_trait	beast
+mimic	Mimic	14	false	fangs,acidPotion,thornMail	mimic_trait	beast
 mud_elemental	Mud Elemental	15	false	bash,sunder,thornMail	mud_elemental_trait	elemental
 necromancer	Necromancer	14	false	rendingSlash,bloodOffering,hemorrhage	necromancer_trait	undead
 plague_doctor	Plague Doctor	13	false	causticJab,poisonDagger,bloodthorn	plague_doctor_trait	mortal

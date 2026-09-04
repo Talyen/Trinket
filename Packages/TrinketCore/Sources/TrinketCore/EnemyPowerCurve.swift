@@ -3,8 +3,8 @@ import Foundation
 public enum EnemyPowerCurve {
     private static let normalHPAnchors: [(level: Int, value: Double)] = [
         (1, 6.40),
-        (20, 12.50),
-        (40, 42.00),
+        (20, 16.00),
+        (40, 58.00),
     ]
 
     private static let bossHPAnchors: [(level: Int, value: Double)] = [
@@ -15,8 +15,8 @@ public enum EnemyPowerCurve {
 
     private static let normalDamageAnchors: [(level: Int, value: Double)] = [
         (1, 0.50),
-        (20, 0.80),
-        (40, 1.80),
+        (20, 1.20),
+        (40, 2.50),
     ]
 
     private static let bossDamageAnchors: [(level: Int, value: Double)] = [
