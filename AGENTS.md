@@ -1,58 +1,60 @@
 # Trinket agent guide
 
-Portrait-first iOS fantasy turn-based card combat. SwiftUI + SPM packages under `Packages/`; Xcode project generated from `project.yml` (`./Scripts/generate.sh`). Requires Xcode 26+ — see toolchain ladder in [`Scripts/README.md`](Scripts/README.md).
+Portrait-first iOS fantasy turn-based card combat. SwiftUI + SPM packages under `Packages/`; Xcode project generated from `project.yml`. Checked-in configuration owns toolchain versions; setup and commands live in [`Scripts/README.md`](Scripts/README.md).
 
-This file is the router + universal constraints. Nested `AGENTS.md` add local hard stops; AgentContext cards and Platform docs own domain behavior, rationale, and exact commands.
-
-Active skills live in [`.agents/skills/`](.agents/skills/); durable lessons in [`.agents/knowledge/`](.agents/knowledge/) (searchable, not auto-loaded — see [knowledge/index.md](.agents/knowledge/index.md)). Load knowledge only when the task touches its concern or a skill’s PURPOSE points there. One-off failures stay in session history. Friction log lives in [`.agents/FRICTION_LOG.md`](.agents/FRICTION_LOG.md) — append when docs mislead, behavior surprises, or repeated friction appears. Not auto-loaded; one-line row is enough — move to Resolved with a fix link when addressed.
+This file owns repository-wide agent behavior. Nested `AGENTS.md` files add local constraints. Use the [documentation map](Docs/README.md) to find the owner of a policy; link to that owner instead of repeating it.
 
 ## Communication
 
-Write for a product manager, designer, player, or user who knows Trinket as a game, not its implementation. Use plain language and established player-facing names for features, screens, and behavior. Discuss code-level detail only when the user asks for it or when it is necessary to explain a decision, risk, or blocker.
+Write for someone who knows Trinket as a game, not its implementation. Use plain language and established player-facing names. Include code-level detail when requested or needed to explain a decision, risk, or blocker. State assumptions that materially affect the result; distinguish verified behavior from inference.
 
-## Guardrails
+## Protect the workspace
 
-- These rules apply repository-wide. A nested `AGENTS.md` may add or tighten path-specific rules, but it may not relax this root Guardrails section.
-- Preserve existing work. Never clean, revert, or overwrite pre-existing changes. A confirmed encountered fix may touch an already-dirty file only after inspecting its diff and only with a surgical edit that preserves the existing change's intent; if the work cannot be distinguished safely, stop and report it.
-- Treat the requested task as the initial scope. Agents may adopt confirmed defects and clear bounded technical debt they encounter under the Change discipline rules below; this permission does not authorize speculative repository sweeps.
-- Treat checked-in project configuration as the toolchain source of truth.
-- Do not add legacy-platform compatibility or UIKit bridges for feature chrome when current SwiftUI provides a first-party solution. Existing measured UIKit feedback infrastructure is an owned exception; extend it only through its package guide.
-- Never hand-edit generated code, processed assets/resources, `.DerivedData/`, `.tools/`, or the Xcode project. Edit authored inputs and run `./Scripts/generate.sh`.
-- Do not drop launch or imminent artwork pins, switch first-screen art to on-demand `Image(name)`, or lower artwork memory budgets (`PreparedArtworkCache` / `NSCache.totalCostLimit`) without product approval. Enforced by `check-artwork-budget.sh`; see [PerformanceInvestigationPlaybook](Docs/Platform/PerformanceInvestigationPlaybook.md) and [`PreparedArtworkCache`](Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/PreparedArtworkCache.swift).
-- Keep the primary checkout on `main`. Do not create or switch branches, and do not open pull requests. Isolated worktrees (`node Scripts/agent-worktree.mjs create --task <slug>` under `.worktrees/` on `agent/<slug>`, or compat `./Scripts/agent-worktree.sh create <slug>` as sibling `../Trinket-<slug>`) are allowed for parallel verification. Land work by committing and pushing directly to `main` only when explicitly requested. For requested commit or release work, read [`Docs/Platform/Release.md`](Docs/Platform/Release.md).
-- Dirty tree is in-flight user work: inspect it, preserve its intent, and keep unrelated hunks out of staging and commits. Never `git reset --hard` / `clean -fd` / `checkout --` / `restore` with a dirty tree — the repo guard (`Scripts/bin/git` → `Scripts/git-safety-guard.mjs`) will stash to `auto-backup pre-<cmd>` and block; recover via `git stash list` / `git reflog` or `git stash pop`. If another agent has dirty work that cannot be edited without risking its intent, use an isolated worktree instead.
+- Inspect `git status --short` before editing. Existing changes are in-flight user work. Inspect a dirty file's diff before touching it; make surgical edits that preserve its intent. If ownership cannot be distinguished safely, use an isolated worktree or report the conflict.
+- Never discard, overwrite, or stash unrelated work to simplify a task or make a check pass. Do not run destructive Git commands against a dirty tree. The Git safety shim can itself move work into a stash before blocking; it is a fallback, not permission to attempt the command. If triggered, inspect the backup and current state before restoring anything.
+- Keep the primary checkout on `main`; do not create or switch branches there or open pull requests. Use `node Scripts/agent-worktree.mjs create --task <slug>` for isolated work under `.worktrees/` on `agent/<slug>`. Worktree setup is documented in [`Scripts/README.md`](Scripts/README.md).
+- Commit and push only when explicitly requested, following [`Release.md`](Docs/Platform/Release.md). Include only requested work and explicitly adopted fixes; stage individual hunks when a file also contains unrelated changes. Hosted CI runs after a push to `main`; its status is not a prerequisite for that push.
+- Never hand-edit generated code, processed assets/resources, `.DerivedData/`, `.tools/`, or the Xcode project. Edit authored inputs; use `./Scripts/generate.sh` when regeneration is needed. Normal build and handoff routes handle generation freshness.
+- Never kill foreign Xcode or Simulator processes. Use the isolation and diagnostics procedures linked from [Verification.md](Docs/Platform/Verification.md).
 
-## Task routing
+## Product and platform constraints
 
-Touched areas must respect their nested guides and AgentContext cards. Run `./Scripts/agent-context.sh --agent --paths <file...>` once the task's touched paths are known — it is the catalog for discovering path-specific guidance, skills, and verification plans, not a prerequisite ritual before thinking. Always use explicit `--paths`; use `--working-tree` only when whole-tree is intentional. Follow the briefing's required read contract and applicable skill routing. Rerun it whenever the requested or adopted scope crosses into another area.
+Nested guides may tighten these constraints, not relax them.
 
-## Change discipline
+- Use the checked-in deployment target and first-party SwiftUI APIs. Do not add legacy-platform compatibility or UIKit bridges for feature chrome. Existing measured UIKit feedback infrastructure is an owned exception; extend it only through its package guide.
+- Do not drop launch or imminent artwork pins, switch first-screen art to on-demand `Image(name)`, or lower artwork memory budgets without product approval. See [artwork budgets](Docs/Platform/PerformanceInvestigationPlaybook.md) and `check-artwork-budget.sh`.
+- Persisted saves, serialized identifiers, manifests, and live schemas are product data: preserve or migrate them unless the consumer window is proven closed or an intentional break is approved. Source/API compatibility is required only for a confirmed current consumer.
+- Do not author explanatory Swift comments or leave temporary debug output. Use only checker-approved directives and narrow exception annotations; `check-comment-ban.sh` and the [doc-budget skill](.agents/skills/doc-budget/SKILL.md) own the accepted forms.
 
-- Deliver the most pragmatic architectural solution that fully satisfies the request — prefer the cleanest long-term shape over the narrowest diff. A larger, well-owned change that removes the root cause is preferred over a smaller workaround or local patch that leaves structural debt. Avoid speculative extension points, compatibility paths, or defensive layers for states already excluded by an enforced invariant. Adjacent cleanup is allowed when it is part of the pragmatic shape and improves the long-term owner.
-- Do not preserve source or API compatibility unless it is an explicit current requirement. Persisted saves, serialized identifiers, manifests, and live schemas are product data: preserve or migrate them unless the consumer window is proven closed or an intentional break is approved. Choose the simplest pragmatic implementation that fully satisfies the behavior the product needs now, judged by long-term maintainability and ownership fit — not by line count.
-- Prefer an established dependency already used by the repository over a custom implementation. Add a new external dependency only when it materially reduces complexity and its maintenance, license, platform, and toolchain fit have been checked.
-- Prefer the most pragmatic surface, ordered as delete → reuse → simplify locally → parameterize a confirmed duplicate → add an abstraction. Choose the step that best fits the long-term ownership and removes the root cause, not automatically the shortest step; a larger step that eliminates the defect class is preferred over a narrower local patch.
-- Extend the module that already owns the behavior before adding a file, type, protocol, manager, helper, wrapper, or configuration object. A generic abstraction needs at least three current uses or an enforced architectural boundary; predicted future reuse is insufficient.
-- Refactors remove the replaced path. Do not leave forwarding wrappers, parallel implementations, or duplicate tests unless compatibility explicitly requires them.
-- Do not author explanatory Swift comments or leave temporary debug output. Narrow checker-approved `*Check: allow - reason` annotations are the only exception; comment hygiene is enforced by `check-comment-ban.sh`.
-- Treat authored production and test surface as budgets. Unusual growth is advisory, not a license to compress code: report the necessity and the simpler alternative rejected when `./Scripts/change-budget.sh` warns.
+## Route the task
+
+Once likely touched paths are known, run `./Scripts/agent-context.sh --agent --paths <file...>`. Read the listed root/nested guides and required context cards; load skills when their triggers apply. Rerun routing when scope crosses into another owner. Use `--working-tree` only for an intentional whole-tree task.
+
+Read linked material only when it concerns the task. Search authored owner paths with `rg` and bounded reads; generated catalogs and logs are targeted lookups. Follow the [documentation map's conflict rules](Docs/README.md#policy-precedence) when guidance disagrees.
+
+Use a checked-in execution plan when work needs durable coordination or resumption, not for every edit. [Plans](Docs/Plans/README.md) owns location, metadata, and closure requirements.
+
+## Choose the change
+
+- Solve the root cause in the module that owns the behavior. Prefer deletion, reuse, or local simplification before a new abstraction. A larger change is justified when it removes the complete cause or a replaced path; size alone is neither a virtue nor a defect.
+- Keep files and types cohesive. Introduce a shared abstraction for confirmed repeated behavior or an enforced boundary, not predicted future reuse. Do not add extension points, compatibility layers, or defensive paths for states excluded by an enforced invariant.
+- Prefer an established repository dependency over a custom implementation. A new dependency needs a material complexity reduction and a checked maintenance, license, platform, and toolchain fit.
+- Remove replaced implementations and redundant tests. Keep parallel paths only when a current compatibility requirement needs them.
+- Treat production and test surface as budgets. A `change-budget.sh` warning is advisory: explain the necessity and simpler alternative rejected; do not compress code to satisfy a count.
 
 ### Encountered fixes
 
-- Fix reproducible bugs, build/test/gate failures, unsafe behavior, and documentation drift encountered during the task. Clear bounded technical debt — such as dead code, confirmed duplication, misplaced ownership, or unnecessary complexity — may also be adopted when evidence establishes the problem; taste-driven cleanup and speculative refactoring do not qualify.
-- Auto-fix only when the intended behavior or owner is clear, the remedy follows existing architecture, the change is bounded and reversible, and targeted verification is available. Remove the complete confirmed cause rather than patching one symptom.
-- For each adopted fix: confirm the issue, add its complete remedy to the active scope, rerun path routing for every newly touched owner, verify the union of requested and adopted changes, and report the encountered fix separately at handoff.
-- Stop and propose instead of implementing when the remedy requires ambiguous product behavior, balance/copy/layout decisions, a persisted-data or live-schema migration, a new dependency or architectural boundary, or a broad or difficult-to-reverse rewrite.
+The request defines initial scope. Adopt reproducible defects, gate failures, documentation drift, or bounded technical debt encountered in that scope when evidence establishes the problem, the intended behavior and owner are clear, and the complete remedy is reversible and has targeted verification. This does not authorize speculative repository sweeps.
 
-## Test and verification discipline
+For each adopted fix, include its paths in routing and final verification and report it separately. Propose work outside existing authorization when it requires ambiguous product behavior, a persisted-data migration, a new dependency or architectural boundary, or a broad rewrite. Continue independent authorized work while that decision is pending. A failure caused by unrelated in-flight work does not authorize overwriting that work.
 
-- Verification does not imply authoring a test. Follow [`Docs/Platform/Testing.md`](Docs/Platform/Testing.md) to place consequential coverage in the cheapest existing semantic owner; that guide owns persistence reload semantics and the UI keep/drop rubric.
-- Full smoke and exhaustive UI are CI-owned post-push gates. Local simulator work is limited to routed targeted smoke classes or single-target UI debugging; reserve full local UI runs for release-time deploy verification (`test-deploy.sh`).
-- Before handoff, run path-scoped verification with `--isolate`. `./Scripts/handoff.sh --isolate --paths <file...>` is the canonical gate; add `--final` when closing a task that used an execution plan. Do not claim completion unless the routed gate passes; if a required step is unavailable, report the exact blocker or skip. Never kill foreign Xcode or Simulator processes; concurrency, worktree, lock, and diagnostics details live in [`Docs/AgentContext/ci-and-project-generation.md`](Docs/AgentContext/ci-and-project-generation.md) and [`Docs/AgentContext/ci-diagnostics.md`](Docs/AgentContext/ci-diagnostics.md).
-- At handoff, briefly report the result, verification status, encountered fixes, and anything intentionally left alone. Follow Communication for the level of detail.
+## Verify and hand off
 
-## Commit and push
+- Follow [Testing.md](Docs/Platform/Testing.md) to choose consequential coverage in the cheapest existing owner. Verification does not automatically require a new test.
+- Run `./Scripts/handoff.sh --isolate --paths <file...>` before handoff using the final union of requested and adopted paths, including deleted paths. Add `--final` when closing work that used an execution plan. [Verification.md](Docs/Platform/Verification.md) owns gate selection, local simulator limits, and failure handling.
+- Review the final diff for scope, accidental changes, and generated-output consistency. A green gate proves only the checks it ran; report skipped or unavailable required checks and their exact blockers. Do not claim verified completion while a required check is unresolved.
+- Briefly report the result, verification status, adopted fixes, and remaining limitations. Commit/push status matters only when requested.
 
-- Commits include only requested work and explicitly adopted fixes, plus their authored and generated outputs, and must pass repository hooks. When an adopted fix shares a dirty file with unrelated work, stage only the fix's hunks. Path-scoped verification should be green before commit.
-- Push only when explicitly requested. Commit format, hooks, and push preconditions live in [`Docs/Platform/Release.md`](Docs/Platform/Release.md).
-- Hosted CI runs after a push to `main`. Do **not** require `tests / CI OK` as a GitHub **push** gate; that status is produced by the post-push run.
+## Maintain guidance
+
+Keep durable rules with their canonical owner and update them with behavior changes. Skills live in [`.agents/skills/`](.agents/skills/); load [knowledge](.agents/knowledge/index.md) only when its concern applies. One-off failures stay in session history. Record misleading guidance or recurring friction in [`.agents/FRICTION_LOG.md`](.agents/FRICTION_LOG.md), with a fix link when resolved. Do not turn each incident into another standing rule.

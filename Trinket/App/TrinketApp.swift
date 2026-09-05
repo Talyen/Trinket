@@ -163,6 +163,7 @@ private struct PreparedAppRoot: View {
     private let artworkCache = PreparedArtworkCache.shared
     @State private var isResourcePreparationComplete = false
     @State private var isShellWarmupComplete = false
+    @State private var isMinimumLoadingTimeComplete = false
     @State private var areCastEffectsPrepared = false
     @State private var didWarmHiddenTabs = false
 
@@ -193,6 +194,11 @@ private struct PreparedAppRoot: View {
             if !isPreparationComplete {
                 LaunchWarmupView()
                     .allowsHitTesting(true)
+                    .task {
+                        try? await Task.sleep(for: .seconds(2))
+                        guard !Task.isCancelled else { return }
+                        isMinimumLoadingTimeComplete = true
+                    }
                 if !areCastEffectsPrepared {
                     CardCastEffectsPrewarmView {
                         areCastEffectsPrepared = true
@@ -244,6 +250,7 @@ private struct PreparedAppRoot: View {
     private var isPreparationComplete: Bool {
         isResourcePreparationComplete
             && isShellWarmupComplete
+            && isMinimumLoadingTimeComplete
             && areCastEffectsPrepared
     }
 }

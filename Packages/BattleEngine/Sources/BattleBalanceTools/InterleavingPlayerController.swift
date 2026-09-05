@@ -114,17 +114,19 @@ public final class InterleavingPlayerController {
             consecutiveLosses[step.mode] = 0
 
             let highestLevel = max(state.heroLevel, state.companionLevel)
-            let heroXPEnemyLevel = step.mode == .spire ? state.heroLevel : step.enemyLevel
-            let companionXPEnemyLevel = step.mode == .spire ? state.companionLevel : step.enemyLevel
+            let heroPartyAvg = Int(state.averageLevel.rounded())
+            let resolvedEnemyLevel = step.mode == .spire
+                ? EncounterLevelResolver.partyAdjusted(step.enemyLevel, partyAverageLevel: heroPartyAvg)
+                : step.enemyLevel
 
             let heroAward = ExperienceScaling.battleAwardWithCatchUp(
                 playerLevel: state.heroLevel,
-                enemyLevel: heroXPEnemyLevel,
+                enemyLevel: resolvedEnemyLevel,
                 highestLevel: highestLevel,
             )
             let companionAward = ExperienceScaling.battleAwardWithCatchUp(
                 playerLevel: state.companionLevel,
-                enemyLevel: companionXPEnemyLevel,
+                enemyLevel: resolvedEnemyLevel,
                 highestLevel: highestLevel,
             )
 
@@ -167,72 +169,95 @@ public final class InterleavingPlayerController {
 
         let enemy = GameContent.enemy(matching: step.enemyID) ?? GameContent.enemies[0]
 
-        let partyLoadouts = SimulationMatchupBuilder.samplePartyLoadouts(
-            hero: hero,
-            companion: companion,
-            using: &rng,
-        )
-        let heroLoadout = partyLoadouts.hero
-        let companionLoadout = partyLoadouts.companion
-
-        let heroLevel = simulatedHeroLevel(for: step)
-        let companionLevel = simulatedCompanionLevel(for: step)
-        let powerTier = SimulationPowerTier.band(forLevel: heroLevel)
-
-        let keywordBias = step.keywordBias.map { Set([$0]) }
-        let heroTalents = SimulationMatchupBuilder.legalTalentKit(
-            for: hero.id,
-            level: heroLevel,
-            using: &rng,
-        )
-        let companionTalents = SimulationMatchupBuilder.legalTalentKit(
-            for: companion.id,
-            level: companionLevel,
-            using: &rng,
-        )
-        let heroGear = SimulationMatchupBuilder.generateStarterGearIfNeeded(
-            for: hero,
-            loadout: heroLoadout,
-            tier: powerTier,
-            level: heroLevel,
-            idPrefix: "prog-hero",
-            gearKeywordBias: keywordBias,
-            using: &rng,
-        )
-        let companionGear = SimulationMatchupBuilder.generateStarterGearIfNeeded(
-            for: companion,
-            loadout: companionLoadout,
-            tier: powerTier,
-            level: companionLevel,
-            idPrefix: "prog-companion",
-            gearKeywordBias: keywordBias,
-            using: &rng,
-        )
+        let party = preparePartyMatchup(step: step, using: &rng)
 
         return SimulationMatchupBuilder.build(
             hero: hero,
             companion: companion,
             enemy: enemy,
-            tier: powerTier,
-            heroLevel: heroLevel,
-            companionLevel: companionLevel,
-            enemyLevel: step.enemyLevel,
-            heroLoadout: heroLoadout,
-            companionLoadout: companionLoadout,
+            tier: party.powerTier,
+            heroLevel: party.heroLevel,
+            companionLevel: party.companionLevel,
+            enemyLevel: party.enemyLevel,
+            heroLoadout: party.heroLoadout,
+            companionLoadout: party.companionLoadout,
             seed: seed,
-            heroGear: heroGear,
-            companionGear: companionGear,
-            heroTalents: heroTalents,
-            companionTalents: companionTalents,
-            gearKeywordBias: keywordBias,
+            heroGear: party.heroGear,
+            companionGear: party.companionGear,
+            heroTalents: party.heroTalents,
+            companionTalents: party.companionTalents,
+            gearKeywordBias: party.keywordBias,
         )
     }
 
-    public func simulatedHeroLevel(for step: ModeProgressionStep) -> Int {
-        step.mode == .spire ? step.enemyLevel : state.heroLevel
+    private struct PartyMatchupSetup {
+        var heroLevel: Int
+        var companionLevel: Int
+        var enemyLevel: Int
+        var powerTier: SimulationPowerTier
+        var heroLoadout: AbilityLoadout
+        var companionLoadout: AbilityLoadout
+        var heroTalents: Set<String>
+        var companionTalents: Set<String>
+        var heroGear: SimulationMatchupBuilder.GearOverride?
+        var companionGear: SimulationMatchupBuilder.GearOverride?
+        var keywordBias: Set<Keyword>?
     }
 
-    public func simulatedCompanionLevel(for step: ModeProgressionStep) -> Int {
-        step.mode == .spire ? step.enemyLevel : state.companionLevel
+    private func preparePartyMatchup(
+        step: ModeProgressionStep,
+        using rng: inout some RandomNumberGenerator,
+    ) -> PartyMatchupSetup {
+        let partyLoadouts = SimulationMatchupBuilder.samplePartyLoadouts(
+            hero: hero,
+            companion: companion,
+            using: &rng,
+        )
+        let heroLevel = simulatedHeroLevel(for: step)
+        let companionLevel = simulatedCompanionLevel(for: step)
+        let powerTier = SimulationPowerTier.band(forLevel: heroLevel)
+        let partyAvg = Int(((Double(heroLevel) + Double(companionLevel)) / 2.0).rounded())
+        let enemyLevel = step.mode == .spire
+            ? EncounterLevelResolver.partyAdjusted(step.enemyLevel, partyAverageLevel: partyAvg)
+            : step.enemyLevel
+        let keywordBias = step.keywordBias.map { Set([$0]) }
+
+        return PartyMatchupSetup(
+            heroLevel: heroLevel,
+            companionLevel: companionLevel,
+            enemyLevel: enemyLevel,
+            powerTier: powerTier,
+            heroLoadout: partyLoadouts.hero,
+            companionLoadout: partyLoadouts.companion,
+            heroTalents: SimulationMatchupBuilder.legalTalentKit(for: hero.id, level: heroLevel, using: &rng),
+            companionTalents: SimulationMatchupBuilder.legalTalentKit(for: companion.id, level: companionLevel, using: &rng),
+            heroGear: SimulationMatchupBuilder.generateStarterGearIfNeeded(
+                for: hero,
+                loadout: partyLoadouts.hero,
+                tier: powerTier,
+                level: heroLevel,
+                idPrefix: "prog-hero",
+                gearKeywordBias: keywordBias,
+                using: &rng,
+            ),
+            companionGear: SimulationMatchupBuilder.generateStarterGearIfNeeded(
+                for: companion,
+                loadout: partyLoadouts.companion,
+                tier: powerTier,
+                level: companionLevel,
+                idPrefix: "prog-companion",
+                gearKeywordBias: keywordBias,
+                using: &rng,
+            ),
+            keywordBias: keywordBias,
+        )
+    }
+
+    public func simulatedHeroLevel(for _: ModeProgressionStep) -> Int {
+        state.heroLevel
+    }
+
+    public func simulatedCompanionLevel(for _: ModeProgressionStep) -> Int {
+        state.companionLevel
     }
 }

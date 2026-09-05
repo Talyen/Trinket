@@ -51,10 +51,28 @@ Do not create execution plans under `.agents/` or another parallel plan folder.
 
 ## Policy precedence
 
-When guidance overlaps, use the narrowest applicable owner. Root `AGENTS.md`
-sets repository-wide agent behavior and safety; nested `AGENTS.md` files add
-path-local hard stops. Product and Platform documents define standing product
-and engineering policy. AgentContext cards and package READMEs define the
-current ownership and implementation contract for their scope. Checked-in
-configuration and enforcement scripts are authoritative for executable
-mechanics; update the owning prose when those mechanics change.
+Within repository guidance, use the canonical owner for the fact in question.
+Root `AGENTS.md` sets repository-wide behavior and constraints; a narrower guide
+may add constraints but cannot silently relax the root. Product and Platform
+documents own standing policy; AgentContext cards and package READMEs supply
+scope-specific contracts and procedures.
+
+Checked-in configuration and script option parsing establish what currently
+runs. They do not prove that the behavior is intended: a failing script or
+misconfigured gate can be a defect. When prose and execution disagree, inspect
+the relevant implementation and evidence, then fix the incorrect owner under
+the root guide's change discipline. If the intended policy is ambiguous, report
+the conflict and obtain that decision rather than silently choosing a side.
+
+## Editing guidance
+
+Add an instruction when it prevents a concrete failure or resolves a recurring
+decision. Put it at the narrowest owner that covers its actual scope, state the
+trigger and required action, and link to executable mechanics instead of copying
+flags or mutable implementation details. Prefer removing a duplicate or stale
+rule over adding another exception. Keep rationale and rejected approaches in
+knowledge when they remain useful.
+
+For documentation-only changes, verify local links and the routed checks, and
+compare command examples or behavioral claims with their executable owners.
+A link checker cannot establish that an instruction is correct.

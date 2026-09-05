@@ -13,6 +13,7 @@ struct ModeProgressionToolingTests {
         #expect(!(campaign.steps.isEmpty))
         #expect(!(spire.steps.isEmpty))
         #expect(!(labyrinth.steps.isEmpty))
+        #expect(Set(labyrinth.steps.map(\.enemyID)).count > 1)
         let expectedSpireSteps = GameContent.spires.reduce(0) { total, spireDefinition in
             total + GameContent.spireFloors(for: spireDefinition.id).count
         }
@@ -125,7 +126,9 @@ struct ModeProgressionToolingTests {
     }
 
     @Test func `progression spire matchup is on level`() throws {
-        let controller = InterleavingPlayerController()
+        let controller = InterleavingPlayerController(
+            initialState: PlayerProgressionState(heroLevel: 20, companionLevel: 20),
+        )
         let step = ModeProgressionStep(
             id: "spire-step",
             mode: .spire,
@@ -147,6 +150,7 @@ struct ModeProgressionToolingTests {
         let enemy = try #require(GameContent.enemy(matching: "the_forge_golem"))
         let scaledEnemy = CombatantLevelScaler.scale(enemy: enemy, level: 20)
         #expect(matchup.enemy.maxHealth == scaledEnemy.maxHealth)
+        #expect(matchup.enemyFaction == enemy.faction)
     }
 
     @Test func `spire win awards equal level XP at save level`() {

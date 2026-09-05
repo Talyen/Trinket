@@ -163,4 +163,25 @@ struct BattleSimulatorTests {
         #expect(SimulationPolicies.make(id: PlayPolicy.setupAware.rawValue)?.id == PlayPolicy.setupAware.rawValue)
         #expect(SimulationPolicies.make(id: "setup-v2") == nil)
     }
+
+    @Test func `matchup builder and simulator preserve enemy faction`() throws {
+        let hero = try #require(GameContent.heroes.first)
+        let companion = try #require(GameContent.companions.first)
+        let undeadEnemy = try #require(GameContent.enemies.first { $0.faction == .undead })
+
+        let matchup = SimulationMatchupBuilder.build(
+            hero: hero,
+            companion: companion,
+            enemy: undeadEnemy,
+            tier: .early,
+            heroLoadout: hero.abilityLoadout,
+            companionLoadout: companion.abilityLoadout,
+            seed: 42,
+        )
+
+        #expect(matchup.enemyFaction == .undead)
+
+        let result = BattleSimulator.run(matchup: matchup, policy: .greedy, maxRounds: 1)
+        #expect(result.actions > 0)
+    }
 }

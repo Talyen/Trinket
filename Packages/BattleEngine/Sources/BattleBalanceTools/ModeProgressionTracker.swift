@@ -126,7 +126,9 @@ public struct LabyrinthProgressionTracker: Sendable {
         }
         for depth in 1 ... maxDepth {
             let isBoss = depth == maxDepth
-            let enemyID = isBoss ? bossPool[0] : trashPool[0]
+            let enemyID = isBoss
+                ? bossPool[(depth - 1) % bossPool.count]
+                : trashPool[(depth - 1) % trashPool.count]
             let step = ModeProgressionStep(
                 id: "labyrinth-depth-\(depth)",
                 mode: .labyrinth,

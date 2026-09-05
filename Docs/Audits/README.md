@@ -48,8 +48,8 @@ Prefer the most pragmatic remedy that fully removes the confirmed cause — the 
   1. Confirmed evidence (a signal alone is not enough)
   2. Clear maintenance or correctness win (not taste)
   3. Local patches would leave the same class of problem nearby, or already have
-  4. Remedy fits an existing owner and removes the replaced surface
-  5. A generic abstraction has at least three current uses or repairs an enforced architectural boundary; predicted reuse is insufficient
+  4. Remedy identifies its owner and removes the replaced surface; a proposed new boundary explains why existing owners cannot serve it
+  5. Any shared abstraction meets the [root change policy](../../AGENTS.md#choose-the-change)
 
 ### Pass shape
 

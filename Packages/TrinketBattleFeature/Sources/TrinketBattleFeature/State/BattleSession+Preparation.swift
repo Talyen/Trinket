@@ -34,8 +34,8 @@ public extension BattleSession {
         }
 
         var artworkNames = preparedRuns.flatMap { run -> [String] in
-            guard let runKey = run.configuration.runKey else { return [] }
-            return preparedAbilityArtworkNames(for: runKey)
+            guard run.configuration.runKey != nil else { return [] }
+            return openingHandArtworkNames(for: run)
         }
         if activeConfiguration != nil {
             artworkNames.append(contentsOf: activeOpeningHandArtworkNames())
@@ -59,11 +59,6 @@ public extension BattleSession {
         guard !preparedArtworkNames.isEmpty else { return }
         PreparedArtworkCache.shared.releasePins(names: Array(preparedArtworkNames))
         preparedArtworkNames.removeAll()
-    }
-
-    internal func preparedAbilityArtworkNames(for runKey: BattleRunKey) -> [String] {
-        guard let run = preparedBattleRun(for: runKey) else { return [] }
-        return openingHandArtworkNames(for: run)
     }
 
     internal func installSimulationPresentation() {

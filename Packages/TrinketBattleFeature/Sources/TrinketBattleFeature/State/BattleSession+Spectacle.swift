@@ -102,12 +102,14 @@ extension BattleSession {
               let companionID
         else { return }
         let baseID = -1 * max(1, Int(date.timeIntervalSinceReferenceDate * 1000))
+        let celebrateExpiry = date.addingTimeInterval(BattleMotion.chipDisplayDuration)
         var didPublish = false
         if isHeroAlive {
             feedback.hitReactionsByTargetID[heroID] = CombatantHitReaction(
                 id: baseID,
                 kind: .celebrate,
             )
+            feedback.celebrateReactionExpiresAt[heroID] = celebrateExpiry
             didPublish = true
         }
         if isCompanionAlive {
@@ -115,6 +117,7 @@ extension BattleSession {
                 id: baseID &- 1,
                 kind: .celebrate,
             )
+            feedback.celebrateReactionExpiresAt[companionID] = celebrateExpiry
             didPublish = true
         }
         if didPublish {
@@ -126,6 +129,7 @@ extension BattleSession {
                 reactedIDs.insert(companionID)
             }
             feedback.noteHitReactionsChanged(for: reactedIDs)
+            feedback.updatePruneDate(with: celebrateExpiry)
         }
     }
 
@@ -181,10 +185,8 @@ extension BattleSession {
         sfx: String,
         show: @escaping @MainActor (BattleSession) -> Void,
     ) {
-        if spectacle.pendingOutcomePresentationTask != nil, outcome == expected {
-            return
-        }
         spectacle.pendingOutcomePresentationTask?.cancel()
+        spectacle.pendingOutcomePresentationTask = nil
         let latestFeedbackDelay = feedback.activeItems
             .map { max(0, $0.expiresAt.timeIntervalSince(date)) }
             .max() ?? 0
@@ -268,9 +270,7 @@ extension BattleSession {
 
     func clearAllPresentation() {
         clearOutcomePresentation()
-        overlayCombatantDetail = nil
-        overlayAbilityDetail = nil
-        isShowingBattleLog = false
+        resetEphemeralOverlays()
         feedback.clear()
         clearSpectacle()
     }
@@ -294,24 +294,14 @@ extension BattleSession {
         from configuration: BattleRunConfiguration,
         holdOpeningHandForOverlayFade: Bool = false,
     ) {
-        cancelPendingAutoEnd()
-        cancelOpeningHandDeal()
-        cancelPendingTurnDraw()
+        cancelPendingBattleTasks()
         deliveredClaimedVictoryConfigurationID = nil
         installSimulationPresentation()
         feedback.clear()
         resetFeedbackRasterDiagnostics()
         clearSpectacle(releaseCinematicPlayers: false)
         clearOutcomePresentation()
-        if overlayCombatantDetail != nil {
-            overlayCombatantDetail = nil
-        }
-        if overlayAbilityDetail != nil {
-            overlayAbilityDetail = nil
-        }
-        if isShowingBattleLog {
-            isShowingBattleLog = false
-        }
+        resetEphemeralOverlays()
         let preferred = Self.preferredAutoBattleEnabled(from: presentationEnvironment)
         if isAutoBattleEnabled != preferred {
             isAutoBattleEnabled = preferred
@@ -325,9 +315,7 @@ extension BattleSession {
     }
 
     func clearRunState() {
-        cancelPendingAutoEnd()
-        cancelOpeningHandDeal()
-        cancelPendingTurnDraw()
+        cancelPendingBattleTasks()
         deliveredClaimedVictoryConfigurationID = nil
         presentation.clear()
         feedback.clear()
@@ -337,9 +325,19 @@ extension BattleSession {
         feedback.release()
         CombatFeedbackGlyphAtlas.shared.removeAll()
         CardDissolveTexture.clearCache()
+        resetEphemeralOverlays()
+        presentationContext = nil
+    }
+
+    private func cancelPendingBattleTasks() {
+        cancelPendingAutoEnd()
+        cancelOpeningHandDeal()
+        cancelPendingTurnDraw()
+    }
+
+    private func resetEphemeralOverlays() {
         overlayCombatantDetail = nil
         overlayAbilityDetail = nil
         isShowingBattleLog = false
-        presentationContext = nil
     }
 }

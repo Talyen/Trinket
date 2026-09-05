@@ -14,13 +14,13 @@ Add a row to `Open` when docs mislead, behavior surprises, or repeated friction 
 
 | Date | Area | Symptom (expected vs actual) |
 |------|------|------------------------------|
-|      |      |                              |
+| 2026-09-04 | Simulator launcher | `run-simulator.sh --isolate` builds successfully but cannot install: it assumes products under agent DerivedData, while `xcodebuild -showBuildSettings` resolves `BUILT_PRODUCTS_DIR` to the shared `.DerivedData/Build/Products/Debug-iphonesimulator`; use the resolved product path for inspection. |
 
 ## Resolved
 
 | Date | Area | Resolution (commit / pattern link) |
 |------|------|------------------------------------|
-|      |      |                                    |
+| 2026-09-04 | Agent guidance | Removed conflicting workflow absolutes and duplicate root policy; corrected the coverage decision to permit extending existing tests. See [agent guide](../AGENTS.md), [coverage decision](../Docs/Platform/Testing.md#coverage-decision-new-and-changed-behavior), and [verification policy](../Docs/Platform/Verification.md). |
 
 ## Details
 

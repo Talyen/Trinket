@@ -64,6 +64,7 @@ public enum BattleSimulator {
             heroModifiers: matchup.heroModifiers,
             companionModifiers: matchup.companionModifiers,
             enemyModifiers: matchup.enemyModifiers,
+            enemyFaction: matchup.enemyFaction,
             rngSeed: matchup.context.seed,
             tracksLog: false,
             tracksEvents: tracksEvents,

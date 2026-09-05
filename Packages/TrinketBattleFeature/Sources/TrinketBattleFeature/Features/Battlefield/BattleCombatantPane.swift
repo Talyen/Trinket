@@ -48,25 +48,22 @@ struct BattleCombatantPane: View {
         }
         .trinketQuietTapButtonStyle()
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .allowsHitTesting(!isDefeated)
         .accessibilityIdentifier(AccessibilityID.CombatantDetail.battleCard(name: combatant.name))
     }
 
     @ViewBuilder
     private var artworkPresentation: some View {
-        if isDefeated {
-            if recoilDirection == .up {
-                BattleSliceArtwork {
-                    artworkLayer
-                }
-            } else {
-                CardDissolveArtwork {
-                    artworkLayer
-                }
-            }
-        } else {
-            CombatantStatusEffectPresentation(keyword: borderAccentKeyword) {
+        if isDefeated, recoilDirection == .up {
+            BattleSliceArtwork {
                 artworkLayer
             }
+        } else {
+            CombatantStatusEffectPresentation(keyword: isDefeated ? nil : borderAccentKeyword) {
+                artworkLayer
+            }
+            .saturation(isDefeated ? 0 : 1)
+            .colorMultiply(isDefeated ? .gray : .white)
         }
     }
 
@@ -104,7 +101,6 @@ struct BattleCombatantPane: View {
         .frame(maxWidth: .infinity)
         .opacity(isDefeated ? 0 : 1)
         .animation(BattleMotion.scrim, value: isDefeated)
-        .allowsHitTesting(!isDefeated)
     }
 }
 

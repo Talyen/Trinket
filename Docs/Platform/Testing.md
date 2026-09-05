@@ -57,12 +57,13 @@ here.
 Verification does not imply authoring new tests. Add or expand coverage only when all are true:
 
 1. The change introduces or repairs a distinct, consequential behavior or invariant.
-2. No existing test already owns it.
+2. Existing assertions do not already prove the changed behavior or invariant.
 3. The proposed assertion would fail before the fix, except for genuinely new behavior.
 4. The cheapest suitable tier can express it without duplicating a stronger owner.
-5. An existing semantic matrix, journey, method, or file cannot absorb it more cheaply.
 
-Prefer extending an existing owner over adding a declaration, and a declaration over a new file or class. Remove or merge coverage made redundant by the change. Do not test plumbing, in-memory stored-property round trips, display copy, layout constants, framework behavior, or trivial delegation.
+Extend the existing semantic matrix, journey, method, or file first. Add a new
+owner only when the behavior cannot fit coherently in an existing one. Prefer
+adding a declaration over a new file or class. Remove or merge coverage made redundant by the change. Do not test plumbing, in-memory stored-property round trips, display copy, layout constants, framework behavior, or trivial delegation.
 
 **Likely owners when the gate passes:** rules/models → owning package; persistence semantics → existing store/sanitizer journey; catalog content → invariant matrix, not exact-count snapshots; novel `EffectKind` behavior → existing registry/handler matrix; consequential app transitions that packages cannot own → `TrinketAppStateTests`.
 

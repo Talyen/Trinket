@@ -7,12 +7,14 @@ the linked guides explain routing and operating policy.
 ## Everyday workflow
 
 ```sh
-./Scripts/test-package.sh BattleEngine
-./Scripts/test.sh unit
 ./Scripts/agent-context.sh --agent --paths <changed-paths...>
 ./Scripts/handoff.sh --isolate --paths <changed-paths...>
-./Scripts/new-plan.sh <PlanName>
 ```
+
+These are the routing and final verification steps. Between them, use the
+focused checks appropriate to the task; the command index below lists choices,
+not a checklist. Create an execution plan only when durable coordination or
+resumption is useful; see [Plans](../Docs/Plans/README.md).
 
 Ordinary Swift work starts with focused iteration, not manual generation:
 generation runs automatically when classified inputs require it (build
@@ -22,8 +24,9 @@ when changing generation inputs (content, `project.yml`, assets).
 Agents always use an isolated path-scoped handoff. Humans may omit `--isolate`
 to reuse the shared warm build tree. Do not regenerate assets during ordinary
 Swift iteration unless an asset manifest or source changed. The user-facing
-flow is focused iteration → path-scoped handoff → commit → push; pre-push
-runs its own generation/style/package safeguards automatically.
+flow is focused iteration → path-scoped handoff, followed by commit and push
+only when requested. Pre-push runs its own generation/style/package safeguards
+automatically.
 
 Run artifacts are ephemeral by default. Use the owning command's documented
 keep/cleanup switches when an investigation needs to retain a successful run;

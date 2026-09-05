@@ -20,6 +20,8 @@ final class BattleFeedbackLane {
     @ObservationIgnored
     var nextVisualStartByTarget: [String: Date] = [:]
     @ObservationIgnored
+    var celebrateReactionExpiresAt: [String: Date] = [:]
+    @ObservationIgnored
     var nextPruneAt: Date?
     @ObservationIgnored
     var scheduler: BattleFeedbackScheduler?
@@ -258,6 +260,15 @@ final class BattleFeedbackLane {
             presentedEventIDs.remove(eventID)
         }
 
+        for targetID in celebrateReactionExpiresAt.keys {
+            guard let expiresAt = celebrateReactionExpiresAt[targetID], date >= expiresAt else { continue }
+            celebrateReactionExpiresAt.removeValue(forKey: targetID)
+            if hitReactionsByTargetID[targetID]?.kind == .celebrate {
+                hitReactionsByTargetID.removeValue(forKey: targetID)
+                reactedTargetIDsToNotify.insert(targetID)
+            }
+        }
+
         if !reactedTargetIDsToNotify.isEmpty {
             noteHitReactionsChanged(for: reactedTargetIDsToNotify)
         }
@@ -273,6 +284,7 @@ final class BattleFeedbackLane {
             || !presentedEventIDs.isEmpty
         nextPruneAt = nil
         nextVisualStartByTarget.removeAll(keepingCapacity: true)
+        celebrateReactionExpiresAt.removeAll(keepingCapacity: true)
         scheduler?.park()
         activeItems = []
         eventRecordedAt = [:]
@@ -301,7 +313,7 @@ final class BattleFeedbackLane {
         return item.scheduled(at: start)
     }
 
-    private func updatePruneDate(with latestExpiry: Date) {
+    func updatePruneDate(with latestExpiry: Date) {
         let candidate = latestExpiry.addingTimeInterval(0.02)
         if let existing = nextPruneAt {
             nextPruneAt = max(existing, candidate)

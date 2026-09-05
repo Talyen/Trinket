@@ -43,31 +43,26 @@ public enum SimulationMatchupBuilder {
         let resolvedCompanionLevel = companionLevel ?? tier.level
         let resolvedEnemyLevel = enemyLevel ?? tier.level
 
-        let heroRequest = PartyPrepareRequest(
-            progression: Self.progression(level: resolvedHeroLevel),
+        let heroRequest = makePartyRequest(
+            level: resolvedHeroLevel,
             tier: tier,
             idPrefix: "sim-hero",
             gearOverride: heroGear,
-            unlockedTalents: heroTalents,
-            gearKeywordBias: gearKeywordBias,
-            gearGenerator: gearGenerator,
+            talents: heroTalents,
+            bias: gearKeywordBias,
+            generator: gearGenerator,
         )
-        let companionRequest = PartyPrepareRequest(
-            progression: Self.progression(level: resolvedCompanionLevel),
+        let companionRequest = makePartyRequest(
+            level: resolvedCompanionLevel,
             tier: tier,
             idPrefix: "sim-companion",
             gearOverride: companionGear,
-            unlockedTalents: companionTalents,
-            gearKeywordBias: gearKeywordBias,
-            gearGenerator: gearGenerator,
+            talents: companionTalents,
+            bias: gearKeywordBias,
+            generator: gearGenerator,
         )
 
-        let heroPrepared = preparePartyMember(
-            hero,
-            loadout: heroLoadout,
-            request: heroRequest,
-            using: &rng,
-        )
+        let heroPrepared = preparePartyMember(hero, loadout: heroLoadout, request: heroRequest, using: &rng)
         let companionPrepared = preparePartyMember(
             companion,
             loadout: companionLoadout,
@@ -101,6 +96,7 @@ public enum SimulationMatchupBuilder {
             enemyModifiers: enemyBuild.modifiers,
             context: context,
             enemyID: enemy.id,
+            enemyFaction: enemy.faction,
             isBoss: enemy.isBoss,
         )
     }
@@ -278,6 +274,26 @@ public enum SimulationMatchupBuilder {
             copy.gearOverride = gearOverride
             return copy
         }
+    }
+
+    private static func makePartyRequest(
+        level: Int,
+        tier: SimulationPowerTier,
+        idPrefix: String,
+        gearOverride: GearOverride?,
+        talents: Set<String>,
+        bias: Set<Keyword>?,
+        generator: ThemedGearGenerator,
+    ) -> PartyPrepareRequest {
+        PartyPrepareRequest(
+            progression: progression(level: level),
+            tier: tier,
+            idPrefix: idPrefix,
+            gearOverride: gearOverride,
+            unlockedTalents: talents,
+            gearKeywordBias: bias,
+            gearGenerator: generator,
+        )
     }
 
     private struct PreparedPartyMember {

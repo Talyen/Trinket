@@ -47,7 +47,7 @@ adopted fix, not the task's initial path list.
 Full smoke and exhaustive UI are CI-owned post-push gates; watch them with
 `agent-watch-ci.sh` instead of pre-running them. Locally:
 
-- Unit tests always; they catch the routine regressions in seconds.
+- Run the package/unit checks selected by the changed paths. Documentation-only work does not require unit tests unless its route selects them.
 - During UI iteration, run the routed targeted smoke class (`test.sh smoke <Class>`).
 - Debug at most one exhaustive target (`test.sh ui <Class>`) when touching its feature area.
 - Bare full-suite UI is refused locally unless `TRINKET_ALLOW_FULL_UI=1`; routine development never sets it.
@@ -101,6 +101,14 @@ narrow content/art exception that the semantic API cannot express; never use it
 to bypass product chrome routing.
 
 ## Failures and reporting
+
+Classify a failure before changing code: task regression, pre-existing defect,
+unrelated in-flight change, or tooling/environment failure. Use the failing assertion and a bounded
+reproduction to establish the cause. Adopt a fix only under the root guide's
+encountered-fix rules; never weaken a check, omit a changed path, or overwrite
+unrelated work to obtain a pass. If blocked, report the failed command, known
+cause, and remaining verification. Rerun affected checks after a fix; broaden
+verification only when the failure exposes another affected owner.
 
 Read structured invocation reports before raw build logs. Use
 `./Scripts/ci-diagnostics.sh <results-dir>` to aggregate them and follow

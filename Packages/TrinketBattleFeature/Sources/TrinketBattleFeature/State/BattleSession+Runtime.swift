@@ -261,10 +261,7 @@ extension BattleSession {
         else { return false }
 
         engineState = preparedBattleRun.state
-        activatePresentation(
-            for: preparedBattleRun.configuration,
-            presentation: presentationContext,
-        )
+        installActiveBattle(preparedBattleRun.configuration, presentation: presentationContext)
         preparedBattleRunsByKey.removeValue(forKey: runKey)
         return true
     }
@@ -280,10 +277,7 @@ extension BattleSession {
         presentation: BattlePresentationContext?,
     ) -> Bool {
         guard activeBattle == nil else { return false }
-        preparedBattleRunsByKey.removeAll(keepingCapacity: true)
-        releasePreparedArtworkPins()
-        engineState = makeBattleState(from: configuration)
-        activatePresentation(for: configuration, presentation: presentation)
+        replaceActiveBattle(with: configuration, presentation: presentation)
         return true
     }
 
@@ -298,10 +292,7 @@ extension BattleSession {
         presentation: BattlePresentationContext?,
     ) -> Bool {
         guard activeBattle != nil else { return false }
-        preparedBattleRunsByKey.removeAll(keepingCapacity: true)
-        releasePreparedArtworkPins()
-        engineState = makeBattleState(from: configuration)
-        activatePresentation(for: configuration, presentation: presentation)
+        replaceActiveBattle(with: configuration, presentation: presentation)
         return true
     }
 
@@ -335,10 +326,13 @@ extension BattleSession {
         trimPresentationMemory()
     }
 
-    private func activatePresentation(
-        for configuration: BattleRunConfiguration,
+    private func replaceActiveBattle(
+        with configuration: BattleRunConfiguration,
         presentation: BattlePresentationContext? = nil,
     ) {
+        preparedBattleRunsByKey.removeAll(keepingCapacity: true)
+        releasePreparedArtworkPins()
+        engineState = makeBattleState(from: configuration)
         installActiveBattle(configuration, presentation: presentation)
     }
 

@@ -47,6 +47,10 @@ public struct BattleView: View {
     public var body: some View {
         if battleSession.presentation.configurationID == configuration.id {
             bodyContent(battleSession: battleSession)
+        } else {
+            Color.clear
+                .trinketScreenBackground()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
     }
 
@@ -69,6 +73,8 @@ public struct BattleView: View {
             }
             .onChange(of: configuration.id) { _, _ in
                 castPresentation.reset()
+                interactionState.suppressCombatantTaps = false
+                interactionState.autoLiftCardID = nil
             }
             .alert(
                 "Retreat from this battle?",
