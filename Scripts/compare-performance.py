@@ -5,13 +5,12 @@ from __future__ import annotations
 
 import argparse
 import json
-import math
 import sys
 from pathlib import Path
 from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from performance_model import REMOVED_FIELDS, REQUIRED_NUMERIC_FIELDS, REQUIRED_SCHEMA_VERSION, finite_number, load_baseline, validate_report_domains
+from performance_model import REQUIRED_NUMERIC_FIELDS, finite_number, load_baseline, validate_report, goal_findings
 
 
 def main() -> int:
@@ -42,10 +41,8 @@ def main() -> int:
             continue
         grouped[scenario].append(raw_report)
 
-    if mode not in ("observe", "enforce"):
-        raise SystemExit(f"baseline mode must be 'observe' or 'enforce', found {mode!r}")
-
     severe_limit_text = "zero" if maximum_severe == 0 else f"{maximum_severe:g}"
+    findings: list[str] = []
     rows: list[str] = []
     for scenario in scenarios:
         records = grouped[scenario]
@@ -54,19 +51,9 @@ def main() -> int:
             continue
 
         report = records[0]
-        if report.get("schemaVersion") != REQUIRED_SCHEMA_VERSION:
-            failures.append(
-                f"{scenario}: expected frame report schema {REQUIRED_SCHEMA_VERSION}, found {report.get('schemaVersion')!r}"
-            )
+        failures.extend(validate_report(report))
         if report.get("iteration") != 1:
-            failures.append(
-                f"{scenario}: expected measured iteration 1, found {report.get('iteration')!r}"
-            )
-        removed = [key for key in REMOVED_FIELDS if key in report]
-        if removed:
-            failures.append(f"{scenario}: removed metrics still present: {', '.join(removed)}")
-
-        failures.extend(validate_report_domains(report))
+            failures.append(f"{scenario}: expected measured iteration 1, found {report.get('iteration')!r}")
         try:
             values = {key: finite_number(report, key) for key in REQUIRED_NUMERIC_FIELDS}
         except ValueError:
@@ -79,18 +66,7 @@ def main() -> int:
             f"{values['missedDeadlineRatio']:.4%} | {int(values['severeStallCount'])} |"
         )
 
-        if values["averageFPS"] < minimum_average:
-            failures.append(
-                f"{scenario}: average FPS {values['averageFPS']:.2f} below {minimum_average:.2f}"
-            )
-        if values["onePercentLowFPS"] < minimum_low:
-            failures.append(
-                f"{scenario}: 1% low {values['onePercentLowFPS']:.2f} FPS below {minimum_low:.2f}"
-            )
-        if values["severeStallCount"] > maximum_severe:
-            failures.append(
-                f"{scenario}: severe stalls {int(values['severeStallCount'])} above {severe_limit_text}"
-            )
+        findings.extend(goal_findings(report, baseline))
 
     lines = [
         "# App performance comparison",
@@ -98,7 +74,7 @@ def main() -> int:
         f"Mode: `{mode}`. Refresh target: `{baseline.get('refreshTargetHz', 'unknown')} Hz`.",
         f"Gate: one measured report per scenario; average FPS >= {minimum_average:g}; "
         f"1% low FPS >= {minimum_low:g}; severe stalls <= {severe_limit_text}.",
-        "p95/p99/max frame time and missed deadlines are diagnostic only.",
+        "Scenario-specific goals in the baseline also apply; p95/p99 are diagnostic.",
         "",
         "| Scenario | Avg FPS | 1% low | p95 ms | p99 ms | Max ms | Missed | Severe |",
         "|---|---:|---:|---:|---:|---:|---:|---:|",
@@ -107,20 +83,21 @@ def main() -> int:
         "## Findings",
         "",
     ]
-    lines.extend(f"- {failure}" for failure in failures)
-    if not failures:
-        lines.append("- Every maintained scenario met the 59/59/zero-severe-stall gate.")
+    lines.extend(f"- Invalid evidence: {failure}" for failure in failures)
+    lines.extend(f"- {finding}" for finding in findings)
+    if not failures and not findings:
+        lines.append("- Every maintained scenario met the configured goals.")
     if mode == "observe":
         lines.extend([
             "",
-            "Calibration mode is non-blocking. Promote to `enforce` only after local "
+            "Calibration mode is non-blocking for performance findings; invalid evidence always fails. Promote to `enforce` only after local "
             "`performance.sh` Simulator runs consistently clear the goals.",
         ])
 
     args.summary.parent.mkdir(parents=True, exist_ok=True)
     args.summary.write_text("\n".join(lines) + "\n")
     print("\n".join(lines))
-    return 1 if failures and mode == "enforce" else 0
+    return 1 if failures or (findings and mode == "enforce") else 0
 
 
 if __name__ == "__main__":

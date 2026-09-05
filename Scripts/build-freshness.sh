@@ -33,12 +33,6 @@ generation_inputs_are_dirty() {
   [[ -n "$status" ]]
 }
 
-generation_input_paths=(
-  "${content_generation_inputs[@]}"
-  project.yml
-  "${asset_generation_inputs[@]}"
-)
-
 build_input_git_snapshot() {
   git status --porcelain -- "${build_input_paths[@]}" 2>/dev/null || true
 }
@@ -48,34 +42,11 @@ record_build_input_git_snapshot() {
   printf '%s\n' "$(build_input_git_snapshot)" >"${stamp}.gitstatus"
 }
 
-generation_input_git_snapshot() {
-  git status --porcelain -- "${generation_input_paths[@]}" 2>/dev/null || true
-}
-
-record_generate_input_git_snapshot() {
-  local stamp="$1"
-  printf '%s\n' "$(generation_input_git_snapshot)" >"${stamp}.gitstatus"
-}
-
-assert_generate_input_git_snapshot_unchanged() {
-  local stamp="$1"
-  local snapshot="${stamp}.gitstatus"
-  local previous=""
-  local current
-
-  [[ -f "$snapshot" ]] || return 0
-
-  previous="$(cat "$snapshot")"
-  current="$(generation_input_git_snapshot)"
-  [[ "$current" == "$previous" ]]
-}
-
 touch_generate_stamp() {
   local results_dir="${1:-${RESULTS_DIR:-$PWD/.DerivedData/TestResults}}"
   local stamp="$results_dir/.last-generate.stamp"
   mkdir -p "$results_dir"
   touch "$stamp"
-  record_generate_input_git_snapshot "$stamp"
 }
 
 assert_build_input_git_snapshot_unchanged() {

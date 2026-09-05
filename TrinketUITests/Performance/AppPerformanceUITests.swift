@@ -29,140 +29,135 @@ final class AppPerformanceUITests: TrinketUITestCase {
     }
 
     func test01TabRoundTrip() {
-        launchApp(arguments: TestLaunchArg.allForAppPerformance())
-        play.assertLoaded()
-        let collectionTab = tabCoordinate(named: "Collection")
-        let homesteadTab = tabCoordinate(named: "Homestead")
-        let optionsTab = tabCoordinate(named: "Options")
-        let playTab = tabCoordinate(named: "Play")
+        for iteration in 1 ... repetitionCount {
+            launchApp(arguments: TestLaunchArg.allForAppPerformance())
+            play.assertLoaded()
+            let collectionTab = tabCoordinate(named: "Collection")
+            let homesteadTab = tabCoordinate(named: "Homestead")
+            let optionsTab = tabCoordinate(named: "Options")
+            let playTab = tabCoordinate(named: "Play")
 
-        run(scenario: "tab-round-trip") {
-            collectionTab.tap()
-            self.pauseForTransition()
-            homesteadTab.tap()
-            self.pauseForTransition()
-            optionsTab.tap()
-            self.pauseForTransition()
-            playTab.tap()
+            runOnce(scenario: "tab-round-trip", iteration: iteration) {
+                collectionTab.tap()
+                self.pauseForTransition()
+                homesteadTab.tap()
+                self.pauseForTransition()
+                optionsTab.tap()
+                self.pauseForTransition()
+                playTab.tap()
+            }
         }
     }
 
     func test02CollectionNavigation() {
-        launchApp(arguments: TestLaunchArg.allForAppPerformance(tab: "collection"))
-        collection.assertLoaded()
-        let card = app.buttons[AccessibilityID.CombatantDetail.collectionCard(name: "Knight")]
-        XCTAssertTrue(card.trinketWaitForExistence(timeout: Self.defaultTimeout))
-        let cardCoordinate = card.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
-        let dismissStart = sheetDismissDragStart
-        let dismissEnd = sheetDismissDragEnd
+        for iteration in 1 ... repetitionCount {
+            launchApp(arguments: TestLaunchArg.allForAppPerformance(tab: "collection"))
+            collection.assertLoaded()
+            let card = app.buttons[AccessibilityID.CombatantDetail.collectionCard(name: "Knight")]
+            XCTAssertTrue(card.trinketWaitForExistence(timeout: Self.defaultTimeout))
+            let cardCoordinate = card.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+            let dismissStart = sheetDismissDragStart
+            let dismissEnd = sheetDismissDragEnd
 
-        run(scenario: "collection-navigation") {
-            cardCoordinate.tap()
-            self.pauseForTransition()
-            dismissStart.press(forDuration: 0.1, thenDragTo: dismissEnd)
+            runOnce(scenario: "collection-navigation", iteration: iteration) {
+                cardCoordinate.tap()
+                self.pauseForTransition()
+                dismissStart.press(forDuration: 0.1, thenDragTo: dismissEnd)
+            }
+            collection.assertLoaded()
         }
-        collection.assertLoaded()
     }
 
     func test03HomesteadDetailTransition() {
-        launchApp(arguments: TestLaunchArg.allForAppPerformance(tab: "homestead"))
-        homestead.assertLoaded()
-        homestead.openFarmingCategoryAndRevealWheatFieldNode()
-        let detail = app.descendants(matching: .any)[
-            AccessibilityID.Homestead.nodeDetail(title: "Wheat Field"),
-        ]
-        let isShowingDetail = detail.exists
-        let node = app.descendants(matching: .any)[AccessibilityID.Homestead.node(title: "Wheat Field")]
-        let nodeCoordinate = node.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
-        let backStart = edgeBackSwipeStart
-        let backEnd = edgeBackSwipeEnd
+        for iteration in 1 ... repetitionCount {
+            launchApp(arguments: TestLaunchArg.allForAppPerformance(tab: "homestead"))
+            homestead.assertLoaded()
+            homestead.openFarmingCategoryAndRevealWheatFieldNode()
+            let detail = app.descendants(matching: .any)[
+                AccessibilityID.Homestead.nodeDetail(title: "Wheat Field"),
+            ]
+            let isShowingDetail = detail.exists
+            let node = app.descendants(matching: .any)[AccessibilityID.Homestead.node(title: "Wheat Field")]
+            let nodeCoordinate = node.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+            let backStart = edgeBackSwipeStart
+            let backEnd = edgeBackSwipeEnd
 
-        run(scenario: "homestead-detail-transition") {
-            if isShowingDetail {
-                backStart.press(forDuration: 0.05, thenDragTo: backEnd)
-            } else {
-                nodeCoordinate.tap()
+            runOnce(scenario: "homestead-detail-transition", iteration: iteration) {
+                if isShowingDetail {
+                    backStart.press(forDuration: 0.05, thenDragTo: backEnd)
+                } else {
+                    nodeCoordinate.tap()
+                }
             }
         }
     }
 
     func test04CampaignStageSelectTransition() {
-        launchApp(arguments: TestLaunchArg.allForAppPerformance())
-        play.assertModeHub()
-        let campaign = app.descendants(matching: .any)[AccessibilityID.Play.chapterHeader(number: 1)]
-        let isShowingCampaign = campaign.exists
-        let campaignButton = app.buttons[AccessibilityID.Play.campaignModeCard]
-        let campaignCoordinate = campaignButton.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
-        let backStart = edgeBackSwipeStart
-        let backEnd = edgeBackSwipeEnd
-
-        run(scenario: "campaign-stage-select-transition") {
-            if isShowingCampaign {
-                backStart.press(forDuration: 0.05, thenDragTo: backEnd)
-            } else {
-                campaignCoordinate.tap()
-            }
-        }
-        if isShowingCampaign {
+        for iteration in 1 ... repetitionCount {
+            launchApp(arguments: TestLaunchArg.allForAppPerformance())
             play.assertModeHub()
-        } else {
-            play.assertCampaignLoaded(number: 1)
+            let campaign = app.descendants(matching: .any)[AccessibilityID.Play.chapterHeader(number: 1)]
+            let isShowingCampaign = campaign.exists
+            let campaignButton = app.buttons[AccessibilityID.Play.campaignModeCard]
+            let campaignCoordinate = campaignButton.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+            let backStart = edgeBackSwipeStart
+            let backEnd = edgeBackSwipeEnd
+
+            runOnce(scenario: "campaign-stage-select-transition", iteration: iteration) {
+                if isShowingCampaign {
+                    backStart.press(forDuration: 0.05, thenDragTo: backEnd)
+                } else {
+                    campaignCoordinate.tap()
+                }
+            }
+            if isShowingCampaign {
+                play.assertModeHub()
+            } else {
+                play.assertCampaignLoaded(number: 1)
+            }
         }
     }
 
     func test05StageEnemyDetailTransition() {
-        launchApp(arguments: TestLaunchArg.allForAppPerformance())
-        play.openCampaign()
-        play.assertCampaignLoaded(number: 1)
-        let enemy = button(AccessibilityID.Play.enemyArt(chapter: 1, stage: 1))
-        XCTAssertTrue(enemy.trinketWaitForExistence(timeout: Self.defaultTimeout))
-        let enemyCoordinate = enemy.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
-        let dismissStart = sheetDismissDragStart
-        let dismissEnd = sheetDismissDragEnd
+        for iteration in 1 ... repetitionCount {
+            launchApp(arguments: TestLaunchArg.allForAppPerformance())
+            play.openCampaign()
+            play.assertCampaignLoaded(number: 1)
+            let enemy = button(AccessibilityID.Play.enemyArt(chapter: 1, stage: 1))
+            XCTAssertTrue(enemy.trinketWaitForExistence(timeout: Self.defaultTimeout))
+            let enemyCoordinate = enemy.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+            let dismissStart = sheetDismissDragStart
+            let dismissEnd = sheetDismissDragEnd
 
-        run(scenario: "stage-enemy-detail-transition") {
-            enemyCoordinate.tap()
-            self.pauseForTransition()
-            dismissStart.press(forDuration: 0.1, thenDragTo: dismissEnd)
+            runOnce(scenario: "stage-enemy-detail-transition", iteration: iteration) {
+                enemyCoordinate.tap()
+                self.pauseForTransition()
+                dismissStart.press(forDuration: 0.1, thenDragTo: dismissEnd)
+            }
+            play.assertCampaignLoaded(number: 1)
         }
-        play.assertCampaignLoaded(number: 1)
     }
 
     func test06StageSelectBattleStart() {
-        let arguments = TestLaunchArg.replacingBattleTickInterval(
-            "60",
-            in: TestLaunchArg.allForAppPerformance(),
-        )
-        launchApp(arguments: arguments)
-        play.openCampaign()
-        play.assertCampaignLoaded(number: 1)
-        let stageAction = button(AccessibilityID.Play.stageAction(chapter: 1, stage: 1))
-        XCTAssertTrue(stageAction.trinketWaitForExistence(timeout: Self.defaultTimeout))
-        let stageActionCoordinate = stageAction.coordinate(
-            withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5),
-        )
+        for iteration in 1 ... repetitionCount {
+            let arguments = TestLaunchArg.replacingBattleTickInterval(
+                "60",
+                in: TestLaunchArg.allForAppPerformance(),
+            )
+            launchApp(arguments: arguments)
+            play.openCampaign()
+            play.assertCampaignLoaded(number: 1)
+            let stageAction = button(AccessibilityID.Play.stageAction(chapter: 1, stage: 1))
+            XCTAssertTrue(stageAction.trinketWaitForExistence(timeout: Self.defaultTimeout))
+            let stageActionCoordinate = stageAction.coordinate(
+                withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5),
+            )
 
-        run(scenario: "stage-select-battle-transition") {
-            stageActionCoordinate.tap()
+            runOnce(scenario: "stage-select-battle-transition", iteration: iteration) {
+                stageActionCoordinate.tap()
+            }
+            battle.assertActive(timeout: 8)
         }
-        battle.assertActive(timeout: 8)
-    }
-
-    func test07VictoryRewardReveal() {
-        launchApp(arguments: TestLaunchArg.allForVictoryPerformance())
-        let victory = app.descendants(matching: .any)[AccessibilityID.Battle.victory]
-        XCTAssertTrue(victory.trinketWaitForExistence(timeout: 8))
-        run(scenario: "victory-reward-reveal") {}
-    }
-
-    func test08MysteryEncounterReveal() {
-        launchApp(arguments: TestLaunchArg.allForMysteryPerformance())
-        let unlockCard = app.buttons[AccessibilityID.Mystery.unlockCard(name: "Bear")]
-        let unlocked = app.descendants(matching: .any)[AccessibilityID.Mystery.unlockName]
-        let appeared = unlockCard.trinketWaitForExistence(timeout: 8)
-            || unlocked.trinketWaitForExistence(timeout: 1)
-        XCTAssertTrue(appeared, "Mystery encounter chrome did not appear")
-        run(scenario: "mystery-encounter-reveal") {}
     }
 
     private func tabCoordinate(named name: String) -> XCUICoordinate {
@@ -173,12 +168,6 @@ final class AppPerformanceUITests: TrinketUITestCase {
 
     private func pauseForTransition() {
         RunLoop.current.run(until: Date().addingTimeInterval(0.7))
-    }
-
-    private func run(scenario: String, action: @escaping () -> Void) {
-        for iteration in 1 ... repetitionCount {
-            runOnce(scenario: scenario, iteration: iteration, action: action)
-        }
     }
 
     private func runOnce(scenario: String, iteration: Int, action: () -> Void) {

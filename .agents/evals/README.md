@@ -1,35 +1,24 @@
-# Evals
+# Skill evaluations
 
-Pragmatic place to test whether a skill or knowledge change actually helps.
+Use a representative task when a skill change alters a consequential decision or
+workflow. Trigger and wording fixes usually need link checks, comparison with the
+executable owner, and scenario review; they do not need a synthetic app feature.
 
-Do **not** build an autonomous benchmark harness. Prefer objective signals via existing gates:
+For a behavioral trial, use an isolated disposable worktree created through the
+repository worktree helper. Keep its implementation out of the product change.
+Provide the evaluator with the request and relevant guidance, then judge its
+observable result against the criteria. If delegated, keep reviewer criteria
+separate from the task brief so the evaluator must make the decision itself.
 
-- `build` passes (`build.sh` / `test-package.sh`)
-- `tests` pass (package unit, smoke canary)
-- `lint` / `style` passes (`test.sh style`)
-- `boundaries` pass (`check-module-boundaries.sh`)
-- no unexpected warnings
-- task requirements satisfied
-- no accidental or unjustified diff; evidenced encountered fixes are allowed
-  when separately reported and verified (the pragmatic shape may be larger than
-  the narrowest patch)
+Run the path-scoped verification selected for the trial, not a fixed build/test
+checklist. Report what was exercised and its limitations in the task handoff.
+Passing syntax or link checks does not establish that a workflow works in practice.
 
-## Using evals
+| Scenario | Guidance exercised |
+| --- | --- |
+| [Battle effect](eval-01-battle-effect.md) | `architect` skill and battle-engine context card |
+| [Shop affordance](eval-02-shop-flow.md) | `apple-design` skill and SwiftUI feature context card |
 
-1. Pick a representative task below that matches the change’s concern.
-2. Run the task in an isolated worktree or slot.
-3. Validate with the path-scoped route emitted by `./Scripts/agent-context.sh`.
-4. Record pass/fail in `skill-impact.md` when promoting a skill change.
-
-Future skill changes should be validated against at least one relevant eval before being permanently promoted.
-
-## Available evals
-
-| Eval | Concern | Skills exercised |
-|---|---|---|
-| [eval-01-battle-effect](eval-01-battle-effect.md) | Add `EffectKind` + handler + deterministic test | `architect`, `battle-engine` |
-| [eval-02-shop-flow](eval-02-shop-flow.md) | Shop UI affordance + AccessibilityID + smoke ownership | `apple-design`, `swiftui-features` |
-
-## Adding an eval
-
-Keep it to one Markdown file with: goal, setup steps, pass/fail criteria (gates + behavior), and anti-goals (what not to test). Link it here.
+Add a scenario only for a recurring decision worth testing. Include a concrete
+request, relevant setup, and observable pass criteria; avoid scoring whether the
+agent followed an arbitrary sequence or reproduced a preferred phrase.

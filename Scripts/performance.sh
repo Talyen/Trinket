@@ -6,8 +6,6 @@ cd "$(dirname "$0")/.."
 LOCK_DIR=".DerivedData/.performance.lock"
 TIMESTAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 OUTPUT_DIR="${TRINKET_PERFORMANCE_OUTPUT_DIR:-.DerivedData/PerformanceResults/$TIMESTAMP}"
-EXPLICIT_OUTPUT=false
-[[ -n "${TRINKET_PERFORMANCE_OUTPUT_DIR:-}" ]] && EXPLICIT_OUTPUT=true
 # Default one measured report per scenario. Use five repetitions for formal comparison:
 #   TRINKET_PERFORMANCE_REPETITIONS=5 ./Scripts/performance.sh
 REPETITIONS="${TRINKET_PERFORMANCE_REPETITIONS:-1}"
@@ -27,13 +25,16 @@ fi
 cleanup() {
   local status=$?
   trinket_dir_lock_release "$LOCK_DIR" "${BASHPID:-$$}"
-  if [[ "$status" -eq 0 && "$EXPLICIT_OUTPUT" != true && "${TRINKET_KEEP_PERFORMANCE_REPORTS:-0}" != "1" ]]; then
-    rm -rf "$OUTPUT_DIR"
-  fi
   return "$status"
 }
-trap cleanup EXIT INT TERM
+trap cleanup EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
 
+if [[ -e "$OUTPUT_DIR" ]]; then
+  echo "Performance output already exists; choose a fresh TRINKET_PERFORMANCE_OUTPUT_DIR: $OUTPUT_DIR" >&2
+  exit 1
+fi
 mkdir -p "$OUTPUT_DIR/TestResults"
 python3 Scripts/performance_environment.py "$OUTPUT_DIR/environment.json" "$REPETITIONS"
 
@@ -43,11 +44,16 @@ TRINKET_MAX_CONCURRENT_UI=1 \
 TRINKET_PERFORMANCE_REPETITIONS="$REPETITIONS" \
 TRINKET_CLEANUP_TEST_ARTIFACTS=0 \
 RESULTS_DIR="$OUTPUT_DIR/TestResults" \
-./Scripts/test.sh performance
+./Scripts/test.sh performance || test_status=$?
 
+collection_status=0
 python3 Scripts/collect-performance-results.py \
   "$OUTPUT_DIR/TestResults" \
-  "$OUTPUT_DIR/reports.json"
+  "$OUTPUT_DIR/reports.json" || collection_status=$?
+if [[ "${test_status:-0}" -ne 0 || "$collection_status" -ne 0 ]]; then
+  echo "Performance capture incomplete; retained available evidence: $OUTPUT_DIR" >&2
+  exit 1
+fi
 if [[ "$REPETITIONS" -gt 1 ]]; then
   python3 Scripts/aggregate-performance-results.py \
     --results "$OUTPUT_DIR/reports.json" \

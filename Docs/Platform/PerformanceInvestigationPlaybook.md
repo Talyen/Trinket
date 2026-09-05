@@ -10,8 +10,10 @@ energy investigation are summarized separately in
 `Performance/Baselines/simulator-60.json` owns the maintained scenario list,
 thresholds, refresh target, and observe/enforce mode. `./Scripts/performance.sh`
 interprets that baseline for ad hoc investigation, not CI; promote the baseline to
-enforce only after Simulator runs consistently clear it. Battle card play and drag
-handling use the same baseline on every formal repetition.
+enforce only after Simulator runs consistently clear it. Single and repeated runs
+use the same baseline goals, including `scenarioGoals`
+for Battle gestures. Observation mode reports threshold findings without failing;
+missing, malformed, duplicate, or incompatible reports always fail.
 
 `-enable-frame-metrics` is measurement-only. It must never remove, defer, shorten, reduce, or mute production work. The production `real-card-play` and `hand-drag-cancel` scenarios use normal XCUI gestures against the seeded hand; production views contain no forced-drag or scenario branch.
 
@@ -28,11 +30,12 @@ DerivedData state. Formal comparisons use five measured runs per scenario:
 TRINKET_PERFORMANCE_REPETITIONS=5 ./Scripts/performance.sh
 ```
 
-The runner writes session-scoped results under `.DerivedData/PerformanceResults/`
-and removes successful default output after comparison. Set
-`TRINKET_KEEP_PERFORMANCE_REPORTS=1` to retain the default location or
-`TRINKET_PERFORMANCE_OUTPUT_DIR=<path>` to choose one; failed runs retain evidence
-for current triage.
+The runner retains session-scoped results under `.DerivedData/PerformanceResults/`,
+including successful calibration runs. Set `TRINKET_PERFORMANCE_OUTPUT_DIR=<path>`
+to choose a fresh directory; existing directories are rejected to prevent mixing
+runs. Remove old sessions explicitly when no longer needed. If UI execution fails,
+the runner still collects available reports and returns failure. Raw logs and
+result bundles remain beside the reports for investigation.
 
 The current runtime does not reliably export `XCTHitchMetric`; the broken exporter is intentionally absent. Do not substitute a custom `CADisplayLink` sample for an authoritative render-pipeline hitch metric. Capture Instruments Animation Hitches and Time Profiler traces when diagnosing a failure.
 
@@ -40,16 +43,23 @@ The current runtime does not reliably export `XCTHitchMetric`; the broken export
 
 The checked-in baseline owns the complete scenario list. The local matrix does not
 model CloudKit/network variability, persistence recovery, long-session memory,
-thermal behavior, or production population trends; add those as separate
+thermal behavior, victory reward reveal, mystery encounter reveal, or production
+population trends; add those as separate
 deterministic scenarios instead of changing an existing scenario's production
 behavior.
+
+Each app repetition relaunches and restores its starting screen before resetting
+measurement. The former victory/mystery reveal cases reset the sampler *after*
+the revealed screen appeared and then measured an empty action. They were removed
+because those numbers did not establish reveal performance. Reintroduce coverage
+only with a measurement window that starts before the production reveal trigger.
 
 ## Battle scenario matrix
 
 The Battle matrix is deliberately small:
 
 1. `real-card-play`: a real press, drag, armed release, immediate removal/reflow, feedback, swing, audio/haptics, and SwiftUI cast.
-2. `hand-drag-cancel`: repeated real press/drag/cancel gestures and spring return without changing hand membership.
+2. `hand-drag-cancel`: a real press/drag/cancel gesture and spring return without changing hand membership.
 3. `engine-hand`: card resolution, direct stored-state mutation, and projection publication without feedback decoration.
 4. `engine-feedback`: card resolution plus production feedback publication.
 5. `turn-transition`: production end-turn and hand projection work.
@@ -74,18 +84,18 @@ The display-link report describes delivered callbacks:
 | `severeStallCount` | Intervals at least three observed display periods |
 | `maxFrameMs` | Longest delivered interval |
 
-Do not describe an average as a “60 FPS floor.” The five-run hard gate evaluates each card-play and drag repetition, not only the median.
+Do not describe an average as a “60 FPS floor.” Every repetition is evaluated, not only the median; enforcement is controlled by the baseline mode.
 
-## Ordered Battle investigation
+## Battle investigation stages
 
-Run these stages without skipping ahead:
+For a Battle regression, use the failing interaction and trace to choose the relevant stage:
 
 1. `engine-hand`: verify engine resolution plus projection construction/publication fits within 8 ms and the scenario passes its frame gate.
 2. `engine-feedback`: determine whether feedback publication is the added cost.
 3. `real-card-play` and `hand-drag-cancel`: measure normal gestures, fan reflow, and full presentation.
 4. `turn-transition` and `combined-worst-case`: confirm adjacent Battle behavior did not regress.
 
-If engine/hand fails, profile and simplify engine mutation or projection invalidation before touching rendering. If engine/hand passes and engine/feedback fails, make feedback publication one pass: build each item once, partition immediate/scheduled items while deriving the earliest wake, compute reactions and SFX once, apply the host once, and update one timer. Preserve `availableAt`, expiration, stagger, SFX, reactions, and keyword timing.
+A failing engine/hand scenario is a lead, not proof of engine cost: confirm the expensive stack in the trace before changing it. If the trace attributes the added cost to feedback publication, consider one pass: build each item once, partition immediate/scheduled items while deriving the earliest wake, compute reactions and SFX once, apply the host once, and update one timer. Preserve `availableAt`, expiration, stagger, SFX, reactions, and keyword timing.
 
 Do not freeze slots, delay card removal, add placeholders, split user-visible work across frames, reduce feedback richness, lower asset resolution, reduce particle counts, or add another presentation framework to win a metric. Hand movement is gameplay feedback.
 
@@ -118,9 +128,13 @@ section and `AGENTS.md` Guardrails and pass `check-artwork-budget.sh`.
 
 ## Investigation loop
 
-1. Reproduce the exact failing scenario with the same source, optimized build settings, seed, duration, Xcode, runtime, and Simulator.
+1. Reproduce the failing player interaction. Begin tracing before the trigger;
+   keep the trace running through the visible stall. Use the same source,
+   optimized build settings, seed, duration, Xcode, runtime, and target. For an
+   interaction absent from the matrix, reproduce it directly under Instruments;
+   passing unrelated scenarios does not establish its smoothness.
 2. Compare all five individual reports and their aggregate. A median must not hide a failing repetition.
-3. Profile the failing stage with Time Profiler (and Animation Hitches on device). DEBUG signposts in subsystem `com.trinket.framepacing` separately identify engine resolution, projection publication, feedback preparation, and return to the next display callback. None alone represents the full rendered frame.
+3. On device, select the hitch interval in Animation Hitches, identify whether the delay is in app commit work or rendering, and correlate it with Time Profiler stacks and app signposts. Use Simulator Time Profiler for app CPU leads. App signposts in subsystem `com.trinket.framepacing` separately identify engine resolution, projection publication, feedback preparation, and return to the next display callback. None alone represents the full rendered frame.
 
    On Xcode 26.4–27.0, `xctrace record --device <simulator>` deadlocks the in-sim
    DTServiceHub handshake and ignores `--time-limit`, so the recording never
@@ -140,7 +154,14 @@ section and `AGENTS.md` Guardrails and pass `check-artwork-budget.sh`.
 
    Animation Hitches is unsupported on Simulator (`Hitches is not supported on
    this platform`). Capture that template on a physical device.
-4. Identify an app-attributed stack, observation invalidation, layout pass, or rendering phase. Simulator scheduling noise alone is not an app regression.
+4. Identify an app-attributed stack, observation invalidation, layout pass, or rendering phase. A long signpost interval is elapsed time, not CPU self-time; an interval spanning animation or a scheduled callback includes waiting. A healthy CPU profile does not exclude GPU/render-server cost. Simulator scheduling noise alone is not an app regression.
+
+   The callback sampler stores aggregate intervals, not rendered frames or a
+   timestamped hitch timeline. It cannot identify which stack caused a slow
+   interval. Its analyzer currently uses median expected cadence for the whole
+   window, so variable-refresh device deadline counts are approximate. Do not
+   add speculative signposts everywhere: add a narrow span only when the trace
+   cannot distinguish two plausible owners.
 5. Make one small change that removes work or code while preserving/improving intended gameplay feel.
 6. Run the focused stage again, then the full six-scenario Battle matrix.
 

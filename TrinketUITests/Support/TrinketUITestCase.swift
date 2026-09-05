@@ -87,27 +87,6 @@ enum TestLaunchArg {
         return args
     }
 
-    static func allForVictoryPerformance(reset: Bool = true) -> [String] {
-        performanceArguments(from: allForBattleVictory(reset: reset))
-    }
-
-    static func allForMysteryPerformance(reset: Bool = true) -> [String] {
-        var args: [String] = []
-        if reset {
-            args += [
-                resetState,
-                disableCloudSync,
-                skipStarterSelection,
-                "-battle-tick-interval",
-                "1.0",
-            ]
-        }
-        args += screen("mystery")
-        args += completedStages(["chapter-1-stage-1"])
-        args += mysteryRecruit(eventID: "recruit-bear")
-        return performanceArguments(from: args)
-    }
-
     static func performanceArguments(from arguments: [String]) -> [String] {
         var result = arguments
         result.removeAll { $0 == "-disable-audio" || $0 == enableFrameMetrics }

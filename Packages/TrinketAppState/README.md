@@ -19,6 +19,12 @@ mapping stays in `TrinketBattleFeature` via `BattleRuntimeDependencies`. Product
 code depends on `BattleEngine` (`BattleRuntime`) and feature contracts only — never concrete
 BattleFeature. Persistence owns save-mutation semantics; AppState decides when.
 
+SFX engine setup, warmup, and playback run on a private audio actor. Commands from
+main-actor callers are chained in submission order, so play, stop, and resource release
+cannot overtake one another. Catalog decoding stays asynchronous; a cancelled warmup
+cannot install its buffers after release. Adding warm voices leaves already-playing
+voices running. Sound buffers, voice counts, gains, and interruption behavior are unchanged.
+
 ```sh
 ./Scripts/test-package.sh TrinketAppState
 ```

@@ -23,6 +23,8 @@ class AggregatePerformanceTests(unittest.TestCase):
         self,
         reports: list[dict[str, object]],
         scenarios: list[str] | None = None,
+        mode: str = "enforce",
+        repetitions: int = 1,
     ) -> tuple[int, str]:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -33,6 +35,10 @@ class AggregatePerformanceTests(unittest.TestCase):
             results.write_text(json.dumps({"reports": reports}))
             baseline.write_text(json.dumps({
                 "scenarios": scenarios or ["navigation"],
+                "mode": mode,
+                "scenarioGoals": {
+                    "real-card-play": {"maximumMissedDeadlineCount": 0, "maximumFrameMs": 20},
+                },
                 "goals": {
                     "minimumAverageFPS": 59,
                     "minimumOnePercentLowFPS": 59,
@@ -44,7 +50,7 @@ class AggregatePerformanceTests(unittest.TestCase):
                 "--results", str(results),
                 "--output", str(output),
                 "--summary", str(summary),
-                "--expected-repetitions", "1",
+                "--expected-repetitions", str(repetitions),
                 "--baseline", str(baseline),
             ]
             with patch.object(sys, "argv", argv):
@@ -53,7 +59,7 @@ class AggregatePerformanceTests(unittest.TestCase):
 
     def test_missing_required_metrics_fail_closed(self) -> None:
         status, summary = self.run_aggregate([
-            {"scenario": "navigation", "schemaVersion": 4, "iteration": 1}
+            {"scenario": "navigation", "schemaVersion": 5, "iteration": 1}
         ])
         self.assertEqual(status, 1)
         self.assertIn("averageFPS is missing or non-numeric", summary)
@@ -61,7 +67,7 @@ class AggregatePerformanceTests(unittest.TestCase):
     def test_missing_baseline_scenario_fails(self) -> None:
         report = {
             "scenario": "other",
-            "schemaVersion": 4,
+            "schemaVersion": 5,
             "iteration": 1,
             "averageFPS": 60,
             "onePercentLowFPS": 60,
@@ -80,7 +86,7 @@ class AggregatePerformanceTests(unittest.TestCase):
         def report(scenario: str) -> dict[str, object]:
             return {
                 "scenario": scenario,
-                "schemaVersion": 4,
+                "schemaVersion": 5,
                 "iteration": 1,
                 "averageFPS": 60,
                 "onePercentLowFPS": 60,
@@ -94,13 +100,32 @@ class AggregatePerformanceTests(unittest.TestCase):
 
         status, summary = self.run_aggregate([report("navigation")], ["navigation"])
         self.assertEqual(status, 0)
-        self.assertNotIn("missed display deadline", summary)
-        self.assertNotIn("max frame exceeded", summary)
+        self.assertNotIn("missed deadlines", summary)
+        self.assertNotIn("max frame ms", summary)
 
         status, summary = self.run_aggregate([report("real-card-play")], ["real-card-play"])
         self.assertEqual(status, 1)
-        self.assertIn("missed display deadline", summary)
-        self.assertIn("max frame exceeded 20 ms", summary)
+        self.assertIn("missed deadlines", summary)
+        self.assertIn("max frame ms 30.00 above 20.00", summary)
+
+    def test_observe_mode_reports_each_bad_repetition_but_rejects_invalid_evidence(self) -> None:
+        report = {
+            "scenario": "navigation", "schemaVersion": 5, "iteration": 1,
+            "averageFPS": 60, "onePercentLowFPS": 60, "p95FrameMs": 16.7,
+            "p99FrameMs": 16.7, "maxFrameMs": 16.7, "missedDeadlineCount": 0,
+            "missedDeadlineRatio": 0, "severeStallCount": 0,
+        }
+        reports = [report | {"iteration": n} for n in range(1, 6)]
+        reports[-1]["onePercentLowFPS"] = 10
+        status, summary = self.run_aggregate(reports, mode="observe", repetitions=5)
+        self.assertEqual(status, 0)
+        self.assertIn("navigation repetition 5: 1% low", summary)
+        status, _ = self.run_aggregate(reports, mode="enforce", repetitions=5)
+        self.assertEqual(status, 1)
+        reports[-1]["iteration"] = 4
+        status, summary = self.run_aggregate(reports, mode="observe", repetitions=5)
+        self.assertEqual(status, 1)
+        self.assertIn("expected iterations", summary)
 
 
 if __name__ == "__main__":

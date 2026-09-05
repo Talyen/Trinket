@@ -15,6 +15,7 @@ if [[ $# -ge 1 ]]; then
         exit 2
       fi
       kind="$2"
+      shift 2
       ;;
     --help|-h)
       echo "Usage: $0 [--kind art|cinematic|music|sfx|app-icon|all]"
@@ -26,6 +27,15 @@ if [[ $# -ge 1 ]]; then
       ;;
   esac
 fi
+
+if [[ $# -gt 0 ]]; then
+  echo "Unexpected argument: $1" >&2
+  exit 2
+fi
+case "$kind" in
+  art|cinematic|music|sfx|app-icon|all) ;;
+  *) echo "Unknown asset kind: $kind" >&2; exit 2 ;;
+esac
 
 run_kind() {
   echo "=== Preparing $1 ==="

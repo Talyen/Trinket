@@ -23,21 +23,44 @@ left by a crashed run is reaped when its pid is dead or its age exceeds
 `TRINKET_SLOT_STALE_SECONDS` (default 6h) — the age cap defeats pid reuse, so
 stale leases never block the agent pool permanently.
 
-## Auto-mirror (isolated → human)
+## Inspection lease and capture
 
-After a green `handoff --isolate`, the built `Trinket.app` (in
-`.DerivedData/runs/agent-N/Build/Products/...`) is automatically
-`simctl install`-ed to **Trinket Run** so opening Simulator.app shows the
-latest verified build with no manual step. This is install-only (no launch)
-to avoid killing a mid-session game; the next foreground shows the new binary.
-Agent hygiene never shuts down **Trinket Run** to make room for an agent
-device — the two tenants are warm concurrently — so the mirror does not need
-to re-boot a device that hygiene just killed.
-Package-only changes trigger a quick `build.sh` for the mirror if no app
-product exists yet. Suppressed in CI (`GITHUB_ACTIONS=true`) or with
-`TRINKET_PROMOTE_SKIP=1`; set `TRINKET_HANDOFF_AUTO_LAUNCH=1` to also
-foreground-launch after install. Manual inspection of the isolated device
-remains via `./Scripts/run-simulator.sh --isolate` or `--agent N`.
+For a launch followed by screenshots, video, or UI interaction, keep one Bash
+process alive for the whole inspection. From the repository root, set
+`TRINKET_ISOLATE=1`, source `Scripts/run-env.sh`, and call
+`trinket_run_env_init`. With no preselected slot or simulator overrides, this
+acquires an available agent slot and installs its release trap. Run
+`./Scripts/run-simulator.sh --isolate` as a child of that process so it inherits
+the lease. Keep the parent alive until inspection finishes; its exit releases
+the lease. A standalone launcher releases its lease when it exits.
+
+Resolve the capture UDID from the leased `TRINKET_SIMULATOR_NAME` using
+`Scripts/simctl_json.py udid-for-name`, and check that it resolved before issuing
+commands. An explicit `--agent N` binds a slot name; it does not acquire an unused
+slot and is appropriate only while you already hold that slot's lease.
+
+With `SIMULATOR_UDID` set to that leased device:
+
+```bash
+xcrun simctl io "$SIMULATOR_UDID" screenshot /tmp/trinket-screen.png --type=png --mask=ignored
+xcrun simctl io "$SIMULATOR_UDID" recordVideo /tmp/trinket-motion.mp4
+```
+
+Stop recording with SIGINT to the recording process. Use the managed shutdown
+helper for recovery; it owns graceful guest-service teardown. A full pool means
+another run owns the capacity, not permission to take its device.
+
+## Optional mirror (isolated → human)
+
+Handoff is headless by default. `handoff.sh --isolate --mirror` opts into
+installing the verified app on **Trinket Run** when the changed paths require an
+app or package build. The mirror is install-only by default; it does not launch
+the game. Mirroring can require an app build when only package products exist.
+Use the launcher when foreground inspection is needed.
+
+[Scripts/README.md](../../Scripts/README.md) and `Scripts/promote.sh` own mirror
+commands and environment switches. A passing handoff without `--mirror` does not
+mean the human simulator has the new build installed.
 
 ## Launch visibility
 
@@ -48,8 +71,8 @@ running the script explicitly re-opens, activates, and re-applies the UDID so
 `simctl launch` does not succeed headlessly with no window. If the window
 still does not appear, run `open -a Simulator --args -CurrentDeviceUDID <UDID>`
 or `open -a Simulator` and check `xcrun simctl list devices` for the `Booted`
-state. `handoff --isolate` auto-mirror does not launch, so use `run` to
-foreground the build.
+state. An opted-in handoff mirror does not launch by default. Agents use
+`./Scripts/run-simulator.sh --isolate` to foreground their leased build.
 
 ## Xcode IDE loop
 

@@ -5,14 +5,13 @@ from __future__ import annotations
 
 import argparse
 import json
-import math
 import statistics
 import sys
 from pathlib import Path
 from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from performance_model import COUNT_METRICS, METRICS, NON_NEGATIVE_METRICS, REQUIRED_SCHEMA_VERSION, load_baseline, validate_report_domains
+from performance_model import METRICS, load_baseline, validate_report as validate_frame_report, goal_findings
 
 
 def aggregate(values: list[float]) -> dict[str, float]:
@@ -34,15 +33,7 @@ def validate_report(report: object, expected_scenarios: set[str]) -> tuple[dict[
     if not isinstance(scenario, str) or scenario not in expected_scenarios:
         failures.append(f"unexpected or missing scenario {scenario!r}")
         return None, failures
-    if report.get("schemaVersion") != REQUIRED_SCHEMA_VERSION:
-        failures.append(
-            f"{scenario}: expected frame report schema {REQUIRED_SCHEMA_VERSION}, "
-            f"found {report.get('schemaVersion')!r}"
-        )
-    iteration = report.get("iteration")
-    if isinstance(iteration, bool) or not isinstance(iteration, int) or iteration < 1:
-        failures.append(f"{scenario}: iteration must be a positive integer")
-    failures.extend(validate_report_domains(report))
+    failures.extend(validate_frame_report(report))
     return report, failures
 
 
@@ -62,9 +53,8 @@ def main() -> int:
     reports = payload.get("reports", [])
     if not isinstance(reports, list):
         raise SystemExit("results payload must contain a reports array")
-    scenarios_value, _, minimum_average, minimum_low, maximum_severe = load_baseline(
-        json.loads(args.baseline.read_text())
-    )
+    baseline = json.loads(args.baseline.read_text())
+    scenarios_value, mode, _, _, _ = load_baseline(baseline)
     expected_scenarios = set(scenarios_value)
 
     grouped: dict[str, list[dict[str, Any]]] = {scenario: [] for scenario in scenarios_value}
@@ -77,6 +67,7 @@ def main() -> int:
         if report is not None and not report_failures:
             grouped[report["scenario"]].append(report)
 
+    findings: list[str] = []
     scenarios: dict[str, Any] = {}
     for scenario in scenarios_value:
         records = grouped[scenario]
@@ -94,24 +85,7 @@ def main() -> int:
                 f"found {actual_iterations}"
             )
         for record in records:
-            repetition = int(record["iteration"])
-            if float(record["averageFPS"]) < minimum_average:
-                failures.append(
-                    f"{scenario} repetition {repetition}: average FPS below {minimum_average:g}"
-                )
-            if float(record["onePercentLowFPS"]) < minimum_low:
-                failures.append(
-                    f"{scenario} repetition {repetition}: 1% low below {minimum_low:g} FPS"
-                )
-            if float(record["severeStallCount"]) > maximum_severe:
-                failures.append(
-                    f"{scenario} repetition {repetition}: severe stalls above {maximum_severe:g}"
-                )
-            if scenario in {"real-card-play", "hand-drag-cancel"}:
-                if int(record["missedDeadlineCount"]) != 0:
-                    failures.append(f"{scenario} repetition {repetition}: missed display deadline")
-                if float(record["maxFrameMs"]) > 20:
-                    failures.append(f"{scenario} repetition {repetition}: max frame exceeded 20 ms")
+            findings.extend(goal_findings(record, baseline))
         metrics: dict[str, Any] = {}
         for metric in METRICS:
             values = [float(record[metric]) for record in records if metric in record]
@@ -128,12 +102,15 @@ def main() -> int:
         "schemaVersion": 1,
         "expectedRepetitions": args.expected_repetitions,
         "scenarios": scenarios,
+        "mode": mode,
         "failures": failures,
+        "findings": findings,
     }
     args.output.write_text(json.dumps(output, indent=2, sort_keys=True) + "\n")
 
     lines = [
         "# Repeated performance summary",
+        f"Mode: `{mode}`. Every repetition is evaluated against the baseline goals.",
         "",
         "| Scenario | Runs | Median 1% low | MAD | Median max ms | Missed deadlines |",
         "|---|---:|---:|---:|---:|---:|",
@@ -150,8 +127,13 @@ def main() -> int:
         )
     if failures:
         lines.extend(["", "## Failures", "", *(f"- {failure}" for failure in failures)])
+    if findings:
+        lines.extend(["", "## Performance findings", "", *(f"- {finding}" for finding in findings)])
+    if mode == "observe":
+        lines.extend(["", "Calibration mode is non-blocking for performance findings; invalid evidence always fails."])
+    print("\n".join(lines))
     args.summary.write_text("\n".join(lines) + "\n")
-    return 1 if failures else 0
+    return 1 if failures or (findings and mode == "enforce") else 0
 
 
 if __name__ == "__main__":

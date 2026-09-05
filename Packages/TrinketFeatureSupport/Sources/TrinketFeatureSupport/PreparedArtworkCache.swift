@@ -384,8 +384,8 @@ public final class PreparedArtworkCache {
         return Int(information.phys_footprint)
     }
 
-    @MainActor
-    static func decodeImage(named name: String) async -> PreparedArtwork {
+    @concurrent
+    nonisolated static func decodeImage(named name: String) async -> PreparedArtwork {
         guard !Task.isCancelled else {
             return PreparedArtwork(name: name, image: nil)
         }

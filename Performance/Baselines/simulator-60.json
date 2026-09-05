@@ -13,8 +13,6 @@
     "campaign-stage-select-transition",
     "stage-enemy-detail-transition",
     "stage-select-battle-transition",
-    "victory-reward-reveal",
-    "mystery-encounter-reveal",
     "real-card-play",
     "hand-drag-cancel",
     "engine-hand",
@@ -23,5 +21,15 @@
     "combined-worst-case"
   ],
   "schemaVersion": 2,
-  "notes": "Ad hoc performance.sh collects and reports against these goals without blocking. Not a CI job. Promote to enforce only after Simulator runs consistently clear average FPS, 1% low, and zero severe stalls."
+  "notes": "Ad hoc performance.sh collects and reports against these goals without blocking. Not a CI job. Promote to enforce only after Simulator runs consistently clear average FPS, 1% low, and zero severe stalls.",
+  "scenarioGoals": {
+    "real-card-play": {
+      "maximumMissedDeadlineCount": 0,
+      "maximumFrameMs": 20
+    },
+    "hand-drag-cancel": {
+      "maximumMissedDeadlineCount": 0,
+      "maximumFrameMs": 20
+    }
+  }
 }

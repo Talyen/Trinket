@@ -8,7 +8,6 @@ enum AudioLogging {
 }
 
 enum AmbientAudioSession {
-    @MainActor
     static func configureIfNeeded(configured: inout Bool, logger: Logger) {
         guard !configured else { return }
         do {

@@ -26,10 +26,6 @@ inputs:
     description: Upload pruned .DerivedData for within-run test fan-out (true/false)
     required: false
     default: 'false'
-  skip-build:
-    description: Restore cache only (unit job); skip compile, prune, save, and upload
-    required: false
-    default: 'false'
 
 outputs:
   artifact-name:
@@ -66,7 +62,6 @@ runs:
       run: ./Scripts/ci-diagnostics.sh --reset .DerivedData/TestResults
 
     - name: Build for testing
-      if: inputs.skip-build != 'true'
       id: build
       shell: bash
       env:
@@ -74,7 +69,7 @@ runs:
       run: ${{ inputs.build-command }}
 
     - name: Upload build failure diagnostics
-      if: failure() && inputs.skip-build != 'true' && steps.build.outcome == 'failure'
+      if: failure() && steps.build.outcome == 'failure'
       uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
       with:
         name: ${{ steps.ids.outputs.artifact-name }}-failure-diagnostics
@@ -84,24 +79,24 @@ runs:
         if-no-files-found: ignore
 
     - name: Prune DerivedData before cache/artifact save
-      if: inputs.skip-build != 'true' && inputs.prune == 'true'
+      if: inputs.prune == 'true'
       shell: bash
       run: ./Scripts/prune-derived-data-cache.sh
 
     - name: Save warm build cache
-      if: inputs.skip-build != 'true' && inputs.save-cache == 'true' && steps.restore.outputs.cache-hit != 'true'
+      if: inputs.save-cache == 'true' && steps.restore.outputs.cache-hit != 'true'
       uses: actions/cache/save@3edfce9056124e459a23f683a21433670d47daca # v4
       with:
         path: .DerivedData
         key: ${{ steps.ids.outputs.cache-key }}
 
     - name: Stage --no-build test products
-      if: inputs.skip-build != 'true' && inputs.upload-artifact == 'true'
+      if: inputs.upload-artifact == 'true'
       shell: bash
       run: ./Scripts/stage-ci-test-artifact.sh
 
     - name: Upload build products for test jobs
-      if: inputs.skip-build != 'true' && inputs.upload-artifact == 'true'
+      if: inputs.upload-artifact == 'true'
       uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
       with:
         name: ${{ steps.ids.outputs.artifact-name }}

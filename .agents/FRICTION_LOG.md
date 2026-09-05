@@ -2,7 +2,7 @@
 
 Centralized intake for agent pain points, confusion, and struggle while working in this codebase. Keep entries short — one line in the table is enough. Use the expanded template only when extra context helps.
 
-Add a row to `Open` when docs mislead, behavior surprises, or repeated friction appears. Move it to `Resolved` with a link to the fix when addressed. Triage owner: whoever lands the linked fix drains the row into a knowledge pattern or skill update per `knowledge/index.md` lifecycle; review Open rows whenever touching the area they name.
+Add a row to `Open` when docs mislead, behavior surprises, or repeated friction appears. Move it to `Resolved` with a link to the fix when addressed. Review Open rows when touching their area. Close resolved entries with a link to the corrected owner; create a knowledge pattern or skill instruction only when a reusable lesson remains.
 
 ## How to log
 
@@ -18,8 +18,11 @@ Add a row to `Open` when docs mislead, behavior surprises, or repeated friction 
 
 ## Resolved
 
-| Date | Area | Resolution (commit / pattern link) |
+| Date | Area | Resolution (commit / owner link) |
 |------|------|------------------------------------|
+| 2026-09-05 | Performance evidence | The [playbook](../Docs/Platform/PerformanceInvestigationPlaybook.md) now documents retained evidence, consistent observation/enforcement, and missing reveal coverage; it no longer presents post-reveal idle samples as reveal measurements or prescribes a fixed diagnostic order. |
+| 2026-09-05 | Skills and simulator guidance | Removed fixed-slot capture advice and default-mirror claims; [simulator operations](../Docs/Platform/SimulatorOperations.md) now distinguishes selection from a held lease and documents opt-in mirroring. Simplified skill triggers and [evaluation guidance](evals/README.md) without requiring a promotion log for every edit. |
+| 2026-09-05 | Generation verification | The documented freshness shortcut reported idempotence without comparing regenerated outputs. Removed it and its unused sidecar helpers; [the assertion](../Scripts/assert-generated-output.sh) now always regenerates, with regression fixtures for damaged and unstable outputs. |
 | 2026-09-04 | Agent guidance | Removed conflicting workflow absolutes and duplicate root policy; corrected the coverage decision to permit extending existing tests. See [agent guide](../AGENTS.md), [coverage decision](../Docs/Platform/Testing.md#coverage-decision-new-and-changed-behavior), and [verification policy](../Docs/Platform/Verification.md). |
 
 ## Details

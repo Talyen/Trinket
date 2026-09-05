@@ -1,28 +1,32 @@
-# Eval 01 — Add a BattleEngine EffectKind
+# Eval 01 — Battle effect ownership
 
-Tests whether `architect` + `battle-engine` guidance helps an agent land a minimal, correctly-owned combat change.
+Use in a disposable worktree; this effect is a probe, not a product addition.
 
-## Goal
-Add a new `EffectKind` case through registry → `EffectHandlers` → deterministic test without leaking into UI or persistence.
+## Request for the evaluator
+
+Add a disposable probe effect named `evalProbe` that reduces its holder's outgoing
+damage by 10% while active, using the existing timed-debuff conventions.
+Give it a one-turn duration using the existing expiry semantics; damage returns
+to its unaffected value after expiry.
+Do not expose it in authored game content or add UI. Use the architect skill and
+the routed BattleEngine guidance. Verify dispatch and expiry deterministically.
 
 ## Setup
-- Touch: `Packages/BattleEngine` (or `Packages/TrinketCore` if primitives need extending)
-- Read: `AGENTS.md`, `Packages/BattleEngine/AGENTS.md`, `Docs/AgentContext/battle-engine.md`, `.agents/skills/architect/SKILL.md`
-- Use fixtures: `TrinketTestSupport` (`BattleStateTestFactory.makeBattle` with `CombatantFixtures.deterministicBattleSeed`)
 
-## Steps
-1. Add the `EffectKind` case and update registry parity.
-2. Implement the handler in `EffectHandlers/` (not on `BattleState` facade).
-3. Add a deterministic test in `Packages/BattleEngine/Tests/` that fails before the handler and passes after. Use `EffectHandlers.all` dispatch; avoid `Task.sleep`.
+Start from the current checkout in an isolated worktree. Resolve existing effect
+representations, handlers, and test fixtures from the owning packages; do not assume
+an enum case alone is the complete extension point. No production manifest or save
+migration should be necessary for this disposable probe.
 
-## Pass criteria
-- `./Scripts/test-package.sh BattleEngine` passes; new test is owned by existing suite (no orphan file).
-- `./Scripts/check-module-boundaries.sh` passes (no app/feature imports in `BattleEngine`).
-- `./Scripts/test.sh style <touched-swift>` passes.
-- Agent followed “draft public surface first” (architect skill) and kept `BattleState` API to reads + `playCard`/`endTurn`.
+## Reviewer criteria
 
-## Anti-goals
-Do not add UI, persistence, or balance tuning. Do not add forwarding wrappers.
-
-## Handoff gate
-Run the path-scoped route emitted for the touched BattleEngine source and test files.
+- The effect reduces outgoing damage while active and stops doing so after expiry,
+  demonstrated through existing dispatch and turn processing.
+- The implementation uses the existing effect owner and registry. It adds no
+  feature/persistence dependency or catalog-specific branch to the BattleState hub.
+- Visibility matches actual consumers, with no forwarding wrapper or speculative
+  protocol. Evidence of this matters more than declaration-writing order.
+- Coverage lives in an appropriate existing suite where practical and tests the
+  behavior, including expiry, rather than only registry membership.
+- The routed handoff passes; report unavailable checks explicitly. The probe does
+  not enter the main product checkout.

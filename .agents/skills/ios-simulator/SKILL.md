@@ -1,30 +1,27 @@
 ---
 name: ios-simulator
-description: Use when inspecting, launching, controlling, capturing screenshots/video from, or debugging apps on the iOS Simulator, or when running xcrun simctl commands, managing simulator state, or verifying UI visually.
+description: Launch, inspect, capture, or debug Trinket on iOS Simulator using the managed agent lease. Use before simctl operations or simulator UI verification.
 ---
 
-# iOS Simulator — isolation and capture
+# Simulator inspection
 
-Executable isolation rules for `xcrun simctl` work. Pool lifecycle and IDE guidance live in `Docs/Platform/SimulatorOperations.md`.
-
-## Rules
-
-- **Target UDID, never `booted`** — multiple simulators (`Trinket Run`, `Trinket Agent 1/2`) run concurrently.
-- **Never `shutdown all` / `erase all`** — only manage your leased device.
-- **Use isolate slots**: `./Scripts/run-simulator.sh` or `./Scripts/handoff.sh --isolate` leases `Trinket Agent N`.
-- **Never kill foreign Xcode/Simulator processes.**
-- Graceful shutdown: `xcrun simctl spawn <UDID> launchctl stop com.apple.PosterBoard` before `shutdown`.
-
-## Minimal commands
+Use [SimulatorOperations.md](../../../Docs/Platform/SimulatorOperations.md) for
+lease lifecycle, capture, recovery, and Xcode setup. For a normal agent launch:
 
 ```bash
-UDID="$(xcrun simctl list devices available -j | python3 Scripts/simctl_json.py udid-for-name "Trinket Agent 1")"
-xcrun simctl boot <UDID> && xcrun simctl bootstatus <UDID> -b
-./Scripts/run-simulator.sh                          # build + install + launch (dark)
-xcrun simctl io <UDID> screenshot out.png --type=png --mask=ignored
-xcrun simctl io <UDID> recordVideo out.mp4          # SIGINT to stop
-xcrun simctl ui <UDID> appearance dark
-xcrun simctl status_bar <UDID> override --time "9:41" --batteryState charged --batteryLevel 100
+./Scripts/run-simulator.sh --isolate
 ```
 
-See `SimulatorOperations.md` for managed-device lifecycle, leases, local Xcode setup, and watchdog guidance.
+For screenshots, video, or UI interaction after launch, keep a parent lease alive
+for the whole inspection as described in that guide. A booted device, a printed
+UDID, or an explicit `--agent N` selects a device; none proves you hold its lease.
+Never choose a fixed agent slot merely because it appears idle.
+
+Target the leased UDID explicitly, never `booted`. Manage only your leased device;
+never use `shutdown all`, `erase all`, or terminate foreign Xcode/Simulator processes.
+Let the managed helpers perform recovery and graceful shutdown.
+
+A screenshot can verify layout; exercise the interaction to verify behavior.
+Report device/build identity and what was actually checked. Treat simulator
+performance and absent physical haptics as limits of that evidence. On failure,
+use [CI diagnostics](../../../Docs/AgentContext/ci-diagnostics.md) before retrying.

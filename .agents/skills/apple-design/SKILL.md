@@ -1,39 +1,31 @@
 ---
 name: apple-design
-description: Apple's approach to direct, fluid interfaces. Use when building or reviewing SwiftUI layout, gesture-driven motion, spring animations, drag/swipe/sheet interactions, translucent materials and depth, typography, feedback, performance, or Apple-style design foundations.
+description: Design or review Trinket SwiftUI layout, gestures, motion, typography, materials, and feedback. Use for visual or interaction changes, including localized UI defects; skip logic-only refactors.
 ---
 
-# Apple Design
+# Design the player interaction
 
-Use this skill for player-facing interface work involving layout, motion, gestures,
-materials, typography, feedback, or performance. This file routes the
-work; the focused references own the detailed procedure and API examples.
+Start with the player's action and the state they need to understand. Reuse
+[TrinketDesignSystem](../../../Packages/TrinketDesignSystem/README.md) controls,
+roles, and motion recipes; inspect the existing screen before choosing new ones.
+A local UI fix can need design judgment without becoming a redesign.
 
-## Trigger Scenarios
+Read only references relevant to the change:
 
-- **Activate when**: Authoring, polishing, or redesigning player-facing SwiftUI views, gesture pipelines, or design system components.
-- **Do NOT activate when**: Performing localized SwiftUI bug fixes, logic or state refactoring, or non-visual changes.
-- **Change Discipline Priority**: Deliver the most pragmatic architectural change that satisfies the request (`AGENTS.md`) — prefer the cleanest long-term shape over the narrowest diff. Do not add unrequested animations, materials, or visual polish during routine maintenance or bug fixes. Pragmatic shape overrides minimal-diff discipline when in conflict — a well-owned larger change is preferred over a narrow workaround that leaves structural debt.
-
-## Route by work
-
-| Work | Required reference |
+| Concern | Reference |
 | --- | --- |
-| Drag, swipe, tap, sheet, spring, momentum, interruption, or spatial transitions | [Motion and gestures](motion-and-gestures.md) |
-| Glass, blur, translucency, scrims, hierarchy, depth, or floating chrome | [Materials and depth](materials-and-depth.md) |
-| Font choice, optical sizing, tracking, leading, or hierarchy | [Typography](typography.md) |
-| Accessibility policy (what to keep and what never to add) | [Accessibility](accessibility.md) |
-| Frame smoothness, compositor work, haptics, sound, or feedback timing | [Performance and feedback](performance-and-feedback.md) |
-| Product-level critique, wayfinding, restraint, or design process | [Foundations and process](foundations-and-process.md) |
+| Gesture response, cancellation, interruption, settling | [Motion and gestures](motion-and-gestures.md) |
+| Glass, scrims, overlays, legibility | [Materials and depth](materials-and-depth.md) |
+| Text hierarchy and fit | [Typography](typography.md) |
+| Responsiveness, sound, haptics | [Performance and feedback](performance-and-feedback.md) |
+| Screen critique or a new flow | [Foundations and process](foundations-and-process.md) |
 
-For Trinket’s iOS 26+ screens, use first-party SwiftUI APIs and
-`TrinketDesignSystem` for reusable chrome, motion, and product colors.
+[SwiftUI feature context](../../../Docs/AgentContext/swiftui-features.md) owns
+platform and feature integration rules. [PD-014](../../../Docs/Product/Decisions.md)
+owns accessibility scope; retain existing accommodation behavior and use explicit
+image semantics and stable test identifiers as specified by those owners.
 
-## Core checklist
-
-- Make the primary intent obvious; keep the player in control and confirm only genuinely destructive actions.
-- Use native controls and shared DesignSystem primitives before adding custom layout, motion, material, or feedback.
-- Keep direct manipulation immediate, continuous, spatially consistent, and interruptible; the focused motion reference owns the mechanics.
-- Keep visual, sound, and haptic feedback tied to one committed event.
-- Apply the [PD-014](../../../Docs/Product/Decisions.md) basic accessibility policy: keep test identifiers, give images explicit semantics, and add no accommodation branches.
-- Before handoff: routed reference read, gestures cancellable, DesignSystem primitives used, and no unnecessary visual complexity added.
+Check the requested interaction in its relevant states, including cancellation
+or repeated input when applicable. Use the simulator skill for visual inspection
+and [Testing.md](../../../Docs/Platform/Testing.md) to choose coverage. Report
+unobserved behavior as unverified; a static image does not prove gesture feel.

@@ -56,7 +56,7 @@ class ComparePerformanceTests(unittest.TestCase):
     def report(**overrides: object) -> dict[str, object]:
         report: dict[str, object] = {
             "scenario": "navigation",
-            "schemaVersion": 4,
+            "schemaVersion": 5,
             "iteration": 1,
             "averageFPS": 59.1,
             "onePercentLowFPS": 59.0,
@@ -73,7 +73,7 @@ class ComparePerformanceTests(unittest.TestCase):
     def test_diagnostic_metrics_do_not_fail_gate(self) -> None:
         status, summary = self.run_comparison([self.report()])
         self.assertEqual(status, 0)
-        self.assertIn("59/59/zero-severe-stall", summary)
+        self.assertIn("configured goals", summary)
         self.assertIn("Mode: `enforce`", summary)
 
     def test_duplicate_or_missing_reports_fail(self) -> None:
@@ -95,8 +95,8 @@ class ComparePerformanceTests(unittest.TestCase):
         ])
         self.assertEqual(status, 1)
         self.assertIn("average FPS 58.90 below 59.00", summary)
-        self.assertIn("1% low 58.80 FPS below 59.00", summary)
-        self.assertIn("severe stalls 1 above zero", summary)
+        self.assertIn("1% low 58.80 below 59.00", summary)
+        self.assertIn("severe stalls 1.00 above 0.00", summary)
 
     def test_observe_mode_is_non_blocking(self) -> None:
         status, summary = self.run_comparison(
@@ -160,6 +160,21 @@ class ComparePerformanceTests(unittest.TestCase):
         self.assertIn("must be a non-negative integer", rendered)
         self.assertIn("must be between 0 and 1", rendered)
         self.assertIn("above 2", rendered)
+
+    def test_invalid_evidence_fails_even_in_observe_mode(self) -> None:
+        for reports in ([], [self.report(schemaVersion=4)], [self.report(iteration=True)],
+                        [self.report(averageFPS=float("nan"))]):
+            with self.subTest(reports=reports):
+                status, _ = self.run_comparison(reports, mode="observe")
+                self.assertEqual(status, 1)
+
+    def test_report_schema_matches_swift_producer(self) -> None:
+        import re
+        producer = SCRIPT.parents[1] / "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Shared/FramePacing.swift"
+        match = re.search(r"static let schemaVersion = (\d+)", producer.read_text())
+        self.assertIsNotNone(match)
+        status, _ = self.run_comparison([self.report(schemaVersion=int(match.group(1)))])
+        self.assertEqual(status, 0)
 
 
 if __name__ == "__main__":

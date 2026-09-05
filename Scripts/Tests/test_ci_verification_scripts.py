@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -144,14 +145,12 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
         self.assertIn("build-for-testing.sh --app-only", workflow)
         self.assertIn("name: Homestead", workflow)
         self.assertIn("preboot-simulator: 'true'", workflow)
-        self.assertIn("skip-build: 'true'", workflow)
         self.assertIn("checkout-trinket", workflow)
         self.assertNotIn("checkout-ci", workflow)
         self.assertIn("Smoke tests (${{ matrix.name }})", workflow)
         self.assertIn("needs.changes.outputs.infra", workflow)
         self.assertNotIn("actions/cache/restore@", workflow)
         self.assertIn("stage-ci-test-artifact.sh", text)
-        self.assertIn("skip-build", text)
         cache_key = (
             ROOT / ".github" / "actions" / "build-cache-key" / "action.yml"
         ).read_text(encoding="utf-8")
@@ -918,16 +917,100 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
         self.assertIn("./Scripts/build.sh", plan)
         self.assertNotIn("test-package.sh TrinketTestSupport", plan)
 
-    def test_generate_stamp_records_input_porcelain_sidecar(self) -> None:
-        text = (ROOT / "Scripts" / "build-freshness.sh").read_text(encoding="utf-8")
-        self.assertIn("touch_generate_stamp", text)
-        self.assertIn("record_generate_input_git_snapshot", text)
-        self.assertIn("assert_generate_input_git_snapshot_unchanged", text)
-        assert_text = (ROOT / "Scripts" / "assert-generated-output.sh").read_text(
-            encoding="utf-8"
-        )
-        self.assertIn("assert_generate_input_git_snapshot_unchanged", assert_text)
-        self.assertIn("Prefer stamp-time porcelain over dirty-vs-HEAD", assert_text)
+    def test_idempotence_checks_outputs_even_with_a_fresh_stamp(self) -> None:
+        for initial, generator, expected in (
+            ("stable", "printf stable > output", 0),
+            ("damaged", "printf stable > output", 1),
+            ("stable", "printf churn >> output", 1),
+        ):
+            with self.subTest(initial=initial, generator=generator), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                (root / "Scripts/config").mkdir(parents=True)
+                (root / "Trinket.xcodeproj").mkdir()
+                (root / "results").mkdir()
+                for filename in ("assert-generated-output.sh", "build-freshness.sh", "build-inputs.env"):
+                    shutil.copy2(ROOT / "Scripts" / filename, root / "Scripts" / filename)
+                (root / "Scripts/config/generated-paths.tsv").write_text("content|output\n")
+                (root / "Scripts/run-env.sh").write_text(
+                    'trinket_run_env_init() { export RESULTS_DIR="$PWD/results"; }\n'
+                )
+                generate = root / "Scripts/generate.sh"
+                generate.write_text("#!/bin/bash\nprintf called >> calls\n" + generator + "\n")
+                generate.chmod(0o755)
+                identifier = "A" * 24
+                (root / "Trinket.xcodeproj/project.pbxproj").write_text(
+                    "Begin PBXNativeTarget section\n"
+                    + identifier + " /* target */\nEnd PBXNativeTarget section\n"
+                )
+                (root / "Smoke.xctestplan").write_text(json.dumps({"identifier": identifier}))
+                (root / "output").write_text(initial)
+                stamp = root / "results/.last-generate.stamp"
+                stamp.touch()
+                os.utime(stamp, (time.time() + 60, time.time() + 60))
+                result = subprocess.run(
+                    ["bash", "Scripts/assert-generated-output.sh", "--idempotent"],
+                    cwd=root, capture_output=True, text=True,
+                )
+                self.assertEqual(result.returncode, expected, result.stdout + result.stderr)
+                self.assertEqual((root / "calls").read_text(), "called")
+
+    def test_generation_tracks_shared_generator_helpers(self) -> None:
+        for relative, expected in (
+            ("Scripts/content_codegen_modifiers.py", "--skip-xcodegen"),
+            ("Scripts/content_codegen_triggers.py", "--skip-xcodegen"),
+            ("Scripts/lib/media-assets.sh", "--assets"),
+            ("Scripts/prepare-assets.sh", "--assets"),
+        ):
+            with self.subTest(path=relative), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                (root / "Scripts/lib").mkdir(parents=True)
+                (root / "ContentManifest").mkdir()
+                (root / "ContentManifest/input.tsv").touch()
+                (root / "ArtManifest").mkdir()
+                (root / "ArtManifest/input.tsv").touch()
+                (root / "project.yml").touch()
+                for filename in ("build-freshness.sh", "build-inputs.env"):
+                    shutil.copy2(ROOT / "Scripts" / filename, root / "Scripts" / filename)
+                (root / relative).touch()
+                generate = root / "Scripts/generate.sh"
+                generate.write_text('#!/bin/bash\nprintf "%s" "$*" > calls\n')
+                generate.chmod(0o755)
+                (root / "results").mkdir()
+                stamp = root / "results/.last-generate.stamp"
+                stamp.touch()
+                os.utime(root / relative, (time.time() + 60, time.time() + 60))
+                result = subprocess.run(
+                    ["bash", "-ec", "source Scripts/build-freshness.sh; prepare_generated_inputs results"],
+                    cwd=root, capture_output=True, text=True,
+                )
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                self.assertEqual((root / "calls").read_text(), expected)
+
+    def test_asset_dispatch_validates_before_conversion(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "Scripts").mkdir()
+            shutil.copy2(ROOT / "Scripts/prepare-assets.sh", root / "Scripts/prepare-assets.sh")
+            for kind in ("art", "cinematic", "audio", "app-icon"):
+                pipeline = root / "Scripts" / f"prepare-{kind}-assets.sh"
+                if kind == "app-icon":
+                    pipeline = root / "Scripts/prepare-app-icon.sh"
+                pipeline.write_text('#!/bin/bash\nprintf "%s %s\\n" "$0" "$*" >> calls\n')
+                pipeline.chmod(0o755)
+            for arguments in (("--kind", "typo"), ("--kind", "art", "extra"), ("--kind",)):
+                with self.subTest(arguments=arguments):
+                    result = subprocess.run(
+                        ["bash", "Scripts/prepare-assets.sh", *arguments],
+                        cwd=root, capture_output=True, text=True,
+                    )
+                    self.assertNotEqual(result.returncode, 0)
+                    self.assertFalse((root / "calls").exists())
+            result = subprocess.run(
+                ["bash", "Scripts/prepare-assets.sh", "--kind", "sfx"],
+                cwd=root, capture_output=True, text=True,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual((root / "calls").read_text(), "Scripts/prepare-audio-assets.sh sfx\n")
 
     def test_test_package_records_timing_log(self) -> None:
         text = (ROOT / "Scripts" / "test-package.sh").read_text(encoding="utf-8")

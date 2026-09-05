@@ -185,37 +185,11 @@ snapshot_for_idempotent_check() {
 if [[ "$MODE" == "idempotent" ]]; then
   assert_testplan_native_target_ids
 
-  # When handoff just stamped a fresh generate, skip the second full
-  # generate if inputs are unchanged — still prove test-plan IDs and report.
-  # shellcheck source=run-env.sh
+  # Fresh inputs do not prove intact or deterministic outputs: compare an
+  # actual regeneration even when the caller just generated successfully.
   source ./Scripts/run-env.sh
   trinket_run_env_init
-  # shellcheck source=build-freshness.sh
   source ./Scripts/build-freshness.sh
-  stamp="${RESULTS_DIR}/.last-generate.stamp"
-  skip_regenerate=false
-  if [[ -f "$stamp" ]]; then
-    content_changed="$(generation_paths_newer_than "$stamp" "${content_generation_inputs[@]}" || true)"
-    project_changed="$(generation_paths_newer_than "$stamp" project.yml || true)"
-    assets_changed=""
-    if [[ "$INCLUDE_ASSETS" == true ]]; then
-      assets_changed="$(generation_paths_newer_than "$stamp" "${asset_generation_inputs[@]}" || true)"
-    fi
-    # Prefer stamp-time porcelain over dirty-vs-HEAD. Agent/verify worktrees are
-    # normally dirty after generate; re-checking HEAD dirtiness forced a second
-    # full --assets generate + shasum pass (~30–50s) on every verify run.
-    if [[ -z "$content_changed" && -z "$project_changed" ]] \
-      && { [[ "$INCLUDE_ASSETS" != true ]] || [[ -z "$assets_changed" ]]; } \
-      && assert_generate_input_git_snapshot_unchanged "$stamp"; then
-      skip_regenerate=true
-    fi
-  fi
-
-  if [[ "$skip_regenerate" == true ]]; then
-    echo "Generated output stamp is fresh; skipping idempotent regenerate."
-    echo "Generated output is stable under regenerate (matches manifests)."
-    exit 0
-  fi
 
   before="$(snapshot_for_idempotent_check)"
   run_generate

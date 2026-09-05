@@ -1,28 +1,30 @@
-# Eval 02 — Shop flow affordance
+# Eval 02 — Shop affordance
 
-Tests whether `apple-design` + `swiftui-features` guidance helps an agent ship a minimal player-facing shop change with correct accessibility and smoke ownership.
+Use in a disposable worktree; this is a scoped UI probe.
 
-## Goal
-Add or adjust a Shop affordance in `Trinket/Features/Play/Shop/` (or `Trinket/Features/Collection` → Shop entry) with correct DesignSystem routing and stable test hooks.
+## Request for the evaluator
+
+In Shop, make an unaffordable offer's price visually distinguishable using the
+existing design system. Preserve purchase rules, offer layout, and navigation.
+Use the apple-design skill and verify the affordable and unaffordable states.
 
 ## Setup
-- Touch: `Trinket/Features/Play/Shop/*` or `TrinketUITests/Play/ShopFlowUITests.swift`
-- Read: `Trinket/Features/AGENTS.md`, `Docs/AgentContext/swiftui-features.md`, `.agents/skills/apple-design/SKILL.md`, `Docs/Platform/Testing.md` (keep/drop rubric)
-- Route: `./Scripts/agent-context.sh --agent --paths <touched>` confirms smoke target `SmokeShopTests`
 
-## Steps
-1. Implement the affordance using `TrinketDesignSystem` primitives (no one-off color literals, no `DesignAssetColors`).
-2. Assign a stable `AccessibilityID` constant (queried by `AccessibilityID.*` in UITests per `check-accessibility-ids.py`).
-3. Add smoke coverage only if it meets the keep/drop rubric (state-changing journey or safety invariant); otherwise rely on package tests.
+The screen is `Trinket/Features/Play/Shop/ShopEncounterView.swift`. Route the actual
+changed paths for current guides and smoke ownership. Use existing Shop fixtures
+and test identifiers where possible; do not invent a new flow for the probe.
 
-## Pass criteria
-- `SKIP_GENERATE=1 ./Scripts/test.sh smoke SmokeShopTests` canary passes (or `handoff.sh` routes it).
-- `python3 ./Scripts/check-ui-style.py` and `check-accessibility-ids.py` pass (no `check-ui-style` product-color bypass without allow comment).
-- `./Scripts/test.sh style <touched-swift>` passes.
-- No unnecessary animation/material polish beyond request (change-discipline priority in apple-design skill).
+## Reviewer criteria
 
-## Anti-goals
-Do not copy display strings into tests; assert `AccessibilityID` + one visible outcome. Do not add nav-path pushes under launch cover.
-
-## Handoff gate
-Run the path-scoped route emitted for the touched Shop and UI-test files.
+- The price treatment distinguishes the two states and uses a semantic design-system
+  role. It preserves the current price, purchase eligibility, and navigation.
+- No unrelated animation, glass, layout, or new public abstraction appears.
+- Existing identifiers and image semantics remain intact. A styling change does not
+  manufacture a new AccessibilityID merely to satisfy a checklist.
+- Visual evidence covers both states. A screenshot supports appearance; any claim
+  about purchasing requires exercising that action or relevant existing tests.
+- Coverage follows Testing.md: extend meaningful existing coverage only if needed.
+  Use the routed isolated handoff and targeted smoke when interaction verification
+  calls for it; do not bypass generation with an unconditional environment flag.
+- Report what was actually observed and any blocked verification. The probe does
+  not enter the main product checkout.

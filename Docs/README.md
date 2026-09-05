@@ -39,7 +39,7 @@ Do not restate these elsewhere except a one-line pointer.
 | Surface | Authority and retention |
 |---------|-------------------------|
 | Standing Product, Platform, package, and AgentContext docs | Current and authoritative; update with the behavior they describe |
-| Skills | Active routed procedure; keep only instructions needed when the trigger applies |
+| Skills | Task-specific procedure; use when the trigger applies, with references loaded only for the relevant mode |
 | Knowledge | Searchable rationale and rejected approaches; load only by trigger and remove facts already enforced elsewhere |
 | Audit guides | Re-runnable procedure, never run history or backlog |
 | `Docs/Audits/Proposals.md` | Narrow durable audit memory; evidence pointers must continue to resolve |
@@ -75,4 +75,7 @@ knowledge when they remain useful.
 
 For documentation-only changes, verify local links and the routed checks, and
 compare command examples or behavioral claims with their executable owners.
-A link checker cannot establish that an instruction is correct.
+A link checker cannot establish that an instruction is correct. For consequential
+skill workflow changes, use a relevant scenario from the
+[evaluation guide](../.agents/evals/README.md); report the scope of validation
+without requiring a separate promotion log or synthetic feature for wording edits.

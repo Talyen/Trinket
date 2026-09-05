@@ -2,9 +2,12 @@ import Foundation
 import TrinketFeatureSupport
 
 public enum BattlePerformanceTiming {
-    public static var isQuick: Bool {
+    private static let quickMode =
         ProcessInfo.processInfo.environment["TRINKET_PERFORMANCE_QUICK"] == "1"
             || ProcessInfo.processInfo.arguments.contains("-battle-performance-quick")
+
+    public static var isQuick: Bool {
+        quickMode
     }
 
     public static var monitorWarmupSeconds: CFTimeInterval {

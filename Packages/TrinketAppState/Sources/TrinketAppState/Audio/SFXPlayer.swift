@@ -6,10 +6,55 @@ import TrinketContent
 @MainActor
 public final class SFXPlayer {
     private let isDisabled: Bool
+    private let playback = SFXPlayback()
+    private var pendingCommand: Task<Void, Never>?
+
+    public init(isDisabled: Bool) {
+        self.isDisabled = isDisabled
+    }
+
+    public func play(_ id: String, volume: Double) {
+        playAll([id], volume: volume)
+    }
+
+    public func playAll(_ ids: [String], volume: Double) {
+        guard !isDisabled, volume > 0, !ids.isEmpty else { return }
+        enqueue { $0.playAll(ids, volume: volume) }
+    }
+
+    public func warm(_ ids: [String], concurrentPlayerCount: Int = 1) {
+        guard !isDisabled else { return }
+        enqueue { $0.warm(ids, concurrentPlayerCount: concurrentPlayerCount) }
+    }
+
+    public func warmAllCatalog(concurrentPlayerCount: Int = 2) {
+        guard !isDisabled else { return }
+        enqueue { $0.warmAllCatalog(concurrentPlayerCount: concurrentPlayerCount) }
+    }
+
+    public func stopAll() {
+        enqueue { $0.stopAll() }
+    }
+
+    public func releaseResources() {
+        enqueue { $0.releaseResources() }
+    }
+
+    private func enqueue(_ operation: @escaping @Sendable (isolated SFXPlayback) -> Void) {
+        let previousCommand = pendingCommand
+        let playback = playback
+        pendingCommand = Task {
+            await previousCommand?.value
+            await operation(playback)
+        }
+    }
+}
+
+private actor SFXPlayback {
     private var hasConfiguredSession = false
     private var engineIsRunning = false
     private var preparedVoicesArePlaying = false
-    private let engine = AVAudioEngine()
+    private lazy var engine = AVAudioEngine()
     private var preparedVoicesByID: [String: [PreparedSFXVoice]] = [:]
     private var buffersByID: [String: AVAudioPCMBuffer] = [:]
     private var failedBufferIDs: Set<String> = []
@@ -20,20 +65,11 @@ public final class SFXPlayer {
         category: "Audio",
     )
 
-    public init(isDisabled: Bool) {
-        self.isDisabled = isDisabled
-    }
-
     isolated deinit {
         catalogWarmTask?.cancel()
     }
 
-    public func play(_ id: String, volume: Double) {
-        playAll([id], volume: volume)
-    }
-
-    public func playAll(_ ids: [String], volume: Double) {
-        guard !isDisabled else { return }
+    func playAll(_ ids: [String], volume: Double) {
         guard volume > 0 else { return }
         guard !ids.isEmpty else { return }
 
@@ -53,8 +89,7 @@ public final class SFXPlayer {
         }
     }
 
-    public func warm(_ ids: [String], concurrentPlayerCount: Int = 1) {
-        guard !isDisabled else { return }
+    func warm(_ ids: [String], concurrentPlayerCount: Int = 1) {
         let desiredCount = max(1, concurrentPlayerCount)
         let idsNeedingWork = ids.filter { id in
             (preparedVoicesByID[id]?.count ?? 0) < desiredCount
@@ -87,8 +122,7 @@ public final class SFXPlayer {
         }
     }
 
-    public func warmAllCatalog(concurrentPlayerCount: Int = 2) {
-        guard !isDisabled else { return }
+    func warmAllCatalog(concurrentPlayerCount: Int = 2) {
         let ids = SFXCatalog.clips.map(\.id)
         let clips = SFXCatalog.clips
         catalogWarmTask?.cancel()
@@ -103,15 +137,21 @@ public final class SFXPlayer {
                 else { continue }
                 decoded[clip.id] = buffer
             }
-            await MainActor.run { [weak self] in
-                guard let self, !Task.isCancelled else { return }
-                buffersByID.merge(decoded) { _, new in new }
-                warm(ids, concurrentPlayerCount: concurrentPlayerCount)
-            }
+            await self?.finishCatalogWarmup(decoded, ids: ids, concurrentPlayerCount: concurrentPlayerCount)
         }
     }
 
-    public func stopAll() {
+    private func finishCatalogWarmup(
+        _ decoded: [String: AVAudioPCMBuffer],
+        ids: [String],
+        concurrentPlayerCount: Int,
+    ) {
+        guard !Task.isCancelled else { return }
+        buffersByID.merge(decoded) { existing, _ in existing }
+        warm(ids, concurrentPlayerCount: concurrentPlayerCount)
+    }
+
+    func stopAll() {
         for voices in preparedVoicesByID.values {
             for voice in voices {
                 voice.node.stop()
@@ -122,7 +162,7 @@ public final class SFXPlayer {
         engineIsRunning = false
     }
 
-    public func releaseResources() {
+    func releaseResources() {
         catalogWarmTask?.cancel()
         catalogWarmTask = nil
         stopAll()
@@ -236,7 +276,7 @@ public final class SFXPlayer {
     private func startPreparedVoicesIfNeeded() {
         guard !preparedVoicesArePlaying else { return }
         for voices in preparedVoicesByID.values {
-            for voice in voices {
+            for voice in voices where !voice.node.isPlaying {
                 voice.node.play()
             }
         }
