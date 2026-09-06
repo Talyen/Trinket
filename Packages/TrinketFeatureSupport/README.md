@@ -15,6 +15,10 @@ None of these products may import `TrinketBattleFeature`, `TrinketAppState`, or 
 app module. Keep app routing, encounter orchestration, combat lifecycle, and save
 mutations outside this package.
 
+Within `Sources/TrinketFeatureSupport/Shared/`, `Cards/` owns reusable cards and
+item artwork, `Encounters/` owns encounter tiles and reading presentation, and
+`Rewards/` owns the reward reveal sequence and its views.
+
 ## Architecture and Core Systems
 
 - **Artwork Cache & Warmup**: `PreparedArtworkCache` manages decoded UI bitmaps. Image loading and decoding run off the main actor; cache publication and pin ownership remain on the main actor. Priority assets decode during launch before releasing the interactive UI and stay pinned to avoid hitching on presentation frames; remaining catalog items decode deferred at utility priority. `ArtworkViewportPrewarm` debounces scroll-driven prefetch windows (forward/backward rows). Pinned pictures live outside the evictable `NSCache` cost limit. Current memory targets and enforcement belong to the [performance playbook](../../Docs/Platform/PerformanceInvestigationPlaybook.md).

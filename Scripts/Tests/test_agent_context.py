@@ -15,6 +15,24 @@ from pathlib import Path
 from script_test_support import ROOT, ScriptRegressionTestCase, load_script
 
 class AgentContextTests(ScriptRegressionTestCase):
+    def test_shared_encounters_and_rewards_keep_visual_guidance(self) -> None:
+        for relative_path in (
+            "Shared/Encounters/EncounterItemTile.swift",
+            "Shared/Encounters/EncounterReadingShell.swift",
+            "Shared/Rewards/RewardRevealShell.swift",
+            "Shared/Rewards/RewardRevealSequenceState.swift",
+            "Shared/Cards/ItemArtwork.swift",
+        ):
+            with self.subTest(path=relative_path):
+                path = "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/" + relative_path
+                output = subprocess.check_output(
+                    [str(ROOT / "Scripts/agent-context.sh"), "--agent", "--paths", path],
+                    cwd=ROOT, text=True,
+                )
+                self.assertIn("Docs/AgentContext/swiftui-features.md", output)
+                self.assertIn(".agents/skills/apple-design/SKILL.md", output)
+                self.assertIn("Packages/TrinketFeatureSupport/AGENTS.md", output)
+
     def test_agent_context_shell_quotes_paths_with_spaces(self) -> None:
         result = subprocess.run(
             [

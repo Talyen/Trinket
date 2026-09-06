@@ -53,7 +53,7 @@ Locate authored Swift symbols within their owner before reading whole files:
 
 ```sh
 rg -n -g '*.swift' -g '!**/Generated/**' -g '!*.generated.swift' 'DamagePipeline' Packages/BattleEngine/Sources
-sed -n '40,100p' Packages/BattleEngine/Sources/BattleEngine/DamagePipelineResolutionSteps.swift
+sed -n '40,100p' Packages/BattleEngine/Sources/BattleEngine/Damage/DamagePipelineResolutionSteps.swift
 ```
 
 For a generated-content investigation, explicitly target the catalog and entry:

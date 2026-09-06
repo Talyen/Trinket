@@ -39,7 +39,7 @@ class ReleaseNotesUserTests(unittest.TestCase):
             notes.is_user_facing(
                 commit(
                     "fix(battle): resolve dodge against blocked hits",
-                    "Packages/BattleEngine/Sources/BattleEngine/CombatTriggerEngine+Dodge.swift",
+                    "Packages/BattleEngine/Sources/BattleEngine/Triggers/CombatTriggerEngine+Dodge.swift",
                 )
             )
         )
@@ -66,7 +66,7 @@ class ReleaseNotesUserTests(unittest.TestCase):
             notes.is_user_facing(
                 commit(
                     "Extract dodge handling from CombatTriggerEngine",
-                    "Packages/BattleEngine/Sources/BattleEngine/CombatTriggerEngine+Dodge.swift",
+                    "Packages/BattleEngine/Sources/BattleEngine/Triggers/CombatTriggerEngine+Dodge.swift",
                 )
             )
         )
@@ -74,7 +74,7 @@ class ReleaseNotesUserTests(unittest.TestCase):
             notes.is_user_facing(
                 commit(
                     "refactor(battle): split trigger handlers",
-                    "Packages/BattleEngine/Sources/BattleEngine/CombatTriggerEngine.swift",
+                    "Packages/BattleEngine/Sources/BattleEngine/Triggers/CombatTriggerEngine.swift",
                 )
             )
         )
@@ -106,7 +106,7 @@ class ReleaseNotesUserTests(unittest.TestCase):
             notes.is_user_facing(
                 commit(
                     "feat(battle): extract dodge into its own trigger",
-                    "Packages/BattleEngine/Sources/BattleEngine/CombatTriggerEngine+Dodge.swift",
+                    "Packages/BattleEngine/Sources/BattleEngine/Triggers/CombatTriggerEngine+Dodge.swift",
                 )
             )
         )
@@ -116,7 +116,7 @@ class ReleaseNotesUserTests(unittest.TestCase):
             notes.is_user_facing(
                 commit(
                     "Tighten dodge resolution on blocked hits",
-                    "Packages/BattleEngine/Sources/BattleEngine/CombatTriggerEngine+Dodge.swift",
+                    "Packages/BattleEngine/Sources/BattleEngine/Triggers/CombatTriggerEngine+Dodge.swift",
                 )
             )
         )
@@ -154,7 +154,7 @@ class ReleaseNotesUserTests(unittest.TestCase):
                 ),
                 commit(
                     "fix(battle): dodge blocked hits",
-                    "Packages/BattleEngine/Sources/BattleEngine/CombatTriggerEngine+Dodge.swift",
+                    "Packages/BattleEngine/Sources/BattleEngine/Triggers/CombatTriggerEngine+Dodge.swift",
                 ),
                 commit("chore: regenerate project", "project.yml"),
             ]

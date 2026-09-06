@@ -10,6 +10,10 @@ Products from `Package.swift`:
 - **BattleBalanceTools** — App-unlinked library for headless simulation, sweeps, and reporting (`BattleSimulator`, `BalanceSweepRunner`, contrast runners). Depends on `BattleEngine`; not linked into the Trinket app.
 - **BalanceSweepCLI** — Executable entry for bulk sweeps. Depends on `BattleBalanceTools`. Invoke with `./Scripts/balance-sweep.sh`.
 
+Combat trigger cadence files live in `Sources/BattleEngine/Triggers/`; damage
+resolution files live in `Sources/BattleEngine/Damage/`. Effect handlers remain
+in `Sources/BattleEngine/EffectHandlers/`. These folders belong to the same target.
+
 ## Key types
 
 | Type | Target | Role |
